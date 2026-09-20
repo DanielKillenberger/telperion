@@ -1,0 +1,12 @@
+{
+  "direction": 5606,
+  "size_worst": 5906,
+  "total": 11512,
+  "hashes": {
+    "direction-state.json": "2ce1a7948c08aa8fbf728f1c9b8885c6a4c3eabe826720da4dab80b675a0c2b1",
+    "direction-questions.json": "2004beadc957325e2cc0e454ef70f184868c6a258f968a8d2180e4f14fc9c1a3",
+    "size-worst-state.json": "53263abeddef94d9225d732d23aa15450fac286999e531c32a1233f86d704e17",
+    "size-worst-questions.json": "b815c80db61bbfb067d79e052550bf0cdd81c72db9b6f5a18fd9d9e437469c9f",
+    "available-candidates.json": "5e3006feb884c476490dee3dc0b80e24587c852e5ad85447e5d6800b5b47eb4d"
+  }
+}

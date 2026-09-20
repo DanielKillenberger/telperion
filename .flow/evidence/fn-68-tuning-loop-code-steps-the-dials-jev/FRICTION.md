@@ -49,6 +49,14 @@ The worker checked the R5/R7/R8 prerequisites before implementing the loop. The 
 The manager reused an existing fn-68 branch at b4c1a390 instead of starting from the requested fn-72 base. The host preserved it by merging fn-72. Three conflicts were formatting and updated help text; the current parent versions preserved the checkpoint functionality. Cost was about two minutes of inspection and resolution, no pilot tick. Explicit existing-branch reporting and ancestry checks in worktree setup would avoid the surprise. A diff check initially included unrelated historical whitespace; comparison against the actual fn-72 base passed. No historical source text was changed.
 # 2026-09-20 — Resume integration bookkeeping
 
+## 2026-09-20 — v2 preflight compaction resolved; study abstentions retained
+
+Before model calls, host-directed applicable-policy-only state and computed availability removed redundant bounds/deltas/opposite candidates, reducing conservative reservation15,966→11,512 without changing cases/observations/labels or reservation formula. Preparation took about three minutes, zero model tokens. The subsequent two approved text calls cost2,998tokens; direction abstained on two expected-positive cases, so declared qualification failed. No retry/prompt adjustment follows these answers. Full distribution evidence supports host review of question semantics rather than automatic budget extension.
+
+## 2026-09-20 — Text-only v2 study preflight exceeds allowance
+
+The frozen eight-case study was prepared with shared policy definitions and explicit per-case questions, no labels in model state. Conservative serialized bytes+1024 reservations total15,966 (direction7,711; worst-case size8,255), exceeding the approved12,000 additional allowance. Stopped before either call; cost about two minutes preparation, zero model tokens/renders. Host can revise pre-answer packaging or seek bounded authority; no reservation reduction or post-answer case trimming occurred.
+
 ## 2026-09-20 — Corrected continuation passed, action selection abstained
 
 The approved corrected check passed, but no action met frozen0.5confidence. Irregularity combined increase probability0.80 split0.52small/0.28substantial, with0.18insufficient evidence; exact-action confidence0.42. Cost10,390modeltokens, zero images/evaluations; second round reserved at dispatch and retained. Honest bounded abstention, not permission to weaken thresholds or repeat. Proposed design: inspect action-specific evidence and separately calibrate direction/magnitude uncertainty including abstentions. No change or new spec made.

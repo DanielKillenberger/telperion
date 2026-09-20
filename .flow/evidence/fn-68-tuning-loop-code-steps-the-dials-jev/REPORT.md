@@ -1,5 +1,13 @@
 # fn68 implementation and calibration checkpoint
 
+## Text-only v2 policy study: declared gates not met
+
+Eight new authored cases were frozen before calls in proposal-v2-policy.json (SHA8a020502e43deac7c74e455d264f3e52a55a0e07c7ac32839a9ef54182de79c0). Initial packaging exceeded12k conservative reservation; before any answer, host-directed removal of redundant fields reduced direction+worst-size reservation to11,512. Policies/observations/labels stayed unchanged. Compact artifacts and SHA are in v2-generated-compact; unavailable numeric candidates were computed with the same IEEE current±step bounds semantics, no rounding/clamping. Null option descriptions refer to shared explicit policy definitions. No expected labels/provenance entered model state.
+
+Direction6/8=.75 missed outline_probe (insufficient_evidence0.60) and unknown_size (insufficient_evidence0.99), both expected increase. Only confident observed increase/decrease proceeded: discrete_bound small0.62, overshoot small0.63, spacing_larger substantial0.97. Conditional size3/3; expected-size coverage including missing stages3/5. Composed6/8=.75 under the frozen missing-stage-failure rule; actionablecoverage3/4=.75; unsafe composed0/8. Full choices/distributions and ledger identities are in v2-policy-result.json. Direction/composed/coverage gates fail, despite correct eligible size judgments. These authored cases do not establish biological usefulness or runtime qualification; v1 receipts/policy remain unchanged.
+
+Actual2,998tokens (direction2,004,size994), cumulative208,907. Durable v2-calibration-accounting.json settles both reservations and records no pending usage. Original runtime run.json deliberately remains205,909 and must reconcile the separate2,998 before any future authorized resume. No render, vision call, new tuning round, production edit or runtime activation occurred. Both runtime rounds remain exhausted. No further model call authorized.
+
 ## Offline proposal-design review
 
 `PROPOSAL-REVIEW.md` records the owner-requested review and proposed direction/conditional experimental-size contract. The existing magnitude cases primarily test explicit target-number interpretation; the live flat action combines direction and size uncertainty. Splitting alone is not proof that abstention will disappear. Seven mocked composition checks passed with zero model calls; no runtime code, frozen labels, thresholds or pilot limits changed. Cumulative spend remains205,909. Text-only v2 calibration up to12,000tokens within the270k ceiling is proposed and awaits owner approval; no further tuning round is authorized.

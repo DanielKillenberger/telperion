@@ -1,0 +1,316 @@
+{
+  "manifest_sha256": "8a020502e43deac7c74e455d264f3e52a55a0e07c7ac32839a9ef54182de79c0",
+  "direction": {
+    "id": "18d6feeac83d2f7f-1ae82-0",
+    "tool": "fn68-v2-direction",
+    "state_sha256": "e940f73465316cec52ac3fe30f93faefa7b88ceefa265afbf277b0db703e3076",
+    "source": null,
+    "model": "jev-1.13.0",
+    "questions": {
+      "already_right": {
+        "criteria": {
+          "decrease": null,
+          "hold": null,
+          "increase": null,
+          "insufficient_evidence": null
+        },
+        "instructions": "Apply policy to cases.already_right.",
+        "type": "choice"
+      },
+      "conflicting": {
+        "criteria": {
+          "decrease": null,
+          "hold": null,
+          "increase": null,
+          "insufficient_evidence": null
+        },
+        "instructions": "Apply policy to cases.conflicting.",
+        "type": "choice"
+      },
+      "discrete_bound": {
+        "criteria": {
+          "decrease": null,
+          "hold": null,
+          "increase": null,
+          "insufficient_evidence": null
+        },
+        "instructions": "Apply policy to cases.discrete_bound.",
+        "type": "choice"
+      },
+      "irrelevant": {
+        "criteria": {
+          "decrease": null,
+          "hold": null,
+          "increase": null,
+          "insufficient_evidence": null
+        },
+        "instructions": "Apply policy to cases.irrelevant.",
+        "type": "choice"
+      },
+      "outline_probe": {
+        "criteria": {
+          "decrease": null,
+          "hold": null,
+          "increase": null,
+          "insufficient_evidence": null
+        },
+        "instructions": "Apply policy to cases.outline_probe.",
+        "type": "choice"
+      },
+      "overshoot": {
+        "criteria": {
+          "decrease": null,
+          "hold": null,
+          "increase": null,
+          "insufficient_evidence": null
+        },
+        "instructions": "Apply policy to cases.overshoot.",
+        "type": "choice"
+      },
+      "spacing_larger": {
+        "criteria": {
+          "decrease": null,
+          "hold": null,
+          "increase": null,
+          "insufficient_evidence": null
+        },
+        "instructions": "Apply policy to cases.spacing_larger.",
+        "type": "choice"
+      },
+      "unknown_size": {
+        "criteria": {
+          "decrease": null,
+          "hold": null,
+          "increase": null,
+          "insufficient_evidence": null
+        },
+        "instructions": "Apply policy to cases.unknown_size.",
+        "type": "choice"
+      }
+    },
+    "answers": {
+      "already_right": {
+        "choice": "hold",
+        "confidence": 0.99,
+        "probabilities": {
+          "decrease": 0.0,
+          "hold": 0.99,
+          "increase": 0.0,
+          "insufficient_evidence": 0.01
+        },
+        "type": "choice"
+      },
+      "conflicting": {
+        "choice": "insufficient_evidence",
+        "confidence": 1.0,
+        "probabilities": {
+          "decrease": 0.0,
+          "hold": 0.0,
+          "increase": 0.0,
+          "insufficient_evidence": 1.0
+        },
+        "type": "choice"
+      },
+      "discrete_bound": {
+        "choice": "increase",
+        "confidence": 0.84,
+        "probabilities": {
+          "decrease": 0.0,
+          "hold": 0.0,
+          "increase": 0.88,
+          "insufficient_evidence": 0.12
+        },
+        "type": "choice"
+      },
+      "irrelevant": {
+        "choice": "insufficient_evidence",
+        "confidence": 1.0,
+        "probabilities": {
+          "decrease": 0.0,
+          "hold": 0.0,
+          "increase": 0.0,
+          "insufficient_evidence": 1.0
+        },
+        "type": "choice"
+      },
+      "outline_probe": {
+        "choice": "insufficient_evidence",
+        "confidence": 0.6,
+        "probabilities": {
+          "decrease": 0.05,
+          "hold": 0.01,
+          "increase": 0.24,
+          "insufficient_evidence": 0.7
+        },
+        "type": "choice"
+      },
+      "overshoot": {
+        "choice": "decrease",
+        "confidence": 0.63,
+        "probabilities": {
+          "decrease": 0.73,
+          "hold": 0.0,
+          "increase": 0.0,
+          "insufficient_evidence": 0.27
+        },
+        "type": "choice"
+      },
+      "spacing_larger": {
+        "choice": "increase",
+        "confidence": 0.99,
+        "probabilities": {
+          "decrease": 0.0,
+          "hold": 0.0,
+          "increase": 1.0,
+          "insufficient_evidence": 0.0
+        },
+        "type": "choice"
+      },
+      "unknown_size": {
+        "choice": "insufficient_evidence",
+        "confidence": 0.99,
+        "probabilities": {
+          "decrease": 0.0,
+          "hold": 0.0,
+          "increase": 0.0,
+          "insufficient_evidence": 1.0
+        },
+        "type": "choice"
+      }
+    },
+    "usage": {
+      "input_tokens": 1561,
+      "output_tokens": 443
+    },
+    "elapsed_ms": 672,
+    "recorded_at": "2026-09-20T09:56:26Z",
+    "identity": "694fc1aa3f2881830dc24581"
+  },
+  "size": {
+    "id": "18d6fef409c69752-1b1fe-0",
+    "tool": "fn68-v2-size",
+    "state_sha256": "6a63dd251ee360a4d2a81a95378a534b1d6e7b353fb45900a3c943769ac4d24f",
+    "source": null,
+    "model": "jev-1.13.0",
+    "questions": {
+      "discrete_bound": {
+        "criteria": {
+          "insufficient_evidence": null,
+          "small": null
+        },
+        "instructions": "Apply policy to cases.discrete_bound.",
+        "type": "choice"
+      },
+      "overshoot": {
+        "criteria": {
+          "insufficient_evidence": null,
+          "small": null,
+          "substantial": null
+        },
+        "instructions": "Apply policy to cases.overshoot.",
+        "type": "choice"
+      },
+      "spacing_larger": {
+        "criteria": {
+          "insufficient_evidence": null,
+          "small": null,
+          "substantial": null
+        },
+        "instructions": "Apply policy to cases.spacing_larger.",
+        "type": "choice"
+      }
+    },
+    "answers": {
+      "discrete_bound": {
+        "choice": "small",
+        "confidence": 0.62,
+        "probabilities": {
+          "insufficient_evidence": 0.19,
+          "small": 0.81
+        },
+        "type": "choice"
+      },
+      "overshoot": {
+        "choice": "small",
+        "confidence": 0.63,
+        "probabilities": {
+          "insufficient_evidence": 0.19,
+          "small": 0.75,
+          "substantial": 0.06
+        },
+        "type": "choice"
+      },
+      "spacing_larger": {
+        "choice": "substantial",
+        "confidence": 0.97,
+        "probabilities": {
+          "insufficient_evidence": 0.01,
+          "small": 0.01,
+          "substantial": 0.98
+        },
+        "type": "choice"
+      }
+    },
+    "usage": {
+      "input_tokens": 862,
+      "output_tokens": 132
+    },
+    "elapsed_ms": 654,
+    "recorded_at": "2026-09-20T09:57:06Z",
+    "identity": "3c015b88aafccea11d378db1"
+  },
+  "scores": {
+    "direction": {
+      "correct": 6,
+      "total": 8
+    },
+    "conditional_size": {
+      "correct": 3,
+      "total": 3
+    },
+    "expected_size_including_missing": {
+      "correct": 3,
+      "total": 5
+    },
+    "composed": {
+      "correct": 6,
+      "total": 8
+    },
+    "actionable_coverage": {
+      "actions": 3,
+      "expected_actionable": 4
+    },
+    "unsafe_composed": {
+      "unsafe": 0,
+      "total": 8
+    }
+  },
+  "missing_expected_size": [
+    "outline_probe",
+    "unknown_size"
+  ],
+  "verdict": "fails direction/composed/actionable coverage gates; authored policy study only; runtime unchanged",
+  "accounting": {
+    "status": "settled_failed_qualification",
+    "previous_tokens": 205909,
+    "additional_max_tokens": 12000,
+    "cumulative_max_tokens": 270000,
+    "new_actual_tokens": 2998,
+    "cumulative_actual_tokens": 208907,
+    "pending": null,
+    "ledgers": [
+      ".flow/ledger/fn68-v2-calibration/2026-09-20T095626Z-fn68-v2-direction-18d6feeac83d2f7f-1ae82-0.json",
+      ".flow/ledger/fn68-v2-calibration/2026-09-20T095706Z-fn68-v2-size-18d6fef409c69752-1b1fe-0.json"
+    ],
+    "runtime_run_untouched": true,
+    "manifest_sha256": "8a020502e43deac7c74e455d264f3e52a55a0e07c7ac32839a9ef54182de79c0",
+    "size_hashes": {
+      "size-state.json": "5bb786acd78e56c7cc37bf9cb5bf2d2b9ddf1b1adb5a8ee5a4ef65698a9418a8",
+      "size-questions.json": "0d845d182e0bb4c50600154f818982e49cbbf499556ec2dfdd99b7324c2e8118"
+    },
+    "actual_by_stage": {
+      "direction": 2004,
+      "size": 994
+    }
+  }
+}
