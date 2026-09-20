@@ -1,5 +1,15 @@
 # fn68 implementation and calibration checkpoint
 
+## Corrected authorized attempt: terminal abstention
+
+The owner said “go ahead” under unchanged270k authority. Scoped resume preserved verified config/generator/render/reference/baseline identities. Tooling-only release build passed40.63seconds; exact preflight65,729 fit74,481 available. No baseline or calibration replay.
+
+Route tuning0.93; corrected continuation passed tractability0.65/progress0.57/risk0.91. No proposal qualified: irregularity small increase0.42 below frozen0.5; crookedness/leaves/taper insufficient_evidence0.62/0.61/0.50; limbs/spacing insufficient_evidence0.36/0.28. Irregularity probabilities were small increase0.52, substantial increase0.28, insufficient0.18, hold0.01, small decrease0.01, substantial decrease0.00. Combined increase0.80 suggests direction support dispersed across sizes, but nontrivial insufficient evidence remains; this single result cannot establish a direction/magnitude diagnosis or justify lowering the threshold.
+
+New10,390tokens (route2,739,continuation2,656,proposals4,995); cumulative205,909tokens/8visual passes/4evaluations/16image reservations versus12actual pilot still-twins/2rounds. The round was charged at proposal dispatch; no candidate evaluation/render/final visual occurred. Both rounds are exhausted; unused64,091tokens and one visual slot do not authorize another round. `pilot-corrected-outcome.json` preserves full typed distributions and usage. R7 magnitude efficacy remains unvalidated; R8 all-cell readiness unproven; R10 human escalation demonstrated. No done or unattended rollout claim.
+
+No implementation change followed the result. Existing196package/16focused tests cover source; release tooling build and final format/diff checks passed. Smallest grounded next design is to inspect action-specific evidence and separately calibrate direction versus magnitude uncertainty, including genuine insufficient-evidence cases; not blindly add budget, invent actions or weaken the frozen cut. Owner decides that work.
+
 ## Recovered assets and fn53 pilot,2026-09-20
 
 The owner approved two exact historical replay recoveries. Both hashes matched, and frozen paths now link to durable ignored originals; no calibration call or label changed. `recovery-2026-09-20.json` records revisions, commands, hashes and costs. Two isolated builds took58.11/58.88seconds; an intervening shared-target no-op was rejected as inconclusive before rendering. This adds two renders to the prior six historical reconstruction renders, not to pilot image accounting.
