@@ -22,34 +22,54 @@ use telperion_core::{
     Family,
 };
 
+/// Requested geometry ownership, independent of the compute backend.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Delivery {
+    /// Keep supported output on the renderer's device; fallback may use CPU geometry.
     Resident,
+    /// Return owned CPU geometry, reading GPU-generated foliage back when applicable.
     Cpu,
 }
+/// Backend for the reported stage: [`Prepared::backend`] describes foliage;
+/// [`Metrics::wood_backend`] reports wood independently.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Backend {
+    /// CPU execution requested by the delivery path.
     Cpu,
+    /// GPU execution, including output subsequently read back to CPU ownership.
     Gpu,
+    /// Canonical CPU execution because acceleration was unsupported or rejected.
     CpuFallback,
 }
+/// Diagnostics for one preparation request. `_ms` fields are host wall-clock
+/// milliseconds, not GPU timestamps; `_bytes` fields count selected allocation
+/// capacities in bytes. Stage timings can nest or overlap and must not be summed.
+/// Buffer snapshots and phase peaks also overlap: use ownership-aware phase maxima,
+/// not their sum. They exclude previous renderer trees, some transient scratch,
+/// allocator-retained Wasm capacity, upload staging and driver/deferred allocations.
+/// Zero/default fields may mean the stage was not used, rather than free execution.
 #[derive(Debug, Default)]
 pub struct Metrics {
     pub position_prepare_ms: f64,
     pub position_upload_ms: f64,
+    /// Remaining admission wait after any overlapping CPU station preparation.
     pub position_wait_ms: f64,
     pub position_cpu_bytes: u64,
     pub position_gpu_peak_bytes: u64,
     pub position_retained_metadata_bytes: u64,
+    /// Unstable diagnostic text, not an error code or a string to branch on.
     pub position_fallback: Option<&'static str>,
+    /// Whether admitted GPU positions are used by this result.
     pub gpu_positions: bool,
     pub skeleton_ms: f64,
+    /// CPU descriptor work, including station preparation; excludes early wood work.
     pub descriptors_ms: f64,
     pub upload_dispatch_ms: f64,
     pub placement_wait_ms: f64,
     pub compact_ms: f64,
     pub mass_ms: f64,
     pub readback_ms: f64,
+    /// Wood work including early position preparation; contains wood substage timings.
     pub wood_ms: f64,
     pub wood_prepare_ms: f64,
     pub wood_upload_dispatch_ms: f64,
@@ -58,15 +78,19 @@ pub struct Metrics {
     pub wood_metadata_cpu_bytes: u64,
     pub wood_gpu_peak_bytes: u64,
     pub wood_backend: Option<Backend>,
+    /// Unstable diagnostic text; absent when no fallback reason was recorded.
     pub wood_fallback: Option<&'static str>,
+    /// Preparation only: excludes adoption, drawing and completed-frame fencing.
     pub total_ms: f64,
     pub base_cpu_bytes: u64,
     pub wood_cpu_bytes: u64,
+    /// GPU output capacity retained by this result, excluding the previous tree.
     pub retained_gpu_bytes: u64,
     pub input_instances: u32,
     pub instances: u32,
     pub descriptor_cpu_bytes: u64,
     pub shared_contact_cpu_bytes: u64,
+    /// Maximum recorded shared CPU phase snapshot, not a complete process-memory peak.
     pub shared_prepare_cpu_bytes: u64,
     pub shared_metadata_cpu_bytes: u64,
     pub gpu_compute_peak_bytes: u64,

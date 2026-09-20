@@ -172,3 +172,9 @@ The reused .13 owned-output timing runner does not set GENERATION_VERIFY; its op
 After the measured source passed20 renderer tests, the worker renamed PendingRead::complete's unused Wasm parameter gpu to _gpu. The text replacement also changed the eager-read test's local gpu.device reference to nonexistent _gpu. Final example/Wasm builds exclude that native test; the host aggregate CI-profile compile caught the error. Cost: one failed aggregate compile (seconds), then the host's one-line test-reference correction and rerun. A scoped patch restricted to the method would have avoided it. No measured production behavior changed, but the intermediate final test tree was not green.
 
 Correction to the earlier baseline-selection estimate: the broad attachment matrix ultimately passed in28.088seconds; the command's elapsed time included compilation. The avoidable matrix cost is28seconds, rather than a verified minute of test execution.
+
+### 2026-09-20 — final aggregate historical receipt output
+The full Rust gate passed 742 tests but the smooth-bark test rewrote fn-71's committed historical receipt. The host copied the fresh receipt into fn-91 and restored only the changed historical row. Cost: two calls and under one minute. An ignored or caller-selected artifact output path would remove this repeated hand step; this is the already recorded test-output proposal.
+
+### 2026-09-20 — .14 API documentation edit guard
+The API documentation/type follow-up's literal Python heredoc contained Markdown backticks and was rejected by the shell guard as an unverifiable shell launcher. No edit ran. The worker used the dedicated apply_patch tool successfully without changing the guard. Cost: one rejected tool call and about one minute. Use apply_patch directly for documentation edits containing shell-like syntax; no machine policy change is needed.

@@ -30,6 +30,61 @@ export interface Submitted {
   bounds: { min: Point; max: Point };
 }
 
+/** Host wall-clock milliseconds (`Ms`) and selected allocation capacities (`Bytes`).
+ * Timings can nest/overlap; memory snapshots share allocations and are not additive.
+ * These omit some transient scratch, allocator-retained Wasm memory, upload staging,
+ * driver allocations and deferred destruction; they are not whole-process peaks.
+ * Zero/default fields can mean an unused stage. */
+export interface GenerationStages {
+  positionPrepareMs: number;
+  positionUploadMs: number;
+  /** Admission wait remaining after overlapping CPU station work. */
+  positionWaitMs: number;
+  positionCpuBytes: number;
+  positionGpuPeakBytes: number;
+  positionRetainedMetadataBytes: number;
+  /** Unstable diagnostic text; do not branch on its wording. */
+  positionFallback: string | null;
+  gpuPositions: boolean;
+  skeletonMs: number;
+  descriptorsMs: number;
+  uploadDispatchMs: number;
+  placementWaitMs: number;
+  compactMs: number;
+  massMs: number;
+  readbackMs: number;
+  woodMs: number;
+  woodPrepareMs: number;
+  woodUploadDispatchMs: number;
+  woodWaitMs: number;
+  woodPreparedCpuBytes: number;
+  woodMetadataCpuBytes: number;
+  woodGpuPeakBytes: number;
+  woodBackend: "Cpu" | "Gpu" | "CpuFallback" | null;
+  /** Unstable diagnostic text; do not branch on its wording. */
+  woodFallback: string | null;
+  /** Preparation only; excludes adoption, drawing and completed-frame fencing. */
+  totalMs: number;
+  baseCpuBytes: number;
+  woodCpuBytes: number;
+  descriptorCpuBytes: number;
+  sharedContactCpuBytes: number;
+  sharedPrepareCpuBytes: number;
+  sharedMetadataCpuBytes: number;
+  gpuComputePeakBytes: number;
+  retainedGpuBytes: number;
+}
+
+/** A tree adopted by the renderer; this promise does not fence a completed frame. */
+export interface GpuSubmitted extends Submitted {
+  backend: "Gpu" | "CpuFallback";
+  stages: GenerationStages;
+  /** Allocated live-tree GPU buffer bytes before adoption; excludes textures/pipelines. */
+  previousTreeGpuBytes: number;
+  /** Allocated live-tree GPU buffer bytes after adoption, with the same exclusions. */
+  treeGpuBytes: number;
+}
+
 export interface FrameStats {
   drawCalls: number;
   triangles: number;
@@ -111,7 +166,7 @@ export interface GrowthSubmitted extends Submitted { age: number; frontier: numb
 export interface Renderer {
   setTree(family: string): Submitted;
   /** Experimental GPU foliage; unsupported inputs report CpuFallback. */
-  setTreeGpu(family: string): Promise<Submitted & { backend: "Gpu" | "CpuFallback" }>;
+  setTreeGpu(family: string): Promise<GpuSubmitted>;
   buildSpecimen(family: string, age: number): GrowthSubmitted;
   seekSpecimen(age: number): GrowthSubmitted;
   setView(view: View): void;
@@ -164,7 +219,7 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
     setTree: (family) => JSON.parse(renderer.setTree(family)) as Submitted,
     setTreeGpu: async (family) => {
       if (disposed) throw new Error("the renderer is disposed");
-      return JSON.parse(await renderer.setTreeGpu(family));
+      return JSON.parse(await renderer.setTreeGpu(family)) as GpuSubmitted;
     },
     buildSpecimen: (family, age) => JSON.parse(renderer.buildSpecimen(family, age)) as GrowthSubmitted,
     seekSpecimen: age => JSON.parse(renderer.seekSpecimen(age)) as GrowthSubmitted,
