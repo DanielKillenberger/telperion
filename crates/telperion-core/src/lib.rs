@@ -10,6 +10,7 @@ pub mod colonization;
 pub mod envelope;
 pub mod field;
 pub mod foliage;
+pub mod footprint;
 pub mod growth;
 pub mod material;
 pub mod math;

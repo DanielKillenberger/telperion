@@ -1,6 +1,6 @@
 use super::{
     clumping, range, short_shoots,
-    station::{place_run, Run},
+    station::{place_run, reserve_all, station_count, walk, Run},
     Instances, Reference,
 };
 use crate::{
@@ -111,6 +111,17 @@ impl Default for TwigPlacement {
         }
     }
 }
+impl TwigPlacement {
+    /// The rows a family's own twig table states, resolved: what a caller
+    /// clothing that family hands `place`, and what the prediction counts by.
+    pub fn of(family: &crate::presets::Family) -> Result<Self> {
+        let twig = family.skeleton.twigs.resolved()?.twig;
+        Ok(Self {
+            internode_length: twig.internode_length,
+            stations_per_internode: twig.stations_per_internode,
+        })
+    }
+}
 
 /// Leaves sit on the runs the twig layer marks, and on any wood slender enough
 /// for shoot_radius. Without a twig layer the terminal runs under that same
@@ -143,18 +154,17 @@ pub fn place_on_surface(
     let contacts = AttachmentSurface::new(tree, envelope.height, surface)?;
     place_impl(tree, envelope, seed, p, twig, Some(&contacts), reference)
 }
-fn place_impl(
+/// Everything both the builder and the count check before a leaf is placed,
+/// and whether this tree and this family bear any at all.
+fn bearing(
     tree: &Tree,
     envelope: Envelope,
-    seed: u32,
     p: CanopyParams,
     twig: Option<TwigPlacement>,
-    contacts: Option<&AttachmentSurface>,
-    reference: Reference,
-) -> Result<Instances> {
+) -> Result<bool> {
     validate(tree, envelope, p, twig)?;
     if tree.nodes.len() < 2 || p.size == 0. {
-        return Ok(Instances::new(reference));
+        return Ok(false);
     }
     // Bound geometry before length arithmetic and float32 conversion.
     if tree.nodes.iter().any(|n| {
@@ -170,15 +180,83 @@ fn place_impl(
     }) {
         return Err(Error::ResourceLimit("foliage coordinate range"));
     }
-    let mut out = Instances::new(reference);
-    let mut rng = Rng::new(seed ^ 0x2c9e1a7f);
-    let runs = match twig {
+    Ok(true)
+}
+
+/// Every unbranched run of leaf-bearing wood this family clothes: what the
+/// twig layer marked, or the terminal shoots slender enough for `shoot_radius`
+/// where there is no twig layer.
+fn runs(tree: &Tree, p: CanopyParams, twig: Option<TwigPlacement>) -> Vec<Vec<usize>> {
+    match twig {
         Some(_) => bearing_runs(tree, p),
         None => shoots(
             tree,
             tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius,
         ),
-    };
+    }
+}
+
+/// Leaves these runs and this family's short shoots place, before any cull.
+fn leaves_on(
+    tree: &Tree,
+    envelope: Envelope,
+    seed: u32,
+    p: CanopyParams,
+    twig: Option<TwigPlacement>,
+    runs: &[Vec<usize>],
+) -> Result<usize> {
+    let overflow = || Error::ResourceLimit("foliage count overflow");
+    let (mut points, mut along) = (Vec::new(), Vec::new());
+    let mut total = short_shoots::count(tree, envelope, seed, &p)?;
+    for nodes in runs {
+        let length = walk(tree, nodes, &mut points, &mut along);
+        total = total
+            .checked_add(station_count(length, envelope, p, twig)?)
+            .ok_or_else(overflow)?;
+    }
+    Ok(total)
+}
+
+/// How many leaves this family places on this tree, before any cull. `place`
+/// reserves exactly this many, so a finished crown's capacity is this count,
+/// and a prediction reads it without placing a leaf or building a matrix.
+pub(crate) fn leaf_count(
+    tree: &Tree,
+    envelope: Envelope,
+    seed: u32,
+    p: CanopyParams,
+    twig: Option<TwigPlacement>,
+) -> Result<usize> {
+    if !bearing(tree, envelope, p, twig)? {
+        return Ok(0);
+    }
+    leaves_on(tree, envelope, seed, p, twig, &runs(tree, p, twig))
+}
+
+fn place_impl(
+    tree: &Tree,
+    envelope: Envelope,
+    seed: u32,
+    p: CanopyParams,
+    twig: Option<TwigPlacement>,
+    contacts: Option<&AttachmentSurface>,
+    reference: Reference,
+) -> Result<Instances> {
+    if !bearing(tree, envelope, p, twig)? {
+        return Ok(Instances::new(reference));
+    }
+    let mut out = Instances::new(reference);
+    let runs = runs(tree, p, twig);
+    // One reservation for the whole crown, to the count the prediction reads:
+    // every later reserve finds the room already there, so the vector's
+    // capacity is that count and nothing the cull or the clumping retains
+    // holds a block larger than the specimen was said to cost.
+    reserve_all(
+        &mut out,
+        leaves_on(tree, envelope, seed, p, twig, &runs)?,
+        p,
+    )?;
+    let mut rng = Rng::new(seed ^ 0x2c9e1a7f);
     // Which wood bears each leaf, kept only where limb systems clump.
     let mut owners = (p.limb_clumping > 0.).then(Vec::new);
     for nodes in runs {

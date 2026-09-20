@@ -1,3 +1,5 @@
+#[path = "species/budget.rs"]
+mod budget;
 #[path = "../examples/species_metrics/mod.rs"]
 mod species_metrics;
 
@@ -10,10 +12,12 @@ use std::{
     },
 };
 
+use budget::budget;
 use serde_json::Value;
 use telperion_core::{
     branching,
     foliage::{self, Instances, TwigPlacement},
+    footprint,
     math::Vec3,
     presets::Preset,
     surface::{self, SurfaceMesh},
@@ -290,6 +294,9 @@ fn fixed_species(preset: Preset) {
         "seeds must change retained foliage abundance"
     );
     assert!(moved.is_empty(), "digests moved:\n{}", moved.join("\n"));
+    // What the binary actually reached, against the ceiling - a larger number
+    // than the charge limit admission spends, by the headroom between them.
+    budget().hold_to_the_ceiling();
 }
 
 /// What one fixed seed contributes to the specimen-variation checks.
@@ -306,6 +313,12 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
     family.skeleton.seed = seed;
     let a = branching::generate(&family.skeleton, family.radii).unwrap();
     a.tree.validate_solved().unwrap();
+    // What this specimen will cost, computed from the tree just grown, and
+    // charged against what the whole binary may spend. The charge is released
+    // when `held` is dropped, which a panicking seed does on its way out.
+    let predicted = footprint::predict(&a.tree, &family).unwrap();
+    let name = format!("{} seed {seed}", preset.profile_id().unwrap());
+    let held = budget().charge(&name, predicted.bytes() as u64);
     if preset == Preset::NorwaySpruce {
         let structural = &a.tree.nodes[..a.tree.crossover];
         let axial = |p: Vec3| p.x.hypot(p.z) < 1e-10;
@@ -380,21 +393,21 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
     }
     let element = foliage::build_element(family.element).unwrap();
     element.validate().unwrap();
-    let twig = family.skeleton.twigs.resolved().unwrap().twig;
     let placed = foliage::place(
         &a.tree,
         family.skeleton.envelope,
         seed,
         family.canopy,
-        Some(TwigPlacement {
-            internode_length: twig.internode_length,
-            stations_per_internode: twig.stations_per_internode,
-        }),
+        // The same rows the prediction counted by: one constructor, so the
+        // harness and the prediction cannot clothe two different trees.
+        Some(TwigPlacement::of(&family).unwrap()),
         foliage::Reference::of(&family).unwrap(),
     )
     .unwrap();
     let digest = check(preset, seed, committed, digest(&a.tree, &wood, &placed));
     let placed_count = placed.len();
+    // The walk's own output, read before the cull takes the crown by value.
+    let (walked, thinned) = (placed.placed(), placed.thinned);
     let kept = foliage::cull(
         placed,
         &element,
@@ -403,6 +416,55 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
     )
     .unwrap();
     assert!(!kept.is_empty());
+    // The prediction against the specimen it sized: the builders' own counts,
+    // from the same functions, so the two can only differ if one of them is
+    // wrong. The margin R3 allows is the contract; exactness is what the one
+    // implementation buys, so the equality is what is asserted.
+    let measured = footprint::measure(&a.tree, &wood, &kept);
+    assert_eq!(
+        predicted, measured,
+        "{name}: predicted {predicted:?}, measured {measured:?}"
+    );
+    // The capacity equality above is not enough on its own: the builders
+    // reserve from the prediction, so an overcount would make them reserve
+    // exactly that much and the equality would still hold. What cannot be
+    // circular is what they produced. The station walk's own output is the
+    // leaves that survived plus the ones the limb clumping dropped, and it is
+    // asserted equal for every family, clumping or not.
+    assert_eq!(
+        predicted.leaves,
+        walked,
+        "{name}: predicted {} leaves, the walk produced {walked} ({placed_count} kept, {thinned} thinned)",
+        predicted.leaves
+    );
+    // And the wood's, which nothing compared before: three floats a vertex in
+    // positions, two in coords, one index a corner.
+    assert_eq!(
+        predicted.wood.positions,
+        wood.positions.len(),
+        "{name}: predicted {} wood position floats, swept {}",
+        predicted.wood.positions,
+        wood.positions.len()
+    );
+    assert_eq!(
+        predicted.wood.coords,
+        wood.coords.len(),
+        "{name}: predicted {} wood coord floats, swept {}",
+        predicted.wood.coords,
+        wood.coords.len()
+    );
+    assert_eq!(
+        predicted.wood.indices,
+        wood.indices.len(),
+        "{name}: predicted {} wood indices, swept {}",
+        predicted.wood.indices,
+        wood.indices.len()
+    );
+    assert_eq!(
+        wood.normals.capacity(),
+        wood.positions.capacity(),
+        "{name}: the wood's two vertex buffers are read as one count"
+    );
     let metrics =
         species_metrics::measure(&a.tree, &wood.positions, &element, placed_count, &kept).unwrap();
     let (pass, checks) = species_metrics::compare(profile, &metrics).unwrap();
@@ -414,29 +476,37 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
         assert!(metrics["needle_surface_area_m2"]["value"].as_f64().unwrap() > 0.0);
         assert!(metrics["crown_base_m"]["value"].as_f64().unwrap() < 3.0);
     }
-    Grown {
+    let grown = Grown {
         height: metrics["height_m"]["value"].as_f64().unwrap(),
         width: metrics["crown_width_m"]["value"].as_f64().unwrap(),
         leaves: kept.len(),
         digest,
-    }
+    };
+    // The buffers the charge paid for go first, and the charge after them.
+    drop((a, wood, kept));
+    drop(held);
+    grown
 }
 
-/// Seeds in flight at once: the runner's four cores, and a spruce placement is
-/// about 350 MB.
-const SEEDS_IN_FLIGHT: usize = 4;
-
-/// Runs `check` on every seed, `SEEDS_IN_FLIGHT` at a time, and returns the
-/// outcomes in seed order; a seed whose checks panicked carries the message.
+/// Runs `check` on every seed and returns the outcomes in seed order; a seed
+/// whose checks panicked carries the message.
+///
+/// How many run at once is not a number written here. A thread takes a seat
+/// from the shared budget before it grows anything, so no more seeds are in
+/// hand across the whole binary than the machine has cores, and each grown
+/// seed then charges the budget its own predicted size, so no more stand
+/// together than the charge limit affords.
 fn in_flight<T: Send>(seeds: &[u32], check: impl Fn(u32) -> T + Sync) -> Vec<Result<T, String>> {
     let next = AtomicUsize::new(0);
     let done = Mutex::new(Vec::new());
     std::thread::scope(|scope| {
-        for _ in 0..SEEDS_IN_FLIGHT.min(seeds.len()) {
+        for _ in 0..budget().cores().min(seeds.len()) {
             scope.spawn(|| loop {
                 let i = next.fetch_add(1, Ordering::Relaxed);
                 let Some(&seed) = seeds.get(i) else { break };
+                let seat = budget().seat();
                 let outcome = catch_unwind(AssertUnwindSafe(|| check(seed))).map_err(message);
+                drop(seat);
                 done.lock().unwrap().push((i, outcome));
             });
         }
@@ -573,4 +643,91 @@ fn scaffold_reaches_and_hanging_secondaries_subdivide_before_their_tips() {
             "{preset:?}: only {mid_axis_forks} intermediate forks"
         );
     }
+}
+
+/// One budget, driven concurrently with charges of mixed predicted cost, and
+/// a seed that fails while it holds one: the charges never outrun the limit,
+/// nothing is left charged behind a panic, and admission is never none.
+#[test]
+fn charges_never_outrun_the_limit_and_a_panicking_seed_releases_its_own() {
+    // Nothing is allocated here: this drives the accounting, not the machine.
+    let budget = budget::Budget::with(96 * (1 << 20), 6);
+    let limit = budget.charge_limit();
+    let shares = [2_u64, 3, 6, 4, 5];
+    let seeds = 60;
+    let next = AtomicUsize::new(0);
+    std::thread::scope(|scope| {
+        for _ in 0..6 {
+            scope.spawn(|| loop {
+                let k = next.fetch_add(1, Ordering::Relaxed);
+                if k >= seeds {
+                    break;
+                }
+                let failed = catch_unwind(AssertUnwindSafe(|| {
+                    let _charge = budget.charge(&format!("trial {k}"), limit / shares[k % 5]);
+                    let standing = budget.charged();
+                    assert!(
+                        standing <= limit,
+                        "charges stood at {standing} bytes over a limit of {limit} bytes"
+                    );
+                    // Every fifth seed fails while it still holds its charge.
+                    assert!(k % 5 != 4, "trial {k} fails on purpose");
+                }))
+                .is_err();
+                assert_eq!(failed, k % 5 == 4);
+            });
+        }
+    });
+    assert_eq!(
+        budget.charged(),
+        0,
+        "a charge outlived the seed that took it"
+    );
+    assert!(
+        budget.peak() <= limit,
+        "peak charge {} over {limit}",
+        budget.peak()
+    );
+    // A specimen larger than the whole limit is still admitted, alone.
+    for predicted in [0, 1, limit / 2, limit, limit * 2, u64::MAX] {
+        assert!(
+            budget.admission(predicted) > 0,
+            "admission was none at {predicted} bytes"
+        );
+    }
+    assert_eq!(budget.admission(limit / 4), 4);
+    assert_eq!(
+        budget.admission(limit / 100),
+        6,
+        "admission clamps to the cores"
+    );
+}
+
+/// The ceiling is a different and larger number than the charge limit
+/// admission spends. With the budget saturated - every charge standing at
+/// once, summing to the whole charge limit - and every admitted specimen
+/// holding memory it has really written to, the peak still sits under the
+/// ceiling. It runs in a process of its own, so the high-water mark it reads
+/// is its own and no heavy seed's.
+#[test]
+fn a_saturated_budget_still_stands_under_the_ceiling() {
+    const NAME: &str = "a_saturated_budget_still_stands_under_the_ceiling";
+    if std::env::var_os(budget::SATURATION).is_some() {
+        return budget::saturate();
+    }
+    let run = std::process::Command::new(std::env::current_exe().unwrap())
+        .args([NAME, "--exact", "--nocapture", "--test-threads=1"])
+        .env(budget::SATURATION, "1")
+        .output()
+        .unwrap();
+    let said =
+        String::from_utf8_lossy(&run.stdout).into_owned() + &String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "the saturation run failed:\n{said}");
+    // A run that selected no test would also have succeeded, so the child's
+    // own report of what it saturated is what says it ran.
+    assert!(
+        said.contains("saturated ") && said.contains("1 passed"),
+        "the saturation run selected nothing:\n{said}"
+    );
+    println!("{said}");
 }

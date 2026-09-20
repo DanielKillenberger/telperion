@@ -147,11 +147,13 @@ pub(super) fn thin(
         reach,
         params.clump_neighbours as usize,
     );
+    let before = out.leaves.len();
     let mut k = 0;
     out.leaves.retain(|_| {
         k += 1;
         keep[k - 1]
     });
+    out.thinned += before - out.leaves.len();
     // The pre-quantisation transforms are indexed alongside the leaves, so a
     // clump that drops one drops both (R2's preset round trip reads the pair).
     #[cfg(test)]

@@ -38,6 +38,9 @@ pub extern "C" fn specimen_read(handle: u32, age: f64) -> u32 {
             output.instances = telperion_core::foliage::Instances {
                 leaves: read.placements.iter().map(|p| p.leaf).collect(),
                 reference: read.reference,
+                // The growth path replays a recorded crown rather than walking
+                // it, so nothing was thinned on the way to this one.
+                thinned: 0,
             };
             e.specimen_ids = bincode::serialize(&(
                 read.tree

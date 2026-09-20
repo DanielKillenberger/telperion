@@ -70,6 +70,7 @@ impl SpecimenView {
         let mut instances = foliage::Instances {
             leaves: placements.clone().map(|p| p.leaf).collect(),
             reference: foliage::Reference::of(&self.family)?,
+            thinned: 0,
             #[cfg(test)]
             unquantised: Vec::new(),
         };

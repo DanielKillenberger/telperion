@@ -215,6 +215,7 @@ fn a_leaf_cached_at_one_age_decodes_at_a_later_one() {
     let decode = |leaf: Leaf| Instances {
         leaves: vec![leaf],
         reference,
+        thinned: 0,
     };
     let mut worst_standoff = 0.0_f64;
     for &id in &carried {
@@ -240,6 +241,7 @@ fn a_leaf_cached_at_one_age_decodes_at_a_later_one() {
         let instances = Instances {
             leaves: read.placements.iter().map(|p| p.leaf).collect(),
             reference,
+            thinned: 0,
         };
         let mut lo = instances.position(0);
         let mut hi = lo;

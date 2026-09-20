@@ -183,3 +183,11 @@ The API documentation/type follow-up's literal Python heredoc contained Markdown
 The owner found the served renderer slow because the mature UI still called the synchronous CPU API. Existing benchmarks and lifecycle checks exercised the GPU API directly, missing its use by the real harness. Task .15 wires that consumer and tests request scheduling. The first live UI probe timed out after 60 seconds waiting for instrumented GPU completion without printing page errors; the probe now records page errors, URL and DOM on failure. Prevention: include an actual consumer-route smoke check and failure diagnostics in the first probe.
 
 The probe diagnosis found an initial about:blank navigation, a Vite timestamp query that bypassed the instrumentation route, and a top-level seed read where the schema uses skeleton.seed. Correcting the probe produced a passing actual-UI run with no production changes. Total probe setup cost was about four minutes. Assert navigation/instrumentation immediately and derive field paths from the existing family schema before waiting for completion.
+
+## 2026-09-20 — PR finalization meets concurrent sizing changes
+
+Finishing the approved PR found four conflicts with master's new pre-generation sizing work, overlapping foliage placement, station walking, surface extents and the classified-limit inventory. Cost so far: about four minutes of reconciliation plus the necessary combined-code test gate. An earlier mergeability check before the media session would have exposed this sooner; no new spec is proposed.
+
+## 2026-09-20 — Historical view fixture follows a changed default
+
+The combined Rust gate passed 749/750 tests; the historical clay comparison failed because it implicitly followed the intentionally changed hero camera. Cost: about one minute to pin the fixture's original shot and rerun its comparison successfully. Four historical bark receipts were also rewritten by tests and restored. Explicit fixture cameras and isolated evidence outputs avoid these false regressions; no new spec is proposed.
