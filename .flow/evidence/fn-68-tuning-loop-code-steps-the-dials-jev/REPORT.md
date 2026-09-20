@@ -1,5 +1,15 @@
 # fn68 implementation and calibration checkpoint
 
+## Scoped sourced-diagnosis resume interface
+
+HumanDecision optionally carries a target-identity diagnosis with separate agent author/model and sourced claims. Code checks nonempty bounded attribution/findings, regular local file, SHA256 and exact supporting excerpt; this proves provenance, not claim truth. Source excerpts are descriptive data, never instructions; claims remain agent interpretations, not owner rulings. Existing append-only authorizations retain history; only current-identity attachments enter shared proposal and continuation evidence. At most eight active findings is a request-size guard, not an evidence/confidence policy: overflow rejects rather than discarding contrary history.
+
+Resume validates new/active sources while existing full artifact checks still govern baseline preservation. Every engine dispatch rechecks active sources before reservation and after checkpoint; stale sources stop before paid work. A source changing during checkpoint leaves the conservative reservation/pending marker intact for explicit recovery, not a claim of actual model spend. Legacy decisions deserialize unchanged; no thresholds, questions, calibration, numeric candidate logic, caps or automatic dispatcher changed.
+
+Regression first failed on unknown diagnosis field, then17focused tests passed; full key-unset telperion-jev package197tests passed (`/tmp/fn68-diagnosis-package.log`), format/diff checks green. Tests cover valid preserved current/visual/spend, bad attribution/findings/hash/excerpt/target, old identity exclusion, both evidence projections and source changes before/after reservation with zero mock dispatch. Existing stale-render/reference tests remain active.
+
+`pilot-diagnosis-draft.json` is verified offline only: envelope amplitude code effect and source-attributed historical node-cap supplement, no visual guarantee or invented candidate efficacy. It is not a human decision and was not applied. Prospective request bounds7,756route+9,186continuation+13,213proposal+40,000final=70,155. Actual remaining55,982 is insufficient, rounds2/2 exhausted and separate study spend8,109 is unreconciled in runtime journal. No call/render/resume occurred; cumulative214,018 unchanged. R7/R8 remain open.
+
 ## v4 independent admissibility: safe fresh cases, replay abstention
 
 One host-released text batch evaluated ten independent Nouls at frozen0.8, not Choice confidence. Exact serde_json reservation5,807 fit8k authority; actual1,596tokens, cumulative214,018. No renders/vision/rounds/runtime changes. Separate study spend8,109 must reconcile against untouched runtime205,909 before any future authorized resume.

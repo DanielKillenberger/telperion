@@ -129,7 +129,10 @@ fn scoped_cap_extension_reuses_only_unchanged_verified_evidence() {
     write(&cfg, &config);
     let next: Config = serde_json::from_value(config.clone()).unwrap();
     let decision = root.join("decision.json");
-    let d = json!({"pause_id":original["pause"]["id"],"identity":original["identity"],"action":original["pause"]["basis"]["proposed_action"],"by":"test owner","rationale":"policy-only scoped extension","next_identity":next.identity().unwrap(),"preserve_evidence":true,"token_cap_extension":{"previous":200000,"next":205000}});
+    let source = root.join("diagnosis-source.txt");
+    fs::write(&source, "Measured node cap prevented rendering.").unwrap();
+    let diagnosis = json!({"target_identity":next.identity().unwrap(),"author":"diagnostic worker","model":"mock-reasoner","findings":[{"claim":"Prior trial was resource limited, not visually judged","source":source,"sha256":telperion_jev::sha256_hex(b"Measured node cap prevented rendering."),"excerpt":"node cap prevented rendering"}]});
+    let d = json!({"pause_id":original["pause"]["id"],"identity":original["identity"],"action":original["pause"]["basis"]["proposed_action"],"by":"test owner","rationale":"policy-only scoped extension","next_identity":next.identity().unwrap(),"preserve_evidence":true,"token_cap_extension":{"previous":200000,"next":205000},"diagnosis":diagnosis});
     for variant in [
         "wrong_cap",
         "no_extension",
@@ -137,6 +140,13 @@ fn scoped_cap_extension_reuses_only_unchanged_verified_evidence() {
         "model",
         "trial_identity",
         "photo",
+        "missing_author",
+        "missing_model",
+        "empty_findings",
+        "malformed_hash",
+        "wrong_hash",
+        "wrong_excerpt",
+        "wrong_target",
         "valid",
     ] {
         let mut state = original.clone();
@@ -154,6 +164,15 @@ fn scoped_cap_extension_reuses_only_unchanged_verified_evidence() {
             "photo" => {
                 fs::write(&photo, "changed photo").unwrap();
             }
+            "missing_author" => choice["diagnosis"]["author"] = json!(""),
+            "missing_model" => choice["diagnosis"]["model"] = json!(""),
+            "empty_findings" => choice["diagnosis"]["findings"] = json!([]),
+            "malformed_hash" => choice["diagnosis"]["findings"][0]["sha256"] = json!("bad"),
+            "wrong_hash" => choice["diagnosis"]["findings"][0]["sha256"] = json!("0".repeat(64)),
+            "wrong_excerpt" => {
+                choice["diagnosis"]["findings"][0]["excerpt"] = json!("not in source")
+            }
+            "wrong_target" => choice["diagnosis"]["target_identity"] = json!("stale"),
             _ => {}
         }
         write(&path, &state);
@@ -166,6 +185,7 @@ fn scoped_cap_extension_reuses_only_unchanged_verified_evidence() {
             assert_eq!(saved["budget"]["max_tokens"], 205000);
             assert_eq!(saved["current"], 0);
             assert_eq!(saved["visual"]["identity"], "trial");
+            assert_eq!(saved["authorizations"][0]["diagnosis"], diagnosis);
         } else {
             assert!(
                 !error.contains("calibration prerequisite"),

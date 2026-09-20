@@ -122,6 +122,74 @@ pub struct HumanDecision {
     pub baseline_amendment: Option<BaselineAmendment>,
     #[serde(default)]
     pub experimental_pilot: Option<PilotAuthority>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub diagnosis: Option<Diagnosis>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Diagnosis {
+    pub target_identity: String,
+    pub author: String,
+    pub model: String,
+    pub findings: Vec<Finding>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Finding {
+    pub claim: String,
+    pub source: std::path::PathBuf,
+    pub sha256: String,
+    pub excerpt: String,
+}
+impl Diagnosis {
+    pub fn verify(&self, identity: &str) -> Result<(), String> {
+        use std::io::Read;
+        if self.target_identity != identity
+            || [&self.author, &self.model]
+                .iter()
+                .any(|s| s.trim().is_empty() || s.len() > 200)
+            || self.findings.is_empty()
+            || self.findings.len() > 8
+        {
+            return Err("invalid diagnosis identity, attribution or finding count".into());
+        }
+        for f in &self.findings {
+            if f.claim.trim().is_empty()
+                || f.claim.len() > 1024
+                || f.excerpt.trim().is_empty()
+                || f.excerpt.len() > 2048
+                || f.sha256.len() != 64
+                || !f.sha256.bytes().all(|b| b.is_ascii_hexdigit())
+            {
+                return Err("invalid diagnosis finding or hash".into());
+            }
+            if !std::fs::metadata(&f.source)
+                .map_err(|e| format!("diagnosis source: {e}"))?
+                .is_file()
+            {
+                return Err("diagnosis source must be a regular file".into());
+            }
+            let file =
+                std::fs::File::open(&f.source).map_err(|e| format!("diagnosis source: {e}"))?;
+            if !file.metadata().map_err(|e| e.to_string())?.is_file() {
+                return Err("diagnosis source must be a regular file".into());
+            }
+            let mut bytes = Vec::new();
+            file.take(1_048_577)
+                .read_to_end(&mut bytes)
+                .map_err(|e| e.to_string())?;
+            if bytes.len() > 1_048_576
+                || crate::sha256_hex(&bytes) != f.sha256
+                || !bytes
+                    .windows(f.excerpt.len())
+                    .any(|w| w == f.excerpt.as_bytes())
+            {
+                return Err("diagnosis source hash or excerpt mismatch".into());
+            }
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

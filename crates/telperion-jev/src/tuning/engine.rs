@@ -115,7 +115,8 @@ impl Run {
             serde_json::json!({
                 "current_identity":projection["current_identity"],
                 "resource_limit":projection["resource_limit"],
-                "resource_amendments":projection["resource_amendments"]
+            "resource_amendments":projection["resource_amendments"],
+            "agent_diagnoses":projection["agent_diagnoses"]
             })
             .to_string(),
         );
@@ -158,9 +159,27 @@ impl Run {
         label: &str,
         save: &mut dyn FnMut(&Self) -> Result<(), String>,
     ) -> Result<(), String> {
+        self.verify_diagnoses()?;
         self.budget.reserve(evaluations, images, tokens, rounds)?;
         self.pending = Some(label.into());
-        save(self)
+        save(self)?;
+        self.verify_diagnoses()
+    }
+    pub fn verify_diagnoses(&self) -> Result<(), String> {
+        let mut count = 0;
+        for d in self
+            .authorizations
+            .iter()
+            .filter_map(|a| a.diagnosis.as_ref())
+            .filter(|d| d.target_identity == self.identity)
+        {
+            count += d.findings.len();
+            if count > 8 {
+                return Err("active diagnosis finding bound exceeded".into());
+            }
+            d.verify(&self.identity)?;
+        }
+        Ok(())
     }
     fn settle<T>(&mut self, answer: Answer<T>, reserved: u64) -> Result<T, String> {
         let Some(actual) = answer.tokens else {
@@ -184,6 +203,7 @@ impl Run {
         services: &mut dyn Services,
         save: &mut dyn FnMut(&Self) -> Result<(), String>,
     ) -> Result<(), String> {
+        self.verify_diagnoses()?;
         let trial = self.trials[self.current.ok_or("no feasible current candidate")?].clone();
         let allowance = services.visual_tokens(&trial);
         let mut budget = self.budget.clone();
@@ -192,6 +212,7 @@ impl Run {
         self.budget = budget;
         self.pending = Some("visual assessment".into());
         save(self)?;
+        self.verify_diagnoses()?;
         let answer = services.visual(&trial)?;
         let visual = self.settle(answer, allowance)?;
         self.machine_ready = ready(&self.required, &trial.key, &visual);

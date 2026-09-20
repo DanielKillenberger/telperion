@@ -74,6 +74,9 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
             .as_ref()
             .ok_or("run is not paused")?
             .resume(&decision)?;
+        if let Some(diagnosis) = &decision.diagnosis {
+            diagnosis.verify(&identity)?;
+        }
         if old.identity != identity && decision.next_identity.as_deref() != Some(&identity) {
             return Err("changed inputs require a scoped decision naming next_identity".into());
         }
@@ -256,6 +259,7 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
             .map_err(|e| format!("resumed family: {e:?}"))?;
         old.effective = telperion_core::params::metadata(&family);
         old.authorizations.push(decision);
+        old.verify_diagnoses()?;
         old
     } else {
         if resume.is_some() {

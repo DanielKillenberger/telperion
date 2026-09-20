@@ -280,3 +280,73 @@ fn stale_finalists_are_excluded_and_resource_history_is_revision_tagged() {
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     assert_eq!(mock.visuals, 0);
 }
+
+#[test]
+fn attributed_diagnosis_projects_to_both_judgments_and_rechecks_sources() {
+    let source = std::env::temp_dir().join(format!(
+        "diagnosis-{}",
+        telperion_jev::ledger::new_entry_id()
+    ));
+    std::fs::write(&source, "source observation").unwrap();
+    let mut state = run();
+    let mut mock = Mock {
+        evaluations: 0,
+        routes: 0,
+        visuals: 0,
+        capability: false,
+    };
+    state
+        .trials
+        .push(mock.evaluate(json!({}), 0, "baseline", None));
+    state.current = Some(0);
+    let legacy = json!({"pause_id":"pause","identity":"input1","action":"diagnose","by":"owner","rationale":"bounded inspection"});
+    let mut decision: telperion_jev::tuning::continuation::HumanDecision =
+        serde_json::from_value(legacy).unwrap();
+    assert!(decision.diagnosis.is_none());
+    decision.diagnosis=Some(serde_json::from_value(json!({"target_identity":"input1","author":"worker","model":"reasoner","findings":[{"claim":"Interpretation, not owner ruling","source":source,"sha256":telperion_jev::sha256_hex(b"source observation"),"excerpt":"observation"}]})).unwrap());
+    state.authorizations.push(decision);
+    state.verify_diagnoses().unwrap();
+    let summary = telperion_jev::tuning::judgments::summary(&state);
+    assert_eq!(
+        summary["agent_diagnoses"]["attachments"][0]["author"],
+        "worker"
+    );
+    assert!(state
+        .round_basis(&mock)
+        .unwrap()
+        .evidence
+        .join(" ")
+        .contains("Interpretation, not owner ruling"));
+    std::fs::write(&source, "changed source").unwrap();
+    assert!(state.verify_diagnoses().is_err());
+    let old_budget = serde_json::to_value(&state.budget).unwrap();
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert_eq!(serde_json::to_value(&state.budget).unwrap(), old_budget);
+    assert_eq!(mock.routes, 0);
+    assert_eq!(mock.visuals, 0);
+    assert!(state.pause.as_ref().unwrap().reason.contains("diagnosis"));
+    std::fs::write(&source, "source observation").unwrap();
+    state.pause = None;
+    state
+        .execute(&mut mock, &mut |s| {
+            if s.pending.is_some() {
+                std::fs::write(&source, "changed during checkpoint").unwrap();
+            }
+            Ok(())
+        })
+        .unwrap();
+    assert_eq!(mock.routes, 0);
+    assert_eq!(mock.visuals, 0);
+    assert!(state.pending.is_some());
+    assert!(state.budget.tokens > old_budget["tokens"].as_u64().unwrap());
+    state.identity = "new-identity".into();
+    state.verify_diagnoses().unwrap();
+    assert!(
+        telperion_jev::tuning::judgments::summary(&state)["agent_diagnoses"]["attachments"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    assert_eq!(state.authorizations.len(), 1);
+    std::fs::remove_file(source).unwrap();
+}
