@@ -21,9 +21,16 @@ Quick commands: native renderer library generation tests via the existing isolat
 
 
 ## Done summary
-TBD
+Bounded leaf readback uses one fallibly reserved final vector and <=4 MiB staging shared by CPU output and explicit verification. Exact word tests and specimen hashes pass; matched spruce warm CPU-output p50 improves 351.73→297.03 ms, oak 259.27→255.65 ms. Full evidence, allocation lifetimes, cold regression and RSS limits: `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/READBACK.md`.
 
+baseline: green (seven generation tests, Wasm check, scoped formatting).
+Final gates: ten generation tests, native example build, Wasm check and scoped formatting passed. Compile-red for the new API is recorded without claiming behavioral red. Host inspected the diff and found no blocker. Parent .1/spec remain open; parent R5 is not qualified.
+
+Tier: session (jev moderate 0.24) (explicit IMPLEMENTER preserved).
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+
+Included host-authorized owner visual evidence, wood-boundary note and task .3 lifecycle files in the checkpoint. Friction: candidate build queued behind the test compile for under one minute; see FRICTION.md.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6d5841d78bc39b0b6e7cb34829889f7ec96061ec
+- Tests: baseline: green (7 native generation tests, Wasm check, scoped rustfmt), /tmp/telperion-fn91-tools/cargo-nextest nextest run --release -p telperion-render --lib -E test(generation::) — 10 passed, cargo check -p telperion-render --target wasm32-unknown-unknown — passed, cargo build --release -p telperion-render --example generation_gpu — baseline and candidate passed, rustfmt --edition 2021 --check crates/telperion-render/src/generation.rs crates/telperion-render/src/generation/io.rs crates/telperion-render/src/generation/readback_tests.rs crates/telperion-render/examples/generation_gpu.rs — passed, python3 .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/readback-measure.py — four fresh-process measurements plus four separate repeated hash checks passed, git diff --check — passed
 - PRs:
