@@ -15,6 +15,9 @@
 
 > user: "i mean IF we can get the same byte identical tree for perf improvements that would make verification easier."
 
+> user (target discussion): "so given the approaches we're taking in the spec what is a reasonable target to set? aim high"
+> user (accepting the proposed 10x target and continuing): "ok $flow-next-flow"
+
 ## Goal & Context
 <!-- Source: [paraphrase] -->
 
@@ -42,7 +45,7 @@ Measure the current path before selecting a mechanism. Separate skeleton generat
 - **R2:** Evaluate the first bounded candidate against the baseline and fn-12's failure modes. A GPU foliage candidate must replace CPU expansion and keep its resulting buffers available to rendering, rather than repeat the old CPU-build/upload/query/readback path. Report total latency and cost by stage. Errors: an isolated kernel gain with no end-to-end gain rejects that candidate; record the limiting stage and stop it before expanding into wood or botanical growth. [inferred]
 - **R3:** Prefer byte-identical output for performance improvements when practical and use exact comparison to simplify verification. This preference must not block a worthwhile measured gain: a candidate may change output bytes while introducing no perceptible visual regression. Compare the supported whole-tree and close views and relevant motion across the tested species and seeds, and record the owner's visual verdict. Retain exact checks where unchanged output is intended. Errors: an unexplained visual regression rejects the candidate; a byte mismatch alone does not. [paraphrase]
 - **R4:** Preserve botanical plausibility, foliage attachment, valid geometry and the consumer's relevant correctness requirements. Keep meaningful repeatability checks within the stated implementation and update changed baselines with evidence. Errors: missed spatial contacts, detached foliage, invalid geometry or silently truncated trees cannot be excused as byte differences. [inferred]
-- **R5:** Integrate the qualifying improvement into the shared mature-generation or rendering path, demonstrate its use by the existing browser and native consumers where applicable, and rerun the same specimen matrix against the baseline. State which requested representations benefit and measure any regression in retained CPU-output paths. Meet the latency and memory acceptance bounds settled before candidate tuning, reporting absolute values and before/after differences. Errors: a missed bound or unsupported case is reported explicitly; a failed experiment does not count as delivered fast generation. [inferred]
+- **R5:** Integrate the qualifying improvement into the shared mature-generation or rendering path, demonstrate its use by the existing browser and native consumers where applicable, and rerun the same specimen matrix against the baseline. State which requested representations benefit and measure any regression in retained CPU-output paths. Target at least a 10x reduction in warm end-to-end generation latency on each agreed desktop specimen fixture, with no increase in accounted peak memory and no perceptible visual regression. Report distance from the 100 ms stretch goal separately. Measure CPU-output and GPU-resident rendering paths separately; establish a comparable completed-frame baseline before qualifying rendering delivery. Report absolute values and before/after differences. Cold initialization and phone measurements are reported separately and cannot be qualified from desktop results. Errors: a missed bound or unsupported case is reported explicitly; a failed experiment does not count as delivered fast generation. [inferred]
 
 ## Boundaries
 
@@ -59,7 +62,7 @@ Measure the current path before selecting a mechanism. Separate skeleton generat
 
 ## Parked unknowns
 
-- The concrete latency and memory bounds and device matrix must be settled before candidate tuning. Under 100 ms from parameters to a drawable tree with an initialized renderer was an agent proposal, not an owner-approved requirement; cold-load bounds are separate.
+- Accepted first desktop matrix: current mature oak and spruce at seeds 1 and 7, native CPU output and browser delivery, using the recorded baseline hardware. Warm latency target is 10x, with 100 ms as a stretch goal and no increase in accounted peak memory. Full cold-start and phone qualification remain separate evidence gaps; no phone performance bound has been set.
 - Current stage shares and the achievable GPU gain are unmeasured. The baseline resolves these; historical species costs cannot qualify the new path.
 
 ## Strategy Alignment
