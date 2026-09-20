@@ -1,3 +1,7 @@
+## 2026-09-20 — evidence rustc compile against existing rlib
+
+Assembling the frozen priority packet needed `Checkpoint::hash` from the already-built crate. `ls` of `target/debug/deps/*.rlib` printed eza metadata instead of paths, so the first rustc invocation failed before any packet write. Cost: about one minute, zero paid tokens. `find -printf '%p\\n'` resolved the rlibs. A one-line compile helper that records crate rlib names would remove this. No new spec.
+
 ## 2026-09-20 — reference-first comparison cardinality
 
 StageB spent28569 known tokens and58.15seconds but returned one aggregate pass for two requiredcells. Typed evidence driver rejected it. Outputschema had not constrained listlength or explicitorder; fixed minItems/maxItems, orderedcellinstruction and parser/binder tests offline, no retry/relabel. Rawreceipt and dispatchedadapter source retained. New regression failed beforefix then passed. Final package also exposed same-PID temporary-image race between two new tests; unique existing ledger IDs fix isolation, package rerun required (minutes measured in gate logs; no paid tokens). Proposed removal: exact schema cardinality at every model boundary and unique test fixtures; both implemented, no new spec.

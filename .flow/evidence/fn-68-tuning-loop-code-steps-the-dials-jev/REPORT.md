@@ -1,4 +1,14 @@
-## Current: human gap-priority checkpoint implemented offline
+## Current: frozen beech priority packet, R7/R8 proof blocked under remaining caps
+
+The last valid reframed Astra-medium result is now a hash-bound owner packet in `priority-review.json`, assembled with the existing checkpoint types and local image bytes. Browse `visual-review.html#priority-review`. Proposed source order is finding-0 foliage organization, finding-1 bark required-unknown, finding-2 hanging reach and regular base. Finding-4 and the supported finish finding stay preserved. Approval is null. Owner crown/hanging/material notes remain sourced history, not this packet's approval. Confirming the packet does not resume the original runtime.
+
+Checkpoint `dcc6a63fbfa782fb4970fb5a9fbf0a1228c39a65b6ec3c1a9736e7c6e02a8010`. Scope `903276d3348f3e5f40aa2c8ec25659c7d16f3880e61c559d2fabef33c985bed3`. Receipt `97ae88cb7c716ed2c99df28f5e651004679b3f14035b84342b6568e39547656f`. Bound result `bdb13daa0bb9fb9e0bc8cc6d0d73c1fd35e2188a39de7943c85c47608971998f`. Original runtime SHA `d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e` unchanged. Spend 552,431 / 570,000. Visual 20 / 20 exhausted. Side import unapplied.
+
+R7 automatic magnitude efficacy and R8 empirical reviewer/all-cell readiness remain open. `r7-r8-proof-proposal.md` records the remaining gates. Under current ceilings both live proofs are a supported blocker: a visual reservation of 25,000-40,000 cannot fit 17,569 remaining tokens, and no visual slot remains. The only zero-cost next decision is owner confirm/reorder/add. A later text-only Jev routing test could run only after that ranking, only if an exact reservation fits, and would still not prove R7 or R8. No paid call, capture, cap increase, or runtime resume occurred.
+
+Verification: assembler compiled against the existing crate and wrote then re-verified the packet; image SHA-256 values match the frozen joint inputs; HTML anchors and local image hrefs resolve; original runtime hash unchanged; `git diff --check` on the evidence increment. No 207-package rerun.
+
+## Previous: human gap-priority checkpoint implemented offline
 
 The owner-approved workflow now pauses after the initial review—even a model PASS—and presents a hash-bound packet with proposed top-three gaps, linked images and the complete original findings. The owner confirms/reorders/adds objectives conversationally; the host records the existing typed resume decision. No owner ranking was invented or applied to the current beech run. See `priority-checkpoint.md` for the exact transport example.
 
