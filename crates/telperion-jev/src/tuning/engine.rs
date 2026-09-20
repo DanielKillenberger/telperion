@@ -105,20 +105,29 @@ impl Run {
         });
     }
     fn basis(&self, action: &str) -> Basis {
+        let projection = super::judgments::summary(self);
+        let mut evidence = self
+            .visual
+            .as_ref()
+            .map(|v| v.defects.clone())
+            .unwrap_or_default();
+        evidence.push(
+            serde_json::json!({
+                "current_identity":projection["current_identity"],
+                "resource_limit":projection["resource_limit"],
+                "resource_amendments":projection["resource_amendments"]
+            })
+            .to_string(),
+        );
         Basis {
             identity: self.identity.clone(),
             proposed_action: action.into(),
-            evidence: self
-                .visual
-                .as_ref()
-                .map(|v| v.defects.clone())
-                .unwrap_or_default(),
-            recent_outcomes: self
-                .trials
+            evidence,
+            recent_outcomes: projection["recent_attempts"]
+                .as_array()
+                .unwrap()
                 .iter()
-                .rev()
-                .take(5)
-                .map(|t| format!("{}: score {:?}, reason {:?}", t.label, t.score, t.reason))
+                .map(|t| t.to_string())
                 .collect(),
             next_tokens: None,
             estimate_basis: String::new(),

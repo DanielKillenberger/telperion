@@ -13,7 +13,12 @@ pub fn summary(state: &Run) -> Value {
         .effective
         .pointer("/skeleton/growth/maxNodes")
         .and_then(Value::as_u64);
-    json!({"current_identity":state.identity,"resource_limit":{"meaning":"computational feasibility, not botanical character","max_nodes":cap,"current_nodes":nodes,"remaining_nodes":cap.zip(nodes).map(|(c,n)|c.saturating_sub(n))},"owner_notes":state.owner_notes,"visual":state.visual,"recent_attempts":recent,
+    let amendments = state.authorizations.iter().rev().filter_map(|a|a.baseline_amendment.as_ref().map(|m|json!({
+        "previous_identity":a.identity,"next_identity":a.next_identity,"previous_overlay":m.previous,"next_overlay":m.next,
+        "prior_effective_cap":"not recorded; omitted overlay values are not historical effective values",
+        "authorization_rationale":a.rationale,"experimental_reason":a.experimental_pilot.as_ref().map(|p| &p.reason)
+    }))).take(3).collect::<Vec<_>>();
+    json!({"current_identity":state.identity,"resource_amendments":amendments,"resource_limit":{"meaning":"computational feasibility, not botanical character","max_nodes":cap,"current_nodes":nodes,"remaining_nodes":cap.zip(nodes).map(|(c,n)|c.saturating_sub(n))},"owner_notes":state.owner_notes,"visual":state.visual,"recent_attempts":recent,
         "dials":state.dials.iter().map(|d|json!({"id":d.id,"meaning":d.meaning,"current":state.effective.pointer(&d.path)})).collect::<Vec<_>>()})
 }
 pub fn proposals(state: &Run) -> Result<Value, String> {

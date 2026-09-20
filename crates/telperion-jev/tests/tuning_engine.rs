@@ -260,6 +260,21 @@ fn stale_finalists_are_excluded_and_resource_history_is_revision_tagged() {
     let summary = telperion_jev::tuning::judgments::summary(&state);
     assert_eq!(summary["recent_attempts"][1]["current_revision"], false);
     assert_eq!(summary["resource_limit"]["current_nodes"], 187968);
+    state.effective["skeleton"]["growth"]["maxNodes"] = json!(1000000);
+    let decision = serde_json::from_value(json!({
+        "identity":"old-revision", "pause_id":"paused", "action":"reassess",
+        "by":"owner", "rationale":"Prior pilot hit hidden node ceiling; explicit new caller limit",
+        "next_identity":"input1", "baseline_amendment":{"previous":{},"next":{"skeleton":{"growth":{"maxNodes":1000000}}}}
+    })).unwrap();
+    state.authorizations.push(decision);
+    let basis = state.round_basis(&mock).unwrap();
+    let evidence = basis.evidence.join(" ");
+    assert!(evidence.contains("812032"));
+    assert!(evidence.contains("1000000"));
+    assert!(evidence.contains("187968"));
+    assert!(evidence.contains("hidden node ceiling"));
+    assert!(evidence.contains("old-revision"));
+    assert!(basis.recent_outcomes[1].contains("\"current_revision\":false"));
     assert!(state.pilot_authority().unwrap_err().contains("unvalidated"));
     state.budget.visual_passes = Some(5);
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();

@@ -1,0 +1,16 @@
+{
+  "authority": "Owner approved exactly two historical whole-view recoveries; no calibration model rerun",
+  "prior_reconstruction": {"builds": 2, "renders": 6},
+  "this_recovery": {"compiled_revisions": 2, "renders": 2, "model_tokens": 0},
+  "builds": [
+    {"revision": "4e6d903c", "seconds": 58.11, "result": "passed"},
+    {"revision": "0f2c2f6a", "seconds": 58.88, "result": "passed isolated target", "preceding_cache_probe": "0.06 second shared-target no-op was inconclusive; no render used it"}
+  ],
+  "images": [
+    {"revision": "4e6d903c", "preset": "european-beech", "view": "B-WHOLE", "seed": 1, "sha256": "7e69fda3e95b317fcb9d89e15e32179c54fdd316a57d1c3223d6e26639b8b490", "path": "local/replay-images/european-beech-B-WHOLE.png", "exact_match": true},
+    {"revision": "0f2c2f6a", "preset": "silver-birch", "view": "S-WHOLE", "seed": 1, "sha256": "2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e", "path": "local/replay-images/silver-birch-S-WHOLE.png", "exact_match": true}
+  ],
+  "recipe": "git archive REV into local/historical-SPECIES; cargo build --release -p telperion-render --example headless --manifest-path SOURCE/Cargo.toml with separate targets; python3 scripts/tuning-reconstruct.py --source SOURCE --preset PRESET --views VIEW --out local/replay-images (absolute paths). Script uses recorded camera/light, seed1, height1440, no figure. Restore /tmp/fn68-reconstruction-images filenames with symlinks to verified durable originals.",
+  "qualification": "Config.verify passed after restoration; frozen manifests/questions/results unchanged",
+  "preflight": {"spent": 170312, "remaining": 99688, "baseline_visual": 25000, "all_jev_with_fresh_prose_headroom": 30000, "final_visual": 40000, "total_provision": 95000, "fresh_round_exact_recheck_required": true}
+}
