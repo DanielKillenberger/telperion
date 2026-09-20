@@ -1,5 +1,9 @@
 # fn68 implementation and calibration checkpoint
 
+## Offline proposal-design review
+
+`PROPOSAL-REVIEW.md` records the owner-requested review and proposed direction/conditional experimental-size contract. The existing magnitude cases primarily test explicit target-number interpretation; the live flat action combines direction and size uncertainty. Splitting alone is not proof that abstention will disappear. Seven mocked composition checks passed with zero model calls; no runtime code, frozen labels, thresholds or pilot limits changed. Cumulative spend remains205,909. Text-only v2 calibration up to12,000tokens within the270k ceiling is proposed and awaits owner approval; no further tuning round is authorized.
+
 ## Corrected authorized attempt: terminal abstention
 
 The owner said “go ahead” under unchanged270k authority. Scoped resume preserved verified config/generator/render/reference/baseline identities. Tooling-only release build passed40.63seconds; exact preflight65,729 fit74,481 available. No baseline or calibration replay.
