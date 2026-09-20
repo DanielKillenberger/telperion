@@ -1,5 +1,11 @@
 # fn68 implementation and calibration checkpoint
 
+## Owner correction: defining architecture precedes material
+
+Owner rejects Sol's classification of upright crown/limited droop as variation. Source diagnosis and exact unexecuted overlay are owner-reference-correction.md and owner-structural-proposal.json. Existing support-axis rise and envelope width-distribution controls can test a broader lower skirt; true short-shoot curvature/load is not parameterized in the radial rosette path. Current six-dial autonomous table excludes these controls. No feature/preset change or new trial.
+
+Generic adapter prompt now preserves owner-defined structural criteria, distinguishes improvement/readiness, ranks grounded blockers and prohibits contradictory blocker/optional classifications. Species-specific future checklist retains broad broken masses, low leafy skirts and weighted droop. Offline adapter mock test red→green, literal answer/usage forwarding retained; no schema/threshold change. Prompt change is NOT live calibrated and cannot silently inherit old adapter qualification. Usage unchanged301517/320000; runtime unchanged. Historical Sol results preserved; page marks owner disagreement.
+
 ## Direct photographic-reference assessment: FAIL / FAIL
 
 Owner approved320000 cumulative and one additional visual assessment. Five unchanged inputs: candidate whole/bare, original beech photos, spruce finish anchor. Neutral mature-beech recognizability checklist did not grandfather droop/upright form, impose photo matching, or reveal previous verdicts/numeric score. Request95e30382bc9f2cd38b5fdc5587cb03c3d5bf392d004cf46a4b86a32d84502485 frozen before35000 reservation/dispatch.

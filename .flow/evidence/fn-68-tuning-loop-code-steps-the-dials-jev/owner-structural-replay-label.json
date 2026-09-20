@@ -1,0 +1,11 @@
+{
+  "source": "owner correction relayed by host, 2026-09-20",
+  "candidate_identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+  "whole_sha256": "da02e6fdf2b64c6ba6a0caf1ed2e0990a316fd9e5ac426099381e0f65254d047",
+  "bare_sha256": "8bf6b32d6961bbc667e622b39b9484ec885b9ee3f4b3f9cf941c59372b599630",
+  "original_request_sha256": "95e30382bc9f2cd38b5fdc5587cb03c3d5bf392d004cf46a4b86a32d84502485",
+  "immutable_result": "development-direct-reference-visual-result.json",
+  "owner_labels": {"reference_crown_architecture": "blocking", "leaf_bearing_weighted_droop": "blocking", "material_priority": "after_structural_gaps"},
+  "diagnosis": "False acceptance of structural subcriteria as natural variation despite aggregate FAIL due bark; not an overall false-ready result",
+  "use": "Development calibration counterexample, no paid replay performed; owner correction does not rewrite raw model output"
+}
