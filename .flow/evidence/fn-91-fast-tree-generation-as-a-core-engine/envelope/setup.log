@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/daniel/Projects/telperion/.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/envelope/setup.py", line 20, in <module>
+    subprocess.run(['cargo','build','--release','-p','telperion-core','--example','numeric_oracle'],cwd=scratch,env=env,stdout=log,stderr=subprocess.STDOUT,timeout=600,check=True)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['cargo', 'build', '--release', '-p', 'telperion-core', '--example', 'numeric_oracle']' returned non-zero exit status 101.

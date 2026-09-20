@@ -143,3 +143,11 @@ The coarse profile isolated local growth, but `perf` is absent on the owner's PA
 ## 2026-09-20 — Task .10 candidate rejection rollback
 
 The radius-only screen missed both oak targets. The safety hook blocked a combined patch-save and `git restore` command despite the task explicitly requiring rejection rollback. Cost: about one minute and two extra tool calls. Saving and inspecting the patch separately, then reversing that archived patch, keeps the rollback recoverable; recognizing an explicitly authorized scoped rollback with an existing patch would remove this friction.
+
+## 2026-09-20 fn-91.12 numeric oracle example access
+
+The standalone numeric oracle example attempted to import the core's private `Transcendental` trait. Compilation rejected the import, costing one failed diagnostic build and less than one minute to switch to the same pinned `libm::pow` dependency directly. Production code and the native timing protocol were unchanged. Diagnostic examples should use public pinned math calls or live within an internal test boundary; exposing the core trait was unnecessary. This is a diagnostic setup correction, with no new friction spec proposed.
+
+## 2026-09-20 fn-91.12 rollback guard
+
+After the host rejected retention, the command guard blocked scoped `git restore` because it could discard uncommitted edits. The candidate already existed as an archived patch. Reviewing the diff, checking that patch in reverse, then applying its exact inverse restored only the candidate successfully. Cost was one rejected tool call and less than one minute. Using a checked inverse patch directly would avoid this friction and preserve the explicit rollback scope.

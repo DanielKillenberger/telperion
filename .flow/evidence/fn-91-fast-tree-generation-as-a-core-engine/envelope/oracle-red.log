@@ -1,0 +1,49 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+warning: struct `Admission` is never constructed
+ --> crates/telperion-core/src/branching/local/admission.rs:3:19
+  |
+3 | pub(super) struct Admission {
+  |                   ^^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: associated items `new` and `rejected` are never used
+  --> crates/telperion-core/src/branching/local/admission.rs:8:12
+   |
+ 7 | impl Admission {
+   | -------------- associated items in this implementation
+ 8 |     pub fn new(config: GrowthConfig) -> Self {
+   |            ^^^
+...
+11 |     pub fn rejected(&self, p: Vec3) -> bool {
+   |            ^^^^^^^^
+
+warning: `telperion-core` (lib) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 41.22s
+────────────
+ Nextest run ID 2e3f638e-2d5f-47fc-80a4-13941da3dc0d with nextest profile: default
+    Starting 1 test across 1 binary (177 tests skipped)
+        FAIL [   0.004s] (1/1) telperion-core branching::local::admission::tests::prepared_admission_capability_and_boundaries
+  stdout ───
+
+    running 1 test
+    test branching::local::admission::tests::prepared_admission_capability_and_boundaries ... FAILED
+
+    failures:
+
+    failures:
+        branching::local::admission::tests::prepared_admission_capability_and_boundaries
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 177 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'branching::local::admission::tests::prepared_admission_capability_and_boundaries' (987804) panicked at crates/telperion-core/src/branching/local/admission.rs:26:17:
+    eligible shell must prepare
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+  Cancelling due to test failure: 
+────────────
+     Summary [   0.005s] 1 test run: 0 passed, 1 failed, 177 skipped
+        FAIL [   0.004s] (1/1) telperion-core branching::local::admission::tests::prepared_admission_capability_and_boundaries
+error: test run failed

@@ -1,0 +1,22 @@
+{
+  "source_base": "3970f3189f6c1a320cb200ad72642cc280675696",
+  "production_patch": "delivery.patch",
+  "native_screen_patch": "candidate.patch",
+  "native_screen_unchanged": true,
+  "native_screen_target": "MISSED seed7;20%target retained",
+  "qualification": "one host-authorized browser/CPU-owned qualification with mature-batch guard and tableless direct fallback; no retiming",
+  "sha256": {
+    "src/browser/render/telperion_render_bg.wasm": "25e922f0cf3022a2bd30a66418affcb5f92a5088d7cdd17b216778a9248ff90c",
+    "src/browser/render/telperion_render.js": "4a9d9ac777a9657e7575a5fb3958ccc7e724f9914c0a10b98560d5930796cb18",
+    "/tmp/telperion-fn91-tools/generation-envelope": "271c2d3c74c1913ea94046226b21b5cb62a18c3a1f32a9de4adbe7a6371ee48d"
+  },
+  "candidate_browser_preserved": "/tmp/telperion-envelope-0cl65fc4/candidate-render",
+  "baseline_browser_preserved": "/tmp/telperion-envelope-0cl65fc4/baseline-render",
+  "commands": [
+    "npm run render:build",
+    "GENERATION_COMPLETED=1 GENERATION_GPU=1 GENERATION_OUTPUT=<output> node scripts/benchmarks/mature-generation.mjs",
+    "cargo build --release -p telperion-render --example generation_gpu",
+    "python3 <evidence>/measure.py cpu-output",
+    "python3 <evidence>/measure.py gpu-output"
+  ]
+}
