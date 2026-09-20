@@ -5,12 +5,14 @@ import json
 import subprocess
 import sys
 import time
+from pathlib import Path
 
 from proof_lib import (
     ADAPTER,
     PROOF,
     RUNTIME,
     RUNTIME_SHA,
+    WORKTREE,
     accounting,
     adapter,
     assert_whole_only_stage_a,
@@ -18,6 +20,7 @@ from proof_lib import (
     bind_inventory,
     digest,
     judge_negative,
+    judge_positive,
     load,
     prepare_envelope,
     release_path,
@@ -54,6 +57,9 @@ def state_or_init():
         "reserved": counts["reserved"],
         "actual_captures": counts["actual_captures"],
         "settled": [],
+        "attempts": [],
+        "terminal": None,
+        "outstanding_reservation": None,
         "runtime_sha256": RUNTIME_SHA,
     }
 
@@ -88,7 +94,53 @@ def dispatch(envelope, model="gpt-6-astra", effort="medium"):
     )
 
 
-def execute(stage):
+def known_usage(receipt):
+    usage = receipt.get("usage") if isinstance(receipt, dict) else None
+    if not usage:
+        return None
+    inp, out = usage.get("input_tokens"), usage.get("output_tokens")
+    if type(inp) is int and type(out) is int and inp >= 0 and out >= 0:
+        return inp + out
+    return None
+
+
+def charge(state, stage, used, receipt):
+    state["tokens"] += used
+    state["visual"] += 1
+    state["visual_this_packet"] += 1
+    state["attempts"].append(
+        {
+            "stage": stage,
+            "used": used,
+            "model": receipt.get("model"),
+            "effort": receipt.get("effort"),
+            "status": receipt.get("status"),
+        }
+    )
+    state["outstanding_reservation"] = None
+
+
+def terminate(state, stage, reason):
+    state["terminal"] = {"stage": stage, "reason": reason}
+    state["status"] = "terminal"
+
+
+def execute(stage, **paths):
+    state_file = Path(paths["state"]) if paths.get("state") else STATE
+    inventory_file = Path(paths["inventory"]) if paths.get("inventory") else INVENTORY
+    reserve_path = Path(paths["reserve"]) if paths.get("reserve") else PROOF / f"{stage}-reservation.json"
+    stdout_path = Path(paths["stdout"]) if paths.get("stdout") else PROOF / f"{stage}-stdout.json"
+    stderr_path = Path(paths["stderr"]) if paths.get("stderr") else PROOF / f"{stage}-stderr.txt"
+    judgment_path = Path(paths["judgment"]) if paths.get("judgment") else PROOF / f"{stage}-judgment.json"
+
+    def load_state():
+        if state_file.exists():
+            return json.loads(state_file.read_text())
+        return state_or_init()
+
+    def save_state(state):
+        state_file.write_text(json.dumps(state, indent=2) + "\n")
+
     release = release_path()
     if release is None:
         print("execute refused: host review not released", file=sys.stderr)
@@ -98,9 +150,15 @@ def execute(stage):
         print(f"execute refused: {stage} is a template or not a visual stage", file=sys.stderr)
         return 2
     if stage == "r7-current":
-        print("execute refused: r7-current waits on both Stage B settlements", file=sys.stderr)
+        print("execute refused: r7 waits on host inspection of comparison findings", file=sys.stderr)
         return 2
-    state = state_or_init()
+    state = load_state()
+    if state.get("terminal"):
+        print(f"execute refused: terminal {state['terminal']['reason']}", file=sys.stderr)
+        return 2
+    if state.get("outstanding_reservation"):
+        print("execute refused: outstanding unknown-usage reservation blocks later stages", file=sys.stderr)
+        return 2
     if state["visual_this_packet"] >= state["visual_max"] or state["visual"] >= state["visual_cap"]:
         print("execute refused: visual ceiling", file=sys.stderr)
         return 2
@@ -110,17 +168,21 @@ def execute(stage):
         assert_whole_only_stage_a(envelope)
     if stage == "stage-b-birch-positive":
         assert_whole_only_stage_b(envelope)
-        envelope = bind_stage_b(envelope)
+        if not inventory_file.exists():
+            print("execute refused: stage B waits for a code-validated Stage A receipt", file=sys.stderr)
+            return 2
+        bound = bind_inventory(json.loads(inventory_file.read_text()), load("stage-a-birch-request.json"))
+        envelope = json.loads(json.dumps(envelope))
+        envelope["request"]["inventory"] = bound
+        _, schema, prompt = adapter().prepare(envelope)
         prepared = dict(prepared)
         prepared["envelope"] = envelope
-        _, schema, prompt = adapter().prepare(envelope)
         prepared["schema_sha256"] = __import__("hashlib").sha256(json.dumps(schema).encode()).hexdigest()
         prepared["dispatched_prompt_sha256"] = __import__("hashlib").sha256(prompt.encode()).hexdigest()
     ceiling = stage_ceiling(stage)
     if state["tokens"] + ceiling > state["token_cap"]:
         print("execute refused: token ceiling", file=sys.stderr)
         return 2
-    reserve_path = PROOF / f"{stage}-reservation.json"
     reservation = {
         "stage": stage,
         "release": str(release),
@@ -144,45 +206,75 @@ def execute(stage):
     reserve_path.write_text(json.dumps(reservation, indent=2) + "\n")
     started = time.monotonic()
     run = dispatch(envelope)
-    (PROOF / f"{stage}-stdout.json").write_bytes(run.stdout)
-    (PROOF / f"{stage}-stderr.txt").write_bytes(run.stderr)
-    if run.returncode != 0:
-        print("execute failed: adapter nonzero; reservation retained; no retry", file=sys.stderr)
-        return 2
-    receipt = json.loads(run.stdout)
-    used = None
-    if receipt.get("usage") and isinstance(receipt["usage"].get("input_tokens"), int):
-        used = receipt["usage"]["input_tokens"] + receipt["usage"]["output_tokens"]
+    stdout_path.write_bytes(run.stdout)
+    stderr_path.write_bytes(run.stderr)
+    print(json.dumps({"raw_stdout": str(stdout_path), "raw_stderr": str(stderr_path)}), flush=True)
+    receipt = None
+    try:
+        receipt = json.loads(run.stdout)
+    except json.JSONDecodeError:
+        receipt = {}
+    used = known_usage(receipt)
     if used is None:
-        print("execute failed: unknown usage; reservation retained; stop", file=sys.stderr)
+        state["outstanding_reservation"] = stage
+        terminate(state, stage, "unknown_usage")
+        save_state(state)
+        print("execute failed: unknown usage; reservation outstanding; later stages blocked", file=sys.stderr)
         return 2
-    if used > ceiling or receipt.get("status") != "ok":
-        print("execute failed: over ceiling or adapter status; stop", file=sys.stderr)
+    charge(state, stage, used, receipt)
+    save_state(state)
+    reason = None
+    if run.returncode != 0:
+        reason = "adapter_nonzero"
+    elif used > ceiling:
+        reason = "over_ceiling"
+    elif receipt.get("status") != "ok":
+        reason = "invalid_receipt"
+    elif receipt.get("model") != "gpt-6-astra" or receipt.get("effort") != "medium":
+        reason = "model_or_effort"
+    elif receipt.get("request_sha256") != envelope["request_sha256"]:
+        reason = "request_hash"
+    if reason:
+        terminate(state, stage, reason)
+        save_state(state)
+        print(f"execute failed: {reason}; known usage charged; later stages blocked", file=sys.stderr)
         return 2
-    if receipt.get("model") != "gpt-6-astra" or receipt.get("effort") != "medium":
-        print("execute failed: model or effort mismatch; stop", file=sys.stderr)
-        return 2
-    if receipt.get("request_sha256") != envelope["request_sha256"]:
-        print("execute failed: request hash mismatch; stop", file=sys.stderr)
-        return 2
+    if stage == "stage-b-birch-positive":
+        judged = judge_positive(
+            receipt.get("answer") or {},
+            envelope["request"]["comparison"]["required"],
+        )
+        judgment_path.write_text(json.dumps(judged, indent=2) + "\n")
+        if judged["status"] != "positive_calibration_ok":
+            terminate(state, stage, judged["status"])
+            save_state(state)
+            print(f"execute stopped: {judged['status']}; later stages blocked", file=sys.stderr)
+            return 2
     if stage == "stage-b-beech-negative":
         judged = judge_negative(receipt.get("answer") or {})
-        (PROOF / "stage-b-beech-negative-judgment.json").write_text(json.dumps(judged, indent=2) + "\n")
-        if judged["status"] != "negative_calibration_ok":
-            print(f"execute stopped: {judged['status']}", file=sys.stderr)
+        judgment_path.write_text(json.dumps(judged, indent=2) + "\n")
+        if judged["status"] != "negative_code_guard_ok":
+            terminate(state, stage, judged["status"])
+            save_state(state)
+            print(f"execute stopped: {judged['status']}; later stages blocked", file=sys.stderr)
             return 2
     if stage == "stage-a-birch":
-        bound = bind_inventory(receipt, load("stage-a-birch-request.json"))
-        if INVENTORY.exists():
+        try:
+            bound = bind_inventory(receipt, load("stage-a-birch-request.json"))
+        except ValueError as err:
+            terminate(state, stage, "invalid_inventory")
+            save_state(state)
+            print(f"execute failed: {err}; known usage charged; later stages blocked", file=sys.stderr)
+            return 2
+        if inventory_file.exists():
+            terminate(state, stage, "inventory_already_bound")
+            save_state(state)
             print("execute failed: inventory already bound; no overwrite", file=sys.stderr)
             return 2
-        INVENTORY.write_text(json.dumps(bound, indent=2) + "\n")
-    state["tokens"] += used
-    state["visual"] += 1
-    state["visual_this_packet"] += 1
+        inventory_file.write_text(json.dumps(bound, indent=2) + "\n")
     state["settled"].append(stage)
     state["status"] = "stage_settled"
-    write_state(state)
+    save_state(state)
     print(json.dumps({"stage": stage, "used": used, "elapsed": time.monotonic() - started, "visual": state["visual"]}))
     return 0
 

@@ -62,7 +62,8 @@ def main():
     assert framing["beech_negative"]["sha256"] == framing["beech_negative"]["expected"]
     assert framing["birch_positive"]["framing"] == "clipped"
     assert framing["birch_positive"]["owner_accepted"] is True
-    assert framing["beech_negative"]["framing"] == "complete"
+    assert framing["beech_negative"]["framing"] == "clipped"
+    assert framing["beech_negative"]["width"] == "unknown"
     assert digest(framing["birch_positive"]["path"]) == framing["birch_positive"]["expected"]
     assert digest(framing["beech_negative"]["path"]) == framing["beech_negative"]["expected"]
     reframed = framing["birch_positive_reframed"]

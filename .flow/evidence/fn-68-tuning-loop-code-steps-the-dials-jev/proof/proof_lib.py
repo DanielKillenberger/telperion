@@ -135,37 +135,69 @@ def bind_inventory(receipt, stage_a_envelope):
     }
 
 
+def judge_positive(answer, required):
+    """All required cells PASS plus a supported finding that cites render and reference."""
+    passes = answer.get("passes") or []
+    if len(passes) != len(required) or any(p != "pass" for p in passes):
+        return {
+            "status": "positive_calibration_failed",
+            "reason": "required cells are not all pass",
+        }
+    coverage = answer.get("coverage") or []
+    if coverage and any(c.get("status") != "pass" for c in coverage):
+        return {
+            "status": "positive_calibration_failed",
+            "reason": "coverage is not all pass",
+        }
+    supported = []
+    for finding in answer.get("findings") or []:
+        if finding.get("impact") != "supported":
+            continue
+        ids = finding.get("evidence_ids") or []
+        if any(i.startswith("render-") for i in ids) and any(i.startswith("reference-") for i in ids):
+            supported.append(finding)
+    if not supported:
+        return {
+            "status": "positive_calibration_failed",
+            "reason": "no supported finding citing render and reference",
+        }
+    return {"status": "positive_calibration_ok", "supported": len(supported)}
+
+
 def judge_negative(answer):
-    """Known-defect FAIL with a grounded finding. UNKNOWN-only is reported, not success."""
+    """Code guard only. FAIL plus render/reference blocker. Clipping substring is not semantic proof."""
     passes = answer.get("passes") or []
     findings = answer.get("findings") or []
     grounded = [
         f
         for f in findings
         if f.get("impact") == "blocker"
-        and f.get("evidence_ids")
-        and not _clipping_only(f)
+        and _has_render_and_reference(f.get("evidence_ids") or [])
     ]
     if "fail" in passes and grounded:
-        return {"status": "negative_calibration_ok", "grounded_findings": len(grounded)}
+        return {
+            "status": "negative_code_guard_ok",
+            "grounded_findings": len(grounded),
+            "semantic_qualification": False,
+            "clipping_heuristic": "not semantic proof; host inspects raw findings",
+        }
     if passes and all(p == "unknown" for p in passes):
         return {
             "status": "abstention_not_successful_negative",
-            "reason": "UNKNOWN-only or clipping abstention is not negative calibration",
-        }
-    if grounded == [] and any(_clipping_only(f) for f in findings) and "fail" not in passes:
-        return {
-            "status": "abstention_not_successful_negative",
-            "reason": "clipping-only abstention is not negative calibration",
+            "reason": "UNKNOWN-only is not negative calibration",
+            "semantic_qualification": False,
         }
     if "pass" in passes and "fail" not in passes:
-        return {"status": "false_ready", "reason": "known-negative returned pass"}
-    return {"status": "negative_calibration_failed", "reason": "no grounded fail finding"}
+        return {"status": "false_ready", "reason": "known-negative returned pass", "semantic_qualification": False}
+    return {
+        "status": "negative_calibration_failed",
+        "reason": "no fail with render and reference blocker",
+        "semantic_qualification": False,
+    }
 
 
-def _clipping_only(finding):
-    text = (finding.get("observation") or "") + (finding.get("explanation") or "")
-    return "clip" in text.lower() and finding.get("uncertain") is True
+def _has_render_and_reference(ids):
+    return any(i.startswith("render-") for i in ids) and any(i.startswith("reference-") for i in ids)
 
 
 def accounting():

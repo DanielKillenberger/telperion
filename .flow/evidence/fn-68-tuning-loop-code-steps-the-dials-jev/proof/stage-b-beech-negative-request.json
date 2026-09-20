@@ -1,7 +1,7 @@
 {
   "stage": "comparison",
   "expected_ready": false,
-  "label": "beech-round22 owner-rejected; whole-crown seed1 only",
+  "label": "beech-round22 owner-rejected; laterally cropped; width unknown",
   "prompt": "Compare the candidate jointly against the frozen reference-only inventory and supplied photographs at the catalogue finish floor. Account explicitly for every core trait using its exact trait ID, citing render and reference evidence. Pass requires a supported match, fail a defining mismatch, unknown missing/clipped/ambiguous evidence. Do not silently dismiss a core reference trait as non-photorealism or downgrade an uncertain trait. Distinguish optional refinement and acceptable variation from defining reference character. Inventory statements are attributed interpretations, not infallible facts: if contradicted or unassessable, report unknown with grounds. Keep observations separate from causal hypotheses; no particular mechanism is required. Relative improvement is not absolute readiness. A clean candidate can pass with supported evidence for every core trait and no blockers.",
   "prompt_sha256": "847dd718e56258447ec5fcc89fdaadc9701165d02eab0b51001e616ebc1a0329",
   "inventory_bind": {
@@ -210,7 +210,7 @@
             "geometry_group": "beech-round22-4e6d903c-seed1-whole:seed:1",
             "condition": "historical_reconstructed_still",
             "visibility": "shown",
-            "framing": "complete"
+            "framing": "clipped"
           },
           {
             "id": "reference-0",
@@ -254,5 +254,5 @@
       }
     }
   },
-  "request_sha256": "754b758be652ce96d82e5b0d94e4ae309544589220f9c7a17ffc90ce828d6636"
+  "request_sha256": "6bdf3e2c9d7ae5d3467c2b1279797d46fed12637a6bce2ac5cf13a9e9c40f7e2"
 }

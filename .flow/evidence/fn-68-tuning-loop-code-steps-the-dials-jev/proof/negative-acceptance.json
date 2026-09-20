@@ -1,7 +1,7 @@
 {
   "frozen_before_answers": true,
   "success": "fail_with_grounded_finding",
-  "required": "Stage B beech-negative must return fail on the known-defect cell and at least one blocker finding that cites render and reference evidence and is not clipping-only uncertainty.",
+  "required": "Stage B beech-negative must return fail on the known-defect cell and at least one blocker finding that cites render and reference evidence of visible morphology. Width is unknown because the still is laterally cropped. Clipping UNKNOWN is not qualification. The clip substring heuristic is not semantic proof; host inspects raw findings before R7.",
   "unknown_or_clipping_only": "report_separately_not_success",
   "unknown_or_clipping_only_status": "abstention_not_successful_negative",
   "false_ready": "pass without fail is failed negative calibration",

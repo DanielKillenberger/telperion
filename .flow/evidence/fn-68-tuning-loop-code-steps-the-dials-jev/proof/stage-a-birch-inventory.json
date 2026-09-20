@@ -1,0 +1,123 @@
+{
+  "request": {
+    "protocol": "reference-first-v1",
+    "target_species": "Silver birch / Betula pendula",
+    "specimen_relationship": "unknown",
+    "references": [
+      {
+        "id": "reference-0",
+        "image": {
+          "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/silver-birch/bepe339A.jpg",
+          "sha256": "cae1627afa33d8a881fe927090b222a37fc0dfa2febffa3e3f1edcc52aa309be",
+          "view": "S-WHOLE",
+          "seed": 1
+        }
+      }
+    ]
+  },
+  "request_sha256": "cc34097651c758f31253e35bf11f5457510e2054c0b2b086d2aa10bb5b901613",
+  "prompt_sha256": "b977396bce80653bb49b01ba0711ae5f59325eab09c2c5a681f87fff43ab3911",
+  "traits": [
+    {
+      "id": "pendulous_branchlets",
+      "priority": "core",
+      "observation": "Numerous long, fine, leafy branchlets hang steeply downward, forming conspicuous curtains around the crown and extending toward the ground.",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "pale_dark_marked_trunks",
+      "priority": "core",
+      "observation": "Exposed lower trunks are pale white to silvery gray with irregular dark marks and patches. Fine bark texture is unresolved.",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "fine_foliage_texture",
+      "priority": "core",
+      "observation": "Foliage reads as many small, discrete leaf flecks along slender hanging shoots, producing a fine, stippled texture rather than broad, solid foliage masses.",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "irregular_cascading_crown",
+      "priority": "core",
+      "observation": "The crown has an irregular, broadly spreading outline with elevated tufts, outward arching shoulders, and long cascading margins. Its uppermost extent is cropped.",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "slender_diverging_stems",
+      "priority": "secondary",
+      "observation": "At least two conspicuous slender pale stems rise close together near the base; one is comparatively upright and another leans outward. Their exact basal connection is obscured.",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": true
+    },
+    {
+      "id": "layered_crown_openness",
+      "priority": "secondary",
+      "observation": "Overlapping foliage curtains alternate with narrow openings and deep shaded recesses. The perimeter is finely broken, while portions of the interior appear dense.",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "arching_support_branches",
+      "priority": "secondary",
+      "observation": "Some visible pale branches extend outward in arches before finer growth descends. Most internal branch junctions are hidden by foliage.",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": true
+    },
+    {
+      "id": "green_tonal_range",
+      "priority": "secondary",
+      "observation": "Visible foliage ranges from pale yellow-green or silvery green flecks to medium green and very dark green recesses. Intrinsic leaf color cannot be separated confidently from illumination and photographic rendering.",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": true
+    },
+    {
+      "id": "uneven_curtain_lengths",
+      "priority": "variation",
+      "observation": "Within this crown, hanging shoots differ substantially in length, spacing, and density; some form compact drapes, while others appear as isolated strands.",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "asymmetric_crown_distribution",
+      "priority": "variation",
+      "observation": "Foliage masses and gaps are distributed asymmetrically, with differing heights and widths across the crown. The exact silhouette is evidence from this view only.",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    }
+  ],
+  "observations": [
+    "Only reference-0 is supplied; no relationship between specimens or change over time can be assessed.",
+    "The strongest visible recognition cues are pendulous fine shoots, small-scale foliage texture, and pale trunks with dark markings.",
+    "Individual leaf shape, serration, venation, buds, flowers, and fruit are not reliably resolved.",
+    "Background vegetation overlaps the right crown boundary, limiting certainty about its full spread.",
+    "The image shows a pronounced weeping habit, but its cause and representativeness across the target species remain undetermined.",
+    "Variation entries describe visible differences within this reference; broader acceptable species variation is not established by this single view."
+  ],
+  "model": "gpt-6-astra",
+  "effort": "medium",
+  "ledger": null
+}

@@ -8,7 +8,39 @@ from pathlib import Path
 from unittest.mock import patch
 
 import proof_lib
-from proof_lib import bind_inventory, judge_negative, load, prepare_envelope
+from proof_lib import bind_inventory, judge_negative, judge_positive, load, prepare_envelope
+
+
+def load_runner():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("run_proof", proof_lib.PROOF / "run-proof.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def ok_inventory():
+    envelope = load("stage-a-birch-request.json")
+    receipt = {
+        "request_sha256": envelope["request_sha256"],
+        "status": "ok",
+        "model": "gpt-6-astra",
+        "effort": "medium",
+        "usage": {"input_tokens": 80, "output_tokens": 20},
+        "answer": {
+            "traits": [
+                {
+                    "id": "crown_outline",
+                    "priority": "core",
+                    "reference_ids": ["reference-0"],
+                    "observation": "light irregular crown",
+                    "uncertain": False,
+                }
+            ],
+            "observations": ["whole-view only"],
+        },
+    }
+    return envelope, receipt, bind_inventory(receipt, envelope)
 
 
 class Guards(unittest.TestCase):
@@ -88,7 +120,8 @@ class Guards(unittest.TestCase):
                 ],
             }
         )
-        self.assertEqual(ok["status"], "negative_calibration_ok")
+        self.assertEqual(ok["status"], "negative_code_guard_ok")
+        self.assertFalse(ok["semantic_qualification"])
         unknown = judge_negative({"passes": ["unknown"], "findings": []})
         self.assertEqual(unknown["status"], "abstention_not_successful_negative")
         clip = judge_negative(
@@ -118,39 +151,173 @@ class Guards(unittest.TestCase):
         self.assertEqual(run.returncode, 2)
         self.assertIn("host review not released", run.stderr)
 
-    def test_runner_would_call_adapter_after_release(self):
-        import importlib.util
-        spec = importlib.util.spec_from_file_location("run_proof", proof_lib.PROOF / "run-proof.py")
-        run_proof = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(run_proof)
+    def test_positive_requires_pass_and_supported_coverage(self):
+        required = [{"item": "reference_character", "view": "S-WHOLE", "seed": 1}]
+        fail = judge_positive({"passes": ["fail"], "findings": []}, required)
+        self.assertEqual(fail["status"], "positive_calibration_failed")
+        transport = judge_positive(
+            {
+                "passes": ["pass"],
+                "findings": [
+                    {
+                        "observation": "looks fine",
+                        "evidence_ids": ["render-0"],
+                        "impact": "supported",
+                    }
+                ],
+            },
+            required,
+        )
+        self.assertEqual(transport["status"], "positive_calibration_failed")
+        ok = judge_positive(
+            {
+                "passes": ["pass"],
+                "findings": [
+                    {
+                        "observation": "crown matches",
+                        "evidence_ids": ["render-0", "reference-0"],
+                        "impact": "supported",
+                    }
+                ],
+            },
+            required,
+        )
+        self.assertEqual(ok["status"], "positive_calibration_ok")
 
+    def _exec(self, run_proof, stage, receipt, temp, returncode=0, extra=None):
+        extra = extra or {}
+        release = Path(temp) / "release.json"
+        release.write_text(json.dumps({"release": stage}))
+        called = []
+
+        def fake_dispatch(envelope, model="gpt-6-astra", effort="medium"):
+            called.append(envelope["request_sha256"])
+            return type(
+                "Done",
+                (),
+                {"returncode": returncode, "stdout": json.dumps(receipt).encode(), "stderr": b""},
+            )()
+
+        paths = {
+            "state": Path(temp) / "state.json",
+            "inventory": Path(temp) / "inv.json",
+            "reserve": Path(temp) / f"{stage}-reservation.json",
+            "stdout": Path(temp) / f"{stage}-stdout.json",
+            "stderr": Path(temp) / f"{stage}-stderr.txt",
+            "judgment": Path(temp) / f"{stage}-judgment.json",
+        }
+        paths.update(extra)
+        with patch.object(run_proof, "release_path", return_value=release), patch.object(
+            run_proof, "dispatch", side_effect=fake_dispatch
+        ):
+            code = run_proof.execute(stage, **paths)
+        return code, json.loads(paths["state"].read_text()) if paths["state"].exists() else {}, called, paths
+
+    def test_successful_settle(self):
+        run_proof = load_runner()
+        envelope, receipt, bound = ok_inventory()
         with tempfile.TemporaryDirectory() as temp:
-            release = Path(temp) / "release.json"
-            release.write_text(json.dumps({"release": "stage-a-birch"}))
-            called = []
+            code, state, _, paths = self._exec(run_proof, "stage-a-birch", receipt, temp)
+            self.assertEqual(code, 0)
+            self.assertIsNone(state.get("terminal"))
+            self.assertEqual(state["settled"], ["stage-a-birch"])
+            self.assertEqual(state["tokens"], 552431 + 100)
+            self.assertEqual(state["visual"], 21)
+            self.assertTrue(paths["inventory"].exists())
 
-            def fake_dispatch(envelope, model="gpt-6-astra", effort="medium"):
-                called.append(envelope["request"]["protocol"])
-                return type("Done", (), {"returncode": 1, "stdout": b"{}", "stderr": b"blocked-test"})()
+    def test_invalid_known_usage_is_charged(self):
+        run_proof = load_runner()
+        envelope, receipt, _ = ok_inventory()
+        receipt["status"] = "failed_or_tools_or_unknown_usage_or_cardinality"
+        with tempfile.TemporaryDirectory() as temp:
+            code, state, _, _ = self._exec(run_proof, "stage-a-birch", receipt, temp)
+            self.assertEqual(code, 2)
+            self.assertEqual(state["tokens"], 552431 + 100)
+            self.assertEqual(state["visual"], 21)
+            self.assertEqual(state["terminal"]["reason"], "invalid_receipt")
+            code2, state2, _, _ = self._exec(run_proof, "stage-b-beech-negative", receipt, temp)
+            self.assertEqual(code2, 2)
+            self.assertEqual(state2["tokens"], 552431 + 100)
+            self.assertEqual(state2["terminal"]["reason"], "invalid_receipt")
 
-            reserve = proof_lib.PROOF / "stage-a-birch-reservation.json"
-            stdout = proof_lib.PROOF / "stage-a-birch-stdout.json"
-            stderr = proof_lib.PROOF / "stage-a-birch-stderr.txt"
-            self.assertFalse(reserve.exists())
-            try:
-                with patch.object(run_proof, "release_path", return_value=release), patch.object(
-                    run_proof, "dispatch", side_effect=fake_dispatch
-                ), patch.object(run_proof, "INVENTORY", Path(temp) / "inv.json"), patch.object(
-                    run_proof, "STATE", Path(temp) / "state.json"
-                ):
-                    code = run_proof.execute("stage-a-birch")
-                self.assertEqual(called, ["reference-first-v1"])
-                self.assertEqual(code, 2)
-                self.assertTrue(reserve.exists())
-            finally:
-                for path in (reserve, stdout, stderr):
-                    if path.exists():
-                        path.unlink()
+    def test_unknown_usage_blocks_next(self):
+        run_proof = load_runner()
+        with tempfile.TemporaryDirectory() as temp:
+            code, state, _, paths = self._exec(run_proof, "stage-a-birch", {}, temp)
+            self.assertEqual(code, 2)
+            self.assertEqual(state["terminal"]["reason"], "unknown_usage")
+            self.assertEqual(state["outstanding_reservation"], "stage-a-birch")
+            self.assertEqual(state["tokens"], 552431)
+            code2, state2, _, _ = self._exec(
+                run_proof,
+                "stage-b-beech-negative",
+                {"usage": {"input_tokens": 1, "output_tokens": 1}, "status": "ok"},
+                temp,
+                extra={"reserve": Path(temp) / "neg-reservation.json"},
+            )
+            self.assertEqual(code2, 2)
+            self.assertEqual(state2["tokens"], 552431)
+            self.assertFalse((Path(temp) / "neg-reservation.json").exists())
+
+    def test_positive_failure_stops_later_stages(self):
+        run_proof = load_runner()
+        envelope, receipt, bound = ok_inventory()
+        fail = {
+            "request_sha256": load("stage-b-birch-positive-request.json")["request_sha256"],
+            "status": "ok",
+            "model": "gpt-6-astra",
+            "effort": "medium",
+            "usage": {"input_tokens": 200, "output_tokens": 30},
+            "answer": {
+                "passes": ["fail"],
+                "findings": [
+                    {
+                        "observation": "wrong species",
+                        "evidence_ids": ["render-0", "reference-0"],
+                        "impact": "blocker",
+                    }
+                ],
+            },
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            inv = Path(temp) / "inv.json"
+            inv.write_text(json.dumps(bound))
+            code, state, _, _ = self._exec(
+                run_proof,
+                "stage-b-birch-positive",
+                fail,
+                temp,
+                extra={"inventory": inv},
+            )
+            self.assertEqual(code, 2)
+            self.assertEqual(state["terminal"]["reason"], "positive_calibration_failed")
+            self.assertEqual(state["tokens"], 552431 + 230)
+            self.assertEqual(state["settled"], [])
+            code2, state2, _, _ = self._exec(
+                run_proof,
+                "stage-b-beech-negative",
+                {
+                    "request_sha256": "x",
+                    "status": "ok",
+                    "model": "gpt-6-astra",
+                    "effort": "medium",
+                    "usage": {"input_tokens": 1, "output_tokens": 1},
+                    "answer": {"passes": ["fail"], "findings": []},
+                },
+                temp,
+                extra={"reserve": Path(temp) / "neg-reservation.json"},
+            )
+            self.assertEqual(code2, 2)
+            self.assertEqual(state2["tokens"], 552431 + 230)
+
+    def test_runner_would_call_adapter_after_release(self):
+        run_proof = load_runner()
+        with tempfile.TemporaryDirectory() as temp:
+            code, state, called, paths = self._exec(run_proof, "stage-a-birch", {}, temp, returncode=1)
+            self.assertTrue(called)
+            self.assertEqual(code, 2)
+            self.assertTrue(paths["reserve"].exists())
+            self.assertEqual(state["terminal"]["reason"], "unknown_usage")
 
 
 if __name__ == "__main__":

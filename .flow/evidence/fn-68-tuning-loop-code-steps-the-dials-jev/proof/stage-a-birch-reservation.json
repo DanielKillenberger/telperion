@@ -1,0 +1,17 @@
+{
+  "stage": "stage-a-birch",
+  "release": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/tmp/cursor-fn68-release.json",
+  "release_sha256": "69f232fc4aba70c09a08ea6c247da359c7a50cef61aa11507759f0a8e0b701ee",
+  "ceiling": 25000,
+  "prior_tokens": 552431,
+  "model": "gpt-6-astra",
+  "effort": "medium",
+  "protocol": "reference-first-v1",
+  "request_sha256": "cc34097651c758f31253e35bf11f5457510e2054c0b2b086d2aa10bb5b901613",
+  "request_file_sha256": "138bfad178e1104110dc2a09120c3526ae12069a1c9854639e1e05ffaa0908f1",
+  "adapter_sha256": "b0418acb2245a0cd7fb3ee1687c9121ccc7ca0531bc119d1270d14fc7136eea0",
+  "schema_sha256": "4c13c160206ee1491a194676a627beccdc5e53d97adad294646e2d74ab3f74f5",
+  "dispatched_prompt_sha256": "72933135a419384322f8be504614ea613da923a98007c4bdc0cbecfa1e4d5ad5",
+  "status": "reserved_before_dispatch",
+  "runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e"
+}

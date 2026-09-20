@@ -1,0 +1,42 @@
+{
+  "status": "stage_settled",
+  "tokens": 622967,
+  "token_cap": 902431,
+  "visual": 23,
+  "visual_cap": 25,
+  "visual_this_packet": 3,
+  "visual_max": 5,
+  "reserved": 30,
+  "actual_captures": 26,
+  "settled": [
+    "stage-a-birch",
+    "stage-b-birch-positive",
+    "stage-b-beech-negative"
+  ],
+  "attempts": [
+    {
+      "stage": "stage-a-birch",
+      "used": 19456,
+      "model": "gpt-6-astra",
+      "effort": "medium",
+      "status": "ok"
+    },
+    {
+      "stage": "stage-b-birch-positive",
+      "used": 25153,
+      "model": "gpt-6-astra",
+      "effort": "medium",
+      "status": "ok"
+    },
+    {
+      "stage": "stage-b-beech-negative",
+      "used": 25927,
+      "model": "gpt-6-astra",
+      "effort": "medium",
+      "status": "ok"
+    }
+  ],
+  "terminal": null,
+  "outstanding_reservation": null,
+  "runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e"
+}
