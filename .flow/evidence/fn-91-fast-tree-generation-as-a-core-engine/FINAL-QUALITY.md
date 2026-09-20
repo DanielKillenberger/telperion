@@ -59,3 +59,5 @@ Correctness axis: 0 findings; worst tier none.
 Standards axis: 2 findings; worst tier Should Fix. Both are accepted for a bounded API documentation/type correction; no runtime or performance changes are needed.
 
 The out-of-axis test typo was independently caught by the full native build and fixed before the auditors returned. The initial failed build remains in `final-rust-first-build-failure.log`. Final aggregate results are recorded separately; pending-test statements above describe the audit's observation time.
+
+Both standards findings are resolved by Rust API contracts and exported TypeScript `GenerationStages`/`GpuSubmitted` interfaces. Host field comparison confirms all 33 serialized stage fields are represented; TypeScript checking and scoped formatting pass. These are documentation and erased-type changes only, so no performance retiming or full Rust rerun is needed. Final aggregate validation passed 742 Rust tests (20 skipped) and 108 JavaScript tests.

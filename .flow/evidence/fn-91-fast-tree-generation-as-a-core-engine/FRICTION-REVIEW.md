@@ -69,3 +69,5 @@ The reusable changes worth considering for follow-up are a cheap-first gate prot
 
 - Final aggregate tests rewrote the historical fn-71 smooth-bark receipt again. The fresh result is preserved under fn-91, and only the observed legacy row was restored, costing under one minute. This confirms the existing isolated test-artifact output proposal; no new spec was created.
 - Final aggregate compilation caught an over-broad parameter rename in a native-only test after Wasm validation. The host restored the local name and the 742-test aggregate run passed. Use a contextual patch for warning cleanup and compile the affected cfg/test branch; no performance retiming or new spec was needed.
+
+- The final API documentation edit hit the local shell guard on Markdown backticks before any edit ran. The dedicated patch tool applied it safely, costing one rejected call and about one minute. Use structured patches for such text. This is local tooling friction, not a repository spec.

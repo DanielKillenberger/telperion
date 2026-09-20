@@ -8,7 +8,7 @@ The optimization search has ended. Browser completed-frame medians are 158.1/180
 - JavaScript gate: `npm --ignore-scripts test` passed the catalogue structure check and 108 tests in eight files. Both current Wasm modules had already been built by the worker, so the duplicate pretest build hook was omitted. See `final-js.log` and `stations/wasm-final.log`.
 - Both release Wasm builds, TypeScript checking, scoped Rust formatting, browser lifecycle smoke and actual post-submission fallback/error regressions passed.
 - All four mature full station-record comparisons and all eight CPU/GPU-assisted foliage-output pairs match exactly. Earlier GPU wood arithmetic differences remain within the recorded accepted numeric/visual evidence; the entire original CPU/GPU tree is not claimed byte-identical.
-- Two-axis final review found no correctness issues and two API documentation/type issues. The out-of-axis test typo was caught by the full build and corrected; its failed first build is preserved. See `FINAL-QUALITY.md`.
+- Two-axis final review found no correctness issues and two API documentation/type issues, both resolved and type-checked. The out-of-axis test typo was caught by the full build and corrected; its failed first build is preserved. See `FINAL-QUALITY.md`.
 - The smooth-bark test's fresh visual receipt is preserved as `final-smooth-bark.json`; the unrelated historical fn-71 receipt was restored.
 
 ## Qualification and tracking
