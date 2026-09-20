@@ -24,9 +24,19 @@ Host refinement from actual fixture metadata before implementation: oak surfaceC
 
 
 ## Done summary
-TBD
+Retained shared canonical contacts for contact-enabled resident generation, with one packed GPU position buffer used by foliage and adopted by wood. Exact output, paired native/browser results, simultaneous allocation accounting and host retention decision are in `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/shared-rings/REPORT.md`.
 
+Native spruce completed-frame median improves 16.71%; browser spruce improves 18.26–19.89% cumulatively with .5. CPU-output controls change less than 1%. Oak RSS, whole peak-memory, cold/phone qualification and parent oak 10×/100 ms goals remain unresolved. The host directly reviewed the final code/results and approved retention; no repeated visual gate was needed.
+
+baseline: green (release core 17/17, renderer 14/14, formatting); accidentally selected debug core run was interrupted/inconclusive, while debug renderer finished green. Final scoped release gates pass 19 core and 14 renderer tests; Wasm build, TypeScript, formatting, browser lifecycle smoke and four-fixture completed-frame matrix pass. Shared API and empty/root regression tests were observed red before fixes; the existing multirow GPU test caught and verified the dispatch-count correction. No gate was weakened.
+
+Exact reusable gate commands:
+- `/tmp/telperion-fn91-tools/cargo-nextest nextest run --release -p telperion-core --test surface --test surface_prepared --test surface_collapse --test surface_attachments` (gate id `fn91-core`)
+- `/tmp/telperion-fn91-tools/cargo-nextest nextest run --release -p telperion-render --lib -E 'test(generation::)'` (gate id `fn91-render`)
+
+Tier: session (jev intelligent0.72; explicit IMPLEMENTER preserved)
+stage: impl-review - skipped(config: REVIEW_MODE=none)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6db466ab8b7a74a0fe2d0b8bbf8f4ecfa61473f8, b59b2ff00776b13279074c291fa16174de2a5af0
+- Tests: baseline: green release core 17/17, renderer 14/14; debug core interrupted/inconclusive; debug renderer 14/14, /tmp/telperion-fn91-tools/cargo-nextest nextest run --release -p telperion-core --test surface --test surface_prepared --test surface_collapse --test surface_attachments, /tmp/telperion-fn91-tools/cargo-nextest nextest run --release -p telperion-render --lib -E 'test(generation::)', npm run render:build, ./node_modules/.bin/tsc --noEmit, rustfmt --edition 2021 --check crates/telperion-core/src/surface.rs crates/telperion-core/src/foliage/prepared.rs crates/telperion-core/tests/surface_prepared.rs crates/telperion-render/src/generation.rs crates/telperion-render/src/web/generation.rs crates/telperion-render/examples/generation_gpu.rs, git diff --check, python3 .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/shared-rings/measure.py gpu-render, python3 .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/shared-rings/measure.py gpu-render --verify, python3 .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/shared-rings/measure.py cpu-output, /tmp/telperion-fn91-tools/preparation-shared-rings, GENERATION_OUTPUT=.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/shared-rings/browser-smoke.json node scripts/benchmarks/generation-gpu-smoke.mjs, GENERATION_GPU=1 GENERATION_COMPLETED=1 GENERATION_OUTPUT=.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/shared-rings/browser-completed.json node scripts/benchmarks/mature-generation.mjs
 - PRs:
