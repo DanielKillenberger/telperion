@@ -54,7 +54,7 @@ Baseline: green release core 17/17 and renderer 14/14, plus scoped formatting. T
 
 New core coverage first failed because the shared APIs did not exist, then passed exact station/contact checks across reordered runs and burial offsets. Empty/root-only coverage first failed on premature solved-radius validation and then passed. The existing 65,536-run GPU test caught a dispatch-count regression in the ownership split; dispatch now uses the compute run count, independent of the render run table. No test or gate was weakened. The extended GPU test checks exact owned/shared leaf bytes and identity of the adopted position buffer. Focused final logs, Wasm build, TypeScript, formatting and browser smoke/matrix are the verification evidence; no full-workspace LTO gate is claimed.
 
-Host retention decision is pending final review of these results. This task evaluates a bounded improvement; it does not complete task .1 or the parent spec.
+The host directly reviewed the final code and results and chose to retain .6. This task evaluates a bounded improvement; it does not complete task .1 or the parent spec.
 
 Tier: session (jev intelligent0.72; explicit IMPLEMENTER preserved)
 stage: impl-review - skipped(config: REVIEW_MODE=none)
