@@ -1,6 +1,8 @@
 {
   "base_commit": "507d3ef13b883136af32d1bc966225b7906dcb81",
-  "commits": [],
+  "commits": [
+    "b63d38c31ec826ce089eade7273c43077b00aee1"
+  ],
   "tests": [
     "baseline: none (no spec Quick commands)",
     "cargo build --release -p telperion-core --example generation_stages",
@@ -10,7 +12,8 @@
     "node --check scripts/benchmarks/mature-generation.mjs",
     "4 CLI error controls passed (initial invalid-seed message expectation corrected)",
     "24 native preset builds and 4 native diagnostic builds complete",
-    "48 browser builds complete; GPU completion unmeasured"
+    "48 browser builds complete; GPU completion unmeasured",
+    "gate classify: FULL (benchmark Rust example); no spec full-suite Quick command defined; focused checks above"
   ],
   "prs": []
 }
