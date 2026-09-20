@@ -116,7 +116,8 @@ impl Run {
                 "current_identity":projection["current_identity"],
                 "resource_limit":projection["resource_limit"],
             "resource_amendments":projection["resource_amendments"],
-            "agent_diagnoses":projection["agent_diagnoses"]
+            "agent_diagnoses":projection["agent_diagnoses"],
+            "verified_evidence_reuse":projection["verified_evidence_reuse"]
             })
             .to_string(),
         );

@@ -1,0 +1,93 @@
+{
+  "pause_id": "18d6fcdc400a8071-13eec-d",
+  "identity": "d0927490f65348a7e5487338dceaff12e255ed3e41972edf8c59966d5e1b552c",
+  "next_identity": "524b7cb170ad8fcbb70c00cedf51ab045fc284abf43e73ec8def1afe96835081",
+  "action": "reassess or diagnose",
+  "by": "owner YES GO relayed by host",
+  "rationale": "One final diagnosed v1 pilot round; preserve verified baseline, reconcile all external study spend, no retry after terminal uncertainty. No v3/v4 activation.",
+  "preserve_evidence": true,
+  "token_cap_extension": {
+    "previous": 270000,
+    "next": 300000
+  },
+  "round_cap_extension": {
+    "previous": 2,
+    "next": 3
+  },
+  "external_usage": {
+    "previous_tokens": 205909,
+    "next_tokens": 214018,
+    "reason": "Five approved external text-study calls, not previously charged to runtime",
+    "ledgers": [
+      {
+        "path": ".flow/ledger/fn68-v2-calibration/2026-09-20T095626Z-fn68-v2-direction-18d6feeac83d2f7f-1ae82-0.json",
+        "sha256": "06af77c44cf0ffa9d262479b48ad1472d9000352c97a10e9a7cf9de62f3aa564",
+        "id": "18d6feeac83d2f7f-1ae82-0",
+        "tool": "fn68-v2-direction",
+        "model": "jev-1.13.0",
+        "identity": "694fc1aa3f2881830dc24581"
+      },
+      {
+        "path": ".flow/ledger/fn68-v2-calibration/2026-09-20T095706Z-fn68-v2-size-18d6fef409c69752-1b1fe-0.json",
+        "sha256": "9e83413e70aad2f067a854d2a3af1936b59a2e523f8546d983aaa3b553560064",
+        "id": "18d6fef409c69752-1b1fe-0",
+        "tool": "fn68-v2-size",
+        "model": "jev-1.13.0",
+        "identity": "3c015b88aafccea11d378db1"
+      },
+      {
+        "path": ".flow/ledger/fn68-v3-calibration/2026-09-20T104014Z-fn68-v3-direction-18d7014ed329aaa7-2f6a4-0.json",
+        "sha256": "85aab5fed1fdb943a8e193734f78373dbc6715ad0bf89d2cb0c731ff8c3ed5e1",
+        "id": "18d7014ed329aaa7-2f6a4-0",
+        "tool": "fn68-v3-direction",
+        "model": "jev-1.13.0",
+        "identity": "2be7952baac20d982d74eb29"
+      },
+      {
+        "path": ".flow/ledger/fn68-v3-calibration/2026-09-20T104015Z-fn68-v3-size-18d7014ef858ebd6-2f7ec-0.json",
+        "sha256": "5d1d2ccec908a2b028a495483e1a031634a4781119b0ffff3bd4bf1cc056e2f8",
+        "id": "18d7014ef858ebd6-2f7ec-0",
+        "tool": "fn68-v3-size",
+        "model": "jev-1.13.0",
+        "identity": "b088ce4cb3edd69222624c54"
+      },
+      {
+        "path": ".flow/ledger/fn68-v4-calibration/2026-09-20T104735Z-fn68-v4-candidates-18d701b56461eae6-3615a-0.json",
+        "sha256": "2e1792500ebaf9002688f02fce447f8dac8acc08fa90de1761eca9cbeb988fb3",
+        "id": "18d701b56461eae6-3615a-0",
+        "tool": "fn68-v4-candidates",
+        "model": "jev-1.13.0",
+        "identity": "54371b3519baf9b9e017d1f7"
+      }
+    ]
+  },
+  "diagnosis": {
+    "target_identity": "524b7cb170ad8fcbb70c00cedf51ab045fc284abf43e73ec8def1afe96835081",
+    "author": "fn68 implementation worker; offline source inspection, not owner ruling",
+    "model": "session model identity not independently recorded",
+    "findings": [
+      {
+        "claim": "The irregularity parameter scales seeded envelope radius variation. This identifies a mathematical effect, not a guarantee of improved visible crown shape or a useful magnitude.",
+        "source": "crates/telperion-core/src/envelope.rs",
+        "sha256": "8054398f60affaeb9c9150d54a61bb91b58c49966542b4b3f905a3833e7ce811",
+        "excerpt": "radius * (1.0 + self.irregularity * noise::seeded(seed, at).clamp(-1.0, 1.0))"
+      },
+      {
+        "claim": "The preserved supplemental receipt reports the historical failed candidate was node-capped and truncated at250000 nodes. It is historical resource evidence, not a visual verdict or proof a current candidate will succeed; original failed trial remains unchanged.",
+        "source": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/pilot-failed-gate-supplement.json",
+        "sha256": "92a7b61e9a6a8b4b405d18ac37c3077f71211761b99efcdc93f6267102927a1c",
+        "excerpt": "\"node_capped\":true,\"status\":\"truncated\"},\"nodes\":{\"status\":\"measured\",\"value\":250000}"
+      }
+    ]
+  },
+  "experimental_pilot": {
+    "purpose": "Final owner-authorized diagnosed v1 round",
+    "reason": "Sourced diagnosis only; frozen calibrated v1 action policy, measure before render, one remaining all-cell visual; no shipping or retry",
+    "next_identity": "524b7cb170ad8fcbb70c00cedf51ab045fc284abf43e73ec8def1afe96835081",
+    "max_tokens": 300000,
+    "max_rounds": 3,
+    "max_evaluations": 13,
+    "max_images": 52,
+    "max_visual_passes": 9
+  }
+}

@@ -1,5 +1,11 @@
 # fn68 implementation and calibration checkpoint
 
+## Final diagnosed attempt preparation
+
+Owner authorized one final round under300k cumulative tokens/3rounds, existing9visual cap. New optional external-usage reconciliation validates exact old/new totals and full-file-pinned typed ledgers, expected IDs/tool/model/derived identity, known successful usage, additive sum/overflow/cap, duplicate IDs across prior imports and native tuning exclusion. It cannot reset spend. Resume artifact normalization restores previous explicitly changed token/round/visual caps for identity comparison, without rewriting historical trial identities; shared evidence includes verified reuse lineage.
+
+Full key-unset package198tests passed; final command regression4passed covers additive charge, token+round cap evidence preservation and failed validation leaving persisted state unchanged. Format/diff green. Test typo compilation failure was fixed and is not a claimed red behavioral regression. Final config/decision/preflight are pilot-config-final-diagnosed.json,pilot-resume-final-diagnosed.json,pilot-final-preflight.json. Verified import8109 brings runtime accounting to214018 when applied; exact reservation73076 fits85982remaining. Tooling-only build precedes the single authorized run; no renderer or preset change.
+
 ## Scoped sourced-diagnosis resume interface
 
 HumanDecision optionally carries a target-identity diagnosis with separate agent author/model and sourced claims. Code checks nonempty bounded attribution/findings, regular local file, SHA256 and exact supporting excerpt; this proves provenance, not claim truth. Source excerpts are descriptive data, never instructions; claims remain agent interpretations, not owner rulings. Existing append-only authorizations retain history; only current-identity attachments enter shared proposal and continuation evidence. At most eight active findings is a request-size guard, not an evidence/confidence policy: overflow rejects rather than discarding contrary history.

@@ -1,5 +1,7 @@
 # Frozen continuation protocol — 2026-09-19
 
+Owner explicitly approved “YES GO” for one final diagnosed v1 attempt: cumulative300000,rounds2→3,visualcap9 unchanged. Scoped final decision imports five pinned successful external ledgers additively205909→214018 (8109), preserves verified baseline, and names new config identity524b7cb170ad8fcbb70c00cedf51ab045fc284abf43e73ec8def1afe96835081. Exact preflight73076 fits85982remaining. No v3/v4 activation, calibration replay, baseline repeat, sweep or retry after terminal uncertainty. Source diagnosis is attributed interpretation only. All earlier failed studies and spend remain.
+
 Corrected authorized attempt settled205,909actual tokens/8visual/4eval16reservedimages/2rounds. Continuation passed but no proposal qualified under unchanged0.5 policy. No candidate/finalvisual. Two-round ceiling exhausted; no retry authorized. Typed result pilot-corrected-outcome.json; prior results unchanged.
 
 The owner subsequently answered “go ahead” to one corrected continuation attempt using the same verified baseline and unchanged270k/9visual/2rounds/13eval52images ceilings. Scoped decision pilot-resume-corrected-basis.json names pause18d6fc21ab094ba8-f726-14, preserves evidence and renews exact experimental authority. Retain195519tokens/8visual/4eval16reservedimages/1round. No baseline/calibration replay or additional retry is authorized; only passing frozen judgments can dispatch the remaining round and final visual.

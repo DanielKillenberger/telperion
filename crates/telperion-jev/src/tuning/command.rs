@@ -80,7 +80,8 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
         if old.identity != identity && decision.next_identity.as_deref() != Some(&identity) {
             return Err("changed inputs require a scoped decision naming next_identity".into());
         }
-        let previous_cap = old.budget.max_tokens;
+        let previous_budget = old.budget.clone();
+        let previous_cap = previous_budget.max_tokens;
         if let Some(extension) = &decision.token_cap_extension {
             if extension.previous != previous_cap
                 || extension.next != config.budget.max_tokens
@@ -164,6 +165,16 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
         if old.budget.max_visual_passes != config.budget.max_visual_passes {
             return Err("resume cannot silently change visual cap".into());
         }
+        if let Some(usage) = &decision.external_usage {
+            let imported = old
+                .authorizations
+                .iter()
+                .filter_map(|a| a.external_usage.as_ref())
+                .flat_map(|u| u.ledgers.iter().map(|e| e.id.clone()))
+                .collect();
+            old.budget.tokens =
+                usage.verify(old.budget.tokens, old.budget.max_tokens, &imported)?;
+        }
         if let Some(amendment) = &decision.baseline_amendment {
             if decision.preserve_evidence
                 || amendment.previous != old.overrides
@@ -211,6 +222,8 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
         if decision.preserve_evidence {
             let mut original = config.clone();
             original.budget.max_tokens = previous_cap;
+            original.budget.max_rounds = previous_budget.max_rounds;
+            original.budget.max_visual_passes = previous_budget.max_visual_passes;
             if original.identity()? != old.identity {
                 return Err(
                     "evidence reuse requires unchanged original config and artifact bytes".into(),

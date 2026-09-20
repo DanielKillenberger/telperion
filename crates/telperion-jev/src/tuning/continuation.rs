@@ -124,6 +124,92 @@ pub struct HumanDecision {
     pub experimental_pilot: Option<PilotAuthority>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub diagnosis: Option<Diagnosis>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub external_usage: Option<ExternalUsage>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ExternalUsage {
+    pub previous_tokens: u64,
+    pub next_tokens: u64,
+    pub reason: String,
+    pub ledgers: Vec<ExternalLedger>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ExternalLedger {
+    pub path: std::path::PathBuf,
+    pub sha256: String,
+    pub id: String,
+    pub tool: String,
+    pub model: String,
+    pub identity: String,
+}
+impl ExternalUsage {
+    pub fn verify(
+        &self,
+        current: u64,
+        cap: u64,
+        imported: &std::collections::HashSet<String>,
+    ) -> Result<u64, String> {
+        if self.previous_tokens != current
+            || self.reason.trim().is_empty()
+            || self.ledgers.is_empty()
+            || self.ledgers.len() > 32
+        {
+            return Err("invalid external usage scope".into());
+        }
+        let mut seen = imported.clone();
+        let mut sum = 0u64;
+        for pin in &self.ledgers {
+            if [&pin.id, &pin.tool, &pin.model, &pin.identity]
+                .iter()
+                .any(|s| s.trim().is_empty())
+                || pin.tool == "tuning"
+                || !seen.insert(pin.id.clone())
+            {
+                return Err("duplicate, native or unidentified external ledger".into());
+            }
+            let bytes = std::fs::read(&pin.path).map_err(|e| format!("external ledger: {e}"))?;
+            if pin.sha256.len() != 64 || crate::sha256_hex(&bytes) != pin.sha256 {
+                return Err("external ledger hash mismatch".into());
+            }
+            let e: crate::ledger::LedgerEntry =
+                serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+            if e.id != pin.id
+                || e.tool != pin.tool
+                || e.model != pin.model
+                || e.identity != pin.identity
+                || e.error.is_some()
+                || e.state_sha256.len() != 64
+                || !e.state_sha256.bytes().all(|b| b.is_ascii_hexdigit())
+                || e.identity
+                    != crate::ledger::derived_identity(&e.state_sha256, &e.questions, &e.model)
+                || e.questions.as_object().is_none_or(|q| q.is_empty())
+                || e.answers.as_object().is_none_or(|a| {
+                    a.is_empty()
+                        || e.questions
+                            .as_object()
+                            .unwrap()
+                            .keys()
+                            .any(|k| !a.contains_key(k))
+                })
+            {
+                return Err("external ledger identity or success mismatch".into());
+            }
+            let u = e.usage.ok_or("external usage unknown")?;
+            sum = sum
+                .checked_add(u.input_tokens)
+                .and_then(|n| n.checked_add(u.output_tokens))
+                .ok_or("external usage overflow")?;
+        }
+        let next = current.checked_add(sum).ok_or("external total overflow")?;
+        if sum == 0 || next != self.next_tokens || next > cap {
+            return Err("external usage sum or cap mismatch".into());
+        }
+        Ok(next)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

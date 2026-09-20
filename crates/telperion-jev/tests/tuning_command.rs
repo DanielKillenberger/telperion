@@ -126,16 +126,26 @@ fn scoped_cap_extension_reuses_only_unchanged_verified_evidence() {
     original["visual"] =
         json!({"identity":"trial","model":"mock","ledger":"test","cells":[],"defects":["defect"]});
     config["budget"]["max_tokens"] = json!(205000);
+    config["budget"]["max_rounds"] = json!(4);
     write(&cfg, &config);
     let next: Config = serde_json::from_value(config.clone()).unwrap();
     let decision = root.join("decision.json");
     let source = root.join("diagnosis-source.txt");
     fs::write(&source, "Measured node cap prevented rendering.").unwrap();
     let diagnosis = json!({"target_identity":next.identity().unwrap(),"author":"diagnostic worker","model":"mock-reasoner","findings":[{"claim":"Prior trial was resource limited, not visually judged","source":source,"sha256":telperion_jev::sha256_hex(b"Measured node cap prevented rendering."),"excerpt":"node cap prevented rendering"}]});
-    let d = json!({"pause_id":original["pause"]["id"],"identity":original["identity"],"action":original["pause"]["basis"]["proposed_action"],"by":"test owner","rationale":"policy-only scoped extension","next_identity":next.identity().unwrap(),"preserve_evidence":true,"token_cap_extension":{"previous":200000,"next":205000},"diagnosis":diagnosis});
+    let mut d = json!({"pause_id":original["pause"]["id"],"identity":original["identity"],"action":original["pause"]["basis"]["proposed_action"],"by":"test owner","rationale":"policy-only scoped extension","next_identity":next.identity().unwrap(),"preserve_evidence":true,"token_cap_extension":{"previous":200000,"next":205000},"round_cap_extension":{"previous":3,"next":4},"diagnosis":diagnosis});
+    let external_path = root.join("external.json");
+    let q = json!({"q":{"type":"noul"}});
+    let state_hash = "a".repeat(64);
+    let external_identity = telperion_jev::ledger::derived_identity(&state_hash, &q, "mock");
+    let external = json!({"id":"external","tool":"study","model":"mock","identity":external_identity,"state_sha256":state_hash,"questions":q,"answers":{"q":{"type":"noul","noul":0.9}},"usage":{"input_tokens":7,"output_tokens":3},"elapsed_ms":1,"recorded_at":"now","source":null});
+    write(&external_path, &external);
+    d["external_usage"] = json!({"previous_tokens":123,"next_tokens":133,"reason":"approved study","ledgers":[{"path":external_path,"sha256":telperion_jev::sha256_hex(&fs::read(&external_path).unwrap()),"id":"external","tool":"study","model":"mock","identity":external_identity}]});
     for variant in [
         "wrong_cap",
         "no_extension",
+        "no_round_extension",
+        "wrong_external_sum",
         "artifact",
         "model",
         "trial_identity",
@@ -156,6 +166,8 @@ fn scoped_cap_extension_reuses_only_unchanged_verified_evidence() {
         match variant {
             "wrong_cap" => choice["token_cap_extension"]["previous"] = json!(199999),
             "no_extension" => choice["token_cap_extension"] = Value::Null,
+            "no_round_extension" => choice["round_cap_extension"] = Value::Null,
+            "wrong_external_sum" => choice["external_usage"]["next_tokens"] = json!(132),
             "artifact" => {
                 fs::write(root.join("asset"), "changed render binary").unwrap();
             }
@@ -181,12 +193,15 @@ fn scoped_cap_extension_reuses_only_unchanged_verified_evidence() {
         if variant == "valid" {
             assert!(error.contains("calibration prerequisite"), "{error}");
             let saved: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
-            assert_eq!(saved["budget"]["tokens"], 123);
+            assert_eq!(saved["budget"]["tokens"], 133);
             assert_eq!(saved["budget"]["max_tokens"], 205000);
+            assert_eq!(saved["budget"]["max_rounds"], 4);
             assert_eq!(saved["current"], 0);
             assert_eq!(saved["visual"]["identity"], "trial");
             assert_eq!(saved["authorizations"][0]["diagnosis"], diagnosis);
         } else {
+            let unchanged: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+            assert_eq!(unchanged, state);
             assert!(
                 !error.contains("calibration prerequisite"),
                 "{variant}: {error}"
