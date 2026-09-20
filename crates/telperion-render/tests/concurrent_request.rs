@@ -1,6 +1,12 @@
 //! Devices asked for at the same instant. libtest runs a binary's tests as
 //! threads of one process, so every device-backed binary does this by accident;
 //! here it is done on purpose, and the process has to live through it.
+//!
+//! A smoke test: it has never been seen red. On the desk where `bark_plates`
+//! died 5 runs of 12 without the lock in `Gpu::request`, this binary passed
+//! every run, so a bare concurrent request is not the whole of that crash and
+//! what `bark_plates` adds is unknown. It stays because it is the one place
+//! that says eight requests at once all get a device, or all skip.
 use std::sync::{Arc, Barrier};
 use std::thread;
 
