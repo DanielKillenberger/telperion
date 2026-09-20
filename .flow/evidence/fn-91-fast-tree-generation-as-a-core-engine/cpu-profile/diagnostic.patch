@@ -1,0 +1,444 @@
+--- a/crates/telperion-core/src/lib.rs
++++ b/crates/telperion-core/src/lib.rs
+@@ -44,3 +44,5 @@
+ pub type Result<T> = std::result::Result<T, Error>;
+ 
+ pub mod specimen;
++
++#[doc(hidden)] pub mod cpu_diagnostic;
+--- a/crates/telperion-core/src/cpu_diagnostic.rs
++++ b/crates/telperion-core/src/cpu_diagnostic.rs
+@@ -0,0 +1,12 @@
++use std::{cell::RefCell, time::Instant};
++thread_local! { static EVENTS: RefCell<Vec<(&'static str, f64)>> = const { RefCell::new(Vec::new()) }; }
++pub fn mark(name: &'static str, start: Instant) { let ms=start.elapsed().as_secs_f64()*1000.; EVENTS.with(|e| e.borrow_mut().push((name,ms))); }
++pub fn take() -> Vec<(&'static str,f64)> { EVENTS.with(|e| std::mem::take(&mut *e.borrow_mut())) }
++
++thread_local! { static CALLS: std::cell::Cell<u64> = const { std::cell::Cell::new(0) }; }
++pub fn sampled(key: u32) -> bool {
++ CALLS.with(|n| n.set(n.get()+1));
++ let mut h=key; h^=h>>16; h=h.wrapping_mul(0x7feb352d); h^=h>>15; h=h.wrapping_mul(0x846ca68b); h^=h>>16;
++ h & 63 == 0
++}
++pub fn calls() -> u64 { CALLS.with(|n| n.replace(0)) }
+--- a/crates/telperion-core/src/branching.rs
++++ b/crates/telperion-core/src/branching.rs
+@@ -218,13 +218,21 @@
+     })
+ }
+ fn finish(tree: &mut Tree, params: &SkeletonParams, radii: RadiusParams) -> Result<usize> {
+-    let twigs = params.twigs.resolved()?;
++    
++        let cpu_t = std::time::Instant::now();
++let twigs = params.twigs.resolved()?;
+     let removed = if params.habit.shedding_threshold > 0.0 {
+         shed(tree, params.envelope, params.habit.shedding_threshold)?
+     } else {
+         0
+     };
+-    radius::solve(tree, params.envelope, radii)?;
++    
++        crate::cpu_diagnostic::mark("finish.shed", cpu_t);
++        let cpu_t = std::time::Instant::now();
++radius::solve(tree, params.envelope, radii)?;
++        crate::cpu_diagnostic::mark("finish.radius", cpu_t);
++        let cpu_t = std::time::Instant::now();
++
+     // The distal end of a childless structural axis carries no wood the local
+     // layer would have thinned; the taper trait says how far it narrows.
+     let mut has_children = vec![false; tree.crossover];
+@@ -245,6 +253,7 @@
+             node.radius = node.radius.min(tip_radius);
+         }
+     }
++    crate::cpu_diagnostic::mark("finish.tips",cpu_t);
+     Ok(removed)
+ }
+ 
+--- a/crates/telperion-core/src/branching/specimen.rs
++++ b/crates/telperion-core/src/branching/specimen.rs
+@@ -215,20 +215,28 @@
+     }
+     /// Structural insertion shifts local storage, but never its birth identities.
+     fn step(&mut self, structural: usize, local: usize) -> Result<()> {
+-        let first = self.tree.crossover;
++        
++        let cpu_t = std::time::Instant::now();
++let first = self.tree.crossover;
+         let mut tail = self.tree.nodes.split_off(first);
+         let config = GrowthConfig {
+             max_nodes: self.config.max_nodes.saturating_sub(tail.len()),
+             ..self.config
+         };
+-        let result = self.scaffold.advance(
++        
++        crate::cpu_diagnostic::mark("step.split_config", cpu_t);
++        let cpu_t = std::time::Instant::now();
++let result = self.scaffold.advance(
+             &mut self.tree,
+             &self.params,
+             &config,
+             &self.bias,
+             structural,
+         );
+-        let added = self.tree.nodes.len() - first;
++        
++        crate::cpu_diagnostic::mark("step.scaffold", cpu_t);
++        let cpu_t = std::time::Instant::now();
++let added = self.tree.nodes.len() - first;
+         let map: Vec<_> = (0..first + tail.len())
+             .map(|i| Some((if i < first { i } else { i + added }) as u32))
+             .collect();
+@@ -239,15 +247,26 @@
+         self.tree.nodes.extend(tail);
+         self.local.remap(&map);
+         result?;
+-        radius::solve(&mut self.tree, self.params.envelope, self.radii)?;
++        
++        crate::cpu_diagnostic::mark("step.remap", cpu_t);
++        let cpu_t = std::time::Instant::now();
++radius::solve(&mut self.tree, self.params.envelope, self.radii)?;
++        crate::cpu_diagnostic::mark("step.radius", cpu_t);
++        let cpu_t = std::time::Instant::now();
++
+         self.identify();
+-        self.local.seed(
++        crate::cpu_diagnostic::mark("step.identify_before", cpu_t);
++        let cpu_t = std::time::Instant::now();
++self.local.seed(
+             &self.tree,
+             &self.config,
+             self.params.twigs.resolved()?,
+             None,
+         );
+-        if !self.tree.diagnostics.node_capped {
++        
++        crate::cpu_diagnostic::mark("step.seed", cpu_t);
++        let cpu_t = std::time::Instant::now();
++if !self.tree.diagnostics.node_capped {
+             self.local.advance(
+                 &mut self.tree,
+                 local::Planner {
+@@ -265,17 +284,36 @@
+                 local,
+             )?;
+         }
+-        self.identify();
++        
++        crate::cpu_diagnostic::mark("step.local_advance", cpu_t);
++        let cpu_t = std::time::Instant::now();
++self.identify();
++crate::cpu_diagnostic::mark("step.identify_after",cpu_t);
+         Ok(())
+     }
+     /// Drain the same retained builders used by incremental growth.
+     pub fn grow(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
+-        let mut s = Self::new(params, radii)?;
++        
++        let cpu_t = std::time::Instant::now();
++let mut s = Self::new(params, radii)?;
++        crate::cpu_diagnostic::mark("skeleton.new", cpu_t);
++        let cpu_t = std::time::Instant::now();
++
+         s.step(usize::MAX, 0)?;
++        crate::cpu_diagnostic::mark("skeleton.step_structural", cpu_t);
++        let cpu_t = std::time::Instant::now();
++
+         s.step(0, usize::MAX)?;
++        crate::cpu_diagnostic::mark("skeleton.step_local", cpu_t);
++        let cpu_t = std::time::Instant::now();
++
+         debug_assert!(s.finished() || !s.tree.diagnostics.complete());
+         s.shed = finish(&mut s.tree, params, radii)?;
++        crate::cpu_diagnostic::mark("skeleton.finish", cpu_t);
++        let cpu_t = std::time::Instant::now();
++
+         s.remap_after_shedding();
++crate::cpu_diagnostic::mark("skeleton.final_remap_identify",cpu_t);
+         Ok(s)
+     }
+ }
+--- a/crates/telperion-core/src/branching/local/advance.rs
++++ b/crates/telperion-core/src/branching/local/advance.rs
+@@ -363,6 +363,10 @@
+                 remaining -= 1;
+             }
+         }
+-        tree.validate_range(first..tree.nodes.len(), true)
++        
++        let cpu_t = std::time::Instant::now();
++let result = tree.validate_range(first..tree.nodes.len(), true);
++crate::cpu_diagnostic::mark("local.validation",cpu_t);
++result
+     }
+ }
+--- a/crates/telperion-core/src/branching/scaffold/frontier.rs
++++ b/crates/telperion-core/src/branching/scaffold/frontier.rs
+@@ -161,7 +161,11 @@
+             }
+         }
+         b.tree.crossover = b.tree.nodes.len();
+-        b.tree.validate()
++        
++        let cpu_t = std::time::Instant::now();
++let result = b.tree.validate();
++crate::cpu_diagnostic::mark("scaffold.validation",cpu_t);
++result
+     }
+ }
+ 
+--- a/crates/telperion-core/src/radius.rs
++++ b/crates/telperion-core/src/radius.rs
+@@ -36,12 +36,20 @@
+     }
+ }
+ pub fn solve(tree: &mut Tree, envelope: Envelope, params: RadiusParams) -> Result<()> {
++
++        let cpu_t = std::time::Instant::now();
+     tree.validate()?;
++        crate::cpu_diagnostic::mark("radius.validate_tree", cpu_t);
++        let cpu_t = std::time::Instant::now();
++
+     envelope.validate()?;
+     let p = params.resolved()?;
+     if tree.nodes.is_empty() {
+         return Ok(());
+     }
++
++        crate::cpu_diagnostic::mark("radius.validate_params", cpu_t);
++        let cpu_t = std::time::Instant::now();
+     let count = tree.crossover;
+     if count == 0 {
+         return Err(Error::InvalidInput("structural crossover"));
+@@ -86,5 +94,10 @@
+             tree.nodes[tree.nodes[i].parent.unwrap() as usize].radius
+         };
+     }
+-    tree.validate_solved()
++
++        crate::cpu_diagnostic::mark("radius.solve_body", cpu_t);
++        let cpu_t = std::time::Instant::now();
++    let result = tree.validate_solved();
++crate::cpu_diagnostic::mark("radius.validate_solved",cpu_t);
++result
+ }
+--- a/crates/telperion-core/src/surface/compact.rs
++++ b/crates/telperion-core/src/surface/compact.rs
+@@ -62,8 +62,15 @@
+     height: f64,
+     params: &'a SurfaceParams,
+ ) -> Result<CompactWithContacts<'a>> {
++
++        let cpu_t = std::time::Instant::now();
+     tree.validate()?;
++        crate::cpu_diagnostic::mark("compact.wrapper_validate", cpu_t);
++        let cpu_t = std::time::Instant::now();
+     let mut edges = filled(tree.nodes.len(), None)?;
++
++        crate::cpu_diagnostic::mark("compact.edges_allocate", cpu_t);
++        let cpu_t = std::time::Instant::now();
+     let surface = prepare_inner(tree, height, params, Some(&mut edges))?;
+     Ok(CompactWithContacts {
+         surface,
+@@ -79,16 +86,27 @@
+     params: &SurfaceParams,
+     mut contacts: Option<&mut Vec<Option<[usize; 4]>>>,
+ ) -> Result<CompactSurface> {
++
++        let cpu_t = std::time::Instant::now();
+     tree.validate()?;
+     params.validate()?;
+     if !height.is_finite() || height <= 0.0 {
+         return Err(Error::InvalidInput("surface height"));
+     }
++
++        crate::cpu_diagnostic::mark("compact.validate", cpu_t);
++        let cpu_t = std::time::Instant::now();
+     let paths = paths(&tree.nodes)?;
++        crate::cpu_diagnostic::mark("compact.paths", cpu_t);
++        let cpu_t = std::time::Instant::now();
++
+     if paths.runs.is_empty() {
+         return Ok(CompactSurface::default());
+     }
+     tree.validate_solved()?;
++
++        crate::cpu_diagnostic::mark("compact.validate_solved", cpu_t);
++        let cpu_t = std::time::Instant::now();
+     let height = height.max(1e-6);
+     let segments = params.radial_segments.max(params.lobes * 4);
+     let mut distance = filled(tree.nodes.len(), 0.0)?;
+@@ -147,11 +165,20 @@
+     let mut frame = reserved(longest)?;
+     let mut scratch = reserved(longest)?;
+     let mut ordered = reserved(paths.runs.len())?;
++
++        crate::cpu_diagnostic::mark("compact.distance_allocate", cpu_t);
++        let cpu_t = std::time::Instant::now();
+     for path in &paths.runs {
+         sample_path(tree, height, params, &paths, path, &distance, &mut samples);
+         ordered.push((path, samples.iter().map(|s| s.r).fold(0.0, f64::max)));
+     }
++
++        crate::cpu_diagnostic::mark("compact.order_samples", cpu_t);
++        let cpu_t = std::time::Instant::now();
+     ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
++
++        crate::cpu_diagnostic::mark("compact.sort", cpu_t);
++        let cpu_t = std::time::Instant::now();
+     let mut base = 0;
+     let mut first_index = 0;
+     for (path, largest_radius) in ordered {
+@@ -219,5 +246,6 @@
+         first_index += run.index_count;
+         base = cap + 2;
+     }
++crate::cpu_diagnostic::mark("compact.sample_frame_pack_contact",cpu_t);
+     Ok(out)
+ }
+--- a/crates/telperion-core/src/foliage/prepared.rs
++++ b/crates/telperion-core/src/foliage/prepared.rs
+@@ -139,6 +139,8 @@
+     make_contacts: impl FnOnce() -> Result<C>,
+     edge: impl Fn(&C, usize) -> Option<[usize; 4]>,
+ ) -> Result<Option<(Vec<StationSegment>, u32, Option<C>)>> {
++
++        let cpu_t = std::time::Instant::now();
+     placement::validate(tree, envelope, p, twig)?;
+     surface.validate()?;
+     if !supports_stations(p, twig) {
+@@ -168,6 +170,9 @@
+     } else {
+         None
+     };
++
++        crate::cpu_diagnostic::mark("stations.validation_contact", cpu_t);
++        let cpu_t = std::time::Instant::now();
+     for nodes in placement::bearing_runs(tree, p) {
+         let points: Vec<_> = nodes.iter().map(|&i| tree.nodes[i].position).collect();
+         let mut along = vec![0.0];
+@@ -275,5 +280,6 @@
+         }
+         total_count = end;
+     }
++crate::cpu_diagnostic::mark("stations.runs_frames_descriptors",cpu_t);
+     Ok(Some((segments, total_count, contacts)))
+ }
+--- a/crates/telperion-core/src/branching/local/planner.rs
++++ b/crates/telperion-core/src/branching/local/planner.rs
+@@ -54,6 +54,8 @@
+         )
+     }
+     pub(super) fn run(&self, axis: Axis) -> Option<Rc<Run>> {
++        let sampled = crate::cpu_diagnostic::sampled(axis.key);
++        let profile_start = sampled.then(std::time::Instant::now);
+         let Axis {
+             start,
+             first,
+@@ -93,6 +95,8 @@
+         let phase = Rng::new(self.seed ^ key).range(0.0, TAU);
+         let normal = first.perpendicular();
+         let binormal = first.cross(normal);
++        if let Some(t) = profile_start { crate::cpu_diagnostic::mark("planner.setup_sample",t); }
++        let trace_start = sampled.then(std::time::Instant::now);
+         for k in 0..count {
+             let stride = length * (stations[k] - if k == 0 { 0.0 } else { stations[k - 1] });
+             let at = *points.last().unwrap();
+@@ -109,6 +113,7 @@
+             let heading = curtain.sagged(course, travelled, self.twigs, key ^ self.seed);
+             let end = at + heading * stride;
+             if !curtain.admits(&config, self.twigs, end) {
++                let clip_start = sampled.then(std::time::Instant::now);
+                 let mut low = 0.0;
+                 let mut high = stride;
+                 for _ in 0..40 {
+@@ -119,6 +124,7 @@
+                         low = mid
+                     }
+                 }
++                if let Some(t) = clip_start { crate::cpu_diagnostic::mark("planner.clip_sample",t); }
+                 if low > 1e-9 {
+                     points.push(at + heading * low);
+                     along.push(along.last().unwrap() + low)
+@@ -128,11 +134,14 @@
+             points.push(end);
+             along.push(along.last().unwrap() + stride);
+         }
++        if let Some(t) = trace_start { crate::cpu_diagnostic::mark("planner.trace_sample",t); }
++        let tail_start = sampled.then(std::time::Instant::now);
+         let mut actual = *along.last().unwrap();
+         if actual < length - 1e-9 {
+             actual = (actual - self.twigs.twig.length).max(0.0)
+         }
+         if actual <= 1e-9 {
++            if let Some(t) = tail_start { crate::cpu_diagnostic::mark("planner.tail_sample",t); }
+             return None;
+         }
+         while along.len() > 2 && along[along.len() - 2] >= actual {
+@@ -167,10 +176,12 @@
+             points = resampled;
+             along = distances;
+         }
+-        Some(Rc::new(Run {
++        let result = Some(Rc::new(Run {
+             positions: points.into_iter().skip(1).collect(),
+             fractions: along.into_iter().skip(1).map(|d| d / actual).collect(),
+             length: actual,
+-        }))
++        }));
++        if let Some(t) = tail_start { crate::cpu_diagnostic::mark("planner.tail_sample",t); }
++        result
+     }
+ }
+--- a/crates/telperion-core/examples/cpu_profile.rs
++++ b/crates/telperion-core/examples/cpu_profile.rs
+@@ -0,0 +1,49 @@
++//! Direct mature-build stage measurements; JSONL, one process per preset/seed.
++use serde_json::json;
++use std::time::Instant;
++use telperion_core::{branching, foliage, presets::Preset, surface};
++
++fn main() -> Result<(), Box<dyn std::error::Error>> {
++    let args: Vec<_> = std::env::args().collect();
++    let preset = args.get(1).ok_or("preset required")?;
++    let seed: u32 = args.get(2).ok_or("seed required")?.parse()?;
++    let mut f = Preset::from_id(preset)
++        .ok_or("unknown preset")?
++        .parameters();
++    f.skeleton.seed = seed;
++    if std::env::var_os("GENERATION_NO_CONTACT").is_some() {
++        f.canopy.surface_contact = 0.;
++    }
++    let samples: usize = std::env::var("GENERATION_SAMPLES")
++        .unwrap_or_else(|_| "4".into())
++        .parse()?;
++    if samples == 0 {
++        return Err("samples must be positive".into());
++    }
++    println!(
++        "{}",
++        json!({"event":"parameters","preset":preset,"seed":seed,"family":telperion_core::params::metadata(&f)})
++    );
++    for sample in 0..samples {
++        telperion_core::cpu_diagnostic::take(); telperion_core::cpu_diagnostic::calls();
++        let total = Instant::now();
++        let start = Instant::now();
++        let report = branching::generate(&f.skeleton, f.radii)?;
++        let growth = start.elapsed().as_secs_f64() * 1000.;
++        let start = Instant::now();
++        let compact = surface::compact::prepare_with_contacts(&report.tree, f.skeleton.envelope.height, &f.surface)?;
++        let compact_ms = start.elapsed().as_secs_f64()*1000.;
++        let start = Instant::now();
++        let twig_params = f.skeleton.twigs.resolved()?.twig;
++        let stations = foliage::prepared::prepare_compact_stations(&compact, f.skeleton.envelope, f.canopy, Some(foliage::TwigPlacement { internode_length: twig_params.internode_length, stations_per_internode: twig_params.stations_per_internode }))?.ok_or("unsupported")?;
++        let stations_ms = start.elapsed().as_secs_f64()*1000.;
++        let mut stages = telperion_core::cpu_diagnostic::take();
++        stages.push(("planner.calls",telperion_core::cpu_diagnostic::calls() as f64));
++        let compact_hash = format!("{:016x}", compact.surface().rings.iter().flatten().flat_map(|w| w.to_le_bytes()).fold(14695981039346656037_u64, |h,b| (h ^ b as u64).wrapping_mul(1099511628211)));
++        println!("{}", json!({"event":"preparation","preset":preset,"seed":seed,"sample":sample,"growth_ms":growth,"compact_ms":compact_ms,"stations_ms":stations_ms,"stages":stages,"compact_hash":compact_hash,"rings":compact.surface().rings.len(),"segments":stations.segments.len(),"stations":stations.count,"contact_bytes":compact.contact_bytes()}));
++        drop(stations); drop(compact);
++        std::hint::black_box(report);
++
++    }
++    Ok(())
++}

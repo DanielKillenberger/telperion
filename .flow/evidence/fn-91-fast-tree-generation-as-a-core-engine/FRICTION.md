@@ -136,3 +136,6 @@ The additional folded-circle fixture retained a tiny nonzero float32 normal sum,
 
 ## 2026-09-20 — .8 browser smoke accounting contract
 The browser smoke reached successful candidate generation but its old accounting assertion required `woodPreparedCpuBytes > 0`. GPU positions intentionally remove that canonical CPU allocation. Asked the host to extend Touches for the smoke script and retain the old assertion on canonical output while checking positive candidate CPU/GPU counters and zero canonical allocation on candidate output. Cost: one smoke invocation; browser matrix can proceed independently. Updating the named accounting contract alongside the new metrics would avoid this mismatch.
+
+### 2026-09-20 — .9 local-growth attribution tooling
+The coarse profile isolated local growth, but `perf` is absent on the owner's PATH (gdb is present; perf_event_paranoid=2). Checking availability cost under one minute. Avoided installation/setup and selected a bounded scratch diagnostic sampling whole planner calls instead. A preinstalled native sampling profiler would remove the custom sampling step; this is local setup, not a proposed repository spec.
