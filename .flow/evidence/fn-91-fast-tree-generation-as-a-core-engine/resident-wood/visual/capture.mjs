@@ -29,7 +29,7 @@ try {
         finally { GPUAdapter.prototype.requestDevice = original; }
         await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         const submitted = mode === "gpu" ? await renderer.setTreeGpu(family) : renderer.setTree(family);
-        if (mode === "gpu" && (submitted.backend !== "Gpu" || submitted.stages.woodBackend !== "Some(Gpu)")) throw Error("unexpected CPU fallback");
+        if (mode === "gpu" && (submitted.backend !== "Gpu" || submitted.stages.woodBackend !== "Gpu")) throw Error("unexpected CPU fallback");
         const hero = renderer.hero();
         if (!pose) { const target = [...hero.target]; target[1] = submitted.bounds.min[1] + (submitted.bounds.max[1] - submitted.bounds.min[1]) * 0.12; pose = { target, position: hero.position.map((v, i) => target[i] + (v - hero.target[i]) * 0.13) }; }
         renderer.setCamera(pose);

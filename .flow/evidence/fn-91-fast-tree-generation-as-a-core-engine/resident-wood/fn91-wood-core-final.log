@@ -1,0 +1,24 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 4.60s
+────────────
+ Nextest run ID 31024e4e-0138-447f-b663-bb8e5124f22f with nextest profile: default
+    Starting 17 tests across 5 binaries (1 test skipped)
+        PASS [   0.003s] ( 1/17) telperion-core::surface every_vertex_carries_how_far_along_and_how_far_around_it_lies
+        PASS [   0.004s] ( 2/17) telperion-core::surface fork_socket_is_contained_and_thickest_child_continues
+        PASS [   0.004s] ( 3/17) telperion-core::surface_attachments needle_origins_touch_rendered_facets_across_bends_and_sockets
+        PASS [   0.017s] ( 4/17) telperion-core::surface_collapse a_ring_collapsed_to_one_point_drops_the_strips_that_meet_it
+        PASS [   0.017s] ( 5/17) telperion-core::surface root_only_and_float32_limits
+        PASS [   0.017s] ( 6/17) telperion-core::surface_collapse a_vertex_left_without_a_triangle_faces_out_from_its_ring
+        PASS [   0.017s] ( 7/17) telperion-core::surface_collapse the_run_table_shrinks_only_the_run_that_dropped
+        PASS [   0.017s] ( 8/17) telperion-core::surface empty_degenerate_and_invalid_are_atomic
+        PASS [   0.017s] ( 9/17) telperion-core::surface_collapse past_two_rings_worth_the_tree_fails_naming_the_count
+        PASS [   0.017s] (10/17) telperion-core::surface reversed_path_keeps_finite_frames
+        PASS [   0.017s] (11/17) telperion-core::surface_prepared prepared_preserves_canonical_surface_without_expanded_arrays
+        PASS [   0.017s] (12/17) telperion-core::surface_prepared clumps_reserve_every_buried_ring_and_collapsed_surfaces_fall_back
+        PASS [   0.017s] (13/17) telperion-core::surface_prepared root_only_has_no_surface_or_gpu_work
+        PASS [   0.017s] (14/17) telperion-core::surface_collapse a_tip_below_float32_resolution_far_out_drops_its_cap
+        PASS [   0.017s] (15/17) telperion-core::surface_collapse a_position_float32_cannot_hold_is_still_an_error
+        PASS [   0.017s] (16/17) telperion-core::surface tapered_closed_surface_has_normals_and_bounds
+        PASS [   0.470s] (17/17) telperion-core::surface_collapse the_reproducing_beech_builds_and_drops_two_triangles
+────────────
+     Summary [   0.471s] 17 tests run: 17 passed, 1 skipped

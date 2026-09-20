@@ -1,0 +1,30 @@
+navigation { url: 'http://127.0.0.1:5173/', base: 'http://127.0.0.1:5173/' }
+4:18:39 PM [vite] (client) page reload .worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/visual-review.html
+oregon-white-oak 1 [ 615.0999999977648, 312.5, 311, 315.69999999925494, 315.5, 314 ]
+navigation { url: 'http://127.0.0.1:5173/', base: 'http://127.0.0.1:5173/' }
+oregon-white-oak 7 [
+  722.1000000014901,
+  380.19999999925494,
+  370.3999999985099,
+  372.5,
+  371.79999999701977,
+  359.9000000022352
+]
+navigation { url: 'http://127.0.0.1:5173/', base: 'http://127.0.0.1:5173/' }
+norway-spruce 1 [
+  708.6000000014901,
+  361.1000000014901,
+  360.1000000014901,
+  358,
+  357.80000000074506,
+  361.80000000074506
+]
+navigation { url: 'http://127.0.0.1:5173/', base: 'http://127.0.0.1:5173/' }
+norway-spruce 7 [
+  695.4000000022352,
+  344.8999999985099,
+  344.5,
+  345.19999999925494,
+  342.5,
+  357.80000000074506
+]

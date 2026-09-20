@@ -313,3 +313,31 @@ Task fn-91.2's matched seed-1 native comparison is recorded in
 `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/READBACK.md`, with the
 fresh-process wait4 protocol in `readback-measure.py`. Hash verification runs in
 separate processes so its extra verification clone is excluded from timing/RSS.
+
+### Resident wood expansion
+
+The experimental `setTreeGpu` and native `Delivery::Resident` paths also retain
+wood on the device. Core preparation emits canonical float32 positions and
+compact run/ring metadata. CPU float64 triangle checks select the ordinary CPU
+wood builder for collapse or unsupported numeric cases. Compute-only storage
+limits and unusable GPU normals select explicit CPU wood fallback. Device errors
+remain errors. The default CPU APIs and owned CPU delivery use the CPU builder;
+standalone CPU-output generators do not create wood compute pipelines.
+
+Resident expansion copies pre-rounded coordinates/radii, emits ordered indices,
+and gathers incident triangles per vertex into finite unit normals. Verification
+readback stays outside delivery timing. Resident metadata supplies actual counts
+and run spans; a replacement keeps the old tree alive until validation and adoption.
+Final buffers retain their vertex/index/storage/copy usages for later CPU uploads.
+
+Reports distinguish `woodBackend`, `woodFallback`, compact preparation, upload/
+dispatch and status wait, prepared CPU capacity, packed metadata CPU capacity,
+wood GPU buffers including status staging, retained buffers and each previous live
+tree's buffers. At wood expansion, add the previous live tree, new foliage buffers
+and wood compute buffers to account their coexistence. Compare this with foliage
+compute plus the previous tree; the two compute stages run sequentially. CPU
+preparation scratch, allocator overhead, queue upload staging, the four-byte status
+result, pipeline/compiler/driver allocations and delayed destruction remain outside
+these counters. Wasm linear-memory size and process peak RSS have separate meanings.
+Task .4's native/browser measurements and coverage limits live in
+`.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/resident-wood/REPORT.md`.

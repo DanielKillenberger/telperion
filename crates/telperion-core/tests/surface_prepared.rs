@@ -69,3 +69,19 @@ fn clumps_reserve_every_buried_ring_and_collapsed_surfaces_fall_back() {
         .unwrap()
         .is_none());
 }
+
+#[test]
+fn root_only_has_no_surface_or_gpu_work() {
+    let p = surface::prepared::prepare(
+        &Tree {
+            nodes: vec![Node::root()],
+            ..Tree::default()
+        },
+        1.0,
+        &SurfaceParams::default(),
+    )
+    .unwrap()
+    .unwrap();
+    assert!(p.positions.is_empty() && p.runs.is_empty() && p.bounds.is_none());
+    assert_eq!(p.index_count, 0);
+}

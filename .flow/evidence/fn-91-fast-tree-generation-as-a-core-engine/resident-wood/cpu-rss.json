@@ -1,0 +1,74 @@
+[
+  {
+    "mode": "cpu-output",
+    "species": "oregon-white-oak",
+    "revision": "baseline",
+    "exit": 0,
+    "seconds": 2.2778796890015656,
+    "maxRssKiB": 256148,
+    "executableSha256": "712018723addd5f642781d55086f073b4bc9c9b4da95d08b0cc7341a8d256a81"
+  },
+  {
+    "mode": "cpu-output",
+    "species": "oregon-white-oak",
+    "revision": "candidate",
+    "exit": 0,
+    "seconds": 2.39516485400236,
+    "maxRssKiB": 256156,
+    "executableSha256": "f70e94cee6e07b2c972abfe5cc78c1e6c4874940046418fec116d9021decb07a"
+  },
+  {
+    "mode": "cpu-output",
+    "species": "norway-spruce",
+    "revision": "baseline",
+    "exit": 0,
+    "seconds": 18.334703745997103,
+    "maxRssKiB": 399268,
+    "executableSha256": "712018723addd5f642781d55086f073b4bc9c9b4da95d08b0cc7341a8d256a81"
+  },
+  {
+    "mode": "cpu-output",
+    "species": "norway-spruce",
+    "revision": "candidate",
+    "exit": 0,
+    "seconds": 18.32391479600119,
+    "maxRssKiB": 400588,
+    "executableSha256": "f70e94cee6e07b2c972abfe5cc78c1e6c4874940046418fec116d9021decb07a"
+  },
+  {
+    "mode": "gpu-output",
+    "species": "oregon-white-oak",
+    "revision": "baseline",
+    "exit": 0,
+    "seconds": 1.441406461999577,
+    "maxRssKiB": 443964,
+    "executableSha256": "712018723addd5f642781d55086f073b4bc9c9b4da95d08b0cc7341a8d256a81"
+  },
+  {
+    "mode": "gpu-output",
+    "species": "oregon-white-oak",
+    "revision": "candidate",
+    "exit": 0,
+    "seconds": 1.4301914359966759,
+    "maxRssKiB": 484996,
+    "executableSha256": "f70e94cee6e07b2c972abfe5cc78c1e6c4874940046418fec116d9021decb07a"
+  },
+  {
+    "mode": "gpu-output",
+    "species": "norway-spruce",
+    "revision": "baseline",
+    "exit": 0,
+    "seconds": 1.4771252400023513,
+    "maxRssKiB": 495696,
+    "executableSha256": "712018723addd5f642781d55086f073b4bc9c9b4da95d08b0cc7341a8d256a81"
+  },
+  {
+    "mode": "gpu-output",
+    "species": "norway-spruce",
+    "revision": "candidate",
+    "exit": 0,
+    "seconds": 1.4836129329996766,
+    "maxRssKiB": 493920,
+    "executableSha256": "f70e94cee6e07b2c972abfe5cc78c1e6c4874940046418fec116d9021decb07a"
+  }
+]
