@@ -3,6 +3,8 @@
   "dataset": "known beech development counterexample, not independent held-out generalization",
   "candidate": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
   "owner_correction_source": "owner-structural-replay-label.json",
+  "separate_gap_dimensions": ["crown architecture", "leaf-bearing hanging/weighted form", "material"],
+  "dimension_rule": "Score observed detection separately; crown-only detection is not discovery of all owner issues. Exact wording or leaf-load explanation not required.",
   "criteria": [
     "Ranks defining structural/reference mismatches rather than only material detail; do not require exact wording or a particular causal theory",
     "Uses joint visible and foliage-hidden render evidence with appropriate cross-view constraints",

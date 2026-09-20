@@ -325,6 +325,7 @@ impl Services for Live<'_> {
         }
         let mut request = vision::Request {
             schema: "tuning-vision-v3".into(),
+            target_species: self.config.preset.clone(),
             identity: trial.key.clone(),
             required: required.clone(),
             images,

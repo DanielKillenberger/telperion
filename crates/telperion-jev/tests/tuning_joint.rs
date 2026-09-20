@@ -14,6 +14,7 @@ fn blind_packet_labels_never_reach_request_and_metadata_is_bound() {
     let image = json!({"path":path,"sha256":sha256_hex(b"fixture"),"view":"whole","seed":1});
     let mut request:Request=serde_json::from_value(json!({"schema":"tuning-vision-v2","identity":"candidate","required":[{"item":"character","view":"whole","seed":1}],"images":[image.clone()],"references":[image.clone()],"quality_anchors":[{"image":image,"provenance":"fixture","scope":"finish"}],"checklist":"SECRET OWNER VERDICT"})).unwrap();
     request.required[0].item = "SECRET CELL VERDICT".into();
+    request.target_species = "European beech / Fagus sylvatica".into();
     request.quality_anchors[0].scope = "SECRET ANCHOR VERDICT".into();
     request.quality_anchors[0].provenance = "SECRET PROVENANCE".into();
     let packet = Packet::from_request(&request);
@@ -26,6 +27,12 @@ fn blind_packet_labels_never_reach_request_and_metadata_is_bound() {
     };
     let blind = fixture.blind_request();
     let hash = blind.hash();
+    assert_eq!(blind.target_species, "European beech / Fagus sylvatica");
+    let mut species = blind.clone();
+    species.target_species = "another species".into();
+    assert_ne!(hash, species.hash());
+    species.target_species.clear();
+    assert!(species.verify().is_err());
     fixture.expected_ready = true;
     fixture.provenance = "ANOTHER SECRET LABEL".into();
     assert_eq!(hash, fixture.blind_request().hash());
@@ -114,6 +121,28 @@ fn blind_packet_labels_never_reach_request_and_metadata_is_bound() {
         &blind.required,
         "candidate",
         &result.assessment
+    ));
+    result.assessment.findings[0].impact = Impact::Supported;
+    result.assessment.findings[0].uncertain = false;
+    assert!(telperion_jev::tuning::state::ready(
+        &blind.required,
+        "candidate",
+        &result.assessment
+    ));
+    result.assessment.findings[0].uncertain = true;
+    assert!(!telperion_jev::tuning::state::ready(
+        &blind.required,
+        "candidate",
+        &result.assessment
+    ));
+    result.assessment.findings[0].uncertain = false;
+    let mut absent = result.clone();
+    absent.assessment.findings.clear();
+    absent.bind(&blind).unwrap();
+    assert!(!telperion_jev::tuning::state::ready(
+        &blind.required,
+        "candidate",
+        &absent.assessment
     ));
     result.request_sha256 = changed.hash();
     result.bind(&changed).unwrap();

@@ -31,7 +31,7 @@ with tempfile.TemporaryDirectory(prefix="tuning-vision-") as scratch:
                        "observations": {"type": "array", "items": {"type": "string"}},
                        "findings": {"type":"array", "items":{"type":"object", "additionalProperties":False,
                            "properties":{"observation":{"type":"string"},"evidence_ids":{"type":"array","items":{"type":"string"}},
-                               "impact":{"type":"string","enum":["blocker","required_unknown","variation","optional"]},
+                               "impact":{"type":"string","enum":["supported","blocker","required_unknown","variation","optional"]},
                                "uncertain":{"type":"boolean"},"causal_hypothesis":{"type":["string","null"]}},
                            "required":["observation","evidence_ids","impact","uncertain","causal_hypothesis"]}}},
         "required": ["passes", "defects", "observations", "findings"]}))
@@ -48,7 +48,10 @@ with tempfile.TemporaryDirectory(prefix="tuning-vision-") as scratch:
               "specimen/condition relationships are unknown unless documented; never infer the same specimen "
               "or a causal change from two photographs. Rank cross-view constraints and the largest reference "
               "gaps. Findings must cite packet evidence_ids and separate observed mismatch from optional causal "
-              "hypotheses; no particular biological theory is required. Missing/clipped evidence or unresolved "
+              "hypotheses; no particular biological theory is required. "
+              "For every required cell cite its render and reference evidence in an affirmative supported "
+              "finding or a gap finding. Supported means a grounded reference match, not an invented defect; "
+              "a clean candidate can pass with supported findings and zero defects. Missing/clipped evidence or unresolved "
               "required classification means unknown. Uncertain optional refinements alone do not block. "
               "Block only wrong species character, obvious construction artifacts, regression below the "
               "accepted quality anchors or an explicit unmet requirement. Ground each blocking defect "

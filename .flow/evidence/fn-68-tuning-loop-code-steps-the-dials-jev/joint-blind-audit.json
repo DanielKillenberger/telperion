@@ -1,11 +1,11 @@
 {
   "coverage": "known development specimen, not genuinely held-out biological generalization",
-  "file_sha256": "d10bf0890096e4fcb8b8400019c96b660cdc76874d81f49b1a9e8272e5fc706e",
+  "file_sha256": "c96595ef54a5821d118de29f53d09c482a1b7eb24019674e7aea6621b03d2ac6",
   "inputs": 5,
   "labels_in_request": false,
   "paid_calls": 0,
   "projection": "ReplayCase::blind_request; neutral checklist/cell IDs/anchor scope; factual image/shot provenance only; free-form reference relation provenance omitted, relation conservatively unknown",
-  "request_sha256": "c1da66e75ac6faaaedec6a19ba6647a2b9909174653998cd70d42545d4049253",
+  "request_sha256": "c82e452cf172c97481433192b34db4833d9213abca5499055d45c196e8275f87",
   "schema": "tuning-vision-v3",
   "specimen_relation": "unknown",
   "status": "prepared_only"

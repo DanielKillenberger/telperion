@@ -64,7 +64,7 @@ pub fn ready(required: &[Cell], identity: &str, assessment: &Visual) -> bool {
             matches!(
                 f.impact,
                 super::joint::Impact::Blocker | super::joint::Impact::RequiredUnknown
-            )
+            ) || (f.impact == super::joint::Impact::Supported && f.uncertain)
         })
         && assessment.joint.as_ref().is_none_or(|p| {
             !p.inputs

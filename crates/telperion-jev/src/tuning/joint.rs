@@ -48,6 +48,7 @@ pub struct Packet {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum Impact {
+    Supported,
     Blocker,
     RequiredUnknown,
     Variation,

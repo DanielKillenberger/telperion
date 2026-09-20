@@ -34,11 +34,11 @@
     "machine_ready": false
   },
   "cumulative": {
-    "tokens": 301517,
+    "tokens": 327203,
     "evaluations": 6,
     "image_reservations": 24,
     "actual_pilot_still_twins": 20,
-    "visual_passes": 11
+    "visual_passes": 12
   },
   "runtime_unchanged": {
     "tokens": 221183,
@@ -47,10 +47,10 @@
     "visual_passes": 8
   },
   "future_import": {
-    "tokens": 80334,
+    "tokens": 106020,
     "evaluations": 2,
     "image_reservations": 8,
-    "visual_passes": 3
+    "visual_passes": 4
   },
   "corrected_comparison": {
     "result": "PASS/PASS",
@@ -74,5 +74,11 @@
     "status": "diagnostic_not_accepted",
     "observations": "broader lower foliage, reduced diamond taper; coarse angular major-branch elbows, no fine hanging leafy sprays; both views horizontally clipped, full silhouette unassessable",
     "sol_judgment": null
+  },
+  "joint_blind": {
+    "result": "WHOLE PASS / BARE FAIL",
+    "result_file": "joint-blind-result.json",
+    "coverage": "known development only; no automatic qualification",
+    "gap_detection": "bare structural/cross-view blocker; no hanging/weighted form finding"
   }
 }

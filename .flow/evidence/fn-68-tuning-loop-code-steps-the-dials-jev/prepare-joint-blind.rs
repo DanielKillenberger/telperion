@@ -4,6 +4,7 @@ fn main(){
  let root=Path::new(".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev");
  let mut request:Request=serde_json::from_slice(&fs::read(root.join("development-direct-reference-visual-request.json")).unwrap()).unwrap();
  let cfg:Config=serde_json::from_slice(&fs::read(root.join("pilot-config-final-diagnosed.json")).unwrap()).unwrap();
+ request.target_species="European beech / Fagus sylvatica".into();
  request.joint=Some(Packet::from_request(&request).with_shots(&cfg.matched.references).unwrap());
  let fixture=ReplayCase{id:"known-beech-development".into(),provenance:"owner correction retained separately, not held-out generalization".into(),expected_ready:false,request};
  let blind=fixture.blind_request();blind.verify().unwrap();

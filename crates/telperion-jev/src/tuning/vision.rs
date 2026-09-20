@@ -17,6 +17,8 @@ use std::{
 pub struct Request {
     pub schema: String,
     pub identity: String,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub target_species: String,
     pub required: Vec<Cell>,
     pub images: Vec<Image>,
     pub references: Vec<Image>,
@@ -72,6 +74,9 @@ impl Request {
         }
         if self.schema == "tuning-vision-v3" && self.joint.is_none() {
             return Err("missing joint packet".into());
+        }
+        if self.schema == "tuning-vision-v3" && self.target_species.trim().is_empty() {
+            return Err("missing target species".into());
         }
         if let Some(packet) = &self.joint {
             packet.verify(self)?;

@@ -1,6 +1,7 @@
 {
   "schema": "tuning-vision-v3",
   "identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+  "target_species": "European beech / Fagus sylvatica",
   "required": [
     {
       "item": "reference_character",

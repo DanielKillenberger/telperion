@@ -1,0 +1,160 @@
+{
+  "request_sha256": "c82e452cf172c97481433192b34db4833d9213abca5499055d45c196e8275f87",
+  "assessment": {
+    "identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+    "model": "gpt-5.6-sol",
+    "ledger": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d70d2a156a532b-8eec7-0.json",
+    "cells": [
+      [
+        {
+          "item": "reference_character",
+          "view": "B-WHOLE",
+          "seed": 1
+        },
+        "pass"
+      ],
+      [
+        {
+          "item": "reference_character",
+          "view": "B-BARE",
+          "seed": 1
+        },
+        "fail"
+      ]
+    ],
+    "defects": [
+      "Primary blocker — B-BARE exposes an implausibly congested scaffold of many near-parallel upright stems, crossing branches, and conspicuously blunt/cut-looking upper tips. This does not match the reference's legible hierarchy of trunk, major limbs, and progressively finer ramification, and it is an obvious construction artifact affecting species believability. Because B-WHOLE and B-BARE share seed-1 geometry, foliage merely conceals this defect rather than resolving it."
+    ],
+    "observations": [
+      "B-WHOLE has a believable dense, tall ovoid deciduous crown and smooth pale-gray bark consistent with European beech reference character.",
+      "The candidate's multi-stem lower architecture is acceptable natural variation: the references include both single-trunk and multi-stem specimens, with no documented same-specimen relationship.",
+      "The candidate meets the accepted anchor's stylized catalogue finish floor in general rendering coherence; photorealistic bark, leaves, lighting, and background integration are optional refinements and do not block readiness.",
+      "The photographic references show different, undocumented specimen or condition relationships; no causal seasonal or developmental relationship was inferred."
+    ],
+    "findings": [
+      {
+        "observation": "Required cell B-WHOLE/reference_character passes: render-0 matches reference-0 in its dense leafy deciduous mass, tall rounded-to-ovoid crown, and smooth light-gray beech-like trunk; differences in exact crown spread and stem count remain plausible specimen variation.",
+        "evidence_ids": [
+          "render-0",
+          "reference-0"
+        ],
+        "impact": "supported",
+        "uncertain": false,
+        "causal_hypothesis": null
+      },
+      {
+        "observation": "Required cell B-BARE/reference_character fails: render-1 is dominated by an excessively dense bundle of similarly upright, intersecting axes with numerous abruptly terminated tips, whereas reference-1 presents a readable primary scaffold and finer outward ramification. The mismatch removes defining structural character and introduces obvious construction artifacts.",
+        "evidence_ids": [
+          "render-1",
+          "reference-1"
+        ],
+        "impact": "blocker",
+        "uncertain": false,
+        "causal_hypothesis": "The generator may be producing too many competing upright axes and/or terminating branches before natural taper and subdivision are established; this is optional and not required to sustain the observed mismatch."
+      },
+      {
+        "observation": "Cross-view constraint: render-0 and render-1 share identity, seed, and geometry; the foliage shown in render-0 hides much of the defective scaffold visible in render-1 and cannot be treated as alternative unloaded leaf-off geometry.",
+        "evidence_ids": [
+          "render-0",
+          "render-1"
+        ],
+        "impact": "blocker",
+        "uncertain": false,
+        "causal_hypothesis": null
+      },
+      {
+        "observation": "Against the finish-only catalogue anchor, the candidate has coherent materials, lighting, silhouette presentation, and comparable or greater visible detail; the blocker is structural character rather than a general finish-floor regression.",
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "anchor-0"
+        ],
+        "impact": "supported",
+        "uncertain": false,
+        "causal_hypothesis": null
+      }
+    ],
+    "joint": {
+      "inputs": [
+        {
+          "id": "render-0",
+          "role": "render",
+          "sha256": "da02e6fdf2b64c6ba6a0caf1ed2e0990a316fd9e5ac426099381e0f65254d047",
+          "view": "B-WHOLE",
+          "seed": 1,
+          "render_identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+          "condition": "same_geometry_visibility_view_not_unloaded_leaf_off",
+          "framing": "unknown",
+          "visibility": "shown",
+          "geometry_group": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57:seed:1"
+        },
+        {
+          "id": "render-1",
+          "role": "render",
+          "sha256": "8bf6b32d6961bbc667e622b39b9484ec885b9ee3f4b3f9cf941c59372b599630",
+          "view": "B-BARE",
+          "seed": 1,
+          "render_identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+          "condition": "same_geometry_visibility_view_not_unloaded_leaf_off",
+          "framing": "unknown",
+          "visibility": "hidden",
+          "geometry_group": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57:seed:1"
+        },
+        {
+          "id": "reference-0",
+          "role": "reference",
+          "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+          "view": "B-WHOLE",
+          "seed": 1,
+          "render_identity": null,
+          "condition": "unknown",
+          "framing": "unknown",
+          "visibility": "unknown",
+          "geometry_group": null
+        },
+        {
+          "id": "reference-1",
+          "role": "reference",
+          "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+          "view": "B-BARE",
+          "seed": 1,
+          "render_identity": null,
+          "condition": "unknown",
+          "framing": "unknown",
+          "visibility": "unknown",
+          "geometry_group": null
+        },
+        {
+          "id": "anchor-0",
+          "role": "anchor",
+          "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+          "view": "whole",
+          "seed": 1,
+          "render_identity": null,
+          "condition": "unknown",
+          "framing": "unknown",
+          "visibility": "unknown",
+          "geometry_group": null
+        }
+      ],
+      "reference_relation": "unknown",
+      "relation_source": null,
+      "shot_source": {
+        "path": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/assets/beech-references-4e6d903c.json",
+        "sha256": "152c1ed99c9dd426977f127c36dfe888186de8de6286d882fa7bfd677898a8c0",
+        "excerpt": "\"references\""
+      }
+    }
+  },
+  "effort": "medium",
+  "usage": {
+    "input_tokens": 24734,
+    "output_tokens": 952
+  },
+  "observations": [
+    "B-WHOLE has a believable dense, tall ovoid deciduous crown and smooth pale-gray bark consistent with European beech reference character.",
+    "The candidate's multi-stem lower architecture is acceptable natural variation: the references include both single-trunk and multi-stem specimens, with no documented same-specimen relationship.",
+    "The candidate meets the accepted anchor's stylized catalogue finish floor in general rendering coherence; photorealistic bark, leaves, lighting, and background integration are optional refinements and do not block readiness.",
+    "The photographic references show different, undocumented specimen or condition relationships; no causal seasonal or developmental relationship was inferred."
+  ]
+}
