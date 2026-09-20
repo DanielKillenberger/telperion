@@ -17,7 +17,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-42-bark-depth-level-and-a-fair-capture.md",
-  "status": "open",
+  "status": "done",
   "title": "Bark depth, level and a fair capture",
   "tracker": {
     "baseHashFlow": null,
@@ -30,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-19T23:14:36.940181Z"
+  "updated_at": "2026-09-20T08:42:26.878781Z"
 }
