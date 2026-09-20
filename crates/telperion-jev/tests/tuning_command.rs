@@ -368,3 +368,59 @@ fn experimental_revision_amendment_is_scoped_and_preserves_history() {
     assert_eq!(saved["authorizations"].as_array().unwrap().len(), 2);
     fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn preflight_plans_the_sequence_without_writing_state_or_taking_a_lock() {
+    let root = std::env::temp_dir().join(format!(
+        "tuning-preflight-{}",
+        telperion_jev::ledger::new_entry_id()
+    ));
+    fs::create_dir(&root).unwrap();
+    let cfg = root.join("config.json");
+    let out = root.join("out");
+    write(&cfg, &fixture(&root));
+    // A fresh run has no state at all: preflight must still plan.
+    let plan = telperion_jev::tuning::preflight::plan(&cfg, &out, None).unwrap();
+    assert!(!out.exists(), "preflight created the output directory");
+    assert_eq!(plan["calibration_verified"], false);
+    assert_eq!(plan["pilot_authority"], false);
+    assert_eq!(plan["estimate_from_current_state"]["candidate"], true);
+    let steps = plan["steps"].as_array().unwrap();
+    assert_eq!(steps.len(), 5);
+    assert_eq!(steps[0]["step"], "baseline evaluation");
+    assert_eq!(steps[3]["evaluations"], 4);
+    // Totals are the engine's own estimators summed against the opening caps.
+    assert_eq!(plan["totals"]["evaluations"]["needed"], 5);
+    assert_eq!(plan["totals"]["visual_passes"]["needed"], 3);
+    assert_eq!(plan["totals"]["images"]["cap"], 52);
+    assert_eq!(plan["balances"]["opening"]["tokens"], 0);
+
+    // Now with real state, and an opening balance that leaves no visual room.
+    let mut config = fixture(&root);
+    config["budget"]["visual_passes"] = json!(2);
+    config["budget"]["max_visual_passes"] = json!(3);
+    write(&cfg, &config);
+    command::run(&cfg, &out, None).unwrap_err();
+    let path = out.join("run.json");
+    let before = fs::read(&path).unwrap();
+    let saved: Value = serde_json::from_slice(&before).unwrap();
+    let decision = root.join("decision.json");
+    write(
+        &decision,
+        &json!({"pause_id":saved["pause"]["id"],"identity":saved["identity"],
+            "action":saved["pause"]["basis"]["proposed_action"],"by":"owner","rationale":"plan only"}),
+    );
+    let plan = telperion_jev::tuning::preflight::plan(&cfg, &out, Some(&decision)).unwrap();
+    assert_eq!(
+        fs::read(&path).unwrap(),
+        before,
+        "preflight wrote run state"
+    );
+    assert!(
+        !out.join("plan.json").exists(),
+        "plan.json is the CLI's job, not the planner's"
+    );
+    assert_eq!(plan["totals"]["visual_passes"]["fits"], false);
+    assert_eq!(plan["totals"]["visual_passes"]["spent"], 2);
+    fs::remove_dir_all(root).unwrap();
+}

@@ -21,18 +21,23 @@ fn run() -> Result<(), String> {
             .ok_or_else(|| format!("missing {name}"))
     };
     let command = args.first().ok_or(
-        "usage: tuning-loop <calibrate|vision-replay> --manifest FILE --out FILE [--adapter FILE]",
+        "usage: tuning-loop <run|preflight> --config FILE --out DIR [--resume FILE]\n       tuning-loop <calibrate|vision-replay> --manifest FILE --out FILE [--adapter FILE]",
     )?;
-    if command == "run" {
+    if command == "run" || command == "preflight" {
         let resume = args
             .windows(2)
             .find(|a| a[0] == "--resume")
             .map(|a| PathBuf::from(&a[1]));
-        return telperion_jev::tuning::command::run(
-            &flag("--config")?,
-            &flag("--out")?,
-            resume.as_deref(),
-        );
+        let (config, out) = (flag("--config")?, flag("--out")?);
+        if command == "run" {
+            return telperion_jev::tuning::command::run(&config, &out, resume.as_deref());
+        }
+        let plan = telperion_jev::tuning::preflight::plan(&config, &out, resume.as_deref())?;
+        let bytes = serde_json::to_vec_pretty(&plan).unwrap();
+        fs::create_dir_all(&out).map_err(|e| e.to_string())?;
+        fs::write(out.join("plan.json"), &bytes).map_err(|e| e.to_string())?;
+        println!("{}", String::from_utf8_lossy(&bytes));
+        return Ok(());
     }
     let manifest = fs::read(flag("--manifest")?).map_err(|e| e.to_string())?;
     let out = flag("--out")?;

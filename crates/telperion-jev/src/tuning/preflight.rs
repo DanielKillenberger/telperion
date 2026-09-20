@@ -1,0 +1,173 @@
+//! Read-only execution plan. Takes no lock, writes no run state, loads no key
+//! and dispatches nothing; every number comes from the engine's own estimators.
+use super::{
+    command::{prepare, Prepared},
+    continuation::Basis,
+    engine::{Run, Services},
+    evaluation::Trial,
+    live::{Config, Live},
+    priority::requirements,
+    state::Budget,
+};
+use crate::caller::{HttpRequest, HttpResponse, Transport};
+use serde_json::{json, Value};
+use std::{fs, path::Path};
+
+/// Refuses every send. A preflight that dispatched would be a paid call.
+struct NoTransport;
+impl Transport for NoTransport {
+    fn send(&self, _: &HttpRequest) -> Result<HttpResponse, String> {
+        Err("preflight dispatches nothing".into())
+    }
+}
+
+const CANDIDATES: u64 = 4;
+
+fn step(label: &str, evaluations: u64, images: u64, tokens: u64, visual: u64) -> Value {
+    json!({"step":label,"evaluations":evaluations,"images":images,"tokens":tokens,"visual_passes":visual})
+}
+
+/// A stand-in candidate when the run has not evaluated one yet.
+fn placeholder(config: &Config, identity: &str) -> Trial {
+    Trial {
+        key: String::new(),
+        identity: identity.into(),
+        seed: config.seed,
+        round: 0,
+        label: "baseline".into(),
+        overrides: config.initial_overrides.clone(),
+        ledger: None,
+        feasible: false,
+        reason: None,
+        measurement: Value::Null,
+        comparisons: vec![],
+        score: None,
+        seconds: 0.,
+    }
+}
+
+fn round_basis(state: &Run, services: &dyn Services) -> (Basis, bool) {
+    match state.round_basis(services) {
+        Ok(basis) => (basis, false),
+        Err(_) => {
+            let mut basis = state.basis("targeted tuning round");
+            basis.next_tokens = Some(1);
+            basis.estimate_basis = "estimate_from_current_state".into();
+            (basis, true)
+        }
+    }
+}
+
+pub fn plan(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<Value, String> {
+    let config: Config = serde_json::from_slice(&fs::read(config_path).map_err(|e| e.to_string())?)
+        .map_err(|e| e.to_string())?;
+    let identity = config.identity()?;
+    let path = out.join("run.json");
+    let (state, interrupted) = match prepare(&config, &path, resume, &identity)? {
+        Prepared::Ready(state) => (*state, false),
+        Prepared::Interrupted(state) => (*state, true),
+    };
+    let verified = config.verify();
+    let authority = state.pilot_authority();
+    let opening = state.budget.clone();
+    let mut post = opening.clone();
+    let preparation = config.preparation()?;
+    let mut charge_record = state.preparation_charge.clone();
+    if let Some(charge) = &preparation {
+        super::reference_first::charge_preparation(&mut post, &mut charge_record, charge)?;
+    }
+
+    let services = Live {
+        config: &config,
+        transport: &NoTransport,
+        key: "",
+    };
+    let trial = state
+        .current
+        .and_then(|i| state.trials.get(i))
+        .cloned()
+        .unwrap_or_else(|| placeholder(&config, &identity));
+    let estimated = state.current.is_none();
+    let approval = state.approved_priorities();
+    let base = config.required.clone();
+    let approved_cells = requirements(&base, approval);
+    let (basis, basis_estimated) = round_basis(&state, &services);
+
+    let all_cell_images = services.visual_images_for(&trial, &approved_cells, approval);
+    let all_cell_tokens = services.visual_tokens_for(&trial, approval);
+    let priorities = approval.map_or(0, |a| a.ordered.len()) as u64;
+    let continuation = services.continuation_tokens(&basis);
+    let round_tokens = services
+        .route_tokens(&state)
+        .checked_add(continuation.checked_mul(priorities).ok_or("overflow")?)
+        .and_then(|n| n.checked_add(continuation))
+        .and_then(|n| n.checked_add(services.proposal_tokens(&state)))
+        .ok_or("reservation overflow")?;
+
+    let steps = vec![
+        step("baseline evaluation", 1, services.evaluation_images(), 0, 0),
+        step(
+            "initial visual",
+            0,
+            services.visual_images(&trial),
+            services.visual_tokens(&trial),
+            1,
+        ),
+        step(
+            "post-approval all-cell visual",
+            0,
+            all_cell_images,
+            all_cell_tokens,
+            1,
+        ),
+        step(
+            "one round, four candidates",
+            CANDIDATES,
+            CANDIDATES * services.evaluation_images(),
+            round_tokens,
+            0,
+        ),
+        step(
+            "closing all-cell visual",
+            0,
+            all_cell_images,
+            all_cell_tokens,
+            1,
+        ),
+    ];
+    let sum = |field: &str| -> u64 {
+        steps
+            .iter()
+            .filter_map(|s| s[field].as_u64())
+            .fold(0, u64::saturating_add)
+    };
+    Ok(json!({
+        "meaning":"Worst-case reservations for the full sequence. No state was written, no lock taken, no key loaded and nothing dispatched.",
+        "identity":identity,
+        "interrupted_attempt":interrupted,
+        "calibration_verified":verified.is_ok(),
+        "calibration_error":verified.err(),
+        "pilot_authority":authority.is_ok(),
+        "pilot_authority_error":authority.err(),
+        "estimate_from_current_state":{
+            "candidate":estimated,
+            "round_basis":basis_estimated,
+            "note":"No evaluated candidate yet, so per-candidate sizes are estimated from current state."},
+        "required_cells":{"base":base.len(),"with_approval":approved_cells.len(),
+            "approved_priorities":priorities,"cells":approved_cells},
+        "balances":{"opening":opening,"post_preparation":post,
+            "preparation_charge":preparation},
+        "steps":steps,
+        "totals":totals(&post, sum("evaluations"), sum("images"), sum("tokens"), sum("visual_passes")),
+    }))
+}
+
+fn totals(budget: &Budget, evaluations: u64, images: u64, tokens: u64, visual: u64) -> Value {
+    let fits = |spent: u64, need: u64, cap: u64| json!({"spent":spent,"needed":need,"cap":cap,"fits":spent.saturating_add(need) <= cap});
+    json!({
+        "evaluations":fits(budget.evaluations, evaluations, budget.max_evaluations),
+        "images":fits(budget.images, images, budget.max_images),
+        "tokens":fits(budget.tokens, tokens, budget.max_tokens),
+        "visual_passes":fits(budget.visual_passes.unwrap_or(0), visual, budget.max_visual_passes.unwrap_or(0)),
+    })
+}

@@ -24,38 +24,21 @@ fn write(path: &Path, value: &Value) -> Result<(), String> {
     fs::rename(temp, path).map_err(|e| e.to_string())
 }
 
-pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), String> {
-    run_with(config_path, out, resume, &UreqTransport, &|| {
-        load_key().map_err(|e| e.to_string())
-    })
+/// Loads the fresh or resumed run exactly as the command does, without
+/// writing anything. The caller decides whether an interruption is persisted.
+pub enum Prepared {
+    Ready(Box<Run>),
+    Interrupted(Box<Run>),
 }
 
-pub fn run_with(
-    config_path: &Path,
-    out: &Path,
+pub fn prepare(
+    config: &Config,
+    path: &Path,
     resume: Option<&Path>,
-    transport: &dyn Transport,
-    key: KeySource<'_>,
-) -> Result<(), String> {
-    let config: Config = serde_json::from_slice(&fs::read(config_path).map_err(|e| e.to_string())?)
-        .map_err(|e| e.to_string())?;
-    if fs::symlink_metadata(out).is_ok_and(|m| m.file_type().is_symlink()) {
-        return Err("output cannot be a symlink".into());
-    }
-    fs::create_dir_all(out).map_err(|e| e.to_string())?;
-    let lock = out.join("run.lock");
-    let lock_file = fs::OpenOptions::new()
-        .write(true)
-        .create(true)
-        .truncate(false)
-        .open(&lock)
-        .map_err(|e| format!("run locked: {e}"))?;
-    lock_file
-        .try_lock()
-        .map_err(|e| format!("another process owns this run: {e}"))?;
-    let path = out.join("run.json");
-    let identity = config.identity()?;
-    let mut state: Run = if path.exists() {
+    identity: &str,
+) -> Result<Prepared, String> {
+    let identity = identity.to_string();
+    let state: Run = if path.exists() {
         let mut old: Run = serde_json::from_slice(&fs::read(&path).map_err(|e| e.to_string())?)
             .map_err(|e| e.to_string())?;
         if old.pending.is_some() && old.pause.is_none() {
@@ -76,10 +59,7 @@ pub fn run_with(
                     "Confirm scoped recovery; unknown model spend still requires reconciliation."
                         .into(),
             });
-            write(&path, &serde_json::to_value(&old).unwrap())?;
-            return Err(
-                "interruption recorded; supply scoped resume decision from run.json".into(),
-            );
+            return Ok(Prepared::Interrupted(Box::new(old)));
         }
         let decision: HumanDecision = serde_json::from_slice(
             &fs::read(resume.ok_or("existing run needs scoped --resume decision")?)
@@ -331,6 +311,48 @@ pub fn run_with(
             handoffs: vec![],
             judgment_inputs: vec![],
         }
+    };
+    Ok(Prepared::Ready(Box::new(state)))
+}
+pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), String> {
+    run_with(config_path, out, resume, &UreqTransport, &|| {
+        load_key().map_err(|e| e.to_string())
+    })
+}
+
+pub fn run_with(
+    config_path: &Path,
+    out: &Path,
+    resume: Option<&Path>,
+    transport: &dyn Transport,
+    key: KeySource<'_>,
+) -> Result<(), String> {
+    let config: Config = serde_json::from_slice(&fs::read(config_path).map_err(|e| e.to_string())?)
+        .map_err(|e| e.to_string())?;
+    if fs::symlink_metadata(out).is_ok_and(|m| m.file_type().is_symlink()) {
+        return Err("output cannot be a symlink".into());
+    }
+    fs::create_dir_all(out).map_err(|e| e.to_string())?;
+    let lock = out.join("run.lock");
+    let lock_file = fs::OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(&lock)
+        .map_err(|e| format!("run locked: {e}"))?;
+    lock_file
+        .try_lock()
+        .map_err(|e| format!("another process owns this run: {e}"))?;
+    let path = out.join("run.json");
+    let identity = config.identity()?;
+    let mut state = match prepare(&config, &path, resume, &identity)? {
+        Prepared::Interrupted(old) => {
+            write(&path, &serde_json::to_value(&old).unwrap())?;
+            return Err(
+                "interruption recorded; supply scoped resume decision from run.json".into(),
+            );
+        }
+        Prepared::Ready(state) => *state,
     };
     let mut save = |state: &Run| -> Result<(), String> {
         write(&path, &serde_json::to_value(state).unwrap())?;
