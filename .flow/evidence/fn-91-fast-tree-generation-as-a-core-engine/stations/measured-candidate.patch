@@ -1,0 +1,648 @@
+diff --git i/crates/telperion-core/src/foliage/placement.rs w/crates/telperion-core/src/foliage/placement.rs
+index f915c9e4..cb30c729 100644
+--- i/crates/telperion-core/src/foliage/placement.rs
++++ w/crates/telperion-core/src/foliage/placement.rs
+@@ -321,18 +321,19 @@ pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
+             && (n.kind == NodeKind::Twig
+                 || (slender > 0. && n.radius.max(n.start_radius) <= slender))
+     };
+-    let mut children = vec![Vec::new(); tree.nodes.len()];
++    let mut children = vec![(0usize, 0usize); tree.nodes.len()];
+     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
+         if bearing(i) {
+             if let Some(parent) = n.parent {
+-                children[parent as usize].push(i);
++                children[parent as usize].0 += 1;
++                children[parent as usize].1 = i;
+             }
+         }
+     }
+     let continues = |parent: usize, child: usize| {
+         bearing(parent)
+             && tree.nodes[parent].branch == tree.nodes[child].branch
+-            && children[parent].len() == 1
++            && children[parent].0 == 1
+     };
+     let mut runs = Vec::new();
+     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
+@@ -347,8 +348,8 @@ pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
+         }
+         let mut run = vec![parent, i];
+         let mut at = i;
+-        while children[at].len() == 1 && continues(at, children[at][0]) {
+-            at = children[at][0];
++        while children[at].0 == 1 && continues(at, children[at].1) {
++            at = children[at].1;
+             run.push(at);
+         }
+         runs.push(run);
+diff --git i/crates/telperion-core/src/foliage/prepared.rs w/crates/telperion-core/src/foliage/prepared.rs
+index 32edf614..9c9e120d 100644
+--- i/crates/telperion-core/src/foliage/prepared.rs
++++ w/crates/telperion-core/src/foliage/prepared.rs
+@@ -204,7 +204,6 @@ fn prepare_inner<C>(
+             .checked_add(count)
+             .filter(|&n| n as usize <= p.max_instances)
+             .ok_or(Error::ResourceLimit("foliage instance budget"))?;
+-        let frames = station::station_frames(&points, &along);
+         // The original reverse search chooses the last segment starting at or
+         // below a distance. Integer lower bounds retain that tie convention,
+         // including repeated zero-length segments, without enumerating leaves.
+@@ -220,7 +219,9 @@ fn prepare_inner<C>(
+             }
+             lo * twig.stations_per_internode
+         };
+-        for segment in 0..points.len() - 1 {
++        for (segment, (tangent, normal, binormal)) in
++            station::station_frame_iter(&points, &along).enumerate()
++        {
+             let first = if segment == 0 {
+                 0
+             } else {
+@@ -249,7 +250,6 @@ fn prepare_inner<C>(
+                     Ok(indices)
+                 })
+                 .transpose()?;
+-            let (tangent, normal, binormal) = frames[segment];
+             let mut tile_first = first;
+             while tile_first < last {
+                 let tile_count = (last - tile_first).min(256);
+diff --git i/crates/telperion-core/src/foliage/station.rs w/crates/telperion-core/src/foliage/station.rs
+index eb654914..79a9559a 100644
+--- i/crates/telperion-core/src/foliage/station.rs
++++ w/crates/telperion-core/src/foliage/station.rs
+@@ -238,23 +238,86 @@ pub(super) fn matrix(
+ }
+ 
+ pub(super) fn station_frames(points: &[Vec3], along: &[f64]) -> Vec<(Vec3, Vec3, Vec3)> {
+-    let mut frames = frames(points);
+-    for (segment, (tangent, normal, binormal)) in frames[..points.len() - 1].iter_mut().enumerate()
+-    {
+-        let span = along[segment + 1] - along[segment];
+-        if span > 1e-12 {
+-            *tangent = (points[segment + 1] - points[segment]) / span;
+-            *normal -= *tangent * normal.dot(*tangent);
+-            if normal.length_squared() <= 1e-12 {
+-                *normal = tangent.perpendicular();
+-            }
+-            *normal = normal.normalized();
+-            *binormal = tangent.cross(*normal).normalized();
+-        }
+-    }
+-    frames
++    station_frame_iter(points, along).collect()
+ }
+ 
++pub(super) fn station_frame_iter<'a>(
++    points: &'a [Vec3],
++    along: &'a [f64],
++) -> impl Iterator<Item = (Vec3, Vec3, Vec3)> + 'a {
++    let mut previous_segment = None;
++    let mut previous_tangent = None;
++    let mut carried_normal = Vec3::ZERO;
++    points.windows(2).enumerate().map(move |(i, pair)| {
++        let delta = pair[1] - pair[0];
++        let segment = if delta.length_squared() > 0. {
++            delta.normalized()
++        } else {
++            previous_segment.unwrap_or(Vec3::Y)
++        };
++        let tangent = previous_segment.map_or(segment, |previous: Vec3| {
++            let sum = previous + segment;
++            if sum.length_squared() > 1e-9 {
++                sum.normalized()
++            } else {
++                segment
++            }
++        });
++        carried_normal = previous_tangent.map_or_else(
++            || tangent.perpendicular(),
++            |previous| transport_normal(carried_normal, previous, tangent),
++        );
++        carried_normal -= tangent * carried_normal.dot(tangent);
++        if carried_normal.length_squared() <= 1e-9 {
++            carried_normal = tangent.perpendicular();
++        }
++        carried_normal = carried_normal.normalized();
++        previous_segment = Some(segment);
++        previous_tangent = Some(tangent);
++        let mut output = (
++            tangent,
++            carried_normal,
++            tangent.cross(carried_normal).normalized(),
++        );
++        let span = along[i + 1] - along[i];
++        if span > 1e-12 {
++            output.0 = delta / span;
++            output.1 -= output.0 * output.1.dot(output.0);
++            if output.1.length_squared() <= 1e-12 {
++                output.1 = output.0.perpendicular();
++            }
++            output.1 = output.1.normalized();
++            output.2 = output.0.cross(output.1).normalized();
++        }
++        output
++    })
++}
++
++fn transport_normal(normal: Vec3, previous: Vec3, tangent: Vec3) -> Vec3 {
++    let cross = previous.cross(tangent);
++    let dot = previous.dot(tangent).clamp(-1., 1.);
++    if dot < -1. + f64::EPSILON {
++        let axis = if previous.x.abs() > previous.z.abs() {
++            Vec3::new(-previous.y, previous.x, 0.)
++        } else {
++            Vec3::new(0., -previous.z, previous.y)
++        };
++        normal.rotate(axis.normalized(), PI)
++    } else if cross.length_squared() > 0. {
++        let sin = cross.length();
++        let axis = cross / sin;
++        let norm = (sin * sin + dot * dot).sqrt();
++        if dot < -0.999999 || !norm.is_finite() || norm == 0. {
++            normal.rotate(axis, sin.atan2_fixed(dot))
++        } else {
++            normal.rotate_sin_cos(axis, (sin / norm, dot / norm))
++        }
++    } else {
++        normal
++    }
++}
++
++#[cfg(test)]
+ /// A rotation-minimising frame at every point of the run.
+ fn frames(points: &[Vec3]) -> Vec<(Vec3, Vec3, Vec3)> {
+     let mut segments = Vec::new();
+@@ -309,16 +372,29 @@ mod tests {
+     use super::*;
+ 
+     #[test]
+-    fn prepared_frames_match_station_arithmetic_including_zero_spans() {
++    fn streamed_frames_match_canonical_transport_and_projection() {
+         for points in [
+             vec![Vec3::ZERO, Vec3::Y, Vec3::Y, Vec3::ZERO, Vec3::X],
+             vec![Vec3::ZERO, Vec3::new(1e-14, 0., 0.), Vec3::new(1., 2., -3.)],
++            (0..128)
++                .map(|i| {
++                    let t = i as f64 * 0.17;
++                    Vec3::new(t.cos_fixed(), t * 0.2, t.sin_fixed())
++                })
++                .collect(),
++            vec![
++                Vec3::ZERO,
++                Vec3::new(1e30, 0., 0.),
++                Vec3::new(1e30, 1e30, 0.),
++            ],
++            vec![Vec3::ZERO, Vec3::Y, Vec3::new(1e-8, 0., 0.), Vec3::X],
+         ] {
+             let mut along = vec![0.];
+             for p in points.windows(2) {
+                 along.push(along.last().unwrap() + p[1].distance(p[0]));
+             }
+             let actual = station_frames(&points, &along);
++            assert_eq!(actual.len(), points.len() - 1);
+             let original = frames(&points);
+             for segment in 0..points.len() - 1 {
+                 let (mut tangent, mut normal, mut binormal) = original[segment];
+@@ -332,11 +408,31 @@ mod tests {
+                     normal = normal.normalized();
+                     binormal = tangent.cross(normal).normalized();
+                 }
+-                let bits = |(a, b, c): (Vec3, Vec3, Vec3)| {
+-                    [a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z].map(f64::to_bits)
+-                };
+-                assert_eq!(bits(actual[segment]), bits((tangent, normal, binormal)));
++                assert_eq!(actual[segment].0, tangent);
++                assert!((actual[segment].1 - normal).length() < 1e-12);
++                assert!((actual[segment].2 - binormal).length() < 1e-12);
++                let (t, n, b) = actual[segment];
++                for axis in [t, n, b] {
++                    assert!((axis.length() - 1.).abs() < 1e-12);
++                }
++                assert!(t.dot(n).abs() < 1e-12);
++                assert!((t.cross(n) - b).length() < 1e-12);
+             }
+         }
+     }
++
++    #[test]
++    fn algebraic_transport_handles_parallel_antiparallel_and_near_turns() {
++        for t in [
++            Vec3::Y,
++            -Vec3::Y,
++            Vec3::new(1e-9, -1., 0.).normalized(),
++            Vec3::new(0.3, 0.8, -0.2).normalized(),
++        ] {
++            let n = transport_normal(Vec3::X, Vec3::Y, t);
++            assert!(n.is_finite());
++            assert!((n.length() - 1.).abs() < 1e-12);
++            assert!(n.dot(t).abs() < 1e-8);
++        }
++    }
+ }
+diff --git i/crates/telperion-render/src/generation/io.rs w/crates/telperion-render/src/generation/io.rs
+index 991aa7fd..0731df7f 100644
+--- i/crates/telperion-render/src/generation/io.rs
++++ w/crates/telperion-render/src/generation/io.rs
+@@ -134,10 +134,13 @@ impl Pass {
+     }
+ }
+ 
+-pub(super) async fn read_async(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result<Vec<u8>> {
+-    if bytes == 0 {
+-        return Ok(Vec::new());
+-    }
++pub(super) struct PendingRead {
++    target: wgpu::Buffer,
++    receive: futures_channel::oneshot::Receiver<std::result::Result<(), wgpu::BufferAsyncError>>,
++    bytes: u64,
++}
++
++pub(super) fn begin_read(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result<PendingRead> {
+     let target = buffer(
+         gpu,
+         "generation readback",
+@@ -154,22 +157,40 @@ pub(super) async fn read_async(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) ->
+         .map_async(wgpu::MapMode::Read, move |result| {
+             let _ = send.send(result);
+         });
+-    #[cfg(not(target_arch = "wasm32"))]
+-    gpu.device
+-        .poll(wgpu::PollType::wait_indefinitely())
+-        .map_err(|e| error(e.to_string()))?;
+-    receive
+-        .await
+-        .map_err(|e| error(e.to_string()))?
+-        .map_err(|e| error(e.to_string()))?;
+-    let view = target
+-        .slice(..bytes)
+-        .get_mapped_range()
+-        .map_err(|e| error(e.to_string()))?;
+-    let result = view.to_vec();
+-    drop(view);
+-    target.unmap();
+-    Ok(result)
++    Ok(PendingRead {
++        target,
++        receive,
++        bytes,
++    })
++}
++
++impl PendingRead {
++    pub(super) async fn complete(self, gpu: &Gpu) -> Result<Vec<u8>> {
++        #[cfg(not(target_arch = "wasm32"))]
++        gpu.device
++            .poll(wgpu::PollType::wait_indefinitely())
++            .map_err(|e| error(e.to_string()))?;
++        self.receive
++            .await
++            .map_err(|e| error(e.to_string()))?
++            .map_err(|e| error(e.to_string()))?;
++        let view = self
++            .target
++            .slice(..self.bytes)
++            .get_mapped_range()
++            .map_err(|e| error(e.to_string()))?;
++        let result = view.to_vec();
++        drop(view);
++        self.target.unmap();
++        Ok(result)
++    }
++}
++
++pub(super) async fn read_async(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result<Vec<u8>> {
++    if bytes == 0 {
++        return Ok(Vec::new());
++    }
++    begin_read(gpu, source, bytes)?.complete(gpu).await
+ }
+ 
+ pub(super) async fn read_leaves_async(
+@@ -315,3 +336,30 @@ pub(super) async fn complete(gpu: &Gpu) -> Result<()> {
+     }
+     Ok(())
+ }
++
++#[cfg(all(test, not(target_arch = "wasm32")))]
++mod pending_tests {
++    use super::*;
++
++    #[test]
++    fn read_is_submitted_and_mapped_before_completion_is_polled() {
++        let gpu = pollster::block_on(Gpu::request(None)).unwrap();
++        let source = buffer(
++            &gpu,
++            "pending fixture",
++            32,
++            wgpu::BufferUsages::COPY_SRC,
++            &[7; 32],
++        )
++        .unwrap();
++        let mut pending = begin_read(&gpu, &source, 32).unwrap();
++        gpu.device
++            .poll(wgpu::PollType::wait_indefinitely())
++            .unwrap();
++        assert!(matches!(pending.receive.try_recv(), Ok(Some(Ok(())))));
++        let view = pending.target.slice(..32).get_mapped_range().unwrap();
++        assert_eq!(&*view, &[7; 32]);
++        drop(view);
++        pending.target.unmap();
++    }
++}
+diff --git i/crates/telperion-render/src/generation/positions.rs w/crates/telperion-render/src/generation/positions.rs
+index b5181483..d4c94545 100644
+--- i/crates/telperion-render/src/generation/positions.rs
++++ w/crates/telperion-render/src/generation/positions.rs
+@@ -17,12 +17,33 @@ pub(super) fn cpu_bytes(p: &CompactSurface) -> u64 {
+         + p.run_table.capacity() * size_of::<telperion_core::surface::SurfaceRun>()) as u64
+ }
+ 
++pub(super) struct PendingPositions {
++    surface: CompactSurface,
++    positions: wgpu::Buffer,
++    metadata: wgpu::Buffer,
++    _scratch: [wgpu::Buffer; 5],
++    read: io::PendingRead,
++    config: [u32; 8],
++    sizes: [u64; 6],
++}
++
+ impl Generator {
+     pub(super) async fn emit_positions(
+         &self,
+         p: CompactSurface,
+         metrics: &mut Metrics,
+     ) -> Result<Option<UploadedWood>> {
++        match self.begin_positions(p, metrics)? {
++            Some(pending) => self.complete_positions(pending, metrics).await,
++            None => Ok(None),
++        }
++    }
++
++    pub(super) fn begin_positions(
++        &self,
++        p: CompactSurface,
++        metrics: &mut Metrics,
++    ) -> Result<Option<PendingPositions>> {
+         if !p.qualified() {
+             metrics.position_fallback = Some("precision domain");
+             return Ok(None);
+@@ -145,10 +166,45 @@ impl Generator {
+         .map(|b| b.size())
+         .sum::<u64>()
+             + 32;
+-        metrics.position_upload_ms = start.elapsed_ms();
+         drop(metadata);
++        let read = io::begin_read(&self.gpu, &status, 32)?;
++        metrics.position_upload_ms = start.elapsed_ms();
++        Ok(Some(PendingPositions {
++            surface: p,
++            positions,
++            metadata: meta,
++            _scratch: [uniform, descriptors, angular, partial, status],
++            read,
++            config: [
++                config[1],
++                config[2],
++                config[3],
++                ring_offset,
++                angle_offset,
++                0,
++                0,
++                0,
++            ],
++            sizes,
++        }))
++    }
++
++    pub(super) async fn complete_positions(
++        &self,
++        pending: PendingPositions,
++        metrics: &mut Metrics,
++    ) -> Result<Option<UploadedWood>> {
++        let PendingPositions {
++            surface: p,
++            positions,
++            metadata: meta,
++            _scratch,
++            read,
++            config,
++            sizes,
++        } = pending;
+         let wait = Clock::now();
+-        let bytes = io::read_async(&self.gpu, &status, 32).await?;
++        let bytes = read.complete(&self.gpu).await?;
+         metrics.position_wait_ms = wait.elapsed_ms();
+         let status: Vec<u32> = bytes
+             .chunks_exact(4)
+@@ -174,16 +230,7 @@ impl Generator {
+         Ok(Some(UploadedWood {
+             positions,
+             metadata: WoodMetadata::Gpu(meta),
+-            config: [
+-                config[1],
+-                p.segments,
+-                config[3],
+-                ring_offset,
+-                angle_offset,
+-                0,
+-                0,
+-                0,
+-            ],
++            config,
+             sizes,
+             vertices: p.vertices as usize,
+             index_count: p.indices,
+diff --git i/crates/telperion-render/src/generation/preparation.rs w/crates/telperion-render/src/generation/preparation.rs
+index 3c6630af..6e62f982 100644
+--- i/crates/telperion-render/src/generation/preparation.rs
++++ w/crates/telperion-render/src/generation/preparation.rs
+@@ -39,22 +39,6 @@ impl Generator {
+             let mut candidate_stations = None;
+             let mut station_ms = 0.0;
+             let mut station_bytes = 0;
+-            if !needs_contacts {
+-                let station_start = Clock::now();
+-                candidate_stations = foliage::prepared::prepare_stations(
+-                    &tree,
+-                    family.skeleton.envelope,
+-                    family.canopy,
+-                    Some(twig),
+-                    &family.surface,
+-                )?
+-                .map(|p| (p.segments, p.count, p.ring_size));
+-                station_ms = station_start.elapsed_ms();
+-                station_unsupported = candidate_stations.is_none();
+-                station_bytes = candidate_stations.as_ref().map_or(0, |(s, _, _)| {
+-                    (s.capacity() * size_of::<foliage::prepared::StationSegment>()) as u64
+-                });
+-            }
+             let compact = if needs_contacts {
+                 surface::compact::prepare_with_contacts(
+                     &tree,
+@@ -98,7 +82,52 @@ impl Generator {
+                 metrics.shared_prepare_cpu_bytes = metrics
+                     .shared_prepare_cpu_bytes
+                     .max(positions::cpu_bytes(&p) + station_bytes);
+-                if candidate_stations.is_some() || !p.qualified() {
++                if !needs_contacts {
++                    let scopes = io::scope(&self.gpu);
++                    let pending = self.begin_positions(p, &mut metrics);
++                    let station_start = Clock::now();
++                    let station_result = foliage::prepared::prepare_stations(
++                        &tree,
++                        family.skeleton.envelope,
++                        family.canopy,
++                        Some(twig),
++                        &family.surface,
++                    );
++                    #[cfg(test)]
++                    let station_result = super::tests::late_station_result(
++                        station_result,
++                        pending.as_ref().ok().is_some_and(|p| p.is_some()),
++                    );
++                    station_ms = station_start.elapsed_ms();
++                    let result = match pending {
++                        Ok(Some(pending)) => self.complete_positions(pending, &mut metrics).await,
++                        Ok(None) => Ok(None),
++                        Err(error) => {
++                            let _ = io::complete(&self.gpu).await;
++                            Err(error)
++                        }
++                    };
++                    let errors = io::errors(&self.gpu, scopes).await;
++                    let prepared = station_result?;
++                    errors?;
++                    let candidate = result?;
++                    candidate_stations = prepared.map(|p| (p.segments, p.count, p.ring_size));
++                    station_unsupported = candidate_stations.is_none();
++                    station_bytes = candidate_stations.as_ref().map_or(0, |(s, _, _)| {
++                        (s.capacity() * size_of::<foliage::prepared::StationSegment>()) as u64
++                    });
++                    metrics.shared_prepare_cpu_bytes = metrics
++                        .shared_prepare_cpu_bytes
++                        .max(metrics.position_cpu_bytes + station_bytes);
++                    if station_unsupported {
++                        drop(candidate);
++                        metrics.gpu_positions = false;
++                        metrics.position_retained_metadata_bytes = 0;
++                        metrics.position_fallback = Some("station capability");
++                    } else {
++                        uploaded_wood = candidate;
++                    }
++                } else if candidate_stations.is_some() || !p.qualified() {
+                     let scopes = io::scope(&self.gpu);
+                     let result = self.emit_positions(p, &mut metrics).await;
+                     let errors = io::errors(&self.gpu, scopes).await;
+@@ -107,14 +136,14 @@ impl Generator {
+                     metrics.shared_prepare_cpu_bytes = metrics
+                         .shared_prepare_cpu_bytes
+                         .max(metrics.position_cpu_bytes + station_bytes);
+-                    if let Some(wood) = &uploaded_wood {
+-                        shared_stations = candidate_stations;
+-                        metrics.shared_metadata_cpu_bytes = wood.metadata_bytes();
+-                        wood_attempted = true;
+-                    }
+                 } else {
+                     metrics.position_fallback = Some("station capability");
+                 }
++                if let Some(wood) = &uploaded_wood {
++                    shared_stations = candidate_stations;
++                    metrics.shared_metadata_cpu_bytes = wood.metadata_bytes();
++                    wood_attempted = true;
++                }
+             }
+             early_wood_ms = begin.elapsed_ms() - station_ms;
+         } else if delivery == Delivery::Resident {
+diff --git i/crates/telperion-render/src/generation/tests.rs w/crates/telperion-render/src/generation/tests.rs
+index 8f24da55..8da6a106 100644
+--- i/crates/telperion-render/src/generation/tests.rs
++++ w/crates/telperion-render/src/generation/tests.rs
+@@ -575,3 +575,66 @@ fn compact_position_candidate_does_not_override_station_capability() {
+     .unwrap()
+     .is_none());
+ }
++
++thread_local! {
++    static LATE_STATION: std::cell::Cell<Option<bool>> = const { std::cell::Cell::new(None) };
++    static LATE_SUBMITTED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
++}
++
++pub(super) fn late_station_result<T>(
++    result: telperion_core::Result<Option<T>>,
++    submitted: bool,
++) -> telperion_core::Result<Option<T>> {
++    match LATE_STATION.with(|s| s.take()) {
++        None => result,
++        Some(error) => {
++            LATE_SUBMITTED.with(|s| s.set(submitted));
++            if error {
++                Err(telperion_core::Error::InvalidInput(
++                    "injected station error",
++                ))
++            } else {
++                Ok(None)
++            }
++        }
++    }
++}
++
++#[test]
++fn late_station_capability_and_error_join_positions_before_reusing_generator() {
++    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
++    let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
++    let g = Generator::new(&renderer).unwrap();
++    let mut f = Family::default();
++    f.skeleton.attractors = 16;
++    f.surface.lobes = 0;
++    f.canopy.surface_contact = 0.0;
++    f.canopy.short_shoot_spacing = 0.0;
++    f.canopy.limb_clumping = 0.0;
++    for error in [false, true] {
++        LATE_STATION.with(|s| s.set(Some(error)));
++        LATE_SUBMITTED.with(|s| s.set(false));
++        let result = g.prepare(&f, Delivery::Resident);
++        assert!(
++            LATE_SUBMITTED.with(|s| s.get()),
++            "station result must follow submitted positions"
++        );
++        if error {
++            assert!(result
++                .err()
++                .unwrap()
++                .to_string()
++                .contains("injected station error"));
++        } else {
++            let p = result.unwrap();
++            assert_eq!(p.backend, Backend::CpuFallback);
++            assert!(!p.metrics.gpu_positions);
++            assert_eq!(p.metrics.position_retained_metadata_bytes, 0);
++            assert!(p.metrics.position_gpu_peak_bytes > 0);
++            assert!(p.resident.is_none() && p.wood.is_none());
++        }
++        let p = g.prepare(&f, Delivery::Resident).unwrap();
++        assert!(p.metrics.gpu_positions);
++        assert!(p.count() > 0);
++    }
++}
+diff --git i/docs/generation-limits-inventory.json w/docs/generation-limits-inventory.json
+index dbfe98b2..fcfaecaa 100644
+--- i/docs/generation-limits-inventory.json
++++ w/docs/generation-limits-inventory.json
+@@ -173,7 +173,6 @@
+   {"path":"crates/telperion-core/src/foliage/placement.rs","site":"while first > 0 & & tree . nodes [ run [ first - 1 ] ] . radius < = max_radius {","classification":"algorithm","reason":"Finds the authored run/station's containing segment; index zero is the natural start of the polyline."},
+   {"path":"crates/telperion-core/src/foliage/prepared.rs","site":". max ( 1 . 0 )","classification":"algorithm","reason":"A nonzero run has at least one authored twig internode, matching existing CPU station semantics."},
+   {"path":"crates/telperion-core/src/foliage/prepared.rs","site":". min ( 256 )","classification":"algorithm","reason":"Tile cardinality only; following tiles emit every remaining station."},
+-  {"path":"crates/telperion-core/src/foliage/prepared.rs","site":"for segment in 0 . . points . len ( ) - 1 {","classification":"algorithm","reason":"A polyline with N points has N-1 segments; every segment is processed."},
+   {"path":"crates/telperion-core/src/foliage/prepared.rs","site":"if phase_error > 0 . 00025 {","classification":"numeric","reason":"Eight f64 angle-rounding units bound periodic tile reconstruction uncertainty to 0.00025 radians; larger valid requests explicitly fall back to CPU, never truncate output."},
+   {"path":"crates/telperion-core/src/foliage/prepared.rs","site":"if tree . nodes . len ( ) < 2 | | p . size = = 0 . 0 {","classification":"algorithm","reason":"Fewer than two nodes or zero foliage size is empty or disabled foliage, matching the CPU path."},
+   {"path":"crates/telperion-core/src/foliage/reference.rs","site":". max ( 0 . 0 )","classification":"algorithm","reason":"Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."},
+@@ -187,7 +186,6 @@
+   {"path":"crates/telperion-core/src/foliage/station.rs","site":". max ( 0 . )","classification":"algorithm","reason":"Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."},
+   {"path":"crates/telperion-core/src/foliage/station.rs","site":". max ( 0 . )","classification":"algorithm","reason":"Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."},
+   {"path":"crates/telperion-core/src/foliage/station.rs","site":". max ( 1 . )","classification":"algorithm","reason":"Finds the authored run/station's containing segment; index zero is the natural start of the polyline."},
+-  {"path":"crates/telperion-core/src/foliage/station.rs","site":"for ( segment , ( tangent , normal , binormal ) ) in frames [ . . points . len ( ) - 1 ] . iter_mut ( ) . enumerate ( ) {","classification":"algorithm","reason":"A polyline with N points has N-1 segments: exclude only the terminal point frame and process every segment, without limiting generated population."},
+   {"path":"crates/telperion-core/src/foliage/station.rs","site":"if ! spacing . is_finite ( ) | | spacing < = 0 . 0 {","classification":"parameter","reason":"Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."},
+   {"path":"crates/telperion-core/src/foliage/station.rs","site":"while segment > 0 & & along [ segment ] > distance {","classification":"algorithm","reason":"Finds the authored run/station's containing segment; index zero is the natural start of the polyline."},
+   {"path":"crates/telperion-core/src/foliage/timeline.rs","site":". max ( 1e - 6 )","classification":"numeric","reason":"Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."},

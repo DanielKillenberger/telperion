@@ -321,18 +321,19 @@ pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
             && (n.kind == NodeKind::Twig
                 || (slender > 0. && n.radius.max(n.start_radius) <= slender))
     };
-    let mut children = vec![Vec::new(); tree.nodes.len()];
+    let mut children = vec![(0usize, 0usize); tree.nodes.len()];
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
         if bearing(i) {
             if let Some(parent) = n.parent {
-                children[parent as usize].push(i);
+                children[parent as usize].0 += 1;
+                children[parent as usize].1 = i;
             }
         }
     }
     let continues = |parent: usize, child: usize| {
         bearing(parent)
             && tree.nodes[parent].branch == tree.nodes[child].branch
-            && children[parent].len() == 1
+            && children[parent].0 == 1
     };
     let mut runs = Vec::new();
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
@@ -347,8 +348,8 @@ pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
         }
         let mut run = vec![parent, i];
         let mut at = i;
-        while children[at].len() == 1 && continues(at, children[at][0]) {
-            at = children[at][0];
+        while children[at].0 == 1 && continues(at, children[at].1) {
+            at = children[at].1;
             run.push(at);
         }
         runs.push(run);

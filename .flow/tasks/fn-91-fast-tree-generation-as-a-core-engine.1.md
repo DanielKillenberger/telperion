@@ -17,6 +17,8 @@ TBD
 - Tests:
 - PRs:
 
-## Remaining blocker after invocation 5
+## Qualification remaining after bounded follow-up tasks
 
-NEEDS_HUMAN — the five-invocation implementation budget is exhausted; task remains in_progress. The experimental shared GPU/browser path is checkpointed, but R5 is not satisfied: comparable desktop completed-frame warm gains are 3.24×/3.44× for oak seeds 1/7 (below 10×), 15.23×/15.47× for spruce, and all four exceed the 100 ms stretch. Native GPU CPU-output peak memory remains above pure CPU output; browser/device total-memory qualification and phone evidence are absent. Visual acceptance remains scoped to actual reviewed captures, not all supported views/motion. See BROWSER-CANDIDATE.md, FOLLOWUP-CANDIDATE.md and their raw evidence. Host/owner must decide further scope/budget; no sixth attempt or completion is authorized by this checkpoint.
+The original five-invocation implementation budget remains exhausted; no sixth invocation or counter reset occurred. Separately scoped tasks .2–.14 produced the retained shared GPU/browser and native CPU improvements. Latest browser completed-frame medians are 158.1/180.8 ms for oak seeds 1/7 (9.93×/10.30× original) and 178.9/164.2 ms for spruce (42.64×/44.97×). The host ended optimization at this approximately 10× oak milestone, preserving the strict seed-1 miss of 1.1 ms instead of retiming it away.
+
+This original all-requirements task is not fully satisfied. Native CPU output remains below the original 10× target. Browser live joint-capacity envelopes remain unchanged, but oak seed 7 Wasm linear-memory high-water increased by 26,279,936 bytes in the latest pair. Cold startup, phone and full allocator/driver memory qualification remain absent; accepted visual evidence is scoped to reviewed views. Final aggregate validation is being completed. See `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/COMPLETION-ASSESSMENT.md` and `stations/REPORT.md` for current evidence. This record does not silently waive the original requirements or declare their gaps passing.

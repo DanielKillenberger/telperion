@@ -1,0 +1,6 @@
+{
+  "path": "/tmp/telperion-fn91-tools/generation-parallel-candidate",
+  "sha256": "c03b4c2c6b5eddb05332cc414405f6c8d7615131902cfdfd62df395673549fd5",
+  "source": "fce94e266cf50162d365933e1042ab0265c0fb57",
+  "verified_against": "../parallel/delivery-rss.json"
+}

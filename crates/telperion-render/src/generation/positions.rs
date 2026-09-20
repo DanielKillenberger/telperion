@@ -17,12 +17,33 @@ pub(super) fn cpu_bytes(p: &CompactSurface) -> u64 {
         + p.run_table.capacity() * size_of::<telperion_core::surface::SurfaceRun>()) as u64
 }
 
+pub(super) struct PendingPositions {
+    surface: CompactSurface,
+    positions: wgpu::Buffer,
+    metadata: wgpu::Buffer,
+    _scratch: [wgpu::Buffer; 5],
+    read: io::PendingRead,
+    config: [u32; 8],
+    sizes: [u64; 6],
+}
+
 impl Generator {
     pub(super) async fn emit_positions(
         &self,
         p: CompactSurface,
         metrics: &mut Metrics,
     ) -> Result<Option<UploadedWood>> {
+        match self.begin_positions(p, metrics)? {
+            Some(pending) => self.complete_positions(pending, metrics).await,
+            None => Ok(None),
+        }
+    }
+
+    pub(super) fn begin_positions(
+        &self,
+        p: CompactSurface,
+        metrics: &mut Metrics,
+    ) -> Result<Option<PendingPositions>> {
         if !p.qualified() {
             metrics.position_fallback = Some("precision domain");
             return Ok(None);
@@ -145,10 +166,45 @@ impl Generator {
         .map(|b| b.size())
         .sum::<u64>()
             + 32;
-        metrics.position_upload_ms = start.elapsed_ms();
         drop(metadata);
+        let read = io::begin_read(&self.gpu, &status, 32)?;
+        metrics.position_upload_ms = start.elapsed_ms();
+        Ok(Some(PendingPositions {
+            surface: p,
+            positions,
+            metadata: meta,
+            _scratch: [uniform, descriptors, angular, partial, status],
+            read,
+            config: [
+                config[1],
+                config[2],
+                config[3],
+                ring_offset,
+                angle_offset,
+                0,
+                0,
+                0,
+            ],
+            sizes,
+        }))
+    }
+
+    pub(super) async fn complete_positions(
+        &self,
+        pending: PendingPositions,
+        metrics: &mut Metrics,
+    ) -> Result<Option<UploadedWood>> {
+        let PendingPositions {
+            surface: p,
+            positions,
+            metadata: meta,
+            _scratch,
+            read,
+            config,
+            sizes,
+        } = pending;
         let wait = Clock::now();
-        let bytes = io::read_async(&self.gpu, &status, 32).await?;
+        let bytes = read.complete(&self.gpu).await?;
         metrics.position_wait_ms = wait.elapsed_ms();
         let status: Vec<u32> = bytes
             .chunks_exact(4)
@@ -174,16 +230,7 @@ impl Generator {
         Ok(Some(UploadedWood {
             positions,
             metadata: WoodMetadata::Gpu(meta),
-            config: [
-                config[1],
-                p.segments,
-                config[3],
-                ring_offset,
-                angle_offset,
-                0,
-                0,
-                0,
-            ],
+            config,
             sizes,
             vertices: p.vertices as usize,
             index_count: p.indices,

@@ -1,0 +1,162 @@
+[
+  {
+    "mode": "cpu-output",
+    "revision": "baseline",
+    "species": "oregon-white-oak",
+    "seed": 1,
+    "exit": 0,
+    "seconds": 1.9128749830051675,
+    "maxRssKiB": 255872,
+    "executableSha256": "c03b4c2c6b5eddb05332cc414405f6c8d7615131902cfdfd62df395673549fd5"
+  },
+  {
+    "mode": "cpu-output",
+    "revision": "candidate",
+    "species": "oregon-white-oak",
+    "seed": 1,
+    "exit": 0,
+    "seconds": 1.8936839349989896,
+    "maxRssKiB": 256160,
+    "executableSha256": "5a1643886deaf1f123fdc2fe71d867a89a010701350221c4db3dc0acbd8a14a9"
+  },
+  {
+    "mode": "cpu-output",
+    "revision": "baseline",
+    "species": "oregon-white-oak",
+    "seed": 7,
+    "exit": 0,
+    "seconds": 2.2249022430041805,
+    "maxRssKiB": 297444,
+    "executableSha256": "c03b4c2c6b5eddb05332cc414405f6c8d7615131902cfdfd62df395673549fd5"
+  },
+  {
+    "mode": "cpu-output",
+    "revision": "candidate",
+    "species": "oregon-white-oak",
+    "seed": 7,
+    "exit": 0,
+    "seconds": 2.169938507999177,
+    "maxRssKiB": 296896,
+    "executableSha256": "5a1643886deaf1f123fdc2fe71d867a89a010701350221c4db3dc0acbd8a14a9"
+  },
+  {
+    "mode": "cpu-output",
+    "revision": "baseline",
+    "species": "norway-spruce",
+    "seed": 1,
+    "exit": 0,
+    "seconds": 18.027794717003417,
+    "maxRssKiB": 399628,
+    "executableSha256": "c03b4c2c6b5eddb05332cc414405f6c8d7615131902cfdfd62df395673549fd5"
+  },
+  {
+    "mode": "cpu-output",
+    "revision": "candidate",
+    "species": "norway-spruce",
+    "seed": 1,
+    "exit": 0,
+    "seconds": 17.94035710299795,
+    "maxRssKiB": 394248,
+    "executableSha256": "5a1643886deaf1f123fdc2fe71d867a89a010701350221c4db3dc0acbd8a14a9"
+  },
+  {
+    "mode": "cpu-output",
+    "revision": "baseline",
+    "species": "norway-spruce",
+    "seed": 7,
+    "exit": 0,
+    "seconds": 17.15889149499708,
+    "maxRssKiB": 381192,
+    "executableSha256": "c03b4c2c6b5eddb05332cc414405f6c8d7615131902cfdfd62df395673549fd5"
+  },
+  {
+    "mode": "cpu-output",
+    "revision": "candidate",
+    "species": "norway-spruce",
+    "seed": 7,
+    "exit": 0,
+    "seconds": 17.021893603996432,
+    "maxRssKiB": 383248,
+    "executableSha256": "5a1643886deaf1f123fdc2fe71d867a89a010701350221c4db3dc0acbd8a14a9"
+  },
+  {
+    "mode": "gpu-output",
+    "revision": "baseline",
+    "species": "oregon-white-oak",
+    "seed": 1,
+    "exit": 0,
+    "seconds": 0.963851025000622,
+    "maxRssKiB": 444600,
+    "executableSha256": "c03b4c2c6b5eddb05332cc414405f6c8d7615131902cfdfd62df395673549fd5"
+  },
+  {
+    "mode": "gpu-output",
+    "revision": "candidate",
+    "species": "oregon-white-oak",
+    "seed": 1,
+    "exit": 0,
+    "seconds": 1.1085621339952922,
+    "maxRssKiB": 484684,
+    "executableSha256": "5a1643886deaf1f123fdc2fe71d867a89a010701350221c4db3dc0acbd8a14a9"
+  },
+  {
+    "mode": "gpu-output",
+    "revision": "baseline",
+    "species": "oregon-white-oak",
+    "seed": 7,
+    "exit": 0,
+    "seconds": 0.9996680039985222,
+    "maxRssKiB": 502720,
+    "executableSha256": "c03b4c2c6b5eddb05332cc414405f6c8d7615131902cfdfd62df395673549fd5"
+  },
+  {
+    "mode": "gpu-output",
+    "revision": "candidate",
+    "species": "oregon-white-oak",
+    "seed": 7,
+    "exit": 0,
+    "seconds": 0.9372468270012178,
+    "maxRssKiB": 502620,
+    "executableSha256": "5a1643886deaf1f123fdc2fe71d867a89a010701350221c4db3dc0acbd8a14a9"
+  },
+  {
+    "mode": "gpu-output",
+    "revision": "baseline",
+    "species": "norway-spruce",
+    "seed": 1,
+    "exit": 0,
+    "seconds": 1.1463608169942745,
+    "maxRssKiB": 493912,
+    "executableSha256": "c03b4c2c6b5eddb05332cc414405f6c8d7615131902cfdfd62df395673549fd5"
+  },
+  {
+    "mode": "gpu-output",
+    "revision": "candidate",
+    "species": "norway-spruce",
+    "seed": 1,
+    "exit": 0,
+    "seconds": 1.0920486440008972,
+    "maxRssKiB": 496504,
+    "executableSha256": "5a1643886deaf1f123fdc2fe71d867a89a010701350221c4db3dc0acbd8a14a9"
+  },
+  {
+    "mode": "gpu-output",
+    "revision": "baseline",
+    "species": "norway-spruce",
+    "seed": 7,
+    "exit": 0,
+    "seconds": 1.1159201440023025,
+    "maxRssKiB": 483044,
+    "executableSha256": "c03b4c2c6b5eddb05332cc414405f6c8d7615131902cfdfd62df395673549fd5"
+  },
+  {
+    "mode": "gpu-output",
+    "revision": "candidate",
+    "species": "norway-spruce",
+    "seed": 7,
+    "exit": 0,
+    "seconds": 1.0513295979981194,
+    "maxRssKiB": 479000,
+    "executableSha256": "5a1643886deaf1f123fdc2fe71d867a89a010701350221c4db3dc0acbd8a14a9"
+  }
+]

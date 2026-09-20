@@ -398,3 +398,24 @@ and release candidate arrays before one serial retry. Wasm requires no threads.
 The accounting includes requested stacks and a runtime allowance, but does not
 prove allocator, thread-cache or whole-process peak memory. Complete CPU-output
 latency and observed RSS are reported separately from the isolated wood speedup.
+
+### Shared station preparation and position overlap
+
+Task .14 streams station frames and avoids per-node child lists. Zero-contact
+resident requests submit GPU positions and their admission readback before CPU
+station preparation, then join admission before consuming geometry. Contact-bearing
+requests preserve their dependencies. Unsupported station capability and station
+errors join submitted work before fallback or return.
+
+The single paired desktop browser run measures completed frames at 158.1/180.8 ms
+for oak seeds 1/7 and 178.9/164.2 ms for spruce, respectively 9.93/10.30/42.64/44.97×
+the original baseline. Oak seed 1 misses the strict 10× threshold by 1.1 ms; no
+repeat was used to turn that miss into a pass. This ends the optimization search.
+All four full station-record comparisons are byte-identical for these fixtures.
+
+Live joint-capacity envelopes remain unchanged, including overlapped preparation
+and conservative output reallocation. Wasm linear-memory high-water is separate:
+oak seed 7 rises 26,279,936 bytes, oak seed 1 falls 24,641,536 bytes, and spruce is
+unchanged. This does not qualify whole-process memory nonincrease or cold/phone
+performance. Raw samples, controls and lifecycle checks are in
+`.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/stations/REPORT.md`.

@@ -575,3 +575,66 @@ fn compact_position_candidate_does_not_override_station_capability() {
     .unwrap()
     .is_none());
 }
+
+thread_local! {
+    static LATE_STATION: std::cell::Cell<Option<bool>> = const { std::cell::Cell::new(None) };
+    static LATE_SUBMITTED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
+pub(super) fn late_station_result<T>(
+    result: telperion_core::Result<Option<T>>,
+    submitted: bool,
+) -> telperion_core::Result<Option<T>> {
+    match LATE_STATION.with(|s| s.take()) {
+        None => result,
+        Some(error) => {
+            LATE_SUBMITTED.with(|s| s.set(submitted));
+            if error {
+                Err(telperion_core::Error::InvalidInput(
+                    "injected station error",
+                ))
+            } else {
+                Ok(None)
+            }
+        }
+    }
+}
+
+#[test]
+fn late_station_capability_and_error_join_positions_before_reusing_generator() {
+    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
+    let g = Generator::new(&renderer).unwrap();
+    let mut f = Family::default();
+    f.skeleton.attractors = 16;
+    f.surface.lobes = 0;
+    f.canopy.surface_contact = 0.0;
+    f.canopy.short_shoot_spacing = 0.0;
+    f.canopy.limb_clumping = 0.0;
+    for error in [false, true] {
+        LATE_STATION.with(|s| s.set(Some(error)));
+        LATE_SUBMITTED.with(|s| s.set(false));
+        let result = g.prepare(&f, Delivery::Resident);
+        assert!(
+            LATE_SUBMITTED.with(|s| s.get()),
+            "station result must follow submitted positions"
+        );
+        if error {
+            assert!(result
+                .err()
+                .unwrap()
+                .to_string()
+                .contains("injected station error"));
+        } else {
+            let p = result.unwrap();
+            assert_eq!(p.backend, Backend::CpuFallback);
+            assert!(!p.metrics.gpu_positions);
+            assert_eq!(p.metrics.position_retained_metadata_bytes, 0);
+            assert!(p.metrics.position_gpu_peak_bytes > 0);
+            assert!(p.resident.is_none() && p.wood.is_none());
+        }
+        let p = g.prepare(&f, Delivery::Resident).unwrap();
+        assert!(p.metrics.gpu_positions);
+        assert!(p.count() > 0);
+    }
+}

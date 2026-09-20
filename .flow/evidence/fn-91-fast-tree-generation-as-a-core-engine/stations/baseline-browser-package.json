@@ -1,0 +1,11 @@
+{
+  "saved_path": "/tmp/telperion-stations-wmh16it_/baseline-render-package",
+  "hashes": {
+    "telperion_render_bg.wasm.d.ts": "0c59dd8a415e7a14b48224142c019820afe08fdcee4b44f0c10b6f7b3af90770",
+    "telperion_render.d.ts": "f7ea08d49e22cc2786bc242a8b57d8bee58170c8f859ef9693c51f08f87b3f15",
+    "telperion_render.js": "4a9d9ac777a9657e7575a5fb3958ccc7e724f9914c0a10b98560d5930796cb18",
+    "telperion_render_bg.wasm": "69822d4aa605eaa819e8e27bc68c2651d613358c577da4c3ab8faf3c9620ed44"
+  },
+  "source_HEAD": "bf3e2fbb671f6832a8a5112a5b21691cd9d1e253",
+  "note": "Preexisting browser package; source HEAD .13 does not establish built package revision. Compare Wasm SHA against .8 evidence."
+}

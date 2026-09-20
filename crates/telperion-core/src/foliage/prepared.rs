@@ -204,7 +204,6 @@ fn prepare_inner<C>(
             .checked_add(count)
             .filter(|&n| n as usize <= p.max_instances)
             .ok_or(Error::ResourceLimit("foliage instance budget"))?;
-        let frames = station::station_frames(&points, &along);
         // The original reverse search chooses the last segment starting at or
         // below a distance. Integer lower bounds retain that tie convention,
         // including repeated zero-length segments, without enumerating leaves.
@@ -220,7 +219,9 @@ fn prepare_inner<C>(
             }
             lo * twig.stations_per_internode
         };
-        for segment in 0..points.len() - 1 {
+        for (segment, (tangent, normal, binormal)) in
+            station::station_frame_iter(&points, &along).enumerate()
+        {
             let first = if segment == 0 {
                 0
             } else {
@@ -249,7 +250,6 @@ fn prepare_inner<C>(
                     Ok(indices)
                 })
                 .transpose()?;
-            let (tangent, normal, binormal) = frames[segment];
             let mut tile_first = first;
             while tile_first < last {
                 let tile_count = (last - tile_first).min(256);

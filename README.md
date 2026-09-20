@@ -446,8 +446,8 @@ The separate [fn-91 generation path](scripts/benchmarks/generation.md#qualified-
 expands compact foliage and qualified wood inputs into GPU-resident buffers shared
 by native `Delivery::Resident` and browser `setTreeGpu`. CPU-owned output remains
 available, and the default browser path remains synchronous CPU generation.
-The [retained desktop measurements](.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/position-integration/REPORT.md)
-record completed-frame delivery of 179.1–203.7 ms for mature oak and spruce seeds
+The [retained desktop measurements](.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/stations/REPORT.md)
+record completed-frame delivery of 158.1–180.8 ms for mature oak and spruce seeds
 1/7 with an initialized renderer. These results do not qualify cold page startup,
 phone performance or complete process/GPU peak memory. This GPU expansion path
 does not revive fn-12's rejected spatial-query implementation.

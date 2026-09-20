@@ -161,3 +161,14 @@ Preparing the fresh seeded native baseline was blocked before execution because 
 
 ## 2026-09-20 - .13 shared Cargo target reused the scratch executable
 The candidate native build returned in 0.05s after a scratch baseline build used the repository target cache. SHA256 inspection caught identical baseline/candidate executables before any delivery timing. Cargo's shared output/fingerprint paths had reused the scratch result. Cost was one invalid build observation and a required rebuild, about one minute. The worker invalidated both known source mtimes before rebuilding the root candidate and will require different binary hashes. A dedicated target directory avoids this ambiguity but recompiles the renderer dependency graph.
+
+### 2026-09-20 — .14 baseline selection
+The initial explicit core foliage baseline used binary(foliage) before the host's narrower selection arrived, selecting one slow attachment matrix. At observation 41/42 tests had passed and the remaining matrix exceeded 30 seconds. Cost: roughly one minute of avoidable baseline work so far. Use the station/selected attachment filter supplied by the host for subsequent gates; all-four station record oracles cover mature preparation without whole CPU foliage matrices.
+
+### 2026-09-20 — .14 owned-output verification flag
+The reused .13 owned-output timing runner does not set GENERATION_VERIFY; its optional hashes were null. The16-process timing matrix completed successfully and is retained, but is not output-hash evidence. Cost: one separate untimed first-sample verification pass on each baseline/candidate and mode/fixture, about30seconds; no timing repetition. The runner should state the verification flag in its recipe; future verification passes must set GENERATION_VERIFY=1 explicitly.
+
+### 2026-09-20 — .14 cosmetic rename touched a test
+After the measured source passed20 renderer tests, the worker renamed PendingRead::complete's unused Wasm parameter gpu to _gpu. The text replacement also changed the eager-read test's local gpu.device reference to nonexistent _gpu. Final example/Wasm builds exclude that native test; the host aggregate CI-profile compile caught the error. Cost: one failed aggregate compile (seconds), then the host's one-line test-reference correction and rerun. A scoped patch restricted to the method would have avoided it. No measured production behavior changed, but the intermediate final test tree was not green.
+
+Correction to the earlier baseline-selection estimate: the broad attachment matrix ultimately passed in28.088seconds; the command's elapsed time included compilation. The avoidable matrix cost is28seconds, rather than a verified minute of test execution.

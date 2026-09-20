@@ -134,10 +134,13 @@ impl Pass {
     }
 }
 
-pub(super) async fn read_async(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result<Vec<u8>> {
-    if bytes == 0 {
-        return Ok(Vec::new());
-    }
+pub(super) struct PendingRead {
+    target: wgpu::Buffer,
+    receive: futures_channel::oneshot::Receiver<std::result::Result<(), wgpu::BufferAsyncError>>,
+    bytes: u64,
+}
+
+pub(super) fn begin_read(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result<PendingRead> {
     let target = buffer(
         gpu,
         "generation readback",
@@ -154,22 +157,40 @@ pub(super) async fn read_async(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> 
         .map_async(wgpu::MapMode::Read, move |result| {
             let _ = send.send(result);
         });
-    #[cfg(not(target_arch = "wasm32"))]
-    gpu.device
-        .poll(wgpu::PollType::wait_indefinitely())
-        .map_err(|e| error(e.to_string()))?;
-    receive
-        .await
-        .map_err(|e| error(e.to_string()))?
-        .map_err(|e| error(e.to_string()))?;
-    let view = target
-        .slice(..bytes)
-        .get_mapped_range()
-        .map_err(|e| error(e.to_string()))?;
-    let result = view.to_vec();
-    drop(view);
-    target.unmap();
-    Ok(result)
+    Ok(PendingRead {
+        target,
+        receive,
+        bytes,
+    })
+}
+
+impl PendingRead {
+    pub(super) async fn complete(self, _gpu: &Gpu) -> Result<Vec<u8>> {
+        #[cfg(not(target_arch = "wasm32"))]
+        _gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .map_err(|e| error(e.to_string()))?;
+        self.receive
+            .await
+            .map_err(|e| error(e.to_string()))?
+            .map_err(|e| error(e.to_string()))?;
+        let view = self
+            .target
+            .slice(..self.bytes)
+            .get_mapped_range()
+            .map_err(|e| error(e.to_string()))?;
+        let result = view.to_vec();
+        drop(view);
+        self.target.unmap();
+        Ok(result)
+    }
+}
+
+pub(super) async fn read_async(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result<Vec<u8>> {
+    if bytes == 0 {
+        return Ok(Vec::new());
+    }
+    begin_read(gpu, source, bytes)?.complete(gpu).await
 }
 
 pub(super) async fn read_leaves_async(
@@ -314,4 +335,31 @@ pub(super) async fn complete(gpu: &Gpu) -> Result<()> {
         return Err(error);
     }
     Ok(())
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod pending_tests {
+    use super::*;
+
+    #[test]
+    fn read_is_submitted_and_mapped_before_completion_is_polled() {
+        let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+        let source = buffer(
+            &gpu,
+            "pending fixture",
+            32,
+            wgpu::BufferUsages::COPY_SRC,
+            &[7; 32],
+        )
+        .unwrap();
+        let mut pending = begin_read(&gpu, &source, 32).unwrap();
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .unwrap();
+        assert!(matches!(pending.receive.try_recv(), Ok(Some(Ok(())))));
+        let view = pending.target.slice(..32).get_mapped_range().unwrap();
+        assert_eq!(&*view, &[7; 32]);
+        drop(view);
+        pending.target.unmap();
+    }
 }

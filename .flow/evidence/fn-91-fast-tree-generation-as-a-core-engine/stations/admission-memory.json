@@ -1,0 +1,146 @@
+[
+  {
+    "species": "oregon-white-oak",
+    "seed": 1,
+    "samples": [
+      {
+        "overlapEnvelope": 122000940,
+        "existingFullEnvelope": 257032420,
+        "headroom": 135031480
+      },
+      {
+        "overlapEnvelope": 376811236,
+        "existingFullEnvelope": 511842716,
+        "headroom": 135031480
+      },
+      {
+        "overlapEnvelope": 376811236,
+        "existingFullEnvelope": 511842716,
+        "headroom": 135031480
+      },
+      {
+        "overlapEnvelope": 376811236,
+        "existingFullEnvelope": 511842716,
+        "headroom": 135031480
+      },
+      {
+        "overlapEnvelope": 376811236,
+        "existingFullEnvelope": 511842716,
+        "headroom": 135031480
+      },
+      {
+        "overlapEnvelope": 376811236,
+        "existingFullEnvelope": 511842716,
+        "headroom": 135031480
+      }
+    ]
+  },
+  {
+    "species": "oregon-white-oak",
+    "seed": 7,
+    "samples": [
+      {
+        "overlapEnvelope": 178338260,
+        "existingFullEnvelope": 315302648,
+        "headroom": 136964388
+      },
+      {
+        "overlapEnvelope": 472139888,
+        "existingFullEnvelope": 609104276,
+        "headroom": 136964388
+      },
+      {
+        "overlapEnvelope": 472139888,
+        "existingFullEnvelope": 609104276,
+        "headroom": 136964388
+      },
+      {
+        "overlapEnvelope": 472139888,
+        "existingFullEnvelope": 609104276,
+        "headroom": 136964388
+      },
+      {
+        "overlapEnvelope": 472139888,
+        "existingFullEnvelope": 609104276,
+        "headroom": 136964388
+      },
+      {
+        "overlapEnvelope": 472139888,
+        "existingFullEnvelope": 609104276,
+        "headroom": 136964388
+      }
+    ]
+  },
+  {
+    "species": "norway-spruce",
+    "seed": 1,
+    "samples": [
+      {
+        "overlapEnvelope": 130047856,
+        "existingFullEnvelope": 319627432,
+        "headroom": 189579576
+      },
+      {
+        "overlapEnvelope": 546869628,
+        "existingFullEnvelope": 736449204,
+        "headroom": 189579576
+      },
+      {
+        "overlapEnvelope": 546869628,
+        "existingFullEnvelope": 736449204,
+        "headroom": 189579576
+      },
+      {
+        "overlapEnvelope": 546869628,
+        "existingFullEnvelope": 736449204,
+        "headroom": 189579576
+      },
+      {
+        "overlapEnvelope": 546869628,
+        "existingFullEnvelope": 736449204,
+        "headroom": 189579576
+      },
+      {
+        "overlapEnvelope": 546869628,
+        "existingFullEnvelope": 736449204,
+        "headroom": 189579576
+      }
+    ]
+  },
+  {
+    "species": "norway-spruce",
+    "seed": 7,
+    "samples": [
+      {
+        "overlapEnvelope": 126601928,
+        "existingFullEnvelope": 306692528,
+        "headroom": 180090600
+      },
+      {
+        "overlapEnvelope": 522821752,
+        "existingFullEnvelope": 702912352,
+        "headroom": 180090600
+      },
+      {
+        "overlapEnvelope": 522821752,
+        "existingFullEnvelope": 702912352,
+        "headroom": 180090600
+      },
+      {
+        "overlapEnvelope": 522821752,
+        "existingFullEnvelope": 702912352,
+        "headroom": 180090600
+      },
+      {
+        "overlapEnvelope": 522821752,
+        "existingFullEnvelope": 702912352,
+        "headroom": 180090600
+      },
+      {
+        "overlapEnvelope": 522821752,
+        "existingFullEnvelope": 702912352,
+        "headroom": 180090600
+      }
+    ]
+  }
+]
