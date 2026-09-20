@@ -37,6 +37,12 @@ pub struct Visual {
     pub cells: Vec<(Cell, CellStatus)>,
     /// Only blocking defects against the explicit catalogue-quality standard.
     pub defects: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub observations: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub findings: Vec<super::joint::Finding>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub joint: Option<super::joint::Packet>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -54,6 +60,19 @@ pub fn ready(required: &[Cell], identity: &str, assessment: &Visual) -> bool {
         && !assessment.model.is_empty()
         && !assessment.ledger.is_empty()
         && assessment.defects.is_empty()
+        && !assessment.findings.iter().any(|f| {
+            matches!(
+                f.impact,
+                super::joint::Impact::Blocker | super::joint::Impact::RequiredUnknown
+            )
+        })
+        && assessment.joint.as_ref().is_none_or(|p| {
+            !p.inputs
+                .iter()
+                .any(|i| i.role == "render" && i.framing == super::joint::Framing::Clipped)
+                && p.verify_findings(&assessment.findings).is_ok()
+                && !assessment.findings.is_empty()
+        })
         && assessment.cells.len() == required.len()
         && required.iter().all(|cell| {
             assessment.cells.iter().filter(|(c, _)| c == cell).count() == 1

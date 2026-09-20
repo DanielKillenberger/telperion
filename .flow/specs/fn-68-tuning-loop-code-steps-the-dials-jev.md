@@ -91,6 +91,14 @@ This spec turns the probe into the loop a species round runs: code steps the dia
 
 ## Decision Context
 
+### Joint visual diagnosis and independent evaluation, 2026-09-20
+
+- The owner asks to build the pipeline so the reviewer identifies important gaps from its evidence and instructions without being given the owner's assessment as the answer. This clarifies R8-R10. [user]
+- The visual packet groups available matched references and renders for joint assessment. It identifies image roles, views, seeds, candidate identity and known condition relationships. Reference photographs are not assumed to depict the same specimen. A render with foliage hidden is identified as a visibility change on the same geometry, not evidence of an unloaded or seasonal tree. Unknown relationships remain explicit. Packet metadata participates in evidence identity. [inferred]
+- The reviewer ranks the largest observed gaps in believable reference character, preserves cross-view constraints, and separates observations, acceptable variation, uncertain conclusions and causal hypotheses. The live loop retains those findings and their image attribution for Jev routing and diagnosis. Per-view passes cannot override an unresolved cross-view blocker. Clipped or missing evidence cannot establish the affected readiness criterion. [paraphrase]
+- Independent evaluation supplies the reviewer an allowlisted factual packet and generic joint-review instructions. Owner assessments, previous judge verdicts, proposed fixes and expected findings stay in a separate evaluation record. Changing expected labels cannot change the dispatched request. Production owner requirements remain authoritative; the blind evaluation measures whether the reviewer discovers gaps independently. Beech is a known development case, not a fresh held-out generalization test. [inferred]
+- Offline contract tests establish isolation, attribution and propagation, not model adequacy. A changed visual protocol requires fresh bounded calibration before unattended use. No prompt iteration silently replenishes existing token or capture budgets. Leaf-load deformation and seasons remain generator work outside this spec. [inferred]
+
 ### Autonomous-loop amendment, 2026-09-19
 
 - The owner rejected automatic sweeping and accepted testing Jev-selected adjustment size. This supersedes the earlier full-sweep fallback, sweep-only uncalibrated mode and mandatory reproduction of the sweep arm. Historical results remain evidence; variable magnitude remains a hypothesis until the bounded pilot and held-out validation support it. [paraphrase]

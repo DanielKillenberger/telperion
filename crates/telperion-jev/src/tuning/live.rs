@@ -104,6 +104,13 @@ impl Config {
         let manifest = fs::read(&self.visual_validation.manifest).map_err(|e| e.to_string())?;
         let replay: vision::Replay =
             serde_json::from_slice(&manifest).map_err(|e| e.to_string())?;
+        if replay
+            .cases
+            .iter()
+            .any(|c| c.request.schema != "tuning-vision-v3" || c.request.joint.is_none())
+        {
+            return Err("joint visual protocol requires fresh calibration".into());
+        }
         let raw: Value = serde_json::from_slice(
             &fs::read(&self.visual_validation.result).map_err(|e| e.to_string())?,
         )
@@ -316,8 +323,8 @@ impl Services for Live<'_> {
                     .filter_map(|c| c.images.into_iter().next()),
             );
         }
-        let request = vision::Request {
-            schema: "tuning-vision-v2".into(),
+        let mut request = vision::Request {
+            schema: "tuning-vision-v3".into(),
             identity: trial.key.clone(),
             required: required.clone(),
             images,
@@ -330,7 +337,12 @@ impl Services for Live<'_> {
                 .collect(),
             checklist: self.config.checklist.clone(),
             quality_anchors: self.config.quality_anchors.clone(),
+            joint: None,
         };
+        request.joint = Some(
+            super::joint::Packet::from_request(&request)
+                .with_shots(&self.config.matched.references)?,
+        );
         let mut result = self.config.vision.assess(&request)?;
         for cell in &self.config.required {
             if !required.contains(cell) {

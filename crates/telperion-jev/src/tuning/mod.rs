@@ -5,6 +5,7 @@ pub mod command;
 pub mod continuation;
 pub mod engine;
 pub mod evaluation;
+pub mod joint;
 pub mod judgments;
 pub mod live;
 pub mod matched;

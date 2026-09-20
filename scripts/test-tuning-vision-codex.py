@@ -23,15 +23,17 @@ class VisionContract(unittest.TestCase):
                        "checklist": "Owner identifies spreading architecture as defining reference character."}
             envelope = {"request": request, "request_sha256": "pinned-request"}
             answer = {"passes": ["fail"], "defects": ["structural blocker"],
-                      "observations": ["acceptable variation"]}
+                      "observations": ["acceptable variation"], "findings": []}
 
             def fake_run(command, **kwargs):
                 prompt = command[-1]
                 for phrase in ("believable reference character", "relative improvement", "absolute readiness",
-                               "leaf-bearing droop", "owner criterion", "rank blocking defects",
+                               "all views jointly", "owner criterion", "rank blocking defects",
                                "Do not contradict", "unknown"):
                     self.assertIn(phrase, prompt)
                 self.assertIn(request["checklist"], prompt)
+                self.assertNotIn("leaf-load",prompt)
+                self.assertNotIn("leaf-bearing droop",prompt)
                 self.assertIn("Photorealism is NOT the goal", prompt)
                 Path(command[command.index("-o") + 1]).write_text(json.dumps(answer))
                 return subprocess.CompletedProcess(command, 0, json.dumps({"type": "turn.completed",

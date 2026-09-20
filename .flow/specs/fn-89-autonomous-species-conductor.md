@@ -83,6 +83,12 @@ The current machinery already provides research stages, typed decisions, gap rec
 
 ## Decision Context
 
+### Joint-review handoff, 2026-09-20
+
+- The owner asks for independent issue discovery from multiple references and renderings, without supplying the reviewer's expected conclusions. fn-68 owns the joint evidence packet, cross-view findings and blind evaluation. This conductor consumes those attributed findings under R1, R3-R6 and R8. [paraphrase]
+- Routing preserves the distinction between an observed visual gap and a proposed cause. A design dispatch receives relevant cross-view constraints, factual generator capabilities and uncertainties. It cannot treat a reviewer's causal hypothesis as established mechanics or infer seasonal change from unrelated reference specimens or a foliage-visibility toggle. [inferred]
+- A new generator capability still receives its own bounded design and implementation. Completing a manually tuned beech does not establish autonomous pipeline completion. Readiness, independent discovery quality and end-to-end cost remain separately evidenced. [inferred]
+
 ### Motivation
 
 - The owner made the render-assess-fix loop and early human escalation explicit. Autonomous progress is preferred while supported by evidence; avoiding token spend on dead ends takes priority over forcing every run to finish unattended. A human escalation is a valid paused outcome, never a ready species. [paraphrase]

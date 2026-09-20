@@ -28,17 +28,28 @@ with tempfile.TemporaryDirectory(prefix="tuning-vision-") as scratch:
     schema.write_text(json.dumps({"type": "object", "additionalProperties": False,
         "properties": {"passes": {"type": "array", "items": {"type": "string", "enum": ["pass", "fail", "unknown"]}},
                        "defects": {"type": "array", "items": {"type": "string"}},
-                       "observations": {"type": "array", "items": {"type": "string"}}},
-        "required": ["passes", "defects", "observations"]}))
+                       "observations": {"type": "array", "items": {"type": "string"}},
+                       "findings": {"type":"array", "items":{"type":"object", "additionalProperties":False,
+                           "properties":{"observation":{"type":"string"},"evidence_ids":{"type":"array","items":{"type":"string"}},
+                               "impact":{"type":"string","enum":["blocker","required_unknown","variation","optional"]},
+                               "uncertain":{"type":"boolean"},"causal_hypothesis":{"type":["string","null"]}},
+                           "required":["observation","evidence_ids","impact","uncertain","causal_hypothesis"]}}},
+        "required": ["passes", "defects", "observations", "findings"]}))
     prompt = ("Assess believable reference character of the intended species at a finish quality "
               "comparable to the accepted catalogue anchors. Photorealism is NOT the goal. Distinguish "
               "relative improvement from absolute readiness: improvement alone never establishes readiness. "
-              "Crown proportions, spreading architecture and leaf-bearing droop are structural character, "
-              "not optional realism when the reference or owner identifies them as defining. An explicit "
+              "Defining structural character is not optional realism. An explicit "
               "owner criterion outranks a model claim that its absence is acceptable variation. Apply the "
               "species-specific checklist without inventing requirements for other species. Attached images are "
               "candidate renders, photographic references, then accepted quality anchors in metadata order. "
               "Do not use tools or inspect files. For each required checklist cell return pass, fail or unknown. "
+              "Review all views jointly, using the labelled joint packet. Render views sharing identity and seed "
+              "share geometry; hiding foliage changes visibility, NOT an unloaded leaf-off geometry. Reference "
+              "specimen/condition relationships are unknown unless documented; never infer the same specimen "
+              "or a causal change from two photographs. Rank cross-view constraints and the largest reference "
+              "gaps. Findings must cite packet evidence_ids and separate observed mismatch from optional causal "
+              "hypotheses; no particular biological theory is required. Missing/clipped evidence or unresolved "
+              "required classification means unknown. Uncertain optional refinements alone do not block. "
               "Block only wrong species character, obvious construction artifacts, regression below the "
               "accepted quality anchors or an explicit unmet requirement. Ground each blocking defect "
               "in a specific view/seed and reference or quality anchor; rank blocking defects by impact on "
@@ -74,6 +85,6 @@ with tempfile.TemporaryDirectory(prefix="tuning-vision-") as scratch:
     result = {"request_sha256": envelope["request_sha256"],
               "assessment": {"identity": request["identity"], "model": a.model, "ledger": "adapter",
                              "cells": list(zip(request["required"], answer["passes"])),
-                             "defects": answer["defects"]},
+                             "defects": answer["defects"], "findings":answer["findings"]},
               "effort": a.effort, "usage": usage, "observations": answer["observations"]}
     print(json.dumps(result))

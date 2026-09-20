@@ -49,6 +49,9 @@ fn readiness_requires_every_checklist_view_seed_and_no_defects() {
         ledger: "record".into(),
         cells: vec![(cells[0].clone(), CellStatus::Pass)],
         defects: vec![],
+        observations: vec![],
+        findings: vec![],
+        joint: None,
     };
     assert!(!ready(&cells, "v1", &assessment));
     assessment.cells.push((cells[1].clone(), CellStatus::Pass));

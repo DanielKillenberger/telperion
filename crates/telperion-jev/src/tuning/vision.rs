@@ -23,6 +23,8 @@ pub struct Request {
     pub checklist: String,
     #[serde(default)]
     pub quality_anchors: Vec<QualityAnchor>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub joint: Option<super::joint::Packet>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -34,14 +36,45 @@ pub struct QualityAnchor {
 }
 
 impl Request {
+    /// Blind development/evaluation projection: assessment labels are not inputs.
+    pub fn blind(&self) -> Self {
+        let mut r = self.clone();
+        r.schema = "tuning-vision-v3".into();
+        r.checklist = super::joint::BLIND_CHECKLIST.into();
+        for c in &mut r.required {
+            c.item = "reference_character".into();
+        }
+        for a in &mut r.quality_anchors {
+            a.provenance = format!(
+                "established catalogue anchor image sha256:{}",
+                a.image.sha256
+            );
+            a.scope = "finish/style only; not species morphology".into();
+        }
+        r.joint = self
+            .joint
+            .clone()
+            .or_else(|| Some(super::joint::Packet::from_request(&r)));
+        if let Some(packet) = &mut r.joint {
+            packet.reference_relation = "unknown".into();
+            packet.relation_source = None;
+        }
+        r
+    }
     pub fn verify(&self) -> std::result::Result<(), String> {
-        if self.schema != "tuning-vision-v2"
+        if !["tuning-vision-v2", "tuning-vision-v3"].contains(&self.schema.as_str())
             || self.identity.is_empty()
             || self.required.is_empty()
             || self.references.is_empty()
             || self.checklist.is_empty()
         {
             return Err("missing visual evidence".into());
+        }
+        if self.schema == "tuning-vision-v3" && self.joint.is_none() {
+            return Err("missing joint packet".into());
+        }
+        if let Some(packet) = &self.joint {
+            packet.verify(self)?;
         }
         if self.quality_anchors.is_empty() {
             return Err("missing accepted catalogue quality anchors".into());
@@ -83,6 +116,49 @@ pub struct Result {
     pub effort: String,
     pub usage: Option<Usage>,
     pub observations: Vec<String>,
+}
+
+impl Result {
+    pub fn bind(&mut self, request: &Request) -> std::result::Result<(), String> {
+        if self.request_sha256 != request.hash() || self.assessment.identity != request.identity {
+            return Err("stale joint result".into());
+        }
+        self.assessment.observations = self.observations.clone();
+        self.assessment.joint = request.joint.clone();
+        if let Some(packet) = &request.joint {
+            packet.verify_findings(&self.assessment.findings)?;
+            for (cell, status) in &mut self.assessment.cells {
+                if packet.inputs.iter().any(|i| {
+                    i.role == "render"
+                        && i.view == cell.view
+                        && i.seed == cell.seed
+                        && i.framing == super::joint::Framing::Clipped
+                }) || !self.assessment.findings.iter().any(|f| {
+                    f.evidence_ids.iter().any(|id| {
+                        packet.inputs.iter().any(|i| {
+                            &i.id == id
+                                && i.role == "render"
+                                && i.view == cell.view
+                                && i.seed == cell.seed
+                        })
+                    }) && f.evidence_ids.iter().any(|id| {
+                        packet
+                            .inputs
+                            .iter()
+                            .any(|i| &i.id == id && i.role == "reference")
+                    })
+                }) {
+                    *status = super::state::CellStatus::Unknown;
+                }
+            }
+            if self.assessment.findings.is_empty() {
+                for (_, status) in &mut self.assessment.cells {
+                    *status = super::state::CellStatus::Unknown;
+                }
+            }
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -150,6 +226,7 @@ impl Adapter {
             return Err("stale or wrong-model visual assessment".into());
         }
         request.verify()?;
+        result.bind(request)?;
         result.assessment.ledger = record.display().to_string();
         Ok(result)
     }
@@ -162,6 +239,12 @@ pub struct ReplayCase {
     pub provenance: String,
     pub expected_ready: bool,
     pub request: Request,
+}
+
+impl ReplayCase {
+    pub fn blind_request(&self) -> Request {
+        self.request.blind()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -219,10 +302,12 @@ pub fn replay_score(
         {
             return Err("unattributed or stale replay result".into());
         }
+        let mut bound = observed.clone();
+        bound.bind(&case.request)?;
         let got = ready(
             &case.request.required,
             &case.request.identity,
-            &observed.assessment,
+            &bound.assessment,
         );
         if case.expected_ready {
             score.positives += 1;

@@ -52,6 +52,9 @@ impl Services for Mock {
                 identity: trial.key.clone(),
                 model: "mock".into(),
                 ledger: "visual:1".into(),
+                observations: vec![],
+                findings: vec![],
+                joint: None,
                 cells: vec![(
                     cell(),
                     if self.visuals == 3 {
@@ -156,6 +159,23 @@ fn run() -> Run {
         routes: vec![],
         authorizations: vec![],
     }
+}
+
+#[test]
+fn joint_observations_and_findings_survive_state_and_judgment_projection() {
+    let mut state = run();
+    state.visual=Some(serde_json::from_value(json!({"identity":"candidate","model":"mock","ledger":"receipt","cells":[],"defects":[],"observations":["joint visible mismatch"],"findings":[{"observation":"cross-view constraint","evidence_ids":["render-0","reference-0"],"impact":"blocker","uncertain":false,"causal_hypothesis":"unproven mechanism"}]})).unwrap());
+    let saved = serde_json::to_vec(&state).unwrap();
+    let restored: Run = serde_json::from_slice(&saved).unwrap();
+    let summary = telperion_jev::tuning::judgments::summary(&restored);
+    assert_eq!(
+        summary["visual"]["observations"][0],
+        "joint visible mismatch"
+    );
+    assert_eq!(
+        summary["visual"]["findings"][0]["causal_hypothesis"],
+        "unproven mechanism"
+    );
 }
 
 #[test]
