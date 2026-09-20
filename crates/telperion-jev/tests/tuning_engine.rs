@@ -17,6 +17,8 @@ struct Mock {
     route_plan: Vec<(String, f64)>,
     /// Continuation verdict per call, consumed in order; empty means supported.
     continuations: Vec<bool>,
+    /// Owner-priority cells for these gap ids are reported as still failing.
+    fail_owner_gaps: Vec<String>,
 }
 
 fn mock() -> Mock {
@@ -27,6 +29,7 @@ fn mock() -> Mock {
         capability: false,
         route_plan: vec![],
         continuations: vec![],
+        fail_owner_gaps: vec![],
     }
 }
 impl Services for Mock {
@@ -53,7 +56,18 @@ impl Services for Mock {
     ) -> Result<Answer<Visual>, String> {
         let mut answer = self.visual(trial)?;
         let status = answer.value.cells[0].1;
-        answer.value.cells = required.iter().cloned().map(|c| (c, status)).collect();
+        answer.value.cells = required
+            .iter()
+            .cloned()
+            .map(|c| {
+                let open = self
+                    .fail_owner_gaps
+                    .iter()
+                    .any(|id| c.item.starts_with(&format!("owner-priority:{id}: ")));
+                let status = if open { CellStatus::Fail } else { status };
+                (c, status)
+            })
+            .collect();
         Ok(answer)
     }
     fn evaluation_images(&self) -> u64 {
@@ -561,4 +575,168 @@ fn attributed_diagnosis_projects_to_both_judgments_and_rechecks_sources() {
     );
     assert_eq!(state.authorizations.len(), 1);
     std::fs::remove_file(source).unwrap();
+}
+
+#[test]
+fn mixed_routes_tune_and_hand_off_without_claiming_readiness() {
+    let mut state = run();
+    state.budget.max_rounds = 1;
+    let mut mock = Mock {
+        route_plan: vec![
+            ("tuning".into(), 0.9),
+            ("existing:fn-77".into(), 0.9),
+            ("appearance".into(), 0.31),
+        ],
+        fail_owner_gaps: vec!["owner-hanging".into(), "owner-materials".into()],
+        ..mock()
+    };
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(
+        &mut state,
+        &mock,
+        json!([
+            {"id":"owner-crown","observation":"Crown shape and foliage organization","evidence_ids":["render-0","reference-0"],"views":["whole"]},
+            {"id":"owner-hanging","observation":"Hanging outer foliage","evidence_ids":["render-0","reference-0"],"views":["whole"]},
+            {"id":"owner-materials","observation":"Materials, including bark and foliage","evidence_ids":["render-0","reference-0"],"views":["whole"]}
+        ]),
+    );
+    let spent_before = state.budget.tokens;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    // One routing call covered all three priorities, and tuning still ran.
+    assert_eq!(mock.routes, 1);
+    assert!(mock.evaluations > 1, "the tuning round did not run");
+    assert_eq!(
+        state.handoffs.len(),
+        2,
+        "one handoff per non-tuning priority"
+    );
+
+    let grounded = state
+        .handoffs
+        .iter()
+        .find(|h| h.gap_id.as_deref() == Some("owner-hanging"))
+        .unwrap();
+    assert_eq!(grounded.route, "existing:fn-77");
+    assert_eq!(grounded.existing_spec.as_deref(), Some("fn-77"));
+    assert_eq!(grounded.rank, 2);
+    assert_eq!(grounded.priority, "Hanging outer foliage");
+    assert!(grounded.dispatch_authorized, "grounded route was assessed");
+    assert_eq!(grounded.raw_choice.as_deref(), Some("existing:fn-77"));
+    assert_eq!(grounded.proposed_spending, None);
+    assert!(grounded
+        .observed_defect
+        .evidence
+        .iter()
+        .any(|e| e.role == "render"));
+    assert!(grounded
+        .observed_defect
+        .evidence
+        .iter()
+        .any(|e| e.role == "reference"));
+
+    // The below-threshold priority is an uncertainty handoff, never a route.
+    let uncertain = state
+        .handoffs
+        .iter()
+        .find(|h| h.gap_id.as_deref() == Some("owner-materials"))
+        .unwrap();
+    assert_eq!(uncertain.route, "insufficient_evidence");
+    assert_eq!(uncertain.raw_choice.as_deref(), Some("appearance"));
+    assert_eq!(uncertain.confidence, Some(0.31));
+    assert!(!uncertain.dispatch_authorized);
+    assert_eq!(uncertain.existing_spec, None);
+    assert_eq!(
+        uncertain.proposed_investigation,
+        "uncertainty handoff: no supported diagnosis"
+    );
+
+    // Dials are reported as seen by the router, never as exhausted.
+    assert_eq!(
+        grounded.dials_in_router_state,
+        vec!["crookedness".to_string()]
+    );
+    assert!(grounded
+        .dials_note
+        .contains("Not evidence that any was tried"));
+    assert!(grounded
+        .attempts
+        .iter()
+        .all(|a| a.dial == "crookedness" && a.score_after.is_some()));
+
+    // Outstanding gaps are never machine readiness, and both stay unresolved.
+    assert!(!state.machine_ready);
+    let unresolved = state.unresolved_priorities();
+    assert!(unresolved.contains(&"owner-hanging".to_string()));
+    assert!(unresolved.contains(&"owner-materials".to_string()));
+
+    // Every judgment recorded the exact value it transmitted, before dispatch.
+    let labels = state
+        .judgment_inputs
+        .iter()
+        .map(|i| i.label.as_str())
+        .collect::<Vec<_>>();
+    assert!(labels.contains(&"defect routing"));
+    assert!(labels.contains(&"pre-dispatch continuation"));
+    assert!(labels.contains(&"targeted proposals"));
+    for input in &state.judgment_inputs {
+        assert_eq!(
+            input.state_sha256,
+            telperion_jev::sha256_hex(&serde_json::to_vec(&input.state).unwrap())
+        );
+    }
+    assert!(state.budget.tokens > spent_before, "spend was not recorded");
+
+    // A repeated round replaces this revision's handoffs instead of piling up.
+    state.budget.max_rounds = 2;
+    state.pause = None;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert_eq!(state.handoffs.len(), 2);
+    assert!(!state.machine_ready);
+}
+
+#[test]
+fn an_open_handoff_keeps_its_own_priority_from_counting_as_resolved() {
+    let mut state = run();
+    state.identity = "input1".into();
+    let handoff: telperion_jev::tuning::handoff::Handoff = serde_json::from_value(json!({
+        "run_identity":"input1","candidate_key":"candidate1","checkpoint_sha256":"c",
+        "gap_id":"owner-hanging","rank":1,"priority":"Hanging outer foliage",
+        "observed_defect":{"observation":"missing hanging foliage","reviewer_model":"mock",
+            "visual_ledger":"visual:1","evidence":[]},
+        "route":"new_capability","existing_spec":null,"judgment_ledger":"jev:route",
+        "raw_choice":"new_capability","confidence":0.9,"threshold":0.5,
+        "dispatch_authorized":true,"dials_in_router_state":["crookedness"],
+        "dials_note":"note","attempts":[],"observations":[],"hypotheses":[],
+        "hypotheses_note":"note","unknowns":[],"proposed_investigation":"investigate",
+        "proposed_spending":null,"proposed_spending_note":"host owns repair estimate"}))
+    .unwrap();
+    state.handoffs.push(handoff);
+
+    let owner = Cell {
+        item: "owner-priority:owner-hanging: Hanging outer foliage".into(),
+        view: "whole".into(),
+        seed: 1,
+    };
+    let mut visual: Visual = serde_json::from_value(
+        json!({"identity":"candidate1","model":"mock","ledger":"visual:1","cells":[],"defects":[],"findings":[]}),
+    )
+    .unwrap();
+    visual.cells = vec![
+        (cell(), CellStatus::Pass),
+        (owner.clone(), CellStatus::Fail),
+    ];
+
+    // The guard reads the owner cell directly, so it does not depend on which
+    // `required` list the visual happened to be assessed against.
+    assert!(state.handoff_unresolved(&visual));
+    assert!(state
+        .unresolved_priorities()
+        .contains(&"owner-hanging".to_string()));
+
+    // Resolving that owner cell clears it; a handoff for another revision never applied.
+    visual.cells = vec![(cell(), CellStatus::Pass), (owner, CellStatus::Pass)];
+    assert!(!state.handoff_unresolved(&visual));
+    state.identity = "next-revision".into();
+    assert!(!state.handoff_unresolved(&visual));
 }
