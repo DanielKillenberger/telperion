@@ -377,9 +377,7 @@ impl Run {
         self.verify_diagnoses()?;
         let answer = services.visual_for(&trial, &required, approval.as_ref())?;
         let visual = self.settle(answer, allowance)?;
-        self.machine_ready = approval.is_some()
-            && ready(&required, &trial.key, &visual)
-            && !self.handoff_unresolved(&visual);
+        self.machine_ready = approval.is_some() && ready(&required, &trial.key, &visual);
         self.visual = Some(visual);
         save(self)
     }

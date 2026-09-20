@@ -8,7 +8,6 @@ use super::{
     priority::Gap,
     state::CellStatus,
 };
-use serde_json::Value;
 
 impl Run {
     pub(super) fn route_remaining(
@@ -36,9 +35,25 @@ impl Run {
                 tuning = true;
                 continue;
             }
-            let authorized = self.pre_dispatch(services, save, route)?;
-            if route.gap_id.is_some() {
-                let built = self.build_handoff(route, &questions, authorized)?;
+            let gap = route.gap_id.as_ref().and_then(|id| {
+                self.approved_priorities()
+                    .and_then(|a| a.ordered.iter().find(|g| &g.id == id))
+                    .cloned()
+            });
+            let criterion = route.gap_id.as_ref().and_then(|id| {
+                judgments::criterion(&questions, &format!("route:{id}"), &route.route)
+            });
+            // An unchanged candidate re-routed after a numeric stall reuses the
+            // judgment it already paid for rather than asking it again.
+            let authorized = match self.settled_handoff(route) {
+                Some(settled) => settled,
+                None => {
+                    let action = handoff_action(route, gap.as_ref(), criterion.as_deref());
+                    self.pre_dispatch(services, save, route, &action)?
+                }
+            };
+            if let Some(gap) = &gap {
+                let built = self.build_handoff(route, gap, criterion.as_deref(), authorized)?;
                 self.record_handoff(built);
             }
             save(self)?;
@@ -64,11 +79,12 @@ impl Run {
         services: &mut dyn Services,
         save: &mut dyn FnMut(&Self) -> Result<(), String>,
         route: &PriorityRoute,
+        action: &str,
     ) -> Result<bool, String> {
         if !route.grounded() {
             return Ok(false);
         }
-        let mut basis = self.basis(&route.route);
+        let mut basis = self.basis(action);
         basis.next_tokens = Some(services.continuation_tokens(&basis));
         basis.estimate_basis =
             "bounded pre-dispatch assessment only; host owns repair estimate".into();
@@ -92,10 +108,33 @@ impl Run {
         self.handoffs.push(built);
     }
 
+    /// True when this exact priority, candidate and route already carry a
+    /// settled handoff for this revision.
+    fn settled_handoff(&self, route: &PriorityRoute) -> Option<bool> {
+        let key = self.candidate_key();
+        self.handoffs
+            .iter()
+            .find(|h| {
+                h.run_identity == self.identity
+                    && h.candidate_key == key
+                    && h.gap_id == route.gap_id
+                    && h.route == route.route
+            })
+            .map(|h| h.dispatch_authorized)
+    }
+
+    fn candidate_key(&self) -> String {
+        self.current
+            .and_then(|i| self.trials.get(i))
+            .map(|t| t.key.clone())
+            .unwrap_or_default()
+    }
+
     fn build_handoff(
         &self,
         route: &PriorityRoute,
-        questions: &Value,
+        gap: &Gap,
+        criterion: Option<&str>,
         dispatch_authorized: bool,
     ) -> Result<Handoff, String> {
         let checkpoint = self
@@ -105,27 +144,17 @@ impl Run {
         let approval = self
             .approved_priorities()
             .ok_or("handoff requires owner approval")?;
-        let gap_id = route.gap_id.as_ref().ok_or("handoff requires a priority")?;
-        let gap = approval
-            .ordered
-            .iter()
-            .find(|g| &g.id == gap_id)
-            .ok_or("routed priority is not in the owner approval")?;
         let findings = handoff::findings_for(checkpoint, gap);
-        let question = format!("route:{}", gap.id);
         let proposed_investigation = if route.grounded() {
-            judgments::criterion(questions, &question, &route.route)
+            criterion
+                .map(str::to_string)
                 .unwrap_or_else(|| route.route.clone())
         } else {
             handoff::UNCERTAIN_INVESTIGATION.into()
         };
         Ok(Handoff {
             run_identity: self.identity.clone(),
-            candidate_key: self
-                .current
-                .and_then(|i| self.trials.get(i))
-                .map(|t| t.key.clone())
-                .unwrap_or_default(),
+            candidate_key: self.candidate_key(),
             checkpoint_sha256: approval.checkpoint_sha256.clone(),
             gap_id: route.gap_id.clone(),
             rank: route.rank,
@@ -197,21 +226,6 @@ impl Run {
             .collect()
     }
 
-    /// An open handoff for this revision keeps the run unready until its own
-    /// owner-priority cells pass. Outstanding gaps are never machine readiness.
-    pub fn handoff_unresolved(&self, visual: &super::state::Visual) -> bool {
-        self.handoffs
-            .iter()
-            .filter(|h| h.run_identity == self.identity)
-            .any(|h| {
-                let tag = h.gap_id.as_ref().map(|id| format!("owner-priority:{id}: "));
-                visual.cells.iter().any(|(cell, status)| {
-                    *status != CellStatus::Pass
-                        && tag.as_ref().is_some_and(|t| cell.item.starts_with(t))
-                })
-            })
-    }
-
     /// Priorities that have not been resolved: an open handoff, or an owner
     /// cell that is not passing.
     pub fn unresolved_priorities(&self) -> Vec<String> {
@@ -235,6 +249,19 @@ impl Run {
         }
         out
     }
+}
+
+/// Says what the judgment is actually being asked about. A bare route name
+/// left an earlier live pilot unable to tell what was proposed.
+fn handoff_action(route: &PriorityRoute, gap: Option<&Gap>, criterion: Option<&str>) -> String {
+    let Some(gap) = gap else {
+        return route.route.clone();
+    };
+    let criterion = criterion.map(|c| format!(" = {c}")).unwrap_or_default();
+    format!(
+        "fn-89 handoff for owner priority {} ({}): {}. Route: {}{}. No repair is dispatched by this run; the judgment only decides whether the handoff may be marked dispatch-authorized.",
+        route.rank, gap.id, gap.observation, route.route, criterion
+    )
 }
 
 fn label(route: &PriorityRoute) -> String {

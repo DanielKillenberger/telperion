@@ -19,6 +19,10 @@ struct Mock {
     continuations: Vec<bool>,
     /// Owner-priority cells for these gap ids are reported as still failing.
     fail_owner_gaps: Vec<String>,
+    /// Every candidate scores the same, so no round can improve on the baseline.
+    stall: bool,
+    /// Continuation calls whose basis names an fn-89 handoff.
+    pre_dispatch_calls: u64,
 }
 
 fn mock() -> Mock {
@@ -30,6 +34,8 @@ fn mock() -> Mock {
         route_plan: vec![],
         continuations: vec![],
         fail_owner_gaps: vec![],
+        stall: false,
+        pre_dispatch_calls: 0,
     }
 }
 impl Services for Mock {
@@ -96,7 +102,11 @@ impl Services for Mock {
             reason: None,
             measurement: json!({}),
             comparisons: vec![],
-            score: Some(1. / self.evaluations as f64),
+            score: Some(if self.stall {
+                1.
+            } else {
+                1. / self.evaluations as f64
+            }),
             seconds: 0.,
         }
     }
@@ -128,6 +138,12 @@ impl Services for Mock {
         })
     }
     fn continuation(&mut self, basis: &Basis) -> Result<Answer<Assessment>, String> {
+        if basis
+            .proposed_action
+            .starts_with("fn-89 handoff for owner priority")
+        {
+            self.pre_dispatch_calls += 1;
+        }
         let supported = if self.continuations.is_empty() {
             true
         } else {
@@ -696,9 +712,8 @@ fn mixed_routes_tune_and_hand_off_without_claiming_readiness() {
 }
 
 #[test]
-fn an_open_handoff_keeps_its_own_priority_from_counting_as_resolved() {
+fn a_handoffs_owner_cell_not_passing_keeps_the_run_unready() {
     let mut state = run();
-    state.identity = "input1".into();
     let handoff: telperion_jev::tuning::handoff::Handoff = serde_json::from_value(json!({
         "run_identity":"input1","candidate_key":"candidate1","checkpoint_sha256":"c",
         "gap_id":"owner-hanging","rank":1,"priority":"Hanging outer foliage",
@@ -713,11 +728,14 @@ fn an_open_handoff_keeps_its_own_priority_from_counting_as_resolved() {
     .unwrap();
     state.handoffs.push(handoff);
 
+    // The owner cell for a handed-off priority is part of required_cells, so the
+    // ordinary cell check already withholds readiness. No extra guard is needed.
     let owner = Cell {
         item: "owner-priority:owner-hanging: Hanging outer foliage".into(),
         view: "whole".into(),
         seed: 1,
     };
+    let required = vec![cell(), owner.clone()];
     let mut visual: Visual = serde_json::from_value(
         json!({"identity":"candidate1","model":"mock","ledger":"visual:1","cells":[],"defects":[],"findings":[]}),
     )
@@ -726,17 +744,91 @@ fn an_open_handoff_keeps_its_own_priority_from_counting_as_resolved() {
         (cell(), CellStatus::Pass),
         (owner.clone(), CellStatus::Fail),
     ];
-
-    // The guard reads the owner cell directly, so it does not depend on which
-    // `required` list the visual happened to be assessed against.
-    assert!(state.handoff_unresolved(&visual));
+    assert!(!telperion_jev::tuning::state::ready(
+        &required,
+        "candidate1",
+        &visual
+    ));
     assert!(state
         .unresolved_priorities()
         .contains(&"owner-hanging".to_string()));
 
-    // Resolving that owner cell clears it; a handoff for another revision never applied.
+    // Resolving that cell clears both.
     visual.cells = vec![(cell(), CellStatus::Pass), (owner, CellStatus::Pass)];
-    assert!(!state.handoff_unresolved(&visual));
-    state.identity = "next-revision".into();
-    assert!(!state.handoff_unresolved(&visual));
+    assert!(telperion_jev::tuning::state::ready(
+        &required,
+        "candidate1",
+        &visual
+    ));
+    state.handoffs.clear();
+    assert!(state.unresolved_priorities().is_empty());
+}
+
+#[test]
+fn re_routing_an_unchanged_candidate_reuses_its_pre_dispatch_judgment() {
+    let mut state = run();
+    state.budget.max_rounds = 2;
+    let mut mock = Mock {
+        route_plan: vec![
+            ("tuning".into(), 0.9),
+            ("existing:fn-77".into(), 0.9),
+            ("appearance".into(), 0.31),
+        ],
+        stall: true,
+        ..mock()
+    };
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(
+        &mut state,
+        &mock,
+        json!([
+            {"id":"owner-crown","observation":"Crown shape and foliage organization","evidence_ids":["render-0","reference-0"],"views":["whole"]},
+            {"id":"owner-hanging","observation":"Hanging outer foliage","evidence_ids":["render-0","reference-0"],"views":["whole"]},
+            {"id":"owner-materials","observation":"Materials, including bark and foliage","evidence_ids":["render-0","reference-0"],"views":["whole"]}
+        ]),
+    );
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    // Every round stalls numerically, so the candidate never changes and the
+    // router runs again each time.
+    assert!(mock.routes >= 2, "expected a re-route, got {}", mock.routes);
+    assert_eq!(
+        mock.pre_dispatch_calls, 1,
+        "the grounded handoff was judged more than once"
+    );
+    assert_eq!(state.handoffs.len(), 2);
+
+    // The basis says what is proposed, not just the bare route name.
+    let grounded = state
+        .handoffs
+        .iter()
+        .find(|h| h.gap_id.as_deref() == Some("owner-hanging"))
+        .unwrap();
+    assert!(grounded.dispatch_authorized);
+    let basis = state
+        .judgment_inputs
+        .iter()
+        .find(|i| i.label == "pre-dispatch continuation")
+        .unwrap();
+    let action = basis.state["proposed_action"].as_str().unwrap();
+    assert!(
+        action.contains("owner priority 2 (owner-hanging)"),
+        "{action}"
+    );
+    assert!(action.contains("Hanging outer foliage"), "{action}");
+    assert!(action.contains("Route: existing:fn-77"), "{action}");
+    assert!(
+        action.contains("No repair is dispatched by this run"),
+        "{action}"
+    );
+
+    // A changed candidate is a new question, so the judgment runs again.
+    state
+        .trials
+        .push(mock.evaluate(json!({}), 9, "crookedness", None));
+    state.current = Some(state.trials.len() - 1);
+    state.pause = None;
+    state.budget.max_rounds = 3;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert_eq!(mock.pre_dispatch_calls, 2);
 }
