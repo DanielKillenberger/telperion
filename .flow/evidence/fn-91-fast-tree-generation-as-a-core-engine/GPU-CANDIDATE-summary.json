@@ -1,0 +1,122 @@
+{
+  "oak1/cpu-output": {
+    "initializationMs": 0.00232,
+    "coldMs": 720.8697579999999,
+    "warmP50Ms": 699.497245,
+    "warmMaxMs": 711.09047,
+    "prepareP50Ms": 699.497245,
+    "deliveryP50Ms": 0.0,
+    "stagesP50": {}
+  },
+  "oak1/gpu-output": {
+    "initializationMs": 2976.468225,
+    "coldMs": 395.96537,
+    "warmP50Ms": 390.826952,
+    "warmMaxMs": 408.893033,
+    "prepareP50Ms": 390.826952,
+    "deliveryP50Ms": 0.0,
+    "stagesP50": {
+      "compactMs": 0.147523,
+      "descriptorCpuBytes": 20147840,
+      "descriptorsMs": 26.665077,
+      "gpuComputePeakBytes": 27078068,
+      "inputInstances": 715065,
+      "massMs": 0.129553,
+      "placementWaitMs": 1.295169,
+      "readbackMs": 2.401974,
+      "skeletonMs": 70.651359,
+      "uploadDispatchMs": 1.595456,
+      "woodMs": 287.320694
+    }
+  },
+  "oak1/cpu-render": {
+    "initializationMs": 330.728182,
+    "coldMs": 817.4893359999999,
+    "warmP50Ms": 806.9034990000001,
+    "warmMaxMs": 819.106494,
+    "prepareP50Ms": 695.4542150000001,
+    "deliveryP50Ms": 106.929613,
+    "stagesP50": {}
+  },
+  "oak1/gpu-render": {
+    "initializationMs": 404.27868099999995,
+    "coldMs": 514.794605,
+    "warmP50Ms": 514.3438629999999,
+    "warmMaxMs": 516.0877419999999,
+    "prepareP50Ms": 373.74510399999997,
+    "deliveryP50Ms": 138.144933,
+    "stagesP50": {
+      "compactMs": 0.143234,
+      "descriptorCpuBytes": 20147840,
+      "descriptorsMs": 22.965963,
+      "gpuComputePeakBytes": 27078068,
+      "inputInstances": 715065,
+      "massMs": 0.136083,
+      "placementWaitMs": 1.2466389999999998,
+      "readbackMs": 0.0,
+      "skeletonMs": 63.640747999999995,
+      "uploadDispatchMs": 6.177181,
+      "woodMs": 278.995887
+    }
+  },
+  "spruce1/cpu-output": {
+    "initializationMs": 0.00294,
+    "coldMs": 4953.635578,
+    "warmP50Ms": 4880.268461,
+    "warmMaxMs": 4945.170976,
+    "prepareP50Ms": 4880.268461,
+    "deliveryP50Ms": 0.0,
+    "stagesP50": {}
+  },
+  "spruce1/gpu-output": {
+    "initializationMs": 428.67073300000004,
+    "coldMs": 570.005709,
+    "warmP50Ms": 546.593268,
+    "warmMaxMs": 550.668358,
+    "prepareP50Ms": 546.593268,
+    "deliveryP50Ms": 0.0,
+    "stagesP50": {
+      "compactMs": 0.564623,
+      "descriptorCpuBytes": 155994528,
+      "descriptorsMs": 141.593371,
+      "gpuComputePeakBytes": 265081248,
+      "inputInstances": 7353754,
+      "massMs": 0.36704800000000004,
+      "placementWaitMs": 13.099916,
+      "readbackMs": 89.73481899999999,
+      "skeletonMs": 47.023433000000004,
+      "uploadDispatchMs": 25.089637,
+      "woodMs": 227.101154
+    }
+  },
+  "spruce1/cpu-render": {
+    "initializationMs": 374.714199,
+    "coldMs": 5194.687531,
+    "warmP50Ms": 5242.212728,
+    "warmMaxMs": 5246.664573,
+    "prepareP50Ms": 4969.299659,
+    "deliveryP50Ms": 266.091284,
+    "stagesP50": {}
+  },
+  "spruce1/gpu-render": {
+    "initializationMs": 382.992998,
+    "coldMs": 531.030752,
+    "warmP50Ms": 517.596548,
+    "warmMaxMs": 558.082349,
+    "prepareP50Ms": 427.27811399999996,
+    "deliveryP50Ms": 90.318434,
+    "stagesP50": {
+      "compactMs": 0.525702,
+      "descriptorCpuBytes": 155994528,
+      "descriptorsMs": 131.40607,
+      "gpuComputePeakBytes": 265081248,
+      "inputInstances": 7353754,
+      "massMs": 0.358808,
+      "placementWaitMs": 11.890908,
+      "readbackMs": 0.0,
+      "skeletonMs": 45.074905,
+      "uploadDispatchMs": 18.162259,
+      "woodMs": 221.321295
+    }
+  }
+}

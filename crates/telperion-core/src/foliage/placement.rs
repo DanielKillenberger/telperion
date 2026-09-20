@@ -152,38 +152,7 @@ fn place_impl(
     contacts: Option<&AttachmentSurface>,
     reference: Reference,
 ) -> Result<Instances> {
-    tree.validate_solved()?;
-    envelope.validate()?;
-    for (v, l, h, n) in [
-        (p.shoot_radius, 0., 1., "shoot radius"),
-        (p.spacing, 0.001, 1e6, "foliage spacing"),
-        (p.divergence, -1e9, 1e9, "divergence"),
-        (p.clump_span, 0., 1., "clump span"),
-        // Signed: a leaf may lean back down its shoot and turn toward the
-        // ground as readily as toward the tip and the sky. Zero is still zero,
-        // so every row authored before the rails widened is the row it was.
-        (p.outward, -1., 1., "outward"),
-        (p.upward, -1., 1., "upward"),
-        (p.forward_lean, -1., 1., "forward lean"),
-        (p.lean_rise, -2., 2., "lean rise"),
-        (p.surface_contact, 0., 1., "surface contact"),
-        (p.scatter, 0., 90., "scatter"),
-        (p.size, 0., 1000., "foliage size"),
-        (p.size_variation, 0., 0.9, "size variation"),
-        (p.limb_clumping, 0., 1., "limb clumping"),
-    ] {
-        range(v, l, h, n)?;
-    }
-    if p.clump > 64 {
-        return Err(Error::InvalidInput("foliage clump"));
-    }
-    short_shoots::validate(&p)?;
-    if let Some(t) = twig {
-        range(t.internode_length, 1e-6, 1e6, "twig internode")?;
-        if !(1..=64).contains(&t.stations_per_internode) {
-            return Err(Error::InvalidInput("twig stations"));
-        }
-    }
+    validate(tree, envelope, p, twig)?;
     if tree.nodes.len() < 2 || p.size == 0. {
         return Ok(Instances::new(reference));
     }
@@ -236,6 +205,46 @@ fn place_impl(
         clumping::thin(tree, &owners, seed, p, &mut out);
     }
     Ok(out)
+}
+pub(super) fn validate(
+    tree: &Tree,
+    envelope: Envelope,
+    p: CanopyParams,
+    twig: Option<TwigPlacement>,
+) -> Result<()> {
+    tree.validate_solved()?;
+    envelope.validate()?;
+    for (v, l, h, n) in [
+        (p.shoot_radius, 0., 1., "shoot radius"),
+        (p.spacing, 0.001, 1e6, "foliage spacing"),
+        (p.divergence, -1e9, 1e9, "divergence"),
+        (p.clump_span, 0., 1., "clump span"),
+        // Signed: a leaf may lean back down its shoot and turn toward the
+        // ground as readily as toward the tip and the sky. Zero is still zero,
+        // so every row authored before the rails widened is the row it was.
+        (p.outward, -1., 1., "outward"),
+        (p.upward, -1., 1., "upward"),
+        (p.forward_lean, -1., 1., "forward lean"),
+        (p.lean_rise, -2., 2., "lean rise"),
+        (p.surface_contact, 0., 1., "surface contact"),
+        (p.scatter, 0., 90., "scatter"),
+        (p.size, 0., 1000., "foliage size"),
+        (p.size_variation, 0., 0.9, "size variation"),
+        (p.limb_clumping, 0., 1., "limb clumping"),
+    ] {
+        range(v, l, h, n)?;
+    }
+    if p.clump > 64 {
+        return Err(Error::InvalidInput("foliage clump"));
+    }
+    short_shoots::validate(&p)?;
+    if let Some(t) = twig {
+        range(t.internode_length, 1e-6, 1e6, "twig internode")?;
+        if !(1..=64).contains(&t.stations_per_internode) {
+            return Err(Error::InvalidInput("twig stations"));
+        }
+    }
+    Ok(())
 }
 fn shoots(tree: &Tree, max_radius: f64) -> Vec<Vec<usize>> {
     let n = tree.nodes.len();
@@ -304,7 +313,7 @@ fn shoots(tree: &Tree, max_radius: f64) -> Vec<Vec<usize>> {
 
 /// Every unbranched run of leaf-bearing wood: what the twig layer marked, plus
 /// whatever else is slender enough for shoot_radius to clothe.
-fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
+pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
     let slender = tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius;
     let bearing = |i: usize| {
         let n = &tree.nodes[i];

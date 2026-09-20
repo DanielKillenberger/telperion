@@ -54,6 +54,21 @@ pub struct Wood {
 }
 
 impl Wood {
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn allocated_bytes(&self) -> u64 {
+        [
+            &self.positions,
+            &self.normals,
+            &self.coords,
+            &self.indices,
+            &self.radii,
+        ]
+        .into_iter()
+        .flatten()
+        .map(|b| b.region().capacity())
+        .sum::<u64>()
+    }
+
     pub fn new(
         gpu: &Gpu,
         layout: &wgpu::BindGroupLayout,

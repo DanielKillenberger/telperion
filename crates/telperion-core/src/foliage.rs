@@ -6,6 +6,7 @@ mod levels;
 mod outline;
 pub(crate) mod packed;
 mod placement;
+pub mod prepared;
 mod reference;
 mod short_shoots;
 mod station;

@@ -47,9 +47,12 @@ pub fn crown_of(foliage: &Foliage) -> Option<Bounds> {
 /// ever truncated to make it fit: a tree too large for the hardware is a named
 /// refusal, not a tree with its crown quietly missing.
 pub fn fits(limits: &wgpu::Limits, mesh: &TreeMesh) -> Result<()> {
+    fits_count(limits, mesh, mesh.foliage.instances.len())
+}
+
+pub(crate) fn fits_count(limits: &wgpu::Limits, mesh: &TreeMesh, instances: usize) -> Result<()> {
     let bytes = |count: usize, width: usize| (count * width) as u64;
     let element = &mesh.foliage.element;
-    let instances = mesh.foliage.instances.len();
     // Selection reads the placements and writes the lists through storage
     // bindings, which the device caps on their own beside the buffer size.
     let stored = limits

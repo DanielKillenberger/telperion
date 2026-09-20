@@ -47,27 +47,19 @@ All browser submitted counts/bounds and owned CPU counts/bounds match baseline e
 
 The first canonical workspace run stopped on generation_limit_guard: the new segment-frame iterator was missing its inventory classification. The host reviewed it as algorithmic because N polyline points have N−1 segments. The exact lexical site is now declared in docs/generation-limits-inventory.json; the guard and all its assertions are unchanged. The focused guard passes. The first failure log is retained separately from the final run.
 
-The host added an opt-in GENERATION_COMPLETED=1 mode to the benchmark runner while the workspace suite ran. It captures the renderer's actual GPU device, frames the tree and waits for submitted work to complete. This mode has syntax validation only at this checkpoint; none of the tables above use it. The host will measure the old and new implementations under that matched completed-frame protocol separately.
+The host added an opt-in GENERATION_COMPLETED=1 mode to the benchmark runner while the workspace suite ran. It captures the renderer's actual GPU device, frames the tree and waits for submitted work to complete. None of the tables above use this mode. The subsequent matched completed-frame runs are recorded in COMPLETED-FRAMES.md, and preliminary native process-memory observations with their instrumentation limitation are in NATIVE-MEMORY.md.
 
 stage: impl-review - skipped(config: REVIEW_MODE=none)
 
 This is worker invocation 2, with two baseline commits previously made and one candidate checkpoint in this invocation. No subagents were dispatched. The task remains in progress; this candidate does not meet R5's 10x target, and the outstanding R1/R3/memory gaps remain explicit.
 
 
-## Terminal verification: renderer validation blocked
+## Renderer validation failure and host recovery
 
 The corrected canonical workspace run passed the core and Jev suites, then crashed in the renderer's bark_plates test process with SIGSEGV. The exact default-parallel binary replay also crashed. The core dump locates a null call during Vulkan extension enumeration inside libvulkan; another test thread is simultaneously creating a Vulkan instance through NVIDIA GLX. Concurrent initialization is a plausible cause, not a confirmed root cause. No generator function is on the crashing stack. Memory inspection found 21 GiB available and no OOM event in the inspected kernel-journal window.
 
-The host selected the existing nextest isolated-process route as a fallback, with a stop condition if the runner was unavailable. cargo-nextest is not installed locally. No installation, third replay, driver change or gate assertion change was attempted. The host directed a coherent checkpoint and will assess the missing runner separately. The original workspace gate remains failed; remaining renderer/Wasm tests and doctests are not claimed passed.
+The host installed CI-pinned cargo-nextest 0.9.145 into a temporary directory, then ran `cargo nextest run --release -p telperion-render -p telperion-wasm --no-fail-fast`. All 136 selected tests passed, with five skipped by the existing suite, in 44.734 seconds of test execution. The previously crashing bark tests passed under process isolation. This supports the concurrency hypothesis without proving a loader root cause. The original canonical workspace command remains failed; this is successful alternative coverage, not a rewritten result. Workspace doctests passed separately with `cargo test --release --workspace --doc`.
 
 Passed checks: 19 focused foliage unit tests, three bounds property/edge-case tests, two generation-limit guard tests, all core and Jev tests reached in the corrected workspace run, native example and both Wasm builds, Rust formatting, JavaScript syntax, all native fingerprint comparisons, and the browser comparison. The initial inventory failure and subsequent renderer crash logs remain distinct.
 
-NEEDS_HUMAN
-
-BLOCKED: TOOLING_FAILURE
-Task: fn-91-fast-tree-generation-as-a-core-engine.1
-Summary: Native renderer validation crashes during Vulkan initialization, and the selected isolated-process runner is unavailable.
-Impact: Full renderer validation and the next GPU experiment await the host's tooling decision; the 10x objective is not complete.
-Suggested resolution: Establish the existing pinned nextest runner or another host-approved stable renderer-test environment, then run remaining renderer/Wasm coverage without rerunning passed core suites.
-
-Task status stays in_progress. No review verdict or flowctl done was issued.
+The missing-runner blocker is resolved by host action. Task status stays in_progress because the 10x objective, completed-frame measurements and remaining spec qualification are unfinished. No review verdict or flowctl done was issued.

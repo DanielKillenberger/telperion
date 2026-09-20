@@ -1,0 +1,141 @@
+//! Native requested-output and completed-frame comparison, one mode per process.
+use serde_json::json;
+use std::time::Instant;
+use telperion_core::{
+    mesh::{self, Detail},
+    presets::Preset,
+};
+use telperion_render::{
+    generation::{Delivery, Generator},
+    hero_pose, Frame, Gpu, Renderer, GROUND_REACH, STILL_FORMAT,
+};
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let args: Vec<_> = std::env::args().collect();
+    let id = args.get(1).ok_or("preset")?;
+    let mode = args
+        .get(2)
+        .ok_or("cpu-output|cpu-render|gpu-output|gpu-render")?;
+    if !["cpu-output", "cpu-render", "gpu-output", "gpu-render"].contains(&mode.as_str()) {
+        return Err("invalid mode".into());
+    }
+    let mut family = Preset::from_id(id).ok_or("unknown preset")?.parameters();
+    family.skeleton.seed = 1;
+    let samples: usize = std::env::var("GENERATION_SAMPLES")
+        .unwrap_or_else(|_| "4".into())
+        .parse()?;
+    let gpu_mode = mode.starts_with("gpu");
+    let render_mode = mode.ends_with("render");
+    let init = Instant::now();
+    let mut renderer = if gpu_mode || render_mode {
+        Some(Renderer::new(
+            pollster::block_on(Gpu::request(None))?,
+            STILL_FORMAT,
+        ))
+    } else {
+        None
+    };
+    let generator = if gpu_mode {
+        Some(Generator::new(renderer.as_ref().unwrap())?)
+    } else {
+        None
+    };
+    let frame = if render_mode {
+        Some(Frame::new(
+            renderer.as_ref().unwrap(),
+            "generation comparison",
+            (1280, 720),
+        ))
+    } else {
+        None
+    };
+    println!(
+        "{}",
+        json!({"event":"provenance","preset":id,"seed":1,"mode":mode,"samples":samples,"initializationMs":init.elapsed().as_secs_f64()*1000.0,"adapter":renderer.as_ref().map(|r|&r.gpu().adapter.name),"viewport":[1280,720],"camera":"hero","boundary":"GPU queue/device completion for rendering; owned geometry for output","family":telperion_core::params::metadata(&family)})
+    );
+    for sample in 0..samples {
+        let start = Instant::now();
+        let (count, bounds, stages, prepared, cpu) = if let Some(generator) = &generator {
+            let prepared = generator.prepare(
+                &family,
+                if render_mode {
+                    Delivery::Resident
+                } else {
+                    Delivery::Cpu
+                },
+            )?;
+            let m = &prepared.metrics;
+            let stages = json!({"backend":format!("{:?}",prepared.backend),"skeletonMs":m.skeleton_ms,"descriptorsMs":m.descriptors_ms,"uploadDispatchMs":m.upload_dispatch_ms,"placementWaitMs":m.placement_wait_ms,"compactMs":m.compact_ms,"massMs":m.mass_ms,"readbackMs":m.readback_ms,"woodMs":m.wood_ms,"inputInstances":m.input_instances,"baseCpuBytes":m.base_cpu_bytes,"woodCpuBytes":m.wood_cpu_bytes,"retainedGpuBytes":m.retained_gpu_bytes,"descriptorCpuBytes":m.descriptor_cpu_bytes,"gpuComputePeakBytes":m.gpu_compute_peak_bytes});
+            (
+                prepared.count(),
+                prepared.bounds(),
+                stages,
+                Some(prepared),
+                None,
+            )
+        } else {
+            let mesh = mesh::build(&family, Detail::Full)?;
+            (
+                mesh.foliage_instances(),
+                mesh.bounds,
+                json!({"backend":"Cpu"}),
+                None,
+                Some(mesh),
+            )
+        };
+        let prepare_ms = start.elapsed().as_secs_f64() * 1000.0;
+        let mut hash = None;
+        if std::env::var_os("GENERATION_VERIFY").is_some() {
+            let instances = if let Some(p) = &prepared {
+                Some(generator.as_ref().unwrap().read_instances(p)?)
+            } else {
+                None
+            };
+            let leaves = instances
+                .as_ref()
+                .map(|i| &i.leaves)
+                .unwrap_or_else(|| &cpu.as_ref().unwrap().foliage.instances.leaves);
+            let mut value = 14695981039346656037u64;
+            for byte in leaves
+                .iter()
+                .flat_map(|leaf| leaf.iter().flat_map(|w| w.to_le_bytes()))
+            {
+                value = (value ^ u64::from(byte)).wrapping_mul(1099511628211);
+            }
+            hash = Some(format!("{value:016x}"));
+        }
+        let delivery = Instant::now();
+        if render_mode {
+            let renderer = renderer.as_mut().unwrap();
+            renderer.set_material(family.material);
+            if let Some(p) = prepared {
+                renderer.submit_prepared(p)?;
+            } else {
+                renderer.submit(cpu.as_ref().unwrap())?;
+            }
+            let camera = hero_pose(bounds, 1280.0 / 720.0, GROUND_REACH);
+            renderer.draw(&camera, (1280, 720), frame.as_ref().unwrap().target());
+            renderer
+                .gpu()
+                .device
+                .poll(wgpu::PollType::wait_indefinitely())?;
+        }
+        let delivery_ms = if render_mode {
+            delivery.elapsed().as_secs_f64() * 1000.0
+        } else {
+            0.0
+        };
+        if let Some(path) = std::env::var_os("GENERATION_CAPTURE") {
+            if render_mode {
+                let renderer = renderer.as_mut().unwrap();
+                let camera = hero_pose(bounds, 1280.0 / 720.0, GROUND_REACH);
+                let still = telperion_render::render(renderer, &camera, 1280, 720)?;
+                telperion_render::write_png(std::path::Path::new(&path), &still)?;
+            }
+        }
+        println!(
+            "{}",
+            json!({"event":"sample","sample":sample,"cold":sample==0,"prepareMs":prepare_ms,"deliveryMs":delivery_ms,"totalMs":prepare_ms+delivery_ms,"instances":count,"bounds":[[bounds.min.x,bounds.min.y,bounds.min.z],[bounds.max.x,bounds.max.y,bounds.max.z]],"hash":hash,"treeGpuBytes":renderer.as_ref().map(Generator::tree_buffer_bytes),"stages":stages})
+        );
+    }
+    Ok(())
+}

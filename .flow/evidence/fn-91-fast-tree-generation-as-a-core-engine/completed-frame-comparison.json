@@ -1,0 +1,66 @@
+{
+  "baselineRevision": "b63d38c31ec826ce089eade7273c43077b00aee1",
+  "candidateRevision": "f2c7e81c0e93fb043d1b28c3e6bfb01d127727f2",
+  "baselineWasmSha256": "e79c2cde3052ef35dc1e9fcd0913a8e3ccf152c6adc39f1cf8c8fcc801bd93a8",
+  "candidateWasmSha256": "156a91fd1f9f4eacbee3cebcf2ac6940d4d8365b551076b27ca8c73788c59d8f",
+  "rows": [
+    {
+      "preset": "oregon-white-oak",
+      "seed": 1,
+      "baselineMedianMs": 1570,
+      "baselineMaxMs": 1620.2999999998137,
+      "candidateMedianMs": 1001,
+      "candidateMaxMs": 1029.0999999996275,
+      "speedup": 1.5684315684315684,
+      "tenfoldTargetMs": 157.0,
+      "baselineInitializationMs": 178.90000000037253,
+      "candidateInitializationMs": 3103.2000000001863,
+      "baselineFirstDeliveryMs": 2497,
+      "candidateFirstDeliveryMs": 1297.5
+    },
+    {
+      "preset": "oregon-white-oak",
+      "seed": 7,
+      "baselineMedianMs": 1862.5,
+      "baselineMaxMs": 1903.9000000003725,
+      "candidateMedianMs": 1168,
+      "candidateMaxMs": 1185.7999999998137,
+      "speedup": 1.5946061643835616,
+      "tenfoldTargetMs": 186.25,
+      "baselineInitializationMs": 173,
+      "candidateInitializationMs": 180.5,
+      "baselineFirstDeliveryMs": 2953.399999999441,
+      "candidateFirstDeliveryMs": 1515.8999999994412
+    },
+    {
+      "preset": "norway-spruce",
+      "seed": 1,
+      "baselineMedianMs": 7628.5999999996275,
+      "baselineMaxMs": 7703.4000000003725,
+      "candidateMedianMs": 6137,
+      "candidateMaxMs": 6165.5,
+      "speedup": 1.2430503503339787,
+      "tenfoldTargetMs": 762.8599999999627,
+      "baselineInitializationMs": 162.59999999962747,
+      "candidateInitializationMs": 174.3999999994412,
+      "baselineFirstDeliveryMs": 10028.800000000745,
+      "candidateFirstDeliveryMs": 7127.600000000559
+    },
+    {
+      "preset": "norway-spruce",
+      "seed": 7,
+      "baselineMedianMs": 7384,
+      "baselineMaxMs": 7464.700000000186,
+      "candidateMedianMs": 5831.700000000186,
+      "candidateMaxMs": 5850,
+      "speedup": 1.2661831026972863,
+      "tenfoldTargetMs": 738.4,
+      "baselineInitializationMs": 153.20000000018626,
+      "candidateInitializationMs": 159,
+      "baselineFirstDeliveryMs": 9743.399999999441,
+      "candidateFirstDeliveryMs": 6688.799999999814
+    }
+  ],
+  "sameSubmittedCountsAndBounds": true,
+  "warmSamplesPerFixture": 5
+}

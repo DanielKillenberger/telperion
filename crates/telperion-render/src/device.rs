@@ -86,6 +86,7 @@ pub type Result<T> = std::result::Result<T, RenderError>;
 
 /// A live GPU device with the adapter it came from. One per canvas, one per
 /// headless render; it owns nothing about trees.
+#[derive(Clone)]
 pub struct Gpu {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,

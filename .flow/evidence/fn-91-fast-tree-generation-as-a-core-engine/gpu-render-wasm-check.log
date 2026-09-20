@@ -1,0 +1,43 @@
+    Checking serde v1.0.229
+    Checking bincode v1.3.3
+    Checking slotmap v1.1.1
+    Checking telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Checking telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+warning: field `identity` is never read
+  --> crates/telperion-render/src/lib.rs:96:5
+   |
+95 | pub struct Renderer {
+   |            -------- field in this struct
+96 |     identity: std::sync::Arc<()>,
+   |     ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: associated function `resident` is never used
+  --> crates/telperion-render/src/buffer.rs:74:19
+   |
+73 | impl Held {
+   | --------- associated function in this implementation
+74 |     pub(crate) fn resident(buffer: wgpu::Buffer, used: u64, label: &'static str) -> Self {
+   |                   ^^^^^^^^
+
+warning: method `submit_resident` is never used
+   --> crates/telperion-render/src/foliage.rs:162:19
+    |
+ 85 | impl Foliage {
+    | ------------ method in this implementation
+...
+162 |     pub(crate) fn submit_resident(
+    |                   ^^^^^^^^^^^^^^^
+
+warning: method `submit_resident` is never used
+   --> crates/telperion-render/src/select.rs:198:19
+    |
+110 | impl Select {
+    | ----------- method in this implementation
+...
+198 |     pub(crate) fn submit_resident(
+    |                   ^^^^^^^^^^^^^^^
+
+warning: `telperion-render` (lib) generated 4 warnings
+    Finished `release` profile [optimized] target(s) in 2.76s

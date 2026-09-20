@@ -3,9 +3,9 @@ use super::*;
 use crate::math::Transcendental;
 
 pub(crate) struct AttachmentSurface {
-    rings: Vec<Vec3>,
-    edges: Vec<Option<(usize, usize, usize, usize)>>,
-    segments: usize,
+    pub(crate) rings: Vec<Vec3>,
+    pub(crate) edges: Vec<Option<(usize, usize, usize, usize)>>,
+    pub(crate) segments: usize,
     segment_bounds: Vec<Option<(Vec3, Vec3)>>,
 }
 impl AttachmentSurface {

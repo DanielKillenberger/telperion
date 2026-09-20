@@ -1,0 +1,11 @@
+────────────
+ Nextest run ID 26569e78-ba94-4613-9739-c040ce501bb9 with nextest profile: default
+    Starting 6 tests across 2 binaries (56 tests skipped)
+        PASS [   0.835s] (1/6) telperion-render generation::tests::gpu_extrema_order_preserves_signed_zero_and_finite_signs
+        PASS [   0.004s] (2/6) telperion-render generation::tests::preparation_capabilities_and_failures_are_explicit
+        PASS [   0.004s] (3/6) telperion-render::conformance the_renderer_library_never_names_a_family
+        PASS [   3.746s] (4/6) telperion-render generation::tests::huge_phases_fall_back_but_supported_large_ordinals_keep_orientation
+        PASS [   3.773s] (5/6) telperion-render generation::tests::foreign_prepared_result_preserves_the_live_tree
+        PASS [   3.852s] (6/6) telperion-render generation::tests::compact_gpu_foliage_is_repeatable_seated_and_bounded
+────────────
+     Summary [   3.852s] 6 tests run: 6 passed, 56 skipped

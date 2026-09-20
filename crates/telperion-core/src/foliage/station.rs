@@ -237,7 +237,7 @@ pub(super) fn matrix(
     Ok(matrix)
 }
 
-fn station_frames(points: &[Vec3], along: &[f64]) -> Vec<(Vec3, Vec3, Vec3)> {
+pub(super) fn station_frames(points: &[Vec3], along: &[f64]) -> Vec<(Vec3, Vec3, Vec3)> {
     let mut frames = frames(points);
     for (segment, (tangent, normal, binormal)) in frames[..points.len() - 1].iter_mut().enumerate()
     {

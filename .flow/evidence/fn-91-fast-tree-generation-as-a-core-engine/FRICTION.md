@@ -38,3 +38,37 @@ The corrected workspace run passed core tests but crashed in bark_plates with SI
 The single exact-binary replay also crashed with SIGSEGV (exit 139), after the same first successful test. No additional replay or system change was attempted. The host is selecting the existing CI nextest isolation route for remaining renderer/Wasm validation; the original parallel Cargo workspace gate remains failed.
 
 The selected fallback runner is absent locally (cargo nextest reports no such command). The host directed an honest checkpoint and early NEEDS_HUMAN return; no installation or further runner experimentation was attempted. This is a local setup blocker, not a new repository spec.
+
+## 2026-09-20 — missing local CI runner
+
+The host needed the CI runner after the canonical renderer gate and its isolated-binary replay both crashed during concurrent Vulkan instance initialization. cargo-nextest was absent locally. Installing the repository-pinned prebuilt 0.9.145 into /tmp/telperion-fn91-tools took 0.5 seconds; an isolated-process renderer/Wasm run is now bounded at 180 seconds. This is a local tooling repair, not a proposed repository spec. Checking runner availability before choosing the gate would have avoided the late setup detour; the original canonical failures remain evidence.
+
+## 2026-09-20 — renderer test rewrites historical evidence
+
+The isolated renderer suite rewrote the tracked fn71 smooth-bark receipt through tests/common/resolution.rs. Inspecting the one-line metric change and confirming the writer cost about one minute. A broad restore command was denied by the discard guard. The host instead saved the complete new receipt as fn-91/renderer-smooth-bark.json, then applied the reviewed one-line correction to the historical file, preserving both results. The guard also rejected a shell-based append merely describing that command; a structured patch records this entry. A caller-selected evidence directory, or an ignored test-output directory, would prevent unrelated spec changes on routine validation; no new spec is created here.
+
+## 2026-09-20 — native RSS measurement helper
+
+The host's first peak-RSS invocation found that GNU time is not installed, before any specimen ran. Switching to Python's os.wait4 exposes the same Linux child-process peak-RSS metric without installing another tool. This cost about one minute; checking availability first would avoid the failed invocation. This is a local setup detail, not a repository spec.
+
+### 2026-09-20 — GPU experiment, first compile boundary
+
+The first Rust check found that wgpu 30 error scopes return owned guards rather than using device pop calls. Reading the installed API and correcting the scope ownership cost about one minute; the next check passed in 0.50 s. The first focused release test build recompiles changed core/render code and several feature-selected dependencies. Keep the cached release profile and one bounded focused run; do not repeat the workspace gate. The browser measurement window was respected with source work performed during it, so it did not create an idle wait.
+
+### 2026-09-20 — opening the visual comparison
+
+Tool-emitted images did not give the owner an opened comparison. The owner's xdg-open wrapper accepts HTTP URLs and rejected a local HTML path while returning success. Hosting the four existing images and a side-by-side page in a dedicated temporary loopback directory opened successfully; all four HTTP requests returned 200. This cost about one minute. Open a browser comparison with confirmed image loads when requesting an owner visual verdict. The wrapper behavior is local setup, not a repository spec.
+
+### 2026-09-20 — native GPU verification loop
+
+Release LTO took 44–48 s per changed-core/render focused build while the four GPU tests themselves take about 1.5 s. The first shader test rejected WGSL's reserved `target` identifier; the corrected shader passed, and subsequent builds carried host-requested tile-phase, rejection and ownership coverage rather than repeated timing runs. The remedy is the existing CI non-LTO profile for an explicitly approved local iteration protocol, not changing the repository's required release commands in this task. A direct call to the temporary cargo-nextest executable with `list` also failed immediately because this cargo extension expects invocation through `cargo nextest`; adding its directory to PATH removes that hand step. No specimen or suite ran in that failed call.
+
+### 2026-09-20 — nextest filtering still links unrelated core binaries
+
+At 169 s the final nextest binary-list build was still making progress through four active rustc jobs, but package selection links all core test binaries even though the intended test filter is foliage/mesh/surface/inventory only. This is avoidable gate cost. The host directed retaining useful in-progress work within the existing 300 s build bound, without extending it. Future small core gates should select explicit Cargo test targets separately from the full renderer package; a nextest test-name filter is not a build-target selector. No unrelated core tests are being added to the execution filter.
+
+The package-wide binary build hit its 300 s limit (exit 124) while linking renderer integration binaries; no tests ran. The parent authorized one 60 s recovery using explicit core foliage/mesh/surface/inventory targets plus renderer lib/integration targets, after recording existing binary timestamps. The recovery command and timestamp inventory are retained. This spent five minutes on an avoidably broad build; the test-execution bound is still separate and unchanged.
+
+The explicit-target build recovery completed in 43.58 s. Isolated execution then completed in 79.701 s: 214/215 passed, with no GPU crash. The sole failure was the existing renderer family-table conformance guard: the experimental orchestrator imports the generic parameter bundle through `presets::Family`. No preset lookup or species branch exists, but the top-level import crosses the guard's stated module boundary. The host was asked to resolve the parameter-type boundary; the guard remains unchanged and the failed run is retained. All five new GPU tests and the generation-limit inventory passed in that run.
+
+The final renderer suite again wrote the historical fn71 smooth-bark receipt (SilverBirch mean 2.5604 / p95 9.50). The fresh receipt is preserved as gpu-renderer-smooth-bark.json; only that observed legacy-row change is restored to its previous value. This repeats the already recorded test-output routing friction, not a new generator change.
