@@ -8,7 +8,7 @@ Direction8/8; conditional size4/5=.8; unconditional expected size4/5=.8; strict-
 
 Actual3,515tokens (direction2,020,size1,495), cumulative212,422. Separate v2+v3 study spend6,513 must be reconciled before any future runtime resume; original run.json stays205,909 and rounds2/2. No renderer/vision/tuning calls or runtime activation. Scorer synthetic checks and schema/availability checks passed; evidence-only diff check passed. V1/v2 labels/results unchanged. No further call authorized; task remains in_progress with R7 efficacy/R8 all-cell proof incomplete.
 
-## v3 offline preparation, awaiting dispatch review
+## Historical v3 offline preparation — superseded by completed study above
 
 `prepare-v3-study.py`, `score-v3-study.py` and `v3-generated/` contain eight fresh authored variants closely related to v2, not independent heldout or biological evidence. Direction now asks supported semantic correction, never action permission; size separately judges each available probe and unresolved harm. Explicit parameter effects are source-linked, including leader-only lateral birth counts. All six accuracy/coverage gates remain0.8, confidence0.5 and unsafe0. Composed disposition and strict-stage fidelity are separate, so premature abstention on harmful_steps can be safely no-action while failing direction/size fidelity.
 
