@@ -1162,3 +1162,102 @@ fn the_inventory_command_emits_what_the_runtime_pins_and_charges() {
     assert!(!failed_out.join("inventory.json").exists());
     f.cleanup();
 }
+
+#[test]
+fn a_frozen_reference_first_replay_runs_and_qualifies_a_config() {
+    use telperion_jev::tuning::{inventory, replay};
+    let f = fixture::verifying_fixture(opening());
+    let mut config: Config = serde_json::from_slice(&fs::read(&f.config_path).unwrap()).unwrap();
+    config.reference_first = None;
+
+    // Stage A first, through the shipped command.
+    let stage_a = f.root.join("stage-a");
+    let inv = inventory::run(&config, &stage_a).unwrap();
+
+    let raw: Value = serde_json::from_slice(&fs::read(&f.config_path).unwrap()).unwrap();
+    let render = raw["images_render"].clone();
+    let image = if render.is_null() {
+        raw["references"][0].clone()
+    } else {
+        render
+    };
+    let shots = raw["matched"]["references"].as_str().unwrap();
+    let case = |id: &str, ready: bool, condition: &str, framing: &str| {
+        json!({"id":id,"provenance":format!("synthetic fixture case {id}"),
+            "expected_ready":ready,"identity":format!("candidate-{id}"),
+            "target_species":fixture::PRESET,"inventory":inv,
+            "required":[{"item":"reference_character","view":"whole","seed":1}],
+            "renders":[{"image":image,"condition":condition,"framing":framing}],
+            "references":raw["references"],
+            "quality_anchors":raw["quality_anchors"],
+            "shots":shots})
+    };
+    let job = f.root.join("job.json");
+    write(
+        &job,
+        &json!({"schema":replay::JOB_SCHEMA,"model":fixture::VISION_MODEL,
+            "effort":fixture::EFFORT,"protocol":raw["vision_protocol"],
+            "cases":[case("positive", true, "same_geometry_visibility_view_not_unloaded_leaf_off", "complete"),
+                     case("negative", false, "historical_reconstructed_still", "clipped")]}),
+    );
+    let manifest_path = f.root.join("case-replay.json");
+    let frozen = replay::freeze(&job, &manifest_path).unwrap();
+    assert_eq!(frozen.cases.len(), 2);
+
+    // The expectation never reaches the dispatched request.
+    for c in &frozen.cases {
+        let bytes = serde_json::to_string(&c.request).unwrap();
+        assert!(!bytes.contains("expected_ready"));
+        assert_eq!(
+            c.request.comparison.hash(),
+            c.request.comparison.blind().hash(),
+            "case {} is not blind",
+            c.id
+        );
+    }
+    // Relabelling an expectation cannot change what the adapter sees.
+    let flipped = f.root.join("job-flipped.json");
+    let mut j: Value = serde_json::from_slice(&fs::read(&job).unwrap()).unwrap();
+    j["cases"][0]["expected_ready"] = json!(false);
+    write(&flipped, &j);
+    let other = replay::freeze(&flipped, &f.root.join("case-replay-flipped.json")).unwrap();
+    assert_eq!(
+        other.cases[0].request.hash(),
+        frozen.cases[0].request.hash()
+    );
+
+    // Running it scores one positive and one negative with no false ready.
+    let manifest = fs::read(&manifest_path).unwrap();
+    let result_path = f.root.join("case-replay-result.json");
+    let score = replay::run(
+        &manifest,
+        &config.vision,
+        std::path::Path::new(raw["vision_protocol"].as_str().unwrap()),
+        &f.root.join("case-replay-journal.json"),
+        &result_path,
+        200_000,
+    )
+    .unwrap();
+    assert_eq!(score.positives, 1);
+    assert_eq!(score.negatives, 1);
+    assert_eq!(score.false_ready, 0);
+    assert_eq!(score.false_rejections, 0);
+
+    // A config pointing at the produced pair passes the real admission gate.
+    config.visual_validation = telperion_jev::tuning::live::Validation {
+        manifest: manifest_path,
+        result: result_path,
+    };
+    let pin = |p: std::path::PathBuf| telperion_jev::tuning::reference_first::FilePin {
+        sha256: telperion_jev::sha256_hex(&fs::read(&p).unwrap()),
+        path: p,
+    };
+    config.reference_first = Some(telperion_jev::tuning::reference_first::RuntimeConfig {
+        inventory: pin(inv),
+        preparation: pin(stage_a.join("preparation.json")),
+    });
+    config
+        .verify()
+        .expect("the produced replay must qualify the config");
+    f.cleanup();
+}

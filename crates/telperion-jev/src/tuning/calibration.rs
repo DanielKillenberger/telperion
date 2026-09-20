@@ -346,6 +346,30 @@ impl Journal {
             value,
         })
     }
+    /// Loads an existing journal so a resumed replay can see which cases were
+    /// already dispatched, or creates a fresh one.
+    pub fn open(path: &Path, limit: u64) -> Result<Self, String> {
+        if !path.exists() {
+            return Self::create(path, limit);
+        }
+        let value = serde_json::from_slice(&fs::read(path).map_err(|e| e.to_string())?)
+            .map_err(|e| e.to_string())?;
+        Ok(Self {
+            path: path.into(),
+            value,
+        })
+    }
+    /// What was recorded for this case, if it has already been dispatched.
+    pub fn case(&self, id: &str) -> Option<&Value> {
+        self.value.get("cases")?.get(id)
+    }
+    pub fn note(&mut self, id: &str, entry: Value) -> Result<(), String> {
+        if !self.value["cases"].is_object() {
+            self.value["cases"] = serde_json::json!({});
+        }
+        self.value["cases"][id] = entry;
+        self.save()
+    }
     fn save(&self) -> Result<(), String> {
         let temp = self.path.with_extension("pending");
         let mut file = fs::OpenOptions::new()

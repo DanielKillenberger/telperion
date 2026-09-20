@@ -21,7 +21,7 @@ fn run() -> Result<(), String> {
             .ok_or_else(|| format!("missing {name}"))
     };
     let command = args.first().ok_or(
-        "usage: tuning-loop <run|preflight> --config FILE --out DIR [--resume FILE]\n       tuning-loop inventory --config FILE --out DIR\n       tuning-loop <calibrate|vision-replay> --manifest FILE --out FILE [--adapter FILE]",
+        "usage: tuning-loop <run|preflight> --config FILE --out DIR [--resume FILE]\n       tuning-loop inventory --config FILE --out DIR\n       tuning-loop freeze-replay --job FILE --out FILE\n       tuning-loop <calibrate|vision-replay> --manifest FILE --out FILE [--adapter FILE]",
     )?;
     if command == "inventory" {
         let config: telperion_jev::tuning::live::Config =
@@ -29,6 +29,11 @@ fn run() -> Result<(), String> {
                 .map_err(|e| e.to_string())?;
         let path = telperion_jev::tuning::inventory::run(&config, &flag("--out")?)?;
         println!("{}", path.display());
+        return Ok(());
+    }
+    if command == "freeze-replay" {
+        let replay = telperion_jev::tuning::replay::freeze(&flag("--job")?, &flag("--out")?)?;
+        println!("{} cases frozen", replay.cases.len());
         return Ok(());
     }
     if command == "run" || command == "preflight" {
@@ -105,6 +110,24 @@ fn run() -> Result<(), String> {
             )?;
         }
         "vision-replay" => {
+            let declared: serde_json::Value =
+                serde_json::from_slice(&manifest).map_err(|e| e.to_string())?;
+            if declared["schema"] == "reference-first-replay-v1" {
+                let adapter: vision::Adapter = serde_json::from_slice(
+                    &fs::read(flag("--adapter")?).map_err(|e| e.to_string())?,
+                )
+                .map_err(|e| e.to_string())?;
+                let score = telperion_jev::tuning::replay::run(
+                    &manifest,
+                    &adapter,
+                    &flag("--protocol")?,
+                    &out,
+                    &flag("--result")?,
+                    max_tokens,
+                )?;
+                println!("{}", serde_json::to_string_pretty(&score).unwrap());
+                return Ok(());
+            }
             let replay: vision::Replay =
                 serde_json::from_slice(&manifest).map_err(|e| e.to_string())?;
             let adapter: vision::Adapter =

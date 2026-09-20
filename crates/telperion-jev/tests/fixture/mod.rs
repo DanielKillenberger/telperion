@@ -146,6 +146,16 @@ if e["stage"] == "inventory":
     raise SystemExit
 c = r["comparison"]
 inv = r["inventory"]
+findings = [{"observation": "synthetic supported match",
+    "evidence_ids": ["render-0", "reference-0"],
+    "impact": "supported", "uncertain": False, "causal_hypothesis": None}]
+# Only the production comparison carries the owner's requirements, so only it
+# reports the blocking gap; a blind replay case is judged on its own evidence.
+if r.get("production_requirements"):
+    findings.append({"observation": "synthetic blocking gap in the crown",
+        "evidence_ids": ["render-0", "reference-0"],
+        "impact": "blocker", "uncertain": False,
+        "causal_hypothesis": "unproven synthetic mechanism"})
 cov = [{"trait_id": t["id"], "status": "pass",
         "evidence_ids": ["render-0", "reference-0"],
         "explanation": "synthetic fixture disposition"} for t in inv["traits"]]
@@ -154,13 +164,7 @@ print(json.dumps({"status": "ok", "request_sha256": e["request_sha256"],
     "usage": {"input_tokens": 120, "output_tokens": 40},
     "answer": {"passes": ["pass"] * len(c["required"]), "defects": [],
         "observations": ["synthetic fixture observation"],
-        "findings": [{"observation": "synthetic supported match",
-            "evidence_ids": ["render-0", "reference-0"],
-            "impact": "supported", "uncertain": False, "causal_hypothesis": None},
-            {"observation": "synthetic blocking gap in the crown",
-            "evidence_ids": ["render-0", "reference-0"],
-            "impact": "blocker", "uncertain": False,
-            "causal_hypothesis": "unproven synthetic mechanism"}],
+        "findings": findings,
         "coverage": cov}}))
 "#;
 
