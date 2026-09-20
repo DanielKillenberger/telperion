@@ -23,9 +23,16 @@ Touches: docs/generation-limits-inventory.json (reviewed scheduling/capability c
 
 
 ## Done summary
-TBD
+Retained bounded native Linux x86_64 parallel CPU wood after host design and retention approval. The single all-four screen preserves every compared bit and improves wood2.57–2.70x; complete oak CPU-owned delivery improves20.09/9.39% and GPU-assisted owned delivery41.84/40.66%. Evidence and limits are in `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/parallel/REPORT.md`.
 
+Final gates pass28/28 focused core/inventory tests,18/18 serialized renderer generation tests, both release Wasm targets, scoped rustfmt and diffcheck. Actual capacity snapshots confirm lower declared envelopes including worker resources. Tests cover modulation/caps, collapse fallback, capacity admission, worker joins, spawn failure in both phases and exactly-once production retry; spawn injection has recorded red-to-green evidence. All4 screen fallback counts are zero. Host authorized truthful reconciliation of stale prior compact/prepared inventory entries without changing the scanner.
+
+The6x wood aspiration is missed. PureCPU all4 and GPU-assisted oak remain below10x; GPU-assisted spruce exceeds10x versus the original CPU-owned baseline. All remain above100ms. PureCPU RSS increases880/248/1908/2468KiB and GPU-assisted changes-632/+224/+296/+908KiB remain explicit; no whole-process memory, browser CPU, cold or phone qualification is claimed. One identical-binary cache observation was rejected before timing and corrected with a verified root rebuild; FRICTION.md records it and a resolved scratch-path guard rejection.
+
+baseline: green via .8 handoff; .9 evidence-only, .10–.12 reverted. Final gate receipts certify unchanged tested production source at fce94e26.
+Tier: session (jev intelligent 0.78; explicit IMPLEMENTER preserved).
+stage: impl-review - skipped(config: REVIEW_MODE=none); conductor directly reviewed and approved retention before completion.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fce94e266cf50162d365933e1042ab0265c0fb57
+- Tests: /tmp/telperion-fn91-tools/cargo-nextest nextest run --release -p telperion-core --lib --test surface --test surface_reference --test surface_prepared --test surface_collapse --test surface_attachments --test generation_limit_guard -E 'binary(surface) | binary(surface_reference) | binary(surface_prepared) | binary(surface_collapse) | binary(surface_attachments) | binary(generation_limit_guard) | test(surface::parallel::tests)', /tmp/telperion-fn91-tools/cargo-nextest nextest run --release -p telperion-render --lib -E 'test(generation::)' --test-threads 1, cargo build --release --target wasm32-unknown-unknown -p telperion-wasm -p telperion-render, rustfmt --check --edition 2021 crates/telperion-core/src/surface.rs crates/telperion-core/src/surface/normals.rs crates/telperion-core/src/surface/parallel.rs crates/telperion-core/src/surface/parallel/tests.rs crates/telperion-render/examples/generation_gpu.rs, git diff --check, bash .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/parallel/screen.sh - passed all4 bitwise comparisons, 24 repeats, 16 attempts/0 fallbacks, python3 .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/parallel/measure.py - passed16 processes,64 samples, all4 CPU and GPU-assisted CPU-owned delivery, candidate-capacity.log - actual all4 phase capacities match admitted envelope, spawn-red.log - expected failure before spawn injection seam wiring; focused-tests-final.log green, INCONCLUSIVE: delivery-candidate-build.log reused identical scratch executable; corrected by delivery-candidate-rebuild.log before any delivery measurement
 - PRs:
