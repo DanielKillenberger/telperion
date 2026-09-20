@@ -40,3 +40,11 @@ Gates: full Rust and JavaScript gates ran green; no cached receipt was used.
 Tracker sync: n/a (bridge inactive).
 
 Next: preserve this measured implementation as the finished optimization milestone; remaining qualification requires a separate scope decision.
+
+## PR finalization — 2026-09-20
+
+The owner approved the demo and requested PR finalization. The renderer defaults now use sun elevation 30° and camera azimuth 115°, twenty degrees beside the sun. Camera unit tests pass 14/14. The historical clay fixture explicitly retains its original shot instead of following this intentional default change; its original image tolerances pass unchanged.
+
+Merged current master, retaining the new sizing APIs alongside the optimized station-frame and surface paths. Combined workspace nextest: 749/750 passed initially, 20 skipped; the sole failed historical-camera test passed on focused rerun after the fixture correction. JavaScript: 112/112 in nine files and five species catalogue checks passed. Both release Wasm builds and TypeScript checking passed. No post-merge performance retiming was performed; the timing claims above describe the recorded benchmark revision.
+
+The approved demo recordings, screenshots and capture scripts remain local under `demo-video/`, excluded via `.git/info/exclude`; none is committed or uploaded. Future captured specs fn-94–fn-98 remain outside this PR. Original qualification gaps remain open and the PR stays draft.
