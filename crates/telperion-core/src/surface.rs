@@ -275,11 +275,12 @@ fn build_inner(
             .checked_add(run.index_count)
             .ok_or(Error::ResourceLimit("surface indices"))?;
         if let Some(p) = prepared.as_deref_mut() {
-            for face in 0..run.index_count / 3 {
-                if !prepared::admitted(&mesh.positions, run.triangle(face, seg))? {
+            run.visit_triangles(seg, |triangle| {
+                if !prepared::admitted(&mesh.positions, triangle)? {
                     p.fallback = true;
                 }
-            }
+                Ok(())
+            })?;
             for (i, sample) in samples.iter().enumerate() {
                 let start = base as usize + i * segments;
                 p.rings.push([

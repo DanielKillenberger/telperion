@@ -108,3 +108,6 @@ The owner could not inspect the resident-wood images because the spruce camera w
 ## 2026-09-20 - acknowledged continuation without executing
 
 After the owner accepted the lit comparison, the host said it would continue but ended the turn without recording acceptance or resuming work. Cost: another owner prompt and no progress between turns. Record acceptance, close the completed task, and begin the next authorized task before reporting continuation.
+
+## 2026-09-20 — admission baseline formatting invocation
+The first scoped rustfmt check used edition 2024 and traversed children, producing inherited formatting differences. Cost: under one minute. Reading the crate edition first and using edition 2021 with skip_children=true removes this noise; the correct scoped baseline passes.

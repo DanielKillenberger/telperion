@@ -35,3 +35,7 @@ The reusable changes worth considering for follow-up are a cheap-first gate prot
 - Task .4 discovered a reserved WGSL identifier after a 44-second release rebuild, costing about one minute. The identifier was corrected and tests passed. This reinforces the existing proposal for a fast shader parse/validation check before release linking; no separate friction spec was created.
 
 - The owner rejected the interior shaded wood comparison as unjudgeable. The replacement uses exterior framing, bare-wood view and camera-side illumination, with a full-width comparison slider. Check visibility and lighting before presenting captures; nonblank output is not a sufficient visual gate. No new spec was created.
+
+- The host acknowledged continuation after accepted visuals but ended the turn without executing it, costing another owner prompt. This turn records acceptance, marks .4 done, and starts .5 before reporting progress. The prevention is execution discipline, not a new repository spec.
+
+- Task .5 initially checked formatting with edition 2024 and recursive child traversal, producing inherited formatting noise in this edition-2021 crate. Cost was under one minute; the corrected scoped check passed. Read the crate edition and reuse the established scoped format command. No new spec is proposed.

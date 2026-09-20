@@ -52,6 +52,7 @@ Measure the current path before selecting a mechanism. Separate skeleton generat
 - The engine improvement supports multiple species and random seeds; choosing only a curated list of seeds is not a substitute for improving generation. [paraphrase]
 - Website layout, rotation behavior, deployment, wind animation and scroll-driven growth are separate work. This spec improves reusable mature-tree generation and delivery. New external-engine adapters are separate work; existing native and browser consumers supply the initial proof. [inferred]
 - Byte-identical output is preferred when practical for performance improvements, not required across intentional improvements or CPU/GPU backends. Relevant visual and correctness requirements remain. [paraphrase]
+- The owner accepted the lit CPU/GPU wood comparison as looking identical. Preserve this acceptance for the tested candidate and views. Exact-output follow-up optimizations reuse that visual evidence; tiny pixel differences remain verification details and do not independently require another owner confirmation. New visible behavior or an actual visual regression still needs assessment. [paraphrase, owner 2026-09-20]
 - No commitment to move all generation to the GPU, add a forest renderer or revive the rejected field-query implementation. [inferred]
 
 ## Decision Context
@@ -63,7 +64,8 @@ Measure the current path before selecting a mechanism. Separate skeleton generat
 ## Parked unknowns
 
 - Accepted first desktop matrix: current mature oak and spruce at seeds 1 and 7, native CPU output and browser delivery, using the recorded baseline hardware. Warm latency target is 10x, with 100 ms as a stretch goal and no increase in accounted peak memory. Full cold-start and phone qualification remain separate evidence gaps; no phone performance bound has been set.
-- The fresh desktop baseline is recorded in `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/BASELINE.md`: bounds and wood dominate oak, while placement with surface contact dominates spruce. Achievable GPU gain remains unmeasured; the boundary investigation in `GPU-PATH.md` identifies required preparation, contact, bounds and canopy-lighting work without claiming a speedup.
+- The fresh desktop baseline is recorded in `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/BASELINE.md`. Tasks .2-.4 now provide bounded leaf readback, wood profiling and shared GPU-resident wood expansion. The current browser completed-frame medians are 325.5/383.7 ms for oak seeds 1/7 and 384.0/366.5 ms for spruce, respectively 4.82/4.85/19.87/20.15 times faster than the original browser baseline. `resident-wood/REPORT.md` retains native results, CPU regressions and memory limits. These results qualify neither oak's 10x target nor the 100 ms stretch goal.
+- Task .5 measures an exact-output reduction of CPU triangle-admission traversal overhead. The broader 100 ms goal needs additional improvements outside wood preparation: paired browser samples still spend a median 145.0/165.1 ms for oak and 237.4/229.8 ms for spruce outside that stage. Those measured remainders include other preparation and completed-frame delivery; subtracting a stage is an upper-bound opportunity estimate, not a prediction of a realizable zero-cost stage.
 
 ## Strategy Alignment
 

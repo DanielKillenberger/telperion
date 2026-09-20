@@ -10,6 +10,31 @@ pub struct Run {
     pub index_count: u32,
 }
 impl Run {
+    #[inline]
+    pub(super) fn visit_triangles(
+        &self,
+        segments: u32,
+        mut visit: impl FnMut([u32; 3]) -> Result<()>,
+    ) -> Result<()> {
+        for ring in 0..self.rings - 1 {
+            let lower = self.base + ring * segments;
+            let upper = lower + segments;
+            for k in 0..segments {
+                let next = (k + 1) % segments;
+                visit([lower + k, lower + next, upper + k])?;
+                visit([lower + next, upper + next, upper + k])?;
+            }
+        }
+        let bottom = self.base + self.rings * segments;
+        let top = bottom - segments;
+        for k in 0..segments {
+            let next = (k + 1) % segments;
+            visit([bottom, self.base + next, self.base + k])?;
+            visit([bottom + 1, top + k, top + next])?;
+        }
+        Ok(())
+    }
+
     /// Triangle in the CPU builder's strip-then-interleaved-cap order.
     pub fn triangle(&self, face: u32, segments: u32) -> [u32; 3] {
         let strip = (self.rings - 1) * segments * 2;
@@ -85,4 +110,30 @@ pub fn ring_radius(positions: &[f32]) -> f32 {
         .map(|p| point(p).distance(centre))
         .sum::<f64>()
         / points.len() as f64) as f32
+}
+
+#[cfg(test)]
+mod traversal_tests {
+    use super::*;
+
+    #[test]
+    fn nested_faces_match_procedural_order() {
+        for (base, rings, segments) in [(0, 2, 3), (17, 4, 8), (101, 1025, 17)] {
+            let run = Run {
+                base,
+                rings,
+                first_index: 33,
+                ring_start: 7,
+                index_count: rings * segments * 6,
+            };
+            let mut face = 0;
+            run.visit_triangles(segments, |triangle| {
+                assert_eq!(triangle, run.triangle(face, segments));
+                face += 1;
+                Ok(())
+            })
+            .unwrap();
+            assert_eq!(face, run.index_count / 3);
+        }
+    }
 }
