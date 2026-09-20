@@ -23,9 +23,15 @@ Quick: explicit release core surface/attachment/prepared tests and focused rende
 
 
 ## Done summary
-TBD
+Retained the isolated compact-ring/GPU-position feasibility probe. All four mature fixtures pass fixed numeric/topology/bounds/repeatability screens; oak preparation improves 2.70×/2.83× with lower counted preparation/upload allocation. Far-origin 100 km geometry remains an explicit unsupported fidelity result (11.05 mm maximum error; six newly collapsed tip faces). Host approved advancing bounded integration in .8; this does not qualify parent 10×/100 ms or delivered rendering.
 
+See `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/gpu-positions/REPORT.md`, final-matrix.json and provenance.json for final guarded measurements, exact source hashes, normal/radius deviations, simultaneous allocation formulas and limits. The host directly reviewed design/code/evidence and approved retention before done. The arithmetic-overflow regression was observed red, fixed with derived pre-cross bounds, and passed unchanged; the precision failures remain visible. Default CPU surface hashes are unchanged.
+
+baseline: green via handoff (.6 ed0f6819, core 19/19, renderer 14/14, Wasm/browser). Final release core 19/19, renderer 15/15, isolated mature matrix 1/1, Wasm core API compile and scoped format pass. New precision/range diagnostics require no browser/visual gate for this isolated probe; those belong to .8. One observed numeric obstacle is recorded immediately in FRICTION.md and reviewed by host.
+
+Tier: session (jev intelligent 0.87; explicit IMPLEMENTER preserved).
+stage: impl-review - skipped(config: REVIEW_MODE=none)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 64eba9563205a30f3663fa17c8a35b283d5b64b7
+- Tests: baseline: green via handoff (.6 ed0f6819 core19/19 renderer14/14 Wasm/browser), /tmp/telperion-fn91-tools/cargo-nextest nextest run --release -p telperion-core --test surface --test surface_prepared --test surface_collapse --test surface_attachments (19/19), /tmp/telperion-fn91-tools/cargo-nextest nextest run --release -p telperion-render --lib -E 'test(generation::)' (15/15), /tmp/telperion-fn91-tools/cargo-nextest nextest run --release -p telperion-render --lib -E 'test(compact_position_mature_measurement)' --run-ignored only --success-output immediate (1/1, four mature fixtures), /tmp/telperion-fn91-tools/cargo-nextest nextest run --release -p telperion-render --lib -E 'test(compact_position_edge_cases)' --success-output immediate (1/1; post-cross overflow regression observed red before pre-cross fix), cargo check --release -p telperion-core --target wasm32-unknown-unknown, rustfmt --check --edition 2021 --config skip_children=true crates/telperion-core/src/surface.rs crates/telperion-core/src/surface/compact.rs crates/telperion-render/src/generation/wood_tests.rs crates/telperion-render/src/generation/position_probe.rs, /tmp/fn91-naga crates/telperion-render/src/generation/position_probe.wgsl
 - PRs:
