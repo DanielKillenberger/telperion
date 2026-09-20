@@ -106,6 +106,16 @@ probe: it has no precision guarantee and is not an accelerated API. In particula
 the valid large-coordinate probe exceeds f32; the next experiment must handle it
 explicitly, and any unexplained final occupancy mismatch rejects adoption.
 
+## Applying the fn-12 findings to new generation work
+
+Policy updated 2026-09-20. The owner permits changes to generated specimens during active development. The historical analysis below describes the old implementation and its exact-output constraints; matching its append order, floating-point reductions or hashes is not a blanket requirement for a replacement. Prefer byte-identical output for performance improvements when practical because exact comparison simplifies verification; this preference must not block a worthwhile measured gain that passes visual and correctness checks. Retain exact comparisons for paths intended to remain unchanged; document and validate deliberate changes to tree structure or representation. A performance candidate may differ in bytes and still qualify through measured end-to-end gains, no perceptible visual regression at supported views and in motion, and preserved relevant correctness; exact equality is not a prerequisite for that comparison. Branch dependencies, resource limits and correct spatial predicates still need a sound implementation.
+
+fn-12 tested GPU queries over CPU-built spatial indices, with output read back to the CPU. It did not test GPU leaf placement, wood expansion or field-index construction. Every cold query lost after extraction, packing, setup, upload and readback; the resident giant 64-cubed grid improved from 25.4 to 11.8 ms, while contact queries still had false negatives. Relaxing byte equality does not make missed contacts correct. The original report remains the historical evidence, not a ban on GPU generation.
+
+A new rendering experiment should upload compact structural inputs, generate placements into buffers the renderer consumes, and avoid full-result readback on the timed display path. Measure the complete path to a finished frame, including CPU preparation, setup, allocation, upload and all GPU passes; report cold page startup separately from an initialized renderer. Compare multiple seeds on a broadleaf and a needle-bearing tree, including a phone-class device, and record peak memory and visual/attachment correctness. Readback for validation is allowed but must not be hidden if production requires it.
+
+Start by profiling current wood construction, attachment preparation, leaf placement, culling, bounds and upload separately. Test foliage expansion before committing to GPU wood or botanical growth. Set the target and bounded experiment scope before building; if end-to-end latency fails to improve or fidelity fails, report the limiting stage and stop that candidate. A fast isolated kernel does not qualify the path. No current GPU-generation speedup or near-instant startup has been established.
+
 ## Skeleton feasibility
 
 The measured `growthMs` includes the whole `branching::generate` chain, not just

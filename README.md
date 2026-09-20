@@ -461,8 +461,10 @@ git archive 1922505a8a396d73b335974eabf6a9faf33ccd62 .flow/evidence experiments/
 The viewer's species selector exposes Oregon white oak (`oregon-white-oak`,
 *Quercus garryana*) and Norway spruce (`norway-spruce`, *Picea abies*), alongside
 Ordinary, Telperion and Laurelin. Choose species independently of the unsigned
-32-bit specimen seed; changing species preserves the seed. Identical family
-parameters and seed reproduce the specimen. Different seeds vary structure and
+32-bit specimen seed; changing species preserves the seed. Within a stated generator revision and backend, family
+parameters and seed identify the specimen; generated output may change as the
+engine improves. Cross-revision and CPU/GPU byte equality are not promised
+(see STRATEGY.md, Attributability). Different seeds vary structure and
 placement, not species identity. Whole, bare-branch and single-leaf views
 support inspection; the leaf view isolates one placed unit at generated scale.
 Open `/?species=norway-spruce&seed=1` to load a full-foliage specimen directly.
