@@ -1,5 +1,19 @@
 # fn68 implementation and calibration checkpoint
 
+## Final authorized effort diagnostic: Astra high
+
+Host released the second/final400k-bound experiment with identical frozen request/protocol/images, changing only Astra medium→high. Dispatch preceded the owner's new Fable/Opus/Grok comparison priority; active call was preserved, no duplicate or additional comparison launched. Literal FAIL/FAIL: broom-like ascending framework/upright foliage columns versus spreading lateral masses; repeated blunt tips. Shared geometry/visibility-not-loading and unknown reference relationship explicit. No hanging/weighted-form finding; bark markings now optional refinement. Left silhouette clipping remains unknown. Full result and separate immutable journal preserved; no qualification from repeated aggregate failure.
+
+Usage25595input+1027output=26622; cumulative380304/400000,visual14. Evaluation6/reservedimages24/actualimages20 unchanged. Runtime remains221183 and unchanged; aggregate future side import159121tokens+2eval8image reservations+6visual. Both stronger experiments consumed, no further call authorized here. Medium host grade remains crown organization HIT, outer silhouette PARTIAL/unknown, hanging form PARTIAL at best, material HIT; high raw result is separate, not relabelled to match it.
+
+## Frozen-packet Astra comparison: FAIL / FAIL
+
+Owner authorized400k cumulative/up to two stronger comparisons; host released FIRST only, Astra medium. Exact request c82e452c… and script protocol d3d17c0f… asserted before35000reservation; same five images, no grading/previous verdict input. Separate journal/result preserve full typed output. No captures/evaluations.
+
+Astra ranks abrupt thick scaffold/tips first, upright dense foliage sprays versus spreading layered lateral masses second, pale repeated horizontal bark markings third. It grounds cross-view geometry and marks no causal loading explanation. Broad deciduous envelope and catalogue finish are partial supported matches. It reports left-crown clipping in both views, so complete silhouette unknown. No explicit hanging/weighted-form wording; host grades unchanged dimensions separately. No qualification from aggregate FAIL.
+
+Usage25599input+880output=26479; cumulative353682/400000,visual13. Runtime unchanged221183; future side import132499tokens+2eval8image reservations+5visual. Second experiment awaits host decision; not automatically dispatched. No prompt/image/rubric changes, generator changes or readiness claim.
+
 ## One blind joint development review: whole PASS, bare FAIL
 
 Host grade: NOT_QUALIFIED for independent owner-priority discovery. Crown mismatch missed (explicit spread/ovoid acceptance); hanging/weighted form missed; material mismatch missed/unstable against prior birch-like blocker. Bare-scaffold detection, joint constraints, valid citations and causal-uncertainty separation succeeded. `joint-blind-grade.json` preserves these separate outcomes; overall not-ready is not proof of gap-discovery adequacy. No relabel or prompt retuning.

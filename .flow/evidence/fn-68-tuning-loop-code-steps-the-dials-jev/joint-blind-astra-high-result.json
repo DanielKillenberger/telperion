@@ -1,0 +1,171 @@
+{
+  "request_sha256": "c82e452cf172c97481433192b34db4833d9213abca5499055d45c196e8275f87",
+  "assessment": {
+    "identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+    "model": "gpt-6-astra",
+    "ledger": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d70d719564adcd-91442-0.json",
+    "cells": [
+      [
+        {
+          "item": "reference_character",
+          "view": "B-WHOLE",
+          "seed": 1
+        },
+        "fail"
+      ],
+      [
+        {
+          "item": "reference_character",
+          "view": "B-BARE",
+          "seed": 1
+        },
+        "fail"
+      ]
+    ],
+    "defects": [
+      "Seed 1, B-WHOLE and B-BARE: numerous long, straight, similarly sized ascending branches produce a crowded broom-like framework and upright foliage streaks. This overwhelms the spreading, progressively subdivided branch structure visible in the beech references.",
+      "Seed 1, B-BARE: multiple substantial branches terminate abruptly in blunt ends, particularly around the upper crown. Their repeated appearance reads as a construction artifact rather than the fine terminal branching shown in reference-1."
+    ],
+    "observations": [
+      "Passes follow the required-cell order: B-WHOLE reference_character, then B-BARE reference_character.",
+      "Acceptable variation: the references support differences in crown breadth, asymmetry and foliage density; an identical silhouette is unnecessary.",
+      "Optional refinement: the conspicuous horizontal bark markings could be softened toward the smoother gray surface in reference-1. Photographic lichen detail is unnecessary.",
+      "The left crown is clipped in both renders, so complete crown width and balance remain unknown.",
+      "The accepted spruce anchor supports a simplified catalogue rendering style; its species morphology is not a beech requirement.",
+      "No earlier candidate is supplied, so relative improvement cannot be established."
+    ],
+    "findings": [
+      {
+        "observation": "B-WHOLE reference_character fails: seed 1 has a broadly rounded leafy crown, but its interior is dominated by repeated upright foliage columns and conspicuous straight ascending limbs. Reference-0 instead shows more spreading, laterally articulated foliage masses. B-BARE confirms that the dominant directional pattern belongs to the shared framework.",
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "reference-0",
+          "reference-1"
+        ],
+        "impact": "blocker",
+        "uncertain": false,
+        "causal_hypothesis": null
+      },
+      {
+        "observation": "B-BARE reference_character fails: seed 1 exposes a dense array of long, relatively uniform straight limbs, with repeated blunt substantial tips around the upper crown. Reference-1 shows a more differentiated hierarchy resolving into fine branching. The repeated abrupt endings are visible construction artifacts even at a stylized finish floor.",
+        "evidence_ids": [
+          "render-1",
+          "reference-1",
+          "anchor-0"
+        ],
+        "impact": "blocker",
+        "uncertain": false,
+        "causal_hypothesis": null
+      },
+      {
+        "observation": "The broad deciduous crown, exposed lower trunk and branching scaffold provide a grounded partial match to the supplied beech photographs. These matches do not resolve the dominant framework defects.",
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "reference-0",
+          "reference-1"
+        ],
+        "impact": "supported",
+        "uncertain": false,
+        "causal_hypothesis": null
+      },
+      {
+        "observation": "The bare render reveals the same seed's geometry with foliage hidden. It therefore constrains interpretation of the leafy render; it does not demonstrate a seasonal or load-induced change. The photographs have no documented specimen relationship.",
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "reference-0",
+          "reference-1"
+        ],
+        "impact": "supported",
+        "uncertain": false,
+        "causal_hypothesis": null
+      }
+    ],
+    "joint": {
+      "inputs": [
+        {
+          "id": "render-0",
+          "role": "render",
+          "sha256": "da02e6fdf2b64c6ba6a0caf1ed2e0990a316fd9e5ac426099381e0f65254d047",
+          "view": "B-WHOLE",
+          "seed": 1,
+          "render_identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+          "condition": "same_geometry_visibility_view_not_unloaded_leaf_off",
+          "framing": "unknown",
+          "visibility": "shown",
+          "geometry_group": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57:seed:1"
+        },
+        {
+          "id": "render-1",
+          "role": "render",
+          "sha256": "8bf6b32d6961bbc667e622b39b9484ec885b9ee3f4b3f9cf941c59372b599630",
+          "view": "B-BARE",
+          "seed": 1,
+          "render_identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+          "condition": "same_geometry_visibility_view_not_unloaded_leaf_off",
+          "framing": "unknown",
+          "visibility": "hidden",
+          "geometry_group": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57:seed:1"
+        },
+        {
+          "id": "reference-0",
+          "role": "reference",
+          "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+          "view": "B-WHOLE",
+          "seed": 1,
+          "render_identity": null,
+          "condition": "unknown",
+          "framing": "unknown",
+          "visibility": "unknown",
+          "geometry_group": null
+        },
+        {
+          "id": "reference-1",
+          "role": "reference",
+          "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+          "view": "B-BARE",
+          "seed": 1,
+          "render_identity": null,
+          "condition": "unknown",
+          "framing": "unknown",
+          "visibility": "unknown",
+          "geometry_group": null
+        },
+        {
+          "id": "anchor-0",
+          "role": "anchor",
+          "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+          "view": "whole",
+          "seed": 1,
+          "render_identity": null,
+          "condition": "unknown",
+          "framing": "unknown",
+          "visibility": "unknown",
+          "geometry_group": null
+        }
+      ],
+      "reference_relation": "unknown",
+      "relation_source": null,
+      "shot_source": {
+        "path": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/assets/beech-references-4e6d903c.json",
+        "sha256": "152c1ed99c9dd426977f127c36dfe888186de8de6286d882fa7bfd677898a8c0",
+        "excerpt": "\"references\""
+      }
+    }
+  },
+  "effort": "high",
+  "usage": {
+    "input_tokens": 25595,
+    "output_tokens": 1027
+  },
+  "observations": [
+    "Passes follow the required-cell order: B-WHOLE reference_character, then B-BARE reference_character.",
+    "Acceptable variation: the references support differences in crown breadth, asymmetry and foliage density; an identical silhouette is unnecessary.",
+    "Optional refinement: the conspicuous horizontal bark markings could be softened toward the smoother gray surface in reference-1. Photographic lichen detail is unnecessary.",
+    "The left crown is clipped in both renders, so complete crown width and balance remain unknown.",
+    "The accepted spruce anchor supports a simplified catalogue rendering style; its species morphology is not a beech requirement.",
+    "No earlier candidate is supplied, so relative improvement cannot be established."
+  ]
+}

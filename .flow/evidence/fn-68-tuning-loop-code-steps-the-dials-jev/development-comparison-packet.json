@@ -34,11 +34,11 @@
     "machine_ready": false
   },
   "cumulative": {
-    "tokens": 327203,
+    "tokens": 380304,
     "evaluations": 6,
     "image_reservations": 24,
     "actual_pilot_still_twins": 20,
-    "visual_passes": 12
+    "visual_passes": 14
   },
   "runtime_unchanged": {
     "tokens": 221183,
@@ -47,10 +47,10 @@
     "visual_passes": 8
   },
   "future_import": {
-    "tokens": 106020,
+    "tokens": 159121,
     "evaluations": 2,
     "image_reservations": 8,
-    "visual_passes": 4
+    "visual_passes": 6
   },
   "corrected_comparison": {
     "result": "PASS/PASS",
@@ -80,5 +80,17 @@
     "result_file": "joint-blind-result.json",
     "coverage": "known development only; no automatic qualification",
     "gap_detection": "bare structural/cross-view blocker; no hanging/weighted form finding"
+  },
+  "joint_astra": {
+    "result": "FAIL/FAIL",
+    "result_file": "joint-blind-astra-result.json",
+    "request_unchanged": true,
+    "protocol_unchanged": true,
+    "qualification": "Host: crown organization HIT; hanging form PARTIAL at best; material HIT; not full qualification"
+  },
+  "joint_astra_high": {
+    "result": "FAIL/FAIL",
+    "result_file": "joint-blind-astra-high-result.json",
+    "scope": "same frozen packet, effort-only diagnostic; no general qualification"
   }
 }

@@ -118,3 +118,6 @@ About15minutes bounded implementation/tests, zero paid tokens/captures. Earlier 
 # 2026-09-20 — Blind joint developmental review still misses a gap dimension
 
 One authorized call25686tokens, about1minute, no renders. Joint packet elicited bare structural/cross-view findings but whole crown remained accepted and no hanging/weighted leafy-form mismatch was found. Preserve separate detection dimensions rather than treating a new blocker as complete issue discovery. Model adequacy remains a host grading question, not automatic qualification. Target species omission and missing affirmative-supported output category were corrected offline before dispatch; mocks alone do not establish judgment adequacy. No retry.
+# 2026-09-20 — Experiment priority changed after dispatch
+
+Second authorized Astra effort diagnostic was already dispatched when owner requested other model families. Preserved active result rather than duplicating work;26622tokens, zero renders. No further model launched. Medium26479/high26622 both identify structural gaps but hanging-form detection remains absent/partial and material classification varies. Keep model/effort and per-dimension grades separate; aggregate FAIL is not qualification. No prompt/rubric changes or retries.
