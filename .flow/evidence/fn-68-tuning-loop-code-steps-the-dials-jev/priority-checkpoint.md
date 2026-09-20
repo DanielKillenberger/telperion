@@ -44,7 +44,7 @@ Approved goals become explicit additional visual cells, not just prompt prose. A
 
 ## This checkpoint's evidence
 
-Frozen offline packet from the last valid reframed result: `priority-review.json`. Browse `visual-review.html#priority-review`. No owner ranking has been applied. Confirming this packet does not resume `.flow/tmp/fn68-pilot-run`.
+Owner ranking is recorded in `priority-approval.json`. Browse `visual-review.html#approved-priorities`. Host proposed (1) Crown shape and foliage organization, (2) Hanging outer foliage, (3) Materials with clearer bark evidence where needed. Owner quotation: the 1,2,3 yes. Recorded as owner- IDs, not finding-0/1/2. Raw checkpoint and model statuses unchanged. This event does not resume `.flow/tmp/fn68-pilot-run`.
 
 | Identity | SHA-256 |
 | --- | --- |
@@ -56,4 +56,4 @@ Frozen offline packet from the last valid reframed result: `priority-review.json
 | inventory | `f98f4325752a95103c510cc3f1871af2fcd12a2053a9359e6f770b128853c20f` |
 | original runtime | `d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e` |
 
-Proposed source order, not a new ranking: finding-0 foliage organization, finding-1 bark required-unknown, finding-2 hanging reach and regular base. Preserved: finding-4 joint coverage constraint and the supported finish finding. Owner crown/hanging/material notes remain sourced history, not approval of this packet. Blind calibration fixtures and receipts are unchanged. R7 magnitude efficacy and R8 empirical visual adequacy remain open. Cumulative paid usage remains 552,431 / 570,000. Visual 20 / 20 exhausted. See `r7-r8-proof-proposal.md`.
+Approved owner- IDs: owner-crown-foliage, owner-hanging-foliage, owner-bark-material. Seed 1 only. Finding-0/1/2/4 remain preserved source-order history. Blind calibration fixtures and receipts are unchanged. R7 remains open and needs a proposed 46,555-token / +1-visual add. R8 owner-priority qualification is a supported blocker: no beech-positive fixture. Cumulative paid usage remains 552,431 / 570,000. Visual 20 / 20 exhausted. See `r7-r8-proof-proposal.md` and `r7-r8-offline-preflight.json`.
