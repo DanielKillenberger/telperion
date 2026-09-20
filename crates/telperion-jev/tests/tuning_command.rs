@@ -787,3 +787,196 @@ fn a_verifying_config_pauses_for_authority_then_charges_preparation_exactly_once
     assert_eq!(recovered["preparation_charge"], charge);
     f.cleanup();
 }
+
+/// Answers the real caller. Records the exact state each judgment was sent.
+struct Jev {
+    states: std::sync::Mutex<Vec<Value>>,
+    plan: Vec<(String, f64)>,
+}
+impl telperion_jev::caller::Transport for Jev {
+    fn send(
+        &self,
+        request: &telperion_jev::caller::HttpRequest,
+    ) -> Result<telperion_jev::caller::HttpResponse, String> {
+        let body: Value = serde_json::from_slice(request.body.as_ref().unwrap()).unwrap();
+        self.states.lock().unwrap().push(body["state"].clone());
+        let mut answers = serde_json::Map::new();
+        let mut rank = 0usize;
+        for key in body["questions"].as_object().unwrap().keys() {
+            let (choice, confidence) = if key.starts_with("route:") || key == "route" {
+                let answer = self
+                    .plan
+                    .get(rank)
+                    .cloned()
+                    .unwrap_or(("tuning".into(), 0.9));
+                rank += 1;
+                answer
+            } else if key == "risk" {
+                ("bounded".into(), 0.9)
+            } else if key == "tractability" || key == "progress" {
+                ("supported".into(), 0.9)
+            } else {
+                ("small_increase".into(), 0.9)
+            };
+            answers.insert(
+                key.clone(),
+                json!({"choice":choice,"confidence":confidence}),
+            );
+        }
+        Ok(telperion_jev::caller::HttpResponse {
+            status: 200,
+            body: serde_json::to_vec(&json!({"model":fixture::JUDGMENT_MODEL,
+                "answers":answers,"usage":{"input_tokens":40,"output_tokens":10}}))
+            .unwrap(),
+        })
+    }
+}
+
+fn gap(id: &str, observation: &str) -> Value {
+    json!({"id":id,"observation":observation,
+        "evidence_ids":["render-0","reference-0"],"views":["whole"]})
+}
+
+#[test]
+#[ignore = "drives the compare stub, which runs under uv; run with --ignored"]
+fn the_real_command_reaches_the_priority_pause_then_routes_and_writes_handoffs() {
+    let f = fixture::verifying_fixture(json!({"evaluations":0,"images":0,"tokens":0,"rounds":0,
+        "max_evaluations":13,"max_images":52,"max_tokens":2_000_000,"max_rounds":1,
+        "visual_passes":0,"max_visual_passes":12}));
+    let config: Config = serde_json::from_slice(&fs::read(&f.config_path).unwrap()).unwrap();
+    let identity = config.identity().unwrap();
+    let key = || Ok::<String, String>("fixture-key".into());
+    let jev = Jev {
+        states: std::sync::Mutex::new(vec![]),
+        plan: vec![
+            ("tuning".into(), 0.9),
+            ("existing:fn-77".into(), 0.9),
+            ("appearance".into(), 0.31),
+        ],
+    };
+    let authority = json!({"purpose":"bounded offline fixture","reason":"synthetic",
+        "next_identity":identity,"max_tokens":2_000_000,"max_rounds":1,"max_evaluations":13,
+        "max_images":52,"max_visual_passes":12});
+    let decision = f.root.join("decision.json");
+
+    // Authority first, exactly as the contract requires.
+    command::run_with(&f.config_path, &f.out, None, &jev, &key).unwrap_err();
+    let paused = f.run_json();
+    let d = json!({"pause_id":paused["pause"]["id"],"identity":paused["identity"],
+        "action":"authorize bounded experimental pilot","by":"fixture owner",
+        "rationale":"synthetic","experimental_pilot":authority});
+    write(&decision, &d);
+
+    // (iii) Baseline and the initial visual run, then the owner gate stops it.
+    command::run_with(&f.config_path, &f.out, Some(&decision), &jev, &key).unwrap_err();
+    let reviewed = f.run_json();
+    assert_eq!(
+        reviewed["pause"]["basis"]["proposed_action"], "approve gap priorities",
+        "{:?}",
+        reviewed["pause"]["reason"]
+    );
+    assert!(f.out.join("priority-review.json").exists());
+    assert_eq!(reviewed["machine_ready"], false);
+    let checkpoint = reviewed["priority_checkpoints"]
+        .as_array()
+        .unwrap()
+        .last()
+        .unwrap()
+        .clone();
+    let checkpoint_sha256 =
+        serde_json::from_value::<telperion_jev::tuning::priority::Checkpoint>(checkpoint.clone())
+            .unwrap()
+            .hash();
+
+    // An approval without re-carried authority re-pauses on authority.
+    let ordered = json!([
+        gap("owner-crown", "Crown shape and foliage organization"),
+        gap("owner-hanging", "Hanging outer foliage"),
+        gap("owner-materials", "Materials, including bark and foliage")
+    ]);
+    let approval = json!({"checkpoint_sha256":checkpoint_sha256,
+        "scope_sha256":checkpoint["scope_sha256"],"ordered":ordered});
+    let mut bare = json!({"pause_id":reviewed["pause"]["id"],"identity":reviewed["identity"],
+        "action":"approve gap priorities","by":"fixture owner","rationale":"synthetic ranking",
+        "preserve_evidence":true,"priority_approval":approval});
+    write(&decision, &bare);
+    let error = command::run_with(&f.config_path, &f.out, Some(&decision), &jev, &key).unwrap_err();
+    assert!(error.contains("scoped experimental authority"), "{error}");
+
+    // (iv) With authority re-carried, routing runs and grounds the handoffs.
+    let reauth = f.run_json();
+    bare["pause_id"] = reauth["pause"]["id"].clone();
+    bare["action"] = reauth["pause"]["basis"]["proposed_action"].clone();
+    bare["experimental_pilot"] = d["experimental_pilot"].clone();
+    write(&decision, &bare);
+    command::run_with(&f.config_path, &f.out, Some(&decision), &jev, &key).unwrap_err();
+    let routed = f.run_json();
+
+    assert_eq!(routed["machine_ready"], false);
+    let handoffs: Value =
+        serde_json::from_slice(&fs::read(f.out.join("handoffs.json")).unwrap()).unwrap();
+    let list = handoffs["handoffs"].as_array().unwrap();
+    assert_eq!(list.len(), 2, "one handoff per non-tuning priority");
+    let grounded = list
+        .iter()
+        .find(|h| h["gap_id"] == "owner-hanging")
+        .unwrap();
+    assert_eq!(grounded["route"], "existing:fn-77");
+    assert_eq!(grounded["existing_spec"], "fn-77");
+    assert_eq!(grounded["dispatch_authorized"], true);
+    let uncertain = list
+        .iter()
+        .find(|h| h["gap_id"] == "owner-materials")
+        .unwrap();
+    assert_eq!(uncertain["route"], "insufficient_evidence");
+    assert_eq!(uncertain["raw_choice"], "appearance");
+    assert_eq!(uncertain["dispatch_authorized"], false);
+    assert!(handoffs["unresolved_priorities"]
+        .as_array()
+        .unwrap()
+        .contains(&json!("owner-materials")));
+
+    // The tuning priority still spent a round on real candidates.
+    assert!(routed["budget"]["evaluations"].as_u64().unwrap() > 1);
+    assert_eq!(routed["budget"]["rounds"], 1);
+
+    // Every judgment's recorded input is the exact value the transport saw.
+    let sent = jev
+        .states
+        .lock()
+        .unwrap()
+        .iter()
+        .map(|s| telperion_jev::sha256_hex(&serde_json::to_vec(s).unwrap()))
+        .collect::<Vec<_>>();
+    let recorded = routed["judgment_inputs"].as_array().unwrap();
+    assert!(!recorded.is_empty());
+    for input in recorded {
+        let hash = input["state_sha256"].as_str().unwrap();
+        assert_eq!(
+            hash,
+            telperion_jev::sha256_hex(&serde_json::to_vec(&input["state"]).unwrap()),
+            "recorded hash does not match its own recorded state"
+        );
+        assert!(
+            sent.contains(&hash.to_string()),
+            "recorded a judgment the transport never received: {}",
+            input["label"]
+        );
+    }
+
+    // Accounting stayed inside every cap it was given.
+    let b = &routed["budget"];
+    for (spent, cap) in [
+        ("tokens", "max_tokens"),
+        ("images", "max_images"),
+        ("evaluations", "max_evaluations"),
+        ("rounds", "max_rounds"),
+        ("visual_passes", "max_visual_passes"),
+    ] {
+        assert!(
+            b[spent].as_u64().unwrap() <= b[cap].as_u64().unwrap(),
+            "{spent} exceeded {cap}"
+        );
+    }
+    f.cleanup();
+}
