@@ -1,6 +1,6 @@
-# Frozen acceptance — blinded replacement pending host review
+# Frozen acceptance — inventory-exact blinded replacement pending host review
 
-Owner YES authorizes one blinded negative replacement after this payload review. Terminal `needs_human` / `calibration_contaminated` stays on the old stage. Contaminated raw stays byte-for-byte. Narrow birch-positive remains observed PASS. R8 is not claimed. Host owns semantic qualification. Grounded visible morphology FAIL is required. UNKNOWN or clipping alone is abstention.
+Owner YES then owner ye. Visual cap 26. Token cap 902431. Terminal and contaminated raw stay. Inventory must remain the frozen receipt. Only the candidate transport path may be projected. Host owns semantic qualification. Grounded visible morphology FAIL is required. UNKNOWN or clipping alone is abstention.
 
 Owner grant `ok approved` remains on file. One useful round. No retries. Calibration fail stops; do not redesign.
 

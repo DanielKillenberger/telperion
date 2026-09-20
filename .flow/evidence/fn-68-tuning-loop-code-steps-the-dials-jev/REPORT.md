@@ -1,10 +1,12 @@
-## Current: blinded-negative payload ready; no paid replacement yet
+## Current: inventory-exact blinded payload ready; no paid replacement yet
 
-Owner YES to grader/model label separation, relayed by host 2026-09-20T19:43+02:00 from `20f5aee1`. Prior contaminated raw is immutable. Terminal `needs_human` / `calibration_contaminated` is preserved. Spend stays 622967 / visual 23.
+Owner YES then owner ye, same chat. Contaminated raw and terminal stay. Spend 622967 / visual 23. Token cap 902431. Visual cap 26.
 
-Actual adapter-prepared payload for the replacement is in `proof/model-visible-payload.json`. Request `e1636310…`. Dispatched prompt `0476110a…`. Schema `40b44f74…`. Image order: render-0 / reference-0 / reference-1 / anchor-0 at the same byte hashes as the historical stills. Generic prompt `847dd718…` unchanged. Grader labels live only in `stage-b-beech-negative-blind-grader.json`. Changing them does not change the dispatched hash. No paid call this turn.
+Inventory is the frozen receipt, original reference paths included, request hash `e05cfaf3…` verified. Only the candidate comparison transport path is projected to ignored `local/blind-transport/render-0.png`. That projection is hashed separately. Generic checklist is unchanged except the known-negative / false-ready sentence is gone.
 
-Visual arithmetic, cap not raised: 23/25 leaves 2. Replacement uses 1. After that only current fits. No existing receipt covers the seven owner-priority cells on r7-current `64460610…`. Final would be visual 26 / packet 6 and is blocked before any paid final. Token remaining 279464.
+Actual adapter payload: request `b23ffb60…`, dispatched prompt `a4b300ce…`, schema `40b44f74…`. Attached order render-0.png, fasy951.jpg, fasy896.jpg, norway-spruce-1-whole.png. Grader mutation leaves those bytes and that order exact. No paid call.
+
+Global visual 23/26 leaves 3. Packet 3/5 still blocks a third additional call. Report that before any paid final.
 
 ## Previous: birch PASS observed; negative contaminated; no R8
 

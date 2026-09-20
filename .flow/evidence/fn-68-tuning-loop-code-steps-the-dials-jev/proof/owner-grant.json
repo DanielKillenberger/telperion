@@ -14,8 +14,10 @@
   "granted_not_spent": {
     "additional_tokens": 350000,
     "token_cap": 902431,
-    "visual_cap": 25,
+    "visual_cap": 26,
     "visual_add": 5,
+    "visual_cap_was": 25,
+    "visual_cap_source": "owner ye 2026-09-20, recorded in owner-grant-ye-visual-26.json",
     "evaluation_cap": 13,
     "image_cap": 52,
     "image_reservations_remaining": 24,

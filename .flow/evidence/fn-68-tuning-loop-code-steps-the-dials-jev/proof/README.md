@@ -1,6 +1,6 @@
-# Proof packet — blinded-negative payload ready for host review
+# Proof packet — inventory-exact blinded payload ready for host review
 
-Narrow birch-positive is observed PASS. Contaminated beech-negative remains INCONCLUSIVE. The replacement envelope is `stage-b-beech-negative-blind-request.json`. Actual dispatched hashes are in `model-visible-payload.json`. No paid replacement until `.flow/tmp/cursor-fn68-replacement-release.json`. See `authorization-resume.json`.
+Frozen inventory is unchanged, including original reference paths. Candidate transport only is under ignored `local/blind-transport/`. Pins are in `model-visible-payload.json`. Visual cap 26 from owner ye. No paid replacement until `.flow/tmp/cursor-fn68-replacement-release.json`.
 
 Dry command, existing adapter, no live call:
 

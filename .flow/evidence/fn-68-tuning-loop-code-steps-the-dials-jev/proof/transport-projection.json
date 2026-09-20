@@ -1,0 +1,8 @@
+{
+  "role": "comparison.images[0] candidate transport only",
+  "source": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/replay-images/european-beech-B-WHOLE.png",
+  "projected": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/blind-transport/render-0.png",
+  "sha256": "7e69fda3e95b317fcb9d89e15e32179c54fdd316a57d1c3223d6e26639b8b490",
+  "inventory_paths_rewritten": false,
+  "projection_sha256": "d08992fe4eeea9fa57c840d7a7efb21da19fdc705069d466681a60dc659ca8c1"
+}

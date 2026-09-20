@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
-"""Build the blinded beech-negative envelope from the frozen inventory. No model call."""
+"""Build the blinded beech-negative envelope. Inventory stays exact. No model call."""
 import hashlib
 import json
 from pathlib import Path
 
 from proof_lib import (
-    BLIND_IMAGES,
     COMPARISON_PROMPT_SHA,
     PROOF,
     adapter,
     assert_blind_payload,
-    ensure_neutral_images,
+    ensure_candidate_transport,
+    frozen_inventory,
     load,
     request_body_sha256,
     strip_grader_keys,
+    verify_frozen_inventory,
 )
 
 CHECKLIST = (
@@ -23,126 +24,34 @@ CHECKLIST = (
     "Photographs establish species character, not photorealism. Missing, clipped or "
     "ambiguous evidence is unknown."
 )
-IDENTITY = "7e69fda3e95b317fcb9d89e15e32179c54fdd316a57d1c3223d6e26639b8b490-seed1-whole"
 
 
 def main():
-    placed = {row["name"]: row for row in ensure_neutral_images()}
     old = load("stage-b-beech-negative-request.json")
-    inventory = json.loads(json.dumps(old["request"]["inventory"]))
-    inventory["request"]["references"][0]["image"]["path"] = placed["reference-0.jpg"]["path"]
-    inventory["request"]["references"][1]["image"]["path"] = placed["reference-1.jpg"]["path"]
-    request = {
-        "inventory": inventory,
-        "comparison": {
-            "schema": "tuning-vision-v3",
-            "target_species": "European beech / Fagus sylvatica",
-            "identity": IDENTITY,
-            "checklist": CHECKLIST,
-            "images": [
-                {
-                    "path": placed["render-0.png"]["path"],
-                    "sha256": placed["render-0.png"]["sha256"],
-                    "view": "B-WHOLE",
-                    "seed": 1,
-                }
-            ],
-            "references": [
-                {
-                    "path": placed["reference-0.jpg"]["path"],
-                    "sha256": placed["reference-0.jpg"]["sha256"],
-                    "view": "B-WHOLE",
-                    "seed": 1,
-                },
-                {
-                    "path": placed["reference-1.jpg"]["path"],
-                    "sha256": placed["reference-1.jpg"]["sha256"],
-                    "view": "B-BARE",
-                    "seed": 1,
-                },
-            ],
-            "quality_anchors": [
-                {
-                    "image": {
-                        "path": placed["anchor-0.png"]["path"],
-                        "sha256": placed["anchor-0.png"]["sha256"],
-                        "view": "whole",
-                        "seed": 1,
-                    },
-                    "provenance": "established catalogue anchor image sha256:8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
-                    "scope": "finish/style only; not species morphology",
-                }
-            ],
-            "required": [{"item": "reference_character", "view": "B-WHOLE", "seed": 1}],
-            "joint": {
-                "inputs": [
-                    {
-                        "id": "render-0",
-                        "role": "render",
-                        "view": "B-WHOLE",
-                        "seed": 1,
-                        "sha256": placed["render-0.png"]["sha256"],
-                        "render_identity": IDENTITY,
-                        "geometry_group": IDENTITY + ":seed:1",
-                        "condition": "historical_reconstructed_still",
-                        "visibility": "shown",
-                        "framing": "clipped",
-                    },
-                    {
-                        "id": "reference-0",
-                        "role": "reference",
-                        "view": "B-WHOLE",
-                        "seed": 1,
-                        "sha256": placed["reference-0.jpg"]["sha256"],
-                        "render_identity": None,
-                        "geometry_group": None,
-                        "condition": "unknown",
-                        "visibility": "unknown",
-                        "framing": "unknown",
-                    },
-                    {
-                        "id": "reference-1",
-                        "role": "reference",
-                        "view": "B-BARE",
-                        "seed": 1,
-                        "sha256": placed["reference-1.jpg"]["sha256"],
-                        "render_identity": None,
-                        "geometry_group": None,
-                        "condition": "unknown",
-                        "visibility": "unknown",
-                        "framing": "unknown",
-                    },
-                    {
-                        "id": "anchor-0",
-                        "role": "anchor",
-                        "view": "whole",
-                        "seed": 1,
-                        "sha256": placed["anchor-0.png"]["sha256"],
-                        "render_identity": None,
-                        "geometry_group": None,
-                        "condition": "unknown",
-                        "visibility": "unknown",
-                        "framing": "unknown",
-                    },
-                ],
-                "reference_relation": "unknown",
-                "relation_source": None,
-            },
-        },
-    }
+    inventory = json.loads(json.dumps(frozen_inventory()))
+    verify_frozen_inventory(inventory)
+    projection = ensure_candidate_transport()
+    comparison = json.loads(json.dumps(old["request"]["comparison"]))
+    leak = "This case is the known negative; a pass is false-ready."
+    if leak not in comparison["checklist"]:
+        raise ValueError("expected leak sentence missing from frozen checklist")
+    comparison["checklist"] = CHECKLIST
+    comparison["images"][0]["path"] = projection["projected"]
+    if comparison["images"][0]["sha256"] != projection["sha256"]:
+        raise ValueError("candidate sha256 changed")
+    request = {"inventory": inventory, "comparison": comparison}
     envelope = {
         "stage": "comparison",
         "prompt": old["prompt"],
         "prompt_sha256": old["prompt_sha256"],
-        "inventory_bind": {
-            "status": "pinned_existing",
-            "path": old["inventory_bind"]["path"],
-        },
+        "inventory_bind": old["inventory_bind"],
         "request": request,
         "request_sha256": request_body_sha256(request),
     }
     if envelope["prompt_sha256"] != COMPARISON_PROMPT_SHA:
         raise ValueError("generic comparison prompt changed")
+    if envelope["request"]["inventory"] != old["request"]["inventory"]:
+        raise ValueError("inventory mutated")
     visible = strip_grader_keys(envelope)
     paths, schema, prompt = adapter().prepare(visible)
     assert_blind_payload(prompt, schema, paths)
@@ -162,6 +71,7 @@ def main():
     (PROOF / "stage-b-beech-negative-blind-grader.json").write_text(
         json.dumps(grader, indent=2) + "\n"
     )
+    (PROOF / "transport-projection.json").write_text(json.dumps(projection, indent=2) + "\n")
     image_order = [
         {
             "order": i,
@@ -183,22 +93,27 @@ def main():
         "dispatched_prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(),
         "schema_sha256": hashlib.sha256(json.dumps(schema).encode()).hexdigest(),
         "schema": schema,
+        "inventory_request_sha256": inventory["request_sha256"],
+        "inventory_verified": True,
+        "transport_projection_sha256": projection["projection_sha256"],
         "image_order": image_order,
         "model_visible_paths": [str(p) for p in paths],
         "grader_file": "stage-b-beech-negative-blind-grader.json",
         "contaminated_request_unaltered": True,
-        "neutral_images": list(placed.values()),
         "dispatched_prompt_bytes": len(prompt.encode()),
         "forbidden_markers_present": [],
     }
     (PROOF / "model-visible-payload.json").write_text(json.dumps(record, indent=2) + "\n")
-    print(json.dumps({k: record[k] for k in (
-        "request_sha256",
-        "dispatched_prompt_sha256",
-        "schema_sha256",
-        "request_file_sha256",
-        "dispatched_prompt_bytes",
-    )}, indent=2))
+    print(json.dumps({
+        "request_sha256": record["request_sha256"],
+        "dispatched_prompt_sha256": record["dispatched_prompt_sha256"],
+        "schema_sha256": record["schema_sha256"],
+        "request_file_sha256": record["request_file_sha256"],
+        "inventory_request_sha256": record["inventory_request_sha256"],
+        "transport_projection_sha256": record["transport_projection_sha256"],
+        "dispatched_prompt_bytes": record["dispatched_prompt_bytes"],
+        "image_names": [row["name"] for row in image_order],
+    }, indent=2))
 
 
 if __name__ == "__main__":

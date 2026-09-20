@@ -1,0 +1,21 @@
+{
+  "event": "scoped experiment authority addendum",
+  "by": "human owner, relayed by host",
+  "quotation": "ye",
+  "recorded": "2026-09-20T19:48:00+02:00",
+  "source": "owner ye in this chat after blinded-payload review",
+  "raises": {
+    "visual_cap": {"from": 25, "to": 26}
+  },
+  "unchanged": {
+    "token_cap": 902431,
+    "evaluation_cap": 13,
+    "image_cap": 52,
+    "round_cap": 3,
+    "retries": false
+  },
+  "meaning": "Current visual 23 leaves 3 for replacement + current + final. Token cap unchanged. No new budget question.",
+  "no_reset": true,
+  "applied_to_runtime": false,
+  "original_runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e"
+}

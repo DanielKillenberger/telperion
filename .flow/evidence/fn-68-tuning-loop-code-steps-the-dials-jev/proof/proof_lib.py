@@ -46,29 +46,10 @@ FORBIDDEN_PAYLOAD_MARKERS = (
     "previous verdict",
     "owner answers",
 )
-BLIND_IMAGES = PROOF / "blind-images"
-NEUTRAL_IMAGE_SOURCES = (
-    (
-        "render-0.png",
-        ROOT / "local/replay-images/european-beech-B-WHOLE.png",
-        "7e69fda3e95b317fcb9d89e15e32179c54fdd316a57d1c3223d6e26639b8b490",
-    ),
-    (
-        "reference-0.jpg",
-        Path("/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg"),
-        "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
-    ),
-    (
-        "reference-1.jpg",
-        Path("/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg"),
-        "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
-    ),
-    (
-        "anchor-0.png",
-        WORKTREE / ".flow/evidence/fn9/final/preview/norway-spruce-1-whole.png",
-        "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
-    ),
-)
+TRANSPORT_DIR = ROOT / "local/blind-transport"
+CANDIDATE_SOURCE = ROOT / "local/replay-images/european-beech-B-WHOLE.png"
+CANDIDATE_SHA = "7e69fda3e95b317fcb9d89e15e32179c54fdd316a57d1c3223d6e26639b8b490"
+FROZEN_INVENTORY_SHA = "e05cfaf3d7f67a0bbb5b632a14786adba7e35774d23c47178745815392c94591"
 CONTAMINATED_REQUEST_SHA = "2cb8319c54dd9f61c84e603a8157a5ad4fea64e6e26358d7429783a8267eaed5"
 CONTAMINATED_STDOUT_SHA = "3f6af87b0595430887502db2fd1b5d3ae3bdb037d0d46d5d4de1f9c03e77918a"
 COMPARISON_PROMPT_SHA = "847dd718e56258447ec5fcc89fdaadc9701165d02eab0b51001e616ebc1a0329"
@@ -101,23 +82,70 @@ def require_runtime():
         raise ValueError("original runtime SHA changed")
 
 
-def ensure_neutral_images():
-    BLIND_IMAGES.mkdir(exist_ok=True)
-    placed = []
-    for name, source, expected in NEUTRAL_IMAGE_SOURCES:
-        dest = BLIND_IMAGES / name
-        if hashlib.sha256(source.read_bytes()).hexdigest() != expected:
-            raise ValueError(f"source hash mismatch for {name}")
-        if dest.exists() or dest.is_symlink():
-            dest.unlink()
-        try:
-            dest.hardlink_to(source)
-        except OSError:
-            dest.write_bytes(source.read_bytes())
-        if hashlib.sha256(dest.read_bytes()).hexdigest() != expected:
-            raise ValueError(f"neutral path hash mismatch for {name}")
-        placed.append({"name": name, "path": str(dest), "sha256": expected, "source": str(source)})
-    return placed
+def rust_inventory_request_hash(request):
+    ordered = {
+        "protocol": request["protocol"],
+        "target_species": request["target_species"],
+        "references": [
+            {
+                "id": row["id"],
+                "image": {
+                    "path": row["image"]["path"],
+                    "sha256": row["image"]["sha256"],
+                    "view": row["image"]["view"],
+                    "seed": row["image"]["seed"],
+                },
+            }
+            for row in request["references"]
+        ],
+        "specimen_relationship": request["specimen_relationship"],
+    }
+    return hashlib.sha256(json.dumps(ordered, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
+
+
+def frozen_inventory():
+    return load("stage-b-beech-negative-request.json")["request"]["inventory"]
+
+
+def pinned_inventory():
+    return json.loads((ROOT / "reference-first-inventory.json").read_text())
+
+
+def verify_frozen_inventory(inventory):
+    if inventory != frozen_inventory():
+        raise ValueError("inventory is not the frozen contaminated-request inventory")
+    if inventory != pinned_inventory():
+        raise ValueError("inventory is not the pinned reference-first inventory")
+    computed = rust_inventory_request_hash(inventory["request"])
+    if computed != inventory["request_sha256"] or computed != FROZEN_INVENTORY_SHA:
+        raise ValueError("inventory.request_sha256 does not verify")
+    return computed
+
+
+def ensure_candidate_transport():
+    TRANSPORT_DIR.mkdir(parents=True, exist_ok=True)
+    dest = TRANSPORT_DIR / "render-0.png"
+    if hashlib.sha256(CANDIDATE_SOURCE.read_bytes()).hexdigest() != CANDIDATE_SHA:
+        raise ValueError("candidate source hash mismatch")
+    if dest.exists() or dest.is_symlink():
+        dest.unlink()
+    try:
+        dest.hardlink_to(CANDIDATE_SOURCE)
+    except OSError:
+        dest.write_bytes(CANDIDATE_SOURCE.read_bytes())
+    if hashlib.sha256(dest.read_bytes()).hexdigest() != CANDIDATE_SHA:
+        raise ValueError("candidate transport hash mismatch")
+    projection = {
+        "role": "comparison.images[0] candidate transport only",
+        "source": str(CANDIDATE_SOURCE),
+        "projected": str(dest),
+        "sha256": CANDIDATE_SHA,
+        "inventory_paths_rewritten": False,
+    }
+    projection["projection_sha256"] = hashlib.sha256(
+        json.dumps(projection, sort_keys=True).encode()
+    ).hexdigest()
+    return projection
 
 
 def strip_grader_keys(envelope):
@@ -147,7 +175,8 @@ def request_body_sha256(request):
 def prepare_envelope(name):
     envelope = load(name)
     if name == "stage-b-beech-negative-blind-request.json":
-        ensure_neutral_images()
+        verify_frozen_inventory(envelope["request"]["inventory"])
+        ensure_candidate_transport()
         envelope = strip_grader_keys(envelope)
     paths, schema, prompt = adapter().prepare(envelope)
     if name == "stage-b-beech-negative-blind-request.json":

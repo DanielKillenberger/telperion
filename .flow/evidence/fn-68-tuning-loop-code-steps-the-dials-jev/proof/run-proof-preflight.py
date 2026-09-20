@@ -53,7 +53,7 @@ def main():
     grant = load("owner-grant.json")
     assert grant["quotation"] == "ok approved"
     assert grant["granted_not_spent"]["token_cap"] == 902431
-    assert grant["granted_not_spent"]["visual_cap"] == 25
+    assert grant["granted_not_spent"]["visual_cap"] == 26
     assert grant["granted_not_spent"]["retries"] is False
     assert grant["applied_to_runtime"] is False
 
