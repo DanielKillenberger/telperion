@@ -1,0 +1,29 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 16.44s
+────────────
+ Nextest run ID c03ff5ed-e9e1-4d2e-9ad0-baba6337f60d with nextest profile: default
+    Starting 1 test across 1 binary (4 tests skipped)
+        FAIL [   0.004s] (1/1) telperion-core::surface_prepared shared_empty_and_validation_outcomes_are_explicit
+  stdout ───
+
+    running 1 test
+    test shared_empty_and_validation_outcomes_are_explicit ... FAILED
+
+    failures:
+
+    failures:
+        shared_empty_and_validation_outcomes_are_explicit
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'shared_empty_and_validation_outcomes_are_explicit' (692472) panicked at crates/telperion-core/tests/surface_prepared.rs:187:84:
+    called `Result::unwrap()` on an `Err` value: InvalidInput("unsolved radii")
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+  Cancelling due to test failure: 
+────────────
+     Summary [   0.005s] 1 test run: 0 passed, 1 failed, 4 skipped
+        FAIL [   0.004s] (1/1) telperion-core::surface_prepared shared_empty_and_validation_outcomes_are_explicit
+error: test run failed

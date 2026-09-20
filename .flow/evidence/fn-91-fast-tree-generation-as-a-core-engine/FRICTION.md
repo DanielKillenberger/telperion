@@ -111,3 +111,7 @@ After the owner accepted the lit comparison, the host said it would continue but
 
 ## 2026-09-20 — admission baseline formatting invocation
 The first scoped rustfmt check used edition 2024 and traversed children, producing inherited formatting differences. Cost: under one minute. Reading the crate edition first and using edition 2021 with skip_children=true removes this noise; the correct scoped baseline passes.
+
+2026-09-20 — Task .6 baseline selection omitted `--release` and selected the broad foliage integration target. All-preset attachment and mature renderer matrix tests remained running after roughly two minutes; 31/32 core and 13/14 renderer tests had passed. Host stopped the debug observations (inconclusive, not green) and supplied explicit release surface/contact targets and the existing release renderer selection. Cost: roughly two minutes plus unnecessary debug compilation. Exact gate commands in dispatch would remove this selection error.
+
+Task .6 baseline clarification: the renderer debug run subsequently completed 14/14 in 44.816 s; the core debug run was interrupted and is not green. The replacement explicit release core selection passed 17/17 in 0.463 s. A renderer test name initially reported from memory was incorrect; the actual log names measured_specimens_keep_all_cpu_fields_and_gpu_surface_contracts. Evidence uses the observed names and logs.

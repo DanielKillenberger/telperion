@@ -15,7 +15,7 @@ struct Segment {
 }
 @group(0) @binding(0) var<uniform> config:Config;
 @group(0) @binding(1) var<storage,read> segments:array<Segment>;
-@group(0) @binding(2) var<storage,read> rings:array<vec4<f32>>;
+@group(0) @binding(2) var<storage,read> rings:array<f32>;
 @group(0) @binding(3) var<storage,read> geometry:array<vec4<f32>>;
 @group(0) @binding(4) var<storage,read_write> raw:array<u32>;
 @group(0) @binding(5) var<storage,read_write> ranks:array<u32>;

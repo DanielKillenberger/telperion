@@ -56,6 +56,9 @@ pub struct Metrics {
     pub input_instances: u32,
     pub instances: u32,
     pub descriptor_cpu_bytes: u64,
+    pub shared_contact_cpu_bytes: u64,
+    pub shared_prepare_cpu_bytes: u64,
+    pub shared_metadata_cpu_bytes: u64,
     pub gpu_compute_peak_bytes: u64,
 }
 struct Resident {
@@ -208,14 +211,73 @@ impl Generator {
             return Err(telperion_core::Error::InvalidInput("shell depth").into());
         }
         let reference = Reference::of(family)?;
-        let Some(stations) = foliage::prepared::prepare_stations(
-            &tree,
-            family.skeleton.envelope,
-            family.canopy,
-            Some(twig),
-            &family.surface,
-        )?
-        else {
+        let mut uploaded_wood = None;
+        let mut shared_stations = None;
+        let mut wood_attempted = false;
+        let mut early_wood_ms = 0.0;
+        if delivery == Delivery::Resident
+            && family.canopy.surface_contact > 0.0
+            && family.canopy.size != 0.0
+            && foliage::prepared::supports_stations(family.canopy, Some(twig))
+        {
+            let prepare_start = Clock::now();
+            let shared = surface::prepared::prepare_with_contacts(
+                &tree,
+                family.skeleton.envelope.height,
+                &family.surface,
+            )?;
+            metrics.wood_prepare_ms = prepare_start.elapsed_ms();
+            early_wood_ms = metrics.wood_prepare_ms;
+            if let Some(shared) = shared {
+                metrics.shared_contact_cpu_bytes = shared.contact_bytes() as u64;
+                if let Some(p) = foliage::prepared::prepare_shared_stations(
+                    &shared,
+                    family.skeleton.envelope,
+                    family.canopy,
+                    Some(twig),
+                )? {
+                    let station_cpu_bytes = (p.segments.capacity()
+                        * size_of::<foliage::prepared::StationSegment>())
+                        as u64;
+                    metrics.shared_prepare_cpu_bytes = wood::prepared_cpu_bytes(shared.surface())
+                        + metrics.shared_contact_cpu_bytes
+                        + station_cpu_bytes;
+                    let station_data = (p.segments, p.count, p.ring_size);
+                    let upload_start = Clock::now();
+                    let scopes = io::scope(&self.gpu);
+                    let result = self.upload_wood(shared.into_surface(), &mut metrics);
+                    let errors = io::errors(&self.gpu, scopes).await;
+                    uploaded_wood = result?;
+                    errors?;
+                    early_wood_ms += upload_start.elapsed_ms();
+                    metrics.shared_prepare_cpu_bytes = metrics.shared_prepare_cpu_bytes.max(
+                        metrics.wood_prepared_cpu_bytes
+                            + metrics.wood_metadata_cpu_bytes
+                            + station_cpu_bytes,
+                    );
+                    wood_attempted = true;
+                    if let Some(wood) = &uploaded_wood {
+                        metrics.shared_metadata_cpu_bytes = wood.metadata_bytes();
+                        shared_stations = Some(station_data);
+                    }
+                }
+            } else {
+                wood_attempted = true;
+                metrics.wood_fallback = Some("CPU triangle admission");
+            }
+        }
+        let stations = if shared_stations.is_some() {
+            None
+        } else {
+            foliage::prepared::prepare_stations(
+                &tree,
+                family.skeleton.envelope,
+                family.canopy,
+                Some(twig),
+                &family.surface,
+            )?
+        };
+        if stations.is_none() && shared_stations.is_none() {
             let mesh = mesh::assemble(&tree, family)?;
             metrics.wood_backend = Some(Backend::CpuFallback);
             metrics.wood_fallback = Some("CPU foliage preparation fallback");
@@ -239,13 +301,29 @@ impl Generator {
                 * 4
             + element.levels.capacity() * size_of::<foliage::Level>())
             as u64;
-        metrics.descriptors_ms = started.elapsed_ms();
+        metrics.descriptors_ms = started.elapsed_ms() - early_wood_ms;
         let scopes = io::scope(&self.gpu);
-        let computed = if stations.count == 0 {
-            self.empty()
+        let computed = if let Some((segments, count, ring_size)) = shared_stations {
+            if count == 0 {
+                self.empty()
+            } else {
+                let p = foliage::prepared::PreparedStations {
+                    segments,
+                    count,
+                    ring_size,
+                    rings: std::borrow::Cow::Borrowed(&uploaded_wood.as_ref().unwrap().positions),
+                };
+                self.compute_buffer_async(p, family, twig, &element, reference, &mut metrics)
+                    .await
+            }
         } else {
-            self.compute_async(stations, family, twig, &element, reference, &mut metrics)
-                .await
+            let stations = stations.unwrap();
+            if stations.count == 0 {
+                self.empty()
+            } else {
+                self.compute_async(stations, family, twig, &element, reference, &mut metrics)
+                    .await
+            }
         };
         let errors = io::errors(&self.gpu, scopes).await;
         let mut resident = Some(computed?);
@@ -264,10 +342,15 @@ impl Generator {
             instances.validate()?;
             metrics.readback_ms = start.elapsed_ms();
         }
-        // No descriptor, contact, rank or raw GPU buffer crosses into wood construction.
         let started = Clock::now();
         let mut resident_wood = None;
-        if delivery == Delivery::Resident {
+        if let Some(uploaded) = uploaded_wood {
+            let scopes = io::scope(&self.gpu);
+            let result = self.expand_uploaded_wood(uploaded, &mut metrics).await;
+            let errors = io::errors(&self.gpu, scopes).await;
+            resident_wood = result?;
+            errors?;
+        } else if delivery == Delivery::Resident && !wood_attempted {
             let compact = surface::prepared::prepare(
                 &tree,
                 family.skeleton.envelope.height,
@@ -296,7 +379,7 @@ impl Generator {
         } else {
             surface::build(&tree, family.skeleton.envelope.height, &family.surface)?
         };
-        metrics.wood_ms = started.elapsed_ms();
+        metrics.wood_ms = started.elapsed_ms() + early_wood_ms;
         metrics.wood_cpu_bytes = wood::cpu_bytes(&wood);
         if let Some(w) = &resident_wood {
             metrics.retained_gpu_bytes += w.bytes();

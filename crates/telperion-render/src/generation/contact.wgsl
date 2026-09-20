@@ -1,3 +1,4 @@
+fn contact_point(i:u32) -> vec3<f32> { return vec3<f32>(rings[i*3u], rings[i*3u+1u], rings[i*3u+2u]); }
 fn closest(p: vec3<f32>, a: vec3<f32>, b: vec3<f32>, c: vec3<f32>) -> vec3<f32> {
     let ab=b-a; let ac=c-a; let ap=p-a;
     let d1=dot(ab,ap); let d2=dot(ac,ap);
@@ -36,8 +37,8 @@ fn contact(edge:vec4<u32>, origin:vec3<f32>, radial:vec3<f32>, radius:f32) -> ve
         if starts[s]==ends[s] { continue; }
         for(var k=0u;k<n;k++) {
             let next=(k+1u)%n;
-            let a=rings[starts[s]+k].xyz; let b=rings[starts[s]+next].xyz;
-            let c=rings[ends[s]+k].xyz; let d=rings[ends[s]+next].xyz;
+            let a=contact_point(starts[s]+k); let b=contact_point(starts[s]+next);
+            let c=contact_point(ends[s]+k); let d=contact_point(ends[s]+next);
             best=min(best,ray_triangle(origin,radial,a,b,c));
             best=min(best,ray_triangle(origin,radial,b,d,c));
         }
@@ -49,8 +50,8 @@ fn contact(edge:vec4<u32>, origin:vec3<f32>, radial:vec3<f32>, radius:f32) -> ve
         if starts[s]==ends[s] { continue; }
         for(var k=0u;k<n;k++) {
             let next=(k+1u)%n;
-            let a=rings[starts[s]+k].xyz; let b=rings[starts[s]+next].xyz;
-            let c=rings[ends[s]+k].xyz; let d=rings[ends[s]+next].xyz;
+            let a=contact_point(starts[s]+k); let b=contact_point(starts[s]+next);
+            let c=contact_point(ends[s]+k); let d=contact_point(ends[s]+next);
             let p=closest(seat_target,a,b,c); let q=closest(seat_target,b,d,c);
             let dp=dot(p-seat_target,p-seat_target); let dq=dot(q-seat_target,q-seat_target);
             if dp<distance { distance=dp; point=p; }

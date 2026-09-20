@@ -29,11 +29,16 @@ pub struct StationSegment {
 
 /// No per-leaf positions or transforms are constructed by this preparation.
 #[derive(Debug)]
-pub struct PreparedStations {
+pub struct PreparedStations<R = Vec<Vec3>> {
     pub segments: Vec<StationSegment>,
     pub count: u32,
-    pub rings: Vec<Vec3>,
+    pub rings: R,
     pub ring_size: u32,
+}
+
+/// Capability check only; preparation still validates every parameter.
+pub fn supports_stations(p: CanopyParams, twig: Option<TwigPlacement>) -> bool {
+    twig.is_some() && p.short_shoot_spacing == 0.0 && p.limb_clumping == 0.0
 }
 
 /// `None` is an explicit capability fallback, after parameter validation.
@@ -45,20 +50,78 @@ pub fn prepare_stations(
     twig: Option<TwigPlacement>,
     surface: &SurfaceParams,
 ) -> Result<Option<PreparedStations>> {
+    let result = prepare_inner(
+        tree,
+        envelope,
+        p,
+        twig,
+        surface,
+        || AttachmentSurface::new(tree, envelope.height, surface),
+        |c, node| {
+            c.edges
+                .get(node)
+                .copied()
+                .flatten()
+                .map(|(a, b, c, d)| [a, b, c, d])
+        },
+    )?;
+    Ok(result.map(|(segments, count, contacts)| {
+        let (rings, ring_size) = contacts.map_or((Vec::new(), 0), |c| (c.rings, c.segments as u32));
+        PreparedStations {
+            segments,
+            count,
+            rings,
+            ring_size,
+        }
+    }))
+}
+
+/// Borrows canonical float32 contacts; no ring emission or spatial index is built.
+pub fn prepare_shared_stations<'a>(
+    shared: &'a crate::surface::prepared::PreparedWithContacts<'_>,
+    envelope: Envelope,
+    p: CanopyParams,
+    twig: Option<TwigPlacement>,
+) -> Result<Option<PreparedStations<&'a [f32]>>> {
+    if envelope.height != shared.height {
+        return Err(Error::InvalidInput("contact surface height mismatch"));
+    }
+    let result = prepare_inner(
+        shared.tree,
+        envelope,
+        p,
+        twig,
+        shared.params,
+        || Ok(shared),
+        |c, node| c.edges.get(node).copied().flatten(),
+    )?;
+    Ok(result.map(|(segments, count, contacts)| PreparedStations {
+        segments,
+        count,
+        rings: contacts.map_or(&[][..], |c| c.surface.positions.as_slice()),
+        ring_size: contacts.map_or(0, |c| c.surface.segments),
+    }))
+}
+
+fn prepare_inner<C>(
+    tree: &Tree,
+    envelope: Envelope,
+    p: CanopyParams,
+    twig: Option<TwigPlacement>,
+    surface: &SurfaceParams,
+    make_contacts: impl FnOnce() -> Result<C>,
+    edge: impl Fn(&C, usize) -> Option<[usize; 4]>,
+) -> Result<Option<(Vec<StationSegment>, u32, Option<C>)>> {
     placement::validate(tree, envelope, p, twig)?;
     surface.validate()?;
-    let Some(twig) = twig else { return Ok(None) };
-    if p.short_shoot_spacing != 0.0 || p.limb_clumping != 0.0 {
+    if !supports_stations(p, twig) {
         return Ok(None);
     }
-    let mut out = PreparedStations {
-        segments: Vec::new(),
-        count: 0,
-        rings: Vec::new(),
-        ring_size: 0,
-    };
+    let twig = twig.unwrap();
+    let mut segments = Vec::new();
+    let mut total_count = 0;
     if tree.nodes.len() < 2 || p.size == 0.0 {
-        return Ok(Some(out));
+        return Ok(Some((segments, total_count, None)));
     }
     if tree.nodes.iter().any(|n| {
         [
@@ -74,7 +137,7 @@ pub fn prepare_stations(
         return Err(Error::ResourceLimit("foliage coordinate range"));
     }
     let contacts = if p.surface_contact > 0.0 {
-        Some(AttachmentSurface::new(tree, envelope.height, surface)?)
+        Some(make_contacts()?)
     } else {
         None
     };
@@ -110,8 +173,7 @@ pub fn prepare_stations(
             return Ok(None);
         }
         let count = count as u32;
-        let end = out
-            .count
+        let end = total_count
             .checked_add(count)
             .filter(|&n| n as usize <= p.max_instances)
             .ok_or(Error::ResourceLimit("foliage instance budget"))?;
@@ -149,7 +211,7 @@ pub fn prepare_stations(
             let contact = contacts
                 .as_ref()
                 .map(|c| {
-                    let (a, b, start, end) = c.edges[nodes[segment + 1]].ok_or(
+                    let [a, b, start, end] = edge(c, nodes[segment + 1]).ok_or(
                         Error::InvalidInput("foliage surface contact projection missed"),
                     )?;
                     let mut indices = [0u32; 4];
@@ -169,8 +231,8 @@ pub fn prepare_stations(
                     * std::f64::consts::PI
                     / 180.0;
                 let (sin, cos) = turn.sin_cos_fixed();
-                out.segments.push(StationSegment {
-                    first: out.count + tile_first,
+                segments.push(StationSegment {
+                    first: total_count + tile_first,
                     count: tile_count,
                     run_station: tile_first,
                     phase: [sin, cos],
@@ -184,11 +246,7 @@ pub fn prepare_stations(
                 tile_first += tile_count;
             }
         }
-        out.count = end;
+        total_count = end;
     }
-    if let Some(c) = contacts {
-        out.rings = c.rings;
-        out.ring_size = c.segments as u32;
-    }
-    Ok(Some(out))
+    Ok(Some((segments, total_count, contacts)))
 }

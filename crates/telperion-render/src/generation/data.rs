@@ -32,10 +32,10 @@ pub(super) struct Segment {
 pub(super) fn vector(p: Vec3, w: f64) -> [f32; 4] {
     [p.x as f32, p.y as f32, p.z as f32, w as f32]
 }
-pub(super) fn config(
+pub(super) fn config<R>(
     f: &Family,
     t: TwigPlacement,
-    p: &PreparedStations,
+    p: &PreparedStations<R>,
     e: &Element,
     r: Reference,
 ) -> Config {
@@ -83,7 +83,7 @@ pub(super) fn config(
         curve: [env.shoulder as f32, 0.0, 0.0, 0.0],
     }
 }
-pub(super) fn segments(p: &PreparedStations) -> Vec<Segment> {
+pub(super) fn segments<R>(p: &PreparedStations<R>) -> Vec<Segment> {
     p.segments
         .iter()
         .map(|s| Segment {

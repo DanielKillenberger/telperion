@@ -1,0 +1,45 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 44.83s
+────────────
+ Nextest run ID 74db4812-b93c-41a5-80c3-6f378f7a30ed with nextest profile: default
+    Starting 14 tests across 1 binary (51 tests skipped)
+        PASS [   0.004s] ( 1/14) telperion-render generation::request::tests::invalidation_keeps_busy_until_guard_drops_and_errors_release_it
+        PASS [   0.014s] ( 2/14) telperion-render generation::tests::preparation_capabilities_and_failures_are_explicit
+        PASS [   2.415s] ( 3/14) telperion-render generation::readback_tests::leaf_readback_rejects_invalid_buffers_and_allocation
+        PASS [   2.467s] ( 4/14) telperion-render generation::readback_tests::leaf_readback_preserves_words_across_chunk_boundaries
+        PASS [   2.473s] ( 5/14) telperion-render generation::tests::gpu_extrema_order_preserves_signed_zero_and_finite_signs
+        PASS [   2.473s] ( 6/14) telperion-render generation::readback_tests::leaf_readback_device_loss_returns_no_output
+        PASS [   2.493s] ( 7/14) telperion-render generation::wood_tests::compute_limits_and_device_failure_never_return_partial_wood
+        PASS [   2.556s] ( 8/14) telperion-render generation::tests::foreign_prepared_result_preserves_the_live_tree
+        PASS [   2.573s] ( 9/14) telperion-render generation::tests::compact_gpu_foliage_is_repeatable_seated_and_bounded
+        PASS [   2.596s] (10/14) telperion-render generation::wood_tests::resident_wood_matches_cpu_and_remains_writable_after_adoption
+        PASS [   2.619s] (11/14) telperion-render generation::tests::huge_phases_fall_back_but_supported_large_ordinals_keep_orientation
+        FAIL [   2.619s] (12/14) telperion-render generation::wood_tests::multirow_empty_and_unusable_normals_have_explicit_outcomes
+  stdout ───
+
+    running 1 test
+    test generation::wood_tests::multirow_empty_and_unusable_normals_have_explicit_outcomes ... FAILED
+
+    failures:
+
+    failures:
+        generation::wood_tests::multirow_empty_and_unusable_normals_have_explicit_outcomes
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 64 filtered out; finished in 2.59s
+
+  stderr ───
+
+    thread 'generation::wood_tests::multirow_empty_and_unusable_normals_have_explicit_outcomes' (690293) panicked at crates/telperion-render/src/generation/wood_tests.rs:125:5:
+    assertion `left == right` failed
+      left: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+     right: [524280, 524281, 524283, 524281, 524284, 524283, 524281, 524282, 524284, 524282, 524285, 524284, 524282, 524280, 524285, 524280, 524283, 524285, 524286, 524281, 524280, 524287, 524283, 524284, 524286, 524282, 524281, 524287, 524284, 524285, 524286, 524280, 524282, 524287, 524285, 524283]
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+  Cancelling due to test failure: 2 tests still running
+        PASS [   2.622s] (13/14) telperion-render generation::standalone_tests::standalone_rejects_resident_before_generation_and_delivers_owned_cpu_mesh
+        PASS [   5.140s] (14/14) telperion-render generation::wood_tests::measured_specimens_keep_all_cpu_fields_and_gpu_surface_contracts
+────────────
+     Summary [   5.141s] 14 tests run: 13 passed, 1 failed, 51 skipped
+        FAIL [   2.619s] (12/14) telperion-render generation::wood_tests::multirow_empty_and_unusable_normals_have_explicit_outcomes
+error: test run failed

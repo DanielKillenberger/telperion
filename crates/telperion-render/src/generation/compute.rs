@@ -54,6 +54,39 @@ impl Generator {
         m: &mut Metrics,
     ) -> Result<Resident> {
         let started = Clock::now();
+        let rings: Vec<_> = p
+            .rings
+            .iter()
+            .map(|v| [v.x as f32, v.y as f32, v.z as f32])
+            .collect();
+        m.descriptor_cpu_bytes = (p.segments.capacity()
+            * size_of::<telperion_core::foliage::prepared::StationSegment>()
+            + p.rings.capacity() * size_of::<Vec3>()
+            + rings.capacity() * 12) as u64;
+        let ring_buffer = upload(&self.gpu, "generation contacts", &rings, STORAGE)?;
+        drop((p.rings, rings));
+        let stations = PreparedStations {
+            segments: p.segments,
+            count: p.count,
+            ring_size: p.ring_size,
+            rings: std::borrow::Cow::Owned(ring_buffer),
+        };
+        let upload_ms = started.elapsed_ms();
+        let result = self.compute_buffer_async(stations, f, t, e, r, m).await;
+        m.upload_dispatch_ms += upload_ms;
+        result
+    }
+
+    pub(super) async fn compute_buffer_async(
+        &self,
+        p: PreparedStations<std::borrow::Cow<'_, wgpu::Buffer>>,
+        f: &Family,
+        t: TwigPlacement,
+        e: &Element,
+        r: Reference,
+        m: &mut Metrics,
+    ) -> Result<Resident> {
+        let started = Clock::now();
         let gpu = &self.gpu;
         let count = p.count;
         let groups = count.div_ceil(256);
@@ -70,15 +103,18 @@ impl Generator {
             wgpu::BufferUsages::UNIFORM,
         )?;
         let segments = data::segments(&p);
-        let rings: Vec<_> = p.rings.iter().map(|&v| data::vector(v, 0.0)).collect();
-        m.descriptor_cpu_bytes = (p.segments.capacity()
-            * size_of::<telperion_core::foliage::prepared::StationSegment>()
-            + p.rings.capacity() * size_of::<Vec3>()
-            + segments.capacity() * size_of::<data::Segment>()
-            + rings.capacity() * 16) as u64;
+        m.descriptor_cpu_bytes = m.descriptor_cpu_bytes.max(
+            (p.segments.capacity() * size_of::<telperion_core::foliage::prepared::StationSegment>()
+                + segments.capacity() * size_of::<data::Segment>()) as u64,
+        );
         let segment_buffer = upload(gpu, "generation segments", &segments, STORAGE)?;
-        let ring_buffer = upload(gpu, "generation contacts", &rings, STORAGE)?;
-        drop((p, segments, rings));
+        let ring_buffer = p.rings;
+        let retained_contacts = if matches!(ring_buffer, std::borrow::Cow::Borrowed(_)) {
+            ring_buffer.size()
+        } else {
+            0
+        };
+        drop((p.segments, segments));
         let mut geometry: Vec<_> = e.positions.iter().map(|&v| data::vector(v, 0.0)).collect();
         geometry.extend(
             f.skeleton
@@ -98,7 +134,7 @@ impl Generator {
         let live = [
             &config,
             &segment_buffer,
-            &ring_buffer,
+            &*ring_buffer,
             &geometry,
             &raw,
             &ranks,
@@ -112,7 +148,7 @@ impl Generator {
             &[
                 &config,
                 &segment_buffer,
-                &ring_buffer,
+                &*ring_buffer,
                 &geometry,
                 &raw,
                 &ranks,
@@ -178,7 +214,9 @@ impl Generator {
             compact_config,
         ));
         let start = Clock::now();
-        let masses = self.mass(&leaves, survivors, crown, r, m).await?;
+        let masses = self
+            .mass(&leaves, survivors, crown, r, retained_contacts, m)
+            .await?;
         m.mass_ms = start.elapsed_ms();
         Ok(Resident {
             leaves: Held::resident(leaves, u64::from(survivors) * 12, "generated foliage"),
@@ -194,6 +232,7 @@ impl Generator {
         count: u32,
         crown: Option<Bounds>,
         reference: Reference,
+        retained_contacts: u64,
         m: &mut Metrics,
     ) -> Result<(wgpu::Buffer, u64)> {
         let gpu = &self.gpu;
@@ -251,7 +290,7 @@ impl Generator {
         io::complete(gpu).await?;
         m.gpu_compute_peak_bytes = m
             .gpu_compute_peak_bytes
-            .max(leaves.size() + config.size() + counts.size() + masses.size());
+            .max(retained_contacts + leaves.size() + config.size() + counts.size() + masses.size());
         Ok((masses, u64::from(total + 8) * 4))
     }
 }

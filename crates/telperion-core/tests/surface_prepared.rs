@@ -85,3 +85,148 @@ fn root_only_has_no_surface_or_gpu_work() {
     assert!(p.positions.is_empty() && p.runs.is_empty() && p.bounds.is_none());
     assert_eq!(p.index_count, 0);
 }
+
+#[test]
+fn shared_contacts_preserve_station_stream_and_rounded_rings() {
+    use telperion_core::{
+        foliage::{self, TwigPlacement},
+        tree::NodeKind,
+        Family,
+    };
+    let mut family = Family::default();
+    family.skeleton.envelope.height = 4.0;
+    family.canopy.surface_contact = 1.0;
+    family.canopy.short_shoot_spacing = 0.0;
+    family.canopy.limb_clumping = 0.0;
+    let twig = Some(TwigPlacement {
+        internode_length: 0.07,
+        stations_per_internode: 3,
+    });
+    let mut tree = Tree {
+        nodes: vec![Node {
+            radius: 0.2,
+            start_radius: 0.2,
+            ..Node::root()
+        }],
+        crossover: 1,
+        ..Tree::default()
+    };
+    for (parent, position, radius, branch) in [
+        (0, Vec3::new(0., 1., 0.), 0.1, 1),
+        (1, Vec3::new(0.2, 2., 0.1), 0.07, 1),
+        (0, Vec3::new(0.4, 1., 0.), 0.15, 2),
+        (3, Vec3::new(0.6, 2., 0.2), 0.12, 2),
+    ] {
+        tree.nodes.push(Node {
+            parent: Some(parent),
+            position,
+            radius,
+            start_radius: radius,
+            base_radius: radius,
+            kind: NodeKind::Twig,
+            branch,
+            ..Node::root()
+        });
+    }
+    for burial in [0.0, 0.02] {
+        family.surface.flare_depth = burial;
+        let shared = surface::prepared::prepare_with_contacts(&tree, 4.0, &family.surface)
+            .unwrap()
+            .unwrap();
+        let original = foliage::prepared::prepare_stations(
+            &tree,
+            family.skeleton.envelope,
+            family.canopy,
+            twig,
+            &family.surface,
+        )
+        .unwrap()
+        .unwrap();
+        let borrowed = foliage::prepared::prepare_shared_stations(
+            &shared,
+            family.skeleton.envelope,
+            family.canopy,
+            twig,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(original.count, borrowed.count);
+        assert!(original.count > 0);
+        assert_eq!(original.segments.len(), borrowed.segments.len());
+        assert_eq!(original.ring_size, borrowed.ring_size);
+        assert_eq!(borrowed.rings.as_ptr(), shared.surface().positions.as_ptr());
+        for (mut a, b) in original.segments.into_iter().zip(borrowed.segments) {
+            for (old, new) in a.contact.unwrap().into_iter().zip(b.contact.unwrap()) {
+                for k in 0..original.ring_size as usize {
+                    let point = original.rings[old as usize + k];
+                    let p = &borrowed.rings[(new as usize + k) * 3..][..3];
+                    assert_eq!(
+                        [point.x, point.y, point.z],
+                        [p[0] as f64, p[1] as f64, p[2] as f64]
+                    );
+                }
+            }
+            a.contact = b.contact;
+            assert_eq!(format!("{a:?}"), format!("{b:?}"));
+        }
+        assert_eq!(
+            shared.surface().positions,
+            surface::prepared::prepare(&tree, 4.0, &family.surface)
+                .unwrap()
+                .unwrap()
+                .positions
+        );
+    }
+}
+
+#[test]
+fn shared_empty_and_validation_outcomes_are_explicit() {
+    use telperion_core::{
+        foliage::{self, TwigPlacement},
+        Family,
+    };
+    let params = SurfaceParams::default();
+    for tree in [
+        Tree::default(),
+        Tree {
+            nodes: vec![Node::root()],
+            ..Tree::default()
+        },
+    ] {
+        let shared = surface::prepared::prepare_with_contacts(&tree, 1.0, &params)
+            .unwrap()
+            .unwrap();
+        assert!(shared.surface().positions.is_empty());
+    }
+    let family = Family::default();
+    let tree = Tree::default();
+    let shared =
+        surface::prepared::prepare_with_contacts(&tree, family.skeleton.envelope.height, &params)
+            .unwrap()
+            .unwrap();
+    let twig = Some(TwigPlacement {
+        internode_length: 0.1,
+        stations_per_internode: 1,
+    });
+    let mut env = family.skeleton.envelope;
+    env.height += 1.0;
+    assert!(foliage::prepared::prepare_shared_stations(&shared, env, family.canopy, twig).is_err());
+    let mut canopy = family.canopy;
+    canopy.short_shoot_spacing = 0.1;
+    assert!(foliage::prepared::prepare_shared_stations(
+        &shared,
+        family.skeleton.envelope,
+        canopy,
+        twig
+    )
+    .unwrap()
+    .is_none());
+    canopy.size = f64::NAN;
+    assert!(foliage::prepared::prepare_shared_stations(
+        &shared,
+        family.skeleton.envelope,
+        canopy,
+        twig
+    )
+    .is_err());
+}

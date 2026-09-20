@@ -82,8 +82,45 @@ pub fn prepare(
     params: &SurfaceParams,
 ) -> Result<Option<PreparedSurface>> {
     let mut out = PreparedSurface::default();
-    super::build_inner(tree, height, params, Some(&mut out))?;
+    super::build_inner(tree, height, params, Some(&mut out), None)?;
     Ok((!out.fallback).then_some(out))
+}
+/// Canonical wood and its node contact ranges from the same solved tree.
+/// Ring ranges exclude caps and use vertex offsets into `surface.positions`.
+pub struct PreparedWithContacts<'a> {
+    pub(crate) surface: PreparedSurface,
+    pub(crate) tree: &'a Tree,
+    pub(crate) params: &'a SurfaceParams,
+    pub(crate) height: f64,
+    pub(crate) edges: Vec<Option<[usize; 4]>>,
+}
+impl PreparedWithContacts<'_> {
+    pub fn surface(&self) -> &PreparedSurface {
+        &self.surface
+    }
+    pub fn into_surface(self) -> PreparedSurface {
+        self.surface
+    }
+    pub fn contact_bytes(&self) -> usize {
+        self.edges.capacity() * size_of::<Option<[usize; 4]>>()
+    }
+}
+pub fn prepare_with_contacts<'a>(
+    tree: &'a Tree,
+    height: f64,
+    params: &'a SurfaceParams,
+) -> Result<Option<PreparedWithContacts<'a>>> {
+    tree.validate()?;
+    let mut surface = PreparedSurface::default();
+    let mut edges = filled(tree.nodes.len(), None)?;
+    super::build_inner(tree, height, params, Some(&mut surface), Some(&mut edges))?;
+    Ok((!surface.fallback).then_some(PreparedWithContacts {
+        surface,
+        tree,
+        params,
+        height,
+        edges,
+    }))
 }
 pub(super) fn admitted(positions: &[f32], t: [u32; 3]) -> Result<bool> {
     let point = |i: u32| {

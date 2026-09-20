@@ -135,7 +135,7 @@ fn vertex(out: &mut Vec<f32>, p: Vec3) -> Result<()> {
 
 /// Builds only wood geometry. Invalid input or allocation failure returns no partial mesh.
 pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<SurfaceMesh> {
-    build_inner(tree, height, params, None)
+    build_inner(tree, height, params, None, None)
 }
 
 fn build_inner(
@@ -143,6 +143,7 @@ fn build_inner(
     height: f64,
     params: &SurfaceParams,
     mut prepared: Option<&mut prepared::PreparedSurface>,
+    mut contacts: Option<&mut Vec<Option<[usize; 4]>>>,
 ) -> Result<SurfaceMesh> {
     tree.validate()?;
     params.validate()?;
@@ -237,6 +238,17 @@ fn build_inner(
         frames(&samples, &mut segments_scratch, &mut frame);
         let base = (mesh.positions.len() / 3) as u32;
         let seg = segments as u32;
+        if let Some(edges) = contacts.as_deref_mut() {
+            let offset = usize::from(path.trunk && params.flare_depth > 0.0);
+            for (i, &node) in paths.nodes[path.start..path.end].iter().enumerate().skip(1) {
+                edges[node] = Some([
+                    base as usize + (i - 1 + offset) * segments,
+                    base as usize + (i + offset) * segments,
+                    base as usize,
+                    base as usize + (samples.len() - 1) * segments,
+                ]);
+            }
+        }
         for (i, s) in samples.iter().enumerate() {
             let (normal, binormal) = frame[i];
             let phase = std::f64::consts::TAU * twist * (s.d / height);

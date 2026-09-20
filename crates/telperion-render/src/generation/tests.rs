@@ -85,6 +85,53 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
         )
         .unwrap();
         assert_eq!(a, b);
+        let shared =
+            surface::prepared::prepare_with_contacts(&tree, f.skeleton.envelope.height, &f.surface)
+                .unwrap()
+                .unwrap();
+        let p = foliage::prepared::prepare_shared_stations(
+            &shared,
+            f.skeleton.envelope,
+            f.canopy,
+            Some(twig),
+        )
+        .unwrap()
+        .unwrap();
+        let (segments, count, ring_size) = (p.segments, p.count, p.ring_size);
+        let uploaded = generator
+            .upload_wood(shared.into_surface(), &mut metrics)
+            .unwrap()
+            .unwrap();
+        let positions = uploaded.positions.clone();
+        let p = foliage::prepared::PreparedStations {
+            segments,
+            count,
+            ring_size,
+            rings: std::borrow::Cow::Borrowed(&uploaded.positions),
+        };
+        let shared_leaves = pollster::block_on(generator.compute_buffer_async(
+            p,
+            &f,
+            twig,
+            &element,
+            reference,
+            &mut metrics,
+        ))
+        .unwrap();
+        assert_eq!(
+            a,
+            io::read(
+                &generator.gpu,
+                shared_leaves.leaves.buffer(),
+                u64::from(shared_leaves.count) * 12
+            )
+            .unwrap()
+        );
+        let wood = pollster::block_on(generator.expand_uploaded_wood(uploaded, &mut metrics))
+            .unwrap()
+            .unwrap();
+        assert_eq!(wood.positions.buffer(), &positions);
+
         let placed = foliage::place_on_surface(
             &tree,
             f.skeleton.envelope,

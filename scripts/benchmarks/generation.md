@@ -341,3 +341,18 @@ result, pipeline/compiler/driver allocations and delayed destruction remain outs
 these counters. Wasm linear-memory size and process peak RSS have separate meanings.
 Task .4's native/browser measurements and coverage limits live in
 `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/resident-wood/REPORT.md`.
+
+### Shared canonical contacts
+
+Task .6 reuses prepared wood positions for resident foliage when surface contact
+is enabled. It uploads packed xyz positions once, releases CPU positions, and
+adopts that same GPU buffer for wood after foliage. Ordinary CPU preparation and
+zero-contact requests retain their existing paths. The new shared preparation,
+contact-map and retained-metadata counters identify overlapping CPU lifetimes;
+the foliage GPU peak counts the shared position buffer once, including mass work.
+
+The reproducible native comparison and four-fixture browser results are in
+`.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/shared-rings/REPORT.md`.
+Native comparison isolates task .6 against the saved .5 executable. Browser
+comparison against the saved .4 module includes both .5 and .6. Whole-process
+RSS and Wasm capacity remain distinct from simultaneous explicit buffer counts.

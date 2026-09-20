@@ -1,0 +1,31 @@
+---
+satisfies: [R2, R3, R4]
+---
+# fn-91-fast-tree-generation-as-a-core-engine.7 Probe GPU wood positions from compact ring inputs
+
+## Description
+Determine whether CPU wood position expansion can be replaced by compact ring preparation and GPU emission without running into numeric or transfer-cost walls. This is the next oak hypothesis, after shared contact rings in .6. Current oak does not use surface contacts; .5 exact traversal still leaves117/130ms native CPU wood preparation for seeds1/7. See GPU-POSITION-BOUNDARY.md. This task is a bounded feasibility probe, not a claim of delivered10x generation.
+
+Host design: derive compact centres, normal/binormal frames, radius, along-distance and angular/profile inputs using the existing path ordering, sample_path, frames and angular formula. Avoid full position/index/normal/coordinate arrays in compact CPU preparation. Preserve ordinary CPU surface output and validation. Emit float32 GPU positions into packed xyz storage usable by both wood and contact consumers. CPU/GPU position bytes may differ; do not emulate float64 solely to force equivalence. Compare against current canonical float32 positions with max/RMS spatial error, triangle collapse/nonfinite counts, radius and normal changes, caps/counts/order and conservative/correct bounds. Use the same candidate surface for contact verification where applicable. Evaluate actual small-branch precision, not only large limbs.
+
+Before implementation send a compact extraction/dispatch/validation design to host. Use a scratch release diagnostic or isolated experimental test surface to evaluate all four mature fixtures and focused curved/twisted/minimal/degenerate/numeric-range cases BEFORE renderer integration. CPU control generation, reference readback/checksums and verification stay outside GPU timing. Report CPU compact preparation, upload, GPU position+validity/bounds completion and explicit live buffer sizes separately. Use group/hierarchical bounds reduction rather than six globally contended atomics per vertex. Do not allocate all final wood attributes before foliage merely for validity; that would expand peak memory. Preserve topology/index order for admitted geometry. If zero-area/invalid GPU faces appear, quantify them and stop for host design decision rather than silently accepting or adding triangle compaction.
+
+Preselected feasibility bounds for mature fixtures: all output coordinates finite, exact vertex/run/cap counts and procedural topology, zero newly collapsed faces, actual bounds enclosing every generated vertex; maximum spatial error <=0.00005 metres and RMS <=0.00001 metres against canonical CPU positions. These are numeric screening bounds, not full visual or contact acceptance. Repeat the same GPU specimen to characterize repeatability. Target combined compact preparation+position/validity completion at least2x faster than existing canonical preparation on each oak seed, with no new live-memory peak above the current resident path's explicit allocation accounting. A miss is retained as evidence and stops this hypothesis before integration; do not change thresholds to pass. A pass advances to a separate integration task with real completed-frame and fidelity checks. Parent10x/100ms/no-peak-rise and CPU-output qualification remain unchanged.
+
+**Touches:** crates/telperion-core/src/surface.rs, crates/telperion-core/src/surface/**, crates/telperion-core/tests/surface_prepared.rs, crates/telperion-render/src/generation/**, crates/telperion-render/examples/**, .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/**
+
+Quick: explicit release core surface/attachment/prepared tests and focused renderer probe, Wasm compile check for any intended shared API; scoped formatting. No debug all-preset tests, full workspace LTO suite, forests, images or browser integration in this probe. Reuse existing GPU/device helpers and cheap shader validation if available, avoid dependencies/installations. Record friction immediately. Host owns architecture and direct diff review. One numeric/position-expansion hypothesis, five ticks/10commits max; no .1 reset, no product fallback silently claimed as GPU success. Return evidence and observed decision, then host continues eligible work.
+
+## Acceptance
+- Compact ring input and candidate positions measured on four mature fixtures plus focused edge cases, with default CPU surface unchanged.
+- Numeric, topology, bounds, repeatability and explicit allocation evidence meets or honestly misses the preselected feasibility bounds; no invalid geometry hidden by fallback.
+- Release timing includes CPU compact preparation, upload and GPU validity/bounds completion; probe does not claim first-frame or full engine qualification. Host decides advancement from the evidence. Relevant focused gates pass.
+
+
+## Done summary
+TBD
+
+## Evidence
+- Commits:
+- Tests:
+- PRs:

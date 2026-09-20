@@ -1,0 +1,12 @@
+{
+  "oregon-white-oak": {
+    "baseline": 586.1619019999999,
+    "candidate": 591.4714869999999,
+    "changePct": 0.9058222620548229
+  },
+  "norway-spruce": {
+    "baseline": 4744.904334,
+    "candidate": 4705.690776,
+    "changePct": -0.8264351658053726
+  }
+}

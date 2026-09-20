@@ -39,3 +39,5 @@ The reusable changes worth considering for follow-up are a cheap-first gate prot
 - The host acknowledged continuation after accepted visuals but ended the turn without executing it, costing another owner prompt. This turn records acceptance, marks .4 done, and starts .5 before reporting progress. The prevention is execution discipline, not a new repository spec.
 
 - Task .5 initially checked formatting with edition 2024 and recursive child traversal, producing inherited formatting noise in this edition-2021 crate. Cost was under one minute; the corrected scoped check passed. Read the crate edition and reuse the established scoped format command. No new spec is proposed.
+
+- Task .6 selected debug/broad baseline tests despite an available release path, costing about two minutes plus compilation. The core run was stopped; explicit release surface/contact tests passed in 0.463 s. The renderer debug run finished separately in 44.816 s. Future dispatches should include exact release commands, and test names/counts must come from logs rather than memory. No new friction spec was created.

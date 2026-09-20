@@ -1,0 +1,1456 @@
+{
+  "date": "2026-09-20T15:11:07.582Z",
+  "browser": "152.0.7977.82",
+  "flags": [
+    "--no-sandbox",
+    "--enable-unsafe-webgpu",
+    "--enable-features=Vulkan",
+    "--use-angle=vulkan",
+    "--disable-vulkan-surface",
+    "--ignore-gpu-blocklist"
+  ],
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "backend": "experimental-gpu",
+  "protocol": "hero frame with renderer queue completion",
+  "wasmSha256": "f2696198e8049a67ab443b3d7ca6631381d9c87549625e16e7ae0fe667f92e41",
+  "rows": [
+    {
+      "preset": "oregon-white-oak",
+      "seed": 1,
+      "initializationMs": 3291,
+      "engineInitializationMs": null,
+      "adapter": {
+        "vendor": "nvidia",
+        "architecture": "ampere",
+        "device": "",
+        "description": ""
+      },
+      "samples": [
+        {
+          "sample": 0,
+          "coldFirstBuild": true,
+          "setTreeMs": 622.8000000007451,
+          "frameSubmitMs": 1.6000000014901161,
+          "totalToFrameSubmissionMs": 624.6000000014901,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                12.304285049438477,
+                23.418760299682617,
+                12.36533546447754
+              ],
+              "min": [
+                -12.932525634765623,
+                -0.09600000083446504,
+                -13.216919898986816
+              ]
+            },
+            "foliageInstances": 715065,
+            "previousTreeGpuBytes": 0,
+            "stages": {
+              "baseCpuBytes": 24133824,
+              "compactMs": 2.800000000745058,
+              "descriptorCpuBytes": 20147840,
+              "descriptorsMs": 28.899999998509884,
+              "gpuComputePeakBytes": 27078068,
+              "massMs": 2.5,
+              "placementWaitMs": 9.399999998509884,
+              "readbackMs": 0,
+              "retainedGpuBytes": 229673876,
+              "sharedContactCpuBytes": 0,
+              "sharedMetadataCpuBytes": 0,
+              "sharedPrepareCpuBytes": 0,
+              "skeletonMs": 103.10000000149012,
+              "totalMs": 419.69999999925494,
+              "uploadDispatchMs": 6.900000002235174,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 223158952,
+              "woodMetadataCpuBytes": 2335104,
+              "woodMs": 265,
+              "woodPrepareMs": 194.40000000223517,
+              "woodPreparedCpuBytes": 48145532,
+              "woodUploadDispatchMs": 39.600000001490116,
+              "woodWaitMs": 26.800000000745058
+            },
+            "treeGpuBytes": 254810296,
+            "woodTriangles": 7227360,
+            "woodVertices": 3724874
+          },
+          "totalToCompletedFrameMs": 639.8000000007451,
+          "frameAndCompletionMs": 16.800000000745058,
+          "wasmMemoryBytes": 101187584
+        },
+        {
+          "sample": 1,
+          "coldFirstBuild": false,
+          "setTreeMs": 306.29999999701977,
+          "frameSubmitMs": 0.30000000074505806,
+          "totalToFrameSubmissionMs": 306.5999999977648,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                12.304285049438477,
+                23.418760299682617,
+                12.36533546447754
+              ],
+              "min": [
+                -12.932525634765623,
+                -0.09600000083446504,
+                -13.216919898986816
+              ]
+            },
+            "foliageInstances": 715065,
+            "previousTreeGpuBytes": 254810296,
+            "stages": {
+              "baseCpuBytes": 24133824,
+              "compactMs": 2.5,
+              "descriptorCpuBytes": 20147840,
+              "descriptorsMs": 19.699999999254942,
+              "gpuComputePeakBytes": 27078068,
+              "massMs": 2.300000000745058,
+              "placementWaitMs": 7,
+              "readbackMs": 0,
+              "retainedGpuBytes": 229673876,
+              "sharedContactCpuBytes": 0,
+              "sharedMetadataCpuBytes": 0,
+              "sharedPrepareCpuBytes": 0,
+              "skeletonMs": 72.90000000223517,
+              "totalMs": 304.30000000074506,
+              "uploadDispatchMs": 1.8999999985098839,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 223158952,
+              "woodMetadataCpuBytes": 2335104,
+              "woodMs": 197.60000000149012,
+              "woodPrepareMs": 167.90000000223517,
+              "woodPreparedCpuBytes": 48145532,
+              "woodUploadDispatchMs": 4.199999999254942,
+              "woodWaitMs": 25.199999999254942
+            },
+            "treeGpuBytes": 254810296,
+            "woodTriangles": 7227360,
+            "woodVertices": 3724874
+          },
+          "totalToCompletedFrameMs": 317.69999999925494,
+          "frameAndCompletionMs": 11.400000002235174,
+          "wasmMemoryBytes": 101187584
+        },
+        {
+          "sample": 2,
+          "coldFirstBuild": false,
+          "setTreeMs": 319.0999999977648,
+          "frameSubmitMs": 0.20000000298023224,
+          "totalToFrameSubmissionMs": 319.30000000074506,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                12.304285049438477,
+                23.418760299682617,
+                12.36533546447754
+              ],
+              "min": [
+                -12.932525634765623,
+                -0.09600000083446504,
+                -13.216919898986816
+              ]
+            },
+            "foliageInstances": 715065,
+            "previousTreeGpuBytes": 254810296,
+            "stages": {
+              "baseCpuBytes": 24133824,
+              "compactMs": 2.600000001490116,
+              "descriptorCpuBytes": 20147840,
+              "descriptorsMs": 18.899999998509884,
+              "gpuComputePeakBytes": 27078068,
+              "massMs": 2.2999999970197678,
+              "placementWaitMs": 6.899999998509884,
+              "readbackMs": 0,
+              "retainedGpuBytes": 229673876,
+              "sharedContactCpuBytes": 0,
+              "sharedMetadataCpuBytes": 0,
+              "sharedPrepareCpuBytes": 0,
+              "skeletonMs": 72,
+              "totalMs": 317,
+              "uploadDispatchMs": 1.9000000022351742,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 223158952,
+              "woodMetadataCpuBytes": 2335104,
+              "woodMs": 212.09999999776483,
+              "woodPrepareMs": 171.79999999701977,
+              "woodPreparedCpuBytes": 48145532,
+              "woodUploadDispatchMs": 14.5,
+              "woodWaitMs": 25.600000001490116
+            },
+            "treeGpuBytes": 254810296,
+            "woodTriangles": 7227360,
+            "woodVertices": 3724874
+          },
+          "totalToCompletedFrameMs": 330.30000000074506,
+          "frameAndCompletionMs": 11.200000002980232,
+          "wasmMemoryBytes": 101187584
+        },
+        {
+          "sample": 3,
+          "coldFirstBuild": false,
+          "setTreeMs": 304.69999999925494,
+          "frameSubmitMs": 0.30000000074505806,
+          "totalToFrameSubmissionMs": 305,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                12.304285049438477,
+                23.418760299682617,
+                12.36533546447754
+              ],
+              "min": [
+                -12.932525634765623,
+                -0.09600000083446504,
+                -13.216919898986816
+              ]
+            },
+            "foliageInstances": 715065,
+            "previousTreeGpuBytes": 254810296,
+            "stages": {
+              "baseCpuBytes": 24133824,
+              "compactMs": 2.600000001490116,
+              "descriptorCpuBytes": 20147840,
+              "descriptorsMs": 18.900000002235174,
+              "gpuComputePeakBytes": 27078068,
+              "massMs": 2.199999999254942,
+              "placementWaitMs": 7.199999999254942,
+              "readbackMs": 0,
+              "retainedGpuBytes": 229673876,
+              "sharedContactCpuBytes": 0,
+              "sharedMetadataCpuBytes": 0,
+              "sharedPrepareCpuBytes": 0,
+              "skeletonMs": 72.79999999701977,
+              "totalMs": 302.69999999925494,
+              "uploadDispatchMs": 1.9000000022351742,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 223158952,
+              "woodMetadataCpuBytes": 2335104,
+              "woodMs": 196.69999999925494,
+              "woodPrepareMs": 167.10000000149012,
+              "woodPreparedCpuBytes": 48145532,
+              "woodUploadDispatchMs": 4.199999999254942,
+              "woodWaitMs": 25.099999997764826
+            },
+            "treeGpuBytes": 254810296,
+            "woodTriangles": 7227360,
+            "woodVertices": 3724874
+          },
+          "totalToCompletedFrameMs": 315.8999999985099,
+          "frameAndCompletionMs": 11.199999999254942,
+          "wasmMemoryBytes": 101187584
+        },
+        {
+          "sample": 4,
+          "coldFirstBuild": false,
+          "setTreeMs": 312,
+          "frameSubmitMs": 0.19999999925494194,
+          "totalToFrameSubmissionMs": 312.30000000074506,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                12.304285049438477,
+                23.418760299682617,
+                12.36533546447754
+              ],
+              "min": [
+                -12.932525634765623,
+                -0.09600000083446504,
+                -13.216919898986816
+              ]
+            },
+            "foliageInstances": 715065,
+            "previousTreeGpuBytes": 254810296,
+            "stages": {
+              "baseCpuBytes": 24133824,
+              "compactMs": 2.699999999254942,
+              "descriptorCpuBytes": 20147840,
+              "descriptorsMs": 19.900000002235174,
+              "gpuComputePeakBytes": 27078068,
+              "massMs": 2.5,
+              "placementWaitMs": 7.5,
+              "readbackMs": 0,
+              "retainedGpuBytes": 229673876,
+              "sharedContactCpuBytes": 0,
+              "sharedMetadataCpuBytes": 0,
+              "sharedPrepareCpuBytes": 0,
+              "skeletonMs": 73,
+              "totalMs": 309.30000000074506,
+              "uploadDispatchMs": 2,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 223158952,
+              "woodMetadataCpuBytes": 2335104,
+              "woodMs": 201.09999999776483,
+              "woodPrepareMs": 172.30000000074506,
+              "woodPreparedCpuBytes": 48145532,
+              "woodUploadDispatchMs": 4,
+              "woodWaitMs": 24.5
+            },
+            "treeGpuBytes": 254810296,
+            "woodTriangles": 7227360,
+            "woodVertices": 3724874
+          },
+          "totalToCompletedFrameMs": 323.30000000074506,
+          "frameAndCompletionMs": 11.199999999254942,
+          "wasmMemoryBytes": 101187584
+        },
+        {
+          "sample": 5,
+          "coldFirstBuild": false,
+          "setTreeMs": 308.3999999985099,
+          "frameSubmitMs": 0.5999999977648258,
+          "totalToFrameSubmissionMs": 309.0999999977648,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                12.304285049438477,
+                23.418760299682617,
+                12.36533546447754
+              ],
+              "min": [
+                -12.932525634765623,
+                -0.09600000083446504,
+                -13.216919898986816
+              ]
+            },
+            "foliageInstances": 715065,
+            "previousTreeGpuBytes": 254810296,
+            "stages": {
+              "baseCpuBytes": 24133824,
+              "compactMs": 2.5,
+              "descriptorCpuBytes": 20147840,
+              "descriptorsMs": 20.099999997764826,
+              "gpuComputePeakBytes": 27078068,
+              "massMs": 2.300000000745058,
+              "placementWaitMs": 7.199999999254942,
+              "readbackMs": 0,
+              "retainedGpuBytes": 229673876,
+              "sharedContactCpuBytes": 0,
+              "sharedMetadataCpuBytes": 0,
+              "sharedPrepareCpuBytes": 0,
+              "skeletonMs": 71.10000000149012,
+              "totalMs": 305.9000000022352,
+              "uploadDispatchMs": 1.800000000745058,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 223158952,
+              "woodMetadataCpuBytes": 2335104,
+              "woodMs": 200.19999999925494,
+              "woodPrepareMs": 170.79999999701977,
+              "woodPreparedCpuBytes": 48145532,
+              "woodUploadDispatchMs": 4.700000002980232,
+              "woodWaitMs": 24.399999998509884
+            },
+            "treeGpuBytes": 254810296,
+            "woodTriangles": 7227360,
+            "woodVertices": 3724874
+          },
+          "totalToCompletedFrameMs": 320.0999999977648,
+          "frameAndCompletionMs": 11.599999997764826,
+          "wasmMemoryBytes": 101187584
+        }
+      ],
+      "cpu": []
+    },
+    {
+      "preset": "oregon-white-oak",
+      "seed": 7,
+      "initializationMs": 166,
+      "engineInitializationMs": null,
+      "adapter": {
+        "vendor": "nvidia",
+        "architecture": "ampere",
+        "device": "",
+        "description": ""
+      },
+      "samples": [
+        {
+          "sample": 0,
+          "coldFirstBuild": true,
+          "setTreeMs": 680.1999999992549,
+          "frameSubmitMs": 1.300000000745058,
+          "totalToFrameSubmissionMs": 681.6999999992549,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                13.21795654296875,
+                23.557249069213867,
+                13.00312614440918
+              ],
+              "min": [
+                -13.162964820861816,
+                -0.09600000083446504,
+                -13.242486000061035
+              ]
+            },
+            "foliageInstances": 869310,
+            "previousTreeGpuBytes": 0,
+            "stages": {
+              "baseCpuBytes": 48251072,
+              "compactMs": 5.199999999254942,
+              "descriptorCpuBytes": 34773760,
+              "descriptorsMs": 33.099999997764826,
+              "gpuComputePeakBytes": 32918056,
+              "massMs": 2.600000001490116,
+              "placementWaitMs": 10.199999999254942,
+              "readbackMs": 0,
+              "retainedGpuBytes": 263245712,
+              "sharedContactCpuBytes": 0,
+              "sharedMetadataCpuBytes": 0,
+              "sharedPrepareCpuBytes": 0,
+              "skeletonMs": 111.20000000298023,
+              "totalMs": 481.1000000014901,
+              "uploadDispatchMs": 10.899999998509884,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 255226624,
+              "woodMetadataCpuBytes": 2728440,
+              "woodMs": 306.69999999925494,
+              "woodPrepareMs": 235.5,
+              "woodPreparedCpuBytes": 55221180,
+              "woodUploadDispatchMs": 41.100000001490116,
+              "woodWaitMs": 29.599999997764826
+            },
+            "treeGpuBytes": 293801628,
+            "woodTriangles": 8255000,
+            "woodVertices": 4262170
+          },
+          "totalToCompletedFrameMs": 696.7999999970198,
+          "frameAndCompletionMs": 16.399999998509884,
+          "wasmMemoryBytes": 111804416
+        },
+        {
+          "sample": 1,
+          "coldFirstBuild": false,
+          "setTreeMs": 373.6000000014901,
+          "frameSubmitMs": 0.30000000074505806,
+          "totalToFrameSubmissionMs": 373.9000000022352,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                13.21795654296875,
+                23.557249069213867,
+                13.00312614440918
+              ],
+              "min": [
+                -13.162964820861816,
+                -0.09600000083446504,
+                -13.242486000061035
+              ]
+            },
+            "foliageInstances": 869310,
+            "previousTreeGpuBytes": 293801628,
+            "stages": {
+              "baseCpuBytes": 48251072,
+              "compactMs": 2.699999999254942,
+              "descriptorCpuBytes": 34773760,
+              "descriptorsMs": 25.300000000745058,
+              "gpuComputePeakBytes": 32918056,
+              "massMs": 2.199999999254942,
+              "placementWaitMs": 8.400000002235174,
+              "readbackMs": 0,
+              "retainedGpuBytes": 263245712,
+              "sharedContactCpuBytes": 0,
+              "sharedMetadataCpuBytes": 0,
+              "sharedPrepareCpuBytes": 0,
+              "skeletonMs": 85.90000000223517,
+              "totalMs": 371.4000000022352,
+              "uploadDispatchMs": 2.2999999970197678,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 255226624,
+              "woodMetadataCpuBytes": 2728440,
+              "woodMs": 244.19999999925494,
+              "woodPrepareMs": 207.39999999850988,
+              "woodPreparedCpuBytes": 55221180,
+              "woodUploadDispatchMs": 6.200000002980232,
+              "woodWaitMs": 30.299999997019768
+            },
+            "treeGpuBytes": 293801628,
+            "woodTriangles": 8255000,
+            "woodVertices": 4262170
+          },
+          "totalToCompletedFrameMs": 385.20000000298023,
+          "frameAndCompletionMs": 11.600000001490116,
+          "wasmMemoryBytes": 162988032
+        },
+        {
+          "sample": 2,
+          "coldFirstBuild": false,
+          "setTreeMs": 365.3999999985099,
+          "frameSubmitMs": 0.19999999925494194,
+          "totalToFrameSubmissionMs": 365.69999999925494,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                13.21795654296875,
+                23.557249069213867,
+                13.00312614440918
+              ],
+              "min": [
+                -13.162964820861816,
+                -0.09600000083446504,
+                -13.242486000061035
+              ]
+            },
+            "foliageInstances": 869310,
+            "previousTreeGpuBytes": 293801628,
+            "stages": {
+              "baseCpuBytes": 48251072,
+              "compactMs": 2.699999999254942,
+              "descriptorCpuBytes": 34773760,
+              "descriptorsMs": 27.899999998509884,
+              "gpuComputePeakBytes": 32918056,
+              "massMs": 2.300000000745058,
+              "placementWaitMs": 7.899999998509884,
+              "readbackMs": 0,
+              "retainedGpuBytes": 263245712,
+              "sharedContactCpuBytes": 0,
+              "sharedMetadataCpuBytes": 0,
+              "sharedPrepareCpuBytes": 0,
+              "skeletonMs": 83.89999999850988,
+              "totalMs": 363.3999999985099,
+              "uploadDispatchMs": 1.9000000022351742,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 255226624,
+              "woodMetadataCpuBytes": 2728440,
+              "woodMs": 236.30000000074506,
+              "woodPrepareMs": 201.39999999850988,
+              "woodPreparedCpuBytes": 55221180,
+              "woodUploadDispatchMs": 4.5,
+              "woodWaitMs": 30.100000001490116
+            },
+            "treeGpuBytes": 293801628,
+            "woodTriangles": 8255000,
+            "woodVertices": 4262170
+          },
+          "totalToCompletedFrameMs": 376.5999999977648,
+          "frameAndCompletionMs": 11.099999997764826,
+          "wasmMemoryBytes": 162988032
+        },
+        {
+          "sample": 3,
+          "coldFirstBuild": false,
+          "setTreeMs": 360.9000000022352,
+          "frameSubmitMs": 0.29999999701976776,
+          "totalToFrameSubmissionMs": 361.19999999925494,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                13.21795654296875,
+                23.557249069213867,
+                13.00312614440918
+              ],
+              "min": [
+                -13.162964820861816,
+                -0.09600000083446504,
+                -13.242486000061035
+              ]
+            },
+            "foliageInstances": 869310,
+            "previousTreeGpuBytes": 293801628,
+            "stages": {
+              "baseCpuBytes": 48251072,
+              "compactMs": 2.699999999254942,
+              "descriptorCpuBytes": 34773760,
+              "descriptorsMs": 24.400000002235174,
+              "gpuComputePeakBytes": 32918056,
+              "massMs": 2.699999999254942,
+              "placementWaitMs": 8.100000001490116,
+              "readbackMs": 0,
+              "retainedGpuBytes": 263245712,
+              "sharedContactCpuBytes": 0,
+              "sharedMetadataCpuBytes": 0,
+              "sharedPrepareCpuBytes": 0,
+              "skeletonMs": 81.69999999925494,
+              "totalMs": 358.9000000022352,
+              "uploadDispatchMs": 2.599999997764826,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 255226624,
+              "woodMetadataCpuBytes": 2728440,
+              "woodMs": 236.29999999701977,
+              "woodPrepareMs": 200.69999999925494,
+              "woodPreparedCpuBytes": 55221180,
+              "woodUploadDispatchMs": 4.599999997764826,
+              "woodWaitMs": 30.700000002980232
+            },
+            "treeGpuBytes": 293801628,
+            "woodTriangles": 8255000,
+            "woodVertices": 4262170
+          },
+          "totalToCompletedFrameMs": 372.1000000014901,
+          "frameAndCompletionMs": 11.199999999254942,
+          "wasmMemoryBytes": 162988032
+        },
+        {
+          "sample": 4,
+          "coldFirstBuild": false,
+          "setTreeMs": 383.0999999977648,
+          "frameSubmitMs": 0.20000000298023224,
+          "totalToFrameSubmissionMs": 383.30000000074506,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                13.21795654296875,
+                23.557249069213867,
+                13.00312614440918
+              ],
+              "min": [
+                -13.162964820861816,
+                -0.09600000083446504,
+                -13.242486000061035
+              ]
+            },
+            "foliageInstances": 869310,
+            "previousTreeGpuBytes": 293801628,
+            "stages": {
+              "baseCpuBytes": 48251072,
+              "compactMs": 18.400000002235174,
+              "descriptorCpuBytes": 34773760,
+              "descriptorsMs": 24.099999997764826,
+              "gpuComputePeakBytes": 32918056,
+              "massMs": 2.399999998509884,
+              "placementWaitMs": 8.199999999254942,
+              "readbackMs": 0,
+              "retainedGpuBytes": 263245712,
+              "sharedContactCpuBytes": 0,
+              "sharedMetadataCpuBytes": 0,
+              "sharedPrepareCpuBytes": 0,
+              "skeletonMs": 80.60000000149012,
+              "totalMs": 381.1000000014901,
+              "uploadDispatchMs": 3.300000000745058,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 255226624,
+              "woodMetadataCpuBytes": 2728440,
+              "woodMs": 243.70000000298023,
+              "woodPrepareMs": 199.30000000074506,
+              "woodPreparedCpuBytes": 55221180,
+              "woodUploadDispatchMs": 16.199999999254942,
+              "woodWaitMs": 28
+            },
+            "treeGpuBytes": 293801628,
+            "woodTriangles": 8255000,
+            "woodVertices": 4262170
+          },
+          "totalToCompletedFrameMs": 394.19999999925494,
+          "frameAndCompletionMs": 11.100000001490116,
+          "wasmMemoryBytes": 162988032
+        },
+        {
+          "sample": 5,
+          "coldFirstBuild": false,
+          "setTreeMs": 367.30000000074506,
+          "frameSubmitMs": 0.5999999977648258,
+          "totalToFrameSubmissionMs": 367.8999999985099,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                13.21795654296875,
+                23.557249069213867,
+                13.00312614440918
+              ],
+              "min": [
+                -13.162964820861816,
+                -0.09600000083446504,
+                -13.242486000061035
+              ]
+            },
+            "foliageInstances": 869310,
+            "previousTreeGpuBytes": 293801628,
+            "stages": {
+              "baseCpuBytes": 48251072,
+              "compactMs": 2.699999999254942,
+              "descriptorCpuBytes": 34773760,
+              "descriptorsMs": 24.699999999254942,
+              "gpuComputePeakBytes": 32918056,
+              "massMs": 2.300000000745058,
+              "placementWaitMs": 7.699999999254942,
+              "readbackMs": 0,
+              "retainedGpuBytes": 263245712,
+              "sharedContactCpuBytes": 0,
+              "sharedMetadataCpuBytes": 0,
+              "sharedPrepareCpuBytes": 0,
+              "skeletonMs": 78.40000000223517,
+              "totalMs": 365.5,
+              "uploadDispatchMs": 2.100000001490116,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 255226624,
+              "woodMetadataCpuBytes": 2728440,
+              "woodMs": 247.09999999776483,
+              "woodPrepareMs": 199.79999999701977,
+              "woodPreparedCpuBytes": 55221180,
+              "woodUploadDispatchMs": 17.100000001490116,
+              "woodWaitMs": 30
+            },
+            "treeGpuBytes": 293801628,
+            "woodTriangles": 8255000,
+            "woodVertices": 4262170
+          },
+          "totalToCompletedFrameMs": 378.80000000074506,
+          "frameAndCompletionMs": 11.5,
+          "wasmMemoryBytes": 162988032
+        }
+      ],
+      "cpu": []
+    },
+    {
+      "preset": "norway-spruce",
+      "seed": 1,
+      "initializationMs": 162.69999999925494,
+      "engineInitializationMs": null,
+      "adapter": {
+        "vendor": "nvidia",
+        "architecture": "ampere",
+        "device": "",
+        "description": ""
+      },
+      "samples": [
+        {
+          "sample": 0,
+          "coldFirstBuild": true,
+          "setTreeMs": 594.3999999985099,
+          "frameSubmitMs": 1.300000000745058,
+          "totalToFrameSubmissionMs": 595.8000000007451,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                4.308883190155029,
+                15.001323699951172,
+                4.185832977294922
+              ],
+              "min": [
+                -4.046497821807861,
+                -0.05999999865889549,
+                -4.312499046325684
+              ]
+            },
+            "foliageInstances": 7353754,
+            "previousTreeGpuBytes": 0,
+            "stages": {
+              "baseCpuBytes": 24120352,
+              "compactMs": 4,
+              "descriptorCpuBytes": 38124928,
+              "descriptorsMs": 41.100000001490116,
+              "gpuComputePeakBytes": 254541040,
+              "massMs": 2.600000001490116,
+              "placementWaitMs": 22.399999998509884,
+              "readbackMs": 0,
+              "retainedGpuBytes": 269169128,
+              "sharedContactCpuBytes": 1907780,
+              "sharedMetadataCpuBytes": 2841112,
+              "sharedPrepareCpuBytes": 67880880,
+              "skeletonMs": 90,
+              "totalMs": 385.5999999977648,
+              "uploadDispatchMs": 4.399999998509884,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 182554664,
+              "woodMetadataCpuBytes": 2009944,
+              "woodMs": 219.79999999701977,
+              "woodPrepareMs": 164.79999999701977,
+              "woodPreparedCpuBytes": 39656536,
+              "woodUploadDispatchMs": 30.100000005215406,
+              "woodWaitMs": 5.300000000745058
+            },
+            "treeGpuBytes": 416821772,
+            "woodTriangles": 5893480,
+            "woodVertices": 3050636
+          },
+          "totalToCompletedFrameMs": 624.6999999992549,
+          "frameAndCompletionMs": 30.199999999254942,
+          "wasmMemoryBytes": 134676480
+        },
+        {
+          "sample": 1,
+          "coldFirstBuild": false,
+          "setTreeMs": 289.69999999925494,
+          "frameSubmitMs": 0.10000000149011612,
+          "totalToFrameSubmissionMs": 289.8999999985099,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                4.308883190155029,
+                15.001323699951172,
+                4.185832977294922
+              ],
+              "min": [
+                -4.046497821807861,
+                -0.05999999865889549,
+                -4.312499046325684
+              ]
+            },
+            "foliageInstances": 7353754,
+            "previousTreeGpuBytes": 416821772,
+            "stages": {
+              "baseCpuBytes": 24120352,
+              "compactMs": 3.699999999254942,
+              "descriptorCpuBytes": 38124928,
+              "descriptorsMs": 29.899999998509884,
+              "gpuComputePeakBytes": 254541040,
+              "massMs": 2.300000000745058,
+              "placementWaitMs": 22.100000001490116,
+              "readbackMs": 0,
+              "retainedGpuBytes": 269169128,
+              "sharedContactCpuBytes": 1907780,
+              "sharedMetadataCpuBytes": 2841112,
+              "sharedPrepareCpuBytes": 67880880,
+              "skeletonMs": 59.5,
+              "totalMs": 288,
+              "uploadDispatchMs": 3.099999997764826,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 182554664,
+              "woodMetadataCpuBytes": 2009944,
+              "woodMs": 167,
+              "woodPrepareMs": 142,
+              "woodPreparedCpuBytes": 39656536,
+              "woodUploadDispatchMs": 4,
+              "woodWaitMs": 5.099999997764826
+            },
+            "treeGpuBytes": 416821772,
+            "woodTriangles": 5893480,
+            "woodVertices": 3050636
+          },
+          "totalToCompletedFrameMs": 313.8999999985099,
+          "frameAndCompletionMs": 24.100000001490116,
+          "wasmMemoryBytes": 134676480
+        },
+        {
+          "sample": 2,
+          "coldFirstBuild": false,
+          "setTreeMs": 283.1000000014901,
+          "frameSubmitMs": 0.19999999925494194,
+          "totalToFrameSubmissionMs": 283.30000000074506,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                4.308883190155029,
+                15.001323699951172,
+                4.185832977294922
+              ],
+              "min": [
+                -4.046497821807861,
+                -0.05999999865889549,
+                -4.312499046325684
+              ]
+            },
+            "foliageInstances": 7353754,
+            "previousTreeGpuBytes": 416821772,
+            "stages": {
+              "baseCpuBytes": 24120352,
+              "compactMs": 3.599999997764826,
+              "descriptorCpuBytes": 38124928,
+              "descriptorsMs": 29.900000002235174,
+              "gpuComputePeakBytes": 254541040,
+              "massMs": 2.300000000745058,
+              "placementWaitMs": 22.900000002235174,
+              "readbackMs": 0,
+              "retainedGpuBytes": 269169128,
+              "sharedContactCpuBytes": 1907780,
+              "sharedMetadataCpuBytes": 2841112,
+              "sharedPrepareCpuBytes": 67880880,
+              "skeletonMs": 56.600000001490116,
+              "totalMs": 281.80000000074506,
+              "uploadDispatchMs": 3.699999999254942,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 182554664,
+              "woodMetadataCpuBytes": 2009944,
+              "woodMs": 162.39999999850988,
+              "woodPrepareMs": 139.09999999776483,
+              "woodPreparedCpuBytes": 39656536,
+              "woodUploadDispatchMs": 4,
+              "woodWaitMs": 5.600000001490116
+            },
+            "treeGpuBytes": 416821772,
+            "woodTriangles": 5893480,
+            "woodVertices": 3050636
+          },
+          "totalToCompletedFrameMs": 306.8999999985099,
+          "frameAndCompletionMs": 23.799999997019768,
+          "wasmMemoryBytes": 134676480
+        },
+        {
+          "sample": 3,
+          "coldFirstBuild": false,
+          "setTreeMs": 285.20000000298023,
+          "frameSubmitMs": 0.19999999925494194,
+          "totalToFrameSubmissionMs": 285.4000000022352,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                4.308883190155029,
+                15.001323699951172,
+                4.185832977294922
+              ],
+              "min": [
+                -4.046497821807861,
+                -0.05999999865889549,
+                -4.312499046325684
+              ]
+            },
+            "foliageInstances": 7353754,
+            "previousTreeGpuBytes": 416821772,
+            "stages": {
+              "baseCpuBytes": 24120352,
+              "compactMs": 3.800000000745058,
+              "descriptorCpuBytes": 38124928,
+              "descriptorsMs": 31,
+              "gpuComputePeakBytes": 254541040,
+              "massMs": 2.400000002235174,
+              "placementWaitMs": 22.299999997019768,
+              "readbackMs": 0,
+              "retainedGpuBytes": 269169128,
+              "sharedContactCpuBytes": 1907780,
+              "sharedMetadataCpuBytes": 2841112,
+              "sharedPrepareCpuBytes": 67880880,
+              "skeletonMs": 57,
+              "totalMs": 284.0999999977648,
+              "uploadDispatchMs": 4,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 182554664,
+              "woodMetadataCpuBytes": 2009944,
+              "woodMs": 163.30000000074506,
+              "woodPrepareMs": 139.30000000074506,
+              "woodPreparedCpuBytes": 39656536,
+              "woodUploadDispatchMs": 4.199999999254942,
+              "woodWaitMs": 5.400000002235174
+            },
+            "treeGpuBytes": 416821772,
+            "woodTriangles": 5893480,
+            "woodVertices": 3050636
+          },
+          "totalToCompletedFrameMs": 308.9000000022352,
+          "frameAndCompletionMs": 23.699999999254942,
+          "wasmMemoryBytes": 134676480
+        },
+        {
+          "sample": 4,
+          "coldFirstBuild": false,
+          "setTreeMs": 296.30000000074506,
+          "frameSubmitMs": 0.19999999925494194,
+          "totalToFrameSubmissionMs": 296.5,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                4.308883190155029,
+                15.001323699951172,
+                4.185832977294922
+              ],
+              "min": [
+                -4.046497821807861,
+                -0.05999999865889549,
+                -4.312499046325684
+              ]
+            },
+            "foliageInstances": 7353754,
+            "previousTreeGpuBytes": 416821772,
+            "stages": {
+              "baseCpuBytes": 24120352,
+              "compactMs": 3.699999999254942,
+              "descriptorCpuBytes": 38124928,
+              "descriptorsMs": 31.100000001490116,
+              "gpuComputePeakBytes": 254541040,
+              "massMs": 2.5,
+              "placementWaitMs": 23.700000002980232,
+              "readbackMs": 0,
+              "retainedGpuBytes": 269169128,
+              "sharedContactCpuBytes": 1907780,
+              "sharedMetadataCpuBytes": 2841112,
+              "sharedPrepareCpuBytes": 67880880,
+              "skeletonMs": 56.80000000074506,
+              "totalMs": 295,
+              "uploadDispatchMs": 3.699999999254942,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 182554664,
+              "woodMetadataCpuBytes": 2009944,
+              "woodMs": 173.09999999776483,
+              "woodPrepareMs": 141.59999999776483,
+              "woodPreparedCpuBytes": 39656536,
+              "woodUploadDispatchMs": 12.199999999254942,
+              "woodWaitMs": 5.299999997019768
+            },
+            "treeGpuBytes": 416821772,
+            "woodTriangles": 5893480,
+            "woodVertices": 3050636
+          },
+          "totalToCompletedFrameMs": 321.0999999977648,
+          "frameAndCompletionMs": 24.799999997019768,
+          "wasmMemoryBytes": 134676480
+        },
+        {
+          "sample": 5,
+          "coldFirstBuild": false,
+          "setTreeMs": 299.9000000022352,
+          "frameSubmitMs": 0.19999999925494194,
+          "totalToFrameSubmissionMs": 300.1000000014901,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                4.308883190155029,
+                15.001323699951172,
+                4.185832977294922
+              ],
+              "min": [
+                -4.046497821807861,
+                -0.05999999865889549,
+                -4.312499046325684
+              ]
+            },
+            "foliageInstances": 7353754,
+            "previousTreeGpuBytes": 416821772,
+            "stages": {
+              "baseCpuBytes": 24120352,
+              "compactMs": 3.7999999970197678,
+              "descriptorCpuBytes": 38124928,
+              "descriptorsMs": 30.899999998509884,
+              "gpuComputePeakBytes": 254541040,
+              "massMs": 2.7000000029802322,
+              "placementWaitMs": 24.100000001490116,
+              "readbackMs": 0,
+              "retainedGpuBytes": 269169128,
+              "sharedContactCpuBytes": 1907780,
+              "sharedMetadataCpuBytes": 2841112,
+              "sharedPrepareCpuBytes": 67880880,
+              "skeletonMs": 56.80000000074506,
+              "totalMs": 298.69999999925494,
+              "uploadDispatchMs": 3.699999999254942,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 182554664,
+              "woodMetadataCpuBytes": 2009944,
+              "woodMs": 176.40000000223517,
+              "woodPrepareMs": 144.69999999925494,
+              "woodPreparedCpuBytes": 39656536,
+              "woodUploadDispatchMs": 12.300000000745058,
+              "woodWaitMs": 5.300000000745058
+            },
+            "treeGpuBytes": 416821772,
+            "woodTriangles": 5893480,
+            "woodVertices": 3050636
+          },
+          "totalToCompletedFrameMs": 323.80000000074506,
+          "frameAndCompletionMs": 23.899999998509884,
+          "wasmMemoryBytes": 134676480
+        }
+      ],
+      "cpu": []
+    },
+    {
+      "preset": "norway-spruce",
+      "seed": 7,
+      "initializationMs": 167.20000000298023,
+      "engineInitializationMs": null,
+      "adapter": {
+        "vendor": "nvidia",
+        "architecture": "ampere",
+        "device": "",
+        "description": ""
+      },
+      "samples": [
+        {
+          "sample": 0,
+          "coldFirstBuild": true,
+          "setTreeMs": 551.1000000014901,
+          "frameSubmitMs": 1.300000000745058,
+          "totalToFrameSubmissionMs": 552.5,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                4.337456703186035,
+                15,
+                3.806220531463623
+              ],
+              "min": [
+                -3.895051956176758,
+                -0.05999999865889549,
+                -4.197470188140869
+              ]
+            },
+            "foliageInstances": 7012326,
+            "previousTreeGpuBytes": 0,
+            "stages": {
+              "baseCpuBytes": 24120352,
+              "compactMs": 3.699999999254942,
+              "descriptorCpuBytes": 37492608,
+              "descriptorsMs": 37.5,
+              "gpuComputePeakBytes": 242393496,
+              "massMs": 2.600000001490116,
+              "placementWaitMs": 19.400000002235174,
+              "readbackMs": 0,
+              "retainedGpuBytes": 255422600,
+              "sharedContactCpuBytes": 1808780,
+              "sharedMetadataCpuBytes": 2686072,
+              "sharedPrepareCpuBytes": 65655528,
+              "skeletonMs": 83.89999999850988,
+              "totalMs": 352.19999999925494,
+              "uploadDispatchMs": 4.5,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 172834808,
+              "woodMetadataCpuBytes": 1901080,
+              "woodMs": 199.19999999925494,
+              "woodPrepareMs": 146.80000000074506,
+              "woodPreparedCpuBytes": 37540048,
+              "woodUploadDispatchMs": 28.200000002980232,
+              "woodWaitMs": 5.300000000745058
+            },
+            "treeGpuBytes": 396219824,
+            "woodTriangles": 5580040,
+            "woodVertices": 2888144
+          },
+          "totalToCompletedFrameMs": 578.9000000022352,
+          "frameAndCompletionMs": 27.800000000745058,
+          "wasmMemoryBytes": 132710400
+        },
+        {
+          "sample": 1,
+          "coldFirstBuild": false,
+          "setTreeMs": 272.4000000022352,
+          "frameSubmitMs": 0.29999999701976776,
+          "totalToFrameSubmissionMs": 272.69999999925494,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                4.337456703186035,
+                15,
+                3.806220531463623
+              ],
+              "min": [
+                -3.895051956176758,
+                -0.05999999865889549,
+                -4.197470188140869
+              ]
+            },
+            "foliageInstances": 7012326,
+            "previousTreeGpuBytes": 396219824,
+            "stages": {
+              "baseCpuBytes": 24120352,
+              "compactMs": 3.699999999254942,
+              "descriptorCpuBytes": 37492608,
+              "descriptorsMs": 28.699999999254942,
+              "gpuComputePeakBytes": 242393496,
+              "massMs": 2.300000000745058,
+              "placementWaitMs": 22,
+              "readbackMs": 0,
+              "retainedGpuBytes": 255422600,
+              "sharedContactCpuBytes": 1808780,
+              "sharedMetadataCpuBytes": 2686072,
+              "sharedPrepareCpuBytes": 65655528,
+              "skeletonMs": 54.69999999925494,
+              "totalMs": 270.69999999925494,
+              "uploadDispatchMs": 3.800000000745058,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 172834808,
+              "woodMetadataCpuBytes": 1901080,
+              "woodMs": 155.0000000037253,
+              "woodPrepareMs": 132.90000000223517,
+              "woodPreparedCpuBytes": 37540048,
+              "woodUploadDispatchMs": 3.699999999254942,
+              "woodWaitMs": 5.100000001490116
+            },
+            "treeGpuBytes": 396219824,
+            "woodTriangles": 5580040,
+            "woodVertices": 2888144
+          },
+          "totalToCompletedFrameMs": 293.6000000014901,
+          "frameAndCompletionMs": 21.199999999254942,
+          "wasmMemoryBytes": 132710400
+        },
+        {
+          "sample": 2,
+          "coldFirstBuild": false,
+          "setTreeMs": 275.0999999977648,
+          "frameSubmitMs": 0.20000000298023224,
+          "totalToFrameSubmissionMs": 275.30000000074506,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                4.337456703186035,
+                15,
+                3.806220531463623
+              ],
+              "min": [
+                -3.895051956176758,
+                -0.05999999865889549,
+                -4.197470188140869
+              ]
+            },
+            "foliageInstances": 7012326,
+            "previousTreeGpuBytes": 396219824,
+            "stages": {
+              "baseCpuBytes": 24120352,
+              "compactMs": 3.7000000029802322,
+              "descriptorCpuBytes": 37492608,
+              "descriptorsMs": 28.699999999254942,
+              "gpuComputePeakBytes": 242393496,
+              "massMs": 2.399999998509884,
+              "placementWaitMs": 20.299999997019768,
+              "readbackMs": 0,
+              "retainedGpuBytes": 255422600,
+              "sharedContactCpuBytes": 1808780,
+              "sharedMetadataCpuBytes": 2686072,
+              "sharedPrepareCpuBytes": 65655528,
+              "skeletonMs": 55.30000000074506,
+              "totalMs": 273.5,
+              "uploadDispatchMs": 5.600000001490116,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 172834808,
+              "woodMetadataCpuBytes": 1901080,
+              "woodMs": 157.20000000298023,
+              "woodPrepareMs": 133.90000000223517,
+              "woodPreparedCpuBytes": 37540048,
+              "woodUploadDispatchMs": 3.800000000745058,
+              "woodWaitMs": 5.400000002235174
+            },
+            "treeGpuBytes": 396219824,
+            "woodTriangles": 5580040,
+            "woodVertices": 2888144
+          },
+          "totalToCompletedFrameMs": 296.80000000074506,
+          "frameAndCompletionMs": 21.700000002980232,
+          "wasmMemoryBytes": 132710400
+        },
+        {
+          "sample": 3,
+          "coldFirstBuild": false,
+          "setTreeMs": 258.8999999985099,
+          "frameSubmitMs": 0.10000000149011612,
+          "totalToFrameSubmissionMs": 259,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                4.337456703186035,
+                15,
+                3.806220531463623
+              ],
+              "min": [
+                -3.895051956176758,
+                -0.05999999865889549,
+                -4.197470188140869
+              ]
+            },
+            "foliageInstances": 7012326,
+            "previousTreeGpuBytes": 396219824,
+            "stages": {
+              "baseCpuBytes": 24120352,
+              "compactMs": 3.5,
+              "descriptorCpuBytes": 37492608,
+              "descriptorsMs": 28.299999997019768,
+              "gpuComputePeakBytes": 242393496,
+              "massMs": 2.300000000745058,
+              "placementWaitMs": 20.399999998509884,
+              "readbackMs": 0,
+              "retainedGpuBytes": 255422600,
+              "sharedContactCpuBytes": 1808780,
+              "sharedMetadataCpuBytes": 2686072,
+              "sharedPrepareCpuBytes": 65655528,
+              "skeletonMs": 52.5,
+              "totalMs": 257.80000000074506,
+              "uploadDispatchMs": 3.399999998509884,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 172834808,
+              "woodMetadataCpuBytes": 1901080,
+              "woodMs": 147.00000000745058,
+              "woodPrepareMs": 124.70000000298023,
+              "woodPreparedCpuBytes": 37540048,
+              "woodUploadDispatchMs": 3.900000002235174,
+              "woodWaitMs": 4.899999998509884
+            },
+            "treeGpuBytes": 396219824,
+            "woodTriangles": 5580040,
+            "woodVertices": 2888144
+          },
+          "totalToCompletedFrameMs": 279.5,
+          "frameAndCompletionMs": 20.600000001490116,
+          "wasmMemoryBytes": 132710400
+        },
+        {
+          "sample": 4,
+          "coldFirstBuild": false,
+          "setTreeMs": 263.0999999977648,
+          "frameSubmitMs": 0.19999999925494194,
+          "totalToFrameSubmissionMs": 263.29999999701977,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                4.337456703186035,
+                15,
+                3.806220531463623
+              ],
+              "min": [
+                -3.895051956176758,
+                -0.05999999865889549,
+                -4.197470188140869
+              ]
+            },
+            "foliageInstances": 7012326,
+            "previousTreeGpuBytes": 396219824,
+            "stages": {
+              "baseCpuBytes": 24120352,
+              "compactMs": 3.800000000745058,
+              "descriptorCpuBytes": 37492608,
+              "descriptorsMs": 27.900000002235174,
+              "gpuComputePeakBytes": 242393496,
+              "massMs": 2.300000000745058,
+              "placementWaitMs": 23.100000001490116,
+              "readbackMs": 0,
+              "retainedGpuBytes": 255422600,
+              "sharedContactCpuBytes": 1808780,
+              "sharedMetadataCpuBytes": 2686072,
+              "sharedPrepareCpuBytes": 65655528,
+              "skeletonMs": 51.30000000074506,
+              "totalMs": 261.19999999925494,
+              "uploadDispatchMs": 3.2999999970197678,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 172834808,
+              "woodMetadataCpuBytes": 1901080,
+              "woodMs": 149.09999999776483,
+              "woodPrepareMs": 125.89999999850988,
+              "woodPreparedCpuBytes": 37540048,
+              "woodUploadDispatchMs": 4,
+              "woodWaitMs": 5
+            },
+            "treeGpuBytes": 396219824,
+            "woodTriangles": 5580040,
+            "woodVertices": 2888144
+          },
+          "totalToCompletedFrameMs": 286.8999999985099,
+          "frameAndCompletionMs": 23.800000000745058,
+          "wasmMemoryBytes": 132710400
+        },
+        {
+          "sample": 5,
+          "coldFirstBuild": false,
+          "setTreeMs": 274.1000000014901,
+          "frameSubmitMs": 0.10000000149011612,
+          "totalToFrameSubmissionMs": 274.30000000074506,
+          "submitted": {
+            "backend": "Gpu",
+            "bounds": {
+              "max": [
+                4.337456703186035,
+                15,
+                3.806220531463623
+              ],
+              "min": [
+                -3.895051956176758,
+                -0.05999999865889549,
+                -4.197470188140869
+              ]
+            },
+            "foliageInstances": 7012326,
+            "previousTreeGpuBytes": 396219824,
+            "stages": {
+              "baseCpuBytes": 24120352,
+              "compactMs": 5.799999997019768,
+              "descriptorCpuBytes": 37492608,
+              "descriptorsMs": 29.49999999627471,
+              "gpuComputePeakBytes": 242393496,
+              "massMs": 2.7000000029802322,
+              "placementWaitMs": 23.400000002235174,
+              "readbackMs": 0,
+              "retainedGpuBytes": 255422600,
+              "sharedContactCpuBytes": 1808780,
+              "sharedMetadataCpuBytes": 2686072,
+              "sharedPrepareCpuBytes": 65655528,
+              "skeletonMs": 54.70000000298023,
+              "totalMs": 272.9000000022352,
+              "uploadDispatchMs": 3.599999997764826,
+              "woodBackend": "Gpu",
+              "woodCpuBytes": 0,
+              "woodFallback": null,
+              "woodGpuPeakBytes": 172834808,
+              "woodMetadataCpuBytes": 1901080,
+              "woodMs": 152.6000000052154,
+              "woodPrepareMs": 130.60000000149012,
+              "woodPreparedCpuBytes": 37540048,
+              "woodUploadDispatchMs": 3.900000002235174,
+              "woodWaitMs": 5
+            },
+            "treeGpuBytes": 396219824,
+            "woodTriangles": 5580040,
+            "woodVertices": 2888144
+          },
+          "totalToCompletedFrameMs": 296.8999999985099,
+          "frameAndCompletionMs": 22.699999999254942,
+          "wasmMemoryBytes": 132710400
+        }
+      ],
+      "cpu": []
+    }
+  ],
+  "gaps": [
+    "display compositor presentation is not measured",
+    "phone hardware",
+    "native rendering delivery",
+    "peak CPU/GPU memory",
+    "attachment setup separate from placement"
+  ]
+}
