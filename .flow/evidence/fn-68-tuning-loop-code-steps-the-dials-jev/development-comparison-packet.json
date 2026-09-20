@@ -1,0 +1,55 @@
+{
+  "candidate": [
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-B-WHOLE.png",
+      "seed": 1,
+      "sha256": "da02e6fdf2b64c6ba6a0caf1ed2e0990a316fd9e5ac426099381e0f65254d047",
+      "view": "B-WHOLE"
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-B-BARE.png",
+      "seed": 1,
+      "sha256": "8bf6b32d6961bbc667e622b39b9484ec885b9ee3f4b3f9cf941c59372b599630",
+      "view": "B-BARE"
+    }
+  ],
+  "baseline": [
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/ccd54a19090161e84794b7afda51bbe5d3ce0c9f21133b0e1a2e67d4539c9201-18d6fc1a3ba15ad7-f726-4/ccd54a19090161e84794b7afda51bbe5d3ce0c9f21133b0e1a2e67d4539c9201-B-WHOLE.png",
+      "seed": 1,
+      "sha256": "f22582a1c71293064bd27b4863073525065beb0c2ed345604907ebf3d5e57a8d",
+      "view": "B-WHOLE"
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/ccd54a19090161e84794b7afda51bbe5d3ce0c9f21133b0e1a2e67d4539c9201-18d6fc1a3ba15ad7-f726-4/ccd54a19090161e84794b7afda51bbe5d3ce0c9f21133b0e1a2e67d4539c9201-B-BARE.png",
+      "seed": 1,
+      "sha256": "95a89f54724a6efc3f385ca7633a0b83cec2e476d8277c01ddd6096ae9a74344",
+      "view": "B-BARE"
+    }
+  ],
+  "host_judgment": {
+    "author": "host",
+    "assessment": "Promising partial reduction of solid shoulders and more edge gaps; upright spokes and limited droop remain. Automated confirmation unresolved due ambiguous improvement direction in request.",
+    "owner_acceptance": false,
+    "machine_ready": false
+  },
+  "cumulative": {
+    "tokens": 249306,
+    "evaluations": 5,
+    "image_reservations": 20,
+    "actual_pilot_still_twins": 16,
+    "visual_passes": 9
+  },
+  "runtime_unchanged": {
+    "tokens": 221183,
+    "evaluations": 4,
+    "image_reservations": 16,
+    "visual_passes": 8
+  },
+  "future_import": {
+    "tokens": 28123,
+    "evaluations": 1,
+    "image_reservations": 4,
+    "visual_passes": 1
+  }
+}
