@@ -1,0 +1,49 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 8.87s
+────────────
+ Nextest run ID 64b41dd9-04a0-4d40-815d-7319a1fd8fe9 with nextest profile: default
+    Starting 42 tests across 3 binaries (165 tests skipped)
+        PASS [   0.004s] ( 1/42) telperion-core foliage::clumping::tests::neighbour_budget_is_honoured_above_the_old_limit
+        PASS [   0.004s] ( 2/42) telperion-core foliage::bounds_tests::transformed_box_encloses_points_with_identical_sum_order
+        PASS [   0.004s] ( 3/42) telperion-core foliage::packed::tests::a_box_with_a_nan_side_is_not_a_box
+        PASS [   0.004s] ( 4/42) telperion-core foliage::packed::tests::a_half_float_round_trips_every_scale_a_leaf_can_carry
+        PASS [   0.004s] ( 5/42) telperion-core foliage::bounds_tests::bounds_keep_empty_signed_zero_and_overflow_contracts
+        PASS [   0.004s] ( 6/42) telperion-core foliage::clumping::tests::a_trunk_its_limbs_and_their_axes_are_systems_and_deeper_wood_is_not
+        PASS [   0.004s] ( 7/42) telperion-core::foliage stations::fallback_folds_zero_edges_and_clumps_at_terminal_tip
+        PASS [   0.004s] ( 8/42) telperion-core::foliage stations::element_anatomy_and_bounds
+        PASS [   0.004s] ( 9/42) telperion-core::foliage stations::cull_retains_in_the_buffer_it_was_given
+        PASS [   0.004s] (10/42) telperion-core::foliage stations::malformed_element_is_rejected_even_when_first_vertex_is_outside_shell
+        PASS [   0.004s] (11/42) telperion-core::foliage stations::shell_keeps_leaf_extent_and_crown_underside
+        PASS [   0.004s] (12/42) telperion-core::foliage stations::a_shoot_can_carry_more_than_512_authored_stations
+        PASS [   0.005s] (13/42) telperion-core::generation_limit_guard new_literal_limits_are_detected
+        PASS [   0.005s] (14/42) telperion-core::foliage stations::shell_membership_empty_and_invalid
+        PASS [   0.005s] (15/42) telperion-core::foliage stations::twig_stations_and_owned_deterministic_frames
+        PASS [   0.015s] (16/42) telperion-core foliage::packed::tests::a_leaf_is_twelve_bytes
+        PASS [   0.016s] (17/42) telperion-core foliage::clumping::tests::the_gap_is_empty_at_the_wall_and_the_centres_are_whole
+        PASS [   0.016s] (18/42) telperion-core foliage::packed::tests::a_reversed_span_is_read_in_the_order_that_makes_a_box
+        PASS [   0.016s] (19/42) telperion-core::foliage attachments::shoot_radius_alone_clothes_slender_supports_and_spares_thick_limbs
+        PASS [   0.017s] (20/42) telperion-core foliage::packed::tests::a_box_of_no_extent_decodes_every_leaf_to_its_corner
+        PASS [   0.017s] (21/42) telperion-core::foliage elements::a_blade_carries_a_coordinate_in_the_unit_square_at_every_vertex
+        PASS [   0.017s] (22/42) telperion-core foliage::packed::tests::every_subnormal_half_decodes_to_its_ieee_value
+        PASS [   0.017s] (23/42) telperion-core foliage::packed::tests::the_scale_is_read_back_off_the_word_that_carries_it
+        PASS [   0.017s] (24/42) telperion-core::foliage attachments::a_signed_lean_turns_the_leaf_back_down_its_shoot_and_toward_the_ground
+        PASS [   0.017s] (25/42) telperion-core::foliage attachments::species_attachment_uses_local_twig_and_connected_origins
+        PASS [   0.017s] (26/42) telperion-core::foliage levels::a_level_list_that_is_not_nested_detail_is_rejected_by_name
+        PASS [   0.018s] (27/42) telperion-core foliage::packed::tests::a_position_round_trips_inside_half_a_step
+        PASS [   0.018s] (28/42) telperion-core::foliage elements::every_element_trait_moves_every_shipped_preset
+        PASS [   0.019s] (29/42) telperion-core foliage::bounds_tests::exact_bounds_match_randomized_curved_elements_and_packed_frames
+        PASS [   0.018s] (30/42) telperion-core foliage::clumping::tests::one_system_has_no_walls_and_keeps_every_leaf
+        PASS [   0.018s] (31/42) telperion-core foliage::station::tests::prepared_frames_match_station_arithmetic_including_zero_spans
+        PASS [   0.020s] (32/42) telperion-core::generation_limit_guard generation_limits_are_classified
+        PASS [   0.018s] (33/42) telperion-core::foliage elements::a_margin_with_more_lobes_than_sections_is_rejected_by_both_names
+        PASS [   0.018s] (34/42) telperion-core::foliage attachments::leaned_stations_continue_across_subdivided_twig_runs
+        PASS [   0.029s] (35/42) telperion-core::foliage attachments::species_empty_degenerate_and_invalid_controls_are_explicit
+        PASS [   0.018s] (36/42) telperion-core::foliage elements::one_routine_builds_a_lobed_margin_and_a_four_sided_shaft
+        PASS [   0.019s] (37/42) telperion-core foliage::packed::tests::the_columns_come_back_in_the_order_they_went_in
+        PASS [   0.019s] (38/42) telperion-core::foliage elements::needles_retain_shaft_width_before_the_distal_point
+        PASS [   0.031s] (39/42) telperion-core foliage::packed::tests::a_rotation_round_trips_inside_the_stated_bound
+        PASS [   0.021s] (40/42) telperion-core::foliage levels::levels_nest_from_the_widest_section_down_to_the_whole_element
+        PASS [   6.370s] (41/42) telperion-core foliage::packed::tests::every_preset_placement_round_trips_inside_r2
+        PASS [  28.088s] (42/42) telperion-core::foliage attachments::every_attachment_trait_moves_every_shipped_preset
+────────────
+     Summary [  28.089s] 42 tests run: 42 passed, 165 skipped

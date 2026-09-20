@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-20T13:46:06.656826Z",
+  "depends_on": [
+    "fn-91-fast-tree-generation-as-a-core-engine.2"
+  ],
+  "id": "fn-91-fast-tree-generation-as-a-core-engine.3",
+  "priority": null,
+  "spec": "fn-91-fast-tree-generation-as-a-core-engine",
+  "spec_path": ".flow/tasks/fn-91-fast-tree-generation-as-a-core-engine.3.md",
+  "status": "todo",
+  "title": "Measure wood construction stages before selecting the next GPU boundary",
+  "updated_at": "2026-09-20T13:49:45.129085Z"
+}

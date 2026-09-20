@@ -1,0 +1,24 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 42.46s
+────────────
+ Nextest run ID e797a671-f032-4820-a235-073a5aa1bc56 with nextest profile: default
+    Starting 17 tests across 2 binaries (177 tests skipped)
+        PASS [   0.004s] ( 1/17) telperion-core branching::local::monthly_tests::monthly_deferred_shoot_does_not_starve_a_younger_live_shoot
+        PASS [   0.004s] ( 2/17) telperion-core branching::local::monthly_tests::monthly_run_keeps_stations_waiting_beyond_the_current_envelope
+        PASS [   0.004s] ( 3/17) telperion-core branching::local::monthly_tests::monthly_local_station_is_reconsidered_when_it_becomes_eligible
+        PASS [   0.004s] ( 4/17) telperion-core branching::local::admission::tests::prepared_admission_only_for_mature_full_drain
+        PASS [   0.020s] ( 5/17) telperion-core branching::local::pendant::tests::only_a_hanging_curtain_is_let_into_the_band
+        PASS [   0.020s] ( 6/17) telperion-core branching::local::pendant::limit_tests::droop_and_step_clearance_are_authored
+        PASS [   0.020s] ( 7/17) telperion-core branching::local::waiting::frontier_tests::a_shoot_beyond_all_reach_of_the_rising_trunk_is_not_replanned
+        PASS [   0.020s] ( 8/17) telperion-core branching::local::waiting::tests::fixed_candidate_waits_until_the_crown_can_reach_it
+        PASS [   0.020s] ( 9/17) telperion-core branching::local::pendant::limit_tests::lower_surface_search_closes_to_numeric_precision
+        PASS [   0.020s] (10/17) telperion-core branching::local::waiting::frontier_tests::unchanged_frontier_keeps_its_identity_order_without_visiting_shoots
+        PASS [   0.020s] (11/17) telperion-core branching::local::monthly_tests::monthly_terminal_birth_does_not_retire_unborn_lateral_buds
+        PASS [   0.021s] (12/17) telperion-core branching::local::waiting::frontier_tests::sleeping_terminal_receives_no_visits_and_wakes_at_crown_entry
+        PASS [   0.021s] (13/17) telperion-core branching::local::waiting::prediction_tests::wake_bound_never_skips_an_eligible_slice_on_either_side_of_the_crown
+        PASS [   0.028s] (14/17) telperion-core branching::local::admission::tests::prepared_admission_capability_and_boundaries
+        PASS [   0.090s] (15/17) telperion-core branching::local::admission::tests::prepared_admission_domain_random_and_exceptional
+        PASS [   0.130s] (16/17) telperion-core branching::specimen::tests::whole_build_replays_the_retained_frontiers_exactly
+        PASS [   2.845s] (17/17) telperion-core branching::specimen::tests::local_resume_preserves_pending_runs_across_irregular_budgets
+────────────
+     Summary [   2.846s] 17 tests run: 17 passed, 177 skipped

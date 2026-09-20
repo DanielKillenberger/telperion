@@ -1,0 +1,150 @@
+diff --git i/crates/telperion-core/src/surface.rs w/crates/telperion-core/src/surface.rs
+index 48149d46..9574ab32 100644
+--- i/crates/telperion-core/src/surface.rs
++++ w/crates/telperion-core/src/surface.rs
+@@ -16,7 +16,7 @@ pub(crate) use dependencies::affected as affected_contacts;
+ use frames::frames;
+ use paths::paths;
+ pub(crate) use paths::straightest;
+-use samples::sample_path;
++use samples::{largest_radius, sample_path};
+ /// One complete surface run, in descending order of its largest sample radius.
+ /// The spans tile the wood index buffer; a caster can draw a single prefix.
+ #[derive(Debug, Clone, Copy, PartialEq)]
+@@ -220,12 +220,9 @@ fn build_inner(
+     let mut samples = reserved(longest)?;
+     let mut frame = reserved(longest)?;
+     let mut segments_scratch = reserved(longest)?;
+-    // Sample once to rank the runs, then reuse the same scratch for emission.
+-    // Ties retain path order, so the permutation is deterministic.
+     let mut ordered = reserved(paths.runs.len())?;
+     for path in &paths.runs {
+-        sample_path(tree, height, params, &paths, path, &distance, &mut samples);
+-        let radius = samples.iter().map(|s| s.r).fold(0.0, f64::max);
++        let radius = largest_radius(tree, height, params, &paths, path, &distance);
+         ordered.push((path, radius));
+     }
+     ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
+diff --git i/crates/telperion-core/src/surface/compact.rs w/crates/telperion-core/src/surface/compact.rs
+index 6f6925d2..4c80440c 100644
+--- i/crates/telperion-core/src/surface/compact.rs
++++ w/crates/telperion-core/src/surface/compact.rs
+@@ -148,8 +148,10 @@ fn prepare_inner(
+     let mut scratch = reserved(longest)?;
+     let mut ordered = reserved(paths.runs.len())?;
+     for path in &paths.runs {
+-        sample_path(tree, height, params, &paths, path, &distance, &mut samples);
+-        ordered.push((path, samples.iter().map(|s| s.r).fold(0.0, f64::max)));
++        ordered.push((
++            path,
++            largest_radius(tree, height, params, &paths, path, &distance),
++        ));
+     }
+     ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
+     let mut base = 0;
+diff --git i/crates/telperion-core/src/surface/samples.rs w/crates/telperion-core/src/surface/samples.rs
+index dcd4f210..0a6ec76f 100644
+--- i/crates/telperion-core/src/surface/samples.rs
++++ w/crates/telperion-core/src/surface/samples.rs
+@@ -19,6 +19,35 @@ pub(super) fn sample_path(
+     samples: &mut Vec<Sample>,
+ ) {
+     samples.clear();
++    visit_path(tree, height, params, paths, run, distance, |sample| {
++        samples.push(sample)
++    });
++}
++
++pub(super) fn largest_radius(
++    tree: &Tree,
++    height: f64,
++    params: &SurfaceParams,
++    paths: &Paths,
++    run: &Run,
++    distance: &[f64],
++) -> f64 {
++    let mut radius = 0.0_f64;
++    visit_path(tree, height, params, paths, run, distance, |sample| {
++        radius = radius.max(sample.r)
++    });
++    radius
++}
++
++fn visit_path(
++    tree: &Tree,
++    height: f64,
++    params: &SurfaceParams,
++    paths: &Paths,
++    run: &Run,
++    distance: &[f64],
++    mut visit: impl FnMut(Sample),
++) {
+     let path_nodes = &paths.nodes[run.start..run.end];
+     let burial = params.flare_depth * height;
+     let flare = |y: f64| {
+@@ -27,9 +56,13 @@ pub(super) fn sample_path(
+     };
+     let girths = girths(tree, path_nodes, &paths.forks, distance);
+     if run.trunk {
+-        trunk_run(tree, path_nodes, girths, distance, burial, &flare, samples);
++        trunk_run(
++            tree, path_nodes, girths, distance, burial, &flare, &mut visit,
++        );
+     } else {
+-        branch_run(tree, params, path_nodes, girths, distance, &flare, samples);
++        branch_run(
++            tree, params, path_nodes, girths, distance, &flare, &mut visit,
++        );
+     }
+ }
+ 
+@@ -71,19 +104,19 @@ fn trunk_run(
+     distance: &[f64],
+     burial: f64,
+     flare: &impl Fn(f64) -> f64,
+-    samples: &mut Vec<Sample>,
++    visit: &mut impl FnMut(Sample),
+ ) {
+     let nodes = &tree.nodes;
+     let root = &nodes[path_nodes[0]];
+     if burial > 0.0 {
+-        samples.push(Sample {
++        visit(Sample {
+             p: Vec3::new(root.position.x, root.position.y - burial, root.position.z),
+             r: root.radius * flare(root.position.y),
+             d: 0.0,
+         });
+     }
+     for (&i, girth) in path_nodes.iter().zip(girths) {
+-        samples.push(Sample {
++        visit(Sample {
+             p: nodes[i].position,
+             r: girth * flare(nodes[i].position.y),
+             d: distance[i],
+@@ -98,7 +131,7 @@ fn branch_run(
+     girths: impl Iterator<Item = f64>,
+     distance: &[f64],
+     flare: &impl Fn(f64) -> f64,
+-    samples: &mut Vec<Sample>,
++    visit: &mut impl FnMut(Sample),
+ ) {
+     let nodes = &tree.nodes;
+     let depth = params.lobe_depth;
+@@ -111,7 +144,7 @@ fn branch_run(
+     let inscribed = pr * (1.0 - depth) * (std::f64::consts::PI / segments as f64).cos_fixed();
+     let sink = (params.fork_socket * pr).min(params.socket_containment * inscribed);
+     let contained = (inscribed * inscribed - sink * sink).max(0.0).sqrt() / (1.0 + depth);
+-    samples.push(Sample {
++    visit(Sample {
+         p: nodes[attach].position + away * (-sink),
+         r: (nodes[first].start_radius * swell).min(contained) * flare(nodes[attach].position.y),
+         d: distance[attach],
+@@ -119,7 +152,7 @@ fn branch_run(
+     for (&i, girth) in path_nodes.iter().zip(girths).skip(1) {
+         let swelling =
+             1.0 + (swell - 1.0) * (-(distance[i] - distance[attach]) / pr.max(1e-9)).exp_fixed();
+-        samples.push(Sample {
++        visit(Sample {
+             p: nodes[i].position,
+             r: girth * swelling * flare(nodes[i].position.y),
+             d: distance[i],

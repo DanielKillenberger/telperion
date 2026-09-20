@@ -1,0 +1,21 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 34.68s
+────────────
+ Nextest run ID 6c9faac1-000c-4f21-a37d-e00e977c21c3 with nextest profile: default
+    Starting 14 tests across 1 binary (51 tests skipped)
+        PASS [   0.004s] ( 1/14) telperion-render generation::request::tests::invalidation_keeps_busy_until_guard_drops_and_errors_release_it
+        PASS [   0.018s] ( 2/14) telperion-render generation::tests::preparation_capabilities_and_failures_are_explicit
+        PASS [   2.656s] ( 3/14) telperion-render generation::readback_tests::leaf_readback_preserves_words_across_chunk_boundaries
+        PASS [   2.666s] ( 4/14) telperion-render generation::readback_tests::leaf_readback_device_loss_returns_no_output
+        PASS [   2.694s] ( 5/14) telperion-render generation::wood_tests::multirow_empty_and_unusable_normals_have_explicit_outcomes
+        PASS [   2.695s] ( 6/14) telperion-render generation::tests::compact_gpu_foliage_is_repeatable_seated_and_bounded
+        PASS [   2.733s] ( 7/14) telperion-render generation::standalone_tests::standalone_rejects_resident_before_generation_and_delivers_owned_cpu_mesh
+        PASS [   2.734s] ( 8/14) telperion-render generation::readback_tests::leaf_readback_rejects_invalid_buffers_and_allocation
+        PASS [   2.734s] ( 9/14) telperion-render generation::tests::gpu_extrema_order_preserves_signed_zero_and_finite_signs
+        PASS [   2.742s] (10/14) telperion-render generation::wood_tests::compute_limits_and_device_failure_never_return_partial_wood
+        PASS [   2.760s] (11/14) telperion-render generation::wood_tests::resident_wood_matches_cpu_and_remains_writable_after_adoption
+        PASS [   2.761s] (12/14) telperion-render generation::tests::foreign_prepared_result_preserves_the_live_tree
+        PASS [   2.766s] (13/14) telperion-render generation::tests::huge_phases_fall_back_but_supported_large_ordinals_keep_orientation
+        PASS [   5.099s] (14/14) telperion-render generation::wood_tests::measured_specimens_keep_all_cpu_fields_and_gpu_surface_contracts
+────────────
+     Summary [   5.100s] 14 tests run: 14 passed, 51 skipped

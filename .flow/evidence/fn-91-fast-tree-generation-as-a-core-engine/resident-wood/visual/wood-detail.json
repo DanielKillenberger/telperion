@@ -1,0 +1,280 @@
+{
+  "date": "2026-09-20T14:22:35.975Z",
+  "browser": "152.0.7977.82",
+  "flags": [
+    "--no-sandbox",
+    "--enable-unsafe-webgpu",
+    "--enable-features=Vulkan",
+    "--use-angle=vulkan",
+    "--disable-vulkan-surface",
+    "--ignore-gpu-blocklist"
+  ],
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "seed": 1,
+  "distanceFraction": 0.13,
+  "targetHeightFraction": 0.12,
+  "wasmSha256": "34e8010886da246579c2d9a13cd5c7f5fbbf30172c28cbbd3f7831c77ce63b11",
+  "captures": [
+    {
+      "preset": "oregon-white-oak",
+      "mode": "cpu",
+      "pose": {
+        "target": [
+          -0.3141201231957398,
+          2.7257712856853473,
+          -0.4257923865861688
+        ],
+        "position": [
+          2.4767413027034344,
+          3.9861603167365875,
+          4.075597010025403
+        ]
+      },
+      "hero": {
+        "position": [
+          21.154044691413294,
+          21.356680598520448,
+          34.200279895041305
+        ],
+        "target": [
+          -0.3141201231957398,
+          11.661380359664754,
+          -0.4257923865861688
+        ]
+      },
+      "submitted": {
+        "bounds": {
+          "max": [
+            12.304285049438477,
+            23.418760720163974,
+            12.365335278020916
+          ],
+          "min": [
+            -12.932525295829956,
+            -0.09600000083446503,
+            -13.216920051193254
+          ]
+        },
+        "foliageInstances": 715065,
+        "woodTriangles": 7227360,
+        "woodVertices": 3724874
+      },
+      "stats": {
+        "drawCalls": 9,
+        "instances": 715065,
+        "triangles": 130219181
+      },
+      "image": "wood-detail-oregon-white-oak-cpu.png"
+    },
+    {
+      "preset": "oregon-white-oak",
+      "mode": "gpu",
+      "pose": {
+        "target": [
+          -0.3141201231957398,
+          2.7257712856853473,
+          -0.4257923865861688
+        ],
+        "position": [
+          2.4767413027034344,
+          3.9861603167365875,
+          4.075597010025403
+        ]
+      },
+      "hero": {
+        "position": [
+          21.154044274486655,
+          21.35668027652418,
+          34.20027966524573
+        ],
+        "target": [
+          -0.3141202926635742,
+          11.661380149424076,
+          -0.42579221725463867
+        ]
+      },
+      "submitted": {
+        "backend": "Gpu",
+        "bounds": {
+          "max": [
+            12.304285049438477,
+            23.418760299682617,
+            12.36533546447754
+          ],
+          "min": [
+            -12.932525634765623,
+            -0.09600000083446504,
+            -13.216919898986816
+          ]
+        },
+        "foliageInstances": 715065,
+        "previousTreeGpuBytes": 0,
+        "stages": {
+          "baseCpuBytes": 24133824,
+          "compactMs": 2.699999999254942,
+          "descriptorCpuBytes": 20147840,
+          "descriptorsMs": 27.600000001490116,
+          "gpuComputePeakBytes": 27078068,
+          "massMs": 2.599999997764826,
+          "placementWaitMs": 9.400000002235174,
+          "readbackMs": 0,
+          "retainedGpuBytes": 229673876,
+          "skeletonMs": 98.39999999850988,
+          "totalMs": 437.5999999977648,
+          "uploadDispatchMs": 6.399999998509884,
+          "woodBackend": "Gpu",
+          "woodCpuBytes": 0,
+          "woodFallback": null,
+          "woodGpuPeakBytes": 223158952,
+          "woodMetadataCpuBytes": 2335104,
+          "woodMs": 289.9000000022352,
+          "woodPrepareMs": 222.69999999925494,
+          "woodPreparedCpuBytes": 48145532,
+          "woodUploadDispatchMs": 37,
+          "woodWaitMs": 29.800000000745058
+        },
+        "treeGpuBytes": 254810296,
+        "woodTriangles": 7227360,
+        "woodVertices": 3724874
+      },
+      "stats": {
+        "drawCalls": 9,
+        "instances": 715065,
+        "triangles": 130219181
+      },
+      "image": "wood-detail-oregon-white-oak-gpu.png"
+    },
+    {
+      "preset": "norway-spruce",
+      "mode": "cpu",
+      "pose": {
+        "target": [
+          0.13119238518033738,
+          1.747358989035237,
+          -0.0633329714622275
+        ],
+        "position": [
+          1.878853354037437,
+          2.5366252330352177,
+          2.7554750428234174
+        ]
+      },
+      "hero": {
+        "position": [
+          13.57473829946572,
+          13.541941250066508,
+          21.619805599965808
+        ],
+        "target": [
+          0.13119238518033738,
+          7.470662450066657,
+          -0.0633329714622275
+        ]
+      },
+      "submitted": {
+        "bounds": {
+          "max": [
+            4.308882561470891,
+            15.001324898792209,
+            4.185833114017423
+          ],
+          "min": [
+            -4.046497791110216,
+            -0.05999999865889549,
+            -4.312499056941878
+          ]
+        },
+        "foliageInstances": 7353754,
+        "woodTriangles": 5893480,
+        "woodVertices": 3050636
+      },
+      "stats": {
+        "drawCalls": 6,
+        "instances": 7353754,
+        "triangles": 358874313
+      },
+      "image": "wood-detail-norway-spruce-cpu.png"
+    },
+    {
+      "preset": "norway-spruce",
+      "mode": "gpu",
+      "pose": {
+        "target": [
+          0.13119238518033738,
+          1.747358989035237,
+          -0.0633329714622275
+        ],
+        "position": [
+          1.878853354037437,
+          2.5366252330352177,
+          2.7554750428234174
+        ]
+      },
+      "hero": {
+        "position": [
+          13.574737529619792,
+          13.541940167944427,
+          21.619803812978503
+        ],
+        "target": [
+          0.13119268417358398,
+          7.470661850646138,
+          -0.06333303451538086
+        ]
+      },
+      "submitted": {
+        "backend": "Gpu",
+        "bounds": {
+          "max": [
+            4.308883190155029,
+            15.001323699951172,
+            4.185832977294922
+          ],
+          "min": [
+            -4.046497821807861,
+            -0.05999999865889549,
+            -4.312499046325684
+          ]
+        },
+        "foliageInstances": 7353754,
+        "previousTreeGpuBytes": 0,
+        "stages": {
+          "baseCpuBytes": 24120352,
+          "compactMs": 3.900000002235174,
+          "descriptorCpuBytes": 155994528,
+          "descriptorsMs": 134.40000000223517,
+          "gpuComputePeakBytes": 265081248,
+          "massMs": 2.599999997764826,
+          "placementWaitMs": 41.099999997764826,
+          "readbackMs": 0,
+          "retainedGpuBytes": 269169128,
+          "skeletonMs": 90.80000000074506,
+          "totalMs": 529.8000000007451,
+          "uploadDispatchMs": 59.19999999925494,
+          "woodBackend": "Gpu",
+          "woodCpuBytes": 0,
+          "woodFallback": null,
+          "woodGpuPeakBytes": 182554664,
+          "woodMetadataCpuBytes": 2009944,
+          "woodMs": 197.09999999776483,
+          "woodPrepareMs": 171.69999999925494,
+          "woodPreparedCpuBytes": 39656536,
+          "woodUploadDispatchMs": 4.600000001490116,
+          "woodWaitMs": 20.399999998509884
+        },
+        "treeGpuBytes": 416821772,
+        "woodTriangles": 5893480,
+        "woodVertices": 3050636
+      },
+      "stats": {
+        "drawCalls": 6,
+        "instances": 7353754,
+        "triangles": 358874313
+      },
+      "image": "wood-detail-norway-spruce-gpu.png"
+    }
+  ]
+}

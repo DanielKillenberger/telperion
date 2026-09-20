@@ -1,0 +1,9 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 48.82s
+────────────
+ Nextest run ID 1d60e44a-407b-44ab-b66d-73f7b06dd633 with nextest profile: default
+    Starting 1 test across 1 binary (66 tests skipped)
+        PASS [   0.495s] (1/1) telperion-render generation::wood_tests::position_probe::compact_position_edge_cases
+────────────
+     Summary [   0.495s] 1 test run: 1 passed, 66 skipped

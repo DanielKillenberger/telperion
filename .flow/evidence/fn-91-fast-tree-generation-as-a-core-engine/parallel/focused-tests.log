@@ -1,0 +1,31 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 44.38s
+────────────
+ Nextest run ID 9b61c44e-7285-4987-ad80-ea24256dfe9c with nextest profile: default
+    Starting 24 tests across 6 binaries (178 tests skipped)
+        PASS [   0.004s] ( 1/24) telperion-core::surface every_vertex_carries_how_far_along_and_how_far_around_it_lies
+        PASS [   0.004s] ( 2/24) telperion-core::surface empty_degenerate_and_invalid_are_atomic
+        PASS [   0.005s] ( 3/24) telperion-core surface::parallel::tests::independent_slices_match_serial_with_modulation_and_caps
+        PASS [   0.018s] ( 4/24) telperion-core::surface_collapse a_ring_collapsed_to_one_point_drops_the_strips_that_meet_it
+        PASS [   0.018s] ( 5/24) telperion-core::surface_collapse the_run_table_shrinks_only_the_run_that_dropped
+        PASS [   0.018s] ( 6/24) telperion-core::surface_collapse a_vertex_left_without_a_triangle_faces_out_from_its_ring
+        PASS [   0.018s] ( 7/24) telperion-core surface::parallel::tests::capacity_gate_requires_both_phases_to_fit
+        PASS [   0.019s] ( 8/24) telperion-core surface::parallel::tests::collapsed_candidate_is_discarded_and_serial_keeps_its_error
+        PASS [   0.019s] ( 9/24) telperion-core::surface_collapse a_tip_below_float32_resolution_far_out_drops_its_cap
+        PASS [   0.019s] (10/24) telperion-core::surface_collapse past_two_rings_worth_the_tree_fails_naming_the_count
+        PASS [   0.019s] (11/24) telperion-core::surface_prepared prepared_preserves_canonical_surface_without_expanded_arrays
+        PASS [   0.019s] (12/24) telperion-core::surface_prepared shared_contacts_preserve_station_stream_and_rounded_rings
+        PASS [   0.019s] (13/24) telperion-core::surface reversed_path_keeps_finite_frames
+        PASS [   0.019s] (14/24) telperion-core::surface_prepared clumps_reserve_every_buried_ring_and_collapsed_surfaces_fall_back
+        PASS [   0.019s] (15/24) telperion-core::surface_prepared shared_empty_and_validation_outcomes_are_explicit
+        PASS [   0.019s] (16/24) telperion-core::surface tapered_closed_surface_has_normals_and_bounds
+        PASS [   0.006s] (17/24) telperion-core::surface fork_socket_is_contained_and_thickest_child_continues
+        PASS [   0.020s] (18/24) telperion-core::surface_attachments needle_origins_touch_rendered_facets_across_bends_and_sockets
+        PASS [   0.020s] (19/24) telperion-core::surface_prepared compact_precision_domain_boundaries
+        PASS [   0.007s] (20/24) telperion-core::surface_collapse a_position_float32_cannot_hold_is_still_an_error
+        PASS [   0.007s] (21/24) telperion-core::surface root_only_and_float32_limits
+        PASS [   0.020s] (22/24) telperion-core::surface_prepared root_only_has_no_surface_or_gpu_work
+        PASS [   0.007s] (23/24) telperion-core surface::parallel::tests::failed_worker_does_not_skip_other_joins
+        PASS [   0.700s] (24/24) telperion-core::surface_collapse the_reproducing_beech_builds_and_drops_two_triangles
+────────────
+     Summary [   0.701s] 24 tests run: 24 passed, 178 skipped

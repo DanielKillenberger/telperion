@@ -1,0 +1,50 @@
+[
+  {
+    "species": "oregon-white-oak",
+    "seed": 1,
+    "medians_ms": {
+      "control": 129.76783799999998,
+      "candidate": 117.193044
+    },
+    "gain_percent": 9.690223859628444,
+    "prepared_hash": "5f2459a6f88d0fa8",
+    "cpu_hash": "b82b2cf44372d4bf",
+    "capacity_bytes": 48145532
+  },
+  {
+    "species": "oregon-white-oak",
+    "seed": 7,
+    "medians_ms": {
+      "control": 145.300994,
+      "candidate": 130.11585300000002
+    },
+    "gain_percent": 10.450817012304803,
+    "prepared_hash": "e6e8e17976391a22",
+    "cpu_hash": "d2b8c64f7c86ebeb",
+    "capacity_bytes": 55221180
+  },
+  {
+    "species": "norway-spruce",
+    "seed": 1,
+    "medians_ms": {
+      "control": 96.460387,
+      "candidate": 87.088742
+    },
+    "gain_percent": 9.715537425741406,
+    "prepared_hash": "1aa9eb9b861ccd2c",
+    "cpu_hash": "6fdd44ed9ad69f53",
+    "capacity_bytes": 39656536
+  },
+  {
+    "species": "norway-spruce",
+    "seed": 7,
+    "medians_ms": {
+      "control": 93.38864099999999,
+      "candidate": 82.207487
+    },
+    "gain_percent": 11.972713041193083,
+    "prepared_hash": "7b94d8082b55e601",
+    "cpu_hash": "8471722f3923dd42",
+    "capacity_bytes": 37540048
+  }
+]

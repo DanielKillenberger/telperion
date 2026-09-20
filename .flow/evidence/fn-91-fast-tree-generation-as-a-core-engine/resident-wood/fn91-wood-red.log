@@ -1,0 +1,15 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+error[E0433]: cannot find `prepared` in `surface`
+  --> crates/telperion-core/tests/surface_prepared.rs:11:22
+   |
+11 |     let p = surface::prepared::prepare(&tree, 4.0, &params).unwrap().unwrap();
+   |                      ^^^^^^^^ could not find `prepared` in `surface`
+
+error[E0433]: cannot find `prepared` in `surface`
+  --> crates/telperion-core/tests/surface_prepared.rs:17:22
+   |
+17 |     assert!(surface::prepared::prepare(&Tree::default(), 4.0, &params).unwrap().unwrap().positions.is_empty());
+   |                      ^^^^^^^^ could not find `prepared` in `surface`
+
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `telperion-core` (test "surface_prepared") due to 2 previous errors

@@ -83,6 +83,15 @@ pub struct Foliage {
 }
 
 impl Foliage {
+    pub(crate) fn allocated_bytes(&self) -> u64 {
+        [&self.positions, &self.normals, &self.coords, &self.indices]
+            .into_iter()
+            .flatten()
+            .map(|b| b.region().capacity())
+            .sum::<u64>()
+            + self.select.allocated_bytes()
+    }
+
     pub fn new(
         gpu: &Gpu,
         layout: &wgpu::BindGroupLayout,
@@ -145,7 +154,32 @@ impl Foliage {
     /// placements selection reads. The level asked for changes what each
     /// instance draws and nothing about how many there are.
     pub fn submit(&mut self, gpu: &Gpu, foliage: &mesh::Foliage, level: Level) {
-        let element = &foliage.element;
+        self.select.submit(gpu, foliage, level);
+        self.submit_element(gpu, &foliage.element);
+    }
+
+    pub(crate) fn submit_resident(
+        &mut self,
+        gpu: &Gpu,
+        element: &telperion_core::foliage::Element,
+        reference: telperion_core::foliage::Reference,
+        count: u32,
+        placements: crate::buffer::Held,
+        masses: crate::buffer::Held,
+    ) {
+        self.select.submit_resident(
+            gpu,
+            element,
+            reference,
+            count,
+            placements,
+            masses,
+            Level::default(),
+        );
+        self.submit_element(gpu, element);
+    }
+
+    fn submit_element(&mut self, gpu: &Gpu, element: &telperion_core::foliage::Element) {
         self.bounds = element_bounds(&element.positions);
         // The trailing vertices with no surface coordinate form the connector.
         // Keep it fixed while expanding the surface about its own centre.
@@ -160,7 +194,6 @@ impl Foliage {
             let c = (b.min + b.max) * 0.5;
             [c.x as f32, c.y as f32, c.z as f32, end as f32]
         });
-        self.select.submit(gpu, foliage, level);
         if element.level_indices.is_empty() {
             return;
         }

@@ -1032,6 +1032,30 @@
     "reason": "Finds the authored run/station's containing segment; index zero is the natural start of the polyline."
   },
   {
+    "path": "crates/telperion-core/src/foliage/prepared.rs",
+    "site": ". max ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A nonzero run has at least one authored twig internode, matching existing CPU station semantics."
+  },
+  {
+    "path": "crates/telperion-core/src/foliage/prepared.rs",
+    "site": ". min ( 256 )",
+    "classification": "algorithm",
+    "reason": "Tile cardinality only; following tiles emit every remaining station."
+  },
+  {
+    "path": "crates/telperion-core/src/foliage/prepared.rs",
+    "site": "if phase_error > 0 . 00025 {",
+    "classification": "numeric",
+    "reason": "Eight f64 angle-rounding units bound periodic tile reconstruction uncertainty to 0.00025 radians; larger valid requests explicitly fall back to CPU, never truncate output."
+  },
+  {
+    "path": "crates/telperion-core/src/foliage/prepared.rs",
+    "site": "if tree . nodes . len ( ) < 2 | | p . size = = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "Fewer than two nodes or zero foliage size is empty or disabled foliage, matching the CPU path."
+  },
+  {
     "path": "crates/telperion-core/src/foliage/reference.rs",
     "site": ". max ( 0 . 0 )",
     "classification": "algorithm",
@@ -1291,6 +1315,12 @@
   },
   {
     "path": "crates/telperion-core/src/surface.rs",
+    "site": "for ( i , & node ) in paths . nodes [ path . start . . path . end ] . iter ( ) . enumerate ( ) . skip ( 1 ) {",
+    "classification": "algorithm",
+    "reason": "Contact ranges cover each path edge after the root sample; skipping the first sample avoids inventing an incoming root edge."
+  },
+  {
+    "path": "crates/telperion-core/src/surface.rs",
     "site": "for i in 0 . . samples . len ( ) - 1 {",
     "classification": "algorithm",
     "reason": "Traverses all adjacent geometry samples/rows; the final sample has no following segment."
@@ -1392,6 +1422,30 @@
     "reason": "Ray/triangle closest-point region classification determines the geometric intersection."
   },
   {
+    "path": "crates/telperion-core/src/surface/compact.rs",
+    "site": ". max ( 1e - 6 )",
+    "classification": "numeric",
+    "reason": "The existing surface height degeneracy floor stabilizes geometry arithmetic without limiting populations."
+  },
+  {
+    "path": "crates/telperion-core/src/surface/compact.rs",
+    "site": ". max ( params . lobes * 4 )",
+    "classification": "algorithm",
+    "reason": "Angular sampling covers the requested lobes with at least four segments each; it raises resolution rather than truncating a population."
+  },
+  {
+    "path": "crates/telperion-core/src/surface/compact.rs",
+    "site": "for ( i , & node ) in paths . nodes [ path . start . . path . end ] . iter ( ) . enumerate ( ) . skip ( 1 ) {",
+    "classification": "algorithm",
+    "reason": "Contact ranges cover each path edge after the root sample; skipping the first sample avoids inventing an incoming root edge."
+  },
+  {
+    "path": "crates/telperion-core/src/surface/compact.rs",
+    "site": "if ! height . is_finite ( ) | | height < = 0 . 0 {",
+    "classification": "parameter",
+    "reason": "The existing surface height contract rejects nonfinite or nonpositive input explicitly."
+  },
+  {
     "path": "crates/telperion-core/src/surface/dependencies.rs",
     "site": "if tree . nodes [ stand ] . position . distance ( tree . nodes [ parent as usize ] . position ) > 1e - 9 {",
     "classification": "numeric",
@@ -1399,15 +1453,51 @@
   },
   {
     "path": "crates/telperion-core/src/surface/normals.rs",
-    "site": "for read in ( first . . indices . len ( ) ) . step_by ( 3 ) {",
+    "site": ". truncate ( count - dropped * 3 )",
     "classification": "algorithm",
-    "reason": "Visits triangle indices three at a time; fixed arity defines triangles and does not drop geometry."
+    "reason": "Ordered triangle traversal and compaction remove only float32 zero-area faces under the existing explicit dropped-triangle correctness bound."
+  },
+  {
+    "path": "crates/telperion-core/src/surface/normals.rs",
+    "site": "for read in ( 0 . . indices . len ( ) ) . step_by ( 3 ) {",
+    "classification": "algorithm",
+    "reason": "Ordered triangle traversal and compaction remove only float32 zero-area faces under the existing explicit dropped-triangle correctness bound."
+  },
+  {
+    "path": "crates/telperion-core/src/surface/parallel.rs",
+    "site": ". min ( MAX_WORKERS )",
+    "classification": "algorithm",
+    "reason": "Native worker scheduling partitions complete runs without truncating geometry; unavailable, single-core or over-budget requests retain the serial builder."
+  },
+  {
+    "path": "crates/telperion-core/src/surface/parallel.rs",
+    "site": "const MAX_WORKERS : usize = 8 ;",
+    "classification": "algorithm",
+    "reason": "Native worker scheduling partitions complete runs without truncating geometry; unavailable, single-core or over-budget requests retain the serial builder."
+  },
+  {
+    "path": "crates/telperion-core/src/surface/parallel.rs",
+    "site": "if count < 2 {",
+    "classification": "algorithm",
+    "reason": "Native worker scheduling partitions complete runs without truncating geometry; unavailable, single-core or over-budget requests retain the serial builder."
+  },
+  {
+    "path": "crates/telperion-core/src/surface/parallel.rs",
+    "site": "while at < runs . len ( ) & & ( runs [ at ] . base as usize + runs [ at ] . rings as usize * segments + 2 ) < = target {",
+    "classification": "algorithm",
+    "reason": "Native worker scheduling partitions complete runs without truncating geometry; unavailable, single-core or over-budget requests retain the serial builder."
   },
   {
     "path": "crates/telperion-core/src/surface/paths.rs",
     "site": "if n < 2 {",
     "classification": "algorithm",
     "reason": "An edge or fork requires at least two endpoints/stems; empty/root-only topology has no segment to process."
+  },
+  {
+    "path": "crates/telperion-core/src/surface/prepared.rs",
+    "site": "for ring in 0 . . self . rings - 1 {",
+    "classification": "algorithm",
+    "reason": "Every adjacent ring pair receives its strip triangles; caps are emitted separately after this traversal."
   },
   {
     "path": "crates/telperion-core/src/surface/samples.rs",

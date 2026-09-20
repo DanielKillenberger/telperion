@@ -1,0 +1,711 @@
+{
+  "date": "2026-09-20T10:30:32.024Z",
+  "browser": "152.0.7977.82",
+  "flags": [
+    "--no-sandbox",
+    "--enable-unsafe-webgpu",
+    "--enable-features=Vulkan",
+    "--use-angle=vulkan",
+    "--disable-vulkan-surface",
+    "--ignore-gpu-blocklist"
+  ],
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "protocol": "hero frame with renderer queue completion",
+  "wasmSha256": "e79c2cde3052ef35dc1e9fcd0913a8e3ccf152c6adc39f1cf8c8fcc801bd93a8",
+  "rows": [
+    {
+      "preset": "oregon-white-oak",
+      "seed": 1,
+      "initializationMs": 178.90000000037253,
+      "engineInitializationMs": null,
+      "adapter": {
+        "vendor": "nvidia",
+        "architecture": "ampere",
+        "device": "",
+        "description": ""
+      },
+      "samples": [
+        {
+          "sample": 0,
+          "coldFirstBuild": true,
+          "setTreeMs": 2368.2999999998137,
+          "frameSubmitMs": 1.7999999998137355,
+          "totalToFrameSubmissionMs": 2370.2000000001863,
+          "submitted": {
+            "bounds": {
+              "max": [
+                12.304285049438477,
+                23.418760720163974,
+                12.365335278020916
+              ],
+              "min": [
+                -12.932525295829956,
+                -0.09600000083446503,
+                -13.216920051193254
+              ]
+            },
+            "foliageInstances": 715065,
+            "woodTriangles": 7227360,
+            "woodVertices": 3724874
+          },
+          "totalToCompletedFrameMs": 2497,
+          "frameAndCompletionMs": 128.59999999962747
+        },
+        {
+          "sample": 1,
+          "coldFirstBuild": false,
+          "setTreeMs": 1421.2000000001863,
+          "frameSubmitMs": 0.20000000018626451,
+          "totalToFrameSubmissionMs": 1421.4000000003725,
+          "submitted": {
+            "bounds": {
+              "max": [
+                12.304285049438477,
+                23.418760720163974,
+                12.365335278020916
+              ],
+              "min": [
+                -12.932525295829956,
+                -0.09600000083446503,
+                -13.216920051193254
+              ]
+            },
+            "foliageInstances": 715065,
+            "woodTriangles": 7227360,
+            "woodVertices": 3724874
+          },
+          "totalToCompletedFrameMs": 1557.5,
+          "frameAndCompletionMs": 136.29999999981374
+        },
+        {
+          "sample": 2,
+          "coldFirstBuild": false,
+          "setTreeMs": 1407.2000000001863,
+          "frameSubmitMs": 0.20000000018626451,
+          "totalToFrameSubmissionMs": 1407.4000000003725,
+          "submitted": {
+            "bounds": {
+              "max": [
+                12.304285049438477,
+                23.418760720163974,
+                12.365335278020916
+              ],
+              "min": [
+                -12.932525295829956,
+                -0.09600000083446503,
+                -13.216920051193254
+              ]
+            },
+            "foliageInstances": 715065,
+            "woodTriangles": 7227360,
+            "woodVertices": 3724874
+          },
+          "totalToCompletedFrameMs": 1564.4000000003725,
+          "frameAndCompletionMs": 157.20000000018626
+        },
+        {
+          "sample": 3,
+          "coldFirstBuild": false,
+          "setTreeMs": 1427.199999999255,
+          "frameSubmitMs": 0.20000000018626451,
+          "totalToFrameSubmissionMs": 1427.5,
+          "submitted": {
+            "bounds": {
+              "max": [
+                12.304285049438477,
+                23.418760720163974,
+                12.365335278020916
+              ],
+              "min": [
+                -12.932525295829956,
+                -0.09600000083446503,
+                -13.216920051193254
+              ]
+            },
+            "foliageInstances": 715065,
+            "woodTriangles": 7227360,
+            "woodVertices": 3724874
+          },
+          "totalToCompletedFrameMs": 1620.2999999998137,
+          "frameAndCompletionMs": 193
+        },
+        {
+          "sample": 4,
+          "coldFirstBuild": false,
+          "setTreeMs": 1407.5,
+          "frameSubmitMs": 0.20000000018626451,
+          "totalToFrameSubmissionMs": 1407.7000000001863,
+          "submitted": {
+            "bounds": {
+              "max": [
+                12.304285049438477,
+                23.418760720163974,
+                12.365335278020916
+              ],
+              "min": [
+                -12.932525295829956,
+                -0.09600000083446503,
+                -13.216920051193254
+              ]
+            },
+            "foliageInstances": 715065,
+            "woodTriangles": 7227360,
+            "woodVertices": 3724874
+          },
+          "totalToCompletedFrameMs": 1570,
+          "frameAndCompletionMs": 162.5
+        },
+        {
+          "sample": 5,
+          "coldFirstBuild": false,
+          "setTreeMs": 1454.2000000001863,
+          "frameSubmitMs": 0.19999999925494194,
+          "totalToFrameSubmissionMs": 1454.3999999994412,
+          "submitted": {
+            "bounds": {
+              "max": [
+                12.304285049438477,
+                23.418760720163974,
+                12.365335278020916
+              ],
+              "min": [
+                -12.932525295829956,
+                -0.09600000083446503,
+                -13.216920051193254
+              ]
+            },
+            "foliageInstances": 715065,
+            "woodTriangles": 7227360,
+            "woodVertices": 3724874
+          },
+          "totalToCompletedFrameMs": 1599.7999999998137,
+          "frameAndCompletionMs": 145.59999999962747
+        }
+      ],
+      "cpu": []
+    },
+    {
+      "preset": "oregon-white-oak",
+      "seed": 7,
+      "initializationMs": 173,
+      "engineInitializationMs": null,
+      "adapter": {
+        "vendor": "nvidia",
+        "architecture": "ampere",
+        "device": "",
+        "description": ""
+      },
+      "samples": [
+        {
+          "sample": 0,
+          "coldFirstBuild": true,
+          "setTreeMs": 2808.899999999441,
+          "frameSubmitMs": 1.7000000001862645,
+          "totalToFrameSubmissionMs": 2810.7000000001863,
+          "submitted": {
+            "bounds": {
+              "max": [
+                13.217955959615209,
+                23.557249956180836,
+                13.003125025750427
+              ],
+              "min": [
+                -13.16296514872441,
+                -0.09600000083446503,
+                -13.242486306266482
+              ]
+            },
+            "foliageInstances": 869310,
+            "woodTriangles": 8255000,
+            "woodVertices": 4262170
+          },
+          "totalToCompletedFrameMs": 2953.399999999441,
+          "frameAndCompletionMs": 144.3999999994412
+        },
+        {
+          "sample": 1,
+          "coldFirstBuild": false,
+          "setTreeMs": 1702,
+          "frameSubmitMs": 0.30000000074505806,
+          "totalToFrameSubmissionMs": 1702.300000000745,
+          "submitted": {
+            "bounds": {
+              "max": [
+                13.217955959615209,
+                23.557249956180836,
+                13.003125025750427
+              ],
+              "min": [
+                -13.16296514872441,
+                -0.09600000083446503,
+                -13.242486306266482
+              ]
+            },
+            "foliageInstances": 869310,
+            "woodTriangles": 8255000,
+            "woodVertices": 4262170
+          },
+          "totalToCompletedFrameMs": 1862.5,
+          "frameAndCompletionMs": 160.5
+        },
+        {
+          "sample": 2,
+          "coldFirstBuild": false,
+          "setTreeMs": 1683,
+          "frameSubmitMs": 0.10000000055879354,
+          "totalToFrameSubmissionMs": 1683.1000000005588,
+          "submitted": {
+            "bounds": {
+              "max": [
+                13.217955959615209,
+                23.557249956180836,
+                13.003125025750427
+              ],
+              "min": [
+                -13.16296514872441,
+                -0.09600000083446503,
+                -13.242486306266482
+              ]
+            },
+            "foliageInstances": 869310,
+            "woodTriangles": 8255000,
+            "woodVertices": 4262170
+          },
+          "totalToCompletedFrameMs": 1888.1000000005588,
+          "frameAndCompletionMs": 205.1000000005588
+        },
+        {
+          "sample": 3,
+          "coldFirstBuild": false,
+          "setTreeMs": 1683.0999999996275,
+          "frameSubmitMs": 0.20000000018626451,
+          "totalToFrameSubmissionMs": 1683.2999999998137,
+          "submitted": {
+            "bounds": {
+              "max": [
+                13.217955959615209,
+                23.557249956180836,
+                13.003125025750427
+              ],
+              "min": [
+                -13.16296514872441,
+                -0.09600000083446503,
+                -13.242486306266482
+              ]
+            },
+            "foliageInstances": 869310,
+            "woodTriangles": 8255000,
+            "woodVertices": 4262170
+          },
+          "totalToCompletedFrameMs": 1801.0999999996275,
+          "frameAndCompletionMs": 118
+        },
+        {
+          "sample": 4,
+          "coldFirstBuild": false,
+          "setTreeMs": 1687.2000000001863,
+          "frameSubmitMs": 0.09999999962747097,
+          "totalToFrameSubmissionMs": 1687.2999999998137,
+          "submitted": {
+            "bounds": {
+              "max": [
+                13.217955959615209,
+                23.557249956180836,
+                13.003125025750427
+              ],
+              "min": [
+                -13.16296514872441,
+                -0.09600000083446503,
+                -13.242486306266482
+              ]
+            },
+            "foliageInstances": 869310,
+            "woodTriangles": 8255000,
+            "woodVertices": 4262170
+          },
+          "totalToCompletedFrameMs": 1846.7999999998137,
+          "frameAndCompletionMs": 159.59999999962747
+        },
+        {
+          "sample": 5,
+          "coldFirstBuild": false,
+          "setTreeMs": 1695.4000000003725,
+          "frameSubmitMs": 0.20000000018626451,
+          "totalToFrameSubmissionMs": 1695.7000000001863,
+          "submitted": {
+            "bounds": {
+              "max": [
+                13.217955959615209,
+                23.557249956180836,
+                13.003125025750427
+              ],
+              "min": [
+                -13.16296514872441,
+                -0.09600000083446503,
+                -13.242486306266482
+              ]
+            },
+            "foliageInstances": 869310,
+            "woodTriangles": 8255000,
+            "woodVertices": 4262170
+          },
+          "totalToCompletedFrameMs": 1903.9000000003725,
+          "frameAndCompletionMs": 208.40000000037253
+        }
+      ],
+      "cpu": []
+    },
+    {
+      "preset": "norway-spruce",
+      "seed": 1,
+      "initializationMs": 162.59999999962747,
+      "engineInitializationMs": null,
+      "adapter": {
+        "vendor": "nvidia",
+        "architecture": "ampere",
+        "device": "",
+        "description": ""
+      },
+      "samples": [
+        {
+          "sample": 0,
+          "coldFirstBuild": true,
+          "setTreeMs": 9732.900000000373,
+          "frameSubmitMs": 1.800000000745058,
+          "totalToFrameSubmissionMs": 9734.800000000745,
+          "submitted": {
+            "bounds": {
+              "max": [
+                4.308882561470891,
+                15.001324898792209,
+                4.185833114017423
+              ],
+              "min": [
+                -4.046497791110216,
+                -0.05999999865889549,
+                -4.312499056941878
+              ]
+            },
+            "foliageInstances": 7353754,
+            "woodTriangles": 5893480,
+            "woodVertices": 3050636
+          },
+          "totalToCompletedFrameMs": 10028.800000000745,
+          "frameAndCompletionMs": 295.80000000074506
+        },
+        {
+          "sample": 1,
+          "coldFirstBuild": false,
+          "setTreeMs": 7372.5,
+          "frameSubmitMs": 0.19999999925494194,
+          "totalToFrameSubmissionMs": 7372.699999999255,
+          "submitted": {
+            "bounds": {
+              "max": [
+                4.308882561470891,
+                15.001324898792209,
+                4.185833114017423
+              ],
+              "min": [
+                -4.046497791110216,
+                -0.05999999865889549,
+                -4.312499056941878
+              ]
+            },
+            "foliageInstances": 7353754,
+            "woodTriangles": 5893480,
+            "woodVertices": 3050636
+          },
+          "totalToCompletedFrameMs": 7609.699999999255,
+          "frameAndCompletionMs": 237.19999999925494
+        },
+        {
+          "sample": 2,
+          "coldFirstBuild": false,
+          "setTreeMs": 7478.5,
+          "frameSubmitMs": 0.20000000018626451,
+          "totalToFrameSubmissionMs": 7478.800000000745,
+          "submitted": {
+            "bounds": {
+              "max": [
+                4.308882561470891,
+                15.001324898792209,
+                4.185833114017423
+              ],
+              "min": [
+                -4.046497791110216,
+                -0.05999999865889549,
+                -4.312499056941878
+              ]
+            },
+            "foliageInstances": 7353754,
+            "woodTriangles": 5893480,
+            "woodVertices": 3050636
+          },
+          "totalToCompletedFrameMs": 7703.4000000003725,
+          "frameAndCompletionMs": 224.79999999981374
+        },
+        {
+          "sample": 3,
+          "coldFirstBuild": false,
+          "setTreeMs": 7391.800000000745,
+          "frameSubmitMs": 0.20000000018626451,
+          "totalToFrameSubmissionMs": 7392.100000000559,
+          "submitted": {
+            "bounds": {
+              "max": [
+                4.308882561470891,
+                15.001324898792209,
+                4.185833114017423
+              ],
+              "min": [
+                -4.046497791110216,
+                -0.05999999865889549,
+                -4.312499056941878
+              ]
+            },
+            "foliageInstances": 7353754,
+            "woodTriangles": 5893480,
+            "woodVertices": 3050636
+          },
+          "totalToCompletedFrameMs": 7608.9000000003725,
+          "frameAndCompletionMs": 217
+        },
+        {
+          "sample": 4,
+          "coldFirstBuild": false,
+          "setTreeMs": 7406,
+          "frameSubmitMs": 0.2999999998137355,
+          "totalToFrameSubmissionMs": 7406.299999999814,
+          "submitted": {
+            "bounds": {
+              "max": [
+                4.308882561470891,
+                15.001324898792209,
+                4.185833114017423
+              ],
+              "min": [
+                -4.046497791110216,
+                -0.05999999865889549,
+                -4.312499056941878
+              ]
+            },
+            "foliageInstances": 7353754,
+            "woodTriangles": 5893480,
+            "woodVertices": 3050636
+          },
+          "totalToCompletedFrameMs": 7628.5999999996275,
+          "frameAndCompletionMs": 222.70000000018626
+        },
+        {
+          "sample": 5,
+          "coldFirstBuild": false,
+          "setTreeMs": 7465.5,
+          "frameSubmitMs": 0.2999999998137355,
+          "totalToFrameSubmissionMs": 7465.799999999814,
+          "submitted": {
+            "bounds": {
+              "max": [
+                4.308882561470891,
+                15.001324898792209,
+                4.185833114017423
+              ],
+              "min": [
+                -4.046497791110216,
+                -0.05999999865889549,
+                -4.312499056941878
+              ]
+            },
+            "foliageInstances": 7353754,
+            "woodTriangles": 5893480,
+            "woodVertices": 3050636
+          },
+          "totalToCompletedFrameMs": 7688.299999999814,
+          "frameAndCompletionMs": 222.79999999981374
+        }
+      ],
+      "cpu": []
+    },
+    {
+      "preset": "norway-spruce",
+      "seed": 7,
+      "initializationMs": 153.20000000018626,
+      "engineInitializationMs": null,
+      "adapter": {
+        "vendor": "nvidia",
+        "architecture": "ampere",
+        "device": "",
+        "description": ""
+      },
+      "samples": [
+        {
+          "sample": 0,
+          "coldFirstBuild": true,
+          "setTreeMs": 9469,
+          "frameSubmitMs": 1.7000000001862645,
+          "totalToFrameSubmissionMs": 9470.799999999814,
+          "submitted": {
+            "bounds": {
+              "max": [
+                4.3374568072821,
+                15,
+                3.806220363273623
+              ],
+              "min": [
+                -3.895051643214036,
+                -0.05999999865889549,
+                -4.197446207068961
+              ]
+            },
+            "foliageInstances": 7012326,
+            "woodTriangles": 5580040,
+            "woodVertices": 2888144
+          },
+          "totalToCompletedFrameMs": 9743.399999999441,
+          "frameAndCompletionMs": 274.29999999981374
+        },
+        {
+          "sample": 1,
+          "coldFirstBuild": false,
+          "setTreeMs": 7099.700000000186,
+          "frameSubmitMs": 0.40000000037252903,
+          "totalToFrameSubmissionMs": 7100.100000000559,
+          "submitted": {
+            "bounds": {
+              "max": [
+                4.3374568072821,
+                15,
+                3.806220363273623
+              ],
+              "min": [
+                -3.895051643214036,
+                -0.05999999865889549,
+                -4.197446207068961
+              ]
+            },
+            "foliageInstances": 7012326,
+            "woodTriangles": 5580040,
+            "woodVertices": 2888144
+          },
+          "totalToCompletedFrameMs": 7308.299999999814,
+          "frameAndCompletionMs": 208.59999999962747
+        },
+        {
+          "sample": 2,
+          "coldFirstBuild": false,
+          "setTreeMs": 7255.800000000745,
+          "frameSubmitMs": 0.2999999998137355,
+          "totalToFrameSubmissionMs": 7256.100000000559,
+          "submitted": {
+            "bounds": {
+              "max": [
+                4.3374568072821,
+                15,
+                3.806220363273623
+              ],
+              "min": [
+                -3.895051643214036,
+                -0.05999999865889549,
+                -4.197446207068961
+              ]
+            },
+            "foliageInstances": 7012326,
+            "woodTriangles": 5580040,
+            "woodVertices": 2888144
+          },
+          "totalToCompletedFrameMs": 7464.700000000186,
+          "frameAndCompletionMs": 208.8999999994412
+        },
+        {
+          "sample": 3,
+          "coldFirstBuild": false,
+          "setTreeMs": 7320.799999999814,
+          "frameSubmitMs": 0.30000000074505806,
+          "totalToFrameSubmissionMs": 7321.100000000559,
+          "submitted": {
+            "bounds": {
+              "max": [
+                4.3374568072821,
+                15,
+                3.806220363273623
+              ],
+              "min": [
+                -3.895051643214036,
+                -0.05999999865889549,
+                -4.197446207068961
+              ]
+            },
+            "foliageInstances": 7012326,
+            "woodTriangles": 5580040,
+            "woodVertices": 2888144
+          },
+          "totalToCompletedFrameMs": 7452.4000000003725,
+          "frameAndCompletionMs": 131.80000000074506
+        },
+        {
+          "sample": 4,
+          "coldFirstBuild": false,
+          "setTreeMs": 7090.5,
+          "frameSubmitMs": 0.30000000074505806,
+          "totalToFrameSubmissionMs": 7091,
+          "submitted": {
+            "bounds": {
+              "max": [
+                4.3374568072821,
+                15,
+                3.806220363273623
+              ],
+              "min": [
+                -3.895051643214036,
+                -0.05999999865889549,
+                -4.197446207068961
+              ]
+            },
+            "foliageInstances": 7012326,
+            "woodTriangles": 5580040,
+            "woodVertices": 2888144
+          },
+          "totalToCompletedFrameMs": 7290,
+          "frameAndCompletionMs": 199.30000000074506
+        },
+        {
+          "sample": 5,
+          "coldFirstBuild": false,
+          "setTreeMs": 7056.699999999255,
+          "frameSubmitMs": 0.20000000018626451,
+          "totalToFrameSubmissionMs": 7057,
+          "submitted": {
+            "bounds": {
+              "max": [
+                4.3374568072821,
+                15,
+                3.806220363273623
+              ],
+              "min": [
+                -3.895051643214036,
+                -0.05999999865889549,
+                -4.197446207068961
+              ]
+            },
+            "foliageInstances": 7012326,
+            "woodTriangles": 5580040,
+            "woodVertices": 2888144
+          },
+          "totalToCompletedFrameMs": 7384,
+          "frameAndCompletionMs": 327.20000000018626
+        }
+      ],
+      "cpu": []
+    }
+  ],
+  "gaps": [
+    "display compositor presentation is not measured",
+    "phone hardware",
+    "native rendering delivery",
+    "peak CPU/GPU memory",
+    "attachment setup separate from placement"
+  ]
+}

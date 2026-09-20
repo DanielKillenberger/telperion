@@ -1,0 +1,84 @@
+# Fast tree generation as a core engine capability
+
+## Conversation Evidence
+
+> user: "I'm thinking different species on rotation with different random seeds also"
+> user: "is there a path to near instant generation? I thought that a lot of gen time goes to mesh generation and leaf placement. If we're placing leaves 1 by 1 in series surely that must be optimizable. Ideally we could do it all in parallel on a gpu. That'd make it almost instant?"
+> user: "we have previously tried to optimize using gpu but couldn't make it can you check the learnings there and make sure we're not running against a wall again."
+> user: "The generator won't be locked in for a while, while we develop it further."
+> user: "yea i'm not saying never check for byte equivalence where it's useful but as we add more improvements we consciously want to improve the structure of the bytes over time."
+> user: "and if we have performance improvements that can't be done byte equivalent but have no perceivable visual regression that's fine too for example"
+
+> user: "it's not just for the website obviously"
+
+> user: "this is crucial for all usecases"
+
+> user: "i mean IF we can get the same byte identical tree for perf improvements that would make verification easier."
+
+> user (target discussion): "so given the approaches we're taking in the spec what is a reasonable target to set? aim high"
+> user (accepting the proposed 10x target and continuing): "ok $flow-next-flow"
+
+## Goal & Context
+<!-- Source: [paraphrase] -->
+
+Fast generation is a core requirement for every Telperion use case. Bring tree generation toward near-instant availability while preserving perceived fidelity. The shared capability must serve browser and native consumers; mature-tree builds are the first measured workload, not the limit of its relevance. Species rotation with random seeds on killenberger.com is the immediate use case, not the scope boundary. The owner wants to ship quickly and permits changes to generated structure and representation as the engine develops.
+
+## Architecture & Data Models
+<!-- Source: [inferred] -->
+
+Measure the current path before selecting a mechanism. Separate skeleton generation, wood surface construction, attachment preparation, foliage placement, culling, bounds and GPU upload. Investigate compact structural inputs expanded into foliage buffers on the GPU, consumed directly by the renderer. Compare against focused CPU improvements where profiling supports them. Keep the first GPU experiment to foliage; pursue wood expansion only if the remaining measured cost requires it. A whole-generator GPU rewrite is not the starting commitment. Put reusable improvements in the shared generation and rendering boundaries, with browser and native consumers using the same algorithms where applicable. Account for consumers requesting CPU geometry or structural data as well as GPU-resident rendering; do not obtain a website-only win by forcing other consumers through unnecessary representations or readback.
+
+## API Contracts
+
+- Preserve the consumer's ability to request a mature specimen from species parameters and a seed. Its representation and generation interface may evolve; asynchronous generation is allowed. [inferred]
+- Shared botanical inputs remain engine-independent and rendering changes apply across supported parameter values without species-specific code. [strategy:The core and integration]
+
+## Edge Cases & Constraints
+
+- Count preparation, allocation, transfer, synchronization and delivery of the requested representation in the candidate's total; include first-frame work for rendering consumers. Validation readback may run separately, but production readback cannot be excluded from its timing. [inferred]
+- Distinguish cold consumer initialization from generation with an initialized engine or renderer. Report cold page startup separately for the website use case. Neither a kernel timing nor a warm timing establishes instant cold delivery. [inferred]
+- Missing GPU support, device loss, allocation limits and invalid parameters must leave an explicit failure and a usable consumer lifecycle, rather than partial foliage represented as a completed tree. [inferred]
+
+## Acceptance Criteria
+
+- **R1:** Record a fresh baseline and stage breakdown for existing mature browser and native paths on multiple seeds of at least one broadleaf and one needle-bearing species. State generator revision, species, seeds, size, requested representation, viewport where applicable, runtime and hardware; include a desktop and a phone-class device. Record cold startup, initialized-engine time to the requested output, first completed frame for rendering consumers, latency distribution and accounted peak memory. Errors: unavailable devices or unmeasurable memory domains remain named gaps, never passing evidence. [inferred]
+- **R2:** Evaluate the first bounded candidate against the baseline and fn-12's failure modes. A GPU foliage candidate must replace CPU expansion and keep its resulting buffers available to rendering, rather than repeat the old CPU-build/upload/query/readback path. Report total latency and cost by stage. Errors: an isolated kernel gain with no end-to-end gain rejects that candidate; record the limiting stage and stop it before expanding into wood or botanical growth. [inferred]
+- **R3:** Prefer byte-identical output for performance improvements when practical and use exact comparison to simplify verification. This preference must not block a worthwhile measured gain: a candidate may change output bytes while introducing no perceptible visual regression. Compare the supported whole-tree and close views and relevant motion across the tested species and seeds, and record the owner's visual verdict. Retain exact checks where unchanged output is intended. Errors: an unexplained visual regression rejects the candidate; a byte mismatch alone does not. [paraphrase]
+- **R4:** Preserve botanical plausibility, foliage attachment, valid geometry and the consumer's relevant correctness requirements. Keep meaningful repeatability checks within the stated implementation and update changed baselines with evidence. Errors: missed spatial contacts, detached foliage, invalid geometry or silently truncated trees cannot be excused as byte differences. [inferred]
+- **R5:** Integrate the qualifying improvement into the shared mature-generation or rendering path, demonstrate its use by the existing browser and native consumers where applicable, and rerun the same specimen matrix against the baseline. State which requested representations benefit and measure any regression in retained CPU-output paths. Target at least a 10x reduction in warm end-to-end generation latency on each agreed desktop specimen fixture, with no increase in accounted peak memory and no perceptible visual regression. Report distance from the 100 ms stretch goal separately. Measure CPU-output and GPU-resident rendering paths separately; establish a comparable completed-frame baseline before qualifying rendering delivery. Report absolute values and before/after differences. Cold initialization and phone measurements are reported separately and cannot be qualified from desktop results. Errors: a missed bound or unsupported case is reported explicitly; a failed experiment does not count as delivered fast generation. [inferred]
+
+## Boundaries
+
+- The engine improvement supports multiple species and random seeds; choosing only a curated list of seeds is not a substitute for improving generation. [paraphrase]
+- Website layout, rotation behavior, deployment, wind animation and scroll-driven growth are separate work. This spec improves reusable mature-tree generation and delivery. New external-engine adapters are separate work; existing native and browser consumers supply the initial proof. [inferred]
+- Byte-identical output is preferred when practical for performance improvements, not required across intentional improvements or CPU/GPU backends. Relevant visual and correctness requirements remain. [paraphrase]
+- The owner accepted the lit CPU/GPU wood comparison as looking identical. Preserve this acceptance for the tested candidate and views. Exact-output follow-up optimizations reuse that visual evidence; tiny pixel differences remain verification details and do not independently require another owner confirmation. New visible behavior or an actual visual regression still needs assessment. [paraphrase, owner 2026-09-20]
+- No commitment to move all generation to the GPU, add a forest renderer or revive the rejected field-query implementation. [inferred]
+
+## Decision Context
+
+- fn-12 tested GPU queries over CPU-built spatial indices, not GPU foliage or wood construction. Cold preparation and transfers erased the gains; one resident giant-grid query improved from 25.4 to 11.8 ms, while contact queries still missed cells. These are historical results, not estimates for this candidate. [inferred]
+- The new experiment targets expansion that can stay on the GPU. Its acceptance is end-to-end speed with preserved perceived quality, so it must demonstrate that the old overhead problem has actually been avoided. [inferred]
+- The owner prioritizes shipping and substantial engine improvements over freezing today's generated output. GPU execution is a candidate mechanism, not a reason to accept a slower path. [paraphrase]
+
+## Parked unknowns
+
+- Accepted first desktop matrix: current mature oak and spruce at seeds 1 and 7, native CPU output and browser delivery, using the recorded baseline hardware. Warm latency target is 10x, with 100 ms as a stretch goal and no increase in accounted peak memory. Full cold-start and phone qualification remain separate evidence gaps; no phone performance bound has been set.
+- The fresh desktop baseline is recorded in `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/BASELINE.md`. Tasks .2-.8 deliver bounded leaf readback, resident wood expansion, admission traversal, shared contacts and qualified GPU positions. Task .8 completed-frame browser medians are179.1/203.7ms for oak seeds1/7 and194.6/178.9ms for spruce, respectively8.77/9.14/39.20/41.27 times faster than the original baseline. Oak remains22.1/17.5ms above its10x targets; every fixture exceeds100ms. `position-integration/REPORT.md` retains raw measurement provenance, native results, CPU-owned controls, admission boundaries, explicit memory envelopes and limitations. No measured explicit joint-capacity envelope increases, but allocator/driver/staging/deferred-destruction peaks and cold/phone qualification remain open. GPU-assisted CPU-owned oak observes+6.59% in this control sample; overlapping ranges and unchanged code do not erase that result.
+- GPU positions are admitted only in the qualified unmodulated, bounded-coordinate/radius domain; other valid inputs retain canonical resident generation. Mature position differences stay below2.336µm with no new collapsed faces. The skinny oak face-normal outlier and isolated preflight-normal rejection test gap remain explicit. Fixed-pose lit exterior bare-wood comparisons were inspected and opened; no perceptible blocker was found. This does not establish canopy, close/motion or device-independent fidelity.
+- Task .9 attributes remaining shared CPU preparation (`cpu-profile/REPORT.md`). Local advance dominates native oak at50.56/56.16ms; repeated early radius solves total only0.19/0.25ms. Sampled planner work is23.14/22.60ms, including4.75/4.52ms clipping; individual heading/admission costs remain unresolved. Current browser skeleton medians73.3/81.7ms, position preparation36.3/43.6ms and descriptors20.3/25.3ms leave meaningful CPU cost. These independent stage medians are not an additive prediction.
+- Tasks .10 and .11 screened radius-only ordering and inactive-growth-bias specialization. Both preserved compared bytes but missed their declared speed targets and were fully reverted. Their evidence remains in `radius-order/REPORT.md` and `bias/REPORT.md`; neither is a shipped improvement. Task .12 screened prepared envelope admission bounds and was rejected after mixed delivery and memory observations. Oak skeleton gains of24.22/14.39% became browser gains of1.31/3.92%, with spruce regressions and an unexplained41,824KiB GPU-assisted owned-output oak RSS increase. Production is fully restored; `envelope/REPORT.md` retains both candidate phases and all measurements. Task .13 retains bounded parallel Linux x86_64 CPU surface expansion. Full wood is2.57–2.70x faster with bitwise-identical all4 outputs; native GPU-assisted CPU-owned oak delivers156.88/182.10ms and pureCPU oak476.51/644.75ms. Accounted surface envelopes decrease while small processRSS increases remain explicit; see `parallel/REPORT.md`. Task .14 evaluates shared station preparation and zero-contact CPU/GPU overlap toward the owner-selected oak browser milestone. CPU-owned output remains independently required; GPU-resident speed does not qualify other representations.
+
+## Finish boundary (owner, 2026-09-20)
+
+The owner asked when the spec would finish, then selected reaching 10x on oak as a good stopping point if a concrete path exists. Use both agreed oak browser completed-frame fixtures, at or below157.0/186.25ms, with the existing fidelity and accounted-memory checks. Stop the optimization search at that measured milestone and perform final validation. The100ms stretch and missing cold/phone evidence remain separately reported; this stopping decision does not turn unmeasured requirements into passing evidence. Native CPU output remains a distinct reported result.
+
+## Strategy Alignment
+
+The core and integration permits compact engine-independent descriptions expanded on the GPU. Surface and rendering at scale requires measured runtime cost and fidelity across generated trees. The updated evolution policy permits faster implementations with changed bytes and no perceptible visual regression.
+
+## Final optimization result (host, 2026-09-20)
+
+Task .14 measures browser completed-frame medians of 158.1/180.8 ms for oak seeds 1/7 and 178.9/164.2 ms for spruce: 9.93/10.30/42.64/44.97× the original baseline. The immediate .8 browser pair is 178.1/198.2/194.2/186.5 ms. Oak seed 1 misses the strict 10× threshold by 1.1 ms; the host ends optimization at this approximately 10× milestone, without retiming to manufacture a crossing. This operational stop does not amend the original R-ID criteria or claim every criterion passed.
+
+All four station-record outputs are byte-identical in the mature matrix. The live joint-capacity envelope remains unchanged, while oak seed 7 Wasm linear-memory high-water rises 26,279,936 bytes; oak seed 1 falls 24,641,536 bytes, and spruce is unchanged. Native CPU output and cold/phone/full-memory qualification remain separate. Final validation and qualification assessment are recorded in `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/COMPLETION-ASSESSMENT.md`; `.1` retains the original outstanding qualifications.

@@ -1,0 +1,62 @@
+[
+  {
+    "species": "oregon-white-oak",
+    "revision": "baseline",
+    "adapter": "NVIDIA GeForce RTX 3080",
+    "initializationMs": 387.144898,
+    "coldMs": 275.955238,
+    "warmP50Ms": 259.26938,
+    "warmMaxMs": 259.424933,
+    "readbackP50Ms": 1.593704,
+    "instances": 715065,
+    "hashes": [
+      "79cca656bd60f673",
+      "79cca656bd60f673"
+    ]
+  },
+  {
+    "species": "oregon-white-oak",
+    "revision": "candidate",
+    "adapter": "NVIDIA GeForce RTX 3080",
+    "initializationMs": 320.805647,
+    "coldMs": 277.997801,
+    "warmP50Ms": 255.650832,
+    "warmMaxMs": 257.501932,
+    "readbackP50Ms": 1.206256,
+    "instances": 715065,
+    "hashes": [
+      "79cca656bd60f673",
+      "79cca656bd60f673"
+    ]
+  },
+  {
+    "species": "norway-spruce",
+    "revision": "baseline",
+    "adapter": "NVIDIA GeForce RTX 3080",
+    "initializationMs": 180.80243,
+    "coldMs": 367.00731599999995,
+    "warmP50Ms": 351.725378,
+    "warmMaxMs": 354.495608,
+    "readbackP50Ms": 74.73262,
+    "instances": 7353754,
+    "hashes": [
+      "7ee559575850f9b2",
+      "7ee559575850f9b2"
+    ]
+  },
+  {
+    "species": "norway-spruce",
+    "revision": "candidate",
+    "adapter": "NVIDIA GeForce RTX 3080",
+    "initializationMs": 190.51131700000002,
+    "coldMs": 315.81097,
+    "warmP50Ms": 297.03376799999995,
+    "warmMaxMs": 299.01659,
+    "readbackP50Ms": 22.575423,
+    "instances": 7353754,
+    "hashes": [
+      "7ee559575850f9b2",
+      "7ee559575850f9b2"
+    ]
+  }
+]

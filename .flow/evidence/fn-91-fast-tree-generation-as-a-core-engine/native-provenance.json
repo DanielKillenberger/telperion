@@ -1,0 +1,18 @@
+{
+  "revision": "507d3ef13b883136af32d1bc966225b7906dcb81",
+  "binary_sha256": "2de17abd15bce12bc88ae5539719b895864adbcbd4c4ebf90785ba4900500bb4",
+  "runtime": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "platform": "Linux-7.2.3-arch1-3-x86_64-with-glibc2.44",
+  "cpu": "model name\t: AMD Ryzen 9 5950X 16-Core Processor",
+  "samples": "first process build plus five warmed builds per species/seed",
+  "exclusive": false,
+  "requested_representation": "full CPU wood surface and compact foliage placements; no renderer",
+  "missing": [
+    "phone hardware",
+    "GPU/upload/first completed frame",
+    "OS/allocator/GPU peak memory",
+    "attachment preparation separate from placement"
+  ],
+  "baseline": "none (spec defines no Quick commands)",
+  "browser_cpu_wasm_sha256": "9c577e8669728db5f06dc2781419b005e38759feeeb6124db618b13d1bf94999"
+}

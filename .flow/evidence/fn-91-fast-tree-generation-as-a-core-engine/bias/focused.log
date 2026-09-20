@@ -1,0 +1,15 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 41.57s
+────────────
+ Nextest run ID ca5bb105-46da-4577-9171-2dbd9224bbc9 with nextest profile: default
+    Starting 8 tests across 3 binaries (192 tests skipped)
+        PASS [   0.004s] (1/8) telperion-core::foundation bias_and_sampling_limits_are_explicit
+        PASS [   0.004s] (2/8) telperion-core::foundation bias_preserves_scale_sampling_and_upward_progress
+        PASS [   0.005s] (3/8) telperion-core bias::tests::specialization_matches_original_bits
+        PASS [   0.054s] (4/8) telperion-core branching::specimen::tests::scaffold_resume_preserves_each_axis_stream_and_spent_attractors
+        PASS [   0.133s] (5/8) telperion-core branching::specimen::tests::whole_build_replays_the_retained_frontiers_exactly
+        PASS [   0.248s] (6/8) telperion-core::growth limits::natural_bias_is_independent_of_disabled_effects
+        PASS [   2.283s] (7/8) telperion-core branching::audit::every_bias_term_reaches_every_shipped_preset
+        PASS [   2.963s] (8/8) telperion-core branching::specimen::tests::local_resume_preserves_pending_runs_across_irregular_budgets
+────────────
+     Summary [   2.964s] 8 tests run: 8 passed, 192 skipped

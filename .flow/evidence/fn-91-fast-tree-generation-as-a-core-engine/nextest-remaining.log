@@ -1,0 +1,145 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+   Compiling telperion-wasm v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-wasm)
+    Finished `release` profile [optimized] target(s) in 2m 04s
+────────────
+ Nextest run ID 98dcfa58-46d8-42e8-a66a-9099b71d425d with nextest profile: default
+    Starting 136 tests across 38 binaries (5 tests skipped)
+        PASS [   0.007s] (  1/136) telperion-render camera::tests::a_walk_stands_at_a_hero_pose_at_each_of_its_ends
+        PASS [   0.007s] (  2/136) telperion-render camera::tests::a_whole_sweep_comes_back_to_the_pose_it_left
+        PASS [   0.008s] (  3/136) telperion-render device::tests::every_condition_names_itself
+        PASS [   0.008s] (  4/136) telperion-render scene::row::tests::the_default_is_a_row_the_renderer_will_have
+        PASS [   0.008s] (  5/136) telperion-render buffer::tests::an_empty_tree_asks_for_nothing
+        PASS [   0.008s] (  6/136) telperion-render camera::tests::a_shot_aims_where_it_says_and_never_sinks_underground
+        PASS [   0.008s] (  7/136) telperion-render foliage::tests::a_leaf_carries_a_normal_off_its_own_face
+        PASS [   0.008s] (  8/136) telperion-render camera::tests::an_orbit_keeps_the_hero_height_and_the_hero_distance
+        PASS [   0.008s] (  9/136) telperion-render mass::tests::no_crown_and_no_leaves_read_no_depth
+        PASS [   0.009s] ( 10/136) telperion-render camera::tests::a_sweep_turns_the_eye_about_the_subject_and_keeps_its_height
+        PASS [   0.009s] ( 11/136) telperion-render camera::tests::the_default_shot_looks_from_where_the_hero_pose_does
+        PASS [   0.009s] ( 12/136) telperion-render camera::tests::a_subject_smaller_than_a_person_still_fills_its_frame
+        PASS [   0.009s] ( 13/136) telperion-render buffer::tests::a_submit_that_outgrows_the_headroom_allocates_again
+        PASS [   0.009s] ( 14/136) telperion-render scene::room::tests::the_disc_is_wound_one_way_and_covers_its_whole_circle
+        PASS [   0.009s] ( 15/136) telperion-render buffer::tests::a_second_smaller_submit_reuses_the_allocation
+        PASS [   0.009s] ( 16/136) telperion-render scene::row::tests::the_row_survives_its_own_json_in_both_directions
+        PASS [   0.009s] ( 17/136) telperion-render headless::tests::a_still_of_one_colour_has_no_subject
+        PASS [   0.009s] ( 18/136) telperion-render device::tests::a_generator_rejection_keeps_its_own_words
+        PASS [   0.009s] ( 19/136) telperion-render pass::tests::a_target_that_will_not_multisample_takes_the_whole_frame_down_to_one_sample
+        PASS [   0.009s] ( 20/136) telperion-render camera::tests::a_shot_fills_the_frame_it_states_on_any_aspect
+        PASS [   0.009s] ( 21/136) telperion-render camera::tests::the_camera_never_stands_underground
+        PASS [   0.009s] ( 22/136) telperion-render camera::tests::a_close_up_aims_at_the_stem_and_a_framed_shot_at_the_bounds
+        PASS [   0.009s] ( 23/136) telperion-render foliage::tests::an_element_at_the_origin_bounds_itself
+        PASS [   0.009s] ( 24/136) telperion-render scene::room::tests::the_figure_stands_one_point_eight_metres_tall_on_the_ground
+        PASS [   0.010s] ( 25/136) telperion-render camera::tests::the_margin_is_the_only_air_around_the_crown
+        PASS [   0.010s] ( 26/136) telperion-render scene::row::tests::a_row_the_renderer_will_not_have_says_what_was_wrong_with_it
+        PASS [   0.010s] ( 27/136) telperion-render camera::tests::the_whole_crown_sits_inside_the_frame
+        PASS [   0.010s] ( 28/136) telperion-render buffer::tests::an_allocation_carries_headroom_above_what_it_holds
+        PASS [   0.010s] ( 29/136) telperion-render camera::tests::the_far_plane_clears_the_ground_disc
+        PASS [   0.011s] ( 30/136) telperion-render camera::tests::a_walk_keeps_the_subject_and_the_stand_off_between_its_ends
+        PASS [   0.012s] ( 31/136) telperion-render headless::tests::an_unwritable_path_names_itself
+        PASS [   0.007s] ( 32/136) telperion-render select::frame::tests::a_metre_spans_the_frame_it_fills
+        PASS [   0.007s] ( 33/136) telperion-render select::frame::tests::a_leaf_stands_in_a_sphere_that_holds_all_of_it
+        PASS [   0.008s] ( 34/136) telperion-render scene::tests::sky_and_ground_light_bracket_the_hemisphere_term
+        PASS [   0.007s] ( 35/136) telperion-render shadow::fit::tests::a_lower_sun_is_given_a_longer_map_and_a_sun_on_the_horizon_is_not
+        PASS [   0.008s] ( 36/136) telperion-render select::frame::tests::the_frustum_holds_what_the_camera_frames_and_nothing_behind_it
+        PASS [   0.007s] ( 37/136) telperion-render view::tests::every_name_the_usage_line_offers_resolves_and_nothing_else_does
+        PASS [   0.008s] ( 38/136) telperion-render select::frame::tests::the_planes_measure_in_metres
+        PASS [   0.007s] ( 39/136) telperion-render wood::radius::tests::translated_tapered_rings_keep_their_metric_radius_and_caps_are_smooth
+        PASS [   0.008s] ( 40/136) telperion-render shot::tests::the_default_shot_is_the_hero_pose
+        PASS [   0.008s] ( 41/136) telperion-render select::tests::every_level_is_given_a_list_the_whole_crown_could_fill
+        PASS [   0.007s] ( 42/136) telperion-render submit::tests::the_crown_is_the_box_the_placements_fill_and_nothing_when_there_are_none
+        PASS [   0.008s] ( 43/136) telperion-render shadow::fit::tests::the_sun_stands_where_its_two_angles_put_it
+        PASS [   0.008s] ( 44/136) telperion-render shadow::fit::tests::the_map_holds_the_subject_and_the_shadow_it_throws
+        PASS [   0.008s] ( 45/136) telperion-render shot::tests::the_shot_survives_its_own_json_and_refuses_what_it_cannot_frame
+        PASS [   0.017s] ( 46/136) telperion-render mass::tests::a_leaf_under_its_own_lobe_is_deeper_than_one_on_its_face
+        PASS [   0.008s] ( 47/136) telperion-render::bark_detail radius_storage_is_refused_before_upload_when_only_its_binding_limit_is_exceeded
+        PASS [   0.009s] ( 48/136) telperion-render wood::calibration::flat_patch_coordinates_have_the_stated_physical_scale
+        PASS [   0.204s] ( 49/136) telperion-render::bark_score the_score_separates_bark_from_brickwork
+        PASS [   6.884s] ( 50/136) telperion-render::bark_parallax parallax_descends_away_from_the_eye_and_refines_the_intersection
+        PASS [   6.916s] ( 51/136) telperion-render::canopy_terms diffuse_transmission_reaches_a_leaf_lit_from_behind_at_any_angle
+        PASS [   6.956s] ( 52/136) telperion-render::canopy_terms the_crown_over_a_leaf_takes_its_share_of_the_sky_per_radius
+        PASS [   7.035s] ( 53/136) telperion-render select::tests::compaction_preserves_placement_order_at_every_level
+        PASS [   7.045s] ( 54/136) telperion-render::canopy_terms the_highlight_returns_at_most_its_fresnel_share_of_the_sun
+        PASS [   7.053s] ( 55/136) telperion-render::bark_plates every_plate_carries_an_identity_of_its_own
+        PASS [   7.081s] ( 56/136) telperion-render shadow::kernel_test::kernel_averages_comparisons_and_offsets_the_receiver
+        PASS [   0.008s] ( 57/136) telperion-render::conformance the_renderer_library_never_names_a_family
+        PASS [   0.007s] ( 58/136) telperion-render::conformance the_selection_path_names_no_family_and_no_anatomy
+        PASS [   7.089s] ( 59/136) telperion-render::canopy_terms the_wrap_lights_past_the_terminator_and_leaves_a_square_face_alone
+        PASS [   7.163s] ( 60/136) telperion-render::bark_relief_range revised_profiles_reduce_the_rejected_broad_relief
+        PASS [   0.133s] ( 61/136) telperion-render::conformance a_set_the_generator_will_not_have_says_which_parameter
+        PASS [   7.180s] ( 62/136) telperion-render::canopy_terms the_canopy_normal_turns_a_leaf_facing_away_toward_a_sunward_shell
+        PASS [   7.188s] ( 63/136) telperion-render::bark_field surface_lengths_young_wood_wrap_and_plate_drift
+        PASS [   7.216s] ( 64/136) telperion-render::bark_filter either_unresolved_axis_leaves_little_relief_and_furrows_can_close
+        PASS [   7.208s] ( 65/136) telperion-render::canopy_terms the_sheen_rises_from_its_reflectance_to_all_of_the_sky_at_grazing
+        PASS [   7.289s] ( 66/136) telperion-render::bark_structure mature_girth_strengthens_an_axial_field
+        PASS [  13.240s] ( 67/136) telperion-render::bark_plates the_pinned_plate_mean_is_the_mean_the_field_averages_to
+        PASS [  13.478s] ( 68/136) telperion-render::bark_plates rough_plate_mean_matches_its_narrow_ragged_profile
+        PASS [  13.612s] ( 69/136) telperion-render::bark_plates edge_shape_blends_continuously_and_is_independent_of_smooth_terms
+        PASS [   0.030s] ( 70/136) telperion-render::material_shaders production_material_stages_validate_with_uniform_derivatives
+        PASS [  13.702s] ( 71/136) telperion-render::bark_detail relief_moves_the_light_while_every_wood_mesh_byte_holds
+        PASS [  14.924s] ( 72/136) telperion-render::canopy_light the_crown_shade_darkens_the_underside_of_the_mass_more_than_its_top
+        PASS [  15.304s] ( 73/136) telperion-render::canopy_light no_canopy_row_touches_the_clay_room_or_the_wood
+        PASS [  15.400s] ( 74/136) telperion-render::blade_colour a_matte_needle_row_is_inert_even_with_scales_and_tints_set
+        PASS [  15.719s] ( 75/136) telperion-render::blade_colour blade_colour_rows_survive_levels_and_the_back_has_no_cuticle
+        PASS [  17.800s] ( 76/136) telperion-render::bark_distance resolved_scales_survive_until_the_two_pixel_boundary
+        PASS [  17.655s] ( 77/136) telperion-render::colour_cavity cavity_cuts_sun_and_sky_and_ground_contact_needs_no_relief
+        PASS [  18.333s] ( 78/136) telperion-render::bark_occlusion the_row_at_zero_leaves_the_frame_exactly_as_it_was
+        PASS [  18.841s] ( 79/136) telperion-render::canopy_light the_canopy_normal_lights_the_sunward_side_of_the_mass_over_the_far_side
+        PASS [  18.851s] ( 80/136) telperion-render::bark_occlusion the_darkened_side_of_a_furrow_follows_the_sun
+        PASS [  18.895s] ( 81/136) telperion-render::bark_depth the_depth_row_moves_no_wood_and_changes_the_picture
+        PASS [  19.496s] ( 82/136) telperion-render::bark_resolution trunk_agrees_with_a_box_reduction_at_half_resolution
+        PASS [   0.014s] ( 83/136) telperion-render::submit a_ladder_longer_than_selection_can_tally_is_refused_by_its_length
+        PASS [   5.258s] ( 84/136) telperion-render::smooth_means every_smooth_layer_fades_to_the_mean_its_field_averages_to
+        PASS [   0.037s] ( 85/136) telperion-render::submit a_tree_is_judged_on_the_allocation_it_needs_not_the_bytes_it_holds
+        PASS [  25.454s] ( 86/136) telperion-render::canopy_light each_leaf_term_lights_a_leaf_the_way_its_sun_stands
+        PASS [   0.024s] ( 87/136) telperion-render::submit every_buffer_selection_needs_is_judged_and_named_before_the_upload
+        PASS [   0.032s] ( 88/136) telperion-render::submit every_buffer_that_will_not_fit_is_refused_by_name_and_by_size
+        PASS [   0.029s] ( 89/136) telperion-render::submit wood_runs_must_tile_the_index_buffer_in_radius_order
+        PASS [  19.253s] ( 90/136) telperion-render::colour_cavity fissures_crests_and_mottle_change_colour_without_changing_wood
+        PASS [  26.459s] ( 91/136) telperion-render::bark_structure_colour each_structure_colour_row_changes_the_picture_and_moves_no_wood
+        PASS [   0.012s] ( 92/136) telperion-render::timing a_valid_record_carries_every_pass_the_levels_and_the_orbit
+        PASS [   0.011s] ( 93/136) telperion-render::timing a_valid_record_carries_its_numbers_and_an_invalid_one_carries_none
+        PASS [   0.010s] ( 94/136) telperion-render::timing every_verdict_is_reached_by_the_samples_that_define_it
+        PASS [   0.012s] ( 95/136) telperion-render::timing nothing_a_session_did_not_earn_reaches_a_record
+        PASS [   0.010s] ( 96/136) telperion-render::timing the_wall_clock_is_the_one_number_the_gpu_verdict_does_not_govern
+        PASS [  26.595s] ( 97/136) telperion-render::bark_resolution grazing_trunks_agree_with_a_box_reduction_at_half_resolution
+        PASS [   0.011s] ( 98/136) telperion-render::walk a_frame_count_schedules_exactly_what_it_always_did
+        PASS [   0.010s] ( 99/136) telperion-render::walk a_scene_row_off_the_command_line_moves_what_it_names_and_nothing_else
+        PASS [   0.016s] (100/136) telperion-render::walk a_value_a_flag_cannot_mean_is_refused_by_that_flag_s_name
+        PASS [   0.015s] (101/136) telperion-render::walk a_walk_holds_at_each_end_and_eases_between_them
+        PASS [   0.012s] (102/136) telperion-render::walk a_walk_leaves_and_arrives_at_rest
+        PASS [   0.012s] (103/136) telperion-render::walk the_parser_reads_a_frame_run_the_way_it_always_read_one
+        PASS [  20.175s] (104/136) telperion-render::colour_cavity crown_occlusion_darkens_wood_and_leaves_but_not_a_single_leaf_or_clay
+        PASS [   0.011s] (105/136) telperion-wasm generate::tests::surviving_diagnostics_match_radius_law_and_empty_state
+        PASS [  20.587s] (106/136) telperion-render::conformance a_frame_is_drawn_at_the_count_the_device_offers_and_read_back_resolved
+        PASS [  20.689s] (107/136) telperion-render::conformance parameter_sets_nobody_wrote_by_hand_render_the_same_way
+        PASS [  20.804s] (108/136) telperion-render::grain blade_grain_shows_near_and_is_its_mean_far
+        PASS [  20.740s] (109/136) telperion-render::headless a_tree_reaches_the_pixels
+        PASS [  20.751s] (110/136) telperion-render::leaf_detail veins_draw_at_every_blade_level_and_never_on_a_round_section
+        PASS [  20.701s] (111/136) telperion-render::look every_leaf_takes_its_own_offset_inside_the_row_s_ranges
+        PASS [  20.820s] (112/136) telperion-render::leaf_detail transmission_reaches_the_drawn_leaf_through_the_material_uniform
+        PASS [   1.521s] (113/136) telperion-render::transmission shadow_blocks_transmission_and_a_lit_backface_obeys_the_row
+        PASS [  20.940s] (114/136) telperion-render::headless a_second_smaller_tree_reuses_the_wood_buffers
+        PASS [  21.052s] (115/136) telperion-render::lobe_shade at_zero_the_row_draws_the_frame_it_always_drew
+        PASS [  21.595s] (116/136) telperion-render::grain bark_grain_shows_near_and_is_its_mean_far
+        PASS [  21.746s] (117/136) telperion-render::lobe_shade a_lobe_s_face_keeps_its_light_and_its_underside_falls_into_shade
+        PASS [  17.302s] (118/136) telperion-render::look the_clay_view_draws_the_still_the_room_always_drew
+        PASS [  17.163s] (119/136) telperion-render::look the_lit_frame_has_a_sky_that_deepens_with_height_and_is_not_blown_out
+        PASS [  15.688s] (120/136) telperion-render::shoot_colour a_row_with_no_shoot_radius_draws_the_bark_whatever_shoot_colour_it_states
+        PASS [  17.442s] (121/136) telperion-render::shadow full_casters_cover_at_least_the_default_on_separated_surfaces
+        PASS [  16.433s] (122/136) telperion-render::shadow the_sun_sees_the_wood_and_the_whole_crown_and_the_leaf_view_is_not_in_its_way
+        PASS [  16.396s] (123/136) telperion-render::shoot_colour mottle_still_acts_on_young_wood
+        PASS [  16.078s] (124/136) telperion-render::shoot_colour young_wood_takes_the_shoot_colour_and_gives_it_up_continuously_by_twice_its_radius
+        PASS [  13.562s] (125/136) telperion-render::submit a_crown_with_no_leaves_submits_draws_and_frames
+        PASS [  14.718s] (126/136) telperion-render::shot a_shot_poses_the_frame_and_the_figure_leaves_when_asked
+        PASS [  14.031s] (127/136) telperion-render::socket_cavity a_fork_socket_occludes_sun_and_sky_without_relief
+        PASS [   9.082s] (128/136) telperion-render::submit each_view_draws_what_its_name_promises
+        PASS [   7.435s] (129/136) telperion-render::timing a_session_on_a_device_never_reports_a_percentile_it_did_not_earn
+        PASS [   8.101s] (130/136) telperion-render::timing a_device_session_times_the_selection_pass_and_counts_what_it_chose
+        PASS [  20.079s] (131/136) telperion-render::submit a_submitted_tree_is_the_tree_the_core_counted
+        PASS [  25.962s] (132/136) telperion-render::shadow every_preset_has_default_casters_fixed_under_orbit_and_row_changes
+        PASS [  21.289s] (133/136) telperion-render::smooth_bark the_smooth_barks_hold_the_resolution_and_redraw_contracts
+        PASS [  13.071s] (134/136) telperion-wasm generate::tests::mesh_build_matches_the_binding_chain_for_oak_and_spruce
+        PASS [  33.585s] (135/136) telperion-render::conformance every_shipped_family_renders_through_the_one_path
+        PASS [  26.857s] (136/136) telperion-render::smooth_bark each_smooth_layer_changes_the_close_up_and_moves_no_wood
+────────────
+     Summary [  44.734s] 136 tests run: 136 passed, 5 skipped

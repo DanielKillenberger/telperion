@@ -1,0 +1,21 @@
+    Finished `release` profile [optimized] target(s) in 0.03s
+────────────
+ Nextest run ID 99ed9f8a-ff2b-4cb4-acb7-b2e63387ccbd with nextest profile: default
+    Starting 15 tests across 3 binaries (193 tests skipped)
+        PASS [   0.004s] ( 1/15) telperion-core::foliage attachments::species_empty_degenerate_and_invalid_controls_are_explicit
+        PASS [   0.004s] ( 2/15) telperion-core foliage::station::tests::streamed_frames_match_canonical_transport_and_projection
+        PASS [   0.004s] ( 3/15) telperion-core::foliage stations::a_shoot_can_carry_more_than_512_authored_stations
+        PASS [   0.013s] ( 4/15) telperion-core::foliage attachments::shoot_radius_alone_clothes_slender_supports_and_spares_thick_limbs
+        PASS [   0.013s] ( 5/15) telperion-core::foliage stations::shell_keeps_leaf_extent_and_crown_underside
+        PASS [   0.013s] ( 6/15) telperion-core::foliage stations::cull_retains_in_the_buffer_it_was_given
+        PASS [   0.013s] ( 7/15) telperion-core::foliage stations::fallback_folds_zero_edges_and_clumps_at_terminal_tip
+        PASS [   0.013s] ( 8/15) telperion-core::foliage stations::element_anatomy_and_bounds
+        PASS [   0.013s] ( 9/15) telperion-core::foliage attachments::leaned_stations_continue_across_subdivided_twig_runs
+        PASS [   0.013s] (10/15) telperion-core foliage::station::tests::algebraic_transport_handles_parallel_antiparallel_and_near_turns
+        PASS [   0.013s] (11/15) telperion-core::generation_limit_guard new_literal_limits_are_detected
+        PASS [   0.013s] (12/15) telperion-core::foliage stations::shell_membership_empty_and_invalid
+        PASS [   0.013s] (13/15) telperion-core::foliage stations::twig_stations_and_owned_deterministic_frames
+        PASS [   0.014s] (14/15) telperion-core::foliage stations::malformed_element_is_rejected_even_when_first_vertex_is_outside_shell
+        PASS [   0.027s] (15/15) telperion-core::generation_limit_guard generation_limits_are_classified
+────────────
+     Summary [   0.028s] 15 tests run: 15 passed, 193 skipped

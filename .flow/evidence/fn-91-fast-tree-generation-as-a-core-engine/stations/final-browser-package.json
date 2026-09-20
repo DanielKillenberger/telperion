@@ -1,0 +1,6 @@
+{
+  "measured_sha256": "01a03c430ee97cc120c67d4d8379e4f73399b9bc30f60104a4b267a0178c1873",
+  "final_sha256": "c9886b9871f3b8f9ba8b6eb6b300714f862fdd63a945bd81914d5a679ca18c73",
+  "identical": false,
+  "cleanup": "PendingRead::complete parameter gpu renamed _gpu. Broad initial edit accidentally changed native eager-read test local; host aggregate compile caught and corrected test reference. Production behavior unchanged."
+}

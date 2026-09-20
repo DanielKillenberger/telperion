@@ -1,0 +1,17 @@
+
+> telperion@0.1.0 render:build
+> node scripts/build-render.mjs
+
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+warning: unused variable: `gpu`
+   --> crates/telperion-render/src/generation/io.rs:168:40
+    |
+168 |     pub(super) async fn complete(self, gpu: &Gpu) -> Result<Vec<u8>> {
+    |                                        ^^^ help: if this is intentional, prefix it with an underscore: `_gpu`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `telperion-render` (lib) generated 1 warning (run `cargo fix --lib -p telperion-render` to apply 1 suggestion)
+    Finished `release` profile [optimized] target(s) in 17.12s
+Built the renderer module and its glue into src/browser/render/.

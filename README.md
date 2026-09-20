@@ -435,13 +435,22 @@ production GPU query candidate**. All cold workloads were slower and f32 contact
 results differed from the f64 CPU reference. A giant 64³ resident query improved
 locally, but did not qualify a complete lifecycle or the general precision contract.
 Skeleton and field-construction GPU performance remain inconclusive; only their
-CPU stages and code dependencies were examined. Production generation and queries
-remain synchronous CPU operations, with no automatic backend selection or new GPU
-entry point. The rejected WebGPU implementation, runner and dedicated tests have
+CPU stages and code dependencies were examined. That experiment introduced no
+production GPU query entry point. The rejected WebGPU implementation, runner and dedicated tests have
 been removed. The report retains final timing and correctness evidence from Linux
 Chromium 151 and an RTX 3080. The snapshot API and
 [CPU reproduction tools](scripts/benchmarks/generation.md) remain in use by the
 field-generation follow-up's correctness checks and measurements.
+
+The separate [fn-91 generation path](scripts/benchmarks/generation.md#qualified-gpu-positions)
+expands compact foliage and qualified wood inputs into GPU-resident buffers shared
+by native `Delivery::Resident` and browser `setTreeGpu`. CPU-owned output remains
+available, and the default browser path remains synchronous CPU generation.
+The [retained desktop measurements](.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/stations/REPORT.md)
+record completed-frame delivery of 158.1–180.8 ms for mature oak and spruce seeds
+1/7 with an initialized renderer. These results do not qualify cold page startup,
+phone performance or complete process/GPU peak memory. This GPU expansion path
+does not revive fn-12's rejected spatial-query implementation.
 
 The archived [FN7 surface experiment](experiments/rust-surface-benchmark/REPORT.md) measured a narrower and older workload. Its numbers are historical, not a full-engine migration result. Further botanical realism and species visual QA remain future work. Bark and foliage are now judged lit - colour, sun, shadow and the crown's own depth, beside the reference photographs - and the clay view remains for judging geometry alone; procedural bark relief, leaf veins and two-sided leaf transmission are implemented, with owner judgments at the close-up scales still pending. Full lifecycle simulation is not implemented.
 
@@ -461,8 +470,10 @@ git archive 1922505a8a396d73b335974eabf6a9faf33ccd62 .flow/evidence experiments/
 The viewer's species selector exposes Oregon white oak (`oregon-white-oak`,
 *Quercus garryana*) and Norway spruce (`norway-spruce`, *Picea abies*), alongside
 Ordinary, Telperion and Laurelin. Choose species independently of the unsigned
-32-bit specimen seed; changing species preserves the seed. Identical family
-parameters and seed reproduce the specimen. Different seeds vary structure and
+32-bit specimen seed; changing species preserves the seed. Within a stated generator revision and backend, family
+parameters and seed identify the specimen; generated output may change as the
+engine improves. Cross-revision and CPU/GPU byte equality are not promised
+(see STRATEGY.md, Attributability). Different seeds vary structure and
 placement, not species identity. Whole, bare-branch and single-leaf views
 support inspection; the leaf view isolates one placed unit at generated scale.
 Open `/?species=norway-spruce&seed=1` to load a full-foliage specimen directly.

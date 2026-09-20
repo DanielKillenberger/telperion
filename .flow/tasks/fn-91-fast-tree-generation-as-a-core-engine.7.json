@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-20T15:01:59.732031Z",
+  "depends_on": [
+    "fn-91-fast-tree-generation-as-a-core-engine.6"
+  ],
+  "id": "fn-91-fast-tree-generation-as-a-core-engine.7",
+  "priority": null,
+  "spec": "fn-91-fast-tree-generation-as-a-core-engine",
+  "spec_path": ".flow/tasks/fn-91-fast-tree-generation-as-a-core-engine.7.md",
+  "status": "todo",
+  "title": "Probe GPU wood positions from compact ring inputs",
+  "updated_at": "2026-09-20T15:01:59.732031Z"
+}

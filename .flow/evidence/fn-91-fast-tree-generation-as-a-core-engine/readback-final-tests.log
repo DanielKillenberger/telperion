@@ -1,0 +1,17 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 32.73s
+────────────
+ Nextest run ID 9ac18764-3317-4951-bff2-8d90354357af with nextest profile: default
+    Starting 10 tests across 1 binary (51 tests skipped)
+        PASS [   0.004s] ( 1/10) telperion-render generation::tests::preparation_capabilities_and_failures_are_explicit
+        PASS [   0.005s] ( 2/10) telperion-render generation::request::tests::invalidation_keeps_busy_until_guard_drops_and_errors_release_it
+        PASS [   1.712s] ( 3/10) telperion-render generation::readback_tests::leaf_readback_rejects_invalid_buffers_and_allocation
+        PASS [   1.715s] ( 4/10) telperion-render generation::readback_tests::leaf_readback_preserves_words_across_chunk_boundaries
+        PASS [   1.715s] ( 5/10) telperion-render generation::readback_tests::leaf_readback_device_loss_returns_no_output
+        PASS [   1.717s] ( 6/10) telperion-render generation::tests::huge_phases_fall_back_but_supported_large_ordinals_keep_orientation
+        PASS [   1.735s] ( 7/10) telperion-render generation::tests::foreign_prepared_result_preserves_the_live_tree
+        PASS [   1.745s] ( 8/10) telperion-render generation::tests::gpu_extrema_order_preserves_signed_zero_and_finite_signs
+        PASS [   1.745s] ( 9/10) telperion-render generation::standalone_tests::standalone_rejects_resident_before_generation_and_delivers_owned_cpu_mesh
+        PASS [   3.640s] (10/10) telperion-render generation::tests::compact_gpu_foliage_is_repeatable_seated_and_bounded
+────────────
+     Summary [   3.640s] 10 tests run: 10 passed, 51 skipped

@@ -31,6 +31,7 @@ import {
   randomSeed,
 } from "./params";
 import { createStage, type Stage } from "./rust-stage";
+import { latestBuild } from "./latest-build";
 import "./grower-dev.css";
 
 /** A build this cheap, in milliseconds, runs on every notch of a dial;
@@ -55,6 +56,7 @@ function describeTiming(report: TimingReport): string {
 export function GrowerDev() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<Stage | null>(null);
+  const buildsRef = useRef<ReturnType<typeof latestBuild<GrowerParams, Submitted & { buildMs: number }>> | null>(null);
 
   const [ready, setReady] = useState(false);
   const [buildError, setBuildError] = useState<string | null>(null);
@@ -68,10 +70,15 @@ export function GrowerDev() {
     const canvas = canvasRef.current;
     if (canvas === null) return;
     let cancelled = false;
-    createStage(canvas, { onError: (message) => setBuildError(message) }).then(
+    createStage(canvas, { onError: (message) => { if (!cancelled) setBuildError(message); } }).then(
       (stage) => {
         if (cancelled) { stage.dispose(); return; }
         stageRef.current = stage;
+        buildsRef.current = latestBuild(async (params: GrowerParams) => {
+          const started = performance.now();
+          const submitted = await stage.setTreeGpu(familyJson(params));
+          return { ...submitted, buildMs: performance.now() - started };
+        });
         setReady(true);
         setBuildError(null);
       },
@@ -79,6 +86,8 @@ export function GrowerDev() {
     );
     return () => {
       cancelled = true;
+      buildsRef.current?.dispose();
+      buildsRef.current = null;
       stageRef.current?.dispose();
       stageRef.current = null;
       setReady(false);
@@ -137,17 +146,19 @@ export function GrowerDev() {
 
   useEffect(() => {
     if (!ready) return;
+    const stage = stageRef.current;
+    const builds = buildsRef.current;
+    let cancelBuild: (() => void) | undefined;
     const build = (): void => {
       try {
         const started = performance.now();
         if (!growth) {
-          const submitted = stageRef.current?.setTree(familyJson(params));
-          if (submitted === undefined) return;
-          const buildMs = performance.now() - started;
-          setBuildError(null);
-          setStats({ ...submitted, buildMs });
-          lastBuildMs.current = buildMs;
-          stageRef.current?.frameIfWaiting();
+          cancelBuild = builds?.submit(params, (submitted) => {
+            setBuildError(null);
+            setStats(submitted);
+            lastBuildMs.current = submitted.buildMs;
+            stage?.frameIfWaiting();
+          }, (error) => setBuildError(String(error)));
           return;
         }
         const submitted = stageRef.current?.buildSpecimen(familyJson(params), chosenAge.current);
@@ -175,10 +186,10 @@ export function GrowerDev() {
        this defers, it does not coarsen. */
     if (lastBuildMs.current <= BUILD_LIVE_MS) {
       build();
-      return;
+      return () => { cancelBuild?.(); };
     }
     const handle = window.setTimeout(build, BUILD_SETTLE_MS);
-    return () => { window.clearTimeout(handle); };
+    return () => { window.clearTimeout(handle); cancelBuild?.(); };
 
     /* Frame once, off the first real tree, and then never again on the
        camera's own initiative. A camera that re-frames whenever the

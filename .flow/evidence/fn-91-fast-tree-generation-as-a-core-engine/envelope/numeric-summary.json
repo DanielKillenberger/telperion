@@ -1,0 +1,8 @@
+{
+  "samples": 8192,
+  "oracle": "Python Decimal 60-digit power; exact binary64 input conversion; mathematical reciprocal",
+  "max_inner_absolute_error": "7.9754152613731916536929036931464338897072954E-17",
+  "max_normalized_shape_absolute_error": "3.67478361522233505478661901700323138861307621E-16",
+  "normalized_margin": "1e-6",
+  "limitation": "Empirical pinned-implementation qualification; no exhaustive or formal libm error guarantee."
+}

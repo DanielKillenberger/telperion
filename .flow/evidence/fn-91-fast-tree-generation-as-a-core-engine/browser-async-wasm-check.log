@@ -1,0 +1,26 @@
+    Checking telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Checking telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+error[E0599]: no method named `allocated_bytes` found for struct `Wood` in the current scope
+  --> crates/telperion-render/src/generation.rs:91:23
+   |
+91 |         renderer.wood.allocated_bytes() + renderer.foliage.allocated_bytes()
+   |                       ^^^^^^^^^^^^^^^ method not found in `Wood`
+   |
+  ::: crates/telperion-render/src/wood.rs:39:1
+   |
+39 | pub struct Wood {
+   | --------------- method `allocated_bytes` not found for this struct
+
+error[E0599]: no method named `allocated_bytes` found for struct `foliage::Foliage` in the current scope
+  --> crates/telperion-render/src/generation.rs:91:60
+   |
+91 |         renderer.wood.allocated_bytes() + renderer.foliage.allocated_bytes()
+   |                                                            ^^^^^^^^^^^^^^^ method not found in `foliage::Foliage`
+   |
+  ::: crates/telperion-render/src/foliage.rs:72:1
+   |
+72 | pub struct Foliage {
+   | ------------------ method `allocated_bytes` not found for this struct
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `telperion-render` (lib) due to 2 previous errors

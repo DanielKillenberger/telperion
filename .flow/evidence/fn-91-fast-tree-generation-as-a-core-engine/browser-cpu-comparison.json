@@ -1,0 +1,30 @@
+[
+  {
+    "preset": "oregon-white-oak",
+    "seed": 1,
+    "render_counts_and_bounds_equal": true,
+    "cpu_counts_and_bounds_equal": true,
+    "cpu_wasm_capacity_unchanged": true
+  },
+  {
+    "preset": "oregon-white-oak",
+    "seed": 7,
+    "render_counts_and_bounds_equal": true,
+    "cpu_counts_and_bounds_equal": true,
+    "cpu_wasm_capacity_unchanged": true
+  },
+  {
+    "preset": "norway-spruce",
+    "seed": 1,
+    "render_counts_and_bounds_equal": true,
+    "cpu_counts_and_bounds_equal": true,
+    "cpu_wasm_capacity_unchanged": true
+  },
+  {
+    "preset": "norway-spruce",
+    "seed": 7,
+    "render_counts_and_bounds_equal": true,
+    "cpu_counts_and_bounds_equal": true,
+    "cpu_wasm_capacity_unchanged": true
+  }
+]

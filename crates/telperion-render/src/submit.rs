@@ -47,9 +47,25 @@ pub fn crown_of(foliage: &Foliage) -> Option<Bounds> {
 /// ever truncated to make it fit: a tree too large for the hardware is a named
 /// refusal, not a tree with its crown quietly missing.
 pub fn fits(limits: &wgpu::Limits, mesh: &TreeMesh) -> Result<()> {
+    fits_count(limits, mesh, mesh.foliage.instances.len())
+}
+
+pub(crate) fn fits_count(limits: &wgpu::Limits, mesh: &TreeMesh, instances: usize) -> Result<()> {
+    fits_wood_counts(limits, mesh, instances, None)
+}
+pub(crate) fn fits_wood_counts(
+    limits: &wgpu::Limits,
+    mesh: &TreeMesh,
+    instances: usize,
+    resident: Option<(usize, u32, &[telperion_core::surface::SurfaceRun])>,
+) -> Result<()> {
+    let (vertices, index_count, runs) = resident.map(|(v, i, r)| (v, i as usize, r)).unwrap_or((
+        mesh.wood.positions.len() / 3,
+        mesh.wood.indices.len(),
+        &mesh.wood.run_table,
+    ));
     let bytes = |count: usize, width: usize| (count * width) as u64;
     let element = &mesh.foliage.element;
-    let instances = mesh.foliage.instances.len();
     // Selection reads the placements and writes the lists through storage
     // bindings, which the device caps on their own beside the buffer size.
     let stored = limits
@@ -63,27 +79,32 @@ pub fn fits(limits: &wgpu::Limits, mesh: &TreeMesh) -> Result<()> {
     let payloads = [
         (
             "wood positions",
-            bytes(mesh.wood.positions.len(), size_of::<f32>()),
+            bytes(
+                resident.map_or(mesh.wood.positions.len(), |_| vertices * 3),
+                4,
+            ),
             limits.max_buffer_size,
         ),
         (
             "wood normals",
-            bytes(mesh.wood.normals.len(), size_of::<f32>()),
+            bytes(
+                resident.map_or(mesh.wood.normals.len(), |_| vertices * 3),
+                4,
+            ),
             limits.max_buffer_size,
         ),
         (
             "wood coordinates",
-            bytes(mesh.wood.coords.len(), size_of::<f32>()),
+            bytes(resident.map_or(mesh.wood.coords.len(), |_| vertices * 2), 4),
             limits.max_buffer_size,
         ),
-        (
-            "wood radii",
-            bytes(mesh.wood.positions.len() / 3, size_of::<f32>()),
-            stored,
-        ),
+        ("wood radii", bytes(vertices, 4), stored),
         (
             "wood indices",
-            bytes(mesh.wood.indices.len(), size_of::<u32>()),
+            bytes(
+                resident.map_or(mesh.wood.indices.len(), |_| index_count as usize),
+                4,
+            ),
             limits.max_buffer_size,
         ),
         (
@@ -104,7 +125,11 @@ pub fn fits(limits: &wgpu::Limits, mesh: &TreeMesh) -> Result<()> {
     for (buffer, payload, limit) in payloads {
         // The allocation is judged, not the payload: buffers are taken with
         // headroom, and the headroom is what the device has to grant.
-        let wanted = Region::capacity_for(payload);
+        let wanted = if resident.is_some() && buffer.starts_with("wood ") {
+            payload.max(16)
+        } else {
+            Region::capacity_for(payload)
+        };
         if wanted > limit {
             return Err(RenderError::Oversize {
                 buffer,
@@ -125,7 +150,7 @@ pub fn fits(limits: &wgpu::Limits, mesh: &TreeMesh) -> Result<()> {
     // Runs remain host-side. Reject malformed spans before any GPU upload.
     let mut end = 0u32;
     let mut radius = f64::INFINITY;
-    for run in &mesh.wood.run_table {
+    for run in runs {
         if run.first_index != end
             || run.index_count == 0
             || run.index_count % 3 != 0
@@ -145,7 +170,9 @@ pub fn fits(limits: &wgpu::Limits, mesh: &TreeMesh) -> Result<()> {
             ))?;
         radius = run.largest_radius;
     }
-    if end as usize != mesh.wood.indices.len() || mesh.wood.run_table.len() != mesh.wood.runs {
+    if end as usize != index_count
+        || (resident.is_none() && mesh.wood.run_table.len() != mesh.wood.runs)
+    {
         return Err(telperion_core::Error::InvalidInput(
             "wood run: spans must cover the index buffer exactly",
         )

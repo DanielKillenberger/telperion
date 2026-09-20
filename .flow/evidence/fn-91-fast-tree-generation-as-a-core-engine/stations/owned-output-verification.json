@@ -1,0 +1,58 @@
+[
+  {
+    "mode": "cpu-output",
+    "species": "oregon-white-oak",
+    "seed": 1,
+    "baseline": "ae785c3b8b7e72e7",
+    "candidate": "ae785c3b8b7e72e7"
+  },
+  {
+    "mode": "cpu-output",
+    "species": "oregon-white-oak",
+    "seed": 7,
+    "baseline": "bae5a14fbd7f0e41",
+    "candidate": "bae5a14fbd7f0e41"
+  },
+  {
+    "mode": "cpu-output",
+    "species": "norway-spruce",
+    "seed": 1,
+    "baseline": "5f60764ddbf12010",
+    "candidate": "5f60764ddbf12010"
+  },
+  {
+    "mode": "cpu-output",
+    "species": "norway-spruce",
+    "seed": 7,
+    "baseline": "de2dc504b6c9b6c7",
+    "candidate": "de2dc504b6c9b6c7"
+  },
+  {
+    "mode": "gpu-output",
+    "species": "oregon-white-oak",
+    "seed": 1,
+    "baseline": "79cca656bd60f673",
+    "candidate": "79cca656bd60f673"
+  },
+  {
+    "mode": "gpu-output",
+    "species": "oregon-white-oak",
+    "seed": 7,
+    "baseline": "977e3669d2f6f32b",
+    "candidate": "977e3669d2f6f32b"
+  },
+  {
+    "mode": "gpu-output",
+    "species": "norway-spruce",
+    "seed": 1,
+    "baseline": "7ee559575850f9b2",
+    "candidate": "7ee559575850f9b2"
+  },
+  {
+    "mode": "gpu-output",
+    "species": "norway-spruce",
+    "seed": 7,
+    "baseline": "95fbe6d523067313",
+    "candidate": "95fbe6d523067313"
+  }
+]

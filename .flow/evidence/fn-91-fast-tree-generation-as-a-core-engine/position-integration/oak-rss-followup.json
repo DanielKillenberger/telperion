@@ -1,0 +1,18 @@
+[
+  {
+    "revision": "baseline",
+    "exit": 0,
+    "seconds": 1.2504600309985108,
+    "maxRssKiB": 302260,
+    "executableSha256": "90bae8a8a1471b2b0e3155d57a66d2c5e4772c646560247438bd1269f489a195",
+    "cacheState": "unknown; after primary browser/native runs"
+  },
+  {
+    "revision": "candidate",
+    "exit": 0,
+    "seconds": 0.8620691249998345,
+    "maxRssKiB": 271140,
+    "executableSha256": "5d3c9d83397c4185b3dfd78555d087e850b89ae4c0f7aa2bf08a44d09352d417",
+    "cacheState": "unknown; after primary browser/native runs"
+  }
+]

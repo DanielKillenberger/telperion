@@ -1,0 +1,31 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 41.02s
+────────────
+ Nextest run ID 529564bd-79d3-41c3-8d90-5224e5539869 with nextest profile: default
+    Starting 1 test across 1 binary (177 tests skipped)
+        FAIL [   0.003s] (1/1) telperion-core bias::tests::specialization_matches_original_bits
+  stdout ───
+
+    running 1 test
+    test bias::tests::specialization_matches_original_bits ... FAILED
+
+    failures:
+
+    failures:
+        bias::tests::specialization_matches_original_bits
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 177 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'bias::tests::specialization_matches_original_bits' (979700) panicked at crates/telperion-core/src/bias/tests.rs:97:21:
+    assertion `left == right` failed: BiasParams { gravitropism: 0.0, lean: 0.0, supernatural: SupernaturalParams { enabled: false, writhe_amplitude: 0.0, writhe_wavelength: 0.45, spiral_rate: 0.0, max_writhe_magnitude: 0.9 } } 1 Vec3 { x: 0.0, y: 0.0, z: 0.0 } Vec3 { x: -0.0, y: 1.0, z: -0.0 }
+      left: [9223372036854775808, 4607182418800017408, 9223372036854775808]
+     right: [0, 4607182418800017408, 0]
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+  Cancelling due to test failure: 
+────────────
+     Summary [   0.004s] 1 test run: 0 passed, 1 failed, 177 skipped
+        FAIL [   0.003s] (1/1) telperion-core bias::tests::specialization_matches_original_bits
+error: test run failed

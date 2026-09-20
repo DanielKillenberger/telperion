@@ -1,0 +1,59 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+warning: variable does not need to be mutable
+   --> crates/telperion-render/src/generation.rs:252:17
+    |
+252 |             let mut station_ms = 0.0;
+    |                 ----^^^^^^^^^^
+    |                 |
+    |                 help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable does not need to be mutable
+   --> crates/telperion-render/src/generation.rs:253:17
+    |
+253 |             let mut station_bytes = 0;
+    |                 ----^^^^^^^^^^^^^
+    |                 |
+    |                 help: remove this `mut`
+
+error[E0283]: type annotations needed
+   --> crates/telperion-render/src/generation/position_probe.rs:443:9
+    |
+443 |         bytemuck::cast_slice(&xyz)
+    |         ^^^^^^^^^^^^^^^^^^^^ cannot infer type of the type parameter `B` declared on the function `cast_slice`
+    |
+    = note: the type must implement `AnyBitPattern`
+note: required by a bound in `bytemuck::cast_slice`
+   --> /home/daniel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytemuck-1.25.2/src/lib.rs:412:35
+    |
+412 | pub fn cast_slice<A: NoUninit, B: AnyBitPattern>(a: &[A]) -> &[B] {
+    |                                   ^^^^^^^^^^^^^ required by this bound in `cast_slice`
+help: consider specifying the generic arguments
+    |
+443 |         bytemuck::cast_slice::<f32, B>(&xyz)
+    |                             ++++++++++
+
+error[E0283]: type annotations needed
+   --> crates/telperion-render/src/generation/position_probe.rs:443:9
+    |
+441 | /     assert_eq!(
+442 | |         io::read(&g.gpu, &again.positions, p.vertices as u64 * 12).unwrap(),
+443 | |         bytemuck::cast_slice(&xyz)
+    | |         ^^^^^^^^^^^^^^^^^^^^ cannot infer type of the type parameter `B` declared on the function `cast_slice`
+444 | |     );
+    | |_____- type must be known at this point
+    |
+    = note: multiple `impl`s satisfying `u8: PartialEq<_>` found in the following crates: `core`, `serde_json`:
+            - impl PartialEq for u8;
+            - impl PartialEq<serde_json::Value> for u8;
+    = note: required for `Vec<u8>` to implement `PartialEq<&[_]>`
+help: consider specifying the generic arguments
+    |
+443 |         bytemuck::cast_slice::<f32, B>(&xyz)
+    |                             ++++++++++
+
+For more information about this error, try `rustc --explain E0283`.
+warning: `telperion-render` (lib test) generated 2 warnings
+error: could not compile `telperion-render` (lib test) due to 2 previous errors; 2 warnings emitted
+error: command `cargo '--color=auto' test --no-run --message-format json-render-diagnostics --package telperion-render --lib --release` exited with code 101

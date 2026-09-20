@@ -1,6 +1,6 @@
 ---
 name: Telperion
-last_updated: 2026-09-14
+last_updated: 2026-09-20
 generator: flow-next-strategy
 ---
 
@@ -14,6 +14,8 @@ Game developers need trees that hold up from a close inspection to a forest, wit
 
 Build toward realistic simulations of procedurally generated trees, using one persistent botanical structure from trunk to leaf-bearing twig, with growth, surroundings and damage shaping its lifecycle. The generator is one continuous tree space: every generator parameter is a numeric trait that acts on every tree, a template is just a point in that multi-dimensional space, age and growth rate are numeric traits too, the seed selects a reproducible specimen, and a shared parametric field supplies supernatural character, so smooth interpolation between any kind of tree is a standing requirement and no family field is a switch between ways of building. All rendering techniques must generalize across generated trees and leaves through shared geometry and data contracts, so changing supported generator parameters or adding a template requires no renderer code changes. The project mantra is "Minimalist af, efficient af and beautiful": use lean code, explicit data flow and small interfaces, generate only the detail the consuming engine needs, and judge each advance through measured runtime costs and visual evidence.
 
+During active development, measured gains in fidelity, generation speed and rendering efficiency take priority over preserving historical generated output. Seeds identify specimens within a stated generator revision and backend; algorithms, random sequences, topology and encodings may change, and blanket byte-identical output across revisions or CPU/GPU backends is not a product requirement. Prefer byte-identical performance improvements when practical because they simplify verification; intentional improvements may still evolve tree structure and data representation. Performance improvements may also change bytes while preserving perceived appearance, provided measured gains come without perceptible visual regression or failure of relevant correctness requirements.
+
 ## Who it's for
 
 **Primary:** Game and real-time 3D developers — they're hiring Telperion to put trees in a scene that branch the way a real tree does, from a hero tree to a whole forest of a species, generated from a seed instead of bought as baked assets.
@@ -24,8 +26,8 @@ Build toward realistic simulations of procedurally generated trees, using one pe
 
 - **Fidelity** — the leaf is a botanical multiple of the twig it hangs on, and the tree carries the leaf count its size implies (10^5 to 10^7 for the Two Trees); measured in the unit tests on both presets.
 - **Frame** — a shipped hero tree renders inside 2 ms of GPU time at native pixel ratio on the named machine, an RTX 3080, and the whole vegetation layer of a thousand-tree forest inside 4 ms once a forest rig exists to measure it; GPU timer queries in the harness rig, budgeting a slice of the game frame for vegetation.
-- **Build** — time from a dial move to a finished tree, held to whatever keeps dragging usable; the harness's own build timer. Monthly growth also records per-slice fixed cost beside a mature build, with cost proportional to changed wood as the design target.
-- **Attributability** — same seed and parameters give a byte-identical tree, and every change to a preset traces to a named dial; asserted in the unit tests.
+- **Build** — fast generation is a core requirement for every use case, including interactive editing, browser presentation and native engine consumption. Measure end-to-end latency from parameters to the requested usable representation, including preparation and transfers, and separate cold initialization from repeated builds; mature-tree workloads are the first proof, not a website-only target. Monthly growth also records per-slice fixed cost beside a mature build, with cost proportional to changed wood as the design target.
+- **Attributability** — record generator revision, backend, seed and parameters so a result can be investigated and compared. Use exact byte checks for outputs intended to remain unchanged, and tolerances where appropriate; historical hashes and CPU/GPU byte equality do not veto intentional improvements. Rebaseline changed specimens with botanical, geometric, visual and performance evidence, and keep each preset change attributable to its parameters.
 - **The owner's eye** — Telperion reads as Telperion and Laurelin as Laurelin, lit, with every supernatural term and every appearance row at its preset value; judged in the harness, recorded in the spec.
 
 ## Tracks
@@ -44,7 +46,7 @@ _Why it serves the approach:_ a template is a point in one continuous tree space
 
 ### The core and integration
 
-One lean Rust generation core serves browser Wasm and native integrations, with small boundaries between tree state, generation rules and output representations. Consumers request structure, meshes, instances or spatial fields as needed; a voxel world such as Minecraft can sample wood and foliage as a spatial field and stream trees in without paying to construct a surface mesh. Portable tree and rendering data stay separate from engine-specific drawing and material implementations, keeping future engines able to preserve the same visual fidelity without requiring an external-engine proof in every rendering pass. The Rust wgpu renderer on master is the first consumer of the core's engine-neutral mesh output and the rig that measures the frame metric, in the browser and in a headless native target.
+One lean Rust generation core serves browser Wasm and native integrations, with small boundaries between tree state, generation rules and output representations. Consumers request structure, meshes, instances or spatial fields as needed; a voxel world such as Minecraft can sample wood and foliage as a spatial field and stream trees in without paying to construct a surface mesh. Portable tree and rendering data stay separate from engine-specific drawing and material implementations, keeping future engines able to preserve the same visual fidelity without requiring an external-engine proof in every rendering pass. The Rust wgpu renderer on master is the first consumer of the core's engine-neutral mesh output and the rig that measures the frame metric, in the browser and in a headless native target. Engine independence permits compact structural descriptions expanded into render buffers on the GPU; a browser renderer need not materialize or read back a full CPU mesh merely to preserve the current boundary.
 
 Integration proofs run in sequence. First, textured trees with wind, collision and chopping or destruction in Unreal Engine; then forests of individually generated specimens within measured generation, memory and frame budgets. A Valheim mod is a later candidate proof point, where each world tree has its own reproducible procedural structure and participates in the existing game's interactions, multiplayer and persistence. That experiment follows the Unreal and forest proofs; its game-specific constraints do not drive the immediate core architecture.
 

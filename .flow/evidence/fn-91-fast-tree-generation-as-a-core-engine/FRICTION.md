@@ -1,0 +1,197 @@
+
+## 2026-09-20 — baseline tooling build
+
+The direct mature path had no reusable native per-stage timing runner. Adding a small example and compiling its release binary has cost roughly two minutes of inspection and an ongoing build wait (over ten seconds so far). Retaining the runner removes this setup from the candidate comparison; attachment preparation remains included in placement pending host direction.
+
+## 2026-09-20 — browser baseline build and completion boundary
+
+Fresh core and renderer Wasm builds took 14.17 and 14.99 seconds before browser measurement. The renderer exposes frame submission but not GPU completion, so the current runner cannot measure the first completed frame without an additional benchmark-only fence. The host was informed; current evidence labels submission as a lower bound. A retained benchmark completion hook would remove that gap. No captures were taken.
+
+## 2026-09-20 — CPU candidate verification builds
+
+The focused foliage baseline ran 21 tests in 28.99 seconds, and a new lib-test binary requires another release compilation before the bounds checks can run. This setup costs tens of seconds per changed core build; no full suite is running in the iteration loop. The retained benchmark binary permits before/after measurements without rebuilding the old implementation. An initial benchmark fingerprint edit had an extra comma (compile failure, corrected immediately); the new transformed-box property test initially failed to compile because its helper did not yet exist, not because the old exact algorithm was incorrect.
+
+## 2026-09-20 — bounds fixture correction
+
+The new curved-element test initially chose width 0.00001 m, below the existing builder minimum 0.0001 m. It failed on `leaf width` before exercising bounds. Correcting the fixture cost one roughly 30-second release lib-test compile; all three bounds tests then passed. Reading the parameter validation range before authoring the fixture would have avoided that wait. A queued example build waited on Cargo's existing lock; measurements began only after both builds finished.
+
+## 2026-09-20 — browser navigation setup failure
+
+The first candidate browser attempt failed before any generation: its page could not resolve /src/browser/render.ts. The same script completed the baseline. Zero samples were collected; the error artifact is retained as browser-cpu-candidate-inconclusive.json. Diagnosis/retry starts here, about one minute of setup/inspection cost so far. Recording navigation origin before module import will distinguish a bad page from a generator failure. A shell guard also rejected a compound edit command because it could not parse quoted heredoc content; the edit was applied through the patch tool instead.
+
+## 2026-09-20 — final workspace gate
+
+The canonical workspace gate is recompiling all four Rust crates in release mode after the shared core change, with no test result yet after roughly a minute. It runs once, with a 600-second bound and output captured to a log. CI's existing faster profile is available, but the host chose the canonical local release command for this final gate; no test or profile was weakened to shorten the wait. Timed measurements finished before this build started.
+
+## 2026-09-20 — generation-limit inventory gate
+
+The workspace gate compiled in 2m57s, then stopped at the inventory guard after passing the preceding suites. The new segment-frame iterator needs an algorithm classification for its points-length-minus-one slice. This is a real missing declaration in the candidate, not a generator cap or a reason to relax the guard. The host was asked to review that classification; the next check will target the guard before the cached workspace run continues. Reading the inventory rule before introducing the loop would have caught this before the broad gate.
+
+## 2026-09-20 — cached gate still serializes integration binaries
+
+The corrected workspace rerun reused binaries in 0.12 seconds but reached three minutes of active test execution before stem_lean_spread. The preceding stem_fork_height binary alone took 26.13 seconds, and the parent's completed-frame measurements are waiting for the load to finish. This is normal progress within the 600-second bound, not a stalled compiler. Reusing the project's existing nextest parallel test runner for local gates is a possible remedy; the host has kept the canonical Cargo command for this run.
+
+## 2026-09-20 — renderer gate crash
+
+The corrected workspace run passed core tests but crashed in bark_plates with SIGSEGV during Vulkan extension enumeration. The saved core-dump stack also shows another test thread creating a Vulkan instance through NVIDIA GLX. There is no generator frame in the crashing stack; concurrent loader/driver initialization is an inference, not a proven cause. Memory inspection showed 21 GiB available and no OOM journal entry. The host approved one bounded exact-binary replay before any further gate work. This costs roughly a minute of diagnosis plus replay time, and blocks a green workspace claim; driver/test initialization stability must be established before GPU experimentation. No system settings or test assertions were changed.
+
+The single exact-binary replay also crashed with SIGSEGV (exit 139), after the same first successful test. No additional replay or system change was attempted. The host is selecting the existing CI nextest isolation route for remaining renderer/Wasm validation; the original parallel Cargo workspace gate remains failed.
+
+The selected fallback runner is absent locally (cargo nextest reports no such command). The host directed an honest checkpoint and early NEEDS_HUMAN return; no installation or further runner experimentation was attempted. This is a local setup blocker, not a new repository spec.
+
+## 2026-09-20 — missing local CI runner
+
+The host needed the CI runner after the canonical renderer gate and its isolated-binary replay both crashed during concurrent Vulkan instance initialization. cargo-nextest was absent locally. Installing the repository-pinned prebuilt 0.9.145 into /tmp/telperion-fn91-tools took 0.5 seconds; an isolated-process renderer/Wasm run is now bounded at 180 seconds. This is a local tooling repair, not a proposed repository spec. Checking runner availability before choosing the gate would have avoided the late setup detour; the original canonical failures remain evidence.
+
+## 2026-09-20 — renderer test rewrites historical evidence
+
+The isolated renderer suite rewrote the tracked fn71 smooth-bark receipt through tests/common/resolution.rs. Inspecting the one-line metric change and confirming the writer cost about one minute. A broad restore command was denied by the discard guard. The host instead saved the complete new receipt as fn-91/renderer-smooth-bark.json, then applied the reviewed one-line correction to the historical file, preserving both results. The guard also rejected a shell-based append merely describing that command; a structured patch records this entry. A caller-selected evidence directory, or an ignored test-output directory, would prevent unrelated spec changes on routine validation; no new spec is created here.
+
+## 2026-09-20 — native RSS measurement helper
+
+The host's first peak-RSS invocation found that GNU time is not installed, before any specimen ran. Switching to Python's os.wait4 exposes the same Linux child-process peak-RSS metric without installing another tool. This cost about one minute; checking availability first would avoid the failed invocation. This is a local setup detail, not a repository spec.
+
+### 2026-09-20 — GPU experiment, first compile boundary
+
+The first Rust check found that wgpu 30 error scopes return owned guards rather than using device pop calls. Reading the installed API and correcting the scope ownership cost about one minute; the next check passed in 0.50 s. The first focused release test build recompiles changed core/render code and several feature-selected dependencies. Keep the cached release profile and one bounded focused run; do not repeat the workspace gate. The browser measurement window was respected with source work performed during it, so it did not create an idle wait.
+
+### 2026-09-20 — opening the visual comparison
+
+Tool-emitted images did not give the owner an opened comparison. The owner's xdg-open wrapper accepts HTTP URLs and rejected a local HTML path while returning success. Hosting the four existing images and a side-by-side page in a dedicated temporary loopback directory opened successfully; all four HTTP requests returned 200. This cost about one minute. Open a browser comparison with confirmed image loads when requesting an owner visual verdict. The wrapper behavior is local setup, not a repository spec.
+
+### 2026-09-20 — native GPU verification loop
+
+Release LTO took 44–48 s per changed-core/render focused build while the four GPU tests themselves take about 1.5 s. The first shader test rejected WGSL's reserved `target` identifier; the corrected shader passed, and subsequent builds carried host-requested tile-phase, rejection and ownership coverage rather than repeated timing runs. The remedy is the existing CI non-LTO profile for an explicitly approved local iteration protocol, not changing the repository's required release commands in this task. A direct call to the temporary cargo-nextest executable with `list` also failed immediately because this cargo extension expects invocation through `cargo nextest`; adding its directory to PATH removes that hand step. No specimen or suite ran in that failed call.
+
+### 2026-09-20 — nextest filtering still links unrelated core binaries
+
+At 169 s the final nextest binary-list build was still making progress through four active rustc jobs, but package selection links all core test binaries even though the intended test filter is foliage/mesh/surface/inventory only. This is avoidable gate cost. The host directed retaining useful in-progress work within the existing 300 s build bound, without extending it. Future small core gates should select explicit Cargo test targets separately from the full renderer package; a nextest test-name filter is not a build-target selector. No unrelated core tests are being added to the execution filter.
+
+The package-wide binary build hit its 300 s limit (exit 124) while linking renderer integration binaries; no tests ran. The parent authorized one 60 s recovery using explicit core foliage/mesh/surface/inventory targets plus renderer lib/integration targets, after recording existing binary timestamps. The recovery command and timestamp inventory are retained. This spent five minutes on an avoidably broad build; the test-execution bound is still separate and unchanged.
+
+The explicit-target build recovery completed in 43.58 s. Isolated execution then completed in 79.701 s: 214/215 passed, with no GPU crash. The sole failure was the existing renderer family-table conformance guard: the experimental orchestrator imports the generic parameter bundle through `presets::Family`. No preset lookup or species branch exists, but the top-level import crosses the guard's stated module boundary. The host was asked to resolve the parameter-type boundary; the guard remains unchanged and the failed run is retained. All five new GPU tests and the generation-limit inventory passed in that run.
+
+The final renderer suite again wrote the historical fn71 smooth-bark receipt (SilverBirch mean 2.5604 / p95 9.50). The fresh receipt is preserved as gpu-renderer-smooth-bark.json; only that observed legacy-row change is restored to its previous value. This repeats the already recorded test-output routing friction, not a new generator change.
+
+## 2026-09-20 — Invocation 4 context and external contention
+Initial handoff reconstruction and bounded source reads consumed about four minutes before editing. Reuse the compact source map and saved binaries for subsequent checkpoints. Another session is running a workspace CI-profile suite; timed comparisons will wait for its CPU load to end, without interrupting that session.
+
+## 2026-09-20 — Follow-up summary schema
+The local summary script assumed `count` where the existing benchmark uses `instances`; the first aggregation failed immediately (under one minute), without repeating any measurements. Corrected the field against the retained JSONL. A shared typed measurement schema would prevent this small adapter mismatch; no new framework was added.
+
+## 2026-09-20 — Browser async target exposure
+The first Wasm check found the existing allocation-accounting helpers were native-only (under one minute). Exposed those same read-only helpers on Wasm so browser evidence can retain buffer counts; no new accounting algorithm. Native check passed before this target-specific finding.
+
+### 2026-09-20 — initial canvas resize cleared close capture
+
+The four-image browser close capture completed, but both CPU screenshots were white while GPU screenshots contained trees. The likely cause is the initial ResizeObserver callback resetting canvas dimensions after synchronous CPU generation and drawing; GPU awaits gave that callback time to run first. The host preserved the failed images, script and metadata and will make one bounded retry after two initial animation frames settle resizing. This cost about two minutes. A capture helper should settle initial canvas sizing before its single draw. No production renderer behavior or completed-queue timing claim is changed; compositor delivery was never claimed.
+
+## 2026-09-20 — Final checkpoint waits for capture ownership
+Implementation, smoke, matrix and focused checks were complete while the host owned the separate close-view capture/retry. The worker held the commit for roughly two minutes (estimate), as requested, without repeating builds or measurements. A settled-canvas capture helper would remove the retry; the host records the concrete capture failure and remedy separately. This was a bounded handoff wait, not another implementation attempt.
+
+Close-capture retry outcome: waiting two initial animation frames produced four nonblank images. Preserve initial resize settling in the capture harness; the views remain limited for contact inspection.
+
+## 2026-09-20 — task .2 build queue
+
+The candidate example build waited for the focused library-test release build's Cargo lock (under one minute; exact lock wait was not timed). The builds remained serialized and no measurements ran during compilation. Starting the example command only after the test command exits would avoid a queued command, though it would not reduce the required compilation work. The bounded task used one fresh baseline example and one candidate example build.
+
+## 2026-09-20 wood-stage observer overhead
+The scratch-only wood profile completed its requested control/instrumented matrix in one pass. Per-run timers and altered optimization increased warm medians by 6.5–21.3% (9.34–37.68 ms), limiting exact stage attribution. Cost was two release builds of about 15 seconds each and one matrix; no additional profiling ticks or tuning runs were spent. A lower-overhead profiler or coarse production-neutral sampling would remove this measurement limitation; no profiler was installed. The report retains approximate stage shares and explicitly separates observer overhead.
+
+### 2026-09-20 — task .4 shader validation rebuild
+First resident-wood test reached WGSL validation only after a 44-second release library rebuild; `meta` is a reserved WGSL name. Renamed the binding to `metadata`. Cost: about one minute and one focused failed test run. A fast standalone shader-validation command would have caught this before the LTO test rebuild; no gate was bypassed.
+
+## 2026-09-20 - owner rejected shaded interior captures
+
+The owner could not inspect the resident-wood images because the spruce camera was inside the needles and both trunks were shaded. The previous capture and review consumed several minutes and another owner turn without usable acceptance evidence. The host is replacing these with one four-image set using an exterior whole-tree camera, the existing bare-wood view, and camera-facing sun plus brighter fill. Prevention: inspect framing, occlusion and illumination before presenting a visual comparison; a nonblank image alone is insufficient. No generator change or new performance run is needed.
+
+## 2026-09-20 - acknowledged continuation without executing
+
+After the owner accepted the lit comparison, the host said it would continue but ended the turn without recording acceptance or resuming work. Cost: another owner prompt and no progress between turns. Record acceptance, close the completed task, and begin the next authorized task before reporting continuation.
+
+## 2026-09-20 — admission baseline formatting invocation
+The first scoped rustfmt check used edition 2024 and traversed children, producing inherited formatting differences. Cost: under one minute. Reading the crate edition first and using edition 2021 with skip_children=true removes this noise; the correct scoped baseline passes.
+
+2026-09-20 — Task .6 baseline selection omitted `--release` and selected the broad foliage integration target. All-preset attachment and mature renderer matrix tests remained running after roughly two minutes; 31/32 core and 13/14 renderer tests had passed. Host stopped the debug observations (inconclusive, not green) and supplied explicit release surface/contact targets and the existing release renderer selection. Cost: roughly two minutes plus unnecessary debug compilation. Exact gate commands in dispatch would remove this selection error.
+
+Task .6 baseline clarification: the renderer debug run subsequently completed 14/14 in 44.816 s; the core debug run was interrupted and is not green. The replacement explicit release core selection passed 17/17 in 0.463 s. A renderer test name initially reported from memory was incorrect; the actual log names measured_specimens_keep_all_cpu_fields_and_gpu_surface_contracts. Evidence uses the observed names and logs.
+
+## 2026-09-20 — fn-91.7 finite positions with overflowing triangle arithmetic
+
+The GPU position probe's added numeric-range test emits finite coordinates near 1e30, but the shader's post-cross exponent-bit check does not report nonfinite triangle arithmetic. The focused gate is red (14 pass, 1 fail). Discovery cost one 45-second release link plus the 6-second focused suite; the host was notified immediately and implementation paused for the task's mandated numeric-failure decision. An explicit supported arithmetic range checked before cross products, with a focused regression, would remove reliance on GPU overflow results. Separately the deliberately far-origin tiny-tip case honestly reports six newly collapsed faces; no threshold was relaxed or geometry compacted.
+
+## 2026-09-20 — .8 first production test compile
+The focused production test invocation stopped at an ambiguous `bytemuck::cast_slice` output type (roughly one second; no GPU observations). An explicit `<f32, u8>` annotation fixes the test harness; the next run remains the first actual numeric gate. Compile checking new test code before a release invocation avoids this minor failed gate.
+
+## 2026-09-20 — .8 synthetic collapse fixture
+The first production edge run passed emitted geometry/radius/normal comparisons but failed the intended collapsed-ring rejection. The fixture had equal centres but different frames, so its rings were not coincident. Corrected the synthetic input to duplicate centre, radius and frame while retaining output offsets. Cost: one release link (~47 seconds); no production workaround or threshold change. A fixture sanity check against emitted corners would catch this before asserting rejection.
+
+## 2026-09-20 — .8 host review before measurement
+Direct host review caught a workgroup flag read/write race between admission reductions and two rejected-candidate lifetime/accounting gaps. The fix snapshots each shared flag before an unconditional barrier, drops accepted positions before a later CPU station fallback, and retains the maximum of nonoverlapping preparation snapshots. A new late-fallback regression is run red before the correction. Cost: one extra focused release test/link; no delivery measurements discarded. A documented reduction helper contract and a fallback ownership test would have removed this pass.
+
+The attempted full-family late-station regression used a divergence outside the valid engine range and failed validation, not the intended fallback assertion. The host approved removing that ordering hazard structurally: zero-contact station capability is now checked before GPU position emission, as contact-bearing requests already were. A bounded existing-tree regression pins the valid huge-phase station fallback alongside a qualified compact surface. This avoids an artificial huge generator fixture; the failed invocation is retained as inconclusive for that proposed assertion.
+
+## 2026-09-20 — .8 exact normal-rejection fixture
+The additional folded-circle fixture retained a tiny nonzero float32 normal sum, so expecting the existing finite-unit normal contract to reject it was incorrect. Tried four exactly representable axis-aligned corners, a 0.125 m radius and integer centres. An independent CPU face/normal check refuted that fixture too: asymmetric triangle incidence leaves nonzero middle sums. The host bounded this investigation; the incorrect isolated fixture was removed and the missing isolated preflight-normal rejection fixture remains an explicit test gap. Production admission and thresholds remain unchanged; canonical unusable-normal coverage, shared-helper equivalence and actual-position normal oracles remain. Cost: two release links. A CPU area/ordered-sum check before GPU compilation would have removed both attempts.
+
+## 2026-09-20 — .8 browser smoke accounting contract
+The browser smoke reached successful candidate generation but its old accounting assertion required `woodPreparedCpuBytes > 0`. GPU positions intentionally remove that canonical CPU allocation. Asked the host to extend Touches for the smoke script and retain the old assertion on canonical output while checking positive candidate CPU/GPU counters and zero canonical allocation on candidate output. Cost: one smoke invocation; browser matrix can proceed independently. Updating the named accounting contract alongside the new metrics would avoid this mismatch.
+
+### 2026-09-20 — .9 local-growth attribution tooling
+The coarse profile isolated local growth, but `perf` is absent on the owner's PATH (gdb is present; perf_event_paranoid=2). Checking availability cost under one minute. Avoided installation/setup and selected a bounded scratch diagnostic sampling whole planner calls instead. A preinstalled native sampling profiler would remove the custom sampling step; this is local setup, not a proposed repository spec.
+
+## 2026-09-20 — Task .10 candidate rejection rollback
+
+The radius-only screen missed both oak targets. The safety hook blocked a combined patch-save and `git restore` command despite the task explicitly requiring rejection rollback. Cost: about one minute and two extra tool calls. Saving and inspecting the patch separately, then reversing that archived patch, keeps the rollback recoverable; recognizing an explicitly authorized scoped rollback with an existing patch would remove this friction.
+
+## 2026-09-20 fn-91.12 numeric oracle example access
+
+The standalone numeric oracle example attempted to import the core's private `Transcendental` trait. Compilation rejected the import, costing one failed diagnostic build and less than one minute to switch to the same pinned `libm::pow` dependency directly. Production code and the native timing protocol were unchanged. Diagnostic examples should use public pinned math calls or live within an internal test boundary; exposing the core trait was unnecessary. This is a diagnostic setup correction, with no new friction spec proposed.
+
+## 2026-09-20 fn-91.12 rollback guard
+
+After the host rejected retention, the command guard blocked scoped `git restore` because it could discard uncommitted edits. The candidate already existed as an archived patch. Reviewing the diff, checking that patch in reverse, then applying its exact inverse restored only the candidate successfully. Cost was one rejected tool call and less than one minute. Using a checked inverse patch directly would avoid this friction and preserve the explicit rollback scope.
+
+## 2026-09-20 fn-91 finish boundary
+
+The owner asked when the spec would finish after the host extended execution through attribution and three rejected CPU experiments, with a fourth candidate entering design. Each experiment had a local bound, but the host had not set a boundary for the overall optimization search. Cost is at least four additional task dispatches and this owner intervention; no reconstructed elapsed-time estimate is asserted. The host has limited this run to the already claimed .13 experiment followed by validation and an explicit completion assessment. No further optimization task will be added in this run. Unmet acceptance requirements remain visible unless the owner explicitly changes scope. A run-level experiment budget and a shipping decision at its boundary would prevent the repeated extension; no new friction spec was created.
+
+## 2026-09-20 - .13 scratch baseline redirection guard
+Preparing the fresh seeded native baseline was blocked before execution because the shell used a dynamic scratch output path for git show. Cost was one rejected tool call, under a minute. The already resolved scratch directory permits literal-path redirections, which remove the guard ambiguity without requiring owner intervention.
+
+## 2026-09-20 - .13 shared Cargo target reused the scratch executable
+The candidate native build returned in 0.05s after a scratch baseline build used the repository target cache. SHA256 inspection caught identical baseline/candidate executables before any delivery timing. Cargo's shared output/fingerprint paths had reused the scratch result. Cost was one invalid build observation and a required rebuild, about one minute. The worker invalidated both known source mtimes before rebuilding the root candidate and will require different binary hashes. A dedicated target directory avoids this ambiguity but recompiles the renderer dependency graph.
+
+### 2026-09-20 — .14 baseline selection
+The initial explicit core foliage baseline used binary(foliage) before the host's narrower selection arrived, selecting one slow attachment matrix. At observation 41/42 tests had passed and the remaining matrix exceeded 30 seconds. Cost: roughly one minute of avoidable baseline work so far. Use the station/selected attachment filter supplied by the host for subsequent gates; all-four station record oracles cover mature preparation without whole CPU foliage matrices.
+
+### 2026-09-20 — .14 owned-output verification flag
+The reused .13 owned-output timing runner does not set GENERATION_VERIFY; its optional hashes were null. The16-process timing matrix completed successfully and is retained, but is not output-hash evidence. Cost: one separate untimed first-sample verification pass on each baseline/candidate and mode/fixture, about30seconds; no timing repetition. The runner should state the verification flag in its recipe; future verification passes must set GENERATION_VERIFY=1 explicitly.
+
+### 2026-09-20 — .14 cosmetic rename touched a test
+After the measured source passed20 renderer tests, the worker renamed PendingRead::complete's unused Wasm parameter gpu to _gpu. The text replacement also changed the eager-read test's local gpu.device reference to nonexistent _gpu. Final example/Wasm builds exclude that native test; the host aggregate CI-profile compile caught the error. Cost: one failed aggregate compile (seconds), then the host's one-line test-reference correction and rerun. A scoped patch restricted to the method would have avoided it. No measured production behavior changed, but the intermediate final test tree was not green.
+
+Correction to the earlier baseline-selection estimate: the broad attachment matrix ultimately passed in28.088seconds; the command's elapsed time included compilation. The avoidable matrix cost is28seconds, rather than a verified minute of test execution.
+
+### 2026-09-20 — final aggregate historical receipt output
+The full Rust gate passed 742 tests but the smooth-bark test rewrote fn-71's committed historical receipt. The host copied the fresh receipt into fn-91 and restored only the changed historical row. Cost: two calls and under one minute. An ignored or caller-selected artifact output path would remove this repeated hand step; this is the already recorded test-output proposal.
+
+### 2026-09-20 — .14 API documentation edit guard
+The API documentation/type follow-up's literal Python heredoc contained Markdown backticks and was rejected by the shell guard as an unverifiable shell launcher. No edit ran. The worker used the dedicated apply_patch tool successfully without changing the guard. Cost: one rejected tool call and about one minute. Use apply_patch directly for documentation edits containing shell-like syntax; no machine policy change is needed.
+
+### 2026-09-20 — interactive harness bypass and live QA diagnostics
+The owner found the served renderer slow because the mature UI still called the synchronous CPU API. Existing benchmarks and lifecycle checks exercised the GPU API directly, missing its use by the real harness. Task .15 wires that consumer and tests request scheduling. The first live UI probe timed out after 60 seconds waiting for instrumented GPU completion without printing page errors; the probe now records page errors, URL and DOM on failure. Prevention: include an actual consumer-route smoke check and failure diagnostics in the first probe.
+
+The probe diagnosis found an initial about:blank navigation, a Vite timestamp query that bypassed the instrumentation route, and a top-level seed read where the schema uses skeleton.seed. Correcting the probe produced a passing actual-UI run with no production changes. Total probe setup cost was about four minutes. Assert navigation/instrumentation immediately and derive field paths from the existing family schema before waiting for completion.
+
+## 2026-09-20 — PR finalization meets concurrent sizing changes
+
+Finishing the approved PR found four conflicts with master's new pre-generation sizing work, overlapping foliage placement, station walking, surface extents and the classified-limit inventory. Cost so far: about four minutes of reconciliation plus the necessary combined-code test gate. An earlier mergeability check before the media session would have exposed this sooner; no new spec is proposed.
+
+## 2026-09-20 — Historical view fixture follows a changed default
+
+The combined Rust gate passed 749/750 tests; the historical clay comparison failed because it implicitly followed the intentionally changed hero camera. Cost: about one minute to pin the fixture's original shot and rerun its comparison successfully. Four historical bark receipts were also rewritten by tests and restored. Explicit fixture cameras and isolated evidence outputs avoid these false regressions; no new spec is proposed.
+
+## 2026-09-20 — CI runner has no GPU
+
+Seventeen new device-backed tests unwrapped adapter acquisition and failed on the GPU-less CI runner, although the established integration-test helper treats hardware absence as an explicit skip. Diagnosis and fix cost about two minutes plus CI turnaround. New generation tests now use the same narrow hardware-absence policy; other device errors still panic. Verify both GPU-present and GPU-absent setup before pushing device-backed tests. No new spec is proposed.

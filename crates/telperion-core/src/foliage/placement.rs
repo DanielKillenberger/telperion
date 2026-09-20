@@ -162,38 +162,7 @@ fn bearing(
     p: CanopyParams,
     twig: Option<TwigPlacement>,
 ) -> Result<bool> {
-    tree.validate_solved()?;
-    envelope.validate()?;
-    for (v, l, h, n) in [
-        (p.shoot_radius, 0., 1., "shoot radius"),
-        (p.spacing, 0.001, 1e6, "foliage spacing"),
-        (p.divergence, -1e9, 1e9, "divergence"),
-        (p.clump_span, 0., 1., "clump span"),
-        // Signed: a leaf may lean back down its shoot and turn toward the
-        // ground as readily as toward the tip and the sky. Zero is still zero,
-        // so every row authored before the rails widened is the row it was.
-        (p.outward, -1., 1., "outward"),
-        (p.upward, -1., 1., "upward"),
-        (p.forward_lean, -1., 1., "forward lean"),
-        (p.lean_rise, -2., 2., "lean rise"),
-        (p.surface_contact, 0., 1., "surface contact"),
-        (p.scatter, 0., 90., "scatter"),
-        (p.size, 0., 1000., "foliage size"),
-        (p.size_variation, 0., 0.9, "size variation"),
-        (p.limb_clumping, 0., 1., "limb clumping"),
-    ] {
-        range(v, l, h, n)?;
-    }
-    if p.clump > 64 {
-        return Err(Error::InvalidInput("foliage clump"));
-    }
-    short_shoots::validate(&p)?;
-    if let Some(t) = twig {
-        range(t.internode_length, 1e-6, 1e6, "twig internode")?;
-        if !(1..=64).contains(&t.stations_per_internode) {
-            return Err(Error::InvalidInput("twig stations"));
-        }
-    }
+    validate(tree, envelope, p, twig)?;
     if tree.nodes.len() < 2 || p.size == 0. {
         return Ok(false);
     }
@@ -315,6 +284,46 @@ fn place_impl(
     }
     Ok(out)
 }
+pub(super) fn validate(
+    tree: &Tree,
+    envelope: Envelope,
+    p: CanopyParams,
+    twig: Option<TwigPlacement>,
+) -> Result<()> {
+    tree.validate_solved()?;
+    envelope.validate()?;
+    for (v, l, h, n) in [
+        (p.shoot_radius, 0., 1., "shoot radius"),
+        (p.spacing, 0.001, 1e6, "foliage spacing"),
+        (p.divergence, -1e9, 1e9, "divergence"),
+        (p.clump_span, 0., 1., "clump span"),
+        // Signed: a leaf may lean back down its shoot and turn toward the
+        // ground as readily as toward the tip and the sky. Zero is still zero,
+        // so every row authored before the rails widened is the row it was.
+        (p.outward, -1., 1., "outward"),
+        (p.upward, -1., 1., "upward"),
+        (p.forward_lean, -1., 1., "forward lean"),
+        (p.lean_rise, -2., 2., "lean rise"),
+        (p.surface_contact, 0., 1., "surface contact"),
+        (p.scatter, 0., 90., "scatter"),
+        (p.size, 0., 1000., "foliage size"),
+        (p.size_variation, 0., 0.9, "size variation"),
+        (p.limb_clumping, 0., 1., "limb clumping"),
+    ] {
+        range(v, l, h, n)?;
+    }
+    if p.clump > 64 {
+        return Err(Error::InvalidInput("foliage clump"));
+    }
+    short_shoots::validate(&p)?;
+    if let Some(t) = twig {
+        range(t.internode_length, 1e-6, 1e6, "twig internode")?;
+        if !(1..=64).contains(&t.stations_per_internode) {
+            return Err(Error::InvalidInput("twig stations"));
+        }
+    }
+    Ok(())
+}
 fn shoots(tree: &Tree, max_radius: f64) -> Vec<Vec<usize>> {
     let n = tree.nodes.len();
     let mut stands = vec![0; n];
@@ -382,7 +391,7 @@ fn shoots(tree: &Tree, max_radius: f64) -> Vec<Vec<usize>> {
 
 /// Every unbranched run of leaf-bearing wood: what the twig layer marked, plus
 /// whatever else is slender enough for shoot_radius to clothe.
-fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
+pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
     let slender = tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius;
     let bearing = |i: usize| {
         let n = &tree.nodes[i];
@@ -390,18 +399,19 @@ fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
             && (n.kind == NodeKind::Twig
                 || (slender > 0. && n.radius.max(n.start_radius) <= slender))
     };
-    let mut children = vec![Vec::new(); tree.nodes.len()];
+    let mut children = vec![(0usize, 0usize); tree.nodes.len()];
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
         if bearing(i) {
             if let Some(parent) = n.parent {
-                children[parent as usize].push(i);
+                children[parent as usize].0 += 1;
+                children[parent as usize].1 = i;
             }
         }
     }
     let continues = |parent: usize, child: usize| {
         bearing(parent)
             && tree.nodes[parent].branch == tree.nodes[child].branch
-            && children[parent].len() == 1
+            && children[parent].0 == 1
     };
     let mut runs = Vec::new();
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
@@ -416,8 +426,8 @@ fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
         }
         let mut run = vec![parent, i];
         let mut at = i;
-        while children[at].len() == 1 && continues(at, children[at][0]) {
-            at = children[at][0];
+        while children[at].0 == 1 && continues(at, children[at].1) {
+            at = children[at].1;
             run.push(at);
         }
         runs.push(run);

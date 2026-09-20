@@ -1,0 +1,19 @@
+{
+  "comparison": "decoded 8-bit RGBA; complete CPU versus GPU rendering includes foliage differences; not isolated wood normals",
+  "rows": [
+    {
+      "preset": "oregon-white-oak",
+      "pixels": 921600,
+      "changedPixels": 921,
+      "changedPercent": 0.09993489583333334,
+      "maxChannelDifference": 76
+    },
+    {
+      "preset": "norway-spruce",
+      "pixels": 921600,
+      "changedPixels": 13222,
+      "changedPercent": 1.4346788194444444,
+      "maxChannelDifference": 39
+    }
+  ]
+}

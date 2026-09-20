@@ -1,11 +1,10 @@
 //! Exact swept polygon queries without constructing mesh indices or normals.
 use super::*;
-use crate::math::Transcendental;
 
 pub(crate) struct AttachmentSurface {
-    rings: Vec<Vec3>,
-    edges: Vec<Option<(usize, usize, usize, usize)>>,
-    segments: usize,
+    pub(crate) rings: Vec<Vec3>,
+    pub(crate) edges: Vec<Option<(usize, usize, usize, usize)>>,
+    pub(crate) segments: usize,
     segment_bounds: Vec<Option<(Vec3, Vec3)>>,
 }
 impl AttachmentSurface {
@@ -29,6 +28,7 @@ impl AttachmentSurface {
         let height = height.max(1e-6);
         let paths = paths(&tree.nodes)?;
         let segments = params.radial_segments.max(params.lobes * 4) as usize;
+        let angular = angular::samples(segments, params)?;
         let mut out = Self {
             rings: reserved(
                 paths
@@ -66,17 +66,9 @@ impl AttachmentSurface {
             for (i, s) in samples.iter().enumerate() {
                 let (normal, binormal) = frame[i];
                 let phase = std::f64::consts::TAU * params.twist_rate * (s.d / height);
-                for k in 0..segments {
-                    let angle = k as f64 / segments as f64 * std::f64::consts::TAU;
-                    let profile = if params.lobes == 0 {
-                        1.0
-                    } else {
-                        1.0 + params.lobe_depth
-                            * (params.lobes as f64 * (angle + phase)).cos_fixed()
-                    };
-                    let p = s.p
-                        + (normal * angle.cos_fixed() + binormal * angle.sin_fixed())
-                            * (s.r * profile);
+                for sample in &angular {
+                    let profile = sample.profile(params, phase);
+                    let p = s.p + (normal * sample.cos + binormal * sample.sin) * (s.r * profile);
                     // Query exactly the float32 vertices submitted by build().
                     out.rings.push(Vec3::new(
                         p.x as f32 as f64,

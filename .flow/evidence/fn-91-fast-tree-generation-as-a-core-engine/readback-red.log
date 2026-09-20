@@ -1,0 +1,35 @@
+    Blocking waiting for file lock on build directory
+    Checking serde_core v1.0.229
+    Checking serde v1.0.229
+    Checking serde_json v1.0.151
+    Checking bincode v1.3.3
+    Checking slotmap v1.1.1
+    Checking telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Checking telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+error[E0425]: cannot find function `read_leaves_chunked` in module `io`
+  --> crates/telperion-render/src/generation/readback_tests.rs:13:45
+   |
+13 |         let actual = pollster::block_on(io::read_leaves_chunked(&gpu, &source, count, 48)).unwrap();
+   |                                             ^^^^^^^^^^^^^^^^^^^ not found in `io`
+
+error[E0425]: cannot find function `read_leaves_chunked` in module `io`
+  --> crates/telperion-render/src/generation/readback_tests.rs:23:36
+   |
+23 |     assert!(pollster::block_on(io::read_leaves_chunked(&gpu, &source, 3, 48)).is_err());
+   |                                    ^^^^^^^^^^^^^^^^^^^ not found in `io`
+
+error[E0425]: cannot find function `reserve_leaves` in module `io`
+  --> crates/telperion-render/src/generation/readback_tests.rs:24:17
+   |
+24 |     assert!(io::reserve_leaves(usize::MAX).is_err());
+   |                 ^^^^^^^^^^^^^^ not found in `io`
+
+error[E0425]: cannot find function `read_leaves_chunked` in module `io`
+  --> crates/telperion-render/src/generation/readback_tests.rs:26:36
+   |
+26 |     assert!(pollster::block_on(io::read_leaves_chunked(&gpu, &source, 1, 48)).is_err());
+   |                                    ^^^^^^^^^^^^^^^^^^^ not found in `io`
+
+For more information about this error, try `rustc --explain E0425`.
+error: could not compile `telperion-render` (lib test) due to 4 previous errors
+warning: build failed, waiting for other jobs to finish...

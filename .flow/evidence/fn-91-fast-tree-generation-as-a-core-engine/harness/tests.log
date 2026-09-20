@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /home/daniel/Projects/telperion
+
+
+ Test Files  2 passed (2)
+      Tests  34 passed (34)
+   Start at  20:05:51
+   Duration  185ms (transform 98ms, setup 0ms, import 127ms, tests 21ms, environment 0ms)

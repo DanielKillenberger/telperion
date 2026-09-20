@@ -1,0 +1,141 @@
+diff --git i/crates/telperion-core/src/bias.rs w/crates/telperion-core/src/bias.rs
+index 72aa684b..6cefeb9b 100644
+--- i/crates/telperion-core/src/bias.rs
++++ w/crates/telperion-core/src/bias.rs
+@@ -117,6 +117,17 @@ impl GrowthBias {
+     /// Inputs are finite; direction is unit length (validated by growth).
+     pub fn apply(&self, position: Vec3, direction: Vec3) -> Vec3 {
+         let p = self.params;
++        if p.lean == 0.0
++            && p.gravitropism == 0.0
++            && (!p.supernatural.enabled || p.supernatural.writhe_amplitude == 0.0)
++        {
++            let biased = direction + self.lean * p.lean + Vec3::Y * p.gravitropism;
++            return if biased.length() < 1e-9 {
++                direction.normalized()
++            } else {
++                biased.normalized()
++            };
++        }
+         let effects = if p.supernatural.enabled {
+             p.supernatural
+         } else {
+@@ -172,3 +183,6 @@ impl GrowthBias {
+         }
+     }
+ }
++
++#[cfg(test)]
++mod tests;
+diff --git 1/crates/telperion-core/src/bias/tests.rs 2/crates/telperion-core/src/bias/tests.rs
+new file mode 100644
+index 00000000..f601a47f
+--- /dev/null
++++ 2/crates/telperion-core/src/bias/tests.rs
+@@ -0,0 +1,106 @@
++use super::*;
++impl GrowthBias {
++    fn original_apply(&self, position: Vec3, direction: Vec3) -> Vec3 {
++        let p = self.params;
++        let effects = if p.supernatural.enabled {
++            p.supernatural
++        } else {
++            SupernaturalParams::NONE
++        };
++        let height = self.envelope.height.max(1e-6);
++        let wavelength = effects.writhe_wavelength;
++        let turns = effects.spiral_rate;
++        let stray_limit = effects.writhe_amplitude * height;
++        let t = (position.y / height).clamp(0.0, 1.0);
++        let mean = self.lean * (p.lean * position.y);
++        let stray = Vec3::new(position.x - mean.x, 0.0, position.z - mean.z);
++        let strayed = stray.length();
++        let mut writhe = self.lean * p.lean;
++        let spiral_gain = TAU * turns * effects.writhe_amplitude;
++        if spiral_gain > 0.0 {
++            let theta = TAU * turns * t + self.phase;
++            let helix = Vec3::new(theta.cos_fixed(), 0.0, theta.sin_fixed());
++            let swirl = if strayed > 1e-9 {
++                let tangent = Vec3::new(-stray.z, 0.0, stray.x) / strayed;
++                let swirl = helix.lerp(tangent, smoothstep(0.0, 0.5 * stray_limit, strayed));
++                if swirl.length() > 1e-6 {
++                    swirl.normalized()
++                } else {
++                    tangent
++                }
++            } else {
++                helix
++            };
++            writhe += swirl * spiral_gain;
++        }
++        let curl_gain = TAU * effects.writhe_amplitude / wavelength;
++        if curl_gain > 0.0 {
++            let curl = self.noise.curl(position, wavelength * height);
++            if curl.length() > 1e-9 {
++                writhe += curl.normalized() * curl_gain;
++            }
++        }
++        if stray_limit > 0.0 && strayed > 1e-9 {
++            let base = height * self.envelope.crown_base;
++            let trunkness = 1.0 - smoothstep(base, base * 1.3, position.y);
++            let over = (strayed / stray_limit).min(1.0);
++            writhe += stray * (-2.0 * over * over * trunkness / strayed);
++        }
++        if writhe.length() > p.supernatural.max_writhe_magnitude {
++            writhe = writhe.normalized() * p.supernatural.max_writhe_magnitude;
++        }
++        let biased = direction + writhe + Vec3::Y * (p.gravitropism * (0.55 + 0.45 * (1.0 - t)));
++        if biased.length() < 1e-9 {
++            direction.normalized()
++        } else {
++            biased.normalized()
++        }
++    }
++}
++#[test]
++fn specialization_matches_original_bits() {
++    let mut cases = vec![BiasParams::NONE, BiasParams::default()];
++    for enabled in [false, true] {
++        for amplitude in [0.0, 0.2] {
++            for limit in [0.0, 0.9] {
++                for lean in [0.0, -0.0, 0.1] {
++                    for gravity in [0.0, -0.0, 0.7] {
++                        cases.push(BiasParams {
++                            lean,
++                            gravitropism: gravity,
++                            supernatural: SupernaturalParams {
++                                enabled,
++                                writhe_amplitude: amplitude,
++                                spiral_rate: 0.7,
++                                max_writhe_magnitude: limit,
++                                ..SupernaturalParams::NONE
++                            },
++                        });
++                    }
++                }
++            }
++        }
++    }
++    let bits = |v: Vec3| [v.x.to_bits(), v.y.to_bits(), v.z.to_bits()];
++    for params in cases {
++        for seed in [1, 7] {
++            let bias = GrowthBias::new(Envelope::default(), seed, params).unwrap();
++            for position in [Vec3::ZERO, Vec3::new(1., 2., -3.), Vec3::new(-2., -1., 4.)] {
++                for direction in [
++                    Vec3::ZERO,
++                    Vec3::Y,
++                    Vec3::new(-0., 1., -0.),
++                    Vec3::new(-0., 1e-12, -0.),
++                    Vec3::new(1e-9, -0., 0.),
++                    Vec3::new(3., -4., 5.),
++                ] {
++                    assert_eq!(
++                        bits(bias.apply(position, direction)),
++                        bits(bias.original_apply(position, direction)),
++                        "{params:?} {seed} {position:?} {direction:?}"
++                    );
++                }
++            }
++        }
++    }
++}

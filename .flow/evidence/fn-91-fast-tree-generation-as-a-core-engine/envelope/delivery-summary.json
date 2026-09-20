@@ -1,0 +1,988 @@
+{
+  "native": {
+    "cpu-output": [
+      {
+        "species": "oregon-white-oak",
+        "baseline": {
+          "initializationMs": 0.00299,
+          "firstMs": 614.809415,
+          "warmMedianMs": 589.447014,
+          "warmRangeMs": [
+            587.627265,
+            599.639115
+          ]
+        },
+        "candidate": {
+          "initializationMs": 0.00317,
+          "firstMs": 592.5379800000001,
+          "warmMedianMs": 568.5717599999999,
+          "warmRangeMs": [
+            566.599588,
+            586.877248
+          ]
+        },
+        "gainPercent": 3.541497964056195
+      },
+      {
+        "species": "norway-spruce",
+        "baseline": {
+          "initializationMs": 0.00269,
+          "firstMs": 4653.190635999999,
+          "warmMedianMs": 4611.852778,
+          "warmRangeMs": [
+            4582.921047,
+            4635.338605
+          ]
+        },
+        "candidate": {
+          "initializationMs": 0.0029100000000000003,
+          "firstMs": 4786.4572069999995,
+          "warmMedianMs": 4573.256332999999,
+          "warmRangeMs": [
+            4561.796783,
+            4711.470069
+          ]
+        },
+        "gainPercent": 0.8368967280160899
+      }
+    ],
+    "gpu-output": [
+      {
+        "species": "oregon-white-oak",
+        "baseline": {
+          "initializationMs": 253.645085,
+          "firstMs": 293.620742,
+          "warmMedianMs": 277.71653699999996,
+          "warmRangeMs": [
+            275.938108,
+            279.794742
+          ]
+        },
+        "candidate": {
+          "initializationMs": 342.90894,
+          "firstMs": 284.557875,
+          "warmMedianMs": 259.741447,
+          "warmRangeMs": [
+            257.687743,
+            261.546746
+          ]
+        },
+        "gainPercent": 6.4724593624037485
+      },
+      {
+        "species": "norway-spruce",
+        "baseline": {
+          "initializationMs": 194.106325,
+          "firstMs": 347.185181,
+          "warmMedianMs": 306.731205,
+          "warmRangeMs": [
+            304.539328,
+            308.968753
+          ]
+        },
+        "candidate": {
+          "initializationMs": 209.952539,
+          "firstMs": 352.59578899999997,
+          "warmMedianMs": 314.04927399999997,
+          "warmRangeMs": [
+            307.382899,
+            314.122295
+          ]
+        },
+        "gainPercent": -2.385824748414489
+      }
+    ]
+  },
+  "browser": [
+    {
+      "species": "oregon-white-oak",
+      "seed": 1,
+      "baselineMs": 175.39999999850988,
+      "candidateMs": 173.09999999776483,
+      "gainPercent": 1.3112884839022843,
+      "originalSpeedup": 9.069901790989444,
+      "above100Ms": 73.09999999776483,
+      "tenTimesTargetMs": 157.0,
+      "baselineInitMs": 3287.199999999255,
+      "candidateInitMs": 3306,
+      "firstBaselineMs": 454.0999999977648,
+      "firstCandidateMs": 431.1000000014901,
+      "samples": 6,
+      "baselineMemory": [
+        {
+          "previousTree": 0,
+          "woodResident": 220823784,
+          "foliageResident": 8850092,
+          "finalExpansionJoint": 257032420,
+          "placementJointEnvelope": 119282860,
+          "preparationJointEnvelope": 113518604,
+          "accountedJointEnvelope": 257032420,
+          "baseCpu": 24133824,
+          "positionGpuPeak": 60376888,
+          "foliageGpuPeak": 74111644,
+          "woodGpuPeak": 223158952
+        },
+        {
+          "previousTree": 254810296,
+          "woodResident": 220823784,
+          "foliageResident": 8850092,
+          "finalExpansionJoint": 511842716,
+          "placementJointEnvelope": 374093156,
+          "preparationJointEnvelope": 368328900,
+          "accountedJointEnvelope": 511842716,
+          "baseCpu": 24133824,
+          "positionGpuPeak": 60376888,
+          "foliageGpuPeak": 74111644,
+          "woodGpuPeak": 223158952
+        },
+        {
+          "previousTree": 254810296,
+          "woodResident": 220823784,
+          "foliageResident": 8850092,
+          "finalExpansionJoint": 511842716,
+          "placementJointEnvelope": 374093156,
+          "preparationJointEnvelope": 368328900,
+          "accountedJointEnvelope": 511842716,
+          "baseCpu": 24133824,
+          "positionGpuPeak": 60376888,
+          "foliageGpuPeak": 74111644,
+          "woodGpuPeak": 223158952
+        },
+        {
+          "previousTree": 254810296,
+          "woodResident": 220823784,
+          "foliageResident": 8850092,
+          "finalExpansionJoint": 511842716,
+          "placementJointEnvelope": 374093156,
+          "preparationJointEnvelope": 368328900,
+          "accountedJointEnvelope": 511842716,
+          "baseCpu": 24133824,
+          "positionGpuPeak": 60376888,
+          "foliageGpuPeak": 74111644,
+          "woodGpuPeak": 223158952
+        },
+        {
+          "previousTree": 254810296,
+          "woodResident": 220823784,
+          "foliageResident": 8850092,
+          "finalExpansionJoint": 511842716,
+          "placementJointEnvelope": 374093156,
+          "preparationJointEnvelope": 368328900,
+          "accountedJointEnvelope": 511842716,
+          "baseCpu": 24133824,
+          "positionGpuPeak": 60376888,
+          "foliageGpuPeak": 74111644,
+          "woodGpuPeak": 223158952
+        },
+        {
+          "previousTree": 254810296,
+          "woodResident": 220823784,
+          "foliageResident": 8850092,
+          "finalExpansionJoint": 511842716,
+          "placementJointEnvelope": 374093156,
+          "preparationJointEnvelope": 368328900,
+          "accountedJointEnvelope": 511842716,
+          "baseCpu": 24133824,
+          "positionGpuPeak": 60376888,
+          "foliageGpuPeak": 74111644,
+          "woodGpuPeak": 223158952
+        }
+      ],
+      "baselineStageMedians": {
+        "compactMs": 2.600000001490116,
+        "descriptorsMs": 19.799999997019768,
+        "massMs": 2.300000000745058,
+        "placementWaitMs": 6.699999999254942,
+        "positionPrepareMs": 33.5,
+        "positionUploadMs": 1.8999999985098839,
+        "positionWaitMs": 11.300000000745058,
+        "readbackMs": 0,
+        "skeletonMs": 73.39999999850988,
+        "totalMs": 162.89999999850988,
+        "uploadDispatchMs": 1.699999999254942,
+        "woodMs": 53.80000000074506,
+        "woodPrepareMs": 0,
+        "woodUploadDispatchMs": 0.09999999776482582,
+        "woodWaitMs": 5.400000002235174
+      },
+      "baselineWasmHighWater": 94240768,
+      "baselineWarmRangeMs": [
+        170.80000000074506,
+        184.19999999925494
+      ],
+      "candidateMemory": [
+        {
+          "previousTree": 0,
+          "woodResident": 220823784,
+          "foliageResident": 8850092,
+          "finalExpansionJoint": 257032420,
+          "placementJointEnvelope": 119282860,
+          "preparationJointEnvelope": 113518604,
+          "accountedJointEnvelope": 257032420,
+          "baseCpu": 24133824,
+          "positionGpuPeak": 60376888,
+          "foliageGpuPeak": 74111644,
+          "woodGpuPeak": 223158952
+        },
+        {
+          "previousTree": 254810296,
+          "woodResident": 220823784,
+          "foliageResident": 8850092,
+          "finalExpansionJoint": 511842716,
+          "placementJointEnvelope": 374093156,
+          "preparationJointEnvelope": 368328900,
+          "accountedJointEnvelope": 511842716,
+          "baseCpu": 24133824,
+          "positionGpuPeak": 60376888,
+          "foliageGpuPeak": 74111644,
+          "woodGpuPeak": 223158952
+        },
+        {
+          "previousTree": 254810296,
+          "woodResident": 220823784,
+          "foliageResident": 8850092,
+          "finalExpansionJoint": 511842716,
+          "placementJointEnvelope": 374093156,
+          "preparationJointEnvelope": 368328900,
+          "accountedJointEnvelope": 511842716,
+          "baseCpu": 24133824,
+          "positionGpuPeak": 60376888,
+          "foliageGpuPeak": 74111644,
+          "woodGpuPeak": 223158952
+        },
+        {
+          "previousTree": 254810296,
+          "woodResident": 220823784,
+          "foliageResident": 8850092,
+          "finalExpansionJoint": 511842716,
+          "placementJointEnvelope": 374093156,
+          "preparationJointEnvelope": 368328900,
+          "accountedJointEnvelope": 511842716,
+          "baseCpu": 24133824,
+          "positionGpuPeak": 60376888,
+          "foliageGpuPeak": 74111644,
+          "woodGpuPeak": 223158952
+        },
+        {
+          "previousTree": 254810296,
+          "woodResident": 220823784,
+          "foliageResident": 8850092,
+          "finalExpansionJoint": 511842716,
+          "placementJointEnvelope": 374093156,
+          "preparationJointEnvelope": 368328900,
+          "accountedJointEnvelope": 511842716,
+          "baseCpu": 24133824,
+          "positionGpuPeak": 60376888,
+          "foliageGpuPeak": 74111644,
+          "woodGpuPeak": 223158952
+        },
+        {
+          "previousTree": 254810296,
+          "woodResident": 220823784,
+          "foliageResident": 8850092,
+          "finalExpansionJoint": 511842716,
+          "placementJointEnvelope": 374093156,
+          "preparationJointEnvelope": 368328900,
+          "accountedJointEnvelope": 511842716,
+          "baseCpu": 24133824,
+          "positionGpuPeak": 60376888,
+          "foliageGpuPeak": 74111644,
+          "woodGpuPeak": 223158952
+        }
+      ],
+      "candidateStageMedians": {
+        "compactMs": 2.699999999254942,
+        "descriptorsMs": 21,
+        "massMs": 2.300000000745058,
+        "placementWaitMs": 6.5,
+        "positionPrepareMs": 41.399999998509884,
+        "positionUploadMs": 2.199999999254942,
+        "positionWaitMs": 11.199999999254942,
+        "readbackMs": 0,
+        "skeletonMs": 61.69999999925494,
+        "totalMs": 160.10000000149012,
+        "uploadDispatchMs": 2.199999999254942,
+        "woodMs": 61.49999999627471,
+        "woodPrepareMs": 0,
+        "woodUploadDispatchMs": 0.09999999776482582,
+        "woodWaitMs": 5.5
+      },
+      "candidateWasmHighWater": 94240768,
+      "candidateWarmRangeMs": [
+        165,
+        190
+      ],
+      "fallbackCount": 0,
+      "addedGrowthAdmissionStackBytesNative": 4368
+    },
+    {
+      "species": "oregon-white-oak",
+      "seed": 7,
+      "baselineMs": 193.80000000074506,
+      "candidateMs": 186.19999999925494,
+      "gainPercent": 3.921568628204797,
+      "originalSpeedup": 10.002685284680197,
+      "above100Ms": 86.19999999925494,
+      "tenTimesTargetMs": 186.25,
+      "baselineInitMs": 144.30000000074506,
+      "candidateInitMs": 169.10000000149012,
+      "firstBaselineMs": 472.5999999977648,
+      "firstCandidateMs": 473.5999999977648,
+      "samples": 6,
+      "baselineMemory": [
+        {
+          "previousTree": 0,
+          "woodResident": 252498120,
+          "foliageResident": 10747592,
+          "finalExpansionJoint": 315302648,
+          "placementJointEnvelope": 170894712,
+          "preparationJointEnvelope": 162063908,
+          "accountedJointEnvelope": 315302648,
+          "baseCpu": 48251072,
+          "positionGpuPeak": 69237616,
+          "foliageGpuPeak": 86792520,
+          "woodGpuPeak": 255226624
+        },
+        {
+          "previousTree": 293801628,
+          "woodResident": 252498120,
+          "foliageResident": 10747592,
+          "finalExpansionJoint": 609104276,
+          "placementJointEnvelope": 464696340,
+          "preparationJointEnvelope": 455865536,
+          "accountedJointEnvelope": 609104276,
+          "baseCpu": 48251072,
+          "positionGpuPeak": 69237616,
+          "foliageGpuPeak": 86792520,
+          "woodGpuPeak": 255226624
+        },
+        {
+          "previousTree": 293801628,
+          "woodResident": 252498120,
+          "foliageResident": 10747592,
+          "finalExpansionJoint": 609104276,
+          "placementJointEnvelope": 464696340,
+          "preparationJointEnvelope": 455865536,
+          "accountedJointEnvelope": 609104276,
+          "baseCpu": 48251072,
+          "positionGpuPeak": 69237616,
+          "foliageGpuPeak": 86792520,
+          "woodGpuPeak": 255226624
+        },
+        {
+          "previousTree": 293801628,
+          "woodResident": 252498120,
+          "foliageResident": 10747592,
+          "finalExpansionJoint": 609104276,
+          "placementJointEnvelope": 464696340,
+          "preparationJointEnvelope": 455865536,
+          "accountedJointEnvelope": 609104276,
+          "baseCpu": 48251072,
+          "positionGpuPeak": 69237616,
+          "foliageGpuPeak": 86792520,
+          "woodGpuPeak": 255226624
+        },
+        {
+          "previousTree": 293801628,
+          "woodResident": 252498120,
+          "foliageResident": 10747592,
+          "finalExpansionJoint": 609104276,
+          "placementJointEnvelope": 464696340,
+          "preparationJointEnvelope": 455865536,
+          "accountedJointEnvelope": 609104276,
+          "baseCpu": 48251072,
+          "positionGpuPeak": 69237616,
+          "foliageGpuPeak": 86792520,
+          "woodGpuPeak": 255226624
+        },
+        {
+          "previousTree": 293801628,
+          "woodResident": 252498120,
+          "foliageResident": 10747592,
+          "finalExpansionJoint": 609104276,
+          "placementJointEnvelope": 464696340,
+          "preparationJointEnvelope": 455865536,
+          "accountedJointEnvelope": 609104276,
+          "baseCpu": 48251072,
+          "positionGpuPeak": 69237616,
+          "foliageGpuPeak": 86792520,
+          "woodGpuPeak": 255226624
+        }
+      ],
+      "baselineStageMedians": {
+        "compactMs": 2.600000001490116,
+        "descriptorsMs": 23.800000000745058,
+        "massMs": 2.300000000745058,
+        "placementWaitMs": 7.099999997764826,
+        "positionPrepareMs": 42.19999999925494,
+        "positionUploadMs": 2,
+        "positionWaitMs": 12.699999999254942,
+        "readbackMs": 0,
+        "skeletonMs": 77.39999999850988,
+        "totalMs": 180.89999999850988,
+        "uploadDispatchMs": 2.400000002235174,
+        "woodMs": 64.39999999850988,
+        "woodPrepareMs": 0,
+        "woodUploadDispatchMs": 0.10000000149011612,
+        "woodWaitMs": 5.800000000745058
+      },
+      "baselineWasmHighWater": 106496000,
+      "baselineWarmRangeMs": [
+        191.09999999776483,
+        198.80000000074506
+      ],
+      "candidateMemory": [
+        {
+          "previousTree": 0,
+          "woodResident": 252498120,
+          "foliageResident": 10747592,
+          "finalExpansionJoint": 315302648,
+          "placementJointEnvelope": 170894712,
+          "preparationJointEnvelope": 162063908,
+          "accountedJointEnvelope": 315302648,
+          "baseCpu": 48251072,
+          "positionGpuPeak": 69237616,
+          "foliageGpuPeak": 86792520,
+          "woodGpuPeak": 255226624
+        },
+        {
+          "previousTree": 293801628,
+          "woodResident": 252498120,
+          "foliageResident": 10747592,
+          "finalExpansionJoint": 609104276,
+          "placementJointEnvelope": 464696340,
+          "preparationJointEnvelope": 455865536,
+          "accountedJointEnvelope": 609104276,
+          "baseCpu": 48251072,
+          "positionGpuPeak": 69237616,
+          "foliageGpuPeak": 86792520,
+          "woodGpuPeak": 255226624
+        },
+        {
+          "previousTree": 293801628,
+          "woodResident": 252498120,
+          "foliageResident": 10747592,
+          "finalExpansionJoint": 609104276,
+          "placementJointEnvelope": 464696340,
+          "preparationJointEnvelope": 455865536,
+          "accountedJointEnvelope": 609104276,
+          "baseCpu": 48251072,
+          "positionGpuPeak": 69237616,
+          "foliageGpuPeak": 86792520,
+          "woodGpuPeak": 255226624
+        },
+        {
+          "previousTree": 293801628,
+          "woodResident": 252498120,
+          "foliageResident": 10747592,
+          "finalExpansionJoint": 609104276,
+          "placementJointEnvelope": 464696340,
+          "preparationJointEnvelope": 455865536,
+          "accountedJointEnvelope": 609104276,
+          "baseCpu": 48251072,
+          "positionGpuPeak": 69237616,
+          "foliageGpuPeak": 86792520,
+          "woodGpuPeak": 255226624
+        },
+        {
+          "previousTree": 293801628,
+          "woodResident": 252498120,
+          "foliageResident": 10747592,
+          "finalExpansionJoint": 609104276,
+          "placementJointEnvelope": 464696340,
+          "preparationJointEnvelope": 455865536,
+          "accountedJointEnvelope": 609104276,
+          "baseCpu": 48251072,
+          "positionGpuPeak": 69237616,
+          "foliageGpuPeak": 86792520,
+          "woodGpuPeak": 255226624
+        },
+        {
+          "previousTree": 293801628,
+          "woodResident": 252498120,
+          "foliageResident": 10747592,
+          "finalExpansionJoint": 609104276,
+          "placementJointEnvelope": 464696340,
+          "preparationJointEnvelope": 455865536,
+          "accountedJointEnvelope": 609104276,
+          "baseCpu": 48251072,
+          "positionGpuPeak": 69237616,
+          "foliageGpuPeak": 86792520,
+          "woodGpuPeak": 255226624
+        }
+      ],
+      "candidateStageMedians": {
+        "compactMs": 2.599999997764826,
+        "descriptorsMs": 25.800000000745058,
+        "massMs": 2.399999998509884,
+        "placementWaitMs": 7.400000002235174,
+        "positionPrepareMs": 45.900000002235174,
+        "positionUploadMs": 2.399999998509884,
+        "positionWaitMs": 13,
+        "readbackMs": 0,
+        "skeletonMs": 60.600000001490116,
+        "totalMs": 172.69999999925494,
+        "uploadDispatchMs": 2.2999999970197678,
+        "woodMs": 69.00000000372529,
+        "woodPrepareMs": 0,
+        "woodUploadDispatchMs": 0.09999999776482582,
+        "woodWaitMs": 5.900000002235174
+      },
+      "candidateWasmHighWater": 106496000,
+      "candidateWarmRangeMs": [
+        173,
+        194.90000000223517
+      ],
+      "fallbackCount": 0,
+      "addedGrowthAdmissionStackBytesNative": 4368
+    },
+    {
+      "species": "norway-spruce",
+      "seed": 1,
+      "baselineMs": 184.60000000149012,
+      "candidateMs": 190.09999999776483,
+      "gainPercent": -2.9794149492038624,
+      "originalSpeedup": 40.129405576482505,
+      "above100Ms": 90.09999999776483,
+      "tenTimesTargetMs": 762.8599999999627,
+      "baselineInitMs": 148.89999999850988,
+      "candidateInitMs": 152,
+      "firstBaselineMs": 466.70000000298023,
+      "firstCandidateMs": 485.5,
+      "samples": 6,
+      "baselineMemory": [
+        {
+          "previousTree": 0,
+          "woodResident": 180544656,
+          "foliageResident": 88624472,
+          "finalExpansionJoint": 296130656,
+          "placementJointEnvelope": 319627432,
+          "preparationJointEnvelope": 113354608,
+          "accountedJointEnvelope": 319627432,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 49709896,
+          "foliageGpuPeak": 256550984,
+          "woodGpuPeak": 182554664
+        },
+        {
+          "previousTree": 416821772,
+          "woodResident": 180544656,
+          "foliageResident": 88624472,
+          "finalExpansionJoint": 712952428,
+          "placementJointEnvelope": 736449204,
+          "preparationJointEnvelope": 530176380,
+          "accountedJointEnvelope": 736449204,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 49709896,
+          "foliageGpuPeak": 256550984,
+          "woodGpuPeak": 182554664
+        },
+        {
+          "previousTree": 416821772,
+          "woodResident": 180544656,
+          "foliageResident": 88624472,
+          "finalExpansionJoint": 712952428,
+          "placementJointEnvelope": 736449204,
+          "preparationJointEnvelope": 530176380,
+          "accountedJointEnvelope": 736449204,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 49709896,
+          "foliageGpuPeak": 256550984,
+          "woodGpuPeak": 182554664
+        },
+        {
+          "previousTree": 416821772,
+          "woodResident": 180544656,
+          "foliageResident": 88624472,
+          "finalExpansionJoint": 712952428,
+          "placementJointEnvelope": 736449204,
+          "preparationJointEnvelope": 530176380,
+          "accountedJointEnvelope": 736449204,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 49709896,
+          "foliageGpuPeak": 256550984,
+          "woodGpuPeak": 182554664
+        },
+        {
+          "previousTree": 416821772,
+          "woodResident": 180544656,
+          "foliageResident": 88624472,
+          "finalExpansionJoint": 712952428,
+          "placementJointEnvelope": 736449204,
+          "preparationJointEnvelope": 530176380,
+          "accountedJointEnvelope": 736449204,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 49709896,
+          "foliageGpuPeak": 256550984,
+          "woodGpuPeak": 182554664
+        },
+        {
+          "previousTree": 416821772,
+          "woodResident": 180544656,
+          "foliageResident": 88624472,
+          "finalExpansionJoint": 712952428,
+          "placementJointEnvelope": 736449204,
+          "preparationJointEnvelope": 530176380,
+          "accountedJointEnvelope": 736449204,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 49709896,
+          "foliageGpuPeak": 256550984,
+          "woodGpuPeak": 182554664
+        }
+      ],
+      "baselineStageMedians": {
+        "compactMs": 3.699999999254942,
+        "descriptorsMs": 28.799999997019768,
+        "massMs": 2.300000000745058,
+        "placementWaitMs": 20.300000000745058,
+        "positionPrepareMs": 27.300000000745058,
+        "positionUploadMs": 1.5999999977648258,
+        "positionWaitMs": 9.800000000745058,
+        "readbackMs": 0,
+        "skeletonMs": 55.100000001490116,
+        "totalMs": 159,
+        "uploadDispatchMs": 3.300000000745058,
+        "woodMs": 44.70000000298023,
+        "woodPrepareMs": 0,
+        "woodUploadDispatchMs": 0.10000000149011612,
+        "woodWaitMs": 5
+      },
+      "baselineWasmHighWater": 98041856,
+      "baselineWarmRangeMs": [
+        182.80000000074506,
+        185.69999999925494
+      ],
+      "candidateMemory": [
+        {
+          "previousTree": 0,
+          "woodResident": 180544656,
+          "foliageResident": 88624472,
+          "finalExpansionJoint": 296130656,
+          "placementJointEnvelope": 319627432,
+          "preparationJointEnvelope": 113354608,
+          "accountedJointEnvelope": 319627432,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 49709896,
+          "foliageGpuPeak": 256550984,
+          "woodGpuPeak": 182554664
+        },
+        {
+          "previousTree": 416821772,
+          "woodResident": 180544656,
+          "foliageResident": 88624472,
+          "finalExpansionJoint": 712952428,
+          "placementJointEnvelope": 736449204,
+          "preparationJointEnvelope": 530176380,
+          "accountedJointEnvelope": 736449204,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 49709896,
+          "foliageGpuPeak": 256550984,
+          "woodGpuPeak": 182554664
+        },
+        {
+          "previousTree": 416821772,
+          "woodResident": 180544656,
+          "foliageResident": 88624472,
+          "finalExpansionJoint": 712952428,
+          "placementJointEnvelope": 736449204,
+          "preparationJointEnvelope": 530176380,
+          "accountedJointEnvelope": 736449204,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 49709896,
+          "foliageGpuPeak": 256550984,
+          "woodGpuPeak": 182554664
+        },
+        {
+          "previousTree": 416821772,
+          "woodResident": 180544656,
+          "foliageResident": 88624472,
+          "finalExpansionJoint": 712952428,
+          "placementJointEnvelope": 736449204,
+          "preparationJointEnvelope": 530176380,
+          "accountedJointEnvelope": 736449204,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 49709896,
+          "foliageGpuPeak": 256550984,
+          "woodGpuPeak": 182554664
+        },
+        {
+          "previousTree": 416821772,
+          "woodResident": 180544656,
+          "foliageResident": 88624472,
+          "finalExpansionJoint": 712952428,
+          "placementJointEnvelope": 736449204,
+          "preparationJointEnvelope": 530176380,
+          "accountedJointEnvelope": 736449204,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 49709896,
+          "foliageGpuPeak": 256550984,
+          "woodGpuPeak": 182554664
+        },
+        {
+          "previousTree": 416821772,
+          "woodResident": 180544656,
+          "foliageResident": 88624472,
+          "finalExpansionJoint": 712952428,
+          "placementJointEnvelope": 736449204,
+          "preparationJointEnvelope": 530176380,
+          "accountedJointEnvelope": 736449204,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 49709896,
+          "foliageGpuPeak": 256550984,
+          "woodGpuPeak": 182554664
+        }
+      ],
+      "candidateStageMedians": {
+        "compactMs": 3.699999999254942,
+        "descriptorsMs": 30.699999999254942,
+        "massMs": 2.300000000745058,
+        "placementWaitMs": 20.899999998509884,
+        "positionPrepareMs": 29.400000002235174,
+        "positionUploadMs": 1.6000000014901161,
+        "positionWaitMs": 10.099999997764826,
+        "readbackMs": 0,
+        "skeletonMs": 56.19999999925494,
+        "totalMs": 164.80000000074506,
+        "uploadDispatchMs": 3.199999999254942,
+        "woodMs": 47.19999999552965,
+        "woodPrepareMs": 0,
+        "woodUploadDispatchMs": 0.10000000149011612,
+        "woodWaitMs": 5.100000001490116
+      },
+      "candidateWasmHighWater": 98041856,
+      "candidateWarmRangeMs": [
+        188.19999999925494,
+        191
+      ],
+      "fallbackCount": 0,
+      "addedGrowthAdmissionStackBytesNative": 4368
+    },
+    {
+      "species": "norway-spruce",
+      "seed": 7,
+      "baselineMs": 173,
+      "candidateMs": 179.79999999701977,
+      "gainPercent": -3.9306358364276095,
+      "originalSpeedup": 41.06785317086981,
+      "above100Ms": 79.79999999701977,
+      "tenTimesTargetMs": 738.4,
+      "baselineInitMs": 151.70000000298023,
+      "candidateInitMs": 155.59999999776483,
+      "firstBaselineMs": 464.29999999701977,
+      "firstCandidateMs": 477.69999999925494,
+      "samples": 6,
+      "baselineMemory": [
+        {
+          "previousTree": 0,
+          "woodResident": 170933664,
+          "foliageResident": 84488936,
+          "finalExpansionJoint": 282229088,
+          "placementJointEnvelope": 306692528,
+          "preparationJointEnvelope": 109987720,
+          "accountedJointEnvelope": 306692528,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 47057272,
+          "foliageGpuPeak": 244294576,
+          "woodGpuPeak": 172834808
+        },
+        {
+          "previousTree": 396219824,
+          "woodResident": 170933664,
+          "foliageResident": 84488936,
+          "finalExpansionJoint": 678448912,
+          "placementJointEnvelope": 702912352,
+          "preparationJointEnvelope": 506207544,
+          "accountedJointEnvelope": 702912352,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 47057272,
+          "foliageGpuPeak": 244294576,
+          "woodGpuPeak": 172834808
+        },
+        {
+          "previousTree": 396219824,
+          "woodResident": 170933664,
+          "foliageResident": 84488936,
+          "finalExpansionJoint": 678448912,
+          "placementJointEnvelope": 702912352,
+          "preparationJointEnvelope": 506207544,
+          "accountedJointEnvelope": 702912352,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 47057272,
+          "foliageGpuPeak": 244294576,
+          "woodGpuPeak": 172834808
+        },
+        {
+          "previousTree": 396219824,
+          "woodResident": 170933664,
+          "foliageResident": 84488936,
+          "finalExpansionJoint": 678448912,
+          "placementJointEnvelope": 702912352,
+          "preparationJointEnvelope": 506207544,
+          "accountedJointEnvelope": 702912352,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 47057272,
+          "foliageGpuPeak": 244294576,
+          "woodGpuPeak": 172834808
+        },
+        {
+          "previousTree": 396219824,
+          "woodResident": 170933664,
+          "foliageResident": 84488936,
+          "finalExpansionJoint": 678448912,
+          "placementJointEnvelope": 702912352,
+          "preparationJointEnvelope": 506207544,
+          "accountedJointEnvelope": 702912352,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 47057272,
+          "foliageGpuPeak": 244294576,
+          "woodGpuPeak": 172834808
+        },
+        {
+          "previousTree": 396219824,
+          "woodResident": 170933664,
+          "foliageResident": 84488936,
+          "finalExpansionJoint": 678448912,
+          "placementJointEnvelope": 702912352,
+          "preparationJointEnvelope": 506207544,
+          "accountedJointEnvelope": 702912352,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 47057272,
+          "foliageGpuPeak": 244294576,
+          "woodGpuPeak": 172834808
+        }
+      ],
+      "baselineStageMedians": {
+        "compactMs": 3.599999997764826,
+        "descriptorsMs": 27,
+        "massMs": 2.300000000745058,
+        "placementWaitMs": 18.300000000745058,
+        "positionPrepareMs": 26.699999999254942,
+        "positionUploadMs": 1.5,
+        "positionWaitMs": 9.399999998509884,
+        "readbackMs": 0,
+        "skeletonMs": 51.899999998509884,
+        "totalMs": 150.19999999925494,
+        "uploadDispatchMs": 2.800000000745058,
+        "woodMs": 43.900000002235174,
+        "woodPrepareMs": 0,
+        "woodUploadDispatchMs": 0.10000000149011612,
+        "woodWaitMs": 4.899999998509884
+      },
+      "baselineWasmHighWater": 98041856,
+      "baselineWarmRangeMs": [
+        172.29999999701977,
+        175.10000000149012
+      ],
+      "candidateMemory": [
+        {
+          "previousTree": 0,
+          "woodResident": 170933664,
+          "foliageResident": 84488936,
+          "finalExpansionJoint": 282229088,
+          "placementJointEnvelope": 306692528,
+          "preparationJointEnvelope": 109987720,
+          "accountedJointEnvelope": 306692528,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 47057272,
+          "foliageGpuPeak": 244294576,
+          "woodGpuPeak": 172834808
+        },
+        {
+          "previousTree": 396219824,
+          "woodResident": 170933664,
+          "foliageResident": 84488936,
+          "finalExpansionJoint": 678448912,
+          "placementJointEnvelope": 702912352,
+          "preparationJointEnvelope": 506207544,
+          "accountedJointEnvelope": 702912352,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 47057272,
+          "foliageGpuPeak": 244294576,
+          "woodGpuPeak": 172834808
+        },
+        {
+          "previousTree": 396219824,
+          "woodResident": 170933664,
+          "foliageResident": 84488936,
+          "finalExpansionJoint": 678448912,
+          "placementJointEnvelope": 702912352,
+          "preparationJointEnvelope": 506207544,
+          "accountedJointEnvelope": 702912352,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 47057272,
+          "foliageGpuPeak": 244294576,
+          "woodGpuPeak": 172834808
+        },
+        {
+          "previousTree": 396219824,
+          "woodResident": 170933664,
+          "foliageResident": 84488936,
+          "finalExpansionJoint": 678448912,
+          "placementJointEnvelope": 702912352,
+          "preparationJointEnvelope": 506207544,
+          "accountedJointEnvelope": 702912352,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 47057272,
+          "foliageGpuPeak": 244294576,
+          "woodGpuPeak": 172834808
+        },
+        {
+          "previousTree": 396219824,
+          "woodResident": 170933664,
+          "foliageResident": 84488936,
+          "finalExpansionJoint": 678448912,
+          "placementJointEnvelope": 702912352,
+          "preparationJointEnvelope": 506207544,
+          "accountedJointEnvelope": 702912352,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 47057272,
+          "foliageGpuPeak": 244294576,
+          "woodGpuPeak": 172834808
+        },
+        {
+          "previousTree": 396219824,
+          "woodResident": 170933664,
+          "foliageResident": 84488936,
+          "finalExpansionJoint": 678448912,
+          "placementJointEnvelope": 702912352,
+          "preparationJointEnvelope": 506207544,
+          "accountedJointEnvelope": 702912352,
+          "baseCpu": 24120352,
+          "positionGpuPeak": 47057272,
+          "foliageGpuPeak": 244294576,
+          "woodGpuPeak": 172834808
+        }
+      ],
+      "candidateStageMedians": {
+        "compactMs": 3.599999997764826,
+        "descriptorsMs": 28.400000002235174,
+        "massMs": 2.300000000745058,
+        "placementWaitMs": 19.5,
+        "positionPrepareMs": 28,
+        "positionUploadMs": 1.5,
+        "positionWaitMs": 9.5,
+        "readbackMs": 0,
+        "skeletonMs": 51.399999998509884,
+        "totalMs": 155.59999999776483,
+        "uploadDispatchMs": 2.800000000745058,
+        "woodMs": 46.100000001490116,
+        "woodPrepareMs": 0,
+        "woodUploadDispatchMs": 0.10000000149011612,
+        "woodWaitMs": 4.900000002235174
+      },
+      "candidateWasmHighWater": 98041856,
+      "candidateWarmRangeMs": [
+        173.70000000298023,
+        190.80000000074506
+      ],
+      "fallbackCount": 0,
+      "addedGrowthAdmissionStackBytesNative": 4368
+    }
+  ],
+  "limitations": [
+    "Native admission screen missed the 20% both-oak target; host authorized exactly one delivery qualification",
+    "Two contexts add 4368 native bytes during local growth; no heap allocation; incremental batch guard leaves tables unprepared",
+    "Growth frontier/allocator/driver/upload-staging/deferred-destruction overlap is unmeasured; later renderer phase capacities do not qualify a whole-process peak",
+    "First-request and initialization observations are desktop browser only; cold startup and phone remain open"
+  ]
+}

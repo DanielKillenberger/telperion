@@ -6,6 +6,7 @@ mod levels;
 mod outline;
 pub(crate) mod packed;
 mod placement;
+pub mod prepared;
 mod reference;
 mod short_shoots;
 mod station;
@@ -39,6 +40,33 @@ impl Bounds {
             && p.x <= self.max.x
             && p.y <= self.max.y
             && p.z <= self.max.z
+    }
+    fn transformed(self, m: &[f32; 16]) -> Self {
+        let project = |row: usize, lower: bool| {
+            let endpoint = |coefficient: f32, min: f64, max: f64| {
+                if (coefficient >= 0.) == lower {
+                    min
+                } else {
+                    max
+                }
+            };
+            m[row] as f64 * endpoint(m[row], self.min.x, self.max.x)
+                + m[row + 4] as f64 * endpoint(m[row + 4], self.min.y, self.max.y)
+                + m[row + 8] as f64 * endpoint(m[row + 8], self.min.z, self.max.z)
+                + m[row + 12] as f64
+        };
+        Self {
+            min: Vec3::new(project(0, true), project(1, true), project(2, true)),
+            max: Vec3::new(project(0, false), project(1, false), project(2, false)),
+        }
+    }
+    fn strictly_contains(self, other: Self) -> bool {
+        other.min.x > self.min.x
+            && other.min.y > self.min.y
+            && other.min.z > self.min.z
+            && other.max.x < self.max.x
+            && other.max.y < self.max.y
+            && other.max.z < self.max.z
     }
     fn include(&mut self, p: Vec3) {
         self.min = Vec3::new(
@@ -134,8 +162,38 @@ impl Instances {
     pub fn bounds(&self, element: &Element) -> Result<Option<Bounds>> {
         self.validate()?;
         element.validate()?;
+        let Some(&first) = element.positions.first() else {
+            return Ok(None);
+        };
+        let mut local = Bounds {
+            min: first,
+            max: first,
+        };
+        for &p in &element.positions[1..] {
+            local.include(p);
+        }
         let mut bounds: Option<Bounds> = None;
         for m in self.matrices() {
+            if let Some(exact) = bounds {
+                // Signed endpoints and transform_point's sum order enclose every
+                // vertex. Strict interior containment preserves extrema, including
+                // signed-zero ties; unsafe enclosures use the checked vertex loop.
+                let enclosure = local.transformed(&m);
+                if [
+                    enclosure.min.x,
+                    enclosure.min.y,
+                    enclosure.min.z,
+                    enclosure.max.x,
+                    enclosure.max.y,
+                    enclosure.max.z,
+                ]
+                .iter()
+                .all(|v| v.is_finite() && (*v as f32).is_finite())
+                    && exact.strictly_contains(enclosure)
+                {
+                    continue;
+                }
+            }
             for v in &element.positions {
                 let p = transform_point(&m, *v);
                 if !p.is_finite() || [p.x, p.y, p.z].iter().any(|v| !(*v as f32).is_finite()) {
@@ -220,3 +278,6 @@ fn range(v: f64, lo: f64, hi: f64, name: &'static str) -> Result<()> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod bounds_tests;

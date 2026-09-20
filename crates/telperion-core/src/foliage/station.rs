@@ -56,7 +56,7 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
     if stations.is_empty() {
         return Ok(());
     }
-    let frames = frames(&points);
+    let frames = station_frames(&points, &along);
     reserve(out, stations.len(), p)?;
     for (k, distance) in stations.into_iter().enumerate() {
         let mut segment = points.len() - 2;
@@ -77,16 +77,7 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
             tree.nodes[nodes[segment]].radius
         };
         let wood = base * (1. - t) + distal.radius * t;
-        let (mut tangent, mut normal, mut binormal) = frames[segment];
-        if span > 1e-12 {
-            tangent = (points[segment + 1] - points[segment]) / span;
-            normal -= tangent * normal.dot(tangent);
-            if normal.length_squared() <= 1e-12 {
-                normal = tangent.perpendicular();
-            }
-            normal = normal.normalized();
-            binormal = tangent.cross(normal).normalized();
-        }
+        let (tangent, normal, binormal) = frames[segment];
         let turn = if let Some(a) = twig {
             (k / a.stations_per_internode as usize) as f64 * p.divergence * PI / 180.
                 + (k % a.stations_per_internode as usize) as f64 * TAU
@@ -285,9 +276,10 @@ pub(super) fn matrix(
         let ring = (1. - z * z).max(0.).sqrt();
         let jitter = Vec3::new(ring * phi.cos_fixed(), z, ring * phi.sin_fixed());
         let angle = p.scatter * PI / 180. * rng.next_f64();
-        axis = axis.rotate(jitter, angle);
-        face = face.rotate(jitter, angle);
-        side = side.rotate(jitter, angle);
+        let sin_cos = angle.sin_cos_fixed();
+        axis = axis.rotate_sin_cos(jitter, sin_cos);
+        face = face.rotate_sin_cos(jitter, sin_cos);
+        side = side.rotate_sin_cos(jitter, sin_cos);
     }
     let scale = p.size * (1. + p.size_variation * rng.range(-1., 1.));
     let matrix = [
@@ -315,6 +307,87 @@ pub(super) fn matrix(
     Ok(matrix)
 }
 
+pub(super) fn station_frames(points: &[Vec3], along: &[f64]) -> Vec<(Vec3, Vec3, Vec3)> {
+    station_frame_iter(points, along).collect()
+}
+
+pub(super) fn station_frame_iter<'a>(
+    points: &'a [Vec3],
+    along: &'a [f64],
+) -> impl Iterator<Item = (Vec3, Vec3, Vec3)> + 'a {
+    let mut previous_segment = None;
+    let mut previous_tangent = None;
+    let mut carried_normal = Vec3::ZERO;
+    points.windows(2).enumerate().map(move |(i, pair)| {
+        let delta = pair[1] - pair[0];
+        let segment = if delta.length_squared() > 0. {
+            delta.normalized()
+        } else {
+            previous_segment.unwrap_or(Vec3::Y)
+        };
+        let tangent = previous_segment.map_or(segment, |previous: Vec3| {
+            let sum = previous + segment;
+            if sum.length_squared() > 1e-9 {
+                sum.normalized()
+            } else {
+                segment
+            }
+        });
+        carried_normal = previous_tangent.map_or_else(
+            || tangent.perpendicular(),
+            |previous| transport_normal(carried_normal, previous, tangent),
+        );
+        carried_normal -= tangent * carried_normal.dot(tangent);
+        if carried_normal.length_squared() <= 1e-9 {
+            carried_normal = tangent.perpendicular();
+        }
+        carried_normal = carried_normal.normalized();
+        previous_segment = Some(segment);
+        previous_tangent = Some(tangent);
+        let mut output = (
+            tangent,
+            carried_normal,
+            tangent.cross(carried_normal).normalized(),
+        );
+        let span = along[i + 1] - along[i];
+        if span > 1e-12 {
+            output.0 = delta / span;
+            output.1 -= output.0 * output.1.dot(output.0);
+            if output.1.length_squared() <= 1e-12 {
+                output.1 = output.0.perpendicular();
+            }
+            output.1 = output.1.normalized();
+            output.2 = output.0.cross(output.1).normalized();
+        }
+        output
+    })
+}
+
+fn transport_normal(normal: Vec3, previous: Vec3, tangent: Vec3) -> Vec3 {
+    let cross = previous.cross(tangent);
+    let dot = previous.dot(tangent).clamp(-1., 1.);
+    if dot < -1. + f64::EPSILON {
+        let axis = if previous.x.abs() > previous.z.abs() {
+            Vec3::new(-previous.y, previous.x, 0.)
+        } else {
+            Vec3::new(0., -previous.z, previous.y)
+        };
+        normal.rotate(axis.normalized(), PI)
+    } else if cross.length_squared() > 0. {
+        let sin = cross.length();
+        let axis = cross / sin;
+        let norm = (sin * sin + dot * dot).sqrt();
+        if dot < -0.999999 || !norm.is_finite() || norm == 0. {
+            normal.rotate(axis, sin.atan2_fixed(dot))
+        } else {
+            normal.rotate_sin_cos(axis, (sin / norm, dot / norm))
+        }
+    } else {
+        normal
+    }
+}
+
+#[cfg(test)]
 /// A rotation-minimising frame at every point of the run.
 fn frames(points: &[Vec3]) -> Vec<(Vec3, Vec3, Vec3)> {
     let mut segments = Vec::new();
@@ -362,4 +435,74 @@ fn frames(points: &[Vec3]) -> Vec<(Vec3, Vec3, Vec3)> {
         result.push((t, normal, t.cross(normal).normalized()));
     }
     result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn streamed_frames_match_canonical_transport_and_projection() {
+        for points in [
+            vec![Vec3::ZERO, Vec3::Y, Vec3::Y, Vec3::ZERO, Vec3::X],
+            vec![Vec3::ZERO, Vec3::new(1e-14, 0., 0.), Vec3::new(1., 2., -3.)],
+            (0..128)
+                .map(|i| {
+                    let t = i as f64 * 0.17;
+                    Vec3::new(t.cos_fixed(), t * 0.2, t.sin_fixed())
+                })
+                .collect(),
+            vec![
+                Vec3::ZERO,
+                Vec3::new(1e30, 0., 0.),
+                Vec3::new(1e30, 1e30, 0.),
+            ],
+            vec![Vec3::ZERO, Vec3::Y, Vec3::new(1e-8, 0., 0.), Vec3::X],
+        ] {
+            let mut along = vec![0.];
+            for p in points.windows(2) {
+                along.push(along.last().unwrap() + p[1].distance(p[0]));
+            }
+            let actual = station_frames(&points, &along);
+            assert_eq!(actual.len(), points.len() - 1);
+            let original = frames(&points);
+            for segment in 0..points.len() - 1 {
+                let (mut tangent, mut normal, mut binormal) = original[segment];
+                let span = along[segment + 1] - along[segment];
+                if span > 1e-12 {
+                    tangent = (points[segment + 1] - points[segment]) / span;
+                    normal -= tangent * normal.dot(tangent);
+                    if normal.length_squared() <= 1e-12 {
+                        normal = tangent.perpendicular();
+                    }
+                    normal = normal.normalized();
+                    binormal = tangent.cross(normal).normalized();
+                }
+                assert_eq!(actual[segment].0, tangent);
+                assert!((actual[segment].1 - normal).length() < 1e-12);
+                assert!((actual[segment].2 - binormal).length() < 1e-12);
+                let (t, n, b) = actual[segment];
+                for axis in [t, n, b] {
+                    assert!((axis.length() - 1.).abs() < 1e-12);
+                }
+                assert!(t.dot(n).abs() < 1e-12);
+                assert!((t.cross(n) - b).length() < 1e-12);
+            }
+        }
+    }
+
+    #[test]
+    fn algebraic_transport_handles_parallel_antiparallel_and_near_turns() {
+        for t in [
+            Vec3::Y,
+            -Vec3::Y,
+            Vec3::new(1e-9, -1., 0.).normalized(),
+            Vec3::new(0.3, 0.8, -0.2).normalized(),
+        ] {
+            let n = transport_normal(Vec3::X, Vec3::Y, t);
+            assert!(n.is_finite());
+            assert!((n.length() - 1.).abs() < 1e-12);
+            assert!(n.dot(t).abs() < 1e-8);
+        }
+    }
 }

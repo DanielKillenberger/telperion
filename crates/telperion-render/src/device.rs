@@ -102,6 +102,7 @@ fn instance() -> wgpu::Instance {
 
 /// A live GPU device with the adapter it came from. One per canvas, one per
 /// headless render; it owns nothing about trees.
+#[derive(Clone)]
 pub struct Gpu {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,

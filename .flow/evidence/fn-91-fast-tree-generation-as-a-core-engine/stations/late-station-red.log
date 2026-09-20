@@ -1,0 +1,38 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+warning: function `late_station_result` is never used
+   --> crates/telperion-render/src/generation/tests.rs:584:15
+    |
+584 | pub(super) fn late_station_result<T>(
+    |               ^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `telperion-render` (lib test) generated 1 warning
+    Finished `release` profile [optimized] target(s) in 38.08s
+────────────
+ Nextest run ID 097ca554-0ae5-4982-ad87-6d31d0cd89f5 with nextest profile: default
+    Starting 1 test across 1 binary (72 tests skipped)
+        FAIL [   0.345s] (1/1) telperion-render generation::tests::late_station_capability_and_error_join_positions_before_reusing_generator
+  stdout ───
+
+    running 1 test
+    test generation::tests::late_station_capability_and_error_join_positions_before_reusing_generator ... FAILED
+
+    failures:
+
+    failures:
+        generation::tests::late_station_capability_and_error_join_positions_before_reusing_generator
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 72 filtered out; finished in 0.33s
+
+  stderr ───
+
+    thread 'generation::tests::late_station_capability_and_error_join_positions_before_reusing_generator' (1117330) panicked at crates/telperion-render/src/generation/tests.rs:618:9:
+    station result must follow submitted positions
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+  Cancelling due to test failure: 
+────────────
+     Summary [   0.345s] 1 test run: 0 passed, 1 failed, 72 skipped
+        FAIL [   0.345s] (1/1) telperion-render generation::tests::late_station_capability_and_error_join_positions_before_reusing_generator
+error: test run failed

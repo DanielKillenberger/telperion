@@ -23,6 +23,7 @@ use crate::{
     GROUND_REACH,
 };
 
+mod generation;
 mod growth;
 /// The timing protocol as a page runs it, kept beside this file rather than in
 /// it so neither outgrows the project's line rule.
@@ -190,6 +191,7 @@ fn attachments(
 /// invent one.
 #[wasm_bindgen]
 pub struct WebRenderer {
+    generation: generation::Generation,
     live: Rc<RefCell<Option<Live>>>,
 }
 
@@ -202,6 +204,7 @@ impl WebRenderer {
             let live = Live::new(canvas).await.map_err(js_error)?;
             Ok(JsValue::from(Self {
                 live: Rc::new(RefCell::new(Some(live))),
+                generation: Rc::default(),
             }))
         })
     }
@@ -218,8 +221,9 @@ impl WebRenderer {
         let mut live = self.borrow()?;
         // The material rides with the tree: these parameters state both, and a
         // tree drawn in the last tree's colours would be nobody's family.
-        live.renderer.set_material(family.material);
         let submitted = live.renderer.submit(&mesh).map_err(js_error)?;
+        live.renderer.set_material(family.material);
+        self.generation.borrow_mut().invalidate();
         Ok(submitted_json(&submitted))
     }
 
@@ -346,6 +350,7 @@ impl WebRenderer {
     /// Drops the device and the canvas surface with it. Every later call says
     /// the renderer is disposed rather than reaching a device that is gone.
     pub fn dispose(&self) {
+        self.generation.borrow_mut().dispose();
         self.live.borrow_mut().take();
     }
 }

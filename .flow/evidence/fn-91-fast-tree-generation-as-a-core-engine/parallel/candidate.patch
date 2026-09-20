@@ -1,0 +1,897 @@
+diff --git i/crates/telperion-core/src/surface.rs w/crates/telperion-core/src/surface.rs
+index 48149d46..2e34c0e4 100644
+--- i/crates/telperion-core/src/surface.rs
++++ w/crates/telperion-core/src/surface.rs
+@@ -8,6 +8,8 @@ pub mod compact;
+ mod dependencies;
+ mod frames;
+ mod normals;
++#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
++mod parallel;
+ mod paths;
+ pub mod prepared;
+ mod samples;
+@@ -126,26 +128,28 @@ fn filled<T: Clone>(n: usize, value: T) -> Result<Vec<T>> {
+     out.resize(n, value);
+     Ok(out)
+ }
+-fn vertex(out: &mut Vec<f32>, p: Vec3) -> Result<()> {
+-    let xyz = [p.x as f32, p.y as f32, p.z as f32];
+-    if !xyz.iter().all(|v| v.is_finite()) {
+-        return Err(Error::InvalidInput("surface float32 position overflow"));
+-    }
+-    out.extend(xyz);
+-    Ok(())
+-}
+-
+ /// Builds only wood geometry. Invalid input or allocation failure returns no partial mesh.
+ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<SurfaceMesh> {
+     build_inner(tree, height, params, None, None)
+ }
+ 
+ fn build_inner(
++    tree: &Tree,
++    height: f64,
++    params: &SurfaceParams,
++    prepared: Option<&mut prepared::PreparedSurface>,
++    contacts: Option<&mut Vec<Option<[usize; 4]>>>,
++) -> Result<SurfaceMesh> {
++    build_mode(tree, height, params, prepared, contacts, true)
++}
++
++fn build_mode(
+     tree: &Tree,
+     height: f64,
+     params: &SurfaceParams,
+     mut prepared: Option<&mut prepared::PreparedSurface>,
+     mut contacts: Option<&mut Vec<Option<[usize; 4]>>>,
++    parallel_allowed: bool,
+ ) -> Result<SurfaceMesh> {
+     tree.validate()?;
+     params.validate()?;
+@@ -161,7 +165,6 @@ fn build_inner(
+     let height = height.max(1e-6);
+     let segments = params.radial_segments.max(params.lobes * 4) as usize;
+     let angular = angular::samples(segments, params)?;
+-    let twist = params.twist_rate;
+     let burial = params.flare_depth * height;
+     let mut distance = filled(nodes.len(), 0.0)?;
+     for i in 1..nodes.len() {
+@@ -192,6 +195,58 @@ fn build_inner(
+         .checked_mul(segments)
+         .and_then(|n| n.checked_mul(6))
+         .ok_or(Error::ResourceLimit("surface indices"))?;
++    let longest = paths
++        .runs
++        .iter()
++        .map(|p| p.end - p.start)
++        .max()
++        .unwrap_or(0)
++        .checked_add(1)
++        .ok_or(Error::ResourceLimit("surface samples"))?;
++    let mut samples = reserved(longest)?;
++    let mut frame = reserved(longest)?;
++    let mut segments_scratch = reserved(longest)?;
++    // Sample once to rank the runs, then reuse the same scratch for emission.
++    // Ties retain path order, so the permutation is deterministic.
++    let mut ordered = reserved(paths.runs.len())?;
++    for (path_id, path) in paths.runs.iter().enumerate() {
++        sample_path(tree, height, params, &paths, path, &distance, &mut samples);
++        let radius = samples.iter().map(|s| s.r).fold(0.0, f64::max);
++        ordered.push((path_id, radius));
++    }
++    ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
++    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
++    if parallel_allowed && prepared.is_none() && contacts.is_none() {
++        if let Some(workers) = parallel::admitted(
++            &paths,
++            &distance,
++            &ordered,
++            &angular,
++            longest,
++            vertices,
++            indices_len,
++        ) {
++            drop((samples, frame, segments_scratch));
++            return match parallel::build(
++                tree,
++                height,
++                params,
++                paths,
++                distance,
++                ordered,
++                angular,
++                longest,
++                vertices,
++                indices_len,
++                workers,
++            ) {
++                Ok(mesh) => Ok(mesh),
++                Err(_) => build_mode(tree, height, params, None, None, false),
++            };
++        }
++    }
++    #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
++    let _ = parallel_allowed;
+     let mut mesh = SurfaceMesh {
+         positions: reserved(positions_len)?,
+         normals: reserved(if prepared.is_some() { 0 } else { positions_len })?,
+@@ -209,27 +264,8 @@ fn build_inner(
+         p.angles = reserved(segments)?;
+         p.angles.extend(angular.iter().map(|a| a.angle as f32));
+     }
+-    let longest = paths
+-        .runs
+-        .iter()
+-        .map(|p| p.end - p.start)
+-        .max()
+-        .unwrap_or(0)
+-        .checked_add(1)
+-        .ok_or(Error::ResourceLimit("surface samples"))?;
+-    let mut samples = reserved(longest)?;
+-    let mut frame = reserved(longest)?;
+-    let mut segments_scratch = reserved(longest)?;
+-    // Sample once to rank the runs, then reuse the same scratch for emission.
+-    // Ties retain path order, so the permutation is deterministic.
+-    let mut ordered = reserved(paths.runs.len())?;
+-    for path in &paths.runs {
+-        sample_path(tree, height, params, &paths, path, &distance, &mut samples);
+-        let radius = samples.iter().map(|s| s.r).fold(0.0, f64::max);
+-        ordered.push((path, radius));
+-    }
+-    ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
+-    for (path, largest_radius) in ordered {
++    for (path_id, largest_radius) in ordered {
++        let path = &paths.runs[path_id];
+         let first_index = u32::try_from(
+             prepared
+                 .as_ref()
+@@ -251,32 +287,12 @@ fn build_inner(
+                 ]);
+             }
+         }
+-        for (i, s) in samples.iter().enumerate() {
+-            let (normal, binormal) = frame[i];
+-            let phase = std::f64::consts::TAU * twist * (s.d / height);
+-            for sample in &angular {
+-                let angle = sample.angle;
+-                let profile = sample.profile(params, phase);
+-                let width = s.r * profile;
+-                vertex(
+-                    &mut mesh.positions,
+-                    s.p + (normal * sample.cos + binormal * sample.sin) * (width),
+-                )?;
+-                if prepared.is_none() {
+-                    mesh.coords.extend([s.d as f32, angle as f32]);
+-                }
++        emit_run(&samples, &frame, &angular, params, height, |xyz, coord| {
++            mesh.positions.extend(xyz);
++            if prepared.is_none() {
++                mesh.coords.extend(coord);
+             }
+-        }
+-        vertex(&mut mesh.positions, samples[0].p)?;
+-        // A cap sits on the axis, where the angle around it is undefined.
+-        if prepared.is_none() {
+-            mesh.coords.extend([samples[0].d as f32, 0.0]);
+-        }
+-        let last = *samples.last().unwrap();
+-        vertex(&mut mesh.positions, last.p)?;
+-        if prepared.is_none() {
+-            mesh.coords.extend([last.d as f32, 0.0]);
+-        }
++        })?;
+         let run = prepared::Run {
+             base,
+             first_index,
+@@ -364,6 +380,38 @@ fn build_inner(
+     Ok(mesh)
+ }
+ 
++fn emit_run(
++    samples: &[Sample],
++    frame: &[(Vec3, Vec3)],
++    angular: &[angular::Angular],
++    params: &SurfaceParams,
++    height: f64,
++    mut emit: impl FnMut([f32; 3], [f32; 2]),
++) -> Result<()> {
++    let mut vertex = |p: Vec3, coord: [f32; 2]| {
++        let xyz = [p.x as f32, p.y as f32, p.z as f32];
++        if !xyz.iter().all(|v| v.is_finite()) {
++            return Err(Error::InvalidInput("surface float32 position overflow"));
++        }
++        emit(xyz, coord);
++        Ok(())
++    };
++    for (i, s) in samples.iter().enumerate() {
++        let (normal, binormal) = frame[i];
++        let phase = std::f64::consts::TAU * params.twist_rate * (s.d / height);
++        for sample in angular {
++            let width = s.r * sample.profile(params, phase);
++            vertex(
++                s.p + (normal * sample.cos + binormal * sample.sin) * width,
++                [s.d as f32, sample.angle as f32],
++            )?;
++        }
++    }
++    vertex(samples[0].p, [samples[0].d as f32, 0.0])?;
++    let last = samples.last().unwrap();
++    vertex(last.p, [last.d as f32, 0.0])
++}
++
+ /// The way run vertex `j` faces when no triangle is left to say: out from the
+ /// axis for a ring vertex, along it for the two caps that sit on it.
+ fn facing(frame: &[(Vec3, Vec3)], segments: usize, j: usize) -> Vec3 {
+diff --git i/crates/telperion-core/src/surface/normals.rs w/crates/telperion-core/src/surface/normals.rs
+index 4c8e98ba..2506cc1e 100644
+--- i/crates/telperion-core/src/surface/normals.rs
++++ w/crates/telperion-core/src/surface/normals.rs
+@@ -17,7 +17,9 @@ pub(super) fn shade(
+     (first, base): (usize, usize),
+     facing: impl Fn(usize) -> Vec3,
+ ) -> Result<usize> {
+-    let dropped = accumulate(positions, indices, normals, first)?;
++    let count = indices.len();
++    let dropped = accumulate(positions, &mut indices[first..], normals, 0)?;
++    indices.truncate(count - dropped * 3);
+     normalize(&mut normals[base * 3..], facing)?;
+     Ok(dropped)
+ }
+@@ -32,19 +34,19 @@ fn corner(positions: &[f32], index: u32) -> Result<Vec3> {
+ 
+ /// Adds each triangle's float64 cross product of its float32 corners into its
+ /// three vertices, in index order, and closes the gaps the dropped ones leave.
+-fn accumulate(
++pub(super) fn accumulate(
+     positions: &[f32],
+-    indices: &mut Vec<u32>,
++    indices: &mut [u32],
+     normals: &mut [f32],
+-    first: usize,
++    base: u32,
+ ) -> Result<usize> {
+-    let mut kept = first;
+-    for read in (first..indices.len()).step_by(3) {
++    let mut kept = 0;
++    for read in (0..indices.len()).step_by(3) {
+         let t = [indices[read], indices[read + 1], indices[read + 2]];
+         let [a, b, c] = [
+-            corner(positions, t[0])?,
+-            corner(positions, t[1])?,
+-            corner(positions, t[2])?,
++            corner(positions, t[0] - base)?,
++            corner(positions, t[1] - base)?,
++            corner(positions, t[2] - base)?,
+         ];
+         let normal = (c - b).cross(a - b);
+         if !normal.is_finite() {
+@@ -54,7 +56,7 @@ fn accumulate(
+             continue;
+         }
+         for &index in &t {
+-            let n = &mut normals[index as usize * 3..index as usize * 3 + 3];
++            let n = &mut normals[(index - base) as usize * 3..(index - base) as usize * 3 + 3];
+             for (k, v) in [normal.x, normal.y, normal.z].into_iter().enumerate() {
+                 n[k] = (n[k] as f64 + v) as f32;
+             }
+@@ -63,13 +65,12 @@ fn accumulate(
+         kept += 3;
+     }
+     let dropped = (indices.len() - kept) / 3;
+-    indices.truncate(kept);
+     Ok(dropped)
+ }
+ 
+ /// Unit normals for the run's vertices; one with nothing left to sum faces
+ /// the way its ring does.
+-fn normalize(normals: &mut [f32], facing: impl Fn(usize) -> Vec3) -> Result<()> {
++pub(super) fn normalize(normals: &mut [f32], facing: impl Fn(usize) -> Vec3) -> Result<()> {
+     for (j, n) in normals.as_chunks_mut::<3>().0.iter_mut().enumerate() {
+         let mut v = Vec3::new(n[0] as f64, n[1] as f64, n[2] as f64);
+         if !v.is_finite() {
+diff --git i/crates/telperion-render/examples/generation_gpu.rs w/crates/telperion-render/examples/generation_gpu.rs
+index a3794b9f..4d875012 100644
+--- i/crates/telperion-render/examples/generation_gpu.rs
++++ w/crates/telperion-render/examples/generation_gpu.rs
+@@ -19,7 +19,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
+         return Err("invalid mode".into());
+     }
+     let mut family = Preset::from_id(id).ok_or("unknown preset")?.parameters();
+-    family.skeleton.seed = 1;
++    family.skeleton.seed = std::env::var("GENERATION_SEED")
++        .unwrap_or_else(|_| "1".into())
++        .parse()?;
+     let samples: usize = std::env::var("GENERATION_SAMPLES")
+         .unwrap_or_else(|_| "4".into())
+         .parse()?;
+@@ -57,7 +59,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
+     };
+     println!(
+         "{}",
+-        json!({"event":"provenance","preset":id,"seed":1,"mode":mode,"samples":samples,"initializationMs":init.elapsed().as_secs_f64()*1000.0,"adapter":adapter,"viewport":[1280,720],"camera":"hero","boundary":"GPU queue/device completion for rendering; owned geometry for output","family":telperion_core::params::metadata(&family)})
++        json!({"event":"provenance","preset":id,"seed":family.skeleton.seed,"mode":mode,"samples":samples,"initializationMs":init.elapsed().as_secs_f64()*1000.0,"adapter":adapter,"viewport":[1280,720],"camera":"hero","boundary":"GPU queue/device completion for rendering; owned geometry for output","family":telperion_core::params::metadata(&family)})
+     );
+     for sample in 0..samples {
+         let previous_tree_gpu_bytes = renderer.as_ref().map_or(0, Generator::tree_buffer_bytes);
+diff --git i/docs/generation-limits-inventory.json w/docs/generation-limits-inventory.json
+index 9a567899..dbfe98b2 100644
+--- i/docs/generation-limits-inventory.json
++++ w/docs/generation-limits-inventory.json
+@@ -171,6 +171,11 @@
+   {"path":"crates/telperion-core/src/foliage/placement.rs","site":"if p . surface_contact < = 0 . {","classification":"algorithm","reason":"Disabled, empty, or geometrically separated foliage has no placements to emit."},
+   {"path":"crates/telperion-core/src/foliage/placement.rs","site":"if tree . nodes . len ( ) < 2 | | p . size = = 0 . {","classification":"algorithm","reason":"Disabled, empty, or geometrically separated foliage has no placements to emit."},
+   {"path":"crates/telperion-core/src/foliage/placement.rs","site":"while first > 0 & & tree . nodes [ run [ first - 1 ] ] . radius < = max_radius {","classification":"algorithm","reason":"Finds the authored run/station's containing segment; index zero is the natural start of the polyline."},
++  {"path":"crates/telperion-core/src/foliage/prepared.rs","site":". max ( 1 . 0 )","classification":"algorithm","reason":"A nonzero run has at least one authored twig internode, matching existing CPU station semantics."},
++  {"path":"crates/telperion-core/src/foliage/prepared.rs","site":". min ( 256 )","classification":"algorithm","reason":"Tile cardinality only; following tiles emit every remaining station."},
++  {"path":"crates/telperion-core/src/foliage/prepared.rs","site":"for segment in 0 . . points . len ( ) - 1 {","classification":"algorithm","reason":"A polyline with N points has N-1 segments; every segment is processed."},
++  {"path":"crates/telperion-core/src/foliage/prepared.rs","site":"if phase_error > 0 . 00025 {","classification":"numeric","reason":"Eight f64 angle-rounding units bound periodic tile reconstruction uncertainty to 0.00025 radians; larger valid requests explicitly fall back to CPU, never truncate output."},
++  {"path":"crates/telperion-core/src/foliage/prepared.rs","site":"if tree . nodes . len ( ) < 2 | | p . size = = 0 . 0 {","classification":"algorithm","reason":"Fewer than two nodes or zero foliage size is empty or disabled foliage, matching the CPU path."},
+   {"path":"crates/telperion-core/src/foliage/reference.rs","site":". max ( 0 . 0 )","classification":"algorithm","reason":"Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."},
+   {"path":"crates/telperion-core/src/foliage/reference.rs","site":". max ( 0 . 0 )","classification":"algorithm","reason":"Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."},
+   {"path":"crates/telperion-core/src/foliage/reference.rs","site":". max ( 4e - 6 )","classification":"numeric","reason":"Reference-box radius floor mirrors the validated trunk-radius minimum."},
+@@ -182,8 +187,8 @@
+   {"path":"crates/telperion-core/src/foliage/station.rs","site":". max ( 0 . )","classification":"algorithm","reason":"Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."},
+   {"path":"crates/telperion-core/src/foliage/station.rs","site":". max ( 0 . )","classification":"algorithm","reason":"Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."},
+   {"path":"crates/telperion-core/src/foliage/station.rs","site":". max ( 1 . )","classification":"algorithm","reason":"Finds the authored run/station's containing segment; index zero is the natural start of the polyline."},
+-  {"path":"crates/telperion-core/src/foliage/station.rs","site":"if ! spacing . is_finite ( ) | | spacing < = 0 . 0 {","classification":"parameter","reason":"Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."},
+   {"path":"crates/telperion-core/src/foliage/station.rs","site":"for ( segment , ( tangent , normal , binormal ) ) in frames [ . . points . len ( ) - 1 ] . iter_mut ( ) . enumerate ( ) {","classification":"algorithm","reason":"A polyline with N points has N-1 segments: exclude only the terminal point frame and process every segment, without limiting generated population."},
++  {"path":"crates/telperion-core/src/foliage/station.rs","site":"if ! spacing . is_finite ( ) | | spacing < = 0 . 0 {","classification":"parameter","reason":"Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."},
+   {"path":"crates/telperion-core/src/foliage/station.rs","site":"while segment > 0 & & along [ segment ] > distance {","classification":"algorithm","reason":"Finds the authored run/station's containing segment; index zero is the natural start of the polyline."},
+   {"path":"crates/telperion-core/src/foliage/timeline.rs","site":". max ( 1e - 6 )","classification":"numeric","reason":"Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."},
+   {"path":"crates/telperion-core/src/foliage/timeline.rs","site":"if self . lifetime . ticks ( ) = = 0 | | age . ticks ( ) < birth . ticks ( ) {","classification":"parameter","reason":"Progress is bounded by the caller's work budget, authored lifetime, or remaining work, not a hidden population limit."},
+@@ -215,6 +220,7 @@
+   {"path":"crates/telperion-core/src/surface.rs","site":". min ( p [ 0 ] as f64 )","classification":"algorithm","reason":"Bounds, radius floors, or array-index containment computed from existing geometry; numeric tokens are component indices, not population limits."},
+   {"path":"crates/telperion-core/src/surface.rs","site":". min ( p [ 1 ] as f64 )","classification":"algorithm","reason":"Bounds, radius floors, or array-index containment computed from existing geometry; numeric tokens are component indices, not population limits."},
+   {"path":"crates/telperion-core/src/surface.rs","site":". min ( p [ 2 ] as f64 )","classification":"algorithm","reason":"Bounds, radius floors, or array-index containment computed from existing geometry; numeric tokens are component indices, not population limits."},
++  {"path":"crates/telperion-core/src/surface.rs","site":"for ( i , & node ) in paths . nodes [ path . start . . path . end ] . iter ( ) . enumerate ( ) . skip ( 1 ) {","classification":"algorithm","reason":"Contact ranges cover each path edge after the root sample; skipping the first sample avoids inventing an incoming root edge."},
+   {"path":"crates/telperion-core/src/surface.rs","site":"for i in 0 . . samples . len ( ) - 1 {","classification":"algorithm","reason":"Traverses all adjacent geometry samples/rows; the final sample has no following segment."},
+   {"path":"crates/telperion-core/src/surface.rs","site":"if ! [ ( self . radial_segments as f64 , ranges : : SURFACE_RADIAL_SEGMENTS ) , ( self . lobes as f64 , ranges : : SURFACE_LOBES ) , ( self . lobe_depth , ranges : : SURFACE_LOBE_DEPTH ) , ( self . twist_rate , ranges : : SURFACE_TWIST_RATE ) , ( self . flare_radius , ranges : : SURFACE_FLARE_RADIUS ) , ( self . flare_falloff , ranges : : SURFACE_FLARE_FALLOFF ) , ( self . flare_depth , ranges : : UNIT ) , ( self . fork_socket , ranges : : SURFACE_FORK_SOCKET ) , ( self . fork_swell , ranges : : SURFACE_FORK_SWELL ) , ] . iter ( ) . all ( | & ( v , range ) | v . is_finite ( ) & & v > = range . 0 & & v < = range . 1 ) {","classification":"parameter","reason":"Named surface authoring bounds live in ranges.rs; validation preserves the existing generic surface parameters error and never silently truncates geometry."},
+   {"path":"crates/telperion-core/src/surface.rs","site":"if ! height . is_finite ( ) | | height < = 0 . 0 {","classification":"parameter","reason":"Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."},
+@@ -232,9 +238,19 @@
+   {"path":"crates/telperion-core/src/surface/attachment.rs","site":"if va < = 0 . 0 & & d4 - d3 > = 0 . 0 & & d5 - d6 > = 0 . 0 {","classification":"algorithm","reason":"Ray/triangle closest-point region classification determines the geometric intersection."},
+   {"path":"crates/telperion-core/src/surface/attachment.rs","site":"if vb < = 0 . 0 & & d2 > = 0 . 0 & & d6 < = 0 . 0 {","classification":"algorithm","reason":"Ray/triangle closest-point region classification determines the geometric intersection."},
+   {"path":"crates/telperion-core/src/surface/attachment.rs","site":"if vc < = 0 . 0 & & d1 > = 0 . 0 & & d3 < = 0 . 0 {","classification":"algorithm","reason":"Ray/triangle closest-point region classification determines the geometric intersection."},
++  {"path":"crates/telperion-core/src/surface/compact.rs","site":". max ( 1e - 6 )","classification":"numeric","reason":"The existing surface height degeneracy floor stabilizes geometry arithmetic without limiting populations."},
++  {"path":"crates/telperion-core/src/surface/compact.rs","site":". max ( params . lobes * 4 )","classification":"algorithm","reason":"Angular sampling covers the requested lobes with at least four segments each; it raises resolution rather than truncating a population."},
++  {"path":"crates/telperion-core/src/surface/compact.rs","site":"for ( i , & node ) in paths . nodes [ path . start . . path . end ] . iter ( ) . enumerate ( ) . skip ( 1 ) {","classification":"algorithm","reason":"Contact ranges cover each path edge after the root sample; skipping the first sample avoids inventing an incoming root edge."},
++  {"path":"crates/telperion-core/src/surface/compact.rs","site":"if ! height . is_finite ( ) | | height < = 0 . 0 {","classification":"parameter","reason":"The existing surface height contract rejects nonfinite or nonpositive input explicitly."},
+   {"path":"crates/telperion-core/src/surface/dependencies.rs","site":"if tree . nodes [ stand ] . position . distance ( tree . nodes [ parent as usize ] . position ) > 1e - 9 {","classification":"numeric","reason":"Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."},
+-  {"path":"crates/telperion-core/src/surface/normals.rs","site":"for read in ( first . . indices . len ( ) ) . step_by ( 3 ) {","classification":"algorithm","reason":"Visits triangle indices three at a time; fixed arity defines triangles and does not drop geometry."},
++  {"path":"crates/telperion-core/src/surface/normals.rs","site":". truncate ( count - dropped * 3 )","classification":"algorithm","reason":"Ordered triangle traversal and compaction remove only float32 zero-area faces under the existing explicit dropped-triangle correctness bound."},
++  {"path":"crates/telperion-core/src/surface/normals.rs","site":"for read in ( 0 . . indices . len ( ) ) . step_by ( 3 ) {","classification":"algorithm","reason":"Ordered triangle traversal and compaction remove only float32 zero-area faces under the existing explicit dropped-triangle correctness bound."},
++  {"path":"crates/telperion-core/src/surface/parallel.rs","site":". min ( MAX_WORKERS )","classification":"algorithm","reason":"Native worker scheduling partitions complete runs without truncating geometry; unavailable, single-core or over-budget requests retain the serial builder."},
++  {"path":"crates/telperion-core/src/surface/parallel.rs","site":"const MAX_WORKERS : usize = 8 ;","classification":"algorithm","reason":"Native worker scheduling partitions complete runs without truncating geometry; unavailable, single-core or over-budget requests retain the serial builder."},
++  {"path":"crates/telperion-core/src/surface/parallel.rs","site":"if count < 2 {","classification":"algorithm","reason":"Native worker scheduling partitions complete runs without truncating geometry; unavailable, single-core or over-budget requests retain the serial builder."},
++  {"path":"crates/telperion-core/src/surface/parallel.rs","site":"while at < runs . len ( ) & & ( runs [ at ] . base as usize + runs [ at ] . rings as usize * segments + 2 ) < = target {","classification":"algorithm","reason":"Native worker scheduling partitions complete runs without truncating geometry; unavailable, single-core or over-budget requests retain the serial builder."},
+   {"path":"crates/telperion-core/src/surface/paths.rs","site":"if n < 2 {","classification":"algorithm","reason":"An edge or fork requires at least two endpoints/stems; empty/root-only topology has no segment to process."},
++  {"path":"crates/telperion-core/src/surface/prepared.rs","site":"for ring in 0 . . self . rings - 1 {","classification":"algorithm","reason":"Every adjacent ring pair receives its strip triangles; caps are emitted separately after this traversal."},
+   {"path":"crates/telperion-core/src/surface/samples.rs","site":". max ( 0 . 0 )","classification":"algorithm","reason":"Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."},
+   {"path":"crates/telperion-core/src/surface/samples.rs","site":". max ( 0 . 0 )","classification":"algorithm","reason":"Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."},
+   {"path":"crates/telperion-core/src/surface/samples.rs","site":". max ( 0 . 0 )","classification":"algorithm","reason":"Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."},
+@@ -249,10 +265,5 @@
+   {"path":"crates/telperion-core/src/twigs.rs","site":". max ( 1 . 0 )","classification":"algorithm","reason":"Nonempty discretization requires at least one interval or station; the upper size remains parameter-derived."},
+   {"path":"crates/telperion-core/src/twigs.rs","site":". max ( self . internode_factor * 2 . 0 * radius )","classification":"algorithm","reason":"Internode spacing scales with wood radius and authored internode factor; larger branches determine their own station layout."},
+   {"path":"crates/telperion-core/src/twigs.rs","site":"const MAX_GENERATIONS : u32 = 6 ;","classification":"parameter","reason":"MAX_GENERATIONS is the named validated twig generation domain."},
+-  {"path":"crates/telperion-wasm/src/generate.rs","site":"while r > t . twig . diameter / 2 . 0 & & generation < t . generations as usize {","classification":"parameter","reason":"Wasm twig sizing follows the authored diameter and generation count; it does not impose a separate binding-side cap."},
+-  {"path":"crates/telperion-core/src/foliage/prepared.rs","site":". max ( 1 . 0 )","classification":"algorithm","reason":"A nonzero run has at least one authored twig internode, matching existing CPU station semantics."},
+-  {"path":"crates/telperion-core/src/foliage/prepared.rs","site":". min ( 256 )","classification":"algorithm","reason":"Tile cardinality only; following tiles emit every remaining station."},
+-  {"path":"crates/telperion-core/src/foliage/prepared.rs","site":"for segment in 0 . . points . len ( ) - 1 {","classification":"algorithm","reason":"A polyline with N points has N-1 segments; every segment is processed."},
+-  {"path":"crates/telperion-core/src/foliage/prepared.rs","site":"if tree . nodes . len ( ) < 2 | | p . size = = 0 . 0 {","classification":"algorithm","reason":"Fewer than two nodes or zero foliage size is empty or disabled foliage, matching the CPU path."},
+-  {"path":"crates/telperion-core/src/foliage/prepared.rs","site":"if phase_error > 0 . 00025 {","classification":"numeric","reason":"Eight f64 angle-rounding units bound periodic tile reconstruction uncertainty to 0.00025 radians; larger valid requests explicitly fall back to CPU, never truncate output."}
++  {"path":"crates/telperion-wasm/src/generate.rs","site":"while r > t . twig . diameter / 2 . 0 & & generation < t . generations as usize {","classification":"parameter","reason":"Wasm twig sizing follows the authored diameter and generation count; it does not impose a separate binding-side cap."}
+ ]
+diff --git 1/crates/telperion-core/src/surface/parallel.rs 2/crates/telperion-core/src/surface/parallel.rs
+new file mode 100644
+index 00000000..5c09f411
+--- /dev/null
++++ 2/crates/telperion-core/src/surface/parallel.rs
+@@ -0,0 +1,329 @@
++use super::*;
++use std::{mem::size_of, thread};
++const MAX_WORKERS: usize = 8;
++const STACK: usize = 64 * 1024;
++const WORKER_ENVELOPE: usize = STACK + 4096 + 64 * 1024;
++const CONTROL: usize = 16 * 1024;
++#[derive(Clone, Copy)]
++struct Run {
++    path: u32,
++    base: u32,
++    rings: u32,
++    first_index: u32,
++    index_count: u32,
++    radius: f64,
++}
++fn workers() -> usize {
++    thread::available_parallelism().map_or(1, |n| n.get().min(MAX_WORKERS))
++}
++fn envelope(
++    prep: usize,
++    order: usize,
++    scratch: usize,
++    angular: usize,
++    vertices: usize,
++    indices: usize,
++    runs: usize,
++    workers: usize,
++) -> bool {
++    let output = vertices as u128 * 32 + indices as u128 * 4 + runs as u128 * 16;
++    let serial = output + prep as u128 + order as u128 + scratch as u128 + angular as u128;
++    let descriptors = runs as u128 * size_of::<Run>() as u128;
++    let a = vertices as u128 * 20
++        + prep as u128
++        + angular as u128
++        + descriptors
++        + workers as u128 * (scratch + WORKER_ENVELOPE) as u128
++        + CONTROL as u128;
++    let b = output + descriptors + (2 * workers * WORKER_ENVELOPE + CONTROL) as u128;
++    a <= serial && b <= serial
++}
++pub(super) fn admitted(
++    paths: &paths::Paths,
++    distance: &Vec<f64>,
++    ordered: &Vec<(usize, f64)>,
++    angular: &Vec<angular::Angular>,
++    longest: usize,
++    vertices: usize,
++    indices: usize,
++) -> Option<usize> {
++    let count = workers();
++    (count >= 2
++        && vertices >= 250_000
++        && paths.runs.len() >= count
++        && envelope(
++            paths.nodes.capacity() * size_of::<usize>()
++                + paths.runs.capacity() * size_of::<paths::Run>()
++                + paths.forks.capacity()
++                + distance.capacity() * 8,
++            ordered.capacity() * size_of::<(usize, f64)>(),
++            longest * (size_of::<Sample>() + size_of::<(Vec3, Vec3)>() + size_of::<Vec3>()),
++            angular.capacity() * size_of::<angular::Angular>(),
++            vertices,
++            indices,
++            paths.runs.len(),
++            count,
++        ))
++    .then_some(count)
++}
++
++// Contiguous run groups keep final buffers disjoint and preserve their order.
++fn partitions(
++    runs: &[Run],
++    vertices: usize,
++    segments: usize,
++    count: usize,
++) -> [usize; MAX_WORKERS + 1] {
++    let mut out = [runs.len(); MAX_WORKERS + 1];
++    out[0] = 0;
++    let mut at = 0;
++    for (k, boundary) in out.iter_mut().enumerate().take(count).skip(1) {
++        let target = vertices * k / count;
++        while at < runs.len()
++            && (runs[at].base as usize + runs[at].rings as usize * segments + 2) <= target
++        {
++            at += 1;
++        }
++        *boundary = at;
++    }
++    out
++}
++
++#[cfg(test)]
++thread_local! {
++ static SPAWN_FAILURE: std::cell::Cell<Option<usize>> = const { std::cell::Cell::new(None) };
++ static SPAWN_CALLS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
++}
++fn spawn<'scope, 'env, F, T>(
++    scope: &'scope thread::Scope<'scope, 'env>,
++    f: F,
++) -> std::io::Result<thread::ScopedJoinHandle<'scope, T>>
++where
++    F: FnOnce() -> T + Send + 'scope,
++    T: Send + 'scope,
++{
++    #[cfg(test)]
++    SPAWN_CALLS.with(|calls| calls.set(calls.get() + 1));
++    #[cfg(test)]
++    if SPAWN_FAILURE.with(|failure| match failure.get() {
++        Some(0) => true,
++        Some(n) => {
++            failure.set(Some(n - 1));
++            false
++        }
++        None => false,
++    }) {
++        return Err(std::io::Error::other("injected surface spawn failure"));
++    }
++    thread::Builder::new()
++        .stack_size(STACK)
++        .spawn_scoped(scope, f)
++}
++
++fn failed() -> Error {
++    Error::ResourceLimit("surface parallel retry")
++}
++fn join_all<T>(
++    handles: &mut [Option<thread::ScopedJoinHandle<'_, Result<T>>>; MAX_WORKERS],
++) -> Result<()> {
++    let mut valid = true;
++    for handle in handles {
++        if let Some(handle) = handle.take() {
++            valid &= matches!(handle.join(), Ok(Ok(_)));
++        }
++    }
++    if valid {
++        Ok(())
++    } else {
++        Err(failed())
++    }
++}
++
++pub(super) fn build(
++    tree: &Tree,
++    height: f64,
++    params: &SurfaceParams,
++    paths: paths::Paths,
++    distance: Vec<f64>,
++    ordered: Vec<(usize, f64)>,
++    angular: Vec<angular::Angular>,
++    longest: usize,
++    vertices: usize,
++    indices_len: usize,
++    count: usize,
++) -> Result<SurfaceMesh> {
++    if count < 2 {
++        return Err(failed());
++    }
++    let segments = angular.len();
++    let mut runs = reserved(ordered.len())?;
++    let (mut base, mut first_index) = (0usize, 0usize);
++    for (path_id, radius) in ordered {
++        let path = &paths.runs[path_id];
++        let rings = path.end - path.start + usize::from(path.trunk && params.flare_depth > 0.0);
++        let index_count = rings * segments * 6;
++        runs.push(Run {
++            path: u32::try_from(path_id).map_err(|_| failed())?,
++            base: base as u32,
++            rings: rings as u32,
++            first_index: u32::try_from(first_index).map_err(|_| failed())?,
++            index_count: u32::try_from(index_count).map_err(|_| failed())?,
++            radius,
++        });
++        base += rings * segments + 2;
++        first_index += index_count;
++    }
++    if base != vertices || first_index != indices_len || first_index > u32::MAX as usize {
++        return Err(failed());
++    }
++    let boundaries = partitions(&runs, vertices, segments, count);
++    let mut positions = filled(vertices * 3, 0.0)?;
++    let mut coords = filled(vertices * 2, 0.0)?;
++    thread::scope(|scope| -> Result<()> {
++        let mut handles = std::array::from_fn(|_| None);
++        let mut p = positions.as_mut_slice();
++        let mut c = coords.as_mut_slice();
++        let mut spawn_ok = true;
++        for k in 0..count {
++            let group = &runs[boundaries[k]..boundaries[k + 1]];
++            let n = group
++                .iter()
++                .map(|r| r.rings as usize * segments + 2)
++                .sum::<usize>();
++            let (out_p, rest) = p.split_at_mut(n * 3);
++            p = rest;
++            let (out_c, rest) = c.split_at_mut(n * 2);
++            c = rest;
++            let paths = &paths;
++            let distance = &distance;
++            let angular = &angular;
++            let result = spawn(scope, move || -> Result<()> {
++                let mut samples = reserved(longest)?;
++                let mut frame = reserved(longest)?;
++                let mut scratch = reserved(longest)?;
++                let mut offset = 0;
++                for run in group {
++                    sample_path(
++                        tree,
++                        height,
++                        params,
++                        paths,
++                        &paths.runs[run.path as usize],
++                        distance,
++                        &mut samples,
++                    );
++                    frames(&samples, &mut scratch, &mut frame);
++                    emit_run(&samples, &frame, angular, params, height, |xyz, coord| {
++                        out_p[offset * 3..offset * 3 + 3].copy_from_slice(&xyz);
++                        out_c[offset * 2..offset * 2 + 2].copy_from_slice(&coord);
++                        offset += 1;
++                    })?;
++                }
++                Ok(())
++            });
++            match result {
++                Ok(handle) => handles[k] = Some(handle),
++                Err(_) => {
++                    spawn_ok = false;
++                    break;
++                }
++            }
++        }
++        let joined = join_all(&mut handles);
++        if !spawn_ok {
++            return Err(failed());
++        }
++        joined
++    })?;
++    drop((paths, distance, angular));
++    let mut normals = filled(vertices * 3, 0.0)?;
++    let mut indices = filled(indices_len, 0)?;
++    thread::scope(|scope| -> Result<()> {
++        let mut handles = std::array::from_fn(|_| None);
++        let mut p = positions.as_slice();
++        let mut n = normals.as_mut_slice();
++        let mut i = indices.as_mut_slice();
++        let mut spawn_ok = true;
++        for k in 0..count {
++            let group = &runs[boundaries[k]..boundaries[k + 1]];
++            let nv = group
++                .iter()
++                .map(|r| r.rings as usize * segments + 2)
++                .sum::<usize>();
++            let ni = group.iter().map(|r| r.index_count as usize).sum::<usize>();
++            let (out_p, rest) = p.split_at(nv * 3);
++            p = rest;
++            let (out_n, rest) = n.split_at_mut(nv * 3);
++            n = rest;
++            let (out_i, rest) = i.split_at_mut(ni);
++            i = rest;
++            let result = spawn(scope, move || -> Result<()> {
++                let (mut vp, mut ip) = (0, 0);
++                for run in group {
++                    let vertex_count = (run.rings as usize * segments + 2) * 3;
++                    let pos = &out_p[vp..vp + vertex_count];
++                    let normal = &mut out_n[vp..vp + vertex_count];
++                    let index = &mut out_i[ip..ip + run.index_count as usize];
++                    let desc = prepared::Run {
++                        base: run.base,
++                        first_index: run.first_index,
++                        ring_start: 0,
++                        rings: run.rings,
++                        index_count: run.index_count,
++                    };
++                    let mut at = 0;
++                    desc.visit_triangles(segments as u32, |triangle| {
++                        index[at..at + 3].copy_from_slice(&triangle);
++                        at += 3;
++                        Ok(())
++                    })?;
++                    if normals::accumulate(pos, index, normal, run.base)? != 0
++                        || normal.chunks_exact(3).any(|v| v.iter().all(|&x| x == 0.0))
++                    {
++                        return Err(failed());
++                    }
++                    normals::normalize(normal, |_| unreachable!())?;
++                    vp += vertex_count;
++                    ip += run.index_count as usize;
++                }
++                Ok(())
++            });
++            match result {
++                Ok(handle) => handles[k] = Some(handle),
++                Err(_) => {
++                    spawn_ok = false;
++                    break;
++                }
++            }
++        }
++        let joined = join_all(&mut handles);
++        if !spawn_ok {
++            return Err(failed());
++        }
++        joined
++    })?;
++    let mut run_table = reserved(runs.len())?;
++    for run in &runs {
++        run_table.push(SurfaceRun {
++            first_index: run.first_index,
++            index_count: run.index_count,
++            largest_radius: run.radius,
++        });
++    }
++    finish(
++        SurfaceMesh {
++            positions,
++            coords,
++            normals,
++            indices,
++            bounds: None,
++            runs: runs.len(),
++            run_table,
++            dropped: 0,
++        },
++        segments,
++    )
++}
++
++#[cfg(test)]
++mod tests;
+diff --git 1/crates/telperion-core/src/surface/parallel/tests.rs 2/crates/telperion-core/src/surface/parallel/tests.rs
+new file mode 100644
+index 00000000..3f4d6cff
+--- /dev/null
++++ 2/crates/telperion-core/src/surface/parallel/tests.rs
+@@ -0,0 +1,173 @@
++use super::*;
++#[test]
++fn capacity_gate_requires_both_phases_to_fit() {
++    assert_eq!(size_of::<Run>(), 32);
++    assert!(envelope(
++        6_129_263, 889_552, 12_208, 800, 3_724_874, 21_682_080, 55_597, 8
++    ));
++    assert!(!envelope(0, 0, 0, 0, 3_724_874, 21_682_080, 55_597, 8));
++}
++fn candidate(tree: &Tree, params: &SurfaceParams) -> Result<SurfaceMesh> {
++    let paths = paths(&tree.nodes)?;
++    let segments = params.radial_segments.max(params.lobes * 4) as usize;
++    let mut distance = filled(tree.nodes.len(), 0.0)?;
++    for i in 1..tree.nodes.len() {
++        let parent = tree.nodes[i].parent.unwrap() as usize;
++        distance[i] =
++            distance[parent] + tree.nodes[parent].position.distance(tree.nodes[i].position);
++    }
++    let longest = paths.runs.iter().map(|r| r.end - r.start).max().unwrap() + 1;
++    let mut samples = reserved(longest)?;
++    let mut ordered = Vec::new();
++    let mut rings = 0;
++    for (i, run) in paths.runs.iter().enumerate() {
++        sample_path(tree, 24.0, params, &paths, run, &distance, &mut samples);
++        ordered.push((i, samples.iter().map(|s| s.r).fold(0.0, f64::max)));
++        rings += samples.len();
++    }
++    ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
++    let vertices = rings * segments + paths.runs.len() * 2;
++    build(
++        tree,
++        24.0,
++        params,
++        paths,
++        distance,
++        ordered,
++        angular::samples(segments, params)?,
++        longest,
++        vertices,
++        rings * segments * 6,
++        workers(),
++    )
++}
++fn tree() -> Tree {
++    use crate::tree::Node;
++    Tree {
++        nodes: (0..25)
++            .map(|i| Node {
++                position: Vec3::new((i % 5) as f64, i as f64 * 2.0, (i % 3) as f64),
++                parent: if i == 0 { None } else { Some((i - 1) / 2) },
++                radius: 1.0 / (i + 1) as f64,
++                start_radius: 1.0,
++                ..Node::root()
++            })
++            .collect(),
++        ..Tree::default()
++    }
++}
++#[test]
++fn independent_slices_match_serial_with_modulation_and_caps() {
++    if workers() < 2 {
++        return;
++    }
++    let tree = tree();
++    for twist in [0.0, 0.37] {
++        let p = SurfaceParams {
++            twist_rate: twist,
++            ..Default::default()
++        };
++        let expected = build_mode(&tree, 24.0, &p, None, None, false).unwrap();
++        let actual = candidate(&tree, &p).unwrap();
++        assert_eq!(actual, expected);
++        for (a, b) in actual
++            .positions
++            .iter()
++            .chain(&actual.coords)
++            .chain(&actual.normals)
++            .zip(
++                expected
++                    .positions
++                    .iter()
++                    .chain(&expected.coords)
++                    .chain(&expected.normals),
++            )
++        {
++            assert_eq!(a.to_bits(), b.to_bits());
++        }
++    }
++}
++#[test]
++fn collapsed_candidate_is_discarded_and_serial_keeps_its_error() {
++    if workers() < 2 {
++        return;
++    }
++    let mut tree = tree();
++    for node in &mut tree.nodes {
++        node.radius = 1e-300;
++        node.start_radius = 1e-300;
++    }
++    let p = SurfaceParams::default();
++    assert!(candidate(&tree, &p).is_err());
++    assert!(matches!(
++        build_mode(&tree, 24.0, &p, None, None, false),
++        Err(Error::InvalidValue {
++            field: "surface triangles collapsed in float32",
++            ..
++        })
++    ));
++}
++#[test]
++fn failed_worker_does_not_skip_other_joins() {
++    use std::sync::atomic::{AtomicBool, Ordering};
++    let finished = AtomicBool::new(false);
++    thread::scope(|scope| {
++        let mut handles = std::array::from_fn(|_| None);
++        handles[0] = Some(scope.spawn(|| -> Result<()> { Err(failed()) }));
++        handles[1] = Some(scope.spawn(|| -> Result<()> {
++            finished.store(true, Ordering::SeqCst);
++            Ok(())
++        }));
++        assert!(join_all(&mut handles).is_err());
++        assert!(finished.load(Ordering::SeqCst));
++        assert!(handles.iter().all(Option::is_none));
++    });
++}
++#[test]
++fn spawn_failure_in_either_phase_returns_to_serial_after_join() {
++    if workers() < 2 {
++        return;
++    }
++    let t = tree();
++    let p = SurfaceParams::default();
++    let expected = build_mode(&t, 24.0, &p, None, None, false).unwrap();
++    for after in [0, 1, workers(), workers() + 1] {
++        SPAWN_FAILURE.with(|f| f.set(Some(after)));
++        let result = candidate(&t, &p);
++        SPAWN_FAILURE.with(|f| f.set(None));
++        assert!(result.is_err());
++        assert_eq!(
++            build_mode(&t, 24.0, &p, None, None, false).unwrap(),
++            expected
++        );
++    }
++}
++#[test]
++fn admitted_public_build_retries_once_after_started_worker_spawn_failure() {
++    if workers() < 2 {
++        return;
++    }
++    let p = crate::presets::Preset::from_id("oregon-white-oak")
++        .unwrap()
++        .parameters();
++    let t = crate::branching::generate(&p.skeleton, p.radii).unwrap();
++    let expected = build_mode(
++        &t.tree,
++        p.skeleton.envelope.height,
++        &p.surface,
++        None,
++        None,
++        false,
++    )
++    .unwrap();
++    SPAWN_CALLS.with(|c| c.set(0));
++    SPAWN_FAILURE.with(|f| f.set(Some(1)));
++    let actual = super::super::build(&t.tree, p.skeleton.envelope.height, &p.surface);
++    SPAWN_FAILURE.with(|f| f.set(None));
++    assert_eq!(
++        SPAWN_CALLS.with(|c| c.get()),
++        2,
++        "production admission/fallback was not exercised exactly once"
++    );
++    assert_eq!(actual.unwrap(), expected);
++}
