@@ -94,3 +94,6 @@ Close-capture retry outcome: waiting two initial animation frames produced four 
 ## 2026-09-20 — task .2 build queue
 
 The candidate example build waited for the focused library-test release build's Cargo lock (under one minute; exact lock wait was not timed). The builds remained serialized and no measurements ran during compilation. Starting the example command only after the test command exits would avoid a queued command, though it would not reduce the required compilation work. The bounded task used one fresh baseline example and one candidate example build.
+
+## 2026-09-20 wood-stage observer overhead
+The scratch-only wood profile completed its requested control/instrumented matrix in one pass. Per-run timers and altered optimization increased warm medians by 6.5–21.3% (9.34–37.68 ms), limiting exact stage attribution. Cost was two release builds of about 15 seconds each and one matrix; no additional profiling ticks or tuning runs were spent. A lower-overhead profiler or coarse production-neutral sampling would remove this measurement limitation; no profiler was installed. The report retains approximate stage shares and explicitly separates observer overhead.

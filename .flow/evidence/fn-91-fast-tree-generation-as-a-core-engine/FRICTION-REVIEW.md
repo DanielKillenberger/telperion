@@ -26,3 +26,8 @@ Reviewed every entry in FRICTION.md before this checkpoint. The task remains ope
 | First close captures blank on CPU (~2 minutes) | Preserved failed attempt. One retry after two initial animation frames succeeded; retain initial canvas-settle step in capture harness. |
 
 The reusable changes worth considering for follow-up are a cheap-first gate protocol with explicit build targets, isolated test artifact output, and a validated benchmark result schema. The native initialization issue already has fn-92. None of these proposals substitutes for remaining performance, memory or visual acceptance work.
+
+## Continued work review
+
+- The prior final-checkpoint hold added about two minutes while the host settled and opened captures. That handoff wait is separate from the capture failure itself. Keep one capture owner, use the settled-canvas helper, and commit with an explicitly pending verdict once artifacts are ready instead of waiting for optional owner input.
+- Task .2 queued an example build behind its library-test build for less than one minute. Both builds were required and remained serialized; starting the second command after the first exits removes the queued wait but does not claim a reduction in total compile cost. No repository spec is proposed for this scheduling detail.
