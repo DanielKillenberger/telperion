@@ -1,0 +1,14 @@
+{
+  "status": "blocked_before_dispatch",
+  "prior_actual_tokens": 277432,
+  "cumulative_cap": 300000,
+  "remaining": 22568,
+  "proposed_reservation": 35000,
+  "minimum_cumulative_cap": 312432,
+  "paid_calls": 0,
+  "renders": 0,
+  "inputs": "five original-resolution images: candidate whole/bare, beech whole/bare photos, spruce finish anchor",
+  "basis": "Prior three-input baseline used about21k with25k reservation; seven-input comparisons used28123 and28126 with40k reservation. Adapter lacks image-token preflight estimator/hard token ceiling; cannot justify22568 bound.",
+  "checklist": "Assess candidate whole and bare directly against the photographic references: is this recognizable mature European beech at established catalogue quality, not photorealism? Spruce is a style/finish floor only, never a species-morphology reference. For each view distinguish species-character blockers from plausible natural variation and optional refinement. Upright form or limited droop is neither grandfathered nor automatically disqualifying: explain whether the observed difference actually defeats mature-beech recognizability. Do not demand exact photographic shape matching. Pass when recognizable and meeting the finish floor, fail only for a grounded blocker, unknown when evidence cannot establish the distinction. Two view cells only; no six-cell machine-readiness claim.",
+  "scope": "One proposed assessment only; no previous verdict/score/desired outcome input; not dispatched"
+}

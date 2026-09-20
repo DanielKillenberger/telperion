@@ -1,5 +1,13 @@
 # fn68 implementation and calibration checkpoint
 
+## Direct photographic-reference assessment: FAIL / FAIL
+
+Owner approved320000 cumulative and one additional visual assessment. Five unchanged inputs: candidate whole/bare, original beech photos, spruce finish anchor. Neutral mature-beech recognizability checklist did not grandfather droop/upright form, impose photo matching, or reveal previous verdicts/numeric score. Request95e30382bc9f2cd38b5fdc5587cb03c3d5bf392d004cf46a4b86a32d84502485 frozen before35000 reservation/dispatch.
+
+Sol medium returned FAIL for both views: white horizontally marked bark/pale stems read birch rather than gray beech. Upright crown and limited droop were explicitly not blockers. Bare also names hairlike twig density an artifact, while its observation calls microtwig reduction optional after bark correction; preserve this nuance without posthoc reconciliation. Finish meets the anchor. Prior partial-improvement PASS/PASS is a different, narrower judgment, not overturned or promoted to readiness. Full literal result in development-direct-reference-visual-result.json; review page now shows original photos beside candidate and each verdict.
+
+Actual23660input+425output=24085tokens; cumulative301517/320000,visual11/11. Evaluations5/image reservations20/actual images16 unchanged. Original runtime still221183/4eval16images8visual, unchanged hash; separate development future import80334tokens+1eval4image reservations+3visual. No retry/render/Jev/preset/runtime edit. Harness compile/run and diffcheck passed; local photo symlinks preserve source bytes and are uncommitted images. R7/R8 remain open; no six-cell readiness or task-done claim.
+
 ## Corrected development comparison: partial improvement verified
 
 Owner authorized one additional comparison after opening the same images, extending only visual cap9→10; cumulative300k unchanged. The frozen corrected request explicitly asks to reduce EXCESSIVE density/overlap while retaining credible mature-beech fullness, not increase density. Same seven image hashes, Sol medium, no new captures, measurements, candidates or numerical/host verdict input. Initial ambiguous request/result remain byte-for-byte intact.

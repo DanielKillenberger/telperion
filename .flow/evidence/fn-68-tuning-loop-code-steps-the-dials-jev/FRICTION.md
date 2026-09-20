@@ -97,3 +97,9 @@ Bringing merged fn-53/fn-72 into the retained fn-68 branch produced conflicts on
 # 2026-09-20 — Corrected comparative goal direction
 
 One explicitly authorized follow-up reused all seven images and fixed only the missing reduce-excessive-density criterion. Cost28126 model tokens, about1minute, zero new captures/evaluations. Both development cells passed; old fail remains intact. This resolves the request ambiguity for partial comparison, not general model qualification. Prevention: carry desired change direction from frozen hypothesis into the checklist and inspect that projection before paid review. No further retries.
+# 2026-09-20 — Direct-reference assessment budget boundary
+
+About2minutes read-only preflight, zero paid calls/renders. Remaining22568tokens cannot support a defensible conservative five-image reservation; proposed35000 requires cumulative312432 minimum versus approved300000. Existing adapter has no image-token estimator/hard output cap; reducing reserve merely to fit would conceal uncertainty. Prepared neutral checklist preserved in development-direct-reference-preflight.json. Host will request scoped authority; no cap or runtime mutation. A calibrated image-pack estimator could reduce this uncertainty, but none was added.
+# 2026-09-20 — Direct-reference scope differs from improvement
+
+One authorized direct-reference assessment used24085tokens, about1minute, no captures. Both views failed primarily on bark character, despite prior partial-improvement passes. This is a different question, not evidence to relabel earlier results; retain separate named scope on every verdict. Bare artifact versus optional-twig wording is internally nuanced and remains literal. No repeat call or automatic repair authorized. Earlier35000 reservation boundary was resolved by explicit320000 owner cap, not lower estimation.
