@@ -168,3 +168,42 @@ fn blind_packet_labels_never_reach_request_and_metadata_is_bound() {
         .contains("SECRET"));
     std::fs::remove_file(path).unwrap();
 }
+
+#[test]
+fn render_condition_accepts_only_the_authored_vocabulary() {
+    let path = std::env::temp_dir().join(format!("joint-condition-{}.png", std::process::id()));
+    std::fs::write(&path, b"fixture").unwrap();
+    let image = json!({"path":path,"sha256":sha256_hex(b"fixture"),"view":"whole","seed":1});
+    let mut request:Request=serde_json::from_value(json!({"schema":"tuning-vision-v3","target_species":"Silver birch / Betula pendula","identity":"candidate","required":[{"item":"reference_character","view":"whole","seed":1}],"images":[image.clone()],"references":[image.clone()],"quality_anchors":[{"image":image,"provenance":"fixture","scope":"finish"}],"checklist":"catalogue finish floor"})).unwrap();
+    request.joint = Some(Packet::from_request(&request));
+
+    // from_request still emits only the production literal.
+    assert_eq!(
+        request.joint.as_ref().unwrap().inputs[0].condition,
+        "same_geometry_visibility_view_not_unloaded_leaf_off"
+    );
+    request.verify().unwrap();
+
+    // A truthful historical label is now a declared member, not a mismatch.
+    for condition in [
+        "historical_reconstructed_still",
+        "historical_reconstructed_still_camera_reframe",
+    ] {
+        let mut declared = request.clone();
+        declared.joint.as_mut().unwrap().inputs[0].condition = condition.into();
+        declared
+            .verify()
+            .unwrap_or_else(|e| panic!("{condition}: {e}"));
+    }
+
+    // Anything outside the vocabulary is still refused.
+    let mut invented = request.clone();
+    invented.joint.as_mut().unwrap().inputs[0].condition = "looks_fine_probably".into();
+    assert!(invented.verify().is_err());
+
+    // A reference input may not borrow a render's condition, so packet and
+    // request must still agree about which input is which.
+    let mut swapped = request.clone();
+    swapped.joint.as_mut().unwrap().inputs[1].condition = "historical_reconstructed_still".into();
+    assert!(swapped.verify().is_err());
+}

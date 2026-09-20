@@ -3,7 +3,18 @@ use super::vision::Request;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
-pub const BLIND_CHECKLIST: &str = "Review all supplied views jointly for believable reference character at the catalogue finish floor. Rank the largest grounded gaps; distinguish visible observations, uncertain causal hypotheses, acceptable variation and optional refinement. Compare cross-view constraints without assuming photographs show the same specimen or a causal change. Assess only supported required conclusions; missing, clipped or ambiguous evidence means unknown. No photographic pixel matching or photorealism requirement.";
+/// The only conditions a render input may declare. A production capture is the
+/// first; the others state, truthfully, that the still was reconstructed from
+/// historical geometry and optionally reframed. A receipt is never relabelled
+/// to fit this list, and a reference or anchor never borrows a render's label.
+pub const RENDER_CONDITIONS: [&str; 3] = [
+    "same_geometry_visibility_view_not_unloaded_leaf_off",
+    "historical_reconstructed_still",
+    "historical_reconstructed_still_camera_reframe",
+];
+pub const PRODUCTION_CONDITION: &str = RENDER_CONDITIONS[0];
+
+pub const BLIND_CHECKLIST: &str ="Review all supplied views jointly for believable reference character at the catalogue finish floor. Rank the largest grounded gaps; distinguish visible observations, uncertain causal hypotheses, acceptable variation and optional refinement. Compare cross-view constraints without assuming photographs show the same specimen or a causal change. Assess only supported required conclusions; missing, clipped or ambiguous evidence means unknown. No photographic pixel matching or photorealism requirement.";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -85,7 +96,7 @@ impl Packet {
                     seed: image.seed,
                     render_identity: (role == "render").then(|| r.identity.clone()),
                     condition: if role == "render" {
-                        "same_geometry_visibility_view_not_unloaded_leaf_off"
+                        PRODUCTION_CONDITION
                     } else {
                         "unknown"
                     }
@@ -152,7 +163,7 @@ impl Packet {
                 || got.view != want.view
                 || got.seed != want.seed
                 || got.render_identity != want.render_identity
-                || got.condition != want.condition
+                || !condition_declared(got, want)
                 || got.visibility != want.visibility
                 || got.geometry_group != want.geometry_group
             {
@@ -198,6 +209,15 @@ impl Packet {
         }
         Ok(())
     }
+}
+
+/// A render may declare any authored condition; every other role keeps the
+/// exact label `from_request` derived for it.
+fn condition_declared(got: &Input, want: &Input) -> bool {
+    if want.role != "render" {
+        return got.condition == want.condition;
+    }
+    RENDER_CONDITIONS.contains(&got.condition.as_str())
 }
 
 fn source_bytes(path: &std::path::Path) -> Result<Vec<u8>, String> {
