@@ -24,3 +24,9 @@ Findings.
 4. Every reviewer comment repeats the same missing thing: foliage organised around ascending branches, no spreading shelves, no leaf-weight droop.
 
 Reviewer spend for this run: 12 calls, 333,755 tokens (three all-view reviews and nine side-by-side reviews; one earlier review was lost to the stray coverage row). Visual passes 44 of 60, evaluations 30 of 40, images 158 of 260, rounds 12 of 13.
+
+## Owner's eye on the stills, 2026-09-21
+
+Shown the reference, the baseline, the adopted tree (pitch_variation 11) and the wrongly refused `rise_secondary small_decrease`. Verbatim: "the rejected one is way better i barely see a difference with the adopted one? but they're still quite far away."
+
+So the owner agrees with the reviewer's better/better verdict on `rise_secondary` and confirms the rule defect cost the best candidate of the run; the adopted move is real to the reviewer but barely perceptible to the owner; and single small steps are small against the remaining distance.
