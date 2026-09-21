@@ -302,7 +302,7 @@ fn one_track(
             save,
             old,
             &base,
-            &track.name,
+            track,
             ledger,
             &mut variants,
             start,

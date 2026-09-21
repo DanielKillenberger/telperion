@@ -253,19 +253,68 @@ fn a_split_cuts_by_the_table_s_groups_and_falls_back_to_the_order_jev_gave() {
     assert_eq!(a[0].dial, "twig_hang");
 }
 
+/// The real table, so the large-group rule is measured and not asserted.
+fn table() -> Vec<Dial> {
+    serde_json::from_slice(include_bytes!("../data/dials.json")).unwrap()
+}
+
 #[test]
 fn a_skeleton_row_takes_its_second_path_segment_as_its_family() {
+    let table = table();
     for (path, want) in [
         ("/skeleton/envelope/taper", "envelope"),
         ("/skeleton/habit/riseSecondary", "habit"),
         ("/skeleton/twigs/hang", "twigs"),
         ("/skeleton/bias/strength", "bias"),
         ("/skeleton/growth/maxNodes", "growth"),
-        ("/material/bark/plates", "material"),
-        ("/canopy/size", "canopy"),
+        // radii is four rows and shellDepth one, so neither is cut.
+        ("/radii/trunk", "radii"),
         ("/shellDepth", "shellDepth"),
     ] {
-        assert_eq!(bundle::family(path), want, "{path}");
+        assert_eq!(bundle::family(path, &table), want, "{path}");
+    }
+}
+
+/// The 91 material rows were one family, so six live rounds of a material
+/// bundle could not be cut at all. A group of more than eight rows is told
+/// apart by the leaf's own first word, qualified by its group so that
+/// `element` and `material` do not share a `lobe`.
+#[test]
+fn a_group_too_large_to_cut_is_told_apart_by_the_leaf_s_first_word() {
+    let table = table();
+    for (path, want) in [
+        ("/material/barkRed", "material.bark"),
+        ("/material/barkGreen", "material.bark"),
+        ("/material/plateCellScale", "material.plate"),
+        ("/material/plateIdentity", "material.plate"),
+        ("/material/lichenCoverage", "material.lichen"),
+        ("/material/ridgeScale", "material.ridge"),
+        ("/material/crestGreen", "material.crest"),
+        ("/canopy/clumpSpan", "canopy.clump"),
+        ("/canopy/size", "canopy.size"),
+        ("/element/lobeDepth", "element.lobe"),
+        ("/surface/flareHeight", "surface.flare"),
+    ] {
+        assert_eq!(bundle::family(path, &table), want, "{path}");
+    }
+    // A group of eight rows or fewer stays whole, whatever its leaves say.
+    let small: Vec<Dial> = table
+        .iter()
+        .filter(|d| d.path.starts_with("/material/"))
+        .take(8)
+        .cloned()
+        .collect();
+    assert_eq!(bundle::family("/material/barkRed", &small), "material");
+
+    // The live 91 material rows fall into families no cut can leave whole.
+    let material = table
+        .iter()
+        .filter(|d| d.path.starts_with("/material/"))
+        .map(|d| bundle::family(&d.path, &table))
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(material.len(), 32, "{material:?}");
+    for name in ["material.bark", "material.plate", "material.lichen"] {
+        assert!(material.contains(name), "{material:?}");
     }
 }
 
@@ -296,6 +345,7 @@ fn a_worse_bundle_cuts_into_at_most_four_parts_with_the_smallest_merged() {
         })
         .collect::<Vec<_>>();
 
+    // Every group here is small, so each row keeps its own first segment.
     let parts = bundle::families(&moves, &dials);
     assert_eq!(parts.len(), 4, "{parts:?}");
     assert_eq!(

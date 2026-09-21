@@ -10,6 +10,7 @@ use super::{
     overlay_of, part,
     round::{evaluate, note_failure, note_unshown, read_back, Variant},
     split,
+    track::Track,
 };
 use crate::tuning::{
     engine::{Run, Services},
@@ -26,7 +27,7 @@ pub(super) fn isolate(
     save: Save<'_>,
     old: usize,
     base: &str,
-    track: &str,
+    track: &Track,
     ledger: Option<String>,
     variants: &mut Vec<Variant>,
     start: (String, f64),
@@ -54,7 +55,7 @@ pub(super) fn isolate(
                 continue;
             }
             let overlay = overlay_of(&moves, &state.dials);
-            let drawn = part(&moves, parent.1, base, track);
+            let drawn = part(&moves, parent.1, base, &track.name);
             let label = format!("bundle@{} half {side}", parent.1);
             match evaluate(
                 state,
@@ -86,7 +87,10 @@ pub(super) fn isolate(
             break;
         }
         let priorities = progress::tuning_priorities(state);
-        let look = services.sheet_request(state, old, &halves, &priorities, None)?;
+        // A track judged at one view is split at that view too: a material
+        // half on the whole-tree still would read inert.
+        let look =
+            services.sheet_request(state, old, &halves, &priorities, track.view.as_deref())?;
         note_unshown(state, &look);
         let Some(plan) = &look.plan else {
             break;

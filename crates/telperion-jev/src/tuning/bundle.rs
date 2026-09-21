@@ -258,18 +258,43 @@ pub fn split(moves: &[Move], dials: &[Dial]) -> (Vec<Move>, Vec<Move>) {
     )
 }
 
+/// A group this size is one family no cut can divide, so its rows are told
+/// apart by the leaf's own first word instead. The 91 material rows were one
+/// family, and six live rounds of a material bundle could not be cut at all.
+const LARGE: usize = 8;
+
+/// The leaf's first camelCase word: `barkRed` is bark, `plateCellScale` is
+/// plate, `size` is size.
+fn head(leaf: &str) -> &str {
+    leaf.char_indices()
+        .find(|(i, c)| *i > 0 && c.is_uppercase())
+        .map_or(leaf, |(i, _)| &leaf[..i])
+}
+
 /// Which sub-family a dial row belongs to: below `/skeleton` the second path
-/// segment, so envelope, habit, twigs, bias and growth are told apart; every
-/// other group is its own first segment.
-pub fn family(path: &str) -> String {
-    let mut segments = path.split('/').filter(|s| !s.is_empty());
-    let first = segments.next().unwrap_or_default();
+/// segment, so envelope, habit, twigs, bias and growth are told apart; a group
+/// of more than eight rows the leaf's own first word, qualified by the group
+/// so that `element` and `material` do not share a `lobe`; anything smaller is
+/// its own first segment.
+pub fn family(path: &str, dials: &[Dial]) -> String {
+    let segments = path
+        .split('/')
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<_>>();
+    let Some(first) = segments.first().copied() else {
+        return String::new();
+    };
     if first == "skeleton" {
-        if let Some(second) = segments.next() {
-            return second.to_string();
-        }
+        return segments.get(1).copied().unwrap_or(first).to_string();
     }
-    first.to_string()
+    let rows = dials
+        .iter()
+        .filter(|d| d.path.split('/').nth(1) == Some(first))
+        .count();
+    match segments.last().copied().filter(|_| rows > LARGE) {
+        Some(leaf) => format!("{first}.{}", head(leaf)),
+        None => first.to_string(),
+    }
 }
 
 /// Two merged families, named together and each name kept once.
@@ -289,7 +314,7 @@ pub fn families(moves: &[Move], dials: &[Dial]) -> Vec<(String, Vec<Move>)> {
         let name = dials
             .iter()
             .find(|d| d.id == m.dial)
-            .map_or_else(String::new, |d| family(&d.path));
+            .map_or_else(String::new, |d| family(&d.path, dials));
         match parts.iter_mut().find(|(n, _)| n == &name) {
             Some((_, rows)) => rows.push(m.clone()),
             None => parts.push((name, vec![m.clone()])),

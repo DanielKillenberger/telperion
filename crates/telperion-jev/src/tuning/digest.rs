@@ -208,7 +208,7 @@ pub fn attempts(state: &Run, trim: Trim) -> Value {
                 .dials
                 .iter()
                 .find(|d| d.id == dial)
-                .map_or_else(String::new, |d| bundle::family(&d.path));
+                .map_or_else(String::new, |d| bundle::family(&d.path, &state.dials));
             if !families.iter().any(|(n, _)| n == &name) {
                 families.push((name.clone(), Family::default()));
             }

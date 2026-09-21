@@ -81,7 +81,7 @@ pub(super) fn eligible(
             .dials
             .iter()
             .find(|d| &d.id == id)
-            .map_or_else(String::new, |d| super::family(&d.path));
+            .map_or_else(String::new, |d| super::family(&d.path, &state.dials));
         if excluded.iter().any(|e| e == &name) {
             if !dropped.iter().any(|d| d == &name) {
                 dropped.push(name);

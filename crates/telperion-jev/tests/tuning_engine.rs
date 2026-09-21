@@ -3043,6 +3043,45 @@ fn each_track_builds_its_own_bundle_and_buys_its_own_sheet() {
         .any(|c| c.reference == "B-BASE"));
 }
 
+/// A track judged at one view is split at that view too. Halving asked for no
+/// view at all, so every material half would have been judged on the
+/// whole-tree still, where a bark change is invisible and reads inert.
+#[test]
+fn a_track_judged_at_one_view_is_halved_at_that_view_too() {
+    let (mut state, mut mock) = two_track_run();
+    // Two material rows, so the material bundle has something to halve.
+    state.dials[2].group = Some("material".into());
+    mock.sheets = vec![
+        // The structure bundle is one row and nothing improved on it.
+        vec![],
+        // The material bundle is better and breaks something.
+        vec![(key(3), Movement::Clear, Some("the bark is too dark".into()))],
+        // Of its two halves, one is clean.
+        vec![did(&key(4), Movement::Clear), did(&key(5), Movement::None)],
+    ];
+    to_the_round(&mut state, &mut mock);
+
+    assert_eq!(mock.sheet_calls, 3);
+    assert_eq!(
+        *mock.sheet_views.borrow(),
+        vec![None, Some("B-BASE".to_string()), Some("B-BASE".to_string())],
+        "the split sheet was not taken at the track's own view"
+    );
+    let halves: Vec<&Trial> = state
+        .trials
+        .iter()
+        .filter(|t| t.parent_bundle.is_some())
+        .collect();
+    assert_eq!(halves.len(), 2);
+    assert!(
+        halves.iter().all(|t| t.sheet.is_some()),
+        "a half read inert"
+    );
+    assert!(state.trials[state.current.unwrap()]
+        .label
+        .starts_with("bundle@1 half"));
+}
+
 #[test]
 fn a_track_with_no_supported_dial_is_skipped_and_costs_nothing() {
     let (mut state, mut mock) = two_track_run();
