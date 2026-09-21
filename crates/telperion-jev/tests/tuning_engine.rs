@@ -66,6 +66,12 @@ struct Mock {
     /// The sheet review fails, as a refused answer does.
     sheet_error: bool,
     sheet_calls: u64,
+    /// The cell status each visual reports, in order. Empty keeps the default
+    /// rule, where the third look onward passes.
+    cell_status: Vec<CellStatus>,
+    /// The raw answer and confidence the side-effect question comes back with.
+    side_effect_answer: Option<(String, f64)>,
+    side_effect_calls: u64,
 }
 
 fn mock() -> Mock {
@@ -105,6 +111,9 @@ fn mock() -> Mock {
         sheets: vec![],
         sheet_error: false,
         sheet_calls: 0,
+        cell_status: vec![],
+        side_effect_answer: None,
+        side_effect_calls: 0,
     }
 }
 impl Services for Mock {
@@ -336,6 +345,7 @@ impl Services for Mock {
             bundle: None,
             parent_bundle: None,
             sheet: None,
+            vetoed: None,
             key: format!("candidate{}", self.evaluations),
             identity: "input1".into(),
             seed: 1,
@@ -372,12 +382,13 @@ impl Services for Mock {
                 observations: vec![],
                 findings: vec![],
                 joint: None,
+                coverage: vec![],
                 cells: vec![(
                     cell(),
-                    if self.visuals >= 3 {
-                        CellStatus::Pass
-                    } else {
-                        CellStatus::Fail
+                    match self.cell_status.get(self.visuals as usize - 1) {
+                        Some(status) => *status,
+                        None if self.visuals >= 3 => CellStatus::Pass,
+                        None => CellStatus::Fail,
                     },
                 )],
                 defects: if self.visuals < 3 {
@@ -407,6 +418,34 @@ impl Services for Mock {
                 "bounded".into()
             } else {
                 "insufficient_evidence".into()
+            },
+        })
+    }
+    fn side_effect_tokens(&self, _: &serde_json::Value) -> u64 {
+        500
+    }
+    fn side_effects(
+        &mut self,
+        _: &serde_json::Value,
+    ) -> Result<Answer<telperion_jev::tuning::veto::Judged>, String> {
+        self.side_effect_calls += 1;
+        let (raw, confidence) = self
+            .side_effect_answer
+            .clone()
+            .unwrap_or_else(|| ("no_new_defect".into(), 0.9));
+        Ok(Answer {
+            ledger: Some("jev:side-effects".into()),
+            tokens: Some(20),
+            value: telperion_jev::tuning::veto::Judged {
+                choice: if confidence >= 0.5 {
+                    raw.clone()
+                } else {
+                    "insufficient_evidence".into()
+                },
+                raw_choice: Some(raw),
+                confidence: Some(confidence),
+                threshold: 0.5,
+                ledger: Some("jev:side-effects".into()),
             },
         })
     }
@@ -2545,4 +2584,118 @@ fn a_failed_progress_review_is_recorded_and_never_bought_again() {
         .routes
         .iter()
         .any(|r| r == "visual stall; no candidate judged better"));
+}
+
+/// The whole point of the veto: bundles 2 and 3 of the beech run were graded
+/// clear on crown shape by the sheet, and the closing all-view review reported
+/// what the owner then called garbage. These drive that closing review.
+fn adopting_run() -> (Run, Mock) {
+    let (state, mut mock) = bundle_run();
+    mock.sheets = vec![vec![did(&key(3), Movement::Clear)]];
+    (state, mock)
+}
+
+#[test]
+fn an_adoption_the_closing_review_does_not_fault_is_kept() {
+    let (mut state, mut mock) = adopting_run();
+    to_the_round(&mut state, &mut mock);
+
+    assert_eq!(mock.side_effect_calls, 1, "the question is asked once");
+    let adopted = &state.trials[state.current.unwrap()];
+    assert_eq!(adopted.label, "bundle@1");
+    assert!(adopted.vetoed.is_none());
+    assert!(!state
+        .routes
+        .iter()
+        .any(|r| r.starts_with("adoption rolled back")));
+    assert!(state
+        .routes
+        .iter()
+        .any(|r| r.contains("adoption kept") && r.contains("uncalibrated side-effect question")));
+}
+
+#[test]
+fn a_required_cell_that_went_backwards_rolls_the_adoption_back_unasked() {
+    let (mut state, mut mock) = adopting_run();
+    // The baseline look and the post-approval look pass the cell; the closing
+    // look after the move does not.
+    mock.cell_status = vec![CellStatus::Pass, CellStatus::Pass, CellStatus::Fail];
+    let before = state.effective.clone();
+    to_the_round(&mut state, &mut mock);
+
+    assert_eq!(mock.side_effect_calls, 0, "nobody was paid to confirm it");
+    assert_eq!(state.current, Some(0), "the vetoed tree is still current");
+    assert_eq!(state.effective, before, "the wire was not put back");
+    let vetoed = state
+        .trials
+        .iter()
+        .find(|t| t.vetoed.is_some())
+        .expect("no trial records the rollback");
+    let reasons = &vetoed.vetoed.as_ref().unwrap().reasons;
+    assert!(
+        reasons[0].contains("went from pass to fail") && reasons[0].contains("crown"),
+        "{reasons:?}"
+    );
+    assert!(vetoed.vetoed.as_ref().unwrap().ledger.is_none());
+    assert!(state
+        .routes
+        .iter()
+        .any(|r| r.starts_with("adoption rolled back:")));
+    // The move counts as tried, so the next round draws nothing.
+    assert_eq!(mock.evaluations, 5);
+    assert_eq!(
+        state.pause.as_ref().unwrap().reason,
+        "bundle already tried; no new direction"
+    );
+}
+
+#[test]
+fn a_new_defect_only_the_text_reports_rolls_the_adoption_back() {
+    let (mut state, mut mock) = adopting_run();
+    mock.side_effect_answer = Some(("new_defect".into(), 0.9));
+    let (before, overrides) = (state.effective.clone(), state.overrides.clone());
+    to_the_round(&mut state, &mut mock);
+
+    assert_eq!(mock.side_effect_calls, 1);
+    assert_eq!(state.current, Some(0));
+    assert_eq!(state.effective, before);
+    assert_eq!(state.overrides, overrides);
+    assert_eq!(state.visual.as_ref().unwrap().identity, "candidate1");
+    let veto = state
+        .trials
+        .iter()
+        .find_map(|t| t.vetoed.as_ref())
+        .expect("no trial records the rollback");
+    assert_eq!(veto.ledger.as_deref(), Some("jev:side-effects"));
+    assert!(veto.reasons[0].contains("uncalibrated side-effect question"));
+    // What the move broke reaches whoever proposes the next one.
+    let projected = telperion_jev::tuning::judgments::proposal_state(&state);
+    let attempts = serde_json::to_string(&projected["attempts_from_this_candidate"]).unwrap();
+    assert!(attempts.contains("rolled_back"), "{attempts}");
+    let summary =
+        serde_json::to_string(&telperion_jev::tuning::judgments::summary(&state)).unwrap();
+    assert!(summary.contains("rolled_back"));
+    assert!(state
+        .judgment_inputs
+        .iter()
+        .any(|i| i.label == "uncalibrated side-effect question"));
+}
+
+#[test]
+fn a_new_defect_below_the_threshold_keeps_the_adoption_and_records_what_was_said() {
+    let (mut state, mut mock) = adopting_run();
+    mock.side_effect_answer = Some(("new_defect".into(), 0.3));
+    to_the_round(&mut state, &mut mock);
+
+    assert_eq!(mock.side_effect_calls, 1);
+    assert_eq!(state.trials[state.current.unwrap()].label, "bundle@1");
+    assert!(state.trials.iter().all(|t| t.vetoed.is_none()));
+    assert!(
+        state
+            .routes
+            .iter()
+            .any(|r| r.contains("adoption kept") && r.contains("new_defect") && r.contains("0.3")),
+        "the raw answer was not recorded: {:?}",
+        state.routes
+    );
 }

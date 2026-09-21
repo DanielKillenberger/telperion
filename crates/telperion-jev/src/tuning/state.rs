@@ -43,6 +43,20 @@ pub struct Visual {
     pub findings: Vec<super::joint::Finding>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub joint: Option<super::joint::Packet>,
+    /// The reference-first trait dispositions this assessment bound, kept so a
+    /// later assessment can be compared with it. The dispositions themselves
+    /// live on the comparison result; only what a comparison needs is copied
+    /// here. Empty under any other visual protocol.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub coverage: Vec<TraitStatus>,
+}
+
+/// One reference-first trait and what the reviewer made of it.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct TraitStatus {
+    pub trait_id: String,
+    pub status: CellStatus,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

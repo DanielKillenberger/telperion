@@ -194,7 +194,7 @@ pub(super) fn stall(selection: Selection) -> String {
 /// The reviewer's words about one attempt, for whoever is asked next. A
 /// bundle attempt answers with what it moved as well as how it was judged.
 pub fn words(trial: &Trial) -> Option<Value> {
-    trial
+    let mut out = trial
         .progress
         .as_ref()
         .map(|p| {
@@ -202,7 +202,13 @@ pub fn words(trial: &Trial) -> Option<Value> {
             "regressions":p.regressions,"inert":p.inert,"note":p.note,
             "uncalibrated":UNCALIBRATED})
         })
-        .or_else(|| super::bundle::words(trial))
+        .or_else(|| super::bundle::words(trial))?;
+    // What the move broke, for whoever proposes the next one.
+    if let Some(veto) = &trial.vetoed {
+        out["rolled_back"] = json!({"reasons":veto.reasons,"ledger":veto.ledger,
+            "meaning":"this move was adopted and the all-view review that followed took it back"});
+    }
+    Some(out)
 }
 
 /// What a round would send, for pricing before any candidate exists.

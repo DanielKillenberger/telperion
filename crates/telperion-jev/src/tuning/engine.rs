@@ -128,6 +128,13 @@ pub trait Services {
     ) -> Result<Answer<super::sheet::Verdict>, String> {
         Err("contact-sheet review unavailable".into())
     }
+    fn side_effect_tokens(&self, _state: &Value) -> u64 {
+        2000
+    }
+    /// The one uncalibrated question that can take an adoption back.
+    fn side_effects(&mut self, _state: &Value) -> Result<Answer<super::veto::Judged>, String> {
+        Err("side-effect question unavailable".into())
+    }
     fn continuation_tokens(&self, _basis: &Basis) -> u64 {
         2000
     }
@@ -716,10 +723,13 @@ impl Run {
                 save(self)?;
                 continue;
             };
+            let restore = super::veto::restore_point(self);
             self.current = Some(best);
             self.effective = best_effective;
             self.overrides = self.trials[best].overrides.clone();
             self.assess(services, save)?;
+            // The look that follows the move can take it back.
+            super::veto::settle(self, services, save, restore, best)?;
             if self.bootstrap_finalist(save)? {
                 return Ok(());
             }

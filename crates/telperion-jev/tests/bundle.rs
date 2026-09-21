@@ -536,6 +536,7 @@ fn variant(key: &str, label: &str, strength: f64, images: Vec<Image>) -> Trial {
         bundle: None,
         parent_bundle: None,
         sheet: None,
+        vetoed: None,
     };
     trial.bundle = Some(bundle::Bundle {
         strength,

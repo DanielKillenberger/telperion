@@ -99,6 +99,10 @@ pub struct Trial {
     /// code kept it off one. Present only under bundle selection.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sheet: Option<super::sheet::Outcome>,
+    /// Present when this move was adopted and the closing all-view review
+    /// took it back. The attempt stands as tried; the tree does not.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vetoed: Option<super::veto::Veto>,
 }
 
 fn completed(receipt: &str) -> Result<Value, String> {
@@ -161,6 +165,7 @@ pub fn evaluate(
         bundle: None,
         parent_bundle: None,
         sheet: None,
+        vetoed: None,
         key,
         identity: identity.into(),
         seed,

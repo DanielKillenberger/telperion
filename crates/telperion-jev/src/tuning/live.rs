@@ -827,6 +827,21 @@ impl Services for Live<'_> {
         );
         Ok(Self::answer(&entry, answer))
     }
+    fn side_effect_tokens(&self, state: &Value) -> u64 {
+        super::judgments::allowance(state, &super::veto::questions())
+    }
+    fn side_effects(&mut self, state: &Value) -> Result<Answer<super::veto::Judged>, String> {
+        let entry = self.ask(state, &super::veto::questions())?;
+        let threshold = super::judgments::threshold(&self.config.continuation)?;
+        let judged = super::veto::Judged {
+            choice: super::judgments::thresholded(&entry, super::veto::QUESTION, threshold),
+            raw_choice: entry.choice(super::veto::QUESTION),
+            confidence: entry.confidence(super::veto::QUESTION),
+            threshold,
+            ledger: Some(entry.reference()),
+        };
+        Ok(Self::answer(&entry, judged))
+    }
     fn evidence_tokens(&self, state: &Value) -> u64 {
         super::judgments::allowance(state, &super::round::questions())
     }

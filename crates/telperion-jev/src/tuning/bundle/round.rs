@@ -118,7 +118,7 @@ pub(super) fn keep(
     key: &str,
     others: &[String],
     variants: &[Variant],
-) -> Result<(), String> {
+) -> Result<bool, String> {
     let index = state
         .trials
         .iter()
@@ -129,13 +129,16 @@ pub(super) fn keep(
         .find(|v| v.trial == index)
         .map(|v| v.overlay.clone())
         .ok_or("lost the adopted wire")?;
+    // Where to put the run back, taken before anything moves.
+    let restore = crate::tuning::veto::restore_point(state);
     state.trials[index].adopted_over = others.to_vec();
     state.current = Some(index);
     let mut effective = state.effective.clone();
     merge(&mut effective, &overlay);
     state.effective = effective;
     state.overrides = state.trials[index].overrides.clone();
-    state.assess(services, save)
+    state.assess(services, save)?;
+    crate::tuning::veto::settle(state, services, save, restore, index)
 }
 
 /// The other variants the reviewer also judged adoptable. Owner-facing only.
@@ -240,8 +243,7 @@ pub(in crate::tuning) fn round(
     save(state)?;
     if let Some(key) = sheet::adopt(&verdict, &shown) {
         let others = passed_over(&verdict, &shown, &key);
-        keep(state, services, save, &key, &others, &variants)?;
-        return Ok(true);
+        return keep(state, services, save, &key, &others, &variants);
     }
     let Some(start) = sheet::to_split(&verdict, &shown) else {
         state.routes.push(progress::stall(services.selection()));
@@ -263,8 +265,7 @@ pub(in crate::tuning) fn round(
         save(state)?;
         return Ok(false);
     };
-    keep(state, services, save, &key, &[], &variants)?;
-    Ok(true)
+    keep(state, services, save, &key, &[], &variants)
 }
 
 /// A half of a parent bundle, at the parent's own strength.

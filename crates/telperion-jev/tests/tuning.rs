@@ -44,6 +44,7 @@ fn readiness_requires_every_checklist_view_seed_and_no_defects() {
         },
     ];
     let mut assessment = Visual {
+        coverage: vec![],
         identity: "v1".into(),
         model: "vision".into(),
         ledger: "record".into(),

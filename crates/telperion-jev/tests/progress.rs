@@ -59,6 +59,7 @@ fn trial(key: &str, images: Vec<Image>) -> Trial {
         bundle: None,
         parent_bundle: None,
         sheet: None,
+        vetoed: None,
     }
 }
 

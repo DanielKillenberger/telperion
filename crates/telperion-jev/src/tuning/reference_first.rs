@@ -575,6 +575,16 @@ impl ComparisonResult {
                 self.visual.assessment.observations.push(note);
             }
         }
+        // The dispositions travel on with the assessment, so a later one can
+        // be compared with this one without reopening the receipt.
+        self.visual.assessment.coverage = self
+            .coverage
+            .iter()
+            .map(|c| super::state::TraitStatus {
+                trait_id: c.trait_id.clone(),
+                status: c.status,
+            })
+            .collect();
         let mut seen = HashSet::new();
         for c in &self.coverage {
             if !seen.insert(&c.trait_id) || !text(&c.explanation) || !ids(&c.evidence_ids, &allowed)

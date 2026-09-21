@@ -43,6 +43,7 @@ fn placeholder(config: &Config, identity: &str) -> Trial {
         bundle: None,
         parent_bundle: None,
         sheet: None,
+        vetoed: None,
         key: String::new(),
         identity: identity.into(),
         seed: config.seed,
