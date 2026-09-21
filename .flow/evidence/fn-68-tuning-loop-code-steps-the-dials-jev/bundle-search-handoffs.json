@@ -1,0 +1,4522 @@
+{
+  "bootstrap": true,
+  "handoffs": [
+    {
+      "attempts": [
+        {
+          "action_ledger": "tuning:18d76402480a10e3-dc9f0-29",
+          "dial": "bundle@0.5",
+          "feasible": true,
+          "reason": null,
+          "review": {
+            "breaks": [],
+            "dropped": [],
+            "feasible": true,
+            "improved": "The set shows stronger crown interruptions and more lateral foliage distribution, with hanging lower masses most visible in render 1.",
+            "inert": false,
+            "missing": "All still lack the references’ coherent lateral tiers and convincingly weighted outer foliage; crown irregularity relies too much on projecting branches rather than leafy, drooping branch ends.",
+            "moves": [
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "pitch_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "writhe_amplitude",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_reach",
+                "direction": "up"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "up"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_orders",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              },
+              {
+                "dial": "short_shoot_spread",
+                "direction": "down"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "up"
+              },
+              {
+                "dial": "taper",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_angle_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "down"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "clump_system_order",
+                "direction": "up"
+              },
+              {
+                "dial": "fullness",
+                "direction": "down"
+              }
+            ],
+            "note": null,
+            "per_priority": {
+              "finding-0": "clear",
+              "finding-1": "slight"
+            },
+            "strength": 0.5,
+            "uncalibrated": "uncalibrated contact-sheet review: a ranking and a graded comparison, never a score or a readiness claim"
+          },
+          "round": 13,
+          "score_after": 0.30453781093117455,
+          "score_before_round": 0.24324871288259317,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d76402480a10e3-dc9f0-29",
+          "dial": "bundle@1",
+          "feasible": true,
+          "reason": null,
+          "review": {
+            "breaks": [
+              "Long exposed limbs cross the crown conspicuously, making the upper canopy look stripped and skeletal."
+            ],
+            "dropped": [],
+            "feasible": true,
+            "improved": "The set shows stronger crown interruptions and more lateral foliage distribution, with hanging lower masses most visible in render 1.",
+            "inert": false,
+            "missing": "All still lack the references’ coherent lateral tiers and convincingly weighted outer foliage; crown irregularity relies too much on projecting branches rather than leafy, drooping branch ends.",
+            "moves": [
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "pitch_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "writhe_amplitude",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_reach",
+                "direction": "up"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "up"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_orders",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              },
+              {
+                "dial": "short_shoot_spread",
+                "direction": "down"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "up"
+              },
+              {
+                "dial": "taper",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_angle_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "down"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "clump_system_order",
+                "direction": "up"
+              },
+              {
+                "dial": "fullness",
+                "direction": "down"
+              }
+            ],
+            "note": null,
+            "per_priority": {
+              "finding-0": "clear",
+              "finding-1": "clear"
+            },
+            "strength": 1.0,
+            "uncalibrated": "uncalibrated contact-sheet review: a ranking and a graded comparison, never a score or a readiness claim"
+          },
+          "round": 13,
+          "score_after": 0.3162082557342052,
+          "score_before_round": 0.24324871288259317,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d76402480a10e3-dc9f0-29",
+          "dial": "bundle@2",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "pitch_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "writhe_amplitude",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_reach",
+                "direction": "up"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "up"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_orders",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              },
+              {
+                "dial": "short_shoot_spread",
+                "direction": "down"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "up"
+              },
+              {
+                "dial": "taper",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_angle_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "down"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "clump_system_order",
+                "direction": "up"
+              },
+              {
+                "dial": "fullness",
+                "direction": "down"
+              }
+            ],
+            "strength": 2.0
+          },
+          "round": 13,
+          "score_after": null,
+          "score_before_round": 0.24324871288259317,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d76402480a10e3-dc9f0-29",
+          "dial": "bundle@4",
+          "feasible": false,
+          "reason": "measure: surface: InvalidValue { field: \"surface triangles collapsed in float32\", value: \"2458\" }",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "pitch_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "writhe_amplitude",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_reach",
+                "direction": "up"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "up"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_orders",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              },
+              {
+                "dial": "short_shoot_spread",
+                "direction": "down"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "up"
+              },
+              {
+                "dial": "taper",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_angle_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "down"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "clump_system_order",
+                "direction": "up"
+              },
+              {
+                "dial": "fullness",
+                "direction": "down"
+              }
+            ],
+            "strength": 4.0
+          },
+          "round": 13,
+          "score_after": null,
+          "score_before_round": 0.24324871288259317,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d7643968bb700a-dc9f0-81",
+          "dial": "bundle@0.5",
+          "feasible": true,
+          "reason": null,
+          "review": {
+            "breaks": [],
+            "dropped": [],
+            "feasible": true,
+            "improved": "The set shows stronger branch-defined crown irregularity and more lateral foliage placement, most convincingly balanced in render 3.",
+            "inert": false,
+            "missing": "All retain dense, rounded lower foliage masses and too many upward or straight outward tips; the references show finer lateral layers with more visibly hanging, leaf-weighted ends.",
+            "moves": [
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "writhe_amplitude",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_reach",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_orders",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_generations",
+                "direction": "up"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "pitch_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "taper",
+                "direction": "down"
+              },
+              {
+                "dial": "max_writhe_magnitude",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_angle_variation",
+                "direction": "up"
+              }
+            ],
+            "note": null,
+            "per_priority": {
+              "finding-0": "clear",
+              "finding-1": "slight"
+            },
+            "strength": 0.5,
+            "uncalibrated": "uncalibrated contact-sheet review: a ranking and a graded comparison, never a score or a readiness claim"
+          },
+          "round": 14,
+          "score_after": 0.2760188745943533,
+          "score_before_round": 0.24324871288259317,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d7643968bb700a-dc9f0-81",
+          "dial": "bundle@1",
+          "feasible": true,
+          "reason": null,
+          "review": {
+            "breaks": [
+              "The upper crown becomes a sparse set of long, exposed, antler-like branches, leaving an abrupt transition into the heavy lower canopy."
+            ],
+            "dropped": [],
+            "feasible": true,
+            "improved": "The set shows stronger branch-defined crown irregularity and more lateral foliage placement, most convincingly balanced in render 3.",
+            "inert": false,
+            "missing": "All retain dense, rounded lower foliage masses and too many upward or straight outward tips; the references show finer lateral layers with more visibly hanging, leaf-weighted ends.",
+            "moves": [
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "writhe_amplitude",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_reach",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_orders",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_generations",
+                "direction": "up"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "pitch_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "taper",
+                "direction": "down"
+              },
+              {
+                "dial": "max_writhe_magnitude",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_angle_variation",
+                "direction": "up"
+              }
+            ],
+            "note": null,
+            "per_priority": {
+              "finding-0": "clear",
+              "finding-1": "worse"
+            },
+            "strength": 1.0,
+            "uncalibrated": "uncalibrated contact-sheet review: a ranking and a graded comparison, never a score or a readiness claim"
+          },
+          "round": 14,
+          "score_after": 0.1571602006144391,
+          "score_before_round": 0.24324871288259317,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d7643968bb700a-dc9f0-81",
+          "dial": "bundle@2",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "writhe_amplitude",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_reach",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_orders",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_generations",
+                "direction": "up"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "pitch_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "taper",
+                "direction": "down"
+              },
+              {
+                "dial": "max_writhe_magnitude",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_angle_variation",
+                "direction": "up"
+              }
+            ],
+            "strength": 2.0
+          },
+          "round": 14,
+          "score_after": null,
+          "score_before_round": 0.24324871288259317,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d7643968bb700a-dc9f0-81",
+          "dial": "bundle@4",
+          "feasible": false,
+          "reason": "measure: surface: InvalidValue { field: \"surface triangles collapsed in float32\", value: \"108\" }",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "writhe_amplitude",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_reach",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_orders",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_generations",
+                "direction": "up"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "pitch_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "taper",
+                "direction": "down"
+              },
+              {
+                "dial": "max_writhe_magnitude",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_angle_variation",
+                "direction": "up"
+              }
+            ],
+            "strength": 4.0
+          },
+          "round": 14,
+          "score_after": null,
+          "score_before_round": 0.24324871288259317,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d764657dab73dc-dc9f0-e3",
+          "dial": "bundle@0.5",
+          "feasible": true,
+          "reason": null,
+          "review": {
+            "breaks": [],
+            "dropped": [],
+            "feasible": true,
+            "improved": "The stronger leafy variants show more lateral spread, hanging outer foliage, and branch-separated crown contours.",
+            "inert": false,
+            "missing": "None combines the references’ full upper crown, irregular layered outline, and natural foliage weight; exposed leaders, angular scaffolds, or overly merged foliage still interrupt that balance.",
+            "moves": [
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_laterals",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_reach",
+                "direction": "up"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "short_shoot_spread",
+                "direction": "down"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_angle_variation",
+                "direction": "down"
+              },
+              {
+                "dial": "spacing",
+                "direction": "up"
+              },
+              {
+                "dial": "radial_segments",
+                "direction": "down"
+              }
+            ],
+            "note": null,
+            "per_priority": {
+              "finding-0": "clear",
+              "finding-1": "slight"
+            },
+            "strength": 0.5,
+            "uncalibrated": "uncalibrated contact-sheet review: a ranking and a graded comparison, never a score or a readiness claim"
+          },
+          "round": 15,
+          "score_after": 0.1623068726131198,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": [
+            {
+              "item": "crown-character-density-droop",
+              "seed": 1,
+              "status": "fail",
+              "view": "B-WHOLE"
+            },
+            {
+              "item": "branching-character",
+              "seed": 1,
+              "status": "fail",
+              "view": "B-BARE"
+            },
+            {
+              "item": "crown-character-density-droop",
+              "seed": 42,
+              "status": "fail",
+              "view": "B-WHOLE"
+            },
+            {
+              "item": "branching-character",
+              "seed": 42,
+              "status": "fail",
+              "view": "B-BARE"
+            },
+            {
+              "item": "owner-priority:finding-0: The upper crown forms a nearly continuous rounded envelope, with dense lateral shoulders. Small edge projections and dark interior patches do not sufficiently break its larger-scale regularity compared with the branch-defined outlines in the photographs.",
+              "seed": 1,
+              "status": "fail",
+              "view": "B-WHOLE"
+            },
+            {
+              "item": "owner-priority:finding-0: The upper crown forms a nearly continuous rounded envelope, with dense lateral shoulders. Small edge projections and dark interior patches do not sufficiently break its larger-scale regularity compared with the branch-defined outlines in the photographs.",
+              "seed": 42,
+              "status": "fail",
+              "view": "B-WHOLE"
+            },
+            {
+              "item": "owner-priority:finding-1: Most visible foliage masses rise along steep branches. The photographs show more lateral layering and hanging outer foliage, particularly in the right specimen. The candidate lacks sufficient visible leaf-bearing weight and droop.",
+              "seed": 1,
+              "status": "pass",
+              "view": "B-WHOLE"
+            },
+            {
+              "item": "owner-priority:finding-1: Most visible foliage masses rise along steep branches. The photographs show more lateral layering and hanging outer foliage, particularly in the right specimen. The candidate lacks sufficient visible leaf-bearing weight and droop.",
+              "seed": 42,
+              "status": "pass",
+              "view": "B-WHOLE"
+            },
+            {
+              "item": "owner-priority:owner-materials: Materials including bark and foliage: the owner's third priority; bark and foliage materials must read as European beech at catalogue quality against the reference photographs.",
+              "seed": 1,
+              "status": "fail",
+              "view": "B-WHOLE"
+            },
+            {
+              "item": "owner-priority:owner-materials: Materials including bark and foliage: the owner's third priority; bark and foliage materials must read as European beech at catalogue quality against the reference photographs.",
+              "seed": 1,
+              "status": "fail",
+              "view": "B-BARE"
+            },
+            {
+              "item": "owner-priority:owner-materials: Materials including bark and foliage: the owner's third priority; bark and foliage materials must read as European beech at catalogue quality against the reference photographs.",
+              "seed": 42,
+              "status": "fail",
+              "view": "B-WHOLE"
+            },
+            {
+              "item": "owner-priority:owner-materials: Materials including bark and foliage: the owner's third priority; bark and foliage materials must read as European beech at catalogue quality against the reference photographs.",
+              "seed": 42,
+              "status": "fail",
+              "view": "B-BARE"
+            }
+          ]
+        },
+        {
+          "action_ledger": "tuning:18d764657dab73dc-dc9f0-e3",
+          "dial": "bundle@1",
+          "feasible": true,
+          "reason": null,
+          "review": {
+            "breaks": [
+              "Exposed scaffold limbs form conspicuous angular elbows and loops beneath a disproportionately long, sparse leader."
+            ],
+            "dropped": [],
+            "feasible": true,
+            "improved": "The stronger leafy variants show more lateral spread, hanging outer foliage, and branch-separated crown contours.",
+            "inert": false,
+            "missing": "None combines the references’ full upper crown, irregular layered outline, and natural foliage weight; exposed leaders, angular scaffolds, or overly merged foliage still interrupt that balance.",
+            "moves": [
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_laterals",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_reach",
+                "direction": "up"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "short_shoot_spread",
+                "direction": "down"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_angle_variation",
+                "direction": "down"
+              },
+              {
+                "dial": "spacing",
+                "direction": "up"
+              },
+              {
+                "dial": "radial_segments",
+                "direction": "down"
+              }
+            ],
+            "note": null,
+            "per_priority": {
+              "finding-0": "worse",
+              "finding-1": "worse"
+            },
+            "strength": 1.0,
+            "uncalibrated": "uncalibrated contact-sheet review: a ranking and a graded comparison, never a score or a readiness claim"
+          },
+          "round": 15,
+          "score_after": 0.45834759821429455,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d764657dab73dc-dc9f0-e3",
+          "dial": "bundle@2",
+          "feasible": true,
+          "reason": null,
+          "review": {
+            "breaks": [
+              "The branching crown disappears almost entirely, leaving a bare tapered pole with a few tip leaves."
+            ],
+            "dropped": [],
+            "feasible": true,
+            "improved": "The stronger leafy variants show more lateral spread, hanging outer foliage, and branch-separated crown contours.",
+            "inert": false,
+            "missing": "None combines the references’ full upper crown, irregular layered outline, and natural foliage weight; exposed leaders, angular scaffolds, or overly merged foliage still interrupt that balance.",
+            "moves": [
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_laterals",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_reach",
+                "direction": "up"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "short_shoot_spread",
+                "direction": "down"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_angle_variation",
+                "direction": "down"
+              },
+              {
+                "dial": "spacing",
+                "direction": "up"
+              },
+              {
+                "dial": "radial_segments",
+                "direction": "down"
+              }
+            ],
+            "note": null,
+            "per_priority": {
+              "finding-0": "worse",
+              "finding-1": "worse"
+            },
+            "strength": 2.0,
+            "uncalibrated": "uncalibrated contact-sheet review: a ranking and a graded comparison, never a score or a readiness claim"
+          },
+          "round": 15,
+          "score_after": 0.6219381324983704,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d764657dab73dc-dc9f0-e3",
+          "dial": "bundle@4",
+          "feasible": true,
+          "reason": null,
+          "review": {
+            "breaks": [
+              "The branching crown disappears almost entirely, leaving a bare tapered pole with a few tip leaves."
+            ],
+            "dropped": [],
+            "feasible": true,
+            "improved": "The stronger leafy variants show more lateral spread, hanging outer foliage, and branch-separated crown contours.",
+            "inert": false,
+            "missing": "None combines the references’ full upper crown, irregular layered outline, and natural foliage weight; exposed leaders, angular scaffolds, or overly merged foliage still interrupt that balance.",
+            "moves": [
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_laterals",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_reach",
+                "direction": "up"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "short_shoot_spread",
+                "direction": "down"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_angle_variation",
+                "direction": "down"
+              },
+              {
+                "dial": "spacing",
+                "direction": "up"
+              },
+              {
+                "dial": "radial_segments",
+                "direction": "down"
+              }
+            ],
+            "note": null,
+            "per_priority": {
+              "finding-0": "worse",
+              "finding-1": "worse"
+            },
+            "strength": 4.0,
+            "uncalibrated": "uncalibrated contact-sheet review: a ranking and a graded comparison, never a score or a readiness claim"
+          },
+          "round": 15,
+          "score_after": 0.6473435664490468,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d7648294c12147-dc9f0-13d",
+          "dial": "bundle@0.5",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "down"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              }
+            ],
+            "strength": 0.5
+          },
+          "round": 16,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d7648294c12147-dc9f0-13d",
+          "dial": "bundle@1",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "down"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              }
+            ],
+            "strength": 1.0
+          },
+          "round": 16,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d7648294c12147-dc9f0-13d",
+          "dial": "bundle@2",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "down"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              }
+            ],
+            "strength": 2.0
+          },
+          "round": 16,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d7648294c12147-dc9f0-13d",
+          "dial": "bundle@4",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "down"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              }
+            ],
+            "strength": 4.0
+          },
+          "round": 16,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d764841881b779-dc9f0-17d",
+          "dial": "bundle@0.5",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "up"
+              },
+              {
+                "dial": "limbs",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              }
+            ],
+            "strength": 0.5
+          },
+          "round": 17,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d764841881b779-dc9f0-17d",
+          "dial": "bundle@1",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "up"
+              },
+              {
+                "dial": "limbs",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              }
+            ],
+            "strength": 1.0
+          },
+          "round": 17,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d764841881b779-dc9f0-17d",
+          "dial": "bundle@2",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "up"
+              },
+              {
+                "dial": "limbs",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              }
+            ],
+            "strength": 2.0
+          },
+          "round": 17,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d764841881b779-dc9f0-17d",
+          "dial": "bundle@4",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "up"
+              },
+              {
+                "dial": "limbs",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              }
+            ],
+            "strength": 4.0
+          },
+          "round": 17,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d76485b886e957-dc9f0-1bd",
+          "dial": "bundle@0.5",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "limbs",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              }
+            ],
+            "strength": 0.5
+          },
+          "round": 18,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d76485b886e957-dc9f0-1bd",
+          "dial": "bundle@1",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "limbs",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              }
+            ],
+            "strength": 1.0
+          },
+          "round": 18,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d76485b886e957-dc9f0-1bd",
+          "dial": "bundle@2",
+          "feasible": true,
+          "reason": null,
+          "review": {
+            "breaks": [
+              "The crown collapses into a small terminal tuft above an excessively long bare trunk, losing the broad, deep beech canopy."
+            ],
+            "dropped": [],
+            "feasible": true,
+            "improved": "The broader crown provides more branch-defined irregularity, lateral layering, and hanging outer foliage.",
+            "inert": false,
+            "missing": "Both retain conspicuous sparsely leafed upright shoots and exposed heavy branches; neither achieves the references’ full, naturally layered crown with foliage weight distributed throughout.",
+            "moves": [
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "limbs",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              }
+            ],
+            "note": null,
+            "per_priority": {
+              "finding-0": "worse",
+              "finding-1": "worse"
+            },
+            "strength": 2.0,
+            "uncalibrated": "uncalibrated contact-sheet review: a ranking and a graded comparison, never a score or a readiness claim"
+          },
+          "round": 18,
+          "score_after": 0.5903332078949449,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d76485b886e957-dc9f0-1bd",
+          "dial": "bundle@4",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "limbs",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              }
+            ],
+            "strength": 4.0
+          },
+          "round": 18,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d7648c455bff42-dc9f0-20b",
+          "dial": "bundle@0.5",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "up"
+              },
+              {
+                "dial": "limbs",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "up"
+              },
+              {
+                "dial": "pitch_variation",
+                "direction": "up"
+              }
+            ],
+            "strength": 0.5
+          },
+          "round": 19,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d7648c455bff42-dc9f0-20b",
+          "dial": "bundle@1",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "up"
+              },
+              {
+                "dial": "limbs",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "up"
+              },
+              {
+                "dial": "pitch_variation",
+                "direction": "up"
+              }
+            ],
+            "strength": 1.0
+          },
+          "round": 19,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d7648c455bff42-dc9f0-20b",
+          "dial": "bundle@2",
+          "feasible": true,
+          "reason": null,
+          "review": {
+            "breaks": [
+              "An extremely long exposed trunk supports a small, narrow crown, losing the references’ broad, low-reaching canopy proportions."
+            ],
+            "dropped": [],
+            "feasible": true,
+            "improved": "The broader crown shows stronger branch-defined irregularity, lateral layering, and hanging foliage beneath spreading limbs.",
+            "inert": false,
+            "missing": "Both retain conspicuous sparsely leafed spikes above the main canopy and overly exposed structural branches; neither achieves the references’ cohesive but irregular crown with softly weighted outer foliage.",
+            "moves": [
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "up"
+              },
+              {
+                "dial": "limbs",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "up"
+              },
+              {
+                "dial": "pitch_variation",
+                "direction": "up"
+              }
+            ],
+            "note": null,
+            "per_priority": {
+              "finding-0": "worse",
+              "finding-1": "worse"
+            },
+            "strength": 2.0,
+            "uncalibrated": "uncalibrated contact-sheet review: a ranking and a graded comparison, never a score or a readiness claim"
+          },
+          "round": 19,
+          "score_after": 1.438188662830992,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d7648c455bff42-dc9f0-20b",
+          "dial": "bundle@4",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "up"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "up"
+              },
+              {
+                "dial": "limbs",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "up"
+              },
+              {
+                "dial": "pitch_variation",
+                "direction": "up"
+              }
+            ],
+            "strength": 4.0
+          },
+          "round": 19,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d7649329ea32ab-dc9f0-259",
+          "dial": "bundle@0.5",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "pitch_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "limbs",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "up"
+              }
+            ],
+            "strength": 0.5
+          },
+          "round": 20,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d7649329ea32ab-dc9f0-259",
+          "dial": "bundle@1",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "pitch_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "limbs",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "up"
+              }
+            ],
+            "strength": 1.0
+          },
+          "round": 20,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d7649329ea32ab-dc9f0-259",
+          "dial": "bundle@2",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "pitch_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "limbs",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "up"
+              }
+            ],
+            "strength": 2.0
+          },
+          "round": 20,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        },
+        {
+          "action_ledger": "tuning:18d7649329ea32ab-dc9f0-259",
+          "dial": "bundle@4",
+          "feasible": false,
+          "reason": "numeric gate failed",
+          "review": {
+            "dropped": [],
+            "feasible": false,
+            "moves": [
+              {
+                "dial": "apical_dominance",
+                "direction": "down"
+              },
+              {
+                "dial": "irregularity",
+                "direction": "up"
+              },
+              {
+                "dial": "crown_base",
+                "direction": "up"
+              },
+              {
+                "dial": "shell_depth",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_spacing",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_curtain_drop",
+                "direction": "up"
+              },
+              {
+                "dial": "leader_internode",
+                "direction": "down"
+              },
+              {
+                "dial": "shoulder",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_hang",
+                "direction": "up"
+              },
+              {
+                "dial": "attractor_weight",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_sag",
+                "direction": "up"
+              },
+              {
+                "dial": "limb_clumping",
+                "direction": "down"
+              },
+              {
+                "dial": "rise_secondary",
+                "direction": "down"
+              },
+              {
+                "dial": "fullness",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_curtain_step_clearance",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_upward",
+                "direction": "down"
+              },
+              {
+                "dial": "leaf_outward",
+                "direction": "up"
+              },
+              {
+                "dial": "crookedness",
+                "direction": "down"
+              },
+              {
+                "dial": "shedding_threshold",
+                "direction": "up"
+              },
+              {
+                "dial": "spread",
+                "direction": "up"
+              },
+              {
+                "dial": "lobe_scale",
+                "direction": "down"
+              },
+              {
+                "dial": "twig_pendulous_radius",
+                "direction": "down"
+              },
+              {
+                "dial": "lateral_length_ratio",
+                "direction": "up"
+              },
+              {
+                "dial": "lateral_pitch",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_pendulous_length",
+                "direction": "up"
+              },
+              {
+                "dial": "pitch_variation",
+                "direction": "up"
+              },
+              {
+                "dial": "twig_max_droop",
+                "direction": "up"
+              },
+              {
+                "dial": "limbs",
+                "direction": "up"
+              },
+              {
+                "dial": "rise_primary",
+                "direction": "up"
+              }
+            ],
+            "strength": 4.0
+          },
+          "round": 20,
+          "score_after": null,
+          "score_before_round": 0.1571602006144391,
+          "visual_outcome": null
+        }
+      ],
+      "bootstrap": true,
+      "candidate_key": "dc5baf9b167743f666887a04540df8a1fdff7d4b8c6fe703431c630efea15f80",
+      "checkpoint_sha256": "b8c0aa671b489e9461e0a46c783223c3ab334c98798218864bd634808188f504",
+      "confidence": 0.89,
+      "dials_in_router_state": [
+        "limbs",
+        "leaves",
+        "spacing",
+        "irregularity",
+        "crookedness",
+        "taper",
+        "apical_dominance",
+        "whorl_strength",
+        "leader_internode",
+        "lateral_pitch",
+        "pitch_variation",
+        "rise_primary",
+        "rise_secondary",
+        "lateral_spacing",
+        "lateral_length_ratio",
+        "lateral_orders",
+        "attractor_weight",
+        "shedding_threshold",
+        "stems",
+        "stem_divergence",
+        "stem_lean",
+        "stem_lean_spread",
+        "stem_fork_height",
+        "connector_length",
+        "attractors",
+        "step",
+        "envelope_height",
+        "crown_base",
+        "spread",
+        "fullness",
+        "shoulder",
+        "lobe_scale",
+        "gravitropism",
+        "lean",
+        "writhe_amplitude",
+        "writhe_wavelength",
+        "max_writhe_magnitude",
+        "spiral_rate",
+        "twig_diameter",
+        "twig_length",
+        "twig_internode_length",
+        "twig_stations_per_internode",
+        "twig_bearing_diameter",
+        "twig_length_ratio",
+        "twig_ratio_power",
+        "twig_internode_factor",
+        "twig_laterals",
+        "twig_generations",
+        "twig_max_droop",
+        "twig_curtain_step_clearance",
+        "twig_limb_radius",
+        "twig_reach",
+        "twig_angle",
+        "twig_angle_variation",
+        "twig_vigour_variation",
+        "twig_divergence",
+        "twig_hang",
+        "twig_pendulous_length",
+        "twig_pendulous_radius",
+        "twig_curtain_separation",
+        "twig_sag",
+        "twig_pendulous_variation",
+        "twig_curtain_drop",
+        "twig_curtain_clearance",
+        "trunk_radius",
+        "fork_exponent",
+        "length_taper",
+        "max_taper_exponent",
+        "radial_segments",
+        "surface_lobes",
+        "surface_lobe_depth",
+        "twist_rate",
+        "flare_radius",
+        "flare_falloff",
+        "flare_depth",
+        "fork_socket",
+        "socket_containment",
+        "fork_swell",
+        "canopy_shoot_radius",
+        "foliage_spacing",
+        "foliage_divergence",
+        "tip_clump",
+        "tip_clump_span",
+        "leaf_outward",
+        "leaf_upward",
+        "leaf_forward_lean",
+        "leaf_lean_rise",
+        "leaf_surface_contact",
+        "leaf_scatter",
+        "leaf_size",
+        "leaf_size_variation",
+        "short_shoot_radius",
+        "short_shoot_length",
+        "short_shoot_spread",
+        "limb_clumping",
+        "clump_system_order",
+        "leaf_length",
+        "leaf_width",
+        "leaf_widest_at",
+        "leaf_base_fullness",
+        "leaf_tip_sharpness",
+        "leaf_cup",
+        "leaf_curl",
+        "leaf_axial_segments",
+        "leaf_cross_segments",
+        "leaf_lobe_count",
+        "leaf_lobe_depth",
+        "leaf_section_roundness",
+        "shell_depth"
+      ],
+      "dials_note": "Dial ids present in the router's state. Not evidence that any was tried.",
+      "dispatch_authorized": true,
+      "existing_spec": null,
+      "gap_id": "owner-materials",
+      "hypotheses": [],
+      "hypotheses_note": "Unproven causal hypotheses restated from the reviewer's findings, never established causes.",
+      "judgment_ledger": "tuning:18d7649565f7f58a-dc9f0-28c",
+      "observations": [
+        "The upper crown forms a nearly continuous rounded envelope, with dense lateral shoulders. Small edge projections and dark interior patches do not sufficiently break its larger-scale regularity compared with the branch-defined outlines in the photographs.",
+        "Most visible foliage masses rise along steep branches. The photographs show more lateral layering and hanging outer foliage, particularly in the right specimen. The candidate lacks sufficient visible leaf-bearing weight and droop.",
+        "Visible branches support ascending and spreading directions, but foliage conceals the subdivision network and most junctions. A match to the bare reference's characteristic branching and absence of repetitive construction remains unassessable.",
+        "The lower trunk is gray and broadly continuous, but conspicuous horizontal dark markings cannot be confidently distinguished as shallow coloration or bark relief at this scale. The reference's smooth, finely textured surface is not fully verified.",
+        "Code-derived reference-first coverage gate: core trait coverage is Fail; this is a joint readiness constraint, not a new per-view model verdict. Inventory 21b3e48de27bb2582362e3507c5a4daa822e5babde5003972e262de42b2ea43b"
+      ],
+      "observed_defect": {
+        "evidence": [
+          {
+            "id": "render-0",
+            "role": "render",
+            "seed": 1,
+            "sha256": "f22582a1c71293064bd27b4863073525065beb0c2ed345604907ebf3d5e57a8d",
+            "view": "B-WHOLE"
+          },
+          {
+            "id": "render-unassessed-1",
+            "role": "render",
+            "seed": 1,
+            "sha256": "95a89f54724a6efc3f385ca7633a0b83cec2e476d8277c01ddd6096ae9a74344",
+            "view": "B-BARE"
+          },
+          {
+            "id": "reference-0",
+            "role": "reference",
+            "seed": 1,
+            "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+            "view": "B-WHOLE"
+          },
+          {
+            "id": "reference-1",
+            "role": "reference",
+            "seed": 1,
+            "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+            "view": "B-BARE"
+          }
+        ],
+        "observation": "Materials including bark and foliage: the owner's third priority; bark and foliage materials must read as European beech at catalogue quality against the reference photographs.",
+        "reviewer_model": "gpt-6-astra",
+        "visual_ledger": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d7630182ddc5f1-d1ef7-b.json"
+      },
+      "priority": "Materials including bark and foliage: the owner's third priority; bark and foliage materials must read as European beech at catalogue quality against the reference photographs.",
+      "proposed_investigation": "An appearance issue outside these dials needs investigation.",
+      "proposed_spending": null,
+      "proposed_spending_note": "host owns repair estimate",
+      "rank": 3,
+      "raw_choice": "appearance",
+      "route": "appearance",
+      "run_identity": "a1608c5cde4fdd384f43e19facd3f0b0200c8e90d8b9dd7292e6a6f8ac18e43c",
+      "threshold": 0.5,
+      "unknowns": [
+        "Visible branches support ascending and spreading directions, but foliage conceals the subdivision network and most junctions. A match to the bare reference's characteristic branching and absence of repetitive construction remains unassessable.",
+        "The lower trunk is gray and broadly continuous, but conspicuous horizontal dark markings cannot be confidently distinguished as shallow coloration or bark relief at this scale. The reference's smooth, finely textured surface is not fully verified."
+      ]
+    }
+  ],
+  "meaning": "Evidence-backed gap handoffs for fn-89. An outstanding gap is never machine readiness, and an unauthorized handoff dispatches nothing.",
+  "unresolved_priorities": [
+    "owner-materials",
+    "finding-0"
+  ]
+}
