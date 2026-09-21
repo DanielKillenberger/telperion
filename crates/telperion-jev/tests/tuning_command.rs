@@ -1466,6 +1466,7 @@ fn image_and_evaluation_caps_extend_only_on_an_exact_scoped_decision() {
     let mut state: Run = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
     let trial = telperion_jev::tuning::evaluation::Trial {
         progress: None,
+        adopted_over: vec![],
         key: "candidate-1".into(),
         identity: state.identity.clone(),
         seed: 1,
@@ -1599,6 +1600,7 @@ fn two_consecutive_cap_only_resumes_keep_the_evidence_they_preserved() {
     let mut state: Run = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
     state.trials.push(telperion_jev::tuning::evaluation::Trial {
         progress: None,
+        adopted_over: vec![],
         key: "candidate-1".into(),
         identity: state.identity.clone(),
         seed: 1,

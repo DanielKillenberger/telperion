@@ -9,7 +9,7 @@ use telperion_jev::tuning::{
     live::Config,
     priority::Gap,
     progress::Look,
-    progress::{self, Answer, Choice, Judgment, Movement, Request},
+    progress::{self, Answer, Choice, Judgment, Movement, On, Regression, Request},
 };
 
 fn image(view: &str, seed: u32, body: &str) -> Image {
@@ -55,6 +55,7 @@ fn trial(key: &str, images: Vec<Image>) -> Trial {
         direction_mass: None,
         rule: None,
         progress: None,
+        adopted_over: vec![],
     }
 }
 
@@ -87,7 +88,7 @@ fn request(a: Image, b: Image, ids: &[&str]) -> Request {
     }
 }
 
-fn answer(pairs: &[(&str, Choice)], regressions: Vec<String>) -> Answer {
+fn answer(pairs: &[(&str, Choice)], regressions: Vec<Regression>) -> Answer {
     Answer {
         verdicts: pairs
             .iter()
@@ -186,14 +187,20 @@ fn an_answer_binds_only_when_it_covers_exactly_what_was_asked() {
     assert!(progress::bind(&request, &wordless, "a", "r".into(), "m".into()).is_err());
 }
 
-fn verdict(pairs: &[(&str, Choice)], regressions: &[&str]) -> progress::Verdict {
+fn verdict(pairs: &[(&str, Choice)], regressions: &[(&str, &str)]) -> progress::Verdict {
     let ids: Vec<&str> = pairs.iter().map(|(id, _)| *id).collect();
     let request = request(image("whole", 1, "a"), image("whole", 1, "b"), &ids);
     progress::bind(
         &request,
         &answer(
             pairs,
-            regressions.iter().map(|s| (*s).to_string()).collect(),
+            regressions
+                .iter()
+                .map(|(render, text)| Regression {
+                    render: (*render).into(),
+                    text: (*text).into(),
+                })
+                .collect(),
         ),
         "a",
         "receipt".into(),
@@ -209,11 +216,23 @@ fn a_candidate_is_adopted_only_when_it_helped_somewhere_and_hurt_nowhere() {
     let mixed = verdict(&[("g0", Choice::ABetter), ("g1", Choice::BBetter)], &[]);
     let all_same = verdict(&[("g0", Choice::Same), ("g1", Choice::Same)], &[]);
     let unknown = verdict(&[("g0", Choice::Unknown), ("g1", Choice::Unknown)], &[]);
+    // The candidate is on side a in these verdicts, so a note about b is a
+    // note about the current tree.
     let breaks = verdict(
         &[("g0", Choice::ABetter), ("g1", Choice::Same)],
-        &["B loses the clear bole"],
+        &[("a", "the crown loses its clear bole")],
+    );
+    let faults_current = verdict(
+        &[("g0", Choice::ABetter), ("g1", Choice::ABetter)],
+        &[("b", "the current tree's limbs cross")],
     );
     assert!(better.adoptable() && two_better.adoptable());
+    assert!(
+        faults_current.adoptable(),
+        "a note about the current tree is a reason the candidate is better"
+    );
+    assert_eq!(faults_current.regressions[0].on, On::Current);
+    assert_eq!(breaks.regressions[0].on, On::Candidate);
     for refused in [&mixed, &all_same, &unknown, &breaks] {
         assert!(!refused.adoptable(), "{refused:?}");
     }
@@ -392,4 +411,70 @@ fn the_request_uses_a_still_both_trials_already_hold() {
     )
     .unwrap_err()
     .contains("no tuning-routed priority"));
+}
+
+#[test]
+fn a_regression_note_refuses_the_candidate_only_when_it_is_about_the_candidate() {
+    let request = request(
+        image("whole", 1, "a-side"),
+        image("whole", 1, "b-side"),
+        &["finding-0", "finding-1"],
+    );
+    let both_better = &[
+        ("finding-0", Choice::ABetter),
+        ("finding-1", Choice::ABetter),
+    ];
+    // The live case: better on both, and the only note faults the other render.
+    let about_current = Answer {
+        regressions: vec![Regression {
+            render: "b".into(),
+            text: "the crown in b is flat on one side".into(),
+        }],
+        ..answer(both_better, vec![])
+    };
+    let kept = progress::bind(&request, &about_current, "a", "r".into(), "m".into()).unwrap();
+    assert_eq!(kept.regressions[0].on, On::Current);
+    assert!(
+        kept.adoptable() && !kept.breaks_something(),
+        "a note about the current tree refused the candidate"
+    );
+    // Read from the other side, the same words are about the candidate.
+    let mirrored = progress::bind(&request, &about_current, "b", "r".into(), "m".into()).unwrap();
+    assert_eq!(mirrored.regressions[0].on, On::Candidate);
+    assert!(!mirrored.adoptable() && mirrored.breaks_something());
+
+    let unnamed = Answer {
+        regressions: vec![Regression {
+            render: "neither".into(),
+            text: "something".into(),
+        }],
+        ..answer(both_better, vec![])
+    };
+    assert!(
+        progress::bind(&request, &unnamed, "a", "r".into(), "m".into())
+            .unwrap_err()
+            .contains("names no render")
+    );
+
+    // A record written before the sides were attributed still refuses.
+    let mut stored = serde_json::to_value(&kept).unwrap();
+    stored["regressions"] = json!(["the crown is flat on one side"]);
+    let legacy: progress::Verdict = serde_json::from_value(stored).unwrap();
+    assert_eq!(legacy.regressions[0].on, On::Unknown);
+    assert!(!legacy.adoptable() && legacy.breaks_something());
+
+    // The schema the reviewer answers in is the one the version names, and
+    // neither it nor the prompt says which render is the candidate.
+    assert_eq!(progress::VERSION, "tuning-progress-v2");
+    assert!(progress::PROMPT.contains("which render has the problem"));
+    for word in ["candidate", "current tree"] {
+        assert!(
+            !progress::PROMPT.to_lowercase().contains(word),
+            "the prompt says {word}"
+        );
+    }
+    assert!(
+        progress::PROMPT.contains("nothing here says which"),
+        "the prompt must say that neither label means anything"
+    );
 }

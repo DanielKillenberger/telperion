@@ -27,7 +27,7 @@ def prepare(envelope):
     request = envelope["request"]
     if set(request) != {"schema", "target_species", "view", "seed", "references", "a", "b", "priorities", "owner_notes"}:
         raise ValueError("progress allowlist violation")
-    if request["schema"] != "tuning-progress-v1":
+    if request["schema"] != "tuning-progress-v2":
         raise ValueError("unknown progress schema")
     ids = [p["id"] for p in request["priorities"]]
     if not ids or len(ids) != len(set(ids)):
@@ -48,7 +48,9 @@ def prepare(envelope):
         "verdicts": {"type": "array", "minItems": len(ids), "maxItems": len(ids),
                      "items": object_schema({"priority_id": {"type": "string", "enum": ids},
                                              "verdict": {"type": "string", "enum": ["a_better", "b_better", "same", "unknown"]}})},
-        "improved": {"type": "string"}, "missing": {"type": "string"}, "regressions": strings()})
+        "improved": {"type": "string"}, "missing": {"type": "string"},
+        "regressions": {"type": "array", "items": object_schema({
+            "render": {"type": "string", "enum": ["a", "b"]}, "text": {"type": "string"}})}})
     prompt = (envelope["prompt"]
               + "\nDo not use tools or inspect files. Attached images follow metadata order: the reference photographs, then render A, then render B. Return JSON only.\n"
               + json.dumps(request)

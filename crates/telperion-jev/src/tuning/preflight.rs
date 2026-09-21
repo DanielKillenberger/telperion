@@ -39,6 +39,7 @@ fn step(label: &str, evaluations: u64, images: u64, tokens: u64, visual: u64) ->
 fn placeholder(config: &Config, identity: &str) -> Trial {
     Trial {
         progress: None,
+        adopted_over: vec![],
         key: String::new(),
         identity: identity.into(),
         seed: config.seed,

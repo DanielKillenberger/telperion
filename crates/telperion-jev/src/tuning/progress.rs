@@ -9,8 +9,10 @@
 //! records the assignment, and maps the answer back.
 mod adapter;
 mod request;
+mod verdict;
 pub use adapter::dispatch;
 pub use request::{candidate_side, inert, request, Look};
+pub use verdict::{bind, Answer, Choice, Judgment, Movement, Note, On, Regression, Verdict};
 
 use super::{
     engine::{Run, Services},
@@ -21,14 +23,14 @@ use super::{
 use crate::sha256_hex;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use std::{collections::BTreeMap, path::PathBuf};
+use std::path::PathBuf;
 
-pub const VERSION: &str = "tuning-progress-v1";
+pub const VERSION: &str = "tuning-progress-v2";
 /// The label this question carries wherever it is recorded.
 pub const UNCALIBRATED: &str =
     "uncalibrated progress review: a comparative verdict, never a score or a readiness claim";
 pub const PENDING: &str = "progress review";
-pub const PROMPT: &str = "You are shown reference photographs of a tree species, then two renders, A and B, of the same generated tree at the same view and seed. One or the other may be the newer attempt; nothing here says which, and neither is a photograph.\n\nFor each listed priority, say which render better satisfies it relative to the references: a_better, b_better, same when neither is closer, or unknown when this view cannot show it. Judge only what the images show.\n\nThen say in one or two sentences what differs for the better between them, what is still missing in both against the references, and list anything one render breaks that the other does not, naming A or B.\n\nGive no numbers, no scores and no overall winner.";
+pub const PROMPT: &str = "You are shown reference photographs of a tree species, then two renders, A and B, of the same generated tree at the same view and seed. One or the other may be the newer attempt; nothing here says which, and neither is a photograph.\n\nFor each listed priority, say which render better satisfies it relative to the references: a_better, b_better, same when neither is closer, or unknown when this view cannot show it. Judge only what the images show.\n\nThen say in one or two sentences what differs for the better between them, what is still missing in both against the references, and list anything one render breaks that the other does not; for each, say which render has the problem.\n\nGive no numbers, no scores and no overall winner.";
 
 /// How a candidate is chosen against the tree it came from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -104,79 +106,6 @@ impl Request {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum Choice {
-    ABetter,
-    BBetter,
-    Same,
-    Unknown,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Judgment {
-    pub priority_id: String,
-    pub verdict: Choice,
-}
-
-/// What the reviewer answers, in its own terms.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Answer {
-    pub verdicts: Vec<Judgment>,
-    pub improved: String,
-    pub missing: String,
-    pub regressions: Vec<String>,
-}
-
-/// The same answer, read as what the candidate did.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum Movement {
-    Better,
-    Same,
-    Worse,
-    Unknown,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Verdict {
-    pub per_priority: BTreeMap<String, Movement>,
-    pub improved: String,
-    pub missing: String,
-    pub regressions: Vec<String>,
-    pub ledger: String,
-    pub model: String,
-    /// Which side the candidate was shown as, so the mapping is auditable.
-    pub candidate_is: String,
-    pub uncalibrated: String,
-    /// True when code settled this attempt without asking anyone, because the
-    /// candidate's render is the current tree's render byte for byte.
-    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
-    pub inert: bool,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub note: Option<String>,
-}
-
-impl Verdict {
-    pub fn better(&self) -> usize {
-        self.count(Movement::Better)
-    }
-    pub fn worse(&self) -> usize {
-        self.count(Movement::Worse)
-    }
-    fn count(&self, m: Movement) -> usize {
-        self.per_priority.values().filter(|v| **v == m).count()
-    }
-    /// A candidate is adopted when the reviewer saw it do some good, saw it do
-    /// no harm, and named nothing it breaks.
-    pub fn adoptable(&self) -> bool {
-        !self.inert && self.better() > 0 && self.worse() == 0 && self.regressions.is_empty()
-    }
-}
-
 /// The approved priorities the router last sent to tuning. A priority routed
 /// elsewhere is fn-89's, and an unrouted one has no verdict to give yet.
 pub fn tuning_priorities(state: &Run) -> Vec<Gap> {
@@ -198,60 +127,6 @@ pub fn tuning_priorities(state: &Run) -> Vec<Gap> {
         .collect()
 }
 
-/// Strict: every requested priority answered exactly once and nothing else.
-/// An answer that does not bind is a failed attempt, not a dropped row.
-pub fn bind(
-    request: &Request,
-    answer: &Answer,
-    candidate_is: &str,
-    ledger: String,
-    model: String,
-) -> Result<Verdict, String> {
-    let mut per_priority = BTreeMap::new();
-    for judgment in &answer.verdicts {
-        if !request
-            .priorities
-            .iter()
-            .any(|p| p.id == judgment.priority_id)
-        {
-            return Err(format!(
-                "progress verdict for an unrequested priority {}",
-                judgment.priority_id
-            ));
-        }
-        let movement = match (judgment.verdict, candidate_is) {
-            (Choice::Same, _) => Movement::Same,
-            (Choice::Unknown, _) => Movement::Unknown,
-            (Choice::ABetter, "a") | (Choice::BBetter, "b") => Movement::Better,
-            _ => Movement::Worse,
-        };
-        if per_priority
-            .insert(judgment.priority_id.clone(), movement)
-            .is_some()
-        {
-            return Err(format!("progress verdict repeats {}", judgment.priority_id));
-        }
-    }
-    if per_priority.len() != request.priorities.len() {
-        return Err("progress answer does not cover every priority".into());
-    }
-    if answer.improved.trim().is_empty() || answer.missing.trim().is_empty() {
-        return Err("progress answer lacks what improved or what is missing".into());
-    }
-    Ok(Verdict {
-        per_priority,
-        improved: answer.improved.clone(),
-        missing: answer.missing.clone(),
-        regressions: answer.regressions.clone(),
-        ledger,
-        model,
-        candidate_is: candidate_is.into(),
-        uncalibrated: UNCALIBRATED.into(),
-        inert: false,
-        note: None,
-    })
-}
-
 /// Which reviewed candidate the round adopts: the one judged better on most
 /// priorities, among those judged better somewhere, worse nowhere and breaking
 /// nothing. Ties keep the order the proposals arrived in, which is their
@@ -270,7 +145,7 @@ pub fn adopt(reviewed: &[(usize, Value)], trials: &[Trial]) -> Option<usize> {
 /// Which candidate the round adopts and what it makes effective. Score mode
 /// is the comparison the engine already made; visual mode asks the verdicts.
 pub(super) fn chosen(
-    state: &Run,
+    state: &mut Run,
     selection: Selection,
     score: (usize, usize, Value),
     reviewed: Vec<(usize, Value)>,
@@ -280,6 +155,19 @@ pub(super) fn chosen(
         return (best != old).then_some((best, best_effective));
     }
     let index = adopt(&reviewed, &state.trials)?;
+    // Owner-facing only: what else this round could have kept.
+    let others = reviewed
+        .iter()
+        .filter(|(i, _)| {
+            *i != index
+                && state.trials[*i]
+                    .progress
+                    .as_ref()
+                    .is_some_and(Verdict::adoptable)
+        })
+        .map(|(i, _)| state.trials[*i].key.clone())
+        .collect::<Vec<_>>();
+    state.trials[index].adopted_over = others;
     reviewed.into_iter().find(|(i, _)| *i == index)
 }
 

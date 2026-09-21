@@ -84,6 +84,10 @@ pub struct Trial {
     /// came from. Present only under visual selection.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub progress: Option<super::progress::Verdict>,
+    /// Owner-facing telemetry: the other candidates of this round the reviewer
+    /// also judged adoptable, when this one was the move that was kept.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub adopted_over: Vec<String>,
 }
 
 fn completed(receipt: &str) -> Result<Value, String> {
@@ -142,6 +146,7 @@ pub fn evaluate(
     let key = sha256_hex(format!("{identity}:{seed}:{}", overrides).as_bytes());
     let mut trial = Trial {
         progress: None,
+        adopted_over: vec![],
         key,
         identity: identity.into(),
         seed,

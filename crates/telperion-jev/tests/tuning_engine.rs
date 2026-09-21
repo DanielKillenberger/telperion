@@ -231,6 +231,7 @@ impl Services for Mock {
         self.evaluations += 1;
         Trial {
             progress: None,
+            adopted_over: vec![],
             key: format!("candidate{}", self.evaluations),
             identity: "input1".into(),
             seed: 1,
@@ -1985,4 +1986,31 @@ fn the_proposal_state_says_which_attempt_did_nothing_at_all() {
     let summary =
         serde_json::to_string(&telperion_jev::tuning::judgments::summary(&state)).unwrap();
     assert!(summary.contains("\"inert\":true"));
+}
+
+#[test]
+fn a_round_with_two_adoptable_moves_records_the_one_it_did_not_keep() {
+    let (mut state, mut mock) = reviewed_three(
+        vec![false, false, false],
+        vec![
+            vec![Choice::Same],
+            vec![Choice::ABetter],
+            vec![Choice::ABetter],
+        ],
+    );
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_one(&mut state, &mock);
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    let adopted = &state.trials[state.current.unwrap()];
+    assert_eq!(adopted.label, "irregularity", "the earlier tie wins");
+    assert_eq!(
+        adopted.adopted_over.len(),
+        1,
+        "the other eligible move is not recorded: {:?}",
+        adopted.adopted_over
+    );
+    assert!(state
+        .trials
+        .iter()
+        .any(|t| t.label == "rise_secondary" && t.key == adopted.adopted_over[0]));
 }
