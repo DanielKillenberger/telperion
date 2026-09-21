@@ -30,3 +30,5 @@ Reviewer spend for this run: 12 calls, 333,755 tokens (three all-view reviews an
 Shown the reference, the baseline, the adopted tree (pitch_variation 11) and the wrongly refused `rise_secondary small_decrease`. Verbatim: "the rejected one is way better i barely see a difference with the adopted one? but they're still quite far away."
 
 So the owner agrees with the reviewer's better/better verdict on `rise_secondary` and confirms the rule defect cost the best candidate of the run; the adopted move is real to the reviewer but barely perceptible to the owner; and single small steps are small against the remaining distance.
+
+Owner's revision a few minutes later, verbatim: "well it's way better but not good enough", then "i wouldn't say it's way better actually it's slightly better.." The recorded owner verdict on `rise_secondary small_decrease` is therefore: slightly better than the baseline, not good enough. The reviewer's better/better is directionally right; its "better" carries no magnitude, and the owner's sees a small step where the reviewer sees a clear one.

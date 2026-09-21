@@ -1,4 +1,4 @@
-# Progress review protocol, 2026-09-21
+# Progress review protocol, 2026-09-21 (v2)
 
 An uncalibrated comparative question. No replay qualifies it, so a run may ask
 it only under the scoped experimental authority, every record of it carries the
@@ -22,16 +22,19 @@ on the trial as `candidate_is`, and maps the answer back.
 Per priority: `a_better`, `b_better`, `same`, or `unknown` when the view cannot
 show it. Then one or two sentences on what differs for the better, what is
 still missing in both against the references, and a list of anything one render
-breaks that the other does not, naming A or B. No numbers, no scores, no
-overall winner.
+breaks that the other does not, each naming the render that has the problem.
+No numbers, no scores, no overall winner.
 
 ## What code does with it
 
 Every requested priority must be answered exactly once and nothing else may
 appear; an answer that does not bind is a failed attempt, recoverable only by a
-scoped decision, never a dropped row. A candidate is adopted when the reviewer
-judged it better on at least one priority, worse on none, and named nothing it
-breaks. Among eligible candidates the most `better` wins, ties keeping the
+scoped decision, never a dropped row. Code maps each regression note to the tree it is
+about, by the side it recorded. A candidate is adopted when the reviewer judged
+it better on at least one priority, worse on none, and named nothing the
+candidate breaks; a note about the current tree is a reason the candidate is
+better and never refuses it, and a note from before the sides were attributed
+still refuses. Among eligible candidates the most `better` wins, ties keeping the
 order the proposals arrived in, which is their direction-mass order. A round
 with nothing eligible is a visual stall, and the reviewer's words go to the
 next proposal and the next routing call.
