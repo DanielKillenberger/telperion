@@ -9,9 +9,11 @@ mod isolate;
 mod round;
 mod track;
 mod words;
+mod worse;
 pub(in crate::tuning) use round::round;
 pub use track::{verify as verify_tracks, Track};
 pub(in crate::tuning) use words::words;
+pub use worse::{excluded_families, part_family, EXCLUDED};
 
 use super::{
     actions::{Action, Dial},
@@ -254,6 +256,63 @@ pub fn split(moves: &[Move], dials: &[Dial]) -> (Vec<Move>, Vec<Move>) {
         a.into_iter().map(|(_, m)| m).collect(),
         b.into_iter().map(|(_, m)| m).collect(),
     )
+}
+
+/// Which sub-family a dial row belongs to: below `/skeleton` the second path
+/// segment, so envelope, habit, twigs, bias and growth are told apart; every
+/// other group is its own first segment.
+pub fn family(path: &str) -> String {
+    let mut segments = path.split('/').filter(|s| !s.is_empty());
+    let first = segments.next().unwrap_or_default();
+    if first == "skeleton" {
+        if let Some(second) = segments.next() {
+            return second.to_string();
+        }
+    }
+    first.to_string()
+}
+
+/// Two merged families, named together and each name kept once.
+fn merged(a: &str, b: &str) -> String {
+    let mut names = a.split('+').chain(b.split('+')).collect::<Vec<_>>();
+    names.sort_unstable();
+    names.dedup();
+    names.join("+")
+}
+
+/// The bundle cut into at most four parts by dial sub-family, the smallest
+/// families merged into each other until four remain. Deterministic: the
+/// smallest by move count goes first, ties by name.
+pub fn families(moves: &[Move], dials: &[Dial]) -> Vec<(String, Vec<Move>)> {
+    let mut parts: Vec<(String, Vec<Move>)> = vec![];
+    for m in moves {
+        let name = dials
+            .iter()
+            .find(|d| d.id == m.dial)
+            .map_or_else(String::new, |d| family(&d.path));
+        match parts.iter_mut().find(|(n, _)| n == &name) {
+            Some((_, rows)) => rows.push(m.clone()),
+            None => parts.push((name, vec![m.clone()])),
+        }
+    }
+    while parts.len() > 4 {
+        parts.sort_by(|a, b| a.1.len().cmp(&b.1.len()).then(a.0.cmp(&b.0)));
+        let (name, rows) = parts.remove(0);
+        parts[0].0 = merged(&parts[0].0, &name);
+        parts[0].1.extend(rows);
+    }
+    parts.sort_by(|a, b| a.0.cmp(&b.0));
+    parts
+}
+
+/// A part of a parent bundle, at the parent's own strength.
+pub(super) fn part(moves: &[Move], strength: f64, base: &str, track: &str) -> Bundle {
+    Bundle {
+        strength,
+        id: id(moves, strength, base, track),
+        moves: moves.to_vec(),
+        dropped: vec![],
+    }
 }
 
 /// The wire patch for a subset of a bundle's moves.

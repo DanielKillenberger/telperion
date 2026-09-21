@@ -253,6 +253,86 @@ fn a_split_cuts_by_the_table_s_groups_and_falls_back_to_the_order_jev_gave() {
     assert_eq!(a[0].dial, "twig_hang");
 }
 
+#[test]
+fn a_skeleton_row_takes_its_second_path_segment_as_its_family() {
+    for (path, want) in [
+        ("/skeleton/envelope/taper", "envelope"),
+        ("/skeleton/habit/riseSecondary", "habit"),
+        ("/skeleton/twigs/hang", "twigs"),
+        ("/skeleton/bias/strength", "bias"),
+        ("/skeleton/growth/maxNodes", "growth"),
+        ("/material/bark/plates", "material"),
+        ("/canopy/size", "canopy"),
+        ("/shellDepth", "shellDepth"),
+    ] {
+        assert_eq!(bundle::family(path), want, "{path}");
+    }
+}
+
+#[test]
+fn a_worse_bundle_cuts_into_at_most_four_parts_with_the_smallest_merged() {
+    let rows = [
+        ("a1", "/skeleton/twigs/hang"),
+        ("a2", "/skeleton/twigs/sag"),
+        ("a3", "/skeleton/twigs/drop"),
+        ("b1", "/skeleton/habit/riseSecondary"),
+        ("b2", "/skeleton/habit/crookedness"),
+        ("c1", "/skeleton/envelope/taper"),
+        ("d1", "/canopy/size"),
+        ("e1", "/material/bark/plates"),
+        ("f1", "/surface/gloss"),
+    ];
+    let dials = rows
+        .iter()
+        .map(|(id, path)| dial(id, path, 0., 3., 0.1, false))
+        .collect::<Vec<_>>();
+    let moves = rows
+        .iter()
+        .map(|(id, _)| bundle::Move {
+            dial: (*id).into(),
+            direction: "up".into(),
+            from: 0.,
+            to: 1.,
+        })
+        .collect::<Vec<_>>();
+
+    let parts = bundle::families(&moves, &dials);
+    assert_eq!(parts.len(), 4, "{parts:?}");
+    assert_eq!(
+        parts.iter().map(|(_, m)| m.len()).sum::<usize>(),
+        moves.len(),
+        "the parts together are the bundle"
+    );
+    let names = parts.iter().map(|(n, _)| n.clone()).collect::<Vec<_>>();
+    assert_eq!(
+        names,
+        vec!["canopy+envelope", "habit", "material+surface", "twigs"],
+        "the smallest families merge, by move count then name"
+    );
+    // Deterministic: the same bundle cuts the same way every time.
+    assert_eq!(bundle::families(&moves, &dials), parts);
+    // Four or fewer families are already the parts.
+    let three = moves[..6].to_vec();
+    assert_eq!(
+        bundle::families(&three, &dials)
+            .iter()
+            .map(|(n, _)| n.clone())
+            .collect::<Vec<_>>(),
+        vec!["envelope", "habit", "twigs"]
+    );
+}
+
+#[test]
+fn an_isolated_part_is_read_back_off_its_own_label() {
+    assert_eq!(bundle::part_family("bundle@0.5/twigs"), Some("twigs"));
+    assert_eq!(
+        bundle::part_family("bundle@1/canopy+envelope"),
+        Some("canopy+envelope")
+    );
+    assert_eq!(bundle::part_family("bundle@1"), None);
+    assert_eq!(bundle::part_family("twig_hang"), None);
+}
+
 // --- the contact sheet ---
 
 fn still(view: &str, body: &str) -> Image {

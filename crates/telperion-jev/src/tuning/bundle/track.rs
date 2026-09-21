@@ -5,7 +5,10 @@
 //! now, so they come back - but on a sheet of their own at the close trunk
 //! view, because a bark change and a branching change on one whole-tree still
 //! cannot be told apart.
-use crate::tuning::actions::Dial;
+use crate::tuning::{
+    actions::Dial,
+    engine::{Run, Services},
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -70,6 +73,45 @@ pub fn assign(tracks: &[Track], dials: &[Dial], wanted: &[(String, i8)]) -> Vec<
         out[owner(tracks, dials, id)].push((id.clone(), *sign));
     }
     out
+}
+
+/// A track judged at a view the evaluation does not render needs that view
+/// captured, for each variant and once for the tree they are compared with.
+pub(super) fn ensure_views(
+    state: &mut Run,
+    services: &mut dyn Services,
+    save: &mut dyn FnMut(&Run) -> Result<(), String>,
+    trial: usize,
+    views: &[String],
+) -> Result<(), String> {
+    let seed = state.seed;
+    let held = |t: &crate::tuning::evaluation::Trial, view: &String| {
+        t.comparisons
+            .iter()
+            .flat_map(|c| c.images.iter())
+            .any(|i| &i.view == view && i.seed == seed)
+    };
+    let missing = views
+        .iter()
+        .filter(|view| !held(&state.trials[trial], view))
+        .cloned()
+        .collect::<Vec<_>>();
+    if missing.is_empty() {
+        return Ok(());
+    }
+    state.reserve(
+        0,
+        services.capture_images(&missing),
+        0,
+        0,
+        "extra view capture",
+        save,
+    )?;
+    let drawn = state.trials[trial].clone();
+    let more = services.capture_views(&drawn, &missing)?;
+    state.trials[trial].comparisons.extend(more);
+    state.pending = None;
+    save(state)
 }
 
 /// Names are unique and present, and a fixed view is one the run assesses.

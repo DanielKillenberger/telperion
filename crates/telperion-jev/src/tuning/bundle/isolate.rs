@@ -7,8 +7,8 @@
 //! breaks something. It stops at a single dial, at the split budget, or when
 //! there is no reservation left to draw with.
 use super::{
-    overlay_of,
-    round::{evaluate, half, note_failure, note_unshown, read_back, Variant},
+    overlay_of, part,
+    round::{evaluate, note_failure, note_unshown, read_back, Variant},
     split,
 };
 use crate::tuning::{
@@ -49,13 +49,13 @@ pub(super) fn isolate(
         let (a, b) = split(&bundle.moves, &state.dials);
         let mut halves = vec![];
         let mut stopped = false;
-        for (part, moves) in [("a", a), ("b", b)] {
+        for (side, moves) in [("a", a), ("b", b)] {
             if moves.is_empty() {
                 continue;
             }
             let overlay = overlay_of(&moves, &state.dials);
-            let drawn = half(&moves, parent.1, base, track);
-            let label = format!("bundle@{} half {part}", parent.1);
+            let drawn = part(&moves, parent.1, base, track);
+            let label = format!("bundle@{} half {side}", parent.1);
             match evaluate(
                 state,
                 services,

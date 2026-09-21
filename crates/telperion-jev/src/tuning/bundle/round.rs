@@ -5,7 +5,10 @@
 //! breaks something, the bundle is halved until the breaking dials are
 //! isolated. Single steps on single dials could not reach a look that needs
 //! several rows at once, which is why the round moves them together.
-use super::{build, directions, id, isolate::isolate, merge, track, track::Track, Bundle};
+use super::{
+    build, directions, isolate::isolate, merge, track, track::ensure_views, track::Track, worse,
+    Bundle,
+};
 use crate::tuning::{
     engine::{Proposal, Run, Services},
     progress,
@@ -173,47 +176,8 @@ enum Turn {
     NothingDrawn,
 }
 
-/// A track judged at a view the evaluation does not render needs that view
-/// captured, for each variant and once for the tree they are compared with.
-fn ensure_views(
-    state: &mut Run,
-    services: &mut dyn Services,
-    save: &mut dyn FnMut(&Run) -> Result<(), String>,
-    trial: usize,
-    views: &[String],
-) -> Result<(), String> {
-    let seed = state.seed;
-    let held = |t: &crate::tuning::evaluation::Trial, view: &String| {
-        t.comparisons
-            .iter()
-            .flat_map(|c| c.images.iter())
-            .any(|i| &i.view == view && i.seed == seed)
-    };
-    let missing = views
-        .iter()
-        .filter(|view| !held(&state.trials[trial], view))
-        .cloned()
-        .collect::<Vec<_>>();
-    if missing.is_empty() {
-        return Ok(());
-    }
-    state.reserve(
-        0,
-        services.capture_images(&missing),
-        0,
-        0,
-        "extra view capture",
-        save,
-    )?;
-    let drawn = state.trials[trial].clone();
-    let more = services.capture_views(&drawn, &missing)?;
-    state.trials[trial].comparisons.extend(more);
-    state.pending = None;
-    save(state)
-}
-
 /// What a track's stall is called. The implicit track has no name to give.
-fn note(track: &Track, text: String) -> String {
+pub(super) fn note(track: &Track, text: String) -> String {
     if track.name.is_empty() {
         text
     } else {
@@ -237,6 +201,13 @@ fn one_track(
     if strengths.is_empty() {
         return Err("no bundle strength configured".into());
     }
+    // A family an isolated part already lost on this tree is left out, so the
+    // next bundle is a different bundle rather than the same one again.
+    let Some(wanted) = worse::eligible(state, &base, track, wanted) else {
+        save(state)?;
+        return Ok(Turn::AllTried);
+    };
+    let wanted = &wanted[..];
     let mut planned = vec![];
     let mut refused = 0;
     for strength in &strengths {
@@ -322,24 +293,32 @@ fn one_track(
             },
         );
     }
-    let Some(start) = sheet::to_split(&verdict, &shown) else {
-        state
-            .routes
-            .push(note(track, progress::stall(services.selection())));
-        save(state)?;
-        return Ok(Turn::Stalled);
+    // Better but breaking is halved until the breaking dials are isolated;
+    // worse everywhere is cut once by family, to learn which part was good.
+    let clean = match sheet::to_split(&verdict, &shown) {
+        Some(start) => isolate(
+            state,
+            services,
+            save,
+            old,
+            &base,
+            &track.name,
+            ledger,
+            &mut variants,
+            start,
+        )?,
+        None => worse::split(
+            state,
+            services,
+            save,
+            old,
+            &base,
+            track,
+            ledger,
+            &mut variants,
+            &shown,
+        )?,
     };
-    let clean = isolate(
-        state,
-        services,
-        save,
-        old,
-        &base,
-        &track.name,
-        ledger,
-        &mut variants,
-        start,
-    )?;
     let Some(key) = clean else {
         state
             .routes
@@ -395,14 +374,4 @@ pub(in crate::tuning) fn round(
         return Err("no bundle this round could draw; bounded diagnosis required".into());
     }
     Ok(outcomes.contains(&Turn::Kept))
-}
-
-/// A half of a parent bundle, at the parent's own strength.
-pub(super) fn half(moves: &[super::Move], strength: f64, base: &str, track: &str) -> Bundle {
-    Bundle {
-        strength,
-        id: id(moves, strength, base, track),
-        moves: moves.to_vec(),
-        dropped: vec![],
-    }
 }
