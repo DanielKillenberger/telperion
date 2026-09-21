@@ -1,0 +1,86 @@
+{
+  "bootstrap": true,
+  "handoffs": [
+    {
+      "attempts": [],
+      "bootstrap": true,
+      "candidate_key": "ae52a3e4b0e9f82cd183353573cea99ab2f74506d35eb08da4710b8170b3e968",
+      "checkpoint_sha256": "5ebd72bcbc4d107be299492fb5ed786fcb6deb0c258440bee0f1bebcd7e71305",
+      "confidence": 0.78,
+      "dials_in_router_state": [
+        "limbs",
+        "leaves",
+        "spacing",
+        "irregularity",
+        "crookedness",
+        "taper"
+      ],
+      "dials_note": "Dial ids present in the router's state. Not evidence that any was tried.",
+      "dispatch_authorized": true,
+      "existing_spec": null,
+      "gap_id": "owner-materials",
+      "hypotheses": [],
+      "hypotheses_note": "Unproven causal hypotheses restated from the reviewer's findings, never established causes.",
+      "judgment_ledger": "tuning:18d74d4c6f48f881-30156-9",
+      "observations": [
+        "Despite local edge breaks and dark recesses, the upper crown reads as a continuous rounded envelope with solid shoulders. Reference-0 shows more distinctly articulated lateral foliage masses and uneven crown contours.",
+        "Prominent foliage-bearing sprays sweep upward, with little hanging or downward-weighted foliage at their ends. Reference-0, particularly its right photograph, shows conspicuous sagging outer foliage masses.",
+        "Visible major branches ascend and spread, but foliage prevents assessing the complete subdivision pattern, repetitive construction, and concealed junctions against the bare photograph.",
+        "Code-derived reference-first coverage gate: core trait coverage is Fail; this is a joint readiness constraint, not a new per-view model verdict. Inventory 21b3e48de27bb2582362e3507c5a4daa822e5babde5003972e262de42b2ea43b"
+      ],
+      "observed_defect": {
+        "evidence": [
+          {
+            "id": "render-0",
+            "role": "render",
+            "seed": 1,
+            "sha256": "f22582a1c71293064bd27b4863073525065beb0c2ed345604907ebf3d5e57a8d",
+            "view": "B-WHOLE"
+          },
+          {
+            "id": "render-unassessed-1",
+            "role": "render",
+            "seed": 1,
+            "sha256": "95a89f54724a6efc3f385ca7633a0b83cec2e476d8277c01ddd6096ae9a74344",
+            "view": "B-BARE"
+          },
+          {
+            "id": "reference-0",
+            "role": "reference",
+            "seed": 1,
+            "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+            "view": "B-WHOLE"
+          },
+          {
+            "id": "reference-1",
+            "role": "reference",
+            "seed": 1,
+            "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+            "view": "B-BARE"
+          }
+        ],
+        "observation": "Materials including bark and foliage: the owner's third priority; bark and foliage materials must read as European beech at catalogue quality against the reference photographs.",
+        "reviewer_model": "gpt-6-astra",
+        "visual_ledger": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d74c7a856b6069-29e17-b.json"
+      },
+      "priority": "Materials including bark and foliage: the owner's third priority; bark and foliage materials must read as European beech at catalogue quality against the reference photographs.",
+      "proposed_investigation": "An appearance issue outside these dials needs investigation.",
+      "proposed_spending": null,
+      "proposed_spending_note": "host owns repair estimate",
+      "rank": 3,
+      "raw_choice": "appearance",
+      "route": "appearance",
+      "run_identity": "98c501f983c56292ea9d757dd25d118d5c3f114b16c35f417f5e2fd9e9a672c4",
+      "threshold": 0.5,
+      "unknowns": [
+        "Visible major branches ascend and spread, but foliage prevents assessing the complete subdivision pattern, repetitive construction, and concealed junctions against the bare photograph."
+      ]
+    }
+  ],
+  "meaning": "Evidence-backed gap handoffs for fn-89. An outstanding gap is never machine readiness, and an unauthorized handoff dispatches nothing.",
+  "unresolved_priorities": [
+    "owner-materials",
+    "finding-0",
+    "finding-1"
+  ]
+}
