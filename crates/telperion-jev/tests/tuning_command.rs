@@ -15,6 +15,13 @@ impl telperion_jev::caller::Transport for NoDispatch {
     }
 }
 
+/// A sibling test forking a stub can briefly hold a copy of a just-released
+/// `run.lock` descriptor, so tests that take the run lock do not overlap.
+fn serial() -> std::sync::MutexGuard<'static, ()> {
+    static SERIAL: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    SERIAL.lock().unwrap_or_else(|e| e.into_inner())
+}
+
 fn write(path: &Path, value: &Value) {
     fs::write(path, serde_json::to_vec_pretty(value).unwrap()).unwrap();
 }
@@ -36,6 +43,7 @@ fn fixture(root: &Path) -> Value {
 }
 #[test]
 fn priority_resume_refuses_missing_or_stale_owner_decision_without_mutating_journal() {
+    let _serial = serial();
     use telperion_jev::tuning::{
         engine::Run,
         evaluation::Image,
@@ -101,6 +109,7 @@ fn priority_resume_refuses_missing_or_stale_owner_decision_without_mutating_jour
 
 #[test]
 fn cli_pauses_without_key_and_scoped_changed_revision_preserves_spend() {
+    let _serial = serial();
     let root = std::env::temp_dir().join(format!(
         "tuning-command-{}",
         telperion_jev::ledger::new_entry_id()
@@ -130,9 +139,10 @@ fn cli_pauses_without_key_and_scoped_changed_revision_preserves_spend() {
         .contains("next_identity"));
     d["next_identity"] = json!(next.identity().unwrap());
     write(&decision, &d);
-    assert!(command::run(&config_path, &out, Some(&decision))
-        .unwrap_err()
-        .contains("calibration prerequisite"));
+    {
+        let e = command::run(&config_path, &out, Some(&decision)).unwrap_err();
+        assert!(e.contains("calibration prerequisite"), "ACTUAL: {e}");
+    }
     let saved: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
     assert_eq!(saved["budget"]["tokens"], 17);
     assert_eq!(saved["identity"], d["next_identity"]);
@@ -142,6 +152,7 @@ fn cli_pauses_without_key_and_scoped_changed_revision_preserves_spend() {
 
 #[test]
 fn stale_lock_file_and_partial_temp_do_not_strand_interrupted_run() {
+    let _serial = serial();
     let root = std::env::temp_dir().join(format!(
         "tuning-recovery-{}",
         telperion_jev::ledger::new_entry_id()
@@ -159,9 +170,10 @@ fn stale_lock_file_and_partial_temp_do_not_strand_interrupted_run() {
     state["budget"]["images"] = json!(4);
     write(&path, &state);
     fs::write(out.join("run.pending-old"), "incomplete").unwrap();
-    assert!(command::run(&config_path, &out, None)
-        .unwrap_err()
-        .contains("interruption recorded"));
+    {
+        let e = command::run(&config_path, &out, None).unwrap_err();
+        assert!(e.contains("interruption recorded"), "ACTUAL: {e}");
+    }
     let state: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
     let decision = root.join("decision.json");
     write(
@@ -169,9 +181,10 @@ fn stale_lock_file_and_partial_temp_do_not_strand_interrupted_run() {
         &json!({"pause_id":state["pause"]["id"],"identity":state["identity"],
         "action":"recover interrupted attempt","by":"test owner","rationale":"measurement process ended; keep reservation","recover_interrupted":true}),
     );
-    assert!(command::run(&config_path, &out, Some(&decision))
-        .unwrap_err()
-        .contains("calibration prerequisite"));
+    {
+        let e = command::run(&config_path, &out, Some(&decision)).unwrap_err();
+        assert!(e.contains("calibration prerequisite"), "ACTUAL: {e}");
+    }
     let state: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
     assert_eq!(state["budget"]["evaluations"], 1);
     assert_eq!(state["budget"]["images"], 4);
@@ -181,6 +194,7 @@ fn stale_lock_file_and_partial_temp_do_not_strand_interrupted_run() {
 
 #[test]
 fn scoped_cap_extension_reuses_only_unchanged_verified_evidence() {
+    let _serial = serial();
     let root = std::env::temp_dir().join(format!(
         "tuning-reuse-{}",
         telperion_jev::ledger::new_entry_id()
@@ -291,6 +305,7 @@ fn scoped_cap_extension_reuses_only_unchanged_verified_evidence() {
 
 #[test]
 fn experimental_revision_amendment_is_scoped_and_preserves_history() {
+    let _serial = serial();
     let root = std::env::temp_dir().join(format!(
         "tuning-amend-{}",
         telperion_jev::ledger::new_entry_id()
@@ -384,6 +399,7 @@ fn experimental_revision_amendment_is_scoped_and_preserves_history() {
 
 #[test]
 fn preflight_plans_the_sequence_without_writing_state_or_taking_a_lock() {
+    let _serial = serial();
     let root = std::env::temp_dir().join(format!(
         "tuning-preflight-{}",
         telperion_jev::ledger::new_entry_id()
@@ -441,6 +457,7 @@ fn preflight_plans_the_sequence_without_writing_state_or_taking_a_lock() {
 
 #[test]
 fn opening_balance_over_its_own_caps_is_refused_fresh_and_on_resume() {
+    let _serial = serial();
     let root = std::env::temp_dir().join(format!(
         "tuning-balance-{}",
         telperion_jev::ledger::new_entry_id()
@@ -500,6 +517,7 @@ fn external_ledger(dir: &Path, id: &str, tokens: u64) -> (std::path::PathBuf, St
 
 #[test]
 fn preparation_and_external_usage_are_charged_once_across_repeated_resume() {
+    let _serial = serial();
     use telperion_jev::tuning::reference_first::{charge_preparation, PreparationCharge};
     use telperion_jev::tuning::state::Budget;
 
@@ -576,6 +594,7 @@ fn preparation_and_external_usage_are_charged_once_across_repeated_resume() {
 
 #[test]
 fn priority_approval_resume_must_re_carry_exact_cap_pilot_authority() {
+    let _serial = serial();
     use telperion_jev::tuning::{
         command::{prepare, Prepared},
         engine::Run,
@@ -684,6 +703,7 @@ fn opening() -> Value {
 
 #[test]
 fn a_verifying_config_pauses_for_authority_then_charges_preparation_exactly_once() {
+    let _serial = serial();
     let f = fixture::verifying_fixture(opening());
     let config: Config = serde_json::from_slice(&fs::read(&f.config_path).unwrap()).unwrap();
     config
@@ -840,6 +860,7 @@ fn gap(id: &str, observation: &str) -> Value {
 #[test]
 #[ignore = "drives the compare stub, which runs under uv; run with --ignored"]
 fn the_real_command_reaches_the_priority_pause_then_routes_and_writes_handoffs() {
+    let _serial = serial();
     let f = fixture::verifying_fixture(json!({"evaluations":0,"images":0,"tokens":0,"rounds":0,
         "max_evaluations":13,"max_images":52,"max_tokens":2_000_000,"max_rounds":1,
         "visual_passes":0,"max_visual_passes":12}));
@@ -1011,6 +1032,7 @@ impl telperion_jev::caller::Transport for EveryDial {
 
 #[test]
 fn max_candidates_is_validated_and_bounds_one_round() {
+    let _serial = serial();
     use telperion_jev::tuning::{
         actions::Dial,
         engine::{Run, Services},
@@ -1085,6 +1107,7 @@ fn max_candidates_is_validated_and_bounds_one_round() {
 
 #[test]
 fn the_inventory_command_emits_what_the_runtime_pins_and_charges() {
+    let _serial = serial();
     use telperion_jev::tuning::{
         inventory,
         reference_first::{FilePin, Inventory, RuntimeConfig},
@@ -1165,6 +1188,7 @@ fn the_inventory_command_emits_what_the_runtime_pins_and_charges() {
 
 #[test]
 fn a_frozen_reference_first_replay_runs_and_qualifies_a_config() {
+    let _serial = serial();
     use telperion_jev::tuning::{inventory, replay};
     let f = fixture::verifying_fixture(opening());
     let mut config: Config = serde_json::from_slice(&fs::read(&f.config_path).unwrap()).unwrap();
