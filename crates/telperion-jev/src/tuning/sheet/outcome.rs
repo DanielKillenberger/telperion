@@ -16,6 +16,15 @@ pub struct Outcome {
     pub per_priority: BTreeMap<String, Movement>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub breaks: Vec<String>,
+    /// What the reviewer said looks wrong in this render, at most two things.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub wrong: Vec<String>,
+    /// Its place in the overall believability ranking, best is 1.
+    #[serde(default)]
+    pub overall: usize,
+    /// True when the reviewer put the current tree above it overall.
+    #[serde(default)]
+    pub below_current: bool,
     pub improved: String,
     pub missing: String,
     pub ledger: String,
@@ -36,6 +45,9 @@ impl Outcome {
             label: render.label.clone(),
             per_priority: render.per_priority.clone(),
             breaks: render.breaks.clone(),
+            wrong: render.wrong.clone(),
+            overall: render.overall,
+            below_current: render.below_current,
             improved: verdict.improved.clone(),
             missing: verdict.missing.clone(),
             ledger: verdict.ledger.clone(),
@@ -51,6 +63,9 @@ impl Outcome {
             label: String::new(),
             per_priority: BTreeMap::new(),
             breaks: vec![],
+            wrong: vec![],
+            overall: 0,
+            below_current: false,
             improved: String::new(),
             missing: String::new(),
             ledger: String::new(),

@@ -1,4 +1,4 @@
-# Contact-sheet review protocol, 2026-09-21
+# Contact-sheet review protocol, 2026-09-21 (`tuning-sheet-v2`)
 
 An uncalibrated comparative question, under the same terms as the side-by-side
 progress review it replaces in bundle mode: a run may ask it only under the
@@ -23,10 +23,20 @@ label outside the request, and maps the answer back.
 Per priority: the render closest to the references, a ranking of every render
 best to worst, and a grade for each adjacent pair of that ranking - `clear`
 when the better one is plainly better on that priority, `slight` when the
-difference is real but small, `none` when they cannot be told apart. Then a
-list of anything one render breaks that the others do not, naming the render,
-and one or two sentences on what improved across the set and what is still
-missing in all of them. No numbers, no scores, no overall winner.
+difference is real but small, `none` when they cannot be told apart.
+
+Then one more ranking of every render, best to worst, on a different question:
+which is the most believable tree of this species overall, judging the whole
+tree rather than the listed priorities. Then, for every render, at most two
+things that look wrong in it against the references. Then a list of anything
+one render breaks that the others do not, naming the render, and one or two
+sentences on what improved across the set and what is still missing in all of
+them. No numbers, no scores, no overall winner beyond that ranking.
+
+The overall ranking exists because the priorities are two of a tree's
+qualities and a move can win both while losing the tree: on 2026-09-21 the
+sheet graded three bundles clear on crown shape and the owner called the third
+"just garbage".
 
 ## What code does with it
 
@@ -41,7 +51,8 @@ on the ranking is clear, `slight` when none is clear but one is slight, and
 current tree is `worse` unless every step down to it is none.
 
 A variant is adopted when it is clear or slight on at least one tuning
-priority, worse on none, and breaks nothing of its own. Clear beats slight,
+priority, worse on none, breaks nothing of its own, and is not ranked below
+the current tree overall. Clear beats slight,
 then more priorities improved, then the smaller strength. When the best
 variant is better but breaks something, the bundle is halved and the halves
 are tested on one more sheet until the breaking dials are isolated or the

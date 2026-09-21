@@ -45,7 +45,7 @@ def prepare(envelope):
     request = envelope["request"]
     if set(request) != {"schema", "target_species", "view", "seed", "references", "renders", "priorities", "owner_notes"}:
         raise ValueError("contact-sheet allowlist violation")
-    if request["schema"] != "tuning-sheet-v1":
+    if request["schema"] != "tuning-sheet-v2":
         raise ValueError("unknown contact-sheet schema")
     prompt_request = redacted(envelope, set(request),
                               lambda r: r["references"] + r["renders"])
@@ -77,12 +77,15 @@ def prepare(envelope):
                            "steps": {"type": "array", "minItems": len(labels) - 1, "maxItems": len(labels) - 1,
                                      "items": object_schema({"from": label, "to": label,
                                                              "grade": {"type": "string", "enum": ["clear", "slight", "none"]}})}})},
+        "overall": {"type": "array", "minItems": len(labels), "maxItems": len(labels), "items": label},
+        "wrong": {"type": "array", "maxItems": 2 * len(labels),
+                  "items": object_schema({"render": label, "text": {"type": "string"}})},
         "breaks": {"type": "array", "items": object_schema({"render": label, "text": {"type": "string"}})},
         "improved": {"type": "string"}, "missing": {"type": "string"}})
     prompt = (envelope["prompt"]
               + "\nDo not use tools or inspect files. Attached images follow metadata order: the reference photographs, then the renders in the order they are numbered. Return JSON only.\n"
               + json.dumps(prompt_request)
-              + "\nReturn one entry for each listed priority id. Each ranking lists every render number exactly once, and each steps list grades the adjacent pairs of that ranking in order.")
+              + "\nReturn one entry for each listed priority id. Each ranking lists every render number exactly once, and each steps list grades the adjacent pairs of that ranking in order. The overall list also names every render number exactly once, best first. Give at most two wrong entries for any one render.")
     return paths, schema, prompt
 
 
@@ -120,7 +123,9 @@ def main():
         answer = json.loads(out.read_text()) if out.exists() else None
         answered = (isinstance(answer, dict)
                     and sorted(p.get("priority_id") for p in answer.get("priorities", [])) == sorted(ids)
-                    and all(sorted(p.get("ranking", [])) == sorted(labels) for p in answer.get("priorities", [])))
+                    and all(sorted(p.get("ranking", [])) == sorted(labels) for p in answer.get("priorities", []))
+                    and sorted(answer.get("overall", [])) == sorted(labels)
+                    and all(sum(1 for w in answer.get("wrong", []) if w.get("render") == r) <= 2 for r in labels))
         print(json.dumps({"request_sha256": envelope["request_sha256"], "prompt_sha256": envelope["prompt_sha256"],
             "dispatched_prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(), "schema_sha256": hashlib.sha256(json.dumps(schema).encode()).hexdigest(),
             "model": args.model, "model_identity_basis": "requested command argument; actual resolved identity not exposed", "effort": args.effort,

@@ -94,7 +94,14 @@ pub(super) fn read_back(
     state: &mut Run,
     look: &sheet::Look,
     verdict: &sheet::Verdict,
+    current: usize,
 ) -> Vec<(String, f64)> {
+    // The tree the loop is standing on was on the sheet too, and what the
+    // reviewer says is wrong with it is the plainest thing it said.
+    let here = state.trials[current].key.clone();
+    if let Some(render) = verdict.render(&here) {
+        state.trials[current].sheet = Some(Outcome::of(verdict, render));
+    }
     let mut shown = vec![];
     for index in &look.shown {
         let key = state.trials[*index].key.clone();
@@ -239,7 +246,7 @@ pub(in crate::tuning) fn round(
             return Err(reason);
         }
     };
-    let shown = read_back(state, &look, &verdict);
+    let shown = read_back(state, &look, &verdict, old);
     save(state)?;
     if let Some(key) = sheet::adopt(&verdict, &shown) {
         let others = passed_over(&verdict, &shown, &key);

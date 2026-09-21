@@ -2206,6 +2206,13 @@ fn sheet_answer(plan: &sheet::Plan, spec: &[(String, Movement, Option<String>)])
         })
         .collect::<Vec<_>>();
     sheet::Answer {
+        // The overall ranking follows the same order, so a variant the test
+        // called better is also the more believable tree.
+        overall: ranking.clone(),
+        wrong: vec![sheet::Wrong {
+            render: ranking[0].clone(),
+            text: "the outer branches are too thick".into(),
+        }],
         priorities: plan
             .request
             .priorities

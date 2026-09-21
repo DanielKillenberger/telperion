@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::BTreeMap;
 
-pub const VERSION: &str = "tuning-sheet-v1";
+pub const VERSION: &str = "tuning-sheet-v2";
 pub const UNCALIBRATED: &str =
     "uncalibrated contact-sheet review: a ranking and a graded comparison, never a score or a readiness claim";
 pub const PENDING: &str = "sheet review";
@@ -32,7 +32,7 @@ pub const INPUT_LABEL: &str = "uncalibrated sheet review";
 /// bind. The round is over: nothing was judged, so nothing is adopted, and
 /// the bundles it drew count as tried.
 pub const FAILED_NOTE: &str = "sheet review failed; attempt charged";
-pub const PROMPT: &str = "You are shown reference photographs of a tree species, then several renders of the same generated tree at one view and seed, numbered 1 upward. They differ by how far one set of parameters was moved; nothing here says which render is the starting point or in what order they were made.\n\nFor each listed priority: name the render closest to the references, then rank every render from best to worst for that priority, then grade each adjacent pair of your own ranking - clear when the better one is plainly better on that priority, slight when the difference is real but small, none when you cannot tell them apart.\n\nThen list anything a render breaks that the others do not, naming the render, and say in one or two sentences what improved across the set and what is still missing in all of them against the references.\n\nGive no numbers, no scores and no overall winner.";
+pub const PROMPT: &str = "You are shown reference photographs of a tree species, then several renders of the same generated tree at one view and seed, numbered 1 upward. They differ by how far one set of parameters was moved; nothing here says which render is the starting point or in what order they were made.\n\nFor each listed priority: name the render closest to the references, then rank every render from best to worst for that priority, then grade each adjacent pair of your own ranking - clear when the better one is plainly better on that priority, slight when the difference is real but small, none when you cannot tell them apart.\n\nThen rank every render again, best to worst, for one question: which is the most believable tree of this species overall against the references, judging the whole tree and not the listed priorities.\n\nThen, for every render, say what looks wrong in it against the references - at most two things each, and nothing for a render where you see nothing wrong.\n\nThen list anything a render breaks that the others do not, naming the render, and say in one or two sentences what improved across the set and what is still missing in all of them against the references.\n\nGive no numbers, no scores and no overall winner beyond that ranking.";
 
 /// What the reviewer is sent. The renders are numbered, and nothing says
 /// which of them the loop is standing on.
@@ -199,10 +199,23 @@ pub struct Break {
     pub text: String,
 }
 
+/// What looks wrong in one render against the references. Not a comparison and
+/// not a grade: the words the owner's eye would have used.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Wrong {
+    pub render: String,
+    pub text: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Answer {
     pub priorities: Vec<PriorityAnswer>,
+    /// Every render, best to worst, on believability as this species overall.
+    /// The priorities are two of the tree's qualities; this is the tree.
+    pub overall: Vec<String>,
+    pub wrong: Vec<Wrong>,
     pub breaks: Vec<Break>,
     pub improved: String,
     pub missing: String,
@@ -258,6 +271,15 @@ pub struct Render {
     pub per_priority: BTreeMap<String, Movement>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub breaks: Vec<String>,
+    /// Its place in the overall believability ranking, best is 1.
+    #[serde(default)]
+    pub overall: usize,
+    /// True when the reviewer put the current tree above it overall. A step
+    /// that wins a priority and loses the tree is not a step forward.
+    #[serde(default)]
+    pub below_current: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub wrong: Vec<String>,
 }
 
 impl Render {
@@ -273,9 +295,10 @@ impl Render {
     pub fn worse(&self) -> bool {
         self.per_priority.values().any(|m| *m == Movement::Worse)
     }
-    /// Better somewhere, worse nowhere, breaking nothing of its own.
+    /// Better somewhere, worse nowhere, breaking nothing of its own, and not
+    /// a less believable tree than the one the loop is standing on.
     pub fn adoptable(&self) -> bool {
-        self.improved() > 0 && !self.worse() && self.breaks.is_empty()
+        self.improved() > 0 && !self.worse() && self.breaks.is_empty() && !self.below_current
     }
     /// Better somewhere and worse nowhere, but it breaks something: the case
     /// a split is for.
@@ -366,9 +389,28 @@ pub fn bind(
     if answer.improved.trim().is_empty() || answer.missing.trim().is_empty() {
         return Err("the sheet answer lacks what improved or what is missing".into());
     }
+    let mut sorted = answer.overall.clone();
+    sorted.sort();
+    let mut want = labels.clone();
+    want.sort();
+    if sorted != want {
+        return Err("the overall ranking is not every render on the sheet, once each".into());
+    }
+    let place = |label: &str| answer.overall.iter().position(|r| r == label);
+    let here = place(&plan.current).ok_or("the overall ranking lost the current tree")?;
     let mut renders = vec![];
     for (index, key) in plan.order.iter().enumerate() {
         let label = Request::label(index);
+        let wrong = answer
+            .wrong
+            .iter()
+            .filter(|w| w.render == label)
+            .map(|w| w.text.clone())
+            .collect::<Vec<_>>();
+        if wrong.len() > 2 {
+            return Err("more than two things wrong with one render".into());
+        }
+        let overall = place(&label).ok_or("the overall ranking lost a render")?;
         renders.push(Render {
             key: key.clone(),
             label: label.clone(),
@@ -379,7 +421,18 @@ pub fn bind(
                 .filter(|b| b.render == label)
                 .map(|b| b.text.clone())
                 .collect(),
+            overall: overall + 1,
+            below_current: overall > here,
+            wrong,
         });
+    }
+    for entry in &answer.wrong {
+        if !labels.contains(&entry.render) || entry.text.trim().is_empty() {
+            return Err(format!(
+                "an empty note, or one naming no render on the sheet: {}",
+                entry.render
+            ));
+        }
     }
     for entry in &answer.breaks {
         if !labels.contains(&entry.render) {
@@ -402,8 +455,9 @@ pub fn bind(
 }
 
 /// Which variant the round keeps: better somewhere, worse nowhere, breaking
-/// nothing. A clear improvement beats a slight one, then more priorities
-/// improved, then the smaller strength.
+/// nothing, and no less believable a tree than the current one. A clear
+/// improvement beats a slight one, then more priorities improved, then the
+/// smaller strength.
 pub fn adopt(verdict: &Verdict, shown: &[(String, f64)]) -> Option<String> {
     let mut eligible = shown
         .iter()

@@ -99,7 +99,7 @@ pub(super) fn isolate(
             }
         };
         spent += 1;
-        let shown = read_back(state, &look, &verdict);
+        let shown = read_back(state, &look, &verdict, old);
         save(state)?;
         if let Some(key) = sheet::adopt(&verdict, &shown) {
             let dials = state

@@ -371,7 +371,23 @@ fn the_grade_over_the_current_tree_is_read_off_the_ranking_path() {
 }
 
 fn answer(ranking: &[&str], grades: &[Grade], breaks: Vec<Break>) -> Answer {
+    overall_answer(ranking, grades, breaks, ranking)
+}
+
+/// The same answer with the overall believability ranking stated apart from
+/// the per-priority one: a move can win a priority and lose the tree.
+fn overall_answer(
+    ranking: &[&str],
+    grades: &[Grade],
+    breaks: Vec<Break>,
+    overall: &[&str],
+) -> Answer {
     Answer {
+        overall: overall.iter().map(|s| (*s).to_string()).collect(),
+        wrong: vec![sheet::Wrong {
+            render: overall[0].into(),
+            text: "the outer branches are too thick".into(),
+        }],
         priorities: ["g0", "g1"]
             .iter()
             .map(|id| PriorityAnswer {
@@ -618,4 +634,79 @@ fn a_variant_that_draws_the_current_tree_or_a_twin_never_reaches_the_sheet() {
     )
     .unwrap();
     assert!(look.plan.is_none() && look.shown.is_empty() && look.not_shown[0].inert);
+}
+
+#[test]
+fn a_variant_the_reviewer_finds_less_believable_overall_is_not_adopted() {
+    let plan = plan(&["current", "half", "one"]);
+    let labels: Vec<String> = (0..3).map(sheet::Request::label).collect();
+    // Every variant beats the current tree on both priorities.
+    let mut ranking: Vec<String> = labels
+        .iter()
+        .filter(|l| *l != &plan.current)
+        .cloned()
+        .collect();
+    ranking.push(plan.current.clone());
+    let as_str: Vec<&str> = ranking.iter().map(String::as_str).collect();
+    let shown: Vec<(String, f64)> = plan
+        .order
+        .iter()
+        .enumerate()
+        .filter(|(i, _)| sheet::Request::label(*i) != plan.current)
+        .map(|(i, key)| (key.clone(), [0.5, 1.0, 2.0][i]))
+        .collect();
+    let grades = [Grade::Clear, Grade::Clear];
+
+    // The reviewer puts the current tree first overall: a step that wins the
+    // priorities and loses the tree is not a step forward.
+    let mut overall = vec![plan.current.as_str()];
+    overall.extend(as_str.iter().take(2));
+    let bound = sheet::bind(
+        &plan,
+        &overall_answer(&as_str, &grades, vec![], &overall),
+        "r".into(),
+        "m".into(),
+    )
+    .unwrap();
+    assert!(bound.renders.iter().filter(|r| r.below_current).count() == 2);
+    assert_eq!(sheet::adopt(&bound, &shown), None);
+    assert_eq!(sheet::to_split(&bound, &shown), None);
+
+    // With the same grades and the current tree last overall, it is adopted,
+    // and what the reviewer said looks wrong travels with the verdict.
+    let mut overall = as_str.iter().take(2).copied().collect::<Vec<_>>();
+    overall.push(&plan.current);
+    let bound = sheet::bind(
+        &plan,
+        &overall_answer(&as_str, &grades, vec![], &overall),
+        "r".into(),
+        "m".into(),
+    )
+    .unwrap();
+    let kept = sheet::adopt(&bound, &shown).expect("nothing was adopted");
+    assert_eq!(bound.render(&kept).unwrap().overall, 1);
+    assert_eq!(
+        bound.render(&kept).unwrap().wrong,
+        vec!["the outer branches are too thick".to_string()]
+    );
+
+    // The overall ranking binds as strictly as the others.
+    let mut short = overall_answer(&as_str, &grades, vec![], &overall);
+    short.overall.truncate(2);
+    assert!(sheet::bind(&plan, &short, "r".into(), "m".into())
+        .unwrap_err()
+        .contains("overall ranking"));
+    let mut three = overall_answer(&as_str, &grades, vec![], &overall);
+    three.wrong = (0..3)
+        .map(|i| sheet::Wrong {
+            render: overall[0].into(),
+            text: format!("wrong {i}"),
+        })
+        .collect();
+    assert!(sheet::bind(&plan, &three, "r".into(), "m".into())
+        .unwrap_err()
+        .contains("more than two"));
+    let mut stray = overall_answer(&as_str, &grades, vec![], &overall);
+    stray.wrong[0].render = "9".into();
+    assert!(sheet::bind(&plan, &stray, "r".into(), "m".into()).is_err());
 }

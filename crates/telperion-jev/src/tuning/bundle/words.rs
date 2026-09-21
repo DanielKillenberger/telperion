@@ -16,6 +16,9 @@ pub(in crate::tuning) fn words(trial: &Trial) -> Option<Value> {
     if let Some(sheet) = &trial.sheet {
         out["per_priority"] = json!(sheet.per_priority);
         out["breaks"] = json!(sheet.breaks);
+        out["looks_wrong"] = json!(sheet.wrong);
+        out["overall_rank"] = json!(sheet.overall);
+        out["below_current_overall"] = json!(sheet.below_current);
         out["improved"] = json!(sheet.improved);
         out["missing"] = json!(sheet.missing);
         out["inert"] = json!(sheet.inert);
