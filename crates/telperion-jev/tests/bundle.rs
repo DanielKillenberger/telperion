@@ -92,7 +92,16 @@ fn a_strength_steps_every_dial_by_its_own_small_step() {
     ];
     let wire = beech();
     let at = |strength: f64| {
-        bundle::build("european-beech", &wire, &dials, &wanted, strength, "base").unwrap()
+        bundle::build(
+            "european-beech",
+            &wire,
+            &dials,
+            &wanted,
+            strength,
+            "base",
+            "structure",
+        )
+        .unwrap()
     };
 
     // Half a step on each float row, and an integer row that cannot move half.
@@ -112,7 +121,16 @@ fn a_strength_steps_every_dial_by_its_own_small_step() {
     let limbs = half.moves.iter().find(|m| m.dial == "limbs").unwrap();
     assert_eq!(limbs.to, limbs.from + 1.);
     // Below half a step there is nothing to round up to, and the row drops.
-    let (weak, _) = bundle::build("european-beech", &wire, &dials, &wanted, 0.4, "base").unwrap();
+    let (weak, _) = bundle::build(
+        "european-beech",
+        &wire,
+        &dials,
+        &wanted,
+        0.4,
+        "base",
+        "structure",
+    )
+    .unwrap();
     assert!(
         weak.moves.iter().all(|m| m.dial != "limbs")
             && weak
@@ -141,6 +159,7 @@ fn a_strength_steps_every_dial_by_its_own_small_step() {
         &[("shell_depth".to_string(), 1)],
         4.0,
         "base",
+        "structure",
     )
     .map(|(b, o)| (o, b.dropped.clone()))
     .unwrap_or_else(|e| {
@@ -179,31 +198,31 @@ fn a_bundle_is_the_same_attempt_when_its_dials_directions_strength_and_base_are(
     ];
     let reversed = vec![moves[1].clone(), moves[0].clone()];
     assert_eq!(
-        bundle::id(&moves, 1., "base"),
-        bundle::id(&reversed, 1., "base"),
+        bundle::id(&moves, 1., "base", "structure"),
+        bundle::id(&reversed, 1., "base", "structure"),
         "the order Jev listed them in is not part of the attempt"
     );
     assert_ne!(
-        bundle::id(&moves, 1., "base"),
-        bundle::id(&moves, 2., "base")
+        bundle::id(&moves, 1., "base", "structure"),
+        bundle::id(&moves, 2., "base", "structure")
     );
     assert_ne!(
-        bundle::id(&moves, 1., "base"),
-        bundle::id(&moves, 1., "another")
+        bundle::id(&moves, 1., "base", "structure"),
+        bundle::id(&moves, 1., "another", "structure")
     );
     let mut other = moves.clone();
     other[0].direction = "down".into();
     assert_ne!(
-        bundle::id(&moves, 1., "base"),
-        bundle::id(&other, 1., "base")
+        bundle::id(&moves, 1., "base", "structure"),
+        bundle::id(&other, 1., "base", "structure")
     );
     // The values reached are not part of it: the same directions from the same
     // tree at the same strength are the same attempt.
     let mut moved = moves.clone();
     moved[0].to = 99.;
     assert_eq!(
-        bundle::id(&moves, 1., "base"),
-        bundle::id(&moved, 1., "base")
+        bundle::id(&moves, 1., "base", "structure"),
+        bundle::id(&moved, 1., "base", "structure")
     );
 }
 
@@ -597,6 +616,7 @@ fn a_variant_that_draws_the_current_tree_or_a_twin_never_reaches_the_sheet() {
         0,
         &[1, 2, 3, 4],
         &[gap()],
+        None,
     )
     .unwrap();
 
@@ -631,6 +651,7 @@ fn a_variant_that_draws_the_current_tree_or_a_twin_never_reaches_the_sheet() {
         0,
         &[1],
         &[gap()],
+        None,
     )
     .unwrap();
     assert!(look.plan.is_none() && look.shown.is_empty() && look.not_shown[0].inert);
@@ -709,4 +730,59 @@ fn a_variant_the_reviewer_finds_less_believable_overall_is_not_adopted() {
     let mut stray = overall_answer(&as_str, &grades, vec![], &overall);
     stray.wrong[0].render = "9".into();
     assert!(sheet::bind(&plan, &stray, "r".into(), "m".into()).is_err());
+}
+
+#[test]
+fn a_track_judged_at_one_view_is_judged_on_that_view_alone() {
+    // A material move changes the bark and nothing else: on the whole-tree
+    // still the variant is the current tree byte for byte.
+    let whole = still("whole", "same tree");
+    let current = variant(
+        "current",
+        "baseline",
+        0.,
+        vec![whole.clone(), still("B-BASE", "current bark")],
+    );
+    let material = variant(
+        "bark",
+        "bundle@1",
+        1.,
+        vec![whole, still("B-BASE", "rougher bark")],
+    );
+    let state = fixture::progress_run(vec![current, material]);
+
+    // Judged on what the evaluation renders - the numeric reference views -
+    // it is inert, and no sheet would be bought for any material move.
+    let rendered = fixture::progress_run(vec![
+        variant("current", "baseline", 0., vec![still("whole", "same tree")]),
+        variant("bark", "bundle@1", 1., vec![still("whole", "same tree")]),
+    ]);
+    let anywhere = sheet::look(
+        &rendered,
+        "european-beech",
+        &[still("whole", "reference")],
+        0,
+        &[1],
+        &[gap()],
+        None,
+    )
+    .unwrap();
+    assert!(anywhere.plan.is_none() && anywhere.not_shown[0].inert);
+
+    // Judged at the track's own view, it is a question worth asking.
+    let at_view = sheet::look(
+        &state,
+        "european-beech",
+        &[still("whole", "reference"), still("B-BASE", "reference")],
+        0,
+        &[1],
+        &[gap()],
+        Some("B-BASE"),
+    )
+    .unwrap();
+    assert_eq!(at_view.shown, vec![1], "{:?}", at_view.not_shown);
+    let plan = at_view.plan.expect("no sheet for the material track");
+    assert_eq!(plan.request.view, "B-BASE");
+    assert_eq!(plan.request.renders.len(), 2);
+    assert!(plan.request.references.iter().all(|i| i.view == "B-BASE"));
 }

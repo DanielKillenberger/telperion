@@ -7,8 +7,10 @@
 //! and code computes every value here.
 mod isolate;
 mod round;
+mod track;
 mod words;
 pub(in crate::tuning) use round::round;
+pub use track::{verify as verify_tracks, Track};
 pub(in crate::tuning) use words::words;
 
 use super::{
@@ -124,6 +126,7 @@ pub fn build(
     wanted: &[(String, i8)],
     strength: f64,
     base_key: &str,
+    track: &str,
 ) -> Result<(Bundle, Value), String> {
     if !strength.is_finite() || strength <= 0.0 {
         return Err("invalid bundle strength".into());
@@ -183,7 +186,7 @@ pub fn build(
     if moves.is_empty() {
         return Err("every dial in the bundle dropped out".into());
     }
-    let id = id(&moves, strength, base_key);
+    let id = id(&moves, strength, base_key, track);
     Ok((
         Bundle {
             strength,
@@ -196,15 +199,18 @@ pub fn build(
 }
 
 /// What makes two bundles the same attempt: the dials and their directions,
-/// the strength, and the tree they step from.
-pub fn id(moves: &[Move], strength: f64, base_key: &str) -> String {
+/// the strength, the tree they step from and the track they belong to.
+pub fn id(moves: &[Move], strength: f64, base_key: &str, track: &str) -> String {
     let mut rows = moves
         .iter()
         .map(|m| format!("{}:{}", m.dial, m.direction))
         .collect::<Vec<_>>();
     rows.sort();
     sha256_hex(
-        &serde_json::to_vec(&json!({"moves":rows,"strength":strength,"base":base_key})).unwrap(),
+        &serde_json::to_vec(
+            &json!({"moves":rows,"strength":strength,"base":base_key,"track":track}),
+        )
+        .unwrap(),
     )
 }
 

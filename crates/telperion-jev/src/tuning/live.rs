@@ -90,6 +90,10 @@ pub struct Config {
     /// How many sheet reviews one round may spend isolating what breaks.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_split_reviews: Option<u64>,
+    /// The tracks a bundle round runs, in order. Empty is one track over
+    /// every dial, which is every run before 2026-09-21.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tracks: Vec<super::bundle::Track>,
     pub initial_overrides: Value,
     pub dials: Vec<Dial>,
     pub owner_notes: String,
@@ -255,6 +259,7 @@ impl Config {
             fs::read(&sheet.protocol)
                 .map_err(|e| format!("contact-sheet protocol unreadable: {e}"))?;
             self.strengths()?;
+            super::bundle::verify_tracks(&self.tracks, &self.required)?;
             if !self.visual_bootstrap {
                 return Err(
                     "bundle selection is uncalibrated; bootstrap authority required".into(),
@@ -705,12 +710,35 @@ impl Services for Live<'_> {
     fn max_split_reviews(&self) -> u64 {
         self.config.split_reviews()
     }
+    fn tracks(&self) -> Vec<super::bundle::Track> {
+        self.config.tracks.clone()
+    }
+    fn capture_views(
+        &mut self,
+        trial: &Trial,
+        views: &[String],
+    ) -> Result<Vec<evaluation::Comparison>, String> {
+        let mut out = vec![];
+        for view in views {
+            let mut matched = self.config.matched.clone();
+            matched.numeric_references = vec![view.clone()];
+            out.extend(matched.capture(
+                &self.config.preset,
+                trial.seed,
+                &trial.overrides,
+                &trial.key,
+                false,
+            )?);
+        }
+        Ok(out)
+    }
     fn sheet_request(
         &self,
         state: &Run,
         current: usize,
         variants: &[usize],
         priorities: &[super::priority::Gap],
+        view: Option<&str>,
     ) -> Result<super::sheet::Look, String> {
         super::sheet::look(
             state,
@@ -719,6 +747,7 @@ impl Services for Live<'_> {
             current,
             variants,
             priorities,
+            view,
         )
     }
     fn sheet_tokens(&self, request: &super::sheet::Request) -> u64 {

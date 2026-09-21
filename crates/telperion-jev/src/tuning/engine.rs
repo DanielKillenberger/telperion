@@ -109,13 +109,31 @@ pub trait Services {
     fn max_split_reviews(&self) -> u64 {
         6
     }
+    /// The tracks a round runs, in order. Empty is one track over every dial.
+    fn tracks(&self) -> Vec<super::bundle::Track> {
+        vec![]
+    }
+    /// Two stills per view, as any matched capture costs.
+    fn capture_images(&self, views: &[String]) -> u64 {
+        2 * views.len() as u64
+    }
+    /// The views a track is judged at that the evaluation does not render.
+    fn capture_views(
+        &mut self,
+        _trial: &Trial,
+        _views: &[String],
+    ) -> Result<Vec<super::evaluation::Comparison>, String> {
+        Err("extra-view capture unavailable".into())
+    }
     /// Which variants a sheet is worth showing, and the sheet it asks for.
+    /// A track with a fixed view is judged there and nowhere else.
     fn sheet_request(
         &self,
         _state: &Run,
         _current: usize,
         _variants: &[usize],
         _priorities: &[super::priority::Gap],
+        _view: Option<&str>,
     ) -> Result<super::sheet::Look, String> {
         Err("contact-sheet review unavailable".into())
     }

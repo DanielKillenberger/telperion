@@ -72,6 +72,12 @@ struct Mock {
     /// The raw answer and confidence the side-effect question comes back with.
     side_effect_answer: Option<(String, f64)>,
     side_effect_calls: u64,
+    /// The tracks a round runs, in order.
+    tracks: Vec<telperion_jev::tuning::bundle::Track>,
+    /// The view each sheet was requested at, in order.
+    sheet_views: std::cell::RefCell<Vec<Option<String>>>,
+    /// One entry per extra-view capture: the trial key and the views asked for.
+    captures: Vec<(String, Vec<String>)>,
 }
 
 fn mock() -> Mock {
@@ -114,6 +120,9 @@ fn mock() -> Mock {
         cell_status: vec![],
         side_effect_answer: None,
         side_effect_calls: 0,
+        tracks: vec![],
+        sheet_views: std::cell::RefCell::new(vec![]),
+        captures: vec![],
     }
 }
 impl Services for Mock {
@@ -250,13 +259,36 @@ impl Services for Mock {
     fn max_split_reviews(&self) -> u64 {
         self.splits
     }
+    fn tracks(&self) -> Vec<telperion_jev::tuning::bundle::Track> {
+        self.tracks.clone()
+    }
+    fn capture_views(
+        &mut self,
+        trial: &Trial,
+        views: &[String],
+    ) -> Result<Vec<telperion_jev::tuning::evaluation::Comparison>, String> {
+        self.captures.push((trial.key.clone(), views.to_vec()));
+        Ok(views
+            .iter()
+            .map(|view| telperion_jev::tuning::evaluation::Comparison {
+                reference: view.clone(),
+                reference_weight: 1.,
+                metric_weights: [1.; 5],
+                target: [0.; 5],
+                observed: [None; 5],
+                images: vec![still(&format!("{}-{view}", trial.key))],
+            })
+            .collect())
+    }
     fn sheet_request(
         &self,
         state: &Run,
         current: usize,
         variants: &[usize],
         priorities: &[Gap],
+        view: Option<&str>,
     ) -> Result<sheet::Look, String> {
+        self.sheet_views.borrow_mut().push(view.map(str::to_string));
         if priorities.is_empty() {
             return Err("no tuning-routed priority to review".into());
         }
@@ -2759,4 +2791,129 @@ fn the_state_says_what_the_numbers_measure_in_words_and_stays_small() {
         "proposal state is {} bytes",
         bytes.len()
     );
+}
+
+fn track(name: &str, groups: &[&str], view: Option<&str>) -> telperion_jev::tuning::bundle::Track {
+    telperion_jev::tuning::bundle::Track {
+        name: name.into(),
+        groups: groups.iter().map(|g| (*g).to_string()).collect(),
+        view: view.map(str::to_string),
+        extra_views: view.map(str::to_string).into_iter().collect(),
+    }
+}
+
+/// The structure dials and the material dials, on sheets of their own. The 91
+/// material rows sat out every run while the five numbers chose the move.
+fn two_track_run() -> (Run, Mock) {
+    let (mut state, mut mock) = bundle_run();
+    state.dials[0].group = Some("material".into());
+    mock.tracks = vec![
+        track("structure", &["habit"], None),
+        track("materials", &["material"], Some("B-BASE")),
+    ];
+    mock.strengths = vec![1.0];
+    (state, mock)
+}
+
+#[test]
+fn each_track_builds_its_own_bundle_and_buys_its_own_sheet() {
+    let (mut state, mut mock) = two_track_run();
+    // candidate2 is the structure bundle, candidate3 the material one.
+    mock.sheets = vec![
+        vec![did(&key(2), Movement::Clear)],
+        vec![did(&key(3), Movement::Clear)],
+    ];
+    to_the_round(&mut state, &mut mock);
+
+    assert_eq!(mock.sheet_calls, 2, "one sheet per track");
+    assert_eq!(mock.evaluations, 3, "the baseline and one bundle per track");
+    assert_eq!(
+        *mock.sheet_views.borrow(),
+        vec![None, Some("B-BASE".to_string())],
+        "the material sheet was not taken at its own view"
+    );
+    let bundles: Vec<&Trial> = state.trials.iter().filter(|t| t.bundle.is_some()).collect();
+    let moved = |t: &Trial| {
+        t.bundle
+            .as_ref()
+            .unwrap()
+            .moves
+            .iter()
+            .map(|m| m.dial.clone())
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(moved(bundles[0]), vec!["rise_secondary", "crookedness"]);
+    assert_eq!(moved(bundles[1]), vec!["twig_hang"]);
+    assert_ne!(
+        bundles[0].bundle.as_ref().unwrap().id,
+        bundles[1].bundle.as_ref().unwrap().id,
+        "two tracks at the same strength share a bundle id"
+    );
+    // Each track adopted on its own, and the second built on the first.
+    assert_eq!(state.trials[state.current.unwrap()].key, key(3));
+    assert_eq!(bundles[1].base, Some(key(2)));
+
+    // The tree the sheets compare against was captured once, each variant once.
+    assert_eq!(
+        mock.captures,
+        vec![
+            (key(2), vec!["B-BASE".to_string()]),
+            (key(3), vec!["B-BASE".to_string()]),
+        ],
+        "the current tree's view was captured more than once, or not at all"
+    );
+    assert!(state.trials[1]
+        .comparisons
+        .iter()
+        .any(|c| c.reference == "B-BASE"));
+}
+
+#[test]
+fn a_track_with_no_supported_dial_is_skipped_and_costs_nothing() {
+    let (mut state, mut mock) = two_track_run();
+    // Nothing the router proposed belongs to the material track.
+    state.dials[0].group = Some("habit".into());
+    mock.sheets = vec![vec![did(&key(2), Movement::Clear)]];
+    to_the_round(&mut state, &mut mock);
+
+    assert_eq!(mock.sheet_calls, 1);
+    assert_eq!(mock.evaluations, 2);
+    assert!(mock.captures.is_empty(), "a skipped track captured a view");
+    assert!(
+        state
+            .routes
+            .iter()
+            .any(|r| r == "track materials: no supported dial this round"),
+        "{:?}",
+        state.routes
+    );
+}
+
+#[test]
+fn the_routing_state_names_the_kinds_of_dial_rather_than_every_row() {
+    let (mut state, mut mock) = bundle_run();
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_one(&mut state, &mock);
+    state.dials = serde_json::from_slice(include_bytes!("../data/dials.json")).unwrap();
+    assert_eq!(state.dials.len(), 200);
+
+    let dials = telperion_jev::tuning::judgments::summary(&state)["dials"].clone();
+    let bytes = serde_json::to_vec(&dials).unwrap().len();
+    assert!(
+        bytes < 4096,
+        "the routing state lists {bytes} bytes of dials"
+    );
+    let groups = dials["groups"].as_array().unwrap();
+    let material = groups
+        .iter()
+        .find(|g| g["group"] == "material")
+        .expect("the router is not told the material dials exist");
+    assert_eq!(material["dials"], 91);
+    assert_eq!(material["examples"].as_array().unwrap().len(), 3);
+    // Every group is named, and the whole routing state still fits.
+    assert_eq!(groups.len(), 7);
+    let whole = serde_json::to_vec(&telperion_jev::tuning::judgments::summary(&state))
+        .unwrap()
+        .len();
+    assert!(whole < 24_576, "the routing state is {whole} bytes");
 }

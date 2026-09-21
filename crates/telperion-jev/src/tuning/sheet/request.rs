@@ -65,6 +65,7 @@ pub fn look(
     current: usize,
     variants: &[usize],
     priorities: &[Gap],
+    fixed: Option<&str>,
 ) -> Result<Look, String> {
     if priorities.is_empty() {
         return Err("no tuning-routed priority to review".into());
@@ -74,7 +75,13 @@ pub fn look(
     let mut alive = vec![];
     for index in variants {
         let trial = state.trials.get(*index).ok_or("no variant trial")?;
-        let shared = progress::shared_views(here, trial, state.seed);
+        let mut shared = progress::shared_views(here, trial, state.seed);
+        // A track judged at one view is judged on that view alone: a material
+        // move changes nothing on the whole-tree still, and judging it there
+        // would call every material variant inert.
+        if let Some(view) = fixed {
+            shared.retain(|(v, _)| v == view);
+        }
         if shared.is_empty() {
             not_shown.push(NotShown {
                 trial: *index,
@@ -91,7 +98,15 @@ pub fn look(
             alive.push((*index, shared));
         }
     }
-    let Some(view) = view_for(&alive, priorities) else {
+    let Some(view) = fixed
+        .map(str::to_string)
+        .filter(|view| {
+            alive
+                .iter()
+                .any(|(_, shared)| shared.iter().any(|(v, d)| v == view && *d))
+        })
+        .or_else(|| view_for(&alive, priorities))
+    else {
         return Ok(Look {
             shown: vec![],
             not_shown,

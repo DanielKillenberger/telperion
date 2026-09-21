@@ -26,6 +26,7 @@ pub(super) fn isolate(
     save: Save<'_>,
     old: usize,
     base: &str,
+    track: &str,
     ledger: Option<String>,
     variants: &mut Vec<Variant>,
     start: (String, f64),
@@ -53,7 +54,7 @@ pub(super) fn isolate(
                 continue;
             }
             let overlay = overlay_of(&moves, &state.dials);
-            let drawn = half(&moves, parent.1, base);
+            let drawn = half(&moves, parent.1, base, track);
             let label = format!("bundle@{} half {part}", parent.1);
             match evaluate(
                 state,
@@ -85,7 +86,7 @@ pub(super) fn isolate(
             break;
         }
         let priorities = progress::tuning_priorities(state);
-        let look = services.sheet_request(state, old, &halves, &priorities)?;
+        let look = services.sheet_request(state, old, &halves, &priorities, None)?;
         note_unshown(state, &look);
         let Some(plan) = &look.plan else {
             break;
