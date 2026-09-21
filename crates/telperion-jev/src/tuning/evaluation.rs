@@ -88,6 +88,13 @@ pub struct Trial {
     /// also judged adoptable, when this one was the move that was kept.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub adopted_over: Vec<String>,
+    /// The bundle this trial drew, when the round moved every supported dial
+    /// together. Absent for a single-dial attempt.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bundle: Option<super::bundle::Bundle>,
+    /// The bundle this one is a half of, while a split isolates what breaks.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parent_bundle: Option<String>,
 }
 
 fn completed(receipt: &str) -> Result<Value, String> {
@@ -147,6 +154,8 @@ pub fn evaluate(
     let mut trial = Trial {
         progress: None,
         adopted_over: vec![],
+        bundle: None,
+        parent_bundle: None,
         key,
         identity: identity.into(),
         seed,

@@ -40,6 +40,8 @@ fn placeholder(config: &Config, identity: &str) -> Trial {
     Trial {
         progress: None,
         adopted_over: vec![],
+        bundle: None,
+        parent_bundle: None,
         key: String::new(),
         identity: identity.into(),
         seed: config.seed,

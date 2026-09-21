@@ -80,6 +80,16 @@ pub struct Config {
     /// The adapter the progress review is asked through. Required by `visual`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub progress: Option<progress::Adapter>,
+    /// The adapter the contact sheet is asked through. Required by `bundle`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sheet: Option<progress::Adapter>,
+    /// The strengths one bundle is drawn at, as multiples of each dial's own
+    /// small step. Ascending, one to four of them, each above zero.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bundle_strengths: Option<Vec<f64>>,
+    /// How many sheet reviews one round may spend isolating what breaks.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_split_reviews: Option<u64>,
     pub initial_overrides: Value,
     pub dials: Vec<Dial>,
     pub owner_notes: String,
@@ -157,7 +167,7 @@ impl Config {
             bytes.extend(prepared.preparation.bytes()?);
             bytes.extend(fs::read(&self.vision_protocol).map_err(|e| e.to_string())?);
         }
-        if let Some(review) = &self.progress {
+        for review in [&self.progress, &self.sheet].into_iter().flatten() {
             bytes.extend(fs::read(&review.protocol).map_err(|e| e.to_string())?);
         }
         Ok(sha256_hex(&bytes))
@@ -218,8 +228,40 @@ impl Config {
             .iter()
             .all(|id| self.owner_relabels.iter().any(|r| &r.case_id == id)))
     }
+    /// The strengths a bundle round draws, defaulted and checked.
+    pub fn strengths(&self) -> Result<Vec<f64>, String> {
+        let strengths = self
+            .bundle_strengths
+            .clone()
+            .unwrap_or_else(|| vec![0.5, 1.0, 2.0, 4.0]);
+        if strengths.is_empty()
+            || strengths.len() > 4
+            || strengths.iter().any(|s| !s.is_finite() || *s <= 0.0)
+            || strengths.windows(2).any(|w| w[0] >= w[1])
+        {
+            return Err("bundle strengths must be one to four ascending values above zero".into());
+        }
+        Ok(strengths)
+    }
+    pub fn split_reviews(&self) -> u64 {
+        self.max_split_reviews.unwrap_or(6)
+    }
     pub fn verify(&self) -> Result<(), String> {
-        if !self.selection.is_score() {
+        if self.selection == Selection::Bundle {
+            let sheet = self
+                .sheet
+                .as_ref()
+                .ok_or("bundle selection requires a contact-sheet adapter")?;
+            fs::read(&sheet.protocol)
+                .map_err(|e| format!("contact-sheet protocol unreadable: {e}"))?;
+            self.strengths()?;
+            if !self.visual_bootstrap {
+                return Err(
+                    "bundle selection is uncalibrated; bootstrap authority required".into(),
+                );
+            }
+        }
+        if !self.selection.is_score() && self.selection != Selection::Bundle {
             let progress = self
                 .progress
                 .as_ref()

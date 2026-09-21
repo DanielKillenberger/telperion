@@ -42,6 +42,9 @@ pub enum Selection {
     Score,
     /// The reviewer's comparative verdict decides; the numbers are telemetry.
     Visual,
+    /// One bundle of every dial Jev supported, rendered at several strengths
+    /// and judged on one contact sheet.
+    Bundle,
 }
 
 impl Selection {

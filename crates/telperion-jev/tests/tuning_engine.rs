@@ -232,6 +232,8 @@ impl Services for Mock {
         Trial {
             progress: None,
             adopted_over: vec![],
+            bundle: None,
+            parent_bundle: None,
             key: format!("candidate{}", self.evaluations),
             identity: "input1".into(),
             seed: 1,

@@ -309,6 +309,8 @@ print(json.dumps({'status':'ok','model':'mock','effort':'medium','request_sha256
     let trial = Trial {
         progress: None,
         adopted_over: vec![],
+        bundle: None,
+        parent_bundle: None,
         key: r.identity.clone(),
         identity: identity.clone(),
         seed: 1,

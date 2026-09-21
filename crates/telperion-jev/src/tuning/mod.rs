@@ -1,5 +1,6 @@
 //! Bounded evidence tooling. Numeric selection never awards visual readiness.
 pub mod actions;
+pub mod bundle;
 pub mod calibration;
 pub mod command;
 pub mod continuation;
@@ -20,5 +21,6 @@ pub mod reference_first;
 pub mod replay;
 pub mod round;
 pub mod routing;
+pub mod sheet;
 pub mod state;
 pub mod vision;
