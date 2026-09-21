@@ -85,6 +85,10 @@ The current machinery already provides research stages, typed decisions, gap rec
 
 ## Decision Context
 
+### Round boundary moved into code, 2026-09-21
+
+- fn-68's R11 continuation gate is now a code decision, with one uncalibrated evidence-difference question asked only after a stall on moved evidence, and risk alone asked before a handoff; see "R11 code-first continuation (owner, 2026-09-21)" in the fn-68 spec. The conductor inherits that boundary and must not reintroduce a per-round judgment. [host design]
+
 ### Human priority selection, 2026-09-20
 
 - The owner approved a conversational checkpoint after initial visual discovery: show the proposed top three gaps and evidence, accept confirmation/reordering/missed-gap additions, then autonomously plan, implement, tune and verify those objectives under existing gates. This supersedes fully unattended initial priority selection, not final acceptance. The host records the scoped decision; the owner need not hand-author transport JSON. [user, relayed by host]

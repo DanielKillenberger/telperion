@@ -93,6 +93,14 @@ This spec turns the probe into the loop a species round runs: code steps the dia
 
 ## Decision Context
 
+### R11 code-first continuation (owner, 2026-09-21)
+
+- The owner approved replacing the per-round continuation judgment with a code decision. Verbatim: "ok r11 change makes sense". [user, relayed by host]
+- A first candidate round against the current candidate now proceeds without any judgment, because it is bounded by construction: authored dials only, at most `Config.max_candidates` of them, candidate overlays only, and the existing hard budget and preflight checks still run first and unchanged. A stall whose visual assessment has not moved pauses with no model call at all. Only a repeat on evidence that has moved asks anything, and then exactly one question. [host design]
+- That question is new and **uncalibrated**: `continuation-evidence-v1`, "Does the new evidence differ materially from what the last failed attempt acted on?", choices `different` / `same` / `insufficient_evidence`, at the existing frozen threshold. Only `different` at or above the threshold proceeds. It has no labelled set behind it, and its label, its persisted judgment input and any pause it produces all say so. [host design]
+- The three-question continuation form no longer gates rounds anywhere. `continuation::questions()` and `assess()` remain for the frozen calibration artifacts and their tests, and `Config::verify` still requires that calibration because the threshold comes from it. The pre-dispatch handoff judgment now asks only the risk question, word for word from the same frozen text; a handoff is authorized by a grounded route and bounded risk. [host design]
+- A proposal repeating a (dial, action) that already produced a non-improving or infeasible trial from the same candidate is refused before evaluation and recorded in `routes`. Nothing in that record implies an untried dial was exhausted. [host design]
+
 ### Human gap-priority checkpoint, 2026-09-20
 
 - The owner approved a human checkpoint after initial review: present the top three proposed gaps with reference/render evidence; the owner confirms, reorders or adds missed gaps. The owner chooses **what matters**, not parameter values, implementation mechanics or each small tuning step. This supersedes fully unattended initial priority selection, not final owner acceptance. [user, relayed by host]
