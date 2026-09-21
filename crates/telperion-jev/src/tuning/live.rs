@@ -2,7 +2,7 @@
 use super::{
     actions::{Action, Dial, DIRECTION_VERSION, QUESTION_VERSION},
     calibration,
-    continuation::{self, Assessment, Basis},
+    continuation::{self, Basis},
     engine::{Answer, Proposal, Run, Services},
     evaluation::{self, Image, Trial},
     matched::Matched,
@@ -571,31 +571,29 @@ impl Services for Live<'_> {
     fn visual(&mut self, trial: &Trial) -> Result<Answer<Visual>, String> {
         self.assess_visual(trial, self.visual_cells(trial))
     }
-    fn continuation(&mut self, basis: &Basis) -> Result<Answer<Assessment>, String> {
+    fn risk(&mut self, basis: &Basis) -> Result<Answer<String>, String> {
         let entry = self.ask(
             &serde_json::to_value(basis).unwrap(),
-            &continuation::questions(),
+            &continuation::risk_only(),
         )?;
-        let value = Assessment {
-            identity: basis.identity.clone(),
-            ledger: entry.reference(),
-            tractability: supported(
-                &entry,
-                "tractability",
-                super::judgments::threshold(&self.config.continuation)?,
-            ),
-            progress: supported(
-                &entry,
-                "progress",
-                super::judgments::threshold(&self.config.continuation)?,
-            ),
-            risk: supported(
-                &entry,
-                "risk",
-                super::judgments::threshold(&self.config.continuation)?,
-            ),
-        };
-        Ok(Self::answer(&entry, value))
+        let risk = supported(
+            &entry,
+            "risk",
+            super::judgments::threshold(&self.config.continuation)?,
+        );
+        Ok(Self::answer(&entry, risk))
+    }
+    fn evidence(&mut self, state: &Value) -> Result<Answer<String>, String> {
+        let entry = self.ask(state, &super::round::questions())?;
+        let answer = supported(
+            &entry,
+            super::round::EVIDENCE_QUESTION,
+            super::judgments::threshold(&self.config.continuation)?,
+        );
+        Ok(Self::answer(&entry, answer))
+    }
+    fn evidence_tokens(&self, state: &Value) -> u64 {
+        super::judgments::allowance(state, &super::round::questions())
     }
     fn propose(&mut self, state: &Run) -> Result<Answer<Vec<Proposal>>, String> {
         let questions = super::judgments::proposals(state)?;

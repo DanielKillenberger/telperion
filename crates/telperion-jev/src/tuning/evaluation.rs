@@ -65,6 +65,16 @@ pub struct Trial {
     pub comparisons: Vec<Comparison>,
     pub score: Option<f64>,
     pub seconds: f64,
+    /// The candidate key this round started from. Absent on trials recorded
+    /// before the field existed, and treated as unknown.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub base: Option<String>,
+    /// The adjustment the router proposed, so the same move is not re-bought.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub action: Option<super::actions::Action>,
+    /// The visual receipt the round acted on, so "new evidence" is decidable.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub evidence: Option<String>,
 }
 
 fn completed(receipt: &str) -> Result<Value, String> {
@@ -135,6 +145,9 @@ pub fn evaluate(
         comparisons: vec![],
         score: None,
         seconds: 0.,
+        base: None,
+        action: None,
+        evidence: None,
     };
     let result = (|| {
         let base = telperion_core::presets::Preset::from_id(preset).ok_or("unknown preset")?;

@@ -1,7 +1,6 @@
 //! Per-priority routing and the handoffs it grounds. Nothing here dispatches
 //! repair work; fn-89 owns that.
 use super::{
-    continuation,
     engine::{Run, Services},
     handoff::{self, Attempt, CellOutcome, Handoff, PriorityRoute},
     judgments,
@@ -89,15 +88,13 @@ impl Run {
         basis.estimate_basis =
             "bounded pre-dispatch assessment only; host owns repair estimate".into();
         let allowance = services.continuation_tokens(&basis);
-        self.push_judgment_input(
-            "pre-dispatch continuation",
-            serde_json::to_value(&basis).unwrap(),
-        );
-        self.reserve(0, 0, allowance, 0, "pre-dispatch continuation", save)?;
-        let answer = services.continuation(&basis)?;
-        let assessment = self.settle(answer, allowance)?;
-        self.record_ledger(Some(assessment.ledger.clone()));
-        Ok(continuation::assess(&basis, &self.budget, Some(&assessment), true).is_ok())
+        self.push_judgment_input("pre-dispatch risk", serde_json::to_value(&basis).unwrap());
+        self.reserve(0, 0, allowance, 0, "pre-dispatch risk", save)?;
+        let answer = services.risk(&basis)?;
+        let risk = self.settle(answer, allowance)?;
+        // Only risk is asked now. A grounded route plus bounded risk is what
+        // authorizes a handoff; tractability and progress are no longer asked.
+        Ok(risk == "bounded")
     }
 
     /// Replaces this revision's handoff for the same priority instead of

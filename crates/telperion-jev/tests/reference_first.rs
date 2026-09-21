@@ -327,6 +327,9 @@ print(json.dumps({'status':'ok','model':'mock','effort':'medium','request_sha256
         }],
         score: Some(0.),
         seconds: 0.,
+        base: None,
+        action: None,
+        evidence: None,
     };
     let mut live = Live {
         config: &config,

@@ -51,6 +51,9 @@ fn placeholder(config: &Config, identity: &str) -> Trial {
         comparisons: vec![],
         score: None,
         seconds: 0.,
+        base: None,
+        action: None,
+        evidence: None,
     }
 }
 
@@ -106,10 +109,14 @@ pub fn plan(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<Val
     let all_cell_tokens = services.visual_tokens_for(&trial, approval);
     let priorities = approval.map_or(0, |a| a.ordered.len()) as u64;
     let continuation = services.continuation_tokens(&basis);
+    // Worst case per round: the router, one risk question per approved
+    // priority that could become a handoff, at most one evidence question, and
+    // the proposals.
+    let evidence = services.evidence_tokens(&state.evidence_state());
     let round_tokens = services
         .route_tokens(&state)
         .checked_add(continuation.checked_mul(priorities).ok_or("overflow")?)
-        .and_then(|n| n.checked_add(continuation))
+        .and_then(|n| n.checked_add(evidence))
         .and_then(|n| n.checked_add(services.proposal_tokens(&state)))
         .ok_or("reservation overflow")?;
 

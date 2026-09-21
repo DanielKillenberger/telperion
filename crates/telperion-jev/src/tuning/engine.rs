@@ -1,7 +1,7 @@
 //! One bounded species run. Capability repair is returned to fn-89, never dispatched here.
 use super::{
     actions::{candidate, Action, Dial},
-    continuation::{self, Assessment, Basis, Pause},
+    continuation::{self, Basis, Pause},
     evaluation::Trial,
     state::{ready, Budget, Cell, Visual},
 };
@@ -71,6 +71,9 @@ pub trait Services {
     fn continuation_tokens(&self, _basis: &Basis) -> u64 {
         2000
     }
+    fn evidence_tokens(&self, _state: &Value) -> u64 {
+        2000
+    }
     fn route_tokens(&self, _state: &Run) -> u64 {
         2000
     }
@@ -98,7 +101,10 @@ pub trait Services {
         ledger: Option<String>,
     ) -> Trial;
     fn visual(&mut self, trial: &Trial) -> Result<Answer<Visual>, String>;
-    fn continuation(&mut self, basis: &Basis) -> Result<Answer<Assessment>, String>;
+    /// The pre-dispatch judgment, now the risk question alone.
+    fn risk(&mut self, basis: &Basis) -> Result<Answer<String>, String>;
+    /// The uncalibrated evidence-difference question, asked only after a stall.
+    fn evidence(&mut self, state: &Value) -> Result<Answer<String>, String>;
     fn propose(&mut self, state: &Run) -> Result<Answer<Vec<Proposal>>, String>;
     fn route(&mut self, state: &Run) -> Result<Answer<Vec<super::handoff::PriorityRoute>>, String>;
 }
@@ -488,22 +494,15 @@ impl Run {
                 ));
             }
             self.route_remaining(services, save)?;
-            let allowance = services.continuation_tokens(&basis);
-            self.push_judgment_input(
-                "continuation judgment",
-                serde_json::to_value(&basis).unwrap(),
-            );
-            self.reserve(0, 0, allowance, 0, "continuation judgment", save)?;
-            let answer = services.continuation(&basis)?;
-            let assessment = self.settle(answer, allowance)?;
-            self.record_ledger(Some(assessment.ledger.clone()));
-            continuation::assess(&basis, &self.budget, Some(&assessment), true)?;
+            // Code owns the round boundary; only a repeat after a stall asks.
+            self.settle_round_boundary(services, save)?;
             let allowance = services.proposal_tokens(self);
             self.push_judgment_input("targeted proposals", services.proposal_state(self));
             self.reserve(0, 0, allowance, 1, "targeted proposals", save)?;
             let answer = services.propose(self)?;
             let proposals = self.settle(answer, allowance)?;
             self.record_ledger(proposals.first().map(|p| p.ledger.clone()));
+            let proposals = self.filter_repeats(proposals);
             if proposals.is_empty() {
                 return Err("no supported proposal; bounded diagnosis required".into());
             }
@@ -537,12 +536,16 @@ impl Run {
                     "candidate evaluation",
                     save,
                 )?;
-                let trial = services.evaluate(
+                let mut trial = services.evaluate(
                     overrides,
                     self.budget.rounds,
                     &proposal.dial,
                     Some(proposal.ledger),
                 );
+                // What this attempt moved, from where, and on what evidence.
+                trial.base = Some(self.trials[old].key.clone());
+                trial.action = Some(proposal.action);
+                trial.evidence = self.visual.as_ref().map(|v| v.ledger.clone());
                 self.pending = None;
                 if trial.feasible
                     && trial

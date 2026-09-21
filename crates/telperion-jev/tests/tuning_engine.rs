@@ -1,7 +1,7 @@
 use serde_json::json;
 use telperion_jev::tuning::{
     actions::{Action, Dial},
-    continuation::{Assessment, Basis},
+    continuation::Basis,
     engine::{Answer, Proposal, Run, Services},
     evaluation::Trial,
     handoff::PriorityRoute,
@@ -23,6 +23,12 @@ struct Mock {
     stall: bool,
     /// Continuation calls whose basis names an fn-89 handoff.
     pre_dispatch_calls: u64,
+    /// Evidence-difference questions asked.
+    evidence_calls: u64,
+    evidence_answer: String,
+    /// The adjustment the router proposes; a test changes it to offer a move
+    /// the repeat filter has not already seen.
+    proposal_action: Action,
 }
 
 fn mock() -> Mock {
@@ -36,6 +42,9 @@ fn mock() -> Mock {
         fail_owner_gaps: vec![],
         stall: false,
         pre_dispatch_calls: 0,
+        evidence_calls: 0,
+        evidence_answer: "different".into(),
+        proposal_action: Action::SmallIncrease,
     }
 }
 impl Services for Mock {
@@ -108,6 +117,9 @@ impl Services for Mock {
                 1. / self.evaluations as f64
             }),
             seconds: 0.,
+            base: None,
+            action: None,
+            evidence: None,
         }
     }
     fn visual(&mut self, trial: &Trial) -> Result<Answer<Visual>, String> {
@@ -137,31 +149,32 @@ impl Services for Mock {
             },
         })
     }
-    fn continuation(&mut self, basis: &Basis) -> Result<Answer<Assessment>, String> {
+    fn risk(&mut self, basis: &Basis) -> Result<Answer<String>, String> {
         if basis
             .proposed_action
             .starts_with("fn-89 handoff for owner priority")
         {
             self.pre_dispatch_calls += 1;
         }
-        let supported = if self.continuations.is_empty() {
+        let bounded = if self.continuations.is_empty() {
             true
         } else {
             self.continuations.remove(0)
         };
         Ok(Answer {
             tokens: Some(20),
-            value: Assessment {
-                identity: basis.identity.clone(),
-                ledger: "jev:1".into(),
-                tractability: if supported {
-                    "supported".into()
-                } else {
-                    "insufficient_evidence".into()
-                },
-                progress: "supported".into(),
-                risk: "bounded".into(),
+            value: if bounded {
+                "bounded".into()
+            } else {
+                "insufficient_evidence".into()
             },
+        })
+    }
+    fn evidence(&mut self, _: &serde_json::Value) -> Result<Answer<String>, String> {
+        self.evidence_calls += 1;
+        Ok(Answer {
+            tokens: Some(20),
+            value: self.evidence_answer.clone(),
         })
     }
     fn propose(&mut self, _: &Run) -> Result<Answer<Vec<Proposal>>, String> {
@@ -169,7 +182,7 @@ impl Services for Mock {
             tokens: Some(20),
             value: vec![Proposal {
                 dial: "crookedness".into(),
-                action: Action::SmallIncrease,
+                action: self.proposal_action,
                 ledger: "jev:2".into(),
             }],
         })
@@ -693,7 +706,7 @@ fn mixed_routes_tune_and_hand_off_without_claiming_readiness() {
         .map(|i| i.label.as_str())
         .collect::<Vec<_>>();
     assert!(labels.contains(&"defect routing"));
-    assert!(labels.contains(&"pre-dispatch continuation"));
+    assert!(labels.contains(&"pre-dispatch risk"));
     assert!(labels.contains(&"targeted proposals"));
     for input in &state.judgment_inputs {
         assert_eq!(
@@ -808,7 +821,7 @@ fn re_routing_an_unchanged_candidate_reuses_its_pre_dispatch_judgment() {
     let basis = state
         .judgment_inputs
         .iter()
-        .find(|i| i.label == "pre-dispatch continuation")
+        .find(|i| i.label == "pre-dispatch risk")
         .unwrap();
     let action = basis.state["proposed_action"].as_str().unwrap();
     assert!(
@@ -831,4 +844,160 @@ fn re_routing_an_unchanged_candidate_reuses_its_pre_dispatch_judgment() {
     state.budget.max_rounds = 3;
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     assert_eq!(mock.pre_dispatch_calls, 2);
+}
+
+/// Drives one approved-priority run to the point where rounds begin.
+fn ready_to_round(mock: &mut Mock) -> Run {
+    let mut state = run();
+    state.execute(mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(&mut state, mock, json!([]));
+    state
+}
+
+#[test]
+fn a_first_round_against_a_candidate_buys_no_continuation_judgment() {
+    let mut mock = mock();
+    let mut state = ready_to_round(&mut mock);
+    assert_eq!(
+        state.round_decision(),
+        telperion_jev::tuning::round::Decision::Proceed
+    );
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    // The round ran, and nothing was asked to justify starting it.
+    assert!(mock.evaluations > 1, "the round did not run");
+    assert_eq!(mock.evidence_calls, 0, "a first attempt bought a judgment");
+    assert!(!state
+        .judgment_inputs
+        .iter()
+        .any(|i| i.label.contains("continuation")));
+}
+
+#[test]
+fn a_stall_without_new_evidence_pauses_without_asking_anything() {
+    let mut mock = Mock {
+        stall: true,
+        ..mock()
+    };
+    let mut state = ready_to_round(&mut mock);
+    state.budget.max_rounds = 3;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert_eq!(
+        mock.evidence_calls, 0,
+        "a stall on old evidence paid for a question"
+    );
+    let reason = &state.pause.as_ref().unwrap().reason;
+    assert!(
+        reason.contains("numeric stall without new evidence"),
+        "{reason}"
+    );
+}
+
+#[test]
+fn a_stall_with_new_evidence_asks_exactly_one_question_and_obeys_it() {
+    for (answer, proceeds) in [
+        ("different", true),
+        ("same", false),
+        ("insufficient_evidence", false),
+    ] {
+        let mut mock = Mock {
+            stall: true,
+            evidence_answer: answer.into(),
+            ..mock()
+        };
+        let mut state = ready_to_round(&mut mock);
+        state.budget.max_rounds = 3;
+        state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+        // New evidence arrives: a fresh assessment the last attempt never saw.
+        let mut fresh = state.visual.clone().unwrap();
+        fresh.ledger = "visual:fresh-evidence".into();
+        state.visual = Some(fresh);
+        state.pause = None;
+        // A genuinely different move, so the repeat filter is not what decides.
+        mock.proposal_action = Action::SubstantialIncrease;
+        let before = mock.evaluations;
+        state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+        assert_eq!(
+            mock.evidence_calls, 1,
+            "{answer}: expected exactly one question"
+        );
+        if proceeds {
+            assert!(mock.evaluations > before, "{answer}: the round did not run");
+        } else {
+            assert_eq!(
+                mock.evaluations, before,
+                "{answer}: a refused round still ran"
+            );
+            let reason = &state.pause.as_ref().unwrap().reason;
+            assert!(
+                reason.contains("repeat attempt unjustified"),
+                "{answer}: {reason}"
+            );
+            assert!(reason.contains("uncalibrated"), "{answer}: {reason}");
+        }
+        // The uncalibrated question is persisted like any other judgment.
+        let input = state
+            .judgment_inputs
+            .iter()
+            .find(|i| i.label.contains("uncalibrated"))
+            .unwrap();
+        assert_eq!(
+            input.state_sha256,
+            telperion_jev::sha256_hex(&serde_json::to_vec(&input.state).unwrap())
+        );
+    }
+}
+
+#[test]
+fn a_repeated_dial_and_action_is_refused_before_it_is_evaluated() {
+    let mut mock = Mock {
+        stall: true,
+        ..mock()
+    };
+    let mut state = ready_to_round(&mut mock);
+    state.budget.max_rounds = 3;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    let spent = mock.evaluations;
+
+    // Same candidate, new evidence: the mock proposes the same move again.
+    let mut fresh = state.visual.clone().unwrap();
+    fresh.ledger = "visual:fresh-evidence".into();
+    state.visual = Some(fresh);
+    state.pause = None;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    assert_eq!(
+        mock.evaluations, spent,
+        "the same dial and action was evaluated twice"
+    );
+    assert!(
+        state
+            .routes
+            .iter()
+            .any(|r| r.starts_with("repeat refused: crookedness small_increase")),
+        "{:?}",
+        state.routes
+    );
+    let reason = &state.pause.as_ref().unwrap().reason;
+    assert!(reason.contains("no supported proposal"), "{reason}");
+}
+
+#[test]
+fn handoff_authorization_now_depends_only_on_risk() {
+    for (bounded, authorized) in [(true, true), (false, false)] {
+        let mut mock = Mock {
+            route_plan: vec![("new_capability".into(), 0.9)],
+            continuations: vec![bounded],
+            ..mock()
+        };
+        let mut state = run();
+        state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+        approve_priorities(
+            &mut state,
+            &mock,
+            json!([{"id":"owner-crown","observation":"Crown shape","evidence_ids":["render-0","reference-0"],"views":["whole"]}]),
+        );
+        state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+        let handoff = state.handoffs.first().unwrap();
+        assert_eq!(handoff.dispatch_authorized, authorized, "bounded={bounded}");
+    }
 }

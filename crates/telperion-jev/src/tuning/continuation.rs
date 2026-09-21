@@ -44,6 +44,13 @@ pub fn questions() -> Value {
     })
 }
 
+/// Only the risk question, word for word from `questions()`. The pre-dispatch
+/// judgment asks this alone; tractability and progress are no longer asked.
+pub fn risk_only() -> Value {
+    let all = questions();
+    json!({ "risk": all["risk"] })
+}
+
 pub fn assess(
     basis: &Basis,
     budget: &Budget,
