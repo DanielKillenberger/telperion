@@ -23,3 +23,7 @@ Defect seen: `judgment_inputs[*].ledger` stayed null for the pre-dispatch risk c
 ## Accounting after the pilot
 
 Tokens 876,128 of 1,080,000. Visual passes 31 of 32. Image reservations 46 of 58. Evaluations 8 of 13. Rounds 3 of 3. This pilot alone: 876,128 − 780,159 = 95,969 tokens after preparation, 2 visual passes, 16 images, 2 evaluations.
+
+## Free offline re-read of the frozen magnitude calibration (host, no model call)
+
+Summing probability by direction over the ten frozen magnitude ledgers: every correctly answered case keeps its answer under a rule "direction mass at or above 0.5, take the small step when magnitude is split", and `lower-bound` (expected insufficient_evidence, increase mass 0.44) stays refused. The set contains no case with a clear direction and a split magnitude, so it neither supports nor contradicts that rule. Its cases state the wanted action in one sentence ("Increase by the small authored adjustment, to three limbs") and drew confidences of 0.78 to 1.0; the live proposal input was a 25 KB run summary with reviewer prose and drew 0.18 to 0.59. The frozen set does not represent the live input.
