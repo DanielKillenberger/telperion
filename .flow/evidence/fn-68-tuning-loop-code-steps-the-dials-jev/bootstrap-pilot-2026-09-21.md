@@ -27,3 +27,20 @@ Tokens 876,128 of 1,080,000. Visual passes 31 of 32. Image reservations 46 of 58
 ## Free offline re-read of the frozen magnitude calibration (host, no model call)
 
 Summing probability by direction over the ten frozen magnitude ledgers: every correctly answered case keeps its answer under a rule "direction mass at or above 0.5, take the small step when magnitude is split", and `lower-bound` (expected insufficient_evidence, increase mass 0.44) stays refused. The set contains no case with a clear direction and a split magnitude, so it neither supports nor contradicts that rule. Its cases state the wanted action in one sentence ("Increase by the small authored adjustment, to three limbs") and drew confidences of 0.78 to 1.0; the live proposal input was a 25 KB run summary with reviewer prose and drew 0.18 to 0.59. The frozen set does not represent the live input.
+
+## Second live round, same day (binary at `8eb33922`, gate EXIT=0, 104 suites)
+
+Changes since the first round, all owner-approved: direction-mass acceptance (`direction-mass-v1`, threshold unchanged at 0.5), a focused proposal state, ledger links kept on every judgment, and evidence kept along a chain of cap-only resumes. Two scoped resumes preserved the baseline, both reviews and the approval: round cap 3 to 4 with image cap 58 to 62, then token cap 1,080,000 to 1,150,000 because the byte-sized round reservation (208,954) exceeded the 203,872 remaining; the refused preflight spent nothing.
+
+1. Routing repeated the first round's answer: finding-0 tuning 0.83, finding-1 tuning 0.79, owner-materials appearance 0.74 (10,269/177 tokens). Pre-dispatch risk bounded 0.69 (8,750/46). The materials handoff was written a second time because handoffs are keyed to the exact run identity, which the cap raises changed; `handoffs.json` now holds two copies.
+2. Round boundary: code proceeded, no judgment bought.
+3. Proposals on the focused state: 5,306 bytes against 25,286 before, 3,876/456 tokens against 11,232/464. Direction mass per dial: irregularity up 0.97 (substantial_increase 0.57 alone), crookedness up 0.85, spacing up 0.68, taper down 0.62, limbs up 0.47 (refused), leaves none. With the first round's input five of six dials had answered insufficient_evidence.
+4. One candidate, `max_candidates: 1`, highest mass first: irregularity substantial_increase, envelope irregularity to 0.34. Gates pass. Score 0.26039929 against the baseline's 0.24324871, so code rejected it and the shipped rows are untouched. B-WHOLE outline deviation moved away from the photograph (0.1698 to 0.1431, target 0.2274) and occupied share rose (0.5321 to 0.5464, target 0.4566).
+5. Numeric stall recorded, round limit reached, run paused. No closing review ran because no candidate was adopted; visual passes stay at 31.
+
+## What this establishes
+
+R7: a live direction-and-magnitude round ran end to end on the beech: Jev chose a named action, code computed the value, measured it and rejected it on the score. One evaluated candidate, zero improvements. Against the recorded baselines (0.154 in 13 evaluations, 0.145 in 74) this pilot reached no improvement in 1 candidate evaluation; it is not a controlled comparison because the generator and renderer differ from the prototype's. Magnitude efficacy remains unvalidated: one rejected move proves the measuring and refusing, not that Jev's moves help.
+R10: route, propose, evaluate, select and pause all ran live. The adopt-and-reassess step has still never run live, because nothing has improved yet.
+
+Accounting: tokens 899,702 of 1,150,000; visual passes 31 of 32; images 50 of 62; evaluations 9 of 13; rounds 4 of 4. The second round cost 23,574 tokens, 1 evaluation, 4 images and no visual pass.
