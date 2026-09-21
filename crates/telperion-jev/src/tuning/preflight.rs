@@ -42,6 +42,7 @@ fn placeholder(config: &Config, identity: &str) -> Trial {
         adopted_over: vec![],
         bundle: None,
         parent_bundle: None,
+        sheet: None,
         key: String::new(),
         identity: identity.into(),
         seed: config.seed,
@@ -126,12 +127,25 @@ pub fn plan(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<Val
         .and_then(|n| n.checked_add(services.proposal_tokens(&state)))
         .ok_or("reservation overflow")?;
 
-    let review = (!services.selection().is_score())
+    let bundle = services.selection() == super::progress::Selection::Bundle;
+    let review = (!services.selection().is_score() && !bundle)
         .then(|| super::progress::skeleton(&state, &config.references));
     let review_tokens = review
         .as_ref()
         .map(|r| 30_000 + serde_json::to_vec(r).unwrap().len() as u64)
         .unwrap_or(0);
+    // One bundle at every configured strength, one sheet over it, and the
+    // worst case of the split loop: two halves and a sheet per split review.
+    let strengths = services.bundle_strengths().len() as u64;
+    let splits = services.max_split_reviews();
+    let sheet_tokens = if bundle {
+        30_000
+            + serde_json::to_vec(&super::sheet::skeleton(&state, &config.references))
+                .unwrap()
+                .len() as u64
+    } else {
+        0
+    };
     let sequence = |candidates: u64| {
         let mut steps = vec![
             step("baseline evaluation", 1, services.evaluation_images(), 0, 0),
@@ -151,8 +165,12 @@ pub fn plan(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<Val
             ),
             step(
                 &format!("one round, {candidates} candidates"),
-                candidates,
-                candidates * services.evaluation_images(),
+                if bundle { 0 } else { candidates },
+                if bundle {
+                    0
+                } else {
+                    candidates * services.evaluation_images()
+                },
                 round_tokens,
                 0,
             ),
@@ -164,6 +182,23 @@ pub fn plan(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<Val
                 1,
             ),
         ];
+        if bundle {
+            steps.push(step(
+                &format!("one bundle at {strengths} strengths"),
+                strengths,
+                strengths * services.evaluation_images(),
+                0,
+                0,
+            ));
+            steps.push(step("contact sheet review", 0, 0, sheet_tokens, 1));
+            steps.push(step(
+                &format!("worst case {splits} split sheets"),
+                2 * splits,
+                2 * splits * services.evaluation_images(),
+                splits * sheet_tokens,
+                splits,
+            ));
+        }
         if review_tokens > 0 {
             steps.push(step(
                 &format!("progress review, {candidates} candidates"),

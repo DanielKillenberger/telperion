@@ -5,6 +5,12 @@
 //! at once: on the beech the six pendulous-twig rows are each inert alone
 //! (`hanging-inert-on-beech-2026-09-21.md`). Jev still names directions only,
 //! and code computes every value here.
+mod isolate;
+mod round;
+mod words;
+pub(in crate::tuning) use round::round;
+pub(in crate::tuning) use words::words;
+
 use super::{
     actions::{Action, Dial},
     engine::Proposal,
@@ -261,7 +267,7 @@ pub fn overlay_of(moves: &[Move], dials: &[Dial]) -> Value {
     overlay
 }
 
-fn merge(into: &mut Value, patch: &Value) {
+pub(in crate::tuning) fn merge(into: &mut Value, patch: &Value) {
     match (into, patch) {
         (Value::Object(a), Value::Object(b)) => {
             for (key, value) in b {

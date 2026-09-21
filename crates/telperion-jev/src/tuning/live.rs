@@ -699,6 +699,42 @@ impl Services for Live<'_> {
             .ok_or("progress review has no adapter")?;
         progress::dispatch(adapter, request, side)
     }
+    fn bundle_strengths(&self) -> Vec<f64> {
+        self.config.strengths().unwrap_or_default()
+    }
+    fn max_split_reviews(&self) -> u64 {
+        self.config.split_reviews()
+    }
+    fn sheet_request(
+        &self,
+        state: &Run,
+        current: usize,
+        variants: &[usize],
+        priorities: &[super::priority::Gap],
+    ) -> Result<super::sheet::Look, String> {
+        super::sheet::look(
+            state,
+            &self.config.preset,
+            &self.config.references,
+            current,
+            variants,
+            priorities,
+        )
+    }
+    fn sheet_tokens(&self, request: &super::sheet::Request) -> u64 {
+        30_000 + serde_json::to_vec(request).unwrap().len() as u64
+    }
+    fn sheet(
+        &mut self,
+        plan: &super::sheet::Plan,
+    ) -> Result<Answer<super::sheet::Verdict>, String> {
+        let adapter = self
+            .config
+            .sheet
+            .as_ref()
+            .ok_or("contact-sheet review has no adapter")?;
+        super::sheet::dispatch(adapter, plan)
+    }
     fn proposal_tokens(&self, state: &Run) -> u64 {
         super::judgments::allowance(
             &super::judgments::proposal_state(state),

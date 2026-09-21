@@ -5,7 +5,9 @@ use telperion_jev::tuning::{
     engine::{Answer, Proposal, Run, Services},
     evaluation::{Image, Trial},
     handoff::PriorityRoute,
+    priority::Gap,
     progress::{self, Choice, Selection},
+    sheet::{self, Movement},
     state::{Budget, Cell, CellStatus, Visual},
 };
 
@@ -52,6 +54,18 @@ struct Mock {
     inert_seen: std::cell::Cell<usize>,
     progress_calls: u64,
     proposal_calls: u64,
+    /// Bundle mode: the strengths one bundle is drawn at.
+    strengths: Vec<f64>,
+    /// Sheet reviews one round may spend isolating what breaks.
+    splits: u64,
+    /// Variants the look keeps off the sheet, by trial label and reason.
+    not_shown: Vec<(String, String)>,
+    /// One sheet per review, consumed in order: what each trial key did, and
+    /// anything it breaks. A key the sheet does not name did nothing.
+    sheets: Vec<Vec<(String, Movement, Option<String>)>>,
+    /// The sheet review fails, as a refused answer does.
+    sheet_error: bool,
+    sheet_calls: u64,
 }
 
 fn mock() -> Mock {
@@ -85,6 +99,12 @@ fn mock() -> Mock {
         inert_seen: std::cell::Cell::new(0),
         progress_calls: 0,
         proposal_calls: 0,
+        strengths: vec![0.5, 1.0, 2.0, 4.0],
+        splits: 6,
+        not_shown: vec![],
+        sheets: vec![],
+        sheet_error: false,
+        sheet_calls: 0,
     }
 }
 impl Services for Mock {
@@ -215,6 +235,87 @@ impl Services for Mock {
             ledger: Some("review:1".into()),
         })
     }
+    fn bundle_strengths(&self) -> Vec<f64> {
+        self.strengths.clone()
+    }
+    fn max_split_reviews(&self) -> u64 {
+        self.splits
+    }
+    fn sheet_request(
+        &self,
+        state: &Run,
+        current: usize,
+        variants: &[usize],
+        priorities: &[Gap],
+    ) -> Result<sheet::Look, String> {
+        if priorities.is_empty() {
+            return Err("no tuning-routed priority to review".into());
+        }
+        let (mut shown, mut not_shown, mut stills) = (vec![], vec![], vec![]);
+        for index in variants {
+            let trial = &state.trials[*index];
+            match self.not_shown.iter().find(|(l, _)| l == &trial.label) {
+                Some((_, reason)) => not_shown.push(sheet::NotShown {
+                    trial: *index,
+                    inert: reason.contains("inert"),
+                    reason: reason.clone(),
+                }),
+                None => {
+                    stills.push((trial.key.clone(), still(&trial.key)));
+                    shown.push(*index);
+                }
+            }
+        }
+        if shown.is_empty() {
+            return Ok(sheet::Look {
+                shown,
+                not_shown,
+                plan: None,
+            });
+        }
+        let here = still(&format!("standing on {}", state.trials[current].key));
+        let plan = sheet::plan(
+            "european-beech",
+            "whole",
+            state.seed,
+            &[still("reference")],
+            (&state.trials[current].key, &here),
+            &stills,
+            &priorities
+                .iter()
+                .map(|g| progress::Priority {
+                    id: g.id.clone(),
+                    observation: g.observation.clone(),
+                })
+                .collect::<Vec<_>>(),
+            &state.owner_notes,
+        )?;
+        Ok(sheet::Look {
+            shown,
+            not_shown,
+            plan: Some(plan),
+        })
+    }
+    fn sheet_tokens(&self, _: &sheet::Request) -> u64 {
+        1000
+    }
+    fn sheet(&mut self, plan: &sheet::Plan) -> Result<Answer<sheet::Verdict>, String> {
+        if self.sheet_error {
+            return Err("sheet adapter failed; reservation retained".into());
+        }
+        let spec = self
+            .sheets
+            .get(self.sheet_calls as usize)
+            .cloned()
+            .unwrap_or_default();
+        self.sheet_calls += 1;
+        let answer = sheet_answer(plan, &spec);
+        Ok(Answer {
+            value: sheet::bind(plan, &answer, "sheet:1".into(), "mock".into())?,
+            tokens: Some(10),
+            ledger: Some("sheet:1".into()),
+        })
+    }
     fn evaluation_images(&self) -> u64 {
         4
     }
@@ -234,6 +335,7 @@ impl Services for Mock {
             adopted_over: vec![],
             bundle: None,
             parent_bundle: None,
+            sheet: None,
             key: format!("candidate{}", self.evaluations),
             identity: "input1".into(),
             seed: 1,
@@ -2015,4 +2117,343 @@ fn a_round_with_two_adoptable_moves_records_the_one_it_did_not_keep() {
         .trials
         .iter()
         .any(|t| t.label == "rise_secondary" && t.key == adopted.adopted_over[0]));
+}
+
+/// A sheet answer that says exactly what each variant did, in the terms a test
+/// states them in. The reviewer only ever ranks and grades, so the ranking is
+/// built so that the binding reads those movements back: the clear ones above
+/// the slight ones above the current tree, the indistinguishable ones just
+/// below it, and everything the test called worse below a visible step down.
+fn sheet_answer(plan: &sheet::Plan, spec: &[(String, Movement, Option<String>)]) -> sheet::Answer {
+    let did = |key: &String| {
+        spec.iter()
+            .find(|(k, _, _)| k == key)
+            .map_or(Movement::None, |(_, m, _)| *m)
+    };
+    let label =
+        |key: &String| sheet::Request::label(plan.order.iter().position(|k| k == key).unwrap());
+    let current_key = &plan.order[plan.current.parse::<usize>().unwrap() - 1];
+    let group = |want: Movement| {
+        plan.order
+            .iter()
+            .filter(|key| *key != current_key && did(key) == want)
+            .map(label)
+            .collect::<Vec<String>>()
+    };
+    let (clear, slight) = (group(Movement::Clear), group(Movement::Slight));
+    let (none, worse) = (group(Movement::None), group(Movement::Worse));
+    let mut ranking = clear.clone();
+    ranking.extend(slight.clone());
+    ranking.push(plan.current.clone());
+    ranking.extend(none.clone());
+    ranking.extend(worse.clone());
+    let mut grades = vec![sheet::Grade::None; ranking.len() - 1];
+    if !clear.is_empty() {
+        grades[clear.len() - 1] = sheet::Grade::Clear;
+    }
+    if !slight.is_empty() {
+        grades[clear.len() + slight.len() - 1] = sheet::Grade::Slight;
+    }
+    if !worse.is_empty() {
+        grades[clear.len() + slight.len() + none.len()] = sheet::Grade::Clear;
+    }
+    let steps = ranking
+        .windows(2)
+        .zip(&grades)
+        .map(|(pair, grade)| sheet::Step {
+            from: pair[0].clone(),
+            to: pair[1].clone(),
+            grade: *grade,
+        })
+        .collect::<Vec<_>>();
+    sheet::Answer {
+        priorities: plan
+            .request
+            .priorities
+            .iter()
+            .map(|p| sheet::PriorityAnswer {
+                priority_id: p.id.clone(),
+                closest: ranking[0].clone(),
+                ranking: ranking.clone(),
+                steps: steps.clone(),
+            })
+            .collect(),
+        breaks: spec
+            .iter()
+            .filter_map(|(key, _, text)| {
+                text.as_ref().map(|text| sheet::Break {
+                    render: label(key),
+                    text: text.clone(),
+                })
+            })
+            .collect(),
+        improved: "the outer foliage hangs further".into(),
+        missing: "the crown is still enclosed".into(),
+    }
+}
+
+fn bundle_dial(id: &str, path: &str, min: f64, max: f64, small: f64, group: &str) -> Dial {
+    Dial {
+        id: id.into(),
+        path: path.into(),
+        meaning: "a row".into(),
+        min,
+        max,
+        small,
+        substantial: small * 2.,
+        integer: false,
+        group: Some(group.into()),
+        score_visible: Some(true),
+        meaning_basis: None,
+        range_basis: None,
+        source: None,
+    }
+}
+
+/// A run whose round moves every supported dial together. Two of the three
+/// dials share a group, so a split cuts the pair against the single.
+fn bundle_run() -> (Run, Mock) {
+    let mut state = run();
+    state.budget.max_rounds = 2;
+    state.budget.max_visual_passes = Some(8);
+    state.dials = vec![
+        bundle_dial("twig_hang", "/skeleton/twigs/hang", 0., 3., 0.5, "twigs"),
+        bundle_dial(
+            "rise_secondary",
+            "/skeleton/habit/riseSecondary",
+            -1.,
+            1.,
+            0.2,
+            "habit",
+        ),
+        bundle_dial(
+            "crookedness",
+            "/skeleton/habit/crookedness",
+            0.,
+            15.,
+            1.,
+            "habit",
+        ),
+    ];
+    let proposals = ["twig_hang", "rise_secondary", "crookedness"]
+        .iter()
+        .enumerate()
+        .map(|(i, dial)| Proposal {
+            dial: (*dial).into(),
+            action: Action::SmallIncrease,
+            ledger: format!("jev:{i}"),
+            direction_mass: Some(0.9 - i as f64 / 10.),
+            rule: Some(telperion_jev::tuning::direction::RULE.into()),
+        })
+        .collect();
+    let mock = Mock {
+        selection: Selection::Bundle,
+        route_plan: vec![("tuning".into(), 0.9)],
+        proposals,
+        ..mock()
+    };
+    (state, mock)
+}
+
+/// Runs the baseline, takes the owner's approval, then runs the round.
+fn to_the_round(state: &mut Run, mock: &mut Mock) {
+    state.execute(mock, &mut |_| Ok(())).unwrap();
+    approve_one(state, mock);
+    state.execute(mock, &mut |_| Ok(())).unwrap();
+}
+
+fn did(label: &str, movement: Movement) -> (String, Movement, Option<String>) {
+    (label.into(), movement, None)
+}
+
+/// The trial keys the mock hands out, in evaluation order: the baseline first,
+/// then one per variant the round drew.
+fn key(n: u64) -> String {
+    format!("candidate{n}")
+}
+
+#[test]
+fn four_strengths_are_judged_on_one_sheet_and_the_smallest_clear_one_is_kept() {
+    let (mut state, mut mock) = bundle_run();
+    mock.sheets = vec![vec![
+        did(&key(2), Movement::Clear),
+        did(&key(3), Movement::Clear),
+        did(&key(4), Movement::Slight),
+        did(&key(5), Movement::None),
+    ]];
+    to_the_round(&mut state, &mut mock);
+
+    assert_eq!(mock.sheet_calls, 1, "one sheet judged the whole round");
+    assert_eq!(mock.evaluations, 5, "the baseline and four strengths");
+    let variants: Vec<&Trial> = state.trials.iter().filter(|t| t.bundle.is_some()).collect();
+    assert_eq!(variants.len(), 4);
+    assert!(variants.iter().all(|t| t.sheet.is_some()));
+    assert!(variants
+        .iter()
+        .all(|t| t.bundle.as_ref().unwrap().moves.len() == 3));
+    let adopted = &state.trials[state.current.unwrap()];
+    assert_eq!(
+        adopted.label, "bundle@0.5",
+        "a clear variant at a larger strength was kept instead"
+    );
+    assert_eq!(
+        adopted.adopted_over.len(),
+        2,
+        "the other clear variant and the slight one are not recorded: {:?}",
+        adopted.adopted_over
+    );
+    assert!(state
+        .judgment_inputs
+        .iter()
+        .any(|i| i.label == "uncalibrated sheet review"));
+    assert!(state.pending.is_none());
+}
+
+#[test]
+fn a_variant_that_draws_the_current_tree_or_another_variant_is_never_shown() {
+    let (mut state, mut mock) = bundle_run();
+    mock.not_shown = vec![
+        (
+            "bundle@0.5".into(),
+            telperion_jev::tuning::sheet::INERT.into(),
+        ),
+        ("bundle@2".into(), "draws the same tree as bundle@1".into()),
+    ];
+    mock.sheets = vec![vec![did(&key(3), Movement::Clear)]];
+    to_the_round(&mut state, &mut mock);
+
+    assert_eq!(mock.sheet_calls, 1);
+    let unshown: Vec<&Trial> = state
+        .trials
+        .iter()
+        .filter(|t| t.label == "bundle@0.5" || t.label == "bundle@2")
+        .collect();
+    assert_eq!(unshown.len(), 2, "both variants were still evaluated");
+    assert!(unshown[0].sheet.as_ref().unwrap().inert);
+    assert!(!unshown[1].sheet.as_ref().unwrap().inert);
+    assert!(unshown
+        .iter()
+        .all(|t| t.sheet.as_ref().unwrap().per_priority.is_empty()));
+    assert_eq!(
+        state
+            .routes
+            .iter()
+            .filter(|r| r.contains("not shown"))
+            .count(),
+        2
+    );
+    assert_eq!(state.trials[state.current.unwrap()].label, "bundle@1");
+}
+
+#[test]
+fn a_break_halves_the_bundle_and_the_clean_half_is_the_one_kept() {
+    let (mut state, mut mock) = bundle_run();
+    mock.sheets = vec![
+        // The whole bundle is better and breaks something; nothing else moved.
+        vec![(key(3), Movement::Clear, Some("the bole is bare".into()))],
+        // Of its two halves, the pair is clean and the single one did nothing.
+        vec![did(&key(6), Movement::Clear), did(&key(7), Movement::None)],
+    ];
+    to_the_round(&mut state, &mut mock);
+
+    assert_eq!(
+        mock.sheet_calls, 2,
+        "one sheet for the bundle, one to split"
+    );
+    let halves: Vec<&Trial> = state
+        .trials
+        .iter()
+        .filter(|t| t.parent_bundle.is_some())
+        .collect();
+    assert_eq!(halves.len(), 2);
+    let parent = state
+        .trials
+        .iter()
+        .find(|t| t.label == "bundle@1")
+        .and_then(|t| t.bundle.as_ref())
+        .unwrap();
+    assert!(halves
+        .iter()
+        .all(|t| t.parent_bundle.as_deref() == Some(parent.id.as_str())));
+    assert_eq!(
+        halves
+            .iter()
+            .map(|t| t.bundle.as_ref().unwrap().moves.len())
+            .sum::<usize>(),
+        3,
+        "the halves together are the bundle"
+    );
+    let adopted = &state.trials[state.current.unwrap()];
+    assert!(
+        adopted.label.starts_with("bundle@1 half"),
+        "{}",
+        adopted.label
+    );
+    assert_eq!(adopted.bundle.as_ref().unwrap().moves.len(), 2);
+    assert!(state.pause.is_none(), "{:?}", state.pause);
+}
+
+#[test]
+fn a_round_nothing_improves_stalls_and_the_same_bundle_is_not_bought_twice() {
+    let (mut state, mut mock) = bundle_run();
+    mock.sheets = vec![vec![]];
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_one(&mut state, &mock);
+    let before = state.current;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    assert_eq!(state.current, before, "nothing was adopted");
+    assert!(
+        state
+            .routes
+            .iter()
+            .any(|r| r == "bundle stall; no strength judged better"),
+        "{:?}",
+        state.routes
+    );
+    // The reviewer's words survive on every variant it looked at.
+    assert!(state
+        .trials
+        .iter()
+        .filter_map(|t| t.sheet.as_ref())
+        .all(|s| s.missing == "the crown is still enclosed"));
+    let attempts = serde_json::to_string(
+        &telperion_jev::tuning::judgments::proposal_state(&state)["attempts_from_this_candidate"],
+    )
+    .unwrap();
+    assert!(attempts.contains("twig_hang") && attempts.contains("\"strength\":0.5"));
+    assert!(attempts.contains("the crown is still enclosed"));
+    // The next round proposes the same directions from the same tree, so it
+    // buys nothing at all.
+    assert_eq!(mock.evaluations, 5);
+    assert_eq!(mock.sheet_calls, 1);
+    assert_eq!(
+        state.pause.as_ref().unwrap().reason,
+        "bundle already tried; no new direction"
+    );
+}
+
+#[test]
+fn a_refused_sheet_answer_leaves_a_recoverable_attempt() {
+    let (mut state, mut mock) = bundle_run();
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_one(&mut state, &mock);
+    mock.sheet_error = true;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    assert_eq!(state.pending.as_deref(), Some("sheet review"));
+    assert!(state
+        .pause
+        .as_ref()
+        .unwrap()
+        .reason
+        .contains("reservation retained"));
+    let charged = serde_json::to_value(&state.budget).unwrap();
+    state.pause = None;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert_eq!(
+        state.pause.as_ref().unwrap().reason,
+        "interrupted attempt; reservation retained"
+    );
+    assert_eq!(serde_json::to_value(&state.budget).unwrap(), charged);
 }

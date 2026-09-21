@@ -205,7 +205,8 @@ impl Run {
             .iter()
             .enumerate()
             .filter(|(_, t)| {
-                self.measured_here(&t.identity) && self.dials.iter().any(|d| d.id == t.label)
+                self.measured_here(&t.identity)
+                    && (t.bundle.is_some() || self.dials.iter().any(|d| d.id == t.label))
             })
             .map(|(i, t)| Attempt {
                 review: super::progress::words(t),

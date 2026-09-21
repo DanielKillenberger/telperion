@@ -12,8 +12,8 @@ mod request;
 mod verdict;
 pub(in crate::tuning) use adapter::shell;
 pub use adapter::{dispatch, envelope};
-pub(in crate::tuning) use request::redacted;
 pub use request::{candidate_side, inert, prompt_request, request, Look};
+pub(in crate::tuning) use request::{redacted, shared_views, still};
 pub use verdict::{bind, Answer, Choice, Judgment, Movement, Note, On, Regression, Verdict};
 
 use super::{
@@ -178,20 +178,27 @@ pub(super) fn chosen(
 
 /// Why a round adopted nothing, in the words of the rule that decided.
 pub(super) fn stall(selection: Selection) -> String {
-    if selection.is_score() {
-        "numeric stall; reassess remaining defect and recent failed attempts".into()
-    } else {
-        "visual stall; no candidate judged better".into()
+    match selection {
+        Selection::Score => {
+            "numeric stall; reassess remaining defect and recent failed attempts".into()
+        }
+        Selection::Visual => "visual stall; no candidate judged better".into(),
+        Selection::Bundle => "bundle stall; no strength judged better".into(),
     }
 }
 
-/// The reviewer's words about one attempt, for whoever is asked next.
+/// The reviewer's words about one attempt, for whoever is asked next. A
+/// bundle attempt answers with what it moved as well as how it was judged.
 pub fn words(trial: &Trial) -> Option<Value> {
-    trial.progress.as_ref().map(|p| {
-        json!({"per_priority":p.per_priority,"improved":p.improved,"missing":p.missing,
+    trial
+        .progress
+        .as_ref()
+        .map(|p| {
+            json!({"per_priority":p.per_priority,"improved":p.improved,"missing":p.missing,
             "regressions":p.regressions,"inert":p.inert,"note":p.note,
             "uncalibrated":UNCALIBRATED})
-    })
+        })
+        .or_else(|| super::bundle::words(trial))
 }
 
 /// What a round would send, for pricing before any candidate exists.

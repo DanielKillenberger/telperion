@@ -1,12 +1,14 @@
 //! The bundle a round moves, and the contact sheet that judges it. Pure
 //! arithmetic and pure rules: no dispatch, no render, no model.
+mod fixture;
+
 use serde_json::{json, Value};
 use std::fs;
 use telperion_jev::tuning::{
     actions::{Action, Dial},
     bundle,
     engine::Proposal,
-    evaluation::Image,
+    evaluation::{Comparison, Image, Trial},
     progress::Priority,
     sheet::{self, Answer, Break, Grade, Movement, PriorityAnswer, Step},
 };
@@ -498,4 +500,121 @@ fn the_round_keeps_the_clearest_improvement_that_breaks_nothing() {
     .unwrap();
     assert_eq!(sheet::adopt(&flat, &shown), None);
     assert_eq!(sheet::to_split(&flat, &shown), None);
+}
+
+// --- which variants the sheet is worth showing ---
+
+fn variant(key: &str, label: &str, strength: f64, images: Vec<Image>) -> Trial {
+    let mut trial = Trial {
+        key: key.into(),
+        identity: "progress-fixture".into(),
+        seed: 1,
+        round: 1,
+        label: label.into(),
+        overrides: json!({}),
+        ledger: None,
+        feasible: true,
+        reason: None,
+        measurement: json!({}),
+        comparisons: vec![Comparison {
+            reference: "whole".into(),
+            reference_weight: 1.,
+            metric_weights: [1.; 5],
+            target: [1.; 5],
+            observed: [None; 5],
+            images,
+        }],
+        score: Some(0.2),
+        seconds: 0.,
+        base: None,
+        action: None,
+        evidence: None,
+        direction_mass: None,
+        rule: None,
+        progress: None,
+        adopted_over: vec![],
+        bundle: None,
+        parent_bundle: None,
+        sheet: None,
+    };
+    trial.bundle = Some(bundle::Bundle {
+        strength,
+        moves: vec![bundle::Move {
+            dial: "twig_hang".into(),
+            direction: "up".into(),
+            from: 0.,
+            to: strength,
+        }],
+        dropped: vec![],
+        id: format!("bundle-{strength}"),
+    });
+    trial
+}
+
+fn gap() -> telperion_jev::tuning::priority::Gap {
+    telperion_jev::tuning::priority::Gap {
+        id: "owner-crown".into(),
+        observation: "Crown shape and foliage organization".into(),
+        evidence_ids: vec!["render-0".into()],
+        views: vec!["whole".into()],
+    }
+}
+
+#[test]
+fn a_variant_that_draws_the_current_tree_or_a_twin_never_reaches_the_sheet() {
+    let view = |body: &str| vec![still("whole", body)];
+    let current = variant("current", "baseline", 0., view("current"));
+    let state = fixture::progress_run(vec![
+        current.clone(),
+        // Byte for byte the current tree: nothing to ask about.
+        variant("half", "bundle@0.5", 0.5, view("current")),
+        variant("one", "bundle@1", 1., view("one")),
+        // The same picture as the variant before it, at a larger strength.
+        variant("two", "bundle@2", 2., view("one")),
+        variant("four", "bundle@4", 4., view("four")),
+    ]);
+    let look = sheet::look(
+        &state,
+        "european-beech",
+        &[still("whole", "reference")],
+        0,
+        &[1, 2, 3, 4],
+        &[gap()],
+    )
+    .unwrap();
+
+    assert_eq!(look.shown, vec![2, 4], "{:?}", look.not_shown);
+    assert_eq!(look.not_shown.len(), 2);
+    assert!(look.not_shown[0].inert && look.not_shown[0].trial == 1);
+    assert!(
+        !look.not_shown[1].inert && look.not_shown[1].reason.contains("bundle@1"),
+        "the larger strength is the one dropped: {:?}",
+        look.not_shown[1]
+    );
+    let plan = look.plan.unwrap();
+    assert_eq!(
+        plan.request.renders.len(),
+        3,
+        "the current tree and two variants"
+    );
+    assert_eq!(
+        plan.order[plan.current.parse::<usize>().unwrap() - 1],
+        "current"
+    );
+
+    // Nothing that differs is a sheet nobody is paid for.
+    let flat = fixture::progress_run(vec![
+        current,
+        variant("twin", "bundle@1", 1., view("current")),
+    ]);
+    let look = sheet::look(
+        &flat,
+        "european-beech",
+        &[still("whole", "reference")],
+        0,
+        &[1],
+        &[gap()],
+    )
+    .unwrap();
+    assert!(look.plan.is_none() && look.shown.is_empty() && look.not_shown[0].inert);
 }

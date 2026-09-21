@@ -95,6 +95,10 @@ pub struct Trial {
     /// The bundle this one is a half of, while a split isolates what breaks.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub parent_bundle: Option<String>,
+    /// This variant's row of the contact sheet that judged it, or the reason
+    /// code kept it off one. Present only under bundle selection.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sheet: Option<super::sheet::Outcome>,
 }
 
 fn completed(receipt: &str) -> Result<Value, String> {
@@ -156,6 +160,7 @@ pub fn evaluate(
         adopted_over: vec![],
         bundle: None,
         parent_bundle: None,
+        sheet: None,
         key,
         identity: identity.into(),
         seed,

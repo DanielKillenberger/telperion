@@ -8,7 +8,13 @@
 //! review: bootstrap authority only, labelled uncalibrated wherever recorded,
 //! and one visual pass per sheet.
 mod adapter;
+mod outcome;
+mod request;
+mod review;
 pub use adapter::{dispatch, envelope, prompt_request};
+pub use outcome::Outcome;
+pub use request::{look, skeleton, Look, NotShown, INERT};
+pub(in crate::tuning) use review::review;
 
 use super::{evaluation::Image, progress::Priority};
 use crate::sha256_hex;
@@ -20,6 +26,8 @@ pub const VERSION: &str = "tuning-sheet-v1";
 pub const UNCALIBRATED: &str =
     "uncalibrated contact-sheet review: a ranking and a graded comparison, never a score or a readiness claim";
 pub const PENDING: &str = "sheet review";
+/// What the persisted judgment input is called, before the sheet is asked.
+pub const INPUT_LABEL: &str = "uncalibrated sheet review";
 pub const PROMPT: &str = "You are shown reference photographs of a tree species, then several renders of the same generated tree at one view and seed, numbered 1 upward. They differ by how far one set of parameters was moved; nothing here says which render is the starting point or in what order they were made.\n\nFor each listed priority: name the render closest to the references, then rank every render from best to worst for that priority, then grade each adjacent pair of your own ranking - clear when the better one is plainly better on that priority, slight when the difference is real but small, none when you cannot tell them apart.\n\nThen list anything a render breaks that the others do not, naming the render, and say in one or two sentences what improved across the set and what is still missing in all of them against the references.\n\nGive no numbers, no scores and no overall winner.";
 
 /// What the reviewer is sent. The renders are numbered, and nothing says

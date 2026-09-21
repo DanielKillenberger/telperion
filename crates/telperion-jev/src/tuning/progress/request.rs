@@ -49,7 +49,11 @@ pub enum Look {
 
 /// Every view both trials hold a still for at the run's seed, in the
 /// candidate's own order, and whether the two stills differ.
-fn shared_views(current: &Trial, candidate: &Trial, seed: u32) -> Vec<(String, bool)> {
+pub(in crate::tuning) fn shared_views(
+    current: &Trial,
+    candidate: &Trial,
+    seed: u32,
+) -> Vec<(String, bool)> {
     let stills = |t: &Trial| {
         t.comparisons
             .iter()
@@ -90,7 +94,7 @@ pub fn inert() -> Verdict {
     }
 }
 
-fn still(trial: &Trial, view: &str, seed: u32) -> Option<Image> {
+pub(in crate::tuning) fn still(trial: &Trial, view: &str, seed: u32) -> Option<Image> {
     trial
         .comparisons
         .iter()

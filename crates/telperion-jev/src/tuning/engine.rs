@@ -100,6 +100,34 @@ pub trait Services {
     ) -> Result<Answer<super::progress::Verdict>, String> {
         Err("progress review unavailable".into())
     }
+    /// The strengths one bundle is drawn at, as multiples of each dial's own
+    /// authored small step.
+    fn bundle_strengths(&self) -> Vec<f64> {
+        vec![0.5, 1.0, 2.0, 4.0]
+    }
+    /// How many sheet reviews one round may spend isolating what breaks.
+    fn max_split_reviews(&self) -> u64 {
+        6
+    }
+    /// Which variants a sheet is worth showing, and the sheet it asks for.
+    fn sheet_request(
+        &self,
+        _state: &Run,
+        _current: usize,
+        _variants: &[usize],
+        _priorities: &[super::priority::Gap],
+    ) -> Result<super::sheet::Look, String> {
+        Err("contact-sheet review unavailable".into())
+    }
+    fn sheet_tokens(&self, _request: &super::sheet::Request) -> u64 {
+        0
+    }
+    fn sheet(
+        &mut self,
+        _plan: &super::sheet::Plan,
+    ) -> Result<Answer<super::sheet::Verdict>, String> {
+        Err("contact-sheet review unavailable".into())
+    }
     fn continuation_tokens(&self, _basis: &Basis) -> u64 {
         2000
     }
@@ -423,7 +451,7 @@ impl Run {
         }
         Ok(answer.value)
     }
-    fn assess(
+    pub(super) fn assess(
         &mut self,
         services: &mut dyn Services,
         save: &mut dyn FnMut(&Self) -> Result<(), String>,
@@ -592,6 +620,17 @@ impl Run {
                     .unwrap_or(0.)
                     .total_cmp(&a.direction_mass.unwrap_or(0.))
             });
+            // One bundle of every dial Jev supported, judged on one sheet.
+            if services.selection() == super::progress::Selection::Bundle {
+                let kept = super::bundle::round(self, proposals, services, save)?;
+                if kept && self.bootstrap_finalist(save)? {
+                    return Ok(());
+                }
+                if kept && self.machine_ready {
+                    break;
+                }
+                continue;
+            }
             let (mut proposals, repeats) = self.filter_repeats(proposals);
             if proposals.is_empty() {
                 return Err(if repeats > 0 {

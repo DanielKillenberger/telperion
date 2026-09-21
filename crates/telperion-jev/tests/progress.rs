@@ -58,6 +58,7 @@ fn trial(key: &str, images: Vec<Image>) -> Trial {
         adopted_over: vec![],
         bundle: None,
         parent_bundle: None,
+        sheet: None,
     }
 }
 
