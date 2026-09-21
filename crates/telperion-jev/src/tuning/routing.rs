@@ -177,6 +177,7 @@ impl Run {
             proposed_investigation,
             proposed_spending: None,
             proposed_spending_note: handoff::SPENDING_NOTE.into(),
+            bootstrap: self.visual_bootstrap,
         })
     }
 

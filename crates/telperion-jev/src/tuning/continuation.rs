@@ -303,6 +303,10 @@ pub struct BaselineAmendment {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct PilotAuthority {
+    /// The authority must name the bootstrap mode explicitly; a run cannot
+    /// slip into it on a config flag alone.
+    #[serde(default)]
+    pub visual_bootstrap: bool,
     pub purpose: String,
     pub reason: String,
     pub next_identity: String,

@@ -140,6 +140,14 @@ pub struct Run {
     pub handoffs: Vec<super::handoff::Handoff>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub judgment_inputs: Vec<JudgmentInput>,
+    /// The reviewer has not been shown to pass an owner-accepted tree, so this
+    /// run can never be machine ready.
+    #[serde(default)]
+    pub visual_bootstrap: bool,
+    /// The reviewer passed every required cell, which under bootstrap is a
+    /// prompt for an owner look, not readiness.
+    #[serde(default)]
+    pub reviewer_passed_unqualified: bool,
 }
 
 fn merge(target: &mut Value, patch: &Value) {
@@ -237,11 +245,32 @@ impl Run {
         Ok(false)
     }
     pub fn pilot_authority(&self) -> Result<(), String> {
-        self.authorizations
+        let authority = self
+            .authorizations
             .last()
             .and_then(|d| d.experimental_pilot.as_ref())
-            .ok_or("magnitude live efficacy unvalidated")?
-            .verify(&self.identity, &self.budget)
+            .ok_or("magnitude live efficacy unvalidated")?;
+        if authority.visual_bootstrap != self.visual_bootstrap {
+            return Err("bootstrap run requires authority naming visual_bootstrap".into());
+        }
+        authority.verify(&self.identity, &self.budget)
+    }
+
+    /// Under bootstrap a reviewer pass stops the loop for an owner look
+    /// instead of finishing it.
+    fn bootstrap_finalist(
+        &mut self,
+        save: &mut dyn FnMut(&Self) -> Result<(), String>,
+    ) -> Result<bool, String> {
+        if !self.visual_bootstrap || !self.reviewer_passed_unqualified {
+            return Ok(false);
+        }
+        self.stop(
+            "reviewer passed all required cells; reviewer unqualified for positives (bootstrap); owner look required".into(),
+            "owner look at bootstrap finalist",
+        );
+        save(self)?;
+        Ok(true)
     }
     pub(super) fn stop(&mut self, reason: String, action: &str) {
         self.machine_ready = false;
@@ -383,7 +412,10 @@ impl Run {
         self.verify_diagnoses()?;
         let answer = services.visual_for(&trial, &required, approval.as_ref())?;
         let visual = self.settle(answer, allowance)?;
-        self.machine_ready = approval.is_some() && ready(&required, &trial.key, &visual);
+        let passed = approval.is_some() && ready(&required, &trial.key, &visual);
+        // Bootstrap never awards readiness: a pass here is an owner prompt.
+        self.reviewer_passed_unqualified = passed && self.visual_bootstrap;
+        self.machine_ready = passed && !self.visual_bootstrap;
         self.visual = Some(visual);
         save(self)
     }
@@ -448,10 +480,15 @@ impl Run {
         }) {
             self.assess(services, save)?;
         } else {
-            self.machine_ready = self
+            let passed = self
                 .current
                 .zip(self.visual.as_ref())
                 .is_some_and(|(i, v)| ready(&required, &self.trials[i].key, v));
+            self.reviewer_passed_unqualified = passed && self.visual_bootstrap;
+            self.machine_ready = passed && !self.visual_bootstrap;
+        }
+        if self.bootstrap_finalist(save)? {
+            return Ok(());
         }
         while !self.machine_ready {
             if !self.priority_gate(services, save)? {
@@ -571,6 +608,9 @@ impl Run {
             self.effective = best_effective;
             self.overrides = self.trials[best].overrides.clone();
             self.assess(services, save)?;
+            if self.bootstrap_finalist(save)? {
+                return Ok(());
+            }
             if self.machine_ready {
                 break;
             }

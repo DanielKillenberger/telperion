@@ -321,6 +321,8 @@ fn run() -> Run {
         priority_checkpoints: vec![],
         handoffs: vec![],
         judgment_inputs: vec![],
+        visual_bootstrap: false,
+        reviewer_passed_unqualified: false,
     }
 }
 
@@ -999,5 +1001,48 @@ fn handoff_authorization_now_depends_only_on_risk() {
         state.execute(&mut mock, &mut |_| Ok(())).unwrap();
         let handoff = state.handoffs.first().unwrap();
         assert_eq!(handoff.dispatch_authorized, authorized, "bounded={bounded}");
+    }
+}
+
+#[test]
+fn a_passing_visual_is_readiness_normally_and_an_owner_prompt_under_bootstrap() {
+    for bootstrap in [false, true] {
+        let mut mock = mock();
+        // The third assessment passes every cell, which is where the engine
+        // would otherwise finish.
+        mock.visuals = 2;
+        let mut state = run();
+        state.visual_bootstrap = bootstrap;
+        state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+        approve_priorities(&mut state, &mock, json!([]));
+        state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+        assert_eq!(
+            state.machine_ready, !bootstrap,
+            "bootstrap={bootstrap}: machine_ready"
+        );
+        assert_eq!(
+            state.reviewer_passed_unqualified, bootstrap,
+            "bootstrap={bootstrap}: reviewer_passed_unqualified"
+        );
+        if bootstrap {
+            let pause = state.pause.as_ref().expect("bootstrap must pause");
+            assert!(
+                pause.reason.contains("owner look required"),
+                "{}",
+                pause.reason
+            );
+            assert!(
+                pause.reason.contains("reviewer unqualified for positives"),
+                "{}",
+                pause.reason
+            );
+            assert_eq!(
+                pause.basis.proposed_action,
+                "owner look at bootstrap finalist"
+            );
+        } else {
+            assert!(state.pause.is_none(), "{:?}", state.pause);
+        }
     }
 }

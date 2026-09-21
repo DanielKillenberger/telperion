@@ -109,6 +109,9 @@ pub struct Handoff {
     pub proposed_investigation: String,
     pub proposed_spending: Option<Value>,
     pub proposed_spending_note: String,
+    /// Raised in a bootstrap run, where no readiness was ever available.
+    #[serde(default)]
+    pub bootstrap: bool,
 }
 
 /// Findings the checkpoint used for this gap. A reviewer gap names its finding

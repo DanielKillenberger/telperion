@@ -267,6 +267,7 @@ pub fn prepare(
             old.current = None;
         }
         old.identity = identity.clone();
+        old.visual_bootstrap = config.visual_bootstrap;
         old.seed = config.seed;
         old.dials = config.dials.clone();
         old.owner_notes = config.owner_notes.clone();
@@ -312,6 +313,8 @@ pub fn prepare(
             priority_checkpoints: vec![],
             handoffs: vec![],
             judgment_inputs: vec![],
+            visual_bootstrap: config.visual_bootstrap,
+            reviewer_passed_unqualified: false,
         }
     };
     Ok(Prepared::Ready(Box::new(state)))
@@ -368,13 +371,17 @@ pub fn run_with(
             write(
                 &out.join("handoffs.json"),
                 &json!({"meaning":"Evidence-backed gap handoffs for fn-89. An outstanding gap is never machine readiness, and an unauthorized handoff dispatches nothing.",
+                "bootstrap":state.visual_bootstrap,
                 "unresolved_priorities":state.unresolved_priorities(),"handoffs":state.handoffs}),
             )?;
         }
         write(
             &out.join("finalists.json"),
-            &json!({"owner_acceptance":"pending",
-            "machine_ready":state.machine_ready,"candidates":state.finalists()}),
+            &json!({"owner_acceptance":"pending","bootstrap":state.visual_bootstrap,
+            "machine_ready":state.machine_ready,
+            "reviewer_passed_unqualified":state.reviewer_passed_unqualified,
+            "meaning":"reviewer has never been shown to pass an owner-accepted tree",
+            "candidates":state.finalists()}),
         )?;
         Ok(())
     };
@@ -414,6 +421,10 @@ pub fn run_with(
     if state.pause.is_some() {
         return Err("paused; see run.json".into());
     }
-    println!("machine ready; owner acceptance remains pending");
+    if state.visual_bootstrap {
+        println!("bootstrap run; no readiness is claimed and an owner look is required");
+    } else {
+        println!("machine ready; owner acceptance remains pending");
+    }
     Ok(())
 }

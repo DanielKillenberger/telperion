@@ -19,6 +19,43 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::{fs, path::PathBuf};
 
+fn is_false(value: &bool) -> bool {
+    !value
+}
+
+/// An owner's recorded verdict that a replay case's expected label was wrong.
+/// It never rewrites the manifest or the result; it only records that the
+/// rejection was correct.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct OwnerRelabel {
+    pub case_id: String,
+    pub by: String,
+    /// The owner's words, verbatim, which must appear in the evidence file.
+    pub verdict: String,
+    pub evidence: PathBuf,
+    pub sha256: String,
+}
+
+impl OwnerRelabel {
+    pub fn verify(&self) -> Result<(), String> {
+        if self.case_id.trim().is_empty()
+            || self.by.trim().is_empty()
+            || self.verdict.trim().is_empty()
+        {
+            return Err("owner relabel lacks a case, an author or a verdict".into());
+        }
+        let bytes = fs::read(&self.evidence).map_err(|e| format!("owner relabel: {e}"))?;
+        if sha256_hex(&bytes) != self.sha256 {
+            return Err("owner relabel evidence changed".into());
+        }
+        if !String::from_utf8_lossy(&bytes).contains(&self.verdict) {
+            return Err("owner relabel verdict is not in its evidence".into());
+        }
+        Ok(())
+    }
+}
+
 /// The engine refuses more than this many candidates in one round.
 pub const CANDIDATE_LIMIT: u64 = 4;
 
@@ -58,6 +95,13 @@ pub struct Config {
     /// engine's own limit of four; a lower bound buys a cheaper round.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_candidates: Option<u64>,
+    /// The reviewer has never been shown to pass an owner-accepted tree, so a
+    /// replay with no positive is admitted and no run can claim readiness.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub visual_bootstrap: bool,
+    /// Owner verdicts that a falsely-rejected replay case was labelled wrong.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub owner_relabels: Vec<OwnerRelabel>,
     pub judgment_model: String,
     #[serde(default)]
     pub gap_specs: std::collections::BTreeMap<String, String>,
@@ -125,6 +169,39 @@ impl Config {
             })
             .transpose()
     }
+    /// True when every falsely-rejected case carries an owner verdict naming
+    /// it. Only reachable under bootstrap; it never touches the manifest.
+    fn relabelled_rejections(&self, manifest: &[u8], result: &Value) -> Result<bool, String> {
+        if !self.visual_bootstrap || self.owner_relabels.is_empty() {
+            return Ok(false);
+        }
+        let replay: super::reference_first::Replay =
+            serde_json::from_slice(manifest).map_err(|e| e.to_string())?;
+        let observed: super::reference_first::ReplayResult =
+            serde_json::from_value(result.clone()).map_err(|e| e.to_string())?;
+        let mut rejected = vec![];
+        for (case, got) in replay.cases.iter().zip(&observed.results) {
+            let mut bound = got.clone();
+            bound.bind(&case.request)?;
+            let r = &case.request.comparison;
+            let ready = super::state::ready(&r.required, &r.identity, &bound.visual.assessment);
+            if case.expected_ready && !ready {
+                rejected.push(case.id.clone());
+            }
+        }
+        for relabel in &self.owner_relabels {
+            relabel.verify()?;
+            if !replay.cases.iter().any(|c| c.id == relabel.case_id) {
+                return Err("owner relabel names a case the replay does not have".into());
+            }
+            if !rejected.contains(&relabel.case_id) {
+                return Err("owner relabel names a case that was not falsely rejected".into());
+            }
+        }
+        Ok(rejected
+            .iter()
+            .all(|id| self.owner_relabels.iter().any(|r| &r.case_id == id)))
+    }
     pub fn verify(&self) -> Result<(), String> {
         if self.owner_notes.is_empty()
             || self.dials.is_empty()
@@ -168,6 +245,7 @@ impl Config {
         )
         .map_err(|e| e.to_string())?;
         let result = raw.get("result").unwrap_or(&raw).clone();
+        let raw_result = result.clone();
         let (model, effort, protocol, score) = if self.reference_first.is_some() {
             self.preparation()?;
             let result = serde_json::from_value(result).map_err(|e| e.to_string())?;
@@ -187,10 +265,12 @@ impl Config {
             let score = vision::replay_score(&manifest, &result)?;
             (replay.model, replay.effort, replay.protocol_sha256, score)
         };
+        // Bootstrap admits a replay with no positive, because no owner-accepted
+        // render exists yet for one. Every other guard stands.
         if model != self.vision.model
             || effort != self.vision.effort
             || score.negatives == 0
-            || score.positives == 0
+            || (score.positives == 0 && !self.visual_bootstrap)
             || score.false_ready > 0
         {
             return Err(
@@ -201,7 +281,10 @@ impl Config {
         if protocol != sha256_hex(&fs::read(&self.vision_protocol).map_err(|e| e.to_string())?) {
             return Err("vision protocol differs from replay".into());
         }
-        if score.false_rejections > 0 {
+        if score.false_rejections > 0 && self.relabelled_rejections(&manifest, &raw_result)? {
+            // Every false rejection carries an owner verdict that the expected
+            // label was wrong, so there is no reviewer error to converge on.
+        } else if score.false_rejections > 0 {
             let path = self
                 .convergence_run
                 .as_ref()

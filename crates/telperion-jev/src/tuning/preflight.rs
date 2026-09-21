@@ -177,6 +177,11 @@ pub fn plan(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<Val
         "interrupted_attempt":interrupted,
         "calibration_verified":verified.is_ok(),
         "calibration_error":verified.err(),
+        "visual_bootstrap":config.visual_bootstrap,
+        "owner_relabels":config.owner_relabels.iter().map(|r| json!({
+            "case_id":r.case_id,"by":r.by,"verdict":r.verdict,
+            "evidence":r.evidence,"verified":r.verify().is_ok(),
+            "error":r.verify().err()})).collect::<Vec<_>>(),
         "pilot_authority":authority.is_ok(),
         "pilot_authority_error":authority.err(),
         "estimate_from_current_state":{

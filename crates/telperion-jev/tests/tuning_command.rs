@@ -1088,6 +1088,8 @@ fn max_candidates_is_validated_and_bounds_one_round() {
         priority_checkpoints: vec![],
         handoffs: vec![],
         judgment_inputs: vec![],
+        visual_bootstrap: false,
+        reviewer_passed_unqualified: false,
     };
     for (bound, expected) in [(Some(1u64), 1usize), (Some(2), 2), (None, 4)] {
         let mut bounded = config.clone();
@@ -1283,5 +1285,158 @@ fn a_frozen_reference_first_replay_runs_and_qualifies_a_config() {
     config
         .verify()
         .expect("the produced replay must qualify the config");
+    f.cleanup();
+}
+
+#[test]
+fn bootstrap_admits_a_positive_less_replay_only_with_owner_relabels() {
+    use telperion_jev::tuning::{inventory, live::OwnerRelabel, replay};
+    let _serial = serial();
+    let f = fixture::verifying_fixture(opening());
+    let mut config: Config = serde_json::from_slice(&fs::read(&f.config_path).unwrap()).unwrap();
+    config.reference_first = None;
+    let stage_a = f.root.join("stage-a");
+    let inv = inventory::run(&config, &stage_a).unwrap();
+    let raw: Value = serde_json::from_slice(&fs::read(&f.config_path).unwrap()).unwrap();
+    let image = raw["references"][0].clone();
+    let shots = raw["matched"]["references"].as_str().unwrap();
+    // Both cases are labelled ready; the clipped one cannot be, so it is a
+    // false rejection - exactly the shape the real qualification produced.
+    let case = |id: &str, framing: &str, expected: bool| {
+        json!({"id":id,"provenance":format!("synthetic {id}"),"expected_ready":expected,
+            "identity":format!("candidate-{id}"),"target_species":fixture::PRESET,
+            "inventory":inv,"required":[{"item":"reference_character","view":"whole","seed":1}],
+            "renders":[{"image":image,"condition":"historical_reconstructed_still","framing":framing}],
+            "references":raw["references"],"quality_anchors":raw["quality_anchors"],"shots":shots})
+    };
+    let job = f.root.join("bootstrap-job.json");
+    write(
+        &job,
+        &json!({"schema":replay::JOB_SCHEMA,"model":fixture::VISION_MODEL,
+            "effort":fixture::EFFORT,"protocol":raw["vision_protocol"],
+            "cases":[case("clipped", "clipped", true), case("negative", "clipped", false)]}),
+    );
+    let manifest_path = f.root.join("bootstrap-replay.json");
+    replay::freeze(&job, &manifest_path).unwrap();
+    let result_path = f.root.join("bootstrap-result.json");
+    let score = replay::run(
+        &fs::read(&manifest_path).unwrap(),
+        &config.vision,
+        std::path::Path::new(raw["vision_protocol"].as_str().unwrap()),
+        &f.root.join("bootstrap-journal.json"),
+        &result_path,
+        200_000,
+    )
+    .unwrap();
+    assert_eq!(
+        score.false_rejections, 1,
+        "the clipped case must be rejected"
+    );
+    assert_eq!(score.false_ready, 0);
+
+    let pin = |p: std::path::PathBuf| telperion_jev::tuning::reference_first::FilePin {
+        sha256: telperion_jev::sha256_hex(&fs::read(&p).unwrap()),
+        path: p,
+    };
+    config.reference_first = Some(telperion_jev::tuning::reference_first::RuntimeConfig {
+        inventory: pin(inv),
+        preparation: pin(stage_a.join("preparation.json")),
+    });
+    config.visual_validation = telperion_jev::tuning::live::Validation {
+        manifest: manifest_path,
+        result: result_path,
+    };
+
+    // Without bootstrap this is exactly today's behaviour: convergence demanded.
+    let error = config.verify().unwrap_err();
+    assert!(
+        error.contains("bounded convergence remains unproven"),
+        "{error}"
+    );
+
+    // Bootstrap alone is not enough; the rejection still needs an owner verdict.
+    config.visual_bootstrap = true;
+    let error = config.verify().unwrap_err();
+    assert!(
+        error.contains("bounded convergence remains unproven"),
+        "{error}"
+    );
+
+    let verdict = "the render is too dark and streaky";
+    let evidence = f.root.join("owner-verdict.md");
+    fs::write(&evidence, format!("# owner look\n\n{verdict}\n")).unwrap();
+    let relabel = |case_id: &str, text: &str| OwnerRelabel {
+        case_id: case_id.into(),
+        by: "owner".into(),
+        verdict: text.into(),
+        sha256: telperion_jev::sha256_hex(&fs::read(&evidence).unwrap()),
+        evidence: evidence.clone(),
+    };
+    // A relabel naming the wrong case is refused.
+    config.owner_relabels = vec![relabel("negative", verdict)];
+    assert!(config
+        .verify()
+        .unwrap_err()
+        .contains("not falsely rejected"));
+    // A verdict absent from its evidence is refused.
+    config.owner_relabels = vec![relabel("clipped", "words the owner never wrote")];
+    assert!(config.verify().unwrap_err().contains("not in its evidence"));
+    // The real one admits the replay, with no positive at all.
+    config.owner_relabels = vec![relabel("clipped", verdict)];
+    config
+        .verify()
+        .expect("bootstrap must admit a relabelled rejection");
+    f.cleanup();
+}
+
+#[test]
+fn bootstrap_never_claims_readiness_and_needs_authority_that_names_it() {
+    use telperion_jev::tuning::engine::Run;
+    let _serial = serial();
+    let f = fixture::verifying_fixture(opening());
+    let mut raw: Value = serde_json::from_slice(&fs::read(&f.config_path).unwrap()).unwrap();
+    raw["visual_bootstrap"] = json!(true);
+    f.rewrite(&raw);
+    let config: Config = serde_json::from_value(raw).unwrap();
+    let identity = config.identity().unwrap();
+    let no_key = || Err::<String, String>("stops before dispatch".into());
+    command::run_with(&f.config_path, &f.out, None, &NoDispatch, &no_key).unwrap_err();
+    let state = f.run_json();
+    assert_eq!(state["visual_bootstrap"], true);
+
+    // Authority that does not name the mode is refused.
+    let authority = |names: bool| {
+        json!({"purpose":"bounded offline fixture","reason":"synthetic","visual_bootstrap":names,
+            "next_identity":identity,"max_tokens":902_431,"max_rounds":3,"max_evaluations":13,
+            "max_images":52,"max_visual_passes":26})
+    };
+    let decision = f.root.join("authority.json");
+    let mut d = json!({"pause_id":state["pause"]["id"],"identity":state["identity"],
+        "action":"authorize bounded experimental pilot","by":"owner","rationale":"synthetic",
+        "experimental_pilot":authority(false)});
+    write(&decision, &d);
+    let mut parsed: Run =
+        serde_json::from_slice(&fs::read(f.out.join("run.json")).unwrap()).unwrap();
+    parsed
+        .authorizations
+        .push(serde_json::from_value(d.clone()).unwrap());
+    let error = parsed.pilot_authority().unwrap_err();
+    assert!(error.contains("naming visual_bootstrap"), "{error}");
+
+    // Naming it is accepted.
+    d["experimental_pilot"] = authority(true);
+    let mut parsed: Run =
+        serde_json::from_slice(&fs::read(f.out.join("run.json")).unwrap()).unwrap();
+    parsed
+        .authorizations
+        .push(serde_json::from_value(d).unwrap());
+    parsed.pilot_authority().unwrap();
+
+    // And a run that is not bootstrap refuses authority that names it.
+    parsed.visual_bootstrap = false;
+    assert!(parsed
+        .pilot_authority()
+        .unwrap_err()
+        .contains("naming visual_bootstrap"));
     f.cleanup();
 }
