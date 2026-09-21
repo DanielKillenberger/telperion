@@ -1576,3 +1576,110 @@ fn image_and_evaluation_caps_extend_only_on_an_exact_scoped_decision() {
     assert_eq!(after.identity, identity);
     f.cleanup();
 }
+
+#[test]
+fn two_consecutive_cap_only_resumes_keep_the_evidence_they_preserved() {
+    use telperion_jev::tuning::engine::Run;
+    let _serial = serial();
+    let f = fixture::verifying_fixture(opening());
+    let cfg = f.config_path.clone();
+    let raw_config: Value = serde_json::from_slice(&fs::read(&cfg).unwrap()).unwrap();
+    let no_key = || Err::<String, String>("stops before dispatch".into());
+
+    command::run_with(&cfg, &f.out, None, &NoDispatch, &no_key).unwrap_err();
+    let path = f.out.join("run.json");
+    let mut state: Run = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    state.trials.push(telperion_jev::tuning::evaluation::Trial {
+        key: "candidate-1".into(),
+        identity: state.identity.clone(),
+        seed: 1,
+        round: 0,
+        label: "baseline".into(),
+        overrides: json!({}),
+        ledger: None,
+        feasible: true,
+        reason: None,
+        measurement: json!({}),
+        comparisons: vec![telperion_jev::tuning::evaluation::Comparison {
+            reference: "whole".into(),
+            reference_weight: 1.,
+            metric_weights: [1.; 5],
+            target: [1.; 5],
+            observed: [Some(1.); 5],
+            images: serde_json::from_value(json!([raw_config["references"][0]])).unwrap(),
+        }],
+        score: Some(0.5),
+        seconds: 0.,
+        base: None,
+        action: None,
+        evidence: None,
+        direction_mass: None,
+        rule: None,
+    });
+    state.current = Some(0);
+    state.visual = Some(
+        serde_json::from_value(
+            json!({"identity":"candidate-1","model":fixture::VISION_MODEL,
+            "ledger":"receipt","cells":[],"defects":[],"findings":[]}),
+        )
+        .unwrap(),
+    );
+    state.budget.tokens = 4321;
+    state.budget.images = 30;
+    write(&path, &serde_json::to_value(&state).unwrap());
+
+    let decision = f.root.join("decision.json");
+    // Two cap-only resumes in a row, each preserving what the last measured.
+    let pause = state.pause.clone().unwrap();
+    for (previous, next) in [(52u64, 60u64), (60, 66)] {
+        // A real run pauses again between resumes; re-arm the same pause shape.
+        let mut paused: Run = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+        if paused.pause.is_none() {
+            let mut next_pause = pause.clone();
+            next_pause.identity = paused.identity.clone();
+            next_pause.basis.identity = paused.identity.clone();
+            paused.pause = Some(next_pause);
+            write(&path, &serde_json::to_value(&paused).unwrap());
+        }
+        let mut raw: Value = serde_json::from_slice(&fs::read(&cfg).unwrap()).unwrap();
+        raw["budget"]["max_images"] = json!(next);
+        f.rewrite(&raw);
+        let identity = serde_json::from_value::<Config>(raw)
+            .unwrap()
+            .identity()
+            .unwrap();
+        write(
+            &decision,
+            &json!({"pause_id":paused.pause.as_ref().unwrap().id,"identity":paused.identity,
+                "action":paused.pause.as_ref().unwrap().basis.proposed_action,
+                "by":"owner","rationale":"owner raised the image cap",
+                "next_identity":identity,"preserve_evidence":true,
+                "image_cap_extension":{"previous":previous,"next":next},
+                "experimental_pilot":{"purpose":"bounded","reason":"owner authorized",
+                    "next_identity":identity,"max_tokens":902_431,"max_rounds":3,
+                    "max_evaluations":13,"max_images":next,"max_visual_passes":26}}),
+        );
+        let error =
+            command::run_with(&cfg, &f.out, Some(&decision), &NoDispatch, &no_key).unwrap_err();
+        assert!(
+            error.contains("stops before dispatch"),
+            "cap {previous}->{next}: {error}"
+        );
+        let after: Run = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+        assert_eq!(after.identity, identity);
+        assert_eq!(after.budget.max_images, next);
+        // The evidence measured under the first revision is still here, and
+        // still visible to everything that reads it.
+        assert_eq!(after.trials.len(), 1, "cap {next}: the trial was dropped");
+        assert_eq!(after.current, Some(0));
+        assert_eq!(after.visual.as_ref().unwrap().identity, "candidate-1");
+        assert_eq!(after.budget.images, 30);
+        assert_eq!(
+            after.finalists().len(),
+            1,
+            "cap {next}: the preserved trial fell out of finalists"
+        );
+        assert!(after.measured_here(&after.trials[0].identity));
+    }
+    f.cleanup();
+}

@@ -6,6 +6,7 @@ pub mod continuation;
 pub mod direction;
 pub mod engine;
 pub mod evaluation;
+pub mod evidence;
 pub mod handoff;
 pub mod inventory;
 pub mod joint;

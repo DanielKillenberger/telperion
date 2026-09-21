@@ -47,7 +47,7 @@ impl Run {
         self.trials
             .iter()
             .filter(|t| {
-                t.identity == self.identity && t.round > 0 && t.base.as_deref() == Some(&key)
+                self.measured_here(&t.identity) && t.round > 0 && t.base.as_deref() == Some(&key)
             })
             .collect()
     }

@@ -1191,3 +1191,102 @@ fn the_proposal_state_is_focused_and_carries_nothing_it_should_not() {
         .unwrap()
         .contains("max_tokens"));
 }
+
+/// An accepted cap-only resume that preserved evidence, from `a` to `b`.
+fn preserving(a: &str, b: &str, preserve: bool) -> serde_json::Value {
+    json!({"pause_id":"p","identity":a,"action":"reassess","by":"owner",
+        "rationale":"caps only","next_identity":b,"preserve_evidence":preserve})
+}
+
+#[test]
+fn evidence_measured_under_an_earlier_revision_survives_a_cap_only_resume() {
+    let mut mock = mock();
+    let mut state = run();
+    // A baseline and a candidate round, both measured under the old revision.
+    let mut baseline = mock.evaluate(json!({}), 0, "baseline", None);
+    baseline.identity = "old-revision".into();
+    baseline.key = "candidate-old".into();
+    baseline.score = Some(0.5);
+    let mut attempt = mock.evaluate(json!({}), 1, "crookedness", None);
+    attempt.identity = "old-revision".into();
+    attempt.base = Some("candidate-old".into());
+    attempt.action = Some(Action::SmallIncrease);
+    attempt.evidence = Some("visual:1".into());
+    attempt.score = Some(0.9);
+    state.trials = vec![baseline, attempt];
+    state.current = Some(0);
+    state.identity = "new-revision".into();
+    state
+        .authorizations
+        .push(serde_json::from_value(preserving("old-revision", "new-revision", true)).unwrap());
+
+    // The finalist list still sees the preserved candidate.
+    assert_eq!(
+        state.finalists().len(),
+        2,
+        "preserved trials dropped out of finalists"
+    );
+    // The round history still sees the attempt, so the repeat filter works.
+    let repeat = vec![Proposal {
+        dial: "crookedness".into(),
+        action: Action::SmallIncrease,
+        ledger: "jev:2".into(),
+        direction_mass: Some(0.9),
+        rule: Some(telperion_jev::tuning::direction::RULE.into()),
+    }];
+    assert!(
+        state.filter_repeats(repeat).is_empty(),
+        "a move already tried under the earlier revision was offered again"
+    );
+    assert!(state
+        .routes
+        .iter()
+        .any(|r| r.starts_with("repeat refused: crookedness")));
+
+    // And a stall on the same evidence still pauses rather than re-buying.
+    assert!(matches!(
+        state.round_decision(),
+        telperion_jev::tuning::round::Decision::Pause(_)
+    ));
+}
+
+#[test]
+fn a_resume_without_preservation_breaks_the_evidence_chain() {
+    let mut mock = mock();
+    let mut state = run();
+    let mut baseline = mock.evaluate(json!({}), 0, "baseline", None);
+    baseline.identity = "old-revision".into();
+    baseline.key = "candidate-old".into();
+    let mut attempt = mock.evaluate(json!({}), 1, "crookedness", None);
+    attempt.identity = "old-revision".into();
+    attempt.base = Some("candidate-old".into());
+    attempt.action = Some(Action::SmallIncrease);
+    state.trials = vec![baseline, attempt];
+    state.current = Some(0);
+    state.identity = "new-revision".into();
+    // The resume in between dropped its evidence, so nothing before it counts.
+    state
+        .authorizations
+        .push(serde_json::from_value(preserving("old-revision", "mid-revision", false)).unwrap());
+    state
+        .authorizations
+        .push(serde_json::from_value(preserving("mid-revision", "new-revision", true)).unwrap());
+
+    assert_eq!(
+        state.finalists().len(),
+        0,
+        "a broken chain still counted the older trials"
+    );
+    let offered = vec![Proposal {
+        dial: "crookedness".into(),
+        action: Action::SmallIncrease,
+        ledger: "jev:2".into(),
+        direction_mass: Some(0.9),
+        rule: Some(telperion_jev::tuning::direction::RULE.into()),
+    }];
+    assert_eq!(
+        state.filter_repeats(offered).len(),
+        1,
+        "an unreachable attempt was treated as already tried"
+    );
+}

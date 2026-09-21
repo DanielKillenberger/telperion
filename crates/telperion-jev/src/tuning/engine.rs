@@ -632,7 +632,7 @@ impl Run {
         let mut trials = self
             .trials
             .iter()
-            .filter(|t| t.identity == self.identity && t.feasible && t.score.is_some())
+            .filter(|t| self.measured_here(&t.identity) && t.feasible && t.score.is_some())
             .collect::<Vec<_>>();
         trials.sort_by(|a, b| a.score.unwrap().total_cmp(&b.score.unwrap()));
         trials.truncate(3);

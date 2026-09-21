@@ -238,6 +238,8 @@ pub fn prepare(
             return Err("interrupted or unknown spend must be reconciled before resume".into());
         }
         if decision.preserve_evidence {
+            // Computed before this decision joins the chain it would extend.
+            let reusable = old.evidence_identities();
             let mut original = config.clone();
             original.budget.max_tokens = previous_cap;
             original.budget.max_rounds = previous_budget.max_rounds;
@@ -256,7 +258,7 @@ pub fn prepare(
             let visual = old.visual.as_ref().ok_or("no reusable visual evidence")?;
             if !trial.feasible
                 || visual.identity != trial.key
-                || trial.identity != old.identity
+                || !reusable.iter().any(|k| k == &trial.identity)
                 || trial.seed != config.seed
                 || visual.model != config.vision.model
                 || trial.comparisons.is_empty()

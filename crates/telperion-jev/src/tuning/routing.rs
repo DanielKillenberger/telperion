@@ -187,7 +187,7 @@ impl Run {
             .iter()
             .enumerate()
             .filter(|(_, t)| {
-                t.identity == self.identity && self.dials.iter().any(|d| d.id == t.label)
+                self.measured_here(&t.identity) && self.dials.iter().any(|d| d.id == t.label)
             })
             .map(|(i, t)| Attempt {
                 dial: t.label.clone(),
@@ -196,7 +196,7 @@ impl Run {
                 score_before_round: self
                     .trials
                     .iter()
-                    .filter(|p| p.identity == self.identity && p.round < t.round && p.feasible)
+                    .filter(|p| self.measured_here(&p.identity) && p.round < t.round && p.feasible)
                     .filter_map(|p| p.score)
                     .min_by(f64::total_cmp),
                 score_after: t.score,
