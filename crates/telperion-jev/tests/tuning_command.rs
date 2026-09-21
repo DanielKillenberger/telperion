@@ -1824,7 +1824,16 @@ fn a_failed_paid_review_is_recoverable_only_on_a_scoped_decision() {
     run(Some(&decision));
     let charged = f.run_json();
 
-    for label in ["progress review", "sheet review"] {
+    for label in [
+        "progress review",
+        "sheet review",
+        "targeted proposals 1",
+        "defect routing",
+        "pre-dispatch risk",
+        "extra view capture",
+        "uncalibrated evidence-difference question",
+        "uncalibrated side-effect question",
+    ] {
         // The review failed after its pass and its tokens were reserved.
         let mut interrupted = charged.clone();
         interrupted["pending"] = json!(label);
@@ -1864,4 +1873,72 @@ fn a_failed_paid_review_is_recoverable_only_on_a_scoped_decision() {
         assert_eq!(recovered["usage_known"], charged["usage_known"]);
     }
     f.cleanup();
+}
+
+/// A refused judgment used to reach the owner as raw HTTP text with the
+/// reservation still pending, and `targeted proposals 1` was not a label the
+/// scoped recovery could clear, so the live run of 2026-09-21 could not be
+/// resumed at all after `HTTP 400 max_tokens_exceeded`.
+#[test]
+fn a_judgment_the_service_refuses_says_so_and_stays_recoverable() {
+    let _serial = serial();
+    struct Refusing;
+    impl telperion_jev::caller::Transport for Refusing {
+        fn send(
+            &self,
+            _: &telperion_jev::caller::HttpRequest,
+        ) -> Result<telperion_jev::caller::HttpResponse, String> {
+            Ok(telperion_jev::caller::HttpResponse {
+                status: 400,
+                body: br#"{"error":{"type":"max_tokens_exceeded","message":"too large"}}"#.to_vec(),
+            })
+        }
+    }
+    let root = std::env::temp_dir().join(telperion_jev::ledger::new_entry_id());
+    fs::create_dir(&root).unwrap();
+    let config_value = fixture(&root);
+    let config: Config = serde_json::from_value(config_value).unwrap();
+    let path = root.join("run.json");
+    let mut state = match command::prepare(&config, &path, None, "identity").unwrap() {
+        command::Prepared::Ready(state) => *state,
+        command::Prepared::Interrupted(_) => panic!("a fresh run was interrupted"),
+    };
+    let mut services = telperion_jev::tuning::live::Live {
+        config: &config,
+        transport: &Refusing,
+        key: "not-a-key",
+    };
+    let error = telperion_jev::tuning::engine::Services::route(&mut services, &mut state)
+        .err()
+        .expect("the refusal was not reported");
+    assert!(
+        error.starts_with(
+            "judgment refused by the service: 400 max_tokens_exceeded; request bytes "
+        ),
+        "{error}"
+    );
+    let bytes = error
+        .rsplit(' ')
+        .next()
+        .and_then(|n| n.parse::<usize>().ok())
+        .unwrap();
+    assert!(bytes > 100, "{error}");
+
+    // Its pending label is one the owner's scoped recovery may clear.
+    for label in [
+        "targeted proposals 1",
+        "targeted proposals 12",
+        "defect routing",
+        "pre-dispatch risk",
+        "extra view capture",
+        "uncalibrated evidence-difference question",
+        "sheet review",
+    ] {
+        assert!(command::recoverable(Some(label)), "{label}");
+    }
+    for label in ["something else", "unknown reservation"] {
+        assert!(!command::recoverable(Some(label)), "{label}");
+    }
+    assert!(!command::recoverable(None));
+    fs::remove_dir_all(&root).ok();
 }

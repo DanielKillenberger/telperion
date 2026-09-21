@@ -2154,8 +2154,11 @@ fn the_proposal_state_says_which_attempt_did_nothing_at_all() {
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     let projected = telperion_jev::tuning::judgments::proposal_state(&state);
     let attempts = serde_json::to_string(&projected["attempts_from_this_candidate"]).unwrap();
+    // The per-attempt list is a digest now: the last attempt in full, and the
+    // rest counted per dial family, where an inert attempt is its own outcome.
+    assert!(attempts.contains("\"inert\":1"), "{attempts}");
     assert!(
-        attempts.contains("\"inert\":true") && attempts.contains("\"inert\":false"),
+        projected["attempts_from_this_candidate"]["last_attempt"]["inert"] == json!(false),
         "{attempts}"
     );
     let summary =
@@ -2501,10 +2504,182 @@ fn a_round_nothing_improves_stalls_and_the_same_bundle_is_not_bought_twice() {
     .unwrap();
     assert!(attempts.contains("twig_hang") && attempts.contains("\"strength\":0.5"));
     assert!(attempts.contains("the crown is still enclosed"));
-    // The next round proposes the same directions from the same tree, so it
-    // buys nothing at all.
-    assert_eq!(mock.evaluations, 5);
-    assert_eq!(mock.sheet_calls, 1);
+    // A worse sheet is cut once by family before the round gives up: the two
+    // parts of the smallest strength, on one more sheet.
+    assert_eq!(mock.evaluations, 7, "the four strengths and two families");
+    assert_eq!(mock.sheet_calls, 2, "one sheet for the round, one to cut");
+    // Both families lost, so the next round has no bundle left to build.
+    assert_eq!(
+        state.pause.as_ref().unwrap().reason,
+        "bundle already tried; no new direction"
+    );
+}
+
+/// Five live rounds came back worse and the search never learned which part of
+/// the bundle was good, because halving only ever ran on better-with-breaks
+/// (`bundle-search-run-2-2026-09-21.md`). A worse sheet is cut once by family.
+#[test]
+fn a_worse_bundle_is_cut_by_family_and_a_good_family_is_the_one_kept() {
+    let (mut state, mut mock) = bundle_run();
+    mock.sheets = vec![
+        // Nothing on the round's own sheet is better; nothing breaks either.
+        vec![],
+        // Of the two families, the habit pair is clear and the twig is not.
+        vec![did(&key(6), Movement::Clear), did(&key(7), Movement::None)],
+    ];
+    to_the_round(&mut state, &mut mock);
+
+    assert_eq!(mock.sheet_calls, 2, "one sheet for the round, one to cut");
+    assert_eq!(mock.evaluations, 7, "the four strengths and two families");
+    let parts: Vec<&Trial> = state
+        .trials
+        .iter()
+        .filter(|t| t.label.contains('/'))
+        .collect();
+    assert_eq!(
+        parts.iter().map(|t| t.label.clone()).collect::<Vec<_>>(),
+        vec!["bundle@0.5/habit", "bundle@0.5/twigs"],
+        "the smallest shown strength is the one that was cut"
+    );
+    let smallest = state
+        .trials
+        .iter()
+        .find(|t| t.label == "bundle@0.5")
+        .and_then(|t| t.bundle.as_ref())
+        .unwrap();
+    assert!(parts
+        .iter()
+        .all(|t| t.parent_bundle.as_deref() == Some(smallest.id.as_str())));
+    assert_eq!(
+        parts
+            .iter()
+            .map(|t| t.bundle.as_ref().unwrap().moves.len())
+            .sum::<usize>(),
+        3,
+        "the parts together are the bundle"
+    );
+    let adopted = &state.trials[state.current.unwrap()];
+    assert_eq!(adopted.label, "bundle@0.5/habit");
+    assert_eq!(adopted.bundle.as_ref().unwrap().moves.len(), 2);
+
+    // The family that lost keeps the reviewer's row of the sheet, and with it
+    // a verdict against the tree it was cut from; the adoption moved the loop
+    // on, so from where it stands now every family is eligible again.
+    let lost = parts.iter().find(|t| t.label.ends_with("/twigs")).unwrap();
+    assert!(lost.sheet.as_ref().unwrap().below_current);
+    assert_eq!(
+        telperion_jev::tuning::bundle::excluded_families(&state, &key(1)),
+        vec!["twigs".to_string()]
+    );
+    assert!(
+        telperion_jev::tuning::bundle::excluded_families(&state, &adopted.key).is_empty(),
+        "an adoption did not make the families eligible again"
+    );
+}
+
+/// A bundle over three families, so one of them can survive the cut and the
+/// next round has something different to build.
+fn three_family_run() -> (Run, Mock) {
+    let (mut state, mut mock) = bundle_run();
+    state.budget.max_rounds = 2;
+    state.dials.push(bundle_dial(
+        "leaf_outward",
+        "/canopy/outward",
+        -1.,
+        1.,
+        0.25,
+        "canopy",
+    ));
+    mock.proposals.push(Proposal {
+        dial: "leaf_outward".into(),
+        action: Action::SmallIncrease,
+        ledger: "jev:3".into(),
+        direction_mass: Some(0.5),
+        rule: Some(telperion_jev::tuning::direction::RULE.into()),
+    });
+    mock.strengths = vec![0.5, 1.0];
+    (state, mock)
+}
+
+#[test]
+fn a_family_judged_worse_is_left_out_of_the_next_bundle_from_the_same_tree() {
+    let (mut state, mut mock) = three_family_run();
+    // The canopy part is never shown, so it earns no verdict and stays live.
+    mock.not_shown = vec![(
+        "bundle@0.5/canopy".into(),
+        "draws the same tree as bundle@0.5/habit".into(),
+    )];
+    to_the_round(&mut state, &mut mock);
+
+    // Round one: the bundle is worse, its three families are cut out, the two
+    // that were judged lost, and the round stalls.
+    for family in ["habit", "twigs"] {
+        assert!(
+            state
+                .routes
+                .iter()
+                .any(|r| r.starts_with(&format!("family verdict bundle@0.5/{family}:"))),
+            "{family} has no verdict: {:?}",
+            state.routes
+        );
+        assert!(
+            state.routes.iter().any(|r| r
+                == &format!("family excluded after an isolated worse verdict: {family}")),
+            "{family} was not excluded: {:?}",
+            state.routes
+        );
+    }
+    assert_eq!(
+        telperion_jev::tuning::bundle::excluded_families(&state, &key(1)),
+        vec!["habit".to_string(), "twigs".to_string()]
+    );
+
+    // Round two builds from what is left, so the bundle actually changed.
+    let moved = |t: &Trial| {
+        t.bundle
+            .as_ref()
+            .unwrap()
+            .moves
+            .iter()
+            .map(|m| m.dial.clone())
+            .collect::<Vec<_>>()
+    };
+    let first = state
+        .trials
+        .iter()
+        .find(|t| t.label == "bundle@0.5" && t.round == 1)
+        .unwrap();
+    assert_eq!(
+        moved(first),
+        vec!["twig_hang", "rise_secondary", "crookedness", "leaf_outward"]
+    );
+    let second: Vec<&Trial> = state
+        .trials
+        .iter()
+        .filter(|t| t.round == 2 && t.bundle.is_some())
+        .collect();
+    assert_eq!(second.len(), 1, "routes {:?}", state.routes);
+    assert_eq!(
+        moved(second[0]),
+        vec!["leaf_outward"],
+        "the second bundle repeated a family the reviewer refused"
+    );
+    assert_ne!(
+        first.bundle.as_ref().unwrap().id,
+        second[0].bundle.as_ref().unwrap().id
+    );
+}
+
+#[test]
+fn a_bundle_whose_every_family_lost_has_nothing_left_to_build() {
+    let (mut state, mut mock) = bundle_run();
+    mock.sheets = vec![vec![]];
+    to_the_round(&mut state, &mut mock);
+
+    assert_eq!(
+        telperion_jev::tuning::bundle::excluded_families(&state, &key(1)),
+        vec!["habit".to_string(), "twigs".to_string()]
+    );
     assert_eq!(
         state.pause.as_ref().unwrap().reason,
         "bundle already tried; no new direction"
@@ -2916,4 +3091,148 @@ fn the_routing_state_names_the_kinds_of_dial_rather_than_every_row() {
         .unwrap()
         .len();
     assert!(whole < 24_576, "the routing state is {whole} bytes");
+}
+
+/// The owner's first priority, "the whole crown needs to be stretched
+/// vertically", was routed insufficient_evidence in every round of the run of
+/// 2026-09-21 while the state said the crown was 8% too wide for its height.
+/// The facts were there; nothing told the router they were evidence.
+#[test]
+fn the_route_question_says_a_measured_fact_is_evidence_for_a_proportion() {
+    let (mut state, mut mock) = bundle_run();
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_one(&mut state, &mock);
+    let current = state.current.unwrap();
+    state.trials[current].comparisons = vec![telperion_jev::tuning::evaluation::Comparison {
+        reference: "B-WHOLE".into(),
+        reference_weight: 1.,
+        metric_weights: [1.; 5],
+        target: [0.6965, 0.28, 0.42, 0.11, 120.],
+        observed: [Some(0.7504), None, None, None, None],
+        images: vec![],
+    }];
+
+    // The route state carries the measured facts the router is asked about.
+    let route_state = telperion_jev::tuning::judgments::summary(&state);
+    let facts = serde_json::to_string(&route_state["measured_facts"]).unwrap();
+    assert!(facts.contains("8% too wide for its height"), "{facts}");
+
+    // And every per-priority route question now says they count.
+    let questions =
+        telperion_jev::tuning::judgments::routes(&Default::default(), state.approved_priorities());
+    let asked = questions["route:owner-crown"].clone();
+    let instructions = asked["instructions"].as_str().unwrap();
+    assert!(
+        instructions.contains("Measured facts in the state are evidence; a priority about size or proportion that a measured fact supports and an authored dial can change routes to tuning."),
+        "{instructions}"
+    );
+    assert!(
+        instructions.contains("Judge only owner priority 1 of 1"),
+        "the scoped priority was dropped: {instructions}"
+    );
+    // The criteria and the threshold they are read against are untouched.
+    let criteria = asked["criteria"].as_object().unwrap();
+    let mut names = criteria.keys().cloned().collect::<Vec<_>>();
+    names.sort();
+    assert_eq!(
+        names,
+        vec![
+            "appearance",
+            "insufficient_evidence",
+            "new_capability",
+            "tuning"
+        ]
+    );
+}
+
+/// The proposal state used to carry every bundle attempt in full, and five
+/// rounds of it earned `HTTP 400 max_tokens_exceeded`. Twelve rounds of a
+/// fifty-dial bundle now fold into one digest.
+#[test]
+fn twelve_rounds_of_attempts_fold_into_a_digest_that_still_fits() {
+    let (mut state, mut mock) = bundle_run();
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_one(&mut state, &mock);
+    // The table the live run carries: every row the proposal question is shown.
+    let table: Vec<Dial> = serde_json::from_slice(include_bytes!("../data/dials.json")).unwrap();
+    state.dials = table
+        .into_iter()
+        .filter(|d| d.score_visible == Some(true))
+        .collect();
+    assert_eq!(state.dials.len(), 109);
+    let base = state.trials[state.current.unwrap()].key.clone();
+    let mut history = vec![];
+    for round in 1..=12u64 {
+        for strength in [0.5, 1.0, 2.0, 4.0] {
+            let moves = state
+                .dials
+                .iter()
+                .take(50)
+                .map(|d| telperion_jev::tuning::bundle::Move {
+                    dial: d.id.clone(),
+                    direction: "up".into(),
+                    from: 0.,
+                    to: 1.,
+                })
+                .collect::<Vec<_>>();
+            let mut trial = state.trials[0].clone();
+            trial.key = format!("synthetic-{round}-{strength}");
+            trial.round = round;
+            trial.base = Some(base.clone());
+            trial.label = format!("bundle@{strength}");
+            trial.bundle = Some(telperion_jev::tuning::bundle::Bundle {
+                strength,
+                id: format!("bundle-{round}-{strength}"),
+                moves,
+                dropped: vec![],
+            });
+            trial.sheet = Some(serde_json::from_value(json!({"label":"2",
+                "per_priority":{"owner-crown":"worse"},
+                "breaks":[format!("round {round} left a bare bole and a chaotic scaffold")],
+                "wrong":[format!("round {round}: thick outer limbs and angular, crossing branches")],
+                "overall":4,"below_current":true,
+                "improved":"the outer foliage hangs further",
+                "missing":"the crown is still enclosed","ledger":"sheet:1","model":"mock",
+                "uncalibrated":telperion_jev::tuning::sheet::UNCALIBRATED})).unwrap());
+            history.push(trial);
+        }
+    }
+    state.trials.extend(history);
+
+    let projected = telperion_jev::tuning::judgments::proposal_state(&state);
+    let bytes = serde_json::to_vec(&projected).unwrap().len();
+    assert!(
+        bytes <= telperion_jev::tuning::judgments::PROPOSAL_CAP,
+        "the proposal state is {bytes} bytes after twelve rounds"
+    );
+    let digest = &projected["attempts_from_this_candidate"];
+    assert_eq!(digest["attempts"], json!(48));
+    // The last attempt is still shown in full, and the rest are counted.
+    assert_eq!(digest["last_attempt"]["strength"], json!(4.0));
+    let families = digest["by_dial_family"].as_array().unwrap();
+    assert!(!families.is_empty(), "{digest}");
+    let moves: u64 = families.iter().map(|f| f["moves"].as_u64().unwrap()).sum();
+    assert_eq!(moves, 48 * 50, "every move is counted once");
+    assert!(families
+        .iter()
+        .all(|f| f["outcomes"]["worse"].as_u64().unwrap() > 0));
+
+    // Untrimmed, the digest carries the reviewer's phrases and one plain line
+    // per dial several bundles lost with; the cap sheds them in that order.
+    use telperion_jev::tuning::digest::{attempts, Trim};
+    let sizes = [Trim::None, Trim::Phrases, Trim::PhrasesAndDials]
+        .map(|trim| serde_json::to_vec(&attempts(&state, trim)).unwrap().len());
+    assert!(sizes[0] > sizes[1] && sizes[1] > sizes[2], "{sizes:?}");
+    let whole = attempts(&state, Trim::None);
+    let said = serde_json::to_string(&whole["by_dial_family"]).unwrap();
+    assert!(said.contains("thick outer limbs"), "{said}");
+    let refused = serde_json::to_string(&whole["dials_the_reviewer_kept_refusing"]).unwrap();
+    assert!(refused.contains("in 48 bundles judged worse"), "{refused}");
+    // Fifty rows and twelve rounds do not fit beside the dial table, so what
+    // the state actually carries is the digest that does.
+    assert_eq!(
+        serde_json::to_vec(digest).unwrap().len(),
+        sizes[2],
+        "the state shipped a digest the cap should have trimmed"
+    );
 }

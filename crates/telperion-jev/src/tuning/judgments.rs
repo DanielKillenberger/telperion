@@ -104,7 +104,25 @@ pub fn summary(state: &Run) -> Value {
 /// candidate, and the numbers for the current trial. No budgets, no
 /// authorizations, no amendments, no diagnoses, no reuse records, no joint
 /// packet, no cells, no evidence ids.
+/// What the proposal state may weigh. Beyond this Jev refuses the batch, so
+/// the digest sheds its phrases first and then its per-dial lines.
+pub const PROPOSAL_CAP: usize = 24 * 1024;
+
 pub fn proposal_state(state: &Run) -> Value {
+    let mut out = proposal_state_with(state, super::digest::Trim::None);
+    for trim in [
+        super::digest::Trim::Phrases,
+        super::digest::Trim::PhrasesAndDials,
+    ] {
+        if serde_json::to_vec(&out).map_or(0, |b| b.len()) <= PROPOSAL_CAP {
+            return out;
+        }
+        out["attempts_from_this_candidate"] = super::digest::attempts(state, trim);
+    }
+    out
+}
+
+fn proposal_state_with(state: &Run, trim: super::digest::Trim) -> Value {
     let tuning = state
         .approved_priorities()
         .map(|approval| {
@@ -157,7 +175,7 @@ pub fn proposal_state(state: &Run) -> Value {
             .collect::<Vec<_>>(),
         "measured_facts": super::facts::measured(state),
         "current_tree_looks_wrong": looks_wrong(state),
-        "attempts_from_this_candidate": state.attempts_here(),
+        "attempts_from_this_candidate": super::digest::attempts(state, trim),
         "measured_views": current.map(|t| t.comparisons.iter().map(|c| json!({
             "reference":c.reference,"target":c.target,"observed":c.observed}))
             .collect::<Vec<_>>()).unwrap_or_default(),
@@ -181,7 +199,11 @@ pub fn proposal_batch(state: &Run, dials: &[super::actions::Dial]) -> Result<Val
     }
     Ok(Value::Object(questions))
 }
-const ROUTE_INSTRUCTIONS: &str = "Route remaining visible defects using authored dial meanings and prior outcomes. Numeric stall alone proves no generator gap. Choose an existing spec only when its stated scope matches the defect.";
+/// The owner's first priority, "stretch the crown vertically", was routed
+/// insufficient_evidence in every round of the run of 2026-09-21 while
+/// `measured_facts` said the crown was 8% too wide for its height. The facts
+/// were in the state; nothing told the router they counted.
+pub const ROUTE_INSTRUCTIONS: &str = "Route remaining visible defects using authored dial meanings and prior outcomes. Numeric stall alone proves no generator gap. Choose an existing spec only when its stated scope matches the defect. Measured facts in the state are evidence; a priority about size or proportion that a measured fact supports and an authored dial can change routes to tuning.";
 
 fn route_question(
     gaps: &std::collections::BTreeMap<String, String>,

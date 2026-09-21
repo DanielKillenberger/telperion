@@ -24,6 +24,31 @@ fn write(path: &Path, value: &Value) -> Result<(), String> {
     fs::rename(temp, path).map_err(|e| e.to_string())
 }
 
+/// Every attempt whose pending label the owner's scoped recovery may clear.
+///
+/// Each of these reserves before it dispatches and settles after, so a refused
+/// or interrupted one leaves its spend charged and its label set; recovery
+/// settles nothing. A judgment the service refused outright left labels like
+/// `targeted proposals 1` and `defect routing` off this list, and a run that
+/// hit one could never be resumed at all.
+pub fn recoverable(pending: Option<&str>) -> bool {
+    let Some(label) = pending else {
+        return false;
+    };
+    matches!(
+        label,
+        "baseline"
+            | "candidate evaluation"
+            | "extra view capture"
+            | "visual assessment"
+            | "defect routing"
+            | "pre-dispatch risk"
+            | super::progress::PENDING
+            | super::sheet::PENDING
+    ) || label.starts_with("targeted proposals ")
+        || label.starts_with("uncalibrated ")
+}
+
 /// Loads the fresh or resumed run exactly as the command does, without
 /// writing anything. The caller decides whether an interruption is persisted.
 pub enum Prepared {
@@ -231,18 +256,7 @@ pub fn prepare(
         // Recovery settles nothing: the spend stays spent, and it takes the
         // owner's scoped decision with its rationale. The two comparative
         // reviews are paid looks like the assessment, and recover the same way.
-        if decision.recover_interrupted
-            && matches!(
-                old.pending.as_deref(),
-                Some(
-                    "baseline"
-                        | "candidate evaluation"
-                        | "visual assessment"
-                        | super::progress::PENDING
-                        | super::sheet::PENDING
-                )
-            )
-        {
+        if decision.recover_interrupted && recoverable(old.pending.as_deref()) {
             old.pending = None;
         }
         if old.pending.is_some() || !old.usage_known {

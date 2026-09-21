@@ -115,6 +115,12 @@ impl Run {
         }
     }
 
+    /// Every attempt made from the candidate that is current now, in order.
+    /// The digest folds these down; nothing else reads them in full.
+    pub fn attempts_here_trials(&self) -> Vec<&Trial> {
+        self.rounds_here()
+    }
+
     /// The moves already made from the current candidate, for whoever is
     /// about to propose the next one.
     pub fn attempts_here(&self) -> Vec<Value> {

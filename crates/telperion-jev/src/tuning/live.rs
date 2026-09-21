@@ -549,7 +549,12 @@ impl Live<'_> {
                 ledger_dir: &self.config.ledger,
             },
         )
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| match &e {
+            crate::caller::CallerError::Http { status, body } => {
+                refused(*status, body, request_bytes(state, questions))
+            }
+            other => other.to_string(),
+        })?;
         if entry.model != self.config.judgment_model {
             return Err("runtime judgment model differs from calibrated role".into());
         }
@@ -957,6 +962,38 @@ impl Services for Live<'_> {
         );
         Ok(Self::answer(&entry, routes))
     }
+}
+
+/// The bytes the caller puts on the wire for one judgment, so a size refusal
+/// says how big the request that earned it was.
+fn request_bytes(state: &Value, questions: &Value) -> usize {
+    serde_json::to_vec(&json!({"model":crate::caller::MODEL,"state":state,"questions":questions}))
+        .map_or(0, |bytes| bytes.len())
+}
+
+/// The kind of refusal the service named, wherever it put it.
+fn error_type(body: &str) -> String {
+    let Ok(parsed) = serde_json::from_str::<Value>(body) else {
+        return "unparsed".into();
+    };
+    for path in ["/error/type", "/error/code", "/error_type", "/type"] {
+        if let Some(kind) = parsed.pointer(path).and_then(Value::as_str) {
+            return kind.to_string();
+        }
+    }
+    "unknown".into()
+}
+
+/// A refused judgment, said plainly. The live run of 2026-09-21 stopped on
+/// `HTTP 400 max_tokens_exceeded` and the pause carried only the raw text, so
+/// nobody could tell a refused request from a broken one.
+pub const REFUSED: &str = "judgment refused by the service";
+
+fn refused(status: u16, body: &str, bytes: usize) -> String {
+    format!(
+        "{REFUSED}: {status} {}; request bytes {bytes}",
+        error_type(body)
+    )
 }
 
 fn supported(entry: &LedgerEntry, question: &str, threshold: f64) -> String {
