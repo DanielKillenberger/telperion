@@ -97,6 +97,10 @@ pub struct Config {
     pub max_candidates: Option<u64>,
     /// The reviewer has never been shown to pass an owner-accepted tree, so a
     /// replay with no positive is admitted and no run can claim readiness.
+    /// Dials per proposal call. `None` asks them all in one call, as before.
+    /// A large table answered in one question set is a large question set.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_questions_per_call: Option<u64>,
     #[serde(default, skip_serializing_if = "is_false")]
     pub visual_bootstrap: bool,
     /// Owner verdicts that a falsely-rejected replay case was labelled wrong.
@@ -350,6 +354,12 @@ pub struct Live<'a> {
     pub key: &'a str,
 }
 impl Live<'_> {
+    /// Dials per proposal call.
+    fn batch_size(&self, state: &Run) -> usize {
+        self.config
+            .max_questions_per_call
+            .unwrap_or(state.dials.len().max(1) as u64) as usize
+    }
     fn visual_cells(&self, trial: &Trial) -> Vec<Cell> {
         if trial.round != 0 {
             return self.config.required.clone();
@@ -683,42 +693,54 @@ impl Services for Live<'_> {
     fn evidence_tokens(&self, state: &Value) -> u64 {
         super::judgments::allowance(state, &super::round::questions())
     }
-    fn propose(&mut self, state: &Run) -> Result<Answer<Vec<Proposal>>, String> {
-        let questions = super::judgments::proposals(state)?;
-        let entry = self.ask(&self.proposal_state(state), &questions)?;
+    fn proposal_batches(&self, state: &Run) -> usize {
+        let size = self.batch_size(state);
+        state.dials.len().div_ceil(size.max(1)).max(1)
+    }
+    fn propose(&mut self, state: &Run, batch: usize) -> Result<Answer<Vec<Proposal>>, String> {
         let bytes = fs::read(&self.config.adjustments.manifest).map_err(|e| e.to_string())?;
         let manifest: calibration::Manifest =
             serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+        let focused = self.proposal_state(state);
+        let size = self.batch_size(state);
         let mut accepted = vec![];
-        for (rank, dial) in state.dials.iter().enumerate() {
-            let current = state
-                .effective
-                .pointer(&dial.path)
-                .and_then(Value::as_f64)
-                .ok_or("missing dial")?;
-            let available = [
-                Action::SmallDecrease,
-                Action::SubstantialDecrease,
-                Action::SmallIncrease,
-                Action::SubstantialIncrease,
-            ]
-            .into_iter()
-            .filter(|a| dial.value(current, *a).is_ok())
-            .collect::<Vec<_>>();
-            let Some(choice) = entry
-                .probabilities(&dial.id)
-                .and_then(|p| super::direction::accept(p, &available, manifest.min_confidence))
-            else {
-                eprintln!(
-                    "DBG {} probs={:?} available={:?} min={}",
-                    dial.id,
-                    entry.probabilities(&dial.id),
-                    available,
-                    manifest.min_confidence
-                );
-                continue;
-            };
-            accepted.push((rank, choice, dial.id.clone()));
+        let mut tokens = Some(0u64);
+        let mut ledger = None;
+        for batch in state.dials.chunks(size.max(1)).skip(batch).take(1) {
+            let questions = super::judgments::proposal_batch(state, batch)?;
+            let entry = self.ask(&focused, &questions)?;
+            ledger = Some(entry.reference());
+            tokens = tokens
+                .zip(Self::answer(&entry, ()).tokens)
+                .map(|(a, b)| a + b);
+            for dial in batch {
+                let rank = state
+                    .dials
+                    .iter()
+                    .position(|d| d.id == dial.id)
+                    .unwrap_or(usize::MAX);
+                let current = state
+                    .effective
+                    .pointer(&dial.path)
+                    .and_then(Value::as_f64)
+                    .ok_or("missing dial")?;
+                let available = [
+                    Action::SmallDecrease,
+                    Action::SubstantialDecrease,
+                    Action::SmallIncrease,
+                    Action::SubstantialIncrease,
+                ]
+                .into_iter()
+                .filter(|a| dial.value(current, *a).is_ok())
+                .collect::<Vec<_>>();
+                let Some(choice) = entry
+                    .probabilities(&dial.id)
+                    .and_then(|p| super::direction::accept(p, &available, manifest.min_confidence))
+                else {
+                    continue;
+                };
+                accepted.push((rank, choice, dial.id.clone(), entry.reference()));
+            }
         }
         // Strongest direction first, ties in the dial table's own order.
         accepted.sort_by(|a, b| {
@@ -730,15 +752,19 @@ impl Services for Live<'_> {
         // tried cannot consume the round's only slot.
         let proposals = accepted
             .into_iter()
-            .map(|(_, choice, dial)| Proposal {
+            .map(|(_, choice, dial, ledger)| Proposal {
                 dial,
                 action: choice.action,
-                ledger: entry.reference(),
+                ledger,
                 direction_mass: Some(choice.direction_mass),
                 rule: Some(super::direction::RULE.into()),
             })
             .collect::<Vec<_>>();
-        Ok(Self::answer(&entry, proposals))
+        Ok(Answer {
+            value: proposals,
+            tokens,
+            ledger,
+        })
     }
     fn route(&mut self, state: &Run) -> Result<Answer<Vec<super::handoff::PriorityRoute>>, String> {
         let questions = self.route_questions(state);

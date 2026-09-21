@@ -118,7 +118,12 @@ pub trait Services {
     fn risk(&mut self, basis: &Basis) -> Result<Answer<String>, String>;
     /// The uncalibrated evidence-difference question, asked only after a stall.
     fn evidence(&mut self, state: &Value) -> Result<Answer<String>, String>;
-    fn propose(&mut self, state: &Run) -> Result<Answer<Vec<Proposal>>, String>;
+    /// How many calls the dial table is asked in. One unless the config caps
+    /// the questions per call.
+    fn proposal_batches(&self, _state: &Run) -> usize {
+        1
+    }
+    fn propose(&mut self, state: &Run, batch: usize) -> Result<Answer<Vec<Proposal>>, String>;
     fn route(&mut self, state: &Run) -> Result<Answer<Vec<super::handoff::PriorityRoute>>, String>;
 }
 
@@ -547,11 +552,23 @@ impl Run {
             self.route_remaining(services, save)?;
             // Code owns the round boundary; only a repeat after a stall asks.
             self.settle_round_boundary(services, save)?;
-            let allowance = services.proposal_tokens(self);
-            self.push_judgment_input("targeted proposals", services.proposal_state(self));
-            self.reserve(0, 0, allowance, 1, "targeted proposals", save)?;
-            let answer = services.propose(self)?;
-            let proposals = self.settle(answer, allowance)?;
+            // Each batch of dials is its own reserved, settled and persisted
+            // judgment; the round is charged once.
+            let mut proposals = vec![];
+            for batch in 0..services.proposal_batches(self) {
+                let allowance = services.proposal_tokens(self);
+                let label = format!("targeted proposals {}", batch + 1);
+                self.push_judgment_input(&label, services.proposal_state(self));
+                let rounds = u64::from(batch == 0);
+                self.reserve(0, 0, allowance, rounds, &label, save)?;
+                let answer = services.propose(self, batch)?;
+                proposals.extend(self.settle(answer, allowance)?);
+            }
+            proposals.sort_by(|a: &Proposal, b: &Proposal| {
+                b.direction_mass
+                    .unwrap_or(0.)
+                    .total_cmp(&a.direction_mass.unwrap_or(0.))
+            });
             let (mut proposals, repeats) = self.filter_repeats(proposals);
             if proposals.is_empty() {
                 return Err(if repeats > 0 {

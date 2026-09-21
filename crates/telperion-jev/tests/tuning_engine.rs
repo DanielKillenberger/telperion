@@ -33,6 +33,9 @@ struct Mock {
     proposals: Vec<Proposal>,
     /// The round's candidate bound, as a config would set it.
     candidates: u64,
+    /// Dials per proposal call; 0 means one call for all of them.
+    batch: usize,
+    proposal_calls: u64,
 }
 
 fn mock() -> Mock {
@@ -57,6 +60,8 @@ fn mock() -> Mock {
             rule: Some(telperion_jev::tuning::direction::RULE.into()),
         }],
         candidates: 4,
+        batch: 0,
+        proposal_calls: 0,
     }
 }
 impl Services for Mock {
@@ -197,9 +202,25 @@ impl Services for Mock {
     fn max_candidates(&self) -> u64 {
         self.candidates
     }
-    fn propose(&mut self, _: &Run) -> Result<Answer<Vec<Proposal>>, String> {
-        let value = self
-            .proposals
+    fn proposal_batches(&self, _: &Run) -> usize {
+        if self.batch == 0 {
+            1
+        } else {
+            self.proposals.len().div_ceil(self.batch).max(1)
+        }
+    }
+    fn propose(&mut self, _: &Run, batch: usize) -> Result<Answer<Vec<Proposal>>, String> {
+        self.proposal_calls += 1;
+        let slice: Vec<Proposal> = if self.batch == 0 {
+            self.proposals.clone()
+        } else {
+            self.proposals
+                .chunks(self.batch)
+                .nth(batch)
+                .map(<[Proposal]>::to_vec)
+                .unwrap_or_default()
+        };
+        let value = slice
             .iter()
             .cloned()
             .map(|mut p| {
@@ -210,7 +231,7 @@ impl Services for Mock {
         Ok(Answer {
             tokens: Some(20),
             value,
-            ledger: Some("jev:propose".into()),
+            ledger: Some(format!("jev:propose:{}", batch + 1)),
         })
     }
     fn route(&mut self, state: &Run) -> Result<Answer<Vec<PriorityRoute>>, String> {
@@ -736,7 +757,7 @@ fn mixed_routes_tune_and_hand_off_without_claiming_readiness() {
         .collect::<Vec<_>>();
     assert!(labels.contains(&"defect routing"));
     assert!(labels.contains(&"pre-dispatch risk"));
-    assert!(labels.contains(&"targeted proposals"));
+    assert!(labels.iter().any(|l| l.starts_with("targeted proposals")));
     for input in &state.judgment_inputs {
         assert_eq!(
             input.state_sha256,
@@ -1166,11 +1187,11 @@ fn every_judgment_input_records_the_ledger_of_the_call_it_made() {
     let proposals = state
         .judgment_inputs
         .iter()
-        .find(|i| i.label == "targeted proposals")
+        .find(|i| i.label.starts_with("targeted proposals"))
         .expect("the proposal call was made");
     assert_eq!(
         proposals.ledger.as_deref(),
-        Some("jev:propose"),
+        Some("jev:propose:1"),
         "a proposal call returning nothing left no ledger"
     );
 }
@@ -1239,7 +1260,7 @@ fn the_proposal_state_is_focused_and_carries_nothing_it_should_not() {
     let recorded = state
         .judgment_inputs
         .iter()
-        .find(|i| i.label == "targeted proposals")
+        .find(|i| i.label.starts_with("targeted proposals"))
         .unwrap();
     assert_eq!(
         recorded.state_sha256,
@@ -1406,4 +1427,87 @@ fn a_cap_only_resume_keeps_one_handoff_per_priority_and_rebuys_no_risk() {
         state.unresolved_priorities(),
         vec!["owner-materials".to_string()]
     );
+}
+
+#[test]
+fn a_large_dial_table_is_asked_in_batches_each_its_own_judgment() {
+    let dials = json!([
+        {"id":"limbs","path":"/skeleton/habit/lateralsPerStation","meaning":"limbs",
+         "min":1,"max":4,"small":1,"substantial":2,"integer":true},
+        {"id":"leaves","path":"/canopy/shortShootLeaves","meaning":"leaves",
+         "min":2,"max":12,"small":2,"substantial":4,"integer":true},
+        {"id":"spacing","path":"/canopy/shortShootSpacing","meaning":"spacing",
+         "min":0.01,"max":0.08,"small":0.01,"substantial":0.02,"integer":false},
+        {"id":"crookedness","path":"/skeleton/habit/crookedness","meaning":"turn",
+         "min":0,"max":15,"small":1,"substantial":3,"integer":false},
+        {"id":"irregularity","path":"/skeleton/envelope/irregularity","meaning":"lobes",
+         "min":0,"max":0.5,"small":0.08,"substantial":0.16,"integer":false}
+    ]);
+    let proposal = |id: &str, mass: f64| Proposal {
+        dial: id.into(),
+        action: Action::SmallIncrease,
+        ledger: "jev:2".into(),
+        direction_mass: Some(mass),
+        rule: Some(telperion_jev::tuning::direction::RULE.into()),
+    };
+    let mut state = run();
+    state.dials = serde_json::from_value(dials).unwrap();
+    // One round at a time, so the call count is the batch count.
+    state.budget.max_rounds = 1;
+    let mut mock = Mock {
+        stall: true,
+        candidates: 1,
+        batch: 2,
+        // Ascending mass, so a correct merge must reorder across batches.
+        proposals: vec![
+            proposal("limbs", 0.55),
+            proposal("leaves", 0.65),
+            proposal("spacing", 0.75),
+            proposal("crookedness", 0.85),
+            proposal("irregularity", 0.95),
+        ],
+        ..mock()
+    };
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(&mut state, &mock, json!([]));
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    // Five dials at two per call is three calls, each its own judgment input
+    // with its own ledger.
+    assert_eq!(mock.proposal_calls, 3, "expected three batched calls");
+    let inputs = state
+        .judgment_inputs
+        .iter()
+        .filter(|i| i.label.starts_with("targeted proposals"))
+        .collect::<Vec<_>>();
+    assert_eq!(inputs.len(), 3);
+    for (n, input) in inputs.iter().enumerate() {
+        assert_eq!(input.label, format!("targeted proposals {}", n + 1));
+        assert_eq!(
+            input.ledger.as_deref(),
+            Some(format!("jev:propose:{}", n + 1).as_str()),
+            "batch {} lost its receipt",
+            n + 1
+        );
+        assert_eq!(
+            input.state_sha256,
+            telperion_jev::sha256_hex(&serde_json::to_vec(&input.state).unwrap())
+        );
+    }
+    // Merged across batches, the highest direction mass went first.
+    assert_eq!(state.trials.last().unwrap().label, "irregularity");
+    // Only one round was charged for the three calls.
+    assert_eq!(state.budget.rounds, 1);
+
+    // The next round re-asks, and the repeat refused does not eat the slot.
+    let spent = mock.evaluations;
+    state.budget.max_rounds = 2;
+    state.pause = None;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert_eq!(
+        mock.evaluations,
+        spent + 1,
+        "a refused repeat consumed the round's only candidate"
+    );
+    assert_eq!(state.trials.last().unwrap().label, "crookedness");
 }

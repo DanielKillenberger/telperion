@@ -128,8 +128,13 @@ pub fn proposal_state(state: &Run) -> Value {
 }
 
 pub fn proposals(state: &Run) -> Result<Value, String> {
+    proposal_batch(state, &state.dials)
+}
+
+/// One question per dial in this batch, in table order.
+pub fn proposal_batch(state: &Run, dials: &[super::actions::Dial]) -> Result<Value, String> {
     let mut questions = serde_json::Map::new();
-    for dial in &state.dials {
+    for dial in dials {
         let current = state
             .effective
             .pointer(&dial.path)

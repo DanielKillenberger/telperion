@@ -1105,7 +1105,7 @@ fn max_candidates_is_validated_and_bounds_one_round() {
             key: "unused",
         };
         assert_eq!(live.max_candidates(), expected, "bound {bound:?}");
-        let proposals = live.propose(&state).unwrap().value;
+        let proposals = live.propose(&state, 0).unwrap().value;
         assert_eq!(proposals.len(), 4, "every accepted move is returned");
         // Equal direction mass, so the dial table's own order decides.
         assert_eq!(proposals[0].dial, "limbs");
