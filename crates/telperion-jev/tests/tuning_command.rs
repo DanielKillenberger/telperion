@@ -1794,3 +1794,72 @@ fn a_failed_visual_attempt_is_recoverable_only_on_a_scoped_decision() {
     assert_eq!(recovered["usage_known"], charged["usage_known"]);
     f.cleanup();
 }
+
+/// A comparative review is a paid look like the assessment: when it fails, its
+/// pass and its tokens are charged and its attempt is left pending. Before
+/// this, `recover_interrupted` cleared neither label, so a run that had paid
+/// for a refused review could never be resumed at all.
+#[test]
+fn a_failed_paid_review_is_recoverable_only_on_a_scoped_decision() {
+    let _serial = serial();
+    let f = fixture::verifying_fixture(opening());
+    let config: Config = serde_json::from_slice(&fs::read(&f.config_path).unwrap()).unwrap();
+    let identity = config.identity().unwrap();
+    let no_key = || Err::<String, String>("fixture stops before dispatch".into());
+    let run = |decision: Option<&Path>| {
+        command::run_with(&f.config_path, &f.out, decision, &NoDispatch, &no_key).unwrap_err()
+    };
+    run(None);
+    let state = f.run_json();
+    let decision = f.root.join("authority.json");
+    let mut d = json!({"pause_id":state["pause"]["id"],"identity":state["identity"],
+        "action":"authorize bounded experimental pilot","by":"fixture owner",
+        "rationale":"synthetic scoped authority",
+        "experimental_pilot":{"purpose":"bounded offline fixture","reason":"synthetic",
+            "next_identity":identity,"max_tokens":902_431,"max_rounds":3,"max_evaluations":13,
+            "max_images":52,"max_visual_passes":26}});
+    write(&decision, &d);
+    run(Some(&decision));
+    let charged = f.run_json();
+
+    for label in ["progress review", "sheet review"] {
+        // The review failed after its pass and its tokens were reserved.
+        let mut interrupted = charged.clone();
+        interrupted["pending"] = json!(label);
+        interrupted["pause"] = Value::Null;
+        write(&f.out.join("run.json"), &interrupted);
+        let error = run(Some(&decision));
+        assert!(error.contains("interruption recorded"), "{label}: {error}");
+        let recorded = f.run_json();
+        assert_eq!(recorded["pending"], label);
+
+        // Without the scoped recovery the resume is still refused.
+        d["pause_id"] = recorded["pause"]["id"].clone();
+        d["identity"] = recorded["identity"].clone();
+        d["action"] = recorded["pause"]["basis"]["proposed_action"].clone();
+        d.as_object_mut().unwrap().remove("recover_interrupted");
+        write(&decision, &d);
+        let error = run(Some(&decision));
+        assert!(
+            error.contains("interrupted or unknown spend must be reconciled"),
+            "{label}: {error}"
+        );
+        assert_eq!(f.run_json()["pending"], label);
+
+        // With it, the run goes on and nothing is refunded.
+        d["recover_interrupted"] = json!(true);
+        write(&decision, &d);
+        let error = run(Some(&decision));
+        assert!(error.contains("fixture stops before dispatch"), "{error}");
+        let recovered = f.run_json();
+        assert_eq!(recovered["pending"], Value::Null);
+        for counter in ["tokens", "visual_passes", "images", "evaluations"] {
+            assert_eq!(
+                recovered["budget"][counter], charged["budget"][counter],
+                "{label} refunded {counter}"
+            );
+        }
+        assert_eq!(recovered["usage_known"], charged["usage_known"]);
+    }
+    f.cleanup();
+}

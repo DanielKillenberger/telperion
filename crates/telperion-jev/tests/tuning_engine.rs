@@ -2448,6 +2448,26 @@ fn a_refused_sheet_answer_leaves_a_recoverable_attempt() {
         .unwrap()
         .reason
         .contains("reservation retained"));
+    // Nothing was judged, so the round is over and every variant that would
+    // have been on the sheet says what it cost.
+    assert!(state
+        .routes
+        .iter()
+        .any(|r| r == "sheet review failed; attempt charged"));
+    let variants: Vec<&Trial> = state.trials.iter().filter(|t| t.bundle.is_some()).collect();
+    assert_eq!(variants.len(), 4);
+    assert!(variants
+        .iter()
+        .all(|t| t.reason.as_deref() == Some("review failed; attempt charged")));
+    assert!(variants.iter().all(|t| t.sheet.is_none()));
+    assert_eq!(
+        state.current,
+        Some(0),
+        "a variant nobody judged was adopted"
+    );
+
+    // The attempt is still pending, so the run refuses to go on without the
+    // owner's scoped recovery.
     let charged = serde_json::to_value(&state.budget).unwrap();
     state.pause = None;
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
@@ -2456,4 +2476,73 @@ fn a_refused_sheet_answer_leaves_a_recoverable_attempt() {
         "interrupted attempt; reservation retained"
     );
     assert_eq!(serde_json::to_value(&state.budget).unwrap(), charged);
+
+    // After that recovery the same bundle is not drawn again, at any strength.
+    state.pause = None;
+    state.pending = None;
+    mock.sheet_error = false;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert_eq!(mock.evaluations, 5, "the same bundle was drawn twice");
+    assert_eq!(mock.sheet_calls, 0, "the same sheet was bought twice");
+    assert_eq!(
+        state.pause.as_ref().unwrap().reason,
+        "bundle already tried; no new direction"
+    );
+}
+
+#[test]
+fn a_failed_progress_review_is_recorded_and_never_bought_again() {
+    let (mut state, mut mock) = reviewed_three(vec![false, false, false], vec![]);
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_one(&mut state, &mock);
+    mock.progress_error = true;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    assert_eq!(state.pending.as_deref(), Some("progress review"));
+    assert_eq!(mock.evaluations, 2, "one candidate was drawn and reviewed");
+    let failed = state.trials.last().unwrap();
+    assert_eq!(failed.label, "twig_hang");
+    assert_eq!(
+        failed.reason.as_deref(),
+        Some("review failed; attempt charged")
+    );
+    assert!(failed.progress.is_none(), "nothing was bound");
+
+    // The owner's scoped recovery clears the attempt and refunds nothing.
+    let charged = serde_json::to_value(&state.budget).unwrap();
+    state.pause = None;
+    state.pending = None;
+    mock.progress_error = false;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    assert!(
+        serde_json::to_value(&state.budget).unwrap()["visual_passes"]
+            .as_u64()
+            .unwrap()
+            > charged["visual_passes"].as_u64().unwrap(),
+        "the failed pass was refunded"
+    );
+    assert!(
+        state
+            .routes
+            .iter()
+            .any(|r| r.starts_with("repeat refused: twig_hang")),
+        "the failed review was bought again: {:?}",
+        state.routes
+    );
+    assert_eq!(
+        state
+            .trials
+            .iter()
+            .filter(|t| t.label == "twig_hang")
+            .count(),
+        1,
+        "the same move was drawn a second time"
+    );
+    // The round ran to its normal end on the two moves that were left.
+    assert_eq!(mock.progress_calls, 2);
+    assert!(state
+        .routes
+        .iter()
+        .any(|r| r == "visual stall; no candidate judged better"));
 }

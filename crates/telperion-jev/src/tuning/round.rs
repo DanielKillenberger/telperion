@@ -169,7 +169,8 @@ impl Run {
                     t.action,
                     t.feasible,
                     t.score,
-                    t.progress.is_some(),
+                    t.progress.is_some()
+                        || t.reason.as_deref() == Some(super::progress::REVIEW_FAILED),
                 )
             })
             .collect::<Vec<_>>();
@@ -178,13 +179,14 @@ impl Run {
         for proposal in proposals {
             let repeat = spent
                 .iter()
-                .any(|(dial, action, feasible, score, reviewed)| {
+                .any(|(dial, action, feasible, score, settled)| {
                     dial == &proposal.dial
                     && action.as_ref() == Some(&proposal.action)
                     // A reviewed attempt still standing here was not adopted,
-                    // whatever its numbers did.
+                    // whatever its numbers did, and an attempt whose paid
+                    // review failed was charged once and is not bought again.
                     && (!feasible
-                        || *reviewed
+                        || *settled
                         || !score
                             .zip(base.as_ref().and_then(|b| b.score))
                             .is_some_and(|(s, b)| s < b))

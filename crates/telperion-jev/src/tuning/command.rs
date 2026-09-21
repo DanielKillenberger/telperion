@@ -226,14 +226,21 @@ pub fn prepare(
         if let Some(authority) = &decision.experimental_pilot {
             authority.verify(&identity, &old.budget)?;
         }
-        // A failed visual leaves its pass and its tokens charged and its
+        // A failed paid look leaves its pass and its tokens charged and its
         // attempt pending; without this the run could never be resumed at all.
         // Recovery settles nothing: the spend stays spent, and it takes the
-        // owner's scoped decision with its rationale.
+        // owner's scoped decision with its rationale. The two comparative
+        // reviews are paid looks like the assessment, and recover the same way.
         if decision.recover_interrupted
             && matches!(
                 old.pending.as_deref(),
-                Some("baseline" | "candidate evaluation" | "visual assessment")
+                Some(
+                    "baseline"
+                        | "candidate evaluation"
+                        | "visual assessment"
+                        | super::progress::PENDING
+                        | super::sheet::PENDING
+                )
             )
         {
             old.pending = None;

@@ -8,7 +8,7 @@
 //! there is no reservation left to draw with.
 use super::{
     overlay_of,
-    round::{evaluate, half, note_unshown, read_back, Variant},
+    round::{evaluate, half, note_failure, note_unshown, read_back, Variant},
     split,
 };
 use crate::tuning::{
@@ -90,7 +90,14 @@ pub(super) fn isolate(
         let Some(plan) = &look.plan else {
             break;
         };
-        let verdict = sheet::review(state, services, save, plan)?;
+        let verdict = match sheet::review(state, services, save, plan) {
+            Ok(verdict) => verdict,
+            Err(reason) => {
+                note_failure(state, &look);
+                save(state)?;
+                return Err(reason);
+            }
+        };
         spent += 1;
         let shown = read_back(state, &look, &verdict);
         save(state)?;

@@ -32,6 +32,10 @@ pub const VERSION: &str = "tuning-progress-v2";
 pub const UNCALIBRATED: &str =
     "uncalibrated progress review: a comparative verdict, never a score or a readiness claim";
 pub const PENDING: &str = "progress review";
+/// What a candidate or variant records when the paid review it was sent to
+/// failed or would not bind. The pass and the tokens stay charged, the attempt
+/// is never adopted, and the same move is not bought a second time.
+pub const REVIEW_FAILED: &str = "review failed; attempt charged";
 pub const PROMPT: &str = "You are shown reference photographs of a tree species, then two renders, A and B, of the same generated tree at the same view and seed. One or the other may be the newer attempt; nothing here says which, and neither is a photograph.\n\nFor each listed priority, say which render better satisfies it relative to the references: a_better, b_better, same when neither is closer, or unknown when this view cannot show it. Judge only what the images show.\n\nThen say in one or two sentences what differs for the better between them, what is still missing in both against the references, and list anything one render breaks that the other does not; for each, say which render has the problem.\n\nGive no numbers, no scores and no overall winner.";
 
 /// How a candidate is chosen against the tree it came from.
@@ -267,8 +271,16 @@ pub(super) fn review(
     state.push_judgment_input(UNCALIBRATED, serde_json::to_value(&request).unwrap());
     state.pending = Some(PENDING.into());
     save(state)?;
-    let answer = services.progress(&request, &side)?;
-    let verdict = state.settle(answer, allowance)?;
+    let asked = services.progress(&request, &side);
+    let verdict = match asked.and_then(|answer| state.settle(answer, allowance)) {
+        Ok(verdict) => verdict,
+        // The attempt is charged either way, so it is recorded either way.
+        Err(reason) => {
+            state.trials[candidate].reason = Some(REVIEW_FAILED.into());
+            save(state)?;
+            return Err(reason);
+        }
+    };
     state.trials[candidate].progress = Some(verdict);
     state.pending = None;
     save(state)

@@ -78,6 +78,16 @@ pub(super) fn note_unshown(state: &mut Run, look: &sheet::Look) {
     }
 }
 
+/// A paid sheet that failed or would not bind. Every variant it would have
+/// judged is recorded as charged, so the round ends without an adoption and
+/// nobody buys the same look again.
+pub(super) fn note_failure(state: &mut Run, look: &sheet::Look) {
+    for index in &look.shown {
+        state.trials[*index].reason = Some(progress::REVIEW_FAILED.into());
+    }
+    state.routes.push(sheet::FAILED_NOTE.into());
+}
+
 /// Writes each shown variant's row of the verdict onto its own trial, and
 /// returns what the adoption table is asked about.
 pub(super) fn read_back(
@@ -218,7 +228,14 @@ pub(in crate::tuning) fn round(
         save(state)?;
         return Ok(false);
     };
-    let verdict = sheet::review(state, services, save, plan)?;
+    let verdict = match sheet::review(state, services, save, plan) {
+        Ok(verdict) => verdict,
+        Err(reason) => {
+            note_failure(state, &look);
+            save(state)?;
+            return Err(reason);
+        }
+    };
     let shown = read_back(state, &look, &verdict);
     save(state)?;
     if let Some(key) = sheet::adopt(&verdict, &shown) {
