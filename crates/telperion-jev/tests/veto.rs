@@ -62,16 +62,16 @@ fn only_a_disposition_that_went_backwards_is_a_reason_to_roll_back() {
         ],
     );
     let reasons = veto::worsened(&before, &after, &required);
-    assert_eq!(reasons.len(), 4, "{reasons:?}");
+    assert_eq!(reasons.len(), 3, "{reasons:?}");
     assert!(reasons[0].contains("required cell crown") && reasons[0].contains("pass to fail"));
     assert!(
         reasons[1].contains("habit") && reasons[1].contains("Pass") && reasons[1].contains("Fail")
     );
+    assert!(reasons[2].contains("bark") && reasons[2].contains("Unknown"));
     assert!(
-        reasons[2].contains("twigs"),
-        "a pass that became unknown is a regression"
+        !reasons.iter().any(|r| r.contains("twigs")),
+        "a pass that became unknown is the reviewer declining to judge, not a regression"
     );
-    assert!(reasons[3].contains("bark") && reasons[3].contains("Unknown"));
     // A cell that was already failing, a trait that was already failing and a
     // trait nothing changed are not reasons.
     assert!(!reasons

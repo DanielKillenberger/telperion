@@ -59,15 +59,22 @@ fn status(visual: &Visual, cell: &Cell) -> Option<CellStatus> {
         .map(|(_, status)| *status)
 }
 
-/// A disposition that went backwards: a pass that is no longer one, or an
-/// unknown that has become a failure. An unknown that was a failure is not a
-/// regression, and neither is a cell that was never passing.
+/// A disposition that went backwards: a pass the reviewer now calls a failure,
+/// or an unknown it has since judged one. An unknown that was a failure is not
+/// a regression, and neither is a cell that was never passing.
+///
+/// A pass that became unknown is not one either: unknown is the reviewer
+/// declining to judge the trait, not a finding that the tree got worse, and a
+/// required cell has never been vetoed for it. Readiness is unaffected, because
+/// `ready()` still wants every cell passing and the core-coverage gate still
+/// refuses a core trait that is not. Live, this transition on the variation
+/// trait `variation-crown-density` rolled back the only two candidates a whole
+/// run judged better, because changing a crown is what makes its density hard
+/// to call.
 fn backwards(before: CellStatus, after: CellStatus) -> bool {
     matches!(
         (before, after),
-        (CellStatus::Pass, CellStatus::Fail)
-            | (CellStatus::Pass, CellStatus::Unknown)
-            | (CellStatus::Unknown, CellStatus::Fail)
+        (CellStatus::Pass, CellStatus::Fail) | (CellStatus::Unknown, CellStatus::Fail)
     )
 }
 
