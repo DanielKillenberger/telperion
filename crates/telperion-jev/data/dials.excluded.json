@@ -14,6 +14,7 @@
  "/skeleton/growth/influenceRadius": "An unset `Option` in every shipped preset, so the wire row reads null and there is no current value to step (crates/telperion-core/src/branching.rs:72).",
  "/skeleton/growth/killDistance": "Null in every shipped preset, as above.",
  "/skeleton/growth/maxNodes": "Null in every shipped preset, and a resource cap besides.",
+ "/skeleton/growth/maxTurnPerStep": "Null in five of the seven families, including the beech a run is pointed at. A proposal batch reads every dial's current value off the wire and refuses the whole batch when one is null (src/tuning/judgments.rs:137).",
  "/skeleton/growth/stepDistance": "Null in every shipped preset, as above.",
  "/skeleton/growth/trunkHeight": "Null in every shipped preset, as above.",
  "/skeleton/habit/reachProbeSteps": "A sampling budget: samples spent finding an axis's room, not a look the owner can ask for (crates/telperion-core/src/branching/traits.rs:15).",

@@ -38,7 +38,8 @@ pub struct Dial {
     /// Where the meaning came from: "doc comment", "use site" or "prototype".
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub meaning_basis: Option<String>,
-    /// Where the range came from: "validated bound" or "preset span".
+    /// Where the range came from: "validated bound", "preset span" - the span
+    /// the botanical presets occupy - or "authored" for a row a run qualified.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub range_basis: Option<String>,
     /// The file and line the two above were read off.

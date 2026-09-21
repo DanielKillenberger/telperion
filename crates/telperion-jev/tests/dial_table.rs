@@ -84,9 +84,13 @@ fn every_numeric_row_of_every_family_is_a_dial_or_an_excluded_row() {
             }
         }
         for path in &paths {
+            // A proposal batch reads every dial's current value off the wire
+            // and refuses the whole batch when one of them is null, so a row
+            // the wire leaves unset is not a dial the loop can offer.
             assert!(
-                family.pointer(path).is_some(),
-                "{id}: the table names {path}, which this family's wire does not have"
+                family.pointer(path).is_some_and(Value::is_number),
+                "{id}: the table names {path}, which this family's wire leaves \
+                 without a number"
             );
         }
     }
@@ -130,7 +134,7 @@ fn every_authored_row_is_a_dial_the_loop_can_ask_about() {
         assert!(
             matches!(
                 dial.range_basis.as_deref(),
-                Some("validated bound" | "preset span")
+                Some("validated bound" | "preset span" | "authored")
             ),
             "{}: range basis {:?}",
             dial.id,
