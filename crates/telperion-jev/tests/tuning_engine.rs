@@ -35,6 +35,8 @@ struct Mock {
     candidates: u64,
     /// Dials per proposal call; 0 means one call for all of them.
     batch: usize,
+    /// The visual attempt fails, as an adapter that exits non-zero does.
+    visual_error: bool,
     proposal_calls: u64,
 }
 
@@ -61,6 +63,7 @@ fn mock() -> Mock {
         }],
         candidates: 4,
         batch: 0,
+        visual_error: false,
         proposal_calls: 0,
     }
 }
@@ -86,6 +89,9 @@ impl Services for Mock {
         required: &[Cell],
         _: Option<&telperion_jev::tuning::priority::Approval>,
     ) -> Result<Answer<Visual>, String> {
+        if self.visual_error {
+            return Err("reference-first adapter failed; reservation retained".into());
+        }
         let mut answer = self.visual(trial)?;
         let status = answer.value.cells[0].1;
         answer.value.cells = required
@@ -1515,4 +1521,50 @@ fn a_large_dial_table_is_asked_in_batches_each_its_own_judgment() {
         "a refused repeat consumed the round's only candidate"
     );
     assert_eq!(state.trials.last().unwrap().label, "crookedness");
+}
+
+/// A visual that fails still spent its pass, so the reservation stays charged
+/// and the attempt stays recorded as pending. Recovery is the owner's scoped
+/// decision, never a silent retry.
+#[test]
+fn a_failed_visual_keeps_its_reservation_and_leaves_the_attempt_pending() {
+    let mut state = run();
+    let mut mock = Mock {
+        visual_error: true,
+        ..mock()
+    };
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert_eq!(state.pending.as_deref(), Some("visual assessment"));
+    assert_eq!(state.budget.visual_passes, Some(1));
+    assert!(state
+        .pause
+        .as_ref()
+        .unwrap()
+        .reason
+        .contains("reservation retained"));
+    let charged = state.budget.clone();
+
+    // A second invocation cannot retry it: the spend is unsettled.
+    state.pause = None;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert_eq!(
+        state.pause.as_ref().unwrap().reason,
+        "interrupted attempt; reservation retained"
+    );
+    assert_eq!(state.pending.as_deref(), Some("visual assessment"));
+    assert_eq!(
+        serde_json::to_value(&state.budget).unwrap(),
+        serde_json::to_value(&charged).unwrap(),
+        "a refused retry charges nothing further"
+    );
+
+    // Cleared the way `recover_interrupted` clears it, the run goes on and the
+    // pass and the tokens it spent stay spent.
+    state.pause = None;
+    state.pending = None;
+    mock.visual_error = false;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert_eq!(state.budget.visual_passes, Some(2));
+    assert!(state.budget.tokens >= charged.tokens);
+    assert!(state.visual.is_some());
 }

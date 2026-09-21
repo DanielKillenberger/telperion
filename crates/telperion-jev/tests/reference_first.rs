@@ -455,3 +455,103 @@ print(json.dumps({'request_sha256':e['request_sha256'],'assessment':{'identity':
     assert!(config.preparation().unwrap().is_none());
     std::fs::remove_dir_all(dir).unwrap();
 }
+
+/// A coverage row naming something that is not an inventory trait - the live
+/// wide-table run answered with the required cell's item name - costs the
+/// whole paid pass today. It is dropped and recorded instead, and it can
+/// never stand in for a trait the inventory does state.
+#[test]
+fn a_coverage_row_for_an_unknown_trait_is_dropped_and_recorded() {
+    let original = request();
+    let request = ComparisonRequest::new(&original, inventory(&original));
+    let r = request.comparison.clone();
+    let finding = Finding {
+        observation: "Supported match".into(),
+        evidence_ids: vec!["render-0".into(), "reference-0".into()],
+        impact: Impact::Supported,
+        uncertain: false,
+        causal_hypothesis: None,
+    };
+    let visual:vision::Result=serde_json::from_value(json!({"request_sha256":r.hash(),"assessment":{"identity":r.identity,"model":"mock","ledger":"receipt","cells":[[r.required[0],"pass"]],"defects":[],"findings":[finding]},"effort":"medium","usage":{"input_tokens":1,"output_tokens":1},"observations":[]})).unwrap();
+    let known = Coverage {
+        trait_id: "trait-1".into(),
+        status: CellStatus::Pass,
+        evidence_ids: vec!["render-0".into(), "reference-0".into()],
+        explanation: "Visible match; no defining mismatch".into(),
+    };
+    let stray = Coverage {
+        trait_id: "crown-character-density-droop".into(),
+        status: CellStatus::Fail,
+        evidence_ids: vec!["render-0".into(), "reference-0".into()],
+        explanation: "the crown reads too dark and too dense".into(),
+    };
+    let base = ComparisonResult {
+        request_sha256: request.hash(),
+        visual,
+        coverage: vec![known.clone()],
+    };
+
+    let mut extra = base.clone();
+    extra.coverage.push(stray.clone());
+    extra.bind(&request).unwrap();
+    assert_eq!(
+        extra
+            .coverage
+            .iter()
+            .map(|c| c.trait_id.clone())
+            .collect::<Vec<_>>(),
+        vec![known.trait_id.clone()],
+        "a row for an unknown trait must leave the bound coverage"
+    );
+    let recorded = extra
+        .visual
+        .observations
+        .iter()
+        .find(|o| o.starts_with("dropped coverage row for unknown trait"))
+        .expect("the dropped row is recorded verbatim");
+    assert!(
+        recorded.contains("crown-character-density-droop")
+            && recorded.contains("Fail")
+            && recorded.contains("the crown reads too dark and too dense"),
+        "{recorded}"
+    );
+    assert!(
+        ready(&r.required, &r.identity, &extra.visual.assessment),
+        "a dropped row must not touch readiness"
+    );
+    let once = serde_json::to_value(&extra).unwrap();
+    extra.bind(&request).unwrap();
+    assert_eq!(once, serde_json::to_value(&extra).unwrap());
+
+    // It cannot stand in for the trait the inventory does state.
+    let mut only_stray = base.clone();
+    only_stray.coverage = vec![stray.clone()];
+    only_stray.bind(&request).unwrap();
+    assert!(!ready(
+        &r.required,
+        &r.identity,
+        &only_stray.visual.assessment
+    ));
+
+    // A missing inventory trait still fails, and the rest stays strict.
+    let mut missing = base.clone();
+    missing.coverage.clear();
+    missing.bind(&request).unwrap();
+    assert!(!ready(&r.required, &r.identity, &missing.visual.assessment));
+    let mut duplicate = base.clone();
+    duplicate.coverage.push(known.clone());
+    duplicate.coverage.push(stray.clone());
+    assert!(duplicate.bind(&request).is_err());
+    let mut invalid = base.clone();
+    invalid.coverage[0].evidence_ids = vec!["invented".into()];
+    invalid.coverage.push(stray.clone());
+    assert!(invalid.bind(&request).is_err());
+    let mut too_many = base.clone();
+    too_many.coverage = (0..17)
+        .map(|i| Coverage {
+            trait_id: format!("unknown-{i}"),
+            ..stray.clone()
+        })
+        .collect();
+    assert!(too_many.bind(&request).is_err());
+}

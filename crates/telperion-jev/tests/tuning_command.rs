@@ -1690,3 +1690,97 @@ fn two_consecutive_cap_only_resumes_keep_the_evidence_they_preserved() {
     }
     f.cleanup();
 }
+
+/// A visual attempt that failed leaves `pending` set and its reservation
+/// charged. Before this, `recover_interrupted` cleared only an evaluation, so
+/// the run could never be resumed at all and its budget was stranded.
+#[test]
+fn a_failed_visual_attempt_is_recoverable_only_on_a_scoped_decision() {
+    let _serial = serial();
+    let f = fixture::verifying_fixture(opening());
+    let config: Config = serde_json::from_slice(&fs::read(&f.config_path).unwrap()).unwrap();
+    let identity = config.identity().unwrap();
+    let no_key = || Err::<String, String>("fixture stops before dispatch".into());
+    command::run_with(&f.config_path, &f.out, None, &NoDispatch, &no_key).unwrap_err();
+    let state = f.run_json();
+    let decision = f.root.join("authority.json");
+    let mut d = json!({"pause_id":state["pause"]["id"],"identity":state["identity"],
+        "action":"authorize bounded experimental pilot","by":"fixture owner",
+        "rationale":"synthetic scoped authority",
+        "experimental_pilot":{"purpose":"bounded offline fixture","reason":"synthetic",
+            "next_identity":identity,"max_tokens":902_431,"max_rounds":3,"max_evaluations":13,
+            "max_images":52,"max_visual_passes":26}});
+    write(&decision, &d);
+    command::run_with(
+        &f.config_path,
+        &f.out,
+        Some(&decision),
+        &NoDispatch,
+        &no_key,
+    )
+    .unwrap_err();
+    let charged = f.run_json();
+
+    // The visual failed after its pass and tokens were reserved.
+    let mut interrupted = charged.clone();
+    interrupted["pending"] = json!("visual assessment");
+    interrupted["pause"] = Value::Null;
+    write(&f.out.join("run.json"), &interrupted);
+    let error = command::run_with(
+        &f.config_path,
+        &f.out,
+        Some(&decision),
+        &NoDispatch,
+        &no_key,
+    )
+    .unwrap_err();
+    assert!(error.contains("interruption recorded"), "{error}");
+    let recorded = f.run_json();
+    assert_eq!(recorded["pending"], "visual assessment");
+
+    // Without the scoped recovery the resume is still refused.
+    d["pause_id"] = recorded["pause"]["id"].clone();
+    d["identity"] = recorded["identity"].clone();
+    d["action"] = recorded["pause"]["basis"]["proposed_action"].clone();
+    write(&decision, &d);
+    let error = command::run_with(
+        &f.config_path,
+        &f.out,
+        Some(&decision),
+        &NoDispatch,
+        &no_key,
+    )
+    .unwrap_err();
+    assert!(
+        error.contains("interrupted or unknown spend must be reconciled"),
+        "{error}"
+    );
+    assert_eq!(f.run_json()["pending"], "visual assessment");
+
+    // With it, the run goes on and nothing is refunded.
+    d["recover_interrupted"] = json!(true);
+    write(&decision, &d);
+    let error = command::run_with(
+        &f.config_path,
+        &f.out,
+        Some(&decision),
+        &NoDispatch,
+        &no_key,
+    )
+    .unwrap_err();
+    assert!(error.contains("fixture stops before dispatch"), "{error}");
+    let recovered = f.run_json();
+    assert_eq!(recovered["pending"], Value::Null);
+    assert_eq!(recovered["budget"]["tokens"], charged["budget"]["tokens"]);
+    assert_eq!(
+        recovered["budget"]["visual_passes"],
+        charged["budget"]["visual_passes"]
+    );
+    assert_eq!(recovered["budget"]["images"], charged["budget"]["images"]);
+    assert_eq!(
+        recovered["preparation_charge"],
+        charged["preparation_charge"]
+    );
+    assert_eq!(recovered["usage_known"], charged["usage_known"]);
+    f.cleanup();
+}

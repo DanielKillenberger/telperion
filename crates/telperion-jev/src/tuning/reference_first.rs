@@ -551,15 +551,33 @@ impl ComparisonResult {
             .as_ref()
             .ok_or("missing joint comparison")?;
         let allowed = packet.inputs.iter().map(|i| i.id.clone()).collect();
-        let mut seen = HashSet::new();
         if self.coverage.len() > 16 {
             return Err("too many trait dispositions".into());
         }
+        // A row naming something the inventory does not state - the live run
+        // answered with a required cell's item name - is dropped and recorded
+        // rather than refused, because refusing it costs the whole paid pass.
+        // It leaves `coverage` before anything reads it, so it can never count
+        // toward a trait's disposition, the core gate or readiness.
+        let (known, stray): (Vec<Coverage>, Vec<Coverage>) = std::mem::take(&mut self.coverage)
+            .into_iter()
+            .partition(|c| request.inventory.traits.iter().any(|t| t.id == c.trait_id));
+        self.coverage = known;
+        for c in &stray {
+            let note = format!(
+                "dropped coverage row for unknown trait {}: {:?} \u{2014} {}",
+                c.trait_id, c.status, c.explanation
+            );
+            if !self.visual.observations.contains(&note) {
+                self.visual.observations.push(note.clone());
+            }
+            if !self.visual.assessment.observations.contains(&note) {
+                self.visual.assessment.observations.push(note);
+            }
+        }
+        let mut seen = HashSet::new();
         for c in &self.coverage {
-            if !seen.insert(&c.trait_id)
-                || !request.inventory.traits.iter().any(|t| t.id == c.trait_id)
-                || !text(&c.explanation)
-                || !ids(&c.evidence_ids, &allowed)
+            if !seen.insert(&c.trait_id) || !text(&c.explanation) || !ids(&c.evidence_ids, &allowed)
             {
                 return Err("invalid trait coverage".into());
             }
