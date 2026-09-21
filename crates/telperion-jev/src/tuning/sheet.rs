@@ -7,6 +7,9 @@
 //! A new uncalibrated question, under the same terms as the side-by-side
 //! review: bootstrap authority only, labelled uncalibrated wherever recorded,
 //! and one visual pass per sheet.
+mod adapter;
+pub use adapter::{dispatch, envelope, prompt_request};
+
 use super::{evaluation::Image, progress::Priority};
 use crate::sha256_hex;
 use serde::{Deserialize, Serialize};

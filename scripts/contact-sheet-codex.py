@@ -3,6 +3,11 @@
 
 The envelope names no candidate, no round and no strength. Which render the
 loop is standing on is decided and recorded by the caller, never sent here.
+
+Two requests travel in the envelope. `request` is what was hashed and where the
+image files are; `prompt_request` is the caller's redacted projection of it,
+with every image reduced to its label and its digest, and only that one is
+written into the prompt. A render's file name can carry the trial key.
 """
 import argparse
 import hashlib
@@ -21,6 +26,19 @@ def strings():
     return {"type": "array", "items": {"type": "string"}}
 
 
+def redacted(envelope, keys, images):
+    """The projection the prompt is allowed to carry, checked before it is used."""
+    request = envelope.get("prompt_request")
+    if not isinstance(request, dict):
+        raise ValueError("missing redacted prompt_request")
+    if set(request) != keys:
+        raise ValueError("prompt request allowlist violation")
+    for image in images(request):
+        if set(image) != {"role", "sha256"} and set(image) != {"label", "sha256"}:
+            raise ValueError("the prompt request names more than a label and a digest")
+    return request
+
+
 def prepare(envelope):
     if envelope["stage"] != "sheet":
         raise ValueError("unknown stage")
@@ -29,6 +47,8 @@ def prepare(envelope):
         raise ValueError("contact-sheet allowlist violation")
     if request["schema"] != "tuning-sheet-v1":
         raise ValueError("unknown contact-sheet schema")
+    prompt_request = redacted(envelope, set(request),
+                              lambda r: r["references"] + r["renders"])
     ids = [p["id"] for p in request["priorities"]]
     if not ids or len(ids) != len(set(ids)):
         raise ValueError("invalid priority list")
@@ -61,7 +81,7 @@ def prepare(envelope):
         "improved": {"type": "string"}, "missing": {"type": "string"}})
     prompt = (envelope["prompt"]
               + "\nDo not use tools or inspect files. Attached images follow metadata order: the reference photographs, then the renders in the order they are numbered. Return JSON only.\n"
-              + json.dumps(request)
+              + json.dumps(prompt_request)
               + "\nReturn one entry for each listed priority id. Each ranking lists every render number exactly once, and each steps list grades the adjacent pairs of that ranking in order.")
     return paths, schema, prompt
 

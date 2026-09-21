@@ -10,8 +10,10 @@
 mod adapter;
 mod request;
 mod verdict;
-pub use adapter::dispatch;
-pub use request::{candidate_side, inert, request, Look};
+pub(in crate::tuning) use adapter::shell;
+pub use adapter::{dispatch, envelope};
+pub(in crate::tuning) use request::redacted;
+pub use request::{candidate_side, inert, prompt_request, request, Look};
 pub use verdict::{bind, Answer, Choice, Judgment, Movement, Note, On, Regression, Verdict};
 
 use super::{

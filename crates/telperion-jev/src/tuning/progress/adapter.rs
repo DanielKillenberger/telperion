@@ -6,8 +6,14 @@ use serde_json::{json, Value};
 use std::path::PathBuf;
 
 /// One isolated adapter dispatch, its receipt written before the answer is
-/// read, so a refused answer still has a record of what was spent.
-fn shell(adapter: &vision::Adapter, envelope: &Value) -> Result<(Value, PathBuf), String> {
+/// read, so a refused answer still has a record of what was spent. The sheet
+/// review asks its own question through the same shell.
+pub(in crate::tuning) fn shell(
+    stage: &str,
+    adapter: &vision::Adapter,
+    envelope: &Value,
+    uncalibrated: &str,
+) -> Result<(Value, PathBuf), String> {
     use std::io::Write;
     use std::process::{Command, Stdio};
     if adapter.timeout_seconds == 0
@@ -15,7 +21,7 @@ fn shell(adapter: &vision::Adapter, envelope: &Value) -> Result<(Value, PathBuf)
         || adapter.model.is_empty()
         || adapter.effort.is_empty()
     {
-        return Err("invalid progress adapter".into());
+        return Err(format!("invalid {stage} adapter"));
     }
     let mut child = Command::new("timeout")
         .arg(adapter.timeout_seconds.to_string())
@@ -37,10 +43,10 @@ fn shell(adapter: &vision::Adapter, envelope: &Value) -> Result<(Value, PathBuf)
     let path = adapter
         .ledger
         .join(format!("{}.json", crate::ledger::new_entry_id()));
-    let record = json!({"stage":"progress","request":envelope["request"],"model":adapter.model,
+    let record = json!({"stage":stage,"request":envelope["request"],"model":adapter.model,
         "effort":adapter.effort,"exit":out.status.code(),
         "stdout":String::from_utf8_lossy(&out.stdout),
-        "stderr":String::from_utf8_lossy(&out.stderr),"uncalibrated":UNCALIBRATED});
+        "stderr":String::from_utf8_lossy(&out.stderr),"uncalibrated":uncalibrated});
     std::fs::OpenOptions::new()
         .create_new(true)
         .write(true)
@@ -49,12 +55,20 @@ fn shell(adapter: &vision::Adapter, envelope: &Value) -> Result<(Value, PathBuf)
         .write_all(&serde_json::to_vec_pretty(&record).unwrap())
         .map_err(|e| e.to_string())?;
     if !out.status.success() {
-        return Err("progress adapter failed; reservation retained".into());
+        return Err(format!("{stage} adapter failed; reservation retained"));
     }
     Ok((
         serde_json::from_slice(&out.stdout).map_err(|e| e.to_string())?,
         path,
     ))
+}
+
+/// What travels to the adapter: the request whole, for the hash and the image
+/// files, and redacted, for the prompt.
+pub fn envelope(request: &Request) -> Value {
+    json!({"stage":"progress","request":request,"request_sha256":request.hash(),
+        "prompt_request":super::prompt_request(request),
+        "prompt":PROMPT,"prompt_sha256":Request::prompt_hash()})
 }
 
 /// The adapter call itself. One isolated dispatch, one receipt, no retry.
@@ -63,9 +77,8 @@ pub fn dispatch(
     request: &Request,
     side: &str,
 ) -> Result<Reply<Verdict>, String> {
-    let envelope = json!({"stage":"progress","request":request,"request_sha256":request.hash(),
-        "prompt":PROMPT,"prompt_sha256":Request::prompt_hash()});
-    let (raw, path) = shell(&adapter.adapter, &envelope)?;
+    let envelope = envelope(request);
+    let (raw, path) = shell("progress", &adapter.adapter, &envelope, UNCALIBRATED)?;
     if raw["status"] != "ok"
         || raw["request_sha256"] != request.hash()
         || raw["prompt_sha256"] != Request::prompt_hash()

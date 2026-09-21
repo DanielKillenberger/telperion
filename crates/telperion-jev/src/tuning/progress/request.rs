@@ -7,7 +7,26 @@ use crate::tuning::{
     evaluation::{Image, Trial},
     priority::Gap,
 };
+use serde_json::{json, Value};
 use std::collections::BTreeMap;
+
+/// One image as the prompt may see it: the role it plays on the sheet and the
+/// digest of its bytes, never the file it lives in.
+pub(crate) fn redacted(role: &str, image: &Image) -> Value {
+    json!({"role":role,"sha256":image.sha256})
+}
+
+/// The request with every path taken out of it. The adapter serializes this
+/// into the prompt, because a render's file name can carry the trial key, the
+/// seed or the label the reviewer is not allowed to read off it.
+pub fn prompt_request(request: &Request) -> Value {
+    json!({"schema":request.schema,"target_species":request.target_species,
+        "view":request.view,"seed":request.seed,
+        "references":request.references.iter().map(|i| redacted("reference",i))
+            .collect::<Vec<_>>(),
+        "a":redacted("a",&request.a),"b":redacted("b",&request.b),
+        "priorities":request.priorities,"owner_notes":request.owner_notes})
+}
 
 /// Which side the candidate is shown as. Both keys decide it together, so the
 /// answer cannot be read off either one alone, and it is recorded either way.

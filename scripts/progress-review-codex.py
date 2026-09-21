@@ -3,6 +3,11 @@
 
 The envelope names no candidate and no round. Which render is the newer one is
 decided and recorded by the caller, never sent here and never inferred.
+
+Two requests travel in the envelope. `request` is what was hashed and where the
+image files are; `prompt_request` is the caller's redacted projection of it,
+with every image reduced to its role and its digest, and only that one is
+written into the prompt. A render's file name can carry the trial key.
 """
 import argparse
 import hashlib
@@ -21,6 +26,19 @@ def strings():
     return {"type": "array", "items": {"type": "string"}}
 
 
+def redacted(envelope, keys, images):
+    """The projection the prompt is allowed to carry, checked before it is used."""
+    request = envelope.get("prompt_request")
+    if not isinstance(request, dict):
+        raise ValueError("missing redacted prompt_request")
+    if set(request) != keys:
+        raise ValueError("prompt request allowlist violation")
+    for image in images(request):
+        if set(image) != {"role", "sha256"} and set(image) != {"label", "sha256"}:
+            raise ValueError("the prompt request names more than a role and a digest")
+    return request
+
+
 def prepare(envelope):
     if envelope["stage"] != "progress":
         raise ValueError("unknown stage")
@@ -29,6 +47,8 @@ def prepare(envelope):
         raise ValueError("progress allowlist violation")
     if request["schema"] != "tuning-progress-v2":
         raise ValueError("unknown progress schema")
+    prompt_request = redacted(envelope, set(request),
+                              lambda r: r["references"] + [r["a"], r["b"]])
     ids = [p["id"] for p in request["priorities"]]
     if not ids or len(ids) != len(set(ids)):
         raise ValueError("invalid priority list")
@@ -53,7 +73,7 @@ def prepare(envelope):
             "render": {"type": "string", "enum": ["a", "b"]}, "text": {"type": "string"}})}})
     prompt = (envelope["prompt"]
               + "\nDo not use tools or inspect files. Attached images follow metadata order: the reference photographs, then render A, then render B. Return JSON only.\n"
-              + json.dumps(request)
+              + json.dumps(prompt_request)
               + "\nReturn exactly one verdict for each listed priority id, in that order.")
     return paths, schema, prompt
 
