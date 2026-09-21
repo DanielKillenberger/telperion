@@ -138,6 +138,18 @@ pub fn prepare(
                 old.budget.max_visual_passes.unwrap_or(0),
                 config.budget.max_visual_passes.unwrap_or(0),
             ),
+            (
+                "image",
+                decision.image_cap_extension.as_ref(),
+                old.budget.max_images,
+                config.budget.max_images,
+            ),
+            (
+                "evaluation",
+                decision.evaluation_cap_extension.as_ref(),
+                old.budget.max_evaluations,
+                config.budget.max_evaluations,
+            ),
         ] {
             if let Some(extension) = extension {
                 if extension.previous != previous || extension.next != next || next <= previous {
@@ -145,10 +157,11 @@ pub fn prepare(
                         "{label} extension must name exact previous and increased cap"
                     ));
                 }
-                if label == "round" {
-                    old.budget.max_rounds = next;
-                } else {
-                    old.budget.max_visual_passes = Some(next);
+                match label {
+                    "round" => old.budget.max_rounds = next,
+                    "visual" => old.budget.max_visual_passes = Some(next),
+                    "image" => old.budget.max_images = next,
+                    _ => old.budget.max_evaluations = next,
                 }
             }
         }
@@ -229,6 +242,8 @@ pub fn prepare(
             original.budget.max_tokens = previous_cap;
             original.budget.max_rounds = previous_budget.max_rounds;
             original.budget.max_visual_passes = previous_budget.max_visual_passes;
+            original.budget.max_images = previous_budget.max_images;
+            original.budget.max_evaluations = previous_budget.max_evaluations;
             if original.identity()? != old.identity {
                 return Err(
                     "evidence reuse requires unchanged original config and artifact bytes".into(),

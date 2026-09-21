@@ -1440,3 +1440,135 @@ fn bootstrap_never_claims_readiness_and_needs_authority_that_names_it() {
         .contains("naming visual_bootstrap"));
     f.cleanup();
 }
+
+#[test]
+fn image_and_evaluation_caps_extend_only_on_an_exact_scoped_decision() {
+    use telperion_jev::tuning::engine::Run;
+    let _serial = serial();
+    let f = fixture::verifying_fixture(opening());
+    let cfg = f.config_path.clone();
+    let raw_config: Value = serde_json::from_slice(&fs::read(&cfg).unwrap()).unwrap();
+    let no_key = || Err::<String, String>("stops before dispatch".into());
+
+    // Reach the authority pause, then give the run spend, evidence and an
+    // approval worth preserving.
+    command::run_with(&cfg, &f.out, None, &NoDispatch, &no_key).unwrap_err();
+    let path = f.out.join("run.json");
+    let mut state: Run = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    let trial = telperion_jev::tuning::evaluation::Trial {
+        key: "candidate-1".into(),
+        identity: state.identity.clone(),
+        seed: 1,
+        round: 0,
+        label: "baseline".into(),
+        overrides: json!({}),
+        ledger: None,
+        feasible: true,
+        reason: None,
+        measurement: json!({}),
+        comparisons: vec![telperion_jev::tuning::evaluation::Comparison {
+            reference: "whole".into(),
+            reference_weight: 1.,
+            metric_weights: [1.; 5],
+            target: [1.; 5],
+            observed: [Some(1.); 5],
+            images: serde_json::from_value(json!([raw_config["references"][0]])).unwrap(),
+        }],
+        score: Some(0.5),
+        seconds: 0.,
+        base: None,
+        action: None,
+        evidence: None,
+    };
+    state.trials.push(trial);
+    state.current = Some(0);
+    state.visual = Some(
+        serde_json::from_value(
+            json!({"identity":"candidate-1","model":fixture::VISION_MODEL,
+            "ledger":"receipt","cells":[],"defects":[],"findings":[]}),
+        )
+        .unwrap(),
+    );
+    state.budget.images = 30;
+    state.budget.evaluations = 6;
+    state.budget.tokens = 1234;
+    write(&path, &serde_json::to_value(&state).unwrap());
+    let before = fs::read(&path).unwrap();
+
+    let identity_of = |images: u64, evaluations: u64| {
+        let mut raw: Value = serde_json::from_slice(&fs::read(&cfg).unwrap()).unwrap();
+        raw["budget"]["max_images"] = json!(images);
+        raw["budget"]["max_evaluations"] = json!(evaluations);
+        let next: Config = serde_json::from_value(raw.clone()).unwrap();
+        (raw, next.identity().unwrap())
+    };
+    let decision = f.root.join("decision.json");
+    let base = |identity: &str| {
+        json!({"pause_id":state.pause.as_ref().unwrap().id,"identity":state.identity,
+            "action":"authorize bounded experimental pilot","by":"owner",
+            "rationale":"owner raised the image cap mid-run","next_identity":identity,
+            "preserve_evidence":true,
+            "experimental_pilot":{"purpose":"bounded","reason":"owner authorized",
+                "next_identity":identity,"max_tokens":902_431,"max_rounds":3,
+                "max_evaluations":20,"max_images":60,"max_visual_passes":26}})
+    };
+
+    // (3) Changing max_images with no extension at all is still refused.
+    let (raw, identity) = identity_of(60, 13);
+    f.rewrite(&raw);
+    let mut d = base(&identity);
+    write(&decision, &d);
+    let error = command::run_with(&cfg, &f.out, Some(&decision), &NoDispatch, &no_key).unwrap_err();
+    assert!(error.contains("budget caps"), "{error}");
+    assert_eq!(fs::read(&path).unwrap(), before);
+
+    // (1) A wrong previous is refused and mutates nothing.
+    d["image_cap_extension"] = json!({"previous": 99, "next": 60});
+    write(&decision, &d);
+    let error = command::run_with(&cfg, &f.out, Some(&decision), &NoDispatch, &no_key).unwrap_err();
+    assert!(error.contains("image extension must name exact"), "{error}");
+    assert_eq!(fs::read(&path).unwrap(), before);
+
+    // A cap that does not increase is refused too.
+    d["image_cap_extension"] = json!({"previous": 52, "next": 52});
+    write(&decision, &d);
+    assert!(
+        command::run_with(&cfg, &f.out, Some(&decision), &NoDispatch, &no_key)
+            .unwrap_err()
+            .contains("image extension must name exact")
+    );
+    assert_eq!(fs::read(&path).unwrap(), before);
+
+    // (2) Exact extensions for both caps, with preserved evidence, are accepted.
+    let (raw, identity) = identity_of(60, 20);
+    f.rewrite(&raw);
+    let mut d = base(&identity);
+    d["image_cap_extension"] = json!({"previous": 52, "next": 60});
+    d["evaluation_cap_extension"] = json!({"previous": 13, "next": 20});
+    write(&decision, &d);
+    let error = command::run_with(&cfg, &f.out, Some(&decision), &NoDispatch, &no_key).unwrap_err();
+    assert!(error.contains("stops before dispatch"), "{error}");
+
+    let after: Run = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    assert_eq!(after.budget.max_images, 60);
+    assert_eq!(after.budget.max_evaluations, 20);
+    // Spend and evidence survive the extension.
+    assert_eq!(after.budget.images, 30);
+    assert_eq!(after.budget.evaluations, 6);
+    // The only movement is the preparation charge the run makes itself.
+    let charged = after
+        .preparation_charge
+        .as_ref()
+        .map(|c| c.tokens)
+        .unwrap_or(0);
+    assert_eq!(after.budget.tokens, 1234 + charged);
+    assert_eq!(after.trials.len(), 1);
+    assert_eq!(after.current, Some(0));
+    assert_eq!(
+        after.visual.as_ref().unwrap().identity,
+        "candidate-1",
+        "preserved evidence was dropped"
+    );
+    assert_eq!(after.identity, identity);
+    f.cleanup();
+}

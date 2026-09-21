@@ -124,6 +124,10 @@ pub struct HumanDecision {
     #[serde(default)]
     pub visual_cap_extension: Option<TokenCapExtension>,
     #[serde(default)]
+    pub image_cap_extension: Option<TokenCapExtension>,
+    #[serde(default)]
+    pub evaluation_cap_extension: Option<TokenCapExtension>,
+    #[serde(default)]
     pub visual_reconciliation: Option<VisualReconciliation>,
     #[serde(default)]
     pub baseline_amendment: Option<BaselineAmendment>,
