@@ -113,6 +113,22 @@ impl Run {
         }
     }
 
+    /// The moves already made from the current candidate, for whoever is
+    /// about to propose the next one.
+    pub fn attempts_here(&self) -> Vec<Value> {
+        let before = self
+            .current
+            .and_then(|i| self.trials.get(i))
+            .and_then(|t| t.score);
+        self.rounds_here()
+            .iter()
+            .map(|t| {
+                json!({"dial":t.label,"action":t.action,"feasible":t.feasible,
+                    "score_before":before,"score_after":t.score})
+            })
+            .collect()
+    }
+
     /// What the evidence question is shown: the attempts that failed here, and
     /// the assessment then against the assessment now.
     pub fn evidence_state(&self) -> Value {

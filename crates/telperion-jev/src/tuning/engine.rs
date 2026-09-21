@@ -91,7 +91,7 @@ pub trait Services {
         super::judgments::summary(state)
     }
     fn proposal_state(&self, state: &Run) -> Value {
-        super::judgments::summary(state)
+        super::judgments::proposal_state(state)
     }
     /// The question set the router was shown, used to quote the chosen criterion.
     fn route_questions(&self, state: &Run) -> Value {

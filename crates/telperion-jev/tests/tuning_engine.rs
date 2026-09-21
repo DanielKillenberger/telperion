@@ -1116,3 +1116,78 @@ fn every_judgment_input_records_the_ledger_of_the_call_it_made() {
         "a proposal call returning nothing left no ledger"
     );
 }
+
+#[test]
+fn the_proposal_state_is_focused_and_carries_nothing_it_should_not() {
+    let mut mock = Mock {
+        route_plan: vec![("tuning".into(), 0.9)],
+        ..mock()
+    };
+    let mut state = run();
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(
+        &mut state,
+        &mock,
+        json!([{"id":"owner-crown","observation":"Crown shape and foliage organization","evidence_ids":["render-0","reference-0"],"views":["whole"]}]),
+    );
+    // Give the run the history a realistic proposal would be shown.
+    state.authorizations.push(
+        serde_json::from_value(json!({"pause_id":"p","identity":state.identity,
+            "action":"reassess","by":"owner","rationale":"scoped","preserve_evidence":true}))
+        .unwrap(),
+    );
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    let focused = telperion_jev::tuning::judgments::proposal_state(&state);
+    let bytes = serde_json::to_vec(&focused).unwrap();
+    assert!(
+        bytes.len() < 6144,
+        "proposal state is {} bytes; the live pilot sent 25 KB",
+        bytes.len()
+    );
+    let text = String::from_utf8(bytes).unwrap();
+    for excluded in [
+        "budget",
+        "max_tokens",
+        "authorizations",
+        "resource_amendments",
+        "agent_diagnoses",
+        "verified_evidence_reuse",
+        "joint",
+        "cells",
+        "evidence_ids",
+        "priority_checkpoints",
+    ] {
+        assert!(
+            !text.contains(excluded),
+            "proposal state still carries {excluded}"
+        );
+    }
+    // And it does carry what the judgment needs.
+    for wanted in [
+        "dials",
+        "owner_notes",
+        "measured_views",
+        "attempts_from_this_candidate",
+    ] {
+        assert!(focused.get(wanted).is_some(), "missing {wanted}");
+    }
+    assert_eq!(
+        focused["owner_priorities_routed_to_tuning"][0]["gap_id"],
+        "owner-crown"
+    );
+
+    // The hash persisted before dispatch is the hash of that exact value.
+    let recorded = state
+        .judgment_inputs
+        .iter()
+        .find(|i| i.label == "targeted proposals")
+        .unwrap();
+    assert_eq!(
+        recorded.state_sha256,
+        telperion_jev::sha256_hex(&serde_json::to_vec(&recorded.state).unwrap())
+    );
+    assert!(!serde_json::to_string(&recorded.state)
+        .unwrap()
+        .contains("max_tokens"));
+}

@@ -590,7 +590,7 @@ impl Services for Live<'_> {
     }
     fn proposal_tokens(&self, state: &Run) -> u64 {
         super::judgments::allowance(
-            &super::judgments::summary(state),
+            &super::judgments::proposal_state(state),
             &super::judgments::proposals(state).unwrap_or(Value::Null),
         )
     }
@@ -682,8 +682,7 @@ impl Services for Live<'_> {
     }
     fn propose(&mut self, state: &Run) -> Result<Answer<Vec<Proposal>>, String> {
         let questions = super::judgments::proposals(state)?;
-        let observations = super::judgments::summary(state);
-        let entry = self.ask(&observations, &questions)?;
+        let entry = self.ask(&self.proposal_state(state), &questions)?;
         let bytes = fs::read(&self.config.adjustments.manifest).map_err(|e| e.to_string())?;
         let manifest: calibration::Manifest =
             serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
