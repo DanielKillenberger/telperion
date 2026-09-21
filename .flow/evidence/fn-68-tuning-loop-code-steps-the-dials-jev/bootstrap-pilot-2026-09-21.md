@@ -44,3 +44,19 @@ R7: a live direction-and-magnitude round ran end to end on the beech: Jev chose 
 R10: route, propose, evaluate, select and pause all ran live. The adopt-and-reassess step has still never run live, because nothing has improved yet.
 
 Accounting: tokens 899,702 of 1,150,000; visual passes 31 of 32; images 50 of 62; evaluations 9 of 13; rounds 4 of 4. The second round cost 23,574 tokens, 1 evaluation, 4 images and no visual pass.
+
+## Rounds three and four, same day (binary at `3e13592a`, gate EXIT=0, 104 suites)
+
+A stalled round now proceeds while untried supported moves remain, repeats are filtered before the one-candidate truncation, and handoffs follow the evidence chain (one materials handoff, no re-bought risk judgment). Scoped resume, evidence preserved: round cap 4 to 7, image cap 62 to 82.
+
+| Round | Candidate (direction mass) | Score | Against baseline 0.24324871 |
+| --- | --- | ---: | --- |
+| 4 | irregularity substantial_increase (0.97) | 0.26039929 | worse, rejected |
+| 5 | crookedness small_increase (0.87) | 0.25647067 | worse, rejected |
+| 6 | limbs small_increase (0.61) | 0.28096976 | worse, rejected |
+
+Repeats were refused by name each round. Round 7 did not start: the byte-sized round reservation asked for 224,378 tokens against 218,877 remaining, and nothing was spent. The host stopped here by its own stated rule: three Jev-guided moves in a row made the score worse, so a fourth round would not answer a new question.
+
+Reading, not yet a finding: Jev takes its directions from the reviewer's prose (separated foliage masses, hanging outer foliage), and the five-number score does not reward those directions; `limbs` up contradicts the prototype's measured result that one limb per station improved the score. The spec already names this risk ("The score is a proxy"). Either the score cannot see what the owner and the reviewer ask for, or these six dials cannot deliver it, or both. No candidate was adopted, so the adopt-and-reassess step has still never run live.
+
+Final accounting: tokens 931,123 of 1,150,000; visual passes 31 of 32; images 58 of 82; evaluations 11 of 13; rounds 6 of 7. The whole bootstrap pilot cost 150,964 tokens after preparation, 2 visual passes, 5 evaluations and 28 images. Each stalled round cost about 16,000 to 24,000 tokens, one evaluation and no visual pass.
