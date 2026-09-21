@@ -22,6 +22,8 @@ pub enum Preset {
 }
 #[derive(Debug, Clone)]
 pub struct Family {
+    /// The specimen's age in years. Only the growth path reads it: the
+    /// direct build is the mature tree whatever the row says.
     pub age: f64,
     pub growth: crate::growth::GrowthTraits,
     pub skeleton: SkeletonParams,
@@ -30,6 +32,9 @@ pub struct Family {
     pub canopy: CanopyParams,
     pub element: ElementParams,
     pub material: MaterialParams,
+    /// How deep into the crown leaves are kept, as a share of the crown's
+    /// widest radius; a leaf further in than that is dropped. Raising it
+    /// keeps more of the crown's interior foliage, and one keeps it all.
     pub shell_depth: f64,
 }
 impl Default for Family {

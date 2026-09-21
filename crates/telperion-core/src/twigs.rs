@@ -6,10 +6,25 @@ pub const MAX_GENERATIONS: u32 = 6;
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct TwigAnatomy {
+    /// The finished thickness of a twig in metres. Wood at or below half
+    /// of it is drawn as a twig, so raising it thickens the twig layer and
+    /// hands more of the fine wood to it.
     pub diameter: f64,
+    /// The length in metres a twig shoot grows before it stops, and the
+    /// whole of one internode on leaf-bearing wood. Raising it lengthens
+    /// every twig, so the crown carries a deeper, shaggier skin.
     pub length: f64,
+    /// Metres between the joints on wood thicker than the bearing
+    /// diameter, and the spacing of the stations a leaf sits on. Raising
+    /// it gives longer segments, so laterals and leaves sit further apart.
     pub internode_length: f64,
+    /// How many leaf stations sit at each joint, each turned its own share
+    /// of a full turn around the shoot. Raising it crowds more leaves onto
+    /// the same joints.
     pub stations_per_internode: u32,
+    /// The thickness in metres at or below which a shoot bears leaves and
+    /// side shoots of its own. Raising it lets thicker wood bear, so
+    /// foliage reaches further back down the branch.
     pub bearing_diameter: f64,
 }
 impl Default for TwigAnatomy {
@@ -33,7 +48,13 @@ pub struct TwigParams {
     /// How much thinner a shoot is than its parent for the same drop in
     /// length. Raising it leaves side shoots finer.
     pub ratio_power: f64,
+    /// The fewest of its own diameters a segment of wood may span. Raising
+    /// it makes segments longer for the same thickness, so there are fewer
+    /// joints and the wood reads straighter.
     pub internode_factor: f64,
+    /// The ceiling on segments one length of wood may be cut into. It
+    /// binds only where the two lengths above would cut more, and there it
+    /// caps the cost rather than states a look.
     #[cfg_attr(
         feature = "json",
         serde(default = "crate::ranges::default_max_internodes")
@@ -51,6 +72,10 @@ pub struct TwigParams {
     /// bearing twigs. Raising it lets twigs start on thicker wood, so
     /// they reach further back toward the trunk.
     pub limb_radius: f64,
+    /// How deep the outer skin of the crown is that only twigs may fill,
+    /// as a share of the crown: the scaffold is grown into what is left
+    /// inside it. Raising it holds the structural wood further in and
+    /// leaves a deeper twig layer.
     pub reach: f64,
     /// The degrees a side shoot leaves its parent. Raising it swings
     /// twigs further out toward square with the branch.
@@ -61,6 +86,9 @@ pub struct TwigParams {
     /// How much shoot length varies shoot to shoot. Raising it gives a
     /// more uneven, less combed twig layer.
     pub vigour_variation: f64,
+    /// The degrees each successive shoot is turned around the wood that
+    /// bears it. Raising it swings the next shoot further around, so the
+    /// twigs spiral differently.
     pub divergence: f64,
     /// How strongly a shoot hangs, 0 to 3. At 0 nothing hangs and the local
     /// law is the ordinary one; at 1 a curtain takes its full droop.
