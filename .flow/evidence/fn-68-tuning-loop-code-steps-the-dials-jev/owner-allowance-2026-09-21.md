@@ -5,3 +5,10 @@ Request (host, Claude Code `claude-fable-5-1`), as put to the owner: option A, o
 Owner reply, verbatim: "yes a"
 
 Bounds the host holds itself to: visual cap exactly 32, image cap exactly 54, one attempt per paid step, stop and report on any failure instead of re-buying.
+
+## Owner decisions later on 2026-09-21
+
+- On the fn-9 oak still as a positive: "yea i mean it's clearly not the same quality. Branches are too small but it's also comparing without materials. So I think we don't have a positive one yet really." No owner-accepted positive exists.
+- On the R11 code-first continuation design the host described: "ok r11 change makes sense".
+- On the visual bootstrap mode the host described (zero positives admitted only under an identity-bound flag and a per-run authority naming it; never reports qualified machine readiness; ends when the first owner-accepted render passes one comparison): "this makes sense to me".
+- The owner wants the beech run as the live pilot that closes fn-68's R7 and R10: "We can run the beech spec as a pilot to close these things as proof for fn-68? i think that makes sense?"
