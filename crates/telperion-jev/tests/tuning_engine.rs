@@ -31,6 +31,8 @@ struct Mock {
     proposal_action: Action,
     /// Overrides what `propose` returns; empty means the default single move.
     proposals: Vec<Proposal>,
+    /// The round's candidate bound, as a config would set it.
+    candidates: u64,
 }
 
 fn mock() -> Mock {
@@ -54,6 +56,7 @@ fn mock() -> Mock {
             direction_mass: Some(0.9),
             rule: Some(telperion_jev::tuning::direction::RULE.into()),
         }],
+        candidates: 4,
     }
 }
 impl Services for Mock {
@@ -190,6 +193,9 @@ impl Services for Mock {
             tokens: Some(20),
             value: self.evidence_answer.clone(),
         })
+    }
+    fn max_candidates(&self) -> u64 {
+        self.candidates
     }
     fn propose(&mut self, _: &Run) -> Result<Answer<Vec<Proposal>>, String> {
         let value = self
@@ -896,22 +902,74 @@ fn a_first_round_against_a_candidate_buys_no_continuation_judgment() {
 }
 
 #[test]
-fn a_stall_without_new_evidence_pauses_without_asking_anything() {
+fn stalled_one_candidate_rounds_work_through_the_dials_before_stopping() {
+    let mut state = run();
+    // Three real dials the router can move, and room for four rounds.
+    state.dials = serde_json::from_value(json!([
+        {"id":"limbs","path":"/skeleton/habit/lateralsPerStation","meaning":"limbs",
+         "min":1,"max":4,"small":1,"substantial":2,"integer":true},
+        {"id":"leaves","path":"/canopy/shortShootLeaves","meaning":"leaves",
+         "min":2,"max":12,"small":2,"substantial":4,"integer":true},
+        {"id":"spacing","path":"/canopy/shortShootSpacing","meaning":"spacing",
+         "min":0.01,"max":0.08,"small":0.01,"substantial":0.02,"integer":false}
+    ]))
+    .unwrap();
+    state.budget.max_rounds = 5;
+    let proposal = |id: &str, mass: f64| Proposal {
+        dial: id.into(),
+        action: Action::SmallIncrease,
+        ledger: "jev:2".into(),
+        direction_mass: Some(mass),
+        rule: Some(telperion_jev::tuning::direction::RULE.into()),
+    };
     let mut mock = Mock {
         stall: true,
+        candidates: 1,
+        // Offered every round in direction-mass order; the filter thins them.
+        proposals: vec![
+            proposal("limbs", 0.95),
+            proposal("leaves", 0.85),
+            proposal("spacing", 0.75),
+        ],
         ..mock()
     };
-    let mut state = ready_to_round(&mut mock);
-    state.budget.max_rounds = 3;
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(&mut state, &mock, json!([]));
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    // One candidate per round, a different dial each time, in mass order, and
+    // no judgment was bought to justify carrying on.
+    let tried = state
+        .trials
+        .iter()
+        .filter(|t| t.round > 0)
+        .map(|t| t.label.clone())
+        .collect::<Vec<_>>();
+    assert_eq!(
+        tried,
+        vec!["limbs", "leaves", "spacing"],
+        "the rounds did not work through the dials in order"
+    );
     assert_eq!(
         mock.evidence_calls, 0,
-        "a stall on old evidence paid for a question"
+        "a stall on old evidence bought a judgment"
     );
+
+    // The fourth round has nothing untried left, and says so.
     let reason = &state.pause.as_ref().unwrap().reason;
     assert!(
-        reason.contains("numeric stall without new evidence"),
+        reason.contains("every supported move was already tried on this candidate"),
         "{reason}"
+    );
+    assert_eq!(
+        state
+            .routes
+            .iter()
+            .filter(|r| r.starts_with("repeat refused:"))
+            .count(),
+        6,
+        "{:?}",
+        state.routes
     );
 }
 
@@ -1235,7 +1293,7 @@ fn evidence_measured_under_an_earlier_revision_survives_a_cap_only_resume() {
         rule: Some(telperion_jev::tuning::direction::RULE.into()),
     }];
     assert!(
-        state.filter_repeats(repeat).is_empty(),
+        state.filter_repeats(repeat).0.is_empty(),
         "a move already tried under the earlier revision was offered again"
     );
     assert!(state
@@ -1243,11 +1301,12 @@ fn evidence_measured_under_an_earlier_revision_survives_a_cap_only_resume() {
         .iter()
         .any(|r| r.starts_with("repeat refused: crookedness")));
 
-    // And a stall on the same evidence still pauses rather than re-buying.
-    assert!(matches!(
+    // A stall on the same evidence proceeds without buying a judgment; the
+    // repeat filter above is what stops a move already tried.
+    assert_eq!(
         state.round_decision(),
-        telperion_jev::tuning::round::Decision::Pause(_)
-    ));
+        telperion_jev::tuning::round::Decision::Proceed
+    );
 }
 
 #[test]
@@ -1285,8 +1344,66 @@ fn a_resume_without_preservation_breaks_the_evidence_chain() {
         rule: Some(telperion_jev::tuning::direction::RULE.into()),
     }];
     assert_eq!(
-        state.filter_repeats(offered).len(),
+        state.filter_repeats(offered).0.len(),
         1,
         "an unreachable attempt was treated as already tried"
+    );
+}
+
+#[test]
+fn a_cap_only_resume_keeps_one_handoff_per_priority_and_rebuys_no_risk() {
+    let gap = json!([{"id":"owner-materials","observation":"Materials",
+        "evidence_ids":["render-0","reference-0"],"views":["whole"]}]);
+    let mut mock = Mock {
+        route_plan: vec![("appearance".into(), 0.9)],
+        stall: true,
+        ..mock()
+    };
+    let mut state = run();
+    state.budget.max_rounds = 4;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(&mut state, &mock, gap.clone());
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    assert_eq!(
+        mock.pre_dispatch_calls, 1,
+        "the first handoff was judged once"
+    );
+    assert_eq!(state.current_handoffs().len(), 1);
+
+    // A cap-only resume that preserved its evidence: new identity, same run.
+    let previous = state.identity.clone();
+    state.identity = "raised-caps".into();
+    state.authorizations.push(
+        serde_json::from_value(
+            json!({"pause_id":"p","identity":previous,"action":"reassess","by":"owner",
+                "rationale":"caps only","next_identity":"raised-caps",
+                "preserve_evidence":true}),
+        )
+        .unwrap(),
+    );
+    state.pause = None;
+    state.budget.max_rounds = 6;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    // The handoff carried across, so its judgment was not bought again and no
+    // second copy was written.
+    assert_eq!(
+        mock.pre_dispatch_calls, 1,
+        "the risk judgment was re-bought after a cap-only resume"
+    );
+    assert_eq!(
+        state.current_handoffs().len(),
+        1,
+        "a second copy of the same handoff was written"
+    );
+    assert_eq!(
+        state.handoffs.len(),
+        1,
+        "the stored journal grew a duplicate"
+    );
+    assert_eq!(
+        state.unresolved_priorities(),
+        vec!["owner-materials".to_string()]
     );
 }

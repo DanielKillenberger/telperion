@@ -99,9 +99,27 @@ impl Run {
     /// Replaces this revision's handoff for the same priority instead of
     /// accumulating stale duplicates.
     fn record_handoff(&mut self, built: Handoff) {
+        // A handoff is carried evidence: one per priority across the chain of
+        // cap-only resumes, replaced when its route or candidate changes.
+        let chain = self.evidence_identities();
         self.handoffs
-            .retain(|h| !(h.run_identity == built.run_identity && h.gap_id == built.gap_id));
+            .retain(|h| !(chain.iter().any(|k| k == &h.run_identity) && h.gap_id == built.gap_id));
         self.handoffs.push(built);
+    }
+
+    /// The handoffs this revision owns, one per priority, newest first-written
+    /// wins. Older duplicates in a loaded journal are left untouched on disk.
+    pub fn current_handoffs(&self) -> Vec<&Handoff> {
+        let mut seen = std::collections::HashSet::new();
+        self.handoffs
+            .iter()
+            .rev()
+            .filter(|h| self.measured_here(&h.run_identity))
+            .filter(|h| seen.insert(h.gap_id.clone()))
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev()
+            .collect()
     }
 
     /// True when this exact priority, candidate and route already carry a
@@ -111,7 +129,7 @@ impl Run {
         self.handoffs
             .iter()
             .find(|h| {
-                h.run_identity == self.identity
+                self.measured_here(&h.run_identity)
                     && h.candidate_key == key
                     && h.gap_id == route.gap_id
                     && h.route == route.route
@@ -227,9 +245,8 @@ impl Run {
     /// cell that is not passing.
     pub fn unresolved_priorities(&self) -> Vec<String> {
         let mut out: Vec<String> = self
-            .handoffs
+            .current_handoffs()
             .iter()
-            .filter(|h| h.run_identity == self.identity)
             .filter_map(|h| h.gap_id.clone())
             .collect();
         if let (Some(approval), Some(visual)) = (self.approved_priorities(), self.visual.as_ref()) {

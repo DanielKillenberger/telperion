@@ -78,11 +78,13 @@ impl Run {
             .collect::<Vec<_>>();
         let now = self.visual.as_ref().map(|v| v.ledger.clone());
         match now {
+            // New evidence: ask whether it differs enough to justify a repeat.
             Some(ledger) if !acted_on.contains(&ledger) => Decision::AskEvidence,
-            _ => Decision::Pause(
-                "numeric stall without new evidence; the last attempt acted on this same assessment"
-                    .into(),
-            ),
+            // Same evidence: an untried move is still worth trying, and it
+            // costs no judgment to find out. The proposal call and the repeat
+            // filter decide; when nothing untried is left, the round stops
+            // there instead of here.
+            _ => Decision::Proceed,
         }
     }
 
@@ -154,7 +156,8 @@ impl Run {
     /// Drops a proposal whose exact move already failed against this candidate.
     /// An untried move is never dropped, and nothing here implies a dial was
     /// exhausted.
-    pub fn filter_repeats(&mut self, proposals: Vec<Proposal>) -> Vec<Proposal> {
+    /// Returns the moves worth trying and how many were refused as repeats.
+    pub fn filter_repeats(&mut self, proposals: Vec<Proposal>) -> (Vec<Proposal>, usize) {
         let base = self.current.and_then(|i| self.trials.get(i)).cloned();
         let spent = self
             .rounds_here()
@@ -185,7 +188,8 @@ impl Run {
                 kept.push(proposal);
             }
         }
+        let count = refused.len();
         self.routes.extend(refused);
-        kept
+        (kept, count)
     }
 }

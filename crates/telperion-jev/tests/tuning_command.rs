@@ -1093,7 +1093,10 @@ fn max_candidates_is_validated_and_bounds_one_round() {
         visual_bootstrap: false,
         reviewer_passed_unqualified: false,
     };
-    for (bound, expected) in [(Some(1u64), 1usize), (Some(2), 2), (None, 4)] {
+    // `propose` now returns every accepted move, ordered, and reports the
+    // bound; the engine truncates after refusing repeats, so a move already
+    // tried cannot consume the round's only slot.
+    for (bound, expected) in [(Some(1u64), 1u64), (Some(2), 2), (None, 4)] {
         let mut bounded = config.clone();
         bounded.max_candidates = bound;
         let mut live = Live {
@@ -1101,10 +1104,14 @@ fn max_candidates_is_validated_and_bounds_one_round() {
             transport: &EveryDial,
             key: "unused",
         };
+        assert_eq!(live.max_candidates(), expected, "bound {bound:?}");
         let proposals = live.propose(&state).unwrap().value;
-        assert_eq!(proposals.len(), expected, "bound {bound:?}");
-        // Order follows the dial table, so a bound of one takes the first dial.
+        assert_eq!(proposals.len(), 4, "every accepted move is returned");
+        // Equal direction mass, so the dial table's own order decides.
         assert_eq!(proposals[0].dial, "limbs");
+        let mut truncated = proposals;
+        truncated.truncate(live.max_candidates() as usize);
+        assert_eq!(truncated.len() as u64, expected);
     }
     f.cleanup();
 }

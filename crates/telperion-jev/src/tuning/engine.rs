@@ -94,6 +94,10 @@ pub trait Services {
         super::judgments::proposal_state(state)
     }
     /// The question set the router was shown, used to quote the chosen criterion.
+    /// How many candidates one round may evaluate.
+    fn max_candidates(&self) -> u64 {
+        super::live::CANDIDATE_LIMIT
+    }
     fn route_questions(&self, state: &Run) -> Value {
         super::judgments::routes(&Default::default(), state.approved_priorities())
     }
@@ -548,10 +552,16 @@ impl Run {
             self.reserve(0, 0, allowance, 1, "targeted proposals", save)?;
             let answer = services.propose(self)?;
             let proposals = self.settle(answer, allowance)?;
-            let proposals = self.filter_repeats(proposals);
+            let (mut proposals, repeats) = self.filter_repeats(proposals);
             if proposals.is_empty() {
-                return Err("no supported proposal; bounded diagnosis required".into());
+                return Err(if repeats > 0 {
+                    "no supported proposal: every supported move was already tried on this candidate"
+                        .into()
+                } else {
+                    "no supported proposal; bounded diagnosis required".to_string()
+                });
             }
+            proposals.truncate(services.max_candidates() as usize);
             if proposals.len() > 4 {
                 return Err("more than four proposals refused".into());
             }

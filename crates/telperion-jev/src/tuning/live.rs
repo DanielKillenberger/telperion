@@ -606,6 +606,9 @@ impl Services for Live<'_> {
             &self.route_questions(state),
         )
     }
+    fn max_candidates(&self) -> u64 {
+        self.config.max_candidates.unwrap_or(CANDIDATE_LIMIT)
+    }
     fn route_questions(&self, state: &Run) -> Value {
         super::judgments::routes(&self.config.gap_specs, state.approved_priorities())
     }
@@ -723,7 +726,8 @@ impl Services for Live<'_> {
                 .total_cmp(&a.1.direction_mass)
                 .then(a.0.cmp(&b.0))
         });
-        accepted.truncate(self.config.max_candidates.unwrap_or(CANDIDATE_LIMIT) as usize);
+        // The engine truncates, after refusing repeats, so a move already
+        // tried cannot consume the round's only slot.
         let proposals = accepted
             .into_iter()
             .map(|(_, choice, dial)| Proposal {

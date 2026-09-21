@@ -384,12 +384,12 @@ pub fn run_with(
                 &json!({"checkpoint_sha256":checkpoint.hash(),"checkpoint":checkpoint,"approval":state.approved_priorities(),"ordering":"First three eligible findings in reviewer source order, not a new model ranking or owner approval","meaning":"Owner chooses what matters. Approval is neither readiness nor final acceptance; all other findings remain in checkpoint.visual."}),
             )?;
         }
-        if !state.handoffs.is_empty() {
+        if !state.current_handoffs().is_empty() {
             write(
                 &out.join("handoffs.json"),
                 &json!({"meaning":"Evidence-backed gap handoffs for fn-89. An outstanding gap is never machine readiness, and an unauthorized handoff dispatches nothing.",
                 "bootstrap":state.visual_bootstrap,
-                "unresolved_priorities":state.unresolved_priorities(),"handoffs":state.handoffs}),
+                "unresolved_priorities":state.unresolved_priorities(),"handoffs":state.current_handoffs()}),
             )?;
         }
         write(
