@@ -176,7 +176,10 @@ fn measurement_gates_accept_context_but_stop_failed_candidates_before_render() {
         "metrics":{"growth":{"node_capped":false,"level_capped":false,"attraction_capped":false}}});
     assert!(gates(&event.to_string()).is_ok());
     event["numeric_status"] = json!("fail");
-    event["checks"]["height"]["status"] = json!("fail");
+    // What `species_measure` writes for a gate outside its range.
+    event["checks"]["height"] = json!({"status":"fail","target":{"range":[18.0,24.0]},
+        "actual":{"status":"measured","value":31.4},
+        "reason":"outside target or target unavailable"});
     struct Measure(std::path::PathBuf);
     impl Measurer for Measure {
         fn measure(&self, _: &str, _: u32, _: &serde_json::Value) -> Result<Measured, RenderError> {
@@ -219,15 +222,37 @@ fn measurement_gates_accept_context_but_stop_failed_candidates_before_render() {
     );
     assert!(!failed.feasible);
     assert_eq!(renderer.0.get(), 0);
-    assert_eq!(failed.reason.as_deref(), Some("numeric gate failed"));
+    // The router is told which gate, what it measured and what it wanted.
+    let reason = failed.reason.clone().unwrap();
+    assert!(
+        reason.starts_with("numeric gate failed: ")
+            && reason.contains("height 31.4")
+            && reason.contains("outside 18.0 to 24.0")
+            && reason.contains("(fail)"),
+        "{reason}"
+    );
+    assert!(
+        !reason.contains("foliage"),
+        "a contextual metric is not a failing gate: {reason}"
+    );
     assert_eq!(failed.measurement["checks"]["height"]["status"], "fail");
     event["metrics"]["growth"]["node_capped"] = json!(true);
     assert!(gates(&event.to_string())
         .unwrap_err()
         .contains("node_capped"));
     event["metrics"]["growth"]["node_capped"] = json!(false);
+    // An unassessed gate under a passing numeric status is named too.
     event["numeric_status"] = json!("pass");
-    event["checks"]["height"]["status"] = json!("pass");
+    event["checks"]["height"] = json!({"status":"unassessed","target":{"range":[18.0,24.0]},
+        "actual":{"status":"missing"},"reason":"measurement missing, ambiguous or estimated"});
+    let unassessed = gates(&event.to_string()).unwrap_err();
+    assert!(
+        unassessed.starts_with("failed or unassessed gate: ")
+            && unassessed.contains("height unmeasured")
+            && unassessed.contains("(unassessed)"),
+        "{unassessed}"
+    );
+    event["checks"]["height"] = json!({"status":"pass"});
     fs::write(&path, event.to_string()).unwrap();
     let empty = evaluate(
         &measure,

@@ -2706,3 +2706,57 @@ fn a_new_defect_below_the_threshold_keeps_the_adoption_and_records_what_was_said
         state.routes
     );
 }
+
+/// The owner's "the whole crown needs to be stretched vertically" was in the
+/// numbers all along; the router was only ever shown raw arrays.
+#[test]
+fn the_state_says_what_the_numbers_measure_in_words_and_stays_small() {
+    let (mut state, mut mock) = reviewed_run();
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_one(&mut state, &mock);
+    let current = state.current.unwrap();
+    state.trials[current].comparisons = vec![telperion_jev::tuning::evaluation::Comparison {
+        reference: "B-WHOLE".into(),
+        reference_weight: 1.,
+        metric_weights: [1.; 5],
+        // width over height, crown base, occupied, outline deviation, centre.
+        target: [0.6965, 0.28, 0.42, 0.11, 120.],
+        observed: [Some(0.7504), Some(0.21), Some(0.4255), None, Some(90.)],
+        images: vec![],
+    }];
+
+    let facts = telperion_jev::tuning::facts::sentences(&state.trials[current].comparisons);
+    assert_eq!(facts.len(), 3, "{facts:?}");
+    assert_eq!(
+        facts[0],
+        "B-WHOLE: crown width over height is 0.7504 against the photograph's 0.6965 (8% too wide for its height)"
+    );
+    assert!(facts[1].contains("crown base height share") && facts[1].contains("too low"));
+    assert!(facts[2].contains("brightness") && facts[2].contains("25% too dark"));
+    // Within three per cent, or unmeasured, is not worth a sentence.
+    assert!(!facts
+        .iter()
+        .any(|f| f.contains("occupied") || f.contains("outline")));
+
+    for projected in [
+        telperion_jev::tuning::judgments::proposal_state(&state),
+        telperion_jev::tuning::judgments::summary(&state),
+    ] {
+        let shown = serde_json::to_string(&projected["measured_facts"]).unwrap();
+        assert!(shown.contains("8% too wide for its height"), "{shown}");
+        assert!(shown.contains("Measured facts, not a score: they never select a tree."));
+    }
+
+    let table: Vec<Dial> = serde_json::from_slice(include_bytes!("../data/dials.json")).unwrap();
+    state.dials = table
+        .into_iter()
+        .filter(|d| d.score_visible == Some(true))
+        .collect();
+    let bytes =
+        serde_json::to_vec(&telperion_jev::tuning::judgments::proposal_state(&state)).unwrap();
+    assert!(
+        bytes.len() < 24_576,
+        "proposal state is {} bytes",
+        bytes.len()
+    );
+}

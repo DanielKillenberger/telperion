@@ -118,6 +118,52 @@ fn completed(receipt: &str) -> Result<Value, String> {
         .ok_or_else(|| "measurement did not complete".into())
 }
 
+/// Which gates are not passing, with what they measured and what they wanted.
+///
+/// `species_measure` writes one row per profile metric as
+/// `{status, target, actual, reason}`: the status is `pass`, `fail`,
+/// `unassessed` or `contextual`, the target carries the gating `range`, and
+/// the actual carries `value` or `min`/`max`. A bundle round that only says
+/// "numeric gate failed" tells the router nothing it can act on.
+fn failing(checks: &Value) -> String {
+    let Some(checks) = checks.as_object() else {
+        return "no gate checks were recorded".into();
+    };
+    let measured = |actual: &Value| {
+        actual["value"]
+            .as_f64()
+            .map(|v| format!("{v}"))
+            .or_else(|| {
+                actual["min"]
+                    .as_f64()
+                    .zip(actual["max"].as_f64())
+                    .map(|(lo, hi)| format!("{lo} to {hi}"))
+            })
+            .unwrap_or_else(|| "unmeasured".into())
+    };
+    let named = checks
+        .iter()
+        .filter(|(_, c)| c["status"] != "pass" && c["status"] != "contextual")
+        .map(|(id, c)| {
+            let range = c["target"]["range"]
+                .as_array()
+                .filter(|a| a.len() == 2)
+                .map(|a| format!(" outside {} to {}", a[0], a[1]))
+                .unwrap_or_default();
+            format!(
+                "{id} {}{range} ({})",
+                measured(&c["actual"]),
+                c["status"].as_str().unwrap_or("unknown")
+            )
+        })
+        .collect::<Vec<_>>();
+    if named.is_empty() {
+        "no gate is passing".into()
+    } else {
+        named.join("; ")
+    }
+}
+
 fn validate_gates(completed: &Value) -> Result<(), String> {
     for flag in ["node_capped", "level_capped", "attraction_capped"] {
         if completed["metrics"]["growth"][flag].as_bool() != Some(false) {
@@ -125,7 +171,10 @@ fn validate_gates(completed: &Value) -> Result<(), String> {
         }
     }
     if completed["numeric_status"] != "pass" {
-        return Err("numeric gate failed".into());
+        return Err(format!(
+            "numeric gate failed: {}",
+            failing(&completed["checks"])
+        ));
     }
     let checks = completed["checks"]
         .as_object()
@@ -135,7 +184,10 @@ fn validate_gates(completed: &Value) -> Result<(), String> {
             .values()
             .any(|c| c["status"] != "pass" && c["status"] != "contextual")
     {
-        return Err("failed or unassessed gate".into());
+        return Err(format!(
+            "failed or unassessed gate: {}",
+            failing(&completed["checks"])
+        ));
     }
     Ok(())
 }
