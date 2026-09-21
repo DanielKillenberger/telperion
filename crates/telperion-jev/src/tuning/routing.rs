@@ -22,7 +22,6 @@ impl Run {
         self.reserve(0, 0, allowance, 0, "defect routing", save)?;
         let answer = services.route(self)?;
         let routes = self.settle(answer, allowance)?;
-        self.record_ledger(routes.first().map(|r| r.ledger.clone()));
         for route in &routes {
             self.routes.push(label(route));
         }

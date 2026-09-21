@@ -75,6 +75,11 @@ pub struct Trial {
     /// The visual receipt the round acted on, so "new evidence" is decidable.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub evidence: Option<String>,
+    /// The probability mass behind the accepted direction, and the rule.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub direction_mass: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rule: Option<String>,
 }
 
 fn completed(receipt: &str) -> Result<Value, String> {
@@ -148,6 +153,8 @@ pub fn evaluate(
         base: None,
         action: None,
         evidence: None,
+        direction_mass: None,
+        rule: None,
     };
     let result = (|| {
         let base = telperion_core::presets::Preset::from_id(preset).ok_or("unknown preset")?;

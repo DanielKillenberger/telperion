@@ -447,6 +447,7 @@ impl Live<'_> {
             }
         }
         Ok(Answer {
+            ledger: Some(result.assessment.ledger.clone()),
             value: result.assessment,
             tokens: result
                 .usage
@@ -474,6 +475,7 @@ impl Live<'_> {
     }
     fn answer<T>(entry: &LedgerEntry, value: T) -> Answer<T> {
         Answer {
+            ledger: Some(entry.reference()),
             value,
             tokens: entry
                 .usage
@@ -685,29 +687,54 @@ impl Services for Live<'_> {
         let bytes = fs::read(&self.config.adjustments.manifest).map_err(|e| e.to_string())?;
         let manifest: calibration::Manifest =
             serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
-        let mut proposals = vec![];
-        for dial in &state.dials {
-            let confidence = entry
-                .confidence(&dial.id)
-                .ok_or("missing proposal confidence")?;
-            if !confidence.is_finite() || confidence < manifest.min_confidence {
+        let mut accepted = vec![];
+        for (rank, dial) in state.dials.iter().enumerate() {
+            let current = state
+                .effective
+                .pointer(&dial.path)
+                .and_then(Value::as_f64)
+                .ok_or("missing dial")?;
+            let available = [
+                Action::SmallDecrease,
+                Action::SubstantialDecrease,
+                Action::SmallIncrease,
+                Action::SubstantialIncrease,
+            ]
+            .into_iter()
+            .filter(|a| dial.value(current, *a).is_ok())
+            .collect::<Vec<_>>();
+            let Some(choice) = entry
+                .probabilities(&dial.id)
+                .and_then(|p| super::direction::accept(p, &available, manifest.min_confidence))
+            else {
+                eprintln!(
+                    "DBG {} probs={:?} available={:?} min={}",
+                    dial.id,
+                    entry.probabilities(&dial.id),
+                    available,
+                    manifest.min_confidence
+                );
                 continue;
-            }
-            let action: Action =
-                serde_json::from_value(json!(entry.choice(&dial.id).ok_or("missing proposal")?))
-                    .map_err(|_| "unsupported adjustment")?;
-            if matches!(action, Action::Hold | Action::InsufficientEvidence) {
-                continue;
-            }
-            proposals.push(Proposal {
-                dial: dial.id.clone(),
-                action,
-                ledger: entry.reference(),
-            });
-            if proposals.len() as u64 == self.config.max_candidates.unwrap_or(CANDIDATE_LIMIT) {
-                break;
-            }
+            };
+            accepted.push((rank, choice, dial.id.clone()));
         }
+        // Strongest direction first, ties in the dial table's own order.
+        accepted.sort_by(|a, b| {
+            b.1.direction_mass
+                .total_cmp(&a.1.direction_mass)
+                .then(a.0.cmp(&b.0))
+        });
+        accepted.truncate(self.config.max_candidates.unwrap_or(CANDIDATE_LIMIT) as usize);
+        let proposals = accepted
+            .into_iter()
+            .map(|(_, choice, dial)| Proposal {
+                dial,
+                action: choice.action,
+                ledger: entry.reference(),
+                direction_mass: Some(choice.direction_mass),
+                rule: Some(super::direction::RULE.into()),
+            })
+            .collect::<Vec<_>>();
         Ok(Self::answer(&entry, proposals))
     }
     fn route(&mut self, state: &Run) -> Result<Answer<Vec<super::handoff::PriorityRoute>>, String> {

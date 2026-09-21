@@ -3,6 +3,7 @@ pub mod actions;
 pub mod calibration;
 pub mod command;
 pub mod continuation;
+pub mod direction;
 pub mod engine;
 pub mod evaluation;
 pub mod handoff;

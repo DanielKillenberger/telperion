@@ -29,6 +29,8 @@ struct Mock {
     /// The adjustment the router proposes; a test changes it to offer a move
     /// the repeat filter has not already seen.
     proposal_action: Action,
+    /// Overrides what `propose` returns; empty means the default single move.
+    proposals: Vec<Proposal>,
 }
 
 fn mock() -> Mock {
@@ -45,6 +47,13 @@ fn mock() -> Mock {
         evidence_calls: 0,
         evidence_answer: "different".into(),
         proposal_action: Action::SmallIncrease,
+        proposals: vec![Proposal {
+            dial: "crookedness".into(),
+            action: Action::SmallIncrease,
+            ledger: "jev:2".into(),
+            direction_mass: Some(0.9),
+            rule: Some(telperion_jev::tuning::direction::RULE.into()),
+        }],
     }
 }
 impl Services for Mock {
@@ -120,11 +129,14 @@ impl Services for Mock {
             base: None,
             action: None,
             evidence: None,
+            direction_mass: None,
+            rule: None,
         }
     }
     fn visual(&mut self, trial: &Trial) -> Result<Answer<Visual>, String> {
         self.visuals += 1;
         Ok(Answer {
+            ledger: Some("visual:1".into()),
             tokens: Some(100),
             value: Visual {
                 identity: trial.key.clone(),
@@ -162,6 +174,7 @@ impl Services for Mock {
             self.continuations.remove(0)
         };
         Ok(Answer {
+            ledger: Some("jev:risk".into()),
             tokens: Some(20),
             value: if bounded {
                 "bounded".into()
@@ -173,18 +186,25 @@ impl Services for Mock {
     fn evidence(&mut self, _: &serde_json::Value) -> Result<Answer<String>, String> {
         self.evidence_calls += 1;
         Ok(Answer {
+            ledger: Some("jev:evidence".into()),
             tokens: Some(20),
             value: self.evidence_answer.clone(),
         })
     }
     fn propose(&mut self, _: &Run) -> Result<Answer<Vec<Proposal>>, String> {
+        let value = self
+            .proposals
+            .iter()
+            .cloned()
+            .map(|mut p| {
+                p.action = self.proposal_action;
+                p
+            })
+            .collect();
         Ok(Answer {
             tokens: Some(20),
-            value: vec![Proposal {
-                dial: "crookedness".into(),
-                action: self.proposal_action,
-                ledger: "jev:2".into(),
-            }],
+            value,
+            ledger: Some("jev:propose".into()),
         })
     }
     fn route(&mut self, state: &Run) -> Result<Answer<Vec<PriorityRoute>>, String> {
@@ -234,6 +254,7 @@ impl Services for Mock {
                 .collect(),
         };
         Ok(Answer {
+            ledger: Some("jev:route".into()),
             tokens: Some(20),
             value,
         })
@@ -1045,4 +1066,53 @@ fn a_passing_visual_is_readiness_normally_and_an_owner_prompt_under_bootstrap() 
             assert!(state.pause.is_none(), "{:?}", state.pause);
         }
     }
+}
+
+#[test]
+fn every_judgment_input_records_the_ledger_of_the_call_it_made() {
+    // The live pilot left `ledger` null for the pre-dispatch risk call and for
+    // a proposal call that returned nothing, so a spent call had no receipt.
+    let mut m = Mock {
+        route_plan: vec![("new_capability".into(), 0.9)],
+        proposals: vec![],
+        ..mock()
+    };
+    let mut state = run();
+    state.execute(&mut m, &mut |_| Ok(())).unwrap();
+    approve_priorities(
+        &mut state,
+        &m,
+        json!([{"id":"owner-crown","observation":"Crown shape","evidence_ids":["render-0","reference-0"],"views":["whole"]}]),
+    );
+    state.execute(&mut m, &mut |_| Ok(())).unwrap();
+    let risk = state
+        .judgment_inputs
+        .iter()
+        .find(|i| i.label == "pre-dispatch risk")
+        .expect("the risk call was made");
+    assert_eq!(
+        risk.ledger.as_deref(),
+        Some("jev:risk"),
+        "the pre-dispatch risk call left no ledger"
+    );
+
+    // A proposal call that yields nothing still spent a call.
+    let mut m = Mock {
+        proposals: vec![],
+        ..mock()
+    };
+    let mut state = run();
+    state.execute(&mut m, &mut |_| Ok(())).unwrap();
+    approve_priorities(&mut state, &m, json!([]));
+    state.execute(&mut m, &mut |_| Ok(())).unwrap();
+    let proposals = state
+        .judgment_inputs
+        .iter()
+        .find(|i| i.label == "targeted proposals")
+        .expect("the proposal call was made");
+    assert_eq!(
+        proposals.ledger.as_deref(),
+        Some("jev:propose"),
+        "a proposal call returning nothing left no ledger"
+    );
 }

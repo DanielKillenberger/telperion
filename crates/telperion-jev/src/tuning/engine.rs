@@ -13,11 +13,20 @@ pub struct Proposal {
     pub dial: String,
     pub action: Action,
     pub ledger: String,
+    /// Why this move was tried: the probability mass behind its direction and
+    /// the rule that accepted it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub direction_mass: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rule: Option<String>,
 }
 
 pub struct Answer<T> {
     pub value: T,
     pub tokens: Option<u64>,
+    /// The receipt of the call that produced this, independent of the value.
+    /// A call that returns nothing still spent, so it still has one.
+    pub ledger: Option<String>,
 }
 
 pub trait Services {
@@ -376,6 +385,7 @@ impl Run {
             .and_then(|v| v.checked_add(actual))
             .ok_or("usage overflow")?;
         self.pending = None;
+        self.record_ledger(answer.ledger);
         if actual > reserved || self.budget.tokens > self.budget.max_tokens {
             return Err("judgment exceeded reservation".into());
         }
@@ -538,7 +548,6 @@ impl Run {
             self.reserve(0, 0, allowance, 1, "targeted proposals", save)?;
             let answer = services.propose(self)?;
             let proposals = self.settle(answer, allowance)?;
-            self.record_ledger(proposals.first().map(|p| p.ledger.clone()));
             let proposals = self.filter_repeats(proposals);
             if proposals.is_empty() {
                 return Err("no supported proposal; bounded diagnosis required".into());
@@ -582,6 +591,8 @@ impl Run {
                 // What this attempt moved, from where, and on what evidence.
                 trial.base = Some(self.trials[old].key.clone());
                 trial.action = Some(proposal.action);
+                trial.direction_mass = proposal.direction_mass;
+                trial.rule = proposal.rule.clone();
                 trial.evidence = self.visual.as_ref().map(|v| v.ledger.clone());
                 self.pending = None;
                 if trial.feasible

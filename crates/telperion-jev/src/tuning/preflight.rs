@@ -54,6 +54,8 @@ fn placeholder(config: &Config, identity: &str) -> Trial {
         base: None,
         action: None,
         evidence: None,
+        direction_mass: None,
+        rule: None,
     }
 }
 

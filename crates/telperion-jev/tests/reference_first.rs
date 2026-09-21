@@ -330,6 +330,8 @@ print(json.dumps({'status':'ok','model':'mock','effort':'medium','request_sha256
         base: None,
         action: None,
         evidence: None,
+        direction_mass: None,
+        rule: None,
     };
     let mut live = Live {
         config: &config,

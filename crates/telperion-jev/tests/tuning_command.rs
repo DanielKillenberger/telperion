@@ -1017,7 +1017,9 @@ impl telperion_jev::caller::Transport for EveryDial {
             .map(|k| {
                 (
                     k.clone(),
-                    json!({"choice":"small_increase","confidence":0.9}),
+                    json!({"choice":"small_increase","confidence":0.9,
+                        "probabilities":{"small_increase":0.55,"substantial_increase":0.39,
+                            "hold":0.03,"insufficient_evidence":0.03}}),
                 )
             })
             .collect::<serde_json::Map<_, _>>();
@@ -1479,6 +1481,8 @@ fn image_and_evaluation_caps_extend_only_on_an_exact_scoped_decision() {
         base: None,
         action: None,
         evidence: None,
+        direction_mass: None,
+        rule: None,
     };
     state.trials.push(trial);
     state.current = Some(0);
