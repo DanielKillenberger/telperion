@@ -37,7 +37,7 @@ pub fn summary(state: &Run) -> Value {
     let reuse=state.authorizations.iter().filter(|a|a.preserve_evidence).map(|a|json!({"previous_identity":a.identity,"next_identity":a.next_identity.as_deref().unwrap_or(&a.identity),"preserve_evidence":true,"token_cap_extension":a.token_cap_extension,"round_cap_extension":a.round_cap_extension,"visual_cap_extension":a.visual_cap_extension,"image_cap_extension":a.image_cap_extension,"evaluation_cap_extension":a.evaluation_cap_extension,"meaning":"accepted scoped resume verified unchanged configuration except explicit caps and rechecked artifact/image bytes; historical trial identity unchanged"})).collect::<Vec<_>>();
     let recent=state.trials.iter().rev().take(5).map(|t|json!({"label":t.label,"identity":t.identity,"current_revision":t.identity==state.identity,"feasible":t.feasible,
         "resource_feasibility":{"nodes":t.measurement["metrics"]["nodes"],"growth":t.measurement["metrics"]["growth"]},
-        "score":t.score,"reason":t.reason,"views":t.comparisons.iter().map(|c|json!({"reference":c.reference,
+        "score":t.score,"reason":t.reason,"review":super::progress::words(t),"views":t.comparisons.iter().map(|c|json!({"reference":c.reference,
         "target":c.target,"observed":c.observed})).collect::<Vec<_>>()})).collect::<Vec<_>>();
     let nodes = state
         .current

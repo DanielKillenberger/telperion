@@ -38,6 +38,7 @@ fn step(label: &str, evaluations: u64, images: u64, tokens: u64, visual: u64) ->
 /// A stand-in candidate when the run has not evaluated one yet.
 fn placeholder(config: &Config, identity: &str) -> Trial {
     Trial {
+        progress: None,
         key: String::new(),
         identity: identity.into(),
         seed: config.seed,
@@ -122,8 +123,14 @@ pub fn plan(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<Val
         .and_then(|n| n.checked_add(services.proposal_tokens(&state)))
         .ok_or("reservation overflow")?;
 
+    let review = (!services.selection().is_score())
+        .then(|| super::progress::skeleton(&state, &config.references));
+    let review_tokens = review
+        .as_ref()
+        .map(|r| 30_000 + serde_json::to_vec(r).unwrap().len() as u64)
+        .unwrap_or(0);
     let sequence = |candidates: u64| {
-        vec![
+        let mut steps = vec![
             step("baseline evaluation", 1, services.evaluation_images(), 0, 0),
             step(
                 "initial visual",
@@ -153,7 +160,17 @@ pub fn plan(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<Val
                 all_cell_tokens,
                 1,
             ),
-        ]
+        ];
+        if review_tokens > 0 {
+            steps.push(step(
+                &format!("progress review, {candidates} candidates"),
+                0,
+                0,
+                candidates * review_tokens,
+                candidates,
+            ));
+        }
+        steps
     };
     let summed = |steps: &[Value], field: &str| -> u64 {
         steps

@@ -208,6 +208,7 @@ impl Run {
                 self.measured_here(&t.identity) && self.dials.iter().any(|d| d.id == t.label)
             })
             .map(|(i, t)| Attempt {
+                review: super::progress::words(t),
                 dial: t.label.clone(),
                 round: t.round,
                 action_ledger: t.ledger.clone(),

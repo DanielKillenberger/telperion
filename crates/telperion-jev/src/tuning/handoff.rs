@@ -80,6 +80,9 @@ pub struct Attempt {
     pub feasible: bool,
     pub reason: Option<String>,
     pub visual_outcome: Option<Vec<CellOutcome>>,
+    /// The reviewer's comparative words on this attempt, where one was asked.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub review: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

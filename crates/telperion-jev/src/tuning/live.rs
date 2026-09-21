@@ -6,6 +6,7 @@ use super::{
     engine::{Answer, Proposal, Run, Services},
     evaluation::{self, Image, Trial},
     matched::Matched,
+    progress::{self, Selection},
     state::{Cell, Visual},
     vision,
 };
@@ -71,6 +72,14 @@ pub struct Validation {
 pub struct Config {
     pub preset: String,
     pub seed: u32,
+    /// What decides between the current tree and a candidate. `score` is every
+    /// run before 2026-09-21; `visual` puts the reviewer's comparative verdict
+    /// in its place and leaves the numbers as telemetry.
+    #[serde(default, skip_serializing_if = "Selection::is_score")]
+    pub selection: Selection,
+    /// The adapter the progress review is asked through. Required by `visual`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub progress: Option<progress::Adapter>,
     pub initial_overrides: Value,
     pub dials: Vec<Dial>,
     pub owner_notes: String,
@@ -148,6 +157,9 @@ impl Config {
             bytes.extend(prepared.preparation.bytes()?);
             bytes.extend(fs::read(&self.vision_protocol).map_err(|e| e.to_string())?);
         }
+        if let Some(review) = &self.progress {
+            bytes.extend(fs::read(&review.protocol).map_err(|e| e.to_string())?);
+        }
         Ok(sha256_hex(&bytes))
     }
     pub fn preparation(&self) -> Result<Option<super::reference_first::PreparationCharge>, String> {
@@ -207,6 +219,19 @@ impl Config {
             .all(|id| self.owner_relabels.iter().any(|r| &r.case_id == id)))
     }
     pub fn verify(&self) -> Result<(), String> {
+        if !self.selection.is_score() {
+            let progress = self
+                .progress
+                .as_ref()
+                .ok_or("visual selection requires a progress adapter")?;
+            fs::read(&progress.protocol)
+                .map_err(|e| format!("progress protocol unreadable: {e}"))?;
+            if !self.visual_bootstrap {
+                return Err(
+                    "visual selection is uncalibrated; bootstrap authority required".into(),
+                );
+            }
+        }
         if self.owner_notes.is_empty()
             || self.dials.is_empty()
             || self.required.is_empty()
@@ -597,6 +622,40 @@ impl Services for Live<'_> {
     }
     fn preparation(&self) -> Result<Option<super::reference_first::PreparationCharge>, String> {
         self.config.preparation()
+    }
+    fn selection(&self) -> Selection {
+        self.config.selection
+    }
+    fn progress_request(
+        &self,
+        state: &Run,
+        current: usize,
+        candidate: usize,
+        priorities: &[super::priority::Gap],
+    ) -> Result<(progress::Request, String), String> {
+        progress::request(
+            state,
+            &self.config.preset,
+            &self.config.references,
+            state.trials.get(current).ok_or("no current trial")?,
+            state.trials.get(candidate).ok_or("no candidate trial")?,
+            priorities,
+        )
+    }
+    fn progress_tokens(&self, request: &progress::Request) -> u64 {
+        30_000 + serde_json::to_vec(request).unwrap().len() as u64
+    }
+    fn progress(
+        &mut self,
+        request: &progress::Request,
+        side: &str,
+    ) -> Result<Answer<progress::Verdict>, String> {
+        let adapter = self
+            .config
+            .progress
+            .as_ref()
+            .ok_or("progress review has no adapter")?;
+        progress::dispatch(adapter, request, side)
     }
     fn proposal_tokens(&self, state: &Run) -> u64 {
         super::judgments::allowance(

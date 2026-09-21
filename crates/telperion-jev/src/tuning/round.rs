@@ -126,7 +126,8 @@ impl Run {
             .iter()
             .map(|t| {
                 json!({"dial":t.label,"action":t.action,"feasible":t.feasible,
-                    "score_before":before,"score_after":t.score})
+                    "score_before":before,"score_after":t.score,
+                    "review":super::progress::words(t)})
             })
             .collect()
     }
@@ -162,19 +163,32 @@ impl Run {
         let spent = self
             .rounds_here()
             .iter()
-            .map(|t| (t.label.clone(), t.action, t.feasible, t.score))
+            .map(|t| {
+                (
+                    t.label.clone(),
+                    t.action,
+                    t.feasible,
+                    t.score,
+                    t.progress.is_some(),
+                )
+            })
             .collect::<Vec<_>>();
         let mut kept = vec![];
         let mut refused = vec![];
         for proposal in proposals {
-            let repeat = spent.iter().any(|(dial, action, feasible, score)| {
-                dial == &proposal.dial
+            let repeat = spent
+                .iter()
+                .any(|(dial, action, feasible, score, reviewed)| {
+                    dial == &proposal.dial
                     && action.as_ref() == Some(&proposal.action)
+                    // A reviewed attempt still standing here was not adopted,
+                    // whatever its numbers did.
                     && (!feasible
+                        || *reviewed
                         || !score
                             .zip(base.as_ref().and_then(|b| b.score))
                             .is_some_and(|(s, b)| s < b))
-            });
+                });
             if repeat {
                 refused.push(format!(
                     "repeat refused: {} {}",

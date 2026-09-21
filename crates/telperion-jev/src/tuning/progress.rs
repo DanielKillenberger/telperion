@@ -1,0 +1,411 @@
+//! The reviewer's side-by-side progress verdict: which of two renders of the
+//! same tree better answers each approved priority, against the references.
+//!
+//! It is a new, uncalibrated question. No replay qualifies it, so it runs only
+//! under the scoped experimental authority, it is labelled uncalibrated
+//! wherever it is recorded, and it spends a visual pass like any other look.
+//! The reviewer is never told which render is the candidate, which is newer,
+//! or what any number says: code assigns the two sides from the trial keys,
+//! records the assignment, and maps the answer back.
+mod adapter;
+pub use adapter::dispatch;
+
+use super::{
+    engine::{Run, Services},
+    evaluation::{Image, Trial},
+    priority::Gap,
+    vision,
+};
+use crate::sha256_hex;
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
+use std::{collections::BTreeMap, path::PathBuf};
+
+pub const VERSION: &str = "tuning-progress-v1";
+/// The label this question carries wherever it is recorded.
+pub const UNCALIBRATED: &str =
+    "uncalibrated progress review: a comparative verdict, never a score or a readiness claim";
+pub const PENDING: &str = "progress review";
+pub const PROMPT: &str = "You are shown reference photographs of a tree species, then two renders, A and B, of the same generated tree at the same view and seed. One or the other may be the newer attempt; nothing here says which, and neither is a photograph.\n\nFor each listed priority, say which render better satisfies it relative to the references: a_better, b_better, same when neither is closer, or unknown when this view cannot show it. Judge only what the images show.\n\nThen say in one or two sentences what differs for the better between them, what is still missing in both against the references, and list anything one render breaks that the other does not, naming A or B.\n\nGive no numbers, no scores and no overall winner.";
+
+/// How a candidate is chosen against the tree it came from.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Selection {
+    /// The five still-side numbers decide, and the reviewer never sees a
+    /// rejected candidate. Every run before 2026-09-21 ran this way.
+    #[default]
+    Score,
+    /// The reviewer's comparative verdict decides; the numbers are telemetry.
+    Visual,
+}
+
+impl Selection {
+    pub fn is_score(&self) -> bool {
+        *self == Selection::Score
+    }
+}
+
+/// The adapter this question is asked through, and the protocol it was written
+/// against. The protocol's bytes join the run's identity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Adapter {
+    pub adapter: vision::Adapter,
+    pub protocol: PathBuf,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Priority {
+    pub id: String,
+    pub observation: String,
+}
+
+/// What the reviewer is sent. It names no candidate and no round.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Request {
+    pub schema: String,
+    pub target_species: String,
+    pub view: String,
+    pub seed: u32,
+    pub references: Vec<Image>,
+    pub a: Image,
+    pub b: Image,
+    pub priorities: Vec<Priority>,
+    pub owner_notes: String,
+}
+
+impl Request {
+    pub fn hash(&self) -> String {
+        sha256_hex(&serde_json::to_vec(self).unwrap())
+    }
+    pub fn prompt_hash() -> String {
+        sha256_hex(PROMPT.as_bytes())
+    }
+    pub fn verify(&self) -> Result<(), String> {
+        if self.schema != VERSION
+            || self.priorities.is_empty()
+            || self.priorities.len() > 8
+            || self.references.is_empty()
+            || self.a.sha256 == self.b.sha256
+            || self.a.view != self.view
+            || self.b.view != self.view
+        {
+            return Err("invalid progress request".into());
+        }
+        for image in self.references.iter().chain([&self.a, &self.b]) {
+            image.verify()?;
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Choice {
+    ABetter,
+    BBetter,
+    Same,
+    Unknown,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Judgment {
+    pub priority_id: String,
+    pub verdict: Choice,
+}
+
+/// What the reviewer answers, in its own terms.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Answer {
+    pub verdicts: Vec<Judgment>,
+    pub improved: String,
+    pub missing: String,
+    pub regressions: Vec<String>,
+}
+
+/// The same answer, read as what the candidate did.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Movement {
+    Better,
+    Same,
+    Worse,
+    Unknown,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Verdict {
+    pub per_priority: BTreeMap<String, Movement>,
+    pub improved: String,
+    pub missing: String,
+    pub regressions: Vec<String>,
+    pub ledger: String,
+    pub model: String,
+    /// Which side the candidate was shown as, so the mapping is auditable.
+    pub candidate_is: String,
+    pub uncalibrated: String,
+}
+
+impl Verdict {
+    pub fn better(&self) -> usize {
+        self.count(Movement::Better)
+    }
+    pub fn worse(&self) -> usize {
+        self.count(Movement::Worse)
+    }
+    fn count(&self, m: Movement) -> usize {
+        self.per_priority.values().filter(|v| **v == m).count()
+    }
+    /// A candidate is adopted when the reviewer saw it do some good, saw it do
+    /// no harm, and named nothing it breaks.
+    pub fn adoptable(&self) -> bool {
+        self.better() > 0 && self.worse() == 0 && self.regressions.is_empty()
+    }
+}
+
+/// Which side the candidate is shown as. Both keys decide it together, so the
+/// answer cannot be read off either one alone, and it is recorded either way.
+pub fn candidate_side(current_key: &str, candidate_key: &str) -> String {
+    let digest = sha256_hex(format!("{current_key}|{candidate_key}").as_bytes());
+    let last = digest.as_bytes()[digest.len() - 1];
+    if last % 2 == 0 { "a" } else { "b" }.into()
+}
+
+/// The still both trials already hold for the first priority view they share
+/// at the run's seed. Nothing is rendered for this question.
+fn shared_still(current: &Trial, candidate: &Trial, views: &[String], seed: u32) -> Option<String> {
+    let has = |t: &Trial, view: &str| {
+        t.comparisons
+            .iter()
+            .flat_map(|c| c.images.iter())
+            .any(|i| i.view == view && i.seed == seed)
+    };
+    views
+        .iter()
+        .find(|v| has(current, v) && has(candidate, v))
+        .cloned()
+}
+
+fn still(trial: &Trial, view: &str, seed: u32) -> Option<Image> {
+    trial
+        .comparisons
+        .iter()
+        .flat_map(|c| c.images.iter())
+        .find(|i| i.view == view && i.seed == seed)
+        .cloned()
+}
+
+/// The approved priorities the router last sent to tuning. A priority routed
+/// elsewhere is fn-89's, and an unrouted one has no verdict to give yet.
+pub fn tuning_priorities(state: &Run) -> Vec<Gap> {
+    let Some(approval) = state.approved_priorities() else {
+        return vec![];
+    };
+    approval
+        .ordered
+        .iter()
+        .filter(|gap| {
+            state
+                .routes
+                .iter()
+                .rev()
+                .find_map(|r| r.strip_prefix(&format!("{}=", gap.id)))
+                .is_some_and(|route| route == "tuning")
+        })
+        .cloned()
+        .collect()
+}
+
+/// The request for one candidate against the tree it came from.
+pub fn request(
+    state: &Run,
+    species: &str,
+    references: &[Image],
+    current: &Trial,
+    candidate: &Trial,
+    priorities: &[Gap],
+) -> Result<(Request, String), String> {
+    if priorities.is_empty() {
+        return Err("no tuning-routed priority to review".into());
+    }
+    let views = priorities
+        .iter()
+        .flat_map(|g| g.views.iter().cloned())
+        .collect::<Vec<_>>();
+    let view = shared_still(current, candidate, &views, state.seed)
+        .ok_or("no shared still for progress review")?;
+    let (current_still, candidate_still) = (
+        still(current, &view, state.seed).ok_or("no shared still for progress review")?,
+        still(candidate, &view, state.seed).ok_or("no shared still for progress review")?,
+    );
+    let side = candidate_side(&current.key, &candidate.key);
+    let (a, b) = if side == "a" {
+        (candidate_still, current_still)
+    } else {
+        (current_still, candidate_still)
+    };
+    let request = Request {
+        schema: VERSION.into(),
+        target_species: species.into(),
+        view: view.clone(),
+        seed: state.seed,
+        references: references
+            .iter()
+            .filter(|i| i.view == view)
+            .cloned()
+            .collect(),
+        a,
+        b,
+        priorities: priorities
+            .iter()
+            .map(|g| Priority {
+                id: g.id.clone(),
+                observation: g.observation.clone(),
+            })
+            .collect(),
+        owner_notes: state.owner_notes.clone(),
+    };
+    request.verify()?;
+    Ok((request, side))
+}
+
+/// Strict: every requested priority answered exactly once and nothing else.
+/// An answer that does not bind is a failed attempt, not a dropped row.
+pub fn bind(
+    request: &Request,
+    answer: &Answer,
+    candidate_is: &str,
+    ledger: String,
+    model: String,
+) -> Result<Verdict, String> {
+    let mut per_priority = BTreeMap::new();
+    for judgment in &answer.verdicts {
+        if !request
+            .priorities
+            .iter()
+            .any(|p| p.id == judgment.priority_id)
+        {
+            return Err(format!(
+                "progress verdict for an unrequested priority {}",
+                judgment.priority_id
+            ));
+        }
+        let movement = match (judgment.verdict, candidate_is) {
+            (Choice::Same, _) => Movement::Same,
+            (Choice::Unknown, _) => Movement::Unknown,
+            (Choice::ABetter, "a") | (Choice::BBetter, "b") => Movement::Better,
+            _ => Movement::Worse,
+        };
+        if per_priority
+            .insert(judgment.priority_id.clone(), movement)
+            .is_some()
+        {
+            return Err(format!("progress verdict repeats {}", judgment.priority_id));
+        }
+    }
+    if per_priority.len() != request.priorities.len() {
+        return Err("progress answer does not cover every priority".into());
+    }
+    if answer.improved.trim().is_empty() || answer.missing.trim().is_empty() {
+        return Err("progress answer lacks what improved or what is missing".into());
+    }
+    Ok(Verdict {
+        per_priority,
+        improved: answer.improved.clone(),
+        missing: answer.missing.clone(),
+        regressions: answer.regressions.clone(),
+        ledger,
+        model,
+        candidate_is: candidate_is.into(),
+        uncalibrated: UNCALIBRATED.into(),
+    })
+}
+
+/// Which reviewed candidate the round adopts: the one judged better on most
+/// priorities, among those judged better somewhere, worse nowhere and breaking
+/// nothing. Ties keep the order the proposals arrived in, which is their
+/// direction-mass order.
+pub fn adopt(reviewed: &[(usize, Value)], trials: &[Trial]) -> Option<usize> {
+    reviewed
+        .iter()
+        .filter_map(|(index, _)| {
+            let verdict = trials.get(*index)?.progress.as_ref()?;
+            (trials[*index].feasible && verdict.adoptable()).then(|| (*index, verdict.better()))
+        })
+        .reduce(|best, next| if next.1 > best.1 { next } else { best })
+        .map(|(index, _)| index)
+}
+
+/// Which candidate the round adopts and what it makes effective. Score mode
+/// is the comparison the engine already made; visual mode asks the verdicts.
+pub(super) fn chosen(
+    state: &Run,
+    selection: Selection,
+    score: (usize, usize, Value),
+    reviewed: Vec<(usize, Value)>,
+) -> Option<(usize, Value)> {
+    let (old, best, best_effective) = score;
+    if selection.is_score() {
+        return (best != old).then_some((best, best_effective));
+    }
+    let index = adopt(&reviewed, &state.trials)?;
+    reviewed.into_iter().find(|(i, _)| *i == index)
+}
+
+/// Why a round adopted nothing, in the words of the rule that decided.
+pub(super) fn stall(selection: Selection) -> String {
+    if selection.is_score() {
+        "numeric stall; reassess remaining defect and recent failed attempts".into()
+    } else {
+        "visual stall; no candidate judged better".into()
+    }
+}
+
+/// The reviewer's words about one attempt, for whoever is asked next.
+pub fn words(trial: &Trial) -> Option<Value> {
+    trial.progress.as_ref().map(|p| {
+        json!({"per_priority":p.per_priority,"improved":p.improved,"missing":p.missing,
+            "regressions":p.regressions,"uncalibrated":UNCALIBRATED})
+    })
+}
+
+/// What a round would send, for pricing before any candidate exists.
+pub fn skeleton(state: &Run, references: &[Image]) -> Value {
+    json!({"schema":VERSION,"prompt_sha256":Request::prompt_hash(),"seed":state.seed,
+        "references":references,"owner_notes":state.owner_notes,
+        "priorities":tuning_priorities(state).iter().map(|g| Priority{id:g.id.clone(),
+            observation:g.observation.clone()}).collect::<Vec<_>>()})
+}
+
+/// One reviewed candidate: the pass and the tokens are reserved and saved
+/// before dispatch, so a failed review leaves an attempt to recover rather
+/// than a silent retry.
+pub(super) fn review(
+    state: &mut Run,
+    services: &mut dyn Services,
+    save: &mut dyn FnMut(&Run) -> Result<(), String>,
+    current: usize,
+    candidate: usize,
+) -> Result<(), String> {
+    let priorities = tuning_priorities(state);
+    let (request, side) = services.progress_request(state, current, candidate, &priorities)?;
+    let allowance = services.progress_tokens(&request);
+    let mut budget = state.budget.clone();
+    budget.reserve_visual()?;
+    budget.reserve(0, 0, allowance, 0)?;
+    state.budget = budget;
+    state.push_judgment_input(UNCALIBRATED, serde_json::to_value(&request).unwrap());
+    state.pending = Some(PENDING.into());
+    save(state)?;
+    let answer = services.progress(&request, &side)?;
+    let verdict = state.settle(answer, allowance)?;
+    state.trials[candidate].progress = Some(verdict);
+    state.pending = None;
+    save(state)
+}

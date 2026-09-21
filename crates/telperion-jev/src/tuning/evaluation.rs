@@ -80,6 +80,10 @@ pub struct Trial {
     pub direction_mass: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rule: Option<String>,
+    /// The reviewer's comparative verdict on this attempt against the tree it
+    /// came from. Present only under visual selection.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub progress: Option<super::progress::Verdict>,
 }
 
 fn completed(receipt: &str) -> Result<Value, String> {
@@ -137,6 +141,7 @@ pub fn evaluate(
     let start = Instant::now();
     let key = sha256_hex(format!("{identity}:{seed}:{}", overrides).as_bytes());
     let mut trial = Trial {
+        progress: None,
         key,
         identity: identity.into(),
         seed,

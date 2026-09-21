@@ -15,6 +15,7 @@ pub mod live;
 pub mod matched;
 pub mod preflight;
 pub mod priority;
+pub mod progress;
 pub mod reference_first;
 pub mod replay;
 pub mod round;

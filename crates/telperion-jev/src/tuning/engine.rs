@@ -77,6 +77,29 @@ pub trait Services {
     fn proposal_tokens(&self, _state: &Run) -> u64 {
         4000
     }
+    /// What decides between the current tree and a candidate.
+    fn selection(&self) -> super::progress::Selection {
+        super::progress::Selection::Score
+    }
+    fn progress_request(
+        &self,
+        _state: &Run,
+        _current: usize,
+        _candidate: usize,
+        _priorities: &[super::priority::Gap],
+    ) -> Result<(super::progress::Request, String), String> {
+        Err("progress review unavailable".into())
+    }
+    fn progress_tokens(&self, _request: &super::progress::Request) -> u64 {
+        0
+    }
+    fn progress(
+        &mut self,
+        _request: &super::progress::Request,
+        _side: &str,
+    ) -> Result<Answer<super::progress::Verdict>, String> {
+        Err("progress review unavailable".into())
+    }
     fn continuation_tokens(&self, _basis: &Basis) -> u64 {
         2000
     }
@@ -585,6 +608,7 @@ impl Run {
             let old = self.current.unwrap();
             let mut best = old;
             let mut best_effective = self.effective.clone();
+            let mut reviewed = vec![];
             for proposal in proposals {
                 let dial = self
                     .dials
@@ -632,16 +656,27 @@ impl Run {
                     best_effective = self.effective.clone();
                     merge(&mut best_effective, &patch);
                 }
+                let index = self.trials.len();
                 self.trials.push(trial);
                 save(self)?;
+                if !services.selection().is_score() && self.trials[index].feasible {
+                    super::progress::review(self, services, save, old, index)?;
+                    let mut effective = self.effective.clone();
+                    merge(&mut effective, &patch);
+                    reviewed.push((index, effective));
+                }
             }
-            if best == old {
-                self.routes.push(
-                    "numeric stall; reassess remaining defect and recent failed attempts".into(),
-                );
+            let Some((best, best_effective)) = super::progress::chosen(
+                self,
+                services.selection(),
+                (old, best, best_effective),
+                reviewed,
+            ) else {
+                self.routes
+                    .push(super::progress::stall(services.selection()));
                 save(self)?;
                 continue;
-            }
+            };
             self.current = Some(best);
             self.effective = best_effective;
             self.overrides = self.trials[best].overrides.clone();
