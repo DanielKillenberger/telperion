@@ -32,7 +32,9 @@ pub struct SurfaceParams {
     /// bark more flutes; zero is a plain round bole.
     pub lobes: u32,
     /// How deep the flutes between those ridges cut, as a share of the
-    /// wood's own radius. Raising it makes the fluting more pronounced.
+    /// wood's own radius. Raising it makes the fluting more pronounced. At
+    /// zero the bole is plainly round whatever the ridge count says, and any
+    /// rise starts cutting the flutes.
     pub lobe_depth: f64,
     /// How many turns those ridges make over the tree's height. Raising
     /// it winds them more tightly around the trunk.

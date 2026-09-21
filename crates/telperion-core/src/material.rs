@@ -110,19 +110,24 @@ pub struct MaterialParams {
     /// How much longer a plate runs than it is wide: nought is as long as it
     /// is wide, one is twice as long.
     pub plate_elongation: f64,
-    /// How far a plate's face rises from its own edge towards its middle.
+    /// How far a plate's face rises from its own edge towards its middle. At
+    /// zero a plate's face lies flat, and any rise starts the doming.
     pub plate_dome: f64,
     /// How far a plate's rim stands off the furrow it borders: the scale that
-    /// lifts rather than the plate that sits flat.
+    /// lifts rather than the plate that sits flat. At zero a plate's rim lies
+    /// flush with its furrow, and any rise starts the lift.
     pub plate_edge_lift: f64,
     /// How wide the flat floor of a furrow is cut, as a fraction of a plate's
     /// own width, so a bigger plate carries a wider furrow off one row. Zero
     /// leaves the hairline the network has always cut between two faces.
     pub plate_furrow_width: f64,
     /// How much of its own a plate keeps: how proud it stands, how it leans,
-    /// and the value and cast it holds against its neighbours.
+    /// and the value and cast it holds against its neighbours. At zero every
+    /// plate stands and reads exactly like its neighbours, and any rise
+    /// starts the difference.
     pub plate_identity: f64,
     /// How far a weathered face is greyed and tinted against a fresh furrow.
+    /// At zero no face is weathered at all, and any rise starts the greying.
     pub weathering_strength: f64,
     /// The tint a weathered face takes, as an offset per channel; how far
     /// it is laid on is `weathering_strength` above.
@@ -131,6 +136,8 @@ pub struct MaterialParams {
     pub weathering_blue: f64,
     /// How far the side away from the sun and the foot of the trunk take a
     /// colour of their own - what damp growth would look like, not what it is.
+    /// At zero the shaded side and the foot take no colour of their own, and
+    /// any rise starts it.
     pub orientation_strength: f64,
     /// The tint that damp side takes, as an offset per channel; how far it
     /// is laid on is `orientation_strength` above.
@@ -140,7 +147,9 @@ pub struct MaterialParams {
     /// How far a furrow floor is darkened by its own crest standing between it
     /// and the sun. Zero leaves the sun on both sides of every furrow alike.
     pub directional_occlusion: f64,
-    /// How far the relief is given depth beyond the shaded normal.
+    /// How far the relief is given depth beyond the shaded normal. At zero
+    /// the relief is given no depth beyond that normal, and any rise starts
+    /// it.
     pub depth_strength: f64,
     /// How far a leaf is lit as part of its crown rather than as a lone card:
     /// its lighting normal bends from the blade's toward the crown's outward
@@ -184,7 +193,8 @@ pub struct MaterialParams {
     pub lenticel_tint: f64,
     /// How far the plate network's strips curl away: they stretch across the
     /// wood into bands, lift at their lower edge, and this share of them has
-    /// peeled off to show the inner bark.
+    /// peeled off to show the inner bark. At zero no strip has peeled at all,
+    /// and any rise switches the peel on.
     pub peel_curl: f64,
     /// The inner bark a peeled strip leaves showing.
     pub peel_red: f64,

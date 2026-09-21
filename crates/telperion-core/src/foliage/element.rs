@@ -47,7 +47,9 @@ pub struct ElementParams {
     pub curl: f64,
     /// Lobes along each margin; 0 is an entire margin.
     pub lobe_count: u32,
-    /// How far each sinus cuts toward the midrib, 0 to 1.
+    /// How far each sinus cuts toward the midrib, 0 to 1. At zero the margin
+    /// is entire whatever the lobe count says, and any rise starts cutting
+    /// the sinuses.
     pub lobe_depth: f64,
     /// Flat blade at 0, four-sided shaft at 1.
     pub section_roundness: f64,

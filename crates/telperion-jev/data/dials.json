@@ -242,7 +242,7 @@
  {
   "id": "attractor_weight",
   "path": "/skeleton/habit/attractorWeight",
-  "meaning": "how far the pull points steer an axis beside its own rule heading",
+  "meaning": "how far the pull points steer an axis beside its own rule heading; at zero no pull points are scattered and every axis holds its own rule heading, and any rise switches the pull on",
   "min": 0,
   "max": 1,
   "integer": false,
@@ -287,7 +287,7 @@
  {
   "id": "stem_divergence",
   "path": "/skeleton/habit/stemDivergence",
-  "meaning": "the degrees of bearing between neighbouring stems of a clump",
+  "meaning": "the degrees of bearing between neighbouring stems of a clump; at zero every stem leaves the root on one bearing, and any rise starts to fan them apart",
   "min": 0.0,
   "max": 15.0,
   "integer": false,
@@ -302,7 +302,7 @@
  {
   "id": "stem_lean",
   "path": "/skeleton/habit/stemLean",
-  "meaning": "the degrees from vertical the outermost stems tilt away from the root",
+  "meaning": "the degrees from vertical the outermost stems tilt away from the root; at zero every stem stands upright, and any rise starts the tilt",
   "min": 0.0,
   "max": 42.0,
   "integer": false,
@@ -332,7 +332,7 @@
  {
   "id": "stem_fork_height",
   "path": "/skeleton/habit/stemForkHeight",
-  "meaning": "how far up the bole a clump's later stems part from the first",
+  "meaning": "how far up the bole a clump's later stems part from the first; at zero every stem leaves the root, and any rise starts the one trunk below the fork",
   "min": 0,
   "max": 0.5,
   "integer": false,
@@ -482,7 +482,7 @@
  {
   "id": "gravitropism",
   "path": "/skeleton/bias/gravitropism",
-  "meaning": "how strongly growth is pulled upright, most near the ground",
+  "meaning": "how strongly growth is pulled upright, most near the ground; at zero nothing pulls growth upright, and any rise starts that pull",
   "min": 0.0,
   "max": 1.05,
   "integer": false,
@@ -497,7 +497,7 @@
  {
   "id": "lean",
   "path": "/skeleton/bias/lean",
-  "meaning": "how far the whole tree leans off vertical",
+  "meaning": "how far the whole tree leans off vertical; at zero the tree stands plumb, and any rise starts the lean",
   "min": 0.0,
   "max": 0.075,
   "integer": false,
@@ -512,7 +512,7 @@
  {
   "id": "writhe_amplitude",
   "path": "/skeleton/bias/supernatural/writheAmplitude",
-  "meaning": "how far a branch wanders from a straight course, as a share of the height",
+  "meaning": "how far a branch wanders from a straight course, as a share of the height; at zero the wood holds a straight course and the spiral rate does nothing, and any rise starts the wander",
   "min": 0.0,
   "max": 0.165,
   "integer": false,
@@ -557,7 +557,7 @@
  {
   "id": "spiral_rate",
   "path": "/skeleton/bias/supernatural/spiralRate",
-  "meaning": "how many turns the wander winds around the trunk over the height",
+  "meaning": "how many turns the wander winds around the trunk over the height; at zero the wander winds around nothing, and any rise starts the spiral",
   "min": 0.0,
   "max": 3.9,
   "integer": false,
@@ -902,7 +902,7 @@
  {
   "id": "twig_sag",
   "path": "/skeleton/twigs/sag",
-  "meaning": "how far a hanging shoot's course has turned toward straight down by its end",
+  "meaning": "how far a hanging shoot's course has turned toward straight down by its end; at zero a hanging shoot holds the direction it left on and the curtain is a set of rods, and any rise starts the turn",
   "min": 0,
   "max": 1,
   "integer": false,
@@ -917,7 +917,7 @@
  {
   "id": "twig_pendulous_variation",
   "path": "/skeleton/twigs/pendulousVariation",
-  "meaning": "how much shorter than the pendulous length a hanging shoot may run",
+  "meaning": "how much shorter than the pendulous length a hanging shoot may run; at zero every shoot runs the one length the table states, and any rise starts the variation",
   "min": 0,
   "max": 1,
   "integer": false,
@@ -932,7 +932,7 @@
  {
   "id": "twig_curtain_drop",
   "path": "/skeleton/twigs/curtainDrop",
-  "meaning": "how far below the crown's own surface a hanging shoot may fall",
+  "meaning": "how far below the crown's own surface a hanging shoot may fall; at zero the shell binds a hanging shoot as it binds every other, and any rise starts the fall below it",
   "min": 0,
   "max": 1,
   "integer": false,
@@ -1052,7 +1052,7 @@
  {
   "id": "surface_lobe_depth",
   "path": "/surface/lobeDepth",
-  "meaning": "how deep the flutes between those ridges cut, as a share of the radius",
+  "meaning": "how deep the flutes between those ridges cut, as a share of the radius; at zero the bole is plainly round whatever the ridge count says, and any rise starts cutting the flutes",
   "min": 0,
   "max": 0.9,
   "integer": false,
@@ -1172,7 +1172,7 @@
  {
   "id": "canopy_shoot_radius",
   "path": "/canopy/shootRadius",
-  "meaning": "the share of the root radius at or below which wood bears foliage of its own",
+  "meaning": "the share of the root radius at or below which wood bears foliage of its own; at zero no wood beyond the twig layer bears foliage of its own, and any rise starts clothing it",
   "min": 0.0,
   "max": 0.0375,
   "integer": false,
@@ -1592,7 +1592,7 @@
  {
   "id": "leaf_lobe_depth",
   "path": "/element/lobeDepth",
-  "meaning": "how far each sinus cuts toward the midrib",
+  "meaning": "how far each sinus cuts toward the midrib; at zero the margin is entire whatever the lobe count says, and any rise starts cutting the sinuses",
   "min": 0,
   "max": 1,
   "integer": false,
@@ -1937,7 +1937,7 @@
  {
   "id": "material_furrow_strength",
   "path": "/material/furrowStrength",
-  "meaning": "the width and depth of the bark's furrows together",
+  "meaning": "the width and depth of the bark's furrows together; at zero no furrow is cut at all, and any rise starts them",
   "min": 0,
   "max": 1,
   "integer": false,
@@ -2117,7 +2117,7 @@
  {
   "id": "material_fissure_strength",
   "path": "/material/fissureStrength",
-  "meaning": "how far the furrow tint is laid over the bark colour",
+  "meaning": "how far the furrow tint is laid over the bark colour; at zero the furrow tint is not laid on at all, and any rise starts it",
   "min": 0,
   "max": 1,
   "integer": false,
@@ -2177,7 +2177,7 @@
  {
   "id": "material_crest_strength",
   "path": "/material/crestStrength",
-  "meaning": "how far the crest tint is laid over the bark colour",
+  "meaning": "how far the crest tint is laid over the bark colour; at zero the crest tint is not laid on at all, and any rise starts it",
   "min": 0,
   "max": 1,
   "integer": false,
@@ -2357,7 +2357,7 @@
  {
   "id": "material_plate_cell_scale",
   "path": "/material/plateCellScale",
-  "meaning": "the metres across one bark plate, before girth scales it",
+  "meaning": "the metres across one bark plate, before girth scales it; at zero the bark has no plates at all, and any rise switches plates on",
   "min": 0.0,
   "max": 0.126,
   "integer": false,
@@ -2387,7 +2387,7 @@
  {
   "id": "material_plate_dome",
   "path": "/material/plateDome",
-  "meaning": "how far a plate's face rises from its edge toward its middle",
+  "meaning": "how far a plate's face rises from its edge toward its middle; at zero a plate's face lies flat, and any rise starts the doming",
   "min": 0,
   "max": 1,
   "integer": false,
@@ -2402,7 +2402,7 @@
  {
   "id": "material_plate_edge_lift",
   "path": "/material/plateEdgeLift",
-  "meaning": "how far a plate's rim stands off the furrow it borders",
+  "meaning": "how far a plate's rim stands off the furrow it borders; at zero a plate's rim lies flush with its furrow, and any rise starts the lift",
   "min": 0,
   "max": 1,
   "integer": false,
@@ -2432,7 +2432,7 @@
  {
   "id": "material_plate_identity",
   "path": "/material/plateIdentity",
-  "meaning": "how much of its own a plate keeps against its neighbours",
+  "meaning": "how much of its own a plate keeps against its neighbours; at zero every plate stands and reads exactly like its neighbours, and any rise starts the difference",
   "min": 0,
   "max": 1,
   "integer": false,
@@ -2447,7 +2447,7 @@
  {
   "id": "material_weathering_strength",
   "path": "/material/weatheringStrength",
-  "meaning": "how far a weathered face is greyed against a fresh furrow",
+  "meaning": "how far a weathered face is greyed against a fresh furrow; at zero no face is weathered at all, and any rise starts the greying",
   "min": 0,
   "max": 1,
   "integer": false,
@@ -2507,7 +2507,7 @@
  {
   "id": "material_orientation_strength",
   "path": "/material/orientationStrength",
-  "meaning": "how far the shaded side and the foot of the trunk take a colour of their own",
+  "meaning": "how far the shaded side and the foot of the trunk take a colour of their own; at zero the shaded side and the foot take no colour of their own, and any rise starts it",
   "min": 0,
   "max": 1,
   "integer": false,
@@ -2567,7 +2567,7 @@
  {
   "id": "material_directional_occlusion",
   "path": "/material/directionalOcclusion",
-  "meaning": "how far a furrow floor is darkened by its own crest",
+  "meaning": "how far a furrow floor is darkened by its own crest; at zero the sun falls on both sides of every furrow alike, and any rise starts the shading",
   "min": 0,
   "max": 1,
   "integer": false,
@@ -2582,7 +2582,7 @@
  {
   "id": "material_depth_strength",
   "path": "/material/depthStrength",
-  "meaning": "how far the bark's relief is given depth beyond the shaded normal",
+  "meaning": "how far the bark's relief is given depth beyond the shaded normal; at zero the relief is given no depth beyond the shaded normal, and any rise starts it",
   "min": 0,
   "max": 1,
   "integer": false,
@@ -2822,7 +2822,7 @@
  {
   "id": "material_peel_curl",
   "path": "/material/peelCurl",
-  "meaning": "the share of the bark's strips that have peeled away",
+  "meaning": "the share of the bark's strips that have peeled away; at zero no strip has peeled at all, and any rise switches the peel on",
   "min": 0,
   "max": 1,
   "integer": false,

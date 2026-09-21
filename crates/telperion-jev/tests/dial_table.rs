@@ -26,6 +26,41 @@ const PILOT_TABLE: &str = r#"[
 ]"#;
 const PILOT_TABLE_SHA256: &str = "32a9af4ea8d920ca1ff711145a4ebbe5a7912fbd7311be6ef102693cc10c7802";
 
+/// The rows whose value is a switch as much as a dial: the code that reads
+/// them contributes nothing at zero, so a step off zero turns a feature on
+/// rather than moving one. Each meaning has to say so, or a proposal that
+/// raises two of them at once reads as two small steps and lands a new
+/// feature. Read off the use sites, one row at a time; a row is on this list
+/// only where the code guards on the value or multiplies by it.
+const SWITCHES_AT_ZERO: [&str; 26] = [
+    "attractor_weight",
+    "stem_divergence",
+    "stem_lean",
+    "stem_fork_height",
+    "gravitropism",
+    "lean",
+    "writhe_amplitude",
+    "spiral_rate",
+    "twig_sag",
+    "twig_pendulous_variation",
+    "twig_curtain_drop",
+    "surface_lobe_depth",
+    "canopy_shoot_radius",
+    "leaf_lobe_depth",
+    "material_furrow_strength",
+    "material_fissure_strength",
+    "material_crest_strength",
+    "material_plate_cell_scale",
+    "material_plate_dome",
+    "material_plate_edge_lift",
+    "material_plate_identity",
+    "material_weathering_strength",
+    "material_orientation_strength",
+    "material_directional_occlusion",
+    "material_depth_strength",
+    "material_peel_curl",
+];
+
 fn table() -> Vec<Dial> {
     serde_json::from_str(TABLE).expect("data/dials.json is a dial table")
 }
@@ -189,6 +224,23 @@ fn every_dial_steps_to_a_value_the_generator_accepts() {
     }
     for note in &stuck {
         println!("dial that cannot move here: {note}");
+    }
+}
+
+#[test]
+fn every_row_that_switches_a_feature_on_says_what_zero_does() {
+    let dials = table();
+    for id in SWITCHES_AT_ZERO {
+        let dial = dials
+            .iter()
+            .find(|d| d.id == id)
+            .unwrap_or_else(|| panic!("the table dropped the switching row {id}"));
+        assert_eq!(dial.min, 0., "{id}: a switching row's floor is not zero");
+        assert!(
+            dial.meaning.contains("zero"),
+            "{id}: the meaning does not say what zero does: {}",
+            dial.meaning
+        );
     }
 }
 
