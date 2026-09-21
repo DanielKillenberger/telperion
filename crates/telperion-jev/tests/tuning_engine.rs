@@ -3,8 +3,9 @@ use telperion_jev::tuning::{
     actions::{Action, Dial},
     continuation::Basis,
     engine::{Answer, Proposal, Run, Services},
-    evaluation::Trial,
+    evaluation::{Image, Trial},
     handoff::PriorityRoute,
+    progress::{self, Choice, Selection},
     state::{Budget, Cell, CellStatus, Visual},
 };
 
@@ -37,6 +38,13 @@ struct Mock {
     batch: usize,
     /// The visual attempt fails, as an adapter that exits non-zero does.
     visual_error: bool,
+    /// What decides between the current tree and a candidate.
+    selection: Selection,
+    /// One reviewer answer per candidate, consumed in order.
+    reviews: Vec<Vec<Choice>>,
+    /// The progress review fails, as a refused answer does.
+    progress_error: bool,
+    progress_calls: u64,
     proposal_calls: u64,
 }
 
@@ -64,6 +72,10 @@ fn mock() -> Mock {
         candidates: 4,
         batch: 0,
         visual_error: false,
+        selection: Selection::Score,
+        reviews: vec![],
+        progress_error: false,
+        progress_calls: 0,
         proposal_calls: 0,
     }
 }
@@ -108,6 +120,79 @@ impl Services for Mock {
             .collect();
         Ok(answer)
     }
+    fn selection(&self) -> Selection {
+        self.selection
+    }
+    fn progress_request(
+        &self,
+        state: &Run,
+        current: usize,
+        candidate: usize,
+        priorities: &[telperion_jev::tuning::priority::Gap],
+    ) -> Result<(progress::Request, String), String> {
+        if priorities.is_empty() {
+            return Err("no tuning-routed priority to review".into());
+        }
+        let side =
+            progress::candidate_side(&state.trials[current].key, &state.trials[candidate].key);
+        Ok((
+            progress::Request {
+                schema: progress::VERSION.into(),
+                target_species: "european-beech".into(),
+                view: "whole".into(),
+                seed: state.seed,
+                references: vec![still("reference")],
+                a: still("a"),
+                b: still("b"),
+                priorities: priorities
+                    .iter()
+                    .map(|g| progress::Priority {
+                        id: g.id.clone(),
+                        observation: g.observation.clone(),
+                    })
+                    .collect(),
+                owner_notes: state.owner_notes.clone(),
+            },
+            side,
+        ))
+    }
+    fn progress_tokens(&self, _: &progress::Request) -> u64 {
+        1000
+    }
+    fn progress(
+        &mut self,
+        request: &progress::Request,
+        side: &str,
+    ) -> Result<Answer<progress::Verdict>, String> {
+        if self.progress_error {
+            return Err("progress adapter failed; reservation retained".into());
+        }
+        let plan = self
+            .reviews
+            .get(self.progress_calls as usize)
+            .cloned()
+            .unwrap_or_else(|| vec![Choice::Same; request.priorities.len()]);
+        self.progress_calls += 1;
+        let answer = progress::Answer {
+            verdicts: request
+                .priorities
+                .iter()
+                .zip(plan)
+                .map(|(p, verdict)| progress::Judgment {
+                    priority_id: p.id.clone(),
+                    verdict,
+                })
+                .collect(),
+            improved: "the outer foliage hangs further".into(),
+            missing: "the crown is still enclosed".into(),
+            regressions: vec![],
+        };
+        Ok(Answer {
+            value: progress::bind(request, &answer, side, "review:1".into(), "mock".into())?,
+            tokens: Some(10),
+            ledger: Some("review:1".into()),
+        })
+    }
     fn evaluation_images(&self) -> u64 {
         4
     }
@@ -123,6 +208,7 @@ impl Services for Mock {
     ) -> Trial {
         self.evaluations += 1;
         Trial {
+            progress: None,
             key: format!("candidate{}", self.evaluations),
             identity: "input1".into(),
             seed: 1,
@@ -318,6 +404,19 @@ fn approve_priorities(state: &mut Run, mock: &Mock, ordered: serde_json::Value) 
         .unwrap();
     state.authorizations.push(decision);
     state.pause = None;
+}
+fn still(body: &str) -> Image {
+    let path = std::env::temp_dir().join(format!(
+        "engine-progress-{}.png",
+        telperion_jev::ledger::new_entry_id()
+    ));
+    std::fs::write(&path, body.as_bytes()).unwrap();
+    Image {
+        path,
+        sha256: telperion_jev::sha256_hex(body.as_bytes()),
+        view: "whole".into(),
+        seed: 1,
+    }
 }
 fn cell() -> Cell {
     Cell {
@@ -1567,4 +1666,174 @@ fn a_failed_visual_keeps_its_reservation_and_leaves_the_attempt_pending() {
     assert_eq!(state.budget.visual_passes, Some(2));
     assert!(state.budget.tokens >= charged.tokens);
     assert!(state.visual.is_some());
+}
+
+fn reviewed_run() -> (Run, Mock) {
+    let mut state = run();
+    state.budget.max_rounds = 2;
+    let mock = Mock {
+        selection: Selection::Visual,
+        route_plan: vec![("tuning".into(), 0.9)],
+        proposals: vec![
+            Proposal {
+                dial: "crookedness".into(),
+                action: Action::SmallIncrease,
+                ledger: "jev:2".into(),
+                direction_mass: Some(0.9),
+                rule: Some(telperion_jev::tuning::direction::RULE.into()),
+            },
+            Proposal {
+                dial: "crookedness".into(),
+                action: Action::SmallDecrease,
+                ledger: "jev:3".into(),
+                direction_mass: Some(0.7),
+                rule: Some(telperion_jev::tuning::direction::RULE.into()),
+            },
+        ],
+        candidates: 2,
+        ..mock()
+    };
+    (state, mock)
+}
+
+fn approve_one(state: &mut Run, mock: &Mock) {
+    approve_priorities(
+        state,
+        mock,
+        json!([{"id":"owner-crown","observation":"Crown shape and foliage organization",
+            "evidence_ids":["render-0","reference-0"],"views":["whole"]}]),
+    );
+}
+
+#[test]
+fn under_visual_selection_the_reviewer_adopts_the_candidate_it_judged_better() {
+    let (mut state, mut mock) = reviewed_run();
+    mock.reviews = vec![vec![Choice::Same], vec![Choice::ABetter]];
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_one(&mut state, &mock);
+    let passes_before = state.budget.visual_passes.unwrap();
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    assert_eq!(
+        mock.progress_calls, 2,
+        "every feasible candidate is reviewed"
+    );
+    let reviewed: Vec<&Trial> = state
+        .trials
+        .iter()
+        .filter(|t| t.progress.is_some())
+        .collect();
+    assert_eq!(reviewed.len(), 2);
+    for trial in &reviewed {
+        let verdict = trial.progress.as_ref().unwrap();
+        assert!(verdict.uncalibrated.contains("uncalibrated"));
+        assert!(verdict.candidate_is == "a" || verdict.candidate_is == "b");
+    }
+    // The one the reviewer called better is the one the round kept, whatever
+    // the scores did, and each review spent a pass of its own.
+    let adopted = &state.trials[state.current.unwrap()];
+    assert_eq!(adopted.progress.as_ref().unwrap().better(), 1);
+    assert!(state.budget.visual_passes.unwrap() >= passes_before + 2);
+    // The reviewer's words reach whoever is asked next.
+    let projected = telperion_jev::tuning::judgments::summary(&state);
+    assert!(
+        serde_json::to_string(&projected["recent_attempts"])
+            .unwrap()
+            .contains("the outer foliage hangs further"),
+        "the routing state lost the reviewer's words"
+    );
+}
+
+#[test]
+fn a_round_whose_candidates_are_all_the_same_is_a_visual_stall() {
+    let (mut state, mut mock) = reviewed_run();
+    mock.reviews = vec![vec![Choice::Same], vec![Choice::Same]];
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_one(&mut state, &mock);
+    let before = state.current;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert_eq!(state.current, before, "nothing was adopted");
+    assert!(
+        state
+            .routes
+            .iter()
+            .any(|r| r == "visual stall; no candidate judged better"),
+        "{:?}",
+        state.routes
+    );
+    assert!(!state.routes.iter().any(|r| r.starts_with("numeric stall")));
+}
+
+#[test]
+fn a_refused_progress_answer_leaves_a_recoverable_attempt() {
+    let (mut state, mut mock) = reviewed_run();
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_one(&mut state, &mock);
+    mock.progress_error = true;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert_eq!(state.pending.as_deref(), Some("progress review"));
+    assert!(state
+        .pause
+        .as_ref()
+        .unwrap()
+        .reason
+        .contains("reservation retained"));
+    let charged = serde_json::to_value(&state.budget).unwrap();
+    state.pause = None;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert_eq!(
+        state.pause.as_ref().unwrap().reason,
+        "interrupted attempt; reservation retained"
+    );
+    assert_eq!(serde_json::to_value(&state.budget).unwrap(), charged);
+}
+
+#[test]
+fn a_reviewed_attempt_that_was_not_adopted_is_never_proposed_again() {
+    let (mut state, mut mock) = reviewed_run();
+    mock.reviews = vec![vec![Choice::Same], vec![Choice::Same]];
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_one(&mut state, &mock);
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    // The mock proposes both moves under one action, so both were tried here.
+    let tried: Vec<Proposal> = mock
+        .proposals
+        .iter()
+        .cloned()
+        .map(|mut p| {
+            p.action = mock.proposal_action;
+            p
+        })
+        .collect();
+    let (kept, refused) = state.filter_repeats(tried);
+    assert!(
+        kept.is_empty() && refused == 2,
+        "a reviewed attempt that was not adopted is still on offer: {kept:?}"
+    );
+}
+
+#[test]
+fn the_proposal_state_carries_the_reviewer_words_and_stays_small() {
+    let (mut state, mut mock) = reviewed_run();
+    mock.reviews = vec![vec![Choice::ABetter], vec![Choice::Same]];
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_one(&mut state, &mock);
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    let table: Vec<Dial> = serde_json::from_slice(include_bytes!("../data/dials.json")).unwrap();
+    state.dials = table
+        .into_iter()
+        .filter(|d| d.score_visible == Some(true))
+        .collect();
+    assert!(state.dials.len() > 100, "{}", state.dials.len());
+    let projected = telperion_jev::tuning::judgments::proposal_state(&state);
+    let bytes = serde_json::to_vec(&projected).unwrap();
+    assert!(
+        String::from_utf8_lossy(&bytes).contains("the crown is still enclosed"),
+        "the proposal state lost the reviewer's words"
+    );
+    assert!(
+        bytes.len() < 24_576,
+        "proposal state is {} bytes",
+        bytes.len()
+    );
 }

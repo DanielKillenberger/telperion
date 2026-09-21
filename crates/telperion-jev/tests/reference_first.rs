@@ -307,6 +307,7 @@ print(json.dumps({'status':'ok','model':'mock','effort':'medium','request_sha256
     .unwrap();
     let identity = config.identity().unwrap();
     let trial = Trial {
+        progress: None,
         key: r.identity.clone(),
         identity: identity.clone(),
         seed: 1,

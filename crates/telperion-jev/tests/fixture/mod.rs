@@ -13,6 +13,7 @@ use telperion_jev::{
     tuning::{
         actions::{Dial, DIRECTION_VERSION, QUESTION_VERSION},
         calibration, continuation,
+        engine::Run,
         joint::Packet,
         reference_first::{
             ComparisonRequest, ComparisonResult, Coverage, Inventory, Priority, ReferenceImage,
@@ -384,5 +385,39 @@ pub fn verifying_fixture(budget: Value) -> Fixture {
         out,
         config,
         dials,
+    }
+}
+
+/// A minimal run carrying the trials a progress review compares. Nothing here
+/// dispatches: it exists so the request builder has a state to read.
+pub fn progress_run(trials: Vec<telperion_jev::tuning::evaluation::Trial>) -> Run {
+    Run {
+        identity: "progress-fixture".into(),
+        preset: PRESET.into(),
+        seed: 1,
+        effective: json!({}),
+        overrides: json!({}),
+        dials: vec![],
+        owner_notes: "owner notes".into(),
+        required: vec![],
+        budget: serde_json::from_value(json!({"evaluations":0,"images":0,"tokens":0,"rounds":0,
+            "max_evaluations":13,"max_images":52,"max_tokens":902431,"max_rounds":3,
+            "visual_passes":0,"max_visual_passes":26}))
+        .unwrap(),
+        usage_known: true,
+        trials,
+        current: Some(0),
+        visual: None,
+        pause: None,
+        machine_ready: false,
+        pending: None,
+        routes: vec![],
+        authorizations: vec![],
+        preparation_charge: None,
+        priority_checkpoints: vec![],
+        handoffs: vec![],
+        judgment_inputs: vec![],
+        visual_bootstrap: true,
+        reviewer_passed_unqualified: false,
     }
 }
