@@ -12,9 +12,17 @@ use std::f64::consts::TAU;
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct SupernaturalParams {
     pub enabled: bool,
+    /// How far a branch may wander from a straight course, as a share of
+    /// the tree's height. Raising it makes the wood wind and stray more.
     pub writhe_amplitude: f64,
+    /// How long each of those wanders runs, as a share of the height.
+    /// Raising it gives fewer, lazier bends; lowering it gives tighter kinks.
     pub writhe_wavelength: f64,
+    /// How many full turns the wander winds around the trunk over the
+    /// tree's height. Raising it tightens the spiral.
     pub spiral_rate: f64,
+    /// The ceiling on how hard the wander may pull in any one step, so
+    /// the other writhe rows cannot bend the wood arbitrarily.
     #[cfg_attr(
         feature = "json",
         serde(default = "crate::ranges::default_max_writhe_magnitude")
@@ -38,7 +46,11 @@ impl SupernaturalParams {
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct BiasParams {
+    /// How strongly growth is pulled upward, most near the ground.
+    /// Raising it makes the tree grow more erect.
     pub gravitropism: f64,
+    /// How far the whole tree leans off vertical, increasing with
+    /// height. Raising it tips the trunk further in one direction.
     pub lean: f64,
     pub supernatural: SupernaturalParams,
 }

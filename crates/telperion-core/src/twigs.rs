@@ -27,7 +27,11 @@ impl Default for TwigAnatomy {
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct TwigParams {
     pub twig: TwigAnatomy,
+    /// A shoot's length as a share of the one that bore it. Raising it
+    /// makes each generation of twigs longer relative to its parent.
     pub length_ratio: f64,
+    /// How much thinner a shoot is than its parent for the same drop in
+    /// length. Raising it leaves side shoots finer.
     pub ratio_power: f64,
     pub internode_factor: f64,
     #[cfg_attr(
@@ -35,16 +39,27 @@ pub struct TwigParams {
         serde(default = "crate::ranges::default_max_internodes")
     )]
     pub max_internodes: u32,
+    /// How many side shoots leave each station along a twig. Raising it
+    /// crowds more twigs onto the same length of wood.
     pub laterals: u32,
     /// Twig-law generations of branching, 1 to 6. A lateral born at or past
     /// this generation is a twig whatever the pipe model left its radius, so
     /// the twig layer's depth is a row a table states rather than a
     /// consequence of how thick the wood is.
     pub generations: u32,
+    /// The share of the trunk's radius at or below which wood starts
+    /// bearing twigs. Raising it lets twigs start on thicker wood, so
+    /// they reach further back toward the trunk.
     pub limb_radius: f64,
     pub reach: f64,
+    /// The degrees a side shoot leaves its parent. Raising it swings
+    /// twigs further out toward square with the branch.
     pub angle: f64,
+    /// How many degrees that departure angle varies shoot to shoot.
+    /// Raising it makes the twig layer less uniform.
     pub angle_variation: f64,
+    /// How much shoot length varies shoot to shoot. Raising it gives a
+    /// more uneven, less combed twig layer.
     pub vigour_variation: f64,
     pub divergence: f64,
     /// How strongly a shoot hangs, 0 to 3. At 0 nothing hangs and the local
@@ -77,8 +92,12 @@ pub struct TwigParams {
     /// Metres above the ground no hanging shoot falls below, 0 to 5. Never
     /// above the crown's own base, whatever the row says.
     pub curtain_clearance: f64,
+    /// The furthest a hanging shoot may bend toward straight down.
+    /// Raising it lets curtains hang more heavily.
     #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_max_droop"))]
     pub max_droop: f64,
+    /// How close to the ground a hanging curtain may reach before it
+    /// stops growing. Raising it lets curtains hang nearer the floor.
     #[cfg_attr(
         feature = "json",
         serde(default = "crate::ranges::default_curtain_step_clearance")
