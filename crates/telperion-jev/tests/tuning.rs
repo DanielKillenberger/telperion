@@ -100,6 +100,11 @@ fn authored_actions_preserve_integer_bounds_and_abstention() {
         integer: true,
         small: 1.,
         substantial: 2.,
+        group: None,
+        score_visible: None,
+        meaning_basis: None,
+        range_basis: None,
+        source: None,
     };
     assert_eq!(
         dial.value(2., Action::SmallDecrease).unwrap(),

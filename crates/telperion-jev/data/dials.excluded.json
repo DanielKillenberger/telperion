@@ -1,0 +1,23 @@
+{
+ "/age": "Identity of a grown specimen, not a look: only the growth path reads it, and the direct build the tuner measures is the mature tree whatever it says (crates/telperion-core/src/branching/specimen/timeline.rs:30).",
+ "/canopy/clumpNeighbours": "An approximation budget: neighbours and cell crossings the clumping search may spend (crates/telperion-core/src/foliage/placement.rs:85).",
+ "/canopy/maxInstances": "A hard resource cap; exceeding it is an error, never a different tree (crates/telperion-core/src/foliage/placement.rs:88).",
+ "/element/card": "Boolean, not a numeric scalar.",
+ "/growth/apicalControlLoss": "Growth-path only, as above.",
+ "/growth/leafLifetime": "Growth-path only, as above.",
+ "/growth/rate": "Growth-path only: `mesh::build` and `branching::generate` never read the growth traits (crates/telperion-core/src/mesh.rs:73).",
+ "/growth/resizeTolerance": "Growth-path only, and an internal recording tolerance rather than a look.",
+ "/growth/shape": "Growth-path only, as above.",
+ "/growth/sheddingTolerance": "Growth-path only, as above.",
+ "/growth/workBudget": "Growth-path only, and a work budget.",
+ "/skeleton/bias/supernatural/enabled": "Boolean, not a numeric scalar.",
+ "/skeleton/growth/influenceRadius": "An unset `Option` in every shipped preset, so the wire row reads null and there is no current value to step (crates/telperion-core/src/branching.rs:72).",
+ "/skeleton/growth/killDistance": "Null in every shipped preset, as above.",
+ "/skeleton/growth/maxNodes": "Null in every shipped preset, and a resource cap besides.",
+ "/skeleton/growth/stepDistance": "Null in every shipped preset, as above.",
+ "/skeleton/growth/trunkHeight": "Null in every shipped preset, as above.",
+ "/skeleton/habit/reachProbeSteps": "A sampling budget: samples spent finding an axis's room, not a look the owner can ask for (crates/telperion-core/src/branching/traits.rs:15).",
+ "/skeleton/samplingAttemptsPerAttractor": "A sampling budget: it decides how hard the sampler looks for room for a pull point, not what the tree looks like (crates/telperion-core/src/envelope.rs:170).",
+ "/skeleton/seed": "Identity: the seed names which tree is drawn, and the protocol fixes it. Stepping it is not a tuning move.",
+ "/skeleton/twigs/maxInternodes": "A cost cap: it binds only where the two internode lengths would cut more segments (crates/telperion-core/src/twigs.rs:221)."
+}

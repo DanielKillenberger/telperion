@@ -27,6 +27,23 @@ pub struct Dial {
     pub integer: bool,
     pub small: f64,
     pub substantial: f64,
+    /// The wire group the row belongs to: the path's first segment.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub group: Option<String>,
+    /// True where the row moves geometry or the placement, density or size of
+    /// foliage, so the matched stills can measure the move; false for a row
+    /// that only changes colour or shading.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub score_visible: Option<bool>,
+    /// Where the meaning came from: "doc comment", "use site" or "prototype".
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub meaning_basis: Option<String>,
+    /// Where the range came from: "validated bound" or "preset span".
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub range_basis: Option<String>,
+    /// The file and line the two above were read off.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source: Option<String>,
 }
 
 impl Dial {
