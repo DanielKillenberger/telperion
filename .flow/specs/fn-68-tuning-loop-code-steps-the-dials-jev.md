@@ -93,6 +93,14 @@ This spec turns the probe into the loop a species round runs: code steps the dia
 
 ## Decision Context
 
+### Visual bootstrap mode (owner, 2026-09-21)
+
+- The owner approved a bootstrap mode for the visual role. Verbatim: "this makes sense to me". [user, relayed by host]
+- Why: `Config::verify` requires at least one replay positive, and a positive means an owner-accepted render. The loop exists to produce the first one, so the gate cannot be satisfied from a cold start. On 2026-09-21 the owner rejected the birch camera-reframe as a positive ("yes it looks too dark and streaky and yes the top crown is a bit more leafy") and rejected the fn-9 oak still as well, leaving no candidate positive in existence. [host design]
+- What it admits: `visual_bootstrap` accepts `positives == 0`. Model, effort and protocol pins, `negatives > 0` and `false_ready == 0` are unchanged. A false rejection still demands a bounded convergence run unless every falsely-rejected case carries an `OwnerRelabel` — the owner's verbatim verdict, pinned to an evidence file by sha256, required to appear in that file's bytes, and naming a case the manifest has and that was actually falsely rejected. No manifest is relabelled and `replay_score` is untouched. [host design]
+- Three guards. The flag is inside `Config::identity()`, so a bootstrap run is a different revision. The run's experimental authority must name `visual_bootstrap`, and a run that is not bootstrap refuses an authority that names it. Readiness is never awarded: where the engine would set `machine_ready` it records `reviewer_passed_unqualified` and pauses with "owner look required"; `finalists.json` and `handoffs.json` carry the mode and the sentence "reviewer has never been shown to pass an owner-accepted tree". [host design]
+- Exit: the first owner-accepted render is frozen as the positive and put through one comparison pass. Pass and bootstrap goes off. Fail and the owner decides between a bounded convergence proof and a rubric change. R8's "demonstrated adequate" stays open until that exit passes; nothing in this mode closes it. [host design]
+
 ### R11 code-first continuation (owner, 2026-09-21)
 
 - The owner approved replacing the per-round continuation judgment with a code decision. Verbatim: "ok r11 change makes sense". [user, relayed by host]
