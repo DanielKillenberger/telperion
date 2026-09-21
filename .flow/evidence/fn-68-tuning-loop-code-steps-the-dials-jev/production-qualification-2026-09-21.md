@@ -22,3 +22,9 @@ The birch case is a camera reframe of accepted historical geometry and that rast
 ## Accounting after this attempt
 
 Experiment tokens 688,550 + 20,648 + 19,247 + 51,714 = **780,159** of 902,431. Visual passes 25 + 4 = **29** of the approved 32. Image reservations 30, evaluations 6, rounds 2, unchanged. The beech Stage A is spent now even though no run has charged it; a future run with these pins charges it through `charge_preparation`, so its opening balance must be 759,511 tokens and 28 passes to avoid double counting.
+
+## Owner verdict on the birch case, 2026-09-21
+
+The owner viewed the reframed birch render beside the reference photograph. Verbatim: "yes it looks too dark and streaky and yes the top crown is a bit more leafy".
+
+The owner's eye agrees with both reviewer blockers, so the replay's `false_rejections: 1` reflects a wrong expected label on that raster, not a reviewer error. The reviewer matched the owner on both cases (birch rejected, beech rejected). Relabelling the case leaves the replay with no positive, and `Config::verify` requires at least one, so the production run stays blocked until an owner-accepted render exists to serve as the positive. The frozen manifest and result are left as they ran; nothing was relabelled.
