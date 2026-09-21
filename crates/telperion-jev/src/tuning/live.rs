@@ -632,7 +632,7 @@ impl Services for Live<'_> {
         current: usize,
         candidate: usize,
         priorities: &[super::priority::Gap],
-    ) -> Result<(progress::Request, String), String> {
+    ) -> Result<progress::Look, String> {
         progress::request(
             state,
             &self.config.preset,

@@ -8,6 +8,7 @@ use telperion_jev::tuning::{
     evaluation::{Comparison, Image, Trial},
     live::Config,
     priority::Gap,
+    progress::Look,
     progress::{self, Answer, Choice, Judgment, Movement, Request},
 };
 
@@ -315,7 +316,7 @@ fn the_request_uses_a_still_both_trials_already_hold() {
     lonely.key = "lonely".into();
     let state = fixture::progress_run(vec![current, candidate, lonely]);
     let priorities = vec![gap("finding-0")];
-    let (request, side) = progress::request(
+    let Look::Ask(request, side, from_priority) = progress::request(
         &state,
         "european-beech",
         &[image("whole", 1, "reference")],
@@ -323,7 +324,10 @@ fn the_request_uses_a_still_both_trials_already_hold() {
         &state.trials[1],
         &priorities,
     )
-    .unwrap();
+    .unwrap() else {
+        panic!("two different renders are a question for the reviewer")
+    };
+    assert!(from_priority);
     assert_eq!(request.view, "whole");
     assert_eq!(request.priorities.len(), 1);
     assert_eq!(request.references.len(), 1);
@@ -331,12 +335,49 @@ fn the_request_uses_a_still_both_trials_already_hold() {
         side,
         progress::candidate_side(&state.trials[0].key, &state.trials[1].key)
     );
-    assert!(progress::request(
+    // No priority view differs, so the review falls back to the other view the
+    // two trials share and says so.
+    let Look::Ask(fallback, _, from_priority) = progress::request(
         &state,
         "european-beech",
-        &[image("whole", 1, "reference")],
+        &[image("bark", 1, "reference")],
         &state.trials[0],
         &state.trials[2],
+        &priorities,
+    )
+    .unwrap() else {
+        panic!("the bark stills differ, so there is something to ask about")
+    };
+    assert_eq!((fallback.view.as_str(), from_priority), ("bark", false));
+
+    // A candidate that draws the current tree is settled by code alone.
+    let twin = trial("twin", state.trials[0].comparisons[0].images.clone());
+    let twins = fixture::progress_run(vec![state.trials[0].clone(), twin]);
+    assert!(matches!(
+        progress::request(
+            &twins,
+            "european-beech",
+            &[image("whole", 1, "reference")],
+            &twins.trials[0],
+            &twins.trials[1],
+            &priorities,
+        )
+        .unwrap(),
+        Look::Inert
+    ));
+    let settled = progress::inert();
+    assert!(settled.inert && !settled.adoptable() && settled.model == "code");
+    assert!(settled.note.unwrap().contains("byte-identical"));
+
+    // Nothing shared at all is still an error, and so is an empty priority set.
+    let alone = trial("alone", vec![image("crown", 1, "alone")]);
+    let apart = fixture::progress_run(vec![state.trials[0].clone(), alone]);
+    assert!(progress::request(
+        &apart,
+        "european-beech",
+        &[image("whole", 1, "reference")],
+        &apart.trials[0],
+        &apart.trials[1],
         &priorities
     )
     .unwrap_err()

@@ -8,7 +8,9 @@
 //! or what any number says: code assigns the two sides from the trial keys,
 //! records the assignment, and maps the answer back.
 mod adapter;
+mod request;
 pub use adapter::dispatch;
+pub use request::{candidate_side, inert, request, Look};
 
 use super::{
     engine::{Run, Services},
@@ -150,6 +152,12 @@ pub struct Verdict {
     /// Which side the candidate was shown as, so the mapping is auditable.
     pub candidate_is: String,
     pub uncalibrated: String,
+    /// True when code settled this attempt without asking anyone, because the
+    /// candidate's render is the current tree's render byte for byte.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub inert: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
 }
 
 impl Verdict {
@@ -165,40 +173,8 @@ impl Verdict {
     /// A candidate is adopted when the reviewer saw it do some good, saw it do
     /// no harm, and named nothing it breaks.
     pub fn adoptable(&self) -> bool {
-        self.better() > 0 && self.worse() == 0 && self.regressions.is_empty()
+        !self.inert && self.better() > 0 && self.worse() == 0 && self.regressions.is_empty()
     }
-}
-
-/// Which side the candidate is shown as. Both keys decide it together, so the
-/// answer cannot be read off either one alone, and it is recorded either way.
-pub fn candidate_side(current_key: &str, candidate_key: &str) -> String {
-    let digest = sha256_hex(format!("{current_key}|{candidate_key}").as_bytes());
-    let last = digest.as_bytes()[digest.len() - 1];
-    if last % 2 == 0 { "a" } else { "b" }.into()
-}
-
-/// The still both trials already hold for the first priority view they share
-/// at the run's seed. Nothing is rendered for this question.
-fn shared_still(current: &Trial, candidate: &Trial, views: &[String], seed: u32) -> Option<String> {
-    let has = |t: &Trial, view: &str| {
-        t.comparisons
-            .iter()
-            .flat_map(|c| c.images.iter())
-            .any(|i| i.view == view && i.seed == seed)
-    };
-    views
-        .iter()
-        .find(|v| has(current, v) && has(candidate, v))
-        .cloned()
-}
-
-fn still(trial: &Trial, view: &str, seed: u32) -> Option<Image> {
-    trial
-        .comparisons
-        .iter()
-        .flat_map(|c| c.images.iter())
-        .find(|i| i.view == view && i.seed == seed)
-        .cloned()
 }
 
 /// The approved priorities the router last sent to tuning. A priority routed
@@ -220,59 +196,6 @@ pub fn tuning_priorities(state: &Run) -> Vec<Gap> {
         })
         .cloned()
         .collect()
-}
-
-/// The request for one candidate against the tree it came from.
-pub fn request(
-    state: &Run,
-    species: &str,
-    references: &[Image],
-    current: &Trial,
-    candidate: &Trial,
-    priorities: &[Gap],
-) -> Result<(Request, String), String> {
-    if priorities.is_empty() {
-        return Err("no tuning-routed priority to review".into());
-    }
-    let views = priorities
-        .iter()
-        .flat_map(|g| g.views.iter().cloned())
-        .collect::<Vec<_>>();
-    let view = shared_still(current, candidate, &views, state.seed)
-        .ok_or("no shared still for progress review")?;
-    let (current_still, candidate_still) = (
-        still(current, &view, state.seed).ok_or("no shared still for progress review")?,
-        still(candidate, &view, state.seed).ok_or("no shared still for progress review")?,
-    );
-    let side = candidate_side(&current.key, &candidate.key);
-    let (a, b) = if side == "a" {
-        (candidate_still, current_still)
-    } else {
-        (current_still, candidate_still)
-    };
-    let request = Request {
-        schema: VERSION.into(),
-        target_species: species.into(),
-        view: view.clone(),
-        seed: state.seed,
-        references: references
-            .iter()
-            .filter(|i| i.view == view)
-            .cloned()
-            .collect(),
-        a,
-        b,
-        priorities: priorities
-            .iter()
-            .map(|g| Priority {
-                id: g.id.clone(),
-                observation: g.observation.clone(),
-            })
-            .collect(),
-        owner_notes: state.owner_notes.clone(),
-    };
-    request.verify()?;
-    Ok((request, side))
 }
 
 /// Strict: every requested priority answered exactly once and nothing else.
@@ -324,6 +247,8 @@ pub fn bind(
         model,
         candidate_is: candidate_is.into(),
         uncalibrated: UNCALIBRATED.into(),
+        inert: false,
+        note: None,
     })
 }
 
@@ -371,7 +296,8 @@ pub(super) fn stall(selection: Selection) -> String {
 pub fn words(trial: &Trial) -> Option<Value> {
     trial.progress.as_ref().map(|p| {
         json!({"per_priority":p.per_priority,"improved":p.improved,"missing":p.missing,
-            "regressions":p.regressions,"uncalibrated":UNCALIBRATED})
+            "regressions":p.regressions,"inert":p.inert,"note":p.note,
+            "uncalibrated":UNCALIBRATED})
     })
 }
 
@@ -394,7 +320,45 @@ pub(super) fn review(
     candidate: usize,
 ) -> Result<(), String> {
     let priorities = tuning_priorities(state);
-    let (request, side) = services.progress_request(state, current, candidate, &priorities)?;
+    // A request that cannot be built is this candidate's problem, not the
+    // round's: the attempt is recorded and the next candidate is evaluated.
+    let look = match services.progress_request(state, current, candidate, &priorities) {
+        Ok(look) => look,
+        Err(reason) => {
+            let label = state.trials[candidate].label.clone();
+            state.trials[candidate].reason = Some(format!("progress review not asked: {reason}"));
+            state
+                .routes
+                .push(format!("progress review not asked for {label}: {reason}"));
+            return save(state);
+        }
+    };
+    let (request, side) = match look {
+        Look::Inert => {
+            let trial = &mut state.trials[candidate];
+            trial.progress = Some(inert());
+            let note = format!(
+                "inert: {} {}",
+                trial.label,
+                trial
+                    .action
+                    .and_then(|a| serde_json::to_value(a).ok())
+                    .and_then(|v| v.as_str().map(str::to_owned))
+                    .unwrap_or_default()
+            );
+            state.routes.push(note);
+            return save(state);
+        }
+        Look::Ask(request, side, from_priority) => {
+            if !from_priority {
+                state.routes.push(format!(
+                    "progress review on {}: no tuning-priority view differs",
+                    request.view
+                ));
+            }
+            (request, side)
+        }
+    };
     let allowance = services.progress_tokens(&request);
     let mut budget = state.budget.clone();
     budget.reserve_visual()?;

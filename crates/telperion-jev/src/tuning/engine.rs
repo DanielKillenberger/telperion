@@ -87,7 +87,7 @@ pub trait Services {
         _current: usize,
         _candidate: usize,
         _priorities: &[super::priority::Gap],
-    ) -> Result<(super::progress::Request, String), String> {
+    ) -> Result<super::progress::Look, String> {
         Err("progress review unavailable".into())
     }
     fn progress_tokens(&self, _request: &super::progress::Request) -> u64 {
