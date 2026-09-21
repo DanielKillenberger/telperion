@@ -15,3 +15,9 @@ Three consecutive adoptions, each graded clear on crown shape and slight on hang
 Then the search hit a wall: from the third adopted tree nearly every further bundle fails the species' numeric gates before it can be rendered, and the few that build lose the crown. The closing all-view review still fails every cell. Unknown: which gate fails (the run records only "numeric gate failed"), and whether the owner's eye agrees with three "clear" grades.
 
 Reviewer spend for this run: 9 calls (one all-view review after approval, three closing reviews, five contact sheets). Visual passes 54 of 90, evaluations 63 of 80, images 322 of 420, rounds 21 of 22.
+
+## Owner's eye on the stills, 2026-09-21
+
+Shown the reference, the start and the three adopted trees. Verbatim: "to me the structure looks messy. Branches too thick on the outer rim, too much chaotic branching. Bundle 3 i wont' even judge that's just garbage. Bundle 1 seems like an improvement and then it went off the rails i think."
+
+So: bundle 1 is an improvement to the owner; bundles 2 and 3, each graded "clear" on crown shape by the contact sheet, made the tree worse, and the third is unacceptable. The one-view, two-priority sheet adopted steps whose side effects (thick outer branches, chaotic branching, the leader) the owner rejects and the all-view review also reported. The sheet's grades cannot be trusted past the first step as built. New owner observations, not yet priorities: branches too thick at the outer rim; too much chaotic branching.
