@@ -1,0 +1,121 @@
+{
+  "authority": "Owner YES to570000 cumulative, atmost4camera-repair captures and ONE corrected comparison; no retries",
+  "prior_actual_tokens": 524517,
+  "token_cap": 570000,
+  "evaluations": 6,
+  "prior_image_reservations": 24,
+  "image_reservations": 28,
+  "prior_actual_images": 20,
+  "actual_images": 24,
+  "attempted_captures": 4,
+  "runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e",
+  "family_sha256": "3fbf84ff0628f88d0eb0e88caf6ca4043783b6fe4dae90c7f2ea7fea98e66589",
+  "headless_sha256": "47b0a47fe2b4d47c7a4a0b2b6a3e8389e368dfb657a29cc7b0965b4a55a34c82",
+  "framefit_sha256": "7257e72022da5371fe4e93ae7a5fd4367555e2547f1991e1969da78f4eaf2d04",
+  "commands": [
+    [
+      "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/target/release/examples/headless",
+      "--preset",
+      "european-beech",
+      "--seed",
+      "1",
+      "--view",
+      "whole",
+      "--size",
+      "951x1440",
+      "--out",
+      "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/reframed/B-WHOLE.png",
+      "--family",
+      "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/family.json",
+      "--camera",
+      "{\"azimuth\": 30, \"elevation\": -15, \"fill\": 0.604203537649362, \"fov\": 40, \"targetHeight\": 0.5}",
+      "--scene",
+      "{\"sunAzimuth\": 135, \"sunElevation\": 55, \"sunRed\": 0.8399999999999997, \"sunGreen\": 0.7979999999999998, \"sunBlue\": 0.7279999999999998, \"skyZenithRed\": 0.513, \"skyZenithGreen\": 0.624, \"skyZenithBlue\": 0.782}",
+      "--no-figure"
+    ],
+    [
+      "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/target/release/examples/headless",
+      "--preset",
+      "european-beech",
+      "--seed",
+      "1",
+      "--view",
+      "whole",
+      "--size",
+      "951x1440",
+      "--out",
+      "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/reframed/B-WHOLE-twin.png",
+      "--family",
+      "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/family.json",
+      "--camera",
+      "{\"azimuth\": 30, \"elevation\": -15, \"fill\": 0.604203537649362, \"fov\": 40, \"targetHeight\": 0.5}",
+      "--scene",
+      "{\"sunAzimuth\": 210, \"sunElevation\": 5, \"sunRed\": 0.8399999999999997, \"sunGreen\": 0.7979999999999998, \"sunBlue\": 0.7279999999999998, \"skyZenithRed\": 0.513, \"skyZenithGreen\": 0.624, \"skyZenithBlue\": 0.782}",
+      "--no-figure"
+    ],
+    [
+      "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/target/release/examples/headless",
+      "--preset",
+      "european-beech",
+      "--seed",
+      "1",
+      "--view",
+      "bare",
+      "--size",
+      "961x1440",
+      "--out",
+      "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/reframed/B-BARE.png",
+      "--family",
+      "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/family.json",
+      "--camera",
+      "{\"azimuth\": 30, \"elevation\": -8, \"fill\": 0.6231628633914461, \"fov\": 45, \"targetHeight\": 0.5}",
+      "--scene",
+      "{\"sunAzimuth\": 300, \"sunElevation\": 25, \"sunRed\": 2.76, \"sunGreen\": 2.622, \"sunBlue\": 2.392, \"skyZenithRed\": 0.217, \"skyZenithGreen\": 0.33599999999999997, \"skyZenithBlue\": 0.638}",
+      "--no-figure"
+    ],
+    [
+      "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/target/release/examples/headless",
+      "--preset",
+      "european-beech",
+      "--seed",
+      "1",
+      "--view",
+      "bare",
+      "--size",
+      "961x1440",
+      "--out",
+      "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/reframed/B-BARE-twin.png",
+      "--family",
+      "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/family.json",
+      "--camera",
+      "{\"azimuth\": 30, \"elevation\": -8, \"fill\": 0.6231628633914461, \"fov\": 45, \"targetHeight\": 0.5}",
+      "--scene",
+      "{\"sunAzimuth\": 210, \"sunElevation\": 5, \"sunRed\": 2.76, \"sunGreen\": 2.622, \"sunBlue\": 2.392, \"skyZenithRed\": 0.217, \"skyZenithGreen\": 0.33599999999999997, \"skyZenithBlue\": 0.638}",
+      "--no-figure"
+    ]
+  ],
+  "captures": [
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/reframed/B-WHOLE.png",
+      "sha256": "e0d5bc93369f281dc39e9fa008a1cec647b2c040de47baa89e11bc31d1fe6f68",
+      "seconds": 2.677715394002007
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/reframed/B-WHOLE-twin.png",
+      "sha256": "64813bf60f3c1e30dd8f70055511d9564bcbab252b32b1acfe75c6b50625b3a2",
+      "seconds": 2.6467860039992956
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/reframed/B-BARE.png",
+      "sha256": "9c64f46459c824458951c465832feead33a730182cfcffdd8ab5a786d7fe9dde",
+      "seconds": 2.7871429810002155
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/reframed/B-BARE-twin.png",
+      "sha256": "84d00643169124ef54b9e90d9d21027752ccc49d02d4aa7093dec36b54aec9c7",
+      "seconds": 2.6866780090022075
+    }
+  ],
+  "status": "four_captures_complete",
+  "numeric_comparison": "diagnostic newcamera; not directly comparable to old pixel metrics"
+}

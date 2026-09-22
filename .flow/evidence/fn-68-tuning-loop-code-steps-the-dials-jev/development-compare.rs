@@ -1,0 +1,21 @@
+use std::{fs,path::Path};
+use telperion_jev::{sha256_hex,tuning::{live::Config,evaluation::Trial,engine::Run,vision::Request,state::Cell}};
+fn main(){
+ let root=Path::new(".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev");let jp=root.join("development-limbs-journal.json");let mut j:serde_json::Value=serde_json::from_slice(&fs::read(&jp).unwrap()).unwrap();assert!(j.get("visual").is_none(),"one visual attempt only");
+ let original=fs::read(".flow/tmp/fn68-pilot-run/run.json").unwrap();assert_eq!(sha256_hex(&original),j["original_run_sha256"].as_str().unwrap());let run:Run=serde_json::from_slice(&original).unwrap();
+ let cfg:Config=serde_json::from_slice(&fs::read(root.join("pilot-config-final-diagnosed.json")).unwrap()).unwrap();
+ let trial:Trial=serde_json::from_slice(&fs::read(root.join("local/development-limbs-trial.json")).unwrap()).unwrap();assert!(trial.feasible);
+ let mut images=Vec::new();for c in &trial.comparisons{images.push(c.images[0].clone());}
+ for c in &run.trials[run.current.unwrap()].comparisons{let mut image=c.images[0].clone();image.view=format!("{}-BASELINE",image.view);images.push(image);}
+ let request=Request{schema:"tuning-vision-v2".into(),identity:trial.key.clone(),required:vec![Cell{item:"development-density-improvement-no-regression".into(),view:"B-WHOLE".into(),seed:1},Cell{item:"development-bare-no-material-regression".into(),view:"B-BARE".into(),seed:1}],images,references:cfg.references.iter().filter(|i|i.view=="B-WHOLE"||i.view=="B-BARE").cloned().collect(),quality_anchors:cfg.quality_anchors.clone(),checklist:"This is a bounded development comparison, NOT full species readiness. Candidate B-WHOLE/B-BARE are compared with B-WHOLE-BASELINE/B-BARE-BASELINE. Baseline is NOT accepted quality or an anchor. Photographs identify beech character; spruce anchor is finish quality only, not species morphology. Whole cell passes when candidate visibly improves density/overlap without new sparse or ladder-like silhouette or loss of beech character. Bare cell passes when there is no material branch-character regression relative to baseline. Existing upright form or missing weighted droop can remain: report them as unresolved, but do not automatically fail a genuine partial improvement solely for not reaching full readiness. Fail for absent whole improvement or material regression; unknown if comparison cannot establish this. Judge recognizability at established catalogue quality, not photorealism. Return remaining defects/observations separately; these two development cells never imply six-cell machine readiness.".into()};
+ request.verify().unwrap();assert_eq!(request.images.len()+request.references.len()+request.quality_anchors.len(),7);
+ fs::write(root.join("development-visual-request.json"),serde_json::to_vec_pretty(&request).unwrap()).unwrap();
+ j["visual"]=serde_json::json!({"status":"reserved_before_dispatch","prior_passes":8,"attempted_passes":9,"prior_actual_tokens":221183,"reserved_tokens":40000,"cumulative_cap":300000,"request_sha256":request.hash(),"scope":"two development comparison cells only; never machine readiness"});
+ fs::write(&jp,serde_json::to_vec_pretty(&j).unwrap()).unwrap();
+ let result=cfg.vision.assess(&request).expect("failed or unknown assessment: retain reservation and stop");
+ fs::write(root.join("development-visual-result.json"),serde_json::to_vec_pretty(&result).unwrap()).unwrap();
+ let usage=result.usage.as_ref().expect("unknown usage: retain reservation and stop");let used=usage.input_tokens.checked_add(usage.output_tokens).unwrap();
+ j["visual"]["actual_tokens"]=serde_json::json!(used);j["visual"]["cumulative_actual_tokens"]=serde_json::json!(221183+used);j["visual"]["status"]=serde_json::json!(if used<=40000{"settled"}else{"over_reservation_stop"});
+ assert_eq!(sha256_hex(&fs::read(".flow/tmp/fn68-pilot-run/run.json").unwrap()),j["original_run_sha256"].as_str().unwrap());
+ fs::write(&jp,serde_json::to_vec_pretty(&j).unwrap()).unwrap();println!("{}",serde_json::to_string(&result).unwrap());assert!(used<=40000);
+}

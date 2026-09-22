@@ -1,0 +1,11 @@
+{
+  "direction": 7711,
+  "size_worst": 8255,
+  "total": 15966,
+  "hashes": {
+    "direction-state.json": "d1227c0dc7c0914164763a7559e95f1169f9ab93ec023ccfd3d54810fc7de9f4",
+    "direction-questions.json": "f64326538258625f9845915c04da9dafae9f88dc5708a436e62d9d5487c4007b",
+    "size-worst-state.json": "d1227c0dc7c0914164763a7559e95f1169f9ab93ec023ccfd3d54810fc7de9f4",
+    "size-worst-questions.json": "3ae75de62c77c15e8603d2f7b952d2f971715371374a4075ce452856d12f5ce3"
+  }
+}

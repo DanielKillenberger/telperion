@@ -51,13 +51,32 @@ impl WoodExtent {
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct SurfaceParams {
+    /// How many sides each piece of wood is drawn with. Raising it makes
+    /// the wood rounder and smoother, and costs triangles.
     pub radial_segments: u32,
+    /// How many ridges run up around the trunk. Raising it gives the
+    /// bark more flutes; zero is a plain round bole.
     pub lobes: u32,
+    /// How deep the flutes between those ridges cut, as a share of the
+    /// wood's own radius. Raising it makes the fluting more pronounced. At
+    /// zero the bole is plainly round whatever the ridge count says, and any
+    /// rise starts cutting the flutes.
     pub lobe_depth: f64,
+    /// How many turns those ridges make over the tree's height. Raising
+    /// it winds them more tightly around the trunk.
     pub twist_rate: f64,
+    /// How much wider the trunk is where it meets the ground, as a
+    /// multiple of its own radius. Raising it gives a broader buttress.
     pub flare_radius: f64,
+    /// How far up the trunk that flare reaches, as a share of the
+    /// height. Raising it carries the swelling further up the bole.
     pub flare_falloff: f64,
+    /// How deep the trunk's base is sunk below the ground, as a share
+    /// of the height. Raising it buries more of the flare.
     pub flare_depth: f64,
+    /// How deeply a child branch is set into its parent at a fork.
+    /// Raising it sinks the junction further in, so the two read as one
+    /// piece of wood rather than two tubes meeting.
     pub fork_socket: f64,
     /// Fraction of the parent's inscribed radius available for a socket.
     #[cfg_attr(
@@ -65,6 +84,8 @@ pub struct SurfaceParams {
         serde(default = "crate::ranges::default_socket_containment")
     )]
     pub socket_containment: f64,
+    /// How much wood thickens at a fork. Raising it leaves a more
+    /// pronounced collar where a branch leaves its parent.
     pub fork_swell: f64,
 }
 impl Default for SurfaceParams {

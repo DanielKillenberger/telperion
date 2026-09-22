@@ -1,0 +1,10 @@
+{
+  "stage": "stage-b-beech-negative-blind",
+  "expected_ready": false,
+  "known_negative": true,
+  "label": "beech-round22 owner-rejected; laterally cropped; width unknown",
+  "success": "fail_with_grounded_visible_morphology",
+  "unknown_or_clipping_only": "abstention_not_successful_negative",
+  "semantic_qualification": "host",
+  "not_sent_to_model": true
+}

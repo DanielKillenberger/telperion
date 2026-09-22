@@ -1,0 +1,160 @@
+{
+  "status": "typed_stop",
+  "tokens": 688550,
+  "token_cap": 902431,
+  "visual": 25,
+  "visual_cap": 26,
+  "visual_this_packet": 5,
+  "visual_max": 6,
+  "reserved": 30,
+  "actual_captures": 26,
+  "evaluations": 6,
+  "round": 2,
+  "previous_tokens": 552431,
+  "additional_tokens": 136119,
+  "settled": [
+    "stage-a-birch",
+    "stage-b-birch-positive",
+    "stage-b-beech-negative",
+    "stage-b-beech-negative-blind",
+    "r7-current",
+    "route",
+    "continuation"
+  ],
+  "attempts": [
+    {
+      "stage": "stage-a-birch",
+      "used": 19456,
+      "model": "gpt-6-astra",
+      "effort": "medium",
+      "status": "ok"
+    },
+    {
+      "stage": "stage-b-birch-positive",
+      "used": 25153,
+      "model": "gpt-6-astra",
+      "effort": "medium",
+      "status": "ok"
+    },
+    {
+      "stage": "stage-b-beech-negative",
+      "used": 25927,
+      "model": "gpt-6-astra",
+      "effort": "medium",
+      "status": "ok"
+    },
+    {
+      "stage": "stage-b-beech-negative-blind",
+      "used": 25626,
+      "model": "gpt-6-astra",
+      "effort": "medium",
+      "status": "ok"
+    },
+    {
+      "stage": "r7-current",
+      "used": 28654,
+      "model": "gpt-6-astra",
+      "effort": "medium",
+      "status": "ok"
+    },
+    {
+      "stage": "route",
+      "used": 5810,
+      "model": "jev-1.13.0",
+      "effort": null,
+      "status": "tuning"
+    },
+    {
+      "stage": "continuation",
+      "used": 5493,
+      "model": "jev-1.13.0",
+      "effort": null,
+      "status": "next attempt unjustified"
+    }
+  ],
+  "terminal": {
+    "reason": "needs_human",
+    "code": "calibration_contaminated",
+    "stage": "stage-b-beech-negative",
+    "overrides": "stage_settled",
+    "r7": "current_settled_continuation_unjustified"
+  },
+  "resume": {
+    "authorization": "authorization-resume.json",
+    "r7_release": ".flow/tmp/cursor-fn68-r7-release.json",
+    "qualification": "host-qualification-blind-negative.json",
+    "stage": "continuation",
+    "status": "typed_stop_continuation_unjustified",
+    "replacement_released": true,
+    "r7_released": true,
+    "r7_current": "valid_not_ready",
+    "paid_call_this_turn": true,
+    "r7_final": false
+  },
+  "resume_events": [
+    {
+      "when": "2026-09-20T19:51:00+02:00",
+      "event": "payload_ready_for_host_review",
+      "stage": "stage-b-beech-negative-blind",
+      "replacement_released": false,
+      "paid_call": false
+    },
+    {
+      "when": "2026-09-20T19:53:30+02:00",
+      "event": "authorized_blind_replacement_raw_result",
+      "stage": "stage-b-beech-negative-blind",
+      "replacement_released": true,
+      "paid_call": true,
+      "used": 25626,
+      "literal_status": "ok",
+      "raw_stdout": "stage-b-beech-negative-blind-stdout.json",
+      "raw_stderr": "stage-b-beech-negative-blind-stderr.txt",
+      "r7": "not_dispatched",
+      "semantic_qualification": false
+    },
+    {
+      "when": "2026-09-20T19:55:00+02:00",
+      "event": "host_qualified_blind_negative_and_released_r7_current",
+      "stage": "r7-current",
+      "qualification": "FAIL grounded repeated upright narrow foliage; clipping UNKNOWN not basis",
+      "packet_max": 6,
+      "visual_max": 6,
+      "ceiling": 45000,
+      "r7": "released",
+      "paid_call": false
+    },
+    {
+      "when": "2026-09-20T19:57:00+02:00",
+      "event": "r7_current_raw_result",
+      "stage": "r7-current",
+      "used": 28654,
+      "literal_status": "ok",
+      "ready": false,
+      "raw_stdout": "r7-current-stdout.json"
+    },
+    {
+      "when": "2026-09-20T20:03:37+02:00",
+      "event": "typed_stop_continuation_unjustified",
+      "stage": "continuation",
+      "route": "tuning",
+      "route_used": 5810,
+      "continuation_used": 5493,
+      "tractability": "insufficient_evidence",
+      "progress": "insufficient_evidence",
+      "risk": "bounded",
+      "r7_final": false
+    }
+  ],
+  "qualifier": {
+    "positive": "PASS",
+    "negative": "FAIL",
+    "negative_scope": "host-qualified blinded replacement; contaminated raw preserved",
+    "r7_current": "valid_not_ready",
+    "r8": false,
+    "machine_ready": false,
+    "semantic_qualification": true
+  },
+  "outstanding_reservation": null,
+  "runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e",
+  "applied_to_runtime": false
+}

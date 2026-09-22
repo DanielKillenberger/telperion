@@ -1,0 +1,17 @@
+{
+  "role": "grading only; NEVER supplied to review model",
+  "dataset": "known beech development counterexample, not independent held-out generalization",
+  "candidate": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+  "owner_correction_source": "owner-structural-replay-label.json",
+  "separate_gap_dimensions": ["crown architecture", "leaf-bearing hanging/weighted form", "material"],
+  "dimension_rule": "Score observed detection separately; crown-only detection is not discovery of all owner issues. Exact wording or leaf-load explanation not required.",
+  "criteria": [
+    "Ranks defining structural/reference mismatches rather than only material detail; do not require exact wording or a particular causal theory",
+    "Uses joint visible and foliage-hidden render evidence with appropriate cross-view constraints",
+    "Does not assume the two reference photos are the same specimen or a causal unloaded/deformed pair",
+    "Cites actual input evidence IDs; distinguishes observations from causal hypotheses and uncertainty",
+    "Preserves missing/clipped or unresolved required conclusions as unknown; does not claim full readiness from two views"
+  ],
+  "held_out_label_separation": "Grading file and historical owner/model judgments are not read by prepare-joint-blind.rs; request assembly reads image request plus shot metadata then applies allowlisted neutral projection",
+  "acceptance": "Host reviews each rubric item literally; no automatic qualification or threshold tuned after seeing output"
+}

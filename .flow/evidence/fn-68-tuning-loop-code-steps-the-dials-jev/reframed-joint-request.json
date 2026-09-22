@@ -1,0 +1,129 @@
+{
+  "schema": "tuning-vision-v3",
+  "identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+  "target_species": "European beech / Fagus sylvatica",
+  "required": [
+    {
+      "item": "reference_character",
+      "view": "B-WHOLE",
+      "seed": 1
+    },
+    {
+      "item": "reference_character",
+      "view": "B-BARE",
+      "seed": 1
+    }
+  ],
+  "images": [
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/reframed/B-WHOLE.png",
+      "sha256": "e0d5bc93369f281dc39e9fa008a1cec647b2c040de47baa89e11bc31d1fe6f68",
+      "view": "B-WHOLE",
+      "seed": 1
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/reframed/B-BARE.png",
+      "sha256": "9c64f46459c824458951c465832feead33a730182cfcffdd8ab5a786d7fe9dde",
+      "view": "B-BARE",
+      "seed": 1
+    }
+  ],
+  "references": [
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg",
+      "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+      "view": "B-WHOLE",
+      "seed": 1
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg",
+      "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+      "view": "B-BARE",
+      "seed": 1
+    }
+  ],
+  "checklist": "Review all supplied views jointly for believable reference character at the catalogue finish floor. Rank the largest grounded gaps; distinguish visible observations, uncertain causal hypotheses, acceptable variation and optional refinement. Compare cross-view constraints without assuming photographs show the same specimen or a causal change. Assess only supported required conclusions; missing, clipped or ambiguous evidence means unknown. No photographic pixel matching or photorealism requirement.",
+  "quality_anchors": [
+    {
+      "image": {
+        "path": "/home/daniel/Projects/telperion/.flow/evidence/fn9/final/preview/norway-spruce-1-whole.png",
+        "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+        "view": "whole",
+        "seed": 1
+      },
+      "provenance": "established catalogue anchor image sha256:8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+      "scope": "finish/style only; not species morphology"
+    }
+  ],
+  "joint": {
+    "inputs": [
+      {
+        "id": "render-0",
+        "role": "render",
+        "sha256": "e0d5bc93369f281dc39e9fa008a1cec647b2c040de47baa89e11bc31d1fe6f68",
+        "view": "B-WHOLE",
+        "seed": 1,
+        "render_identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+        "condition": "same_geometry_visibility_view_not_unloaded_leaf_off",
+        "framing": "complete",
+        "visibility": "shown",
+        "geometry_group": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57:seed:1"
+      },
+      {
+        "id": "render-1",
+        "role": "render",
+        "sha256": "9c64f46459c824458951c465832feead33a730182cfcffdd8ab5a786d7fe9dde",
+        "view": "B-BARE",
+        "seed": 1,
+        "render_identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+        "condition": "same_geometry_visibility_view_not_unloaded_leaf_off",
+        "framing": "complete",
+        "visibility": "hidden",
+        "geometry_group": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57:seed:1"
+      },
+      {
+        "id": "reference-0",
+        "role": "reference",
+        "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+        "view": "B-WHOLE",
+        "seed": 1,
+        "render_identity": null,
+        "condition": "unknown",
+        "framing": "unknown",
+        "visibility": "unknown",
+        "geometry_group": null
+      },
+      {
+        "id": "reference-1",
+        "role": "reference",
+        "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+        "view": "B-BARE",
+        "seed": 1,
+        "render_identity": null,
+        "condition": "unknown",
+        "framing": "unknown",
+        "visibility": "unknown",
+        "geometry_group": null
+      },
+      {
+        "id": "anchor-0",
+        "role": "anchor",
+        "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+        "view": "whole",
+        "seed": 1,
+        "render_identity": null,
+        "condition": "unknown",
+        "framing": "unknown",
+        "visibility": "unknown",
+        "geometry_group": null
+      }
+    ],
+    "reference_relation": "unknown",
+    "relation_source": null,
+    "shot_source": {
+      "path": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/reframed-shots.json",
+      "sha256": "2320d94dc8e758d10582cc4947f6e1ec0da35ecac502aa80ab4b6beafc25416d",
+      "excerpt": "\"references\""
+    }
+  }
+}

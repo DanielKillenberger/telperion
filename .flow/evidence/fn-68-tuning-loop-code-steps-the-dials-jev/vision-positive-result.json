@@ -1,0 +1,39 @@
+{
+  "limit": 25000,
+  "pending": 0,
+  "result": {
+    "manifest_sha256": "2f83a98e5b3f9d677e1203364daf76c83d18c53d7363be258f437a4230df97a7",
+    "results": [
+      {
+        "assessment": {
+          "cells": [
+            [
+              {
+                "item": "crown-species-character",
+                "seed": 1,
+                "view": "S-WHOLE"
+              },
+              false
+            ]
+          ],
+          "defects": [
+            "S-WHOLE, seed 1: crown is excessively tangled and curtain-like, with unnaturally long, nearly vertical foliage strands and heavy dark branch clutter; it lacks the reference's softer, lighter, naturally irregular birch crown character and reads closer to an exaggerated weeping form."
+          ],
+          "identity": "birch-round26-0f2c2f6a-seed1-whole",
+          "ledger": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d6d360e0e2c7c7-cae38-0.json",
+          "model": "gpt-5.6-sol"
+        },
+        "effort": "medium",
+        "observations": [
+          "S-WHOLE, seed 1: the crown has an irregular rounded outline, visible light gaps, and pendulous fine growth, but these traits are overwhelmed by the extreme hanging structure."
+        ],
+        "request_sha256": "1d0cbdd1edcbbf5a22c4bfda27619653a8394943ca2119bc429b77b5255e6d58",
+        "usage": {
+          "input_tokens": 19978,
+          "output_tokens": 268
+        }
+      }
+    ]
+  },
+  "spent": 20246
+}

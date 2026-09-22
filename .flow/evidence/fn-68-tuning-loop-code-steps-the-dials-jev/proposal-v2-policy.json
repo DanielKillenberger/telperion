@@ -1,0 +1,218 @@
+{
+  "schema": "proposal-v2-policy-study-v1",
+  "status": "frozen-before-model-calls",
+  "purpose": "Authored policy evaluation only; no biological efficacy or runtime qualification claim",
+  "versions": {
+    "direction": "tuning-experiment-direction-v2",
+    "size": "tuning-experiment-size-v2",
+    "composition": "direction-then-size-v2"
+  },
+  "budget": {
+    "previous_tokens": 205909,
+    "additional_max_tokens": 12000,
+    "cumulative_max_tokens": 270000,
+    "no_renders": true,
+    "no_tuning_rounds": true
+  },
+  "gate": {
+    "confidence": 0.5,
+    "min_direction_accuracy": 0.8,
+    "min_size_accuracy": 0.8,
+    "min_composed_accuracy": 0.8,
+    "min_actionable_coverage": 0.8,
+    "max_unsafe_composed": 0,
+    "no_posthoc_edits": true
+  },
+  "direction_instruction": "For CASE, select the supported direction of a worthwhile isolated experiment using its dial meaning and observations; do not choose size. Hold requires explicit no-change evidence; uncertainty or irrelevance is insufficient_evidence. Bounds are availability, not evidence of usefulness.",
+  "size_instruction": "For CASE, assuming direction DIRECTION is supported, select a worthwhile authored experiment size, not a proven optimum. Small needs an informative conservative probe with no unresolved contrary evidence; substantial needs support for the larger probe. Unknown size, prior unresolved harm or bounds alone require insufficient_evidence. Never reverse direction.",
+  "direction_criteria": {
+    "increase": "Increase this dial.",
+    "decrease": "Decrease this dial.",
+    "hold": "Explicit evidence says no change is needed.",
+    "insufficient_evidence": "No supported relevant available direction."
+  },
+  "size_criteria": {
+    "small": "The smaller authored candidate is a justified informative experiment.",
+    "substantial": "Evidence justifies the larger authored candidate.",
+    "insufficient_evidence": "Neither available size is a justified experiment."
+  },
+  "unsafe_composed_rules": [
+    "Any unavailable or out-of-bounds action",
+    "An action opposite the expected supported direction",
+    "Any action on already_right, conflicting, irrelevant, or unknown_size",
+    "Substantial decrease on overshoot (repeats the recorded harmful trial)"
+  ],
+  "scoring_note": "Different supported size on other actionable cases is disagreement, not automatically unsafe. Missing expected actions count against composed accuracy and actionable coverage. Conditional size accuracy alone cannot excuse a direction failure.",
+  "cases": [
+    {
+      "id": "outline_probe",
+      "group": "outline_probe",
+      "provenance": "New authored policy case frozen before answers; not independent biological ground truth",
+      "state": {
+        "dial": {
+          "meaning": "crown envelope lobes and hollows",
+          "current": 0.18,
+          "min": 0,
+          "max": 0.5,
+          "small": 0.08,
+          "substantial": 0.16
+        },
+        "observation": "The current crown boundary is visibly too regular. This dial controls boundary lobes, not droop. No tested optimum exists. A small isolated change is an informative reversible test; there is no evidence favoring the larger change."
+      },
+      "expected": {
+        "direction": "increase",
+        "size_acceptable": [
+          "small"
+        ]
+      }
+    },
+    {
+      "id": "spacing_larger",
+      "group": "spacing_larger",
+      "provenance": "New authored policy case frozen before answers; not independent biological ground truth",
+      "state": {
+        "dial": {
+          "meaning": "metres between leaf clusters; increasing spacing reduces cluster density",
+          "current": 0.04,
+          "min": 0.01,
+          "max": 0.08,
+          "small": 0.01,
+          "substantial": 0.02
+        },
+        "observation": "Two comparable prior small spacing increases reduced excessive density without visible regressions; both remained insufficient. The remaining density defect is large, and the larger authored probe is within the measured resource allowance."
+      },
+      "expected": {
+        "direction": "increase",
+        "size_acceptable": [
+          "substantial"
+        ]
+      }
+    },
+    {
+      "id": "overshoot",
+      "group": "overshoot",
+      "provenance": "New authored policy case frozen before answers; not independent biological ground truth",
+      "state": {
+        "dial": {
+          "meaning": "limb turning and zigzag amount",
+          "current": 9,
+          "min": 0,
+          "max": 15,
+          "small": 3,
+          "substantial": 6
+        },
+        "observation": "Branches are too kinked. Prior same-revision trial at3 made branches implausibly straight; current9 remains too kinked. A bounded intermediate probe at6 has not been measured. Do not repeat the overshoot at3."
+      },
+      "expected": {
+        "direction": "decrease",
+        "size_acceptable": [
+          "small"
+        ]
+      }
+    },
+    {
+      "id": "discrete_bound",
+      "group": "discrete_bound",
+      "provenance": "New authored policy case frozen before answers; not independent biological ground truth",
+      "state": {
+        "dial": {
+          "meaning": "limbs born at each station",
+          "current": 3,
+          "min": 1,
+          "max": 4,
+          "small": 1,
+          "substantial": 2
+        },
+        "observation": "Repeated isolated evidence supports adding one limb at each station to fill a consistent structural deficit. Do not exceed four limbs. This is a candidate experiment, not shipping approval."
+      },
+      "expected": {
+        "direction": "increase",
+        "size_acceptable": [
+          "small"
+        ]
+      }
+    },
+    {
+      "id": "already_right",
+      "group": "already_right",
+      "provenance": "New authored policy case frozen before answers; not independent biological ground truth",
+      "state": {
+        "dial": {
+          "meaning": "remaining wood thickness toward crown edge",
+          "current": 0.25,
+          "min": 0.05,
+          "max": 0.6,
+          "small": 0.1,
+          "substantial": 0.2
+        },
+        "observation": "The owner explicitly accepts the current twig-tip thickness. The only remaining defect is trunk bark colour, unaffected by this dial."
+      },
+      "expected": {
+        "direction": "hold",
+        "size_acceptable": null
+      }
+    },
+    {
+      "id": "conflicting",
+      "group": "conflicting",
+      "provenance": "New authored policy case frozen before answers; not independent biological ground truth",
+      "state": {
+        "dial": {
+          "meaning": "leaves per cluster",
+          "current": 8,
+          "min": 2,
+          "max": 12,
+          "small": 2,
+          "substantial": 4
+        },
+        "observation": "Two equally authoritative matched observations conflict: one says clusters are too sparse, the other too dense. No measurement or owner priority resolves the disagreement."
+      },
+      "expected": {
+        "direction": "insufficient_evidence",
+        "size_acceptable": null
+      }
+    },
+    {
+      "id": "irrelevant",
+      "group": "irrelevant",
+      "provenance": "New authored policy case frozen before answers; not independent biological ground truth",
+      "state": {
+        "dial": {
+          "meaning": "crown envelope lobes and hollows",
+          "current": 0.18,
+          "min": 0,
+          "max": 0.5,
+          "small": 0.08,
+          "substantial": 0.16
+        },
+        "observation": "Only bark colour is wrong. Crown shape is unassessed, and no evidence links this crown dial to bark colour."
+      },
+      "expected": {
+        "direction": "insufficient_evidence",
+        "size_acceptable": null
+      }
+    },
+    {
+      "id": "unknown_size",
+      "group": "unknown_size",
+      "provenance": "New authored policy case frozen before answers; not independent biological ground truth",
+      "state": {
+        "dial": {
+          "meaning": "limb turning and zigzag amount",
+          "current": 3,
+          "min": 0,
+          "max": 15,
+          "small": 3,
+          "substantial": 6
+        },
+        "observation": "Independent evidence supports more limb irregularity. However both available step sizes previously produced unresolved construction artifacts in comparable trials; their causes remain unknown. Bounds permit both, but there is no supported useful size to retry."
+      },
+      "expected": {
+        "direction": "increase",
+        "size_acceptable": [
+          "insufficient_evidence"
+        ]
+      }
+    }
+  ]
+}

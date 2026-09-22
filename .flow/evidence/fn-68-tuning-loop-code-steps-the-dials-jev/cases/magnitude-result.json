@@ -1,0 +1,20 @@
+{
+  "limit": 21064,
+  "pending": 0,
+  "result": {
+    "ledgers": {
+      "ambiguous-size": ".flow/ledger/fn68-calibration/2026-09-19T205741Z-tuning-calibration-18d6d46bd6fa8054-d4a1b-6.json",
+      "example-none": ".flow/ledger/fn68-calibration/2026-09-19T205738Z-tuning-calibration-18d6d46b1b36dc35-d4a1b-1.json",
+      "example-up": ".flow/ledger/fn68-calibration/2026-09-19T205737Z-tuning-calibration-18d6d46af8396f03-d4a1b-0.json",
+      "fractional-small": ".flow/ledger/fn68-calibration/2026-09-19T205743Z-tuning-calibration-18d6d46c496879ee-d4a1b-9.json",
+      "hold": ".flow/ledger/fn68-calibration/2026-09-19T205740Z-tuning-calibration-18d6d46bafc86090-d4a1b-5.json",
+      "large-down": ".flow/ledger/fn68-calibration/2026-09-19T205739Z-tuning-calibration-18d6d46b66291c35-d4a1b-3.json",
+      "large-up": ".flow/ledger/fn68-calibration/2026-09-19T205740Z-tuning-calibration-18d6d46b8c7a243a-d4a1b-4.json",
+      "lower-bound": ".flow/ledger/fn68-calibration/2026-09-19T205742Z-tuning-calibration-18d6d46c2079ff34-d4a1b-8.json",
+      "small-down": ".flow/ledger/fn68-calibration/2026-09-19T205739Z-tuning-calibration-18d6d46b43830619-d4a1b-2.json",
+      "upper-bound": ".flow/ledger/fn68-calibration/2026-09-19T205742Z-tuning-calibration-18d6d46bfcb46f55-d4a1b-7.json"
+    },
+    "manifest_sha256": "9beb715c9a2669a610dafdd125211d51f1fc1169bdd95182311932f5e99ef268"
+  },
+  "spent": 7220
+}

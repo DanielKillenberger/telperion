@@ -1,0 +1,20 @@
+{
+  "visual_now": 24,
+  "visual_cap": 26,
+  "visual_cap_source": "owner ye 2026-09-20",
+  "visual_remaining": 2,
+  "visual_this_packet": 4,
+  "visual_max": 6,
+  "packet_max_source": "same ye grant; host maps visual_cap 26 to packet max 6",
+  "packet_remaining": 2,
+  "current": 1,
+  "final": 1,
+  "after_current_and_final": {"visual": 26, "packet": 6},
+  "global_cap_fits_two": true,
+  "packet_max_unchanged": false,
+  "packet_max_was": 5,
+  "final_blocked_by": [],
+  "token_remaining": 253838,
+  "token_cap": 902431,
+  "token_cap_unchanged": true
+}

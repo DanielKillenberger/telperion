@@ -1,0 +1,162 @@
+{
+  "actual_images": 4,
+  "actual_model_tokens": 0,
+  "config_sha256": "95ff06d5eff2258ecfae91ee26f05f33216bc3840634bfb4a9efe08c0114f465",
+  "corrected_visual": {
+    "actual_tokens": 28126,
+    "attempted_passes": 10,
+    "authorization": "Owner: open images and continue if clear; host released one corrected comparison, visual cap9 to10, tokens300000 unchanged; no retry",
+    "cumulative_actual_tokens": 277432,
+    "cumulative_cap": 300000,
+    "previous_request_sha256": "2193879a76a3956ab3674dae8aada2d9311db5863343da9901be67c132b39669",
+    "prior_actual_tokens": 249306,
+    "prior_passes": 9,
+    "request_sha256": "2a1ed948bde1b16ad1fd652764b7ee2fe1f37d648bd1a2d07da072feed11826c",
+    "reserved_tokens": 40000,
+    "scope": "two development comparison cells only; never machine readiness",
+    "status": "settled"
+  },
+  "direct_reference_visual": {
+    "actual_tokens": 24085,
+    "attempted_passes": 11,
+    "authorization": "Owner explicitly approved320000 ceiling and ONE direct-reference assessment: ok go; visual10 to11; no retry",
+    "cumulative_actual_tokens": 301517,
+    "cumulative_cap": 320000,
+    "previous_request_sha256": "2193879a76a3956ab3674dae8aada2d9311db5863343da9901be67c132b39669",
+    "prior_actual_tokens": 277432,
+    "prior_passes": 10,
+    "request_sha256": "95e30382bc9f2cd38b5fdc5587cb03c3d5bf392d004cf46a4b86a32d84502485",
+    "reserved_tokens": 35000,
+    "scope": "two direct-reference cells only; never six-cell readiness",
+    "status": "settled"
+  },
+  "identity": "524b7cb170ad8fcbb70c00cedf51ab045fc284abf43e73ec8def1afe96835081",
+  "original_run_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e",
+  "prior_actual_tokens": 221183,
+  "protocol_sha256": "ef968d3417e0a1859b200dd8998829e76161fd5d47b4dadc7cf792e448896e25",
+  "reserved_evaluations": 1,
+  "reserved_images": 4,
+  "status": "evaluation_complete_waiting_host_visual",
+  "trial": {
+    "comparisons": [
+      {
+        "images": [
+          {
+            "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-B-WHOLE.png",
+            "seed": 1,
+            "sha256": "da02e6fdf2b64c6ba6a0caf1ed2e0990a316fd9e5ac426099381e0f65254d047",
+            "view": "B-WHOLE"
+          },
+          {
+            "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-B-WHOLE-twin.png",
+            "seed": 1,
+            "sha256": "fa9c84f4367285aa3c183616391e96844898e24fba7658e26198b968ba0295fc",
+            "view": "B-WHOLE"
+          }
+        ],
+        "metric_weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "observed": [
+          0.7518,
+          0.0957,
+          0.4782,
+          0.2015,
+          66.7
+        ],
+        "reference": "B-WHOLE",
+        "reference_weight": 1.0,
+        "target": [
+          0.6965,
+          0.12,
+          0.4566,
+          0.2274,
+          79.7
+        ]
+      },
+      {
+        "images": [
+          {
+            "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-B-BARE.png",
+            "seed": 1,
+            "sha256": "8bf6b32d6961bbc667e622b39b9484ec885b9ee3f4b3f9cf941c59372b599630",
+            "view": "B-BARE"
+          },
+          {
+            "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-B-BARE-twin.png",
+            "seed": 1,
+            "sha256": "4e30dcbfb65abaaeb37fe073e24f2b454c6d9193a64653ad5dd733dddc9cfda9",
+            "view": "B-BARE"
+          }
+        ],
+        "metric_weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "observed": [
+          0.7353,
+          0.3002,
+          0.3353,
+          0.1356,
+          130.9
+        ],
+        "reference": "B-BARE",
+        "reference_weight": 1.0,
+        "target": [
+          0.7417,
+          0.25,
+          0.2813,
+          0.2937,
+          99.9
+        ]
+      }
+    ],
+    "feasible": true,
+    "growth": {
+      "attraction_capped": false,
+      "level_capped": false,
+      "node_capped": false,
+      "status": "complete"
+    },
+    "identity": "524b7cb170ad8fcbb70c00cedf51ab045fc284abf43e73ec8def1afe96835081",
+    "key": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+    "nodes": {
+      "status": "measured",
+      "value": 107908
+    },
+    "numeric_status": "pass",
+    "overrides": {
+      "skeleton": {
+        "growth": {
+          "maxNodes": 1000000
+        },
+        "habit": {
+          "lateralsPerStation": 1
+        }
+      }
+    },
+    "raw_local_receipt": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/development-limbs-trial.json",
+    "reason": null,
+    "score": 0.18562204488361983,
+    "seconds": 17.186709523
+  },
+  "visual": {
+    "actual_tokens": 28123,
+    "attempted_passes": 9,
+    "cumulative_actual_tokens": 249306,
+    "cumulative_cap": 300000,
+    "prior_actual_tokens": 221183,
+    "prior_passes": 8,
+    "request_sha256": "2193879a76a3956ab3674dae8aada2d9311db5863343da9901be67c132b39669",
+    "reserved_tokens": 40000,
+    "scope": "two development comparison cells only; never machine readiness",
+    "status": "settled"
+  }
+}

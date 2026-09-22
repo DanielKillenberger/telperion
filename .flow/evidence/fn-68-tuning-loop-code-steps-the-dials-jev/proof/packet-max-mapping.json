@@ -1,0 +1,14 @@
+{
+  "event": "owner ye visual cap 26 also derives packet max 5 to 6",
+  "dated": "2026-09-20T19:54:00+02:00",
+  "source": "host explicit clarification in this chat; no further question",
+  "visual_cap": 26,
+  "visual_cap_source": "owner ye 2026-09-20",
+  "packet_max": {"from": 5, "to": 6},
+  "packet_max_source": "same ye grant; host maps visual_cap 26 to visual_this_packet max 6",
+  "used_now": 4,
+  "leaves": 2,
+  "leaves_for": ["r7-current", "r7-final"],
+  "token_cap_unchanged": 902431,
+  "no_further_question": true
+}

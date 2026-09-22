@@ -4,10 +4,24 @@ use crate::{math::Vec3, noise, rng::Rng, Error, Result};
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Envelope {
+    /// The tree's height in metres. Everything else in the crown is
+    /// measured against it: the crown base sits at `crown_base` of it and
+    /// the widest radius is `spread` times it.
     pub height: f64,
+    /// Where the crown starts, as a share of the height: below it the
+    /// crown has no radius at all. Raising it lifts the crown and leaves a
+    /// longer bare trunk.
     pub crown_base: f64,
+    /// The crown's widest radius as a share of the height, so raising it
+    /// widens the crown without making the tree taller.
     pub spread: f64,
+    /// Where the crown is widest, as a share of the way from the crown
+    /// base to the top. Raising it carries the widest part higher, so the
+    /// crown reads top-heavy.
     pub fullness: f64,
+    /// How square the crown's outline is. Raising it holds the crown near
+    /// its full width further toward the top and the base, so the profile
+    /// reads boxier; lowering it tapers the outline to a point.
     pub shoulder: f64,
     /// How far the outline departs from the smooth shell, as a fraction of the
     /// radius there. 0 is the axisymmetric superellipse every tree was before,

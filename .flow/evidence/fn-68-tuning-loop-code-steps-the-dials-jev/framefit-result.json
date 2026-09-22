@@ -1,0 +1,61 @@
+{
+  "bounds_max": [
+    11.578578708733488,
+    31.993520736694336,
+    10.606633186340332
+  ],
+  "bounds_min": [
+    -11.047365435155282,
+    -0.12800000607967377,
+    -11.194247660041206
+  ],
+  "candidate_family": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/family.json",
+  "method": "Existing shot_pose/project all8axis-aligned mesh-bounds corners; maxabsXY<=.95 and depth inside; fill<=.8; no pixels rendered",
+  "seed": 1,
+  "shots": [
+    {
+      "camera": {
+        "azimuth": 30,
+        "elevation": -15,
+        "fill": 0.604203537649362,
+        "fov": 40,
+        "targetHeight": 0.5
+      },
+      "id": "B-WHOLE",
+      "light": {
+        "overcast": 0.9,
+        "sunAzimuth": 135,
+        "sunElevation": 55
+      },
+      "new_max_corner_ndc": 0.9499999074975329,
+      "old_fill": 0.93,
+      "old_max_corner_ndc": 1.5022428500973406,
+      "size": [
+        951,
+        1440
+      ]
+    },
+    {
+      "camera": {
+        "azimuth": 30,
+        "elevation": -8,
+        "fill": 0.6231628633914461,
+        "fov": 45,
+        "targetHeight": 0.5
+      },
+      "id": "B-BARE",
+      "light": {
+        "overcast": 0.1,
+        "sunAzimuth": 300,
+        "sunElevation": 25
+      },
+      "new_max_corner_ndc": 0.949999939062882,
+      "old_fill": 0.95,
+      "old_max_corner_ndc": 1.4810745733476938,
+      "size": [
+        961,
+        1440
+      ]
+    }
+  ]
+}

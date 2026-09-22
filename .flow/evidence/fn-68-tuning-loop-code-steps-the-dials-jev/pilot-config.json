@@ -1,0 +1,43 @@
+{
+  "preset":"european-beech","seed":1,"initial_overrides":{},
+  "owner_notes":"Historical round22 rejected: outline too regular; shoulders and crown too dense; insufficient leaf-weight droop. Recognizable European beech at established catalogue quality, not photorealism. Optional polish never blocks.",
+  "dials":[
+    {"id":"limbs","path":"/skeleton/habit/lateralsPerStation","meaning":"limbs born at each station","min":1,"max":4,"integer":true,"small":1,"substantial":2},
+    {"id":"leaves","path":"/canopy/shortShootLeaves","meaning":"leaves per cluster","min":2,"max":12,"integer":true,"small":2,"substantial":4},
+    {"id":"spacing","path":"/canopy/shortShootSpacing","meaning":"metres between leaf clusters","min":0.01,"max":0.08,"integer":false,"small":0.01,"substantial":0.02},
+    {"id":"irregularity","path":"/skeleton/envelope/irregularity","meaning":"crown envelope lobes and hollows","min":0,"max":0.5,"integer":false,"small":0.08,"substantial":0.16},
+    {"id":"crookedness","path":"/skeleton/habit/crookedness","meaning":"limb turning and zigzag amount","min":0,"max":15,"integer":false,"small":3,"substantial":6},
+    {"id":"taper","path":"/skeleton/habit/twigTipTaper","meaning":"remaining wood thickness toward the crown edge; lower means thinner tips","min":0.05,"max":0.6,"integer":false,"small":0.1,"substantial":0.2}
+  ],
+  "measure_binary":"target/release/examples/species_measure",
+  "profiles":"/tmp/fn68-reconstruction-NjvXLA/.flow/evidence/fn34/profiles.json","profile_id":"european-beech",
+  "matched":{
+    "headless":"target/release/examples/headless","compare_script":"scripts/compare-references.py",
+    "references":"/tmp/fn68-reconstruction-NjvXLA/.flow/evidence/fn34/european-beech/references.json",
+    "refs":"/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech",
+    "catalogue":"catalogue","scratch":"/tmp/fn68-live-pilot","height":1440,
+    "numeric_references":["B-WHOLE","B-BARE"]
+  },
+  "vision":{"program":"python3","args":["/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/scripts/tuning-vision-codex.py","--model","gpt-5.6-sol","--effort","medium"],"model":"gpt-5.6-sol","effort":"medium","timeout_seconds":240,"ledger":".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger"},
+  "references":[
+    {"path":"/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg","sha256":"855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6","view":"B-WHOLE","seed":1},
+    {"path":"/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg","sha256":"7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d","view":"B-BARE","seed":1},
+    {"path":"/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg","sha256":"7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d","view":"B-BASE","seed":1}
+  ],
+  "required":[
+    {"item":"crown-character-density-droop","view":"B-WHOLE","seed":1},
+    {"item":"branching-character","view":"B-BARE","seed":1},
+    {"item":"smooth-grey-bark-base","view":"B-BASE","seed":1},
+    {"item":"crown-character-density-droop","view":"B-WHOLE","seed":42},
+    {"item":"branching-character","view":"B-BARE","seed":42},
+    {"item":"smooth-grey-bark-base","view":"B-BASE","seed":42}
+  ],
+  "checklist":"Recognizable mature European beech at established catalogue rendering quality, not photorealism. Whole: believable beech branching/foliage, no regular-shell construction artifact or excessive solid shoulders, leaf-bearing branch weight/droop. Bare: characteristic spreading branching without obvious repetitive construction. Base: smooth grey beech bark and credible trunk/branch junctions. Photographs establish species character, independent spruce anchor finish quality only, never spruce morphology. Additional realism/detail optional. Unassessable cells unknown.",
+  "quality_anchors":[{"image":{"path":"/home/daniel/Projects/telperion/.flow/evidence/fn9/final/preview/norway-spruce-1-whole.png","sha256":"8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1","view":"whole","seed":1},"provenance":"Established shipped fn9 production0a8f3432d61042558df2e11b4327c51ac6234449; final visual supported and owner implementation feedback looks good, not per-seed formal approval.","scope":"Stylistic/finish quality floor only, not species morphology."}],
+  "adjustments":{"manifest":".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/cases/magnitude.json","result":".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/cases/magnitude-result.json"},
+  "direction":{"manifest":".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/cases/direction.json","result":".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/cases/direction-result.json"},
+  "continuation":{"manifest":".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/cases/continuation.json","result":".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/cases/continuation-result.json"},
+  "visual_validation":{"manifest":".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-replay-v2.json","result":".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-v2-result.json"},
+  "vision_protocol":"scripts/tuning-vision-codex.py","convergence_run":null,"judgment_model":"jev-1.13.0","gap_specs":{},"ledger":".flow/ledger/fn68-pilot",
+  "budget":{"evaluations":0,"images":0,"tokens":139936,"rounds":0,"max_evaluations":13,"max_images":52,"max_tokens":220000,"max_rounds":1}
+}

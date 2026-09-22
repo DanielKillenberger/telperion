@@ -113,24 +113,14 @@ fn run(cmd: &str, args: &[String]) -> Result<(), String> {
             let questions = read_map(&required(args, "--questions")?)?;
             let tool = flag(args, "--tool").unwrap_or_else(|| "ask".into());
             let key = load_key().map_err(|err| err.to_string())?;
-            let entry = evaluate(
+            let out = ask_with(
                 &UreqTransport,
                 &key,
-                EvaluateRequest {
-                    tool: &tool,
-                    source: None,
-                    state: &Value::Object(state),
-                    questions: &Value::Object(questions),
-                    ledger_dir: &ledger,
-                },
-            )
-            .map_err(show_err)?;
-            let out = serde_json::json!({
-                "reference": entry.reference(),
-                "model": entry.model,
-                "answers": entry.answers,
-                "elapsed_ms": entry.elapsed_ms,
-            });
+                &ledger,
+                &tool,
+                &Value::Object(state),
+                &Value::Object(questions),
+            )?;
             println!(
                 "{}",
                 serde_json::to_string_pretty(&out).map_err(|err| err.to_string())?
@@ -211,9 +201,62 @@ fn read_strings(path: &str) -> Result<Vec<String>, String> {
         .collect()
 }
 
+fn ask_with(
+    transport: &dyn telperion_jev::caller::Transport,
+    key: &str,
+    ledger: &Path,
+    tool: &str,
+    state: &Value,
+    questions: &Value,
+) -> Result<Value, String> {
+    let entry = evaluate(
+        transport,
+        key,
+        EvaluateRequest {
+            tool,
+            source: None,
+            state,
+            questions,
+            ledger_dir: ledger,
+        },
+    )
+    .map_err(show_err)?;
+    Ok(
+        serde_json::json!({"reference":entry.reference(),"model":entry.model,
+        "answers":entry.answers,"elapsed_ms":entry.elapsed_ms}),
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn ask_uses_shared_caller_and_records_no_match_without_a_live_key() {
+        use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
+        struct Mock;
+        impl Transport for Mock {
+            fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String> {
+                let body: Value = serde_json::from_slice(request.body.as_ref().unwrap()).unwrap();
+                assert_eq!(body["state"]["observation"], "ambiguous crown");
+                assert!(
+                    body["questions"]["action"]["criteria"]["insufficient_evidence"].is_string()
+                );
+                Ok(HttpResponse { status: 200, body: serde_json::to_vec(&serde_json::json!({
+                    "model":"jev-test","answers":{"action":{"type":"choice","choice":"insufficient_evidence","confidence":0.9,"probabilities":{"insufficient_evidence":0.9}}},
+                    "usage":{"input_tokens":10,"output_tokens":4}
+                })).unwrap() })
+            }
+        }
+        let dir = env::temp_dir().join(telperion_jev::ledger::new_entry_id());
+        let out = ask_with(&Mock, "mock-key", &dir, "ask", &serde_json::json!({"observation":"ambiguous crown"}),
+            &serde_json::json!({"action":{"type":"choice","instructions":"Select supported action.","criteria":{"hold":"No change justified.","insufficient_evidence":"Evidence is insufficient."}}})).unwrap();
+        assert_eq!(out["model"], "jev-test");
+        assert_eq!(out["answers"]["action"]["choice"], "insufficient_evidence");
+        assert!(out["reference"].as_str().unwrap().contains("ask"));
+        assert_eq!(fs::read_dir(&dir).unwrap().count(), 1);
+        fs::remove_dir_all(dir).unwrap();
+    }
 
     #[test]
     fn triage_requires_standard_before_the_key() {

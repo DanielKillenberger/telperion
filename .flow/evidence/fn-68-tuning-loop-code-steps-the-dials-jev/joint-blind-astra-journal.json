@@ -1,0 +1,21 @@
+{
+  "actual_images": 20,
+  "actual_tokens": 26479,
+  "attempted_visual_passes": 13,
+  "authority": "Owner yes to400k/up-to2stronger frozen-evidence experiments; host releases FIRST Astra medium only,35k reservation,visual12to13,no retries/renders",
+  "cumulative_actual_tokens": 353682,
+  "cumulative_cap": 400000,
+  "effort": "medium",
+  "evaluations": 6,
+  "image_reservations": 24,
+  "model": "gpt-6-astra",
+  "original_run_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e",
+  "prior_actual_tokens": 327203,
+  "prior_visual_passes": 12,
+  "protocol_sha256": "d3d17c0f98d48a9e2543807127bc414d3bf7fedd0c605325359a7be9f1c137cb",
+  "request_file_sha256": "c96595ef54a5821d118de29f53d09c482a1b7eb24019674e7aea6621b03d2ac6",
+  "request_sha256": "c82e452cf172c97481433192b34db4833d9213abca5499055d45c196e8275f87",
+  "reserved_tokens": 35000,
+  "scope": "known development blind joint review,not general role qualification",
+  "status": "settled"
+}

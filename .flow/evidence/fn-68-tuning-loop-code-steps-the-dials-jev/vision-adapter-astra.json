@@ -1,0 +1,8 @@
+{
+  "program": "python3",
+  "args": ["/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/scripts/tuning-vision-codex.py", "--model", "gpt-6-astra", "--effort", "medium"],
+  "model": "gpt-6-astra",
+  "effort": "medium",
+  "timeout_seconds": 240,
+  "ledger": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger"
+}

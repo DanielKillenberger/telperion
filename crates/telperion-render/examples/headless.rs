@@ -111,6 +111,7 @@ fn transition(arguments: &Arguments, from: Family, to: Family) -> Result<(), Str
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.set_view(arguments.view);
     renderer.set_scene(arguments.scene);
+    renderer.set_figure(arguments.figure);
     // A walk needs the pose of the end it has not reached yet, so both ends are
     // built and framed before the first frame is drawn.
     let ends = match arguments.schedule {

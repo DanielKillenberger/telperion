@@ -1,0 +1,14 @@
+{
+  "previous_tokens": 208907,
+  "additional_max_tokens": 11000,
+  "cumulative_max_tokens": 270000,
+  "new_actual_tokens": 3515,
+  "cumulative_actual_tokens": 212422,
+  "pending": null,
+  "ledgers": [
+    ".flow/ledger/fn68-v3-calibration/2026-09-20T104014Z-fn68-v3-direction-18d7014ed329aaa7-2f6a4-0.json",
+    ".flow/ledger/fn68-v3-calibration/2026-09-20T104015Z-fn68-v3-size-18d7014ef858ebd6-2f7ec-0.json"
+  ],
+  "runtime_untouched": true,
+  "manifest_sha256": "6464fa00354b5e4ccf529bb45c7b3e6aa6703aa3bd5be3b42d621ec1f6f031f8"
+}

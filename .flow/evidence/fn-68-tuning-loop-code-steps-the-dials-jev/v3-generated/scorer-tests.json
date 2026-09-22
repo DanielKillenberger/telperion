@@ -1,0 +1,12 @@
+{
+  "synthetic_only": true,
+  "checks": [
+    "all expected answers pass",
+    "premature harmful abstention loses direction/strict/size fidelity, not composed no-action",
+    "known harmful larger gap probe unsafe",
+    "opposite direction unsafe",
+    "missing/invalid/unknown/low/nonfinite direction blocks action",
+    "missing/invalid/unknown/low size blocks action"
+  ],
+  "model_calls": 0
+}

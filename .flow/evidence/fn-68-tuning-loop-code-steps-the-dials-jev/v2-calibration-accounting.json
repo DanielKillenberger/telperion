@@ -1,0 +1,23 @@
+{
+  "status": "settled_failed_qualification",
+  "previous_tokens": 205909,
+  "additional_max_tokens": 12000,
+  "cumulative_max_tokens": 270000,
+  "new_actual_tokens": 2998,
+  "cumulative_actual_tokens": 208907,
+  "pending": null,
+  "ledgers": [
+    ".flow/ledger/fn68-v2-calibration/2026-09-20T095626Z-fn68-v2-direction-18d6feeac83d2f7f-1ae82-0.json",
+    ".flow/ledger/fn68-v2-calibration/2026-09-20T095706Z-fn68-v2-size-18d6fef409c69752-1b1fe-0.json"
+  ],
+  "runtime_run_untouched": true,
+  "manifest_sha256": "8a020502e43deac7c74e455d264f3e52a55a0e07c7ac32839a9ef54182de79c0",
+  "size_hashes": {
+    "size-state.json": "5bb786acd78e56c7cc37bf9cb5bf2d2b9ddf1b1adb5a8ee5a4ef65698a9418a8",
+    "size-questions.json": "0d845d182e0bb4c50600154f818982e49cbbf499556ec2dfdd99b7324c2e8118"
+  },
+  "actual_by_stage": {
+    "direction": 2004,
+    "size": 994
+  }
+}

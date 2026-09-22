@@ -1,0 +1,69 @@
+{
+  "schema": "tuning-vision-v2",
+  "identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+  "required": [
+    {
+      "item": "development-density-improvement-no-regression",
+      "view": "B-WHOLE",
+      "seed": 1
+    },
+    {
+      "item": "development-bare-no-material-regression",
+      "view": "B-BARE",
+      "seed": 1
+    }
+  ],
+  "images": [
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-B-WHOLE.png",
+      "sha256": "da02e6fdf2b64c6ba6a0caf1ed2e0990a316fd9e5ac426099381e0f65254d047",
+      "view": "B-WHOLE",
+      "seed": 1
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-B-BARE.png",
+      "sha256": "8bf6b32d6961bbc667e622b39b9484ec885b9ee3f4b3f9cf941c59372b599630",
+      "view": "B-BARE",
+      "seed": 1
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/ccd54a19090161e84794b7afda51bbe5d3ce0c9f21133b0e1a2e67d4539c9201-18d6fc1a3ba15ad7-f726-4/ccd54a19090161e84794b7afda51bbe5d3ce0c9f21133b0e1a2e67d4539c9201-B-WHOLE.png",
+      "sha256": "f22582a1c71293064bd27b4863073525065beb0c2ed345604907ebf3d5e57a8d",
+      "view": "B-WHOLE-BASELINE",
+      "seed": 1
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/ccd54a19090161e84794b7afda51bbe5d3ce0c9f21133b0e1a2e67d4539c9201-18d6fc1a3ba15ad7-f726-4/ccd54a19090161e84794b7afda51bbe5d3ce0c9f21133b0e1a2e67d4539c9201-B-BARE.png",
+      "sha256": "95a89f54724a6efc3f385ca7633a0b83cec2e476d8277c01ddd6096ae9a74344",
+      "view": "B-BARE-BASELINE",
+      "seed": 1
+    }
+  ],
+  "references": [
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg",
+      "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+      "view": "B-WHOLE",
+      "seed": 1
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg",
+      "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+      "view": "B-BARE",
+      "seed": 1
+    }
+  ],
+  "checklist": "This is a bounded development comparison, NOT full species readiness. Candidate B-WHOLE/B-BARE are compared with B-WHOLE-BASELINE/B-BARE-BASELINE. Baseline is NOT accepted quality or an anchor. Photographs identify beech character; spruce anchor is finish quality only, not species morphology. Whole goal is to reduce EXCESSIVE foliage density and overlap relative to baseline, while retaining credible mature-beech fullness; more density is NOT the goal. Whole cell passes if visibly less congested without new sparse or ladder-like silhouette, silhouette regression, or loss of beech character. Bare cell passes when there is no material branch-character regression relative to baseline. Existing upright form or missing weighted droop can remain: report them as unresolved, but do not automatically fail a genuine partial improvement solely for not reaching full readiness. Fail for absent whole improvement or material regression; unknown if comparison cannot establish this. Judge recognizability at established catalogue quality, not photorealism. Return remaining defects/observations separately; these two development cells never imply six-cell machine readiness.",
+  "quality_anchors": [
+    {
+      "image": {
+        "path": "/home/daniel/Projects/telperion/.flow/evidence/fn9/final/preview/norway-spruce-1-whole.png",
+        "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+        "view": "whole",
+        "seed": 1
+      },
+      "provenance": "Established shipped fn9 production0a8f3432d61042558df2e11b4327c51ac6234449; final visual supported and owner implementation feedback looks good, not per-seed formal approval.",
+      "scope": "Stylistic/finish quality floor only, not species morphology."
+    }
+  ]
+}

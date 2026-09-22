@@ -1,0 +1,166 @@
+{
+  "status": "payload_ready_for_host_review",
+  "paid_calls_this_turn": 0,
+  "generic_prompt_sha256": "847dd718e56258447ec5fcc89fdaadc9701165d02eab0b51001e616ebc1a0329",
+  "request_sha256": "b23ffb6064f860b617d7a55428cd5f72c25e2d4912752db3687ec995cd49a6e4",
+  "request_file_sha256": "8aa7f85a5989162038a628da36581bd0a21aeac244a13d5d069e1c2f55338ee6",
+  "request_body_sha256": "b23ffb6064f860b617d7a55428cd5f72c25e2d4912752db3687ec995cd49a6e4",
+  "dispatched_prompt_sha256": "a4b300ceab31122e285a7959be3366b44f5f3533169ecffecc17c2ba290596a2",
+  "schema_sha256": "40b44f74e2832e0e52874cb964ff3f11b714cc6333ecca85f93378397c38d7cc",
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "passes": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 1,
+        "items": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "unknown"
+          ]
+        }
+      },
+      "defects": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "observations": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "findings": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "observation": {
+              "type": "string"
+            },
+            "evidence_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "impact": {
+              "type": "string",
+              "enum": [
+                "supported",
+                "blocker",
+                "required_unknown",
+                "variation",
+                "optional"
+              ]
+            },
+            "uncertain": {
+              "type": "boolean"
+            },
+            "causal_hypothesis": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "observation",
+            "evidence_ids",
+            "impact",
+            "uncertain",
+            "causal_hypothesis"
+          ]
+        }
+      },
+      "coverage": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "trait_id": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "pass",
+                "fail",
+                "unknown"
+              ]
+            },
+            "evidence_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "explanation": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "trait_id",
+            "status",
+            "evidence_ids",
+            "explanation"
+          ]
+        }
+      }
+    },
+    "required": [
+      "passes",
+      "defects",
+      "observations",
+      "findings",
+      "coverage"
+    ]
+  },
+  "inventory_request_sha256": "e05cfaf3d7f67a0bbb5b632a14786adba7e35774d23c47178745815392c94591",
+  "inventory_verified": true,
+  "transport_projection_sha256": "d08992fe4eeea9fa57c840d7a7efb21da19fdc705069d466681a60dc659ca8c1",
+  "image_order": [
+    {
+      "order": 0,
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/blind-transport/render-0.png",
+      "name": "render-0.png",
+      "sha256": "7e69fda3e95b317fcb9d89e15e32179c54fdd316a57d1c3223d6e26639b8b490"
+    },
+    {
+      "order": 1,
+      "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg",
+      "name": "fasy951.jpg",
+      "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6"
+    },
+    {
+      "order": 2,
+      "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg",
+      "name": "fasy896.jpg",
+      "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d"
+    },
+    {
+      "order": 3,
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn9/final/preview/norway-spruce-1-whole.png",
+      "name": "norway-spruce-1-whole.png",
+      "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1"
+    }
+  ],
+  "model_visible_paths": [
+    "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/blind-transport/render-0.png",
+    "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg",
+    "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg",
+    "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn9/final/preview/norway-spruce-1-whole.png"
+  ],
+  "grader_file": "stage-b-beech-negative-blind-grader.json",
+  "contaminated_request_unaltered": true,
+  "dispatched_prompt_bytes": 9481,
+  "forbidden_markers_present": []
+}

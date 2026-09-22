@@ -58,6 +58,7 @@ The compare script's numbers are kept for every round as regression readings. Th
 - The beech only. The birch and the ash are not touched. [paraphrase]
 - Materials beyond the beech's own rows wait for fn-55. [inferred]
 - Leaf form is fn-60's and runs in parallel. [inferred]
+- One round is run by the fn-68 tuning loop as its live pilot (owner, 2026-09-21), in visual bootstrap mode from the round-22 rows at seed 1. The loop's candidate and its gap handoffs are inputs to that round; they change no shipped row by themselves, and acceptance stays the owner's checklist. [user]
 
 ## Resolved via Codebase
 

@@ -1,0 +1,193 @@
+{
+  "schema": "tuning-calibration-v1",
+  "question_version": "tuning-direction-v1",
+  "table_sha256": "",
+  "kind": "direction",
+  "model": "jev-1.13.0",
+  "min_accuracy": 0.8,
+  "min_confidence": 0.5,
+  "cases": [
+    {
+      "id": "example-up",
+      "split": "tuning",
+      "provenance": "authored bounded-action interpretation; not biological efficacy",
+      "state": {
+        "dial": {
+          "id": "limbs",
+          "path": "/skeleton/habit/lateralsPerStation",
+          "meaning": "limbs born at each station",
+          "min": 1,
+          "max": 4,
+          "integer": true,
+          "small": 1,
+          "substantial": 2
+        },
+        "current": 2,
+        "owner_observation": "Need more limbs at each station."
+      },
+      "questions": {},
+      "expected": {
+        "adjustment": "increase"
+      },
+      "unsafe_answers": {
+        "adjustment": []
+      }
+    },
+    {
+      "id": "example-hold",
+      "split": "tuning",
+      "provenance": "authored bounded-action interpretation; not biological efficacy",
+      "state": {
+        "dial": {
+          "id": "limbs",
+          "path": "/skeleton/habit/lateralsPerStation",
+          "meaning": "limbs born at each station",
+          "min": 1,
+          "max": 4,
+          "integer": true,
+          "small": 1,
+          "substantial": 2
+        },
+        "current": 2,
+        "owner_observation": "Limb count is already right."
+      },
+      "questions": {},
+      "expected": {
+        "adjustment": "hold"
+      },
+      "unsafe_answers": {
+        "adjustment": []
+      }
+    },
+    {
+      "id": "dense-limbs",
+      "split": "heldout",
+      "provenance": "historical fn34 round22 owner notes, experiments/fn58-tuning-loop/loop.py NOTES; correlated cases from one verdict, no independent species-generalization claim",
+      "state": {
+        "dial": {
+          "id": "limbs",
+          "path": "/skeleton/habit/lateralsPerStation",
+          "meaning": "limbs born at each station",
+          "min": 1,
+          "max": 4,
+          "integer": true,
+          "small": 1,
+          "substantial": 2
+        },
+        "current": 2,
+        "owner_observation": "It's too dense at the shoulder of the crown. It generally looks too dense everywhere."
+      },
+      "questions": {},
+      "expected": {
+        "adjustment": "decrease"
+      },
+      "unsafe_answers": {
+        "adjustment": []
+      }
+    },
+    {
+      "id": "dense-leaves",
+      "split": "heldout",
+      "provenance": "historical fn34 round22 owner notes, experiments/fn58-tuning-loop/loop.py NOTES; correlated cases from one verdict, no independent species-generalization claim",
+      "state": {
+        "dial": {
+          "id": "leaves",
+          "path": "/canopy/shortShootLeaves",
+          "meaning": "leaves per cluster",
+          "min": 2,
+          "max": 12,
+          "integer": true,
+          "small": 2,
+          "substantial": 4
+        },
+        "current": 8,
+        "owner_observation": "It generally looks too dense everywhere."
+      },
+      "questions": {},
+      "expected": {
+        "adjustment": "decrease"
+      },
+      "unsafe_answers": {
+        "adjustment": []
+      }
+    },
+    {
+      "id": "dense-spacing",
+      "split": "heldout",
+      "provenance": "historical fn34 round22 owner notes, experiments/fn58-tuning-loop/loop.py NOTES; correlated cases from one verdict, no independent species-generalization claim",
+      "state": {
+        "dial": {
+          "id": "spacing",
+          "path": "/canopy/shortShootSpacing",
+          "meaning": "metres between leaf clusters",
+          "min": 0.01,
+          "max": 0.08,
+          "integer": false,
+          "small": 0.01,
+          "substantial": 0.02
+        },
+        "current": 0.03,
+        "owner_observation": "It generally looks too dense everywhere."
+      },
+      "questions": {},
+      "expected": {
+        "adjustment": "increase"
+      },
+      "unsafe_answers": {
+        "adjustment": []
+      }
+    },
+    {
+      "id": "regular-outline",
+      "split": "heldout",
+      "provenance": "historical fn34 round22 owner notes, experiments/fn58-tuning-loop/loop.py NOTES; correlated cases from one verdict, no independent species-generalization claim",
+      "state": {
+        "dial": {
+          "id": "irregularity",
+          "path": "/skeleton/envelope/irregularity",
+          "meaning": "crown envelope lobes and hollows",
+          "min": 0,
+          "max": 0.5,
+          "integer": false,
+          "small": 0.08,
+          "substantial": 0.16
+        },
+        "current": 0.1,
+        "owner_observation": "The tree has clear regular outline/border that doesn't look natural."
+      },
+      "questions": {},
+      "expected": {
+        "adjustment": "increase"
+      },
+      "unsafe_answers": {
+        "adjustment": []
+      }
+    },
+    {
+      "id": "thick-tips",
+      "split": "heldout",
+      "provenance": "historical fn34 round22 owner notes, experiments/fn58-tuning-loop/loop.py NOTES; correlated cases from one verdict, no independent species-generalization claim",
+      "state": {
+        "dial": {
+          "id": "taper",
+          "path": "/skeleton/habit/twigTipTaper",
+          "meaning": "remaining wood thickness toward the crown edge; lower means thinner tips",
+          "min": 0.05,
+          "max": 0.6,
+          "integer": false,
+          "small": 0.1,
+          "substantial": 0.2
+        },
+        "current": 0.3,
+        "owner_observation": "The taper approaching the border needs to produce thinner branches twigs."
+      },
+      "questions": {},
+      "expected": {
+        "adjustment": "decrease"
+      },
+      "unsafe_answers": {
+        "adjustment": []
+      }
+    }
+  ]
+}

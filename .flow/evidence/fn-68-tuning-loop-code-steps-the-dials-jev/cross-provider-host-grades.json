@@ -1,0 +1,22 @@
+{
+  "grader": "host",
+  "coverage": "one known development specimen, not held-out general calibration",
+  "fable": {
+    "actual_model": "claude-fable-5-1",
+    "crown_organization": "HIT: open lower crown versus low horizontal tiers",
+    "envelope_mismatch": "MISS/accepted",
+    "hanging_weighted_form": "not clearly identified",
+    "material": "HIT, uncertain",
+    "evidence_fidelity": "more faithful description than Opus on this case",
+    "qualification": "NOT qualified from FAIL/FAIL"
+  },
+  "opus": {
+    "actual_model": "claude-opus-5",
+    "crown_organization": "PARTIAL: tiers noted, dominant sparse/transparent claim unreliable",
+    "envelope_mismatch": "MISS: accepted; wider-than-tall statement unsupported",
+    "hanging_weighted_form": "not identified",
+    "material": "HIT",
+    "evidence_fidelity": "Host re-inspected original whole PNG: fairly dense with local gaps and strongly upright sprays. Sky across most canopy/scattered dots overstates it; wider-than-tall unsupported, exact ratio unknown due clipping.",
+    "qualification": "NOT qualified; reliability concern, not merely partial detection"
+  }
+}

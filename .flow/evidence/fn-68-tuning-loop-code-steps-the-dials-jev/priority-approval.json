@@ -1,0 +1,123 @@
+{
+  "action": "approve gap priorities",
+  "applied_to_runtime": false,
+  "by": "human owner, relayed by host",
+  "event": "owner-priority-approval",
+  "host_proposal": [
+    "Crown shape and foliage organization",
+    "Hanging outer foliage",
+    "Materials with clearer bark evidence where needed"
+  ],
+  "identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+  "pause_id": "offline-packet-dcc6a63f",
+  "preserve_evidence": true,
+  "priority_approval": {
+    "checkpoint_sha256": "dcc6a63fbfa782fb4970fb5a9fbf0a1228c39a65b6ec3c1a9736e7c6e02a8010",
+    "ordered": [
+      {
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "reference-0",
+          "reference-1"
+        ],
+        "id": "owner-crown-foliage",
+        "observation": "Crown shape and foliage organization",
+        "views": [
+          "B-WHOLE",
+          "B-BARE"
+        ]
+      },
+      {
+        "evidence_ids": [
+          "render-0",
+          "reference-0"
+        ],
+        "id": "owner-hanging-foliage",
+        "observation": "Hanging outer foliage",
+        "views": [
+          "B-WHOLE"
+        ]
+      },
+      {
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "reference-0",
+          "reference-1"
+        ],
+        "id": "owner-materials",
+        "observation": "Materials, including bark and foliage material",
+        "views": [
+          "B-WHOLE",
+          "B-BARE"
+        ]
+      }
+    ],
+    "scope_sha256": "903276d3348f3e5f40aa2c8ec25659c7d16f3880e61c559d2fabef33c985bed3"
+  },
+  "quotation": "the 1,2,3 yes",
+  "rationale": "Host proposed (1) Crown shape and foliage organization, (2) Hanging outer foliage, (3) Materials with clearer bark evidence where needed. Owner: \"the 1,2,3 yes\". Priority 3 recorded as broad materials on whole and bare; foliage material stays assessable or unknown. Owner- IDs, not finding-0/1/2.",
+  "required_cells_seed1": [
+    {
+      "item": "reference_character",
+      "seed": 1,
+      "view": "B-WHOLE"
+    },
+    {
+      "item": "reference_character",
+      "seed": 1,
+      "view": "B-BARE"
+    },
+    {
+      "item": "owner-priority:owner-crown-foliage: Crown shape and foliage organization",
+      "seed": 1,
+      "view": "B-WHOLE"
+    },
+    {
+      "item": "owner-priority:owner-crown-foliage: Crown shape and foliage organization",
+      "seed": 1,
+      "view": "B-BARE"
+    },
+    {
+      "item": "owner-priority:owner-hanging-foliage: Hanging outer foliage",
+      "seed": 1,
+      "view": "B-WHOLE"
+    },
+    {
+      "item": "owner-priority:owner-materials: Materials, including bark and foliage material",
+      "seed": 1,
+      "view": "B-WHOLE"
+    },
+    {
+      "item": "owner-priority:owner-materials: Materials, including bark and foliage material",
+      "seed": 1,
+      "view": "B-BARE"
+    }
+  ],
+  "reservations": {
+    "continuation_tokens": 25220,
+    "direction_tokens_not_in_execute": 25690,
+    "evaluation_images_each": 4,
+    "evaluation_images_max": 16,
+    "evaluations_max": 4,
+    "exact_one_round_tokens": 117644,
+    "final_coverage_images": 4,
+    "final_coverage_visual_passes": 1,
+    "jev_formula": "serde(state)+serde(questions)+1024",
+    "ordered_bytes": 494,
+    "proposal_magnitude_tokens": 28235,
+    "required_bytes": 661,
+    "route_tokens": 22778,
+    "visual_formula": "40000 + serde(ordered) + serde(required) + 256",
+    "visual_tokens_for": 41411
+  },
+  "verification": {
+    "approval_verified": true,
+    "checkpoint_hash_matches": true,
+    "checkpoint_sha256": "dcc6a63fbfa782fb4970fb5a9fbf0a1228c39a65b6ec3c1a9736e7c6e02a8010",
+    "original_runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e",
+    "scope_sha256": "903276d3348f3e5f40aa2c8ec25659c7d16f3880e61c559d2fabef33c985bed3",
+    "visual_unchanged": true
+  }
+}

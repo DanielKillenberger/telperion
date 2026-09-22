@@ -1,0 +1,1 @@
+{"synthetic_only": true, "checks": "all-good scoring; both/single/neither/ambiguous; missing/malformed/nonfinite/bool/out-of-range noul; out-of-bounds numeric blocked", "model_calls": 0}

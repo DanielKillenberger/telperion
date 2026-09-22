@@ -1,0 +1,11 @@
+{
+  "status": "proposed_not_executed",
+  "hypothesis": "Redistribute lower-crown room and bend secondary support axes toward hanging leafy masses without changing birth pitch or uniform spread",
+  "overrides": {"skeleton": {"growth": {"maxNodes": 1000000}, "habit": {"lateralsPerStation": 1, "risePrimary": 0.0, "riseSecondary": -0.3}, "envelope": {"fullness": 0.2, "shoulder": 2.2}}},
+  "validation": "params::overlay on current EuropeanBeech family, then existing Live::evaluate measurement-first on fixed seed1 and B-WHOLE/B-BARE; no action until host dispatch",
+  "maximum_evaluations": 1,
+  "maximum_still_twin_images": 4,
+  "model_tokens": 0,
+  "visual_judge": "host only; no paid Sol/Jev",
+  "scope": "owner-directed development, outside calibrated six-dial table; not preset shipping or automatic continuation"
+}

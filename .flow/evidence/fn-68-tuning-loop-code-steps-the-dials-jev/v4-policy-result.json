@@ -1,0 +1,200 @@
+{
+  "metrics": {
+    "candidate_accuracy": 0.8,
+    "actionable_coverage": 0.75,
+    "accepted_action_accuracy": 1.0
+  },
+  "candidate_correct": 8,
+  "candidate_total": 10,
+  "invalid_or_missing": 0,
+  "false_yes": 0,
+  "false_no": 2,
+  "unsafe_actions": 0,
+  "accepted": 3,
+  "acceptable": 3,
+  "covered": 3,
+  "actionable": 4,
+  "cases": [
+    {
+      "id": "two_informative",
+      "group": "fresh-authored-development",
+      "action": "small",
+      "acceptable": true
+    },
+    {
+      "id": "harmful_small",
+      "group": "fresh-authored-development",
+      "action": "substantial",
+      "acceptable": true
+    },
+    {
+      "id": "harmful_large",
+      "group": "fresh-authored-development",
+      "action": "small",
+      "acceptable": true
+    },
+    {
+      "id": "no_basis",
+      "group": "fresh-authored-development",
+      "action": null,
+      "acceptable": true
+    },
+    {
+      "id": "birth_reduction_replay",
+      "group": "v3-development-replay",
+      "action": null,
+      "acceptable": false
+    }
+  ],
+  "passes": false,
+  "ledger": {
+    "id": "18d701b56461eae6-3615a-0",
+    "tool": "fn68-v4-candidates",
+    "state_sha256": "1e82b14c3ea0372365069474e78a055b0ddbf6399a525920015792aa4b6105df",
+    "source": null,
+    "model": "jev-1.13.0",
+    "questions": {
+      "birth_reduction_replay_small": {
+        "criteria": {
+          "false": "This candidate lacks justified useful progress/information or has unresolved contrary harm.",
+          "true": "This concrete candidate is a worthwhile bounded experiment."
+        },
+        "instructions": "Apply policy to cases.birth_reduction_replay, candidate small.",
+        "type": "noul"
+      },
+      "birth_reduction_replay_substantial": {
+        "criteria": {
+          "false": "This candidate lacks justified useful progress/information or has unresolved contrary harm.",
+          "true": "This concrete candidate is a worthwhile bounded experiment."
+        },
+        "instructions": "Apply policy to cases.birth_reduction_replay, candidate substantial.",
+        "type": "noul"
+      },
+      "harmful_large_small": {
+        "criteria": {
+          "false": "This candidate lacks justified useful progress/information or has unresolved contrary harm.",
+          "true": "This concrete candidate is a worthwhile bounded experiment."
+        },
+        "instructions": "Apply policy to cases.harmful_large, candidate small.",
+        "type": "noul"
+      },
+      "harmful_large_substantial": {
+        "criteria": {
+          "false": "This candidate lacks justified useful progress/information or has unresolved contrary harm.",
+          "true": "This concrete candidate is a worthwhile bounded experiment."
+        },
+        "instructions": "Apply policy to cases.harmful_large, candidate substantial.",
+        "type": "noul"
+      },
+      "harmful_small_small": {
+        "criteria": {
+          "false": "This candidate lacks justified useful progress/information or has unresolved contrary harm.",
+          "true": "This concrete candidate is a worthwhile bounded experiment."
+        },
+        "instructions": "Apply policy to cases.harmful_small, candidate small.",
+        "type": "noul"
+      },
+      "harmful_small_substantial": {
+        "criteria": {
+          "false": "This candidate lacks justified useful progress/information or has unresolved contrary harm.",
+          "true": "This concrete candidate is a worthwhile bounded experiment."
+        },
+        "instructions": "Apply policy to cases.harmful_small, candidate substantial.",
+        "type": "noul"
+      },
+      "no_basis_small": {
+        "criteria": {
+          "false": "This candidate lacks justified useful progress/information or has unresolved contrary harm.",
+          "true": "This concrete candidate is a worthwhile bounded experiment."
+        },
+        "instructions": "Apply policy to cases.no_basis, candidate small.",
+        "type": "noul"
+      },
+      "no_basis_substantial": {
+        "criteria": {
+          "false": "This candidate lacks justified useful progress/information or has unresolved contrary harm.",
+          "true": "This concrete candidate is a worthwhile bounded experiment."
+        },
+        "instructions": "Apply policy to cases.no_basis, candidate substantial.",
+        "type": "noul"
+      },
+      "two_informative_small": {
+        "criteria": {
+          "false": "This candidate lacks justified useful progress/information or has unresolved contrary harm.",
+          "true": "This concrete candidate is a worthwhile bounded experiment."
+        },
+        "instructions": "Apply policy to cases.two_informative, candidate small.",
+        "type": "noul"
+      },
+      "two_informative_substantial": {
+        "criteria": {
+          "false": "This candidate lacks justified useful progress/information or has unresolved contrary harm.",
+          "true": "This concrete candidate is a worthwhile bounded experiment."
+        },
+        "instructions": "Apply policy to cases.two_informative, candidate substantial.",
+        "type": "noul"
+      }
+    },
+    "answers": {
+      "birth_reduction_replay_small": {
+        "noul": 0.4,
+        "type": "noul"
+      },
+      "birth_reduction_replay_substantial": {
+        "noul": 0.62,
+        "type": "noul"
+      },
+      "harmful_large_small": {
+        "noul": 0.87,
+        "type": "noul"
+      },
+      "harmful_large_substantial": {
+        "noul": 0.09,
+        "type": "noul"
+      },
+      "harmful_small_small": {
+        "noul": 0.07,
+        "type": "noul"
+      },
+      "harmful_small_substantial": {
+        "noul": 0.85,
+        "type": "noul"
+      },
+      "no_basis_small": {
+        "noul": 0.12,
+        "type": "noul"
+      },
+      "no_basis_substantial": {
+        "noul": 0.12,
+        "type": "noul"
+      },
+      "two_informative_small": {
+        "noul": 0.91,
+        "type": "noul"
+      },
+      "two_informative_substantial": {
+        "noul": 0.91,
+        "type": "noul"
+      }
+    },
+    "usage": {
+      "input_tokens": 1386,
+      "output_tokens": 210
+    },
+    "elapsed_ms": 648,
+    "recorded_at": "2026-09-20T10:47:35Z",
+    "identity": "54371b3519baf9b9e017d1f7"
+  },
+  "accounting": {
+    "previous_tokens": 212422,
+    "additional_max_tokens": 8000,
+    "cumulative_max_tokens": 270000,
+    "new_actual_tokens": 1596,
+    "cumulative_actual_tokens": 214018,
+    "pending": null,
+    "host_release": "one call after offline corrections",
+    "runtime_untouched": true,
+    "ledger": ".flow/ledger/fn68-v4-calibration/2026-09-20T104735Z-fn68-v4-candidates-18d701b56461eae6-3615a-0.json"
+  },
+  "manifest_sha256": "8e99236f6bfe068da1073e4324993076e25f6d89a316845eb93d6f7b821fb866"
+}

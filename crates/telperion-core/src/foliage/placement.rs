@@ -17,11 +17,24 @@ pub struct CanopyParams {
     /// own, beside whatever the twig layer marks. Zero leaves the twigs alone
     /// with it; without a twig layer it is what selects the terminal shoots.
     pub shoot_radius: f64,
+    /// Metres between leaves along a shoot, as a share of the tree's
+    /// height. Raising it spreads the leaves further apart, so the crown
+    /// carries fewer of them.
     pub spacing: f64,
+    /// The degrees each successive leaf is turned around its shoot.
+    /// Raising it turns the next leaf further round, so the leaves spiral
+    /// differently.
     pub divergence: f64,
+    /// How many extra leaves are gathered at the end of a shoot that has
+    /// no twig layer. Raising it packs a denser tuft at the tip.
     pub clump: u32,
+    /// How far back from the tip that tuft is scattered, as a share of the
+    /// shoot's length. Raising it spreads the tuft further down the shoot.
     pub clump_span: f64,
+    /// How far a leaf turns away from the trunk. Raising it points the
+    /// leaves outward, away from the tree's axis.
     pub outward: f64,
+    /// How far a leaf turns toward the sky. Raising it tips the leaves up.
     pub upward: f64,
     /// Lean along the shoot, as a fraction of the radial off the wood.
     pub forward_lean: f64,
@@ -30,8 +43,14 @@ pub struct CanopyParams {
     /// The station sits on the shoot axis at 0 and on the wood's own contact
     /// surface at 1; the surface is built whenever it is positive.
     pub surface_contact: f64,
+    /// The degrees a leaf may be turned at random from where it was
+    /// placed. Raising it leaves the crown less combed.
     pub scatter: f64,
+    /// The size every leaf is drawn at, as a multiple of the element's own
+    /// dimensions. Raising it enlarges every leaf.
     pub size: f64,
+    /// How far leaf size varies leaf to leaf, as a share of that size.
+    /// Raising it mixes larger and smaller leaves more widely.
     pub size_variation: f64,
     /// Metres between short shoots along limb and branch wood: spurs a few
     /// centimetres long, each ending in a cluster of leaves. Zero grows none.
@@ -51,6 +70,9 @@ pub struct CanopyParams {
     /// system's centre: each limb system then keeps a rounded leaf mass of its
     /// own. Zero, the neutral, thins nothing.
     pub limb_clumping: f64,
+    /// How deep a lateral may be and still start a limb system of its own.
+    /// Raising it parts the crown into more and smaller leaf masses; it
+    /// does nothing until `limb_clumping` is above zero.
     #[cfg_attr(
         feature = "json",
         serde(default = "crate::ranges::default_clump_system_order")
@@ -100,7 +122,12 @@ impl Default for CanopyParams {
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct TwigPlacement {
+    /// Metres between the leaf stations along a twig, copied from the twig
+    /// layer's own internode length. Raising it spaces the leaves further
+    /// apart along the shoot.
     pub internode_length: f64,
+    /// How many leaf stations sit at each of those joints, spread around
+    /// the shoot. Raising it crowds more leaves onto each joint.
     pub stations_per_internode: u32,
 }
 impl Default for TwigPlacement {

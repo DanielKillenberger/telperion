@@ -1,0 +1,672 @@
+{
+  "actual_tokens": 10837,
+  "cumulative_actual_tokens": 475672,
+  "entry": {
+    "answers": {
+      "V1_crown": {
+        "confidence": 0.23,
+        "legend": {
+          "0": "Accepts the disputed crown morphology as adequate or harmless variation.",
+          "1": "Does not resolve the crown mismatch, or gives conflicting acceptance and criticism.",
+          "2": "Identifies a crown morphology mismatch but treats it as secondary or optional.",
+          "3": "Treats mismatched crown morphology as a major gap preventing believable reference character."
+        },
+        "probabilities": {
+          "0": 0.27,
+          "1": 0.47,
+          "2": 0.02,
+          "3": 0.24
+        },
+        "score": 1.22,
+        "type": "score"
+      },
+      "V1_hanging": {
+        "confidence": 0.69,
+        "legend": {
+          "0": "Accepts absent or limited hanging leafy form as adequate or harmless variation.",
+          "1": "Does not identify hanging leafy form as a mismatch, or leaves conflicting assessments unresolved.",
+          "2": "Identifies missing hanging leafy form but treats it as secondary or optional.",
+          "3": "Treats missing hanging leafy form as a major gap preventing believable reference character."
+        },
+        "probabilities": {
+          "0": 0.17,
+          "1": 0.75,
+          "2": 0.02,
+          "3": 0.06
+        },
+        "score": 0.98,
+        "type": "score"
+      },
+      "V1_material": {
+        "confidence": 0.46,
+        "legend": {
+          "0": "Accepts the disputed material appearance as adequate with no meaningful refinement needed.",
+          "1": "Does not identify material mismatch, or gives unresolved conflicting assessments.",
+          "2": "Identifies material mismatch but treats correction as optional refinement.",
+          "3": "Identifies material mismatch as a needed correction for believable reference character."
+        },
+        "probabilities": {
+          "0": 0.0,
+          "1": 0.11,
+          "2": 0.31,
+          "3": 0.58
+        },
+        "score": 2.46,
+        "type": "score"
+      },
+      "V1_standard": {
+        "confidence": 0.78,
+        "legend": {
+          "0": "Requires photographic matching or rejects the established catalogue quality standard.",
+          "1": "The acceptance standard is absent or contradicted within the verdict.",
+          "2": "Uses recognizability and catalogue quality but relaxes defining reference-character differences as mere non-photorealism.",
+          "3": "Uses believable reference character at catalogue quality, distinguishing defining mismatches from optional photographic detail."
+        },
+        "probabilities": {
+          "0": 0.01,
+          "1": 0.06,
+          "2": 0.08,
+          "3": 0.85
+        },
+        "score": 2.78,
+        "type": "score"
+      },
+      "V2_crown": {
+        "confidence": 0.46,
+        "legend": {
+          "0": "Accepts the disputed crown morphology as adequate or harmless variation.",
+          "1": "Does not resolve the crown mismatch, or gives conflicting acceptance and criticism.",
+          "2": "Identifies a crown morphology mismatch but treats it as secondary or optional.",
+          "3": "Treats mismatched crown morphology as a major gap preventing believable reference character."
+        },
+        "probabilities": {
+          "0": 0.02,
+          "1": 0.23,
+          "2": 0.01,
+          "3": 0.74
+        },
+        "score": 2.46,
+        "type": "score"
+      },
+      "V2_hanging": {
+        "confidence": 0.79,
+        "legend": {
+          "0": "Accepts absent or limited hanging leafy form as adequate or harmless variation.",
+          "1": "Does not identify hanging leafy form as a mismatch, or leaves conflicting assessments unresolved.",
+          "2": "Identifies missing hanging leafy form but treats it as secondary or optional.",
+          "3": "Treats missing hanging leafy form as a major gap preventing believable reference character."
+        },
+        "probabilities": {
+          "0": 0.08,
+          "1": 0.85,
+          "2": 0.01,
+          "3": 0.06
+        },
+        "score": 1.06,
+        "type": "score"
+      },
+      "V2_material": {
+        "confidence": 0.88,
+        "legend": {
+          "0": "Accepts the disputed material appearance as adequate with no meaningful refinement needed.",
+          "1": "Does not identify material mismatch, or gives unresolved conflicting assessments.",
+          "2": "Identifies material mismatch but treats correction as optional refinement.",
+          "3": "Identifies material mismatch as a needed correction for believable reference character."
+        },
+        "probabilities": {
+          "0": 0.01,
+          "1": 0.1,
+          "2": 0.88,
+          "3": 0.01
+        },
+        "score": 1.89,
+        "type": "score"
+      },
+      "V2_standard": {
+        "confidence": 0.92,
+        "legend": {
+          "0": "Requires photographic matching or rejects the established catalogue quality standard.",
+          "1": "The acceptance standard is absent or contradicted within the verdict.",
+          "2": "Uses recognizability and catalogue quality but relaxes defining reference-character differences as mere non-photorealism.",
+          "3": "Uses believable reference character at catalogue quality, distinguishing defining mismatches from optional photographic detail."
+        },
+        "probabilities": {
+          "0": 0.0,
+          "1": 0.03,
+          "2": 0.01,
+          "3": 0.96
+        },
+        "score": 2.92,
+        "type": "score"
+      },
+      "V3_crown": {
+        "confidence": 0.49,
+        "legend": {
+          "0": "Accepts the disputed crown morphology as adequate or harmless variation.",
+          "1": "Does not resolve the crown mismatch, or gives conflicting acceptance and criticism.",
+          "2": "Identifies a crown morphology mismatch but treats it as secondary or optional.",
+          "3": "Treats mismatched crown morphology as a major gap preventing believable reference character."
+        },
+        "probabilities": {
+          "0": 0.62,
+          "1": 0.3,
+          "2": 0.02,
+          "3": 0.06
+        },
+        "score": 0.51,
+        "type": "score"
+      },
+      "V3_hanging": {
+        "confidence": 0.61,
+        "legend": {
+          "0": "Accepts absent or limited hanging leafy form as adequate or harmless variation.",
+          "1": "Does not identify hanging leafy form as a mismatch, or leaves conflicting assessments unresolved.",
+          "2": "Identifies missing hanging leafy form but treats it as secondary or optional.",
+          "3": "Treats missing hanging leafy form as a major gap preventing believable reference character."
+        },
+        "probabilities": {
+          "0": 0.36,
+          "1": 0.63,
+          "2": 0.0,
+          "3": 0.01
+        },
+        "score": 0.66,
+        "type": "score"
+      },
+      "V3_material": {
+        "confidence": 0.46,
+        "legend": {
+          "0": "Accepts the disputed material appearance as adequate with no meaningful refinement needed.",
+          "1": "Does not identify material mismatch, or gives unresolved conflicting assessments.",
+          "2": "Identifies material mismatch but treats correction as optional refinement.",
+          "3": "Identifies material mismatch as a needed correction for believable reference character."
+        },
+        "probabilities": {
+          "0": 0.59,
+          "1": 0.28,
+          "2": 0.12,
+          "3": 0.01
+        },
+        "score": 0.54,
+        "type": "score"
+      },
+      "V3_standard": {
+        "confidence": 0.48,
+        "legend": {
+          "0": "Requires photographic matching or rejects the established catalogue quality standard.",
+          "1": "The acceptance standard is absent or contradicted within the verdict.",
+          "2": "Uses recognizability and catalogue quality but relaxes defining reference-character differences as mere non-photorealism.",
+          "3": "Uses believable reference character at catalogue quality, distinguishing defining mismatches from optional photographic detail."
+        },
+        "probabilities": {
+          "0": 0.01,
+          "1": 0.16,
+          "2": 0.18,
+          "3": 0.65
+        },
+        "score": 2.48,
+        "type": "score"
+      },
+      "V4_crown": {
+        "confidence": 0.58,
+        "legend": {
+          "0": "Accepts the disputed crown morphology as adequate or harmless variation.",
+          "1": "Does not resolve the crown mismatch, or gives conflicting acceptance and criticism.",
+          "2": "Identifies a crown morphology mismatch but treats it as secondary or optional.",
+          "3": "Treats mismatched crown morphology as a major gap preventing believable reference character."
+        },
+        "probabilities": {
+          "0": 0.76,
+          "1": 0.07,
+          "2": 0.16,
+          "3": 0.01
+        },
+        "score": 0.42,
+        "type": "score"
+      },
+      "V4_hanging": {
+        "confidence": 0.77,
+        "legend": {
+          "0": "Accepts absent or limited hanging leafy form as adequate or harmless variation.",
+          "1": "Does not identify hanging leafy form as a mismatch, or leaves conflicting assessments unresolved.",
+          "2": "Identifies missing hanging leafy form but treats it as secondary or optional.",
+          "3": "Treats missing hanging leafy form as a major gap preventing believable reference character."
+        },
+        "probabilities": {
+          "0": 0.16,
+          "1": 0.77,
+          "2": 0.06,
+          "3": 0.01
+        },
+        "score": 0.92,
+        "type": "score"
+      },
+      "V4_material": {
+        "confidence": 0.94,
+        "legend": {
+          "0": "Accepts the disputed material appearance as adequate with no meaningful refinement needed.",
+          "1": "Does not identify material mismatch, or gives unresolved conflicting assessments.",
+          "2": "Identifies material mismatch but treats correction as optional refinement.",
+          "3": "Identifies material mismatch as a needed correction for believable reference character."
+        },
+        "probabilities": {
+          "0": 0.0,
+          "1": 0.02,
+          "2": 0.0,
+          "3": 0.98
+        },
+        "score": 2.94,
+        "type": "score"
+      },
+      "V4_standard": {
+        "confidence": 0.9,
+        "legend": {
+          "0": "Requires photographic matching or rejects the established catalogue quality standard.",
+          "1": "The acceptance standard is absent or contradicted within the verdict.",
+          "2": "Uses recognizability and catalogue quality but relaxes defining reference-character differences as mere non-photorealism.",
+          "3": "Uses believable reference character at catalogue quality, distinguishing defining mismatches from optional photographic detail."
+        },
+        "probabilities": {
+          "0": 0.0,
+          "1": 0.03,
+          "2": 0.03,
+          "3": 0.94
+        },
+        "score": 2.9,
+        "type": "score"
+      },
+      "V5_crown": {
+        "confidence": 0.61,
+        "legend": {
+          "0": "Accepts the disputed crown morphology as adequate or harmless variation.",
+          "1": "Does not resolve the crown mismatch, or gives conflicting acceptance and criticism.",
+          "2": "Identifies a crown morphology mismatch but treats it as secondary or optional.",
+          "3": "Treats mismatched crown morphology as a major gap preventing believable reference character."
+        },
+        "probabilities": {
+          "0": 0.01,
+          "1": 0.18,
+          "2": 0.01,
+          "3": 0.8
+        },
+        "score": 2.61,
+        "type": "score"
+      },
+      "V5_hanging": {
+        "confidence": 0.8,
+        "legend": {
+          "0": "Accepts absent or limited hanging leafy form as adequate or harmless variation.",
+          "1": "Does not identify hanging leafy form as a mismatch, or leaves conflicting assessments unresolved.",
+          "2": "Identifies missing hanging leafy form but treats it as secondary or optional.",
+          "3": "Treats missing hanging leafy form as a major gap preventing believable reference character."
+        },
+        "probabilities": {
+          "0": 0.07,
+          "1": 0.86,
+          "2": 0.01,
+          "3": 0.06
+        },
+        "score": 1.06,
+        "type": "score"
+      },
+      "V5_material": {
+        "confidence": 0.89,
+        "legend": {
+          "0": "Accepts the disputed material appearance as adequate with no meaningful refinement needed.",
+          "1": "Does not identify material mismatch, or gives unresolved conflicting assessments.",
+          "2": "Identifies material mismatch but treats correction as optional refinement.",
+          "3": "Identifies material mismatch as a needed correction for believable reference character."
+        },
+        "probabilities": {
+          "0": 0.01,
+          "1": 0.04,
+          "2": 0.01,
+          "3": 0.94
+        },
+        "score": 2.89,
+        "type": "score"
+      },
+      "V5_standard": {
+        "confidence": 0.94,
+        "legend": {
+          "0": "Requires photographic matching or rejects the established catalogue quality standard.",
+          "1": "The acceptance standard is absent or contradicted within the verdict.",
+          "2": "Uses recognizability and catalogue quality but relaxes defining reference-character differences as mere non-photorealism.",
+          "3": "Uses believable reference character at catalogue quality, distinguishing defining mismatches from optional photographic detail."
+        },
+        "probabilities": {
+          "0": 0.0,
+          "1": 0.02,
+          "2": 0.02,
+          "3": 0.96
+        },
+        "score": 2.94,
+        "type": "score"
+      },
+      "V6_crown": {
+        "confidence": 0.05,
+        "legend": {
+          "0": "Accepts the disputed crown morphology as adequate or harmless variation.",
+          "1": "Does not resolve the crown mismatch, or gives conflicting acceptance and criticism.",
+          "2": "Identifies a crown morphology mismatch but treats it as secondary or optional.",
+          "3": "Treats mismatched crown morphology as a major gap preventing believable reference character."
+        },
+        "probabilities": {
+          "0": 0.23,
+          "1": 0.4,
+          "2": 0.02,
+          "3": 0.35
+        },
+        "score": 1.48,
+        "type": "score"
+      },
+      "V6_hanging": {
+        "confidence": 0.8,
+        "legend": {
+          "0": "Accepts absent or limited hanging leafy form as adequate or harmless variation.",
+          "1": "Does not identify hanging leafy form as a mismatch, or leaves conflicting assessments unresolved.",
+          "2": "Identifies missing hanging leafy form but treats it as secondary or optional.",
+          "3": "Treats missing hanging leafy form as a major gap preventing believable reference character."
+        },
+        "probabilities": {
+          "0": 0.07,
+          "1": 0.86,
+          "2": 0.01,
+          "3": 0.06
+        },
+        "score": 1.05,
+        "type": "score"
+      },
+      "V6_material": {
+        "confidence": 0.7,
+        "legend": {
+          "0": "Accepts the disputed material appearance as adequate with no meaningful refinement needed.",
+          "1": "Does not identify material mismatch, or gives unresolved conflicting assessments.",
+          "2": "Identifies material mismatch but treats correction as optional refinement.",
+          "3": "Identifies material mismatch as a needed correction for believable reference character."
+        },
+        "probabilities": {
+          "0": 0.0,
+          "1": 0.09,
+          "2": 0.11,
+          "3": 0.8
+        },
+        "score": 2.7,
+        "type": "score"
+      },
+      "V6_standard": {
+        "confidence": 0.91,
+        "legend": {
+          "0": "Requires photographic matching or rejects the established catalogue quality standard.",
+          "1": "The acceptance standard is absent or contradicted within the verdict.",
+          "2": "Uses recognizability and catalogue quality but relaxes defining reference-character differences as mere non-photorealism.",
+          "3": "Uses believable reference character at catalogue quality, distinguishing defining mismatches from optional photographic detail."
+        },
+        "probabilities": {
+          "0": 0.01,
+          "1": 0.03,
+          "2": 0.02,
+          "3": 0.94
+        },
+        "score": 2.91,
+        "type": "score"
+      }
+    },
+    "elapsed_ms": 1010,
+    "id": "18d70ed335ccca49-9faf7-0",
+    "identity": "1fd0efe7242607b331f2e568",
+    "model": "jev-1.13.0",
+    "questions": {
+      "V1_crown": {
+        "criteria": [
+          "Accepts the disputed crown morphology as adequate or harmless variation.",
+          "Does not resolve the crown mismatch, or gives conflicting acceptance and criticism.",
+          "Identifies a crown morphology mismatch but treats it as secondary or optional.",
+          "Treats mismatched crown morphology as a major gap preventing believable reference character."
+        ],
+        "instructions": "How does the crown assessment in `verdicts.V1` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V1_hanging": {
+        "criteria": [
+          "Accepts absent or limited hanging leafy form as adequate or harmless variation.",
+          "Does not identify hanging leafy form as a mismatch, or leaves conflicting assessments unresolved.",
+          "Identifies missing hanging leafy form but treats it as secondary or optional.",
+          "Treats missing hanging leafy form as a major gap preventing believable reference character."
+        ],
+        "instructions": "How does the hanging assessment in `verdicts.V1` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V1_material": {
+        "criteria": [
+          "Accepts the disputed material appearance as adequate with no meaningful refinement needed.",
+          "Does not identify material mismatch, or gives unresolved conflicting assessments.",
+          "Identifies material mismatch but treats correction as optional refinement.",
+          "Identifies material mismatch as a needed correction for believable reference character."
+        ],
+        "instructions": "How does the material assessment in `verdicts.V1` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V1_standard": {
+        "criteria": [
+          "Requires photographic matching or rejects the established catalogue quality standard.",
+          "The acceptance standard is absent or contradicted within the verdict.",
+          "Uses recognizability and catalogue quality but relaxes defining reference-character differences as mere non-photorealism.",
+          "Uses believable reference character at catalogue quality, distinguishing defining mismatches from optional photographic detail."
+        ],
+        "instructions": "How does the standard assessment in `verdicts.V1` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V2_crown": {
+        "criteria": [
+          "Accepts the disputed crown morphology as adequate or harmless variation.",
+          "Does not resolve the crown mismatch, or gives conflicting acceptance and criticism.",
+          "Identifies a crown morphology mismatch but treats it as secondary or optional.",
+          "Treats mismatched crown morphology as a major gap preventing believable reference character."
+        ],
+        "instructions": "How does the crown assessment in `verdicts.V2` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V2_hanging": {
+        "criteria": [
+          "Accepts absent or limited hanging leafy form as adequate or harmless variation.",
+          "Does not identify hanging leafy form as a mismatch, or leaves conflicting assessments unresolved.",
+          "Identifies missing hanging leafy form but treats it as secondary or optional.",
+          "Treats missing hanging leafy form as a major gap preventing believable reference character."
+        ],
+        "instructions": "How does the hanging assessment in `verdicts.V2` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V2_material": {
+        "criteria": [
+          "Accepts the disputed material appearance as adequate with no meaningful refinement needed.",
+          "Does not identify material mismatch, or gives unresolved conflicting assessments.",
+          "Identifies material mismatch but treats correction as optional refinement.",
+          "Identifies material mismatch as a needed correction for believable reference character."
+        ],
+        "instructions": "How does the material assessment in `verdicts.V2` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V2_standard": {
+        "criteria": [
+          "Requires photographic matching or rejects the established catalogue quality standard.",
+          "The acceptance standard is absent or contradicted within the verdict.",
+          "Uses recognizability and catalogue quality but relaxes defining reference-character differences as mere non-photorealism.",
+          "Uses believable reference character at catalogue quality, distinguishing defining mismatches from optional photographic detail."
+        ],
+        "instructions": "How does the standard assessment in `verdicts.V2` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V3_crown": {
+        "criteria": [
+          "Accepts the disputed crown morphology as adequate or harmless variation.",
+          "Does not resolve the crown mismatch, or gives conflicting acceptance and criticism.",
+          "Identifies a crown morphology mismatch but treats it as secondary or optional.",
+          "Treats mismatched crown morphology as a major gap preventing believable reference character."
+        ],
+        "instructions": "How does the crown assessment in `verdicts.V3` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V3_hanging": {
+        "criteria": [
+          "Accepts absent or limited hanging leafy form as adequate or harmless variation.",
+          "Does not identify hanging leafy form as a mismatch, or leaves conflicting assessments unresolved.",
+          "Identifies missing hanging leafy form but treats it as secondary or optional.",
+          "Treats missing hanging leafy form as a major gap preventing believable reference character."
+        ],
+        "instructions": "How does the hanging assessment in `verdicts.V3` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V3_material": {
+        "criteria": [
+          "Accepts the disputed material appearance as adequate with no meaningful refinement needed.",
+          "Does not identify material mismatch, or gives unresolved conflicting assessments.",
+          "Identifies material mismatch but treats correction as optional refinement.",
+          "Identifies material mismatch as a needed correction for believable reference character."
+        ],
+        "instructions": "How does the material assessment in `verdicts.V3` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V3_standard": {
+        "criteria": [
+          "Requires photographic matching or rejects the established catalogue quality standard.",
+          "The acceptance standard is absent or contradicted within the verdict.",
+          "Uses recognizability and catalogue quality but relaxes defining reference-character differences as mere non-photorealism.",
+          "Uses believable reference character at catalogue quality, distinguishing defining mismatches from optional photographic detail."
+        ],
+        "instructions": "How does the standard assessment in `verdicts.V3` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V4_crown": {
+        "criteria": [
+          "Accepts the disputed crown morphology as adequate or harmless variation.",
+          "Does not resolve the crown mismatch, or gives conflicting acceptance and criticism.",
+          "Identifies a crown morphology mismatch but treats it as secondary or optional.",
+          "Treats mismatched crown morphology as a major gap preventing believable reference character."
+        ],
+        "instructions": "How does the crown assessment in `verdicts.V4` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V4_hanging": {
+        "criteria": [
+          "Accepts absent or limited hanging leafy form as adequate or harmless variation.",
+          "Does not identify hanging leafy form as a mismatch, or leaves conflicting assessments unresolved.",
+          "Identifies missing hanging leafy form but treats it as secondary or optional.",
+          "Treats missing hanging leafy form as a major gap preventing believable reference character."
+        ],
+        "instructions": "How does the hanging assessment in `verdicts.V4` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V4_material": {
+        "criteria": [
+          "Accepts the disputed material appearance as adequate with no meaningful refinement needed.",
+          "Does not identify material mismatch, or gives unresolved conflicting assessments.",
+          "Identifies material mismatch but treats correction as optional refinement.",
+          "Identifies material mismatch as a needed correction for believable reference character."
+        ],
+        "instructions": "How does the material assessment in `verdicts.V4` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V4_standard": {
+        "criteria": [
+          "Requires photographic matching or rejects the established catalogue quality standard.",
+          "The acceptance standard is absent or contradicted within the verdict.",
+          "Uses recognizability and catalogue quality but relaxes defining reference-character differences as mere non-photorealism.",
+          "Uses believable reference character at catalogue quality, distinguishing defining mismatches from optional photographic detail."
+        ],
+        "instructions": "How does the standard assessment in `verdicts.V4` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V5_crown": {
+        "criteria": [
+          "Accepts the disputed crown morphology as adequate or harmless variation.",
+          "Does not resolve the crown mismatch, or gives conflicting acceptance and criticism.",
+          "Identifies a crown morphology mismatch but treats it as secondary or optional.",
+          "Treats mismatched crown morphology as a major gap preventing believable reference character."
+        ],
+        "instructions": "How does the crown assessment in `verdicts.V5` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V5_hanging": {
+        "criteria": [
+          "Accepts absent or limited hanging leafy form as adequate or harmless variation.",
+          "Does not identify hanging leafy form as a mismatch, or leaves conflicting assessments unresolved.",
+          "Identifies missing hanging leafy form but treats it as secondary or optional.",
+          "Treats missing hanging leafy form as a major gap preventing believable reference character."
+        ],
+        "instructions": "How does the hanging assessment in `verdicts.V5` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V5_material": {
+        "criteria": [
+          "Accepts the disputed material appearance as adequate with no meaningful refinement needed.",
+          "Does not identify material mismatch, or gives unresolved conflicting assessments.",
+          "Identifies material mismatch but treats correction as optional refinement.",
+          "Identifies material mismatch as a needed correction for believable reference character."
+        ],
+        "instructions": "How does the material assessment in `verdicts.V5` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V5_standard": {
+        "criteria": [
+          "Requires photographic matching or rejects the established catalogue quality standard.",
+          "The acceptance standard is absent or contradicted within the verdict.",
+          "Uses recognizability and catalogue quality but relaxes defining reference-character differences as mere non-photorealism.",
+          "Uses believable reference character at catalogue quality, distinguishing defining mismatches from optional photographic detail."
+        ],
+        "instructions": "How does the standard assessment in `verdicts.V5` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V6_crown": {
+        "criteria": [
+          "Accepts the disputed crown morphology as adequate or harmless variation.",
+          "Does not resolve the crown mismatch, or gives conflicting acceptance and criticism.",
+          "Identifies a crown morphology mismatch but treats it as secondary or optional.",
+          "Treats mismatched crown morphology as a major gap preventing believable reference character."
+        ],
+        "instructions": "How does the crown assessment in `verdicts.V6` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V6_hanging": {
+        "criteria": [
+          "Accepts absent or limited hanging leafy form as adequate or harmless variation.",
+          "Does not identify hanging leafy form as a mismatch, or leaves conflicting assessments unresolved.",
+          "Identifies missing hanging leafy form but treats it as secondary or optional.",
+          "Treats missing hanging leafy form as a major gap preventing believable reference character."
+        ],
+        "instructions": "How does the hanging assessment in `verdicts.V6` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V6_material": {
+        "criteria": [
+          "Accepts the disputed material appearance as adequate with no meaningful refinement needed.",
+          "Does not identify material mismatch, or gives unresolved conflicting assessments.",
+          "Identifies material mismatch but treats correction as optional refinement.",
+          "Identifies material mismatch as a needed correction for believable reference character."
+        ],
+        "instructions": "How does the material assessment in `verdicts.V6` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      },
+      "V6_standard": {
+        "criteria": [
+          "Requires photographic matching or rejects the established catalogue quality standard.",
+          "The acceptance standard is absent or contradicted within the verdict.",
+          "Uses recognizability and catalogue quality but relaxes defining reference-character differences as mere non-photorealism.",
+          "Uses believable reference character at catalogue quality, distinguishing defining mismatches from optional photographic detail."
+        ],
+        "instructions": "How does the standard assessment in `verdicts.V6` agree with `owner_verbatim`? Apply `interpretation_not_quote`. Judge this dimension only, using the full verdict including contradictions; do not reward verbosity or an overall FAIL alone.",
+        "type": "score"
+      }
+    },
+    "recorded_at": "2026-09-20T14:47:57Z",
+    "source": null,
+    "state_sha256": "9cc6bb0612a91ff8c32e0a2debf9276fa86491a0c9a7230090a394a7bd1347fa",
+    "tool": "fn68-owner-agreement",
+    "usage": {
+      "input_tokens": 10455,
+      "output_tokens": 382
+    }
+  },
+  "reservation": 42249,
+  "status": "settled"
+}

@@ -1,0 +1,32 @@
+{
+  "V1": {
+    "label": "Fable medium",
+    "source": "joint-blind-fable-journal.json",
+    "source_sha256": "a284e736c18cebac6771f5637bd7bc34f7a1805b6f7c2c6e7c9837fb99a5fc1f"
+  },
+  "V2": {
+    "label": "Astra high",
+    "source": "joint-blind-astra-high-result.json",
+    "source_sha256": "fe7df501477b489eb287d1193136766a8bae1d99c04ab7e293fa35ad6d4b0e8f"
+  },
+  "V3": {
+    "label": "Sol medium",
+    "source": "joint-blind-result.json",
+    "source_sha256": "9761a0a0b7b8842c42637ef7bcbe4a7467ececdfa2ec3da2a0590b919aaa87f1"
+  },
+  "V4": {
+    "label": "Grok high",
+    "source": "joint-blind-grok-journal.json",
+    "source_sha256": "7b5ceab8f6052fcdd0fc4a74aa5df5206b09a4c659c186a884d791a46b9cb3ee"
+  },
+  "V5": {
+    "label": "Astra medium",
+    "source": "joint-blind-astra-result.json",
+    "source_sha256": "d1b92efe0f8366243342cccc742c2e83878f48512d257c21465778c466fd1b32"
+  },
+  "V6": {
+    "label": "Opus high",
+    "source": "joint-blind-opus-journal.json",
+    "source_sha256": "efd3b355318f7573fd6dfa7d900611bf830d6654a7e5707ce7fd2bed17babcc3"
+  }
+}
