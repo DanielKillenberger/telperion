@@ -7,7 +7,13 @@
   "tuning_config": ".flow/evidence/fn80/tuning-date-palm.json",
   "species_pipeline": "target/release/species-pipeline",
   "tuning_loop": "target/release/tuning-loop",
-  "stage_args": ["--example"],
+  "stage_args": [
+    "--example",
+    "--profile-id",
+    "date-palm",
+    "--profiles",
+    ".flow/evidence/date-palm/pipeline/packet/profile.json"
+  ],
   "budget": {
     "max_tokens": 2000000,
     "attempt_max_tokens": 200000,

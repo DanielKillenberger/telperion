@@ -1,0 +1,15 @@
+{
+ "input_identity": "1c2ae213837d8a73bf1b70fd4997108ea52738afd4097211da3a0f49988f82bf",
+ "design_revision": null,
+ "actual_model": "claude-sonnet-5",
+ "actual_effort": "default",
+ "usage": {
+  "input_tokens": 136318,
+  "output_tokens": 0
+ },
+ "cost_usd": null,
+ "verification": "verified",
+ "observed": "Resolved date-palm/quality/data-insufficient/dbh_m with add-sources: the field's recorded evidence is points: [] with dominant_gap no_age_indexed_points across every admitted source (F1, A1, M1), so there is no age-indexed reading of any taxon or condition on hand for admit-proxy to admit, and lower-bar is the owner's; after `species-pipeline quality --example` reconciled (\"quality: current (idempotence key matched)\"), the decision's status reads resolved. Usage is the driver's total; split unknown.",
+ "handoff": null,
+ "failure": null
+}
