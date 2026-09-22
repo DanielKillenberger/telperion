@@ -281,6 +281,30 @@ impl Run {
             .as_ref()
             .ok_or_else(|| ConductorError::Invalid("the run is not paused".into()))?;
         pause.resume(&decision)?;
+        // A cap moves only by the human's scoped decision, and only from the
+        // value the run holds now: the caps live on the record, not the
+        // config, so a raise the owner made in the file alone never reached
+        // a paused run. The dispatch cap rides the shared round-cap field.
+        if let Some(ext) = &decision.round_cap_extension {
+            if ext.previous != self.budget.max_dispatches || ext.next <= ext.previous {
+                return Err(format!(
+                    "dispatch cap extension names {} -> {}; the run holds {}",
+                    ext.previous, ext.next, self.budget.max_dispatches
+                )
+                .into());
+            }
+            self.budget.max_dispatches = ext.next;
+        }
+        if let Some(ext) = &decision.token_cap_extension {
+            if ext.previous != self.budget.max_tokens || ext.next <= ext.previous {
+                return Err(format!(
+                    "token cap extension names {} -> {}; the run holds {}",
+                    ext.previous, ext.next, self.budget.max_tokens
+                )
+                .into());
+            }
+            self.budget.max_tokens = ext.next;
+        }
         self.pause = None;
         self.resumed_from = Some(decision.pause_id.clone());
         self.end_wait();
