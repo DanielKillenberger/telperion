@@ -60,6 +60,16 @@
    "by": "host claude-fable-5-1 under the owner's standing rule",
    "at": "2026-09-22",
    "note": "The claim 'height_m: 50 - 100 feet' is present verbatim in the cited section of A1 ('**Height:** 50 - 100 feet'); Jev's support confidence of 0.73 sat under the 0.8 bar on a page that mixes cultural history with the size table. Accepted on the verbatim match; a height stated without an age, which the fit stage treats as the mature range it is."
+  },
+  {
+   "id": "date-palm/document/article-unfilled",
+   "inputs_sha256": {
+    "select.json": "027748aef2b61895c6b2da2023093f42885aca751f5254530c0d35606fb63b2e"
+   },
+   "option": "write-article",
+   "by": "cheap driver claude-sonnet-5 under the conductor's routine policy",
+   "at": "2026-09-22",
+   "note": "Wrote the five TODO sections (Identity, Size and growth, Crown and habit, Bark, Leaves) from the packet's own records: M1's full copy for taxonomic placement, general growing regions and general pinnate-leaf, spined-petiole and induplicate-leaflet anatomy, and for the trunk's standing as the least diagnostic of its six compared character groups; A1's cited height passage (50 - 100 feet / 15.24 to 30.48 m) for size and growth. F1 carries no cited passage, so every claim it would otherwise support (finer identity detail, age-linked growth, dbh, crown silhouette, bark surface description, frond count and retention) is instead stated as a gap cited to F1. No number outside the packet's own records was used. `node scripts/catalogue-article.mjs --species date-palm` passed with no failures after the rewrite."
   }
  ]
 }
