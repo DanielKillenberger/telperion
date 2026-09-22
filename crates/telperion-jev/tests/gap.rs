@@ -203,7 +203,7 @@ fn an_empty_agent_set_escalates_and_the_stronger_models_set_routes_proceeds_and_
         resume::record_review(&paths, &halt, "ship").unwrap(),
         resume::Reviewed::Recorded { needs_work: 0 }
     );
-    let resumed = resume::resume(&paths, &halt, "abc1234", None).unwrap();
+    let resumed = resume::resume(&paths, &halt, "abc1234", None, None).unwrap();
     assert_eq!(resumed.spec, "fn-37-pendulous-shoots-as-rows");
     // The halted stage and every stage after it rerun; the earlier ones do not.
     assert_eq!(
@@ -213,7 +213,7 @@ fn an_empty_agent_set_escalates_and_the_stronger_models_set_routes_proceeds_and_
     assert_ne!(key_for(&paths, "gate"), gate_before);
     assert_eq!(key_for(&paths, "fetch"), fetch_before);
     // The same spec landing twice is refused; the record already carries it.
-    assert!(resume::resume(&paths, &halt, "def5678", None)
+    assert!(resume::resume(&paths, &halt, "def5678", None, None)
         .unwrap_err()
         .to_string()
         .contains("already resumed"));
@@ -222,7 +222,7 @@ fn an_empty_agent_set_escalates_and_the_stronger_models_set_routes_proceeds_and_
     // record's history, and the rerun's key carries both fixes.
     let gate_after_first = key_for(&paths, "gate");
     resume::record_spec(&paths, &halt, "fn-109-the-apical-rosette").unwrap();
-    let again = resume::resume(&paths, &halt, "def5678", None).unwrap();
+    let again = resume::resume(&paths, &halt, "def5678", None, None).unwrap();
     assert_eq!(again.spec, "fn-109-the-apical-rosette");
     let record = gap::read(&paths, &halt).unwrap();
     assert_eq!(record["landed"]["spec"], "fn-109-the-apical-rosette");
@@ -244,6 +244,39 @@ fn an_empty_agent_set_escalates_and_the_stronger_models_set_routes_proceeds_and_
         Some("def5678")
     );
     assert_ne!(key_for(&paths, "gate"), gate_after_first);
+    // Two specs minted in one round: the landing names which one lands, a
+    // name the gap never minted is refused, and the earlier landing cannot
+    // be repeated under the other name.
+    resume::record_spec(&paths, &halt, "fn-110-the-palms-trunk-organs").unwrap();
+    resume::record_spec(&paths, &halt, "fn-111-the-palms-infructescence").unwrap();
+    assert!(
+        resume::resume(&paths, &halt, "0123abc", None, Some("fn-999-never-minted"))
+            .unwrap_err()
+            .to_string()
+            .contains("minted no spec")
+    );
+    let third = resume::resume(
+        &paths,
+        &halt,
+        "0123abc",
+        None,
+        Some("fn-110-the-palms-trunk-organs"),
+    )
+    .unwrap();
+    assert_eq!(third.spec, "fn-110-the-palms-trunk-organs");
+    let record = gap::read(&paths, &halt).unwrap();
+    assert_eq!(record["landed"]["spec"], "fn-110-the-palms-trunk-organs");
+    assert_eq!(record["landings"].as_array().unwrap().len(), 2);
+    assert!(resume::resume(
+        &paths,
+        &halt,
+        "4567def",
+        None,
+        Some("fn-109-the-apical-rosette")
+    )
+    .unwrap_err()
+    .to_string()
+    .contains("already resumed"));
 
     let numbers = metrics::write(&paths, "silver-birch").unwrap();
     assert_eq!(numbers["autonomy"]["gaps"], 1);
@@ -282,7 +315,7 @@ fn a_fix_that_moves_a_pin_is_the_owners_and_lands_only_with_the_pin_note() {
 
     resolve(&paths, &filed, "curtain-rows", "owner");
     resume::record_spec(&paths, &halt, "fn-37-pendulous-shoots-as-rows").unwrap();
-    let err = resume::resume(&paths, &halt, "abc1234", None)
+    let err = resume::resume(&paths, &halt, "abc1234", None, None)
         .unwrap_err()
         .to_string();
     assert!(err.contains("--pin-note"), "{err}");
@@ -291,6 +324,7 @@ fn a_fix_that_moves_a_pin_is_the_owners_and_lands_only_with_the_pin_note() {
         &halt,
         "abc1234",
         Some("silver-birch: the curtain reaches the ground: fn-37 landed"),
+        None,
     )
     .unwrap();
 }

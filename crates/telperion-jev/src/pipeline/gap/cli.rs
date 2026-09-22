@@ -22,7 +22,7 @@ pub const USAGE: &str = "usage: species-pipeline gap <command> --dir DIR\n  \
     reroute --decision ID                          re-read the recorded signals, no call\n  \
     spec    --decision ID --spec SPEC              record the spec minted for the fix\n  \
     review  --decision ID --verdict ship|needs-work\n  \
-    resume  --decision ID --commit SHA [--pin-note NOTE]\n  \
+    resume  --decision ID --commit SHA [--pin-note NOTE] [--spec SPEC]\n  \
     round   --species S --verdict V [--note N]     open one value round\n  \
     accept  --species S --verdict V                the verdict accepts\n  \
     metrics --species S                            write metrics.json";
@@ -112,7 +112,9 @@ pub fn run(paths: &Paths, args: &[String]) -> Result<String, String> {
             let id = required(args, "--decision")?;
             let commit = required(args, "--commit")?;
             let pin = flag(args, "--pin-note");
-            let resumed = resume::resume(paths, &id, &commit, pin.as_deref()).map_err(show)?;
+            let named = flag(args, "--spec");
+            let resumed = resume::resume(paths, &id, &commit, pin.as_deref(), named.as_deref())
+                .map_err(show)?;
             Ok(format!(
                 "gap resume: {} landed at {commit}; rerun {}",
                 resumed.spec,
