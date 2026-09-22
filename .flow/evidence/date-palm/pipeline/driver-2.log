@@ -1,0 +1,32 @@
+The run stopped after `gate`. I did not run `generate` or `report`, and I did not start the gap loop.
+
+**Gate halt.** Two `onboarding-gate` decisions, neither a form/capability line.
+
+- `date-palm/gate/onboarding-gate/registry` — preset `date-palm` is not registered with a bound profile.
+- `date-palm/gate/onboarding-gate/seeds` — `packet/specimens.json` does not exist yet (generate writes that file; gate blocks generate).
+
+`gate.json` has `required`, `supported`, and `missing` all empty. The spec already names Corner and a frond; the manifest has `growth_form: palm` and no `engineering.required_capabilities`. The gate never asked whether the generator draws a Corner palm, a frond, or a trunk without secondary thickening. Host takes the gap loop from the two ids above. There is no capability-line id to open.
+
+**Owner decisions left open** (I did not resolve them).
+
+- `date-palm/quality/data-insufficient/dbh_m` — level `proxy_only` against bar `partial`, gap `no_age_indexed_points`. Options `admit-proxy` / `add-sources` / `lower-bar`.
+- `date-palm/verify/claim-unsupported/A1` — claim `height_m: 35 m`, relation `supports` at confidence 0.28. Options `accept` / `replace-source` / `drop-value`.
+
+**Stages this leg**
+
+| Stage | Wall | Credits | Jev | What happened |
+|---|---|---|---|---|
+| fetch | 14.930 s | 3 | 0 | F1, A1, M1 scraped. No tables, no fetch decision. |
+| extract | 0.015 s | 0 | 0 | 33 sentences (22 A1, 5 F1, 6 M1). |
+| screen | 20.912 s | 0 | 33 | 21 `not_about_tree_size`. |
+| quality | 1.638 s | 0 | 2 | `height_m` passed at `proxy_only`. `dbh_m` filed above. |
+| select | 0.714 s | 0 | 1 | Copied `35 m` from A1. `dbh_m` unavailable. |
+| verify | 1.985 s | 0 | 2 | Listed the 35 m claim. Filed above. |
+| fit | 0.009 s | 0 | 0 | No `curves` in the manifest. CLI printed `ran`; no `fit.json`. |
+| gate | 0.020 s | 0 | 0 | Halt as above. |
+
+**Totals this leg.** 3 Firecrawl credits of the 120 cap (all fetch, estimated). 38 Jev calls (33 screen). About 40 s of stage wall clock, plus 22.5 s to build `species_measure` and `geometry_benchmark`. Zero escalations.
+
+**Notes.** `.flow/evidence/fn80/ECONOMICS.md` has one entry per stage plus a leg summary. Cheap-tier held for every invoke. Screen dominates Jev because extract is noisy. The cheap model can run this leg. It cannot invent the missing capability line. That has to be a code check on the spec’s model and organs before fetch.
+
+`.flow/evidence/fn82/FRICTION.md` has two new entries. The worktree had `species-pipeline` but not the two gate examples. The capability list was empty, so the expected palm-form gap was never filed.

@@ -1,0 +1,22 @@
+Discover ran and stopped. The owner still has to admit the manifest. Nothing after discover ran.
+
+**Proposal.** Two fields, same ages as the ash seed (20 / 50 / 80, `open_grown`). Each field got 21 hits: 11 known (oak, spruce, fn-11 papers), 5 web, 5 research. Queries were `Phoenix dactylifera height at age, open grown` and `Phoenix dactylifera trunk diameter at breast height at age, open grown`. Jev ranked Wikipedia first for height and the UA Campus Arboretum page first for trunk diameter. The machine draft named those two as `P1` and `P2`. Decision `date-palm/discover/manifest-proposed` is open with options `admit` / `reject`. `resolutions.json` is absent.
+
+**Drafted manifest** at `.flow/evidence/date-palm/pipeline/manifest.json`, ash shape, three sources, no tables, no curves, no engineering numbers, `growth_form` `palm`:
+
+- **F1** UF/IFAS FR314. Extension page, the ash O1 analogue. Snippet states height to 80 ft and fronds to 20 ft. Wikipedia’s height hit is a lead to this, not a citation.
+- **A1** UA Campus Arboretum. Ranked first for `dbh_m`. Snippet states a diamond-pattern trunk up to 0.5 m diameter.
+- **M1** BMC Plant Biology morphology paper (Al-Madinah cultivars). Only research hit that is this taxon and about measured form. It appeared on both lists.
+
+Dropped: Wikipedia (spec forbids it as a citation), Facebook, `Phoenix canariensis`, oak/spruce/fn-11 knowns, off-topic research.
+
+**Cost.** 6 Firecrawl credits (estimated, one per unpriced CLI call), 2 Jev calls, 1 run, 10.6 s. Cap is 40. Remaining 34. Two fields should be 4 CLI calls; the artifact recorded 6.
+
+**Notes.**
+
+- `.flow/evidence/fn80/ECONOMICS.md`: discover is cheap at this seed (6k credits and 2k Jev calls at a thousand species) and does not dominate a finished run. The swarm cut is taxon-filtering the known list, then real `creditsUsed` on research, then skipping research when an extension page is already in the web hits.
+- `.flow/evidence/fn82/FRICTION.md`: the skill never names the seed write (about ten minutes before any call), and the known-list plus Wikipedia ranking forced a hand edit of the draft.
+
+real	3m59.394s
+user	0m7.073s
+sys	0m3.950s
