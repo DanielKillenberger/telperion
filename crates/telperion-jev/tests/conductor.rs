@@ -661,17 +661,22 @@ fn an_unjustified_next_attempt_pauses_with_budget_remaining_and_a_stage_halt_rou
     .unwrap();
     // A cap moves only from the value the run holds: a stale `previous` is refused.
     let mut wrong = decision.clone();
-    wrong.round_cap_extension = Some(serde_json::from_value(json!({"previous": 99, "next": 100})).unwrap());
+    wrong.round_cap_extension =
+        Some(serde_json::from_value(json!({"previous": 99, "next": 100})).unwrap());
     assert!(run.resume(wrong).is_err());
     let mut raise = decision.clone();
     let held = run.budget.max_dispatches;
-    raise.round_cap_extension = Some(serde_json::from_value(json!({"previous": held, "next": held + 4})).unwrap());
+    raise.round_cap_extension =
+        Some(serde_json::from_value(json!({"previous": held, "next": held + 4})).unwrap());
     run.resume(raise).unwrap();
     assert_eq!(run.budget.max_dispatches, held + 4);
     assert_eq!(run.resumed_from.as_deref(), Some("pause-1"));
     let (word, _) = drive(&script, &config, &mut run, &executor);
     assert!(word.starts_with("dispatch"), "{word}");
-    assert!(run.resumed_from.is_none(), "opening the attempt clears the authorization");
+    assert!(
+        run.resumed_from.is_none(),
+        "opening the attempt clears the authorization"
+    );
     assert_eq!(run.dispatches.len(), 2);
     assert!(run.budget.remaining() > 100_000);
     assert!(run

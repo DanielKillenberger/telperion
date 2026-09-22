@@ -153,7 +153,11 @@ pub fn minted_by_gap_loop(run: &mut Run, config: &Config, id: &str) {
         let spec = result.observed.trim().to_string();
         let exists = !spec.is_empty()
             && !spec.contains(char::is_whitespace)
-            && config.flow.join("specs").join(format!("{spec}.json")).is_file();
+            && config
+                .flow
+                .join("specs")
+                .join(format!("{spec}.json"))
+                .is_file();
         if exists {
             handoff::attach(run, &spec, &decision, "minted");
         }

@@ -92,7 +92,12 @@ pub fn open_decisions(config: &Config) -> Result<Vec<Decision>> {
 
 /// Who a decision belongs to: the gap loop, the cheap agent under policy, or
 /// the owner. Anything the policy does not name is the owner's by rule.
-pub fn decision_action(config: &Config, table: &policy::Table, run: &Run, decision: &Decision) -> Next {
+pub fn decision_action(
+    config: &Config,
+    table: &policy::Table,
+    run: &Run,
+    decision: &Decision,
+) -> Next {
     if HALT_KINDS.contains(&decision.kind.as_str()) {
         // The loop ran once for this halt and did not mint a spec: its route
         // was the owner's or the stronger model's, so the halt is theirs now.

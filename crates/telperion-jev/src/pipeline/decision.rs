@@ -353,11 +353,15 @@ mod tests {
         .unwrap();
         assert_eq!(retired, vec![miss("registry", &[]).id]);
         let list = read_decisions(&path).unwrap();
-        let reg = list.iter().find(|d| d.field.as_deref() == Some("registry")).unwrap();
+        let reg = list
+            .iter()
+            .find(|d| d.field.as_deref() == Some("registry"))
+            .unwrap();
         assert_eq!(reg.status, Status::Resolved);
         assert_eq!(reg.resolution.as_ref().unwrap().option, "superseded");
         // Same inputs again: nothing is retired, the file is untouched.
-        let again = retire_unfiled(&path, "gate", &[], &sha(&[("select.json", "old")]), "x").unwrap();
+        let again =
+            retire_unfiled(&path, "gate", &[], &sha(&[("select.json", "old")]), "x").unwrap();
         assert!(again.is_empty());
     }
 

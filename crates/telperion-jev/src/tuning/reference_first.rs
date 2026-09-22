@@ -559,13 +559,31 @@ impl ComparisonResult {
         // rather than refused, because refusing it costs the whole paid pass.
         // It leaves `coverage` before anything reads it, so it can never count
         // toward a trait's disposition, the core gate or readiness.
+        // A row whose evidence is all real but names no render, or no
+        // reference, is dropped the same way: it can compare nothing, and the
+        // reviewer writes one for a trait that is about the references
+        // themselves. An invented evidence id still refuses the pass below.
+        let has_role = |c: &Coverage, role: &str| {
+            c.evidence_ids
+                .iter()
+                .any(|id| packet.inputs.iter().any(|i| &i.id == id && i.role == role))
+        };
         let (known, stray): (Vec<Coverage>, Vec<Coverage>) = std::mem::take(&mut self.coverage)
             .into_iter()
-            .partition(|c| request.inventory.traits.iter().any(|t| t.id == c.trait_id));
+            .partition(|c| {
+                request.inventory.traits.iter().any(|t| t.id == c.trait_id)
+                    && (!ids(&c.evidence_ids, &allowed)
+                        || (has_role(c, "render") && has_role(c, "reference")))
+            });
         self.coverage = known;
         for c in &stray {
+            let why = if request.inventory.traits.iter().any(|t| t.id == c.trait_id) {
+                "without render and reference evidence"
+            } else {
+                "for unknown trait"
+            };
             let note = format!(
-                "dropped coverage row for unknown trait {}: {:?} \u{2014} {}",
+                "dropped coverage row {why} {}: {:?} \u{2014} {}",
                 c.trait_id, c.status, c.explanation
             );
             if !self.visual.observations.contains(&note) {
@@ -590,19 +608,6 @@ impl ComparisonResult {
             if !seen.insert(&c.trait_id) || !text(&c.explanation) || !ids(&c.evidence_ids, &allowed)
             {
                 return Err("invalid trait coverage".into());
-            }
-            if !c.evidence_ids.iter().any(|id| {
-                packet
-                    .inputs
-                    .iter()
-                    .any(|i| &i.id == id && i.role == "render")
-            }) || !c.evidence_ids.iter().any(|id| {
-                packet
-                    .inputs
-                    .iter()
-                    .any(|i| &i.id == id && i.role == "reference")
-            }) {
-                return Err("trait disposition lacks render/reference evidence".into());
             }
             let trait_source = request
                 .inventory

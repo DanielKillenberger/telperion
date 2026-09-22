@@ -467,6 +467,58 @@ print(json.dumps({'request_sha256':e['request_sha256'],'assessment':{'identity':
 /// whole paid pass today. It is dropped and recorded instead, and it can
 /// never stand in for a trait the inventory does state.
 #[test]
+fn a_coverage_row_without_render_evidence_is_dropped_and_recorded() {
+    let original = request();
+    let request = ComparisonRequest::new(&original, inventory(&original));
+    let r = request.comparison.clone();
+    let finding = Finding {
+        observation: "Supported match".into(),
+        evidence_ids: vec!["render-0".into(), "reference-0".into()],
+        impact: Impact::Supported,
+        uncertain: false,
+        causal_hypothesis: None,
+    };
+    let visual:vision::Result=serde_json::from_value(json!({"request_sha256":r.hash(),"assessment":{"identity":r.identity,"model":"mock","ledger":"receipt","cells":[[r.required[0],"pass"]],"defects":[],"findings":[finding]},"effort":"medium","usage":{"input_tokens":1,"output_tokens":1},"observations":[]})).unwrap();
+    let known = Coverage {
+        trait_id: "trait-1".into(),
+        status: CellStatus::Pass,
+        evidence_ids: vec!["render-0".into(), "reference-0".into()],
+        explanation: "Visible match; no defining mismatch".into(),
+    };
+    let references_only = Coverage {
+        trait_id: "trait-1".into(),
+        status: CellStatus::Unknown,
+        evidence_ids: vec!["reference-0".into()],
+        explanation: "the references show one specimen twice".into(),
+    };
+    let mut result = ComparisonResult {
+        request_sha256: request.hash(),
+        visual,
+        coverage: vec![references_only.clone(), known.clone()],
+    };
+    result.bind(&request).unwrap();
+    assert_eq!(
+        result
+            .coverage
+            .iter()
+            .map(|c| c.explanation.clone())
+            .collect::<Vec<_>>(),
+        vec![known.explanation.clone()],
+        "a row citing no render must leave the bound coverage"
+    );
+    let recorded = result
+        .visual
+        .observations
+        .iter()
+        .find(|o| o.starts_with("dropped coverage row without render and reference evidence"))
+        .expect("the dropped row is recorded verbatim");
+    assert!(
+        recorded.contains("trait-1") && recorded.contains("the references show one specimen twice"),
+        "{recorded}"
+    );
+}
+
+#[test]
 fn a_coverage_row_for_an_unknown_trait_is_dropped_and_recorded() {
     let original = request();
     let request = ComparisonRequest::new(&original, inventory(&original));

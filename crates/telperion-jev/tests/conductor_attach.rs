@@ -5,7 +5,10 @@ use std::path::PathBuf;
 use telperion_jev::conductor::{cli::minted_by_gap_loop, state::Run, BudgetConfig, Config};
 
 fn scratch() -> PathBuf {
-    let dir = std::env::temp_dir().join(format!("conductor-attach-{}", telperion_jev::ledger::new_entry_id()));
+    let dir = std::env::temp_dir().join(format!(
+        "conductor-attach-{}",
+        telperion_jev::ledger::new_entry_id()
+    ));
     std::fs::create_dir_all(dir.join(".flow/specs")).unwrap();
     dir
 }
@@ -21,14 +24,22 @@ fn config(root: &PathBuf) -> Config {
         species_pipeline: PathBuf::from("unused"),
         tuning_loop: PathBuf::from("unused"),
         stage_args: vec![],
-        budget: BudgetConfig { max_tokens: 1, attempt_max_tokens: 1, max_dispatches: 1, max_tuning_revisions: 1 },
+        budget: BudgetConfig {
+            max_tokens: 1,
+            attempt_max_tokens: 1,
+            max_dispatches: 1,
+            max_tuning_revisions: 1,
+        },
         judgment_model: "jev-test".into(),
         continuation_validated: true,
     }
 }
 
 fn run() -> Run {
-    serde_json::from_slice(include_bytes!("fixtures/conductor-run-gap-loop-sentence.json")).unwrap()
+    serde_json::from_slice(include_bytes!(
+        "fixtures/conductor-run-gap-loop-sentence.json"
+    ))
+    .unwrap()
 }
 
 #[test]
@@ -58,12 +69,17 @@ fn a_zero_usage_is_unknown_and_the_estimate_falls_back_to_the_attempt_bound() {
     let mut cfg = config(&scratch());
     cfg.budget.attempt_max_tokens = 200_000;
     run.budget.attempt_max_tokens = 200_000;
-    run.dispatches[0].result.as_mut().unwrap().usage =
-        Some(serde_json::from_value(serde_json::json!({"input_tokens": 0, "output_tokens": 0})).unwrap());
+    run.dispatches[0].result.as_mut().unwrap().usage = Some(
+        serde_json::from_value(serde_json::json!({"input_tokens": 0, "output_tokens": 0})).unwrap(),
+    );
     let (tokens, basis) = telperion_jev::conductor::dependency::estimate(&run);
     assert_eq!(tokens, 200_000, "{basis}");
-    run.dispatches[0].result.as_mut().unwrap().usage =
-        Some(serde_json::from_value(serde_json::json!({"input_tokens": 70_000, "output_tokens": 10_000})).unwrap());
+    run.dispatches[0].result.as_mut().unwrap().usage = Some(
+        serde_json::from_value(
+            serde_json::json!({"input_tokens": 70_000, "output_tokens": 10_000}),
+        )
+        .unwrap(),
+    );
     let (tokens, _) = telperion_jev::conductor::dependency::estimate(&run);
     assert_eq!(tokens, 80_000);
 }
@@ -77,7 +93,13 @@ fn a_landed_round_that_left_the_halt_standing_loops_again() {
     let run = run(); // carries the gap-loop dispatch for the capability gate
     let table = telperion_jev::conductor::policy::load();
     let halt = Decision::new(
-        DecisionParts { species: "date-palm", stage: "gate", kind: "onboarding-gate", field: Some("capability"), age_years: None },
+        DecisionParts {
+            species: "date-palm",
+            stage: "gate",
+            kind: "onboarding-gate",
+            field: Some("capability"),
+            age_years: None,
+        },
         &["generate"],
         std::collections::BTreeMap::new(),
         vec![],
@@ -85,14 +107,34 @@ fn a_landed_round_that_left_the_halt_standing_loops_again() {
         &[],
         "",
     );
-    assert!(matches!(decision_action(&cfg, &table, &run, &halt), Next::AwaitOwner { .. }), "no landing yet: the halt is the owner's");
-    let gap = root.join("gaps").join(telperion_jev::pipeline::gap::slug(&halt.id));
+    assert!(
+        matches!(
+            decision_action(&cfg, &table, &run, &halt),
+            Next::AwaitOwner { .. }
+        ),
+        "no landing yet: the halt is the owner's"
+    );
+    let gap = root
+        .join("gaps")
+        .join(telperion_jev::pipeline::gap::slug(&halt.id));
     std::fs::create_dir_all(&gap).unwrap();
     std::fs::write(gap.join("gap.json"), b"{\"landed\":{\"commit\":\"b8b29448\",\"at\":\"2026-09-22T11:42:06Z\"},\"routes\":[{\"at\":\"2026-09-22T11:09:20Z\",\"route\":\"proceed\"}]}").unwrap();
-    assert!(matches!(decision_action(&cfg, &table, &run, &halt), Next::GapLoop { .. }), "a landed round loops again");
+    assert!(
+        matches!(
+            decision_action(&cfg, &table, &run, &halt),
+            Next::GapLoop { .. }
+        ),
+        "a landed round loops again"
+    );
     // The next round ran and routed to the owner: the halt is the owner's, not a third loop.
     std::fs::write(gap.join("gap.json"), b"{\"landed\":{\"commit\":\"b8b29448\",\"at\":\"2026-09-22T11:42:06Z\"},\"routes\":[{\"at\":\"2026-09-22T11:09:20Z\",\"route\":\"proceed\"},{\"at\":\"2026-09-22T11:52:57Z\",\"route\":\"owner\"}]}").unwrap();
-    assert!(matches!(decision_action(&cfg, &table, &run, &halt), Next::AwaitOwner { .. }), "a route after the landing is that round's outcome");
+    assert!(
+        matches!(
+            decision_action(&cfg, &table, &run, &halt),
+            Next::AwaitOwner { .. }
+        ),
+        "a route after the landing is that round's outcome"
+    );
 }
 
 #[test]
@@ -110,10 +152,20 @@ fn a_result_without_usage_charges_its_reservation_and_keeps_usage_known() {
     run.ingest("dispatch-1", r).unwrap();
     assert_eq!(run.budget.tokens, before + reserved);
     assert!(run.budget.usage_known);
-    assert!(run.dispatches[0].result.as_ref().unwrap().usage_is_reservation);
+    assert!(
+        run.dispatches[0]
+            .result
+            .as_ref()
+            .unwrap()
+            .usage_is_reservation
+    );
     // A record from before the rule heals on open: usage_known false, one uncounted result.
     run.budget.usage_known = false;
-    run.dispatches[0].result.as_mut().unwrap().usage_is_reservation = false;
+    run.dispatches[0]
+        .result
+        .as_mut()
+        .unwrap()
+        .usage_is_reservation = false;
     run.charge_unknown_usage();
     assert!(run.budget.usage_known);
     assert_eq!(run.budget.tokens, before + 2 * reserved);
@@ -123,10 +175,36 @@ fn a_result_without_usage_charges_its_reservation_and_keeps_usage_known() {
 fn an_under_floor_answer_is_decided_on_the_mass_its_side_carries() {
     use telperion_jev::conductor::policy::on_mass;
     let live = serde_json::json!({"complex": 0.61, "insufficient_evidence": 0.01, "needs_design": 0.06, "straightforward": 0.32});
-    assert_eq!(on_mass(Some(&live), "straightforward", &["complex", "needs_design"], 0.6).as_deref(), Some("complex"));
+    assert_eq!(
+        on_mass(
+            Some(&live),
+            "straightforward",
+            &["complex", "needs_design"],
+            0.6
+        )
+        .as_deref(),
+        Some("complex")
+    );
     let split = serde_json::json!({"complex": 0.3, "needs_design": 0.25, "straightforward": 0.45});
-    assert_eq!(on_mass(Some(&split), "straightforward", &["complex", "needs_design"], 0.6), None);
+    assert_eq!(
+        on_mass(
+            Some(&split),
+            "straightforward",
+            &["complex", "needs_design"],
+            0.6
+        ),
+        None
+    );
     let easy = serde_json::json!({"complex": 0.2, "needs_design": 0.1, "straightforward": 0.7});
-    assert_eq!(on_mass(Some(&easy), "straightforward", &["complex", "needs_design"], 0.6).as_deref(), Some("straightforward"));
+    assert_eq!(
+        on_mass(
+            Some(&easy),
+            "straightforward",
+            &["complex", "needs_design"],
+            0.6
+        )
+        .as_deref(),
+        Some("straightforward")
+    );
     assert_eq!(on_mass(None, "routine", &["complex"], 0.6), None);
 }

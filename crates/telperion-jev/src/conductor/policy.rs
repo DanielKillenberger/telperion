@@ -184,7 +184,12 @@ impl Signals {
 /// concentration floor, so the run bought investigations it did not need.
 /// When the easy side or the hard side holds at least `floor` of the mass,
 /// the answer is that side's argmax; otherwise nothing is decided.
-pub fn on_mass(probabilities: Option<&Value>, easy: &str, hard: &[&str], floor: f64) -> Option<String> {
+pub fn on_mass(
+    probabilities: Option<&Value>,
+    easy: &str,
+    hard: &[&str],
+    floor: f64,
+) -> Option<String> {
     let map = probabilities?.as_object()?;
     let mass = |name: &str| map.get(name).and_then(Value::as_f64).unwrap_or(0.0);
     if mass(easy) >= floor {

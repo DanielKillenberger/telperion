@@ -158,7 +158,10 @@ fn judge(
     let designed = dependency.status == DependencyStatus::Designed;
     let spec = spec_evidence(config, &dependency.spec)?;
     let key = if designed {
-        format!("implementation:{}", dependency.design_revision.clone().unwrap_or_default())
+        format!(
+            "implementation:{}",
+            dependency.design_revision.clone().unwrap_or_default()
+        )
     } else {
         format!("design:{}", canonical_sha256(&spec))
     };
@@ -315,7 +318,10 @@ pub fn advance(asker: &Asker<'_>, config: &Config, run: &mut Run, spec: &str) ->
     // first live run paused on exactly that. As fn-68's R11 settled for the
     // tuning loop, only a repeat asks.
     if !decided.human() && first_attempt {
-        decided.why = format!("{} (first attempt within the bound; no continuation question)", decided.why);
+        decided.why = format!(
+            "{} (first attempt within the bound; no continuation question)",
+            decided.why
+        );
     }
     // A scoped human decision that resumed the run authorizes the attempt
     // it named; the trio does not second-guess it. Opening the attempt

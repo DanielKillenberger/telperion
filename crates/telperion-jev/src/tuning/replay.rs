@@ -170,16 +170,19 @@ pub fn run(
         }
         journal.reserve(PER_CASE_TOKENS)?;
         let outcome = assess(adapter, &case.request);
-        let Ok(result) = outcome else {
-            journal.note(
-                &case.id,
-                json!({"status":"failed","usage":null,"result":null}),
-            )?;
-            let _ = journal.settle(0);
-            return Err(format!(
-                "case {} failed; the attempt is charged and is not retried",
-                case.id
-            ));
+        let result = match outcome {
+            Ok(result) => result,
+            Err(reason) => {
+                journal.note(
+                    &case.id,
+                    json!({"status":"failed","usage":null,"result":null,"reason":reason}),
+                )?;
+                let _ = journal.settle(0);
+                return Err(format!(
+                    "case {} failed ({reason}); the attempt is charged and is not retried",
+                    case.id
+                ));
+            }
         };
         let usage = result
             .visual

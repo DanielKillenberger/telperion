@@ -226,10 +226,23 @@ fn an_empty_agent_set_escalates_and_the_stronger_models_set_routes_proceeds_and_
     assert_eq!(again.spec, "fn-109-the-apical-rosette");
     let record = gap::read(&paths, &halt).unwrap();
     assert_eq!(record["landed"]["spec"], "fn-109-the-apical-rosette");
-    assert_eq!(record["landings"][0]["spec"], "fn-37-pendulous-shoots-as-rows");
+    assert_eq!(
+        record["landings"][0]["spec"],
+        "fn-37-pendulous-shoots-as-rows"
+    );
     let tools = resume::landed_tools(&paths.dir, "gate");
-    assert_eq!(tools.get("fix:fn-37-pendulous-shoots-as-rows").map(String::as_str), Some("abc1234"));
-    assert_eq!(tools.get("fix:fn-109-the-apical-rosette").map(String::as_str), Some("def5678"));
+    assert_eq!(
+        tools
+            .get("fix:fn-37-pendulous-shoots-as-rows")
+            .map(String::as_str),
+        Some("abc1234")
+    );
+    assert_eq!(
+        tools
+            .get("fix:fn-109-the-apical-rosette")
+            .map(String::as_str),
+        Some("def5678")
+    );
     assert_ne!(key_for(&paths, "gate"), gate_after_first);
 
     let numbers = metrics::write(&paths, "silver-birch").unwrap();
