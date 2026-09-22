@@ -172,6 +172,46 @@ pub fn append_decisions(path: &Path, new: Vec<Decision>) -> Result<Vec<Decision>
     Ok(list)
 }
 
+/// Retires the open decisions of `stage` that a rerun with changed inputs
+/// did not file again: the gate they named has passed or was reissued
+/// under another id. The first live run of the gap loop left a registry
+/// gate open after the registration landed, and the conductor was sent
+/// after it. A decision filed with the same inputs is left alone.
+pub fn retire_unfiled(
+    path: &Path,
+    stage: &str,
+    filed: &[String],
+    inputs: &BTreeMap<String, String>,
+    at: &str,
+) -> Result<Vec<String>, CanonError> {
+    let mut list = read_decisions(path)?;
+    let mut retired = Vec::new();
+    for decision in list.iter_mut() {
+        let stale = decision.stage == stage
+            && decision.status == Status::Open
+            && !filed.contains(&decision.id)
+            && decision.inputs_sha256 != *inputs;
+        if !stale {
+            continue;
+        }
+        decision.status = Status::Resolved;
+        decision.resolution = Some(Resolution {
+            id: decision.id.clone(),
+            inputs_sha256: decision.inputs_sha256.clone(),
+            option: "superseded".into(),
+            by: format!("{stage} stage rerun"),
+            at: at.into(),
+            note: "the stage reran with changed inputs and did not file this decision again".into(),
+            payload: Value::Null,
+        });
+        retired.push(decision.id.clone());
+    }
+    if !retired.is_empty() {
+        write_canonical(path, &decisions_value(&list))?;
+    }
+    Ok(retired)
+}
+
 /// Applies the resolutions a person wrote. A resolution whose checksums no
 /// longer match the decision's is void: the decision stays open and the note
 /// names the stale resolution.
@@ -289,6 +329,36 @@ mod tests {
         let list = append_decisions(&path, vec![miss("dbh_m", &[])]).unwrap();
         assert_eq!(list.len(), 2);
         assert!(list[0].id < list[1].id);
+    }
+
+    #[test]
+    fn a_rerun_with_changed_inputs_retires_the_gates_it_did_not_file_again() {
+        let dir = scratch();
+        let path = dir.join("decisions.json");
+        let mut registry = miss("registry", &[]);
+        registry.stage = "gate".into();
+        registry.inputs_sha256 = sha(&[("select.json", "old")]);
+        let mut capability = miss("capability", &[]);
+        capability.stage = "gate".into();
+        capability.inputs_sha256 = sha(&[("select.json", "old")]);
+        append_decisions(&path, vec![registry, capability]).unwrap();
+        // The rerun files only the capability gate under new inputs.
+        let retired = retire_unfiled(
+            &path,
+            "gate",
+            &[miss("capability", &[]).id],
+            &sha(&[("select.json", "new")]),
+            "2026-09-22",
+        )
+        .unwrap();
+        assert_eq!(retired, vec![miss("registry", &[]).id]);
+        let list = read_decisions(&path).unwrap();
+        let reg = list.iter().find(|d| d.field.as_deref() == Some("registry")).unwrap();
+        assert_eq!(reg.status, Status::Resolved);
+        assert_eq!(reg.resolution.as_ref().unwrap().option, "superseded");
+        // Same inputs again: nothing is retired, the file is untouched.
+        let again = retire_unfiled(&path, "gate", &[], &sha(&[("select.json", "old")]), "x").unwrap();
+        assert!(again.is_empty());
     }
 
     #[test]

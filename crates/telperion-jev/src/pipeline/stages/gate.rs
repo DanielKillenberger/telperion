@@ -21,7 +21,7 @@ use serde_json::{json, Map, Value};
 use telperion_core::capability::{self, Support, DERIVABLE};
 
 use crate::pipeline::canon::read_json;
-use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
+use crate::pipeline::decision::{append_decisions, retire_unfiled, Decision, DecisionParts};
 use crate::pipeline::manifest::Manifest;
 use crate::pipeline::stage::{Context, Paths, StageError};
 
@@ -136,6 +136,18 @@ pub fn run(paths: &Paths, checks: &dyn GateChecks) -> Result<Outcome, StageError
     let ids: Vec<String> = decisions.iter().map(|d| d.id.clone()).collect();
     if !decisions.is_empty() {
         append_decisions(&ctx.paths.decisions(), decisions)?;
+    }
+    // A gate this rerun did not file again has passed: the registry gate
+    // stayed open after the palm's registration landed and sent the loop
+    // after it. Retired by this stage, never by a person.
+    if ctx.paths.decisions().exists() {
+        retire_unfiled(
+            &ctx.paths.decisions(),
+            STAGE,
+            &ids,
+            &inputs(&[("select.json", &select_sha)]),
+            &crate::pipeline::gap::now(),
+        )?;
     }
     ctx.write(
         &header,

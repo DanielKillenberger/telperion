@@ -670,19 +670,19 @@ fn an_unjustified_next_attempt_pauses_with_budget_remaining_and_a_stage_halt_rou
         )
     };
     assert!(matches!(
-        plan::decision_action(&table, &run, &decision("onboarding-gate")),
+        plan::decision_action(&config, &table, &run, &decision("onboarding-gate")),
         Next::GapLoop { .. }
     ));
     assert!(matches!(
-        plan::decision_action(&table, &run, &decision("unavailable-source")),
+        plan::decision_action(&config, &table, &run, &decision("unavailable-source")),
         Next::Routine { .. }
     ));
     assert!(matches!(
-        plan::decision_action(&table, &run, &decision("tolerance-miss")),
+        plan::decision_action(&config, &table, &run, &decision("tolerance-miss")),
         Next::AwaitOwner { .. }
     ));
     assert!(matches!(
-        plan::decision_action(&table, &run, &decision("manifest-proposed")),
+        plan::decision_action(&config, &table, &run, &decision("manifest-proposed")),
         Next::AwaitOwner { .. }
     ));
     // A routine dispatch that returned without resolving hands the decision to the owner.
@@ -708,12 +708,12 @@ fn an_unjustified_next_attempt_pauses_with_budget_remaining_and_a_stage_halt_rou
             result: None,
         });
     assert!(matches!(
-        plan::decision_action(&table, &run, &source),
+        plan::decision_action(&config, &table, &run, &source),
         Next::Routine { .. }
     ));
     run.ingest("dispatch-9", verified("i", None, None)).unwrap();
     assert!(matches!(
-        plan::decision_action(&table, &run, &source),
+        plan::decision_action(&config, &table, &run, &source),
         Next::AwaitOwner { .. }
     ));
 }

@@ -92,15 +92,19 @@ pub fn open_decisions(config: &Config) -> Result<Vec<Decision>> {
 
 /// Who a decision belongs to: the gap loop, the cheap agent under policy, or
 /// the owner. Anything the policy does not name is the owner's by rule.
-pub fn decision_action(table: &policy::Table, run: &Run, decision: &Decision) -> Next {
+pub fn decision_action(config: &Config, table: &policy::Table, run: &Run, decision: &Decision) -> Next {
     if HALT_KINDS.contains(&decision.kind.as_str()) {
         // The loop ran once for this halt and did not mint a spec: its route
         // was the owner's or the stronger model's, so the halt is theirs now.
+        // A round whose spec landed and left the halt standing, narrower,
+        // is a fresh gap and loops again: the first live run's capability
+        // gate lost woody-axes to fn-108 and kept five anatomy names.
         let looped = run
             .dispatches
             .iter()
             .any(|d| d.scope.starts_with(&format!("gap-loop:{}:", decision.id)));
-        return if looped {
+        let landed_round = looped && gap_record_landed(config, &decision.id);
+        return if looped && !landed_round {
             Next::AwaitOwner {
                 decision: decision.id.clone(),
                 kind: decision.kind.clone(),
@@ -130,6 +134,16 @@ pub fn decision_action(table: &policy::Table, run: &Run, decision: &Decision) ->
         decision: decision.id.clone(),
         kind: decision.kind.clone(),
     }
+}
+
+/// Whether the gap record for this halt shows a landed round. Read-only:
+/// the record is the pipeline's.
+fn gap_record_landed(config: &Config, decision_id: &str) -> bool {
+    let path = crate::pipeline::gap::gap_dir(&config.paths(), decision_id).join("gap.json");
+    std::fs::read(&path)
+        .ok()
+        .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok())
+        .is_some_and(|record| !record["landed"].is_null())
 }
 
 fn first_missing_stage(config: &Config) -> Option<&'static str> {
@@ -188,11 +202,13 @@ pub fn next(config: &Config, run: &Run) -> Result<Next> {
     // filed before it. Rerun the stages before acting on any of them, or the
     // loop is sent after a gate the landing just cleared. The first live run
     // did exactly that with the registry gate after fn-108 landed.
-    let landed = run
+    let landed_unrun = run
         .dependencies
         .iter()
-        .any(|d| d.status == DependencyStatus::Landed);
-    if landed && run.stage_fingerprint.as_deref() != Some(stage_fingerprint(config, run).as_str()) {
+        .filter(|d| d.status == DependencyStatus::Landed)
+        .filter_map(|d| d.landed_commit.as_ref())
+        .any(|c| !run.stages_rerun_for.contains(c));
+    if landed_unrun {
         return Ok(Next::Stages {
             from: STAGES[0].into(),
         });
@@ -200,7 +216,7 @@ pub fn next(config: &Config, run: &Run) -> Result<Next> {
     let table = policy::load();
     let open = open_decisions(config)?;
     if let Some(decision) = open.iter().find(|d| !d.blocks.is_empty()) {
-        return Ok(decision_action(&table, run, decision));
+        return Ok(decision_action(config, &table, run, decision));
     }
     if let Some(stage) = first_missing_stage(config) {
         return Ok(Next::Stages { from: stage.into() });
@@ -211,7 +227,7 @@ pub fn next(config: &Config, run: &Run) -> Result<Next> {
         });
     }
     if let Some(decision) = open.first() {
-        return Ok(decision_action(&table, run, decision));
+        return Ok(decision_action(config, &table, run, decision));
     }
     let landed = run
         .dependencies

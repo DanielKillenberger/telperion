@@ -67,3 +67,27 @@ fn a_zero_usage_is_unknown_and_the_estimate_falls_back_to_the_attempt_bound() {
     let (tokens, _) = telperion_jev::conductor::dependency::estimate(&run);
     assert_eq!(tokens, 80_000);
 }
+
+#[test]
+fn a_landed_round_that_left_the_halt_standing_loops_again() {
+    use telperion_jev::conductor::plan::{decision_action, Next};
+    use telperion_jev::pipeline::decision::{Decision, DecisionParts};
+    let root = scratch();
+    let cfg = config(&root);
+    let run = run(); // carries the gap-loop dispatch for the capability gate
+    let table = telperion_jev::conductor::policy::load();
+    let halt = Decision::new(
+        DecisionParts { species: "date-palm", stage: "gate", kind: "onboarding-gate", field: Some("capability"), age_years: None },
+        &["generate"],
+        std::collections::BTreeMap::new(),
+        vec![],
+        serde_json::json!({}),
+        &[],
+        "",
+    );
+    assert!(matches!(decision_action(&cfg, &table, &run, &halt), Next::AwaitOwner { .. }), "no landing yet: the halt is the owner's");
+    let gap = root.join("gaps").join(telperion_jev::pipeline::gap::slug(&halt.id));
+    std::fs::create_dir_all(&gap).unwrap();
+    std::fs::write(gap.join("gap.json"), b"{\"landed\":{\"commit\":\"b8b29448\"}}").unwrap();
+    assert!(matches!(decision_action(&cfg, &table, &run, &halt), Next::GapLoop { .. }), "a landed round loops again");
+}

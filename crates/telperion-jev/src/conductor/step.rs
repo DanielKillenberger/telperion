@@ -85,6 +85,16 @@ impl Executor for LiveExecutor {
 fn stages(config: &Config, run: &mut Run, executor: &dyn Executor, from: &str) -> Result<String> {
     let start = STAGES.iter().position(|s| *s == from).unwrap_or(0);
     let mut words = Vec::new();
+    for commit in run
+        .dependencies
+        .iter()
+        .filter_map(|d| d.landed_commit.clone())
+        .collect::<Vec<_>>()
+    {
+        if !run.stages_rerun_for.contains(&commit) {
+            run.stages_rerun_for.push(commit);
+        }
+    }
     for stage in &STAGES[start..] {
         match executor.stage(config, stage) {
             Ok(StageOutcome::Current) => words.push(format!("{stage}: current")),

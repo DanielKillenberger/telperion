@@ -106,6 +106,10 @@ pub struct Run {
     pub budget: Budget,
     pub dispatches: Vec<Dispatch>,
     pub dependencies: Vec<Dependency>,
+    /// Landed commits whose stages have rerun since, halt or not; a landing
+    /// not in this list sends the stages before any halt is acted on.
+    #[serde(default)]
+    pub stages_rerun_for: Vec<String>,
     pub tuning: Vec<TuningRevision>,
     /// Every route the policy took, in order: `<context>=<route>: <why>`.
     pub routes: Vec<String>,
@@ -127,6 +131,7 @@ impl Run {
     pub fn new(config: &Config) -> Self {
         let at = now();
         Self {
+            stages_rerun_for: Vec::new(),
             schema: "conductor-run".into(),
             schema_version: SCHEMA_VERSION,
             species: config.species.clone(),
