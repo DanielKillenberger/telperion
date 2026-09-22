@@ -25,9 +25,13 @@ def prepare(envelope):
         if request["specimen_relationship"] != "unknown":
             raise ValueError("unsupported specimen relationship")
         images = [r["image"] for r in request["references"]]
-        schema = object_schema({"traits": {"type": "array", "items": object_schema({
-            "id": {"type": "string"}, "priority": {"type": "string", "enum": ["core", "secondary", "variation"]},
-            "observation": {"type": "string"}, "reference_ids": strings(), "uncertain": {"type": "boolean"}})}, "observations": strings()})
+        # The receipt (reference_first.rs, Inventory::verify) holds at most 16
+        # traits and 16 observations; the schema states the cap so the model
+        # never returns an inventory the receipt then rejects.
+        schema = object_schema({"traits": {"type": "array", "minItems": 1, "maxItems": 16, "items": object_schema({
+            "id": {"type": "string", "maxLength": 64}, "priority": {"type": "string", "enum": ["core", "secondary", "variation"]},
+            "observation": {"type": "string"}, "reference_ids": strings(), "uncertain": {"type": "boolean"}})},
+            "observations": {**strings(), "maxItems": 16}})
     elif stage == "comparison":
         r = request["comparison"]
         images = r["images"] + r["references"] + [a["image"] for a in r["quality_anchors"]]
