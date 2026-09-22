@@ -1,0 +1,11 @@
+{
+ "pause_id": "pause-9",
+ "identity": "730e0d42a99e053073adf2c9f19d231f635d9e5ab9948ea29d09c28031d84448",
+ "action": "human: a hard limit is reached; no budget reset without the human",
+ "by": "host claude-fable-5-1 under the owner's standing rule (small caps raised by the host, recorded with the arithmetic)",
+ "rationale": "Six dispatches used: one obsolete replay, one cheap implementation of fn-108, one host option set, one strong design, two investigations (the second closed unrun). Remaining work on fn-109 is one implementation, its landing, then the gate rerun and a tuning revision: at least three dispatches. Cap 6 -> 12. Tokens 768,432 known of 2,000,000; unchanged.",
+ "round_cap_extension": {
+  "previous": 6,
+  "next": 12
+ }
+}

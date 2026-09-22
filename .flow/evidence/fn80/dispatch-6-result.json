@@ -1,0 +1,15 @@
+{
+ "input_identity": "36de238c47fd03ac8269ccc822391cca778ec8274d4fd78265e8a90ffa6be5e5",
+ "design_revision": "230d1ebe55ae027defc606d1898f29a9669d1881bcfee30b64d8eb5e7d85c224",
+ "actual_model": "none",
+ "actual_effort": "none",
+ "usage": {
+  "input_tokens": 0,
+  "output_tokens": 0
+ },
+ "cost_usd": null,
+ "verification": "failed",
+ "observed": "not run: a second investigation of the same design revision is refused by the rule that landed after this dispatch opened; the judgment is decided on its mass.",
+ "handoff": null,
+ "failure": "superseded by rule: one investigation per design revision"
+}

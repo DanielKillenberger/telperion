@@ -1,0 +1,15 @@
+{
+ "input_identity": "0b4e1fc6f259bed101abe1429e571a9b13398aa813885e4531d7e3e52f85dd04",
+ "design_revision": "230d1ebe55ae027defc606d1898f29a9669d1881bcfee30b64d8eb5e7d85c224",
+ "actual_model": "claude-sonnet-5",
+ "actual_effort": "default",
+ "usage": {
+  "input_tokens": 160034,
+  "output_tokens": 0
+ },
+ "cost_usd": null,
+ "verification": "verified",
+ "observed": "touch surface verified against the code: 8 implementation files and 4 test files; 10 new wire rows under /canopy/; 6 authoring sites per row, one more than the handoff names (the blend walk bucket, uncaught by any coverage test); 0 of 21 call sites change with the rows on canopy; 4 existing tests go red first; byte-identity pinned by species digests over 4 species times 12 to 13 seeds plus 5 pins files; precedent short_shoots.rs landed as 12 files, 844 lines; one type name wrong in the handoff (timeline.rs:88 is impl Foliage, not Placement::new); the spec's host decisions leave nothing for the implementer to decide. Investigation at .flow/evidence/fn80/investigation-fn-109.md. Usage is the investigator's total; split unknown.",
+ "handoff": ".flow/evidence/fn80/investigation-fn-109.md",
+ "failure": null
+}
