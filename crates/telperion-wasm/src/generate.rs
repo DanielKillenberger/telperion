@@ -1,10 +1,12 @@
 //! The build chain the C-ABI runs: growth, wood surface, foliage and field.
+//! A field request reads the leaf plan and places no leaf where the family
+//! has a plan; only a foliage request, or a family without a plan, places.
 use crate::clock;
 use serde_json::{json, Value};
 use telperion_core::{
     branching,
     field::{Field, FieldSnapshot},
-    foliage,
+    foliage::{self, plan},
     math::Vec3,
     params, surface,
     tree::NodeKind,
@@ -96,28 +98,45 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
     } else {
         0.0
     };
+    let twig = foliage::TwigPlacement {
+        internode_length: t.twig.internode_length,
+        stations_per_internode: t.twig.stations_per_internode,
+    };
+    let mut element = None;
+    if wants("foliage") || wants("field") {
+        element = Some(foliage::build_element(f.element)?);
+    }
+    let start = clock();
+    let mut leaf_plan = None;
+    if wants("field") {
+        leaf_plan = plan::plan(
+            &tree,
+            f.skeleton.envelope,
+            f.canopy,
+            Some(twig),
+            &f.surface,
+            element.as_ref().unwrap(),
+        )?;
+    }
+    let plan_ms = if wants("field") { clock() - start } else { 0.0 };
     let start = clock();
     let mut placed_count = 0;
     let mut leaf_bounds = Value::Null;
-    let needs_foliage = wants("foliage") || wants("field");
-    let mut element = None;
+    let needs_placement = wants("foliage") || (wants("field") && leaf_plan.is_none());
     let mut anatomy = Value::Null;
-    if needs_foliage {
-        let blade = foliage::build_element(f.element)?;
+    if needs_placement {
+        let blade = element.as_ref().unwrap();
         let placed = foliage::place_on_surface(
             &tree,
             f.skeleton.envelope,
             f.skeleton.seed,
             f.canopy,
-            Some(foliage::TwigPlacement {
-                internode_length: t.twig.internode_length,
-                stations_per_internode: t.twig.stations_per_internode,
-            }),
+            Some(twig),
             &f.surface,
             foliage::Reference::of(&f)?,
         )?;
         placed_count = placed.len();
-        out.instances = foliage::cull(placed, &blade, f.skeleton.envelope, f.shell_depth)?;
+        out.instances = foliage::cull(placed, blade, f.skeleton.envelope, f.shell_depth)?;
         if wants("foliage") {
             anatomy = blade.anatomy.as_ref().map_or(Value::Null, |a| json!({
                 "unit": match a.unit { foliage::FoliageUnit::Leaf => "leaf", foliage::FoliageUnit::Needle => "needle" },
@@ -127,7 +146,7 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
             }));
             leaf_bounds = out
                 .instances
-                .bounds(&blade)?
+                .bounds(blade)?
                 .map_or(Value::Null, |b| bounds(b.min, b.max));
             out.element_positions = blade
                 .positions
@@ -137,15 +156,14 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
             out.element_indices = blade.indices.clone();
             out.element_coords = blade.coords.clone();
         }
-        element = Some(blade);
     }
-    let foliage_ms = if needs_foliage { clock() - start } else { 0.0 };
+    let foliage_ms = if needs_placement { clock() - start } else { 0.0 };
     let start = clock();
     if wants("field") {
-        out.field = Some(Field::new(
-            &tree,
-            element.as_ref().map(|e| (&out.instances, e)),
-        )?);
+        out.field = Some(match &leaf_plan {
+            Some(leaf_plan) => Field::planned(&tree, leaf_plan)?,
+            None => Field::new(&tree, Some((&out.instances, element.as_ref().unwrap())))?,
+        });
     }
     let field_ms = if wants("field") { clock() - start } else { 0.0 };
     let retained_count = out.instances.len();
@@ -186,6 +204,8 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         "attractionCapped":tree.diagnostics.attraction_capped,"complete":tree.diagnostics.complete(),
         "handoffs":handoffs,"generationCounts":counts,"levelCappedHandoffs":capped_handoffs,"twigs":twig_count,
         "leavesPlaced":placed_count,"instances":retained_count,
+        // Stations the plan counts before any cull; zero without a plan.
+        "leavesPlanned":leaf_plan.as_ref().map_or(0,|p|p.total),
         "surfaceBounds":out.surface.as_ref().and_then(|s|s.bounds).map(|b|bounds(b.min,b.max)),
         "foliageBounds":leaf_bounds,
         // The box every leaf position is quantised against. A reader of the
@@ -195,11 +215,16 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
             "extent":[reference.extent.x, reference.extent.y, reference.extent.z]
         },
         "foliageAnatomy":anatomy,
-        "biologicalUnits": if element.as_ref().is_some_and(|e| e.anatomy.is_some()) { Some(retained_count) } else { None },
+        "biologicalUnits": if needs_placement && element.as_ref().is_some_and(|e| e.anatomy.is_some()) { Some(retained_count) } else { None },
         "fieldBounds":out.field.as_ref().and_then(Field::bounds).map(|b|bounds(b.min,b.max)),
         "fieldBytes":out.field.as_ref().map_or(0,Field::storage_bytes),
-        "timings":{"growthMs":growth_ms,"surfaceMs":surface_ms,"foliageMs":foliage_ms,"fieldMs":field_ms,"coreMs":clock()-started},
-        "stages":{"surface":wants("surface"),"foliage":needs_foliage,"field":wants("field")}
+        "timings":{"growthMs":growth_ms,"surfaceMs":surface_ms,"planMs":plan_ms,"foliageMs":foliage_ms,"fieldMs":field_ms,"coreMs":clock()-started},
+        // Which stages ran: placement and the cull run together, the contact
+        // surface only under placement with surface contact, the plan for a
+        // field request the family's plan can describe.
+        "stages":{"surface":wants("surface"),"foliage":needs_placement,"placement":needs_placement,"cull":needs_placement,
+            "contacts":needs_placement && f.canopy.surface_contact > 0.0,"plan":leaf_plan.is_some(),"field":wants("field"),
+            "fieldSource":if !wants("field") { Value::Null } else if leaf_plan.is_some() { json!("plan") } else { json!("placed") }}
     });
     Ok((out, meta))
 }
@@ -257,6 +282,42 @@ mod tests {
             branch_diagnostics(&tree, params).unwrap(),
             (vec![0; params.generations as usize + 1], 0, 0, 0)
         );
+    }
+
+    /// A field request places no leaf where the family has a plan, and the
+    /// metadata says which stages ran, for every shipped preset (R1). The
+    /// beech, with short shoots and limb clumping, keeps the placed path.
+    #[test]
+    fn a_field_request_reads_the_plan_and_names_its_stages_for_every_preset() {
+        for &(_, id, _, _) in params::CATALOGUE.iter() {
+            let (_, meta) = generate(json!({"family": id, "outputs": {"field": true}}))
+                .unwrap_or_else(|e| panic!("{id}: {e}"));
+            let stages = &meta["stages"];
+            let planned = id != "european-beech";
+            assert_eq!(stages["plan"], json!(planned), "{id}: {stages}");
+            assert_eq!(stages["placement"], json!(!planned), "{id}: {stages}");
+            assert_eq!(stages["cull"], json!(!planned), "{id}: {stages}");
+            assert_eq!(stages["contacts"], json!(false), "{id}: {stages}");
+            assert_eq!(stages["surface"], json!(false), "{id}: {stages}");
+            assert_eq!(
+                stages["fieldSource"],
+                json!(if planned { "plan" } else { "placed" }),
+                "{id}: {stages}"
+            );
+            assert_eq!(meta["leavesPlaced"], json!(0), "{id}");
+            if planned {
+                assert!(meta["leavesPlanned"].as_u64().unwrap() > 0, "{id}");
+                assert_eq!(meta["biologicalUnits"], Value::Null, "{id}");
+            }
+        }
+        let (_, meta) = generate(json!({
+            "family": "oregon-white-oak", "outputs": {"foliage": true, "field": true}
+        }))
+        .unwrap();
+        assert_eq!(meta["stages"]["plan"], json!(true));
+        assert_eq!(meta["stages"]["placement"], json!(true));
+        assert_eq!(meta["stages"]["fieldSource"], json!("plan"));
+        assert_eq!(meta["biologicalUnits"], meta["instances"]);
     }
 
     /// The mesh the renderer draws and the chain this binding runs are one

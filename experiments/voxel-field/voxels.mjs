@@ -4,6 +4,9 @@
 // Run: node experiments/voxel-field/voxels.mjs [resolution] [keep,keep,...]
 // keep is the fraction of twig-bearing branches whose sprays become foliage:
 // whole branches drop out, so the crown opens in clumps instead of thinning evenly.
+// FIELD=1 reads the core's field (fn-100) instead of the structure export: one
+// batch query over the grid, wood and foliage bits per cell, and the owning
+// limb id as the clump coin. WASM=<path> reads another build of the binding.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
 
@@ -14,9 +17,10 @@ const CLUMP = Number(process.argv[4] ?? 0.1);
 const KEEPS = (process.argv[3] ?? '0.5,0.3,0.15').split(',').map(Number);
 const SPECIES = ['oregon-white-oak', 'silver-birch', 'norway-spruce'];
 const WOOD = 1, LEAF = 2;
+const FIELD = process.env.FIELD === '1';
 
 const { instance } = await WebAssembly.instantiate(
-  readFileSync(new URL('src/browser/telperion.wasm', root)),
+  readFileSync(process.env.WASM ? new URL(process.env.WASM, `file://${process.cwd()}/`) : new URL('src/browser/telperion.wasm', root)),
   { env: { now: () => performance.now() } },
 );
 const x = instance.exports;
@@ -36,6 +40,45 @@ function structure(id) {
     values: new Float64Array(x.memory.buffer, x.buffer_ptr(6), x.buffer_len(6)).slice(),
     topology: new Uint32Array(x.memory.buffer, x.buffer_ptr(7), x.buffer_len(7)).slice(),
   };
+}
+
+/// The field over a grid of N cells along the tree's longest axis: one batch
+/// query, then the bits and the limb id of every cell.
+function field(id) {
+  const request = Buffer.from(JSON.stringify({ family: id, outputs: { field: true } }));
+  if (x.request_alloc(request.length)) throw Error(JSON.stringify(meta()));
+  new Uint8Array(x.memory.buffer, x.request_ptr(), request.length).set(request);
+  if (x.build()) throw Error(JSON.stringify(meta()));
+  const m = meta();
+  const { min, max } = m.fieldBounds;
+  const cell = Math.max(max[0] - min[0], max[1] - min[1], max[2] - min[2]) / (N - 2);
+  const origin = min.map((v, a) => (v + max[a]) / 2 - (N * cell) / 2);
+  origin[1] = min[1] - cell;
+  const cells = new Float64Array(N * N * N * 4);
+  for (let k = 0; k < N; k++) for (let j = 0; j < N; j++) for (let i = 0; i < N; i++)
+    cells.set([origin[0] + (i + .5) * cell, origin[1] + (j + .5) * cell, origin[2] + (k + .5) * cell, cell / 2], ((k * N + j) * N + i) * 4);
+  if (x.query_alloc(N * N * N)) throw Error(JSON.stringify(meta()));
+  new Float64Array(x.memory.buffer, x.query_ptr(), cells.length).set(cells);
+  if (x.query(m.revision)) throw Error(JSON.stringify(meta()));
+  return {
+    flags: new Uint8Array(x.memory.buffer, x.buffer_ptr(8), x.buffer_len(8)).slice(),
+    limbs: new Uint32Array(x.memory.buffer, x.buffer_ptr(20), x.buffer_len(20)).slice(),
+    cell, stages: m.stages, planned: m.leavesPlanned, buildMs: m.timings.coreMs,
+  };
+}
+
+/// Cells from the field: foliage where the field reports it and the owning
+/// limb keeps its clump; wood where the field reports wood no leaf reaches,
+/// which is the trunk and the limbs, as the structure pass drew only wood
+/// thicker than a fifth of a cell. A dropped clump takes its twigs with it.
+function voxelizeField({ flags, limbs, cell }, keep) {
+  const grid = new Uint8Array(N * N * N);
+  let wood = 0, leaf = 0;
+  for (let n = 0; n < grid.length; n++) {
+    if (flags[n] & 2 && kept(limbs[n], keep)) { grid[n] = LEAF; leaf++; }
+    else if (flags[n] === 1) { grid[n] = WOOD; wood++; }
+  }
+  return { grid, cell, wood, leaf };
 }
 
 /// Stable per-branch coin: the same branch run always answers the same.
@@ -188,11 +231,12 @@ const width = SIZE * SPECIES.length;
 const sheet = new Uint8Array(width * SIZE * KEEPS.length).fill(255);
 SPECIES.forEach((id, column) => {
   let t = performance.now();
-  const tree = structure(id);
+  const tree = FIELD ? field(id) : structure(id);
   const growMs = performance.now() - t;
+  if (FIELD) console.log(`${id}: field ${JSON.stringify(tree.stages)}, ${tree.planned} stations planned, core ${tree.buildMs.toFixed(0)} ms, grid query ${growMs.toFixed(0)} ms in all`);
   KEEPS.forEach((keep, row) => {
     t = performance.now();
-    const v = voxelize(tree, keep);
+    const v = FIELD ? voxelizeField(tree, keep) : voxelize(tree, keep);
     const voxelMs = performance.now() - t;
     const image = render(v.grid, SIZE);
     for (let y = 0; y < SIZE; y++) sheet.set(image.subarray(y * SIZE, (y + 1) * SIZE), (row * SIZE + y) * width + column * SIZE);
@@ -200,6 +244,6 @@ SPECIES.forEach((id, column) => {
   });
 });
 mkdirSync(out, { recursive: true });
-const file = new URL(`sheet-${N}-keep.png`, out);
+const file = new URL(`sheet-${N}-keep${FIELD ? '-field' : ''}.png`, out);
 writeFileSync(file, png(sheet, width, SIZE * KEEPS.length));
 console.log(file.pathname);

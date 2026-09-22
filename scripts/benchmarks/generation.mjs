@@ -48,7 +48,7 @@ try {
       const queries = [], artifacts = {...arrays};
       for(const size of [32,64,'boundary']) {
         const prep = performance.now(), cells = size==='boundary'?boundaryCells(snapshot):gridCells(snapshot.bounds,size);
-        const cellsMs = performance.now()-prep, start = performance.now(), flags = output.field.query(cells), queryMs = performance.now()-start;
+        const cellsMs = performance.now()-prep, start = performance.now(), {flags} = output.field.query(cells), queryMs = performance.now()-start;
         let verificationMs = null, mismatchCount = null;
         if(sample===-1 || size==='boundary') {
           const start = performance.now(), reference = querySnapshot(snapshot,cells);
