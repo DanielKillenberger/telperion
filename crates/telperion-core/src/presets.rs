@@ -41,8 +41,13 @@ pub const CATALOGUE: &[(u32, &str, &str, &str)] = &[
 /// listed, served by id or built by name: the core's tests and the species
 /// runner reach them through `Preset`. The European beech ships when fn-62
 /// accepts it.
-pub const IN_WORK: &[(u32, &str, &str, &str)] =
-    &[(5, "european-beech", "European beech", "Fagus sylvatica")];
+/// The date palm (fn-108) is registered with its reachable values only; its
+/// remaining anatomy gaps are their own specs and fn-82 owns the species'
+/// acceptance.
+pub const IN_WORK: &[(u32, &str, &str, &str)] = &[
+    (5, "european-beech", "European beech", "Fagus sylvatica"),
+    (7, "date-palm", "Date palm", "Phoenix dactylifera"),
+];
 /// The family a shipped identity serves: the catalogue's tables, with the
 /// growth default an unset turn limit falls back to. Every binding resolves
 /// a species id through here.
