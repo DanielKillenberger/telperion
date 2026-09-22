@@ -1,7 +1,9 @@
 //! What every cross-resolution contract shares: the 2x2 box agreement between
 //! a full-size still and its half-size draw, a wood mask read off the clay
 //! room, and the receipt each test writes on a green run so the margin is
-//! known before the next shading change (fn-71).
+//! known before the next shading change (fn-71). A plain run leaves that
+//! receipt in the target temp directory; `TELPERION_RECORD_EVIDENCE=1` is how a
+//! change to bark resolution refreshes the committed margins on purpose.
 use std::path::PathBuf;
 
 use telperion_render::Still;
@@ -38,19 +40,25 @@ pub fn wood_mask(clay: &Still) -> Vec<(usize, usize)> {
         .collect()
 }
 
-/// Where a resolution test's receipt lands: the spec's evidence, one JSON
-/// file per test, each row a fixture with its measured mean and p95 in code
-/// values and the bound it was held to.
-fn receipt_path(name: &str) -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../.flow/evidence/fn71/resolution")
-        .join(format!("{name}.json"))
+/// Where a resolution test's receipt lands: one JSON file per test, each row a
+/// fixture with its measured mean and p95 in code values and the bound it was
+/// held to. A run that was not asked for the evidence keeps its receipt in the
+/// target temp directory, so it decides nothing about what the tracked evidence
+/// says; only `TELPERION_RECORD_EVIDENCE=1` names the spec's evidence.
+fn receipt_path(name: &str, to_evidence: bool) -> PathBuf {
+    let directory = if to_evidence {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../.flow/evidence/fn71/resolution")
+    } else {
+        PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("resolution")
+    };
+    directory.join(format!("{name}.json"))
 }
 
 /// Writes the test's measured margins. A receipt that cannot be written is a
 /// failure: the margin the next change needs would be unknown.
 pub fn record(name: &str, rows: &[(String, f64, f64, f64)]) {
-    let path = receipt_path(name);
+    let asked_for = std::env::var("TELPERION_RECORD_EVIDENCE").as_deref() == Ok("1");
+    let path = receipt_path(name, asked_for);
     std::fs::create_dir_all(path.parent().unwrap()).unwrap();
     let body = rows
         .iter()
@@ -67,5 +75,30 @@ pub fn record(name: &str, rows: &[(String, f64, f64, f64)]) {
         path.is_file(),
         "receipt missing after write: {}",
         path.display()
+    );
+}
+
+/// Both settings, without a device: the run nobody asked for the evidence from
+/// writes beside the test binary, and only the asked-for run names the tracked
+/// file, in the same place and under the same name as before.
+#[test]
+fn only_an_asked_for_run_names_the_tracked_evidence() {
+    let asked = receipt_path("smooth_bark", true);
+    assert!(
+        asked.ends_with(".flow/evidence/fn71/resolution/smooth_bark.json"),
+        "asked-for receipt moved: {}",
+        asked.display()
+    );
+
+    let plain = receipt_path("smooth_bark", false);
+    assert_eq!(
+        plain,
+        PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("resolution/smooth_bark.json"),
+        "a plain run must keep its receipt in the target temp directory"
+    );
+    assert!(
+        !plain.components().any(|part| part.as_os_str() == "evidence"),
+        "a plain run reached the tracked evidence: {}",
+        plain.display()
     );
 }
