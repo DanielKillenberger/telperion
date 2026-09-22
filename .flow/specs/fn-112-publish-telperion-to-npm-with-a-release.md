@@ -40,13 +40,14 @@ The README gains a short section that names the field package and points at the 
 - **R3:** A tag whose version differs from `package.json` fails the workflow before the publish step, with the two versions named in the failure. [inferred]
 - **R4:** A dry-run pack on a clean checkout lists only files under `dist`, and among them the `field.js`, `voxelize.js` and `telperion-field.wasm` files with their type declarations; the listing is recorded in the spec's evidence. [inferred]
 - **R5:** The README carries a section naming the field package, the two exports and the doc that describes them. [paraphrase]
-- **R6:** The first publish, `v0.1.0`, succeeds through the workflow, and a fresh project with no Rust toolchain installs `telperion` from the registry and runs the Node smoke from the package doc: grow a species, query a grid, read the four answers. The install and the run are recorded in the spec's evidence with the Node version. [paraphrase]
+- **R6 (amended by the host, 2026-09-22):** npm attaches a trusted publisher only to a package that already exists, so the package is created by one publish of `v0.1.0` by the owner's hand from the tagged master commit, the trusted publisher is then attached on npmjs.com, and the workflow proves itself on the first later tag, `v0.1.1`, published with provenance and no stored token. A fresh project with no Rust toolchain installs that version from the registry and runs the Node smoke from the package doc: grow a species, query a grid, read the four answers. The tag, the install and the run are recorded in the spec's evidence with the Node version. [paraphrase, host amendment]
 
 ## Boundaries
 
 - No change to the package's exports, the field contract or the build itself; this spec ships what master has. [inferred]
 - No changelog tooling, no automatic version bumps and no pre-release channels. A version is bumped by hand in `package.json` and tagged by hand. [inferred]
 - The trusted publisher on the npm side is configured by the owner, whose account owns the package; the spec's workflow assumes it exists and R6 is the proof. [paraphrase]
+- The main entry `dist/telperion.js` inlines the full Wasm and the renderer glue as text, about 6.7 MB; whether to fix its loading before the first publish is the owner's open decision, recorded under Decision Context, and not built here unless the owner says so. [inferred]
 
 ## Decision Context
 
@@ -54,6 +55,11 @@ The README gains a short section that names the field package and points at the 
 - Unscoped `telperion` rather than `@killenberger/telperion`: the name is free and the repository is public. The owner may still choose the scope before the first publish; only the package name changes. [paraphrase]
 - Provenance with a trusted publisher rather than a stored token, so the published artifact is bound to the tagged commit and the workflow run. [paraphrase]
 - Depends on fn-101, landed on master as PR #58 on 2026-09-22. [inferred]
+
+## Decision Context, added by the host (2026-09-22)
+
+- The first publish moves to the owner's hand because npm's trusted-publisher form lives on an existing package's settings page; the workflow's proof is the first tag after it. Recorded in RESULTS.md and FRICTION.md by the worker as an unknown, settled here.
+- Open: the main entry's 6.7 MB inlined Wasm. Options: publish 0.1.0 as is, or make the main entry fetch its Wasm as a file the way the field entry does before tagging. The owner decides before the tag.
 
 ## Parked unknowns
 
