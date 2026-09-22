@@ -41,6 +41,8 @@ fn run() -> Result<(), String> {
             .map_err(|e| e.to_string())?;
         let page = telperion_jev::tuning::result::markdown(&result);
         fs::write(dir.join("RESULT.md"), &page).map_err(|e| e.to_string())?;
+        let html = telperion_jev::tuning::result::html::page(&result, &dir);
+        fs::write(dir.join("RESULT.html"), html).map_err(|e| e.to_string())?;
         print!("{page}");
         return Ok(());
     }

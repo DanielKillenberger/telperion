@@ -147,6 +147,11 @@ fn every_approved_priority_is_a_gap_entry_with_its_status_and_the_check_left_ope
     for needle in ["owner-hanging", "owner-bark", "not assessed", "stalled in tuning", "cand", CHECK_PENDING] {
         assert!(page.contains(needle), "RESULT.md lacks {needle}");
     }
+    let html = result::html::page(&r, std::path::Path::new("/run"));
+    for needle in ["owner-bark", "stalled in tuning", "weighted droop", "file://", "<img"] {
+        assert!(html.contains(needle), "RESULT.html lacks {needle}");
+    }
+    assert!(!html.contains("<script"), "the page carries no script");
     let round_trip: result::EndResult =
         serde_json::from_value(serde_json::to_value(&r).unwrap()).unwrap();
     assert_eq!(round_trip, r);

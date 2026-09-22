@@ -6,6 +6,8 @@ use super::{engine::Run, evaluation::Image, handoff::Attempt, state::CellStatus}
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+pub mod html;
+
 pub const CHECK_PENDING: &str =
     "pending: the invoker answers reachable (dials not yet tried), covered (an open spec) or new";
 pub const NEW_GAP_NOTE: &str = "a new gap escalates: its cause in generator terms and the shape of its spec are the host's, never this run's";
