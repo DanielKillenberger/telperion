@@ -480,4 +480,4 @@ The spec was amended four times on 2026-09-21 with the owner's word each time, a
 
 - The material-track split renders only the trunk view, so its halves are never shown to the sheet ("no still the current tree also holds"). Unfixed; recorded in the final-run note.
 - `crates/telperion-jev/src/tuning/live.rs` (1,001 lines) and `engine.rs` (770) are over the file-size rule, as are the two largest test files. No behaviour rests on it; a split is a cleanup for a later change.
-- One test stays `#[ignore]` because CI has no `uv`; it passes when run with `--ignored`.
+- The one `#[ignore]` test (`the_real_command_reaches_the_priority_pause_then_routes_and_writes_handoffs`, ignored because CI has no `uv`) is stale since the bundle redesign: run with `--ignored` on 2026-09-22 it reaches routing and the handoffs, then pauses "no supported proposal" because the fixture's Jev mock answers no direction question, so its assertion that a round spent evaluations fails. The gate never runs it. Unfixed; a fixture that answers the bundle question is the repair.
