@@ -117,6 +117,27 @@ function voxelizeField({ flags, limbs, leaves, radius, cell }, keep) {
     const d = n => { const [i, j, k] = at(n); const e = sum.get(limbs[n]); return Math.hypot(i - e.i / e.c, j - e.j / e.c, k - e.k / e.c); };
     for (const n of foliage) { const e = spread.get(limbs[n]) ?? { s: 0, c: 0 }; e.s += d(n); e.c++; spread.set(limbs[n], e); }
     score = n => { const e = spread.get(limbs[n]); return -d(n) / (e.s / e.c + 1e-9); };
+  } else if (THIN === 'gap') {
+    // Each limb system keeps its own shape and loses the cells nearest a
+    // neighbouring system first: gaps open along the boundaries between
+    // systems, the crown's outer surface stays, and a hanging curtain stays
+    // a curtain. The score is the grid distance to the nearest cell of a
+    // different system, by breadth-first search from the boundaries.
+    const dist = new Int32Array(N * N * N).fill(-1);
+    const isLeaf = new Uint8Array(N * N * N);
+    for (const n of foliage) isLeaf[n] = 1;
+    const at = n => [n % N, Math.floor(n / N) % N, Math.floor(n / (N * N))];
+    const steps = [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+    const neighbours = n => { const [i, j, k] = at(n); const out = []; for (const [di, dj, dk] of steps) { const a = i + di, b = j + dj, c = k + dk; if (a >= 0 && b >= 0 && c >= 0 && a < N && b < N && c < N) out.push((c * N + b) * N + a); } return out; };
+    let queue = [];
+    for (const n of foliage) if (neighbours(n).some(m => isLeaf[m] && limbs[m] !== limbs[n])) { dist[n] = 0; queue.push(n); }
+    while (queue.length) {
+      const next = [];
+      for (const n of queue) for (const m of neighbours(n)) if (isLeaf[m] && dist[m] === -1 && limbs[m] === limbs[n]) { dist[m] = dist[n] + 1; next.push(m); }
+      queue = next;
+    }
+    // A system with no neighbour never erodes; it scores as its deepest cell would.
+    score = n => (dist[n] === -1 ? N : dist[n]) + leaves[n] * 1e-6;
   } else {
     // Grid distance to the nearest drawn limb cell, by breadth-first search.
     const dist = new Int32Array(N * N * N).fill(-1);
