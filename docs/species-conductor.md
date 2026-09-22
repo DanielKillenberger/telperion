@@ -57,7 +57,12 @@ through the shared caller with a ledger entry:
   never inheriting the gap's difficulty: straightforward, complex, needs
   design or insufficient evidence.
 
+A first attempt on a dependency is bounded by construction, one dispatch
+within the attempt bound on a route the table justified, and asks no
+continuation question; nothing has been tried, so the trio could only
+answer insufficient evidence, which is what paused the first live run.
 The shared continuation trio (`tuning/continuation.rs`) runs before every
+repeat, that is before every
 design or implementation dispatch and every tuning revision after the first,
 and code combines it with the hard limits under the contract every tuning
 run already obeys.

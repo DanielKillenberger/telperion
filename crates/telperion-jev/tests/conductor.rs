@@ -457,8 +457,8 @@ fn a_dependency_is_designed_then_implemented_on_separately_judged_tiers_and_land
     assert_eq!(design.route, "design");
     assert_eq!(
         design.judgments.len(),
-        2,
-        "a design judgment and a continuation assessment"
+        1,
+        "a design judgment only: a first attempt is bounded by construction and asks no continuation"
     );
     // A step while the dispatch is open re-dispatches nothing.
     drive(&script, &config, &mut run, &executor);
@@ -628,13 +628,22 @@ fn an_unjustified_next_attempt_pauses_with_budget_remaining_and_a_stage_halt_rou
     for _ in 0..3 {
         drive(&script, &config, &mut run, &executor);
     }
+    // The first attempt is bounded by construction and proceeds without a
+    // continuation question; it fails, and the repeat is what the trio judges.
+    let (word, _) = drive(&script, &config, &mut run, &executor);
+    assert!(word.starts_with("dispatch"), "{word}");
+    let first = run.dispatches[0].clone();
+    let mut failed = verified(&first.input_identity, None, None);
+    failed.failure = Some("the design did not verify".into());
+    run.ingest(&first.id, failed).unwrap();
     let (word, next) = drive(&script, &config, &mut run, &executor);
     assert!(word.starts_with("paused"), "{word}");
     assert!(word.contains("human decision required"), "{word}");
     assert!(matches!(next, Next::Paused { .. }));
-    assert!(
-        run.dispatches.is_empty(),
-        "no frontier attempt was bought first"
+    assert_eq!(
+        run.dispatches.len(),
+        1,
+        "the first bounded attempt was bought; no second frontier attempt was"
     );
     assert!(run.budget.remaining() > 100_000);
     assert!(run

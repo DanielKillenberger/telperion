@@ -212,6 +212,7 @@ pub fn advance(asker: &Asker<'_>, config: &Config, run: &mut Run, spec: &str) ->
     let no_progress = no_progress(&past, table.no_progress_attempts);
     let hard = hard_limit(run);
     let recent = outcomes(&past);
+    let first_attempt = past.is_empty();
     drop(past);
     let (design_complexity, implementation_complexity, mut judgments) = if hard || no_progress {
         ("not_asked".into(), "not_asked".into(), Vec::new())
@@ -245,7 +246,16 @@ pub fn advance(asker: &Asker<'_>, config: &Config, run: &mut Run, spec: &str) ->
         estimate_basis,
         usage_known: run.budget.usage_known,
     };
-    if !decided.human() {
+    // A first attempt on a dependency is bounded by construction: one
+    // dispatch, the attempt bound, a route the table justified. Nothing has
+    // been tried, so the continuation trio has no progress, risk or
+    // tractability to read and can only answer insufficient evidence; the
+    // first live run paused on exactly that. As fn-68's R11 settled for the
+    // tuning loop, only a repeat asks.
+    if !decided.human() && first_attempt {
+        decided.why = format!("{} (first attempt within the bound; no continuation question)", decided.why);
+    }
+    if !decided.human() && !first_attempt {
         let risks = vec![format!(
             "route {} on tier {}",
             decided.route,
