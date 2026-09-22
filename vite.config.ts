@@ -5,8 +5,9 @@ import { fileURLToPath } from "node:url";
 /* Two builds out of one config.
  *
  * `vite build` emits the LIBRARY: src/index.ts - the generator core, the
- * presets and the loader for the Rust renderer, with both wasm modules as
- * assets beside it - and src/field/index.ts, the slim growth-and-field
+ * presets and the loader for the Rust renderer, its two wasm modules placed
+ * beside it by the build scripts and fetched at run time, never inlined -
+ * and src/field/index.ts, the slim growth-and-field
  * entry a consumer imports without the rest, with the example voxelizer
  * beside it as its own entry. The library has no runtime
  * dependencies, so nothing is left external.

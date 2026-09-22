@@ -66,6 +66,66 @@ Three files outside `dist` are in every npm tarball whatever `files` says:
 README is the registry page and the licence is the MIT grant, so the
 listing is `dist` plus the three npm cannot leave out.
 
+## R7: the main entry's Wasm as files
+
+Task 2, on this branch at `2643188d`. `dist/telperion.js` was 6,659,763
+bytes because Vite's library build inlines every asset a `?url` import
+names as a base64 data URL, whatever `assetsInlineLimit` says: the full
+generator Wasm and the renderer's Wasm both went in as text. The two
+entries now hold the file name in a constant and resolve `new URL(WASM,
+import.meta.url)` at run time, the way `src/field/index.ts` resolves
+`telperion-field.wasm`, and the build scripts copy each module beside its
+entry: `telperion.wasm` and `telperion-render.wasm` in `src/browser/` for
+the dev server and in `dist/` for the package. The wasm-bindgen glue is
+generated with `--omit-default-module-path`, because its own default
+`new URL('telperion_render_bg.wasm', import.meta.url)` is a string literal
+Vite inlined too (2.4 MB of base64 in a branch the entry never takes).
+The `dist/browser/*.d.ts`, `index.d.ts` and `field/*.d.ts` declarations are
+byte-identical before and after (md5 checked).
+
+`npm pack --dry-run --json` after `npm run build` on a fresh `dist`
+(`raw/r7-pack-dry-run.json`): `telperion-0.1.0.tgz`, 18 entries, 3,642,607
+bytes unpacked, against 16 entries and 7,093,035 bytes before.
+
+| bytes | path | before |
+|---:|---|---:|
+| 108,459 | dist/telperion.js | 6,659,763 |
+| 1,286,823 | dist/telperion.wasm | inlined |
+| 1,813,306 | dist/telperion-render.wasm | inlined |
+| 345,645 | dist/telperion-field.wasm | 345,645 |
+| 2,690 | dist/field.js | 2,690 |
+| 4,526 | dist/voxelize.js | 4,526 |
+| 44,136 | README.md | 43,389 |
+
+The declarations, `LICENSE` and `package.json` are the same bytes as the
+R4 listing. The main entry's JavaScript gzips to 22.7 kB; the two modules
+are served beside it and fetched once, cacheable as files.
+
+Checks run, logs in `raw/r7-*.log`:
+
+- `npm run typecheck`, `npx vitest run`: 11 files, 123 tests, green before
+  and after the change.
+- `npm run rust:test:wasm`, the binding and field browser suites on the
+  dev server: green; `bindings.mjs` calls `TreeEngine.create()` with no
+  source, which is the dev-mode resolution of `telperion.wasm` beside
+  `core.ts`.
+- A static server over `dist/` alone, loaded in headless Chromium
+  (`raw/r7-dist-check.log`): `telperion.js` fetched `/telperion.wasm` and
+  `/telperion-render.wasm` beside itself, both 200, built Ordinary to 9,240
+  nodes, and `createRenderer` failed only with the renderer's own "no
+  hardware GPU adapter" words, after its module had loaded; headless
+  Chromium offers no hardware adapter, so the draw is judged below.
+- The harness, `npm run test:render` on the dev server with the RTX 3080
+  (`raw/r7-render-suite.log`): the page built and drew all six presets,
+  the height dial, the three views and the timing sessions, so the harness
+  still draws a tree. The run stopped at the Oregon white oak orbit's
+  wall-clock p95, 30.00 ms against the 16.7 ms threshold, with the GPU
+  percentiles valid (p50 12.7 ms, p95 14.5 ms). Another harness was on
+  port 5173 and the display was in use during the run; a page's animation
+  clock on a contended display is what that assertion measures, and Wasm
+  loading does not run in the frame loop. Recorded as inconclusive on that
+  one assertion, not as green.
+
 ## R5: the README
 
 `README.md` gained `## The field package` before `## Architecture`: the
