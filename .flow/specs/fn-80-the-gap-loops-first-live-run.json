@@ -17,7 +17,7 @@
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "ready": false,
+  "ready": true,
   "spec_path": ".flow/specs/fn-80-the-gap-loops-first-live-run.md",
   "status": "open",
   "title": "The gap loop's first live run",
@@ -32,5 +32,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-19T18:38:32.307028Z"
+  "updated_at": "2026-09-22T11:03:36.759908Z"
 }
