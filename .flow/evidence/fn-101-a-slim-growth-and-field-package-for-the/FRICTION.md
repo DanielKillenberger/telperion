@@ -21,3 +21,16 @@ task with the load recorded beside it, and the full binding is measured in
 the same minute so the comparison holds whatever the machine is doing. What
 would have removed it: a measurement script that refuses to run, or labels
 its rows, above a load threshold, and one checkout building at a time.
+
+## 2026-09-22 — R3's 250 ms ceiling was never reachable on this code
+
+R3 asks for 250 ms from species and seed to a queried 64-cell grid, and
+cites the prototype's 93 to 205 ms from the structure export. fn-100's
+RESULTS.md, on the commit this branch starts from, already measured the
+field-only build plus the same query at 288, 330, 345, 579, 233 and 223 ms
+for the six trees; the ceiling was inferred from a path that never ran the
+plan query. Cost: two measurement runs and the escalation, where a checked
+number would have set the ceiling at parity with the full binding or asked
+for the query speed-up as its own spec first. What would have removed it:
+the readiness pass reading the dependency's measured figures before writing
+a ceiling on the same operation (CLAUDE.md, "Gates and checked claims").
