@@ -10,6 +10,7 @@ tuning-loop calibrate --manifest FROZEN.json --ledger LEDGER_DIR --out JOURNAL.j
 tuning-loop vision-replay --manifest REPLAY.json --adapter ADAPTER.json --out JOURNAL.json --max-tokens N
 tuning-loop run --config CONFIG.json --out RUN_DIR
 tuning-loop run --config CONFIG.json --out RUN_DIR --resume DECISION.json
+tuning-loop result --run RUN_DIR
 ```
 
 Live Jev calls need `TYPESAFE_API_KEY` through the documented interactive-shell environment. Offline tests require no key. Never print the key. `freeze` regenerates questions from the runtime question implementation and creates, rather than overwrites, the frozen manifest. Calibration journals reserve before each call and persist result indices and actual usage. Failed or interrupted attempts retain reservations.
@@ -37,3 +38,5 @@ General unattended magnitude efficacy remains unvalidated. Calibration receipts 
 Before any round-boundary model call, the engine checks the hard round limit and the sum of serialized-request reservations for routing, continuation and proposals plus the full-cell visual reservation. The continuation state names current authored dial values/bounds/actions, max four candidates, numeric measurement before rendering, separate visual verification and no shipping. It carries the real downstream reservation, not an arbitrary flat estimate. Pre-dispatch capability assessment only returns a host handoff; it is never authorization to execute an unknown-cost repair.
 
 The fn68 evidence folder records the small frozen calibration and its limitations. Tests exercise deterministic engine iteration, numeric failure before rendering, stale/missing visual evidence, uncertainty, budget persistence and scoped CLI recovery. Live pilot/convergence evidence must be reported separately; green mocks do not establish a species is ready.
+
+Every save also writes `result.json` and `RESULT.md`: the outcome (stop reason, bootstrap, adoptions kept and rolled back, budget, finalists, the current tree with overlay and stills) and one gap entry per approved priority whatever became of it, with its status, latest route, the attempts the reviewer graded on it, the reviewer's words and a check the invoker answers: reachable, covered or new. A new gap escalates to the host; the file mints nothing and is never readiness. `tuning-loop result --run DIR` renders an existing record.
