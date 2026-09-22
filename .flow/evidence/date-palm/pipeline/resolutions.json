@@ -1,1 +1,25 @@
-{"resolutions":[{"at":"2026-09-18","by":"owner","id":"date-palm/discover/manifest-proposed","inputs_sha256":{"seed":"b28fb581f9278cffc9f5003977255409e3719cab27b3c3090b7efaa503d1b37b"},"note":"The owner admitted the three sources and chose to run the literature stages to the gate, knowing the capability gate sits behind them; rights confirmed by the host against what each source is.","option":"admit"}]}
+{
+ "resolutions": [
+  {
+   "at": "2026-09-18",
+   "by": "owner",
+   "id": "date-palm/discover/manifest-proposed",
+   "inputs_sha256": {
+    "seed": "b28fb581f9278cffc9f5003977255409e3719cab27b3c3090b7efaa503d1b37b"
+   },
+   "note": "The owner admitted the three sources and chose to run the literature stages to the gate, knowing the capability gate sits behind them; rights confirmed by the host against what each source is.",
+   "option": "admit"
+  },
+  {
+   "id": "date-palm/gap/gap-fix/gate-onboarding-gate-capability",
+   "inputs_sha256": {
+    "options": "ac7301194c1311a86000c68a0c8a418de5016de9a5d3a1843daa56700fc36689",
+    "table_version": "1"
+   },
+   "option": "apical-rosette-of-pinnate-fronds",
+   "by": "owner",
+   "at": "2026-09-22",
+   "note": "Owner, verbatim: \"ok it's really hard for me to judge if the palm needs a apical rosette but if confidence is high let's go for it?\" The host's reading: the need is the capability packet's high-confidence trait, not Jev's 0.42 best-match, which answered a five-part gap with one option. Confirmed, not a reversal."
+  }
+ ]
+}
