@@ -1,24 +1,22 @@
 {
-  "branch_name": "fn-82-date-palm-as-a-real-species",
+  "branch_name": "fn-108-register-the-date-palm-preset-with-the",
   "completion_review_status": "unknown",
   "completion_reviewed_at": null,
-  "created_at": "2026-09-18T21:26:24.288063Z",
+  "created_at": "2026-09-22T11:15:37.811971Z",
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [
-    "fn-108-register-the-date-palm-preset-with-the"
-  ],
-  "id": "fn-82-date-palm-as-a-real-species",
+  "depends_on_epics": [],
+  "id": "fn-108-register-the-date-palm-preset-with-the",
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
-  "spec_path": ".flow/specs/fn-82-date-palm-as-a-real-species.md",
+  "spec_path": ".flow/specs/fn-108-register-the-date-palm-preset-with-the.md",
   "status": "open",
-  "title": "Date palm as a real species",
+  "title": "Register the date palm preset with the values the generator already reaches",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -30,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-22T11:15:38.278413Z"
+  "updated_at": "2026-09-22T11:15:38.749680Z"
 }
