@@ -1,0 +1,33 @@
+{
+  "branch_name": "fn-102-one-build-pipeline-in-place-of-the",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-21T10:58:27.387185Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-100-the-field-reads-the-plan-not-placed"
+  ],
+  "id": "fn-102-one-build-pipeline-in-place-of-the",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-102-one-build-pipeline-in-place-of-the.md",
+  "status": "open",
+  "title": "One build pipeline in place of the copied chains",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-21T11:05:53.286659Z"
+}

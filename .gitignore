@@ -58,3 +58,4 @@ __pycache__/
 /.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/**/*.html
 /.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/**/*.csv
 /.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/**/*.sha256
+experiments/voxel-field/out/

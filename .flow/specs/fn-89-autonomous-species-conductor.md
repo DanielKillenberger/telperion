@@ -93,6 +93,13 @@ The current machinery already provides research stages, typed decisions, gap rec
 - Cheap execution is useful when Jev and frontier escalation make it dependable. The goal does not require forcing complex work onto the cheapest model. [paraphrase]
 - The host retains orchestration authority and delegates complex design explicitly. Expensive reasoning is scoped to the selected assignment, then control returns to the cheap conductor. Jev-first decisions reduce generative reasoning work; reducing Jev call count is not the objective. [paraphrase]
 
+### A tuning run ends with a gap list (owner, 2026-09-22)
+
+- Every tuning run, invoked by the owner or by the add-species agent, ends with three things: the best tree with its overlay, seed and stills; the trial and handoff record; and a gap list. A run without the gap list has not finished. Owner: "so this assessment tuning loop should end with the end result + gap list and the invoker would decide if the specs should be made yea?" then, to the contract below, "ok that works". [user]
+- A priority that kept routing to tuning and then stalled converts to a gap candidate instead of vanishing into the stall. Each entry carries the trait in the owner's words, the rounds that tried it with their overlays, the reviewer's words per attempt, and the stills that show it. The loop assembles those four from its own record. [host design]
+- The invoker runs fn-95's gap check on each entry: reachable with dials not yet tried goes back to tuning; covered by an open spec becomes a dependency and the run parks on it; new escalates. The cause in generator terms and the shape of the spec are system design under the dispatch rule, so a driver packages a new gap and stops, the host conducting the run writes the candidate spec, and the owner holds the word on minting until delegated. [user and host design]
+- Why: fn-68's close-out on 2026-09-22 stopped at the reviewer's symptoms and one handoff, and the beech's real gaps (leaders that lose girth at every fork, fn-103) were sitting in priorities that had routed to tuning for 44 rounds. Owner: "otherwise the next spec that runs the add species pipeline won't have specs to make to close gaps". [user]
+
 ## Strategy Alignment
 
 - Supports the catalogue track by making each species a repeatable run and each capability gap shared generator work. [strategy:The catalogue]
