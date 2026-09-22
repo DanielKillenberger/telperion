@@ -43,3 +43,11 @@ fn-108 landed green on the cargo gate and red on CI: its spec, written by the ho
 ## 2026-09-22 — host: a gap could land one fix; the second round's landing was refused
 
 fn-109 landed on master and the pipeline's `gap resume` refused it: "already resumed at b8b29448", the first round's landing. The gap record held one landing, and fn-63's loop had never run two rounds on one halt. Fixed with a test: a later round's spec lands too, the earlier landing moves into the record's history, and the rerun's idempotence key carries every fix. The same spec landing twice is still refused.
+
+## 2026-09-22 — host: the conductor's landing and the pipeline's landing are two steps, and the gate reran between them
+
+`species-conductor land` marks the dependency landed; the pipeline's `gap resume` records the fix on the gap and expires the halted stage's key. They are separate commands, and the conductor's rule that stages rerun after a landing fired on the first, before the second had happened, so the gate reran with the old key and reported nothing new; the rerun-after-landing record then said the stages had run for that commit. Cost: one wasted stage pass and a forced gate rerun by hand. What would remove it: `land` running the pipeline's `gap resume` itself, with the pin note passed through, so one command does both and the stage rerun follows the key change.
+
+## 2026-09-22 — host: a non-blocking gate was sent to the gap loop
+
+After the capability halt narrowed to the three organs, the conductor's next action was the gap loop on the seeds gate, "packet/specimens.json does not exist yet", which the generate stage writes and which blocks nothing. The plan takes any open decision after the blocking ones and routes a halt kind to the loop regardless of whether it blocks. Cost: one dispatch opened and closed unrun. What would remove it: an open decision that blocks nothing is not a halt; the stages run and it resolves itself or reaches the owner after them.

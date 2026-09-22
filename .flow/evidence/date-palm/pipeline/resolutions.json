@@ -20,6 +20,16 @@
    "by": "owner",
    "at": "2026-09-22",
    "note": "Owner, verbatim: \"ok it's really hard for me to judge if the palm needs a apical rosette but if confidence is high let's go for it?\" The host's reading: the need is the capability packet's high-confidence trait, not Jev's 0.42 best-match, which answered a five-part gap with one option. Confirmed, not a reversal."
+  },
+  {
+   "id": "date-palm/gate/onboarding-gate/seeds",
+   "inputs_sha256": {
+    "select.json": "027748aef2b61895c6b2da2023093f42885aca751f5254530c0d35606fb63b2e"
+   },
+   "option": "waive",
+   "by": "host claude-fable-5-1 under the owner's standing rule",
+   "at": "2026-09-22",
+   "note": "First run: the seeds gate audits packet/specimens.json, which the generate stage it blocks is what writes; nothing can be audited before generate runs once. Waived for this pass only; the gate reruns after generate and audits the counts then. Not a lowered bar: sequencing."
   }
  ]
 }

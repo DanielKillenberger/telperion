@@ -1,0 +1,15 @@
+{
+ "input_identity": "b40416497df2e3cb1c6335bf4c7dd725bdffb2f769bdff2466870e41cd208372",
+ "design_revision": null,
+ "actual_model": "none",
+ "actual_effort": "none",
+ "usage": {
+  "input_tokens": 0,
+  "output_tokens": 0
+ },
+ "cost_usd": null,
+ "verification": "failed",
+ "observed": "not run: the seeds gate is not a capability gap; it audits the file the generate stage writes and was waived for the first pass by the host under the owner's rule.",
+ "handoff": null,
+ "failure": "superseded: a first-run seeds gate is resolved by waiver, not by the gap loop"
+}
