@@ -12,6 +12,7 @@ const PRESETS: &[&str] = &[
     "norway-spruce",
     "european-beech",
     "silver-birch",
+    "date-palm",
     "telperion",
     "laurelin",
 ];
@@ -51,8 +52,8 @@ fn every_name_is_declared_once_and_carries_one_line_of_meaning() {
 }
 
 #[test]
-fn the_six_names_the_derivation_produces_are_all_in_the_vocabulary() {
-    assert_eq!(DERIVABLE.len(), 6);
+fn the_nine_names_the_derivation_produces_are_all_in_the_vocabulary() {
+    assert_eq!(DERIVABLE.len(), 9);
     for name in DERIVABLE {
         assert_eq!(
             capability::support(name),
@@ -116,18 +117,30 @@ fn the_shipped_presets_derive_what_they_derive_today() {
 }
 
 #[test]
-fn the_date_palms_recorded_needs_read_as_one_met_and_five_absent() {
+fn the_date_palms_recorded_needs_read_as_three_met_and_three_absent() {
     // The list `.flow/evidence/date-palm/pipeline/manifest.json` recorded on
-    // 2026-09-19, which the gate read as six missing capabilities.
-    assert_eq!(capability::support("woody-axes"), Support::Expressed);
-    for name in [
-        "apical-rosette",
-        "pinnate-frond",
-        "acanthophyll",
-        "persistent-leaf-base",
-        "infructescence",
-    ] {
+    // 2026-09-19, which the gate then read as six missing capabilities. The
+    // rosette and the frond are drawn from fn-109 on, so the gate halts on the
+    // trunk organs and the infructescence alone.
+    for name in ["woody-axes", "apical-rosette", "pinnate-frond"] {
+        assert_eq!(capability::support(name), Support::Expressed, "{name}");
+    }
+    for name in ["acanthophyll", "persistent-leaf-base", "infructescence"] {
         assert_eq!(capability::support(name), Support::Absent, "{name}");
+    }
+}
+
+/// The palm's own value table is what produces the two names the gate reads,
+/// and the grouping it draws is the compound leaf the vocabulary already had a
+/// word for.
+#[test]
+fn the_palms_table_produces_the_rosette_the_frond_and_the_compound_leaf() {
+    let derived = capability::derived(Preset::from_id("date-palm").unwrap());
+    for name in ["apical-rosette", "pinnate-frond", "pinnate-compound"] {
+        assert!(
+            derived.contains(&name),
+            "the date palm derives {name}: {derived:?}"
+        );
     }
 }
 

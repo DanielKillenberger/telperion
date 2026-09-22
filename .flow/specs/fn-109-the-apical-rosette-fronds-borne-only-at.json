@@ -10,6 +10,7 @@
   "id": "fn-109-the-apical-rosette-fronds-borne-only-at",
   "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
@@ -28,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-22T12:11:59.015460Z"
+  "updated_at": "2026-09-22T12:23:20.552037Z"
 }

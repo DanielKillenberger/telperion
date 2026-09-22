@@ -8,7 +8,8 @@ use telperion_core::{
     presets::Preset,
 };
 use telperion_render::{
-    hero_pose, render, shot_pose, Camera, Gpu, Renderer, Shot, Still, View, GROUND_REACH, STILL_FORMAT,
+    hero_pose, render, shot_pose, Camera, Gpu, Renderer, Shot, Still, View, GROUND_REACH,
+    STILL_FORMAT,
 };
 
 mod common;

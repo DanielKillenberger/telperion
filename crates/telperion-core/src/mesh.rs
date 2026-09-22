@@ -69,10 +69,21 @@ pub(crate) fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
     }
 }
 
+/// Grows this family's skeleton, ready to draw. An apex that bears a rosette
+/// bears no twig: where the canopy stands a frond crown, the twig wood above
+/// every stem apex is dropped, so the fronds stand on bare wood.
+pub fn grow(family: &Family) -> Result<Tree> {
+    let mut tree = branching::generate(&family.skeleton, family.radii)?.tree;
+    if family.canopy.rosette_fronds > 0 {
+        branching::clear_apical_twigs(&mut tree)?;
+    }
+    Ok(tree)
+}
+
 /// Grows the skeleton, plaits the wood surface and places the culled foliage.
 pub fn build(family: &Family, detail: Detail) -> Result<TreeMesh> {
     let Detail::Full = detail;
-    let tree = branching::generate(&family.skeleton, family.radii)?.tree;
+    let tree = grow(family)?;
     assemble(&tree, family)
 }
 

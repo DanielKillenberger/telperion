@@ -104,9 +104,15 @@ pub fn summary(state: &Run) -> Value {
 /// candidate, and the numbers for the current trial. No budgets, no
 /// authorizations, no amendments, no diagnoses, no reuse records, no joint
 /// packet, no cells, no evidence ids.
-/// What the proposal state may weigh. Beyond this Jev refuses the batch, so
-/// the digest sheds its phrases first and then its per-dial lines.
-pub const PROPOSAL_CAP: usize = 24 * 1024;
+/// What the proposal state may weigh: the digest sheds its phrases first
+/// and then its per-dial lines to fit under it. The cap is a size
+/// discipline, not Jev's limit: the fn-68 ledger holds proposal batches of
+/// 34,000 input tokens that Jev answered, and the one refusal it holds was
+/// a state several times this size. It was 24 KiB until fn-109's ten
+/// rosette rows found 358 bytes of headroom; a score-visible dial costs
+/// about 160 bytes here, so 32 KiB leaves room for about forty more before
+/// the menu has to be scoped to the priorities a round is tuning.
+pub const PROPOSAL_CAP: usize = 32 * 1024;
 
 pub fn proposal_state(state: &Run) -> Value {
     let mut out = proposal_state_with(state, super::digest::Trim::None);

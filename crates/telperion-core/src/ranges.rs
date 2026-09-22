@@ -30,6 +30,24 @@ pub const fn default_max_writhe_magnitude() -> f64 {
 pub const fn default_max_internodes() -> u32 {
     DEFAULT_MAX_INTERNODES
 }
+/// The rosette's own neutrals: a phyllotactic spiral, a frond that stands off
+/// the axis, a crown that opens from spike to skirt, and one leaflet, which is
+/// the single blade every family drew.
+pub const fn default_rosette_divergence() -> f64 {
+    137.508
+}
+pub const fn default_rosette_pitch() -> f64 {
+    45.0
+}
+pub const fn default_rosette_pitch_spread() -> f64 {
+    60.0
+}
+pub const fn default_leaflet_count() -> u32 {
+    1
+}
+pub const fn default_leaflet_pitch() -> f64 {
+    45.0
+}
 pub const fn default_max_droop() -> f64 {
     0.35
 }

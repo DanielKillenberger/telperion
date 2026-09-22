@@ -1,0 +1,15 @@
+{
+ "input_identity": "730e0d42a99e053073adf2c9f19d231f635d9e5ab9948ea29d09c28031d84448",
+ "design_revision": "230d1ebe55ae027defc606d1898f29a9669d1881bcfee30b64d8eb5e7d85c224",
+ "actual_model": "claude-opus-5",
+ "actual_effort": "low",
+ "usage": {
+  "input_tokens": 308503,
+  "output_tokens": 0
+ },
+ "cost_usd": null,
+ "verification": "verified",
+ "observed": "fn-109 implemented from the design handoff on the strong tier at low effort: foliage/rosette.rs with fan as the one leaflet expansion, ten canopy rows, apex twig clearing on both draw paths through mesh::grow, three capability names moved with derivable clauses; species digests and pins unchanged; eight rosette tests and one still at seed 1; the one gate failure (the tuning loop's 24 KiB proposal cap) resolved by the host at 32 KiB; workspace gate EXIT=0, 894 passed; landed on master as fc5180dd through PR 59. Usage is the implementer's total; split unknown.",
+ "handoff": null,
+ "failure": null
+}
