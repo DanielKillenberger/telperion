@@ -253,9 +253,13 @@ pub const CATALOGUE: &[(u32, &str, &str, &str)] = &[
 /// Tables still being judged. Their ABI ids are reserved, and they are not
 /// listed, served by id or built by name: the core's tests and the species
 /// runner reach them through `Preset`. The European beech ships when fn-62
-/// accepts it.
-pub const IN_WORK: &[(u32, &str, &str, &str)] =
-    &[(5, "european-beech", "European beech", "Fagus sylvatica")];
+/// accepts it. The date palm (fn-108) is registered with its reachable
+/// values only; its remaining anatomy gaps are their own specs and fn-82
+/// owns the species' acceptance.
+pub const IN_WORK: &[(u32, &str, &str, &str)] = &[
+    (5, "european-beech", "European beech", "Fagus sylvatica"),
+    (7, "date-palm", "Date palm", "Phoenix dactylifera"),
+];
 pub fn preset(id: u32) -> Result<Family> {
     let identity = CATALOGUE
         .iter()

@@ -16,6 +16,7 @@ pub enum Preset {
     NorwaySpruce,
     EuropeanBeech,
     SilverBirch,
+    DatePalm,
     Telperion,
     Laurelin,
 }
@@ -29,6 +30,7 @@ impl Preset {
             Self::NorwaySpruce => Some("norway-spruce"),
             Self::EuropeanBeech => Some("european-beech"),
             Self::SilverBirch => Some("silver-birch"),
+            Self::DatePalm => Some("date-palm"),
             _ => None,
         }
     }
@@ -41,6 +43,7 @@ impl Preset {
             "norway-spruce" => Some(Self::NorwaySpruce),
             "european-beech" => Some(Self::EuropeanBeech),
             "silver-birch" => Some(Self::SilverBirch),
+            "date-palm" => Some(Self::DatePalm),
             "telperion" => Some(Self::Telperion),
             "laurelin" => Some(Self::Laurelin),
             _ => None,
@@ -209,6 +212,10 @@ impl Preset {
         }
         if self == Self::SilverBirch {
             species::silver_birch(&mut p);
+            return p;
+        }
+        if self == Self::DatePalm {
+            species::date_palm(&mut p);
             return p;
         }
         if self == Self::Ordinary {

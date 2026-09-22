@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-22T11:22:38.347344Z",
+  "depends_on": [],
+  "id": "fn-108-register-the-date-palm-preset-with-the.1",
+  "priority": null,
+  "spec": "fn-108-register-the-date-palm-preset-with-the",
+  "spec_path": ".flow/tasks/fn-108-register-the-date-palm-preset-with-the.1.md",
+  "status": "todo",
+  "title": "Implement Register the date palm preset with the values the generator already reaches",
+  "updated_at": "2026-09-22T11:22:38.347344Z"
+}
