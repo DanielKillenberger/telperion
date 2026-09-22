@@ -81,7 +81,7 @@ pub fn run(args: &[String]) -> std::result::Result<String, String> {
             let result = read_result(&PathBuf::from(required(args, "--result")?)).map_err(show)?;
             let outcome = run.ingest(&id, result).map_err(show)?;
             dependency::observe(&mut run, &id).map_err(show)?;
-            minted_by_gap_loop(&mut run, &id);
+            minted_by_gap_loop(&mut run, &config, &id);
             run.save(&config).map_err(show)?;
             format!("dispatch {id}: {outcome:?}")
         }
@@ -134,7 +134,7 @@ pub fn run(args: &[String]) -> std::result::Result<String, String> {
 
 /// A verified gap-loop dispatch reports the spec the loop minted in
 /// `observed`; the conductor attaches it as a minted dependency.
-fn minted_by_gap_loop(run: &mut Run, id: &str) {
+pub fn minted_by_gap_loop(run: &mut Run, config: &Config, id: &str) {
     let Some(dispatch) = run.dispatches.iter().find(|d| d.id == id).cloned() else {
         return;
     };
@@ -146,8 +146,15 @@ fn minted_by_gap_loop(run: &mut Run, id: &str) {
         .result
         .filter(|r| r.outcome == Some(super::dispatch::Outcome::Verified))
     {
+        // Only a spec the Flow tree holds is a minted dependency. A sentence
+        // in `observed` (the first live run reported its route there) is not
+        // a spec id, and attaching it would send the run to design a spec
+        // that does not exist; the halt stays the owner's instead.
         let spec = result.observed.trim().to_string();
-        if !spec.is_empty() {
+        let exists = !spec.is_empty()
+            && !spec.contains(char::is_whitespace)
+            && config.flow.join("specs").join(format!("{spec}.json")).is_file();
+        if exists {
             handoff::attach(run, &spec, &decision, "minted");
         }
     }
