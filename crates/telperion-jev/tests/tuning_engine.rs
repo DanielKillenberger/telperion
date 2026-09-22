@@ -2031,8 +2031,10 @@ fn the_proposal_state_carries_the_reviewer_words_and_stays_small() {
         String::from_utf8_lossy(&bytes).contains("the crown is still enclosed"),
         "the proposal state lost the reviewer's words"
     );
+    // The cap itself, not the number it used to be: fn-109 raised it to
+    // 32 KiB and fn-110's eight trunk-organ dials spend some of that room.
     assert!(
-        bytes.len() < 24_576,
+        bytes.len() < telperion_jev::tuning::judgments::PROPOSAL_CAP,
         "proposal state is {} bytes",
         bytes.len()
     );
@@ -2961,8 +2963,10 @@ fn the_state_says_what_the_numbers_measure_in_words_and_stays_small() {
         .collect();
     let bytes =
         serde_json::to_vec(&telperion_jev::tuning::judgments::proposal_state(&state)).unwrap();
+    // The cap itself, not the number it used to be: fn-109 raised it to
+    // 32 KiB and fn-110's eight trunk-organ dials spend some of that room.
     assert!(
-        bytes.len() < 24_576,
+        bytes.len() < telperion_jev::tuning::judgments::PROPOSAL_CAP,
         "proposal state is {} bytes",
         bytes.len()
     );
@@ -3109,7 +3113,7 @@ fn the_routing_state_names_the_kinds_of_dial_rather_than_every_row() {
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     approve_one(&mut state, &mock);
     state.dials = serde_json::from_slice(include_bytes!("../data/dials.json")).unwrap();
-    assert_eq!(state.dials.len(), 211);
+    assert_eq!(state.dials.len(), 219);
 
     let dials = telperion_jev::tuning::judgments::summary(&state)["dials"].clone();
     let bytes = serde_json::to_vec(&dials).unwrap().len();
@@ -3129,7 +3133,10 @@ fn the_routing_state_names_the_kinds_of_dial_rather_than_every_row() {
     let whole = serde_json::to_vec(&telperion_jev::tuning::judgments::summary(&state))
         .unwrap()
         .len();
-    assert!(whole < 24_576, "the routing state is {whole} bytes");
+    assert!(
+        whole < telperion_jev::tuning::judgments::PROPOSAL_CAP,
+        "the routing state is {whole} bytes"
+    );
 }
 
 /// The owner's first priority, "the whole crown needs to be stretched
@@ -3198,7 +3205,7 @@ fn twelve_rounds_of_attempts_fold_into_a_digest_that_still_fits() {
         .into_iter()
         .filter(|d| d.score_visible == Some(true))
         .collect();
-    assert_eq!(state.dials.len(), 119);
+    assert_eq!(state.dials.len(), 127);
     let base = state.trials[state.current.unwrap()].key.clone();
     let mut history = vec![];
     for round in 1..=12u64 {

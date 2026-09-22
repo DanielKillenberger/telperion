@@ -2,12 +2,20 @@
 export interface Family {
   age: number;
   canopy: {
+  acanthophyllLength: number;
+  acanthophyllPitch: number;
+  acanthophylls: number;
   clump: number;
   clumpNeighbours: number;
   clumpSpan: number;
   clumpSystemOrder: number;
   divergence: number;
   forwardLean: number;
+  leafBaseLength: number;
+  leafBasePitch: number;
+  leafBaseRadius: number;
+  leafBaseWeathering: number;
+  leafBases: number;
   leafletCount: number;
   leafletPitch: number;
   leanRise: number;
@@ -268,12 +276,20 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
     "family": {
       "age": 100,
       "canopy": {
+        "acanthophyllLength": 0.35,
+        "acanthophyllPitch": 80,
+        "acanthophylls": 0,
         "clump": 5,
         "clumpNeighbours": 12,
         "clumpSpan": 0.3,
         "clumpSystemOrder": 2,
         "divergence": 137.508,
         "forwardLean": 0,
+        "leafBaseLength": 0,
+        "leafBasePitch": 60,
+        "leafBaseRadius": 0.35,
+        "leafBaseWeathering": 0,
+        "leafBases": 0,
         "leafletCount": 1,
         "leafletPitch": 45,
         "leanRise": 0,
@@ -532,12 +548,20 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
     "family": {
       "age": 100,
       "canopy": {
+        "acanthophyllLength": 0.35,
+        "acanthophyllPitch": 80,
+        "acanthophylls": 0,
         "clump": 5,
         "clumpNeighbours": 12,
         "clumpSpan": 0.3,
         "clumpSystemOrder": 2,
         "divergence": 180,
         "forwardLean": 0.25,
+        "leafBaseLength": 0,
+        "leafBasePitch": 60,
+        "leafBaseRadius": 0.35,
+        "leafBaseWeathering": 0,
+        "leafBases": 0,
         "leafletCount": 1,
         "leafletPitch": 45,
         "leanRise": 0,
@@ -796,12 +820,20 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
     "family": {
       "age": 100,
       "canopy": {
+        "acanthophyllLength": 0.35,
+        "acanthophyllPitch": 80,
+        "acanthophylls": 0,
         "clump": 5,
         "clumpNeighbours": 12,
         "clumpSpan": 0.3,
         "clumpSystemOrder": 2,
         "divergence": 137.508,
         "forwardLean": 0.05,
+        "leafBaseLength": 0,
+        "leafBasePitch": 60,
+        "leafBaseRadius": 0.35,
+        "leafBaseWeathering": 0,
+        "leafBases": 0,
         "leafletCount": 1,
         "leafletPitch": 45,
         "leanRise": 1.2,
@@ -1060,12 +1092,20 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
     "family": {
       "age": 70,
       "canopy": {
+        "acanthophyllLength": 0.35,
+        "acanthophyllPitch": 80,
+        "acanthophylls": 0,
         "clump": 8,
         "clumpNeighbours": 12,
         "clumpSpan": 0.5,
         "clumpSystemOrder": 2,
         "divergence": 180,
         "forwardLean": 0.6,
+        "leafBaseLength": 0,
+        "leafBasePitch": 60,
+        "leafBaseRadius": 0.35,
+        "leafBaseWeathering": 0,
+        "leafBases": 0,
         "leafletCount": 1,
         "leafletPitch": 45,
         "leanRise": 0.3,
@@ -1324,12 +1364,20 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
     "family": {
       "age": 100,
       "canopy": {
+        "acanthophyllLength": 0.35,
+        "acanthophyllPitch": 80,
+        "acanthophylls": 0,
         "clump": 6,
         "clumpNeighbours": 12,
         "clumpSpan": 0.28,
         "clumpSystemOrder": 2,
         "divergence": 137.508,
         "forwardLean": 0,
+        "leafBaseLength": 0,
+        "leafBasePitch": 60,
+        "leafBaseRadius": 0.35,
+        "leafBaseWeathering": 0,
+        "leafBases": 0,
         "leafletCount": 1,
         "leafletPitch": 45,
         "leanRise": 0,
@@ -1588,12 +1636,20 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
     "family": {
       "age": 100,
       "canopy": {
+        "acanthophyllLength": 0.35,
+        "acanthophyllPitch": 80,
+        "acanthophylls": 0,
         "clump": 9,
         "clumpNeighbours": 12,
         "clumpSpan": 0.36,
         "clumpSystemOrder": 2,
         "divergence": 99.502,
         "forwardLean": 0,
+        "leafBaseLength": 0,
+        "leafBasePitch": 60,
+        "leafBaseRadius": 0.35,
+        "leafBaseWeathering": 0,
+        "leafBases": 0,
         "leafletCount": 1,
         "leafletPitch": 45,
         "leanRise": 0,

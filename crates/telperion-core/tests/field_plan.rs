@@ -59,7 +59,13 @@ fn retained(family: &Family, s: &Subject) -> Instances {
         foliage::Reference::of(family).unwrap(),
     )
     .unwrap();
-    foliage::cull(placed, &s.element, family.skeleton.envelope, family.shell_depth).unwrap()
+    foliage::cull(
+        placed,
+        &s.element,
+        family.skeleton.envelope,
+        family.shell_depth,
+    )
+    .unwrap()
 }
 /// Cell centres of a grid of `cell` metres covering `bounds`.
 fn grid(bounds: foliage::Bounds, cell: f64) -> impl Iterator<Item = Vec3> {
@@ -101,13 +107,15 @@ fn every_retained_leaf_vertex_lies_in_a_foliage_cell() {
             }
             let mut missed = 0;
             for c in &cells {
-                let centre = origin + Vec3::new(c[0] as f64 + 0.5, c[1] as f64 + 0.5, c[2] as f64 + 0.5) * cell;
+                let centre = origin
+                    + Vec3::new(c[0] as f64 + 0.5, c[1] as f64 + 0.5, c[2] as f64 + 0.5) * cell;
                 if !s.planned.query(centre, cell / 2.).unwrap().foliage {
                     missed += 1;
                 }
             }
             assert_eq!(
-                missed, 0,
+                missed,
+                0,
                 "{id} at {cell} m: {missed} of {} vertex cells report no foliage",
                 cells.len()
             );
@@ -130,7 +138,10 @@ fn over_coverage_is_at_most_twice_the_placed_field_at_a_quarter_metre() {
         }
         let ratio = planned as f64 / base as f64;
         eprintln!("{id}: base {base} planned {planned} ratio {ratio:.2}");
-        assert!(ratio <= 2.0, "{id}: {planned} planned cells against {base} placed");
+        assert!(
+            ratio <= 2.0,
+            "{id}: {planned} planned cells against {base} placed"
+        );
         assert!(
             s.planned.storage_bytes() < placed.storage_bytes(),
             "{id}: the plan stores more than the placed leaves"
@@ -246,7 +257,10 @@ fn the_limb_order_selects_how_finely_the_crown_parts() {
     let right = field.query(Vec3::new(1.75, 2.75, 0.0), 0.3).unwrap();
     assert_eq!((left.limb, right.limb), (Some(1), Some(1)));
     let (_, family) = two_limbs(None);
-    assert_eq!(family, two_limbs(Some(CanopyParams::default().clump_system_order)).1);
+    assert_eq!(
+        family,
+        two_limbs(Some(CanopyParams::default().clump_system_order)).1
+    );
     assert_eq!(family, two_limbs(Some(9)).1);
     assert_ne!(family, coarse);
 }
@@ -303,21 +317,40 @@ fn a_cube_touching_only_the_sweep_boundary_is_covered() {
     let mid = (d.endpoints[0] + d.endpoints[1]) * 0.5;
     let half = 0.1;
     // A face touching the sweep's side, and a point on it.
-    assert!(field.query(mid + Vec3::new(0., 0., reach + half), half).unwrap().foliage);
-    assert!(field.query(mid + Vec3::new(0., 0., reach), 0.).unwrap().foliage);
-    assert!(!field.query(mid + Vec3::new(0., 0., reach * 1.01), 0.).unwrap().foliage);
+    assert!(
+        field
+            .query(mid + Vec3::new(0., 0., reach + half), half)
+            .unwrap()
+            .foliage
+    );
+    assert!(
+        field
+            .query(mid + Vec3::new(0., 0., reach), 0.)
+            .unwrap()
+            .foliage
+    );
+    assert!(
+        !field
+            .query(mid + Vec3::new(0., 0., reach * 1.01), 0.)
+            .unwrap()
+            .foliage
+    );
     // A corner touching it: the segment runs along (-1, 1, 0), so a cube
     // pushed out along (1, 1, 0) meets the sweep with an edge at root two
     // half extents, inside the circumsphere's root three.
     let across = Vec3::new(1., 1., 0.).normalized();
-    assert!(field
-        .query(mid + across * (reach + half * 2_f64.sqrt()), half)
-        .unwrap()
-        .foliage);
-    assert!(!field
-        .query(mid + across * (reach + half * 3_f64.sqrt() * 1.01), half)
-        .unwrap()
-        .foliage);
+    assert!(
+        field
+            .query(mid + across * (reach + half * 2_f64.sqrt()), half)
+            .unwrap()
+            .foliage
+    );
+    assert!(
+        !field
+            .query(mid + across * (reach + half * 3_f64.sqrt() * 1.01), half)
+            .unwrap()
+            .foliage
+    );
 }
 
 /// R1: every shipped preset but the beech, whose short shoots and limb

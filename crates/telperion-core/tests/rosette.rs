@@ -87,11 +87,22 @@ fn an_apex_that_bears_a_rosette_bears_no_twig() {
     let twigs = tree
         .nodes
         .iter()
-        .filter(|n| n.kind != NodeKind::Structural)
+        .filter(|n| n.kind == NodeKind::Twig)
         .count();
     assert_eq!(
         twigs, 0,
         "the palm's apex carries a twig layer under its fronds"
+    );
+    // fn-110 hangs the retained leaf bases on the stem as wood of their own,
+    // so the count above is the twig layer's rather than every node that is
+    // not scaffold. Nothing at all stands above an apex, which is the claim.
+    let apices: Vec<u32> = tree.stem_apices().iter().map(|&i| i as u32).collect();
+    assert!(
+        !tree
+            .nodes
+            .iter()
+            .any(|n| n.parent.is_some_and(|p| apices.contains(&p))),
+        "wood stands above a stem apex, under the fronds"
     );
 }
 
@@ -194,4 +205,61 @@ fn every_new_row_is_refused_by_its_own_name() {
     refuse(|f| f.canopy.leaflet_pitch = 91.);
     refuse(|f| f.canopy.rachis_arch = 1.5);
     refuse(|f| f.canopy.terminal_leaflet = 1.5);
+    refuse(|f| f.canopy.leaf_bases = 257);
+    refuse(|f| f.canopy.leaf_base_length = 11.);
+    refuse(|f| f.canopy.leaf_base_radius = 1.5);
+    refuse(|f| f.canopy.leaf_base_pitch = 181.);
+    refuse(|f| f.canopy.leaf_base_weathering = -0.1);
+    refuse(|f| f.canopy.acanthophylls = 257);
+    refuse(|f| f.canopy.acanthophyll_length = 1.5);
+    refuse(|f| f.canopy.acanthophyll_pitch = 91.);
+}
+
+/// R3 (fn-110): the first leaflets of a frond are borne as spines. Each one is
+/// drawn at its own share of the leaflet it replaces and leaves the rachis at
+/// its own pitch, and every other leaflet on the frond is the leaflet it was:
+/// the spine moves no draw, so the crown either side of it is untouched.
+#[test]
+fn the_first_leaflets_of_a_frond_are_borne_as_spines() {
+    let f = family("date-palm", 1);
+    let mut blades = f.clone();
+    blades.canopy.acanthophylls = 0;
+    let (_, without) = placed(&blades);
+    let (_, with) = placed(&f);
+    assert_eq!(with.leaves.len(), without.leaves.len());
+    let per = f.canopy.leaflet_count as usize;
+    let spines = f.canopy.acanthophylls as usize;
+    assert!(spines > 0 && spines < per);
+    let scale = |crown: &foliage::Instances, i: usize| crown.reference.scale(crown.leaves[i]);
+    for i in 0..with.leaves.len() {
+        let (borne, blade) = (scale(&with, i), scale(&without, i));
+        if i % per < spines {
+            assert!(
+                (borne - blade * f.canopy.acanthophyll_length).abs() < blade * 0.02,
+                "leaflet {i} is borne at {borne}, not the spine's share of {blade}"
+            );
+        } else {
+            assert_eq!(
+                with.leaves[i], without.leaves[i],
+                "leaflet {i} is no spine and moved anyway"
+            );
+        }
+    }
+}
+
+/// The spines absent, the frond is the frond it was: the column scale is not
+/// applied at all, so nothing is multiplied by one.
+#[test]
+fn no_spine_is_borne_where_the_rows_state_none() {
+    let mut f = family("date-palm", 1);
+    f.canopy.acanthophylls = 0;
+    let (_, blades) = placed(&f);
+    let mut length = f.clone();
+    length.canopy.acanthophyll_length = 0.;
+    length.canopy.acanthophylls = 6;
+    let (_, none) = placed(&length);
+    assert_eq!(
+        blades.leaves, none.leaves,
+        "a spine of no length is no spine at all"
+    );
 }

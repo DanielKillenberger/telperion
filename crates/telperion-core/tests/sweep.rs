@@ -70,7 +70,10 @@ const SWEEP_NODES: usize = 8_000;
 // walk it from nothing to a hundred degrees.
 // fn-48.2 adds the clump's fork height, and the birch states half the bole,
 // so the sweep walks it.
-const HELD: [&str; 52] = [
+// fn-109's ten rosette rows and fn-110's eight trunk-organ rows are the date
+// palm's, and the palm is not a preset the sweep walks: every other table
+// leaves them at their neutral, so they are held here.
+const HELD: [&str; 60] = [
     "/canopy/clumpSystemOrder",
     "/canopy/rosetteFronds",
     "/canopy/rosetteDivergence",
@@ -82,6 +85,14 @@ const HELD: [&str; 52] = [
     "/canopy/leafletPitch",
     "/canopy/rachisArch",
     "/canopy/terminalLeaflet",
+    "/canopy/leafBases",
+    "/canopy/leafBaseLength",
+    "/canopy/leafBaseRadius",
+    "/canopy/leafBasePitch",
+    "/canopy/leafBaseWeathering",
+    "/canopy/acanthophylls",
+    "/canopy/acanthophyllLength",
+    "/canopy/acanthophyllPitch",
     "/canopy/clumpNeighbours",
     "/surface/socketContainment",
     "/skeleton/habit/reachProbeSteps",

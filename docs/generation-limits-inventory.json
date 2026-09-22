@@ -1654,5 +1654,53 @@
     "site": "const MAX_LEAFLETS : u32 = 256 ;",
     "classification": "parameter",
     "reason": "MAX_LEAFLETS is the named validated pinnate grouping domain."
+  },
+  {
+    "path": "crates/telperion-core/src/branching/leaf_bases.rs",
+    "site": "const MAX_LEAF_BASES : u32 = 256 ;",
+    "classification": "parameter",
+    "reason": "MAX_LEAF_BASES is the named validated domain of the retained leaf bases one stem may keep."
+  },
+  {
+    "path": "crates/telperion-core/src/branching/leaf_bases.rs",
+    "site": ". clamp ( - 1 . , 1 . )",
+    "classification": "numeric",
+    "reason": "The cosine of the angle between two unit axes, held in the arc cosine's own domain against rounding; it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/branching/leaf_bases.rs",
+    "site": ". clamp ( 0 . , 1 . )",
+    "classification": "algorithm",
+    "reason": "Normalized position along one segment of the stem's polyline stays within its endpoint interval."
+  },
+  {
+    "path": "crates/telperion-core/src/branching/leaf_bases.rs",
+    "site": ". clamp ( 1 , deepest )",
+    "classification": "algorithm",
+    "reason": "The segment of the stem's own polyline a depth falls in, held between the first segment and the last; it indexes the polyline the skeleton grew rather than limiting it."
+  },
+  {
+    "path": "crates/telperion-core/src/branching/leaf_bases.rs",
+    "site": ". max ( 1e - 6 )",
+    "classification": "numeric",
+    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/branching/leaf_bases.rs",
+    "site": ". max ( WORN )",
+    "classification": "numeric",
+    "reason": "The least length and girth weathering leaves a retained base at, so a worn base is still wood a node of positive radius can carry; it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/foliage/rosette.rs",
+    "site": "for column in 0 . . 3 {",
+    "classification": "algorithm",
+    "reason": "The three basis columns of one leaf transform, scaled where a basal leaflet is borne as a spine; a transform has three."
+  },
+  {
+    "path": "crates/telperion-core/src/foliage/rosette.rs",
+    "site": "for row in 0 . . 3 {",
+    "classification": "algorithm",
+    "reason": "The three rows of one basis column of a leaf transform; a column has three."
   }
 ]

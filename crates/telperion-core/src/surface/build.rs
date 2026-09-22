@@ -388,5 +388,3 @@ pub(super) fn finish(mut mesh: SurfaceMesh, segments: usize) -> Result<SurfaceMe
     mesh.bounds = Some(Bounds { min, max });
     Ok(mesh)
 }
-
-

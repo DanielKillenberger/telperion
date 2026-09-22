@@ -174,9 +174,7 @@ fn prepare_inner<C>(
         // Eight f64 rounding units cover the original multiply/divide angle
         // chain. Keep periodic tile reconstruction below 0.00025 radians of
         // extra uncertainty; larger valid requests use the reference CPU path.
-        let phase_error = f64::from(run.internodes)
-            * p.divergence.abs()
-            * std::f64::consts::PI
+        let phase_error = f64::from(run.internodes) * p.divergence.abs() * std::f64::consts::PI
             / 180.0
             * f64::EPSILON
             * 8.0;

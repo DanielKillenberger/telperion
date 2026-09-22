@@ -138,6 +138,53 @@ pub struct CanopyParams {
     /// last leaflet turns from standing off the rachis to lying along it.
     #[cfg_attr(feature = "json", serde(default))]
     pub terminal_leaflet: f64,
+    /// Bases of shed fronds the stem keeps below its crown, clothing the
+    /// trunk. At zero the trunk is bare and the bark is what it always was;
+    /// any rise carries the crown's own spiral down it.
+    #[cfg_attr(feature = "json", serde(default))]
+    pub leaf_bases: u32,
+    /// Metres a retained base stands out from the bark. At zero no base is
+    /// drawn whatever the count says.
+    #[cfg_attr(feature = "json", serde(default))]
+    pub leaf_base_length: f64,
+    /// How thick a base is where it leaves the bark, as a share of the stem's
+    /// own radius there. Raising it leaves a broader boot.
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_leaf_base_radius")
+    )]
+    pub leaf_base_radius: f64,
+    /// Degrees from the stem's axis a base points: 0 flat against the trunk,
+    /// 90 square out of it, 180 turned back down.
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_leaf_base_pitch")
+    )]
+    pub leaf_base_pitch: f64,
+    /// How far the lowest and oldest base is worn back against the newest, in
+    /// both its length and its girth. At zero every base stands full down the
+    /// whole trunk, and any rise wears the foot away.
+    #[cfg_attr(feature = "json", serde(default))]
+    pub leaf_base_weathering: f64,
+    /// Leaflets at a frond's base borne as spines rather than blades. At zero
+    /// the frond carries blades all the way down; any rise hardens that many
+    /// of them.
+    #[cfg_attr(feature = "json", serde(default))]
+    pub acanthophylls: u32,
+    /// The share of a leaflet's own size a spine is drawn at. At zero no spine
+    /// is drawn whatever the count says.
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_acanthophyll_length")
+    )]
+    pub acanthophyll_length: f64,
+    /// The degrees a spine leaves the rachis, in place of the leaflet's own
+    /// pitch.
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_acanthophyll_pitch")
+    )]
+    pub acanthophyll_pitch: f64,
     /// Hard total budget. Exceeding it returns an error, never partial foliage.
     #[cfg_attr(feature = "json", serde(with = "crate::specimen::portable::index"))]
     pub max_instances: usize,
@@ -181,6 +228,16 @@ impl Default for CanopyParams {
             leaflet_pitch: crate::ranges::default_leaflet_pitch(),
             rachis_arch: 0.,
             terminal_leaflet: 0.,
+            // Neutral: the trunk carries no retained base and no frond bears a
+            // spine until a table states a count and the reach to draw it at.
+            leaf_bases: 0,
+            leaf_base_length: 0.,
+            leaf_base_radius: crate::ranges::default_leaf_base_radius(),
+            leaf_base_pitch: crate::ranges::default_leaf_base_pitch(),
+            leaf_base_weathering: 0.,
+            acanthophylls: 0,
+            acanthophyll_length: crate::ranges::default_acanthophyll_length(),
+            acanthophyll_pitch: crate::ranges::default_acanthophyll_pitch(),
             max_instances: usize::MAX,
         }
     }

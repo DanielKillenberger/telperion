@@ -19,8 +19,8 @@ use crate::{
     tree::Tree,
     Error, Result,
 };
-use index::{bounds_of, checked, cube, reserved, union, Index, Item};
 pub use index::IndexSnapshot;
+use index::{bounds_of, checked, cube, reserved, union, Index, Item};
 
 /// One cell's answer. `wood_radius` is the larger end radius of the thickest
 /// wood sweep reaching the cell, in metres, zero where no wood does.
@@ -149,12 +149,13 @@ impl Tally {
         self.entries[..self.len]
             .iter()
             .chain(&self.spill)
-            .fold(None, |best: Option<(u32, f64)>, &(system, estimate)| {
-                match best {
+            .fold(
+                None,
+                |best: Option<(u32, f64)>, &(system, estimate)| match best {
                     Some((s, e)) if e > estimate || (e == estimate && s < system) => Some((s, e)),
                     _ => Some((system, estimate)),
-                }
-            })
+                },
+            )
             .map(|(system, _)| system)
     }
 }
@@ -303,7 +304,10 @@ impl Field {
                     let s = &sweeps[id];
                     if s.segment.contains(center, inflation) {
                         foliage = true;
-                        tally.add(s.system, s.count * s.segment.share_inside(center, half_extent));
+                        tally.add(
+                            s.system,
+                            s.count * s.segment.share_inside(center, half_extent),
+                        );
                     }
                 });
                 Occupancy {

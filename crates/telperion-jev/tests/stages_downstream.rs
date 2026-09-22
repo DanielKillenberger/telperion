@@ -475,7 +475,7 @@ fn the_gate_files_onboarding_gate_for_an_unregistered_preset() {
 }
 
 #[test]
-fn the_date_palms_recorded_needs_are_three_missing_organs_and_no_false_positive() {
+fn the_date_palms_recorded_needs_are_one_missing_organ_and_no_false_positive() {
     let dir = scratch_with("date-palm", 2, requiring(&DATE_PALM));
     let checks = Checks {
         registered: false,
@@ -483,22 +483,25 @@ fn the_date_palms_recorded_needs_are_three_missing_organs_and_no_false_positive(
     };
     gate::run(&Paths::new(&dir), &checks).unwrap();
     let capability = body_of(&dir, "gate")["capability"].clone();
-    // fn-109 gave the generator the frond crown, so the palm's gate halts on
-    // the trunk organs and the fruiting cluster alone.
+    // fn-109 gave the generator the frond crown and fn-110 the trunk organs,
+    // so the palm's gate halts on the fruiting cluster alone.
     assert_eq!(
         capability["expressed"],
-        json!(["woody-axes", "apical-rosette", "pinnate-frond"])
+        json!([
+            "woody-axes",
+            "apical-rosette",
+            "pinnate-frond",
+            "acanthophyll",
+            "persistent-leaf-base"
+        ])
     );
-    assert_eq!(
-        capability["missing"],
-        json!(["acanthophyll", "persistent-leaf-base", "infructescence"])
-    );
+    assert_eq!(capability["missing"], json!(["infructescence"]));
     assert_eq!(capability["unrecognised"], json!([]));
     let filed = of_kind(&dir, "onboarding-gate");
     let capability_gate = filed.iter().find(|d| d["field"] == "capability").unwrap();
     assert_eq!(
         capability_gate["payload"]["detail"],
-        "the generator does not express acanthophyll, persistent-leaf-base, infructescence"
+        "the generator does not express infructescence"
     );
 }
 

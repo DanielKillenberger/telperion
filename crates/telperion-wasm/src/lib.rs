@@ -268,7 +268,10 @@ pub extern "C" fn buffer_len(slot: u32) -> usize {
             21 => o.snapshot.as_ref().map_or(0, |s| s.plan.len()),
             22 => o.snapshot.as_ref().map_or(0, |s| s.plan_stations.len()),
             23 => o.snapshot.as_ref().map_or(0, |s| s.plan_index.bounds.len()),
-            24 => o.snapshot.as_ref().map_or(0, |s| s.plan_index.topology.len()),
+            24 => o
+                .snapshot
+                .as_ref()
+                .map_or(0, |s| s.plan_index.topology.len()),
             25 => e.wood_radii.len(),
             _ => 0,
         }

@@ -29,9 +29,9 @@ mod samples;
 #[cfg(feature = "geometry")]
 pub(crate) use attachment::AttachmentSurface;
 #[cfg(feature = "geometry")]
-pub use build::{build, extent};
-#[cfg(feature = "geometry")]
 use build::*;
+#[cfg(feature = "geometry")]
+pub use build::{build, extent};
 #[cfg(feature = "geometry")]
 pub(crate) use dependencies::affected as affected_contacts;
 pub(crate) use paths::straightest;

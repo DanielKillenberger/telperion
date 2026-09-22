@@ -97,7 +97,8 @@ fn a_field_request_reads_the_plan_and_names_its_stages_for_every_preset() {
 fn the_field_request_selects_the_limb_order_and_defaults_to_the_family() {
     let family = params::by_identity("oregon-white-oak").unwrap();
     let answers = |field: Value| {
-        let (out, _) = generate(json!({"family": "oregon-white-oak", "outputs": {"field": field}})).unwrap();
+        let (out, _) =
+            generate(json!({"family": "oregon-white-oak", "outputs": {"field": field}})).unwrap();
         let f = out.field.unwrap();
         let b = f.bounds().unwrap();
         let mut answers = Vec::new();
@@ -105,7 +106,11 @@ fn the_field_request_selects_the_limb_order_and_defaults_to_the_family() {
             for j in 0..8 {
                 for k in 0..8 {
                     let at = |lo: f64, hi: f64, n: usize| lo + (hi - lo) * (n as f64 + 0.5) / 8.0;
-                    let c = Vec3::new(at(b.min.x, b.max.x, i), at(b.min.y, b.max.y, j), at(b.min.z, b.max.z, k));
+                    let c = Vec3::new(
+                        at(b.min.x, b.max.x, i),
+                        at(b.min.y, b.max.y, j),
+                        at(b.min.z, b.max.z, k),
+                    );
                     answers.push(f.query(c, (b.max.y - b.min.y) / 16.0).unwrap());
                 }
             }
@@ -116,16 +121,35 @@ fn the_field_request_selects_the_limb_order_and_defaults_to_the_family() {
     let order = family.canopy.clump_system_order;
     assert_eq!(default, answers(json!({"limbOrder": order})));
     let limbs = |a: &[telperion_core::field::Occupancy]| {
-        a.iter().filter_map(|o| o.limb).collect::<std::collections::HashSet<_>>().len()
+        a.iter()
+            .filter_map(|o| o.limb)
+            .collect::<std::collections::HashSet<_>>()
+            .len()
     };
     let finer = answers(json!({"limbOrder": order + 3}));
-    assert!(limbs(&finer) > limbs(&default), "{} against {}", limbs(&finer), limbs(&default));
+    assert!(
+        limbs(&finer) > limbs(&default),
+        "{} against {}",
+        limbs(&finer),
+        limbs(&default)
+    );
     assert!(default.iter().any(|o| o.wood && o.wood_radius > 0.0));
-    for bad in [json!({}), json!({"limbOrder": -1}), json!({"limbOrder": 1.5}), json!({"limbOrder": 1, "x": 1}), json!(1)] {
-        let error = generate(json!({"family": "oregon-white-oak", "outputs": {"field": bad}})).err();
-        assert!(matches!(error, Some(Error::InvalidInput("field limb order"))), "{bad}: {error:?}");
+    for bad in [
+        json!({}),
+        json!({"limbOrder": -1}),
+        json!({"limbOrder": 1.5}),
+        json!({"limbOrder": 1, "x": 1}),
+        json!(1),
+    ] {
+        let error =
+            generate(json!({"family": "oregon-white-oak", "outputs": {"field": bad}})).err();
+        assert!(
+            matches!(error, Some(Error::InvalidInput("field limb order"))),
+            "{bad}: {error:?}"
+        );
     }
-    let (out, meta) = generate(json!({"family": "oregon-white-oak", "outputs": {"field": false}})).unwrap();
+    let (out, meta) =
+        generate(json!({"family": "oregon-white-oak", "outputs": {"field": false}})).unwrap();
     assert!(out.field.is_none() && meta["stages"]["field"] == json!(false));
 }
 

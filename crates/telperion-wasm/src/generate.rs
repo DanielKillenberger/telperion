@@ -180,7 +180,11 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
             out.element_coords = blade.coords.clone();
         }
     }
-    let foliage_ms = if needs_placement { clock() - start } else { 0.0 };
+    let foliage_ms = if needs_placement {
+        clock() - start
+    } else {
+        0.0
+    };
     let start = clock();
     if wants("field") {
         out.field = Some(match &leaf_plan {

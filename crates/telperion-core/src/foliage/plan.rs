@@ -362,7 +362,12 @@ mod tests {
         assert_eq!(plan.total, 12);
         let counts: Vec<u32> = plan.descriptors.iter().map(|d| d.count).collect();
         assert_eq!(counts, [4, 2, 4, 2]);
-        let systems = |plan: &Plan| plan.descriptors.iter().map(|d| d.system).collect::<Vec<_>>();
+        let systems = |plan: &Plan| {
+            plan.descriptors
+                .iter()
+                .map(|d| d.system)
+                .collect::<Vec<_>>()
+        };
         assert_eq!(systems(&plan), [1, 1, 3, 3]);
         // No order is the family's order; order zero keeps the second limb on
         // the stem's system, order one and up opens its own.

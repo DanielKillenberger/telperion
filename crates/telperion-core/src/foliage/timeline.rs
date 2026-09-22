@@ -2,14 +2,14 @@
 #[cfg(feature = "geometry")]
 use super::station::{place_run, Run};
 use super::*;
-#[cfg(feature = "geometry")]
-use crate::{rng::Rng, surface::AttachmentSurface, tree::NodeKind};
 use crate::{
     growth::Age,
     presets::Family,
     surface::SurfaceParams,
     tree::{NodeIdentity, Tree},
 };
+#[cfg(feature = "geometry")]
+use crate::{rng::Rng, surface::AttachmentSurface, tree::NodeKind};
 #[cfg(feature = "geometry")]
 use std::collections::BTreeSet;
 use std::{cell::RefCell, collections::BTreeMap};
@@ -116,7 +116,7 @@ impl Foliage {
 
     /// Historical reads own their cache, preserving frontier transforms for a
     /// later clock-only fill. Copy only immutable traits, never cached foliage.
-#[cfg(feature = "geometry")]
+    #[cfg(feature = "geometry")]
     pub(crate) fn read_uncached(
         &self,
         tree: &Tree,
@@ -137,7 +137,7 @@ impl Foliage {
         .read(tree, envelope, age)
     }
 
-#[cfg(feature = "geometry")]
+    #[cfg(feature = "geometry")]
     pub fn read(&self, tree: &Tree, envelope: Envelope, age: Age) -> Result<Vec<Placement>> {
         tree.validate_solved()?;
         let live = self.living(tree, age)?;
@@ -218,7 +218,7 @@ impl Foliage {
     // Spread stations evenly over ceil(lifetime) annual cohorts. Offset zero
     // flushes at birth; a one-year lifetime therefore fills immediately. Use
     // integer ticks and products, even at the maximum supported lifetime.
-#[cfg(feature = "geometry")]
+    #[cfg(feature = "geometry")]
     fn visible(&self, birth: Age, age: Age, stations: usize) -> usize {
         if self.lifetime.ticks() == 0 || age.ticks() < birth.ticks() {
             return 0;
@@ -233,7 +233,7 @@ impl Foliage {
         ((u128::from((years + 1).min(cohorts)) * stations as u128).div_ceil(u128::from(cohorts)))
             as usize
     }
-#[cfg(feature = "geometry")]
+    #[cfg(feature = "geometry")]
     fn living(&self, tree: &Tree, age: Age) -> Result<Vec<usize>> {
         let now = age.ticks();
         let slender = tree
@@ -259,7 +259,7 @@ impl Foliage {
         Ok(live)
     }
 
-#[cfg(feature = "geometry")]
+    #[cfg(feature = "geometry")]
     fn place_shoot(
         &self,
         tree: &Tree,
