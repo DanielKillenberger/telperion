@@ -1,15 +1,21 @@
 //! Owned leaf elements and placements. No wood mesh is needed by this module.
 use crate::math::Transcendental;
+mod canopy;
 mod clumping;
 mod element;
 mod levels;
 mod outline;
 pub(crate) mod packed;
+#[cfg(feature = "geometry")]
 mod placement;
+pub mod plan;
+#[cfg(feature = "geometry")]
 pub mod prepared;
 mod reference;
 mod rosette;
+#[cfg(feature = "geometry")]
 mod short_shoots;
+#[cfg(feature = "geometry")]
 mod station;
 pub(crate) mod timeline;
 use crate::{
@@ -17,16 +23,22 @@ use crate::{
     math::Vec3,
     Error, Result,
 };
+pub use canopy::{CanopyParams, TwigPlacement, MAX_SHORT_SHOOT_LEAVES, SHORT_SHOOT_SPACING};
 pub use element::{build_element, AnatomyGeometry, Element, ElementParams, FoliageUnit};
 pub use levels::Level;
 pub use packed::{Leaf, Reference, WORDS};
+#[cfg(feature = "geometry")]
 pub(crate) use placement::leaf_count;
-pub use placement::{place, place_on_surface, CanopyParams, TwigPlacement};
-pub use rosette::{place_rosette, rosettes, Rosette, MAX_FRONDS, MAX_LEAFLETS};
-pub use short_shoots::{
-    place_short_shoots, place_short_shoots_clumped, short_shoots, ShortShoot,
-    MAX_SHORT_SHOOT_LEAVES, SHORT_SHOOT_SPACING,
-};
+#[cfg(feature = "geometry")]
+pub use placement::{place, place_on_surface};
+#[cfg(feature = "geometry")]
+pub use rosette::place_rosette;
+/// The canopy's own rails, for a pass that reads the canopy rows without
+/// placing a leaf: a bad row is refused by the name `place` refuses it by.
+pub(crate) use rosette::validate as validate_canopy;
+pub use rosette::{frame, rosettes, Rosette, MAX_FRONDS, MAX_LEAFLETS};
+#[cfg(feature = "geometry")]
+pub use short_shoots::{place_short_shoots, place_short_shoots_clumped, short_shoots, ShortShoot};
 pub use timeline::{Placement, PlacementIdentity};
 
 #[derive(Debug, Clone, Copy, PartialEq)]

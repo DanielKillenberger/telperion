@@ -145,9 +145,11 @@ impl PackedRead {
 impl Specimen {
     /// Shared owned frontier geometry. Earlier-age reads remain a chronicle
     /// filter; they do not replace the cached frontier view.
+    #[cfg(feature = "geometry")]
     pub fn read_packed(&self) -> Result<PackedRead> {
         self.read_packed_at_age(self.age())
     }
+    #[cfg(feature = "geometry")]
     pub fn read_packed_at_age(&self, years: f64) -> Result<PackedRead> {
         let age = self.read_age(years)?;
         if age == self.timeline.as_ref().unwrap().age {
@@ -177,6 +179,7 @@ impl Specimen {
         }
         Ok(read)
     }
+    #[cfg(feature = "geometry")]
     pub(super) fn update_shared(&self, from: crate::growth::Age, record: &ChangeRecord) {
         let mut cached = self.shared.borrow_mut();
         if let Some((age, read)) = cached.as_mut() {

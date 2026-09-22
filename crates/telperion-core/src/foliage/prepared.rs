@@ -1,5 +1,5 @@
 //! Compact regular twig stations, shared by accelerated consumers without a GPU dependency.
-use super::{placement, station, CanopyParams, TwigPlacement};
+use super::{plan, station, CanopyParams, TwigPlacement};
 use crate::math::Transcendental;
 use crate::{
     envelope::Envelope,
@@ -38,7 +38,7 @@ pub struct PreparedStations<R = Vec<Vec3>> {
 
 /// Capability check only; preparation still validates every parameter.
 pub fn supports_stations(p: CanopyParams, twig: Option<TwigPlacement>) -> bool {
-    twig.is_some() && p.short_shoot_spacing == 0.0 && p.limb_clumping == 0.0
+    plan::supports(p, twig)
 }
 
 /// `None` is an explicit capability fallback, after parameter validation.
@@ -139,9 +139,9 @@ fn prepare_inner<C>(
     make_contacts: impl FnOnce() -> Result<C>,
     edge: impl Fn(&C, usize) -> Option<[usize; 4]>,
 ) -> Result<Option<(Vec<StationSegment>, u32, Option<C>)>> {
-    placement::validate(tree, envelope, p, twig)?;
+    super::canopy::validate(tree, envelope, p, twig)?;
     surface.validate()?;
-    if !supports_stations(p, twig) {
+    if !plan::supports(p, twig) {
         return Ok(None);
     }
     let twig = twig.unwrap();
@@ -168,73 +168,27 @@ fn prepare_inner<C>(
     } else {
         None
     };
-    for nodes in placement::bearing_runs(tree, p) {
-        let points: Vec<_> = nodes.iter().map(|&i| tree.nodes[i].position).collect();
-        let mut along = vec![0.0];
-        for pair in points.windows(2) {
-            along.push(along.last().unwrap() + pair[0].distance(pair[1]));
-        }
-        let length = *along.last().unwrap();
-        if length == 0.0 {
-            continue;
-        }
-        if !length.is_finite() {
-            return Err(Error::ResourceLimit("shoot length overflow"));
-        }
-        let internodes = (length / twig.internode_length - 1e-9).ceil().max(1.0);
-        let count = internodes * f64::from(twig.stations_per_internode);
+    let runs = plan::runs(tree, envelope, p, Some(twig))?.unwrap_or_default();
+    for run in &runs {
+        let points: Vec<_> = run.nodes.iter().map(|&i| tree.nodes[i].position).collect();
         // Eight f64 rounding units cover the original multiply/divide angle
         // chain. Keep periodic tile reconstruction below 0.00025 radians of
         // extra uncertainty; larger valid requests use the reference CPU path.
-        let phase_error =
-            internodes * p.divergence.abs() * std::f64::consts::PI / 180.0 * f64::EPSILON * 8.0;
-
-        if !count.is_finite()
-            || count > p.max_instances as f64
-            || count >= (isize::MAX as usize / size_of::<f64>()) as f64
-            || count > u32::MAX as f64
-        {
-            return Err(Error::ResourceLimit("foliage instance budget"));
-        }
+        let phase_error = f64::from(run.internodes) * p.divergence.abs() * std::f64::consts::PI
+            / 180.0
+            * f64::EPSILON
+            * 8.0;
         if phase_error > 0.00025 {
             return Ok(None);
         }
-        let count = count as u32;
-        let end = total_count
-            .checked_add(count)
-            .filter(|&n| n as usize <= p.max_instances)
-            .ok_or(Error::ResourceLimit("foliage instance budget"))?;
-        // The original reverse search chooses the last segment starting at or
-        // below a distance. Integer lower bounds retain that tie convention,
-        // including repeated zero-length segments, without enumerating leaves.
-        let lower = |distance: f64| {
-            let (mut lo, mut hi) = (0u32, internodes as u32);
-            while lo < hi {
-                let mid = lo + (hi - lo) / 2;
-                if f64::from(mid) * twig.internode_length < distance {
-                    lo = mid + 1;
-                } else {
-                    hi = mid;
-                }
-            }
-            lo * twig.stations_per_internode
-        };
         for (segment, (tangent, normal, binormal)) in
-            station::station_frame_iter(&points, &along).enumerate()
+            station::station_frame_iter(&points, &run.along).enumerate()
         {
-            let first = if segment == 0 {
-                0
-            } else {
-                lower(along[segment])
-            };
-            let last = if segment + 2 == points.len() {
-                count
-            } else {
-                lower(along[segment + 1])
-            };
+            let (first, last) = run.segment_stations(segment, twig);
             if first == last {
                 continue;
             }
+            let nodes = &run.nodes;
             let distal = &tree.nodes[nodes[segment + 1]];
             let contact = contacts
                 .as_ref()
@@ -265,15 +219,15 @@ fn prepare_inner<C>(
                     phase: [sin, cos],
                     endpoints: [points[segment], points[segment + 1]],
                     radii: [distal.start_radius, distal.radius],
-                    along: along[segment],
-                    span: along[segment + 1] - along[segment],
+                    along: run.along[segment],
+                    span: run.along[segment + 1] - run.along[segment],
                     frame: [tangent, normal, binormal],
                     contact,
                 });
                 tile_first += tile_count;
             }
         }
-        total_count = end;
+        total_count += run.count;
     }
     Ok(Some((segments, total_count, contacts)))
 }

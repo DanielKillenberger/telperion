@@ -217,6 +217,25 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .remove(row)
                 .expect("the canopy publishes its rosette and leaflet rows");
         }
+        // fn-110 adds the palm's trunk organs as eight more canopy rows. The
+        // frozen file predates them too, and the two counts are zero there,
+        // which clothes no trunk and hardens no leaflet.
+        for row in [
+            "leafBases",
+            "leafBaseLength",
+            "leafBaseRadius",
+            "leafBasePitch",
+            "leafBaseWeathering",
+            "acanthophylls",
+            "acanthophyllLength",
+            "acanthophyllPitch",
+        ] {
+            emitted["canopy"]
+                .as_object_mut()
+                .unwrap()
+                .remove(row)
+                .expect("the canopy publishes its trunk-organ rows");
+        }
         // fn-54 adds the gap between limb systems; the frozen file predates
         // it, and at none it thins no leaf.
         emitted["canopy"]

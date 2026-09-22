@@ -16,13 +16,20 @@
 //! instance. That grouping is the placement's, not the rosette's, so every
 //! source expands through [`fan`] and a family that states leaflets without a
 //! rosette draws compound leaves on the wood it already clothed.
+//!
+//! The rows, their rails and the apices are read with the placement compiled
+//! out, so the leaf plan can tell a frond crown from a clothed one; only the
+//! placing itself needs the `geometry` feature.
+use super::{range, CanopyParams};
+#[cfg(feature = "geometry")]
 use super::{
-    range,
     station::{matrix, reserve},
-    CanopyParams, Instances,
+    Instances,
 };
-use crate::math::Transcendental;
-use crate::{math::Vec3, rng::Rng, tree::Tree, Error, Result};
+use crate::branching::MAX_LEAF_BASES;
+#[cfg(feature = "geometry")]
+use crate::{math::Transcendental, rng::Rng};
+use crate::{math::Vec3, tree::Tree, Error, Result};
 
 /// The most fronds one rosette bears, and the most leaflets one rachis
 /// carries: rails wide enough for any crown a table has asked for.
@@ -56,7 +63,7 @@ pub(super) fn leaflets(p: &CanopyParams) -> usize {
 }
 
 /// Every row on its rail, each refused by its own name.
-pub(super) fn validate(p: &CanopyParams) -> Result<()> {
+pub(crate) fn validate(p: &CanopyParams) -> Result<()> {
     for (v, l, h, n) in [
         (p.rosette_divergence, -1e9, 1e9, "rosette divergence"),
         (p.rosette_pitch, 0., 180., "rosette pitch"),
@@ -66,6 +73,12 @@ pub(super) fn validate(p: &CanopyParams) -> Result<()> {
         (p.leaflet_pitch, 0., 90., "leaflet pitch"),
         (p.rachis_arch, -1., 1., "rachis arch"),
         (p.terminal_leaflet, 0., 1., "terminal leaflet"),
+        (p.leaf_base_length, 0., 10., "leaf base length"),
+        (p.leaf_base_radius, 0., 1., "leaf base radius"),
+        (p.leaf_base_pitch, 0., 180., "leaf base pitch"),
+        (p.leaf_base_weathering, 0., 1., "leaf base weathering"),
+        (p.acanthophyll_length, 0., 1., "acanthophyll length"),
+        (p.acanthophyll_pitch, 0., 90., "acanthophyll pitch"),
     ] {
         range(v, l, h, n)?;
     }
@@ -74,6 +87,12 @@ pub(super) fn validate(p: &CanopyParams) -> Result<()> {
     }
     if !(1..=MAX_LEAFLETS).contains(&p.leaflet_count) {
         return Err(Error::InvalidInput("leaflet count"));
+    }
+    if p.leaf_bases > MAX_LEAF_BASES {
+        return Err(Error::InvalidInput("leaf bases"));
+    }
+    if p.acanthophylls > MAX_LEAFLETS {
+        return Err(Error::InvalidInput("acanthophylls"));
     }
     Ok(())
 }
@@ -101,6 +120,7 @@ pub fn rosettes(tree: &Tree) -> Vec<Rosette> {
         .collect()
 }
 
+#[cfg(feature = "geometry")]
 /// Leaves the rosettes place before any cull: apices by fronds by leaflets.
 pub(super) fn count(tree: &Tree, p: &CanopyParams) -> Result<usize> {
     if !bearing(p) {
@@ -114,6 +134,7 @@ pub(super) fn count(tree: &Tree, p: &CanopyParams) -> Result<usize> {
         .ok_or_else(budget)
 }
 
+#[cfg(feature = "geometry")]
 /// Hang every rosette's fronds into an already-sized crown.
 pub(super) fn clothe(
     tree: &Tree,
@@ -156,6 +177,7 @@ pub(super) fn clothe(
     Ok(())
 }
 
+#[cfg(feature = "geometry")]
 /// `clothe` for the growth path, which places its own recorded leaves first
 /// and draws the rosette live from the wood on screen.
 pub fn place_rosette(tree: &Tree, seed: u32, p: CanopyParams, out: &mut Instances) -> Result<()> {
@@ -165,6 +187,7 @@ pub fn place_rosette(tree: &Tree, seed: u32, p: CanopyParams, out: &mut Instance
     clothe(tree, seed, &p, out, None)
 }
 
+#[cfg(feature = "geometry")]
 /// The matrices one placement stands for: one where the grouping is off, else
 /// `leaflet_count` leaflets along the rachis that leaves `point` on `heading`.
 ///
@@ -202,15 +225,39 @@ pub(super) fn fan(
             1.
         };
         let hand = if leaf % 2 == 0 { 1. } else { -1. };
+        // A basal leaflet borne as a spine leaves the rachis at its own pitch
+        // and is drawn at its own share of the size the leaflet would have
+        // had. No draw moves: the spine is the same instance, scaled.
+        let borne = spine(leaf, &p);
+        let pitch = borne.map_or(pitch, |(_, steeper)| steeper);
         let axis = run.rotate(lift, hand * pitch * closing);
-        out.push(&matrix(at, axis, run, side, p, rng)?);
+        let mut placed = matrix(at, axis, run, side, p, rng)?;
+        if let Some((share, _)) = borne {
+            for column in 0..3 {
+                for row in 0..3 {
+                    placed[column * 4 + row] *= share as f32;
+                }
+            }
+        }
+        out.push(&placed);
     }
     Ok(())
 }
 
+/// The share of its own size a basal leaflet is drawn at and the radians it
+/// leaves the rachis on, where the rows bear it as a spine. None everywhere
+/// else, so a frond that bears none is scaled by nothing at all.
+#[cfg(feature = "geometry")]
+fn spine(index: usize, p: &CanopyParams) -> Option<(f64, f64)> {
+    let borne = (index as u64) < u64::from(p.acanthophylls) && p.acanthophyll_length > 0.;
+    borne.then(|| (p.acanthophyll_length, p.acanthophyll_pitch.to_radians()))
+}
+
 /// Two unit vectors square to `axis` and to each other: the frame a spiral is
-/// turned in and a rachis is arched out of.
-fn frame(axis: Vec3) -> (Vec3, Vec3) {
+/// turned in and a rachis is arched out of. One frame a stem, taken on the
+/// apex's own axis: the reference is a vanishing vector on a near-vertical
+/// trunk, so a frame per node would scatter a lattice's phase.
+pub fn frame(axis: Vec3) -> (Vec3, Vec3) {
     let up = Vec3::Y - axis * axis.y;
     let normal = if up.length_squared() > 1e-12 {
         up.normalized()
@@ -220,6 +267,7 @@ fn frame(axis: Vec3) -> (Vec3, Vec3) {
     (normal, axis.cross(normal))
 }
 
+#[cfg(feature = "geometry")]
 /// SplitMix64's finaliser over the seed, the apex's birth order and the
 /// frond's place on the spiral: the frond's own stream.
 fn key(seed: u32, birth: u64, frond: u32) -> u32 {

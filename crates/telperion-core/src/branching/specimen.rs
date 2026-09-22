@@ -8,6 +8,7 @@ mod contacts;
 mod crown;
 mod events;
 mod history;
+#[cfg(feature = "geometry")]
 mod interval;
 mod keyframes;
 mod retention;

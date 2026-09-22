@@ -20,11 +20,11 @@ const listed = (path) => JSON.parse(readFileSync(path, 'utf8')).profiles.map((pr
  *  than restated: the listed catalogue, and the tables still being judged,
  *  which are unlisted in the browser and reached here by name. */
 function shippedPresets() {
-  const source = readFileSync(join(ROOT, 'crates/telperion-core/src/params.rs'), 'utf8');
+  const source = readFileSync(join(ROOT, 'crates/telperion-core/src/presets.rs'), 'utf8');
   const table = (name) => {
     const body = new RegExp(`pub const ${name}:[^=]+=\\s*&\\[([\\s\\S]*?)\\];`).exec(source)?.[1];
     const ids = [...(body ?? '').matchAll(/\(\s*\d+,\s*"([a-z-]+)"/g)].map((entry) => entry[1]);
-    if (ids.length === 0) throw Error(`No ${name} preset table in params.rs`);
+    if (ids.length === 0) throw Error(`No ${name} preset table in presets.rs`);
     return ids;
   };
   return [...table('CATALOGUE'), ...table('IN_WORK')];

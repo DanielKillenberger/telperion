@@ -22,12 +22,23 @@ export const TWO_TREES = [TELPERION, LAURELIN];
 export const PRESETS = CATALOGUE.map(entry => presetById(entry.id));
 export interface Outputs {
   surface?: boolean; foliage?: boolean; structure?: boolean;
-  /** Wood and foliage occupancy. Places retained leaves internally, but transfers
-   * no render buffers unless surface/foliage are requested separately. */
-  field?: boolean;
+  /** Wood and foliage occupancy from the solved tree and the leaf plan: no
+   * leaf is placed for a family the plan describes. A family without a plan
+   * places and culls its leaves for the field; no render buffers transfer
+   * unless surface/foliage are requested separately. `true` names limbs at
+   * the family's `clumpSystemOrder`; `{ limbOrder }` at that lateral order,
+   * a higher one parting the crown into more and smaller systems. */
+  field?: boolean | { limbOrder: number };
 }
 export interface Bounds { min: [number, number, number]; max: [number, number, number] }
-export interface Timings { growthMs: number; surfaceMs: number; foliageMs: number; fieldMs: number; coreMs: number; transferMs: number; buildMs: number }
+export interface Timings { growthMs: number; surfaceMs: number; planMs: number; foliageMs: number; fieldMs: number; coreMs: number; transferMs: number; buildMs: number }
+/** Which stages a build ran. `foliage` is the placement and the cull together;
+ * `contacts` the wood's contact surface under placement; `plan` the leaf plan
+ * a field request read. `fieldSource` names the field's foliage path. */
+export interface Stages {
+  surface: boolean; foliage: boolean; placement: boolean; cull: boolean; contacts: boolean; plan: boolean; field: boolean;
+  fieldSource: "plan" | "placed" | null;
+}
 /** Half-open prototype ranges exclude connectors; indices are scalar offsets. */
 export interface FoliageAnatomy {
   unit: "leaf" | "needle"; vertices: [number, number]; indices: [number, number]; sections: [number, number][];
@@ -37,23 +48,38 @@ export interface Diagnostics {
   nodes: number; crossover: number; shed: number; capped: boolean; levelCapped: boolean;
   attractionCapped: boolean; complete: boolean; handoffs: number; generationCounts: number[];
   levelCappedHandoffs: number; twigs: number; leavesPlaced: number; instances: number;
+  /** Stations the leaf plan counts before any cull; zero without a plan. */
+  leavesPlanned: number;
   surfaceBounds: Bounds | null; foliageBounds: Bounds | null;
   /** The box every packed leaf position is quantised against. */
   foliageReference: LeafReference | null;
   fieldBounds: Bounds | null;
   fieldBytes: number; revision: number; timings: Timings;
-  stages: { surface: boolean; foliage: boolean; field: boolean };
+  stages: Stages;
 }
+/** One batch query's answers, one entry per cell. `flags` bits: wood=1,
+ * foliage=2. `woodRadius` is the thickest wood sweep reaching the cell in
+ * metres, zero without wood. `leaves` estimates the stations in the cell
+ * before the crown cull (the retained leaves overlapping it on the placed
+ * path). `limbs` is the owning limb system, UINT32_MAX where no foliage
+ * reaches. */
+export interface FieldQuery { flags: Uint8Array; woodRadius: Float32Array; leaves: Float32Array; limbs: Uint32Array }
 /** Owned canonical f64 CPU BVH data for generation experiments; survives release,
  * rebuild and disposal. Mutating these arrays cannot alter the native field.
  * Bounds: six f64 min/max xyz per node then item. Topology: four u32 per
  * node [start,end,left,right], then primitive IDs; UINT32_MAX children = leaf. */
+export interface FieldIndexSnapshot { bounds: Float64Array; topology: Uint32Array; nodeCount: number }
 export interface FieldSnapshot {
-  schema: 1; revision: number; bounds: Bounds | null;
+  schema: 2; revision: number; bounds: Bounds | null;
   /** Eight f64: a xyz, b xyz, proximal and distal radius. */
   wood: Float64Array;
-  woodIndex: { bounds: Float64Array; topology: Uint32Array; nodeCount: number };
-  leaves: { bounds: Float64Array; topology: Uint32Array; nodeCount: number };
+  woodIndex: FieldIndexSnapshot;
+  /** Placed-leaf boxes; empty on a planned field. */
+  leaves: FieldIndexSnapshot;
+  /** The leaf plan's sweeps: seven f64 (a xyz, b xyz, reach) and two u32
+   * (station count, limb system) a sweep, with their index. Empty on a
+   * placed field. */
+  plan: { segments: Float64Array; stations: Uint32Array; index: FieldIndexSnapshot };
   timings: { extractionMs: number; copyMs: number; totalMs: number };
 }
 export interface TreeOutput {
@@ -64,9 +90,9 @@ export interface TreeOutput {
   /** Six f64 values per node: xyz, distal radius, proximal radius, base radius.
    * Three u32 values per node: parent (UINT32_MAX for root), branch, kind (0/1/2). */
   structure?: { values: Float64Array; topology: Uint32Array };
-  /** Query packed x,y,z,halfExtent cells. Bits: wood=1, foliage=2.
-   * Invalid after this engine's next build or release; copied results remain owned. */
-  field?: { query(cells: Float64Array): Uint8Array; snapshot(): FieldSnapshot };
+  /** Query packed x,y,z,halfExtent cells. Invalid after this engine's next
+   * build or release; copied results remain owned. */
+  field?: { query(cells: Float64Array): FieldQuery; snapshot(): FieldSnapshot };
   diagnostics: Diagnostics;
 }
 interface Exports extends WebAssembly.Exports, SpecimenExports {
@@ -137,27 +163,34 @@ export class TreeEngine {
     let result: FieldSnapshot;
     try {
       this.check(e.field_snapshot(diagnostics.revision));
-      const meta = this.metadata() as { woodNodes: number; leafNodes: number; extractionMs: number };
+      const meta = this.metadata() as { woodNodes: number; leafNodes: number; planNodes: number; extractionMs: number };
       const copy = performance.now();
       const f64 = (slot: number) => new Float64Array(e.memory.buffer, e.buffer_ptr(slot), e.buffer_len(slot)).slice();
       const u32 = (slot: number) => new Uint32Array(e.memory.buffer, e.buffer_ptr(slot), e.buffer_len(slot)).slice();
       result = {
-        schema: 1, revision: diagnostics.revision, bounds: structuredClone(diagnostics.fieldBounds),
+        schema: 2, revision: diagnostics.revision, bounds: structuredClone(diagnostics.fieldBounds),
         wood: f64(9),
         woodIndex: { bounds: f64(10), topology: u32(11), nodeCount: meta.woodNodes },
         leaves: { bounds: f64(12), topology: u32(13), nodeCount: meta.leafNodes },
+        plan: { segments: f64(21), stations: u32(22), index: { bounds: f64(23), topology: u32(24), nodeCount: meta.planNodes } },
         timings: { extractionMs: meta.extractionMs, copyMs: performance.now() - copy, totalMs: 0 },
       };
     } finally { e.field_snapshot_release(); }
     result.timings.totalMs = performance.now() - start;
     return result;
   }
-  private query(revision: number, cells: Float64Array): Uint8Array {
+  private query(revision: number, cells: Float64Array): FieldQuery {
     if (!(cells instanceof Float64Array) || cells.length % 4) throw Error("Field cells require packed Float64Array x,y,z,halfExtent");
-    this.check(this.e.query_alloc(cells.length / 4));
-    new Float64Array(this.e.memory.buffer, this.e.query_ptr(), cells.length).set(cells);
-    this.check(this.e.query(revision));
-    return new Uint8Array(this.e.memory.buffer, this.e.buffer_ptr(8), this.e.buffer_len(8)).slice();
+    const e = this.e;
+    this.check(e.query_alloc(cells.length / 4));
+    new Float64Array(e.memory.buffer, e.query_ptr(), cells.length).set(cells);
+    this.check(e.query(revision));
+    return {
+      flags: new Uint8Array(e.memory.buffer, e.buffer_ptr(8), e.buffer_len(8)).slice(),
+      woodRadius: new Float32Array(e.memory.buffer, e.buffer_ptr(25), e.buffer_len(25)).slice(),
+      leaves: new Float32Array(e.memory.buffer, e.buffer_ptr(19), e.buffer_len(19)).slice(),
+      limbs: new Uint32Array(e.memory.buffer, e.buffer_ptr(20), e.buffer_len(20)).slice(),
+    };
   }
 }
 let shared: TreeEngine | undefined;

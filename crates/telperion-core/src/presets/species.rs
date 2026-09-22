@@ -345,4 +345,16 @@ pub(super) fn date_palm(p: &mut Family) {
     p.canopy.leaflet_pitch = 55.0;
     p.canopy.rachis_arch = -0.25;
     p.canopy.terminal_leaflet = 1.0;
+    // The trunk organs (fn-110): the boots of a hundred shed fronds clothing
+    // the bole on the crown's own spiral, worn back toward the ground, and the
+    // eight basal leaflets of a Phoenix frond borne as spines. First values
+    // again - fn-82 owns what the species is measured and judged on.
+    p.canopy.leaf_bases = 100;
+    p.canopy.leaf_base_length = 0.28;
+    p.canopy.leaf_base_radius = 0.3;
+    p.canopy.leaf_base_pitch = 55.0;
+    p.canopy.leaf_base_weathering = 0.6;
+    p.canopy.acanthophylls = 8;
+    p.canopy.acanthophyll_length = 0.3;
+    p.canopy.acanthophyll_pitch = 75.0;
 }

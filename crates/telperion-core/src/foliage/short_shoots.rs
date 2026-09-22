@@ -19,12 +19,6 @@ use crate::{
 };
 use std::f64::consts::TAU;
 
-/// The closest two short shoots may stand, in metres, and the furthest: a
-/// walk from none thins in from here, where no tree has wood enough for one.
-pub const SHORT_SHOOT_SPACING: (f64, f64) = (0.01, 1000.);
-/// The most leaves one short shoot's cluster carries.
-pub const MAX_SHORT_SHOOT_LEAVES: u32 = 8;
-
 /// One short shoot: the wood it stands on, where it leaves the bark and where
 /// its cluster sits.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -33,22 +27,6 @@ pub struct ShortShoot {
     pub wood: usize,
     pub base: Vec3,
     pub tip: Vec3,
-}
-
-/// Every row on its rail, each refused by its own name.
-pub(super) fn validate(p: &CanopyParams) -> Result<()> {
-    crate::ranges::POSITIVE_COUNT.check(p.clump_neighbours as f64, "clumpNeighbours")?;
-    if p.short_shoot_spacing != 0. {
-        let (low, high) = SHORT_SHOOT_SPACING;
-        range(p.short_shoot_spacing, low, high, "short shoot spacing")?;
-    }
-    range(p.short_shoot_radius, 0., 1., "short shoot radius")?;
-    range(p.short_shoot_length, 0., 0.5, "short shoot length")?;
-    range(p.short_shoot_spread, 0., 90., "short shoot spread")?;
-    if !(1..=MAX_SHORT_SHOOT_LEAVES).contains(&p.short_shoot_leaves) {
-        return Err(Error::InvalidInput("short shoot leaves"));
-    }
-    Ok(())
 }
 
 /// Every short shoot the rows grow on this tree, wood by wood.
@@ -108,7 +86,7 @@ fn checked(tree: &Tree, envelope: Envelope, p: &CanopyParams) -> Result<()> {
     tree.validate_solved()?;
     envelope.validate()?;
     range(p.size, 0., 1000., "foliage size")?;
-    validate(p)
+    super::canopy::validate_short_shoots(p)
 }
 
 /// How many leaves this family's short shoots carry on this tree: the same

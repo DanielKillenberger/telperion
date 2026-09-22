@@ -48,6 +48,21 @@ pub const fn default_leaflet_count() -> u32 {
 pub const fn default_leaflet_pitch() -> f64 {
     45.0
 }
+/// The trunk organs' own neutrals: a base a third of the stem's girth
+/// standing well out of the bark, and a spine drawn at a third of the leaflet
+/// it replaces, leaving the rachis far steeper than a blade does.
+pub const fn default_leaf_base_radius() -> f64 {
+    0.35
+}
+pub const fn default_leaf_base_pitch() -> f64 {
+    60.0
+}
+pub const fn default_acanthophyll_length() -> f64 {
+    0.35
+}
+pub const fn default_acanthophyll_pitch() -> f64 {
+    80.0
+}
 pub const fn default_max_droop() -> f64 {
     0.35
 }

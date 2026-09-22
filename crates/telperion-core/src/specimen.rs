@@ -1,16 +1,19 @@
 //! Retained native handle with transactional replacement. Readers own their
 //! outputs; a failed replacement preserves both the specimen and its revision.
+#[cfg(feature = "geometry")]
 use crate::{
     branching::{ChangeRecord, Specimen, SpecimenRead},
     presets::Family,
     Error, Result,
 };
 
+#[cfg(feature = "geometry")]
 #[derive(Default)]
 pub struct SpecimenStore {
     specimen: Option<Specimen>,
     revision: u32,
 }
+#[cfg(feature = "geometry")]
 impl SpecimenStore {
     pub fn build(&mut self, family: &Family, history_cap: f64) -> Result<u32> {
         let specimen = Specimen::build_with_history_cap(family, history_cap)?;
@@ -60,7 +63,9 @@ impl SpecimenStore {
     }
 }
 
+#[cfg(feature = "geometry")]
 mod view;
+#[cfg(feature = "geometry")]
 pub use view::SpecimenView;
 
 #[cfg(feature = "json")]
