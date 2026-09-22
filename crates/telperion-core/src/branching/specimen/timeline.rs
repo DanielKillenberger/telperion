@@ -55,6 +55,7 @@ impl Specimen {
         Ok(specimen)
     }
     /// Leaf stations in identity order, before optional canopy shell culling.
+    #[cfg(feature = "geometry")]
     pub fn placements(&self) -> Result<Vec<crate::foliage::Placement>> {
         let timeline = self
             .timeline
@@ -82,6 +83,7 @@ impl Specimen {
     }
     /// Negative/non-finite requests are refused before mutating any state.
     /// On a cap, commit only complete slices and discard the failed slice's time.
+    #[cfg(feature = "geometry")]
     pub fn advance(&mut self, years: f64) -> Result<ChangeRecord> {
         let timeline = self
             .timeline

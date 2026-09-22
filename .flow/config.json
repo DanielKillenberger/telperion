@@ -9,6 +9,9 @@
     "claimStaleAfter": 24,
     "maxDecisions": 12
   },
+  "judge": {
+    "enabled": true
+  },
   "land": {
     "automatedReviewers": "",
     "ciFixBudget": 3,

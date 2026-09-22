@@ -1,0 +1,26 @@
+{
+  "branch_name": "fn-94-tree-studio-describe-a-tree-jev",
+  "created_at": "2026-09-20T16:53:55.543906Z",
+  "depends_on_epics": [
+    "fn-96-studio-page-say-what-you-want-quick"
+  ],
+  "id": "fn-94-tree-studio-describe-a-tree-jev",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-94-tree-studio-describe-a-tree-jev.md",
+  "status": "open",
+  "title": "Tree studio: describe a tree, Jev proposes, your agent tunes",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-20T17:31:24.677740Z"
+}

@@ -1,49 +1,67 @@
 //! Mesh-free occupancy in metres, Y up. Wood is the union of linearly tapered
 //! sphere sweeps along solved edges (rounded ends, no bark displacement).
-//! Foliage uses world AABBs of transformed local leaf bounds, conservatively
-//! enclosing blades, including flat cards. It does not voxelize triangles.
+//!
+//! Foliage comes from the leaf plan where the family has one: a sweep along
+//! every leaf-bearing segment with a conservative reach as its radius, tested
+//! against the query cube's circumsphere the way wood is, carrying the
+//! segment's station count and its limb system. No leaf is placed. A family
+//! the plan cannot describe keeps the placed path: world AABBs of transformed
+//! local leaf bounds, conservatively enclosing blades, including flat cards.
 //!
 //! Queries describe closed cubes: touching counts, zero half extent is a point.
-//! Wood uses the cube's circumsphere, overestimating by at most its half diagonal;
-//! foliage uses box overlap. Smaller cells reduce this resolution-dependent wood
-//! inflation. Leaf AABB overestimation remains independent of resolution.
+//! Sweeps use the cube's circumsphere, overestimating by at most its half
+//! diagonal; placed leaves use box overlap. Smaller cells reduce the
+//! resolution-dependent sweep inflation.
+mod index;
 use crate::{
-    foliage::{transform_point, Bounds, Element, Instances},
+    foliage::{plan::Plan, transform_point, Bounds, Element, Instances},
     math::Vec3,
     tree::Tree,
     Error, Result,
 };
+use index::{bounds_of, checked, cube, reserved, union, Index, Item};
+pub use index::IndexSnapshot;
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+/// One cell's answer. `wood_radius` is the larger end radius of the thickest
+/// wood sweep reaching the cell, in metres, zero where no wood does.
+/// `leaves` estimates the stations in the cell before the crown-shell cull:
+/// over a grid of non-overlapping cells the estimates sum to the plan's
+/// total. `limb` is the limb system with the largest estimate in the cell,
+/// the lower id on a tie, and `None` where no foliage reaches. On the placed
+/// path `leaves` counts the retained leaves whose box overlaps the cell and
+/// `limb` is always `None`.
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Occupancy {
     pub wood: bool,
+    pub wood_radius: f64,
     pub foliage: bool,
+    pub leaves: f64,
+    pub limb: Option<u32>,
 }
 
 /// Owned representation; build once, query at any caller-selected resolution.
 /// Allocation failure and unrepresentable arithmetic return ResourceLimit.
-/// The borrowed solved tree and retained foliage are never modified.
+/// The borrowed solved tree, plan and retained foliage are never modified.
 pub struct Field {
     wood: Vec<Segment>,
     wood_index: Index,
-    leaves: Index,
+    foliage: Foliage,
+}
+enum Foliage {
+    Placed(Index),
+    Planned { sweeps: Vec<Sweep>, index: Index },
 }
 /// Optional owned f64 experiment input. No snapshot storage is retained by Field.
-/// Wood records are [ax, ay, az, bx, by, bz, start_radius, end_radius].
+/// Wood records are [ax, ay, az, bx, by, bz, start_radius, end_radius]. Plan
+/// records are [ax, ay, az, bx, by, bz, reach] with [count, system] beside
+/// them; a planned field has an empty leaf index, a placed field an empty plan.
 pub struct FieldSnapshot {
     pub wood: Vec<f64>,
     pub wood_index: IndexSnapshot,
     pub leaves: IndexSnapshot,
-}
-/// Exact CPU median BVH order. Bounds are six f64 values (min xyz, max xyz)
-/// per node, then per item. Topology contains four u32 values per node
-/// (item start, exclusive end, left, right), then one primitive ID per item.
-/// u32::MAX children denote a leaf; an empty index has zero nodes and items.
-/// Root is node zero; leaf primitive IDs are unused. All ranges are index-local.
-pub struct IndexSnapshot {
-    pub bounds: Vec<f64>,
-    pub topology: Vec<u32>,
-    pub node_count: u32,
+    pub plan: Vec<f64>,
+    pub plan_stations: Vec<u32>,
+    pub plan_index: IndexSnapshot,
 }
 struct Segment {
     a: Vec3,
@@ -69,9 +87,147 @@ impl Segment {
         let distance = q - d * t;
         distance.dot(distance) <= (r + dr * t).powi(2)
     }
+    /// The share of the segment's length inside the closed cube; a point
+    /// segment counts whole where it lies inside.
+    fn share_inside(&self, center: Vec3, half: f64) -> f64 {
+        let (mut t0, mut t1) = (0_f64, 1_f64);
+        for axis in 0..3 {
+            let (a, d, c) = match axis {
+                0 => (self.a.x, self.b.x - self.a.x, center.x),
+                1 => (self.a.y, self.b.y - self.a.y, center.y),
+                _ => (self.a.z, self.b.z - self.a.z, center.z),
+            };
+            if d == 0. {
+                if (a - c).abs() > half {
+                    return 0.;
+                }
+                continue;
+            }
+            let (ta, tb) = ((c - half - a) / d, (c + half - a) / d);
+            t0 = t0.max(ta.min(tb));
+            t1 = t1.min(ta.max(tb));
+        }
+        (t1 - t0).max(0.)
+    }
+}
+struct Sweep {
+    segment: Segment,
+    count: f64,
+    system: u32,
+}
+/// Per-system estimates of one query, on the stack for the systems a cell
+/// ordinarily meets and spilling only past sixteen.
+#[derive(Default)]
+struct Tally {
+    entries: [(u32, f64); 16],
+    len: usize,
+    spill: Vec<(u32, f64)>,
+}
+impl Tally {
+    fn add(&mut self, system: u32, estimate: f64) {
+        for e in self.entries[..self.len].iter_mut().chain(&mut self.spill) {
+            if e.0 == system {
+                e.1 += estimate;
+                return;
+            }
+        }
+        if self.len < self.entries.len() {
+            self.entries[self.len] = (system, estimate);
+            self.len += 1;
+        } else {
+            self.spill.push((system, estimate));
+        }
+    }
+    fn total(&self) -> f64 {
+        self.entries[..self.len]
+            .iter()
+            .chain(&self.spill)
+            .map(|e| e.1)
+            .sum()
+    }
+    fn best(&self) -> Option<u32> {
+        self.entries[..self.len]
+            .iter()
+            .chain(&self.spill)
+            .fold(None, |best: Option<(u32, f64)>, &(system, estimate)| {
+                match best {
+                    Some((s, e)) if e > estimate || (e == estimate && s < system) => Some((s, e)),
+                    _ => Some((system, estimate)),
+                }
+            })
+            .map(|(system, _)| system)
+    }
 }
 impl Field {
+    /// The placed path: foliage from retained leaves.
     pub fn new(tree: &Tree, foliage: Option<(&Instances, &Element)>) -> Result<Self> {
+        let (wood, wood_index) = Self::wood(tree)?;
+        let mut leaf_items = Vec::new();
+        if let Some((instances, element)) = foliage {
+            instances.validate()?;
+            element.validate()?;
+            if let Some(local) = bounds_of(element.positions.iter().copied()) {
+                leaf_items = reserved(instances.len())?;
+                for m in instances.matrices() {
+                    let corners = [local.min.x, local.max.x].into_iter().flat_map(|x| {
+                        [local.min.y, local.max.y].into_iter().flat_map(move |y| {
+                            [local.min.z, local.max.z]
+                                .into_iter()
+                                .map(move |z| transform_point(&m, Vec3::new(x, y, z)))
+                        })
+                    });
+                    let bounds = bounds_of(corners).unwrap();
+                    checked(bounds)?;
+                    leaf_items.push(Item { bounds, id: 0 });
+                }
+            }
+        }
+        Ok(Self {
+            wood,
+            wood_index,
+            foliage: Foliage::Placed(Index::new(leaf_items)?),
+        })
+    }
+    /// The planned path: foliage from the leaf plan, no leaf placed.
+    pub fn planned(tree: &Tree, plan: &Plan) -> Result<Self> {
+        let (wood, wood_index) = Self::wood(tree)?;
+        let mut sweeps = reserved(plan.descriptors.len())?;
+        let mut items = reserved(plan.descriptors.len())?;
+        for d in &plan.descriptors {
+            let reach = plan.reach(d);
+            if !reach.is_finite() || reach < 0. {
+                return Err(Error::InvalidInput("foliage reach"));
+            }
+            let [a, b] = d.endpoints;
+            items.push(Item {
+                bounds: union(cube(a, reach)?, cube(b, reach)?),
+                id: sweeps.len(),
+            });
+            sweeps.push(Sweep {
+                segment: Segment {
+                    a,
+                    b,
+                    start: reach,
+                    end: reach,
+                },
+                count: f64::from(d.count),
+                system: d.system,
+            });
+        }
+        Ok(Self {
+            wood,
+            wood_index,
+            foliage: Foliage::Planned {
+                sweeps,
+                index: Index::new(items)?,
+            },
+        })
+    }
+    /// Whether foliage answers come from the plan rather than placed leaves.
+    pub fn is_planned(&self) -> bool {
+        matches!(self.foliage, Foliage::Planned { .. })
+    }
+    fn wood(tree: &Tree) -> Result<(Vec<Segment>, Index)> {
         tree.validate_solved()?;
         let mut wood = reserved(tree.nodes.len())?;
         let mut wood_items = reserved(tree.nodes.len())?;
@@ -96,40 +252,23 @@ impl Field {
                 end: n.radius,
             });
         }
-        let mut leaf_items = Vec::new();
-        if let Some((instances, element)) = foliage {
-            instances.validate()?;
-            element.validate()?;
-            if let Some(local) = bounds_of(element.positions.iter().copied()) {
-                leaf_items = reserved(instances.len())?;
-                for m in instances.matrices() {
-                    let corners = [local.min.x, local.max.x].into_iter().flat_map(|x| {
-                        [local.min.y, local.max.y].into_iter().flat_map(move |y| {
-                            [local.min.z, local.max.z]
-                                .into_iter()
-                                .map(move |z| transform_point(&m, Vec3::new(x, y, z)))
-                        })
-                    });
-                    let bounds = bounds_of(corners).unwrap();
-                    checked(bounds)?;
-                    leaf_items.push(Item { bounds, id: 0 });
-                }
-            }
+        Ok((wood, Index::new(wood_items)?))
+    }
+    fn foliage_index(&self) -> &Index {
+        match &self.foliage {
+            Foliage::Placed(index) => index,
+            Foliage::Planned { index, .. } => index,
         }
-        Ok(Self {
-            wood,
-            wood_index: Index::new(wood_items)?,
-            leaves: Index::new(leaf_items)?,
-        })
     }
     pub fn bounds(&self) -> Option<Bounds> {
-        match (self.wood_index.bounds(), self.leaves.bounds()) {
+        match (self.wood_index.bounds(), self.foliage_index().bounds()) {
             (Some(a), Some(b)) => Some(union(a, b)),
             (a, b) => a.or(b),
         }
     }
-    /// No allocation per query. Empty and outside regions return both flags false.
-    /// Nonfinite centres/extents and negative extents are invalid requests.
+    /// No allocation per query below seventeen limb systems in one cell.
+    /// Empty and outside regions return both flags false. Nonfinite
+    /// centres/extents and negative extents are invalid requests.
     pub fn query(&self, center: Vec3, half_extent: f64) -> Result<Occupancy> {
         if !center.is_finite() || !half_extent.is_finite() || half_extent < 0. {
             return Err(Error::InvalidInput("field query"));
@@ -137,220 +276,100 @@ impl Field {
         let cell = cube(center, half_extent)?;
         let inflation = half_extent * 3_f64.sqrt();
         let wood_cell = cube(center, inflation)?;
-        Ok(Occupancy {
-            wood: self
-                .wood_index
-                .any(wood_cell, |id| self.wood[id].contains(center, inflation)),
-            foliage: self.leaves.any(cell, |_| true),
+        let (mut wood, mut wood_radius) = (false, 0.);
+        self.wood_index.each(wood_cell, &mut |id| {
+            let s = &self.wood[id];
+            if s.contains(center, inflation) {
+                wood = true;
+                wood_radius = s.start.max(s.end).max(wood_radius);
+            }
+        });
+        Ok(match &self.foliage {
+            Foliage::Placed(index) => {
+                let mut leaves = 0.;
+                index.each(cell, &mut |_| leaves += 1.);
+                Occupancy {
+                    wood,
+                    wood_radius,
+                    foliage: leaves > 0.,
+                    leaves,
+                    limb: None,
+                }
+            }
+            Foliage::Planned { sweeps, index } => {
+                let mut tally = Tally::default();
+                let mut foliage = false;
+                index.each(wood_cell, &mut |id| {
+                    let s = &sweeps[id];
+                    if s.segment.contains(center, inflation) {
+                        foliage = true;
+                        tally.add(s.system, s.count * s.segment.share_inside(center, half_extent));
+                    }
+                });
+                Occupancy {
+                    wood,
+                    wood_radius,
+                    foliage,
+                    leaves: tally.total(),
+                    limb: tally.best(),
+                }
+            }
         })
     }
     /// Copies only on explicit request; allocation failure returns ResourceLimit.
     pub fn snapshot(&self) -> Result<FieldSnapshot> {
-        let mut wood = reserved(
-            self.wood
-                .len()
-                .checked_mul(8)
-                .ok_or(Error::ResourceLimit("snapshot size"))?,
-        )?;
+        fn records<T>(count: usize, width: usize) -> Result<Vec<T>> {
+            count
+                .checked_mul(width)
+                .ok_or(Error::ResourceLimit("snapshot size"))
+                .and_then(reserved)
+        }
+        let mut wood = records(self.wood.len(), 8)?;
         for s in &self.wood {
             wood.extend([s.a.x, s.a.y, s.a.z, s.b.x, s.b.y, s.b.z, s.start, s.end]);
         }
+        let (leaves, plan, plan_stations, plan_index) = match &self.foliage {
+            Foliage::Placed(index) => (
+                index.snapshot()?,
+                Vec::new(),
+                Vec::new(),
+                Index::default().snapshot()?,
+            ),
+            Foliage::Planned { sweeps, index } => {
+                let mut plan = records(sweeps.len(), 7)?;
+                let mut stations = records(sweeps.len(), 2)?;
+                for s in sweeps {
+                    let g = &s.segment;
+                    plan.extend([g.a.x, g.a.y, g.a.z, g.b.x, g.b.y, g.b.z, g.start]);
+                    stations.extend([s.count as u32, s.system]);
+                }
+                (
+                    Index::default().snapshot()?,
+                    plan,
+                    stations,
+                    index.snapshot()?,
+                )
+            }
+        };
         Ok(FieldSnapshot {
             wood,
             wood_index: self.wood_index.snapshot()?,
-            leaves: self.leaves.snapshot()?,
+            leaves,
+            plan,
+            plan_stations,
+            plan_index,
         })
     }
     /// Heap capacity owned by this field, excluding allocator bookkeeping.
     pub fn storage_bytes(&self) -> usize {
+        let foliage = match &self.foliage {
+            Foliage::Placed(index) => index.storage_bytes(),
+            Foliage::Planned { sweeps, index } => {
+                sweeps.capacity() * std::mem::size_of::<Sweep>() + index.storage_bytes()
+            }
+        };
         self.wood.capacity() * std::mem::size_of::<Segment>()
             + self.wood_index.storage_bytes()
-            + self.leaves.storage_bytes()
-    }
-}
-fn reserved<T>(count: usize) -> Result<Vec<T>> {
-    let mut out = Vec::new();
-    out.try_reserve_exact(count)
-        .map_err(|_| Error::ResourceLimit("field allocation"))?;
-    Ok(out)
-}
-fn cube(p: Vec3, radius: f64) -> Result<Bounds> {
-    let r = Vec3::new(radius, radius, radius);
-    let b = Bounds {
-        min: p - r,
-        max: p + r,
-    };
-    checked(b)?;
-    Ok(b)
-}
-fn checked(b: Bounds) -> Result<()> {
-    // Squared distances and dot products must remain representable too.
-    let limit = (f64::MAX / 64.).sqrt();
-    if [b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z]
-        .iter()
-        .any(|v| !v.is_finite() || v.abs() > limit)
-    {
-        Err(Error::ResourceLimit("field coordinate overflow"))
-    } else {
-        Ok(())
-    }
-}
-fn union(a: Bounds, b: Bounds) -> Bounds {
-    Bounds {
-        min: Vec3::new(
-            a.min.x.min(b.min.x),
-            a.min.y.min(b.min.y),
-            a.min.z.min(b.min.z),
-        ),
-        max: Vec3::new(
-            a.max.x.max(b.max.x),
-            a.max.y.max(b.max.y),
-            a.max.z.max(b.max.z),
-        ),
-    }
-}
-fn bounds_of(points: impl Iterator<Item = Vec3>) -> Option<Bounds> {
-    points.map(|p| Bounds { min: p, max: p }).reduce(union)
-}
-fn overlaps(a: Bounds, b: Bounds) -> bool {
-    a.min.x <= b.max.x
-        && a.max.x >= b.min.x
-        && a.min.y <= b.max.y
-        && a.max.y >= b.min.y
-        && a.min.z <= b.max.z
-        && a.max.z >= b.min.z
-}
-struct Item {
-    bounds: Bounds,
-    id: usize,
-}
-struct Node {
-    bounds: Bounds,
-    start: usize,
-    end: usize,
-    children: Option<(usize, usize)>,
-}
-#[derive(Default)]
-struct Index {
-    items: Vec<Item>,
-    nodes: Vec<Node>,
-}
-impl Index {
-    fn snapshot(&self) -> Result<IndexSnapshot> {
-        let u32_index =
-            |n: usize| u32::try_from(n).map_err(|_| Error::ResourceLimit("snapshot index"));
-        let node_count = u32_index(self.nodes.len())?;
-        u32_index(self.items.len())?;
-        let bounds_len = self
-            .nodes
-            .len()
-            .checked_add(self.items.len())
-            .and_then(|n| n.checked_mul(6))
-            .ok_or(Error::ResourceLimit("snapshot size"))?;
-        let topology_len = self
-            .nodes
-            .len()
-            .checked_mul(4)
-            .and_then(|n| n.checked_add(self.items.len()))
-            .ok_or(Error::ResourceLimit("snapshot size"))?;
-        let mut bounds = reserved(bounds_len)?;
-        let mut topology = reserved(topology_len)?;
-        for b in self
-            .nodes
-            .iter()
-            .map(|n| n.bounds)
-            .chain(self.items.iter().map(|i| i.bounds))
-        {
-            bounds.extend([b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z]);
-        }
-        for n in &self.nodes {
-            let (left, right) = match n.children {
-                Some((l, r)) => (u32_index(l)?, u32_index(r)?),
-                None => (u32::MAX, u32::MAX),
-            };
-            topology.extend([u32_index(n.start)?, u32_index(n.end)?, left, right]);
-        }
-        for i in &self.items {
-            topology.push(u32_index(i.id)?);
-        }
-        Ok(IndexSnapshot {
-            bounds,
-            topology,
-            node_count,
-        })
-    }
-    fn new(mut items: Vec<Item>) -> Result<Self> {
-        // Median partition gives bounded depth and O(n log n) construction,
-        // without duplicating large primitives across grid cells.
-        let count = items.len();
-        let mut nodes = reserved(
-            count
-                .checked_mul(2)
-                .ok_or(Error::ResourceLimit("field index"))?
-                / 4,
-        )?;
-        if count > 0 {
-            Self::split(&mut items, &mut nodes, 0)?;
-        }
-        Ok(Self { items, nodes })
-    }
-    fn split(items: &mut [Item], nodes: &mut Vec<Node>, start: usize) -> Result<usize> {
-        let bounds = items.iter().map(|i| i.bounds).reduce(union).unwrap();
-        nodes
-            .try_reserve(1)
-            .map_err(|_| Error::ResourceLimit("field index allocation"))?;
-        let id = nodes.len();
-        nodes.push(Node {
-            bounds,
-            start,
-            end: start + items.len(),
-            children: None,
-        });
-        if items.len() > 8 {
-            let size = bounds.max - bounds.min;
-            let axis = if size.x >= size.y && size.x >= size.z {
-                0
-            } else if size.y >= size.z {
-                1
-            } else {
-                2
-            };
-            let coordinate = |b: Bounds| match axis {
-                0 => b.min.x + b.max.x,
-                1 => b.min.y + b.max.y,
-                _ => b.min.z + b.max.z,
-            };
-            let mid = items.len() / 2;
-            items.select_nth_unstable_by(mid, |a, b| {
-                coordinate(a.bounds).total_cmp(&coordinate(b.bounds))
-            });
-            let (left, right) = items.split_at_mut(mid);
-            let l = Self::split(left, nodes, start)?;
-            let r = Self::split(right, nodes, start + mid)?;
-            nodes[id].children = Some((l, r));
-        }
-        Ok(id)
-    }
-    fn bounds(&self) -> Option<Bounds> {
-        self.nodes.first().map(|n| n.bounds)
-    }
-    fn any(&self, bounds: Bounds, predicate: impl Fn(usize) -> bool) -> bool {
-        !self.nodes.is_empty() && self.visit(0, bounds, &predicate)
-    }
-    fn visit(&self, id: usize, bounds: Bounds, predicate: &impl Fn(usize) -> bool) -> bool {
-        let node = &self.nodes[id];
-        if !overlaps(node.bounds, bounds) {
-            return false;
-        }
-        match node.children {
-            Some((l, r)) => self.visit(l, bounds, predicate) || self.visit(r, bounds, predicate),
-            None => self.items[node.start..node.end]
-                .iter()
-                .any(|i| overlaps(i.bounds, bounds) && predicate(i.id)),
-        }
-    }
-    fn storage_bytes(&self) -> usize {
-        self.items.capacity() * std::mem::size_of::<Item>()
-            + self.nodes.capacity() * std::mem::size_of::<Node>()
+            + foliage
     }
 }

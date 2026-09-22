@@ -1,7 +1,8 @@
 // Canonical f64 benchmark inputs and independent traversal of exported CPU BVHs.
 export function snapshotArrays(s) {
   return { wood: s.wood, woodBounds: s.woodIndex.bounds, woodTopology: s.woodIndex.topology,
-    leafBounds: s.leaves.bounds, leafTopology: s.leaves.topology };
+    leafBounds: s.leaves.bounds, leafTopology: s.leaves.topology,
+    planSegments: s.plan.segments, planStations: s.plan.stations, planBounds: s.plan.index.bounds, planTopology: s.plan.index.topology };
 }
 export function querySnapshot(s, cells) {
   if (!(cells instanceof Float64Array) || cells.length % 4) throw Error('invalid packed cells');
@@ -15,17 +16,19 @@ export function querySnapshot(s, cells) {
       for (let a = 0; a < 3; a++) if (bounds[i*6+a] > p[a]+radius || bounds[i*6+a+3] < p[a]-radius) return false;
       return true;
     };
-    const contains = id => {
-      const i = id * 8, w = s.wood;
+    // A tapered sweep (wood: eight values, two radii) or a leaf-plan sweep
+    // (seven values, one reach), tested against the cell's circumsphere.
+    const contains = (w, width, id) => {
+      const i = id * width;
       const dx = w[i+3]-w[i], dy = w[i+4]-w[i+1], dz = w[i+5]-w[i+2];
       const qx = x-w[i], qy = y-w[i+1], qz = z-w[i+2];
-      const r = w[i+6]+inflation, dr = w[i+7]-w[i+6];
+      const r = w[i+6]+inflation, dr = width === 8 ? w[i+7]-w[i+6] : 0;
       const a = (dx*dx+dy*dy+dz*dz)-dr*dr, b = (qx*dx+qy*dy+qz*dz)+r*dr;
       const t = a > 0 ? Math.min(1,Math.max(0,b/a)) : b > a*0.5 ? 1 : 0;
       const ex = qx-dx*t, ey = qy-dy*t, ez = qz-dz*t, radius = r+dr*t;
       return ex*ex+ey*ey+ez*ez <= radius*radius;
     };
-    const any = (index, radius, wood) => {
+    const any = (index, radius, sweeps, width) => {
       if (!index.nodeCount) return false;
       const stack = [0], t = index.topology;
       while (stack.length) {
@@ -33,12 +36,13 @@ export function querySnapshot(s, cells) {
         if (!overlap(index.bounds,n,radius)) continue;
         if (t[n*4+2] !== 0xffffffff) { stack.push(t[n*4+3],t[n*4+2]); continue; }
         for (let i = t[n*4]; i < t[n*4+1]; i++) {
-          if (overlap(index.bounds,index.nodeCount+i,radius) && (!wood || contains(t[index.nodeCount*4+i]))) return true;
+          if (overlap(index.bounds,index.nodeCount+i,radius) && (!sweeps || contains(sweeps,width,t[index.nodeCount*4+i]))) return true;
         }
       }
       return false;
     };
-    flags[q] = Number(any(s.woodIndex,inflation,true)) | Number(any(s.leaves,h,false))*2;
+    const foliage = any(s.leaves,h) || any(s.plan.index,inflation,s.plan.segments,7);
+    flags[q] = Number(any(s.woodIndex,inflation,s.wood,8)) | Number(foliage)*2;
   }
   return flags;
 }
@@ -64,6 +68,13 @@ export function boundaryCells(s) {
     const i = (index.nodeCount+Math.floor(n*count/32))*6;
     for(const end of [0,3]) for(const delta of [-1e-10,0,1e-10])
       cells.push(index.bounds[i+end]+delta,index.bounds[i+end+1],index.bounds[i+end+2],0);
+  }
+  // The plan's sweeps: each endpoint one reach out, a hair either side.
+  const sweeps = s.plan.segments.length/7;
+  for (let n=0;n<Math.min(32,sweeps);n++) {
+    const i = Math.floor(n*sweeps/32)*7;
+    for (const endpoint of [0,3]) for (const sign of [-1,1]) for (const delta of [-1e-10,0,1e-10])
+      cells.push(s.plan.segments[i+endpoint]+sign*s.plan.segments[i+6]+delta,s.plan.segments[i+endpoint+1],s.plan.segments[i+endpoint+2],0);
   }
   return new Float64Array(cells);
 }

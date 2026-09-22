@@ -1,0 +1,26 @@
+{
+  "branch_name": "fn-104-foliage-as-branch-associated-masses-not",
+  "created_at": "2026-09-22T09:33:25.715589Z",
+  "depends_on_epics": [
+    "fn-103-leaders-keep-their-girth-a-lateral"
+  ],
+  "id": "fn-104-foliage-as-branch-associated-masses-not",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-104-foliage-as-branch-associated-masses-not.md",
+  "status": "open",
+  "title": "Foliage as branch-associated masses, not a veil",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-22T09:33:41.151861Z"
+}

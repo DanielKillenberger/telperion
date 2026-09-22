@@ -6,6 +6,7 @@
 //! between two centres - so each system keeps a rounded leaf mass of its own
 //! with a gap between it and the next. The row is how far from a wall its gap
 //! reaches, as a share of the way to the centre; at zero nothing is touched.
+#[cfg(feature = "geometry")]
 use super::{CanopyParams, Instances};
 use crate::{
     math::Vec3,
@@ -19,7 +20,7 @@ use crate::{
 /// other node, and all the wood the local layer grew, is its parent's. The
 /// rule reads only the solved radii, so a tree rebuilt from its record for
 /// the growth view falls into the same systems as the one it was grown as.
-pub(super) fn systems(tree: &Tree, max_order: u32) -> Vec<u32> {
+pub(crate) fn systems(tree: &Tree, max_order: u32) -> Vec<u32> {
     let structural = |i: usize| tree.nodes[i].kind == NodeKind::Structural;
     let mut carrier = vec![u32::MAX; tree.nodes.len()];
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
@@ -125,6 +126,7 @@ fn draw(seed: u32, index: usize) -> f64 {
 
 /// Thins the placements toward the walls between limb systems. `owners`
 /// names the node that bears each placement, in placement order.
+#[cfg(feature = "geometry")]
 pub(super) fn thin(
     tree: &Tree,
     owners: &[u32],

@@ -5,6 +5,11 @@ edition = "2021"
 license = "MIT"
 
 [features]
+default = ["geometry"]
+# The wood surface, leaf placement, the mesh and the retained specimen. Off,
+# the crate is the solved tree, the leaf plan and the field: what a consumer
+# that draws its own geometry needs, and nothing it does not.
+geometry = []
 json = ["dep:serde", "dep:serde_json", "dep:bincode", "slotmap/serde"]
 
 [dependencies]

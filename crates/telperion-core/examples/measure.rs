@@ -2,7 +2,7 @@ use std::{hint::black_box, time::Instant};
 use telperion_core::{
     branching,
     field::Field,
-    foliage::{self, TwigPlacement},
+    foliage::{self, plan, TwigPlacement},
     math::Vec3,
     presets::Preset,
     surface,
@@ -30,25 +30,42 @@ fn main() {
             Some(surface::build(&report.tree, f.skeleton.envelope.height, &f.surface).unwrap())
         };
         let surface_ms = ms(t);
-        let t = Instant::now();
         let element = foliage::build_element(f.element).unwrap();
-        let twigs = f.skeleton.twigs.resolved().unwrap();
-        let placed = foliage::place(
-            &report.tree,
-            f.skeleton.envelope,
-            f.skeleton.seed,
-            f.canopy,
-            Some(TwigPlacement {
-                internode_length: twigs.twig.internode_length,
-                stations_per_internode: twigs.twig.stations_per_internode,
-            }),
-            foliage::Reference::of(&f).unwrap(),
-        )
-        .unwrap();
-        let placement_ms = ms(t);
+        let twig = TwigPlacement::of(&f).unwrap();
+        // A field-only run reads the plan and places nothing, as the binding
+        // does; the surface run places and culls for the render.
         let t = Instant::now();
-        let kept = foliage::cull(placed, &element, f.skeleton.envelope, f.shell_depth).unwrap();
-        let cull_ms = ms(t);
+        let leaf_plan = if field_only {
+            plan::plan(
+                &report.tree,
+                f.skeleton.envelope,
+                f.canopy,
+                Some(twig),
+                &f.surface,
+                &element,
+                None,
+            )
+            .unwrap()
+        } else {
+            None
+        };
+        let plan_ms = ms(t);
+        let t = Instant::now();
+        let kept = if leaf_plan.is_some() {
+            foliage::Instances::default()
+        } else {
+            let placed = foliage::place(
+                &report.tree,
+                f.skeleton.envelope,
+                f.skeleton.seed,
+                f.canopy,
+                Some(twig),
+                foliage::Reference::of(&f).unwrap(),
+            )
+            .unwrap();
+            foliage::cull(placed, &element, f.skeleton.envelope, f.shell_depth).unwrap()
+        };
+        let placement_ms = ms(t);
         let t = Instant::now();
         if !field_only {
             black_box(kept.bounds(&element).unwrap());
@@ -56,7 +73,10 @@ fn main() {
         let bounds_ms = ms(t);
         let t = Instant::now();
         let field = if field_only {
-            Some(Field::new(&report.tree, Some((&kept, &element))).unwrap())
+            Some(match &leaf_plan {
+                Some(leaf_plan) => Field::planned(&report.tree, leaf_plan).unwrap(),
+                None => Field::new(&report.tree, Some((&kept, &element))).unwrap(),
+            })
         } else {
             None
         };
@@ -93,8 +113,9 @@ fn main() {
                 "triangles": mesh.as_ref().map_or(0, |m| m.indices.len()/3), "leaves": kept.len(),
                 "woodBytes": mesh.as_ref().map_or(0, |m| (m.positions.len()+m.normals.len()+m.indices.len())*4),
                 "matrixBytes": kept.len()*std::mem::size_of::<foliage::Leaf>(),
-                "growthMs": growth_ms, "surfaceMs": surface_ms, "placementMs": placement_ms,
-                "cullMs": cull_ms, "boundsMs": bounds_ms, "fieldMs": field_ms, "buildMs": build_ms,
+                "planned": leaf_plan.as_ref().map_or(0, |p| p.total),
+                "growthMs": growth_ms, "surfaceMs": surface_ms, "planMs": plan_ms, "placementMs": placement_ms,
+                "boundsMs": bounds_ms, "fieldMs": field_ms, "buildMs": build_ms,
                 "queryMs": query_ms, "occupied": occupied, "fieldBytes": field.as_ref().map_or(0, Field::storage_bytes)
             })
         );
