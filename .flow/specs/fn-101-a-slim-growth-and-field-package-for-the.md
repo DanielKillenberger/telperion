@@ -28,7 +28,9 @@ The slim build stands on the foliage descriptor layer the field spec delivers, w
 
 ## API Contracts
 
-A typed entry point, separate from the package's main entry, offers one call: given a species id and a seed it resolves to the field's bounds and a batch query that takes cell centres with a half extent and returns, per cell, the wood flag, the foliage leaf-count estimate and the owning limb id. It runs unchanged in a browser worker and in Node, so a site can query at request time or bake grids at build time. [inferred]
+A typed entry point, separate from the package's main entry, offers one call: given a species id, a seed and an optional limb order it resolves to the field's bounds and a batch query that takes cell centres with a half extent and returns, per cell, the wood flag, the thickest wood radius in metres, the foliage flag, the leaf-count estimate and the owning limb id, as fn-100's field answers them. It runs unchanged in a browser worker and in Node, so a site can query at request time or bake grids at build time. [inferred]
+
+Beside it, an example voxelizer (owner, 2026-09-22): a small typed module that takes the entry point's answers over a regular grid and returns cube lists for wood and foliage, with three dials, a wood cutoff in metres of radius, a foliage thinning rule with its keep fraction, and the limb order, carrying the rules the `experiments/voxel-field` prototype settled on fn-100 (coin, density, tuft, gap). It is an example a consumer may import or copy, never the only entry point; the field query stays primary. It draws nothing. [user]
 
 ## Edge Cases & Constraints
 
@@ -45,12 +47,13 @@ A typed entry point, separate from the package's main entry, offers one call: gi
 - **R3:** In Node, for the oak, birch and spruce at seeds 1 and 7, from species id and seed to a fully queried grid takes at most 250 ms as the median of five warm runs, with the first cold run reported separately including module initialization. The grid is 64 cells along the field's longest axis, cubic, centred on the field's bounds. The Node version and the machine are recorded. The prototype's comparable figure from the structure export was 93 to 205 ms. [inferred]
 - **R4:** The full build is unchanged: with default features the generator Wasm's exports and every existing binding test pass without edits. [inferred]
 - **R5:** Smoke tests load the slim entry point in Node and in a browser worker, without relying on a bundler-resolved URL, and run one query each. [inferred]
-- **R6:** The `experiments/voxel-field` script, rewritten on the typed entry point, reproduces the three-species sheet the owner accepted in the field spec. [inferred]
+- **R6:** The `experiments/voxel-field` script, rewritten on the typed entry point and the example voxelizer, reproduces the order-3 sheet the owner accepted under fn-100 R8 byte for byte at the same dials, and the wood-only sheet at 2 cm. [inferred]
+- **R7 (owner, 2026-09-22):** The example voxelizer is typed, tested on a fixture grid for each rule and dial, and documented in one page under `docs/` that names it an example beside the primary entry point. [user]
 
 ## Boundaries
 
 - The homepage's rendering, styling and clump thinning live in killenberger.com, never here. No renderer code ships in the slim build. [user]
-- No voxel or grid type is added to the core or the package; the entry point returns query answers. [user]
+- No voxel or grid type is added to the core. The package's entry point returns query answers; the example voxelizer is a separate module that consumes them and is not required to use the package. [user, amended 2026-09-22]
 - Publishing to a package registry is the owner's step and is not part of this spec. [inferred]
 
 ## Decision Context
@@ -59,7 +62,8 @@ A typed entry point, separate from the package's main entry, offers one call: gi
 - Rejected: baking a fixed set of trees at build time as the only path. It loses a random seed per visit, which fn-91 names as the homepage's use. The same entry point still allows baking for a first paint. [inferred]
 - Sibling from the same conversation: "One build pipeline; leaves expand from stations". This spec does not wait for it.
 
-## Parked unknowns
+## Resolved before ready (host, 2026-09-22)
 
-- The slim build's real size. Nothing has been built; half of today's figure is a target chosen before measurement.
-- Whether 64 cells is the resolution the homepage wants. The owner's look at the page settles it; the entry point takes any cell size.
+- The slim build's real size is settled by R1's own gate: the first isolated feature build measures it and stops with the retained symbols if it misses half of today's figure. fn-100 delivered the `geometry` feature and the plan-only core the build needs (`cargo build -p telperion-core --no-default-features` is green in CI).
+- Resolution is a consumer choice, not a spec value: the owner looked at 64, 96 and 128 cells (fn-100 evidence, RESULTS.md and the comparison page) and the entry point takes any cell size. The example voxelizer's fixture uses 64.
+- Depends on fn-100 as a chain parent: this spec branches from fn-100's tip until PR #55 lands.
