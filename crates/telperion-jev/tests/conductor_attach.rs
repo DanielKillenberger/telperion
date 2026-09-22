@@ -51,3 +51,19 @@ fn a_spec_the_flow_tree_holds_is_attached_once() {
     assert_eq!(run.dependencies[0].spec, "fn-108");
     assert_eq!(run.dependencies[0].origin, "minted");
 }
+
+#[test]
+fn a_zero_usage_is_unknown_and_the_estimate_falls_back_to_the_attempt_bound() {
+    let mut run = run();
+    let mut cfg = config(&scratch());
+    cfg.budget.attempt_max_tokens = 200_000;
+    run.budget.attempt_max_tokens = 200_000;
+    run.dispatches[0].result.as_mut().unwrap().usage =
+        Some(serde_json::from_value(serde_json::json!({"input_tokens": 0, "output_tokens": 0})).unwrap());
+    let (tokens, basis) = telperion_jev::conductor::dependency::estimate(&run);
+    assert_eq!(tokens, 200_000, "{basis}");
+    run.dispatches[0].result.as_mut().unwrap().usage =
+        Some(serde_json::from_value(serde_json::json!({"input_tokens": 70_000, "output_tokens": 10_000})).unwrap());
+    let (tokens, _) = telperion_jev::conductor::dependency::estimate(&run);
+    assert_eq!(tokens, 80_000);
+}

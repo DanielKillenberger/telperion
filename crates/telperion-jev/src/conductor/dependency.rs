@@ -107,6 +107,10 @@ pub fn estimate(run: &Run) -> (u64, String) {
         .iter()
         .filter_map(|d| d.result.as_ref()?.usage.as_ref())
         .map(|u| u.input_tokens.saturating_add(u.output_tokens))
+        // A zero is a driver that could not count, not a free attempt: the
+        // first live run's one known usage was 0 and the mean priced the next
+        // attempt at one token, which the continuation check rightly refused.
+        .filter(|total| *total > 0)
         .collect();
     if known.is_empty() {
         return (
