@@ -30,7 +30,7 @@ The README gains a short section that names the field package and points at the 
 
 - A tag pushed on a commit whose gate is red publishes nothing; the workflow stops at the gate. [inferred]
 - A tag for a version already on the registry fails at publish; the workflow reports it and nothing is overwritten. [inferred]
-- The published tarball holds `dist` only: the entry points, their type declarations, the slim Wasm beside `field.js`, and the full module the main entry uses. No source, no evidence, no experiments. [inferred]
+- The published tarball holds `dist`, plus the three root files npm includes in every tarball whatever `files` says: `package.json`, `README.md` and `LICENSE`. Under `dist`: the entry points, their type declarations, the slim Wasm beside `field.js`, and the full module the main entry uses. No source, no evidence, no experiments. [inferred, reworded 2026-09-22]
 - The publish step never runs on a branch push or a pull request; the test workflow is unchanged. [inferred]
 
 ## Acceptance Criteria
@@ -38,7 +38,7 @@ The README gains a short section that names the field package and points at the 
 - **R1:** A release workflow exists beside the test workflow, triggered only by a `v*` tag, and it runs the repository's gate before any build or publish step. [paraphrase]
 - **R2:** The workflow builds the package with the existing build command and publishes it to npm with provenance through a trusted publisher; no npm token is stored in the repository or its secrets. [paraphrase]
 - **R3:** A tag whose version differs from `package.json` fails the workflow before the publish step, with the two versions named in the failure. [inferred]
-- **R4:** A dry-run pack on a clean checkout lists only files under `dist`, and among them the `field.js`, `voxelize.js` and `telperion-field.wasm` files with their type declarations; the listing is recorded in the spec's evidence. [inferred]
+- **R4:** A dry-run pack on a clean checkout lists files under `dist` and the three root files npm always includes, `package.json`, `README.md` and `LICENSE`, and nothing else; among the `dist` files are `field.js`, `voxelize.js` and `telperion-field.wasm` with their type declarations. The listing is recorded in the spec's evidence. [inferred, reworded 2026-09-22 after review]
 - **R5:** The README carries a section naming the field package, the two exports and the doc that describes them. [paraphrase]
 - **R6 (amended by the host, 2026-09-22):** npm attaches a trusted publisher only to a package that already exists, so the package is created by one publish of `v0.1.0` by the owner's hand from the tagged master commit, the trusted publisher is then attached on npmjs.com, and the workflow proves itself on the first later tag, `v0.1.1`, published with provenance and no stored token. A fresh project with no Rust toolchain installs that version from the registry and runs the Node smoke from the package doc: grow a species, query a grid, read the four answers. The tag, the install and the run are recorded in the spec's evidence with the Node version. [paraphrase, host amendment]
 

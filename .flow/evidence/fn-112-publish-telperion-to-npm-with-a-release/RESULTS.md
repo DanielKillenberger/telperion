@@ -84,18 +84,23 @@ The `dist/browser/*.d.ts`, `index.d.ts` and `field/*.d.ts` declarations are
 byte-identical before and after (md5 checked).
 
 `npm pack --dry-run --json` after `npm run build` on a fresh `dist`
-(`raw/r7-pack-dry-run.json`): `telperion-0.1.0.tgz`, 18 entries, 3,642,607
-bytes unpacked, against 16 entries and 7,093,035 bytes before.
+(`raw/r8-pack-dry-run.json`, the second round; the first round's listing
+is `raw/r7-pack-dry-run.json`): `telperion-0.1.0.tgz`, 20 entries,
+3,643,702 bytes unpacked, 1,152,721 packed, against 16 entries and
+7,093,035 bytes before R7.
 
-| bytes | path | before |
+| bytes | path | before R7 |
 |---:|---|---:|
-| 108,459 | dist/telperion.js | 6,659,763 |
+| 108,486 | dist/telperion.js | 6,659,763 |
 | 1,286,823 | dist/telperion.wasm | inlined |
 | 1,813,306 | dist/telperion-render.wasm | inlined |
 | 345,645 | dist/telperion-field.wasm | 345,645 |
-| 2,690 | dist/field.js | 2,690 |
+| 2,720 | dist/field.js | 2,690 |
 | 4,526 | dist/voxelize.js | 4,526 |
-| 44,136 | README.md | 43,389 |
+| 235 | dist/wasm-source.js | new, the loader both entries share |
+| 78 | dist/wasm-source.d.ts | new |
+| 44,530 | README.md | 43,389 |
+| 3,269 | package.json | 2,938 |
 
 The declarations, `LICENSE` and `package.json` are the same bytes as the
 R4 listing. The main entry's JavaScript gzips to 22.7 kB; the two modules
@@ -126,6 +131,72 @@ Checks run, logs in `raw/r7-*.log`:
   loading does not run in the frame loop. Recorded as inconclusive on that
   one assertion, not as green.
 
+### R7, second round: the literal survives the build and Node reads a file
+
+The review found two defects in the first round (`merged.md`, findings 1
+and 2). The filename held in a constant kept our own Vite library build from
+inlining the Wasm, but a consumer's bundler recognises an asset only as the
+literal `new URL("./name.wasm", import.meta.url)`, so a site that bundled
+`telperion.js` would have moved the script and left the Wasm behind. And in
+Node `import.meta.url` is a `file:` URL that `fetch` refuses, so the
+README's `TreeEngine.create()` with no source failed.
+
+The fix keeps Vite for the bundle and adds one plugin in `vite.config.ts`,
+`telperion:wasm-beside-entry`. Vite 6's `shouldInline` returns true for
+every asset in library mode before `assetsInlineLimit` is read (checked in
+`node_modules/vite/dist/node/chunks`, `shouldInline`), and its own rewrite
+of a `new URL` literal emits `/* @vite-ignore */` into the chunk, which
+would blind a consumer's Vite. The plugin marks the literal ignored before
+Vite's asset pass and unmarks it in the emitted chunk, so `dist` carries the
+plain literal: `dist/telperion.js` lines 1734 and 3361 and `dist/field.js`
+line 8 hold `new URL("./telperion.wasm", import.meta.url)`,
+`"./telperion-render.wasm"` and `"./telperion-field.wasm"`. `package.json`
+exports the three files as `telperion/telperion.wasm`,
+`telperion/telperion-render.wasm` and `telperion/telperion-field.wasm` for a
+bundler's `?url` import. `src/wasm-source.ts` is the loader the main and the
+field entries share (emitted as `dist/wasm-source.js`): a `file:` URL is
+read through `node:fs/promises` behind a computed `import()` marked
+`@vite-ignore` and `webpackIgnore`, anything else is fetched. The renderer
+needs a browser and keeps the plain URL.
+
+Checks, logs in `raw/r8-*.log` and `raw/consumer/`:
+
+- `node scripts/test-dist.mjs`, new, run by the release workflow after the
+  build: `dist/telperion.js` and `dist/field.js` imported in Node v26.8.1
+  with no source given built Telperion to 16,993 nodes and grew silver-birch
+  (wood radius 0.252 m), both from the Wasm beside them. `src/field/field.test.ts`
+  covers the same path from the source in vitest (124 tests, was 123).
+- The consumer proof, `raw/consumer/site` (ignored): `npm pack` of this
+  checkout, `npm init -y`, `npm install ../telperion-0.1.0.tgz vite` (Vite
+  8.3.0 resolved), an `index.html` and a `main.js` importing `telperion`,
+  `telperion/field` and `telperion/telperion-field.wasm?url`, then `vite
+  build` (`raw/consumer/consumer-build.log`):
+
+  ```
+  dist/index.html                                 0.16 kB
+  dist/assets/telperion-field-C452MQ6d.wasm     345.64 kB
+  dist/assets/telperion-DAWlg5Qe.wasm         1,286.82 kB
+  dist/assets/telperion-render-BMqsBoOW.wasm  1,813.30 kB
+  dist/assets/index-BJkd4fLc.js                  75.30 kB
+  ```
+
+  The consumer's `dist` served by `vite preview` and loaded in headless
+  Chromium (`raw/consumer/consumer-check.log`): fetched `200
+  /assets/telperion-DAWlg5Qe.wasm`, `200 /assets/telperion-field-C452MQ6d.wasm`
+  (twice: once from beside the script, once through the `?url` import
+  passed as `source`), `200 /assets/telperion-render-BMqsBoOW.wasm`; the
+  page's console: `REPORT {"nodes":16993,"field":[3],"explicitUrl":
+  "/assets/telperion-field-C452MQ6d.wasm","explicitBounds":true,"render":
+  "Error: WebGPU is unavailable: No suitable graphics adapter found ..."}`.
+  Both entries built a tree from the emitted assets; the renderer's module
+  was fetched and failed only at the adapter, which headless Chromium does
+  not offer.
+- `npm run typecheck` and `npx vitest run` (11 files, 124 tests) green;
+  `node scripts/test-wasm.mjs`, the binding and field suites on the dev
+  server, green (`raw/r8-bindings.log`); the gate `cargo test --profile ci
+  --workspace --no-fail-fast`, 122 suites, every one `ok`, exit 0
+  (`raw/r8-cargo-ci.log`).
+
 ## R5: the README
 
 `README.md` gained `## The field package` before `## Architecture`: the
@@ -135,43 +206,41 @@ that `npm run build` puts them in `dist` with the slim Wasm beside
 
 ## R6: awaiting the owner
 
-The first publish needs two things only the owner can do, in this order.
-The npm form and its versions are from docs.npmjs.com/trusted-publishers,
-read on 2026-09-22.
+npm attaches a trusted publisher only to a package that already exists
+(docs.npmjs.com/trusted-publishers, read 2026-09-22: the form is on the
+package's settings page), so the sequence is one hand publish and then the
+workflow, in this order. Nothing in this task attempted a publish.
 
-1. On npmjs.com, signed in as the account that will own `telperion`:
-   Packages, the package, Settings, Trusted publishing, then GitHub Actions
-   with these fields:
-   - Organization or user: the GitHub owner of this repository (the
-     `<owner>` in `github.com/<owner>/telperion`)
+1. On the tagged master commit that carries this change, `package.json` at
+   0.1.0: `npm ci`, `npm run build`, `npm run test:dist`, then `npm publish
+   --access public` with the account's two-factor; then tag that commit
+   `v0.1.0` and push the tag, so the version on the registry names its
+   commit. The Release workflow runs on that tag too and fails at publish,
+   since 0.1.0 is already on the registry and there is no trusted publisher
+   yet; that failure is expected and publishes nothing.
+2. On npmjs.com, signed in as the account that owns `telperion`: Packages,
+   `telperion`, Settings, Trusted publishing, GitHub Actions, with these
+   fields:
+   - Organization or user: `DanielKillenberger`
    - Repository: `telperion`
-   - Workflow filename: `release.yml` (the file name only, not the path,
-     with its extension)
+   - Workflow filename: `release.yml` (the file name only, with its extension)
    - Environment name: empty; the workflow declares no environment
    - Allowed actions: `npm publish`
+3. Bump `package.json` to `0.1.1` on master, commit, tag `v0.1.1` and push
+   the tag. The workflow's first publish is `v0.1.1`: the gate, the build,
+   the Node dist smoke, the dry-run listing, then `npm publish --provenance
+   --access public` with `id-token: write` and no stored token. A tag on a
+   commit whose gate is red publishes nothing.
+4. After the run is green, the fresh-install half of R6: a directory with
+   no Rust toolchain, `npm init -y`, `npm install telperion@0.1.1`, then the
+   Node smoke from `docs/field-package.md` (grow a species, `grid` a bounds,
+   query it, read `flags`, `woodRadius`, `leaves` and `limbs`), recorded
+   here with the Node version and the installed package version.
 
-   Unknown, to settle at the form: the docs open at "your package settings
-   on npmjs.com", a page a name not yet on the registry does not have. If
-   the form cannot be reached for an unpublished name, the owner publishes
-   `0.1.0` once by hand from a built checkout (`npm run build && npm
-   publish --access public` with the account's two-factor), configures the
-   publisher on the page that then exists, and the workflow's first tag is
-   the next version; R6's "first publish through the workflow" then reads
-   as that tag. Nothing in this task attempted a publish.
-2. On the master commit that carries this change, with `package.json` at
-   the version to publish: `git tag v0.1.0 && git push origin v0.1.0`.
-   The Release workflow runs the gate, builds, and publishes with
-   provenance (the docs say provenance is automatic under a trusted
-   publisher; the workflow passes `--provenance` as well, which is
-   accepted). A tag on a commit whose gate is red publishes nothing.
-
-The workflow pins Node 24 and upgrades npm to `^11.5.1`, the docs' floor
-for trusted publishing (npm 11.5.1, Node 22.14.0).
-
-After the run is green, the fresh-install half of R6: a directory with no
-Rust toolchain, `npm init -y && npm install telperion`, then the Node smoke
-from `docs/field-package.md` (grow a species, `grid` a bounds, query it,
-read `flags`, `woodRadius`, `leaves` and `limbs`), recorded here with the
-Node version and the installed package version.
+`package.json` now carries `repository.url`
+`git+https://github.com/DanielKillenberger/telperion.git`, which npm's
+trusted publishing requires to match the workflow's repository. The
+workflow pins Node 24 and upgrades npm to `^11.5.1`, the docs' floor for
+trusted publishing (npm 11.5.1, Node 22.14.0).
 
 R6 is not satisfied by this task and is not claimed.
