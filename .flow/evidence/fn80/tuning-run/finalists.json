@@ -1,0 +1,1209 @@
+{
+  "bootstrap": true,
+  "candidates": [
+    {
+      "base": "50bff56e3a0b9476cd72c3ca0df6d63496de24f230d302dd784fb2723749a6f0",
+      "bundle": {
+        "id": "7eb62c4d868902e14b5d5c29095669c8c2140531cf4f6c5edcc825779996fe8a",
+        "moves": [
+          {
+            "dial": "crookedness",
+            "direction": "down",
+            "from": 10.5,
+            "to": 4.5
+          },
+          {
+            "dial": "crown_base",
+            "direction": "up",
+            "from": 0.375,
+            "to": 0.675
+          },
+          {
+            "dial": "rachis_length",
+            "direction": "up",
+            "from": 3.55,
+            "to": 3.75
+          },
+          {
+            "dial": "twig_hang",
+            "direction": "up",
+            "from": 0.25,
+            "to": 1.25
+          },
+          {
+            "dial": "leaf_length",
+            "direction": "up",
+            "from": 0.1325,
+            "to": 0.171
+          },
+          {
+            "dial": "leaf_size",
+            "direction": "up",
+            "from": 1.075,
+            "to": 1.375
+          },
+          {
+            "dial": "twig_max_droop",
+            "direction": "up",
+            "from": 1.1,
+            "to": 4.1
+          },
+          {
+            "dial": "rise_secondary",
+            "direction": "down",
+            "from": -0.125,
+            "to": -0.625
+          },
+          {
+            "dial": "twig_curtain_drop",
+            "direction": "up",
+            "from": 0.075,
+            "to": 0.375
+          },
+          {
+            "dial": "rosette_pitch_spread",
+            "direction": "up",
+            "from": 77.5,
+            "to": 87.5
+          },
+          {
+            "dial": "foliage_spacing",
+            "direction": "down",
+            "from": 0.0055,
+            "to": 0.0034999999999999996
+          },
+          {
+            "dial": "leaf_width",
+            "direction": "up",
+            "from": 0.0675,
+            "to": 0.0975
+          },
+          {
+            "dial": "twig_pendulous_length",
+            "direction": "up",
+            "from": 0.75,
+            "to": 2.75
+          },
+          {
+            "dial": "leaf_upward",
+            "direction": "down",
+            "from": 0.22499999999999998,
+            "to": -0.275
+          },
+          {
+            "dial": "rachis_arch",
+            "direction": "down",
+            "from": -0.275,
+            "to": -0.375
+          },
+          {
+            "dial": "lean",
+            "direction": "down",
+            "from": 0.045000000000000005,
+            "to": 0.025000000000000005
+          },
+          {
+            "dial": "rosette_depth",
+            "direction": "up",
+            "from": 0.375,
+            "to": 0.475
+          },
+          {
+            "dial": "attractor_weight",
+            "direction": "down",
+            "from": 0.925,
+            "to": 0.625
+          },
+          {
+            "dial": "leaf_axial_segments",
+            "direction": "up",
+            "from": 9.0,
+            "to": 25.0
+          },
+          {
+            "dial": "gravitropism",
+            "direction": "down",
+            "from": 0.7749999999999999,
+            "to": 0.4749999999999999
+          },
+          {
+            "dial": "max_taper_exponent",
+            "direction": "down",
+            "from": 11.0,
+            "to": 7.0
+          },
+          {
+            "dial": "twig_sag",
+            "direction": "up",
+            "from": 0.075,
+            "to": 0.375
+          },
+          {
+            "dial": "trunk_radius",
+            "direction": "up",
+            "from": 0.02,
+            "to": 0.023
+          }
+        ],
+        "strength": 2.0
+      },
+      "comparisons": [
+        {
+          "images": [
+            {
+              "path": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.flow/evidence/fn-80-the-gap-loops-first-live-run/local/palm/ff7cd71a2ca2354900beed155f2b1638cc20354fd8380b4ca7a5d24b66de11ec-18d7afca6feedd6c-192bb9-16e/ff7cd71a2ca2354900beed155f2b1638cc20354fd8380b4ca7a5d24b66de11ec-P-WHOLE.png",
+              "seed": 1,
+              "sha256": "01e6934ce9b38ae0d4502ad66303a767b912d819526fd3cdbd88b635a7b1c119",
+              "view": "P-WHOLE"
+            },
+            {
+              "path": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.flow/evidence/fn-80-the-gap-loops-first-live-run/local/palm/ff7cd71a2ca2354900beed155f2b1638cc20354fd8380b4ca7a5d24b66de11ec-18d7afca6feedd6c-192bb9-16e/ff7cd71a2ca2354900beed155f2b1638cc20354fd8380b4ca7a5d24b66de11ec-P-WHOLE-twin.png",
+              "seed": 1,
+              "sha256": "6694d23e78d7da118644b8211c9cf84b630070d7d2d0514c12ea1f0e3419740a",
+              "view": "P-WHOLE"
+            }
+          ],
+          "metric_weights": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "observed": [
+            0.9246,
+            0.1328,
+            0.0668,
+            null,
+            169.1
+          ],
+          "reference": "P-WHOLE",
+          "reference_weight": 1.0,
+          "target": [
+            0.8439,
+            0.5,
+            0.5057,
+            0.153,
+            71.4
+          ]
+        }
+      ],
+      "evidence": ".flow/evidence/fn-80-the-gap-loops-first-live-run/vision-ledger/18d7afa896474334-192bb9-1d.json",
+      "feasible": true,
+      "identity": "c453d5ed9a6aa568d7cbe42fc58c266cc735577bd46021ffe8aab23d6cb9f051",
+      "key": "ff7cd71a2ca2354900beed155f2b1638cc20354fd8380b4ca7a5d24b66de11ec",
+      "label": "bundle@2",
+      "ledger": "tuning:18d7afc7c2d96b1c-192bb9-129",
+      "measurement": {
+        "case": "candidate-da8d71c33387:date-palm:date-palm:1",
+        "case_id": "candidate-da8d71c33387",
+        "checks": {
+          "dbh_m": {
+            "actual": {
+              "diameters_m": [
+                1.1010137581462995
+              ],
+              "status": "measured_proxy",
+              "stems": 1,
+              "value": 1.1010137581462995
+            },
+            "reason": "outside target or target unavailable",
+            "status": "contextual",
+            "target": {
+              "classification": "contextual",
+              "confidence": "unavailable",
+              "note": "unavailable: below the data-quality bar (no source states a diameter at an age); contextual with no range so the measurer reports the value and gates nothing. The owner's lower-bar decision on shipping without a diameter source stays open (host, 2026-09-22).",
+              "range": null,
+              "source": [],
+              "unit": "m"
+            }
+          },
+          "height_m": {
+            "actual": {
+              "status": "measured",
+              "value": 26.674768205133404
+            },
+            "reason": "within range",
+            "status": "pass",
+            "target": {
+              "classification": "gating",
+              "confidence": "pipeline",
+              "note": "50 - 100 feet",
+              "range": [
+                15.24,
+                30.48
+              ],
+              "source": [
+                "A1"
+              ],
+              "unit": "m"
+            }
+          }
+        },
+        "counts": {
+          "prototype_triangles": 112,
+          "prototype_vertices": 84,
+          "shed_nodes": 0,
+          "wood_dropped": 0,
+          "wood_triangles": 2000,
+          "wood_vertices": 1002
+        },
+        "event": "completed",
+        "metrics": {
+          "branch_count": {
+            "status": "estimated",
+            "value": 0
+          },
+          "branch_lengths_m": {
+            "status": "estimated",
+            "value": []
+          },
+          "branch_order": {
+            "status": "estimated",
+            "value": {}
+          },
+          "crown_base_m": {
+            "status": "measured",
+            "value": 20.4533881867201
+          },
+          "crown_span_x_m": {
+            "status": "measured",
+            "value": 8.315738656677347
+          },
+          "crown_span_z_m": {
+            "status": "measured",
+            "value": 8.26196008652495
+          },
+          "crown_width_height_ratio": {
+            "status": "measured",
+            "value": 0.31174548894775517
+          },
+          "crown_width_m": {
+            "status": "measured",
+            "value": 8.315738656677347
+          },
+          "dbh_m": {
+            "diameters_m": [
+              1.1010137581462995
+            ],
+            "status": "measured_proxy",
+            "stems": 1,
+            "value": 1.1010137581462995
+          },
+          "dbh_measurement_height_m": {
+            "status": "defined",
+            "value": 1.3
+          },
+          "discarded_units": {
+            "status": "measured",
+            "value": 47
+          },
+          "foliage_geometry_note": "One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area.",
+          "foliage_length_m": {
+            "max": 0.317452140212963,
+            "median": 0.23278709863228061,
+            "min": 0.1527978512209298,
+            "status": "measured"
+          },
+          "foliage_unit": "leaf",
+          "foliage_units": {
+            "status": "measured",
+            "value": 4353
+          },
+          "foliage_width_m": {
+            "max": 0.18057887788057556,
+            "median": 0.1324181760106967,
+            "min": 0.08691724252597868,
+            "status": "measured"
+          },
+          "growth": {
+            "attraction_capped": false,
+            "level_capped": false,
+            "node_capped": false,
+            "status": "complete"
+          },
+          "height_m": {
+            "status": "measured",
+            "value": 26.674768205133404
+          },
+          "leaf_area_m2": {
+            "status": "measured",
+            "value": 86.1386894508343
+          },
+          "nodes": {
+            "status": "measured",
+            "value": 49
+          },
+          "pre_cull_instances": {
+            "status": "measured",
+            "value": 4400
+          },
+          "primary_insertion_m": {
+            "status": "estimated",
+            "value": []
+          },
+          "retained_instances": {
+            "status": "measured",
+            "value": 4353
+          },
+          "stored_branch_runs": {
+            "status": "measured",
+            "value": 0
+          },
+          "trunk_axis_length_m": {
+            "status": "estimated",
+            "value": 24.0
+          },
+          "twig_count": {
+            "status": "measured",
+            "value": 0
+          },
+          "units_per_instance": {
+            "status": "measured",
+            "value": 1
+          },
+          "wood_height_m": {
+            "status": "measured",
+            "value": 23.92962646484375
+          }
+        },
+        "numeric_status": "pass",
+        "output_bytes": {
+          "retained_matrices": 52236,
+          "wood_indices": 24000,
+          "wood_positions": 12024
+        },
+        "preset": "date-palm",
+        "profile_id": "date-palm",
+        "profile_revision": "2026-09-18",
+        "seed": 1,
+        "timing_ms": {
+          "foliage": 4.368861,
+          "growth": 0.493793,
+          "measurement": 11.798540999999998,
+          "surface": 0.168044,
+          "total": 16.829589
+        },
+        "visual_status": "unassessed"
+      },
+      "overrides": {
+        "canopy": {
+          "rachisArch": -0.375,
+          "rachisLength": 3.75,
+          "rosetteDepth": 0.475,
+          "rosettePitchSpread": 87.5,
+          "size": 1.375,
+          "spacing": 0.0034999999999999996,
+          "upward": -0.275
+        },
+        "element": {
+          "axialSegments": 25,
+          "length": 0.171,
+          "width": 0.0975
+        },
+        "radii": {
+          "lengthTaper": 0.05,
+          "maxTaperExponent": 7.0,
+          "trunkRadius": 0.023
+        },
+        "skeleton": {
+          "bias": {
+            "gravitropism": 0.4749999999999999,
+            "lean": 0.025000000000000005,
+            "supernatural": {
+              "writheWavelength": 0.425
+            }
+          },
+          "envelope": {
+            "crownBase": 0.675,
+            "spread": 0.25
+          },
+          "habit": {
+            "attractorWeight": 0.625,
+            "crookedness": 4.5,
+            "risePrimary": 0.037500000000000006,
+            "riseSecondary": -0.625
+          },
+          "twigs": {
+            "curtainDrop": 0.375,
+            "curtainStepClearance": 0.7250000000000001,
+            "hang": 1.25,
+            "maxDroop": 4.1,
+            "pendulousLength": 2.75,
+            "sag": 0.375,
+            "twig": {
+              "length": 0.275,
+              "stationsPerInternode": 2
+            }
+          }
+        },
+        "surface": {
+          "flareFalloff": 0.097,
+          "flareRadius": 2.0
+        }
+      },
+      "reason": null,
+      "round": 5,
+      "score": 0.8132561311985578,
+      "seconds": 1.6402989940000001,
+      "seed": 1,
+      "sheet": {
+        "below_current": true,
+        "breaks": [
+          "Only render 1 fails to read as a palm at all — the fronds are so short that the crown is a small ball rather than a rosette, which none of the others do."
+        ],
+        "improved": "Across the set the fronds grow markedly longer and the crown widens from a stubby tuft into something that finally reads as a palm rosette, and the leaflets spread further along each rachis.",
+        "label": "1",
+        "ledger": ".flow/evidence/fn-80-the-gap-loops-first-live-run/vision-ledger/18d7afd153b9a42a-192bb9-179.json",
+        "missing": "None of them show the reference's arching, drooping lower fronds — every frond is held straight and radial, so the crown stays flat and sparse instead of forming a dense, hanging skirt. All also lack the reference's leaflet density and its textured trunk of leaf-base scars, and the longer-frond renders bought their crowns at the cost of a wavy, uneven trunk the reference never has.",
+        "model": "opus",
+        "overall": 5,
+        "per_priority": {
+          "owner-fronds-long-arching": "worse",
+          "owner-trunk-straight-constant": "clear"
+        },
+        "uncalibrated": "uncalibrated contact-sheet review: a ranking and a graded comparison, never a score or a readiness claim",
+        "wrong": [
+          "The crown is a tight stubby tuft rather than a rosette of long arching fronds; each frond is barely longer than the trunk is wide, so the silhouette reads as a tuft on a pole, not a date palm.",
+          "Leaflets are coarse and blocky and the fronds are uniformly stiff and radial, with no drooping lower tier at all."
+        ]
+      }
+    },
+    {
+      "comparisons": [
+        {
+          "images": [
+            {
+              "path": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.flow/evidence/fn-80-the-gap-loops-first-live-run/local/palm/a0123a095a0ddaf5eda9d6a31efbcf360f6476d96df88e6788aef02d6c3cfec4-18d7af009ae62353-18d29c-c/a0123a095a0ddaf5eda9d6a31efbcf360f6476d96df88e6788aef02d6c3cfec4-P-WHOLE.png",
+              "seed": 1,
+              "sha256": "44a11e5591d46b74ee9a284bf534c585d0b54d8a872a34eab8cb89fa36ccfaac",
+              "view": "P-WHOLE"
+            },
+            {
+              "path": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.flow/evidence/fn-80-the-gap-loops-first-live-run/local/palm/a0123a095a0ddaf5eda9d6a31efbcf360f6476d96df88e6788aef02d6c3cfec4-18d7af009ae62353-18d29c-c/a0123a095a0ddaf5eda9d6a31efbcf360f6476d96df88e6788aef02d6c3cfec4-P-WHOLE-twin.png",
+              "seed": 1,
+              "sha256": "226c0f6155f2afa59c2bee34f31b3677df857a43692786898d2ae71ad6cac3bb",
+              "view": "P-WHOLE"
+            }
+          ],
+          "metric_weights": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "observed": [
+            0.936,
+            0.1365,
+            0.0551,
+            null,
+            168.3
+          ],
+          "reference": "P-WHOLE",
+          "reference_weight": 1.0,
+          "target": [
+            0.8439,
+            0.5,
+            0.5057,
+            0.153,
+            71.4
+          ]
+        }
+      ],
+      "feasible": true,
+      "identity": "c453d5ed9a6aa568d7cbe42fc58c266cc735577bd46021ffe8aab23d6cb9f051",
+      "key": "a0123a095a0ddaf5eda9d6a31efbcf360f6476d96df88e6788aef02d6c3cfec4",
+      "label": "baseline",
+      "ledger": null,
+      "measurement": {
+        "case": "candidate-d3cb9c2c1983:date-palm:date-palm:1",
+        "case_id": "candidate-d3cb9c2c1983",
+        "checks": {
+          "dbh_m": {
+            "actual": {
+              "diameters_m": [
+                0.96
+              ],
+              "status": "measured_proxy",
+              "stems": 1,
+              "value": 0.96
+            },
+            "reason": "outside target or target unavailable",
+            "status": "contextual",
+            "target": {
+              "classification": "contextual",
+              "confidence": "unavailable",
+              "note": "unavailable: below the data-quality bar (no source states a diameter at an age); contextual with no range so the measurer reports the value and gates nothing. The owner's lower-bar decision on shipping without a diameter source stays open (host, 2026-09-22).",
+              "range": null,
+              "source": [],
+              "unit": "m"
+            }
+          },
+          "height_m": {
+            "actual": {
+              "status": "measured",
+              "value": 25.394670953731108
+            },
+            "reason": "within range",
+            "status": "pass",
+            "target": {
+              "classification": "gating",
+              "confidence": "pipeline",
+              "note": "50 - 100 feet",
+              "range": [
+                15.24,
+                30.48
+              ],
+              "source": [
+                "A1"
+              ],
+              "unit": "m"
+            }
+          }
+        },
+        "counts": {
+          "prototype_triangles": 32,
+          "prototype_vertices": 24,
+          "shed_nodes": 0,
+          "wood_dropped": 0,
+          "wood_triangles": 3280,
+          "wood_vertices": 1658
+        },
+        "event": "completed",
+        "metrics": {
+          "branch_count": {
+            "status": "estimated",
+            "value": 8
+          },
+          "branch_lengths_m": {
+            "status": "estimated",
+            "value": [
+              0.9713682942721711,
+              0.7300910474307486,
+              0.5492447614919902,
+              0.5021915509625346,
+              0.550153325303826,
+              0.3597241372239918,
+              0.5794906397504556,
+              0.37086610793981134
+            ]
+          },
+          "branch_order": {
+            "status": "estimated",
+            "value": {
+              "1": 2,
+              "2": 4,
+              "3": 2
+            }
+          },
+          "crown_base_m": {
+            "status": "measured",
+            "value": 19.724828957432646
+          },
+          "crown_span_x_m": {
+            "status": "measured",
+            "value": 7.405343236148208
+          },
+          "crown_span_z_m": {
+            "status": "measured",
+            "value": 7.3984158458498035
+          },
+          "crown_width_height_ratio": {
+            "status": "measured",
+            "value": 0.2916101275594665
+          },
+          "crown_width_m": {
+            "status": "measured",
+            "value": 7.405343236148208
+          },
+          "dbh_m": {
+            "diameters_m": [
+              0.96
+            ],
+            "status": "measured_proxy",
+            "stems": 1,
+            "value": 0.96
+          },
+          "dbh_measurement_height_m": {
+            "status": "defined",
+            "value": 1.3
+          },
+          "discarded_units": {
+            "status": "measured",
+            "value": 239
+          },
+          "foliage_geometry_note": "One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area.",
+          "foliage_length_m": {
+            "max": 0.16195312454590322,
+            "median": 0.11876952649932784,
+            "min": 0.07798827633308633,
+            "status": "measured"
+          },
+          "foliage_unit": "leaf",
+          "foliage_units": {
+            "status": "measured",
+            "value": 4161
+          },
+          "foliage_width_m": {
+            "max": 0.08078406245483773,
+            "median": 0.059243592072305014,
+            "min": 0.03890144140279262,
+            "status": "measured"
+          },
+          "growth": {
+            "attraction_capped": false,
+            "level_capped": false,
+            "node_capped": false,
+            "status": "complete"
+          },
+          "height_m": {
+            "status": "measured",
+            "value": 25.394670953731108
+          },
+          "leaf_area_m2": {
+            "status": "measured",
+            "value": 18.235055988322024
+          },
+          "nodes": {
+            "status": "measured",
+            "value": 73
+          },
+          "pre_cull_instances": {
+            "status": "measured",
+            "value": 4400
+          },
+          "primary_insertion_m": {
+            "status": "estimated",
+            "value": [
+              22.534586525098412,
+              23.145549464667624
+            ]
+          },
+          "retained_instances": {
+            "status": "measured",
+            "value": 4161
+          },
+          "stored_branch_runs": {
+            "status": "measured",
+            "value": 9
+          },
+          "trunk_axis_length_m": {
+            "status": "estimated",
+            "value": 25.883632849598488
+          },
+          "twig_count": {
+            "status": "measured",
+            "value": 7
+          },
+          "units_per_instance": {
+            "status": "measured",
+            "value": 1
+          },
+          "wood_height_m": {
+            "status": "measured",
+            "value": 23.946182250976562
+          }
+        },
+        "numeric_status": "pass",
+        "output_bytes": {
+          "retained_matrices": 49932,
+          "wood_indices": 39360,
+          "wood_positions": 19896
+        },
+        "preset": "date-palm",
+        "profile_id": "date-palm",
+        "profile_revision": "2026-09-18",
+        "seed": 1,
+        "timing_ms": {
+          "foliage": 5.913507,
+          "growth": 0.52377,
+          "measurement": 2.346526,
+          "surface": 0.181123,
+          "total": 8.965285999999999
+        },
+        "visual_status": "unassessed"
+      },
+      "overrides": {},
+      "reason": null,
+      "round": 0,
+      "score": 0.81686422610989,
+      "seconds": 1.6405678259999998,
+      "seed": 1,
+      "sheet": {
+        "below_current": false,
+        "breaks": [
+          "Only render 3 breaks the trunk rule outright: a serpentine S with a sharp kink and a visibly necked-down waist, so the trunk is both wavy and of clearly varying diameter."
+        ],
+        "improved": "Across the set the fronds lengthen and the crown spreads into a recognisable radiating rosette, with render 5 gaining the densest, greenest leaflets — the crown silhouette moves from a spiky knob toward a palm head.",
+        "label": "3",
+        "ledger": ".flow/evidence/fn-80-the-gap-loops-first-live-run/vision-ledger/18d7af5866f2790a-18e4b2-fa.json",
+        "missing": "In all five the fronds stay straight spokes with sparse, undersized leaflets: none arch over and none of the lowest fronds droop into the hanging skirt seen in the reference, and every crown is too small for its trunk. The trunks also remain smooth and untextured with no leaf-base scarring, and apart from render 1 they wander rather than holding a single gentle lean at near-constant diameter.",
+        "model": "opus",
+        "overall": 5,
+        "per_priority": {
+          "owner-fronds-long-arching": "none",
+          "owner-trunk-straight-constant": "none"
+        },
+        "uncalibrated": "uncalibrated contact-sheet review: a ranking and a graded comparison, never a score or a readiness claim",
+        "wrong": [
+          "Trunk is plainly wavy — a full S-bend with a kinked, pinched waist at mid-height, the opposite of the near-constant straight or gently leaning shaft in the reference.",
+          "Leaflets are so sparse and pale that the fronds read as bare wiry rachises; the crown looks translucent rather than as a dense green rosette."
+        ]
+      }
+    },
+    {
+      "base": "50bff56e3a0b9476cd72c3ca0df6d63496de24f230d302dd784fb2723749a6f0",
+      "bundle": {
+        "id": "489d314d7970b8771e8e3a1a1d6abd3715354d7dc2dd76836c40b1844096ed85",
+        "moves": [
+          {
+            "dial": "rachis_length",
+            "direction": "up",
+            "from": 3.55,
+            "to": 3.75
+          },
+          {
+            "dial": "crookedness",
+            "direction": "down",
+            "from": 10.5,
+            "to": 4.5
+          },
+          {
+            "dial": "crown_base",
+            "direction": "up",
+            "from": 0.375,
+            "to": 0.675
+          },
+          {
+            "dial": "rosette_pitch_spread",
+            "direction": "up",
+            "from": 77.5,
+            "to": 87.5
+          },
+          {
+            "dial": "rise_secondary",
+            "direction": "down",
+            "from": -0.125,
+            "to": -0.625
+          },
+          {
+            "dial": "twig_hang",
+            "direction": "up",
+            "from": 0.25,
+            "to": 1.25
+          },
+          {
+            "dial": "lean",
+            "direction": "down",
+            "from": 0.045000000000000005,
+            "to": 0.025000000000000005
+          },
+          {
+            "dial": "twig_max_droop",
+            "direction": "up",
+            "from": 1.1,
+            "to": 4.1
+          },
+          {
+            "dial": "leaf_size",
+            "direction": "up",
+            "from": 1.075,
+            "to": 1.375
+          },
+          {
+            "dial": "leaf_length",
+            "direction": "up",
+            "from": 0.1325,
+            "to": 0.171
+          },
+          {
+            "dial": "twig_curtain_drop",
+            "direction": "up",
+            "from": 0.075,
+            "to": 0.375
+          },
+          {
+            "dial": "rachis_arch",
+            "direction": "down",
+            "from": -0.275,
+            "to": -0.375
+          },
+          {
+            "dial": "attractor_weight",
+            "direction": "down",
+            "from": 0.925,
+            "to": 0.625
+          },
+          {
+            "dial": "twig_sag",
+            "direction": "up",
+            "from": 0.075,
+            "to": 0.375
+          },
+          {
+            "dial": "rosette_depth",
+            "direction": "up",
+            "from": 0.375,
+            "to": 0.475
+          },
+          {
+            "dial": "twig_pendulous_length",
+            "direction": "up",
+            "from": 0.75,
+            "to": 2.75
+          },
+          {
+            "dial": "leaf_upward",
+            "direction": "down",
+            "from": 0.22499999999999998,
+            "to": -0.275
+          },
+          {
+            "dial": "max_taper_exponent",
+            "direction": "down",
+            "from": 11.0,
+            "to": 7.0
+          },
+          {
+            "dial": "foliage_spacing",
+            "direction": "down",
+            "from": 0.0055,
+            "to": 0.0034999999999999996
+          },
+          {
+            "dial": "leaf_width",
+            "direction": "up",
+            "from": 0.0675,
+            "to": 0.0975
+          }
+        ],
+        "strength": 2.0
+      },
+      "comparisons": [
+        {
+          "images": [
+            {
+              "path": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.flow/evidence/fn-80-the-gap-loops-first-live-run/local/palm/4f2f240abacd178219106d5faba0ac10b4996493d831c7b19696718ad9fa3e44-18d7afabc2fcb369-192bb9-7d/4f2f240abacd178219106d5faba0ac10b4996493d831c7b19696718ad9fa3e44-P-WHOLE.png",
+              "seed": 1,
+              "sha256": "77d8c6bfeeec13f08ff7b5d4f28c9c329f83e60b578dc33beeace2d2874f9f70",
+              "view": "P-WHOLE"
+            },
+            {
+              "path": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.flow/evidence/fn-80-the-gap-loops-first-live-run/local/palm/4f2f240abacd178219106d5faba0ac10b4996493d831c7b19696718ad9fa3e44-18d7afabc2fcb369-192bb9-7d/4f2f240abacd178219106d5faba0ac10b4996493d831c7b19696718ad9fa3e44-P-WHOLE-twin.png",
+              "seed": 1,
+              "sha256": "9e3b17724efc24d60ab203bc41265636d73eb7b02a1563d14a4bdb05f45b9ea5",
+              "view": "P-WHOLE"
+            }
+          ],
+          "metric_weights": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "observed": [
+            0.9328,
+            0.1315,
+            0.0608,
+            null,
+            171.4
+          ],
+          "reference": "P-WHOLE",
+          "reference_weight": 1.0,
+          "target": [
+            0.8439,
+            0.5,
+            0.5057,
+            0.153,
+            71.4
+          ]
+        }
+      ],
+      "evidence": ".flow/evidence/fn-80-the-gap-loops-first-live-run/vision-ledger/18d7afa896474334-192bb9-1d.json",
+      "feasible": true,
+      "identity": "c453d5ed9a6aa568d7cbe42fc58c266cc735577bd46021ffe8aab23d6cb9f051",
+      "key": "4f2f240abacd178219106d5faba0ac10b4996493d831c7b19696718ad9fa3e44",
+      "label": "bundle@2",
+      "ledger": "tuning:18d7afaa91156fa2-192bb9-56",
+      "measurement": {
+        "case": "candidate-8ed7d8fff2c1:date-palm:date-palm:1",
+        "case_id": "candidate-8ed7d8fff2c1",
+        "checks": {
+          "dbh_m": {
+            "actual": {
+              "diameters_m": [
+                0.9574033833269233
+              ],
+              "status": "measured_proxy",
+              "stems": 1,
+              "value": 0.9574033833269233
+            },
+            "reason": "outside target or target unavailable",
+            "status": "contextual",
+            "target": {
+              "classification": "contextual",
+              "confidence": "unavailable",
+              "note": "unavailable: below the data-quality bar (no source states a diameter at an age); contextual with no range so the measurer reports the value and gates nothing. The owner's lower-bar decision on shipping without a diameter source stays open (host, 2026-09-22).",
+              "range": null,
+              "source": [],
+              "unit": "m"
+            }
+          },
+          "height_m": {
+            "actual": {
+              "status": "measured",
+              "value": 26.636464392486
+            },
+            "reason": "within range",
+            "status": "pass",
+            "target": {
+              "classification": "gating",
+              "confidence": "pipeline",
+              "note": "50 - 100 feet",
+              "range": [
+                15.24,
+                30.48
+              ],
+              "source": [
+                "A1"
+              ],
+              "unit": "m"
+            }
+          }
+        },
+        "counts": {
+          "prototype_triangles": 48,
+          "prototype_vertices": 36,
+          "shed_nodes": 0,
+          "wood_dropped": 0,
+          "wood_triangles": 2000,
+          "wood_vertices": 1002
+        },
+        "event": "completed",
+        "metrics": {
+          "branch_count": {
+            "status": "estimated",
+            "value": 0
+          },
+          "branch_lengths_m": {
+            "status": "estimated",
+            "value": []
+          },
+          "branch_order": {
+            "status": "estimated",
+            "value": {}
+          },
+          "crown_base_m": {
+            "status": "measured",
+            "value": 20.43381529506087
+          },
+          "crown_span_x_m": {
+            "status": "measured",
+            "value": 8.304151439739325
+          },
+          "crown_span_z_m": {
+            "status": "measured",
+            "value": 8.242896700830634
+          },
+          "crown_width_height_ratio": {
+            "status": "measured",
+            "value": 0.31175877238729477
+          },
+          "crown_width_m": {
+            "status": "measured",
+            "value": 8.304151439739325
+          },
+          "dbh_m": {
+            "diameters_m": [
+              0.9574033833269233
+            ],
+            "status": "measured_proxy",
+            "stems": 1,
+            "value": 0.9574033833269233
+          },
+          "dbh_measurement_height_m": {
+            "status": "defined",
+            "value": 1.3
+          },
+          "discarded_units": {
+            "status": "measured",
+            "value": 43
+          },
+          "foliage_geometry_note": "One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area.",
+          "foliage_length_m": {
+            "max": 0.31745214146250833,
+            "median": 0.23278709400102784,
+            "min": 0.1527978492338379,
+            "status": "measured"
+          },
+          "foliage_unit": "leaf",
+          "foliage_units": {
+            "status": "measured",
+            "value": 4357
+          },
+          "foliage_width_m": {
+            "max": 0.18036944433636898,
+            "median": 0.13226459410777855,
+            "min": 0.08681643436514053,
+            "status": "measured"
+          },
+          "growth": {
+            "attraction_capped": false,
+            "level_capped": false,
+            "node_capped": false,
+            "status": "complete"
+          },
+          "height_m": {
+            "status": "measured",
+            "value": 26.636464392486
+          },
+          "leaf_area_m2": {
+            "status": "measured",
+            "value": 85.44101810497389
+          },
+          "nodes": {
+            "status": "measured",
+            "value": 49
+          },
+          "pre_cull_instances": {
+            "status": "measured",
+            "value": 4400
+          },
+          "primary_insertion_m": {
+            "status": "estimated",
+            "value": []
+          },
+          "retained_instances": {
+            "status": "measured",
+            "value": 4357
+          },
+          "stored_branch_runs": {
+            "status": "measured",
+            "value": 0
+          },
+          "trunk_axis_length_m": {
+            "status": "estimated",
+            "value": 24.0
+          },
+          "twig_count": {
+            "status": "measured",
+            "value": 0
+          },
+          "units_per_instance": {
+            "status": "measured",
+            "value": 1
+          },
+          "wood_height_m": {
+            "status": "measured",
+            "value": 23.949737548828125
+          }
+        },
+        "numeric_status": "pass",
+        "output_bytes": {
+          "retained_matrices": 52284,
+          "wood_indices": 24000,
+          "wood_positions": 12024
+        },
+        "preset": "date-palm",
+        "profile_id": "date-palm",
+        "profile_revision": "2026-09-18",
+        "seed": 1,
+        "timing_ms": {
+          "foliage": 3.00426,
+          "growth": 0.47717000000000004,
+          "measurement": 4.364047,
+          "surface": 0.170303,
+          "total": 8.016300000000001
+        },
+        "visual_status": "unassessed"
+      },
+      "overrides": {
+        "canopy": {
+          "rachisArch": -0.375,
+          "rachisLength": 3.75,
+          "rosetteDepth": 0.475,
+          "rosettePitchSpread": 87.5,
+          "size": 1.375,
+          "spacing": 0.0034999999999999996,
+          "upward": -0.275
+        },
+        "element": {
+          "axialSegments": 9,
+          "length": 0.171,
+          "width": 0.0975
+        },
+        "radii": {
+          "lengthTaper": 0.05,
+          "maxTaperExponent": 7.0
+        },
+        "skeleton": {
+          "bias": {
+            "gravitropism": 0.7749999999999999,
+            "lean": 0.025000000000000005,
+            "supernatural": {
+              "writheWavelength": 0.425
+            }
+          },
+          "envelope": {
+            "crownBase": 0.675,
+            "spread": 0.25
+          },
+          "habit": {
+            "attractorWeight": 0.625,
+            "crookedness": 4.5,
+            "risePrimary": 0.037500000000000006,
+            "riseSecondary": -0.625
+          },
+          "twigs": {
+            "curtainDrop": 0.375,
+            "curtainStepClearance": 0.7250000000000001,
+            "hang": 1.25,
+            "maxDroop": 4.1,
+            "pendulousLength": 2.75,
+            "sag": 0.375,
+            "twig": {
+              "length": 0.275,
+              "stationsPerInternode": 2
+            }
+          }
+        },
+        "surface": {
+          "flareFalloff": 0.097,
+          "flareRadius": 2.0
+        }
+      },
+      "reason": null,
+      "round": 4,
+      "score": 0.824535014835541,
+      "seconds": 1.689833293,
+      "seed": 1,
+      "sheet": {
+        "below_current": false,
+        "breaks": [
+          "Only render whose crown fully occludes the trunk top with foliage, so the rosette attaches convincingly instead of floating above a bare shaft."
+        ],
+        "improved": "Across the set the leaflets gain real width and density and the fronds lengthen, so the crown moves from a wire spoke-wheel to a legible pinnate rosette, and the trunk loses its kinks toward a straight near-constant column.",
+        "label": "3",
+        "ledger": ".flow/evidence/fn-80-the-gap-loops-first-live-run/vision-ledger/18d7afb10c27bbbe-192bb9-88.json",
+        "missing": "None of them arch: every frond leaves the crown straight and radial, so the reference's deep drooping skirt of long lower fronds hanging below the crown base is absent everywhere, and the crown stays too small for the trunk's height.",
+        "model": "opus",
+        "overall": 1,
+        "per_priority": {
+          "owner-fronds-long-arching": "clear",
+          "owner-trunk-straight-constant": "clear"
+        },
+        "uncalibrated": "uncalibrated contact-sheet review: a ranking and a graded comparison, never a score or a readiness claim",
+        "wrong": [
+          "Fronds are radially symmetric and stop short; the reference crown is deeper than wide, with long lower fronds arching well below the crown base.",
+          "Trunk widens noticeably into a flared foot and is smooth-shelled, lacking the reference's uniform column of old leaf-base scars."
+        ]
+      }
+    }
+  ],
+  "machine_ready": false,
+  "meaning": "reviewer has never been shown to pass an owner-accepted tree",
+  "owner_acceptance": "pending",
+  "reviewer_passed_unqualified": false
+}
