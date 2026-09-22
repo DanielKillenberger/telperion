@@ -29,3 +29,17 @@ rows needed six sites each, not the five the handoff listed: the sixth is a
 (`.flow/evidence/fn80/investigation-fn-109.md`) had already caught it, so it
 cost nothing here - it is logged because the omission would have shipped a
 silent gap had the investigation not run.
+
+**The tuning loop's proposal cap had 358 bytes of headroom, and ten dials do
+not fit.** `judgments::proposal_state` lists every score-visible dial in full,
+and `twelve_rounds_of_attempts_fold_into_a_digest_that_still_fits` asserts the
+result fits `PROPOSAL_CAP` (24,576 bytes). Measured on this branch with the ten
+new rows removed: 24,218 bytes. With them: 25,888. At about 160 bytes a dial
+the guard admits two more geometry rows before any spec trips it, so the next
+capability spec that authors rows pays this cost too, and pays it at the end of
+its build after the gate has already run once. Cost here: about twenty minutes
+between the first red gate and the measurement that showed it was a cliff
+rather than a regression, plus the build's finish line. What would remove it:
+the proposal state grouping its dial menu the way the run summary already
+groups it, or scoping the menu to the priorities a round is tuning, so the cost
+stops scaling with the whole table.
