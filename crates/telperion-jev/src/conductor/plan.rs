@@ -184,6 +184,19 @@ pub fn next(config: &Config, run: &Run) -> Result<Next> {
             },
         });
     }
+    // A landing changes what the stages would file: the halts on record were
+    // filed before it. Rerun the stages before acting on any of them, or the
+    // loop is sent after a gate the landing just cleared. The first live run
+    // did exactly that with the registry gate after fn-108 landed.
+    let landed = run
+        .dependencies
+        .iter()
+        .any(|d| d.status == DependencyStatus::Landed);
+    if landed && run.stage_fingerprint.as_deref() != Some(stage_fingerprint(config, run).as_str()) {
+        return Ok(Next::Stages {
+            from: STAGES[0].into(),
+        });
+    }
     let table = policy::load();
     let open = open_decisions(config)?;
     if let Some(decision) = open.iter().find(|d| !d.blocks.is_empty()) {
