@@ -18,9 +18,6 @@ import init, { WebRenderer } from "./render/telperion_render.js";
  *  per CSS pixel the fill cost doubles again for a difference the owner
  *  cannot see on a tree in flat clay. */
 const MAX_PIXEL_RATIO = 2;
-// Held in a name so a bundler leaves the URL to run time: the renderer's Wasm
-// ships as its own file beside this one, never inlined as a data URL.
-const WASM = "telperion-render.wasm";
 
 /** Metres, Y up, right-handed - the renderer's own frame. */
 export type Point = readonly [number, number, number];
@@ -196,7 +193,9 @@ export interface Renderer {
  *  Rejects with the renderer's own words when there is no WebGPU, only a
  *  software adapter, or the device is refused. */
 export async function createRenderer(canvas: HTMLCanvasElement): Promise<Renderer> {
-  loading ??= init({ module_or_path: new URL(WASM, import.meta.url) }).then(() => undefined);
+  // The literal names the module for a consumer's bundler; the library build
+  // leaves it as it is (vite.config.ts) and ships the file beside this one.
+  loading ??= init({ module_or_path: new URL("./telperion-render.wasm", import.meta.url) }).then(() => undefined);
   await loading;
 
   const resize = (): void => {

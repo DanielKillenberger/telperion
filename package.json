@@ -16,6 +16,10 @@
   ],
   "license": "MIT",
   "author": "Daniel Killenberger",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DanielKillenberger/telperion.git"
+  },
   "type": "module",
   "sideEffects": false,
   "files": [
@@ -36,7 +40,10 @@
     "./field/voxelize": {
       "types": "./dist/field/voxelize.d.ts",
       "import": "./dist/voxelize.js"
-    }
+    },
+    "./telperion.wasm": "./dist/telperion.wasm",
+    "./telperion-render.wasm": "./dist/telperion-render.wasm",
+    "./telperion-field.wasm": "./dist/telperion-field.wasm"
   },
   "engines": {
     "node": ">=20"
@@ -44,6 +51,7 @@
   "scripts": {
     "dev": "npm run wasm:build && npm run render:build && vite",
     "build": "npm run wasm:build && npm run render:build && tsc -p tsconfig.build.json && vite build",
+    "test:dist": "node scripts/test-dist.mjs",
     "pretest": "npm run wasm:build && npm run render:build",
     "test": "npm run catalogue:check && vitest run",
     "catalogue:check": "node scripts/catalogue-check.mjs",

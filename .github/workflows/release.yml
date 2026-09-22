@@ -107,6 +107,9 @@ jobs:
       - name: Build the package
         run: npm run build
 
+      - name: Load the built entries in Node with no Wasm source given
+        run: npm run test:dist
+
       - name: Show what the tarball holds
         run: npm pack --dry-run
 
