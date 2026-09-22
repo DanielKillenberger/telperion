@@ -25,19 +25,41 @@ pub struct ElementParams {
     pub connector_length: f64,
     /// Blade/needle longitudinal extent, excluding connector, in metres.
     pub length: f64,
+    /// The blade's greatest width in metres, across the midrib. Raising it
+    /// makes every leaf broader.
     pub width: f64,
+    /// Where the blade is widest, as a share of the way from its base to
+    /// its tip. Raising it carries the widest point toward the tip.
     pub widest_at: f64,
+    /// How fast the blade fills out above its stalk. Raising it draws the
+    /// base in, so the leaf reads wedge-shaped rather than rounded.
     pub base_fullness: f64,
+    /// How fast the blade narrows toward its point. Raising it draws the
+    /// tip out into a sharper point.
     pub tip_sharpness: f64,
+    /// How far the blade's margins lift out of its own plane, as a share
+    /// of the half-width there. Raising it dishes the leaf more deeply
+    /// along the midrib.
     pub cup: f64,
+    /// How far the blade bends along its length, as a share of its length
+    /// at the tip. Raising it curls the tip further out of the plane its
+    /// base stands in.
     pub curl: f64,
     /// Lobes along each margin; 0 is an entire margin.
     pub lobe_count: u32,
-    /// How far each sinus cuts toward the midrib, 0 to 1.
+    /// How far each sinus cuts toward the midrib, 0 to 1. At zero the margin
+    /// is entire whatever the lobe count says, and any rise starts cutting
+    /// the sinuses.
     pub lobe_depth: f64,
     /// Flat blade at 0, four-sided shaft at 1.
     pub section_roundness: f64,
+    /// How many sections the blade is built from along its length. Raising
+    /// it draws the outline and any lobes more smoothly, at more triangles
+    /// per leaf.
     pub axial_segments: u32,
+    /// How many columns the blade is built from across its width. Raising
+    /// it draws the section and the margins more smoothly, at more
+    /// triangles per leaf.
     pub cross_segments: u32,
     pub card: bool,
 }

@@ -1,0 +1,14 @@
+{
+  "scope": "one-frozen-claude-comparison",
+  "requested_model": "opus",
+  "effort": "high",
+  "request_sha256": "c82e452cf172c97481433192b34db4833d9213abca5499055d45c196e8275f87",
+  "view_issue_resolved": true,
+  "prior_tokens": 394300,
+  "reserved_tokens": 40000,
+  "cumulative_cap": 520000,
+  "attempted_visual_passes": 16,
+  "owner_authorization": "Owner YES to520k/Fable,Opus,Grok one40k each,no retries or renders; host sequential Opus release after Fable success",
+  "prior_journal": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/joint-blind-fable-journal.json",
+  "prior_journal_sha256": "a284e736c18cebac6771f5637bd7bc34f7a1805b6f7c2c6e7c9837fb99a5fc1f"
+}

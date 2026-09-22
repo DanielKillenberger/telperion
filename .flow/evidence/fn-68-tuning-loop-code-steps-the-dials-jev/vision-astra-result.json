@@ -1,0 +1,70 @@
+{
+  "limit": 50000,
+  "pending": 0,
+  "result": {
+    "manifest_sha256": "625261843326907041312fb0126a600d507c4c6f33914566ddc1fd69072bc4fb",
+    "results": [
+      {
+        "assessment": {
+          "cells": [
+            [
+              {
+                "item": "crown-naturalness-density-droop",
+                "seed": 1,
+                "view": "B-WHOLE"
+              },
+              false
+            ]
+          ],
+          "defects": [
+            "B-WHOLE, seed 1: Crown forms an overly continuous, regular egg-shaped envelope; fine peripheral foliage does not sufficiently break up or thin the broad shoulders.",
+            "B-WHOLE, seed 1: Foliage fills the upper and middle crown too uniformly, lacking the reference's distinct branch-supported masses and intervening openings.",
+            "B-WHOLE, seed 1: Leaf-bearing branches predominantly rise or extend straight outward; convincing weight-induced bowing and drooping foliage sprays are not visible."
+          ],
+          "identity": "beech-round22-4e6d903c-seed1-whole",
+          "ledger": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d6d3831f8e2066-cc291-0.json",
+          "model": "gpt-6-astra"
+        },
+        "effort": "medium",
+        "observations": [
+          "The lower crown has some asymmetric projections and gaps, but these do not resolve the overall silhouette, density, and droop defects."
+        ],
+        "request_sha256": "464a90280314fad1f430c8ca7d47398095eb9334277b9bdf49e3c7e17499d3db",
+        "usage": {
+          "input_tokens": 20480,
+          "output_tokens": 151
+        }
+      },
+      {
+        "assessment": {
+          "cells": [
+            [
+              {
+                "item": "crown-species-character",
+                "seed": 1,
+                "view": "S-WHOLE"
+              },
+              false
+            ]
+          ],
+          "defects": [
+            "S-WHOLE, seed 1: Prominent bare, spoke-like branch fans and repeated long, nearly parallel foliage strings give the crown a skeletal, mechanical appearance rather than fine, irregular birch sprays. The foliage forms disconnected curtains with insufficient softly clustered crown volume."
+          ],
+          "identity": "birch-round26-0f2c2f6a-seed1-whole",
+          "ledger": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d6d3853a72f402-cc291-1.json",
+          "model": "gpt-6-astra"
+        },
+        "effort": "medium",
+        "observations": [
+          "The candidate shows pendulous foliage, light-admitting gaps, and an irregular outline, but these do not overcome the visibly artificial branching and foliage distribution relative to the reference."
+        ],
+        "request_sha256": "1d0cbdd1edcbbf5a22c4bfda27619653a8394943ca2119bc429b77b5255e6d58",
+        "usage": {
+          "input_tokens": 20841,
+          "output_tokens": 131
+        }
+      }
+    ]
+  },
+  "spent": 41603
+}

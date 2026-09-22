@@ -1,0 +1,16 @@
+{
+  "grader": "host",
+  "result": "joint-blind-result.json",
+  "status": "NOT_QUALIFIED",
+  "dimensions": {
+    "crown_architecture": "MISS: explicitly accepts crown spread/ovoid character",
+    "leaf_bearing_hanging_weighted_form": "MISS: absent",
+    "material": "MISS/instability: gray bark accepted versus previous birch-like blocker",
+    "bare_scaffold": "FOUND: congested upright axes/crossings/blunt tips",
+    "joint_constraints": "PASS: shared render identity/seed/geometry, visibility not unloading",
+    "evidence_fidelity": "PASS: valid input citations; unknown reference specimen relationship preserved",
+    "causal_uncertainty": "PASS: causal mechanism distinguished as hypothesis"
+  },
+  "conclusion": "Fails independent owner-priority gap discovery despite valid bare-scaffold finding and overall not-ready. Raw WHOLE PASS/BARE FAIL unchanged. Known development case only, not general calibration.",
+  "next_authority": "No further model call currently authorized; frozen request/protocol retained for any separately approved comparison"
+}

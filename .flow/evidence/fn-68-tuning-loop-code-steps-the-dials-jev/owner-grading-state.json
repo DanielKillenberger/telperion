@@ -1,0 +1,491 @@
+{
+  "owner_verbatim": [
+    "i strongly disagree with accepting the crown shape. It's vastly different and the droop also seems absolutely key.",
+    "I think we want to identify the BIGGEST gaps that allows to make a believable generation of this tree. ANd for the beech we have clear misalignment of the crown and drooping with leaves that doesn't make it believable.\nI'm sure there's more but i think if we get that and material tuned we're already pretty close.",
+    "what was its critiques? because i didn't accept thinking it looked photorealistic. That shouldn't be the goal. Not sure what a reasonable acceptance gate is. I guess accept it if it's recognizable at the quality that was set by previous species"
+  ],
+  "interpretation_not_quote": "Crown morphology and hanging leafy form are primary believability gaps; material matters next. Agreement concerns the expressed assessment, not merely issuing FAIL. Do not require any particular physical leaf-weight explanation. This text-only study cannot establish image truth, reviewer generalization, or correctness of causal hypotheses.",
+  "verdicts": {
+    "V1": {
+      "statuses": [
+        "fail",
+        "fail"
+      ],
+      "defects": [
+        "B-BARE seed 1 (render-1): limbs and secondary branches are straight, stiff, uniformly thick rods ending in blunt truncated tips with a sparse fringe of hair-like straight twigs; reference-1 shows beech branching tapering progressively into a dense, fine, zig-zag twig mesh forming a soft haze at the crown edge. Obvious construction artifact and wrong fine-branch character.",
+        "B-WHOLE seed 1 (render-0): foliage reads as fan/brush-like sprays streaming along straight radiating spokes with blunt stick ends poking through the canopy top; reference-0 shows dense layered, horizontally tiered foliage masses with the crown reaching low and branch structure mostly concealed. Crown reads like a generic broom/vase tree rather than beech.",
+        "B-WHOLE/B-BARE seed 1 (render-0, render-1): trunk shows regular horizontal ring banding reminiscent of birch/cherry; reference-1 bark close-up shows smooth grey bark with irregular pale lichen mottling and no banding."
+      ],
+      "observations": [
+        "Acceptable variation: overall ovoid-rounded crown outline, short bole dividing into several ascending limbs, and pale smooth grey bark colour are compatible with open-grown beech in reference-0/reference-1.",
+        "Acceptable variation: slight crown asymmetry and lower left limb spread.",
+        "Optional: leaf colour is somewhat blue-green and uniform; warmer green and more tonal variation would help but does not block.",
+        "Optional: root flare and subtle bark lichen patches would add realism.",
+        "Finish relative to anchor-0: leaf density and shading are at or above the anchor floor; the failure is in species structural character and visible truncated branch ends, not general finish."
+      ],
+      "findings": [
+        {
+          "observation": "Bare view shows straight rod-like branches with little taper, blunt cut-off ends and sparse straight needle-like twigs; reference shows fine, dense, progressively tapering twig mesh filling the crown outline.",
+          "evidence_ids": [
+            "render-1",
+            "reference-1"
+          ],
+          "impact": "blocker",
+          "uncertain": false,
+          "causal_hypothesis": "Possibly too few branching orders, low taper toward tips, and no curvature/zig-zag in terminal levels."
+        },
+        {
+          "observation": "Leafed crown shows brush-like foliage sprays along radiating straight spokes, visible stick ends at crown top, and an open lower crown; reference shows layered horizontal foliage tiers, concealed structure and foliage reaching low.",
+          "evidence_ids": [
+            "render-0",
+            "reference-0",
+            "render-1"
+          ],
+          "impact": "blocker",
+          "uncertain": false,
+          "causal_hypothesis": "Leaves may be attached only along sparse straight twigs shared with the bare geometry, so lack of fine planar spray structure propagates into the leafed view."
+        },
+        {
+          "observation": "Trunk carries regular horizontal ring bands in both views; reference bark is smooth grey with irregular mottling and no banding.",
+          "evidence_ids": [
+            "render-0",
+            "render-1",
+            "reference-1"
+          ],
+          "impact": "blocker",
+          "uncertain": true,
+          "causal_hypothesis": "Bark texture may have a periodic horizontal pattern or tiling seam."
+        },
+        {
+          "observation": "Overall crown silhouette (broad ovoid), short trunk with low multi-limb division and pale grey bark tone match the references.",
+          "evidence_ids": [
+            "render-0",
+            "render-1",
+            "reference-0",
+            "reference-1"
+          ],
+          "impact": "supported",
+          "uncertain": false,
+          "causal_hypothesis": null
+        },
+        {
+          "observation": "Rendering finish (shading, leaf density, shadows) is not below the catalogue anchor floor.",
+          "evidence_ids": [
+            "render-0",
+            "render-1",
+            "anchor-0"
+          ],
+          "impact": "supported",
+          "uncertain": false,
+          "causal_hypothesis": null
+        },
+        {
+          "observation": "Leaf colour is cool and uniform compared with the reference foliage.",
+          "evidence_ids": [
+            "render-0",
+            "reference-0"
+          ],
+          "impact": "optional",
+          "uncertain": true,
+          "causal_hypothesis": null
+        }
+      ]
+    },
+    "V2": {
+      "statuses": [
+        "fail",
+        "fail"
+      ],
+      "defects": [
+        "Seed 1, B-WHOLE and B-BARE: numerous long, straight, similarly sized ascending branches produce a crowded broom-like framework and upright foliage streaks. This overwhelms the spreading, progressively subdivided branch structure visible in the beech references.",
+        "Seed 1, B-BARE: multiple substantial branches terminate abruptly in blunt ends, particularly around the upper crown. Their repeated appearance reads as a construction artifact rather than the fine terminal branching shown in reference-1."
+      ],
+      "observations": [
+        "Passes follow the required-cell order: B-WHOLE reference_character, then B-BARE reference_character.",
+        "Acceptable variation: the references support differences in crown breadth, asymmetry and foliage density; an identical silhouette is unnecessary.",
+        "Optional refinement: the conspicuous horizontal bark markings could be softened toward the smoother gray surface in reference-1. Photographic lichen detail is unnecessary.",
+        "The left crown is clipped in both renders, so complete crown width and balance remain unknown.",
+        "The accepted spruce anchor supports a simplified catalogue rendering style; its species morphology is not a beech requirement.",
+        "No earlier candidate is supplied, so relative improvement cannot be established."
+      ],
+      "findings": [
+        {
+          "observation": "B-WHOLE reference_character fails: seed 1 has a broadly rounded leafy crown, but its interior is dominated by repeated upright foliage columns and conspicuous straight ascending limbs. Reference-0 instead shows more spreading, laterally articulated foliage masses. B-BARE confirms that the dominant directional pattern belongs to the shared framework.",
+          "evidence_ids": [
+            "render-0",
+            "render-1",
+            "reference-0",
+            "reference-1"
+          ],
+          "impact": "blocker",
+          "uncertain": false,
+          "causal_hypothesis": null
+        },
+        {
+          "observation": "B-BARE reference_character fails: seed 1 exposes a dense array of long, relatively uniform straight limbs, with repeated blunt substantial tips around the upper crown. Reference-1 shows a more differentiated hierarchy resolving into fine branching. The repeated abrupt endings are visible construction artifacts even at a stylized finish floor.",
+          "evidence_ids": [
+            "render-1",
+            "reference-1",
+            "anchor-0"
+          ],
+          "impact": "blocker",
+          "uncertain": false,
+          "causal_hypothesis": null
+        },
+        {
+          "observation": "The broad deciduous crown, exposed lower trunk and branching scaffold provide a grounded partial match to the supplied beech photographs. These matches do not resolve the dominant framework defects.",
+          "evidence_ids": [
+            "render-0",
+            "render-1",
+            "reference-0",
+            "reference-1"
+          ],
+          "impact": "supported",
+          "uncertain": false,
+          "causal_hypothesis": null
+        },
+        {
+          "observation": "The bare render reveals the same seed's geometry with foliage hidden. It therefore constrains interpretation of the leafy render; it does not demonstrate a seasonal or load-induced change. The photographs have no documented specimen relationship.",
+          "evidence_ids": [
+            "render-0",
+            "render-1",
+            "reference-0",
+            "reference-1"
+          ],
+          "impact": "supported",
+          "uncertain": false,
+          "causal_hypothesis": null
+        }
+      ]
+    },
+    "V3": {
+      "statuses": [
+        "pass",
+        "fail"
+      ],
+      "defects": [
+        "Primary blocker — B-BARE exposes an implausibly congested scaffold of many near-parallel upright stems, crossing branches, and conspicuously blunt/cut-looking upper tips. This does not match the reference's legible hierarchy of trunk, major limbs, and progressively finer ramification, and it is an obvious construction artifact affecting species believability. Because B-WHOLE and B-BARE share seed-1 geometry, foliage merely conceals this defect rather than resolving it."
+      ],
+      "observations": [
+        "B-WHOLE has a believable dense, tall ovoid deciduous crown and smooth pale-gray bark consistent with European beech reference character.",
+        "The candidate's multi-stem lower architecture is acceptable natural variation: the references include both single-trunk and multi-stem specimens, with no documented same-specimen relationship.",
+        "The candidate meets the accepted anchor's stylized catalogue finish floor in general rendering coherence; photorealistic bark, leaves, lighting, and background integration are optional refinements and do not block readiness.",
+        "The photographic references show different, undocumented specimen or condition relationships; no causal seasonal or developmental relationship was inferred."
+      ],
+      "findings": [
+        {
+          "observation": "Required cell B-WHOLE/reference_character passes: render-0 matches reference-0 in its dense leafy deciduous mass, tall rounded-to-ovoid crown, and smooth light-gray beech-like trunk; differences in exact crown spread and stem count remain plausible specimen variation.",
+          "evidence_ids": [
+            "render-0",
+            "reference-0"
+          ],
+          "impact": "supported",
+          "uncertain": false,
+          "causal_hypothesis": null
+        },
+        {
+          "observation": "Required cell B-BARE/reference_character fails: render-1 is dominated by an excessively dense bundle of similarly upright, intersecting axes with numerous abruptly terminated tips, whereas reference-1 presents a readable primary scaffold and finer outward ramification. The mismatch removes defining structural character and introduces obvious construction artifacts.",
+          "evidence_ids": [
+            "render-1",
+            "reference-1"
+          ],
+          "impact": "blocker",
+          "uncertain": false,
+          "causal_hypothesis": "The generator may be producing too many competing upright axes and/or terminating branches before natural taper and subdivision are established; this is optional and not required to sustain the observed mismatch."
+        },
+        {
+          "observation": "Cross-view constraint: render-0 and render-1 share identity, seed, and geometry; the foliage shown in render-0 hides much of the defective scaffold visible in render-1 and cannot be treated as alternative unloaded leaf-off geometry.",
+          "evidence_ids": [
+            "render-0",
+            "render-1"
+          ],
+          "impact": "blocker",
+          "uncertain": false,
+          "causal_hypothesis": null
+        },
+        {
+          "observation": "Against the finish-only catalogue anchor, the candidate has coherent materials, lighting, silhouette presentation, and comparable or greater visible detail; the blocker is structural character rather than a general finish-floor regression.",
+          "evidence_ids": [
+            "render-0",
+            "render-1",
+            "anchor-0"
+          ],
+          "impact": "supported",
+          "uncertain": false,
+          "causal_hypothesis": null
+        }
+      ]
+    },
+    "V4": {
+      "statuses": [
+        "fail",
+        "fail"
+      ],
+      "defects": [
+        "B-WHOLE and B-BARE seed 1: the bole and all visible limbs are pale, nearly white, with strong horizontal banding. That reads as birch-like, not the smooth medium-gray mottled Fagus sylvatica bark in the leafy trunks, the winter bole, and the bark close-up. Bark is defining beech character and is the main believability gap.",
+        "B-BARE seed 1 (same geometry as B-WHOLE with foliage hidden): even after allowing a smaller, more regular specimen, the pale white ramification keeps the winter silhouette from reading as European beech against the winter reference and bark close-up."
+      ],
+      "observations": [
+        "Render-0 and render-1 share identity and seed; B-BARE is the same geometry with foliage hidden, not a separate leaf-off model.",
+        "The candidate is smaller and more symmetrically oval than the mature spreading park trees. Size, age-class, and regularity would be acceptable natural variation if bark and species habit were beech.",
+        "Leafy photographs and the winter/bark photographs are unknown-relation specimens; they are not one tree changing season and are not a causal pair.",
+        "Summer foliage is a catalogue leaf-card cloud with interior gaps, unlike the nearly continuous dense beech canopies. That is optional finish, not a photorealism requirement.",
+        "Catalogue presentation (stylized 3D materials, simple ground and sky) is in family with the Norway spruce quality anchor. Finish is not the blocking gap; the spruce is style-only and not a beech morphology reference.",
+        "Primary-limb angles are more even and upright than the winter beech photograph. Against a single unknown-relation specimen that is secondary to the bark mismatch and is not treated as an independent blocker."
+      ],
+      "findings": [
+        {
+          "observation": "B-WHOLE seed 1 does not carry believable European beech reference character. The long clear bole is pale and nearly white with horizontal striation, and the crown is a compact regular oval of small leaf-cards. Reference-0 shows Fagus sylvatica with medium-to-dark smooth gray boles and broad, dense, spreading canopies; reference-1’s bark close-up is mottled medium-gray with lenticels and lichen, not white banded bark. The pale bole is prominent in this view and is defining species character, not lighting or optional detail.",
+          "evidence_ids": [
+            "render-0",
+            "reference-0",
+            "reference-1"
+          ],
+          "impact": "blocker",
+          "uncertain": false,
+          "causal_hypothesis": "Bark albedo and horizontal-band texture appear authored toward a generic pale or birch-like material rather than smooth medium-gray Fagus bark."
+        },
+        {
+          "observation": "B-BARE seed 1 (shared geometry with B-WHOLE; foliage hidden, not unloaded) does not carry believable European beech reference character. The entire ramification is pale gray-white with horizontal banding. Reference-1 shows a medium-gray smooth winter bole, mottled bark close-up, spreading hierarchical limbs, and a dense fine-twig mesh. White limbs plus banded pale bark are wrong species character relative to Fagus sylvatica, so the leafless view is not catalogue-ready.",
+          "evidence_ids": [
+            "render-1",
+            "render-0",
+            "reference-1"
+          ],
+          "impact": "blocker",
+          "uncertain": false,
+          "causal_hypothesis": "A single pale horizontally marked bark material may have been applied to trunk and limbs; that material reads as a different species than the beech bark reference."
+        },
+        {
+          "observation": "Both renders are a smaller, more regular single-stem deciduous tree with a rounded-oval crown, which is in the broad architectural family of the beech photographs. Specimen size and symmetry versus the mature park trees are acceptable variation and would not by themselves fail reference_character.",
+          "evidence_ids": [
+            "render-0",
+            "render-1",
+            "reference-0",
+            "reference-1"
+          ],
+          "impact": "variation",
+          "uncertain": false,
+          "causal_hypothesis": null
+        },
+        {
+          "observation": "B-WHOLE foliage is a typical catalogue leaf-card volume with visible gaps, not the continuous dense beech canopy in reference-0. Photorealism is not required; this is optional density/finish.",
+          "evidence_ids": [
+            "render-0",
+            "reference-0",
+            "anchor-0"
+          ],
+          "impact": "optional",
+          "uncertain": false,
+          "causal_hypothesis": null
+        },
+        {
+          "observation": "Stylized 3D finish (simple lighting, ground plane, non-photographic materials) is comparable to the accepted Norway spruce quality anchor. There is no finish regression below that anchor; the spruce must not be used as beech morphology.",
+          "evidence_ids": [
+            "render-0",
+            "render-1",
+            "anchor-0"
+          ],
+          "impact": "optional",
+          "uncertain": false,
+          "causal_hypothesis": null
+        }
+      ]
+    },
+    "V5": {
+      "statuses": [
+        "fail",
+        "fail"
+      ],
+      "defects": [
+        "Seed 1, B-BARE: numerous long, straight scaffold branches end abruptly at substantial thickness, creating a conspicuous pole-like framework instead of the reference's progressively subdividing, tapering crown. B-WHOLE conceals much of this construction but retains exposed thick tips.",
+        "Seed 1, B-WHOLE: foliage forms predominantly upright, densely packed sprays around the shared framework. The references show more distinct spreading lateral masses and layered outer branching; the candidate lacks that defining crown organization.",
+        "Seed 1, both views: conspicuous repeated dark horizontal bark markings on the pale trunk differ from the reference's comparatively smooth gray bark and irregular surface mottling."
+      ],
+      "observations": [
+        "The broad, rounded deciduous envelope is a supported partial match. Exact crown proportions and individual asymmetry can vary naturally.",
+        "The spruce anchor establishes stylized catalogue rendering as acceptable; photographic lighting, leaf-level realism and matching the photographs' backgrounds are unnecessary.",
+        "The left crown is clipped in both candidate views, so its complete outer silhouette remains unknown.",
+        "The photographs' specimen and condition relationships are undocumented. No seasonal or loading explanation is inferred.",
+        "No earlier candidate is supplied, so relative improvement cannot be assessed."
+      ],
+      "findings": [
+        {
+          "observation": "B-BARE reference_character, seed 1: fail. The visible framework contains repeated thick, abruptly ending straight limbs, especially across the upper crown. The bare reference shows a finer, progressively branching outer framework. Because B-WHOLE shares this geometry, foliage concealment does not resolve the construction artifact.",
+          "evidence_ids": [
+            "render-1",
+            "render-0",
+            "reference-1"
+          ],
+          "impact": "blocker",
+          "uncertain": false,
+          "causal_hypothesis": null
+        },
+        {
+          "observation": "B-WHOLE reference_character, seed 1: fail. Upright foliage sprays dominate the crown rather than the spreading, layered lateral masses visible in the leafy references. B-BARE confirms the strong upward alignment of the supporting limbs. This is a structural character gap, not a requirement to reproduce an individual photographic silhouette.",
+          "evidence_ids": [
+            "render-0",
+            "render-1",
+            "reference-0",
+            "reference-1"
+          ],
+          "impact": "blocker",
+          "uncertain": false,
+          "causal_hypothesis": null
+        },
+        {
+          "observation": "The exposed trunk in both candidate views has repeated horizontal dark markings and a very pale surface. The bark reference instead supports smoother gray bark with irregular mottling. The repeated banding materially weakens the intended beech character.",
+          "evidence_ids": [
+            "render-0",
+            "render-1",
+            "reference-1"
+          ],
+          "impact": "blocker",
+          "uncertain": false,
+          "causal_hypothesis": null
+        },
+        {
+          "observation": "The leafy candidate supports a broad, rounded deciduous crown with dense green foliage, consistent with the general envelope of the leafy beech references.",
+          "evidence_ids": [
+            "render-0",
+            "reference-0"
+          ],
+          "impact": "supported",
+          "uncertain": false,
+          "causal_hypothesis": null
+        },
+        {
+          "observation": "Simplified lighting, background and fine foliage rendering are compatible with the accepted catalogue anchor's stylized finish. These aspects do not independently block readiness.",
+          "evidence_ids": [
+            "render-0",
+            "render-1",
+            "anchor-0"
+          ],
+          "impact": "supported",
+          "uncertain": false,
+          "causal_hypothesis": null
+        }
+      ]
+    },
+    "V6": {
+      "statuses": [
+        "fail",
+        "fail"
+      ],
+      "defects": [
+        "B-BARE (render-1, seed 1): branch ramification lacks defining beech structure — primary and secondary limbs run as long, near-unbranched straight wands with only thin filamentous twigs at the tips, instead of the dense, repeatedly forking fine twig network that fans into broom-like sprays throughout the crown in the leaf-off reference (reference-1, left panel). This is the largest believability gap and reads as a different taxon at silhouette level.",
+        "B-WHOLE (render-0, seed 1): crown is thin and see-through — sky and bare limb runs are visible across most of the canopy and foliage resolves as scattered small dots — whereas the beech whole-tree references (reference-0) show dense, opaque foliage carried in stacked horizontal layers with a solid shaded interior. This follows the same sparse skeleton in the shared geometry group, so the foliated view fails on the same defining structure.",
+        "B-WHOLE and B-BARE (render-0, render-1, shared geometry group c1781092...:seed:1): the bole carries repeating horizontal ring/band seams along its full height, most visible on the lower trunk. The beech bark reference (reference-1, right panel) is continuously smooth grey with irregular lichen flecking and no transverse banding; the regular periodic repeat is a construction/texture artifact rather than bark character, and it sits below the uniform-surface finish floor of the catalogue anchor (anchor-0)."
+      ],
+      "observations": [
+        "Broad, rounded, slightly wider-than-tall open-grown crown outline is acceptable natural variation for Fagus sylvatica — reference-0 shows both a narrower forest-grown habit (left) and a broader park-grown habit (right), so crown outline itself is not a gap.",
+        "Smooth, unfissured trunk surface with a single dominant bole persisting into the lower crown is a correct beech reading and matches reference-1 (right panel) at the structural level; only the periodic banding on that surface is objectionable.",
+        "Trunk tone in both renders is a chalky near-white with a cool cast, lighter than the silvery grey of reference-1; this may be the render's lighting/exposure rather than an albedo choice, so it is recorded as an uncertain optional refinement and does not block.",
+        "Lichen/scar flecking on the bole, leaf blade shape and marginal serration are optional detail refinements at this viewing distance; their absence alone would not block.",
+        "Backdrop, ground plane and shadow treatment are stylistically consistent with the catalogue anchor (anchor-0); no lighting or presentation regression was observed.",
+        "The two views are mutually consistent: the limb skeleton visible through the thin canopy in render-0 corresponds to the skeleton in render-1, as expected for one identity and seed with foliage hidden rather than an unloaded leaf-off build.",
+        "No claim is made that reference-0 and reference-1 show the same specimen or a seasonal change in one tree; they are treated as independent documentation of species character.",
+        "Photorealism was not applied as a criterion and no pixel-level or identical-shape match to the photographs was required or expected."
+      ],
+      "findings": [
+        {
+          "observation": "Required cell reference_character / B-WHOLE / seed 1: the foliated crown is sparse and transparent, with sky visible between scattered small leaf clusters and bare limb runs exposed across the canopy, where the beech whole-tree references show dense opaque foliage in stacked horizontal tiers with a dark shaded interior.",
+          "evidence_ids": [
+            "render-0",
+            "reference-0"
+          ],
+          "impact": "blocker",
+          "uncertain": false,
+          "causal_hypothesis": "Optional and not required for the finding: too few terminal twigs in the shared skeleton to carry a closed canopy."
+        },
+        {
+          "observation": "Required cell reference_character / B-BARE / seed 1: crown ramification consists of long, straight, seldom-dividing limbs carrying only wispy tip filaments, while the leaf-off reference shows branches subdividing repeatedly into a dense fine twig system that fills the crown volume. The defining beech twig architecture is absent, not merely less detailed.",
+          "evidence_ids": [
+            "render-1",
+            "reference-1"
+          ],
+          "impact": "blocker",
+          "uncertain": false,
+          "causal_hypothesis": "Optional: insufficient terminal branching order / sub-branch recursion during generation."
+        },
+        {
+          "observation": "Both views show regular horizontal ring seams repeating along the smooth bole; the bark reference shows an unbroken smooth grey surface with irregular lichen flecks and no periodic transverse structure.",
+          "evidence_ids": [
+            "render-0",
+            "render-1",
+            "reference-1",
+            "anchor-0"
+          ],
+          "impact": "blocker",
+          "uncertain": false,
+          "causal_hypothesis": "Optional: trunk mesh ring/segment boundaries or a tiling UV repeat in the bark material."
+        },
+        {
+          "observation": "A single dominant smooth bole rising into the crown before dividing into heavy ascending limbs is present in both renders and matches the open-grown beech habit documented in the references.",
+          "evidence_ids": [
+            "render-0",
+            "render-1",
+            "reference-0",
+            "reference-1"
+          ],
+          "impact": "supported",
+          "uncertain": false,
+          "causal_hypothesis": null
+        },
+        {
+          "observation": "Overall crown envelope (broad, rounded, with low limbs retained on one side) falls within the habit range shown across the two reference panels for this species.",
+          "evidence_ids": [
+            "render-0",
+            "reference-0"
+          ],
+          "impact": "variation",
+          "uncertain": false,
+          "causal_hypothesis": null
+        },
+        {
+          "observation": "Cross-view constraint holds: the limb layout seen through the thin canopy in the foliated view corresponds to the leaf-off skeleton, consistent with one geometry group at seed 1 with foliage visibility toggled.",
+          "evidence_ids": [
+            "render-0",
+            "render-1"
+          ],
+          "impact": "supported",
+          "uncertain": false,
+          "causal_hypothesis": null
+        },
+        {
+          "observation": "Trunk albedo reads chalky near-white rather than the silvery grey of the bark reference; the direction of the mismatch is visible but its cause is not resolvable from the packet.",
+          "evidence_ids": [
+            "render-0",
+            "render-1",
+            "reference-1"
+          ],
+          "impact": "optional",
+          "uncertain": true,
+          "causal_hypothesis": "Optional: lighting/exposure rather than material colour."
+        },
+        {
+          "observation": "Fine bark detail (lichen flecks, healed scars) and leaf blade/margin detail visible in the references are not resolved in the renders at this scale.",
+          "evidence_ids": [
+            "render-0",
+            "reference-0",
+            "reference-1"
+          ],
+          "impact": "optional",
+          "uncertain": false,
+          "causal_hypothesis": null
+        },
+        {
+          "observation": "Presentation finish (background, ground plane, shadow, anti-aliasing) is comparable to the accepted catalogue anchor, applied to finish/style only and not to species morphology; no style-level regression observed.",
+          "evidence_ids": [
+            "render-0",
+            "render-1",
+            "anchor-0"
+          ],
+          "impact": "supported",
+          "uncertain": false,
+          "causal_hypothesis": null
+        }
+      ]
+    }
+  }
+}

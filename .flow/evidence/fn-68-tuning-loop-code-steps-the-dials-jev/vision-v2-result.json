@@ -1,0 +1,66 @@
+{
+  "limit": 63373,
+  "pending": 0,
+  "result": {
+    "manifest_sha256": "cf136297aa98a88f5d237b436c740057f1b0d2f196d1c4e53243172468b274df",
+    "results": [
+      {
+        "assessment": {
+          "cells": [
+            [
+              {
+                "item": "crown-naturalness-density-droop",
+                "seed": 1,
+                "view": "B-WHOLE"
+              },
+              "fail"
+            ]
+          ],
+          "defects": [
+            "B-WHOLE seed 1: The crown forms an overly uniform, near-symmetrical solid shell with pronounced rounded shoulders, unlike the reference’s irregular layered beech crown. Leaf-bearing branches read predominantly as dense upright/radial sprays rather than carrying the required outward weight and droop, making the construction visibly procedural."
+          ],
+          "identity": "beech-round22-4e6d903c-seed1-whole",
+          "ledger": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d6d444d7f9a0f2-d2f2a-0.json",
+          "model": "gpt-5.6-sol"
+        },
+        "effort": "medium",
+        "observations": [
+          "The pale smooth trunk and broad deciduous crown support general European beech recognizability, and fine foliage coverage is adequate; greater crown asymmetry and visible weighted branch layering would improve species character."
+        ],
+        "request_sha256": "a5716527f549474ca3f69381361bdcc67dd35b396bca5278b9a48c8c5a1725d6",
+        "usage": {
+          "input_tokens": 20763,
+          "output_tokens": 199
+        }
+      },
+      {
+        "assessment": {
+          "cells": [
+            [
+              {
+                "item": "crown-species-character",
+                "seed": 1,
+                "view": "S-WHOLE"
+              },
+              "pass"
+            ]
+          ],
+          "defects": [],
+          "identity": "birch-round26-0f2c2f6a-seed1-whole",
+          "ledger": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d6d446f95c663e-d2f2a-1.json",
+          "model": "gpt-5.6-sol"
+        },
+        "effort": "medium",
+        "observations": [
+          "Seed 1 S-WHOLE is recognizable as a mature silver birch through its pale trunk, irregular crown, and abundant fine pendulous branch and foliage curtains. The canopy is substantially denser and more vertically strand-like than the photographic reference, with some conspicuously angular exposed upper branches, but these are optional naturalness improvements rather than blockers at the independent spruce anchor's finish-quality floor."
+        ],
+        "request_sha256": "b2d3c1f5dd8fd4dde436e826ab3fa69794ca81bbef800c7574e49a7e46a30496",
+        "usage": {
+          "input_tokens": 21116,
+          "output_tokens": 231
+        }
+      }
+    ]
+  },
+  "spent": 42309
+}

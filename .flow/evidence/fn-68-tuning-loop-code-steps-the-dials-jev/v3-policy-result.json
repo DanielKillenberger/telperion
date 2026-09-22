@@ -1,0 +1,425 @@
+{
+  "metrics": {
+    "actionable_coverage": {
+      "correct": 3,
+      "total": 4,
+      "accuracy": 0.75
+    },
+    "composed": {
+      "correct": 7,
+      "total": 8,
+      "accuracy": 0.875
+    },
+    "conditional_size": {
+      "correct": 4,
+      "total": 5,
+      "accuracy": 0.8
+    },
+    "direction": {
+      "correct": 8,
+      "total": 8,
+      "accuracy": 1.0
+    },
+    "strict_stage": {
+      "correct": 7,
+      "total": 8,
+      "accuracy": 0.875
+    },
+    "unconditional_expected_size": {
+      "correct": 4,
+      "total": 5,
+      "accuracy": 0.8
+    }
+  },
+  "unsafe": [],
+  "cases": [
+    {
+      "id": "lobes_probe",
+      "direction": "increase",
+      "size": "small",
+      "action": [
+        "increase",
+        "small"
+      ],
+      "strict": true,
+      "composed": true
+    },
+    {
+      "id": "cluster_recovery",
+      "direction": "increase",
+      "size": "substantial",
+      "action": [
+        "increase",
+        "substantial"
+      ],
+      "strict": true,
+      "composed": true
+    },
+    {
+      "id": "gap_probe",
+      "direction": "decrease",
+      "size": "small",
+      "action": [
+        "decrease",
+        "small"
+      ],
+      "strict": true,
+      "composed": true
+    },
+    {
+      "id": "birth_reduction",
+      "direction": "decrease",
+      "size": null,
+      "action": null,
+      "strict": false,
+      "composed": false
+    },
+    {
+      "id": "accepted_cluster",
+      "direction": "hold",
+      "size": null,
+      "action": null,
+      "strict": true,
+      "composed": true
+    },
+    {
+      "id": "contested_spacing",
+      "direction": "insufficient_evidence",
+      "size": null,
+      "action": null,
+      "strict": true,
+      "composed": true
+    },
+    {
+      "id": "bark_only",
+      "direction": "insufficient_evidence",
+      "size": null,
+      "action": null,
+      "strict": true,
+      "composed": true
+    },
+    {
+      "id": "harmful_steps",
+      "direction": "increase",
+      "size": "insufficient_evidence",
+      "action": null,
+      "strict": true,
+      "composed": true
+    }
+  ],
+  "passes": false,
+  "direction_ledger": {
+    "id": "18d7014ed329aaa7-2f6a4-0",
+    "tool": "fn68-v3-direction",
+    "state_sha256": "25f9a7963f14fad521f4e73020e74da0d50755e019eed861aa3ed37a84aef936",
+    "source": null,
+    "model": "jev-1.13.0",
+    "questions": {
+      "accepted_cluster": {
+        "criteria": {
+          "decrease": "Decrease to address the defect",
+          "hold": "Accepted; no change",
+          "increase": "Increase to address the defect",
+          "insufficient_evidence": "Causal direction unsupported"
+        },
+        "instructions": "Apply policy to cases.accepted_cluster.",
+        "type": "choice"
+      },
+      "bark_only": {
+        "criteria": {
+          "decrease": "Decrease to address the defect",
+          "hold": "Accepted; no change",
+          "increase": "Increase to address the defect",
+          "insufficient_evidence": "Causal direction unsupported"
+        },
+        "instructions": "Apply policy to cases.bark_only.",
+        "type": "choice"
+      },
+      "birth_reduction": {
+        "criteria": {
+          "decrease": "Decrease to address the defect",
+          "hold": "Accepted; no change",
+          "increase": "Increase to address the defect",
+          "insufficient_evidence": "Causal direction unsupported"
+        },
+        "instructions": "Apply policy to cases.birth_reduction.",
+        "type": "choice"
+      },
+      "cluster_recovery": {
+        "criteria": {
+          "decrease": "Decrease to address the defect",
+          "hold": "Accepted; no change",
+          "increase": "Increase to address the defect",
+          "insufficient_evidence": "Causal direction unsupported"
+        },
+        "instructions": "Apply policy to cases.cluster_recovery.",
+        "type": "choice"
+      },
+      "contested_spacing": {
+        "criteria": {
+          "decrease": "Decrease to address the defect",
+          "hold": "Accepted; no change",
+          "increase": "Increase to address the defect",
+          "insufficient_evidence": "Causal direction unsupported"
+        },
+        "instructions": "Apply policy to cases.contested_spacing.",
+        "type": "choice"
+      },
+      "gap_probe": {
+        "criteria": {
+          "decrease": "Decrease to address the defect",
+          "hold": "Accepted; no change",
+          "increase": "Increase to address the defect",
+          "insufficient_evidence": "Causal direction unsupported"
+        },
+        "instructions": "Apply policy to cases.gap_probe.",
+        "type": "choice"
+      },
+      "harmful_steps": {
+        "criteria": {
+          "decrease": "Decrease to address the defect",
+          "hold": "Accepted; no change",
+          "increase": "Increase to address the defect",
+          "insufficient_evidence": "Causal direction unsupported"
+        },
+        "instructions": "Apply policy to cases.harmful_steps.",
+        "type": "choice"
+      },
+      "lobes_probe": {
+        "criteria": {
+          "decrease": "Decrease to address the defect",
+          "hold": "Accepted; no change",
+          "increase": "Increase to address the defect",
+          "insufficient_evidence": "Causal direction unsupported"
+        },
+        "instructions": "Apply policy to cases.lobes_probe.",
+        "type": "choice"
+      }
+    },
+    "answers": {
+      "accepted_cluster": {
+        "choice": "hold",
+        "confidence": 0.99,
+        "probabilities": {
+          "decrease": 0.0,
+          "hold": 1.0,
+          "increase": 0.0,
+          "insufficient_evidence": 0.0
+        },
+        "type": "choice"
+      },
+      "bark_only": {
+        "choice": "insufficient_evidence",
+        "confidence": 0.99,
+        "probabilities": {
+          "decrease": 0.0,
+          "hold": 0.01,
+          "increase": 0.0,
+          "insufficient_evidence": 0.99
+        },
+        "type": "choice"
+      },
+      "birth_reduction": {
+        "choice": "decrease",
+        "confidence": 1.0,
+        "probabilities": {
+          "decrease": 1.0,
+          "hold": 0.0,
+          "increase": 0.0,
+          "insufficient_evidence": 0.0
+        },
+        "type": "choice"
+      },
+      "cluster_recovery": {
+        "choice": "increase",
+        "confidence": 0.98,
+        "probabilities": {
+          "decrease": 0.01,
+          "hold": 0.0,
+          "increase": 0.99,
+          "insufficient_evidence": 0.0
+        },
+        "type": "choice"
+      },
+      "contested_spacing": {
+        "choice": "insufficient_evidence",
+        "confidence": 1.0,
+        "probabilities": {
+          "decrease": 0.0,
+          "hold": 0.0,
+          "increase": 0.0,
+          "insufficient_evidence": 1.0
+        },
+        "type": "choice"
+      },
+      "gap_probe": {
+        "choice": "decrease",
+        "confidence": 0.99,
+        "probabilities": {
+          "decrease": 0.99,
+          "hold": 0.0,
+          "increase": 0.0,
+          "insufficient_evidence": 0.01
+        },
+        "type": "choice"
+      },
+      "harmful_steps": {
+        "choice": "increase",
+        "confidence": 0.7,
+        "probabilities": {
+          "decrease": 0.01,
+          "hold": 0.01,
+          "increase": 0.77,
+          "insufficient_evidence": 0.21
+        },
+        "type": "choice"
+      },
+      "lobes_probe": {
+        "choice": "increase",
+        "confidence": 0.91,
+        "probabilities": {
+          "decrease": 0.0,
+          "hold": 0.0,
+          "increase": 0.93,
+          "insufficient_evidence": 0.07
+        },
+        "type": "choice"
+      }
+    },
+    "usage": {
+      "input_tokens": 1585,
+      "output_tokens": 435
+    },
+    "elapsed_ms": 596,
+    "recorded_at": "2026-09-20T10:40:14Z",
+    "identity": "2be7952baac20d982d74eb29"
+  },
+  "size_ledger": {
+    "id": "18d7014ef858ebd6-2f7ec-0",
+    "tool": "fn68-v3-size",
+    "state_sha256": "944e885a10f5ec444d505307dc2e0fb3f4e7548cc0f456e1c3fb8cdc56fffb6b",
+    "source": null,
+    "model": "jev-1.13.0",
+    "questions": {
+      "birth_reduction": {
+        "criteria": {
+          "insufficient_evidence": "No justified size",
+          "small": "Supported smaller probe",
+          "substantial": "Supported larger probe"
+        },
+        "instructions": "Apply policy to cases.birth_reduction.",
+        "type": "choice"
+      },
+      "cluster_recovery": {
+        "criteria": {
+          "insufficient_evidence": "No justified size",
+          "small": "Supported smaller probe",
+          "substantial": "Supported larger probe"
+        },
+        "instructions": "Apply policy to cases.cluster_recovery.",
+        "type": "choice"
+      },
+      "gap_probe": {
+        "criteria": {
+          "insufficient_evidence": "No justified size",
+          "small": "Supported smaller probe",
+          "substantial": "Supported larger probe"
+        },
+        "instructions": "Apply policy to cases.gap_probe.",
+        "type": "choice"
+      },
+      "harmful_steps": {
+        "criteria": {
+          "insufficient_evidence": "No justified size",
+          "small": "Supported smaller probe",
+          "substantial": "Supported larger probe"
+        },
+        "instructions": "Apply policy to cases.harmful_steps.",
+        "type": "choice"
+      },
+      "lobes_probe": {
+        "criteria": {
+          "insufficient_evidence": "No justified size",
+          "small": "Supported smaller probe",
+          "substantial": "Supported larger probe"
+        },
+        "instructions": "Apply policy to cases.lobes_probe.",
+        "type": "choice"
+      }
+    },
+    "answers": {
+      "birth_reduction": {
+        "choice": "substantial",
+        "confidence": 0.45,
+        "probabilities": {
+          "insufficient_evidence": 0.02,
+          "small": 0.35,
+          "substantial": 0.63
+        },
+        "type": "choice"
+      },
+      "cluster_recovery": {
+        "choice": "substantial",
+        "confidence": 0.96,
+        "probabilities": {
+          "insufficient_evidence": 0.0,
+          "small": 0.02,
+          "substantial": 0.98
+        },
+        "type": "choice"
+      },
+      "gap_probe": {
+        "choice": "small",
+        "confidence": 0.99,
+        "probabilities": {
+          "insufficient_evidence": 0.01,
+          "small": 0.99,
+          "substantial": 0.0
+        },
+        "type": "choice"
+      },
+      "harmful_steps": {
+        "choice": "insufficient_evidence",
+        "confidence": 0.99,
+        "probabilities": {
+          "insufficient_evidence": 1.0,
+          "small": 0.0,
+          "substantial": 0.0
+        },
+        "type": "choice"
+      },
+      "lobes_probe": {
+        "choice": "small",
+        "confidence": 0.97,
+        "probabilities": {
+          "insufficient_evidence": 0.02,
+          "small": 0.98,
+          "substantial": 0.0
+        },
+        "type": "choice"
+      }
+    },
+    "usage": {
+      "input_tokens": 1256,
+      "output_tokens": 239
+    },
+    "elapsed_ms": 563,
+    "recorded_at": "2026-09-20T10:40:15Z",
+    "identity": "b088ce4cb3edd69222624c54"
+  },
+  "accounting": {
+    "previous_tokens": 208907,
+    "additional_max_tokens": 11000,
+    "cumulative_max_tokens": 270000,
+    "new_actual_tokens": 3515,
+    "cumulative_actual_tokens": 212422,
+    "pending": null,
+    "ledgers": [
+      ".flow/ledger/fn68-v3-calibration/2026-09-20T104014Z-fn68-v3-direction-18d7014ed329aaa7-2f6a4-0.json",
+      ".flow/ledger/fn68-v3-calibration/2026-09-20T104015Z-fn68-v3-size-18d7014ef858ebd6-2f7ec-0.json"
+    ],
+    "runtime_untouched": true,
+    "manifest_sha256": "6464fa00354b5e4ccf529bb45c7b3e6aa6703aa3bd5be3b42d621ec1f6f031f8"
+  },
+  "provenance": "Fresh authored development variants closely related to v2; not independent heldout or biological efficacy evidence."
+}

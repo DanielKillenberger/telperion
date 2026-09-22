@@ -1,0 +1,14 @@
+{
+ "pause_id":"18d6fc21ab094ba8-f726-14",
+ "identity":"d0927490f65348a7e5487338dceaff12e255ed3e41972edf8c59966d5e1b552c",
+ "action":"reassess or diagnose",
+ "by":"owner go ahead, relayed by host 2026-09-20",
+ "rationale":"One corrected continuation attempt with revision/resource evidence, then only if frozen policy passes one bounded candidate round and one all-cell final visual. Reuse verified unchanged baseline; preserve all spend. No cap changes, baseline replay, calibration calls, sweep or further retry.",
+ "preserve_evidence":true,
+ "experimental_pilot":{
+  "purpose":"Owner-authorized corrected bounded attempt",
+  "reason":"Continuation previously omitted changed resource feasibility; corrected shared evidence now includes revision-tagged history and measured headroom. General efficacy remains unvalidated; frozen policy still controls dispatch.",
+  "next_identity":"d0927490f65348a7e5487338dceaff12e255ed3e41972edf8c59966d5e1b552c",
+  "max_tokens":270000,"max_rounds":2,"max_evaluations":13,"max_images":52,"max_visual_passes":9
+ }
+}

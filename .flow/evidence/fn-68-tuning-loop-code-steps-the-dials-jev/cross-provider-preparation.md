@@ -1,0 +1,9 @@
+# Cross-provider preparation — NO calls
+
+Fable medium and Opus high evidence-only harness prepared. Local Claude CLI help documents aliases, streaming image input, safe mode, empty tools, strict MCP, no session persistence and schema output. Official image-block example: https://code.claude.com/docs/en/agent-sdk/streaming-vs-single-mode . No test-model call or alias substitution.
+
+Mocked frozen Codex adapter dispatch captures EXACT user prompt (SHA25661d328c368f40283b4ea1ddcc1e23ac03f620257515befa2874b5289477e7b70) and schema (sorted-JSON SHA256205c1b303b9c60149345614cbd09a18a2fc8042e63842f7fb14cf3b7588b70a6). Saved text file has a final newline; prompt hash applies to the exact captured string without that added file newline. Same five original image bytes/order verified. Claude stream user content carries that exact text plus image blocks. Provider/system scaffolding differs, so this is not identical full-system context.
+
+Default command is offline: `python3 .flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/claude-comparison.py --model fable` (or opus). Execution additionally requires explicit authority JSON with resolved view issue, scoped owner approval, requested model/effort, frozen requesthash, pinned prior journal/hash/total,40000reservation and cumulativecap. No authority file exists; all paid calls remain paused pending host view/evidence resolution and budget. Current380304/400000 cannot fund another40000reservation.
+
+Runner persists reservation before dispatch, uses fresh scratch/safe-mode/no tools, no base64 logs/files, captures raw response locally, records actual model from terminal modelUsage and all uncached/cache-create/cache-read/output usage. Missing/error/unknown usage retains reservation. Offline mock verifies prompt equality, structured/last-text output, cache-inclusive sum and fail-closed errors. Original runtime hash is checked. No production adapter change or generic orchestration framework.

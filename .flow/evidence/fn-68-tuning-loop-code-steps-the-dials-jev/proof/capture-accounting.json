@@ -1,0 +1,16 @@
+{
+  "correction": "prior actual captures were 24, not 20. Reserved 28 was already correct. No recount of rasters. No reset.",
+  "prior_actual_captures": 24,
+  "prior_reserved": 28,
+  "this_birch_captures": 2,
+  "actual_captures": 26,
+  "reserved": 30,
+  "image_cap": 52,
+  "remaining_reservations": 22,
+  "original_runtime_reservations": 16,
+  "side_import_reservations": 14,
+  "original_runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e",
+  "applied_to_runtime": false,
+  "no_reset": true,
+  "no_render": true
+}

@@ -1,0 +1,297 @@
+{
+  "full_species_ready": false,
+  "qualification": "unvalidated development experiment",
+  "result": {
+    "coverage": [
+      {
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "reference-0",
+          "reference-1"
+        ],
+        "explanation": "A substantial upright crown spreads broadly through its lower and middle portions, narrowing to a softened, irregular top with fine projecting tips.",
+        "status": "pass",
+        "trait_id": "crown_outline"
+      },
+      {
+        "evidence_ids": [
+          "render-1",
+          "render-0",
+          "reference-0",
+          "reference-1"
+        ],
+        "explanation": "The bare visibility view supports an upright trunk dividing into ascending limbs, outward-reaching laterals, and progressively finer subdivisions. Its pronounced ascending framework remains within this inventory description.",
+        "status": "pass",
+        "trait_id": "branch_architecture"
+      },
+      {
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "reference-1"
+        ],
+        "explanation": "Gray coloration and continuous trunk form are visible, but repeated dark bands cannot be confidently assessed as shallow markings or relief at this scale. The reference's smooth fine surface is not sufficiently demonstrated.",
+        "status": "unknown",
+        "trait_id": "bark_surface"
+      },
+      {
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "reference-0"
+        ],
+        "explanation": "Despite dark recesses and openings, the candidate reads primarily as ascending foliage bands. It lacks the numerous overlapping lateral sprays and irregular interlocking masses shared by the differently layered reference crowns.",
+        "status": "fail",
+        "trait_id": "foliage_layering"
+      },
+      {
+        "evidence_ids": [
+          "render-0",
+          "reference-0"
+        ],
+        "explanation": "Numerous fine elements support the inventory's busy surface impression, but their broadleaf character is unresolved. The reference also does not resolve individual outlines; the uncertain trait cannot receive a full supported match.",
+        "status": "unknown",
+        "trait_id": "foliage_visual_grain"
+      },
+      {
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "reference-0",
+          "reference-1"
+        ],
+        "explanation": "The candidate widens modestly but terminates in a regular, flat-footed flare rather than the photographed irregular spreading root bases. Secondary refinement.",
+        "status": "fail",
+        "trait_id": "trunk_base"
+      },
+      {
+        "evidence_ids": [
+          "render-0",
+          "reference-0"
+        ],
+        "explanation": "Broad lower reach and an exposed base are present, but lower sprays predominantly rise outward rather than showing the reference's slanting or hanging outer foliage. Secondary refinement.",
+        "status": "fail",
+        "trait_id": "lower_branch_reach"
+      },
+      {
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "reference-1"
+        ],
+        "explanation": "Scattered pale irregular patches cannot be reliably resolved on the rendered trunks; visible horizontal markings do not establish this match.",
+        "status": "unknown",
+        "trait_id": "bark_mottling"
+      },
+      {
+        "evidence_ids": [
+          "render-0",
+          "reference-0"
+        ],
+        "explanation": "Muted lighter green exposed areas and deep green recesses provide supported color variation; exact photographic colors are unnecessary.",
+        "status": "pass",
+        "trait_id": "foliage_color_range"
+      },
+      {
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "reference-0"
+        ],
+        "explanation": "A single exposed lower trunk with a divided ascending crown framework is compatible with the supplied range. Specimen-specific symmetry and density need not be duplicated.",
+        "status": "pass",
+        "trait_id": "framework_variation"
+      },
+      {
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "reference-0",
+          "reference-1"
+        ],
+        "explanation": "Leafy and foliage-hidden views demonstrate crown coverage and extensive twig ramification. The hidden view is treated as visibility evidence, without inferring a seasonal transition or shared photographic specimen.",
+        "status": "pass",
+        "trait_id": "foliage_presence"
+      }
+    ],
+    "request_sha256": "d7be94ac4e0f017d52f2f4d87f85d0265d632c9baa7de97ec4a82932c81bee93",
+    "visual": {
+      "assessment": {
+        "cells": [
+          [
+            {
+              "item": "reference_character",
+              "seed": 1,
+              "view": "B-WHOLE"
+            },
+            "fail"
+          ],
+          [
+            {
+              "item": "reference_character",
+              "seed": 1,
+              "view": "B-BARE"
+            },
+            "unknown"
+          ]
+        ],
+        "defects": [
+          "foliage_layering: The leafy crown is dominated by elongated ascending foliage bands, with insufficient overlapping lateral sprays and interlocking masses to match the references."
+        ],
+        "findings": [
+          {
+            "causal_hypothesis": null,
+            "evidence_ids": [
+              "render-0",
+              "render-1",
+              "reference-0"
+            ],
+            "impact": "blocker",
+            "observation": "The largest defining gap is foliage organization: ascending, streak-like masses dominate the candidate, while both leafy references show overlapping lateral sprays and irregular masses with recesses between them. Candidate shading and openings provide depth, but do not fully establish the required layering.",
+            "uncertain": false
+          },
+          {
+            "causal_hypothesis": null,
+            "evidence_ids": [
+              "render-0",
+              "render-1",
+              "reference-1"
+            ],
+            "impact": "required_unknown",
+            "observation": "Repeated horizontal dark markings are visible on the candidate trunk. The reference close-up establishes a largely smooth, continuous surface; the whole-tree renders cannot reliably distinguish shallow coloration from surface relief or establish a supported texture match.",
+            "uncertain": true
+          },
+          {
+            "causal_hypothesis": null,
+            "evidence_ids": [
+              "render-0",
+              "render-1",
+              "reference-0",
+              "reference-1"
+            ],
+            "impact": "optional",
+            "observation": "The candidate's modestly widened base is unusually regular, and its lower foliage has less hanging reach than the photographed crowns. These are secondary refinements rather than independent defining blockers.",
+            "uncertain": false
+          },
+          {
+            "causal_hypothesis": null,
+            "evidence_ids": [
+              "render-0",
+              "render-1",
+              "anchor-0"
+            ],
+            "impact": "supported",
+            "observation": "Fine rendered foliage and simplified presentation are compatible with the supplied catalogue anchor. That finish allowance does not substitute for the required crown organization or bark evidence.",
+            "uncertain": false
+          },
+          {
+            "causal_hypothesis": null,
+            "evidence_ids": [
+              "render-0",
+              "render-1",
+              "reference-0",
+              "reference-1"
+            ],
+            "impact": "blocker",
+            "observation": "Code-derived reference-first coverage gate: core trait coverage is Fail; this is a joint readiness constraint, not a new per-view model verdict. Inventory f98f4325752a95103c510cc3f1871af2fcd12a2053a9359e6f770b128853c20f",
+            "uncertain": false
+          }
+        ],
+        "identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+        "joint": {
+          "inputs": [
+            {
+              "condition": "same_geometry_visibility_view_not_unloaded_leaf_off",
+              "framing": "complete",
+              "geometry_group": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57:seed:1",
+              "id": "render-0",
+              "render_identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+              "role": "render",
+              "seed": 1,
+              "sha256": "e0d5bc93369f281dc39e9fa008a1cec647b2c040de47baa89e11bc31d1fe6f68",
+              "view": "B-WHOLE",
+              "visibility": "shown"
+            },
+            {
+              "condition": "same_geometry_visibility_view_not_unloaded_leaf_off",
+              "framing": "complete",
+              "geometry_group": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57:seed:1",
+              "id": "render-1",
+              "render_identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+              "role": "render",
+              "seed": 1,
+              "sha256": "9c64f46459c824458951c465832feead33a730182cfcffdd8ab5a786d7fe9dde",
+              "view": "B-BARE",
+              "visibility": "hidden"
+            },
+            {
+              "condition": "unknown",
+              "framing": "unknown",
+              "geometry_group": null,
+              "id": "reference-0",
+              "render_identity": null,
+              "role": "reference",
+              "seed": 1,
+              "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+              "view": "B-WHOLE",
+              "visibility": "unknown"
+            },
+            {
+              "condition": "unknown",
+              "framing": "unknown",
+              "geometry_group": null,
+              "id": "reference-1",
+              "render_identity": null,
+              "role": "reference",
+              "seed": 1,
+              "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+              "view": "B-BARE",
+              "visibility": "unknown"
+            },
+            {
+              "condition": "unknown",
+              "framing": "unknown",
+              "geometry_group": null,
+              "id": "anchor-0",
+              "render_identity": null,
+              "role": "anchor",
+              "seed": 1,
+              "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+              "view": "whole",
+              "visibility": "unknown"
+            }
+          ],
+          "reference_relation": "unknown",
+          "relation_source": null,
+          "shot_source": {
+            "excerpt": "\"references\"",
+            "path": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/reframed-shots.json",
+            "sha256": "2320d94dc8e758d10582cc4947f6e1ec0da35ecac502aa80ab4b6beafc25416d"
+          }
+        },
+        "ledger": "reframed-b-receipt.json",
+        "model": "gpt-6-astra",
+        "observations": [
+          "The crown outline and broad branching hierarchy have supported reference matches.",
+          "Bark surface character remains unresolved at the supplied render scale.",
+          "The catalogue anchor supports a stylized finish, but does not resolve species-character gaps.",
+          "Attributed reference-first evidence: {\"coverage\":[{\"evidence_ids\":[\"render-0\",\"render-1\",\"reference-0\",\"reference-1\"],\"explanation\":\"A substantial upright crown spreads broadly through its lower and middle portions, narrowing to a softened, irregular top with fine projecting tips.\",\"status\":\"pass\",\"trait_id\":\"crown_outline\"},{\"evidence_ids\":[\"render-1\",\"render-0\",\"reference-0\",\"reference-1\"],\"explanation\":\"The bare visibility view supports an upright trunk dividing into ascending limbs, outward-reaching laterals, and progressively finer subdivisions. Its pronounced ascending framework remains within this inventory description.\",\"status\":\"pass\",\"trait_id\":\"branch_architecture\"},{\"evidence_ids\":[\"render-0\",\"render-1\",\"reference-1\"],\"explanation\":\"Gray coloration and continuous trunk form are visible, but repeated dark bands cannot be confidently assessed as shallow markings or relief at this scale. The reference's smooth fine surface is not sufficiently demonstrated.\",\"status\":\"unknown\",\"trait_id\":\"bark_surface\"},{\"evidence_ids\":[\"render-0\",\"render-1\",\"reference-0\"],\"explanation\":\"Despite dark recesses and openings, the candidate reads primarily as ascending foliage bands. It lacks the numerous overlapping lateral sprays and irregular interlocking masses shared by the differently layered reference crowns.\",\"status\":\"fail\",\"trait_id\":\"foliage_layering\"},{\"evidence_ids\":[\"render-0\",\"reference-0\"],\"explanation\":\"Numerous fine elements support the inventory's busy surface impression, but their broadleaf character is unresolved. The reference also does not resolve individual outlines; the uncertain trait cannot receive a full supported match.\",\"status\":\"unknown\",\"trait_id\":\"foliage_visual_grain\"},{\"evidence_ids\":[\"render-0\",\"render-1\",\"reference-0\",\"reference-1\"],\"explanation\":\"The candidate widens modestly but terminates in a regular, flat-footed flare rather than the photographed irregular spreading root bases. Secondary refinement.\",\"status\":\"fail\",\"trait_id\":\"trunk_base\"},{\"evidence_ids\":[\"render-0\",\"reference-0\"],\"explanation\":\"Broad lower reach and an exposed base are present, but lower sprays predominantly rise outward rather than showing the reference's slanting or hanging outer foliage. Secondary refinement.\",\"status\":\"fail\",\"trait_id\":\"lower_branch_reach\"},{\"evidence_ids\":[\"render-0\",\"render-1\",\"reference-1\"],\"explanation\":\"Scattered pale irregular patches cannot be reliably resolved on the rendered trunks; visible horizontal markings do not establish this match.\",\"status\":\"unknown\",\"trait_id\":\"bark_mottling\"},{\"evidence_ids\":[\"render-0\",\"reference-0\"],\"explanation\":\"Muted lighter green exposed areas and deep green recesses provide supported color variation; exact photographic colors are unnecessary.\",\"status\":\"pass\",\"trait_id\":\"foliage_color_range\"},{\"evidence_ids\":[\"render-0\",\"render-1\",\"reference-0\"],\"explanation\":\"A single exposed lower trunk with a divided ascending crown framework is compatible with the supplied range. Specimen-specific symmetry and density need not be duplicated.\",\"status\":\"pass\",\"trait_id\":\"framework_variation\"},{\"evidence_ids\":[\"render-0\",\"render-1\",\"reference-0\",\"reference-1\"],\"explanation\":\"Leafy and foliage-hidden views demonstrate crown coverage and extensive twig ramification. The hidden view is treated as visibility evidence, without inferring a seasonal transition or shared photographic specimen.\",\"status\":\"pass\",\"trait_id\":\"foliage_presence\"}],\"inventory\":{\"effort\":\"medium\",\"ledger\":\".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/reference-first-a-receipt.json#sha256:f1b1384d6c6b300e3cdffeb783973f2b72f2a2406b1d17096c878b4a01f69014\",\"model\":\"gpt-6-astra\",\"observations\":[\"Ranking reflects visible recognition cues in these references, not proof that any individual trait uniquely identifies the species.\",\"The relationships among the photographed trees and the bark detail are unknown; no shared specimen or causal change is assumed.\",\"Leaf arrangement, precise leaf shape, buds, flowers, and fruit are not sufficiently visible for a confident inventory.\",\"Descriptions record appearance only; age, season, growing conditions, pruning history, and causes of surface markings are not established.\"],\"prompt_sha256\":\"b977396bce80653bb49b01ba0711ae5f59325eab09c2c5a681f87fff43ab3911\",\"request\":{\"protocol\":\"reference-first-v1\",\"references\":[{\"id\":\"reference-0\",\"image\":{\"path\":\"/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg\",\"seed\":1,\"sha256\":\"855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6\",\"view\":\"B-WHOLE\"}},{\"id\":\"reference-1\",\"image\":{\"path\":\"/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg\",\"seed\":1,\"sha256\":\"7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d\",\"view\":\"B-BARE\"}}],\"specimen_relationship\":\"unknown\",\"target_species\":\"European beech / Fagus sylvatica\"},\"request_sha256\":\"e05cfaf3d7f67a0bbb5b632a14786adba7e35774d23c47178745815392c94591\",\"traits\":[{\"id\":\"crown_outline\",\"observation\":\"Tall, substantial crown with a broad lower-to-middle spread and a narrowing, softly irregular top. Overall outlines range from broadly tapered to rounded upright; many fine projecting tips soften the perimeter.\",\"priority\":\"core\",\"reference_ids\":[\"reference-0\",\"reference-1\"],\"uncertain\":false},{\"id\":\"branch_architecture\",\"observation\":\"Strong upright trunk framework divides into ascending limbs, with lateral branches extending broadly outward. The bare crown shows repeated subdivision into a dense network of fine twigs; outer branches become increasingly slender.\",\"priority\":\"core\",\"reference_ids\":[\"reference-0\",\"reference-1\"],\"uncertain\":false},{\"id\":\"bark_surface\",\"observation\":\"The bark close-up shows a gray, largely smooth and continuous surface with fine texture and subdued shallow markings, without prominent deep furrows or thick plates.\",\"priority\":\"core\",\"reference_ids\":[\"reference-1\"],\"uncertain\":false},{\"id\":\"foliage_layering\",\"observation\":\"Foliage forms numerous overlapping sprays and irregular leafy masses. The left leafy view has especially clear lateral shelves; the right has fuller, more interlocking masses. Dark recesses and small openings preserve visible depth within the crown.\",\"priority\":\"core\",\"reference_ids\":[\"reference-0\"],\"uncertain\":false},{\"id\":\"foliage_visual_grain\",\"observation\":\"Leaves read as small, numerous broadleaf elements relative to the large crown, producing a fine, busy surface rather than a few coarse leaf clusters. Individual leaf outlines, margins, and venation are insufficiently resolved.\",\"priority\":\"secondary\",\"reference_ids\":[\"reference-0\"],\"uncertain\":true},{\"id\":\"trunk_base\",\"observation\":\"Exposed lower trunks are stout and widen at ground contact into modest spreading root flares. Their bases are irregular rather than perfectly cylindrical.\",\"priority\":\"secondary\",\"reference_ids\":[\"reference-0\",\"reference-1\"],\"uncertain\":false},{\"id\":\"lower_branch_reach\",\"observation\":\"Lower leafy branches reach well beyond the trunk, with some outer sprays slanting or hanging downward. Foliage descends relatively low around portions of the crown while leaving the trunk base visible.\",\"priority\":\"secondary\",\"reference_ids\":[\"reference-0\"],\"uncertain\":false},{\"id\":\"bark_mottling\",\"observation\":\"The close-up contains scattered pale gray to whitish spots and irregular patches over a darker gray background, with faint linear marks. The image does not establish the material or cause of these patches.\",\"priority\":\"secondary\",\"reference_ids\":[\"reference-1\"],\"uncertain\":false},{\"id\":\"foliage_color_range\",\"observation\":\"Visible foliage ranges from muted yellow-green and medium green on exposed sprays to deep green in recessed areas. Color is uneven across each crown; its causes cannot be separated from these images alone.\",\"priority\":\"variation\",\"reference_ids\":[\"reference-0\"],\"uncertain\":false},{\"id\":\"framework_variation\",\"observation\":\"The leafy views include a visibly divided lower framework on the left and a more dominant single exposed trunk on the right. Crown symmetry, apparent density, and the prominence of horizontal layers also differ.\",\"priority\":\"variation\",\"reference_ids\":[\"reference-0\"],\"uncertain\":false},{\"id\":\"foliage_presence\",\"observation\":\"Both densely leafy crowns and a bare, finely branched crown are supplied. The bare view exposes a tapered upright framework and extensive twig ramification. No transition between these photographed states is established.\",\"priority\":\"variation\",\"reference_ids\":[\"reference-0\",\"reference-1\"],\"uncertain\":false}]},\"inventory_sha256\":\"f98f4325752a95103c510cc3f1871af2fcd12a2053a9359e6f770b128853c20f\",\"protocol\":\"reference-first-v1\"}"
+        ]
+      },
+      "effort": "medium",
+      "observations": [
+        "The crown outline and broad branching hierarchy have supported reference matches.",
+        "Bark surface character remains unresolved at the supplied render scale.",
+        "The catalogue anchor supports a stylized finish, but does not resolve species-character gaps.",
+        "Attributed reference-first evidence: {\"coverage\":[{\"evidence_ids\":[\"render-0\",\"render-1\",\"reference-0\",\"reference-1\"],\"explanation\":\"A substantial upright crown spreads broadly through its lower and middle portions, narrowing to a softened, irregular top with fine projecting tips.\",\"status\":\"pass\",\"trait_id\":\"crown_outline\"},{\"evidence_ids\":[\"render-1\",\"render-0\",\"reference-0\",\"reference-1\"],\"explanation\":\"The bare visibility view supports an upright trunk dividing into ascending limbs, outward-reaching laterals, and progressively finer subdivisions. Its pronounced ascending framework remains within this inventory description.\",\"status\":\"pass\",\"trait_id\":\"branch_architecture\"},{\"evidence_ids\":[\"render-0\",\"render-1\",\"reference-1\"],\"explanation\":\"Gray coloration and continuous trunk form are visible, but repeated dark bands cannot be confidently assessed as shallow markings or relief at this scale. The reference's smooth fine surface is not sufficiently demonstrated.\",\"status\":\"unknown\",\"trait_id\":\"bark_surface\"},{\"evidence_ids\":[\"render-0\",\"render-1\",\"reference-0\"],\"explanation\":\"Despite dark recesses and openings, the candidate reads primarily as ascending foliage bands. It lacks the numerous overlapping lateral sprays and irregular interlocking masses shared by the differently layered reference crowns.\",\"status\":\"fail\",\"trait_id\":\"foliage_layering\"},{\"evidence_ids\":[\"render-0\",\"reference-0\"],\"explanation\":\"Numerous fine elements support the inventory's busy surface impression, but their broadleaf character is unresolved. The reference also does not resolve individual outlines; the uncertain trait cannot receive a full supported match.\",\"status\":\"unknown\",\"trait_id\":\"foliage_visual_grain\"},{\"evidence_ids\":[\"render-0\",\"render-1\",\"reference-0\",\"reference-1\"],\"explanation\":\"The candidate widens modestly but terminates in a regular, flat-footed flare rather than the photographed irregular spreading root bases. Secondary refinement.\",\"status\":\"fail\",\"trait_id\":\"trunk_base\"},{\"evidence_ids\":[\"render-0\",\"reference-0\"],\"explanation\":\"Broad lower reach and an exposed base are present, but lower sprays predominantly rise outward rather than showing the reference's slanting or hanging outer foliage. Secondary refinement.\",\"status\":\"fail\",\"trait_id\":\"lower_branch_reach\"},{\"evidence_ids\":[\"render-0\",\"render-1\",\"reference-1\"],\"explanation\":\"Scattered pale irregular patches cannot be reliably resolved on the rendered trunks; visible horizontal markings do not establish this match.\",\"status\":\"unknown\",\"trait_id\":\"bark_mottling\"},{\"evidence_ids\":[\"render-0\",\"reference-0\"],\"explanation\":\"Muted lighter green exposed areas and deep green recesses provide supported color variation; exact photographic colors are unnecessary.\",\"status\":\"pass\",\"trait_id\":\"foliage_color_range\"},{\"evidence_ids\":[\"render-0\",\"render-1\",\"reference-0\"],\"explanation\":\"A single exposed lower trunk with a divided ascending crown framework is compatible with the supplied range. Specimen-specific symmetry and density need not be duplicated.\",\"status\":\"pass\",\"trait_id\":\"framework_variation\"},{\"evidence_ids\":[\"render-0\",\"render-1\",\"reference-0\",\"reference-1\"],\"explanation\":\"Leafy and foliage-hidden views demonstrate crown coverage and extensive twig ramification. The hidden view is treated as visibility evidence, without inferring a seasonal transition or shared photographic specimen.\",\"status\":\"pass\",\"trait_id\":\"foliage_presence\"}],\"inventory\":{\"effort\":\"medium\",\"ledger\":\".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/reference-first-a-receipt.json#sha256:f1b1384d6c6b300e3cdffeb783973f2b72f2a2406b1d17096c878b4a01f69014\",\"model\":\"gpt-6-astra\",\"observations\":[\"Ranking reflects visible recognition cues in these references, not proof that any individual trait uniquely identifies the species.\",\"The relationships among the photographed trees and the bark detail are unknown; no shared specimen or causal change is assumed.\",\"Leaf arrangement, precise leaf shape, buds, flowers, and fruit are not sufficiently visible for a confident inventory.\",\"Descriptions record appearance only; age, season, growing conditions, pruning history, and causes of surface markings are not established.\"],\"prompt_sha256\":\"b977396bce80653bb49b01ba0711ae5f59325eab09c2c5a681f87fff43ab3911\",\"request\":{\"protocol\":\"reference-first-v1\",\"references\":[{\"id\":\"reference-0\",\"image\":{\"path\":\"/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg\",\"seed\":1,\"sha256\":\"855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6\",\"view\":\"B-WHOLE\"}},{\"id\":\"reference-1\",\"image\":{\"path\":\"/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg\",\"seed\":1,\"sha256\":\"7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d\",\"view\":\"B-BARE\"}}],\"specimen_relationship\":\"unknown\",\"target_species\":\"European beech / Fagus sylvatica\"},\"request_sha256\":\"e05cfaf3d7f67a0bbb5b632a14786adba7e35774d23c47178745815392c94591\",\"traits\":[{\"id\":\"crown_outline\",\"observation\":\"Tall, substantial crown with a broad lower-to-middle spread and a narrowing, softly irregular top. Overall outlines range from broadly tapered to rounded upright; many fine projecting tips soften the perimeter.\",\"priority\":\"core\",\"reference_ids\":[\"reference-0\",\"reference-1\"],\"uncertain\":false},{\"id\":\"branch_architecture\",\"observation\":\"Strong upright trunk framework divides into ascending limbs, with lateral branches extending broadly outward. The bare crown shows repeated subdivision into a dense network of fine twigs; outer branches become increasingly slender.\",\"priority\":\"core\",\"reference_ids\":[\"reference-0\",\"reference-1\"],\"uncertain\":false},{\"id\":\"bark_surface\",\"observation\":\"The bark close-up shows a gray, largely smooth and continuous surface with fine texture and subdued shallow markings, without prominent deep furrows or thick plates.\",\"priority\":\"core\",\"reference_ids\":[\"reference-1\"],\"uncertain\":false},{\"id\":\"foliage_layering\",\"observation\":\"Foliage forms numerous overlapping sprays and irregular leafy masses. The left leafy view has especially clear lateral shelves; the right has fuller, more interlocking masses. Dark recesses and small openings preserve visible depth within the crown.\",\"priority\":\"core\",\"reference_ids\":[\"reference-0\"],\"uncertain\":false},{\"id\":\"foliage_visual_grain\",\"observation\":\"Leaves read as small, numerous broadleaf elements relative to the large crown, producing a fine, busy surface rather than a few coarse leaf clusters. Individual leaf outlines, margins, and venation are insufficiently resolved.\",\"priority\":\"secondary\",\"reference_ids\":[\"reference-0\"],\"uncertain\":true},{\"id\":\"trunk_base\",\"observation\":\"Exposed lower trunks are stout and widen at ground contact into modest spreading root flares. Their bases are irregular rather than perfectly cylindrical.\",\"priority\":\"secondary\",\"reference_ids\":[\"reference-0\",\"reference-1\"],\"uncertain\":false},{\"id\":\"lower_branch_reach\",\"observation\":\"Lower leafy branches reach well beyond the trunk, with some outer sprays slanting or hanging downward. Foliage descends relatively low around portions of the crown while leaving the trunk base visible.\",\"priority\":\"secondary\",\"reference_ids\":[\"reference-0\"],\"uncertain\":false},{\"id\":\"bark_mottling\",\"observation\":\"The close-up contains scattered pale gray to whitish spots and irregular patches over a darker gray background, with faint linear marks. The image does not establish the material or cause of these patches.\",\"priority\":\"secondary\",\"reference_ids\":[\"reference-1\"],\"uncertain\":false},{\"id\":\"foliage_color_range\",\"observation\":\"Visible foliage ranges from muted yellow-green and medium green on exposed sprays to deep green in recessed areas. Color is uneven across each crown; its causes cannot be separated from these images alone.\",\"priority\":\"variation\",\"reference_ids\":[\"reference-0\"],\"uncertain\":false},{\"id\":\"framework_variation\",\"observation\":\"The leafy views include a visibly divided lower framework on the left and a more dominant single exposed trunk on the right. Crown symmetry, apparent density, and the prominence of horizontal layers also differ.\",\"priority\":\"variation\",\"reference_ids\":[\"reference-0\"],\"uncertain\":false},{\"id\":\"foliage_presence\",\"observation\":\"Both densely leafy crowns and a bare, finely branched crown are supplied. The bare view exposes a tapered upright framework and extensive twig ramification. No transition between these photographed states is established.\",\"priority\":\"variation\",\"reference_ids\":[\"reference-0\",\"reference-1\"],\"uncertain\":false}]},\"inventory_sha256\":\"f98f4325752a95103c510cc3f1871af2fcd12a2053a9359e6f770b128853c20f\",\"protocol\":\"reference-first-v1\"}"
+      ],
+      "request_sha256": "21c823c97bcaae93c25a3332e0e6c4ac0ac651c97d2650da7b82a3498fbe9ea3",
+      "usage": {
+        "input_tokens": 26431,
+        "output_tokens": 1483
+      }
+    }
+  },
+  "two_cell_ready": false
+}

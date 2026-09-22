@@ -1,0 +1,147 @@
+{
+  "request_sha256": "ceb59058858433b17f23aad68c915ea7173eb4391743178ecc3b3f419c56279c",
+  "request_file_sha256": "f439d67126c7561d1a15ff61dc027f38a95390955b4d25537a23115907dddd23",
+  "adapter_sha256": "0fe7e0dde45ed3c7ee9a080c1061906069e533db388d96542be456bc56128f28",
+  "prompt": "Compare the candidate jointly against the frozen reference-only inventory and supplied photographs at the catalogue finish floor. Account explicitly for every core trait using its exact trait ID, citing render and reference evidence. Pass requires a supported match, fail a defining mismatch, unknown missing/clipped/ambiguous evidence. Do not silently dismiss a core reference trait as non-photorealism or downgrade an uncertain trait. Distinguish optional refinement and acceptable variation from defining reference character. Inventory statements are attributed interpretations, not infallible facts: if contradicted or unassessable, report unknown with grounds. Keep observations separate from causal hypotheses; no particular mechanism is required. Relative improvement is not absolute readiness. A clean candidate can pass with supported evidence for every core trait and no blockers.\nDo not use tools or inspect files. Attached images follow metadata order. Return JSON only.\n{\"comparison\": {\"checklist\": \"Review all supplied views jointly for believable reference character at the catalogue finish floor. Rank the largest grounded gaps; distinguish visible observations, uncertain causal hypotheses, acceptable variation and optional refinement. Compare cross-view constraints without assuming photographs show the same specimen or a causal change. Assess only supported required conclusions; missing, clipped or ambiguous evidence means unknown. No photographic pixel matching or photorealism requirement.\", \"identity\": \"c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57\", \"images\": [{\"path\": \"/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-B-WHOLE.png\", \"seed\": 1, \"sha256\": \"da02e6fdf2b64c6ba6a0caf1ed2e0990a316fd9e5ac426099381e0f65254d047\", \"view\": \"B-WHOLE\"}, {\"path\": \"/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-B-BARE.png\", \"seed\": 1, \"sha256\": \"8bf6b32d6961bbc667e622b39b9484ec885b9ee3f4b3f9cf941c59372b599630\", \"view\": \"B-BARE\"}], \"joint\": {\"inputs\": [{\"condition\": \"same_geometry_visibility_view_not_unloaded_leaf_off\", \"framing\": \"unknown\", \"geometry_group\": \"c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57:seed:1\", \"id\": \"render-0\", \"render_identity\": \"c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57\", \"role\": \"render\", \"seed\": 1, \"sha256\": \"da02e6fdf2b64c6ba6a0caf1ed2e0990a316fd9e5ac426099381e0f65254d047\", \"view\": \"B-WHOLE\", \"visibility\": \"shown\"}, {\"condition\": \"same_geometry_visibility_view_not_unloaded_leaf_off\", \"framing\": \"unknown\", \"geometry_group\": \"c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57:seed:1\", \"id\": \"render-1\", \"render_identity\": \"c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57\", \"role\": \"render\", \"seed\": 1, \"sha256\": \"8bf6b32d6961bbc667e622b39b9484ec885b9ee3f4b3f9cf941c59372b599630\", \"view\": \"B-BARE\", \"visibility\": \"hidden\"}, {\"condition\": \"unknown\", \"framing\": \"unknown\", \"geometry_group\": null, \"id\": \"reference-0\", \"render_identity\": null, \"role\": \"reference\", \"seed\": 1, \"sha256\": \"855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6\", \"view\": \"B-WHOLE\", \"visibility\": \"unknown\"}, {\"condition\": \"unknown\", \"framing\": \"unknown\", \"geometry_group\": null, \"id\": \"reference-1\", \"render_identity\": null, \"role\": \"reference\", \"seed\": 1, \"sha256\": \"7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d\", \"view\": \"B-BARE\", \"visibility\": \"unknown\"}, {\"condition\": \"unknown\", \"framing\": \"unknown\", \"geometry_group\": null, \"id\": \"anchor-0\", \"render_identity\": null, \"role\": \"anchor\", \"seed\": 1, \"sha256\": \"8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1\", \"view\": \"whole\", \"visibility\": \"unknown\"}], \"reference_relation\": \"unknown\", \"relation_source\": null, \"shot_source\": {\"excerpt\": \"\\\"references\\\"\", \"path\": \".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/assets/beech-references-4e6d903c.json\", \"sha256\": \"152c1ed99c9dd426977f127c36dfe888186de8de6286d882fa7bfd677898a8c0\"}}, \"quality_anchors\": [{\"image\": {\"path\": \"/home/daniel/Projects/telperion/.flow/evidence/fn9/final/preview/norway-spruce-1-whole.png\", \"seed\": 1, \"sha256\": \"8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1\", \"view\": \"whole\"}, \"provenance\": \"established catalogue anchor image sha256:8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1\", \"scope\": \"finish/style only; not species morphology\"}], \"references\": [{\"path\": \"/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg\", \"seed\": 1, \"sha256\": \"855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6\", \"view\": \"B-WHOLE\"}, {\"path\": \"/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg\", \"seed\": 1, \"sha256\": \"7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d\", \"view\": \"B-BARE\"}], \"required\": [{\"item\": \"reference_character\", \"seed\": 1, \"view\": \"B-WHOLE\"}, {\"item\": \"reference_character\", \"seed\": 1, \"view\": \"B-BARE\"}], \"schema\": \"tuning-vision-v3\", \"target_species\": \"European beech / Fagus sylvatica\"}, \"inventory\": {\"effort\": \"medium\", \"ledger\": \".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/reference-first-a-receipt.json#sha256:f1b1384d6c6b300e3cdffeb783973f2b72f2a2406b1d17096c878b4a01f69014\", \"model\": \"gpt-6-astra\", \"observations\": [\"Ranking reflects visible recognition cues in these references, not proof that any individual trait uniquely identifies the species.\", \"The relationships among the photographed trees and the bark detail are unknown; no shared specimen or causal change is assumed.\", \"Leaf arrangement, precise leaf shape, buds, flowers, and fruit are not sufficiently visible for a confident inventory.\", \"Descriptions record appearance only; age, season, growing conditions, pruning history, and causes of surface markings are not established.\"], \"prompt_sha256\": \"b977396bce80653bb49b01ba0711ae5f59325eab09c2c5a681f87fff43ab3911\", \"request\": {\"protocol\": \"reference-first-v1\", \"references\": [{\"id\": \"reference-0\", \"image\": {\"path\": \"/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg\", \"seed\": 1, \"sha256\": \"855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6\", \"view\": \"B-WHOLE\"}}, {\"id\": \"reference-1\", \"image\": {\"path\": \"/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg\", \"seed\": 1, \"sha256\": \"7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d\", \"view\": \"B-BARE\"}}], \"specimen_relationship\": \"unknown\", \"target_species\": \"European beech / Fagus sylvatica\"}, \"request_sha256\": \"e05cfaf3d7f67a0bbb5b632a14786adba7e35774d23c47178745815392c94591\", \"traits\": [{\"id\": \"crown_outline\", \"observation\": \"Tall, substantial crown with a broad lower-to-middle spread and a narrowing, softly irregular top. Overall outlines range from broadly tapered to rounded upright; many fine projecting tips soften the perimeter.\", \"priority\": \"core\", \"reference_ids\": [\"reference-0\", \"reference-1\"], \"uncertain\": false}, {\"id\": \"branch_architecture\", \"observation\": \"Strong upright trunk framework divides into ascending limbs, with lateral branches extending broadly outward. The bare crown shows repeated subdivision into a dense network of fine twigs; outer branches become increasingly slender.\", \"priority\": \"core\", \"reference_ids\": [\"reference-0\", \"reference-1\"], \"uncertain\": false}, {\"id\": \"bark_surface\", \"observation\": \"The bark close-up shows a gray, largely smooth and continuous surface with fine texture and subdued shallow markings, without prominent deep furrows or thick plates.\", \"priority\": \"core\", \"reference_ids\": [\"reference-1\"], \"uncertain\": false}, {\"id\": \"foliage_layering\", \"observation\": \"Foliage forms numerous overlapping sprays and irregular leafy masses. The left leafy view has especially clear lateral shelves; the right has fuller, more interlocking masses. Dark recesses and small openings preserve visible depth within the crown.\", \"priority\": \"core\", \"reference_ids\": [\"reference-0\"], \"uncertain\": false}, {\"id\": \"foliage_visual_grain\", \"observation\": \"Leaves read as small, numerous broadleaf elements relative to the large crown, producing a fine, busy surface rather than a few coarse leaf clusters. Individual leaf outlines, margins, and venation are insufficiently resolved.\", \"priority\": \"secondary\", \"reference_ids\": [\"reference-0\"], \"uncertain\": true}, {\"id\": \"trunk_base\", \"observation\": \"Exposed lower trunks are stout and widen at ground contact into modest spreading root flares. Their bases are irregular rather than perfectly cylindrical.\", \"priority\": \"secondary\", \"reference_ids\": [\"reference-0\", \"reference-1\"], \"uncertain\": false}, {\"id\": \"lower_branch_reach\", \"observation\": \"Lower leafy branches reach well beyond the trunk, with some outer sprays slanting or hanging downward. Foliage descends relatively low around portions of the crown while leaving the trunk base visible.\", \"priority\": \"secondary\", \"reference_ids\": [\"reference-0\"], \"uncertain\": false}, {\"id\": \"bark_mottling\", \"observation\": \"The close-up contains scattered pale gray to whitish spots and irregular patches over a darker gray background, with faint linear marks. The image does not establish the material or cause of these patches.\", \"priority\": \"secondary\", \"reference_ids\": [\"reference-1\"], \"uncertain\": false}, {\"id\": \"foliage_color_range\", \"observation\": \"Visible foliage ranges from muted yellow-green and medium green on exposed sprays to deep green in recessed areas. Color is uneven across each crown; its causes cannot be separated from these images alone.\", \"priority\": \"variation\", \"reference_ids\": [\"reference-0\"], \"uncertain\": false}, {\"id\": \"framework_variation\", \"observation\": \"The leafy views include a visibly divided lower framework on the left and a more dominant single exposed trunk on the right. Crown symmetry, apparent density, and the prominence of horizontal layers also differ.\", \"priority\": \"variation\", \"reference_ids\": [\"reference-0\"], \"uncertain\": false}, {\"id\": \"foliage_presence\", \"observation\": \"Both densely leafy crowns and a bare, finely branched crown are supplied. The bare view exposes a tapered upright framework and extensive twig ramification. No transition between these photographed states is established.\", \"priority\": \"variation\", \"reference_ids\": [\"reference-0\", \"reference-1\"], \"uncertain\": false}]}, \"prompt_sha256\": \"847dd718e56258447ec5fcc89fdaadc9701165d02eab0b51001e616ebc1a0329\", \"protocol\": \"reference-first-v1\"}",
+  "prompt_sha256": "b344d159b809307992a9b87bd8d29db8550c6708cdaddff1b2a03e5151c1ca47",
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "passes": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "unknown"
+          ]
+        }
+      },
+      "defects": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "observations": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "findings": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "observation": {
+              "type": "string"
+            },
+            "evidence_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "impact": {
+              "type": "string",
+              "enum": [
+                "supported",
+                "blocker",
+                "required_unknown",
+                "variation",
+                "optional"
+              ]
+            },
+            "uncertain": {
+              "type": "boolean"
+            },
+            "causal_hypothesis": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "observation",
+            "evidence_ids",
+            "impact",
+            "uncertain",
+            "causal_hypothesis"
+          ]
+        }
+      },
+      "coverage": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "trait_id": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "pass",
+                "fail",
+                "unknown"
+              ]
+            },
+            "evidence_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "explanation": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "trait_id",
+            "status",
+            "evidence_ids",
+            "explanation"
+          ]
+        }
+      }
+    },
+    "required": [
+      "passes",
+      "defects",
+      "observations",
+      "findings",
+      "coverage"
+    ]
+  },
+  "schema_sha256": "8165c814ab459330946d376c5a2ec81f041300a97de3e54a158c2fc1725a82c5",
+  "images": [
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-B-WHOLE.png",
+      "sha256": "da02e6fdf2b64c6ba6a0caf1ed2e0990a316fd9e5ac426099381e0f65254d047"
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-B-BARE.png",
+      "sha256": "8bf6b32d6961bbc667e622b39b9484ec885b9ee3f4b3f9cf941c59372b599630"
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg",
+      "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6"
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg",
+      "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d"
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.flow/evidence/fn9/final/preview/norway-spruce-1-whole.png",
+      "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1"
+    }
+  ],
+  "model": "gpt-6-astra",
+  "effort": "medium"
+}

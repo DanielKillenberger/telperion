@@ -7,9 +7,18 @@ pub(crate) use incremental::Pipes;
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct RadiusParams {
+    /// The trunk's radius at the ground as a share of the tree's height,
+    /// so raising it thickens every piece of wood in proportion.
     pub trunk_radius: f64,
+    /// How wood divides at a fork. The parent's area is the sum of the
+    /// children's radii raised to this power, so raising it leaves the
+    /// children thicker for the same parent.
     pub fork_exponent: f64,
+    /// How fast wood thins along its own length. Raising it makes a
+    /// branch narrow more sharply from its base to its tip.
     pub length_taper: f64,
+    /// The ceiling on accumulated taper, so no single long branch can
+    /// thin away to nothing. Raising it lets long branches taper further.
     #[cfg_attr(
         feature = "json",
         serde(default = "crate::ranges::default_max_taper_exponent")

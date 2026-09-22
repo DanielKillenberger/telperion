@@ -1,0 +1,10 @@
+{
+  "authority": "Owner asks Jev to compare every verdict to owner; host approves frozen24Score packet and one HTTP attempt",
+  "cumulative_cap": 520000,
+  "prior_actual_tokens": 464835,
+  "questions_sha256": "f1042f4aee53cdd2b60c01cbf0967c4ca67504287bf92eb6f88e6fd212ef3b0d",
+  "reserved_tokens": 42249,
+  "runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e",
+  "state_sha256": "9cc6bb0612a91ff8c32e0a2debf9276fa86491a0c9a7230090a394a7bd1347fa",
+  "status": "reserved_before_dispatch"
+}

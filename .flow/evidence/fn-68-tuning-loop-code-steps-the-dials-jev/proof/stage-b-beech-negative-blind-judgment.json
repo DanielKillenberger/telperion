@@ -1,0 +1,6 @@
+{
+  "status": "negative_code_guard_ok",
+  "grounded_findings": 1,
+  "semantic_qualification": false,
+  "clipping_heuristic": "not semantic proof; host inspects raw findings"
+}

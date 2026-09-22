@@ -1,0 +1,14 @@
+{
+  "grader": "host",
+  "result": "joint-blind-astra-result.json",
+  "status": "NOT_FULL_ROLE_QUALIFICATION",
+  "dimensions": {
+    "crown_organization": "HIT: upright sprays versus spreading layered masses",
+    "outer_silhouette": "PARTIAL/unknown: supported broad envelope plus reported clipping",
+    "leaf_bearing_hanging_weighted_form": "PARTIAL at best: not explicitly discovered",
+    "material": "HIT",
+    "cross_view_constraints": "grounded",
+    "causal_uncertainty": "no invented loading explanation"
+  },
+  "next": "Owner-authorized second/final same-packet Astra high reasoning-effort diagnostic; no prompt or rubric changes, not repeat-until-pass"
+}

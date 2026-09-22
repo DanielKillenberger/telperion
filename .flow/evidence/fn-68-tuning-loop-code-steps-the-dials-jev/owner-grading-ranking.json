@@ -1,0 +1,281 @@
+{
+  "policy": "Primary mean=(crown+hanging)/2; secondary material and acceptance-standard shown independently. Sort by primary mean, then secondary mean only for exact ties. No pass cutoff, no automatic role qualification. Report all distributions/confidences; near scores are not proven differences.",
+  "rows": [
+    {
+      "id": "V5",
+      "label": "Astra medium",
+      "scores": {
+        "crown": 2.61,
+        "hanging": 1.06,
+        "material": 2.89,
+        "standard": 2.94
+      },
+      "confidence": {
+        "crown": 0.61,
+        "hanging": 0.8,
+        "material": 0.89,
+        "standard": 0.94
+      },
+      "probabilities": {
+        "crown": {
+          "0": 0.01,
+          "1": 0.18,
+          "2": 0.01,
+          "3": 0.8
+        },
+        "hanging": {
+          "0": 0.07,
+          "1": 0.86,
+          "2": 0.01,
+          "3": 0.06
+        },
+        "material": {
+          "0": 0.01,
+          "1": 0.04,
+          "2": 0.01,
+          "3": 0.94
+        },
+        "standard": {
+          "0": 0,
+          "1": 0.02,
+          "2": 0.02,
+          "3": 0.96
+        }
+      },
+      "primary_mean": 1.835,
+      "secondary_mean": 2.915
+    },
+    {
+      "id": "V2",
+      "label": "Astra high",
+      "scores": {
+        "crown": 2.46,
+        "hanging": 1.06,
+        "material": 1.89,
+        "standard": 2.92
+      },
+      "confidence": {
+        "crown": 0.46,
+        "hanging": 0.79,
+        "material": 0.88,
+        "standard": 0.92
+      },
+      "probabilities": {
+        "crown": {
+          "0": 0.02,
+          "1": 0.23,
+          "2": 0.01,
+          "3": 0.74
+        },
+        "hanging": {
+          "0": 0.08,
+          "1": 0.85,
+          "2": 0.01,
+          "3": 0.06
+        },
+        "material": {
+          "0": 0.01,
+          "1": 0.1,
+          "2": 0.88,
+          "3": 0.01
+        },
+        "standard": {
+          "0": 0,
+          "1": 0.03,
+          "2": 0.01,
+          "3": 0.96
+        }
+      },
+      "primary_mean": 1.76,
+      "secondary_mean": 2.405
+    },
+    {
+      "id": "V6",
+      "label": "Opus high",
+      "scores": {
+        "crown": 1.48,
+        "hanging": 1.05,
+        "material": 2.7,
+        "standard": 2.91
+      },
+      "confidence": {
+        "crown": 0.05,
+        "hanging": 0.8,
+        "material": 0.7,
+        "standard": 0.91
+      },
+      "probabilities": {
+        "crown": {
+          "0": 0.23,
+          "1": 0.4,
+          "2": 0.02,
+          "3": 0.35
+        },
+        "hanging": {
+          "0": 0.07,
+          "1": 0.86,
+          "2": 0.01,
+          "3": 0.06
+        },
+        "material": {
+          "0": 0,
+          "1": 0.09,
+          "2": 0.11,
+          "3": 0.8
+        },
+        "standard": {
+          "0": 0.01,
+          "1": 0.03,
+          "2": 0.02,
+          "3": 0.94
+        }
+      },
+      "primary_mean": 1.2650000000000001,
+      "secondary_mean": 2.805
+    },
+    {
+      "id": "V1",
+      "label": "Fable medium",
+      "scores": {
+        "crown": 1.22,
+        "hanging": 0.98,
+        "material": 2.46,
+        "standard": 2.78
+      },
+      "confidence": {
+        "crown": 0.23,
+        "hanging": 0.69,
+        "material": 0.46,
+        "standard": 0.78
+      },
+      "probabilities": {
+        "crown": {
+          "0": 0.27,
+          "1": 0.47,
+          "2": 0.02,
+          "3": 0.24
+        },
+        "hanging": {
+          "0": 0.17,
+          "1": 0.75,
+          "2": 0.02,
+          "3": 0.06
+        },
+        "material": {
+          "0": 0,
+          "1": 0.11,
+          "2": 0.31,
+          "3": 0.58
+        },
+        "standard": {
+          "0": 0.01,
+          "1": 0.06,
+          "2": 0.08,
+          "3": 0.85
+        }
+      },
+      "primary_mean": 1.1,
+      "secondary_mean": 2.62
+    },
+    {
+      "id": "V4",
+      "label": "Grok high",
+      "scores": {
+        "crown": 0.42,
+        "hanging": 0.92,
+        "material": 2.94,
+        "standard": 2.9
+      },
+      "confidence": {
+        "crown": 0.58,
+        "hanging": 0.77,
+        "material": 0.94,
+        "standard": 0.9
+      },
+      "probabilities": {
+        "crown": {
+          "0": 0.76,
+          "1": 0.07,
+          "2": 0.16,
+          "3": 0.01
+        },
+        "hanging": {
+          "0": 0.16,
+          "1": 0.77,
+          "2": 0.06,
+          "3": 0.01
+        },
+        "material": {
+          "0": 0,
+          "1": 0.02,
+          "2": 0,
+          "3": 0.98
+        },
+        "standard": {
+          "0": 0,
+          "1": 0.03,
+          "2": 0.03,
+          "3": 0.94
+        }
+      },
+      "primary_mean": 0.67,
+      "secondary_mean": 2.92
+    },
+    {
+      "id": "V3",
+      "label": "Sol medium",
+      "scores": {
+        "crown": 0.51,
+        "hanging": 0.66,
+        "material": 0.54,
+        "standard": 2.48
+      },
+      "confidence": {
+        "crown": 0.49,
+        "hanging": 0.61,
+        "material": 0.46,
+        "standard": 0.48
+      },
+      "probabilities": {
+        "crown": {
+          "0": 0.62,
+          "1": 0.3,
+          "2": 0.02,
+          "3": 0.06
+        },
+        "hanging": {
+          "0": 0.36,
+          "1": 0.63,
+          "2": 0,
+          "3": 0.01
+        },
+        "material": {
+          "0": 0.59,
+          "1": 0.28,
+          "2": 0.12,
+          "3": 0.01
+        },
+        "standard": {
+          "0": 0.01,
+          "1": 0.16,
+          "2": 0.18,
+          "3": 0.65
+        }
+      },
+      "primary_mean": 0.585,
+      "secondary_mean": 1.51
+    }
+  ],
+  "actual_tokens": 10837,
+  "cumulative_actual_tokens": 475672,
+  "model": "jev-1.13.0",
+  "limitations": [
+    "Text agreement with owner on one known development case, not an image re-evaluation or general model benchmark.",
+    "Astra medium and high primary scores differ by only0.075; no statistically established winner.",
+    "All hanging Scores lie near absence/ambiguity level1, not major-gap level3.",
+    "Opus and Fable crown confidence is very low; numerical ordering is not a reliable separation.",
+    "Acceptance-standard wording scored highly even in verdicts that relaxed morphology; do not let this secondary score erase primary misses.",
+    "Prior host image-fidelity concerns remain separate; Jev saw text, not images."
+  ],
+  "checks": "24 Score shapes/distributions, immutable source hashes, receipt state/questions, usage sums, primary-dominance and missing-answer mocks passed"
+}

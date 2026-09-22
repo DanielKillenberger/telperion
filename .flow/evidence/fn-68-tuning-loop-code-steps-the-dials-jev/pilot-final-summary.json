@@ -1,0 +1,229 @@
+{
+  "identity": "75275bc77aebcbf9590b05a713ecd2b939411834fc2e9651384699a2666ca7db",
+  "budget": {
+    "evaluations": 3,
+    "images": 12,
+    "max_evaluations": 13,
+    "max_images": 52,
+    "max_rounds": 1,
+    "max_tokens": 220000,
+    "rounds": 1,
+    "tokens": 170312
+  },
+  "machine_ready": false,
+  "pause": {
+    "basis": {
+      "estimate_basis": "",
+      "evidence": [
+        "B-WHOLE seed 1: The crown forms an excessively dense, regular egg-shaped shell with solid shoulders, obscuring the spreading, layered branch structure and leaf-bearing branch weight/droop evident in the European beech reference. This is an obvious construction artifact and weakens species character."
+      ],
+      "identity": "75275bc77aebcbf9590b05a713ecd2b939411834fc2e9651384699a2666ca7db",
+      "next_tokens": null,
+      "proposed_action": "reassess or diagnose",
+      "recent_outcomes": [
+        "limbs: score None, reason Some(\"numeric gate failed\")",
+        "baseline: score Some(0.24321466453393809), reason None",
+        "baseline: score None, reason Some(\"exit status: 1: Installed 2 packages in 67ms\\nB-WHOLE: photograph missing at /home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/fasy951.jpg\\n\")"
+      ],
+      "usage_known": true
+    },
+    "decision_requested": "Provide a scoped decision for reassess or diagnose; changed evidence requires reassessment.",
+    "id": "18d6d6f877f9633c-ef21f-13",
+    "identity": "75275bc77aebcbf9590b05a713ecd2b939411834fc2e9651384699a2666ca7db",
+    "reason": "hard round limit exhausted before routing"
+  },
+  "routes": [
+    "tuning",
+    "tuning",
+    "numeric stall; reassess remaining defect and recent failed attempts"
+  ],
+  "visual": {
+    "cells": [
+      [
+        {
+          "item": "crown-character-density-droop",
+          "seed": 1,
+          "view": "B-WHOLE"
+        },
+        "fail"
+      ],
+      [
+        {
+          "item": "branching-character",
+          "seed": 1,
+          "view": "B-BARE"
+        },
+        "unknown"
+      ],
+      [
+        {
+          "item": "smooth-grey-bark-base",
+          "seed": 1,
+          "view": "B-BASE"
+        },
+        "unknown"
+      ],
+      [
+        {
+          "item": "crown-character-density-droop",
+          "seed": 42,
+          "view": "B-WHOLE"
+        },
+        "unknown"
+      ],
+      [
+        {
+          "item": "branching-character",
+          "seed": 42,
+          "view": "B-BARE"
+        },
+        "unknown"
+      ],
+      [
+        {
+          "item": "smooth-grey-bark-base",
+          "seed": 42,
+          "view": "B-BASE"
+        },
+        "unknown"
+      ]
+    ],
+    "defects": [
+      "B-WHOLE seed 1: The crown forms an excessively dense, regular egg-shaped shell with solid shoulders, obscuring the spreading, layered branch structure and leaf-bearing branch weight/droop evident in the European beech reference. This is an obvious construction artifact and weakens species character."
+    ],
+    "identity": "1a749484de656f82b3e7d96486ce47474fd32149e24a257929c620c1494d789a",
+    "ledger": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d6d590a5488d90-e0326-9.json",
+    "model": "gpt-5.6-sol"
+  },
+  "finalists": [
+    {
+      "key": "1a749484de656f82b3e7d96486ce47474fd32149e24a257929c620c1494d789a",
+      "score": 0.24321466453393809,
+      "overrides": {},
+      "comparisons": [
+        {
+          "images": [
+            {
+              "path": "/tmp/fn68-live-pilot/1a749484de656f82b3e7d96486ce47474fd32149e24a257929c620c1494d789a-18d6d58a3663c1b8-e0326-4/1a749484de656f82b3e7d96486ce47474fd32149e24a257929c620c1494d789a-B-WHOLE.png",
+              "seed": 1,
+              "sha256": "5b3448259817f0a74b5b2579fef41146d92bc58e22d8c58eeae83cfce9e07d1f",
+              "view": "B-WHOLE"
+            },
+            {
+              "path": "/tmp/fn68-live-pilot/1a749484de656f82b3e7d96486ce47474fd32149e24a257929c620c1494d789a-18d6d58a3663c1b8-e0326-4/1a749484de656f82b3e7d96486ce47474fd32149e24a257929c620c1494d789a-B-WHOLE-twin.png",
+              "seed": 1,
+              "sha256": "104dc0893f8c840ed8b69d7062c0ef1e9d77c2ccf80fcb24ac18a810b754a436",
+              "view": "B-WHOLE"
+            }
+          ],
+          "metric_weights": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "observed": [
+            0.7504,
+            0.096,
+            0.5321,
+            0.1698,
+            56.4
+          ],
+          "reference": "B-WHOLE",
+          "reference_weight": 1.0,
+          "target": [
+            0.6965,
+            0.12,
+            0.4566,
+            0.2274,
+            79.7
+          ]
+        },
+        {
+          "images": [
+            {
+              "path": "/tmp/fn68-live-pilot/1a749484de656f82b3e7d96486ce47474fd32149e24a257929c620c1494d789a-18d6d58a3663c1b8-e0326-4/1a749484de656f82b3e7d96486ce47474fd32149e24a257929c620c1494d789a-B-BARE.png",
+              "seed": 1,
+              "sha256": "3153abe73b377f3dffd927e6c8e61dad694809cae46b4397d4ba1b204e5ee8a2",
+              "view": "B-BARE"
+            },
+            {
+              "path": "/tmp/fn68-live-pilot/1a749484de656f82b3e7d96486ce47474fd32149e24a257929c620c1494d789a-18d6d58a3663c1b8-e0326-4/1a749484de656f82b3e7d96486ce47474fd32149e24a257929c620c1494d789a-B-BARE-twin.png",
+              "seed": 1,
+              "sha256": "9be3163a7b5b8628adb39909c8c0e76f0a00e657022a6f5eb646fab5955e0f9a",
+              "view": "B-BARE"
+            }
+          ],
+          "metric_weights": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "observed": [
+            0.7358,
+            0.3034,
+            0.4115,
+            0.1136,
+            114.5
+          ],
+          "reference": "B-BARE",
+          "reference_weight": 1.0,
+          "target": [
+            0.7417,
+            0.25,
+            0.2813,
+            0.2937,
+            99.9
+          ]
+        }
+      ]
+    }
+  ],
+  "trials": [
+    {
+      "key": "55b94c60711439836d5a6d3ea6b54ab87b2e90d11398b9f5f798bfd86c1d96cb",
+      "identity": "f50f30c1dfd10fb96c153772d2a84df0b5b18d127fb98a3155c2fe3a53916ffc",
+      "round": 0,
+      "label": "baseline",
+      "overrides": {},
+      "ledger": null,
+      "feasible": false,
+      "reason": "exit status: 1: Installed 2 packages in 67ms\nB-WHOLE: photograph missing at /home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/fasy951.jpg\n",
+      "score": null,
+      "seconds": 26.058545106
+    },
+    {
+      "key": "1a749484de656f82b3e7d96486ce47474fd32149e24a257929c620c1494d789a",
+      "identity": "fd4c2db78e499e5ddb7a199da331508f4a8281ea9db24d862129a2232550a924",
+      "round": 0,
+      "label": "baseline",
+      "overrides": {},
+      "ledger": null,
+      "feasible": true,
+      "reason": null,
+      "score": 0.24321466453393809,
+      "seconds": 24.235924392
+    },
+    {
+      "key": "80e56a5f9a9b8c332b103990a8b4ca04049fb7dbb017e6bf41213d1638e317ed",
+      "identity": "75275bc77aebcbf9590b05a713ecd2b939411834fc2e9651384699a2666ca7db",
+      "round": 1,
+      "label": "limbs",
+      "overrides": {
+        "skeleton": {
+          "habit": {
+            "lateralsPerStation": 3
+          }
+        }
+      },
+      "ledger": "tuning:18d6d6f62fd5f2cd-ef21f-c",
+      "feasible": false,
+      "reason": "numeric gate failed",
+      "score": null,
+      "seconds": 9.711363795
+    }
+  ]
+}

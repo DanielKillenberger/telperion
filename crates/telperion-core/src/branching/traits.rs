@@ -38,7 +38,9 @@ pub struct HabitParams {
     pub lateral_length_ratio: f64,
     /// Depth of rule-built orders below the leader.
     pub lateral_orders: u32,
-    /// Weight of the attractor pull beside the axis's own rule heading.
+    /// Weight of the attractor pull beside the axis's own rule heading. At
+    /// zero no pull points are scattered and every axis holds its own rule
+    /// heading, and any rise switches the pull on.
     pub attractor_weight: f64,
     /// Distal twig radius against the nominal twig radius.
     pub twig_tip_taper: f64,
@@ -49,11 +51,14 @@ pub struct HabitParams {
     /// byte; a birch, a hazel or a coppiced oak stands on more.
     pub stems: u32,
     /// Degrees of bearing between neighbouring stems, about a bearing the seed
-    /// alone decides. Inert at one stem, which has no neighbour.
+    /// alone decides. Inert at one stem, which has no neighbour. At zero every
+    /// stem leaves the root on one bearing, and any rise starts to fan them
+    /// apart.
     pub stem_divergence: f64,
     /// Degrees from vertical the outermost stems tilt away from the root; the
     /// ones between tilt in proportion to how far out they stand. Inert at one
-    /// stem, which stands at the centre and so tilts by none of it.
+    /// stem, which stands at the centre and so tilts by none of it. At zero
+    /// every stem stands upright, and any rise starts the tilt.
     pub stem_lean: f64,
     /// How unequally a clump's stems lean, 0 to 1. None of it is the lean
     /// above, shared about the clump's centre; all of it leans the stems in

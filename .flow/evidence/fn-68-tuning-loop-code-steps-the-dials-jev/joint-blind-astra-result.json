@@ -1,0 +1,178 @@
+{
+  "request_sha256": "c82e452cf172c97481433192b34db4833d9213abca5499055d45c196e8275f87",
+  "assessment": {
+    "identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+    "model": "gpt-6-astra",
+    "ledger": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d70d55079ee482-90735-0.json",
+    "cells": [
+      [
+        {
+          "item": "reference_character",
+          "view": "B-WHOLE",
+          "seed": 1
+        },
+        "fail"
+      ],
+      [
+        {
+          "item": "reference_character",
+          "view": "B-BARE",
+          "seed": 1
+        },
+        "fail"
+      ]
+    ],
+    "defects": [
+      "Seed 1, B-BARE: numerous long, straight scaffold branches end abruptly at substantial thickness, creating a conspicuous pole-like framework instead of the reference's progressively subdividing, tapering crown. B-WHOLE conceals much of this construction but retains exposed thick tips.",
+      "Seed 1, B-WHOLE: foliage forms predominantly upright, densely packed sprays around the shared framework. The references show more distinct spreading lateral masses and layered outer branching; the candidate lacks that defining crown organization.",
+      "Seed 1, both views: conspicuous repeated dark horizontal bark markings on the pale trunk differ from the reference's comparatively smooth gray bark and irregular surface mottling."
+    ],
+    "observations": [
+      "The broad, rounded deciduous envelope is a supported partial match. Exact crown proportions and individual asymmetry can vary naturally.",
+      "The spruce anchor establishes stylized catalogue rendering as acceptable; photographic lighting, leaf-level realism and matching the photographs' backgrounds are unnecessary.",
+      "The left crown is clipped in both candidate views, so its complete outer silhouette remains unknown.",
+      "The photographs' specimen and condition relationships are undocumented. No seasonal or loading explanation is inferred.",
+      "No earlier candidate is supplied, so relative improvement cannot be assessed."
+    ],
+    "findings": [
+      {
+        "observation": "B-BARE reference_character, seed 1: fail. The visible framework contains repeated thick, abruptly ending straight limbs, especially across the upper crown. The bare reference shows a finer, progressively branching outer framework. Because B-WHOLE shares this geometry, foliage concealment does not resolve the construction artifact.",
+        "evidence_ids": [
+          "render-1",
+          "render-0",
+          "reference-1"
+        ],
+        "impact": "blocker",
+        "uncertain": false,
+        "causal_hypothesis": null
+      },
+      {
+        "observation": "B-WHOLE reference_character, seed 1: fail. Upright foliage sprays dominate the crown rather than the spreading, layered lateral masses visible in the leafy references. B-BARE confirms the strong upward alignment of the supporting limbs. This is a structural character gap, not a requirement to reproduce an individual photographic silhouette.",
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "reference-0",
+          "reference-1"
+        ],
+        "impact": "blocker",
+        "uncertain": false,
+        "causal_hypothesis": null
+      },
+      {
+        "observation": "The exposed trunk in both candidate views has repeated horizontal dark markings and a very pale surface. The bark reference instead supports smoother gray bark with irregular mottling. The repeated banding materially weakens the intended beech character.",
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "reference-1"
+        ],
+        "impact": "blocker",
+        "uncertain": false,
+        "causal_hypothesis": null
+      },
+      {
+        "observation": "The leafy candidate supports a broad, rounded deciduous crown with dense green foliage, consistent with the general envelope of the leafy beech references.",
+        "evidence_ids": [
+          "render-0",
+          "reference-0"
+        ],
+        "impact": "supported",
+        "uncertain": false,
+        "causal_hypothesis": null
+      },
+      {
+        "observation": "Simplified lighting, background and fine foliage rendering are compatible with the accepted catalogue anchor's stylized finish. These aspects do not independently block readiness.",
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "anchor-0"
+        ],
+        "impact": "supported",
+        "uncertain": false,
+        "causal_hypothesis": null
+      }
+    ],
+    "joint": {
+      "inputs": [
+        {
+          "id": "render-0",
+          "role": "render",
+          "sha256": "da02e6fdf2b64c6ba6a0caf1ed2e0990a316fd9e5ac426099381e0f65254d047",
+          "view": "B-WHOLE",
+          "seed": 1,
+          "render_identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+          "condition": "same_geometry_visibility_view_not_unloaded_leaf_off",
+          "framing": "unknown",
+          "visibility": "shown",
+          "geometry_group": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57:seed:1"
+        },
+        {
+          "id": "render-1",
+          "role": "render",
+          "sha256": "8bf6b32d6961bbc667e622b39b9484ec885b9ee3f4b3f9cf941c59372b599630",
+          "view": "B-BARE",
+          "seed": 1,
+          "render_identity": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57",
+          "condition": "same_geometry_visibility_view_not_unloaded_leaf_off",
+          "framing": "unknown",
+          "visibility": "hidden",
+          "geometry_group": "c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57:seed:1"
+        },
+        {
+          "id": "reference-0",
+          "role": "reference",
+          "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+          "view": "B-WHOLE",
+          "seed": 1,
+          "render_identity": null,
+          "condition": "unknown",
+          "framing": "unknown",
+          "visibility": "unknown",
+          "geometry_group": null
+        },
+        {
+          "id": "reference-1",
+          "role": "reference",
+          "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+          "view": "B-BARE",
+          "seed": 1,
+          "render_identity": null,
+          "condition": "unknown",
+          "framing": "unknown",
+          "visibility": "unknown",
+          "geometry_group": null
+        },
+        {
+          "id": "anchor-0",
+          "role": "anchor",
+          "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+          "view": "whole",
+          "seed": 1,
+          "render_identity": null,
+          "condition": "unknown",
+          "framing": "unknown",
+          "visibility": "unknown",
+          "geometry_group": null
+        }
+      ],
+      "reference_relation": "unknown",
+      "relation_source": null,
+      "shot_source": {
+        "path": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/assets/beech-references-4e6d903c.json",
+        "sha256": "152c1ed99c9dd426977f127c36dfe888186de8de6286d882fa7bfd677898a8c0",
+        "excerpt": "\"references\""
+      }
+    }
+  },
+  "effort": "medium",
+  "usage": {
+    "input_tokens": 25599,
+    "output_tokens": 880
+  },
+  "observations": [
+    "The broad, rounded deciduous envelope is a supported partial match. Exact crown proportions and individual asymmetry can vary naturally.",
+    "The spruce anchor establishes stylized catalogue rendering as acceptable; photographic lighting, leaf-level realism and matching the photographs' backgrounds are unnecessary.",
+    "The left crown is clipped in both candidate views, so its complete outer silhouette remains unknown.",
+    "The photographs' specimen and condition relationships are undocumented. No seasonal or loading explanation is inferred.",
+    "No earlier candidate is supplied, so relative improvement cannot be assessed."
+  ]
+}

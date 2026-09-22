@@ -28,12 +28,22 @@ pub struct SkeletonParams {
     pub seed: u32,
     pub habit: HabitParams,
     pub envelope: Envelope,
+    /// How many pull points are scattered through the crown for the
+    /// branches to grow toward. Raising it fills the crown with more and
+    /// finer branching; at an `attractor_weight` of zero none are
+    /// scattered and the row does nothing.
     pub attractors: usize,
+    /// How many random tries the sampler may spend on each pull point
+    /// before it gives up. Raising it lets a narrow or deeply lobed crown
+    /// reach its full count of points instead of settling for fewer.
     #[cfg_attr(
         feature = "json",
         serde(default = "crate::ranges::default_sampling_attempts_per_attractor")
     )]
     pub sampling_attempts_per_attractor: u32,
+    /// How far the crown grows in one step, as a share of the tree's
+    /// height; the distance at which a pull point is used up is twice it.
+    /// Raising it grows the crown in longer, coarser strides.
     pub step: f64,
     pub bias: BiasParams,
     pub twigs: TwigParams,
@@ -59,10 +69,24 @@ impl Default for SkeletonParams {
 #[derive(Debug, Clone, Copy, Default)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct GrowthOverrides {
+    /// Metres a pull point may reach to steer the wood nearest it; unset,
+    /// the crown's own volume and the point count decide it. Raising it
+    /// lets distant points draw a branch across the crown.
     pub influence_radius: Option<f64>,
+    /// Metres within which a pull point counts as reached and stops
+    /// pulling; unset, twice the step distance. Raising it uses the points
+    /// up sooner, so branches stop shorter and the crown fills coarsely.
     pub kill_distance: Option<f64>,
+    /// Metres of wood laid down in one growth step; unset, the tree's
+    /// height times `step`. Raising it lays down longer, coarser segments.
     pub step_distance: Option<f64>,
+    /// Metres of bare trunk before the crown may start; unset, the
+    /// envelope's own crown base. Raising it lifts the whole crown and
+    /// leaves a longer clear bole.
     pub trunk_height: Option<f64>,
+    /// The ceiling on nodes the crown may grow; unset, the shipped
+    /// default. Growth stops at it, so raising it changes only a crown
+    /// that reached it.
     pub max_nodes: Option<usize>,
     pub max_turn_per_step: Option<f64>,
 }

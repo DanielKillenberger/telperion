@@ -1,0 +1,43 @@
+{
+  "owner_approval": {
+    "semantic": true,
+    "quotation": "the 1,2,3 yes",
+    "ids": [
+      "owner-crown-foliage",
+      "owner-hanging-foliage",
+      "owner-materials"
+    ],
+    "binds": "european-beech seed 1 B-WHOLE and B-BARE in the frozen packet only",
+    "applied_to_original_run": false
+  },
+  "this_packet": {
+    "birch_r8": "S-WHOLE seed 1 only. Stage A inventories the whole-habit photo. Stage B assesses the whole-habit reframe. Bare and bark photos are present unused. Not beech owner priorities. Owner-accepted raster 2745f4c3 is clipped. Assessed raster is camera-reframe 5c0112df, not owner-accepted.",
+    "beech_r8_negative": "B-WHOLE seed 1 historical round22",
+    "r7_current": "B-WHOLE and B-BARE seed 1 reframed limbs-only plus owner-priority cells"
+  },
+  "required_scope_extension_not_in_packet": [
+    {
+      "view": "B-BASE",
+      "seed": 1,
+      "why": "pilot required bark-base cell; adding it invalidates checkpoint 903276d3"
+    },
+    {
+      "view": "B-WHOLE",
+      "seed": 42,
+      "why": "fresh seed; not in owner approval"
+    },
+    {
+      "view": "B-BARE",
+      "seed": 42,
+      "why": "fresh seed; not in owner approval"
+    },
+    {
+      "view": "B-BASE",
+      "seed": 42,
+      "why": "fresh seed plus base"
+    }
+  ],
+  "six_cell_readiness_from_two_views": false,
+  "original_runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e",
+  "silent_resume_forbidden": true
+}

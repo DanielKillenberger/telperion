@@ -1,0 +1,9 @@
+{
+ "target_identity":"d0927490f65348a7e5487338dceaff12e255ed3e41972edf8c59966d5e1b552c",
+ "author":"fn68 implementation worker; offline source inspection, not owner ruling",
+ "model":"session model identity not independently recorded",
+ "findings":[
+  {"claim":"The irregularity parameter scales seeded envelope radius variation. This identifies a mathematical effect, not a guarantee of improved visible crown shape or a useful magnitude.","source":"crates/telperion-core/src/envelope.rs","sha256":"8054398f60affaeb9c9150d54a61bb91b58c49966542b4b3f905a3833e7ce811","excerpt":"radius * (1.0 + self.irregularity * noise::seeded(seed, at).clamp(-1.0, 1.0))"},
+  {"claim":"The preserved supplemental receipt reports the historical failed candidate was node-capped and truncated at250000 nodes. It is historical resource evidence, not a visual verdict or proof a current candidate will succeed; original failed trial remains unchanged.","source":".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/pilot-failed-gate-supplement.json","sha256":"92a7b61e9a6a8b4b405d18ac37c3077f71211761b99efcdc93f6267102927a1c","excerpt":"\"node_capped\":true,\"status\":\"truncated\"},\"nodes\":{\"status\":\"measured\",\"value\":250000}"}
+ ]
+}

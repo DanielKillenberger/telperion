@@ -1,0 +1,14 @@
+{
+  "direction": 5327,
+  "size-worst": 5561,
+  "total": 10888,
+  "hashes": {
+    "manifest.json": "6464fa00354b5e4ccf529bb45c7b3e6aa6703aa3bd5be3b42d621ec1f6f031f8",
+    "direction-state.json": "d39ec988697578a01c7dd1161394381c88567f6e58d793ba8498ddfa6e5cde8e",
+    "direction-questions.json": "5d3d62c98d98defbb305cdd2b70045ea4c909ec3f2617917b371dc3d1ab67a1d",
+    "size-worst-state.json": "55fe198b5abc699b8f6feb417135b5a242178c380b38f6157c63c3674a71ba62",
+    "size-worst-questions.json": "b161b6b280c12f40fdbf1b7e8066250590cb21171837772333b6445e9f9605f1"
+  },
+  "dispatch_authorized": false,
+  "offline_checks": "passed availability/dedup/schema-label-isolation and composition confidence/hold/unknown mocks"
+}

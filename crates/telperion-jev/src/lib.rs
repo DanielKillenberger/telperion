@@ -14,6 +14,7 @@ pub mod questions;
 pub mod screen;
 pub mod select;
 pub mod triage;
+pub mod tuning;
 
 pub use caller::{
     evaluate, load_key_from_env, CallerError, KeyError, Transport, ENDPOINT, INTERACTIVE_SHELL,

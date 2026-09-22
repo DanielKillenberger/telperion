@@ -1,0 +1,62 @@
+[
+  {
+    "id": "limbs",
+    "path": "/skeleton/habit/lateralsPerStation",
+    "meaning": "limbs born at each station",
+    "min": 1,
+    "max": 4,
+    "integer": true,
+    "small": 1,
+    "substantial": 2
+  },
+  {
+    "id": "leaves",
+    "path": "/canopy/shortShootLeaves",
+    "meaning": "leaves per cluster",
+    "min": 2,
+    "max": 12,
+    "integer": true,
+    "small": 2,
+    "substantial": 4
+  },
+  {
+    "id": "spacing",
+    "path": "/canopy/shortShootSpacing",
+    "meaning": "metres between leaf clusters",
+    "min": 0.01,
+    "max": 0.08,
+    "integer": false,
+    "small": 0.01,
+    "substantial": 0.02
+  },
+  {
+    "id": "irregularity",
+    "path": "/skeleton/envelope/irregularity",
+    "meaning": "crown envelope lobes and hollows",
+    "min": 0,
+    "max": 0.5,
+    "integer": false,
+    "small": 0.08,
+    "substantial": 0.16
+  },
+  {
+    "id": "crookedness",
+    "path": "/skeleton/habit/crookedness",
+    "meaning": "limb turning and zigzag amount",
+    "min": 0,
+    "max": 15,
+    "integer": false,
+    "small": 3,
+    "substantial": 6
+  },
+  {
+    "id": "taper",
+    "path": "/skeleton/habit/twigTipTaper",
+    "meaning": "remaining wood thickness toward the crown edge; lower means thinner tips",
+    "min": 0.05,
+    "max": 0.6,
+    "integer": false,
+    "small": 0.1,
+    "substantial": 0.2
+  }
+]

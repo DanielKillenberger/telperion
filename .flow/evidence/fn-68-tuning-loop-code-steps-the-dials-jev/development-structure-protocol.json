@@ -1,0 +1,33 @@
+{
+  "authority": "Host released exact owner-directed structural candidate, one evaluation/max4images, no paid models/retry",
+  "prior": {
+    "tokens": 301517,
+    "evaluations": 5,
+    "image_reservations": 20,
+    "actual_images": 16,
+    "visual_passes": 11
+  },
+  "reserved": {
+    "evaluations": 1,
+    "images": 4,
+    "tokens": 0
+  },
+  "candidate": {
+    "skeleton": {
+      "growth": {
+        "maxNodes": 1000000
+      },
+      "habit": {
+        "lateralsPerStation": 1,
+        "risePrimary": 0,
+        "riseSecondary": -0.3
+      },
+      "envelope": {
+        "fullness": 0.2,
+        "shoulder": 2.2
+      }
+    }
+  },
+  "hypothesis": "Lower crown room and downward secondary support trajectory improve spreading low leafy skirts; not a new short-shoot sag capability",
+  "criterion": "Numeric feasibility first; host judges lower leafy skirt, broken spreading mass and weighted trajectory against photographs, with bare-form regressions explicit. Score alone is not success."
+}

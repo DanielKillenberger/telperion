@@ -1,0 +1,276 @@
+{
+  "schema": "tuning-calibration-v1",
+  "question_version": "tuning-adjustment-v1",
+  "table_sha256": "",
+  "kind": "magnitude",
+  "model": "jev-1.13.0",
+  "min_accuracy": 0.8,
+  "min_confidence": 0.5,
+  "cases": [
+    {
+      "id": "example-up",
+      "split": "tuning",
+      "provenance": "authored bounded-action interpretation; not biological efficacy",
+      "state": {
+        "dial": {
+          "id": "limbs",
+          "path": "/skeleton/habit/lateralsPerStation",
+          "meaning": "limbs born at each station",
+          "min": 1,
+          "max": 4,
+          "integer": true,
+          "small": 1,
+          "substantial": 2
+        },
+        "current": 2,
+        "owner_observation": "Increase by the small authored adjustment, to three limbs."
+      },
+      "questions": {},
+      "expected": {
+        "adjustment": "small_increase"
+      },
+      "unsafe_answers": {
+        "adjustment": []
+      }
+    },
+    {
+      "id": "example-none",
+      "split": "tuning",
+      "provenance": "authored bounded-action interpretation; not biological efficacy",
+      "state": {
+        "dial": {
+          "id": "limbs",
+          "path": "/skeleton/habit/lateralsPerStation",
+          "meaning": "limbs born at each station",
+          "min": 1,
+          "max": 4,
+          "integer": true,
+          "small": 1,
+          "substantial": 2
+        },
+        "current": 2,
+        "owner_observation": "No observations are available."
+      },
+      "questions": {},
+      "expected": {
+        "adjustment": "insufficient_evidence"
+      },
+      "unsafe_answers": {
+        "adjustment": []
+      }
+    },
+    {
+      "id": "small-down",
+      "split": "heldout",
+      "provenance": "authored bounded-action interpretation; not biological efficacy",
+      "state": {
+        "dial": {
+          "id": "limbs",
+          "path": "/skeleton/habit/lateralsPerStation",
+          "meaning": "limbs born at each station",
+          "min": 1,
+          "max": 4,
+          "integer": true,
+          "small": 1,
+          "substantial": 2
+        },
+        "current": 3,
+        "owner_observation": "A prior test supports exactly two limbs; make that bounded move."
+      },
+      "questions": {},
+      "expected": {
+        "adjustment": "small_decrease"
+      },
+      "unsafe_answers": {
+        "adjustment": []
+      }
+    },
+    {
+      "id": "large-down",
+      "split": "heldout",
+      "provenance": "authored bounded-action interpretation; not biological efficacy",
+      "state": {
+        "dial": {
+          "id": "limbs",
+          "path": "/skeleton/habit/lateralsPerStation",
+          "meaning": "limbs born at each station",
+          "min": 1,
+          "max": 4,
+          "integer": true,
+          "small": 1,
+          "substantial": 2
+        },
+        "current": 3,
+        "owner_observation": "The measured intervention supports exactly one limb per station."
+      },
+      "questions": {},
+      "expected": {
+        "adjustment": "substantial_decrease"
+      },
+      "unsafe_answers": {
+        "adjustment": []
+      }
+    },
+    {
+      "id": "large-up",
+      "split": "heldout",
+      "provenance": "authored bounded-action interpretation; not biological efficacy",
+      "state": {
+        "dial": {
+          "id": "limbs",
+          "path": "/skeleton/habit/lateralsPerStation",
+          "meaning": "limbs born at each station",
+          "min": 1,
+          "max": 4,
+          "integer": true,
+          "small": 1,
+          "substantial": 2
+        },
+        "current": 1,
+        "owner_observation": "Evidence supports exactly three limbs per station, not two."
+      },
+      "questions": {},
+      "expected": {
+        "adjustment": "substantial_increase"
+      },
+      "unsafe_answers": {
+        "adjustment": []
+      }
+    },
+    {
+      "id": "hold",
+      "split": "heldout",
+      "provenance": "authored bounded-action interpretation; not biological efficacy",
+      "state": {
+        "dial": {
+          "id": "limbs",
+          "path": "/skeleton/habit/lateralsPerStation",
+          "meaning": "limbs born at each station",
+          "min": 1,
+          "max": 4,
+          "integer": true,
+          "small": 1,
+          "substantial": 2
+        },
+        "current": 2,
+        "owner_observation": "The current limb count satisfies the requirement; do not change it."
+      },
+      "questions": {},
+      "expected": {
+        "adjustment": "hold"
+      },
+      "unsafe_answers": {
+        "adjustment": []
+      }
+    },
+    {
+      "id": "ambiguous-size",
+      "split": "heldout",
+      "provenance": "authored bounded-action interpretation; not biological efficacy",
+      "state": {
+        "dial": {
+          "id": "leaves",
+          "path": "/canopy/shortShootLeaves",
+          "meaning": "leaves per cluster",
+          "min": 2,
+          "max": 12,
+          "integer": true,
+          "small": 2,
+          "substantial": 4
+        },
+        "current": 8,
+        "owner_observation": "Density seems wrong but neither direction nor adjustment size is supported."
+      },
+      "questions": {},
+      "expected": {
+        "adjustment": "insufficient_evidence"
+      },
+      "unsafe_answers": {
+        "adjustment": []
+      }
+    },
+    {
+      "id": "upper-bound",
+      "split": "heldout",
+      "provenance": "authored bounded-action interpretation; not biological efficacy",
+      "state": {
+        "dial": {
+          "id": "limbs",
+          "path": "/skeleton/habit/lateralsPerStation",
+          "meaning": "limbs born at each station",
+          "min": 1,
+          "max": 4,
+          "integer": true,
+          "small": 1,
+          "substantial": 2
+        },
+        "current": 3,
+        "owner_observation": "Exactly four limbs is supported. Never exceed the authored maximum."
+      },
+      "questions": {},
+      "expected": {
+        "adjustment": "small_increase"
+      },
+      "unsafe_answers": {
+        "adjustment": [
+          "substantial_increase"
+        ]
+      }
+    },
+    {
+      "id": "lower-bound",
+      "split": "heldout",
+      "provenance": "authored bounded-action interpretation; not biological efficacy",
+      "state": {
+        "dial": {
+          "id": "limbs",
+          "path": "/skeleton/habit/lateralsPerStation",
+          "meaning": "limbs born at each station",
+          "min": 1,
+          "max": 4,
+          "integer": true,
+          "small": 1,
+          "substantial": 2
+        },
+        "current": 1,
+        "owner_observation": "Fewer limbs might help but the required value would be below the minimum; there is no supported allowed adjustment."
+      },
+      "questions": {},
+      "expected": {
+        "adjustment": "insufficient_evidence"
+      },
+      "unsafe_answers": {
+        "adjustment": [
+          "small_decrease",
+          "substantial_decrease"
+        ]
+      }
+    },
+    {
+      "id": "fractional-small",
+      "split": "heldout",
+      "provenance": "authored bounded-action interpretation; not biological efficacy",
+      "state": {
+        "dial": {
+          "id": "spacing",
+          "path": "/canopy/shortShootSpacing",
+          "meaning": "metres between leaf clusters",
+          "min": 0.01,
+          "max": 0.08,
+          "integer": false,
+          "small": 0.01,
+          "substantial": 0.02
+        },
+        "current": 0.03,
+        "owner_observation": "A prior measured trial supports cluster spacing exactly 0.04 metres."
+      },
+      "questions": {},
+      "expected": {
+        "adjustment": "small_increase"
+      },
+      "unsafe_answers": {
+        "adjustment": []
+      }
+    }
+  ]
+}
