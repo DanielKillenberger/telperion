@@ -97,7 +97,9 @@ fn only_an_asked_for_run_names_the_tracked_evidence() {
         "a plain run must keep its receipt in the target temp directory"
     );
     assert!(
-        !plain.components().any(|part| part.as_os_str() == "evidence"),
+        !plain
+            .components()
+            .any(|part| part.as_os_str() == "evidence"),
         "a plain run reached the tracked evidence: {}",
         plain.display()
     );
