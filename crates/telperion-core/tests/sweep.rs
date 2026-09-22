@@ -70,8 +70,18 @@ const SWEEP_NODES: usize = 8_000;
 // walk it from nothing to a hundred degrees.
 // fn-48.2 adds the clump's fork height, and the birch states half the bole,
 // so the sweep walks it.
-const HELD: [&str; 42] = [
+const HELD: [&str; 52] = [
     "/canopy/clumpSystemOrder",
+    "/canopy/rosetteFronds",
+    "/canopy/rosetteDivergence",
+    "/canopy/rosettePitch",
+    "/canopy/rosettePitchSpread",
+    "/canopy/rosetteDepth",
+    "/canopy/leafletCount",
+    "/canopy/rachisLength",
+    "/canopy/leafletPitch",
+    "/canopy/rachisArch",
+    "/canopy/terminalLeaflet",
     "/canopy/clumpNeighbours",
     "/surface/socketContainment",
     "/skeleton/habit/reachProbeSteps",

@@ -113,6 +113,23 @@ impl Tree {
             .map(|(i, _)| radius(i))
             .fold(0.0, f64::max)
     }
+    /// The distal node of every order-zero axis, in birth order: where a stem
+    /// stops carrying itself further. A stem apex may still bear laterals and
+    /// a twig layer, so it is the last node of the stem run rather than a
+    /// childless node.
+    pub fn stem_apices(&self) -> Vec<usize> {
+        let mut carried = vec![false; self.nodes.len()];
+        for n in self.nodes.iter().skip(1) {
+            if n.stem {
+                carried[n.parent.unwrap() as usize] = true;
+            }
+        }
+        let mut found: Vec<usize> = (1..self.nodes.len())
+            .filter(|&i| self.nodes[i].stem && !carried[i])
+            .collect();
+        found.sort_by_key(|&i| self.nodes[i].identity);
+        found
+    }
     pub fn validate(&self) -> Result<()> {
         if self.nodes.len() > u32::MAX as usize || self.crossover > self.nodes.len() {
             return Err(Error::InvalidInput("tree length"));

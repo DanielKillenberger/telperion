@@ -126,6 +126,16 @@ macro_rules! fields {
         $op!($f, $v, "canopy", "limbClumping"; canopy.limb_clumping);
         $op!($f, $v, "canopy", "clumpSystemOrder"; canopy.clump_system_order);
         $op!($f, $v, "canopy", "clumpNeighbours"; canopy.clump_neighbours);
+        $op!($f, $v, "canopy", "rosetteFronds"; canopy.rosette_fronds);
+        $op!($f, $v, "canopy", "rosetteDivergence"; canopy.rosette_divergence);
+        $op!($f, $v, "canopy", "rosettePitch"; canopy.rosette_pitch);
+        $op!($f, $v, "canopy", "rosettePitchSpread"; canopy.rosette_pitch_spread);
+        $op!($f, $v, "canopy", "rosetteDepth"; canopy.rosette_depth);
+        $op!($f, $v, "canopy", "leafletCount"; canopy.leaflet_count);
+        $op!($f, $v, "canopy", "rachisLength"; canopy.rachis_length);
+        $op!($f, $v, "canopy", "leafletPitch"; canopy.leaflet_pitch);
+        $op!($f, $v, "canopy", "rachisArch"; canopy.rachis_arch);
+        $op!($f, $v, "canopy", "terminalLeaflet"; canopy.terminal_leaflet);
         $op!($f, $v, "canopy", "maxInstances"; canopy.max_instances);
         $op!($f, $v, "element", "length"; element.length);
         $op!($f, $v, "element", "width"; element.width);

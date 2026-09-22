@@ -194,6 +194,29 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .remove(row)
                 .expect("the canopy publishes its short-shoot rows");
         }
+        // fn-109 adds the apical rosette and the pinnate grouping as ten
+        // canopy rows. The frozen file predates them and states none; the
+        // frond count and the rachis are zero there, which stands no rosette
+        // and groups no placement, so none is a geometry parameter left
+        // unsaid.
+        for row in [
+            "rosetteFronds",
+            "rosetteDivergence",
+            "rosettePitch",
+            "rosettePitchSpread",
+            "rosetteDepth",
+            "leafletCount",
+            "rachisLength",
+            "leafletPitch",
+            "rachisArch",
+            "terminalLeaflet",
+        ] {
+            emitted["canopy"]
+                .as_object_mut()
+                .unwrap()
+                .remove(row)
+                .expect("the canopy publishes its rosette and leaflet rows");
+        }
         // fn-54 adds the gap between limb systems; the frozen file predates
         // it, and at none it thins no leaf.
         emitted["canopy"]
