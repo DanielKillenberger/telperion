@@ -1,0 +1,182 @@
+[
+  {
+    "preset": "oregon-white-oak",
+    "seed": 1,
+    "task4": {
+      "medianMs": 325.5,
+      "firstMs": 632,
+      "initializationMs": 3149.89999999851,
+      "warmSamplesMs": [
+        324,
+        322,
+        326.80000000074506,
+        326.79999999701977,
+        325.5
+      ],
+      "wasmMemoryBytes": 101187584
+    },
+    "candidate": {
+      "medianMs": 320.0999999977648,
+      "firstMs": 639.8000000007451,
+      "initializationMs": 3291,
+      "warmSamplesMs": [
+        317.69999999925494,
+        330.30000000074506,
+        315.8999999985099,
+        323.30000000074506,
+        320.0999999977648
+      ],
+      "wasmMemoryBytes": 101187584
+    },
+    "original": {
+      "medianMs": 1570,
+      "firstMs": 2497,
+      "initializationMs": 178.90000000037253,
+      "warmSamplesMs": [
+        1557.5,
+        1564.4000000003725,
+        1620.2999999998137,
+        1570,
+        1599.7999999998137
+      ]
+    },
+    "cumulative5and6ImprovementPct": 1.658986175801902,
+    "originalSpeedup": 4.904717275885544,
+    "above100ms": 220.09999999776483
+  },
+  {
+    "preset": "oregon-white-oak",
+    "seed": 7,
+    "task4": {
+      "medianMs": 383.70000000298023,
+      "firstMs": 738.8000000007451,
+      "initializationMs": 158.69999999925494,
+      "warmSamplesMs": [
+        390.80000000074506,
+        381.79999999701977,
+        383.70000000298023,
+        393.0999999977648,
+        371.4000000022352
+      ],
+      "wasmMemoryBytes": 189267968
+    },
+    "candidate": {
+      "medianMs": 378.80000000074506,
+      "firstMs": 696.7999999970198,
+      "initializationMs": 166,
+      "warmSamplesMs": [
+        385.20000000298023,
+        376.5999999977648,
+        372.1000000014901,
+        394.19999999925494,
+        378.80000000074506
+      ],
+      "wasmMemoryBytes": 162988032
+    },
+    "original": {
+      "medianMs": 1862.5,
+      "firstMs": 2953.399999999441,
+      "initializationMs": 173,
+      "warmSamplesMs": [
+        1862.5,
+        1888.1000000005588,
+        1801.0999999996275,
+        1846.7999999998137,
+        1903.9000000003725
+      ]
+    },
+    "cumulative5and6ImprovementPct": 1.2770393542343328,
+    "originalSpeedup": 4.916842661025176,
+    "above100ms": 278.80000000074506
+  },
+  {
+    "preset": "norway-spruce",
+    "seed": 1,
+    "task4": {
+      "medianMs": 384,
+      "firstMs": 738.6999999992549,
+      "initializationMs": 153.60000000149012,
+      "warmSamplesMs": [
+        385.30000000074506,
+        384,
+        382.1000000014901,
+        382.5,
+        385.80000000074506
+      ],
+      "wasmMemoryBytes": 216006656
+    },
+    "candidate": {
+      "medianMs": 313.8999999985099,
+      "firstMs": 624.6999999992549,
+      "initializationMs": 162.69999999925494,
+      "warmSamplesMs": [
+        313.8999999985099,
+        306.8999999985099,
+        308.9000000022352,
+        321.0999999977648,
+        323.80000000074506
+      ],
+      "wasmMemoryBytes": 134676480
+    },
+    "original": {
+      "medianMs": 7628.5999999996275,
+      "firstMs": 10028.800000000745,
+      "initializationMs": 162.59999999962747,
+      "warmSamplesMs": [
+        7609.699999999255,
+        7703.4000000003725,
+        7608.9000000003725,
+        7628.5999999996275,
+        7688.299999999814
+      ]
+    },
+    "cumulative5and6ImprovementPct": 18.255208333721384,
+    "originalSpeedup": 24.30264415430341,
+    "above100ms": 213.89999999850988
+  },
+  {
+    "preset": "norway-spruce",
+    "seed": 7,
+    "task4": {
+      "medianMs": 366.5,
+      "firstMs": 723.4000000022352,
+      "initializationMs": 160.40000000223517,
+      "warmSamplesMs": [
+        366.0999999977648,
+        366.4000000022352,
+        369.0999999977648,
+        366.5,
+        380.80000000074506
+      ],
+      "wasmMemoryBytes": 209715200
+    },
+    "candidate": {
+      "medianMs": 293.6000000014901,
+      "firstMs": 578.9000000022352,
+      "initializationMs": 167.20000000298023,
+      "warmSamplesMs": [
+        293.6000000014901,
+        296.80000000074506,
+        279.5,
+        286.8999999985099,
+        296.8999999985099
+      ],
+      "wasmMemoryBytes": 132710400
+    },
+    "original": {
+      "medianMs": 7384,
+      "firstMs": 9743.399999999441,
+      "initializationMs": 153.20000000018626,
+      "warmSamplesMs": [
+        7308.299999999814,
+        7464.700000000186,
+        7452.4000000003725,
+        7290,
+        7384
+      ]
+    },
+    "cumulative5and6ImprovementPct": 19.89085948117596,
+    "originalSpeedup": 25.14986376009034,
+    "above100ms": 193.60000000149012
+  }
+]

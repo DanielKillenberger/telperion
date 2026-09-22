@@ -1,0 +1,530 @@
+{
+  "oregon-white-oak-1": {
+    "timings": {
+      "control": {
+        "growth_ms": {
+          "first": 66.848725,
+          "warm": [
+            61.807838,
+            63.174117,
+            61.564743
+          ],
+          "median": 61.807838
+        },
+        "compact_ms": {
+          "first": 39.798502,
+          "warm": [
+            39.981606,
+            38.361942000000006,
+            37.724398
+          ],
+          "median": 38.361942000000006
+        },
+        "stations_ms": {
+          "first": 20.902052,
+          "warm": [
+            24.008508000000003,
+            21.77681,
+            22.255791000000002
+          ],
+          "median": 22.255791000000002
+        },
+        "shared_ms": {
+          "first": 127.549279,
+          "warm": [
+            125.797952,
+            123.312869,
+            121.544932
+          ],
+          "median": 123.312869
+        }
+      },
+      "instrumented": {
+        "growth_ms": {
+          "first": 66.46350600000001,
+          "warm": [
+            58.999067000000004,
+            61.435589,
+            61.185294
+          ],
+          "median": 61.185294
+        },
+        "compact_ms": {
+          "first": 44.620223,
+          "warm": [
+            37.477843,
+            42.470398,
+            39.792841
+          ],
+          "median": 39.792841
+        },
+        "stations_ms": {
+          "first": 22.830763,
+          "warm": [
+            21.686708,
+            21.555676,
+            21.414873
+          ],
+          "median": 21.555676
+        },
+        "shared_ms": {
+          "first": 133.91449200000002,
+          "warm": [
+            118.163618,
+            125.461663,
+            122.39300800000001
+          ],
+          "median": 122.39300800000001
+        }
+      }
+    },
+    "overhead_percent": {
+      "growth_ms": -1.0072250059935728,
+      "compact_ms": 3.7299962551426535,
+      "stations_ms": -3.1457655223308123,
+      "shared_ms": -0.7459570176734709
+    },
+    "phase_medians_ms": {
+      "skeleton.new": 0.030121,
+      "step.split_config": 0.00018,
+      "scaffold.validation": 0.0223,
+      "step.scaffold": 3.76193,
+      "step.remap": 0.025790999999999998,
+      "radius.validate_tree": 0.95645,
+      "radius.validate_params": 0.00055,
+      "radius.solve_body": 0.582172,
+      "radius.validate_solved": 0.678955,
+      "step.radius": 0.19142399999999998,
+      "step.identify_before": 0.034770999999999996,
+      "step.seed": 0.919009,
+      "step.local_advance": 50.56336,
+      "step.identify_after": 1.500712,
+      "skeleton.step_structural": 4.793351,
+      "local.validation": 1.2336669999999998,
+      "skeleton.step_local": 52.499931,
+      "finish.shed": 0.00076,
+      "finish.radius": 2.003202,
+      "finish.tips": 0.11700200000000001,
+      "skeleton.finish": 2.121474,
+      "skeleton.final_remap_identify": 1.685206,
+      "compact.wrapper_validate": 0.918889,
+      "compact.edges_allocate": 0.177334,
+      "compact.validate": 0.786807,
+      "compact.paths": 2.489243,
+      "compact.validate_solved": 0.983121,
+      "compact.distance_allocate": 0.736086,
+      "compact.order_samples": 5.614349,
+      "compact.sort": 1.7483170000000001,
+      "compact.sample_frame_pack_contact": 26.633903,
+      "stations.validation_contact": 2.174226,
+      "stations.runs_frames_descriptors": 19.239017
+    },
+    "canonical_fnv1a64": "94abae63f92f82d3",
+    "compact_rings_fnv1a64": "0645dbc92db5cba9",
+    "parameter_sha256": "cd9c33d7a377dee5833901af68ad56d50b37805bd7503d6c71736dc4019226cc",
+    "counts": {
+      "nodes": 125087,
+      "placed": 715065,
+      "retained": 715065,
+      "wood_vertices": 3724874,
+      "wood_triangles": 7227360,
+      "wood_dropped": 0
+    }
+  },
+  "oregon-white-oak-7": {
+    "timings": {
+      "control": {
+        "growth_ms": {
+          "first": 77.42650900000001,
+          "warm": [
+            70.214135,
+            69.757746,
+            69.563012
+          ],
+          "median": 69.757746
+        },
+        "compact_ms": {
+          "first": 52.047661000000005,
+          "warm": [
+            56.124958,
+            55.720139,
+            55.433682999999995
+          ],
+          "median": 55.720139
+        },
+        "stations_ms": {
+          "first": 26.467950000000002,
+          "warm": [
+            26.272276,
+            25.074281,
+            25.089591000000002
+          ],
+          "median": 25.089591000000002
+        },
+        "shared_ms": {
+          "first": 155.94212000000002,
+          "warm": [
+            152.611369,
+            150.552166,
+            150.086286
+          ],
+          "median": 150.552166
+        }
+      },
+      "instrumented": {
+        "growth_ms": {
+          "first": 77.154002,
+          "warm": [
+            74.97611599999999,
+            69.771705,
+            72.29370899999999
+          ],
+          "median": 72.29370899999999
+        },
+        "compact_ms": {
+          "first": 55.045244,
+          "warm": [
+            55.098535,
+            56.195328,
+            53.218985
+          ],
+          "median": 55.098535
+        },
+        "stations_ms": {
+          "first": 26.441339000000003,
+          "warm": [
+            26.01386,
+            25.525160000000003,
+            25.282265000000002
+          ],
+          "median": 25.525160000000003
+        },
+        "shared_ms": {
+          "first": 158.64058500000002,
+          "warm": [
+            156.08851099999998,
+            151.49219300000001,
+            150.794959
+          ],
+          "median": 151.49219300000001
+        }
+      }
+    },
+    "overhead_percent": {
+      "growth_ms": 3.6353855240678135,
+      "compact_ms": -1.115582285248795,
+      "stations_ms": 1.7360546052743508,
+      "shared_ms": 0.6243862343368933
+    },
+    "phase_medians_ms": {
+      "skeleton.new": 0.030501,
+      "step.split_config": 0.00015999999999999999,
+      "scaffold.validation": 0.028629999999999996,
+      "step.scaffold": 4.6875979999999995,
+      "step.remap": 0.030601,
+      "radius.validate_tree": 1.4932020000000001,
+      "radius.validate_params": 0.00083,
+      "radius.solve_body": 0.849978,
+      "radius.validate_solved": 0.9059299999999999,
+      "step.radius": 0.248496,
+      "step.identify_before": 0.037751,
+      "step.seed": 0.840587,
+      "step.local_advance": 56.164568,
+      "step.identify_after": 2.357819,
+      "skeleton.step_structural": 5.658099,
+      "local.validation": 1.554373,
+      "skeleton.step_local": 58.722052,
+      "finish.shed": 0.00091,
+      "finish.radius": 3.003554,
+      "finish.tips": 0.12393199999999999,
+      "skeleton.finish": 3.128566,
+      "skeleton.final_remap_identify": 1.6090639999999998,
+      "compact.wrapper_validate": 1.221245,
+      "compact.edges_allocate": 0.993431,
+      "compact.validate": 1.145595,
+      "compact.paths": 6.7138919999999995,
+      "compact.validate_solved": 1.319878,
+      "compact.distance_allocate": 1.027722,
+      "compact.order_samples": 6.851885,
+      "compact.sort": 2.148596,
+      "compact.sample_frame_pack_contact": 32.987997,
+      "stations.validation_contact": 2.33391,
+      "stations.runs_frames_descriptors": 23.18891
+    },
+    "canonical_fnv1a64": "08e12dde55361de5",
+    "compact_rings_fnv1a64": "f41e96e9ad28502b",
+    "parameter_sha256": "44960e691276c4589ca58777ac7ebef01fa8dde680a3951d02ebba064c8307cf",
+    "counts": {
+      "nodes": 139040,
+      "placed": 869310,
+      "retained": 869310,
+      "wood_vertices": 4262170,
+      "wood_triangles": 8255000,
+      "wood_dropped": 0
+    }
+  },
+  "norway-spruce-1": {
+    "timings": {
+      "control": {
+        "growth_ms": {
+          "first": 50.533809,
+          "warm": [
+            49.041416999999996,
+            39.424434,
+            39.042996
+          ],
+          "median": 39.424434
+        },
+        "compact_ms": {
+          "first": 33.008698,
+          "warm": [
+            36.342539,
+            25.393127,
+            25.374666
+          ],
+          "median": 25.393127
+        },
+        "stations_ms": {
+          "first": 31.977887000000003,
+          "warm": [
+            27.40294,
+            27.753807,
+            28.796288999999998
+          ],
+          "median": 27.753807
+        },
+        "shared_ms": {
+          "first": 115.52039400000001,
+          "warm": [
+            112.786896,
+            92.57136799999999,
+            93.21395100000001
+          ],
+          "median": 93.21395100000001
+        }
+      },
+      "instrumented": {
+        "growth_ms": {
+          "first": 51.840056000000004,
+          "warm": [
+            45.87979,
+            39.141558,
+            39.825752
+          ],
+          "median": 39.825752
+        },
+        "compact_ms": {
+          "first": 28.542174,
+          "warm": [
+            25.56869,
+            25.559459999999998,
+            25.111491
+          ],
+          "median": 25.559459999999998
+        },
+        "stations_ms": {
+          "first": 30.939114,
+          "warm": [
+            28.545184000000003,
+            27.44801,
+            28.172815
+          ],
+          "median": 28.172815
+        },
+        "shared_ms": {
+          "first": 111.32134400000001,
+          "warm": [
+            99.993664,
+            92.149028,
+            93.11005800000001
+          ],
+          "median": 93.11005800000001
+        }
+      }
+    },
+    "overhead_percent": {
+      "growth_ms": 1.017942324802945,
+      "compact_ms": 0.6550315760638581,
+      "stations_ms": 1.5097316198819266,
+      "shared_ms": -0.11145649217250142
+    },
+    "phase_medians_ms": {
+      "skeleton.new": 0.00781,
+      "step.split_config": 0.00017999999999999998,
+      "scaffold.validation": 0.174784,
+      "step.scaffold": 9.350678,
+      "step.remap": 0.139713,
+      "radius.validate_tree": 0.748165,
+      "radius.validate_params": 0.00057,
+      "radius.solve_body": 1.3652,
+      "radius.validate_solved": 0.614174,
+      "step.radius": 1.111354,
+      "step.identify_before": 0.16458299999999998,
+      "step.seed": 6.366885,
+      "step.local_advance": 18.947409999999998,
+      "step.identify_after": 0.786727,
+      "skeleton.step_structural": 16.322275,
+      "local.validation": 0.7397849999999999,
+      "skeleton.step_local": 20.540545,
+      "finish.shed": 0.00083,
+      "finish.radius": 1.605024,
+      "finish.tips": 0.12677200000000002,
+      "skeleton.finish": 1.735116,
+      "skeleton.final_remap_identify": 1.053623,
+      "compact.wrapper_validate": 0.721985,
+      "compact.edges_allocate": 0.16530399999999998,
+      "compact.validate": 0.42101900000000003,
+      "compact.paths": 1.448661,
+      "compact.validate_solved": 0.4937,
+      "compact.distance_allocate": 0.435099,
+      "compact.order_samples": 4.185779,
+      "compact.sort": 1.285467,
+      "compact.sample_frame_pack_contact": 16.364556,
+      "stations.validation_contact": 1.216896,
+      "stations.runs_frames_descriptors": 27.00058
+    },
+    "canonical_fnv1a64": "9de204f696703019",
+    "compact_rings_fnv1a64": "fcc9b0c86abde5c5",
+    "parameter_sha256": "c8a01aa6394e86b9a1f8dcc6fec1ed243c7ba2a412d2122c037a0fd44460a3c5",
+    "counts": {
+      "nodes": 95389,
+      "placed": 7353754,
+      "retained": 7353754,
+      "wood_vertices": 3050636,
+      "wood_triangles": 5893480,
+      "wood_dropped": 0
+    }
+  },
+  "norway-spruce-7": {
+    "timings": {
+      "control": {
+        "growth_ms": {
+          "first": 49.754202,
+          "warm": [
+            41.643701,
+            37.709058,
+            36.787498
+          ],
+          "median": 37.709058
+        },
+        "compact_ms": {
+          "first": 25.023099,
+          "warm": [
+            22.848903,
+            23.64403,
+            22.360283000000003
+          ],
+          "median": 22.848903
+        },
+        "stations_ms": {
+          "first": 28.871199999999998,
+          "warm": [
+            26.039351,
+            27.033241,
+            25.271734000000002
+          ],
+          "median": 26.039351
+        },
+        "shared_ms": {
+          "first": 103.648501,
+          "warm": [
+            90.531955,
+            88.386329,
+            84.419515
+          ],
+          "median": 88.386329
+        }
+      },
+      "instrumented": {
+        "growth_ms": {
+          "first": 49.925475,
+          "warm": [
+            43.37705699999999,
+            39.082885999999995,
+            39.939224
+          ],
+          "median": 39.939224
+        },
+        "compact_ms": {
+          "first": 28.916021999999998,
+          "warm": [
+            22.187928999999997,
+            24.556769,
+            25.057198999999997
+          ],
+          "median": 24.556769
+        },
+        "stations_ms": {
+          "first": 29.393501,
+          "warm": [
+            27.229546,
+            26.760486,
+            26.593113000000002
+          ],
+          "median": 26.760486
+        },
+        "shared_ms": {
+          "first": 108.23499799999999,
+          "warm": [
+            92.79453199999999,
+            90.40014099999999,
+            91.58953600000001
+          ],
+          "median": 91.58953600000001
+        }
+      }
+    },
+    "overhead_percent": {
+      "growth_ms": 5.9141387196678386,
+      "compact_ms": 7.474608299575691,
+      "stations_ms": 2.769404659893415,
+      "shared_ms": 3.6240977945808828
+    },
+    "phase_medians_ms": {
+      "skeleton.new": 0.00792,
+      "step.split_config": 0.00020999999999999998,
+      "scaffold.validation": 0.23572500000000002,
+      "step.scaffold": 8.868328,
+      "step.remap": 0.134943,
+      "radius.validate_tree": 0.832287,
+      "radius.validate_params": 0.00057,
+      "radius.solve_body": 1.301698,
+      "radius.validate_solved": 0.637513,
+      "step.radius": 1.080283,
+      "step.identify_before": 0.154003,
+      "step.seed": 6.1598999999999995,
+      "step.local_advance": 19.096553999999998,
+      "step.identify_after": 1.021131,
+      "skeleton.step_structural": 15.819494,
+      "local.validation": 0.840618,
+      "skeleton.step_local": 21.101846000000002,
+      "finish.shed": 0.00076,
+      "finish.radius": 1.654955,
+      "finish.tips": 0.12493199999999999,
+      "skeleton.finish": 1.766858,
+      "skeleton.final_remap_identify": 1.056452,
+      "compact.wrapper_validate": 0.6871849999999999,
+      "compact.edges_allocate": 0.139623,
+      "compact.validate": 0.369178,
+      "compact.paths": 1.214086,
+      "compact.validate_solved": 0.446699,
+      "compact.distance_allocate": 0.41419900000000004,
+      "compact.order_samples": 4.039956,
+      "compact.sort": 1.235436,
+      "compact.sample_frame_pack_contact": 14.847163,
+      "stations.validation_contact": 1.057652,
+      "stations.runs_frames_descriptors": 25.701323000000002
+    },
+    "canonical_fnv1a64": "ce62d7a2658b2d1b",
+    "compact_rings_fnv1a64": "fa1b30add3f397ab",
+    "parameter_sha256": "9ec47f8e5aa2f5772cdfa78d1bcb55293e00775d45bfb95ffcfbfc06f5779423",
+    "counts": {
+      "nodes": 90439,
+      "placed": 7012326,
+      "retained": 7012326,
+      "wood_vertices": 2888144,
+      "wood_triangles": 5580040,
+      "wood_dropped": 0
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "qa": {
+    "calls": [
+      {
+        "seed": 1,
+        "start": 645.5,
+        "ms": 500.6000000014901,
+        "backend": "Gpu",
+        "gpuPositions": true,
+        "foliage": 715065
+      },
+      {
+        "seed": 19,
+        "start": 1456.1000000014901,
+        "ms": 274.20000000298023,
+        "backend": "Gpu",
+        "gpuPositions": true,
+        "foliage": 933335
+      },
+      {
+        "seed": 19,
+        "start": 2024.7000000029802,
+        "ms": 246.79999999701977,
+        "backend": "Gpu",
+        "gpuPositions": true,
+        "foliage": 7019599
+      },
+      {
+        "seed": 19,
+        "start": 2577.9000000059605,
+        "ms": 423.59999999403954,
+        "backend": "Gpu",
+        "gpuPositions": true,
+        "foliage": 933335
+      }
+    ],
+    "active": 0,
+    "maxActive": 1,
+    "cpuCalls": 0
+  },
+  "alerts": [],
+  "liveDevices": 1,
+  "body": "rgence\n0deg\nstem lean\n0deg\nstem lean spread\n0.00\nstem fork height\n0.00\ngravitropism\n0.00\nlean\n0.00\nmaximum writhe\n0.90\nturn limit\n35deg/step\ndensity\n0.19\ngrowth step\n0.0220h\nBRANCHES\nlength ratio\n0.45\nradius power\n1.30\ninternode factor\n2.50x\nangle variation\n10deg\nvigour variation\n0.15\nlaterals\n4\ntwig generations\n6\nmaximum internodes\n32\nmaximum droop\n0.35\ncurtain step clearance\n0.80\ngrowth work budget\n250000\nreach probe steps\n96\nsampling attempts per attractor\n64\nlimbRadius\n0.100r\nreach\n0.20\nbranch angle\n45deg\nbranch divergence\n137.508deg\nhang\n0.00\npendulous length\n0.25m\npendulous radius\n1.00r\ncurtain separation\n4.0deg\nsag\n0.00\npendulous variation\n0.00\ncurtain drop\n0.00\ncurtain clearance\n0.50m\nTHICKNESS\ntaper\n2.00n\ntrunk\n0.018h\nlength taper\n0.60\nmaximum taper exponent\n12.0\nsocket containment\n0.90\nENVELOPE\ncrown base\n0.16\nfullness\n0.55\nshoulder\n2.20n\nirregularity\n0.00\nlobe scale\n0.50h\nSURFACE\nlobes\n5\nlobe depth\n0.00\nsurface twist\n0.0turns\nroot flare\n2.10x\nCANOPY\ndivergence\n180.000deg\nclump system order\n2\nclump neighbours\n12\nleaf outward\n0.00\nleaf upward\n0.00\nleaf scatter\n18deg\nleaf size\n1.00x\nleaf size spread\n0.20\nSupernatural\nenable supernatural effects\ntorsion\n1.00x\nwrithe\n0.00\nbend length\n0.45\nspiral\n0.0\nreframe\nreset\ngpu timing\n\n8,877,960 wood tris, 4,583,510 wood verts, 933,335 foliage instances, 423.8 ms\n\n9 scene draws, 169,412,221 tris drawn, 933,335 instances drawn\n\nno timing yet. chrome quantizes webgpu timestamps to 100 us unless its developer features are on.\n\none swept surface, lobed section winding along its own length, flared into the ground. spiral bends the centreline; surface twist winds the skin. foliage grows on the young wood at the end of every shoot and is culled to a shell, so what you are looking at is the outside of the canopy and not its filling.",
+  "errors": []
+}

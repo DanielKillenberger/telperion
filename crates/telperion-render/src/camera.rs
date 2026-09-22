@@ -12,10 +12,6 @@ pub const FIELD_OF_VIEW: f64 = 38.0;
 /// fills the frame and the wheel is how a hand pulls back to orbit it. The
 /// owner judged the old orbit stand-off too far away (2026-09-09).
 pub const FRAME_MARGIN: f64 = 1.15;
-/// Where the camera stands as a direction from the subject's centre: a
-/// three-quarter view from the front right, a little above the middle. Only the
-/// angle is authored; the distance is solved.
-const FRAME_DIRECTION: Vec3 = Vec3::new(0.62, 0.28, 1.0);
 /// The near plane for a subject the size of a tree. Anything small enough that
 /// a tenth of a metre would clip it draws its own near plane from its reach.
 const NEAR: f64 = 0.1;
@@ -63,7 +59,12 @@ fn reach_of(half: Vec3, direction: Vec3) -> f64 {
 pub fn hero_pose(bounds: Bounds, aspect: f64, ground_reach: f64) -> Camera {
     let size = bounds.max - bounds.min;
     let centre = (bounds.min + bounds.max) * 0.5;
-    let back = FRAME_DIRECTION.normalized();
+    // Share the default shot's direction: 20 degrees beside the default sun
+    // in azimuth, a little above the tree's middle. Distance is still fitted.
+    let shot = Shot::default();
+    let (rise, run) = shot.elevation.to_radians().sin_cos();
+    let (across, along) = shot.azimuth.to_radians().sin_cos();
+    let back = Vec3::new(run * across, rise, run * along);
     let reach = reach_along(
         bounds,
         back,

@@ -1,0 +1,39 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-render)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.00s
+     Running tests/bark_depth.rs (/home/daniel/Projects/telperion/target/debug/deps/bark_depth-03590aff2a2e03ee)
+
+running 1 test
+test the_depth_row_moves_no_wood_and_changes_the_picture ... depth row at 0.5375: mean 1.7125/255, worst 110/255 over the trunk frame
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 37.45s
+
+     Running tests/bark_detail.rs (/home/daniel/Projects/telperion/target/debug/deps/bark_detail-8d8c0c9b11101da8)
+
+running 2 tests
+test radius_storage_is_refused_before_upload_when_only_its_binding_limit_is_exceeded ... ok
+test relief_moves_the_light_while_every_wood_mesh_byte_holds ... R1 wood hash: off=16822752187927960657, on=16822752187927960657
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.99s
+
+     Running tests/bark_distance.rs (/home/daniel/Projects/telperion/target/debug/deps/bark_distance-d509423f75fb22ff)
+
+running 1 test
+test resolved_scales_survive_until_the_two_pixel_boundary ... distance-series height deviation near/far: 0.0009139285741035447/0.0008364669699845517
+OregonWhiteOak 2x resolution: 10000 pixels, mean 2.367708/255, p95 6.50/255
+OregonWhiteOak 4x resolution: 5000 pixels, mean 3.304683/255, p95 8.50/255
+
+thread 'resolved_scales_survive_until_the_two_pixel_boundary' (919011) panicked at crates/telperion-render/tests/bark_distance.rs:178:9:
+distance series aliases on the OregonWhiteOak 4x: mean 3.3047, p95 8.50
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    resolved_scales_survive_until_the_two_pixel_boundary
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 15.60s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_distance`

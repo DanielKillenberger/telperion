@@ -1,15 +1,23 @@
 {
   "branch_name": "fn-42-bark-depth-level-and-a-fair-capture",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-14T22:16:28.346237Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-32-bark-as-plates-and-scales"
   ],
   "id": "fn-42-bark-depth-level-and-a-fair-capture",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-42-bark-depth-level-and-a-fair-capture.md",
-  "status": "open",
+  "status": "done",
   "title": "Bark depth, level and a fair capture",
   "tracker": {
     "baseHashFlow": null,
@@ -22,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-19T20:26:59.877649Z"
+  "updated_at": "2026-09-20T08:42:26.878781Z"
 }

@@ -84,8 +84,25 @@ impl From<telperion_core::Error> for RenderError {
 
 pub type Result<T> = std::result::Result<T, RenderError>;
 
+/// Held while an instance is made. The platform's Vulkan loader does not
+/// survive two threads of one process doing that at once; a second request
+/// waits here instead.
+#[cfg(not(target_arch = "wasm32"))]
+static MAKING_INSTANCE: Mutex<()> = Mutex::new(());
+
+/// The platform's instance, made by one thread at a time on a native target.
+/// A request that panicked under the lock has not harmed the next one.
+fn instance() -> wgpu::Instance {
+    #[cfg(not(target_arch = "wasm32"))]
+    let _making = MAKING_INSTANCE
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle_from_env())
+}
+
 /// A live GPU device with the adapter it came from. One per canvas, one per
 /// headless render; it owns nothing about trees.
+#[derive(Clone)]
 pub struct Gpu {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
@@ -104,8 +121,7 @@ impl Gpu {
     /// Asks the platform for a hardware device, with the adapter's own maximum
     /// buffer size so a full-detail tree fits, and timestamps when offered.
     pub async fn request(compatible_surface: Option<&wgpu::Surface<'_>>) -> Result<Self> {
-        let instance =
-            wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle_from_env());
+        let instance = instance();
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::HighPerformance,

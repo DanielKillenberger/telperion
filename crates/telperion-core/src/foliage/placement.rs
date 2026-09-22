@@ -1,6 +1,6 @@
 use super::{
     clumping, range, short_shoots,
-    station::{place_run, Run},
+    station::{place_run, reserve_all, station_count, walk, Run},
     Instances, Reference,
 };
 use crate::{
@@ -138,6 +138,17 @@ impl Default for TwigPlacement {
         }
     }
 }
+impl TwigPlacement {
+    /// The rows a family's own twig table states, resolved: what a caller
+    /// clothing that family hands `place`, and what the prediction counts by.
+    pub fn of(family: &crate::presets::Family) -> Result<Self> {
+        let twig = family.skeleton.twigs.resolved()?.twig;
+        Ok(Self {
+            internode_length: twig.internode_length,
+            stations_per_internode: twig.stations_per_internode,
+        })
+    }
+}
 
 /// Leaves sit on the runs the twig layer marks, and on any wood slender enough
 /// for shoot_radius. Without a twig layer the terminal runs under that same
@@ -170,6 +181,85 @@ pub fn place_on_surface(
     let contacts = AttachmentSurface::new(tree, envelope.height, surface)?;
     place_impl(tree, envelope, seed, p, twig, Some(&contacts), reference)
 }
+/// Everything both the builder and the count check before a leaf is placed,
+/// and whether this tree and this family bear any at all.
+fn bearing(
+    tree: &Tree,
+    envelope: Envelope,
+    p: CanopyParams,
+    twig: Option<TwigPlacement>,
+) -> Result<bool> {
+    validate(tree, envelope, p, twig)?;
+    if tree.nodes.len() < 2 || p.size == 0. {
+        return Ok(false);
+    }
+    // Bound geometry before length arithmetic and float32 conversion.
+    if tree.nodes.iter().any(|n| {
+        [
+            n.position.x,
+            n.position.y,
+            n.position.z,
+            n.radius,
+            n.start_radius,
+        ]
+        .iter()
+        .any(|v| v.abs() > f32::MAX as f64 / 4.)
+    }) {
+        return Err(Error::ResourceLimit("foliage coordinate range"));
+    }
+    Ok(true)
+}
+
+/// Every unbranched run of leaf-bearing wood this family clothes: what the
+/// twig layer marked, or the terminal shoots slender enough for `shoot_radius`
+/// where there is no twig layer.
+fn runs(tree: &Tree, p: CanopyParams, twig: Option<TwigPlacement>) -> Vec<Vec<usize>> {
+    match twig {
+        Some(_) => bearing_runs(tree, p),
+        None => shoots(
+            tree,
+            tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius,
+        ),
+    }
+}
+
+/// Leaves these runs and this family's short shoots place, before any cull.
+fn leaves_on(
+    tree: &Tree,
+    envelope: Envelope,
+    seed: u32,
+    p: CanopyParams,
+    twig: Option<TwigPlacement>,
+    runs: &[Vec<usize>],
+) -> Result<usize> {
+    let overflow = || Error::ResourceLimit("foliage count overflow");
+    let (mut points, mut along) = (Vec::new(), Vec::new());
+    let mut total = short_shoots::count(tree, envelope, seed, &p)?;
+    for nodes in runs {
+        let length = walk(tree, nodes, &mut points, &mut along);
+        total = total
+            .checked_add(station_count(length, envelope, p, twig)?)
+            .ok_or_else(overflow)?;
+    }
+    Ok(total)
+}
+
+/// How many leaves this family places on this tree, before any cull. `place`
+/// reserves exactly this many, so a finished crown's capacity is this count,
+/// and a prediction reads it without placing a leaf or building a matrix.
+pub(crate) fn leaf_count(
+    tree: &Tree,
+    envelope: Envelope,
+    seed: u32,
+    p: CanopyParams,
+    twig: Option<TwigPlacement>,
+) -> Result<usize> {
+    if !bearing(tree, envelope, p, twig)? {
+        return Ok(0);
+    }
+    leaves_on(tree, envelope, seed, p, twig, &runs(tree, p, twig))
+}
+
 fn place_impl(
     tree: &Tree,
     envelope: Envelope,
@@ -179,6 +269,54 @@ fn place_impl(
     contacts: Option<&AttachmentSurface>,
     reference: Reference,
 ) -> Result<Instances> {
+    if !bearing(tree, envelope, p, twig)? {
+        return Ok(Instances::new(reference));
+    }
+    let mut out = Instances::new(reference);
+    let runs = runs(tree, p, twig);
+    // One reservation for the whole crown, to the count the prediction reads:
+    // every later reserve finds the room already there, so the vector's
+    // capacity is that count and nothing the cull or the clumping retains
+    // holds a block larger than the specimen was said to cost.
+    reserve_all(
+        &mut out,
+        leaves_on(tree, envelope, seed, p, twig, &runs)?,
+        p,
+    )?;
+    let mut rng = Rng::new(seed ^ 0x2c9e1a7f);
+    // Which wood bears each leaf, kept only where limb systems clump.
+    let mut owners = (p.limb_clumping > 0.).then(Vec::new);
+    for nodes in runs {
+        place_run(
+            &Run {
+                tree,
+                nodes: &nodes,
+                envelope,
+                params: p,
+                twig,
+                contacts,
+            },
+            &mut rng,
+            &mut out,
+        )?;
+        if let Some(owners) = owners.as_mut() {
+            owners.resize(out.leaves.len(), nodes[1] as u32);
+        }
+    }
+    // A second source over the limbs and branches: short shoots draw from
+    // their own wood's stream, so the leaves above keep every byte.
+    short_shoots::clothe(tree, envelope, seed, &p, &mut out, owners.as_mut())?;
+    if let Some(owners) = owners {
+        clumping::thin(tree, &owners, seed, p, &mut out);
+    }
+    Ok(out)
+}
+pub(super) fn validate(
+    tree: &Tree,
+    envelope: Envelope,
+    p: CanopyParams,
+    twig: Option<TwigPlacement>,
+) -> Result<()> {
     tree.validate_solved()?;
     envelope.validate()?;
     for (v, l, h, n) in [
@@ -211,58 +349,7 @@ fn place_impl(
             return Err(Error::InvalidInput("twig stations"));
         }
     }
-    if tree.nodes.len() < 2 || p.size == 0. {
-        return Ok(Instances::new(reference));
-    }
-    // Bound geometry before length arithmetic and float32 conversion.
-    if tree.nodes.iter().any(|n| {
-        [
-            n.position.x,
-            n.position.y,
-            n.position.z,
-            n.radius,
-            n.start_radius,
-        ]
-        .iter()
-        .any(|v| v.abs() > f32::MAX as f64 / 4.)
-    }) {
-        return Err(Error::ResourceLimit("foliage coordinate range"));
-    }
-    let mut out = Instances::new(reference);
-    let mut rng = Rng::new(seed ^ 0x2c9e1a7f);
-    let runs = match twig {
-        Some(_) => bearing_runs(tree, p),
-        None => shoots(
-            tree,
-            tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius,
-        ),
-    };
-    // Which wood bears each leaf, kept only where limb systems clump.
-    let mut owners = (p.limb_clumping > 0.).then(Vec::new);
-    for nodes in runs {
-        place_run(
-            &Run {
-                tree,
-                nodes: &nodes,
-                envelope,
-                params: p,
-                twig,
-                contacts,
-            },
-            &mut rng,
-            &mut out,
-        )?;
-        if let Some(owners) = owners.as_mut() {
-            owners.resize(out.leaves.len(), nodes[1] as u32);
-        }
-    }
-    // A second source over the limbs and branches: short shoots draw from
-    // their own wood's stream, so the leaves above keep every byte.
-    short_shoots::clothe(tree, envelope, seed, &p, &mut out, owners.as_mut())?;
-    if let Some(owners) = owners {
-        clumping::thin(tree, &owners, seed, p, &mut out);
-    }
-    Ok(out)
+    Ok(())
 }
 fn shoots(tree: &Tree, max_radius: f64) -> Vec<Vec<usize>> {
     let n = tree.nodes.len();
@@ -331,7 +418,7 @@ fn shoots(tree: &Tree, max_radius: f64) -> Vec<Vec<usize>> {
 
 /// Every unbranched run of leaf-bearing wood: what the twig layer marked, plus
 /// whatever else is slender enough for shoot_radius to clothe.
-fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
+pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
     let slender = tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius;
     let bearing = |i: usize| {
         let n = &tree.nodes[i];
@@ -339,18 +426,19 @@ fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
             && (n.kind == NodeKind::Twig
                 || (slender > 0. && n.radius.max(n.start_radius) <= slender))
     };
-    let mut children = vec![Vec::new(); tree.nodes.len()];
+    let mut children = vec![(0usize, 0usize); tree.nodes.len()];
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
         if bearing(i) {
             if let Some(parent) = n.parent {
-                children[parent as usize].push(i);
+                children[parent as usize].0 += 1;
+                children[parent as usize].1 = i;
             }
         }
     }
     let continues = |parent: usize, child: usize| {
         bearing(parent)
             && tree.nodes[parent].branch == tree.nodes[child].branch
-            && children[parent].len() == 1
+            && children[parent].0 == 1
     };
     let mut runs = Vec::new();
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
@@ -365,8 +453,8 @@ fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
         }
         let mut run = vec![parent, i];
         let mut at = i;
-        while children[at].len() == 1 && continues(at, children[at][0]) {
-            at = children[at][0];
+        while children[at].0 == 1 && continues(at, children[at].1) {
+            at = children[at].1;
             run.push(at);
         }
         runs.push(run);

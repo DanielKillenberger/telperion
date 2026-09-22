@@ -1,0 +1,24 @@
+{
+  "sourceCommit": "2aca44896139a1bbf4e1e1c398e098edb10e473b",
+  "baseCommit": "717017c18684240c198df9703b69dfdc6882d9ae",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "kernel": "Linux 7.2.3-arch1-3 x86_64 GNU/Linux",
+  "sha256": {
+    "crates/telperion-render/src/generation.rs": "9f95b4be586879b4fc2bebf219181dfbbc3ffe4c2c4842fd6e942e8ce3c831b4",
+    "crates/telperion-render/src/generation/preparation.rs": "72d063ff57fd379d96d41a6c1c9d0f4cb232cd7be61207331348cf816c1a2db4",
+    "crates/telperion-render/src/generation/positions.rs": "25553f87391083d41e248ae0a395bf9e416d95911990e00c591b278643da7d4c",
+    "crates/telperion-render/src/generation/positions.wgsl": "f0eb289e2d9d109dd40df9294fea454cb923dbcee4360b91e9b95917f6c47114",
+    "crates/telperion-render/src/generation/wood_geometry.wgsl": "b7dd4faf3c266dfa2d92ad9eac849b9e5dbcffa6f0ceeda329f9e7c164a2ae2d",
+    "crates/telperion-render/src/generation/wood.wgsl": "5bc279a6583d0ee17054bae6631640c313e165109aed012b9d59e9824a8ce442",
+    "crates/telperion-render/src/generation/wood.rs": "19afab7c45c52374e39c768e262f9bfbb097625934f7c575a01bc163ee4b3977",
+    "crates/telperion-core/src/surface/compact.rs": "567c59f1a8b4c60f06d542e752478a49b892f1d26553f33ef229fd5b5df847ac",
+    "crates/telperion-core/src/foliage/prepared.rs": "04d4aaf186ec8b65b748dcc5fd0a95df96d94db626935a4d08d4b1fa65bfe901",
+    "/tmp/telperion-fn91-tools/generation-gpu-shared-rings": "90bae8a8a1471b2b0e3155d57a66d2c5e4772c646560247438bd1269f489a195",
+    "/tmp/telperion-fn91-tools/generation-gpu-positions": "5d3c9d83397c4185b3dfd78555d087e850b89ae4c0f7aa2bf08a44d09352d417",
+    "/tmp/telperion-fn91-tools/render-shared-rings-baseline/telperion_render_bg.wasm": "f2696198e8049a67ab443b3d7ca6631381d9c87549625e16e7ae0fe667f92e41",
+    "src/browser/render/telperion_render_bg.wasm": "69822d4aa605eaa819e8e27bc68c2651d613358c577da4c3ab8faf3c9620ed44",
+    "src/browser/render/telperion_render.js": "4a9d9ac777a9657e7575a5fb3958ccc7e724f9914c0a10b98560d5930796cb18"
+  },
+  "protocol": "serial builds and timed native/browser runs; first+3 warm native, first+5 warm browser; one separately labelled oak RSS follow-up",
+  "baseline": "saved .6 executable/module; .7 had no runtime changes"
+}

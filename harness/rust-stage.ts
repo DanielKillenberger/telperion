@@ -31,10 +31,10 @@ import { eyeOf, orbitOf, pan, push, turn, type Orbit } from "./orbit";
  * ------------------------------------------------------------------ */
 
 export interface Stage {
-  /** Replaces the tree with the one these parameters describe. Throws
+  /** Replaces the tree with the one these parameters describe. Rejects with
    *  the generator's or the renderer's own message; the tree already on
    *  the canvas stays where it is. */
-  setTree(family: string): Submitted;
+  setTreeGpu(family: string): Promise<Submitted>;
   buildSpecimen(family: string, age: number): GrowthSubmitted;
   seekSpecimen(age: number): GrowthSubmitted;
   setView(view: View): void;
@@ -140,7 +140,7 @@ export async function createStage(
   canvas.addEventListener("wheel", onWheel, { passive: false });
 
   return {
-    setTree: (family) => renderer.setTree(family),
+    setTreeGpu: (family) => renderer.setTreeGpu(family),
     buildSpecimen: (family, age) => renderer.buildSpecimen(family, age),
     seekSpecimen: age => renderer.seekSpecimen(age),
     scene: () => renderer.scene(),

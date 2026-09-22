@@ -114,6 +114,7 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         material.plate_dome,
         material.plate_edge_lift,
         material.plate_furrow_width,
+        material.plate_edge_shape,
         material.plate_identity,
         material.weathering_strength,
         material.weathering_red,

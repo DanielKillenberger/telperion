@@ -1,0 +1,62 @@
+[
+  {
+    "preset": "oregon-white-oak",
+    "seed": 1,
+    "baseline_ms": 175.86218,
+    "candidate_ms": 67.882801,
+    "speedup": 2.590673593448214,
+    "first_ms": {
+      "baseline": 174.481688,
+      "candidate": 66.876127
+    },
+    "parallel": [
+      4,
+      0
+    ]
+  },
+  {
+    "preset": "oregon-white-oak",
+    "seed": 7,
+    "baseline_ms": 201.307387,
+    "candidate_ms": 78.11844699999999,
+    "speedup": 2.5769507041019395,
+    "first_ms": {
+      "baseline": 202.487524,
+      "candidate": 76.194022
+    },
+    "parallel": [
+      4,
+      0
+    ]
+  },
+  {
+    "preset": "norway-spruce",
+    "seed": 1,
+    "baseline_ms": 141.478701,
+    "candidate_ms": 54.916059000000004,
+    "speedup": 2.5762719243928265,
+    "first_ms": {
+      "baseline": 137.913309,
+      "candidate": 56.491236
+    },
+    "parallel": [
+      4,
+      0
+    ]
+  },
+  {
+    "preset": "norway-spruce",
+    "seed": 7,
+    "baseline_ms": 133.68972000000002,
+    "candidate_ms": 49.442203,
+    "speedup": 2.7039596111848017,
+    "first_ms": {
+      "baseline": 134.45731899999998,
+      "candidate": 51.742626
+    },
+    "parallel": [
+      4,
+      0
+    ]
+  }
+]

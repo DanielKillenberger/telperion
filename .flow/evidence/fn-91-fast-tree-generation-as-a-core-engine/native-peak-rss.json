@@ -1,0 +1,68 @@
+{
+  "method": "Linux wait4 ru_maxrss: child-process peak resident set in KiB; two sequential builds in a fresh process per fixture; no GPU",
+  "binarySha256": {
+    "original": "7dac85ccd5c81748ec0de3b125c65293c3282b5c4a082cbdea7e51fa9b3c0b9b",
+    "cpu-candidate": "bb27a6af73f9734ef872fa4d151e402d716273a0c22d745f677e13f7fd6a8e1a"
+  },
+  "rows": [
+    {
+      "variant": "original",
+      "preset": "oregon-white-oak",
+      "seed": 1,
+      "maxRssKiB": 253932,
+      "buildsPerProcess": 2
+    },
+    {
+      "variant": "original",
+      "preset": "oregon-white-oak",
+      "seed": 7,
+      "maxRssKiB": 295864,
+      "buildsPerProcess": 2
+    },
+    {
+      "variant": "original",
+      "preset": "norway-spruce",
+      "seed": 1,
+      "maxRssKiB": 402068,
+      "buildsPerProcess": 2
+    },
+    {
+      "variant": "original",
+      "preset": "norway-spruce",
+      "seed": 7,
+      "maxRssKiB": 370148,
+      "buildsPerProcess": 2
+    },
+    {
+      "variant": "cpu-candidate",
+      "preset": "oregon-white-oak",
+      "seed": 1,
+      "maxRssKiB": 256644,
+      "buildsPerProcess": 2
+    },
+    {
+      "variant": "cpu-candidate",
+      "preset": "oregon-white-oak",
+      "seed": 7,
+      "maxRssKiB": 295800,
+      "buildsPerProcess": 2
+    },
+    {
+      "variant": "cpu-candidate",
+      "preset": "norway-spruce",
+      "seed": 1,
+      "maxRssKiB": 402960,
+      "buildsPerProcess": 2
+    },
+    {
+      "variant": "cpu-candidate",
+      "preset": "norway-spruce",
+      "seed": 7,
+      "maxRssKiB": 371280,
+      "buildsPerProcess": 2
+    }
+  ],
+  "qualification": "preliminary; unmatched fingerprint instrumentation; neither no-increase pass nor established generator regression",
+  "baselineRevision": "b63d38c31ec826ce089eade7273c43077b00aee1",
+  "candidateRevision": "f2c7e81c0e93fb043d1b28c3e6bfb01d127727f2"
+}

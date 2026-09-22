@@ -1,0 +1,206 @@
+[
+  {
+    "preset": "oregon-white-oak",
+    "seed": 1,
+    "compact_ms": {
+      "medians": {
+        "baseline": 39.247316,
+        "candidate": 43.092237999999995
+      },
+      "change_percent": 9.796649533945189,
+      "first": {
+        "baseline": 53.732992,
+        "candidate": 39.067353
+      },
+      "warm_range": {
+        "baseline": [
+          37.611502,
+          39.89487
+        ],
+        "candidate": [
+          38.897909,
+          45.464627
+        ]
+      }
+    },
+    "wood_ms": {
+      "medians": {
+        "baseline": 173.571095,
+        "candidate": 175.513376
+      },
+      "change_percent": 1.1190117801584298,
+      "first": {
+        "baseline": 182.61738599999998,
+        "candidate": 173.38973099999998
+      },
+      "warm_range": {
+        "baseline": [
+          172.545694,
+          173.723548
+        ],
+        "candidate": [
+          172.006112,
+          178.252464
+        ]
+      }
+    },
+    "exact_bytes": 224507424,
+    "nodes": 125087,
+    "vertices": 3724874,
+    "dropped": 0,
+    "contact_bytes": 5003480
+  },
+  {
+    "preset": "oregon-white-oak",
+    "seed": 7,
+    "compact_ms": {
+      "medians": {
+        "baseline": 51.608416999999996,
+        "candidate": 50.748179
+      },
+      "change_percent": -1.6668560091660956,
+      "first": {
+        "baseline": 55.356746,
+        "candidate": 58.146924000000006
+      },
+      "warm_range": {
+        "baseline": [
+          50.911322,
+          55.949769
+        ],
+        "candidate": [
+          50.106775,
+          59.315929000000004
+        ]
+      }
+    },
+    "wood_ms": {
+      "medians": {
+        "baseline": 198.085432,
+        "candidate": 201.25379800000002
+      },
+      "change_percent": 1.5994947069100984,
+      "first": {
+        "baseline": 197.13616100000002,
+        "candidate": 202.89712300000002
+      },
+      "warm_range": {
+        "baseline": [
+          197.90941800000002,
+          198.74686499999999
+        ],
+        "candidate": [
+          198.81100700000002,
+          206.25206400000002
+        ]
+      }
+    },
+    "exact_bytes": 256747625,
+    "nodes": 139040,
+    "vertices": 4262170,
+    "dropped": 0,
+    "contact_bytes": 5561600
+  },
+  {
+    "preset": "norway-spruce",
+    "seed": 1,
+    "compact_ms": {
+      "medians": {
+        "baseline": 25.447665,
+        "candidate": 25.478987
+      },
+      "change_percent": 0.12308398432625545,
+      "first": {
+        "baseline": 28.154233,
+        "candidate": 27.472588
+      },
+      "warm_range": {
+        "baseline": [
+          24.253511,
+          29.326887
+        ],
+        "candidate": [
+          24.198239,
+          27.256604
+        ]
+      }
+    },
+    "wood_ms": {
+      "medians": {
+        "baseline": 139.011578,
+        "candidate": 138.461106
+      },
+      "change_percent": -0.39599003760678597,
+      "first": {
+        "baseline": 140.224493,
+        "candidate": 137.152099
+      },
+      "warm_range": {
+        "baseline": [
+          137.35519299999999,
+          139.170391
+        ],
+        "candidate": [
+          137.70287000000002,
+          139.420446
+        ]
+      }
+    },
+    "exact_bytes": 183621258,
+    "nodes": 95389,
+    "vertices": 3050636,
+    "dropped": 0,
+    "contact_bytes": 3815560
+  },
+  {
+    "preset": "norway-spruce",
+    "seed": 7,
+    "compact_ms": {
+      "medians": {
+        "baseline": 22.275789,
+        "candidate": 22.222458
+      },
+      "change_percent": -0.23941239522424773,
+      "first": {
+        "baseline": 24.68684,
+        "candidate": 27.327165
+      },
+      "warm_range": {
+        "baseline": [
+          21.771518,
+          25.66228
+        ],
+        "candidate": [
+          21.956032,
+          25.64224
+        ]
+      }
+    },
+    "wood_ms": {
+      "medians": {
+        "baseline": 129.78178300000002,
+        "candidate": 131.603101
+      },
+      "change_percent": 1.4033695314541905,
+      "first": {
+        "baseline": 131.38966599999998,
+        "candidate": 132.529391
+      },
+      "warm_range": {
+        "baseline": [
+          129.611269,
+          129.860345
+        ],
+        "candidate": [
+          130.07488,
+          131.810166
+        ]
+      }
+    },
+    "exact_bytes": 173845308,
+    "nodes": 90439,
+    "vertices": 2888144,
+    "dropped": 0,
+    "contact_bytes": 3617560
+  }
+]

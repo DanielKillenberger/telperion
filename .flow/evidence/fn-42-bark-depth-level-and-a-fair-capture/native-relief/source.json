@@ -1,0 +1,9 @@
+{
+  "source_revision": "final-working-relief-candidate",
+  "preflight_gpu": null,
+  "changed_source_sha256": {
+    "crates/telperion-core/src/presets/materials.rs": "d58670236bfa8b1e43063aa0920c1444d2a3490dab9e445c1205cede0e1f99d0",
+    "crates/telperion-render/src/shaders/wood.wgsl": "df117f2f42a34c9feb5d2117036a8ca67a832aae344b18a6e551b54f24655fda"
+  },
+  "session": "Final native refresh after smooth-bark specialization; native then browser serialized. No concurrent GPU job owned by this session. Existing fn26 report classifier returns valid; desktop remains active. Instantaneous external GPU preflight was not sampled for this refresh."
+}

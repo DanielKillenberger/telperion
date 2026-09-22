@@ -1,0 +1,106 @@
+[
+  {
+    "preset": "oregon-white-oak",
+    "seed": 1,
+    "medians_ms": {
+      "baseline": 62.632287999999996,
+      "candidate": 60.737663999999995
+    },
+    "change_percent": -3.0249956699649916,
+    "first_ms": {
+      "baseline": 65.67607000000001,
+      "candidate": 64.594404
+    },
+    "warm_range_ms": {
+      "baseline": [
+        62.56466700000001,
+        64.487612
+      ],
+      "candidate": [
+        59.957274999999996,
+        62.014764
+      ]
+    },
+    "nodes": 125087,
+    "exact_bytes": 12508723,
+    "complete": true
+  },
+  {
+    "preset": "oregon-white-oak",
+    "seed": 7,
+    "medians_ms": {
+      "baseline": 72.266043,
+      "candidate": 72.608461
+    },
+    "change_percent": 0.47382973494205505,
+    "first_ms": {
+      "baseline": 72.74580499999999,
+      "candidate": 79.470143
+    },
+    "warm_range_ms": {
+      "baseline": [
+        70.548263,
+        72.50506
+      ],
+      "candidate": [
+        71.775872,
+        73.66702599999999
+      ]
+    },
+    "nodes": 139040,
+    "exact_bytes": 13904023,
+    "complete": true
+  },
+  {
+    "preset": "norway-spruce",
+    "seed": 1,
+    "medians_ms": {
+      "baseline": 44.847311,
+      "candidate": 44.030781
+    },
+    "change_percent": -1.8206888702870017,
+    "first_ms": {
+      "baseline": 49.903819,
+      "candidate": 50.043862000000004
+    },
+    "warm_range_ms": {
+      "baseline": [
+        44.089463,
+        45.661350000000006
+      ],
+      "candidate": [
+        42.775052,
+        46.48972
+      ]
+    },
+    "nodes": 95389,
+    "exact_bytes": 9538923,
+    "complete": true
+  },
+  {
+    "preset": "norway-spruce",
+    "seed": 7,
+    "medians_ms": {
+      "baseline": 41.332118,
+      "candidate": 41.504792
+    },
+    "change_percent": 0.4177719612626696,
+    "first_ms": {
+      "baseline": 47.223276,
+      "candidate": 49.579122000000005
+    },
+    "warm_range_ms": {
+      "baseline": [
+        36.27478,
+        42.205479
+      ],
+      "candidate": [
+        36.107596,
+        42.580027
+      ]
+    },
+    "nodes": 90439,
+    "exact_bytes": 9043923,
+    "complete": true
+  }
+]

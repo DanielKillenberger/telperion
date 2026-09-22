@@ -1,0 +1,21 @@
+{
+  "base_commit": "aec1a7dc4a5faa01c60186f47d1679df85ee19ae",
+  "dirty": true,
+  "note": "Captured with 4x4 rough-bark quadrature. Subsequent specialization restores prior smooth-bark quadrature; oak and spruce rough-bark path unchanged.",
+  "images": {
+    "oak-flat.png": "67b80e79a11dc7587f4793f072fda0279449c8234fa2fb627b4b34713d2f563c",
+    "spruce-flat.png": "f31b9dd925347fdd4086429c229ec1ed674b739b75074fbd6c67d8b67fb65094",
+    "oak-trunk.png": "4d53f5cf1429170a9aa4c58051f76c2fecef8b2c2842b5a466740468d2297158",
+    "oak-branch.png": "e07d350bed520c13e6af4547c61c058f2cb1f77fea418b1d7f4c10e8369cb6ca",
+    "oak-leaf-frontlit.png": "318c148940511b81457199a0b9bfb7544e9f1555a6381521470a55da97c8f079",
+    "oak-leaf-backlit.png": "9dc7f26a268b4b5f320887c7a2b03fded6a1bfb3139ebdf854032a4241e2b5d9",
+    "spruce-trunk.png": "9129725f907d5e16f9e8ca021fa35c8ad4a78101e35222ad0c5ba58f6807aa5d",
+    "spruce-branch.png": "38732bcb34d012688fc62d2cd09fca81b839638697a72ee4396bdb6d02308496",
+    "spruce-needle-frontlit.png": "1370fa12b398c817f298f39785f573dc49f9aee3b42db9ba26b3b144f641c0f6",
+    "spruce-needle-backlit.png": "32e74d65b9a8c1269f642e7e6634f9d13ad3c7dda8c0f5978738589f4edebca4"
+  },
+  "source_sha256": {
+    "crates/telperion-core/src/presets/materials.rs": "d58670236bfa8b1e43063aa0920c1444d2a3490dab9e445c1205cede0e1f99d0",
+    "crates/telperion-render/src/shaders/wood.wgsl": "df117f2f42a34c9feb5d2117036a8ca67a832aae344b18a6e551b54f24655fda"
+  }
+}

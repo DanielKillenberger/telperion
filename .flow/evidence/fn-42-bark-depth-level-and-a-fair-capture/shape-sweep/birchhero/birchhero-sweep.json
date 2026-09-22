@@ -1,0 +1,104 @@
+{
+  "adapter": "AdapterInfo { name: \"NVIDIA GeForce RTX 3080\", vendor: 4318, device: 8710, device_type: DiscreteGpu, device_pci_bus_id: \"0000:07:00.0\", driver: \"NVIDIA\", driver_info: \"610.57.04\", backend: Vulkan, subgroup_min_size: 32, subgroup_max_size: 32, transient_saves_memory: Some(false), limit_bucket: None }",
+  "bounds_view": "whole",
+  "camera": {
+    "far": 827.8074484083327,
+    "field_of_view": 38.0,
+    "near": 0.1,
+    "position": [
+      13.937115542653695,
+      14.346637443399255,
+      22.698555176402426
+    ],
+    "target": [
+      -0.31765903359946757,
+      7.9089973121881485,
+      -0.2930167207800949
+    ]
+  },
+  "camera_moved": false,
+  "camera_recipe": "hero_pose(bounds, 1.5, GROUND_REACH)",
+  "clay_view": "clay, whole-tree subject",
+  "factors": [
+    1.12,
+    1.25,
+    1.5,
+    2.0,
+    3.0,
+    4.0
+  ],
+  "figure": false,
+  "generator": "direct mature mesh::build",
+  "height": 900,
+  "material_debug": "MaterialParams { bark_red: 0.78, bark_green: 0.76, bark_blue: 0.7, bark_roughness: 0.95, shoot_red: 0.095, shoot_green: 0.07, shoot_blue: 0.055, shoot_radius: 0.01, leaf_front_red: 0.1, leaf_front_green: 0.19, leaf_front_blue: 0.06, leaf_back_red: 0.2, leaf_back_green: 0.28, leaf_back_blue: 0.14, hue_range_low: -0.025, hue_range_high: 0.025, brightness_range_low: -0.12, brightness_range_high: 0.12, interior_darkening: 0.15, ridge_scale: 0.08, plate_scale: 0.4, furrow_strength: 1.0, roughness_detail: 0.1, vein_scale: 6.0, vein_contrast: 0.8, transmission_strength: 0.6, transmission_red: 0.28, transmission_green: 0.55, transmission_blue: 0.1, thickness: 0.45, fissure_red: -0.44, fissure_green: -0.44, fissure_blue: -0.41, fissure_strength: 1.0, crest_red: 0.1, crest_green: 0.1, crest_blue: 0.1, crest_strength: 0.4, bark_mottle_scale: 0.15, bark_mottle_strength: 0.12, cavity_strength: 0.3, blade_mottle_scale: 5.5, blade_mottle_strength: 0.2, margin_width: 0.05, margin_red: 0.03, margin_green: 0.05, margin_blue: 0.01, cuticle_gloss: 0.28, sky_occlusion_strength: 0.4, plate_cell_scale: 0.05, plate_elongation: 0.0, plate_dome: 0.3, plate_edge_lift: 0.3, plate_furrow_width: 0.0, plate_edge_shape: 0.0, plate_identity: 0.3, weathering_strength: 0.0, weathering_red: 0.0, weathering_green: 0.0, weathering_blue: 0.0, orientation_strength: 0.0, orientation_red: 0.0, orientation_green: 0.0, orientation_blue: 0.0, directional_occlusion: 0.6, depth_strength: 0.4, canopy_normal: 0.8, light_wrap: 0.5, diffuse_transmission: 1.0, leaf_sheen: 0.06, crown_shade: 0.2, lichen_scale: 0.01, lichen_coverage: 1.0, lichen_red: 0.5, lichen_green: 0.5, lichen_blue: 0.48, lichen_strength: 0.45, lenticel_density: 18.0, lenticel_length: 0.06, lenticel_strength: 0.72, lenticel_tint: -0.62, peel_curl: 0.3, peel_red: 0.33, peel_green: 0.315, peel_blue: 0.29, lobe_shade: 0.0, bark_reflectance: 0.04, leaf_reflectance: 0.04, bark_grain_scale: 0.002, bark_grain_strength: 0.15, blade_grain_scale: 90.0, blade_grain_strength: 0.3 }",
+  "material_view": "whole",
+  "metric_command": "uv run --with numpy --with pillow .flow/evidence/fn71/sweep.py /home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/.flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-sweep/birchhero birchhero",
+  "preset": "SilverBirch",
+  "protocol": ".flow/evidence/fn71/sweep.py",
+  "purpose": "numeric footprint diagnostics only",
+  "reductions": [
+    {
+      "factor": 1.12,
+      "file": "birchhero-r1.12.png",
+      "height": 804,
+      "width": 1205
+    },
+    {
+      "factor": 1.25,
+      "file": "birchhero-r1.25.png",
+      "height": 720,
+      "width": 1080
+    },
+    {
+      "factor": 1.5,
+      "file": "birchhero-r1.5.png",
+      "height": 600,
+      "width": 900
+    },
+    {
+      "factor": 2.0,
+      "file": "birchhero-r2.png",
+      "height": 450,
+      "width": 675
+    },
+    {
+      "factor": 3.0,
+      "file": "birchhero-r3.png",
+      "height": 300,
+      "width": 450
+    },
+    {
+      "factor": 4.0,
+      "file": "birchhero-r4.png",
+      "height": 225,
+      "width": 338
+    }
+  ],
+  "samples": 4,
+  "scene": {
+    "casterStride": 4.0,
+    "casterTexels": 1.0,
+    "groundBlue": 0.07,
+    "groundGreen": 0.12,
+    "groundRed": 0.11,
+    "shadowFilterTexels": 1.0,
+    "shadowNormalOffset": 1.0,
+    "skyHorizonBlue": 0.8,
+    "skyHorizonGreen": 0.66,
+    "skyHorizonRed": 0.55,
+    "skyZenithBlue": 0.62,
+    "skyZenithGreen": 0.3,
+    "skyZenithRed": 0.18,
+    "sunAzimuth": 135.0,
+    "sunBlue": 2.6,
+    "sunElevation": 55.0,
+    "sunGreen": 2.85,
+    "sunRed": 3.0
+  },
+  "seed": 1,
+  "shot": null,
+  "source_commit": "d48ed69bc7390860d85d7b97cf81fe1c58d16db1",
+  "source_status": "M .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/FRICTION.md\n M .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/REPORT.md\n M .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/browser-orbit.mjs\n M .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/check-sweep.py\n M .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/review.html\n M .flow/evidence/fn71/resolution/bark_distance.json\n M .flow/evidence/fn71/resolution/bark_resolution_grazing.json\n M .flow/evidence/fn71/resolution/bark_resolution_trunk.json\n M .flow/evidence/fn71/resolution/smooth_bark.json\n M .flow/specs/fn-42-bark-depth-level-and-a-fair-capture.json\n M .flow/specs/fn-42-bark-depth-level-and-a-fair-capture.md\n M .flow/tasks/fn-42-bark-depth-level-and-a-fair-capture.1.json\n M crates/telperion-core/src/blend.rs\n M crates/telperion-core/src/material.rs\n M crates/telperion-core/src/material/tests.rs\n M crates/telperion-core/src/params.rs\n M crates/telperion-core/src/presets/materials.rs\n M crates/telperion-core/tests/material_detail.rs\n M crates/telperion-render/src/scene.rs\n M crates/telperion-render/src/scene/frame.rs\n M crates/telperion-render/src/shaders/common.wgsl\n M crates/telperion-render/src/shaders/plates.wgsl\n M crates/telperion-render/src/shaders/wood.wgsl\n M crates/telperion-render/tests/bark_plates.rs\n M crates/telperion-render/tests/bark_relief_range.rs\n M crates/telperion-render/tests/bark_sweep_evidence.rs\n M harness/material-detail.test.ts\n M src/browser/presets.generated.ts\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/BARK-PROFILE-EVIDENCE.json\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/BARK-PROFILE-HANDOVER.md\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/REJECTED-RELIEF-REPORT.md\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/browser-shape/\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/native-shape.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/native-shape/\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-beech-sweep.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-birch-sweep.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-birchhero-sweep.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-browser-orbit.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-build-render.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-build-wasm.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-edge-capture.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-edge-gates.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-edge-means.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-edges/\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-final-capture-0.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-final-capture-1.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-final-capture-2.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-final-gates.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-final-other-gates.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-final/\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-flat-capture.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-hero-baseline-check.json\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-hero-baseline.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-hero-baseline/\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-hero-control.json\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-hero.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-hero.md\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-integration.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-means-initial.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-other-gates.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-pre-row/\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-primary-gates.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-profile-final.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-profile-gates.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-profile-serial.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-quality.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-row-final.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-row-gates.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-row-parity.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-row-runtime.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-sweep-check.json\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-sweep/\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/shape-typescript.log",
+  "species": "birchhero",
+  "width": 1350
+}

@@ -1,0 +1,610 @@
+[
+  {
+    "species": "oregon-white-oak",
+    "seed": 1,
+    "targetMs": 157.0,
+    "baseline": {
+      "medianMs": 178.09999999776483,
+      "warmRangeMs": [
+        176,
+        189
+      ],
+      "warmSamplesMs": [
+        189,
+        178.09999999776483,
+        177.80000000074506,
+        176,
+        178.90000000223517
+      ],
+      "firstMs": 478.80000000074506,
+      "initMs": 3424.099999997765,
+      "wasmHighWater": 94240768,
+      "memory": [
+        {
+          "finalExpansion": 257032420,
+          "placement": 119282860,
+          "preparationEnvelope": 113518604,
+          "jointEnvelope": 257032420
+        },
+        {
+          "finalExpansion": 511842716,
+          "placement": 374093156,
+          "preparationEnvelope": 368328900,
+          "jointEnvelope": 511842716
+        },
+        {
+          "finalExpansion": 511842716,
+          "placement": 374093156,
+          "preparationEnvelope": 368328900,
+          "jointEnvelope": 511842716
+        },
+        {
+          "finalExpansion": 511842716,
+          "placement": 374093156,
+          "preparationEnvelope": 368328900,
+          "jointEnvelope": 511842716
+        },
+        {
+          "finalExpansion": 511842716,
+          "placement": 374093156,
+          "preparationEnvelope": 368328900,
+          "jointEnvelope": 511842716
+        },
+        {
+          "finalExpansion": 511842716,
+          "placement": 374093156,
+          "preparationEnvelope": 368328900,
+          "jointEnvelope": 511842716
+        }
+      ],
+      "stageMedians": {
+        "compactMs": 2.600000001490116,
+        "descriptorsMs": 20.199999999254942,
+        "massMs": 2.399999998509884,
+        "placementWaitMs": 6.600000001490116,
+        "positionPrepareMs": 35.19999999925494,
+        "positionUploadMs": 1.8999999985098839,
+        "positionWaitMs": 12.400000002235174,
+        "readbackMs": 0,
+        "skeletonMs": 73.90000000223517,
+        "totalMs": 166.09999999776483,
+        "uploadDispatchMs": 2.099999997764826,
+        "woodMs": 56.900000002235174,
+        "woodPrepareMs": 0,
+        "woodUploadDispatchMs": 0.10000000149011612,
+        "woodWaitMs": 5.5
+      }
+    },
+    "candidate": {
+      "medianMs": 158.10000000149012,
+      "warmRangeMs": [
+        156.09999999776483,
+        159.10000000149012
+      ],
+      "warmSamplesMs": [
+        159.10000000149012,
+        158.10000000149012,
+        158.89999999850988,
+        158.10000000149012,
+        156.09999999776483
+      ],
+      "firstMs": 456.5,
+      "initMs": 3303.199999999255,
+      "wasmHighWater": 69599232,
+      "memory": [
+        {
+          "finalExpansion": 257032420,
+          "placement": 119282860,
+          "preparationEnvelope": 122000940,
+          "jointEnvelope": 257032420
+        },
+        {
+          "finalExpansion": 511842716,
+          "placement": 374093156,
+          "preparationEnvelope": 376811236,
+          "jointEnvelope": 511842716
+        },
+        {
+          "finalExpansion": 511842716,
+          "placement": 374093156,
+          "preparationEnvelope": 376811236,
+          "jointEnvelope": 511842716
+        },
+        {
+          "finalExpansion": 511842716,
+          "placement": 374093156,
+          "preparationEnvelope": 376811236,
+          "jointEnvelope": 511842716
+        },
+        {
+          "finalExpansion": 511842716,
+          "placement": 374093156,
+          "preparationEnvelope": 376811236,
+          "jointEnvelope": 511842716
+        },
+        {
+          "finalExpansion": 511842716,
+          "placement": 374093156,
+          "preparationEnvelope": 376811236,
+          "jointEnvelope": 511842716
+        }
+      ],
+      "stageMedians": {
+        "compactMs": 2.5,
+        "descriptorsMs": 16.800000000745058,
+        "massMs": 2.300000000745058,
+        "placementWaitMs": 6.800000000745058,
+        "positionPrepareMs": 33.19999999925494,
+        "positionUploadMs": 2.099999997764826,
+        "positionWaitMs": 0.20000000298023224,
+        "readbackMs": 0,
+        "skeletonMs": 72.19999999925494,
+        "totalMs": 145.40000000223517,
+        "uploadDispatchMs": 1.800000000745058,
+        "woodMs": 42.5,
+        "woodPrepareMs": 0,
+        "woodUploadDispatchMs": 0.10000000149011612,
+        "woodWaitMs": 5.300000000745058
+      }
+    },
+    "savingMs": 19.99999999627471,
+    "originalSpeedup": 9.930423782322597,
+    "above10xMs": 1.1000000014901161
+  },
+  {
+    "species": "oregon-white-oak",
+    "seed": 7,
+    "targetMs": 186.25,
+    "baseline": {
+      "medianMs": 198.19999999925494,
+      "warmRangeMs": [
+        193.89999999850988,
+        204.59999999776483
+      ],
+      "warmSamplesMs": [
+        204.59999999776483,
+        199.90000000223517,
+        194.5,
+        198.19999999925494,
+        193.89999999850988
+      ],
+      "firstMs": 488.4000000022352,
+      "initMs": 154.79999999701977,
+      "wasmHighWater": 106496000,
+      "memory": [
+        {
+          "finalExpansion": 315302648,
+          "placement": 170894712,
+          "preparationEnvelope": 162063908,
+          "jointEnvelope": 315302648
+        },
+        {
+          "finalExpansion": 609104276,
+          "placement": 464696340,
+          "preparationEnvelope": 455865536,
+          "jointEnvelope": 609104276
+        },
+        {
+          "finalExpansion": 609104276,
+          "placement": 464696340,
+          "preparationEnvelope": 455865536,
+          "jointEnvelope": 609104276
+        },
+        {
+          "finalExpansion": 609104276,
+          "placement": 464696340,
+          "preparationEnvelope": 455865536,
+          "jointEnvelope": 609104276
+        },
+        {
+          "finalExpansion": 609104276,
+          "placement": 464696340,
+          "preparationEnvelope": 455865536,
+          "jointEnvelope": 609104276
+        },
+        {
+          "finalExpansion": 609104276,
+          "placement": 464696340,
+          "preparationEnvelope": 455865536,
+          "jointEnvelope": 609104276
+        }
+      ],
+      "stageMedians": {
+        "compactMs": 2.600000001490116,
+        "descriptorsMs": 24.899999998509884,
+        "massMs": 2.399999998509884,
+        "placementWaitMs": 7.599999997764826,
+        "positionPrepareMs": 42.399999998509884,
+        "positionUploadMs": 2.2999999970197678,
+        "positionWaitMs": 13.600000001490116,
+        "readbackMs": 0,
+        "skeletonMs": 79.10000000149012,
+        "totalMs": 185.30000000074506,
+        "uploadDispatchMs": 2.5,
+        "woodMs": 65.80000000074506,
+        "woodPrepareMs": 0,
+        "woodUploadDispatchMs": 0.09999999776482582,
+        "woodWaitMs": 5.899999998509884
+      }
+    },
+    "candidate": {
+      "medianMs": 180.80000000074506,
+      "warmRangeMs": [
+        176.39999999850988,
+        183.39999999850988
+      ],
+      "warmSamplesMs": [
+        180.80000000074506,
+        183.39999999850988,
+        176.39999999850988,
+        179,
+        181.70000000298023
+      ],
+      "firstMs": 484.6000000014901,
+      "initMs": 162.59999999776483,
+      "wasmHighWater": 132775936,
+      "memory": [
+        {
+          "finalExpansion": 315302648,
+          "placement": 170894712,
+          "preparationEnvelope": 178338260,
+          "jointEnvelope": 315302648
+        },
+        {
+          "finalExpansion": 609104276,
+          "placement": 464696340,
+          "preparationEnvelope": 472139888,
+          "jointEnvelope": 609104276
+        },
+        {
+          "finalExpansion": 609104276,
+          "placement": 464696340,
+          "preparationEnvelope": 472139888,
+          "jointEnvelope": 609104276
+        },
+        {
+          "finalExpansion": 609104276,
+          "placement": 464696340,
+          "preparationEnvelope": 472139888,
+          "jointEnvelope": 609104276
+        },
+        {
+          "finalExpansion": 609104276,
+          "placement": 464696340,
+          "preparationEnvelope": 472139888,
+          "jointEnvelope": 609104276
+        },
+        {
+          "finalExpansion": 609104276,
+          "placement": 464696340,
+          "preparationEnvelope": 472139888,
+          "jointEnvelope": 609104276
+        }
+      ],
+      "stageMedians": {
+        "compactMs": 2.5,
+        "descriptorsMs": 21.399999998509884,
+        "massMs": 2.300000000745058,
+        "placementWaitMs": 8.099999997764826,
+        "positionPrepareMs": 40.600000001490116,
+        "positionUploadMs": 2.400000002235174,
+        "positionWaitMs": 0.30000000074505806,
+        "readbackMs": 0,
+        "skeletonMs": 79.20000000298023,
+        "totalMs": 168.39999999850988,
+        "uploadDispatchMs": 2,
+        "woodMs": 51.100000001490116,
+        "woodPrepareMs": 0,
+        "woodUploadDispatchMs": 0.10000000149011612,
+        "woodWaitMs": 5.800000000745058
+      }
+    },
+    "savingMs": 17.399999998509884,
+    "originalSpeedup": 10.301438053054895,
+    "above10xMs": -5.449999999254942
+  },
+  {
+    "species": "norway-spruce",
+    "seed": 1,
+    "targetMs": 762.8599999999627,
+    "baseline": {
+      "medianMs": 194.19999999925494,
+      "warmRangeMs": [
+        191.19999999925494,
+        197.89999999850988
+      ],
+      "warmSamplesMs": [
+        191.19999999925494,
+        191.80000000074506,
+        197.89999999850988,
+        194.19999999925494,
+        195.90000000223517
+      ],
+      "firstMs": 478.70000000298023,
+      "initMs": 156.10000000149012,
+      "wasmHighWater": 98041856,
+      "memory": [
+        {
+          "finalExpansion": 296130656,
+          "placement": 319627432,
+          "preparationEnvelope": 113354608,
+          "jointEnvelope": 319627432
+        },
+        {
+          "finalExpansion": 712952428,
+          "placement": 736449204,
+          "preparationEnvelope": 530176380,
+          "jointEnvelope": 736449204
+        },
+        {
+          "finalExpansion": 712952428,
+          "placement": 736449204,
+          "preparationEnvelope": 530176380,
+          "jointEnvelope": 736449204
+        },
+        {
+          "finalExpansion": 712952428,
+          "placement": 736449204,
+          "preparationEnvelope": 530176380,
+          "jointEnvelope": 736449204
+        },
+        {
+          "finalExpansion": 712952428,
+          "placement": 736449204,
+          "preparationEnvelope": 530176380,
+          "jointEnvelope": 736449204
+        },
+        {
+          "finalExpansion": 712952428,
+          "placement": 736449204,
+          "preparationEnvelope": 530176380,
+          "jointEnvelope": 736449204
+        }
+      ],
+      "stageMedians": {
+        "compactMs": 3.800000000745058,
+        "descriptorsMs": 29.600000001490116,
+        "massMs": 2.399999998509884,
+        "placementWaitMs": 21.5,
+        "positionPrepareMs": 32.899999998509884,
+        "positionUploadMs": 1.5999999977648258,
+        "positionWaitMs": 10.5,
+        "readbackMs": 0,
+        "skeletonMs": 56.099999997764826,
+        "totalMs": 167.69999999925494,
+        "uploadDispatchMs": 4,
+        "woodMs": 51.30000000074506,
+        "woodPrepareMs": 0,
+        "woodUploadDispatchMs": 0.09999999776482582,
+        "woodWaitMs": 5
+      }
+    },
+    "candidate": {
+      "medianMs": 178.89999999850988,
+      "warmRangeMs": [
+        177.19999999925494,
+        190.60000000149012
+      ],
+      "warmSamplesMs": [
+        178.89999999850988,
+        177.59999999776483,
+        190.60000000149012,
+        186,
+        177.19999999925494
+      ],
+      "firstMs": 462.4000000022352,
+      "initMs": 154.80000000074506,
+      "wasmHighWater": 98041856,
+      "memory": [
+        {
+          "finalExpansion": 296130656,
+          "placement": 319627432,
+          "preparationEnvelope": 130047856,
+          "jointEnvelope": 319627432
+        },
+        {
+          "finalExpansion": 712952428,
+          "placement": 736449204,
+          "preparationEnvelope": 546869628,
+          "jointEnvelope": 736449204
+        },
+        {
+          "finalExpansion": 712952428,
+          "placement": 736449204,
+          "preparationEnvelope": 546869628,
+          "jointEnvelope": 736449204
+        },
+        {
+          "finalExpansion": 712952428,
+          "placement": 736449204,
+          "preparationEnvelope": 546869628,
+          "jointEnvelope": 736449204
+        },
+        {
+          "finalExpansion": 712952428,
+          "placement": 736449204,
+          "preparationEnvelope": 546869628,
+          "jointEnvelope": 736449204
+        },
+        {
+          "finalExpansion": 712952428,
+          "placement": 736449204,
+          "preparationEnvelope": 546869628,
+          "jointEnvelope": 736449204
+        }
+      ],
+      "stageMedians": {
+        "compactMs": 3.7000000029802322,
+        "descriptorsMs": 21.5,
+        "massMs": 2.300000000745058,
+        "placementWaitMs": 20,
+        "positionPrepareMs": 27.800000000745058,
+        "positionUploadMs": 1.699999999254942,
+        "positionWaitMs": 10.300000000745058,
+        "readbackMs": 0,
+        "skeletonMs": 56.30000000074506,
+        "totalMs": 153.69999999925494,
+        "uploadDispatchMs": 3.100000001490116,
+        "woodMs": 46.5,
+        "woodPrepareMs": 0,
+        "woodUploadDispatchMs": 0.09999999776482582,
+        "woodWaitMs": 5.100000001490116
+      }
+    },
+    "savingMs": 15.300000000745058,
+    "originalSpeedup": 42.64169927369015,
+    "above10xMs": -583.9600000014528
+  },
+  {
+    "species": "norway-spruce",
+    "seed": 7,
+    "targetMs": 738.4,
+    "baseline": {
+      "medianMs": 186.5,
+      "warmRangeMs": [
+        184.09999999776483,
+        194.20000000298023
+      ],
+      "warmSamplesMs": [
+        184.09999999776483,
+        186.5,
+        184.5,
+        193.69999999925494,
+        194.20000000298023
+      ],
+      "firstMs": 536.8000000007451,
+      "initMs": 154.60000000149012,
+      "wasmHighWater": 98041856,
+      "memory": [
+        {
+          "finalExpansion": 282229088,
+          "placement": 306692528,
+          "preparationEnvelope": 109987720,
+          "jointEnvelope": 306692528
+        },
+        {
+          "finalExpansion": 678448912,
+          "placement": 702912352,
+          "preparationEnvelope": 506207544,
+          "jointEnvelope": 702912352
+        },
+        {
+          "finalExpansion": 678448912,
+          "placement": 702912352,
+          "preparationEnvelope": 506207544,
+          "jointEnvelope": 702912352
+        },
+        {
+          "finalExpansion": 678448912,
+          "placement": 702912352,
+          "preparationEnvelope": 506207544,
+          "jointEnvelope": 702912352
+        },
+        {
+          "finalExpansion": 678448912,
+          "placement": 702912352,
+          "preparationEnvelope": 506207544,
+          "jointEnvelope": 702912352
+        },
+        {
+          "finalExpansion": 678448912,
+          "placement": 702912352,
+          "preparationEnvelope": 506207544,
+          "jointEnvelope": 702912352
+        }
+      ],
+      "stageMedians": {
+        "compactMs": 3.800000000745058,
+        "descriptorsMs": 28.699999999254942,
+        "massMs": 2.400000002235174,
+        "placementWaitMs": 19.899999998509884,
+        "positionPrepareMs": 32.100000001490116,
+        "positionUploadMs": 1.5999999977648258,
+        "positionWaitMs": 9.800000000745058,
+        "readbackMs": 0,
+        "skeletonMs": 53.5,
+        "totalMs": 160,
+        "uploadDispatchMs": 3.5,
+        "woodMs": 49.30000000074506,
+        "woodPrepareMs": 0,
+        "woodUploadDispatchMs": 0.10000000149011612,
+        "woodWaitMs": 5
+      }
+    },
+    "candidate": {
+      "medianMs": 164.19999999925494,
+      "warmRangeMs": [
+        162.90000000223517,
+        169.79999999701977
+      ],
+      "warmSamplesMs": [
+        164.19999999925494,
+        164.5,
+        163.90000000223517,
+        169.79999999701977,
+        162.90000000223517
+      ],
+      "firstMs": 463.80000000074506,
+      "initMs": 155,
+      "wasmHighWater": 98041856,
+      "memory": [
+        {
+          "finalExpansion": 282229088,
+          "placement": 306692528,
+          "preparationEnvelope": 126601928,
+          "jointEnvelope": 306692528
+        },
+        {
+          "finalExpansion": 678448912,
+          "placement": 702912352,
+          "preparationEnvelope": 522821752,
+          "jointEnvelope": 702912352
+        },
+        {
+          "finalExpansion": 678448912,
+          "placement": 702912352,
+          "preparationEnvelope": 522821752,
+          "jointEnvelope": 702912352
+        },
+        {
+          "finalExpansion": 678448912,
+          "placement": 702912352,
+          "preparationEnvelope": 522821752,
+          "jointEnvelope": 702912352
+        },
+        {
+          "finalExpansion": 678448912,
+          "placement": 702912352,
+          "preparationEnvelope": 522821752,
+          "jointEnvelope": 702912352
+        },
+        {
+          "finalExpansion": 678448912,
+          "placement": 702912352,
+          "preparationEnvelope": 522821752,
+          "jointEnvelope": 702912352
+        }
+      ],
+      "stageMedians": {
+        "compactMs": 3.600000001490116,
+        "descriptorsMs": 19.200000002980232,
+        "massMs": 2.300000000745058,
+        "placementWaitMs": 18.5,
+        "positionPrepareMs": 25.899999998509884,
+        "positionUploadMs": 1.5999999977648258,
+        "positionWaitMs": 9.5,
+        "readbackMs": 0,
+        "skeletonMs": 51.19999999925494,
+        "totalMs": 141.69999999925494,
+        "uploadDispatchMs": 2.699999999254942,
+        "woodMs": 43.5,
+        "woodPrepareMs": 0,
+        "woodUploadDispatchMs": 0.09999999776482582,
+        "woodWaitMs": 4.900000002235174
+      }
+    },
+    "savingMs": 22.300000000745058,
+    "originalSpeedup": 44.96954933028931,
+    "above10xMs": -574.200000000745
+  }
+]

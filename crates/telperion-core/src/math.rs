@@ -65,7 +65,9 @@ impl Vec3 {
         reference.cross(self).normalized()
     }
     pub fn rotate(self, axis: Self, angle: f64) -> Self {
-        let (s, c) = angle.sin_cos_fixed();
+        self.rotate_sin_cos(axis, angle.sin_cos_fixed())
+    }
+    pub(crate) fn rotate_sin_cos(self, axis: Self, (s, c): (f64, f64)) -> Self {
         self * c + axis.cross(self) * s + axis * (axis.dot(self) * (1.0 - c))
     }
 }

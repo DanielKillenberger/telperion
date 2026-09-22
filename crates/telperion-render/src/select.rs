@@ -108,6 +108,22 @@ pub struct Select {
 }
 
 impl Select {
+    pub(crate) fn allocated_bytes(&self) -> u64 {
+        [
+            &self.placements,
+            &self.masses,
+            &self.deviations,
+            &self.lists,
+            &self.counts,
+            &self.arguments,
+            &self.scratch,
+        ]
+        .into_iter()
+        .flatten()
+        .map(|b| b.region().capacity())
+        .sum::<u64>()
+    }
+
     pub fn new(gpu: &Gpu) -> Self {
         let compute_layout = bind::compute_layout(gpu);
         let draw_layout = bind::draw_layout(gpu);
@@ -152,10 +168,58 @@ impl Select {
     /// frame fills. A crown with no leaves, or an element with no levels,
     /// takes nothing at all and selects nothing.
     pub fn submit(&mut self, gpu: &Gpu, foliage: &mesh::Foliage, level: Level) {
-        let element = &foliage.element;
+        if !foliage.instances.is_empty() && !foliage.element.levels.is_empty() {
+            buffer::write(
+                gpu,
+                &mut self.placements,
+                "foliage placements",
+                wgpu::BufferUsages::STORAGE,
+                bytemuck::cast_slice(&foliage.instances.leaves),
+            );
+            let masses = crate::mass::grid(&foliage.instances, crate::submit::crown_of(foliage));
+            buffer::write(
+                gpu,
+                &mut self.masses,
+                "foliage masses",
+                wgpu::BufferUsages::STORAGE,
+                bytemuck::cast_slice(&masses),
+            );
+        }
+        self.setup(
+            gpu,
+            &foliage.element,
+            foliage.instances.reference,
+            foliage.instances.len() as u32,
+            level,
+        );
+    }
+
+    pub(crate) fn submit_resident(
+        &mut self,
+        gpu: &Gpu,
+        element: &telperion_core::foliage::Element,
+        reference: telperion_core::foliage::Reference,
+        count: u32,
+        placements: crate::buffer::Held,
+        masses: crate::buffer::Held,
+        level: Level,
+    ) {
+        self.placements = Some(placements);
+        self.masses = Some(masses);
+        self.setup(gpu, element, reference, count, level);
+    }
+
+    fn setup(
+        &mut self,
+        gpu: &Gpu,
+        element: &telperion_core::foliage::Element,
+        reference: telperion_core::foliage::Reference,
+        instances: u32,
+        level: Level,
+    ) {
         self.forced = level;
-        self.instances = foliage.instances.len() as u32;
-        self.reference = foliage.instances.reference;
+        self.instances = instances;
+        self.reference = reference;
         self.levels = element.levels.iter().map(|l| l.indices.clone()).collect();
         self.sphere = frame::sphere(element);
         let sizes = sizes(
@@ -175,21 +239,6 @@ impl Select {
             .collect();
         let deviations: Vec<f32> = element.levels.iter().map(|l| l.deviation as f32).collect();
         let storage = wgpu::BufferUsages::STORAGE;
-        buffer::write(
-            gpu,
-            &mut self.placements,
-            "foliage placements",
-            storage,
-            bytemuck::cast_slice(&foliage.instances.leaves),
-        );
-        let masses = crate::mass::grid(&foliage.instances, crate::submit::crown_of(foliage));
-        buffer::write(
-            gpu,
-            &mut self.masses,
-            "foliage masses",
-            storage,
-            bytemuck::cast_slice(&masses),
-        );
         buffer::write(
             gpu,
             &mut self.deviations,

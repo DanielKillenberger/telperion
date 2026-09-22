@@ -1,4 +1,4 @@
 [
-  {"fixture": "OregonWhiteOak 2x", "mean": 2.2263, "p95": 7.00, "bound": 3},
-  {"fixture": "OregonWhiteOak 4x", "mean": 2.8406, "p95": 8.00, "bound": 3}
+  {"fixture": "OregonWhiteOak 2x", "mean": 1.9390, "p95": 5.75, "bound": 3},
+  {"fixture": "OregonWhiteOak 4x", "mean": 2.5034, "p95": 6.50, "bound": 3}
 ]

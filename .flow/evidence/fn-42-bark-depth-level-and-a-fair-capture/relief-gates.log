@@ -1,0 +1,88 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-render)
+    Finished `ci` profile [optimized] target(s) in 6.54s
+     Running tests/bark_depth.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_depth-db6f5359aa5c0d35)
+
+running 1 test
+test the_depth_row_moves_no_wood_and_changes_the_picture ... depth row at 0.5375: mean 1.7385/255, worst 108/255 over the trunk frame
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.86s
+
+     Running tests/bark_detail.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_detail-0dee69b7e63c9db3)
+
+running 2 tests
+test radius_storage_is_refused_before_upload_when_only_its_binding_limit_is_exceeded ... ok
+test relief_moves_the_light_while_every_wood_mesh_byte_holds ... R1 wood hash: off=16822752187927960657, on=16822752187927960657
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.22s
+
+     Running tests/bark_distance.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_distance-0f992422d88c843a)
+
+running 1 test
+test resolved_scales_survive_until_the_two_pixel_boundary ... distance-series height deviation near/far: 0.0009139285741035447/0.0008364669699845517
+OregonWhiteOak 2x resolution: 10000 pixels, mean 1.817508/255, p95 5.75/255
+OregonWhiteOak 4x resolution: 5000 pixels, mean 2.397067/255, p95 6.50/255
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.48s
+
+     Running tests/bark_field.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_field-a0b2ac68c7b0490d)
+
+running 1 test
+test surface_lengths_young_wood_wrap_and_plate_drift ... wrap samples: [2.4315752e-6, 2.4584983e-6, 0.0, 0.0]
+ridge peaks around 0.4/0.8 m radii: 84/146
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.46s
+
+     Running tests/bark_filter.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_filter-135e4d36eb6fe546)
+
+running 1 test
+test either_unresolved_axis_leaves_little_relief_and_furrows_can_close ... height deviations: resolved / unresolved arc / unresolved axial / closed furrows [0.0006450471635183587, 3.807520758477264e-5, 4.074784467559336e-5, 0.000244849315683115]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s
+
+     Running tests/bark_occlusion.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_occlusion-a48eff9a46a1ac0b)
+
+running 2 tests
+test the_darkened_side_of_a_furrow_follows_the_sun ... sun 45: took 0.3094 from the left, 0.0000 from the right
+sun 225: took 0.0000 from the left, 0.1507 from the right
+left-minus-right darkening: [0.3094499428572277, -0.15068154285722812]
+ok
+test the_row_at_zero_leaves_the_frame_exactly_as_it_was ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.83s
+
+     Running tests/bark_parallax.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_parallax-551269b39439ba48)
+
+running 1 test
+test parallax_descends_away_from_the_eye_and_refines_the_intersection ... flat, zero strength, head-on, ramp: [[-0.01, 1.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [-0.014374999, 1.0, 0.0, 0.0]]
+ramp residual: first 0.005, refined 0.0028125
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s
+
+     Running tests/bark_plates.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_plates-83e764f2da7d2d65)
+
+running 2 tests
+test every_plate_carries_an_identity_of_its_own ... identity: 11159 adjacent pairs share a plate, 1743 at a plate's width, variance 0.0833
+ok
+test the_pinned_plate_mean_is_the_mean_the_field_averages_to ... oak (furrow 0.15): face 0.4035 model 0.4009, dome 0.1995 model 0.1988, rim 0.3065 model 0.3052
+spruce (furrow 0.12): face 0.4332 model 0.4225, dome 0.2163 model 0.2135, rim 0.3322 model 0.3204
+
+thread 'the_pinned_plate_mean_is_the_mean_the_field_averages_to' (996854) panicked at crates/telperion-render/tests/bark_plates.rs:197:9:
+spruce: a lifted rim: far 0.7429 against 0.7654
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    the_pinned_plate_mean_is_the_mean_the_field_averages_to
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.80s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_plates`

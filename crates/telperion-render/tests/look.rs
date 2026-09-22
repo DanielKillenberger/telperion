@@ -8,7 +8,7 @@ use telperion_core::{
     presets::Preset,
 };
 use telperion_render::{
-    hero_pose, render, Camera, Gpu, Renderer, Still, View, GROUND_REACH, STILL_FORMAT,
+    hero_pose, render, shot_pose, Camera, Gpu, Renderer, Shot, Still, View, GROUND_REACH, STILL_FORMAT,
 };
 
 mod common;
@@ -76,7 +76,22 @@ fn decode(path: &str) -> (u32, u32, Vec<u8>) {
 #[test]
 fn the_clay_view_draws_the_still_the_room_always_drew() {
     let Some(gpu) = gpu() else { return };
-    let drawn = Stage::new(gpu, View::Clay, PINNED_SIZE).draw();
+    let mut stage = Stage::new(gpu, View::Clay, PINNED_SIZE);
+    // This historical paint fixture keeps its original viewing direction;
+    // the interactive hero now deliberately faces the sun from another side.
+    let pinned_shot = Shot {
+        azimuth: 0.62_f64.atan2(1.0).to_degrees(),
+        elevation: 0.28_f64.atan2(0.62_f64.hypot(1.0)).to_degrees(),
+        fill: 1.0 / 1.15,
+        ..Shot::default()
+    };
+    stage.camera = shot_pose(
+        stage.renderer.bounds().unwrap(),
+        f64::from(PINNED_SIZE.0) / f64::from(PINNED_SIZE.1),
+        GROUND_REACH,
+        &pinned_shot,
+    );
+    let drawn = stage.draw();
     let (width, height, pinned) = decode(PINNED);
     assert_eq!(
         (width, height),

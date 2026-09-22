@@ -1,0 +1,26 @@
+[
+  {
+    "mode": "cpu-output",
+    "exit": 0,
+    "seconds": 19.662684725999497,
+    "maxRssKiB": 406020
+  },
+  {
+    "mode": "gpu-output",
+    "exit": 0,
+    "seconds": 2.741372866999882,
+    "maxRssKiB": 500816
+  },
+  {
+    "mode": "cpu-render",
+    "exit": 0,
+    "seconds": 21.433058303000507,
+    "maxRssKiB": 620256
+  },
+  {
+    "mode": "gpu-render",
+    "exit": 0,
+    "seconds": 2.7051562589986133,
+    "maxRssKiB": 484784
+  }
+]

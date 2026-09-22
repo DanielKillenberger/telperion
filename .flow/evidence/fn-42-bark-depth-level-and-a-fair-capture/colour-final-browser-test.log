@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  00:59:46
+   Duration  171ms (transform 65ms, setup 0ms, import 79ms, tests 6ms, environment 0ms)

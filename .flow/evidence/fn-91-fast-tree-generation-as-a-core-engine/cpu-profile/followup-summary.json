@@ -1,0 +1,290 @@
+{
+  "oregon-white-oak-1": {
+    "growth_medians_ms": {
+      "coarse": 62.363386999999996,
+      "sampled": 62.080781
+    },
+    "incremental_sampling_overhead_percent": -0.4531601210177927,
+    "samples": [
+      {
+        "sample": 0,
+        "calls": 11738.0,
+        "sampled": 153,
+        "sampled_clips": 12,
+        "estimated_ms": {
+          "planner.setup_sample": 0.8185912418300644,
+          "planner.trace_sample": 23.036400392156857,
+          "planner.clip_sample": 4.717601934640523,
+          "planner.tail_sample": 0.5961062745098034,
+          "planner.total_estimate": 24.451097908496724
+        },
+        "local_advance_ms": 51.288793000000005
+      },
+      {
+        "sample": 1,
+        "calls": 11738.0,
+        "sampled": 153,
+        "sampled_clips": 12,
+        "estimated_ms": {
+          "planner.setup_sample": 0.7902052287581692,
+          "planner.trace_sample": 21.61303363398693,
+          "planner.clip_sample": 4.717448496732026,
+          "planner.tail_sample": 0.4933028758169933,
+          "planner.total_estimate": 22.896541738562092
+        },
+        "local_advance_ms": 49.032025
+      },
+      {
+        "sample": 2,
+        "calls": 11738.0,
+        "sampled": 153,
+        "sampled_clips": 12,
+        "estimated_ms": {
+          "planner.setup_sample": 0.803247450980392,
+          "planner.trace_sample": 21.987345411764707,
+          "planner.clip_sample": 4.753583124183008,
+          "planner.tail_sample": 0.5348078300653591,
+          "planner.total_estimate": 23.325400692810458
+        },
+        "local_advance_ms": 58.667018999999996
+      },
+      {
+        "sample": 3,
+        "calls": 11738.0,
+        "sampled": 153,
+        "sampled_clips": 12,
+        "estimated_ms": {
+          "planner.setup_sample": 0.8171335816993458,
+          "planner.trace_sample": 21.852550209150323,
+          "planner.clip_sample": 4.767469254901961,
+          "planner.tail_sample": 0.47036390849673204,
+          "planner.total_estimate": 23.1400476993464
+        },
+        "local_advance_ms": 51.808374
+      }
+    ],
+    "warm_estimated_median_ms": {
+      "planner.setup_sample": 0.803247450980392,
+      "planner.trace_sample": 21.852550209150323,
+      "planner.clip_sample": 4.753583124183008,
+      "planner.tail_sample": 0.4933028758169933,
+      "planner.total_estimate": 23.1400476993464
+    }
+  },
+  "oregon-white-oak-7": {
+    "growth_medians_ms": {
+      "coarse": 77.276722,
+      "sampled": 71.290795
+    },
+    "incremental_sampling_overhead_percent": -7.746093319020442,
+    "samples": [
+      {
+        "sample": 0,
+        "calls": 13693.0,
+        "sampled": 202,
+        "sampled_clips": 13,
+        "estimated_ms": {
+          "planner.setup_sample": 0.8270707574257412,
+          "planner.trace_sample": 22.70421416831683,
+          "planner.clip_sample": 4.540449668316832,
+          "planner.tail_sample": 1.2276249009901001,
+          "planner.total_estimate": 24.758909826732673
+        },
+        "local_advance_ms": 58.473304
+      },
+      {
+        "sample": 1,
+        "calls": 13693.0,
+        "sampled": 202,
+        "sampled_clips": 13,
+        "estimated_ms": {
+          "planner.setup_sample": 0.7836192079207905,
+          "planner.trace_sample": 21.263805470297044,
+          "planner.clip_sample": 4.5235706732673275,
+          "planner.tail_sample": 0.556600113861386,
+          "planner.total_estimate": 22.60402479207922
+        },
+        "local_advance_ms": 56.003363
+      },
+      {
+        "sample": 2,
+        "calls": 13693.0,
+        "sampled": 202,
+        "sampled_clips": 13,
+        "estimated_ms": {
+          "planner.setup_sample": 0.7701295693069293,
+          "planner.trace_sample": 21.02268665346535,
+          "planner.clip_sample": 4.515436217821783,
+          "planner.tail_sample": 0.5287396039603958,
+          "planner.total_estimate": 22.321555826732673
+        },
+        "local_advance_ms": 57.825411
+      },
+      {
+        "sample": 3,
+        "calls": 13693.0,
+        "sampled": 202,
+        "sampled_clips": 13,
+        "estimated_ms": {
+          "planner.setup_sample": 0.8419161386138598,
+          "planner.trace_sample": 21.459303549504952,
+          "planner.clip_sample": 4.539093925742575,
+          "planner.tail_sample": 0.5700897524752475,
+          "planner.total_estimate": 22.87130944059406
+        },
+        "local_advance_ms": 58.51750500000001
+      }
+    ],
+    "warm_estimated_median_ms": {
+      "planner.setup_sample": 0.7836192079207905,
+      "planner.trace_sample": 21.263805470297044,
+      "planner.clip_sample": 4.5235706732673275,
+      "planner.tail_sample": 0.556600113861386,
+      "planner.total_estimate": 22.60402479207922
+    }
+  },
+  "norway-spruce-1": {
+    "growth_medians_ms": {
+      "coarse": 41.537517,
+      "sampled": 41.103427999999994
+    },
+    "incremental_sampling_overhead_percent": -1.0450528374144397,
+    "samples": [
+      {
+        "sample": 0,
+        "calls": 16292.0,
+        "sampled": 245,
+        "sampled_clips": 4,
+        "estimated_ms": {
+          "planner.setup_sample": 0.895129028571427,
+          "planner.trace_sample": 4.633045812244902,
+          "planner.clip_sample": 0.38774959999999997,
+          "planner.tail_sample": 1.0939579265306099,
+          "planner.total_estimate": 6.622132767346939
+        },
+        "local_advance_ms": 21.921663
+      },
+      {
+        "sample": 1,
+        "calls": 16292.0,
+        "sampled": 245,
+        "sampled_clips": 4,
+        "estimated_ms": {
+          "planner.setup_sample": 0.9017123265306107,
+          "planner.trace_sample": 3.8875371918367434,
+          "planner.clip_sample": 0.38834808163265305,
+          "planner.tail_sample": 0.5565879183673464,
+          "planner.total_estimate": 5.3458374367347
+        },
+        "local_advance_ms": 21.102696
+      },
+      {
+        "sample": 2,
+        "calls": 16292.0,
+        "sampled": 245,
+        "sampled_clips": 4,
+        "estimated_ms": {
+          "planner.setup_sample": 0.9043722448979575,
+          "planner.trace_sample": 4.035761142857143,
+          "planner.clip_sample": 0.38635314285714295,
+          "planner.tail_sample": 0.664979591836734,
+          "planner.total_estimate": 5.605112979591834
+        },
+        "local_advance_ms": 20.732668
+      },
+      {
+        "sample": 3,
+        "calls": 16292.0,
+        "sampled": 245,
+        "sampled_clips": 4,
+        "estimated_ms": {
+          "planner.setup_sample": 0.9143469387755085,
+          "planner.trace_sample": 3.749886416326524,
+          "planner.clip_sample": 0.3810998040816327,
+          "planner.tail_sample": 0.9303729469387746,
+          "planner.total_estimate": 5.594606302040807
+        },
+        "local_advance_ms": 20.796579
+      }
+    ],
+    "warm_estimated_median_ms": {
+      "planner.setup_sample": 0.9043722448979575,
+      "planner.trace_sample": 3.8875371918367434,
+      "planner.clip_sample": 0.38635314285714295,
+      "planner.tail_sample": 0.664979591836734,
+      "planner.total_estimate": 5.594606302040807
+    }
+  },
+  "norway-spruce-7": {
+    "growth_medians_ms": {
+      "coarse": 41.416305,
+      "sampled": 40.583317
+    },
+    "incremental_sampling_overhead_percent": -2.0112561948730123,
+    "samples": [
+      {
+        "sample": 0,
+        "calls": 15664.0,
+        "sampled": 231,
+        "sampled_clips": 3,
+        "estimated_ms": {
+          "planner.setup_sample": 0.9154285714285705,
+          "planner.trace_sample": 4.428639999999993,
+          "planner.clip_sample": 0.2970057142857143,
+          "planner.tail_sample": 0.8116799999999993,
+          "planner.total_estimate": 6.155748571428562
+        },
+        "local_advance_ms": 21.622507
+      },
+      {
+        "sample": 1,
+        "calls": 15664.0,
+        "sampled": 231,
+        "sampled_clips": 3,
+        "estimated_ms": {
+          "planner.setup_sample": 0.9201752380952373,
+          "planner.trace_sample": 3.4984289523809524,
+          "planner.clip_sample": 0.30175238095238094,
+          "planner.tail_sample": 0.5642430476190465,
+          "planner.total_estimate": 4.982847238095236
+        },
+        "local_advance_ms": 20.464842
+      },
+      {
+        "sample": 2,
+        "calls": 15664.0,
+        "sampled": 231,
+        "sampled_clips": 3,
+        "estimated_ms": {
+          "planner.setup_sample": 0.8565020952380943,
+          "planner.trace_sample": 3.4806628571428564,
+          "planner.clip_sample": 0.29904,
+          "planner.tail_sample": 0.5472228571428565,
+          "planner.total_estimate": 4.884387809523807
+        },
+        "local_advance_ms": 20.631785
+      },
+      {
+        "sample": 3,
+        "calls": 15664.0,
+        "sampled": 231,
+        "sampled_clips": 3,
+        "estimated_ms": {
+          "planner.setup_sample": 0.8862704761904753,
+          "planner.trace_sample": 3.4610659047619046,
+          "planner.clip_sample": 0.2977516190476191,
+          "planner.tail_sample": 0.5465447619047611,
+          "planner.total_estimate": 4.893881142857141
+        },
+        "local_advance_ms": 20.438511000000002
+      }
+    ],
+    "warm_estimated_median_ms": {
+      "planner.setup_sample": 0.8862704761904753,
+      "planner.trace_sample": 3.4806628571428564,
+      "planner.clip_sample": 0.29904,
+      "planner.tail_sample": 0.5472228571428565,
+      "planner.total_estimate": 4.893881142857141
+    }
+  }
+}

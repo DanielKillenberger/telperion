@@ -1,0 +1,490 @@
+diff --git i/crates/telperion-core/src/branching/local.rs w/crates/telperion-core/src/branching/local.rs
+index b586b698..b3dd76b8 100644
+--- i/crates/telperion-core/src/branching/local.rs
++++ w/crates/telperion-core/src/branching/local.rs
+@@ -27,6 +27,7 @@ struct Shoot {
+     run: Option<Rc<Run>>,
+     curtain: pendant::Curtain,
+ }
++mod admission;
+ mod advance;
+ mod pendant;
+ mod planner;
+diff --git i/crates/telperion-core/src/branching/local/advance.rs w/crates/telperion-core/src/branching/local/advance.rs
+index 2d730fe7..9e7a1d5d 100644
+--- i/crates/telperion-core/src/branching/local/advance.rs
++++ w/crates/telperion-core/src/branching/local/advance.rs
+@@ -16,6 +16,18 @@ impl Frontier {
+         if budget == 0 || self.queue.is_empty() {
+             return Ok(());
+         }
++        let current =
++            admission::Admission::for_advance(*planner.config, planner.growing_envelope, budget);
++        // Runs use authored room; births use the current shell so an expanding
++        // juvenile crown pauses a run instead of permanently truncating it.
++        let planned = admission::Admission::for_advance(
++            GrowthConfig {
++                shell: planner.planning.or(planner.config.shell),
++                ..*planner.config
++            },
++            planner.growing_envelope,
++            budget,
++        );
+         let first = tree.nodes.len();
+         let t = planner.twigs;
+         let config = planner.config;
+@@ -194,7 +206,7 @@ impl Frontier {
+                         continue;
+                     }
+                     let p = position + heading * twig_length;
+-                    if !s.curtain.admits(config, t, p) || s.curtain.below(p.y) {
++                    if !s.curtain.admits(&current, t, p) || s.curtain.below(p.y) {
+                         #[cfg(test)]
+                         {
+                             self.retries[1] += 1;
+@@ -224,15 +236,18 @@ impl Frontier {
+                         let length = s
+                             .curtain
+                             .clear(position.y, -wanted.normalized().y, length, t);
+-                        run = planner.run(Axis {
+-                            start: position,
+-                            first: if lateral { wanted } else { from },
+-                            length,
+-                            internodes,
+-                            bearing: radius <= t.twig.bearing_diameter / 2.0,
+-                            key,
+-                            curtain: s.curtain,
+-                        })
++                        run = planner.run(
++                            Axis {
++                                start: position,
++                                first: if lateral { wanted } else { from },
++                                length,
++                                internodes,
++                                bearing: radius <= t.twig.bearing_diameter / 2.0,
++                                key,
++                                curtain: s.curtain,
++                            },
++                            &planned,
++                        )
+                     }
+                     let Some(r) = &run else {
+                         next_wake = immediate;
+@@ -248,7 +263,7 @@ impl Frontier {
+                     };
+                     internodes = r.positions.len();
+                     let p = r.positions[completed];
+-                    if planner.growing_envelope && !s.curtain.admits(config, t, p) {
++                    if planner.growing_envelope && !s.curtain.admits(&current, t, p) {
+                         #[cfg(test)]
+                         {
+                             self.retries[3] += 1;
+diff --git i/crates/telperion-core/src/branching/local/monthly_tests.rs w/crates/telperion-core/src/branching/local/monthly_tests.rs
+index a726cca3..f4db9746 100644
+--- i/crates/telperion-core/src/branching/local/monthly_tests.rs
++++ w/crates/telperion-core/src/branching/local/monthly_tests.rs
+@@ -152,15 +152,21 @@ fn monthly_run_keeps_stations_waiting_beyond_the_current_envelope() {
+         seed: 7,
+     };
+     let run = planner
+-        .run(Axis {
+-            start: Vec3::new(0.0, 0.5, 0.0),
+-            first: Vec3::Y,
+-            length: 1.0,
+-            internodes: 4,
+-            bearing: false,
+-            key: 11,
+-            curtain: Curtain::default(),
+-        })
++        .run(
++            Axis {
++                start: Vec3::new(0.0, 0.5, 0.0),
++                first: Vec3::Y,
++                length: 1.0,
++                internodes: 4,
++                bearing: false,
++                key: 11,
++                curtain: Curtain::default(),
++            },
++            &admission::Admission::new(GrowthConfig {
++                shell: planner.planning.or(config.shell),
++                ..config
++            }),
++        )
+         .unwrap();
+     assert_eq!(
+         run.length, 1.0,
+diff --git i/crates/telperion-core/src/branching/local/pendant.rs w/crates/telperion-core/src/branching/local/pendant.rs
+index c4215e9c..ab24f6bc 100644
+--- i/crates/telperion-core/src/branching/local/pendant.rs
++++ w/crates/telperion-core/src/branching/local/pendant.rs
+@@ -108,8 +108,9 @@ impl Curtain {
+     /// Whether a candidate at `p` may be born: inside the room the config
+     /// allows it, or, for a curtain that drops, in the band below the shell.
+     /// A curtain that does not drop is bound exactly as every other shoot.
+-    pub fn admits(self, config: &GrowthConfig, t: TwigParams, p: Vec3) -> bool {
+-        !rejected(config, p)
++    pub fn admits(self, admission: &super::admission::Admission, t: TwigParams, p: Vec3) -> bool {
++        let config = &admission.config;
++        !admission.rejected(p)
+             || (self.drops(t)
+                 && config
+                     .shell
+@@ -342,6 +343,7 @@ mod tests {
+             ..Envelope::default()
+         };
+         let config = default_growth(shell, 0, 0.01);
++        let admission = super::super::admission::Admission::new(config);
+         let t = TwigParams {
+             hang: 1.0,
+             sag: 1.0,
+@@ -353,14 +355,14 @@ mod tests {
+         let hanging = Curtain::new(t, at, Some(5.0), config.trunk_height);
+         // Under the crown, below its lower surface, above the clearance.
+         let under = Vec3::new(1.0, 2.0, 0.0);
+-        assert!(hanging.admits(&config, t, under));
+-        assert!(!Curtain::default().admits(&config, t, under));
++        assert!(hanging.admits(&admission, t, under));
++        assert!(!Curtain::default().admits(&admission, t, under));
+         let dry = TwigParams {
+             curtain_drop: 0.0,
+             ..t
+         };
+         let still = Curtain::new(dry, at, Some(5.0), config.trunk_height);
+-        assert!(!still.admits(&config, dry, under));
++        assert!(!still.admits(&admission, dry, under));
+         // Below the clearance, beside the crown's footprint, and outside the
+         // shell above its lower surface, the shell binds as it always did.
+         for p in [
+@@ -368,11 +370,11 @@ mod tests {
+             Vec3::new(3.5, 2.0, 0.0),
+             Vec3::new(2.9, 9.0, 0.0),
+         ] {
+-            assert!(!hanging.admits(&config, t, p), "{p:?} was let in");
++            assert!(!hanging.admits(&admission, t, p), "{p:?} was let in");
+         }
+         // Inside the shell every curtain is admitted, whatever it drops.
+         let inside = Vec3::new(1.0, 5.0, 0.0);
+-        assert!(Curtain::default().admits(&config, t, inside));
+-        assert!(hanging.admits(&config, t, inside));
++        assert!(Curtain::default().admits(&admission, t, inside));
++        assert!(hanging.admits(&admission, t, inside));
+     }
+ }
+diff --git i/crates/telperion-core/src/branching/local/planner.rs w/crates/telperion-core/src/branching/local/planner.rs
+index 7957b229..96246e1c 100644
+--- i/crates/telperion-core/src/branching/local/planner.rs
++++ w/crates/telperion-core/src/branching/local/planner.rs
+@@ -53,7 +53,11 @@ impl Planner<'_> {
+             c.max_turn_per_step.to_radians() * (distance / c.step_distance).min(1.0),
+         )
+     }
+-    pub(super) fn run(&self, axis: Axis) -> Option<Rc<Run>> {
++    pub(super) fn run(
++        &self,
++        axis: Axis,
++        admission: &super::admission::Admission,
++    ) -> Option<Rc<Run>> {
+         let Axis {
+             start,
+             first,
+@@ -63,13 +67,6 @@ impl Planner<'_> {
+             key,
+             curtain,
+         } = axis;
+-        // Plan the axis against its authored room. The live boundary is checked
+-        // separately for every birth, so a juvenile crown pauses the cached run
+-        // rather than permanently truncating it and flushing a terminal early.
+-        let config = GrowthConfig {
+-            shell: self.planning.or(self.config.shell),
+-            ..*self.config
+-        };
+         let count = internodes.max(if bearing {
+             1
+         } else {
+@@ -108,12 +105,12 @@ impl Planner<'_> {
+             course = self.heading(at, course, wanted, stride);
+             let heading = curtain.sagged(course, travelled, self.twigs, key ^ self.seed);
+             let end = at + heading * stride;
+-            if !curtain.admits(&config, self.twigs, end) {
++            if !curtain.admits(admission, self.twigs, end) {
+                 let mut low = 0.0;
+                 let mut high = stride;
+                 for _ in 0..40 {
+                     let mid = (low + high) / 2.0;
+-                    if !curtain.admits(&config, self.twigs, at + heading * mid) {
++                    if !curtain.admits(admission, self.twigs, at + heading * mid) {
+                         high = mid
+                     } else {
+                         low = mid
+diff --git 1/crates/telperion-core/src/branching/local/admission.rs 2/crates/telperion-core/src/branching/local/admission.rs
+new file mode 100644
+index 00000000..acc97788
+--- /dev/null
++++ 2/crates/telperion-core/src/branching/local/admission.rs
+@@ -0,0 +1,265 @@
++use super::*;
++
++pub(super) struct Admission {
++    pub config: GrowthConfig,
++    bounds: Option<[f64; 257]>,
++}
++impl Admission {
++    pub fn for_advance(config: GrowthConfig, growing: bool, budget: usize) -> Self {
++        if growing || budget != usize::MAX {
++            Self {
++                config,
++                bounds: None,
++            }
++        } else {
++            Self::new(config)
++        }
++    }
++
++    pub fn new(config: GrowthConfig) -> Self {
++        let bounds = config
++            .shell
++            .filter(|s| {
++                s.validate().is_ok()
++                    && s.irregularity == 0.0
++                    && (1e-3..=1e3).contains(&s.height)
++                    && (1e-3..=10.0).contains(&s.spread)
++                    && (0.0..=0.99).contains(&s.crown_base)
++                    && (0.01..=0.99).contains(&s.fullness)
++                    && (1.25..=8.0).contains(&s.shoulder)
++            })
++            .map(|s| {
++                std::array::from_fn(|i| {
++                    let p = i as f64 / 256.0;
++                    s.max_radius()
++                        * (1.0 - p.powf_fixed(s.shoulder))
++                            .max(0.0)
++                            .powf_fixed(1.0 / s.shoulder)
++                })
++            });
++        Self { config, bounds }
++    }
++    fn classify(&self, point: Vec3) -> Option<bool> {
++        let bounds = self.bounds.as_ref()?;
++        let s = self.config.shell?;
++        if !point.is_finite()
++            || [point.x, point.y, point.z]
++                .iter()
++                .any(|v| *v != 0.0 && !v.is_normal())
++        {
++            return None;
++        }
++        let base = s.height * s.crown_base;
++        let t = (point.y - base) / (s.height - base);
++        if !(0.0 < t && t < 1.0) {
++            return None;
++        }
++        let p = if t < s.fullness {
++            1.0 - t / s.fullness
++        } else {
++            (t - s.fullness) / (1.0 - s.fullness)
++        };
++        if !p.is_normal() || !(0.0..255.0 / 256.0).contains(&p) {
++            return None;
++        }
++        let bin = (p * 256.0) as usize;
++        let radial = point.x.hypot_fixed(point.z);
++        if !radial.is_normal() {
++            return None;
++        }
++        // Qualified for pinned libm 0.2.16 on the bounded domain above;
++        // numerical qualification and the margin derivation live in the
++        // fn-91 envelope evidence. The ill-conditioned final bin falls back.
++        let margin = s.max_radius() * 1e-6;
++        if radial < bounds[bin + 1] - margin {
++            Some(false)
++        } else if radial > bounds[bin] + margin {
++            Some(true)
++        } else {
++            None
++        }
++    }
++    pub fn rejected(&self, p: Vec3) -> bool {
++        if self.bounds.is_none() {
++            return rejected(&self.config, p);
++        }
++        if p.y < self.config.trunk_height {
++            return true;
++        }
++        if self.config.shell.is_some_and(|s| p.y > s.height) {
++            return true;
++        }
++        self.classify(p)
++            .unwrap_or_else(|| rejected(&self.config, p))
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[test]
++    fn prepared_admission_capability_and_boundaries() {
++        for shoulder in [1.25, 2.2, 4.0, 8.0] {
++            for fullness in [0.01, 0.45, 0.99] {
++                let shell = Envelope {
++                    shoulder,
++                    fullness,
++                    ..Envelope::default()
++                };
++                let config = default_growth(shell, 7, 0.01);
++                let prepared = Admission::new(config);
++                assert!(prepared.bounds.is_some(), "eligible shell must prepare");
++                let base = shell.height * shell.crown_base;
++                let span = shell.height - base;
++                for i in 0..=256 {
++                    let p = i as f64 / 256.0;
++                    for t in [fullness * (1.0 - p), fullness + (1.0 - fullness) * p] {
++                        let y = base + span * t;
++                        for y in [y.next_down(), y, y.next_up()] {
++                            let radius = shell.radius_at(y);
++                            for r in [
++                                0.0,
++                                radius.next_down(),
++                                radius,
++                                radius.next_up(),
++                                radius * 0.99,
++                                radius * 1.01,
++                            ] {
++                                let point = Vec3::new(r, y, 0.0);
++                                assert_eq!(
++                                    prepared.rejected(point),
++                                    rejected(&config, point),
++                                    "{shell:?} {point:?}"
++                                );
++                            }
++                        }
++                    }
++                }
++            }
++        }
++    }
++    #[test]
++    fn prepared_admission_domain_random_and_exceptional() {
++        let mut rng = Rng::new(912);
++        for i in 0..160 {
++            let shell = Envelope {
++                height: [1e-3, 1e3, rng.range(0.01, 100.0)][i % 3],
++                spread: [1e-3, 10.0, rng.range(0.01, 2.0)][i % 3],
++                crown_base: [0.0, 0.99, rng.range(0.0, 0.99)][i % 3],
++                fullness: rng.range(0.01, 0.99),
++                shoulder: rng.range(1.25, 8.0),
++                ..Envelope::default()
++            };
++            let config = default_growth(shell, 7, 0.01);
++            let admission = Admission::new(config);
++            assert!(admission.bounds.is_some());
++            for _ in 0..2000 {
++                let y = rng.range(-0.01, 1.01) * shell.height;
++                let radius = shell.radius_at(y);
++                let angle = rng.range(0.0, TAU);
++                let radial = if rng.next_f64() < 0.5 {
++                    radius * rng.range(0.999999, 1.000001)
++                } else {
++                    shell.max_radius() * rng.range(0.0, 1.2)
++                };
++                let p = Vec3::new(radial * angle.cos_fixed(), y, radial * angle.sin_fixed());
++                assert_eq!(
++                    admission.rejected(p),
++                    rejected(&config, p),
++                    "{shell:?} {p:?}"
++                );
++            }
++        }
++        let shell = Envelope::default();
++        let unsupported = [
++            Envelope {
++                height: 0.0,
++                ..shell
++            },
++            Envelope {
++                height: 1e-300,
++                ..shell
++            },
++            Envelope {
++                height: 1e300,
++                ..shell
++            },
++            Envelope {
++                spread: 0.0,
++                ..shell
++            },
++            Envelope {
++                crown_base: 1.0,
++                ..shell
++            },
++            Envelope {
++                fullness: 0.0,
++                ..shell
++            },
++            Envelope {
++                fullness: 1.0,
++                ..shell
++            },
++            Envelope {
++                shoulder: 1.0,
++                ..shell
++            },
++            Envelope {
++                shoulder: 8.0_f64.next_up(),
++                ..shell
++            },
++            Envelope {
++                irregularity: 0.2,
++                ..shell
++            },
++        ];
++        for shell in unsupported {
++            let config = default_growth(shell, 7, 0.01);
++            let admission = Admission::new(config);
++            assert!(admission.bounds.is_none());
++            for p in [
++                Vec3::ZERO,
++                Vec3::new(1.0, 15.0, 2.0),
++                Vec3::new(f64::INFINITY, 15.0, 0.0),
++                Vec3::new(f64::NAN, 15.0, 0.0),
++            ] {
++                assert_eq!(admission.rejected(p), rejected(&config, p));
++            }
++        }
++        let config = default_growth(shell, 7, 0.01);
++        let admission = Admission::new(config);
++        for v in [
++            f64::NAN,
++            f64::INFINITY,
++            f64::NEG_INFINITY,
++            f64::from_bits(1),
++            -0.0,
++            0.0,
++        ] {
++            for p in [
++                Vec3::new(v, 15.0, 0.0),
++                Vec3::new(1.0, v, 0.0),
++                Vec3::new(1.0, 15.0, v),
++            ] {
++                assert_eq!(admission.rejected(p), rejected(&config, p));
++            }
++        }
++    }
++    #[test]
++    fn prepared_admission_only_for_mature_full_drain() {
++        let config = default_growth(Envelope::default(), 7, 0.01);
++        for (growing, budget) in [(false, 0), (false, 1), (false, 128), (true, usize::MAX)] {
++            let admission = Admission::for_advance(config, growing, budget);
++            assert!(
++                admission.bounds.is_none(),
++                "incremental advances must not prepare a table"
++            );
++            for p in [Vec3::ZERO, Vec3::new(1.0, 15.0, 2.0)] {
++                assert_eq!(admission.rejected(p), rejected(&config, p));
++            }
++        }
++        assert!(Admission::for_advance(config, false, usize::MAX)
++            .bounds
++            .is_some());
++    }
++}

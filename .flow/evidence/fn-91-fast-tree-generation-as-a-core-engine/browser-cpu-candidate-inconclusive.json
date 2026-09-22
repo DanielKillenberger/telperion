@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-20T10:06:18.689Z",
+  "browser": "152.0.7977.82",
+  "flags": [
+    "--no-sandbox",
+    "--enable-unsafe-webgpu",
+    "--enable-features=Vulkan",
+    "--use-angle=vulkan",
+    "--disable-vulkan-surface",
+    "--ignore-gpu-blocklist"
+  ],
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "wasmSha256": "156a91fd1f9f4eacbee3cebcf2ac6940d4d8365b551076b27ca8c73788c59d8f",
+  "rows": [],
+  "gaps": [
+    "GPU completion is not exposed: frame timing measures submission only",
+    "phone hardware",
+    "native rendering delivery",
+    "peak CPU/GPU memory",
+    "attachment setup separate from placement"
+  ],
+  "error": "Error: page.evaluate: TypeError: Failed to resolve module specifier '/src/browser/render.ts'\n    at eval (eval at evaluate (:311:30), <anonymous>:3:27)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+}

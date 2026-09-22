@@ -1,0 +1,18 @@
+[
+  {
+    "species": "oregon-white-oak",
+    "medians_ms": {
+      "baseline": 227.834449,
+      "candidate": 219.844707
+    },
+    "gain_percent": 3.506819111450532
+  },
+  {
+    "species": "norway-spruce",
+    "medians_ms": {
+      "baseline": 262.195821,
+      "candidate": 251.315235
+    },
+    "gain_percent": 4.149793829093873
+  }
+]

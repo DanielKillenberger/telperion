@@ -1,0 +1,106 @@
+{
+  "species": "Oregon white oak",
+  "preset": "oregon-white-oak",
+  "seed": 7,
+  "view": "whole",
+  "session": "orbit",
+  "orbit_seconds": 10,
+  "submitted": {
+    "bounds": {
+      "max": [
+        13.217684715842124,
+        23.557227415847606,
+        13.003187181590542
+      ],
+      "min": [
+        -13.163122928115051,
+        -0.09600000083446503,
+        -13.242490423042556
+      ]
+    },
+    "foliageInstances": 869310,
+    "woodTriangles": 8255000,
+    "woodVertices": 4262170
+  },
+  "camera": {
+    "position": [
+      21.776934397820636,
+      21.55303787058397,
+      34.96043467597899
+    ],
+    "target": [
+      0.02728089386353627,
+      11.73061370750657,
+      -0.11965162072600677
+    ]
+  },
+  "family": "{\"age\":100,\"canopy\":{\"clump\":5,\"clumpSpan\":0.3,\"divergence\":180,\"forwardLean\":0.25,\"leanRise\":0,\"limbClumping\":0,\"maxInstances\":4294967295,\"outward\":0,\"scatter\":18,\"shootRadius\":0,\"shortShootLeaves\":3,\"shortShootLength\":0.04,\"shortShootRadius\":0.15,\"shortShootSpacing\":0,\"shortShootSpread\":45,\"size\":1,\"sizeVariation\":0.2,\"spacing\":0.006,\"surfaceContact\":0,\"upward\":0},\"element\":{\"axialSegments\":40,\"baseFullness\":0.6,\"card\":false,\"connectorLength\":0.012,\"crossSegments\":2,\"cup\":0.18,\"curl\":0.12,\"length\":0.1,\"lobeCount\":5,\"lobeDepth\":0.7,\"sectionRoundness\":0,\"tipSharpness\":0.6,\"widestAt\":0.55,\"width\":0.075},\"growth\":{\"apicalControlLoss\":0,\"leafLifetime\":1,\"rate\":0.08,\"resizeTolerance\":0.0001,\"shape\":2,\"sheddingTolerance\":2},\"material\":{\"barkBlue\":0.158,\"barkGrainScale\":0.0025,\"barkGrainStrength\":0.2,\"barkGreen\":0.175,\"barkMottleScale\":0.8,\"barkMottleStrength\":0.2,\"barkRed\":0.185,\"barkReflectance\":0.04,\"barkRoughness\":0.85,\"bladeGrainScale\":0,\"bladeGrainStrength\":0,\"bladeMottleScale\":6,\"bladeMottleStrength\":0.15,\"brightnessRangeHigh\":0.15,\"brightnessRangeLow\":-0.15,\"canopyNormal\":0,\"cavityStrength\":0.6,\"crestBlue\":0.055,\"crestGreen\":0.085,\"crestRed\":0.1,\"crestStrength\":0.5,\"crownShade\":0,\"cuticleGloss\":0.35,\"depthStrength\":0.5375,\"diffuseTransmission\":0,\"directionalOcclusion\":1,\"fissureBlue\":0.005,\"fissureGreen\":-0.05,\"fissureRed\":-0.1,\"fissureStrength\":0.65,\"furrowStrength\":1,\"hueRangeHigh\":0.03,\"hueRangeLow\":-0.03,\"interiorDarkening\":0.55,\"leafBackBlue\":0.112,\"leafBackGreen\":0.254,\"leafBackRed\":0.153,\"leafFrontBlue\":0.016,\"leafFrontGreen\":0.102,\"leafFrontRed\":0.028,\"leafReflectance\":0.04,\"leafSheen\":0,\"lenticelDensity\":0,\"lenticelLength\":0,\"lenticelStrength\":0,\"lenticelTint\":0,\"lichenBlue\":0,\"lichenCoverage\":0,\"lichenGreen\":0,\"lichenRed\":0,\"lichenScale\":0,\"lichenStrength\":0,\"lightWrap\":0,\"lobeShade\":0,\"marginBlue\":0.006,\"marginGreen\":0.035,\"marginRed\":0.025,\"marginWidth\":0.08,\"orientationBlue\":-0.1535,\"orientationGreen\":0.009,\"orientationRed\":-0.062,\"orientationStrength\":0.40625,\"peelBlue\":0,\"peelCurl\":0,\"peelGreen\":0,\"peelRed\":0,\"plateCellScale\":0.084,\"plateDome\":0.85,\"plateEdgeLift\":0.8,\"plateElongation\":1.8,\"plateFurrowWidth\":0.15,\"plateIdentity\":0.5,\"plateScale\":0.055,\"ridgeScale\":0.032,\"roughnessDetail\":0.12,\"shootBlue\":0.198,\"shootGreen\":0.218,\"shootRadius\":0,\"shootRed\":0.225,\"skyOcclusionStrength\":0.5,\"thickness\":0.65,\"transmissionBlue\":0.07,\"transmissionGreen\":0.52,\"transmissionRed\":0.24,\"transmissionStrength\":0.55,\"veinContrast\":0.45,\"veinScale\":7,\"weatheringBlue\":0.00575,\"weatheringGreen\":0.035,\"weatheringRed\":0.0225,\"weatheringStrength\":0.425},\"radii\":{\"forkExponent\":2,\"trunkRadius\":0.018,\"lengthTaper\":0.6},\"shellDepth\":1,\"skeleton\":{\"attractors\":500,\"bias\":{\"gravitropism\":0,\"lean\":0,\"supernatural\":{\"enabled\":false,\"writheAmplitude\":0,\"writheWavelength\":0.45,\"spiralRate\":0}},\"envelope\":{\"height\":24,\"spread\":0.55,\"crownBase\":0.16,\"fullness\":0.55,\"shoulder\":2.2,\"irregularity\":0,\"lobeScale\":0.5},\"growth\":{\"maxTurnPerStep\":35},\"habit\":{\"apicalDominance\":0.1,\"attractorWeight\":0,\"crookedness\":24,\"lateralLengthRatio\":0.45,\"lateralOrders\":3,\"lateralPitch\":55,\"lateralSpacing\":1.6,\"lateralsPerStation\":5,\"leaderInternode\":2,\"pitchVariation\":20,\"risePrimary\":0.12,\"riseSecondary\":0,\"sheddingThreshold\":0,\"stemDivergence\":0,\"stemForkHeight\":0,\"stemLean\":0,\"stemLeanSpread\":0,\"stems\":1,\"twigTipTaper\":0.25,\"whorlStrength\":0.1},\"seed\":7,\"step\":0.022,\"twigs\":{\"twig\":{\"length\":0.25,\"diameter\":0.005,\"internodeLength\":0.02,\"stationsPerInternode\":1,\"bearingDiameter\":0.03},\"ratioPower\":1.3,\"limbRadius\":0.1,\"reach\":0.2,\"laterals\":4,\"generations\":6,\"angleVariation\":10,\"vigourVariation\":0.15,\"angle\":45,\"divergence\":137.508,\"internodeFactor\":2.5,\"lengthRatio\":0.45,\"hang\":0,\"pendulousLength\":0.25,\"pendulousRadius\":1,\"curtainSeparation\":4,\"sag\":0,\"pendulousVariation\":0,\"curtainDrop\":0,\"curtainClearance\":0.5}},\"surface\":{\"flareDepth\":0.004,\"flareFalloff\":0.022,\"flareRadius\":2.1,\"forkSocket\":0.5,\"forkSwell\":1.35,\"lobeDepth\":0,\"lobes\":5,\"radialSegments\":12,\"twistRate\":0}}",
+  "report": {
+    "adapter": "; comparison filtering: Linear",
+    "driver": "",
+    "backend": "webgpu",
+    "conditioning": 8,
+    "warmup": 8,
+    "measured": 120,
+    "samples": 120,
+    "verdict": "valid",
+    "p50_ms": 11.9683,
+    "p95_ms": 13.3412,
+    "selection_p50_ms": 0.1096,
+    "selection_p95_ms": 0.1126,
+    "shadow_p50_ms": 0.2765,
+    "shadow_p95_ms": 0.2806,
+    "total_p50_ms": 12.3538,
+    "total_p95_ms": 13.7242,
+    "multisample": 4,
+    "wall_frames": 700,
+    "wall_p50_ms": 10.1,
+    "wall_p95_ms": 30,
+    "wall_max_ms": 30.1,
+    "caster_triangles": 90760,
+    "caster_instances": 217328
+  },
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+  "webgpu": {
+    "vendor": "nvidia",
+    "architecture": "ampere",
+    "device": "",
+    "description": ""
+  },
+  "canvas": {
+    "width": 1600,
+    "height": 1000
+  },
+  "visibility": "visible",
+  "devicePixelRatio": 1,
+  "browser": "153.0.8010.12",
+  "flags": [
+    "--no-sandbox",
+    "--enable-unsafe-webgpu",
+    "--enable-features=Vulkan",
+    "--use-angle=vulkan",
+    "--disable-vulkan-surface",
+    "--ignore-gpu-blocklist",
+    "--disable-background-timer-throttling",
+    "--disable-backgrounding-occluded-windows",
+    "--disable-renderer-backgrounding"
+  ],
+  "origin": "http://127.0.0.1:5173",
+  "provenance": {
+    "source_commit": "aec1a7dc4a5faa01c60186f47d1679df85ee19ae",
+    "source_status": "M .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/FRICTION.md\n M .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/check-sweep.py\n M .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/review.html\n M .flow/evidence/fn71/resolution/bark_distance.json\n M .flow/evidence/fn71/resolution/bark_resolution_grazing.json\n M .flow/evidence/fn71/resolution/bark_resolution_trunk.json\n M .flow/evidence/fn71/resolution/smooth_bark.json\n M .flow/specs/fn-42-bark-depth-level-and-a-fair-capture.json\n M .flow/specs/fn-42-bark-depth-level-and-a-fair-capture.md\n M .flow/tasks/fn-42-bark-depth-level-and-a-fair-capture.1.json\n M crates/telperion-core/src/presets/materials.rs\n M crates/telperion-render/src/shaders/wood.wgsl\n M crates/telperion-render/src/wood/calibration.rs\n M crates/telperion-render/tests/bark_sweep_evidence.rs\n M src/browser/presets.generated.ts\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/browser-candidate/\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/browser-core-build.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/browser-orbit.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/browser-orbit.mjs\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/browser-render-build.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/native-before.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/native-before/\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/native-relief-final.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/native-relief.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/native-relief/\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/native-trunk-before.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/native-trunk-relief.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-beech-sweep.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-beech-sweep.md\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-birch-sweep.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-birch-sweep.md\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-birchhero-sweep.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-birchhero-sweep.md\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-capture.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-dense-filtering.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-filtering.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-final-0.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-final-1.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-final-2.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-final-gates.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-final/\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-gates-remaining.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-gates.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-lint.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-parallax-isolation.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-range.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-sweep-check.json\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-sweep/\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief/\n?? crates/telperion-render/tests/bark_relief_range.rs",
+    "tracked_diff_sha256": "793e74a3b687fac9855228d4e003cb3f4d0a800e27c4e9e19db6f98bc123e7a2",
+    "files_sha256": {
+      "src/browser/telperion.wasm": "338fc761388b268bd7b6a0925e60846d71cf3bf76cbe119481c89aedf2891645",
+      "src/browser/presets.generated.ts": "3d1243bcc992baa8f7e9519427324b2914bb97872d549431686c9680de642055",
+      "src/browser/render/telperion_render_bg.wasm": "cc4ee67d5689bae772804ba90fbea6cca6459d6cd4efb97708efa61e32de8ce6",
+      "crates/telperion-core/src/presets/materials.rs": "d58670236bfa8b1e43063aa0920c1444d2a3490dab9e445c1205cede0e1f99d0",
+      "crates/telperion-render/src/shaders/wood.wgsl": "df117f2f42a34c9feb5d2117036a8ca67a832aae344b18a6e551b54f24655fda"
+    }
+  },
+  "pageErrors": [],
+  "liveDevices": 0,
+  "orbit_fps": 70,
+  "quantization_us": 100,
+  "note": "Browser animation wall clock is coarsened to 100 microseconds. GPU validity is the renderer report verdict; no 60fps acceptance ceiling is imposed."
+}

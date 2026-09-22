@@ -71,6 +71,17 @@ pub struct Held {
 }
 
 impl Held {
+    pub(crate) fn resident(buffer: wgpu::Buffer, used: u64, label: &'static str) -> Self {
+        let capacity = buffer.size();
+        let usage = buffer.usage();
+        Self {
+            buffer,
+            region: Region { capacity, used },
+            usage,
+            label,
+        }
+    }
+
     fn new(gpu: &Gpu, label: &'static str, usage: wgpu::BufferUsages, bytes: &[u8]) -> Self {
         let region = Region::new(bytes.len() as u64);
         Self {

@@ -1,0 +1,11 @@
+    Finished `ci` profile [optimized] target(s) in 0.06s
+     Running tests/bark_plates.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_plates-83e764f2da7d2d65)
+
+running 1 test
+test inspect_rough_plate_means ... rough oak width 0: face 0.74936587 dome 0.57462219 rim 0.30438491
+rough spruce width 0: face 0.75786302 dome 0.58445751 rim 0.30314464
+rough a furrow of 0.25 width 0.25: face 0.50719157 dome 0.32170925 rim 0.21763845
+rough a furrow of 0.6 width 0.6: face 0.27874804 dome 0.13465945 rim 0.12762179
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.92s

@@ -14,7 +14,7 @@ it("carries every surface-detail control from the generated row through the pane
     "marginRed", "marginGreen", "marginBlue", "cuticleGloss", "skyOcclusionStrength",
     "shootRed", "shootGreen", "shootBlue", "shootRadius",
     "plateCellScale", "plateElongation", "plateDome", "plateEdgeLift", "plateFurrowWidth",
-    "plateIdentity",
+    "plateEdgeShape", "plateIdentity",
     "weatheringStrength", "weatheringRed", "weatheringGreen", "weatheringBlue",
     "orientationStrength", "orientationRed", "orientationGreen", "orientationBlue",
     "directionalOcclusion", "depthStrength",

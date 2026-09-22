@@ -1,0 +1,106 @@
+[
+  {
+    "preset": "oregon-white-oak",
+    "seed": 1,
+    "medians_ms": {
+      "baseline": 66.967546,
+      "candidate": 50.746009
+    },
+    "change_percent": -24.22298257726212,
+    "first_ms": {
+      "baseline": 74.583703,
+      "candidate": 55.203016
+    },
+    "warm_range_ms": {
+      "baseline": [
+        65.28765899999999,
+        69.91804
+      ],
+      "candidate": [
+        50.34916,
+        53.753745
+      ]
+    },
+    "nodes": 125087,
+    "exact_bytes": 12508723,
+    "complete": true
+  },
+  {
+    "preset": "oregon-white-oak",
+    "seed": 7,
+    "medians_ms": {
+      "baseline": 74.143124,
+      "candidate": 63.474517999999996
+    },
+    "change_percent": -14.389204857351313,
+    "first_ms": {
+      "baseline": 82.45793599999999,
+      "candidate": 67.111878
+    },
+    "warm_range_ms": {
+      "baseline": [
+        74.100923,
+        76.382853
+      ],
+      "candidate": [
+        60.641966,
+        63.70279299999999
+      ]
+    },
+    "nodes": 139040,
+    "exact_bytes": 13904023,
+    "complete": true
+  },
+  {
+    "preset": "norway-spruce",
+    "seed": 1,
+    "medians_ms": {
+      "baseline": 46.157776999999996,
+      "candidate": 48.019878
+    },
+    "change_percent": 4.0342085798455996,
+    "first_ms": {
+      "baseline": 50.562574,
+      "candidate": 49.419518000000004
+    },
+    "warm_range_ms": {
+      "baseline": [
+        44.742526,
+        46.256059
+      ],
+      "candidate": [
+        47.518496,
+        48.480778
+      ]
+    },
+    "nodes": 95389,
+    "exact_bytes": 9538923,
+    "complete": true
+  },
+  {
+    "preset": "norway-spruce",
+    "seed": 7,
+    "medians_ms": {
+      "baseline": 43.892947,
+      "candidate": 44.656743
+    },
+    "change_percent": 1.7401337850475151,
+    "first_ms": {
+      "baseline": 50.104094,
+      "candidate": 56.237619
+    },
+    "warm_range_ms": {
+      "baseline": [
+        41.75066,
+        62.162799
+      ],
+      "candidate": [
+        38.10541,
+        45.309898000000004
+      ]
+    },
+    "nodes": 90439,
+    "exact_bytes": 9043923,
+    "complete": true
+  }
+]

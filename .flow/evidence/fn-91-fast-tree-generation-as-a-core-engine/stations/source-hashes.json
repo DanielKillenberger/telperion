@@ -1,0 +1,17 @@
+{
+  "baseline": {
+    "placement.rs": "9107d102c44dc6bd8fd0ad5f0f6d1715be71928cdbe15c862aa6cd45c0ced859",
+    "station.rs": "1711a53a256ffa8af8152ba333f7830262afb1dbfc5f9af21eeb5df7e120d0c5",
+    "prepared.rs": "04d4aaf186ec8b65b748dcc5fd0a95df96d94db626935a4d08d4b1fa65bfe901"
+  },
+  "candidate": {
+    "placement.rs": "15d64847055ae392d2eb331f952ea247c71fccabd26297f30af5ec0ed00c18eb",
+    "station.rs": "6222d363f743d8a7ce60b38fd91a85910a3489d73c847e7b3a74468d05b97485",
+    "prepared.rs": "1ea64099e72544d1dfdfcd57ec4e9c8e62184bec9c19d783a1ba0a5242517127"
+  },
+  "root": {
+    "placement.rs": "15d64847055ae392d2eb331f952ea247c71fccabd26297f30af5ec0ed00c18eb",
+    "station.rs": "6222d363f743d8a7ce60b38fd91a85910a3489d73c847e7b3a74468d05b97485",
+    "prepared.rs": "1ea64099e72544d1dfdfcd57ec4e9c8e62184bec9c19d783a1ba0a5242517127"
+  }
+}

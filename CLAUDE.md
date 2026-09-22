@@ -17,6 +17,10 @@ fn-13 task 5 consumed a full weekly quota on 22 full-forest GPU captures and ima
 - **Per-task budget.** A task gets 5 pilot ticks or 10 commits. When it is hit, stop with `NEEDS_HUMAN` and a one-paragraph blocker in the task file instead of another attempt. Do not rescope a task inside its own spec; open a new task.
 - **Review is lean.** `review.backend` is `none`; the host session checks diffs directly. Do not raise it without the owner. The QA pipeline stage is on `auto` (owner, 2026-09-19): `flow --auto` puts the spec's acceptance to Jev's `qa-gate` preset and drives the harness only when the answer is UI-observable and code resolves a startable target, so a generator, CLI or preset spec still skips it. A QA pass drives `npm run dev`, never a full-forest capture; the capture budget above is unchanged.
 
+## Generator evolution (owner, 2026-09-20)
+
+The generator is under active development. Fidelity and measured speed improvements may change seeded specimens, random sequences, topology and encodings. Prefer byte-identical output for performance improvements when practical because exact comparison simplifies verification; this preference must not block a worthwhile measured gain that passes visual and correctness checks. Use byte-equivalence checks where unchanged output is intended, including repeat runs, unaffected paths and behavior-preserving optimizations. Intentional improvements may change both the generated structure and its byte representation; historical hashes and cross-backend equality must not prevent that evolution. See STRATEGY.md, "Our approach" and "Attributability". Do not ask again for permission merely because an authorized improvement changes those outputs. Performance optimizations that change bytes are acceptable when measurements demonstrate the gain, visual comparison shows no perceptible regression at the supported views and in motion where applicable, and relevant correctness requirements still hold. Byte mismatch alone is not a failure in that case. Update affected tests and baselines with evidence of botanical validity, sound geometry, visual quality and cost; retain meaningful repeatability checks within the stated implementation and explicit correctness contracts such as spatial contacts. This policy supersedes blanket output-preservation and re-pin permission language in older specs, while retaining scoped equivalence checks where their premise still holds, but does not waive their remaining product requirements or declare an unbuilt feature complete.
+
 ## Code rules (owner, 2026-09-08)
 
 The mantra is "Minimalist af, efficient af and beautiful". Typed Rust and TypeScript only under `src` and `crates`; no untyped JavaScript in production. Readable line widths, functions that do one thing, files under about 400 lines. Nothing is copied from a prototype or experiment without a rewrite and a test. Presets are value tables; no species or template branch in generator or renderer.
@@ -30,6 +34,18 @@ One species per spec (owner, 2026-09-16). A new real species is onboarded by its
 ## Friction reports (owner, 2026-09-18)
 
 Every agent on a build reports friction as it happens, in `.flow/evidence/<spec>/FRICTION.md`, one dated entry per report: what it was doing, what slowed or hindered it, what it cost in minutes, ticks or tokens, and what would have removed it (a missing flag, a hand step, a slow gate, a wait that dwarfed the work). A report is written the moment progress slows, never reconstructed at the end. When the slowness is obviously inefficient, the agent returns early with the report and `NEEDS_HUMAN` instead of pushing through; a build that burned its budget on a known inefficiency has broken this. At the end of a build, before the spec closes, the host reads every FRICTION.md entry of that spec, brings each one up in its report, and proposes a fix for it, as its own spec or as a line in an open one; the owner decides which proposals become specs, and the host writes none of them on its own (owner, 2026-09-18). A local setup problem on the owner's machine is reported, never specced, because it does not belong in the repository. The rule exists because fn-13 task 5 spent a weekly quota on captures nobody had flagged as slow and fn-34 ran 23 rounds before anyone wrote down that the loop had no finish line.
+
+## Gates and checked claims (owner, 2026-09-20)
+
+The local gate is `cargo test --profile ci --workspace --no-fail-fast`, the profile CI runs under nextest. It is run once, at the end of a task. `npm run rust:test` and any other `--release` suite are not the gate and are never run as a second proof: the two profiles differ only in link-time optimisation, and fn-87 spent ten minutes re-proving a green result under fat LTO.
+
+A spec rests only on claims somebody ran. A defect spec's repro is run as a standalone test before an acceptance criterion is written around it, and an architecture claim about existing code is checked against that code before the spec is marked ready; a claim that was not checked is written as unknown. fn-92's first R1 asked a new test to be red on the base, and it crashed 0 of 65 runs while `bark_plates` crashed 5 of 12, which cost 35 of the task's 60 minutes. An unchecked architecture claim in fn-87 cost two bridge dispatches.
+
+Two checkouts of the same crate never share a `target/` directory. Test binary names do not depend on the checkout path, so cargo reuses the other checkout's binary without rebuilding: fn-92 counted four crashes against the fix that most likely came from the base binary.
+
+## Pull requests (owner, 2026-09-20)
+
+The format and the procedure are `docs/pr-format.md`. Every run of `/flow-next:make-pr`, by hand or under `flow --auto`, follows that file in place of the skill's body phases and does not read the skill's `workflow.md` or its companion files. The body is Change, Proof, Look here, Decisions and Open, 1,500 characters for a small diff and at most 4,000 for a large one, ending in the make-pr marker. The reason: bodies had reached 57 KB, and fn-72 recorded about 30k tokens of skill reading before a three-criterion fix could open its PR.
 
 ## TypeSafe (owner, 2026-09-16)
 
@@ -54,3 +70,7 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
 - Substantial replies (reports, reviews, multi-section answers): invoke `/flow-next:prose` BEFORE drafting — the artifact prose contract applies to chat replies too. Short conversational turns skip it.
 - If `flowctl` is not found: your shell lacks the plugin's `scripts/` dir on PATH (only Claude Code injects it). Resolve it the way the skills do - the plugin install's `scripts/flowctl` (Claude/Droid: plugin-root env var; Codex: `${CODEX_HOME:-$HOME/.codex}/scripts/flowctl`; Cursor/Grok: two levels above any flow-next SKILL.md) - or update/reinstall the flow-next plugin. A repo with no `.flow/` yet: run `/flow-next:setup`.
 <!-- END FLOW-NEXT -->
+
+## Evidence retention
+
+Follow `docs/evidence-retention.md` when collecting or staging evidence. Keep final summaries and reusable verification sources; put raw run output in ignored `.flow/evidence/<spec>/raw/`. Inspect evidence count and size before a PR. Never remove executable test fixtures as if they were generated output.

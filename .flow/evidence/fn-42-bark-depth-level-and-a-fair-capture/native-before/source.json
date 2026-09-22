@@ -1,0 +1,9 @@
+{
+  "source_revision": "fe86a7a7",
+  "preflight_gpu": "0 %, NVIDIA GeForce RTX 3080",
+  "changed_source_sha256": {
+    "crates/telperion-core/src/presets/materials.rs": "bfd0fa0690dac31aee12dbd3862e8305bb21619ea27f19a86f5b1ae37c3e93f5",
+    "crates/telperion-render/src/shaders/wood.wgsl": "b6d442c933cdf32ad59613f0dd678c31f14abf5d89caefc6ff41778240bc0a81"
+  },
+  "session": "Sequential baseline then candidate; no overlapping work owned by this session; desktop remains active."
+}

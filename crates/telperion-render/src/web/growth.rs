@@ -13,6 +13,7 @@ impl WebRenderer {
         let mesh = view.mesh().map_err(|e| js_error(e.into()))?;
         let mut live = self.borrow()?;
         let submitted = live.renderer.submit(&mesh).map_err(js_error)?;
+        self.generation.borrow_mut().invalidate();
         live.renderer.set_material(view.material());
         let result = growth_json(&view, &submitted);
         live.growth = Some(view);
@@ -39,6 +40,7 @@ impl WebRenderer {
                 .mesh()
                 .map_err(|e| js_error(e.into()))?;
             live.growth_submitted = Some(live.renderer.submit(&mesh).map_err(js_error)?);
+            self.generation.borrow_mut().invalidate();
         }
         Ok(growth_json(
             live.growth.as_ref().unwrap(),
