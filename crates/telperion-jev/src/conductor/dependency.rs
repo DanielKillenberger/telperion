@@ -188,11 +188,24 @@ fn judge(
             &state,
             &questions::implementation_questions(),
         )?;
-        let choice = policy::thresholded(
+        let mut choice = policy::thresholded(
             judgment.entry.choice("implementation_complexity"),
             judgment.entry.confidence("implementation_complexity"),
             table.min_confidence,
         );
+        // One investigation is what an under-floor answer buys. After it,
+        // the same answer under the floor is decided on the mass its side
+        // carries, never by a second investigation of the same revision.
+        if choice == "insufficient_evidence" && investigated(run, &dependency) {
+            if let Some(on_mass) = policy::on_mass(
+                judgment.entry.probabilities("implementation_complexity"),
+                "straightforward",
+                &["complex", "needs_design"],
+                table.min_confidence,
+            ) {
+                choice = on_mass;
+            }
+        }
         remember(run, &dependency.spec, &key, &choice, &judgment.reference);
         return Ok(("not_asked".into(), choice, vec![judgment.reference]));
     }
@@ -203,13 +216,35 @@ fn judge(
         &state,
         &questions::design_questions(),
     )?;
-    let choice = policy::thresholded(
+    let mut choice = policy::thresholded(
         judgment.entry.choice("design_complexity"),
         judgment.entry.confidence("design_complexity"),
         table.min_confidence,
     );
+    if choice == "insufficient_evidence" && investigated(run, &dependency) {
+        if let Some(on_mass) = policy::on_mass(
+            judgment.entry.probabilities("design_complexity"),
+            "routine",
+            &["complex"],
+            table.min_confidence,
+        ) {
+            choice = on_mass;
+        }
+    }
     remember(run, &dependency.spec, &key, &choice, &judgment.reference);
     Ok((choice, "not_asked".into(), vec![judgment.reference]))
+}
+
+/// Whether a verified investigation already exists for this dependency at
+/// its current design revision.
+fn investigated(run: &Run, dependency: &Dependency) -> bool {
+    history(run, &dependency.spec).iter().any(|d| {
+        d.role == Role::Investigate
+            && d.design_revision == dependency.design_revision
+            && d.result
+                .as_ref()
+                .is_some_and(|r| r.outcome == Some(Outcome::Verified))
+    })
 }
 
 /// Keeps a judgment with the evidence it read, so the same evidence is never

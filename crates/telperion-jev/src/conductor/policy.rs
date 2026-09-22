@@ -178,6 +178,28 @@ impl Signals {
 /// A judged choice reads as insufficient evidence when its confidence falls
 /// under the policy's floor: a confident answer over weak evidence is still
 /// only a distribution, and the floor is what the labelled set found.
+/// Decides on the mass a side of the answer carries rather than on how
+/// concentrated the distribution is. Three implementation judgments over the
+/// same design put 0.61, 0.68 and 0.64 on `complex` and never cleared the
+/// concentration floor, so the run bought investigations it did not need.
+/// When the easy side or the hard side holds at least `floor` of the mass,
+/// the answer is that side's argmax; otherwise nothing is decided.
+pub fn on_mass(probabilities: Option<&Value>, easy: &str, hard: &[&str], floor: f64) -> Option<String> {
+    let map = probabilities?.as_object()?;
+    let mass = |name: &str| map.get(name).and_then(Value::as_f64).unwrap_or(0.0);
+    if mass(easy) >= floor {
+        return Some(easy.into());
+    }
+    let hard_mass: f64 = hard.iter().map(|h| mass(h)).sum();
+    if hard_mass >= floor {
+        return hard
+            .iter()
+            .max_by(|a, b| mass(a).total_cmp(&mass(b)))
+            .map(|h| h.to_string());
+    }
+    None
+}
+
 pub fn thresholded(choice: Option<String>, confidence: Option<f64>, floor: f64) -> String {
     match (choice, confidence) {
         (Some(choice), Some(confidence)) if confidence >= floor => choice,

@@ -118,3 +118,15 @@ fn a_result_without_usage_charges_its_reservation_and_keeps_usage_known() {
     assert!(run.budget.usage_known);
     assert_eq!(run.budget.tokens, before + 2 * reserved);
 }
+
+#[test]
+fn an_under_floor_answer_is_decided_on_the_mass_its_side_carries() {
+    use telperion_jev::conductor::policy::on_mass;
+    let live = serde_json::json!({"complex": 0.61, "insufficient_evidence": 0.01, "needs_design": 0.06, "straightforward": 0.32});
+    assert_eq!(on_mass(Some(&live), "straightforward", &["complex", "needs_design"], 0.6).as_deref(), Some("complex"));
+    let split = serde_json::json!({"complex": 0.3, "needs_design": 0.25, "straightforward": 0.45});
+    assert_eq!(on_mass(Some(&split), "straightforward", &["complex", "needs_design"], 0.6), None);
+    let easy = serde_json::json!({"complex": 0.2, "needs_design": 0.1, "straightforward": 0.7});
+    assert_eq!(on_mass(Some(&easy), "straightforward", &["complex", "needs_design"], 0.6).as_deref(), Some("straightforward"));
+    assert_eq!(on_mass(None, "routine", &["complex"], 0.6), None);
+}
