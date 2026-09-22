@@ -200,7 +200,7 @@ impl Run {
 
     /// Only candidates this run actually evaluated, named by the dial they
     /// moved. Dials never tried simply do not appear.
-    fn attempts_for(&self, gap: &Gap) -> Vec<Attempt> {
+    pub fn attempts_for(&self, gap: &Gap) -> Vec<Attempt> {
         self.trials
             .iter()
             .enumerate()

@@ -425,6 +425,10 @@ pub fn run_with(
             "meaning":"reviewer has never been shown to pass an owner-accepted tree",
             "candidates":state.finalists()}),
         )?;
+        let result = state.end_result();
+        write(&out.join("result.json"), &serde_json::to_value(&result).unwrap())?;
+        fs::write(out.join("RESULT.md"), super::result::markdown(&result))
+            .map_err(|e| e.to_string())?;
         Ok(())
     };
     save(&state)?;

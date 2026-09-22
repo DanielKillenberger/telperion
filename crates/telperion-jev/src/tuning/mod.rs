@@ -20,6 +20,7 @@ pub mod preflight;
 pub mod priority;
 pub mod progress;
 pub mod reference_first;
+pub mod result;
 pub mod replay;
 pub mod round;
 pub mod routing;
