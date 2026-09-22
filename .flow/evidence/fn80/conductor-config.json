@@ -12,7 +12,7 @@
     "--profile-id",
     "date-palm",
     "--profiles",
-    ".flow/evidence/date-palm/pipeline/packet/profile.json"
+    ".flow/evidence/fn80/profiles-date-palm.json"
   ],
   "budget": {
     "max_tokens": 2000000,

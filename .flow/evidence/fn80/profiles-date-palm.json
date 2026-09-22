@@ -1,0 +1,71 @@
+{
+ "schema_version": 1,
+ "status": "ready",
+ "frozen_at": "2026-09-18",
+ "purpose": "The date palm's profile as the discover stage froze it and the owner admitted it on 2026-09-18 (decision date-palm/discover/manifest-proposed, option admit); marked ready for the measurer with fn9's seed protocol. Readiness set to ready by the host for the first pass: the profile's metrics are the discover stage's from the three admitted sources and the verify stage checked the height claim; a draft profile cannot be measured at all, and the numeric gates report against these numbers rather than nothing. fn-82 owns the profile's final numbers.",
+ "protocol": {
+  "fixed_seeds": [
+   1,
+   2,
+   3,
+   5,
+   8,
+   13,
+   21,
+   34,
+   55,
+   89,
+   144,
+   233
+  ],
+  "fresh_seeds": {
+   "count_per_species": 12,
+   "draw": "After initial calibration commits, use OS cryptographic random unsigned 32-bit integers; reject only duplicate/fixed seeds. Write all seeds before generating any. Never replace a failed seed.",
+   "record": "Commit seed list and calibration commit before further tuning; retain failed specimens as regressions."
+  },
+  "numeric": "Every fixed and fresh case must complete and satisfy every gating metric individually; no averaging away failures. Nonfinite, truncated, interrupted, empty-required and unavailable measurements fail or remain explicitly unassessed.",
+  "visual": "Inspect at least fixed seeds 1,2,3 and first three drawn fresh seeds per species, plus every numerical failure. Capture whole, bare branches and attached foliage detail. Score each rubric trait pass/fail/unassessed; all must pass for an unqualified fidelity result. Owner feedback is separate and currently absent.",
+  "target_revision": "Require independent evidence and recorded rationale; never adjust a target to fit generation."
+ },
+ "definitions": {},
+ "profiles": [
+  {
+   "anatomy": {},
+   "common_name": "Date palm",
+   "context": "Mature open-grown oasis or orchard date palm; single-stemmed, not a suckering offshoot clump or dwarf cultivar.",
+   "id": "date-palm",
+   "metrics": {
+    "dbh_m": {
+     "classification": "unavailable",
+     "confidence": "unavailable",
+     "note": "below the data-quality bar",
+     "range": null,
+     "source": [],
+     "unit": "m"
+    },
+    "height_m": {
+     "classification": "gating",
+     "confidence": "pipeline",
+     "note": "50 - 100 feet",
+     "range": [
+      15.24,
+      30.48
+     ],
+     "source": [
+      "A1"
+     ],
+     "unit": "m"
+    }
+   },
+   "readiness": "ready",
+   "rubric": {},
+   "scientific_name": "Phoenix dactylifera",
+   "sources": [
+    "F1",
+    "A1",
+    "M1"
+   ]
+  }
+ ],
+ "provenance": "provenance.json"
+}
