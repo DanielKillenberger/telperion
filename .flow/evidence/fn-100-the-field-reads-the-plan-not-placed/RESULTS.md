@@ -167,3 +167,7 @@ default-order sheet:
 
 The verdict is the owner's; R8 is recorded as awaiting the owner, on the
 order-3 sheet.
+
+## R8: the owner's verdict (2026-09-22)
+
+The owner looked at the sheets on a comparison page (base, first field cut, radius cull, order 3, and the tuft, gap and wood-only experiments) and at a field explorer holding the full 96-cell batch answer for the oak, birch and spruce: wood radius, leaf density and limb layers, a slice view, a cell readout and the plan checks. Verdict: "looks good to me, seems like we have all the info". R8 passes. The owner's notes along the way: clump dropping by a coin loses the crown's structure; the tuft rule unifies species (the birch's curtains vanish); how foliage is thinned is the consumer's problem, and the field's answer holds what a consumer needs. The wood cutoff belongs in metres of radius, about 2 cm for the broadleaves and 1 cm for the spruce.
