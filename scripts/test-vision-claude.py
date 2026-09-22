@@ -56,6 +56,18 @@ def success_claude_fake(structured_output, usage=None, model_id="claude-opus-5")
     return fake
 
 
+def tool_using_claude_fake(structured_output, tool_names):
+    """The CLI's real stream: an assistant turn carrying tool_use blocks, then the result."""
+    def fake(command, **kwargs):
+        blocks = [{"type": "tool_use", "name": name, "input": {}} for name in tool_names]
+        assistant = {"type": "assistant", "message": {"role": "assistant", "content": blocks}}
+        result_event = {"type": "result", "subtype": "success", "is_error": False,
+                         "usage": {"input_tokens": 11, "output_tokens": 7}, "modelUsage": {"claude-opus-5": {}},
+                         "structured_output": structured_output}
+        return subprocess.CompletedProcess(command, 0, json.dumps(assistant) + "\n" + json.dumps(result_event) + "\n", "")
+    return fake
+
+
 def failing_claude_fake():
     def fake(command, **kwargs):
         result_event = {"type": "result", "subtype": "error_max_turns", "is_error": True}
@@ -123,6 +135,20 @@ class ContactSheetClaude(unittest.TestCase):
             self.assertIn("claude-opus-5", result["model_identity_basis"])
             self.assertEqual(result["dispatched_prompt_sha256"], sha256(prompt.encode()))
             self.assertEqual(result["schema_sha256"], sha256(json.dumps(schema).encode()))
+
+    def test_structured_output_tool_is_the_answer_channel(self):
+        answer = {"priorities": [{"priority_id": "p1", "closest": "1", "ranking": ["1", "2"], "steps": []}],
+                  "overall": ["1", "2"], "wrong": [], "breaks": [], "improved": "", "missing": ""}
+        with tempfile.TemporaryDirectory() as tmp:
+            envelope = self.build_envelope(tmp)
+            result, _ = run_twin("contact-sheet-claude.py", envelope,
+                                 fake_claude=tool_using_claude_fake(answer, ["StructuredOutput"]))
+            self.assertEqual(result["status"], "ok")
+            self.assertEqual(result["forbidden_tools"], [])
+            result, _ = run_twin("contact-sheet-claude.py", envelope,
+                                 fake_claude=tool_using_claude_fake(answer, ["StructuredOutput", "Read"]))
+            self.assertEqual(result["status"], "failed_or_tools_or_unknown_usage_or_cardinality")
+            self.assertEqual(result["forbidden_tools"], ["Read"])
 
     def test_missing_usage_yields_failure_status(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -23,6 +23,11 @@ def _image_block(path: Path) -> dict:
                                          "data": base64.b64encode(path.read_bytes()).decode()}}
 
 
+# The CLI answers a `--json-schema` request through its own StructuredOutput
+# tool; that call is the answer channel, not a tool the model reached for.
+STRUCTURED_OUTPUT_TOOL = "StructuredOutput"
+
+
 def run(model, effort, paths, prompt, schema, timeout=600) -> dict:
     content = [{"type": "text", "text": prompt}] + [_image_block(Path(p)) for p in paths]
     message = {"type": "user", "message": {"role": "user", "content": content}, "parent_tool_use_id": None}
@@ -47,7 +52,7 @@ def run(model, effort, paths, prompt, schema, timeout=600) -> dict:
             continue
         if event.get("type") == "assistant":
             for block in event.get("message", {}).get("content", []):
-                if block.get("type") == "tool_use":
+                if block.get("type") == "tool_use" and block.get("name") != STRUCTURED_OUTPUT_TOOL:
                     forbidden_tools.append(block.get("name", "tool_use"))
                 elif block.get("type") == "text":
                     texts.append(block.get("text", ""))
