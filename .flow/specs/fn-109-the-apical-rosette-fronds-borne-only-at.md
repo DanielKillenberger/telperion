@@ -26,8 +26,18 @@ This spec gives the generator that crown, off by default so every shipped preset
 
 - **R1:** The palm run's gate, rerun at the landed commit, names `apical-rosette` and `pinnate-frond` as expressed and halts on `acanthophyll`, `persistent-leaf-base` and `infructescence` alone. Errors: a gate still naming either of the two means the vocabulary line was not moved or the capability is not produced by the value table.
 - **R2:** Every shipped preset is byte-identical in mesh and metrics with the rosette absent. Errors: a changed pin on any preset is a defect.
-- **R3:** The date palm at seed 1 builds with a rosette at the apex and no foliage elsewhere on the stem, and `species_measure` reports it within the species gates once fn-82's values are set; the palm's still, rendered by the headless renderer, is judged by the owner's eye and the reviewer, never by this spec. Errors: foliage on the stem below the apex, or a frond drawn as a simple blade, fails.
+- **R3:** The date palm at seed 1 builds with a rosette at the apex and no foliage elsewhere on the stem, and `species_measure` reports it within the species gates once fn-82's values are set; the palm's still, rendered by the headless renderer, is judged by the owner's eye and the reviewer, never by this spec. Errors: foliage on the stem below the apex, twig wood at an apex that bears a rosette, or a frond drawn as a simple blade, fails.
 - **R4:** The new rows are in the dial table with meaning, range and steps, and the table's coverage test passes. The workspace gate is green.
+
+### Host decisions on the design handoff (2026-09-22)
+
+The strong-tier design (`.flow/evidence/fn80/design-fn-109.md`, dispatch-4 of fn-80) raised five unknowns; the host settles the three that are system design, and restates one sentence.
+
+- **A frond is one placement expanded into leaflets, never a compound element.** fn-33 decided grouping at the placement over a multi-blade element, because one element per tree and the level ladder's three anchors are load-bearing (`mesh.rs:82`, `foliage/levels.rs:172-186`). The Architecture sentence "each frond a pinnate element" means exactly that expansion; the element stays single and the renderer is unchanged. [host design]
+- **The pinnate rows live on `canopy`, authored once, here.** fn-33 authored them under `element`; this spec pays nothing for the `canopy` placement while `element` would change five signatures and about a dozen call sites for no gain. fn-33 keeps flowers and cones and adopts these rows for its leaflet half; recorded in fn-33's Decision Context. [host design]
+- **`pinnate-compound` moves into the expressed list with the two names this spec adds.** The implementation draws exactly that meaning, and a vocabulary that says the generator cannot draw what it draws is wrong. The ash's gate (fn-56) then halts on its own value table until it sets the leaflet rows, which is the honest state and a value round, not a gap. [host design]
+- **An apex that bears a rosette bears no twig.** The capability packet notes a childless tip still gets a terminal twig; suppressing only twig-borne foliage would leave bare twig wood under the fronds, which no palm has. R3's error clause carries it. [host design]
+- **Open, not the host's:** what `species_measure` reports for a frond (the leaflet is the unit; fn-82 states which number its gates hold), and whether a leaning palm's rosette follows its axis or the sky (the axis by default; an owner verdict on the still can ask for the other). [inferred]
 
 ## Boundaries
 <!-- scope: business -->
