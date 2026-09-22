@@ -156,11 +156,24 @@ pub fn resume(
             "no spec is recorded for this gap; mint it and record it first".into(),
         ));
     };
+    // One landing per round. A halt that stood after a landing, narrower,
+    // ran another round and recorded another spec; that spec lands too, and
+    // the earlier landing moves into the record's history so every fix
+    // stays in the rerun's idempotence key. The same spec landing twice is
+    // still refused. The date palm's capability gate was the first halt to
+    // take two rounds.
     if !record["landed"].is_null() {
-        return Err(GapError::Invalid(format!(
-            "{gap_id} already resumed at {}",
-            record["landed"]["commit"].as_str().unwrap_or_default()
-        )));
+        if record["landed"]["spec"].as_str() == Some(spec.as_str()) {
+            return Err(GapError::Invalid(format!(
+                "{gap_id} already resumed at {}",
+                record["landed"]["commit"].as_str().unwrap_or_default()
+            )));
+        }
+        let earlier = record["landed"].take();
+        if !record["landings"].is_array() {
+            record["landings"] = json!([]);
+        }
+        record["landings"].as_array_mut().unwrap().push(earlier);
     }
     if commit.trim().is_empty() {
         return Err(GapError::Invalid("the landing commit is empty".into()));
@@ -247,10 +260,18 @@ pub fn landed_tools(dir: &Path, stage: &str) -> BTreeMap<String, String> {
                 .position(|s| *s == halt)
                 .is_some_and(|h| h <= index)
         })
-        .filter_map(|record| {
-            let spec = record["landed"]["spec"].as_str()?;
-            let commit = record["landed"]["commit"].as_str()?;
-            Some((format!("fix:{spec}"), commit.to_string()))
+        .flat_map(|record| {
+            // Every landing on the gap, the earlier rounds' and the current.
+            let history = record["landings"].as_array().cloned().unwrap_or_default();
+            history
+                .into_iter()
+                .chain(std::iter::once(record["landed"].clone()))
+                .filter_map(|landing| {
+                    let spec = landing["spec"].as_str()?;
+                    let commit = landing["commit"].as_str()?;
+                    Some((format!("fix:{spec}"), commit.to_string()))
+                })
+                .collect::<Vec<_>>()
         })
         .collect()
 }

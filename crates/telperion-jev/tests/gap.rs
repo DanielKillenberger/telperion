@@ -212,11 +212,25 @@ fn an_empty_agent_set_escalates_and_the_stronger_models_set_routes_proceeds_and_
     );
     assert_ne!(key_for(&paths, "gate"), gate_before);
     assert_eq!(key_for(&paths, "fetch"), fetch_before);
-    // A second landing is refused; the record already carries one.
+    // The same spec landing twice is refused; the record already carries it.
     assert!(resume::resume(&paths, &halt, "def5678", None)
         .unwrap_err()
         .to_string()
         .contains("already resumed"));
+    // A halt that stood after the landing runs another round and mints
+    // another spec: that spec lands too, the earlier landing moves into the
+    // record's history, and the rerun's key carries both fixes.
+    let gate_after_first = key_for(&paths, "gate");
+    resume::record_spec(&paths, &halt, "fn-109-the-apical-rosette").unwrap();
+    let again = resume::resume(&paths, &halt, "def5678", None).unwrap();
+    assert_eq!(again.spec, "fn-109-the-apical-rosette");
+    let record = gap::read(&paths, &halt).unwrap();
+    assert_eq!(record["landed"]["spec"], "fn-109-the-apical-rosette");
+    assert_eq!(record["landings"][0]["spec"], "fn-37-pendulous-shoots-as-rows");
+    let tools = resume::landed_tools(&paths.dir, "gate");
+    assert_eq!(tools.get("fix:fn-37-pendulous-shoots-as-rows").map(String::as_str), Some("abc1234"));
+    assert_eq!(tools.get("fix:fn-109-the-apical-rosette").map(String::as_str), Some("def5678"));
+    assert_ne!(key_for(&paths, "gate"), gate_after_first);
 
     let numbers = metrics::write(&paths, "silver-birch").unwrap();
     assert_eq!(numbers["autonomy"]["gaps"], 1);

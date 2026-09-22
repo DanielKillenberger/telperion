@@ -35,3 +35,11 @@ After the resume from pause-5 the conductor re-asked implementation complexity o
 ## 2026-09-22 — host: an under-floor answer bought a second investigation of the same design
 
 Three implementation judgments over the same design revision put 0.61, 0.68 and 0.64 on complex and never cleared the concentration floor of 0.6, so each read as insufficient evidence and the policy bought an investigation, then a second one on unchanged evidence. Cost: one cheap investigation that was still useful (it found a sixth authoring site and a wrong type name), one that would not have been, about 20 minutes. Rule added with a test: one investigation is what an under-floor answer buys; after it, the same answer is decided on the mass its side carries, the rule the owner approved for the tuning loop's direction acceptance. dispatch-6 is closed on the record as not run.
+
+## 2026-09-22 — host: the loop's first landing turned master red on a check the gate does not run
+
+fn-108 landed green on the cargo gate and red on CI: its spec, written by the host, asked for `catalogue/date-palm/packet/profile.json` by analogy with the beech, and the node job's catalogue check walks every folder under `catalogue/` and requires all thirteen files. The implementer ran the gate the rule names, which is cargo only, so nothing local could have caught it. Cost: master red for about an hour, one fix PR. What would remove it: the catalogue check in the local gate line or in make-pr's preflight, since a species folder is exactly what a gap spec touches; and a spec claim about a repository layout checked against the check that owns it, not against a sibling folder.
+
+## 2026-09-22 — host: a gap could land one fix; the second round's landing was refused
+
+fn-109 landed on master and the pipeline's `gap resume` refused it: "already resumed at b8b29448", the first round's landing. The gap record held one landing, and fn-63's loop had never run two rounds on one halt. Fixed with a test: a later round's spec lands too, the earlier landing moves into the record's history, and the rerun's idempotence key carries every fix. The same spec landing twice is still refused.
