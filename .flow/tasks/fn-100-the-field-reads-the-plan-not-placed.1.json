@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-100-the-field-reads-the-plan-not-placed",
   "spec_path": ".flow/tasks/fn-100-the-field-reads-the-plan-not-placed.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement The field reads the plan, not placed leaves",
   "updated_at": "2026-09-22T09:49:18.141412Z"
 }
