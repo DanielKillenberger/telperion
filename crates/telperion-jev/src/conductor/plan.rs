@@ -229,6 +229,11 @@ pub fn next(config: &Config, run: &Run) -> Result<Next> {
     }
     let table = policy::load();
     let open = open_decisions(config)?;
+    // Only a decision that blocks a stage is acted on here. One that blocks
+    // nothing, the pipeline's visual-unassessed and the like, is answered by
+    // the tuning revisions and the packet, never by the owner before them:
+    // the first live run was sent to the owner on one before the palm had
+    // ever been tuned.
     if let Some(decision) = open.iter().find(|d| !d.blocks.is_empty()) {
         return Ok(decision_action(config, &table, run, decision));
     }
@@ -239,9 +244,6 @@ pub fn next(config: &Config, run: &Run) -> Result<Next> {
         return Ok(Next::Stages {
             from: STAGES[0].into(),
         });
-    }
-    if let Some(decision) = open.first() {
-        return Ok(decision_action(config, &table, run, decision));
     }
     let landed = run
         .dependencies

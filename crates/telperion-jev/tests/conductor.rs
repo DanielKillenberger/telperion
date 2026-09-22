@@ -745,3 +745,31 @@ fn an_unjustified_next_attempt_pauses_with_budget_remaining_and_a_stage_halt_rou
         Next::AwaitOwner { .. }
     ));
 }
+
+#[test]
+fn an_open_decision_that_blocks_nothing_does_not_stop_the_run_for_the_owner() {
+    let root = scratch("nonblocking");
+    let config = config(&root);
+    let decisions = telperion_jev::pipeline::decision::Decision::new(
+        telperion_jev::pipeline::decision::DecisionParts {
+            species: "beech",
+            stage: "generate",
+            kind: "visual-unassessed",
+            field: None,
+            age_years: None,
+        },
+        &[],
+        BTreeMap::new(),
+        vec![],
+        json!({}),
+        &["accept", "reject"],
+        "the owner's verdict on the stills, after tuning",
+    );
+    write(
+        &config.paths().decisions(),
+        &json!({"schema": "decisions", "schema_version": 1, "decisions": [decisions]}),
+    );
+    let run = Run::open(&config).unwrap();
+    let next = plan::next(&config, &run).unwrap();
+    assert!(!matches!(next, Next::AwaitOwner { .. }), "{next:?}");
+}

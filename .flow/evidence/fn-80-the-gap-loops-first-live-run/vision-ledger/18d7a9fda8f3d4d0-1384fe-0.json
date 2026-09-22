@@ -1,0 +1,42 @@
+{
+  "effort": "medium",
+  "exit": 0,
+  "model": "gpt-6-astra",
+  "request": {
+    "protocol": "reference-first-v1",
+    "references": [
+      {
+        "id": "reference-0",
+        "image": {
+          "path": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.refs/fn80/date-palm/whole.jpg",
+          "seed": 1,
+          "sha256": "4c3ed7951624006bf924397f23506609936bb4653a6f7ff14437780eb8639e35",
+          "view": "P-WHOLE"
+        }
+      },
+      {
+        "id": "reference-1",
+        "image": {
+          "path": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.refs/fn80/date-palm/trunk.jpg",
+          "seed": 1,
+          "sha256": "80b187a41158be29fb690e1b05d110517e3a99f297c5581993e7d780636eaf51",
+          "view": "P-TRUNK"
+        }
+      },
+      {
+        "id": "reference-2",
+        "image": {
+          "path": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.refs/fn80/date-palm/base.jpg",
+          "seed": 1,
+          "sha256": "4476c0befef84cd1565f8fbcbb2a764287d03ab396cc70e46b749e0d3d3c33db",
+          "view": "P-BASE"
+        }
+      }
+    ],
+    "specimen_relationship": "unknown",
+    "target_species": "date-palm"
+  },
+  "stage": "inventory",
+  "stderr": "",
+  "stdout": "{\"request_sha256\": \"a6ed5b9682f2fb6a462786aae1dc6133b5352735e9a81fdeb4df2cca1f8a513b\", \"prompt_sha256\": \"b977396bce80653bb49b01ba0711ae5f59325eab09c2c5a681f87fff43ab3911\", \"dispatched_prompt_sha256\": \"8cd5dc8a88cce19d478a45d924476a4e4077e0a73c3125870a553a99c00a1f64\", \"schema_sha256\": \"4c13c160206ee1491a194676a627beccdc5e53d97adad294646e2d74ab3f74f5\", \"model\": \"gpt-6-astra\", \"model_identity_basis\": \"requested command argument; actual resolved identity not exposed\", \"effort\": \"medium\", \"status\": \"failed_or_tools_or_unknown_usage_or_cardinality\", \"forbidden_tools\": [], \"usage\": null, \"answer\": null, \"raw_events\": \"{\\\"type\\\":\\\"thread.started\\\",\\\"thread_id\\\":\\\"01a0c974-f5d6-7aa2-8bdc-29c822a753fc\\\"}\\n{\\\"type\\\":\\\"turn.started\\\"}\\n{\\\"type\\\":\\\"error\\\",\\\"message\\\":\\\"You\\u2019ve hit your usage limit. Visit https://chatgpt.com/codex/settings/usage to purchase more credits or try again at Sep 26th, 2026 7:47 PM.\\\"}\\n{\\\"type\\\":\\\"turn.failed\\\",\\\"error\\\":{\\\"message\\\":\\\"You\\u2019ve hit your usage limit. Visit https://chatgpt.com/codex/settings/usage to purchase more credits or try again at Sep 26th, 2026 7:47 PM.\\\"}}\\n\", \"stderr\": \"Reading additional input from stdin...\\n\", \"image_sha256\": [\"4c3ed7951624006bf924397f23506609936bb4653a6f7ff14437780eb8639e35\", \"80b187a41158be29fb690e1b05d110517e3a99f297c5581993e7d780636eaf51\", \"4476c0befef84cd1565f8fbcbb2a764287d03ab396cc70e46b749e0d3d3c33db\"]}\n"
+}
