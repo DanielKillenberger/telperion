@@ -80,18 +80,32 @@ fn every_approved_priority_is_a_gap_entry_with_its_status_and_the_check_left_ope
         model: "vision-fixture-1".into(),
         ledger: "ledger".into(),
         cells: vec![
-            cell("owner-priority:owner-hanging: Hanging outer foliage", CellStatus::Fail),
+            cell(
+                "owner-priority:owner-hanging: Hanging outer foliage",
+                CellStatus::Fail,
+            ),
             cell("owner-priority:owner-crown: Crown shape", CellStatus::Pass),
         ],
         defects: vec![],
         observations: vec![],
-        findings: vec![finding("foliage forms a veil"), finding("no hanging masses")],
+        findings: vec![
+            finding("foliage forms a veil"),
+            finding("no hanging masses"),
+        ],
         joint: None,
         coverage: vec![],
     };
     let evidence = vec![
-        Evidence { id: "render-0".into(), role: "render".into(), image: image("B-WHOLE") },
-        Evidence { id: "reference-0".into(), role: "reference".into(), image: image("ref") },
+        Evidence {
+            id: "render-0".into(),
+            role: "render".into(),
+            image: image("B-WHOLE"),
+        },
+        Evidence {
+            id: "reference-0".into(),
+            role: "reference".into(),
+            image: image("ref"),
+        },
     ];
     let scope = telperion_jev::sha256_hex(b"scope");
     let checkpoint = Checkpoint::new("progress-fixture", &scope, visual.clone(), evidence).unwrap();
@@ -125,15 +139,26 @@ fn every_approved_priority_is_a_gap_entry_with_its_status_and_the_check_left_ope
 
     let r = run.end_result();
     let ids: Vec<&str> = r.gaps.iter().map(|g| g.id.as_str()).collect();
-    assert_eq!(ids, ["owner-hanging", "owner-crown", "owner-bark"], "nothing approved is forgotten");
+    assert_eq!(
+        ids,
+        ["owner-hanging", "owner-crown", "owner-bark"],
+        "nothing approved is forgotten"
+    );
     assert_eq!(r.gaps[0].status, "stalled in tuning");
     assert_eq!(r.gaps[1].status, "passing on the current tree");
     assert_eq!(r.gaps[2].status, "not assessed");
     assert_eq!(r.gaps[0].latest_route.as_deref(), Some("tuning"));
     assert!(r.gaps.iter().all(|g| g.check == CHECK_PENDING));
-    assert_eq!(r.gaps[0].attempts.len(), 1, "only the bundle move is an attempt");
+    assert_eq!(
+        r.gaps[0].attempts.len(),
+        1,
+        "only the bundle move is an attempt"
+    );
     assert_eq!(r.gaps[0].reviewer_words, vec!["weighted droop".to_string()]);
-    assert!(r.gaps[1].attempts.is_empty(), "a 'same' grade is not a move on that priority");
+    assert!(
+        r.gaps[1].attempts.is_empty(),
+        "a 'same' grade is not a move on that priority"
+    );
     assert_eq!(r.outcome.adoptions_kept, 1);
     assert_eq!(r.outcome.adoptions_rolled_back, 1);
     assert_eq!(r.outcome.stopped, "ended");
@@ -141,14 +166,30 @@ fn every_approved_priority_is_a_gap_entry_with_its_status_and_the_check_left_ope
     let current = r.outcome.current.as_ref().unwrap();
     assert_eq!(current.key, "cand");
     assert_eq!(current.stills[0].view, "B-WHOLE");
-    assert_eq!(r.gaps[0].stills, current.stills, "a gap points at the tree it was judged on");
+    assert_eq!(
+        r.gaps[0].stills, current.stills,
+        "a gap points at the tree it was judged on"
+    );
 
     let page = result::markdown(&r);
-    for needle in ["owner-hanging", "owner-bark", "not assessed", "stalled in tuning", "cand", CHECK_PENDING] {
+    for needle in [
+        "owner-hanging",
+        "owner-bark",
+        "not assessed",
+        "stalled in tuning",
+        "cand",
+        CHECK_PENDING,
+    ] {
         assert!(page.contains(needle), "RESULT.md lacks {needle}");
     }
     let html = result::html::page(&r, std::path::Path::new("/run"));
-    for needle in ["owner-bark", "stalled in tuning", "weighted droop", "file://", "<img"] {
+    for needle in [
+        "owner-bark",
+        "stalled in tuning",
+        "weighted droop",
+        "file://",
+        "<img",
+    ] {
         assert!(html.contains(needle), "RESULT.html lacks {needle}");
     }
     assert!(!html.contains("<script"), "the page carries no script");
