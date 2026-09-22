@@ -36,6 +36,7 @@ impl Specimen {
     }
 
     /// Read all native outputs at the frontier, without advancing the specimen.
+    #[cfg(feature = "geometry")]
     pub fn read(&self) -> Result<SpecimenRead> {
         let t = self
             .timeline
@@ -46,10 +47,12 @@ impl Specimen {
 
     /// Filter births, deaths, radius frames and cohorts at or below the frontier.
     /// The returned buffers are owned; later reads and advances cannot alter them.
+    #[cfg(feature = "geometry")]
     pub fn read_at_age(&self, years: f64) -> Result<SpecimenRead> {
         self.read_at(self.read_age(years)?)
     }
 
+    #[cfg(feature = "geometry")]
     fn read_at(&self, age: Age) -> Result<SpecimenRead> {
         let t = self.timeline.as_ref().unwrap();
         let (tree, envelope) = if age == t.age && self.keyframes.finalized() {

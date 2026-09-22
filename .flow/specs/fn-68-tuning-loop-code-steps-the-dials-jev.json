@@ -17,7 +17,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-68-tuning-loop-code-steps-the-dials-jev.md",
-  "status": "open",
+  "status": "done",
   "title": "Tuning loop: code steps the dials, Jev routes the notes, the number decides",
   "tracker": {
     "baseHashFlow": null,
@@ -30,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-19T19:19:31.345798Z"
+  "updated_at": "2026-09-22T09:59:22.863349Z"
 }

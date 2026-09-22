@@ -1,14 +1,20 @@
 //! Owned leaf elements and placements. No wood mesh is needed by this module.
 use crate::math::Transcendental;
+mod canopy;
 mod clumping;
 mod element;
 mod levels;
 mod outline;
 pub(crate) mod packed;
+#[cfg(feature = "geometry")]
 mod placement;
+pub mod plan;
+#[cfg(feature = "geometry")]
 pub mod prepared;
 mod reference;
+#[cfg(feature = "geometry")]
 mod short_shoots;
+#[cfg(feature = "geometry")]
 mod station;
 pub(crate) mod timeline;
 use crate::{
@@ -16,14 +22,17 @@ use crate::{
     math::Vec3,
     Error, Result,
 };
+pub use canopy::{CanopyParams, TwigPlacement, MAX_SHORT_SHOOT_LEAVES, SHORT_SHOOT_SPACING};
 pub use element::{build_element, AnatomyGeometry, Element, ElementParams, FoliageUnit};
 pub use levels::Level;
 pub use packed::{Leaf, Reference, WORDS};
+#[cfg(feature = "geometry")]
 pub(crate) use placement::leaf_count;
-pub use placement::{place, place_on_surface, CanopyParams, TwigPlacement};
+#[cfg(feature = "geometry")]
+pub use placement::{place, place_on_surface};
+#[cfg(feature = "geometry")]
 pub use short_shoots::{
     place_short_shoots, place_short_shoots_clumped, short_shoots, ShortShoot,
-    MAX_SHORT_SHOOT_LEAVES, SHORT_SHOOT_SPACING,
 };
 pub use timeline::{Placement, PlacementIdentity};
 

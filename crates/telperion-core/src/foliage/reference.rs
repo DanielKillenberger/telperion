@@ -81,11 +81,7 @@ fn reach(
     // Seating a station on the swept surface walks it out along the same
     // radial to wherever the sweep's own lobes, fork swell and basal flare put
     // that wood's skin.
-    let seated = if canopy.surface_contact > 0.0 {
-        wood * surface.fork_swell * (1.0 + surface.lobe_depth) * surface.flare_radius
-    } else {
-        wood
-    };
+    let seated = wood * super::plan::seating(surface, canopy);
     // A short shoot stands on limb wood up to its own share of the stem and
     // carries its cluster a spur's length further out again.
     let spur = if canopy.short_shoot_spacing > 0.0 {
