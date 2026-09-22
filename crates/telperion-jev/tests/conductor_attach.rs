@@ -94,3 +94,27 @@ fn a_landed_round_that_left_the_halt_standing_loops_again() {
     std::fs::write(gap.join("gap.json"), b"{\"landed\":{\"commit\":\"b8b29448\",\"at\":\"2026-09-22T11:42:06Z\"},\"routes\":[{\"at\":\"2026-09-22T11:09:20Z\",\"route\":\"proceed\"},{\"at\":\"2026-09-22T11:52:57Z\",\"route\":\"owner\"}]}").unwrap();
     assert!(matches!(decision_action(&cfg, &table, &run, &halt), Next::AwaitOwner { .. }), "a route after the landing is that round's outcome");
 }
+
+#[test]
+fn a_result_without_usage_charges_its_reservation_and_keeps_usage_known() {
+    let mut run = run();
+    let before = run.budget.tokens;
+    run.dispatches[0].result = None;
+    let reserved = run.dispatches[0].reserved_tokens;
+    let mut result = run.dispatches[0].clone();
+    let mut r: telperion_jev::conductor::dispatch::DispatchResult = serde_json::from_value(serde_json::json!({
+        "input_identity": result.input_identity, "design_revision": null, "actual_model": "m", "actual_effort": "default",
+        "usage": null, "cost_usd": null, "verification": "verified", "observed": "x", "handoff": null, "failure": null
+    })).unwrap();
+    r.input_identity = std::mem::take(&mut result.input_identity);
+    run.ingest("dispatch-1", r).unwrap();
+    assert_eq!(run.budget.tokens, before + reserved);
+    assert!(run.budget.usage_known);
+    assert!(run.dispatches[0].result.as_ref().unwrap().usage_is_reservation);
+    // A record from before the rule heals on open: usage_known false, one uncounted result.
+    run.budget.usage_known = false;
+    run.dispatches[0].result.as_mut().unwrap().usage_is_reservation = false;
+    run.charge_unknown_usage();
+    assert!(run.budget.usage_known);
+    assert_eq!(run.budget.tokens, before + 2 * reserved);
+}

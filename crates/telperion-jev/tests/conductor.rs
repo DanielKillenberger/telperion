@@ -288,6 +288,7 @@ fn verified(identity: &str, revision: Option<&str>, handoff: Option<&Path>) -> D
         observed: "done".into(),
         handoff: handoff.map(Path::to_path_buf),
         failure: None,
+        usage_is_reservation: false,
         outcome: None,
         finished_at: String::new(),
     }

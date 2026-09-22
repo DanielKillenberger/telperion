@@ -170,8 +170,9 @@ impl Run {
         if !path.exists() {
             return Ok(Self::new(config));
         }
-        let run: Run = serde_json::from_value(read_json(&path)?)
+        let mut run: Run = serde_json::from_value(read_json(&path)?)
             .map_err(|err| ConductorError::Invalid(format!("{}: {err}", path.display())))?;
+        run.charge_unknown_usage();
         if run.species != config.species || run.spec != config.spec {
             return Err(format!(
                 "{} belongs to {} ({}); this config names {} ({})",
@@ -194,6 +195,25 @@ impl Run {
             &serde_json::to_value(&*self).expect("run serializes"),
         )?;
         Ok(path)
+    }
+
+    /// A record written before unknown usage charged its reservation: every
+    /// finished dispatch without a count is charged now, once, and the run's
+    /// usage is known again.
+    pub fn charge_unknown_usage(&mut self) {
+        let mut charged = 0u64;
+        for d in self.dispatches.iter_mut() {
+            if let Some(r) = d.result.as_mut() {
+                if r.usage.is_none() && !r.usage_is_reservation {
+                    charged = charged.saturating_add(d.reserved_tokens);
+                    r.usage_is_reservation = true;
+                }
+            }
+        }
+        if charged > 0 || !self.budget.usage_known {
+            self.budget.tokens = self.budget.tokens.saturating_add(charged);
+            self.budget.usage_known = true;
+        }
     }
 
     pub fn open_dispatch(&self) -> Option<&Dispatch> {

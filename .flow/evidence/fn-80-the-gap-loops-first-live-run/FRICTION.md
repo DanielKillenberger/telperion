@@ -23,3 +23,7 @@ Round two. The owner confirmed the rosette; the resolution was appended to `reso
 ## 2026-09-22 — host: the second option set was written in the host session, so its usage is unknown
 
 The pipeline refuses a second agent set for one gap, so the round-two options were the host's; dispatch-3's usage is therefore null and `usage_known` is false on the run, which the continuation check will read as unavailable at the next repeat. What would remove it: the conductor dispatching the stronger set to a strong-tier agent with counted usage, as it does for design, instead of leaving it to the host.
+
+## 2026-09-22 — host: one uncounted dispatch made every later continuation judgment unavailable
+
+After the rosette design verified, the conductor paused: "the continuation judgment is unavailable (unknown prior usage)". The cause was dispatch-3, the host-written option set with no token count, which had set the run's usage to unknown for good. Cost: about 15 minutes and one fix with a test: a finished dispatch that could not count charges its reservation, the run's usage stays known, and the report still lists the cost as unknown; a record written before the rule heals on open. Implementation complexity was judged complex at 0.61, just over the floor, routing to the strong tier at low effort.
