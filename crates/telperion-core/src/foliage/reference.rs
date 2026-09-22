@@ -80,7 +80,8 @@ fn reach(
     };
     // Seating a station on the swept surface walks it out along the same
     // radial to wherever the sweep's own lobes, fork swell and basal flare put
-    // that wood's skin.
+    // that wood's skin. The product is associated as it always was: the box
+    // quantises every leaf, and one ulp moves every committed digest.
     let seated = if canopy.surface_contact > 0.0 {
         wood * surface.fork_swell * (1.0 + surface.lobe_depth) * surface.flare_radius
     } else {

@@ -1,4 +1,7 @@
 //! Renderer-independent tree generation. Coordinates and lengths are metres, Y is up.
+// Without the geometry feature the specimen keeps the growth path's aged-read
+// helpers, which only the placement-backed reads call.
+#![cfg_attr(not(feature = "geometry"), allow(dead_code))]
 mod family;
 pub use family::Family;
 
@@ -10,10 +13,12 @@ pub mod colonization;
 pub mod envelope;
 pub mod field;
 pub mod foliage;
+#[cfg(feature = "geometry")]
 pub mod footprint;
 pub mod growth;
 pub mod material;
 pub mod math;
+#[cfg(feature = "geometry")]
 pub mod mesh;
 pub mod noise;
 #[cfg(feature = "json")]

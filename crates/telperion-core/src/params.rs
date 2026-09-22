@@ -1,10 +1,7 @@
 //! JSON wire mirror of the parameter family, shared by the C-ABI binding and
 //! the renderer. Gated behind the `json` feature so the default core stays
 //! serde-free.
-use crate::{
-    presets::{Family, Preset},
-    Error, Result,
-};
+use crate::{presets::Family, Error, Result};
 use serde_json::{json, Value};
 
 // This table is the wire schema: it also emits the browser's preset metadata.
@@ -254,30 +251,7 @@ macro_rules! fields {
         $op!($f, $v, "shellDepth"; shell_depth);
     };
 }
-// Numeric ABI IDs remain stable for existing callers; catalogue order is irrelevant.
-pub const CATALOGUE: &[(u32, &str, &str, &str)] = &[
-    (0, "ordinary", "Ordinary", "Natural baseline"),
-    (
-        3,
-        "oregon-white-oak",
-        "Oregon white oak",
-        "Quercus garryana",
-    ),
-    (4, "norway-spruce", "Norway spruce", "Picea abies"),
-    (6, "silver-birch", "Silver birch", "Betula pendula"),
-    (1, "telperion", "Telperion", "The silver tree"),
-    (2, "laurelin", "Laurelin", "The golden tree"),
-];
-/// Tables still being judged. Their ABI ids are reserved, and they are not
-/// listed, served by id or built by name: the core's tests and the species
-/// runner reach them through `Preset`. The European beech ships when fn-62
-/// accepts it. The date palm (fn-108) is registered with its reachable
-/// values only; its remaining anatomy gaps are their own specs and fn-82
-/// owns the species' acceptance.
-pub const IN_WORK: &[(u32, &str, &str, &str)] = &[
-    (5, "european-beech", "European beech", "Fagus sylvatica"),
-    (7, "date-palm", "Date palm", "Phoenix dactylifera"),
-];
+pub use crate::presets::{by_identity, CATALOGUE, IN_WORK};
 pub fn preset(id: u32) -> Result<Family> {
     let identity = CATALOGUE
         .iter()
@@ -285,19 +259,6 @@ pub fn preset(id: u32) -> Result<Family> {
         .ok_or(Error::InvalidInput("preset id"))?
         .1;
     by_identity(identity)
-}
-pub fn by_identity(id: &str) -> Result<Family> {
-    if !CATALOGUE.iter().any(|entry| entry.1 == id) {
-        return Err(Error::InvalidInput("preset identity"));
-    }
-    let mut f = Preset::from_id(id)
-        .ok_or(Error::InvalidInput("preset identity"))?
-        .parameters();
-    f.skeleton
-        .growth
-        .max_turn_per_step
-        .get_or_insert(crate::colonization::GrowthConfig::default().max_turn_per_step);
-    Ok(f)
 }
 pub fn metadata(f: &Family) -> Value {
     let mut v = json!({});

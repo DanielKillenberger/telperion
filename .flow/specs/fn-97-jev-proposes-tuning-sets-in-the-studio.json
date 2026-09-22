@@ -1,0 +1,27 @@
+{
+  "branch_name": "fn-97-jev-proposes-tuning-sets-in-the-studio",
+  "created_at": "2026-09-20T17:31:23.754005Z",
+  "depends_on_epics": [
+    "fn-94-tree-studio-describe-a-tree-jev",
+    "fn-68-tuning-loop-code-steps-the-dials-jev"
+  ],
+  "id": "fn-97-jev-proposes-tuning-sets-in-the-studio",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-97-jev-proposes-tuning-sets-in-the-studio.md",
+  "status": "open",
+  "title": "Jev proposes tuning sets in the studio",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-20T17:31:25.596099Z"
+}

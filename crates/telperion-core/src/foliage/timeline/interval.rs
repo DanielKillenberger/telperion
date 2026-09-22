@@ -3,20 +3,6 @@ use crate::tree::NodeKey;
 use slotmap::SecondaryMap;
 
 impl Foliage {
-    // Finite budgets require a complete endpoint count validation.
-    pub(crate) fn sparse_interval(&self) -> Option<u64> {
-        (self.canopy.max_instances == usize::MAX)
-            .then_some(self.lifetime.slice + u64::from(self.lifetime.remainder > 0))
-    }
-    pub(crate) fn contact_enabled(&self) -> bool {
-        self.canopy.surface_contact > 0.0
-    }
-    pub(crate) fn slender(&self, radius: f64) -> f64 {
-        (radius * self.canopy.shoot_radius).min(self.bearing_radius)
-    }
-}
-
-impl Foliage {
     fn counts(&self, tree: &Tree, age: Age) -> Result<SecondaryMap<NodeKey, (usize, usize)>> {
         let mut counts = SecondaryMap::new();
         let mut total = 0usize;

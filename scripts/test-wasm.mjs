@@ -14,6 +14,7 @@ try {
     process.env.BROWSER_URL = `http://127.0.0.1:${server.httpServer.address().port}`;
   }
   await import('../tests/browser/bindings.mjs');
+  await import('../tests/browser/field.mjs');
 } finally {
   await server?.close();
 }

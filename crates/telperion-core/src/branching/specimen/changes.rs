@@ -53,6 +53,7 @@ pub struct ChangeRecord {
     pub moved_placements: Vec<Placement>,
     pub shed_placements: Vec<PlacementIdentity>,
 }
+#[cfg(feature = "geometry")]
 impl Specimen {
     pub fn buffers(&self) -> Result<SpecimenBuffers> {
         Ok(SpecimenBuffers {

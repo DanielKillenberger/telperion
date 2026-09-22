@@ -28,6 +28,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/telperion.js"
+    },
+    "./field": {
+      "types": "./dist/field/index.d.ts",
+      "import": "./dist/field.js"
+    },
+    "./field/voxelize": {
+      "types": "./dist/field/voxelize.d.ts",
+      "import": "./dist/voxelize.js"
     }
   },
   "engines": {

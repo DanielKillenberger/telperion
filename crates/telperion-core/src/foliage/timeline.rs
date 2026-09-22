@@ -1,19 +1,18 @@
 //! Leaf stations belong to a shoot's identity, independently of compact storage.
-use super::{
-    station::{place_run, Run},
-    *,
-};
+#[cfg(feature = "geometry")]
+use super::station::{place_run, Run};
+use super::*;
 use crate::{
     growth::Age,
     presets::Family,
-    rng::Rng,
-    surface::{AttachmentSurface, SurfaceParams},
-    tree::{NodeIdentity, NodeKind, Tree},
+    surface::SurfaceParams,
+    tree::{NodeIdentity, Tree},
 };
-use std::{
-    cell::RefCell,
-    collections::{BTreeMap, BTreeSet},
-};
+#[cfg(feature = "geometry")]
+use crate::{rng::Rng, surface::AttachmentSurface, tree::NodeKind};
+#[cfg(feature = "geometry")]
+use std::collections::BTreeSet;
+use std::{cell::RefCell, collections::BTreeMap};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
@@ -91,15 +90,13 @@ impl Foliage {
             internode_length: twig.internode_length,
             stations_per_internode: twig.stations_per_internode,
         };
-        // Reuse the placement contract, including its empty-tree validation.
+        // The placement contract's own validation, on the empty tree.
         let reference = Reference::of(family)?;
-        place(
+        super::canopy::validate(
             &Tree::default(),
             family.skeleton.envelope,
-            family.skeleton.seed,
             family.canopy,
             Some(twig),
-            reference,
         )?;
         if family.canopy.surface_contact > 0.0 {
             family.surface.validate()?;
@@ -119,6 +116,7 @@ impl Foliage {
 
     /// Historical reads own their cache, preserving frontier transforms for a
     /// later clock-only fill. Copy only immutable traits, never cached foliage.
+    #[cfg(feature = "geometry")]
     pub(crate) fn read_uncached(
         &self,
         tree: &Tree,
@@ -139,6 +137,7 @@ impl Foliage {
         .read(tree, envelope, age)
     }
 
+    #[cfg(feature = "geometry")]
     pub fn read(&self, tree: &Tree, envelope: Envelope, age: Age) -> Result<Vec<Placement>> {
         tree.validate_solved()?;
         let live = self.living(tree, age)?;
@@ -219,6 +218,7 @@ impl Foliage {
     // Spread stations evenly over ceil(lifetime) annual cohorts. Offset zero
     // flushes at birth; a one-year lifetime therefore fills immediately. Use
     // integer ticks and products, even at the maximum supported lifetime.
+    #[cfg(feature = "geometry")]
     fn visible(&self, birth: Age, age: Age, stations: usize) -> usize {
         if self.lifetime.ticks() == 0 || age.ticks() < birth.ticks() {
             return 0;
@@ -233,6 +233,7 @@ impl Foliage {
         ((u128::from((years + 1).min(cohorts)) * stations as u128).div_ceil(u128::from(cohorts)))
             as usize
     }
+    #[cfg(feature = "geometry")]
     fn living(&self, tree: &Tree, age: Age) -> Result<Vec<usize>> {
         let now = age.ticks();
         let slender = tree
@@ -258,6 +259,7 @@ impl Foliage {
         Ok(live)
     }
 
+    #[cfg(feature = "geometry")]
     fn place_shoot(
         &self,
         tree: &Tree,
@@ -312,6 +314,17 @@ impl Foliage {
     pub(crate) fn reference(&self) -> Reference {
         self.reference
     }
+    // Finite budgets require a complete endpoint count validation.
+    pub(crate) fn sparse_interval(&self) -> Option<u64> {
+        (self.canopy.max_instances == usize::MAX)
+            .then_some(self.lifetime.slice + u64::from(self.lifetime.remainder > 0))
+    }
+    pub(crate) fn contact_enabled(&self) -> bool {
+        self.canopy.surface_contact > 0.0
+    }
+    pub(crate) fn slender(&self, radius: f64) -> f64 {
+        (radius * self.canopy.shoot_radius).min(self.bearing_radius)
+    }
 
     #[cfg(test)]
     pub(crate) fn surfaces(&self) -> usize {
@@ -326,6 +339,7 @@ impl Foliage {
 
 /// xyz and distal/proximal/base radii, packed topology, kind, birth identity.
 /// Family surface traits are immutable throughout this Foliage object's life.
+#[cfg(feature = "geometry")]
 fn contact_geometry(tree: &Tree, height: f64) -> (u64, Vec<[u64; 9]>) {
     let wood = tree
         .nodes
@@ -351,4 +365,5 @@ fn contact_geometry(tree: &Tree, height: f64) -> (u64, Vec<[u64; 9]>) {
     (height.to_bits(), wood)
 }
 
+#[cfg(feature = "geometry")]
 mod interval;

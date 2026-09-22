@@ -798,6 +798,24 @@
     "reason": "Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."
   },
   {
+    "path": "crates/telperion-core/src/field.rs",
+    "site": ". max ( 0 . )",
+    "classification": "algorithm",
+    "reason": "The share of a sweep inside a cube is a length fraction; a segment past the cube clips to none, never below."
+  },
+  {
+    "path": "crates/telperion-core/src/field.rs",
+    "site": "for axis in 0 . . 3 {",
+    "classification": "algorithm",
+    "reason": "Three coordinate axes of the cube clip."
+  },
+  {
+    "path": "crates/telperion-core/src/field.rs",
+    "site": "if ! reach . is_finite ( ) | | reach < 0 . {",
+    "classification": "parameter",
+    "reason": "A leaf reach is a finite non-negative length; anything else is an invalid plan."
+  },
+  {
     "path": "crates/telperion-core/src/foliage.rs",
     "site": "for row in 0 . . 3 {",
     "classification": "algorithm",
@@ -1008,7 +1026,7 @@
     "reason": "Packed leaf encoding normalizes quaternion/position domains and implements finite binary16 scale limits; no leaf instances are dropped."
   },
   {
-    "path": "crates/telperion-core/src/foliage/placement.rs",
+    "path": "crates/telperion-core/src/foliage/canopy.rs",
     "site": "if p . clump > 64 {",
     "classification": "parameter",
     "reason": "Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."
@@ -1032,10 +1050,34 @@
     "reason": "Finds the authored run/station's containing segment; index zero is the natural start of the polyline."
   },
   {
-    "path": "crates/telperion-core/src/foliage/prepared.rs",
+    "path": "crates/telperion-core/src/foliage/plan.rs",
     "site": ". max ( 1 . 0 )",
     "classification": "algorithm",
     "reason": "A nonzero run has at least one authored twig internode, matching existing CPU station semantics."
+  },
+  {
+    "path": "crates/telperion-core/src/foliage/plan.rs",
+    "site": ". max ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "Seating a station on the swept surface never brings it inside the shoot axis radius: the seat factor floors at the radius itself."
+  },
+  {
+    "path": "crates/telperion-core/src/foliage/plan.rs",
+    "site": ". max ( d . radii [ 1 ] )",
+    "classification": "algorithm",
+    "reason": "The larger of a bearing segment's two radii bounds the wood a station on it stands off."
+  },
+  {
+    "path": "crates/telperion-core/src/foliage/plan.rs",
+    "site": "for segment in 0 . . run . nodes . len ( ) - 1 {",
+    "classification": "algorithm",
+    "reason": "One descriptor per segment between consecutive nodes of a run."
+  },
+  {
+    "path": "crates/telperion-core/src/foliage/plan.rs",
+    "site": "if tree . nodes . len ( ) < 2 | | p . size = = 0 . 0 {",
+    "classification": "algorithm",
+    "reason": "Fewer than two nodes or zero foliage size is empty or disabled foliage, matching the CPU path."
   },
   {
     "path": "crates/telperion-core/src/foliage/prepared.rs",
@@ -1086,7 +1128,7 @@
     "reason": "Unit progress or blend weight saturates at its endpoint; the authored length and population remain independent."
   },
   {
-    "path": "crates/telperion-core/src/foliage/short_shoots.rs",
+    "path": "crates/telperion-core/src/foliage/canopy.rs",
     "site": "const MAX_SHORT_SHOOT_LEAVES : u32 = 8 ;",
     "classification": "parameter",
     "reason": "MAX_SHORT_SHOOT_LEAVES is the named validated short-shoot anatomy domain."
@@ -1266,61 +1308,61 @@
     "reason": "Central declared authoring range or default; callers may select values within the validated wire contract."
   },
   {
-    "path": "crates/telperion-core/src/surface.rs",
+    "path": "crates/telperion-core/src/surface/build.rs",
     "site": ". max ( 1e - 6 )",
     "classification": "numeric",
     "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
   },
   {
-    "path": "crates/telperion-core/src/surface.rs",
+    "path": "crates/telperion-core/src/surface/build.rs",
     "site": ". max ( p [ 0 ] as f64 )",
     "classification": "algorithm",
     "reason": "Bounds, radius floors, or array-index containment computed from existing geometry; numeric tokens are component indices, not population limits."
   },
   {
-    "path": "crates/telperion-core/src/surface.rs",
+    "path": "crates/telperion-core/src/surface/build.rs",
     "site": ". max ( p [ 1 ] as f64 )",
     "classification": "algorithm",
     "reason": "Bounds, radius floors, or array-index containment computed from existing geometry; numeric tokens are component indices, not population limits."
   },
   {
-    "path": "crates/telperion-core/src/surface.rs",
+    "path": "crates/telperion-core/src/surface/build.rs",
     "site": ". max ( p [ 2 ] as f64 )",
     "classification": "algorithm",
     "reason": "Bounds, radius floors, or array-index containment computed from existing geometry; numeric tokens are component indices, not population limits."
   },
   {
-    "path": "crates/telperion-core/src/surface.rs",
+    "path": "crates/telperion-core/src/surface/build.rs",
     "site": ". max ( params . lobes * 4 )",
     "classification": "algorithm",
     "reason": "Each surface lobe requires four radial samples to represent its contour; this is a sampling floor, not truncation."
   },
   {
-    "path": "crates/telperion-core/src/surface.rs",
+    "path": "crates/telperion-core/src/surface/build.rs",
     "site": ". min ( p [ 0 ] as f64 )",
     "classification": "algorithm",
     "reason": "Bounds, radius floors, or array-index containment computed from existing geometry; numeric tokens are component indices, not population limits."
   },
   {
-    "path": "crates/telperion-core/src/surface.rs",
+    "path": "crates/telperion-core/src/surface/build.rs",
     "site": ". min ( p [ 1 ] as f64 )",
     "classification": "algorithm",
     "reason": "Bounds, radius floors, or array-index containment computed from existing geometry; numeric tokens are component indices, not population limits."
   },
   {
-    "path": "crates/telperion-core/src/surface.rs",
+    "path": "crates/telperion-core/src/surface/build.rs",
     "site": ". min ( p [ 2 ] as f64 )",
     "classification": "algorithm",
     "reason": "Bounds, radius floors, or array-index containment computed from existing geometry; numeric tokens are component indices, not population limits."
   },
   {
-    "path": "crates/telperion-core/src/surface.rs",
+    "path": "crates/telperion-core/src/surface/build.rs",
     "site": "for ( i , & node ) in paths . nodes [ path . start . . path . end ] . iter ( ) . enumerate ( ) . skip ( 1 ) {",
     "classification": "algorithm",
     "reason": "Contact ranges cover each path edge after the root sample; skipping the first sample avoids inventing an incoming root edge."
   },
   {
-    "path": "crates/telperion-core/src/surface.rs",
+    "path": "crates/telperion-core/src/surface/build.rs",
     "site": "for i in 0 . . samples . len ( ) - 1 {",
     "classification": "algorithm",
     "reason": "Traverses all adjacent geometry samples/rows; the final sample has no following segment."
@@ -1332,13 +1374,13 @@
     "reason": "Named surface authoring bounds live in ranges.rs; validation preserves the existing generic surface parameters error and never silently truncates geometry."
   },
   {
-    "path": "crates/telperion-core/src/surface.rs",
+    "path": "crates/telperion-core/src/surface/build.rs",
     "site": "if ! height . is_finite ( ) | | height < = 0 . 0 {",
     "classification": "parameter",
     "reason": "Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."
   },
   {
-    "path": "crates/telperion-core/src/surface.rs",
+    "path": "crates/telperion-core/src/surface/build.rs",
     "site": "if mesh . dropped > DROPPED_RINGS * 2 * segments {",
     "classification": "numeric",
     "reason": "Collapsed float32 triangles are rejected as invalid surface geometry beyond the declared two-ring tolerance; no mesh is silently truncated."
@@ -1590,13 +1632,13 @@
     "reason": "Wasm twig sizing follows the authored diameter and generation count; it does not impose a separate binding-side cap."
   },
   {
-    "path": "crates/telperion-core/src/surface.rs",
+    "path": "crates/telperion-core/src/surface/build.rs",
     "site": ". max ( 1e - 6 )",
     "classification": "numeric",
     "reason": "Repeated in `surface::extent`, which counts the sweep's rings without building them so a specimen can be sized before it is swept (fn-87). The prediction runs the same arithmetic as `surface::build`, so it carries the same degeneracy tolerance and the same height validation; neither limits a generated population."
   },
   {
-    "path": "crates/telperion-core/src/surface.rs",
+    "path": "crates/telperion-core/src/surface/build.rs",
     "site": "if ! height . is_finite ( ) | | height < = 0 . 0 {",
     "classification": "parameter",
     "reason": "Repeated in `surface::extent`, which counts the sweep's rings without building them so a specimen can be sized before it is swept (fn-87). The prediction runs the same arithmetic as `surface::build`, so it carries the same degeneracy tolerance and the same height validation; neither limits a generated population."

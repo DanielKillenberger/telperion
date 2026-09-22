@@ -140,6 +140,26 @@ jobs:
           packages: telperion-core
           partition: count:${{ matrix.partition }}/4
 
+  # The leaf plan and the field build with the wood surface and the leaf
+  # placement compiled out (the core crate without its geometry feature), and
+  # the crate's unit tests run in that configuration.
+  core-plan:
+    name: core without geometry
+    needs: receipts
+    if: needs.receipts.outputs.rust-core != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+      - name: Build and unit-test the core without geometry
+        run: |
+          cargo build --profile ci -p telperion-core --no-default-features
+          cargo test --profile ci -p telperion-core --no-default-features --lib
+
   render:
     needs: receipts
     if: needs.receipts.outputs.rust-render != 'true'
@@ -151,7 +171,7 @@ jobs:
           packages: telperion-render
 
   wasm-jev:
-    name: wasm and jev
+    name: wasm, field and jev
     needs: receipts
     if: needs.receipts.outputs.rust-wasm != 'true' || needs.receipts.outputs.rust-jev != 'true'
     runs-on: ubuntu-latest
@@ -160,20 +180,20 @@ jobs:
       - uses: ./.github/actions/nextest
         with:
           packages: >-
-            ${{ needs.receipts.outputs.rust-wasm != 'true' && 'telperion-wasm' || '' }}
+            ${{ needs.receipts.outputs.rust-wasm != 'true' && 'telperion-wasm telperion-field' || '' }}
             ${{ needs.receipts.outputs.rust-jev != 'true' && 'telperion-jev' || '' }}
 
   # Reached whatever the crate jobs did; a crate's receipt is written only
   # when its jobs succeeded and it had none, so a red crate saves nothing.
   rust-receipts:
-    needs: [receipts, core, render, wasm-jev]
+    needs: [receipts, core, core-plan, render, wasm-jev]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
       - name: Write the receipts of the crates whose jobs were green
         env:
           RECEIPTS: |-
-            rust-core ${{ needs.receipts.outputs.rust-core-key }} ${{ needs.receipts.outputs.rust-core }} ${{ needs.core.result }}
+            rust-core ${{ needs.receipts.outputs.rust-core-key }} ${{ needs.receipts.outputs.rust-core }} ${{ needs.core.result == 'success' && needs.core-plan.result == 'success' && 'success' || 'failure' }}
             rust-render ${{ needs.receipts.outputs.rust-render-key }} ${{ needs.receipts.outputs.rust-render }} ${{ needs.render.result }}
             rust-wasm ${{ needs.receipts.outputs.rust-wasm-key }} ${{ needs.receipts.outputs.rust-wasm }} ${{ needs.wasm-jev.result }}
             rust-jev ${{ needs.receipts.outputs.rust-jev-key }} ${{ needs.receipts.outputs.rust-jev }} ${{ needs.wasm-jev.result }}
@@ -188,7 +208,7 @@ jobs:
             fi
           done <<< "$RECEIPTS"
 
-      - if: needs.receipts.outputs.rust-core != 'true' && needs.core.result == 'success'
+      - if: needs.receipts.outputs.rust-core != 'true' && needs.core.result == 'success' && needs.core-plan.result == 'success'
         uses: actions/cache/save@v6
         with:
           path: ${{ runner.temp }}/receipts/rust-core

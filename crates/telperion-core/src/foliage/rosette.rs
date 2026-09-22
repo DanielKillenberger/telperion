@@ -16,14 +16,20 @@
 //! instance. That grouping is the placement's, not the rosette's, so every
 //! source expands through [`fan`] and a family that states leaflets without a
 //! rosette draws compound leaves on the wood it already clothed.
+//!
+//! The rows, their rails and the apices are read with the placement compiled
+//! out, so the leaf plan can tell a frond crown from a clothed one; only the
+//! placing itself needs the `geometry` feature.
+use super::{range, CanopyParams};
+#[cfg(feature = "geometry")]
 use super::{
-    range,
     station::{matrix, reserve},
-    CanopyParams, Instances,
+    Instances,
 };
 use crate::branching::MAX_LEAF_BASES;
-use crate::math::Transcendental;
-use crate::{math::Vec3, rng::Rng, tree::Tree, Error, Result};
+#[cfg(feature = "geometry")]
+use crate::{math::Transcendental, rng::Rng};
+use crate::{math::Vec3, tree::Tree, Error, Result};
 
 /// The most fronds one rosette bears, and the most leaflets one rachis
 /// carries: rails wide enough for any crown a table has asked for.
@@ -114,6 +120,7 @@ pub fn rosettes(tree: &Tree) -> Vec<Rosette> {
         .collect()
 }
 
+#[cfg(feature = "geometry")]
 /// Leaves the rosettes place before any cull: apices by fronds by leaflets.
 pub(super) fn count(tree: &Tree, p: &CanopyParams) -> Result<usize> {
     if !bearing(p) {
@@ -127,6 +134,7 @@ pub(super) fn count(tree: &Tree, p: &CanopyParams) -> Result<usize> {
         .ok_or_else(budget)
 }
 
+#[cfg(feature = "geometry")]
 /// Hang every rosette's fronds into an already-sized crown.
 pub(super) fn clothe(
     tree: &Tree,
@@ -169,6 +177,7 @@ pub(super) fn clothe(
     Ok(())
 }
 
+#[cfg(feature = "geometry")]
 /// `clothe` for the growth path, which places its own recorded leaves first
 /// and draws the rosette live from the wood on screen.
 pub fn place_rosette(tree: &Tree, seed: u32, p: CanopyParams, out: &mut Instances) -> Result<()> {
@@ -178,6 +187,7 @@ pub fn place_rosette(tree: &Tree, seed: u32, p: CanopyParams, out: &mut Instance
     clothe(tree, seed, &p, out, None)
 }
 
+#[cfg(feature = "geometry")]
 /// The matrices one placement stands for: one where the grouping is off, else
 /// `leaflet_count` leaflets along the rachis that leaves `point` on `heading`.
 ///
@@ -237,6 +247,7 @@ pub(super) fn fan(
 /// The share of its own size a basal leaflet is drawn at and the radians it
 /// leaves the rachis on, where the rows bear it as a spine. None everywhere
 /// else, so a frond that bears none is scaled by nothing at all.
+#[cfg(feature = "geometry")]
 fn spine(index: usize, p: &CanopyParams) -> Option<(f64, f64)> {
     let borne = (index as u64) < u64::from(p.acanthophylls) && p.acanthophyll_length > 0.;
     borne.then(|| (p.acanthophyll_length, p.acanthophyll_pitch.to_radians()))
@@ -256,6 +267,7 @@ pub fn frame(axis: Vec3) -> (Vec3, Vec3) {
     (normal, axis.cross(normal))
 }
 
+#[cfg(feature = "geometry")]
 /// SplitMix64's finaliser over the seed, the apex's birth order and the
 /// frond's place on the spiral: the frond's own stream.
 fn key(seed: u32, birth: u64, frond: u32) -> u32 {
