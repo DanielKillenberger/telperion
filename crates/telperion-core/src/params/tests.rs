@@ -1,5 +1,6 @@
 //! What the wire publishes, read back through the wire.
 use super::*;
+use crate::presets::Preset;
 
 #[test]
 fn the_material_row_travels_the_wire_and_is_refused_by_field_name() {

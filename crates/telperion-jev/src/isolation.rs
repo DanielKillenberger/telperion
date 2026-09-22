@@ -9,6 +9,7 @@ const FORBIDDEN_CRATES: &[&str] = &[
     "crates/telperion-core",
     "crates/telperion-render",
     "crates/telperion-wasm",
+    "crates/telperion-field",
     "src",
 ];
 

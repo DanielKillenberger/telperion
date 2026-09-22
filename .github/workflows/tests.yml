@@ -171,7 +171,7 @@ jobs:
           packages: telperion-render
 
   wasm-jev:
-    name: wasm and jev
+    name: wasm, field and jev
     needs: receipts
     if: needs.receipts.outputs.rust-wasm != 'true' || needs.receipts.outputs.rust-jev != 'true'
     runs-on: ubuntu-latest
@@ -180,7 +180,7 @@ jobs:
       - uses: ./.github/actions/nextest
         with:
           packages: >-
-            ${{ needs.receipts.outputs.rust-wasm != 'true' && 'telperion-wasm' || '' }}
+            ${{ needs.receipts.outputs.rust-wasm != 'true' && 'telperion-wasm telperion-field' || '' }}
             ${{ needs.receipts.outputs.rust-jev != 'true' && 'telperion-jev' || '' }}
 
   # Reached whatever the crate jobs did; a crate's receipt is written only

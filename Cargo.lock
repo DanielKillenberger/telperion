@@ -1323,6 +1323,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "telperion-field"
+version = "0.1.0"
+dependencies = [
+ "telperion-core",
+]
+
+[[package]]
 name = "telperion-jev"
 version = "0.1.0"
 dependencies = [
