@@ -218,6 +218,7 @@ pub fn attach(run: &mut Run, spec: &str, gap_id: &str, origin: &str) -> bool {
         handoff: None,
         landed_commit: None,
         attached_at: now(),
+        judged: Default::default(),
     });
     true
 }

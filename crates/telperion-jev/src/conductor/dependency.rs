@@ -157,6 +157,19 @@ fn judge(
 ) -> Result<(String, String, Vec<String>)> {
     let designed = dependency.status == DependencyStatus::Designed;
     let spec = spec_evidence(config, &dependency.spec)?;
+    let key = if designed {
+        format!("implementation:{}", dependency.design_revision.clone().unwrap_or_default())
+    } else {
+        format!("design:{}", canonical_sha256(&spec))
+    };
+    if let Some(memo) = dependency.judged.get(&key) {
+        let (choice, ledger) = memo.split_once('|').unwrap_or((memo, ""));
+        return Ok(if designed {
+            ("not_asked".into(), choice.into(), vec![ledger.into()])
+        } else {
+            (choice.into(), "not_asked".into(), vec![ledger.into()])
+        });
+    }
     let gap = gap_evidence(config, run, dependency);
     let investigations: Vec<String> = history(run, &dependency.spec)
         .iter()
@@ -180,6 +193,7 @@ fn judge(
             judgment.entry.confidence("implementation_complexity"),
             table.min_confidence,
         );
+        remember(run, &dependency.spec, &key, &choice, &judgment.reference);
         return Ok(("not_asked".into(), choice, vec![judgment.reference]));
     }
     let state = json!({"spec": spec, "gap": gap, "investigations": investigations});
@@ -194,7 +208,20 @@ fn judge(
         judgment.entry.confidence("design_complexity"),
         table.min_confidence,
     );
+    remember(run, &dependency.spec, &key, &choice, &judgment.reference);
     Ok((choice, "not_asked".into(), vec![judgment.reference]))
+}
+
+/// Keeps a judgment with the evidence it read, so the same evidence is never
+/// judged twice. An `insufficient_evidence` answer is not kept: new evidence
+/// may settle it, and the next step asks again.
+fn remember(run: &mut Run, spec: &str, key: &str, choice: &str, ledger: &str) {
+    if choice == "insufficient_evidence" {
+        return;
+    }
+    if let Some(d) = run.dependency_mut(spec) {
+        d.judged.insert(key.into(), format!("{choice}|{ledger}"));
+    }
 }
 
 /// The next hop on a dependency: judge, route, check continuation, and open
@@ -255,7 +282,18 @@ pub fn advance(asker: &Asker<'_>, config: &Config, run: &mut Run, spec: &str) ->
     if !decided.human() && first_attempt {
         decided.why = format!("{} (first attempt within the bound; no continuation question)", decided.why);
     }
-    if !decided.human() && !first_attempt {
+    // A scoped human decision that resumed the run authorizes the attempt
+    // it named; the trio does not second-guess it. Opening the attempt
+    // clears the authorization, so the one after asks again.
+    let authorized = run.resumed_from.clone();
+    if !decided.human() && !first_attempt && authorized.is_some() {
+        decided.why = format!(
+            "{} (attempt authorized by the scoped resume of {}; no continuation question)",
+            decided.why,
+            authorized.clone().unwrap_or_default()
+        );
+    }
+    if !decided.human() && !first_attempt && authorized.is_none() {
         let risks = vec![format!(
             "route {} on tier {}",
             decided.route,
@@ -302,6 +340,7 @@ pub fn advance(asker: &Asker<'_>, config: &Config, run: &mut Run, spec: &str) ->
         .expect("routes are listed");
     let id = format!("dispatch-{}", run.dispatches.len() + 1);
     let input_identity = basis.identity.clone();
+    run.resumed_from = None;
     run.dispatches.push(Dispatch {
         id: id.clone(),
         role: allocation.role,

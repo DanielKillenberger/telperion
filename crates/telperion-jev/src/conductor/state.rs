@@ -64,6 +64,13 @@ pub struct Dependency {
     #[serde(default)]
     pub landed_commit: Option<String>,
     pub attached_at: String,
+    /// Jev's judgments over this dependency, keyed by the evidence they
+    /// read (`design:<spec sha>`, `implementation:<design revision>`), as
+    /// `choice|ledger`. A judgment over unchanged evidence is reused, never
+    /// re-bought: the first live run re-asked implementation complexity on
+    /// every step and watched it flip.
+    #[serde(default)]
+    pub judged: std::collections::BTreeMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -106,6 +113,11 @@ pub struct Run {
     pub budget: Budget,
     pub dispatches: Vec<Dispatch>,
     pub dependencies: Vec<Dependency>,
+    /// The pause a scoped human decision just resumed from; the next attempt
+    /// it names runs without a continuation question, and opening that
+    /// attempt clears it.
+    #[serde(default)]
+    pub resumed_from: Option<String>,
     /// Landed commits whose stages have rerun since, halt or not; a landing
     /// not in this list sends the stages before any halt is acted on.
     #[serde(default)]
@@ -132,6 +144,7 @@ impl Run {
         let at = now();
         Self {
             stages_rerun_for: Vec::new(),
+            resumed_from: None,
             schema: "conductor-run".into(),
             schema_version: SCHEMA_VERSION,
             species: config.species.clone(),
@@ -269,6 +282,7 @@ impl Run {
             .ok_or_else(|| ConductorError::Invalid("the run is not paused".into()))?;
         pause.resume(&decision)?;
         self.pause = None;
+        self.resumed_from = Some(decision.pause_id.clone());
         self.end_wait();
         self.authorizations.push(decision);
         Ok(())

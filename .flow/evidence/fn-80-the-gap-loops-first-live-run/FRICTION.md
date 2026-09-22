@@ -27,3 +27,7 @@ The pipeline refuses a second agent set for one gap, so the round-two options we
 ## 2026-09-22 — host: one uncounted dispatch made every later continuation judgment unavailable
 
 After the rosette design verified, the conductor paused: "the continuation judgment is unavailable (unknown prior usage)". The cause was dispatch-3, the host-written option set with no token count, which had set the run's usage to unknown for good. Cost: about 15 minutes and one fix with a test: a finished dispatch that could not count charges its reservation, the run's usage stays known, and the report still lists the cost as unknown; a record written before the rule heals on open. Implementation complexity was judged complex at 0.61, just over the floor, routing to the strong tier at low effort.
+
+## 2026-09-22 — host: a judgment over unchanged evidence was re-bought and flipped; a resume was second-guessed
+
+After the resume from pause-5 the conductor re-asked implementation complexity over the same design revision and got insufficient evidence where the step before had complex at 0.61, then asked the trio, which split on tractability, and paused again. Two rules were missing: a judgment is kept with the evidence it read and reused while that evidence is unchanged (insufficient evidence is not kept, since new evidence may settle it), and a scoped human resume authorizes the attempt it names without the trio asking again; opening the attempt clears the authorization. Cost: about 30 minutes, two Jev calls, one pause. Both rules now ship with tests.

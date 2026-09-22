@@ -461,6 +461,11 @@ fn a_dependency_is_designed_then_implemented_on_separately_judged_tiers_and_land
         1,
         "a design judgment only: a first attempt is bounded by construction and asks no continuation"
     );
+    assert_eq!(
+        run.dependencies[0].judged.len(),
+        1,
+        "the design judgment is kept with the evidence it read"
+    );
     // A step while the dispatch is open re-dispatches nothing.
     drive(&script, &config, &mut run, &executor);
     assert_eq!(run.dispatches.len(), 1);
@@ -646,6 +651,20 @@ fn an_unjustified_next_attempt_pauses_with_budget_remaining_and_a_stage_halt_rou
         1,
         "the first bounded attempt was bought; no second frontier attempt was"
     );
+    // A scoped human resume authorizes the attempt it names: the next step
+    // opens it without asking the trio again, even with risk still unusual.
+    let pause = run.pause.clone().unwrap();
+    let decision: telperion_jev::tuning::continuation::HumanDecision = serde_json::from_value(json!({
+        "pause_id": pause.id, "identity": pause.basis.identity, "action": pause.basis.proposed_action,
+        "by": "test owner", "rationale": "continue"
+    }))
+    .unwrap();
+    run.resume(decision).unwrap();
+    assert_eq!(run.resumed_from.as_deref(), Some("pause-1"));
+    let (word, _) = drive(&script, &config, &mut run, &executor);
+    assert!(word.starts_with("dispatch"), "{word}");
+    assert!(run.resumed_from.is_none(), "opening the attempt clears the authorization");
+    assert_eq!(run.dispatches.len(), 2);
     assert!(run.budget.remaining() > 100_000);
     assert!(run
         .routes

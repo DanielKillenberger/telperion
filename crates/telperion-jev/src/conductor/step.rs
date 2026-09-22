@@ -113,6 +113,7 @@ fn stages(config: &Config, run: &mut Run, executor: &dyn Executor, from: &str) -
 /// decision with the options it may choose, or the runbook's gap loop.
 fn routine(run: &mut Run, scope: String, input: &serde_json::Value) -> String {
     let id = format!("dispatch-{}", run.dispatches.len() + 1);
+    run.resumed_from = None;
     run.dispatches.push(Dispatch {
         id: id.clone(),
         role: Role::Routine,
