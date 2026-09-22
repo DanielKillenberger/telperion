@@ -1,0 +1,176 @@
+{
+  "effort": "medium",
+  "ledger": ".flow/evidence/fn-80-the-gap-loops-first-live-run/vision-ledger/18d7ad6a479845e5-174689-0.json#sha256:07cad27354d8dfc9b55b309793d998c9fbc226edcce882fee8257d166eec4dfa",
+  "model": "opus",
+  "observations": [
+    "reference-0 is a single full-tree (S-WHOLE) view of a birch in a domestic/garden setting, photographed from ground level against clear blue sky with a dark timber-clad house, lawn and broadleaf trees behind; sunlight is strong and from the upper left.",
+    "Only one reference image is supplied; no cross-image comparison is possible and no specimen identity or change over time can be asserted.",
+    "Scale reference from the house: crown height is roughly 3–4 times the eaves height of the adjacent single-storey wing, consistent with a mature but not veteran tree.",
+    "Image resolution is insufficient to resolve individual leaf outlines, leaf margins, catkins, buds or lenticel detail; all such traits are recorded as unresolved rather than absent.",
+    "Observations below are restricted to what is visible in the frame; causes (age, pruning, site, season, cultivar) are listed separately and are not attributed."
+  ],
+  "prompt_sha256": "b977396bce80653bb49b01ba0711ae5f59325eab09c2c5a681f87fff43ab3911",
+  "request": {
+    "protocol": "reference-first-v1",
+    "references": [
+      {
+        "id": "reference-0",
+        "image": {
+          "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/silver-birch/bepe339A.jpg",
+          "seed": 1,
+          "sha256": "cae1627afa33d8a881fe927090b222a37fc0dfa2febffa3e3f1edcc52aa309be",
+          "view": "S-WHOLE"
+        }
+      }
+    ],
+    "specimen_relationship": "unknown",
+    "target_species": "silver-birch"
+  },
+  "request_sha256": "18b960b064a00fb1d7ac58033cb7eb767fe4db563d3d59ba8fb43ff47b15c988",
+  "traits": [
+    {
+      "id": "habit.crown.pendulous-branchlets",
+      "observation": "Long, thin, unbranched-looking terminal shoots hang near-vertically from arching lateral limbs across the whole crown, forming continuous curtain-like strands from the upper crown down to roughly mid-trunk height; the pendulous shoots are the dominant silhouette element of the outer crown.",
+      "priority": "core",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "habit.crown.open-airy-texture",
+      "observation": "The crown reads as open and lacy: sky is visible through large parts of the canopy interior and between the hanging strands, with foliage carried as small discrete clusters along the drooping shoots rather than as a solid dense mass.",
+      "priority": "core",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "bark.trunk.pale-white-upper",
+      "observation": "The main trunk and the larger ascending limbs appear distinctly pale — whitish to light grey — over their upper and mid sections, contrasting strongly against the dark house wall and shaded foliage behind.",
+      "priority": "core",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "bark.trunk.dark-rough-base",
+      "observation": "The lower trunk, from ground level to roughly one-fifth to one-quarter of visible trunk length, is markedly darker (grey-black) and visually coarser than the pale section above, with an irregular, blotchy transition rather than a sharp line.",
+      "priority": "core",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "habit.trunk.single-leaning-stem",
+      "observation": "A single main stem rises from a grassed lawn and leans noticeably to the viewer's left of vertical through its lower and middle length, then continues into the crown; no basal fork into co-dominant stems is visible at ground level.",
+      "priority": "core",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "habit.branching.ascending-limbs-drooping-tips",
+      "observation": "Primary limbs leave the trunk at moderately steep ascending angles, then arch over and turn downward in their outer thirds, so that limb tips and their shoots point toward the ground — an ascend-then-weep branch architecture repeated at several heights.",
+      "priority": "core",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "foliage.leaf.small-fine-scale",
+      "observation": "Individual foliage units read as very small relative to shoot length — fine stippled points along the hanging shoots — giving a finely divided canopy grain; actual leaf outline, margin and apex are not resolvable at this scale.",
+      "priority": "secondary",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": true
+    },
+    {
+      "id": "foliage.colour.mid-green-desaturated",
+      "observation": "Foliage is mid-green and appears somewhat grey- or yellow-tinged and lower in saturation than the darker, denser broadleaf trees at the right of the frame; sunlit strands read noticeably paler than shaded interior foliage.",
+      "priority": "secondary",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": true
+    },
+    {
+      "id": "crown.outline.irregular-asymmetric",
+      "observation": "The overall crown outline is irregular rather than a smooth dome: a taller narrow leader section rises at upper centre-left, the right side carries a long outreaching limb extending toward the house roofline, and the left side is lower and interrupted.",
+      "priority": "secondary",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "crown.top.slender-leading-shoots",
+      "observation": "At the crown apex the shoots are notably slender and sparse, several extending as thin whip-like projections against open sky with only scattered foliage, so the top of the tree ends in fine points rather than a filled-out mass.",
+      "priority": "secondary",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "branch.bare-pale-limb-left",
+      "observation": "At the far left of the frame, at roughly mid-crown height, a pale, largely leafless branch extends more or less horizontally out of the crown, catching direct light and showing bare wood over much of its visible length.",
+      "priority": "secondary",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": true
+    },
+    {
+      "id": "base.rootcollar.turf-contact",
+      "observation": "The stem base meets mown lawn directly with a modest widening of the collar and a small shaded ring of unmown or darker vegetation at the contact; no visible basal cavity, mulch ring or paving surround.",
+      "priority": "secondary",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": true
+    },
+    {
+      "id": "crown.interior.visible-dark-scaffold",
+      "observation": "Through the gaps in the hanging shoots, dark interior scaffold branches are visible as a network of lines crossing the crown, including limbs reading darker than the sunlit pale trunk, likely because they are in shade.",
+      "priority": "variation",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": true
+    },
+    {
+      "id": "canopy.lower-skirt-height",
+      "observation": "The lowest foliage curtain hangs down to approximately the height of the house eaves and to within roughly one-third of the tree's height from the ground, leaving a clear, foliage-free length of trunk beneath it.",
+      "priority": "variation",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "reproductive.catkins.unresolved",
+      "observation": "No catkins, fruiting structures or distinct reproductive organs can be distinguished; the dense stippling along the shoots could include them but cannot be separated from foliage at this resolution.",
+      "priority": "variation",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": true
+    },
+    {
+      "id": "bark.markings.lenticels-unresolved",
+      "observation": "Horizontal lenticel banding, peeling papery strips and dark diamond-shaped fissures are not resolvable on the pale trunk; only broad tonal mottling and a few dark patches on the mid-trunk are visible.",
+      "priority": "variation",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": true
+    }
+  ]
+}

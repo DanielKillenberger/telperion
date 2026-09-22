@@ -59,3 +59,31 @@ Two things from the palm's first pass through generate. The measurer builds its 
 ## 2026-09-22 — host: a non-blocking decision stopped the run for the owner before any tuning
 
 After the palm's first generate the conductor awaited the owner on `generate/visual-unassessed`, a decision that blocks nothing and that the tuning revisions and the packet answer. The plan acted on any open decision after the blocking ones. Fixed with a test: only a decision that blocks a stage is acted on before the stages and the tuning; the rest surface in the packet's unresolved list. Cost: about 10 minutes.
+
+## 2026-09-22 — host: the Claude vision adapter failed its own first live call twice
+
+The palm's first Opus inventory came back complete and the adapter marked it failed: the CLI answers a `--json-schema` request through its own `StructuredOutput` tool call, and the adapter counted that call as a forbidden tool. The second call came back with 17 well-formed traits and the receipt refused it: `Inventory::verify` holds at most 16, and the schema handed to the model stated no cap. Each cost one paid Opus call of about 3,300 output tokens and a fix with a test (7d469619, 8bf329e1). What would have removed it: one live smoke call of a new adapter before it is wired into a run, and a schema generated from the receipt's limits rather than written beside them.
+
+## 2026-09-22 — host: the visual replay is bound to the reviewer's model, so a reviewer swap re-buys the calibration
+
+Moving the palm's reviewer from Codex to Opus made the frozen birch/beech replay stale: the replay carries the model and effort, and its two case inventories were Astra's. Qualifying Opus takes two fresh inventories and two comparisons, four paid calls before a single palm render is judged. The cost is right (a reviewer is qualified per model), but nothing in the config told me before the preflight did, and the inventory configs for the two calibration species had to be assembled by hand from the frozen replay. What would have removed it: a `tuning-loop qualify --adapter` that reads the frozen replay's cases and re-runs them on the named adapter.
+
+## 2026-09-22 — host: the tuning run's first three starts each stopped at the baseline on a wiring fault
+
+Start one measured nothing: the config still pointed at fn-68's profile set, which has no date palm. Start two: the palm's own profile carried `dbh_m` as `unavailable`, and the measurer reads only `gating` or `contextual`, so the same field that had halted the conductor's generate stage halted the baseline; it is now `contextual` with no range, which reports the value and gates nothing, and leaves the owner's lower-bar decision open. Start three: the compare script names a cached photograph by the last segment of its record's url, and the three photographs were stored under view names. Each start costs a fresh run directory and a rewritten authority decision, about five minutes; nothing paid was re-bought, since the preparation charge is re-read from its receipt. What would have removed it: a preflight that runs the baseline's measurer and photograph lookup dry, before any authority is asked for; a profile derivation that emits only classifications the measurer reads; and the cache naming rule written where the photographs are fetched.
+
+## 2026-09-22 — host: the shot's foliage word is `leaf-on`, and nothing at the authoring site says so
+
+The fourth start of the tuning run stopped before its first paid look: the palm's derived shots said foliage `shown`, and the packet reads only `leaf-on`, `hidden` or nothing (`joint.rs`, `with_shots`). The references file has no schema and the reference-recording step has no check, so the word was wrong from the moment the shots were derived and surfaced three stages later. Cost: one more run directory and authority rewrite, about four minutes; no paid call. What would have removed it: the shot vocabulary validated where a reference record is written, or the packet accepting `shown` as the synonym it already maps `leaf-on` to.
+
+## 2026-09-22 — host: a gap that minted two specs landed the wrong one
+
+The capability gate's third round minted two organ specs, fn-110 and fn-111. `gap spec` keeps one `spec` on the record, so recording fn-111 after fn-110 overwrote it, and `gap resume --commit aa488beb` (fn-110's merge) wrote the landing against fn-111. Cost: about 15 minutes, a hand repair of the gap record (noted in it), and a fix with a test: the record keeps every minted spec in `specs`, and `gap resume --spec` names which one lands. What would have removed it: the loop's record modelled one spec per round, and the palm was the first gap to mint two in a round.
+
+## 2026-09-22 — host: the receipt refused a paid pass over one variation row, twice in one day
+
+The round-three visual pass on Opus came back complete (16 coverage rows, 12 findings, 6,462 output tokens) and the receipt refused it because one variation row, epiphytes on the trunk, cited the whole-tree photograph instead of the two close views it was inventoried from; the earlier beech calibration case had been refused the same way over a row citing no render. Each refusal cost the pass's reservation, a fix with a test, a rebuild and a scoped resume, about 20 minutes. What would have removed it: the receipt's row rules treating a row that cannot count as a row to drop or downgrade and record, which is now what both do, and a dry bind of the reviewer's schema against every rule before the first live call.
+
+## 2026-09-22 — host: every owner decision in the loop must re-carry the pilot authority
+
+The priority approval was refused on the next start because a decision that does not carry `experimental_pilot` leaves the run without authority, by design (the fn-68 test names it); the same held after the dial-table repair and the recalibration, so the authority was rewritten five times in one afternoon, once per pause. Cost: about 15 minutes of resumes. What would have removed it: the pause's `decision_requested` naming that the authority must be re-carried, or the run keeping an authority whose identity and caps still match.

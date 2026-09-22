@@ -1,0 +1,16 @@
+{
+  "attempts": 1,
+  "effort": "medium",
+  "ledger": ".flow/evidence/fn-80-the-gap-loops-first-live-run/vision-ledger/18d7ad33de82dcf3-171cdb-0.json",
+  "ledger_sha256": "0e5a81f13de46db8e860caec8e577b4be8105f9498030649a726455f9da57cfc",
+  "model": "opus",
+  "prompt_sha256": "b977396bce80653bb49b01ba0711ae5f59325eab09c2c5a681f87fff43ab3911",
+  "request_sha256": "a6ed5b9682f2fb6a462786aae1dc6133b5352735e9a81fdeb4df2cca1f8a513b",
+  "retries": false,
+  "stage": "inventory",
+  "status": "settled",
+  "usage": {
+    "input_tokens": 2,
+    "output_tokens": 3283
+  }
+}

@@ -41,7 +41,7 @@
      1
     ],
     "derivation": "Phone at eye height about 1.6 m on the bank, wide lens, sunset low to the left behind the crown: the eye sits about twenty degrees below the aim at mid-crown roughly ten metres away. Crown top at about a tenth from the top edge, base at about four fifths down: fill about 0.72. Trunk clear for about half the height; the lean is the tree's, not the camera's.",
-    "foliage": "shown",
+    "foliage": "leaf-on",
     "light": {
      "overcast": 0.5,
      "sunAzimuth": 250,
@@ -103,7 +103,7 @@
      1
     ],
     "derivation": "Eye height about 1.6 m some six metres from the trunk, looking up about twenty degrees: the crown base sits a quarter from the top and the fronds run off the top edge, so the tree overfills the frame (fill about 1.25). Sun high and to the right, clear sky.",
-    "foliage": "shown",
+    "foliage": "leaf-on",
     "light": {
      "overcast": 0.1,
      "sunAzimuth": 120,

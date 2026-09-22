@@ -1,0 +1,12 @@
+{
+ "input_identity": "999070e18fd68abd8955ffb6f761995ad03501b1f0c048e91e13044d35e00cfd",
+ "design_revision": "1dc0a8334dc0f1af959a38679af48552d88ab57421c5cde45d03a4c697dc5195",
+ "actual_model": "claude-opus-5",
+ "actual_effort": "low",
+ "usage": null,
+ "cost_usd": null,
+ "verification": "verified",
+ "observed": "Implemented before this dispatch opened, by the strong-tier agent the host dispatched directly: PR 62 squash-merged to master as aa488beb (branch gate green at 7bf080a2 and at the master merge f39efc46, 118 binaries, 925 tests; catalogue check green). R1 vocabulary and derivation, R2 shipped presets byte-identical, R3 leaf-base spiral tests and one trunk still, R4 dial rows; the palm run's gate rerun after landing is the host's. Usage of that earlier dispatch is not on record here, so the reservation is charged.",
+ "handoff": null,
+ "failure": null
+}

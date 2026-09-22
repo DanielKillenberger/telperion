@@ -1,0 +1,18 @@
+{
+ "pause_id": "18d7aea7f34a84ab-189e5c-4",
+ "identity": "26cc93b9935458292fc66cc41bd1e67667629db306592b901af0ac3bd4590b63",
+ "action": "authorize bounded experimental pilot",
+ "by": "host (fn-80 conductor session) relaying the owner's words of 2026-09-22",
+ "rationale": "Owner, 2026-09-22: \"ok so i thought we're doing fn 82 as proof for fn-80? so do the proper run\"; \"we can do both no? tune and build the missing capabilities?\"; \"you can review visually with opus as fallback\". The date palm's first tuning revision runs as fn-80's live proof under bootstrap: the Opus reviewer is qualified on one blinded negative only (beech, .flow/evidence/fn80/opus-replay/replay-negatives.json) and abstained on the owner-accepted birch positive with two required-unknown findings (replay-result-2.json), so no run can claim readiness and every reviewer pass stops for the owner's look. Magnitude live efficacy stays unvalidated; the caps below are the config's own and are not raised. Second start (run2): the first start's baseline measured nothing because the config pointed at fn-68's profile set, which has no date palm; the palm's own profile now carries dbh_m as contextual with no range, since the measurer reads only gating or contextual. Third start (run3): the second start's baseline found no photograph, because the reference cache names a file by the last segment of its record's url and the three photographs were stored under view names; they now carry both names. Fourth start (run4): the third start's baseline measured (score 0.817, 73 nodes) and its first visual pass stopped before dispatch on the packet's shot vocabulary: the shots said foliage \"shown\" where the packet reads \"leaf-on\"; nothing was paid. Re-carried after the owner-priority approval, which by design must re-carry the exact pilot authority; identity and caps unchanged.",
+ "experimental_pilot": {
+  "visual_bootstrap": true,
+  "purpose": "first tuning revision of the date palm (fn-82) as the gap loop's live proof (fn-80), rosette only, trunk organs and infructescence not landed",
+  "reason": "magnitude live efficacy unvalidated; the owner asked for the proper run with Opus as the visual reviewer",
+  "next_identity": "26cc93b9935458292fc66cc41bd1e67667629db306592b901af0ac3bd4590b63",
+  "max_tokens": 6000000,
+  "max_rounds": 24,
+  "max_evaluations": 120,
+  "max_images": 600,
+  "max_visual_passes": 60
+ }
+}

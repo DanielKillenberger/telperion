@@ -1,0 +1,12 @@
+{
+ "input_identity": "3368c6f0758f89c539d13f76bfe7ce507b568b9e73c1a81b86136110b0240811",
+ "design_revision": null,
+ "actual_model": "claude-opus-5",
+ "actual_effort": "medium",
+ "usage": null,
+ "cost_usd": null,
+ "verification": "verified",
+ "observed": "Design recorded after the fact: fn-110 was designed and implemented by a strong-tier agent the host dispatched directly before the conductor opened this dispatch; the handoff file is the design as landed in PR 62 (aa488beb). Usage of that earlier dispatch is not on record here, so the reservation is charged.",
+ "handoff": ".flow/evidence/fn80/design-fn-110.md",
+ "failure": null
+}

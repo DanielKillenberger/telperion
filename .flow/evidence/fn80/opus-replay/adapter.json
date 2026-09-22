@@ -1,0 +1,14 @@
+{
+ "program": "python3",
+ "args": [
+  "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/scripts/reference-first-claude.py",
+  "--model",
+  "opus",
+  "--effort",
+  "medium"
+ ],
+ "model": "opus",
+ "effort": "medium",
+ "timeout_seconds": 600,
+ "ledger": ".flow/evidence/fn-80-the-gap-loops-first-live-run/vision-ledger"
+}

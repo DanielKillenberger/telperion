@@ -1,0 +1,116 @@
+{
+ "schema": "reference-first-replay-job-v1",
+ "model": "opus",
+ "effort": "medium",
+ "protocol": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/scripts/reference-first-claude.py",
+ "cases": [
+  {
+   "id": "birch-positive",
+   "provenance": "fn-68 owner-accepted birch species on historical geometry; the assessed raster is a camera reframe and was not itself owner-accepted",
+   "expected_ready": true,
+   "identity": "birch-round26-0f2c2f6a-seed1-whole",
+   "target_species": "silver-birch",
+   "inventory": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.flow/tmp/fn80-palm/opus-replay/silver-birch/inventory.json",
+   "required": [
+    {
+     "item": "reference_character",
+     "seed": 1,
+     "view": "S-WHOLE"
+    }
+   ],
+   "renders": [
+    {
+     "image": {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/birch-reframed/S-WHOLE.png",
+      "seed": 1,
+      "sha256": "5c0112df0a647fdfa5eb6ad8816a45c92061206b919a772535646861c69e382e",
+      "view": "S-WHOLE"
+     },
+     "condition": "historical_reconstructed_still_camera_reframe",
+     "framing": "complete"
+    }
+   ],
+   "references": [
+    {
+     "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/silver-birch/bepe339A.jpg",
+     "seed": 1,
+     "sha256": "cae1627afa33d8a881fe927090b222a37fc0dfa2febffa3e3f1edcc52aa309be",
+     "view": "S-WHOLE"
+    }
+   ],
+   "quality_anchors": [
+    {
+     "image": {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn9/final/preview/norway-spruce-1-whole.png",
+      "seed": 1,
+      "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+      "view": "whole"
+     },
+     "provenance": "established catalogue anchor image sha256:8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+     "scope": "finish/style only; not species morphology"
+    }
+   ],
+   "shots": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/assets/silver-birch-references-e5f2a7a5.json"
+  },
+  {
+   "id": "beech-negative",
+   "provenance": "fn-68 blinded beech negative; owner rejected round22 for a regular outline and insufficient leaf-weight droop",
+   "expected_ready": false,
+   "identity": "beech-round22-4e6d903c-seed1-whole",
+   "target_species": "european-beech",
+   "inventory": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.flow/tmp/fn80-palm/opus-replay/european-beech/inventory.json",
+   "required": [
+    {
+     "item": "reference_character",
+     "seed": 1,
+     "view": "B-WHOLE"
+    }
+   ],
+   "renders": [
+    {
+     "image": {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/blind-transport/render-0.png",
+      "seed": 1,
+      "sha256": "7e69fda3e95b317fcb9d89e15e32179c54fdd316a57d1c3223d6e26639b8b490",
+      "view": "B-WHOLE"
+     },
+     "condition": "historical_reconstructed_still",
+     "framing": "clipped"
+    }
+   ],
+   "references": [
+    {
+     "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg",
+     "seed": 1,
+     "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+     "view": "B-WHOLE"
+    },
+    {
+     "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg",
+     "seed": 1,
+     "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+     "view": "B-BARE"
+    },
+    {
+     "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg",
+     "seed": 1,
+     "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+     "view": "B-BASE"
+    }
+   ],
+   "quality_anchors": [
+    {
+     "image": {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn9/final/preview/norway-spruce-1-whole.png",
+      "seed": 1,
+      "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+      "view": "whole"
+     },
+     "provenance": "established catalogue anchor image sha256:8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+     "scope": "finish/style only; not species morphology"
+    }
+   ],
+   "shots": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/assets/beech-references-4e6d903c.json"
+  }
+ ]
+}

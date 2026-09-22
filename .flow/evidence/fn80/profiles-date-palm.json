@@ -36,9 +36,9 @@
    "id": "date-palm",
    "metrics": {
     "dbh_m": {
-     "classification": "unavailable",
+     "classification": "contextual",
      "confidence": "unavailable",
-     "note": "below the data-quality bar",
+     "note": "unavailable: below the data-quality bar (no source states a diameter at an age); contextual with no range so the measurer reports the value and gates nothing. The owner's lower-bar decision on shipping without a diameter source stays open (host, 2026-09-22).",
      "range": null,
      "source": [],
      "unit": "m"
