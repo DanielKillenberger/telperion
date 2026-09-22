@@ -94,5 +94,19 @@ fn reach(
     } else {
         0.0
     };
-    seated.max(spur).max(0.0)
+    // A rachis carries its leaflets a length further out from the station,
+    // arched out of that line again, and a rosette spreads its insertions
+    // down the axis below the apex. Both are off at the neutral rows, so the
+    // box every shipped preset quantises against is the box it was.
+    let rachis = if canopy.leaflet_count > 1 && canopy.rachis_length > 0.0 {
+        canopy.rachis_length * (1.0 + canopy.rachis_arch.abs())
+    } else {
+        0.0
+    };
+    let apex = if canopy.rosette_fronds > 0 {
+        canopy.rosette_depth
+    } else {
+        0.0
+    };
+    (seated.max(spur).max(apex) + rachis).max(0.0)
 }

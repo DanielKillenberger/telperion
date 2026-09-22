@@ -3,7 +3,7 @@ use super::{
     canopy::validate,
     clumping,
     plan::bearing_runs,
-    short_shoots,
+    rosette, short_shoots,
     station::{place_run, reserve_all, station_count, walk, Run},
     CanopyParams, Instances, Reference, TwigPlacement,
 };
@@ -72,6 +72,10 @@ fn bearing(
 /// twig layer marked, or the terminal shoots slender enough for `shoot_radius`
 /// where there is no twig layer.
 fn runs(tree: &Tree, p: CanopyParams, twig: Option<TwigPlacement>) -> Vec<Vec<usize>> {
+    // A stem that bears a frond crown bears nothing along its length.
+    if rosette::bearing(&p) {
+        return Vec::new();
+    }
     match twig {
         Some(_) => bearing_runs(tree, p),
         None => shoots(
@@ -92,11 +96,17 @@ fn leaves_on(
 ) -> Result<usize> {
     let overflow = || Error::ResourceLimit("foliage count overflow");
     let (mut points, mut along) = (Vec::new(), Vec::new());
-    let mut total = short_shoots::count(tree, envelope, seed, &p)?;
+    let leaflets = rosette::leaflets(&p);
+    let mut total = if rosette::bearing(&p) {
+        rosette::count(tree, &p)?
+    } else {
+        short_shoots::count(tree, envelope, seed, &p)?
+    };
     for nodes in runs {
         let length = walk(tree, nodes, &mut points, &mut along);
-        total = total
-            .checked_add(station_count(length, envelope, p, twig)?)
+        total = station_count(length, envelope, p, twig)?
+            .checked_mul(leaflets)
+            .and_then(|leaves| total.checked_add(leaves))
             .ok_or_else(overflow)?;
     }
     Ok(total)
@@ -161,9 +171,14 @@ fn place_impl(
             owners.resize(out.leaves.len(), nodes[1] as u32);
         }
     }
-    // A second source over the limbs and branches: short shoots draw from
-    // their own wood's stream, so the leaves above keep every byte.
-    short_shoots::clothe(tree, envelope, seed, &p, &mut out, owners.as_mut())?;
+    // The second source: a rosette at every stem apex where the rows state
+    // one, else short shoots over the limbs and branches. Either draws from
+    // its own wood's stream, so the leaves above keep every byte.
+    if rosette::bearing(&p) {
+        rosette::clothe(tree, seed, &p, &mut out, owners.as_mut())?;
+    } else {
+        short_shoots::clothe(tree, envelope, seed, &p, &mut out, owners.as_mut())?;
+    }
     if let Some(owners) = owners {
         clumping::thin(tree, &owners, seed, p, &mut out);
     }

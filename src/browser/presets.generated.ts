@@ -8,10 +8,19 @@ export interface Family {
   clumpSystemOrder: number;
   divergence: number;
   forwardLean: number;
+  leafletCount: number;
+  leafletPitch: number;
   leanRise: number;
   limbClumping: number;
   maxInstances: number;
   outward: number;
+  rachisArch: number;
+  rachisLength: number;
+  rosetteDepth: number;
+  rosetteDivergence: number;
+  rosetteFronds: number;
+  rosettePitch: number;
+  rosettePitchSpread: number;
   scatter: number;
   shootRadius: number;
   shortShootLeaves: number;
@@ -23,6 +32,7 @@ export interface Family {
   sizeVariation: number;
   spacing: number;
   surfaceContact: number;
+  terminalLeaflet: number;
   upward: number;
 };
   element: {
@@ -264,10 +274,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "clumpSystemOrder": 2,
         "divergence": 137.508,
         "forwardLean": 0,
+        "leafletCount": 1,
+        "leafletPitch": 45,
         "leanRise": 0,
         "limbClumping": 0,
         "maxInstances": 4294967295,
         "outward": 0.6,
+        "rachisArch": 0,
+        "rachisLength": 0,
+        "rosetteDepth": 0,
+        "rosetteDivergence": 137.508,
+        "rosetteFronds": 0,
+        "rosettePitch": 45,
+        "rosettePitchSpread": 60,
         "scatter": 18,
         "shootRadius": 0,
         "shortShootLeaves": 3,
@@ -279,6 +298,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "sizeVariation": 0.35,
         "spacing": 0.006,
         "surfaceContact": 0,
+        "terminalLeaflet": 0,
         "upward": 0.35
       },
       "element": {
@@ -518,10 +538,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "clumpSystemOrder": 2,
         "divergence": 180,
         "forwardLean": 0.25,
+        "leafletCount": 1,
+        "leafletPitch": 45,
         "leanRise": 0,
         "limbClumping": 0,
         "maxInstances": 4294967295,
         "outward": 0,
+        "rachisArch": 0,
+        "rachisLength": 0,
+        "rosetteDepth": 0,
+        "rosetteDivergence": 137.508,
+        "rosetteFronds": 0,
+        "rosettePitch": 45,
+        "rosettePitchSpread": 60,
         "scatter": 18,
         "shootRadius": 0,
         "shortShootLeaves": 3,
@@ -533,6 +562,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "sizeVariation": 0.2,
         "spacing": 0.006,
         "surfaceContact": 0,
+        "terminalLeaflet": 0,
         "upward": 0
       },
       "element": {
@@ -772,10 +802,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "clumpSystemOrder": 2,
         "divergence": 137.508,
         "forwardLean": 0.05,
+        "leafletCount": 1,
+        "leafletPitch": 45,
         "leanRise": 1.2,
         "limbClumping": 0,
         "maxInstances": 4294967295,
         "outward": 0,
+        "rachisArch": 0,
+        "rachisLength": 0,
+        "rosetteDepth": 0,
+        "rosetteDivergence": 137.508,
+        "rosetteFronds": 0,
+        "rosettePitch": 45,
+        "rosettePitchSpread": 60,
         "scatter": 18,
         "shootRadius": 0.025,
         "shortShootLeaves": 3,
@@ -787,6 +826,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "sizeVariation": 0.2,
         "spacing": 0.006,
         "surfaceContact": 1,
+        "terminalLeaflet": 0,
         "upward": 0
       },
       "element": {
@@ -1026,10 +1066,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "clumpSystemOrder": 2,
         "divergence": 180,
         "forwardLean": 0.6,
+        "leafletCount": 1,
+        "leafletPitch": 45,
         "leanRise": 0.3,
         "limbClumping": 0,
         "maxInstances": 4294967295,
         "outward": 0,
+        "rachisArch": 0,
+        "rachisLength": 0,
+        "rosetteDepth": 0,
+        "rosetteDivergence": 137.508,
+        "rosetteFronds": 0,
+        "rosettePitch": 45,
+        "rosettePitchSpread": 60,
         "scatter": 18,
         "shootRadius": 0,
         "shortShootLeaves": 3,
@@ -1041,6 +1090,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "sizeVariation": 0.2,
         "spacing": 0.006,
         "surfaceContact": 0,
+        "terminalLeaflet": 0,
         "upward": -0.35
       },
       "element": {
@@ -1280,10 +1330,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "clumpSystemOrder": 2,
         "divergence": 137.508,
         "forwardLean": 0,
+        "leafletCount": 1,
+        "leafletPitch": 45,
         "leanRise": 0,
         "limbClumping": 0,
         "maxInstances": 4294967295,
         "outward": 0.42,
+        "rachisArch": 0,
+        "rachisLength": 0,
+        "rosetteDepth": 0,
+        "rosetteDivergence": 137.508,
+        "rosetteFronds": 0,
+        "rosettePitch": 45,
+        "rosettePitchSpread": 60,
         "scatter": 14,
         "shootRadius": 0,
         "shortShootLeaves": 3,
@@ -1295,6 +1354,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "sizeVariation": 0.28,
         "spacing": 0.0045,
         "surfaceContact": 0,
+        "terminalLeaflet": 0,
         "upward": 0.55
       },
       "element": {
@@ -1534,10 +1594,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "clumpSystemOrder": 2,
         "divergence": 99.502,
         "forwardLean": 0,
+        "leafletCount": 1,
+        "leafletPitch": 45,
         "leanRise": 0,
         "limbClumping": 0,
         "maxInstances": 4294967295,
         "outward": 0.72,
+        "rachisArch": 0,
+        "rachisLength": 0,
+        "rosetteDepth": 0,
+        "rosetteDivergence": 137.508,
+        "rosetteFronds": 0,
+        "rosettePitch": 45,
+        "rosettePitchSpread": 60,
         "scatter": 22,
         "shootRadius": 0,
         "shortShootLeaves": 3,
@@ -1549,6 +1618,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "sizeVariation": 0.4,
         "spacing": 0.0065,
         "surfaceContact": 0,
+        "terminalLeaflet": 0,
         "upward": 0.22
       },
       "element": {

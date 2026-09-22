@@ -37,8 +37,11 @@ fn run() -> Result<(), String> {
             serde_json::from_slice(&fs::read(dir.join("run.json")).map_err(|e| e.to_string())?)
                 .map_err(|e| e.to_string())?;
         let result = run.end_result();
-        fs::write(dir.join("result.json"), serde_json::to_vec_pretty(&result).unwrap())
-            .map_err(|e| e.to_string())?;
+        fs::write(
+            dir.join("result.json"),
+            serde_json::to_vec_pretty(&result).unwrap(),
+        )
+        .map_err(|e| e.to_string())?;
         let page = telperion_jev::tuning::result::markdown(&result);
         fs::write(dir.join("RESULT.md"), &page).map_err(|e| e.to_string())?;
         let html = telperion_jev::tuning::result::html::page(&result, &dir);

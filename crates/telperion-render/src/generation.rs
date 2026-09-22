@@ -14,8 +14,9 @@ use wood::ResidentWood;
 pub(crate) mod request;
 use crate::{buffer::Held, Gpu, Renderer, Result, Submitted};
 use std::sync::Arc;
+#[cfg(test)]
+use telperion_core::branching;
 use telperion_core::{
-    branching,
     foliage::{self, Instances, Reference, TwigPlacement},
     mesh::{self, TreeMesh},
     surface::{self, Bounds},

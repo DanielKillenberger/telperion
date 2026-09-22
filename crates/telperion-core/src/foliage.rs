@@ -12,6 +12,7 @@ pub mod plan;
 #[cfg(feature = "geometry")]
 pub mod prepared;
 mod reference;
+mod rosette;
 #[cfg(feature = "geometry")]
 mod short_shoots;
 #[cfg(feature = "geometry")]
@@ -30,6 +31,9 @@ pub use packed::{Leaf, Reference, WORDS};
 pub(crate) use placement::leaf_count;
 #[cfg(feature = "geometry")]
 pub use placement::{place, place_on_surface};
+#[cfg(feature = "geometry")]
+pub use rosette::place_rosette;
+pub use rosette::{rosettes, Rosette, MAX_FRONDS, MAX_LEAFLETS};
 #[cfg(feature = "geometry")]
 pub use short_shoots::{
     place_short_shoots, place_short_shoots_clumped, short_shoots, ShortShoot,

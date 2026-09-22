@@ -11,7 +11,7 @@ impl Generator {
         let total = Clock::now();
         let mut metrics = Metrics::default();
         let started = Clock::now();
-        let tree = branching::generate(&family.skeleton, family.radii)?.tree;
+        let tree = mesh::grow(family)?;
         metrics.skeleton_ms = started.elapsed_ms();
         let started = Clock::now();
         let element = foliage::build_element(family.element)?;

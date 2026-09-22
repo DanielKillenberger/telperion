@@ -4,7 +4,7 @@
 //! station preparation and the field both build on it, so there is one
 //! definition of leaf-bearing wood, and it compiles with the wood surface
 //! and the placement out.
-use super::{canopy, clumping, CanopyParams, Element, TwigPlacement};
+use super::{canopy, clumping, rosette, CanopyParams, Element, TwigPlacement};
 use crate::{
     envelope::Envelope,
     math::Vec3,
@@ -14,20 +14,28 @@ use crate::{
 };
 
 /// Capability check only; `runs` still validates every parameter. Short
-/// shoots, limb clumping and a canopy without a twig layer have no plan.
+/// shoots, limb clumping, a canopy without a twig layer and a rosette have no
+/// plan: a frond crown stands at the stem apices, which no run describes, so
+/// such a family takes the placed path.
 pub fn supports(p: CanopyParams, twig: Option<TwigPlacement>) -> bool {
-    twig.is_some() && p.short_shoot_spacing == 0.0 && p.limb_clumping == 0.0
+    twig.is_some()
+        && p.short_shoot_spacing == 0.0
+        && p.limb_clumping == 0.0
+        && !rosette::bearing(&p)
 }
 
 /// One unbranched run of leaf-bearing wood under a twig layer: its nodes,
-/// attachment first, the distance along it to each, and its station count
-/// before any cull.
+/// attachment first, the distance along it to each, its station count before
+/// any cull and the leaves each station carries. The counts and ordinals are
+/// stations, which the station preparation tiles by; a placement of leaflets
+/// along a rachis multiplies the leaves, never the stations.
 #[derive(Debug)]
 pub struct Run {
     pub nodes: Vec<usize>,
     pub along: Vec<f64>,
     pub internodes: u32,
     pub count: u32,
+    pub leaflets: u32,
 }
 impl Run {
     /// Stations standing before `distance` along the run. The original
@@ -79,6 +87,7 @@ pub fn runs(
     if tree.nodes.len() < 2 || p.size == 0.0 {
         return Ok(Some(runs));
     }
+    let leaflets = rosette::leaflets(&p) as u32;
     let mut total = 0u32;
     for nodes in bearing_runs(tree, p) {
         let mut along = vec![0.0];
@@ -97,16 +106,17 @@ pub fn runs(
         }
         let internodes = (length / twig.internode_length - 1e-9).ceil().max(1.0);
         let count = internodes * f64::from(twig.stations_per_internode);
-        if !count.is_finite()
-            || count > p.max_instances as f64
-            || count >= (isize::MAX as usize / size_of::<f64>()) as f64
-            || count > u32::MAX as f64
+        let leaves = count * f64::from(leaflets);
+        if !leaves.is_finite()
+            || leaves > p.max_instances as f64
+            || leaves >= (isize::MAX as usize / size_of::<f64>()) as f64
+            || leaves > u32::MAX as f64
         {
             return Err(Error::ResourceLimit("foliage instance budget"));
         }
         let count = count as u32;
         total = total
-            .checked_add(count)
+            .checked_add(leaves as u32)
             .filter(|&n| n as usize <= p.max_instances)
             .ok_or(Error::ResourceLimit("foliage instance budget"))?;
         runs.push(Run {
@@ -114,13 +124,14 @@ pub fn runs(
             along,
             internodes: internodes as u32,
             count,
+            leaflets,
         });
     }
     Ok(Some(runs))
 }
 
 /// One leaf-bearing wood segment: its endpoints, the wood's radii at them,
-/// the stations it carries before any cull and the limb system that owns it.
+/// the leaves it carries before any cull and the limb system that owns it.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Descriptor {
     pub endpoints: [Vec3; 2],
@@ -133,7 +144,7 @@ pub struct Descriptor {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Plan {
     pub descriptors: Vec<Descriptor>,
-    /// Stations over every descriptor, before any cull.
+    /// Leaves over every descriptor, before any cull.
     pub total: u32,
     /// The leaf element's farthest vertex from its attachment, at the largest
     /// scale placement can draw.
@@ -141,13 +152,26 @@ pub struct Plan {
     /// The most a seated station stands off its wood, as a multiple of the
     /// wood's radius.
     pub seat: f64,
+    /// How far a rachis carries its leaflets out from the station, arched out
+    /// of that line again; zero where a placement is one blade.
+    pub rachis: f64,
 }
 impl Plan {
     /// Every point a leaf on this segment can occupy lies within this
     /// distance of the segment: the wood's radius carried out to the seat,
-    /// plus the blade.
+    /// plus the rachis, plus the blade.
     pub fn reach(&self, d: &Descriptor) -> f64 {
-        d.radii[0].max(d.radii[1]) * self.seat + self.blade
+        d.radii[0].max(d.radii[1]) * self.seat + self.rachis + self.blade
+    }
+}
+
+/// The rachis's own reach, as the reference box grows by it: a length out
+/// from the station and the arch's share of that length again.
+fn rachis(p: CanopyParams) -> f64 {
+    if rosette::leaflets(&p) > 1 {
+        p.rachis_length * (1.0 + p.rachis_arch.abs())
+    } else {
+        0.0
     }
 }
 
@@ -198,11 +222,11 @@ pub fn plan(
             descriptors.push(Descriptor {
                 endpoints: [tree.nodes[run.nodes[segment]].position, distal.position],
                 radii: [distal.start_radius, distal.radius],
-                count: last - first,
+                count: (last - first) * run.leaflets,
                 system: system[run.nodes[segment + 1]],
             });
         }
-        total += run.count;
+        total += run.count * run.leaflets;
     }
     let extent = element
         .positions
@@ -214,12 +238,17 @@ pub fn plan(
         total,
         blade: extent * p.size * (1.0 + p.size_variation),
         seat: seating(surface, p),
+        rachis: rachis(p),
     }))
 }
 
 /// Every unbranched run of leaf-bearing wood: what the twig layer marked, plus
 /// whatever else is slender enough for shoot_radius to clothe.
 pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
+    // A stem that bears a frond crown bears nothing along its length.
+    if rosette::bearing(&p) {
+        return Vec::new();
+    }
     let slender = tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius;
     let bearing = |i: usize| {
         let n = &tree.nodes[i];
@@ -400,5 +429,67 @@ mod tests {
             ..Default::default()
         };
         assert!(none(bare, twig).unwrap().unwrap().descriptors.is_empty());
+    }
+
+    /// A rosette family is fronds at the apices, which the plan does not
+    /// describe, so it has none; a family whose placements are leaflets along
+    /// a rachis is planned, with each station counted once per leaflet and
+    /// the reach grown by the rachis.
+    #[test]
+    fn a_rosette_has_no_plan_and_leaflets_multiply_the_counts() {
+        let tree = two_limbs();
+        let element = super::super::build_element(Default::default()).unwrap();
+        let twig = Some(TwigPlacement {
+            internode_length: 0.5,
+            stations_per_internode: 2,
+        });
+        let at = |p: CanopyParams| {
+            plan(
+                &tree,
+                Envelope::default(),
+                p,
+                twig,
+                &SurfaceParams::default(),
+                &element,
+                None,
+            )
+            .unwrap()
+        };
+        let crown = CanopyParams {
+            rosette_fronds: 12,
+            ..Default::default()
+        };
+        assert!(!supports(crown, twig));
+        assert!(at(crown).is_none());
+        assert!(bearing_runs(&tree, crown).is_empty());
+        let single = at(CanopyParams::default()).unwrap();
+        let pinnate = CanopyParams {
+            leaflet_count: 7,
+            rachis_length: 0.3,
+            rachis_arch: -0.5,
+            ..Default::default()
+        };
+        let compound = at(pinnate).unwrap();
+        assert_eq!(compound.total, single.total * 7);
+        assert_eq!(compound.descriptors.len(), single.descriptors.len());
+        for (c, s) in compound.descriptors.iter().zip(&single.descriptors) {
+            assert_eq!(c.count, s.count * 7);
+            assert_eq!(c.endpoints, s.endpoints);
+        }
+        assert_eq!(single.rachis, 0.0);
+        assert_eq!(compound.rachis, 0.3 * 1.5);
+        let d = &compound.descriptors[0];
+        assert!((compound.reach(d) - single.reach(d) - 0.3 * 1.5).abs() < 1e-12);
+        // A count without a rachis, or a rachis without a count, is one blade.
+        let bare = CanopyParams {
+            leaflet_count: 7,
+            ..Default::default()
+        };
+        assert_eq!(at(bare).unwrap(), single);
+        let budget = CanopyParams {
+            max_instances: single.total as usize,
+            ..pinnate
+        };
+        assert!(runs(&tree, Envelope::default(), budget, twig).is_err());
     }
 }

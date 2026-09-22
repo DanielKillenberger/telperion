@@ -126,6 +126,16 @@ macro_rules! fields {
         $op!($f, $v, "canopy", "limbClumping"; canopy.limb_clumping);
         $op!($f, $v, "canopy", "clumpSystemOrder"; canopy.clump_system_order);
         $op!($f, $v, "canopy", "clumpNeighbours"; canopy.clump_neighbours);
+        $op!($f, $v, "canopy", "rosetteFronds"; canopy.rosette_fronds);
+        $op!($f, $v, "canopy", "rosetteDivergence"; canopy.rosette_divergence);
+        $op!($f, $v, "canopy", "rosettePitch"; canopy.rosette_pitch);
+        $op!($f, $v, "canopy", "rosettePitchSpread"; canopy.rosette_pitch_spread);
+        $op!($f, $v, "canopy", "rosetteDepth"; canopy.rosette_depth);
+        $op!($f, $v, "canopy", "leafletCount"; canopy.leaflet_count);
+        $op!($f, $v, "canopy", "rachisLength"; canopy.rachis_length);
+        $op!($f, $v, "canopy", "leafletPitch"; canopy.leaflet_pitch);
+        $op!($f, $v, "canopy", "rachisArch"; canopy.rachis_arch);
+        $op!($f, $v, "canopy", "terminalLeaflet"; canopy.terminal_leaflet);
         $op!($f, $v, "canopy", "maxInstances"; canopy.max_instances);
         $op!($f, $v, "element", "length"; element.length);
         $op!($f, $v, "element", "width"; element.width);
@@ -253,9 +263,13 @@ pub const CATALOGUE: &[(u32, &str, &str, &str)] = &[
 /// Tables still being judged. Their ABI ids are reserved, and they are not
 /// listed, served by id or built by name: the core's tests and the species
 /// runner reach them through `Preset`. The European beech ships when fn-62
-/// accepts it.
-pub const IN_WORK: &[(u32, &str, &str, &str)] =
-    &[(5, "european-beech", "European beech", "Fagus sylvatica")];
+/// accepts it. The date palm (fn-108) is registered with its reachable
+/// values only; its remaining anatomy gaps are their own specs and fn-82
+/// owns the species' acceptance.
+pub const IN_WORK: &[(u32, &str, &str, &str)] = &[
+    (5, "european-beech", "European beech", "Fagus sylvatica"),
+    (7, "date-palm", "Date palm", "Phoenix dactylifera"),
+];
 pub fn preset(id: u32) -> Result<Family> {
     let identity = CATALOGUE
         .iter()

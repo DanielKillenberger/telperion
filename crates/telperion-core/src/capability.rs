@@ -23,7 +23,8 @@ pub struct Capability {
 
 /// The vocabulary: what the generator expresses today. The first six names
 /// are the frozen fn-19 protocol's, the ones [`derived`] reads off a value
-/// table; the last two are what the shipped beech and birch require and draw.
+/// table; then what the shipped beech and birch require and draw, and last the
+/// pinnate grouping and the frond crown fn-109 gave the canopy.
 pub const EXPRESSED: &[Capability] = &[
     Capability {
         name: "woody-axes",
@@ -57,17 +58,6 @@ pub const EXPRESSED: &[Capability] = &[
         name: "pendulous-laterals",
         meaning: "laterals that hang from where they are borne, the birch's fall",
     },
-];
-
-/// Names an assessment may use that the generator cannot express yet. Each is
-/// a gap with a spec of its own, and none of them is a capability the
-/// generator has: a required name here is missing, not satisfied. The first
-/// two are the ash's recorded unmet pair, the rest the date palm's.
-pub const UNEXPRESSED: &[Capability] = &[
-    Capability {
-        name: "opposite-attachment",
-        meaning: "leaves borne as opposite pairs at one station, not scattered one to a node",
-    },
     Capability {
         name: "pinnate-compound",
         meaning: "one leaf divided into leaflets along a rachis and borne as a single placement",
@@ -79,6 +69,18 @@ pub const UNEXPRESSED: &[Capability] = &[
     Capability {
         name: "pinnate-frond",
         meaning: "a palm's frond: the same pinnate grouping the ash needs, at a frond's scale",
+    },
+];
+
+/// Names an assessment may use that the generator cannot express yet. Each is
+/// a gap with a spec of its own, and none of them is a capability the
+/// generator has: a required name here is missing, not satisfied. The first is
+/// the ash's remaining unmet name, the rest the date palm's trunk organs and
+/// its fruiting cluster.
+pub const UNEXPRESSED: &[Capability] = &[
+    Capability {
+        name: "opposite-attachment",
+        meaning: "leaves borne as opposite pairs at one station, not scattered one to a node",
     },
     Capability {
         name: "acanthophyll",
@@ -95,9 +97,9 @@ pub const UNEXPRESSED: &[Capability] = &[
 ];
 
 /// The names [`derived`] can read off a value table: the frozen fn-19
-/// protocol's six, each with a threshold on a shipped value. A name outside
-/// this set has no threshold, so a table that does not produce it has said
-/// nothing about it either way.
+/// protocol's six and the three fn-109 added, each with a threshold on a
+/// shipped value. A name outside this set has no threshold, so a table that
+/// does not produce it has said nothing about it either way.
 pub const DERIVABLE: &[&str] = &[
     "woody-axes",
     "lobed-blade",
@@ -105,6 +107,9 @@ pub const DERIVABLE: &[&str] = &[
     "alternate-petiole",
     "radial-peg",
     "tiered-secondary",
+    "pinnate-compound",
+    "apical-rosette",
+    "pinnate-frond",
 ];
 
 /// What the vocabulary says about one required name.
@@ -204,6 +209,19 @@ pub fn derived(preset: Preset) -> Vec<&'static str> {
     // A family whose deeper axes hang is what this name has always meant.
     if f.skeleton.habit.rise_secondary < 0.0 {
         produced.push("tiered-secondary");
+    }
+    // A placement that carries leaflets along a rachis is the compound leaf; a
+    // crown of them borne only at an apex is the palm's frond.
+    let pinnate = f.canopy.leaflet_count > 1 && f.canopy.rachis_length > 0.0;
+    let rosette = f.canopy.rosette_fronds > 0;
+    if pinnate {
+        produced.push("pinnate-compound");
+    }
+    if rosette {
+        produced.push("apical-rosette");
+    }
+    if pinnate && rosette {
+        produced.push("pinnate-frond");
     }
     produced
 }

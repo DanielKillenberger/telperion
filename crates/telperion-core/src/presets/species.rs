@@ -320,3 +320,29 @@ pub(super) fn silver_birch(p: &mut Family) {
     p.canopy.size_variation = 0.2;
     p.material = materials::birch();
 }
+
+pub(super) fn date_palm(p: &mut Family) {
+    // Registration only (fn-108): the four reachable rows the capability
+    // assessment of 2026-09-19 found for Corner's unbranched, monopodial
+    // habit - a single stem that stations no laterals, whose leader
+    // persists, on a trunk of near-constant diameter. Every other row is
+    // the family default; the apical rosette, the pinnate frond and the
+    // rest of the palm's anatomy remain unsupported and are their own
+    // specs.
+    p.skeleton.habit.stems = 1;
+    p.skeleton.habit.lateral_orders = 0;
+    p.skeleton.habit.apical_dominance = 1.0;
+    p.radii.length_taper = 0.0;
+    // The crown (fn-109): a rosette of pinnate fronds at the apex and nothing
+    // borne below it. These are first values, not tuned ones - fn-82 owns what
+    // the species is measured and judged on.
+    p.canopy.rosette_fronds = 40;
+    p.canopy.rosette_pitch = 35.0;
+    p.canopy.rosette_pitch_spread = 75.0;
+    p.canopy.rosette_depth = 0.35;
+    p.canopy.leaflet_count = 110;
+    p.canopy.rachis_length = 3.5;
+    p.canopy.leaflet_pitch = 55.0;
+    p.canopy.rachis_arch = -0.25;
+    p.canopy.terminal_leaflet = 1.0;
+}

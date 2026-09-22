@@ -1642,5 +1642,17 @@
     "site": "if ! height . is_finite ( ) | | height < = 0 . 0 {",
     "classification": "parameter",
     "reason": "Repeated in `surface::extent`, which counts the sweep's rings without building them so a specimen can be sized before it is swept (fn-87). The prediction runs the same arithmetic as `surface::build`, so it carries the same degeneracy tolerance and the same height validation; neither limits a generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/foliage/rosette.rs",
+    "site": "const MAX_FRONDS : u32 = 128 ;",
+    "classification": "parameter",
+    "reason": "MAX_FRONDS is the named validated rosette anatomy domain."
+  },
+  {
+    "path": "crates/telperion-core/src/foliage/rosette.rs",
+    "site": "const MAX_LEAFLETS : u32 = 256 ;",
+    "classification": "parameter",
+    "reason": "MAX_LEAFLETS is the named validated pinnate grouping domain."
   }
 ]

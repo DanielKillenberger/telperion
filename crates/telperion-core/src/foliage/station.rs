@@ -57,7 +57,15 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
         return Ok(());
     }
     let frames = station_frames(&points, &along);
-    reserve(out, stations.len(), p)?;
+    let leaflets = super::rosette::leaflets(&p);
+    reserve(
+        out,
+        stations
+            .len()
+            .checked_mul(leaflets)
+            .ok_or(Error::ResourceLimit("foliage count overflow"))?,
+        p,
+    )?;
     for (k, distance) in stations.into_iter().enumerate() {
         let mut segment = points.len() - 2;
         while segment > 0 && along[segment] > distance {
@@ -98,14 +106,15 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
                 ))?;
             point = point * (1. - p.surface_contact) + seat * p.surface_contact;
         }
-        out.push(&matrix(
+        super::rosette::fan(
             point,
             axis(point, radial, tangent, p),
             tangent,
             normal,
             p,
             rng,
-        )?);
+            out,
+        )?;
     }
     Ok(())
 }

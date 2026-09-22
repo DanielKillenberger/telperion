@@ -321,7 +321,8 @@ fn a_cube_touching_only_the_sweep_boundary_is_covered() {
 }
 
 /// R1: every shipped preset but the beech, whose short shoots and limb
-/// clumping have no plan, is described by the plan.
+/// clumping have no plan, and the date palm, whose fronds stand at the
+/// apices, is described by the plan.
 #[test]
 fn every_shipped_preset_but_the_beech_has_a_plan() {
     for (id, planned) in [
@@ -332,6 +333,7 @@ fn every_shipped_preset_but_the_beech_has_a_plan() {
         ("silver-birch", true),
         ("telperion", true),
         ("laurelin", true),
+        ("date-palm", false),
     ] {
         let family = Preset::from_id(id).unwrap().parameters();
         let twig = Some(TwigPlacement::of(&family).unwrap());

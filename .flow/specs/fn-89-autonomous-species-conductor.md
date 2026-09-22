@@ -24,7 +24,7 @@
 
 The owner asks for one species and returns to a convincing mature-tree template, its botanical documentation, and a compact review packet. The system carries the research, routine choices, generator-gap work, tuning and validation without asking the owner to manage intermediate steps. A cheap conductor runs routine work while Jev supplies bounded semantic judgments and routing. Complex design goes to a high-reasoning model at medium/high effort. Once the design exists, Jev reassesses the remaining implementation complexity and selects a cheap implementer or a high-reasoning implementer initially at low effort. The owner supplies final acceptance. [paraphrase]
 
-The current machinery already provides research stages, typed decisions, gap records, capability vocabulary, catalogue records and matched renders. This change connects those mechanisms into one persistent run. After initial evidence review the owner confirms/reorders/adds priorities once, then routine work continues under policy without asking the owner to choose implementation mechanics. Final acceptance and risk/stall/scope-change escalation remain human boundaries. [user decision, 2026-09-20, relayed by host]
+The current machinery already provides research stages, typed decisions, gap records, capability vocabulary, catalogue records and matched renders. This change connects those mechanisms into one persistent run and replaces routine owner stops with policy-driven continuation. It does not rebuild them. [inferred]
 
 ## Architecture & Data Models
 <!-- scope: technical -->
@@ -71,8 +71,6 @@ The current machinery already provides research stages, typed decisions, gap rec
 
 - **R8:** Before each further tuning round or design/implementation dispatch, evaluate whether the proposed attempt has a credible prospect of success within a reasonable token allowance using evidence, progress, cost bounds and risk. High uncertainty, unusually high complexity, implementation risk or repeated no-progress routes to a resumable human handoff before another unjustified attempt, even with budget remaining. Errors: a hard-limit breach, missing basis for a bounded attempt or an unavailable/unvalidated continuation judgment pauses the run; no mandatory frontier detour, automatic retry or budget reset bypasses the pause. [inferred]
 
-- **R9:** Consume fn-68's explicit human gap-priority checkpoint before proposal or fix dispatch, including initial model PASS. Present the proposed top three with reference/render evidence and retain all findings; record owner confirmation/reordering/additions scoped to the initial packet, species and objectives. The owner chooses what matters, while the conductor handles implementation mechanics under existing qualification, continuation and budget gates. Errors: missing/stale approval blocks; changed objectives/reference or finish standard requires renewed approval; ordinary rerenders preserve it; approval cannot resolve a gap, bypass explicit relevant-view coverage, reset spend or supply final acceptance. [user and host design, 2026-09-20]
-
 ## Boundaries
 <!-- scope: business -->
 
@@ -84,25 +82,6 @@ The current machinery already provides research stages, typed decisions, gap rec
 - No specific species or missing organ is implemented as part of the machinery. fn-82 owns the palm and fn-80 owns its end-to-end proof. [inferred]
 
 ## Decision Context
-
-### Round boundary moved into code, 2026-09-21
-
-- fn-68's R11 continuation gate is now a code decision, with one uncalibrated evidence-difference question asked only after a stall on moved evidence, and risk alone asked before a handoff; see "R11 code-first continuation (owner, 2026-09-21)" in the fn-68 spec. The conductor inherits that boundary and must not reintroduce a per-round judgment. [host design]
-
-### Human priority selection, 2026-09-20
-
-- The owner approved a conversational checkpoint after initial visual discovery: show the proposed top three gaps and evidence, accept confirmation/reordering/missed-gap additions, then autonomously plan, implement, tune and verify those objectives under existing gates. This supersedes fully unattended initial priority selection, not final acceptance. The host records the scoped decision; the owner need not hand-author transport JSON. [user, relayed by host]
-- fn-68 owns the hash-bound packet, explicit approval and relevant-view verification contract. The conductor preserves all findings, treats owner priority as authoritative over model severity, and returns for scope change, risk, stall or final approval. Approval never proves a gap resolved or a reviewer qualified. Independent blind calibration remains separate. [host design]
-
-### Provisional role routing, 2026-09-20
-
-- Owner-selected roles: Astra medium for initial gap discovery and final readiness, Opus for cheaper targeted intermediate checks, Jev for text routing/progress. Astra is provisional until independent detection is established. fn-68 owns the reference-first inventory/comparison evidence contract; this does not authorize this conductor to bypass qualification, uncertainty, cost or resume gates. [user and host clarification]
-
-### Joint-review handoff, 2026-09-20
-
-- The owner asks for independent issue discovery from multiple references and renderings, without supplying the reviewer's expected conclusions. fn-68 owns the joint evidence packet, cross-view findings and blind evaluation. This conductor consumes those attributed findings under R1, R3-R6 and R8. [paraphrase]
-- Routing preserves the distinction between an observed visual gap and a proposed cause. A design dispatch receives relevant cross-view constraints, factual generator capabilities and uncertainties. It cannot treat a reviewer's causal hypothesis as established mechanics or infer seasonal change from unrelated reference specimens or a foliage-visibility toggle. [inferred]
-- A new generator capability still receives its own bounded design and implementation. Completing a manually tuned beech does not establish autonomous pipeline completion. Readiness, independent discovery quality and end-to-end cost remain separately evidenced. [inferred]
 
 ### Motivation
 

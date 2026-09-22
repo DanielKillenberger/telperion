@@ -3109,7 +3109,7 @@ fn the_routing_state_names_the_kinds_of_dial_rather_than_every_row() {
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     approve_one(&mut state, &mock);
     state.dials = serde_json::from_slice(include_bytes!("../data/dials.json")).unwrap();
-    assert_eq!(state.dials.len(), 201);
+    assert_eq!(state.dials.len(), 211);
 
     let dials = telperion_jev::tuning::judgments::summary(&state)["dials"].clone();
     let bytes = serde_json::to_vec(&dials).unwrap().len();
@@ -3198,7 +3198,7 @@ fn twelve_rounds_of_attempts_fold_into_a_digest_that_still_fits() {
         .into_iter()
         .filter(|d| d.score_visible == Some(true))
         .collect();
-    assert_eq!(state.dials.len(), 109);
+    assert_eq!(state.dials.len(), 119);
     let base = state.trials[state.current.unwrap()].key.clone();
     let mut history = vec![];
     for round in 1..=12u64 {
@@ -3267,11 +3267,20 @@ fn twelve_rounds_of_attempts_fold_into_a_digest_that_still_fits() {
     assert!(said.contains("thick outer limbs"), "{said}");
     let refused = serde_json::to_string(&whole["dials_the_reviewer_kept_refusing"]).unwrap();
     assert!(refused.contains("in 48 bundles judged worse"), "{refused}");
-    // Fifty rows and twelve rounds do not fit beside the dial table, so what
-    // the state actually carries is the digest that does.
+    // What the state carries is the least-trimmed digest that fits beside
+    // the dial table under the cap: with the cap at its fn-109 size the
+    // untrimmed digest fits; a smaller cap sheds the phrases, then the dials.
+    let mut without = projected.clone();
+    without["attempts_from_this_candidate"] = json!(null);
+    let base = serde_json::to_vec(&without).unwrap().len() - "null".len();
+    let expected = sizes
+        .iter()
+        .copied()
+        .find(|size| base + size <= telperion_jev::tuning::judgments::PROPOSAL_CAP)
+        .expect("even the trimmed digest fits");
     assert_eq!(
         serde_json::to_vec(digest).unwrap().len(),
-        sizes[2],
-        "the state shipped a digest the cap should have trimmed"
+        expected,
+        "the state shipped the least-trimmed digest that fits ({sizes:?} beside {base} bytes)"
     );
 }

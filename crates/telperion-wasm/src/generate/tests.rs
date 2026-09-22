@@ -55,14 +55,15 @@ fn surviving_diagnostics_match_radius_law_and_empty_state() {
 
 /// A field request places no leaf where the family has a plan, and the
 /// metadata says which stages ran, for every shipped preset (R1). The
-/// beech, with short shoots and limb clumping, keeps the placed path.
+/// beech, with short shoots and limb clumping, and the date palm, whose
+/// fronds stand at the apices, keep the placed path.
 #[test]
 fn a_field_request_reads_the_plan_and_names_its_stages_for_every_preset() {
     for &(_, id, _, _) in params::CATALOGUE.iter() {
         let (_, meta) = generate(json!({"family": id, "outputs": {"field": true}}))
             .unwrap_or_else(|e| panic!("{id}: {e}"));
         let stages = &meta["stages"];
-        let planned = id != "european-beech";
+        let planned = !matches!(id, "european-beech" | "date-palm");
         assert_eq!(stages["plan"], json!(planned), "{id}: {stages}");
         assert_eq!(stages["placement"], json!(!planned), "{id}: {stages}");
         assert_eq!(stages["cull"], json!(!planned), "{id}: {stages}");
