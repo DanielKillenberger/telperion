@@ -3109,7 +3109,7 @@ fn the_routing_state_names_the_kinds_of_dial_rather_than_every_row() {
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     approve_one(&mut state, &mock);
     state.dials = serde_json::from_slice(include_bytes!("../data/dials.json")).unwrap();
-    assert_eq!(state.dials.len(), 200);
+    assert_eq!(state.dials.len(), 201);
 
     let dials = telperion_jev::tuning::judgments::summary(&state)["dials"].clone();
     let bytes = serde_json::to_vec(&dials).unwrap().len();
@@ -3122,7 +3122,7 @@ fn the_routing_state_names_the_kinds_of_dial_rather_than_every_row() {
         .iter()
         .find(|g| g["group"] == "material")
         .expect("the router is not told the material dials exist");
-    assert_eq!(material["dials"], 91);
+    assert_eq!(material["dials"], 92);
     assert_eq!(material["examples"].as_array().unwrap().len(), 3);
     // Every group is named, and the whole routing state still fits.
     assert_eq!(groups.len(), 7);
