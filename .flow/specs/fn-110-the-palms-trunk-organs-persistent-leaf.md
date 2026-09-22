@@ -29,6 +29,14 @@ This spec gives the generator both as one capability set on the trunk, off by de
 - **R3:** The date palm at seed 1 builds with leaf bases spiralling down the trunk from the crown and spines at each frond's base, and the trunk view still, rendered once through the headless renderer, is judged by the owner's eye and the reviewer. Errors: bases that do not follow the crown's spiral, or spines on a frond that has none, fail.
 - **R4:** The rows are in the dial table with meaning, range and steps; the workspace gate is green.
 
+### Host decisions on the design handoff (2026-09-22)
+
+The strong-tier design (`.flow/evidence/fn80/design-fn-110.md`) escalated two questions; both are settled here.
+
+- **The lattice's axial resolution comes from splitting the stem polyline for the bases, not from a finer `stepDistance`.** A finer step changes the skeleton every preset shares and is not byte-identical; a split of the stem's run for the leaf-base placement is local to the organ and leaves generation untouched. [host design]
+- **`persistent-leaf-base` requires the rosette.** The bases are the rosette's own history down the trunk and take their spiral from `rosette::frame`; a base without a rosette would need a second spiral authored for nothing, and no palm carries bases without a crown. The derived clause is guarded on the rosette being on. [host design]
+- **The acanthophyll's cross-section stays the leaflet's**, as the design states; the owner's verdict on the trunk still decides whether that reads. [inferred]
+
 ## Boundaries
 <!-- scope: business -->
 

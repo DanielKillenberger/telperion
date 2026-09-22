@@ -68,7 +68,8 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         canopy.short_shoot_radius, canopy.short_shoot_length, canopy.limb_clumping,
         canopy.rosette_pitch, canopy.rosette_pitch_spread, canopy.rosette_depth,
         canopy.rachis_length, canopy.leaflet_pitch, canopy.rachis_arch,
-        canopy.terminal_leaflet,
+        canopy.terminal_leaflet, canopy.leaf_base_length, canopy.leaf_base_radius,
+        canopy.leaf_base_weathering, canopy.acanthophyll_length,
         element.connector_length, element.length, element.width,
         element.widest_at, element.base_fullness, element.tip_sharpness,
         element.cup, element.curl, element.lobe_depth, element.section_roundness,
@@ -168,7 +169,7 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         skeleton.twigs.angle, skeleton.twigs.angle_variation,
         skeleton.twigs.divergence, skeleton.twigs.curtain_separation,
         canopy.divergence, canopy.scatter, canopy.short_shoot_spread,
-        canopy.rosette_divergence,
+        canopy.rosette_divergence, canopy.leaf_base_pitch, canopy.acanthophyll_pitch,
     );
     walk!(count:
         skeleton.habit.laterals_per_station, skeleton.habit.lateral_orders,
@@ -182,6 +183,7 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         canopy.clump, canopy.short_shoot_leaves, element.cross_segments,
         canopy.clump_system_order, canopy.clump_neighbours,
         canopy.rosette_fronds, canopy.leaflet_count,
+        canopy.leaf_bases, canopy.acanthophylls,
     );
     walk!(many: skeleton.attractors, canopy.max_instances);
     walk!(density: canopy.short_shoot_spacing);

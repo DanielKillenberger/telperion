@@ -22,7 +22,10 @@ pub use levels::Level;
 pub use packed::{Leaf, Reference, WORDS};
 pub(crate) use placement::leaf_count;
 pub use placement::{place, place_on_surface, CanopyParams, TwigPlacement};
-pub use rosette::{place_rosette, rosettes, Rosette, MAX_FRONDS, MAX_LEAFLETS};
+/// The canopy's own rails, for a pass that reads the canopy rows without
+/// placing a leaf: a bad row is refused by the name `place` refuses it by.
+pub(crate) use rosette::validate as validate_canopy;
+pub use rosette::{frame, place_rosette, rosettes, Rosette, MAX_FRONDS, MAX_LEAFLETS};
 pub use short_shoots::{
     place_short_shoots, place_short_shoots_clumped, short_shoots, ShortShoot,
     MAX_SHORT_SHOOT_LEAVES, SHORT_SHOOT_SPACING,

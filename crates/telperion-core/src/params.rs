@@ -136,6 +136,14 @@ macro_rules! fields {
         $op!($f, $v, "canopy", "leafletPitch"; canopy.leaflet_pitch);
         $op!($f, $v, "canopy", "rachisArch"; canopy.rachis_arch);
         $op!($f, $v, "canopy", "terminalLeaflet"; canopy.terminal_leaflet);
+        $op!($f, $v, "canopy", "leafBases"; canopy.leaf_bases);
+        $op!($f, $v, "canopy", "leafBaseLength"; canopy.leaf_base_length);
+        $op!($f, $v, "canopy", "leafBaseRadius"; canopy.leaf_base_radius);
+        $op!($f, $v, "canopy", "leafBasePitch"; canopy.leaf_base_pitch);
+        $op!($f, $v, "canopy", "leafBaseWeathering"; canopy.leaf_base_weathering);
+        $op!($f, $v, "canopy", "acanthophylls"; canopy.acanthophylls);
+        $op!($f, $v, "canopy", "acanthophyllLength"; canopy.acanthophyll_length);
+        $op!($f, $v, "canopy", "acanthophyllPitch"; canopy.acanthophyll_pitch);
         $op!($f, $v, "canopy", "maxInstances"; canopy.max_instances);
         $op!($f, $v, "element", "length"; element.length);
         $op!($f, $v, "element", "width"; element.width);
