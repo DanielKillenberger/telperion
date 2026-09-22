@@ -83,10 +83,12 @@ try {
     check(meshFree.structure.values.length === meshFree.diagnostics.nodes * 6 && meshFree.structure.topology.length === meshFree.diagnostics.nodes * 3, 'packed node cardinality');
     check(meshFree.diagnostics.complete, 'complete diagnostics');
     const cells = new Float64Array([0,0,0,0, 1e5,1e5,1e5,0.5]);
-    const hits = meshFree.field.query(cells).flags;
+    const root = meshFree.field.query(cells), hits = root.flags;
     check(hits[0] === 1 && hits[1] === 0, 'root wood / empty region');
+    check(root.woodRadius[0] > 0 && root.woodRadius[1] === 0, 'the trunk cell carries its radius, the empty cell none');
     const whole = meshFree.field.query(new Float64Array([0,12,0,20]));
     check(whole.flags[0] === 3 && whole.leaves[0] > 0 && whole.limbs[0] !== 0xffffffff, 'field-only includes both materials, a count and a limb without render output');
+    check(whole.woodRadius[0] >= root.woodRadius[0], 'a cell over the whole tree carries its thickest wood');
     check(Math.abs(whole.leaves[0] - meshFree.diagnostics.leavesPlanned) <= meshFree.diagnostics.leavesPlanned * 0.01, 'a cell over the whole tree counts the plan');
     const outside = meshFree.field.query(new Float64Array([1e5,1e5,1e5,0.5]));
     check(outside.leaves[0] === 0 && outside.limbs[0] === 0xffffffff, 'an empty cell has no count and no limb');
@@ -120,6 +122,16 @@ try {
     const structureOnly = engine.build(family, { structure: true });
     check(!structureOnly.surface && !structureOnly.foliage && !structureOnly.field && structureOnly.diagnostics.leavesPlaced === 0, 'optional outputs skipped');
     check(saved.every((v,i) => v === structureOnly.structure.values[i]), 'repeat deterministic');
+    // The limb order: `true` and the family's own order answer alike, byte for
+    // byte, and a deeper order never parts the crown into fewer systems.
+    const grid = gridCells(snapshot.bounds, 8);
+    const answers = field => { const q = engine.build(family, { field }).field.query(grid); return [q.flags, q.woodRadius, q.leaves, q.limbs]; };
+    const byDefault = answers(true), byOrder = answers({ limbOrder: family.canopy.clumpSystemOrder });
+    check(byDefault.every((a, n) => a.length === byOrder[n].length && a.every((v, i) => v === byOrder[n][i])), 'the boolean field request is the family order');
+    const systems = limbs => new Set(limbs.filter(l => l !== 0xffffffff)).size;
+    check(systems(answers({ limbOrder: family.canopy.clumpSystemOrder + 3 })[3]) >= systems(byDefault[3]), 'a deeper limb order parts no coarser');
+    for (const bad of [{}, { limbOrder: -1 }, { limbOrder: 1.5 }, { limbOrder: 1, x: 1 }, 1])
+      await rejects(() => engine.build(family, { field: bad }), 'a malformed limb order is refused', 'limb order');
     const field = engine.build(family, { field: true }).field;
     engine.build(family, {});
     await rejects(() => field.query(cells), 'rebuild stales field handle');
@@ -257,7 +269,7 @@ try {
     e.field_snapshot_release(); e.field_snapshot_release();
     check([9,10,11,12,13,21,22,23,24].every(slot => e.buffer_len(slot) === 0), 'native snapshot staging freed');
     check(e.field_snapshot(revision - 1) === 1 && [9,10,11,12,13,21,22,23,24].every(slot => e.buffer_len(slot) === 0), 'stale snapshot returns no partial buffers');
-    check(e.query_alloc(1) === 0 && [8,19,20].every(slot => e.buffer_len(slot) === 0), 'query staging starts empty');
+    check(e.query_alloc(1) === 0 && [8,19,20,25].every(slot => e.buffer_len(slot) === 0), 'query staging starts empty');
     check(e.buffer_len(999) === 0 && e.buffer_ptr(999) === 0, 'unknown buffer slot');
     check(e.query_alloc(0) === 0 && e.query(0) === 1, 'no stale query accepted');
     e.release(); e.release();

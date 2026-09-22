@@ -34,7 +34,17 @@ struct Engine {
     occupancy: Vec<u8>,
     leaves: Vec<f32>,
     limbs: Vec<u32>,
+    wood_radii: Vec<f32>,
     revision: u32,
+}
+impl Engine {
+    /// Drops every per-cell answer of the last batch query.
+    fn clear_answers(&mut self) {
+        self.occupancy.clear();
+        self.leaves.clear();
+        self.limbs.clear();
+        self.wood_radii.clear();
+    }
 }
 thread_local! { static ENGINE: RefCell<Engine> = RefCell::new(Engine::default()); }
 fn status(e: &mut Engine, result: Result<Value>) -> u32 {
@@ -121,9 +131,7 @@ pub extern "C" fn release() {
         e.specimen_record = Vec::new();
         e.specimen_ids = Vec::new();
         e.queries.clear();
-        e.occupancy.clear();
-        e.leaves.clear();
-        e.limbs.clear();
+        e.clear_answers();
         e.revision = e.revision.wrapping_add(1);
     });
 }
@@ -220,6 +228,9 @@ pub extern "C" fn buffer_ptr(slot: u32) -> *const u8 {
                 .snapshot
                 .as_ref()
                 .map_or(std::ptr::null(), |s| s.plan_index.topology.as_ptr().cast()),
+            // Beside slots 19 and 20: one f32 wood radius per cell, the
+            // thickest wood sweep reaching it in metres, zero without wood.
+            25 => e.wood_radii.as_ptr().cast(),
             _ => std::ptr::null(),
         }
     })
@@ -258,6 +269,7 @@ pub extern "C" fn buffer_len(slot: u32) -> usize {
             22 => o.snapshot.as_ref().map_or(0, |s| s.plan_stations.len()),
             23 => o.snapshot.as_ref().map_or(0, |s| s.plan_index.bounds.len()),
             24 => o.snapshot.as_ref().map_or(0, |s| s.plan_index.topology.len()),
+            25 => e.wood_radii.len(),
             _ => 0,
         }
     })
@@ -288,9 +300,7 @@ pub extern "C" fn field_snapshot_release() {
 pub extern "C" fn query_alloc(count: u32) -> u32 {
     ENGINE.with(|e| {
         let mut e = e.borrow_mut();
-        e.occupancy.clear();
-        e.leaves.clear();
-        e.limbs.clear();
+        e.clear_answers();
         e.queries.clear();
         let result = (count as usize)
             .checked_mul(4)
@@ -307,9 +317,7 @@ pub extern "C" fn query_ptr() -> *const f64 {
 pub extern "C" fn query(revision: u32) -> u32 {
     ENGINE.with(|e| {
         let mut e = e.borrow_mut();
-        e.occupancy.clear();
-        e.leaves.clear();
-        e.limbs.clear();
+        e.clear_answers();
         let result = (|| {
             if e.revision != revision {
                 return Err(Error::InvalidInput("stale field handle"));
@@ -320,6 +328,7 @@ pub extern "C" fn query(revision: u32) -> u32 {
                 occupancy,
                 leaves,
                 limbs,
+                wood_radii,
                 ..
             } = &mut *e;
             let field = output
@@ -331,6 +340,7 @@ pub extern "C" fn query(revision: u32) -> u32 {
                 occupancy.try_reserve(count),
                 leaves.try_reserve(count),
                 limbs.try_reserve(count),
+                wood_radii.try_reserve(count),
             ] {
                 reserve.map_err(|_| Error::ResourceLimit("query output"))?;
             }
@@ -339,13 +349,12 @@ pub extern "C" fn query(revision: u32) -> u32 {
                 occupancy.push(u8::from(hit.wood) | (u8::from(hit.foliage) << 1));
                 leaves.push(hit.leaves as f32);
                 limbs.push(hit.limb.unwrap_or(u32::MAX));
+                wood_radii.push(hit.wood_radius as f32);
             }
             Ok(json!(null))
         })();
         if result.is_err() {
-            e.occupancy.clear();
-            e.leaves.clear();
-            e.limbs.clear();
+            e.clear_answers();
         }
         status(&mut e, result)
     })

@@ -5,8 +5,11 @@
 // keep is the fraction of twig-bearing branches whose sprays become foliage:
 // whole branches drop out, so the crown opens in clumps instead of thinning evenly.
 // FIELD=1 reads the core's field (fn-100) instead of the structure export: one
-// batch query over the grid, wood and foliage bits per cell, and the owning
-// limb id as the clump coin. WASM=<path> reads another build of the binding.
+// batch query over the grid, wood and foliage bits and the wood radius per
+// cell, and the owning limb id as the clump coin; LIMB_ORDER=<n> asks the field
+// for limbs at that lateral order (the family's clumpSystemOrder otherwise).
+// Every run logs its clump count, the distinct coins the crown was dropped by.
+// WASM=<path> reads another build of the binding.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
 
@@ -18,6 +21,7 @@ const KEEPS = (process.argv[3] ?? '0.5,0.3,0.15').split(',').map(Number);
 const SPECIES = ['oregon-white-oak', 'silver-birch', 'norway-spruce'];
 const WOOD = 1, LEAF = 2;
 const FIELD = process.env.FIELD === '1';
+const LIMB_ORDER = process.env.LIMB_ORDER === undefined ? undefined : Number(process.env.LIMB_ORDER);
 
 const { instance } = await WebAssembly.instantiate(
   readFileSync(process.env.WASM ? new URL(process.env.WASM, `file://${process.cwd()}/`) : new URL('src/browser/telperion.wasm', root)),
@@ -43,9 +47,10 @@ function structure(id) {
 }
 
 /// The field over a grid of N cells along the tree's longest axis: one batch
-/// query, then the bits and the limb id of every cell.
+/// query, then the bits, the wood radius and the limb id of every cell.
 function field(id) {
-  const request = Buffer.from(JSON.stringify({ family: id, outputs: { field: true } }));
+  const field = LIMB_ORDER === undefined ? true : { limbOrder: LIMB_ORDER };
+  const request = Buffer.from(JSON.stringify({ family: id, outputs: { field } }));
   if (x.request_alloc(request.length)) throw Error(JSON.stringify(meta()));
   new Uint8Array(x.memory.buffer, x.request_ptr(), request.length).set(request);
   if (x.build()) throw Error(JSON.stringify(meta()));
@@ -63,22 +68,27 @@ function field(id) {
   return {
     flags: new Uint8Array(x.memory.buffer, x.buffer_ptr(8), x.buffer_len(8)).slice(),
     limbs: new Uint32Array(x.memory.buffer, x.buffer_ptr(20), x.buffer_len(20)).slice(),
+    radius: new Float32Array(x.memory.buffer, x.buffer_ptr(25), x.buffer_len(25)).slice(),
     cell, stages: m.stages, planned: m.leavesPlanned, buildMs: m.timings.coreMs,
   };
 }
 
-/// Cells from the field: foliage where the field reports it and the owning
-/// limb keeps its clump; wood where the field reports wood no leaf reaches,
-/// which is the trunk and the limbs, as the structure pass drew only wood
-/// thicker than a fifth of a cell. A dropped clump takes its twigs with it.
-function voxelizeField({ flags, limbs, cell }, keep) {
+/// Cells from the field, as the structure pass draws them: wood where the
+/// thickest wood reaching the cell is at least a fifth of it, through any
+/// foliage; foliage elsewhere where the field reports it and the owning limb
+/// keeps its clump. Thinner wood is the twigs, and a dropped clump takes them.
+function voxelizeField({ flags, limbs, radius, cell }, keep) {
   const grid = new Uint8Array(N * N * N);
+  const coins = new Set();
   let wood = 0, leaf = 0;
   for (let n = 0; n < grid.length; n++) {
-    if (flags[n] & 2 && kept(limbs[n], keep)) { grid[n] = LEAF; leaf++; }
-    else if (flags[n] === 1) { grid[n] = WOOD; wood++; }
+    if (flags[n] & 1 && radius[n] >= cell * 0.2) { grid[n] = WOOD; wood++; }
+    else if (flags[n] & 2) {
+      coins.add(limbs[n]);
+      if (kept(limbs[n], keep)) { grid[n] = LEAF; leaf++; }
+    }
   }
-  return { grid, cell, wood, leaf };
+  return { grid, cell, wood, leaf, clumps: coins.size };
 }
 
 /// Stable per-branch coin: the same branch run always answers the same.
@@ -123,6 +133,7 @@ function voxelize({ values, topology }, keep) {
   };
 
   const at = i => [values[i * 6], values[i * 6 + 1], values[i * 6 + 2]];
+  const coins = new Set();
   for (let i = 0; i < count; i++) {
     const parent = topology[i * 3];
     if (parent === 0xffffffff) continue;
@@ -131,6 +142,7 @@ function voxelize({ values, topology }, keep) {
       let bearer = parent;
       // Climb to the limb thick enough to own a clump: CLUMP cells of radius.
       while (values[bearer * 6 + 3] < cell * CLUMP && topology[bearer * 3] !== 0xffffffff) bearer = topology[bearer * 3];
+      coins.add(topology[bearer * 3 + 1]);
       if (!kept(topology[bearer * 3 + 1], keep)) continue;
       // A twig is thinner than any cell: it votes for the cells it passes
       // through and never pads outward, so gaps between sprays stay open.
@@ -150,7 +162,7 @@ function voxelize({ values, topology }, keep) {
     if (grid[n] === WOOD) wood++;
     else if (twigs[n] > 0) { grid[n] = LEAF; leaf++; }
   }
-  return { grid, cell, wood, leaf };
+  return { grid, cell, wood, leaf, clumps: coins.size };
 }
 
 /// Orthographic ray march from an isometric direction; one face tone per axis,
@@ -240,10 +252,11 @@ SPECIES.forEach((id, column) => {
     const voxelMs = performance.now() - t;
     const image = render(v.grid, SIZE);
     for (let y = 0; y < SIZE; y++) sheet.set(image.subarray(y * SIZE, (y + 1) * SIZE), (row * SIZE + y) * width + column * SIZE);
-    console.log(`${id} keep ${keep}: grow ${growMs.toFixed(0)} ms, voxelize ${voxelMs.toFixed(0)} ms, wood ${v.wood}, foliage ${v.leaf}, ${deflateSync(v.grid).length} B deflated`);
+    console.log(`${id} keep ${keep}: grow ${growMs.toFixed(0)} ms, voxelize ${voxelMs.toFixed(0)} ms, wood ${v.wood}, foliage ${v.leaf}, ${v.clumps} clumps, ${deflateSync(v.grid).length} B deflated`);
   });
 });
 mkdirSync(out, { recursive: true });
-const file = new URL(`sheet-${N}-keep${FIELD ? '-field' : ''}.png`, out);
+const suffix = FIELD ? `-field${LIMB_ORDER === undefined ? '' : `-order${LIMB_ORDER}`}` : '';
+const file = new URL(`sheet-${N}-keep${suffix}.png`, out);
 writeFileSync(file, png(sheet, width, SIZE * KEEPS.length));
 console.log(file.pathname);

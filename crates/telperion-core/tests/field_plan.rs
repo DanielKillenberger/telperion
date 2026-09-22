@@ -32,6 +32,7 @@ fn subject(id: &str) -> (Family, Subject) {
         Some(TwigPlacement::of(&family).unwrap()),
         &family.surface,
         &element,
+        None,
     )
     .unwrap()
     .unwrap_or_else(|| panic!("{id} has a plan"));
@@ -154,8 +155,9 @@ fn count_estimates_sum_to_the_plan_total_over_a_grid() {
     }
 }
 
-/// A trunk with two limbs, each carrying one twig run of two segments.
-fn two_limbs() -> (Tree, plan::Plan) {
+/// A trunk with two limbs, each carrying one twig run of two segments, its
+/// plan at the given limb order (`None` for the family's).
+fn two_limbs(order: Option<u32>) -> (Tree, plan::Plan) {
     let node = |parent: u32, x: f64, y: f64, r: f64, kind: NodeKind| Node {
         parent: Some(parent),
         position: Vec3::new(x, y, 0.0),
@@ -197,6 +199,7 @@ fn two_limbs() -> (Tree, plan::Plan) {
         }),
         &SurfaceParams::default(),
         &element,
+        order,
     )
     .unwrap()
     .unwrap();
@@ -208,7 +211,7 @@ fn two_limbs() -> (Tree, plan::Plan) {
 /// cell no foliage reaches reports none.
 #[test]
 fn two_limbs_report_their_own_systems() {
-    let (tree, plan) = two_limbs();
+    let (tree, plan) = two_limbs(None);
     let field = Field::planned(&tree, &plan).unwrap();
     let left = field.query(Vec3::new(-1.75, 2.75, 0.0), 0.3).unwrap();
     let right = field.query(Vec3::new(1.75, 2.75, 0.0), 0.3).unwrap();
@@ -232,6 +235,48 @@ fn two_limbs_report_their_own_systems() {
     assert!(snapshot.plan_index.node_count > 0);
 }
 
+/// R10: the plan at limb order zero keeps both limbs on the stem's system,
+/// the family's order is what no order asks for, and a deeper order changes
+/// nothing on a fixture with no deeper laterals.
+#[test]
+fn the_limb_order_selects_how_finely_the_crown_parts() {
+    let (tree, coarse) = two_limbs(Some(0));
+    let field = Field::planned(&tree, &coarse).unwrap();
+    let left = field.query(Vec3::new(-1.75, 2.75, 0.0), 0.3).unwrap();
+    let right = field.query(Vec3::new(1.75, 2.75, 0.0), 0.3).unwrap();
+    assert_eq!((left.limb, right.limb), (Some(1), Some(1)));
+    let (_, family) = two_limbs(None);
+    assert_eq!(family, two_limbs(Some(CanopyParams::default().clump_system_order)).1);
+    assert_eq!(family, two_limbs(Some(9)).1);
+    assert_ne!(family, coarse);
+}
+
+/// R9: a cell reports the largest radius of any wood sweep reaching it, in
+/// metres, and zero where no wood does; the wood flag is untouched.
+#[test]
+fn wood_radius_is_the_thickest_sweep_reaching_the_cell() {
+    let (tree, plan) = two_limbs(None);
+    let field = Field::planned(&tree, &plan).unwrap();
+    let trunk = field.query(Vec3::new(0.0, 0.5, 0.0), 0.1).unwrap();
+    assert!(trunk.wood);
+    assert_eq!(trunk.wood_radius, 0.2);
+    let twig = field.query(Vec3::new(-2.0, 3.0, 0.0), 0.05).unwrap();
+    assert!(twig.wood);
+    assert_eq!(twig.wood_radius, 0.005);
+    let whole = field.query(Vec3::new(0.0, 2.0, 0.0), 4.0).unwrap();
+    assert_eq!(whole.wood_radius, 0.2);
+    let bare = field.query(Vec3::new(0.0, -5.0, 0.0), 0.1).unwrap();
+    assert!(!bare.wood);
+    assert_eq!(bare.wood_radius, 0.0);
+    for id in SPECIES {
+        let (_, s) = subject(id);
+        for c in grid(s.planned.bounds().unwrap(), 1.0) {
+            let q = s.planned.query(c, 0.5).unwrap();
+            assert_eq!(q.wood, q.wood_radius > 0.0, "{id} at {c:?}: {q:?}");
+        }
+    }
+}
+
 /// R4: the spruce's needles reach about two centimetres; a cell ten times
 /// that, and one a hundred times, still report the foliage a segment passes
 /// through.
@@ -251,7 +296,7 @@ fn spruce_needles_are_found_by_cells_far_larger_than_their_reach() {
 /// beyond it is not.
 #[test]
 fn a_cube_touching_only_the_sweep_boundary_is_covered() {
-    let (tree, plan) = two_limbs();
+    let (tree, plan) = two_limbs(None);
     let field = Field::planned(&tree, &plan).unwrap();
     let d = plan.descriptors[0];
     let reach = plan.reach(&d);

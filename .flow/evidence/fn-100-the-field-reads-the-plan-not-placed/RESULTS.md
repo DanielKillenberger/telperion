@@ -99,3 +99,71 @@ What the two sheets show, from four views of them:
   has no dial today; a follow-up could let the field take an order.
 
 The verdict is the owner's; R8 is recorded as awaiting the owner.
+
+## R9, R10, R11: the wood radius, the limb order, the second sheet (task 2)
+
+The owner judged the first field sheet worse for the oak and the birch: wood
+specks inside the crowns, and crowns breaking into islands at low keep. Task 2
+adds two values the base prototype had and the field answer lacked.
+
+- R9: `Occupancy.wood_radius` is the larger end radius of the thickest wood
+  sweep reaching the cell, zero without wood; the binding carries it as one
+  f32 per cell in slot 25 beside the flags (8), the counts (19) and the limbs
+  (20); `FieldQuery.woodRadius` types it. The wood flag is computed by the
+  same containment test as before (`tests/field.rs` unedited;
+  `wood_radius_is_the_thickest_sweep_reaching_the_cell` pins the value on the
+  two-limb fixture and `wood == (wood_radius > 0)` over a 1 m grid on the
+  three species).
+- R10: `plan::plan` takes `limb_order: Option<u32>`, `None` for the family's
+  `clump_system_order`; the binding's `outputs.field` takes `true` or
+  `{"limbOrder": n}` (`n` a non-negative integer that fits u32; `{}`, a
+  negative, a fraction, an extra key or a bare number are refused as
+  `field limb order`). `the_field_request_selects_the_limb_order_and_defaults_to_the_family`
+  (binding crate) queries a 8^3 grid over the oak and asserts the boolean form
+  and `{"limbOrder": <family order>}` answer identically, so the default
+  answers are task 1's; the browser suite asserts the same byte for byte over
+  the ordinary fixture, and `the_limb_order_selects_how_finely_the_crown_parts`
+  pins order 0 against the default on the fixture.
+- R11: the prototype's field mode draws wood where the cell's wood radius is
+  at least a fifth of a cell, through any foliage (the structure pass's rule),
+  and coins clumps by the limb id at `LIMB_ORDER`. Clump counts, the distinct
+  coins a crown was dropped by, at 64 cells:
+
+  | tree | base per-branch coin | field, order 1 | order 2 (family default) | order 3 and deeper |
+  |---|---|---|---|---|
+  | oak | 67 | 21 | 129 | 281 |
+  | birch | 71 | 18 | 85 | 204 (263 from order 4) |
+  | spruce | 204 | 62 | 873 | 2,974 (3,370 from order 4) |
+
+  By count alone the family's order 2 is the oak's nearest to 67, not a
+  finer one: the count is inflated by small systems, while the crown's mass
+  sits in a few large ones, which is what the owner saw part into islands.
+  The sheet is drawn at order 3, the finest order that changes the oak (its
+  laterals stop there), as the finer order R11 asks for; the numbers above
+  are recorded for the host to weigh, and the default-order sheet with the
+  radius cull is kept beside it for the comparison.
+
+Sheets, under `raw/` (ignored): `sheet-64-base-structure.png` (copied from
+the main checkout), `sheet-64-candidate-field-order3.png` (the R11 sheet),
+`sheet-64-candidate-field-radius.png` (the family order with the radius
+cull). Same rows (keep 0.5, 0.3, 0.15), same columns (oak, birch, spruce).
+
+What the order-3 sheet shows, from one view of it and one of the
+default-order sheet:
+
+- The wood specks are gone from all three crowns at every keep; the only
+  dark cells are the trunk and, where clumps are dropped, the limbs that the
+  cull keeps, as on the base sheet.
+- The oak at keep 0.5 and 0.3 reads as one rounded crown with small openings,
+  no islands; at 0.15 it parts into a ring of masses around exposed limbs,
+  with one detached island top right. On the default-order sheet the oak
+  already splits at 0.3 into two masses with the limb skeleton between them,
+  and at 0.15 it is a skeleton with tufts.
+- The birch at 0.5 and 0.3 is a full ovoid; at 0.15 it thins to a few
+  columns with one island top right. The default order drops it in larger
+  blocks.
+- The spruce is the cone with the leader on both sheets, unchanged from
+  task 1's reading.
+
+The verdict is the owner's; R8 is recorded as awaiting the owner, on the
+order-3 sheet.

@@ -164,6 +164,9 @@ pub(crate) fn seating(surface: &SurfaceParams, canopy: CanopyParams) -> f64 {
 }
 
 /// The plan of one tree, or `None` for a family the plan cannot describe.
+/// `limb_order` is the deepest lateral order that opens a limb system of its
+/// own, `None` for the family's `clump_system_order`; a higher order parts
+/// the crown into more and smaller systems.
 pub fn plan(
     tree: &Tree,
     envelope: Envelope,
@@ -171,6 +174,7 @@ pub fn plan(
     twig: Option<TwigPlacement>,
     surface: &SurfaceParams,
     element: &Element,
+    limb_order: Option<u32>,
 ) -> Result<Option<Plan>> {
     surface.validate()?;
     element.validate()?;
@@ -178,7 +182,7 @@ pub fn plan(
         return Ok(None);
     };
     let twig = twig.unwrap();
-    let system = clumping::systems(tree, p.clump_system_order);
+    let system = clumping::systems(tree, limb_order.unwrap_or(p.clump_system_order));
     let mut descriptors = Vec::new();
     let mut total = 0u32;
     for run in &runs {
@@ -307,16 +311,20 @@ mod tests {
             size_variation: 0.5,
             ..Default::default()
         };
-        let plan = plan(
-            &tree,
-            Envelope::default(),
-            p,
-            twig,
-            &SurfaceParams::default(),
-            &element,
-        )
-        .unwrap()
-        .unwrap();
+        let at = |order| {
+            plan(
+                &tree,
+                Envelope::default(),
+                p,
+                twig,
+                &SurfaceParams::default(),
+                &element,
+                order,
+            )
+            .unwrap()
+            .unwrap()
+        };
+        let plan = at(None);
         // Two runs of two segments, each segment about 0.71 m: three
         // internodes of two stations, the first two internodes on the first
         // segment and the third on the second. The first limb carries the
@@ -325,8 +333,13 @@ mod tests {
         assert_eq!(plan.total, 12);
         let counts: Vec<u32> = plan.descriptors.iter().map(|d| d.count).collect();
         assert_eq!(counts, [4, 2, 4, 2]);
-        let systems: Vec<u32> = plan.descriptors.iter().map(|d| d.system).collect();
-        assert_eq!(systems, [1, 1, 3, 3]);
+        let systems = |plan: &Plan| plan.descriptors.iter().map(|d| d.system).collect::<Vec<_>>();
+        assert_eq!(systems(&plan), [1, 1, 3, 3]);
+        // No order is the family's order; order zero keeps the second limb on
+        // the stem's system, order one and up opens its own.
+        assert_eq!(plan, at(Some(p.clump_system_order)));
+        assert_eq!(systems(&at(Some(0))), [1, 1, 1, 1]);
+        assert_eq!(systems(&at(Some(1))), [1, 1, 3, 3]);
         let extent = element
             .positions
             .iter()
@@ -358,6 +371,7 @@ mod tests {
                 twig,
                 &SurfaceParams::default(),
                 &element,
+                None,
             )
         };
         assert!(none(CanopyParams::default(), None).unwrap().is_none());

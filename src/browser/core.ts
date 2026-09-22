@@ -25,8 +25,10 @@ export interface Outputs {
   /** Wood and foliage occupancy from the solved tree and the leaf plan: no
    * leaf is placed for a family the plan describes. A family without a plan
    * places and culls its leaves for the field; no render buffers transfer
-   * unless surface/foliage are requested separately. */
-  field?: boolean;
+   * unless surface/foliage are requested separately. `true` names limbs at
+   * the family's `clumpSystemOrder`; `{ limbOrder }` at that lateral order,
+   * a higher one parting the crown into more and smaller systems. */
+  field?: boolean | { limbOrder: number };
 }
 export interface Bounds { min: [number, number, number]; max: [number, number, number] }
 export interface Timings { growthMs: number; surfaceMs: number; planMs: number; foliageMs: number; fieldMs: number; coreMs: number; transferMs: number; buildMs: number }
@@ -56,10 +58,12 @@ export interface Diagnostics {
   stages: Stages;
 }
 /** One batch query's answers, one entry per cell. `flags` bits: wood=1,
- * foliage=2. `leaves` estimates the stations in the cell before the crown
- * cull (the retained leaves overlapping it on the placed path). `limbs` is
- * the owning limb system, UINT32_MAX where no foliage reaches. */
-export interface FieldQuery { flags: Uint8Array; leaves: Float32Array; limbs: Uint32Array }
+ * foliage=2. `woodRadius` is the thickest wood sweep reaching the cell in
+ * metres, zero without wood. `leaves` estimates the stations in the cell
+ * before the crown cull (the retained leaves overlapping it on the placed
+ * path). `limbs` is the owning limb system, UINT32_MAX where no foliage
+ * reaches. */
+export interface FieldQuery { flags: Uint8Array; woodRadius: Float32Array; leaves: Float32Array; limbs: Uint32Array }
 /** Owned canonical f64 CPU BVH data for generation experiments; survives release,
  * rebuild and disposal. Mutating these arrays cannot alter the native field.
  * Bounds: six f64 min/max xyz per node then item. Topology: four u32 per
@@ -183,6 +187,7 @@ export class TreeEngine {
     this.check(e.query(revision));
     return {
       flags: new Uint8Array(e.memory.buffer, e.buffer_ptr(8), e.buffer_len(8)).slice(),
+      woodRadius: new Float32Array(e.memory.buffer, e.buffer_ptr(25), e.buffer_len(25)).slice(),
       leaves: new Float32Array(e.memory.buffer, e.buffer_ptr(19), e.buffer_len(19)).slice(),
       limbs: new Uint32Array(e.memory.buffer, e.buffer_ptr(20), e.buffer_len(20)).slice(),
     };

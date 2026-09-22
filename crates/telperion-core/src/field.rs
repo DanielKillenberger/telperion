@@ -22,15 +22,18 @@ use crate::{
 use index::{bounds_of, checked, cube, reserved, union, Index, Item};
 pub use index::IndexSnapshot;
 
-/// One cell's answer. `leaves` estimates the stations in the cell before the
-/// crown-shell cull: over a grid of non-overlapping cells the estimates sum
-/// to the plan's total. `limb` is the limb system with the largest estimate
-/// in the cell, the lower id on a tie, and `None` where no foliage reaches.
-/// On the placed path `leaves` counts the retained leaves whose box overlaps
-/// the cell and `limb` is always `None`.
+/// One cell's answer. `wood_radius` is the larger end radius of the thickest
+/// wood sweep reaching the cell, in metres, zero where no wood does.
+/// `leaves` estimates the stations in the cell before the crown-shell cull:
+/// over a grid of non-overlapping cells the estimates sum to the plan's
+/// total. `limb` is the limb system with the largest estimate in the cell,
+/// the lower id on a tie, and `None` where no foliage reaches. On the placed
+/// path `leaves` counts the retained leaves whose box overlaps the cell and
+/// `limb` is always `None`.
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Occupancy {
     pub wood: bool,
+    pub wood_radius: f64,
     pub foliage: bool,
     pub leaves: f64,
     pub limb: Option<u32>,
@@ -273,15 +276,21 @@ impl Field {
         let cell = cube(center, half_extent)?;
         let inflation = half_extent * 3_f64.sqrt();
         let wood_cell = cube(center, inflation)?;
-        let wood = self
-            .wood_index
-            .any(wood_cell, |id| self.wood[id].contains(center, inflation));
+        let (mut wood, mut wood_radius) = (false, 0.);
+        self.wood_index.each(wood_cell, &mut |id| {
+            let s = &self.wood[id];
+            if s.contains(center, inflation) {
+                wood = true;
+                wood_radius = s.start.max(s.end).max(wood_radius);
+            }
+        });
         Ok(match &self.foliage {
             Foliage::Placed(index) => {
                 let mut leaves = 0.;
                 index.each(cell, &mut |_| leaves += 1.);
                 Occupancy {
                     wood,
+                    wood_radius,
                     foliage: leaves > 0.,
                     leaves,
                     limb: None,
@@ -299,6 +308,7 @@ impl Field {
                 });
                 Occupancy {
                     wood,
+                    wood_radius,
                     foliage,
                     leaves: tally.total(),
                     limb: tally.best(),

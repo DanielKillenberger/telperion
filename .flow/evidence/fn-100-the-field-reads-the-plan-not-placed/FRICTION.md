@@ -33,3 +33,11 @@ presets at their own seeds; it is named in the evidence note.
 
 What would have removed it: CLAUDE.md or the spec pointing at the file that
 defines the forest, or saying it is gone.
+
+## 2026-09-22 — task 2: the shell hook blocks scratch redirects
+
+Writing edit helpers and prompt fixtures to the session scratch directory
+(`cat > $SCRATCH/x <<EOF`) is blocked by the local `dcg` hook as a redirect
+to a dynamic path, so the first batched edit of five files failed whole and
+was redone one Edit call at a time. Cost: about five minutes. A local setup
+matter on this machine, reported, not specced.

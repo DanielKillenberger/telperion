@@ -178,22 +178,6 @@ impl Index {
     pub fn bounds(&self) -> Option<Bounds> {
         self.nodes.first().map(|n| n.bounds)
     }
-    /// Whether any item overlapping `bounds` satisfies the predicate.
-    pub fn any(&self, bounds: Bounds, predicate: impl Fn(usize) -> bool) -> bool {
-        !self.nodes.is_empty() && self.visit(0, bounds, &predicate)
-    }
-    fn visit(&self, id: usize, bounds: Bounds, predicate: &impl Fn(usize) -> bool) -> bool {
-        let node = &self.nodes[id];
-        if !overlaps(node.bounds, bounds) {
-            return false;
-        }
-        match node.children {
-            Some((l, r)) => self.visit(l, bounds, predicate) || self.visit(r, bounds, predicate),
-            None => self.items[node.start..node.end]
-                .iter()
-                .any(|i| overlaps(i.bounds, bounds) && predicate(i.id)),
-        }
-    }
     /// Calls `each` on every item overlapping `bounds`, in index order.
     pub fn each(&self, bounds: Bounds, each: &mut impl FnMut(usize)) {
         if !self.nodes.is_empty() {
