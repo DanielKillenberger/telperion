@@ -39,6 +39,7 @@ const EXPECTED = {
   'norway-spruce': FN9,
   'european-beech': FN34,
   'silver-birch': FN34,
+  'date-palm': FN9,
   'telperion': FN9,
   'laurelin': FN9,
 };
