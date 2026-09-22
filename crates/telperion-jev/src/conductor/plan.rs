@@ -136,14 +136,28 @@ pub fn decision_action(config: &Config, table: &policy::Table, run: &Run, decisi
     }
 }
 
-/// Whether the gap record for this halt shows a landed round. Read-only:
-/// the record is the pipeline's.
+/// Whether the gap record for this halt shows a landed round that no route
+/// has followed: the halt stood after the landing and nobody has looped on
+/// it since. A route recorded after the landing is the next round already
+/// run, and its outcome is the record's, not another loop. Read-only: the
+/// record is the pipeline's; timestamps are RFC 3339 and compare as text.
 fn gap_record_landed(config: &Config, decision_id: &str) -> bool {
     let path = crate::pipeline::gap::gap_dir(&config.paths(), decision_id).join("gap.json");
-    std::fs::read(&path)
+    let Some(record) = std::fs::read(&path)
         .ok()
         .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok())
-        .is_some_and(|record| !record["landed"].is_null())
+    else {
+        return false;
+    };
+    let Some(landed_at) = record["landed"]["at"].as_str() else {
+        return false;
+    };
+    let last_route_at = record["routes"]
+        .as_array()
+        .and_then(|routes| routes.last())
+        .and_then(|route| route["at"].as_str())
+        .unwrap_or("");
+    last_route_at <= landed_at
 }
 
 fn first_missing_stage(config: &Config) -> Option<&'static str> {

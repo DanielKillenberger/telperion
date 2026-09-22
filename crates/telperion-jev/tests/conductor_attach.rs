@@ -88,6 +88,9 @@ fn a_landed_round_that_left_the_halt_standing_loops_again() {
     assert!(matches!(decision_action(&cfg, &table, &run, &halt), Next::AwaitOwner { .. }), "no landing yet: the halt is the owner's");
     let gap = root.join("gaps").join(telperion_jev::pipeline::gap::slug(&halt.id));
     std::fs::create_dir_all(&gap).unwrap();
-    std::fs::write(gap.join("gap.json"), b"{\"landed\":{\"commit\":\"b8b29448\"}}").unwrap();
+    std::fs::write(gap.join("gap.json"), b"{\"landed\":{\"commit\":\"b8b29448\",\"at\":\"2026-09-22T11:42:06Z\"},\"routes\":[{\"at\":\"2026-09-22T11:09:20Z\",\"route\":\"proceed\"}]}").unwrap();
     assert!(matches!(decision_action(&cfg, &table, &run, &halt), Next::GapLoop { .. }), "a landed round loops again");
+    // The next round ran and routed to the owner: the halt is the owner's, not a third loop.
+    std::fs::write(gap.join("gap.json"), b"{\"landed\":{\"commit\":\"b8b29448\",\"at\":\"2026-09-22T11:42:06Z\"},\"routes\":[{\"at\":\"2026-09-22T11:09:20Z\",\"route\":\"proceed\"},{\"at\":\"2026-09-22T11:52:57Z\",\"route\":\"owner\"}]}").unwrap();
+    assert!(matches!(decision_action(&cfg, &table, &run, &halt), Next::AwaitOwner { .. }), "a route after the landing is that round's outcome");
 }
