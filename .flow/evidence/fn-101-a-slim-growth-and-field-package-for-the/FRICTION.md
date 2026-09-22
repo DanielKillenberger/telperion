@@ -34,3 +34,7 @@ number would have set the ceiling at parity with the full binding or asked
 for the query speed-up as its own spec first. What would have removed it:
 the readiness pass reading the dependency's measured figures before writing
 a ceiling on the same operation (CLAUDE.md, "Gates and checked claims").
+
+## 2026-09-22 — host note on the R3 ceiling
+
+The host marked this spec ready with R3's 250 ms figure unmeasured, against CLAUDE.md's rule that a claim not checked is written as unknown. It cost the worker one measurement pass and a stop. What would have removed it: the readiness check running fn-100's `measure.mjs` once on the same code before marking ready.
