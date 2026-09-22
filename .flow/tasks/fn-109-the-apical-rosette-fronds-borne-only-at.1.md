@@ -31,9 +31,11 @@ the cap or dropping `score_visible` on rows that do move geometry would be
 weakening the gate rather than answering it, so neither was done.
 
 ## Done summary
-TBD
-
+The apical rosette as a shared generator capability, off by default. `foliage/rosette.rs` is a third placement source at every stem apex (`Tree::stem_apices`, the last node of the stem run) bearing N fronds on a phyllotactic spiral; `fan` is the one expansion of a placement into leaflets along a rachis that the station walk, the short shoots and the rosette all call, so pinnate-compound is drawable without a rosette; `terminal_leaflet` is a 0 to 1 blend of the last leaflet's pitch onto the rachis so the count stays stems times fronds times leaflets. Ten canopy rows with validated ranges, doc comments, wire lines, blend buckets and dial-table rows. `branching::clear_apical_twigs` and `mesh::grow` make an apex that bears a rosette bear no twig wood on both draw paths. apical-rosette, pinnate-frond and pinnate-compound moved to the expressed list with derivable clauses. R1 vocabulary and derivation green (`tests/capability.rs`, `stages_downstream.rs`); the palm run's gate rerun is the host's after landing. R2: species digests over four species and the catalogue pins unchanged and un-repinned, with a positive control. R3: eight tests in `crates/telperion-core/tests/rosette.rs` and one still at seed 1 showing a rosette of fronds on a bare stem; leaflet size and the trunk's habit are fn-82's tuning; the owner's look is pending. R4: dial-table coverage green; the workspace gate's one failure, the tuning loop's 24 KiB proposal-state cap with 358 bytes of headroom, was a size discipline set without a measured limit and was raised to 32 KiB by the host (fn-68's ledger holds Jev answering 34,000-token batches). Implemented on the strong tier at low effort as fn-80's dispatch-7; two corrections to the design handoff are recorded (the apex is the stem run's last node, not a childless tip; the terminal leaflet is a blend, not an extra instance).
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 90b61031, 9c08aa55, 31f1f763
+- Tests: env -u TYPESAFE_API_KEY cargo test --profile ci --workspace --no-fail-fast, cargo test --profile ci -p telperion-core --test rosette, cargo test --profile ci -p telperion-jev --test tuning_engine
 - PRs:
+## Resolution of the blocker (host, 2026-09-22)
+
+The proposal-state cap was a size discipline the fn-68 implementer set at 24 KiB without a measured limit; the fn-68 ledger holds proposal batches of 34,000 input tokens that Jev answered. Raised to 32 KiB in 31f1f763 with that rationale in the doc comment, and the digest test made cap-relative. Scoping the proposal menu to the priorities a round is tuning is the structural fix and is proposed in fn-80's friction, not built here. Gate rerun once at the end: EXIT=0, 894 passed.
