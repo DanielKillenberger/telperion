@@ -88,6 +88,10 @@ Every value is a row the blend walks. No organ kind is an enum, no species branc
 - Grouping at the placement over leaflets baked into one element: a multi-blade element breaks the level ladder's base, widest and tip anchors and would count as one unit; expanding at the placement keeps the element single and the counting honest. [inferred]
 - Sub-annual season over the annual cohort rule: the annual rule would leave flowers on all year, which is wrong for blossom; the clock already carries the year's remainder, so the finer rule costs one comparison. [paraphrase]
 
+### The pinnate rows are fn-109's (host, 2026-09-22)
+
+- fn-109, the date palm's apical rosette, implements the pinnate frond as a placement expanded into leaflets along a rachis, exactly this spec's grouping decision, and authors the leaflet rows under `canopy` rather than `element`, so five signatures stay unchanged. This spec keeps flowers and cones and adopts those rows for its leaflet half rather than authoring them twice; `pinnate-compound` moves into the expressed list when fn-109 lands. [host design]
+
 ## Parked unknowns
 
 - How the rachis is drawn, the extended connector or a scaled connector instance, resolved by the first measurement on the ash fixture.
