@@ -2400,6 +2400,21 @@
   "source": "crates/telperion-core/src/material.rs:291"
  },
  {
+  "id": "material_plate_edge_shape",
+  "path": "/material/plateEdgeShape",
+  "meaning": "the blend from rounded plate edges to narrow chipped scales; at zero every plate edge is rounded, and any rise starts the chipping",
+  "min": 0,
+  "max": 1,
+  "integer": false,
+  "small": 0.15,
+  "substantial": 0.3,
+  "group": "material",
+  "score_visible": false,
+  "meaning_basis": "doc comment",
+  "range_basis": "validated bound",
+  "source": "crates/telperion-core/src/material.rs:124"
+ },
+ {
   "id": "material_plate_edge_lift",
   "path": "/material/plateEdgeLift",
   "meaning": "how far a plate's rim stands off the furrow it borders; at zero a plate's rim lies flush with its furrow, and any rise starts the lift",
