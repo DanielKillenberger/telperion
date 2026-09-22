@@ -38,10 +38,12 @@ def prepare(envelope):
         schema = object_schema({
             "passes": {"type": "array", "minItems": len(r["required"]), "maxItems": len(r["required"]), "items": {"type": "string", "enum": ["pass", "fail", "unknown"]}},
             "defects": strings(), "observations": strings(),
-            "findings": {"type": "array", "items": object_schema({"observation": {"type": "string"}, "evidence_ids": strings(),
+            # The receipt holds at most 16 findings and 16 coverage rows
+            # (reference_first.rs, ComparisonResult::bind; joint.rs, verify_findings).
+            "findings": {"type": "array", "maxItems": 16, "items": object_schema({"observation": {"type": "string"}, "evidence_ids": strings(),
                 "impact": {"type": "string", "enum": ["supported", "blocker", "required_unknown", "variation", "optional"]},
                 "uncertain": {"type": "boolean"}, "causal_hypothesis": {"type": ["string", "null"]}})},
-            "coverage": {"type": "array", "items": object_schema({"trait_id": {"type": "string"},
+            "coverage": {"type": "array", "maxItems": 16, "items": object_schema({"trait_id": {"type": "string"},
                 "status": {"type": "string", "enum": ["pass", "fail", "unknown"]}, "evidence_ids": strings(), "explanation": {"type": "string"}})}})
     else:
         raise ValueError("unknown stage")

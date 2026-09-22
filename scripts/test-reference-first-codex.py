@@ -48,6 +48,8 @@ class ReferenceFirstAdapter(unittest.TestCase):
             _,schema,prompt=adapter.prepare(comparison)
             self.assertEqual(schema["properties"]["passes"]["minItems"],2)
             self.assertEqual(schema["properties"]["passes"]["maxItems"],2)
+            self.assertEqual(schema["properties"]["coverage"]["maxItems"],16)
+            self.assertEqual(schema["properties"]["findings"]["maxItems"],16)
             self.assertIn("exact order",prompt)
             def wrong_count(command,**kwargs):
                 Path(command[command.index("-o")+1]).write_text('{"passes":["fail"]}')
