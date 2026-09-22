@@ -233,6 +233,52 @@ pub fn shed(tree: &mut Tree, envelope: Envelope, shell_depth: f64) -> Result<usi
     tree.validate()?;
     Ok(count - tree.nodes.len())
 }
+/// Drop the local layer standing above every stem apex: the twig wood a
+/// childless order-zero axis carries at its tip, and everything borne on it.
+///
+/// An apex that bears a rosette bears no twig. Suppressing only the foliage
+/// there would leave bare twig wood under the fronds, which no tree that
+/// carries a frond crown has. Only nodes past the crossover are dropped, so
+/// the structural scaffold and the crossover itself are untouched.
+pub fn clear_apical_twigs(tree: &mut Tree) -> Result<()> {
+    let count = tree.nodes.len();
+    let crossover = tree.crossover.min(count);
+    let mut apex = vec![false; count];
+    for i in tree.stem_apices() {
+        apex[i] = true;
+    }
+    // A parent is always stored before its child, so one forward pass carries
+    // the apex's whole local subtree.
+    let mut dropped = vec![false; count];
+    for i in crossover..count {
+        let parent = tree.nodes[i].parent.unwrap() as usize;
+        dropped[i] = dropped[parent] || apex[parent];
+    }
+    if !dropped.iter().any(|&d| d) {
+        return Ok(());
+    }
+    let mut index = vec![0_u32; count];
+    let mut next = 0_u32;
+    for (i, &drop) in dropped.iter().enumerate() {
+        if !drop {
+            index[i] = next;
+            next += 1;
+        }
+    }
+    let mut old = 0;
+    tree.nodes.retain_mut(|n| {
+        let i = old;
+        old += 1;
+        if dropped[i] {
+            return false;
+        }
+        n.parent = n.parent.map(|p| index[p as usize]);
+        n.branch = index[n.branch as usize];
+        true
+    });
+    tree.validate()
+}
+
 /// Generate solved structure only. Representations are independent borrowed-tree requests.
 pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthReport> {
     let specimen = Specimen::grow(params, radii)?;

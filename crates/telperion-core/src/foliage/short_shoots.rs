@@ -6,7 +6,7 @@
 //! storage or build order moves one.
 use super::{
     range,
-    station::{axis, matrix, reserve},
+    station::{axis, reserve},
     CanopyParams, Instances,
 };
 use crate::math::Transcendental;
@@ -114,11 +114,13 @@ fn checked(tree: &Tree, envelope: Envelope, p: &CanopyParams) -> Result<()> {
 /// How many leaves this family's short shoots carry on this tree: the same
 /// walk `clothe` hangs them on, counted rather than drawn.
 pub(super) fn count(tree: &Tree, envelope: Envelope, seed: u32, p: &CanopyParams) -> Result<usize> {
-    let leaves = p.short_shoot_leaves as usize;
+    let leaves = p.short_shoot_leaves as usize * super::rosette::leaflets(p);
     let mut total = 0_usize;
     each(tree, envelope, seed, p, |_, shoots| {
-        total = total
-            .checked_add(shoots.len() * leaves)
+        total = shoots
+            .len()
+            .checked_mul(leaves)
+            .and_then(|placed| total.checked_add(placed))
             .ok_or(Error::ResourceLimit("foliage count overflow"))?;
         Ok(())
     })?;
@@ -135,8 +137,9 @@ pub(super) fn clothe(
 ) -> Result<()> {
     let leaves = p.short_shoot_leaves;
     let spread = p.short_shoot_spread.to_radians();
+    let leaflets = super::rosette::leaflets(p);
     each(tree, envelope, seed, p, |tangent, shoots| {
-        reserve(out, shoots.len() * leaves as usize, *p)?;
+        reserve(out, shoots.len() * leaves as usize * leaflets, *p)?;
         for s in shoots {
             let mut rng = s.rng.clone();
             let bearing = level(s.heading)
@@ -153,7 +156,7 @@ pub(super) fn clothe(
                 let radial = bearing.rotate(Vec3::Y, across + turn);
                 let at = s.shoot.tip;
                 let lean = axis(at, radial, tangent, *p);
-                out.push(&matrix(at, lean, tangent, radial, *p, &mut rng)?);
+                super::rosette::fan(at, lean, tangent, radial, *p, &mut rng, out)?;
             }
             if let Some(owners) = owners.as_mut() {
                 owners.resize(out.leaves.len(), s.shoot.wood as u32);

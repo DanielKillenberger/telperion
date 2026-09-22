@@ -8,6 +8,7 @@ pub(crate) mod packed;
 mod placement;
 pub mod prepared;
 mod reference;
+mod rosette;
 mod short_shoots;
 mod station;
 pub(crate) mod timeline;
@@ -21,6 +22,7 @@ pub use levels::Level;
 pub use packed::{Leaf, Reference, WORDS};
 pub(crate) use placement::leaf_count;
 pub use placement::{place, place_on_surface, CanopyParams, TwigPlacement};
+pub use rosette::{place_rosette, rosettes, Rosette, MAX_FRONDS, MAX_LEAFLETS};
 pub use short_shoots::{
     place_short_shoots, place_short_shoots_clumped, short_shoots, ShortShoot,
     MAX_SHORT_SHOOT_LEAVES, SHORT_SHOOT_SPACING,

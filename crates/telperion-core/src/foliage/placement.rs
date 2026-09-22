@@ -1,5 +1,5 @@
 use super::{
-    clumping, range, short_shoots,
+    clumping, range, rosette, short_shoots,
     station::{place_run, reserve_all, station_count, walk, Run},
     Instances, Reference,
 };
@@ -84,6 +84,60 @@ pub struct CanopyParams {
         serde(default = "crate::ranges::default_clump_neighbours")
     )]
     pub clump_neighbours: u32,
+    /// Fronds the rosette bears at the apex of each stem. At zero no rosette
+    /// stands and the canopy clothes wood as it always did; any rise makes the
+    /// rosette the tree's only foliage.
+    #[cfg_attr(feature = "json", serde(default))]
+    pub rosette_fronds: u32,
+    /// The degrees each successive frond is turned about the apex.
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_rosette_divergence")
+    )]
+    pub rosette_divergence: f64,
+    /// Degrees from the axis the youngest frond stands: 0 upright, 90 level,
+    /// 180 hanging.
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_rosette_pitch")
+    )]
+    pub rosette_pitch: f64,
+    /// How many degrees further than the youngest the oldest frond leans, so
+    /// the crown opens from a spike to a skirt.
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_rosette_pitch_spread")
+    )]
+    pub rosette_pitch_spread: f64,
+    /// Metres below the apex the frond insertions are spread down the axis. At
+    /// zero every frond leaves one point.
+    #[cfg_attr(feature = "json", serde(default))]
+    pub rosette_depth: f64,
+    /// Leaflets one placement carries along its rachis. One is the single
+    /// blade every family drew.
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_leaflet_count")
+    )]
+    pub leaflet_count: u32,
+    /// Metres of rachis the leaflets are strung along. At zero the placement
+    /// is one blade whatever the count says.
+    #[cfg_attr(feature = "json", serde(default))]
+    pub rachis_length: f64,
+    /// The degrees a leaflet leaves its rachis.
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_leaflet_pitch")
+    )]
+    pub leaflet_pitch: f64,
+    /// How far the rachis bends out of the straight line from its station, as
+    /// a share of its length. Positive arches up, negative droops.
+    #[cfg_attr(feature = "json", serde(default))]
+    pub rachis_arch: f64,
+    /// Whether a single leaflet closes the rachis's end, blended 0 to 1: the
+    /// last leaflet turns from standing off the rachis to lying along it.
+    #[cfg_attr(feature = "json", serde(default))]
+    pub terminal_leaflet: f64,
     /// Hard total budget. Exceeding it returns an error, never partial foliage.
     #[cfg_attr(feature = "json", serde(with = "crate::specimen::portable::index"))]
     pub max_instances: usize,
@@ -115,6 +169,18 @@ impl Default for CanopyParams {
             limb_clumping: 0.,
             clump_system_order: crate::ranges::default_clump_system_order(),
             clump_neighbours: crate::ranges::default_clump_neighbours(),
+            // Neutral: no rosette stands and no placement groups until a
+            // table states a frond count and a rachis to string leaflets on.
+            rosette_fronds: 0,
+            rosette_divergence: crate::ranges::default_rosette_divergence(),
+            rosette_pitch: crate::ranges::default_rosette_pitch(),
+            rosette_pitch_spread: crate::ranges::default_rosette_pitch_spread(),
+            rosette_depth: 0.,
+            leaflet_count: crate::ranges::default_leaflet_count(),
+            rachis_length: 0.,
+            leaflet_pitch: crate::ranges::default_leaflet_pitch(),
+            rachis_arch: 0.,
+            terminal_leaflet: 0.,
             max_instances: usize::MAX,
         }
     }
@@ -214,6 +280,10 @@ fn bearing(
 /// twig layer marked, or the terminal shoots slender enough for `shoot_radius`
 /// where there is no twig layer.
 fn runs(tree: &Tree, p: CanopyParams, twig: Option<TwigPlacement>) -> Vec<Vec<usize>> {
+    // A stem that bears a frond crown bears nothing along its length.
+    if rosette::bearing(&p) {
+        return Vec::new();
+    }
     match twig {
         Some(_) => bearing_runs(tree, p),
         None => shoots(
@@ -234,11 +304,17 @@ fn leaves_on(
 ) -> Result<usize> {
     let overflow = || Error::ResourceLimit("foliage count overflow");
     let (mut points, mut along) = (Vec::new(), Vec::new());
-    let mut total = short_shoots::count(tree, envelope, seed, &p)?;
+    let leaflets = rosette::leaflets(&p);
+    let mut total = if rosette::bearing(&p) {
+        rosette::count(tree, &p)?
+    } else {
+        short_shoots::count(tree, envelope, seed, &p)?
+    };
     for nodes in runs {
         let length = walk(tree, nodes, &mut points, &mut along);
-        total = total
-            .checked_add(station_count(length, envelope, p, twig)?)
+        total = station_count(length, envelope, p, twig)?
+            .checked_mul(leaflets)
+            .and_then(|leaves| total.checked_add(leaves))
             .ok_or_else(overflow)?;
     }
     Ok(total)
@@ -303,9 +379,14 @@ fn place_impl(
             owners.resize(out.leaves.len(), nodes[1] as u32);
         }
     }
-    // A second source over the limbs and branches: short shoots draw from
-    // their own wood's stream, so the leaves above keep every byte.
-    short_shoots::clothe(tree, envelope, seed, &p, &mut out, owners.as_mut())?;
+    // The second source: a rosette at every stem apex where the rows state
+    // one, else short shoots over the limbs and branches. Either draws from
+    // its own wood's stream, so the leaves above keep every byte.
+    if rosette::bearing(&p) {
+        rosette::clothe(tree, seed, &p, &mut out, owners.as_mut())?;
+    } else {
+        short_shoots::clothe(tree, envelope, seed, &p, &mut out, owners.as_mut())?;
+    }
     if let Some(owners) = owners {
         clumping::thin(tree, &owners, seed, p, &mut out);
     }
@@ -343,6 +424,7 @@ pub(super) fn validate(
         return Err(Error::InvalidInput("foliage clump"));
     }
     short_shoots::validate(&p)?;
+    rosette::validate(&p)?;
     if let Some(t) = twig {
         range(t.internode_length, 1e-6, 1e6, "twig internode")?;
         if !(1..=64).contains(&t.stations_per_internode) {
