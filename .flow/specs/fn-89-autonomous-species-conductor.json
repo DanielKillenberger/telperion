@@ -16,7 +16,7 @@
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "ready": false,
+  "ready": true,
   "spec_path": ".flow/specs/fn-89-autonomous-species-conductor.md",
   "status": "open",
   "title": "Autonomous species conductor",
@@ -31,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-19T18:38:25.932573Z"
+  "updated_at": "2026-09-22T10:00:36.477770Z"
 }

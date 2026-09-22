@@ -17,7 +17,10 @@ ul{margin:4px 0 8px;padding-left:1.2em}pre{background:#eeece6;padding:10px;overf
 .check{border-left:3px solid #8b8578;padding:6px 10px;background:#efede7;font-size:.9rem}";
 
 fn esc(s: &str) -> String {
-    s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;")
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
 }
 
 /// A still's `src`: relative to the run directory when it lies inside it,
@@ -63,12 +66,16 @@ fn gap(g: &GapEntry) -> String {
         esc(g.latest_route.as_deref().unwrap_or("none"))
     );
     if let Some(spec) = &g.existing_spec {
-        s.push_str(&format!("<tr><td>Existing spec</td><td>{}</td></tr>", esc(spec)));
+        s.push_str(&format!(
+            "<tr><td>Existing spec</td><td>{}</td></tr>",
+            esc(spec)
+        ));
     }
     let feasible = g.attempts.iter().filter(|a| a.feasible).count();
     s.push_str(&format!(
         "<tr><td>Attempts graded on it</td><td>{} evaluated, {} feasible</td></tr></table>",
-        g.attempts.len(), feasible
+        g.attempts.len(),
+        feasible
     ));
     if !g.reviewer_words.is_empty() {
         s.push_str("<p class=\"muted\">Reviewer's words, most recent first</p><ul>");
@@ -77,7 +84,10 @@ fn gap(g: &GapEntry) -> String {
         }
         s.push_str("</ul>");
     }
-    s.push_str(&format!("<p class=\"check\">Check: {}</p></section>", esc(&g.check)));
+    s.push_str(&format!(
+        "<p class=\"check\">Check: {}</p></section>",
+        esc(&g.check)
+    ));
     s
 }
 
@@ -94,8 +104,12 @@ pub fn page(r: &EndResult, run_dir: &Path) -> String {
     if let Some(c) = &o.current {
         s.push_str(&format!(
             "<h2>Current tree</h2><p>Trial <code>{}</code>, round {}, {}{}.</p>{}",
-            esc(&c.key[..12.min(c.key.len())]), c.round, esc(&c.label),
-            c.score_telemetry.map(|v| format!(", score telemetry {v:.4}")).unwrap_or_default(),
+            esc(&c.key[..12.min(c.key.len())]),
+            c.round,
+            esc(&c.label),
+            c.score_telemetry
+                .map(|v| format!(", score telemetry {v:.4}"))
+                .unwrap_or_default(),
             stills(&c.stills, run_dir)
         ));
     } else {
@@ -110,13 +124,26 @@ pub fn page(r: &EndResult, run_dir: &Path) -> String {
     ));
     if let Some(b) = o.budget.as_object() {
         for key in ["rounds", "evaluations", "images", "visual_passes"] {
-            let cap = b.get(&format!("max_{key}")).map(|v| v.to_string()).unwrap_or_else(|| "?".into());
-            let used = b.get(key).map(|v| v.to_string()).unwrap_or_else(|| "?".into());
-            s.push_str(&format!("<tr><td>{}</td><td>{used} of {cap}</td></tr>", key.replace('_', " ")));
+            let cap = b
+                .get(&format!("max_{key}"))
+                .map(|v| v.to_string())
+                .unwrap_or_else(|| "?".into());
+            let used = b
+                .get(key)
+                .map(|v| v.to_string())
+                .unwrap_or_else(|| "?".into());
+            s.push_str(&format!(
+                "<tr><td>{}</td><td>{used} of {cap}</td></tr>",
+                key.replace('_', " ")
+            ));
         }
     }
     s.push_str("</table>");
-    s.push_str(&format!("<h2>Gaps ({})</h2><p class=\"muted\">{}</p>", r.gaps.len(), esc(&r.gaps_note)));
+    s.push_str(&format!(
+        "<h2>Gaps ({})</h2><p class=\"muted\">{}</p>",
+        r.gaps.len(),
+        esc(&r.gaps_note)
+    ));
     if r.gaps.is_empty() {
         s.push_str("<p>No approved priorities: nothing was asked of this run.</p>");
     }

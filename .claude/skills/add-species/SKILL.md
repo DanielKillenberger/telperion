@@ -49,6 +49,18 @@ the repository root, with the key available to an interactive shell.
    (`gap metrics`) beside the report, and hand the owner the checklist. The
    stills are theirs; no route here decides a visual verdict.
 
+## Under the conductor
+
+`species-conductor` (`docs/species-conductor.md`) walks this loop for you
+once a run has a config: `step` runs the stages, hands a halt to the gap
+loop as a routine dispatch you carry out, runs the tuning loop, checks
+every gap its result lists, and dispatches design and implementation for a
+gap spec on the tier `data/conductor-policy.json` names. You carry out the
+dispatch it opens, exactly as scoped, and record your result with
+`dispatch --id ID --result FILE`, naming the model and effort that actually
+ran. A pause is the host's or the owner's: read the handoff it wrote and
+stop. Never resume it yourself.
+
 ## At a gap
 
 ```sh

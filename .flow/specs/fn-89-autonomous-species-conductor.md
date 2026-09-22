@@ -24,7 +24,7 @@
 
 The owner asks for one species and returns to a convincing mature-tree template, its botanical documentation, and a compact review packet. The system carries the research, routine choices, generator-gap work, tuning and validation without asking the owner to manage intermediate steps. A cheap conductor runs routine work while Jev supplies bounded semantic judgments and routing. Complex design goes to a high-reasoning model at medium/high effort. Once the design exists, Jev reassesses the remaining implementation complexity and selects a cheap implementer or a high-reasoning implementer initially at low effort. The owner supplies final acceptance. [paraphrase]
 
-The current machinery already provides research stages, typed decisions, gap records, capability vocabulary, catalogue records and matched renders. This change connects those mechanisms into one persistent run. After initial evidence review the owner confirms/reorders/adds priorities once, then routine work continues under policy without asking the owner to choose implementation mechanics. Final acceptance and risk/stall/scope-change escalation remain human boundaries. [user decision, 2026-09-20, relayed by host]
+The current machinery already provides research stages, typed decisions, gap records, capability vocabulary, catalogue records and matched renders. This change connects those mechanisms into one persistent run and replaces routine owner stops with policy-driven continuation. It does not rebuild them. [inferred]
 
 ## Architecture & Data Models
 <!-- scope: technical -->
@@ -71,8 +71,6 @@ The current machinery already provides research stages, typed decisions, gap rec
 
 - **R8:** Before each further tuning round or design/implementation dispatch, evaluate whether the proposed attempt has a credible prospect of success within a reasonable token allowance using evidence, progress, cost bounds and risk. High uncertainty, unusually high complexity, implementation risk or repeated no-progress routes to a resumable human handoff before another unjustified attempt, even with budget remaining. Errors: a hard-limit breach, missing basis for a bounded attempt or an unavailable/unvalidated continuation judgment pauses the run; no mandatory frontier detour, automatic retry or budget reset bypasses the pause. [inferred]
 
-- **R9:** Consume fn-68's explicit human gap-priority checkpoint before proposal or fix dispatch, including initial model PASS. Present the proposed top three with reference/render evidence and retain all findings; record owner confirmation/reordering/additions scoped to the initial packet, species and objectives. The owner chooses what matters, while the conductor handles implementation mechanics under existing qualification, continuation and budget gates. Errors: missing/stale approval blocks; changed objectives/reference or finish standard requires renewed approval; ordinary rerenders preserve it; approval cannot resolve a gap, bypass explicit relevant-view coverage, reset spend or supply final acceptance. [user and host design, 2026-09-20]
-
 ## Boundaries
 <!-- scope: business -->
 
@@ -85,25 +83,6 @@ The current machinery already provides research stages, typed decisions, gap rec
 
 ## Decision Context
 
-### Round boundary moved into code, 2026-09-21
-
-- fn-68's R11 continuation gate is now a code decision, with one uncalibrated evidence-difference question asked only after a stall on moved evidence, and risk alone asked before a handoff; see "R11 code-first continuation (owner, 2026-09-21)" in the fn-68 spec. The conductor inherits that boundary and must not reintroduce a per-round judgment. [host design]
-
-### Human priority selection, 2026-09-20
-
-- The owner approved a conversational checkpoint after initial visual discovery: show the proposed top three gaps and evidence, accept confirmation/reordering/missed-gap additions, then autonomously plan, implement, tune and verify those objectives under existing gates. This supersedes fully unattended initial priority selection, not final acceptance. The host records the scoped decision; the owner need not hand-author transport JSON. [user, relayed by host]
-- fn-68 owns the hash-bound packet, explicit approval and relevant-view verification contract. The conductor preserves all findings, treats owner priority as authoritative over model severity, and returns for scope change, risk, stall or final approval. Approval never proves a gap resolved or a reviewer qualified. Independent blind calibration remains separate. [host design]
-
-### Provisional role routing, 2026-09-20
-
-- Owner-selected roles: Astra medium for initial gap discovery and final readiness, Opus for cheaper targeted intermediate checks, Jev for text routing/progress. Astra is provisional until independent detection is established. fn-68 owns the reference-first inventory/comparison evidence contract; this does not authorize this conductor to bypass qualification, uncertainty, cost or resume gates. [user and host clarification]
-
-### Joint-review handoff, 2026-09-20
-
-- The owner asks for independent issue discovery from multiple references and renderings, without supplying the reviewer's expected conclusions. fn-68 owns the joint evidence packet, cross-view findings and blind evaluation. This conductor consumes those attributed findings under R1, R3-R6 and R8. [paraphrase]
-- Routing preserves the distinction between an observed visual gap and a proposed cause. A design dispatch receives relevant cross-view constraints, factual generator capabilities and uncertainties. It cannot treat a reviewer's causal hypothesis as established mechanics or infer seasonal change from unrelated reference specimens or a foliage-visibility toggle. [inferred]
-- A new generator capability still receives its own bounded design and implementation. Completing a manually tuned beech does not establish autonomous pipeline completion. Readiness, independent discovery quality and end-to-end cost remain separately evidenced. [inferred]
-
 ### Motivation
 
 - The owner made the render-assess-fix loop and early human escalation explicit. Autonomous progress is preferred while supported by evidence; avoiding token spend on dead ends takes priority over forcing every run to finish unattended. A human escalation is a valid paused outcome, never a ready species. [paraphrase]
@@ -113,6 +92,13 @@ The current machinery already provides research stages, typed decisions, gap rec
 - The owner wants to return to a template that looks as expected and tick it off. Interventions and first-review acceptance matter alongside speed and model cost. [paraphrase]
 - Cheap execution is useful when Jev and frontier escalation make it dependable. The goal does not require forcing complex work onto the cheapest model. [paraphrase]
 - The host retains orchestration authority and delegates complex design explicitly. Expensive reasoning is scoped to the selected assignment, then control returns to the cheap conductor. Jev-first decisions reduce generative reasoning work; reducing Jev call count is not the objective. [paraphrase]
+
+### A tuning run ends with a gap list (owner, 2026-09-22)
+
+- Every tuning run, invoked by the owner or by the add-species agent, ends with three things: the best tree with its overlay, seed and stills; the trial and handoff record; and a gap list. A run without the gap list has not finished. Owner: "so this assessment tuning loop should end with the end result + gap list and the invoker would decide if the specs should be made yea?" then, to the contract below, "ok that works". [user]
+- A priority that kept routing to tuning and then stalled converts to a gap candidate instead of vanishing into the stall. Each entry carries the trait in the owner's words, the rounds that tried it with their overlays, the reviewer's words per attempt, and the stills that show it. The loop assembles those four from its own record. [host design]
+- The invoker runs fn-95's gap check on each entry: reachable with dials not yet tried goes back to tuning; covered by an open spec becomes a dependency and the run parks on it; new escalates. The cause in generator terms and the shape of the spec are system design under the dispatch rule, so a driver packages a new gap and stops, the host conducting the run writes the candidate spec, and the owner holds the word on minting until delegated. [user and host design]
+- Why: fn-68's close-out on 2026-09-22 stopped at the reviewer's symptoms and one handoff, and the beech's real gaps (leaders that lose girth at every fork, fn-103) were sitting in priorities that had routed to tuning for 44 rounds. Owner: "otherwise the next spec that runs the add species pipeline won't have specs to make to close gaps". [user]
 
 ## Strategy Alignment
 

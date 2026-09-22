@@ -426,11 +426,17 @@ pub fn run_with(
             "candidates":state.finalists()}),
         )?;
         let result = state.end_result();
-        write(&out.join("result.json"), &serde_json::to_value(&result).unwrap())?;
+        write(
+            &out.join("result.json"),
+            &serde_json::to_value(&result).unwrap(),
+        )?;
         fs::write(out.join("RESULT.md"), super::result::markdown(&result))
             .map_err(|e| e.to_string())?;
-        fs::write(out.join("RESULT.html"), super::result::html::page(&result, out))
-            .map_err(|e| e.to_string())?;
+        fs::write(
+            out.join("RESULT.html"),
+            super::result::html::page(&result, out),
+        )
+        .map_err(|e| e.to_string())?;
         Ok(())
     };
     save(&state)?;
