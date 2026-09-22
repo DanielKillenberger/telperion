@@ -576,6 +576,32 @@ impl ComparisonResult {
                         || (has_role(c, "render") && has_role(c, "reference")))
             });
         self.coverage = known;
+        // A disposition that cites none of the references its trait was
+        // inventoried from can compare nothing for that trait: it becomes
+        // unknown and is recorded, rather than costing the whole paid pass.
+        let mut recited = vec![];
+        for c in &mut self.coverage {
+            let Some(t) = request.inventory.traits.iter().find(|t| t.id == c.trait_id) else {
+                continue;
+            };
+            if c.status != CellStatus::Unknown
+                && !c.evidence_ids.iter().any(|id| t.reference_ids.contains(id))
+            {
+                recited.push(format!(
+                    "downgraded coverage row citing a different reference {}: {:?} \u{2014} {}",
+                    c.trait_id, c.status, c.explanation
+                ));
+                c.status = CellStatus::Unknown;
+            }
+        }
+        for note in recited {
+            if !self.visual.observations.contains(&note) {
+                self.visual.observations.push(note.clone());
+            }
+            if !self.visual.assessment.observations.contains(&note) {
+                self.visual.assessment.observations.push(note);
+            }
+        }
         for c in &stray {
             let why = if request.inventory.traits.iter().any(|t| t.id == c.trait_id) {
                 "without render and reference evidence"
@@ -608,20 +634,6 @@ impl ComparisonResult {
             if !seen.insert(&c.trait_id) || !text(&c.explanation) || !ids(&c.evidence_ids, &allowed)
             {
                 return Err("invalid trait coverage".into());
-            }
-            let trait_source = request
-                .inventory
-                .traits
-                .iter()
-                .find(|t| t.id == c.trait_id)
-                .unwrap();
-            if c.status != CellStatus::Unknown
-                && !c
-                    .evidence_ids
-                    .iter()
-                    .any(|id| trait_source.reference_ids.contains(id))
-            {
-                return Err("trait disposition cites a different reference".into());
             }
         }
         let mut status = CellStatus::Pass;

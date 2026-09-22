@@ -181,7 +181,21 @@ fn coverage_unknown_and_positive_finish_are_enforced() {
     wrong_source.request_sha256 = two.hash();
     wrong_source.visual.request_sha256 = two.comparison.hash();
     wrong_source.coverage[0].evidence_ids = vec!["render-0".into(), "reference-1".into()];
-    assert!(wrong_source.bind(&two).is_err());
+    // A pass citing none of the trait's own references is downgraded to
+    // unknown and recorded, not refused: the palm's fourth run lost a paid
+    // pass to one variation row that cited the whole-tree photograph.
+    wrong_source.bind(&two).unwrap();
+    assert_eq!(wrong_source.coverage[0].status, CellStatus::Unknown);
+    assert!(wrong_source
+        .visual
+        .observations
+        .iter()
+        .any(|o| o.starts_with("downgraded coverage row citing a different reference trait-1")));
+    assert!(!ready(
+        &r.required,
+        &r.identity,
+        &wrong_source.visual.assessment
+    ));
     let mut duplicate = base.clone();
     duplicate.coverage.push(duplicate.coverage[0].clone());
     assert!(duplicate.bind(&request).is_err());
