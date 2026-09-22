@@ -30,6 +30,8 @@ const THIN = process.env.THIN ?? 'coin';
 const WOOD_CUT = Number(process.env.WOOD_CUT ?? 0.2);
 // WOOD_ONLY=1 draws no foliage and reads each row's keep value as the wood cutoff instead.
 const WOOD_ONLY = process.env.WOOD_ONLY === '1';
+// CUT_METRES=1 reads the wood cutoff in metres of radius instead of cells.
+const CUT_METRES = process.env.CUT_METRES === '1';
 
 const { instance } = await WebAssembly.instantiate(
   readFileSync(process.env.WASM ? new URL(process.env.WASM, `file://${process.cwd()}/`) : new URL('src/browser/telperion.wasm', root)),
@@ -90,7 +92,8 @@ function voxelizeField({ flags, limbs, leaves, radius, cell }, keep) {
   const grid = new Uint8Array(N * N * N);
   const coins = new Set();
   let wood = 0, leaf = 0;
-  const limb = n => (flags[n] & 1) && radius[n] >= cell * (WOOD_ONLY ? keep : WOOD_CUT);
+  const cut = WOOD_ONLY ? keep : WOOD_CUT;
+  const limb = n => (flags[n] & 1) && radius[n] >= (CUT_METRES ? cut : cell * cut);
   for (let n = 0; n < grid.length; n++) if (limb(n)) { grid[n] = WOOD; wood++; }
   if (WOOD_ONLY) return { grid, cell, wood, leaf, clumps: 0 };
   if (THIN === 'coin') {
@@ -334,7 +337,7 @@ SPECIES.forEach((id, column) => {
   });
 });
 mkdirSync(out, { recursive: true });
-const suffix = FIELD ? `-field${LIMB_ORDER === undefined ? '' : `-order${LIMB_ORDER}`}${THIN === 'coin' ? '' : `-${THIN}`}${WOOD_ONLY ? '-woodonly' : ''}` : '';
+const suffix = FIELD ? `-field${LIMB_ORDER === undefined ? '' : `-order${LIMB_ORDER}`}${THIN === 'coin' ? '' : `-${THIN}`}${WOOD_ONLY ? '-woodonly' : ''}${CUT_METRES ? '-metres' : ''}` : '';
 const file = new URL(`sheet-${N}-keep${suffix}.png`, out);
 writeFileSync(file, png(sheet, width, SIZE * KEEPS.length));
 console.log(file.pathname);
