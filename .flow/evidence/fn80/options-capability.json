@@ -1,0 +1,60 @@
+{
+  "options": [
+    {
+      "gap": "date-palm/gate/onboarding-gate/capability",
+      "option": "apical-rosette-crown",
+      "change_kind": "generator",
+      "touches": "canopy/foliage layer",
+      "moves_pin": true,
+      "changes_preset_output": [],
+      "serves_species": ["date-palm"],
+      "reversible": true,
+      "summary": "Give the crown an apical-rosette form: fronds borne only as a rosette at the apex of a thick unbranched stem, with no laterals and no twig clothing of the trunk, replacing the branching crown; and give that rosette's leaves the pinnate-frond structure of one pinnate frond with leaflets along a rachis, one placement, per the packet's apical-rosette and pinnate-frond needs.",
+      "spends_captures": false,
+      "lowers_bar": false,
+      "changes_boundary": false
+    },
+    {
+      "gap": "date-palm/gate/onboarding-gate/capability",
+      "option": "leaf-base-and-acanthophyll-organs",
+      "change_kind": "generator",
+      "touches": "organ layer",
+      "moves_pin": true,
+      "changes_preset_output": [],
+      "serves_species": ["date-palm"],
+      "reversible": true,
+      "summary": "Add two organs the packet finds no trait or element row for: retained petiole bases clothing the trunk as a 3D organ (the diamond boots of a date palm), and basal leaflets of the Phoenix frond modified as spines (acanthophyll), since no element or organ row currently distinguishes a spine from a leaflet or places a persistent leaf base on the stem.",
+      "spends_captures": false,
+      "lowers_bar": false,
+      "changes_boundary": false
+    },
+    {
+      "gap": "date-palm/gate/onboarding-gate/capability",
+      "option": "infructescence-organ",
+      "change_kind": "generator",
+      "touches": "organ layer",
+      "moves_pin": true,
+      "changes_preset_output": [],
+      "serves_species": ["date-palm"],
+      "reversible": true,
+      "summary": "Add the infructescence as its own organ: a hanging date cluster from the crown. fn-33 (open) specifies one reproductive organ slot for a flower, a cone or a fruit placed at stations as a second foliage list, but it is unsure whether a branched Phoenix spadix is one hanging organ element or a structure that single-element slot cannot draw.",
+      "spends_captures": false,
+      "lowers_bar": false,
+      "changes_boundary": false
+    },
+    {
+      "gap": "date-palm/gate/onboarding-gate/capability",
+      "option": "register-date-palm-reachable-values",
+      "change_kind": "value_table",
+      "touches": "preset registration and habit values",
+      "moves_pin": false,
+      "changes_preset_output": [],
+      "serves_species": ["date-palm"],
+      "reversible": true,
+      "summary": "Register the date-palm preset with the values the packet already finds reachable on existing dials: stems=1 (single trunk), lateral_orders=0 (unbranched monopodial axis, so laterals_per_station's unreachable 0 is moot), apical_dominance near 1, and length_taper=0 (near-constant trunk diameter). capabilities() already emits woody-axes for a registered preset; the gate lists it missing only because date-palm is not yet registered.",
+      "spends_captures": false,
+      "lowers_bar": false,
+      "changes_boundary": false
+    }
+  ]
+}

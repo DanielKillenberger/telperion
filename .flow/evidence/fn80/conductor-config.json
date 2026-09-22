@@ -1,0 +1,19 @@
+{
+  "species": "date-palm",
+  "spec": "fn-82-date-palm-as-a-real-species",
+  "dir": ".flow/evidence/date-palm/pipeline",
+  "run_dir": ".flow/evidence/date-palm/pipeline",
+  "flow": ".flow",
+  "tuning_config": ".flow/evidence/fn80/tuning-date-palm.json",
+  "species_pipeline": "target/release/species-pipeline",
+  "tuning_loop": "target/release/tuning-loop",
+  "stage_args": ["--example"],
+  "budget": {
+    "max_tokens": 2000000,
+    "attempt_max_tokens": 200000,
+    "max_dispatches": 6,
+    "max_tuning_revisions": 2
+  },
+  "judgment_model": "jev-1.13.0",
+  "continuation_validated": true
+}
