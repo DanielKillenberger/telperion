@@ -15,3 +15,11 @@ Fourth tick. fn-108 landed, `gap resume` expired the gate stage's key, and the c
 ## 2026-09-22 — host: the gate left a passed halt open, and a landed round did not loop again
 
 Fifth tick, after the gate reran on fn-108. Two things. The registry gate had passed (`gate.json` says `registry: true`) but its decision from the earlier run stayed open with its old inputs, because a rerun only replaces a decision it files again and never retires one it no longer files; the conductor saw an open halt. And the capability halt, narrowed to five names by the landing, was treated as "looped once, the owner's now", because the plan could not tell a landed round from a round that went to the owner. Cost: about 40 minutes, two fixes with tests: the gate stage retires the open decisions a rerun with changed inputs did not file again (`superseded`, by the stage), and a halt whose gap record shows a landed round loops again. What would have removed it: fn-63's gap loop had never been run twice on one halt; the second round is where both rules were missing.
+
+## 2026-09-22 — host: the owner's resolution did not reach the gap record until a stage ran
+
+Round two. The owner confirmed the rosette; the resolution was appended to `resolutions.json` with the decision's exact inputs and option, but `gap spec` refused ("no owner resolution names an option") because only a stage run reconciles resolutions into `decisions.json`; the conductor's own read of open decisions did not write the reconciliation back. Running the gate stage, which was current, applied it. Cost: about 10 minutes and one wrong `gap spec`. What would remove it: `gap spec` (or the conductor's attach) reconciling before it reads, or a `species-pipeline reconcile` command the runbook names for a person's resolution.
+
+## 2026-09-22 — host: the second option set was written in the host session, so its usage is unknown
+
+The pipeline refuses a second agent set for one gap, so the round-two options were the host's; dispatch-3's usage is therefore null and `usage_known` is false on the run, which the continuation check will read as unavailable at the next repeat. What would remove it: the conductor dispatching the stronger set to a strong-tier agent with counted usage, as it does for design, instead of leaving it to the host.
