@@ -676,4 +676,35 @@ fn an_unjustified_next_attempt_pauses_with_budget_remaining_and_a_stage_halt_rou
         plan::decision_action(&table, &run, &decision("manifest-proposed")),
         Next::AwaitOwner { .. }
     ));
+    // A routine dispatch that returned without resolving hands the decision to the owner.
+    let source = decision("unavailable-source");
+    let mut run = Run::open(&config).unwrap();
+    run.dispatches
+        .push(telperion_jev::conductor::dispatch::Dispatch {
+            id: "dispatch-9".into(),
+            role: telperion_jev::conductor::dispatch::Role::Routine,
+            route: "routine".into(),
+            tier: "cheap".into(),
+            effort: "default".into(),
+            dependency: None,
+            input_identity: "i".into(),
+            design_revision: None,
+            scope: format!(
+                "resolve {} (unavailable-source) with one of retry",
+                source.id
+            ),
+            judgments: vec![],
+            reserved_tokens: 1,
+            opened_at: String::new(),
+            result: None,
+        });
+    assert!(matches!(
+        plan::decision_action(&table, &run, &source),
+        Next::Routine { .. }
+    ));
+    run.ingest("dispatch-9", verified("i", None, None)).unwrap();
+    assert!(matches!(
+        plan::decision_action(&table, &run, &source),
+        Next::AwaitOwner { .. }
+    ));
 }

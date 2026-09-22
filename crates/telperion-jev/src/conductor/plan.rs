@@ -112,11 +112,19 @@ pub fn decision_action(table: &policy::Table, run: &Run, decision: &Decision) ->
         };
     }
     if let Some(options) = table.decisions.routine.get(&decision.kind) {
-        return Next::Routine {
-            decision: decision.id.clone(),
-            kind: decision.kind.clone(),
-            options: options.clone(),
-        };
+        // A routine dispatch that came back without resolving the decision
+        // does not get a second; the decision is the owner's now.
+        let tried = run
+            .dispatches
+            .iter()
+            .any(|d| !d.open() && d.scope.starts_with(&format!("resolve {} ", decision.id)));
+        if !tried {
+            return Next::Routine {
+                decision: decision.id.clone(),
+                kind: decision.kind.clone(),
+                options: options.clone(),
+            };
+        }
     }
     Next::AwaitOwner {
         decision: decision.id.clone(),
