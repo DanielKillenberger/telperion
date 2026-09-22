@@ -22,6 +22,12 @@ const SPECIES = ['oregon-white-oak', 'silver-birch', 'norway-spruce'];
 const WOOD = 1, LEAF = 2;
 const FIELD = process.env.FIELD === '1';
 const LIMB_ORDER = process.env.LIMB_ORDER === undefined ? undefined : Number(process.env.LIMB_ORDER);
+// THIN=coin|density|mass: how the field's foliage cells are thinned to a keep
+// fraction. coin drops whole limb systems; density keeps the twig-densest
+// cells; mass keeps the cells nearest to drawn limb wood. Limbs always draw.
+const THIN = process.env.THIN ?? 'coin';
+// WOOD_CUT: wood draws where the cell's thickest wood is at least this many cells.
+const WOOD_CUT = Number(process.env.WOOD_CUT ?? 0.2);
 
 const { instance } = await WebAssembly.instantiate(
   readFileSync(process.env.WASM ? new URL(process.env.WASM, `file://${process.cwd()}/`) : new URL('src/browser/telperion.wasm', root)),
@@ -68,6 +74,7 @@ function field(id) {
   return {
     flags: new Uint8Array(x.memory.buffer, x.buffer_ptr(8), x.buffer_len(8)).slice(),
     limbs: new Uint32Array(x.memory.buffer, x.buffer_ptr(20), x.buffer_len(20)).slice(),
+    leaves: new Float32Array(x.memory.buffer, x.buffer_ptr(19), x.buffer_len(19)).slice(),
     radius: new Float32Array(x.memory.buffer, x.buffer_ptr(25), x.buffer_len(25)).slice(),
     cell, stages: m.stages, planned: m.leavesPlanned, buildMs: m.timings.coreMs,
   };
@@ -77,17 +84,64 @@ function field(id) {
 /// thickest wood reaching the cell is at least a fifth of it, through any
 /// foliage; foliage elsewhere where the field reports it and the owning limb
 /// keeps its clump. Thinner wood is the twigs, and a dropped clump takes them.
-function voxelizeField({ flags, limbs, radius, cell }, keep) {
+function voxelizeField({ flags, limbs, leaves, radius, cell }, keep) {
   const grid = new Uint8Array(N * N * N);
   const coins = new Set();
   let wood = 0, leaf = 0;
-  for (let n = 0; n < grid.length; n++) {
-    if (flags[n] & 1 && radius[n] >= cell * 0.2) { grid[n] = WOOD; wood++; }
-    else if (flags[n] & 2) {
+  const limb = n => (flags[n] & 1) && radius[n] >= cell * WOOD_CUT;
+  for (let n = 0; n < grid.length; n++) if (limb(n)) { grid[n] = WOOD; wood++; }
+  if (THIN === 'coin') {
+    for (let n = 0; n < grid.length; n++) if (!limb(n) && flags[n] & 2) {
       coins.add(limbs[n]);
       if (kept(limbs[n], keep)) { grid[n] = LEAF; leaf++; }
     }
+    return { grid, cell, wood, leaf, clumps: coins.size };
   }
+  // A score per foliage cell; the top `keep` fraction survives.
+  const foliage = [];
+  for (let n = 0; n < grid.length; n++) if (!limb(n) && flags[n] & 2) foliage.push(n);
+  let score;
+  if (THIN === 'density') score = n => leaves[n];
+  else if (THIN === 'tuft') {
+    // Each limb system keeps a rounded mass about its own centre: a cell
+    // scores by how deep it sits in its system, so the fringe between
+    // neighbouring systems goes first and the branch to each mass shows.
+    const at = n => [n % N, Math.floor(n / N) % N, Math.floor(n / (N * N))];
+    const sum = new Map();
+    for (const n of foliage) {
+      const [i, j, k] = at(n);
+      const e = sum.get(limbs[n]) ?? { i: 0, j: 0, k: 0, c: 0 };
+      e.i += i; e.j += j; e.k += k; e.c++; sum.set(limbs[n], e);
+    }
+    const spread = new Map();
+    const d = n => { const [i, j, k] = at(n); const e = sum.get(limbs[n]); return Math.hypot(i - e.i / e.c, j - e.j / e.c, k - e.k / e.c); };
+    for (const n of foliage) { const e = spread.get(limbs[n]) ?? { s: 0, c: 0 }; e.s += d(n); e.c++; spread.set(limbs[n], e); }
+    score = n => { const e = spread.get(limbs[n]); return -d(n) / (e.s / e.c + 1e-9); };
+  } else {
+    // Grid distance to the nearest drawn limb cell, by breadth-first search.
+    const dist = new Int32Array(N * N * N).fill(-1);
+    let queue = [];
+    for (let n = 0; n < grid.length; n++) if (grid[n] === WOOD) { dist[n] = 0; queue.push(n); }
+    while (queue.length) {
+      const next = [];
+      for (const n of queue) {
+        const i = n % N, j = Math.floor(n / N) % N, k = Math.floor(n / (N * N));
+        for (const [di, dj, dk] of [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]) {
+          const a = i + di, b = j + dj, c = k + dk;
+          if (a < 0 || b < 0 || c < 0 || a >= N || b >= N || c >= N) continue;
+          const m = (c * N + b) * N + a;
+          if (dist[m] === -1) { dist[m] = dist[n] + 1; next.push(m); }
+        }
+      }
+      queue = next;
+    }
+    // Nearer limbs score higher; ties broken by density so masses stay full.
+    score = n => -dist[n] + leaves[n] * 1e-6;
+  }
+  foliage.sort((a, b) => score(b) - score(a));
+  const survivors = Math.round(foliage.length * keep);
+  for (let s = 0; s < survivors; s++) { grid[foliage[s]] = LEAF; leaf++; }
+  for (const n of foliage) coins.add(limbs[n]);
   return { grid, cell, wood, leaf, clumps: coins.size };
 }
 
@@ -256,7 +310,7 @@ SPECIES.forEach((id, column) => {
   });
 });
 mkdirSync(out, { recursive: true });
-const suffix = FIELD ? `-field${LIMB_ORDER === undefined ? '' : `-order${LIMB_ORDER}`}` : '';
+const suffix = FIELD ? `-field${LIMB_ORDER === undefined ? '' : `-order${LIMB_ORDER}`}${THIN === 'coin' ? '' : `-${THIN}`}` : '';
 const file = new URL(`sheet-${N}-keep${suffix}.png`, out);
 writeFileSync(file, png(sheet, width, SIZE * KEEPS.length));
 console.log(file.pathname);
