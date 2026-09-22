@@ -44,6 +44,23 @@ and caller mutations cannot change the CPU field. Extraction errors throw withou
 a partial snapshot; temporary Wasm staging is released after copying or failure.
 The giant snapshot alone is about 129 MB, so opt in only when needed.
 
+## The field package
+
+`npm install telperion` also ships the slim growth-and-field package: the
+`telperion/field` export grows a species at a seed and answers occupancy
+queries over it, and `telperion/field/voxelize` is an example reading of
+those answers as cubes. Both are built by `npm run build` into `dist`, with
+the slim Wasm beside `field.js`; the main entry `telperion.js` loads
+`telperion.wasm` and `telperion-render.wasm` from beside itself the same
+way, so a site serves the three Wasm files next to the JavaScript. Each
+`new URL("./name.wasm", import.meta.url)` in `dist` is a literal, which
+Vite, webpack and Rollup read as an asset and emit into a site's own build;
+the files are also exported as `telperion/telperion.wasm`,
+`telperion/telperion-render.wasm` and `telperion/telperion-field.wasm` for a
+bundler's `?url` import, passed as `source`. In Node each entry reads its
+file from disk. [docs/field-package.md](docs/field-package.md)
+describes the entry point, the voxelizer's dials, and the Node smoke.
+
 ## Architecture
 
 The retained `branching::Specimen` owns scaffold and local frontiers. Nodes
@@ -280,7 +297,7 @@ npm run test:render
 npm run dev
 ```
 
-The repository pins Rust in `rust-toolchain.toml`, and `render:build` checks the installed `wasm-bindgen` against the version the crate pins before it generates the glue - a mismatch fails with the command to run. `dev` and `build` regenerate both Wasm modules and the preset metadata. Build them before running the Node harness tests from a clean checkout. The package embeds both binaries; consumers do not need Rust. The development viewer exposes every generator parameter, the material and scene rows through the same numeric controls, the five presets and the whole, bare, single-leaf and clay views, with a GPU timing session on the button beside them.
+The repository pins Rust in `rust-toolchain.toml`, and `render:build` checks the installed `wasm-bindgen` against the version the crate pins before it generates the glue - a mismatch fails with the command to run. `dev` and `build` regenerate both Wasm modules and the preset metadata. Build them before running the Node harness tests from a clean checkout. The package ships both binaries as their own files, `telperion.wasm` and `telperion-render.wasm`, fetched at run time from beside `dist/telperion.js`; consumers do not need Rust. The development viewer exposes every generator parameter, the material and scene rows through the same numeric controls, the five presets and the whole, bare, single-leaf and clay views, with a GPU timing session on the button beside them.
 
 A still without a browser, from the same renderer:
 

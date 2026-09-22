@@ -1,7 +1,7 @@
 import type { LeafReference } from "./leaf";
 import { specimenBinding, type SpecimenExports, type SpecimenHandle, type SpecimenSnapshot } from "./specimen";
-import wasmUrl from "./telperion.wasm?url";
 import { CATALOGUE, type Family } from "./presets.generated";
+import { wasmSource } from "../wasm-source";
 export type { Family } from "./presets.generated";
 
 export interface TreePreset extends Family { id: string; name: string; note: string }
@@ -114,7 +114,9 @@ export class TreeEngine {
   /** Drop the instance, allowing its linear memory to be reclaimed by the host. */
   dispose(): void { this.exports?.release(); this.exports = undefined; }
   static async create(source?: BufferSource | Response): Promise<TreeEngine> {
-    const input = source ?? await fetch(wasmUrl);
+    // The literal names the file for a consumer's bundler; the library build
+    // leaves it as it is (vite.config.ts) and ships the file beside this one.
+    const input = source ?? await wasmSource(new URL("./telperion.wasm", import.meta.url));
     if (input instanceof Response && !input.ok) throw Error(`Tree core load failed: HTTP ${input.status}`);
     const bytes = input instanceof Response ? await input.arrayBuffer() : input;
     const { instance } = await WebAssembly.instantiate(bytes, { env: { now: () => performance.now() } });

@@ -4,9 +4,9 @@
  * none of the wood surface, the leaf placement, the materials, the specimen
  * API or the JSON request path. The same file runs in a browser worker and in
  * Node: a caller passes the module's bytes, a Response or a compiled Module,
- * or leaves the source to `telperion-field.wasm` beside this file.
- *
- * This file imports nothing at run time, so Node loads it as it is. */
+ * or leaves the source to `telperion-field.wasm` beside this file, fetched
+ * in a browser and read from disk in Node. */
+import { wasmSource } from "../wasm-source";
 
 export interface Bounds { min: [number, number, number]; max: [number, number, number] }
 /** One batch query's answers, one entry per cell, as the core's field answers
@@ -48,9 +48,6 @@ interface Exports extends WebAssembly.Exports {
 }
 const FAMILY_ORDER = 0xffffffff;
 const U32 = 2 ** 32;
-// Held in a name so a bundler leaves the URL to run time: the Wasm ships as
-// its own file beside this one, never inlined as a data URL into the script.
-const WASM = "telperion-field.wasm";
 
 let bundled: Promise<WebAssembly.Module> | undefined;
 /** Compiles the slim Wasm once; a source given to every `growField` call is
@@ -58,10 +55,12 @@ let bundled: Promise<WebAssembly.Module> | undefined;
 export function compileField(source?: FieldSource): Promise<WebAssembly.Module> {
   if (source instanceof WebAssembly.Module) return Promise.resolve(source);
   if (source !== undefined) return compile(source);
-  bundled ??= compile(fetch(new URL(WASM, import.meta.url))).catch(error => { bundled = undefined; throw error; });
+  // The literal names the file for a consumer's bundler; the library build
+  // leaves it as it is (vite.config.ts) and ships the file beside this one.
+  bundled ??= compile(wasmSource(new URL("./telperion-field.wasm", import.meta.url))).catch(error => { bundled = undefined; throw error; });
   return bundled;
 }
-async function compile(source: BufferSource | Response | Promise<Response>): Promise<WebAssembly.Module> {
+async function compile(source: BufferSource | Response | Promise<BufferSource | Response>): Promise<WebAssembly.Module> {
   const input = await source;
   if (input instanceof Response) {
     if (!input.ok) throw Error(`Field core load failed: HTTP ${input.status}`);

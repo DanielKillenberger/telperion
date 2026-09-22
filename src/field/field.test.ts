@@ -41,6 +41,15 @@ describe("the slim field entry point", () => {
     expect(() => tree.query(g.cells)).toThrow("released");
   });
 
+  it("loads its Wasm from beside itself in Node when no source is given, as the main entry does", async () => {
+    const tree = await growField("ordinary", 5, { limbOrder: 1 });
+    expect(tree.bounds.max[1]).toBeGreaterThan(tree.bounds.min[1]);
+    tree.release();
+    const engine = await TreeEngine.create();
+    expect(engine.build(presetById("ordinary"), { structure: true }).diagnostics.nodes).toBeGreaterThan(0);
+    engine.dispose();
+  });
+
   it("refuses what the core refuses, whole", async () => {
     await expect(growField("no-such-tree", 1, { source })).rejects.toThrow("preset identity");
     await expect(growField("european-beech", 1, { source })).rejects.toThrow("preset identity");

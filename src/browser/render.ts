@@ -1,5 +1,4 @@
 import init, { WebRenderer } from "./render/telperion_render.js";
-import wasmUrl from "./render/telperion_render_bg.wasm?url";
 
 /* ------------------------------------------------------------------ *
  * THE RENDERER, AS A PAGE HOLDS IT
@@ -194,7 +193,9 @@ export interface Renderer {
  *  Rejects with the renderer's own words when there is no WebGPU, only a
  *  software adapter, or the device is refused. */
 export async function createRenderer(canvas: HTMLCanvasElement): Promise<Renderer> {
-  loading ??= init({ module_or_path: wasmUrl }).then(() => undefined);
+  // The literal names the module for a consumer's bundler; the library build
+  // leaves it as it is (vite.config.ts) and ships the file beside this one.
+  loading ??= init({ module_or_path: new URL("./telperion-render.wasm", import.meta.url) }).then(() => undefined);
   await loading;
 
   const resize = (): void => {

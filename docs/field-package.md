@@ -38,10 +38,11 @@ point. A batch whose length is not a multiple of four, or that holds a
 non-finite centre or a negative half extent, is refused whole and answers
 nothing.
 
-The same file runs in a browser worker and in Node. In the browser it
-fetches `telperion-field.wasm` from beside itself; a Node caller, or a page
-that keeps the module elsewhere, passes `source` (the bytes, a `Response` or
-a compiled `WebAssembly.Module`). `compileField(source)` compiles once for a
+The same file runs in a browser worker and in Node. Left to itself it loads
+`telperion-field.wasm` from beside itself, fetched in a browser and read from
+disk in Node, where the module's URL is a `file:` one; a caller that keeps
+the module elsewhere passes `source` (the bytes, a `Response` or a compiled
+`WebAssembly.Module`). `compileField(source)` compiles once for a
 caller that grows many trees. Each `growField` call owns its own Wasm
 instance, so releasing one tree touches no other.
 
