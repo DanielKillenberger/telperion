@@ -44,6 +44,15 @@ and caller mutations cannot change the CPU field. Extraction errors throw withou
 a partial snapshot; temporary Wasm staging is released after copying or failure.
 The giant snapshot alone is about 129 MB, so opt in only when needed.
 
+## The field package
+
+`npm install telperion` also ships the slim growth-and-field package: the
+`telperion/field` export grows a species at a seed and answers occupancy
+queries over it, and `telperion/field/voxelize` is an example reading of
+those answers as cubes. Both are built by `npm run build` into `dist`, with
+the slim Wasm beside `field.js`. [docs/field-package.md](docs/field-package.md)
+describes the entry point, the voxelizer's dials, and the Node smoke.
+
 ## Architecture
 
 The retained `branching::Specimen` owns scaffold and local frontiers. Nodes
