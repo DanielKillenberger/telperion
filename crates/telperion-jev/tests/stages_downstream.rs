@@ -406,6 +406,25 @@ fn a_one_row_table_files_missing_curve_and_the_other_dimension_still_fits() {
 }
 
 #[test]
+fn a_fit_with_no_curve_is_skipped_once_and_current_after() {
+    let mut manifest = manifest();
+    manifest["curves"] = Value::Null;
+    let dir = scratch_with("no-curve", 2, manifest);
+    assert!(matches!(
+        fit::run(&Paths::new(&dir)).unwrap(),
+        fit::Outcome::Skipped
+    ));
+    assert_eq!(
+        body_of(&dir, "fit")["skipped"],
+        "the manifest names no curve"
+    );
+    assert!(matches!(
+        fit::run(&Paths::new(&dir)).unwrap(),
+        fit::Outcome::Current
+    ));
+}
+
+#[test]
 fn an_unchanged_rerun_of_the_fit_is_current_and_writes_nothing_new() {
     let dir = scratch("current", 2);
     fit::run(&Paths::new(&dir)).unwrap();

@@ -87,3 +87,7 @@ The round-three visual pass on Opus came back complete (16 coverage rows, 12 fin
 ## 2026-09-22 — host: every owner decision in the loop must re-carry the pilot authority
 
 The priority approval was refused on the next start because a decision that does not carry `experimental_pilot` leaves the run without authority, by design (the fn-68 test names it); the same held after the dial-table repair and the recalibration, so the authority was rewritten five times in one afternoon, once per pause. Cost: about 15 minutes of resumes. What would have removed it: the pause's `decision_requested` naming that the authority must be re-carried, or the run keeping an authority whose identity and caps still match.
+
+## 2026-09-22 — host: a stage that wrote nothing was never current, so the conductor reran it on every step
+
+After fn-110 landed and the stages reran, every conductor step reported `fit: ran` and its next action stayed "stages from fit": the fit stage returns `Skipped` when the manifest names no curve, and wrote no record, so `is_current` never matched. Cost: about 15 minutes and a fix with a test (the skipped fit writes its record). What would have removed it: the stage contract saying every outcome leaves a record; the palm is the first species run whose manifest names no growth curve.
