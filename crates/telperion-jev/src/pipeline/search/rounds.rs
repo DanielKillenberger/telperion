@@ -104,6 +104,7 @@ pub fn gap_query(taxon: &str, field: &str, condition: &str, gap: &str, ages: &[f
         "wrong_taxon" => format!("\"{taxon}\" {what} at age, {grown}"),
         "no_mature_size" | "single_source" => format!("{taxon} mature {what}, typical range"),
         "bound_only" => format!("{taxon} typical mature {what}, not the maximum"),
+        "no_growth_rate" => format!("{taxon} {what}, cm or ft"),
         "unstated" => format!("{taxon} {what}"),
         _ => plain_query(taxon, field, condition),
     }
@@ -149,6 +150,16 @@ mod tests {
                 &[]
             ),
             "Phoenix dactylifera typical mature frond length, not the maximum"
+        );
+        assert_eq!(
+            gap_query(
+                "Phoenix dactylifera",
+                "height_growth_m_per_year",
+                "open_grown",
+                "no_growth_rate",
+                &[]
+            ),
+            "Phoenix dactylifera height growth rate per year, cm or ft"
         );
         assert_eq!(
             gap_query("Phoenix dactylifera", "bark_colour", "", "unstated", &[]),

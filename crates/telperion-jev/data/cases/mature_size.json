@@ -357,5 +357,59 @@
     "expect_gap": "no_mature_size",
     "holdout": true,
     "negative": true
+  },
+  {
+    "id": "palm-height-a1-listing",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "height_m",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "A1",
+        "sentence": "Date palms have a moderate growth rate of 30-45 cm (1 to 1.5 feet) a year, reaching 5 m (20 feet) in 15 to 20 years depending on the cultivar and soil and water conditions.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      },
+      {
+        "source": "A1",
+        "sentence": "* * * **Height:** 50 - 100 feet **Width:** 20 - 50 feet **Growth Rate:** Slow Growing **Grow Season:** Summer **Flower Season:** Summer **Color:** White **Function:** Accent **Spread:** Non-spreading **Allergen:** Non-allergenic **Invasive:** Benign **Toxicity:** Benign **Hardy:** Semi-hardy **Water Use:** Low water Use * * * **Citations:** 1.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 2,
+      "sources": 1
+    },
+    "expect_level": "partial",
+    "expect_gap": "single_source",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-dbh-a1-bound",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "dbh_m",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "A1",
+        "sentence": "The trunk has a characteristic diamond pattern and is rough gray and up to ½ m (18 inches) in diameter (1, 3).",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "proxy_only",
+    "expect_gap": "bound_only",
+    "holdout": false,
+    "negative": false
   }
 ]

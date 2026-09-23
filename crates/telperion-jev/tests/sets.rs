@@ -6,19 +6,21 @@ use telperion_jev::pipeline::sets::cases::run_pipeline_cases;
 use telperion_jev::pipeline::sets::{
     chosen_level, described_cases, described_questions, level_from_score, mature_cases,
     mature_questions, missed_ids, obligation_cases, obligation_questions, ranking_cases,
-    ranking_questions, set_version, sufficiency_cases, DescribedLevel, DESCRIBED_UNSTATED,
-    OBLIGATION_NAMES, RANKING_NONE, SUFFICIENCY_LEVELS,
+    ranking_questions, rate_cases, set_version, sufficiency_cases, DescribedLevel,
+    DESCRIBED_UNSTATED, OBLIGATION_NAMES, RANKING_NONE, SUFFICIENCY_LEVELS,
 };
 
 use common::{ledger_dir, CaseTransport};
 use telperion_jev::pipeline::requirements::table;
 
 /// Every base name the runner scores, labelled and held out.
-const SET_NAMES: [&str; 10] = [
+const SET_NAMES: [&str; 12] = [
     "sufficiency level",
     "sufficiency gap",
     "mature size level",
     "mature size gap",
+    "growth rate level",
+    "growth rate gap",
     "ranking source",
     "described level",
     "obligation inspected_image",
@@ -33,6 +35,7 @@ fn every_set_carries_its_version_and_its_cases_carry_the_fields_the_runner_reads
     for (name, version) in [
         ("sufficiency", 1),
         ("mature_size", 1),
+        ("growth_rate", 1),
         ("ranking", 1),
         ("described", 1),
         ("obligations", 2),
@@ -91,6 +94,7 @@ fn every_set_carries_its_version_and_its_cases_carry_the_fields_the_runner_reads
             "A1's sentences label {id}"
         );
     }
+    let rate = rate_cases();
     let ranking = ranking_cases();
     for case in &ranking {
         assert!(!case.candidates.is_empty(), "{}", case.id);
@@ -119,12 +123,18 @@ fn every_set_carries_its_version_and_its_cases_carry_the_fields_the_runner_reads
         assert!(level.is_some(), "{} names a level the table has", case.id);
     }
 
-    let counts: [(&str, usize, usize, usize); 7] = [
+    let counts: [(&str, usize, usize, usize); 8] = [
         (
             "mature_size",
             mature.len(),
             mature.iter().filter(|c| c.holdout).count(),
             mature.iter().filter(|c| c.negative).count(),
+        ),
+        (
+            "growth_rate",
+            rate.len(),
+            rate.iter().filter(|c| c.holdout).count(),
+            rate.iter().filter(|c| c.negative).count(),
         ),
         (
             "sufficiency",

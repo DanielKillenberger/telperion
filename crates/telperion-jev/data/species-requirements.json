@@ -1,17 +1,18 @@
 {
-  "version": 1,
-  "set_from": "fn-118 host design of 2026-09-23: the fields a manifest at schema_version 2 must ask the literature for, per growth form, and the lowest sufficiency bar each must reach. The bar is this table's, not the manifest author's. Size fields at partial where the literature publishes sizes at age (height, trunk diameter); crown and organ sizes at proxy_only. Each appearance trait's levels are coarse named ranges of the MaterialParams fields it feeds, in linear reflectance for colours, BRDF roughness for bark roughness and offsets about no change for the hue and brightness ranges; the no-match level `unstated` is appended by code. fn-127 (2026-09-23): crown width and the organ sizes are `mature`, judged on a stated mature value or range with no required age; height and trunk diameter stay age-indexed. fn-128 (2026-09-23): each appearance trait carries the words a source sentence must hold to be judged for it; each such sentence is judged alone. fn-131 (2026-09-23): each field names the screen kinds a row must carry to count for it, an organ size by its organ class and a named cultivar's size toward the species; a term matches a whole word or its plural, and height counts a size a tree reaches.",
+  "version": 2,
+  "set_from": "fn-118 host design of 2026-09-23: the fields a manifest at schema_version 2 must ask the literature for, per growth form, and the lowest sufficiency bar each must reach. The bar is this table's, not the manifest author's. Size fields at partial where the literature publishes sizes at age (height, trunk diameter); crown and organ sizes at proxy_only. Each appearance trait's levels are coarse named ranges of the MaterialParams fields it feeds, in linear reflectance for colours, BRDF roughness for bark roughness and offsets about no change for the hue and brightness ranges; the no-match level `unstated` is appended by code. fn-127 (2026-09-23): crown width and the organ sizes are `mature`, judged on a stated mature value or range with no required age; height and trunk diameter stay age-indexed. fn-128 (2026-09-23): each appearance trait carries the words a source sentence must hold to be judged for it; each such sentence is judged alone. fn-131 (2026-09-23): each field names the screen kinds a row must carry to count for it, an organ size by its organ class and a named cultivar's size toward the species; a term matches a whole word or its plural, and height counts a size a tree reaches. fn-132 (2026-09-23, the owner's choice for palms): a field is asked one of three ways, `age` (sizes at the required ages, the default), `mature` (a stated mature value or range) or `rate` (a stated growth rate, a size per year); a growth form may ask a field otherwise than the field's own way. The palm asks its height growth rate and its mature height and trunk diameter, since palm literature gives growth rates and mature ranges and a palm grows near-linearly; its trunk diameter bar is proxy_only, because the only trunk sentence the literature gives is a bound (A1: up to ½ m). Broadleaf and conifer keep height and trunk diameter at age.",
   "fields": {
     "height_m": {"terms": ["height", "tall", "high", "reaches", "reaching", "grows to"], "kinds": ["measured_size_at_age", "mature_size_range", "cultivar_size"]},
     "dbh_m": {"terms": ["diameter", "dbh", "trunk", "girth", "dg"], "kinds": ["measured_size_at_age", "mature_size_range", "cultivar_size"]},
-    "crown_width_m": {"terms": ["crown", "spread", "width", "wide"], "mature": true, "kinds": ["measured_size_at_age", "mature_size_range", "cultivar_size"]},
+    "crown_width_m": {"terms": ["crown", "spread", "width", "wide"], "asked": "mature", "kinds": ["measured_size_at_age", "mature_size_range", "cultivar_size"]},
     "crown_base_m": {"terms": ["crown base", "clear bole", "lowest branch", "bole"], "kinds": ["measured_size_at_age", "mature_size_range", "cultivar_size"]},
-    "leaf_length_m": {"terms": ["leaf", "leaves", "blade"], "mature": true, "kinds": ["leaf_size", "cultivar_size"]},
-    "leaf_width_m": {"terms": ["leaf", "leaves", "blade"], "mature": true, "kinds": ["leaf_size", "cultivar_size"]},
-    "needle_length_m": {"terms": ["needle"], "mature": true, "kinds": ["needle_size", "cultivar_size"]},
-    "frond_length_m": {"terms": ["frond", "leaf", "leaves"], "mature": true, "kinds": ["frond_size", "cultivar_size"]},
-    "leaflet_length_m": {"terms": ["leaflet", "pinna", "pinnae"], "mature": true, "kinds": ["leaflet_size", "cultivar_size"]},
-    "leaflet_width_m": {"terms": ["leaflet", "pinna", "pinnae"], "mature": true, "kinds": ["leaflet_size", "cultivar_size"]}
+    "leaf_length_m": {"terms": ["leaf", "leaves", "blade"], "asked": "mature", "kinds": ["leaf_size", "cultivar_size"]},
+    "leaf_width_m": {"terms": ["leaf", "leaves", "blade"], "asked": "mature", "kinds": ["leaf_size", "cultivar_size"]},
+    "needle_length_m": {"terms": ["needle"], "asked": "mature", "kinds": ["needle_size", "cultivar_size"]},
+    "frond_length_m": {"terms": ["frond", "leaf", "leaves"], "asked": "mature", "kinds": ["frond_size", "cultivar_size"]},
+    "leaflet_length_m": {"terms": ["leaflet", "pinna", "pinnae"], "asked": "mature", "kinds": ["leaflet_size", "cultivar_size"]},
+    "leaflet_width_m": {"terms": ["leaflet", "pinna", "pinnae"], "asked": "mature", "kinds": ["leaflet_size", "cultivar_size"]},
+    "height_growth_m_per_year": {"terms": ["growth rate", "a year", "per year", "per annum", "annually", "each year", "yearly"], "asked": "rate", "kinds": ["typical_growth_rate"]}
   },
   "appearance": {
     "bark_colour": {
@@ -85,7 +86,8 @@
       "appearance": ["bark_colour", "bark_roughness", "leaf_front_colour", "leaf_back_colour", "leaf_hue_range", "leaf_brightness_range"]
     },
     "palm": {
-      "fields": {"height_m": "partial", "dbh_m": "partial", "crown_width_m": "proxy_only", "frond_length_m": "proxy_only", "leaflet_length_m": "proxy_only", "leaflet_width_m": "proxy_only"},
+      "fields": {"height_m": "partial", "height_growth_m_per_year": "partial", "dbh_m": "proxy_only", "crown_width_m": "proxy_only", "frond_length_m": "proxy_only", "leaflet_length_m": "proxy_only", "leaflet_width_m": "proxy_only"},
+      "asked": {"height_m": "mature", "dbh_m": "mature"},
       "appearance": ["bark_colour", "bark_roughness", "leaf_front_colour", "leaf_back_colour", "leaf_hue_range", "leaf_brightness_range"]
     }
   }

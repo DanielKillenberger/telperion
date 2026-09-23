@@ -7,3 +7,5 @@ include!("tree_digest.rs");
 
 /// `tree_digest` of this crate as it was compiled.
 pub const BUILD_ID: &str = env!("TELPERION_JEV_BUILD");
+/// The tool name a stage header records the build under.
+pub const BUILD_TOOL: &str = "species-pipeline-build";

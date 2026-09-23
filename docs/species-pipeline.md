@@ -195,20 +195,44 @@ ash's or a test fixture, loads unchanged.
   same way.
 - **Size fields** are ordinary `fields` entries. Height and trunk diameter
   carry the bar `partial`; the crown and organ sizes (crown width and base,
-  leaf, needle, frond and leaflet sizes) carry `proxy_only`. The table also
-  holds the words a sentence must contain to count as a point for each field.
+  leaf, needle, frond and leaflet sizes) carry `proxy_only`. The palm's
+  trunk diameter carries `proxy_only` too (fn-132): the only trunk sentence
+  its literature gives is a bound. The table also holds the words a
+  sentence must contain to count as a point for each field.
+- **How a field is asked** (fn-132). Each field is asked one of three ways:
+  `age`, sizes at the manifest's required ages (the default); `mature`, a
+  stated mature value or range; or `rate`, a stated growth rate, a size per
+  year. A growth form may ask a field otherwise than the field's own way,
+  under `asked` in its row. Broadleaf and conifer ask height and trunk
+  diameter at 20, 50 and 80 years. Palm literature gives growth rates, a
+  few age classes and mature ranges, and a palm grows near-linearly, so the
+  palm asks `height_growth_m_per_year` as a rate and height and trunk
+  diameter as mature sizes. A field asked at no age needs no
+  `required_ages_years`; an empty or absent list is admitted, and a listed
+  age is ignored.
+- **Growth rates** (fn-132). A rate field counts the screen's
+  `typical_growth_rate` rows that carry one of its words ("a year", "per
+  year", "growth rate"). The growth-rate set scores a stated yearly rate for
+  the taxon on the same four levels, with its own gap (`no_growth_rate`,
+  `wrong_taxon`, `single_source`, `none`); a rate stated in words only, such
+  as "slow growing", is `none`. Select fills a rate in metres a year
+  (`m/yr`): the palm's A1 and P5 both state "30-45 cm (1 to 1.5 feet) a
+  year", 0.30 to 0.45 m a year.
 - **Mature sizes.** The table marks crown width and the leaf, needle, frond
-  and leaflet sizes `mature`. Height, trunk diameter and crown base stay
-  age-indexed. A mature field needs no `required_ages_years`; an empty or
-  absent list is admitted, and a listed age is ignored. `quality` lays out
+  and leaflet sizes `mature`, and the palm's height and trunk diameter. `quality` lays out
   the rows the field can use (below). The mature-size set then scores a
   stated mature value or range for the taxon on the same four levels, with
   its own gap. A single source that states the size reaches `partial`; a
   bound such as "up to" reaches `proxy_only`. On the palm's first live run,
   A1's "The leaflets are ½ m (18 inches) long" and "**Width:** 20 - 50 feet"
-  scored `none` under the age question; they are now labelled cases. A
-  mature field whose gap is `no_mature_size` fails its bar whatever level
-  was scored, and a required one files `requirements-unmet`.
+  scored `none` under the age question; they are now labelled cases.
+- **The gap follows the level** (fn-132). A field asked at no age whose
+  gap says no value is stated (`no_mature_size`, `no_growth_rate`) fails its
+  bar, and a required one files `requirements-unmet`. A level of `partial`
+  or `sufficient` finds the value stated, so beside it that gap is replaced
+  by the level's own: `single_source` for `partial`, `none` for
+  `sufficient`. On the palm's rerun after fn-131 the leaflet length and
+  width were `sufficient` on 7 points each and failed on `no_mature_size`.
 - **The rows a field can use** (fn-131). The screen gives an organ size its
   own class (`leaf_size`, `leaflet_size`, `frond_size`, `needle_size`,
   `cone_size`) and a named cultivar's size `cultivar_size`, which counts
@@ -232,7 +256,8 @@ ash's or a test fixture, loads unchanged.
   only as "in." or spelled out. A required field select leaves unfilled
   files `requirements-unmet`, which `search-again` takes like quality's.
 - **Levels are choices** (fn-131). An appearance, described, sufficiency or
-  mature-size level is the level Jev gave the highest probability, never
+  mature-size or growth-rate level is the level Jev gave the highest
+  probability, never
   the rounded average; `unstated` (or `none`) wins a tie. An appearance or
   described level below `level_floor` is `unstated`. The live palm's
   `leaf_back_colour` had come out `silvery_white` and its
@@ -440,7 +465,8 @@ The query aims at the decision's dominant gap: `no_age_indexed_points` asks
 for the field at stated ages (`Phoenix dactylifera height at stated ages in
 years, open grown`), `age_range_uncovered` names the uncovered ages,
 `wrong_condition` the condition, `wrong_taxon` quotes the taxon, and a
-mature field's gap asks for the typical mature size, and a trait's query
+mature field's gap asks for the typical mature size, `no_growth_rate` for
+the rate in centimetres or feet, and a trait's query
 is the trait in words (`Phoenix dactylifera bark colour`). Every URL the
 manifest holds or an earlier round tried is left out, Jev ranks the rest,
 and the chosen source is admitted when its rights class admits. For a
@@ -698,9 +724,11 @@ never part of the workspace test commands.
 
 ## The question sets
 
-Seven versioned sets under `crates/telperion-jev/data/questions`: source
+Eight versioned sets under `crates/telperion-jev/data/questions`: source
 ranking per field, data sufficiency per field with its dominant gap, the
-mature size of a `mature` field with its gap, described
+mature size of a `mature` field with its gap, the growth rate of a `rate`
+field with its gap (fn-132, labelled on the palm's A1 and P5 rate
+sentences), described
 level scoring over levels a person wrote, the semantic obligations
 (`inspected_image`, `measurement_not_invention`, `appearance_supported`),
 a proposed source's rights class, and the gap loop's options.

@@ -3,7 +3,7 @@
 //! Each set is versioned JSON under `data/questions`, its labelled cases are
 //! JSON under `data/cases`, and every question offers a no-match answer:
 //! `none` for the ranking Choice and the dominant gap, the `none` level for
-//! sufficiency and the mature size, the trailing `unstated` level for a described trait, and the
+//! sufficiency, the mature size and the growth rate (fn-132), the trailing `unstated` level for a described trait, and the
 //! false criterion of each obligation Noul, the appearance support among them (fn-128). Code lays out the state and owns
 //! every count; Jev only picks a level, a candidate or a side.
 //!
@@ -21,11 +21,13 @@ use serde_json::{json, Map, Value};
 
 pub const SUFFICIENCY_JSON: &str = include_str!("../../data/questions/sufficiency.json");
 pub const MATURE_JSON: &str = include_str!("../../data/questions/mature_size.json");
+pub const RATE_JSON: &str = include_str!("../../data/questions/growth_rate.json");
 pub const RANKING_JSON: &str = include_str!("../../data/questions/ranking.json");
 pub const DESCRIBED_JSON: &str = include_str!("../../data/questions/described.json");
 pub const OBLIGATIONS_JSON: &str = include_str!("../../data/questions/obligations.json");
 pub const SUFFICIENCY_CASES: &str = include_str!("../../data/cases/sufficiency.json");
 pub const MATURE_CASES: &str = include_str!("../../data/cases/mature_size.json");
+pub const RATE_CASES: &str = include_str!("../../data/cases/growth_rate.json");
 pub const RANKING_CASES: &str = include_str!("../../data/cases/ranking.json");
 pub const DESCRIBED_CASES: &str = include_str!("../../data/cases/described.json");
 pub const OBLIGATION_CASES: &str = include_str!("../../data/cases/obligations.json");
@@ -52,6 +54,7 @@ pub fn set_version(name: &str) -> u32 {
     let raw = match name {
         "sufficiency" => SUFFICIENCY_JSON,
         "mature_size" => MATURE_JSON,
+        "growth_rate" => RATE_JSON,
         "ranking" => RANKING_JSON,
         "described" => DESCRIBED_JSON,
         "obligations" => OBLIGATIONS_JSON,
@@ -76,6 +79,16 @@ pub fn mature_questions() -> Value {
     json!({
         "mature_size": raw["mature_size"],
         "mature_gap": raw["mature_gap"],
+    })
+}
+
+/// Growth-rate Score over the same four levels, and its gap Choice
+/// (fn-132): a stated yearly rate for the taxon, with no age asked.
+pub fn rate_questions() -> Value {
+    let raw = parse(RATE_JSON, "growth_rate.json");
+    json!({
+        "growth_rate": raw["growth_rate"],
+        "rate_gap": raw["rate_gap"],
     })
 }
 
@@ -197,6 +210,9 @@ pub struct MatureCase {
     pub negative: bool,
 }
 
+/// A growth-rate case (fn-132) lays out the same state as a mature-size one.
+pub type RateCase = MatureCase;
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct RankingCandidate {
     pub id: String,
@@ -273,6 +289,10 @@ pub fn sufficiency_cases() -> Vec<SufficiencyCase> {
 
 pub fn mature_cases() -> Vec<MatureCase> {
     serde_json::from_str(MATURE_CASES).expect("mature size cases")
+}
+
+pub fn rate_cases() -> Vec<RateCase> {
+    serde_json::from_str(RATE_CASES).expect("growth rate cases")
 }
 
 pub fn ranking_cases() -> Vec<RankingCase> {

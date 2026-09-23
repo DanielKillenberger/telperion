@@ -131,6 +131,10 @@ pub struct Run {
     /// The fingerprint the stages were last found current under.
     #[serde(default)]
     pub stage_fingerprint: Option<String>,
+    /// The pipeline build the stages last ran at (fn-132): stages a code
+    /// change left stale rerun once per build, before a search or a pause.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stages_build: Option<String>,
 }
 
 impl Run {
@@ -164,6 +168,7 @@ impl Run {
             authorizations: Vec::new(),
             gap_checks: BTreeMap::new(),
             stage_fingerprint: None,
+            stages_build: None,
         }
     }
 

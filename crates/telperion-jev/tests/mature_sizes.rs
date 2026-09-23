@@ -84,7 +84,7 @@ fn manifest(ages: Value) -> Value {
         "preset": "date-palm", "profile_id": "date-palm", "seed": 7,
         "sources": [{"id": "A1", "url": "https://example.test/a1", "title": "UA Campus Arboretum", "rights": "cited"}],
         "fields": fields, "appearance": appearance,
-        "versions": {"question_sets": {"sufficiency": 1, "mature_size": 1}, "tools": {}},
+        "versions": {"question_sets": {"sufficiency": 1, "mature_size": 1, "growth_rate": 1}, "tools": {}},
         "model": "jev-latest"
     })
 }
@@ -148,12 +148,15 @@ fn a_mature_field_reaches_its_bar_from_a_stated_mature_size_with_or_without_an_a
         }
         // A1 states the leaflet's length, never its width.
         assert_eq!(fields["leaflet_width_m"]["level"], "none", "{ages}");
-        // Height and trunk diameter stay age-indexed.
-        assert_eq!(fields["height_m"]["dominant_gap"], "no_age_indexed_points");
+        // The palm asks height and trunk diameter mature (fn-132), whatever
+        // ages the manifest lists; A1 bounds the trunk, which the row's bar
+        // takes.
+        assert_eq!(fields["height_m"]["dominant_gap"], "single_source");
+        assert_eq!(fields["dbh_m"]["level"], "proxy_only");
+        assert_eq!(fields["height_growth_m_per_year"]["passed"], true);
         assert_eq!(
             decisions,
-            ["dbh_m", "height_m", "leaflet_width_m"]
-                .map(|f| format!("date-palm/quality/requirements-unmet/{f}")),
+            ["date-palm/quality/requirements-unmet/leaflet_width_m"],
             "{ages}"
         );
     }

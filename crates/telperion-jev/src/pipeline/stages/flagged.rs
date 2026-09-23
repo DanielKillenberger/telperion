@@ -12,7 +12,7 @@ use serde_json::{json, Value};
 use crate::pipeline::canon::canonical_sha256;
 use crate::pipeline::consume::{sources_sha256, REQUIREMENTS_UNMET};
 use crate::pipeline::decision::{Decision, DecisionParts};
-use crate::pipeline::requirements::is_mature;
+use crate::pipeline::requirements::{asked, Asked};
 use crate::pipeline::stage::{Context, StageError};
 
 use super::select::STAGE;
@@ -88,8 +88,11 @@ pub fn unmet(
     let manifest = &ctx.admitted.manifest;
     let gap = match quality["dominant_gap"].as_str() {
         Some(gap) if gap != "none" => gap,
-        _ if is_mature(manifest, field) => "no_mature_size",
-        _ => "no_age_indexed_points",
+        _ => match asked(manifest, field) {
+            Asked::Age => "no_age_indexed_points",
+            Asked::Mature => "no_mature_size",
+            Asked::Rate => "no_growth_rate",
+        },
     };
     let sources: Vec<&str> = manifest.sources.iter().map(|s| s.id.as_str()).collect();
     Ok(Decision::new(

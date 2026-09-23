@@ -268,9 +268,9 @@ pub fn validate(m: &Manifest) -> Result<(), ManifestError> {
         }
     }
     for field in &m.fields {
-        // A mature size (fn-127) is judged on a stated mature value, at no age.
-        if field.required_ages_years.is_empty() && !super::requirements::is_mature(m, &field.field)
-        {
+        // A mature size (fn-127) or a growth rate (fn-132) is asked at no age.
+        let at_age = super::requirements::asked(m, &field.field) == super::requirements::Asked::Age;
+        if field.required_ages_years.is_empty() && at_age {
             return bad(format!("field {} names no required age", field.field));
         }
         if let Some(proxy) = &field.proxy {

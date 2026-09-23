@@ -46,7 +46,16 @@ Code owns stage eligibility, the spend record, any cap a config sets,
 dispatch tracking and resume. The
 stages carry their own idempotence keys, so the conductor runs them in order
 and a current stage does nothing; a full pass records a fingerprint of the
-manifest, the resolutions and every landed fix, and a landing expires it. An
+manifest, the resolutions and every landed fix, and a landing expires it.
+A stage whose artifact records a pipeline build other than the current one
+had its key expired by a code change (fn-132). The conductor reruns the
+stages from the first such stage before it searches again or pauses for the
+owner on a literature decision, once per build: a stage that stops leaves
+its artifact stale, and the run moves on rather than rerunning it. On the
+palm's rerun after fn-130 and fn-131 the conductor searched while `fetch` to
+`verify` still carried the old build, and two empty rounds went to the owner
+before the stages had read P8's raw body. An artifact that records no build
+predates the build id and is left to the fingerprint. An
 open decision is the gap loop's (`onboarding-gate`, `level-miss`), the cheap
 agent's under the policy's `decisions.routine` list (a source to retry or
 replace, a table to accept, an article sentence to recite or rewrite), the

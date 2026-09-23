@@ -3,7 +3,7 @@
 //! Every judged question is scored twice: once over the labelled cases that
 //! tuned its wording, once over the held-out cases. R7's bound is 0.9 accuracy
 //! for the sufficiency level, the dominant gap, the mature size and its gap
-//! (fn-127), the described level and each obligation (the appearance support
+//! (fn-127), the growth rate and its gap (fn-132), the described level and each obligation (the appearance support
 //! among them, fn-128) and the rights class (fn-129), and 0.8 top-one agreement with the
 //! person's admitted source for ranking. `format_scores` prints the confidence spread of each.
 
@@ -12,8 +12,8 @@ use std::path::Path;
 use super::{
     appearance_state, chosen_level, described_questions, described_state, inspected_image_state,
     mature_questions, mature_state, measurement_state, obligation_questions, ranking_questions,
-    ranking_state, sufficiency_questions, sufficiency_state, DESCRIBED_UNSTATED, RANKING_NONE,
-    SUFFICIENCY_LEVELS,
+    ranking_state, rate_questions, sufficiency_questions, sufficiency_state, DESCRIBED_UNSTATED,
+    RANKING_NONE, SUFFICIENCY_LEVELS,
 };
 use crate::caller::{evaluate, CallerError, EvaluateRequest, Transport};
 use crate::cases::{CaseRow, SetScore};
@@ -32,13 +32,15 @@ pub fn run_pipeline_cases(
     let (levels, gaps) = run_sufficiency(transport, key, ledger_dir)?;
     let mut out = split("sufficiency level", levels, thresholds().accuracy_bar);
     out.extend(split("sufficiency gap", gaps, thresholds().accuracy_bar));
-    let (levels, gaps) = run_mature(transport, key, ledger_dir)?;
-    out.extend(split(
-        "mature size level",
-        levels,
-        thresholds().accuracy_bar,
-    ));
-    out.extend(split("mature size gap", gaps, thresholds().accuracy_bar));
+    let stated = [
+        (super::mature_cases(), mature_questions(), MATURE),
+        (super::rate_cases(), rate_questions(), RATE),
+    ];
+    for (cases, questions, names) in stated {
+        let (levels, gaps) = run_stated(transport, key, ledger_dir, cases, &questions, &names)?;
+        out.extend(split(names.level_set, levels, thresholds().accuracy_bar));
+        out.extend(split(names.gap_set, gaps, thresholds().accuracy_bar));
+    }
     out.extend(split(
         "ranking source",
         run_ranking(transport, key, ledger_dir)?,
@@ -154,34 +156,41 @@ fn run_sufficiency(
     )
 }
 
-fn run_mature(
+/// A set judged on a stated value with no age: the mature size (fn-127)
+/// and the growth rate (fn-132) lay out the same state.
+fn run_stated(
     transport: &dyn Transport,
     key: &str,
     ledger_dir: &Path,
+    cases: Vec<super::MatureCase>,
+    questions: &serde_json::Value,
+    names: &LevelledSet,
 ) -> Result<(Rows, Rows), CallerError> {
-    let cases = super::mature_cases().into_iter().map(|case| Levelled {
+    let cases = cases.into_iter().map(|case| Levelled {
         state: mature_state(&case),
         id: case.id,
         level: case.expect_level,
         gap: case.expect_gap,
         holdout: case.holdout,
     });
-    let names = LevelledSet {
-        tool: "mature_size",
-        score: "mature_size",
-        gap: "mature_gap",
-        level_set: "mature size level",
-        gap_set: "mature size gap",
-    };
-    run_levelled(
-        transport,
-        key,
-        ledger_dir,
-        &mature_questions(),
-        &names,
-        cases,
-    )
+    run_levelled(transport, key, ledger_dir, questions, names, cases)
 }
+
+const MATURE: LevelledSet = LevelledSet {
+    tool: "mature_size",
+    score: "mature_size",
+    gap: "mature_gap",
+    level_set: "mature size level",
+    gap_set: "mature size gap",
+};
+
+const RATE: LevelledSet = LevelledSet {
+    tool: "growth_rate",
+    score: "growth_rate",
+    gap: "rate_gap",
+    level_set: "growth rate level",
+    gap_set: "growth rate gap",
+};
 
 /// Asks every case of a four-level Score with its gap Choice and scores the
 /// level and the gap as two sets.

@@ -1,0 +1,290 @@
+[
+  {
+    "id": "palm-rate-a1",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "height_growth_m_per_year",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "A1",
+        "sentence": "Date palms have a moderate growth rate of 30-45 cm (1 to 1.5 feet) a year, reaching 5 m (20 feet) in 15 to 20 years depending on the cultivar and soil and water conditions.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "partial",
+    "expect_gap": "single_source",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-rate-p5",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "height_growth_m_per_year",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "P5",
+        "sentence": "htm#Bibliography) Growth rate Very slow grower; grows at the rate of 1-1.5 ft (30-45 cm) a year [3](https://www.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "partial",
+    "expect_gap": "single_source",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-rate-a1-p5",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "height_growth_m_per_year",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "A1",
+        "sentence": "Date palms have a moderate growth rate of 30-45 cm (1 to 1.5 feet) a year, reaching 5 m (20 feet) in 15 to 20 years depending on the cultivar and soil and water conditions.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      },
+      {
+        "source": "P5",
+        "sentence": "htm#Bibliography) Growth rate Very slow grower; grows at the rate of 1-1.5 ft (30-45 cm) a year [3](https://www.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 2,
+      "sources": 2
+    },
+    "expect_level": "sufficient",
+    "expect_gap": "none",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-rate-a1-p5-f1",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "height_growth_m_per_year",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "A1",
+        "sentence": "Date palms have a moderate growth rate of 30-45 cm (1 to 1.5 feet) a year, reaching 5 m (20 feet) in 15 to 20 years depending on the cultivar and soil and water conditions.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      },
+      {
+        "source": "F1",
+        "sentence": "Date palm is slow growing and requires full sun for optimal growth; it can reach heights up to 80 feet.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      },
+      {
+        "source": "P5",
+        "sentence": "htm#Bibliography) Growth rate Very slow grower; grows at the rate of 1-1.5 ft (30-45 cm) a year [3](https://www.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 3,
+      "sources": 3
+    },
+    "expect_level": "sufficient",
+    "expect_gap": "none",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-rate-listing-words-only",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "height_growth_m_per_year",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "A1",
+        "sentence": "* * * **Height:** 50 - 100 feet **Width:** 20 - 50 feet **Growth Rate:** Slow Growing **Grow Season:** Summer **Flower Season:** Summer **Color:** White **Function:** Accent **Spread:** Non-spreading **Allergen:** Non-allergenic **Invasive:** Benign **Toxicity:** Benign **Hardy:** Semi-hardy **Water Use:** Low water Use * * * **Citations:** 1.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "none",
+    "expect_gap": "no_growth_rate",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "palm-rate-f1-slow-growing",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "height_growth_m_per_year",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "F1",
+        "sentence": "Date palm is slow growing and requires full sun for optimal growth; it can reach heights up to 80 feet.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "none",
+    "expect_gap": "no_growth_rate",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "palm-rate-p8-mature-height",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "height_growth_m_per_year",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "P8",
+        "sentence": "Likewise, Date palm is a large deep rooted tree which its height ranges from 15 to 25 m.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "none",
+    "expect_gap": "no_growth_rate",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "palm-rate-nursery-seedlings",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "height_growth_m_per_year",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "N1",
+        "sentence": "Seedlings in the nursery grow about 15 cm (6 inches) a year until they are planted out.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "proxy_only",
+    "expect_gap": "wrong_taxon",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-rate-washingtonia-proxy",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "height_growth_m_per_year",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "W1",
+        "sentence": "Mexican fan palms grow quickly, about 60 to 90 cm (2 to 3 feet) a year.",
+        "condition": "unstated",
+        "taxon": "Washingtonia robusta"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "proxy_only",
+    "expect_gap": "wrong_taxon",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "palm-rate-p5-beside-listing",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "height_growth_m_per_year",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "A1",
+        "sentence": "* * * **Height:** 50 - 100 feet **Width:** 20 - 50 feet **Growth Rate:** Slow Growing **Grow Season:** Summer **Flower Season:** Summer **Color:** White **Function:** Accent **Spread:** Non-spreading **Allergen:** Non-allergenic **Invasive:** Benign **Toxicity:** Benign **Hardy:** Semi-hardy **Water Use:** Low water Use * * * **Citations:** 1.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      },
+      {
+        "source": "P5",
+        "sentence": "htm#Bibliography) Growth rate Very slow grower; grows at the rate of 1-1.5 ft (30-45 cm) a year [3](https://www.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 2,
+      "sources": 2
+    },
+    "expect_level": "partial",
+    "expect_gap": "single_source",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "palm-rate-p8-height-ratio",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "height_growth_m_per_year",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "P8",
+        "sentence": "The Ht and CD values of date palm trees older than 20 years were 1.26 and 1.65 times greater than those of date palm trees in 1st age class, respectively.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "none",
+    "expect_gap": "no_growth_rate",
+    "holdout": true,
+    "negative": true
+  }
+]

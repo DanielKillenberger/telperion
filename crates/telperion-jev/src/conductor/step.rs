@@ -13,6 +13,7 @@ use super::plan::{self, Next};
 use super::questions::Asker;
 use super::state::Run;
 use super::{dependency, handoff, now, packet, Config, Result};
+use crate::pipeline::build_id::BUILD_ID;
 use crate::pipeline::canon::{canonical_sha256, read_json};
 use crate::pipeline::decision::read_decisions;
 use crate::pipeline::search;
@@ -112,6 +113,7 @@ impl Executor for LiveExecutor {
 /// Runs the stages from `from` in order; stops at the first that stops.
 fn stages(config: &Config, run: &mut Run, executor: &dyn Executor, from: &str) -> Result<String> {
     let start = STAGES.iter().position(|s| *s == from).unwrap_or(0);
+    run.stages_build = Some(BUILD_ID.into());
     let mut words = Vec::new();
     for stage in &STAGES[start..] {
         match executor.stage(config, stage) {

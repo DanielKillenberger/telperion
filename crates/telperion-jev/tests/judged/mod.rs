@@ -67,7 +67,7 @@ pub fn manifest() -> Value {
         "preset": "date-palm", "profile_id": "date-palm", "seed": 7,
         "sources": (["A1", "F1", "M1", "P4", "P5"].map(source)),
         "fields": fields, "appearance": appearance,
-        "versions": {"question_sets": {"sufficiency": 1, "mature_size": 1}, "tools": {}},
+        "versions": {"question_sets": {"sufficiency": 1, "mature_size": 1, "growth_rate": 1}, "tools": {}},
         "model": "jev-latest"
     })
 }
@@ -97,8 +97,8 @@ pub fn score(probabilities: Value, score: f64) -> Value {
     json!({"type": "score", "score": score, "confidence": 0.5, "probabilities": probabilities})
 }
 
-/// Jev as each test states it. Every mature field is `partial` with no gap,
-/// every age-indexed one `none`; each span question is answered by
+/// Jev as each test states it. Every mature field and growth rate is
+/// `partial` with no gap, every age-indexed one `none`; each span question is answered by
 /// `pick(field, candidates)` at `confidence`.
 pub struct Palm {
     pub pick: fn(&str, &[String]) -> Option<String>,
@@ -134,6 +134,9 @@ impl Transport for Palm {
         let answers = if questions.get("mature_size").is_some() {
             json!({"mature_size": score(json!({"0": 0.02, "1": 0.03, "2": 0.9, "3": 0.05}), 2.0),
                    "mature_gap": {"type": "choice", "choice": "none", "confidence": 0.9, "probabilities": {"none": 0.9}}})
+        } else if questions.get("growth_rate").is_some() {
+            json!({"growth_rate": score(json!({"0": 0.02, "1": 0.03, "2": 0.9, "3": 0.05}), 2.0),
+                   "rate_gap": {"type": "choice", "choice": "none", "confidence": 0.9, "probabilities": {"none": 0.9}}})
         } else if questions.get("sufficiency").is_some() {
             json!({"sufficiency": score(json!({"0": 0.9, "1": 0.1, "2": 0.0, "3": 0.0}), 0.1),
                    "dominant_gap": {"type": "choice", "choice": "no_age_indexed_points", "confidence": 0.9, "probabilities": {}}})

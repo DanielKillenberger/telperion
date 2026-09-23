@@ -19,7 +19,7 @@ use crate::pipeline::canon::write_canonical;
 use crate::pipeline::decision::{append_decisions, retire_unfiled};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::{Described, Manifest};
-use crate::pipeline::requirements::required_bar;
+use crate::pipeline::requirements::{asked, required_bar, Asked};
 use crate::pipeline::sets::DescribedLevel;
 use crate::pipeline::stage::{Context, Paths, StageError};
 
@@ -67,7 +67,11 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
             unavailable.insert(field.field.clone(), json!("below the data-quality bar"));
             continue;
         }
-        let (picked, identity) = pick(judge, field, &screen)?;
+        let unit = match asked(manifest, &field.field) {
+            Asked::Rate => "m/yr",
+            _ => "m",
+        };
+        let (picked, identity) = pick(judge, field, unit, &screen)?;
         header.ledger.extend(identity);
         let (reason, search) = match picked {
             Pick::Filled(metric, entry) => match flags.get(&pointer).filter(|f| f.names(&entry)) {

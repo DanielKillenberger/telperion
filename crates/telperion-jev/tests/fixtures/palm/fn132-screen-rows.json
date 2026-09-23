@@ -1,0 +1,261 @@
+{
+  "_note": "fn-132: the date palm's screened size and rate rows from the fn-80 live run (screen.json after fn-131), copied as the screen holds them; the not-about-size rows are left out.",
+  "rows": [
+    {
+      "source": "A1",
+      "sentence": "edu/tours/trees-around-world-tour) **Botanical Name:** Phoenix dactylifera **Sub Species:** **Variety:** **Forma:** **Cultivar:** **Characteristics:** The date palm is an upright, evergreen tree growing up to 35 m (110 feet) tall (5).",
+      "kind": "mature_size_range",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "5bd0217d67761bcb14e4e0e8"
+    },
+    {
+      "source": "A1",
+      "sentence": "After the first 6 to 16 years, they may produce offshoots at the base of the trunk and grow shorter than 35 m, they typically have a single trunk in cultivation (3, 5).",
+      "kind": "measured_size_at_age",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "743b6974a363de6329e561b7"
+    },
+    {
+      "source": "A1",
+      "sentence": "The trunk has a characteristic diamond pattern and is rough gray and up to ½ m (18 inches) in diameter (1, 3).",
+      "kind": "mature_size_range",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "06bbdfd17fa8f4cfccdfe715"
+    },
+    {
+      "source": "A1",
+      "sentence": "Leaves resemble a ‘feather-duster’ as fronds are pinnately compound, 5-7 m (15 to 20 feet) long, with armed petioles and stout midribs that hold the slender pinnae (1, 5).",
+      "kind": "frond_size",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "91f05f26d516521ebfecdcff"
+    },
+    {
+      "source": "A1",
+      "sentence": "The leaflets are ½ m (18 inches) long (1, 3, 5) and are induplicate, meaning they appear to have been folded in half lengthwise (5).",
+      "kind": "leaflet_size",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "6037585a988eac07e5658b38"
+    },
+    {
+      "source": "A1",
+      "sentence": "Date palms have a moderate growth rate of 30-45 cm (1 to 1.5 feet) a year, reaching 5 m (20 feet) in 15 to 20 years depending on the cultivar and soil and water conditions.",
+      "kind": "typical_growth_rate",
+      "condition": "unstated",
+      "anchor_usable": true,
+      "ledger": "59104c3d5f3a293d32c1ba3e"
+    },
+    {
+      "source": "A1",
+      "sentence": "* * * **Height:** 50 - 100 feet **Width:** 20 - 50 feet **Growth Rate:** Slow Growing **Grow Season:** Summer **Flower Season:** Summer **Color:** White **Function:** Accent **Spread:** Non-spreading **Allergen:** Non-allergenic **Invasive:** Benign **Toxicity:** Benign **Hardy:** Semi-hardy **Water Use:** Low water Use * * * **Citations:** 1.",
+      "kind": "mature_size_range",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "dacd84c888a163a1228d8209"
+    },
+    {
+      "source": "F1",
+      "sentence": "Date palm is slow growing and requires full sun for optimal growth; it can reach heights up to 80 feet.",
+      "kind": "mature_size_range",
+      "condition": "open_grown",
+      "anchor_usable": false,
+      "ledger": "f3f8dd3f4633cd256f7735c6"
+    },
+    {
+      "source": "F1",
+      "sentence": "The pinnately compound blue-green to gray-green leaves or fronds can grow to 20 feet in length; leaflets are 1 to 2 feet long and form a \"V\" shape down the rachis.",
+      "kind": "frond_size",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "551cb452f0e4db8503a3bfa1"
+    },
+    {
+      "source": "M1",
+      "sentence": "the range of frond length was from 545.33 cm (Barni Al-Madinah) to 297 cm (Majdool) while the range of frond width was from 106.17 cm (Barni Al-Madinah) to 55.67 cm (Mabroom Al-Ula).",
+      "kind": "frond_size",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "9df141310589591028d0cb38"
+    },
+    {
+      "source": "M1",
+      "sentence": "The range of leaflet length was from 62.33 cm (Ajwah) to 34.5 cm (Mabroom Al-Ula) while the range of leaflet width was from 4.9 cm (Safawi) to 2.87 cm (Mabroom Al-Ula).",
+      "kind": "leaflet_size",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "1fdcc770088edd857e9b5cea"
+    },
+    {
+      "source": "P4",
+      "sentence": "org/wiki/Date_palm#cite_note-Krueger-4) Date palms reach up to 30 metres (98ft) in height,[\\[2\\]](https://en.",
+      "kind": "mature_size_range",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "5a55bf8afdf0cac6b870bf86"
+    },
+    {
+      "source": "P4",
+      "sentence": "title=Date_palm&action=edit&section=1 \"Edit section: Description\")\\] Date palms reach up to 30 metres (100 feet) in height, growing singly or forming a clump with several stems from a single root system.",
+      "kind": "mature_size_range",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "c39ab8272ebf1cd06b61419a"
+    },
+    {
+      "source": "P4",
+      "sentence": "org/wiki/Leaves \"Leaves\") are 4–6m (13–20ft) long, with spines on the [petiole](https://en.",
+      "kind": "frond_size",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "840728a8f5bef1768ec3ff6b"
+    },
+    {
+      "source": "P4",
+      "sentence": "The leaflets are 30 centimetres (12 inches) long and 2cm (1in) wide.",
+      "kind": "leaflet_size",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "e2301e02f0a849f9303378f7"
+    },
+    {
+      "source": "P4",
+      "sentence": "The full span of the crown ranges from 6–10m (20–33ft).",
+      "kind": "mature_size_range",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "c3ba2948cf1b8389955e0f5b"
+    },
+    {
+      "source": "P5",
+      "sentence": "htm#Bibliography) Height Up to 100 ft (45.7 m) [1](https://www.",
+      "kind": "mature_size_range",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "92fda1ad28453ae15a098635"
+    },
+    {
+      "source": "P5",
+      "sentence": "htm#Bibliography) Width Up to 40 ft (12 m) [1](https://www.",
+      "kind": "mature_size_range",
+      "condition": "open_grown",
+      "anchor_usable": false,
+      "ledger": "39038fe39f2f1c1c6ba2ea9f"
+    },
+    {
+      "source": "P5",
+      "sentence": "htm#Bibliography) Growth rate Very slow grower; grows at the rate of 1-1.5 ft (30-45 cm) a year [3](https://www.",
+      "kind": "typical_growth_rate",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "053084df6d261d02d83eab48"
+    },
+    {
+      "source": "P5",
+      "sentence": "Date palm is slow growing and requires full sun for optimal growth; it can reach heights up to 80 feet.",
+      "kind": "mature_size_range",
+      "condition": "open_grown",
+      "anchor_usable": false,
+      "ledger": "ed04ed92c53f117c3d437900"
+    },
+    {
+      "source": "P5",
+      "sentence": "The large greenish or bluish gray pinnate leaves are typically 18-20 ft (5.5-6.1 m) long by 2 ft (0.6 m) wide.",
+      "kind": "frond_size",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "8356f2986b9ef078c06bb7bb"
+    },
+    {
+      "source": "P5",
+      "sentence": "Leaflets are 1-2 ft (0.3-0.6 m) long and arranged in V-shape ranks that run the length of the leaf stem.",
+      "kind": "leaflet_size",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "8c918cdb7ffc5d561405ff2f"
+    },
+    {
+      "source": "P5",
+      "sentence": "Trimmed in this manner the date palm will grow to heights of 100 ft (45.7 m).",
+      "kind": "mature_size_range",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "b3742228bb4581da5de9466e"
+    },
+    {
+      "source": "P6",
+      "sentence": "Date trees can reach lengths of 21 to 23 m, with leaves that can attain heights of 4 to 6 m and have about 150 leaflets each [1].",
+      "kind": "mature_size_range",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "c641a352eb7b67421e85f5ca"
+    },
+    {
+      "source": "P7",
+      "sentence": "the range of frond length was from 545.33 cm (Barni Al-Madinah) to 297 cm (Majdool) while the range of frond width was from 106.17 cm (Barni Al-Madinah) to 55.67 cm (Mabroom Al-Ula).",
+      "kind": "frond_size",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "332381623289ec4927b71f7e"
+    },
+    {
+      "source": "P7",
+      "sentence": "The range of leaflet length was from 62.33 cm (Ajwah) to 34.5 cm (Mabroom Al-Ula) while the range of leaflet width was from 4.9 cm (Safawi) to 2.87 cm (Mabroom Al-Ula).",
+      "kind": "leaflet_size",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "246f85822d73f02ee93634ed"
+    },
+    {
+      "source": "P7",
+      "sentence": "The range of fruit length was from 5.3 cm (Anbarah) to 2.78 cm (Beid) while the range of leaflet width was from 2.28 cm (Majdool) to 1.73 cm (Mabroom Al-Ula).",
+      "kind": "cultivar_size",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "3db2938c05677fa08e9ac69c"
+    },
+    {
+      "source": "P8",
+      "sentence": "It is a large tree with very dense leaves (nearly 4–5 m), and each leaf has approximately 150 leaflets (each leaflet is around 30 cm in length and 2 cm in width) [3].",
+      "kind": "leaflet_size",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "bd6e4153a694bc67066ec6bb"
+    },
+    {
+      "source": "P8",
+      "sentence": "Likewise, Date palm is a large deep rooted tree which its height ranges from 15 to 25 m.",
+      "kind": "mature_size_range",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "8adbbde6c96aead8f0d46dc2"
+    },
+    {
+      "source": "P8",
+      "sentence": "Component Date palm in age class Prosopis juliflora 5–10 years 10–20 years Older than 20 years One stemed Two stemed three stemed N 139 272 117 26 34 56 DBH (cm) 27.03 ± 14.75 28.35 ± 13.18 35.56 ± 7.99 – – – BD (m) – – – 4.77 ± 1.9 4.73 ± 1.32 4.71 ± 1.42 H (m) 6.47 ± 1.21 7.42 ± 1 8.03 ± 1.34 3,27 ± 1.23 3.01 ± 1.97 2.97 ± 1.36 Ht (m) 3.74 ± 0.95 4.46 ± 1.02 4.71 ± 0.71 – – – CD (m) 3.7 ± 1.16 4.15 ± 0.94 6.11 ± 1.1 – – – CA (m2) 14.96 ± 10 14.22 ± 5.87 30.31 ± 10.9 – – – Open in a new tab Where: N is total number of trees recorded from total number of plots (45 plots); DBH is diameter at breast height; BD is basal diameter at 30 cm; H is total height; Ht is truck height; CD is crown diameter; and CA is crown area.",
+      "kind": "measured_size_at_age",
+      "condition": "plantation_or_nursery",
+      "anchor_usable": true,
+      "ledger": "dcfdf92b36999bb75b6230c6"
+    },
+    {
+      "source": "P8",
+      "sentence": "Discussion The Ht and CD of date palm trees between the ages of 5 and 10 are smaller than those of date palm trees between the ages of 10 and 20, as well as those older than 20 years.",
+      "kind": "measured_size_at_age",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "99079c38f18c1dba74cfe31e"
+    },
+    {
+      "source": "P8",
+      "sentence": "The Ht and CD values of date palm trees older than 20 years were 1.26 and 1.65 times greater than those of date palm trees in 1st age class, respectively.",
+      "kind": "measured_size_at_age",
+      "condition": "unstated",
+      "anchor_usable": false,
+      "ledger": "dbb3d66a14b3fb8ce527080f"
+    }
+  ]
+}

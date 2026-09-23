@@ -32,10 +32,13 @@ pub enum Pick {
     Unfilled(&'static str),
 }
 
-/// The pick for `field` and the ledger identity of the judgment, if one ran.
+/// The pick for `field` and the ledger identity of the judgment, if one
+/// ran. The metric carries `unit`: metres, or metres a year for a growth
+/// rate (fn-132), whose span states a length gained per year.
 pub fn pick(
     judge: &Judge<'_>,
     field: &Field,
+    unit: &str,
     screen: &Value,
 ) -> Result<(Pick, Option<String>), StageError> {
     let rows = for_field(&field.field, screen);
@@ -77,17 +80,17 @@ pub fn pick(
     if report.confidence < thresholds().selection_floor {
         return Ok((Pick::Unfilled(BELOW_FLOOR), identity));
     }
-    let Some((range, unit)) = parse_span(span) else {
+    let Some((range, stated)) = parse_span(span) else {
         return Ok((Pick::Unfilled(NO_LENGTH), identity));
     };
     let source = row["source"].as_str().unwrap_or_default();
     let metric = json!({
-        "unit": "m", "range": range, "classification": "gating",
+        "unit": unit, "range": range, "classification": "gating",
         "source": [source], "confidence": "pipeline", "note": span,
     });
     let entry = json!({
         "route": "copied", "source": source, "sentence": row["sentence"], "span": span,
-        "unit": unit, "pick_confidence": report.confidence, "ledger": [report.identity],
+        "unit": stated, "pick_confidence": report.confidence, "ledger": [report.identity],
     });
     Ok((Pick::Filled(metric, entry), identity))
 }

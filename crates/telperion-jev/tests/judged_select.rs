@@ -155,15 +155,14 @@ fn a_sufficiency_level_is_the_most_probable_one() {
     impl Transport for Split {
         fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String> {
             let body: Value = serde_json::from_slice(request.body.as_deref().unwrap()).unwrap();
-            let key = ["mature_size", "sufficiency"]
-                .into_iter()
-                .find(|k| body["questions"].get(*k).is_some())
-                .unwrap();
-            let gap = if key == "mature_size" {
-                "mature_gap"
-            } else {
-                "dominant_gap"
-            };
+            let (key, gap) = [
+                ("mature_size", "mature_gap"),
+                ("growth_rate", "rate_gap"),
+                ("sufficiency", "dominant_gap"),
+            ]
+            .into_iter()
+            .find(|(k, _)| body["questions"].get(*k).is_some())
+            .unwrap();
             let answers = json!({key: score(json!({"0": 0.6, "1": 0.0, "2": 0.0, "3": 0.4}), 1.2),
                                  gap: {"type": "choice", "choice": "single_source", "confidence": 0.9, "probabilities": {}}});
             Ok(HttpResponse {

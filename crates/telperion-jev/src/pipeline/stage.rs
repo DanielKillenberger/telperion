@@ -16,7 +16,7 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-use super::build_id::BUILD_ID;
+use super::build_id::{BUILD_ID, BUILD_TOOL};
 use super::canon::{canonical_sha256, file_sha256, read_json, write_canonical, CanonError};
 use super::consume::{mark_consumed, rejected_proposal, ReconcileError};
 use super::cost::{earlier_cost, Cost};
@@ -293,7 +293,7 @@ impl Context {
         let m = &self.admitted.manifest;
         let mut tools = m.versions.tools.clone();
         tools.insert("species-pipeline".into(), TOOL_VERSION.into());
-        tools.insert("species-pipeline-build".into(), BUILD_ID.into());
+        tools.insert(BUILD_TOOL.into(), BUILD_ID.into());
         // A landed gap fix is a tool version: it expires the key of the stage
         // that halted and of every stage after it, and leaves the earlier
         // ones current, so the run resumes where it stopped (fn-63 R4).
