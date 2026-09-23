@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-108-register-the-date-palm-preset-with-the",
   "spec_path": ".flow/tasks/fn-108-register-the-date-palm-preset-with-the.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Register the date palm preset with the values the generator already reaches",
   "updated_at": "2026-09-22T11:22:38.347344Z"
 }

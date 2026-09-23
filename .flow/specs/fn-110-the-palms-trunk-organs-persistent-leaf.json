@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-110-the-palms-trunk-organs-persistent-leaf.md",
-  "status": "open",
+  "status": "done",
   "title": "The palm's trunk organs: persistent leaf bases and acanthophylls",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-22T13:58:43.653276Z"
+  "updated_at": "2026-09-23T12:57:48.590807Z"
 }
