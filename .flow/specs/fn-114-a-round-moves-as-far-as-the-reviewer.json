@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-114-a-round-moves-as-far-as-the-reviewer",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-09-23T13:59:59.453295Z",
   "created_at": "2026-09-23T13:19:45.729329Z",
   "default_impl": null,
   "default_review": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T13:37:15.658698Z"
+  "updated_at": "2026-09-23T13:59:59.453305Z"
 }
