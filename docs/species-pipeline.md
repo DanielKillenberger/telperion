@@ -47,7 +47,11 @@ before it searches the web, so a source the repository has already verified is
 never rediscovered; `--catalogue DIR` names the catalogue and defaults to
 `catalogue`. A command whose idempotence key
 (input checksums, manifest checksum, question-set versions, model name, tool
-versions) matches the artifact on disk prints `current` and does nothing. A
+versions) matches the artifact on disk prints `current` and does nothing.
+The tool versions carry the build identity (`species-pipeline-build`), a
+digest of the crate's code and data baked in at build time, so changed code
+reruns its stages; the crate version alone left three stages `current` after
+fn-128's fix. A
 command that stops prints the stage or the decision that stopped it; the
 driver resolves nothing and reads nothing. `--adapter fixture:DIR` replaces
 Firecrawl with pinned fixtures for the model-swap test.
@@ -197,14 +201,46 @@ ash's or a test fixture, loads unchanged.
   and leaflet sizes `mature`. Height, trunk diameter and crown base stay
   age-indexed. A mature field needs no `required_ages_years`; an empty or
   absent list is admitted, and a listed age is ignored. `quality` lays out
-  every screened sentence that carries the field's words, whatever kind the
-  screen gave it, because the screen judges tree size at an age and calls a
-  leaflet sentence `not_about_tree_size`. The mature-size set then scores a
+  the rows the field can use (below). The mature-size set then scores a
   stated mature value or range for the taxon on the same four levels, with
   its own gap. A single source that states the size reaches `partial`; a
   bound such as "up to" reaches `proxy_only`. On the palm's first live run,
   A1's "The leaflets are ½ m (18 inches) long" and "**Width:** 20 - 50 feet"
-  scored `none` under the age question; they are now labelled cases.
+  scored `none` under the age question; they are now labelled cases. A
+  mature field whose gap is `no_mature_size` fails its bar whatever level
+  was scored, and a required one files `requirements-unmet`.
+- **The rows a field can use** (fn-131). The screen gives an organ size its
+  own class (`leaf_size`, `leaflet_size`, `frond_size`, `needle_size`,
+  `cone_size`) and a named cultivar's size `cultivar_size`, which counts
+  toward the species. The table lists, per field, the kinds that count for
+  it (an organ field takes its organ class and `cultivar_size`, a tree field
+  the tree-size kinds and `cultivar_size`) and the words its sentence must
+  carry, each matched as a whole word or its plural, so "leaf" never matches
+  "leaflet". `quality` counts only these rows and `select` reads only these,
+  so the gate never passes a field on a row select drops. A growth-rate
+  sentence that states a size reached at an age counts as a point: code
+  parses "reaching 5 m (20 feet) in 15 to 20 years" as a point at 15 to 20
+  years. A point under the required condition weighs 1; one whose
+  condition the source leaves `unstated` weighs 0.5, and a required age is
+  covered by points weighing 1 together.
+- **Select is exact** (fn-131). One document per field, each row labelled by
+  its source and place (`F1.1`), and every span keyed to its row (`F1.1: 20
+  feet`), so a value is credited to the sentence it was chosen from. A pick
+  below `selection_floor` fills nothing. Code parses the chosen span with the
+  one number and unit grammar the extractor uses (`quantity`): glued units
+  ("6–10m"), millimetres, thousands separators and em-dash ranges, and "in"
+  only as "in." or spelled out. A required field select leaves unfilled
+  files `requirements-unmet`, which `search-again` takes like quality's.
+- **Levels are choices** (fn-131). An appearance, described, sufficiency or
+  mature-size level is the level Jev gave the highest probability, never
+  the rounded average; `unstated` (or `none`) wins a tie. An appearance or
+  described level below `level_floor` is `unstated`. The live palm's
+  `leaf_back_colour` had come out `silvery_white` and its
+  `leaf_brightness_range` `strongly_varied`, each at probability 0. Both
+  floors are calibrated on labelled live answers
+  (`data/cases/selection_floor.json`, `level_floor.json`): the lowest floor
+  that answers the most cases right. No labelled set of live sufficiency
+  answers exists yet, so the sufficiency levels take no floor.
 - **Appearance traits** are `appearance` entries, each a trait name and the
   admitted sources that describe it:
 
@@ -232,8 +268,10 @@ ash's or a test fixture, loads unchanged.
   pass, the old route judged a 600-character page chunk: `bark_roughness`
   cited A1's navigation links, and `bark_colour` came out `unstated`
   although A1 says the trunk "is rough gray".
-- **Verifying an appearance value.** `verify` checks the sentence against
-  its source with the citation check, as it does for every value. An
+- **Verifying an appearance value.** `verify` checks the level against its
+  source with the citation check, as it does for every value: the claim is
+  the level as the table summarises it, beside the sentence it was read
+  from, so a sentence that does not state the level can fail it. An
   appearance value is a level, not a number, so `verify` does not ask it
   `measurement_not_invention`. It asks `appearance_supported` instead:
   does the cited sentence describe the trait at this level, as the table
@@ -241,7 +279,9 @@ ash's or a test fixture, loads unchanged.
   sentence that states another level, does not state the trait, or is page
   navigation. A value that is not supported files `claim-unsupported` with
   the value's pointer as its field. Measured values keep
-  `measurement_not_invention`.
+  `measurement_not_invention`, asked with the field the value fills and the
+  source text around the value's sentence; a source that no longer holds the
+  sentence leaves the check unchecked, never judged on the page's start.
   Nothing renders or measures an appearance trait: `generate` records each
   one under `appearance` in its body as skipped. The material row is
   authored from these ranges.
@@ -272,7 +312,7 @@ discover keys on the seed too: admitting sources, curves, proxies or
 engineering rows reruns nothing and keeps the admission, while a seed edit
 reruns discover, reissues the proposal and voids the old admission.
 
-Five kinds carry options a stage consumes. A resolution to one of them with
+Seven kinds carry options a stage consumes. A resolution to one of them with
 an option outside its list is refused when the next stage reads it, naming
 the kind and the options that are consumed; the stage that acted on a
 resolution records itself as `consumed_by` on the decision.
@@ -284,11 +324,14 @@ resolution records itself as `consumed_by` on the decision.
 | `coverage-gap` | `accept-rows`, `fix-table`, `drop-table` | fetch: `accept-rows` keeps the rows as parsed, `fix-table` reads the table entry the manifest now admits (and stops if the count still differs), `drop-table` records the table with no rows |
 | `data-insufficient` | `admit-proxy`, `add-sources`, `lower-bar` | quality, by editing the manifest's fields only |
 | `requirements-unmet` | `add-sources` | quality and select, once the manifest's sources change |
+| `claim-contradicted`, `claim-unsupported` | `accept`, `replace-source`, `drop-value` | select: `drop-value` takes the flagged value (its source and span) out of the packet and files the field's `requirements-unmet` when the table requires it; `replace-source` does the same for any field, so `search-again` looks for another source; `accept` keeps the value |
 
 `quality` files `requirements-unmet` for a required field whose sufficiency
 level falls below the requirements table's bar, in place of
 `data-insufficient`. `select` files it for a required appearance trait that
-the sources leave `unstated`. It blocks the later stages for that field. On
+the sources leave `unstated`, and for a required field it filled no value
+for (fn-131): no candidate span, a pick below the floor, or a value a
+resolution dropped. It blocks the later stages for that field. On
 a field or a trait, `add-sources` is the pipeline's first: `search-again`
 runs one round each, two at most, as "A requirement unmet searches again"
 below describes. After the two rounds the decision is NEEDS_HUMAN and only
@@ -314,7 +357,9 @@ that it did not file again as resolved, with the option `superseded`, and
 records `by` as that stage's rerun. The field passed, or the trait was
 found stated, on the sources the manifest already had. A superseded
 `requirements-unmet` decision is therefore not held open when the sources
-are unchanged. No person writes `superseded`, and no stage consumes it. On
+are unchanged. No person writes `superseded`, and no stage consumes it; a
+person's resolution written against the decision's old inputs leaves it
+retired rather than reopening it (fn-131). On
 the palm's second pass, `quality` passed crown width and leaflet length,
 but the first pass's decisions on them stayed open, and `select` skipped
 both fields as "below the data-quality bar". `verify`'s `obligation-unmet`
@@ -327,7 +372,8 @@ F1, stayed open the same way and stopped `generate`.
  "by": "owner", "at": "2026-09-18"}
 ```
 
-Other kinds: `claim-contradicted`, `claim-unsupported`, `obligation-unmet`,
+Verify files one claim decision per value, keyed by its JSON Pointer, so
+two values of one source are two decisions. Other kinds: `obligation-unmet`,
 `structural-unmet`, `missing-curve`, `tolerance-miss`, `onboarding-gate`,
 `level-miss`, `no-reference`, `visual-unassessed`.
 
@@ -388,7 +434,8 @@ scores them at the 0.9 accuracy bar.
 
 `species-pipeline search-again` runs one round for every open
 `requirements-unmet` decision whose field or trait has a round left:
-`quality`'s on a field, `select`'s on an appearance trait.
+`quality`'s on a field, `select`'s on an appearance trait or on a field it
+left unfilled.
 The query aims at the decision's dominant gap: `no_age_indexed_points` asks
 for the field at stated ages (`Phoenix dactylifera height at stated ages in
 years, open grown`), `age_range_uncovered` names the uncovered ages,

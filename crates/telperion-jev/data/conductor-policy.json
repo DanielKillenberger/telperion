@@ -47,12 +47,14 @@
     {"when": {}, "route": "human", "why": "no row justified an unattended route"}
   ],
   "decisions": {
-    "note": "Decision kinds a cheap agent may resolve under policy, with the options it may choose; every other kind and option is the owner's. Lowering a bar, overriding a ruling or changing a boundary is never routine. Two kinds the pipeline resolves itself, by code, never by an agent (fn-129): manifest-proposed is admitted by the pipeline when the draft only adds sources and every one is chosen for its field and carries an open licence or a public cite-only page; requirements-unmet (fn-118) add-sources is the pipeline's for two search rounds per field or appearance trait, aimed at the gap; a source for a trait joins the trait's sources list. Every other draft, a requirement still unmet after its two rounds, and any change to a trait's name or level table are the owner's, with the sources tried. No table bar is ever lowered.",
+    "note": "Decision kinds a cheap agent may resolve under policy, with the options it may choose; every other kind and option is the owner's. Lowering a bar, overriding a ruling or changing a boundary is never routine. Two kinds the pipeline resolves itself, by code, never by an agent (fn-129): manifest-proposed is admitted by the pipeline when the draft only adds sources and every one is chosen for its field and carries an open licence or a public cite-only page; requirements-unmet (fn-118) add-sources is the pipeline's for two search rounds per field or appearance trait, aimed at the gap; a source for a trait joins the trait's sources list. Every other draft, a requirement still unmet after its two rounds, and any change to a trait's name or level table are the owner's, with the sources tried. No table bar is ever lowered. A value verify flagged (claim-contradicted, claim-unsupported, fn-131) is routine: drop-value takes it out of the packet and files its requirement again, replace-source sends the field to the pipeline's search; accept keeps a flagged value and stays the owner's.",
     "routine": {
       "unavailable-source": ["retry", "replace-source", "drop-source"],
       "coverage-gap": ["accept-rows", "fix-table", "drop-table"],
       "data-insufficient": ["admit-proxy", "add-sources"],
-      "article-claim-unsupported": ["recite", "rewrite-sentence"]
+      "article-claim-unsupported": ["recite", "rewrite-sentence"],
+      "claim-contradicted": ["replace-source", "drop-value"],
+      "claim-unsupported": ["replace-source", "drop-value"]
     }
   }
 }

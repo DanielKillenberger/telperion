@@ -10,6 +10,8 @@
 //! files a requirements-unmet decision, which the pipeline searches again
 //! before the owner has it.
 
+use std::collections::BTreeMap;
+
 use serde_json::{json, Map, Value};
 
 use crate::extract::{key_terms, section_for_terms, sentences_with_terms};
@@ -19,11 +21,12 @@ use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::Appearance;
 use crate::pipeline::requirements::{requires_appearance, table};
 use crate::pipeline::sets::{
-    described_questions, level_from_score, DescribedLevel, DESCRIBED_UNSTATED,
+    chosen_level, described_questions, DescribedLevel, DESCRIBED_UNSTATED,
 };
 use crate::pipeline::stage::{Context, StageError};
 
 use super::extract::cached_markdown;
+use super::flagged::{Flag, REPLACE_SOURCE};
 use super::select::STAGE;
 
 const SECTION_RADIUS: usize = 600;
@@ -76,6 +79,39 @@ pub fn run(judge: &Judge<'_>, ctx: &Context, fetch: &Value) -> Result<Copied, St
         }
     }
     Ok(copied)
+}
+
+/// Takes out every appearance value a resolution dropped (fn-131): the
+/// trait reads unstated in the select body, naming the decision, and a
+/// trait the table requires, or one sent for another source, files
+/// requirements-unmet, which the pipeline searches again for.
+pub fn drop_flagged(
+    ctx: &Context,
+    copied: &mut Copied,
+    flags: &BTreeMap<String, Flag>,
+) -> Result<(), StageError> {
+    let manifest = &ctx.admitted.manifest;
+    for trait_ in &manifest.appearance {
+        let name = trait_.trait_name.as_str();
+        let pointer = format!("/profiles/0/appearance/{name}");
+        let Some(flag) = flags.get(&pointer) else {
+            continue;
+        };
+        if !copied.sidecar.get(&pointer).is_some_and(|e| flag.names(e)) {
+            continue;
+        }
+        copied.sidecar.remove(&pointer);
+        copied.profile.remove(name);
+        copied.body.insert(
+            name.into(),
+            json!({"level": DESCRIBED_UNSTATED, "source": null, "sentence": "", "ledger": [], "dropped": flag.reason()}),
+        );
+        if flag.option == REPLACE_SOURCE || requires_appearance(manifest, name) {
+            let sources = sources_sha256(&ctx.paths.manifest())?;
+            copied.decisions.push(unstated(ctx, trait_, &[], &sources));
+        }
+    }
+    Ok(())
 }
 
 /// The sentence a trait's level was read from, its source, and every
@@ -211,12 +247,15 @@ fn ask_levels(
             stage: STAGE.into(),
             reason: err.to_string(),
         })?;
-    let index = level_from_score(
-        judgment.entry.score("level").unwrap_or(f64::NAN),
+    // The most probable level, `unstated` when it is (fn-131).
+    let index = chosen_level(
+        judgment.entry.probabilities("level"),
         levels.len() + 1,
+        levels.len(),
+        crate::questions::thresholds().level_floor,
     );
-    let level = index
-        .and_then(|i| levels.get(i))
+    let level = levels
+        .get(index)
         .map(|l| l.key.clone())
         .unwrap_or_else(|| DESCRIBED_UNSTATED.into());
     Ok((

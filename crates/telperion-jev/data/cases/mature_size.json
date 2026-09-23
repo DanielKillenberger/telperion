@@ -9,19 +9,13 @@
     "evidence": [
       {
         "source": "A1",
-        "sentence": "Leaves resemble a ‘feather-duster’ as fronds are pinnately compound, 5-7 m (15 to 20 feet) long, with armed petioles and stout midribs that hold the slender pinnae (1, 5).",
-        "condition": "unstated",
-        "taxon": "Phoenix dactylifera"
-      },
-      {
-        "source": "A1",
         "sentence": "The leaflets are ½ m (18 inches) long (1, 3, 5) and are induplicate, meaning they appear to have been folded in half lengthwise (5).",
         "condition": "unstated",
         "taxon": "Phoenix dactylifera"
       }
     ],
     "counts": {
-      "sentences": 2,
+      "sentences": 1,
       "sources": 1
     },
     "expect_level": "partial",
@@ -66,16 +60,10 @@
         "sentence": "Leaves resemble a ‘feather-duster’ as fronds are pinnately compound, 5-7 m (15 to 20 feet) long, with armed petioles and stout midribs that hold the slender pinnae (1, 5).",
         "condition": "unstated",
         "taxon": "Phoenix dactylifera"
-      },
-      {
-        "source": "A1",
-        "sentence": "The leaflets are ½ m (18 inches) long (1, 3, 5) and are induplicate, meaning they appear to have been folded in half lengthwise (5).",
-        "condition": "unstated",
-        "taxon": "Phoenix dactylifera"
       }
     ],
     "counts": {
-      "sentences": 2,
+      "sentences": 1,
       "sources": 1
     },
     "expect_level": "partial",
@@ -93,19 +81,13 @@
     "evidence": [
       {
         "source": "A1",
-        "sentence": "Leaves resemble a ‘feather-duster’ as fronds are pinnately compound, 5-7 m (15 to 20 feet) long, with armed petioles and stout midribs that hold the slender pinnae (1, 5).",
-        "condition": "unstated",
-        "taxon": "Phoenix dactylifera"
-      },
-      {
-        "source": "A1",
         "sentence": "The leaflets are ½ m (18 inches) long (1, 3, 5) and are induplicate, meaning they appear to have been folded in half lengthwise (5).",
         "condition": "unstated",
         "taxon": "Phoenix dactylifera"
       }
     ],
     "counts": {
-      "sentences": 2,
+      "sentences": 1,
       "sources": 1
     },
     "expect_level": "none",

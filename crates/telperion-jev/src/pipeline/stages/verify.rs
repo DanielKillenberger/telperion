@@ -4,7 +4,9 @@
 //! decisions of their kinds. A measured value is asked whether it is a
 //! measurement; an appearance value is a level read from one sentence, so it
 //! is asked whether that sentence describes the level instead (fn-128), and
-//! a sentence that does not files a claim decision.
+//! a sentence that does not files a claim decision. Every claim decision is
+//! keyed by its value's pointer and acts: select consumes `drop-value` and
+//! `replace-source` (fn-131).
 
 use serde_json::{json, Value};
 
@@ -12,6 +14,7 @@ use crate::cite::{cite, ResearchClaim, SourceLoad};
 use crate::pipeline::canon::read_json;
 use crate::pipeline::decision::{append_decisions, retire_unfiled, Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
+use crate::pipeline::requirements::table;
 use crate::pipeline::sets::{appearance_state, measurement_state, obligation_questions};
 use crate::pipeline::stage::{Context, Paths, StageError};
 use crate::questions::thresholds;
@@ -46,7 +49,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     let species = manifest.species.as_str();
     let mut decisions = Vec::new();
 
-    let (claims, loads) = claims_for(&ctx, &sidecar, &fetch)?;
+    let (claims, loads, pointers) = claims_for(&ctx, &sidecar, &fetch)?;
     let report = cite(
         judge.transport,
         judge.key,
@@ -59,7 +62,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
         reason: err.to_string(),
     })?;
     let mut rows = Vec::new();
-    for (claim, row) in claims.iter().zip(report.rows.iter()) {
+    for (pointer, row) in pointers.iter().zip(report.rows.iter()) {
         if !row.identity.is_empty() {
             header.ledger.push(row.identity.clone());
         }
@@ -73,14 +76,18 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
             } else {
                 "claim-unsupported"
             };
+            // One decision per value, keyed by its pointer (fn-131): two
+            // values of one source are two claims.
+            let entry = &sidecar["entries"][pointer];
             decisions.push(Decision::new(
-                DecisionParts { species, stage: STAGE, kind, field: Some(&claim.source_id), age_years: None },
+                DecisionParts { species, stage: STAGE, kind, field: Some(pointer), age_years: None },
                 &["generate"],
                 [("select.json".to_string(), select_sha.clone())].into_iter().collect(),
                 vec![row.identity.clone()],
-                json!({"claim": row.claim, "section": row.section, "relation": row.relation, "reason": row.reason}),
-                &["accept", "replace-source", "drop-value"],
-                "The citation check listed this claim for a person.",
+                json!({"claim": row.claim, "section": row.section, "relation": row.relation, "reason": row.reason,
+                       "pointer": pointer, "source": entry["source"], "span": entry["span"]}),
+                &CLAIM_OPTIONS,
+                "The citation check listed this claim. drop-value takes the value out of the packet and files its requirement again; replace-source files it for the pipeline's search; accept keeps it.",
             ));
         }
     }
@@ -117,10 +124,10 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
         let checked = if entry["route"] == "appearance" {
             Some(supported(judge, pointer, entry)?)
         } else {
-            measured(judge, &ctx, &fetch, entry)?
+            measured(judge, &ctx, &fetch, pointer, entry)?
         };
         let Some((obligation, held, reference)) = checked else {
-            obligations.push(json!({"obligation": "measurement_not_invention", "pointer": pointer, "held": Value::Null, "unchecked": "source not cached"}));
+            obligations.push(json!({"obligation": "measurement_not_invention", "pointer": pointer, "held": Value::Null, "unchecked": "the value's sentence is not in its cached source"}));
             continue;
         };
         header.ledger.push(reference.clone());
@@ -155,6 +162,10 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
             "A structural obligation failed in code.",
         ));
     }
+    // The citation check and the support question may both find one
+    // appearance value unsupported: one decision per pointer.
+    let mut seen = std::collections::BTreeSet::new();
+    decisions.retain(|d| seen.insert(d.id.clone()));
     let ids: Vec<String> = decisions.iter().map(|d| d.id.clone()).collect();
     if !decisions.is_empty() {
         append_decisions(&ctx.paths.decisions(), decisions)?;
@@ -177,6 +188,8 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
 
 /// The obligation an appearance value is asked in place of a measurement's.
 const SUPPORTED: &str = "appearance_supported";
+/// A claim decision's options, each consumed by select (fn-131).
+const CLAIM_OPTIONS: [&str; 3] = ["accept", "replace-source", "drop-value"];
 
 /// One judged obligation: its name, whether it held, and the ledger reference.
 type Checked = (&'static str, bool, String);
@@ -197,23 +210,27 @@ fn noul(judge: &Judge<'_>, name: &'static str, state: &Value) -> Result<Checked,
     Ok((name, held, judgment.reference))
 }
 
-/// A measured value against the cached source text around its span; None
-/// when the source is not cached, since the span is never its own evidence.
+/// A measured value, named by its field, against the cached source text
+/// around its sentence; None when the source is not cached or does not
+/// hold the sentence, since the span is never its own evidence.
 fn measured(
     judge: &Judge<'_>,
     ctx: &Context,
     fetch: &Value,
+    pointer: &str,
     entry: &Value,
 ) -> Result<Option<Checked>, StageError> {
     let span = entry["span"].as_str().unwrap_or_default();
     let source_id = entry["source"].as_str().unwrap_or_default();
-    let Some(excerpt) = excerpt_for(ctx, source_id, &fetch["sources"][source_id], span) else {
+    let record = &fetch["sources"][source_id];
+    let Some(excerpt) = excerpt_for(ctx, source_id, record, entry) else {
         return Ok(None);
     };
+    let field = pointer.rsplit('/').next();
     noul(
         judge,
         "measurement_not_invention",
-        &measurement_state(span, &excerpt),
+        &measurement_state(field, span, &excerpt),
     )
     .map(Some)
 }
@@ -251,30 +268,42 @@ fn unsupported(
             .into_iter()
             .collect(),
         vec![ledger.to_string()],
-        json!({"value": pointer, "level": entry["level"], "sentence": entry["span"], "source": entry["source"]}),
-        &["accept", "replace-source", "drop-value"],
+        json!({"value": pointer, "level": entry["level"], "sentence": entry["span"], "source": entry["source"],
+               "pointer": pointer, "span": entry["span"]}),
+        &CLAIM_OPTIONS,
         "Jev judged that the cited sentence does not describe this appearance level.",
     )
 }
 
-/// One claim per filled value: the copied span, checked against the cached
-/// markdown of its source. An uncached source lists its claim as unchecked.
-fn claims_for(
-    ctx: &Context,
-    sidecar: &Value,
-    fetch: &Value,
-) -> Result<(Vec<ResearchClaim>, Vec<SourceLoad>), StageError> {
+/// One claim per filled value, with its pointer, checked against the
+/// cached markdown of its source: a measured value's copied span, and an
+/// appearance value's level as the table words it beside the sentence it
+/// was read from (fn-131), since the sentence alone always supports itself. An uncached source lists its
+/// claim as unchecked.
+type Claims = (Vec<ResearchClaim>, Vec<SourceLoad>, Vec<String>);
+
+fn claims_for(ctx: &Context, sidecar: &Value, fetch: &Value) -> Result<Claims, StageError> {
     let mut claims = Vec::new();
     let mut loads = Vec::new();
+    let mut pointers = Vec::new();
     for (pointer, entry) in sidecar["entries"].as_object().into_iter().flatten() {
         let source_id = entry["source"].as_str().unwrap_or_default().to_string();
         let record = &fetch["sources"][&source_id];
-        claims.push(ResearchClaim {
-            claim: format!(
-                "{}: {}",
-                pointer.rsplit('/').next().unwrap_or_default(),
+        let name = pointer.rsplit('/').next().unwrap_or_default();
+        let stated = if entry["route"] == "appearance" {
+            let summary = table()
+                .level(name, entry["level"].as_str().unwrap_or_default())
+                .map_or_else(String::new, |l| l.summary.clone());
+            format!(
+                "{summary}, as read from: {}",
                 entry["span"].as_str().unwrap_or_default()
-            ),
+            )
+        } else {
+            entry["span"].as_str().unwrap_or_default().to_string()
+        };
+        pointers.push(pointer.clone());
+        claims.push(ResearchClaim {
+            claim: format!("{name}: {stated}"),
             url: record["final_url"].as_str().unwrap_or_default().to_string(),
             source_id: source_id.clone(),
             unresolved: None,
@@ -284,25 +313,36 @@ fn claims_for(
             Err(err) => SourceLoad::Unreachable(err.to_string()),
         });
     }
-    Ok((claims, loads))
+    Ok((claims, loads, pointers))
 }
 
-/// The cached source text around the span, bounded to a few hundred
-/// characters each side, or None when the source is not cached: the value's
-/// evidence is its source, never the span itself.
-fn excerpt_for(ctx: &Context, source_id: &str, record: &Value, span: &str) -> Option<String> {
+/// The cached source text around the value's sentence (or, lacking one,
+/// its span), whitespace collapsed, bounded to a few hundred characters
+/// each side; None when the source is not cached or does not hold it
+/// (fn-131): the value's evidence is its source, never the document's
+/// first page and never the span itself.
+fn excerpt_for(ctx: &Context, source_id: &str, record: &Value, entry: &Value) -> Option<String> {
     let markdown = cached_markdown(ctx, STAGE, source_id, record).ok()?;
-    let at = markdown.find(span).unwrap_or(0);
-    let start = markdown[..at]
+    let text = markdown.split_whitespace().collect::<Vec<_>>().join(" ");
+    let wanted = entry["sentence"]
+        .as_str()
+        .or_else(|| entry["span"].as_str())
+        .unwrap_or_default();
+    let wanted = wanted.split_whitespace().collect::<Vec<_>>().join(" ");
+    if wanted.is_empty() {
+        return None;
+    }
+    let at = text.find(&wanted)?;
+    let start = text[..at]
         .char_indices()
         .rev()
         .nth(600)
         .map_or(0, |(i, _)| i);
-    let end = markdown[at..]
+    let end = text[at..]
         .char_indices()
-        .nth(span.chars().count() + 600)
-        .map_or(markdown.len(), |(i, _)| at + i);
-    Some(markdown[start..end].to_string())
+        .nth(wanted.chars().count() + 600)
+        .map_or(text.len(), |(i, _)| at + i);
+    Some(text[start..end].to_string())
 }
 
 fn unmet(species: &str, obligation: &str, value: &str, ledger: &str, select_sha: &str) -> Decision {

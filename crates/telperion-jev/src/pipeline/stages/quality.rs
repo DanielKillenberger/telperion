@@ -17,18 +17,19 @@ use crate::pipeline::consume::{sources_sha256, REQUIREMENTS_UNMET};
 use crate::pipeline::decision::{append_decisions, retire_unfiled, Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::{Field, Manifest, Sufficiency};
-use crate::pipeline::requirements::{is_mature, required_bar, terms};
+use crate::pipeline::requirements::{is_mature, required_bar};
 use crate::pipeline::sets::{
-    level_from_score, mature_questions, sufficiency_questions, SUFFICIENCY_LEVELS,
+    chosen_level, mature_questions, sufficiency_questions, SUFFICIENCY_LEVELS,
 };
 use crate::pipeline::stage::{Context, Paths, StageError};
 
+use super::points::{coverage, measured_points};
+use super::rows::{for_field, stated_at};
 use super::{body, inputs};
 
 pub const STAGE: &str = "quality";
-/// A required age is covered when a matching point lies within this fraction
-/// of it, or two matching points bracket it.
-const AGE_WINDOW: f64 = 0.25;
+/// The gap a mature field fails on whatever its level (fn-131).
+const NO_MATURE_SIZE: &str = "no_mature_size";
 
 #[derive(Debug)]
 pub enum Outcome {
@@ -53,7 +54,8 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     let mut fields = Map::new();
     let mut decisions = Vec::new();
     for field in &manifest.fields {
-        let asked = if is_mature(manifest, &field.field) {
+        let is_mature = is_mature(manifest, &field.field);
+        let asked = if is_mature {
             mature(manifest, field, &screen)
         } else {
             at_age(manifest, field, &screen, &fetch)
@@ -66,16 +68,24 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
                 stage: STAGE.into(),
                 reason: err.to_string(),
             })?;
-        let score = judgment.entry.score(score_key).unwrap_or(0.0);
-        // No score is the lowest level: the gate fails closed.
-        let level =
-            Sufficiency::from_index(level_from_score(score, SUFFICIENCY_LEVELS.len()).unwrap_or(0));
+        // The most probable level; none at all is the lowest: the gate fails
+        // closed. No labelled set of live sufficiency answers exists yet, so
+        // no floor is trusted here (fn-131): the level floor is the
+        // appearance levels'.
+        let level = Sufficiency::from_index(chosen_level(
+            judgment.entry.probabilities(score_key),
+            SUFFICIENCY_LEVELS.len(),
+            0,
+            0.0,
+        ));
         let gap = judgment
             .entry
             .choice(gap_key)
             .unwrap_or_else(|| "none".into());
-        let passed = level >= field.bar;
-        let required = required_bar(manifest, &field.field).filter(|bar| level < *bar);
+        // A mature field with no mature size stated has nothing select can copy.
+        let unstated = is_mature && gap == NO_MATURE_SIZE;
+        let passed = level >= field.bar && !unstated;
+        let required = required_bar(manifest, &field.field).filter(|bar| level < *bar || unstated);
         header.ledger.push(judgment.reference.clone());
         fields.insert(
             field.field.clone(),
@@ -163,15 +173,12 @@ fn at_age(manifest: &Manifest, field: &Field, screen: &Value, fetch: &Value) -> 
     }
 }
 
-/// A mature field: every screened sentence that names it, whatever the
-/// screen called its kind, since an organ size is no tree size at an age.
-/// The points are those sentences; no age is asked or covered.
+/// A mature field: the screened rows select can use for it (fn-131), an
+/// organ size by its organ class and a cultivar's size among them. The
+/// points are those sentences; no age is asked or covered.
 fn mature(manifest: &Manifest, field: &Field, screen: &Value) -> Asked {
-    let evidence: Vec<Value> = screen["rows"]
-        .as_array()
+    let evidence: Vec<Value> = for_field(&field.field, screen)
         .into_iter()
-        .flatten()
-        .filter(|row| names_field(field, row["sentence"].as_str().unwrap_or_default()))
         .map(|row| {
             json!({
                 "source": row["source"],
@@ -223,13 +230,18 @@ fn evidence_for(manifest: &Manifest, field: &Field, screen: &Value, fetch: &Valu
         .into_iter()
         .flatten()
         .map(|row| {
-            json!({
+            let mut item = json!({
                 "source": row["source"],
                 "sentence": row["sentence"],
                 "kind": row["kind"],
                 "condition": row["condition"],
                 "taxon": taxon_of(manifest, field, row),
-            })
+            });
+            let ages = stated_at(row);
+            if !ages.is_empty() {
+                item["ages_years"] = json!(ages);
+            }
+            item
         })
         .collect();
     for (id, table) in fetch["tables"].as_object().into_iter().flatten() {
@@ -258,52 +270,6 @@ fn evidence_for(manifest: &Manifest, field: &Field, screen: &Value, fetch: &Valu
         }));
     }
     evidence
-}
-
-/// Evidence items that are measured sizes at an age for this taxon under the
-/// required condition, with the ages they state.
-fn measured_points(manifest: &Manifest, field: &Field, evidence: &[Value]) -> Vec<Value> {
-    evidence
-        .iter()
-        .filter(|item| {
-            item["kind"] == "measured_size_at_age"
-                && item["condition"] == field.condition
-                && item["taxon"] == manifest.taxon.scientific_name
-                && names_field(field, item["sentence"].as_str().unwrap_or_default())
-        })
-        .cloned()
-        .collect()
-}
-
-/// Whether a sentence is about this field's dimension: a height sentence is
-/// not a diameter point. The words are the requirements table's; a field
-/// with no word list passes every sentence.
-fn names_field(field: &Field, sentence: &str) -> bool {
-    let Some(words) = terms(&field.field) else {
-        return true;
-    };
-    let lower = sentence.to_ascii_lowercase();
-    words.iter().any(|w| lower.contains(w.as_str()))
-}
-
-fn coverage(field: &Field, points: &[Value]) -> (Vec<f64>, Vec<f64>) {
-    let ages: Vec<f64> = points
-        .iter()
-        .flat_map(|p| p["ages_years"].as_array().cloned().unwrap_or_default())
-        .filter_map(|a| a.as_f64())
-        .collect();
-    field
-        .required_ages_years
-        .iter()
-        .copied()
-        .partition(|&required| {
-            let near = ages
-                .iter()
-                .any(|&a| (a - required).abs() <= AGE_WINDOW * required);
-            let below = ages.iter().any(|&a| a < required);
-            let above = ages.iter().any(|&a| a > required);
-            near || (below && above)
-        })
 }
 
 /// One field's shortfall at the gate, as both decisions carry it.

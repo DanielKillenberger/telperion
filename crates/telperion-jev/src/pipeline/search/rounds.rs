@@ -52,7 +52,8 @@ pub(super) fn write_rounds(paths: &Paths, rounds: &Rounds) -> Result<(), CanonEr
 }
 
 /// The open requirements-unmet decisions the pipeline still searches for:
-/// filed by `quality` for a field or by `select` for an appearance trait,
+/// filed by `quality` for a field, or by `select` for an appearance trait or
+/// a required field it could not fill (fn-131),
 /// with a round left. An unreadable rounds file leaves nothing to search, so
 /// the owner has every decision.
 pub fn searchable(paths: &Paths, decisions: &[Decision]) -> Vec<String> {
@@ -72,7 +73,8 @@ pub fn searchable(paths: &Paths, decisions: &[Decision]) -> Vec<String> {
 }
 
 /// The stages whose requirements-unmet decisions are searched again: a
-/// field's from `quality`, an appearance trait's from `select`.
+/// field's from `quality`, an appearance trait's or an unfilled field's
+/// from `select`.
 fn is_searched(stage: &str) -> bool {
     stage == "quality" || stage == "select"
 }

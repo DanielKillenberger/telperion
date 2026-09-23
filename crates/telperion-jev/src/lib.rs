@@ -12,6 +12,7 @@ pub mod html;
 pub mod isolation;
 pub mod ledger;
 pub mod pipeline;
+pub mod quantity;
 pub mod questions;
 pub mod screen;
 pub mod select;

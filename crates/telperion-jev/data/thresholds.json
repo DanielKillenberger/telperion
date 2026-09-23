@@ -9,5 +9,7 @@
   "severity_assessable": 0.5,
   "obligation_cut": 0.5,
   "accuracy_bar": 0.9,
-  "ranking_bar": 0.8
+  "ranking_bar": 0.8,
+  "selection_floor": 0.34,
+  "level_floor": 0.56
 }

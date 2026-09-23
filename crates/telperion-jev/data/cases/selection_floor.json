@@ -1,0 +1,126 @@
+{
+  "set_from": "fn-131 (2026-09-23): every live span pick the ledgers hold with its confidence, from the fn-57 selection runs and the palm's runs on fn-80 (ledger/entries), labelled by whether a person admits the pick for the question asked. A pick below the floor fills nothing and answers the no-match.",
+  "cases": [
+    {
+      "id": "owic-mature-height",
+      "asked": "oak: height of a mature Oregon white oak (fn-57 selection run)",
+      "picked": "50 to 90 ft",
+      "probability": 1.0,
+      "correct": true
+    },
+    {
+      "id": "ncta-young-age",
+      "asked": "spruce: age a field-planted Norway spruce reaches 6 to 7 feet",
+      "picked": "8 to 11 years",
+      "probability": 1.0,
+      "correct": true
+    },
+    {
+      "id": "owic-lifespan",
+      "asked": "oak: how long an Oregon white oak may live",
+      "picked": "500 years",
+      "probability": 0.86,
+      "correct": true
+    },
+    {
+      "id": "ncta-young-height",
+      "asked": "spruce: height at a stated age after field planting",
+      "picked": "6-7 foot",
+      "probability": 0.97,
+      "correct": true
+    },
+    {
+      "id": "ash-height",
+      "asked": "ash: height at a stated age or usual mature height, open grown",
+      "picked": "20-35 m",
+      "probability": 0.97,
+      "correct": true
+    },
+    {
+      "id": "palm-leaflet-length-1955",
+      "asked": "palm: leaflet length on a mature frond (2026-09-23T19:55)",
+      "picked": "1 to 2 feet",
+      "probability": 0.97,
+      "correct": true
+    },
+    {
+      "id": "palm-leaflet-length-2016",
+      "asked": "palm: leaflet length on a mature frond (2026-09-23T20:16)",
+      "picked": "1 to 2 feet",
+      "probability": 0.96,
+      "correct": true
+    },
+    {
+      "id": "palm-crown-1955",
+      "asked": "palm: crown width of an open-grown mature palm (19:55)",
+      "picked": "6–10m",
+      "probability": 0.36,
+      "correct": true,
+      "note": "P4 states the crown's span as 6-10 m"
+    },
+    {
+      "id": "palm-crown-2016",
+      "asked": "palm: crown width of an open-grown mature palm (20:16)",
+      "picked": "6–10m",
+      "probability": 0.34,
+      "correct": true,
+      "note": "P4 states the crown's span as 6-10 m"
+    },
+    {
+      "id": "palm-frond-1732",
+      "asked": "palm: frond length with petiole (17:32)",
+      "picked": "20 feet",
+      "probability": 0.37,
+      "correct": true,
+      "note": "a frond length; select credited it to the wrong sentence, the pick itself is right"
+    },
+    {
+      "id": "palm-frond-1759",
+      "asked": "palm: frond length with petiole (17:59)",
+      "picked": "20 feet",
+      "probability": 0.5,
+      "correct": true,
+      "note": "as above"
+    },
+    {
+      "id": "palm-frond-2016",
+      "asked": "palm: frond length with petiole (20:16)",
+      "picked": "20 feet",
+      "probability": 0.36,
+      "correct": true,
+      "note": "as above"
+    },
+    {
+      "id": "palm-height-2209",
+      "asked": "palm: height at a stated age or usual mature height (2026-09-22)",
+      "picked": "50 - 100 feet",
+      "probability": 0.4,
+      "correct": true,
+      "note": "A1's listing of the mature height"
+    },
+    {
+      "id": "palm-height-max",
+      "asked": "palm: height at a stated age or usual mature height",
+      "picked": "35 m",
+      "probability": 0.35,
+      "correct": false,
+      "note": "'growing up to 35 m' is a maximum, not the usual height"
+    },
+    {
+      "id": "palm-leaflet-width-1955",
+      "asked": "palm: leaflet width on a mature frond (19:55)",
+      "picked": "0.6 m",
+      "probability": 0.72,
+      "correct": false,
+      "note": "0.6 m is the leaflet's length, not its width"
+    },
+    {
+      "id": "palm-leaflet-width-2016",
+      "asked": "palm: leaflet width on a mature frond (20:16)",
+      "picked": "0.6 m",
+      "probability": 0.66,
+      "correct": false,
+      "note": "as above"
+    }
+  ]
+}

@@ -10,10 +10,10 @@
 use std::path::Path;
 
 use super::{
-    appearance_state, described_questions, described_state, inspected_image_state,
-    level_from_score, mature_questions, mature_state, measurement_state, obligation_questions,
-    ranking_questions, ranking_state, sufficiency_questions, sufficiency_state, DESCRIBED_UNSTATED,
-    RANKING_NONE, SUFFICIENCY_LEVELS,
+    appearance_state, chosen_level, described_questions, described_state, inspected_image_state,
+    mature_questions, mature_state, measurement_state, obligation_questions, ranking_questions,
+    ranking_state, sufficiency_questions, sufficiency_state, DESCRIBED_UNSTATED, RANKING_NONE,
+    SUFFICIENCY_LEVELS,
 };
 use crate::caller::{evaluate, CallerError, EvaluateRequest, Transport};
 use crate::cases::{CaseRow, SetScore};
@@ -72,7 +72,7 @@ pub fn run_pipeline_cases(
                 .map(|c| {
                     (
                         c.id,
-                        measurement_state(&c.value_statement, &c.source_excerpt),
+                        measurement_state(None, &c.value_statement, &c.source_excerpt),
                         c.expect,
                         c.holdout,
                     )
@@ -207,12 +207,13 @@ fn run_levelled(
                 ledger_dir,
             },
         )?;
-        // A missing score is the lowest level, as the gate itself reads it.
-        let index = level_from_score(
-            entry.score(names.score).unwrap_or(f64::NAN),
+        // The most probable level, as the gate itself reads it.
+        let index = chosen_level(
+            entry.probabilities(names.score),
             SUFFICIENCY_LEVELS.len(),
-        )
-        .unwrap_or(0);
+            0,
+            0.0,
+        );
         let level = SUFFICIENCY_LEVELS[index];
         levels.push((
             CaseRow {
@@ -306,11 +307,12 @@ fn run_described(
                 ledger_dir,
             },
         )?;
-        let index = level_from_score(
-            entry.score("level").unwrap_or(f64::NAN),
+        let index = chosen_level(
+            entry.probabilities("level"),
             case.levels.len() + 1,
-        )
-        .unwrap_or(case.levels.len());
+            case.levels.len(),
+            thresholds().level_floor,
+        );
         let answered = case
             .levels
             .get(index)

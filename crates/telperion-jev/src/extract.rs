@@ -1,7 +1,6 @@
 //! Code finds candidate sentences and numeric spans. The model never does this.
 
-use regex::Regex;
-use std::sync::OnceLock;
+use crate::quantity::unit_re;
 
 /// Byte budget for one sentence field in the state sent to Jev.
 /// A longer sentence is split at sentence boundaries; each part is judged
@@ -46,16 +45,6 @@ pub fn bound_state_text(text: &str) -> String {
     } else {
         slice_at(text, 0, STATE_SENTENCE_LIMIT).to_string()
     }
-}
-
-fn unit_re() -> &'static Regex {
-    static RE: OnceLock<Regex> = OnceLock::new();
-    RE.get_or_init(|| {
-        Regex::new(
-            r"(?i)\d[\d,]*(?:\.\d+)?(?:\s*(?:to|-|–|—)\s*\d[\d,]*(?:\.\d+)?)?\s*(?:ft|feet|foot|in\.|inches|inch|m\b|metres?|meters?|cm|mm|years?|yr|rings/in)",
-        )
-        .expect("unit regex")
-    })
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

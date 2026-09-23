@@ -110,7 +110,9 @@ fn search_round(
     rounds: &Rounds,
 ) -> Round {
     let field = decision.field.clone().unwrap_or_default();
-    let on_trait = decision.stage == "select";
+    // Select files a field it could not fill too (fn-131): a trait is one
+    // the manifest lists as appearance.
+    let on_trait = manifest.appearance.iter().any(|t| t.trait_name == field);
     let condition = manifest
         .field(&field)
         .map(|f| f.condition.clone())

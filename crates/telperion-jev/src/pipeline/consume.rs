@@ -35,6 +35,11 @@ pub fn consumers(kind: &str) -> Option<(&'static [&'static str], &'static [&'sta
         "coverage-gap" => Some((&["accept-rows", "fix-table", "drop-table"], &["fetch"])),
         "data-insufficient" => Some((&["admit-proxy", "add-sources", "lower-bar"], &["quality"])),
         REQUIREMENTS_UNMET => Some((&["add-sources"], &["quality", "select"])),
+        // A flagged value (fn-131): select drops it on drop-value and on
+        // replace-source, and files its requirement for the search again.
+        "claim-contradicted" | "claim-unsupported" => {
+            Some((&["accept", "replace-source", "drop-value"], &["select"]))
+        }
         _ => None,
     }
 }
@@ -62,7 +67,9 @@ impl From<CanonError> for ReconcileError {
 }
 
 /// Refuses a resolution whose option no stage consumes, naming the kind and
-/// the options a stage does consume, and a `replace-source` without a url.
+/// the options a stage does consume, and a `replace-source` of an
+/// unavailable source without a url; a claim's `replace-source` is the
+/// pipeline's own search and names none.
 pub fn check_resolutions(
     decisions: &[Decision],
     resolutions: &[Resolution],
@@ -86,7 +93,8 @@ pub fn check_resolutions(
             )));
         }
         let url = resolution.payload["url"].as_str().unwrap_or_default();
-        if resolution.option == "replace-source" && url.trim().is_empty() {
+        let fetched = stages.contains(&"fetch");
+        if resolution.option == "replace-source" && fetched && url.trim().is_empty() {
             return Err(ReconcileError::Refused(format!(
                 "{}: replace-source names no replacement url in its payload",
                 resolution.id
@@ -106,16 +114,17 @@ pub fn sources_sha256(manifest: &Path) -> Result<String, CanonError> {
 /// are still the ones it was filed against: a resolution that adds no source
 /// leaves the decision open. An appearance trait's decision (`select`) also
 /// counts a source id added to the trait's own list (`traits` is the
-/// manifest's `appearance`), which the pipeline may add (fn-129). A decision
+/// manifest's `appearance`), which the pipeline may add (fn-129); a field
+/// select filed (fn-131) counts the manifest's sources, as quality's does. A decision
 /// its stage superseded is not held: the field passed with the sources it
 /// had. The note is set, never appended, so a rerun is byte-identical. True
 /// when the list changed.
 pub fn hold_unmet(decisions: &mut [Decision], sources: &str, traits: &Value) -> bool {
     let mut changed = false;
     for decision in decisions.iter_mut() {
+        let list = trait_list(traits, decision);
         let unchanged = decision.payload["sources_sha256"].as_str() == Some(sources)
-            && (decision.stage != "select"
-                || trait_list(traits, decision) == decision.payload["sources_tried"]);
+            && (list.is_null() || list == decision.payload["sources_tried"]);
         let superseded = decision
             .resolution
             .as_ref()

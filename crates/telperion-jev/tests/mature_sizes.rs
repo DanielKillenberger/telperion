@@ -31,8 +31,8 @@ const A1_RATE: &str = "Date palms have a moderate growth rate of 30-45 cm (1 to 
 /// live; everything else, the mature-size set among it, goes to the fixture
 /// transport, which answers from the labelled case whose state the stage
 /// laid out.
-/// The selection tool's span is the listing's width, the one candidate the
-/// select test needs filled; this test is about which fields select asks.
+/// The selection tool's span is each field's first candidate; this test is
+/// about which fields select asks.
 struct Palm;
 
 impl Transport for Palm {
@@ -44,7 +44,9 @@ impl Transport for Palm {
                 "dominant_gap": {"type": "choice", "choice": "no_age_indexed_points", "confidence": 0.9, "probabilities": {}},
             })
         } else if body["questions"].get("span").is_some() {
-            json!({"span": {"type": "choice", "choice": "20 - 50 feet", "confidence": 0.9, "probabilities": {}}})
+            // Each field's first candidate: the field's own rows (fn-131).
+            let chosen = body["state"]["candidates"][0].clone();
+            json!({"span": {"type": "choice", "choice": chosen, "confidence": 0.9, "probabilities": {}}})
         } else {
             return CaseTransport.send(request);
         };
@@ -92,7 +94,8 @@ fn row(sentence: &str, kind: &str) -> Value {
 }
 
 /// A pipeline directory holding the manifest and the fetch and screen
-/// artifacts quality reads, with A1's screened rows as the live run kept them.
+/// artifacts quality reads, with A1's screened rows as the live run kept
+/// them, the organ sentences in the organ classes fn-131's screen offers.
 fn prepare(ages: Value) -> PathBuf {
     let dir = std::env::temp_dir().join(format!(
         "jev-mature-{}-{}",
@@ -103,8 +106,8 @@ fn prepare(ages: Value) -> PathBuf {
     write_canonical(&dir.join("manifest.json"), &manifest(ages)).unwrap();
     let rows = json!({"rows": [
         row(A1_TRUNK, "mature_size_range"),
-        row(A1_FROND, "not_about_tree_size"),
-        row(A1_LEAFLET, "not_about_tree_size"),
+        row(A1_FROND, "frond_size"),
+        row(A1_LEAFLET, "leaflet_size"),
         row(A1_RATE, "typical_growth_rate"),
         row(A1_LISTING, "mature_size_range"),
     ]});

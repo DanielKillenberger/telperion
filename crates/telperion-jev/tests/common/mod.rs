@@ -94,10 +94,21 @@ fn answers_for(body: &Value) -> Value {
     }
     if questions.get("span").is_some() {
         let question = body["state"]["question"].as_str().unwrap_or("");
+        // The pipeline keys a span to its row ("S1.1: 50 to 90 ft", fn-131):
+        // the labelled span is the candidate that carries it.
+        let candidates: Vec<String> =
+            serde_json::from_value(body["state"]["candidates"].clone()).unwrap_or_default();
         let chosen = selection_cases()
             .into_iter()
             .find(|case| case.question == question)
             .map(|case| case.expect_span)
+            .map(|span| {
+                candidates
+                    .iter()
+                    .find(|c| c.ends_with(&format!(": {span}")))
+                    .cloned()
+                    .unwrap_or(span)
+            })
             .unwrap_or_else(|| "none".into());
         return json!({
             "span": {

@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 use super::canon::{read_json, write_canonical, CanonError};
-use super::consume::{check_resolutions, hold_unmet, sources_sha256, ReconcileError};
+use super::consume::{check_resolutions, hold_unmet, sources_sha256, ReconcileError, SUPERSEDED};
 use super::stage::Paths;
 
 pub const DECISIONS_SCHEMA_VERSION: u32 = 1;
@@ -199,7 +199,7 @@ pub fn retire_unfiled(
         decision.resolution = Some(Resolution {
             id: decision.id.clone(),
             inputs_sha256: decision.inputs_sha256.clone(),
-            option: "superseded".into(),
+            option: SUPERSEDED.into(),
             by: format!("{stage} stage rerun"),
             at: at.into(),
             note: "the stage reran with changed inputs and did not file this decision again".into(),
@@ -215,15 +215,23 @@ pub fn retire_unfiled(
 
 /// Applies the resolutions a person wrote. A resolution whose checksums no
 /// longer match the decision's is void: the decision stays open and the note
-/// names the stale resolution.
+/// names the stale resolution. A decision its stage superseded stays
+/// retired under a void one (fn-131): the gate it named has passed.
 pub fn apply_resolutions(decisions: &mut [Decision], resolutions: &[Resolution]) {
     for decision in decisions.iter_mut() {
         let Some(resolution) = resolutions.iter().find(|r| r.id == decision.id) else {
             continue;
         };
-        if resolution.inputs_sha256 == decision.inputs_sha256
-            && decision.options.contains(&resolution.option)
-        {
+        let binds = resolution.inputs_sha256 == decision.inputs_sha256
+            && decision.options.contains(&resolution.option);
+        let retired = decision
+            .resolution
+            .as_ref()
+            .is_some_and(|r| r.option == SUPERSEDED);
+        if retired && !binds {
+            continue;
+        }
+        if binds {
             decision.status = Status::Resolved;
             decision.resolution = Some(resolution.clone());
         } else {

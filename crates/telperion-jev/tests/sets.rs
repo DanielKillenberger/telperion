@@ -1,12 +1,13 @@
 mod common;
 
+use serde_json::json;
 use telperion_jev::cases::{format_scores, CaseRow, SetScore};
 use telperion_jev::pipeline::sets::cases::run_pipeline_cases;
 use telperion_jev::pipeline::sets::{
-    described_cases, described_questions, level_from_score, mature_cases, mature_questions,
-    missed_ids, obligation_cases, obligation_questions, ranking_cases, ranking_questions,
-    set_version, sufficiency_cases, DescribedLevel, DESCRIBED_UNSTATED, OBLIGATION_NAMES,
-    RANKING_NONE, SUFFICIENCY_LEVELS,
+    chosen_level, described_cases, described_questions, level_from_score, mature_cases,
+    mature_questions, missed_ids, obligation_cases, obligation_questions, ranking_cases,
+    ranking_questions, set_version, sufficiency_cases, DescribedLevel, DESCRIBED_UNSTATED,
+    OBLIGATION_NAMES, RANKING_NONE, SUFFICIENCY_LEVELS,
 };
 
 use common::{ledger_dir, CaseTransport};
@@ -27,15 +28,16 @@ const SET_NAMES: [&str; 10] = [
 ];
 
 #[test]
-fn every_set_is_version_one_and_its_cases_carry_the_fields_the_runner_reads() {
-    for name in [
-        "sufficiency",
-        "mature_size",
-        "ranking",
-        "described",
-        "obligations",
+fn every_set_carries_its_version_and_its_cases_carry_the_fields_the_runner_reads() {
+    // fn-131 names the field in the measurement question: obligations v2.
+    for (name, version) in [
+        ("sufficiency", 1),
+        ("mature_size", 1),
+        ("ranking", 1),
+        ("described", 1),
+        ("obligations", 2),
     ] {
-        assert_eq!(set_version(name), 1, "{name}");
+        assert_eq!(set_version(name), version, "{name}");
     }
     let gaps = [
         "no_age_indexed_points",
@@ -248,6 +250,48 @@ fn level_from_score_rounds_to_the_nearest_level_and_clamps() {
         );
     }
     assert_eq!(level_from_score(1.0, 0), None);
+}
+
+/// fn-131 R3 and R9: a level is the most probable one; a tie, no map or a
+/// most probable level below the floor is the no-match level.
+#[test]
+fn chosen_level_is_the_most_probable_or_the_no_match() {
+    let table = [
+        (
+            json!({"0": 0.0, "1": 0.0, "2": 0.46, "3": 0.0, "4": 0.54}),
+            5,
+            4,
+            0.0,
+            4,
+        ),
+        (
+            json!({"0": 0.17, "1": 0.09, "2": 0.0, "3": 0.74}),
+            4,
+            3,
+            0.0,
+            3,
+        ),
+        (
+            json!({"0": 0.6, "1": 0.0, "2": 0.0, "3": 0.4}),
+            4,
+            0,
+            0.0,
+            0,
+        ),
+        (json!({"0": 0.1, "1": 0.2, "2": 0.7}), 3, 0, 0.0, 2),
+        (json!({"0": 0.45, "1": 0.45, "2": 0.1}), 3, 0, 0.0, 0),
+        (json!({"0": 0.5, "1": 0.5}), 2, 1, 0.0, 1),
+        (json!({"0": 0.5, "1": 0.3, "2": 0.2}), 3, 2, 0.56, 2),
+        (json!({}), 3, 2, 0.0, 2),
+    ];
+    for (probabilities, count, no_match, floor, expected) in table {
+        assert_eq!(
+            chosen_level(Some(&probabilities), count, no_match, floor),
+            expected,
+            "{probabilities} floor {floor}"
+        );
+    }
+    assert_eq!(chosen_level(None, 3, 0, 0.0), 0);
 }
 
 #[test]
