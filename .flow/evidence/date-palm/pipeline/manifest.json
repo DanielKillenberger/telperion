@@ -71,24 +71,24 @@
       "condition": "open_grown",
       "field": "height_m",
       "proxy": null,
-      "question": "Which candidate span states the height a date palm reaches at a stated age, or its usual mature height, for a tree grown in the open?",
-      "required_ages_years": [
-        20.0,
-        50.0,
-        80.0
-      ]
+      "question": "Which candidate span states the usual mature height of a date palm grown in the open?",
+      "required_ages_years": []
     },
     {
+      "field": "height_growth_m_per_year",
+      "condition": "open_grown",
+      "proxy": null,
       "bar": "partial",
+      "question": "Which candidate span states how fast a date palm's trunk grows in height each year, for a tree grown in the open?",
+      "required_ages_years": []
+    },
+    {
+      "bar": "proxy_only",
       "condition": "open_grown",
       "field": "dbh_m",
       "proxy": null,
-      "question": "Which candidate span states the trunk diameter of a date palm at a stated age, or at maturity, for a tree grown in the open?",
-      "required_ages_years": [
-        20.0,
-        50.0,
-        80.0
-      ]
+      "question": "Which candidate span states the trunk diameter of a mature date palm grown in the open?",
+      "required_ages_years": []
     },
     {
       "bar": "proxy_only",
