@@ -59,3 +59,26 @@ spelled inside `src/wasm-source.ts`'s own doc comment, and esbuild refused
 the broken comment. Cost: one failed build, two minutes. Removed by not
 spelling the literal in prose; a transform that skipped comments would be
 more than the plugin needs.
+
+## 2026-09-23 — the first publish failed with a 404 because npm was not logged in
+
+The owner's hand publish of the placeholder answered `404 Not Found - PUT`,
+which reads as a problem with the name. The real cause was a machine with
+no npm login (`npm whoami` answered 401). Cost: one round trip, a few
+minutes. What would have removed it: the R6 steps opening with `npm whoami`.
+A local setup matter, reported and not specced.
+
+## 2026-09-23 — the fresh install hit a stale npm cache
+
+`npm install telperion@0.1.0` answered `notarget` right after the publish,
+because the local cache held the listing from 0.0.1. `--prefer-online`
+fixed it. Cost: one retry. What would have removed it: `--prefer-online`
+in the documented smoke steps.
+
+## 2026-09-23 — dcg again: heredocs, `mv` and redirects through variables
+
+Recording R6, three shell writes that used a variable for the evidence
+path were refused (`heredoc.shell:launcher-unverified`,
+`core.filesystem:mv-dynamic-path`, `redirect-truncate-dynamic-path`) and
+ran again through the file tools. Cost: three retries, a few minutes.
+A local setup matter, reported and not specced.

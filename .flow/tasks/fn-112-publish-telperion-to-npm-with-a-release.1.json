@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-112-publish-telperion-to-npm-with-a-release",
   "spec_path": ".flow/tasks/fn-112-publish-telperion-to-npm-with-a-release.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Publish telperion to npm with a release pipeline in CI",
   "updated_at": "2026-09-22T14:42:59.722469Z"
 }
