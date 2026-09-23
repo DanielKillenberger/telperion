@@ -17,6 +17,11 @@
 //! source expands through [`fan`] and a family that states leaflets without a
 //! rosette draws compound leaves on the wood it already clothed.
 //!
+//! Below the living crown a rosette may keep its dead: the skirt continues the
+//! same spiral down the stem, each dead frond hung at the skirt's own pitch
+//! and drawn at its share of a living frond's length, and every leaf of it is
+//! marked withered so the crown draws it in the dead colour.
+//!
 //! The rows, their rails and the apices are read with the placement compiled
 //! out, so the leaf plan can tell a frond crown from a clothed one; only the
 //! placing itself needs the `geometry` feature.
@@ -52,6 +57,32 @@ pub(super) fn bearing(p: &CanopyParams) -> bool {
     p.rosette_fronds > 0
 }
 
+/// Dead fronds each rosette keeps: none unless a table states a count and a
+/// length to draw them at.
+pub(super) fn skirt(p: &CanopyParams) -> u32 {
+    if p.skirt_length > 0. {
+        p.skirt_fronds
+    } else {
+        0
+    }
+}
+
+/// Metres below the apex the deepest frond, living or dead, leaves the axis:
+/// the living crown's own depth unless a skirt continues its spacing further.
+pub(super) fn deepest(p: &CanopyParams) -> f64 {
+    let kept = skirt(p);
+    if kept == 0 {
+        return p.rosette_depth;
+    }
+    p.rosette_depth * (f64::from(p.rosette_fronds + kept - 1) / spacing(p))
+}
+
+/// The steps of the living crown's spacing its depth is cut into: one short
+/// of its fronds, and one where a lone frond has no spacing of its own.
+fn spacing(p: &CanopyParams) -> f64 {
+    f64::from(p.rosette_fronds.saturating_sub(1)).max(1.)
+}
+
 /// Leaflets one placement carries: the grouping is off until a table states
 /// both a count above one and a rachis to string them along.
 pub(super) fn leaflets(p: &CanopyParams) -> usize {
@@ -79,11 +110,16 @@ pub(crate) fn validate(p: &CanopyParams) -> Result<()> {
         (p.leaf_base_weathering, 0., 1., "leaf base weathering"),
         (p.acanthophyll_length, 0., 1., "acanthophyll length"),
         (p.acanthophyll_pitch, 0., 90., "acanthophyll pitch"),
+        (p.skirt_pitch, 0., 180., "skirt pitch"),
+        (p.skirt_length, 0., 1., "skirt length"),
     ] {
         range(v, l, h, n)?;
     }
     if p.rosette_fronds > MAX_FRONDS {
         return Err(Error::InvalidInput("rosette fronds"));
+    }
+    if p.skirt_fronds > MAX_FRONDS {
+        return Err(Error::InvalidInput("skirt fronds"));
     }
     if !(1..=MAX_LEAFLETS).contains(&p.leaflet_count) {
         return Err(Error::InvalidInput("leaflet count"));
@@ -127,7 +163,7 @@ pub(super) fn count(tree: &Tree, p: &CanopyParams) -> Result<usize> {
         return Ok(0);
     }
     let budget = || Error::ResourceLimit("foliage instance budget");
-    (p.rosette_fronds as usize)
+    (p.rosette_fronds as usize + skirt(p) as usize)
         .checked_mul(leaflets(p))
         .and_then(|per| rosettes(tree).len().checked_mul(per))
         .filter(|total| *total <= p.max_instances)
@@ -147,12 +183,13 @@ pub(super) fn clothe(
         return Ok(());
     }
     let fronds = p.rosette_fronds;
+    let kept = skirt(p);
     let per = leaflets(p);
     // The youngest frond stands at the pitch the row states and the oldest
     // that much further out again, so the crown opens from a spike to a skirt.
     let oldest = f64::from(fronds.saturating_sub(1));
     for rosette in rosettes(tree) {
-        reserve(out, fronds as usize * per, *p)?;
+        reserve(out, (fronds + kept) as usize * per, *p)?;
         let birth = tree.nodes[rosette.apex].identity.birth_order();
         let (normal, binormal) = frame(rosette.axis);
         for k in 0..fronds {
@@ -170,9 +207,44 @@ pub(super) fn clothe(
             let at = rosette.at - rosette.axis * (p.rosette_depth * age);
             fan(at, heading, radial, rosette.axis, *p, &mut rng, out)?;
         }
+        if kept > 0 {
+            let from = out.leaves.len();
+            hang(&rosette, birth, seed, p, out)?;
+            out.wither(from);
+        }
         if let Some(owners) = owners.as_mut() {
             owners.resize(out.leaves.len(), rosette.apex as u32);
         }
+    }
+    Ok(())
+}
+
+#[cfg(feature = "geometry")]
+/// The skirt below one rosette: its dead fronds on the crown's own spiral and
+/// spacing, continued past the oldest living frond, each hung at the skirt's
+/// pitch and drawn at its share of a living frond's length.
+fn hang(
+    rosette: &Rosette,
+    birth: u64,
+    seed: u32,
+    p: &CanopyParams,
+    out: &mut Instances,
+) -> Result<()> {
+    let (fronds, steps) = (p.rosette_fronds, spacing(p));
+    let dead = CanopyParams {
+        size: p.size * p.skirt_length,
+        rachis_length: p.rachis_length * p.skirt_length,
+        ..*p
+    };
+    let (normal, binormal) = frame(rosette.axis);
+    let (lean, upright) = p.skirt_pitch.to_radians().sin_cos_fixed();
+    for k in fronds..fronds + skirt(p) {
+        let mut rng = Rng::new(key(seed, birth, k));
+        let (sin, cos) = (f64::from(k) * p.rosette_divergence.to_radians()).sin_cos_fixed();
+        let radial = normal * cos + binormal * sin;
+        let heading = (rosette.axis * upright + radial * lean).normalized();
+        let at = rosette.at - rosette.axis * (p.rosette_depth * (f64::from(k) / steps));
+        fan(at, heading, radial, rosette.axis, dead, &mut rng, out)?;
     }
     Ok(())
 }

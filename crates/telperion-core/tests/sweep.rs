@@ -73,7 +73,9 @@ const SWEEP_NODES: usize = 8_000;
 // fn-109's ten rosette rows and fn-110's eight trunk-organ rows are the date
 // palm's, and the palm is not a preset the sweep walks: every other table
 // leaves them at their neutral, so they are held here.
-const HELD: [&str; 60] = [
+// fn-120's three skirt rows and its dead colour are the palm's too, held for
+// the same reason.
+const HELD: [&str; 66] = [
     "/canopy/clumpSystemOrder",
     "/canopy/rosetteFronds",
     "/canopy/rosetteDivergence",
@@ -93,6 +95,12 @@ const HELD: [&str; 60] = [
     "/canopy/acanthophylls",
     "/canopy/acanthophyllLength",
     "/canopy/acanthophyllPitch",
+    "/canopy/skirtFronds",
+    "/canopy/skirtPitch",
+    "/canopy/skirtLength",
+    "/material/leafDeadRed",
+    "/material/leafDeadGreen",
+    "/material/leafDeadBlue",
     "/canopy/clumpNeighbours",
     "/surface/socketContainment",
     "/skeleton/habit/reachProbeSteps",

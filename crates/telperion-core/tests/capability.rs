@@ -52,8 +52,8 @@ fn every_name_is_declared_once_and_carries_one_line_of_meaning() {
 }
 
 #[test]
-fn the_eleven_names_the_derivation_produces_are_all_in_the_vocabulary() {
-    assert_eq!(DERIVABLE.len(), 11);
+fn the_twelve_names_the_derivation_produces_are_all_in_the_vocabulary() {
+    assert_eq!(DERIVABLE.len(), 12);
     for name in DERIVABLE {
         assert_eq!(
             capability::support(name),
@@ -138,7 +138,7 @@ fn the_date_palms_recorded_needs_read_as_five_met_and_one_absent() {
 /// and the grouping it draws is the compound leaf the vocabulary already had a
 /// word for.
 #[test]
-fn the_palms_table_produces_the_crown_the_compound_leaf_and_the_trunk_organs() {
+fn the_palms_table_produces_the_crown_the_compound_leaf_the_trunk_organs_and_the_skirt() {
     let derived = capability::derived(Preset::from_id("date-palm").unwrap());
     for name in [
         "apical-rosette",
@@ -146,6 +146,7 @@ fn the_palms_table_produces_the_crown_the_compound_leaf_and_the_trunk_organs() {
         "pinnate-compound",
         "persistent-leaf-base",
         "acanthophyll",
+        "dead-frond-skirt",
     ] {
         assert!(
             derived.contains(&name),

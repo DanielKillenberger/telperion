@@ -3227,7 +3227,7 @@ fn the_routing_state_names_the_kinds_of_dial_rather_than_every_row() {
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     approve_one(&mut state, &mock);
     state.dials = serde_json::from_slice(include_bytes!("../data/dials.json")).unwrap();
-    assert_eq!(state.dials.len(), 219);
+    assert_eq!(state.dials.len(), 225);
 
     let dials = telperion_jev::tuning::judgments::summary(&state)["dials"].clone();
     let bytes = serde_json::to_vec(&dials).unwrap().len();
@@ -3240,7 +3240,7 @@ fn the_routing_state_names_the_kinds_of_dial_rather_than_every_row() {
         .iter()
         .find(|g| g["group"] == "material")
         .expect("the router is not told the material dials exist");
-    assert_eq!(material["dials"], 92);
+    assert_eq!(material["dials"], 95);
     assert_eq!(material["examples"].as_array().unwrap().len(), 3);
     // Every group is named, and the whole routing state still fits.
     assert_eq!(groups.len(), 7);
@@ -3319,7 +3319,7 @@ fn twelve_rounds_of_attempts_fold_into_a_digest_that_still_fits() {
         .into_iter()
         .filter(|d| d.score_visible == Some(true))
         .collect();
-    assert_eq!(state.dials.len(), 127);
+    assert_eq!(state.dials.len(), 130);
     let base = state.trials[state.current.unwrap()].key.clone();
     let mut history = vec![];
     for round in 1..=12u64 {

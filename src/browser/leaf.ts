@@ -10,7 +10,8 @@
  * dropped largest component in the top two bits, the other three below it, ten
  * bits each, over plus or minus one over root two. Word 1 is x and y as
  * unsigned normals over the reference box, word 2 is z in its low half and the
- * uniform scale as a half float in its high half. */
+ * uniform scale as a half float in its high half. A scale is never negative,
+ * so the half float's sign bit marks a withered leaf instead. */
 
 /** Words one stored leaf occupies. */
 export const LEAF_WORDS = 3;
@@ -44,9 +45,10 @@ export function leafPosition(words: LeafWords, reference: LeafReference): Vector
   ];
 }
 
-/** The uniform scale a leaf carries, out of the high half of word 2. */
+/** The uniform scale a leaf carries, out of the high half of word 2, whether
+ * or not the leaf is withered. */
 export function leafScale(words: LeafWords): number {
-  return half(words[2] >>> 16);
+  return half((words[2] >>> 16) & 0x7fff);
 }
 
 /** The rotation word 0 carries, as the three columns of its matrix: side, the

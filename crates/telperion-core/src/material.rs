@@ -37,6 +37,12 @@ pub struct MaterialParams {
     pub leaf_back_red: f64,
     pub leaf_back_green: f64,
     pub leaf_back_blue: f64,
+    /// The colour a dead frond has aged to, both faces alike, shown only on
+    /// the fronds a rosette keeps below its living crown. Raising a channel
+    /// pushes the skirt toward it.
+    pub leaf_dead_red: f64,
+    pub leaf_dead_green: f64,
+    pub leaf_dead_blue: f64,
     /// The hue offsets one leaf may take, as a fraction of the colour circle.
     pub hue_range_low: f64,
     pub hue_range_high: f64,
@@ -245,6 +251,10 @@ impl Default for MaterialParams {
             leaf_back_red: 0.105,
             leaf_back_green: 0.240,
             leaf_back_blue: 0.070,
+            // A dry grey-brown, drawn only where a canopy keeps a skirt.
+            leaf_dead_red: 0.30,
+            leaf_dead_green: 0.25,
+            leaf_dead_blue: 0.18,
             hue_range_low: -0.03,
             hue_range_high: 0.03,
             brightness_range_low: -0.12,
@@ -465,6 +475,9 @@ impl MaterialParams {
             (self.leaf_back_red, 0.0, 1.0, "leaf back red"),
             (self.leaf_back_green, 0.0, 1.0, "leaf back green"),
             (self.leaf_back_blue, 0.0, 1.0, "leaf back blue"),
+            (self.leaf_dead_red, 0.0, 1.0, "leaf dead red"),
+            (self.leaf_dead_green, 0.0, 1.0, "leaf dead green"),
+            (self.leaf_dead_blue, 0.0, 1.0, "leaf dead blue"),
             (self.hue_range_low, -0.5, 0.5, "leaf hue range low"),
             (self.hue_range_high, -0.5, 0.5, "leaf hue range high"),
             (
