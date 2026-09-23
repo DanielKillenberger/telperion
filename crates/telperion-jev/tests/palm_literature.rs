@@ -251,11 +251,7 @@ fn below_the_calibration_minimum_select_fills_the_leaflets_and_records_the_proba
             (got[0] - range[0]).abs() < 1e-9 && (got[1] - range[1]).abs() < 1e-9,
             "{name}: {got:?}"
         );
-        assert_eq!(
-            sidecar["entries"][&pointer]["pick_probability"],
-            json!(probability),
-            "{name}"
-        );
+        assert_eq!(body["pick_probability"][name], json!(probability), "{name}");
     }
 }
 

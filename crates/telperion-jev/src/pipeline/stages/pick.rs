@@ -30,8 +30,10 @@ pub const BELOW_FLOOR: &str = "pick below the selection floor";
 pub const NO_LENGTH: &str = "the chosen span states no length";
 
 pub enum Pick {
-    /// The profile metric and its sidecar entry.
-    Filled(Value, Value),
+    /// The profile metric, its sidecar entry, and the chosen span's
+    /// probability, which the select body records and provenance never
+    /// carries.
+    Filled(Value, Value, Option<f64>),
     Unfilled(&'static str),
 }
 
@@ -94,10 +96,9 @@ pub fn pick(
     });
     let entry = json!({
         "route": "copied", "source": source, "sentence": row["sentence"], "span": span,
-        "unit": stated, "pick_confidence": report.confidence, "pick_probability": probability,
-        "ledger": [report.identity],
+        "unit": stated, "pick_confidence": report.confidence, "ledger": [report.identity],
     });
-    Ok((Pick::Filled(metric, entry), identity))
+    Ok((Pick::Filled(metric, entry, probability), identity))
 }
 
 /// The first length in a span, in metres: `50 to 90 ft` -> [15.24, 27.432];

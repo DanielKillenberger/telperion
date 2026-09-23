@@ -260,8 +260,9 @@ ash's or a test fixture, loads unchanged.
   selection floor applies only once its labelled set holds at least 20
   cases with at least 5 wrong picks (fn-133); then a pick below
   `selection_floor` fills nothing. Until then select takes the most
-  probable span and records its probability in the sidecar
-  (`pick_probability`), and verify's field-aware check is the guard: the
+  probable span and records its probability in the select body
+  (`pick_probability`; provenance carries none), and verify's
+  field-aware check is the guard: the
   palm's leaflet picks, at 0.22 and 0.24, had been dropped by a floor of
   0.34 set on 16 cases. Code parses the chosen span with the
   one number and unit grammar the extractor uses (`quantity`): glued units
