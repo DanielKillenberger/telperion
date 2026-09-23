@@ -13,3 +13,10 @@
 - Hindered by: moving the surface height check into one helper tripped `generation_limit_guard`, which pins every limit site by file and token text in `docs/generation-limits-inventory.json`. Nothing in the crate points at the inventory, so the first gate run found it, and the gate ran twice.
 - Cost: about 8 minutes, one extra full gate run.
 - Would remove it: a focused command that runs the guard alone, named in the spec's quick commands for any task that touches a refusal site.
+
+## 2026-09-23 - worker, the host's floors
+
+- Doing: adding the host's `maxNodes >= 1` floor.
+- Hindered by: four tests pin a zero ceiling as a resumable empty seedling on `generate` and the growth path, which the decision did not know of. The gate found them. `generation_limit_guard` again needed an inventory entry for the new floor.
+- Cost: about 10 minutes and a third full gate run. The build/validate agreement test now runs on every family and takes about 40 s of each gate.
+- Would remove it: a spec's architecture note naming the tests that pin a value before a floor on it is decided; the guard alone as a quick command.

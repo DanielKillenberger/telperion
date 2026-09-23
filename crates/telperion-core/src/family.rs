@@ -6,7 +6,7 @@ use crate::{
     material::MaterialParams,
     radius::RadiusParams,
     surface::SurfaceParams,
-    Result,
+    Error, Result,
 };
 
 #[derive(Debug, Clone)]
@@ -57,6 +57,11 @@ impl Family {
         crate::growth::Age::from_years(self.age)?;
         self.growth.validate()?;
         crate::branching::validate_skeleton(&self.skeleton, self.radii)?;
+        // Growth keeps a zero ceiling as an empty seedling it can resume
+        // from; the build has nothing to sweep, so a family refuses it here.
+        if self.skeleton.growth.max_nodes == Some(0) {
+            return Err(Error::InvalidInput("maxNodes"));
+        }
         self.surface.validate()?;
         crate::surface::height(self.skeleton.envelope.height)?;
         foliage::build_element(self.element)?;
