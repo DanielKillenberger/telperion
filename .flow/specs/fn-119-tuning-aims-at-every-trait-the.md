@@ -20,6 +20,11 @@ The date palm's three tuning revisions aimed at three objectives, the owner's wr
   - *Objectives.* The approval's ordered list is the owner's priorities first, then every inventory trait at `core` and `secondary` that is not listed `unexpressed` (fn-116), in inventory order; `variation` traits are recorded, not objectives. The pause proposes that list; the approving decision may reorder or remove, never needs to add.
   - *Tracks.* Each objective is routed to the dials that answer it (the existing routing); a track's objectives are those routed to its dial groups, and its stride class comes from its own lead objective, not the run's.
   - *No objective, no turn.* A track with no objective routed to it is skipped and recorded, not drawn.
+- **Host decisions on the worker's escalation (2026-09-23).** The worker found no objective-to-track routing in code (`routing.rs` routes a priority to `tuning` or elsewhere only; proposals carry no priority). [host design]
+  - *Track on a gap.* Each approved gap may carry an optional `track`. An unassigned gap belongs to every track, which is today's behaviour. A track's objectives are its named gaps plus the unassigned ones, and its stride class comes from its own lead objective. No new Jev question.
+  - *Per-track requests and caps.* Each track's sheet and progress request carries only its own objectives. The per-request cap rises from 8 to 16, and `Approval::verify` accepts up to 32 gaps.
+  - *Inventory trait to gap.* Code turns an inventory trait into a gap: its views are the shots of its `reference_ids` restricted to the required cells, and its `evidence_ids` are the current render of each such view plus its references.
+  - *R2's palm test* assigns `trunk-colour-and-weathering`, `frond-colour-range` and `trunk-fibrous-matting` to the materials track.
 
 ## Acceptance Criteria
 <!-- scope: both -->
