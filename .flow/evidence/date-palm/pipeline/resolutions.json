@@ -64,12 +64,12 @@
     {
       "id": "date-palm/discover/manifest-proposed",
       "inputs_sha256": {
-        "seed": "79fad2c1369788198e57d498ddc32aeffc3aa7920185613ec49425e77f752b1a"
+        "seed": "c2c85cff0aa4851b39b9085f002292949866fe18a8b8bcaaf6ab33f4b65173e0"
       },
       "option": "admit",
-      "by": "owner",
+      "by": "host relaying the owner's admission of 2026-09-23",
       "at": "2026-09-23",
-      "note": "The owner admitted the version 2 manifest (fn-118 requirements: height and trunk diameter at ages, crown width, frond and leaflet size, six appearance traits) with seven sources: F1, A1, M1 as before and P4 to P7 from discover; rights checked by the host (P6 Foods CC BY, P7 BMC Plant Biology CC BY 4.0, P4 Wikipedia CC BY-SA, P5 no stated licence, numbers cited only)."
+      "note": "Re-recorded against the new seed. The draft is identical to the manifest the owner admitted earlier the same day (same seven sources, fields, bars and appearance traits); the only change is the host removing the placeholder ages it had put on the mature-size fields, which fn-127 no longer requires."
     }
   ]
 }

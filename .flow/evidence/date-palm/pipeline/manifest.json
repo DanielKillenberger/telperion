@@ -96,9 +96,7 @@
       "field": "crown_width_m",
       "proxy": null,
       "question": "Which candidate span states the crown width or spread of a mature date palm grown in the open?",
-      "required_ages_years": [
-        50.0
-      ]
+      "required_ages_years": []
     },
     {
       "bar": "proxy_only",
@@ -106,9 +104,7 @@
       "field": "frond_length_m",
       "proxy": null,
       "question": "Which candidate span states the length of a mature date palm frond (leaf), including the petiole?",
-      "required_ages_years": [
-        50.0
-      ]
+      "required_ages_years": []
     },
     {
       "bar": "proxy_only",
@@ -116,9 +112,7 @@
       "field": "leaflet_length_m",
       "proxy": null,
       "question": "Which candidate span states the length of a date palm leaflet (pinna) on a mature frond?",
-      "required_ages_years": [
-        50.0
-      ]
+      "required_ages_years": []
     },
     {
       "bar": "proxy_only",
@@ -126,9 +120,7 @@
       "field": "leaflet_width_m",
       "proxy": null,
       "question": "Which candidate span states the width of a date palm leaflet (pinna) on a mature frond?",
-      "required_ages_years": [
-        50.0
-      ]
+      "required_ages_years": []
     }
   ],
   "growth_form": "palm",
