@@ -10,6 +10,7 @@
   "id": "fn-114-a-round-moves-as-far-as-the-reviewer",
   "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
@@ -28,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T13:35:12.306679Z"
+  "updated_at": "2026-09-23T13:37:15.658698Z"
 }
