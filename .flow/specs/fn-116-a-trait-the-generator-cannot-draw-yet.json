@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-116-a-trait-the-generator-cannot-draw-yet",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-09-23T14:44:50.295751Z",
   "created_at": "2026-09-23T14:32:07.916203Z",
   "default_impl": null,
   "default_review": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T14:32:16.303929Z"
+  "updated_at": "2026-09-23T14:44:50.295760Z"
 }
