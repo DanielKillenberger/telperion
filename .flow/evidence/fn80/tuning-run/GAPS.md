@@ -36,3 +36,7 @@ The route was `insufficient_evidence` because no render shows anything growing o
 3. Tuning loop: one bundle per owner priority when the dial groups are disjoint.
 4. Rosette: a retained dead-frond skirt row (owner's call whether the palm needs it before fn-82 closes).
 5. fn-82: a second height source with an age, or the owner's lower-bar decision on `dbh_m` and the trunk's proportions.
+
+## Owner decision (2026-09-23)
+
+Proposals 1 and 2 approved, minted as fn-113 (dial ranges from validated bounds) and fn-114 (strides from the named gap). Proposals 3 to 5 not approved. Correction to item 1: a round moves `strength x small`, not `substantial`; this run's ladder was 0.25/0.5/1/2 against the default 0.5/1/2/4.
