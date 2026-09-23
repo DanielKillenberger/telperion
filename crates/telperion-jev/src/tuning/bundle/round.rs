@@ -143,6 +143,7 @@ pub(super) fn keep(
     // Where to put the run back, taken before anything moves.
     let restore = crate::tuning::veto::restore_point(state);
     state.trials[index].adopted_over = others.to_vec();
+    state.trials[index].adopted = true;
     state.current = Some(index);
     let mut effective = state.effective.clone();
     merge(&mut effective, &overlay);

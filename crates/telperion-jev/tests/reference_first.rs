@@ -329,6 +329,8 @@ print(json.dumps({'status':'ok','model':'mock','effort':'medium','request_sha256
         parent_bundle: None,
         sheet: None,
         vetoed: None,
+        adopted: false,
+        step: None,
         key: r.identity.clone(),
         identity: identity.clone(),
         seed: 1,

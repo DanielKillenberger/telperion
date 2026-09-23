@@ -215,6 +215,10 @@ pub fn attempt(dial: &str) -> Attempt {
         reason: Some("no better".into()),
         visual_outcome: None,
         review: None,
+        moves: vec![],
+        adopted: false,
+        stood: None,
+        rolled_back: None,
     }
 }
 

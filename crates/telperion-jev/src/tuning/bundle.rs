@@ -64,6 +64,17 @@ pub fn direction(action: Action) -> Option<i8> {
     }
 }
 
+/// What a single-dial attempt moved: the dial's value on the wire it stepped
+/// from, and the value its patch carries.
+pub fn single(dial: &Dial, effective: &Value, patch: &Value, action: Action) -> Option<Move> {
+    Some(Move {
+        dial: dial.id.clone(),
+        direction: if direction(action)? > 0 { "up" } else { "down" }.into(),
+        from: effective.pointer(&dial.path)?.as_f64()?,
+        to: patch.pointer(&dial.path)?.as_f64()?,
+    })
+}
+
 /// Every dial Jev supported, in the order it proposed them, each once. A dial
 /// proposed twice keeps its first direction; the second is dropped.
 pub fn directions(proposals: &[Proposal]) -> Vec<(String, i8)> {

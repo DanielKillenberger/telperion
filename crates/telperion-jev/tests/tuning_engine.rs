@@ -444,6 +444,8 @@ impl Services for Mock {
             parent_bundle: None,
             sheet: None,
             vetoed: None,
+            adopted: false,
+            step: None,
             key: format!("candidate{}", self.evaluations),
             identity: "input1".into(),
             seed: 1,
@@ -2012,6 +2014,16 @@ fn under_visual_selection_the_reviewer_adopts_the_candidate_it_judged_better() {
     // the scores did, and each review spent a pass of its own.
     let adopted = &state.trials[state.current.unwrap()];
     assert_eq!(adopted.progress.as_ref().unwrap().better(), 1);
+    // The trial records the adoption and the one dial's from and to.
+    for trial in &reviewed {
+        assert_eq!(trial.adopted, trial.key == adopted.key);
+        let step = trial
+            .step
+            .as_ref()
+            .expect("a single-dial attempt keeps its move");
+        assert_eq!(step.dial, trial.label);
+        assert_ne!(step.from, step.to);
+    }
     assert!(state.budget.visual_passes.unwrap() >= passes_before + 2);
     // The reviewer's words reach whoever is asked next.
     let projected = telperion_jev::tuning::judgments::summary(&state);
@@ -2511,6 +2523,10 @@ fn a_variant_that_draws_the_current_tree_or_another_variant_is_never_shown() {
         2
     );
     assert_eq!(state.trials[state.current.unwrap()].label, "bundle@1");
+    assert!(
+        state.trials[state.current.unwrap()].adopted,
+        "the kept bundle records its adoption"
+    );
 }
 
 #[test]

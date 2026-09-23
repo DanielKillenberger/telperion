@@ -358,15 +358,7 @@ pub fn markdown(r: &EndResult) -> String {
             .into_iter()
             .rev()
         {
-            s.push_str(&format!(
-                "  - round {} {}{}\n",
-                a.round,
-                a.dial,
-                a.reason
-                    .as_ref()
-                    .map(|r| format!(": {r}"))
-                    .unwrap_or_default()
-            ));
+            s.push_str(&format!("  - {}\n", a.summary()));
         }
         if !g.reviewer_words.is_empty() {
             s.push_str("- Reviewer's words:\n");
