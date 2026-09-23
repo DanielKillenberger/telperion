@@ -345,3 +345,7 @@ cheaper. A step can be fast and still be the wrong place to spend.
   minutes; verifying cost three reads and one trial. A thousand species can
   afford both. What a thousand species cannot afford is a wrong form judgment
   written into a manifest and discovered after the generator work is built.
+
+## 2026-09-23 — owner: the run's token cap is 6 M
+
+The conductor's cap was 2 M, set by the host on 2026-09-22; the palm had spent 1.61 M, most of it the first tuning revision (about 1.64 M over seven rounds on Opus). The owner chose 6 M total so the run continues without stopping to ask, matching the tuning run's own ceiling. The conductor has no cap-extension command, so `budget.max_tokens` was raised in both its config and its run record, and `max_tuning_revisions` from 2 to 4 so tokens are the binding limit. Cheaper next time: a `species-conductor resume` decision carrying a cap extension, as `tuning-loop` already has.
