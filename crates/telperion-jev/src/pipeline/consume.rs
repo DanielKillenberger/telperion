@@ -13,8 +13,9 @@ use super::canon::{canonical_sha256, read_json, CanonError};
 use super::decision::{Decision, Resolution, Status};
 use super::stage::STAGES;
 
-/// A required field or appearance trait below the requirements table's bar:
-/// the owner's decision, whose only option adds sources.
+/// A required field or appearance trait below the requirements table's bar,
+/// whose only option adds sources: the pipeline's for two search rounds on
+/// a field (`search`), the owner's after them and for a trait.
 pub const REQUIREMENTS_UNMET: &str = "requirements-unmet";
 
 /// The option `decision::retire_unfiled` writes on a stage's own open

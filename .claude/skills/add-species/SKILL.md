@@ -25,8 +25,13 @@ the repository root, with the key available to an interactive shell.
 
 1. **Spec.** `node scripts/new-species-spec.mjs --id <species> ...` mints the
    species spec from `templates/species-spec.md`. Refine it, mark it ready.
-2. **Manifest.** Run `discover`, read its proposal, draft `DIR/manifest.json`,
-   and ask the owner to admit it. Nothing after discover runs until they do.
+2. **Manifest.** Run `discover`. When its draft only adds sources, each
+   chosen for its field with an open licence or a public cite-only page, the
+   pipeline admits it itself (fn-129). Otherwise read its proposal, draft
+   `DIR/manifest.json`, and ask the owner to admit it. Nothing after discover
+   runs until the manifest is admitted. A stage that prints `SEARCH_AGAIN`
+   is followed by `search-again`, then the stages again; only `NEEDS_HUMAN`
+   is the owner's.
 3. **Capability assessment.** The runbook's **The capability assessment**
    section, before any later stage. It is the host's, not yours: reasoning and
    system design escalate to the host. Stop and hand it up. It runs again after

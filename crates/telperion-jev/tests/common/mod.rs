@@ -2,6 +2,7 @@ use std::sync::Mutex;
 
 use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
+use telperion_jev::pipeline::rights::{rights_cases, rights_state};
 use telperion_jev::pipeline::sets::{
     appearance_state, described_cases, described_state, mature_cases, mature_state,
     obligation_cases, ranking_cases, ranking_state, sufficiency_cases, sufficiency_state,
@@ -230,6 +231,13 @@ fn answers_for(body: &Value) -> Value {
             .find(|case| case.value_statement == statement)
             .expect("a measurement_not_invention case for this statement");
         return json!({ "measurement_not_invention": noul_answer(case.expect) });
+    }
+    if questions.get("rights").is_some() {
+        let case = rights_cases()
+            .into_iter()
+            .find(|case| rights_state(case) == body["state"])
+            .expect("a rights case for this state");
+        return json!({ "rights": choice_answer(&case.expect_class) });
     }
     if questions.get("appearance_supported").is_some() {
         let case = obligation_cases()

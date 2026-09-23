@@ -1,4 +1,4 @@
-//! Discovery proposes sources for a person to admit into the manifest.
+//! Discovery proposes sources and admits the ones it may (fn-129).
 //!
 //! For every evidence field the manifest requires, the candidates are what
 //! the repository already knows for that field - the sources the catalogue's
@@ -6,9 +6,12 @@
 //! tree name, and the URLs the specs cite - then the adapter's web search and
 //! research index on a plain-word query. Jev ranks them per field and the
 //! stage files a manifest-proposed decision carrying the draft manifest and
-//! the ranking judgment behind every proposal. The stage keys on the seed
-//! (species, taxon, fields), not the whole manifest, so admitting sources
-//! does not rerun it. Nothing is admitted here.
+//! the ranking judgment behind every proposal. When the draft only adds
+//! sources and every one passes the rights and relevance checks
+//! (`pipeline::admission`), the stage writes the manifest and resolves the
+//! decision `admit` by the pipeline; any other draft waits for the owner.
+//! The stage keys on the seed (species, taxon, fields), not the whole
+//! manifest, so admitting sources does not rerun it.
 //!
 //! What the repository knows comes first because a source it has already
 //! verified is the cheapest evidence there is: the first ash run spent six
@@ -20,9 +23,12 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde_json::{json, Value};
 
 use crate::pipeline::adapter::{FetchAdapter, SearchHit};
+use crate::pipeline::admission::{self, Verdict};
 use crate::pipeline::canon::canonical_sha256;
 use crate::pipeline::cost::Cost;
-use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
+use crate::pipeline::decision::{
+    append_decisions, read_decisions, Decision, DecisionParts, Resolution, Status,
+};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::known::KnownSources;
 use crate::pipeline::manifest::{seed_sha256, Manifest, Source, MANIFEST_SCHEMA_VERSION};
@@ -79,9 +85,9 @@ pub fn run(
         proposals
             .push(json!({"field": field.field, "query": query, "hits": hits, "ledger": ranked}));
     }
-    let draft = draft_manifest(manifest, &proposals);
+    let (draft_manifest, draft) = draft_manifest(manifest, &proposals);
     let draft_sha256 = canonical_sha256(&draft);
-    let decision = Decision::new(
+    let mut decision = Decision::new(
         DecisionParts {
             species: &manifest.species,
             stage: STAGE,
@@ -97,19 +103,102 @@ pub fn run(
             "proposals": proposals,
         }),
         &["admit", "reject"],
-        "A person admits the draft manifest, edited or not, by writing it to manifest.json and resolving this decision; the resolution binds to the seed, so admitting sources keeps it.",
+        "The pipeline admits a draft that only adds sources, each chosen for its field and carrying an open licence or a public cite-only page; any other draft a person admits, edited or not, by writing it to manifest.json and resolving this decision. The resolution binds to the seed, so admitting sources keeps it.",
     );
     let id = decision.id.clone();
-    append_decisions(&ctx.paths.decisions(), vec![decision])?;
+    let verdict = if already_resolved(&ctx.paths, &decision)? {
+        None
+    } else {
+        let proposed = proposed_sources(manifest, &draft_manifest, &proposals);
+        let verdict = admission::judge_draft(adapter, judge, manifest, &draft_manifest, &proposed)
+            .map_err(|err| StageError::Failed {
+                stage: STAGE.into(),
+                reason: err.to_string(),
+            })?;
+        let asked = verdict.sources.iter().filter_map(|c| c.ledger.clone());
+        ledger.extend(asked);
+        decision.ledger = ledger.clone();
+        decision.payload["admission"] = json!(verdict);
+        Some(verdict)
+    };
+    append_decisions(&ctx.paths.decisions(), vec![decision.clone()])?;
+    if let Some(verdict) = verdict.as_ref().filter(|v| v.admitted) {
+        admit(&ctx.paths, &draft_manifest, verdict, &decision)?;
+    }
     header.ledger = ledger;
     header.cost = Cost::from_spent(&adapter.spent().since(&before));
     ctx.write(
         &header,
-        json!({"proposals": proposals, "draft_manifest": draft}),
+        json!({"proposals": proposals, "draft_manifest": draft, "admission": verdict}),
     )?;
     Ok(Outcome::Ran {
         decisions: vec![id],
     })
+}
+
+/// True when the decision is already resolved under the same inputs: a
+/// rerun keeps a person's or the pipeline's admission and admits nothing.
+fn already_resolved(paths: &Paths, decision: &Decision) -> Result<bool, StageError> {
+    Ok(read_decisions(&paths.decisions())?.iter().any(|d| {
+        d.id == decision.id
+            && d.status == Status::Resolved
+            && d.inputs_sha256 == decision.inputs_sha256
+    }))
+}
+
+/// Each source the draft adds, with the fields whose ranking chose it.
+fn proposed_sources(
+    manifest: &Manifest,
+    draft: &Manifest,
+    proposals: &[Value],
+) -> Vec<(Source, Vec<String>)> {
+    draft
+        .sources
+        .iter()
+        .skip(manifest.sources.len())
+        .map(|source| {
+            let fields = proposals
+                .iter()
+                .filter(|p| {
+                    p["hits"].as_array().into_iter().flatten().any(|hit| {
+                        hit["ranked_first"] == json!(true) && hit["url"] == json!(source.url)
+                    })
+                })
+                .filter_map(|p| p["field"].as_str().map(str::to_string))
+                .collect();
+            (source.clone(), fields)
+        })
+        .collect()
+}
+
+/// Writes the admitted manifest and resolves the proposal by the pipeline.
+fn admit(
+    paths: &Paths,
+    draft: &Manifest,
+    verdict: &Verdict,
+    decision: &Decision,
+) -> Result<(), StageError> {
+    admission::write_manifest(
+        &paths.manifest(),
+        &admission::admitted_draft(draft, verdict),
+    )?;
+    let ids: Vec<&str> = verdict.sources.iter().map(|c| c.id.as_str()).collect();
+    admission::record_resolution(
+        &paths.resolutions(),
+        &Resolution {
+            id: decision.id.clone(),
+            inputs_sha256: decision.inputs_sha256.clone(),
+            option: "admit".into(),
+            by: admission::BY.into(),
+            at: crate::pipeline::gap::now(),
+            note: format!(
+                "admitted {}: each chosen for its field, each open-licence or public-cite-only",
+                ids.join(", ")
+            ),
+            payload: Value::Null,
+        },
+    )?;
+    Ok(())
 }
 
 /// The search query in plain words: the taxon, the field's reading and the
@@ -120,6 +209,14 @@ pub fn plain_query(taxon: &str, field: &str, condition: &str) -> String {
         reading(field),
         condition.replace('_', " ")
     )
+}
+
+/// What a field id asks for, in words, without the age: `height`.
+pub(crate) fn stem(field: &str) -> String {
+    let words = reading(field);
+    words
+        .strip_suffix(" at age")
+        .map_or(words.clone(), str::to_string)
 }
 
 /// What a field id asks for, in words. An id outside the table reads as its
@@ -199,7 +296,7 @@ fn searched_hits(
     Ok(())
 }
 
-fn hit_value(hit: &SearchHit, kind: &str, index: usize) -> Value {
+pub(crate) fn hit_value(hit: &SearchHit, kind: &str, index: usize) -> Value {
     json!({
         "key": format!("h{}", index + 1),
         "url": hit.url,
@@ -211,7 +308,7 @@ fn hit_value(hit: &SearchHit, kind: &str, index: usize) -> Value {
 }
 
 /// Asks Jev which candidate is the best evidence for the field; marks it.
-fn rank(
+pub(crate) fn rank(
     judge: &Judge<'_>,
     manifest: &Manifest,
     field: &str,
@@ -243,9 +340,10 @@ fn rank(
 }
 
 /// The admitted manifest with every ranked-first hit appended as a proposed
-/// source whose rights a person confirms. A known hit that carries a fetch
-/// error is listed but never proposed.
-fn draft_manifest(manifest: &Manifest, proposals: &[Value]) -> Value {
+/// source whose rights are still to be confirmed, and its value with the
+/// proposed ids. A known hit that carries a fetch error is listed but never
+/// proposed.
+fn draft_manifest(manifest: &Manifest, proposals: &[Value]) -> (Manifest, Value) {
     let mut draft = manifest.clone();
     // A proposal is written at the current schema version, where the
     // requirements table binds its coverage at admission.
@@ -265,7 +363,8 @@ fn draft_manifest(manifest: &Manifest, proposals: &[Value]) -> Value {
                 url,
                 title: hit["title"].as_str().unwrap_or("").to_string(),
                 sha256: None,
-                rights: "unstated: a person confirms the rights before admission".into(),
+                rights: "unstated: the rights are confirmed before admission".into(),
+                rights_class: None,
                 tables: vec![],
             });
             next += 1;
@@ -279,7 +378,7 @@ fn draft_manifest(manifest: &Manifest, proposals: &[Value]) -> Value {
         .map(|s| (s.id.clone(), s.url.clone()))
         .collect();
     value["proposed_sources"] = json!(proposed);
-    value
+    (draft, value)
 }
 
 #[cfg(test)]

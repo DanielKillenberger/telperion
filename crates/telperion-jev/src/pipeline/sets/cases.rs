@@ -4,8 +4,8 @@
 //! tuned its wording, once over the held-out cases. R7's bound is 0.9 accuracy
 //! for the sufficiency level, the dominant gap, the mature size and its gap
 //! (fn-127), the described level and each obligation (the appearance support
-//! among them, fn-128), and 0.8 top-one agreement with the person's admitted source for
-//! ranking. `format_scores` prints the confidence spread of each.
+//! among them, fn-128) and the rights class (fn-129), and 0.8 top-one agreement with the
+//! person's admitted source for ranking. `format_scores` prints the confidence spread of each.
 
 use std::path::Path;
 
@@ -101,6 +101,8 @@ pub fn run_pipeline_cases(
             thresholds().accuracy_bar,
         ));
     }
+    let rights = crate::pipeline::rights::run_cases(transport, key, ledger_dir)?;
+    out.extend(crate::pipeline::rights::scored(rights));
     Ok(out)
 }
 

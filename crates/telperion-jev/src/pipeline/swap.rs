@@ -66,7 +66,7 @@ pub fn compare(left: &Path, right: &Path) -> Comparison {
     let mut commands_outside_runbook = Vec::new();
     for (side, dir) in [("left", left), ("right", right)] {
         for stage in logged_stages(&Paths::new(dir)).unwrap_or_default() {
-            if !STAGES.contains(&stage.as_str()) {
+            if !STAGES.contains(&stage.as_str()) && stage != super::search::COMMAND {
                 commands_outside_runbook.push((side.to_string(), stage));
             }
         }

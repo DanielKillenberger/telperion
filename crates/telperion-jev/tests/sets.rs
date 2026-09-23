@@ -13,7 +13,7 @@ use common::{ledger_dir, CaseTransport};
 use telperion_jev::pipeline::requirements::table;
 
 /// Every base name the runner scores, labelled and held out.
-const SET_NAMES: [&str; 9] = [
+const SET_NAMES: [&str; 10] = [
     "sufficiency level",
     "sufficiency gap",
     "mature size level",
@@ -23,6 +23,7 @@ const SET_NAMES: [&str; 9] = [
     "obligation inspected_image",
     "obligation measurement_not_invention",
     "obligation appearance_supported",
+    "rights class",
 ];
 
 #[test]
@@ -326,4 +327,45 @@ fn missed_ids_names_the_cases_a_set_missed() {
     };
     assert_eq!(missed_ids(&set), vec!["a".to_string(), "c".to_string()]);
     assert!(!set.meets_pilot());
+}
+
+/// fn-129 R4: the rights classes are labelled on the palm's own sources and
+/// the question offers a no-match answer that some cases need.
+#[test]
+fn the_rights_set_labels_the_palms_sources_and_offers_a_no_match_answer() {
+    use telperion_jev::pipeline::rights::{
+        rights_questions, set_version, OPEN_LICENCE, PUBLIC_CITE_ONLY, RESTRICTED, RIGHTS_NONE,
+    };
+    assert_eq!(set_version(), 1);
+    let criteria = rights_questions()["rights"]["criteria"]
+        .as_object()
+        .unwrap()
+        .clone();
+    let classes = [OPEN_LICENCE, PUBLIC_CITE_ONLY, RESTRICTED, RIGHTS_NONE];
+    assert_eq!(criteria.len(), classes.len());
+    for class in classes {
+        assert!(criteria[class].is_string(), "{class} is offered");
+    }
+    let cases = telperion_jev::pipeline::rights::rights_cases();
+    for class in classes {
+        assert!(
+            cases.iter().any(|c| c.expect_class == class),
+            "{class} has a labelled case"
+        );
+    }
+    for source in ["f1", "a1", "m1", "p4", "p5", "p6", "p7"] {
+        let prefix = format!("palm-{source}-");
+        assert!(
+            cases.iter().any(|c| c.id.starts_with(&prefix)),
+            "the palm's {source} is labelled"
+        );
+    }
+    let negatives = cases.iter().filter(|c| c.negative).count();
+    let rejects = cases
+        .iter()
+        .filter(|c| c.expect_class == RESTRICTED || c.expect_class == RIGHTS_NONE)
+        .count();
+    assert_eq!(negatives, rejects, "a negative case is one that rejects");
+    assert!(cases.len() >= 10 && negatives >= 3);
+    assert!(cases.iter().filter(|c| c.holdout).count() >= 3);
 }

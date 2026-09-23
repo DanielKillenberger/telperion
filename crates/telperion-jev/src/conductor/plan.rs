@@ -13,6 +13,7 @@ use crate::pipeline::canon::{canonical_sha256, file_sha256};
 use crate::pipeline::consume::REQUIREMENTS_UNMET;
 use crate::pipeline::decision::{reconcile, Decision, Status};
 use crate::pipeline::gap::HALT_KINDS;
+use crate::pipeline::search;
 use crate::pipeline::stage::STAGES;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -32,6 +33,9 @@ pub enum Next {
     /// Open owner-only decisions (fn-127): the run pauses with their handoff
     /// before the gap loop, the stages or tuning.
     OwnerFirst { decisions: Vec<String> },
+    /// Requirements the pipeline searches again for before the owner has
+    /// them (fn-129): one round each.
+    SearchAgain { decisions: Vec<String> },
     /// A decision policy lets the cheap agent resolve, with the options it may choose.
     Routine {
         decision: String,
@@ -59,9 +63,9 @@ pub enum Next {
     Ready,
 }
 
-/// Decision kinds only the owner resolves that stop the run before any
-/// other work: a manifest the owner admits, a requirement only their sources
-/// meet.
+/// Decision kinds that stop the run before any other work: a manifest the
+/// pipeline could not admit, a requirement its own searches did not meet.
+/// Open, each is the owner's, except a requirement with a search round left.
 pub const OWNER_FIRST: [&str; 2] = ["manifest-proposed", REQUIREMENTS_UNMET];
 
 /// The stages' current fingerprint: the manifest, the resolutions and every
@@ -177,6 +181,17 @@ pub fn next(config: &Config, run: &Run) -> Result<Next> {
         });
     }
     let open = open_decisions(config)?;
+    let proposal_open = open.iter().any(|d| d.kind == OWNER_FIRST[0]);
+    // A search waits while a manifest proposal is open: the owner's
+    // admission would overwrite the sources a search added.
+    let again = if proposal_open {
+        Vec::new()
+    } else {
+        search::searchable(&config.paths(), &open)
+    };
+    if !again.is_empty() {
+        return Ok(Next::SearchAgain { decisions: again });
+    }
     let owners: Vec<String> = open
         .iter()
         .filter(|d| OWNER_FIRST.contains(&d.kind.as_str()))

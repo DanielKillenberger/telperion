@@ -47,7 +47,7 @@
     {"when": {}, "route": "human", "why": "no row justified an unattended route"}
   ],
   "decisions": {
-    "note": "Decision kinds a cheap agent may resolve under policy, with the options it may choose; every other kind and option is the owner's. Lowering a bar, overriding a ruling or changing a boundary is never routine. requirements-unmet (fn-118) is the owner's: its table bar is never lowered and its sources are the owner's to add.",
+    "note": "Decision kinds a cheap agent may resolve under policy, with the options it may choose; every other kind and option is the owner's. Lowering a bar, overriding a ruling or changing a boundary is never routine. Two kinds the pipeline resolves itself, by code, never by an agent (fn-129): manifest-proposed is admitted by the pipeline when the draft only adds sources and every one is chosen for its field and carries an open licence or a public cite-only page; requirements-unmet (fn-118) add-sources is the pipeline's for two search rounds per field aimed at the field's gap. Every other draft, and a requirement still unmet after its two rounds or an appearance trait left unstated, is the owner's, with the sources tried. No table bar is ever lowered.",
     "routine": {
       "unavailable-source": ["retry", "replace-source", "drop-source"],
       "coverage-gap": ["accept-rows", "fix-table", "drop-table"],

@@ -66,6 +66,11 @@ impl Paths {
     pub fn resolutions(&self) -> PathBuf {
         self.dir.join("resolutions.json")
     }
+    /// The pipeline's own searches for a requirement it could not meet
+    /// (fn-129): the rounds it ran per field and the sources it tried.
+    pub fn search_rounds(&self) -> PathBuf {
+        self.dir.join("search-rounds.json")
+    }
     pub fn command_log(&self) -> PathBuf {
         self.run.join("command-log.json")
     }

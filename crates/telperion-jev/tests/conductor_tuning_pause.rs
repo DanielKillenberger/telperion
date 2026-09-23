@@ -32,6 +32,9 @@ impl Executor for Pausing {
     fn stage(&self, _: &Config, _: &str) -> Result<StageOutcome, String> {
         Ok(StageOutcome::Ran)
     }
+    fn search(&self, _: &Config) -> Result<String, String> {
+        panic!("no requirement is unmet in a tuning pause")
+    }
     fn tune(
         &self,
         _: &Config,
@@ -202,6 +205,9 @@ struct RefusingResume;
 impl Executor for RefusingResume {
     fn stage(&self, _: &Config, _: &str) -> Result<StageOutcome, String> {
         Ok(StageOutcome::Ran)
+    }
+    fn search(&self, _: &Config) -> Result<String, String> {
+        panic!("no requirement is unmet in a tuning pause")
     }
     fn tune(
         &self,

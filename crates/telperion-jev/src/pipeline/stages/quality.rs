@@ -5,7 +5,8 @@
 //! sufficiency level and names the dominant gap. A field below the manifest's
 //! bar files a data-insufficient decision; the stop is code on the level. A
 //! field the requirements table requires, below the table's bar, files a
-//! requirements-unmet decision instead: the owner's, with no bar to lower.
+//! requirements-unmet decision instead, with no bar to lower: the pipeline
+//! searches again for it twice (`pipeline::search`), then it is the owner's.
 //! A field the table marks `mature` (fn-127) asks no age: code lays out the
 //! sentences that name it and the mature-size set scores a stated mature
 //! value or range on the same four levels.
@@ -366,14 +367,15 @@ fn insufficient(manifest: &Manifest, s: &Shortfall<'_>) -> Decision {
     )
 }
 
-/// NEEDS_HUMAN: a required field below the requirements table's bar. The
-/// owner adds sources; the bar is the table's and no option lowers it.
+/// A required field below the requirements table's bar. The pipeline adds
+/// sources for two rounds, then the owner does (NEEDS_HUMAN); the bar is
+/// the table's and no option lowers it.
 fn unmet(manifest: &Manifest, s: &Shortfall<'_>, bar: Sufficiency, sources: &str) -> Decision {
     s.decision(
         manifest,
         REQUIREMENTS_UNMET,
         json!({"bar": bar.key(), "sources_sha256": sources}),
         &["add-sources"],
-        "NEEDS_HUMAN: the requirements table asks this field at its bar and the literature falls short. The owner adds sources to the manifest; a resolution that adds none stays open, and the table's bar is never lowered.",
+        "The requirements table asks this field at its bar and the literature falls short. The pipeline searches again for sources aimed at the dominant gap, two rounds at most; after them it is NEEDS_HUMAN and the owner adds sources. A resolution that adds none stays open, and the table's bar is never lowered.",
     )
 }
