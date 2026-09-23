@@ -116,6 +116,10 @@ fn-119's design leaned on "the existing routing" from an objective to dials and 
 
 Rewriting the palm's manifest to fn-118's table, `manifest::validate` refused `crown_width_m` for naming no required age; crown width, frond length and leaflet size are mature sizes, not growth series. The host gave them one age (50 years) to pass. The sufficiency question set is built around sizes at stated ages (the fn-118 worker flagged that a mature-only span may score `none`), so these fields may stop the run for want of an age no source gives. Cost: two minutes so far; possibly a false NEEDS_HUMAN later. What would remove it: a field kind `mature` in the requirements table whose sufficiency is judged on a mature range with no age, as an obvious fix after the palm's literature rerun shows whether it bites.
 
+## 2026-09-23 — host: a stage's key ignores the code that runs it
+
+After fn-128 landed in fn-80, `quality`, `select` and `verify` all answered `current`: the idempotence key carries the crate's `CARGO_PKG_VERSION` and the landed gap fixes (`gap::resume::landed_tools`), not the pipeline's code, so a fix that changes what a stage computes never expires its record. The host moved the three stage records into ignored `raw/stale-stages/` to force the rerun, which then retired five stale decisions and filled bark colour and leaf brightness. Cost: about 10 minutes and a hand step. What would remove it: the pipeline's build identity (the git commit or a hash of the stage's source) in the key, so a code change reruns the stages it touches.
+
 ## 2026-09-23 — host: one unidentified flaky test in the workspace gate
 
 The gate on fn-80 after merging the linear stack failed 1 of 980 once and passed 980 of 980 on the rerun; the first run's output was not kept, so the test is unknown. Cost: one extra gate run (several minutes). What would remove it: the gate always written to a log under raw/, so a single failure is named the first time; then a spec for the test itself (fn-92 recorded `bark_plates` crashing intermittently).
