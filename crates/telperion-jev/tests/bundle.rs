@@ -723,6 +723,7 @@ fn gap() -> telperion_jev::tuning::priority::Gap {
         observation: "Crown shape and foliage organization".into(),
         evidence_ids: vec!["render-0".into()],
         views: vec!["whole".into()],
+        track: None,
     }
 }
 

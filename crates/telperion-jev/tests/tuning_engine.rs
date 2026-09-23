@@ -80,6 +80,8 @@ struct Mock {
     captures: Vec<(String, Vec<String>)>,
     /// The gap class the owner's priority carries in the config.
     owner_class: Option<telperion_jev::tuning::stride::Class>,
+    /// Per-priority owner classes; a priority named here overrides `owner_class`.
+    owner_classes: std::collections::BTreeMap<String, telperion_jev::tuning::stride::Class>,
     /// The gap question's raw answer, confidence and calibration; `None`
     /// offers no question.
     gap_answer: Option<(String, f64, bool)>,
@@ -92,6 +94,8 @@ struct Mock {
     fruit: Vec<CellStatus>,
     /// Traits the config lists as not yet drawable.
     unexpressed: Vec<telperion_jev::tuning::unexpressed::Unexpressed>,
+    /// The reference-first inventory the pause proposes objectives from.
+    inventory: Option<telperion_jev::tuning::reference_first::Inventory>,
     /// Rounds in a row that keep nothing before the run pauses as a runaway.
     runaway: u64,
 }
@@ -140,11 +144,13 @@ fn mock() -> Mock {
         sheet_views: std::cell::RefCell::new(vec![]),
         captures: vec![],
         owner_class: None,
+        owner_classes: Default::default(),
         gap_answer: None,
         gap_calls: 0,
         proposal_actions: vec![],
         fruit: vec![],
         unexpressed: vec![],
+        inventory: None,
         runaway: telperion_jev::tuning::runaway::ROUNDS,
     }
 }
@@ -291,8 +297,16 @@ impl Services for Mock {
     fn unexpressed(&self) -> Vec<telperion_jev::tuning::unexpressed::Unexpressed> {
         self.unexpressed.clone()
     }
-    fn owner_magnitude(&self, _: &str) -> Option<telperion_jev::tuning::stride::Class> {
-        self.owner_class
+    fn inventory(
+        &self,
+    ) -> Result<Option<telperion_jev::tuning::reference_first::Inventory>, String> {
+        Ok(self.inventory.clone())
+    }
+    fn owner_magnitude(&self, priority: &str) -> Option<telperion_jev::tuning::stride::Class> {
+        self.owner_classes
+            .get(priority)
+            .copied()
+            .or(self.owner_class)
     }
     fn offers_gap_magnitude(&self) -> bool {
         self.gap_answer.is_some()
@@ -3587,4 +3601,149 @@ fn an_uncapped_run_pauses_as_a_runaway_after_rounds_that_keep_nothing() {
     // The owner's scoped resume of the runaway starts the count again.
     state.resume_runaway();
     assert_eq!(state.unkept, None);
+}
+
+/// One objective per track, each named to its track by the approval.
+fn tracked(id: &str, track: &str) -> serde_json::Value {
+    json!({"id":id,"observation":format!("objective {id}"),
+        "evidence_ids":["render-0","reference-0"],"views":["whole"],"track":track})
+}
+
+/// fn-119 R2: each track's stride is judged on its own lead objective, so the
+/// material track no longer draws at the structure track's far off.
+#[test]
+fn each_track_s_stride_is_judged_on_its_own_lead_objective() {
+    use telperion_jev::tuning::stride::Class;
+    let (mut state, mut mock) = two_track_run();
+    mock.owner_classes = [
+        ("owner-crown".to_string(), Class::FarOff),
+        ("owner-bark".to_string(), Class::Near),
+    ]
+    .into();
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(
+        &mut state,
+        &mock,
+        json!([
+            tracked("owner-crown", "structure"),
+            tracked("owner-bark", "materials")
+        ]),
+    );
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    let notes = stride_notes(&state);
+    for expected in [
+        "track structure: stride class far_off from owner on owner-crown, multiplier 4",
+        "track materials: stride class near from owner on owner-bark, multiplier 1",
+    ] {
+        assert!(notes.iter().any(|n| n == expected), "{expected}: {notes:?}");
+    }
+    assert_eq!(drawn_by_round(&state)[0], vec![4., 1.]);
+}
+
+/// fn-119 R3: a track no objective is routed to is skipped with a route note
+/// and draws nothing; a track named nowhere in the run is refused.
+#[test]
+fn a_track_with_no_objective_is_skipped_and_an_undeclared_track_is_refused() {
+    let (mut state, mut mock) = two_track_run();
+    mock.sheets = vec![vec![did(&key(2), Movement::Clear)]];
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(
+        &mut state,
+        &mock,
+        json!([tracked("owner-crown", "structure")]),
+    );
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    assert_eq!(
+        mock.sheet_calls, 1,
+        "the objectiveless track bought a sheet"
+    );
+    assert_eq!(mock.evaluations, 2, "the baseline and the structure bundle");
+    assert!(
+        state
+            .routes
+            .iter()
+            .any(|r| r == "track materials: skipped: no objective routed to this track"),
+        "{:?}",
+        state.routes
+    );
+
+    let (mut state, mut mock) = two_track_run();
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(&mut state, &mock, json!([tracked("owner-crown", "leaves")]));
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    let refused = &state.pause.as_ref().expect("the run pauses").reason;
+    assert!(refused.contains("names track leaves"), "{refused}");
+    assert_eq!(
+        mock.evaluations, 1,
+        "nothing was drawn for an undeclared track"
+    );
+}
+
+/// fn-119 R1 through the engine: the priority pause proposes the drawable
+/// inventory traits and records the rest, and the proposal approves as offered.
+#[test]
+fn the_priority_pause_proposes_every_drawable_inventory_trait() {
+    let (mut state, mut mock) = bundle_run();
+    let shot =
+        |i: usize, view: &str| json!({"id":format!("reference-{i}"),"image":priority_image(view)});
+    let item = |id: &str, priority: &str, cited: &[&str]| {
+        json!({"id":id,"priority":priority,"observation":format!("{id} as photographed"),
+            "reference_ids":cited,"uncertain":false})
+    };
+    mock.inventory = Some(
+        serde_json::from_value(json!({"request":{"protocol":"reference-first-v1",
+            "target_species":"european-beech","specimen_relationship":"unknown",
+            "references":[shot(0, "whole"), shot(1, "bark")]},
+            "request_sha256":"r","prompt_sha256":"p","model":"m","effort":"e","ledger":"l",
+            "observations":[],"traits":[
+                item("crown", "core", &["reference-0"]),
+                item("fruit", "core", &["reference-0"]),
+                item("bark-colour", "secondary", &["reference-1"]),
+                item("lean", "variation", &["reference-0"])]}))
+        .unwrap(),
+    );
+    mock.unexpressed = vec![telperion_jev::tuning::unexpressed::Unexpressed {
+        trait_id: "fruit".into(),
+        spec: "fn-111".into(),
+    }];
+    mock.sheets = vec![vec![did(&key(2), Movement::Clear)]];
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    let checkpoint = state.priority_checkpoints.last().unwrap().clone();
+    let proposed = checkpoint
+        .proposed
+        .iter()
+        .map(|g| g.id.as_str())
+        .collect::<Vec<_>>();
+    assert_eq!(proposed, vec!["crown"]);
+    let left = checkpoint
+        .left_out
+        .iter()
+        .map(|l| (l.trait_id.as_str(), l.reason.as_str()))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        left,
+        vec![
+            ("fruit", "unexpressed until fn-111 lands"),
+            (
+                "bark-colour",
+                "no assessed view renders it beside its references"
+            ),
+            ("lean", "variation: recorded, not an objective"),
+        ]
+    );
+    approve_priorities(
+        &mut state,
+        &mock,
+        serde_json::to_value(&checkpoint.proposed).unwrap(),
+    );
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert!(
+        state.routes.iter().any(|r| r == "crown=tuning"),
+        "{:?}",
+        state.routes
+    );
+    assert_eq!(mock.sheet_calls, 1);
 }

@@ -47,6 +47,7 @@ fn owner_ranking_is_explicit_scoped_and_does_not_rewrite_review() {
             observation: "Missed defining feature".into(),
             evidence_ids: vec!["render-0".into(), "reference-0".into()],
             views: vec!["whole".into()],
+            track: None,
         }],
     };
     approval.verify(&checkpoint, &scope).unwrap();

@@ -113,6 +113,10 @@ pub trait Services {
     fn tracks(&self) -> Vec<super::bundle::Track> {
         vec![]
     }
+    /// The reference-first inventory, when the run carries one.
+    fn inventory(&self) -> Result<Option<super::reference_first::Inventory>, String> {
+        Ok(None)
+    }
     /// Traits the generator cannot draw yet; one going backwards never vetoes.
     fn unexpressed(&self) -> Vec<super::unexpressed::Unexpressed> {
         vec![]
@@ -348,23 +352,21 @@ impl Run {
                 .ok_or("no current priority evidence")?;
             let visual = self.visual.clone().ok_or("missing initial visual review")?;
             let evidence = services.priority_evidence(trial, &visual)?;
-            self.priority_checkpoints
-                .push(super::priority::Checkpoint::new(
-                    &self.identity,
-                    &scope,
-                    visual,
-                    evidence,
-                )?);
+            let mut checkpoint =
+                super::priority::Checkpoint::new(&self.identity, &scope, visual, evidence)?;
+            super::objectives::offer(self, services, &mut checkpoint)?;
+            self.priority_checkpoints.push(checkpoint);
         }
         if let Some(approval) = self.approved_priorities() {
             approval.verify(self.priority_checkpoints.last().unwrap(), &scope)?;
+            super::objectives::verify_tracks(&approval.ordered, &services.tracks())?;
             return Ok(true);
         }
         self.stop(
             "Owner gap-priority review required; model readiness is not owner approval".into(),
             "approve gap priorities",
         );
-        self.pause.as_mut().unwrap().decision_requested="Review priority-review.json, confirm/reorder/add gaps in priority_approval, and submit a scoped --resume JSON. This chooses objectives, not mechanics or final acceptance.".into();
+        self.pause.as_mut().unwrap().decision_requested="Review priority-review.json, confirm/reorder/remove the proposed objectives (optionally naming each one's track) or add owner- gaps in priority_approval, and submit a scoped --resume JSON. This chooses objectives, not mechanics or final acceptance.".into();
         save(self)?;
         Ok(false)
     }
