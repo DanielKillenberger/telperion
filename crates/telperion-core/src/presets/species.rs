@@ -357,4 +357,19 @@ pub(super) fn date_palm(p: &mut Family) {
     p.canopy.acanthophylls = 8;
     p.canopy.acanthophyll_length = 0.3;
     p.canopy.acanthophyll_pitch = 75.0;
+    // The skirt (fn-120): the oldest fronds kept after they die, collapsed
+    // against the upper trunk below the living crown, brown to grey. Growers
+    // trim the lower leaves (F1), so a partial ring rather than a full
+    // petticoat; fronds a little shorter than the living 3.5 m. First values
+    // again - fn-82 owns what the species is measured and judged on.
+    p.canopy.skirt_fronds = 16;
+    p.canopy.skirt_pitch = 165.0;
+    p.canopy.skirt_length = 0.85;
+    // A skirt hangs against the trunk, the deepest place inside the crown's
+    // envelope, where the default shell cull drops two thirds of it; a crown
+    // of a few dozen fronds hides no interior worth culling.
+    p.shell_depth = 1.0;
+    p.material.leaf_dead_red = 0.34;
+    p.material.leaf_dead_green = 0.29;
+    p.material.leaf_dead_blue = 0.22;
 }

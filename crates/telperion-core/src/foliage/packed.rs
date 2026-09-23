@@ -9,7 +9,9 @@
 //! over root two. Word 1 holds x and y as unsigned normals over the reference
 //! box, word 2 holds z in its low half and the scale as a half float in its
 //! high half. WGSL reads word 1 and the low half of word 2 with
-//! `unpack2x16unorm` and the scale with `unpack2x16float`.
+//! `unpack2x16unorm` and the scale with `unpack2x16float`. A scale is never
+//! negative, so the half float's sign bit, the top bit of word 2, is free: it
+//! is set on a withered leaf, which the crown draws in its dead colour.
 use crate::math::Vec3;
 
 /// Words one stored leaf occupies. Three, and the same three on both sides of
@@ -18,6 +20,14 @@ pub const WORDS: usize = 3;
 
 /// One stored leaf: rotation, position, scale.
 pub type Leaf = [u32; WORDS];
+
+/// The top bit of word 2, the scale's sign: set on a withered leaf.
+pub const WITHERED: u32 = 1 << 31;
+
+/// Whether a stored leaf is one of the dead a rosette keeps.
+pub fn withered(leaf: Leaf) -> bool {
+    leaf[2] & WITHERED != 0
+}
 
 /// The largest a dropped quaternion component leaves the other three, and the
 /// codes the range is cut into.
@@ -161,9 +171,9 @@ impl Reference {
         )
     }
 
-    /// The uniform scale a stored leaf carries.
+    /// The uniform scale a stored leaf carries, whether or not it is withered.
     pub fn scale(&self, leaf: Leaf) -> f64 {
-        f64::from(half_value((leaf[2] >> 16) as u16))
+        f64::from(half_value(((leaf[2] & !WITHERED) >> 16) as u16))
     }
 }
 
