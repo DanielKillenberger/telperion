@@ -207,7 +207,15 @@ pub fn outputs(tree: &Tree, family: &Family, request: Request) -> Result<Outputs
     let slot = stage::RingSlot::default();
     let mut given = None;
     if beside && seats {
-        let rings = stage::rings(tree, family, request, &mut stages)?;
+        // Run in turn, the element and the plan fail before the wood sweeps;
+        // a failed sweep here answers only once they are known to hold.
+        let rings = match stage::rings(tree, family, request, &mut stages) {
+            Ok(rings) => rings,
+            Err(error) => {
+                stage::prepare(tree, family, request, twig, places, &mut stages)?;
+                return Err(error);
+            }
+        };
         given = Some(rings.clone());
         *stage::lock(&slot) = Some(rings);
     }

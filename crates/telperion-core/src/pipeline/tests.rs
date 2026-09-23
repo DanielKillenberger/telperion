@@ -102,4 +102,20 @@ fn the_earliest_failing_stage_answers() {
     }
     let error = outputs(&tree, &family, request(false, true, false)).err();
     assert_eq!(error, Some(Error::InvalidInput("shell depth")));
+    // Leaves seated on the wood: a failing sweep and a failing element
+    // answer with the element's error, the Plan's, under either schedule.
+    family.canopy.surface_contact = 1.0;
+    family.element.axial_segments = 0;
+    for schedule in [Schedule::Serial, Schedule::Concurrent] {
+        let request = Request {
+            schedule,
+            ..Request::mesh()
+        };
+        let error = outputs(&tree, &family, request).err();
+        assert_eq!(
+            error,
+            Some(Error::InvalidInput("leaf segments")),
+            "{schedule:?}"
+        );
+    }
 }
