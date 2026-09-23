@@ -18,14 +18,10 @@ pub(crate) enum Rings<'w> {
     Wood(&'w [f32]),
 }
 impl Rings<'_> {
-    #[inline]
     fn at(&self, i: usize) -> Vec3 {
         match self {
-            Self::Swept(rings) => rings[i],
-            Self::Wood(positions) => {
-                let p = &positions[i * 3..i * 3 + 3];
-                Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64)
-            }
+            Self::Swept(rings) => rings.at(i),
+            Self::Wood(positions) => positions.at(i),
         }
     }
 
@@ -33,10 +29,27 @@ impl Rings<'_> {
     pub(crate) fn into_points(self) -> Vec<Vec3> {
         match self {
             Self::Swept(rings) => rings,
-            Self::Wood(positions) => (0..positions.len() / 3)
-                .map(|i| Self::Wood(positions).at(i))
-                .collect(),
+            Self::Wood(positions) => (0..positions.len() / 3).map(|i| positions.at(i)).collect(),
         }
+    }
+}
+
+/// Ring point `i` of either store; a query matches the store once and reads
+/// every point through this.
+trait Points {
+    fn at(&self, i: usize) -> Vec3;
+}
+impl Points for [Vec3] {
+    #[inline]
+    fn at(&self, i: usize) -> Vec3 {
+        self[i]
+    }
+}
+impl Points for [f32] {
+    #[inline]
+    fn at(&self, i: usize) -> Vec3 {
+        let [x, y, z] = self.as_chunks::<3>().0[i];
+        Vec3::new(x as f64, y as f64, z as f64)
     }
 }
 
@@ -203,15 +216,30 @@ impl AttachmentSurface<'_> {
         radial: Vec3,
         radius: f64,
     ) -> Option<Vec3> {
+        match &self.rings {
+            Rings::Swept(rings) => self.seat(rings.as_slice(), node, origin, radial, radius),
+            Rings::Wood(positions) => self.seat(*positions, node, origin, radial, radius),
+        }
+    }
+    #[inline]
+    fn seat<P: Points + ?Sized>(
+        &self,
+        rings: &P,
+        node: usize,
+        origin: Vec3,
+        radial: Vec3,
+        radius: f64,
+    ) -> Option<Vec3> {
         let [lo, hi, start, end] = self.edges[node]?;
-        let mut best = self.segment_distance(lo, hi, origin, radial);
+        let s = self.segments;
+        let mut best = self.segment_distance(rings, lo, hi, origin, radial);
         // Near a bent station the perpendicular ray can leave through the
         // neighbouring swept segment rather than the centreline's own segment.
         if lo > start {
-            best = best.min(self.segment_distance(lo - self.segments, lo, origin, radial));
+            best = best.min(self.segment_distance(rings, lo - s, lo, origin, radial));
         }
         if hi < end {
-            best = best.min(self.segment_distance(hi, hi + self.segments, origin, radial));
+            best = best.min(self.segment_distance(rings, hi, hi + s, origin, radial));
         }
         if best.is_finite() {
             return Some(origin + radial * best);
@@ -237,7 +265,7 @@ impl AttachmentSurface<'_> {
                     [lower + k, lower + next, upper + k],
                     [lower + next, upper + next, upper + k],
                 ] {
-                    let p = closest(target, self.rings.at(a), self.rings.at(b), self.rings.at(c));
+                    let p = closest(target, rings.at(a), rings.at(b), rings.at(c));
                     let d = (p - target).length_squared();
                     if d < distance {
                         distance = d;
@@ -248,7 +276,14 @@ impl AttachmentSurface<'_> {
         }
         point
     }
-    fn segment_distance(&self, lo: usize, hi: usize, origin: Vec3, radial: Vec3) -> f64 {
+    fn segment_distance<P: Points + ?Sized>(
+        &self,
+        rings: &P,
+        lo: usize,
+        hi: usize,
+        origin: Vec3,
+        radial: Vec3,
+    ) -> f64 {
         let (min, max) = self.segment_bounds[lo / self.segments].unwrap();
         let mut near = 0.0_f64;
         let mut far = f64::INFINITY;
@@ -275,9 +310,9 @@ impl AttachmentSurface<'_> {
         for k in 0..self.segments {
             let next = (k + 1) % self.segments;
             for [a, b, c] in [[lo + k, lo + next, hi + k], [lo + next, hi + next, hi + k]] {
-                let a = self.rings.at(a);
-                let e1 = self.rings.at(b) - a;
-                let e2 = self.rings.at(c) - a;
+                let a = rings.at(a);
+                let e1 = rings.at(b) - a;
+                let e2 = rings.at(c) - a;
                 let h = radial.cross(e2);
                 let det = e1.dot(h);
                 if det.abs() < 1e-18 {
