@@ -86,7 +86,7 @@ pub(super) fn isolate(
         if halves.is_empty() {
             break;
         }
-        let priorities = progress::tuning_priorities(state);
+        let priorities = progress::track_priorities(state, track);
         // A track judged at one view is split at that view too: a material
         // half on the whole-tree still would read inert.
         let look =

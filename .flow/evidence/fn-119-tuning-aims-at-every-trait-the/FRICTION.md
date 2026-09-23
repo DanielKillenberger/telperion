@@ -13,3 +13,11 @@ Smaller points the host should settle with it, both found in the same reading:
 Cost: about 20 minutes of reading, no code written, no runs, no paid calls.
 
 What would have removed it: the architecture section marking "the existing routing" as checked against `routing.rs` and `bundle/track.rs` before the spec was marked ready (CLAUDE.md, "Gates and checked claims").
+
+## 2026-09-23: `frond-colour-range` is a variation trait
+
+Doing: writing R2's palm test from the host's decisions, which assign `trunk-colour-and-weathering`, `frond-colour-range` and `trunk-fibrous-matting` to the materials track.
+
+What hindered: the palm's inventory ranks `frond-colour-range` as `variation`, so under R1 it is recorded in `left_out`, never proposed, and an approval cannot carry it under its own id. The test assigns the two proposed traits to materials and asserts that `frond-colour-range` is left out as variation. The owner can still aim at frond colour by adding it as an `owner-` gap with `"track": "materials"`.
+
+Cost: about 5 minutes. What would have removed it: checking each trait named in a test against the inventory's priority column before the decision was written.

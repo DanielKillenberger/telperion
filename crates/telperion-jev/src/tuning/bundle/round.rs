@@ -266,7 +266,7 @@ fn one_track(
             variants.push(Variant { trial, overlay });
         }
     }
-    let priorities = progress::tuning_priorities(state);
+    let priorities = progress::track_priorities(state, track);
     let drawn = variants.iter().map(|v| v.trial).collect::<Vec<_>>();
     let look = services.sheet_request(state, old, &drawn, &priorities, track.view.as_deref())?;
     note_unshown(state, &look);
@@ -359,6 +359,14 @@ pub(in crate::tuning) fn round(
     let shares = track::assign(&tracks, &state.dials, &wanted);
     let mut outcomes = vec![];
     for (track, moves) in tracks.iter().zip(shares) {
+        // No objective, no turn: a track nobody aims at draws nothing.
+        if progress::track_priorities(state, track).is_empty() {
+            state.routes.push(note(
+                track,
+                "skipped: no objective routed to this track".into(),
+            ));
+            continue;
+        }
         if moves.is_empty() {
             state
                 .routes

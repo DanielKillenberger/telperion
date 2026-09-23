@@ -7,6 +7,7 @@
 //! Jev or the owner selects one, and code maps it to a multiplier on the
 //! configured ladder. Jev never supplies the number.
 mod decide;
+pub use decide::lead;
 pub(in crate::tuning) use decide::{decide, settle, Decision};
 
 use super::{
