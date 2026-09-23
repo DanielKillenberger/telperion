@@ -37,6 +37,8 @@ pub struct AppearanceLevel {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct AppearanceTable {
+    /// Words a source sentence must carry to be judged for the trait (fn-128).
+    pub terms: Vec<String>,
     pub feeds: Vec<String>,
     pub levels: Vec<AppearanceLevel>,
 }

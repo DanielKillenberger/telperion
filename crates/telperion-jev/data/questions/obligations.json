@@ -15,5 +15,13 @@
       "true": "The source reports the value as observed or measured on real trees, and the statement repeats it",
       "false": "The value is composed, extrapolated, interpolated, rounded, doubled, anchored, assumed or otherwise produced by the author rather than measured"
     }
+  },
+  "appearance_supported": {
+    "type": "noul",
+    "instructions": "`sentence` is copied from a source about one species. Does it describe the plant's `trait` as `level`, whose meaning `summary` gives? Judge only what the sentence says.",
+    "criteria": {
+      "true": "The sentence states this trait of the plant, and what it states fits the level's summary",
+      "false": "The sentence does not state this trait, states a different level of it, or is page navigation, a listing or text about something else"
+    }
   }
 }

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "set_from": "fn-118 host design of 2026-09-23: the fields a manifest at schema_version 2 must ask the literature for, per growth form, and the lowest sufficiency bar each must reach. The bar is this table's, not the manifest author's. Size fields at partial where the literature publishes sizes at age (height, trunk diameter); crown and organ sizes at proxy_only. Each appearance trait's levels are coarse named ranges of the MaterialParams fields it feeds, in linear reflectance for colours, BRDF roughness for bark roughness and offsets about no change for the hue and brightness ranges; the no-match level `unstated` is appended by code. fn-127 (2026-09-23): crown width and the organ sizes are `mature`, judged on a stated mature value or range with no required age; height and trunk diameter stay age-indexed.",
+  "set_from": "fn-118 host design of 2026-09-23: the fields a manifest at schema_version 2 must ask the literature for, per growth form, and the lowest sufficiency bar each must reach. The bar is this table's, not the manifest author's. Size fields at partial where the literature publishes sizes at age (height, trunk diameter); crown and organ sizes at proxy_only. Each appearance trait's levels are coarse named ranges of the MaterialParams fields it feeds, in linear reflectance for colours, BRDF roughness for bark roughness and offsets about no change for the hue and brightness ranges; the no-match level `unstated` is appended by code. fn-127 (2026-09-23): crown width and the organ sizes are `mature`, judged on a stated mature value or range with no required age; height and trunk diameter stay age-indexed. fn-128 (2026-09-23): each appearance trait carries the words a source sentence must hold to be judged for it; each such sentence is judged alone.",
   "fields": {
     "height_m": {"terms": ["height", "tall", "high"]},
     "dbh_m": {"terms": ["diameter", "dbh", "trunk", "girth", "dg "]},
@@ -15,6 +15,7 @@
   },
   "appearance": {
     "bark_colour": {
+      "terms": ["bark", "trunk", "stem"],
       "feeds": ["bark_red", "bark_green", "bark_blue"],
       "levels": [
         {"key": "white", "summary": "White, chalky or papery pale bark", "ranges": {"bark_red": [0.6, 0.85], "bark_green": [0.58, 0.83], "bark_blue": [0.52, 0.78]}},
@@ -26,6 +27,7 @@
       ]
     },
     "bark_roughness": {
+      "terms": ["bark", "trunk", "stem"],
       "feeds": ["bark_roughness"],
       "levels": [
         {"key": "smooth", "summary": "Smooth bark with a slight sheen", "ranges": {"bark_roughness": [0.7, 0.85]}},
@@ -34,6 +36,7 @@
       ]
     },
     "leaf_front_colour": {
+      "terms": ["leaf", "leaves", "foliage", "frond", "needle", "pinna"],
       "feeds": ["leaf_front_red", "leaf_front_green", "leaf_front_blue"],
       "levels": [
         {"key": "dark_green", "summary": "Dark or deep green upper face", "ranges": {"leaf_front_red": [0.01, 0.04], "leaf_front_green": [0.04, 0.08], "leaf_front_blue": [0.01, 0.04]}},
@@ -44,6 +47,7 @@
       ]
     },
     "leaf_back_colour": {
+      "terms": ["leaf", "leaves", "foliage", "frond", "needle", "pinna", "underside", "beneath"],
       "feeds": ["leaf_back_red", "leaf_back_green", "leaf_back_blue"],
       "levels": [
         {"key": "green", "summary": "Underside green, about as dark as the upper face", "ranges": {"leaf_back_red": [0.03, 0.1], "leaf_back_green": [0.08, 0.18], "leaf_back_blue": [0.02, 0.08]}},
@@ -53,6 +57,7 @@
       ]
     },
     "leaf_hue_range": {
+      "terms": ["leaf", "leaves", "foliage", "frond", "needle", "pinna"],
       "feeds": ["hue_range_low", "hue_range_high"],
       "levels": [
         {"key": "uniform", "summary": "Leaves of one even colour across the crown", "ranges": {"hue_range_low": [-0.015, 0.0], "hue_range_high": [0.0, 0.015]}},
@@ -61,6 +66,7 @@
       ]
     },
     "leaf_brightness_range": {
+      "terms": ["leaf", "leaves", "foliage", "frond", "needle", "pinna"],
       "feeds": ["brightness_range_low", "brightness_range_high"],
       "levels": [
         {"key": "uniform", "summary": "Leaves of one even lightness across the crown", "ranges": {"brightness_range_low": [-0.08, 0.0], "brightness_range_high": [0.0, 0.08]}},

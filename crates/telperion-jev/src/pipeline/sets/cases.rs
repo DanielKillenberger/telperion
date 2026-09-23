@@ -3,16 +3,17 @@
 //! Every judged question is scored twice: once over the labelled cases that
 //! tuned its wording, once over the held-out cases. R7's bound is 0.9 accuracy
 //! for the sufficiency level, the dominant gap, the mature size and its gap
-//! (fn-127), the described level and each obligation, and 0.8 top-one agreement with the person's admitted source for
+//! (fn-127), the described level and each obligation (the appearance support
+//! among them, fn-128), and 0.8 top-one agreement with the person's admitted source for
 //! ranking. `format_scores` prints the confidence spread of each.
 
 use std::path::Path;
 
 use super::{
-    described_questions, described_state, inspected_image_state, level_from_score,
-    mature_questions, mature_state, measurement_state, obligation_questions, ranking_questions,
-    ranking_state, sufficiency_questions, sufficiency_state, DESCRIBED_UNSTATED, RANKING_NONE,
-    SUFFICIENCY_LEVELS,
+    appearance_state, described_questions, described_state, inspected_image_state,
+    level_from_score, mature_questions, mature_state, measurement_state, obligation_questions,
+    ranking_questions, ranking_state, sufficiency_questions, sufficiency_state, DESCRIBED_UNSTATED,
+    RANKING_NONE, SUFFICIENCY_LEVELS,
 };
 use crate::caller::{evaluate, CallerError, EvaluateRequest, Transport};
 use crate::cases::{CaseRow, SetScore};
@@ -48,16 +49,58 @@ pub fn run_pipeline_cases(
         run_described(transport, key, ledger_dir)?,
         thresholds().accuracy_bar,
     ));
-    out.extend(split(
-        "obligation inspected_image",
-        run_inspected_image(transport, key, ledger_dir)?,
-        thresholds().accuracy_bar,
-    ));
-    out.extend(split(
-        "obligation measurement_not_invention",
-        run_measurement(transport, key, ledger_dir)?,
-        thresholds().accuracy_bar,
-    ));
+    let o = super::obligation_cases();
+    let nouls: [(&str, Vec<Noul>); 3] = [
+        (
+            "inspected_image",
+            o.inspected_image
+                .into_iter()
+                .map(|c| {
+                    (
+                        c.id,
+                        inspected_image_state(&c.observation),
+                        c.expect,
+                        c.holdout,
+                    )
+                })
+                .collect(),
+        ),
+        (
+            "measurement_not_invention",
+            o.measurement_not_invention
+                .into_iter()
+                .map(|c| {
+                    (
+                        c.id,
+                        measurement_state(&c.value_statement, &c.source_excerpt),
+                        c.expect,
+                        c.holdout,
+                    )
+                })
+                .collect(),
+        ),
+        (
+            "appearance_supported",
+            o.appearance_supported
+                .into_iter()
+                .map(|c| {
+                    (
+                        c.id,
+                        appearance_state(&c.trait_name, &c.level, &c.sentence),
+                        c.expect,
+                        c.holdout,
+                    )
+                })
+                .collect(),
+        ),
+    ];
+    for (name, cases) in nouls {
+        out.extend(split(
+            &format!("obligation {name}"),
+            run_noul(transport, key, ledger_dir, name, cases)?,
+            thresholds().accuracy_bar,
+        ));
+    }
     Ok(out)
 }
 
@@ -288,70 +331,34 @@ fn run_described(
     Ok(rows)
 }
 
-fn run_inspected_image(
-    transport: &dyn Transport,
-    key: &str,
-    ledger_dir: &Path,
-) -> Result<Rows, CallerError> {
-    let questions = obligation_questions("inspected_image");
-    let mut rows = Rows::new();
-    for case in super::obligation_cases().inspected_image {
-        let state = inspected_image_state(&case.observation);
-        let entry = evaluate(
-            transport,
-            key,
-            EvaluateRequest {
-                tool: "obligation:inspected_image",
-                source: None,
-                state: &state,
-                questions: &questions,
-                ledger_dir,
-            },
-        )?;
-        rows.push((
-            noul_row(
-                "obligation inspected_image",
-                &case.id,
-                case.expect,
-                &entry,
-                "inspected_image",
-            ),
-            case.holdout,
-        ));
-    }
-    Ok(rows)
-}
+/// One obligation case: its id, the state asked, the side admitted, and
+/// whether it is held out.
+type Noul = (String, serde_json::Value, bool, bool);
 
-fn run_measurement(
+fn run_noul(
     transport: &dyn Transport,
     key: &str,
     ledger_dir: &Path,
+    name: &str,
+    cases: Vec<Noul>,
 ) -> Result<Rows, CallerError> {
-    let questions = obligation_questions("measurement_not_invention");
+    let questions = obligation_questions(name);
+    let tool = format!("obligation:{name}");
+    let set = format!("obligation {name}");
     let mut rows = Rows::new();
-    for case in super::obligation_cases().measurement_not_invention {
-        let state = measurement_state(&case.value_statement, &case.source_excerpt);
+    for (id, state, expect, holdout) in cases {
         let entry = evaluate(
             transport,
             key,
             EvaluateRequest {
-                tool: "obligation:measurement_not_invention",
+                tool: &tool,
                 source: None,
                 state: &state,
                 questions: &questions,
                 ledger_dir,
             },
         )?;
-        rows.push((
-            noul_row(
-                "obligation measurement_not_invention",
-                &case.id,
-                case.expect,
-                &entry,
-                "measurement_not_invention",
-            ),
-            case.holdout,
-        ));
+        rows.push((noul_row(&set, &id, expect, &entry, name), holdout));
     }
     Ok(rows)
 }

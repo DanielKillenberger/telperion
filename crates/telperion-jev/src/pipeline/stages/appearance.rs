@@ -1,15 +1,17 @@
-//! The select stage's appearance route (fn-118). Jev scores each appearance
-//! trait over the requirements table's levels on one source section at a
-//! time, in the manifest's order, and the first section it places on a level
+//! The select stage's appearance route (fn-118). Code extracts, from each
+//! admitted source's cached text in the manifest's order, every sentence
+//! that carries the trait's words in the requirements table, and Jev scores
+//! each sentence alone over the table's levels, as a field's sentences are
+//! screened one at a time (fn-128). The first sentence it places on a level
 //! is the chosen span; code copies that level's range for every material
-//! field the trait feeds into the profile, with the span and its source
+//! field the trait feeds into the profile, with that sentence and its source
 //! (fn-127): a value with no source is never written. Nothing renders or
 //! measures it. A trait the table requires that the sources leave unstated
 //! files a requirements-unmet decision for the owner.
 
 use serde_json::{json, Map, Value};
 
-use crate::extract::{key_terms, section_for_terms};
+use crate::extract::{key_terms, section_for_terms, sentences_with_terms, visible_text};
 use crate::pipeline::consume::{sources_sha256, REQUIREMENTS_UNMET};
 use crate::pipeline::decision::{Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
@@ -44,7 +46,7 @@ pub fn run(judge: &Judge<'_>, ctx: &Context, fetch: &Value) -> Result<Copied, St
     for trait_ in &manifest.appearance {
         let name = trait_.trait_name.as_str();
         let levels = table().levels(name).unwrap_or_default();
-        let chosen = chosen_span(judge, ctx, name, &trait_.sources, &levels, fetch)?;
+        let chosen = chosen_sentence(judge, ctx, name, &trait_.sources, &levels, fetch)?;
         copied.ledger.extend(chosen.ledger.iter().cloned());
         copied.body.insert(
             name.into(),
@@ -75,9 +77,9 @@ pub fn run(judge: &Judge<'_>, ctx: &Context, fetch: &Value) -> Result<Copied, St
     Ok(copied)
 }
 
-/// The span a trait's level was read from: the first source section Jev
-/// placed on a level, its source, and every ledger reference asked. With no
-/// such section the level is the no-match level and there is no source.
+/// The sentence a trait's level was read from, its source, and every
+/// ledger reference asked. With no sentence placed on a level the level is
+/// the no-match level and there is no source.
 struct Chosen {
     level: String,
     source: Option<String>,
@@ -85,10 +87,10 @@ struct Chosen {
     ledger: Vec<String>,
 }
 
-/// Asks each source's section alone, in order, and stops at the first that
-/// states the trait. A source with no section carrying the trait's terms is
-/// not asked.
-fn chosen_span(
+/// Asks each admitted source's sentences that carry the trait's words, one
+/// sentence per judgment, in source then text order, and stops at the first
+/// that states the trait.
+fn chosen_sentence(
     judge: &Judge<'_>,
     ctx: &Context,
     trait_name: &str,
@@ -96,25 +98,32 @@ fn chosen_span(
     levels: &[DescribedLevel],
     fetch: &Value,
 ) -> Result<Chosen, StageError> {
+    let terms = table()
+        .appearance
+        .get(trait_name)
+        .map(|t| t.terms.as_slice())
+        .unwrap_or_default();
     let mut ledger = Vec::new();
     for id in sources {
         if ctx.admitted.manifest.source(id).is_none() {
             continue;
         }
-        let found = sections(ctx, trait_name, std::slice::from_ref(id), levels, fetch)?;
-        if found.is_empty() {
+        let Some(record) = fetch["sources"].get(id) else {
             continue;
-        }
-        let (level, entry) = ask_levels(judge, trait_name, &found, levels)?;
-        ledger.push(entry["ledger"].as_str().unwrap_or_default().to_string());
-        if level != DESCRIBED_UNSTATED {
-            let span = found.join("\n");
-            return Ok(Chosen {
-                level,
-                source: Some(id.clone()),
-                span,
-                ledger,
-            });
+        };
+        let text = visible_text(cached_markdown(ctx, STAGE, id, record)?.as_bytes());
+        for sentence in sentences_with_terms(&text, terms) {
+            let one = std::slice::from_ref(&sentence);
+            let (level, entry) = ask_levels(judge, trait_name, one, levels)?;
+            ledger.push(entry["ledger"].as_str().unwrap_or_default().to_string());
+            if level != DESCRIBED_UNSTATED {
+                return Ok(Chosen {
+                    level,
+                    source: Some(id.clone()),
+                    span: sentence,
+                    ledger,
+                });
+            }
         }
     }
     Ok(Chosen {
@@ -163,7 +172,8 @@ pub fn score_levels(
     ask_levels(judge, trait_name, &sentences, levels)
 }
 
-/// The section of each source's cached text that carries the trait's terms.
+/// The section of each source's cached text that carries a described
+/// trait's terms.
 fn sections(
     ctx: &Context,
     trait_name: &str,

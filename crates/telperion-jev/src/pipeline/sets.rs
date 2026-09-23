@@ -4,14 +4,15 @@
 //! JSON under `data/cases`, and every question offers a no-match answer:
 //! `none` for the ranking Choice and the dominant gap, the `none` level for
 //! sufficiency and the mature size, the trailing `unstated` level for a described trait, and the
-//! false criterion of each obligation Noul. Code lays out the state and owns
+//! false criterion of each obligation Noul, the appearance support among them (fn-128). Code lays out the state and owns
 //! every count; Jev only picks a level, a candidate or a side.
 //!
 //! A case is `holdout` when it is held out of the labelled set that tuned the
 //! wording, and `negative` when the admitted answer is the one that rejects:
 //! evidence that misses its requirement, a candidate list with no usable
-//! source, a trait the sentences never describe, an image never inspected, or
-//! a value the author composed rather than measured.
+//! source, a trait the sentences never describe, an image never inspected,
+//! a value the author composed rather than measured, or a sentence that does
+//! not describe the appearance level it was cited for.
 
 pub mod cases;
 
@@ -36,7 +37,11 @@ pub const DESCRIBED_UNSTATED: &str = "unstated";
 /// The no-match key of the ranking Choice.
 pub const RANKING_NONE: &str = "none";
 /// The obligation Nouls, each asked alone with its own state.
-pub const OBLIGATION_NAMES: [&str; 2] = ["inspected_image", "measurement_not_invention"];
+pub const OBLIGATION_NAMES: [&str; 3] = [
+    "inspected_image",
+    "measurement_not_invention",
+    "appearance_supported",
+];
 
 fn parse(raw: &str, what: &str) -> Value {
     serde_json::from_str(raw).unwrap_or_else(|err| panic!("{what}: {err}"))
@@ -213,10 +218,25 @@ pub struct MeasurementCase {
     pub negative: bool,
 }
 
+/// An appearance value's cited sentence and the level it was placed on
+/// (fn-128); the summary is the requirements table's.
+#[derive(Debug, Clone, Deserialize)]
+pub struct AppearanceCase {
+    pub id: String,
+    #[serde(rename = "trait")]
+    pub trait_name: String,
+    pub level: String,
+    pub sentence: String,
+    pub expect: bool,
+    pub holdout: bool,
+    pub negative: bool,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct ObligationCases {
     pub inspected_image: Vec<InspectedImageCase>,
     pub measurement_not_invention: Vec<MeasurementCase>,
+    pub appearance_supported: Vec<AppearanceCase>,
 }
 
 pub fn sufficiency_cases() -> Vec<SufficiencyCase> {
@@ -283,6 +303,15 @@ pub fn inspected_image_state(observation: &str) -> Value {
 
 pub fn measurement_state(value_statement: &str, source_excerpt: &str) -> Value {
     json!({ "value_statement": value_statement, "source_excerpt": source_excerpt })
+}
+
+/// The state of the appearance support question: the trait, the level the
+/// value was placed on with the table's summary of it, and the sentence.
+pub fn appearance_state(trait_name: &str, level: &str, sentence: &str) -> Value {
+    let summary = super::requirements::table()
+        .level(trait_name, level)
+        .map(|l| l.summary.as_str());
+    json!({"trait": trait_name, "level": level, "summary": summary, "sentence": sentence})
 }
 
 /// The ids of the cases a set answered wrongly, for the miss report.

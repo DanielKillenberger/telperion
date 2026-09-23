@@ -10,9 +10,10 @@ use telperion_jev::pipeline::sets::{
 };
 
 use common::{ledger_dir, CaseTransport};
+use telperion_jev::pipeline::requirements::table;
 
 /// Every base name the runner scores, labelled and held out.
-const SET_NAMES: [&str; 8] = [
+const SET_NAMES: [&str; 9] = [
     "sufficiency level",
     "sufficiency gap",
     "mature size level",
@@ -21,6 +22,7 @@ const SET_NAMES: [&str; 8] = [
     "described level",
     "obligation inspected_image",
     "obligation measurement_not_invention",
+    "obligation appearance_supported",
 ];
 
 #[test]
@@ -108,8 +110,13 @@ fn every_set_is_version_one_and_its_cases_carry_the_fields_the_runner_reads() {
         assert!(!case.value_statement.is_empty(), "{}", case.id);
         assert!(!case.source_excerpt.is_empty(), "{}", case.id);
     }
+    for case in &obligations.appearance_supported {
+        assert!(!case.sentence.is_empty(), "{}", case.id);
+        let level = table().level(&case.trait_name, &case.level);
+        assert!(level.is_some(), "{} names a level the table has", case.id);
+    }
 
-    let counts: [(&str, usize, usize, usize); 6] = [
+    let counts: [(&str, usize, usize, usize); 7] = [
         (
             "mature_size",
             mature.len(),
@@ -158,6 +165,20 @@ fn every_set_is_version_one_and_its_cases_carry_the_fields_the_runner_reads() {
                 .count(),
             obligations
                 .measurement_not_invention
+                .iter()
+                .filter(|c| c.negative)
+                .count(),
+        ),
+        (
+            "appearance_supported",
+            obligations.appearance_supported.len(),
+            obligations
+                .appearance_supported
+                .iter()
+                .filter(|c| c.holdout)
+                .count(),
+            obligations
+                .appearance_supported
                 .iter()
                 .filter(|c| c.negative)
                 .count(),
