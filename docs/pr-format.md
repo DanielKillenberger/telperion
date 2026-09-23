@@ -14,6 +14,10 @@ Before staging evidence, follow [evidence-retention.md](evidence-retention.md): 
 4. `git push -u origin HEAD`, then `gh pr create --title … --body-file …`. Draft when `tasks_summary.open`, `uncovered_r_ids`, `undeclared_r_ids` or `deferred_findings` is non-empty, or the run is autonomous; `--draft` and `--ready` win over both. `--dry-run` prints the body and stops before the push.
 5. Print the PR URL. Never merge.
 
+## Stacked mode
+
+A species run is one GitHub stack (`docs/species-onboarding.md`, "The stack"). When `gh stack view` run on the spec's branch lists a stack, the branch below it in that list is the base: pre-flight compares against `origin/<that branch>`, the export takes `--base origin/<that branch>`, and the PR is opened with `gh pr create --base <that branch>`, never against master. The body's first line under Change names the stack's place: `Stack: <species> <n> of <m>, above <branch below>`. Nothing in this procedure merges; the stack merges once, by the owner.
+
 ## Body
 
 ```

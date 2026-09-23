@@ -27,6 +27,8 @@ the repository root, with the key available to an interactive shell.
    species spec from `templates/species-spec.md`. Refine it, mark it ready.
 2. **Manifest.** Run `discover`, read its proposal, draft `DIR/manifest.json`,
    and ask the owner to admit it. Nothing after discover runs until they do.
+   Start the run's stack from the species branch: `gh stack init <species
+   branch>` (`docs/species-onboarding.md`, "The stack").
 3. **Capability assessment.** The runbook's **The capability assessment**
    section, before any later stage. It is the host's, not yours: reasoning and
    system design escalate to the host. Stop and hand it up. It runs again after
@@ -76,7 +78,7 @@ route the table gave:
 
 | Route | What you do |
 |---|---|
-| `proceed` | Mint the fix as its own spec, make the species spec depend on it (`flowctl`), record it here (`gap spec`), work it under the repo's review, record each verdict (`gap review`), and on landing run `gap resume --commit <sha>`. Then rerun the stages it names and `gap metrics` before the report. |
+| `proceed` | Mint the fix as its own spec, make the species spec depend on it (`flowctl`), record it here (`gap spec`), work it under the repo's review on its own branch, record each verdict (`gap review`), insert it into the species stack below the species branch and open its PR in `docs/pr-format.md`'s stacked mode, and run `gap resume --commit <sha>` with its commit on the stack. Then rerun the stages it names and `gap metrics` before the report. |
 | `stronger` | Hand the same gap to the stronger reasoning model named in CLAUDE.md's routing block. It writes the set; record it with `--author stronger`, and route again. |
 | `owner` | Stop. The decision the route filed is the owner's; say what it is and wait. Never resolve it yourself. |
 
@@ -91,6 +93,7 @@ that moves a pin lands only with a `--pin-note` under fn-53's rule.
 - No generator or renderer change inside a species run. Every fix is its own
   reviewed spec, and the run resumes only once it lands.
 - No visual verdict. The owner ticks the checklist.
+- No merge. The stack merges once, by the owner, after the checklist.
 - No reasoning about the system. The capability assessment, gap analysis, the
   candidate fixes for a gap and the shape of a spec it mints are the host's.
   Report and stop; escalation is not failure and costs nothing.
