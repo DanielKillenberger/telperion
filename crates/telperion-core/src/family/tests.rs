@@ -15,7 +15,6 @@ use serde_json::{json, Value};
 /// is refused only when it is not finite, which the wire cannot write.
 const UNBOUNDED: &[&str] = &[
     "/canopy/clumpSystemOrder",
-    "/canopy/maxInstances",
     "/skeleton/seed",
     "/skeleton/twigs/divergence",
 ];
@@ -89,10 +88,9 @@ fn every_row_past_its_bound_is_refused_on_every_family() {
     }
 }
 
-/// The ordinary family at a size that grows in moments: few attractors and a
-/// small node budget change how much is grown, never what a row is judged by.
-fn small() -> Family {
-    let mut f = Preset::from_id("ordinary").unwrap().parameters();
+/// A family at a size that grows in moments: few attractors and a small node
+/// budget change how much is grown, never what a row is judged by.
+fn small(mut f: Family) -> Family {
     f.skeleton.attractors = 64;
     f.skeleton.growth.max_nodes = Some(256);
     f
@@ -105,43 +103,76 @@ fn built(f: &Family) -> Result<(), Error> {
     mesh::build(&f, Detail::Full).map(drop)
 }
 
-/// Values the build refuses from the geometry it grew, where no row's rail
-/// refuses them: float32 overflow of the swept wood, an empty mesh, a scaffold
-/// too long to step, and radii left unsolved at a twig tip taper of zero.
-/// Whether any of them becomes a rail is open (fn-123, escalated to the host);
-/// until then they are named here, so a new one fails this test.
-const BUILD_ONLY: &[(&str, &str)] = &[
-    ("/radii/trunkRadius", "18446744073709551615"),
-    ("/radii/trunkRadius", "1e+300"),
-    ("/skeleton/envelope/height", "18446744073709551615"),
-    ("/skeleton/growth/maxNodes", "0"),
-    ("/skeleton/growth/trunkHeight", "0"),
-    ("/skeleton/growth/trunkHeight", "18446744073709551615"),
-    ("/skeleton/growth/trunkHeight", "1e+300"),
-    ("/skeleton/habit/twigTipTaper", "0"),
+/// Values at absurd magnitudes the build refuses from the geometry it grew,
+/// where no row's rail refuses them: float32 overflow of the swept wood,
+/// triangles collapsed in float32, a scaffold too long to step, a leaf
+/// transform past float32. They stay the build's to raise (fn-123, host
+/// design), and are named here with the families they reach, so a new one
+/// fails this test.
+const BUILD_ONLY: &[(&str, &str, &[&str])] = &[
+    ("/radii/lengthTaper", "10000000.0", SWEPT),
+    ("/radii/lengthTaper", "4294967295", SWEPT),
+    ("/radii/lengthTaper", "18446744073709551615", SWEPT),
+    ("/radii/lengthTaper", "1e+300", SWEPT),
+    ("/radii/trunkRadius", "18446744073709551615", ALL),
+    ("/radii/trunkRadius", "1e+300", ALL),
+    ("/skeleton/envelope/height", "18446744073709551615", TALL),
+    ("/skeleton/envelope/spread", "1e+300", &["european-beech"]),
+    ("/skeleton/growth/trunkHeight", "18446744073709551615", LONG),
+    ("/skeleton/growth/trunkHeight", "1e+300", ALL),
+];
+const ALL: &[&str] = &[
+    "ordinary",
+    "oregon-white-oak",
+    "norway-spruce",
+    "silver-birch",
+    "telperion",
+    "laurelin",
+    "european-beech",
+    "date-palm",
+];
+const SWEPT: &[&str] = &["oregon-white-oak", "norway-spruce", "silver-birch"];
+const TALL: &[&str] = &[
+    "ordinary",
+    "norway-spruce",
+    "telperion",
+    "laurelin",
+    "date-palm",
+];
+const LONG: &[&str] = &[
+    "ordinary",
+    "oregon-white-oak",
+    "norway-spruce",
+    "silver-birch",
+    "date-palm",
 ];
 
-/// Every ladder value on every row of the small family: the build and
-/// `validate` agree on it, error for error, save the values named above,
-/// which only the build refuses.
+/// Every ladder value on every row of every family, made small: the build and
+/// `validate` agree on it, error for error, save the values named above.
 #[test]
 fn the_build_and_validate_refuse_the_same_values_by_the_same_name() {
-    let base = small();
-    built(&base).expect("the small family builds");
     let mut build_only = Vec::new();
-    for row in every_row(&base) {
-        for (value, f) in walked(&base, &row) {
-            let (build, validate) = (built(&f).err(), f.validate().err());
-            if build.is_some() && validate.is_none() {
-                build_only.push((row.clone(), value.to_string()));
-            } else {
-                assert_eq!(build, validate, "{row} at {value}");
+    for (id, f) in families() {
+        let base = small(f);
+        built(&base).unwrap_or_else(|e| panic!("small {id} is refused: {e}"));
+        for row in every_row(&base) {
+            for (value, f) in walked(&base, &row) {
+                let (build, validate) = (built(&f).err(), f.validate().err());
+                if build.is_some() && validate.is_none() {
+                    build_only.push((id, row.clone(), value.to_string()));
+                } else {
+                    assert_eq!(build, validate, "{id}: {row} at {value}");
+                }
             }
         }
     }
-    let pinned: Vec<_> = BUILD_ONLY
-        .iter()
-        .map(|&(row, value)| (row.to_string(), value.to_string()))
-        .collect();
+    let mut pinned = Vec::new();
+    for &(row, value, ids) in BUILD_ONLY {
+        for &id in ids {
+            pinned.push((id, row.to_string(), value.to_string()));
+        }
+    }
+    build_only.sort();
+    pinned.sort();
     assert_eq!(build_only, pinned);
 }

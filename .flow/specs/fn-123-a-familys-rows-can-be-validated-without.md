@@ -20,6 +20,10 @@ The tuning loop's dial table and every preset are checked against the generator'
   - Only inside placement, behind `tree.validate_solved()`: the canopy rails in `foliage/canopy.rs::validate`, with the short-shoot rows, the rosette rows and the twig placement rails. The rosette rows alone are also reached tree-free as `foliage::validate_canopy`, which the leaf bases call.
   - Only after growth: `shell_depth` in `cull`, the envelope's height above zero in `surface::build`, and the foliage reference box's finiteness in `Instances::validate`.
   - Growth-dependent, not a row bound: attractor scattering that falls short of its count (`ResourceLimit`, seed and envelope together). `Family::validate` leaves it to growth.
+- **Build-only refusals.** Walking every row over a value ladder found values the build refused and no row rail did. Decided by the host, 2026-09-23. [host design]
+  - A row whose zero the build refuses gets a floor in its own range: `maxNodes >= 1` and `trunkHeight > 0` in `SkeletonParams::resolved_growth`, and `maxInstances >= 1` in the canopy rails.
+  - `twigTipTaper` is open at zero, in (0, 1]: any positive taper leaves the tip a positive radius, and zero leaves it unsolved. No shipped preset uses 0; the smallest is 0.25.
+  - Overflow at absurd magnitudes stays the build's to raise: `trunkRadius`, `height` and `trunkHeight` at 1e300 or u64::MAX, `lengthTaper` from 1e7 up, and `spread` at 1e300 on the beech. They are pinned per family as `BUILD_ONLY` in `crates/telperion-core/src/family/tests.rs`.
 - **Shape.** `Family::validate(&self) -> Result<()>` in `telperion-core` calls every row set's existing validator and the checks now reached only during growth, with no tree built; the existing call sites keep their checks. [inferred]
 
 ## Acceptance Criteria

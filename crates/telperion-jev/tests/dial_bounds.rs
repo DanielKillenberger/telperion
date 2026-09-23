@@ -1,15 +1,11 @@
 //! A dial's walls are the generator's validated bounds; the span the shipped
 //! presets occupy rides on the row as a hint and never limits a move.
 //!
-//! Offline: no model is called, nothing is grown past its first frontier,
-//! nothing is rendered. Every claim is answered by the generator's own
-//! validators, in process.
+//! Offline: no model is called, nothing is grown, nothing is rendered. Every
+//! claim is answered by `Family::validate`, in process.
 use serde_json::{json, Value};
-use telperion_core::branching::Specimen;
-use telperion_core::foliage::{build_element, place, Reference, TwigPlacement};
 use telperion_core::params;
 use telperion_core::presets::Preset;
-use telperion_core::tree::{Node, Tree};
 use telperion_core::Family;
 use telperion_jev::tuning::actions::{candidate, Action, Dial};
 
@@ -56,60 +52,12 @@ fn with(family: &str, dial: &Dial, value: f64) -> Result<Family, String> {
     params::parse(&wire).map_err(|e| format!("wire: {e}"))
 }
 
-/// A solved tree of one node: the canopy's rails are checked against it and
-/// nothing is placed, since a tree without an axis bears no leaf.
-fn bare_tree() -> Tree {
-    let root = Node {
-        radius: 0.1,
-        start_radius: 0.1,
-        base_radius: 0.1,
-        ..Node::root()
-    };
-    Tree {
-        nodes: vec![root],
-        crossover: 1,
-        ..Tree::default()
-    }
-}
-
-/// The generator's own validators for the row's group, and nothing else.
+/// The generator's judgment of the row: every row of the family checked as
+/// the build checks it, with no tree grown.
 fn accepts(family: &str, dial: &Dial, value: f64) -> Result<(), String> {
-    let f = with(family, dial, value)?;
-    let checked = match dial.group.as_deref() {
-        Some("skeleton") => {
-            let mut skeleton = f.skeleton.clone();
-            if dial.path == "/skeleton/attractors" {
-                // The count is checked before any is scattered; at zero
-                // weight none is, so a million costs nothing here.
-                skeleton.habit.attractor_weight = 0.0;
-            }
-            Specimen::new(&skeleton, f.radii).map(drop)
-        }
-        Some("radii") => f.radii.resolved().map(drop),
-        Some("surface") => f.surface.validate(),
-        Some("element") => build_element(f.element).map(drop),
-        Some("canopy") => {
-            let twig = f.skeleton.twigs.resolved().map_err(|e| e.to_string())?.twig;
-            let placement = TwigPlacement {
-                internode_length: twig.internode_length,
-                stations_per_internode: twig.stations_per_internode,
-            };
-            let reference = Reference::of(&f).map_err(|e| e.to_string())?;
-            place(
-                &bare_tree(),
-                f.skeleton.envelope,
-                f.skeleton.seed,
-                f.canopy,
-                Some(placement),
-                reference,
-            )
-            .map(drop)
-        }
-        // The wire is the material row's consumer: `parse` above judged it.
-        Some("material") => Ok(()),
-        other => panic!("{}: no validator for group {other:?}", dial.id),
-    };
-    checked.map_err(|e| e.to_string())
+    with(family, dial, value)?
+        .validate()
+        .map_err(|e| e.to_string())
 }
 
 #[test]
