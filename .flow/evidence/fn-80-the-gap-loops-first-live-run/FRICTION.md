@@ -115,3 +115,7 @@ fn-119's design leaned on "the existing routing" from an objective to dials and 
 ## 2026-09-23 — host: a mature-only size has to name an age
 
 Rewriting the palm's manifest to fn-118's table, `manifest::validate` refused `crown_width_m` for naming no required age; crown width, frond length and leaflet size are mature sizes, not growth series. The host gave them one age (50 years) to pass. The sufficiency question set is built around sizes at stated ages (the fn-118 worker flagged that a mature-only span may score `none`), so these fields may stop the run for want of an age no source gives. Cost: two minutes so far; possibly a false NEEDS_HUMAN later. What would remove it: a field kind `mature` in the requirements table whose sufficiency is judged on a mature range with no age, as an obvious fix after the palm's literature rerun shows whether it bites.
+
+## 2026-09-23 — host: one unidentified flaky test in the workspace gate
+
+The gate on fn-80 after merging the linear stack failed 1 of 980 once and passed 980 of 980 on the rerun; the first run's output was not kept, so the test is unknown. Cost: one extra gate run (several minutes). What would remove it: the gate always written to a log under raw/, so a single failure is named the first time; then a spec for the test itself (fn-92 recorded `bark_plates` crashing intermittently).
