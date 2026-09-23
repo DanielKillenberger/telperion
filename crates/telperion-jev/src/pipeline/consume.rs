@@ -10,12 +10,17 @@
 use std::path::Path;
 
 use super::canon::{canonical_sha256, read_json, CanonError};
-use super::decision::{Decision, Resolution, Status, SUPERSEDED};
+use super::decision::{Decision, Resolution, Status};
 use super::stage::STAGES;
 
 /// A required field or appearance trait below the requirements table's bar:
 /// the owner's decision, whose only option adds sources.
 pub const REQUIREMENTS_UNMET: &str = "requirements-unmet";
+
+/// The option `decision::retire_unfiled` writes on a stage's own open
+/// decision that its rerun did not file again. No person chose it and no
+/// stage consumes it; `hold_unmet` leaves it resolved.
+pub const SUPERSEDED: &str = "superseded";
 
 /// The decision kinds whose options a stage consumes: the kind, its options,
 /// and the stages that act on a resolution carrying one of them. A kind not

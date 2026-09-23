@@ -29,6 +29,7 @@ Two defects keep the palm's literature step from finishing on data it now reads 
 - **R2:** A red test on A1's sentences: `bark_colour` is judged from "rough gray" and the value cites that sentence. [inferred]
 - **R3:** `verify` holds on an appearance value whose cited sentence supports it and files a claim decision when it does not; no `measurement_not_invention` is asked of an appearance value. The support question has labelled cases and a no-match answer. [inferred]
 - **R4:** The gate is green: `cargo test --profile ci --workspace --no-fail-fast`. [paraphrase]
+- **R5:** `verify` retires its own open decisions that a rerun with changed inputs did not file again (`retire_unfiled` for stage "verify"), as `quality` and `select` do; a red test from the live run: the four appearance `obligation-unmet` decisions and `claim-unsupported/A1`, `/F1` stop blocking `generate` after a rerun. [host design]
 
 ## Boundaries
 

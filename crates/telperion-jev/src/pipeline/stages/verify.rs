@@ -10,7 +10,7 @@ use serde_json::{json, Value};
 
 use crate::cite::{cite, ResearchClaim, SourceLoad};
 use crate::pipeline::canon::read_json;
-use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
+use crate::pipeline::decision::{append_decisions, retire_unfiled, Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::sets::{appearance_state, measurement_state, obligation_questions};
 use crate::pipeline::stage::{Context, Paths, StageError};
@@ -159,6 +159,15 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     if !decisions.is_empty() {
         append_decisions(&ctx.paths.decisions(), decisions)?;
     }
+    // A value this rerun found supported or measured files nothing: its
+    // earlier decision is stale.
+    retire_unfiled(
+        &ctx.paths.decisions(),
+        STAGE,
+        &ids,
+        &header.inputs,
+        &crate::pipeline::gap::now(),
+    )?;
     ctx.write(
         &header,
         json!({"claims": rows, "obligations": obligations, "structural": structural}),

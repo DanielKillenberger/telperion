@@ -16,6 +16,9 @@ use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::adapter::FixtureAdapter;
 use telperion_jev::pipeline::canon::{read_json, write_canonical};
+use telperion_jev::pipeline::decision::{
+    append_decisions, open_for_stage, Decision, DecisionParts,
+};
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::requirements::table;
 use telperion_jev::pipeline::stage::{Context, Paths};
@@ -225,5 +228,79 @@ fn verify_holds_a_supported_appearance_value_and_files_a_claim_on_one_that_is_no
     assert_eq!(
         held(front),
         Some((json!("appearance_supported"), json!(false)))
+    );
+}
+
+/// fn-128 R5: after the palm's second pass, verify's `obligation-unmet`
+/// decisions on four appearance values and its `claim-unsupported` on A1
+/// and F1 stayed open and stopped `generate`. They are rebuilt here as the
+/// live `decisions.json` holds them, filed against the old `select.json`;
+/// a verify rerun that does not file them again supersedes them.
+#[test]
+fn a_verify_rerun_supersedes_the_live_decisions_it_no_longer_files() {
+    let dir = fetched();
+    let reader = Reader::default();
+    let paths = Paths::new(&dir);
+    let old_select = "d826f2c81983dc6d5062ce3da028deb01ee8e8f71766abb122afb1fa2d8af05e";
+    let live = |kind: &str, field: String| {
+        Decision::new(
+            DecisionParts {
+                species: "date-palm",
+                stage: "verify",
+                kind,
+                field: Some(&field),
+                age_years: None,
+            },
+            &["generate"],
+            inputs(&[("select.json", old_select)]),
+            vec![],
+            json!({}),
+            &["accept", "replace-source", "drop-value"],
+            "live",
+        )
+    };
+    let mut stale: Vec<Decision> = [
+        "bark_roughness",
+        "leaf_back_colour",
+        "leaf_front_colour",
+        "leaf_hue_range",
+    ]
+    .iter()
+    .map(|t| {
+        let field = format!("measurement_not_invention:/profiles/0/appearance/{t}");
+        live("obligation-unmet", field)
+    })
+    .collect();
+    stale.extend(["A1", "F1"].map(|s| live("claim-unsupported", s.into())));
+    let ids: Vec<String> = stale.iter().map(|d| d.id.clone()).collect();
+    append_decisions(&paths.decisions(), stale).unwrap();
+
+    select::run(&paths, &judge(&reader)).unwrap();
+    verify::run(&paths, &judge(&reader)).unwrap();
+
+    let list = read_json(&paths.decisions()).unwrap();
+    for id in &ids {
+        let d = list["decisions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|d| &d["id"] == id)
+            .unwrap();
+        assert_eq!(d["status"], "resolved", "{id}");
+        assert_eq!(d["resolution"]["option"], "superseded", "{id}");
+    }
+    // Only what this rerun filed still stops generate.
+    let decisions: Vec<Decision> = serde_json::from_value(list["decisions"].clone()).unwrap();
+    let (global, fields) = open_for_stage(&decisions, "generate");
+    assert!(global.is_empty(), "{global:?}");
+    let verify_open: Vec<_> = decisions
+        .iter()
+        .filter(|d| d.stage == "verify" && d.blocks_stage("generate"))
+        .map(|d| d.id.clone())
+        .collect();
+    assert_eq!(
+        verify_open,
+        ["date-palm/verify/claim-unsupported//profiles/0/appearance/leaf_front_colour"],
+        "{fields:?}"
     );
 }

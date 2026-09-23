@@ -297,8 +297,8 @@ binds only once the manifest's `sources` differ from the ones the decision
 recorded (`payload.sources_sha256`). A resolution that adds no source is void
 on the next read, and the decision stays open.
 
-A stage's rerun retires its own stale decisions. When `quality` or `select`
-reruns with changed inputs, it marks each of its open decisions
+A stage's rerun retires its own stale decisions. When `quality`, `select`
+or `verify` reruns with changed inputs, it marks each of its open decisions
 that it did not file again as resolved, with the option `superseded`, and
 records `by` as that stage's rerun. The field passed, or the trait was
 found stated, on the sources the manifest already had. A superseded
@@ -306,7 +306,9 @@ found stated, on the sources the manifest already had. A superseded
 are unchanged. No person writes `superseded`, and no stage consumes it. On
 the palm's second pass, `quality` passed crown width and leaflet length,
 but the first pass's decisions on them stayed open, and `select` skipped
-both fields as "below the data-quality bar".
+both fields as "below the data-quality bar". `verify`'s `obligation-unmet`
+decisions on four appearance values, and its `claim-unsupported` on A1 and
+F1, stayed open the same way and stopped `generate`.
 
 ```json
 {"id": "european-ash/fetch/unavailable-source/M1", "inputs_sha256": {"url": "..."},

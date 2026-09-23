@@ -173,11 +173,6 @@ pub fn append_decisions(path: &Path, new: Vec<Decision>) -> Result<Vec<Decision>
     Ok(list)
 }
 
-/// The option a stage writes on its own open decision that a rerun with
-/// changed inputs did not file again. No person chose it and no stage
-/// consumes it.
-pub const SUPERSEDED: &str = "superseded";
-
 /// Retires the open decisions of `stage` that a rerun with changed inputs
 /// did not file again: the gate they named has passed or was reissued
 /// under another id. The first live run of the gap loop left a registry
@@ -204,7 +199,7 @@ pub fn retire_unfiled(
         decision.resolution = Some(Resolution {
             id: decision.id.clone(),
             inputs_sha256: decision.inputs_sha256.clone(),
-            option: SUPERSEDED.into(),
+            option: "superseded".into(),
             by: format!("{stage} stage rerun"),
             at: at.into(),
             note: "the stage reran with changed inputs and did not file this decision again".into(),
