@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-122-a-tuning-result-says-what-each-attempt",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-09-23T19:10:45.922268Z",
   "created_at": "2026-09-23T16:42:28.429935Z",
   "default_impl": null,
   "default_review": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T18:54:52.627291Z"
+  "updated_at": "2026-09-23T19:10:45.922282Z"
 }
