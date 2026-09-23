@@ -1,1 +1,227 @@
-{"context":"Mature open-grown oasis or orchard date palm; single-stemmed, not a suckering offshoot clump or dwarf cultivar.","described":[],"engineering":{"required_capabilities":{"value":["woody-axes","apical-rosette","pinnate-frond","acanthophyll","persistent-leaf-base","infructescence"],"rationale":"Capability assessment 2026-09-19. The palm needs a stem (woody-axes) plus five named organs or attachments the habit, element and canopy tables do not already produce: an apical frond rosette, a pinnate frond, acanthophylls, persistent leaf bases, and an infructescence. Unbranched stem and near-constant trunk diameter are reachable values (habit.lateral_orders=0, radii.length_taper=0) and are not named here. See packet/capability.json."}},"fields":[{"bar":"proxy_only","condition":"open_grown","field":"height_m","proxy":null,"question":"Which candidate span states the height a date palm reaches at a stated age, or its usual mature height, for a tree grown in the open?","required_ages_years":[20.0,50.0,80.0]},{"bar":"partial","condition":"open_grown","field":"dbh_m","proxy":null,"question":"Which candidate span states the trunk diameter at breast height of a date palm at a stated age, or at maturity, for a tree grown in the open?","required_ages_years":[20.0,50.0,80.0]}],"growth_form":"palm","model":"jev-latest","preset":"date-palm","profile_id":"date-palm","schema":"manifest","schema_version":1,"seed":7,"sources":[{"id":"F1","rights":"UF/IFAS EDIS extension publication, free to read and cite; measured values are cited, no text reproduced","sha256":null,"tables":[],"title":"FOR 252/FR314: Phoenix dactylifera, Date Palm - Ask IFAS","url":"https://ask.ifas.ufl.edu/publication/FR314"},{"id":"A1","rights":"University of Arizona Campus Arboretum public taxon page, free to read and cite; measured values are cited, no text reproduced","sha256":null,"tables":[],"title":"Phoenix dactylifera - Find Trees & Learn | UA Campus Arboretum","url":"https://apps.cals.arizona.edu/arboretum/taxon.aspx?id=207"},{"id":"M1","rights":"BMC Plant Biology, open access under CC BY 4.0; measured values are cited with attribution","sha256":null,"tables":[],"title":"Comparative study of the morphological characteristics of Phoenix dactylifera L. cultivars in Al-Madinah Al-Munawarah-Saudi Arabia.","url":"https://doi.org/10.1186/s12870-022-03841-0"}],"species":"date-palm","taxon":{"common_name":"Date palm","cultivar":null,"rank":"species","scientific_name":"Phoenix dactylifera"},"transfers":[],"versions":{"question_sets":{"citation":1,"described":1,"obligations":1,"ranking":1,"screen":1,"sufficiency":1},"tools":{"firecrawl":"1.23.3","species-pipeline":"0.1.0"}}}
+{
+  "appearance": [
+    {
+      "sources": [
+        "F1",
+        "A1",
+        "M1"
+      ],
+      "trait_name": "bark_colour"
+    },
+    {
+      "sources": [
+        "F1",
+        "A1",
+        "M1"
+      ],
+      "trait_name": "bark_roughness"
+    },
+    {
+      "sources": [
+        "F1",
+        "A1",
+        "M1"
+      ],
+      "trait_name": "leaf_front_colour"
+    },
+    {
+      "sources": [
+        "F1",
+        "A1",
+        "M1"
+      ],
+      "trait_name": "leaf_back_colour"
+    },
+    {
+      "sources": [
+        "F1",
+        "A1",
+        "M1"
+      ],
+      "trait_name": "leaf_hue_range"
+    },
+    {
+      "sources": [
+        "F1",
+        "A1",
+        "M1"
+      ],
+      "trait_name": "leaf_brightness_range"
+    }
+  ],
+  "context": "Mature open-grown oasis or orchard date palm; single-stemmed, not a suckering offshoot clump or dwarf cultivar.",
+  "curves": null,
+  "described": [],
+  "engineering": {
+    "required_capabilities": {
+      "rationale": "Capability assessment 2026-09-19. The palm needs a stem (woody-axes) plus five named organs or attachments the habit, element and canopy tables do not already produce: an apical frond rosette, a pinnate frond, acanthophylls, persistent leaf bases, and an infructescence. Unbranched stem and near-constant trunk diameter are reachable values (habit.lateral_orders=0, radii.length_taper=0) and are not named here. See packet/capability.json.",
+      "value": [
+        "woody-axes",
+        "apical-rosette",
+        "pinnate-frond",
+        "acanthophyll",
+        "persistent-leaf-base",
+        "infructescence"
+      ]
+    }
+  },
+  "fields": [
+    {
+      "bar": "partial",
+      "condition": "open_grown",
+      "field": "height_m",
+      "proxy": null,
+      "question": "Which candidate span states the height a date palm reaches at a stated age, or its usual mature height, for a tree grown in the open?",
+      "required_ages_years": [
+        20.0,
+        50.0,
+        80.0
+      ]
+    },
+    {
+      "bar": "partial",
+      "condition": "open_grown",
+      "field": "dbh_m",
+      "proxy": null,
+      "question": "Which candidate span states the trunk diameter of a date palm at a stated age, or at maturity, for a tree grown in the open?",
+      "required_ages_years": [
+        20.0,
+        50.0,
+        80.0
+      ]
+    },
+    {
+      "bar": "proxy_only",
+      "condition": "open_grown",
+      "field": "crown_width_m",
+      "proxy": null,
+      "question": "Which candidate span states the crown width or spread of a mature date palm grown in the open?",
+      "required_ages_years": [
+        50.0
+      ]
+    },
+    {
+      "bar": "proxy_only",
+      "condition": "open_grown",
+      "field": "frond_length_m",
+      "proxy": null,
+      "question": "Which candidate span states the length of a mature date palm frond (leaf), including the petiole?",
+      "required_ages_years": [
+        50.0
+      ]
+    },
+    {
+      "bar": "proxy_only",
+      "condition": "open_grown",
+      "field": "leaflet_length_m",
+      "proxy": null,
+      "question": "Which candidate span states the length of a date palm leaflet (pinna) on a mature frond?",
+      "required_ages_years": [
+        50.0
+      ]
+    },
+    {
+      "bar": "proxy_only",
+      "condition": "open_grown",
+      "field": "leaflet_width_m",
+      "proxy": null,
+      "question": "Which candidate span states the width of a date palm leaflet (pinna) on a mature frond?",
+      "required_ages_years": [
+        50.0
+      ]
+    }
+  ],
+  "growth_form": "palm",
+  "model": "jev-latest",
+  "preset": "date-palm",
+  "profile_id": "date-palm",
+  "proposed_sources": {
+    "P4": "https://en.wikipedia.org/wiki/Date_palm",
+    "P5": "https://www.growables.org/information/TropicalFruit/PalmPhoenixDactilifera.htm",
+    "P6": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11011438/",
+    "P7": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9511727/"
+  },
+  "schema": "manifest",
+  "schema_version": 2,
+  "seed": 7,
+  "sources": [
+    {
+      "id": "F1",
+      "rights": "UF/IFAS EDIS extension publication, free to read and cite; measured values are cited, no text reproduced",
+      "sha256": null,
+      "tables": [],
+      "title": "FOR 252/FR314: Phoenix dactylifera, Date Palm - Ask IFAS",
+      "url": "https://ask.ifas.ufl.edu/publication/FR314"
+    },
+    {
+      "id": "A1",
+      "rights": "University of Arizona Campus Arboretum public taxon page, free to read and cite; measured values are cited, no text reproduced",
+      "sha256": null,
+      "tables": [],
+      "title": "Phoenix dactylifera - Find Trees & Learn | UA Campus Arboretum",
+      "url": "https://apps.cals.arizona.edu/arboretum/taxon.aspx?id=207"
+    },
+    {
+      "id": "M1",
+      "rights": "BMC Plant Biology, open access under CC BY 4.0; measured values are cited with attribution",
+      "sha256": null,
+      "tables": [],
+      "title": "Comparative study of the morphological characteristics of Phoenix dactylifera L. cultivars in Al-Madinah Al-Munawarah-Saudi Arabia.",
+      "url": "https://doi.org/10.1186/s12870-022-03841-0"
+    },
+    {
+      "id": "P4",
+      "rights": "Wikipedia, CC BY-SA 4.0; measured values are cited with attribution, no text reproduced",
+      "sha256": null,
+      "tables": [],
+      "title": "Date palm - Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Date_palm"
+    },
+    {
+      "id": "P5",
+      "rights": "growables.org private page, no stated licence; measured values are cited only, no text reproduced (owner admitted, 2026-09-23)",
+      "sha256": null,
+      "tables": [],
+      "title": "Date Palm, Phoenix dactylifera - Growables",
+      "url": "https://www.growables.org/information/TropicalFruit/PalmPhoenixDactilifera.htm"
+    },
+    {
+      "id": "P6",
+      "rights": "Foods (MDPI) 2024, open access CC BY; measured values are cited with attribution",
+      "sha256": null,
+      "tables": [],
+      "title": "An Overview of Date (Phoenix dactylifera) Fruits as an Important ...",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11011438/"
+    },
+    {
+      "id": "P7",
+      "rights": "BMC Plant Biology 2022, open access CC BY 4.0; measured values are cited with attribution",
+      "sha256": null,
+      "tables": [],
+      "title": "Comparative study of the morphological characteristics of ...",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9511727/"
+    }
+  ],
+  "species": "date-palm",
+  "taxon": {
+    "common_name": "Date palm",
+    "cultivar": null,
+    "rank": "species",
+    "scientific_name": "Phoenix dactylifera"
+  },
+  "transfers": [],
+  "versions": {
+    "question_sets": {
+      "citation": 1,
+      "described": 1,
+      "obligations": 1,
+      "ranking": 1,
+      "screen": 1,
+      "sufficiency": 1
+    },
+    "tools": {
+      "firecrawl": "1.23.3",
+      "species-pipeline": "0.1.0"
+    }
+  }
+}
