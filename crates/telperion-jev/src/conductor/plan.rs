@@ -10,6 +10,7 @@ use super::policy;
 use super::state::{DependencyStatus, Run};
 use super::{Config, Result};
 use crate::pipeline::canon::{canonical_sha256, file_sha256};
+use crate::pipeline::consume::REQUIREMENTS_UNMET;
 use crate::pipeline::decision::{reconcile, Decision, Status};
 use crate::pipeline::gap::HALT_KINDS;
 use crate::pipeline::stage::STAGES;
@@ -28,6 +29,9 @@ pub enum Next {
     },
     /// A decision only the owner resolves.
     AwaitOwner { decision: String, kind: String },
+    /// Open owner-only decisions (fn-127): the run pauses with their handoff
+    /// before the gap loop, the stages or tuning.
+    OwnerFirst { decisions: Vec<String> },
     /// A decision policy lets the cheap agent resolve, with the options it may choose.
     Routine {
         decision: String,
@@ -54,6 +58,11 @@ pub enum Next {
     /// The packet is written; only the owner's verdict remains.
     Ready,
 }
+
+/// Decision kinds only the owner resolves that stop the run before any
+/// other work: a manifest the owner admits, a requirement only their sources
+/// meet.
+pub const OWNER_FIRST: [&str; 2] = ["manifest-proposed", REQUIREMENTS_UNMET];
 
 /// The stages' current fingerprint: the manifest, the resolutions and every
 /// landed fix. When it matches the one recorded after a full pass, the
@@ -167,6 +176,15 @@ pub fn next(config: &Config, run: &Run) -> Result<Next> {
             effort: dispatch.effort.clone(),
         });
     }
+    let open = open_decisions(config)?;
+    let owners: Vec<String> = open
+        .iter()
+        .filter(|d| OWNER_FIRST.contains(&d.kind.as_str()))
+        .map(|d| d.id.clone())
+        .collect();
+    if !owners.is_empty() {
+        return Ok(Next::OwnerFirst { decisions: owners });
+    }
     if let Some(dependency) = run
         .dependencies
         .iter()
@@ -185,7 +203,6 @@ pub fn next(config: &Config, run: &Run) -> Result<Next> {
         });
     }
     let table = policy::load();
-    let open = open_decisions(config)?;
     if let Some(decision) = open.iter().find(|d| !d.blocks.is_empty()) {
         return Ok(decision_action(&table, run, decision));
     }

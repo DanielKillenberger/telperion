@@ -2,7 +2,8 @@
 //! the fixture adapter and a mock transport. A required field below the
 //! requirements table's bar, and a required appearance trait no source
 //! describes, each file a requirements-unmet decision the owner holds; a
-//! described appearance level's ranges are copied into the profile. No
+//! described appearance level's ranges are copied into the profile with the
+//! source whose section stated it, and verify holds over them (fn-127). No
 //! network, no key.
 
 mod common;
@@ -20,12 +21,12 @@ use telperion_jev::pipeline::decision::reconcile;
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::requirements::table;
 use telperion_jev::pipeline::stage::{Paths, StageError};
-use telperion_jev::pipeline::stages::{extract, fetch, quality, screen, select};
+use telperion_jev::pipeline::stages::{extract, fetch, quality, screen, select, verify};
 
 const PAGE_URL: &str = "https://example.test/oak";
 
-/// Fixed answers for sufficiency and the appearance level; everything else
-/// goes to the fn-57 mock.
+/// Fixed answers for sufficiency, the mature size and the appearance level;
+/// everything else goes to the fn-57 mock.
 struct Answers {
     sufficiency: f64,
     level: f64,
@@ -40,8 +41,17 @@ impl Transport for Answers {
                 "sufficiency": {"type": "score", "score": self.sufficiency, "confidence": 0.9, "probabilities": {}},
                 "dominant_gap": {"type": "choice", "choice": "age_range_uncovered", "confidence": 0.9, "probabilities": {}},
             })
+        } else if questions.get("mature_size").is_some() {
+            json!({
+                "mature_size": {"type": "score", "score": self.sufficiency, "confidence": 0.9, "probabilities": {}},
+                "mature_gap": {"type": "choice", "choice": "single_source", "confidence": 0.9, "probabilities": {}},
+            })
         } else if questions.get("level").is_some() {
             json!({"level": {"type": "score", "score": self.level, "confidence": 0.9, "probabilities": {}}})
+        } else if questions.get("relation").is_some() {
+            json!({"relation": {"type": "choice", "choice": "supports", "confidence": 0.95, "probabilities": {"supports": 0.95}}})
+        } else if questions.get("measurement_not_invention").is_some() {
+            json!({"measurement_not_invention": {"type": "noul", "noul": 0.9}})
         } else {
             return CaseTransport.send(request);
         };
@@ -87,7 +97,7 @@ fn scratch() -> (PathBuf, FixtureAdapter) {
     let (dir, fixtures) = (root.join("pipeline"), root.join("fixtures"));
     fs::create_dir_all(&dir).unwrap();
     fs::create_dir_all(&fixtures).unwrap();
-    let page = "# Oregon white oak\n\nMature Oregon white oaks are 50 to 90 ft tall and 24 to 40 in. in DBH. The bark is light gray and scaly.\n";
+    let page = "# Oregon white oak\n\nMature Oregon white oaks are 50 to 90 ft tall and 24 to 40 in. in DBH. The bark is light gray and scaly. The leaves are dark green above, paler beneath, and of one even colour across the crown.\n";
     fs::write(fixtures.join("page.md"), page).unwrap();
     fs::write(
         fixtures.join("page.html"),
@@ -225,4 +235,49 @@ fn a_described_appearance_level_is_copied_into_the_profile_as_ranges() {
         "smooth"
     );
     assert!(owner_stops(&reconcile(&Paths::new(&dir)).unwrap()).is_empty());
+}
+
+/// fn-127 R2: the palm's live select copied four appearance values with no
+/// source, and verify filed `source id resolves` against each. Every copied
+/// appearance value now names the source whose section stated it.
+#[test]
+fn every_appearance_value_carries_its_sources_id_and_verify_holds() {
+    let answers = Answers {
+        sufficiency: 3.0,
+        level: 0.0,
+    };
+    let (dir, _, selected) = run_to_select(&answers);
+    selected.unwrap();
+    let sidecar = read_json(&dir.join("provenance.json")).unwrap();
+    let entries = sidecar["entries"].as_object().unwrap();
+    let appearance: Vec<_> = entries
+        .iter()
+        .filter(|(pointer, _)| pointer.starts_with("/profiles/0/appearance/"))
+        .collect();
+    assert_eq!(
+        appearance.len(),
+        table().growth_forms["broadleaf"].appearance.len()
+    );
+    for (pointer, entry) in appearance {
+        assert_eq!(entry["source"], "S1", "{pointer}");
+        assert!(
+            entry["span"].as_str().is_some_and(|s| !s.is_empty()),
+            "{pointer}"
+        );
+    }
+    let judge = Judge {
+        transport: &answers,
+        key: "test-key",
+        ledger_dir: dir.join("ledger").join("entries"),
+    };
+    let verify::Outcome::Ran { decisions } = verify::run(&Paths::new(&dir), &judge).unwrap() else {
+        panic!("verify ran")
+    };
+    assert!(decisions.is_empty(), "{decisions:?}");
+    let body = &read_json(&dir.join("verify.json")).unwrap()["body"];
+    assert_eq!(body["structural"], json!([]));
+    // Each span was checked against its cached source, not left unchecked.
+    for claim in body["claims"].as_array().unwrap() {
+        assert_eq!(claim["relation"], "supports", "{}", claim["claim"]);
+    }
 }

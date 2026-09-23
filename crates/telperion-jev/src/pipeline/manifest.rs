@@ -95,6 +95,7 @@ pub struct Proxy {
 pub struct Field {
     pub field: String,
     pub condition: String,
+    #[serde(default)]
     pub required_ages_years: Vec<f64>,
     pub bar: Sufficiency,
     #[serde(default)]
@@ -259,7 +260,9 @@ pub fn validate(m: &Manifest) -> Result<(), ManifestError> {
         }
     }
     for field in &m.fields {
-        if field.required_ages_years.is_empty() {
+        // A mature size (fn-127) is judged on a stated mature value, at no age.
+        if field.required_ages_years.is_empty() && !super::requirements::is_mature(m, &field.field)
+        {
             return bad(format!("field {} names no required age", field.field));
         }
         if let Some(proxy) = &field.proxy {

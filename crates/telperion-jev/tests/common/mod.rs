@@ -3,8 +3,8 @@ use std::sync::Mutex;
 use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::sets::{
-    described_cases, described_state, obligation_cases, ranking_cases, ranking_state,
-    sufficiency_cases, sufficiency_state, SUFFICIENCY_LEVELS,
+    described_cases, described_state, mature_cases, mature_state, obligation_cases, ranking_cases,
+    ranking_state, sufficiency_cases, sufficiency_state, SUFFICIENCY_LEVELS,
 };
 use telperion_jev::questions::{citation_cases, screen_cases, selection_cases, triage_cases};
 
@@ -177,6 +177,20 @@ fn answers_for(body: &Value) -> Value {
         return json!({
             "sufficiency": score_answer(index, SUFFICIENCY_LEVELS.len()),
             "dominant_gap": choice_answer(&case.expect_gap),
+        });
+    }
+    if questions.get("mature_size").is_some() {
+        let case = mature_cases()
+            .into_iter()
+            .find(|case| mature_state(case) == body["state"])
+            .expect("a mature size case for this state");
+        let index = SUFFICIENCY_LEVELS
+            .iter()
+            .position(|level| *level == case.expect_level)
+            .unwrap_or(0);
+        return json!({
+            "mature_size": score_answer(index, SUFFICIENCY_LEVELS.len()),
+            "mature_gap": choice_answer(&case.expect_gap),
         });
     }
     if questions.get("source").is_some() {

@@ -3,17 +3,20 @@ mod common;
 use telperion_jev::cases::{format_scores, CaseRow, SetScore};
 use telperion_jev::pipeline::sets::cases::run_pipeline_cases;
 use telperion_jev::pipeline::sets::{
-    described_cases, described_questions, level_from_score, missed_ids, obligation_cases,
-    obligation_questions, ranking_cases, ranking_questions, set_version, sufficiency_cases,
-    DescribedLevel, DESCRIBED_UNSTATED, OBLIGATION_NAMES, RANKING_NONE, SUFFICIENCY_LEVELS,
+    described_cases, described_questions, level_from_score, mature_cases, mature_questions,
+    missed_ids, obligation_cases, obligation_questions, ranking_cases, ranking_questions,
+    set_version, sufficiency_cases, DescribedLevel, DESCRIBED_UNSTATED, OBLIGATION_NAMES,
+    RANKING_NONE, SUFFICIENCY_LEVELS,
 };
 
 use common::{ledger_dir, CaseTransport};
 
 /// Every base name the runner scores, labelled and held out.
-const SET_NAMES: [&str; 6] = [
+const SET_NAMES: [&str; 8] = [
     "sufficiency level",
     "sufficiency gap",
+    "mature size level",
+    "mature size gap",
     "ranking source",
     "described level",
     "obligation inspected_image",
@@ -22,7 +25,13 @@ const SET_NAMES: [&str; 6] = [
 
 #[test]
 fn every_set_is_version_one_and_its_cases_carry_the_fields_the_runner_reads() {
-    for name in ["sufficiency", "ranking", "described", "obligations"] {
+    for name in [
+        "sufficiency",
+        "mature_size",
+        "ranking",
+        "described",
+        "obligations",
+    ] {
         assert_eq!(set_version(name), 1, "{name}");
     }
     let gaps = [
@@ -48,6 +57,35 @@ fn every_set_is_version_one_and_its_cases_carry_the_fields_the_runner_reads() {
         assert!(case.evidence.is_array(), "{}", case.id);
         assert!(case.counts["measured_points"].is_number(), "{}", case.id);
     }
+    // fn-127: the mature-size set asks no age and answers on the same levels.
+    let mature = mature_cases();
+    let mature_gaps = mature_questions()["mature_gap"]["criteria"]
+        .as_object()
+        .unwrap()
+        .keys()
+        .cloned()
+        .collect::<Vec<_>>();
+    assert!(mature_gaps.contains(&"none".to_string()), "a no-match gap");
+    for case in &mature {
+        assert!(
+            SUFFICIENCY_LEVELS.contains(&case.expect_level.as_str()),
+            "{}",
+            case.id
+        );
+        assert!(mature_gaps.contains(&case.expect_gap), "{}", case.id);
+        assert!(
+            case.requirement.get("required_ages_years").is_none(),
+            "{}",
+            case.id
+        );
+        assert!(case.counts["sentences"].is_number(), "{}", case.id);
+    }
+    for id in ["palm-leaflet-length-a1", "palm-crown-width-a1"] {
+        assert!(
+            mature.iter().any(|c| c.id == id),
+            "A1's sentences label {id}"
+        );
+    }
     let ranking = ranking_cases();
     for case in &ranking {
         assert!(!case.candidates.is_empty(), "{}", case.id);
@@ -71,7 +109,13 @@ fn every_set_is_version_one_and_its_cases_carry_the_fields_the_runner_reads() {
         assert!(!case.source_excerpt.is_empty(), "{}", case.id);
     }
 
-    let counts: [(&str, usize, usize, usize); 5] = [
+    let counts: [(&str, usize, usize, usize); 6] = [
+        (
+            "mature_size",
+            mature.len(),
+            mature.iter().filter(|c| c.holdout).count(),
+            mature.iter().filter(|c| c.negative).count(),
+        ),
         (
             "sufficiency",
             sufficiency.len(),

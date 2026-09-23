@@ -1,9 +1,11 @@
 //! The select stage's appearance route (fn-118). Jev scores each appearance
-//! trait over the requirements table's levels on the source sections that
-//! carry its terms; code copies the chosen level's range for every material
-//! field the trait feeds into the profile. Nothing renders or measures it. A
-//! trait the table requires that the sources leave unstated files a
-//! requirements-unmet decision for the owner.
+//! trait over the requirements table's levels on one source section at a
+//! time, in the manifest's order, and the first section it places on a level
+//! is the chosen span; code copies that level's range for every material
+//! field the trait feeds into the profile, with the span and its source
+//! (fn-127): a value with no source is never written. Nothing renders or
+//! measures it. A trait the table requires that the sources leave unstated
+//! files a requirements-unmet decision for the owner.
 
 use serde_json::{json, Map, Value};
 
@@ -13,7 +15,9 @@ use crate::pipeline::decision::{Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::Appearance;
 use crate::pipeline::requirements::{requires_appearance, table};
-use crate::pipeline::sets::{described_questions, level_from_score, DescribedLevel};
+use crate::pipeline::sets::{
+    described_questions, level_from_score, DescribedLevel, DESCRIBED_UNSTATED,
+};
 use crate::pipeline::stage::{Context, StageError};
 
 use super::extract::cached_markdown;
@@ -40,39 +44,89 @@ pub fn run(judge: &Judge<'_>, ctx: &Context, fetch: &Value) -> Result<Copied, St
     for trait_ in &manifest.appearance {
         let name = trait_.trait_name.as_str();
         let levels = table().levels(name).unwrap_or_default();
-        let (level, entry) = score_levels(judge, ctx, name, &trait_.sources, &levels, fetch)?;
-        let ledger = entry["ledger"].as_str().unwrap_or_default().to_string();
-        copied.ledger.push(ledger.clone());
+        let chosen = chosen_span(judge, ctx, name, &trait_.sources, &levels, fetch)?;
+        copied.ledger.extend(chosen.ledger.iter().cloned());
         copied.body.insert(
             name.into(),
-            json!({"level": level, "sentence": entry["sentence"], "ledger": ledger}),
+            json!({"level": chosen.level, "source": chosen.source, "sentence": chosen.span, "ledger": chosen.ledger}),
         );
-        match table().level(name, &level) {
-            Some(row) => {
+        let row = table().level(name, &chosen.level);
+        match (row, &chosen.source) {
+            (Some(row), Some(source)) => {
                 let pointer = format!("/profiles/0/appearance/{name}");
                 copied.profile.insert(
                     name.into(),
-                    json!({"level": row.key, "summary": row.summary, "ranges": row.ranges, "sources": trait_.sources}),
+                    json!({"level": row.key, "summary": row.summary, "ranges": row.ranges, "sources": [source]}),
                 );
                 copied.sidecar.insert(
                     pointer,
-                    json!({"route": "appearance", "level": row.key, "sources": trait_.sources, "ledger": [ledger]}),
+                    json!({"route": "appearance", "level": row.key, "source": source, "span": chosen.span, "ledger": chosen.ledger}),
                 );
             }
-            None if requires_appearance(manifest, name) => {
+            _ if requires_appearance(manifest, name) => {
                 let sources = sources_sha256(&ctx.paths.manifest())?;
                 copied
                     .decisions
-                    .push(unstated(ctx, trait_, &ledger, &sources));
+                    .push(unstated(ctx, trait_, &chosen.ledger, &sources));
             }
-            None => {}
+            _ => {}
         }
     }
     Ok(copied)
 }
 
+/// The span a trait's level was read from: the first source section Jev
+/// placed on a level, its source, and every ledger reference asked. With no
+/// such section the level is the no-match level and there is no source.
+struct Chosen {
+    level: String,
+    source: Option<String>,
+    span: String,
+    ledger: Vec<String>,
+}
+
+/// Asks each source's section alone, in order, and stops at the first that
+/// states the trait. A source with no section carrying the trait's terms is
+/// not asked.
+fn chosen_span(
+    judge: &Judge<'_>,
+    ctx: &Context,
+    trait_name: &str,
+    sources: &[String],
+    levels: &[DescribedLevel],
+    fetch: &Value,
+) -> Result<Chosen, StageError> {
+    let mut ledger = Vec::new();
+    for id in sources {
+        if ctx.admitted.manifest.source(id).is_none() {
+            continue;
+        }
+        let found = sections(ctx, trait_name, std::slice::from_ref(id), levels, fetch)?;
+        if found.is_empty() {
+            continue;
+        }
+        let (level, entry) = ask_levels(judge, trait_name, &found, levels)?;
+        ledger.push(entry["ledger"].as_str().unwrap_or_default().to_string());
+        if level != DESCRIBED_UNSTATED {
+            let span = found.join("\n");
+            return Ok(Chosen {
+                level,
+                source: Some(id.clone()),
+                span,
+                ledger,
+            });
+        }
+    }
+    Ok(Chosen {
+        level: DESCRIBED_UNSTATED.into(),
+        source: None,
+        span: String::new(),
+        ledger,
+    })
+}
+
 /// NEEDS_HUMAN: a required appearance trait no admitted source describes.
-fn unstated(ctx: &Context, trait_: &Appearance, ledger: &str, sources: &str) -> Decision {
+fn unstated(ctx: &Context, trait_: &Appearance, ledger: &[String], sources: &str) -> Decision {
     let manifest = &ctx.admitted.manifest;
     Decision::new(
         DecisionParts {
@@ -84,9 +138,9 @@ fn unstated(ctx: &Context, trait_: &Appearance, ledger: &str, sources: &str) -> 
         },
         &["generate"],
         [("manifest".to_string(), ctx.admitted.sha256.clone())].into_iter().collect(),
-        vec![ledger.to_string()],
+        ledger.to_vec(),
         json!({
-            "field": trait_.trait_name, "level": "unstated", "bar": "stated",
+            "field": trait_.trait_name, "level": DESCRIBED_UNSTATED, "bar": "stated",
             "sources_tried": trait_.sources, "sources_sha256": sources,
         }),
         &["add-sources"],
@@ -105,6 +159,18 @@ pub fn score_levels(
     levels: &[DescribedLevel],
     fetch: &Value,
 ) -> Result<(String, Value), StageError> {
+    let sentences = sections(ctx, trait_name, sources, levels, fetch)?;
+    ask_levels(judge, trait_name, &sentences, levels)
+}
+
+/// The section of each source's cached text that carries the trait's terms.
+fn sections(
+    ctx: &Context,
+    trait_name: &str,
+    sources: &[String],
+    levels: &[DescribedLevel],
+    fetch: &Value,
+) -> Result<Vec<String>, StageError> {
     let summaries: Vec<&str> = levels.iter().map(|l| l.summary.as_str()).collect();
     let terms = key_terms(&format!("{} {}", trait_name, summaries.join(" ")));
     let mut sentences = Vec::new();
@@ -117,6 +183,15 @@ pub fn score_levels(
             sentences.push(section);
         }
     }
+    Ok(sentences)
+}
+
+fn ask_levels(
+    judge: &Judge<'_>,
+    trait_name: &str,
+    sentences: &[String],
+    levels: &[DescribedLevel],
+) -> Result<(String, Value), StageError> {
     let state = json!({"trait": trait_name, "sentences": sentences});
     let judgment = judge
         .ask("described", None, &state, &described_questions(levels))
@@ -131,7 +206,7 @@ pub fn score_levels(
     let level = index
         .and_then(|i| levels.get(i))
         .map(|l| l.key.clone())
-        .unwrap_or_else(|| "unstated".into());
+        .unwrap_or_else(|| DESCRIBED_UNSTATED.into());
     Ok((
         level,
         json!({"sentence": sentences.join("\n"), "ledger": judgment.reference}),

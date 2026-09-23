@@ -2,16 +2,17 @@
 //!
 //! Every judged question is scored twice: once over the labelled cases that
 //! tuned its wording, once over the held-out cases. R7's bound is 0.9 accuracy
-//! for the sufficiency level, the dominant gap, the described level and each
-//! obligation, and 0.8 top-one agreement with the person's admitted source for
+//! for the sufficiency level, the dominant gap, the mature size and its gap
+//! (fn-127), the described level and each obligation, and 0.8 top-one agreement with the person's admitted source for
 //! ranking. `format_scores` prints the confidence spread of each.
 
 use std::path::Path;
 
 use super::{
     described_questions, described_state, inspected_image_state, level_from_score,
-    measurement_state, obligation_questions, ranking_questions, ranking_state,
-    sufficiency_questions, sufficiency_state, DESCRIBED_UNSTATED, RANKING_NONE, SUFFICIENCY_LEVELS,
+    mature_questions, mature_state, measurement_state, obligation_questions, ranking_questions,
+    ranking_state, sufficiency_questions, sufficiency_state, DESCRIBED_UNSTATED, RANKING_NONE,
+    SUFFICIENCY_LEVELS,
 };
 use crate::caller::{evaluate, CallerError, EvaluateRequest, Transport};
 use crate::cases::{CaseRow, SetScore};
@@ -30,6 +31,13 @@ pub fn run_pipeline_cases(
     let (levels, gaps) = run_sufficiency(transport, key, ledger_dir)?;
     let mut out = split("sufficiency level", levels, thresholds().accuracy_bar);
     out.extend(split("sufficiency gap", gaps, thresholds().accuracy_bar));
+    let (levels, gaps) = run_mature(transport, key, ledger_dir)?;
+    out.extend(split(
+        "mature size level",
+        levels,
+        thresholds().accuracy_bar,
+    ));
+    out.extend(split("mature size gap", gaps, thresholds().accuracy_bar));
     out.extend(split(
         "ranking source",
         run_ranking(transport, key, ledger_dir)?,
@@ -53,59 +61,137 @@ pub fn run_pipeline_cases(
     Ok(out)
 }
 
+/// One levelled case: its id, the state asked, the admitted level and gap,
+/// and whether it is held out.
+struct Levelled {
+    id: String,
+    state: serde_json::Value,
+    level: String,
+    gap: String,
+    holdout: bool,
+}
+
+/// The names one levelled set is asked and scored under.
+struct LevelledSet {
+    tool: &'static str,
+    score: &'static str,
+    gap: &'static str,
+    level_set: &'static str,
+    gap_set: &'static str,
+}
+
 fn run_sufficiency(
     transport: &dyn Transport,
     key: &str,
     ledger_dir: &Path,
 ) -> Result<(Rows, Rows), CallerError> {
-    let questions = sufficiency_questions();
+    let cases = super::sufficiency_cases().into_iter().map(|case| Levelled {
+        state: sufficiency_state(&case),
+        id: case.id,
+        level: case.expect_level,
+        gap: case.expect_gap,
+        holdout: case.holdout,
+    });
+    let names = LevelledSet {
+        tool: "sufficiency",
+        score: "sufficiency",
+        gap: "dominant_gap",
+        level_set: "sufficiency level",
+        gap_set: "sufficiency gap",
+    };
+    run_levelled(
+        transport,
+        key,
+        ledger_dir,
+        &sufficiency_questions(),
+        &names,
+        cases,
+    )
+}
+
+fn run_mature(
+    transport: &dyn Transport,
+    key: &str,
+    ledger_dir: &Path,
+) -> Result<(Rows, Rows), CallerError> {
+    let cases = super::mature_cases().into_iter().map(|case| Levelled {
+        state: mature_state(&case),
+        id: case.id,
+        level: case.expect_level,
+        gap: case.expect_gap,
+        holdout: case.holdout,
+    });
+    let names = LevelledSet {
+        tool: "mature_size",
+        score: "mature_size",
+        gap: "mature_gap",
+        level_set: "mature size level",
+        gap_set: "mature size gap",
+    };
+    run_levelled(
+        transport,
+        key,
+        ledger_dir,
+        &mature_questions(),
+        &names,
+        cases,
+    )
+}
+
+/// Asks every case of a four-level Score with its gap Choice and scores the
+/// level and the gap as two sets.
+fn run_levelled(
+    transport: &dyn Transport,
+    key: &str,
+    ledger_dir: &Path,
+    questions: &serde_json::Value,
+    names: &LevelledSet,
+    cases: impl Iterator<Item = Levelled>,
+) -> Result<(Rows, Rows), CallerError> {
     let mut levels = Rows::new();
     let mut gaps = Rows::new();
-    for case in super::sufficiency_cases() {
-        let state = sufficiency_state(&case);
+    for case in cases {
         let entry = evaluate(
             transport,
             key,
             EvaluateRequest {
-                tool: "sufficiency",
+                tool: names.tool,
                 source: None,
-                state: &state,
-                questions: &questions,
+                state: &case.state,
+                questions,
                 ledger_dir,
             },
         )?;
         // A missing score is the lowest level, as the gate itself reads it.
         let index = level_from_score(
-            entry.score("sufficiency").unwrap_or(f64::NAN),
+            entry.score(names.score).unwrap_or(f64::NAN),
             SUFFICIENCY_LEVELS.len(),
         )
         .unwrap_or(0);
         let level = SUFFICIENCY_LEVELS[index];
         levels.push((
             CaseRow {
-                set: "sufficiency level".into(),
+                set: names.level_set.into(),
                 id: case.id.clone(),
-                expected: case.expect_level.clone(),
-                hit: level == case.expect_level,
+                expected: case.level.clone(),
+                hit: level == case.level,
                 answered: level.into(),
-                top_probability: entry.top_probability("sufficiency"),
-                confidence: entry.confidence("sufficiency").unwrap_or(0.0),
+                top_probability: entry.top_probability(names.score),
+                confidence: entry.confidence(names.score).unwrap_or(0.0),
                 ledger: entry.reference(),
             },
             case.holdout,
         ));
-        let gap = entry
-            .choice("dominant_gap")
-            .unwrap_or_else(|| "none".into());
+        let gap = entry.choice(names.gap).unwrap_or_else(|| "none".into());
         gaps.push((
             CaseRow {
-                set: "sufficiency gap".into(),
-                id: case.id.clone(),
-                expected: case.expect_gap.clone(),
-                hit: gap == case.expect_gap,
+                set: names.gap_set.into(),
+                id: case.id,
+                expected: case.gap.clone(),
+                hit: gap == case.gap,
                 answered: gap,
-                top_probability: entry.top_probability("dominant_gap"),
-                confidence: entry.confidence("dominant_gap").unwrap_or(0.0),
+                top_probability: entry.top_probability(names.gap),
+                confidence: entry.confidence(names.gap).unwrap_or(0.0),
                 ledger: entry.reference(),
             },
             case.holdout,
