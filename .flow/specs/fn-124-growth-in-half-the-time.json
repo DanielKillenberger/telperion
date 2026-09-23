@@ -1,23 +1,23 @@
 {
-  "branch_name": "fn-102-one-build-pipeline-in-place-of-the",
+  "branch_name": "fn-124-growth-in-half-the-time",
   "completion_review_status": "unknown",
   "completion_reviewed_at": null,
-  "created_at": "2026-09-21T10:58:27.387185Z",
+  "created_at": "2026-09-23T16:44:09.903161Z",
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-100-the-field-reads-the-plan-not-placed"
+    "fn-102-one-build-pipeline-in-place-of-the"
   ],
-  "id": "fn-102-one-build-pipeline-in-place-of-the",
+  "id": "fn-124-growth-in-half-the-time",
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "spec_path": ".flow/specs/fn-102-one-build-pipeline-in-place-of-the.md",
+  "spec_path": ".flow/specs/fn-124-growth-in-half-the-time.md",
   "status": "open",
-  "title": "One build pipeline in place of the copied chains",
+  "title": "Growth in half the time",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T16:40:54.071001Z"
+  "updated_at": "2026-09-23T16:44:24.805938Z"
 }
