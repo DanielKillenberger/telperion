@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-112-publish-telperion-to-npm-with-a-release",
   "spec_path": ".flow/tasks/fn-112-publish-telperion-to-npm-with-a-release.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "The main entry loads its Wasm as files, not inlined text",
   "updated_at": "2026-09-22T15:01:09.318035Z"
 }

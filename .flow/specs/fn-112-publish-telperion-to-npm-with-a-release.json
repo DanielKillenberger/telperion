@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-112-publish-telperion-to-npm-with-a-release.md",
-  "status": "open",
+  "status": "done",
   "title": "Publish telperion to npm with a release pipeline in CI",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-22T21:15:57.985494Z"
+  "updated_at": "2026-09-23T13:19:04.964761Z"
 }

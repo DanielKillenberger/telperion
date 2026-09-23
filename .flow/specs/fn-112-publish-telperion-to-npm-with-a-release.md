@@ -40,7 +40,7 @@ The README gains a short section that names the field package and points at the 
 - **R3:** A tag whose version differs from `package.json` fails the workflow before the publish step, with the two versions named in the failure. [inferred]
 - **R4:** A dry-run pack on a clean checkout lists files under `dist` and the three root files npm always includes, `package.json`, `README.md` and `LICENSE`, and nothing else; among the `dist` files are `field.js`, `voxelize.js` and `telperion-field.wasm` with their type declarations. The listing is recorded in the spec's evidence. [inferred, reworded 2026-09-22 after review]
 - **R5:** The README carries a section naming the field package, the two exports and the doc that describes them. [paraphrase]
-- **R6 (amended by the host, 2026-09-22):** npm attaches a trusted publisher only to a package that already exists, so the package is created by one publish of `v0.1.0` by the owner's hand from the tagged master commit, the trusted publisher is then attached on npmjs.com, and the workflow proves itself on the first later tag, `v0.1.1`, published with provenance and no stored token. A fresh project with no Rust toolchain installs that version from the registry and runs the Node smoke from the package doc: grow a species, query a grid, read the four answers. The tag, the install and the run are recorded in the spec's evidence with the Node version. [paraphrase, host amendment]
+- **R6 (amended by the host, 2026-09-22; again by the owner, 2026-09-23):** npm attaches a trusted publisher only to a package that already exists, so the owner creates the package by hand with a placeholder `0.0.1` that carries no code and is deprecated afterwards. The owner then attaches the trusted publisher on npmjs.com with direct publish allowed, and the workflow proves itself on `v0.1.0`, published with provenance and no stored token. A fresh project with no Rust toolchain installs that version from the registry and runs the Node smoke from the package doc: grow a species, query a grid, read the four answers. The tag, the workflow run, the install and the smoke run are recorded in the spec's evidence with the Node version. [paraphrase, host amendment, owner amendment]
 
 - **R7 (owner, 2026-09-22):** The main entry no longer inlines Wasm: `dist/telperion.js` is JavaScript only, and the full generator Wasm and the renderer's Wasm ship as their own files in `dist`, resolved at run time the way the field entry resolves `telperion-field.wasm`. The pack listing records the new sizes beside the old 6.7 MB, every existing binding, browser and vitest suite passes, and the harness (`npm run dev`) still draws a tree. [user]
 
@@ -61,6 +61,11 @@ The README gains a short section that names the field package and points at the 
 
 - The first publish moves to the owner's hand because npm's trusted-publisher form lives on an existing package's settings page; the workflow's proof is the first tag after it. Recorded in RESULTS.md and FRICTION.md by the worker as an unknown, settled here.
 - The main entry's 6.7 MB inlined Wasm: the owner chose to fix the loading before the first tag (R7), so 0.1.0 is lean on every entry.
+
+## Decision Context, added by the owner (2026-09-23)
+
+- A placeholder `0.0.1` creates the package instead of a hand publish of 0.1.0, so 0.1.0, the first real version, is the one the workflow publishes with provenance. The placeholder stays on the registry, deprecated, because npm never frees a published version.
+- The trusted publisher allows direct `npm publish`. It can be switched to staged publishing later: untick the setting and change the workflow's publish step to `npm stage publish`.
 
 ## Parked unknowns
 

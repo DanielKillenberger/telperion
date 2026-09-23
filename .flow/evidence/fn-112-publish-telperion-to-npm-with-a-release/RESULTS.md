@@ -204,43 +204,51 @@ install line, the `telperion/field` and `telperion/field/voxelize` exports,
 that `npm run build` puts them in `dist` with the slim Wasm beside
 `field.js`, and a link to `docs/field-package.md`.
 
-## R6: awaiting the owner
+## R6: published by the workflow (2026-09-23)
 
-npm attaches a trusted publisher only to a package that already exists
-(docs.npmjs.com/trusted-publishers, read 2026-09-22: the form is on the
-package's settings page), so the sequence is one hand publish and then the
-workflow, in this order. Nothing in this task attempted a publish.
+npm attaches a trusted publisher only to a package that already exists. The
+owner chose a placeholder over a hand publish of 0.1.0 (spec, R6 as amended
+2026-09-23), so the workflow published 0.1.0 itself. In order:
 
-1. On the tagged master commit that carries this change, `package.json` at
-   0.1.0: `npm ci`, `npm run build`, `npm run test:dist`, then `npm publish
-   --access public` with the account's two-factor; then tag that commit
-   `v0.1.0` and push the tag, so the version on the registry names its
-   commit. The Release workflow runs on that tag too and fails at publish,
-   since 0.1.0 is already on the registry and there is no trusted publisher
-   yet; that failure is expected and publishes nothing.
-2. On npmjs.com, signed in as the account that owns `telperion`: Packages,
-   `telperion`, Settings, Trusted publishing, GitHub Actions, with these
-   fields:
-   - Organization or user: `DanielKillenberger`
-   - Repository: `telperion`
-   - Workflow filename: `release.yml` (the file name only, with its extension)
-   - Environment name: empty; the workflow declares no environment
-   - Allowed actions: `npm publish`
-3. Bump `package.json` to `0.1.1` on master, commit, tag `v0.1.1` and push
-   the tag. The workflow's first publish is `v0.1.1`: the gate, the build,
-   the Node dist smoke, the dry-run listing, then `npm publish --provenance
-   --access public` with `id-token: write` and no stored token. A tag on a
-   commit whose gate is red publishes nothing.
-4. After the run is green, the fresh-install half of R6: a directory with
-   no Rust toolchain, `npm init -y`, `npm install telperion@0.1.1`, then the
-   Node smoke from `docs/field-package.md` (grow a species, `grid` a bounds,
-   query it, read `flags`, `woodRadius`, `leaves` and `limbs`), recorded
-   here with the Node version and the installed package version.
+1. The owner published `telperion@0.0.1` by hand to create the package. It
+   holds only a `package.json`, 256 B, and is to be deprecated.
+2. The owner attached the trusted publisher on npmjs.com for
+   `DanielKillenberger/telperion`, `release.yml`, no environment, with
+   direct `npm publish` allowed.
+3. The Release run on tag `v0.1.0` (`dd86fa05`), run 35791697498, had
+   failed only at its publish step on 2026-09-22, because the package did
+   not exist. `gh run rerun --failed` re-ran the publish job (attempt 2).
+   Its gate, build and `npm publish --provenance --access public` passed
+   with no token. npm signed the provenance statement and logged it to
+   Sigstore at log index 2919901357. The registry lists `0.0.1` and
+   `0.1.0`, `latest` is `0.1.0`, and 0.1.0 carries an SLSA v1 provenance
+   attestation. The tarball has 20 files, 1.2 MB packed and 3.7 MB
+   unpacked. Its main entry is 109.9 kB of JavaScript (R7), with
+   `telperion.wasm` at 1.3 MB and `telperion-render.wasm` at 1.8 MB beside
+   it.
+4. Fresh install, run in an empty directory with Node v26.8.1. `PATH` held
+   only Node and `/usr/bin:/bin`, with no `cargo` or `rustc`. `npm install
+   telperion@0.1.0` added 1 package in 654 ms, and `npm audit signatures`
+   reports 1 verified attestation. The smoke, `r6-smoke.mjs` beside this
+   file, grows `silver-birch` at seed 7, queries an 8×8×8 grid of cubes
+   over its bounds and reads the four answers. It took 0.5 s wall:
 
-`package.json` now carries `repository.url`
+   ```
+   bounds  min [-6.62, -0.25, -7.64]  max [7.50, 14.74, 5.98]
+   cells 512  wood 380  foliage 385  maxWoodRadius 0.252
+   leaves 341182.5  limbSystems 76
+   ```
+
+   Each cube's half extent is half the largest axis step, so neighbouring
+   cubes overlap. The counts show that every answer is populated; they are
+   not a density.
+
+The first `npm install` answered `notarget`, because the local npm cache
+still held the package listing from before 0.1.0. `--prefer-online`
+fetched the fresh listing.
+
+`package.json` carries `repository.url`
 `git+https://github.com/DanielKillenberger/telperion.git`, which npm's
 trusted publishing requires to match the workflow's repository. The
 workflow pins Node 24 and upgrades npm to `^11.5.1`, the docs' floor for
 trusted publishing (npm 11.5.1, Node 22.14.0).
-
-R6 is not satisfied by this task and is not claimed.
