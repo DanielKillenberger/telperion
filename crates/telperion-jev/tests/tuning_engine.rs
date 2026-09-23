@@ -92,6 +92,8 @@ struct Mock {
     fruit: Vec<CellStatus>,
     /// Traits the config lists as not yet drawable.
     unexpressed: Vec<telperion_jev::tuning::unexpressed::Unexpressed>,
+    /// Rounds in a row that keep nothing before the run pauses as a runaway.
+    runaway: u64,
 }
 
 fn mock() -> Mock {
@@ -143,9 +145,13 @@ fn mock() -> Mock {
         proposal_actions: vec![],
         fruit: vec![],
         unexpressed: vec![],
+        runaway: telperion_jev::tuning::runaway::ROUNDS,
     }
 }
 impl Services for Mock {
+    fn runaway_rounds(&self) -> u64 {
+        self.runaway
+    }
     fn priority_references(&self) -> Vec<telperion_jev::tuning::evaluation::Image> {
         vec![priority_image("whole"), priority_image("bark")]
     }
@@ -716,10 +722,10 @@ fn run() -> Run {
             images: 0,
             tokens: 0,
             rounds: 0,
-            max_evaluations: 13,
-            max_images: 52,
-            max_tokens: 150000,
-            max_rounds: 3,
+            max_evaluations: Some(13),
+            max_images: Some(52),
+            max_tokens: Some(150000),
+            max_rounds: Some(3),
         },
         usage_known: true,
         trials: vec![],
@@ -737,6 +743,7 @@ fn run() -> Run {
         visual_bootstrap: false,
         reviewer_passed_unqualified: false,
         strides: Default::default(),
+        unkept: None,
     }
 }
 
@@ -895,7 +902,7 @@ fn baseline_capability_defect_routes_before_spending_tuning_evaluations() {
 fn bounded_plan_and_round_limit_are_checked_before_paid_routing() {
     let mut state = run();
     let mut mock = mock();
-    state.budget.max_rounds = 0;
+    state.budget.max_rounds = Some(0);
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     approve_priorities(&mut state, &mock, json!([]));
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
@@ -907,8 +914,8 @@ fn bounded_plan_and_round_limit_are_checked_before_paid_routing() {
     assert!(basis.proposed_action.contains("current"));
     assert_eq!(basis.next_tokens, Some(29000));
     state.pause = None;
-    state.budget.max_rounds = 1;
-    state.budget.max_tokens = state.budget.tokens + 100;
+    state.budget.max_rounds = Some(1);
+    state.budget.max_tokens = Some(state.budget.tokens + 100);
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     assert_eq!(mock.routes, 0);
     assert!(state
@@ -1025,7 +1032,7 @@ fn attributed_diagnosis_projects_to_both_judgments_and_rechecks_sources() {
 #[test]
 fn mixed_routes_tune_and_hand_off_without_claiming_readiness() {
     let mut state = run();
-    state.budget.max_rounds = 1;
+    state.budget.max_rounds = Some(1);
     let mut mock = Mock {
         route_plan: vec![
             ("tuning".into(), 0.9),
@@ -1133,7 +1140,7 @@ fn mixed_routes_tune_and_hand_off_without_claiming_readiness() {
     assert!(state.budget.tokens > spent_before, "spend was not recorded");
 
     // A repeated round replaces this revision's handoffs instead of piling up.
-    state.budget.max_rounds = 2;
+    state.budget.max_rounds = Some(2);
     state.pause = None;
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     assert_eq!(state.handoffs.len(), 2);
@@ -1196,7 +1203,7 @@ fn a_handoffs_owner_cell_not_passing_keeps_the_run_unready() {
 #[test]
 fn re_routing_an_unchanged_candidate_reuses_its_pre_dispatch_judgment() {
     let mut state = run();
-    state.budget.max_rounds = 2;
+    state.budget.max_rounds = Some(2);
     let mut mock = Mock {
         route_plan: vec![
             ("tuning".into(), 0.9),
@@ -1257,7 +1264,7 @@ fn re_routing_an_unchanged_candidate_reuses_its_pre_dispatch_judgment() {
         .push(mock.evaluate(json!({}), 9, "crookedness", None));
     state.current = Some(state.trials.len() - 1);
     state.pause = None;
-    state.budget.max_rounds = 3;
+    state.budget.max_rounds = Some(3);
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     assert_eq!(mock.pre_dispatch_calls, 2);
 }
@@ -1301,7 +1308,7 @@ fn stalled_one_candidate_rounds_work_through_the_dials_before_stopping() {
          "min":0.01,"max":0.08,"small":0.01,"substantial":0.02,"integer":false}
     ]))
     .unwrap();
-    state.budget.max_rounds = 5;
+    state.budget.max_rounds = Some(5);
     let proposal = |id: &str, mass: f64| Proposal {
         dial: id.into(),
         action: Action::SmallIncrease,
@@ -1373,7 +1380,7 @@ fn a_stall_with_new_evidence_asks_exactly_one_question_and_obeys_it() {
             ..mock()
         };
         let mut state = ready_to_round(&mut mock);
-        state.budget.max_rounds = 3;
+        state.budget.max_rounds = Some(3);
         state.execute(&mut mock, &mut |_| Ok(())).unwrap();
         // New evidence arrives: a fresh assessment the last attempt never saw.
         let mut fresh = state.visual.clone().unwrap();
@@ -1422,7 +1429,7 @@ fn a_repeated_dial_and_action_is_refused_before_it_is_evaluated() {
         ..mock()
     };
     let mut state = ready_to_round(&mut mock);
-    state.budget.max_rounds = 3;
+    state.budget.max_rounds = Some(3);
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     let spent = mock.evaluations;
 
@@ -1747,7 +1754,7 @@ fn a_cap_only_resume_keeps_one_handoff_per_priority_and_rebuys_no_risk() {
         ..mock()
     };
     let mut state = run();
-    state.budget.max_rounds = 4;
+    state.budget.max_rounds = Some(4);
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     approve_priorities(&mut state, &mock, gap.clone());
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
@@ -1770,7 +1777,7 @@ fn a_cap_only_resume_keeps_one_handoff_per_priority_and_rebuys_no_risk() {
         .unwrap(),
     );
     state.pause = None;
-    state.budget.max_rounds = 6;
+    state.budget.max_rounds = Some(6);
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
 
     // The handoff carried across, so its judgment was not bought again and no
@@ -1819,7 +1826,7 @@ fn a_large_dial_table_is_asked_in_batches_each_its_own_judgment() {
     let mut state = run();
     state.dials = serde_json::from_value(dials).unwrap();
     // One round at a time, so the call count is the batch count.
-    state.budget.max_rounds = 1;
+    state.budget.max_rounds = Some(1);
     let mut mock = Mock {
         stall: true,
         candidates: 1,
@@ -1867,7 +1874,7 @@ fn a_large_dial_table_is_asked_in_batches_each_its_own_judgment() {
 
     // The next round re-asks, and the repeat refused does not eat the slot.
     let spent = mock.evaluations;
-    state.budget.max_rounds = 2;
+    state.budget.max_rounds = Some(2);
     state.pause = None;
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     assert_eq!(
@@ -1926,7 +1933,7 @@ fn a_failed_visual_keeps_its_reservation_and_leaves_the_attempt_pending() {
 
 fn reviewed_run() -> (Run, Mock) {
     let mut state = run();
-    state.budget.max_rounds = 2;
+    state.budget.max_rounds = Some(2);
     let mock = Mock {
         selection: Selection::Visual,
         route_plan: vec![("tuning".into(), 0.9)],
@@ -2114,7 +2121,7 @@ fn three_proposals() -> Vec<Proposal> {
 
 fn reviewed_three(inert: Vec<bool>, reviews: Vec<Vec<Choice>>) -> (Run, Mock) {
     let mut state = run();
-    state.budget.max_rounds = 2;
+    state.budget.max_rounds = Some(2);
     state.dials = ["twig_hang", "irregularity", "rise_secondary"]
         .iter()
         .map(|id| Dial {
@@ -2355,7 +2362,7 @@ fn bundle_dial(id: &str, path: &str, min: f64, max: f64, small: f64, group: &str
 /// dials share a group, so a split cuts the pair against the single.
 fn bundle_run() -> (Run, Mock) {
     let mut state = run();
-    state.budget.max_rounds = 2;
+    state.budget.max_rounds = Some(2);
     state.budget.max_visual_passes = Some(8);
     state.dials = vec![
         bundle_dial("twig_hang", "/skeleton/twigs/hang", 0., 3., 0.5, "twigs"),
@@ -2641,7 +2648,7 @@ fn a_worse_bundle_is_cut_by_family_and_a_good_family_is_the_one_kept() {
 /// next round has something different to build.
 fn three_family_run() -> (Run, Mock) {
     let (mut state, mut mock) = bundle_run();
-    state.budget.max_rounds = 2;
+    state.budget.max_rounds = Some(2);
     state.dials.push(bundle_dial(
         "leaf_outward",
         "/canopy/outward",
@@ -3498,7 +3505,7 @@ fn the_reviewer_s_words_choose_the_next_round_s_stride_or_the_ladder_stands() {
 #[test]
 fn an_overshoot_rolled_back_steps_the_stride_down_rather_than_oscillating() {
     let (mut state, mut mock) = bundle_run();
-    state.budget.max_rounds = 3;
+    state.budget.max_rounds = Some(3);
     mock.owner_class = Some(telperion_jev::tuning::stride::Class::FarOff);
     mock.side_effect_answer = Some(("new_defect".into(), 0.9));
     mock.sheets = vec![
@@ -3548,4 +3555,36 @@ fn a_direction_that_turns_round_after_a_raised_bundle_caps_the_stride() {
             && notes[1].contains("turned round from the bundle at far_off"),
         "{notes:?}"
     );
+}
+
+/// fn-117: with no cap the loop runs round after round, and what stops a run
+/// that keeps nothing is the runaway count, naming the rounds and their spend.
+#[test]
+fn an_uncapped_run_pauses_as_a_runaway_after_rounds_that_keep_nothing() {
+    let mut state = run();
+    state.budget = Budget {
+        visual_passes: Some(0),
+        ..Budget::default()
+    };
+    let mut mock = Mock {
+        stall: true,
+        runaway: 2,
+        proposal_actions: vec![Action::SmallIncrease, Action::SmallDecrease],
+        ..mock()
+    };
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(&mut state, &mock, json!([]));
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    let reason = &state.pause.as_ref().unwrap().reason;
+    assert!(
+        reason.starts_with("runaway: 2 rounds in a row kept nothing (rounds 1, 2)"),
+        "{reason}"
+    );
+    assert!(reason.contains("2 evaluations, 8 images"), "{reason}");
+    let streak = state.unkept.clone().unwrap();
+    assert_eq!(streak.rounds, vec![1, 2]);
+    assert!(state.budget.tokens > streak.opening.tokens);
+    // The owner's scoped resume of the runaway starts the count again.
+    state.resume_runaway();
+    assert_eq!(state.unkept, None);
 }

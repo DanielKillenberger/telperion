@@ -17,10 +17,15 @@ use crate::tuning::continuation::{Basis, HumanDecision, Pause};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Budget {
-    pub max_tokens: u64,
-    pub attempt_max_tokens: u64,
-    pub max_dispatches: u64,
-    pub max_tuning_revisions: u64,
+    /// The config's caps; each absent one is no cap.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_tokens: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub attempt_max_tokens: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_dispatches: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_tuning_revisions: Option<u64>,
     /// Tokens known to be spent: dispatch usage, Jev usage and tuning runs.
     pub tokens: u64,
     /// False once a finished dispatch reported no usage; the continuation
@@ -30,8 +35,9 @@ pub struct Budget {
 }
 
 impl Budget {
-    pub fn remaining(&self) -> u64 {
-        self.max_tokens.saturating_sub(self.tokens)
+    /// Tokens left under the cap; `None` when no token cap is set.
+    pub fn remaining(&self) -> Option<u64> {
+        self.max_tokens.map(|cap| cap.saturating_sub(self.tokens))
     }
 }
 

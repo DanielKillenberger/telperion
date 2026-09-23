@@ -126,6 +126,10 @@ pub struct Config {
     /// engine's own limit of four; a lower bound buys a cheaper round.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_candidates: Option<u64>,
+    /// Rounds in a row that keep nothing before the run pauses as a runaway.
+    /// `None` is the engine's own count of five.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runaway_rounds: Option<std::num::NonZeroU64>,
     /// The reviewer has never been shown to pass an owner-accepted tree, so a
     /// replay with no positive is admitted and no run can claim readiness.
     /// Dials per proposal call. `None` asks them all in one call, as before.
@@ -408,9 +412,9 @@ impl Config {
                 || proof.required != self.required
                 || !super::state::ready(&proof.required_cells(), &trial.key, visual)
                 || !proof.usage_known
-                || proof.budget.tokens > proof.budget.max_tokens
-                || proof.budget.images > proof.budget.max_images
-                || proof.budget.evaluations > proof.budget.max_evaluations
+                || super::state::over(proof.budget.tokens, proof.budget.max_tokens)
+                || super::state::over(proof.budget.images, proof.budget.max_images)
+                || super::state::over(proof.budget.evaluations, proof.budget.max_evaluations)
             {
                 return Err("bounded convergence remains unproven".into());
             }
@@ -830,6 +834,11 @@ impl Services for Live<'_> {
     }
     fn max_candidates(&self) -> u64 {
         self.config.max_candidates.unwrap_or(CANDIDATE_LIMIT)
+    }
+    fn runaway_rounds(&self) -> u64 {
+        self.config
+            .runaway_rounds
+            .map_or(super::runaway::ROUNDS, |n| n.get())
     }
     fn route_questions(&self, state: &Run) -> Value {
         super::judgments::routes(&self.config.gap_specs, state.approved_priorities())

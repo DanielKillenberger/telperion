@@ -99,6 +99,8 @@ pub struct Config {
     /// Extra arguments every stage command carries (`--example`, `--profile-id`).
     #[serde(default)]
     pub stage_args: Vec<String>,
+    /// Optional caps; a run with no budget block carries none.
+    #[serde(default)]
     pub budget: BudgetConfig,
     #[serde(default = "default_model")]
     pub judgment_model: String,
@@ -108,15 +110,21 @@ pub struct Config {
     pub continuation_validated: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+/// Every cap is optional and an absent one is no cap (fn-117). Spend is
+/// recorded whether or not a cap is set.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct BudgetConfig {
     /// The run's total token allowance across every dispatch, Jev call and tuning run.
-    pub max_tokens: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_tokens: Option<u64>,
     /// The bound one dispatch or tuning round may reserve.
-    pub attempt_max_tokens: u64,
-    pub max_dispatches: u64,
-    pub max_tuning_revisions: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub attempt_max_tokens: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_dispatches: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_tuning_revisions: Option<u64>,
 }
 
 fn default_flow() -> PathBuf {
@@ -140,9 +148,13 @@ impl Config {
         if config.species.trim().is_empty() || config.spec.trim().is_empty() {
             return Err("config names no species or no spec".to_string().into());
         }
-        if config.budget.max_tokens == 0
-            || config.budget.attempt_max_tokens == 0
-            || config.budget.attempt_max_tokens > config.budget.max_tokens
+        let budget = &config.budget;
+        if budget.max_tokens == Some(0)
+            || budget.attempt_max_tokens == Some(0)
+            || budget
+                .attempt_max_tokens
+                .zip(budget.max_tokens)
+                .is_some_and(|(attempt, total)| attempt > total)
         {
             return Err(
                 "config budget: attempt bound must be positive and inside the total"

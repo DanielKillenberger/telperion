@@ -248,7 +248,7 @@ fn preparation_is_verified_charged_once_and_never_inferred_from_a_floor() {
     assert!(charge_preparation(&mut budget, &mut proof, &changed).is_err());
     assert_eq!(budget.tokens, 110);
     let mut low = budget.clone();
-    low.max_tokens = 115;
+    low.max_tokens = Some(115);
     let mut empty = None;
     assert!(charge_preparation(&mut low, &mut empty, &charge).is_err());
     assert_eq!(low.tokens, 110);
