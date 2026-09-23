@@ -1,9 +1,9 @@
-//! The four pipeline question sets (fn-58), their labelled cases and scoring.
+//! The pipeline question sets (fn-58), their labelled cases and scoring.
 //!
 //! Each set is versioned JSON under `data/questions`, its labelled cases are
 //! JSON under `data/cases`, and every question offers a no-match answer:
 //! `none` for the ranking Choice and the dominant gap, the `none` level for
-//! sufficiency, the trailing `unstated` level for a described trait, and the
+//! sufficiency and the mature size, the trailing `unstated` level for a described trait, and the
 //! false criterion of each obligation Noul. Code lays out the state and owns
 //! every count; Jev only picks a level, a candidate or a side.
 //!
@@ -19,10 +19,12 @@ use serde::Deserialize;
 use serde_json::{json, Map, Value};
 
 pub const SUFFICIENCY_JSON: &str = include_str!("../../data/questions/sufficiency.json");
+pub const MATURE_JSON: &str = include_str!("../../data/questions/mature_size.json");
 pub const RANKING_JSON: &str = include_str!("../../data/questions/ranking.json");
 pub const DESCRIBED_JSON: &str = include_str!("../../data/questions/described.json");
 pub const OBLIGATIONS_JSON: &str = include_str!("../../data/questions/obligations.json");
 pub const SUFFICIENCY_CASES: &str = include_str!("../../data/cases/sufficiency.json");
+pub const MATURE_CASES: &str = include_str!("../../data/cases/mature_size.json");
 pub const RANKING_CASES: &str = include_str!("../../data/cases/ranking.json");
 pub const DESCRIBED_CASES: &str = include_str!("../../data/cases/described.json");
 pub const OBLIGATION_CASES: &str = include_str!("../../data/cases/obligations.json");
@@ -44,6 +46,7 @@ fn parse(raw: &str, what: &str) -> Value {
 pub fn set_version(name: &str) -> u32 {
     let raw = match name {
         "sufficiency" => SUFFICIENCY_JSON,
+        "mature_size" => MATURE_JSON,
         "ranking" => RANKING_JSON,
         "described" => DESCRIBED_JSON,
         "obligations" => OBLIGATIONS_JSON,
@@ -58,6 +61,16 @@ pub fn sufficiency_questions() -> Value {
     json!({
         "sufficiency": raw["sufficiency"],
         "dominant_gap": raw["dominant_gap"],
+    })
+}
+
+/// Mature-size Score over the same four levels, and its gap Choice (fn-127):
+/// a stated mature value or range for the taxon, with no age asked.
+pub fn mature_questions() -> Value {
+    let raw = parse(MATURE_JSON, "mature_size.json");
+    json!({
+        "mature_size": raw["mature_size"],
+        "mature_gap": raw["mature_gap"],
     })
 }
 
@@ -137,6 +150,20 @@ pub struct SufficiencyCase {
     pub negative: bool,
 }
 
+/// A mature-size case: the state the quality stage lays out for a mature
+/// field, with the level and gap a person admits.
+#[derive(Debug, Clone, Deserialize)]
+pub struct MatureCase {
+    pub id: String,
+    pub requirement: Value,
+    pub evidence: Value,
+    pub counts: Value,
+    pub expect_level: String,
+    pub expect_gap: String,
+    pub holdout: bool,
+    pub negative: bool,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct RankingCandidate {
     pub id: String,
@@ -196,6 +223,10 @@ pub fn sufficiency_cases() -> Vec<SufficiencyCase> {
     serde_json::from_str(SUFFICIENCY_CASES).expect("sufficiency cases")
 }
 
+pub fn mature_cases() -> Vec<MatureCase> {
+    serde_json::from_str(MATURE_CASES).expect("mature size cases")
+}
+
 pub fn ranking_cases() -> Vec<RankingCase> {
     serde_json::from_str(RANKING_CASES).expect("ranking cases")
 }
@@ -211,6 +242,14 @@ pub fn obligation_cases() -> ObligationCases {
 /// The state the data-quality gate lays out: the requirement, the screened
 /// evidence, and the counts code owns.
 pub fn sufficiency_state(case: &SufficiencyCase) -> Value {
+    json!({
+        "requirement": case.requirement,
+        "evidence": case.evidence,
+        "counts": case.counts,
+    })
+}
+
+pub fn mature_state(case: &MatureCase) -> Value {
     json!({
         "requirement": case.requirement,
         "evidence": case.evidence,

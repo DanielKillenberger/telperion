@@ -6,6 +6,9 @@
 //! bar files a data-insufficient decision; the stop is code on the level. A
 //! field the requirements table requires, below the table's bar, files a
 //! requirements-unmet decision instead: the owner's, with no bar to lower.
+//! A field the table marks `mature` (fn-127) asks no age: code lays out the
+//! sentences that name it and the mature-size set scores a stated mature
+//! value or range on the same four levels.
 
 use serde_json::{json, Map, Value};
 
@@ -13,8 +16,10 @@ use crate::pipeline::consume::{sources_sha256, REQUIREMENTS_UNMET};
 use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::{Field, Manifest, Sufficiency};
-use crate::pipeline::requirements::{required_bar, terms};
-use crate::pipeline::sets::{level_from_score, sufficiency_questions, SUFFICIENCY_LEVELS};
+use crate::pipeline::requirements::{is_mature, required_bar, terms};
+use crate::pipeline::sets::{
+    level_from_score, mature_questions, sufficiency_questions, SUFFICIENCY_LEVELS,
+};
 use crate::pipeline::stage::{Context, Paths, StageError};
 
 use super::{body, inputs};
@@ -47,36 +52,26 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     let mut fields = Map::new();
     let mut decisions = Vec::new();
     for field in &manifest.fields {
-        let evidence = evidence_for(manifest, field, &screen, &fetch);
-        let points = measured_points(manifest, field, &evidence);
-        let (covered, uncovered) = coverage(field, &points);
-        let state = json!({
-            "requirement": {
-                "taxon": manifest.taxon.scientific_name,
-                "field": field.field,
-                "condition": field.condition,
-                "required_ages_years": field.required_ages_years,
-            },
-            "evidence": evidence,
-            "counts": {
-                "measured_points": points.len(),
-                "required_ages_covered": covered,
-                "required_ages_uncovered": uncovered,
-            },
-        });
+        let asked = if is_mature(manifest, &field.field) {
+            mature(manifest, field, &screen)
+        } else {
+            at_age(manifest, field, &screen, &fetch)
+        };
+        let (points, covered, uncovered) = (asked.points, asked.covered, asked.uncovered);
+        let (score_key, gap_key) = asked.keys;
         let judgment = judge
-            .ask("sufficiency", None, &state, &sufficiency_questions())
+            .ask(score_key, None, &asked.state, &asked.questions)
             .map_err(|err| StageError::Failed {
                 stage: STAGE.into(),
                 reason: err.to_string(),
             })?;
-        let score = judgment.entry.score("sufficiency").unwrap_or(0.0);
+        let score = judgment.entry.score(score_key).unwrap_or(0.0);
         // No score is the lowest level: the gate fails closed.
         let level =
             Sufficiency::from_index(level_from_score(score, SUFFICIENCY_LEVELS.len()).unwrap_or(0));
         let gap = judgment
             .entry
-            .choice("dominant_gap")
+            .choice(gap_key)
             .unwrap_or_else(|| "none".into());
         let passed = level >= field.bar;
         let required = required_bar(manifest, &field.field).filter(|bar| level < *bar);
@@ -118,6 +113,99 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     Ok(Outcome::Ran { decisions: ids })
 }
 
+/// One field's question: the state code laid out, the set and its answer
+/// keys, and the points and age coverage the stage records.
+struct Asked {
+    state: Value,
+    questions: Value,
+    /// The Score's key, which also names the tool in the ledger, and the gap Choice's.
+    keys: (&'static str, &'static str),
+    points: Vec<Value>,
+    covered: Vec<f64>,
+    uncovered: Vec<f64>,
+}
+
+/// An age-indexed field: the measured points at each required age.
+fn at_age(manifest: &Manifest, field: &Field, screen: &Value, fetch: &Value) -> Asked {
+    let evidence = evidence_for(manifest, field, screen, fetch);
+    let points = measured_points(manifest, field, &evidence);
+    let (covered, uncovered) = coverage(field, &points);
+    let state = json!({
+        "requirement": {
+            "taxon": manifest.taxon.scientific_name,
+            "field": field.field,
+            "condition": field.condition,
+            "required_ages_years": field.required_ages_years,
+        },
+        "evidence": evidence,
+        "counts": {
+            "measured_points": points.len(),
+            "required_ages_covered": covered,
+            "required_ages_uncovered": uncovered,
+        },
+    });
+    Asked {
+        state,
+        questions: sufficiency_questions(),
+        keys: ("sufficiency", "dominant_gap"),
+        points,
+        covered,
+        uncovered,
+    }
+}
+
+/// A mature field: every screened sentence that names it, whatever the
+/// screen called its kind, since an organ size is no tree size at an age.
+/// The points are those sentences; no age is asked or covered.
+fn mature(manifest: &Manifest, field: &Field, screen: &Value) -> Asked {
+    let evidence: Vec<Value> = screen["rows"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter(|row| names_field(field, row["sentence"].as_str().unwrap_or_default()))
+        .map(|row| {
+            json!({
+                "source": row["source"],
+                "sentence": row["sentence"],
+                "condition": row["condition"],
+                "taxon": taxon_of(manifest, field, row),
+            })
+        })
+        .collect();
+    let sources: std::collections::BTreeSet<&str> = evidence
+        .iter()
+        .filter_map(|e| e["source"].as_str())
+        .collect();
+    let state = json!({
+        "requirement": {
+            "taxon": manifest.taxon.scientific_name,
+            "field": field.field,
+            "condition": field.condition,
+        },
+        "evidence": evidence,
+        "counts": {"sentences": evidence.len(), "sources": sources.len()},
+    });
+    Asked {
+        state,
+        questions: mature_questions(),
+        keys: ("mature_size", "mature_gap"),
+        points: evidence,
+        covered: Vec::new(),
+        uncovered: Vec::new(),
+    }
+}
+
+/// A sentence from the field's proxy source describes the proxy taxon.
+fn taxon_of<'a>(manifest: &'a Manifest, field: &'a Field, row: &Value) -> &'a str {
+    field
+        .proxy
+        .as_ref()
+        .filter(|p| row["source"] == p.source)
+        .map_or(manifest.taxon.scientific_name.as_str(), |p| {
+            p.taxon.as_str()
+        })
+}
+
 /// Screened sentences and admitted table rows, each with its kind, condition
 /// and taxon beside the requirement.
 fn evidence_for(manifest: &Manifest, field: &Field, screen: &Value, fetch: &Value) -> Vec<Value> {
@@ -131,8 +219,7 @@ fn evidence_for(manifest: &Manifest, field: &Field, screen: &Value, fetch: &Valu
                 "sentence": row["sentence"],
                 "kind": row["kind"],
                 "condition": row["condition"],
-                // A sentence from the field's proxy source describes the proxy taxon.
-                "taxon": field.proxy.as_ref().filter(|p| row["source"] == p.source).map_or(manifest.taxon.scientific_name.as_str(), |p| p.taxon.as_str()),
+                "taxon": taxon_of(manifest, field, row),
             })
         })
         .collect();

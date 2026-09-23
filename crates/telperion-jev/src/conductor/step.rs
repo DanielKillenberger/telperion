@@ -301,6 +301,36 @@ fn gap_check(
     Ok(words.join("; "))
 }
 
+/// Pauses for the owner's open decisions with their handoff. The pause is
+/// keyed on the set of decisions, so the same open set pauses under the same
+/// id and a changed set under a new one.
+fn owner_first(config: &Config, run: &mut Run, decisions: &[String]) -> Result<String> {
+    let identity = canonical_sha256(&json!({"owner_first": decisions}));
+    let id = format!("pause-owner-{}", &identity[..12]);
+    let (next_tokens, estimate_basis) = dependency::estimate(run);
+    let basis = Basis {
+        identity,
+        proposed_action: "resume once the owner has resolved each decision".into(),
+        evidence: decisions.to_vec(),
+        recent_outcomes: Vec::new(),
+        next_tokens,
+        estimate_basis,
+        usage_known: run.budget.usage_known,
+    };
+    let reason = format!("the owner's decisions are open: {}", decisions.join(", "));
+    run.route("owner-first", "human", &reason);
+    handoff::pause(
+        config,
+        run,
+        &id,
+        &reason,
+        basis,
+        &json!({"owner_decisions": decisions}),
+        "resolve each decision (add the sources the requirements ask for, or admit or reject the manifest), then resume",
+    )?;
+    Ok(format!("paused {id}: {reason}"))
+}
+
 /// Executes one hop and returns the action the run now waits on.
 pub fn drive(
     asker: &Asker<'_>,
@@ -320,6 +350,7 @@ pub fn drive(
             run.wait(&format!("dispatch {id}"));
             format!("awaiting {id} ({role} on {tier} at {effort})")
         }
+        Next::OwnerFirst { decisions } => owner_first(config, run, decisions)?,
         Next::AwaitOwner { decision, kind } => {
             run.wait(&format!("owner: {decision}"));
             format!("awaiting the owner: {decision} ({kind})")
@@ -360,6 +391,7 @@ pub fn drive(
     if !matches!(
         next,
         Next::Paused { .. }
+            | Next::OwnerFirst { .. }
             | Next::AwaitDispatch { .. }
             | Next::AwaitOwner { .. }
             | Next::AwaitLanding { .. }
