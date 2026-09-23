@@ -226,6 +226,7 @@ fn reading(field: &str) -> String {
         "height_m" => "height at age".into(),
         "dbh_m" => "trunk diameter at breast height at age".into(),
         "crown_width_m" => "crown width at age".into(),
+        "height_growth_m_per_year" => "height growth rate per year".into(),
         other => {
             let stem = other
                 .rsplit_once('_')

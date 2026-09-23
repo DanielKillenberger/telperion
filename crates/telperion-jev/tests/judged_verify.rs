@@ -227,10 +227,15 @@ fn a_superseded_decision_ignores_a_stale_resolution() {
 }
 
 /// R6: A1's "reaching 5 m (20 feet) in 15 to 20 years" is a height point
-/// at 15 to 20 years, though the screen called the sentence a rate.
+/// at 15 to 20 years, though the screen called the sentence a rate. The
+/// palm row asks height mature (fn-132), so the manifest here predates the
+/// requirements table and asks it at an age.
 #[test]
 fn a_size_reached_at_a_stated_age_is_a_point() {
     let dir = palm("age");
+    let mut legacy = judged::manifest();
+    legacy["schema_version"] = json!(1);
+    write_canonical(&dir.join("manifest.json"), &legacy).unwrap();
     let palm = Palm::new(|_, _| None);
     quality::run(&Paths::new(&dir), &judged::judge(&palm)).unwrap();
     let fields = &read_json(&dir.join("quality.json")).unwrap()["body"]["fields"];

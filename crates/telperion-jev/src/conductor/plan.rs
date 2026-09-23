@@ -9,7 +9,8 @@ use super::gapcheck::{self, Verdict, PASSING};
 use super::policy;
 use super::state::{DependencyStatus, Run};
 use super::{Config, Result};
-use crate::pipeline::canon::{canonical_sha256, file_sha256};
+use crate::pipeline::build_id::{BUILD_ID, BUILD_TOOL};
+use crate::pipeline::canon::{canonical_sha256, file_sha256, read_json};
 use crate::pipeline::consume::REQUIREMENTS_UNMET;
 use crate::pipeline::decision::{reconcile, Decision, Status};
 use crate::pipeline::gap::HALT_KINDS;
@@ -186,6 +187,19 @@ fn first_missing_stage(config: &Config) -> Option<&'static str> {
         .find(|stage| !paths.artifact(stage).exists())
 }
 
+/// The first stage whose artifact records a build other than this one: a
+/// code change expired its key (fn-132). An artifact that records no build
+/// predates the build id and is left to the stage fingerprint.
+pub fn first_stale_stage(config: &Config) -> Option<&'static str> {
+    let paths = config.paths();
+    STAGES.iter().copied().find(|stage| {
+        read_json(&paths.artifact(stage))
+            .ok()
+            .and_then(|v| v["tools"][BUILD_TOOL].as_str().map(|b| b != BUILD_ID))
+            .unwrap_or(false)
+    })
+}
+
 /// The gap verdicts of the latest revision, read from the run record.
 pub fn verdicts(run: &Run, revision: u64) -> Vec<(String, Verdict)> {
     run.gap_checks
@@ -215,6 +229,14 @@ pub fn next(config: &Config, run: &Run) -> Result<Next> {
     }
     let open = open_decisions(config)?;
     let proposal_open = open.iter().any(|d| d.kind == OWNER_FIRST[0]);
+    // Stages a code change left stale read the literature again before a
+    // search adds to it or the owner is asked for it (fn-132); once per
+    // build, so a stage that stops cannot hold the run.
+    if !proposal_open && run.stages_build.as_deref() != Some(BUILD_ID) {
+        if let Some(stage) = first_stale_stage(config) {
+            return Ok(Next::Stages { from: stage.into() });
+        }
+    }
     // A search waits while a manifest proposal is open: the owner's
     // admission would overwrite the sources a search added.
     let again = if proposal_open {

@@ -7,9 +7,12 @@
 //! field the requirements table requires, below the table's bar, files a
 //! requirements-unmet decision instead, with no bar to lower: the pipeline
 //! searches again for it twice (`pipeline::search`), then it is the owner's.
-//! A field the table marks `mature` (fn-127) asks no age: code lays out the
-//! sentences that name it and the mature-size set scores a stated mature
-//! value or range on the same four levels.
+//! A field the table asks as `mature` (fn-127) or as a `rate` (fn-132)
+//! asks no age: code lays out the sentences that name it and the
+//! mature-size or growth-rate set scores a stated mature value or range, or
+//! a stated yearly rate, on the same four levels. The gap follows the level:
+//! a level that finds the value stated never carries the gap that says it
+//! is not.
 
 use serde_json::{json, Map, Value};
 
@@ -17,9 +20,9 @@ use crate::pipeline::consume::{sources_sha256, REQUIREMENTS_UNMET};
 use crate::pipeline::decision::{append_decisions, retire_unfiled, Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::{Field, Manifest, Sufficiency};
-use crate::pipeline::requirements::{is_mature, required_bar};
+use crate::pipeline::requirements::{asked, required_bar, Asked};
 use crate::pipeline::sets::{
-    chosen_level, mature_questions, sufficiency_questions, SUFFICIENCY_LEVELS,
+    chosen_level, mature_questions, rate_questions, sufficiency_questions, SUFFICIENCY_LEVELS,
 };
 use crate::pipeline::stage::{Context, Paths, StageError};
 
@@ -28,8 +31,10 @@ use super::rows::{for_field, stated_at};
 use super::{body, inputs};
 
 pub const STAGE: &str = "quality";
-/// The gap a mature field fails on whatever its level (fn-131).
-const NO_MATURE_SIZE: &str = "no_mature_size";
+/// The gaps that say no value is stated at all: a field asked at no age
+/// fails on one below `partial` (fn-131) and never carries one at or above
+/// it (fn-132).
+const UNSTATED: [&str; 2] = ["no_mature_size", "no_growth_rate"];
 
 #[derive(Debug)]
 pub enum Outcome {
@@ -54,16 +59,16 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     let mut fields = Map::new();
     let mut decisions = Vec::new();
     for field in &manifest.fields {
-        let is_mature = is_mature(manifest, &field.field);
-        let asked = if is_mature {
-            mature(manifest, field, &screen)
-        } else {
-            at_age(manifest, field, &screen, &fetch)
+        let way = asked(manifest, &field.field);
+        let question = match way {
+            Asked::Age => at_age(manifest, field, &screen, &fetch),
+            Asked::Mature => stated(manifest, field, &screen, mature_questions(), MATURE_KEYS),
+            Asked::Rate => stated(manifest, field, &screen, rate_questions(), RATE_KEYS),
         };
-        let (points, covered, uncovered) = (asked.points, asked.covered, asked.uncovered);
-        let (score_key, gap_key) = asked.keys;
+        let (points, covered, uncovered) = (question.points, question.covered, question.uncovered);
+        let (score_key, gap_key) = question.keys;
         let judgment = judge
-            .ask(score_key, None, &asked.state, &asked.questions)
+            .ask(score_key, None, &question.state, &question.questions)
             .map_err(|err| StageError::Failed {
                 stage: STAGE.into(),
                 reason: err.to_string(),
@@ -78,12 +83,15 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
             0,
             0.0,
         ));
-        let gap = judgment
-            .entry
-            .choice(gap_key)
-            .unwrap_or_else(|| "none".into());
-        // A mature field with no mature size stated has nothing select can copy.
-        let unstated = is_mature && gap == NO_MATURE_SIZE;
+        let gap = follow_level(
+            level,
+            judgment
+                .entry
+                .choice(gap_key)
+                .unwrap_or_else(|| "none".into()),
+        );
+        // A field asked at no age with no value stated has nothing select can copy.
+        let unstated = way != Asked::Age && UNSTATED.contains(&gap.as_str());
         let passed = level >= field.bar && !unstated;
         let required = required_bar(manifest, &field.field).filter(|bar| level < *bar || unstated);
         header.ledger.push(judgment.reference.clone());
@@ -134,7 +142,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
 
 /// One field's question: the state code laid out, the set and its answer
 /// keys, and the points and age coverage the stage records.
-struct Asked {
+struct Question {
     state: Value,
     questions: Value,
     /// The Score's key, which also names the tool in the ledger, and the gap Choice's.
@@ -145,7 +153,7 @@ struct Asked {
 }
 
 /// An age-indexed field: the measured points at each required age.
-fn at_age(manifest: &Manifest, field: &Field, screen: &Value, fetch: &Value) -> Asked {
+fn at_age(manifest: &Manifest, field: &Field, screen: &Value, fetch: &Value) -> Question {
     let evidence = evidence_for(manifest, field, screen, fetch);
     let points = measured_points(manifest, field, &evidence);
     let (covered, uncovered) = coverage(field, &points);
@@ -163,7 +171,7 @@ fn at_age(manifest: &Manifest, field: &Field, screen: &Value, fetch: &Value) -> 
             "required_ages_uncovered": uncovered,
         },
     });
-    Asked {
+    Question {
         state,
         questions: sufficiency_questions(),
         keys: ("sufficiency", "dominant_gap"),
@@ -173,10 +181,34 @@ fn at_age(manifest: &Manifest, field: &Field, screen: &Value, fetch: &Value) -> 
     }
 }
 
-/// A mature field: the screened rows select can use for it (fn-131), an
-/// organ size by its organ class and a cultivar's size among them. The
-/// points are those sentences; no age is asked or covered.
-fn mature(manifest: &Manifest, field: &Field, screen: &Value) -> Asked {
+/// The score and gap keys of the mature-size and growth-rate sets.
+const MATURE_KEYS: (&str, &str) = ("mature_size", "mature_gap");
+const RATE_KEYS: (&str, &str) = ("growth_rate", "rate_gap");
+
+/// A gap that says no value is stated, beside a level that finds one, is
+/// the level's own (fn-132): `sufficient` is met, `partial` is one source.
+/// The live palm's leaflets were `sufficient` on 7 points and failed on
+/// `no_mature_size`.
+fn follow_level(level: Sufficiency, gap: String) -> String {
+    match level {
+        _ if !UNSTATED.contains(&gap.as_str()) => gap,
+        Sufficiency::Sufficient => "none".into(),
+        Sufficiency::Partial => "single_source".into(),
+        _ => gap,
+    }
+}
+
+/// A field asked at no age: the screened rows select can use for it
+/// (fn-131), an organ size by its organ class, a cultivar's size or a
+/// growth rate among them. The points are those sentences; no age is asked
+/// or covered.
+fn stated(
+    manifest: &Manifest,
+    field: &Field,
+    screen: &Value,
+    questions: Value,
+    keys: (&'static str, &'static str),
+) -> Question {
     let evidence: Vec<Value> = for_field(&field.field, screen)
         .into_iter()
         .map(|row| {
@@ -201,10 +233,10 @@ fn mature(manifest: &Manifest, field: &Field, screen: &Value) -> Asked {
         "evidence": evidence,
         "counts": {"sentences": evidence.len(), "sources": sources.len()},
     });
-    Asked {
+    Question {
         state,
-        questions: mature_questions(),
-        keys: ("mature_size", "mature_gap"),
+        questions,
+        keys,
         points: evidence,
         covered: Vec::new(),
         uncovered: Vec::new(),

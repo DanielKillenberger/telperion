@@ -27,10 +27,22 @@ pub struct FieldTerms {
     /// species. Empty keeps the tree-size kinds.
     #[serde(default)]
     pub kinds: Vec<String>,
-    /// A mature size (fn-127): judged on a stated mature value, with no
-    /// required age.
+    /// How the field is asked when a growth form names no other way.
     #[serde(default)]
-    pub mature: bool,
+    pub asked: Asked,
+}
+
+/// How a field's sufficiency is asked (fn-127, fn-132).
+#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum Asked {
+    /// Measured sizes at the manifest's required ages.
+    #[default]
+    Age,
+    /// A stated mature value or range, at no age.
+    Mature,
+    /// A stated growth rate, a size per year, at no age.
+    Rate,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -52,6 +64,9 @@ pub struct AppearanceTable {
 #[derive(Debug, Clone, Deserialize)]
 pub struct GrowthForm {
     pub fields: BTreeMap<String, Sufficiency>,
+    /// Fields this form asks otherwise than the field's own way (fn-132).
+    #[serde(default)]
+    pub asked: BTreeMap<String, Asked>,
     pub appearance: Vec<String>,
 }
 
@@ -107,10 +122,20 @@ pub fn required_bar(m: &Manifest, field: &str) -> Option<Sufficiency> {
     bound(m).and_then(|form| form.fields.get(field).copied())
 }
 
-/// Whether the table marks `field` a mature size for a bound manifest: its
-/// sufficiency is a stated mature value, and it needs no required age.
-pub fn is_mature(m: &Manifest, field: &str) -> bool {
-    m.schema_version >= REQUIRED_FROM_VERSION && table().fields.get(field).is_some_and(|f| f.mature)
+/// How the table asks `field` of a manifest at version 2 or later: its
+/// growth form's way, else the field's own; a legacy manifest asks every
+/// field at its ages.
+pub fn asked(m: &Manifest, field: &str) -> Asked {
+    if m.schema_version < REQUIRED_FROM_VERSION {
+        return Asked::Age;
+    }
+    let table = table();
+    let own = table.fields.get(field).map_or(Asked::Age, |f| f.asked);
+    table
+        .growth_forms
+        .get(&m.growth_form)
+        .and_then(|form| form.asked.get(field).copied())
+        .unwrap_or(own)
 }
 
 /// Whether the manifest's growth form requires `trait_name` described.
@@ -234,7 +259,7 @@ mod tests {
     #[test]
     fn the_table_covers_the_three_growth_forms_and_every_name_it_uses() {
         let table = table();
-        assert_eq!(table.version, 1);
+        assert_eq!(table.version, 2);
         for form in ["broadleaf", "conifer", "palm"] {
             let row = &table.growth_forms[form];
             assert!(row.fields.contains_key("height_m"), "{form}");
