@@ -9,6 +9,8 @@
 
 use std::path::Path;
 
+use serde_json::Value;
+
 use super::canon::{canonical_sha256, read_json, CanonError};
 use super::decision::{Decision, Resolution, Status};
 use super::stage::STAGES;
@@ -102,13 +104,18 @@ pub fn sources_sha256(manifest: &Path) -> Result<String, CanonError> {
 
 /// Reopens every resolved requirements-unmet decision whose manifest sources
 /// are still the ones it was filed against: a resolution that adds no source
-/// leaves the decision open. A decision its stage superseded is not held: the
-/// field passed with the sources it had. The note is set, never appended, so
-/// a rerun is byte-identical. True when the list changed.
-pub fn hold_unmet(decisions: &mut [Decision], sources: &str) -> bool {
+/// leaves the decision open. An appearance trait's decision (`select`) also
+/// counts a source id added to the trait's own list (`traits` is the
+/// manifest's `appearance`), which the pipeline may add (fn-129). A decision
+/// its stage superseded is not held: the field passed with the sources it
+/// had. The note is set, never appended, so a rerun is byte-identical. True
+/// when the list changed.
+pub fn hold_unmet(decisions: &mut [Decision], sources: &str, traits: &Value) -> bool {
     let mut changed = false;
     for decision in decisions.iter_mut() {
-        let unchanged = decision.payload["sources_sha256"].as_str() == Some(sources);
+        let unchanged = decision.payload["sources_sha256"].as_str() == Some(sources)
+            && (decision.stage != "select"
+                || trait_list(traits, decision) == decision.payload["sources_tried"]);
         let superseded = decision
             .resolution
             .as_ref()
@@ -137,6 +144,16 @@ pub fn hold_unmet(decisions: &mut [Decision], sources: &str) -> bool {
         changed = true;
     }
     changed
+}
+
+/// The `sources` list of the trait a decision names, or null.
+fn trait_list(traits: &Value, decision: &Decision) -> Value {
+    traits
+        .as_array()
+        .into_iter()
+        .flatten()
+        .find(|t| t["trait_name"].as_str() == decision.field.as_deref())
+        .map_or(Value::Null, |t| t["sources"].clone())
 }
 
 /// The open decisions that stop the run for the owner: NEEDS_HUMAN.
@@ -339,17 +356,17 @@ mod tests {
         assert!(check_resolutions(&list, std::slice::from_ref(&add)).is_ok());
         let mut held = list.clone();
         apply_resolutions(&mut held, std::slice::from_ref(&add));
-        assert!(hold_unmet(&mut held, "before"));
+        assert!(hold_unmet(&mut held, "before", &Value::Null));
         assert_eq!(held[0].status, Status::Open);
         assert_eq!(owner_stops(&held), vec![held[0].id.clone()]);
         let once = held[0].note.clone();
         apply_resolutions(&mut held, std::slice::from_ref(&add));
-        hold_unmet(&mut held, "before");
+        hold_unmet(&mut held, "before", &Value::Null);
         assert_eq!(held[0].note, once);
         assert!(once.ends_with("no source was added]"), "{once}");
         let mut added = list;
         apply_resolutions(&mut added, &[add]);
-        assert!(!hold_unmet(&mut added, "after"));
+        assert!(!hold_unmet(&mut added, "after", &Value::Null));
         assert_eq!(added[0].status, Status::Resolved);
         assert!(owner_stops(&added).is_empty());
     }

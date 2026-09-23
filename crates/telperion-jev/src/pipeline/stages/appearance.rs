@@ -7,7 +7,8 @@
 //! field the trait feeds into the profile, with that sentence and its source
 //! (fn-127): a value with no source is never written. Nothing renders or
 //! measures it. A trait the table requires that the sources leave unstated
-//! files a requirements-unmet decision for the owner.
+//! files a requirements-unmet decision, which the pipeline searches again
+//! before the owner has it.
 
 use serde_json::{json, Map, Value};
 
@@ -134,7 +135,8 @@ fn chosen_sentence(
     })
 }
 
-/// NEEDS_HUMAN: a required appearance trait no admitted source describes.
+/// A required appearance trait no source it names describes: searched again
+/// by the pipeline (fn-129 R6), then the owner's.
 fn unstated(ctx: &Context, trait_: &Appearance, ledger: &[String], sources: &str) -> Decision {
     let manifest = &ctx.admitted.manifest;
     Decision::new(
@@ -153,7 +155,7 @@ fn unstated(ctx: &Context, trait_: &Appearance, ledger: &[String], sources: &str
             "sources_tried": trait_.sources, "sources_sha256": sources,
         }),
         &["add-sources"],
-        "NEEDS_HUMAN: the requirements table asks for this appearance trait and no admitted source describes it. The owner adds a source that does; a resolution that adds none stays open.",
+        "The requirements table asks for this appearance trait and no source it names describes it. The pipeline searches again, two rounds at most, and adds the source it finds to the trait's list; after them it is NEEDS_HUMAN and the owner adds a source. A resolution that adds none stays open.",
     )
 }
 

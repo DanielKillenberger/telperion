@@ -21,6 +21,11 @@ Twice on 2026-09-23 the palm's run stopped for the owner to admit sources: the v
   - *Admission by the pipeline.* `manifest-proposed` is resolved `admit` by the pipeline (`by: pipeline`) when every source in the draft passes both checks and nothing else in the manifest changed but its sources; a draft that changes fields, bars or appearance traits still goes to the owner.
   - *A requirement unmet searches again.* `requirements-unmet`'s `add-sources` is taken by the pipeline: it reruns `discover` with a query aimed at the field's dominant gap (for `no_age_indexed_points`, the field at stated ages), admits what passes, and reruns the stages. After two such rounds with no newly admitted source for a field, the decision goes to the owner (NEEDS_HUMAN) with the sources tried.
   - The bars stay the requirements table's; nothing here lowers one.
+- **Appearance traits (host, 2026-09-23, after the first implementation).** [host design]
+  - Adding an already-admitted or newly pipeline-admitted source id to an appearance trait's `sources` list is a sources-only change the pipeline may make.
+  - An unmet appearance trait (`select`'s `requirements-unmet`) is searched again like an evidence field: the same two-round limit, the same rights and relevance checks. An admitted source the trait does not name is a candidate too.
+  - Only a change to a trait's name or level table stays the owner's.
+- **Also settled by the host, 2026-09-23.** [host design] A draft that lifts a version 1 manifest to version 2 goes to the owner (it changes the schema version, which binds the bars). A PMC article's open-access record is Europe PMC's, whose `license` field carries PubMed Central's licence; the PMC open-access service answers 404.
 
 ## Acceptance Criteria
 <!-- scope: both -->
@@ -30,6 +35,7 @@ Twice on 2026-09-23 the palm's run stopped for the owner to admit sources: the v
 - **R3:** A `requirements-unmet` field is searched again with a gap-aimed query, twice at most; a newly admitted source reruns the stages; two empty rounds hand the owner the decision with the sources tried. [inferred]
 - **R4:** The rights classes have labelled cases (the palm's F1, A1, M1, P4 to P7 among them) and a no-match answer. [inferred]
 - **R5:** The gate is green: `cargo test --profile ci --workspace --no-fail-fast`. [paraphrase]
+- **R6:** An unmet appearance trait (the palm's `bark_colour` and `leaf_brightness_range` shape) is searched again like a field, two rounds at most; an admitted source the ranking chooses joins the trait's `sources` list, a new source that passes the rights check joins both the manifest's and the trait's, and the decision resolves. A change to a trait's name or level table goes to the owner. [host design]
 
 ## Boundaries
 

@@ -76,14 +76,20 @@ impl Executor for Searching {
 
 const TRIED: [&str; 2] = ["https://example.test/one", "https://example.test/two"];
 
-/// The rounds file after `count` empty rounds for `field`, each trying one URL.
+/// Records `count` empty rounds for `field` in the rounds file, each trying
+/// one URL; other fields' rounds are kept.
 fn spent_rounds(config: &Config, field: &str, id: &str, count: usize) {
     let rounds: Vec<serde_json::Value> = (0..count)
         .map(|n| json!({"round": n + 1, "decision": id, "gap": "no_mature_size", "query": "q",
             "hits": [], "tried": [{"id": "P9", "url": TRIED[n], "fields": [field], "class": "restricted"}],
             "admitted": [], "ledger": [], "at": "2026-09-23"}))
         .collect();
-    let value = json!({"schema": "search-rounds", "schema_version": 1, "fields": {field: rounds}});
+    let path = config.paths().search_rounds();
+    let mut value = std::fs::read(&path)
+        .ok()
+        .and_then(|bytes| serde_json::from_slice(&bytes).ok())
+        .unwrap_or_else(|| json!({"schema": "search-rounds", "schema_version": 1, "fields": {}}));
+    value["fields"][field] = json!(rounds);
     std::fs::write(
         config.paths().search_rounds(),
         serde_json::to_vec(&value).unwrap(),
@@ -194,7 +200,7 @@ fn an_unmet_requirement_with_a_round_left_is_searched_again_before_the_owner_has
         "leaflet_length_m",
         &["select"],
     );
-    // A trait `select` found unstated is the owner's at once.
+    // A trait `select` found unstated is searched again like a field (R6).
     let trait_ = decision("select", "requirements-unmet", "bark_colour", &["generate"]);
     write_decisions(
         &config.paths().decisions(),
@@ -216,8 +222,9 @@ fn an_unmet_requirement_with_a_round_left_is_searched_again_before_the_owner_has
     assert!(word.starts_with("search-again: ran"), "{word}");
     assert_eq!(*searching.0.lock().unwrap(), 1);
     assert!(run.pause.is_none() && run.dispatches.is_empty());
-    // Its second round spent, the field joins the trait with the owner.
+    // Both spent, the field and the trait go to the owner together.
     spent_rounds(&config, "leaflet_length_m", &unmet.id, 2);
+    spent_rounds(&config, "bark_colour", &trait_.id, 2);
     let (word, _) = step::drive(&asker, &config, &mut run, &NoWork).unwrap();
     assert!(
         word.contains(&unmet.id) && word.contains(&trait_.id),

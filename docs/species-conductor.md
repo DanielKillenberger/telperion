@@ -57,12 +57,13 @@ The pipeline resolves two kinds by code, never through an agent (fn-129).
 It admits a `manifest-proposed` draft that only adds sources, each chosen
 by the ranking for its field and classified `open-licence` or
 `public-cite-only`; any other draft pauses for the owner. A
-`requirements-unmet` decision on a field is searched again first: while
-the field has one of its two rounds left, the conductor's next action is
+`requirements-unmet` decision on a field or an appearance trait is
+searched again first: while it has one of its two rounds left, the conductor's next action is
 `search_again`, which runs `species-pipeline search-again` once, and a
 source it admits changes the manifest, so the stages rerun. The search
-waits while a manifest proposal is open. Once the rounds are spent, and at
-once for an appearance trait, the run pauses for the owner as before, and
+waits while a manifest proposal is open. A source found for a trait joins
+the trait's `sources` list, the one trait change the pipeline makes. Once
+the rounds are spent the run pauses for the owner as before, and
 the handoff's `sources_tried` lists every URL the rounds tried per
 decision. See `docs/species-pipeline.md`, "Admission by the pipeline".
 

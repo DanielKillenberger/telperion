@@ -1,5 +1,5 @@
 ---
-satisfies: [R1, R2, R3, R4, R5]
+satisfies: [R1, R2, R3, R4, R5, R6]
 ---
 # fn-129-the-pipeline-finds-and-admits-its-own.1 Implement fn-129-the-pipeline-finds-and-admits-its-own
 

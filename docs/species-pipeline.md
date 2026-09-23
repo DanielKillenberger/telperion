@@ -289,12 +289,11 @@ resolution records itself as `consumed_by` on the decision.
 level falls below the requirements table's bar, in place of
 `data-insufficient`. `select` files it for a required appearance trait that
 the sources leave `unstated`. It blocks the later stages for that field. On
-a field, `add-sources` is the pipeline's first: `search-again` runs one round
-per field, two at most, as "A requirement unmet searches again" below
-describes. After the two rounds, and at once for an appearance trait, the
-decision is NEEDS_HUMAN and only the owner resolves it; a trait's source must
-be named on the trait, and a change to a trait is the owner's. The
-conductor's policy lists no routine option for it: no agent resolves it.
+a field or a trait, `add-sources` is the pipeline's first: `search-again`
+runs one round each, two at most, as "A requirement unmet searches again"
+below describes. After the two rounds the decision is NEEDS_HUMAN and only
+the owner resolves it. The conductor's policy lists no routine option for
+it: no agent resolves it.
 An open `manifest-proposed` decision, or a `requirements-unmet` decision
 with no round left, comes before the gap loop, the stages and tuning: the
 conductor pauses with a handoff (`pause-owner-<id>`) that lists every such
@@ -369,7 +368,9 @@ A discover draft is admitted whole or goes to the owner whole: it adds at
 least one source, keeps every admitted source unchanged, changes nothing
 else (no field, bar, appearance trait or schema version; a draft that
 lifts a version 1 manifest to version 2 is the owner's), and every new
-source passes. The decision's payload carries the verdict under
+source passes. One trait change counts as sources-only (host design,
+2026-09-23): appending to a trait's `sources` list the id of a source the
+manifest admits. A trait's name or level table stays the owner's. The decision's payload carries the verdict under
 `admission`, with every reason a draft is the owner's. An admitted source
 records its class in `rights_class` and a rights line naming the pipeline
 and the ledger entry; its numbers are cited and no text is reproduced, as
@@ -386,16 +387,24 @@ scores them at the 0.9 accuracy bar.
 ### A requirement unmet searches again
 
 `species-pipeline search-again` runs one round for every open
-`requirements-unmet` decision `quality` filed whose field has a round left.
+`requirements-unmet` decision whose field or trait has a round left:
+`quality`'s on a field, `select`'s on an appearance trait.
 The query aims at the decision's dominant gap: `no_age_indexed_points` asks
 for the field at stated ages (`Phoenix dactylifera height at stated ages in
 years, open grown`), `age_range_uncovered` names the uncovered ages,
 `wrong_condition` the condition, `wrong_taxon` quotes the taxon, and a
-mature field's gap asks for the typical mature size. Every URL the manifest
-holds or an earlier round tried is left out, Jev ranks the rest, and the
-chosen source is admitted when its rights class admits. An admission adds
-the source to the manifest and resolves the decision `add-sources` by the
-pipeline, so the stages rerun on it. A round that admits nothing, or that
+mature field's gap asks for the typical mature size, and a trait's query
+is the trait in words (`Phoenix dactylifera bark colour`). Every URL the
+manifest holds or an earlier round tried is left out, Jev ranks the rest,
+and the chosen source is admitted when its rights class admits. For a
+trait, every admitted source the trait does not yet name is a candidate
+too, ahead of the web's; the one the ranking chooses joins the trait's
+`sources` list with no rights call, since it is already admitted, and a
+new source that passes joins both lists. An admission resolves the
+decision `add-sources` by the pipeline, so the stages rerun on it. A
+trait's resolution binds once the trait's own list differs from the one
+the decision recorded (`payload.sources_tried`), even when the manifest's
+sources are unchanged. A round that admits nothing, or that
 an adapter or Jev error ended, still counts. After two rounds the decision
 is the owner's with the sources tried. Each round is recorded in
 `DIR/search-rounds.json`: its query, hits, the sources tried with their

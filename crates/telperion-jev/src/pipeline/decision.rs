@@ -254,7 +254,8 @@ pub fn reconcile(paths: &Paths) -> Result<Vec<Decision>, ReconcileError> {
     check_resolutions(&list, &resolutions)?;
     apply_resolutions(&mut list, &resolutions);
     if paths.manifest().exists() {
-        hold_unmet(&mut list, &sources_sha256(&paths.manifest())?);
+        let traits = super::canon::read_json(&paths.manifest())?["appearance"].clone();
+        hold_unmet(&mut list, &sources_sha256(&paths.manifest())?, &traits);
     }
     if !list.is_empty() {
         write_decisions(&paths.decisions(), &list)?;

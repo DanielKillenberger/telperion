@@ -287,3 +287,92 @@ fn two_empty_rounds_hand_the_owner_the_decision_with_the_sources_tried() {
     assert_eq!(search::tried(&rounds, "height_m"), vec![FOUND.to_string()]);
     assert!(rounds["height_m"][1].hits.is_empty());
 }
+
+const S2: &str = "https://example.test/s2";
+
+/// An open requirements-unmet decision on `bark_colour`, as `select` files
+/// it for the palm's unstated traits; `S2` is admitted but not on the trait.
+fn unstated_trait(dir: &Path) -> Decision {
+    let mut value = manifest();
+    value["sources"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"id": "S2", "url": S2, "title": "Bark", "rights": "cited"}));
+    fs::write(
+        dir.join("manifest.json"),
+        serde_json::to_vec_pretty(&value).unwrap(),
+    )
+    .unwrap();
+    let sources = sources_sha256(&dir.join("manifest.json")).unwrap();
+    let decision = Decision::new(
+        DecisionParts {
+            species: "oregon-white-oak",
+            stage: "select",
+            kind: REQUIREMENTS_UNMET,
+            field: Some("bark_colour"),
+            age_years: None,
+        },
+        &["generate"],
+        [("manifest".to_string(), "aaa".to_string())]
+            .into_iter()
+            .collect(),
+        vec![],
+        json!({"field": "bark_colour", "level": "unstated", "bar": "stated", "sources_tried": ["S1"], "sources_sha256": sources}),
+        &["add-sources"],
+        "NEEDS_HUMAN",
+    );
+    write_decisions(&dir.join("decisions.json"), std::slice::from_ref(&decision)).unwrap();
+    decision
+}
+
+fn trait_sources(dir: &Path) -> Value {
+    let manifest = read_json(&dir.join("manifest.json")).unwrap();
+    let bark = manifest["appearance"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|t| t["trait_name"] == "bark_colour")
+        .unwrap();
+    bark["sources"].clone()
+}
+
+/// fn-129 R6: an unmet appearance trait is searched again like a field. An
+/// admitted source the ranking chose joins the trait's list with no rights
+/// call; a new one passes the rights check first and joins both lists.
+#[test]
+fn an_unmet_appearance_trait_is_searched_again_and_its_source_joins_the_trait() {
+    let query = gap_query(TAXON, "bark_colour", "", "unstated", &[]);
+    for (tag, class, expect_source) in [("admitted", "none", "S2"), ("found", "open-licence", "P3")]
+    {
+        // The web finds the new page either way; an admitted source ranks first.
+        let (dir, adapter) = scratch(tag, std::slice::from_ref(&query));
+        let decision = unstated_trait(&dir);
+        if tag == "found" {
+            // S2 already on the trait: the page found is the only candidate.
+            let mut value = read_json(&dir.join("manifest.json")).unwrap();
+            for t in value["appearance"].as_array_mut().unwrap() {
+                t["sources"] = json!(["S1", "S2"]);
+            }
+            write_canonical(&dir.join("manifest.json"), &value).unwrap();
+        }
+        let paths = Paths::new(&dir);
+        let outcome = search::run(&paths, &adapter, &judge(&Mock { class }, &dir)).unwrap();
+        let word = format!("bark_colour: admitted {expect_source}");
+        assert!(
+            matches!(&outcome, search::Outcome::Ran { words } if words.contains(&word)),
+            "{tag}: {outcome:?}"
+        );
+        assert_eq!(
+            trait_sources(&dir).as_array().unwrap().last().unwrap(),
+            expect_source,
+            "{tag}"
+        );
+        let list = reconcile(&paths).unwrap();
+        let bark = list.iter().find(|d| d.id == decision.id).unwrap();
+        assert_eq!(bark.status, Status::Resolved, "{tag}: {}", bark.note);
+        assert_eq!(
+            search::read_rounds(&paths).unwrap()["bark_colour"][0].query,
+            query
+        );
+    }
+}

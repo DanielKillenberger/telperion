@@ -65,6 +65,9 @@ pub fn structural(admitted: &Manifest, draft: &Manifest) -> Vec<String> {
         .flat_map(|map| map.keys())
         .collect();
     for key in keys.into_iter().filter(|k| *k != "sources") {
+        if key == "appearance" && trait_sources_only(admitted, draft) {
+            continue;
+        }
         if before.get(key) != after.get(key) {
             reasons.push(format!("the draft changes {key}"));
         }
@@ -77,6 +80,23 @@ pub fn structural(admitted: &Manifest, draft: &Manifest) -> Vec<String> {
         reasons.push("the draft adds no source".into());
     }
     reasons
+}
+
+/// True when the draft's appearance traits are the admitted ones, same
+/// names in the same order, each list of sources only appended to with ids
+/// the draft admits: the one trait change the pipeline may make (host
+/// design, 2026-09-23). A trait's name and level table stay the owner's.
+fn trait_sources_only(admitted: &Manifest, draft: &Manifest) -> bool {
+    admitted.appearance.len() == draft.appearance.len()
+        && admitted
+            .appearance
+            .iter()
+            .zip(&draft.appearance)
+            .all(|(a, d)| {
+                a.trait_name == d.trait_name
+                    && d.sources.starts_with(&a.sources)
+                    && d.sources.iter().all(|id| draft.source(id).is_some())
+            })
 }
 
 fn value_of(manifest: &Manifest) -> Value {
@@ -249,6 +269,28 @@ mod tests {
             ("schema_version", |m| m.schema_version = 1),
             ("admitted source", |m| m.sources[0].rights = "edited".into()),
         ];
+        // A source id appended to a trait's list is a sources-only change.
+        let mut listed = added.clone();
+        listed
+            .appearance
+            .push(crate::pipeline::manifest::Appearance {
+                trait_name: "bark_colour".into(),
+                sources: vec!["S1".into()],
+            });
+        let mut base = admitted.clone();
+        base.appearance = listed.appearance.clone();
+        listed.appearance[0].sources.push("P2".into());
+        assert!(structural(&base, &listed).is_empty());
+        let mut renamed = listed.clone();
+        renamed.appearance[0].trait_name = "bark_color".into();
+        assert!(structural(&base, &renamed)
+            .iter()
+            .any(|r| r.contains("appearance")));
+        let mut unknown = listed.clone();
+        unknown.appearance[0].sources.push("P9".into());
+        assert!(structural(&base, &unknown)
+            .iter()
+            .any(|r| r.contains("appearance")));
         for (what, edit) in edits {
             let mut draft = added.clone();
             edit(&mut draft);
