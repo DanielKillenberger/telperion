@@ -1,6 +1,6 @@
 //! The stages past the skeleton, each a call of the functions that did this
 //! work before the pipeline named it, and each run only where asked.
-use super::{both, Leaves, Request, Schedule, Stages, Structure};
+use super::{both, Leaves, Request, Schedule, Structure};
 use crate::{
     field::Field,
     foliage::{self, plan, Element, Instances, Reference, TwigPlacement},
@@ -17,33 +17,33 @@ pub(super) struct Plan {
     pub(super) leaf_plan: Option<plan::Plan>,
     /// The quantisation box, present exactly where leaves are placed.
     reference: Option<Reference>,
+    /// The leaf plan's time.
+    pub(super) ms: f64,
 }
-impl Plan {
-    pub(super) fn places(&self) -> bool {
-        self.reference.is_some()
-    }
+
+pub(super) fn twig(family: &Family) -> Result<TwigPlacement> {
+    let twig = family.skeleton.twigs.resolved()?.twig;
+    Ok(TwigPlacement {
+        internode_length: twig.internode_length,
+        stations_per_internode: twig.stations_per_internode,
+    })
 }
 
 /// The element and the leaf plan, each only where read, and the box where
-/// leaves are placed: for leaves, or for a field the plan cannot describe.
+/// leaves are placed.
 pub(super) fn plan(
     tree: &Tree,
     family: &Family,
     request: Request,
-    stages: &mut Stages,
+    twig: TwigPlacement,
+    places: bool,
 ) -> Result<Plan> {
-    let twig = family.skeleton.twigs.resolved()?.twig;
-    let twig = TwigPlacement {
-        internode_length: twig.internode_length,
-        stations_per_internode: twig.stations_per_internode,
-    };
     let element = if request.leaves || request.field.is_some() {
-        stages.elements += 1;
         Some(foliage::build_element(family.element)?)
     } else {
         None
     };
-    let mut leaf_plan = None;
+    let (mut leaf_plan, mut ms) = (None, 0.0);
     if let (Some(limb_order), Some(element)) = (request.field, element.as_ref()) {
         let start = (request.clock)();
         leaf_plan = plan::plan(
@@ -55,15 +55,15 @@ pub(super) fn plan(
             element,
             limb_order,
         )?;
-        stages.plan_ms = (request.clock)() - start;
+        ms = (request.clock)() - start;
     }
-    let places = request.leaves || (request.field.is_some() && leaf_plan.is_none());
     let reference = places.then(|| Reference::of(family)).transpose()?;
     Ok(Plan {
         twig,
         element,
         leaf_plan,
         reference,
+        ms,
     })
 }
 
@@ -119,7 +119,7 @@ pub(super) fn leafy(
     plan: &Plan,
     seat: Option<Seat<'_>>,
 ) -> (Result<Option<Placed>>, Result<Option<(Field, f64)>>) {
-    let both_run = plan.places() && plan.leaf_plan.is_some();
+    let both_run = plan.reference.is_some() && plan.leaf_plan.is_some();
     let concurrent = request.schedule == Schedule::Concurrent && both_run;
     let leaves = || leaves(tree, family, request, plan, seat);
     let field = || planned_field(tree, request, plan);

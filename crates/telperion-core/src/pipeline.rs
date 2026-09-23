@@ -194,26 +194,40 @@ pub fn outputs(tree: &Tree, family: &Family, request: Request) -> Result<Outputs
     let clock = request.clock;
     let started = clock();
     let mut stages = Stages::default();
-    let plan = stage::plan(tree, family, request, &mut stages)?;
-    let seated = request.wood && plan.places() && family.canopy.surface_contact > 0.0;
-    let (wood, (leaves, field), split) = if seated {
-        // The leaves read their rings from the wood's vertices: wood first.
-        let mut wood = stage::wood(tree, family, request, true)?;
+    let twig = stage::twig(family)?;
+    // Leaves are placed for their own sake, or for a field the plan cannot
+    // describe; seated on the wood, they read its vertices, so it runs first.
+    let places =
+        request.leaves || (request.field.is_some() && !plan::supports(family.canopy, Some(twig)));
+    let seated = request.wood && places && family.canopy.surface_contact > 0.0;
+    // The plan runs after the wood where they run in turn, as the stages
+    // always ran; its error still precedes the wood's.
+    let plan = || stage::plan(tree, family, request, twig, places);
+    let (wood, plan, (leaves, field), split) = if seated {
+        let wood = stage::wood(tree, family, request, true);
+        let plan = plan()?;
+        let mut wood = wood?;
         let seat = wood.as_mut().map(stage::Wood::seat);
         let leafy = stage::leafy(tree, family, request, &plan, seat);
-        (Ok(wood), leafy, false)
+        (wood, plan, leafy, false)
     } else {
         let concurrent = request.schedule == Schedule::Concurrent;
-        both(
-            concurrent && request.wood && plan.places(),
+        let (wood, planned, split) = both(
+            concurrent && request.wood && places,
             || stage::wood(tree, family, request, false),
-            || stage::leafy(tree, family, request, &plan, None),
-        )
+            || {
+                let plan = plan()?;
+                let leafy = stage::leafy(tree, family, request, &plan, None);
+                Ok((plan, leafy))
+            },
+        );
+        let (plan, leafy) = planned?;
+        (wood?, plan, leafy, split)
     };
     // Results join in stage order, so the earliest failure is the answer.
-    let wood = wood?;
     let mut leaves = leaves?;
     let mut field = field?;
+    (stages.plan_ms, stages.elements) = (plan.ms, u32::from(plan.element.is_some()));
     if let Some(w) = &wood {
         stages.wood_ms = w.ms;
         stages.sweeps += 1;
