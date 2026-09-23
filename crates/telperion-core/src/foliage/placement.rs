@@ -128,8 +128,8 @@ pub(crate) fn leaf_count(
     leaves_on(tree, envelope, seed, p, twig, &runs(tree, p, twig))
 }
 
-/// Places on a contact surface swept once for the request, `None` where the
-/// family seats no leaf on the wood.
+/// Places on the contact surface given, swept or read from a built wood;
+/// `None` where the family seats no leaf on the wood.
 pub(crate) fn place_on(
     tree: &Tree,
     envelope: Envelope,

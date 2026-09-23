@@ -97,7 +97,6 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
     }
     let field = field_request(flags.get("field"))?;
     let wants = |key: &str| flags.get(key).and_then(Value::as_bool).unwrap_or(false);
-    let started = clock();
     let built = pipeline::build(
         &f,
         pipeline::Request {
@@ -112,7 +111,6 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
     let (tree, o) = (&built.skeleton.tree, built.outputs);
     let (counts, handoffs, capped_handoffs, twig_count) =
         branch_diagnostics(tree, f.skeleton.twigs)?;
-    let placed = o.leaves.as_ref();
     let mut out = Output {
         surface: o.wood,
         field: o.field,
@@ -120,14 +118,20 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
     };
     let mut anatomy = Value::Null;
     let mut leaf_bounds = Value::Null;
-    if let (Some(leaves), Some(blade), true) = (placed, o.element.as_ref(), wants("foliage")) {
+    let (mut placed_count, mut retained_count) = (0, 0);
+    let places = o.leaves.is_some();
+    if let Some(leaves) = o.leaves {
+        (placed_count, retained_count) = (leaves.placed, leaves.retained);
+        leaf_bounds = leaves.bounds.map_or(Value::Null, |b| bounds(b.min, b.max));
+        out.instances = leaves.instances;
+    }
+    if let Some(blade) = o.element.as_ref().filter(|_| wants("foliage")) {
         anatomy = blade.anatomy.as_ref().map_or(Value::Null, |a| json!({
             "unit": match a.unit { foliage::FoliageUnit::Leaf => "leaf", foliage::FoliageUnit::Needle => "needle" },
             "vertices": [a.vertices.start, a.vertices.end],
             "indices": [a.indices.start, a.indices.end],
             "sections": a.sections.iter().map(|r| [r.start, r.end]).collect::<Vec<_>>()
         }));
-        leaf_bounds = leaves.bounds.map_or(Value::Null, |b| bounds(b.min, b.max));
         out.element_positions = blade
             .positions
             .iter()
@@ -136,13 +140,7 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         out.element_indices = blade.indices.clone();
         out.element_coords = blade.coords.clone();
     }
-    let needs_placement = placed.is_some();
-    let placed_count = placed.map_or(0, |l| l.placed);
-    let retained_count = placed.map_or(0, |l| l.retained);
-    let reference = placed.map_or(out.instances.reference, |l| l.instances.reference);
-    if let Some(leaves) = o.leaves.filter(|_| wants("foliage")) {
-        out.instances = leaves.instances;
-    }
+    let reference = out.instances.reference;
     if let Some(s) = o.structure {
         (out.structure, out.topology) = (s.nodes, s.topology);
     }
@@ -165,16 +163,16 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
             "extent":[reference.extent.x, reference.extent.y, reference.extent.z]
         },
         "foliageAnatomy":anatomy,
-        "biologicalUnits": if needs_placement && o.element.as_ref().is_some_and(|e| e.anatomy.is_some()) { Some(retained_count) } else { None },
+        "biologicalUnits": if places && o.element.as_ref().is_some_and(|e| e.anatomy.is_some()) { Some(retained_count) } else { None },
         "fieldBounds":out.field.as_ref().and_then(Field::bounds).map(|b|bounds(b.min,b.max)),
         "fieldBytes":out.field.as_ref().map_or(0,Field::storage_bytes),
         "timings":{"growthMs":t.skeleton_ms,"surfaceMs":t.wood_ms,"planMs":t.plan_ms,
-            "foliageMs":t.rings_ms+t.placement_ms+t.cull_ms,"fieldMs":t.field_ms,"coreMs":clock()-started},
+            "foliageMs":t.rings_ms+t.placement_ms+t.cull_ms,"fieldMs":t.field_ms,"coreMs":t.total_ms},
         // Which stages ran: placement and the cull run together, the contact
         // surface only under placement with surface contact, the plan for a
         // field request the family's plan can describe.
-        "stages":{"surface":wants("surface"),"foliage":needs_placement,"placement":needs_placement,"cull":needs_placement,
-            "contacts":needs_placement && f.canopy.surface_contact > 0.0,"plan":leaf_plan.is_some(),"field":field.is_some(),
+        "stages":{"surface":wants("surface"),"foliage":places,"placement":places,"cull":places,
+            "contacts":places && f.canopy.surface_contact > 0.0,"plan":leaf_plan.is_some(),"field":field.is_some(),
             "fieldSource":if field.is_none() { Value::Null } else if leaf_plan.is_some() { json!("plan") } else { json!("placed") }}
     });
     Ok((out, meta))

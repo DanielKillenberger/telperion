@@ -60,9 +60,8 @@ pub fn prepare_stations(
         |c, node| c.edges.get(node).copied().flatten(),
     )?;
     Ok(result.map(|(segments, count, contacts)| {
-        let (rings, ring_size) = contacts.map_or((Vec::new(), 0), |c| {
-            (c.rings.into_points(), c.segments as u32)
-        });
+        let (rings, ring_size) =
+            contacts.map_or((Vec::new(), 0), |c| (c.points(), c.segments as u32));
         PreparedStations {
             segments,
             count,

@@ -1,87 +1,58 @@
-//! Exact swept polygon queries without constructing mesh indices or normals.
+//! Exact contact queries on the swept polygons, read without mesh indices
+//! or normals: from rings swept here, or in place from a built wood.
 use super::*;
+use std::borrow::Cow;
 
 pub(crate) struct AttachmentSurface<'w> {
-    pub(crate) rings: Rings<'w>,
+    /// Ring points as float32 triples: the vertices `build` submits, swept
+    /// and rounded here or read in place from a built wood.
+    rings: Cow<'w, [f32]>,
     /// Each node's lower and upper ring, then its run's first and last ring,
-    /// as offsets into `rings`.
-    pub(crate) edges: Vec<Option<[usize; 4]>>,
+    /// as point offsets into `rings`.
+    pub(crate) edges: Cow<'w, [Option<[usize; 4]>]>,
     pub(crate) segments: usize,
     segment_bounds: Vec<Option<(Vec3, Vec3)>>,
 }
 
-/// Where the ring points live: swept here, each already rounded to the
-/// float32 vertex `build` submits, or read in place from a built wood's
-/// vertices, which are those float32 vertices.
-pub(crate) enum Rings<'w> {
-    Swept(Vec<Vec3>),
-    Wood(&'w [f32]),
-}
-impl Rings<'_> {
-    fn at(&self, i: usize) -> Vec3 {
-        match self {
-            Self::Swept(rings) => rings.at(i),
-            Self::Wood(positions) => positions.at(i),
-        }
-    }
-
-    /// The points as swept, read out of the wood where they live there.
-    pub(crate) fn into_points(self) -> Vec<Vec3> {
-        match self {
-            Self::Swept(rings) => rings,
-            Self::Wood(positions) => (0..positions.len() / 3).map(|i| positions.at(i)).collect(),
-        }
-    }
-}
-
-/// Ring point `i` of either store; a query matches the store once and reads
-/// every point through this.
-trait Points {
-    fn at(&self, i: usize) -> Vec3;
-}
-impl Points for [Vec3] {
-    #[inline]
-    fn at(&self, i: usize) -> Vec3 {
-        self[i]
-    }
-}
-impl Points for [f32] {
-    #[inline]
-    fn at(&self, i: usize) -> Vec3 {
-        let [x, y, z] = self.as_chunks::<3>().0[i];
-        Vec3::new(x as f64, y as f64, z as f64)
-    }
-}
-
-/// Builds the wood and, for every node, where its segment meets the rings,
-/// as vertex offsets: the contact surface leaves read from those vertices.
-pub(crate) fn build_contacts(
-    tree: &Tree,
-    height: f64,
-    params: &SurfaceParams,
-) -> Result<(SurfaceMesh, Vec<Option<[usize; 4]>>)> {
-    let mut edges = filled(tree.nodes.len(), None)?;
-    let wood = build_inner(tree, height, params, None, Some(&mut edges))?;
-    Ok((wood, edges))
+/// Ring point `i`, widened to the f64 the queries run in.
+#[inline]
+fn at(rings: &[f32], i: usize) -> Vec3 {
+    let [x, y, z] = rings.as_chunks::<3>().0[i];
+    Vec3::new(x as f64, y as f64, z as f64)
 }
 
 impl<'w> AttachmentSurface<'w> {
-    /// The contact surface of a wood already built, its rings read in place
-    /// from the wood's vertices: `edges` is what `build_contacts` recorded.
-    pub(crate) fn on_wood(
-        wood: &'w SurfaceMesh,
-        edges: Vec<Option<[usize; 4]>>,
-        params: &SurfaceParams,
+    /// The contact surface of a wood built with its contacts, its rings read
+    /// in place from the wood's vertices.
+    pub(crate) fn on_wood(wood: &'w WoodWithContacts, params: &SurfaceParams) -> Result<Self> {
+        Self::bounded(
+            Cow::Borrowed(&wood.mesh.positions),
+            Cow::Borrowed(&wood.edges),
+            segments(params),
+        )
+    }
+
+    fn bounded(
+        rings: Cow<'w, [f32]>,
+        edges: Cow<'w, [Option<[usize; 4]>]>,
+        segments: usize,
     ) -> Result<Self> {
-        let segments = segments(params);
         let mut out = Self {
-            rings: Rings::Wood(&wood.positions),
+            segment_bounds: filled(rings.len() / 3 / segments + 1, None)?,
+            rings,
             edges,
             segments,
-            segment_bounds: filled(wood.positions.len() / 3 / segments + 1, None)?,
         };
         out.bound();
         Ok(out)
+    }
+
+    /// Every ring point, widened, for a caller that keeps them past the query.
+    pub(crate) fn points(&self) -> Vec<Vec3> {
+        let points = self.rings.as_chunks::<3>().0.iter();
+        points
+            .map(|&[x, y, z]| Vec3::new(x as f64, y as f64, z as f64))
+            .collect()
     }
 }
 
@@ -112,7 +83,7 @@ impl AttachmentSurface<'static> {
                 .nodes
                 .len()
                 .checked_add(1)
-                .and_then(|n| n.checked_mul(segments))
+                .and_then(|n| n.checked_mul(segments * 3))
                 .ok_or(Error::ResourceLimit("attachment rings"))?,
         )?;
         let mut edges = filled(tree.nodes.len(), None)?;
@@ -136,7 +107,7 @@ impl AttachmentSurface<'static> {
             }
             sample_path(tree, height, params, &paths, path, &distance, &mut samples);
             frames(&samples, &mut scratch, &mut frame);
-            let base = rings.len();
+            let base = rings.len() / 3;
             for (i, s) in samples.iter().enumerate() {
                 let (normal, binormal) = frame[i];
                 let phase = std::f64::consts::TAU * params.twist_rate * (s.d / height);
@@ -144,24 +115,13 @@ impl AttachmentSurface<'static> {
                     let profile = sample.profile(params, phase);
                     let p = s.p + (normal * sample.cos + binormal * sample.sin) * (s.r * profile);
                     // Query exactly the float32 vertices submitted by build().
-                    rings.push(Vec3::new(
-                        p.x as f32 as f64,
-                        p.y as f32 as f64,
-                        p.z as f32 as f64,
-                    ));
+                    rings.extend([p.x as f32, p.y as f32, p.z as f32]);
                 }
             }
             let offset = usize::from(path.trunk && params.flare_depth > 0.0);
             record_edges(&mut edges, nodes, base, samples.len(), segments, offset);
         }
-        let mut out = Self {
-            segment_bounds: filled(rings.len() / segments + 1, None)?,
-            rings: Rings::Swept(rings),
-            edges,
-            segments,
-        };
-        out.bound();
-        Ok(out)
+        Self::bounded(Cow::Owned(rings), Cow::Owned(edges), segments)
     }
 }
 
@@ -185,7 +145,7 @@ impl AttachmentSurface<'_> {
                 let mut min = Vec3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY);
                 let mut max = Vec3::new(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
                 for i in lo..lo + 2 * s {
-                    let p = self.rings.at(i);
+                    let p = at(&self.rings, i);
                     min.x = min.x.min(p.x);
                     min.y = min.y.min(p.y);
                     min.z = min.z.min(p.z);
@@ -206,7 +166,7 @@ impl AttachmentSurface<'_> {
         let first = if lo > start { lo - self.segments } else { lo };
         let last = if hi < end { hi + self.segments } else { hi };
         (first..last + self.segments)
-            .map(|i| self.rings.at(i))
+            .map(|i| at(&self.rings, i))
             .collect()
     }
     pub(crate) fn point(
@@ -216,21 +176,8 @@ impl AttachmentSurface<'_> {
         radial: Vec3,
         radius: f64,
     ) -> Option<Vec3> {
-        match &self.rings {
-            Rings::Swept(rings) => self.seat(rings.as_slice(), node, origin, radial, radius),
-            Rings::Wood(positions) => self.seat(*positions, node, origin, radial, radius),
-        }
-    }
-    #[inline]
-    fn seat<P: Points + ?Sized>(
-        &self,
-        rings: &P,
-        node: usize,
-        origin: Vec3,
-        radial: Vec3,
-        radius: f64,
-    ) -> Option<Vec3> {
         let [lo, hi, start, end] = self.edges[node]?;
+        let rings: &[f32] = &self.rings;
         let s = self.segments;
         let mut best = self.segment_distance(rings, lo, hi, origin, radial);
         // Near a bent station the perpendicular ray can leave through the
@@ -265,7 +212,7 @@ impl AttachmentSurface<'_> {
                     [lower + k, lower + next, upper + k],
                     [lower + next, upper + next, upper + k],
                 ] {
-                    let p = closest(target, rings.at(a), rings.at(b), rings.at(c));
+                    let p = closest(target, at(rings, a), at(rings, b), at(rings, c));
                     let d = (p - target).length_squared();
                     if d < distance {
                         distance = d;
@@ -276,9 +223,9 @@ impl AttachmentSurface<'_> {
         }
         point
     }
-    fn segment_distance<P: Points + ?Sized>(
+    fn segment_distance(
         &self,
-        rings: &P,
+        rings: &[f32],
         lo: usize,
         hi: usize,
         origin: Vec3,
@@ -310,9 +257,9 @@ impl AttachmentSurface<'_> {
         for k in 0..self.segments {
             let next = (k + 1) % self.segments;
             for [a, b, c] in [[lo + k, lo + next, hi + k], [lo + next, hi + next, hi + k]] {
-                let a = rings.at(a);
-                let e1 = rings.at(b) - a;
-                let e2 = rings.at(c) - a;
+                let a = at(rings, a);
+                let e1 = at(rings, b) - a;
+                let e2 = at(rings, c) - a;
                 let h = radial.cross(e2);
                 let det = e1.dot(h);
                 if det.abs() < 1e-18 {
@@ -373,3 +320,6 @@ fn closest(p: Vec3, a: Vec3, b: Vec3, c: Vec3) -> Vec3 {
     }
     a + ab * (vb / (va + vb + vc)) + ac * (vc / (va + vb + vc))
 }
+
+#[cfg(test)]
+mod tests;

@@ -71,6 +71,23 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
     build_inner(tree, height, params, None, None)
 }
 
+/// A wood and, for every node, where its segment meets the rings, as vertex
+/// offsets into its positions: the contacts leaves seated on it read.
+pub(crate) struct WoodWithContacts {
+    pub(crate) mesh: SurfaceMesh,
+    pub(crate) edges: Vec<Option<[usize; 4]>>,
+}
+
+pub(crate) fn build_contacts(
+    tree: &Tree,
+    height: f64,
+    params: &SurfaceParams,
+) -> Result<WoodWithContacts> {
+    let mut edges = filled(tree.nodes.len(), None)?;
+    let mesh = build_inner(tree, height, params, None, Some(&mut edges))?;
+    Ok(WoodWithContacts { mesh, edges })
+}
+
 pub(super) fn build_inner(
     tree: &Tree,
     height: f64,

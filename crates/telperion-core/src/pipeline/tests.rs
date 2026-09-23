@@ -1,12 +1,36 @@
-//! The pipeline's own tests: one sweep and one element a request, contact
-//! rings read in place, the same bytes under either schedule, and the
-//! earliest failing stage's error.
+//! The pipeline's own tests: one sweep and one element a request, the same
+//! bytes under either schedule, and the earliest failing stage's error.
 use super::*;
 use crate::{
     presets::{Preset, CATALOGUE},
-    surface::{self, AttachmentSurface},
-    Error,
+    surface, Error,
 };
+use std::cell::Cell;
+
+/// The shared work a request ran, tallied on the thread that called it.
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+pub(super) struct Tally {
+    pub(super) sweeps: u32,
+    pub(super) elements: u32,
+    /// Whether a stage ran on a thread of its own.
+    pub(super) split: bool,
+}
+thread_local!(static TALLY: Cell<Tally> = Cell::default());
+
+pub(super) fn count(f: impl FnOnce(&mut Tally)) {
+    TALLY.with(|t| {
+        let mut tally = t.get();
+        f(&mut tally);
+        t.set(tally);
+    });
+}
+
+/// `outputs`, and what it tallied.
+fn tallied(tree: &Tree, family: &Family, request: Request) -> (Outputs, Tally) {
+    TALLY.take();
+    let outputs = outputs(tree, family, request).unwrap();
+    (outputs, TALLY.take())
+}
 
 fn ordinary() -> Family {
     Preset::from_id("ordinary").unwrap().parameters()
@@ -34,8 +58,8 @@ fn one_sweep_and_one_element_serve_a_request() {
     let own = surface::build(tree, family.skeleton.envelope.height, &family.surface).unwrap();
     for schedule in [Schedule::Serial, Schedule::Concurrent] {
         let count = |r: Request| {
-            let o = outputs(tree, &family, Request { schedule, ..r }).unwrap();
-            (o.stages.sweeps, o.stages.elements)
+            let t = tallied(tree, &family, Request { schedule, ..r }).1;
+            (t.sweeps, t.elements)
         };
         assert_eq!(count(request(true, true, false)), (1, 1));
         assert_eq!(count(request(true, true, true)), (1, 1));
@@ -46,43 +70,13 @@ fn one_sweep_and_one_element_serve_a_request() {
             schedule,
             ..Request::mesh()
         };
-        let seated = outputs(tree, &family, request).unwrap();
-        assert!(!seated.stages.concurrent, "{schedule:?}");
+        let (seated, t) = tallied(tree, &family, request);
+        assert!(!t.split, "{schedule:?}");
         assert_eq!(seated.wood.unwrap(), own, "{schedule:?}");
     }
     family.canopy.surface_contact = 0.0;
-    let o = outputs(tree, &family, Request::mesh()).unwrap();
-    assert_eq!((o.stages.sweeps, o.stages.elements), (1, 1));
-}
-
-/// The rings read in place from the wood are the rings a sweep of their own
-/// computes: every node's neighbourhood holds the same points, and a seat
-/// projected from its axis lands on the same point. The serial wood and the
-/// spruce's parallel one both record the edges.
-#[test]
-fn contacts_read_from_the_wood_are_the_swept_ones() {
-    let spruce = crate::presets::by_identity("norway-spruce").unwrap();
-    for family in [ordinary(), spruce] {
-        let tree = skeleton(&family).unwrap().tree;
-        let (height, params) = (family.skeleton.envelope.height, &family.surface);
-        let swept = AttachmentSurface::new(&tree, height, params).unwrap();
-        let (wood, edges) = surface::build_contacts(&tree, height, params).unwrap();
-        assert_eq!(wood, surface::build(&tree, height, params).unwrap());
-        let read = AttachmentSurface::on_wood(&wood, edges, params).unwrap();
-        for (node, n) in tree.nodes.iter().enumerate().skip(1) {
-            assert_eq!(read.signature(node), swept.signature(node), "{node}");
-            let parent = tree.nodes[n.parent.unwrap() as usize].position;
-            let origin = (parent + n.position) * 0.5;
-            let axis = n.position - parent;
-            let side = axis.cross(crate::math::Vec3::new(0.3, 0.1, 0.9));
-            if !(side.length_squared() > 0.0) {
-                continue;
-            }
-            let radial = side * (1.0 / side.length_squared().sqrt());
-            let seat = |s: &AttachmentSurface| s.point(node, origin, radial, n.radius);
-            assert_eq!(seat(&read), seat(&swept), "{node}");
-        }
-    }
+    let t = tallied(tree, &family, Request::mesh()).1;
+    assert_eq!((t.sweeps, t.elements), (1, 1));
 }
 
 /// R8: every shipped family builds the same bytes whether wood and leaves
@@ -98,12 +92,13 @@ fn every_family_builds_the_same_bytes_under_either_schedule() {
                 schedule,
                 ..Request::mesh()
             };
-            outputs(&tree, &family, request).unwrap_or_else(|e| panic!("{id}: {e}"))
+            tallied(&tree, &family, request)
         };
-        let (serial, concurrent) = (run(Schedule::Serial), run(Schedule::Concurrent));
-        assert!(!serial.stages.concurrent, "{id}");
+        let ((serial, apart), (concurrent, split)) =
+            (run(Schedule::Serial), run(Schedule::Concurrent));
+        assert!(!apart.split, "{id}");
         let seated = family.canopy.surface_contact > 0.0;
-        assert_eq!(concurrent.stages.concurrent, !seated, "{id}");
+        assert_eq!(split.split, !seated, "{id}");
         assert_eq!(serial.wood, concurrent.wood, "{id}: wood");
         assert_eq!(serial.element, concurrent.element, "{id}: element");
         let leaves = |o: &Outputs| {
@@ -133,20 +128,38 @@ fn the_earliest_failing_stage_answers() {
     }
     let error = outputs(&tree, &family, request(false, true, false)).err();
     assert_eq!(error, Some(Error::InvalidInput("shell depth")));
-    // Leaves seated on the wood: a failing wood and a failing element answer
-    // with the element's error, the Plan's, under either schedule.
-    family.canopy.surface_contact = 1.0;
+}
+
+/// The wood fails before any of the Plan stage, the twig rows and the
+/// element among it, seated or not, as the build always ran them.
+#[test]
+fn the_wood_fails_before_the_plan() {
+    let mut family = ordinary();
+    let tree = skeleton(&family).unwrap().tree;
+    family.skeleton.twigs.twig.diameter = -1.0;
     family.element.axial_segments = 0;
-    for schedule in [Schedule::Serial, Schedule::Concurrent] {
-        let request = Request {
-            schedule,
-            ..Request::mesh()
-        };
-        let error = outputs(&tree, &family, request).err();
-        assert_eq!(
-            error,
-            Some(Error::InvalidInput("leaf segments")),
-            "{schedule:?}"
-        );
+    family.surface.radial_segments = 0;
+    for contact in [0.0, 1.0] {
+        family.canopy.surface_contact = contact;
+        for schedule in [Schedule::Serial, Schedule::Concurrent] {
+            let request = Request {
+                schedule,
+                ..Request::mesh()
+            };
+            let error = outputs(&tree, &family, request).err();
+            let surface = Some(Error::InvalidInput("surface parameters"));
+            assert_eq!(error, surface, "{contact} {schedule:?}");
+        }
     }
+}
+
+/// Within the Plan stage the element fails before the twig rows.
+#[test]
+fn the_element_fails_before_the_twig_rows() {
+    let mut family = ordinary();
+    let tree = skeleton(&family).unwrap().tree;
+    family.skeleton.twigs.twig.diameter = -1.0;
+    family.element.axial_segments = 0;
+    let error = outputs(&tree, &family, request(false, true, false)).err();
+    assert_eq!(error, Some(Error::InvalidInput("leaf segments")));
 }

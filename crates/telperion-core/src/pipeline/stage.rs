@@ -1,18 +1,16 @@
-//! The stages past the skeleton, each a call of the functions that did this
-//! work before the pipeline named it, and each run only where asked.
+//! The stages past the skeleton, each run only where the request asks.
 use super::{both, Leaves, Request, Schedule, Structure};
 use crate::{
     field::Field,
     foliage::{self, plan, Element, Instances, Reference, TwigPlacement},
     presets::Family,
-    surface::{self, AttachmentSurface, SurfaceMesh},
+    surface::{self, AttachmentSurface, WoodWithContacts},
     tree::{NodeKind, Tree},
     Error, Result,
 };
 
 /// Stage 3's artifacts: what the leaves and the field read.
-pub(super) struct Plan {
-    twig: TwigPlacement,
+pub(super) struct Prepared {
     pub(super) element: Option<Element>,
     pub(super) leaf_plan: Option<plan::Plan>,
     /// The quantisation box, present exactly where leaves are placed.
@@ -30,19 +28,21 @@ pub(super) fn twig(family: &Family) -> Result<TwigPlacement> {
 }
 
 /// The element and the leaf plan, each only where read, and the box where
-/// leaves are placed.
-pub(super) fn plan(
+/// leaves are placed. The twig's error answers after the element's, as it
+/// always did.
+pub(super) fn prepare(
     tree: &Tree,
     family: &Family,
     request: Request,
-    twig: TwigPlacement,
+    twig: &Result<TwigPlacement>,
     places: bool,
-) -> Result<Plan> {
+) -> Result<Prepared> {
     let element = if request.leaves || request.field.is_some() {
         Some(foliage::build_element(family.element)?)
     } else {
         None
     };
+    let twig = twig.clone()?;
     let (mut leaf_plan, mut ms) = (None, 0.0);
     if let (Some(limb_order), Some(element)) = (request.field, element.as_ref()) {
         let start = (request.clock)();
@@ -58,8 +58,7 @@ pub(super) fn plan(
         ms = (request.clock)() - start;
     }
     let reference = places.then(|| Reference::of(family)).transpose()?;
-    Ok(Plan {
-        twig,
+    Ok(Prepared {
         element,
         leaf_plan,
         reference,
@@ -67,86 +66,71 @@ pub(super) fn plan(
     })
 }
 
-/// The wood surface and its time; where leaves are seated on it, the node
-/// edges that read its vertices as their contact rings.
-pub(super) struct Wood {
-    pub(super) mesh: SurfaceMesh,
-    edges: Vec<Option<[usize; 4]>>,
-    pub(super) ms: f64,
-}
-impl Wood {
-    /// The wood's vertices and the edges into them, for the leaves to seat on.
-    pub(super) fn seat(&mut self) -> Seat<'_> {
-        (&self.mesh, std::mem::take(&mut self.edges))
-    }
-}
-pub(super) type Seat<'w> = (&'w SurfaceMesh, Vec<Option<[usize; 4]>>);
-
+/// The wood surface and its time, with its contacts where leaves are seated
+/// on it.
 pub(super) fn wood(
     tree: &Tree,
     family: &Family,
     request: Request,
     seated: bool,
-) -> Result<Option<Wood>> {
+) -> Result<Option<(WoodWithContacts, f64)>> {
     if !request.wood {
         return Ok(None);
     }
     let start = (request.clock)();
     let (height, params) = (family.skeleton.envelope.height, &family.surface);
-    let (mesh, edges) = if seated {
+    let wood = if seated {
         surface::build_contacts(tree, height, params)?
     } else {
-        (surface::build(tree, height, params)?, Vec::new())
+        WoodWithContacts {
+            mesh: surface::build(tree, height, params)?,
+            edges: Vec::new(),
+        }
     };
-    let ms = (request.clock)() - start;
-    Ok(Some(Wood { mesh, edges, ms }))
+    Ok(Some((wood, (request.clock)() - start)))
 }
 
-/// Placed leaves, then the rings, placement and cull times, and whether the
-/// leaves swept rings of their own.
-pub(super) struct Placed {
-    pub(super) leaves: Leaves,
-    pub(super) ms: [f64; 3],
-    pub(super) swept: bool,
-}
+/// The leaves with their rings, placement and cull times.
+pub(super) type TimedLeaves = Option<(Leaves, [f64; 3])>;
 
 /// The leaves and the field read from the plan, side by side where the
 /// schedule allows; neither reads the other.
-pub(super) fn leafy(
+pub(super) fn leaves_and_field(
     tree: &Tree,
     family: &Family,
     request: Request,
-    plan: &Plan,
-    seat: Option<Seat<'_>>,
-) -> (Result<Option<Placed>>, Result<Option<(Field, f64)>>) {
-    let both_run = plan.reference.is_some() && plan.leaf_plan.is_some();
-    let concurrent = request.schedule == Schedule::Concurrent && both_run;
-    let leaves = || leaves(tree, family, request, plan, seat);
-    let field = || planned_field(tree, request, plan);
-    let (leaves, field, _) = both(concurrent, leaves, field);
-    (leaves, field)
+    prepared: &Prepared,
+    twig: Option<TwigPlacement>,
+    seat: Option<&WoodWithContacts>,
+) -> (Result<TimedLeaves>, Result<Option<(Field, f64)>>) {
+    let both_run = prepared.reference.is_some() && prepared.leaf_plan.is_some();
+    both(
+        request.schedule == Schedule::Concurrent && both_run,
+        || leaves(tree, family, request, prepared, twig, seat),
+        || planned_field(tree, request, prepared),
+    )
 }
 
 /// Placement and the cull, timed apart, and the retained leaves' bounds
-/// where leaves were asked for. Leaves seated on the wood read its vertices
-/// where it was built, else sweep the rings here; they free them once placed.
+/// where leaves were asked for. Leaves seated on a wood read its rings in
+/// place, else sweep their own; either way they free them once placed.
 fn leaves(
     tree: &Tree,
     family: &Family,
     request: Request,
-    plan: &Plan,
-    seat: Option<Seat<'_>>,
-) -> Result<Option<Placed>> {
-    let (Some(reference), Some(element)) = (plan.reference, plan.element.as_ref()) else {
+    prepared: &Prepared,
+    twig: Option<TwigPlacement>,
+    seat: Option<&WoodWithContacts>,
+) -> Result<TimedLeaves> {
+    let (Some(reference), Some(element)) = (prepared.reference, prepared.element.as_ref()) else {
         return Ok(None);
     };
     let clock = request.clock;
     let envelope = family.skeleton.envelope;
     let start = clock();
-    let swept = seat.is_none() && family.canopy.surface_contact > 0.0;
     let contacts = match seat {
-        Some((mesh, edges)) => Some(AttachmentSurface::on_wood(mesh, edges, &family.surface)?),
-        None if swept => Some(AttachmentSurface::new(
+        Some(wood) => Some(AttachmentSurface::on_wood(wood, &family.surface)?),
+        None if family.canopy.surface_contact > 0.0 => Some(AttachmentSurface::new(
             tree,
             envelope.height,
             &family.surface,
@@ -159,7 +143,7 @@ fn leaves(
         envelope,
         family.skeleton.seed,
         family.canopy,
-        Some(plan.twig),
+        twig,
         contacts.as_ref(),
         reference,
     )?;
@@ -179,12 +163,16 @@ fn leaves(
         bounds,
     };
     let ms = [rung - start, placed_at - rung, clock() - placed_at];
-    Ok(Some(Placed { leaves, ms, swept }))
+    Ok(Some((leaves, ms)))
 }
 
 /// The field read from the leaf plan, where the plan describes the family.
-fn planned_field(tree: &Tree, request: Request, plan: &Plan) -> Result<Option<(Field, f64)>> {
-    match (request.field, plan.leaf_plan.as_ref()) {
+fn planned_field(
+    tree: &Tree,
+    request: Request,
+    prepared: &Prepared,
+) -> Result<Option<(Field, f64)>> {
+    match (request.field, prepared.leaf_plan.as_ref()) {
         (Some(_), Some(p)) => {
             let start = (request.clock)();
             Ok(Some((Field::planned(tree, p)?, (request.clock)() - start)))
