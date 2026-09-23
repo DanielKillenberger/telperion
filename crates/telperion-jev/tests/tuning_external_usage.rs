@@ -40,7 +40,7 @@ fn pinned_external_usage_is_additive_and_cannot_be_replayed_or_forged() {
         reason: "scoped external study".into(),
         ledgers: vec![pin.clone()],
     };
-    assert_eq!(good.verify(20, 30, &Default::default()).unwrap(), 30);
+    assert_eq!(good.verify(20, Some(30), &Default::default()).unwrap(), 30);
     for variant in [
         "previous",
         "next",
@@ -88,7 +88,7 @@ fn pinned_external_usage_is_additive_and_cannot_be_replayed_or_forged() {
                 u.ledgers[0].sha256 = telperion_jev::sha256_hex(&b);
             }
         }
-        assert!(u.verify(20, cap, &old).is_err(), "{variant}");
+        assert!(u.verify(20, Some(cap), &old).is_err(), "{variant}");
     }
     std::fs::remove_file(path).unwrap();
 }

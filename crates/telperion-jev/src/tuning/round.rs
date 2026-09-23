@@ -56,8 +56,11 @@ impl Run {
     /// stopped asking it every round.
     fn exhausted(&self) -> Option<String> {
         let b = &self.budget;
-        (b.evaluations >= b.max_evaluations || b.images >= b.max_images || b.rounds >= b.max_rounds)
-            .then(|| "hard budget exhausted".to_string())
+        let at = |spent: u64, cap: Option<u64>| cap.is_some_and(|cap| spent >= cap);
+        (at(b.evaluations, b.max_evaluations)
+            || at(b.images, b.max_images)
+            || at(b.rounds, b.max_rounds))
+        .then(|| "hard budget exhausted".to_string())
     }
 
     /// Code decides the round boundary. The hard budget and preflight checks in

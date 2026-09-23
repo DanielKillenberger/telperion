@@ -96,7 +96,10 @@ pub struct Dispatch {
     pub scope: String,
     /// Ledger identities of the judgments that chose this route.
     pub judgments: Vec<String>,
-    pub reserved_tokens: u64,
+    /// The allowance the dispatch opened with; unknown with no attempt bound
+    /// and no usage reported yet.
+    #[serde(default)]
+    pub reserved_tokens: Option<u64>,
     pub opened_at: String,
     #[serde(default)]
     pub result: Option<DispatchResult>,

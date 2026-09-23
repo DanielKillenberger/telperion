@@ -193,6 +193,10 @@ pub trait Services {
     fn max_candidates(&self) -> u64 {
         super::live::CANDIDATE_LIMIT
     }
+    /// Consecutive rounds that keep nothing before the run pauses as a runaway.
+    fn runaway_rounds(&self) -> u64 {
+        super::runaway::ROUNDS
+    }
     fn route_questions(&self, state: &Run) -> Value {
         super::judgments::routes(&Default::default(), state.approved_priorities())
     }
@@ -265,6 +269,9 @@ pub struct Run {
     /// last adopted bundle was drawn at.
     #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
     pub strides: std::collections::BTreeMap<String, super::stride::Standing>,
+    /// The trailing rounds that kept nothing, and the spend they opened on.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub unkept: Option<super::runaway::Streak>,
 }
 
 fn merge(target: &mut Value, patch: &Value) {
@@ -437,9 +444,9 @@ impl Run {
     }
     pub fn round_basis(&self, services: &dyn Services) -> Result<Basis, String> {
         let mut basis = self.basis("targeted tuning round");
-        basis.proposed_action = format!("One bounded round, max four single-dial candidates. Existing authored dials only: {}. Code enforces bounds/integer type, measures numeric gates/node cap BEFORE render, chooses only a lower feasible five-metric score, then separately verifies all required visual cells at fixed/fresh seeds. No generator/renderer source changes or shipped preset edits; candidate overlays only. No shipping or sweep. Stop or hand off if unsupported; at most {} remaining rounds.",
+        basis.proposed_action = format!("One bounded round, max four single-dial candidates. Existing authored dials only: {}. Code enforces bounds/integer type, measures numeric gates/node cap BEFORE render, chooses only a lower feasible five-metric score, then separately verifies all required visual cells at fixed/fresh seeds. No generator/renderer source changes or shipped preset edits; candidate overlays only. No shipping or sweep. Stop or hand off if unsupported; {}.",
             serde_json::to_string(&self.dials.iter().map(|d| serde_json::json!({"id":d.id,"meaning":d.meaning,"current":self.effective.pointer(&d.path),"min":d.min,"max":d.max,"integer":d.integer,"small":d.small,"substantial":d.substantial})).collect::<Vec<_>>()).unwrap(),
-            self.budget.max_rounds.saturating_sub(self.budget.rounds));
+            self.budget.max_rounds.map_or("no round cap".into(), |cap| format!("at most {} remaining rounds", cap.saturating_sub(self.budget.rounds))));
         let mut finalist = self.trials[self.current.ok_or("no current trial")?].clone();
         finalist.round = self.budget.rounds + 1;
         let next = services
@@ -494,7 +501,7 @@ impl Run {
             .ok_or("usage overflow")?;
         self.pending = None;
         self.record_ledger(answer.ledger);
-        if actual > reserved || self.budget.tokens > self.budget.max_tokens {
+        if actual > reserved || super::state::over(self.budget.tokens, self.budget.max_tokens) {
             return Err("judgment exceeded reservation".into());
         }
         Ok(answer.value)
@@ -612,17 +619,19 @@ impl Run {
             if !self.priority_gate(services, save)? {
                 return Ok(());
             }
+            let at = |spent: u64, cap: Option<u64>| cap.is_some_and(|cap| spent >= cap);
             if self
                 .budget
                 .visual_passes
-                .zip(self.budget.max_visual_passes)
-                .is_none_or(|(used, cap)| used >= cap)
+                .is_none_or(|used| at(used, self.budget.max_visual_passes))
             {
                 return Err("visual pass limit exhausted before routing".into());
             }
-            if self.budget.rounds >= self.budget.max_rounds {
+            if at(self.budget.rounds, self.budget.max_rounds) {
                 return Err("hard round limit exhausted before routing".into());
             }
+            self.runaway(services.runaway_rounds())?;
+            let opening = super::runaway::Spend::of(&self.budget);
             let basis = self.round_basis(services)?;
             let per_priority = self.approved_priorities().map_or(0, |a| a.ordered.len()) as u64;
             let planned = basis
@@ -642,7 +651,7 @@ impl Run {
                 .budget
                 .tokens
                 .checked_add(planned)
-                .is_none_or(|n| n > self.budget.max_tokens)
+                .is_none_or(|n| super::state::over(n, self.budget.max_tokens))
             {
                 return Err(format!(
                     "round preflight cannot fit: need {planned} tokens before any dispatch"
@@ -671,6 +680,7 @@ impl Run {
             // One bundle of every dial Jev supported, judged on one sheet.
             if services.selection() == super::progress::Selection::Bundle {
                 let kept = super::bundle::round(self, proposals, services, save)?;
+                self.close_round(kept, opening, save)?;
                 if kept && self.bootstrap_finalist(save)? {
                     return Ok(());
                 }
@@ -761,7 +771,7 @@ impl Run {
             ) else {
                 self.routes
                     .push(super::progress::stall(services.selection()));
-                save(self)?;
+                self.close_round(false, opening, save)?;
                 continue;
             };
             let restore = super::veto::restore_point(self);
@@ -770,7 +780,8 @@ impl Run {
             self.overrides = self.trials[best].overrides.clone();
             self.assess(services, save)?;
             // The look that follows the move can take it back.
-            super::veto::settle(self, services, save, restore, best)?;
+            let kept = super::veto::settle(self, services, save, restore, best)?;
+            self.close_round(kept, opening, save)?;
             if self.bootstrap_finalist(save)? {
                 return Ok(());
             }

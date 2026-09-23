@@ -69,17 +69,23 @@ pub fn assess(
     {
         return Err("missing bounded attempt basis or unknown prior usage".into());
     }
-    let next = basis
-        .next_tokens
-        .filter(|n| *n > 0)
-        .ok_or("unknown next token allowance")?;
+    // The next attempt's allowance is only needed to test it against a token
+    // cap; with none set there is nothing to fit it into.
+    let next = match budget.max_tokens {
+        Some(_) => basis
+            .next_tokens
+            .filter(|n| *n > 0)
+            .ok_or("unknown next token allowance")?,
+        None => basis.next_tokens.unwrap_or(0),
+    };
+    let at = |spent: u64, cap: Option<u64>| cap.is_some_and(|cap| spent >= cap);
     if budget
         .tokens
         .checked_add(next)
-        .is_none_or(|n| n > budget.max_tokens)
-        || budget.evaluations >= budget.max_evaluations
-        || budget.images >= budget.max_images
-        || budget.rounds >= budget.max_rounds
+        .is_none_or(|n| super::state::over(n, budget.max_tokens))
+        || at(budget.evaluations, budget.max_evaluations)
+        || at(budget.images, budget.max_images)
+        || at(budget.rounds, budget.max_rounds)
     {
         return Err("hard budget exhausted".into());
     }
@@ -163,7 +169,7 @@ impl ExternalUsage {
     pub fn verify(
         &self,
         current: u64,
-        cap: u64,
+        cap: Option<u64>,
         imported: &std::collections::HashSet<String>,
     ) -> Result<u64, String> {
         if self.previous_tokens != current
@@ -218,7 +224,7 @@ impl ExternalUsage {
                 .ok_or("external usage overflow")?;
         }
         let next = current.checked_add(sum).ok_or("external total overflow")?;
-        if sum == 0 || next != self.next_tokens || next > cap {
+        if sum == 0 || next != self.next_tokens || super::state::over(next, cap) {
             return Err("external usage sum or cap mismatch".into());
         }
         Ok(next)
@@ -314,11 +320,18 @@ pub struct PilotAuthority {
     pub purpose: String,
     pub reason: String,
     pub next_identity: String,
-    pub max_tokens: u64,
-    pub max_rounds: u64,
-    pub max_evaluations: u64,
-    pub max_images: u64,
-    pub max_visual_passes: u64,
+    /// The caps the run carries, restated exactly; a run with none restates
+    /// none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_tokens: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_rounds: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_evaluations: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_images: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_visual_passes: Option<u64>,
 }
 impl PilotAuthority {
     pub fn verify(&self, identity: &str, budget: &Budget) -> Result<(), String> {
@@ -329,7 +342,7 @@ impl PilotAuthority {
             || self.max_rounds != budget.max_rounds
             || self.max_evaluations != budget.max_evaluations
             || self.max_images != budget.max_images
-            || Some(self.max_visual_passes) != budget.max_visual_passes
+            || self.max_visual_passes != budget.max_visual_passes
         {
             return Err("experimental pilot authority mismatch".into());
         }

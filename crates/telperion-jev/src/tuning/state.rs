@@ -102,18 +102,33 @@ pub fn ready(required: &[Cell], identity: &str, assessment: &Visual) -> bool {
             == required.len()
 }
 
-/// Reservations are charged before dispatch and persisted, including interrupted work.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// Whether a spend passes a cap. An absent cap is no cap.
+pub fn over(spent: u64, cap: Option<u64>) -> bool {
+    cap.is_some_and(|cap| spent > cap)
+}
+
+/// Reservations are charged before dispatch and persisted, including
+/// interrupted work. Spend is always counted; every cap is optional, and one
+/// the config leaves out is no cap (fn-117).
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Budget {
+    #[serde(default)]
     pub evaluations: u64,
+    #[serde(default)]
     pub images: u64,
+    #[serde(default)]
     pub tokens: u64,
+    #[serde(default)]
     pub rounds: u64,
-    pub max_evaluations: u64,
-    pub max_images: u64,
-    pub max_tokens: u64,
-    pub max_rounds: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_evaluations: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_images: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_tokens: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_rounds: Option<u64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub visual_passes: Option<u64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -121,18 +136,24 @@ pub struct Budget {
 }
 
 impl Budget {
+    /// A fresh run's balance: the config's opening spend, with the visual
+    /// counter started at zero when the config names none.
+    pub fn opening(&self) -> Self {
+        let mut budget = self.clone();
+        budget.visual_passes.get_or_insert(0);
+        budget
+    }
     /// An opening balance carried from audited prior spend must already fit its
     /// own caps; otherwise the first reservation would fail with prior cost
     /// silently blamed on this run.
     pub fn validate(&self) -> Result<(), String> {
-        if self.evaluations > self.max_evaluations
-            || self.images > self.max_images
-            || self.tokens > self.max_tokens
-            || self.rounds > self.max_rounds
+        if over(self.evaluations, self.max_evaluations)
+            || over(self.images, self.max_images)
+            || over(self.tokens, self.max_tokens)
+            || over(self.rounds, self.max_rounds)
             || self
                 .visual_passes
-                .zip(self.max_visual_passes)
-                .is_some_and(|(used, cap)| used > cap)
+                .is_some_and(|used| over(used, self.max_visual_passes))
         {
             return Err("opening balance exceeds its own caps".into());
         }
@@ -144,7 +165,7 @@ impl Budget {
             .ok_or("visual usage requires reconciliation")?
             .checked_add(1)
             .ok_or("visual usage overflow")?;
-        if next > self.max_visual_passes.ok_or("missing visual ceiling")? {
+        if over(next, self.max_visual_passes) {
             return Err("visual pass limit exhausted".into());
         }
         self.visual_passes = Some(next);
@@ -172,7 +193,7 @@ impl Budget {
         if next
             .iter()
             .zip(limits)
-            .any(|(v, limit)| v.is_none_or(|v| v > limit))
+            .any(|(v, limit)| v.is_none_or(|v| over(v, limit)))
         {
             return Err("hard budget exhausted".into());
         }

@@ -420,5 +420,6 @@ pub fn progress_run(trials: Vec<telperion_jev::tuning::evaluation::Trial>) -> Ru
         visual_bootstrap: true,
         reviewer_passed_unqualified: false,
         strides: Default::default(),
+        unkept: None,
     }
 }

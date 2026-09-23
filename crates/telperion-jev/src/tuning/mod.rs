@@ -2,6 +2,7 @@
 pub mod actions;
 pub mod bundle;
 pub mod calibration;
+pub mod caps;
 pub mod command;
 pub mod continuation;
 pub mod digest;
@@ -24,6 +25,7 @@ pub mod replay;
 pub mod result;
 pub mod round;
 pub mod routing;
+pub mod runaway;
 pub mod sheet;
 pub mod state;
 pub mod stride;

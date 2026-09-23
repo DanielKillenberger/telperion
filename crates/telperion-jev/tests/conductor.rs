@@ -195,10 +195,10 @@ fn config(root: &Path) -> Config {
         tuning_loop: PathBuf::from("unused"),
         stage_args: vec![],
         budget: BudgetConfig {
-            max_tokens: 200_000,
-            attempt_max_tokens: 40_000,
-            max_dispatches: 8,
-            max_tuning_revisions: 3,
+            max_tokens: Some(200_000),
+            attempt_max_tokens: Some(40_000),
+            max_dispatches: Some(8),
+            max_tuning_revisions: Some(3),
         },
         judgment_model: "jev-latest".into(),
         continuation_validated: true,
@@ -636,7 +636,7 @@ fn an_unjustified_next_attempt_pauses_with_budget_remaining_and_a_stage_halt_rou
         run.dispatches.is_empty(),
         "no frontier attempt was bought first"
     );
-    assert!(run.budget.remaining() > 100_000);
+    assert!(run.budget.remaining() > Some(100_000));
     assert!(run
         .routes
         .iter()
@@ -694,7 +694,7 @@ fn an_unjustified_next_attempt_pauses_with_budget_remaining_and_a_stage_halt_rou
                 source.id
             ),
             judgments: vec![],
-            reserved_tokens: 1,
+            reserved_tokens: Some(1),
             opened_at: String::new(),
             result: None,
         });
@@ -707,4 +707,37 @@ fn an_unjustified_next_attempt_pauses_with_budget_remaining_and_a_stage_halt_rou
         plan::decision_action(&table, &run, &source),
         Next::AwaitOwner { .. }
     ));
+}
+
+/// fn-117: a config with no budget block carries no cap. The tuning revision
+/// runs where a set cap pauses, and the spend is recorded and reported either way.
+#[test]
+fn a_run_without_a_budget_block_runs_where_a_set_cap_pauses_and_records_its_spend() {
+    for (cap, expect) in [
+        (None, "tuning revision 1"),
+        (Some(0), "paused: tuning revision cap"),
+    ] {
+        let root = scratch("uncapped");
+        let mut config = config(&root);
+        let mut raw = serde_json::to_value(&config).unwrap();
+        raw.as_object_mut().unwrap().remove("budget");
+        write(&root.join("conductor.json"), &raw);
+        config = Config::load(&root.join("conductor.json")).unwrap();
+        assert_eq!(config.budget, BudgetConfig::default());
+        config.budget.max_tuning_revisions = cap;
+        let executor = Scripted {
+            results: Mutex::new(vec![result(&root, "run-1", false, vec![])]),
+            stage_stops: Mutex::new(BTreeMap::new()),
+        };
+        let script = Script::new();
+        let mut run = Run::open(&config).unwrap();
+        drive(&script, &config, &mut run, &executor);
+        let (word, _) = drive(&script, &config, &mut run, &executor);
+        assert!(word.contains(expect), "{cap:?}: {word}");
+        if cap.is_none() {
+            assert!(run.budget.tokens >= 1000, "{}", run.budget.tokens);
+            let report = report::compute(&config, &run);
+            assert_eq!(report["tokens_total_known"], run.budget.tokens);
+        }
+    }
 }

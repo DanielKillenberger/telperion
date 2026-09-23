@@ -29,13 +29,21 @@ species-conductor cases
 
 The config names the species and its spec, the catalogue folder and the run
 directory, the Flow tree, the tuning loop's config, the runbook's binaries,
-the total token allowance and the per-attempt bound, and whether the
-continuation question set has been validated. The run record and every
-other file the conductor writes live under `RUN/conductor/`.
+and whether the continuation question set has been validated. The run record
+and every other file the conductor writes live under `RUN/conductor/`.
+
+The config needs no `budget` block. Each of its caps (`max_tokens`,
+`attempt_max_tokens`, `max_dispatches`, `max_tuning_revisions`) is optional
+and an absent one is no cap: while the loop is being built, a run is not
+stopped for what it spends (owner, 2026-09-23). A config that sets a cap
+still pauses at it. The spend is recorded either way, in the run record, the
+handoff and the report, so a usual run's cost can be learned and an
+outlying one flagged later.
 
 ## What code decides and what Jev answers
 
-Code owns stage eligibility, the budgets, dispatch tracking and resume. The
+Code owns stage eligibility, the spend record, any cap a config sets,
+dispatch tracking and resume. The
 stages carry their own idempotence keys, so the conductor runs them in order
 and a current stage does nothing; a full pass records a fingerprint of the
 manifest, the resolutions and every landed fix, and a landing expires it. An
@@ -59,8 +67,10 @@ through the shared caller with a ledger entry:
 
 The shared continuation trio (`tuning/continuation.rs`) runs before every
 design or implementation dispatch and every tuning revision after the first,
-and code combines it with the hard limits under the contract every tuning
-run already obeys.
+and code combines it with any cap the config sets under the contract every
+tuning run already obeys. With no attempt bound and no usage reported yet
+the next attempt's estimate is recorded as unknown; it is needed only to fit
+a token cap.
 
 ## The policy
 
@@ -84,9 +94,9 @@ model at dispatch time, and the result records the model and effort that
 actually ran, so the two are independent. A failed cheap implementation goes
 to the strong tier at low effort; a failed low-effort one to medium; a
 design that leaves unknowns goes back to design at high effort; three
-attempts without a verified result, a hard limit, an unavailable or
+attempts without a verified result, a set cap reached, an unavailable or
 unjustified continuation judgment, and any signal the table cannot read all
-pause for the human, budget remaining or not.
+pause for the human, whatever the spend.
 
 `species-conductor cases` scores `data/cases/conductor.json` against the
 policy and the continuation contract with no call, held-out cases apart
@@ -123,11 +133,12 @@ covered attaches the open spec as a dependency, new writes
 `RUN/conductor/gaps/<gap>.json` in the shape fn-95 shares with the studio
 and pauses. The handoff (`RUN/conductor/handoff-<pause>.json` and `.md`)
 carries the current renders or why they are missing, the unresolved
-requirement, every attempt and its outcome, the spend, the remaining
-budget, the proposed next action with its allowance and basis, the risk
+requirement, every attempt and its outcome, the spend, what remains under
+each cap the config sets (null for none), the proposed next action with its
+allowance and basis, the risk
 signals and the decision requested. Nothing dispatches while it stands.
 `resume` needs a decision that names the pause, the identity and the action
-exactly, with who and why; spent budgets stay spent and the evidence is
+exactly, with who and why; spend stays spent and the evidence is
 rechecked on the next step. A spec the owner mints for a packaged gap is
 attached with `attach`, once; attaching it again is a no-op.
 
