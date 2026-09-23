@@ -89,6 +89,9 @@ struct Uniforms {
     /// strength, the leaf's cells per leaf length and its strength.
     grain: vec4<f32>,
     plate_profile: vec4<f32>, // edge shape, reserved, reserved, reserved
+    /// The colour a withered leaf has aged to, both faces alike: the dead
+    /// fronds a rosette keeps below its living crown.
+    leaf_dead: vec4<f32>, // RGB, reserved
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;

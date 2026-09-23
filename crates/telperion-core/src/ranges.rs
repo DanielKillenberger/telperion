@@ -63,6 +63,14 @@ pub const fn default_acanthophyll_length() -> f64 {
 pub const fn default_acanthophyll_pitch() -> f64 {
     80.0
 }
+/// The skirt's own neutrals: a dead frond hung well below level, dried to
+/// four fifths of a living one's length. Both stand off their rail's end.
+pub const fn default_skirt_pitch() -> f64 {
+    140.0
+}
+pub const fn default_skirt_length() -> f64 {
+    0.8
+}
 pub const fn default_max_droop() -> f64 {
     0.35
 }

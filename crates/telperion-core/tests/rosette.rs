@@ -48,10 +48,11 @@ fn the_palm_bears_a_frond_for_every_row_its_table_states() {
     let f = family("date-palm", 1);
     let (tree, crown) = placed(&f);
     assert_eq!(apices(&tree).len(), f.skeleton.habit.stems as usize);
+    // fn-120's skirt hangs its dead fronds under the same crown.
     assert_eq!(
         crown.placed(),
         f.skeleton.habit.stems as usize
-            * f.canopy.rosette_fronds as usize
+            * (f.canopy.rosette_fronds + f.canopy.skirt_fronds) as usize
             * f.canopy.leaflet_count as usize,
         "a frond crown is stems x fronds x leaflets and nothing besides"
     );
@@ -64,7 +65,10 @@ fn no_leaflet_stands_below_the_frond_crown() {
     let f = family("date-palm", 1);
     let (tree, crown) = placed(&f);
     let apices = apices(&tree);
-    let reach = f.canopy.rosette_depth + f.canopy.rachis_length;
+    // The skirt continues the crown's spacing below its oldest living frond.
+    let last = f64::from(f.canopy.rosette_fronds + f.canopy.skirt_fronds - 1);
+    let spacing = f.canopy.rosette_depth / f64::from(f.canopy.rosette_fronds - 1);
+    let reach = spacing * last + f.canopy.rachis_length;
     for i in 0..crown.placed() {
         let at = crown.position(i);
         let nearest = apices
@@ -213,6 +217,9 @@ fn every_new_row_is_refused_by_its_own_name() {
     refuse(|f| f.canopy.acanthophylls = 257);
     refuse(|f| f.canopy.acanthophyll_length = 1.5);
     refuse(|f| f.canopy.acanthophyll_pitch = 91.);
+    refuse(|f| f.canopy.skirt_fronds = 129);
+    refuse(|f| f.canopy.skirt_pitch = 181.);
+    refuse(|f| f.canopy.skirt_length = 1.5);
 }
 
 /// R3 (fn-110): the first leaflets of a frond are borne as spines. Each one is
