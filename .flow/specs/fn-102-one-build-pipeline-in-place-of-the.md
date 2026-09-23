@@ -49,7 +49,7 @@ The specimen view is not a copy of the mature recipe: it grows through the timel
 
 ## Edge Cases & Constraints
 
-- A request for an output whose stage fails returns the same error as today; when two concurrent stages fail, the earlier stage's error in the order Skeleton, Plan, wood, leaves, field, structure is returned. [inferred]
+- A request for an output whose stage fails returns the same error as today; when several stages fail, under either schedule, the error base returned is returned: base built the wood before the element, the twig rows and the leaf plan, so the order is Skeleton, wood, Plan, leaves, field, structure (host, 2026-09-24, corrected against base's `mesh::assemble` and binding; the first draft's Plan-before-wood order was an unchecked inference). [inferred, checked]
 - The binding's timing metadata keeps its per-stage fields and meanings; under concurrency each stage's time is its own wall time and `coreMs` the whole request. [inferred]
 - The growth path stays buildable and pinned and is not routed through anything new. [inferred]
 - A family with zero surface contact builds no ring sweep for its leaves, as today. [inferred]
