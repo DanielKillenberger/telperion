@@ -230,6 +230,10 @@ mod tests {
             reason: None,
             visual_outcome: None,
             review: None,
+            moves: vec![],
+            adopted: false,
+            stood: None,
+            rolled_back: None,
         }
     }
 
