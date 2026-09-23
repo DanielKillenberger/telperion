@@ -11,6 +11,8 @@ use std::process::ExitCode;
 
 use telperion_jev::caller::{load_key, UreqTransport};
 use telperion_jev::pipeline::adapter::{FetchAdapter, FirecrawlCli, FixtureAdapter, RawSource};
+use telperion_jev::pipeline::consume::owner_stops;
+use telperion_jev::pipeline::decision::read_decisions;
 use telperion_jev::pipeline::gap::cli as gap_cli;
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::known::{flow_root, KnownSources};
@@ -135,7 +137,20 @@ fn run(stage: &str, paths: &Paths, args: &[String]) -> Result<String, String> {
         "report" => describe(report::run(paths)),
         _ => unreachable!("stage list checked above"),
     };
-    outcome.map(|word| format!("{stage}: {word}"))
+    outcome.map(|word| format!("{stage}: {word}{}", needs_human(paths)))
+}
+
+/// The line that stops the run for the owner: every open decision the
+/// requirements table raised, or nothing.
+fn needs_human(paths: &Paths) -> String {
+    let stops = read_decisions(&paths.decisions())
+        .map(|list| owner_stops(&list))
+        .unwrap_or_default();
+    if stops.is_empty() {
+        String::new()
+    } else {
+        format!("\nNEEDS_HUMAN: {}", stops.join(", "))
+    }
 }
 
 fn describe<T: Outcome, E: std::fmt::Display>(result: Result<T, E>) -> Result<String, String> {

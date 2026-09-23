@@ -47,7 +47,7 @@
     {"when": {}, "route": "human", "why": "no row justified an unattended route"}
   ],
   "decisions": {
-    "note": "Decision kinds a cheap agent may resolve under policy, with the options it may choose; every other kind and option is the owner's. Lowering a bar, overriding a ruling or changing a boundary is never routine.",
+    "note": "Decision kinds a cheap agent may resolve under policy, with the options it may choose; every other kind and option is the owner's. Lowering a bar, overriding a ruling or changing a boundary is never routine. requirements-unmet (fn-118) is the owner's: its table bar is never lowered and its sources are the owner's to add.",
     "routine": {
       "unavailable-source": ["retry", "replace-source", "drop-source"],
       "coverage-gap": ["accept-rows", "fix-table", "drop-table"],

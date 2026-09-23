@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ROOT, CATALOGUE, readSpecies } from './catalogue-pages.mjs';
 import { rightsPermitFullCopy, renderSourceCopy, sourceCopyPath } from './catalogue-sources.mjs';
-import { validateArticle, staleInputs } from './catalogue-article.mjs';
+import { validateArticle, staleInputs, writeArticle } from './catalogue-article.mjs';
 import { run } from './catalogue-check.mjs';
 
 const SPECIES = 'oregon-white-oak';
@@ -143,5 +143,26 @@ describe('the article', () => {
     edit(article(root), (text) => text.replace(/^## Bark\n[\s\S]*?(?=^## Leaves)/m, '## Bark\n\n'));
     const failures = validateArticle(root, SPECIES, readSpecies(root, SPECIES));
     expect(failures).toContain(`${CATALOGUE}/${SPECIES}/ARTICLE.md: section "Bark" is unfilled`);
+  });
+
+  it('carries an appearance block once the record holds appearance ranges', () => {
+    const root = sandbox();
+    const where = `${CATALOGUE}/${SPECIES}/ARTICLE.md`;
+    expect(validateArticle(root, SPECIES, readSpecies(root, SPECIES))
+      .some((failure) => failure.includes('appearance'))).toBe(false);
+    edit(join(root, CATALOGUE, SPECIES, 'packet', 'profile.json'), (text) => {
+      const profile = JSON.parse(text);
+      profile.profiles[0].appearance = { bark_colour: {
+        level: 'pale_grey', summary: 'Light, silvery or pale grey bark', sources: ['OSU-OAK'],
+        ranges: { bark_red: [0.35, 0.6], bark_green: [0.33, 0.58], bark_blue: [0.3, 0.55] },
+      } };
+      return JSON.stringify(profile);
+    });
+    expect(validateArticle(root, SPECIES, readSpecies(root, SPECIES)))
+      .toContain(`${where}: generated block appearance is missing`);
+    writeArticle(root, SPECIES);
+    const written = readFileSync(article(root), 'utf8');
+    expect(written).toContain('| bark_colour | pale_grey | Light, silvery or pale grey bark | bark_red | 0.35 to 0.6 | OSU-OAK |');
+    expect(written.indexOf('generated: appearance')).toBeLessThan(written.indexOf('## What the record does not know'));
   });
 });

@@ -12,7 +12,9 @@ use super::canon::{canonical_sha256, file_sha256, read_json, CanonError};
 use super::curve::{BelowFirstRow, GouldCoefficients};
 use super::routes::{RelationLevel, ValueTable};
 
-pub const MANIFEST_SCHEMA_VERSION: u32 = 1;
+/// The version new manifests are written at. Version 1 still loads; from
+/// version 2 the requirements table binds the manifest's coverage.
+pub const MANIFEST_SCHEMA_VERSION: u32 = 2;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Taxon {
@@ -145,6 +147,15 @@ pub struct Described {
     pub table: ValueTable,
 }
 
+/// An appearance trait the literature must describe. Its level table is the
+/// requirements table's; select scores it and code copies the level's ranges
+/// into the profile, and nothing renders it.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Appearance {
+    pub trait_name: String,
+    pub sources: Vec<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Transfer {
     pub dial: String,
@@ -185,6 +196,8 @@ pub struct Manifest {
     pub curves: Option<Curves>,
     #[serde(default)]
     pub described: Vec<Described>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub appearance: Vec<Appearance>,
     #[serde(default)]
     pub transfers: Vec<Transfer>,
     #[serde(default)]
@@ -228,9 +241,9 @@ pub fn load(path: &Path) -> Result<Admitted, ManifestError> {
 
 pub fn validate(m: &Manifest) -> Result<(), ManifestError> {
     let bad = |msg: String| Err(ManifestError::Invalid(msg));
-    if m.schema != "manifest" || m.schema_version != MANIFEST_SCHEMA_VERSION {
+    if m.schema != "manifest" || !(1..=MANIFEST_SCHEMA_VERSION).contains(&m.schema_version) {
         return bad(format!(
-            "schema must be manifest version {MANIFEST_SCHEMA_VERSION}"
+            "schema must be manifest version 1 to {MANIFEST_SCHEMA_VERSION}"
         ));
     }
     if m.species.is_empty() || m.species != m.species.to_lowercase() {
@@ -273,6 +286,25 @@ pub fn validate(m: &Manifest) -> Result<(), ManifestError> {
                 described.trait_name
             ));
         }
+    }
+    for appearance in &m.appearance {
+        for id in &appearance.sources {
+            if !ids.contains(id.as_str()) {
+                return bad(format!(
+                    "appearance trait {} names source {} which is not admitted",
+                    appearance.trait_name, id
+                ));
+            }
+        }
+    }
+    let short = super::requirements::shortfalls(m);
+    if !short.is_empty() {
+        return bad(format!(
+            "{} growth form {} falls short of the requirements table: {}",
+            m.species,
+            m.growth_form,
+            short.join("; ")
+        ));
     }
     for (dial, engineering) in &m.engineering {
         if engineering.rationale.trim().is_empty() {

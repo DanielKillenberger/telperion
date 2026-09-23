@@ -25,7 +25,7 @@ use crate::pipeline::cost::Cost;
 use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::known::KnownSources;
-use crate::pipeline::manifest::{seed_sha256, Manifest, Source};
+use crate::pipeline::manifest::{seed_sha256, Manifest, Source, MANIFEST_SCHEMA_VERSION};
 use crate::pipeline::sets::ranking_questions;
 use crate::pipeline::stage::{Context, Paths, StageError, STAGES};
 
@@ -247,6 +247,9 @@ fn rank(
 /// error is listed but never proposed.
 fn draft_manifest(manifest: &Manifest, proposals: &[Value]) -> Value {
     let mut draft = manifest.clone();
+    // A proposal is written at the current schema version, where the
+    // requirements table binds its coverage at admission.
+    draft.schema_version = MANIFEST_SCHEMA_VERSION;
     let mut next = draft.sources.len() + 1;
     for proposal in proposals {
         for hit in proposal["hits"].as_array().into_iter().flatten() {

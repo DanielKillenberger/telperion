@@ -269,5 +269,8 @@ mod tests {
         assert!(table.routine_decision("unavailable-source", "retry"));
         assert!(!table.routine_decision("data-insufficient", "lower-bar"));
         assert!(!table.routine_decision("manifest-proposed", "admit"));
+        for option in ["add-sources", "lower-bar"] {
+            assert!(!table.routine_decision("requirements-unmet", option));
+        }
     }
 }
