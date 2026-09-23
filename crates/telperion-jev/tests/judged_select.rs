@@ -88,30 +88,26 @@ fn frond_length_is_credited_to_f1s_frond_sentence() {
     assert_eq!(entry["span"], "20 feet");
 }
 
-/// R2 and R7: a pick below the calibrated floor is not filled, and the
-/// required field select could not fill files `requirements-unmet`.
+/// R2 and R7: until its labelled set is calibrated no selection floor
+/// applies (fn-133), so a pick below 0.34 fills the field; a required field
+/// select fills no value for files `requirements-unmet`.
 #[test]
-fn a_pick_below_the_floor_is_not_filled_and_the_required_field_is_filed() {
+fn an_uncalibrated_floor_fills_the_pick_and_an_unfilled_required_field_is_filed() {
     let dir = palm("floor");
     let mut palm = Palm::new(frond_from_f1);
     palm.confidence = telperion_jev::thresholds().selection_floor - 0.01;
     let body = quality_then_select(&dir, &palm);
-    assert!(
-        body["filled"]
-            .get("/profiles/0/metrics/frond_length_m")
-            .is_none(),
-        "{body}"
-    );
     assert_eq!(
-        body["unavailable"]["frond_length_m"],
-        "pick below the selection floor"
+        body["filled"]["/profiles/0/metrics/frond_length_m"]["source"],
+        json!(["F1"]),
+        "{body}"
     );
     let list = read_json(&dir.join("decisions.json")).unwrap();
     let filed = list["decisions"]
         .as_array()
         .unwrap()
         .iter()
-        .find(|d| d["id"] == "date-palm/select/requirements-unmet/frond_length_m")
+        .find(|d| d["id"] == "date-palm/select/requirements-unmet/leaflet_length_m")
         .expect("select files the unfilled required field");
     assert_eq!(filed["status"], "open");
     assert_eq!(filed["options"], json!(["add-sources"]));
@@ -120,7 +116,7 @@ fn a_pick_below_the_floor_is_not_filled_and_the_required_field_is_filed() {
 /// R3: the live palm's level probabilities. The rounded average put
 /// `leaf_back_colour` on `silvery_white` and `leaf_brightness_range` on
 /// `strongly_varied`, each at probability 0; the most probable is
-/// `unstated`.
+/// `unstated`, and an unstated brightness range reads zero width (fn-133).
 #[test]
 fn a_level_is_the_most_probable_one_never_a_zero_probability_average() {
     let dir = fetched_f1("levels");
@@ -143,7 +139,11 @@ fn a_level_is_the_most_probable_one_never_a_zero_probability_average() {
     select::run(&Paths::new(&dir), &judge(&palm)).unwrap();
     let body = &read_json(&dir.join("select.json")).unwrap()["body"]["appearance"];
     assert_eq!(body["leaf_back_colour"]["level"], "unstated", "{body}");
-    assert_eq!(body["leaf_brightness_range"]["level"], "unstated", "{body}");
+    assert_eq!(body["leaf_brightness_range"]["level"], "uniform", "{body}");
+    assert!(
+        body["leaf_brightness_range"]["default"].is_string(),
+        "{body}"
+    );
     assert_eq!(body["leaf_front_colour"]["level"], "grey_green", "{body}");
 }
 

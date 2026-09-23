@@ -10,9 +10,9 @@
 //! A field the table asks as `mature` (fn-127) or as a `rate` (fn-132)
 //! asks no age: code lays out the sentences that name it and the
 //! mature-size or growth-rate set scores a stated mature value or range, or
-//! a stated yearly rate, on the same four levels. The gap follows the level:
-//! a level that finds the value stated never carries the gap that says it
-//! is not.
+//! a stated yearly rate, on the same four levels. The gap follows the
+//! points: a field with any point never carries the gap that says no value
+//! is stated, whatever its level (fn-133).
 
 use serde_json::{json, Map, Value};
 
@@ -32,8 +32,8 @@ use super::{body, inputs};
 
 pub const STAGE: &str = "quality";
 /// The gaps that say no value is stated at all: a field asked at no age
-/// fails on one below `partial` (fn-131) and never carries one at or above
-/// it (fn-132).
+/// fails on one (fn-131), and a field with a point never carries one
+/// (fn-133).
 const UNSTATED: [&str; 2] = ["no_mature_size", "no_growth_rate"];
 
 #[derive(Debug)]
@@ -83,12 +83,14 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
             0,
             0.0,
         ));
-        let gap = follow_level(
+        let gap = follow_points(
             level,
+            !points.is_empty(),
             judgment
                 .entry
                 .choice(gap_key)
                 .unwrap_or_else(|| "none".into()),
+            judgment.entry.probabilities(gap_key),
         );
         // A field asked at no age with no value stated has nothing select can copy.
         let unstated = way != Asked::Age && UNSTATED.contains(&gap.as_str());
@@ -185,17 +187,38 @@ fn at_age(manifest: &Manifest, field: &Field, screen: &Value, fetch: &Value) -> 
 const MATURE_KEYS: (&str, &str) = ("mature_size", "mature_gap");
 const RATE_KEYS: (&str, &str) = ("growth_rate", "rate_gap");
 
-/// A gap that says no value is stated, beside a level that finds one, is
-/// the level's own (fn-132): `sufficient` is met, `partial` is one source.
-/// The live palm's leaflets were `sufficient` on 7 points and failed on
-/// `no_mature_size`.
-fn follow_level(level: Sufficiency, gap: String) -> String {
+/// A gap that says no value is stated never stands beside a point (fn-133):
+/// `sufficient` is met, `partial` is one source (fn-132), and a lower level
+/// takes the most probable gap that names a shortfall of a stated value.
+/// The live palm's leaflets were `sufficient` on 7 points and its trunk
+/// diameter `proxy_only` on 3, each failed on `no_mature_size`.
+fn follow_points(
+    level: Sufficiency,
+    has_points: bool,
+    gap: String,
+    probabilities: Option<&Value>,
+) -> String {
+    if !has_points || !UNSTATED.contains(&gap.as_str()) {
+        return gap;
+    }
     match level {
-        _ if !UNSTATED.contains(&gap.as_str()) => gap,
         Sufficiency::Sufficient => "none".into(),
         Sufficiency::Partial => "single_source".into(),
-        _ => gap,
+        _ => stated_gap(probabilities),
     }
+}
+
+/// The most probable gap that is neither unstated nor `none`; `wrong_taxon`,
+/// which both sets offer, when Jev gave no other.
+fn stated_gap(probabilities: Option<&Value>) -> String {
+    probabilities
+        .and_then(Value::as_object)
+        .into_iter()
+        .flatten()
+        .filter(|(key, _)| key.as_str() != "none" && !UNSTATED.contains(&key.as_str()))
+        .filter_map(|(key, p)| Some((key, p.as_f64()?)))
+        .max_by(|a, b| a.1.total_cmp(&b.1))
+        .map_or_else(|| "wrong_taxon".into(), |(key, _)| key.clone())
 }
 
 /// A field asked at no age: the screened rows select can use for it

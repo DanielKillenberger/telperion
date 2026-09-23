@@ -6,9 +6,11 @@
 //! is the chosen span; code copies that level's range for every material
 //! field the trait feeds into the profile, with that sentence and its source
 //! (fn-127): a value with no source is never written. Nothing renders or
-//! measures it. A trait the table requires that the sources leave unstated
-//! files a requirements-unmet decision, which the pipeline searches again
-//! before the owner has it.
+//! measures it. A variation trait (a hue or brightness range) the sources
+//! leave unstated takes its zero-width level as a default with its reason
+//! (fn-133). Any other trait the table requires that the sources leave
+//! unstated files a requirements-unmet decision, which the pipeline
+//! searches again before the owner has it.
 
 use std::collections::BTreeMap;
 
@@ -19,7 +21,7 @@ use crate::pipeline::consume::{sources_sha256, REQUIREMENTS_UNMET};
 use crate::pipeline::decision::{Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::Appearance;
-use crate::pipeline::requirements::{requires_appearance, table};
+use crate::pipeline::requirements::{requires_appearance, table, AppearanceLevel};
 use crate::pipeline::sets::{
     chosen_level, described_questions, DescribedLevel, DESCRIBED_UNSTATED,
 };
@@ -40,6 +42,8 @@ pub struct Copied {
     pub profile: Map<String, Value>,
     /// Sidecar entries keyed by JSON Pointer.
     pub sidecar: Map<String, Value>,
+    /// Sidecar defaults keyed by JSON Pointer: values no source states.
+    pub defaults: Map<String, Value>,
     pub ledger: Vec<String>,
     pub decisions: Vec<Decision>,
 }
@@ -56,29 +60,55 @@ pub fn run(judge: &Judge<'_>, ctx: &Context, fetch: &Value) -> Result<Copied, St
             name.into(),
             json!({"level": chosen.level, "source": chosen.source, "sentence": chosen.span, "ledger": chosen.ledger}),
         );
+        let pointer = format!("/profiles/0/appearance/{name}");
         let row = table().level(name, &chosen.level);
-        match (row, &chosen.source) {
-            (Some(row), Some(source)) => {
-                let pointer = format!("/profiles/0/appearance/{name}");
-                copied.profile.insert(
-                    name.into(),
-                    json!({"level": row.key, "summary": row.summary, "ranges": row.ranges, "sources": [source]}),
-                );
-                copied.sidecar.insert(
-                    pointer,
-                    json!({"route": "appearance", "level": row.key, "source": source, "span": chosen.span, "ledger": chosen.ledger}),
-                );
-            }
-            _ if requires_appearance(manifest, name) => {
-                let sources = sources_sha256(&ctx.paths.manifest())?;
-                copied
-                    .decisions
-                    .push(unstated(ctx, trait_, &chosen.ledger, &sources));
-            }
-            _ => {}
+        if let Some((row, source)) = row.zip(chosen.source.as_ref()) {
+            copied.profile.insert(
+                name.into(),
+                json!({"level": row.key, "summary": row.summary, "ranges": row.ranges, "sources": [source]}),
+            );
+            copied.sidecar.insert(
+                pointer,
+                json!({"route": "appearance", "level": row.key, "source": source, "span": chosen.span, "ledger": chosen.ledger}),
+            );
+        } else if let Some(zero) = table().zero_width(name) {
+            copied.default_to(name, pointer, zero, &chosen.ledger);
+        } else if requires_appearance(manifest, name) {
+            let sources = sources_sha256(&ctx.paths.manifest())?;
+            copied
+                .decisions
+                .push(unstated(ctx, trait_, &chosen.ledger, &sources));
         }
     }
     Ok(copied)
+}
+
+/// Why an unstated variation trait reads zero width (fn-133).
+pub const ZERO_WIDTH_DEFAULT: &str = "every source leaves this variation unstated; foliage no source calls varied takes the zero-width level";
+
+impl Copied {
+    /// Records a variation trait no source states at its zero-width level,
+    /// as a default with its reason and no source, never a sourced value.
+    fn default_to(
+        &mut self,
+        name: &str,
+        pointer: String,
+        zero: &AppearanceLevel,
+        ledger: &[String],
+    ) {
+        self.body.insert(
+            name.into(),
+            json!({"level": zero.key, "source": null, "sentence": "", "ledger": ledger, "default": ZERO_WIDTH_DEFAULT}),
+        );
+        self.profile.insert(
+            name.into(),
+            json!({"level": zero.key, "summary": zero.summary, "ranges": zero.ranges, "sources": [], "default": ZERO_WIDTH_DEFAULT}),
+        );
+        self.defaults.insert(
+            pointer,
+            json!({"route": "default", "level": zero.key, "reason": ZERO_WIDTH_DEFAULT, "ledger": ledger}),
+        );
+    }
 }
 
 /// Takes out every appearance value a resolution dropped (fn-131): the

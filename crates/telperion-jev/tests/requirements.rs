@@ -183,10 +183,12 @@ fn a_required_field_below_the_tables_bar_stops_the_run_for_the_owner() {
         "leaf_width_m",
     ]
     .map(|f| format!("oregon-white-oak/select/requirements-unmet/{f}"));
-    assert_eq!(
-        stops.len(),
-        2 + unfilled.len() + table().growth_forms["broadleaf"].appearance.len()
-    );
+    // An unstated hue or brightness range reads zero width (fn-133); the
+    // colours and the roughness stop.
+    let traits = &table().growth_forms["broadleaf"].appearance;
+    let stopping = traits.iter().filter(|t| table().zero_width(t).is_none());
+    assert_eq!(stopping.count(), 4);
+    assert_eq!(stops.len(), 2 + unfilled.len() + 4);
     assert!(unfilled.iter().all(|id| stops.contains(id)), "{stops:?}");
     assert!(stops.contains(&"oregon-white-oak/select/requirements-unmet/bark_colour".into()));
     let list = read_json(&dir.join("decisions.json")).unwrap();

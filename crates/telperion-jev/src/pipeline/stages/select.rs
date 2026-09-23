@@ -105,10 +105,11 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     header.ledger.extend(copied.ledger.iter().cloned());
     sidecar.extend(copied.sidecar.clone());
     write_packet(&ctx, manifest, &filled, &unavailable, &copied.profile)?;
-    write_canonical(
-        &ctx.paths.sidecar(),
-        &json!({"schema": "provenance", "schema_version": 1, "entries": sidecar, "unavailable": unavailable}),
-    )?;
+    let mut provenance = json!({"schema": "provenance", "schema_version": 1, "entries": sidecar, "unavailable": unavailable});
+    if !copied.defaults.is_empty() {
+        provenance["defaults"] = json!(copied.defaults);
+    }
+    write_canonical(&ctx.paths.sidecar(), &provenance)?;
     let counts = (filled.len(), unavailable.len());
     let mut out = json!({"filled": filled, "unavailable": unavailable, "described": described});
     if !manifest.appearance.is_empty() {

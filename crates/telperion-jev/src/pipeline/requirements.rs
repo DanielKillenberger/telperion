@@ -108,6 +108,17 @@ impl Requirements {
             .iter()
             .find(|l| l.key == key)
     }
+
+    /// A variation trait's zero-width level (fn-133): the level each of
+    /// whose ranges holds zero, an offset of no change. A colour or a
+    /// roughness has none.
+    pub fn zero_width(&self, trait_name: &str) -> Option<&AppearanceLevel> {
+        self.appearance.get(trait_name)?.levels.iter().find(|l| {
+            l.ranges
+                .values()
+                .all(|[low, high]| *low <= 0.0 && 0.0 <= *high)
+        })
+    }
 }
 
 fn bound(m: &Manifest) -> Option<&'static GrowthForm> {
@@ -315,7 +326,10 @@ mod tests {
     #[test]
     fn a_bound_manifest_reads_its_bars_and_a_legacy_one_reads_none() {
         let palm = palm_manifest();
-        assert_eq!(required_bar(&palm, "height_m"), Some(Sufficiency::Partial));
+        assert_eq!(
+            required_bar(&palm, "height_m"),
+            Some(Sufficiency::ProxyOnly)
+        );
         assert_eq!(required_bar(&palm, "age_years"), None);
         assert!(requires_appearance(&palm, "bark_colour"));
         let mut legacy = palm;
