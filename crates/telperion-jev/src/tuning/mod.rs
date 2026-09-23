@@ -26,5 +26,6 @@ pub mod round;
 pub mod routing;
 pub mod sheet;
 pub mod state;
+pub mod stride;
 pub mod veto;
 pub mod vision;

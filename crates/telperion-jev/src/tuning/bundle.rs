@@ -10,7 +10,7 @@ mod round;
 mod track;
 mod words;
 mod worse;
-pub(in crate::tuning) use round::round;
+pub(in crate::tuning) use round::{note as note_for, round};
 pub use track::{verify as verify_tracks, Track};
 pub(in crate::tuning) use words::words;
 pub use worse::{excluded_families, part_family, EXCLUDED};
