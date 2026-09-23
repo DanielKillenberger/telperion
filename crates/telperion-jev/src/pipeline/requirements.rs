@@ -21,6 +21,10 @@ pub const REQUIRED_FROM_VERSION: u32 = 2;
 pub struct FieldTerms {
     /// Words a sentence must carry to count as a point for the field.
     pub terms: Vec<String>,
+    /// A mature size (fn-127): judged on a stated mature value, with no
+    /// required age.
+    #[serde(default)]
+    pub mature: bool,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -93,6 +97,12 @@ fn bound(m: &Manifest) -> Option<&'static GrowthForm> {
 /// its growth form requires the field.
 pub fn required_bar(m: &Manifest, field: &str) -> Option<Sufficiency> {
     bound(m).and_then(|form| form.fields.get(field).copied())
+}
+
+/// Whether the table marks `field` a mature size for a bound manifest: its
+/// sufficiency is a stated mature value, and it needs no required age.
+pub fn is_mature(m: &Manifest, field: &str) -> bool {
+    m.schema_version >= REQUIRED_FROM_VERSION && table().fields.get(field).is_some_and(|f| f.mature)
 }
 
 /// Whether the manifest's growth form requires `trait_name` described.

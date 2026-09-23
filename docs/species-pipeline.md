@@ -192,6 +192,18 @@ ash's or a test fixture, loads unchanged.
   carry the bar `partial`; the crown and organ sizes (crown width and base,
   leaf, needle, frond and leaflet sizes) carry `proxy_only`. The table also
   holds the words a sentence must contain to count as a point for each field.
+- **Mature sizes.** The table marks crown width and the leaf, needle, frond
+  and leaflet sizes `mature`. Height, trunk diameter and crown base stay
+  age-indexed. A mature field needs no `required_ages_years`; an empty or
+  absent list is admitted, and a listed age is ignored. `quality` lays out
+  every screened sentence that carries the field's words, whatever kind the
+  screen gave it, because the screen judges tree size at an age and calls a
+  leaflet sentence `not_about_tree_size`. The mature-size set then scores a
+  stated mature value or range for the taxon on the same four levels, with
+  its own gap. A single source that states the size reaches `partial`; a
+  bound such as "up to" reaches `proxy_only`. On the palm's first live run,
+  A1's "The leaflets are ½ m (18 inches) long" and "**Width:** 20 - 50 feet"
+  scored `none` under the age question; they are now labelled cases.
 - **Appearance traits** are `appearance` entries, each a trait name and the
   admitted sources that describe it:
 
@@ -204,9 +216,15 @@ ash's or a test fixture, loads unchanged.
   bark roughness, leaf front colour and leaf back colour, and the leaf hue
   and brightness ranges. Each level maps to a `[low, high]` range per fed
   field; colours are linear reflectance. `select` has Jev score the trait
-  over those levels, with the no-match level `unstated` last. Code then
-  copies the chosen level's ranges into `profiles[0].appearance.<trait>` of
-  the profile packet and records a sidecar entry with route `appearance`.
+  over those levels, with the no-match level `unstated` last. It asks one
+  source's section at a time, in the order the entry lists them, and stops
+  at the first that it places on a level. That section is the chosen span.
+  Code then copies the level's ranges into `profiles[0].appearance.<trait>`
+  of the profile packet and records a sidecar entry with route `appearance`,
+  the span, and the id of its source, so `verify` checks the span against
+  that source. A source whose text never carries the trait's words is not
+  asked. A value with no source is never written: a trait no section states
+  is `unstated`.
   Nothing renders or measures an appearance trait: `generate` records each
   one under `appearance` in its body as skipped. The material row is
   authored from these ranges.
@@ -251,7 +269,12 @@ files it for a required field whose sufficiency level falls below the
 requirements table's bar, in place of `data-insufficient`. `select` files it
 for a required appearance trait that the sources leave `unstated`. It blocks
 the later stages for that field. The conductor's policy lists no routine
-option for it, so the run waits on the owner. The pipeline command prints
+option for it. An open `requirements-unmet` or `manifest-proposed` decision
+comes before the gap loop, the stages and tuning: the conductor pauses with a
+handoff (`pause-owner-<id>`) that lists every such decision, and it opens no
+dispatch until the owner resolves them and resumes. On the palm's first live
+run the gate's halt sorted first and the conductor opened the gap loop while
+seven of these stood open. The pipeline command prints
 `NEEDS_HUMAN: <ids>` after any stage while one is open. The table's bar is
 never lowered: `lower-bar` is refused by name. An `add-sources` resolution
 binds only once the manifest's `sources` differ from the ones the decision
@@ -490,8 +513,9 @@ never part of the workspace test commands.
 
 ## The question sets
 
-Five versioned sets under `crates/telperion-jev/data/questions`: source
-ranking per field, data sufficiency per field with its dominant gap, described
+Six versioned sets under `crates/telperion-jev/data/questions`: source
+ranking per field, data sufficiency per field with its dominant gap, the
+mature size of a `mature` field with its gap, described
 level scoring over levels a person wrote, the semantic obligations
 (`inspected_image`, `measurement_not_invention`), and the gap loop's options.
 Their labelled cases with negative and held-out entries live under
