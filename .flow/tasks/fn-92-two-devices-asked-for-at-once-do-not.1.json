@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-92-two-devices-asked-for-at-once-do-not",
   "spec_path": ".flow/tasks/fn-92-two-devices-asked-for-at-once-do-not.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Two devices asked for at once do not crash the process",
   "updated_at": "2026-09-20T10:41:38.549093Z"
 }
