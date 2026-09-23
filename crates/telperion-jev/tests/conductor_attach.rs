@@ -25,10 +25,10 @@ fn config(root: &PathBuf) -> Config {
         tuning_loop: PathBuf::from("unused"),
         stage_args: vec![],
         budget: BudgetConfig {
-            max_tokens: 1,
-            attempt_max_tokens: 1,
-            max_dispatches: 1,
-            max_tuning_revisions: 1,
+            max_tokens: Some(1),
+            attempt_max_tokens: Some(1),
+            max_dispatches: Some(1),
+            max_tuning_revisions: Some(1),
         },
         judgment_model: "jev-test".into(),
         continuation_validated: true,
@@ -67,13 +67,13 @@ fn a_spec_the_flow_tree_holds_is_attached_once() {
 fn a_zero_usage_is_unknown_and_the_estimate_falls_back_to_the_attempt_bound() {
     let mut run = run();
     let mut cfg = config(&scratch());
-    cfg.budget.attempt_max_tokens = 200_000;
-    run.budget.attempt_max_tokens = 200_000;
+    cfg.budget.attempt_max_tokens = Some(200_000);
+    run.budget.attempt_max_tokens = Some(200_000);
     run.dispatches[0].result.as_mut().unwrap().usage = Some(
         serde_json::from_value(serde_json::json!({"input_tokens": 0, "output_tokens": 0})).unwrap(),
     );
     let (tokens, basis) = telperion_jev::conductor::dependency::estimate(&run);
-    assert_eq!(tokens, 200_000, "{basis}");
+    assert_eq!(tokens, Some(200_000), "{basis}");
     run.dispatches[0].result.as_mut().unwrap().usage = Some(
         serde_json::from_value(
             serde_json::json!({"input_tokens": 70_000, "output_tokens": 10_000}),
@@ -81,7 +81,7 @@ fn a_zero_usage_is_unknown_and_the_estimate_falls_back_to_the_attempt_bound() {
         .unwrap(),
     );
     let (tokens, _) = telperion_jev::conductor::dependency::estimate(&run);
-    assert_eq!(tokens, 80_000);
+    assert_eq!(tokens, Some(80_000));
 }
 
 #[test]
@@ -150,7 +150,7 @@ fn a_result_without_usage_charges_its_reservation_and_keeps_usage_known() {
     })).unwrap();
     r.input_identity = std::mem::take(&mut result.input_identity);
     run.ingest("dispatch-1", r).unwrap();
-    assert_eq!(run.budget.tokens, before + reserved);
+    assert_eq!(run.budget.tokens, before + reserved.unwrap());
     assert!(run.budget.usage_known);
     assert!(
         run.dispatches[0]
@@ -168,7 +168,7 @@ fn a_result_without_usage_charges_its_reservation_and_keeps_usage_known() {
         .usage_is_reservation = false;
     run.charge_unknown_usage();
     assert!(run.budget.usage_known);
-    assert_eq!(run.budget.tokens, before + 2 * reserved);
+    assert_eq!(run.budget.tokens, before + 2 * reserved.unwrap());
 }
 
 #[test]

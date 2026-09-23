@@ -720,7 +720,7 @@ fn an_unjustified_next_attempt_pauses_with_budget_remaining_and_a_stage_halt_rou
     ));
     // A required field below the requirements table's bar is NEEDS_HUMAN.
     assert!(matches!(
-        plan::decision_action(&table, &run, &decision("requirements-unmet")),
+        plan::decision_action(&config, &table, &run, &decision("requirements-unmet")),
         Next::AwaitOwner { .. }
     ));
     // A routine dispatch that returned without resolving hands the decision to the owner.
