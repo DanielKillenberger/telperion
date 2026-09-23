@@ -1,15 +1,18 @@
 //! Packet verification: fn-57's citation check over every filled value
 //! against its source, the semantic obligation questions, and the structural
 //! obligations in code. Contradicted, unsupported and unmet items become
-//! decisions of their kinds.
+//! decisions of their kinds. A measured value is asked whether it is a
+//! measurement; an appearance value is a level read from one sentence, so it
+//! is asked whether that sentence describes the level instead (fn-128), and
+//! a sentence that does not files a claim decision.
 
 use serde_json::{json, Value};
 
 use crate::cite::{cite, ResearchClaim, SourceLoad};
 use crate::pipeline::canon::read_json;
-use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
+use crate::pipeline::decision::{append_decisions, retire_unfiled, Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
-use crate::pipeline::sets::{measurement_state, obligation_questions};
+use crate::pipeline::sets::{appearance_state, measurement_state, obligation_questions};
 use crate::pipeline::stage::{Context, Paths, StageError};
 use crate::questions::thresholds;
 
@@ -111,40 +114,25 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
         }
     }
     for (pointer, entry) in sidecar["entries"].as_object().into_iter().flatten() {
-        let span = entry["span"].as_str().unwrap_or_default();
-        let source_id = entry["source"].as_str().unwrap_or_default();
-        let Some(excerpt) = excerpt_for(&ctx, source_id, &fetch["sources"][source_id], span) else {
+        let checked = if entry["route"] == "appearance" {
+            Some(supported(judge, pointer, entry)?)
+        } else {
+            measured(judge, &ctx, &fetch, entry)?
+        };
+        let Some((obligation, held, reference)) = checked else {
             obligations.push(json!({"obligation": "measurement_not_invention", "pointer": pointer, "held": Value::Null, "unchecked": "source not cached"}));
             continue;
         };
-        let state = measurement_state(span, &excerpt);
-        let judgment = judge
-            .ask(
-                "obligation:measurement_not_invention",
-                None,
-                &state,
-                &obligation_questions("measurement_not_invention"),
-            )
-            .map_err(|err| StageError::Failed {
-                stage: STAGE.into(),
-                reason: err.to_string(),
-            })?;
-        let held = judgment
-            .entry
-            .noul("measurement_not_invention")
-            .unwrap_or(0.0)
-            >= thresholds().obligation_cut;
-        header.ledger.push(judgment.reference.clone());
-        obligations.push(json!({"obligation": "measurement_not_invention", "pointer": pointer, "held": held, "ledger": judgment.reference}));
-        if !held {
-            decisions.push(unmet(
-                species,
-                "measurement_not_invention",
-                pointer,
-                &judgment.reference,
-                &select_sha,
-            ));
+        header.ledger.push(reference.clone());
+        obligations.push(json!({"obligation": obligation, "pointer": pointer, "held": held, "ledger": reference}));
+        if held {
+            continue;
         }
+        decisions.push(if obligation == SUPPORTED {
+            unsupported(species, pointer, entry, &reference, &select_sha)
+        } else {
+            unmet(species, obligation, pointer, &reference, &select_sha)
+        });
     }
 
     let structural = structural_checks(manifest, &sidecar, &references);
@@ -171,11 +159,102 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     if !decisions.is_empty() {
         append_decisions(&ctx.paths.decisions(), decisions)?;
     }
+    // A value this rerun found supported or measured files nothing: its
+    // earlier decision is stale.
+    retire_unfiled(
+        &ctx.paths.decisions(),
+        STAGE,
+        &ids,
+        &header.inputs,
+        &crate::pipeline::gap::now(),
+    )?;
     ctx.write(
         &header,
         json!({"claims": rows, "obligations": obligations, "structural": structural}),
     )?;
     Ok(Outcome::Ran { decisions: ids })
+}
+
+/// The obligation an appearance value is asked in place of a measurement's.
+const SUPPORTED: &str = "appearance_supported";
+
+/// One judged obligation: its name, whether it held, and the ledger reference.
+type Checked = (&'static str, bool, String);
+
+fn noul(judge: &Judge<'_>, name: &'static str, state: &Value) -> Result<Checked, StageError> {
+    let judgment = judge
+        .ask(
+            &format!("obligation:{name}"),
+            None,
+            state,
+            &obligation_questions(name),
+        )
+        .map_err(|err| StageError::Failed {
+            stage: STAGE.into(),
+            reason: err.to_string(),
+        })?;
+    let held = judgment.entry.noul(name).unwrap_or(0.0) >= thresholds().obligation_cut;
+    Ok((name, held, judgment.reference))
+}
+
+/// A measured value against the cached source text around its span; None
+/// when the source is not cached, since the span is never its own evidence.
+fn measured(
+    judge: &Judge<'_>,
+    ctx: &Context,
+    fetch: &Value,
+    entry: &Value,
+) -> Result<Option<Checked>, StageError> {
+    let span = entry["span"].as_str().unwrap_or_default();
+    let source_id = entry["source"].as_str().unwrap_or_default();
+    let Some(excerpt) = excerpt_for(ctx, source_id, &fetch["sources"][source_id], span) else {
+        return Ok(None);
+    };
+    noul(
+        judge,
+        "measurement_not_invention",
+        &measurement_state(span, &excerpt),
+    )
+    .map(Some)
+}
+
+/// An appearance value: does its cited sentence describe its level?
+fn supported(judge: &Judge<'_>, pointer: &str, entry: &Value) -> Result<Checked, StageError> {
+    let trait_name = pointer.rsplit('/').next().unwrap_or_default();
+    let state = appearance_state(
+        trait_name,
+        entry["level"].as_str().unwrap_or_default(),
+        entry["span"].as_str().unwrap_or_default(),
+    );
+    noul(judge, SUPPORTED, &state)
+}
+
+/// A claim decision on an appearance value whose sentence does not describe
+/// its level.
+fn unsupported(
+    species: &str,
+    pointer: &str,
+    entry: &Value,
+    ledger: &str,
+    select_sha: &str,
+) -> Decision {
+    Decision::new(
+        DecisionParts {
+            species,
+            stage: STAGE,
+            kind: "claim-unsupported",
+            field: Some(pointer),
+            age_years: None,
+        },
+        &["generate"],
+        [("select.json".to_string(), select_sha.to_string())]
+            .into_iter()
+            .collect(),
+        vec![ledger.to_string()],
+        json!({"value": pointer, "level": entry["level"], "sentence": entry["span"], "source": entry["source"]}),
+        &["accept", "replace-source", "drop-value"],
+        "Jev judged that the cited sentence does not describe this appearance level.",
+    )
 }
 
 /// One claim per filled value: the copied span, checked against the cached

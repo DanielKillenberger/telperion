@@ -1,0 +1,15 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-23T18:54:53.120246Z",
+  "depends_on": [],
+  "id": "fn-122-a-tuning-result-says-what-each-attempt.1",
+  "implicit_owner": true,
+  "priority": null,
+  "spec": "fn-122-a-tuning-result-says-what-each-attempt",
+  "spec_path": ".flow/tasks/fn-122-a-tuning-result-says-what-each-attempt.1.md",
+  "status": "todo",
+  "title": "Implement fn-122-a-tuning-result-says-what-each-attempt",
+  "updated_at": "2026-09-23T18:54:53.120246Z"
+}

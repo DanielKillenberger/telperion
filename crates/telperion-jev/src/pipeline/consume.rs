@@ -17,6 +17,11 @@ use super::stage::STAGES;
 /// the owner's decision, whose only option adds sources.
 pub const REQUIREMENTS_UNMET: &str = "requirements-unmet";
 
+/// The option `decision::retire_unfiled` writes on a stage's own open
+/// decision that its rerun did not file again. No person chose it and no
+/// stage consumes it; `hold_unmet` leaves it resolved.
+pub const SUPERSEDED: &str = "superseded";
+
 /// The decision kinds whose options a stage consumes: the kind, its options,
 /// and the stages that act on a resolution carrying one of them. A kind not
 /// listed here is resolved by a person and consumed by no stage.
@@ -96,13 +101,21 @@ pub fn sources_sha256(manifest: &Path) -> Result<String, CanonError> {
 
 /// Reopens every resolved requirements-unmet decision whose manifest sources
 /// are still the ones it was filed against: a resolution that adds no source
-/// leaves the decision open. The note is set, never appended, so a rerun is
-/// byte-identical. True when the list changed.
+/// leaves the decision open. A decision its stage superseded is not held: the
+/// field passed with the sources it had. The note is set, never appended, so
+/// a rerun is byte-identical. True when the list changed.
 pub fn hold_unmet(decisions: &mut [Decision], sources: &str) -> bool {
     let mut changed = false;
     for decision in decisions.iter_mut() {
         let unchanged = decision.payload["sources_sha256"].as_str() == Some(sources);
-        if decision.kind != REQUIREMENTS_UNMET || decision.status != Status::Resolved || !unchanged
+        let superseded = decision
+            .resolution
+            .as_ref()
+            .is_some_and(|r| r.option == SUPERSEDED);
+        if decision.kind != REQUIREMENTS_UNMET
+            || decision.status != Status::Resolved
+            || !unchanged
+            || superseded
         {
             continue;
         }

@@ -147,6 +147,21 @@ exactly, with who and why; spend stays spent and the evidence is
 rechecked on the next step. A spec the owner mints for a packaged gap is
 attached with `attach`, once; attaching it again is a no-op.
 
+A tuning revision pauses by design: for its pilot authority, for the
+owner's priority approval, at a preflight. `tuning-loop run` then exits
+non-zero with "paused; see run.json", and the conductor reads the tuning
+run's own `run.json` rather than the exit: its `pause` becomes the
+conductor's pause under the same id, identity and proposed action, with the
+tuning run's reason and decision request, a handoff whose signals name the
+tuning run, and nothing recorded as a revision. The one decision file then
+serves both: `resume --decision FILE` resolves the conductor's pause and
+runs `tuning-loop run --resume FILE` in the same tuning directory. A
+decision either side refuses leaves the run as it was; a new tuning pause is
+carried the same way; a revision that ends is recorded and its gaps are
+checked on the next step. A revision counts as ended only when its record
+holds neither a pause nor an attempt in flight, because the tuning loop
+rewrites `result.json` on every save.
+
 ## The packet and the report
 
 `packet` is ready only when the report reads complete and `metrics.json` is

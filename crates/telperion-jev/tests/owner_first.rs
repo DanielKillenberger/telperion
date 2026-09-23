@@ -32,7 +32,14 @@ impl Executor for NoWork {
     fn stage(&self, _: &Config, stage: &str) -> Result<StageOutcome, String> {
         panic!("stage {stage} ran before the owner's decision")
     }
-    fn tune(&self, _: &Config, _: u64, _: &[String], _: &PathBuf) -> Result<(), String> {
+    fn tune(
+        &self,
+        _: &Config,
+        _: u64,
+        _: &[String],
+        _: &Path,
+        _: Option<&Path>,
+    ) -> Result<(), String> {
         panic!("tuning ran before the owner's decision")
     }
 }

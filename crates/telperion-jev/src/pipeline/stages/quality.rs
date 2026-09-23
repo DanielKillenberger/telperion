@@ -13,7 +13,7 @@
 use serde_json::{json, Map, Value};
 
 use crate::pipeline::consume::{sources_sha256, REQUIREMENTS_UNMET};
-use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
+use crate::pipeline::decision::{append_decisions, retire_unfiled, Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::{Field, Manifest, Sufficiency};
 use crate::pipeline::requirements::{is_mature, required_bar, terms};
@@ -109,6 +109,14 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     if !decisions.is_empty() {
         append_decisions(&ctx.paths.decisions(), decisions)?;
     }
+    // A field this rerun passed files nothing: its earlier decision is stale.
+    retire_unfiled(
+        &ctx.paths.decisions(),
+        STAGE,
+        &ids,
+        &header.inputs,
+        &crate::pipeline::gap::now(),
+    )?;
     ctx.write(&header, json!({"fields": fields}))?;
     Ok(Outcome::Ran { decisions: ids })
 }

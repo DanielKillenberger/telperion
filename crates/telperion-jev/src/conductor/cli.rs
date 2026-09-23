@@ -10,7 +10,7 @@ use super::dispatch::read_result;
 use super::questions::Asker;
 use super::state::Run;
 use super::step::{self, LiveExecutor};
-use super::{cases, dependency, handoff, packet, plan, policy, report, Config};
+use super::{cases, dependency, handoff, packet, plan, policy, report, tuning, Config};
 use crate::caller::{load_key, UreqTransport};
 use crate::pipeline::judge::Judge;
 
@@ -21,7 +21,7 @@ pub const USAGE: &str = "usage: species-conductor <command> --config FILE\n  \
     dispatch --id ID --result FILE            record a dispatched agent's result\n  \
     attach --spec SPEC --gap GAP              attach the spec the owner minted for a packaged gap\n  \
     land --spec SPEC --commit SHA             record the host's landing of verified work\n  \
-    resume --decision FILE                    resume from a paused run with the scoped decision\n  \
+    resume --decision FILE                    resume a paused run; a tuning pause resumes the tuning run too\n  \
     packet                                    assemble the ready-for-review packet\n  \
     report                                    write the run's measurements\n  \
     cases                                     score the policy's labelled cases, no call";
@@ -109,8 +109,8 @@ pub fn run(args: &[String]) -> std::result::Result<String, String> {
             )
         }
         "resume" => {
-            let word = handoff::resume(&mut run, &PathBuf::from(required(args, "--decision")?))
-                .map_err(show)?;
+            let decision = PathBuf::from(required(args, "--decision")?);
+            let word = tuning::resume(&config, &mut run, &LiveExecutor, &decision).map_err(show)?;
             run.save(&config).map_err(show)?;
             word
         }

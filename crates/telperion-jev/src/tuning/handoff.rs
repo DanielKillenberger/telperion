@@ -83,6 +83,60 @@ pub struct Attempt {
     /// The reviewer's comparative words on this attempt, where one was asked.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub review: Option<serde_json::Value>,
+    /// What the attempt moved: its bundle's moves, or its single dial's step.
+    /// Empty on a record written before moves were kept.
+    #[serde(default)]
+    pub moves: Vec<super::bundle::Move>,
+    /// True when a round made this attempt the tree the loop stands on.
+    #[serde(default)]
+    pub adopted: bool,
+    /// Whether the adoption stood the closing review: false when it was rolled
+    /// back, absent when the attempt was never adopted.
+    #[serde(default)]
+    pub stood: Option<bool>,
+    /// Why the closing review rolled the adoption back.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rolled_back: Option<String>,
+}
+
+/// Most moves one summary line names; a bundle beyond it is counted.
+const MOVES_NAMED: usize = 3;
+
+impl Attempt {
+    /// One line a person reads: the round, what moved, what became of it.
+    pub fn summary(&self) -> String {
+        let mut s = format!("round {} {}", self.round, self.dial);
+        match self.moves.as_slice() {
+            [] => {}
+            moves if moves.len() > MOVES_NAMED => {
+                s.push_str(&format!(" ({} dials moved)", moves.len()))
+            }
+            moves => {
+                let named: Vec<String> = moves
+                    .iter()
+                    .map(|m| format!("{} {} to {}", m.dial, number(m.from), number(m.to)))
+                    .collect();
+                s.push_str(&format!(" ({})", named.join(", ")));
+            }
+        }
+        match (self.adopted, self.stood, &self.rolled_back) {
+            (false, _, _) => {}
+            (true, Some(false), Some(why)) => {
+                s.push_str(&format!(", adopted and rolled back: {why}"))
+            }
+            (true, Some(false), None) => s.push_str(", adopted and rolled back"),
+            (true, _, _) => s.push_str(", adopted and stood"),
+        }
+        if let Some(reason) = &self.reason {
+            s.push_str(&format!(": {reason}"));
+        }
+        s
+    }
+}
+
+fn number(v: f64) -> String {
+    let s = format!("{v:.4}");
+    s.trim_end_matches('0').trim_end_matches('.').to_string()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

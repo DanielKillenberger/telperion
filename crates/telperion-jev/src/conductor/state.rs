@@ -134,6 +134,10 @@ pub struct Run {
     pub waits: Vec<Wait>,
     #[serde(default)]
     pub pause: Option<Pause>,
+    /// The tuning revision whose own pause the current one carries; its
+    /// resume runs the tuning loop with the same decision.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tuning_pause: Option<u64>,
     #[serde(default)]
     pub authorizations: Vec<HumanDecision>,
     /// Gap ids the run has checked, with the verdict, so a resume asks again
@@ -174,6 +178,7 @@ impl Run {
             routes: Vec::new(),
             waits: Vec::new(),
             pause: None,
+            tuning_pause: None,
             authorizations: Vec::new(),
             gap_checks: BTreeMap::new(),
             stage_fingerprint: None,

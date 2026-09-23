@@ -3,8 +3,9 @@ use std::sync::Mutex;
 use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::sets::{
-    described_cases, described_state, mature_cases, mature_state, obligation_cases, ranking_cases,
-    ranking_state, sufficiency_cases, sufficiency_state, SUFFICIENCY_LEVELS,
+    appearance_state, described_cases, described_state, mature_cases, mature_state,
+    obligation_cases, ranking_cases, ranking_state, sufficiency_cases, sufficiency_state,
+    SUFFICIENCY_LEVELS,
 };
 use telperion_jev::questions::{citation_cases, screen_cases, selection_cases, triage_cases};
 
@@ -229,6 +230,14 @@ fn answers_for(body: &Value) -> Value {
             .find(|case| case.value_statement == statement)
             .expect("a measurement_not_invention case for this statement");
         return json!({ "measurement_not_invention": noul_answer(case.expect) });
+    }
+    if questions.get("appearance_supported").is_some() {
+        let case = obligation_cases()
+            .appearance_supported
+            .into_iter()
+            .find(|c| appearance_state(&c.trait_name, &c.level, &c.sentence) == body["state"])
+            .expect("an appearance_supported case for this state");
+        return json!({ "appearance_supported": noul_answer(case.expect) });
     }
     json!({})
 }

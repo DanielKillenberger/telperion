@@ -137,6 +137,27 @@ pub fn candidate_sentences(text: &str) -> Vec<CandidateSentence> {
     found
 }
 
+/// Every sentence that carries one of `terms` (lowercase), each once, in
+/// text order.
+pub fn sentences_with_terms(text: &str, terms: &[String]) -> Vec<String> {
+    let lower = text.to_ascii_lowercase();
+    let mut hits: Vec<(usize, usize)> = terms
+        .iter()
+        .filter(|term| !term.is_empty())
+        .flat_map(|term| {
+            lower
+                .match_indices(term.as_str())
+                .map(|(at, t)| (at, at + t.len()))
+        })
+        .collect();
+    hits.sort_unstable();
+    let mut seen = std::collections::BTreeSet::new();
+    hits.into_iter()
+        .map(|(start, end)| collapse_ws(&enclosing_sentence(text, start, end)))
+        .filter(|sentence| !sentence.is_empty() && seen.insert(sentence.clone()))
+        .collect()
+}
+
 /// Numeric spans the selection tool presents, plus the coverage of `foot`.
 pub fn candidate_spans(text: &str) -> Vec<String> {
     let mut spans = Vec::new();

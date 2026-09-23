@@ -182,5 +182,124 @@
       "holdout": true,
       "negative": true
     }
+  ],
+  "appearance_supported": [
+    {
+      "id": "a1-trunk-rough-gray-is-grey",
+      "trait": "bark_colour",
+      "level": "grey",
+      "sentence": "The trunk has a characteristic diamond pattern and is rough gray and up to ½ m (18 inches) in diameter (1, 3).",
+      "expect": true,
+      "holdout": false,
+      "negative": false
+    },
+    {
+      "id": "a1-trunk-rough-gray-is-rough",
+      "trait": "bark_roughness",
+      "level": "rough",
+      "sentence": "The trunk has a characteristic diamond pattern and is rough gray and up to ½ m (18 inches) in diameter (1, 3).",
+      "expect": true,
+      "holdout": false,
+      "negative": false
+    },
+    {
+      "id": "a1-navigation-is-no-bark",
+      "trait": "bark_roughness",
+      "level": "rough",
+      "sentence": "e Landscapes Tour](https://arboretum.arizona.edu/tours/edible-landscapes-tour) [Trees Around the World Tour](https://arboretum.arizona.edu/tours/trees-around-world-tour) **Botanical Name:** Phoenix dactylifera",
+      "expect": false,
+      "holdout": false,
+      "negative": true
+    },
+    {
+      "id": "f1-history-is-no-leaf-underside",
+      "trait": "leaf_back_colour",
+      "level": "silvery_white",
+      "sentence": "The date palm is thought to have been introduced to these areas long ago through human transport.",
+      "expect": false,
+      "holdout": false,
+      "negative": true
+    },
+    {
+      "id": "f1-varieties-are-no-crown-hue",
+      "trait": "leaf_hue_range",
+      "level": "uniform",
+      "sentence": "Currently, there are hundreds of varieties of the date palm, with noticeable differences in fruit characteristics.",
+      "expect": false,
+      "holdout": false,
+      "negative": true
+    },
+    {
+      "id": "oak-light-gray-bark-is-pale-grey",
+      "trait": "bark_colour",
+      "level": "pale_grey",
+      "sentence": "The bark is light gray and scaly.",
+      "expect": true,
+      "holdout": false,
+      "negative": false
+    },
+    {
+      "id": "oak-light-gray-bark-is-not-brown",
+      "trait": "bark_colour",
+      "level": "brown",
+      "sentence": "The bark is light gray and scaly.",
+      "expect": false,
+      "holdout": true,
+      "negative": true
+    },
+    {
+      "id": "oak-dark-green-upper-face",
+      "trait": "leaf_front_colour",
+      "level": "dark_green",
+      "sentence": "The leaves are dark green above, paler beneath, and of one even colour across the crown.",
+      "expect": true,
+      "holdout": false,
+      "negative": false
+    },
+    {
+      "id": "oak-paler-underside",
+      "trait": "leaf_back_colour",
+      "level": "pale_green",
+      "sentence": "The leaves are dark green above, paler beneath, and of one even colour across the crown.",
+      "expect": true,
+      "holdout": true,
+      "negative": false
+    },
+    {
+      "id": "oak-one-even-colour",
+      "trait": "leaf_hue_range",
+      "level": "uniform",
+      "sentence": "The leaves are dark green above, paler beneath, and of one even colour across the crown.",
+      "expect": true,
+      "holdout": false,
+      "negative": false
+    },
+    {
+      "id": "birch-white-papery-bark",
+      "trait": "bark_colour",
+      "level": "white",
+      "sentence": "Silver birch has white, papery bark that peels in thin strips.",
+      "expect": true,
+      "holdout": true,
+      "negative": false
+    },
+    {
+      "id": "a1-frond-shape-is-no-colour",
+      "trait": "leaf_front_colour",
+      "level": "grey_green",
+      "sentence": "Leaves resemble a ‘feather-duster’ as fronds are pinnately compound, 5-7 m (15 to 20 feet) long, with armed petioles and stout midribs that hold the slender pinnae (1, 5).",
+      "expect": false,
+      "holdout": true,
+      "negative": true
+    },
+    {
+      "id": "beech-smooth-bark",
+      "trait": "bark_roughness",
+      "level": "smooth",
+      "sentence": "Beech bark stays smooth and thin, silver-grey even on old trees.",
+      "expect": true,
+      "holdout": false,
+      "negative": false
+    }
   ]
 }

@@ -215,16 +215,32 @@ ash's or a test fixture, loads unchanged.
   `MaterialParams` fields the trait feeds. The traits are bark colour and
   bark roughness, leaf front colour and leaf back colour, and the leaf hue
   and brightness ranges. Each level maps to a `[low, high]` range per fed
-  field; colours are linear reflectance. `select` has Jev score the trait
-  over those levels, with the no-match level `unstated` last. It asks one
-  source's section at a time, in the order the entry lists them, and stops
-  at the first that it places on a level. That section is the chosen span.
-  Code then copies the level's ranges into `profiles[0].appearance.<trait>`
-  of the profile packet and records a sidecar entry with route `appearance`,
-  the span, and the id of its source, so `verify` checks the span against
-  that source. A source whose text never carries the trait's words is not
-  asked. A value with no source is never written: a trait no section states
-  is `unstated`.
+  field; colours are linear reflectance. The table also holds each trait's
+  words: `bark`, `trunk` and `stem` for the bark traits, and the leaf,
+  frond, needle and leaflet words for the leaf traits. Code extracts every
+  sentence of a source's cached text that carries one of those words.
+  `select` has Jev score each sentence alone over the trait's levels, with
+  the no-match level `unstated` last, as the screen judges a field's
+  sentences one at a time. It asks the sources in the order the entry lists
+  them and each source's sentences in page order, and stops at the first
+  sentence it places on a level. That sentence is the chosen span. Code then
+  copies the level's ranges into `profiles[0].appearance.<trait>` of the
+  profile packet and records a sidecar entry with route `appearance`, the
+  sentence, and the id of its source. A value with no source is never
+  written: a trait no sentence states is `unstated`. On the palm's second
+  pass, the old route judged a 600-character page chunk: `bark_roughness`
+  cited A1's navigation links, and `bark_colour` came out `unstated`
+  although A1 says the trunk "is rough gray".
+- **Verifying an appearance value.** `verify` checks the sentence against
+  its source with the citation check, as it does for every value. An
+  appearance value is a level, not a number, so `verify` does not ask it
+  `measurement_not_invention`. It asks `appearance_supported` instead:
+  does the cited sentence describe the trait at this level, as the table
+  summarises the level? The false side is the no-match answer. It covers a
+  sentence that states another level, does not state the trait, or is page
+  navigation. A value that is not supported files `claim-unsupported` with
+  the value's pointer as its field. Measured values keep
+  `measurement_not_invention`.
   Nothing renders or measures an appearance trait: `generate` records each
   one under `appearance` in its body as skipped. The material row is
   authored from these ranges.
@@ -280,6 +296,19 @@ never lowered: `lower-bar` is refused by name. An `add-sources` resolution
 binds only once the manifest's `sources` differ from the ones the decision
 recorded (`payload.sources_sha256`). A resolution that adds no source is void
 on the next read, and the decision stays open.
+
+A stage's rerun retires its own stale decisions. When `quality`, `select`
+or `verify` reruns with changed inputs, it marks each of its open decisions
+that it did not file again as resolved, with the option `superseded`, and
+records `by` as that stage's rerun. The field passed, or the trait was
+found stated, on the sources the manifest already had. A superseded
+`requirements-unmet` decision is therefore not held open when the sources
+are unchanged. No person writes `superseded`, and no stage consumes it. On
+the palm's second pass, `quality` passed crown width and leaflet length,
+but the first pass's decisions on them stayed open, and `select` skipped
+both fields as "below the data-quality bar". `verify`'s `obligation-unmet`
+decisions on four appearance values, and its `claim-unsupported` on A1 and
+F1, stayed open the same way and stopped `generate`.
 
 ```json
 {"id": "european-ash/fetch/unavailable-source/M1", "inputs_sha256": {"url": "..."},
@@ -517,7 +546,8 @@ Six versioned sets under `crates/telperion-jev/data/questions`: source
 ranking per field, data sufficiency per field with its dominant gap, the
 mature size of a `mature` field with its gap, described
 level scoring over levels a person wrote, the semantic obligations
-(`inspected_image`, `measurement_not_invention`), and the gap loop's options.
+(`inspected_image`, `measurement_not_invention`, `appearance_supported`),
+and the gap loop's options.
 Their labelled cases with negative and held-out entries live under
 `data/cases`; `jev cases` reruns them live and fails when a held-out accuracy
 is below 0.9 (0.8 top-one agreement for ranking and for the gap set's best

@@ -25,7 +25,8 @@ use telperion_jev::pipeline::stages::{extract, fetch, quality, screen, select, v
 
 const PAGE_URL: &str = "https://example.test/oak";
 
-/// Fixed answers for sufficiency, the mature size and the appearance level;
+/// Fixed answers for sufficiency, the mature size, the appearance level and
+/// its support;
 /// everything else goes to the fn-57 mock.
 struct Answers {
     sufficiency: f64,
@@ -52,6 +53,8 @@ impl Transport for Answers {
             json!({"relation": {"type": "choice", "choice": "supports", "confidence": 0.95, "probabilities": {"supports": 0.95}}})
         } else if questions.get("measurement_not_invention").is_some() {
             json!({"measurement_not_invention": {"type": "noul", "noul": 0.9}})
+        } else if questions.get("appearance_supported").is_some() {
+            json!({"appearance_supported": {"type": "noul", "noul": 0.9}})
         } else {
             return CaseTransport.send(request);
         };

@@ -14,10 +14,12 @@ use common::{ledger_dir, CaseTransport};
 use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::canon::{read_json, write_canonical};
+use telperion_jev::pipeline::consume::{sources_sha256, REQUIREMENTS_UNMET};
+use telperion_jev::pipeline::decision::{append_decisions, Decision, DecisionParts};
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::requirements::table;
 use telperion_jev::pipeline::stage::{Context, Paths};
-use telperion_jev::pipeline::stages::{inputs, quality};
+use telperion_jev::pipeline::stages::{inputs, quality, select};
 
 const A1_FROND: &str = "Leaves resemble a \u{2018}feather-duster\u{2019} as fronds are pinnately compound, 5-7 m (15 to 20 feet) long, with armed petioles and stout midribs that hold the slender pinnae (1, 5).";
 const A1_LEAFLET: &str = "The leaflets are \u{bd} m (18 inches) long (1, 3, 5) and are induplicate, meaning they appear to have been folded in half lengthwise (5).";
@@ -29,18 +31,23 @@ const A1_RATE: &str = "Date palms have a moderate growth rate of 30-45 cm (1 to 
 /// live; everything else, the mature-size set among it, goes to the fixture
 /// transport, which answers from the labelled case whose state the stage
 /// laid out.
+/// The selection tool's span is the listing's width, the one candidate the
+/// select test needs filled; this test is about which fields select asks.
 struct Palm;
 
 impl Transport for Palm {
     fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String> {
         let body: Value = serde_json::from_slice(request.body.as_deref().unwrap_or(b"{}")).unwrap();
-        if body["questions"].get("sufficiency").is_none() {
+        let answers = if body["questions"].get("sufficiency").is_some() {
+            json!({
+                "sufficiency": {"type": "score", "score": 0.0, "confidence": 0.9, "probabilities": {}},
+                "dominant_gap": {"type": "choice", "choice": "no_age_indexed_points", "confidence": 0.9, "probabilities": {}},
+            })
+        } else if body["questions"].get("span").is_some() {
+            json!({"span": {"type": "choice", "choice": "20 - 50 feet", "confidence": 0.9, "probabilities": {}}})
+        } else {
             return CaseTransport.send(request);
-        }
-        let answers = json!({
-            "sufficiency": {"type": "score", "score": 0.0, "confidence": 0.9, "probabilities": {}},
-            "dominant_gap": {"type": "choice", "choice": "no_age_indexed_points", "confidence": 0.9, "probabilities": {}},
-        });
+        };
         Ok(HttpResponse {
             status: 200,
             body: serde_json::to_vec(&json!({"model": "jev-latest", "answers": answers})).unwrap(),
@@ -147,4 +154,81 @@ fn a_mature_field_reaches_its_bar_from_a_stated_mature_size_with_or_without_an_a
             "{ages}"
         );
     }
+}
+
+/// fn-128 R1: on the palm's second pass quality passed crown width and the
+/// leaflet length, yet the `requirements-unmet` decisions its first pass had
+/// filed on them stayed open, and select skipped both as "below the
+/// data-quality bar". The first pass's decisions are rebuilt here with its
+/// `fetch.json` checksum and the manifest's unchanged sources, as the live
+/// `decisions.json` holds them.
+#[test]
+fn a_rerun_supersedes_the_unmet_decisions_it_no_longer_files_and_select_fills_them() {
+    let dir = prepare(json!([]));
+    let paths = Paths::new(&dir);
+    let sources = sources_sha256(&paths.manifest()).unwrap();
+    let first_pass = |field: &str| {
+        Decision::new(
+            DecisionParts {
+                species: "date-palm",
+                stage: "quality",
+                kind: REQUIREMENTS_UNMET,
+                field: Some(field),
+                age_years: None,
+            },
+            &["select", "fit", "generate"],
+            inputs(&[(
+                "fetch.json",
+                "c2f89838ac59b3ab23f2c1b4fb6a30caaf4439c03363c0160bd3bd95d8cced1a",
+            )]),
+            vec![],
+            json!({"field": field, "bar": "proxy_only", "sources_sha256": sources}),
+            &["add-sources"],
+            "NEEDS_HUMAN",
+        )
+    };
+    let stale = ["crown_width_m", "leaflet_length_m", "leaflet_width_m"];
+    append_decisions(&paths.decisions(), stale.map(first_pass).to_vec()).unwrap();
+    let judge = Judge {
+        transport: &Palm,
+        key: "test-key",
+        ledger_dir: ledger_dir("mature-retire"),
+    };
+    quality::run(&paths, &judge).unwrap();
+
+    let list = read_json(&paths.decisions()).unwrap();
+    let status = |field: &str| {
+        let id = format!("date-palm/quality/requirements-unmet/{field}");
+        let d = list["decisions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|d| d["id"] == id)
+            .unwrap()
+            .clone();
+        (d["status"].clone(), d["resolution"]["option"].clone())
+    };
+    for field in ["crown_width_m", "leaflet_length_m"] {
+        assert_eq!(
+            status(field),
+            (json!("resolved"), json!("superseded")),
+            "{field}"
+        );
+    }
+    // A1 still states no leaflet width: filed again, open.
+    assert_eq!(status("leaflet_width_m").0, "open");
+
+    // The manifest's sources are unchanged, and a superseded decision is
+    // not an owner's resolution that added none: select opens with it
+    // retired and fills the fields quality passed.
+    select::run(&paths, &judge).unwrap();
+    let body = &read_json(&dir.join("select.json")).unwrap()["body"];
+    for field in ["crown_width_m", "leaflet_length_m"] {
+        let pointer = format!("/profiles/0/metrics/{field}");
+        assert!(body["filled"].get(&pointer).is_some(), "{field}: {body}");
+    }
+    assert_eq!(
+        body["unavailable"]["leaflet_width_m"],
+        "below the data-quality bar"
+    );
 }

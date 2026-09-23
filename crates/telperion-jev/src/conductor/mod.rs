@@ -25,6 +25,7 @@ pub mod questions;
 pub mod report;
 pub mod state;
 pub mod step;
+pub mod tuning;
 
 use std::path::{Path, PathBuf};
 

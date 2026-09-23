@@ -722,6 +722,7 @@ impl Run {
                         continue;
                     }
                 };
+                let step = super::bundle::single(dial, &self.effective, &patch, proposal.action);
                 let mut overrides = self.overrides.clone();
                 merge(&mut overrides, &patch);
                 self.reserve(
@@ -741,6 +742,7 @@ impl Run {
                 // What this attempt moved, from where, and on what evidence.
                 trial.base = Some(self.trials[old].key.clone());
                 trial.action = Some(proposal.action);
+                trial.step = step;
                 trial.direction_mass = proposal.direction_mass;
                 trial.rule = proposal.rule.clone();
                 trial.evidence = self.visual.as_ref().map(|v| v.ledger.clone());
@@ -778,6 +780,7 @@ impl Run {
             };
             let restore = super::veto::restore_point(self);
             self.current = Some(best);
+            self.trials[best].adopted = true;
             self.effective = best_effective;
             self.overrides = self.trials[best].overrides.clone();
             self.assess(services, save)?;
