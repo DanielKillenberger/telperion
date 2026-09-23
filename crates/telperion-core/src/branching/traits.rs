@@ -129,7 +129,11 @@ impl HabitParams {
             (unit(self.lateral_length_ratio), "lateral length ratio"),
             (self.lateral_orders <= 8, "lateral orders"),
             (unit(self.attractor_weight), "attractor weight"),
-            (unit(self.twig_tip_taper), "twig tip taper"),
+            // Open at zero: a tip of no wood leaves its radius unsolved.
+            (
+                positive(self.twig_tip_taper) && self.twig_tip_taper <= 1.0,
+                "twig tip taper",
+            ),
             (unit(self.shedding_threshold), "shedding threshold"),
             ((1..=6).contains(&self.stems), "stems"),
             (

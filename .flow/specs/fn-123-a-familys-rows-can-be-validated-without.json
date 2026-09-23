@@ -1,13 +1,13 @@
 {
-  "branch_name": "fn-119-tuning-aims-at-every-trait-the",
+  "branch_name": "fn-123-a-familys-rows-can-be-validated-without",
   "completion_review_status": "not_required",
-  "completion_reviewed_at": "2026-09-23T18:10:55.624286Z",
-  "created_at": "2026-09-23T16:34:16.554289Z",
+  "completion_reviewed_at": "2026-09-23T18:31:40.235706Z",
+  "created_at": "2026-09-23T16:42:28.954832Z",
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [],
-  "id": "fn-119-tuning-aims-at-every-trait-the",
+  "id": "fn-123-a-familys-rows-can-be-validated-without",
   "impl_review_rounds": {},
   "next_task": 1,
   "no_plan": true,
@@ -15,9 +15,9 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
-  "spec_path": ".flow/specs/fn-119-tuning-aims-at-every-trait-the.md",
+  "spec_path": ".flow/specs/fn-123-a-familys-rows-can-be-validated-without.md",
   "status": "open",
-  "title": "Tuning aims at every trait the generator can draw",
+  "title": "A family's rows can be validated without growing a tree",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T18:10:55.624302Z"
+  "updated_at": "2026-09-23T18:31:40.235715Z"
 }

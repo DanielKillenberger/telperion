@@ -280,6 +280,19 @@ pub fn parse(v: &Value) -> Result<Family> {
     if let Some(id) = v.as_str() {
         return by_identity(id);
     }
+    let f = decode(v)?;
+    // The material row has no builder of its own to judge it: no mesh depends
+    // on a colour, so nothing downstream would ever look. The wire is its
+    // consumer, and the wire is where a value off its range or a range that
+    // runs backwards is refused, by the name of the field that was wrong.
+    f.material.validate()?;
+    crate::growth::Age::from_years(f.age)?;
+    f.growth.validate()?;
+    Ok(f)
+}
+/// The wire read into a family, every key known and every value its type,
+/// with no row judged.
+pub(crate) fn decode(v: &Value) -> Result<Family> {
     let mut f = preset(0)?;
     let schema = metadata(&f);
     fn known(v: &Value, schema: &Value, unknown: &'static str) -> Result<()> {
@@ -312,13 +325,6 @@ pub fn parse(v: &Value) -> Result<Family> {
         };
     }
     fields!(f, v, read);
-    // The material row has no builder of its own to judge it: no mesh depends
-    // on a colour, so nothing downstream would ever look. The wire is its
-    // consumer, and the wire is where a value off its range or a range that
-    // runs backwards is refused, by the name of the field that was wrong.
-    f.material.validate()?;
-    crate::growth::Age::from_years(f.age)?;
-    f.growth.validate()?;
     Ok(f)
 }
 

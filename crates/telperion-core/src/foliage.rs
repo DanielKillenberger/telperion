@@ -23,6 +23,8 @@ use crate::{
     math::Vec3,
     Error, Result,
 };
+/// Every canopy rail `place` judges, with no tree to place against.
+pub(crate) use canopy::rows as canopy_rows;
 pub use canopy::{CanopyParams, TwigPlacement, MAX_SHORT_SHOOT_LEAVES, SHORT_SHOOT_SPACING};
 pub use element::{build_element, AnatomyGeometry, Element, ElementParams, FoliageUnit};
 pub use levels::Level;
@@ -292,7 +294,7 @@ pub fn cull(
     }
     Ok(instances)
 }
-fn range(v: f64, lo: f64, hi: f64, name: &'static str) -> Result<()> {
+pub(crate) fn range(v: f64, lo: f64, hi: f64, name: &'static str) -> Result<()> {
     if !v.is_finite() || v < lo || v > hi {
         Err(Error::InvalidInput(name))
     } else {

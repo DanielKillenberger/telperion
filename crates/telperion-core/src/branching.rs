@@ -19,6 +19,7 @@ use crate::{
 };
 pub use leaf_bases::{clothe_leaf_bases, leaf_bases, LeafBase, MAX_LEAF_BASES};
 pub use local::{append, in_band as in_curtain_band};
+pub(crate) use specimen::validate as validate_skeleton;
 pub use specimen::{
     ChangeRecord, PackedNode, PackedRead, Run, RunNode, Specimen, SpecimenBuffers, SpecimenRead,
 };
@@ -97,6 +98,10 @@ impl SkeletonParams {
         let mut c = default_growth(self.envelope, scattered, self.step);
         c.seed = self.seed;
         let o = self.growth;
+        // A crown with no bole below it is no tree the build can sweep.
+        if o.trunk_height.is_some_and(|v| v <= 0.0) {
+            return Err(Error::InvalidInput("trunkHeight"));
+        }
         if let Some(v) = o.influence_radius {
             c.influence_radius = v
         }
