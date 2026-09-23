@@ -14,7 +14,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 use super::canon::{read_json, write_canonical, CanonError};
-use super::consume::{check_resolutions, ReconcileError};
+use super::consume::{check_resolutions, hold_unmet, sources_sha256, ReconcileError};
+use super::stage::Paths;
 
 pub const DECISIONS_SCHEMA_VERSION: u32 = 1;
 
@@ -245,17 +246,18 @@ pub fn apply_resolutions(decisions: &mut [Decision], resolutions: &[Resolution])
 }
 
 /// Reads decisions and resolutions, refuses a resolution the kinds table
-/// refuses, applies the rest, and rewrites the list.
-pub fn reconcile(
-    decisions_path: &Path,
-    resolutions_path: &Path,
-) -> Result<Vec<Decision>, ReconcileError> {
-    let mut list = read_decisions(decisions_path)?;
-    let resolutions = read_resolutions(resolutions_path)?;
+/// refuses, applies the rest, holds open a requirements-unmet resolution
+/// that added no source, and rewrites the list.
+pub fn reconcile(paths: &Paths) -> Result<Vec<Decision>, ReconcileError> {
+    let mut list = read_decisions(&paths.decisions())?;
+    let resolutions = read_resolutions(&paths.resolutions())?;
     check_resolutions(&list, &resolutions)?;
     apply_resolutions(&mut list, &resolutions);
+    if paths.manifest().exists() {
+        hold_unmet(&mut list, &sources_sha256(&paths.manifest())?);
+    }
     if !list.is_empty() {
-        write_decisions(decisions_path, &list)?;
+        write_decisions(&paths.decisions(), &list)?;
     }
     Ok(list)
 }

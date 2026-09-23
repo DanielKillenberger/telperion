@@ -16,6 +16,7 @@ pub mod judge;
 pub mod known;
 pub mod manifest;
 pub mod render;
+pub mod requirements;
 pub mod routes;
 pub mod sets;
 pub mod stage;

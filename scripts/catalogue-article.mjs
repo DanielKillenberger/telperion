@@ -128,6 +128,27 @@ function gaps({ species, root, id }) {
   return out.join('');
 }
 
+/**
+ * The appearance the record carries (fn-118): each described trait's level and
+ * the range code copied for every material field it feeds, the ranges the
+ * material row is authored from. Rendered only for a profile that holds them.
+ */
+function appearance({ species }) {
+  const traits = Object.entries(species.profile.profiles?.[0]?.appearance ?? {});
+  const rows = traits.flatMap(([name, trait]) => Object.entries(trait.ranges ?? {}).map(([field, range]) => [
+    name,
+    trait.level,
+    trait.summary,
+    field,
+    range.join(' to '),
+    (trait.sources ?? []).join(', ') || 'none cited',
+  ]));
+  return table(['Trait', 'Level', 'Described as', 'Material field', 'Range', 'Sources'], rows);
+}
+
+const hasAppearance = (species) =>
+  Object.keys(species.profile.profiles?.[0]?.appearance ?? {}).length > 0;
+
 function header({ species }) {
   const profile = species.profile.profiles?.[0] ?? {};
   const record = species.species;
@@ -155,9 +176,16 @@ function bibliography({ species }) {
 const BLOCKS = {
   header,
   measurements,
+  appearance,
   gaps,
   sources: bibliography,
 };
+
+/** The generated blocks an article for this record must carry. */
+const blocksFor = (species) =>
+  Object.keys(BLOCKS).filter((name) => name !== 'appearance' || hasAppearance(species));
+
+const GAPS_HEADING = '## What the record does not know';
 
 const generated = (name, at) => block(name, `${BLOCKS[name](at).trimEnd()}\n`);
 
@@ -166,6 +194,7 @@ function scaffold(at) {
   for (const [name, hint, rendered] of SECTIONS) {
     parts.push(`## ${name}\n\n${rendered ? generated(rendered, at) : `TODO: ${hint}`}`);
     if (name === 'Size and growth') parts.push(generated('measurements', at));
+    if (name === 'Leaves' && hasAppearance(at.species)) parts.push(generated('appearance', at));
   }
   parts.push(generated('sources', at));
   return `${parts.join('\n\n')}\n`;
@@ -205,7 +234,7 @@ export function validateArticle(root, id, species, decisions = {}) {
   if (!front) return [`${where}: has no front matter`];
 
   const sourceIds = new Set((species.sources.sources ?? []).map((source) => source.id));
-  for (const name of Object.keys(BLOCKS)) {
+  for (const name of blocksFor(species)) {
     if (!new RegExp(`<!-- generated: ${name} -->`).test(body)) {
       failures.push(`${where}: generated block ${name} is missing`);
     }
@@ -293,9 +322,13 @@ export function writeArticle(root, id) {
 
   const at = { species, root, id };
   const existing = existsSync(path) ? readFrontMatter(readFileSync(path, 'utf8')).body : null;
-  const body = (existing ?? scaffold(at))
+  let body = (existing ?? scaffold(at))
     .replace(BLOCK, (whole, name) => (BLOCKS[name] ? generated(name, at) : whole))
     .replace(/^\n+/, '');
+  // A record that gained appearance ranges gains their block ahead of the gaps.
+  if (hasAppearance(species) && !body.includes('<!-- generated: appearance -->')) {
+    body = body.replace(GAPS_HEADING, `${generated('appearance', at)}\n\n${GAPS_HEADING}`);
+  }
 
   const front = writeFrontMatter({
     species: id,

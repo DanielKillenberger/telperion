@@ -192,14 +192,13 @@ impl Context {
             });
         }
         let admitted = manifest::load(&manifest_path).map_err(StageError::Manifest)?;
-        let decisions =
-            reconcile(&paths.decisions(), &paths.resolutions()).map_err(|err| match err {
-                ReconcileError::File(err) => StageError::File(err),
-                refused @ ReconcileError::Refused(_) => StageError::Failed {
-                    stage: stage.into(),
-                    reason: refused.to_string(),
-                },
-            })?;
+        let decisions = reconcile(&paths).map_err(|err| match err {
+            ReconcileError::File(err) => StageError::File(err),
+            refused @ ReconcileError::Refused(_) => StageError::Failed {
+                stage: stage.into(),
+                reason: refused.to_string(),
+            },
+        })?;
         let (global, fields) = open_for_stage(&decisions, stage);
         if !global.is_empty() {
             return Err(StageError::OpenDecision {

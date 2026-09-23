@@ -3,13 +3,17 @@
 //! candidates and the admitted table rows beside the requirement, counts the
 //! measured points and the required ages they cover, and Jev scores the
 //! sufficiency level and names the dominant gap. A field below the manifest's
-//! bar files a data-insufficient decision; the stop is code on the level.
+//! bar files a data-insufficient decision; the stop is code on the level. A
+//! field the requirements table requires, below the table's bar, files a
+//! requirements-unmet decision instead: the owner's, with no bar to lower.
 
 use serde_json::{json, Map, Value};
 
+use crate::pipeline::consume::{sources_sha256, REQUIREMENTS_UNMET};
 use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::{Field, Manifest, Sufficiency};
+use crate::pipeline::requirements::{required_bar, terms};
 use crate::pipeline::sets::{level_from_score, sufficiency_questions, SUFFICIENCY_LEVELS};
 use crate::pipeline::stage::{Context, Paths, StageError};
 
@@ -75,6 +79,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
             .choice("dominant_gap")
             .unwrap_or_else(|| "none".into());
         let passed = level >= field.bar;
+        let required = required_bar(manifest, &field.field).filter(|bar| level < *bar);
         header.ledger.push(judgment.reference.clone());
         fields.insert(
             field.field.clone(),
@@ -89,17 +94,20 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
                 "ledger": judgment.reference,
             }),
         );
-        if !passed {
-            decisions.push(insufficient(
-                manifest,
-                field,
-                level,
-                &gap,
-                &points,
-                &uncovered,
-                &judgment.reference,
-                &fetch_sha,
-            ));
+        let shortfall = Shortfall {
+            field,
+            level,
+            gap: &gap,
+            points: &points,
+            uncovered: &uncovered,
+            ledger: &judgment.reference,
+            fetch_sha: &fetch_sha,
+        };
+        if let Some(bar) = required {
+            let sources = sources_sha256(&ctx.paths.manifest())?;
+            decisions.push(unmet(manifest, &shortfall, bar, &sources));
+        } else if !passed {
+            decisions.push(insufficient(manifest, &shortfall));
         }
     }
     let ids: Vec<String> = decisions.iter().map(|d| d.id.clone()).collect();
@@ -172,15 +180,14 @@ fn measured_points(manifest: &Manifest, field: &Field, evidence: &[Value]) -> Ve
 }
 
 /// Whether a sentence is about this field's dimension: a height sentence is
-/// not a diameter point. A field with no word list passes every sentence.
+/// not a diameter point. The words are the requirements table's; a field
+/// with no word list passes every sentence.
 fn names_field(field: &Field, sentence: &str) -> bool {
-    let words: &[&str] = match field.field.as_str() {
-        "height_m" => &["height", "tall", "high"],
-        "dbh_m" => &["diameter", "dbh", "trunk", "girth", "dg "],
-        _ => return true,
+    let Some(words) = terms(&field.field) else {
+        return true;
     };
     let lower = sentence.to_ascii_lowercase();
-    words.iter().any(|w| lower.contains(w))
+    words.iter().any(|w| lower.contains(w.as_str()))
 }
 
 fn coverage(field: &Field, points: &[Value]) -> (Vec<f64>, Vec<f64>) {
@@ -203,38 +210,75 @@ fn coverage(field: &Field, points: &[Value]) -> (Vec<f64>, Vec<f64>) {
         })
 }
 
-#[allow(clippy::too_many_arguments)]
-fn insufficient(
-    manifest: &Manifest,
-    field: &Field,
+/// One field's shortfall at the gate, as both decisions carry it.
+struct Shortfall<'a> {
+    field: &'a Field,
     level: Sufficiency,
-    gap: &str,
-    points: &[Value],
-    uncovered: &[f64],
-    ledger: &str,
-    fetch_sha: &str,
-) -> Decision {
-    Decision::new(
-        DecisionParts {
-            species: &manifest.species,
-            stage: STAGE,
-            kind: "data-insufficient",
-            field: Some(&field.field),
-            age_years: None,
-        },
-        &["select", "fit", "generate"],
-        [("fetch.json".to_string(), fetch_sha.to_string())].into_iter().collect(),
-        vec![ledger.to_string()],
-        json!({
-            "field": field.field,
-            "level": level.key(),
-            "bar": field.bar.key(),
-            "dominant_gap": gap,
-            "points": points,
-            "required_ages_uncovered": uncovered,
-            "sources_tried": manifest.sources.iter().map(|s| s.id.clone()).collect::<Vec<_>>(),
-        }),
+    gap: &'a str,
+    points: &'a [Value],
+    uncovered: &'a [f64],
+    ledger: &'a str,
+    fetch_sha: &'a str,
+}
+
+impl Shortfall<'_> {
+    fn decision(
+        &self,
+        manifest: &Manifest,
+        kind: &str,
+        payload: Value,
+        options: &[&str],
+        note: &str,
+    ) -> Decision {
+        let mut payload = payload;
+        payload["field"] = json!(self.field.field);
+        payload["level"] = json!(self.level.key());
+        payload["dominant_gap"] = json!(self.gap);
+        payload["points"] = json!(self.points);
+        payload["required_ages_uncovered"] = json!(self.uncovered);
+        payload["sources_tried"] = json!(manifest
+            .sources
+            .iter()
+            .map(|s| s.id.clone())
+            .collect::<Vec<_>>());
+        Decision::new(
+            DecisionParts {
+                species: &manifest.species,
+                stage: STAGE,
+                kind,
+                field: Some(&self.field.field),
+                age_years: None,
+            },
+            &["select", "fit", "generate"],
+            [("fetch.json".to_string(), self.fetch_sha.to_string())]
+                .into_iter()
+                .collect(),
+            vec![self.ledger.to_string()],
+            payload,
+            options,
+            note,
+        )
+    }
+}
+
+fn insufficient(manifest: &Manifest, s: &Shortfall<'_>) -> Decision {
+    s.decision(
+        manifest,
+        "data-insufficient",
+        json!({"bar": s.field.bar.key()}),
         &["admit-proxy", "add-sources", "lower-bar"],
         "The evidence for this field is below the manifest's bar; no select, fit or render runs for it until a person admits a proxy, adds sources or lowers the bar.",
+    )
+}
+
+/// NEEDS_HUMAN: a required field below the requirements table's bar. The
+/// owner adds sources; the bar is the table's and no option lowers it.
+fn unmet(manifest: &Manifest, s: &Shortfall<'_>, bar: Sufficiency, sources: &str) -> Decision {
+    s.decision(
+        manifest,
+        REQUIREMENTS_UNMET,
+        json!({"bar": bar.key(), "sources_sha256": sources}),
+        &["add-sources"],
+        "NEEDS_HUMAN: the requirements table asks this field at its bar and the literature falls short. The owner adds sources to the manifest; a resolution that adds none stays open, and the table's bar is never lowered.",
     )
 }

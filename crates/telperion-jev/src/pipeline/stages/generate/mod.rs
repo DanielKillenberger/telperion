@@ -187,10 +187,19 @@ pub fn run(
         shipped.file(manifest, UNSEEN, None, &[], payload, &sha);
     }
 
-    let out = json!({
+    let mut out = json!({
         "metrics": metrics, "described": described, "transfers": transfers,
         "unavailable": unavailable, "stills": stills, "note": note,
     });
+    if !manifest.appearance.is_empty() {
+        let skip = json!("copied by select into the profile; not rendered or measured");
+        let skipped: Map<String, Value> = manifest
+            .appearance
+            .iter()
+            .map(|a| (a.trait_name.clone(), skip.clone()))
+            .collect();
+        out["appearance"] = json!(skipped);
+    }
     let ids: Vec<String> = shipped.decisions.iter().map(|d| d.id.clone()).collect();
     if !shipped.decisions.is_empty() {
         append_decisions(&ctx.paths.decisions(), shipped.decisions)?;

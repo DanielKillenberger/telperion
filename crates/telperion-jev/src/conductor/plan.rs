@@ -82,8 +82,8 @@ pub fn open_decisions(config: &Config) -> Result<Vec<Decision>> {
     if !paths.decisions().exists() {
         return Ok(Vec::new());
     }
-    let decisions = reconcile(&paths.decisions(), &paths.resolutions())
-        .map_err(|err| super::ConductorError::Invalid(err.to_string()))?;
+    let decisions =
+        reconcile(&paths).map_err(|err| super::ConductorError::Invalid(err.to_string()))?;
     Ok(decisions
         .into_iter()
         .filter(|d| d.status == Status::Open)
