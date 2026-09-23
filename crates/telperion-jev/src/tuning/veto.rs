@@ -12,7 +12,7 @@
 mod judge;
 mod restore;
 pub use judge::{questions, Judged, QUESTION, UNCALIBRATED, VERSION};
-pub use restore::{restore_point, worsened, Restore, Veto};
+pub use restore::{restore_point, worsened, Restore, Veto, Worsened};
 
 use super::engine::{Run, Services};
 
@@ -32,7 +32,14 @@ pub(in crate::tuning) fn settle(
         return Ok(true);
     };
     let (before, after) = (&before, &after);
-    let mut reasons = restore::worsened(before, after, &state.required_cells());
+    let worsened = restore::worsened(
+        before,
+        after,
+        &state.required_cells(),
+        &services.unexpressed(),
+    );
+    state.routes.extend(worsened.notes);
+    let mut reasons = worsened.reasons;
     let mut ledger = None;
     // A structured regression is read off the two assessments; nobody is paid
     // to confirm what the cells already say.
