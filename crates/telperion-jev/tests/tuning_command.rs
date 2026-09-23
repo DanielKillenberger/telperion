@@ -1033,6 +1033,25 @@ impl telperion_jev::caller::Transport for EveryDial {
 }
 
 #[test]
+fn an_unexpressed_trait_must_be_in_the_inventory_and_name_its_spec() {
+    let _serial = serial();
+    let f = fixture::verifying_fixture(opening());
+    let mut config: Config = serde_json::from_slice(&fs::read(&f.config_path).unwrap()).unwrap();
+    let listed = |trait_id: &str, spec: &str| -> Value { json!([{"trait":trait_id,"spec":spec}]) };
+    config.unexpressed = serde_json::from_value(listed("trait-core", "fn-111")).unwrap();
+    config.verify().unwrap();
+    for (trait_id, spec, refused) in [
+        ("fruit-clusters-pendent", "fn-111", "not in the inventory"),
+        ("trait-core", " ", "names no spec"),
+    ] {
+        config.unexpressed = serde_json::from_value(listed(trait_id, spec)).unwrap();
+        let error = config.verify().unwrap_err();
+        assert!(error.contains(refused), "{trait_id}/{spec:?}: {error}");
+    }
+    f.cleanup();
+}
+
+#[test]
 fn max_candidates_is_validated_and_bounds_one_round() {
     let _serial = serial();
     use telperion_jev::tuning::{

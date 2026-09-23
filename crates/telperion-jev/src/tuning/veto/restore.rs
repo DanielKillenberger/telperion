@@ -3,6 +3,7 @@
 use crate::tuning::{
     engine::Run,
     state::{Cell, CellStatus, Visual},
+    unexpressed::Unexpressed,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -78,15 +79,30 @@ fn backwards(before: CellStatus, after: CellStatus) -> bool {
     )
 }
 
+/// What went backwards and rolls the adoption back, and what went backwards
+/// on a trait the generator cannot draw yet and is only recorded.
+#[derive(Debug, Default, PartialEq)]
+pub struct Worsened {
+    pub reasons: Vec<String>,
+    pub notes: Vec<String>,
+}
+
 /// What the two assessments say went backwards, in words a router can read.
-pub fn worsened(before: &Visual, after: &Visual, required: &[Cell]) -> Vec<String> {
-    let mut reasons = vec![];
+/// A required cell always counts; a coverage trait listed as unexpressed never
+/// does, because no dial can draw it until its spec lands.
+pub fn worsened(
+    before: &Visual,
+    after: &Visual,
+    required: &[Cell],
+    unexpressed: &[Unexpressed],
+) -> Worsened {
+    let mut out = Worsened::default();
     for cell in required {
         let (Some(was), Some(now)) = (status(before, cell), status(after, cell)) else {
             continue;
         };
         if was == CellStatus::Pass && now == CellStatus::Fail {
-            reasons.push(format!(
+            out.reasons.push(format!(
                 "required cell {} on the {} view at seed {} went from pass to fail",
                 cell.item, cell.view, cell.seed
             ));
@@ -96,12 +112,20 @@ pub fn worsened(before: &Visual, after: &Visual, required: &[Cell]) -> Vec<Strin
         let Some(now) = after.coverage.iter().find(|t| t.trait_id == was.trait_id) else {
             continue;
         };
-        if backwards(was.status, now.status) {
-            reasons.push(format!(
-                "trait {} went from {:?} to {:?}",
-                was.trait_id, was.status, now.status
-            ));
+        if !backwards(was.status, now.status) {
+            continue;
+        }
+        let change = format!(
+            "trait {} went from {:?} to {:?}",
+            was.trait_id, was.status, now.status
+        );
+        match unexpressed.iter().find(|u| u.trait_id == was.trait_id) {
+            Some(u) => out.notes.push(format!(
+                "{change}; not a veto: the generator cannot draw it until {} lands",
+                u.spec
+            )),
+            None => out.reasons.push(change),
         }
     }
-    reasons
+    out
 }
