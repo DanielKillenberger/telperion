@@ -3,6 +3,7 @@
 use serde_json::json;
 use telperion_jev::tuning::{
     state::{Cell, CellStatus, TraitStatus, Visual},
+    unexpressed::Unexpressed,
     veto,
 };
 
@@ -61,7 +62,7 @@ fn only_a_disposition_that_went_backwards_is_a_reason_to_roll_back() {
             ("stable", Pass),
         ],
     );
-    let reasons = veto::worsened(&before, &after, &required);
+    let reasons = veto::worsened(&before, &after, &required, &[]).reasons;
     assert_eq!(reasons.len(), 3, "{reasons:?}");
     assert!(reasons[0].contains("required cell crown") && reasons[0].contains("pass to fail"));
     assert!(
@@ -78,7 +79,50 @@ fn only_a_disposition_that_went_backwards_is_a_reason_to_roll_back() {
         .iter()
         .any(|r| r.contains("leaf") || r.contains("stable")));
     assert!(!reasons.iter().any(|r| r.contains("required cell bark")));
-    assert!(veto::worsened(&before, &before, &required).is_empty());
+    assert_eq!(
+        veto::worsened(&before, &before, &required, &[]),
+        veto::Worsened::default()
+    );
+}
+
+fn fruit() -> Vec<Unexpressed> {
+    vec![Unexpressed {
+        trait_id: "fruit".into(),
+        spec: "fn-111".into(),
+    }]
+}
+
+#[test]
+fn a_listed_trait_going_backwards_is_recorded_and_never_a_reason() {
+    use CellStatus::{Fail, Pass, Unknown};
+    for was in [Unknown, Pass] {
+        let before = visual(&[], &[("fruit", was)]);
+        let after = visual(&[], &[("fruit", Fail)]);
+        let worsened = veto::worsened(&before, &after, &[], &fruit());
+        assert!(worsened.reasons.is_empty(), "{was:?}: {worsened:?}");
+        assert_eq!(
+            worsened.notes,
+            vec![format!(
+                "trait fruit went from {was:?} to Fail; not a veto: \
+                 the generator cannot draw it until fn-111 lands"
+            )]
+        );
+    }
+}
+
+#[test]
+fn an_unlisted_trait_and_a_required_cell_still_roll_back() {
+    use CellStatus::{Fail, Pass, Unknown};
+    // The required cell shares the listed trait's name: listing covers
+    // coverage traits only, never a required cell.
+    let required = vec![cell("fruit")];
+    let before = visual(&[("fruit", Pass)], &[("crown", Unknown)]);
+    let after = visual(&[("fruit", Fail)], &[("crown", Fail)]);
+    let worsened = veto::worsened(&before, &after, &required, &fruit());
+    assert!(worsened.notes.is_empty(), "{worsened:?}");
+    assert_eq!(worsened.reasons.len(), 2, "{worsened:?}");
+    assert!(worsened.reasons[0].starts_with("required cell fruit"));
+    assert_eq!(worsened.reasons[1], "trait crown went from Unknown to Fail");
 }
 
 #[test]

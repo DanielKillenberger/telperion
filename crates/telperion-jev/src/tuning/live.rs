@@ -140,6 +140,10 @@ pub struct Config {
     pub judgment_model: String,
     #[serde(default)]
     pub gap_specs: std::collections::BTreeMap<String, String>,
+    /// Inventory traits the generator cannot draw until an open spec lands.
+    /// One going backwards is recorded, never a reason to roll back.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub unexpressed: Vec<super::unexpressed::Unexpressed>,
     pub ledger: PathBuf,
     pub budget: super::state::Budget,
 }
@@ -259,6 +263,7 @@ impl Config {
         self.max_split_reviews.unwrap_or(6)
     }
     pub fn verify(&self) -> Result<(), String> {
+        super::unexpressed::verify(&self.unexpressed, self.reference_first.as_ref())?;
         if self.selection == Selection::Bundle {
             let sheet = self
                 .sheet
@@ -725,6 +730,9 @@ impl Services for Live<'_> {
     }
     fn tracks(&self) -> Vec<super::bundle::Track> {
         self.config.tracks.clone()
+    }
+    fn unexpressed(&self) -> Vec<super::unexpressed::Unexpressed> {
+        self.config.unexpressed.clone()
     }
     fn owner_magnitude(&self, priority: &str) -> Option<super::stride::Class> {
         self.config.magnitudes.get(priority).copied()

@@ -87,6 +87,11 @@ struct Mock {
     /// One adjustment per proposal call, consumed in order; empty keeps
     /// `proposal_action`.
     proposal_actions: Vec<Action>,
+    /// The status each visual reports for the coverage trait `fruit`, in
+    /// order. Empty reports no coverage.
+    fruit: Vec<CellStatus>,
+    /// Traits the config lists as not yet drawable.
+    unexpressed: Vec<telperion_jev::tuning::unexpressed::Unexpressed>,
 }
 
 fn mock() -> Mock {
@@ -136,6 +141,8 @@ fn mock() -> Mock {
         gap_answer: None,
         gap_calls: 0,
         proposal_actions: vec![],
+        fruit: vec![],
+        unexpressed: vec![],
     }
 }
 impl Services for Mock {
@@ -274,6 +281,9 @@ impl Services for Mock {
     }
     fn tracks(&self) -> Vec<telperion_jev::tuning::bundle::Track> {
         self.tracks.clone()
+    }
+    fn unexpressed(&self) -> Vec<telperion_jev::tuning::unexpressed::Unexpressed> {
+        self.unexpressed.clone()
     }
     fn owner_magnitude(&self, _: &str) -> Option<telperion_jev::tuning::stride::Class> {
         self.owner_class
@@ -450,7 +460,15 @@ impl Services for Mock {
                 observations: vec![],
                 findings: vec![],
                 joint: None,
-                coverage: vec![],
+                coverage: self
+                    .fruit
+                    .get(self.visuals as usize - 1)
+                    .map(|status| telperion_jev::tuning::state::TraitStatus {
+                        trait_id: "fruit".into(),
+                        status: *status,
+                    })
+                    .into_iter()
+                    .collect(),
                 cells: vec![(
                     cell(),
                     match self.cell_status.get(self.visuals as usize - 1) {
@@ -2909,6 +2927,35 @@ fn a_required_cell_that_went_backwards_rolls_the_adoption_back_unasked() {
         state.pause.as_ref().unwrap().reason,
         "bundle already tried; no new direction"
     );
+}
+
+/// The palm's second revision: every time the crown grew enough to be seen,
+/// the date clusters no organ can draw yet were judged absent.
+#[test]
+fn a_trait_the_generator_cannot_draw_yet_never_rolls_an_adoption_back() {
+    use CellStatus::{Fail, Unknown};
+    for listed in [true, false] {
+        let (mut state, mut mock) = adopting_run();
+        mock.fruit = vec![Unknown, Unknown, Fail];
+        if listed {
+            mock.unexpressed = vec![telperion_jev::tuning::unexpressed::Unexpressed {
+                trait_id: "fruit".into(),
+                spec: "fn-111".into(),
+            }];
+        }
+        to_the_round(&mut state, &mut mock);
+
+        let rolled_back = state.trials.iter().any(|t| t.vetoed.is_some());
+        assert_eq!(rolled_back, !listed, "listed={listed}: {:?}", state.routes);
+        let noted = state.routes.iter().any(|r| {
+            r == "trait fruit went from Unknown to Fail; not a veto: \
+                  the generator cannot draw it until fn-111 lands"
+        });
+        assert_eq!(noted, listed, "listed={listed}: {:?}", state.routes);
+        if listed {
+            assert_eq!(state.trials[state.current.unwrap()].label, "bundle@1");
+        }
+    }
 }
 
 #[test]

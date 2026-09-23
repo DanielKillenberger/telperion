@@ -5,6 +5,8 @@ use telperion_jev::{
         joint::{Finding, Impact, Packet},
         reference_first::*,
         state::{ready, CellStatus},
+        unexpressed::Unexpressed,
+        veto::worsened,
         vision,
     },
 };
@@ -147,6 +149,20 @@ fn coverage_unknown_and_positive_finish_are_enforced() {
         bad.coverage[0].status = status;
         bad.bind(&request).unwrap();
         assert!(!ready(&r.required, &r.identity, &bad.visual.assessment));
+        // Listing the core trait as one the generator cannot draw yet keeps
+        // the adoption; the tree still does not read ready.
+        let listed = [Unexpressed {
+            trait_id: "trait-1".into(),
+            spec: "fn-111".into(),
+        }];
+        let kept = worsened(
+            &good.visual.assessment,
+            &bad.visual.assessment,
+            &r.required,
+            &listed,
+        );
+        assert!(kept.reasons.is_empty(), "{kept:?}");
+        assert_eq!(kept.notes.len(), usize::from(status == CellStatus::Fail));
         assert_eq!(
             bad.visual.assessment.cells, base.visual.assessment.cells,
             "global coverage does not rewrite per-view observations"

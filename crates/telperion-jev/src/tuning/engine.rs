@@ -113,6 +113,10 @@ pub trait Services {
     fn tracks(&self) -> Vec<super::bundle::Track> {
         vec![]
     }
+    /// Traits the generator cannot draw yet; one going backwards never vetoes.
+    fn unexpressed(&self) -> Vec<super::unexpressed::Unexpressed> {
+        vec![]
+    }
     /// The gap class an owner priority carries in the config. Asks nobody.
     fn owner_magnitude(&self, _priority: &str) -> Option<super::stride::Class> {
         None
