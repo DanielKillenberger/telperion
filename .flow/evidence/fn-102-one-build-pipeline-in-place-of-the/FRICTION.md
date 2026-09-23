@@ -34,3 +34,17 @@
 - **Hindrance:** R3's binding run showed the oak's Wasm peak up to 10 MB over base in every surface+field combination (seed 7 surface+field 316 → 326 MB): the leaf plan, now held while the wood allocated, moved where the allocator placed the wood. Same bytes; found only by the full 240-build R3 pass, halfway through.
 - **Cost:** about 10 minutes and one R3 pass thrown away.
 - **Would remove it:** the per-stage Wasm memory probe proposed above, runnable on one family and one combination, would have shown the rise in seconds. The plan now runs after the wood where they run in turn, as base ran it, and its error still precedes the wood's.
+
+## 2026-09-23, worker on the fn-102 simplification pass
+
+- **What:** holding R4's whole-build time for the spruce after leaf contacts moved onto the wood's float32 vertices.
+- **Hindrance:** reading the rings in place is slower per query than the swept f64 ring array (placement +10% at first; +5% after matching the store once a query and one bounds check a point). A third attempt, carrying each point across segments, made both stores far slower and was reverted. Each A/B needed a hand-edited env switch in `stage.rs` and a rebuild, and the machine's load (4 to 9) moved single spruce runs by up to 2x.
+- **Cost:** about 20 minutes and four spruce rebuilds.
+- **Would remove it:** a placement microbenchmark over a fixed spruce skeleton that takes either ring store, so a query change is timed in seconds without the whole build or a code switch.
+
+## 2026-09-23, worker on the fn-102 simplification pass
+
+- **What:** the gate run at the end of the pass.
+- **Hindrance:** `generation_limit_guard` failed on loop sites that moved when the ring bounds and edge recording were rewritten (one new site, three stale); the inventory is keyed on token-spaced source text, so any rewrite of a bounded loop fails the gate late. My own summary filter also cut the gate log, so the gate ran twice.
+- **Cost:** one extra full gate run, about 10 minutes.
+- **Would remove it:** running `generation_limit_guard` (0.02 s) as part of any per-change check, or a pre-commit hook for files the inventory names.

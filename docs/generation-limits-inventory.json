@@ -1357,12 +1357,6 @@
   },
   {
     "path": "crates/telperion-core/src/surface/build.rs",
-    "site": "for ( i , & node ) in paths . nodes [ path . start . . path . end ] . iter ( ) . enumerate ( ) . skip ( 1 ) {",
-    "classification": "algorithm",
-    "reason": "Contact ranges cover each path edge after the root sample; skipping the first sample avoids inventing an incoming root edge."
-  },
-  {
-    "path": "crates/telperion-core/src/surface/build.rs",
     "site": "for i in 0 . . samples . len ( ) - 1 {",
     "classification": "algorithm",
     "reason": "Traverses all adjacent geometry samples/rows; the final sample has no following segment."
@@ -1393,19 +1387,7 @@
   },
   {
     "path": "crates/telperion-core/src/surface/attachment.rs",
-    "site": ". max ( params . lobes * 4 )",
-    "classification": "algorithm",
-    "reason": "Each surface lobe requires four radial samples to represent its contour; this is a sampling floor, not truncation."
-  },
-  {
-    "path": "crates/telperion-core/src/surface/attachment.rs",
-    "site": "for i in 0 . . samples . len ( ) - 1 {",
-    "classification": "algorithm",
-    "reason": "Traverses all adjacent geometry samples/rows; the final sample has no following segment."
-  },
-  {
-    "path": "crates/telperion-core/src/surface/attachment.rs",
-    "site": "for p in & out . rings [ lo . . lo + 2 * segments ] {",
+    "site": "for i in lo . . lo + 2 * s {",
     "classification": "algorithm",
     "reason": "Traverses all adjacent geometry samples/rows; the final sample has no following segment."
   },
