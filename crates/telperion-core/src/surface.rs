@@ -27,9 +27,7 @@ pub mod prepared;
 #[cfg(feature = "geometry")]
 mod samples;
 #[cfg(feature = "geometry")]
-mod shared;
-#[cfg(feature = "geometry")]
-pub(crate) use attachment::AttachmentSurface;
+pub(crate) use attachment::{build_contacts, AttachmentSurface};
 #[cfg(feature = "geometry")]
 use build::*;
 #[cfg(feature = "geometry")]
@@ -37,10 +35,6 @@ pub use build::{build, extent};
 #[cfg(feature = "geometry")]
 pub(crate) use dependencies::affected as affected_contacts;
 pub(crate) use paths::straightest;
-#[cfg(feature = "geometry")]
-pub(crate) use shared::build_swept;
-#[cfg(feature = "geometry")]
-use shared::{emit_swept, Swept};
 #[cfg(feature = "geometry")]
 use {
     crate::{math::Transcendental, tree::Tree},

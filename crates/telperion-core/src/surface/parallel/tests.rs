@@ -39,6 +39,7 @@ fn candidate(tree: &Tree, params: &SurfaceParams) -> Result<SurfaceMesh> {
         vertices,
         rings * segments * 6,
         workers(),
+        None,
     )
 }
 fn tree() -> Tree {

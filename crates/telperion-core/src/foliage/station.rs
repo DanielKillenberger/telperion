@@ -18,7 +18,7 @@ pub(super) struct Run<'a> {
     /// Present when the twig layer marks the run; absent on a bare shoot.
     pub twig: Option<TwigPlacement>,
     /// The wood's contact surface, built whenever surface contact is positive.
-    pub contacts: Option<&'a AttachmentSurface>,
+    pub contacts: Option<&'a AttachmentSurface<'a>>,
 }
 
 /// The points one run passes through and the distance along it to each, into

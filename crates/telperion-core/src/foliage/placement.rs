@@ -136,7 +136,7 @@ pub(crate) fn place_on(
     seed: u32,
     p: CanopyParams,
     twig: Option<TwigPlacement>,
-    contacts: Option<&AttachmentSurface>,
+    contacts: Option<&AttachmentSurface<'_>>,
     reference: Reference,
 ) -> Result<Instances> {
     if !bearing(tree, envelope, p, twig)? {

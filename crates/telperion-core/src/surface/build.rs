@@ -85,30 +85,9 @@ pub(super) fn build_mode(
     tree: &Tree,
     height: f64,
     params: &SurfaceParams,
-    prepared: Option<&mut prepared::PreparedSurface>,
-    contacts: Option<&mut Vec<Option<[usize; 4]>>>,
-    parallel_allowed: bool,
-) -> Result<SurfaceMesh> {
-    let swept = None;
-    build_run(
-        tree,
-        height,
-        params,
-        prepared,
-        contacts,
-        parallel_allowed,
-        swept,
-    )
-}
-
-pub(super) fn build_run(
-    tree: &Tree,
-    height: f64,
-    params: &SurfaceParams,
     mut prepared: Option<&mut prepared::PreparedSurface>,
     mut contacts: Option<&mut Vec<Option<[usize; 4]>>>,
     parallel_allowed: bool,
-    swept: Option<Swept>,
 ) -> Result<SurfaceMesh> {
     tree.validate()?;
     params.validate()?;
@@ -175,7 +154,7 @@ pub(super) fn build_run(
     }
     ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
     #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
-    if parallel_allowed && prepared.is_none() && contacts.is_none() {
+    if parallel_allowed && prepared.is_none() {
         if let Some(workers) = parallel::admitted(
             &paths,
             &distance,
@@ -186,12 +165,22 @@ pub(super) fn build_run(
             indices_len,
         ) {
             drop((samples, frame, segments_scratch));
-            let sizes = (longest, vertices, indices_len, workers);
-            return match parallel::build_with(
-                tree, height, params, paths, distance, ordered, angular, sizes, swept,
+            return match parallel::build(
+                tree,
+                height,
+                params,
+                paths,
+                distance,
+                ordered,
+                angular,
+                longest,
+                vertices,
+                indices_len,
+                workers,
+                contacts.as_deref_mut(),
             ) {
                 Ok(mesh) => Ok(mesh),
-                Err(_) => build_run(tree, height, params, None, None, false, swept),
+                Err(_) => build_mode(tree, height, params, None, contacts, false),
             };
         }
     }
@@ -228,28 +217,15 @@ pub(super) fn build_run(
         let seg = segments as u32;
         if let Some(edges) = contacts.as_deref_mut() {
             let offset = usize::from(path.trunk && params.flare_depth > 0.0);
-            for (i, &node) in paths.nodes[path.start..path.end].iter().enumerate().skip(1) {
-                edges[node] = Some([
-                    base as usize + (i - 1 + offset) * segments,
-                    base as usize + (i + offset) * segments,
-                    base as usize,
-                    base as usize + (samples.len() - 1) * segments,
-                ]);
-            }
+            let nodes = &paths.nodes[path.start..path.end];
+            record_edges(edges, nodes, base as usize, samples.len(), segments, offset);
         }
-        let emit = |xyz: [f32; 3], coord: [f32; 2]| {
+        emit_run(&samples, &frame, &angular, params, height, |xyz, coord| {
             mesh.positions.extend(xyz);
             if prepared.is_none() {
                 mesh.coords.extend(coord);
             }
-        };
-        match swept {
-            Some(sweep) => {
-                let rings = sweep.run_rings(path_id, samples.len());
-                emit_swept(rings, &samples, &angular, emit)?
-            }
-            None => emit_run(&samples, &frame, &angular, params, height, emit)?,
-        }
+        })?;
         let run = prepared::Run {
             base,
             first_index,
@@ -337,6 +313,26 @@ pub(super) fn build_run(
     Ok(mesh)
 }
 
+/// Records where each node of one run meets the rings: its lower and upper
+/// ring, then the run's first and last, as vertex offsets from `base`.
+pub(super) fn record_edges(
+    edges: &mut [Option<[usize; 4]>],
+    nodes: &[usize],
+    base: usize,
+    rings: usize,
+    segments: usize,
+    offset: usize,
+) {
+    for (i, &node) in nodes.iter().enumerate().skip(1) {
+        edges[node] = Some([
+            base + (i - 1 + offset) * segments,
+            base + (i + offset) * segments,
+            base,
+            base + (rings - 1) * segments,
+        ]);
+    }
+}
+
 pub(super) fn emit_run(
     samples: &[Sample],
     frame: &[(Vec3, Vec3)],
@@ -346,7 +342,11 @@ pub(super) fn emit_run(
     mut emit: impl FnMut([f32; 3], [f32; 2]),
 ) -> Result<()> {
     let mut vertex = |p: Vec3, coord: [f32; 2]| {
-        emit(vertex32(p)?, coord);
+        let xyz = [p.x as f32, p.y as f32, p.z as f32];
+        if !xyz.iter().all(|v| v.is_finite()) {
+            return Err(Error::InvalidInput("surface float32 position overflow"));
+        }
+        emit(xyz, coord);
         Ok(())
     };
     for (i, s) in samples.iter().enumerate() {
@@ -363,15 +363,6 @@ pub(super) fn emit_run(
     vertex(samples[0].p, [samples[0].d as f32, 0.0])?;
     let last = samples.last().unwrap();
     vertex(last.p, [last.d as f32, 0.0])
-}
-
-/// A vertex as the float32 the buffers keep, refused where it overflows.
-pub(super) fn vertex32(p: Vec3) -> Result<[f32; 3]> {
-    let xyz = [p.x as f32, p.y as f32, p.z as f32];
-    if !xyz.iter().all(|v| v.is_finite()) {
-        return Err(Error::InvalidInput("surface float32 position overflow"));
-    }
-    Ok(xyz)
 }
 
 /// The way run vertex `j` faces when no triangle is left to say: out from the

@@ -1,9 +1,11 @@
-//! The pipeline's own tests: one sweep and one element a request, the same
-//! bytes under either schedule, and the earliest failing stage's error.
+//! The pipeline's own tests: one sweep and one element a request, contact
+//! rings read in place, the same bytes under either schedule, and the
+//! earliest failing stage's error.
 use super::*;
 use crate::{
     presets::{Preset, CATALOGUE},
-    surface, Error,
+    surface::{self, AttachmentSurface},
+    Error,
 };
 
 fn ordinary() -> Family {
@@ -19,10 +21,10 @@ fn request(wood: bool, leaves: bool, field: bool) -> Request {
     }
 }
 
-/// R7: a family whose leaves sit on the wood sweeps its rings once for wood
-/// and leaves together, under either schedule, and the wood built from them
-/// is the wood a sweep of its own builds; every request builds its element
-/// at most once.
+/// R7: a family whose leaves sit on the wood sweeps its rings once a
+/// request: the wood's sweep where wood is asked for, which the leaves read
+/// in place, else the leaves' own. Every request builds its element at most
+/// once, and the wood is the wood a plain build makes.
 #[test]
 fn one_sweep_and_one_element_serve_a_request() {
     let mut family = ordinary();
@@ -44,12 +46,43 @@ fn one_sweep_and_one_element_serve_a_request() {
             schedule,
             ..Request::mesh()
         };
-        let shared = outputs(tree, &family, request).unwrap().wood.unwrap();
-        assert_eq!(shared, own, "{schedule:?}");
+        let seated = outputs(tree, &family, request).unwrap();
+        assert!(!seated.stages.concurrent, "{schedule:?}");
+        assert_eq!(seated.wood.unwrap(), own, "{schedule:?}");
     }
     family.canopy.surface_contact = 0.0;
     let o = outputs(tree, &family, Request::mesh()).unwrap();
     assert_eq!((o.stages.sweeps, o.stages.elements), (1, 1));
+}
+
+/// The rings read in place from the wood are the rings a sweep of their own
+/// computes: every node's neighbourhood holds the same points, and a seat
+/// projected from its axis lands on the same point. The serial wood and the
+/// spruce's parallel one both record the edges.
+#[test]
+fn contacts_read_from_the_wood_are_the_swept_ones() {
+    let spruce = crate::presets::by_identity("norway-spruce").unwrap();
+    for family in [ordinary(), spruce] {
+        let tree = skeleton(&family).unwrap().tree;
+        let (height, params) = (family.skeleton.envelope.height, &family.surface);
+        let swept = AttachmentSurface::new(&tree, height, params).unwrap();
+        let (wood, edges) = surface::build_contacts(&tree, height, params).unwrap();
+        assert_eq!(wood, surface::build(&tree, height, params).unwrap());
+        let read = AttachmentSurface::on_wood(&wood, edges, params).unwrap();
+        for (node, n) in tree.nodes.iter().enumerate().skip(1) {
+            assert_eq!(read.signature(node), swept.signature(node), "{node}");
+            let parent = tree.nodes[n.parent.unwrap() as usize].position;
+            let origin = (parent + n.position) * 0.5;
+            let axis = n.position - parent;
+            let side = axis.cross(crate::math::Vec3::new(0.3, 0.1, 0.9));
+            if !(side.length_squared() > 0.0) {
+                continue;
+            }
+            let radial = side * (1.0 / side.length_squared().sqrt());
+            let seat = |s: &AttachmentSurface| s.point(node, origin, radial, n.radius);
+            assert_eq!(seat(&read), seat(&swept), "{node}");
+        }
+    }
 }
 
 /// R8: every shipped family builds the same bytes whether wood and leaves
@@ -69,10 +102,8 @@ fn every_family_builds_the_same_bytes_under_either_schedule() {
         };
         let (serial, concurrent) = (run(Schedule::Serial), run(Schedule::Concurrent));
         assert!(!serial.stages.concurrent, "{id}");
-        assert!(
-            concurrent.stages.concurrent,
-            "{id}: wood and leaves ran in turn"
-        );
+        let seated = family.canopy.surface_contact > 0.0;
+        assert_eq!(concurrent.stages.concurrent, !seated, "{id}");
         assert_eq!(serial.wood, concurrent.wood, "{id}: wood");
         assert_eq!(serial.element, concurrent.element, "{id}: element");
         let leaves = |o: &Outputs| {
@@ -102,8 +133,8 @@ fn the_earliest_failing_stage_answers() {
     }
     let error = outputs(&tree, &family, request(false, true, false)).err();
     assert_eq!(error, Some(Error::InvalidInput("shell depth")));
-    // Leaves seated on the wood: a failing sweep and a failing element
-    // answer with the element's error, the Plan's, under either schedule.
+    // Leaves seated on the wood: a failing wood and a failing element answer
+    // with the element's error, the Plan's, under either schedule.
     family.canopy.surface_contact = 1.0;
     family.element.axial_segments = 0;
     for schedule in [Schedule::Serial, Schedule::Concurrent] {

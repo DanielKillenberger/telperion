@@ -6,16 +6,16 @@
 //! 2. Skeleton: the solved tree, apical twigs cleared under a frond crown
 //!    and shed leaf bases hung on the stems.
 //! 3. Plan: what is prepared before any triangle or leaf exists - the leaf
-//!    element, the leaf plan a field reads, the quantisation box, and, where
-//!    leaves are seated on the wood, the one ring sweep wood and leaves share.
+//!    element, the leaf plan a field reads and the quantisation box.
 //! 4. Outputs: the wood surface, the leaves, the field and the structure.
 //! 5. Tree mesh: wood and leaves with their union bounds (`mesh::build`).
 //!
 //! Wood and leaves read only the skeleton and the plan, so where the target
-//! has threads they run concurrently; a planned field runs beside them too.
-//! Every stage keeps its own random stream and results join in stage order,
-//! so the bytes never depend on the schedule, and when stages fail the
-//! earliest one's error is returned.
+//! has threads they run concurrently, and a planned field beside the leaves.
+//! Leaves seated on the wood read its rings in place from its vertices, so
+//! there the wood runs first. Every stage keeps its own random stream and
+//! results join in stage order, so the bytes never depend on the schedule,
+//! and when stages fail the earliest one's error is returned.
 use crate::{
     branching,
     field::Field,
@@ -124,9 +124,9 @@ pub struct Structure {
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Stages {
     pub skeleton_ms: f64,
-    /// The leaf plan a field reads.
+    /// The element and the leaf plan a field reads.
     pub plan_ms: f64,
-    /// The ring sweep leaf contacts, and the wood beside them, read.
+    /// The rings leaf contacts read: bounded on the wood, or swept.
     pub rings_ms: f64,
     pub wood_ms: f64,
     pub placement_ms: f64,
@@ -193,94 +193,62 @@ pub fn build(family: &Family, request: Request) -> Result<Built> {
 pub fn outputs(tree: &Tree, family: &Family, request: Request) -> Result<Outputs> {
     let clock = request.clock;
     let started = clock();
-    let concurrent = request.schedule == Schedule::Concurrent;
     let mut stages = Stages::default();
-    let twig = stage::twig(family)?;
-    // A field the plan cannot describe reads placed leaves instead.
-    let places =
-        request.leaves || (request.field.is_some() && !plan::supports(family.canopy, Some(twig)));
-    // Leaves seated on the wood read the rings of one sweep. Side by side
-    // with the wood, the sweep runs first as the one Plan artifact the wood
-    // reads; in turn, the wood sweeps and the leaves read its vertices.
-    let seats = places && family.canopy.surface_contact > 0.0;
-    let beside = concurrent && THREADS && request.wood && (places || request.field.is_some());
-    let slot = stage::RingSlot::default();
-    let mut given = None;
-    if beside && seats {
-        // Run in turn, the element and the plan fail before the wood sweeps;
-        // a failed sweep here answers only once they are known to hold.
-        let rings = match stage::rings(tree, family, request, &mut stages) {
-            Ok(rings) => rings,
-            Err(error) => {
-                stage::prepare(tree, family, request, twig, places, &mut stages)?;
-                return Err(error);
-            }
-        };
-        given = Some(rings.clone());
-        *stage::lock(&slot) = Some(rings);
-    }
-    let wood_job = || stage::wood(tree, family, request, given);
-    let mut leafy_job = |wood: Option<&SurfaceMesh>| -> Result<_> {
-        let prep = stage::prepare(tree, family, request, twig, places, &mut stages)?;
-        let rings = (&slot, wood);
-        let leaves_job = || stage::leaves(tree, family, request, twig, rings, &prep);
-        let field_job = || stage::planned_field(tree, request, &prep);
-        let side_by_side = concurrent && places && prep.leaf_plan.is_some();
-        let (leaves, field, _) = both(side_by_side, leaves_job, field_job);
-        Ok((prep, leaves, field))
-    };
-    let (wood, leafy, split) = if beside {
-        both(true, wood_job, || leafy_job(None))
+    let plan = stage::plan(tree, family, request, &mut stages)?;
+    let seated = request.wood && plan.places() && family.canopy.surface_contact > 0.0;
+    let (wood, (leaves, field), split) = if seated {
+        // The leaves read their rings from the wood's vertices: wood first.
+        let mut wood = stage::wood(tree, family, request, true)?;
+        let seat = wood.as_mut().map(stage::Wood::seat);
+        let leafy = stage::leafy(tree, family, request, &plan, seat);
+        (Ok(wood), leafy, false)
     } else {
-        let wood = wood_job();
-        let mesh = wood.as_ref().ok().and_then(|w| w.as_ref()).map(|w| &w.0);
-        let leafy = leafy_job(mesh);
-        (wood, leafy, false)
+        let concurrent = request.schedule == Schedule::Concurrent;
+        both(
+            concurrent && request.wood && plan.places(),
+            || stage::wood(tree, family, request, false),
+            || stage::leafy(tree, family, request, &plan, None),
+        )
     };
     // Results join in stage order, so the earliest failure is the answer.
-    let (prep, leaves, field) = leafy?;
     let wood = wood?;
-    let mut out = None;
-    if let Some(placed) = leaves? {
-        let [rings_ms, placement_ms, cull_ms] = placed.ms;
-        stages.rings_ms += rings_ms;
-        (stages.placement_ms, stages.cull_ms) = (placement_ms, cull_ms);
-        stages.sweeps += u32::from(placed.swept);
-        out = Some(placed.leaves);
-    }
+    let mut leaves = leaves?;
     let mut field = field?;
-    stages.concurrent = split;
-    if let Some((_, ms, swept)) = wood {
-        stages.wood_ms = ms;
-        stages.sweeps += u32::from(swept);
+    if let Some(w) = &wood {
+        stages.wood_ms = w.ms;
+        stages.sweeps += 1;
+    }
+    if let Some(placed) = &leaves {
+        [stages.rings_ms, stages.placement_ms, stages.cull_ms] = placed.ms;
+        stages.sweeps += u32::from(placed.swept);
     }
     if request.field.is_some() && field.is_none() {
-        let start = clock();
-        let placed = out
-            .as_ref()
-            .map(|l| &l.instances)
-            .zip(prep.element.as_ref());
-        field = Some((Field::new(tree, placed)?, clock() - start));
+        let placed = leaves.as_ref().map(|l| &l.leaves.instances);
+        field = Some(stage::placed_field(
+            tree,
+            request,
+            placed.zip(plan.element.as_ref()),
+        )?);
     }
     if let Some((_, ms)) = field {
         stages.field_ms = ms;
     }
     if !request.leaves {
-        for leaves in out.iter_mut() {
-            leaves.instances = Instances::new(leaves.instances.reference);
+        for l in leaves.iter_mut() {
+            l.leaves.instances = Instances::new(l.leaves.instances.reference);
         }
     }
-    let structure = if request.structure {
-        Some(stage::structure(tree)?)
-    } else {
-        None
-    };
+    let structure = request
+        .structure
+        .then(|| stage::structure(tree))
+        .transpose()?;
+    stages.concurrent = split;
     stages.total_ms = clock() - started;
     Ok(Outputs {
-        element: prep.element,
-        plan: prep.leaf_plan,
-        wood: wood.map(|(w, _, _)| w),
-        leaves: out,
+        element: plan.element,
+        plan: plan.leaf_plan,
+        wood: wood.map(|w| w.mesh),
+        leaves: leaves.map(|l| l.leaves),
         field: field.map(|(f, _)| f),
         structure,
         stages,
@@ -324,8 +292,6 @@ fn both<A: Send, B>(
 }
 #[cfg(not(target_arch = "wasm32"))]
 const STACK: usize = 8 << 20;
-/// Whether this target runs a stage on a thread of its own.
-const THREADS: bool = cfg!(not(target_arch = "wasm32"));
 
 mod stage;
 #[cfg(test)]
