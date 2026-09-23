@@ -18,3 +18,15 @@
   sentences) beside the answer, and a labelling pass on a live run's picks
   before a spec asks for a floor. A sufficiency labelled set of live answers
   would let that floor be set too.
+
+## 2026-09-23 - the gate runs close to the tool cap
+
+- Doing: the one gate run, `cargo test --profile ci --workspace --no-fail-fast`,
+  after the build identity made every telperion-jev test binary rebuild.
+- Hindered: it took 500 s against a 600 s foreground tool limit; a slightly
+  slower machine or a cold cache would have cut it off mid-run and forced a
+  background run the worker rules forbid.
+- Cost: about 9 minutes of wall time, no retries.
+- Would have removed it: a gate entrypoint that runs the telperion-jev tests
+  and the rest of the workspace as two foreground calls, or a documented
+  per-crate split the gate accepts as one receipt.
