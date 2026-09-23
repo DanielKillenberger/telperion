@@ -3686,11 +3686,11 @@
   "tokens": 0,
   "rounds": 0,
   "visual_passes": 0,
-  "max_evaluations": 120,
-  "max_images": 600,
-  "max_tokens": 4000000,
-  "max_rounds": 24,
-  "max_visual_passes": 60
+  "max_evaluations": 240,
+  "max_images": 1000,
+  "max_tokens": 8300000,
+  "max_rounds": 40,
+  "max_visual_passes": 120
  },
  "max_candidates": 3,
  "visual_bootstrap": true,
