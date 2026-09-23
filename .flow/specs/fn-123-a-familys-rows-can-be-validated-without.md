@@ -13,7 +13,13 @@ The tuning loop's dial table and every preset are checked against the generator'
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-- **What exists.** Reported by the fn-113 worker: ten validators; canopy rows checked only inside placement; `attractors` and `step` only inside `Specimen::new`. Not independently checked by the host; the implementer confirms it first. [unknown]
+- **What exists.** Confirmed by the implementer against the code at 9ac7d064 (2026-09-23). [checked]
+  - Row validators that need no tree: `Envelope::validate`, `BiasParams::validate`, `HabitParams::validate`, `RadiusParams::resolved`, `TwigParams::resolved`, `SurfaceParams::validate`, `build_element`, `MaterialParams::validate`, `GrowthTraits::validate` with `Age::from_years`, and `GrowthConfig::validate` through `SkeletonParams::resolved_growth`.
+  - `params::parse` already runs the material, age and growth checks; nothing else is judged at the wire.
+  - Only inside `Specimen::new`: `samplingAttemptsPerAttractor`, `attractors <= MAX_ATTRACTORS`, `step > 0`, a positive attractor weight with no attractors, `resolved_growth` and `stems_placed` (stems outside the envelope or through each other).
+  - Only inside placement, behind `tree.validate_solved()`: the canopy rails in `foliage/canopy.rs::validate`, with the short-shoot rows, the rosette rows and the twig placement rails. The rosette rows alone are also reached tree-free as `foliage::validate_canopy`, which the leaf bases call.
+  - Only after growth: `shell_depth` in `cull`, the envelope's height above zero in `surface::build`, and the foliage reference box's finiteness in `Instances::validate`.
+  - Growth-dependent, not a row bound: attractor scattering that falls short of its count (`ResourceLimit`, seed and envelope together). `Family::validate` leaves it to growth.
 - **Shape.** `Family::validate(&self) -> Result<()>` in `telperion-core` calls every row set's existing validator and the checks now reached only during growth, with no tree built; the existing call sites keep their checks. [inferred]
 
 ## Acceptance Criteria
