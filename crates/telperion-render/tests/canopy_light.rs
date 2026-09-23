@@ -7,7 +7,7 @@ use telperion_core::{
     foliage::{build_element, ElementParams, Instances},
     material::MaterialParams,
     math::Vec3,
-    mesh::{self, Detail, Foliage, TreeMesh},
+    mesh::{self, Foliage, TreeMesh},
     presets::Preset,
     surface::{Bounds, SurfaceMesh},
 };
@@ -242,7 +242,7 @@ fn one_leaf(azimuth: f64) -> (Renderer, Camera) {
     let gpu = common::gpu().expect("checked by the caller");
     let mut family = Preset::Ordinary.parameters();
     family.skeleton.growth.max_nodes = Some(20);
-    let mut tree = mesh::build(&family, Detail::Full).unwrap();
+    let mut tree = mesh::build(&family).unwrap();
     tree.foliage.element = build_element(ElementParams {
         cup: 0.0,
         curl: 0.0,
@@ -332,7 +332,7 @@ fn no_canopy_row_touches_the_clay_room_or_the_wood() {
     let row = translucent();
     let mut family = Preset::Ordinary.parameters();
     family.skeleton.growth.max_nodes = Some(400);
-    let wood = mesh::build(&family, Detail::Full).unwrap();
+    let wood = mesh::build(&family).unwrap();
     let pose = |tree: &TreeMesh| {
         telperion_render::hero_pose(tree.bounds, 1.0, telperion_render::GROUND_REACH)
     };

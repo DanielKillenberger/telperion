@@ -1,11 +1,6 @@
 //! A joined fork needs contact shade even when its bark relief is disabled.
 mod common;
-use telperion_core::{
-    material::MaterialParams,
-    math::Vec3,
-    mesh::{self, Detail},
-    presets::Preset,
-};
+use telperion_core::{material::MaterialParams, math::Vec3, mesh, presets::Preset};
 use telperion_render::{render, Camera, Level, Renderer, SceneRow, View, STILL_FORMAT};
 
 #[test]
@@ -13,7 +8,7 @@ fn a_fork_socket_occludes_sun_and_sky_without_relief() {
     let Some(gpu) = common::gpu() else { return };
     let mut family = Preset::OregonWhiteOak.parameters();
     family.skeleton.seed = 7;
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit_at(&tree, Level::Chosen).unwrap();
     renderer.set_view(View::Bare);

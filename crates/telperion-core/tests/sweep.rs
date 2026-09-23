@@ -8,9 +8,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
 use telperion_core::{
-    blend, branching, foliage,
-    mesh::{self, Detail},
-    params,
+    blend, branching, foliage, mesh, params,
     presets::{Family, Preset},
 };
 
@@ -266,8 +264,7 @@ fn every_pair_of_presets_grows_a_tree_at_every_step() {
             let mut family = walk(a, b, step);
             family.skeleton.growth.max_nodes = Some(SWEEP_NODES);
             let at = at(step);
-            let mesh = mesh::build(&family, Detail::Full)
-                .unwrap_or_else(|e| panic!("{a}->{b} at {at}: {e}"));
+            let mesh = mesh::build(&family).unwrap_or_else(|e| panic!("{a}->{b} at {at}: {e}"));
             assert!(
                 mesh.wood.positions.iter().all(|v| v.is_finite())
                     && mesh.bounds.min.is_finite()

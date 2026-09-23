@@ -1,11 +1,7 @@
 //! Explicit replay of the eight recorded fn-32 poses, four images per run.
 use serde_json::{json, Value};
 use std::path::PathBuf;
-use telperion_core::{
-    math::Vec3,
-    mesh::{self, Detail},
-    presets::Preset,
-};
+use telperion_core::{math::Vec3, mesh, presets::Preset};
 use telperion_render::{
     render, write_png, Camera, Gpu, Level, Renderer, SceneRow, View, STILL_FORMAT,
 };
@@ -44,7 +40,7 @@ fn replay_recorded_bark_views() {
         .unwrap()
         .parameters();
     family.skeleton.seed = 7;
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let tree = mesh::build(&family).unwrap();
     let gpu = pollster::block_on(Gpu::request(None)).expect("hardware GPU required for evidence");
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit_at(&tree, Level::Chosen).unwrap();

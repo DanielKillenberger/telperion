@@ -4,11 +4,7 @@
 //! was before the rows existed, and none of them moves a vertex.
 mod common;
 use telperion_core::{
-    material::MaterialParams,
-    math::Vec3,
-    mesh::{self, Detail},
-    presets::Preset,
-    surface::SurfaceMesh,
+    material::MaterialParams, math::Vec3, mesh, presets::Preset, surface::SurfaceMesh,
 };
 use telperion_render::{render, Camera, Renderer, Still, View, STILL_FORMAT};
 
@@ -73,7 +69,7 @@ fn each_structure_colour_row_changes_the_picture_and_moves_no_wood() {
     let mut family = Preset::OregonWhiteOak.parameters();
     family.skeleton.seed = 7;
     let plain = before();
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&tree).unwrap();
     renderer.set_view(View::Bare);
@@ -123,7 +119,7 @@ fn each_structure_colour_row_changes_the_picture_and_moves_no_wood() {
         with.material = row;
         assert_eq!(
             hash(&tree.wood),
-            hash(&mesh::build(&with, Detail::Full).unwrap().wood),
+            hash(&mesh::build(&with).unwrap().wood),
             "{name} moved the wood the core hands up"
         );
         renderer.set_material(row);

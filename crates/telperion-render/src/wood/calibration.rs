@@ -7,7 +7,7 @@ use serde_json::json;
 use telperion_core::{
     foliage::{Element, Instances},
     math::Vec3,
-    mesh::{self, Detail, Foliage, TreeMesh},
+    mesh::{self, Foliage, TreeMesh},
     presets::Preset,
     surface::{Bounds, SurfaceMesh, SurfaceRun},
 };
@@ -261,7 +261,7 @@ fn time_fullscreen_bark_and_mature_oak() {
             "oak-flat-fullscreen-timing.json",
         ))
     };
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let tree = mesh::build(&family).unwrap();
     renderer.submit(&tree).unwrap();
     renderer.set_material(family.material);
     let whole_scene = SceneRow::default();

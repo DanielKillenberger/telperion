@@ -2,11 +2,7 @@
 mod common;
 #[path = "common/resolution.rs"]
 mod resolution;
-use telperion_core::{
-    math::Vec3,
-    mesh::{self, Detail},
-    presets::Preset,
-};
+use telperion_core::{math::Vec3, mesh, presets::Preset};
 use telperion_render::{render, Camera, Renderer, View, STILL_FORMAT};
 
 #[test]
@@ -128,7 +124,7 @@ fn resolved_scales_survive_until_the_two_pixel_boundary() {
     for (preset, height) in [(Preset::OregonWhiteOak, 2.0)] {
         let mut family = preset.parameters();
         family.skeleton.seed = 7;
-        let tree = mesh::build(&family, Detail::Full).unwrap();
+        let tree = mesh::build(&family).unwrap();
         renderer.submit(&tree).unwrap();
         renderer.set_material(family.material);
         for distance in [2, 4] {

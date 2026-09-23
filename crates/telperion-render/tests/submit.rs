@@ -4,7 +4,7 @@
 use telperion_core::{
     foliage::{build_element, Element, ElementParams, Instances, Level as Section, Reference},
     math::Vec3,
-    mesh::{self, Detail, Foliage, TreeMesh},
+    mesh::{self, Foliage, TreeMesh},
     params,
     surface::{Bounds, SurfaceMesh, SurfaceRun},
 };
@@ -244,7 +244,7 @@ fn a_submitted_tree_is_the_tree_the_core_counted() {
     // still does not reach half a pixel of the needle's.
     for (id, outgrows) in [("oregon-white-oak", true), ("norway-spruce", false)] {
         let family = params::by_identity(id).expect("a shipped family");
-        let tree = mesh::build(&family, Detail::Full).expect("the core built the tree");
+        let tree = mesh::build(&family).expect("the core built the tree");
         let submitted = renderer.submit(&tree).expect("the tree fits the device");
 
         assert_eq!(submitted.wood_vertices, tree.wood_vertices(), "{id} wood");
@@ -329,7 +329,7 @@ fn a_submitted_tree_is_the_tree_the_core_counted() {
 fn each_view_draws_what_its_name_promises() {
     let Some(gpu) = gpu() else { return };
     let family = params::by_identity("ordinary").expect("a shipped family");
-    let tree = mesh::build(&family, Detail::Full).expect("the core built the tree");
+    let tree = mesh::build(&family).expect("the core built the tree");
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let submitted = renderer.submit(&tree).expect("the tree fits the device");
     assert!(

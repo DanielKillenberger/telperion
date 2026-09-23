@@ -1,10 +1,7 @@
 //! Native requested-output and completed-frame comparison, one mode per process.
 use serde_json::json;
 use std::time::Instant;
-use telperion_core::{
-    mesh::{self, Detail},
-    presets::Preset,
-};
+use telperion_core::{mesh, presets::Preset};
 use telperion_render::{
     generation::{Delivery, Generator},
     hero_pose, Frame, Gpu, Renderer, GROUND_REACH, STILL_FORMAT,
@@ -83,7 +80,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 None,
             )
         } else {
-            let mesh = mesh::build(&family, Detail::Full)?;
+            let mesh = mesh::build(&family)?;
             (
                 mesh.foliage_instances(),
                 mesh.bounds,

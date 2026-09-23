@@ -3,10 +3,7 @@
 //! mistake for a pass, and that a real device agrees with its own verdict.
 mod common;
 
-use telperion_core::{
-    mesh::{self, Detail},
-    presets::Preset,
-};
+use telperion_core::{mesh, presets::Preset};
 use telperion_render::{
     hero_pose, judge, measure, measure_orbit, Frame, Hardware, Renderer, Report, Verdict,
     CONTENTION_RATIO, GROUND_REACH, MULTISAMPLE, STILL_FORMAT,
@@ -274,7 +271,7 @@ fn the_wall_clock_is_the_one_number_the_gpu_verdict_does_not_govern() {
 #[test]
 fn a_session_on_a_device_never_reports_a_percentile_it_did_not_earn() {
     let Some(gpu) = common::gpu() else { return };
-    let tree = mesh::build(&Preset::Ordinary.parameters(), Detail::Full).expect("the tree grew");
+    let tree = mesh::build(&Preset::Ordinary.parameters()).expect("the tree grew");
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&tree).expect("the tree fits the device");
 
@@ -320,7 +317,7 @@ fn a_session_on_a_device_never_reports_a_percentile_it_did_not_earn() {
 #[test]
 fn a_device_session_times_the_selection_pass_and_counts_what_it_chose() {
     let Some(gpu) = common::gpu() else { return };
-    let tree = mesh::build(&Preset::Ordinary.parameters(), Detail::Full).expect("the tree grew");
+    let tree = mesh::build(&Preset::Ordinary.parameters()).expect("the tree grew");
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&tree).expect("the tree fits the device");
     let crown = tree.foliage_instances();

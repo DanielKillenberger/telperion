@@ -1,13 +1,7 @@
 //! The one engine-neutral mesh call: every preset builds, the reported counts
 //! describe the buffers a renderer uploads, and the bounds enclose both parts.
 mod specimens;
-use telperion_core::{
-    math::Vec3,
-    mesh::{self, Detail},
-    presets::Preset,
-    surface::Bounds,
-    Error,
-};
+use telperion_core::{math::Vec3, mesh, presets::Preset, surface::Bounds, Error};
 
 const IDENTITIES: [&str; 7] = [
     "ordinary",
@@ -96,7 +90,7 @@ fn a_family_the_generator_rejects_surfaces_its_own_message() {
         .parameters();
     family.shell_depth = 2.0;
     assert_eq!(
-        mesh::build(&family, Detail::Full).err(),
+        mesh::build(&family).err(),
         Some(Error::InvalidInput("shell depth"))
     );
 }

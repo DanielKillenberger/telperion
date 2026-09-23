@@ -1,11 +1,7 @@
 //! Bark changes shading, never the bytes that locate a silhouette.
 mod common;
 use telperion_core::{
-    material::MaterialParams,
-    math::Vec3,
-    mesh::{self, Detail},
-    presets::Preset,
-    surface::SurfaceMesh,
+    material::MaterialParams, math::Vec3, mesh, presets::Preset, surface::SurfaceMesh,
 };
 use telperion_render::{render, Camera, Renderer, View, STILL_FORMAT};
 
@@ -26,14 +22,14 @@ fn relief_moves_the_light_while_every_wood_mesh_byte_holds() {
     let Some(gpu) = common::gpu() else { return };
     let mut family = Preset::Ordinary.parameters();
     family.skeleton.growth.max_nodes = Some(400);
-    let off = mesh::build(&family, Detail::Full).unwrap();
+    let off = mesh::build(&family).unwrap();
     family.material = MaterialParams {
         ridge_scale: 0.16,
         plate_scale: 0.12,
         roughness_detail: 0.3,
         ..family.material
     };
-    let on = mesh::build(&family, Detail::Full).unwrap();
+    let on = mesh::build(&family).unwrap();
     println!(
         "R1 wood hash: off={}, on={}",
         hash(&off.wood),
@@ -66,7 +62,7 @@ fn relief_moves_the_light_while_every_wood_mesh_byte_holds() {
 fn radius_storage_is_refused_before_upload_when_only_its_binding_limit_is_exceeded() {
     let mut family = Preset::Ordinary.parameters();
     family.skeleton.growth.max_nodes = Some(20);
-    let mut tree = mesh::build(&family, Detail::Full).unwrap();
+    let mut tree = mesh::build(&family).unwrap();
     tree.foliage.instances.leaves.clear();
     let limit = (tree.wood.positions.len() / 3 * size_of::<f32>() - 4) as u64;
     let limits = wgpu::Limits {

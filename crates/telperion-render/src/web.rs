@@ -5,12 +5,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use serde_json::json;
-use telperion_core::{
-    math::Vec3,
-    mesh::{self, Detail},
-    params,
-    surface::Bounds,
-};
+use telperion_core::{math::Vec3, mesh, params, surface::Bounds};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::future_to_promise;
 use web_sys::HtmlCanvasElement;
@@ -217,7 +212,7 @@ impl WebRenderer {
         let value = serde_json::from_str(family)
             .map_err(|error| JsError::new(&format!("the parameters are not JSON: {error}")))?;
         let family = params::parse(&value).map_err(|error| js_error(RenderError::from(error)))?;
-        let mesh = mesh::build(&family, Detail::Full).map_err(|error| js_error(error.into()))?;
+        let mesh = mesh::build(&family).map_err(|error| js_error(error.into()))?;
         let mut live = self.borrow()?;
         // The material rides with the tree: these parameters state both, and a
         // tree drawn in the last tree's colours would be nobody's family.

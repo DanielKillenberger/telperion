@@ -4,7 +4,7 @@ use telperion_core::{
     foliage::{build_element, ElementParams},
     material::MaterialParams,
     math::Vec3,
-    mesh::{self, Detail},
+    mesh,
     presets::Preset,
 };
 use telperion_render::{render, Camera, Level, Renderer, SceneRow, View, STILL_FORMAT};
@@ -14,7 +14,7 @@ fn blade_colour_rows_survive_levels_and_the_back_has_no_cuticle() {
     let Some(gpu) = common::gpu() else { return };
     let mut family = Preset::Ordinary.parameters();
     family.skeleton.growth.max_nodes = Some(20);
-    let mut tree = mesh::build(&family, Detail::Full).unwrap();
+    let mut tree = mesh::build(&family).unwrap();
     tree.foliage.element = build_element(ElementParams {
         cup: 0.0,
         curl: 0.0,
@@ -104,7 +104,7 @@ fn a_matte_needle_row_is_inert_even_with_scales_and_tints_set() {
     let mut family = Preset::Ordinary.parameters();
     family.skeleton.growth.max_nodes = Some(20);
     family.element.section_roundness = 1.0;
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.set_view(View::Leaf);
     for level in 0..tree.foliage.element.levels.len() {

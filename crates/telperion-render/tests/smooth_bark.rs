@@ -7,7 +7,7 @@ mod common;
 mod resolution;
 use telperion_core::{
     material::MaterialParams,
-    mesh::{self, Detail, TreeMesh},
+    mesh::{self, TreeMesh},
     presets::Preset,
     surface::SurfaceMesh,
 };
@@ -51,7 +51,7 @@ fn staged(
 ) -> (TreeMesh, Camera) {
     let mut family = preset.parameters();
     family.skeleton.seed = 7;
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let tree = mesh::build(&family).unwrap();
     renderer.submit(&tree).unwrap();
     renderer.set_material(family.material);
     renderer.set_figure(false);
@@ -105,7 +105,7 @@ fn each_smooth_layer_changes_the_close_up_and_moves_no_wood() {
         family.material = row;
         assert_eq!(
             hash(&tree.wood),
-            hash(&mesh::build(&family, Detail::Full).unwrap().wood),
+            hash(&mesh::build(&family).unwrap().wood),
             "{name} moved the wood the core hands up"
         );
         renderer.set_material(row);

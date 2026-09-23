@@ -5,11 +5,7 @@
 use std::path::Path;
 
 use serde_json::{json, Value};
-use telperion_core::{
-    mesh::{self, Detail},
-    params,
-    rng::Rng,
-};
+use telperion_core::{mesh, params, rng::Rng};
 use telperion_render::{
     hero_pose, render, FrameStats, RenderError, Renderer, Submitted, DEPTH_FORMAT, GROUND_REACH,
     MULTISAMPLE, STILL_FORMAT,
@@ -104,7 +100,7 @@ fn draws(
     size: u32,
 ) -> Result<(Submitted, FrameStats), telperion_core::Error> {
     let family = params::parse(value)?;
-    let tree = mesh::build(&family, Detail::Full)?;
+    let tree = mesh::build(&family)?;
     let submitted = renderer
         .submit(&tree)
         .expect("a compact tree fits the device");
@@ -143,7 +139,7 @@ fn every_shipped_family_renders_through_the_one_path() {
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     for &(_, id, _, _) in params::CATALOGUE {
         let family = params::by_identity(id).expect("the catalogue names a family it has");
-        let tree = mesh::build(&family, Detail::Full).expect("the core built the tree");
+        let tree = mesh::build(&family).expect("the core built the tree");
         let submitted = renderer.submit(&tree).expect("the tree fits the device");
         let camera = hero_pose(tree.bounds, 1.0, GROUND_REACH);
         let still = render(&mut renderer, &camera, 128, 128).expect("the frame was drawn");
@@ -222,7 +218,7 @@ fn a_set_the_generator_will_not_have_says_which_parameter() {
     ] {
         let family = params::parse(&value).expect("the schema takes it; the generator judges it");
         let error = RenderError::from(
-            mesh::build(&family, Detail::Full).expect_err("an impossible tree was built anyway"),
+            mesh::build(&family).expect_err("an impossible tree was built anyway"),
         );
         assert!(
             error.to_string().contains(parameter),
@@ -248,7 +244,7 @@ fn a_frame_is_drawn_at_the_count_the_device_offers_and_read_back_resolved() {
         "the renderer draws at a count the device did not offer"
     );
     let family = params::by_identity("ordinary").expect("the catalogue has a family");
-    let tree = mesh::build(&family, Detail::Full).expect("the core built the tree");
+    let tree = mesh::build(&family).expect("the core built the tree");
     renderer.submit(&tree).expect("the tree fits the device");
     renderer.set_material(family.material);
     let camera = hero_pose(tree.bounds, 1.0, GROUND_REACH);

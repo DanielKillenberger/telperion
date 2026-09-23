@@ -2,10 +2,7 @@
 //! and the room keeps its floor and leaves its figure out. The fixed views are
 //! not touched by either flag being off.
 mod common;
-use telperion_core::{
-    mesh::{self, Detail},
-    presets::Preset,
-};
+use telperion_core::{mesh, presets::Preset};
 use telperion_render::{
     hero_pose, render, shot_pose, Renderer, Shot, View, GROUND_REACH, STILL_FORMAT,
 };
@@ -18,7 +15,7 @@ fn a_shot_poses_the_frame_and_the_figure_leaves_when_asked() {
     let Some(gpu) = common::gpu() else { return };
     let mut family = Preset::Ordinary.parameters();
     family.skeleton.growth.max_nodes = Some(400);
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&tree).unwrap();
     renderer.set_material(family.material);

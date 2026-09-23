@@ -9,14 +9,6 @@ use crate::{
     Error, Result,
 };
 
-/// Detail budget. Full detail is the only budget today; the argument is the
-/// seam a coarse-first budget extends without changing the call.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub enum Detail {
-    #[default]
-    Full,
-}
-
 /// One element mesh drawn once per instance matrix.
 #[derive(Debug)]
 pub struct Foliage {
@@ -76,8 +68,7 @@ pub fn grow(family: &Family) -> Result<Tree> {
 }
 
 /// Grows the skeleton, plaits the wood surface and places the culled foliage.
-pub fn build(family: &Family, detail: Detail) -> Result<TreeMesh> {
-    let Detail::Full = detail;
+pub fn build(family: &Family) -> Result<TreeMesh> {
     assembled(pipeline::build(family, pipeline::Request::mesh())?.outputs)
 }
 
