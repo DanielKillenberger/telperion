@@ -192,6 +192,14 @@
       "tables": [],
       "title": "Comparative study of the morphological characteristics of ...",
       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9511727/"
+    },
+    {
+      "id": "P8",
+      "rights": "Heliyon 2022, open access CC BY (Europe PMC licence record); measured values are cited with attribution, no text reproduced; admitted by the host as the pipeline would under fn-129",
+      "sha256": null,
+      "tables": [],
+      "title": "Carbon stock estimation of mixed-age date palm (Phoenix dactylifera L.) farms in northeastern Ethiopia (Heliyon, 2022)",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8810365/"
     }
   ],
   "species": "date-palm",
