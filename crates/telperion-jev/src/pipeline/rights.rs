@@ -17,7 +17,8 @@ use serde_json::{json, Value};
 
 use crate::caller::{evaluate, CallerError, EvaluateRequest, Transport};
 use crate::cases::CaseRow;
-use crate::extract::{slice_at, visible_text};
+use crate::extract::slice_at;
+use crate::html::source_text;
 
 use super::adapter::{is_pdf, FetchAdapter};
 use super::judge::Judge;
@@ -97,7 +98,7 @@ pub fn licence_lines(raw: &[u8], markdown: &str, content_type: &str, url: &str) 
     let text = if pdf || raw.is_empty() {
         markdown.to_string()
     } else {
-        visible_text(raw)
+        source_text(raw)
     };
     for line in windows(&text, page_terms(), PAGE_RADIUS) {
         push_unique(&mut lines, line);
