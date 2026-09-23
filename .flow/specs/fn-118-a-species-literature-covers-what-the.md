@@ -25,6 +25,10 @@ The first step of a species run, gathering sources and writing the documentation
   - *Admission refuses a short manifest.* `manifest::validate` refuses a manifest whose `growth_form` requires a field it does not list, or lists below the table's bar, naming each.
   - *Quality stops, it does not lower.* A required field below its bar after `quality` files a blocking `requirements-unmet` decision owned by the owner (NEEDS_HUMAN); `lower-bar` is refused for a required field and the routine policy may not resolve it. `add-sources` stays, and a resolution that adds none leaves the decision open.
   - *Documentation follows the data.* `document` writes an appearance section from the described traits, so the article carries what the material row is authored from.
+- **Host decisions on the worker's escalation (2026-09-23).** [host design]
+  - *Appearance is copied, not rendered.* An appearance trait is a manifest entry whose level maps, by code, to a range per colour channel (or a scalar for roughness); `select` fills it from the chosen span and code copies the range into the profile; `generate` skips it with a recorded note (no render, no measurer metric). fn-82 authors the material row from the range and tuning aims at it.
+  - *Coverage at admission, by schema version.* The coverage check runs only for a manifest at the new `schema_version` this spec introduces; every existing manifest and fixture loads unchanged. New manifests (`discover`'s proposal) are written at the new version.
+  - *The palm's manifest is the host's.* The tracked manifest is `.flow/evidence/date-palm/pipeline/manifest.json` on the fn-80 branch; `catalogue/date-palm/manifest.json` is untracked (#57). Rewriting it to the table and rerunning the literature stages is done by the host in the fn-80 layer, not here.
 - **Settled (host, 2026-09-23).** The first table covers `broadleaf`, `conifer` and `palm`. Each appearance trait's level table is derived from the material row field it feeds (`MaterialParams`: bark colour and roughness, leaf front and back colour, hue and brightness ranges), in coarse named levels with a no-match level, so a described level maps to a value range code owns. [host design]
 
 ## Acceptance Criteria
@@ -33,7 +37,7 @@ The first step of a species run, gathering sources and writing the documentation
 - **R1:** The requirements table exists for broadleaf, conifer and palm growth forms, and a test reads it. [inferred]
 - **R2:** A manifest missing a required field, or listing it below the table's bar, is refused at admission with every missing field named. [inferred]
 - **R3:** A required field below its bar after `quality` files a blocking owner decision; `lower-bar` on it is refused and the routine policy cannot resolve it; the run reports NEEDS_HUMAN. [inferred]
-- **R4:** The palm's manifest is rewritten to the table (height at an age, trunk diameter, crown width, frond length, leaflet size, bark colour and roughness, leaf colours) and its literature stages rerun; each field reaches its bar or the run stops with NEEDS_HUMAN naming it. [inferred]
+- **R4 (host, in fn-80):** The palm's manifest is rewritten to the table (height at an age, trunk diameter, crown width, frond length, leaflet size, bark colour and roughness, leaf colours) and its literature stages rerun; each field reaches its bar or the run stops with NEEDS_HUMAN naming it. [inferred]
 - **R5:** The gate is green: `cargo test --profile ci --workspace --no-fail-fast`. [paraphrase]
 
 ## Boundaries
