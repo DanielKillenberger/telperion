@@ -1,0 +1,20 @@
+{
+ "pause_id": "18d7f843409dfff8-55975-3",
+ "identity": "0b99151042d044ca75ff04d2567660b499960282886ced9280ddbae7600413ed",
+ "action": "authorize bounded experimental pilot",
+ "by": "host (fn-80 conductor session)",
+ "rationale": "Second tuning revision of the date palm (fn-82) as the gap loop's live proof (fn-80), on fn-113's validated dial ranges, fn-114's gap-sized strides and fn-110's trunk organs. The owner asked for the proper run with Opus as the visual reviewer (2026-09-22) and set the run's total token cap at 6 M (2026-09-23); 1.61 M is spent, so this revision is bounded at 4 M.",
+ "recover_interrupted": false,
+ "preserve_evidence": false,
+ "experimental_pilot": {
+  "visual_bootstrap": true,
+  "purpose": "second tuning revision of the date palm (fn-82) as the gap loop's live proof (fn-80): rosette and trunk organs, infructescence not landed",
+  "reason": "magnitude and gap-magnitude live efficacy unvalidated; the owner asked for the proper run with Opus as the visual reviewer and a 6 M total cap",
+  "next_identity": "0b99151042d044ca75ff04d2567660b499960282886ced9280ddbae7600413ed",
+  "max_tokens": 4000000,
+  "max_rounds": 24,
+  "max_evaluations": 120,
+  "max_images": 600,
+  "max_visual_passes": 60
+ }
+}
