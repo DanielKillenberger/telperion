@@ -63,7 +63,7 @@ impl Request {
     pub fn verify(&self) -> Result<(), String> {
         if self.schema != VERSION
             || self.priorities.is_empty()
-            || self.priorities.len() > 8
+            || self.priorities.len() > super::progress::MAX_PRIORITIES
             || self.references.is_empty()
             || self.renders.len() < 2
             || self.renders.len() > 5

@@ -738,6 +738,14 @@ impl Services for Live<'_> {
     fn unexpressed(&self) -> Vec<super::unexpressed::Unexpressed> {
         self.config.unexpressed.clone()
     }
+    fn inventory(&self) -> Result<Option<super::reference_first::Inventory>, String> {
+        let Some(prepared) = &self.config.reference_first else {
+            return Ok(None);
+        };
+        serde_json::from_slice(&prepared.inventory.bytes()?)
+            .map(Some)
+            .map_err(|e| e.to_string())
+    }
     fn owner_magnitude(&self, priority: &str) -> Option<super::stride::Class> {
         self.config.magnitudes.get(priority).copied()
     }

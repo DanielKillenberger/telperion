@@ -3,6 +3,7 @@ use super::{shown, Class, Judged, LABEL};
 use crate::tuning::{
     bundle::Track,
     engine::{Run, Services},
+    priority::Gap,
     progress,
 };
 
@@ -77,14 +78,21 @@ fn read(state: &Run, judged: &Judged) -> Result<Class, String> {
     Ok(class)
 }
 
+/// The objective a track's stride is judged on: its own first, never the
+/// run's.
+pub fn lead(state: &Run, track: &Track) -> Option<Gap> {
+    progress::track_priorities(state, track).into_iter().next()
+}
+
 /// The class this round's words select, and where it came from. Owner first
-/// and free; then one question on the lead tuning priority's latest finding.
+/// and free; then one question on the track's lead objective's latest finding.
 fn choose(
     state: &mut Run,
     services: &mut dyn Services,
     save: &mut dyn FnMut(&Run) -> Result<(), String>,
+    track: &Track,
 ) -> Result<(Option<Class>, String), String> {
-    let Some(priority) = progress::tuning_priorities(state).into_iter().next() else {
+    let Some(priority) = lead(state, track) else {
         return Ok((None, "default: no tuning priority".into()));
     };
     if let Some(class) = services.owner_magnitude(&priority.id) {
@@ -128,7 +136,7 @@ pub(in crate::tuning) fn decide(
     wanted: &[(String, i8)],
 ) -> Result<Decision, String> {
     let turned = flipped(state, track, wanted);
-    let (chosen, source) = choose(state, services, save)?;
+    let (chosen, source) = choose(state, services, save, track)?;
     let cap = state.strides.get(&track.name).and_then(|s| s.cap);
     let class = match (chosen, cap) {
         (Some(c), Some(cap)) if c > cap => Some(cap),

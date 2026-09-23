@@ -32,6 +32,8 @@ pub const VERSION: &str = "tuning-progress-v2";
 pub const UNCALIBRATED: &str =
     "uncalibrated progress review: a comparative verdict, never a score or a readiness claim";
 pub const PENDING: &str = "progress review";
+/// How many objectives one review request may carry.
+pub const MAX_PRIORITIES: usize = 16;
 /// What a candidate or variant records when the paid review it was sent to
 /// failed or would not bind. The pass and the tokens stay charged, the attempt
 /// is never adopted, and the same move is not bought a second time.
@@ -100,7 +102,7 @@ impl Request {
     pub fn verify(&self) -> Result<(), String> {
         if self.schema != VERSION
             || self.priorities.is_empty()
-            || self.priorities.len() > 8
+            || self.priorities.len() > MAX_PRIORITIES
             || self.references.is_empty()
             || self.a.sha256 == self.b.sha256
             || self.a.view != self.view
@@ -134,6 +136,12 @@ pub fn tuning_priorities(state: &Run) -> Vec<Gap> {
         })
         .cloned()
         .collect()
+}
+
+/// One track's objectives among the tuning priorities: those named to it and
+/// every unassigned one, in approval order.
+pub fn track_priorities(state: &Run, track: &super::bundle::Track) -> Vec<Gap> {
+    super::objectives::of_track(&tuning_priorities(state), track)
 }
 
 /// Which reviewed candidate the round adopts: the one judged better on most

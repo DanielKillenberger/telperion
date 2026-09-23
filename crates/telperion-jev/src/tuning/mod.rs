@@ -17,6 +17,7 @@ pub mod joint;
 pub mod judgments;
 pub mod live;
 pub mod matched;
+pub mod objectives;
 pub mod preflight;
 pub mod priority;
 pub mod progress;

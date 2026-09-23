@@ -69,6 +69,7 @@ fn gap(id: &str) -> Gap {
         observation: format!("observation for {id}"),
         evidence_ids: vec!["render-0".into()],
         views: vec!["whole".into()],
+        track: None,
     }
 }
 
