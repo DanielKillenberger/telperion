@@ -111,102 +111,9 @@ pub fn prepare(
             return Err("changed inputs require a scoped decision naming next_identity".into());
         }
         let previous_budget = old.budget.clone();
-        let previous_cap = previous_budget.max_tokens;
-        if let Some(extension) = &decision.token_cap_extension {
-            if extension.previous != previous_cap
-                || extension.next != config.budget.max_tokens
-                || extension.next <= extension.previous
-            {
-                return Err("token extension must name exact previous and increased cap".into());
-            }
-            old.budget.max_tokens = extension.next;
-        }
-        if let Some(reconciliation) = &decision.visual_reconciliation {
-            if old.budget.visual_passes.is_some()
-                || old.budget.max_visual_passes.is_some()
-                || reconciliation.reason.trim().is_empty()
-                || reconciliation.paid_ledgers.is_empty()
-            {
-                return Err(
-                    "visual accounting reconciliation is initial and evidence-backed only".into(),
-                );
-            }
-            let mut unique = std::collections::HashSet::new();
-            for path in &reconciliation.paid_ledgers {
-                if !unique.insert(fs::canonicalize(path).map_err(|e| e.to_string())?) {
-                    return Err("duplicate visual ledger".into());
-                }
-                let record: Value =
-                    serde_json::from_slice(&fs::read(path).map_err(|e| e.to_string())?)
-                        .map_err(|e| e.to_string())?;
-                if record.get("status").is_none() {
-                    return Err("not a visual attempt ledger".into());
-                }
-            }
-            let spent = unique.len() as u64;
-            if spent > reconciliation.previous_cap {
-                return Err("prior visual cap exceeded".into());
-            }
-            old.budget.visual_passes = Some(spent);
-            old.budget.max_visual_passes = Some(reconciliation.previous_cap);
-        }
-        for (label, extension, previous, next) in [
-            (
-                "round",
-                decision.round_cap_extension.as_ref(),
-                old.budget.max_rounds,
-                config.budget.max_rounds,
-            ),
-            (
-                "visual",
-                decision.visual_cap_extension.as_ref(),
-                old.budget.max_visual_passes.unwrap_or(0),
-                config.budget.max_visual_passes.unwrap_or(0),
-            ),
-            (
-                "image",
-                decision.image_cap_extension.as_ref(),
-                old.budget.max_images,
-                config.budget.max_images,
-            ),
-            (
-                "evaluation",
-                decision.evaluation_cap_extension.as_ref(),
-                old.budget.max_evaluations,
-                config.budget.max_evaluations,
-            ),
-        ] {
-            if let Some(extension) = extension {
-                if extension.previous != previous || extension.next != next || next <= previous {
-                    return Err(format!(
-                        "{label} extension must name exact previous and increased cap"
-                    ));
-                }
-                match label {
-                    "round" => old.budget.max_rounds = next,
-                    "visual" => old.budget.max_visual_passes = Some(next),
-                    "image" => old.budget.max_images = next,
-                    _ => old.budget.max_evaluations = next,
-                }
-            }
-        }
-        if old.preset != config.preset
-            || [
-                old.budget.max_tokens,
-                old.budget.max_images,
-                old.budget.max_rounds,
-                old.budget.max_evaluations,
-            ] != [
-                config.budget.max_tokens,
-                config.budget.max_images,
-                config.budget.max_rounds,
-                config.budget.max_evaluations,
-            ]
-        {
+        super::caps::resume(&mut old.budget, &config.budget, &decision)?;
+        if old.preset != config.preset {
             return Err("resume cannot silently change species or budget caps".into());
-        }
-        if old.budget.max_visual_passes != config.budget.max_visual_passes {
-            return Err("resume cannot silently change visual cap".into());
         }
         if let Some(usage) = &decision.external_usage {
             let imported = old
@@ -266,11 +173,7 @@ pub fn prepare(
             // Computed before this decision joins the chain it would extend.
             let reusable = old.evidence_identities();
             let mut original = config.clone();
-            original.budget.max_tokens = previous_cap;
-            original.budget.max_rounds = previous_budget.max_rounds;
-            original.budget.max_visual_passes = previous_budget.max_visual_passes;
-            original.budget.max_images = previous_budget.max_images;
-            original.budget.max_evaluations = previous_budget.max_evaluations;
+            super::caps::restore(&mut original.budget, &previous_budget);
             if original.identity()? != old.identity {
                 return Err(
                     "evidence reuse requires unchanged original config and artifact bytes".into(),
@@ -302,6 +205,7 @@ pub fn prepare(
                 }
             }
         }
+        old.resume_runaway();
         old.pause = None;
         old.machine_ready = false;
         if !decision.preserve_evidence {
@@ -341,7 +245,7 @@ pub fn prepare(
             dials: config.dials.clone(),
             owner_notes: config.owner_notes.clone(),
             required: config.required.clone(),
-            budget: config.budget.clone(),
+            budget: config.budget.opening(),
             usage_known: true,
             trials: vec![],
             current: None,
@@ -358,6 +262,7 @@ pub fn prepare(
             visual_bootstrap: config.visual_bootstrap,
             reviewer_passed_unqualified: false,
             strides: Default::default(),
+            unkept: None,
         }
     };
     Ok(Prepared::Ready(Box::new(state)))

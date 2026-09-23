@@ -82,8 +82,10 @@ pub fn pause(
                   "jev_calls": run.budget.jev_calls, "dispatches": run.dispatches.len(),
                   "tuning_revisions": run.tuning.len()},
         "remaining": {"tokens": run.budget.remaining(),
-                      "dispatches": run.budget.max_dispatches.saturating_sub(run.dispatches.len() as u64),
-                      "tuning_revisions": run.budget.max_tuning_revisions.saturating_sub(run.tuning.len() as u64)},
+                      "dispatches": run.budget.max_dispatches
+                          .map(|cap| cap.saturating_sub(run.dispatches.len() as u64)),
+                      "tuning_revisions": run.budget.max_tuning_revisions
+                          .map(|cap| cap.saturating_sub(run.tuning.len() as u64))},
         "proposed": {"action": basis.proposed_action, "allowance_tokens": basis.next_tokens,
                      "estimate_basis": basis.estimate_basis},
         "signals": signals,

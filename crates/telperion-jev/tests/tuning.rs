@@ -71,10 +71,10 @@ fn budgets_reserve_before_work_and_never_reset() {
         images: 0,
         tokens: 0,
         rounds: 0,
-        max_evaluations: 2,
-        max_images: 4,
-        max_tokens: 100,
-        max_rounds: 1,
+        max_evaluations: Some(2),
+        max_images: Some(4),
+        max_tokens: Some(100),
+        max_rounds: Some(1),
     };
     budget.reserve(1, 4, 30, 1).unwrap();
     let saved = serde_json::to_string(&budget).unwrap();
@@ -88,6 +88,42 @@ fn budgets_reserve_before_work_and_never_reset() {
     assert_eq!(resumed.visual_passes, Some(2));
     resumed.visual_passes = None;
     assert!(resumed.reserve_visual().is_err());
+}
+
+/// fn-117: with no cap the spend is still counted, nothing refuses it, and the
+/// continuation contract needs no allowance to fit; the judgment still decides.
+#[test]
+fn an_uncapped_budget_counts_every_spend_and_refuses_none() {
+    use telperion_jev::tuning::continuation::{assess, Assessment, Basis};
+    let mut budget: Budget = serde_json::from_value(json!({})).unwrap();
+    budget.reserve(1_000, 4_000, u64::MAX / 2, 1_000).unwrap();
+    budget.visual_passes = Some(1_000);
+    budget.reserve_visual().unwrap();
+    budget.validate().unwrap();
+    assert_eq!(
+        serde_json::to_value(&budget).unwrap(),
+        json!({"evaluations": 1000, "images": 4000, "tokens": u64::MAX / 2,
+               "rounds": 1000, "visual_passes": 1001})
+    );
+    let basis = Basis {
+        identity: "revision".into(),
+        proposed_action: "tuning revision 9".into(),
+        evidence: vec!["untried dial".into()],
+        recent_outcomes: vec![],
+        next_tokens: None,
+        estimate_basis: "unknown: no usage reported and no attempt bound".into(),
+        usage_known: true,
+    };
+    let mut assessment = Assessment {
+        identity: "revision".into(),
+        ledger: "jev:1".into(),
+        tractability: "supported".into(),
+        progress: "supported".into(),
+        risk: "bounded".into(),
+    };
+    assert!(assess(&basis, &budget, Some(&assessment), true).is_ok());
+    assessment.progress = "repeated_failure".into();
+    assert!(assess(&basis, &budget, Some(&assessment), true).is_err());
 }
 
 #[test]
@@ -129,10 +165,10 @@ fn continuation_rejects_stale_unknown_or_unjustified_work() {
         images: 0,
         tokens: 20,
         rounds: 0,
-        max_evaluations: 13,
-        max_images: 52,
-        max_tokens: 100,
-        max_rounds: 3,
+        max_evaluations: Some(13),
+        max_images: Some(52),
+        max_tokens: Some(100),
+        max_rounds: Some(3),
     };
     let mut basis = Basis {
         identity: "revision".into(),

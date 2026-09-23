@@ -89,19 +89,25 @@ fn no_progress(history: &[&Dispatch], limit: usize) -> bool {
     trailing >= limit
 }
 
+/// A set cap the next attempt would reach. With no cap set nothing is hard.
 fn hard_limit(run: &Run) -> bool {
-    run.dispatches.len() as u64 >= run.budget.max_dispatches
-        || run
-            .budget
-            .tokens
-            .saturating_add(run.budget.attempt_max_tokens)
-            > run.budget.max_tokens
+    let budget = &run.budget;
+    budget
+        .max_dispatches
+        .is_some_and(|cap| run.dispatches.len() as u64 >= cap)
+        || budget.max_tokens.is_some_and(|cap| {
+            budget
+                .tokens
+                .saturating_add(budget.attempt_max_tokens.unwrap_or(0))
+                > cap
+        })
 }
 
-/// The bounded next-attempt estimate: the mean of the finished dispatches
-/// that reported usage, capped by the attempt bound; the bound itself when
-/// nothing has run. The basis names which.
-pub fn estimate(run: &Run) -> (u64, String) {
+/// The next-attempt estimate: the mean of the finished dispatches that
+/// reported usage, capped by the attempt bound when one is set; the bound
+/// itself when nothing has run, and unknown with neither. The basis names which.
+pub fn estimate(run: &Run) -> (Option<u64>, String) {
+    let bound = run.budget.attempt_max_tokens;
     let known: Vec<u64> = run
         .dispatches
         .iter()
@@ -113,17 +119,28 @@ pub fn estimate(run: &Run) -> (u64, String) {
         .filter(|total| *total > 0)
         .collect();
     if known.is_empty() {
-        return (
-            run.budget.attempt_max_tokens,
-            "the configured attempt bound; no dispatch has reported usage yet".into(),
-        );
+        return match bound {
+            Some(bound) => (
+                Some(bound),
+                "the configured attempt bound; no dispatch has reported usage yet".into(),
+            ),
+            None => (
+                None,
+                "unknown: no dispatch has reported usage yet and no attempt bound is set".into(),
+            ),
+        };
     }
     let mean = known.iter().sum::<u64>() / known.len() as u64;
-    let bounded = mean.min(run.budget.attempt_max_tokens);
+    let bounded = bound.map_or(mean, |bound| mean.min(bound));
+    let capped = if bound.is_some() {
+        ", capped by the attempt bound"
+    } else {
+        ""
+    };
     (
-        bounded.max(1),
+        Some(bounded.max(1)),
         format!(
-            "mean of {} dispatches with known usage, capped by the attempt bound",
+            "mean of {} dispatches with known usage{capped}",
             known.len()
         ),
     )
@@ -307,7 +324,7 @@ pub fn advance(asker: &Asker<'_>, config: &Config, run: &mut Run, spec: &str) ->
             format!("judgments {}", judgments.join(",")),
         ],
         recent_outcomes: recent,
-        next_tokens: Some(next_tokens),
+        next_tokens,
         estimate_basis,
         usage_known: run.budget.usage_known,
     };
@@ -467,4 +484,49 @@ pub fn land(run: &mut Run, spec: &str, commit: &str) -> Result<()> {
     dependency.status = DependencyStatus::Landed;
     dependency.landed_commit = Some(commit.into());
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::conductor::{BudgetConfig, Config};
+
+    /// fn-117: only a cap the config sets is ever hard.
+    #[test]
+    fn only_a_set_cap_is_a_hard_limit() {
+        let config: Config = serde_json::from_value(json!({"species": "palm",
+            "spec": "fn-82", "dir": "d", "run_dir": "r", "tuning_config": "t"}))
+        .unwrap();
+        for (budget, hard) in [
+            (BudgetConfig::default(), false),
+            (
+                BudgetConfig {
+                    max_dispatches: Some(0),
+                    ..Default::default()
+                },
+                true,
+            ),
+            (
+                BudgetConfig {
+                    max_tokens: Some(10),
+                    ..Default::default()
+                },
+                true,
+            ),
+        ] {
+            let mut run = Run::new(&Config {
+                budget: budget.clone(),
+                ..config.clone()
+            });
+            run.budget.tokens = if budget.max_tokens.is_some() {
+                11
+            } else {
+                u64::MAX / 2
+            };
+            assert_eq!(hard_limit(&run), hard, "{budget:?}");
+        }
+        let (next, basis) = estimate(&Run::new(&config));
+        assert_eq!(next, None);
+        assert!(basis.starts_with("unknown"), "{basis}");
+    }
 }

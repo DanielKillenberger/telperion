@@ -140,7 +140,11 @@ fn tune(
     revision: u64,
     focus: &[String],
 ) -> Result<String> {
-    if run.tuning.len() as u64 >= run.budget.max_tuning_revisions {
+    if run
+        .budget
+        .max_tuning_revisions
+        .is_some_and(|cap| run.tuning.len() as u64 >= cap)
+    {
         let basis = tuning_basis(run, revision, focus);
         handoff::pause(
             config,
@@ -237,7 +241,7 @@ fn tuning_basis(run: &Run, revision: u64, focus: &[String]) -> Basis {
                 )
             })
             .collect(),
-        next_tokens: Some(next_tokens),
+        next_tokens,
         estimate_basis,
         usage_known: run.budget.usage_known,
     }
@@ -286,7 +290,7 @@ fn gap_check(
                 .map(|p| format!("gap package {p}"))
                 .collect(),
             recent_outcomes: words.clone(),
-            next_tokens: Some(next_tokens),
+            next_tokens,
             estimate_basis,
             usage_known: run.budget.usage_known,
         };

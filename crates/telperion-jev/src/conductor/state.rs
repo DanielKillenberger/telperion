@@ -17,10 +17,15 @@ use crate::tuning::continuation::{Basis, HumanDecision, Pause};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Budget {
-    pub max_tokens: u64,
-    pub attempt_max_tokens: u64,
-    pub max_dispatches: u64,
-    pub max_tuning_revisions: u64,
+    /// The config's caps; each absent one is no cap.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_tokens: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub attempt_max_tokens: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_dispatches: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_tuning_revisions: Option<u64>,
     /// Tokens known to be spent: dispatch usage, Jev usage and tuning runs.
     pub tokens: u64,
     /// False once a finished dispatch reported no usage; the continuation
@@ -30,8 +35,9 @@ pub struct Budget {
 }
 
 impl Budget {
-    pub fn remaining(&self) -> u64 {
-        self.max_tokens.saturating_sub(self.tokens)
+    /// Tokens left under the cap; `None` when no token cap is set.
+    pub fn remaining(&self) -> Option<u64> {
+        self.max_tokens.map(|cap| cap.saturating_sub(self.tokens))
     }
 }
 
@@ -218,7 +224,7 @@ impl Run {
         for d in self.dispatches.iter_mut() {
             if let Some(r) = d.result.as_mut() {
                 if r.usage.is_none() && !r.usage_is_reservation {
-                    charged = charged.saturating_add(d.reserved_tokens);
+                    charged = charged.saturating_add(d.reserved_tokens.unwrap_or(0));
                     r.usage_is_reservation = true;
                 }
             }
@@ -286,24 +292,10 @@ impl Run {
         // config, so a raise the owner made in the file alone never reached
         // a paused run. The dispatch cap rides the shared round-cap field.
         if let Some(ext) = &decision.round_cap_extension {
-            if ext.previous != self.budget.max_dispatches || ext.next <= ext.previous {
-                return Err(format!(
-                    "dispatch cap extension names {} -> {}; the run holds {}",
-                    ext.previous, ext.next, self.budget.max_dispatches
-                )
-                .into());
-            }
-            self.budget.max_dispatches = ext.next;
+            self.budget.max_dispatches = raise("dispatch", ext, self.budget.max_dispatches)?;
         }
         if let Some(ext) = &decision.token_cap_extension {
-            if ext.previous != self.budget.max_tokens || ext.next <= ext.previous {
-                return Err(format!(
-                    "token cap extension names {} -> {}; the run holds {}",
-                    ext.previous, ext.next, self.budget.max_tokens
-                )
-                .into());
-            }
-            self.budget.max_tokens = ext.next;
+            self.budget.max_tokens = raise("token", ext, self.budget.max_tokens)?;
         }
         self.pause = None;
         self.resumed_from = Some(decision.pause_id.clone());
@@ -326,5 +318,22 @@ impl Run {
             "tuning_revisions": self.tuning.len(),
             "paused": self.pause.as_ref().map(|p| p.id.clone()),
         })
+    }
+}
+
+/// A cap the run holds, moved by a scoped extension from exactly that value.
+/// A run without the cap has nothing to raise (fn-117).
+fn raise(
+    name: &str,
+    ext: &crate::tuning::continuation::TokenCapExtension,
+    held: Option<u64>,
+) -> Result<Option<u64>> {
+    match held {
+        Some(held) if ext.previous == held && ext.next > held => Ok(Some(ext.next)),
+        _ => Err(format!(
+            "{name} cap extension names {} -> {}; the run holds {held:?}",
+            ext.previous, ext.next
+        )
+        .into()),
     }
 }
