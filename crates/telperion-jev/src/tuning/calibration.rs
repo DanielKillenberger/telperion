@@ -67,6 +67,7 @@ pub fn questions(kind: &str, state: &Value) -> Result<Value, String> {
             )
         }
         "continuation" => Ok(super::continuation::questions()),
+        "gap_magnitude" => Ok(super::stride::questions()),
         _ => Err("unknown calibration kind".into()),
     }
 }

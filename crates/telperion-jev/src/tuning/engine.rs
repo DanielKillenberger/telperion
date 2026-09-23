@@ -113,6 +113,21 @@ pub trait Services {
     fn tracks(&self) -> Vec<super::bundle::Track> {
         vec![]
     }
+    /// The gap class an owner priority carries in the config. Asks nobody.
+    fn owner_magnitude(&self, _priority: &str) -> Option<super::stride::Class> {
+        None
+    }
+    /// Whether the gap-magnitude question can be asked at all. Without it
+    /// every round draws the ladder as configured.
+    fn offers_gap_magnitude(&self) -> bool {
+        false
+    }
+    fn gap_magnitude_tokens(&self, _state: &Value) -> u64 {
+        2000
+    }
+    fn gap_magnitude(&mut self, _state: &Value) -> Result<Answer<super::stride::Judged>, String> {
+        Err("gap-magnitude question unavailable".into())
+    }
     /// Two stills per view, as any matched capture costs.
     fn capture_images(&self, views: &[String]) -> u64 {
         2 * views.len() as u64
@@ -242,6 +257,10 @@ pub struct Run {
     /// prompt for an owner look, not readiness.
     #[serde(default)]
     pub reviewer_passed_unqualified: bool,
+    /// Per track, the gap class its stride may not exceed and the class its
+    /// last adopted bundle was drawn at.
+    #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
+    pub strides: std::collections::BTreeMap<String, super::stride::Standing>,
 }
 
 fn merge(target: &mut Value, patch: &Value) {

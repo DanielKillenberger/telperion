@@ -1092,6 +1092,7 @@ fn max_candidates_is_validated_and_bounds_one_round() {
         judgment_inputs: vec![],
         visual_bootstrap: false,
         reviewer_passed_unqualified: false,
+        strides: Default::default(),
     };
     // `propose` now returns every accepted move, ordered, and reports the
     // bound; the engine truncates after refusing repeats, so a move already

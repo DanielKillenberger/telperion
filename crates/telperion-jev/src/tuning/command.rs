@@ -357,6 +357,7 @@ pub fn prepare(
             judgment_inputs: vec![],
             visual_bootstrap: config.visual_bootstrap,
             reviewer_passed_unqualified: false,
+            strides: Default::default(),
         }
     };
     Ok(Prepared::Ready(Box::new(state)))
