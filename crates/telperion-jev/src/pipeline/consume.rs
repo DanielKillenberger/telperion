@@ -10,7 +10,7 @@
 use std::path::Path;
 
 use super::canon::{canonical_sha256, read_json, CanonError};
-use super::decision::{Decision, Resolution, Status};
+use super::decision::{Decision, Resolution, Status, SUPERSEDED};
 use super::stage::STAGES;
 
 /// A required field or appearance trait below the requirements table's bar:
@@ -96,13 +96,21 @@ pub fn sources_sha256(manifest: &Path) -> Result<String, CanonError> {
 
 /// Reopens every resolved requirements-unmet decision whose manifest sources
 /// are still the ones it was filed against: a resolution that adds no source
-/// leaves the decision open. The note is set, never appended, so a rerun is
-/// byte-identical. True when the list changed.
+/// leaves the decision open. A decision its stage superseded is not held: the
+/// field passed with the sources it had. The note is set, never appended, so
+/// a rerun is byte-identical. True when the list changed.
 pub fn hold_unmet(decisions: &mut [Decision], sources: &str) -> bool {
     let mut changed = false;
     for decision in decisions.iter_mut() {
         let unchanged = decision.payload["sources_sha256"].as_str() == Some(sources);
-        if decision.kind != REQUIREMENTS_UNMET || decision.status != Status::Resolved || !unchanged
+        let superseded = decision
+            .resolution
+            .as_ref()
+            .is_some_and(|r| r.option == SUPERSEDED);
+        if decision.kind != REQUIREMENTS_UNMET
+            || decision.status != Status::Resolved
+            || !unchanged
+            || superseded
         {
             continue;
         }

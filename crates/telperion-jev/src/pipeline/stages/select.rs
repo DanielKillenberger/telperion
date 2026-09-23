@@ -13,7 +13,7 @@
 use serde_json::{json, Map, Value};
 
 use crate::pipeline::canon::write_canonical;
-use crate::pipeline::decision::append_decisions;
+use crate::pipeline::decision::{append_decisions, retire_unfiled};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::{Described, Field, Manifest};
 use crate::pipeline::sets::DescribedLevel;
@@ -102,9 +102,18 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     if !manifest.appearance.is_empty() {
         out["appearance"] = json!(copied.body);
     }
+    let ids: Vec<String> = copied.decisions.iter().map(|d| d.id.clone()).collect();
     if !copied.decisions.is_empty() {
         append_decisions(&ctx.paths.decisions(), copied.decisions)?;
     }
+    // A trait this rerun found stated files nothing: its earlier decision is stale.
+    retire_unfiled(
+        &ctx.paths.decisions(),
+        STAGE,
+        &ids,
+        &header.inputs,
+        &crate::pipeline::gap::now(),
+    )?;
     ctx.write(&header, out)?;
     Ok(Outcome::Ran {
         filled: counts.0,
