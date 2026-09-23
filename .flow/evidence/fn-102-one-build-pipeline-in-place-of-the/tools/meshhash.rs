@@ -29,7 +29,7 @@ fn main() {
                 println!("{}", json!({"id": id, "seed": seed, "family": params::metadata(&f)}));
                 continue;
             }
-            let m = mesh::build(&f, mesh::Detail::Full).unwrap();
+            let m = mesh::build(&f).unwrap();
             let mut h = Fnv::new();
             let w = &m.wood;
             h.eat(w.positions.iter().flat_map(|v| v.to_le_bytes()));

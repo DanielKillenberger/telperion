@@ -48,3 +48,10 @@
 - **Hindrance:** `generation_limit_guard` failed on loop sites that moved when the ring bounds and edge recording were rewritten (one new site, three stale); the inventory is keyed on token-spaced source text, so any rewrite of a bounded loop fails the gate late. My own summary filter also cut the gate log, so the gate ran twice.
 - **Cost:** one extra full gate run, about 10 minutes.
 - **Would remove it:** running `generation_limit_guard` (0.02 s) as part of any per-change check, or a pre-commit hook for files the inventory names.
+
+## 2026-09-23, worker on the fn-102 review cleanup
+
+- **What:** re-running R3 after the cleanup against the base rows kept from the first pass.
+- **Hindrance:** the evidence tools were stale against HEAD: `meshhash.rs` still called `mesh::build(&f, mesh::Detail::Full)` after `531d8146` dropped the argument, and `generation_stages` read the `Stages::concurrent` field the cleanup removed, which `cargo check --tests` does not compile. The dcg hook again refused a `>` redirect to a variable path, so the candidate pass needed a script with `>>`.
+- **Cost:** about 5 minutes and one failed release build.
+- **Would remove it:** `cargo check --workspace --all-targets` in the per-change check (it compiles examples), and the tools under `tools/` compiled as an example target by a script rather than copied in by hand.

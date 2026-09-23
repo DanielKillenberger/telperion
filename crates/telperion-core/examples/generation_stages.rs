@@ -77,7 +77,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "{}",
             json!({"event":"sample","output_fnv1a64":format!("{hash:016x}"),"sample":sample,"cold_process_first_build":sample==0,
             "preset":preset,"seed":seed,"height_m":f.skeleton.envelope.height,
-            "complete":tree.diagnostics.complete(),"nodes":tree.nodes.len(),"concurrent":t.concurrent,
+            "complete":tree.diagnostics.complete(),"nodes":tree.nodes.len(),
             "placed":leaves.placed,"retained":instances.len(),"wood_vertices":wood.positions.len()/3,
             "wood_triangles":wood.indices.len()/3,"wood_dropped":wood.dropped,"foliage_bounds_present":bounds.is_some(),
             "milliseconds":{"growth":t.skeleton_ms,"rings":t.rings_ms,"surface":t.wood_ms,
