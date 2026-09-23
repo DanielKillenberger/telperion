@@ -3771,5 +3771,11 @@
    "path": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.flow/evidence/fn80/reference-first/preparation.json",
    "sha256": "5648b2babf1dd06763d28f1bd5ae8050adc1af6a7bd837aefd7d750b2bdbe51f"
   }
- }
+ },
+ "unexpressed": [
+  {
+   "trait": "fruit-clusters-pendent",
+   "spec": "fn-111-the-palms-infructescence-a-hanging-date"
+  }
+ ]
 }
