@@ -1,0 +1,62 @@
+{
+ "pause_id": "18d7f84efddf22f5-55aba-14",
+ "identity": "0b99151042d044ca75ff04d2567660b499960282886ced9280ddbae7600413ed",
+ "action": "approve gap priorities",
+ "by": "host (fn-80 conductor session) relaying the owner's written priorities of 2026-09-22",
+ "rationale": "The owner's priorities are unchanged from the first revision: the three written into the tuning config's owner_notes on 2026-09-22, recorded verbatim in the owner's order. The reviewer's top three (finding-0 crown, finding-1 leaflets, finding-2 wavy trunk) are answered by the first two. Nothing is added beyond the owner's words; the reviewer's other findings (leaf-base density, fibre, skirt, fruit) stay visible in the record. This chooses objectives only, never readiness or acceptance. The pilot authority is carried in the same decision.",
+ "preserve_evidence": true,
+ "priority_approval": {
+  "checkpoint_sha256": "f3059e2239d8193e3a7fedbd6a7ee016369688ed727bfa135233c906fdff0606",
+  "scope_sha256": "869a92bcf0fcd8d99411d6f339f9ac207ac2227c4e56a246e10a78cd130271b7",
+  "ordered": [
+   {
+    "id": "owner-fronds-long-arching",
+    "observation": "the crown must read as a palm's rosette of long arching pinnate fronds with the lowest fronds drooping; the fronds are far too thin and short today (leaflet size and frond length are the first dials)",
+    "evidence_ids": [
+     "render-0",
+     "reference-0",
+     "reference-1"
+    ],
+    "views": [
+     "P-WHOLE"
+    ]
+   },
+   {
+    "id": "owner-trunk-straight-constant",
+    "observation": "the trunk must be straight or gently leaning, never wavy, of near-constant diameter",
+    "evidence_ids": [
+     "render-0",
+     "reference-0",
+     "reference-1",
+     "reference-2"
+    ],
+    "views": [
+     "P-WHOLE"
+    ]
+   },
+   {
+    "id": "owner-trunk-bare",
+    "observation": "nothing grows on the trunk",
+    "evidence_ids": [
+     "render-0",
+     "reference-0",
+     "reference-1"
+    ],
+    "views": [
+     "P-WHOLE"
+    ]
+   }
+  ]
+ },
+ "experimental_pilot": {
+  "visual_bootstrap": true,
+  "purpose": "second tuning revision of the date palm (fn-82) as the gap loop's live proof (fn-80): rosette and trunk organs, infructescence not landed",
+  "reason": "magnitude and gap-magnitude live efficacy unvalidated; the owner asked for the proper run with Opus as the visual reviewer and a 6 M total cap",
+  "next_identity": "0b99151042d044ca75ff04d2567660b499960282886ced9280ddbae7600413ed",
+  "max_tokens": 4000000,
+  "max_rounds": 24,
+  "max_evaluations": 120,
+  "max_images": 600,
+  "max_visual_passes": 60
+ }
+}
