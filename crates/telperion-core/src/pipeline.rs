@@ -268,15 +268,23 @@ fn both<A: Send, B>(
     if concurrent {
         #[cfg(test)]
         tests::count(|t| t.split = true);
+        // The stage waits in a slot the thread takes it from, so a thread
+        // the system refuses leaves it here to run in turn.
+        let slot = std::sync::Mutex::new(Some(a));
+        let take = || slot.lock().ok().and_then(|mut a| a.take());
         return std::thread::scope(|scope| {
-            let a = std::thread::Builder::new()
+            let spawned = std::thread::Builder::new()
                 .stack_size(STACK)
-                .spawn_scoped(scope, a)
-                .expect("a thread for the stage");
+                .spawn_scoped(scope, || take().map(|a| a()));
+            let Ok(handle) = spawned else {
+                let a = take().expect("a refused thread leaves its stage")();
+                return (a, b());
+            };
             let b = b();
-            let a = a
+            let a = handle
                 .join()
-                .unwrap_or_else(|panic| std::panic::resume_unwind(panic));
+                .unwrap_or_else(|panic| std::panic::resume_unwind(panic))
+                .expect("the thread ran its stage");
             (a, b)
         });
     }
