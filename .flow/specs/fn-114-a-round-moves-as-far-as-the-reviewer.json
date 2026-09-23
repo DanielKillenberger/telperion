@@ -1,0 +1,32 @@
+{
+  "branch_name": "fn-114-a-round-moves-as-far-as-the-reviewer",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-23T13:19:45.729329Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-114-a-round-moves-as-far-as-the-reviewer",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-114-a-round-moves-as-far-as-the-reviewer.md",
+  "status": "open",
+  "title": "A round moves as far as the reviewer says the tree is off",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-23T13:35:12.306679Z"
+}
