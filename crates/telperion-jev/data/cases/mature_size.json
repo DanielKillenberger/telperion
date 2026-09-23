@@ -180,8 +180,8 @@
       "sentences": 1,
       "sources": 1
     },
-    "expect_level": "proxy_only",
-    "expect_gap": "wrong_taxon",
+    "expect_level": "partial",
+    "expect_gap": "single_source",
     "holdout": false,
     "negative": false
   },
