@@ -1,0 +1,63 @@
+{
+  "provenance": "fn-80 date-palm tuning run 4 (.flow/evidence/fn80/tuning-run/result.json and tuning-date-palm.json on branch fn-80-the-gap-loops-first-live-run at 83a57fc2): the owner priority, the frond-length dial row, the bundle ladder, and the reviewer's contact-sheet finding on each bundle round. Copied, not re-judged; no render and no paid look.",
+  "priority": {
+    "id": "owner-fronds-long-arching",
+    "observation": "the crown must read as a palm's rosette of long arching pinnate fronds with the lowest fronds drooping; the fronds are far too thin and short today (leaflet size and frond length are the first dials)"
+  },
+  "magnitudes": {
+    "owner-fronds-long-arching": "far_off"
+  },
+  "magnitudes_basis": "the owner's own priority words, \"the fronds are far too thin and short today\", carried as the config's owner class; the owner's word asks nobody",
+  "dial": {
+    "id": "rachis_length",
+    "path": "/canopy/rachisLength",
+    "meaning": "metres of rachis the leaflets are strung along; at zero one blade",
+    "min": 0.0,
+    "max": 8.0,
+    "integer": false,
+    "small": 0.1,
+    "substantial": 0.4,
+    "group": "canopy"
+  },
+  "bundle_strengths": [
+    0.25,
+    0.5,
+    1.0,
+    2.0
+  ],
+  "max_rounds": 24,
+  "recorded": {
+    "bundle_rounds": 6,
+    "furthest_frond_length_drawn": 3.75,
+    "adoptions_kept": 0,
+    "adoptions_rolled_back": 5
+  },
+  "target": 7.0,
+  "target_basis": "twice the preset's 3.5 m, the lower end of the reviewer's frond \"two to three times longer\" (fn-80 GAPS.md), inside the row's authored range of 8 m",
+  "rounds": [
+    {
+      "round": 2,
+      "finding": "In every render the fronds remain far too short and too stiff for the crown to read as a date palm: nothing arches over and down, there is no skirt of drooping lower fronds, and the crown stays a small flat disc against a very long trunk instead of the reference's deep, heavy, fountain-shaped head. The trunk also lacks the reference's ringed leaf-base texture and its slight basal flare."
+    },
+    {
+      "round": 3,
+      "finding": "In all five the fronds stay straight spokes with sparse, undersized leaflets: none arch over and none of the lowest fronds droop into the hanging skirt seen in the reference, and every crown is too small for its trunk. The trunks also remain smooth and untextured with no leaf-base scarring, and apart from render 1 they wander rather than holding a single gentle lean at near-constant diameter."
+    },
+    {
+      "round": 4,
+      "finding": "None of them arch: every frond leaves the crown straight and radial, so the reference's deep drooping skirt of long lower fronds hanging below the crown base is absent everywhere, and the crown stays too small for the trunk's height."
+    },
+    {
+      "round": 5,
+      "finding": "None of them show the reference's arching, drooping lower fronds — every frond is held straight and radial, so the crown stays flat and sparse instead of forming a dense, hanging skirt. All also lack the reference's leaflet density and its textured trunk of leaf-base scars, and the longer-frond renders bought their crowns at the cost of a wavy, uneven trunk the reference never has."
+    },
+    {
+      "round": 6,
+      "finding": "None of them gets the fronds long or heavy enough to arch, and no render has the reference's drooping skirt of lower fronds hanging below the crown base; the crowns are also too small for the trunk height and the trunk still tapers and shows a shoulder under the crown, while the reference trunk keeps near-constant diameter with its patterned leaf-base texture."
+    },
+    {
+      "round": 7,
+      "finding": "In every render the fronds are still straight radial spokes: none arch over and none of the lowest fronds droop below horizontal into the reference's hanging skirt, and all crowns remain far too small and too short relative to the trunk. The trunk is also uniformly smooth and dark in all five, missing the reference's diamond leaf-base texture and its heavier, gently leaning proportion (the trunk organs and date clusters are of course not landed yet)."
+    }
+  ]
+}

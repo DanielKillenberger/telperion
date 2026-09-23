@@ -78,6 +78,15 @@ struct Mock {
     sheet_views: std::cell::RefCell<Vec<Option<String>>>,
     /// One entry per extra-view capture: the trial key and the views asked for.
     captures: Vec<(String, Vec<String>)>,
+    /// The gap class the owner's priority carries in the config.
+    owner_class: Option<telperion_jev::tuning::stride::Class>,
+    /// The gap question's raw answer, confidence and calibration; `None`
+    /// offers no question.
+    gap_answer: Option<(String, f64, bool)>,
+    gap_calls: u64,
+    /// One adjustment per proposal call, consumed in order; empty keeps
+    /// `proposal_action`.
+    proposal_actions: Vec<Action>,
 }
 
 fn mock() -> Mock {
@@ -123,6 +132,10 @@ fn mock() -> Mock {
         tracks: vec![],
         sheet_views: std::cell::RefCell::new(vec![]),
         captures: vec![],
+        owner_class: None,
+        gap_answer: None,
+        gap_calls: 0,
+        proposal_actions: vec![],
     }
 }
 impl Services for Mock {
@@ -261,6 +274,29 @@ impl Services for Mock {
     }
     fn tracks(&self) -> Vec<telperion_jev::tuning::bundle::Track> {
         self.tracks.clone()
+    }
+    fn owner_magnitude(&self, _: &str) -> Option<telperion_jev::tuning::stride::Class> {
+        self.owner_class
+    }
+    fn offers_gap_magnitude(&self) -> bool {
+        self.gap_answer.is_some()
+    }
+    fn gap_magnitude(
+        &mut self,
+        _: &serde_json::Value,
+    ) -> Result<Answer<telperion_jev::tuning::stride::Judged>, String> {
+        self.gap_calls += 1;
+        let (choice, confidence, calibrated) = self.gap_answer.clone().unwrap();
+        Ok(Answer {
+            ledger: Some("jev:gap".into()),
+            tokens: Some(20),
+            value: telperion_jev::tuning::stride::Judged {
+                choice,
+                confidence: Some(confidence),
+                threshold: 0.5,
+                calibrated,
+            },
+        })
     }
     fn capture_views(
         &mut self,
@@ -501,6 +537,9 @@ impl Services for Mock {
     }
     fn propose(&mut self, _: &Run, batch: usize) -> Result<Answer<Vec<Proposal>>, String> {
         self.proposal_calls += 1;
+        if !self.proposal_actions.is_empty() {
+            self.proposal_action = self.proposal_actions.remove(0);
+        }
         let slice: Vec<Proposal> = if self.batch == 0 {
             self.proposals.clone()
         } else {
@@ -681,6 +720,7 @@ fn run() -> Run {
         judgment_inputs: vec![],
         visual_bootstrap: false,
         reviewer_passed_unqualified: false,
+        strides: Default::default(),
     }
 }
 
@@ -3295,5 +3335,176 @@ fn twelve_rounds_of_attempts_fold_into_a_digest_that_still_fits() {
         serde_json::to_vec(digest).unwrap().len(),
         expected,
         "the state shipped the least-trimmed digest that fits ({sizes:?} beside {base} bytes)"
+    );
+}
+
+/// The strengths each round drew, in round order, read off the variants.
+fn drawn_by_round(state: &Run) -> Vec<Vec<f64>> {
+    let mut rounds: Vec<(u64, Vec<f64>)> = vec![];
+    for t in state.trials.iter().filter(|t| t.parent_bundle.is_none()) {
+        let Some(b) = &t.bundle else { continue };
+        match rounds.iter_mut().find(|(r, _)| *r == t.round) {
+            Some((_, s)) => s.push(b.strength),
+            None => rounds.push((t.round, vec![b.strength])),
+        }
+    }
+    rounds.into_iter().map(|(_, s)| s).collect()
+}
+
+fn stride_notes(state: &Run) -> Vec<String> {
+    state
+        .routes
+        .iter()
+        .filter(|r| r.contains("stride"))
+        .cloned()
+        .collect()
+}
+
+/// R1: the owner's class draws the round at a multiple of the ladder code
+/// owns, and asks nobody.
+#[test]
+fn an_owner_class_scales_the_ladder_and_asks_nobody() {
+    use telperion_jev::tuning::stride::Class;
+    for (class, drawn, multiplier) in [
+        (None, vec![0.5, 1., 2., 4.], "multiplier 1"),
+        (Some(Class::Near), vec![0.5, 1., 2., 4.], "multiplier 1"),
+        (
+            Some(Class::ClearlyOff),
+            vec![1., 2., 4., 8.],
+            "multiplier 2",
+        ),
+        (Some(Class::FarOff), vec![2., 4., 8., 16.], "multiplier 4"),
+    ] {
+        let (mut state, mut mock) = adopting_run();
+        mock.owner_class = class;
+        mock.gap_answer = Some(("near".into(), 0.9, true));
+        to_the_round(&mut state, &mut mock);
+
+        assert_eq!(drawn_by_round(&state)[0], drawn, "{class:?}");
+        assert_eq!(
+            mock.gap_calls, 0,
+            "{class:?}: the owner's word costs nothing"
+        );
+        let note = &stride_notes(&state)[0];
+        assert!(note.contains(multiplier), "{note}");
+        if class.is_some() {
+            assert!(note.contains("from owner on owner-crown"), "{note}");
+        }
+    }
+}
+
+/// R1: with no owner class, the reviewer's latest words on the priority are
+/// put to Jev before the draw; anything short of a trusted class keeps the
+/// ladder as configured and the note says why.
+#[test]
+fn the_reviewer_s_words_choose_the_next_round_s_stride_or_the_ladder_stands() {
+    for (answer, drawn, says) in [
+        (
+            ("far_off", 0.9, true),
+            vec![2., 4., 8., 16.],
+            "stride class far_off from jev",
+        ),
+        (
+            ("near", 0.9, true),
+            vec![0.5, 1., 2., 4.],
+            "stride class near from jev",
+        ),
+        (
+            ("no_match", 0.9, true),
+            vec![0.5, 1., 2., 4.],
+            "default: jev no_match",
+        ),
+        (
+            ("far_off", 0.3, true),
+            vec![0.5, 1., 2., 4.],
+            "below the threshold",
+        ),
+        (
+            ("far_off", 0.9, false),
+            vec![0.5, 1., 2., 4.],
+            "has not qualified",
+        ),
+    ] {
+        let (mut state, mut mock) = adopting_run();
+        mock.cell_status = vec![CellStatus::Fail; 8];
+        mock.gap_answer = Some((answer.0.into(), answer.1, answer.2));
+        to_the_round(&mut state, &mut mock);
+
+        let rounds = drawn_by_round(&state);
+        assert_eq!(
+            rounds[0],
+            vec![0.5, 1., 2., 4.],
+            "{answer:?}: no finding yet"
+        );
+        assert_eq!(rounds[1], drawn, "{answer:?}");
+        assert_eq!(mock.gap_calls, 1, "{answer:?}: one question, in round two");
+        let notes = stride_notes(&state);
+        assert!(notes[0].contains("default: no finding yet"), "{notes:?}");
+        assert!(notes[1].contains(says), "{notes:?}");
+        let shown = state
+            .judgment_inputs
+            .iter()
+            .find(|i| i.label == telperion_jev::tuning::stride::LABEL)
+            .expect("the question's state is recorded");
+        let words = serde_json::to_string(&shown.state).unwrap();
+        assert!(words.contains("the crown is still enclosed"), "{words}");
+    }
+}
+
+/// R4: a raised stride the closing review takes back is capped a level lower
+/// for the next round, and again, so the ladder steps down instead of
+/// swinging back out.
+#[test]
+fn an_overshoot_rolled_back_steps_the_stride_down_rather_than_oscillating() {
+    let (mut state, mut mock) = bundle_run();
+    state.budget.max_rounds = 3;
+    mock.owner_class = Some(telperion_jev::tuning::stride::Class::FarOff);
+    mock.side_effect_answer = Some(("new_defect".into(), 0.9));
+    mock.sheets = vec![
+        vec![did(&key(3), Movement::Clear)],
+        vec![did(&key(6), Movement::Clear)],
+    ];
+    to_the_round(&mut state, &mut mock);
+
+    let rounds = drawn_by_round(&state);
+    assert_eq!(rounds[0], vec![2., 4., 8., 16.]);
+    assert_eq!(rounds[1], vec![1.], "2, 4 and 8 were already tried here");
+    assert_eq!(rounds[2], vec![0.5]);
+    let top = rounds
+        .iter()
+        .map(|r| r.iter().copied().fold(0., f64::max))
+        .collect::<Vec<_>>();
+    assert!(top.windows(2).all(|w| w[1] < w[0]), "{top:?}");
+    let notes = stride_notes(&state);
+    for expected in [
+        "stride class far_off from owner",
+        "stride capped at clearly_off after the bundle at far_off was rolled back",
+        "stride class clearly_off from owner on owner-crown, multiplier 2; far_off capped at clearly_off",
+        "stride capped at near after the bundle at clearly_off was rolled back",
+        "stride class near from owner on owner-crown, multiplier 1; far_off capped at near",
+    ] {
+        assert!(notes.iter().any(|n| n.contains(expected)), "{expected}: {notes:?}");
+    }
+    assert_eq!(state.current, Some(0), "no raised bundle stood");
+}
+
+/// R4: after a raised bundle stands, a round that turns one of its dials back
+/// is an overshoot too, and draws a level lower.
+#[test]
+fn a_direction_that_turns_round_after_a_raised_bundle_caps_the_stride() {
+    let (mut state, mut mock) = adopting_run();
+    mock.cell_status = vec![CellStatus::Fail; 8];
+    mock.owner_class = Some(telperion_jev::tuning::stride::Class::FarOff);
+    mock.proposal_actions = vec![Action::SmallIncrease, Action::SmallDecrease];
+    to_the_round(&mut state, &mut mock);
+
+    let rounds = drawn_by_round(&state);
+    assert_eq!(rounds[0], vec![2., 4., 8., 16.]);
+    assert_eq!(rounds[1], vec![1., 2., 4., 8.]);
+    let notes = stride_notes(&state);
+    assert!(
+        notes[1].contains("far_off capped at clearly_off")
+            && notes[1].contains("turned round from the bundle at far_off"),
+        "{notes:?}"
     );
 }

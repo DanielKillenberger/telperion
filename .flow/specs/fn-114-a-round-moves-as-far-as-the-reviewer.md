@@ -17,7 +17,13 @@ This spec lets the size of the gap the reviewer or the owner names choose how fa
 
 - **What exists, checked 2026-09-23 on the fn-80 branch.** A bundle is drawn at each of `bundle_strengths` (default `[0.5, 1, 2, 4]`, at most four, `tuning/live.rs:236`); a dial moves `strength × small` (`tuning/bundle.rs:84`). The palm's run set `[0.25, 0.5, 1, 2]`, so `rachis_length` (`small` 0.1) moved at most 0.2 m a round. Jev's direction question selects a direction and never a magnitude (`tuning/actions.rs:75`); the separate adjustment question selects among small and substantial options code built. A config reaching magnitude is refused without scoped experimental authority: "magnitude live efficacy unvalidated" (`tuning/command.rs:457`). [checked]
 - **Shape, bound by the repo's Jev rule.** Jev selects; it never supplies a number. Code offers a magnitude class set for each owner priority or reviewer finding (for example near, clearly off, far off, with a no-match answer), Jev selects one from the words, and code maps the class to a strength ladder it owns. An owner priority may carry the class directly and then no Jev call is made. The ladder's top is bounded by the dial's range and by the existing overshoot and rollback rules. [inferred]
-- **Unknown.** Whether the existing magnitude calibration (`tuning/calibration.rs`) is the right home for the class thresholds, and whether the fn-68 labelled set has cases to test class coverage; if not, labelled cases are written first. [unknown]
+- **The design (host, 2026-09-23).** [host design]
+  - *One question per track per round, before the draw.* Code asks Jev a choice over the track's owner priority words and the latest reviewer finding on that priority: `near`, `clearly_off`, `far_off`, or `no_match`. Code maps the class to a multiplier on the configured `bundle_strengths` (near 1, clearly off 2, far off 4); `no_match`, a confidence below the calibrated threshold, or no finding yet keeps the ladder as configured (multiplier 1). The clamp to the dial's range still applies.
+  - *The owner's word wins and costs nothing.* An owner priority may carry `magnitude: near|clearly_off|far_off` in the tuning config; then no Jev call is made for that track.
+  - *Overshoot steps down.* When a round's bundle at a raised class is rolled back as worse, or a reviewer finding on that priority flips direction, the track's class is capped one level lower for the following rounds until a bundle on it is adopted; the cap is recorded. This is the R4 guard against oscillation.
+  - *Record.* Each round's route note names the class, its source (`owner`, `jev` with its confidence, or `default` with the reason) and the multiplier used.
+  - *Calibration home.* A new calibration kind `gap_magnitude` beside `magnitude`, `direction` and `continuation` in `tuning/calibration.rs` (`questions`), with labelled cases in `crates/telperion-jev/data` written before the question is trusted: the palm's fn-80 reviewer and owner sentences ("far too thin and short", "two to three times longer") among them, plus near-miss and no-match cases. The threshold comes from that set, per `docs/typesafe.md`.
+  - *Authority.* Until the `gap_magnitude` set passes, a Jev-chosen class above `near` is refused without the scoped experimental authority the existing magnitude rule requires (`tuning/command.rs:457`); an owner-carried class needs none.
 
 ## Acceptance Criteria
 <!-- scope: both -->
@@ -40,4 +46,4 @@ This spec lets the size of the gap the reviewer or the owner names choose how fa
 
 ## Open Questions
 
-- Unknown: the calibration home and the labelled cases (see Architecture).
+- None. The calibration home and the class design were settled by the host on 2026-09-23 (see Architecture).

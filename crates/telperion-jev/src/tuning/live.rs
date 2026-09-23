@@ -94,6 +94,14 @@ pub struct Config {
     /// every dial, which is every run before 2026-09-21.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub tracks: Vec<super::bundle::Track>,
+    /// Owner priorities that carry the size of their gap. A round on one of
+    /// them asks nobody how far to move.
+    #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
+    pub magnitudes: std::collections::BTreeMap<String, super::stride::Class>,
+    /// The frozen gap-magnitude calibration. Until it qualifies, a class above
+    /// near that Jev chose needs scoped experimental authority.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gap_magnitude: Option<Validation>,
     pub initial_overrides: Value,
     pub dials: Vec<Dial>,
     pub owner_notes: String,
@@ -717,6 +725,31 @@ impl Services for Live<'_> {
     }
     fn tracks(&self) -> Vec<super::bundle::Track> {
         self.config.tracks.clone()
+    }
+    fn owner_magnitude(&self, priority: &str) -> Option<super::stride::Class> {
+        self.config.magnitudes.get(priority).copied()
+    }
+    fn offers_gap_magnitude(&self) -> bool {
+        true
+    }
+    fn gap_magnitude_tokens(&self, state: &Value) -> u64 {
+        super::judgments::allowance(state, &super::stride::questions())
+    }
+    fn gap_magnitude(&mut self, state: &Value) -> Result<Answer<super::stride::Judged>, String> {
+        let table = sha256_hex(&serde_json::to_vec(&self.config.dials).unwrap());
+        let (threshold, calibrated) = super::stride::calibration(
+            self.config.gap_magnitude.as_ref(),
+            &self.config.judgment_model,
+            &table,
+        );
+        let entry = self.ask(state, &super::stride::questions())?;
+        let judged = super::stride::Judged {
+            choice: entry.choice(super::stride::QUESTION).unwrap_or_default(),
+            confidence: entry.confidence(super::stride::QUESTION),
+            threshold,
+            calibrated,
+        };
+        Ok(Self::answer(&entry, judged))
     }
     fn capture_views(
         &mut self,
