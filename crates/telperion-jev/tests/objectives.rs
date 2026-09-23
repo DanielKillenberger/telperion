@@ -24,7 +24,9 @@ const VIEWS: [&str; 3] = ["P-WHOLE", "P-TRUNK", "P-BASE"];
 
 /// A still at `view` with its own bytes, hash-checked like any image.
 fn image(tag: &str, view: &str) -> Image {
-    let dir = std::env::temp_dir().join("fn119-objectives");
+    // One directory per test process: a fixed path collided with the same
+    // suite running in another checkout (fn-80 and fn-130 gates, 2026-09-23).
+    let dir = std::env::temp_dir().join(format!("fn119-objectives-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let path: PathBuf = dir.join(format!("{tag}.png"));
     std::fs::write(&path, tag.as_bytes()).unwrap();

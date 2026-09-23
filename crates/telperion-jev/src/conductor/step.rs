@@ -14,6 +14,8 @@ use super::questions::Asker;
 use super::state::Run;
 use super::{dependency, handoff, now, packet, Config, Result};
 use crate::pipeline::canon::{canonical_sha256, read_json};
+use crate::pipeline::decision::read_decisions;
+use crate::pipeline::search;
 use crate::pipeline::stage::STAGES;
 use crate::tuning::continuation::Basis;
 
@@ -40,6 +42,9 @@ pub trait Executor {
         out: &Path,
         resume: Option<&Path>,
     ) -> std::result::Result<(), String>;
+    /// Runs the pipeline's search-again command once: a round for every
+    /// requirement with one left. `Ok` is its report line.
+    fn search(&self, config: &Config) -> std::result::Result<String, String>;
 }
 
 pub struct LiveExecutor;
@@ -62,6 +67,20 @@ impl Executor for LiveExecutor {
         } else {
             StageOutcome::Ran
         })
+    }
+
+    fn search(&self, config: &Config) -> std::result::Result<String, String> {
+        let output = Command::new(&config.species_pipeline)
+            .arg(crate::pipeline::search::COMMAND)
+            .args(["--dir", &config.dir.display().to_string()])
+            .args(["--run-dir", &config.run_dir.display().to_string()])
+            .args(&config.stage_args)
+            .output()
+            .map_err(|err| format!("{}: {err}", config.species_pipeline.display()))?;
+        if !output.status.success() {
+            return Err(String::from_utf8_lossy(&output.stderr).trim().to_string());
+        }
+        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
     }
 
     fn tune(
@@ -230,10 +249,27 @@ fn owner_first(config: &Config, run: &mut Run, decisions: &[String]) -> Result<S
         &id,
         &reason,
         basis,
-        &json!({"owner_decisions": decisions}),
-        "resolve each decision (add the sources the requirements ask for, or admit or reject the manifest), then resume",
+        &json!({"owner_decisions": decisions, "sources_tried": sources_tried(config, decisions)}),
+        "resolve each decision (add the sources the requirements ask for, beyond those the pipeline tried, or admit or reject the manifest), then resume",
     )?;
     Ok(format!("paused {id}: {reason}"))
+}
+
+/// The URLs the pipeline's own searches tried for each decision's field,
+/// so the owner starts from what failed (fn-129).
+fn sources_tried(config: &Config, decisions: &[String]) -> serde_json::Value {
+    let paths = config.paths();
+    let rounds = search::read_rounds(&paths).unwrap_or_default();
+    let list = read_decisions(&paths.decisions()).unwrap_or_default();
+    let tried: serde_json::Map<String, serde_json::Value> = list
+        .iter()
+        .filter(|d| decisions.contains(&d.id))
+        .filter_map(|d| {
+            let urls = search::tried(&rounds, d.field.as_deref()?);
+            (!urls.is_empty()).then(|| (d.id.clone(), json!(urls)))
+        })
+        .collect();
+    json!(tried)
 }
 
 /// Executes one hop and returns the action the run now waits on.
@@ -256,6 +292,10 @@ pub fn drive(
             format!("awaiting {id} ({role} on {tier} at {effort})")
         }
         Next::OwnerFirst { decisions } => owner_first(config, run, decisions)?,
+        Next::SearchAgain { .. } => match executor.search(config) {
+            Ok(words) => words,
+            Err(message) => format!("search-again: stopped: {message}"),
+        },
         Next::AwaitOwner { decision, kind } => {
             run.wait(&format!("owner: {decision}"));
             format!("awaiting the owner: {decision} ({kind})")

@@ -44,7 +44,7 @@
     "source_id": "OWIC-OAK",
     "species": "Oregon white oak",
     "sentence": "Stump sprouts may grow as much as 3 ft per year during the first 3 years.",
-    "expect_kind": "sprout_cultivar_or_nursery",
+    "expect_kind": "sprout_or_nursery",
     "context": "ir and bigleaf maple must be controlled to maintain Oregon white oak on better sites. Growth and Yield Growth of Oregon white oak is generally slow. Height growth is usually less than 1 ft per year and diameter growth is often 15 to 20 rings/in. Faster growth, particularly in diameter, is possible (3 to 10 rings/in.). Stump sprouts may grow as much as 3 ft per year during the first 3 years. Oregon white oak stands may achieve basal area of up to 265 ft2 per acre and volume as high as 4500 ft3 per acre. Interactions with Wildlife Oregon white oak trees and stands are very important for wildlife. Oak woodlands and forests provide food and habitat for many species. Two of note are the acorn woodpecker and M"
   },
   {
@@ -94,5 +94,70 @@
     "sentence": "It is a cool climate species and is found at elevations of 3,300 feet to 7,500 feet.",
     "expect_kind": "not_about_tree_size",
     "context": "is considered poor unless the trees are cut fresh and kept properly watered. Growth during the first 10 years after field planting is relatively slow and 8 to 11 years are required to grow a 6-7 foot tree. Range: Norway spruce has a rather extensive range in Europe, growing from Scandinavia to the Balkans to the Alps. It is a cool climate species and is found at elevations of 3,300 feet to 7,500 feet. Propagation: Most propagation is by seed. Rooting is difficult and a challenge. For grafting, Norway spruce is a preferred understock for a number of spruce species. It has also been a model species for use in tissue culture, and procedures developed in Norway spruce are now being adapted to other tree species of inte"
+  },
+  {
+    "id": "p4-leaflet",
+    "source_id": "P4",
+    "species": "date palm",
+    "sentence": "The leaflets are 30 centimetres (12 inches) long and 2cm (1in) wide.",
+    "expect_kind": "leaflet_size"
+  },
+  {
+    "id": "p5-leaflet",
+    "source_id": "P5",
+    "species": "date palm",
+    "sentence": "Leaflets are 1-2 ft (0.3-0.6 m) long and arranged in V-shape ranks that run the length of the leaf stem.",
+    "expect_kind": "leaflet_size"
+  },
+  {
+    "id": "a1-leaflet",
+    "source_id": "A1",
+    "species": "date palm",
+    "sentence": "The leaflets are ½ m (18 inches) long (1, 3, 5) and are induplicate, meaning they appear to have been folded in half lengthwise (5).",
+    "expect_kind": "leaflet_size"
+  },
+  {
+    "id": "a1-frond",
+    "source_id": "A1",
+    "species": "date palm",
+    "sentence": "Leaves resemble a ‘feather-duster’ as fronds are pinnately compound, 5-7 m (15 to 20 feet) long, with armed petioles and stout midribs that hold the slender pinnae (1, 5).",
+    "expect_kind": "frond_size"
+  },
+  {
+    "id": "f1-frond",
+    "source_id": "F1",
+    "species": "date palm",
+    "sentence": "The pinnately compound blue-green to gray-green leaves or fronds can grow to 20 feet in length; leaflets are 1 to 2 feet long and form a \"V\" shape down the rachis.",
+    "expect_kind": "frond_size"
+  },
+  {
+    "id": "m1-cultivar-fronds",
+    "source_id": "M1",
+    "species": "date palm",
+    "sentence": "the range of frond length was from 545.33 cm (Barni Al-Madinah) to 297 cm (Majdool) while the range of frond width was from 106.17 cm (Barni Al-Madinah) to 55.67 cm (Mabroom Al-Ula).",
+    "expect_kind": "cultivar_size"
+  },
+  {
+    "id": "iastate-needle",
+    "source_id": "IASTATE",
+    "species": "Norway spruce",
+    "sentence": "The needles are single, angular or four-sided, yellow-green in color, 1/2 to 1 inch long and slightly curved.",
+    "expect_kind": "needle_size",
+    "context": "34°F to 40°F The needles are single, angular or four-sided, yellow-green in color, 1/2 to 1 inch long and slightly curved.  More of the needles are borne on the upper surface of the twigs where they usually point forward. The foliage appears to droop or weep. The cone is 4 to 7 inches long; light brown; hanging down.  Norway spruce grow 75 to 100 feet tall. They make good winter cover for wildlife. \n Norway Spruce Leaves - Photos by Paul Wray, Iowa State University \n Diseases that Can Affect Norway Spruce Seasonal Needle Loss Rhizosphaera Needle Cast Cytospora Canker Insects that Can Affect Norway Spruce Conifer Spider Mites   \n Norway Spruce Cone - Photo by Paul Wray, I"
+  },
+  {
+    "id": "iastate-cone",
+    "source_id": "IASTATE",
+    "species": "Norway spruce",
+    "sentence": "The cone is 4 to 7 inches long; light brown; hanging down.",
+    "expect_kind": "cone_size",
+    "context": "34°F to 40°F The needles are single, angular or four-sided, yellow-green in color, 1/2 to 1 inch long and slightly curved.  More of the needles are borne on the upper surface of the twigs where they usually point forward. The foliage appears to droop or weep. The cone is 4 to 7 inches long; light brown; hanging down.  Norway spruce grow 75 to 100 feet tall. They make good winter cover for wildlife. \n Norway Spruce Leaves - Photos by Paul Wray, Iowa State University \n Diseases that Can Affect Norway Spruce Seasonal Needle Loss Rhizosphaera Needle Cast Cytospora Canker Insects that Can Affect Norway Spruce Conifer Spider Mites   \n Norway Spruce Cone - Photo by Paul Wray, I"
+  },
+  {
+    "id": "described-leaf",
+    "source_id": "FLORA",
+    "species": "broadleaf",
+    "sentence": "Leaves 4-10 cm, petiole 5-15 mm, alternate ovate-elliptic.",
+    "expect_kind": "leaf_size"
   }
 ]

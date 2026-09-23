@@ -114,6 +114,9 @@ impl Executor for Scripted {
         }
         Ok(StageOutcome::Ran)
     }
+    fn search(&self, _config: &Config) -> Result<String, String> {
+        Err("the scripted executor runs no search".into())
+    }
     fn tune(
         &self,
         _config: &Config,

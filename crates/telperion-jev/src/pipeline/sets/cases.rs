@@ -4,16 +4,16 @@
 //! tuned its wording, once over the held-out cases. R7's bound is 0.9 accuracy
 //! for the sufficiency level, the dominant gap, the mature size and its gap
 //! (fn-127), the described level and each obligation (the appearance support
-//! among them, fn-128), and 0.8 top-one agreement with the person's admitted source for
-//! ranking. `format_scores` prints the confidence spread of each.
+//! among them, fn-128) and the rights class (fn-129), and 0.8 top-one agreement with the
+//! person's admitted source for ranking. `format_scores` prints the confidence spread of each.
 
 use std::path::Path;
 
 use super::{
-    appearance_state, described_questions, described_state, inspected_image_state,
-    level_from_score, mature_questions, mature_state, measurement_state, obligation_questions,
-    ranking_questions, ranking_state, sufficiency_questions, sufficiency_state, DESCRIBED_UNSTATED,
-    RANKING_NONE, SUFFICIENCY_LEVELS,
+    appearance_state, chosen_level, described_questions, described_state, inspected_image_state,
+    mature_questions, mature_state, measurement_state, obligation_questions, ranking_questions,
+    ranking_state, sufficiency_questions, sufficiency_state, DESCRIBED_UNSTATED, RANKING_NONE,
+    SUFFICIENCY_LEVELS,
 };
 use crate::caller::{evaluate, CallerError, EvaluateRequest, Transport};
 use crate::cases::{CaseRow, SetScore};
@@ -72,7 +72,7 @@ pub fn run_pipeline_cases(
                 .map(|c| {
                     (
                         c.id,
-                        measurement_state(&c.value_statement, &c.source_excerpt),
+                        measurement_state(None, &c.value_statement, &c.source_excerpt),
                         c.expect,
                         c.holdout,
                     )
@@ -101,6 +101,8 @@ pub fn run_pipeline_cases(
             thresholds().accuracy_bar,
         ));
     }
+    let rights = crate::pipeline::rights::run_cases(transport, key, ledger_dir)?;
+    out.extend(crate::pipeline::rights::scored(rights));
     Ok(out)
 }
 
@@ -205,12 +207,13 @@ fn run_levelled(
                 ledger_dir,
             },
         )?;
-        // A missing score is the lowest level, as the gate itself reads it.
-        let index = level_from_score(
-            entry.score(names.score).unwrap_or(f64::NAN),
+        // The most probable level, as the gate itself reads it.
+        let index = chosen_level(
+            entry.probabilities(names.score),
             SUFFICIENCY_LEVELS.len(),
-        )
-        .unwrap_or(0);
+            0,
+            0.0,
+        );
         let level = SUFFICIENCY_LEVELS[index];
         levels.push((
             CaseRow {
@@ -304,11 +307,12 @@ fn run_described(
                 ledger_dir,
             },
         )?;
-        let index = level_from_score(
-            entry.score("level").unwrap_or(f64::NAN),
+        let index = chosen_level(
+            entry.probabilities("level"),
             case.levels.len() + 1,
-        )
-        .unwrap_or(case.levels.len());
+            case.levels.len(),
+            thresholds().level_floor,
+        );
         let answered = case
             .levels
             .get(index)

@@ -11,15 +11,21 @@
 //! parsed, `drop-table` records the table as dropped with no rows, and
 //! `fix-table` reads the table entry the manifest now admits. Source bytes
 //! stay in the cache directory, outside the repository.
+//!
+//! A scrape's markdown that is not the source (`adapter::content`) is
+//! replaced by the raw body's own conversion, recorded as `markdown_from:
+//! raw` with the reason it was refused. A source neither route can read, a
+//! PDF that does not parse, an adapter error or a checksum mismatch files
+//! unavailable-source for that source, and the rest are still fetched.
 
 use std::collections::BTreeMap;
 use std::path::Path;
 
 use serde_json::{json, Map, Value};
 
+use crate::pipeline::adapter::content::readable;
 use crate::pipeline::adapter::{
-    age_indexed_rows, block_rows, checksums, is_pdf, markdown_tables, AdapterError, FetchAdapter,
-    Scrape,
+    age_indexed_rows, block_rows, checksums, is_pdf, markdown_tables, FetchAdapter, Scrape,
 };
 use crate::pipeline::canon::{canonical_sha256, write_atomic};
 use crate::pipeline::cost::Cost;
@@ -27,9 +33,9 @@ use crate::pipeline::decision::{
     append_decisions, decision_id, Decision, DecisionParts, Resolution,
 };
 use crate::pipeline::manifest::{AdmittedTable, Source};
-use crate::pipeline::stage::{Context, Paths, StageError, STAGES};
+use crate::pipeline::stage::{Context, Paths, StageError};
 
-use super::inputs;
+use super::{inputs, unavailable};
 
 pub const STAGE: &str = "fetch";
 
@@ -54,17 +60,12 @@ pub fn run(paths: &Paths, adapter: &dyn FetchAdapter) -> Result<Outcome, StageEr
     let before = adapter.spent();
     let manifest = &ctx.admitted.manifest;
     let species = manifest.species.as_str();
-    let cache = ctx.paths.cache();
     let mut sources = Map::new();
     let mut dropped = Map::new();
     let mut tables = Map::new();
     let mut decisions = Vec::new();
     for source in &manifest.sources {
-        let resolved = bound(
-            &ctx,
-            &decision_id(&unavailable_parts(species, source)),
-            &unavailable_inputs(source),
-        );
+        let resolved = unavailable::bound(&ctx, species, source);
         let option = resolved.map(|r| r.option.as_str());
         if option == Some("drop-source") {
             dropped.insert(
@@ -79,28 +80,16 @@ pub fn run(paths: &Paths, adapter: &dyn FetchAdapter) -> Result<Outcome, StageEr
                 .unwrap_or_default()
                 .to_string()
         });
-        let url = replacement.clone().unwrap_or_else(|| source.url.clone());
-        let scrape = match adapter.scrape(&url) {
-            Ok(scrape) => scrape,
-            Err(err) => return Err(stop(&ctx, species, source, &err.to_string())),
+        let (mut record, markdown) = match read_source(&ctx, adapter, source, &replacement)? {
+            Ok(read) => read,
+            Err(error) => {
+                decisions.push(unavailable::decision(&ctx, species, source, &error)?);
+                continue;
+            }
         };
-        let (mut record, markdown) = cache_source(adapter, &cache, source, scrape)?;
-        match &replacement {
-            Some(replacement) => {
-                record["url"] = json!(replacement);
-                record["replaced_url"] = json!(source.url);
-            }
-            None => {
-                if let Some(recorded) = &source.sha256 {
-                    if recorded != &record["raw_sha256"] {
-                        let error = format!(
-                            "checksum mismatch: manifest records {recorded}, fetched {}",
-                            record["raw_sha256"]
-                        );
-                        return Err(stop(&ctx, species, source, &error));
-                    }
-                }
-            }
+        if let Some(replacement) = &replacement {
+            record["url"] = json!(replacement);
+            record["replaced_url"] = json!(source.url);
         }
         for table in &source.tables {
             let (body, gap) = parse_table(&ctx, source, table, &markdown)?;
@@ -121,39 +110,58 @@ pub fn run(paths: &Paths, adapter: &dyn FetchAdapter) -> Result<Outcome, StageEr
     Ok(Outcome::Ran { decisions: ids })
 }
 
-/// Files unavailable-source for `source` and names it in the stop.
-fn stop(ctx: &Context, species: &str, source: &Source, error: &str) -> StageError {
-    let decision = unavailable(species, source, error);
-    let id = decision.id.clone();
-    match append_decisions(&ctx.paths.decisions(), vec![decision]) {
-        Ok(_) => StageError::Failed {
-            stage: STAGE.into(),
-            reason: format!("unavailable-source {id}: {error}"),
-        },
-        Err(err) => StageError::File(err),
+/// What one source yields: its record and the text the stages read, or why
+/// it could not be read, which files unavailable-source.
+type Read = Result<(Value, String), String>;
+
+/// One source fetched, checked and cached. The outer error is a file the
+/// stage could not write.
+fn read_source(
+    ctx: &Context,
+    adapter: &dyn FetchAdapter,
+    source: &Source,
+    replacement: &Option<String>,
+) -> Result<Read, StageError> {
+    let url = replacement.as_deref().unwrap_or(&source.url);
+    let scrape = match adapter.scrape(url) {
+        Ok(scrape) => scrape,
+        Err(err) => return Ok(Err(err.to_string())),
+    };
+    if let (None, Some(recorded)) = (replacement, &source.sha256) {
+        let fetched = crate::sha256_hex(&scrape.raw);
+        if recorded != &fetched {
+            return Ok(Err(format!(
+                "checksum mismatch: manifest records {recorded}, fetched {fetched}"
+            )));
+        }
     }
+    cache_source(adapter, &ctx.paths.cache(), source, scrape)
 }
 
-/// Writes the raw bytes and the markdown under the cache; a PDF is saved as
-/// a file and parsed from that file.
+/// Writes the raw bytes under the cache, a PDF as a file parsed from that
+/// file, then the text the stages read: the scrape's markdown when it is the
+/// source, else the raw body's conversion, recorded with why the markdown
+/// was refused.
 fn cache_source(
     adapter: &dyn FetchAdapter,
     cache: &Path,
     source: &Source,
     mut scrape: Scrape,
-) -> Result<(Value, String), StageError> {
+) -> Result<Read, StageError> {
     let pdf = is_pdf(&scrape.content_type, &scrape.final_url);
     let raw_path = cache.join(format!("{}.{}", source.id, if pdf { "pdf" } else { "raw" }));
     write_atomic(&raw_path, &scrape.raw)?;
     if pdf {
-        scrape.markdown =
-            adapter
-                .parse_pdf(&raw_path)
-                .map_err(|err: AdapterError| StageError::Failed {
-                    stage: STAGE.into(),
-                    reason: format!("{}: parse: {err}", source.id),
-                })?;
+        match adapter.parse_pdf(&raw_path) {
+            Ok(markdown) => scrape.markdown = markdown,
+            Err(err) => return Ok(Err(format!("parse: {err}"))),
+        }
     }
+    let readable = match readable(&scrape.markdown, &scrape.raw, pdf) {
+        Ok(readable) => readable,
+        Err(error) => return Ok(Err(error)),
+    };
+    scrape.markdown = readable.markdown;
     let markdown_path = cache.join(format!("{}.md", source.id));
     write_atomic(&markdown_path, scrape.markdown.as_bytes())?;
     let mut record = serde_json::to_value(checksums(&scrape)).expect("record serializes");
@@ -161,7 +169,11 @@ fn cache_source(
         "raw": raw_path.file_name().map(|n| n.to_string_lossy().into_owned()),
         "markdown": markdown_path.file_name().map(|n| n.to_string_lossy().into_owned()),
     });
-    Ok((record, scrape.markdown))
+    if let Some(refused) = readable.refused {
+        record["markdown_from"] = json!("raw");
+        record["refused"] = json!(refused);
+    }
+    Ok(Ok((record, scrape.markdown)))
 }
 
 /// The age-indexed rows of one admitted table, cut to its block when the
@@ -289,22 +301,6 @@ fn gap_parts<'a>(species: &'a str, table: &'a AdmittedTable) -> DecisionParts<'a
     }
 }
 
-fn unavailable_parts<'a>(species: &'a str, source: &'a Source) -> DecisionParts<'a> {
-    DecisionParts {
-        species,
-        stage: STAGE,
-        kind: "unavailable-source",
-        field: Some(&source.id),
-        age_years: None,
-    }
-}
-
-fn unavailable_inputs(source: &Source) -> BTreeMap<String, String> {
-    [("url".to_string(), crate::sha256_hex(source.url.as_bytes()))]
-        .into_iter()
-        .collect()
-}
-
 /// The resolution to decision `id` that binds to the inputs this run
 /// computes; one bound to earlier inputs no longer changes anything.
 fn bound<'a>(
@@ -313,16 +309,4 @@ fn bound<'a>(
     inputs: &BTreeMap<String, String>,
 ) -> Option<&'a Resolution> {
     ctx.resolved(id).filter(|r| &r.inputs_sha256 == inputs)
-}
-
-fn unavailable(species: &str, source: &Source, error: &str) -> Decision {
-    Decision::new(
-        unavailable_parts(species, source),
-        &STAGES[2..],
-        unavailable_inputs(source),
-        vec![],
-        json!({"source": source.id, "url": source.url, "error": error}),
-        &["retry", "replace-source", "drop-source"],
-        "The adapter could not fetch this source; nothing is fetched by another route in its place. A person resolves it: retry fetches again, replace-source fetches the url in the resolution's payload under this id, drop-source skips it.",
-    )
 }

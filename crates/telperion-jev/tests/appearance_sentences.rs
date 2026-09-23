@@ -77,7 +77,8 @@ impl Transport for Reader {
             let index = read
                 .and_then(|key| levels.iter().position(|l| l.key == key))
                 .unwrap_or(levels.len());
-            json!({"level": {"type": "score", "score": index as f64, "confidence": 0.9, "probabilities": {}}})
+            let at = index.to_string();
+            json!({"level": {"type": "score", "score": index as f64, "confidence": 0.9, "probabilities": {at: 0.9}}})
         } else if questions.get("relation").is_some() {
             json!({"relation": {"type": "choice", "choice": "supports", "confidence": 0.95, "probabilities": {"supports": 0.95}}})
         } else {

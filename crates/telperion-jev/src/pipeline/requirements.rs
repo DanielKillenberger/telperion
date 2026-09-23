@@ -19,8 +19,14 @@ pub const REQUIRED_FROM_VERSION: u32 = 2;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct FieldTerms {
-    /// Words a sentence must carry to count as a point for the field.
+    /// Words a sentence must carry to count as a point for the field, each
+    /// matched as a whole word or its plural (fn-131).
     pub terms: Vec<String>,
+    /// The screen kinds a row must carry to count for the field (fn-131):
+    /// an organ size by its organ class, a named cultivar's size toward the
+    /// species. Empty keeps the tree-size kinds.
+    #[serde(default)]
+    pub kinds: Vec<String>,
     /// A mature size (fn-127): judged on a stated mature value, with no
     /// required age.
     #[serde(default)]
@@ -165,6 +171,45 @@ pub fn terms(field: &str) -> Option<&'static [String]> {
     table().fields.get(field).map(|f| f.terms.as_slice())
 }
 
+/// The screen kinds that count for `field`; the tree-size kinds when the
+/// table names none.
+pub fn kinds(field: &str) -> Vec<&'static str> {
+    const TREE: [&str; 2] = ["measured_size_at_age", "mature_size_range"];
+    match table().fields.get(field) {
+        Some(f) if !f.kinds.is_empty() => f.kinds.iter().map(String::as_str).collect(),
+        _ => TREE.to_vec(),
+    }
+}
+
+/// Whether `sentence` is about `field`: it carries one of the field's terms
+/// as whole words, a term's last word also in its plural, so "leaf" never
+/// matches "leaflet". A field with no word list passes every sentence.
+pub fn names_field(field: &str, sentence: &str) -> bool {
+    let Some(list) = terms(field) else {
+        return true;
+    };
+    let words: Vec<String> = sentence
+        .split(|c: char| !c.is_alphanumeric())
+        .filter(|w| !w.is_empty())
+        .map(str::to_lowercase)
+        .collect();
+    list.iter().any(|term| {
+        let wanted: Vec<&str> = term.split_whitespace().collect();
+        let last = wanted.len().saturating_sub(1);
+        words.windows(wanted.len().max(1)).any(|window| {
+            window
+                .iter()
+                .zip(&wanted)
+                .enumerate()
+                .all(|(i, (word, want))| word == want || (i == last && plural_of(word, want)))
+        })
+    })
+}
+
+fn plural_of(word: &str, term: &str) -> bool {
+    word.strip_prefix(term)
+        .is_some_and(|rest| rest == "s" || rest == "es")
+}
 #[cfg(test)]
 mod tests {
     use super::*;

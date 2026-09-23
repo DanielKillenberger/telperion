@@ -7,22 +7,26 @@
 //! field the trait feeds into the profile, with that sentence and its source
 //! (fn-127): a value with no source is never written. Nothing renders or
 //! measures it. A trait the table requires that the sources leave unstated
-//! files a requirements-unmet decision for the owner.
+//! files a requirements-unmet decision, which the pipeline searches again
+//! before the owner has it.
+
+use std::collections::BTreeMap;
 
 use serde_json::{json, Map, Value};
 
-use crate::extract::{key_terms, section_for_terms, sentences_with_terms, visible_text};
+use crate::extract::{key_terms, section_for_terms, sentences_with_terms};
 use crate::pipeline::consume::{sources_sha256, REQUIREMENTS_UNMET};
 use crate::pipeline::decision::{Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::Appearance;
 use crate::pipeline::requirements::{requires_appearance, table};
 use crate::pipeline::sets::{
-    described_questions, level_from_score, DescribedLevel, DESCRIBED_UNSTATED,
+    chosen_level, described_questions, DescribedLevel, DESCRIBED_UNSTATED,
 };
 use crate::pipeline::stage::{Context, StageError};
 
 use super::extract::cached_markdown;
+use super::flagged::{Flag, REPLACE_SOURCE};
 use super::select::STAGE;
 
 const SECTION_RADIUS: usize = 600;
@@ -77,6 +81,39 @@ pub fn run(judge: &Judge<'_>, ctx: &Context, fetch: &Value) -> Result<Copied, St
     Ok(copied)
 }
 
+/// Takes out every appearance value a resolution dropped (fn-131): the
+/// trait reads unstated in the select body, naming the decision, and a
+/// trait the table requires, or one sent for another source, files
+/// requirements-unmet, which the pipeline searches again for.
+pub fn drop_flagged(
+    ctx: &Context,
+    copied: &mut Copied,
+    flags: &BTreeMap<String, Flag>,
+) -> Result<(), StageError> {
+    let manifest = &ctx.admitted.manifest;
+    for trait_ in &manifest.appearance {
+        let name = trait_.trait_name.as_str();
+        let pointer = format!("/profiles/0/appearance/{name}");
+        let Some(flag) = flags.get(&pointer) else {
+            continue;
+        };
+        if !copied.sidecar.get(&pointer).is_some_and(|e| flag.names(e)) {
+            continue;
+        }
+        copied.sidecar.remove(&pointer);
+        copied.profile.remove(name);
+        copied.body.insert(
+            name.into(),
+            json!({"level": DESCRIBED_UNSTATED, "source": null, "sentence": "", "ledger": [], "dropped": flag.reason()}),
+        );
+        if flag.option == REPLACE_SOURCE || requires_appearance(manifest, name) {
+            let sources = sources_sha256(&ctx.paths.manifest())?;
+            copied.decisions.push(unstated(ctx, trait_, &[], &sources));
+        }
+    }
+    Ok(())
+}
+
 /// The sentence a trait's level was read from, its source, and every
 /// ledger reference asked. With no sentence placed on a level the level is
 /// the no-match level and there is no source.
@@ -111,7 +148,7 @@ fn chosen_sentence(
         let Some(record) = fetch["sources"].get(id) else {
             continue;
         };
-        let text = visible_text(cached_markdown(ctx, STAGE, id, record)?.as_bytes());
+        let text = cached_markdown(ctx, STAGE, id, record)?;
         for sentence in sentences_with_terms(&text, terms) {
             let one = std::slice::from_ref(&sentence);
             let (level, entry) = ask_levels(judge, trait_name, one, levels)?;
@@ -134,7 +171,8 @@ fn chosen_sentence(
     })
 }
 
-/// NEEDS_HUMAN: a required appearance trait no admitted source describes.
+/// A required appearance trait no source it names describes: searched again
+/// by the pipeline (fn-129 R6), then the owner's.
 fn unstated(ctx: &Context, trait_: &Appearance, ledger: &[String], sources: &str) -> Decision {
     let manifest = &ctx.admitted.manifest;
     Decision::new(
@@ -153,7 +191,7 @@ fn unstated(ctx: &Context, trait_: &Appearance, ledger: &[String], sources: &str
             "sources_tried": trait_.sources, "sources_sha256": sources,
         }),
         &["add-sources"],
-        "NEEDS_HUMAN: the requirements table asks for this appearance trait and no admitted source describes it. The owner adds a source that does; a resolution that adds none stays open.",
+        "The requirements table asks for this appearance trait and no source it names describes it. The pipeline searches again, two rounds at most, and adds the source it finds to the trait's list; after them it is NEEDS_HUMAN and the owner adds a source. A resolution that adds none stays open.",
     )
 }
 
@@ -209,12 +247,15 @@ fn ask_levels(
             stage: STAGE.into(),
             reason: err.to_string(),
         })?;
-    let index = level_from_score(
-        judgment.entry.score("level").unwrap_or(f64::NAN),
+    // The most probable level, `unstated` when it is (fn-131).
+    let index = chosen_level(
+        judgment.entry.probabilities("level"),
         levels.len() + 1,
+        levels.len(),
+        crate::questions::thresholds().level_floor,
     );
-    let level = index
-        .and_then(|i| levels.get(i))
+    let level = levels
+        .get(index)
         .map(|l| l.key.clone())
         .unwrap_or_else(|| DESCRIBED_UNSTATED.into());
     Ok((

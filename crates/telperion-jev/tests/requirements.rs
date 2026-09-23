@@ -37,18 +37,24 @@ impl Transport for Answers {
     fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String> {
         let body: Value = serde_json::from_slice(request.body.as_deref().unwrap_or(b"{}")).unwrap();
         let questions = &body["questions"];
+        // A level Score as Jev answers one: the level at 0.9 (fn-131 reads
+        // the most probable level, never the score).
+        let score = |s: f64| {
+            let at = (s as usize).to_string();
+            json!({"type": "score", "score": s, "confidence": 0.9, "probabilities": {at: 0.9}})
+        };
         let answers = if questions.get("sufficiency").is_some() {
             json!({
-                "sufficiency": {"type": "score", "score": self.sufficiency, "confidence": 0.9, "probabilities": {}},
+                "sufficiency": score(self.sufficiency),
                 "dominant_gap": {"type": "choice", "choice": "age_range_uncovered", "confidence": 0.9, "probabilities": {}},
             })
         } else if questions.get("mature_size").is_some() {
             json!({
-                "mature_size": {"type": "score", "score": self.sufficiency, "confidence": 0.9, "probabilities": {}},
+                "mature_size": score(self.sufficiency),
                 "mature_gap": {"type": "choice", "choice": "single_source", "confidence": 0.9, "probabilities": {}},
             })
         } else if questions.get("level").is_some() {
-            json!({"level": {"type": "score", "score": self.level, "confidence": 0.9, "probabilities": {}}})
+            json!({"level": score(self.level)})
         } else if questions.get("relation").is_some() {
             json!({"relation": {"type": "choice", "choice": "supports", "confidence": 0.95, "probabilities": {"supports": 0.95}}})
         } else if questions.get("measurement_not_invention").is_some() {
@@ -168,10 +174,20 @@ fn a_required_field_below_the_tables_bar_stops_the_run_for_the_owner() {
     selected.unwrap();
     let paths = Paths::new(&dir);
     let stops = owner_stops(&reconcile(&paths).unwrap());
+    // The four fields quality passed at proxy only and select could not
+    // fill stop the run too (fn-131): no gap passes silently.
+    let unfilled = [
+        "crown_base_m",
+        "crown_width_m",
+        "leaf_length_m",
+        "leaf_width_m",
+    ]
+    .map(|f| format!("oregon-white-oak/select/requirements-unmet/{f}"));
     assert_eq!(
         stops.len(),
-        2 + table().growth_forms["broadleaf"].appearance.len()
+        2 + unfilled.len() + table().growth_forms["broadleaf"].appearance.len()
     );
+    assert!(unfilled.iter().all(|id| stops.contains(id)), "{stops:?}");
     assert!(stops.contains(&"oregon-white-oak/select/requirements-unmet/bark_colour".into()));
     let list = read_json(&dir.join("decisions.json")).unwrap();
     let unmet = list["decisions"]
@@ -237,7 +253,15 @@ fn a_described_appearance_level_is_copied_into_the_profile_as_ranges() {
         body["body"]["appearance"]["bark_roughness"]["level"],
         "smooth"
     );
-    assert!(owner_stops(&reconcile(&Paths::new(&dir)).unwrap()).is_empty());
+    // Every appearance trait is described; what stops the run is only the
+    // measured fields no span of this page fills (fn-131).
+    let stops = owner_stops(&reconcile(&Paths::new(&dir)).unwrap());
+    let fields = &table().growth_forms["broadleaf"].fields;
+    assert_eq!(stops.len(), fields.len(), "{stops:?}");
+    for field in fields.keys() {
+        let id = format!("oregon-white-oak/select/requirements-unmet/{field}");
+        assert!(stops.contains(&id), "{id}");
+    }
 }
 
 /// fn-127 R2: the palm's live select copied four appearance values with no

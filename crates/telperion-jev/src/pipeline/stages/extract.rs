@@ -1,9 +1,10 @@
 //! Candidate extraction: every sentence with a length, age or rate unit,
-//! from the cached markdown of every fetched source, with its context.
+//! from the cached markdown of every fetched source, with its context. The
+//! markdown is read as markdown: no tag is stripped from it.
 
 use serde_json::{json, Value};
 
-use crate::extract::{candidate_sentences, visible_text};
+use crate::extract::candidate_sentences;
 use crate::pipeline::canon::file_sha256;
 use crate::pipeline::stage::{Context, Paths, StageError};
 
@@ -32,8 +33,7 @@ pub fn run(paths: &Paths) -> Result<Outcome, StageError> {
     let mut candidates = Vec::new();
     for (id, record) in fetch["sources"].as_object().into_iter().flatten() {
         let markdown = cached_markdown(&ctx, STAGE, id, record)?;
-        let text = visible_text(markdown.as_bytes());
-        for candidate in candidate_sentences(&text) {
+        for candidate in candidate_sentences(&markdown) {
             candidates.push(json!({
                 "source": id,
                 "sentence": candidate.sentence,

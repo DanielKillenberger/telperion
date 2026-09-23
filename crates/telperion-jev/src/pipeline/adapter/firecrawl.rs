@@ -273,10 +273,9 @@ fn parse_scrape(stdout: &str, url: &str) -> Result<ScrapeDoc, AdapterError> {
     .into_iter()
     .find(|candidate| !candidate.is_empty())
     .unwrap_or_default();
-    let status = metadata
-        .get("statusCode")
-        .and_then(Value::as_u64)
-        .unwrap_or(200);
+    let Some(status) = metadata.get("statusCode").and_then(Value::as_u64) else {
+        return Err(classify(url, "the scrape states no status"));
+    };
     if status >= 400 {
         return Err(classify(url, &format!("HTTP {status}")));
     }

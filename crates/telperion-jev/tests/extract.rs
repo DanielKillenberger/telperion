@@ -1,7 +1,7 @@
 use telperion_jev::extract::{
-    candidate_sentences, candidate_spans, section_for_terms, split_for_state, visible_text,
-    STATE_SENTENCE_LIMIT,
+    candidate_sentences, candidate_spans, section_for_terms, split_for_state, STATE_SENTENCE_LIMIT,
 };
+use telperion_jev::html::{html_text, source_text};
 use telperion_jev::questions::{screen_cases, selection_cases};
 use telperion_jev::sha256_hex;
 
@@ -36,7 +36,7 @@ fn selection_cases_all_have_their_expected_span_or_none() {
 #[test]
 fn empty_source_yields_no_sentence() {
     let bytes = b"No quantities live here, only adjectives.";
-    let text = visible_text(bytes);
+    let text = source_text(bytes);
     assert!(candidate_sentences(&text).is_empty());
     assert_eq!(sha256_hex(bytes).len(), 64);
     assert_ne!(sha256_hex(bytes), sha256_hex(b""));
@@ -116,8 +116,10 @@ fn key_terms_missing_section_is_none() {
 #[test]
 fn html_tags_do_not_enter_candidate_text() {
     let html = b"<html><script>50 ft</script><p>Mature oaks are 50 to 90 ft tall.</p></html>";
-    let text = visible_text(html);
+    let text = html_text(html);
     assert!(!text.contains("<p>"));
+    let unescaped = html_text(b"<p>Taller (p < 0.05) at 12&#160;m.</p><p>Next.</p>");
+    assert_eq!(unescaped, "Taller (p < 0.05) at 12 m.\n\nNext.");
     let sentences = candidate_sentences(&text);
     assert_eq!(sentences.len(), 1);
     assert!(sentences[0].sentence.contains("50 to 90 ft"));

@@ -1,0 +1,33 @@
+{
+  "branch_name": "fn-131-the-literature-step-judges-what-it-read",
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-09-23T21:43:31.523717Z",
+  "created_at": "2026-09-23T20:24:06.539714Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-131-the-literature-step-judges-what-it-read",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-131-the-literature-step-judges-what-it-read.md",
+  "status": "open",
+  "title": "The literature step judges what it read, and never passes a gap silently",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-23T21:43:31.523730Z"
+}

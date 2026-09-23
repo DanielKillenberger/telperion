@@ -1,0 +1,294 @@
+[
+  {
+    "id": "palm-f1-ifas-extension",
+    "url": "https://ask.ifas.ufl.edu/publication/FR314",
+    "title": "FOR 252/FR314: Phoenix dactylifera, Date Palm - Ask IFAS",
+    "lines": [
+      "metadata: dcterms:rights = https://ask.ifas.ufl.edu/copyright",
+      "wing in Morocco with fruit clusters (infructescences) hanging below the leaves. Credit: Multivac42, CC BY-NC-ND 2.0 Figure 2. Specimen of Phoenix dactylifera growing in Abu Dhabi with infructescence bagged",
+      "era growing in Abu Dhabi with infructescence bagged to collect the ripening dates. Credit: Sericea, CC BY-NC 2.0 Allergen Each individual tree is either a male or a female (as is true for all species withi",
+      "L 32611edishelp@ifas.ufl.eduSite Feedback (352) 392-1761 Information EDIS BlogBookstoreAccessibilityCopyright Land Grant Mission UF/IFAS LocationsUF/IFASUF/IFAS CALSResearchExtension For Authors Information fo",
+      "thors Information for AuthorsEDIS SubmissionsICS Editorial ServicesAbout EDIS Extension Publications© 2024 University of FloridaSitemap*ArchiveDisability ServicesPrivacy PolicyAnalyticsSSN Privacy"
+    ],
+    "records": [],
+    "expect_class": "public-cite-only",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-a1-arizona-arboretum",
+    "url": "https://apps.cals.arizona.edu/arboretum/taxon.aspx?id=207",
+    "title": "Phoenix dactylifera - Find Trees & Learn | UA Campus Arboretum",
+    "lines": [
+      "ucation offerings, partnerships, and community service. University Information Security and Privacy © 2025 The Arizona Board of Regents on behalf of The University of Arizona."
+    ],
+    "records": [],
+    "expect_class": "public-cite-only",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-m1-bmc-cc-by",
+    "url": "https://doi.org/10.1186/s12870-022-03841-0",
+    "title": "Comparative study of the morphological characteristics of Phoenix dactylifera L. cultivars in Al-Madinah Al-Munawarah-Saudi Arabia.",
+    "lines": [
+      "metadata: dc.copyright = 2022 The Author(s)",
+      "metadata: dc.rights = 2022 The Author(s)",
+      "metadata: prism.copyright = 2022 The Author(s)",
+      "haracteristics of Phoenix dactylifera L. cultivars in Al-Madinah Al-Munawarah-Saudi Arabia Research Open access Published: 26 September 2022 Volume 22, article number 461 (2022) Cite this article You have full a",
+      "September 2022 Volume 22, article number 461 (2022) Cite this article You have full access to this open access article Download PDF Save article View saved research BMC Plant Biology Aims and scope Submit manus",
+      "rd to jurisdictional claims in published maps and institutional affiliations.Rights and permissions Open Access This article is licensed under a Creative Commons Attribution 4.0 International License, which perm",
+      "long as you give appropriate credit to the original author(s) and the source, provide a link to the Creative Commons licence, and indicate if changes were made. The images or other third party material in this articl",
+      "s were made. The images or other third party material in this article are included in the article's Creative Commons licence, unless indicated otherwise in a credit line to the material. If material is not included i",
+      "indicated otherwise in a credit line to the material. If material is not included in the article's Creative Commons licence and your intended use is not permitted by statutory regulation or exceeds the permitted use",
+      "utory regulation or exceeds the permitted use, you will need to obtain permission directly from the copyright holder. To view a copy of this licence, visit http://creativecommons.org/licenses/by/4.0/. The Crea"
+    ],
+    "records": [
+      {
+        "kind": "doaj",
+        "url": "https://doaj.org/api/search/articles/doi%3A10.1186%2Fs12870-022-03841-0",
+        "lines": [
+          "{\"total\": 1, \"page\": 1, \"pageSize\": 10, \"timestamp\": \"2026-09-23T20:24:"
+        ]
+      }
+    ],
+    "expect_class": "open-licence",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-p4-wikipedia-cc-by-sa",
+    "url": "https://en.wikipedia.org/wiki/Date_palm",
+    "title": "Date palm - Wikipedia",
+    "lines": [
+      "metadata: license link https://creativecommons.org/licenses/by-sa/4.0/deed.en",
+      "16 September 2026, at 02:57&#160;(UTC). Page was rendered with Parsoid. Text is available under the Creative Commons Attribution-ShareAlike 4.0 License; additional terms may apply. By using this site, you agree to th",
+      "ttribution-ShareAlike 4.0 License; additional terms may apply. By using this site, you agree to the Terms of Use and Privacy Policy. Wikipedia® is a registered trademark of the Wikimedia Foundation, Inc., a non-"
+    ],
+    "records": [],
+    "expect_class": "open-licence",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-p5-growables-image-credits",
+    "url": "https://www.growables.org/information/TropicalFruit/PalmPhoenixDactilifera.htm",
+    "title": "Date Palm, Phoenix dactylifera - Growables",
+    "lines": [
+      "nted from Al-Mssallem et al. by permission from Macmillan Publishers Ltd.: [Nature Communications], copyright (2013)); (B) The anatomy of the date fruit at Tamr stage showing the epicarp, mesocarp, endocarp an",
+      "n, Hafner Press, 1974. Photographs Fig. 1 Mariluna. \"Dates.\" Wikimedia Commons, 1 Jan. 2015, GFDL, (CC BY-SA 3.0), commons.wikimedia.org/wiki/File:Phoenix_(botanical)_финики.jpg. Accessed 4 Sept. 202",
+      "hing with its cover called (طَلْع singular form) in Arabic.\" Wikimedia Commons, 27 Jan. 2016, (CC BY-SA 4.0), commons.wikimedia.org/wiki/File:A_male_date_palm_inflorescence.jpg. Accessed 4 Sept. 2022.",
+      "al-Manasir region of Northern Sudan, near the Nile.\" Wikimedia Commons, via Flickr, 15 June 2005, (CC BY-SA 3.0), commons.wikimedia.org/wiki/File:MaleFemaleDate.jpg. Accessed 2 Sept. 2022.Fig. 13 Ahmed125",
+      "cence (close-up), at Ajman University of Science and Technology.\" Wikimedia Commons, 27 Feb. 2016, (CC BY-SA 4.0), commons.wikimedia.org/wiki/File:Phoenix_dactylifera_inflorescens_10.jpg. Accessed 2 Sept.",
+      "251985. \"A blooming male date palm inflorescence and its pollen.\" Wikimedia Commons, 27 Jan. 2016, (CC BY-SA 4.0), commons.wikimedia.org/wiki/File:Phoenix_dactylifera_inflorescens_10.jpg. Accessed 2 Sept.",
+      "scence at Ajman University of Science and Technology, Ajman, UAE.\" Wikimedia Commons, 24 Feb.2016, (CC BY-SA 4.0), commons.wikimedia.org/wiki/File:Female_date_palm_inflorescence.jpg. Accessed 2 Sept. 2022.",
+      "d 2 Sept. 2022. Fig. 16 Ahmed1251985. \"Female date inflorescence.\" Wikimedia Commons, 18 Feb.2016, (CC BY-SA 4.0), commons.wikimedia.org/wiki/File:Female_date_inflorescence.jpg. Accessed 2 Sept. 2022. Fig.",
+      "embra, La Huerta, Albatera, Provincia de Alicante, Espa&ntilde;a.\" Wikimedia Commons, 15 May 2012, (CC BY-SA 3.0), commons.wikimedia.org/wiki/File:Phoenix_dact.-florfem-1.jpg. Accessed 2 Sept. 2022.Fig. 18",
+      "macho, La Huerta, Albatera, Provincia de Alicante, Espa&ntilde;a.\" Wikimedia Commons, 11 May 2012, (CC BY-SA 3.0), commons.wikimedia.org/wiki/File:Phoenix_dact.-flormasc-1.jpg. Accessed 2 Sept. 2022. Fig."
+    ],
+    "records": [],
+    "expect_class": "public-cite-only",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "palm-p6-pmc-mdpi-cc-by",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11011438/",
+    "title": "An Overview of Date (Phoenix dactylifera) Fruits as an Important ...",
+    "lines": [
+      "nt with, the contents by NLM or the National Institutes of Health. Learn more: PMC Disclaimer | PMC Copyright Notice Foods. 2024 Mar 27;13(7):1024. doi: 10.3390/foods13071024 Search in PMC Search in PubMed Vie",
+      "Find articles by Anthony Ifeanyin Okoh 2 Editor: Gian Carlo Tenore Author information Article notes Copyright and License information 1Department of Environmental Health Sciences, College of Health Sciences, U",
+      "c Editor Received 2024 Jan 31; Revised 2024 Mar 20; Accepted 2024 Mar 23; Collection date 2024 Apr. © 2024 by the authors. Licensee MDPI, Basel, Switzerland. This article is an open access article dist",
+      "itzerland. This article is an open access article distributed under the terms and conditions of the Creative Commons Attribution (CC BY) license (https://creativecommons.org/licenses/by/4.0/). PMC Copyright notice PM"
+    ],
+    "records": [
+      {
+        "kind": "europe-pmc",
+        "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=PMCID:PMC11011438&resultType=core&format=json",
+        "lines": [
+          "{\"version\":\"6.9\",\"hitCount\":1,\"request\":{\"queryString\":\"PMCID:PMC11011438\",\"internalQuery",
+          "\":\"https://doi.org/10.3390/foods13071024\"},{\"availability\":\"Open access\",\"availabilityCode\":\"OA\",\"documentStyle\":\"html\",\"site\":\"Eur",
+          "tps://europepmc.org/articles/PMC11011438\"},{\"availability\":\"Open access\",\"availabilityCode\":\"OA\",\"documentStyle\":\"pdf\",\"site\":\"Euro",
+          "ttps://europepmc.org/articles/PMC11011438?pdf=render\"}]},\"isOpenAccess\":\"Y\",\"inEPMC\":\"Y\",\"inPMC\":\"Y\",\"citedByCount\":16,\"hasReferen",
+          "sBook\":\"N\",\"hasSuppl\":\"N\",\"hasLabsLinks\":\"N\",\"hasData\":\"Y\",\"license\":\"cc by\",\"authMan\":\"N\",\"epmcAuthMan\":\"N\",\"nihAuthMan\":\"N\",\""
+        ]
+      }
+    ],
+    "expect_class": "open-licence",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-p7-pmc-bmc-cc-by",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9511727/",
+    "title": "Comparative study of the morphological characteristics of ...",
+    "lines": [
+      "nt with, the contents by NLM or the National Institutes of Health. Learn more: PMC Disclaimer | PMC Copyright Notice BMC Plant Biol. 2022 Sep 26;22:461. doi: 10.1186/s12870-022-03841-0 Search in PMC Search in",
+      "versity, Jeddah, Saudi Arabia Find articles by Amal Y Aldhebiani 1 Author information Article notes Copyright and License information 1Department of Biological Sciences, Faculty of Sciences, King Abdulaziz Uni",
+      "i Arabia ✉Corresponding author. Received 2022 May 23; Accepted 2022 Sep 12; Collection date 2022. © The Author(s) 2022 Open AccessThis article is licensed under a Creative Commons Attribution 4.0 Int",
+      "long as you give appropriate credit to the original author(s) and the source, provide a link to the Creative Commons licence, and indicate if changes were made. The images or other third party material in this articl",
+      "s were made. The images or other third party material in this article are included in the article's Creative Commons licence, unless indicated otherwise in a credit line to the material. If material is not included i",
+      "indicated otherwise in a credit line to the material. If material is not included in the article's Creative Commons licence and your intended use is not permitted by statutory regulation or exceeds the permitted use",
+      "utory regulation or exceeds the permitted use, you will need to obtain permission directly from the copyright holder. To view a copy of this licence, visit http://creativecommons.org/licenses/by/4.0/. The Crea",
+      "iew a copy of this licence, visit http://creativecommons.org/licenses/by/4.0/. The Creative Commons Public Domain Dedication waiver (http://creativecommons.org/publicdomain/zero/1.0/) applies to the data made avai",
+      "the data made available in this article, unless otherwise stated in a credit line to the data. PMC Copyright notice PMCID: PMC9511727 PMID: 36162978 Abstract Background Phoenix dactylifera L. belongs to the s"
+    ],
+    "records": [
+      {
+        "kind": "europe-pmc",
+        "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=PMCID:PMC9511727&resultType=core&format=json",
+        "lines": [
+          "{\"version\":\"6.9\",\"hitCount\":1,\"request\":{\"queryString\":\"PMCID:PMC9511727\",\"internalQuery\"",
+          "icus\"}]},\"fullTextUrlList\":{\"fullTextUrl\":[{\"availability\":\"Open access\",\"availabilityCode\":\"OA\",\"documentStyle\":\"pdf\",\"site\":\"Unpa",
+          "tps://doi.org/10.1186/s12870-022-03841-0\"},{\"availability\":\"Open access\",\"availabilityCode\":\"OA\",\"documentStyle\":\"html\",\"site\":\"Eur",
+          "ttps://europepmc.org/articles/PMC9511727\"},{\"availability\":\"Open access\",\"availabilityCode\":\"OA\",\"documentStyle\":\"pdf\",\"site\":\"Euro",
+          "https://europepmc.org/articles/PMC9511727?pdf=render\"}]},\"isOpenAccess\":\"Y\",\"inEPMC\":\"Y\",\"inPMC\":\"Y\",\"citedByCount\":2,\"hasReferenc",
+          "sBook\":\"N\",\"hasSuppl\":\"N\",\"hasLabsLinks\":\"N\",\"hasData\":\"Y\",\"license\":\"cc by\",\"authMan\":\"N\",\"epmcAuthMan\":\"N\",\"nihAuthMan\":\"N\",\""
+        ]
+      }
+    ],
+    "expect_class": "open-licence",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "palm-p8-pmc-heliyon-cc-by",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8810365/",
+    "title": "Carbon stock estimation of mixed-age date palm (Phoenix dactylifera L.) farms in northeastern Ethiopia.",
+    "lines": [
+      "nt with, the contents by NLM or the National Institutes of Health. Learn more: PMC Disclaimer | PMC Copyright Notice Heliyon. 2022 Jan 28;8(1):e08844. doi: 10.1016/j.heliyon.2022.e08844 Search in PMC Search in",
+      "ty, P.O. Box 247, Robe, Ethiopia Find articles by Tamiru Kefalew 1 Author information Article notes Copyright and License information 1Madda Walabu University, P.O. Box 247, Robe, Ethiopia ∗Corresponding aut",
+      "@gmail.com Received 2021 Sep 6; Revised 2021 Dec 2; Accepted 2022 Jan 24; Collection date 2022 Jan. © 2022 The Author(s) This is an open access article under the CC BY license (http://creativecommons.o",
+      "s an open access article under the CC BY license (http://creativecommons.org/licenses/by/4.0/). PMC Copyright notice PMCID: PMC8810365 PMID: 35128115 Abstract The date palm (Phoenix dactylifera) is a fruit tre",
+      "ed Arab Emirates) Int. J. Rem. Sens. 2019;40(19):7561–7580. [Google Scholar] 5.Sanquetta C.R., Pã©llicoNetto S., Corte A.P.D., Rodrigues∗ A.L., Behlin A., Sanquetta M.N.I. Quantifying biomass and"
+    ],
+    "records": [
+      {
+        "kind": "europe-pmc",
+        "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=PMCID:PMC8810365&resultType=core&format=json",
+        "lines": [
+          "{\"version\":\"6.9\",\"hitCount\":1,\"request\":{\"queryString\":\"PMCID:PMC8810365\",\"internalQuery\"",
+          "://doi.org/10.1016/j.heliyon.2022.e08844\"},{\"availability\":\"Open access\",\"availabilityCode\":\"OA\",\"documentStyle\":\"html\",\"site\":\"Eur",
+          "ttps://europepmc.org/articles/PMC8810365\"},{\"availability\":\"Open access\",\"availabilityCode\":\"OA\",\"documentStyle\":\"pdf\",\"site\":\"Euro",
+          "https://europepmc.org/articles/PMC8810365?pdf=render\"}]},\"isOpenAccess\":\"Y\",\"inEPMC\":\"Y\",\"inPMC\":\"Y\",\"citedByCount\":0,\"hasReferenc",
+          "sBook\":\"N\",\"hasSuppl\":\"N\",\"hasLabsLinks\":\"N\",\"hasData\":\"Y\",\"license\":\"cc by\",\"authMan\":\"N\",\"epmcAuthMan\":\"N\",\"nihAuthMan\":\"N\",\""
+        ]
+      }
+    ],
+    "expect_class": "open-licence",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-sciencedirect-open-access",
+    "url": "https://www.sciencedirect.com/science/article/pii/S2214662823000300",
+    "title": "A Bayesian approach to the visual estimate of a palm tree age in urban ...",
+    "lines": [
+      "mes 35–36View accessibility informationPublished by: ElsevierPublished byShow moreResearch articleOpen accessUnder a Creative Commons licenseGet rights and contentExpanding dendrochronology to palms: A Bayesia",
+      "sical Journal • Volume 118, Issue 2 • 2020 • Pages 492-504View PDFCited by (3)Research articleOpen accessNon-native palm affects arthropod communities and litter decomposition in an ongoing biome shiftFehr",
+      "limate warming and land use change, encompassing both native and non-native species.Research articleOpen accessLongevity Estimates of Canary Palms and Dragon Trees via Radiocarbon Dating: Initial ResultsBiondi F",
+      "ticle 8MetricsCitationsCitation Indexes3CapturesMendeley Readers13MentionsNews Mentions1View details© 2023 The Authors. Published by Elsevier B.V.About ScienceDirectRemote accessContact and supportTerm",
+      "accessContact and supportTerms and conditionsPrivacy policyCookie settingsAll content on this site: Copyright © 2026 Elsevier B.V., its licensors, and contributors. All rights are reserved, including those fo",
+      "reserved, including those for text and data mining, AI training, and similar technologies. For all open access content, the relevant licensing terms apply. Persistent link using digital object identifier (DOI)"
+    ],
+    "records": [],
+    "expect_class": "open-licence",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "ash-o1-osu-landscape-plants",
+    "url": "https://landscapeplants.oregonstate.edu/plants/fraxinus-excelsior",
+    "title": "Oregon State University Landscape Plants: Fraxinus excelsior",
+    "lines": [
+      "Chinese Flowering Ash Contact Info Patrick Breen, CPN (Certified Plant Nerd) [email&#160;protected] Copyright ©2026 Oregon State University Disclaimer"
+    ],
+    "records": [],
+    "expect_class": "public-cite-only",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "ash-j1-jrc-atlas-image-credits",
+    "url": "https://forest.jrc.ec.europa.eu/media/atlas/Fraxinus_excelsior.pdf",
+    "title": "European Atlas of Forest Tree Species: Fraxinus excelsior",
+    "lines": [
+      "hoots and leaves and Common ash tree with a straight trunk. This species can reach 45 m in height. (Copyright Stefano Zerauschek, www.flickr.com: AP) Uncertain, no-data Marginal/no presence < 5% Low presence 5",
+      "s, as it Juvenile composite leaves with 9-13 leaflets; when mature they can reach over 30 cm long. (Copyright Roberto Verzo, www.flickr.com: CC-BY) --- can also grow in ravines and often water-deficient stony",
+      "igh survivability High survivability Dark purple anthers of ash flowers, which are without petals. (Copyright David Nicholls, www.naturespot.ork.uk: AP) ## Importance and Usage The elasticity, hardness, and pr"
+    ],
+    "records": [],
+    "expect_class": "public-cite-only",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-plaphy-paywalled",
+    "url": "https://doi.org/10.1016/j.plaphy.2021.08.035",
+    "title": "Defining date palm leaf pruning line in bearing status by tracking physiological markers and expression of senescence-related genes.",
+    "lines": [
+      "i-Koupaei a, Morteza Soleimani Aghdam bShow moreCiteAdd to MendeleyShare10.1016/j.plaphy.2021.08.035Access through your organizationPurchase PDFMore actionsArticle previewRecommended articlesCited by (5)MetricsArti",
+      "teraction of pruning and stability of the mentioned leaf lines and load status.Organizational accessGet full-text access by signing in with your organisationAccess through your organizationOther access optionsPurchase PD",
+      "Zhou, …, Hua ShuNeuroscience • Volume 390 • 2018 • Pages 256-264Cited by (5)Research articleOpen accessAligning source strength with the demand of main sinks in date palm cv. Mazafati through integrated",
+      "by-products, their function, and their potential applications in the food industry.Research articleOpen accessOptimizing the leaf-to-bunch ratio in ‘Mazafati’ date trees by considering source-sink limitatio",
+      "oad was determined to be 4-5.MetricsCitationsCitation Indexes5CapturesMendeley Readers12View details© 2021 Elsevier Masson SAS. All rights reserved.About ScienceDirectRemote accessContact and supportTe",
+      "accessContact and supportTerms and conditionsPrivacy policyCookie settingsAll content on this site: Copyright © 2026 Elsevier B.V., its licensors, and contributors. All rights are reserved, including those fo",
+      "reserved, including those for text and data mining, AI training, and similar technologies. For all open access content, the relevant licensing terms apply. Persistent link using digital object identifier (DOI)"
+    ],
+    "records": [
+      {
+        "kind": "doaj",
+        "url": "https://doaj.org/api/search/articles/doi%3A10.1016%2Fj.plaphy.2021.08.035",
+        "lines": [
+          "{\"total\": 0, \"page\": 1, \"pageSize\": 10, \"timestamp\": \"2026-09-23T20:24:"
+        ]
+      }
+    ],
+    "expect_class": "restricted",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "palm-kew-facebook-post",
+    "url": "https://www.facebook.com/kewgardens/posts/date-palm-trees-phoenix-dactylifera-grow-30-metres-tall-and-more-than-1000-dates/686575536847336/",
+    "title": "Date palm trees (Phoenix dactylifera) grow 30 metres tall, and more than ...",
+    "lines": [],
+    "records": [],
+    "error": "fetch failed for https://www.facebook.com/kewgardens/posts/date-palm-trees-phoenix-dactylifera-grow-30-metres-tall-and-more-than-1000-dates/686575536847336/: Error: We apologize for the inconvenience but we do not support this site. If you are part of an enterprise and want to have a further conversation about this, please fill out our intake form here: https://fk4bvu0n5qp.typeform.com/to/Ej6oydlg",
+    "expect_class": "restricted",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "palm-facebook-group-post",
+    "url": "https://www.facebook.com/groups/1525942364400336/posts/2168202936840939/",
+    "title": "How long does it take Phoenix dactylifera to develop a trunk?",
+    "lines": [],
+    "records": [],
+    "error": "fetch failed for https://www.facebook.com/groups/1525942364400336/posts/2168202936840939/: Error: We apologize for the inconvenience but we do not support this site. If you are part of an enterprise and want to have a further conversation about this, please fill out our intake form here: https://fk4bvu0n5qp.typeform.com/to/Ej6oydlg",
+    "expect_class": "restricted",
+    "holdout": true,
+    "negative": true
+  },
+  {
+    "id": "palm-arxiv-id-not-a-url",
+    "url": "arxiv:2507.11578",
+    "title": "Effect of organic fertilizer and nano calcium spray on growth, yield and storage characteristics of fig fruits cv. waziri",
+    "lines": [],
+    "records": [],
+    "error": "fetch failed for arxiv:2507.11578: Error: URL is required. Provide it as argument or use --url option.",
+    "expect_class": "none",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "ash-e1-trade-pdf-no-statement",
+    "url": "https://www.forstpraxis.de/sites/forstpraxis.de/files/2023-07/AFZ_FHJ_Kalender_2024_306_318_Ertragstafeln_ste_OK.pdf",
+    "title": "Ertragstafelauszuege (AFZ Forstkalender 2024), Esche block from the Wiedemann/Schober tables",
+    "lines": [],
+    "records": [],
+    "expect_class": "none",
+    "holdout": true,
+    "negative": true
+  }
+]

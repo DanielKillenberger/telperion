@@ -1,6 +1,9 @@
 //! The manifest: the human boundary. A person admits it; the stages read it
-//! and never edit it. Every proxy, composition, value table, engineering
-//! value and version the run uses is stated here or is a decision.
+//! and never edit it. The one exception is a source the pipeline admits
+//! itself (fn-129, `pipeline::admission`): only the `sources` list grows,
+//! each new entry with its rights class. Every proxy, composition, value
+//! table, engineering value and version the run uses is stated here or is a
+//! decision.
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -51,6 +54,11 @@ pub struct Source {
     #[serde(default)]
     pub sha256: Option<String>,
     pub rights: String,
+    /// The rights class the pipeline recorded when it admitted the source
+    /// itself (`open-licence` or `public-cite-only`); absent on a source a
+    /// person admitted.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rights_class: Option<String>,
     #[serde(default)]
     pub tables: Vec<AdmittedTable>,
 }
@@ -431,6 +439,7 @@ pub(crate) mod tests {
             title: "Yield table".into(),
             sha256: None,
             rights: "cited".into(),
+            rights_class: None,
             tables: vec![],
         });
         admitted.fields[0].bar = Sufficiency::ProxyOnly;

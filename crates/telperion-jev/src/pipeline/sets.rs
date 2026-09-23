@@ -132,7 +132,35 @@ pub fn obligation_questions(name: &str) -> Value {
     Value::Object(out)
 }
 
-/// Round a Score to the nearest level index, clamped into the table. A
+/// The level Jev gave the highest probability, by index among `count`
+/// levels (fn-131). A level table is a set of choices, not a scale: the
+/// rounded average once put a leaf underside on `silvery_white` at
+/// probability 0. A tie goes to `no_match`; no probabilities, or a most
+/// probable level below `floor`, answers `no_match` too.
+pub fn chosen_level(
+    probabilities: Option<&Value>,
+    count: usize,
+    no_match: usize,
+    floor: f64,
+) -> usize {
+    let Some(map) = probabilities.and_then(Value::as_object) else {
+        return no_match;
+    };
+    let p = |i: usize| {
+        map.get(&i.to_string())
+            .and_then(Value::as_f64)
+            .unwrap_or(0.0)
+    };
+    let best = (0..count).fold(no_match, |best, i| if p(i) > p(best) { i } else { best });
+    if p(best) < floor {
+        no_match
+    } else {
+        best
+    }
+}
+
+/// Round a Score to the nearest level index, clamped into the table: for an
+/// ordered scale only (the transfer relation), never a level table. A
 /// missing or non-finite score is no level at all: the caller routes it to
 /// its no-match answer, never to the first row.
 pub fn level_from_score(score: f64, level_count: usize) -> Option<usize> {
@@ -301,8 +329,19 @@ pub fn inspected_image_state(observation: &str) -> Value {
     json!({ "observation": observation })
 }
 
-pub fn measurement_state(value_statement: &str, source_excerpt: &str) -> Value {
-    json!({ "value_statement": value_statement, "source_excerpt": source_excerpt })
+/// The measurement question's state; the pipeline names the field the value
+/// fills (fn-131), so a number copied from a sentence about another organ
+/// or a rate reads as no measurement of it.
+pub fn measurement_state(
+    field: Option<&str>,
+    value_statement: &str,
+    source_excerpt: &str,
+) -> Value {
+    let mut state = json!({ "value_statement": value_statement, "source_excerpt": source_excerpt });
+    if let Some(field) = field {
+        state["field"] = json!(field);
+    }
+    state
 }
 
 /// The state of the appearance support question: the trait, the level the

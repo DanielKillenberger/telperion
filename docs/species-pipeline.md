@@ -36,6 +36,7 @@ $P gate     $D --example
 $P generate $D --example --profile-id <profile id>
 $P document $D
 $P report   $D
+$P search-again $D   # after a stage prints SEARCH_AGAIN; then rerun the stages
 ```
 
 Every command reads the manifest and the earlier artifacts at fixed paths
@@ -46,7 +47,11 @@ before it searches the web, so a source the repository has already verified is
 never rediscovered; `--catalogue DIR` names the catalogue and defaults to
 `catalogue`. A command whose idempotence key
 (input checksums, manifest checksum, question-set versions, model name, tool
-versions) matches the artifact on disk prints `current` and does nothing. A
+versions) matches the artifact on disk prints `current` and does nothing.
+The tool versions carry the build identity (`species-pipeline-build`), a
+digest of the crate's code and data baked in at build time, so changed code
+reruns its stages; the crate version alone left three stages `current` after
+fn-128's fix. A
 command that stops prints the stage or the decision that stopped it; the
 driver resolves nothing and reads nothing. `--adapter fixture:DIR` replaces
 Firecrawl with pinned fixtures for the model-swap test.
@@ -196,14 +201,46 @@ ash's or a test fixture, loads unchanged.
   and leaflet sizes `mature`. Height, trunk diameter and crown base stay
   age-indexed. A mature field needs no `required_ages_years`; an empty or
   absent list is admitted, and a listed age is ignored. `quality` lays out
-  every screened sentence that carries the field's words, whatever kind the
-  screen gave it, because the screen judges tree size at an age and calls a
-  leaflet sentence `not_about_tree_size`. The mature-size set then scores a
+  the rows the field can use (below). The mature-size set then scores a
   stated mature value or range for the taxon on the same four levels, with
   its own gap. A single source that states the size reaches `partial`; a
   bound such as "up to" reaches `proxy_only`. On the palm's first live run,
   A1's "The leaflets are ½ m (18 inches) long" and "**Width:** 20 - 50 feet"
-  scored `none` under the age question; they are now labelled cases.
+  scored `none` under the age question; they are now labelled cases. A
+  mature field whose gap is `no_mature_size` fails its bar whatever level
+  was scored, and a required one files `requirements-unmet`.
+- **The rows a field can use** (fn-131). The screen gives an organ size its
+  own class (`leaf_size`, `leaflet_size`, `frond_size`, `needle_size`,
+  `cone_size`) and a named cultivar's size `cultivar_size`, which counts
+  toward the species. The table lists, per field, the kinds that count for
+  it (an organ field takes its organ class and `cultivar_size`, a tree field
+  the tree-size kinds and `cultivar_size`) and the words its sentence must
+  carry, each matched as a whole word or its plural, so "leaf" never matches
+  "leaflet". `quality` counts only these rows and `select` reads only these,
+  so the gate never passes a field on a row select drops. A growth-rate
+  sentence that states a size reached at an age counts as a point: code
+  parses "reaching 5 m (20 feet) in 15 to 20 years" as a point at 15 to 20
+  years. A point under the required condition weighs 1; one whose
+  condition the source leaves `unstated` weighs 0.5, and a required age is
+  covered by points weighing 1 together.
+- **Select is exact** (fn-131). One document per field, each row labelled by
+  its source and place (`F1.1`), and every span keyed to its row (`F1.1: 20
+  feet`), so a value is credited to the sentence it was chosen from. A pick
+  below `selection_floor` fills nothing. Code parses the chosen span with the
+  one number and unit grammar the extractor uses (`quantity`): glued units
+  ("6–10m"), millimetres, thousands separators and em-dash ranges, and "in"
+  only as "in." or spelled out. A required field select leaves unfilled
+  files `requirements-unmet`, which `search-again` takes like quality's.
+- **Levels are choices** (fn-131). An appearance, described, sufficiency or
+  mature-size level is the level Jev gave the highest probability, never
+  the rounded average; `unstated` (or `none`) wins a tie. An appearance or
+  described level below `level_floor` is `unstated`. The live palm's
+  `leaf_back_colour` had come out `silvery_white` and its
+  `leaf_brightness_range` `strongly_varied`, each at probability 0. Both
+  floors are calibrated on labelled live answers
+  (`data/cases/selection_floor.json`, `level_floor.json`): the lowest floor
+  that answers the most cases right. No labelled set of live sufficiency
+  answers exists yet, so the sufficiency levels take no floor.
 - **Appearance traits** are `appearance` entries, each a trait name and the
   admitted sources that describe it:
 
@@ -231,8 +268,10 @@ ash's or a test fixture, loads unchanged.
   pass, the old route judged a 600-character page chunk: `bark_roughness`
   cited A1's navigation links, and `bark_colour` came out `unstated`
   although A1 says the trunk "is rough gray".
-- **Verifying an appearance value.** `verify` checks the sentence against
-  its source with the citation check, as it does for every value. An
+- **Verifying an appearance value.** `verify` checks the level against its
+  source with the citation check, as it does for every value: the claim is
+  the level as the table summarises it, beside the sentence it was read
+  from, so a sentence that does not state the level can fail it. An
   appearance value is a level, not a number, so `verify` does not ask it
   `measurement_not_invention`. It asks `appearance_supported` instead:
   does the cited sentence describe the trait at this level, as the table
@@ -240,7 +279,9 @@ ash's or a test fixture, loads unchanged.
   sentence that states another level, does not state the trait, or is page
   navigation. A value that is not supported files `claim-unsupported` with
   the value's pointer as its field. Measured values keep
-  `measurement_not_invention`.
+  `measurement_not_invention`, asked with the field the value fills and the
+  source text around the value's sentence; a source that no longer holds the
+  sentence leaves the check unchecked, never judged on the page's start.
   Nothing renders or measures an appearance trait: `generate` records each
   one under `appearance` in its body as skipped. The material row is
   authored from these ranges.
@@ -260,14 +301,18 @@ stops while open. A person writes `DIR/resolutions.json`:
 
 A resolution binds only while its checksums match the decision's; a stale one
 is void and the decision reopens. The discover stage's `manifest-proposed`
-decision stops every later stage until a person writes the admitted manifest
-to `DIR/manifest.json` and resolves it. That decision binds to the seed
+decision stops every later stage until the manifest is admitted and the
+decision resolved. The pipeline admits it itself when the draft only adds
+sources and every new source passes both checks under "Admission by the
+pipeline" below; it writes `DIR/manifest.json` and a resolution with `by:
+pipeline`. Any other draft waits for a person to write the admitted manifest
+and resolve it. That decision binds to the seed
 (species, taxon, the fields with their conditions and required ages), and
 discover keys on the seed too: admitting sources, curves, proxies or
 engineering rows reruns nothing and keeps the admission, while a seed edit
 reruns discover, reissues the proposal and voids the old admission.
 
-Five kinds carry options a stage consumes. A resolution to one of them with
+Seven kinds carry options a stage consumes. A resolution to one of them with
 an option outside its list is refused when the next stage reads it, naming
 the kind and the options that are consumed; the stage that acted on a
 resolution records itself as `consumed_by` on the decision.
@@ -275,27 +320,36 @@ resolution records itself as `consumed_by` on the decision.
 | Kind | Options | Consumed by |
 |---|---|---|
 | `manifest-proposed` | `admit`, `reject` | every stage after discover; a rejected proposal stops them until the seed is edited and discover runs again |
-| `unavailable-source` | `retry`, `replace-source`, `drop-source` | fetch: `retry` fetches again, `replace-source` fetches the `url` in the resolution's `payload` under the same source id and records both urls, `drop-source` skips the source and records it under `dropped` |
+| `unavailable-source` | `retry`, `replace-source`, `drop-source` | fetch: `retry` fetches again, `replace-source` fetches the `url` in the resolution's `payload` under the same source id and records both urls, `drop-source` skips the source and records it under `dropped`; a `retry` or `replace-source` that fails again reopens the decision |
 | `coverage-gap` | `accept-rows`, `fix-table`, `drop-table` | fetch: `accept-rows` keeps the rows as parsed, `fix-table` reads the table entry the manifest now admits (and stops if the count still differs), `drop-table` records the table with no rows |
 | `data-insufficient` | `admit-proxy`, `add-sources`, `lower-bar` | quality, by editing the manifest's fields only |
 | `requirements-unmet` | `add-sources` | quality and select, once the manifest's sources change |
+| `claim-contradicted`, `claim-unsupported` | `accept`, `replace-source`, `drop-value` | select: `drop-value` takes the flagged value (its source and span) out of the packet and files the field's `requirements-unmet` when the table requires it; `replace-source` does the same for any field, so `search-again` looks for another source; `accept` keeps the value |
 
-`requirements-unmet` is NEEDS_HUMAN, and only the owner resolves it. `quality`
-files it for a required field whose sufficiency level falls below the
-requirements table's bar, in place of `data-insufficient`. `select` files it
-for a required appearance trait that the sources leave `unstated`. It blocks
-the later stages for that field. The conductor's policy lists no routine
-option for it. An open `requirements-unmet` or `manifest-proposed` decision
-comes before the gap loop, the stages and tuning: the conductor pauses with a
-handoff (`pause-owner-<id>`) that lists every such decision, and it opens no
-dispatch until the owner resolves them and resumes. On the palm's first live
-run the gate's halt sorted first and the conductor opened the gap loop while
-seven of these stood open. The pipeline command prints
-`NEEDS_HUMAN: <ids>` after any stage while one is open. The table's bar is
-never lowered: `lower-bar` is refused by name. An `add-sources` resolution
-binds only once the manifest's `sources` differ from the ones the decision
-recorded (`payload.sources_sha256`). A resolution that adds no source is void
-on the next read, and the decision stays open.
+`quality` files `requirements-unmet` for a required field whose sufficiency
+level falls below the requirements table's bar, in place of
+`data-insufficient`. `select` files it for a required appearance trait that
+the sources leave `unstated`, and for a required field it filled no value
+for (fn-131): no candidate span, a pick below the floor, or a value a
+resolution dropped. It blocks the later stages for that field. On
+a field or a trait, `add-sources` is the pipeline's first: `search-again`
+runs one round each, two at most, as "A requirement unmet searches again"
+below describes. After the two rounds the decision is NEEDS_HUMAN and only
+the owner resolves it. The conductor's policy lists no routine option for
+it: no agent resolves it.
+An open `manifest-proposed` decision, or a `requirements-unmet` decision
+with no round left, comes before the gap loop, the stages and tuning: the
+conductor pauses with a handoff (`pause-owner-<id>`) that lists every such
+decision and the sources the rounds tried, and it opens no dispatch until
+the owner resolves them and resumes. On the palm's first live run the
+gate's halt sorted first and the conductor opened the gap loop while seven
+of these stood open. After any stage the pipeline command prints
+`SEARCH_AGAIN: <ids>` for the fields with a round left and `NEEDS_HUMAN:
+<ids>` for the rest. The table's bar is never lowered: `lower-bar` is
+refused by name. An `add-sources` resolution binds only once the manifest's
+`sources` differ from the ones the decision recorded
+(`payload.sources_sha256`). A resolution that adds no source is void on the
+next read, and the decision stays open.
 
 A stage's rerun retires its own stale decisions. When `quality`, `select`
 or `verify` reruns with changed inputs, it marks each of its open decisions
@@ -303,7 +357,9 @@ that it did not file again as resolved, with the option `superseded`, and
 records `by` as that stage's rerun. The field passed, or the trait was
 found stated, on the sources the manifest already had. A superseded
 `requirements-unmet` decision is therefore not held open when the sources
-are unchanged. No person writes `superseded`, and no stage consumes it. On
+are unchanged. No person writes `superseded`, and no stage consumes it; a
+person's resolution written against the decision's old inputs leaves it
+retired rather than reopening it (fn-131). On
 the palm's second pass, `quality` passed crown width and leaflet length,
 but the first pass's decisions on them stayed open, and `select` skipped
 both fields as "below the data-quality bar". `verify`'s `obligation-unmet`
@@ -316,7 +372,8 @@ F1, stayed open the same way and stopped `generate`.
  "by": "owner", "at": "2026-09-18"}
 ```
 
-Other kinds: `claim-contradicted`, `claim-unsupported`, `obligation-unmet`,
+Verify files one claim decision per value, keyed by its JSON Pointer, so
+two values of one source are two decisions. Other kinds: `obligation-unmet`,
 `structural-unmet`, `missing-curve`, `tolerance-miss`, `onboarding-gate`,
 `level-miss`, `no-reference`, `visual-unassessed`.
 
@@ -333,6 +390,74 @@ origin marked - `catalogue:<species>#<id>`, `manifest:<path>#<id>` or
 `spec:<id>` - never admitted by being known, and a known candidate carrying a
 fetch error is listed and never proposed. The search query is the field in plain words (`Fraxinus excelsior
 height at age, open grown`), not the field id.
+
+### Admission by the pipeline
+
+Twice on 2026-09-23 the palm's run stopped for the owner to admit sources
+the pipeline had found, and the owner asked that the pipeline admit them
+itself (fn-129). A proposed source is admitted on two checks:
+
+- **Relevance, by Jev.** The ranking chose it as the best evidence for the
+  field it was found for. A candidate no ranking chose is never proposed.
+- **Rights, by code and Jev.** Code fetches the page and lays out every
+  licence or copyright statement in its metadata (`rel="license"`,
+  `dc.rights`, `prism.copyright`) and a window around each licence word in
+  its text, beside the open-access record it looks up: Europe PMC's record
+  for a PMC article (its `license` field), DOAJ's for a DOI. Jev classifies
+  them (`data/questions/rights.json`) as `open-licence`,
+  `public-cite-only`, `restricted`, or the no-match answer `none`. Only the
+  first two admit. A licence on a photograph credit is not the page's
+  licence: the palm's F1 carries CC BY-NC-ND image credits and is
+  `public-cite-only`.
+
+A discover draft is admitted whole or goes to the owner whole: it adds at
+least one source, keeps every admitted source unchanged, changes nothing
+else (no field, bar, appearance trait or schema version; a draft that
+lifts a version 1 manifest to version 2 is the owner's), and every new
+source passes. One trait change counts as sources-only (host design,
+2026-09-23): appending to a trait's `sources` list the id of a source the
+manifest admits. A trait's name or level table stays the owner's. The decision's payload carries the verdict under
+`admission`, with every reason a draft is the owner's. An admitted source
+records its class in `rights_class` and a rights line naming the pipeline
+and the ledger entry; its numbers are cited and no text is reproduced, as
+for every source. The labelled cases are `data/cases/rights.json`, each
+page as code lays it out from a live fetch: the palm's and the ash's pages
+from their runs' caches, the rest and the open-access records fetched for
+the set on 2026-09-23. Eleven admit: the
+palm's F1, A1, M1 and P4 to P8, an open-access ScienceDirect article, and
+the ash's J1 and O1. Five do not: two Facebook posts Firecrawl refuses and
+an Elsevier article behind a paywall (`restricted`), an arXiv id that is no
+URL and the ash's E1, a trade PDF with no statement (`none`). `jev cases`
+scores them at the 0.9 accuracy bar.
+
+### A requirement unmet searches again
+
+`species-pipeline search-again` runs one round for every open
+`requirements-unmet` decision whose field or trait has a round left:
+`quality`'s on a field, `select`'s on an appearance trait or on a field it
+left unfilled.
+The query aims at the decision's dominant gap: `no_age_indexed_points` asks
+for the field at stated ages (`Phoenix dactylifera height at stated ages in
+years, open grown`), `age_range_uncovered` names the uncovered ages,
+`wrong_condition` the condition, `wrong_taxon` quotes the taxon, and a
+mature field's gap asks for the typical mature size, and a trait's query
+is the trait in words (`Phoenix dactylifera bark colour`). Every URL the
+manifest holds or an earlier round tried is left out, Jev ranks the rest,
+and the chosen source is admitted when its rights class admits. For a
+trait, every admitted source the trait does not yet name is a candidate
+too, ahead of the web's; the one the ranking chooses joins the trait's
+`sources` list with no rights call, since it is already admitted, and a
+new source that passes joins both lists. An admission resolves the
+decision `add-sources` by the pipeline, so the stages rerun on it. A
+trait's resolution binds once the trait's own list differs from the one
+the decision recorded (`payload.sources_tried`), even when the manifest's
+sources are unchanged. A round that admits nothing, or that
+an adapter or Jev error ended, still counts. After two rounds the decision
+is the owner's with the sources tried. Each round is recorded in
+`DIR/search-rounds.json`: its query, hits, the sources tried with their
+class and ledger reference, and what it admitted. The search waits while a
+manifest proposal is open, because admitting that draft would overwrite
+the sources a search added.
 
 An admitted table names its markdown table by `table_index` and, when one
 markdown table packs several species under label rows (a name in the first
@@ -354,6 +479,36 @@ The plain request that records a source's raw bytes trusts the host's
 certificate store, so a page Firecrawl scraped is not refused over a chain
 the bundled roots lack; a page the host store also rejects files
 `unavailable-source` with the TLS error verbatim.
+
+### Reading a source whole
+
+The text every later stage reads is the text the source holds (fn-130; the
+palm's run read a 196-byte cookie wall for two articles, and lost half of two
+more to a tag stripper).
+
+- **Fetch refuses what is not the source.** A scrape whose status is missing
+  is a failed scrape. Its markdown is refused when it is empty, when a short
+  page carries a known interstitial (a cookie wall, a bot check, a login
+  page), or when it holds under 2% of the raw body's bytes (a PDF is exempt
+  from the share). A refused scrape falls back on the raw body's own
+  conversion, held to the same checks; `fetch.json` records that source with
+  `markdown_from: raw` and the reason under `refused`.
+- **One unreadable source stops only itself.** An adapter error, a checksum
+  mismatch, a PDF that does not parse, or a page neither route can read files
+  `unavailable-source` for that source with the reason verbatim, and fetch
+  goes on to the rest and writes `fetch.json` without it. A `retry` or
+  `replace-source` whose fetch fails again reopens the decision: the refiled
+  inputs carry the checksum of the spent resolution, so it no longer binds.
+- **Markdown is not HTML.** `extract`, `screen`, the appearance readings and
+  `verify` read the cached markdown as it is; a "<" in a p-value is text. HTML
+  is converted once, where it enters: the raw body fetch falls back on, and a
+  page the citation check loads (`html::source_text`).
+- **One splitter.** A `.`, `!` or `?` ends a sentence unless a digit follows
+  it or it sits inside a quantity the unit pattern matches, so "18-20 ft
+  (5.5-6.1 m) long by 2 ft (0.6 m) wide" stays one sentence. Candidate
+  sentences, term sentences and the split of an over-long sentence share it.
+- **One reading.** `screen` judges exactly `extract.json`'s candidates, in
+  file order; it never re-extracts from the cache.
 
 ## Documentation
 
@@ -401,7 +556,7 @@ stage and in total under `costs` and in its `## Cost` table.
 
 | Path | Schema | Written by |
 |---|---|---|
-| `manifest.json` | manifest v1 | a person |
+| `manifest.json` | manifest v1 | a person; the pipeline appends a source it admits |
 | `discover.json` | discover v1 | discover |
 | `fetch.json` | sources v1 | fetch |
 | `extract.json` | candidates v1 | extract |
@@ -413,7 +568,8 @@ stage and in total under `costs` and in its `## Cost` table.
 | `provenance.json` | provenance v1, keyed by JSON Pointer | select, generate |
 | `gaps/<slug>/gap.json`, `rounds.json` | gap v1, rounds v1 | the gap loop |
 | `metrics.json` | metrics v1 | `gap metrics` |
-| `decisions.json`, `resolutions.json` | decisions v1 | every stage; a person |
+| `decisions.json`, `resolutions.json` | decisions v1 | every stage; a person, or the pipeline for an admission or an `add-sources` it made |
+| `search-rounds.json` | search-rounds v1, keyed by field | search-again |
 | `RUN/command-log.json` | command-log v1 | the driver binary |
 | `RUN/ledger/entries/`, `RUN/ledger/index.json` | fn-57 ledger entries; identity index | the caller |
 | `report.md` | rendered from `report.json` | report |
@@ -542,12 +698,12 @@ never part of the workspace test commands.
 
 ## The question sets
 
-Six versioned sets under `crates/telperion-jev/data/questions`: source
+Seven versioned sets under `crates/telperion-jev/data/questions`: source
 ranking per field, data sufficiency per field with its dominant gap, the
 mature size of a `mature` field with its gap, described
 level scoring over levels a person wrote, the semantic obligations
 (`inspected_image`, `measurement_not_invention`, `appearance_supported`),
-and the gap loop's options.
+a proposed source's rights class, and the gap loop's options.
 Their labelled cases with negative and held-out entries live under
 `data/cases`; `jev cases` reruns them live and fails when a held-out accuracy
 is below 0.9 (0.8 top-one agreement for ranking and for the gap set's best
