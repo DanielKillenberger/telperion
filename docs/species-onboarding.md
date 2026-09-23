@@ -47,6 +47,17 @@ the skill that walks the whole path, from "add species A" to the checklist the
 owner ticks, with the run's autonomy, quality and efficiency numbers written
 beside its report.
 
+## The stack
+
+A species run's pull requests go in together as one GitHub stack (`gh stack`, owner, 2026-09-23): its gap fixes at the bottom in the order they were minted, the species spec's branch on top.
+
+- **Start.** When the manifest is drafted, `gh stack init <species branch>` from the species spec's branch.
+- **A fix.** A gap spec is worked on its own branch as usual. When its task is done it goes in below the species: on a stack branch run `gh stack unstack --local`, then `gh stack init <fix 1> ... <new fix> <species branch>` bottom to top, then `gh stack rebase --no-trunk`. Its PR follows `docs/pr-format.md`'s stacked mode.
+- **Landing.** The conductor records the fix's commit on the stack (`species-conductor land --commit SHA`, `gap resume --commit SHA`); the run resumes on the stack without a master merge.
+- **Linear.** Stack branches are rebased, never merged into. `gh stack rebase` brings master up the stack.
+- **Merge.** After the owner ticks the checklist, the owner merges the whole stack with `gh stack merge`, all or nothing. No stage and no driver runs it. A fix another species also needs lands alone first, by the owner's word, and leaves the stack.
+- **Admission.** The species spec is driven by `add-species` and the conductor, not selected by `flow --auto`, so `flowctl spec chain`'s single-parent rule does not gate it; its dependencies stay for the record.
+
 ## One command per species
 
 A species is one spec rendered from `templates/species-spec.md`:
