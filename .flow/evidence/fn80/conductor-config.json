@@ -15,10 +15,10 @@
     ".flow/evidence/fn80/profiles-date-palm.json"
   ],
   "budget": {
-    "max_tokens": 10000000,
+    "max_tokens": 1000000000,
     "attempt_max_tokens": 200000,
-    "max_dispatches": 6,
-    "max_tuning_revisions": 4
+    "max_dispatches": 1000,
+    "max_tuning_revisions": 100
   },
   "judgment_model": "jev-1.13.0",
   "continuation_validated": true

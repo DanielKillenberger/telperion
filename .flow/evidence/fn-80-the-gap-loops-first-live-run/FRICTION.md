@@ -103,3 +103,11 @@ The conductor's `step` ran `tuning-loop run` for the palm's second revision and 
 ## 2026-09-23 — host: a GitHub stack takes new PRs only on top
 
 Inserting fn-116 (#70) below fn-80 (#61) in stack #69 failed: `gh stack link 65 66 70 61` answered "new PRs must be added to the top of the existing stack" and GitHub refused #61's new base (422). fn-115's insert procedure (`unstack --local`, re-init, `rebase --no-trunk`) re-orders only the local tracking; on GitHub the stack must be removed (`gh stack unstack <n>`) and linked again in the new order, which gave stack #71. Cost: about 5 minutes and one wrong step in a doc merged an hour earlier. What would remove it: fn-115's docs naming the GitHub-side step; a follow-up line in `docs/species-onboarding.md`.
+
+## 2026-09-23 — host: fn-118 shipped a "checked" claim about an untracked file
+
+fn-118's spec named `catalogue/date-palm/manifest.json` as checked; the file exists only untracked in the fn-80 worktree (the catalogue folder was removed from master in #57), and its tracked copy is `.flow/evidence/date-palm/pipeline/manifest.json`. The spec also left the appearance route and where coverage is checked unsettled. The worker stopped with NEEDS_HUMAN before editing code. Cost: one dispatch of about 136 k tokens and three minutes. What would have removed it: checking a claimed path with `git ls-files` rather than `ls` before marking a spec ready, and settling how a new manifest field travels through every stage before dispatch.
+
+## 2026-09-23 — host: a second spec shipped an unchecked "existing" claim
+
+fn-119's design leaned on "the existing routing" from an objective to dials and tracks; there is none (`routing.rs` routes a gap to a kind, `bundle::track::assign` splits moves by dial group). The worker stopped after about 20 minutes of reading (about 150 k tokens), the second such stop today after fn-118. What would remove it: before marking a host-written spec ready, grep every noun the design calls "existing" or "today's" and cite the file and line, or mark it unknown. CLAUDE.md already asks this ("an architecture claim about existing code is checked against that code before the spec is marked ready"); the host skipped it for speed.
