@@ -12,26 +12,6 @@
       "note": "Owner, verbatim: \"ok it's really hard for me to judge if the palm needs a apical rosette but if confidence is high let's go for it?\" The host's reading: the need is the capability packet's high-confidence trait, not Jev's 0.42 best-match, which answered a five-part gap with one option. Confirmed, not a reversal."
     },
     {
-      "id": "date-palm/gate/onboarding-gate/seeds",
-      "inputs_sha256": {
-        "select.json": "027748aef2b61895c6b2da2023093f42885aca751f5254530c0d35606fb63b2e"
-      },
-      "option": "waive",
-      "by": "host claude-fable-5-1 under the owner's standing rule",
-      "at": "2026-09-22",
-      "note": "First run: the seeds gate audits packet/specimens.json, which the generate stage it blocks is what writes; nothing can be audited before generate runs once. Waived for this pass only; the gate reruns after generate and audits the counts then. Not a lowered bar: sequencing."
-    },
-    {
-      "id": "date-palm/gate/onboarding-gate/capability",
-      "inputs_sha256": {
-        "select.json": "027748aef2b61895c6b2da2023093f42885aca751f5254530c0d35606fb63b2e"
-      },
-      "option": "waive",
-      "by": "owner",
-      "at": "2026-09-22",
-      "note": "Owner, verbatim: \"we can do both no? tune and build the missing capabilities?\" Waived for this pass: the generator lacks acanthophyll, persistent-leaf-base and infructescence (capability packet, host-verified); generate and tuning run with the rosette, the two organ specs are minted as fn-82 dependencies and built in parallel, and the gate reruns when each lands."
-    },
-    {
       "id": "date-palm/quality/data-insufficient/dbh_m",
       "inputs_sha256": {
         "fetch.json": "5431d70cbec3447aa2a7ecaf393d1253da432662507bceded490f4eb0f777116"
@@ -70,6 +50,66 @@
       "by": "host relaying the owner's decision of 2026-09-23",
       "at": "2026-09-24",
       "note": "The fields change is the palm row the owner chose on 2026-09-23 (growth rate plus mature range): height_growth_m_per_year added, height_m and dbh_m asked as mature ranges, bars from the requirements table (fn-132). Sources and appearance traits unchanged."
+    },
+    {
+      "id": "date-palm/gate/onboarding-gate/capability",
+      "inputs_sha256": {
+        "select.json": "4e3121dd9703004a327085732177cf9d0f207443564f49d33c034ae85a76a2a1"
+      },
+      "option": "waive",
+      "by": "owner (standing, relayed by the host)",
+      "at": "2026-09-24",
+      "note": "Owner, 2026-09-22: \"we can do both no? tune and build the missing capabilities?\" Re-recorded 2026-09-24 against the gate's new inputs: only infructescence is missing now (fn-111 on fn-33's organ slot, being built); tuning proceeds on everything else."
+    },
+    {
+      "id": "date-palm/gate/onboarding-gate/seeds",
+      "inputs_sha256": {
+        "select.json": "4e3121dd9703004a327085732177cf9d0f207443564f49d33c034ae85a76a2a1"
+      },
+      "option": "waive",
+      "by": "host under the owner's standing rule",
+      "at": "2026-09-24",
+      "note": "Re-recorded 2026-09-24 against the gate's new inputs: the seeds gate audits packet/specimens.json, which the generate stage it blocks writes; nothing can be audited before generate runs."
+    },
+    {
+      "id": "date-palm/verify/claim-unsupported//profiles/0/appearance/bark_roughness",
+      "inputs_sha256": {
+        "select.json": "68bbdc8c2461b5f81ef4632c9a4db59c547fa4b368f64156782b578ac7b669f1"
+      },
+      "option": "accept",
+      "by": "host acting as the cheap agent under the routine policy",
+      "at": "2026-09-24",
+      "note": "F1's \"textured trunk\" supports rough, and A1 states the trunk \"is rough gray\"; accepted."
+    },
+    {
+      "id": "date-palm/verify/claim-unsupported//profiles/0/appearance/leaf_back_colour",
+      "inputs_sha256": {
+        "select.json": "68bbdc8c2461b5f81ef4632c9a4db59c547fa4b368f64156782b578ac7b669f1"
+      },
+      "option": "accept",
+      "by": "host acting as the cheap agent under the routine policy",
+      "at": "2026-09-24",
+      "note": "The sentence gives the leaves as gray-green or sometimes blue without separating the underside; grey-green is the fair reading for both faces; accepted."
+    },
+    {
+      "id": "date-palm/verify/claim-unsupported//profiles/0/appearance/leaf_hue_range",
+      "inputs_sha256": {
+        "select.json": "68bbdc8c2461b5f81ef4632c9a4db59c547fa4b368f64156782b578ac7b669f1"
+      },
+      "option": "accept",
+      "by": "host acting as the cheap agent under the routine policy",
+      "at": "2026-09-24",
+      "note": "\"blue-green to gray-green\" states a range of hue across the leaves; accepted."
+    },
+    {
+      "id": "date-palm/verify/claim-unsupported//profiles/0/metrics/height_m",
+      "inputs_sha256": {
+        "select.json": "68bbdc8c2461b5f81ef4632c9a4db59c547fa4b368f64156782b578ac7b669f1"
+      },
+      "option": "accept",
+      "by": "host acting as the cheap agent under the routine policy",
+      "at": "2026-09-24",
+      "note": "\"Height: 50 - 100 feet\" is verbatim in A1's size table; the low confidence reflects a page that mixes history with the table; accepted as a mature range."
     }
   ]
 }

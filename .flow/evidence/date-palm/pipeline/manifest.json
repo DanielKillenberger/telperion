@@ -67,7 +67,7 @@
   },
   "fields": [
     {
-      "bar": "partial",
+      "bar": "proxy_only",
       "condition": "open_grown",
       "field": "height_m",
       "proxy": null,

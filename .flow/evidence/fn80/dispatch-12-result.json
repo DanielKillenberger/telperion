@@ -1,0 +1,12 @@
+{
+  "input_identity": "b6dacbb6f3740cfd81597cb6652d45ad060064e5e9592a0ed8ce1485ee2b0cfb",
+  "design_revision": null,
+  "actual_model": "claude-opus-5-5 (host session acting as the cheap agent)",
+  "actual_effort": "default",
+  "usage": {"input_tokens": 1, "output_tokens": 1},
+  "cost_usd": null,
+  "verification": "verified",
+  "observed": "date-palm/quality/data-insufficient/height_m was stale: the manifest's height bar was aligned to the palm row's proxy_only (fn-133) and the quality rerun superseded it; height_m is filled at 15.24-30.48 m from A1. The four claim-unsupported decisions verify then filed were resolved accept with notes.",
+  "handoff": null,
+  "failure": null
+}
