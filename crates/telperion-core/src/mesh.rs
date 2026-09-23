@@ -1,9 +1,10 @@
 //! One engine-neutral mesh per parameter family. Renderers consume this and nothing else.
 use crate::{
-    branching, foliage,
+    foliage,
     math::Vec3,
+    pipeline,
     presets::Family,
-    surface::{self, Bounds, SurfaceMesh},
+    surface::{Bounds, SurfaceMesh},
     tree::Tree,
     Error, Result,
 };
@@ -69,55 +70,37 @@ pub(crate) fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
     }
 }
 
-/// Grows this family's skeleton, ready to draw. An apex that bears a rosette
-/// bears no twig: where the canopy stands a frond crown, the twig wood above
-/// every stem apex is dropped, so the fronds stand on bare wood. And where the
-/// canopy keeps the bases of its shed fronds, they are hung on every stem as
-/// wood of their own, after the radius solve so no base thickens the trunk.
+/// Grows this family's skeleton, ready to draw: the pipeline's skeleton stage.
 pub fn grow(family: &Family) -> Result<Tree> {
-    let mut tree = branching::generate(&family.skeleton, family.radii)?.tree;
-    if family.canopy.rosette_fronds > 0 {
-        branching::clear_apical_twigs(&mut tree)?;
-    }
-    branching::clothe_leaf_bases(&mut tree, &family.canopy)?;
-    Ok(tree)
+    Ok(pipeline::skeleton(family)?.tree)
 }
 
 /// Grows the skeleton, plaits the wood surface and places the culled foliage.
 pub fn build(family: &Family, detail: Detail) -> Result<TreeMesh> {
     let Detail::Full = detail;
-    let tree = grow(family)?;
-    assemble(&tree, family)
+    assembled(pipeline::build(family, pipeline::Request::mesh())?.outputs)
 }
 
 /// Plaits the wood surface and places the culled foliage on a grown skeleton.
 pub fn assemble(tree: &Tree, family: &Family) -> Result<TreeMesh> {
-    let wood = surface::build(tree, family.skeleton.envelope.height, &family.surface)?;
-    let element = foliage::build_element(family.element)?;
-    let twig = family.skeleton.twigs.resolved()?.twig;
-    let placed = foliage::place_on_surface(
-        tree,
-        family.skeleton.envelope,
-        family.skeleton.seed,
-        family.canopy,
-        Some(foliage::TwigPlacement {
-            internode_length: twig.internode_length,
-            stations_per_internode: twig.stations_per_internode,
-        }),
-        &family.surface,
-        foliage::Reference::of(family)?,
-    )?;
-    let instances = foliage::cull(
-        placed,
-        &element,
-        family.skeleton.envelope,
-        family.shell_depth,
-    )?;
-    let bounds = union(wood.bounds, instances.bounds(&element)?.map(Bounds::from))
+    assembled(pipeline::outputs(tree, family, pipeline::Request::mesh())?)
+}
+
+/// The pipeline's last stage: wood and leaves under their union bounds.
+fn assembled(outputs: pipeline::Outputs) -> Result<TreeMesh> {
+    let missing = Error::InvalidInput("mesh needs wood and leaves");
+    let (Some(wood), Some(leaves), Some(element)) = (outputs.wood, outputs.leaves, outputs.element)
+    else {
+        return Err(missing);
+    };
+    let bounds = union(wood.bounds, leaves.bounds.map(Bounds::from))
         .ok_or(Error::InvalidInput("mesh has no geometry"))?;
     Ok(TreeMesh {
         wood,
-        foliage: Foliage { element, instances },
+        foliage: Foliage {
+            element,
+            instances: leaves.instances,
+        },
         bounds,
     })
 }

@@ -85,9 +85,30 @@ pub(super) fn build_mode(
     tree: &Tree,
     height: f64,
     params: &SurfaceParams,
+    prepared: Option<&mut prepared::PreparedSurface>,
+    contacts: Option<&mut Vec<Option<[usize; 4]>>>,
+    parallel_allowed: bool,
+) -> Result<SurfaceMesh> {
+    let swept = None;
+    build_run(
+        tree,
+        height,
+        params,
+        prepared,
+        contacts,
+        parallel_allowed,
+        swept,
+    )
+}
+
+pub(super) fn build_run(
+    tree: &Tree,
+    height: f64,
+    params: &SurfaceParams,
     mut prepared: Option<&mut prepared::PreparedSurface>,
     mut contacts: Option<&mut Vec<Option<[usize; 4]>>>,
     parallel_allowed: bool,
+    swept: Option<Swept>,
 ) -> Result<SurfaceMesh> {
     tree.validate()?;
     params.validate()?;
@@ -165,21 +186,12 @@ pub(super) fn build_mode(
             indices_len,
         ) {
             drop((samples, frame, segments_scratch));
-            return match parallel::build(
-                tree,
-                height,
-                params,
-                paths,
-                distance,
-                ordered,
-                angular,
-                longest,
-                vertices,
-                indices_len,
-                workers,
+            let sizes = (longest, vertices, indices_len, workers);
+            return match parallel::build_with(
+                tree, height, params, paths, distance, ordered, angular, sizes, swept,
             ) {
                 Ok(mesh) => Ok(mesh),
-                Err(_) => build_mode(tree, height, params, None, None, false),
+                Err(_) => build_run(tree, height, params, None, None, false, swept),
             };
         }
     }
@@ -225,12 +237,19 @@ pub(super) fn build_mode(
                 ]);
             }
         }
-        emit_run(&samples, &frame, &angular, params, height, |xyz, coord| {
+        let emit = |xyz: [f32; 3], coord: [f32; 2]| {
             mesh.positions.extend(xyz);
             if prepared.is_none() {
                 mesh.coords.extend(coord);
             }
-        })?;
+        };
+        match swept {
+            Some(sweep) => {
+                let rings = sweep.run_rings(path_id, samples.len());
+                emit_swept(rings, &samples, &angular, emit)?
+            }
+            None => emit_run(&samples, &frame, &angular, params, height, emit)?,
+        }
         let run = prepared::Run {
             base,
             first_index,
@@ -327,11 +346,7 @@ pub(super) fn emit_run(
     mut emit: impl FnMut([f32; 3], [f32; 2]),
 ) -> Result<()> {
     let mut vertex = |p: Vec3, coord: [f32; 2]| {
-        let xyz = [p.x as f32, p.y as f32, p.z as f32];
-        if !xyz.iter().all(|v| v.is_finite()) {
-            return Err(Error::InvalidInput("surface float32 position overflow"));
-        }
-        emit(xyz, coord);
+        emit(vertex32(p)?, coord);
         Ok(())
     };
     for (i, s) in samples.iter().enumerate() {
@@ -348,6 +363,15 @@ pub(super) fn emit_run(
     vertex(samples[0].p, [samples[0].d as f32, 0.0])?;
     let last = samples.last().unwrap();
     vertex(last.p, [last.d as f32, 0.0])
+}
+
+/// A vertex as the float32 the buffers keep, refused where it overflows.
+pub(super) fn vertex32(p: Vec3) -> Result<[f32; 3]> {
+    let xyz = [p.x as f32, p.y as f32, p.z as f32];
+    if !xyz.iter().all(|v| v.is_finite()) {
+        return Err(Error::InvalidInput("surface float32 position overflow"));
+    }
+    Ok(xyz)
 }
 
 /// The way run vertex `j` faces when no triangle is left to say: out from the

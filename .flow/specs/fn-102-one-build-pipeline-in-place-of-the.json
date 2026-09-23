@@ -12,9 +12,11 @@
   "id": "fn-102-one-build-pipeline-in-place-of-the",
   "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-102-one-build-pipeline-in-place-of-the.md",
   "status": "open",
   "title": "One build pipeline in place of the copied chains",
@@ -29,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T16:40:54.071001Z"
+  "updated_at": "2026-09-23T16:50:37.869757Z"
 }

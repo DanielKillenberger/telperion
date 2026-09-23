@@ -1,5 +1,5 @@
-//! The build chain's tests: the diagnostics, the stages a field request
-//! runs, the field request's limb order, and the mesh against the chain.
+//! The binding's tests: the diagnostics, the stages a field request runs,
+//! and the field request's limb order.
 use super::*;
 use telperion_core::tree::{Node, Tree};
 #[test]
@@ -151,52 +151,4 @@ fn the_field_request_selects_the_limb_order_and_defaults_to_the_family() {
     let (out, meta) =
         generate(json!({"family": "oregon-white-oak", "outputs": {"field": false}})).unwrap();
     assert!(out.field.is_none() && meta["stages"]["field"] == json!(false));
-}
-
-/// The mesh the renderer draws and the chain this binding runs are one
-/// geometry: same counts, same bounds, family for family.
-#[test]
-fn mesh_build_matches_the_binding_chain_for_oak_and_spruce() {
-    use telperion_core::mesh::{self, Detail};
-    fn union_bounds(meta: &Value) -> Value {
-        let corner = |key: &str, name: &str| -> [f64; 3] {
-            let v = meta[key][name].as_array().expect("bounds corner");
-            [0, 1, 2].map(|i| v[i].as_f64().expect("bounds component"))
-        };
-        let (w, f) = (
-            corner("surfaceBounds", "min"),
-            corner("foliageBounds", "min"),
-        );
-        let min = Vec3::new(w[0].min(f[0]), w[1].min(f[1]), w[2].min(f[2]));
-        let (w, f) = (
-            corner("surfaceBounds", "max"),
-            corner("foliageBounds", "max"),
-        );
-        let max = Vec3::new(w[0].max(f[0]), w[1].max(f[1]), w[2].max(f[2]));
-        bounds(min, max)
-    }
-    for id in ["oregon-white-oak", "norway-spruce"] {
-        let request = json!({"family": id, "outputs": {"surface": true, "foliage": true}});
-        let (out, meta) = generate(request).unwrap_or_else(|e| panic!("{id}: {e}"));
-        let wood = out.surface.as_ref().expect("wood surface");
-        let expected = (
-            wood.positions.len() / 3,
-            wood.indices.len() / 3,
-            out.instances.len(),
-            union_bounds(&meta),
-        );
-        drop(out);
-        let family = params::by_identity(id).unwrap();
-        let m = mesh::build(&family, Detail::Full).unwrap_or_else(|e| panic!("{id}: {e}"));
-        assert_eq!(
-            (m.wood_vertices(), m.wood_triangles(), m.foliage_instances()),
-            (expected.0, expected.1, expected.2),
-            "{id}: mesh counts differ from the binding"
-        );
-        assert_eq!(
-            bounds(m.bounds.min, m.bounds.max),
-            expected.3,
-            "{id}: mesh bounds differ from the binding"
-        );
-    }
 }

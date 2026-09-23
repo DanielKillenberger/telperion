@@ -139,6 +139,7 @@ fn join_all<T>(
     }
 }
 
+#[cfg(test)]
 pub(super) fn build(
     tree: &Tree,
     height: f64,
@@ -151,6 +152,26 @@ pub(super) fn build(
     vertices: usize,
     indices_len: usize,
     count: usize,
+) -> Result<SurfaceMesh> {
+    let sizes = (longest, vertices, indices_len, count);
+    build_with(
+        tree, height, params, paths, distance, ordered, angular, sizes, None,
+    )
+}
+
+/// The parallel build; each run's vertices come from a shared sweep's rings
+/// where one ran, and from the run's own sweep where none did.
+#[allow(clippy::too_many_arguments)]
+pub(super) fn build_with(
+    tree: &Tree,
+    height: f64,
+    params: &SurfaceParams,
+    paths: paths::Paths,
+    distance: Vec<f64>,
+    ordered: Vec<(usize, f64)>,
+    angular: Vec<angular::Angular>,
+    (longest, vertices, indices_len, count): (usize, usize, usize, usize),
+    swept: Option<Swept>,
 ) -> Result<SurfaceMesh> {
     if count < 2 {
         return Err(failed());
@@ -212,12 +233,18 @@ pub(super) fn build(
                         distance,
                         &mut samples,
                     );
-                    frames(&samples, &mut scratch, &mut frame);
-                    emit_run(&samples, &frame, angular, params, height, |xyz, coord| {
+                    let emit = |xyz: [f32; 3], coord: [f32; 2]| {
                         out_p[offset * 3..offset * 3 + 3].copy_from_slice(&xyz);
                         out_c[offset * 2..offset * 2 + 2].copy_from_slice(&coord);
                         offset += 1;
-                    })?;
+                    };
+                    if let Some(sweep) = swept {
+                        let rings = sweep.run_rings(run.path as usize, samples.len());
+                        emit_swept(rings, &samples, angular, emit)?;
+                        continue;
+                    }
+                    frames(&samples, &mut scratch, &mut frame);
+                    emit_run(&samples, &frame, angular, params, height, emit)?;
                 }
                 Ok(())
             });
