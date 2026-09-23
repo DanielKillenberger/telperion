@@ -6,6 +6,7 @@ use crate::{
     material::MaterialParams,
     radius::RadiusParams,
     surface::SurfaceParams,
+    Result,
 };
 
 #[derive(Debug, Clone)]
@@ -44,3 +45,26 @@ impl Default for Family {
         }
     }
 }
+impl Family {
+    /// Every row judged as the build and the growth path judge it, each
+    /// refused by the name they refuse it by, with no attractor scattered, no
+    /// node grown and no leaf placed. The checks run in the order the build
+    /// reaches them. A scatter that falls short of its count is left to
+    /// growth: that depends on the seed as much as on any row.
+    pub fn validate(&self) -> Result<()> {
+        use crate::foliage::{self, Instances, Reference, TwigPlacement};
+        self.material.validate()?;
+        crate::growth::Age::from_years(self.age)?;
+        self.growth.validate()?;
+        crate::branching::validate_skeleton(&self.skeleton, self.radii)?;
+        self.surface.validate()?;
+        crate::surface::height(self.skeleton.envelope.height)?;
+        foliage::build_element(self.element)?;
+        foliage::canopy_rows(self.canopy, Some(TwigPlacement::of(self)?))?;
+        Instances::new(Reference::of(self)?).validate()?;
+        foliage::range(self.shell_depth, 0., 1., "shell depth")
+    }
+}
+
+#[cfg(all(test, feature = "json", feature = "geometry"))]
+mod tests;
