@@ -649,6 +649,8 @@ fn run() -> Run {
             meaning_basis: None,
             range_basis: None,
             source: None,
+            preset_span: None,
+            cap: None,
         }],
         owner_notes: "irregular outline".into(),
         required: vec![cell()],
@@ -2073,6 +2075,8 @@ fn reviewed_three(inert: Vec<bool>, reviews: Vec<Vec<Choice>>) -> (Run, Mock) {
             meaning_basis: None,
             range_basis: None,
             source: None,
+            preset_span: None,
+            cap: None,
         })
         .collect();
     let mock = Mock {
@@ -2290,6 +2294,8 @@ fn bundle_dial(id: &str, path: &str, min: f64, max: f64, small: f64, group: &str
         meaning_basis: None,
         range_basis: None,
         source: None,
+        preset_span: None,
+        cap: None,
     }
 }
 
