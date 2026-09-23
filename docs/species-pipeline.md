@@ -172,6 +172,45 @@ decision rather than a reflex. A species whose remaining gaps serve nothing
 else is the one to park.
 
 
+## The requirements table
+
+A species' literature has to cover what the generator needs, or the run
+stops. `crates/telperion-jev/data/species-requirements.json` lists, for each
+growth form (`broadleaf`, `conifer`, `palm`), the evidence fields a manifest
+must ask for and the lowest sufficiency bar each must reach, and the
+appearance traits it must describe. The bar is set by the table, not by the
+manifest's author. The table binds a manifest at `schema_version` 2, the
+version `discover` writes its proposal at. A version 1 manifest, such as the
+ash's or a test fixture, loads unchanged.
+
+- **Admission.** A version 2 manifest that leaves out a required field,
+  lists a required field below the table's bar, or leaves out a required
+  appearance trait is refused when any stage loads it. The refusal names
+  every shortfall. A growth form with no row in the table is refused the
+  same way.
+- **Size fields** are ordinary `fields` entries. Height and trunk diameter
+  carry the bar `partial`; the crown and organ sizes (crown width and base,
+  leaf, needle, frond and leaflet sizes) carry `proxy_only`. The table also
+  holds the words a sentence must contain to count as a point for each field.
+- **Appearance traits** are `appearance` entries, each a trait name and the
+  admitted sources that describe it:
+
+  ```json
+  {"trait_name": "bark_colour", "sources": ["A1"]}
+  ```
+
+  The level table comes from the requirements table and is derived from the
+  `MaterialParams` fields the trait feeds. The traits are bark colour and
+  bark roughness, leaf front colour and leaf back colour, and the leaf hue
+  and brightness ranges. Each level maps to a `[low, high]` range per fed
+  field; colours are linear reflectance. `select` has Jev score the trait
+  over those levels, with the no-match level `unstated` last. Code then
+  copies the chosen level's ranges into `profiles[0].appearance.<trait>` of
+  the profile packet and records a sidecar entry with route `appearance`.
+  Nothing renders or measures an appearance trait: `generate` records each
+  one under `appearance` in its body as skipped. The material row is
+  authored from these ranges.
+
 ## Decisions
 
 A stage that meets a choice a person owns files a decision in
@@ -194,7 +233,7 @@ discover keys on the seed too: admitting sources, curves, proxies or
 engineering rows reruns nothing and keeps the admission, while a seed edit
 reruns discover, reissues the proposal and voids the old admission.
 
-Four kinds carry options a stage consumes. A resolution to one of them with
+Five kinds carry options a stage consumes. A resolution to one of them with
 an option outside its list is refused when the next stage reads it, naming
 the kind and the options that are consumed; the stage that acted on a
 resolution records itself as `consumed_by` on the decision.
@@ -205,6 +244,19 @@ resolution records itself as `consumed_by` on the decision.
 | `unavailable-source` | `retry`, `replace-source`, `drop-source` | fetch: `retry` fetches again, `replace-source` fetches the `url` in the resolution's `payload` under the same source id and records both urls, `drop-source` skips the source and records it under `dropped` |
 | `coverage-gap` | `accept-rows`, `fix-table`, `drop-table` | fetch: `accept-rows` keeps the rows as parsed, `fix-table` reads the table entry the manifest now admits (and stops if the count still differs), `drop-table` records the table with no rows |
 | `data-insufficient` | `admit-proxy`, `add-sources`, `lower-bar` | quality, by editing the manifest's fields only |
+| `requirements-unmet` | `add-sources` | quality and select, once the manifest's sources change |
+
+`requirements-unmet` is NEEDS_HUMAN, and only the owner resolves it. `quality`
+files it for a required field whose sufficiency level falls below the
+requirements table's bar, in place of `data-insufficient`. `select` files it
+for a required appearance trait that the sources leave `unstated`. It blocks
+the later stages for that field. The conductor's policy lists no routine
+option for it, so the run waits on the owner. The pipeline command prints
+`NEEDS_HUMAN: <ids>` after any stage while one is open. The table's bar is
+never lowered: `lower-bar` is refused by name. An `add-sources` resolution
+binds only once the manifest's `sources` differ from the ones the decision
+recorded (`payload.sources_sha256`). A resolution that adds no source is void
+on the next read, and the decision stays open.
 
 ```json
 {"id": "european-ash/fetch/unavailable-source/M1", "inputs_sha256": {"url": "..."},
@@ -276,6 +328,14 @@ matter records the sha256 of every record and source copy it was written from,
 and the check fails it when one has moved. The article is then rewritten, not
 patched. A sentence the cited source does not support becomes an open
 `article-claim-unsupported` decision a person resolves; it does not ship.
+
+When the profile holds appearance ranges, the article carries a generated
+`appearance` block after the Leaves section. For each trait it lists the
+level, how that level is described, each material field and its range, and
+the sources, which are the values the material row is authored from. The
+check requires this block only for a profile that holds appearance ranges.
+When an existing article is refreshed after its record gains them, the block
+is inserted before the gaps section.
 
 ## Cost
 

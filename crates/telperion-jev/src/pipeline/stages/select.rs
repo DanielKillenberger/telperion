@@ -4,25 +4,26 @@
 //! among the ones code extracted, code parses the numbers and the unit from
 //! that span and copies them into the profile metric. A described trait is
 //! scored over the levels a person wrote; its value ships only after the
-//! generate stage rendered and measured the candidates. Every filled value
+//! generate stage rendered and measured the candidates. An appearance trait
+//! is scored over the requirements table's levels and its ranges are copied
+//! (`appearance`), never rendered. Every filled value
 //! has a sidecar entry keyed by JSON Pointer; a field with no admissible
 //! candidate is recorded as unavailable with the reason, never estimated.
 
 use serde_json::{json, Map, Value};
 
-use crate::extract::{key_terms, section_for_terms};
 use crate::pipeline::canon::write_canonical;
+use crate::pipeline::decision::append_decisions;
 use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::{Described, Field, Manifest};
-use crate::pipeline::sets::{described_questions, level_from_score, DescribedLevel};
+use crate::pipeline::sets::DescribedLevel;
 use crate::pipeline::stage::{Context, Paths, StageError};
 use crate::select::select;
 
-use super::extract::cached_markdown;
+use super::appearance::{self, score_levels};
 use super::{body, inputs};
 
 pub const STAGE: &str = "select";
-const SECTION_RADIUS: usize = 600;
 
 #[derive(Debug)]
 pub enum Outcome {
@@ -88,16 +89,23 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
             json!({"level": level, "sentence": entry["sentence"], "ledger": entry["ledger"]}),
         );
     }
-    write_packet(&ctx, manifest, &filled, &unavailable)?;
+    let copied = appearance::run(judge, &ctx, &fetch)?;
+    header.ledger.extend(copied.ledger.iter().cloned());
+    sidecar.extend(copied.sidecar.clone());
+    write_packet(&ctx, manifest, &filled, &unavailable, &copied.profile)?;
     write_canonical(
         &ctx.paths.sidecar(),
         &json!({"schema": "provenance", "schema_version": 1, "entries": sidecar, "unavailable": unavailable}),
     )?;
     let counts = (filled.len(), unavailable.len());
-    ctx.write(
-        &header,
-        json!({"filled": filled, "unavailable": unavailable, "described": described}),
-    )?;
+    let mut out = json!({"filled": filled, "unavailable": unavailable, "described": described});
+    if !manifest.appearance.is_empty() {
+        out["appearance"] = json!(copied.body);
+    }
+    if !copied.decisions.is_empty() {
+        append_decisions(&ctx.paths.decisions(), copied.decisions)?;
+    }
+    ctx.write(&header, out)?;
     Ok(Outcome::Ran {
         filled: counts.0,
         unavailable: counts.1,
@@ -221,27 +229,6 @@ fn score_described(
     trait_: &Described,
     fetch: &Value,
 ) -> Result<(String, Value), StageError> {
-    let terms = key_terms(&format!(
-        "{} {}",
-        trait_.trait_name,
-        trait_
-            .table
-            .levels
-            .iter()
-            .map(|l| l.summary.as_str())
-            .collect::<Vec<_>>()
-            .join(" ")
-    ));
-    let mut sentences = Vec::new();
-    for id in &trait_.sources {
-        let Some(record) = fetch["sources"].get(id) else {
-            continue;
-        };
-        let markdown = cached_markdown(ctx, STAGE, id, record)?;
-        if let Some(section) = section_for_terms(&markdown, &terms, SECTION_RADIUS) {
-            sentences.push(section);
-        }
-    }
     let levels: Vec<DescribedLevel> = trait_
         .table
         .levels
@@ -251,25 +238,14 @@ fn score_described(
             summary: l.summary.clone(),
         })
         .collect();
-    let state = json!({"trait": trait_.trait_name, "sentences": sentences});
-    let judgment = judge
-        .ask("described", None, &state, &described_questions(&levels))
-        .map_err(|err| StageError::Failed {
-            stage: STAGE.into(),
-            reason: err.to_string(),
-        })?;
-    let index = level_from_score(
-        judgment.entry.score("level").unwrap_or(f64::NAN),
-        levels.len() + 1,
-    );
-    let level = index
-        .and_then(|i| levels.get(i))
-        .map(|l| l.key.clone())
-        .unwrap_or_else(|| "unstated".into());
-    Ok((
-        level,
-        json!({"sentence": sentences.join("\n"), "ledger": judgment.reference}),
-    ))
+    score_levels(
+        judge,
+        ctx,
+        &trait_.trait_name,
+        &trait_.sources,
+        &levels,
+        fetch,
+    )
 }
 
 /// The profile and references records, closed shapes with no added key.
@@ -278,6 +254,7 @@ fn write_packet(
     manifest: &Manifest,
     filled: &Map<String, Value>,
     unavailable: &Map<String, Value>,
+    appearance: &Map<String, Value>,
 ) -> Result<(), StageError> {
     let mut metrics = Map::new();
     for (pointer, metric) in filled {
@@ -287,7 +264,7 @@ fn write_packet(
     for (field, reason) in unavailable {
         metrics.insert(field.clone(), json!({"unit": "m", "range": null, "classification": "unavailable", "source": [], "confidence": "unavailable", "note": reason}));
     }
-    let profile = json!({
+    let mut profile = json!({
         "schema_version": 1,
         "provenance": ctx.paths.sidecar().file_name().map(|n| n.to_string_lossy().into_owned()),
         "definitions": {},
@@ -303,6 +280,9 @@ fn write_packet(
             "rubric": {},
         }],
     });
+    if !appearance.is_empty() {
+        profile["profiles"][0]["appearance"] = json!(appearance);
+    }
     write_canonical(&ctx.paths.packet("profile"), &profile)?;
     let sources: Vec<Value> = manifest
         .sources

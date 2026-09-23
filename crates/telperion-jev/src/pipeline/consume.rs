@@ -7,9 +7,15 @@
 //! itself on the decision; a rejected manifest proposal stops every stage
 //! after discover.
 
-use super::canon::CanonError;
-use super::decision::{Decision, Resolution};
+use std::path::Path;
+
+use super::canon::{canonical_sha256, read_json, CanonError};
+use super::decision::{Decision, Resolution, Status};
 use super::stage::STAGES;
+
+/// A required field or appearance trait below the requirements table's bar:
+/// the owner's decision, whose only option adds sources.
+pub const REQUIREMENTS_UNMET: &str = "requirements-unmet";
 
 /// The decision kinds whose options a stage consumes: the kind, its options,
 /// and the stages that act on a resolution carrying one of them. A kind not
@@ -20,6 +26,7 @@ pub fn consumers(kind: &str) -> Option<(&'static [&'static str], &'static [&'sta
         "unavailable-source" => Some((&["retry", "replace-source", "drop-source"], &["fetch"])),
         "coverage-gap" => Some((&["accept-rows", "fix-table", "drop-table"], &["fetch"])),
         "data-insufficient" => Some((&["admit-proxy", "add-sources", "lower-bar"], &["quality"])),
+        REQUIREMENTS_UNMET => Some((&["add-sources"], &["quality", "select"])),
         _ => None,
     }
 }
@@ -79,6 +86,52 @@ pub fn check_resolutions(
         }
     }
     Ok(())
+}
+
+/// The checksum of the manifest's `sources` as written on disk, so an
+/// `add-sources` resolution can tell whether a source was added.
+pub fn sources_sha256(manifest: &Path) -> Result<String, CanonError> {
+    Ok(canonical_sha256(&read_json(manifest)?["sources"]))
+}
+
+/// Reopens every resolved requirements-unmet decision whose manifest sources
+/// are still the ones it was filed against: a resolution that adds no source
+/// leaves the decision open. The note is set, never appended, so a rerun is
+/// byte-identical. True when the list changed.
+pub fn hold_unmet(decisions: &mut [Decision], sources: &str) -> bool {
+    let mut changed = false;
+    for decision in decisions.iter_mut() {
+        let unchanged = decision.payload["sources_sha256"].as_str() == Some(sources);
+        if decision.kind != REQUIREMENTS_UNMET || decision.status != Status::Resolved || !unchanged
+        {
+            continue;
+        }
+        let Some(resolution) = decision.resolution.take() else {
+            continue;
+        };
+        decision.status = Status::Open;
+        let base = decision
+            .note
+            .split("[void resolution")
+            .next()
+            .unwrap_or_default()
+            .trim();
+        decision.note = format!(
+            "{base} [void resolution by {} at {}: no source was added]",
+            resolution.by, resolution.at
+        );
+        changed = true;
+    }
+    changed
+}
+
+/// The open decisions that stop the run for the owner: NEEDS_HUMAN.
+pub fn owner_stops(decisions: &[Decision]) -> Vec<String> {
+    decisions
+        .iter()
+        .filter(|d| d.kind == REQUIREMENTS_UNMET && d.status == Status::Open)
+        .map(|d| d.id.clone())
+        .collect()
 }
 
 /// Records `stage` on every resolved decision whose option it consumes and
@@ -226,5 +279,64 @@ mod tests {
             Some("european-ash/discover/manifest-proposed")
         );
         assert!(rejected_proposal(&list, "discover").is_none());
+    }
+
+    fn unmet(sources: &str) -> Decision {
+        Decision::new(
+            DecisionParts {
+                species: "date-palm",
+                stage: "quality",
+                kind: REQUIREMENTS_UNMET,
+                field: Some("frond_length_m"),
+                age_years: None,
+            },
+            &["select", "fit", "generate"],
+            sha(&[("fetch.json", "aaa")]),
+            vec![],
+            json!({"sources_sha256": sources}),
+            &["add-sources"],
+            "NEEDS_HUMAN",
+        )
+    }
+
+    fn resolve(decision: &Decision, option: &str) -> Resolution {
+        Resolution {
+            id: decision.id.clone(),
+            inputs_sha256: decision.inputs_sha256.clone(),
+            option: option.into(),
+            by: "cheap-driver".into(),
+            at: "2026-09-23".into(),
+            note: String::new(),
+            payload: Value::Null,
+        }
+    }
+
+    #[test]
+    fn a_required_field_cannot_be_lowered_and_an_add_that_adds_nothing_stays_open() {
+        let list = vec![unmet("before")];
+        let err = check_resolutions(&list, &[resolve(&list[0], "lower-bar")])
+            .unwrap_err()
+            .to_string();
+        assert!(
+            err.ends_with("option lower-bar of kind requirements-unmet is consumed by no stage; quality, select consume add-sources"),
+            "{err}"
+        );
+        let add = resolve(&list[0], "add-sources");
+        assert!(check_resolutions(&list, std::slice::from_ref(&add)).is_ok());
+        let mut held = list.clone();
+        apply_resolutions(&mut held, std::slice::from_ref(&add));
+        assert!(hold_unmet(&mut held, "before"));
+        assert_eq!(held[0].status, Status::Open);
+        assert_eq!(owner_stops(&held), vec![held[0].id.clone()]);
+        let once = held[0].note.clone();
+        apply_resolutions(&mut held, std::slice::from_ref(&add));
+        hold_unmet(&mut held, "before");
+        assert_eq!(held[0].note, once);
+        assert!(once.ends_with("no source was added]"), "{once}");
+        let mut added = list;
+        apply_resolutions(&mut added, &[add]);
+        assert!(!hold_unmet(&mut added, "after"));
+        assert_eq!(added[0].status, Status::Resolved);
+        assert!(owner_stops(&added).is_empty());
     }
 }
