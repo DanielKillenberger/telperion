@@ -15,7 +15,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-108-register-the-date-palm-preset-with-the.md",
-  "status": "open",
+  "status": "done",
   "title": "Register the date palm preset with the values the generator already reaches",
   "tracker": {
     "baseHashFlow": null,
@@ -28,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-22T11:15:38.749680Z"
+  "updated_at": "2026-09-23T12:57:47.613068Z"
 }

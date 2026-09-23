@@ -106,6 +106,8 @@ fn authored_actions_preserve_integer_bounds_and_abstention() {
         meaning_basis: None,
         range_basis: None,
         source: None,
+        preset_span: None,
+        cap: None,
     };
     assert_eq!(
         dial.value(2., Action::SmallDecrease).unwrap(),

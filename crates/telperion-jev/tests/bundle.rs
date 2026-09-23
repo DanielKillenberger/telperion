@@ -28,6 +28,8 @@ fn dial(id: &str, path: &str, min: f64, max: f64, small: f64, integer: bool) -> 
         meaning_basis: None,
         range_basis: None,
         source: None,
+        preset_span: None,
+        cap: None,
     }
 }
 

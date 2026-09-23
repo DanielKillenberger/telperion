@@ -1,0 +1,117 @@
+name: Release
+
+# A version tag publishes the package to npm. Nothing else starts this
+# workflow: a branch push and a pull request run tests.yml and never publish.
+# The tag names the version (v0.1.0 is package.json's 0.1.0); a tag whose
+# version differs from package.json's fails first, before any build.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: The tag's version is package.json's
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          package=$(node -p 'require("./package.json").version')
+          if [ "${TAG#v}" != "$package" ]; then
+            echo "::error::tag $TAG names version ${TAG#v}, package.json names $package; nothing is published"
+            exit 1
+          fi
+          echo "tag $TAG and package.json agree on $package"
+
+  # The repository's gate, the suites tests.yml runs, without its receipts: a
+  # release runs every suite on the tagged commit itself. The Rust crates run
+  # under nextest on the ci profile (.github/actions/nextest); the core is
+  # also built and unit-tested without its geometry feature, as tests.yml does.
+  rust:
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/nextest
+        with:
+          packages: telperion-core telperion-render telperion-wasm telperion-field telperion-jev
+
+  core-plan:
+    name: core without geometry
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+      - name: Build and unit-test the core without geometry
+        run: |
+          cargo build --profile ci -p telperion-core --no-default-features
+          cargo test --profile ci -p telperion-core --no-default-features --lib
+
+  # The node suite, the build and the publish share one job: the build needs
+  # the same toolchain, wasm-bindgen pin and dependencies the suite does.
+  # The publish authenticates with the workflow's OIDC token under the trusted
+  # publisher configured for this repository and workflow on npmjs.com; no
+  # token is stored here or in the repository's secrets. Provenance binds the
+  # published tarball to this commit and this run.
+  publish:
+    needs: [version, rust, core-plan]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+
+      # The version Cargo.lock pins for the wasm-bindgen crate; render:build
+      # refuses any other CLI. The binary is restored by the cache above.
+      - name: Install wasm-bindgen-cli at the crate's pin
+        run: cargo install wasm-bindgen-cli --version "$(cargo pkgid wasm-bindgen | sed 's/.*@//')"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      # Trusted publishing needs npm 11.5.1 or later; the npm a Node release
+      # bundles may be older.
+      - name: Install an npm that publishes through a trusted publisher
+        run: npm install -g npm@^11.5.1 && npm --version
+
+      - run: npm ci
+
+      - name: Run the node suite
+        run: |
+          npm test
+          npm run typecheck
+
+      - name: Build the package
+        run: npm run build
+
+      - name: Load the built entries in Node with no Wasm source given
+        run: npm run test:dist
+
+      - name: Show what the tarball holds
+        run: npm pack --dry-run
+
+      - name: Publish to npm with provenance
+        run: npm publish --provenance --access public
