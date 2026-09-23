@@ -197,7 +197,9 @@ ash's or a test fixture, loads unchanged.
   carry the bar `partial`; the crown and organ sizes (crown width and base,
   leaf, needle, frond and leaflet sizes) carry `proxy_only`. The palm's
   trunk diameter carries `proxy_only` too (fn-132): the only trunk sentence
-  its literature gives is a bound. The table also holds the words a
+  its literature gives is a bound. So does the palm's height (fn-133): the
+  owner chose growth rate plus mature range for palms, and a mature range
+  is scored as a bound. The table also holds the words a
   sentence must contain to count as a point for each field.
 - **How a field is asked** (fn-132). Each field is asked one of three ways:
   `age`, sizes at the manifest's required ages (the default); `mature`, a
@@ -226,13 +228,18 @@ ash's or a test fixture, loads unchanged.
   bound such as "up to" reaches `proxy_only`. On the palm's first live run,
   A1's "The leaflets are ½ m (18 inches) long" and "**Width:** 20 - 50 feet"
   scored `none` under the age question; they are now labelled cases.
-- **The gap follows the level** (fn-132). A field asked at no age whose
-  gap says no value is stated (`no_mature_size`, `no_growth_rate`) fails its
-  bar, and a required one files `requirements-unmet`. A level of `partial`
-  or `sufficient` finds the value stated, so beside it that gap is replaced
-  by the level's own: `single_source` for `partial`, `none` for
-  `sufficient`. On the palm's rerun after fn-131 the leaflet length and
-  width were `sufficient` on 7 points each and failed on `no_mature_size`.
+- **The gap follows the points** (fn-132, fn-133). A field asked at no
+  age whose gap says no value is stated (`no_mature_size`,
+  `no_growth_rate`) fails its bar, and a required one files
+  `requirements-unmet`. A field with any point never carries that gap,
+  whatever its level: beside `partial` it is `single_source`, beside
+  `sufficient` it is `none`, and beside a lower level it is the most
+  probable gap Jev gave that names a shortfall of a stated value
+  (`bound_only`, `wrong_taxon`, `single_source`). On the palm's rerun after
+  fn-131 the leaflet length and width were `sufficient` on 7 points each
+  and failed on `no_mature_size`; after fn-132 its trunk diameter was
+  `proxy_only` on 3 points, `bound_only` its next most probable gap, and
+  failed the same way.
 - **The rows a field can use** (fn-131). The screen gives an organ size its
   own class (`leaf_size`, `leaflet_size`, `frond_size`, `needle_size`,
   `cone_size`) and a named cultivar's size `cultivar_size`, which counts
@@ -249,8 +256,15 @@ ash's or a test fixture, loads unchanged.
   covered by points weighing 1 together.
 - **Select is exact** (fn-131). One document per field, each row labelled by
   its source and place (`F1.1`), and every span keyed to its row (`F1.1: 20
-  feet`), so a value is credited to the sentence it was chosen from. A pick
-  below `selection_floor` fills nothing. Code parses the chosen span with the
+  feet`), so a value is credited to the sentence it was chosen from. The
+  selection floor applies only once its labelled set holds at least 20
+  cases with at least 5 wrong picks (fn-133); then a pick below
+  `selection_floor` fills nothing. Until then select takes the most
+  probable span and records its probability in the select body
+  (`pick_probability`; provenance carries none), and verify's
+  field-aware check is the guard: the
+  palm's leaflet picks, at 0.22 and 0.24, had been dropped by a floor of
+  0.34 set on 16 cases. Code parses the chosen span with the
   one number and unit grammar the extractor uses (`quantity`): glued units
   ("6–10m"), millimetres, thousands separators and em-dash ranges, and "in"
   only as "in." or spelled out. A required field select leaves unfilled
@@ -264,7 +278,8 @@ ash's or a test fixture, loads unchanged.
   `leaf_brightness_range` `strongly_varied`, each at probability 0. Both
   floors are calibrated on labelled live answers
   (`data/cases/selection_floor.json`, `level_floor.json`): the lowest floor
-  that answers the most cases right. No labelled set of live sufficiency
+  that answers the most cases right. The selection floor waits on its
+  calibration minimum (above). No labelled set of live sufficiency
   answers exists yet, so the sufficiency levels take no floor.
 - **Appearance traits** are `appearance` entries, each a trait name and the
   admitted sources that describe it:
@@ -289,7 +304,14 @@ ash's or a test fixture, loads unchanged.
   copies the level's ranges into `profiles[0].appearance.<trait>` of the
   profile packet and records a sidecar entry with route `appearance`, the
   sentence, and the id of its source. A value with no source is never
-  written: a trait no sentence states is `unstated`. On the palm's second
+  written as a sourced value: a trait no sentence states is `unstated`.
+  A variation trait (the hue or brightness range, whose table has a level
+  every range of which holds zero width) that every source leaves
+  `unstated` takes that zero-width level, `uniform`, as a default (fn-133):
+  the select body and the profile entry carry the level with `default`,
+  its reason, and no source, and the sidecar records it under `defaults`,
+  not `entries`, so verify never asks a source for it. A colour or
+  roughness left `unstated` still files `requirements-unmet`. On the palm's second
   pass, the old route judged a 600-character page chunk: `bark_roughness`
   cited A1's navigation links, and `bark_colour` came out `unstated`
   although A1 says the trunk "is rough gray".
@@ -353,8 +375,9 @@ resolution records itself as `consumed_by` on the decision.
 
 `quality` files `requirements-unmet` for a required field whose sufficiency
 level falls below the requirements table's bar, in place of
-`data-insufficient`. `select` files it for a required appearance trait that
-the sources leave `unstated`, and for a required field it filled no value
+`data-insufficient`. `select` files it for a required colour or roughness
+trait that the sources leave `unstated` (a variation trait reads zero
+width instead), and for a required field it filled no value
 for (fn-131): no candidate span, a pick below the floor, or a value a
 resolution dropped. It blocks the later stages for that field. On
 a field or a trait, `add-sources` is the pipeline's first: `search-again`

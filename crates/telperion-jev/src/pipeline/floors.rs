@@ -38,6 +38,22 @@ pub fn level_floor_cases() -> Vec<FloorCase> {
     parse(LEVEL_FLOOR_CASES)
 }
 
+/// The least labelled set a floor is trusted on (fn-133): enough cases, and
+/// enough wrong picks among them for the floor to weigh.
+pub const MIN_CASES: usize = 20;
+pub const MIN_WRONG: usize = 5;
+
+/// Whether `cases` are enough to calibrate a floor on.
+pub fn calibrated(cases: &[FloorCase]) -> bool {
+    cases.len() >= MIN_CASES && cases.iter().filter(|c| !c.correct).count() >= MIN_WRONG
+}
+
+/// The selection floor, once its labelled set is calibrated; until then a
+/// pick is the most probable span and verify's field-aware check guards it.
+pub fn selection_floor() -> Option<f64> {
+    calibrated(&selection_floor_cases()).then(|| crate::questions::thresholds().selection_floor)
+}
+
 /// How many cases a floor answers right: a correct pick at or above it, a
 /// wrong one below it.
 pub fn hits(cases: &[FloorCase], floor: f64) -> usize {

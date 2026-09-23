@@ -58,6 +58,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     let manifest = &ctx.admitted.manifest;
     let mut filled = Map::new();
     let mut sidecar = Map::new();
+    let mut picked_at = Map::new();
     let mut unavailable = Map::new();
     let mut decisions = Vec::new();
     for field in &manifest.fields {
@@ -74,8 +75,10 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
         let (picked, identity) = pick(judge, field, unit, &screen)?;
         header.ledger.extend(identity);
         let (reason, search) = match picked {
-            Pick::Filled(metric, entry) => match flags.get(&pointer).filter(|f| f.names(&entry)) {
+            Pick::Filled(metric, entry, p) => match flags.get(&pointer).filter(|f| f.names(&entry))
+            {
                 None => {
+                    picked_at.insert(field.field.clone(), json!(p));
                     filled.insert(pointer.clone(), metric);
                     sidecar.insert(pointer, entry);
                     continue;
@@ -105,12 +108,14 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     header.ledger.extend(copied.ledger.iter().cloned());
     sidecar.extend(copied.sidecar.clone());
     write_packet(&ctx, manifest, &filled, &unavailable, &copied.profile)?;
-    write_canonical(
-        &ctx.paths.sidecar(),
-        &json!({"schema": "provenance", "schema_version": 1, "entries": sidecar, "unavailable": unavailable}),
-    )?;
+    let mut provenance = json!({"schema": "provenance", "schema_version": 1, "entries": sidecar, "unavailable": unavailable});
+    if !copied.defaults.is_empty() {
+        provenance["defaults"] = json!(copied.defaults);
+    }
+    write_canonical(&ctx.paths.sidecar(), &provenance)?;
     let counts = (filled.len(), unavailable.len());
-    let mut out = json!({"filled": filled, "unavailable": unavailable, "described": described});
+    let mut out = json!({"filled": filled, "unavailable": unavailable, "described": described,
+                         "pick_probability": picked_at});
     if !manifest.appearance.is_empty() {
         out["appearance"] = json!(copied.body);
     }

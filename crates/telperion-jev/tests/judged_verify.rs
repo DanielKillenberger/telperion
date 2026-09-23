@@ -249,8 +249,10 @@ fn a_size_reached_at_a_stated_age_is_a_point() {
     assert_eq!(point["ages_years"], json!([15.0, 20.0]));
 }
 
-/// R7: a mature field whose dominant gap is `no_mature_size` fails its bar
-/// whatever level was scored, and files `requirements-unmet`.
+/// R7: a mature field with no point whose dominant gap is `no_mature_size`
+/// fails its bar whatever level was scored, and files `requirements-unmet`.
+/// A field with a point never carries that gap (fn-133): the crown's two
+/// points pass its `proxy_only` bar.
 #[test]
 fn no_mature_size_fails_a_mature_field() {
     struct NoMature;
@@ -274,10 +276,16 @@ fn no_mature_size_fails_a_mature_field() {
     let dir = palm("no-mature");
     quality::run(&Paths::new(&dir), &judge(&NoMature)).unwrap();
     let fields = &read_json(&dir.join("quality.json")).unwrap()["body"]["fields"];
-    assert_eq!(fields["crown_width_m"]["level"], "proxy_only");
-    assert_eq!(fields["crown_width_m"]["passed"], false, "{fields}");
-    let id = "date-palm/quality/requirements-unmet/crown_width_m";
+    let dbh = &fields["dbh_m"];
+    assert_eq!(dbh["level"], "proxy_only");
+    assert_eq!(dbh["points"], json!([]));
+    assert_eq!(dbh["passed"], false, "{fields}");
+    let id = "date-palm/quality/requirements-unmet/dbh_m";
     assert_eq!(decision(&dir, id).unwrap()["status"], "open");
+    let crown = &fields["crown_width_m"];
+    assert_eq!(crown["level"], "proxy_only");
+    assert_ne!(crown["dominant_gap"], "no_mature_size", "{crown}");
+    assert_eq!(crown["passed"], true, "{fields}");
 }
 
 /// R8: a stage's key carries the build identity, a digest of the crate's

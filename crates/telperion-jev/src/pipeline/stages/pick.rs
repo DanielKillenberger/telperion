@@ -3,19 +3,22 @@
 //! ("F1.1"); every span code extracts from a row is a candidate keyed to
 //! that row ("F1.1: 20 feet"), so a number two sentences share is two
 //! candidates and the value is credited to the sentence it was chosen
-//! from. A pick below the calibrated floor fills nothing; code parses the
-//! numbers and the unit from the chosen span with the shared grammar.
+//! from. A pick below the floor fills nothing once the floor is calibrated
+//! (fn-133); until then the most probable span fills the field with its
+//! probability recorded, and verify's field-aware check is the guard. Code
+//! parses the numbers and the unit from the chosen span with the shared
+//! grammar.
 
 use std::collections::BTreeMap;
 
 use serde_json::{json, Value};
 
 use crate::extract::candidate_spans;
+use crate::pipeline::floors::selection_floor;
 use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::Field;
 use crate::pipeline::stage::StageError;
 use crate::quantity::first_length;
-use crate::questions::thresholds;
 use crate::select::select_among;
 
 use super::rows::for_field;
@@ -27,8 +30,10 @@ pub const BELOW_FLOOR: &str = "pick below the selection floor";
 pub const NO_LENGTH: &str = "the chosen span states no length";
 
 pub enum Pick {
-    /// The profile metric and its sidecar entry.
-    Filled(Value, Value),
+    /// The profile metric, its sidecar entry, and the chosen span's
+    /// probability, which the select body records and provenance never
+    /// carries.
+    Filled(Value, Value, Option<f64>),
     Unfilled(&'static str),
 }
 
@@ -77,9 +82,10 @@ pub fn pick(
     let Some((_, row, span)) = keyed.iter().find(|(k, _, _)| *k == report.chosen) else {
         return Ok((Pick::Unfilled(NO_CANDIDATE), identity));
     };
-    if report.confidence < thresholds().selection_floor {
+    if selection_floor().is_some_and(|floor| report.confidence < floor) {
         return Ok((Pick::Unfilled(BELOW_FLOOR), identity));
     }
+    let probability = report.probabilities[&report.chosen].as_f64();
     let Some((range, stated)) = parse_span(span) else {
         return Ok((Pick::Unfilled(NO_LENGTH), identity));
     };
@@ -92,7 +98,7 @@ pub fn pick(
         "route": "copied", "source": source, "sentence": row["sentence"], "span": span,
         "unit": stated, "pick_confidence": report.confidence, "ledger": [report.identity],
     });
-    Ok((Pick::Filled(metric, entry), identity))
+    Ok((Pick::Filled(metric, entry, probability), identity))
 }
 
 /// The first length in a span, in metres: `50 to 90 ft` -> [15.24, 27.432];
