@@ -349,3 +349,7 @@ cheaper. A step can be fast and still be the wrong place to spend.
 ## 2026-09-23 — owner: the run's token cap is 6 M
 
 The conductor's cap was 2 M, set by the host on 2026-09-22; the palm had spent 1.61 M, most of it the first tuning revision (about 1.64 M over seven rounds on Opus). The owner chose 6 M total so the run continues without stopping to ask, matching the tuning run's own ceiling. The conductor has no cap-extension command, so `budget.max_tokens` was raised in both its config and its run record, and `max_tuning_revisions` from 2 to 4 so tokens are the binding limit. Cheaper next time: a `species-conductor resume` decision carrying a cap extension, as `tuning-loop` already has.
+
+## 2026-09-23 — host: a convergence guard on the literature step
+
+The literature step took three rounds of fixes from three live reruns on the palm (fn-118, fn-127, fn-128), each finding smaller defects than the last; the palm's sizes went from one of six filled to five of six. Converging, but it is patching; the root cause was a host spec (fn-118) written without tracing a new field through every stage. Guard: if the next rerun finds a fourth defect in the same step, the host stops patching and reviews the step's design whole before another spec. Worker spend for the day's fourteen dispatches is about 3 M tokens (150 to 290 k each), beside the palm's 9.35 M of tuning.
