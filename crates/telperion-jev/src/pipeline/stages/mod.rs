@@ -43,6 +43,7 @@ pub mod quality;
 pub mod report;
 pub mod screen;
 pub mod select;
+pub mod unavailable;
 pub mod verify;
 
 use std::collections::BTreeMap;

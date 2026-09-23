@@ -280,7 +280,7 @@ resolution records itself as `consumed_by` on the decision.
 | Kind | Options | Consumed by |
 |---|---|---|
 | `manifest-proposed` | `admit`, `reject` | every stage after discover; a rejected proposal stops them until the seed is edited and discover runs again |
-| `unavailable-source` | `retry`, `replace-source`, `drop-source` | fetch: `retry` fetches again, `replace-source` fetches the `url` in the resolution's `payload` under the same source id and records both urls, `drop-source` skips the source and records it under `dropped` |
+| `unavailable-source` | `retry`, `replace-source`, `drop-source` | fetch: `retry` fetches again, `replace-source` fetches the `url` in the resolution's `payload` under the same source id and records both urls, `drop-source` skips the source and records it under `dropped`; a `retry` or `replace-source` that fails again reopens the decision |
 | `coverage-gap` | `accept-rows`, `fix-table`, `drop-table` | fetch: `accept-rows` keeps the rows as parsed, `fix-table` reads the table entry the manifest now admits (and stops if the count still differs), `drop-table` records the table with no rows |
 | `data-insufficient` | `admit-proxy`, `add-sources`, `lower-bar` | quality, by editing the manifest's fields only |
 | `requirements-unmet` | `add-sources` | quality and select, once the manifest's sources change |
@@ -432,6 +432,36 @@ The plain request that records a source's raw bytes trusts the host's
 certificate store, so a page Firecrawl scraped is not refused over a chain
 the bundled roots lack; a page the host store also rejects files
 `unavailable-source` with the TLS error verbatim.
+
+### Reading a source whole
+
+The text every later stage reads is the text the source holds (fn-130; the
+palm's run read a 196-byte cookie wall for two articles, and lost half of two
+more to a tag stripper).
+
+- **Fetch refuses what is not the source.** A scrape whose status is missing
+  is a failed scrape. Its markdown is refused when it is empty, when a short
+  page carries a known interstitial (a cookie wall, a bot check, a login
+  page), or when it holds under 2% of the raw body's bytes (a PDF is exempt
+  from the share). A refused scrape falls back on the raw body's own
+  conversion, held to the same checks; `fetch.json` records that source with
+  `markdown_from: raw` and the reason under `refused`.
+- **One unreadable source stops only itself.** An adapter error, a checksum
+  mismatch, a PDF that does not parse, or a page neither route can read files
+  `unavailable-source` for that source with the reason verbatim, and fetch
+  goes on to the rest and writes `fetch.json` without it. A `retry` or
+  `replace-source` whose fetch fails again reopens the decision: the refiled
+  inputs carry the checksum of the spent resolution, so it no longer binds.
+- **Markdown is not HTML.** `extract`, `screen`, the appearance readings and
+  `verify` read the cached markdown as it is; a "<" in a p-value is text. HTML
+  is converted once, where it enters: the raw body fetch falls back on, and a
+  page the citation check loads (`html::source_text`).
+- **One splitter.** A `.`, `!` or `?` ends a sentence unless a digit follows
+  it or it sits inside a quantity the unit pattern matches, so "18-20 ft
+  (5.5-6.1 m) long by 2 ft (0.6 m) wide" stays one sentence. Candidate
+  sentences, term sentences and the split of an over-long sentence share it.
+- **One reading.** `screen` judges exactly `extract.json`'s candidates, in
+  file order; it never re-extracts from the cache.
 
 ## Documentation
 

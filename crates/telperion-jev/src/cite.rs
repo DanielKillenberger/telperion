@@ -6,7 +6,8 @@ use regex::Regex;
 use serde_json::json;
 
 use crate::caller::{evaluate, CallerError, EvaluateRequest, HttpRequest, Transport};
-use crate::extract::{key_terms, section_for_terms, visible_text};
+use crate::extract::{key_terms, section_for_terms};
+use crate::html::source_text;
 use crate::ledger::SourceRef;
 use crate::questions::{citation_questions, thresholds, Thresholds};
 use crate::screen::{accumulate, compose_kind};
@@ -219,7 +220,7 @@ pub fn cite(
                 ));
             }
             SourceLoad::Bytes(bytes) => {
-                let text = visible_text(bytes);
+                let text = source_text(bytes);
                 let terms = key_terms(&claim.claim);
                 let Some(section) = section_for_terms(&text, &terms, 260) else {
                     rows.push(listed_row(

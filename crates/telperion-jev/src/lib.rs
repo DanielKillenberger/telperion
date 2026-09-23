@@ -8,6 +8,7 @@ pub mod cases;
 pub mod cite;
 pub mod conductor;
 pub mod extract;
+pub mod html;
 pub mod isolation;
 pub mod ledger;
 pub mod pipeline;

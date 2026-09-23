@@ -12,7 +12,7 @@
 
 use serde_json::{json, Map, Value};
 
-use crate::extract::{key_terms, section_for_terms, sentences_with_terms, visible_text};
+use crate::extract::{key_terms, section_for_terms, sentences_with_terms};
 use crate::pipeline::consume::{sources_sha256, REQUIREMENTS_UNMET};
 use crate::pipeline::decision::{Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
@@ -112,7 +112,7 @@ fn chosen_sentence(
         let Some(record) = fetch["sources"].get(id) else {
             continue;
         };
-        let text = visible_text(cached_markdown(ctx, STAGE, id, record)?.as_bytes());
+        let text = cached_markdown(ctx, STAGE, id, record)?;
         for sentence in sentences_with_terms(&text, terms) {
             let one = std::slice::from_ref(&sentence);
             let (level, entry) = ask_levels(judge, trait_name, one, levels)?;

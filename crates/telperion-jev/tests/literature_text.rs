@@ -172,8 +172,13 @@ fn the_fronds_width_stays_in_the_fronds_sentence() {
         "{}",
         width.sentence
     );
-    assert!(found.iter().all(|c| !c.sentence.starts_with("1 m)")), "{found:#?}");
-    assert!(found.iter().any(|c| c.sentence.contains("3-4 in (7.6-10.2 cm) spines")));
+    assert!(
+        found.iter().all(|c| !c.sentence.starts_with("1 m)")),
+        "{found:#?}"
+    );
+    assert!(found
+        .iter()
+        .any(|c| c.sentence.contains("3-4 in (7.6-10.2 cm) spines")));
 }
 
 /// R3: P7's cookie wall is refused and the raw body's conversion is cached
@@ -195,18 +200,28 @@ fn a_cookie_wall_is_refused_and_a_source_with_no_usable_content_files_unavailabl
     let p7 = &body["sources"]["P7"];
     assert_eq!(p7["markdown_from"], "raw");
     assert!(
-        p7["refused"].as_str().unwrap().contains("Cookies must be enabled"),
+        p7["refused"]
+            .as_str()
+            .unwrap()
+            .contains("Cookies must be enabled"),
         "{p7}"
     );
     let cached = fs::read_to_string(dir.join("cache/P7.md")).unwrap();
-    assert!(cached.contains("545.33 cm (Barni Al-Madinah)"), "{cached}");
+    // The page sets a thin space between the number and its unit.
+    assert!(
+        cached.contains("545.33\u{2009}cm (Barni Al-Madinah)"),
+        "{cached}"
+    );
     assert!(!cached.contains("citeCookieName"), "{cached}");
     assert!(body["sources"].get("P5").is_some());
     assert!(body["sources"].get("P8").is_none());
     let p8 = decision(&dir, P8_ID);
     assert_eq!(p8["status"], "open");
     assert!(
-        p8["payload"]["error"].as_str().unwrap().contains("Cookies must be enabled"),
+        p8["payload"]["error"]
+            .as_str()
+            .unwrap()
+            .contains("Cookies must be enabled"),
         "{p8}"
     );
 
@@ -258,7 +273,10 @@ fn a_retry_that_fails_again_reopens_the_decision() {
     assert_ne!(reopened["inputs_sha256"], filed["inputs_sha256"]);
     fetch::run(&Paths::new(&dir), &adapter).unwrap();
     assert_eq!(decision(&dir, P8_ID)["status"], "open");
-    assert_eq!(decision(&dir, P8_ID)["inputs_sha256"], reopened["inputs_sha256"]);
+    assert_eq!(
+        decision(&dir, P8_ID)["inputs_sha256"],
+        reopened["inputs_sha256"]
+    );
 }
 
 /// R3: a scrape whose metadata carries no status is not a success.
@@ -280,7 +298,9 @@ struct Recording(RefCell<Vec<String>>);
 impl Transport for Recording {
     fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String> {
         let body: Value = serde_json::from_slice(request.body.as_deref().unwrap_or(b"{}")).unwrap();
-        let sentence = body["state"]["candidate"]["sentence"].as_str().unwrap_or_default();
+        let sentence = body["state"]["candidate"]["sentence"]
+            .as_str()
+            .unwrap_or_default();
         self.0.borrow_mut().push(sentence.to_string());
         let answers = json!({
             "kind": {"type": "choice", "choice": "not_about_tree_size", "confidence": 0.9,
