@@ -226,10 +226,14 @@ still asks for the next revision.
 ## The packet and the report
 
 `packet` is ready only when the report reads complete and `metrics.json` is
-written, the latest tuning revision is machine ready or converged and not a
-bootstrap, every listed gap passes, every matched still is on disk, and
+written, the latest tuning revision is machine ready and not a bootstrap, or
+converged, every listed gap passes, every matched still is on disk, and
 `ARTICLE.md` and `document.json` exist with no open decision; otherwise it
-names every limitation. After a converged revision a gap that does not pass
+names every limitation. A converged bootstrap revision still reaches the
+owner: `machine_readiness` reads `unqualified reviewer`, which is neither
+ready nor failed, and reviewer qualification is listed as a known gap, so
+the owner's verdict is the acceptance. An unconverged bootstrap stays
+withheld. After a converged revision a gap that does not pass
 is listed under `outstanding` for the owner to judge rather than withholding
 the packet. The checklist lists every known gap with status `known gap` and
 the specs that capture it: each improvement capability the gate recorded and

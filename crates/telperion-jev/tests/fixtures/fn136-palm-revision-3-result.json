@@ -1,0 +1,142 @@
+{
+ "gaps": [
+  {
+   "attempts": [],
+   "check": "pending: the invoker answers reachable (dials not yet tried), covered (an open spec) or new",
+   "existing_spec": null,
+   "id": "owner-fronds-long-arching",
+   "latest_route": "tuning",
+   "priority": "the crown must read as a palm's rosette of long arching pinnate fronds with the lowest fronds drooping; the fronds are far too thin and short today (leaflet size and frond length are the first dials)",
+   "rank": 1,
+   "reviewer_words": [
+    "The leaflets are broad, blade-like straps, so the crown looks blobby and not finely pinnate."
+   ],
+   "status": "passing on the current tree",
+   "stills": []
+  },
+  {
+   "attempts": [],
+   "check": "pending: the invoker answers reachable (dials not yet tried), covered (an open spec) or new",
+   "existing_spec": null,
+   "id": "owner-trunk-straight-constant",
+   "latest_route": "insufficient_evidence",
+   "priority": "the trunk must be straight or gently leaning, never wavy, of near-constant diameter",
+   "rank": 2,
+   "reviewer_words": [
+    "The leaflets are broad, blade-like straps, so the crown looks blobby and not finely pinnate."
+   ],
+   "status": "handed off",
+   "stills": []
+  },
+  {
+   "attempts": [],
+   "check": "pending: the invoker answers reachable (dials not yet tried), covered (an open spec) or new",
+   "existing_spec": null,
+   "id": "owner-trunk-bare",
+   "latest_route": "insufficient_evidence",
+   "priority": "nothing grows on the trunk",
+   "rank": 3,
+   "reviewer_words": [],
+   "status": "handed off",
+   "stills": []
+  }
+ ],
+ "gaps_note": "a new gap escalates: its cause in generator terms and the shape of its spec are the host's, never this run's",
+ "meaning": "outcome plus gap list; a listed gap is never readiness and this file mints nothing",
+ "outcome": {
+  "adoptions_kept": 11,
+  "adoptions_rolled_back": 18,
+  "bootstrap": true,
+  "budget": {
+   "evaluations": 231,
+   "images": 806,
+   "max_evaluations": 240,
+   "max_images": 1000,
+   "max_rounds": 40,
+   "max_tokens": 8300000,
+   "max_visual_passes": 120,
+   "rounds": 31,
+   "tokens": 7732503,
+   "visual_passes": 76
+  },
+  "current": {
+   "key": "7d22938af535e6ea9d9409f691cf5d3a745af4bb341e5563bc9efb23ba098203",
+   "label": "bundle@1",
+   "overrides": {
+    "canopy": {
+     "leafBaseLength": 0.21750000000000003,
+     "leafBasePitch": 43.75,
+     "leafBases": 105,
+     "rachisArch": -0.825,
+     "rachisLength": 4.775,
+     "rosetteDepth": 0.375,
+     "rosetteFronds": 43,
+     "rosettePitchSpread": 127.5,
+     "size": 2.9124999999999996,
+     "upward": -0.15000000000000002
+    },
+    "element": {
+     "axialSegments": 21,
+     "crossSegments": 3,
+     "length": 0.45125,
+     "sectionRoundness": 0.33749999999999997,
+     "tipSharpness": 7.85,
+     "width": 0.06749999999999999
+    },
+    "radii": {
+     "lengthTaper": 0.125,
+     "trunkRadius": 0.0205
+    },
+    "skeleton": {
+     "bias": {
+      "gravitropism": 0.24999999999999994,
+      "lean": 0.015000000000000001
+     },
+     "envelope": {
+      "crownBase": 0.48750000000000004,
+      "height": 22.75,
+      "spread": 0.125
+     },
+     "habit": {
+      "attractorWeight": 0.55,
+      "crookedness": 2.25,
+      "riseSecondary": -0.9375
+     },
+     "twigs": {
+      "curtainDrop": 0.9625,
+      "curtainStepClearance": 0.20000000000000007,
+      "hang": 3.0,
+      "maxDroop": 10.0,
+      "pendulousLength": 5.0,
+      "sag": 0.8999999999999999
+     }
+    },
+    "surface": {
+     "flareRadius": 1.3
+    }
+   },
+   "round": 28,
+   "score_telemetry": 1.3708656674444062,
+   "stills": [
+    {
+     "path": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.flow/evidence/fn-80-the-gap-loops-first-live-run/local/palm/7d22938af535e6ea9d9409f691cf5d3a745af4bb341e5563bc9efb23ba098203-18d7feb5dd2b329d-7843c-cb0/7d22938af535e6ea9d9409f691cf5d3a745af4bb341e5563bc9efb23ba098203-P-WHOLE.png",
+     "seed": 1,
+     "sha256": "28dc8751ce38d698fa75eab6f6f2a6917f8ee9b91bbbabd7fb54e64dd70d01c2",
+     "view": "P-WHOLE"
+    }
+   ]
+  },
+  "finalists": [
+   "6fc8776e322c632dc6c556168552bda0ff7de1fe81956e0621e01cb8af787e33",
+   "549b47a155f466cbf03213e2cfe056f61814706def4adb2c6a2a7cc9185e8e41",
+   "ebc389b339e107e42bc78609462434d3a5728c96bb03a26883a00a48dd2de231"
+  ],
+  "machine_ready": false,
+  "owner_acceptance": "pending",
+  "preset": "date-palm",
+  "reviewer_passed_unqualified": false,
+  "run_identity": "05b1926f32b2409e79c78493eb54632cb030734809b4f113bcbf8c3dad46782d",
+  "seed": 1,
+  "stopped": "paused: round preflight cannot fit: need 728344 tokens before any dispatch"
+ }
+}

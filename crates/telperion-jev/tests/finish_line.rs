@@ -7,12 +7,15 @@ use std::path::PathBuf;
 use serde_json::{json, Value};
 use telperion_jev::pipeline::stages::capability_class::{self, Class, Classified};
 use telperion_jev::tuning::reference_first::Inventory;
-use telperion_jev::tuning::state::{CellStatus, TraitStatus};
-use telperion_jev::tuning::unexpressed::{core_coverage, Unexpressed};
+use telperion_jev::tuning::state::{
+    blocking_findings, ready, Cell, CellStatus, TraitStatus, Visual,
+};
+use telperion_jev::tuning::unexpressed::{core_coverage, set_aside, Defect, KnownGap, Unexpressed};
 
 const PALM: &str = include_str!("fixtures/fn136-palm-capability.json");
 const RECORDED: &str = include_str!("fixtures/fn136-palm-recorded-coverage.json");
 const INVENTORY: &str = include_str!("fixtures/fn80-palm-inventory.json");
+const ANSWER: &str = include_str!("fixtures/fn136-palm-recorded-answer.json");
 
 fn scratch(tag: &str) -> PathBuf {
     let dir = std::env::temp_dir().join(format!(
@@ -190,4 +193,47 @@ fn the_palms_date_cluster_leaves_core_coverage_on_its_recorded_assessment() {
         core_coverage(&inventory, &drawn, &unexpressed),
         (CellStatus::Pass, vec![])
     );
+}
+
+fn fruit_blocks(visual: &Visual) -> bool {
+    let fruit = "fruit-clusters-pendent";
+    visual.defects.iter().any(|d| d.starts_with(fruit))
+        || blocking_findings(visual)
+            .iter()
+            .any(|f| f.trait_id.as_deref() == Some(fruit))
+}
+
+/// R6: the palm's recorded assessment with a reviewer answer that ties each
+/// finding and defect to its trait. The date cluster's blocker and defect
+/// leave readiness and are listed as its known gap; the trunk still blocks.
+#[test]
+fn the_palms_date_cluster_no_longer_blocks_readiness_on_its_recorded_state() {
+    let answer: Value = serde_json::from_str(ANSWER).unwrap();
+    let visual: Visual = serde_json::from_value(answer["visual"].clone()).unwrap();
+    let defects: Vec<Defect> = serde_json::from_value(answer["defects"].clone()).unwrap();
+    let known: Vec<Unexpressed> = serde_json::from_value(answer["known_gaps"].clone()).unwrap();
+    let required: Vec<Cell> = visual.cells.iter().map(|(c, _)| c.clone()).collect();
+
+    let mut unlisted = visual.clone();
+    set_aside(&mut unlisted, defects.clone(), &[]);
+    assert!(fruit_blocks(&unlisted));
+    assert!(unlisted.known_gaps.is_empty());
+
+    let mut listed = visual.clone();
+    set_aside(&mut listed, defects, &known);
+    assert!(!fruit_blocks(&listed));
+    assert_eq!(
+        listed.known_gaps,
+        vec![KnownGap {
+            trait_id: "fruit-clusters-pendent".into(),
+            spec: "fn-111-the-palms-infructescence-a-hanging-date".into(),
+            defects: vec![visual.defects[2].clone()],
+        }]
+    );
+    // What the generator can draw still keeps the tree from reading ready.
+    assert_eq!(listed.defects.len(), 3);
+    assert!(blocking_findings(&listed)
+        .iter()
+        .any(|f| f.trait_id.as_deref() == Some("trunk-leaf-base-diamond-pattern")));
+    assert!(!ready(&required, &visual.identity, &listed));
 }

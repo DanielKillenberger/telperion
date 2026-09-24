@@ -1,12 +1,16 @@
 //! Reference-first protocol. An attributed inventory is evidence, not ground truth.
-use super::{evaluation::Image, state::CellStatus, unexpressed::Unexpressed, vision};
+use super::unexpressed::{set_aside, Defect, Unexpressed};
+use super::{evaluation::Image, state::CellStatus, vision};
 use crate::sha256_hex;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
 pub const VERSION: &str = "reference-first-v1";
+/// The comparison's protocol. v2 (fn-136) ties each finding and defect to a
+/// trait and names the known gaps; a v1 request or qualification is stale.
+pub const COMPARISON_VERSION: &str = "reference-first-comparison-v2";
 pub const INVENTORY_PROMPT: &str = "Inspect only the supplied reference images of the factual target species. Inventory the visible morphology that most defines recognition and believable reference character, ranked by importance. Use stable trait IDs; distinguish core recognition traits, secondary traits and acceptable variation. Cite reference IDs for each observed trait, mark uncertainty, and separate observations from possible causes. Do not infer that photographs show the same specimen or a causal change; their relationship is unknown. Do not assume a candidate, its defects, or any owner's assessment. Do not require photorealism or exact pixel matching. Inventory visible evidence rather than proposing a generator mechanism. Missing or ambiguous evidence must remain uncertain.";
-pub const COMPARISON_PROMPT: &str = "Compare the candidate jointly against the frozen reference-only inventory and supplied photographs at the catalogue finish floor. Account explicitly for every core trait using its exact trait ID, citing render and reference evidence. Pass requires a supported match, fail a defining mismatch, unknown missing/clipped/ambiguous evidence. Do not silently dismiss a core reference trait as non-photorealism or downgrade an uncertain trait. Distinguish optional refinement and acceptable variation from defining reference character. Inventory statements are attributed interpretations, not infallible facts: if contradicted or unassessable, report unknown with grounds. Keep observations separate from causal hypotheses; no particular mechanism is required. Relative improvement is not absolute readiness. A clean candidate can pass with supported evidence for every core trait and no blockers.";
+pub const COMPARISON_PROMPT: &str = "Compare the candidate jointly against the frozen reference-only inventory and supplied photographs at the catalogue finish floor. Account explicitly for every core trait using its exact trait ID, citing render and reference evidence. Pass requires a supported match, fail a defining mismatch, unknown missing/clipped/ambiguous evidence. Do not silently dismiss a core reference trait as non-photorealism or downgrade an uncertain trait. Distinguish optional refinement and acceptable variation from defining reference character. Inventory statements are attributed interpretations, not infallible facts: if contradicted or unassessable, report unknown with grounds. Keep observations separate from causal hypotheses; no particular mechanism is required. Relative improvement is not absolute readiness. A clean candidate can pass with supported evidence for every core trait and no blockers. Give every finding and defect a trait_id: the exact inventory trait ID it concerns, or null when it concerns none. The traits listed in known_gaps are known gaps the generator cannot draw yet: do not assess them, and give any finding or defect about one its trait_id.";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -148,15 +152,20 @@ pub struct ComparisonRequest {
     pub production_requirements: bool,
     pub comparison: vision::Request,
     pub inventory: Inventory,
+    /// Traits the generator cannot draw yet, each with the spec that captures
+    /// it; the reviewer does not assess them (fn-136).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub known_gaps: Vec<Unexpressed>,
 }
 impl ComparisonRequest {
     pub fn new(comparison: &vision::Request, inventory: Inventory) -> Self {
         Self {
-            protocol: VERSION.into(),
+            protocol: COMPARISON_VERSION.into(),
             prompt_sha256: sha256_hex(COMPARISON_PROMPT.as_bytes()),
             production_requirements: false,
             comparison: comparison.blind(),
             inventory,
+            known_gaps: vec![],
         }
     }
     pub fn production(comparison: &vision::Request, inventory: Inventory) -> Self {
@@ -171,7 +180,7 @@ impl ComparisonRequest {
     pub fn verify(&self) -> Result<(), String> {
         self.comparison.verify()?;
         self.inventory.verify()?;
-        if self.protocol != VERSION
+        if self.protocol != COMPARISON_VERSION
             || self.prompt_sha256 != sha256_hex(COMPARISON_PROMPT.as_bytes())
             || (!self.production_requirements
                 && self.comparison.hash() != self.comparison.blind().hash())
@@ -182,6 +191,11 @@ impl ComparisonRequest {
             != ReferenceRequest::from_comparison(&self.comparison).hash()
         {
             return Err("inventory reference/species mismatch".into());
+        }
+        if self.known_gaps.iter().any(|g| {
+            g.spec.trim().is_empty() || !self.inventory.traits.iter().any(|t| t.id == g.trait_id)
+        }) {
+            return Err("a known gap names no spec or no inventory trait".into());
         }
         Ok(())
     }
@@ -391,7 +405,6 @@ pub fn replay_score(
 pub fn assess(
     adapter: &vision::Adapter,
     request: &ComparisonRequest,
-    unexpressed: &[Unexpressed],
 ) -> Result<ComparisonResult, String> {
     use std::{
         io::Write,
@@ -438,7 +451,7 @@ pub fn assess(
         return Err("reference-first adapter failed; reservation retained".into());
     }
     let raw: serde_json::Value = serde_json::from_slice(&out.stdout).map_err(|e| e.to_string())?;
-    bind_response(adapter, request, &raw, &path, unexpressed)
+    bind_response(adapter, request, &raw, &path)
 }
 
 fn bind_response(
@@ -446,7 +459,6 @@ fn bind_response(
     request: &ComparisonRequest,
     raw: &serde_json::Value,
     path: &std::path::Path,
-    unexpressed: &[Unexpressed],
 ) -> Result<ComparisonResult, String> {
     if raw["status"] != "ok"
         || raw["request_sha256"] != request.hash()
@@ -476,14 +488,17 @@ fn bind_response(
             .as_u64()
             .ok_or("unknown usage")?,
     };
-    let visual:vision::Result=serde_json::from_value(serde_json::json!({"request_sha256":request.comparison.hash(),"assessment":{"identity":request.comparison.identity,"model":adapter.model,"ledger":path,"cells":cells,"defects":answer["defects"],"findings":answer["findings"]},"effort":adapter.effort,"usage":usage,"observations":answer["observations"]})).map_err(|e|e.to_string())?;
+    let visual:vision::Result=serde_json::from_value(serde_json::json!({"request_sha256":request.comparison.hash(),"assessment":{"identity":request.comparison.identity,"model":adapter.model,"ledger":path,"cells":cells,"defects":[],"findings":answer["findings"]},"effort":adapter.effort,"usage":usage,"observations":answer["observations"]})).map_err(|e|e.to_string())?;
     let mut result = ComparisonResult {
         request_sha256: request.hash(),
         visual,
         coverage: serde_json::from_value(answer["coverage"].clone()).map_err(|e| e.to_string())?,
     };
+    let defects: Vec<Defect> =
+        serde_json::from_value(answer["defects"].clone()).map_err(|e| e.to_string())?;
+    set_aside(&mut result.visual.assessment, defects, &request.known_gaps);
     request.verify()?;
-    result.bind_leaving(request, unexpressed)?;
+    result.bind(request)?;
     Ok(result)
 }
 
@@ -492,7 +507,6 @@ pub fn verify_convergence(
     adapter: &vision::Adapter,
     prepared: &RuntimeConfig,
     visual: &super::state::Visual,
-    unexpressed: &[Unexpressed],
 ) -> Result<(), String> {
     let path = std::path::Path::new(&visual.ledger);
     let metadata = std::fs::metadata(path).map_err(|e| e.to_string())?;
@@ -518,7 +532,7 @@ pub fn verify_convergence(
             .ok_or("missing convergence output")?,
     )
     .map_err(|e| e.to_string())?;
-    let bound = bind_response(adapter, &request, &raw, path, unexpressed)?;
+    let bound = bind_response(adapter, &request, &raw, path)?;
     if !super::state::ready(
         &request.comparison.required,
         &request.comparison.identity,
@@ -532,15 +546,6 @@ pub fn verify_convergence(
 }
 impl ComparisonResult {
     pub fn bind(&mut self, request: &ComparisonRequest) -> Result<(), String> {
-        self.bind_leaving(request, &[])
-    }
-    /// Binds as `bind` does, leaving the traits listed unexpressed out of the
-    /// core-coverage gate (fn-136).
-    pub fn bind_leaving(
-        &mut self,
-        request: &ComparisonRequest,
-        unexpressed: &[Unexpressed],
-    ) -> Result<(), String> {
         request.verify()?;
         if self.request_sha256 != request.hash() {
             return Err("stale reference-first comparison".into());
@@ -634,7 +639,7 @@ impl ComparisonResult {
         let (status, _) = super::unexpressed::core_coverage(
             &request.inventory,
             &self.visual.assessment.coverage,
-            unexpressed,
+            &request.known_gaps,
         );
         if status != CellStatus::Pass {
             let finding = super::joint::Finding {
@@ -643,6 +648,7 @@ impl ComparisonResult {
                 impact: if status == CellStatus::Fail { super::joint::Impact::Blocker } else { super::joint::Impact::RequiredUnknown },
                 uncertain: status == CellStatus::Unknown,
                 causal_hypothesis: None,
+                trait_id: None,
             };
             if !self
                 .visual

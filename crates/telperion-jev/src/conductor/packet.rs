@@ -57,6 +57,7 @@ pub fn assemble(config: &Config, run: &mut Run) -> Result<String> {
     let converged = latest.as_ref().and_then(|t| t.converged.clone());
     let mut outstanding: Vec<String> = Vec::new();
     let mut traits = Vec::new();
+    let mut machine = "not ready";
     let (visual, views, mut checklist, identity, preset) = match &latest {
         Some(t) => match gapcheck::read_result(&t.out) {
             Ok(result) => {
@@ -72,15 +73,20 @@ pub fn assemble(config: &Config, run: &mut Run) -> Result<String> {
                             .collect()
                     })
                     .unwrap_or_default();
-                let checklist: Vec<Value> = result
+                let mut checklist: Vec<Value> = result
                     .gaps
                     .iter()
                     .map(|g| json!({"id": g.id, "priority": g.priority, "status": g.status}))
                     .collect();
                 traits = result.known_gaps.clone();
                 let bootstrap = result.outcome.bootstrap;
-                let visual = !bootstrap && (result.outcome.machine_ready || converged.is_some());
-                if bootstrap {
+                machine = finish::machine_readiness(result.outcome.machine_ready, bootstrap);
+                // A converged bootstrap goes to the owner: the reviewer is
+                // unqualified, so the owner's verdict is the acceptance.
+                let visual = converged.is_some() || (result.outcome.machine_ready && !bootstrap);
+                if bootstrap && converged.is_some() {
+                    checklist.push(finish::reviewer_qualification());
+                } else if bootstrap {
                     unready.push("visual readiness: the run was a bootstrap; the reviewer has not been shown to pass an owner-accepted tree".into());
                 } else if !visual {
                     unready.push(format!(
@@ -149,6 +155,7 @@ pub fn assemble(config: &Config, run: &mut Run) -> Result<String> {
         "matched_views": views,
         "checklist": checklist,
         "converged": converged,
+        "machine_readiness": machine,
         "outstanding": outstanding,
         "sources": sources(config),
         "article": article.display().to_string(),

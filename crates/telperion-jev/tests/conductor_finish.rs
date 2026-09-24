@@ -115,6 +115,7 @@ fn a_run_the_guard_stopped_goes_to_the_owners_packet_with_every_known_gap() {
     let packet: Value =
         serde_json::from_slice(&std::fs::read(config.packet_file()).unwrap()).unwrap();
     assert!(packet["converged"].as_str().unwrap().contains("runaway"));
+    assert_eq!(packet["machine_readiness"], "not ready");
     let checklist = packet["checklist"].as_array().unwrap();
     let status = |id: &str| {
         checklist
@@ -157,4 +158,38 @@ fn no_progress_is_a_finish_only_with_every_drawable_objective_passing() {
             reason: NO_PROPOSAL.into()
         }
     );
+}
+
+/// R7: the palm's revision 3 was a bootstrap, so its reviewer is unqualified
+/// for positives. Stopped by the guard, it still reaches the owner's packet:
+/// machine readiness reads `unqualified reviewer`, reviewer qualification is
+/// a known gap, and the owner's verdict is the acceptance.
+#[test]
+fn the_palms_bootstrap_revision_reaches_the_packet_with_an_unqualified_reviewer() {
+    let (config, mut run, mut executor) = stopped("bootstrap", RUNAWAY, &[]);
+    let mut palm: EndResult =
+        serde_json::from_str(include_str!("fixtures/fn136-palm-revision-3-result.json")).unwrap();
+    assert!(palm.outcome.bootstrap && !palm.outcome.machine_ready);
+    // The still lives in the fn-80 worktree; the packet only asks that it is on disk.
+    let still = config.dir.join("P-WHOLE.png");
+    std::fs::write(&still, b"png").unwrap();
+    palm.outcome.current.as_mut().unwrap().stills[0].path = still.display().to_string();
+    executor.result = palm;
+    let (word, next) = tune_once(&config, &mut run, &executor);
+    assert!(word.contains("converged"), "{word}");
+    assert_eq!(next, Next::Packet);
+    let (word, _) = drive(&Script::new(), &config, &mut run, &executor);
+    assert!(word.contains("packet ready"), "{word}");
+    let packet: Value =
+        serde_json::from_slice(&std::fs::read(config.packet_file()).unwrap()).unwrap();
+    assert_eq!(packet["ready_for_owner_review"], true);
+    assert_eq!(packet["machine_readiness"], "unqualified reviewer");
+    let checklist = packet["checklist"].as_array().unwrap();
+    let qualification = checklist
+        .iter()
+        .find(|c| c["id"] == "reviewer-qualification")
+        .unwrap();
+    assert_eq!(qualification["status"], "known gap");
+    let outstanding = packet["outstanding"].as_array().unwrap();
+    assert_eq!(outstanding.len(), 2, "{outstanding:?}");
 }

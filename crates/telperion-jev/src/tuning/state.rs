@@ -49,6 +49,10 @@ pub struct Visual {
     /// here. Empty under any other visual protocol.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub coverage: Vec<TraitStatus>,
+    /// The traits the generator cannot draw yet that the request named, with
+    /// the reviewer's defects against them; left out of readiness (fn-136).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub known_gaps: Vec<super::unexpressed::KnownGap>,
 }
 
 /// One reference-first trait and what the reviewer made of it.
@@ -67,6 +71,26 @@ pub enum CellStatus {
     Unknown,
 }
 
+/// The findings that keep a tree from ready: a blocker, a required unknown
+/// or an uncertain support, unless the reviewer tied it to a known gap.
+pub fn blocking_findings(assessment: &Visual) -> Vec<&super::joint::Finding> {
+    use super::joint::Impact;
+    let known = |f: &super::joint::Finding| {
+        f.trait_id
+            .as_ref()
+            .is_some_and(|id| assessment.known_gaps.iter().any(|g| &g.trait_id == id))
+    };
+    assessment
+        .findings
+        .iter()
+        .filter(|f| {
+            matches!(f.impact, Impact::Blocker | Impact::RequiredUnknown)
+                || (f.impact == Impact::Supported && f.uncertain)
+        })
+        .filter(|f| !known(f))
+        .collect()
+}
+
 pub fn ready(required: &[Cell], identity: &str, assessment: &Visual) -> bool {
     !required.is_empty()
         && !identity.is_empty()
@@ -74,12 +98,7 @@ pub fn ready(required: &[Cell], identity: &str, assessment: &Visual) -> bool {
         && !assessment.model.is_empty()
         && !assessment.ledger.is_empty()
         && assessment.defects.is_empty()
-        && !assessment.findings.iter().any(|f| {
-            matches!(
-                f.impact,
-                super::joint::Impact::Blocker | super::joint::Impact::RequiredUnknown
-            ) || (f.impact == super::joint::Impact::Supported && f.uncertain)
-        })
+        && blocking_findings(assessment).is_empty()
         && assessment.joint.as_ref().is_none_or(|p| {
             !p.inputs
                 .iter()

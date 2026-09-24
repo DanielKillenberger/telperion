@@ -58,6 +58,7 @@ fn finding(text: &str) -> Finding {
         impact: Impact::Blocker,
         uncertain: false,
         causal_hypothesis: None,
+        trait_id: None,
     }
 }
 
@@ -93,6 +94,7 @@ fn every_approved_priority_is_a_gap_entry_with_its_status_and_the_check_left_ope
             finding("no hanging masses"),
         ],
         joint: None,
+        known_gaps: vec![],
         coverage: vec![],
     };
     let evidence = vec![

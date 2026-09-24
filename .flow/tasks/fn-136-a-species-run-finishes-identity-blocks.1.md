@@ -1,5 +1,5 @@
 ---
-satisfies: [R1, R2, R3, R4, R5]
+satisfies: [R1, R2, R3, R4, R5, R6, R7]
 ---
 # fn-136-a-species-run-finishes-identity-blocks.1 Implement fn-136-a-species-run-finishes-identity-blocks
 

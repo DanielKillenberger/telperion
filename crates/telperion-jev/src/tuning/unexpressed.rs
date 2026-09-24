@@ -4,7 +4,7 @@
 //! ignores them (fn-116), and the core-coverage gate that readiness rests on
 //! leaves them out as known gaps (fn-136).
 use super::reference_first::{Inventory, Priority, RuntimeConfig};
-use super::state::{CellStatus, TraitStatus};
+use super::state::{CellStatus, TraitStatus, Visual};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -72,4 +72,49 @@ pub fn core_coverage(
         blocking.push(t.id.clone());
     }
     (status, blocking)
+}
+
+/// A reviewer's defect and the inventory trait it concerns, or none.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct Defect {
+    pub defect: String,
+    pub trait_id: Option<String>,
+}
+
+/// A trait the run finishes without, the spec that captures it, and what the
+/// reviewer said against it; none of it counts toward readiness.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct KnownGap {
+    #[serde(rename = "trait")]
+    pub trait_id: String,
+    pub spec: String,
+    pub defects: Vec<String>,
+}
+
+/// Files the reviewer's defects on the assessment: one tied to a known gap
+/// goes to that gap, every other stays a defect. Each known gap is listed,
+/// so `ready()` also passes over a finding the reviewer tied to it (fn-136).
+pub fn set_aside(assessment: &mut Visual, defects: Vec<Defect>, known: &[Unexpressed]) {
+    let mut gaps: Vec<KnownGap> = known
+        .iter()
+        .map(|u| KnownGap {
+            trait_id: u.trait_id.clone(),
+            spec: u.spec.clone(),
+            defects: vec![],
+        })
+        .collect();
+    assessment.defects.clear();
+    for d in defects {
+        let gap = d
+            .trait_id
+            .as_ref()
+            .and_then(|id| gaps.iter_mut().find(|g| &g.trait_id == id));
+        match gap {
+            Some(gap) => gap.defects.push(d.defect),
+            None => assessment.defects.push(d.defect),
+        }
+    }
+    assessment.known_gaps = gaps;
 }

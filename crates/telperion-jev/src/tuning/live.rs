@@ -403,12 +403,7 @@ impl Config {
                     expected.as_ref(),
                     proof.preparation_charge.as_ref(),
                 )?;
-                super::reference_first::verify_convergence(
-                    &self.vision,
-                    prepared,
-                    visual,
-                    &self.unexpressed,
-                )?;
+                super::reference_first::verify_convergence(&self.vision, prepared, visual)?;
             }
             if !proof.machine_ready
                 || proof.pause.is_some()
@@ -536,14 +531,10 @@ impl Live<'_> {
                 "{}\nAuthoritative owner requirements: {}",
                 request.checklist, self.config.owner_notes
             );
-            let comparison =
+            let mut comparison =
                 super::reference_first::ComparisonRequest::production(&request, inventory);
-            super::reference_first::assess(
-                &self.config.vision,
-                &comparison,
-                &self.config.unexpressed,
-            )?
-            .visual
+            comparison.known_gaps = self.config.unexpressed.clone();
+            super::reference_first::assess(&self.config.vision, &comparison)?.visual
         } else {
             self.config.vision.assess(&request)?
         };

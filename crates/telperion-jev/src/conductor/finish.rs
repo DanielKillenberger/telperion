@@ -60,3 +60,22 @@ pub fn known_gaps(config: &Config, traits: &[Unexpressed]) -> Vec<Value> {
     }
     out
 }
+
+/// Machine readiness as the packet records it. A bootstrap reviewer has not
+/// been shown to pass an owner-accepted tree, so its run is neither ready
+/// nor failed: `unqualified reviewer`.
+pub fn machine_readiness(machine_ready: bool, bootstrap: bool) -> &'static str {
+    match (machine_ready, bootstrap) {
+        (_, true) => "unqualified reviewer",
+        (true, false) => "ready",
+        (false, false) => "not ready",
+    }
+}
+
+/// The known gap a converged bootstrap run carries to the owner.
+pub fn reviewer_qualification() -> Value {
+    json!({"id": "reviewer-qualification", "priority": KNOWN_GAP, "status": KNOWN_GAP,
+           "captured_by": [],
+           "reason": "the visual reviewer ran as a bootstrap and is unqualified for positives; \
+                      the owner's verdict is the acceptance"})
+}
