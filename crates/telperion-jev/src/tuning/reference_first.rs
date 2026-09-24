@@ -646,13 +646,55 @@ impl ComparisonResult {
                 status: c.status,
             })
             .collect();
+        // A row that repeats a trait or carries an unusable explanation or
+        // evidence list is dropped and noted like the rows above, never a
+        // refused paid pass (fn-80, 2026-09-24). The first valid row per trait
+        // stands.
+        // An invented evidence id still refuses the pass: the reviewer cited
+        // something it was never shown.
+        if self
+            .coverage
+            .iter()
+            .any(|c| c.evidence_ids.iter().any(|id| !allowed.contains(id)))
+        {
+            return Err("invalid trait coverage".into());
+        }
         let mut seen = HashSet::new();
-        for c in &self.coverage {
-            if !seen.insert(&c.trait_id) || !text(&c.explanation) || !ids(&c.evidence_ids, &allowed)
-            {
-                return Err("invalid trait coverage".into());
+        let mut invalid = vec![];
+        self.coverage.retain(|c| {
+            let ok = text(&c.explanation) && ids(&c.evidence_ids, &allowed);
+            if ok && seen.insert(c.trait_id.clone()) {
+                return true;
+            }
+            invalid.push(format!(
+                "dropped coverage row {} {}: {:?} \u{2014} {}",
+                if ok {
+                    "repeating its trait"
+                } else {
+                    "with unusable text or evidence"
+                },
+                c.trait_id,
+                c.status,
+                c.explanation
+            ));
+            false
+        });
+        for note in invalid {
+            if !self.visual.observations.contains(&note) {
+                self.visual.observations.push(note.clone());
+            }
+            if !self.visual.assessment.observations.contains(&note) {
+                self.visual.assessment.observations.push(note);
             }
         }
+        self.visual.assessment.coverage = self
+            .coverage
+            .iter()
+            .map(|c| super::state::TraitStatus {
+                trait_id: c.trait_id.clone(),
+                status: c.status,
+            })
+            .collect();
         let (status, _) = super::unexpressed::core_coverage(
             &request.inventory,
             &self.visual.assessment.coverage,
