@@ -1,118 +1,161 @@
 {
-  "shape": "Each object in traits is one habit, element, attachment, radius or organ need. Fields: trait (parameter path, or 'organ:<name>' when no parameter exists), need (the value or structure the palm requires), outcome (reachable | unreachable-value | unsupported-anatomy), capability (the hyphenated gate name when this need is a named capability, else null), depends_on (an existing open spec id, or null), confidence (high | medium | unsure), note (the reading from the trait space). required_capabilities is the same list written on the manifest engineering row.",
-  "species": "date-palm",
-  "taxon": "Phoenix dactylifera",
-  "assessed": "2026-09-19",
-  "sources": [
-    "crates/telperion-core/src/branching/traits.rs",
-    "crates/telperion-core/src/branching/scaffold.rs",
-    "crates/telperion-core/src/foliage/element.rs",
-    "crates/telperion-core/src/foliage/placement.rs",
-    "crates/telperion-core/src/radius.rs",
-    "crates/telperion-core/src/twigs.rs",
-    "crates/telperion-core/examples/geometry_benchmark.rs capabilities()",
-    ".flow/specs/fn-82-date-palm-as-a-real-species.md",
-    ".flow/evidence/date-palm/pipeline/packet/profile.json",
-    ".flow/specs/fn-33-flowers-cones-and-compound-leaves-as.md"
-  ],
-  "required_capabilities": [
-    "woody-axes",
-    "apical-rosette",
-    "pinnate-frond",
-    "acanthophyll",
-    "persistent-leaf-base",
-    "infructescence"
-  ],
-  "traits": [
-    {
-      "trait": "skeleton.habit.stems",
-      "need": "1, a single trunk, matching the profile's single-stemmed oasis or orchard palm",
-      "outcome": "reachable",
-      "capability": "woody-axes",
-      "depends_on": null,
-      "confidence": "high",
-      "note": "HabitParams.stems validates 1..=6. The stem is an axis. capabilities() always emits woody-axes for a registered preset. Date-palm is not registered, so the gate will still list woody-axes as missing."
-    },
-    {
-      "trait": "skeleton.habit.lateral_orders",
-      "need": "0, a stem that stations no laterals (Corner's unbranched monopodial axis)",
-      "outcome": "reachable",
-      "capability": null,
-      "depends_on": null,
-      "confidence": "high",
-      "note": "lateral_orders validates as <= 8, so 0 is legal. scaffold.rs stations laterals only when axis.order < lateral_orders, so 0 never calls station() on the leader. Attractors pull the leader heading and do not add laterals. This is a value, not a missing capability, so it is not in required_capabilities."
-    },
-    {
-      "trait": "skeleton.habit.laterals_per_station",
-      "need": "0 laterals at a station, if that were the only dial",
-      "outcome": "unreachable-value",
-      "capability": null,
-      "depends_on": null,
-      "confidence": "high",
-      "note": "Validates 1..=12, and scaffold.rs uses laterals_per_station.max(1) on the leader. The palm does not need this dial at 0, because lateral_orders=0 never places a station. Recorded so a reader who only looks at this range does not file a false gap."
-    },
-    {
-      "trait": "skeleton.habit.apical_dominance",
-      "need": "near 1, the leader persists (Corner)",
-      "outcome": "reachable",
-      "capability": null,
-      "depends_on": null,
-      "confidence": "high",
-      "note": "Unit range 0..=1. Named models are regions of this space (fn-24). Corner as a habit region is reachable. The complete Corner form also needs the apical leaf crown, which is a separate attachment need."
-    },
-    {
-      "trait": "radii.length_taper",
-      "need": "0, a trunk of near-constant diameter, no pipe-model thickening from distal load",
-      "outcome": "reachable",
-      "capability": null,
-      "depends_on": null,
-      "confidence": "high",
-      "note": "resolved() keeps length_taper.max(0.0). On an unbranched axis, shed is 0 everywhere when taper is 0, each node's r is 1 before scale, and the stem scales to trunk_radius * height. The solve is still a pipe model; the mature column is the product. There is no trait that names the absence of a cambium. That mechanism is not asked. The visual constant diameter is."
-    },
-    {
-      "trait": "canopy.shoot_radius / canopy.short_shoot_* / twigs",
-      "need": "fronds borne only as a rosette at the apex of a thick unbranched stem, with no laterals and no twig clothing of the trunk",
-      "outcome": "unsupported-anatomy",
-      "capability": "apical-rosette",
-      "depends_on": null,
-      "confidence": "high",
-      "note": "place() and bearing_runs() clothe slender wood and twig-marked runs. shoot_radius is a fraction of root radius: on a constant-diameter trunk, a value below 1 clothes nothing and 1 clothes the whole stem. short_shoot_radius skips wood thicker than its fraction. twigs.generations validates 1..=6, so a twig layer always exists; a childless tip above trunk_height still gets a terminal twig, which is a small shoot bearing the family's one blade, not a crown of fronds. No canopy row means 'apex only'."
-    },
-    {
-      "trait": "element (length, width, lobe_count, section_roundness)",
-      "need": "one pinnate frond: leaflets along a rachis, one placement",
-      "outcome": "unsupported-anatomy",
-      "capability": "pinnate-frond",
-      "depends_on": "fn-33-flowers-cones-and-compound-leaves-as",
-      "confidence": "high",
-      "note": "build_element draws one simple blade or needle. lobe_count 0..=8 cuts the margin toward the midrib; it is not a leaflet count. FoliageUnit is Leaf or Needle. fn-33 (open) adds leaflet_count, rachis_length, leaflet_pitch and terminal_leaflet and expands a placement along a drawn rachis. The ash proof is the same pinnate grouping. Scale is a value (element.length allows up to 1e3 m). Not a new gap."
-    },
-    {
-      "trait": "organ:acanthophyll",
-      "need": "basal leaflets of the Phoenix frond modified as spines",
-      "outcome": "unsupported-anatomy",
-      "capability": "acanthophyll",
-      "depends_on": null,
-      "confidence": "high",
-      "note": "No element or organ row distinguishes a spine from a leaflet. fn-33 names leaflet count and pitch, not a spinose basal leaflet. flowctl specs --json shows no open spec for acanthophyll or leaflet spines. Pine's paired-needle-fascicle is the same disposition, a different organ."
-    },
-    {
-      "trait": "organ:persistent-leaf-base",
-      "need": "retained petiole bases clothing the trunk as a 3D organ, the diamond boots of a date palm",
-      "outcome": "unsupported-anatomy",
-      "capability": "persistent-leaf-base",
-      "depends_on": null,
-      "confidence": "medium",
-      "note": "The spec lists this as an organ, not as bark. No attachment or element trait places a retained leaf base on the stem. surface.lobes and the material plate and furrow rows can texture bark. Whether a bark-plate look would be accepted as this organ is unsure; the organ itself has no trait. No open spec names it."
-    },
-    {
-      "trait": "organ:infructescence",
-      "need": "a hanging date cluster from the crown",
-      "outcome": "unsupported-anatomy",
-      "capability": "infructescence",
-      "depends_on": "fn-33-flowers-cones-and-compound-leaves-as",
-      "confidence": "medium",
-      "note": "fn-33 (open) specifies one reproductive organ slot for a flower, a cone or a fruit, placed at stations as a second foliage list. That is the existing spec for a fruiting organ. Unsure whether a branched Phoenix spadix is one hanging organ element or a structure the single-element slot cannot draw. Not filed as a new gap. fn-33's own boundary parks a second fruit slot (oak acorns)."
-    }
-  ]
+ "shape": "Each object in traits is one habit, element, attachment, radius or organ need. Fields: trait (parameter path, or 'organ:<name>' when no parameter exists), need (the value or structure the palm requires), outcome (reachable | unreachable-value | unsupported-anatomy), capability (the hyphenated gate name when this need is a named capability, else null), depends_on (an existing open spec id, or null), confidence (high | medium | unsure), note (the reading from the trait space). required_capabilities is the same list written on the manifest engineering row.",
+ "species": "date-palm",
+ "taxon": "Phoenix dactylifera",
+ "assessed": "2026-09-19",
+ "sources": [
+  "crates/telperion-core/src/branching/traits.rs",
+  "crates/telperion-core/src/branching/scaffold.rs",
+  "crates/telperion-core/src/foliage/element.rs",
+  "crates/telperion-core/src/foliage/placement.rs",
+  "crates/telperion-core/src/radius.rs",
+  "crates/telperion-core/src/twigs.rs",
+  "crates/telperion-core/examples/geometry_benchmark.rs capabilities()",
+  ".flow/specs/fn-82-date-palm-as-a-real-species.md",
+  ".flow/evidence/date-palm/pipeline/packet/profile.json",
+  ".flow/specs/fn-33-flowers-cones-and-compound-leaves-as.md"
+ ],
+ "required_capabilities": [
+  "woody-axes",
+  "apical-rosette",
+  "pinnate-frond",
+  "acanthophyll",
+  "persistent-leaf-base",
+  "infructescence"
+ ],
+ "traits": [
+  {
+   "trait": "skeleton.habit.stems",
+   "need": "1, a single trunk, matching the profile's single-stemmed oasis or orchard palm",
+   "outcome": "reachable",
+   "capability": "woody-axes",
+   "depends_on": null,
+   "confidence": "high",
+   "note": "HabitParams.stems validates 1..=6. The stem is an axis. capabilities() always emits woody-axes for a registered preset. Date-palm is not registered, so the gate will still list woody-axes as missing."
+  },
+  {
+   "trait": "skeleton.habit.lateral_orders",
+   "need": "0, a stem that stations no laterals (Corner's unbranched monopodial axis)",
+   "outcome": "reachable",
+   "capability": null,
+   "depends_on": null,
+   "confidence": "high",
+   "note": "lateral_orders validates as <= 8, so 0 is legal. scaffold.rs stations laterals only when axis.order < lateral_orders, so 0 never calls station() on the leader. Attractors pull the leader heading and do not add laterals. This is a value, not a missing capability, so it is not in required_capabilities."
+  },
+  {
+   "trait": "skeleton.habit.laterals_per_station",
+   "need": "0 laterals at a station, if that were the only dial",
+   "outcome": "unreachable-value",
+   "capability": null,
+   "depends_on": null,
+   "confidence": "high",
+   "note": "Validates 1..=12, and scaffold.rs uses laterals_per_station.max(1) on the leader. The palm does not need this dial at 0, because lateral_orders=0 never places a station. Recorded so a reader who only looks at this range does not file a false gap."
+  },
+  {
+   "trait": "skeleton.habit.apical_dominance",
+   "need": "near 1, the leader persists (Corner)",
+   "outcome": "reachable",
+   "capability": null,
+   "depends_on": null,
+   "confidence": "high",
+   "note": "Unit range 0..=1. Named models are regions of this space (fn-24). Corner as a habit region is reachable. The complete Corner form also needs the apical leaf crown, which is a separate attachment need."
+  },
+  {
+   "trait": "radii.length_taper",
+   "need": "0, a trunk of near-constant diameter, no pipe-model thickening from distal load",
+   "outcome": "reachable",
+   "capability": null,
+   "depends_on": null,
+   "confidence": "high",
+   "note": "resolved() keeps length_taper.max(0.0). On an unbranched axis, shed is 0 everywhere when taper is 0, each node's r is 1 before scale, and the stem scales to trunk_radius * height. The solve is still a pipe model; the mature column is the product. There is no trait that names the absence of a cambium. That mechanism is not asked. The visual constant diameter is."
+  },
+  {
+   "trait": "canopy.shoot_radius / canopy.short_shoot_* / twigs",
+   "need": "fronds borne only as a rosette at the apex of a thick unbranched stem, with no laterals and no twig clothing of the trunk",
+   "outcome": "unsupported-anatomy",
+   "capability": "apical-rosette",
+   "depends_on": null,
+   "confidence": "high",
+   "note": "place() and bearing_runs() clothe slender wood and twig-marked runs. shoot_radius is a fraction of root radius: on a constant-diameter trunk, a value below 1 clothes nothing and 1 clothes the whole stem. short_shoot_radius skips wood thicker than its fraction. twigs.generations validates 1..=6, so a twig layer always exists; a childless tip above trunk_height still gets a terminal twig, which is a small shoot bearing the family's one blade, not a crown of fronds. No canopy row means 'apex only'."
+  },
+  {
+   "trait": "element (length, width, lobe_count, section_roundness)",
+   "need": "one pinnate frond: leaflets along a rachis, one placement",
+   "outcome": "unsupported-anatomy",
+   "capability": "pinnate-frond",
+   "depends_on": "fn-33-flowers-cones-and-compound-leaves-as",
+   "confidence": "high",
+   "note": "build_element draws one simple blade or needle. lobe_count 0..=8 cuts the margin toward the midrib; it is not a leaflet count. FoliageUnit is Leaf or Needle. fn-33 (open) adds leaflet_count, rachis_length, leaflet_pitch and terminal_leaflet and expands a placement along a drawn rachis. The ash proof is the same pinnate grouping. Scale is a value (element.length allows up to 1e3 m). Not a new gap."
+  },
+  {
+   "trait": "organ:acanthophyll",
+   "need": "basal leaflets of the Phoenix frond modified as spines",
+   "outcome": "unsupported-anatomy",
+   "capability": "acanthophyll",
+   "depends_on": null,
+   "confidence": "high",
+   "note": "No element or organ row distinguishes a spine from a leaflet. fn-33 names leaflet count and pitch, not a spinose basal leaflet. flowctl specs --json shows no open spec for acanthophyll or leaflet spines. Pine's paired-needle-fascicle is the same disposition, a different organ."
+  },
+  {
+   "trait": "organ:persistent-leaf-base",
+   "need": "retained petiole bases clothing the trunk as a 3D organ, the diamond boots of a date palm",
+   "outcome": "unsupported-anatomy",
+   "capability": "persistent-leaf-base",
+   "depends_on": null,
+   "confidence": "medium",
+   "note": "The spec lists this as an organ, not as bark. No attachment or element trait places a retained leaf base on the stem. surface.lobes and the material plate and furrow rows can texture bark. Whether a bark-plate look would be accepted as this organ is unsure; the organ itself has no trait. No open spec names it."
+  },
+  {
+   "trait": "organ:infructescence",
+   "need": "a hanging date cluster from the crown",
+   "outcome": "unsupported-anatomy",
+   "capability": "infructescence",
+   "depends_on": "fn-33-flowers-cones-and-compound-leaves-as",
+   "confidence": "medium",
+   "note": "fn-33 (open) specifies one reproductive organ slot for a flower, a cone or a fruit, placed at stations as a second foliage list. That is the existing spec for a fruiting organ. Unsure whether a branched Phoenix spadix is one hanging organ element or a structure the single-element slot cannot draw. Not filed as a new gap. fn-33's own boundary parks a second fruit slot (oak acorns)."
+  }
+ ],
+ "classes": [
+  {
+   "capability": "infructescence",
+   "class": "improvement",
+   "reason": "The date cluster adds realism; the palm is recognisable without it (two of the three reference photographs show fruitless crowns), and fn-33's organ slot serves many species. The owner put the palm's date clusters in the backlog on 2026-09-24.",
+   "captured_by": [
+    "fn-33-flowers-cones-and-compound-leaves-as",
+    "fn-111-the-palms-infructescence-a-hanging-date"
+   ],
+   "decided_by": "owner",
+   "decided_on": "2026-09-24"
+  },
+  {
+   "capability": "leaf-base-lattice",
+   "class": "identity",
+   "reason": "The packed diamond lattice of flat-faced leaf-base boots is how a date palm's trunk reads at every distance; tuning revision 1 stopped on the no-progress guard with the reviewer failing trunk-leaf-base-diamond-pattern in every round, and the generator draws each base as a round peg no dial packs into a lattice.",
+   "captured_by": [
+    "fn-144-retained-leaf-bases-pack-into-a-lattice"
+   ],
+   "decided_by": "host",
+   "decided_on": "2026-09-24"
+  },
+  {
+   "capability": "leaf-base-fibre",
+   "class": "improvement",
+   "reason": "The fibrous matting between the bases adds realism; the lattice alone makes the trunk identifiable, and the fibre is shared across palms.",
+   "captured_by": [
+    "fn-145-fibre-mats-the-gaps-between-retained"
+   ],
+   "decided_by": "host",
+   "decided_on": "2026-09-24"
+  },
+  {
+   "capability": "dead-frond-skirt",
+   "class": "improvement",
+   "reason": "Cultivated date palms are commonly pruned, and the reviewer held the skirt unknown rather than failing it; the crown reads as a date palm without it.",
+   "captured_by": [
+    "fn-120-dead-fronds-hang-as-a-skirt-below-a"
+   ],
+   "decided_by": "host",
+   "decided_on": "2026-09-24"
+  }
+ ]
 }
