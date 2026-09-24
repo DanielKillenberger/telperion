@@ -1,0 +1,12 @@
+{
+ "input_identity": "db897645b3a3d4f46740fccc952f9f780c2121dec72c71793682e14d1345d8db",
+ "design_revision": "9120db9d685c73cc6cf026c6261ce8ea8ff8960beb6f3641d2a471d15f4ef91f",
+ "actual_model": "claude-opus-5-5",
+ "actual_effort": "low",
+ "usage": null,
+ "cost_usd": null,
+ "verification": "verified",
+ "failure": null,
+ "handoff": null,
+ "observed": "Investigated by the host: no design evidence is missing and no judgments contradict. The design handoff (.flow/evidence/fn80/design-fn-144.md) is recorded at dispatch-17, and the implementation already exists on branch fn-144 (965b0403, PR 110): R1 lattice test green at 32, 96 and 256 bases, R2 presets byte-identical, R3 P-TRUNK still shows the lattice, workspace gate 1,060 passed and 0 failed. The next step is an implementation dispatch recorded after the fact, then landing at 78724c43."
+}

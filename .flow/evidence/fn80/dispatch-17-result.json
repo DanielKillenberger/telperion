@@ -1,0 +1,12 @@
+{
+ "design_revision": null,
+ "actual_model": "claude-opus-5-5",
+ "actual_effort": "medium",
+ "usage": null,
+ "cost_usd": null,
+ "verification": "verified",
+ "failure": null,
+ "input_identity": "935e30eac068425ce12029e41dd97562759eb508690a871b293515d4b4900ef5",
+ "observed": "Design recorded after the fact: fn-144 was designed and implemented in one pass by the strong-tier agent the host dispatched directly before the conductor opened this dispatch; the handoff file is the design as landed on branch fn-144 (965b0403, PR 110). Usage of that earlier dispatch is not on record here, so the reservation is charged.",
+ "handoff": ".flow/evidence/fn80/design-fn-144.md"
+}

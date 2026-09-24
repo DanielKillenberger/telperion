@@ -1,0 +1,12 @@
+{
+ "input_identity": "host-built-fn-144",
+ "design_revision": "9120db9d685c73cc6cf026c6261ce8ea8ff8960beb6f3641d2a471d15f4ef91f",
+ "actual_model": "claude-opus-5-5",
+ "actual_effort": "medium",
+ "usage": null,
+ "cost_usd": null,
+ "verification": "verified",
+ "failure": null,
+ "handoff": null,
+ "observed": "Built by the strong-tier agent the host dispatched directly: branch fn-144 965b0403 (receipt 78724c43), PR 110, merged into fn-80 at b7632d26. R1 lattice test green at 32, 96 and 256 bases; R2 presets byte-identical; R3 P-TRUNK still shows the lattice; gate 1,060 passed, 0 failed."
+}
