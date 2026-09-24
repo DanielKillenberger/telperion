@@ -1,115 +1,145 @@
 {
-  "resolutions": [
-    {
-      "id": "date-palm/gap/gap-fix/gate-onboarding-gate-capability",
-      "inputs_sha256": {
-        "options": "ac7301194c1311a86000c68a0c8a418de5016de9a5d3a1843daa56700fc36689",
-        "table_version": "1"
-      },
-      "option": "apical-rosette-of-pinnate-fronds",
-      "by": "owner",
-      "at": "2026-09-22",
-      "note": "Owner, verbatim: \"ok it's really hard for me to judge if the palm needs a apical rosette but if confidence is high let's go for it?\" The host's reading: the need is the capability packet's high-confidence trait, not Jev's 0.42 best-match, which answered a five-part gap with one option. Confirmed, not a reversal."
-    },
-    {
-      "id": "date-palm/quality/data-insufficient/dbh_m",
-      "inputs_sha256": {
-        "fetch.json": "5431d70cbec3447aa2a7ecaf393d1253da432662507bceded490f4eb0f777116"
-      },
-      "option": "add-sources",
-      "by": "cheap driver claude-sonnet-5 under the conductor's routine policy",
-      "at": "2026-09-22",
-      "note": "Runbook rule applied (docs/species-pipeline.md, Decisions table, data-insufficient row): admit-proxy accepts a composition from an already-admitted source naming a different taxon or condition, per the sufficiency question set proxy_only criterion (\"age-indexed sizes exist but for another taxon [or] condition\"). This field's recorded evidence is points: [] with dominant_gap no_age_indexed_points (\"No source states a size at an age at all\") across every admitted source (F1, A1, M1) tried: there is no age-indexed reading, proxy or otherwise, on hand to admit. lower-bar is the owner's. add-sources is the only routine option the evidence supports."
-    },
-    {
-      "id": "date-palm/verify/claim-unsupported/A1",
-      "inputs_sha256": {
-        "select.json": "027748aef2b61895c6b2da2023093f42885aca751f5254530c0d35606fb63b2e"
-      },
-      "option": "accept",
-      "by": "host claude-fable-5-1 under the owner's standing rule",
-      "at": "2026-09-22",
-      "note": "The claim 'height_m: 50 - 100 feet' is present verbatim in the cited section of A1 ('**Height:** 50 - 100 feet'); Jev's support confidence of 0.73 sat under the 0.8 bar on a page that mixes cultural history with the size table. Accepted on the verbatim match; a height stated without an age, which the fit stage treats as the mature range it is."
-    },
-    {
-      "id": "date-palm/document/article-unfilled",
-      "inputs_sha256": {
-        "select.json": "027748aef2b61895c6b2da2023093f42885aca751f5254530c0d35606fb63b2e"
-      },
-      "option": "write-article",
-      "by": "cheap driver claude-sonnet-5 under the conductor's routine policy",
-      "at": "2026-09-22",
-      "note": "Wrote the five TODO sections (Identity, Size and growth, Crown and habit, Bark, Leaves) from the packet's own records: M1's full copy for taxonomic placement, general growing regions and general pinnate-leaf, spined-petiole and induplicate-leaflet anatomy, and for the trunk's standing as the least diagnostic of its six compared character groups; A1's cited height passage (50 - 100 feet / 15.24 to 30.48 m) for size and growth. F1 carries no cited passage, so every claim it would otherwise support (finer identity detail, age-linked growth, dbh, crown silhouette, bark surface description, frond count and retention) is instead stated as a gap cited to F1. No number outside the packet's own records was used. `node scripts/catalogue-article.mjs --species date-palm` passed with no failures after the rewrite."
-    },
-    {
-      "id": "date-palm/discover/manifest-proposed",
-      "inputs_sha256": {
-        "seed": "7824c31de029932baf7d93b8a426659a51af3639f720f05d668157357bbf1228"
-      },
-      "option": "admit",
-      "by": "host relaying the owner's decision of 2026-09-23",
-      "at": "2026-09-24",
-      "note": "The fields change is the palm row the owner chose on 2026-09-23 (growth rate plus mature range): height_growth_m_per_year added, height_m and dbh_m asked as mature ranges, bars from the requirements table (fn-132). Sources and appearance traits unchanged."
-    },
-    {
-      "id": "date-palm/gate/onboarding-gate/capability",
-      "inputs_sha256": {
-        "select.json": "4e3121dd9703004a327085732177cf9d0f207443564f49d33c034ae85a76a2a1"
-      },
-      "option": "waive",
-      "by": "owner (standing, relayed by the host)",
-      "at": "2026-09-24",
-      "note": "Owner, 2026-09-22: \"we can do both no? tune and build the missing capabilities?\" Re-recorded 2026-09-24 against the gate's new inputs: only infructescence is missing now (fn-111 on fn-33's organ slot, being built); tuning proceeds on everything else."
-    },
-    {
-      "id": "date-palm/verify/claim-unsupported//profiles/0/appearance/leaf_back_colour",
-      "inputs_sha256": {
-        "select.json": "30b694e947b09983ebb09ed185f69b5a495fe5694641137cf18bd03e41b1ccf3"
-      },
-      "option": "replace-source",
-      "by": "host acting as the cheap agent under the routine policy (dispatch-13)",
-      "at": "2026-09-24",
-      "note": "The cited sentence gives the leaves as gray-green or blue with no word on the underside; search for a source that describes the leaflet underside."
-    },
-    {
-      "id": "date-palm/verify/claim-unsupported//profiles/0/appearance/leaf_hue_range",
-      "inputs_sha256": {
-        "select.json": "30b694e947b09983ebb09ed185f69b5a495fe5694641137cf18bd03e41b1ccf3"
-      },
-      "option": "accept",
-      "by": "owner",
-      "at": "2026-09-24",
-      "note": "Owner: varied. F1's \"blue-green to gray-green\" is taken as a hue range across the crown; tuning may still adjust it against the photographs."
-    },
-    {
-      "id": "date-palm/verify/claim-unsupported//profiles/0/metrics/height_m",
-      "inputs_sha256": {
-        "select.json": "30b694e947b09983ebb09ed185f69b5a495fe5694641137cf18bd03e41b1ccf3"
-      },
-      "option": "accept",
-      "by": "owner",
-      "at": "2026-09-24",
-      "note": "Owner: accept. \"Height: 50 - 100 feet\" is verbatim in A1's size table; the low confidence comes from a page that mixes history with the table."
-    },
-    {
-      "id": "date-palm/gate/onboarding-gate/seeds",
-      "inputs_sha256": {
-        "select.json": "240b1ca26bff00e5a52280ebf797af8f15604acf6a3db3a974388538abc75765"
-      },
-      "option": "waive",
-      "by": "host under the owner's standing rule",
-      "at": "2026-09-24",
-      "note": "The gate now sees the specimens (3 fixed, 0 holdout) but generate never writes holdout seeds (generate/packet.rs: \"holdout_seeds\": []), so no species can pass it; the fix is specced (generate draws and persists three fresh holdout seeds). Waived for this run; the tuning run's required cells carry a fresh seed (42)."
-    },
-    {
-      "id": "date-palm/verify/claim-unsupported//profiles/0/appearance/bark_roughness",
-      "inputs_sha256": {
-        "select.json": "240b1ca26bff00e5a52280ebf797af8f15604acf6a3db3a974388538abc75765"
-      },
-      "option": "accept",
-      "by": "owner",
-      "at": "2026-09-24",
-      "note": "Owner: accept rough. A1 states the trunk \"is rough gray\"; F1's \"textured trunk\" is the weaker citation of the same fact."
-    }
-  ]
+ "resolutions": [
+  {
+   "id": "date-palm/gap/gap-fix/gate-onboarding-gate-capability",
+   "inputs_sha256": {
+    "options": "ac7301194c1311a86000c68a0c8a418de5016de9a5d3a1843daa56700fc36689",
+    "table_version": "1"
+   },
+   "option": "apical-rosette-of-pinnate-fronds",
+   "by": "owner",
+   "at": "2026-09-22",
+   "note": "Owner, verbatim: \"ok it's really hard for me to judge if the palm needs a apical rosette but if confidence is high let's go for it?\" The host's reading: the need is the capability packet's high-confidence trait, not Jev's 0.42 best-match, which answered a five-part gap with one option. Confirmed, not a reversal."
+  },
+  {
+   "id": "date-palm/quality/data-insufficient/dbh_m",
+   "inputs_sha256": {
+    "fetch.json": "5431d70cbec3447aa2a7ecaf393d1253da432662507bceded490f4eb0f777116"
+   },
+   "option": "add-sources",
+   "by": "cheap driver claude-sonnet-5 under the conductor's routine policy",
+   "at": "2026-09-22",
+   "note": "Runbook rule applied (docs/species-pipeline.md, Decisions table, data-insufficient row): admit-proxy accepts a composition from an already-admitted source naming a different taxon or condition, per the sufficiency question set proxy_only criterion (\"age-indexed sizes exist but for another taxon [or] condition\"). This field's recorded evidence is points: [] with dominant_gap no_age_indexed_points (\"No source states a size at an age at all\") across every admitted source (F1, A1, M1) tried: there is no age-indexed reading, proxy or otherwise, on hand to admit. lower-bar is the owner's. add-sources is the only routine option the evidence supports."
+  },
+  {
+   "id": "date-palm/verify/claim-unsupported/A1",
+   "inputs_sha256": {
+    "select.json": "027748aef2b61895c6b2da2023093f42885aca751f5254530c0d35606fb63b2e"
+   },
+   "option": "accept",
+   "by": "host claude-fable-5-1 under the owner's standing rule",
+   "at": "2026-09-22",
+   "note": "The claim 'height_m: 50 - 100 feet' is present verbatim in the cited section of A1 ('**Height:** 50 - 100 feet'); Jev's support confidence of 0.73 sat under the 0.8 bar on a page that mixes cultural history with the size table. Accepted on the verbatim match; a height stated without an age, which the fit stage treats as the mature range it is."
+  },
+  {
+   "id": "date-palm/document/article-unfilled",
+   "inputs_sha256": {
+    "select.json": "027748aef2b61895c6b2da2023093f42885aca751f5254530c0d35606fb63b2e"
+   },
+   "option": "write-article",
+   "by": "cheap driver claude-sonnet-5 under the conductor's routine policy",
+   "at": "2026-09-22",
+   "note": "Wrote the five TODO sections (Identity, Size and growth, Crown and habit, Bark, Leaves) from the packet's own records: M1's full copy for taxonomic placement, general growing regions and general pinnate-leaf, spined-petiole and induplicate-leaflet anatomy, and for the trunk's standing as the least diagnostic of its six compared character groups; A1's cited height passage (50 - 100 feet / 15.24 to 30.48 m) for size and growth. F1 carries no cited passage, so every claim it would otherwise support (finer identity detail, age-linked growth, dbh, crown silhouette, bark surface description, frond count and retention) is instead stated as a gap cited to F1. No number outside the packet's own records was used. `node scripts/catalogue-article.mjs --species date-palm` passed with no failures after the rewrite."
+  },
+  {
+   "id": "date-palm/discover/manifest-proposed",
+   "inputs_sha256": {
+    "seed": "7824c31de029932baf7d93b8a426659a51af3639f720f05d668157357bbf1228"
+   },
+   "option": "admit",
+   "by": "host relaying the owner's decision of 2026-09-23",
+   "at": "2026-09-24",
+   "note": "The fields change is the palm row the owner chose on 2026-09-23 (growth rate plus mature range): height_growth_m_per_year added, height_m and dbh_m asked as mature ranges, bars from the requirements table (fn-132). Sources and appearance traits unchanged."
+  },
+  {
+   "id": "date-palm/gate/onboarding-gate/capability",
+   "inputs_sha256": {
+    "select.json": "4e3121dd9703004a327085732177cf9d0f207443564f49d33c034ae85a76a2a1"
+   },
+   "option": "waive",
+   "by": "owner (standing, relayed by the host)",
+   "at": "2026-09-24",
+   "note": "Owner, 2026-09-22: \"we can do both no? tune and build the missing capabilities?\" Re-recorded 2026-09-24 against the gate's new inputs: only infructescence is missing now (fn-111 on fn-33's organ slot, being built); tuning proceeds on everything else."
+  },
+  {
+   "id": "date-palm/verify/claim-unsupported//profiles/0/appearance/leaf_back_colour",
+   "inputs_sha256": {
+    "select.json": "30b694e947b09983ebb09ed185f69b5a495fe5694641137cf18bd03e41b1ccf3"
+   },
+   "option": "replace-source",
+   "by": "host acting as the cheap agent under the routine policy (dispatch-13)",
+   "at": "2026-09-24",
+   "note": "The cited sentence gives the leaves as gray-green or blue with no word on the underside; search for a source that describes the leaflet underside."
+  },
+  {
+   "id": "date-palm/verify/claim-unsupported//profiles/0/appearance/leaf_hue_range",
+   "inputs_sha256": {
+    "select.json": "30b694e947b09983ebb09ed185f69b5a495fe5694641137cf18bd03e41b1ccf3"
+   },
+   "option": "accept",
+   "by": "owner",
+   "at": "2026-09-24",
+   "note": "Owner: varied. F1's \"blue-green to gray-green\" is taken as a hue range across the crown; tuning may still adjust it against the photographs."
+  },
+  {
+   "id": "date-palm/verify/claim-unsupported//profiles/0/metrics/height_m",
+   "inputs_sha256": {
+    "select.json": "30b694e947b09983ebb09ed185f69b5a495fe5694641137cf18bd03e41b1ccf3"
+   },
+   "option": "accept",
+   "by": "owner",
+   "at": "2026-09-24",
+   "note": "Owner: accept. \"Height: 50 - 100 feet\" is verbatim in A1's size table; the low confidence comes from a page that mixes history with the table."
+  },
+  {
+   "id": "date-palm/gate/onboarding-gate/seeds",
+   "inputs_sha256": {
+    "select.json": "240b1ca26bff00e5a52280ebf797af8f15604acf6a3db3a974388538abc75765"
+   },
+   "option": "waive",
+   "by": "host under the owner's standing rule",
+   "at": "2026-09-24",
+   "note": "The gate now sees the specimens (3 fixed, 0 holdout) but generate never writes holdout seeds (generate/packet.rs: \"holdout_seeds\": []), so no species can pass it; the fix is specced (generate draws and persists three fresh holdout seeds). Waived for this run; the tuning run's required cells carry a fresh seed (42)."
+  },
+  {
+   "id": "date-palm/verify/claim-unsupported//profiles/0/appearance/bark_roughness",
+   "inputs_sha256": {
+    "select.json": "240b1ca26bff00e5a52280ebf797af8f15604acf6a3db3a974388538abc75765"
+   },
+   "option": "accept",
+   "by": "owner",
+   "at": "2026-09-24",
+   "note": "Owner: accept rough. A1 states the trunk \"is rough gray\"; F1's \"textured trunk\" is the weaker citation of the same fact."
+  },
+  {
+   "id": "date-palm/document/article-claim-unsupported/A1",
+   "inputs_sha256": {
+    "select.json": "556088c6a6a7aa5e306212a8949b3edd734735ec383751d3f11c0bee161c7e54"
+   },
+   "option": "accept",
+   "by": "host (fn-80 conductor session)",
+   "at": "2026-09-24",
+   "note": "Host checked the copy: sources/A1.md line 38 reads '50 - 100 feet'; the article renders it as 15.24 to 30.48 m. Jev's says_nothing is a false negative; the citation stands."
+  },
+  {
+   "id": "date-palm/document/article-claim-unsupported/F1",
+   "inputs_sha256": {
+    "select.json": "556088c6a6a7aa5e306212a8949b3edd734735ec383751d3f11c0bee161c7e54"
+   },
+   "option": "accept",
+   "by": "host (fn-80 conductor session)",
+   "at": "2026-09-24",
+   "note": "Jev judged supports at confidence 0.45; the sentence states only what F1's captured passage lacks (no stated age, no dbh), which the host confirmed against sources/F1.md. The citation stands."
+  },
+  {
+   "id": "date-palm/document/article-claim-unsupported/M1",
+   "inputs_sha256": {
+    "select.json": "556088c6a6a7aa5e306212a8949b3edd734735ec383751d3f11c0bee161c7e54"
+   },
+   "option": "accept",
+   "by": "host (fn-80 conductor session)",
+   "at": "2026-09-24",
+   "note": "Host checked the copy: sources/M1.md line 144 reads 'Palm trees are characterized by either solitary, clustered or dioecious'; the claim restates it. Jev's says_nothing is a false negative; the citation stands."
+  }
+ ]
 }

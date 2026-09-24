@@ -75,7 +75,8 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     // folder, read from the repository root as the script runs.
     let article = std::path::Path::new("catalogue").join(&species).join("ARTICLE.md");
     let written = std::fs::read_to_string(&article).unwrap_or_default();
-    let (claims, loads) = claims_in(&ctx, judge, &written);
+    let folder = article.parent().unwrap_or(std::path::Path::new("."));
+    let (claims, loads) = claims_in(&ctx, judge, folder, &written);
     let failed = |err: crate::caller::CallerError| StageError::Failed {
         stage: STAGE.into(),
         reason: err.to_string(),
@@ -226,18 +227,19 @@ fn write_article(ctx: &Context, species: &str) -> Result<(bool, Vec<String>), St
 }
 
 /// Every claim the article makes, one per cited source. Each is checked
-/// against the copy in this folder, so the check reads the text a reader
+/// against the copy beside the article, so the check reads the text a reader
 /// following the link would.
 fn claims_in(
     ctx: &Context,
     judge: &Judge<'_>,
+    folder: &std::path::Path,
     article: &str,
 ) -> (Vec<ResearchClaim>, Vec<SourceLoad>) {
     let urls = source_urls(ctx);
     let mut claims = Vec::new();
     let mut loads = Vec::new();
     for (line, id) in cited(article) {
-        let copy = ctx.paths.dir.join("sources").join(format!("{id}.md"));
+        let copy = folder.join("sources").join(format!("{id}.md"));
         loads.push(load_source(judge.transport, &copy.display().to_string()));
         let url = urls.get(&id).cloned().unwrap_or_default();
         claims.push(ResearchClaim {
