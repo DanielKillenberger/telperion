@@ -1,0 +1,104 @@
+ordinary 1 identical 11567
+ordinary 2 identical 9751
+ordinary 3 identical 10305
+ordinary 5 identical 10058
+ordinary 7 identical 11927
+ordinary 8 identical 12419
+ordinary 13 identical 13936
+ordinary 21 identical 13223
+ordinary 34 identical 10664
+ordinary 55 identical 9808
+ordinary 89 identical 12969
+ordinary 144 identical 9714
+ordinary 233 identical 10935
+oregon-white-oak 1 nodes 125087 moved 6 parent-changes 0 max-delta 1.800e-13 m
+oregon-white-oak 2 identical 144243
+oregon-white-oak 3 nodes 130665 moved 3 parent-changes 0 max-delta 2.123e-13 m
+oregon-white-oak 5 nodes 144896 moved 1 parent-changes 0 max-delta 1.821e-13 m
+oregon-white-oak 7 nodes 139040 moved 4 parent-changes 0 max-delta 1.936e-13 m
+oregon-white-oak 8 nodes 158866 moved 68 parent-changes 0 max-delta 1.101e-13 m
+oregon-white-oak 13 nodes 141294 moved 126 parent-changes 0 max-delta 2.878e-13 m
+oregon-white-oak 21 identical 147284
+oregon-white-oak 34 identical 144754
+oregon-white-oak 55 nodes 141943 moved 9 parent-changes 0 max-delta 2.043e-13 m
+oregon-white-oak 89 nodes 145510 moved 1 parent-changes 0 max-delta 2.380e-13 m
+oregon-white-oak 144 identical 146503
+oregon-white-oak 233 identical 151028
+norway-spruce 1 identical 95389
+norway-spruce 2 identical 92292
+norway-spruce 3 identical 87389
+norway-spruce 5 identical 83152
+norway-spruce 7 identical 90439
+norway-spruce 8 identical 91875
+norway-spruce 13 identical 91101
+norway-spruce 21 identical 89974
+norway-spruce 34 identical 84993
+norway-spruce 55 identical 94550
+norway-spruce 89 identical 97254
+norway-spruce 144 identical 93154
+norway-spruce 233 identical 94274
+silver-birch 1 identical 68501
+silver-birch 2 identical 71363
+silver-birch 3 identical 73082
+silver-birch 5 identical 76277
+silver-birch 7 identical 84894
+silver-birch 8 identical 68945
+silver-birch 13 nodes 94498 moved 1 parent-changes 0 max-delta 4.410e-13 m
+silver-birch 21 identical 84198
+silver-birch 34 identical 77003
+silver-birch 55 identical 78933
+silver-birch 89 nodes 80610 moved 4 parent-changes 0 max-delta 4.103e-13 m
+silver-birch 144 nodes 75263 moved 2 parent-changes 0 max-delta 1.302e-11 m
+silver-birch 233 identical 81414
+telperion 1 identical 75697
+telperion 2 identical 30783
+telperion 3 identical 15903
+telperion 5 identical 18460
+telperion 7 identical 16993
+telperion 8 identical 19481
+telperion 13 identical 18748
+telperion 21 nodes 122880 moved 51 parent-changes 0 max-delta 1.990e-13 m
+telperion 34 identical 85519
+telperion 55 identical 14135
+telperion 89 identical 105211
+telperion 144 nodes 66609 moved 61 parent-changes 0 max-delta 2.274e-13 m
+telperion 233 identical 17118
+laurelin 1 identical 53155
+laurelin 2 identical 63971
+laurelin 3 identical 22171
+laurelin 5 identical 41303
+laurelin 7 identical 75090
+laurelin 8 identical 21129
+laurelin 13 identical 112149
+laurelin 21 identical 54515
+laurelin 34 identical 109228
+laurelin 55 identical 20513
+laurelin 89 identical 91309
+laurelin 144 nodes 54034 moved 26 parent-changes 0 max-delta 1.585e-12 m
+laurelin 233 identical 94930
+european-beech 1 nodes 187968 moved 28 parent-changes 0 max-delta 2.238e-13 m
+european-beech 2 nodes 189384 moved 9 parent-changes 0 max-delta 2.407e-13 m
+european-beech 3 identical 188151
+european-beech 5 nodes 196852 moved 13 parent-changes 0 max-delta 1.954e-13 m
+european-beech 7 nodes 190975 moved 14 parent-changes 0 max-delta 2.167e-13 m
+european-beech 8 nodes 195603 moved 8 parent-changes 0 max-delta 1.990e-13 m
+european-beech 13 nodes 181629 moved 63 parent-changes 0 max-delta 2.132e-13 m
+european-beech 21 nodes 187927 moved 31 parent-changes 0 max-delta 1.883e-13 m
+european-beech 34 nodes 185012 moved 1 parent-changes 0 max-delta 2.069e-13 m
+european-beech 55 nodes 186759 moved 4 parent-changes 0 max-delta 1.918e-13 m
+european-beech 89 nodes 200005 moved 12 parent-changes 0 max-delta 1.990e-13 m
+european-beech 144 nodes 182483 moved 11 parent-changes 0 max-delta 2.345e-13 m
+european-beech 233 nodes 198854 moved 23 parent-changes 0 max-delta 5.451e-10 m
+date-palm 1 identical 73
+date-palm 2 identical 74
+date-palm 3 identical 74
+date-palm 5 identical 74
+date-palm 7 identical 74
+date-palm 8 identical 67
+date-palm 13 identical 75
+date-palm 21 identical 75
+date-palm 34 identical 66
+date-palm 55 identical 66
+date-palm 89 identical 74
+date-palm 144 identical 75
+date-palm 233 identical 69

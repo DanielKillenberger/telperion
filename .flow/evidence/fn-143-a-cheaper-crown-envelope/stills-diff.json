@@ -1,0 +1,82 @@
+{
+ "date-palm-1": {
+  "identical_png": true,
+  "changed_pixels_pct": 0.0,
+  "mean_abs_difference": 0.0
+ },
+ "date-palm-7": {
+  "identical_png": true,
+  "changed_pixels_pct": 0.0,
+  "mean_abs_difference": 0.0
+ },
+ "european-beech-1": {
+  "identical_png": true,
+  "changed_pixels_pct": 0.0,
+  "mean_abs_difference": 0.0
+ },
+ "european-beech-7": {
+  "identical_png": true,
+  "changed_pixels_pct": 0.0,
+  "mean_abs_difference": 0.0
+ },
+ "laurelin-1": {
+  "identical_png": true,
+  "changed_pixels_pct": 0.0,
+  "mean_abs_difference": 0.0
+ },
+ "laurelin-7": {
+  "identical_png": true,
+  "changed_pixels_pct": 0.0,
+  "mean_abs_difference": 0.0
+ },
+ "norway-spruce-1": {
+  "identical_png": true,
+  "changed_pixels_pct": 0.0,
+  "mean_abs_difference": 0.0
+ },
+ "norway-spruce-7": {
+  "identical_png": true,
+  "changed_pixels_pct": 0.0,
+  "mean_abs_difference": 0.0
+ },
+ "ordinary-1": {
+  "identical_png": true,
+  "changed_pixels_pct": 0.0,
+  "mean_abs_difference": 0.0
+ },
+ "ordinary-7": {
+  "identical_png": true,
+  "changed_pixels_pct": 0.0,
+  "mean_abs_difference": 0.0
+ },
+ "oregon-white-oak-1": {
+  "identical_png": true,
+  "changed_pixels_pct": 0.0,
+  "mean_abs_difference": 0.0
+ },
+ "oregon-white-oak-7": {
+  "identical_png": true,
+  "changed_pixels_pct": 0.0,
+  "mean_abs_difference": 0.0
+ },
+ "silver-birch-1": {
+  "identical_png": true,
+  "changed_pixels_pct": 0.0,
+  "mean_abs_difference": 0.0
+ },
+ "silver-birch-7": {
+  "identical_png": true,
+  "changed_pixels_pct": 0.0,
+  "mean_abs_difference": 0.0
+ },
+ "telperion-1": {
+  "identical_png": true,
+  "changed_pixels_pct": 0.0,
+  "mean_abs_difference": 0.0
+ },
+ "telperion-7": {
+  "identical_png": true,
+  "changed_pixels_pct": 0.0,
+  "mean_abs_difference": 0.0
+ }
+}
