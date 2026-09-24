@@ -18,7 +18,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-124-growth-in-half-the-time.md",
-  "status": "open",
+  "status": "done",
   "title": "Growth in half the time",
   "tracker": {
     "baseHashFlow": null,
@@ -31,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-24T15:21:16.689366Z"
+  "updated_at": "2026-09-24T15:21:22.992298Z"
 }
