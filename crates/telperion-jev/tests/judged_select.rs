@@ -116,7 +116,10 @@ fn an_uncalibrated_floor_fills_the_pick_and_an_unfilled_required_field_is_filed(
 /// R3: the live palm's level probabilities. The rounded average put
 /// `leaf_back_colour` on `silvery_white` and `leaf_brightness_range` on
 /// `strongly_varied`, each at probability 0; the most probable is
-/// `unstated`, and an unstated brightness range reads zero width (fn-133).
+/// `unstated` for both. An unstated brightness range reads zero width
+/// (fn-133); an unstated back with `leaf_front_colour` sourced to
+/// `grey_green` in this same fixture takes the front's level as a default
+/// instead of staying unstated (fn-139) - never the rounded-average trap.
 #[test]
 fn a_level_is_the_most_probable_one_never_a_zero_probability_average() {
     let dir = fetched_f1("levels");
@@ -138,13 +141,91 @@ fn a_level_is_the_most_probable_one_never_a_zero_probability_average() {
     };
     select::run(&Paths::new(&dir), &judge(&palm)).unwrap();
     let body = &read_json(&dir.join("select.json")).unwrap()["body"]["appearance"];
-    assert_eq!(body["leaf_back_colour"]["level"], "unstated", "{body}");
+    // The argmax picked `unstated` (0.54), never `silvery_white` (the level
+    // the rounded average of 3.06 would land on, at probability 0); with
+    // the front sourced to grey_green the back defaults to it (fn-139).
+    assert_eq!(body["leaf_back_colour"]["level"], "grey_green", "{body}");
+    assert!(body["leaf_back_colour"]["default"].is_string(), "{body}");
     assert_eq!(body["leaf_brightness_range"]["level"], "uniform", "{body}");
     assert!(
         body["leaf_brightness_range"]["default"].is_string(),
         "{body}"
     );
     assert_eq!(body["leaf_front_colour"]["level"], "grey_green", "{body}");
+}
+
+/// fn-139 R1: the palm's shape - front sourced `grey_green` from F1, back
+/// unstated by score. The back takes the front's level, its ranges mapped
+/// onto the back's material fields, as a default citing F1; no
+/// requirements-unmet is filed for it.
+#[test]
+fn an_unstated_back_with_a_sourced_front_defaults_to_the_fronts_level() {
+    let dir = fetched_f1("back-default");
+    let mut palm = Palm::new(|_, _| None);
+    palm.levels = |name| match name {
+        "leaf_front_colour" => Some(score(
+            json!({"0": 0.0, "1": 0.0, "2": 0.0, "3": 1.0, "4": 0.0, "5": 0.0}),
+            3.0,
+        )),
+        _ => None,
+    };
+    select::run(&Paths::new(&dir), &judge(&palm)).unwrap();
+    let select = read_json(&dir.join("select.json")).unwrap();
+    let body = &select["body"]["appearance"];
+    assert_eq!(body["leaf_front_colour"]["level"], "grey_green", "{body}");
+    assert_eq!(body["leaf_back_colour"]["level"], "grey_green", "{body}");
+    assert_eq!(body["leaf_back_colour"]["source"], "F1", "{body}");
+    assert!(body["leaf_back_colour"]["default"].is_string(), "{body}");
+
+    let profile = read_json(&dir.join("packet").join("profile.json")).unwrap();
+    let back = &profile["profiles"][0]["appearance"]["leaf_back_colour"];
+    assert_eq!(back["level"], "grey_green", "{back}");
+    assert_eq!(back["sources"], json!(["F1"]), "{back}");
+    assert!(back["default"].is_string(), "{back}");
+    let ranges = back["ranges"].as_object().unwrap();
+    for field in ["leaf_back_red", "leaf_back_green", "leaf_back_blue"] {
+        assert!(ranges.contains_key(field), "{back}");
+    }
+    // Not the front's own ranges relabelled with the front's field names.
+    assert!(!ranges.contains_key("leaf_front_red"), "{back}");
+
+    let list = read_json(&dir.join("decisions.json")).unwrap();
+    let decisions = list["decisions"].as_array().unwrap();
+    assert!(
+        decisions
+            .iter()
+            .all(|d| d["id"] != "date-palm/select/requirements-unmet/leaf_back_colour"),
+        "{list}"
+    );
+}
+
+/// fn-139 R2: both faces unstated still file requirements-unmet for each,
+/// and bark colour - which has no zero-width level either - never defaults
+/// to anything.
+#[test]
+fn both_faces_unstated_file_requirements_unmet_and_bark_never_defaults() {
+    let dir = fetched_f1("both-unstated");
+    let palm = Palm::new(|_, _| None);
+    select::run(&Paths::new(&dir), &judge(&palm)).unwrap();
+    let select = read_json(&dir.join("select.json")).unwrap();
+    let body = &select["body"]["appearance"];
+    assert_eq!(body["leaf_front_colour"]["level"], "unstated", "{body}");
+    assert_eq!(body["leaf_back_colour"]["level"], "unstated", "{body}");
+    assert!(body["leaf_back_colour"]["default"].is_null(), "{body}");
+    assert_eq!(body["bark_colour"]["level"], "unstated", "{body}");
+    assert!(body["bark_colour"]["default"].is_null(), "{body}");
+
+    let list = read_json(&dir.join("decisions.json")).unwrap();
+    let ids: Vec<&str> = list["decisions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|d| d["id"].as_str().unwrap())
+        .collect();
+    for field in ["leaf_front_colour", "leaf_back_colour", "bark_colour"] {
+        let id = format!("date-palm/select/requirements-unmet/{field}");
+        assert!(ids.contains(&id.as_str()), "{ids:?}");
+    }
 }
 
 /// R3 on the gate: a sufficiency whose average rounds to `proxy_only`, a
