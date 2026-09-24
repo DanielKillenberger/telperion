@@ -283,6 +283,12 @@ pub(super) fn validate(
 ) -> Result<()> {
     tree.validate_solved()?;
     envelope.validate()?;
+    rows(p, twig)
+}
+
+/// Every row on its rail, each refused by its own name, with no tree to read
+/// them against.
+pub(crate) fn rows(p: CanopyParams, twig: Option<TwigPlacement>) -> Result<()> {
     for (v, l, h, n) in [
         (p.shoot_radius, 0., 1., "shoot radius"),
         (p.spacing, 0.001, 1e6, "foliage spacing"),
@@ -302,6 +308,9 @@ pub(super) fn validate(
         (p.limb_clumping, 0., 1., "limb clumping"),
     ] {
         range(v, l, h, n)?;
+    }
+    if p.max_instances == 0 {
+        return Err(Error::InvalidInput("foliage instance budget"));
     }
     if p.clump > 64 {
         return Err(Error::InvalidInput("foliage clump"));

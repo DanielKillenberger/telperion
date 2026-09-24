@@ -81,9 +81,7 @@ pub(super) fn rings_mode(
 ) -> Result<Rings> {
     tree.validate()?;
     params.validate()?;
-    if !height.is_finite() || height <= 0.0 {
-        return Err(Error::InvalidInput("surface height"));
-    }
+    crate::surface::height(height)?;
     let segments = segments(params);
     let edges = if sweep.edges {
         filled(tree.nodes.len(), None)?

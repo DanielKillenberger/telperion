@@ -60,6 +60,12 @@
     "reason": "A zero-height family has no positive-volume tree to generate."
   },
   {
+    "path": "crates/telperion-core/src/branching.rs",
+    "site": "if o . trunk_height . is_some_and ( | v | v < = 0 . 0 ) {",
+    "classification": "parameter",
+    "reason": "The trunkHeight override is refused by name at zero or below: a crown with no bole below it leaves the build nothing to sweep (fn-123, host design)."
+  },
+  {
     "path": "crates/telperion-core/src/branching/local/advance.rs",
     "site": ". clamp ( crate : : ranges : : ANGLE . 0 , crate : : ranges : : ANGLE . 1 )",
     "classification": "parameter",
@@ -1362,10 +1368,10 @@
     "reason": "Named surface authoring bounds live in ranges.rs; validation preserves the existing generic surface parameters error and never silently truncates geometry."
   },
   {
-    "path": "crates/telperion-core/src/surface/rings.rs",
+    "path": "crates/telperion-core/src/surface.rs",
     "site": "if ! height . is_finite ( ) | | height < = 0 . 0 {",
     "classification": "parameter",
-    "reason": "Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."
+    "reason": "The one surface height contract: every sweep (`surface::build`, `surface::extent`, the compact sweep and the attachment surface) and `Family::validate` reject nonfinite or nonpositive height through it, explicitly and by name; it does not silently truncate generation."
   },
   {
     "path": "crates/telperion-core/src/surface/build.rs",
@@ -1384,12 +1390,6 @@
     "site": "for i in lo . . lo + 2 * s {",
     "classification": "algorithm",
     "reason": "Traverses all adjacent geometry samples/rows; the final sample has no following segment."
-  },
-  {
-    "path": "crates/telperion-core/src/surface/attachment.rs",
-    "site": "if ! height . is_finite ( ) | | height < = 0 . 0 {",
-    "classification": "parameter",
-    "reason": "Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."
   },
   {
     "path": "crates/telperion-core/src/surface/attachment.rs",
@@ -1456,12 +1456,6 @@
     "site": "for ( i , & node ) in paths . nodes [ path . start . . path . end ] . iter ( ) . enumerate ( ) . skip ( 1 ) {",
     "classification": "algorithm",
     "reason": "Contact ranges cover each path edge after the root sample; skipping the first sample avoids inventing an incoming root edge."
-  },
-  {
-    "path": "crates/telperion-core/src/surface/compact.rs",
-    "site": "if ! height . is_finite ( ) | | height < = 0 . 0 {",
-    "classification": "parameter",
-    "reason": "The existing surface height contract rejects nonfinite or nonpositive input explicitly."
   },
   {
     "path": "crates/telperion-core/src/surface/dependencies.rs",
@@ -1593,12 +1587,6 @@
     "path": "crates/telperion-core/src/surface/build.rs",
     "site": ". max ( 1e - 6 )",
     "classification": "numeric",
-    "reason": "Repeated in `surface::extent`, which counts the sweep's rings without building them so a specimen can be sized before it is swept (fn-87). The prediction runs the same arithmetic as `surface::build`, so it carries the same degeneracy tolerance and the same height validation; neither limits a generated population."
-  },
-  {
-    "path": "crates/telperion-core/src/surface/build.rs",
-    "site": "if ! height . is_finite ( ) | | height < = 0 . 0 {",
-    "classification": "parameter",
     "reason": "Repeated in `surface::extent`, which counts the sweep's rings without building them so a specimen can be sized before it is swept (fn-87). The prediction runs the same arithmetic as `surface::build`, so it carries the same degeneracy tolerance and the same height validation; neither limits a generated population."
   },
   {

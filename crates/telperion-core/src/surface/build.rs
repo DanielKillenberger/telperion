@@ -55,9 +55,7 @@ pub(super) fn extent_of(paths: &paths::Paths, segments: usize, buried: bool) -> 
 pub fn extent(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<WoodExtent> {
     tree.validate()?;
     params.validate()?;
-    if !height.is_finite() || height <= 0.0 {
-        return Err(Error::InvalidInput("surface height"));
-    }
+    crate::surface::height(height)?;
     let paths = paths(&tree.nodes)?;
     if paths.runs.is_empty() {
         return Ok(WoodExtent::default());

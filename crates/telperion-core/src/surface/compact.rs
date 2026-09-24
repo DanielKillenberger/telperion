@@ -81,9 +81,7 @@ fn prepare_inner(
 ) -> Result<CompactSurface> {
     tree.validate()?;
     params.validate()?;
-    if !height.is_finite() || height <= 0.0 {
-        return Err(Error::InvalidInput("surface height"));
-    }
+    crate::surface::height(height)?;
     let paths = paths(&tree.nodes)?;
     if paths.runs.is_empty() {
         return Ok(CompactSurface::default());
