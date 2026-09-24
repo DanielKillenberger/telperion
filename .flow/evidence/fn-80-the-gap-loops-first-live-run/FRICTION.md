@@ -131,3 +131,7 @@ After fn-129 to fn-136 the palm's stages ran to `document`, which stopped becaus
 ## 2026-09-24 — host: no stage writes the species bibliography
 
 `document` stopped on F1 because `catalogue/date-palm/sources.json` was missing: the host had moved the stale copy aside expecting a stage to rebuild it, but none does. The 2026-09-22 copy was written by hand from the manifest, and `scripts/catalogue-sources.mjs` only reads it. The host rewrote it from the admitted manifest (eight sources). Cost: about 10 minutes and a wrong assumption. What would remove it: `document` writing `sources.json` from the admitted manifest on every run, so admission (fn-129) and the bibliography never disagree.
+
+## 2026-09-24 — host: a routine resolution bypassed the owner's default
+
+Acting as the cheap agent on dispatch-13, the host resolved the leaf-underside claim `replace-source`; that dropped the value, and fn-139's owner-chosen default (an unstated underside takes the front colour) applied only to a never-stated underside, so the run stopped on the owner again. Fixed in fn-139 R4 (a dropped underside with a sourced front defaults too). Cost: one driver pass, one worker resume, about 20 minutes. What would remove it: a new default rule stated against every path that can leave a value empty (unstated, dropped, replaced) at spec time.
