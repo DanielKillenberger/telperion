@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-141-a-resolved-claim-stays-resolved-while",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-09-24T15:33:12.336748Z",
   "created_at": "2026-09-24T14:43:08.904564Z",
   "default_impl": null,
   "default_review": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-24T14:43:10.530870Z"
+  "updated_at": "2026-09-24T15:33:12.336757Z"
 }
