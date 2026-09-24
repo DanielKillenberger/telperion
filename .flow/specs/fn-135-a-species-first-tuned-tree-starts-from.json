@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-135-a-species-first-tuned-tree-starts-from",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-09-24T07:47:27.699184Z",
   "created_at": "2026-09-24T07:27:20.406448Z",
   "default_impl": null,
   "default_review": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-24T07:27:22.141393Z"
+  "updated_at": "2026-09-24T07:47:27.699191Z"
 }
