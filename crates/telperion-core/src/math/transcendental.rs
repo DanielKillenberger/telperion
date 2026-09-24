@@ -8,6 +8,8 @@ pub(crate) trait Transcendental {
     fn acos_fixed(self) -> f64;
     fn atan2_fixed(self, other: f64) -> f64;
     fn exp_fixed(self) -> f64;
+    fn exp_m1_fixed(self) -> f64;
+    fn ln_fixed(self) -> f64;
     fn powf_fixed(self, other: f64) -> f64;
     fn cbrt_fixed(self) -> f64;
     fn hypot_fixed(self, other: f64) -> f64;
@@ -30,6 +32,12 @@ impl Transcendental for f64 {
     }
     fn exp_fixed(self) -> f64 {
         libm::exp(self)
+    }
+    fn exp_m1_fixed(self) -> f64 {
+        libm::expm1(self)
+    }
+    fn ln_fixed(self) -> f64 {
+        libm::log(self)
     }
     fn powf_fixed(self, other: f64) -> f64 {
         libm::pow(self, other)

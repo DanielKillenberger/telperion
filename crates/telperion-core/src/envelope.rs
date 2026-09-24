@@ -97,10 +97,7 @@ impl Envelope {
         } else {
             (t - fullness) / (1.0 - fullness)
         };
-        self.max_radius()
-            * (1.0 - p.powf_fixed(shoulder))
-                .max(0.0)
-                .powf_fixed(1.0 / shoulder)
+        self.max_radius() * quadrant(p, shoulder)
     }
     /// The shell's radius at a height and a bearing: the smooth radius shaped
     /// by the seed's own lobes. The perturbation is multiplicative, so the
@@ -221,6 +218,23 @@ impl Envelope {
     pub fn distance_to_profile(&self, r: f64, y: f64) -> f64 {
         distance_to_profile(&self.profile(), r, y)
     }
+}
+/// One quarter of the crown's outline, `(1 - p^shoulder)^(1 / shoulder)`: the
+/// share of the widest radius left at `p` of the way from the widest height
+/// to either end. It is written as logarithms and exponentials because
+/// `libm`'s `pow` rounds to the last bit and costs about twice as much, and
+/// `expm1` keeps `1 - p^shoulder` exact where it vanishes at the ends, which
+/// the `pow` form cannot. A shoulder of 1 is the straight line it always was.
+/// NaN and anything outside the quadrant read as no width.
+pub(crate) fn quadrant(p: f64, shoulder: f64) -> f64 {
+    if shoulder == 1.0 {
+        return (1.0 - p).max(0.0);
+    }
+    let rest = -(shoulder * p.ln_fixed()).exp_m1_fixed();
+    if !(rest > 0.0) {
+        return 0.0;
+    }
+    (rest.ln_fixed() / shoulder).exp_fixed()
 }
 pub fn distance_to_profile(profile: &[[f64; 2]], r: f64, y: f64) -> f64 {
     let mut exceptional = f64::INFINITY;
