@@ -131,6 +131,11 @@ impl Result {
         self.assessment.observations = self.observations.clone();
         self.assessment.joint = request.joint.clone();
         if let Some(packet) = &request.joint {
+            for note in super::joint::Packet::drop_unevidenced(&mut self.assessment.findings) {
+                if !self.assessment.observations.contains(&note) {
+                    self.assessment.observations.push(note);
+                }
+            }
             packet.verify_findings(&self.assessment.findings)?;
             for (cell, status) in &mut self.assessment.cells {
                 if packet.inputs.iter().any(|i| {

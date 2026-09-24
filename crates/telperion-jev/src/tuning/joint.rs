@@ -191,6 +191,20 @@ impl Packet {
         }
         Ok(())
     }
+    /// A finding citing no evidence at all compares nothing: the reviewer
+    /// writes one to say a known gap was not assessed (fn-80, 2026-09-24).
+    /// It is dropped and returned as a note rather than refusing the whole
+    /// paid pass; an invented evidence id still refuses it below.
+    pub fn drop_unevidenced(findings: &mut Vec<Finding>) -> Vec<String> {
+        let (kept, dropped): (Vec<Finding>, Vec<Finding>) = std::mem::take(findings)
+            .into_iter()
+            .partition(|f| !f.evidence_ids.is_empty());
+        *findings = kept;
+        dropped
+            .into_iter()
+            .map(|f| format!("dropped finding with no evidence: {}", f.observation))
+            .collect()
+    }
     pub fn verify_findings(&self, findings: &[Finding]) -> Result<(), String> {
         if findings.len() > 16 {
             return Err("too many joint findings".into());
