@@ -2,11 +2,7 @@
 //! it always was, a lit frame whose leaves take their colours from the material
 //! row, and a sky that deepens with height. Skips with a reason where there is
 //! no GPU to ask; it never fails for lack of one.
-use telperion_core::{
-    material::MaterialParams,
-    mesh::{self, Detail},
-    presets::Preset,
-};
+use telperion_core::{material::MaterialParams, mesh, presets::Preset};
 use telperion_render::{
     hero_pose, render, shot_pose, Camera, Gpu, Renderer, Shot, Still, View, GROUND_REACH,
     STILL_FORMAT,
@@ -36,7 +32,7 @@ impl Stage {
     fn new(gpu: Gpu, view: View, size: (u32, u32)) -> Self {
         let mut family = Preset::Ordinary.parameters();
         family.skeleton.seed = SEED;
-        let tree = mesh::build(&family, Detail::Full).expect("the core built the tree");
+        let tree = mesh::build(&family).expect("the core built the tree");
         let mut renderer = Renderer::new(gpu, STILL_FORMAT);
         renderer.submit(&tree).expect("the tree fits the device");
         renderer.set_material(family.material);

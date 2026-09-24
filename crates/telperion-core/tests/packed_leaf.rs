@@ -7,8 +7,7 @@ use telperion_core::{
     branching::{Specimen, SpecimenRead},
     foliage::{Instances, Leaf, PlacementIdentity, Reference},
     math::Vec3,
-    mesh::{self, Detail},
-    params, presets,
+    mesh, params, presets,
     specimen::SpecimenView,
 };
 
@@ -29,7 +28,7 @@ fn family(id: &str) -> presets::Family {
 #[test]
 fn a_crown_is_twelve_bytes_a_leaf() {
     assert_eq!(size_of::<Leaf>(), 12);
-    let m = mesh::build(&family("silver-birch"), Detail::Full).unwrap();
+    let m = mesh::build(&family("silver-birch")).unwrap();
     let leaves = m.foliage.instances.leaves.as_slice();
     assert!(!leaves.is_empty(), "the birch placed no leaves");
     assert_eq!(size_of_val(leaves), leaves.len() * 12);
@@ -77,7 +76,7 @@ fn no_station_of_any_shipped_species_falls_outside_its_box() {
     for id in shipped() {
         let f = family(id);
         let reference = Reference::of(&f).unwrap();
-        let m = mesh::build(&f, Detail::Full).unwrap();
+        let m = mesh::build(&f).unwrap();
         let instances = &m.foliage.instances;
         assert_eq!(instances.reference, reference, "{id}: box differs");
         assert!(!instances.is_empty(), "{id}: no leaves to judge");

@@ -3,11 +3,7 @@
 //! were; with it on, the picture changes by a measured amount.
 mod common;
 use telperion_core::{
-    material::MaterialParams,
-    math::Vec3,
-    mesh::{self, Detail},
-    presets::Preset,
-    surface::SurfaceMesh,
+    material::MaterialParams, math::Vec3, mesh, presets::Preset, surface::SurfaceMesh,
 };
 use telperion_render::{render, Camera, Renderer, Still, View, STILL_FORMAT};
 
@@ -69,9 +65,9 @@ fn the_depth_row_moves_no_wood_and_changes_the_picture() {
     let lit = {
         let mut without = family.clone();
         without.material = off;
-        mesh::build(&without, Detail::Full).unwrap()
+        mesh::build(&without).unwrap()
     };
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let tree = mesh::build(&family).unwrap();
     assert_eq!(
         hash(&tree.wood),
         hash(&lit.wood),

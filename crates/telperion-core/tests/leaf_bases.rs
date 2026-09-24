@@ -204,8 +204,8 @@ fn the_bases_absent_leave_the_skeleton_where_it_was() {
 fn raising_the_bases_moves_the_palms_own_wood() {
     let mut bare = family("date-palm", 1);
     bare.canopy.leaf_bases = 0;
-    let without = mesh::build(&bare, mesh::Detail::Full).expect("the palm builds");
-    let with = mesh::build(&family("date-palm", 1), mesh::Detail::Full).expect("the palm builds");
+    let without = mesh::build(&bare).expect("the palm builds");
+    let with = mesh::build(&family("date-palm", 1)).expect("the palm builds");
     assert_ne!(
         without.wood.positions, with.wood.positions,
         "a trunk clothed in bases has to be a different piece of wood"

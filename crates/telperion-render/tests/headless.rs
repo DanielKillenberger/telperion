@@ -1,10 +1,7 @@
 //! The proof the whole path holds on real hardware: a tree from the core, up
 //! through the wood buffers, out as pixels. Skips with a reason where there is
 //! no GPU to ask; it never fails for lack of one.
-use telperion_core::{
-    mesh::{self, Detail},
-    presets::Preset,
-};
+use telperion_core::{mesh, presets::Preset};
 use telperion_render::{hero_pose, render, Renderer, GROUND_REACH, STILL_FORMAT};
 
 mod common;
@@ -13,7 +10,7 @@ use common::gpu;
 #[test]
 fn a_tree_reaches_the_pixels() {
     let Some(gpu) = gpu() else { return };
-    let tree = mesh::build(&Preset::Ordinary.parameters(), Detail::Full).expect("the core built");
+    let tree = mesh::build(&Preset::Ordinary.parameters()).expect("the core built");
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let submitted = renderer.submit(&tree).expect("the tree fits the device");
 
@@ -44,10 +41,10 @@ fn a_tree_reaches_the_pixels() {
 #[test]
 fn a_second_smaller_tree_reuses_the_wood_buffers() {
     let Some(gpu) = gpu() else { return };
-    let large = mesh::build(&Preset::Ordinary.parameters(), Detail::Full).expect("the core built");
+    let large = mesh::build(&Preset::Ordinary.parameters()).expect("the core built");
     let mut small = Preset::Ordinary.parameters();
     small.skeleton.envelope.height *= 0.5;
-    let small = mesh::build(&small, Detail::Full).expect("the core built the smaller tree");
+    let small = mesh::build(&small).expect("the core built the smaller tree");
     assert!(
         small.wood_vertices() < large.wood_vertices(),
         "the second tree was not smaller"

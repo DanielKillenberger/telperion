@@ -10,9 +10,7 @@ mod walk;
 use std::path::{Path, PathBuf};
 
 use telperion_core::{
-    blend,
-    mesh::{self, Detail},
-    params,
+    blend, mesh, params,
     presets::{Family, Preset},
 };
 use telperion_render::{
@@ -41,7 +39,7 @@ fn run() -> Result<(), String> {
         return transition(&arguments, family, far);
     }
 
-    let tree = mesh::build(&family, Detail::Full).map_err(|error| error.to_string())?;
+    let tree = mesh::build(&family).map_err(|error| error.to_string())?;
     let level = level_of(arguments.level, tree.foliage.element.levels.len())?;
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|error| error.to_string())?;
     let adapter = gpu.adapter.name.clone();
@@ -127,8 +125,8 @@ fn transition(arguments: &Arguments, from: Family, to: Family) -> Result<(), Str
         let step = arguments.schedule.at(frame);
         let at = step.blend;
         let family = blend::families(&from, &to, at).map_err(|error| error.to_string())?;
-        let tree = mesh::build(&family, Detail::Full)
-            .map_err(|error| format!("frame {frame} at {at}: {error}"))?;
+        let tree =
+            mesh::build(&family).map_err(|error| format!("frame {frame} at {at}: {error}"))?;
         let level = level_of(arguments.level, tree.foliage.element.levels.len())?;
         renderer
             .submit_at(&tree, level)
@@ -173,7 +171,7 @@ fn pose_of(
     arguments: &Arguments,
     aspect: f64,
 ) -> Result<Camera, String> {
-    let tree = mesh::build(family, Detail::Full).map_err(|error| error.to_string())?;
+    let tree = mesh::build(family).map_err(|error| error.to_string())?;
     let level = level_of(arguments.level, tree.foliage.element.levels.len())?;
     renderer
         .submit_at(&tree, level)

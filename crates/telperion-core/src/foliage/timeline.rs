@@ -265,7 +265,7 @@ impl Foliage {
         tree: &Tree,
         i: usize,
         envelope: Envelope,
-        contacts: Option<&AttachmentSurface>,
+        contacts: Option<&AttachmentSurface<'_>>,
     ) -> Result<Vec<Placement>> {
         let n = &tree.nodes[i];
         let parent = n.parent.unwrap() as usize;

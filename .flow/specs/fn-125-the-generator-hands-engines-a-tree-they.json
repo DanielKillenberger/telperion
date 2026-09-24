@@ -2,7 +2,8 @@
   "branch_name": "fn-125-the-generator-hands-engines-a-tree-they",
   "created_at": "2026-09-23T16:44:10.514029Z",
   "depends_on_epics": [
-    "fn-102-one-build-pipeline-in-place-of-the"
+    "fn-102-one-build-pipeline-in-place-of-the",
+    "fn-134-the-bark-rings-are-a-plan-artifact"
   ],
   "id": "fn-125-the-generator-hands-engines-a-tree-they",
   "next_task": 1,
@@ -22,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T16:44:18.506713Z"
+  "updated_at": "2026-09-23T22:54:22.930622Z"
 }

@@ -3,11 +3,7 @@ mod common;
 #[path = "common/resolution.rs"]
 mod resolution;
 use resolution::masked_agreement;
-use telperion_core::{
-    math::Vec3,
-    mesh::{self, Detail},
-    presets::Preset,
-};
+use telperion_core::{math::Vec3, mesh, presets::Preset};
 use telperion_render::{render, Camera, Renderer, Still, View, STILL_FORMAT};
 
 #[test]
@@ -15,7 +11,7 @@ fn trunk_agrees_with_a_box_reduction_at_half_resolution() {
     let Some(gpu) = common::gpu() else { return };
     let mut family = Preset::OregonWhiteOak.parameters();
     family.skeleton.seed = 7;
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&tree).unwrap();
     renderer.set_material(family.material);
@@ -80,7 +76,7 @@ fn grazing_trunks_agree_with_a_box_reduction_at_half_resolution() {
     for (preset, height) in [(Preset::OregonWhiteOak, 2.0), (Preset::NorwaySpruce, 0.9)] {
         let mut family = preset.parameters();
         family.skeleton.seed = 7;
-        let tree = mesh::build(&family, Detail::Full).unwrap();
+        let tree = mesh::build(&family).unwrap();
         // Aim beside the centreline so the silhouette occupies the middle of
         // the frame. The geometric mask selects grazing wood, never colour.
         let camera = Camera {

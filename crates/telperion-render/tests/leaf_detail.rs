@@ -3,7 +3,7 @@ mod common;
 use telperion_core::{
     foliage::{build_element, ElementParams},
     material::MaterialParams,
-    mesh::{self, Detail},
+    mesh,
     presets::Preset,
 };
 use telperion_render::{hero_pose, render, Level, Renderer, View, GROUND_REACH, STILL_FORMAT};
@@ -13,7 +13,7 @@ fn veins_draw_at_every_blade_level_and_never_on_a_round_section() {
     let Some(gpu) = common::gpu() else { return };
     let mut family = Preset::Ordinary.parameters();
     family.skeleton.growth.max_nodes = Some(20);
-    let mut tree = mesh::build(&family, Detail::Full).unwrap();
+    let mut tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.set_view(View::Leaf);
     for roundness in [0.0, 1.0] {
@@ -61,7 +61,7 @@ fn transmission_reaches_the_drawn_leaf_through_the_material_uniform() {
     let Some(gpu) = common::gpu() else { return };
     let mut family = Preset::Ordinary.parameters();
     family.skeleton.growth.max_nodes = Some(20);
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&tree).unwrap();
     renderer.set_view(View::Leaf);

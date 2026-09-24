@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-102-one-build-pipeline-in-place-of-the",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-09-23T18:50:38.774338Z",
   "created_at": "2026-09-21T10:58:27.387185Z",
   "default_impl": null,
   "default_review": null,
@@ -10,13 +10,69 @@
     "fn-100-the-field-reads-the-plan-not-placed"
   ],
   "id": "fn-102-one-build-pipeline-in-place-of-the",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-102-one-build-pipeline-in-place-of-the.1": 1
+  },
   "next_task": 1,
+  "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "32cd4f2957f639dbdfb4b59bb1bcfbf767ade16cbc3cdf0de94cad0a009f3579",
+      "backend": "codex",
+      "base_sha": "18da42fa6c6de68f2b0982272a40ad7488d94848",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-39e3694e5ed745eefb9e93987ff089bb",
+            "classification": "introduced",
+            "findingId": "finding-39e3694e5ed745eefb9e93987ff089bb",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "72577e73d6fdfb208b4fb341c3e72e8567343e05",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 2741,
+      "output_sha256": "b329e5a43e2e4e9cb21d124cf8a3a80b634998b3301918ef8ff30397226afe16",
+      "reservation_id": "40c060b7e7184bbaaa0be096590c71a0",
+      "round_consumed": true,
+      "scope": "impl:fn-102-one-build-pipeline-in-place-of-the.1",
+      "superseded_by": null,
+      "task": "fn-102-one-build-pipeline-in-place-of-the.1",
+      "timestamp": "2026-09-23T18:17:01.133175Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-102-one-build-pipeline-in-place-of-the.1": 0
+  },
   "spec_path": ".flow/specs/fn-102-one-build-pipeline-in-place-of-the.md",
-  "status": "open",
+  "status": "done",
   "title": "One build pipeline in place of the copied chains",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +85,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T16:40:54.071001Z"
+  "updated_at": "2026-09-24T07:23:13.029056Z"
 }

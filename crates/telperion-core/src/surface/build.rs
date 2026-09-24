@@ -71,6 +71,23 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
     build_inner(tree, height, params, None, None)
 }
 
+/// A wood and, for every node, where its segment meets the rings, as vertex
+/// offsets into its positions: the contacts leaves seated on it read.
+pub(crate) struct WoodWithContacts {
+    pub(crate) mesh: SurfaceMesh,
+    pub(crate) edges: Vec<Option<[usize; 4]>>,
+}
+
+pub(crate) fn build_contacts(
+    tree: &Tree,
+    height: f64,
+    params: &SurfaceParams,
+) -> Result<WoodWithContacts> {
+    let mut edges = filled(tree.nodes.len(), None)?;
+    let mesh = build_inner(tree, height, params, None, Some(&mut edges))?;
+    Ok(WoodWithContacts { mesh, edges })
+}
+
 pub(super) fn build_inner(
     tree: &Tree,
     height: f64,
@@ -154,7 +171,7 @@ pub(super) fn build_mode(
     }
     ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
     #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
-    if parallel_allowed && prepared.is_none() && contacts.is_none() {
+    if parallel_allowed && prepared.is_none() {
         if let Some(workers) = parallel::admitted(
             &paths,
             &distance,
@@ -177,9 +194,10 @@ pub(super) fn build_mode(
                 vertices,
                 indices_len,
                 workers,
+                contacts.as_deref_mut(),
             ) {
                 Ok(mesh) => Ok(mesh),
-                Err(_) => build_mode(tree, height, params, None, None, false),
+                Err(_) => build_mode(tree, height, params, None, contacts, false),
             };
         }
     }
@@ -216,14 +234,8 @@ pub(super) fn build_mode(
         let seg = segments as u32;
         if let Some(edges) = contacts.as_deref_mut() {
             let offset = usize::from(path.trunk && params.flare_depth > 0.0);
-            for (i, &node) in paths.nodes[path.start..path.end].iter().enumerate().skip(1) {
-                edges[node] = Some([
-                    base as usize + (i - 1 + offset) * segments,
-                    base as usize + (i + offset) * segments,
-                    base as usize,
-                    base as usize + (samples.len() - 1) * segments,
-                ]);
-            }
+            let nodes = &paths.nodes[path.start..path.end];
+            record_edges(edges, nodes, base as usize, samples.len(), segments, offset);
         }
         emit_run(&samples, &frame, &angular, params, height, |xyz, coord| {
             mesh.positions.extend(xyz);
@@ -316,6 +328,26 @@ pub(super) fn build_mode(
         p.bounds = mesh.bounds;
     }
     Ok(mesh)
+}
+
+/// Records where each node of one run meets the rings: its lower and upper
+/// ring, then the run's first and last, as vertex offsets from `base`.
+pub(super) fn record_edges(
+    edges: &mut [Option<[usize; 4]>],
+    nodes: &[usize],
+    base: usize,
+    rings: usize,
+    segments: usize,
+    offset: usize,
+) {
+    for (i, &node) in nodes.iter().enumerate().skip(1) {
+        edges[node] = Some([
+            base + (i - 1 + offset) * segments,
+            base + (i + offset) * segments,
+            base,
+            base + (rings - 1) * segments,
+        ]);
+    }
 }
 
 pub(super) fn emit_run(

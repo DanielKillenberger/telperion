@@ -1,14 +1,15 @@
-//! The build chain the C-ABI runs: growth, wood surface, foliage and field.
-//! A field request reads the leaf plan and places no leaf where the family
-//! has a plan; only a foliage request, or a family without a plan, places.
+//! What the C-ABI makes of a build request: the core's pipeline runs the
+//! stages, and this reads the request and hands the artifacts on as buffers
+//! and metadata. A field request reads the leaf plan and places no leaf where
+//! the family has a plan; only a foliage request, or a family without a plan,
+//! places.
 use crate::clock;
 use serde_json::{json, Value};
 use telperion_core::{
-    branching,
     field::{Field, FieldSnapshot},
-    foliage::{self, plan},
+    foliage,
     math::Vec3,
-    params, surface,
+    params, pipeline, surface,
     tree::NodeKind,
     twigs, Error, Result,
 };
@@ -95,144 +96,64 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         }
     }
     let field = field_request(flags.get("field"))?;
-    let wants = |key: &str| match key {
-        "field" => field.is_some(),
-        _ => flags.get(key).and_then(Value::as_bool).unwrap_or(false),
-    };
-    let started = clock();
-    let report = branching::generate(&f.skeleton, f.radii)?;
-    let tree = report.tree;
-    let growth_ms = clock() - started;
-    let mut out = Output::default();
+    let wants = |key: &str| flags.get(key).and_then(Value::as_bool).unwrap_or(false);
+    let built = pipeline::build(
+        &f,
+        pipeline::Request {
+            wood: wants("surface"),
+            leaves: wants("foliage"),
+            field,
+            structure: wants("structure"),
+            clock,
+            ..Default::default()
+        },
+    )?;
+    let (tree, o) = (&built.skeleton.tree, built.outputs);
     let (counts, handoffs, capped_handoffs, twig_count) =
-        branch_diagnostics(&tree, f.skeleton.twigs)?;
-    let t = f.skeleton.twigs.resolved()?;
-    let start = clock();
-    if wants("surface") {
-        out.surface = Some(surface::build(
-            &tree,
-            f.skeleton.envelope.height,
-            &f.surface,
-        )?);
-    }
-    let surface_ms = if wants("surface") {
-        clock() - start
-    } else {
-        0.0
+        branch_diagnostics(tree, f.skeleton.twigs)?;
+    let mut out = Output {
+        surface: o.wood,
+        field: o.field,
+        ..Output::default()
     };
-    let twig = foliage::TwigPlacement {
-        internode_length: t.twig.internode_length,
-        stations_per_internode: t.twig.stations_per_internode,
-    };
-    let mut element = None;
-    if wants("foliage") || wants("field") {
-        element = Some(foliage::build_element(f.element)?);
-    }
-    let start = clock();
-    let mut leaf_plan = None;
-    if wants("field") {
-        leaf_plan = plan::plan(
-            &tree,
-            f.skeleton.envelope,
-            f.canopy,
-            Some(twig),
-            &f.surface,
-            element.as_ref().unwrap(),
-            field.flatten(),
-        )?;
-    }
-    let plan_ms = if wants("field") { clock() - start } else { 0.0 };
-    let start = clock();
-    let mut placed_count = 0;
-    let mut leaf_bounds = Value::Null;
-    let needs_placement = wants("foliage") || (wants("field") && leaf_plan.is_none());
     let mut anatomy = Value::Null;
-    if needs_placement {
-        let blade = element.as_ref().unwrap();
-        let placed = foliage::place_on_surface(
-            &tree,
-            f.skeleton.envelope,
-            f.skeleton.seed,
-            f.canopy,
-            Some(twig),
-            &f.surface,
-            foliage::Reference::of(&f)?,
-        )?;
-        placed_count = placed.len();
-        out.instances = foliage::cull(placed, blade, f.skeleton.envelope, f.shell_depth)?;
-        if wants("foliage") {
-            anatomy = blade.anatomy.as_ref().map_or(Value::Null, |a| json!({
-                "unit": match a.unit { foliage::FoliageUnit::Leaf => "leaf", foliage::FoliageUnit::Needle => "needle" },
-                "vertices": [a.vertices.start, a.vertices.end],
-                "indices": [a.indices.start, a.indices.end],
-                "sections": a.sections.iter().map(|r| [r.start, r.end]).collect::<Vec<_>>()
-            }));
-            leaf_bounds = out
-                .instances
-                .bounds(blade)?
-                .map_or(Value::Null, |b| bounds(b.min, b.max));
-            out.element_positions = blade
-                .positions
-                .iter()
-                .flat_map(|p| [p.x as f32, p.y as f32, p.z as f32])
-                .collect();
-            out.element_indices = blade.indices.clone();
-            out.element_coords = blade.coords.clone();
-        }
+    let mut leaf_bounds = Value::Null;
+    let (mut placed_count, mut retained_count) = (0, 0);
+    let places = o.leaves.is_some();
+    if let Some(leaves) = o.leaves {
+        (placed_count, retained_count) = (leaves.placed, leaves.retained);
+        leaf_bounds = leaves.bounds.map_or(Value::Null, |b| bounds(b.min, b.max));
+        out.instances = leaves.instances;
     }
-    let foliage_ms = if needs_placement {
-        clock() - start
-    } else {
-        0.0
-    };
-    let start = clock();
-    if wants("field") {
-        out.field = Some(match &leaf_plan {
-            Some(leaf_plan) => Field::planned(&tree, leaf_plan)?,
-            None => Field::new(&tree, Some((&out.instances, element.as_ref().unwrap())))?,
-        });
+    if let Some(blade) = o.element.as_ref().filter(|_| wants("foliage")) {
+        anatomy = blade.anatomy.as_ref().map_or(Value::Null, |a| json!({
+            "unit": match a.unit { foliage::FoliageUnit::Leaf => "leaf", foliage::FoliageUnit::Needle => "needle" },
+            "vertices": [a.vertices.start, a.vertices.end],
+            "indices": [a.indices.start, a.indices.end],
+            "sections": a.sections.iter().map(|r| [r.start, r.end]).collect::<Vec<_>>()
+        }));
+        out.element_positions = blade
+            .positions
+            .iter()
+            .flat_map(|p| [p.x as f32, p.y as f32, p.z as f32])
+            .collect();
+        out.element_indices = blade.indices.clone();
+        out.element_coords = blade.coords.clone();
     }
-    let field_ms = if wants("field") { clock() - start } else { 0.0 };
-    let retained_count = out.instances.len();
     let reference = out.instances.reference;
-    if !wants("foliage") {
-        out.instances = foliage::Instances::default();
+    if let Some(s) = o.structure {
+        (out.structure, out.topology) = (s.nodes, s.topology);
     }
-    if wants("structure") {
-        out.structure
-            .try_reserve(tree.nodes.len() * 6)
-            .map_err(|_| Error::ResourceLimit("structure transfer"))?;
-        out.topology
-            .try_reserve(tree.nodes.len() * 3)
-            .map_err(|_| Error::ResourceLimit("topology transfer"))?;
-        for n in &tree.nodes {
-            out.structure.extend([
-                n.position.x,
-                n.position.y,
-                n.position.z,
-                n.radius,
-                n.start_radius,
-                n.base_radius,
-            ]);
-            out.topology.extend([
-                n.parent.unwrap_or(u32::MAX),
-                n.branch,
-                match n.kind {
-                    NodeKind::Structural => 0,
-                    NodeKind::Branch => 1,
-                    NodeKind::Twig => 2,
-                },
-            ]);
-        }
-    }
+    let t = o.stages;
+    let leaf_plan = o.plan.as_ref();
     let meta = json!({
-        "nodes":tree.nodes.len(),"crossover":tree.crossover,"shed":report.shed,
+        "nodes":tree.nodes.len(),"crossover":tree.crossover,"shed":built.skeleton.shed,
         "capped":tree.diagnostics.node_capped,"levelCapped":tree.diagnostics.level_capped,
         "attractionCapped":tree.diagnostics.attraction_capped,"complete":tree.diagnostics.complete(),
         "handoffs":handoffs,"generationCounts":counts,"levelCappedHandoffs":capped_handoffs,"twigs":twig_count,
         "leavesPlaced":placed_count,"instances":retained_count,
         // Stations the plan counts before any cull; zero without a plan.
-        "leavesPlanned":leaf_plan.as_ref().map_or(0,|p|p.total),
+        "leavesPlanned":leaf_plan.map_or(0,|p|p.total),
         "surfaceBounds":out.surface.as_ref().and_then(|s|s.bounds).map(|b|bounds(b.min,b.max)),
         "foliageBounds":leaf_bounds,
         // The box every leaf position is quantised against. A reader of the
@@ -242,16 +163,17 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
             "extent":[reference.extent.x, reference.extent.y, reference.extent.z]
         },
         "foliageAnatomy":anatomy,
-        "biologicalUnits": if needs_placement && element.as_ref().is_some_and(|e| e.anatomy.is_some()) { Some(retained_count) } else { None },
+        "biologicalUnits": if places && o.element.as_ref().is_some_and(|e| e.anatomy.is_some()) { Some(retained_count) } else { None },
         "fieldBounds":out.field.as_ref().and_then(Field::bounds).map(|b|bounds(b.min,b.max)),
         "fieldBytes":out.field.as_ref().map_or(0,Field::storage_bytes),
-        "timings":{"growthMs":growth_ms,"surfaceMs":surface_ms,"planMs":plan_ms,"foliageMs":foliage_ms,"fieldMs":field_ms,"coreMs":clock()-started},
+        "timings":{"growthMs":t.skeleton_ms,"surfaceMs":t.wood_ms,"planMs":t.plan_ms,
+            "foliageMs":t.rings_ms+t.placement_ms+t.cull_ms,"fieldMs":t.field_ms,"coreMs":t.total_ms},
         // Which stages ran: placement and the cull run together, the contact
         // surface only under placement with surface contact, the plan for a
         // field request the family's plan can describe.
-        "stages":{"surface":wants("surface"),"foliage":needs_placement,"placement":needs_placement,"cull":needs_placement,
-            "contacts":needs_placement && f.canopy.surface_contact > 0.0,"plan":leaf_plan.is_some(),"field":wants("field"),
-            "fieldSource":if !wants("field") { Value::Null } else if leaf_plan.is_some() { json!("plan") } else { json!("placed") }}
+        "stages":{"surface":wants("surface"),"foliage":places,"placement":places,"cull":places,
+            "contacts":places && f.canopy.surface_contact > 0.0,"plan":leaf_plan.is_some(),"field":field.is_some(),
+            "fieldSource":if field.is_none() { Value::Null } else if leaf_plan.is_some() { json!("plan") } else { json!("placed") }}
     });
     Ok((out, meta))
 }

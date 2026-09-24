@@ -1,7 +1,9 @@
-//! Direct mature-build stage measurements; JSONL, one process per preset/seed.
+//! Direct mature-build stage measurements through the pipeline; JSONL, one
+//! process per preset/seed. Placement and the cull are timed apart, and the
+//! contact rings apart from both; wood and leaves run side by side unless
+//! GENERATION_SERIAL is set or the leaves are seated on the wood.
 use serde_json::json;
-use std::time::Instant;
-use telperion_core::{branching, foliage, presets::Preset, surface};
+use telperion_core::{pipeline, presets::Preset};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<_> = std::env::args().collect();
@@ -24,41 +26,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "{}",
         json!({"event":"parameters","preset":preset,"seed":seed,"family":telperion_core::params::metadata(&f)})
     );
+    let schedule = if std::env::var_os("GENERATION_SERIAL").is_some() {
+        pipeline::Schedule::Serial
+    } else {
+        pipeline::Schedule::Concurrent
+    };
     for sample in 0..samples {
-        let total = Instant::now();
-        let start = Instant::now();
-        let report = branching::generate(&f.skeleton, f.radii)?;
-        let growth = start.elapsed().as_secs_f64() * 1000.;
-        let start = Instant::now();
-        let wood = surface::build(&report.tree, f.skeleton.envelope.height, &f.surface)?;
-        let surface = start.elapsed().as_secs_f64() * 1000.;
-        let start = Instant::now();
-        let element = foliage::build_element(f.element)?;
-        let twig = f.skeleton.twigs.resolved()?.twig;
-        let reference = foliage::Reference::of(&f)?;
-        let preparation = start.elapsed().as_secs_f64() * 1000.;
-        let start = Instant::now();
-        let placed = foliage::place_on_surface(
-            &report.tree,
-            f.skeleton.envelope,
-            seed,
-            f.canopy,
-            Some(foliage::TwigPlacement {
-                internode_length: twig.internode_length,
-                stations_per_internode: twig.stations_per_internode,
-            }),
-            &f.surface,
-            reference,
-        )?;
-        let placement = start.elapsed().as_secs_f64() * 1000.;
-        let placed_count = placed.len();
-        let start = Instant::now();
-        let instances = foliage::cull(placed, &element, f.skeleton.envelope, f.shell_depth)?;
-        let cull = start.elapsed().as_secs_f64() * 1000.;
-        let start = Instant::now();
-        let bounds = instances.bounds(&element)?;
-        let bounds_ms = start.elapsed().as_secs_f64() * 1000.;
-        let elapsed = total.elapsed().as_secs_f64() * 1000.;
+        let request = pipeline::Request {
+            schedule,
+            ..pipeline::Request::mesh()
+        };
+        let built = pipeline::build(&f, request)?;
+        let tree = &built.skeleton.tree;
+        let o = built.outputs;
+        let t = o.stages;
+        let wood = o.wood.ok_or("no wood")?;
+        let element = o.element.ok_or("no element")?;
+        let leaves = o.leaves.ok_or("no leaves")?;
+        let (instances, bounds) = (&leaves.instances, leaves.bounds);
         let mut hash = 14695981039346656037_u64;
         for byte in wood
             .positions
@@ -92,13 +77,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "{}",
             json!({"event":"sample","output_fnv1a64":format!("{hash:016x}"),"sample":sample,"cold_process_first_build":sample==0,
             "preset":preset,"seed":seed,"height_m":f.skeleton.envelope.height,
-            "complete":report.tree.diagnostics.complete(),"nodes":report.tree.nodes.len(),
-            "placed":placed_count,"retained":instances.len(),"wood_vertices":wood.positions.len()/3,
+            "complete":tree.diagnostics.complete(),"nodes":tree.nodes.len(),
+            "placed":leaves.placed,"retained":instances.len(),"wood_vertices":wood.positions.len()/3,
             "wood_triangles":wood.indices.len()/3,"wood_dropped":wood.dropped,"foliage_bounds_present":bounds.is_some(),
-            "milliseconds":{"growth":growth,"surface":surface,"element_and_reference":preparation,
-                "placement_including_attachment":placement,"cull":cull,"foliage_bounds":bounds_ms,"total":elapsed}})
+            "milliseconds":{"growth":t.skeleton_ms,"rings":t.rings_ms,"surface":t.wood_ms,
+                "placement":t.placement_ms,"cull":t.cull_ms,"total":t.total_ms}})
         );
-        if !report.tree.diagnostics.complete() {
+        if !tree.diagnostics.complete() {
             return Err("incomplete tree".into());
         }
     }

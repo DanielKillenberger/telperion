@@ -57,16 +57,11 @@ pub fn prepare_stations(
         twig,
         surface,
         || AttachmentSurface::new(tree, envelope.height, surface),
-        |c, node| {
-            c.edges
-                .get(node)
-                .copied()
-                .flatten()
-                .map(|(a, b, c, d)| [a, b, c, d])
-        },
+        |c, node| c.edges.get(node).copied().flatten(),
     )?;
     Ok(result.map(|(segments, count, contacts)| {
-        let (rings, ring_size) = contacts.map_or((Vec::new(), 0), |c| (c.rings, c.segments as u32));
+        let (rings, ring_size) =
+            contacts.map_or((Vec::new(), 0), |c| (c.points(), c.segments as u32));
         PreparedStations {
             segments,
             count,

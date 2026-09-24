@@ -6,7 +6,7 @@ use telperion_core::{
     foliage::{Element, Instances},
     material::MaterialParams,
     math::Vec3,
-    mesh::{self, Detail, Foliage, TreeMesh},
+    mesh::{self, Foliage, TreeMesh},
     presets::Preset,
     surface::{Bounds, SurfaceMesh, SurfaceRun},
 };
@@ -132,7 +132,7 @@ fn a_row_with_no_shoot_radius_draws_the_bark_whatever_shoot_colour_it_states() {
     let Some(gpu) = common::gpu() else { return };
     let mut family = Preset::Ordinary.parameters();
     family.skeleton.growth.max_nodes = Some(400);
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&tree).unwrap();
     let camera = telperion_render::hero_pose(tree.bounds, 1.0, telperion_render::GROUND_REACH);

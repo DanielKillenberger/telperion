@@ -19,7 +19,7 @@ pub fn place(
     twig: Option<TwigPlacement>,
     reference: Reference,
 ) -> Result<Instances> {
-    place_impl(tree, envelope, seed, p, twig, None, reference)
+    place_on(tree, envelope, seed, p, twig, None, reference)
 }
 
 /// Seat the foliage on the actual swept polygon, including fork sockets, as far
@@ -37,7 +37,7 @@ pub fn place_on_surface(
         return place(tree, envelope, seed, p, twig, reference);
     }
     let contacts = AttachmentSurface::new(tree, envelope.height, surface)?;
-    place_impl(tree, envelope, seed, p, twig, Some(&contacts), reference)
+    place_on(tree, envelope, seed, p, twig, Some(&contacts), reference)
 }
 /// Everything both the builder and the count check before a leaf is placed,
 /// and whether this tree and this family bear any at all.
@@ -128,13 +128,15 @@ pub(crate) fn leaf_count(
     leaves_on(tree, envelope, seed, p, twig, &runs(tree, p, twig))
 }
 
-fn place_impl(
+/// Places on the contact surface given, swept or read from a built wood;
+/// `None` where the family seats no leaf on the wood.
+pub(crate) fn place_on(
     tree: &Tree,
     envelope: Envelope,
     seed: u32,
     p: CanopyParams,
     twig: Option<TwigPlacement>,
-    contacts: Option<&AttachmentSurface>,
+    contacts: Option<&AttachmentSurface<'_>>,
     reference: Reference,
 ) -> Result<Instances> {
     if !bearing(tree, envelope, p, twig)? {

@@ -1,10 +1,7 @@
 //! Explicit fn-71 footprint sweep replay; images are numeric diagnostics only.
 use serde_json::json;
 use std::{path::PathBuf, process::Command};
-use telperion_core::{
-    mesh::{self, Detail},
-    presets::Preset,
-};
+use telperion_core::{mesh, presets::Preset};
 use telperion_render::{
     hero_pose, render, shot_pose, write_png, Gpu, Renderer, SceneRow, Shot, View, GROUND_REACH,
     STILL_FORMAT,
@@ -50,7 +47,7 @@ fn replay_fn71_footprint_sweep() {
     let source_status = git(&root, &["status", "--porcelain"]);
     let mut family = preset.parameters();
     family.skeleton.seed = 1;
-    let mut tree = mesh::build(&family, Detail::Full).unwrap();
+    let mut tree = mesh::build(&family).unwrap();
     let gpu = pollster::block_on(Gpu::request(None)).expect("hardware GPU required for evidence");
     let adapter = format!("{:?}", gpu.adapter);
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);

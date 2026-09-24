@@ -2,12 +2,7 @@
 //! sun. What separates that from fn-29's cavity is which side it darkens: move
 //! the sun across the trunk and the shaded side must move with it.
 mod common;
-use telperion_core::{
-    material::MaterialParams,
-    math::Vec3,
-    mesh::{self, Detail},
-    presets::Preset,
-};
+use telperion_core::{material::MaterialParams, math::Vec3, mesh, presets::Preset};
 use telperion_render::{render, Camera, Renderer, SceneRow, Still, View, STILL_FORMAT};
 
 const SIZE: (u32, u32) = (480, 300);
@@ -45,7 +40,7 @@ fn the_darkened_side_of_a_furrow_follows_the_sun() {
     let Some(gpu) = common::gpu() else { return };
     let mut family = Preset::OregonWhiteOak.parameters();
     family.skeleton.seed = 7;
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&tree).unwrap();
     renderer.set_view(View::Bare);
@@ -113,7 +108,7 @@ fn the_row_at_zero_leaves_the_frame_exactly_as_it_was() {
     let Some(gpu) = common::gpu() else { return };
     let mut family = Preset::OregonWhiteOak.parameters();
     family.skeleton.seed = 7;
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&tree).unwrap();
     renderer.set_view(View::Bare);

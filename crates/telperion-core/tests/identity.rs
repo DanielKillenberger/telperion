@@ -190,11 +190,7 @@
 //! skeleton and every element pin is byte-identical.
 //! No device is needed; this is the core's own arithmetic.
 mod specimens;
-use telperion_core::{
-    branching,
-    mesh::{self, Detail},
-    presets::Preset,
-};
+use telperion_core::{branching, mesh, presets::Preset};
 
 #[path = "catalogue/pins.rs"]
 mod catalogue;
@@ -336,7 +332,7 @@ fn print_pins() {
                 .flat_map(f64::to_le_bytes)
                 .chain(n.parent.expect("non-root parent").to_le_bytes())
         }));
-        let m = mesh::build(&family, Detail::Full).unwrap();
+        let m = mesh::build(&family).unwrap();
         let placement = fnv(m
             .foliage
             .instances

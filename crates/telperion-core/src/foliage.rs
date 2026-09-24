@@ -28,7 +28,7 @@ pub use element::{build_element, AnatomyGeometry, Element, ElementParams, Foliag
 pub use levels::Level;
 pub use packed::{Leaf, Reference, WORDS};
 #[cfg(feature = "geometry")]
-pub(crate) use placement::leaf_count;
+pub(crate) use placement::{leaf_count, place_on};
 #[cfg(feature = "geometry")]
 pub use placement::{place, place_on_surface};
 #[cfg(feature = "geometry")]

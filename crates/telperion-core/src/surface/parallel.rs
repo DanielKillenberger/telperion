@@ -151,6 +151,7 @@ pub(super) fn build(
     vertices: usize,
     indices_len: usize,
     count: usize,
+    contacts: Option<&mut Vec<Option<[usize; 4]>>>,
 ) -> Result<SurfaceMesh> {
     if count < 2 {
         return Err(failed());
@@ -175,6 +176,15 @@ pub(super) fn build(
     }
     if base != vertices || first_index != indices_len || first_index > u32::MAX as usize {
         return Err(failed());
+    }
+    if let Some(edges) = contacts {
+        for run in &runs {
+            let path = &paths.runs[run.path as usize];
+            let offset = usize::from(path.trunk && params.flare_depth > 0.0);
+            let nodes = &paths.nodes[path.start..path.end];
+            let (base, rings) = (run.base as usize, run.rings as usize);
+            record_edges(edges, nodes, base, rings, segments, offset);
+        }
     }
     let boundaries = partitions(&runs, vertices, segments, count);
     let mut positions = filled(vertices * 3, 0.0)?;

@@ -52,6 +52,8 @@ The renderer's GPU preparation carries work this spec removes or overlaps (fn-10
 - Owner decision 2026-09-23 (fn-102 review, item I). fn-102's deferred ideas "a CPU reference expander over station segments", "the GPU station path as the renderer's default" and "a station form for short shoots" land here and in the gap specs. [user]
 - Depends on fn-102, which defines stage 3 in one place. [inferred]
 
+- Retire the separate ring sweep. After fn-102 the wood's float32 vertex array is the one ring store the mature build reads; `AttachmentSurface::new`'s own sweep survives only for `foliage::prepared::prepare_stations`, `place_on_surface`, examples and tests. The GPU contract rebuilds station preparation, so it moves that caller onto the wood's rings and deletes the second sweep. [inferred, fn-102 review 2026-09-24]
+
 ## Open before ready
 
 - Where the shaders and the layout live: a new crate beside the core, or a data module in the core with no wgpu dependency. A host design call before ready.

@@ -3,7 +3,7 @@ mod common;
 use telperion_core::{
     material::MaterialParams,
     math::Vec3,
-    mesh::{self, Detail, TreeMesh},
+    mesh::{self, TreeMesh},
     presets::Preset,
     surface::SurfaceMesh,
 };
@@ -14,7 +14,7 @@ use telperion_render::{
 fn tree() -> TreeMesh {
     let mut family = Preset::Ordinary.parameters();
     family.skeleton.growth.max_nodes = Some(400);
-    mesh::build(&family, Detail::Full).unwrap()
+    mesh::build(&family).unwrap()
 }
 
 fn hash(mesh: &SurfaceMesh) -> u64 {
@@ -68,7 +68,7 @@ fn fissures_crests_and_mottle_change_colour_without_changing_wood() {
         ..Default::default()
     };
     family.material = off;
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&tree).unwrap();
     renderer.set_view(View::Bare);
@@ -107,7 +107,7 @@ fn fissures_crests_and_mottle_change_colour_without_changing_wood() {
         ),
     ] {
         family.material = row;
-        let on_tree = mesh::build(&family, Detail::Full).unwrap();
+        let on_tree = mesh::build(&family).unwrap();
         assert_eq!(
             hash(&tree.wood),
             hash(&on_tree.wood),
@@ -216,7 +216,7 @@ fn crown_occlusion_darkens_wood_and_leaves_but_not_a_single_leaf_or_clay() {
     // means no crown ellipsoid and exactly zero depth in Whole AND Bare.
     let mut family = Preset::Ordinary.parameters();
     family.skeleton.growth.max_nodes = None;
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let tree = mesh::build(&family).unwrap();
     let placements = &tree.foliage.instances;
     assert!(
         placements.len() > 1000,

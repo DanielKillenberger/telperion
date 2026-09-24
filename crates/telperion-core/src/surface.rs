@@ -33,6 +33,8 @@ use build::*;
 #[cfg(feature = "geometry")]
 pub use build::{build, extent};
 #[cfg(feature = "geometry")]
+pub(crate) use build::{build_contacts, WoodWithContacts};
+#[cfg(feature = "geometry")]
 pub(crate) use dependencies::affected as affected_contacts;
 pub(crate) use paths::straightest;
 #[cfg(feature = "geometry")]

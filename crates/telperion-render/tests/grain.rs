@@ -2,12 +2,7 @@
 //! footprint, on the bark by the box integral of its own noise over the pixel
 //! and on the blade by its fade, so a distant tree is the smooth one it was.
 mod common;
-use telperion_core::{
-    material::MaterialParams,
-    math::Vec3,
-    mesh::{self, Detail},
-    presets::Preset,
-};
+use telperion_core::{material::MaterialParams, math::Vec3, mesh, presets::Preset};
 use telperion_render::{render, Camera, Level, Renderer, Still, View, STILL_FORMAT};
 
 /// How many channels moved between two stills, the furthest one moved, and
@@ -66,7 +61,7 @@ fn bark_grain_shows_near_and_is_its_mean_far() {
     let Some(gpu) = common::gpu() else { return };
     let mut family = Preset::OregonWhiteOak.parameters();
     family.skeleton.seed = 7;
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&tree).unwrap();
     renderer.set_view(View::Bare);
@@ -101,7 +96,7 @@ fn blade_grain_shows_near_and_is_its_mean_far() {
     let Some(gpu) = common::gpu() else { return };
     let mut family = Preset::Ordinary.parameters();
     family.skeleton.growth.max_nodes = Some(20);
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit_at(&tree, Level::Forced(0)).unwrap();
     renderer.set_view(View::Leaf);

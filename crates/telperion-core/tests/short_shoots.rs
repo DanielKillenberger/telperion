@@ -340,8 +340,8 @@ fn short_shoots_add_no_node_to_the_skeleton() {
             branching::Specimen::build(&without).unwrap(),
         );
         assert_eq!(a.tree().nodes.len(), b.tree().nodes.len(), "seed {seed}");
-        let full = telperion_core::mesh::build(&with, telperion_core::mesh::Detail::Full);
-        let bare = telperion_core::mesh::build(&without, telperion_core::mesh::Detail::Full);
+        let full = telperion_core::mesh::build(&with);
+        let bare = telperion_core::mesh::build(&without);
         let (full, bare) = (full.unwrap(), bare.unwrap());
         assert_eq!(
             full.wood, bare.wood,
