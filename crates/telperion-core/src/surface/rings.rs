@@ -3,6 +3,7 @@
 //! artifact; the mesh step and the leaves both read it, and the wood takes
 //! its positions, coords and run table once the mesh step is done.
 use super::*;
+use crate::tree::Section;
 use std::sync::OnceLock;
 
 /// What a sweep is for.
@@ -161,6 +162,9 @@ impl Scratch {
     pub(super) fn sweep(&mut self, at: Swept, path_id: usize) -> (&[Sample], &[(Vec3, Vec3)]) {
         at.sample(path_id, &mut self.samples);
         frames(&self.samples, &mut self.directions, &mut self.frame);
+        if let Some(shape) = at.section(path_id) {
+            section::square(shape, &mut self.frame);
+        }
         (&self.samples, &self.frame)
     }
 }
@@ -212,6 +216,11 @@ impl Swept<'_> {
         );
     }
 
+    /// The cell a path's run is drawn as, if the tree shapes it.
+    pub(super) fn section(&self, path_id: usize) -> Option<&Section> {
+        section::of(self.tree, self.paths, &self.paths.runs[path_id])
+    }
+
     /// Records a path's contact rings, its run starting at vertex `base`.
     pub(super) fn record(&self, edges: &mut [Option<[usize; 4]>], path_id: usize, base: usize) {
         let path = &self.paths.runs[path_id];
@@ -237,7 +246,8 @@ fn in_turn(
         }
         let (samples, frame) = scratch.sweep(at, path_id);
         let (positions, coords) = (&mut out.positions, &mut out.coords);
-        emit_run(samples, frame, at, sweep.drawn, |xyz, coord| {
+        let shape = at.section(path_id);
+        emit_run(samples, frame, at, shape, sweep.drawn, |xyz, coord| {
             positions.extend(xyz);
             if sweep.drawn {
                 coords.extend(coord);

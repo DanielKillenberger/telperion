@@ -15,6 +15,9 @@ pub struct CompactSurface {
     pub segments: u32,
     pub lobes: u32,
     pub depth: f32,
+    /// Whether any run is drawn as a lattice cell. The ring words carry a round
+    /// section only, so a shaped surface is never qualified for them.
+    pub shaped: bool,
 }
 
 pub fn prepare(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<CompactSurface> {
@@ -31,7 +34,8 @@ pub fn qualified_ring(centre: [f32; 3], radius: f32) -> bool {
 }
 impl CompactSurface {
     pub fn qualified(&self) -> bool {
-        (self.lobes == 0 || self.depth == 0.0)
+        !self.shaped
+            && (self.lobes == 0 || self.depth == 0.0)
             && self.rings.iter().all(|r| {
                 qualified_ring([r[0], r[1], r[2]].map(f32::from_bits), f32::from_bits(r[3]))
             })
@@ -127,6 +131,7 @@ fn prepare_inner(
         segments,
         lobes: params.lobes,
         depth: params.lobe_depth as f32,
+        shaped: !tree.sections.is_empty(),
     };
     out.angular.extend(
         angular::samples(segments as usize, params)?

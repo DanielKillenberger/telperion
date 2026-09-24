@@ -354,6 +354,12 @@ pub(super) fn date_palm(p: &mut Family) {
     p.canopy.leaf_base_radius = 0.3;
     p.canopy.leaf_base_pitch = 55.0;
     p.canopy.leaf_base_weathering = 0.6;
+    // The lattice (fn-144): the boots packed edge to edge on the crown's
+    // spiral as flat-faced diamonds. Swept by code on this tree at seed 1, a
+    // flat section crowded least at every width and full width alone covered
+    // each cell; the rest of the trunk is tuning's.
+    p.canopy.leaf_base_width = 1.0;
+    p.canopy.leaf_base_flatness = 1.0;
     p.canopy.acanthophylls = 8;
     p.canopy.acanthophyll_length = 0.3;
     p.canopy.acanthophyll_pitch = 75.0;

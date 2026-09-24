@@ -178,7 +178,8 @@ pub(super) fn rings(
                 let mut scratch = Scratch::new(longest)?;
                 for &(path_id, _) in group {
                     let (samples, frame) = scratch.sweep(at, path_id);
-                    emit_run(samples, frame, at, true, |xyz, coord| {
+                    let shape = at.section(path_id);
+                    emit_run(samples, frame, at, shape, true, |xyz, coord| {
                         out_p.extend(&xyz);
                         out_c.extend(&coord);
                     })?;

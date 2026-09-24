@@ -25,7 +25,8 @@ pub struct Capability {
 /// are the frozen fn-19 protocol's, the ones [`derived`] reads off a value
 /// table; then what the shipped beech and birch require and draw, and last the
 /// pinnate grouping and the frond crown fn-109 gave the canopy, the two
-/// trunk organs fn-110 gave it, and the dead fronds fn-120 hangs below it.
+/// trunk organs fn-110 gave it, the dead fronds fn-120 hangs below it, and
+/// the lattice fn-144 packs the retained bases into.
 pub const EXPRESSED: &[Capability] = &[
     Capability {
         name: "woody-axes",
@@ -83,6 +84,10 @@ pub const EXPRESSED: &[Capability] = &[
         name: "dead-frond-skirt",
         meaning: "dead fronds a crown keeps, hanging against the stem below the living ones",
     },
+    Capability {
+        name: "leaf-base-lattice",
+        meaning: "retained leaf bases packed edge to edge on the crown's spiral, a diamond lattice of flat-faced boots",
+    },
 ];
 
 /// Names an assessment may use that the generator cannot express yet. Each is
@@ -102,8 +107,9 @@ pub const UNEXPRESSED: &[Capability] = &[
 ];
 
 /// The names [`derived`] can read off a value table: the frozen fn-19
-/// protocol's six, the three fn-109 added, the two fn-110 added and the skirt
-/// fn-120 added, each with a threshold on a shipped value. A name outside this set has no threshold, so a table that
+/// protocol's six, the three fn-109 added, the two fn-110 added, the skirt
+/// fn-120 added and the lattice fn-144 added, each with a threshold on a
+/// shipped value. A name outside this set has no threshold, so a table that
 /// does not produce it has said nothing about it either way.
 pub const DERIVABLE: &[&str] = &[
     "woody-axes",
@@ -118,6 +124,7 @@ pub const DERIVABLE: &[&str] = &[
     "persistent-leaf-base",
     "acanthophyll",
     "dead-frond-skirt",
+    "leaf-base-lattice",
 ];
 
 /// What the vocabulary says about one required name.
@@ -234,8 +241,14 @@ pub fn derived(preset: Preset) -> Vec<&'static str> {
     // The trunk organs are the crown's own history and the frond's own
     // leaflets: a base keeps the spiral the rosette turns in, and a spine is a
     // leaflet hardened, so neither name is produced without the crown.
-    if f.canopy.leaf_bases > 0 && f.canopy.leaf_base_length > 0.0 && rosette {
+    let bases = f.canopy.leaf_bases > 0 && f.canopy.leaf_base_length > 0.0 && rosette;
+    if bases {
         produced.push("persistent-leaf-base");
+    }
+    // The lattice is the bases packed: a base with a width is drawn as its
+    // cell of the crown's spiral.
+    if bases && f.canopy.leaf_base_width > 0.0 {
+        produced.push("leaf-base-lattice");
     }
     if f.canopy.acanthophylls > 0 && f.canopy.acanthophyll_length > 0.0 && pinnate {
         produced.push("acanthophyll");
