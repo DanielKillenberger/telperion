@@ -124,8 +124,10 @@ fn scaffold_directions() {
 fn shipped_scaffolds_are_reproducible() {
     // fn-11: one re-pin for pinned pure-Rust libm on native and wasm.
     // Counts/topology are unchanged; maximum position drift is below 1e-11 m.
+    // fn-143: one re-pin for the crown quadrant as log, expm1 and exp; counts
+    // and topology unchanged, positions within 6e-10 m.
     for (preset, expected) in [
-        (Preset::OregonWhiteOak, 11389017044164293456_u64),
+        (Preset::OregonWhiteOak, 10950782810389339602_u64),
         (Preset::NorwaySpruce, 17659250574543300401),
         (Preset::Ordinary, 9848876633805652422),
     ] {
