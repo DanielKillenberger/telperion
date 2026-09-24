@@ -136,6 +136,28 @@ fn a_run_the_guard_stopped_goes_to_the_owners_packet_with_every_known_gap() {
     );
 }
 
+/// The article lives where the document stage recorded it (the catalogue
+/// folder the script writes), not only in the run folder: the palm's packet
+/// was withheld for a missing ARTICLE.md that sat in `catalogue/date-palm`.
+#[test]
+fn the_packet_reads_the_article_where_the_document_stage_recorded_it() {
+    let passing = "passing on the current tree";
+    let (config, mut run, executor) = stopped("article", RUNAWAY, &[passing]);
+    std::fs::remove_file(config.dir.join("ARTICLE.md")).unwrap();
+    let (_, next) = tune_once(&config, &mut run, &executor);
+    assert_eq!(next, Next::Packet);
+    let catalogue = config.dir.join("catalogue-palm");
+    std::fs::create_dir_all(&catalogue).unwrap();
+    std::fs::write(catalogue.join("ARTICLE.md"), "# Palm\n").unwrap();
+    let document = config.paths().artifact("document");
+    let mut record: Value = serde_json::from_slice(&std::fs::read(&document).unwrap()).unwrap();
+    record["body"]["article"] = json!(catalogue.join("ARTICLE.md"));
+    write(&document, &record);
+    let (word, next) = drive(&Script::new(), &config, &mut run, &executor);
+    assert!(word.contains("packet ready"), "{word}");
+    assert_eq!(next, Next::Ready);
+}
+
 /// A no-progress stop finishes the run only when every drawable objective
 /// passes; with one still failing, the stop is the host's as before.
 #[test]

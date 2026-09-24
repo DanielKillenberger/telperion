@@ -71,7 +71,9 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
             "The article still has unfilled sections or uncited claims.",
         ));
     }
-    let article = ctx.paths.dir.join("ARTICLE.md");
+    // The catalogue script writes the article into the species' catalogue
+    // folder, read from the repository root as the script runs.
+    let article = std::path::Path::new("catalogue").join(&species).join("ARTICLE.md");
     let written = std::fs::read_to_string(&article).unwrap_or_default();
     let (claims, loads) = claims_in(&ctx, judge, &written);
     let failed = |err: crate::caller::CallerError| StageError::Failed {

@@ -132,7 +132,12 @@ pub fn assemble(config: &Config, run: &mut Run) -> Result<String> {
             missing["path"]
         ));
     }
-    let article = config.dir.join("ARTICLE.md");
+    // The article is where the document stage recorded it (the catalogue
+    // folder), else the run folder.
+    let article = read_json(&paths.artifact("document"))
+        .ok()
+        .and_then(|d| d["body"]["article"].as_str().map(std::path::PathBuf::from))
+        .unwrap_or_else(|| config.dir.join("ARTICLE.md"));
     if !article.exists() || !paths.artifact("document").exists() {
         unready.push("documentation: ARTICLE.md or document.json is missing".into());
     }
