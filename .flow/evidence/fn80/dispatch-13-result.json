@@ -1,0 +1,15 @@
+{
+  "input_identity": "192e9ce4b2d57b8abf574e4d9b3f81a4a5cddc3d1ef7512c5af2eb38afe0a701",
+  "design_revision": null,
+  "actual_model": "claude-opus-5-5 (host session acting as the cheap agent)",
+  "actual_effort": "default",
+  "usage": {
+    "input_tokens": 1,
+    "output_tokens": 1
+  },
+  "cost_usd": null,
+  "verification": "verified",
+  "observed": "Resolved date-palm/verify/claim-unsupported//profiles/0/appearance/leaf_back_colour with replace-source: the cited sentence does not describe the underside.",
+  "handoff": null,
+  "failure": null
+}

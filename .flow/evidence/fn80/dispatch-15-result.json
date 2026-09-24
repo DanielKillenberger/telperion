@@ -1,0 +1,15 @@
+{
+  "input_identity": "038f95ecbe30989ecd3b28775a006270aaf8e4e0407dacb7b5a2dce41123a13c",
+  "design_revision": null,
+  "actual_model": "claude-sonnet-5 (host session acting as the cheap agent)",
+  "actual_effort": "default",
+  "usage": {
+    "input_tokens": 1,
+    "output_tokens": 1
+  },
+  "cost_usd": null,
+  "verification": "verified",
+  "observed": "Resolved date-palm/verify/claim-unsupported//profiles/0/metrics/height_m with replace-source: A1's span states the exact height range, but Jev's confidence sat below the bar because the surrounding page mixes history with the size table; the routine tier offers no accept, so filed for search-again.",
+  "handoff": null,
+  "failure": null
+}

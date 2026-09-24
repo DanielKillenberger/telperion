@@ -114,5 +114,18 @@
       "confidence": "medium",
       "note": "fn-33 (open) specifies one reproductive organ slot for a flower, a cone or a fruit, placed at stations as a second foliage list. That is the existing spec for a fruiting organ. Unsure whether a branched Phoenix spadix is one hanging organ element or a structure the single-element slot cannot draw. Not filed as a new gap. fn-33's own boundary parks a second fruit slot (oak acorns)."
     }
+  ],
+  "classes": [
+    {
+      "capability": "infructescence",
+      "class": "improvement",
+      "reason": "The date cluster adds realism; the palm is recognisable without it (two of the three reference photographs show fruitless crowns), and fn-33's organ slot serves many species. The owner put the palm's date clusters in the backlog on 2026-09-24.",
+      "captured_by": [
+        "fn-33-flowers-cones-and-compound-leaves-as",
+        "fn-111-the-palms-infructescence-a-hanging-date"
+      ],
+      "decided_by": "owner",
+      "decided_on": "2026-09-24"
+    }
   ]
 }

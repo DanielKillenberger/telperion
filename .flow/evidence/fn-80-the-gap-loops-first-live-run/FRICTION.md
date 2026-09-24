@@ -123,3 +123,11 @@ After fn-128 landed in fn-80, `quality`, `select` and `verify` all answered `cur
 ## 2026-09-23 — host: one unidentified flaky test in the workspace gate
 
 The gate on fn-80 after merging the linear stack failed 1 of 980 once and passed 980 of 980 on the rerun; the first run's output was not kept, so the test is unknown. Cost: one extra gate run (several minutes). What would remove it: the gate always written to a log under raw/, so a single failure is named the first time; then a spec for the test itself (fn-92 recorded `bark_plates` crashing intermittently).
+
+## 2026-09-24 — host: the seeds gate and the bibliography go stale on every source change
+
+After fn-129 to fn-136 the palm's stages ran to `document`, which stopped because `catalogue/date-palm/sources.json` held only the first three sources: the stage writes the bibliography when the folder lacks one and never refreshes it. The host moved the stale file into ignored `raw/` so it is rebuilt. The seeds gate reopened for the third time: it audits `packet/specimens.json`, which `generate` writes after the gate, so every rerun files it again and the host re-records the standing waiver. Cost: about 5 minutes a rerun. What would remove it: `document` rewriting the bibliography from the admitted manifest whenever the sources change, and the seeds audit moved after `generate` (or into it).
+
+## 2026-09-24 — host: no stage writes the species bibliography
+
+`document` stopped on F1 because `catalogue/date-palm/sources.json` was missing: the host had moved the stale copy aside expecting a stage to rebuild it, but none does. The 2026-09-22 copy was written by hand from the manifest, and `scripts/catalogue-sources.mjs` only reads it. The host rewrote it from the admitted manifest (eight sources). Cost: about 10 minutes and a wrong assumption. What would remove it: `document` writing `sources.json` from the admitted manifest on every run, so admission (fn-129) and the bibliography never disagree.

@@ -1,0 +1,58 @@
+{
+  "reference": "P-WHOLE",
+  "foliage": "leaf-on",
+  "photograph": {
+    "box_px": [
+      920,
+      438,
+      2957,
+      3504
+    ],
+    "width_over_height": 0.8439,
+    "fill": 0.7998,
+    "crown_base": 0.5,
+    "occupied": 0.5057,
+    "outline_deviation": 0.153,
+    "centre": {
+      "rgb": [
+        68.8,
+        83.1,
+        62.4
+      ],
+      "order": "GRB",
+      "mean": 71.4
+    }
+  },
+  "still": {
+    "box_px": [
+      56,
+      314,
+      969,
+      985
+    ],
+    "width_over_height": 0.9838,
+    "fill": 0.684,
+    "crown_base": 0.1341,
+    "occupied": 0.063,
+    "outline_deviation": null,
+    "centre": {
+      "rgb": [
+        157.5,
+        169.7,
+        183.7
+      ],
+      "order": "BGR",
+      "mean": 170.3
+    }
+  },
+  "method": {
+    "photograph": "tree box and crown base from the record, read by eye; occupied is the dark-pixel fraction of the box",
+    "still": "tree mask is what stands out of the row background under both suns; occupied is the mask's share of its box",
+    "outline_deviation": "root mean square of the mask's boundary radius about its best-fit ellipse, over 180 bins of bearing, as a fraction of the fitted radius; null when a bin is empty"
+  },
+  "pair": {
+    "path": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.flow/evidence/fn-80-the-gap-loops-first-live-run/local/palm/f8e1be5f249f1480914cc59999f5ac7921ff2ba43d341f3f9ea21dd6db15d212-18d7b0156b58cf44-192bb9-2d6/f8e1be5f249f1480914cc59999f5ac7921ff2ba43d341f3f9ea21dd6db15d212-P-WHOLE-pair.png",
+    "sha256": "01e7e53b47350dfea9d8899d4bb86a92d89ee4c756d32ea20a0e5c6dcabbf3cb"
+  },
+  "still_sha256": "85b19efa58ee888339b1e3cf78e968269bde6f0adce0f633d486f49076cbfb53"
+}

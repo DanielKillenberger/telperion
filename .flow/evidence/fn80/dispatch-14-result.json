@@ -1,0 +1,15 @@
+{
+  "input_identity": "53efed9192cc16c019af3716a53fd8e855bbf78a3e11182a99bd1d7ac3173724",
+  "design_revision": null,
+  "actual_model": "claude-sonnet-5 (host session acting as the cheap agent)",
+  "actual_effort": "default",
+  "usage": {
+    "input_tokens": 1,
+    "output_tokens": 1
+  },
+  "cost_usd": null,
+  "verification": "verified",
+  "observed": "Resolved date-palm/verify/claim-unsupported//profiles/0/appearance/leaf_hue_range with replace-source: F1's cited span states leaf colour as blue-green to gray-green but says nothing about variation across the crown, the claim's specific assertion.",
+  "handoff": null,
+  "failure": null
+}

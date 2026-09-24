@@ -62,16 +62,6 @@
       "note": "Owner, 2026-09-22: \"we can do both no? tune and build the missing capabilities?\" Re-recorded 2026-09-24 against the gate's new inputs: only infructescence is missing now (fn-111 on fn-33's organ slot, being built); tuning proceeds on everything else."
     },
     {
-      "id": "date-palm/gate/onboarding-gate/seeds",
-      "inputs_sha256": {
-        "select.json": "4e3121dd9703004a327085732177cf9d0f207443564f49d33c034ae85a76a2a1"
-      },
-      "option": "waive",
-      "by": "host under the owner's standing rule",
-      "at": "2026-09-24",
-      "note": "Re-recorded 2026-09-24 against the gate's new inputs: the seeds gate audits packet/specimens.json, which the generate stage it blocks writes; nothing can be audited before generate runs."
-    },
-    {
       "id": "date-palm/verify/claim-unsupported//profiles/0/appearance/bark_roughness",
       "inputs_sha256": {
         "select.json": "68bbdc8c2461b5f81ef4632c9a4db59c547fa4b368f64156782b578ac7b669f1"
@@ -82,34 +72,44 @@
       "note": "F1's \"textured trunk\" supports rough, and A1 states the trunk \"is rough gray\"; accepted."
     },
     {
+      "id": "date-palm/gate/onboarding-gate/seeds",
+      "inputs_sha256": {
+        "select.json": "30b694e947b09983ebb09ed185f69b5a495fe5694641137cf18bd03e41b1ccf3"
+      },
+      "option": "waive",
+      "by": "host under the owner's standing rule",
+      "at": "2026-09-24",
+      "note": "Re-recorded against the gate's new inputs: the seeds gate audits packet/specimens.json, which the generate stage after it writes, so it can never see the specimens it audits before generate runs."
+    },
+    {
       "id": "date-palm/verify/claim-unsupported//profiles/0/appearance/leaf_back_colour",
       "inputs_sha256": {
-        "select.json": "68bbdc8c2461b5f81ef4632c9a4db59c547fa4b368f64156782b578ac7b669f1"
+        "select.json": "30b694e947b09983ebb09ed185f69b5a495fe5694641137cf18bd03e41b1ccf3"
       },
-      "option": "accept",
-      "by": "host acting as the cheap agent under the routine policy",
+      "option": "replace-source",
+      "by": "host acting as the cheap agent under the routine policy (dispatch-13)",
       "at": "2026-09-24",
-      "note": "The sentence gives the leaves as gray-green or sometimes blue without separating the underside; grey-green is the fair reading for both faces; accepted."
+      "note": "The cited sentence gives the leaves as gray-green or blue with no word on the underside; search for a source that describes the leaflet underside."
     },
     {
       "id": "date-palm/verify/claim-unsupported//profiles/0/appearance/leaf_hue_range",
       "inputs_sha256": {
-        "select.json": "68bbdc8c2461b5f81ef4632c9a4db59c547fa4b368f64156782b578ac7b669f1"
+        "select.json": "30b694e947b09983ebb09ed185f69b5a495fe5694641137cf18bd03e41b1ccf3"
       },
       "option": "accept",
-      "by": "host acting as the cheap agent under the routine policy",
+      "by": "owner",
       "at": "2026-09-24",
-      "note": "\"blue-green to gray-green\" states a range of hue across the leaves; accepted."
+      "note": "Owner: varied. F1's \"blue-green to gray-green\" is taken as a hue range across the crown; tuning may still adjust it against the photographs."
     },
     {
       "id": "date-palm/verify/claim-unsupported//profiles/0/metrics/height_m",
       "inputs_sha256": {
-        "select.json": "68bbdc8c2461b5f81ef4632c9a4db59c547fa4b368f64156782b578ac7b669f1"
+        "select.json": "30b694e947b09983ebb09ed185f69b5a495fe5694641137cf18bd03e41b1ccf3"
       },
       "option": "accept",
-      "by": "host acting as the cheap agent under the routine policy",
+      "by": "owner",
       "at": "2026-09-24",
-      "note": "\"Height: 50 - 100 feet\" is verbatim in A1's size table; the low confidence reflects a page that mixes history with the table; accepted as a mature range."
+      "note": "Owner: accept. \"Height: 50 - 100 feet\" is verbatim in A1's size table; the low confidence comes from a page that mixes history with the table."
     }
   ]
 }
