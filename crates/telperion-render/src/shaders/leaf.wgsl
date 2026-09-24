@@ -7,9 +7,11 @@
 // dropped largest component in the top two bits, the other three below it, ten
 // bits each, over plus or minus one over root two. Word 1 is x and y over the
 // reference box. Word 2 is z in its low half and the scale as a half float in
-// its high half.
+// its high half, whose sign bit marks a withered leaf.
 
 const LEAF_WORDS: u32 = 3u;
+/// The top bit of word 2, the scale's sign: set on a withered leaf.
+const LEAF_WITHERED: u32 = 0x80000000u;
 /// The largest a dropped component leaves the other three.
 const LEAF_RANGE: f32 = 0.7071067811865476;
 
@@ -42,9 +44,16 @@ fn leaf_rotation(word: u32) -> mat3x3<f32> {
     );
 }
 
-/// The uniform scale a leaf carries, straight out of the high half of word 2.
+/// The uniform scale a leaf carries, out of the high half of word 2. A scale
+/// is never negative, so the half float's sign bit is free, and it carries
+/// whether the leaf is withered instead.
 fn leaf_scale(words: vec3<u32>) -> f32 {
-    return unpack2x16float(words.z).y;
+    return abs(unpack2x16float(words.z).y);
+}
+
+/// Whether a leaf is one of the dead a rosette keeps: word 2's top bit.
+fn leaf_withered(words: vec3<u32>) -> bool {
+    return (words.z & LEAF_WITHERED) != 0u;
 }
 
 /// Where a leaf stands: its three unsigned normals over the reference box.

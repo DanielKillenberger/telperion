@@ -202,6 +202,10 @@ pub(super) fn beech() -> MaterialParams {
         leaf_back_red: 0.21,
         leaf_back_green: 0.28,
         leaf_back_blue: 0.15,
+        // The default dead colour: this table keeps no skirt to show it on.
+        leaf_dead_red: 0.30,
+        leaf_dead_green: 0.25,
+        leaf_dead_blue: 0.18,
         hue_range_low: -0.02,
         hue_range_high: 0.02,
         brightness_range_low: -0.1,
@@ -351,6 +355,10 @@ pub(super) fn birch() -> MaterialParams {
         leaf_back_red: 0.2,
         leaf_back_green: 0.28,
         leaf_back_blue: 0.14,
+        // The default dead colour: this table keeps no skirt to show it on.
+        leaf_dead_red: 0.30,
+        leaf_dead_green: 0.25,
+        leaf_dead_blue: 0.18,
         hue_range_low: -0.025,
         hue_range_high: 0.025,
         brightness_range_low: -0.12,

@@ -185,6 +185,25 @@ pub struct CanopyParams {
         serde(default = "crate::ranges::default_acanthophyll_pitch")
     )]
     pub acanthophyll_pitch: f64,
+    /// Dead fronds a rosette keeps below its living crown, continuing the
+    /// crown's own spiral down the stem. At zero no frond is kept and the
+    /// crown ends at its oldest living frond; any rise hangs that many.
+    #[cfg_attr(feature = "json", serde(default))]
+    pub skirt_fronds: u32,
+    /// Degrees from the axis a dead frond hangs: 0 upright, 90 level, 180
+    /// collapsed straight down against the stem.
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_skirt_pitch")
+    )]
+    pub skirt_pitch: f64,
+    /// A dead frond's length as a share of a living one's, rachis and
+    /// leaflets alike. At zero no dead frond is drawn whatever the count says.
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_skirt_length")
+    )]
+    pub skirt_length: f64,
     /// Hard total budget. Exceeding it returns an error, never partial foliage.
     #[cfg_attr(feature = "json", serde(with = "crate::specimen::portable::index"))]
     pub max_instances: usize,
@@ -238,6 +257,10 @@ impl Default for CanopyParams {
             acanthophylls: 0,
             acanthophyll_length: crate::ranges::default_acanthophyll_length(),
             acanthophyll_pitch: crate::ranges::default_acanthophyll_pitch(),
+            // Neutral: no dead frond is kept below the living crown.
+            skirt_fronds: 0,
+            skirt_pitch: crate::ranges::default_skirt_pitch(),
+            skirt_length: crate::ranges::default_skirt_length(),
             max_instances: usize::MAX,
         }
     }

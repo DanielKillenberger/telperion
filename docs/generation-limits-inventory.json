@@ -1678,5 +1678,11 @@
     "site": ". take ( nv * 3 )",
     "classification": "algorithm",
     "reason": "A worker's part of an output buffer is its runs' vertices times the floats each vertex holds; the parts tile the whole buffer and truncate nothing."
+  },
+  {
+    "path": "crates/telperion-core/src/foliage/rosette.rs",
+    "site": ". max ( 1 . )",
+    "classification": "algorithm",
+    "reason": "The living crown's frond spacing divides its depth by the oldest frond's place on the spiral; a crown of one frond has no spacing of its own, so the skirt below it steps one full depth a frond. It does not limit generated populations."
   }
 ]

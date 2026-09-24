@@ -70,6 +70,7 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         canopy.rachis_length, canopy.leaflet_pitch, canopy.rachis_arch,
         canopy.terminal_leaflet, canopy.leaf_base_length, canopy.leaf_base_radius,
         canopy.leaf_base_weathering, canopy.acanthophyll_length,
+        canopy.skirt_pitch, canopy.skirt_length,
         element.connector_length, element.length, element.width,
         element.widest_at, element.base_fullness, element.tip_sharpness,
         element.cup, element.curl, element.lobe_depth, element.section_roundness,
@@ -80,6 +81,7 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         material.leaf_front_red, material.leaf_front_green,
         material.leaf_front_blue,
         material.leaf_back_red, material.leaf_back_green, material.leaf_back_blue,
+        material.leaf_dead_red, material.leaf_dead_green, material.leaf_dead_blue,
         material.hue_range_low, material.hue_range_high,
         material.brightness_range_low, material.brightness_range_high,
         material.interior_darkening,
@@ -183,7 +185,7 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         canopy.clump, canopy.short_shoot_leaves, element.cross_segments,
         canopy.clump_system_order, canopy.clump_neighbours,
         canopy.rosette_fronds, canopy.leaflet_count,
-        canopy.leaf_bases, canopy.acanthophylls,
+        canopy.leaf_bases, canopy.acanthophylls, canopy.skirt_fronds,
     );
     walk!(many: skeleton.attractors, canopy.max_instances);
     walk!(density: canopy.short_shoot_spacing);

@@ -141,6 +141,9 @@ macro_rules! fields {
         $op!($f, $v, "canopy", "acanthophylls"; canopy.acanthophylls);
         $op!($f, $v, "canopy", "acanthophyllLength"; canopy.acanthophyll_length);
         $op!($f, $v, "canopy", "acanthophyllPitch"; canopy.acanthophyll_pitch);
+        $op!($f, $v, "canopy", "skirtFronds"; canopy.skirt_fronds);
+        $op!($f, $v, "canopy", "skirtPitch"; canopy.skirt_pitch);
+        $op!($f, $v, "canopy", "skirtLength"; canopy.skirt_length);
         $op!($f, $v, "canopy", "maxInstances"; canopy.max_instances);
         $op!($f, $v, "element", "length"; element.length);
         $op!($f, $v, "element", "width"; element.width);
@@ -169,6 +172,9 @@ macro_rules! fields {
         $op!($f, $v, "material", "leafBackRed"; material.leaf_back_red);
         $op!($f, $v, "material", "leafBackGreen"; material.leaf_back_green);
         $op!($f, $v, "material", "leafBackBlue"; material.leaf_back_blue);
+        $op!($f, $v, "material", "leafDeadRed"; material.leaf_dead_red);
+        $op!($f, $v, "material", "leafDeadGreen"; material.leaf_dead_green);
+        $op!($f, $v, "material", "leafDeadBlue"; material.leaf_dead_blue);
         $op!($f, $v, "material", "hueRangeLow"; material.hue_range_low);
         $op!($f, $v, "material", "hueRangeHigh"; material.hue_range_high);
         $op!($f, $v, "material", "brightnessRangeLow"; material.brightness_range_low);

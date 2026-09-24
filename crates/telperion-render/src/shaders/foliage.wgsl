@@ -25,6 +25,8 @@ struct Varying {
     @location(3) coord: vec2<f32>,
     // How deep the placement stands in its own mass; none without the row.
     @location(4) @interpolate(flat) mass: f32,
+    // One where the placement is a withered leaf, drawn in the dead colour.
+    @location(5) @interpolate(flat) withered: f32,
 };
 
 /// The depth in its own mass of the cell a placement stands in. A grid of no
@@ -49,11 +51,8 @@ fn vertex(
 ) -> Varying {
     let id = list[instance];
     let base = id * LEAF_WORDS;
-    let placement = leaf_transform(
-        vec3<u32>(placements[base], placements[base + 1u], placements[base + 2u]),
-        u.leaf_box_min.xyz,
-        u.leaf_box_extent.xyz,
-    );
+    let words = vec3<u32>(placements[base], placements[base + 1u], placements[base + 2u]);
+    let placement = leaf_transform(words, u.leaf_box_min.xyz, u.leaf_box_extent.xyz);
     let world = placement * vec4<f32>(position, 1.0);
     let offsets = vary(id);
     var out: Varying;
@@ -65,6 +64,7 @@ fn vertex(
     out.coord = vec2<f32>(coord.x, coord.y * sign(position.x));
     out.leaf = vec3<f32>(offsets, depth_in_crown(placement[3].xyz));
     out.mass = 0.0;
+    out.withered = select(0.0, 1.0, leaf_withered(words));
     if (u.crown_shade.y > 0.0) {
         out.mass = mass_depth(placement[3].xyz);
     }
@@ -127,8 +127,12 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
         return vec4<f32>(u.clay.rgb * clay_light(n), 1.0);
     }
     // A leaf is paler underneath, and the eye is shown whichever face it is
-    // looking at; the seeded offset is the leaf's own and applies to both.
-    let face = select(u.leaf_back.rgb, u.leaf_front.rgb, front);
+    // looking at; the seeded offset is the leaf's own and applies to both. A
+    // withered leaf has aged to one colour on either face.
+    var face = select(u.leaf_back.rgb, u.leaf_front.rgb, front);
+    if (in.withered > 0.5) {
+        face = u.leaf_dead.rgb;
+    }
     let scale = u.leaf_colour_detail.x;
     let pixel = fwidth(in.coord);
     // Geometry derivatives before any row branch: WGSL wants them in

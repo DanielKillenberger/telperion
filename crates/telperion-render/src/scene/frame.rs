@@ -204,6 +204,7 @@ impl Scene {
                     m.blade_grain_strength,
                 ),
                 plate_profile: colour(m.plate_edge_shape, 0.0, 0.0, 0.0),
+                leaf_dead: colour(m.leaf_dead_red, m.leaf_dead_green, m.leaf_dead_blue, 0.0),
             }),
         );
     }
