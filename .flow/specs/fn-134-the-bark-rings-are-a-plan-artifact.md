@@ -44,6 +44,8 @@ This spec moves the rings into stage 3 as a float32 array that the wood mesh tak
 ## Decision Context
 
 - Alternative considered: wood first for every family, then plan and leaves. Rejected: forced-serial builds were only 0.1 to 1.7% faster than base, so it gives back fn-102's gains (oak −14.2%, ordinary −13.4%, telperion −7.7%). [inferred]
+- Owner, 2026-09-24: the core's first `unsafe` (`surface/parallel/unfilled.rs`, one `set_len` after proving every worker filled its disjoint range) is accepted for R6's 10 to 19 ms per parallel wood build; a scoped codex review found it sound on worker errors, panics, refused spawns and arithmetic. [user]
+- Owner, 2026-09-24: because every run's rings are swept before any is shaded, an input that fails both ways can now report a later run's float32 position overflow before an earlier run's normal overflow; valid trees are unaffected. Pinned by `a_position_overflow_in_a_later_run_answers_before_an_earlier_normal` (red on base, green here). [user]
 - Depends on fn-102. fn-125's "retire the separate ring sweep" builds on this spec. [inferred]
 
 ## Resolved before ready (host, 2026-09-24)
