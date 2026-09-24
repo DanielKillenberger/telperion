@@ -25,6 +25,8 @@ mod paths;
 #[cfg(feature = "geometry")]
 pub mod prepared;
 #[cfg(feature = "geometry")]
+mod rings;
+#[cfg(feature = "geometry")]
 mod samples;
 #[cfg(feature = "geometry")]
 pub(crate) use attachment::AttachmentSurface;
@@ -33,10 +35,14 @@ use build::*;
 #[cfg(feature = "geometry")]
 pub use build::{build, extent};
 #[cfg(feature = "geometry")]
-pub(crate) use build::{build_contacts, WoodWithContacts};
+pub(crate) use build::{faces, Faces};
 #[cfg(feature = "geometry")]
 pub(crate) use dependencies::affected as affected_contacts;
 pub(crate) use paths::straightest;
+#[cfg(feature = "geometry")]
+pub(crate) use rings::{rings, Rings, Sweep};
+#[cfg(feature = "geometry")]
+use rings::{Resweep, Swept};
 #[cfg(feature = "geometry")]
 use {
     crate::{math::Transcendental, tree::Tree},

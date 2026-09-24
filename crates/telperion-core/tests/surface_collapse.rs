@@ -204,6 +204,30 @@ fn a_position_float32_cannot_hold_is_still_an_error() {
     );
 }
 
+/// fn-134: every run's rings are swept before any run is shaded, so a later
+/// run whose positions float32 cannot hold answers before an earlier run whose
+/// normals overflow. Base shaded run by run and named the normal first; the
+/// owner accepted the new order on 2026-09-24. Both inputs fail either way.
+#[test]
+fn a_position_overflow_in_a_later_run_answers_before_an_earlier_normal() {
+    let tree = Tree {
+        nodes: vec![
+            node(Vec3::ZERO, None, 1e20),
+            node(Vec3::new(0.0, 1e20, 0.0), Some(0), 1e20),
+            node(Vec3::new(1e40, 0.0, 0.0), Some(0), 1.0),
+        ],
+        ..Tree::default()
+    };
+    let params = SurfaceParams {
+        radial_segments: 8,
+        ..params()
+    };
+    assert_eq!(
+        build(&tree, 1.0, &params),
+        Err(Error::InvalidInput("surface float32 position overflow"))
+    );
+}
+
 /// The candidate beech of fn-45's round 6c, its wood rows as that branch
 /// stated them (it also named a twig generation rail this branch does not
 /// carry), failed this seed: two stations of one truncated limb 11.4

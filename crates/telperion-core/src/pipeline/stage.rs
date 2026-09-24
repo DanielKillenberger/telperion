@@ -4,7 +4,7 @@ use crate::{
     field::Field,
     foliage::{self, plan, Element, Instances, Reference, TwigPlacement},
     presets::Family,
-    surface::{self, AttachmentSurface, WoodWithContacts},
+    surface::{self, AttachmentSurface, Faces, Rings, Sweep},
     tree::{NodeKind, Tree},
     Error, Result,
 };
@@ -66,31 +66,47 @@ pub(super) fn prepare(
     })
 }
 
-/// The wood surface and its time, with its contacts where leaves are seated
-/// on it.
+/// Stage 3's rings and their time: with their coords where the wood is
+/// drawn, and their contacts where leaves are seated on them.
+pub(super) fn rings(
+    tree: &Tree,
+    family: &Family,
+    request: Request,
+    seats: bool,
+) -> Result<(Rings, f64)> {
+    let start = (request.clock)();
+    let (height, params) = (family.skeleton.envelope.height, &family.surface);
+    let sweep = Sweep {
+        drawn: request.wood,
+        edges: seats,
+    };
+    let rings = surface::rings(tree, height, params, sweep)?;
+    Ok((rings, (request.clock)() - start))
+}
+
+/// The wood's mesh step around its rings, and its time.
 pub(super) fn wood(
     tree: &Tree,
     family: &Family,
     request: Request,
-    seated: bool,
-) -> Result<Option<(WoodWithContacts, f64)>> {
-    if !request.wood {
-        return Ok(None);
-    }
+    rings: &Rings,
+) -> Result<(Faces, f64)> {
     let start = (request.clock)();
     let (height, params) = (family.skeleton.envelope.height, &family.surface);
-    let wood = if seated {
-        surface::build_contacts(tree, height, params)?
-    } else {
-        WoodWithContacts {
-            mesh: surface::build(tree, height, params)?,
-            edges: Vec::new(),
-        }
-    };
-    Ok(Some((wood, (request.clock)() - start)))
+    let faces = surface::faces(rings, tree, height, params)?;
+    Ok((faces, (request.clock)() - start))
 }
 
-/// The leaves with their rings, placement and cull times.
+/// Where the leaves sit: free of the wood, on rings the wood shares, or on
+/// rings they sweep themselves where no wood is drawn.
+#[derive(Clone, Copy)]
+pub(super) enum Seat<'r> {
+    Free,
+    Shared(&'r Rings),
+    Own,
+}
+
+/// The leaves with the time of their own rings, placement and the cull.
 pub(super) type TimedLeaves = Option<(Leaves, [f64; 3])>;
 
 /// The leaves and the field read from the plan, side by side where the
@@ -101,7 +117,7 @@ pub(super) fn leaves_and_field(
     request: Request,
     prepared: &Prepared,
     twig: Option<TwigPlacement>,
-    seat: Option<&WoodWithContacts>,
+    seat: Seat,
 ) -> (Result<TimedLeaves>, Result<Option<(Field, f64)>>) {
     let both_run = prepared.reference.is_some() && prepared.leaf_plan.is_some();
     both(
@@ -112,15 +128,15 @@ pub(super) fn leaves_and_field(
 }
 
 /// Placement and the cull, timed apart, and the retained leaves' bounds
-/// where leaves were asked for. Leaves seated on a wood read its rings in
-/// place, else sweep their own; either way they free them once placed.
+/// where leaves were asked for. Seated leaves read their rings in place and
+/// free what they own of them once placed.
 fn leaves(
     tree: &Tree,
     family: &Family,
     request: Request,
     prepared: &Prepared,
     twig: Option<TwigPlacement>,
-    seat: Option<&WoodWithContacts>,
+    seat: Seat,
 ) -> Result<TimedLeaves> {
     let (Some(reference), Some(element)) = (prepared.reference, prepared.element.as_ref()) else {
         return Ok(None);
@@ -128,16 +144,16 @@ fn leaves(
     let clock = request.clock;
     let envelope = family.skeleton.envelope;
     let start = clock();
-    let contacts = match seat {
-        Some(wood) => Some(AttachmentSurface::on_wood(wood, &family.surface)?),
-        None if family.canopy.surface_contact > 0.0 => Some(AttachmentSurface::new(
-            tree,
-            envelope.height,
-            &family.surface,
-        )?),
-        None => None,
+    let own = match seat {
+        Seat::Own => Some(rings(tree, family, request, true)?.0),
+        _ => None,
     };
     let rung = clock();
+    let rings = match seat {
+        Seat::Shared(rings) => Some(rings),
+        _ => own.as_ref(),
+    };
+    let contacts = rings.map(AttachmentSurface::on_wood).transpose()?;
     let placed = foliage::place_on(
         tree,
         envelope,
@@ -148,6 +164,7 @@ fn leaves(
         reference,
     )?;
     drop(contacts);
+    drop(own);
     let placed_at = clock();
     let placed_count = placed.len();
     let instances = foliage::cull(placed, element, envelope, family.shell_depth)?;

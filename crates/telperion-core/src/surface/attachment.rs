@@ -1,11 +1,11 @@
 //! Exact contact queries on the swept polygons, read without mesh indices
-//! or normals: from rings swept here, or in place from a built wood.
+//! or normals: from rings swept here, or in place from the ring step's.
 use super::*;
 use std::borrow::Cow;
 
 pub(crate) struct AttachmentSurface<'w> {
     /// Ring points as float32 triples: the vertices `build` submits, swept
-    /// and rounded here or read in place from a built wood.
+    /// and rounded here or read in place from the ring step.
     rings: Cow<'w, [f32]>,
     /// Each node's lower and upper ring, then its run's first and last ring,
     /// as point offsets into `rings`.
@@ -22,13 +22,13 @@ fn at(rings: &[f32], i: usize) -> Vec3 {
 }
 
 impl<'w> AttachmentSurface<'w> {
-    /// The contact surface of a wood built with its contacts, its rings read
-    /// in place from the wood's vertices.
-    pub(crate) fn on_wood(wood: &'w WoodWithContacts, params: &SurfaceParams) -> Result<Self> {
+    /// The contact surface of rings swept with their contacts, read in place
+    /// from the vertices the wood draws.
+    pub(crate) fn on_wood(rings: &'w Rings) -> Result<Self> {
         Self::bounded(
-            Cow::Borrowed(&wood.mesh.positions),
-            Cow::Borrowed(&wood.edges),
-            segments(params),
+            Cow::Borrowed(&rings.positions),
+            Cow::Borrowed(&rings.edges),
+            rings.segments,
         )
     }
 

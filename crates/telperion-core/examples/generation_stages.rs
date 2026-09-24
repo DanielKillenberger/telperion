@@ -1,7 +1,7 @@
 //! Direct mature-build stage measurements through the pipeline; JSONL, one
 //! process per preset/seed. Placement and the cull are timed apart, and the
-//! contact rings apart from both; wood and leaves run side by side unless
-//! GENERATION_SERIAL is set or the leaves are seated on the wood.
+//! wood's rings apart from its mesh step; wood and leaves run side by side
+//! unless GENERATION_SERIAL is set.
 use serde_json::json;
 use telperion_core::{pipeline, presets::Preset};
 

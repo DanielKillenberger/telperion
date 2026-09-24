@@ -2,7 +2,7 @@
 //! bytes under either schedule, and the earliest failing stage's error.
 use super::*;
 use crate::{
-    presets::{Preset, CATALOGUE},
+    presets::{Preset, CATALOGUE, IN_WORK},
     surface, Error,
 };
 use std::cell::Cell;
@@ -45,10 +45,10 @@ fn request(wood: bool, leaves: bool, field: bool) -> Request {
     }
 }
 
-/// R7: a family whose leaves sit on the wood sweeps its rings once a
-/// request: the wood's sweep where wood is asked for, which the leaves read
-/// in place, else the leaves' own. Every request builds its element at most
-/// once, and the wood is the wood a plain build makes.
+/// A family whose leaves sit on the wood sweeps its rings once a request:
+/// the wood's where wood is asked for, which the leaves read in place, else
+/// the leaves' own. Every request builds its element at most once, and the
+/// wood is the wood a plain build makes.
 #[test]
 fn one_sweep_and_one_element_serve_a_request() {
     let mut family = ordinary();
@@ -70,8 +70,7 @@ fn one_sweep_and_one_element_serve_a_request() {
             schedule,
             ..Request::mesh()
         };
-        let (seated, t) = tallied(tree, &family, request);
-        assert!(!t.split, "{schedule:?}");
+        let seated = tallied(tree, &family, request).0;
         assert_eq!(seated.wood.unwrap(), own, "{schedule:?}");
     }
     family.canopy.surface_contact = 0.0;
@@ -79,13 +78,15 @@ fn one_sweep_and_one_element_serve_a_request() {
     assert_eq!((t.sweeps, t.elements), (1, 1));
 }
 
-/// R8: every shipped family builds the same bytes whether wood and leaves
-/// run side by side or one after the other, and side by side is what a
-/// native target with threads does.
+/// Every shipped and in-work family, its leaves seated on the wood or not,
+/// builds the same bytes whether wood and leaves run side by side or one
+/// after the other, and side by side is what a native target with threads
+/// does.
 #[test]
 fn every_family_builds_the_same_bytes_under_either_schedule() {
-    for &(_, id, _, _) in CATALOGUE {
-        let family = crate::presets::by_identity(id).unwrap();
+    for &(_, id, _, _) in CATALOGUE.iter().chain(IN_WORK) {
+        let family = crate::presets::by_identity(id)
+            .unwrap_or_else(|_| Preset::from_id(id).unwrap().parameters());
         let tree = skeleton(&family).unwrap().tree;
         let run = |schedule| {
             let request = Request {
@@ -97,8 +98,7 @@ fn every_family_builds_the_same_bytes_under_either_schedule() {
         let ((serial, apart), (concurrent, split)) =
             (run(Schedule::Serial), run(Schedule::Concurrent));
         assert!(!apart.split, "{id}");
-        let seated = family.canopy.surface_contact > 0.0;
-        assert_eq!(split.split, !seated, "{id}");
+        assert!(split.split, "{id}");
         assert_eq!(serial.wood, concurrent.wood, "{id}: wood");
         assert_eq!(serial.element, concurrent.element, "{id}: element");
         let leaves = |o: &Outputs| {
@@ -109,7 +109,7 @@ fn every_family_builds_the_same_bytes_under_either_schedule() {
     }
 }
 
-/// R8: with the wood and the leaves both failing, either schedule answers
+/// With the wood and the leaves both failing, either schedule answers
 /// with the wood's error, the earlier stage; the leaves alone answer with
 /// their own.
 #[test]
@@ -162,4 +162,20 @@ fn the_element_fails_before_the_twig_rows() {
     family.element.axial_segments = 0;
     let error = outputs(&tree, &family, request(false, true, false)).err();
     assert_eq!(error, Some(Error::InvalidInput("leaf segments")));
+}
+
+/// Leaves that sweep their own rings, with no wood to share them, fail
+/// after the Plan stage and as the leaves.
+#[test]
+fn the_leaves_own_rings_fail_after_the_plan() {
+    let mut family = ordinary();
+    let tree = skeleton(&family).unwrap().tree;
+    family.canopy.surface_contact = 1.0;
+    family.surface.radial_segments = 0;
+    let leaves = request(false, true, false);
+    let surface = Some(Error::InvalidInput("surface parameters"));
+    assert_eq!(outputs(&tree, &family, leaves).err(), surface);
+    family.element.axial_segments = 0;
+    let element = Some(Error::InvalidInput("leaf segments"));
+    assert_eq!(outputs(&tree, &family, leaves).err(), element);
 }

@@ -68,266 +68,129 @@ pub fn extent(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<WoodEx
 
 /// Builds only wood geometry. Invalid input or allocation failure returns no partial mesh.
 pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<SurfaceMesh> {
-    build_inner(tree, height, params, None, None)
+    let sweep = Sweep {
+        drawn: true,
+        edges: false,
+    };
+    let rings = rings(tree, height, params, sweep)?;
+    let faces = faces(&rings, tree, height, params)?;
+    Ok(rings.into_mesh(faces))
 }
 
-/// A wood and, for every node, where its segment meets the rings, as vertex
-/// offsets into its positions: the contacts leaves seated on it read.
-pub(crate) struct WoodWithContacts {
-    pub(crate) mesh: SurfaceMesh,
-    pub(crate) edges: Vec<Option<[usize; 4]>>,
+/// What the mesh step adds around the rings: everything the wood holds but
+/// its positions and coords, and the run table the rings hold where the step
+/// dropped no triangle.
+#[derive(Debug, Default)]
+pub(crate) struct Faces {
+    pub(super) normals: Vec<f32>,
+    pub(super) indices: Vec<u32>,
+    /// The run table, where dropped triangles moved a run's span.
+    pub(super) run_table: Option<Vec<SurfaceRun>>,
+    pub(super) bounds: Option<Bounds>,
+    pub(super) dropped: usize,
 }
 
-pub(crate) fn build_contacts(
+/// The mesh step: indices, normals and bounds around rings swept for a
+/// drawn wood, on the sweep's workers where it had them.
+pub(crate) fn faces(
+    rings: &Rings,
     tree: &Tree,
     height: f64,
     params: &SurfaceParams,
-) -> Result<WoodWithContacts> {
-    let mut edges = filled(tree.nodes.len(), None)?;
-    let mesh = build_inner(tree, height, params, None, Some(&mut edges))?;
-    Ok(WoodWithContacts { mesh, edges })
-}
-
-pub(super) fn build_inner(
-    tree: &Tree,
-    height: f64,
-    params: &SurfaceParams,
-    prepared: Option<&mut prepared::PreparedSurface>,
-    contacts: Option<&mut Vec<Option<[usize; 4]>>>,
-) -> Result<SurfaceMesh> {
-    build_mode(tree, height, params, prepared, contacts, true)
-}
-
-pub(super) fn build_mode(
-    tree: &Tree,
-    height: f64,
-    params: &SurfaceParams,
-    mut prepared: Option<&mut prepared::PreparedSurface>,
-    mut contacts: Option<&mut Vec<Option<[usize; 4]>>>,
-    parallel_allowed: bool,
-) -> Result<SurfaceMesh> {
-    tree.validate()?;
-    params.validate()?;
-    if !height.is_finite() || height <= 0.0 {
-        return Err(Error::InvalidInput("surface height"));
+) -> Result<Faces> {
+    if rings.runs.is_empty() {
+        return Ok(Faces::default());
     }
-    let nodes = &tree.nodes;
-    let paths = paths(nodes)?;
-    if paths.runs.is_empty() {
-        return Ok(SurfaceMesh::default());
-    }
-    tree.validate_solved()?;
-    let height = height.max(1e-6);
-    let segments = segments(params);
-    let angular = angular::samples(segments, params)?;
-    let burial = params.flare_depth * height;
-    let mut distance = filled(nodes.len(), 0.0)?;
-    for i in 1..nodes.len() {
-        let p = nodes[i].parent.unwrap() as usize;
-        distance[i] = distance[p] + nodes[p].position.distance(nodes[i].position);
-        if !distance[i].is_finite() {
-            return Err(Error::InvalidInput("surface path length overflow"));
+    let resweep = Resweep::new(tree, height, params);
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+    if let Some(workers) = rings.workers {
+        if let Ok(faces) = parallel::faces(rings, &resweep, workers) {
+            return Ok(faces);
         }
     }
-    let rings = paths
-        .nodes
-        .len()
-        .checked_add(if burial > 0.0 {
-            paths.runs.iter().filter(|r| r.trunk).count()
-        } else {
-            0
-        })
-        .ok_or(Error::ResourceLimit("surface rings"))?;
-    let vertices = rings
-        .checked_mul(segments)
-        .and_then(|n| n.checked_add(paths.runs.len().checked_mul(2)?))
-        .filter(|&n| n <= u32::MAX as usize)
-        .ok_or(Error::ResourceLimit("surface vertices"))?;
-    let positions_len = vertices
-        .checked_mul(3)
-        .ok_or(Error::ResourceLimit("surface positions"))?;
-    let indices_len = rings
-        .checked_mul(segments)
-        .and_then(|n| n.checked_mul(6))
-        .ok_or(Error::ResourceLimit("surface indices"))?;
-    let longest = paths
-        .runs
-        .iter()
-        .map(|p| p.end - p.start)
-        .max()
-        .unwrap_or(0)
-        .checked_add(1)
-        .ok_or(Error::ResourceLimit("surface samples"))?;
-    let mut samples = reserved(longest)?;
-    let mut frame = reserved(longest)?;
-    let mut segments_scratch = reserved(longest)?;
-    // Sample once to rank the runs, then reuse the same scratch for emission.
-    // Ties retain path order, so the permutation is deterministic.
-    let mut ordered = reserved(paths.runs.len())?;
-    for (path_id, path) in paths.runs.iter().enumerate() {
-        sample_path(tree, height, params, &paths, path, &distance, &mut samples);
-        let radius = samples.iter().map(|s| s.r).fold(0.0, f64::max);
-        ordered.push((path_id, radius));
-    }
-    ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
-    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
-    if parallel_allowed && prepared.is_none() {
-        if let Some(workers) = parallel::admitted(
-            &paths,
-            &distance,
-            &ordered,
-            &angular,
-            longest,
-            vertices,
-            indices_len,
-        ) {
-            drop((samples, frame, segments_scratch));
-            return match parallel::build(
-                tree,
-                height,
-                params,
-                paths,
-                distance,
-                ordered,
-                angular,
-                longest,
-                vertices,
-                indices_len,
-                workers,
-                contacts.as_deref_mut(),
-            ) {
-                Ok(mesh) => Ok(mesh),
-                Err(_) => build_mode(tree, height, params, None, contacts, false),
+    let ring_vertices = rings.positions.len() / 3 - rings.runs.len() * 2;
+    let mut faces = Faces {
+        normals: reserved(rings.positions.len())?,
+        indices: reserved(ring_vertices * 6)?,
+        ..Faces::default()
+    };
+    let mut base = 0;
+    for (i, run) in rings.runs.iter().enumerate() {
+        let first_index = u32::try_from(faces.indices.len())
+            .map_err(|_| Error::ResourceLimit("surface indices"))?;
+        faces
+            .normals
+            .resize(faces.normals.len() + rings.vertices(run) * 3, 0.0);
+        let normals = &mut faces.normals[base * 3..];
+        let indices = &mut faces.indices;
+        let keep = |t: [u32; 3]| indices.extend(t);
+        faces.dropped += shade(rings, i, base, &resweep, normals, keep)?;
+        let index_count = u32::try_from(faces.indices.len())
+            .map_err(|_| Error::ResourceLimit("surface indices"))?
+            - first_index;
+        if (first_index, index_count) != (run.first_index, run.index_count) {
+            let table = match &mut faces.run_table {
+                Some(table) => table,
+                None => faces.run_table.insert(copied(&rings.runs)?),
+            };
+            table[i] = SurfaceRun {
+                first_index,
+                index_count,
+                largest_radius: run.largest_radius,
             };
         }
+        base += rings.vertices(run);
     }
-    #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
-    let _ = parallel_allowed;
-    let mut mesh = SurfaceMesh {
-        positions: reserved(positions_len)?,
-        normals: reserved(if prepared.is_some() { 0 } else { positions_len })?,
-        coords: reserved(if prepared.is_some() { 0 } else { vertices * 2 })?,
-        indices: reserved(if prepared.is_some() { 0 } else { indices_len })?,
-        bounds: None,
-        runs: paths.runs.len(),
-        run_table: reserved(paths.runs.len())?,
-        dropped: 0,
-    };
-    if let Some(p) = prepared.as_deref_mut() {
-        p.segments = segments as u32;
-        p.rings = reserved(rings)?;
-        p.runs = reserved(paths.runs.len())?;
-        p.angles = reserved(segments)?;
-        p.angles.extend(angular.iter().map(|a| a.angle as f32));
-    }
-    for (path_id, largest_radius) in ordered {
-        let path = &paths.runs[path_id];
-        let first_index = u32::try_from(
-            prepared
-                .as_ref()
-                .map_or(mesh.indices.len(), |p| p.index_count as usize),
-        )
-        .map_err(|_| Error::ResourceLimit("surface indices"))?;
-        sample_path(tree, height, params, &paths, path, &distance, &mut samples);
-        frames(&samples, &mut segments_scratch, &mut frame);
-        let base = (mesh.positions.len() / 3) as u32;
-        let seg = segments as u32;
-        if let Some(edges) = contacts.as_deref_mut() {
-            let offset = usize::from(path.trunk && params.flare_depth > 0.0);
-            let nodes = &paths.nodes[path.start..path.end];
-            record_edges(edges, nodes, base as usize, samples.len(), segments, offset);
-        }
-        emit_run(&samples, &frame, &angular, params, height, |xyz, coord| {
-            mesh.positions.extend(xyz);
-            if prepared.is_none() {
-                mesh.coords.extend(coord);
-            }
-        })?;
-        let run = prepared::Run {
-            base,
-            first_index,
-            ring_start: prepared.as_ref().map_or(0, |p| p.rings.len() as u32),
-            rings: samples.len() as u32,
-            index_count: u32::try_from(samples.len() * segments * 6)
-                .map_err(|_| Error::ResourceLimit("surface indices"))?,
-        };
-        let end = first_index
-            .checked_add(run.index_count)
-            .ok_or(Error::ResourceLimit("surface indices"))?;
-        if let Some(p) = prepared.as_deref_mut() {
-            run.visit_triangles(seg, |triangle| {
-                if !prepared::admitted(&mesh.positions, triangle)? {
-                    p.fallback = true;
-                }
-                Ok(())
-            })?;
-            for (i, sample) in samples.iter().enumerate() {
-                let start = base as usize + i * segments;
-                p.rings.push([
-                    sample.d as f32,
-                    prepared::ring_radius(&mesh.positions[start * 3..(start + segments) * 3]),
-                ]);
-            }
-            p.runs.push(run);
-            p.index_count = end;
-        } else {
-            for i in 0..samples.len() - 1 {
-                let lower = base + i as u32 * seg;
-                let upper = lower + seg;
-                for k in 0..seg {
-                    let next = (k + 1) % seg;
-                    mesh.indices.extend([
-                        lower + k,
-                        lower + next,
-                        upper + k,
-                        lower + next,
-                        upper + next,
-                        upper + k,
-                    ]);
-                }
-            }
-            let bottom = base + samples.len() as u32 * seg;
-            let top_ring = bottom - seg;
-            for k in 0..seg {
-                let next = (k + 1) % seg;
-                mesh.indices.extend([
-                    bottom,
-                    base + next,
-                    base + k,
-                    bottom + 1,
-                    top_ring + k,
-                    top_ring + next,
-                ]);
-            }
-            mesh.normals.resize(mesh.positions.len(), 0.0);
-            mesh.dropped += normals::shade(
-                &mesh.positions,
-                &mut mesh.indices,
-                &mut mesh.normals,
-                (first_index as usize, base as usize),
-                |j| facing(&frame, segments, j),
-            )?;
-        }
-        let end = prepared.as_ref().map_or_else(
-            || {
-                u32::try_from(mesh.indices.len())
-                    .map_err(|_| Error::ResourceLimit("surface indices"))
-            },
-            |_| Ok(end),
-        )?;
-        mesh.run_table.push(SurfaceRun {
-            first_index,
-            index_count: end - first_index,
-            largest_radius,
+    if faces.dropped > DROPPED_RINGS * 2 * rings.segments {
+        return Err(Error::InvalidValue {
+            field: "surface triangles collapsed in float32",
+            value: faces.dropped.to_string(),
         });
     }
-    let mut mesh = finish(mesh, segments)?;
-    if let Some(p) = prepared {
-        p.positions = std::mem::take(&mut mesh.positions);
-        p.run_table = std::mem::take(&mut mesh.run_table);
-        p.bounds = mesh.bounds;
-    }
-    Ok(mesh)
+    faces.bounds = Some(bounds(&rings.positions));
+    Ok(faces)
+}
+
+fn copied<T: Copy>(values: &[T]) -> Result<Vec<T>> {
+    let mut out = reserved(values.len())?;
+    out.extend_from_slice(values);
+    Ok(out)
+}
+
+/// Run `run` of the table's faces, its vertices starting at `base`: each
+/// triangle with area handed to `keep` in draw order, and the run's unit
+/// normals summed into `normals`, which starts at zero. A vertex no triangle
+/// shades faces the way its ring does. Returns the triangles dropped.
+pub(super) fn shade(
+    rings: &Rings,
+    run: usize,
+    base: usize,
+    resweep: &Resweep,
+    normals: &mut [f32],
+    keep: impl FnMut([u32; 3]),
+) -> Result<usize> {
+    let segments = rings.segments;
+    let count = rings.count(&rings.runs[run]);
+    let vertices = count * segments + 2;
+    let positions = &rings.positions[base * 3..(base + vertices) * 3];
+    let at = prepared::Run {
+        base: base as u32,
+        first_index: 0,
+        ring_start: 0,
+        rings: count as u32,
+        index_count: 0,
+    };
+    let normals = &mut normals[..vertices * 3];
+    let dropped = normals::accumulate(positions, &at, segments as u32, normals, keep)?;
+    let mut frame = None;
+    normals::normalize(normals, |j| {
+        if frame.is_none() {
+            frame = Some(resweep.frames(run)?);
+        }
+        let frame = frame.as_deref().expect("swept on first use");
+        Ok(facing(frame, segments, j))
+    })?;
+    Ok(dropped)
 }
 
 /// Records where each node of one run meets the rings: its lower and upper
@@ -350,14 +213,15 @@ pub(super) fn record_edges(
     }
 }
 
+/// A run's vertices, ring by ring, then its two caps where `caps` asks.
 pub(super) fn emit_run(
     samples: &[Sample],
     frame: &[(Vec3, Vec3)],
-    angular: &[angular::Angular],
-    params: &SurfaceParams,
-    height: f64,
+    at: Swept,
+    caps: bool,
     mut emit: impl FnMut([f32; 3], [f32; 2]),
 ) -> Result<()> {
+    let (params, height) = (at.params, at.height);
     let mut vertex = |p: Vec3, coord: [f32; 2]| {
         let xyz = [p.x as f32, p.y as f32, p.z as f32];
         if !xyz.iter().all(|v| v.is_finite()) {
@@ -369,13 +233,16 @@ pub(super) fn emit_run(
     for (i, s) in samples.iter().enumerate() {
         let (normal, binormal) = frame[i];
         let phase = std::f64::consts::TAU * params.twist_rate * (s.d / height);
-        for sample in angular {
+        for sample in at.angular {
             let width = s.r * sample.profile(params, phase);
             vertex(
                 s.p + (normal * sample.cos + binormal * sample.sin) * width,
                 [s.d as f32, sample.angle as f32],
             )?;
         }
+    }
+    if !caps {
+        return Ok(());
     }
     vertex(samples[0].p, [samples[0].d as f32, 0.0])?;
     let last = samples.last().unwrap();
@@ -400,16 +267,11 @@ pub(super) fn facing(frame: &[(Vec3, Vec3)], segments: usize, j: usize) -> Vec3 
     normal.cross(binormal) * away
 }
 
-pub(super) fn finish(mut mesh: SurfaceMesh, segments: usize) -> Result<SurfaceMesh> {
-    if mesh.dropped > DROPPED_RINGS * 2 * segments {
-        return Err(Error::InvalidValue {
-            field: "surface triangles collapsed in float32",
-            value: mesh.dropped.to_string(),
-        });
-    }
+/// The box around every vertex, widened from float32.
+pub(super) fn bounds(positions: &[f32]) -> Bounds {
     let mut min = Vec3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY);
     let mut max = Vec3::new(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
-    for p in mesh.positions.as_chunks::<3>().0 {
+    for p in positions.as_chunks::<3>().0 {
         min.x = min.x.min(p[0] as f64);
         min.y = min.y.min(p[1] as f64);
         min.z = min.z.min(p[2] as f64);
@@ -417,6 +279,5 @@ pub(super) fn finish(mut mesh: SurfaceMesh, segments: usize) -> Result<SurfaceMe
         max.y = max.y.max(p[1] as f64);
         max.z = max.z.max(p[2] as f64);
     }
-    mesh.bounds = Some(Bounds { min, max });
-    Ok(mesh)
+    Bounds { min, max }
 }

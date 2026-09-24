@@ -81,8 +81,7 @@ pub fn prepare(
     height: f64,
     params: &SurfaceParams,
 ) -> Result<Option<PreparedSurface>> {
-    let mut out = PreparedSurface::default();
-    super::build_inner(tree, height, params, Some(&mut out), None)?;
+    let out = prepared(tree, height, params, false)?.0;
     Ok((!out.fallback).then_some(out))
 }
 /// Canonical wood and its node contact ranges from the same solved tree.
@@ -110,10 +109,7 @@ pub fn prepare_with_contacts<'a>(
     height: f64,
     params: &'a SurfaceParams,
 ) -> Result<Option<PreparedWithContacts<'a>>> {
-    tree.validate()?;
-    let mut surface = PreparedSurface::default();
-    let mut edges = filled(tree.nodes.len(), None)?;
-    super::build_inner(tree, height, params, Some(&mut surface), Some(&mut edges))?;
+    let (surface, edges) = prepared(tree, height, params, true)?;
     Ok((!surface.fallback).then_some(PreparedWithContacts {
         surface,
         tree,
@@ -121,6 +117,66 @@ pub fn prepare_with_contacts<'a>(
         height,
         edges,
     }))
+}
+
+/// The prepared surface on the rings swept in turn: each ring's distance,
+/// read from its coords, and its radius from its float32 corners, and each
+/// run's span of the index buffer the resident expansion fills.
+fn prepared(
+    tree: &Tree,
+    height: f64,
+    params: &SurfaceParams,
+    edges: bool,
+) -> Result<(PreparedSurface, Vec<Option<[usize; 4]>>)> {
+    tree.validate()?;
+    let sweep = Sweep { drawn: true, edges };
+    let rings = super::rings::rings_mode(tree, height, params, sweep, false)?;
+    let mut p = PreparedSurface::default();
+    if rings.runs.is_empty() {
+        return Ok((p, rings.edges));
+    }
+    let segments = rings.segments;
+    let seg = segments as u32;
+    p.segments = seg;
+    p.rings = reserved(rings.positions.len() / 3 / segments)?;
+    p.runs = reserved(rings.runs.len())?;
+    p.angles = reserved(segments)?;
+    p.angles.extend(
+        angular::samples(segments, params)?
+            .iter()
+            .map(|a| a.angle as f32),
+    );
+    let mut base = 0;
+    for table in &rings.runs {
+        let count = rings.count(table);
+        let run = Run {
+            base: u32::try_from(base).map_err(|_| Error::ResourceLimit("surface vertices"))?,
+            first_index: table.first_index,
+            ring_start: p.rings.len() as u32,
+            rings: count as u32,
+            index_count: table.index_count,
+        };
+        run.visit_triangles(seg, |triangle| {
+            if !admitted(&rings.positions, triangle)? {
+                p.fallback = true;
+            }
+            Ok(())
+        })?;
+        for i in 0..count {
+            let start = base + i * segments;
+            p.rings.push([
+                rings.coords[start * 2],
+                ring_radius(&rings.positions[start * 3..(start + segments) * 3]),
+            ]);
+        }
+        p.runs.push(run);
+        p.index_count = table.first_index + table.index_count;
+        base += rings.vertices(table);
+    }
+    p.bounds = Some(bounds(&rings.positions));
+    p.positions = rings.positions;
+    p.run_table = rings.runs;
+    Ok((p, rings.edges))
 }
 pub(super) fn admitted(positions: &[f32], t: [u32; 3]) -> Result<bool> {
     let point = |i: u32| {
