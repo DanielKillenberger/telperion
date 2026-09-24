@@ -876,3 +876,28 @@ fn the_reports_inputs_name_every_artifact_it_read() {
         "generate never ran"
     );
 }
+
+/// fn-80, 2026-09-24: the gate audits the specimens generate writes after it,
+/// but its key left them out, so new holdout specimens left it `current` and
+/// the seeds decision open. New specimens rerun the gate.
+#[test]
+fn new_specimens_rerun_the_gate() {
+    let dir = scratch("specimens-key", 2);
+    let checks = Checks {
+        registered: true,
+        derived: Ok(vec![]),
+    };
+    let paths = Paths::new(&dir);
+    gate::run(&paths, &checks).unwrap();
+    assert!(matches!(
+        gate::run(&paths, &checks).unwrap(),
+        gate::Outcome::Current
+    ));
+    let specimens = paths.packet("specimens");
+    std::fs::create_dir_all(specimens.parent().unwrap()).unwrap();
+    std::fs::write(&specimens, br#"{"cases":[]}"#).unwrap();
+    assert!(!matches!(
+        gate::run(&paths, &checks).unwrap(),
+        gate::Outcome::Current
+    ));
+}

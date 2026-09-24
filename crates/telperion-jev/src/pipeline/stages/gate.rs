@@ -93,9 +93,19 @@ pub fn run(paths: &Paths, checks: &dyn GateChecks) -> Result<Outcome, StageError
         true => file_sha256(&assessment)?,
         false => String::new(),
     };
+    // The seeds audit reads the specimens generate writes after the gate, so
+    // new specimens rerun the gate on the next pass (fn-80, 2026-09-24).
+    let specimens = ctx.paths.packet("specimens");
+    let specimens_sha = match specimens.exists() {
+        true => file_sha256(&specimens)?,
+        false => String::new(),
+    };
     let mut pairs = vec![("select.json", select_sha.as_str())];
     if !assessment_sha.is_empty() {
         pairs.push(("packet/capability.json", &assessment_sha));
+    }
+    if !specimens_sha.is_empty() {
+        pairs.push(("packet/specimens.json", &specimens_sha));
     }
     let header = ctx.header(STAGE, "gate", inputs(&pairs), vec![]);
     if ctx.is_current(STAGE, &header.idempotence_key) {
