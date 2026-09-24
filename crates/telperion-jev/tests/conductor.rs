@@ -280,12 +280,29 @@ fn a_dependency_is_designed_then_implemented_on_separately_judged_tiers_and_land
             focus: vec![]
         }
     );
+    // An unjustified second revision pauses; the owner's scoped resume
+    // authorizes it, and the next step tunes without asking the trio again.
+    script.set("risk", "unusual");
+    let (word, _) = drive(&script, &config, &mut run, &executor);
+    assert!(word.starts_with("paused"), "{word}");
+    let pause = run.pause.clone().unwrap();
+    assert_eq!(pause.id, "pause-tuning-2");
+    run.resume(
+        serde_json::from_value(json!({
+            "pause_id": pause.id, "identity": pause.basis.identity,
+            "action": pause.basis.proposed_action, "by": "test owner", "rationale": "tune"
+        }))
+        .unwrap(),
+    )
+    .unwrap();
     let (word, next) = drive(&script, &config, &mut run, &executor);
     assert!(word.contains("tuning revision 2"), "{word}");
     assert!(run
         .routes
         .iter()
-        .any(|r| r == "tuning:2=tune: continuation justified"));
+        .any(|r| r == "tuning:2=tune: authorized by the scoped resume of pause-tuning-2"));
+    assert!(run.resumed_from.is_none());
+    script.set("risk", "bounded");
     assert_eq!(next, Next::Packet);
     let (word, next) = drive(&script, &config, &mut run, &executor);
     assert!(word.contains("packet withheld"), "{word}");
@@ -322,7 +339,7 @@ fn a_dependency_is_designed_then_implemented_on_separately_judged_tiers_and_land
     assert_eq!(report["wrong_routes"], 2);
     assert!(report["jev"]["calls"].as_u64().unwrap() >= 8);
     assert!(report["comparison"].is_null());
-    assert_eq!(report["human_escalations"], 0);
+    assert_eq!(report["human_escalations"], 1, "the paused second revision");
 }
 
 #[test]

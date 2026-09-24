@@ -1,0 +1,15 @@
+{
+ "input_identity": "bb276f27bc1d52b3d2e6af16d54df2443c9a2e0f82d5b6e132bd07e5d44cc7d3",
+ "design_revision": null,
+ "actual_model": "host",
+ "actual_effort": "none",
+ "usage": {
+  "input_tokens": 0,
+  "output_tokens": 0
+ },
+ "cost_usd": null,
+ "verification": "failed",
+ "handoff": null,
+ "observed": "Not run: obsolete. The decision was the gate refusing the host's classes because improvement leaf-base-fibre named no backlog spec; the host captured it as fn-145 (backlog, not a dependency) and reran the gate, which now passes with nothing unresolved.",
+ "failure": "obsolete: the gate passes after the host's capture; nothing to route"
+}

@@ -72,7 +72,17 @@ pub fn tune(
         )?;
         return Ok("paused: tuning revision cap".into());
     }
-    if revision > 1 {
+    // A scoped human resume of this revision's pause authorizes it; the trio
+    // does not second-guess it, as on a dependency's attempt.
+    let pause_id = format!("pause-tuning-{revision}");
+    if revision > 1 && run.resumed_from.as_deref() == Some(pause_id.as_str()) {
+        run.route(
+            &format!("tuning:{revision}"),
+            "tune",
+            &format!("authorized by the scoped resume of {pause_id}"),
+        );
+        run.resumed_from = None;
+    } else if revision > 1 {
         let basis = basis(run, revision, focus);
         let context = [format!("tuning revision {revision}")];
         match super::questions::continuation(asker, run, &basis, &context)? {

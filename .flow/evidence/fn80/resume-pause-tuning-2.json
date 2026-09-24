@@ -1,0 +1,7 @@
+{
+ "pause_id": "pause-tuning-2",
+ "identity": "34dc9af1db30e4d851dc73f092b501103910ca260734d83a474fd7d55596a440",
+ "action": "tuning revision 2",
+ "by": "host (fn-80 conductor session)",
+ "rationale": "Authorized: fn-144 landed the leaf-base lattice, the capability revision 1 stopped on (trunk-leaf-base-diamond-pattern failed every round). Its dials and fn-120's skirt dials are now in the tuning config, so revision 2 has a new route to the failing trait. The owner's standing instruction is to run the palm to convergence without caps."
+}

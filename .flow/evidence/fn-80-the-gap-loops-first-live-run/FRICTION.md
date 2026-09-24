@@ -159,3 +159,7 @@ Landing the dependency fn-144 on the date palm's run hit two conductor defects i
 ## 2026-09-24 — a landed dial never reaches the species' tuning config
 
 After fn-144 landed, the palm's tuning config still listed 217 dials frozen from an older `data/dials.json` (227 rows): the two new lattice rows and fn-120's skirt and dead-leaf colour rows were absent, so tuning revision 2 would have tuned without the capability the run had just waited for. The host caught it by grepping and copied 8 rows by hand (about 5 minutes). What would have removed it: the conductor refreshing the tuning config's dial rows from the table when a dependency lands (keeping authored exclusions), or preflight refusing a config whose table is stale.
+
+## 2026-09-24 — a scoped resume did not authorize the second tuning revision
+
+After fn-144 landed, the conductor paused before tuning revision 2 on Jev's continuation trio ("next attempt unjustified"). The host's scoped resume cleared the pause, but the next step asked the trio again and paused under the same id: the dependency path honours `resumed_from`, the tuning path never did. Fixed in this commit (the resume of `pause-tuning-N` authorizes revision N once). Cost: two steps and about 10 minutes. It is also one more approval layer the deletion pass (SIMPLIFY.md) proposes to remove: a landed dependency is reason enough for the next revision.
