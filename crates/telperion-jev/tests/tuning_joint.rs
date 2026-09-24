@@ -84,6 +84,7 @@ fn blind_packet_labels_never_reach_request_and_metadata_is_bound() {
         impact: Impact::Blocker,
         uncertain: false,
         causal_hypothesis: Some("unproven cause".into()),
+        trait_id: None,
     };
     blind
         .joint

@@ -482,6 +482,7 @@ impl Services for Mock {
                 observations: vec![],
                 findings: vec![],
                 joint: None,
+                known_gaps: vec![],
                 coverage: self
                     .fruit
                     .get(self.visuals as usize - 1)

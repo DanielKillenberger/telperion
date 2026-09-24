@@ -86,6 +86,7 @@ fn coverage_unknown_and_positive_finish_are_enforced() {
         impact: Impact::Supported,
         uncertain: false,
         causal_hypothesis: None,
+        trait_id: None,
     };
     let visual:vision::Result=serde_json::from_value(json!({"request_sha256":r.hash(),"assessment":{"identity":r.identity,"model":"mock","ledger":"receipt","cells":[[r.required[0],"pass"]],"defects":[],"findings":[finding]},"effort":"medium","usage":{"input_tokens":1,"output_tokens":1},"observations":[]})).unwrap();
     let base = ComparisonResult {
@@ -509,6 +510,7 @@ fn a_coverage_row_without_render_evidence_is_dropped_and_recorded() {
         impact: Impact::Supported,
         uncertain: false,
         causal_hypothesis: None,
+        trait_id: None,
     };
     let visual:vision::Result=serde_json::from_value(json!({"request_sha256":r.hash(),"assessment":{"identity":r.identity,"model":"mock","ledger":"receipt","cells":[[r.required[0],"pass"]],"defects":[],"findings":[finding]},"effort":"medium","usage":{"input_tokens":1,"output_tokens":1},"observations":[]})).unwrap();
     let known = Coverage {
@@ -561,6 +563,7 @@ fn a_coverage_row_for_an_unknown_trait_is_dropped_and_recorded() {
         impact: Impact::Supported,
         uncertain: false,
         causal_hypothesis: None,
+        trait_id: None,
     };
     let visual:vision::Result=serde_json::from_value(json!({"request_sha256":r.hash(),"assessment":{"identity":r.identity,"model":"mock","ledger":"receipt","cells":[[r.required[0],"pass"]],"defects":[],"findings":[finding]},"effort":"medium","usage":{"input_tokens":1,"output_tokens":1},"observations":[]})).unwrap();
     let known = Coverage {
@@ -644,4 +647,66 @@ fn a_coverage_row_for_an_unknown_trait_is_dropped_and_recorded() {
         })
         .collect();
     assert!(too_many.bind(&request).is_err());
+}
+
+/// fn-136: the request names the traits the generator cannot draw yet as
+/// known gaps. The core-coverage gate leaves them out, and a blocker the
+/// reviewer ties to one by `trait_id` does not keep the tree from ready.
+#[test]
+fn a_known_gap_named_on_the_request_leaves_readiness() {
+    let original = request();
+    let mut request = ComparisonRequest::new(&original, inventory(&original));
+    let listed = vec![Unexpressed {
+        trait_id: "trait-1".into(),
+        spec: "fn-111".into(),
+    }];
+    request.known_gaps = listed.clone();
+    request.verify().unwrap();
+    assert_eq!(request.protocol, COMPARISON_VERSION);
+    assert!(COMPARISON_PROMPT.contains("trait_id"));
+    let r = request.comparison.clone();
+    let finding = |impact, trait_id: Option<&str>| Finding {
+        observation: "The trait is absent".into(),
+        evidence_ids: vec!["render-0".into(), "reference-0".into()],
+        impact,
+        uncertain: false,
+        causal_hypothesis: None,
+        trait_id: trait_id.map(str::to_string),
+    };
+    let visual:vision::Result=serde_json::from_value(json!({"request_sha256":r.hash(),"assessment":{"identity":r.identity,"model":"mock","ledger":"receipt","cells":[[r.required[0],"pass"]],"defects":[],"findings":[finding(Impact::Supported, None), finding(Impact::Blocker, Some("trait-1"))]},"effort":"medium","usage":{"input_tokens":1,"output_tokens":1},"observations":[]})).unwrap();
+    let mut result = ComparisonResult {
+        request_sha256: request.hash(),
+        visual,
+        coverage: vec![Coverage {
+            trait_id: "trait-1".into(),
+            status: CellStatus::Fail,
+            evidence_ids: vec!["render-0".into(), "reference-0".into()],
+            explanation: "No organ draws it".into(),
+        }],
+    };
+    let defects = vec![telperion_jev::tuning::unexpressed::Defect {
+        defect: "trait-1: absent".into(),
+        trait_id: Some("trait-1".into()),
+    }];
+    telperion_jev::tuning::unexpressed::set_aside(
+        &mut result.visual.assessment,
+        defects,
+        &request.known_gaps,
+    );
+    result.bind(&request).unwrap();
+    assert!(ready(&r.required, &r.identity, &result.visual.assessment));
+    assert_eq!(
+        result.visual.assessment.known_gaps[0].defects,
+        vec!["trait-1: absent"]
+    );
+    // Without the known gap the same answer blocks.
+    let mut plain = ComparisonRequest::new(&original, inventory(&original));
+    plain.verify().unwrap();
+    let mut blocked = result.clone();
+    blocked.visual.assessment.known_gaps.clear();
+    blocked.request_sha256 = plain.hash();
+    blocked.bind(&plain).unwrap();
+    assert!(!ready(&r.required, &r.identity, &blocked.visual.assessment));
+    plain.protocol = "reference-first-v1".into();
+    assert!(plain.verify().is_err());
 }

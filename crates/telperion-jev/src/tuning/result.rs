@@ -74,6 +74,10 @@ pub struct EndResult {
     pub outcome: Outcome,
     pub gaps: Vec<GapEntry>,
     pub gaps_note: String,
+    /// The traits the generator cannot draw yet, each with the spec that
+    /// captures it: left out of readiness and never a gap of this run.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub known_gaps: Vec<super::unexpressed::Unexpressed>,
 }
 
 fn still(image: &Image) -> Still {
@@ -201,6 +205,7 @@ impl Run {
             },
             gaps,
             gaps_note: NEW_GAP_NOTE.into(),
+            known_gaps: Vec::new(),
         }
     }
 }
@@ -276,6 +281,12 @@ pub fn markdown(r: &EndResult) -> String {
     s.push_str(&format!("| Bootstrap | {} |\n", o.bootstrap));
     s.push_str(&format!("| Machine ready | {} |\n", o.machine_ready));
     s.push_str(&format!("| Owner acceptance | {} |\n", o.owner_acceptance));
+    for gap in &r.known_gaps {
+        s.push_str(&format!(
+            "| Known gap | {}, captured by {} |\n",
+            gap.trait_id, gap.spec
+        ));
+    }
     s.push_str(&format!(
         "| Adoptions kept / rolled back | {} / {} |\n",
         o.adoptions_kept, o.adoptions_rolled_back

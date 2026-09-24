@@ -40,7 +40,14 @@ pipeline produces them, and a person admits the manifest and resolves the
 decisions it files. A species spec runs the pipeline once and restates none of
 the method.
 
-When a stage halts on a capability the generator cannot express, the runbook's
+A species run finishes when its literature passes, the generator expresses
+every capability the species needs to be recognisable at catalogue quality,
+tuning has converged on what the generator can draw, and the owner ticks the
+checklist (fn-136). A missing capability that only adds realism is classed an
+improvement at the capability assessment, captured by a backlog spec and
+listed in the packet as a known gap; it never blocks the run.
+
+When a stage halts on an identity capability the generator cannot express, the runbook's
 **The gap loop** section takes over: the agent writes candidate fixes, a
 threshold table routes the gap to the loop, to a stronger reasoning model or to
 the owner, and the chosen fix becomes its own spec the species spec depends on.

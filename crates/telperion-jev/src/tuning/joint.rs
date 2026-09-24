@@ -74,6 +74,9 @@ pub struct Finding {
     pub impact: Impact,
     pub uncertain: bool,
     pub causal_hypothesis: Option<String>,
+    /// The inventory trait the finding concerns, or none (fn-136).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub trait_id: Option<String>,
 }
 
 impl Packet {

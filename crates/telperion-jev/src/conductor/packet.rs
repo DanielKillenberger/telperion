@@ -6,6 +6,7 @@
 //! the packet names which. Only the owner accepts.
 use serde_json::{json, Value};
 
+use super::finish;
 use super::gapcheck::{self, PASSING};
 use super::state::Run;
 use super::{now, Config, Result};
@@ -51,7 +52,13 @@ pub fn assemble(config: &Config, run: &mut Run) -> Result<String> {
         unready.push("numeric validation: metrics.json is not written".into());
     }
     let latest = run.latest_tuning().cloned();
-    let (visual, views, checklist, identity, preset) = match &latest {
+    // A converged revision is a finish: what it could not pass is the
+    // owner's to judge on the checklist, not a reason to withhold (fn-136).
+    let converged = latest.as_ref().and_then(|t| t.converged.clone());
+    let mut outstanding: Vec<String> = Vec::new();
+    let mut traits = Vec::new();
+    let mut machine = "not ready";
+    let (visual, views, mut checklist, identity, preset) = match &latest {
         Some(t) => match gapcheck::read_result(&t.out) {
             Ok(result) => {
                 let views: Vec<Value> = result
@@ -66,21 +73,29 @@ pub fn assemble(config: &Config, run: &mut Run) -> Result<String> {
                             .collect()
                     })
                     .unwrap_or_default();
-                let checklist: Vec<Value> = result
+                let mut checklist: Vec<Value> = result
                     .gaps
                     .iter()
                     .map(|g| json!({"id": g.id, "priority": g.priority, "status": g.status}))
                     .collect();
-                let visual = result.outcome.machine_ready && !result.outcome.bootstrap;
-                if !visual {
-                    unready.push(if result.outcome.bootstrap {
-                        "visual readiness: the run was a bootstrap; the reviewer has not been shown to pass an owner-accepted tree".into()
-                    } else {
-                        format!("visual readiness: the automated result is not ready ({})", result.outcome.stopped)
-                    });
+                traits = result.known_gaps.clone();
+                let bootstrap = result.outcome.bootstrap;
+                machine = finish::machine_readiness(result.outcome.machine_ready, bootstrap);
+                // A converged bootstrap goes to the owner: the reviewer is
+                // unqualified, so the owner's verdict is the acceptance.
+                let visual = converged.is_some() || (result.outcome.machine_ready && !bootstrap);
+                if bootstrap && converged.is_some() {
+                    checklist.push(finish::reviewer_qualification());
+                } else if bootstrap {
+                    unready.push("visual readiness: the run was a bootstrap; the reviewer has not been shown to pass an owner-accepted tree".into());
+                } else if !visual {
+                    unready.push(format!(
+                        "visual readiness: the automated result is not ready ({})",
+                        result.outcome.stopped
+                    ));
                 }
                 for g in result.gaps.iter().filter(|g| g.status != PASSING) {
-                    unready.push(format!(
+                    outstanding.push(format!(
                         "checklist defect outstanding: {} ({})",
                         g.id, g.status
                     ));
@@ -105,6 +120,10 @@ pub fn assemble(config: &Config, run: &mut Run) -> Result<String> {
             (false, Vec::new(), Vec::new(), String::new(), String::new())
         }
     };
+    if converged.is_none() {
+        unready.append(&mut outstanding);
+    }
+    checklist.extend(finish::known_gaps(config, &traits));
     if views.is_empty() {
         unready.push("matched views: none recorded".into());
     } else if let Some(missing) = views.iter().find(|v| v["present"] == false) {
@@ -135,6 +154,9 @@ pub fn assemble(config: &Config, run: &mut Run) -> Result<String> {
         "tuning_identity": identity,
         "matched_views": views,
         "checklist": checklist,
+        "converged": converged,
+        "machine_readiness": machine,
+        "outstanding": outstanding,
         "sources": sources(config),
         "article": article.display().to_string(),
         "unresolved_limitations": unready,

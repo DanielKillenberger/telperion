@@ -28,6 +28,7 @@ fn visual(cells: &[(&str, CellStatus)], coverage: &[(&str, CellStatus)]) -> Visu
         observations: vec![],
         findings: vec![],
         joint: None,
+        known_gaps: vec![],
         coverage: coverage
             .iter()
             .map(|(trait_id, status)| TraitStatus {

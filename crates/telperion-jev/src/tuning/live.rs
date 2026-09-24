@@ -531,8 +531,9 @@ impl Live<'_> {
                 "{}\nAuthoritative owner requirements: {}",
                 request.checklist, self.config.owner_notes
             );
-            let comparison =
+            let mut comparison =
                 super::reference_first::ComparisonRequest::production(&request, inventory);
+            comparison.known_gaps = self.config.unexpressed.clone();
             super::reference_first::assess(&self.config.vision, &comparison)?.visual
         } else {
             self.config.vision.assess(&request)?

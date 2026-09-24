@@ -1,0 +1,33 @@
+{
+  "branch_name": "fn-136-a-species-run-finishes-identity-blocks",
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-09-24T08:17:31.504226Z",
+  "created_at": "2026-09-24T07:42:22.042589Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-136-a-species-run-finishes-identity-blocks",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-136-a-species-run-finishes-identity-blocks.md",
+  "status": "open",
+  "title": "A species run finishes: identity blocks, improvements are captured",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-24T08:17:31.504237Z"
+}

@@ -7,7 +7,7 @@ use serde_json::{json, Value};
 
 use super::gapcheck::{self, Verdict, PASSING};
 use super::policy;
-use super::state::{DependencyStatus, Run};
+use super::state::{DependencyStatus, Run, TuningRevision};
 use super::{Config, Result};
 use crate::pipeline::build_id::{BUILD_ID, BUILD_TOOL};
 use crate::pipeline::canon::{canonical_sha256, file_sha256, read_json};
@@ -321,6 +321,9 @@ pub fn next(config: &Config, run: &Run) -> Result<Next> {
             focus: Vec::new(),
         });
     }
+    if latest.converged.is_some() {
+        return packet_or_ready(config, latest);
+    }
     let result = gapcheck::read_result(&latest.out)?;
     let unchecked: Vec<String> = result
         .gaps
@@ -355,8 +358,13 @@ pub fn next(config: &Config, run: &Run) -> Result<Next> {
             focus,
         });
     }
-    // Nothing is left to dispatch: the packet is assembled, and it is the
-    // packet that says ready or names what keeps the species unready.
+    packet_or_ready(config, latest)
+}
+
+/// Nothing is left to dispatch, or the revision converged (fn-136): the
+/// packet is assembled, and it is the packet that says ready or names what
+/// keeps the species unready.
+fn packet_or_ready(config: &Config, latest: &TuningRevision) -> Result<Next> {
     match super::packet::read(config)? {
         Some(packet)
             if packet["ready_for_owner_review"] == true

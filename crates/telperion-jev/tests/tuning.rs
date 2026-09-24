@@ -53,6 +53,7 @@ fn readiness_requires_every_checklist_view_seed_and_no_defects() {
         observations: vec![],
         findings: vec![],
         joint: None,
+        known_gaps: vec![],
     };
     assert!(!ready(&cells, "v1", &assessment));
     assessment.cells.push((cells[1].clone(), CellStatus::Pass));

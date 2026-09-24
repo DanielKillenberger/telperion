@@ -17,6 +17,15 @@ def strings():
     return {"type": "array", "items": {"type": "string"}}
 
 
+# The comparison schema's version: v2 (fn-136) ties each finding and defect to
+# an inventory trait, or null, and the request names the known gaps.
+COMPARISON_VERSION = "reference-first-comparison-v2"
+
+
+def trait_id():
+    return {"type": ["string", "null"]}
+
+
 def prepare(envelope):
     stage, request = envelope["stage"], envelope["request"]
     if stage == "inventory":
@@ -33,16 +42,19 @@ def prepare(envelope):
             "observation": {"type": "string"}, "reference_ids": strings(), "uncertain": {"type": "boolean"}})},
             "observations": {**strings(), "maxItems": 16}})
     elif stage == "comparison":
+        if request.get("protocol") != COMPARISON_VERSION:
+            raise ValueError("stale comparison protocol")
         r = request["comparison"]
         images = r["images"] + r["references"] + [a["image"] for a in r["quality_anchors"]]
         schema = object_schema({
             "passes": {"type": "array", "minItems": len(r["required"]), "maxItems": len(r["required"]), "items": {"type": "string", "enum": ["pass", "fail", "unknown"]}},
-            "defects": strings(), "observations": strings(),
+            "defects": {"type": "array", "items": object_schema({"defect": {"type": "string"}, "trait_id": trait_id()})},
+            "observations": strings(),
             # The receipt holds at most 16 findings and 16 coverage rows
             # (reference_first.rs, ComparisonResult::bind; joint.rs, verify_findings).
             "findings": {"type": "array", "maxItems": 16, "items": object_schema({"observation": {"type": "string"}, "evidence_ids": strings(),
                 "impact": {"type": "string", "enum": ["supported", "blocker", "required_unknown", "variation", "optional"]},
-                "uncertain": {"type": "boolean"}, "causal_hypothesis": {"type": ["string", "null"]}})},
+                "uncertain": {"type": "boolean"}, "causal_hypothesis": {"type": ["string", "null"]}, "trait_id": trait_id()})},
             "coverage": {"type": "array", "maxItems": 16, "items": object_schema({"trait_id": {"type": "string"},
                 "status": {"type": "string", "enum": ["pass", "fail", "unknown"]}, "evidence_ids": strings(), "explanation": {"type": "string"}})}})
     else:

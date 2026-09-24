@@ -1,0 +1,8 @@
+{
+  "preset": "date-palm",
+  "seed": 1,
+  "profile_id": "date-palm",
+  "profiles": ".flow/evidence/fn80/profiles-date-palm.json",
+  "measure_binary": "target/release/examples/species_measure",
+  "initial_overrides": {}
+}

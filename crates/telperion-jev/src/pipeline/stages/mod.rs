@@ -32,6 +32,7 @@
 //!   `costs.stages.<stage>` and `costs.total` summed from every artifact's `cost`.
 
 pub mod appearance;
+pub mod capability_class;
 pub mod discover;
 pub mod document;
 pub mod extract;
