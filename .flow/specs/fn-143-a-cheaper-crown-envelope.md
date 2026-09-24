@@ -16,6 +16,8 @@
 - Replace the per-test `pow` pair with a cheaper evaluation of the same profile curve. Candidates to screen, cheapest first: a per-envelope table of the profile sampled finely enough in `t` with linear or cubic interpolation; a specialised form for common shoulder values (1 is linear and needs no `pow`); a rational or polynomial approximation of `(1 - p^s)^(1/s)` with a stated error bound. [inferred]
 - The change is allowed to alter output bytes under the 2026-09-20 policy, with measured gain, no perceptible visual regression and correctness intact (CLAUDE.md, "Generator evolution"). [user]
 - One implementation serves growth, the cull and every other caller; no species or preset branch. [CLAUDE.md]
+- The GPU leaf cull evaluates its own copy of the formula in `crates/telperion-render/src/generation/place.wgsl` (`radius_at`, f32 `pow`). The chosen evaluation must be as cheap in WGSL, and this spec changes that copy in the same change, as its own commit so a concurrent fn-125 can carry it. Preset shoulders on master: 1.0, 1.5, 1.6, 1.8, 2.2 and 3.2. [inferred, read 2026-09-24]
+- At merge, and again if fn-125 lands after this spec, the host confirms no `.wgsl` file still evaluates the old `pow(1 - pow(p, s), 1/s)` envelope; a one-time check recorded in the PR, not a test (owner, 2026-09-24). [user]
 
 ## Acceptance Criteria
 
