@@ -20,7 +20,7 @@ stage: impl-review - skipped(config: REVIEW_MODE=none)
 
 R2 resolved by the owner on 2026-09-24: restated to the measured gain in the spec; the path to half time is fn-143 (a cheaper crown envelope).
 
-stage: impl-review - skipped(policy: owner - review only where useful; the one numeric change, the hypot port, is pinned bit for bit against libm on 250,000 inputs, and output is byte-identical)
+stage: impl-review - ran (codex, host-dispatched after the worker's REVIEW_MODE=none: pass 1 on 059f844d NEEDS_WORK, one finding - a run's up-front reservation could panic on a valid 100M-internode run - plus a weak NaN/threshold check in the hypot test; both fixed in 4e9d30bf; pass 2 on the fix SHIP)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 059f844d887d0e835cd7169cff6f39c9d2619665, 4a6895ae655f9ba8363136a8f1fa7578538c1377
