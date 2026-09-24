@@ -216,13 +216,25 @@ checked on the next step. A revision counts as ended only when its record
 holds neither a pause nor an attempt in flight, because the tuning loop
 rewrites `result.json` on every save.
 
+Converged is a finish (fn-136). A revision the runaway guard stopped, one
+that stopped with no supported proposal while every listed gap passes, and
+one that ended with every listed gap passing are recorded with `converged`
+and the reason, and the conductor assembles the packet next: no pause is
+carried, no gap is checked and no further revision is asked for. A landing
+still asks for the next revision.
+
 ## The packet and the report
 
 `packet` is ready only when the report reads complete and `metrics.json` is
-written, the latest tuning revision is machine ready and not a bootstrap,
-every listed gap passes, every matched still is on disk, and `ARTICLE.md`
-and `document.json` exist with no open decision; otherwise it names every
-limitation. Its owner acceptance is pending until the owner says otherwise.
+written, the latest tuning revision is machine ready or converged and not a
+bootstrap, every listed gap passes, every matched still is on disk, and
+`ARTICLE.md` and `document.json` exist with no open decision; otherwise it
+names every limitation. After a converged revision a gap that does not pass
+is listed under `outstanding` for the owner to judge rather than withholding
+the packet. The checklist lists every known gap with status `known gap` and
+the specs that capture it: each improvement capability the gate recorded and
+each trait the tuning result lists as one. Its owner acceptance is pending
+until the owner says otherwise, and the owner may reverse any class there.
 
 `report` writes elapsed wall time, waiting, interruptions, dispatches by
 role, tier and effort with tokens, cost and the models that ran, Jev calls

@@ -86,6 +86,10 @@ pub struct TuningRevision {
     /// landing asks for the next one.
     pub landed_count: usize,
     pub at: String,
+    /// Why the revision converged on what the generator can draw, when it
+    /// did; the packet then follows without another revision (fn-136).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub converged: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

@@ -11,9 +11,10 @@ use serde_json::json;
 use super::questions::Asker;
 use super::state::{Run, TuningRevision};
 use super::step::Executor;
-use super::{dependency, gapcheck, handoff, now, ConductorError, Config, Result};
+use super::{dependency, finish, gapcheck, handoff, now, ConductorError, Config, Result};
 use crate::pipeline::canon::{canonical_sha256, read_json};
 use crate::tuning::continuation::{Basis, Pause};
+use crate::tuning::result::EndResult;
 
 /// What the tuning run's own record says about where it stands.
 struct Record {
@@ -162,9 +163,10 @@ fn resume_tuning(
     Ok(format!("{word}\n{settled}"))
 }
 
-/// Reads the tuning run's record after it exits: a pause is carried, an
-/// exit that left none is the tool's failure, and an ended revision is
-/// recorded for its gap check.
+/// Reads the tuning run's record after it exits: a converged stop is
+/// recorded as a finish, any other pause is carried, an exit that left none
+/// is the tool's failure, and an ended revision is recorded for its gap
+/// check.
 fn settle(
     config: &Config,
     run: &mut Run,
@@ -173,10 +175,34 @@ fn settle(
     ran: std::result::Result<(), String>,
 ) -> Result<String> {
     if let Some(pause) = record(&out)?.pause {
-        return carry(config, run, revision, &out, pause, ran.err());
+        // A stop that converged is a finish, not the host's (fn-136).
+        let result = gapcheck::read_result(&out).ok();
+        let why = result
+            .as_ref()
+            .and_then(|r| finish::converged(Some(&pause), r));
+        return match (result, why) {
+            (Some(result), Some(why)) => {
+                run.route(&format!("tuning:{revision}"), "packet", &why);
+                Ok(revised(run, revision, out, &result, Some(why)))
+            }
+            _ => carry(config, run, revision, &out, pause, ran.err()),
+        };
     }
     ran.map_err(|err| ConductorError::Invalid(format!("tuning revision {revision}: {err}")))?;
     let result = gapcheck::read_result(&out)?;
+    let why = finish::converged(None, &result);
+    Ok(revised(run, revision, out, &result, why))
+}
+
+/// Records an ended revision for its gap check, or a converged one for the
+/// packet, and says how it stopped.
+fn revised(
+    run: &mut Run,
+    revision: u64,
+    out: PathBuf,
+    result: &EndResult,
+    converged: Option<String>,
+) -> String {
     let tokens = result.outcome.budget["tokens"].as_u64().unwrap_or(0);
     run.budget.tokens = run.budget.tokens.saturating_add(tokens);
     let landed_count = run
@@ -194,12 +220,17 @@ fn settle(
         gaps: result.gaps.len(),
         landed_count,
         at: now(),
+        converged: converged.clone(),
     });
-    Ok(format!(
+    let word = format!(
         "tuning revision {revision}: {} ({} gaps listed)",
         result.outcome.stopped,
         result.gaps.len()
-    ))
+    );
+    match converged {
+        Some(why) => format!("{word}; {why}"),
+        None => word,
+    }
 }
 
 /// The tuning pause becomes the conductor's: its id, its identity, its

@@ -369,6 +369,7 @@ print(json.dumps({'status':'ok','model':'mock','effort':'medium','request_sha256
         &config.vision,
         config.reference_first.as_ref().unwrap(),
         &result.value,
+        &config.unexpressed,
     )
     .unwrap();
     let mut legacy = result.value.clone();
@@ -376,7 +377,8 @@ print(json.dumps({'status':'ok','model':'mock','effort':'medium','request_sha256
     assert!(verify_convergence(
         &config.vision,
         config.reference_first.as_ref().unwrap(),
-        &legacy
+        &legacy,
+        &config.unexpressed,
     )
     .is_err());
     assert!(result

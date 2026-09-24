@@ -1,0 +1,35 @@
+{
+  "source": "fn-80 tuning revision 3 (run identity 05b1926f32b2409e79c78493eb54632cb030734809b4f113bcbf8c3dad46782d): the current tree's recorded assessment in conductor/tuning-1/run.json, visual.coverage at trial 7d22938af535e6ea9d9409f691cf5d3a745af4bb341e5563bc9efb23ba098203, and the tuning config's unexpressed list",
+  "coverage": [
+    {
+      "status": "pass",
+      "trait_id": "crown-pinnate-arching-fronds"
+    },
+    {
+      "status": "unknown",
+      "trait_id": "leaflet-arrangement-stiff-narrow"
+    },
+    {
+      "status": "fail",
+      "trait_id": "trunk-leaf-base-diamond-pattern"
+    },
+    {
+      "status": "fail",
+      "trait_id": "trunk-fibrous-matting"
+    },
+    {
+      "status": "pass",
+      "trait_id": "solitary-columnar-stem"
+    },
+    {
+      "status": "fail",
+      "trait_id": "fruit-clusters-pendent"
+    }
+  ],
+  "unexpressed": [
+    {
+      "trait": "fruit-clusters-pendent",
+      "spec": "fn-111-the-palms-infructescence-a-hanging-date"
+    }
+  ]
+}

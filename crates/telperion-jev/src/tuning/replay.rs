@@ -169,7 +169,7 @@ pub fn run(
             continue;
         }
         journal.reserve(PER_CASE_TOKENS)?;
-        let outcome = assess(adapter, &case.request);
+        let outcome = assess(adapter, &case.request, &[]);
         let Ok(result) = outcome else {
             journal.note(
                 &case.id,

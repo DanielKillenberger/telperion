@@ -403,7 +403,12 @@ impl Config {
                     expected.as_ref(),
                     proof.preparation_charge.as_ref(),
                 )?;
-                super::reference_first::verify_convergence(&self.vision, prepared, visual)?;
+                super::reference_first::verify_convergence(
+                    &self.vision,
+                    prepared,
+                    visual,
+                    &self.unexpressed,
+                )?;
             }
             if !proof.machine_ready
                 || proof.pause.is_some()
@@ -533,7 +538,12 @@ impl Live<'_> {
             );
             let comparison =
                 super::reference_first::ComparisonRequest::production(&request, inventory);
-            super::reference_first::assess(&self.config.vision, &comparison)?.visual
+            super::reference_first::assess(
+                &self.config.vision,
+                &comparison,
+                &self.config.unexpressed,
+            )?
+            .visual
         } else {
             self.config.vision.assess(&request)?
         };

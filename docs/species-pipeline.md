@@ -83,6 +83,17 @@ The round writes the unmet names to `manifest.json` under
 `engineering.required_capabilities` and its reasoning to
 `DIR/packet/capability.json`, which is a list of rounds, not a single record.
 
+**Identity or improvement (fn-136).** The host classes every capability the
+generator does not express yet, under `classes` in `packet/capability.json`:
+one entry per capability with `class` (`identity` or `improvement`), the
+`reason`, `decided_by` and `decided_on`, and for an improvement the backlog
+specs that capture it in `captured_by`. An identity capability is one the
+species is not recognisable without; an improvement only adds realism,
+often for many species, and the run finishes without it. The class is the
+host's, reversible by the owner in the packet; no Jev question decides it.
+A class with no reason or decision, an improvement naming no spec, or a
+capability classed twice refuses the whole list.
+
 ### The vocabulary, and what the gate does with it
 
 The vocabulary is `crates/telperion-core/src/capability.rs`: one declared list
@@ -106,7 +117,12 @@ neither list is unrecognised, which is its own report rather than missing:
 nobody has said what the name means. The version is the one a round records,
 so a round and the gate that followed it can be compared. The gate fails
 closed, so a species whose packet and manifest name no required capability has
-had no assessment, and that is unresolved rather than met.
+had no assessment, and that is unresolved rather than met. A missing
+capability blocks only when it is identity or unclassed: a missing
+improvement files no decision and is recorded under `known_gaps` with the
+specs that capture it and its reason, and a refused class list blocks every
+missing name. `packet/capability.json` is one of the gate's inputs, so a
+changed class reruns it.
 
 A registered preset is asked a second question, and it is not this one:
 whether its own value table produces what the species requires of it.

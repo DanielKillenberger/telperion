@@ -275,6 +275,7 @@ pub fn result(root: &Path, identity: &str, machine_ready: bool, gaps: Vec<GapEnt
         },
         gaps,
         gaps_note: String::new(),
+        known_gaps: vec![],
     }
 }
 

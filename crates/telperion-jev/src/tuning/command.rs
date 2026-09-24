@@ -331,7 +331,8 @@ pub fn run_with(
             "meaning":"reviewer has never been shown to pass an owner-accepted tree",
             "candidates":state.finalists()}),
         )?;
-        let result = state.end_result();
+        let mut result = state.end_result();
+        result.known_gaps = config.unexpressed.clone();
         write(
             &out.join("result.json"),
             &serde_json::to_value(&result).unwrap(),

@@ -505,6 +505,34 @@ fn the_date_palms_recorded_needs_are_one_missing_organ_and_no_false_positive() {
     );
 }
 
+/// fn-136: with the date cluster classed an improvement on the palm's
+/// assessment, the gate files no capability decision and records the gap
+/// with the specs that capture it.
+#[test]
+fn a_missing_improvement_passes_the_gate_as_a_known_gap_with_its_specs() {
+    let dir = scratch_with("date-palm-classed", 2, requiring(&DATE_PALM));
+    std::fs::write(
+        dir.join("packet/capability.json"),
+        include_str!("fixtures/fn136-palm-capability.json"),
+    )
+    .unwrap();
+    gate::run(&Paths::new(&dir), &Checks::producing(&["woody-axes"])).unwrap();
+    let capability = body_of(&dir, "gate")["capability"].clone();
+    assert_eq!(capability["missing"], json!(["infructescence"]));
+    assert_eq!(
+        capability["known_gaps"],
+        json!([{"capability": "infructescence",
+                "captured_by": ["fn-33-flowers-cones-and-compound-leaves-as",
+                                "fn-111-the-palms-infructescence-a-hanging-date"],
+                "reason": "The date cluster adds realism; the palm is recognisable without it. The owner put the palm's date clusters in the backlog on 2026-09-24."}])
+    );
+    let filed = of_kind(&dir, "onboarding-gate");
+    assert!(
+        filed.iter().all(|d| d["field"] != "capability"),
+        "{filed:?}"
+    );
+}
+
 #[test]
 fn the_gate_records_the_vocabulary_version_it_compared_against() {
     let dir = scratch("vocabulary-version", 2);

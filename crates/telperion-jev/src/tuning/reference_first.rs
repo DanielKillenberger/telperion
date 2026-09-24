@@ -1,5 +1,5 @@
 //! Reference-first protocol. An attributed inventory is evidence, not ground truth.
-use super::{evaluation::Image, state::CellStatus, vision};
+use super::{evaluation::Image, state::CellStatus, unexpressed::Unexpressed, vision};
 use crate::sha256_hex;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -391,6 +391,7 @@ pub fn replay_score(
 pub fn assess(
     adapter: &vision::Adapter,
     request: &ComparisonRequest,
+    unexpressed: &[Unexpressed],
 ) -> Result<ComparisonResult, String> {
     use std::{
         io::Write,
@@ -437,7 +438,7 @@ pub fn assess(
         return Err("reference-first adapter failed; reservation retained".into());
     }
     let raw: serde_json::Value = serde_json::from_slice(&out.stdout).map_err(|e| e.to_string())?;
-    bind_response(adapter, request, &raw, &path)
+    bind_response(adapter, request, &raw, &path, unexpressed)
 }
 
 fn bind_response(
@@ -445,6 +446,7 @@ fn bind_response(
     request: &ComparisonRequest,
     raw: &serde_json::Value,
     path: &std::path::Path,
+    unexpressed: &[Unexpressed],
 ) -> Result<ComparisonResult, String> {
     if raw["status"] != "ok"
         || raw["request_sha256"] != request.hash()
@@ -481,7 +483,7 @@ fn bind_response(
         coverage: serde_json::from_value(answer["coverage"].clone()).map_err(|e| e.to_string())?,
     };
     request.verify()?;
-    result.bind(request)?;
+    result.bind_leaving(request, unexpressed)?;
     Ok(result)
 }
 
@@ -490,6 +492,7 @@ pub fn verify_convergence(
     adapter: &vision::Adapter,
     prepared: &RuntimeConfig,
     visual: &super::state::Visual,
+    unexpressed: &[Unexpressed],
 ) -> Result<(), String> {
     let path = std::path::Path::new(&visual.ledger);
     let metadata = std::fs::metadata(path).map_err(|e| e.to_string())?;
@@ -515,7 +518,7 @@ pub fn verify_convergence(
             .ok_or("missing convergence output")?,
     )
     .map_err(|e| e.to_string())?;
-    let bound = bind_response(adapter, &request, &raw, path)?;
+    let bound = bind_response(adapter, &request, &raw, path, unexpressed)?;
     if !super::state::ready(
         &request.comparison.required,
         &request.comparison.identity,
@@ -529,6 +532,15 @@ pub fn verify_convergence(
 }
 impl ComparisonResult {
     pub fn bind(&mut self, request: &ComparisonRequest) -> Result<(), String> {
+        self.bind_leaving(request, &[])
+    }
+    /// Binds as `bind` does, leaving the traits listed unexpressed out of the
+    /// core-coverage gate (fn-136).
+    pub fn bind_leaving(
+        &mut self,
+        request: &ComparisonRequest,
+        unexpressed: &[Unexpressed],
+    ) -> Result<(), String> {
         request.verify()?;
         if self.request_sha256 != request.hash() {
             return Err("stale reference-first comparison".into());
@@ -619,22 +631,11 @@ impl ComparisonResult {
                 return Err("trait disposition cites a different reference".into());
             }
         }
-        let mut status = CellStatus::Pass;
-        for t in request
-            .inventory
-            .traits
-            .iter()
-            .filter(|t| t.priority == Priority::Core)
-        {
-            match self.coverage.iter().find(|c| c.trait_id == t.id) {
-                Some(c) if c.status == CellStatus::Fail => {
-                    status = CellStatus::Fail;
-                    break;
-                }
-                Some(c) if c.status == CellStatus::Pass && !t.uncertain => {}
-                _ => status = CellStatus::Unknown,
-            }
-        }
+        let (status, _) = super::unexpressed::core_coverage(
+            &request.inventory,
+            &self.visual.assessment.coverage,
+            unexpressed,
+        );
         if status != CellStatus::Pass {
             let finding = super::joint::Finding {
                 observation: format!("Code-derived reference-first coverage gate: core trait coverage is {status:?}; this is a joint readiness constraint, not a new per-view model verdict. Inventory {}", request.inventory.hash()),
