@@ -1,0 +1,165 @@
+{
+ "pause_id": "18d8496bba6eaa90-b74ac-14",
+ "identity": "390fb399c0eb26ac7f6ac405eaa4f84599d5fae6f38ed73f0465c7f342c39573",
+ "action": "approve gap priorities",
+ "by": "host (fn-80 conductor session) relaying the owner's priorities",
+ "rationale": "Objectives per fn-119: the owner's three written priorities of 2026-09-22 and the frond colour the owner asked for on 2026-09-23, then every drawable core and secondary reference trait the run proposed, in its order. Colour traits on the materials track, the rest on structure. This chooses objectives only.",
+ "preserve_evidence": true,
+ "priority_approval": {
+  "checkpoint_sha256": "45b72e887acf249a946b5df1fc5aa21261793b8abdd6f32cf3a4cb6f10ac9eda",
+  "scope_sha256": "869a92bcf0fcd8d99411d6f339f9ac207ac2227c4e56a246e10a78cd130271b7",
+  "ordered": [
+   {
+    "id": "owner-fronds-long-arching",
+    "observation": "the crown must read as a palm's rosette of long arching pinnate fronds with the lowest fronds drooping; the fronds are far too thin and short today (leaflet size and frond length are the first dials)",
+    "evidence_ids": [
+     "render-0",
+     "reference-0",
+     "reference-1"
+    ],
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "structure"
+   },
+   {
+    "id": "owner-trunk-straight-constant",
+    "observation": "the trunk must be straight or gently leaning, never wavy, of near-constant diameter",
+    "evidence_ids": [
+     "render-0",
+     "reference-0",
+     "reference-1"
+    ],
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "structure"
+   },
+   {
+    "id": "owner-trunk-bare",
+    "observation": "nothing grows on the trunk",
+    "evidence_ids": [
+     "render-0",
+     "reference-0",
+     "reference-1"
+    ],
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "structure"
+   },
+   {
+    "id": "owner-frond-colour",
+    "observation": "the fronds read blue-green to grey-green, as the sources and the photographs show",
+    "evidence_ids": [
+     "render-0",
+     "reference-0",
+     "reference-1"
+    ],
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "materials"
+   },
+   {
+    "evidence_ids": [
+     "render-0",
+     "reference-0",
+     "reference-1"
+    ],
+    "id": "crown-pinnate-arching-fronds",
+    "observation": "Crown composed of many long once-pinnate (feather) fronds radiating from a single apical point, each frond arching outward and downward so the outline of the crown reads as a rounded hemisphere to shuttlecock shape; frond count per crown appears high (roughly 30-60 visible), with the newest fronds held stiffly upward near the center and older ones progressively more recurved.",
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "structure"
+   },
+   {
+    "evidence_ids": [
+     "render-0",
+     "reference-0",
+     "reference-1",
+     "reference-2"
+    ],
+    "id": "leaflet-arrangement-stiff-narrow",
+    "observation": "Leaflets are narrow, stiff, linear-lanceolate and taper to sharp points; they are inserted along the rachis in groups and at differing angles so the frond has a plumose/V-sectioned look rather than a flat plane. Leaflet tips appear rigid and spreading, giving the frond margin a bristly silhouette.",
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "structure"
+   },
+   {
+    "evidence_ids": [
+     "render-0",
+     "reference-1",
+     "reference-2",
+     "reference-0"
+    ],
+    "id": "trunk-leaf-base-diamond-pattern",
+    "observation": "Trunk surface is covered in persistent cut or broken leaf-base stubs arranged in a spiral, tessellating into a diamond/rhomboid lattice; each stub is a blunt wedge projecting several centimetres from the trunk with a flat, angular outer face. The pattern is coarse and irregular in reference-1/2 and reads as a finer knobbly texture at distance in reference-0.",
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "structure"
+   },
+   {
+    "evidence_ids": [
+     "render-0",
+     "reference-0",
+     "reference-1",
+     "reference-2"
+    ],
+    "id": "solitary-columnar-stem",
+    "observation": "A single unbranched columnar stem of roughly constant diameter carries the crown; no branching is visible anywhere along the stem in any reference.",
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "structure"
+   },
+   {
+    "evidence_ids": [
+     "render-0",
+     "reference-0"
+    ],
+    "id": "dead-frond-skirt",
+    "observation": "Beneath the living crown hangs a collar of dead and dying fronds, brown to grey, collapsed downward against the upper trunk and partly obscuring it; the transition from green living fronds to brown dead fronds is abrupt in reference-0.",
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "structure"
+   },
+   {
+    "evidence_ids": [
+     "render-0",
+     "reference-0",
+     "reference-1",
+     "reference-2"
+    ],
+    "id": "trunk-colour-and-weathering",
+    "observation": "Trunk colour ranges from mid grey-brown to warm reddish-brown; stub faces are lighter and greyer than the surrounding fibre, some bleached to pale grey, consistent with weathered exposed surfaces. Lower trunk in reference-0 reads more uniformly grey-brown with a finer texture than the coarse stubs shown close up.",
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "materials"
+   },
+   {
+    "evidence_ids": [
+     "render-0",
+     "reference-0"
+    ],
+    "id": "basal-flare",
+    "observation": "Where the trunk meets the ground in reference-0 it widens into a broad rooted base merging into the soil mound; no clear detail of root boss or offshoots is resolvable at this scale.",
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "structure"
+   }
+  ]
+ },
+ "experimental_pilot": {
+  "visual_bootstrap": true,
+  "purpose": "fourth tuning revision of the date palm (fn-82) through the conductor (fn-80): sourced starting values, every drawable trait an objective, the date cluster a known gap",
+  "reason": "magnitude and gap-magnitude live efficacy unvalidated; the owner asked for the Opus reviewer and dropped run caps while the loop is built",
+  "next_identity": "390fb399c0eb26ac7f6ac405eaa4f84599d5fae6f38ed73f0465c7f342c39573"
+ }
+}

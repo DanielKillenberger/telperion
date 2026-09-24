@@ -1,0 +1,16 @@
+{
+ "pause_id": "18d8494d7b27cd8d-b57b6-c",
+ "identity": "ec5999b61e02ea10eaf3d5d163254eafb27b8cbc70644b087a9e3353f01f02c6",
+ "action": "reassess or diagnose",
+ "by": "host (fn-80 conductor session)",
+ "rationale": "Diagnosed: the baseline was infeasible because packet/references.json had lost its three recorded reference photographs and matched shots (select rewrote it with an empty list on the 2026-09-23 rerun; fn-142 fixes that). The recorded references (0995dac9) are restored; no other input changed. Reassess from the baseline.",
+ "next_identity": "390fb399c0eb26ac7f6ac405eaa4f84599d5fae6f38ed73f0465c7f342c39573",
+ "recover_interrupted": false,
+ "preserve_evidence": false,
+ "experimental_pilot": {
+  "visual_bootstrap": true,
+  "purpose": "fourth tuning revision of the date palm (fn-82) through the conductor (fn-80): sourced starting values, every drawable trait an objective, the date cluster a known gap",
+  "reason": "magnitude and gap-magnitude live efficacy unvalidated; the owner asked for the Opus reviewer and dropped run caps while the loop is built",
+  "next_identity": "390fb399c0eb26ac7f6ac405eaa4f84599d5fae6f38ed73f0465c7f342c39573"
+ }
+}

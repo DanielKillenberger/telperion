@@ -1,0 +1,15 @@
+{
+  "input_identity": "8b5488aa6234743896a18e5a7e839c2d0f486f17fa8ff11f6bad61993c509daf",
+  "design_revision": null,
+  "actual_model": "claude-sonnet-5 (host session acting as the cheap agent)",
+  "actual_effort": "default",
+  "usage": {
+    "input_tokens": 1,
+    "output_tokens": 1
+  },
+  "cost_usd": null,
+  "verification": "verified",
+  "observed": "Resolved date-palm/verify/claim-unsupported//profiles/0/appearance/bark_roughness with replace-source: F1's cited span is a horticultural blurb naming a 'textured trunk' among unrelated leaf and flower colour details, and Jev's own relation for this span is says_nothing toward bark roughness; filed for search-again.",
+  "handoff": null,
+  "failure": null
+}

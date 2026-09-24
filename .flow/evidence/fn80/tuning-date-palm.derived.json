@@ -1,0 +1,189 @@
+{
+  "made_contextual": [],
+  "manual": [],
+  "meaning": "fn-135: the values the sourced profile derived for the tuning config's initial_overrides; a manual entry wins over a derived one",
+  "preset": "date-palm",
+  "profile": ".flow/evidence/date-palm/pipeline/packet/profile.json",
+  "profile_sha256": "48ff0875f24c5a106a97036e72d95e2772bfe93495b1a6f9cda1d3ced4f5cca4",
+  "rows": [
+    {
+      "formula": "midpoint",
+      "path": "/material/barkBlue",
+      "source": "appearance.bark_colour.bark_blue",
+      "sources": [
+        "A1"
+      ],
+      "value": 0.21
+    },
+    {
+      "formula": "midpoint",
+      "path": "/material/barkGreen",
+      "source": "appearance.bark_colour.bark_green",
+      "sources": [
+        "A1"
+      ],
+      "value": 0.23500000000000001
+    },
+    {
+      "formula": "midpoint",
+      "path": "/material/barkRed",
+      "source": "appearance.bark_colour.bark_red",
+      "sources": [
+        "A1"
+      ],
+      "value": 0.25
+    },
+    {
+      "formula": "midpoint",
+      "path": "/material/barkRoughness",
+      "source": "appearance.bark_roughness.bark_roughness",
+      "sources": [
+        "F1"
+      ],
+      "value": 0.9650000000000001
+    },
+    {
+      "formula": "midpoint",
+      "path": "/material/leafBackBlue",
+      "source": "appearance.leaf_back_colour.leaf_back_blue",
+      "sources": [
+        "F1"
+      ],
+      "value": 0.11000000000000001
+    },
+    {
+      "formula": "midpoint",
+      "path": "/material/leafBackGreen",
+      "source": "appearance.leaf_back_colour.leaf_back_green",
+      "sources": [
+        "F1"
+      ],
+      "value": 0.16
+    },
+    {
+      "formula": "midpoint",
+      "path": "/material/leafBackRed",
+      "source": "appearance.leaf_back_colour.leaf_back_red",
+      "sources": [
+        "F1"
+      ],
+      "value": 0.12
+    },
+    {
+      "formula": "midpoint",
+      "path": "/material/brightnessRangeHigh",
+      "source": "appearance.leaf_brightness_range.brightness_range_high",
+      "sources": [],
+      "value": 0.04
+    },
+    {
+      "formula": "midpoint",
+      "path": "/material/brightnessRangeLow",
+      "source": "appearance.leaf_brightness_range.brightness_range_low",
+      "sources": [],
+      "value": -0.04
+    },
+    {
+      "formula": "midpoint",
+      "path": "/material/leafFrontBlue",
+      "source": "appearance.leaf_front_colour.leaf_front_blue",
+      "sources": [
+        "F1"
+      ],
+      "value": 0.11000000000000001
+    },
+    {
+      "formula": "midpoint",
+      "path": "/material/leafFrontGreen",
+      "source": "appearance.leaf_front_colour.leaf_front_green",
+      "sources": [
+        "F1"
+      ],
+      "value": 0.16
+    },
+    {
+      "formula": "midpoint",
+      "path": "/material/leafFrontRed",
+      "source": "appearance.leaf_front_colour.leaf_front_red",
+      "sources": [
+        "F1"
+      ],
+      "value": 0.12
+    },
+    {
+      "formula": "midpoint",
+      "path": "/material/hueRangeHigh",
+      "source": "appearance.leaf_hue_range.hue_range_high",
+      "sources": [
+        "F1"
+      ],
+      "value": 0.0275
+    },
+    {
+      "formula": "midpoint",
+      "path": "/material/hueRangeLow",
+      "source": "appearance.leaf_hue_range.hue_range_low",
+      "sources": [
+        "F1"
+      ],
+      "value": -0.0275
+    },
+    {
+      "formula": "ratio",
+      "path": "/radii/trunkRadius",
+      "source": "metrics.dbh_m",
+      "sources": [
+        "A1"
+      ],
+      "value": 0.01
+    },
+    {
+      "formula": "midpoint",
+      "path": "/canopy/rachisLength",
+      "source": "metrics.frond_length_m",
+      "sources": [
+        "A1"
+      ],
+      "value": 6.0
+    },
+    {
+      "formula": "midpoint",
+      "path": "/skeleton/envelope/height",
+      "source": "metrics.height_m",
+      "sources": [
+        "A1"
+      ],
+      "value": 22.86
+    },
+    {
+      "formula": "ratio",
+      "path": "/element/length",
+      "source": "metrics.leaflet_length_m",
+      "sources": [
+        "P5"
+      ],
+      "value": 0.45720000000000005
+    },
+    {
+      "formula": "ratio",
+      "path": "/element/width",
+      "source": "metrics.leaflet_width_m",
+      "sources": [
+        "P4"
+      ],
+      "value": 0.02
+    }
+  ],
+  "schema_version": 1,
+  "skipped": [
+    {
+      "reason": "the family meets no condition of /skeleton/envelope/spread",
+      "source": "metrics.crown_width_m"
+    },
+    {
+      "reason": "no row in the table",
+      "source": "metrics.height_growth_m_per_year"
+    }
+  ],
+  "table_sha256": "045391a344515ceea013669a2d0e9a1ad3ee3cafa32946b2765d6ab60ddf4a3c"
+}

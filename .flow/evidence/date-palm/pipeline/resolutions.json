@@ -62,26 +62,6 @@
       "note": "Owner, 2026-09-22: \"we can do both no? tune and build the missing capabilities?\" Re-recorded 2026-09-24 against the gate's new inputs: only infructescence is missing now (fn-111 on fn-33's organ slot, being built); tuning proceeds on everything else."
     },
     {
-      "id": "date-palm/verify/claim-unsupported//profiles/0/appearance/bark_roughness",
-      "inputs_sha256": {
-        "select.json": "68bbdc8c2461b5f81ef4632c9a4db59c547fa4b368f64156782b578ac7b669f1"
-      },
-      "option": "accept",
-      "by": "host acting as the cheap agent under the routine policy",
-      "at": "2026-09-24",
-      "note": "F1's \"textured trunk\" supports rough, and A1 states the trunk \"is rough gray\"; accepted."
-    },
-    {
-      "id": "date-palm/gate/onboarding-gate/seeds",
-      "inputs_sha256": {
-        "select.json": "30b694e947b09983ebb09ed185f69b5a495fe5694641137cf18bd03e41b1ccf3"
-      },
-      "option": "waive",
-      "by": "host under the owner's standing rule",
-      "at": "2026-09-24",
-      "note": "Re-recorded against the gate's new inputs: the seeds gate audits packet/specimens.json, which the generate stage after it writes, so it can never see the specimens it audits before generate runs."
-    },
-    {
       "id": "date-palm/verify/claim-unsupported//profiles/0/appearance/leaf_back_colour",
       "inputs_sha256": {
         "select.json": "30b694e947b09983ebb09ed185f69b5a495fe5694641137cf18bd03e41b1ccf3"
@@ -110,6 +90,26 @@
       "by": "owner",
       "at": "2026-09-24",
       "note": "Owner: accept. \"Height: 50 - 100 feet\" is verbatim in A1's size table; the low confidence comes from a page that mixes history with the table."
+    },
+    {
+      "id": "date-palm/gate/onboarding-gate/seeds",
+      "inputs_sha256": {
+        "select.json": "240b1ca26bff00e5a52280ebf797af8f15604acf6a3db3a974388538abc75765"
+      },
+      "option": "waive",
+      "by": "host under the owner's standing rule",
+      "at": "2026-09-24",
+      "note": "The gate now sees the specimens (3 fixed, 0 holdout) but generate never writes holdout seeds (generate/packet.rs: \"holdout_seeds\": []), so no species can pass it; the fix is specced (generate draws and persists three fresh holdout seeds). Waived for this run; the tuning run's required cells carry a fresh seed (42)."
+    },
+    {
+      "id": "date-palm/verify/claim-unsupported//profiles/0/appearance/bark_roughness",
+      "inputs_sha256": {
+        "select.json": "240b1ca26bff00e5a52280ebf797af8f15604acf6a3db3a974388538abc75765"
+      },
+      "option": "accept",
+      "by": "owner",
+      "at": "2026-09-24",
+      "note": "Owner: accept rough. A1 states the trunk \"is rough gray\"; F1's \"textured trunk\" is the weaker citation of the same fact."
     }
   ]
 }
