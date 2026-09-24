@@ -84,8 +84,10 @@ impl Planner<'_> {
                 stations[station - 1] = (j + 1) as f64 / (self.twigs.laterals + 1) as f64;
             }
         }
-        let mut points = vec![start];
-        let mut along = vec![0.0];
+        let mut points = Vec::with_capacity(count + 1);
+        let mut along = Vec::with_capacity(count + 1);
+        points.push(start);
+        along.push(0.0);
         // The course is where the branch law holds the shoot; the heading is
         // where it goes once its own weight has bent the course toward the
         // ground. Without a curtain to hang from they are one vector.

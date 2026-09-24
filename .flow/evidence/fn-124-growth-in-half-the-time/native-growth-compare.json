@@ -1,0 +1,50 @@
+{
+ "oregon-white-oak-1": {
+  "median_ms": {
+   "base": 59.742,
+   "candidate": 57.263
+  },
+  "change_pct": -4.149509557765052,
+  "identical": true,
+  "hash": [
+   "dff7c432e4eae263"
+  ],
+  "samples": 25
+ },
+ "oregon-white-oak-7": {
+  "median_ms": {
+   "base": 75.21,
+   "candidate": 68.124
+  },
+  "change_pct": -9.421619465496612,
+  "identical": true,
+  "hash": [
+   "f542d270930b9c05"
+  ],
+  "samples": 25
+ },
+ "norway-spruce-1": {
+  "median_ms": {
+   "base": 41.612,
+   "candidate": 35.303
+  },
+  "change_pct": -15.161491877343082,
+  "identical": true,
+  "hash": [
+   "061f860b6cc1164a"
+  ],
+  "samples": 25
+ },
+ "norway-spruce-7": {
+  "median_ms": {
+   "base": 45.785,
+   "candidate": 37.733
+  },
+  "change_pct": -17.58654581194714,
+  "identical": true,
+  "hash": [
+   "baf3941d05fa2c40"
+  ],
+  "samples": 25
+ }
+}

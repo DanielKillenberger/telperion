@@ -1,0 +1,80 @@
+{
+ "norway-spruce-7": {
+  "base": {
+   "median_ms": {
+    "growth": 47.297,
+    "rings": 20.2,
+    "surface": 21.572,
+    "placement": 4222.513,
+    "cull": 600.77,
+    "total": 4912.772
+   },
+   "peak_rss_kib_median": 292090.0,
+   "hash": [
+    "ce62d7a2658b2d1b"
+   ]
+  },
+  "candidate": {
+   "median_ms": {
+    "growth": 44.043,
+    "rings": 20.514,
+    "surface": 20.09,
+    "placement": 4310.897,
+    "cull": 521.672,
+    "total": 4925.343
+   },
+   "peak_rss_kib_median": 287098.0,
+   "hash": [
+    "ce62d7a2658b2d1b"
+   ]
+  },
+  "change_pct": {
+   "growth": -6.88,
+   "rings": 1.55,
+   "surface": -6.87,
+   "placement": 2.09,
+   "cull": -13.17,
+   "total": 0.26
+  },
+  "identical": true
+ },
+ "oregon-white-oak-1": {
+  "base": {
+   "median_ms": {
+    "growth": 73.179,
+    "rings": 29.154,
+    "surface": 27.139,
+    "placement": 224.155,
+    "cull": 133.963,
+    "total": 493.479
+   },
+   "peak_rss_kib_median": 252544.0,
+   "hash": [
+    "94abae63f92f82d3"
+   ]
+  },
+  "candidate": {
+   "median_ms": {
+    "growth": 63.423,
+    "rings": 26.496,
+    "surface": 26.338,
+    "placement": 221.422,
+    "cull": 127.099,
+    "total": 465.52
+   },
+   "peak_rss_kib_median": 252190.0,
+   "hash": [
+    "94abae63f92f82d3"
+   ]
+  },
+  "change_pct": {
+   "growth": -13.33,
+   "rings": -9.12,
+   "surface": -2.95,
+   "placement": -1.22,
+   "cull": -5.12,
+   "total": -5.67
+  },
+  "identical": true
+ }
+}
