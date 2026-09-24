@@ -1,0 +1,498 @@
+{
+ "date-palm-1": {
+  "base_ms": {
+   "growth": 0.375,
+   "rings": 0.238,
+   "surface": 0.313,
+   "placement": 0.974,
+   "cull": 4.691,
+   "total": 6.072
+  },
+  "candidate_ms": {
+   "growth": 0.307,
+   "rings": 0.236,
+   "surface": 0.314,
+   "placement": 0.975,
+   "cull": 4.377,
+   "total": 5.676
+  },
+  "change_pct": {
+   "growth": -18.13,
+   "rings": -0.84,
+   "surface": 0.32,
+   "placement": 0.1,
+   "cull": -6.69,
+   "total": -6.52
+  },
+  "output_identical": true,
+  "peak_rss_kib": [
+   13320,
+   13320
+  ]
+ },
+ "date-palm-7": {
+  "base_ms": {
+   "growth": 0.38,
+   "rings": 0.231,
+   "surface": 0.314,
+   "placement": 1.009,
+   "cull": 0.985,
+   "total": 2.409
+  },
+  "candidate_ms": {
+   "growth": 0.305,
+   "rings": 0.233,
+   "surface": 0.31,
+   "placement": 1.008,
+   "cull": 0.82,
+   "total": 2.203
+  },
+  "change_pct": {
+   "growth": -19.74,
+   "rings": 0.87,
+   "surface": -1.27,
+   "placement": -0.1,
+   "cull": -16.75,
+   "total": -8.55
+  },
+  "output_identical": true,
+  "peak_rss_kib": [
+   13576,
+   13576
+  ]
+ },
+ "european-beech-1": {
+  "base_ms": {
+   "growth": 103.739,
+   "rings": 44.519,
+   "surface": 36.761,
+   "placement": 2067.752,
+   "cull": 831.099,
+   "total": 3004.895
+  },
+  "candidate_ms": {
+   "growth": 94.653,
+   "rings": 42.448,
+   "surface": 36.461,
+   "placement": 2067.597,
+   "cull": 668.195,
+   "total": 2830.084
+  },
+  "change_pct": {
+   "growth": -8.76,
+   "rings": -4.65,
+   "surface": -0.82,
+   "placement": -0.01,
+   "cull": -19.6,
+   "total": -5.82
+  },
+  "output_identical": true,
+  "peak_rss_kib": [
+   673772,
+   673772
+  ]
+ },
+ "european-beech-7": {
+  "base_ms": {
+   "growth": 105.48,
+   "rings": 44.317,
+   "surface": 38.566,
+   "placement": 2110.646,
+   "cull": 852.237,
+   "total": 3068.437
+  },
+  "candidate_ms": {
+   "growth": 92.666,
+   "rings": 43.277,
+   "surface": 37.232,
+   "placement": 2115.578,
+   "cull": 679.646,
+   "total": 2889.234
+  },
+  "change_pct": {
+   "growth": -12.15,
+   "rings": -2.35,
+   "surface": -3.46,
+   "placement": 0.23,
+   "cull": -20.25,
+   "total": -5.84
+  },
+  "output_identical": true,
+  "peak_rss_kib": [
+   674640,
+   674192
+  ]
+ },
+ "laurelin-1": {
+  "base_ms": {
+   "growth": 108.272,
+   "rings": 10.739,
+   "surface": 7.583,
+   "placement": 107.945,
+   "cull": 184.489,
+   "total": 401.921
+  },
+  "candidate_ms": {
+   "growth": 101.961,
+   "rings": 10.559,
+   "surface": 7.827,
+   "placement": 109.005,
+   "cull": 166.739,
+   "total": 377.874
+  },
+  "change_pct": {
+   "growth": -5.83,
+   "rings": -1.68,
+   "surface": 3.22,
+   "placement": 0.98,
+   "cull": -9.62,
+   "total": -5.98
+  },
+  "output_identical": true,
+  "peak_rss_kib": [
+   91204,
+   93788
+  ]
+ },
+ "laurelin-7": {
+  "base_ms": {
+   "growth": 189.047,
+   "rings": 12.792,
+   "surface": 10.198,
+   "placement": 153.425,
+   "cull": 395.883,
+   "total": 737.549
+  },
+  "candidate_ms": {
+   "growth": 178.181,
+   "rings": 12.663,
+   "surface": 9.891,
+   "placement": 152.696,
+   "cull": 367.695,
+   "total": 700.101
+  },
+  "change_pct": {
+   "growth": -5.75,
+   "rings": -1.01,
+   "surface": -3.01,
+   "placement": -0.48,
+   "cull": -7.12,
+   "total": -5.08
+  },
+  "output_identical": true,
+  "peak_rss_kib": [
+   136644,
+   135544
+  ]
+ },
+ "norway-spruce-1": {
+  "base_ms": {
+   "growth": 41.057,
+   "rings": 20.74,
+   "surface": 21.275,
+   "placement": 4314.107,
+   "cull": 518.403,
+   "total": 4898.412
+  },
+  "candidate_ms": {
+   "growth": 40.056,
+   "rings": 19.763,
+   "surface": 22.066,
+   "placement": 4215.976,
+   "cull": 479.107,
+   "total": 4757.057
+  },
+  "change_pct": {
+   "growth": -2.44,
+   "rings": -4.71,
+   "surface": 3.72,
+   "placement": -2.27,
+   "cull": -7.58,
+   "total": -2.89
+  },
+  "output_identical": true,
+  "peak_rss_kib": [
+   310628,
+   310736
+  ]
+ },
+ "norway-spruce-7": {
+  "base_ms": {
+   "growth": 39.312,
+   "rings": 17.37,
+   "surface": 21.068,
+   "placement": 3947.362,
+   "cull": 482.163,
+   "total": 4488.586
+  },
+  "candidate_ms": {
+   "growth": 37.404,
+   "rings": 17.673,
+   "surface": 20.05,
+   "placement": 3955.943,
+   "cull": 453.972,
+   "total": 4464.793
+  },
+  "change_pct": {
+   "growth": -4.85,
+   "rings": 1.74,
+   "surface": -4.83,
+   "placement": 0.22,
+   "cull": -5.85,
+   "total": -0.53
+  },
+  "output_identical": true,
+  "peak_rss_kib": [
+   289344,
+   290012
+  ]
+ },
+ "ordinary-1": {
+  "base_ms": {
+   "growth": 49.029,
+   "rings": 4.97,
+   "surface": 7.169,
+   "placement": 12.371,
+   "cull": 53.797,
+   "total": 115.485
+  },
+  "candidate_ms": {
+   "growth": 45.474,
+   "rings": 4.18,
+   "surface": 7.023,
+   "placement": 12.358,
+   "cull": 50.016,
+   "total": 108.113
+  },
+  "change_pct": {
+   "growth": -7.25,
+   "rings": -15.9,
+   "surface": -2.04,
+   "placement": -0.11,
+   "cull": -7.03,
+   "total": -6.38
+  },
+  "output_identical": true,
+  "peak_rss_kib": [
+   38088,
+   37812
+  ]
+ },
+ "ordinary-7": {
+  "base_ms": {
+   "growth": 50.297,
+   "rings": 4.419,
+   "surface": 7.351,
+   "placement": 12.838,
+   "cull": 58.53,
+   "total": 121.666
+  },
+  "candidate_ms": {
+   "growth": 46.47,
+   "rings": 5.421,
+   "surface": 7.463,
+   "placement": 12.801,
+   "cull": 53.863,
+   "total": 113.159
+  },
+  "change_pct": {
+   "growth": -7.61,
+   "rings": 22.67,
+   "surface": 1.52,
+   "placement": -0.29,
+   "cull": -7.97,
+   "total": -6.99
+  },
+  "output_identical": true,
+  "peak_rss_kib": [
+   38508,
+   38132
+  ]
+ },
+ "oregon-white-oak-1": {
+  "base_ms": {
+   "growth": 59.249,
+   "rings": 31.086,
+   "surface": 26.6,
+   "placement": 223.487,
+   "cull": 124.466,
+   "total": 410.087
+  },
+  "candidate_ms": {
+   "growth": 48.707,
+   "rings": 28.107,
+   "surface": 25.81,
+   "placement": 221.095,
+   "cull": 102.544,
+   "total": 374.18
+  },
+  "change_pct": {
+   "growth": -17.79,
+   "rings": -9.58,
+   "surface": -2.97,
+   "placement": -1.07,
+   "cull": -17.61,
+   "total": -8.76
+  },
+  "output_identical": true,
+  "peak_rss_kib": [
+   260472,
+   260152
+  ]
+ },
+ "oregon-white-oak-7": {
+  "base_ms": {
+   "growth": 64.612,
+   "rings": 32.18,
+   "surface": 29.213,
+   "placement": 259.57,
+   "cull": 149.308,
+   "total": 473.821
+  },
+  "candidate_ms": {
+   "growth": 62.976,
+   "rings": 32.826,
+   "surface": 28.101,
+   "placement": 263.129,
+   "cull": 120.071,
+   "total": 447.079
+  },
+  "change_pct": {
+   "growth": -2.53,
+   "rings": 2.01,
+   "surface": -3.81,
+   "placement": 1.37,
+   "cull": -19.58,
+   "total": -5.64
+  },
+  "output_identical": true,
+  "peak_rss_kib": [
+   293828,
+   294260
+  ]
+ },
+ "silver-birch-1": {
+  "base_ms": {
+   "growth": 151.068,
+   "rings": 11.826,
+   "surface": 15.447,
+   "placement": 80.921,
+   "cull": 2068.974,
+   "total": 2307.05
+  },
+  "candidate_ms": {
+   "growth": 127.305,
+   "rings": 11.005,
+   "surface": 14.769,
+   "placement": 77.471,
+   "cull": 1889.167,
+   "total": 2092.31
+  },
+  "change_pct": {
+   "growth": -15.73,
+   "rings": -6.94,
+   "surface": -4.39,
+   "placement": -4.26,
+   "cull": -8.69,
+   "total": -9.31
+  },
+  "output_identical": true,
+  "peak_rss_kib": [
+   148736,
+   149512
+  ]
+ },
+ "silver-birch-7": {
+  "base_ms": {
+   "growth": 301.928,
+   "rings": 13.826,
+   "surface": 18.335,
+   "placement": 89.319,
+   "cull": 2018.179,
+   "total": 2411.046
+  },
+  "candidate_ms": {
+   "growth": 254.816,
+   "rings": 13.565,
+   "surface": 17.07,
+   "placement": 88.886,
+   "cull": 1877.16,
+   "total": 2223.319
+  },
+  "change_pct": {
+   "growth": -15.6,
+   "rings": -1.89,
+   "surface": -6.9,
+   "placement": -0.48,
+   "cull": -6.99,
+   "total": -7.79
+  },
+  "output_identical": true,
+  "peak_rss_kib": [
+   177736,
+   177600
+  ]
+ },
+ "telperion-1": {
+  "base_ms": {
+   "growth": 426.296,
+   "rings": 17.541,
+   "surface": 20.578,
+   "placement": 160.965,
+   "cull": 438.998,
+   "total": 1016.544
+  },
+  "candidate_ms": {
+   "growth": 399.088,
+   "rings": 17.136,
+   "surface": 19.486,
+   "placement": 156.226,
+   "cull": 388.423,
+   "total": 945.386
+  },
+  "change_pct": {
+   "growth": -6.38,
+   "rings": -2.31,
+   "surface": -5.31,
+   "placement": -2.94,
+   "cull": -11.52,
+   "total": -7.0
+  },
+  "output_identical": true,
+  "peak_rss_kib": [
+   239080,
+   240332
+  ]
+ },
+ "telperion-7": {
+  "base_ms": {
+   "growth": 57.225,
+   "rings": 17.429,
+   "surface": 16.182,
+   "placement": 33.829,
+   "cull": 67.396,
+   "total": 158.273
+  },
+  "candidate_ms": {
+   "growth": 55.966,
+   "rings": 17.379,
+   "surface": 16.277,
+   "placement": 33.755,
+   "cull": 61.332,
+   "total": 150.92
+  },
+  "change_pct": {
+   "growth": -2.2,
+   "rings": -0.29,
+   "surface": 0.59,
+   "placement": -0.22,
+   "cull": -9.0,
+   "total": -4.65
+  },
+  "output_identical": true,
+  "peak_rss_kib": [
+   46296,
+   46940
+  ]
+ }
+}

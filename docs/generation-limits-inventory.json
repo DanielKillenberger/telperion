@@ -121,12 +121,6 @@
   },
   {
     "path": "crates/telperion-core/src/branching/local/pendant.rs",
-    "site": ". max ( 0 . 0 )",
-    "classification": "algorithm",
-    "reason": "Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."
-  },
-  {
-    "path": "crates/telperion-core/src/branching/local/pendant.rs",
     "site": ". max ( 1e - 9 )",
     "classification": "numeric",
     "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
@@ -784,6 +778,12 @@
     "site": "if t < = 0 . 0 | | t > = 1 . 0 {",
     "classification": "algorithm",
     "reason": "Degenerate or out-of-domain shell point has no crown volume to sample."
+  },
+  {
+    "path": "crates/telperion-core/src/envelope.rs",
+    "site": "if ! ( rest > 0 . 0 ) {",
+    "classification": "algorithm",
+    "reason": "At or past the crown's end, or NaN, the quadrant has no width left to take a root of."
   },
   {
     "path": "crates/telperion-core/src/field.rs",

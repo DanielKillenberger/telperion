@@ -27,7 +27,17 @@ fn radius_at(y:f32) -> f32 {
     let t=(y-base)/span; if t<=0.0 || t>=1.0 { return 0.0; }
     var p=(t-config.envelope.w)/(1.0-config.envelope.w);
     if t<config.envelope.w { p=1.0-t/config.envelope.w; }
-    return config.envelope.z*pow(max(1.0-pow(p,config.curve.x),0.0),1.0/config.curve.x);
+    return config.envelope.z*quadrant(p,config.curve.x);
+}
+// The core's Envelope::radius_at quadrant, (1-p^s)^(1/s): log and exp, with
+// 1-p^s kept exact near the ends by expm1's series, and a straight shoulder.
+fn quadrant(p:f32, s:f32) -> f32 {
+    if s==1.0 { return max(1.0-p,0.0); }
+    if p<=0.0 { return 1.0; }
+    let a=s*log(p); var rest=1.0-exp(a);
+    if a>-0.0625 { rest=-a*(1.0+a*(0.5+a*(1.0/6.0+a/24.0))); }
+    if rest<=0.0 { return 0.0; }
+    return exp(log(rest)/s);
 }
 fn in_shell(p:vec3<f32>) -> bool {
     let r=length(p.xz); let shell=config.size.z;

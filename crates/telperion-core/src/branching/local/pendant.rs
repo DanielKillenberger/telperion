@@ -266,10 +266,7 @@ fn lower_surface(shell: &Envelope, seed: u32, p: Vec3, limit: f64) -> Option<f64
     if span <= 0.0 || widest <= 0.0 || radial > widest {
         return None;
     }
-    let shoulder = shell.shoulder;
-    let rising = (1.0 - (radial / widest).powf_fixed(shoulder))
-        .max(0.0)
-        .powf_fixed(1.0 / shoulder);
+    let rising = crate::envelope::quadrant(radial / widest, shell.shoulder);
     let mut low = base + span * shell.fullness * (1.0 - rising);
     if !outside(low) {
         return Some(low);
