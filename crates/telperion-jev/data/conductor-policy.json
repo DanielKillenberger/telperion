@@ -37,6 +37,8 @@
     {"when": {"verification": "failed", "last_route": "implement_cheap"}, "route": "implement_strong_low", "why": "straightforward work failed on the cheap tier; a stronger model at low effort"},
     {"when": {"verification": "failed", "last_route": "design_again"}, "route": "human", "why": "design failed twice"},
     {"when": {"verification": "failed", "last_route": "design"}, "route": "design_again", "why": "the design did not resolve its unknowns; design again at high effort"},
+    {"when": {"design_present": false, "design_complexity": "insufficient_after_investigation"}, "route": "human", "why": "insufficient evidence after one investigation: the design judgment is still under the floor, and a second investigation of the same revision is never bought"},
+    {"when": {"design_present": true, "implementation_complexity": "insufficient_after_investigation"}, "route": "human", "why": "insufficient evidence after one investigation: the implementation judgment is still under the floor, and a second investigation of the same revision is never bought"},
     {"when": {"design_present": false, "design_complexity": "insufficient_evidence"}, "route": "investigate", "why": "no match or missing evidence: investigate rather than guess a cheap route"},
     {"when": {"design_present": false, "design_complexity": "routine"}, "route": "routine", "why": "routine work runs on the cheap agent"},
     {"when": {"design_present": false, "design_complexity": "complex"}, "route": "design", "why": "complex design goes to a high-reasoning model at medium effort"},

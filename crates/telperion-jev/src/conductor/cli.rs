@@ -10,7 +10,7 @@ use super::dispatch::read_result;
 use super::questions::Asker;
 use super::state::Run;
 use super::step::{self, LiveExecutor};
-use super::{cases, dependency, handoff, packet, plan, policy, report, tuning, Config};
+use super::{adopt, cases, dependency, handoff, packet, plan, policy, report, tuning, Config};
 use crate::caller::{load_key, UreqTransport};
 use crate::pipeline::judge::Judge;
 
@@ -21,6 +21,8 @@ pub const USAGE: &str = "usage: species-conductor <command> --config FILE\n  \
     dispatch --id ID --result FILE            record a dispatched agent's result\n  \
     attach --spec SPEC --gap GAP              attach the spec the owner minted for a packaged gap\n  \
     land --spec SPEC --commit SHA             record the host's landing of verified work\n  \
+    adopt --spec SPEC --commit SHA --result FILE\n                                            \
+    record a dependency the host built outside the dispatches and land it\n  \
     resume --decision FILE                    resume a paused run; a tuning pause resumes the tuning run too\n  \
     packet                                    assemble the ready-for-review packet\n  \
     report                                    write the run's measurements\n  \
@@ -107,6 +109,14 @@ pub fn run(args: &[String]) -> std::result::Result<String, String> {
             format!(
                 "land {spec} at {commit}: the affected stages and the next tuning revision rerun"
             )
+        }
+        "adopt" => {
+            let spec = required(args, "--spec")?;
+            let commit = required(args, "--commit")?;
+            let result = read_result(&PathBuf::from(required(args, "--result")?)).map_err(show)?;
+            let word = adopt::adopt(&mut run, &spec, &commit, result).map_err(show)?;
+            run.save(&config).map_err(show)?;
+            format!("{word}: the affected stages and the next tuning revision rerun")
         }
         "resume" => {
             let decision = PathBuf::from(required(args, "--decision")?);

@@ -208,24 +208,22 @@ fn judge(
             &state,
             &questions::implementation_questions(),
         )?;
-        let mut choice = policy::thresholded(
-            judgment.entry.choice("implementation_complexity"),
-            judgment.entry.confidence("implementation_complexity"),
-            table.min_confidence,
-        );
-        // One investigation is what an under-floor answer buys. After it,
-        // the same answer under the floor is decided on the mass its side
-        // carries, never by a second investigation of the same revision.
-        if choice == "insufficient_evidence" && investigated(run, &dependency) {
-            if let Some(on_mass) = policy::on_mass(
-                judgment.entry.probabilities("implementation_complexity"),
-                "straightforward",
-                &["complex", "needs_design"],
+        let choice = after_investigation(
+            policy::thresholded(
+                judgment.entry.choice("implementation_complexity"),
+                judgment.entry.confidence("implementation_complexity"),
                 table.min_confidence,
-            ) {
-                choice = on_mass;
-            }
-        }
+            ),
+            investigated(run, dependency),
+            || {
+                policy::on_mass(
+                    judgment.entry.probabilities("implementation_complexity"),
+                    "straightforward",
+                    &["complex", "needs_design"],
+                    table.min_confidence,
+                )
+            },
+        );
         remember(run, &dependency.spec, &key, &choice, &judgment.reference);
         return Ok(("not_asked".into(), choice, vec![judgment.reference]));
     }
@@ -236,23 +234,41 @@ fn judge(
         &state,
         &questions::design_questions(),
     )?;
-    let mut choice = policy::thresholded(
-        judgment.entry.choice("design_complexity"),
-        judgment.entry.confidence("design_complexity"),
-        table.min_confidence,
-    );
-    if choice == "insufficient_evidence" && investigated(run, &dependency) {
-        if let Some(on_mass) = policy::on_mass(
-            judgment.entry.probabilities("design_complexity"),
-            "routine",
-            &["complex"],
+    let choice = after_investigation(
+        policy::thresholded(
+            judgment.entry.choice("design_complexity"),
+            judgment.entry.confidence("design_complexity"),
             table.min_confidence,
-        ) {
-            choice = on_mass;
-        }
-    }
+        ),
+        investigated(run, dependency),
+        || {
+            policy::on_mass(
+                judgment.entry.probabilities("design_complexity"),
+                "routine",
+                &["complex"],
+                table.min_confidence,
+            )
+        },
+    );
     remember(run, &dependency.spec, &key, &choice, &judgment.reference);
     Ok((choice, "not_asked".into(), vec![judgment.reference]))
+}
+
+/// One investigation is what an under-floor answer buys. After a verified
+/// one at the current revision, the same answer under the floor is decided
+/// on the mass its side carries; with neither side over the floor it is the
+/// human's (`insufficient_after_investigation`), never a second
+/// investigation of the same revision: the date palm's run opened two
+/// investigations of fn-144's one revision, dispatch-18 and dispatch-19.
+fn after_investigation(
+    choice: String,
+    investigated: bool,
+    on_mass: impl FnOnce() -> Option<String>,
+) -> String {
+    if choice != policy::INSUFFICIENT || !investigated {
+        return choice;
+    }
+    on_mass().unwrap_or_else(|| policy::INVESTIGATED.into())
 }
 
 /// Whether a verified investigation already exists for this dependency at
@@ -268,10 +284,10 @@ fn investigated(run: &Run, dependency: &Dependency) -> bool {
 }
 
 /// Keeps a judgment with the evidence it read, so the same evidence is never
-/// judged twice. An `insufficient_evidence` answer is not kept: new evidence
-/// may settle it, and the next step asks again.
+/// judged twice. An under-floor answer is not kept, investigated or not:
+/// new evidence may settle it, and the next step asks again.
 fn remember(run: &mut Run, spec: &str, key: &str, choice: &str, ledger: &str) {
-    if choice == "insufficient_evidence" {
+    if choice == policy::INSUFFICIENT || choice == policy::INVESTIGATED {
         return;
     }
     if let Some(d) = run.dependency_mut(spec) {
@@ -388,7 +404,7 @@ pub fn advance(asker: &Asker<'_>, config: &Config, run: &mut Run, spec: &str) ->
             &decided.why,
             basis,
             &record,
-            "continue, redesign, reassign or park this dependency",
+            "continue, redesign, reassign or park this dependency, or adopt it if the host built it",
         )?;
         return Ok(format!("paused {id}: {}", decided.why));
     }

@@ -15,6 +15,12 @@ use super::dispatch::Role;
 
 pub const POLICY_JSON: &str = include_str!("../../data/conductor-policy.json");
 
+/// A judgment under the confidence floor.
+pub const INSUFFICIENT: &str = "insufficient_evidence";
+/// A judgment still under the floor after one verified investigation of
+/// the same revision: the table sends it to the human.
+pub const INVESTIGATED: &str = "insufficient_after_investigation";
+
 /// The tier and effort a route dispatches to. The tier is a name the
 /// instruction file's routing block resolves to a model; the conductor
 /// records the name and the result records the model that actually ran.
@@ -159,9 +165,11 @@ pub struct Signals {
     pub continuation: String,
     pub no_progress: bool,
     pub design_present: bool,
-    /// `routine`, `complex`, `insufficient_evidence` or `not_asked`.
+    /// `routine`, `complex`, `insufficient_evidence`,
+    /// `insufficient_after_investigation` or `not_asked`.
     pub design_complexity: String,
-    /// `straightforward`, `complex`, `needs_design`, `insufficient_evidence` or `not_asked`.
+    /// `straightforward`, `complex`, `needs_design`, `insufficient_evidence`,
+    /// `insufficient_after_investigation` or `not_asked`.
     pub implementation_complexity: String,
     /// `none`, `verified` or `failed`: the last dispatch on this dependency.
     pub verification: String,

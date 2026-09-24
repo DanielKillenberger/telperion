@@ -21,6 +21,7 @@ species-conductor step     --config FILE
 species-conductor dispatch --config FILE --id ID --result FILE
 species-conductor attach   --config FILE --spec SPEC --gap GAP
 species-conductor land     --config FILE --spec SPEC --commit SHA
+species-conductor adopt    --config FILE --spec SPEC --commit SHA --result FILE
 species-conductor resume   --config FILE --decision FILE
 species-conductor packet   --config FILE
 species-conductor report   --config FILE
@@ -126,6 +127,16 @@ attempts without a verified result, a set cap reached, an unavailable or
 unjustified continuation judgment, and any signal the table cannot read all
 pause for the human, whatever the spend.
 
+A complexity answer under the confidence floor buys one investigation. After
+a verified investigation at the dependency's current design revision, the
+same answer still under the floor is decided on the mass its side carries,
+and when neither side reaches the floor the judgment reads
+`insufficient_after_investigation`, which the table sends to the human as
+"insufficient evidence after one investigation", on the design side and the
+implementation side alike. A second investigation of the same revision is
+never bought: the date palm's run opened two for fn-144 (dispatch-18 and
+dispatch-19) before this rule.
+
 `species-conductor cases` scores `data/cases/conductor.json` against the
 policy and the continuation contract with no call, held-out cases apart
 from the tuned ones, and prints expected against selected. The workspace
@@ -152,6 +163,20 @@ both stay in the record and the report. A verified design records its
 handoff by content hash as the design revision; verified implementation
 waits on the host's landing authority, which `land --commit` records, and a
 landing reruns the affected stages and the next tuning revision.
+
+The host sometimes builds a dependency itself, outside the conductor's
+dispatches (fn-110 and fn-144 were designed and built by agents the host
+sent before the conductor opened its own). `adopt --spec SPEC --commit SHA
+--result FILE` records that work after the fact for a dependency that is
+Designed or Awaiting: a verified `implement` dispatch on route `host_built`,
+tier `host`, at the dependency's design revision with no reserved tokens,
+its result read from a file in the format above with `verification`
+`verified`. Any dispatch of that dependency still open is closed as
+obsolete with a note naming the adoption, and the dependency lands at the
+commit in the same step. A dependency already landed, an unknown spec and a
+result that is not verified are refused and change nothing; verified work
+already awaiting landing lands with `land`. A pause the run holds stays
+until `resume`.
 
 ## The tree tuning starts from
 

@@ -12,6 +12,7 @@
 //! conductor designs nothing, implements nothing and accepts nothing: a new
 //! gap is packaged and escalated, and only the owner's verdict accepts.
 
+pub mod adopt;
 pub mod cases;
 pub mod cli;
 pub mod dependency;

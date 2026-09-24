@@ -27,6 +27,8 @@ use telperion_jev::tuning::result::{
 /// "covered" the first open spec, anything else the no-match answer.
 pub struct Script {
     pub choices: Mutex<BTreeMap<String, String>>,
+    /// Per-question confidence, 0.9 when unset; the probabilities carry it.
+    pub confidence: Mutex<BTreeMap<String, f64>>,
 }
 
 impl Script {
@@ -43,7 +45,15 @@ impl Script {
         }
         Self {
             choices: Mutex::new(choices),
+            confidence: Mutex::new(BTreeMap::new()),
         }
+    }
+    /// Answers `question` at `confidence`, under the policy's floor when low.
+    pub fn set_confidence(&self, question: &str, confidence: f64) {
+        self.confidence
+            .lock()
+            .unwrap()
+            .insert(question.into(), confidence);
     }
     pub fn set(&self, question: &str, answer: &str) {
         self.choices
@@ -87,9 +97,16 @@ impl Transport for Script {
                     .cloned()
                     .unwrap_or_else(|| "none".into()),
             };
+            let confidence = self
+                .confidence
+                .lock()
+                .unwrap()
+                .get(name)
+                .copied()
+                .unwrap_or(0.9);
             answers.insert(
                 name.clone(),
-                json!({"type": "choice", "choice": choice, "probabilities": {choice.clone(): 0.9}, "confidence": 0.9}),
+                json!({"type": "choice", "choice": choice, "probabilities": {choice.clone(): confidence}, "confidence": confidence}),
             );
         }
         Ok(HttpResponse {
