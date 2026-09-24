@@ -12,9 +12,11 @@
   "id": "fn-124-growth-in-half-the-time",
   "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-124-growth-in-half-the-time.md",
   "status": "open",
   "title": "Growth in half the time",
@@ -29,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T16:44:24.805938Z"
+  "updated_at": "2026-09-24T13:50:30.020028Z"
 }
