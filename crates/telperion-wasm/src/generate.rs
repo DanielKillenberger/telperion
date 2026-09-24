@@ -145,6 +145,12 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         (out.structure, out.topology) = (s.nodes, s.topology);
     }
     let t = o.stages;
+    // The rings are the wood's where it is drawn, else the seated leaves'.
+    let (wood_rings, leaf_rings) = if wants("surface") {
+        (t.rings_ms, 0.0)
+    } else {
+        (0.0, t.rings_ms)
+    };
     let leaf_plan = o.plan.as_ref();
     let meta = json!({
         "nodes":tree.nodes.len(),"crossover":tree.crossover,"shed":built.skeleton.shed,
@@ -166,8 +172,8 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         "biologicalUnits": if places && o.element.as_ref().is_some_and(|e| e.anatomy.is_some()) { Some(retained_count) } else { None },
         "fieldBounds":out.field.as_ref().and_then(Field::bounds).map(|b|bounds(b.min,b.max)),
         "fieldBytes":out.field.as_ref().map_or(0,Field::storage_bytes),
-        "timings":{"growthMs":t.skeleton_ms,"surfaceMs":t.wood_ms,"planMs":t.plan_ms,
-            "foliageMs":t.rings_ms+t.placement_ms+t.cull_ms,"fieldMs":t.field_ms,"coreMs":t.total_ms},
+        "timings":{"growthMs":t.skeleton_ms,"surfaceMs":wood_rings+t.wood_ms,"planMs":t.plan_ms,
+            "foliageMs":leaf_rings+t.placement_ms+t.cull_ms,"fieldMs":t.field_ms,"coreMs":t.total_ms},
         // Which stages ran: placement and the cull run together, the contact
         // surface only under placement with surface contact, the plan for a
         // field request the family's plan can describe.

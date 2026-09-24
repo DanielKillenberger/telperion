@@ -6,17 +6,21 @@
 //! 2. Skeleton: the solved tree, apical twigs cleared under a frond crown
 //!    and shed leaf bases hung on the stems.
 //! 3. Plan: what is prepared before any triangle or leaf exists - the leaf
-//!    element, the leaf plan a field reads and the quantisation box.
+//!    element, the leaf plan a field reads, the quantisation box and the
+//!    wood's rings, swept once for the wood and for leaves seated on it.
 //! 4. Outputs: the wood surface, the leaves, the field and the structure.
 //! 5. Tree mesh: wood and leaves with their union bounds (`mesh::build`).
 //!
 //! Wood and leaves read only the skeleton and the plan, so where the target
 //! has threads they run concurrently, and a planned field beside the leaves.
-//! Leaves seated on the wood read its rings in place from its vertices, so
-//! there the wood runs first. Every stage keeps its own random stream and
-//! results join in a fixed order, so neither the bytes nor the error depend
-//! on the schedule: where stages fail, the answer is the error the build met
-//! first run in turn - the wood's, then the Plan's, the leaves', the field's.
+//! The rings are swept once, by whichever of the wood and seated leaves
+//! reaches them first; the other waits and reads them in place. Where no
+//! wood is drawn, seated leaves sweep bare rings of their own. Every stage
+//! keeps its own random stream and results join in a fixed order, so neither
+//! the bytes nor the error depend on the schedule: where stages fail, the
+//! answer is the error the build met first run in turn - the wood's, then
+//! the Plan's, the leaves', the field's.
+//! The rings' error is the wood's where the wood is drawn, else the leaves'.
 use crate::{
     branching,
     field::Field,
@@ -26,6 +30,8 @@ use crate::{
     tree::Tree,
     Result,
 };
+use stage::Seat;
+use std::sync::OnceLock;
 
 /// How stages independent of each other are run. `Concurrent` falls back to
 /// one stage at a time where the target has no threads.
@@ -126,10 +132,11 @@ pub struct Stages {
     pub skeleton_ms: f64,
     /// The leaf plan a field reads.
     pub plan_ms: f64,
-    /// The rings leaf contacts read: bounded on the wood, or swept for the
-    /// leaves where no wood was asked for.
+    /// The rings the wood and seated leaves read, swept once.
     pub rings_ms: f64,
+    /// The wood's mesh step around its rings.
     pub wood_ms: f64,
+    /// Placement, with the leaves' contact bounds.
     pub placement_ms: f64,
     /// The cull and the retained leaves' bounds.
     pub cull_ms: f64,
@@ -189,38 +196,52 @@ pub fn build(family: &Family, request: Request) -> Result<Built> {
 pub fn outputs(tree: &Tree, family: &Family, request: Request) -> Result<Outputs> {
     let twig = stage::twig(family);
     // Leaves are placed for their own sake, or for a field the plan cannot
-    // describe; seated on the wood, they read its vertices, so it runs first.
+    // describe; placed with surface contact, they sit on the rings.
     let places = request.leaves
         || (request.field.is_some() && !plan::supports(family.canopy, twig.clone().ok()));
-    let seated = request.wood && places && family.canopy.surface_contact > 0.0;
-    let leaves_and_field = |prepared: &_, seat| {
-        let twig = twig.clone().ok();
-        stage::leaves_and_field(tree, family, request, prepared, twig, seat)
-    };
-    let (wood, prepared) = both(
-        request.schedule == Schedule::Concurrent && request.wood && places && !seated,
-        || stage::wood(tree, family, request, seated),
+    let seats = places && family.canopy.surface_contact > 0.0;
+    let rings = OnceLock::new();
+    let sweep = || stage::rings(tree, family, request, seats);
+    let shared = || rings.get_or_init(sweep).as_ref().map_err(Clone::clone);
+    let (wood, planned) = both(
+        request.schedule == Schedule::Concurrent && request.wood && places,
+        || {
+            let wood = |r: &(_, _)| stage::wood(tree, family, request, &r.0);
+            request.wood.then(|| shared().and_then(wood)).transpose()
+        },
         || {
             let prepared = stage::prepare(tree, family, request, &twig, places)?;
-            let unseated = (!seated).then(|| leaves_and_field(&prepared, None));
-            Ok((prepared, unseated))
+            let seat = match (seats, request.wood) {
+                (false, _) => Ok(Seat::Free),
+                (true, false) => Ok(Seat::Own),
+                (true, true) => shared().map(|r| Seat::Shared(&r.0)),
+            };
+            let twig = twig.clone().ok();
+            let made = match seat {
+                Ok(seat) => stage::leaves_and_field(tree, family, request, &prepared, twig, seat),
+                Err(error) => (Err(error), Ok(None)),
+            };
+            Ok((prepared, made))
         },
     );
     // The wood's error answers first, as it did run in turn.
     let wood = wood?;
-    let (prepared, unseated) = prepared?;
-    let (leaves, field) =
-        unseated.unwrap_or_else(|| leaves_and_field(&prepared, wood.as_ref().map(|(w, _)| w)));
+    let (prepared, (leaves, field)) = planned?;
     let (mut leaves, mut field) = (leaves?, field?);
+    let rings = rings.into_inner().transpose()?;
     let mut stages = Stages {
         plan_ms: prepared.ms,
         ..Stages::default()
     };
+    if let Some((_, ms)) = rings {
+        stages.rings_ms = ms;
+    }
     if let Some((_, ms)) = wood {
         stages.wood_ms = ms;
     }
-    if let Some((_, ms)) = leaves {
-        [stages.rings_ms, stages.placement_ms, stages.cull_ms] = ms;
+    if let Some((_, [own, placement, cull])) = leaves {
+        stages.rings_ms += own;
+        [stages.placement_ms, stages.cull_ms] = [placement, cull];
     }
     if request.field.is_some() && field.is_none() {
         let placed = leaves.as_ref().map(|(l, _)| &l.instances);
@@ -241,14 +262,17 @@ pub fn outputs(tree: &Tree, family: &Family, request: Request) -> Result<Outputs
         .transpose()?;
     #[cfg(test)]
     tests::count(|t| {
-        let swept = leaves.is_some() && !seated && family.canopy.surface_contact > 0.0;
-        t.sweeps += u32::from(wood.is_some()) + u32::from(swept);
+        let own = seats && !request.wood && leaves.is_some();
+        t.sweeps += u32::from(rings.is_some()) + u32::from(own);
         t.elements += u32::from(prepared.element.is_some());
     });
+    let wood = wood
+        .zip(rings)
+        .map(|((faces, _), (rings, _))| rings.into_mesh(faces));
     Ok(Outputs {
         element: prepared.element,
         plan: prepared.leaf_plan,
-        wood: wood.map(|(w, _)| w.mesh),
+        wood,
         leaves: leaves.map(|(l, _)| l),
         field: field.map(|(f, _)| f),
         structure,
