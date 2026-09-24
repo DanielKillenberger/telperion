@@ -17,6 +17,7 @@ export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const PROFILE_SETS = [
   '.flow/evidence/fn34/profiles.json',
   '.flow/evidence/fn9/profiles.json',
+  '.flow/evidence/fn80/profiles-date-palm.json',
 ];
 /** The protocol's own set, and the default for a preset no set profiles. */
 export const FALLBACK_PROFILE_SET = '.flow/evidence/fn9/profiles.json';
