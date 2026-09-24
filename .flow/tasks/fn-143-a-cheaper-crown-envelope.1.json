@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-143-a-cheaper-crown-envelope",
   "spec_path": ".flow/tasks/fn-143-a-cheaper-crown-envelope.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement A cheaper crown envelope",
   "updated_at": "2026-09-24T16:17:20.871145Z"
 }
