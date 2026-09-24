@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-145-fibre-mats-the-gaps-between-retained",
+  "created_at": "2026-09-24T19:28:37.628843Z",
+  "depends_on_epics": [],
+  "id": "fn-145-fibre-mats-the-gaps-between-retained",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-145-fibre-mats-the-gaps-between-retained.md",
+  "status": "open",
+  "title": "Fibre mats the gaps between retained leaf bases",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-24T19:28:37.635425Z"
+}

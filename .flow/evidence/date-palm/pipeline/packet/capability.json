@@ -141,7 +141,9 @@
    "capability": "leaf-base-fibre",
    "class": "improvement",
    "reason": "The fibrous matting between the bases adds realism; the lattice alone makes the trunk identifiable, and the fibre is shared across palms.",
-   "captured_by": [],
+   "captured_by": [
+    "fn-145-fibre-mats-the-gaps-between-retained"
+   ],
    "decided_by": "host",
    "decided_on": "2026-09-24"
   },
