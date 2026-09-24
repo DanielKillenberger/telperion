@@ -2,6 +2,7 @@
 use super::{
     evaluation::Image,
     state::{ready, Cell, Visual},
+    tidy::{self, Untidy},
 };
 use crate::{ledger::Usage, sha256_hex};
 use serde::{Deserialize, Serialize};
@@ -125,17 +126,22 @@ pub struct Result {
 
 impl Result {
     pub fn bind(&mut self, request: &Request) -> std::result::Result<(), String> {
+        self.bind_tidy(request).map(|_| ())
+    }
+    /// Binds the result to its request and returns the tidiness rules its
+    /// findings broke, each already trimmed or dropped and recorded; a trust
+    /// violation refuses it (`tidy.rs`).
+    pub fn bind_tidy(&mut self, request: &Request) -> std::result::Result<Vec<Untidy>, String> {
         if self.request_sha256 != request.hash() || self.assessment.identity != request.identity {
             return Err("stale joint result".into());
         }
         self.assessment.observations = self.observations.clone();
         self.assessment.joint = request.joint.clone();
+        let mut untidy = vec![];
         if let Some(packet) = &request.joint {
-            for note in super::joint::Packet::drop_unevidenced(&mut self.assessment.findings) {
-                if !self.assessment.observations.contains(&note) {
-                    self.assessment.observations.push(note);
-                }
-            }
+            tidy::invented_findings(packet, &self.assessment.findings)?;
+            untidy = tidy::findings(&mut self.assessment.findings, tidy::MAX_FINDINGS, "");
+            tidy::record(self, untidy.iter().map(|u| &u.note));
             packet.verify_findings(&self.assessment.findings)?;
             for (cell, status) in &mut self.assessment.cells {
                 if packet.inputs.iter().any(|i| {
@@ -167,7 +173,7 @@ impl Result {
                 }
             }
         }
-        Ok(())
+        Ok(untidy)
     }
 }
 

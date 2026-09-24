@@ -215,7 +215,8 @@ fn render_condition_accepts_only_the_authored_vocabulary() {
 /// and noted; one citing evidence is kept.
 #[test]
 fn a_finding_with_no_evidence_is_dropped_and_noted_not_refused() {
-    use telperion_jev::tuning::joint::{Finding, Impact, Packet};
+    use telperion_jev::tuning::joint::{Finding, Impact};
+    use telperion_jev::tuning::tidy;
     let finding = |obs: &str, ids: &[&str]| Finding {
         observation: obs.into(),
         evidence_ids: ids.iter().map(|s| s.to_string()).collect(),
@@ -234,12 +235,15 @@ fn a_finding_with_no_evidence_is_dropped_and_noted_not_refused() {
             &["render-0", "reference-0"],
         ),
     ];
-    let notes = Packet::drop_unevidenced(&mut findings);
+    let untidy = tidy::findings(&mut findings, tidy::MAX_FINDINGS, "");
     assert_eq!(findings.len(), 1);
     assert_eq!(
         findings[0].observation,
         "The crown reads as a palm rosette."
     );
-    assert_eq!(notes.len(), 1);
-    assert!(notes[0].starts_with("dropped finding with no evidence: Fruit clusters"));
+    assert_eq!(untidy.len(), 1);
+    assert_eq!(untidy[0].violation, "finding 1 of 2: no evidence cited");
+    assert!(untidy[0]
+        .note
+        .starts_with("dropped finding with no evidence: Fruit clusters"));
 }

@@ -29,7 +29,7 @@ def main():
     paths, schema, prompt = _codex.prepare(envelope)
     result = vision_claude.run(args.model, args.effort, paths, prompt, schema, timeout=300)
     answer = result["answer"]
-    valid_count = (envelope["stage"] != "comparison"
+    valid_count = (envelope["stage"] not in ("comparison", "repair")
                    or (isinstance(answer, dict) and len(answer.get("passes", [])) == len(envelope["request"]["comparison"]["required"])))
     model_identity_basis = (f"claude CLI result event modelUsage key: {result['actual_model']}"
                              if result["actual_model"] else "requested command argument; actual resolved identity not exposed")

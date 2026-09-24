@@ -1,4 +1,5 @@
 //! Reference-first protocol. An attributed inventory is evidence, not ground truth.
+use super::tidy::{self, Untidy};
 use super::unexpressed::{set_aside, Defect, Unexpressed};
 use super::{evaluation::Image, state::CellStatus, vision};
 use crate::sha256_hex;
@@ -401,68 +402,33 @@ pub fn replay_score(
     Ok((replay, score))
 }
 
-/// Executes only Stage B. Stage A is separately prepared, pinned and charged once.
+/// Executes only Stage B. Stage A is separately prepared, pinned and charged
+/// once. An answer with tidiness violations goes back to the reviewer for one
+/// repair (`repair.rs`).
 pub fn assess(
     adapter: &vision::Adapter,
     request: &ComparisonRequest,
 ) -> Result<ComparisonResult, String> {
-    use std::{
-        io::Write,
-        process::{Command, Stdio},
-    };
-    request.verify()?;
-    if adapter.timeout_seconds == 0
-        || adapter.timeout_seconds > 600
-        || adapter.model.is_empty()
-        || adapter.effort.is_empty()
-    {
-        return Err("invalid reference-first adapter".into());
-    }
-    let envelope = serde_json::json!({"stage":"comparison","request":request,"request_sha256":request.hash(),"prompt":COMPARISON_PROMPT,"prompt_sha256":sha256_hex(COMPARISON_PROMPT.as_bytes())});
-    let mut child = Command::new("timeout")
-        .arg(adapter.timeout_seconds.to_string())
-        .arg(&adapter.program)
-        .args(&adapter.args)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .map_err(|e| e.to_string())?;
-    child
-        .stdin
-        .take()
-        .ok_or("missing adapter stdin")?
-        .write_all(&serde_json::to_vec(&envelope).unwrap())
-        .map_err(|e| e.to_string())?;
-    let out = child.wait_with_output().map_err(|e| e.to_string())?;
-    std::fs::create_dir_all(&adapter.ledger).map_err(|e| e.to_string())?;
-    let path = adapter
-        .ledger
-        .join(format!("{}.json", crate::ledger::new_entry_id()));
-    let record = serde_json::json!({"request":request,"model":adapter.model,"effort":adapter.effort,"exit":out.status.code(),"stdout":String::from_utf8_lossy(&out.stdout),"stderr":String::from_utf8_lossy(&out.stderr)});
-    std::fs::OpenOptions::new()
-        .create_new(true)
-        .write(true)
-        .open(&path)
-        .map_err(|e| e.to_string())?
-        .write_all(&serde_json::to_vec_pretty(&record).unwrap())
-        .map_err(|e| e.to_string())?;
-    if !out.status.success() {
-        return Err("reference-first adapter failed; reservation retained".into());
-    }
-    let raw: serde_json::Value = serde_json::from_slice(&out.stdout).map_err(|e| e.to_string())?;
-    bind_response(adapter, request, &raw, &path)
+    super::repair::assess(adapter, request)
 }
 
-fn bind_response(
+/// Binds one adapter answer and returns its tidiness violations, already
+/// trimmed and recorded. `repair` names the violations a repaired answer was
+/// asked to fix; it answers the repair prompt and says so in its notes.
+pub(super) fn bind_response(
     adapter: &vision::Adapter,
     request: &ComparisonRequest,
     raw: &serde_json::Value,
     path: &std::path::Path,
-) -> Result<ComparisonResult, String> {
+    repair: Option<&[String]>,
+) -> Result<(ComparisonResult, Vec<Untidy>), String> {
+    let prompt = match repair {
+        Some(_) => sha256_hex(super::repair::REPAIR_PROMPT.as_bytes()),
+        None => request.prompt_sha256.clone(),
+    };
     if raw["status"] != "ok"
         || raw["request_sha256"] != request.hash()
-        || raw["prompt_sha256"] != request.prompt_sha256
+        || raw["prompt_sha256"] != prompt
         || raw["model"] != adapter.model
         || raw["effort"] != adapter.effort
     {
@@ -498,8 +464,16 @@ fn bind_response(
         serde_json::from_value(answer["defects"].clone()).map_err(|e| e.to_string())?;
     set_aside(&mut result.visual.assessment, defects, &request.known_gaps);
     request.verify()?;
-    result.bind(request)?;
-    Ok(result)
+    let untidy = result.bind_tidy(request)?;
+    if let Some(violations) = repair {
+        let note = format!(
+            "reviewer repaired its answer once for {} tidiness violation(s): {}",
+            violations.len(),
+            violations.join("; ")
+        );
+        tidy::record(&mut result.visual, [&note]);
+    }
+    Ok((result, untidy))
 }
 
 /// Rebind the persisted Stage B receipt; a legacy ready visual is not convergence proof.
@@ -532,7 +506,13 @@ pub fn verify_convergence(
             .ok_or("missing convergence output")?,
     )
     .map_err(|e| e.to_string())?;
-    let bound = bind_response(adapter, &request, &raw, path)?;
+    let repair: Option<Vec<String>> = match record.get("repair") {
+        Some(r) => {
+            Some(serde_json::from_value(r["violations"].clone()).map_err(|e| e.to_string())?)
+        }
+        None => None,
+    };
+    let (bound, _) = bind_response(adapter, &request, &raw, path, repair.as_deref())?;
     if !super::state::ready(
         &request.comparison.required,
         &request.comparison.identity,
@@ -546,6 +526,13 @@ pub fn verify_convergence(
 }
 impl ComparisonResult {
     pub fn bind(&mut self, request: &ComparisonRequest) -> Result<(), String> {
+        self.bind_tidy(request).map(|_| ())
+    }
+    /// Binds the result and returns every tidiness rule its answer broke,
+    /// each already trimmed or dropped and recorded (`tidy.rs`). A trust
+    /// violation refuses it: a stale answer, a missing or mis-ordered required
+    /// cell, an evidence id the request never supplied.
+    pub fn bind_tidy(&mut self, request: &ComparisonRequest) -> Result<Vec<Untidy>, String> {
         request.verify()?;
         if self.request_sha256 != request.hash() {
             return Err("stale reference-first comparison".into());
@@ -561,38 +548,20 @@ impl ComparisonResult {
         {
             return Err("wrong required-cell cardinality or order".into());
         }
-        self.visual.bind(&request.comparison)?;
         let packet = request
             .comparison
             .joint
             .as_ref()
             .ok_or("missing joint comparison")?;
-        let allowed = packet.inputs.iter().map(|i| i.id.clone()).collect();
-        if self.coverage.len() > 16 {
-            return Err("too many trait dispositions".into());
-        }
-        // A row naming something the inventory does not state - the live run
-        // answered with a required cell's item name - is dropped and recorded
-        // rather than refused, because refusing it costs the whole paid pass.
-        // It leaves `coverage` before anything reads it, so it can never count
-        // toward a trait's disposition, the core gate or readiness.
-        // A row whose evidence is all real but names no render, or no
-        // reference, is dropped the same way: it can compare nothing, and the
-        // reviewer writes one for a trait that is about the references
-        // themselves. An invented evidence id still refuses the pass below.
-        let has_role = |c: &Coverage, role: &str| {
-            c.evidence_ids
-                .iter()
-                .any(|id| packet.inputs.iter().any(|i| &i.id == id && i.role == role))
-        };
-        let (known, stray): (Vec<Coverage>, Vec<Coverage>) = std::mem::take(&mut self.coverage)
-            .into_iter()
-            .partition(|c| {
-                request.inventory.traits.iter().any(|t| t.id == c.trait_id)
-                    && (!ids(&c.evidence_ids, &allowed)
-                        || (has_role(c, "render") && has_role(c, "reference")))
-            });
-        self.coverage = known;
+        tidy::invented_coverage(packet, &self.coverage)?;
+        let mut untidy = self.visual.bind_tidy(&request.comparison)?;
+        // A row naming no inventory trait, citing no render or no reference,
+        // repeating a trait or carrying unusable text or evidence leaves
+        // `coverage` before anything reads it, so it never counts toward a
+        // trait's disposition, the core gate or readiness.
+        let rows = tidy::coverage(request, &mut self.coverage);
+        tidy::record(&mut self.visual, rows.iter().map(|u| &u.note));
+        untidy.extend(rows);
         // A disposition that cites none of the references its trait was
         // inventoried from can compare nothing for that trait: it becomes
         // unknown and is recorded, rather than costing the whole paid pass.
@@ -611,82 +580,9 @@ impl ComparisonResult {
                 c.status = CellStatus::Unknown;
             }
         }
-        for note in recited {
-            if !self.visual.observations.contains(&note) {
-                self.visual.observations.push(note.clone());
-            }
-            if !self.visual.assessment.observations.contains(&note) {
-                self.visual.assessment.observations.push(note);
-            }
-        }
-        for c in &stray {
-            let why = if request.inventory.traits.iter().any(|t| t.id == c.trait_id) {
-                "without render and reference evidence"
-            } else {
-                "for unknown trait"
-            };
-            let note = format!(
-                "dropped coverage row {why} {}: {:?} \u{2014} {}",
-                c.trait_id, c.status, c.explanation
-            );
-            if !self.visual.observations.contains(&note) {
-                self.visual.observations.push(note.clone());
-            }
-            if !self.visual.assessment.observations.contains(&note) {
-                self.visual.assessment.observations.push(note);
-            }
-        }
+        tidy::record(&mut self.visual, &recited);
         // The dispositions travel on with the assessment, so a later one can
         // be compared with this one without reopening the receipt.
-        self.visual.assessment.coverage = self
-            .coverage
-            .iter()
-            .map(|c| super::state::TraitStatus {
-                trait_id: c.trait_id.clone(),
-                status: c.status,
-            })
-            .collect();
-        // A row that repeats a trait or carries an unusable explanation or
-        // evidence list is dropped and noted like the rows above, never a
-        // refused paid pass (fn-80, 2026-09-24). The first valid row per trait
-        // stands.
-        // An invented evidence id still refuses the pass: the reviewer cited
-        // something it was never shown.
-        if self
-            .coverage
-            .iter()
-            .any(|c| c.evidence_ids.iter().any(|id| !allowed.contains(id)))
-        {
-            return Err("invalid trait coverage".into());
-        }
-        let mut seen = HashSet::new();
-        let mut invalid = vec![];
-        self.coverage.retain(|c| {
-            let ok = text(&c.explanation) && ids(&c.evidence_ids, &allowed);
-            if ok && seen.insert(c.trait_id.clone()) {
-                return true;
-            }
-            invalid.push(format!(
-                "dropped coverage row {} {}: {:?} \u{2014} {}",
-                if ok {
-                    "repeating its trait"
-                } else {
-                    "with unusable text or evidence"
-                },
-                c.trait_id,
-                c.status,
-                c.explanation
-            ));
-            false
-        });
-        for note in invalid {
-            if !self.visual.observations.contains(&note) {
-                self.visual.observations.push(note.clone());
-            }
-            if !self.visual.assessment.observations.contains(&note) {
-                self.visual.assessment.observations.push(note);
-            }
-        }
         self.visual.assessment.coverage = self
             .coverage
             .iter()
@@ -716,6 +612,17 @@ impl ComparisonResult {
                 .iter()
                 .any(|f| f.observation == finding.observation)
             {
+                // The gate's own finding never counts against the reviewer:
+                // the palm's live run stopped on sixteen reviewer findings
+                // plus this one (fn-80, 2026-09-24). Room is made by keeping
+                // the reviewer's first fifteen.
+                let room = tidy::findings(
+                    &mut self.visual.assessment.findings,
+                    tidy::MAX_FINDINGS - 1,
+                    " when the code-derived coverage gate adds its own",
+                );
+                tidy::record(&mut self.visual, room.iter().map(|u| &u.note));
+                untidy.extend(room);
                 self.visual.assessment.findings.push(finding);
             }
             packet.verify_findings(&self.visual.assessment.findings)?;
@@ -728,6 +635,6 @@ impl ComparisonResult {
         if !self.visual.assessment.observations.contains(&observation) {
             self.visual.assessment.observations.push(observation);
         }
-        Ok(())
+        Ok(untidy)
     }
 }

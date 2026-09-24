@@ -657,7 +657,15 @@ fn a_coverage_row_for_an_unknown_trait_is_dropped_and_recorded() {
             ..stray.clone()
         })
         .collect();
-    assert!(too_many.bind(&request).is_err());
+    // Over the cap is a tidiness rule now (fn-80, 2026-09-24): every row is
+    // dropped as an unknown trait and recorded, never a refused pass.
+    too_many.bind(&request).unwrap();
+    assert!(too_many.coverage.is_empty());
+    assert!(!ready(
+        &r.required,
+        &r.identity,
+        &too_many.visual.assessment
+    ));
 }
 
 /// fn-136: the request names the traits the generator cannot draw yet as

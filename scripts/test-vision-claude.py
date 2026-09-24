@@ -233,6 +233,35 @@ class ReferenceFirstClaude(unittest.TestCase):
             self.assertEqual(result["status"], "failed_or_tools_or_unknown_usage_or_cardinality")
             self.assertIsNone(result["usage"])
 
+    def test_repair_is_one_text_only_call_in_the_comparison_schema(self):
+        """fn-80: a repair carries the previous answer and the exact broken
+        rules, no images, and is answered in the comparison's schema."""
+        codex = load_codex_module("reference-first-codex.py")
+        with tempfile.TemporaryDirectory() as tmp:
+            inventory = self.build_envelope(tmp)
+            image = inventory["request"]["references"][0]["image"]
+            request = {"protocol": codex.COMPARISON_VERSION,
+                       "comparison": {"required": [{"view": "whole"}], "images": [image],
+                                      "references": [image], "quality_anchors": []}}
+            prompt = "Repair instruction"
+            previous = {"passes": ["pass"], "findings": [], "coverage": [], "defects": [], "observations": []}
+            violation = "finding 17 of 17: at most 16 findings allowed"
+            envelope = {"stage": "repair", "request": request, "request_sha256": "bound-by-rust",
+                        "prompt": prompt, "prompt_sha256": sha256(prompt.encode()),
+                        "answer": previous, "violations": [violation]}
+            paths, schema, repair_prompt = codex.prepare(envelope)
+            _, comparison_schema, _ = codex.prepare(dict(envelope, stage="comparison"))
+            self.assertEqual(paths, [])
+            self.assertEqual(schema, comparison_schema)
+            self.assertIn(violation, repair_prompt)
+            self.assertIn(json.dumps(previous), repair_prompt)
+            result, calls = run_twin("reference-first-claude.py", envelope, fake_claude=success_claude_fake(previous))
+            self.assertEqual(len(calls), 1)
+            assert_claude_command_and_images(self, calls[0]["command"], calls[0]["kwargs"], [], repair_prompt, schema)
+            self.assertEqual(result["status"], "ok")
+            with self.assertRaises(ValueError):
+                codex.prepare(dict(envelope, violations=[]))
+
 
 class TuningVisionClaude(unittest.TestCase):
     def build_envelope(self, tmp):
