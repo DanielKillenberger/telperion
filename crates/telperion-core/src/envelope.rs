@@ -114,6 +114,10 @@ impl Envelope {
     /// every containment query does: the horizontal direction is the cosine
     /// and sine, and no angle is formed to take them back apart.
     pub fn radius_toward(&self, p: Vec3, seed: u32) -> f64 {
+        // An outline without lobes has no bearing to find.
+        if self.irregularity == 0.0 {
+            return self.radius_at(p.y);
+        }
         let radial = p.x.hypot_fixed(p.z);
         if radial <= 0.0 {
             return self.lobed(p.y, 1.0, 0.0, seed);

@@ -1,5 +1,6 @@
 //! One pinned pure-Rust implementation on native and wasm, including hypot.
 //! Distinct method names prevent accidental dispatch to f64's platform libm.
+mod hypot;
 pub(crate) trait Transcendental {
     fn sin_fixed(self) -> f64;
     fn cos_fixed(self) -> f64;
@@ -37,6 +38,6 @@ impl Transcendental for f64 {
         libm::cbrt(self)
     }
     fn hypot_fixed(self, other: f64) -> f64 {
-        libm::hypot(self, other)
+        hypot::hypot(self, other)
     }
 }

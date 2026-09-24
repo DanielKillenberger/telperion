@@ -1,0 +1,238 @@
+{
+ "oregon-white-oak-1": {
+  "base": {
+   "rounds": [
+    [
+     70.9,
+     157.8
+    ],
+    [
+     69.8,
+     160.4
+    ],
+    [
+     69.1,
+     156.8
+    ]
+   ],
+   "wasm": "03447c47f1d2a8a8b937f9e4a5808e89341241ce3412175f274ac248782a197d",
+   "skeleton_median": 69.7,
+   "frame_median": 159.4
+  },
+  "nosimd": {
+   "rounds": [
+    [
+     62.3,
+     151
+    ],
+    [
+     60.5,
+     157.6
+    ],
+    [
+     61.8,
+     151.6
+    ]
+   ],
+   "wasm": "8776496520c57eda8181aea43b309357a92aa2cd653c7093b19717cbf6cc5765",
+   "skeleton_median": 61.8,
+   "frame_median": 151.6
+  },
+  "simd": {
+   "rounds": [
+    [
+     61.3,
+     153.1
+    ],
+    [
+     58.7,
+     146.7
+    ],
+    [
+     64.4,
+     169.1
+    ]
+   ],
+   "wasm": "b23947d4259f7f3ddddb7a72f93726bfef1cb8876d9b94e97f4a21f2aebb1836",
+   "skeleton_median": 61.3,
+   "frame_median": 152.6
+  }
+ },
+ "oregon-white-oak-7": {
+  "base": {
+   "rounds": [
+    [
+     76.5,
+     181.2
+    ],
+    [
+     77.9,
+     177.3
+    ],
+    [
+     76.5,
+     178.1
+    ]
+   ],
+   "wasm": "03447c47f1d2a8a8b937f9e4a5808e89341241ce3412175f274ac248782a197d",
+   "skeleton_median": 76.5,
+   "frame_median": 179.2
+  },
+  "nosimd": {
+   "rounds": [
+    [
+     69.2,
+     187.4
+    ],
+    [
+     64.7,
+     167.1
+    ],
+    [
+     65.1,
+     169.6
+    ]
+   ],
+   "wasm": "8776496520c57eda8181aea43b309357a92aa2cd653c7093b19717cbf6cc5765",
+   "skeleton_median": 65.3,
+   "frame_median": 170.2
+  },
+  "simd": {
+   "rounds": [
+    [
+     64.6,
+     166.3
+    ],
+    [
+     65.9,
+     169.8
+    ],
+    [
+     73,
+     197.5
+    ]
+   ],
+   "wasm": "b23947d4259f7f3ddddb7a72f93726bfef1cb8876d9b94e97f4a21f2aebb1836",
+   "skeleton_median": 65.8,
+   "frame_median": 169.8
+  }
+ },
+ "norway-spruce-1": {
+  "base": {
+   "rounds": [
+    [
+     55.3,
+     178
+    ],
+    [
+     54.9,
+     180
+    ],
+    [
+     54.6,
+     180.3
+    ]
+   ],
+   "wasm": "03447c47f1d2a8a8b937f9e4a5808e89341241ce3412175f274ac248782a197d",
+   "skeleton_median": 55.2,
+   "frame_median": 180
+  },
+  "nosimd": {
+   "rounds": [
+    [
+     42.4,
+     183.6
+    ],
+    [
+     40.9,
+     162.8
+    ],
+    [
+     41,
+     165.6
+    ]
+   ],
+   "wasm": "8776496520c57eda8181aea43b309357a92aa2cd653c7093b19717cbf6cc5765",
+   "skeleton_median": 41.1,
+   "frame_median": 165.6
+  },
+  "simd": {
+   "rounds": [
+    [
+     41,
+     166.6
+    ],
+    [
+     41.2,
+     167
+    ],
+    [
+     40.4,
+     166.3
+    ]
+   ],
+   "wasm": "b23947d4259f7f3ddddb7a72f93726bfef1cb8876d9b94e97f4a21f2aebb1836",
+   "skeleton_median": 41,
+   "frame_median": 166.6
+  }
+ },
+ "norway-spruce-7": {
+  "base": {
+   "rounds": [
+    [
+     53.9,
+     169.6
+    ],
+    [
+     51.3,
+     167.5
+    ],
+    [
+     51.1,
+     164.7
+    ]
+   ],
+   "wasm": "03447c47f1d2a8a8b937f9e4a5808e89341241ce3412175f274ac248782a197d",
+   "skeleton_median": 51.6,
+   "frame_median": 167.2
+  },
+  "nosimd": {
+   "rounds": [
+    [
+     40.5,
+     160.7
+    ],
+    [
+     39,
+     158.5
+    ],
+    [
+     40.2,
+     159.7
+    ]
+   ],
+   "wasm": "8776496520c57eda8181aea43b309357a92aa2cd653c7093b19717cbf6cc5765",
+   "skeleton_median": 40.3,
+   "frame_median": 159.7
+  },
+  "simd": {
+   "rounds": [
+    [
+     40.6,
+     159.9
+    ],
+    [
+     38.9,
+     154.5
+    ],
+    [
+     40.1,
+     158.8
+    ]
+   ],
+   "wasm": "b23947d4259f7f3ddddb7a72f93726bfef1cb8876d9b94e97f4a21f2aebb1836",
+   "skeleton_median": 40.1,
+   "frame_median": 157.7
+  }
+ }
+}

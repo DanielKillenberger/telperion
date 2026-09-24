@@ -1,0 +1,46 @@
+{
+ "identical_base_candidate": true,
+ "identical_candidate_simd": true,
+ "hashes": [
+  {
+   "preset": "oregon-white-oak",
+   "seed": 1,
+   "structure": "0e8215cbf672c8b6",
+   "topology": "f0cb959f7da5fcbc",
+   "woodPositions": "74c0da109d5d5d42",
+   "woodIndices": "64b16e5155426288",
+   "leafPositions": "1c42f56592abfebb",
+   "leaves": "eefa9bc2d27cb308"
+  },
+  {
+   "preset": "oregon-white-oak",
+   "seed": 7,
+   "structure": "fafb4e3d613a2dc0",
+   "topology": "8ed491c727409f12",
+   "woodPositions": "6e93286660c43e9a",
+   "woodIndices": "f65dc1ff8372f289",
+   "leafPositions": "1c42f56592abfebb",
+   "leaves": "431a9b7543b18f85"
+  },
+  {
+   "preset": "norway-spruce",
+   "seed": 1,
+   "structure": "5ac8939cad7a8bdf",
+   "topology": "30f3814862d06973",
+   "woodPositions": "e2640bcade7b45a6",
+   "woodIndices": "a2001605ef6aba2c",
+   "leafPositions": "973cdf38b8c26526",
+   "leaves": "23acdcbc0c607863"
+  },
+  {
+   "preset": "norway-spruce",
+   "seed": 7,
+   "structure": "744aa91a911c9de9",
+   "topology": "25f5b5934092a68b",
+   "woodPositions": "bc1190794661a841",
+   "woodIndices": "a3a28d99218e5301",
+   "leafPositions": "973cdf38b8c26526",
+   "leaves": "89b39aadda3853b6"
+  }
+ ]
+}

@@ -1,0 +1,329 @@
+{
+ "native_base_sampler": {
+  "oregon-white-oak-1": {
+   "ms_per_build_sampler_on": 59.334,
+   "samples": 8844,
+   "stages_ms": {
+    "local advance / loop body (births, laterals, queue)": 16.7,
+    "local advance / planner run / envelope admission": 13.13,
+    "local advance / admission outside the planner": 7.48,
+    "local advance / planner run / heading and turn limit": 5.08,
+    "local advance / planner run / rest (stations, storage, resampling)": 3.99,
+    "scaffold advance": 3.68,
+    "radius solve": 2.88,
+    "identity and remap": 2.62,
+    "local advance / twig heading outside the planner": 1.24,
+    "local seeding": 1.11,
+    "local advance / validation": 0.55,
+    "finish (shedding, tips)": 0.12,
+    "specimen setup": 0.01
+   },
+   "stage_attributed_pct": 98.7,
+   "code_outside_executable_self_pct": 6.57
+  },
+  "oregon-white-oak-7": {
+   "ms_per_build_sampler_on": 75.839,
+   "samples": 11229,
+   "stages_ms": {
+    "local advance / loop body (births, laterals, queue)": 23.49,
+    "local advance / planner run / envelope admission": 12.76,
+    "local advance / admission outside the planner": 9.15,
+    "local advance / planner run / heading and turn limit": 5.14,
+    "scaffold advance": 4.98,
+    "identity and remap": 4.79,
+    "local advance / planner run / rest (stations, storage, resampling)": 3.85,
+    "radius solve": 3.47,
+    "local seeding": 3.31,
+    "local advance / twig heading outside the planner": 1.82,
+    "local advance / validation": 0.68,
+    "finish (shedding, tips)": 0.2
+   },
+   "stage_attributed_pct": 97.1,
+   "code_outside_executable_self_pct": 11.03
+  },
+  "norway-spruce-1": {
+   "ms_per_build_sampler_on": 42.026,
+   "samples": 6274,
+   "stages_ms": {
+    "local advance / loop body (births, laterals, queue)": 12.02,
+    "scaffold advance": 9.75,
+    "local seeding": 6.9,
+    "radius solve": 3.1,
+    "local advance / admission outside the planner": 1.77,
+    "local advance / planner run / rest (stations, storage, resampling)": 1.76,
+    "identity and remap": 1.72,
+    "local advance / planner run / envelope admission": 1.53,
+    "local advance / twig heading outside the planner": 1.53,
+    "local advance / planner run / heading and turn limit": 0.84,
+    "local advance / validation": 0.33,
+    "finish (shedding, tips)": 0.08
+   },
+   "stage_attributed_pct": 98.4,
+   "code_outside_executable_self_pct": 10.41
+  },
+  "norway-spruce-7": {
+   "ms_per_build_sampler_on": 44.57,
+   "samples": 6542,
+   "stages_ms": {
+    "local advance / loop body (births, laterals, queue)": 14.37,
+    "scaffold advance": 10.8,
+    "local seeding": 7.14,
+    "radius solve": 2.75,
+    "local advance / planner run / rest (stations, storage, resampling)": 1.87,
+    "local advance / admission outside the planner": 1.68,
+    "identity and remap": 1.57,
+    "local advance / planner run / envelope admission": 1.41,
+    "local advance / twig heading outside the planner": 1.15,
+    "local advance / planner run / heading and turn limit": 0.91,
+    "local advance / validation": 0.27,
+    "finish (shedding, tips)": 0.07
+   },
+   "stage_attributed_pct": 98.7,
+   "code_outside_executable_self_pct": 16.08
+  }
+ },
+ "browser_base_v8_inline_never": {
+  "oregon-white-oak-1": {
+   "skeleton_ms_per_call": 80.52,
+   "stages_ms": {
+    "local advance / loop body": 22.369,
+    "local advance / planner run / envelope admission": 15.839,
+    "local advance / admission outside the planner": 10.615,
+    "local advance / planner run / rest": 8.693,
+    "local advance / planner run / heading and turn limit": 6.444,
+    "scaffold advance": 5.097,
+    "radius solve": 2.764,
+    "local advance / twig heading outside the planner": 2.746,
+    "identity and remap": 2.713,
+    "local advance / validation": 1.366,
+    "local seeding": 0.824
+   },
+   "stage_attributed_pct": 98.7
+  },
+  "oregon-white-oak-7": {
+   "skeleton_ms_per_call": 85.86,
+   "stages_ms": {
+    "local advance / loop body": 22.783,
+    "local advance / planner run / envelope admission": 15.621,
+    "local advance / admission outside the planner": 12.726,
+    "local advance / planner run / rest": 9.453,
+    "scaffold advance": 6.466,
+    "local advance / planner run / heading and turn limit": 5.669,
+    "identity and remap": 3.377,
+    "radius solve": 3.138,
+    "local advance / twig heading outside the planner": 3.017,
+    "local advance / validation": 1.464,
+    "local seeding": 1.087
+   },
+   "stage_attributed_pct": 98.8
+  },
+  "norway-spruce-1": {
+   "skeleton_ms_per_call": 59.35,
+   "stages_ms": {
+    "scaffold advance": 15.804,
+    "local advance / loop body": 15.112,
+    "local seeding": 8.077,
+    "local advance / admission outside the planner": 4.128,
+    "radius solve": 3.615,
+    "local advance / planner run / rest": 2.976,
+    "identity and remap": 2.445,
+    "local advance / planner run / envelope admission": 2.062,
+    "local advance / twig heading outside the planner": 1.908,
+    "local advance / planner run / heading and turn limit": 1.216,
+    "local advance / validation": 0.761
+   },
+   "stage_attributed_pct": 97.9
+  },
+  "norway-spruce-7": {
+   "skeleton_ms_per_call": 55.69,
+   "stages_ms": {
+    "scaffold advance": 15.111,
+    "local advance / loop body": 14.121,
+    "local seeding": 7.308,
+    "local advance / admission outside the planner": 3.627,
+    "radius solve": 3.459,
+    "local advance / planner run / rest": 2.916,
+    "identity and remap": 2.185,
+    "local advance / planner run / envelope admission": 1.969,
+    "local advance / twig heading outside the planner": 1.955,
+    "local advance / planner run / heading and turn limit": 1.203,
+    "local advance / validation": 0.764
+   },
+   "stage_attributed_pct": 98.1
+  }
+ },
+ "browser_v8_functions": {
+  "base": {
+   "oregon-white-oak-1": {
+    "skeleton_ms_per_call": 95.38,
+    "top_inclusive_ms": {
+     "telperion_core::branching::generate": 95.377,
+     "<telperion_core::branching::specimen::Specimen>::grow": 95.355,
+     "<telperion_core::branching::specimen::Specimen>::step": 85.862,
+     "<telperion_core::branching::local::Frontier>::advance": 76.051,
+     "libm::math::pow::pow": 28.255,
+     "<telperion_core::branching::local::pendant::Curtain>::admits": 19.124,
+     "<telperion_core::envelope::Envelope>::lobed": 14.931,
+     "libm::math::sqrt::sqrt": 6.72,
+     "telperion_core::colonization::limit_turn": 6.122,
+     "telperion_core::radius::solve": 5.442,
+     "<telperion_core::branching::scaffold::Builder>::grow": 5.396,
+     "<telperion_core::branching::specimen::Specimen>::identify_range": 4.745,
+     "core::iter::traits::iterator::Iterator::any::check::<i32, <telperion_core::branching::scaffold::Builder>::edge::{closure#0}>::{closure#0}": 4.098,
+     "libm::math::sin::sin": 3.224,
+     "libm::math::hypot::hypot": 3.097,
+     "libm::math::acos::acos": 2.984
+    }
+   },
+   "oregon-white-oak-7": {
+    "skeleton_ms_per_call": 92.61,
+    "top_inclusive_ms": {
+     "telperion_core::branching::generate": 92.609,
+     "<telperion_core::branching::specimen::Specimen>::grow": 92.587,
+     "<telperion_core::branching::specimen::Specimen>::step": 85.601,
+     "<telperion_core::branching::local::Frontier>::advance": 73.914,
+     "libm::math::pow::pow": 30.76,
+     "<telperion_core::branching::local::pendant::Curtain>::admits": 19.395,
+     "<telperion_core::envelope::Envelope>::lobed": 16.939,
+     "libm::math::sqrt::sqrt": 7.24,
+     "<telperion_core::branching::scaffold::Builder>::grow": 6.848,
+     "telperion_core::colonization::limit_turn": 6.151,
+     "core::iter::traits::iterator::Iterator::any::check::<i32, <telperion_core::branching::scaffold::Builder>::edge::{closure#0}>::{closure#0}": 5.418,
+     "telperion_core::radius::solve": 4.77,
+     "<telperion_core::branching::specimen::Specimen>::identify_range": 3.573,
+     "libm::math::acos::acos": 3.562,
+     "libm::math::cos::cos": 3.416,
+     "<alloc::raw_vec::RawVecInner>::finish_grow[5]": 3.324
+    }
+   },
+   "norway-spruce-1": {
+    "skeleton_ms_per_call": 65.14,
+    "top_inclusive_ms": {
+     "telperion_core::branching::generate": 65.139,
+     "<telperion_core::branching::specimen::Specimen>::grow": 65.139,
+     "<telperion_core::branching::specimen::Specimen>::step": 60.324,
+     "<telperion_core::branching::local::Frontier>::advance": 30.277,
+     "<telperion_core::branching::scaffold::Builder>::grow": 17.244,
+     "core::iter::traits::iterator::Iterator::any::check::<i32, <telperion_core::branching::scaffold::Builder>::edge::{closure#0}>::{closure#0}": 11.438,
+     "libm::math::sqrt::sqrt": 10.238,
+     "<telperion_core::branching::local::Frontier>::seed": 8.387,
+     "<telperion_core::branching::local::pendant::Curtain>::admits": 6.994,
+     "libm::math::pow::pow": 6.518,
+     "telperion_core::radius::solve": 4.446,
+     "libm::math::hypot::hypot": 3.815,
+     "libm::math::cos::cos": 2.715,
+     "<telperion_core::branching::specimen::Specimen>::identify_range": 2.333,
+     "telperion_core::colonization::limit_turn": 1.898,
+     "<telperion_core::envelope::Envelope>::lobed": 1.864
+    }
+   },
+   "norway-spruce-7": {
+    "skeleton_ms_per_call": 58.64,
+    "top_inclusive_ms": {
+     "<telperion_core::branching::specimen::Specimen>::grow": 58.638,
+     "telperion_core::branching::generate": 58.638,
+     "<telperion_core::branching::specimen::Specimen>::step": 55.087,
+     "<telperion_core::branching::local::Frontier>::advance": 26.999,
+     "<telperion_core::branching::scaffold::Builder>::grow": 16.041,
+     "core::iter::traits::iterator::Iterator::any::check::<i32, <telperion_core::branching::scaffold::Builder>::edge::{closure#0}>::{closure#0}": 10.243,
+     "libm::math::sqrt::sqrt": 9.476,
+     "<telperion_core::branching::local::Frontier>::seed": 8.028,
+     "<telperion_core::branching::local::pendant::Curtain>::admits": 6.813,
+     "libm::math::pow::pow": 6.14,
+     "telperion_core::radius::solve": 3.79,
+     "libm::math::hypot::hypot": 3.759,
+     "__rustc::__rdl_realloc": 2.104,
+     "telperion_core::colonization::limit_turn": 2.083,
+     "libm::math::cos::cos": 1.963,
+     "<telperion_core::branching::specimen::Specimen>::identify_range": 1.855
+    }
+   }
+  },
+  "candidate": {
+   "oregon-white-oak-1": {
+    "skeleton_ms_per_call": 72.44,
+    "top_inclusive_ms": {
+     "<telperion_core::branching::specimen::Specimen>::grow": 72.443,
+     "telperion_core::branching::generate": 72.443,
+     "<telperion_core::branching::specimen::Specimen>::step": 66.494,
+     "<telperion_core::branching::local::Frontier>::advance": 57.289,
+     "libm::math::pow::pow": 26.658,
+     "<telperion_core::envelope::Envelope>::radius_toward": 23.493,
+     "<telperion_core::branching::local::pendant::Curtain>::admits": 22.68,
+     "<telperion_core::branching::scaffold::Builder>::grow": 5.44,
+     "telperion_core::colonization::limit_turn": 5.006,
+     "<telperion_core::envelope::Envelope>::contains": 4.746,
+     "telperion_core::radius::solve": 4.143,
+     "libm::math::sin::sin": 2.889,
+     "<telperion_core::branching::specimen::Specimen>::identify_range": 2.828,
+     "libm::math::acos::acos": 2.661,
+     "libm::math::cos::cos": 2.338,
+     "<telperion_core::bias::GrowthBias>::apply": 1.821
+    }
+   },
+   "oregon-white-oak-7": {
+    "skeleton_ms_per_call": 84.27,
+    "top_inclusive_ms": {
+     "telperion_core::branching::generate": 84.267,
+     "<telperion_core::branching::specimen::Specimen>::grow": 84.246,
+     "<telperion_core::branching::specimen::Specimen>::step": 75.563,
+     "<telperion_core::branching::local::Frontier>::advance": 64.83,
+     "libm::math::pow::pow": 31.372,
+     "<telperion_core::envelope::Envelope>::radius_toward": 26.763,
+     "<telperion_core::branching::local::pendant::Curtain>::admits": 25.336,
+     "telperion_core::radius::solve": 6.461,
+     "telperion_core::colonization::limit_turn": 5.869,
+     "<telperion_core::branching::scaffold::Builder>::grow": 5.256,
+     "<telperion_core::tree::Tree>::validate_range": 4.94,
+     "<telperion_core::envelope::Envelope>::contains": 4.53,
+     "<telperion_core::branching::specimen::Specimen>::identify_range": 4.12,
+     "libm::math::acos::acos": 3.213,
+     "libm::math::cos::cos": 3.179,
+     "libm::math::sin::sin": 2.699
+    }
+   },
+   "norway-spruce-1": {
+    "skeleton_ms_per_call": 55.76,
+    "top_inclusive_ms": {
+     "<telperion_core::branching::specimen::Specimen>::grow": 55.756,
+     "telperion_core::branching::generate": 55.756,
+     "<telperion_core::branching::specimen::Specimen>::step": 50.169,
+     "<telperion_core::branching::local::Frontier>::advance": 24.023,
+     "<telperion_core::branching::local::Frontier>::seed": 10.514,
+     "<telperion_core::branching::scaffold::Builder>::grow": 9.819,
+     "libm::math::pow::pow": 7.472,
+     "telperion_core::radius::solve": 5.955,
+     "<telperion_core::envelope::Envelope>::contains": 4.05,
+     "libm::math::cos::cos": 2.956,
+     "<telperion_core::branching::specimen::Specimen>::identify_range": 2.882,
+     "telperion_core::colonization::limit_turn": 1.993,
+     "<telperion_core::tree::Tree>::validate_range": 1.937,
+     "<telperion_core::branching::local::pendant::Curtain>::admits": 1.908,
+     "<alloc::raw_vec::RawVecInner>::finish_grow[5]": 1.83,
+     "__rustc::__rdl_realloc": 1.795
+    }
+   },
+   "norway-spruce-7": {
+    "skeleton_ms_per_call": 45.85,
+    "top_inclusive_ms": {
+     "<telperion_core::branching::specimen::Specimen>::grow": 45.847,
+     "telperion_core::branching::generate": 45.847,
+     "<telperion_core::branching::specimen::Specimen>::step": 42.016,
+     "<telperion_core::branching::local::Frontier>::advance": 21.211,
+     "<telperion_core::branching::scaffold::Builder>::grow": 8.4,
+     "<telperion_core::branching::local::Frontier>::seed": 8.292,
+     "libm::math::pow::pow": 5.876,
+     "telperion_core::radius::solve": 3.948,
+     "<telperion_core::envelope::Envelope>::contains": 3.716,
+     "libm::math::cos::cos": 2.05,
+     "<telperion_core::branching::specimen::Specimen>::identify_range": 1.924,
+     "telperion_core::colonization::limit_turn": 1.715,
+     "<telperion_core::branching::local::pendant::Curtain>::admits": 1.644,
+     "<telperion_core::envelope::Envelope>::radius_toward": 1.598,
+     "__rustc::__rdl_realloc": 1.506,
+     "<alloc::raw_vec::RawVecInner>::finish_grow[5]": 1.482
+    }
+   }
+  }
+ }
+}
