@@ -1,13 +1,22 @@
 {
   "branch_name": "fn-134-the-bark-rings-are-a-plan-artifact",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-23T22:54:21.821833Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-102-one-build-pipeline-in-place-of-the"
   ],
   "id": "fn-134-the-bark-rings-are-a-plan-artifact",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-134-the-bark-rings-are-a-plan-artifact.md",
   "status": "open",
   "title": "The bark rings are a plan artifact",
@@ -22,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T22:54:22.427453Z"
+  "updated_at": "2026-09-24T07:29:31.825001Z"
 }
