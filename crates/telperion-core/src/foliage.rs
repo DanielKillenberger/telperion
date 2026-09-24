@@ -28,7 +28,7 @@ pub(crate) use canopy::rows as canopy_rows;
 pub use canopy::{CanopyParams, TwigPlacement, MAX_SHORT_SHOOT_LEAVES, SHORT_SHOOT_SPACING};
 pub use element::{build_element, AnatomyGeometry, Element, ElementParams, FoliageUnit};
 pub use levels::Level;
-pub use packed::{Leaf, Reference, WORDS};
+pub use packed::{withered, Leaf, Reference, WITHERED, WORDS};
 #[cfg(feature = "geometry")]
 pub(crate) use placement::{leaf_count, place_on};
 #[cfg(feature = "geometry")]
@@ -147,6 +147,13 @@ impl Instances {
         self.leaves.push(leaf);
         #[cfg(test)]
         self.unquantised.push(*m);
+    }
+    /// Marks every leaf stored from `from` on as withered: the same transform,
+    /// drawn in the dead colour.
+    pub fn wither(&mut self, from: usize) {
+        for leaf in &mut self.leaves[from..] {
+            leaf[2] |= packed::WITHERED;
+        }
     }
     /// What the station walk produced, before the limb clumping thinned it.
     pub fn placed(&self) -> usize {

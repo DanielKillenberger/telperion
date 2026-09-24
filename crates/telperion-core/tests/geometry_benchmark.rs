@@ -236,6 +236,16 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .remove(row)
                 .expect("the canopy publishes its trunk-organ rows");
         }
+        // fn-120 adds the skirt as three more canopy rows. The frozen file
+        // predates them, and the count is zero there, which keeps no dead
+        // frond.
+        for row in ["skirtFronds", "skirtPitch", "skirtLength"] {
+            emitted["canopy"]
+                .as_object_mut()
+                .unwrap()
+                .remove(row)
+                .expect("the canopy publishes its skirt rows");
+        }
         // fn-54 adds the gap between limb systems; the frozen file predates
         // it, and at none it thins no leaf.
         emitted["canopy"]

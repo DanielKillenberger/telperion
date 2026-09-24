@@ -38,6 +38,9 @@ export interface Family {
   shortShootSpread: number;
   size: number;
   sizeVariation: number;
+  skirtFronds: number;
+  skirtLength: number;
+  skirtPitch: number;
   spacing: number;
   surfaceContact: number;
   terminalLeaflet: number;
@@ -106,6 +109,9 @@ export interface Family {
   leafBackBlue: number;
   leafBackGreen: number;
   leafBackRed: number;
+  leafDeadBlue: number;
+  leafDeadGreen: number;
+  leafDeadRed: number;
   leafFrontBlue: number;
   leafFrontGreen: number;
   leafFrontRed: number;
@@ -312,6 +318,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "shortShootSpread": 45,
         "size": 1,
         "sizeVariation": 0.35,
+        "skirtFronds": 0,
+        "skirtLength": 0.8,
+        "skirtPitch": 140,
         "spacing": 0.006,
         "surfaceContact": 0,
         "terminalLeaflet": 0,
@@ -380,6 +389,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafBackBlue": 0.07,
         "leafBackGreen": 0.24,
         "leafBackRed": 0.105,
+        "leafDeadBlue": 0.18,
+        "leafDeadGreen": 0.25,
+        "leafDeadRed": 0.3,
         "leafFrontBlue": 0.036,
         "leafFrontGreen": 0.195,
         "leafFrontRed": 0.068,
@@ -584,6 +596,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "shortShootSpread": 45,
         "size": 1,
         "sizeVariation": 0.2,
+        "skirtFronds": 0,
+        "skirtLength": 0.8,
+        "skirtPitch": 140,
         "spacing": 0.006,
         "surfaceContact": 0,
         "terminalLeaflet": 0,
@@ -652,6 +667,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafBackBlue": 0.112,
         "leafBackGreen": 0.254,
         "leafBackRed": 0.153,
+        "leafDeadBlue": 0.18,
+        "leafDeadGreen": 0.25,
+        "leafDeadRed": 0.3,
         "leafFrontBlue": 0.016,
         "leafFrontGreen": 0.102,
         "leafFrontRed": 0.028,
@@ -856,6 +874,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "shortShootSpread": 45,
         "size": 1,
         "sizeVariation": 0.2,
+        "skirtFronds": 0,
+        "skirtLength": 0.8,
+        "skirtPitch": 140,
         "spacing": 0.006,
         "surfaceContact": 1,
         "terminalLeaflet": 0,
@@ -924,6 +945,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafBackBlue": 0.138,
         "leafBackGreen": 0.195,
         "leafBackRed": 0.109,
+        "leafDeadBlue": 0.18,
+        "leafDeadGreen": 0.25,
+        "leafDeadRed": 0.3,
         "leafFrontBlue": 0.028,
         "leafFrontGreen": 0.056,
         "leafFrontRed": 0.018,
@@ -1128,6 +1152,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "shortShootSpread": 45,
         "size": 1,
         "sizeVariation": 0.2,
+        "skirtFronds": 0,
+        "skirtLength": 0.8,
+        "skirtPitch": 140,
         "spacing": 0.006,
         "surfaceContact": 0,
         "terminalLeaflet": 0,
@@ -1196,6 +1223,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafBackBlue": 0.14,
         "leafBackGreen": 0.28,
         "leafBackRed": 0.2,
+        "leafDeadBlue": 0.18,
+        "leafDeadGreen": 0.25,
+        "leafDeadRed": 0.3,
         "leafFrontBlue": 0.06,
         "leafFrontGreen": 0.19,
         "leafFrontRed": 0.1,
@@ -1400,6 +1430,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "shortShootSpread": 45,
         "size": 1,
         "sizeVariation": 0.28,
+        "skirtFronds": 0,
+        "skirtLength": 0.8,
+        "skirtPitch": 140,
         "spacing": 0.0045,
         "surfaceContact": 0,
         "terminalLeaflet": 0,
@@ -1468,6 +1501,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafBackBlue": 0.07,
         "leafBackGreen": 0.24,
         "leafBackRed": 0.105,
+        "leafDeadBlue": 0.18,
+        "leafDeadGreen": 0.25,
+        "leafDeadRed": 0.3,
         "leafFrontBlue": 0.036,
         "leafFrontGreen": 0.195,
         "leafFrontRed": 0.068,
@@ -1672,6 +1708,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "shortShootSpread": 45,
         "size": 1.5,
         "sizeVariation": 0.4,
+        "skirtFronds": 0,
+        "skirtLength": 0.8,
+        "skirtPitch": 140,
         "spacing": 0.0065,
         "surfaceContact": 0,
         "terminalLeaflet": 0,
@@ -1740,6 +1779,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafBackBlue": 0.07,
         "leafBackGreen": 0.24,
         "leafBackRed": 0.105,
+        "leafDeadBlue": 0.18,
+        "leafDeadGreen": 0.25,
+        "leafDeadRed": 0.3,
         "leafFrontBlue": 0.036,
         "leafFrontGreen": 0.195,
         "leafFrontRed": 0.068,

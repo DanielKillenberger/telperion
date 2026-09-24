@@ -24,8 +24,8 @@ pub struct Capability {
 /// The vocabulary: what the generator expresses today. The first six names
 /// are the frozen fn-19 protocol's, the ones [`derived`] reads off a value
 /// table; then what the shipped beech and birch require and draw, and last the
-/// pinnate grouping and the frond crown fn-109 gave the canopy, and the two
-/// trunk organs fn-110 gave it.
+/// pinnate grouping and the frond crown fn-109 gave the canopy, the two
+/// trunk organs fn-110 gave it, and the dead fronds fn-120 hangs below it.
 pub const EXPRESSED: &[Capability] = &[
     Capability {
         name: "woody-axes",
@@ -79,6 +79,10 @@ pub const EXPRESSED: &[Capability] = &[
         name: "persistent-leaf-base",
         meaning: "the sheathing base of a shed leaf kept on the axis, clothing the trunk",
     },
+    Capability {
+        name: "dead-frond-skirt",
+        meaning: "dead fronds a crown keeps, hanging against the stem below the living ones",
+    },
 ];
 
 /// Names an assessment may use that the generator cannot express yet. Each is
@@ -98,8 +102,8 @@ pub const UNEXPRESSED: &[Capability] = &[
 ];
 
 /// The names [`derived`] can read off a value table: the frozen fn-19
-/// protocol's six, the three fn-109 added and the two fn-110 added, each with
-/// a threshold on a shipped value. A name outside this set has no threshold, so a table that
+/// protocol's six, the three fn-109 added, the two fn-110 added and the skirt
+/// fn-120 added, each with a threshold on a shipped value. A name outside this set has no threshold, so a table that
 /// does not produce it has said nothing about it either way.
 pub const DERIVABLE: &[&str] = &[
     "woody-axes",
@@ -113,6 +117,7 @@ pub const DERIVABLE: &[&str] = &[
     "pinnate-frond",
     "persistent-leaf-base",
     "acanthophyll",
+    "dead-frond-skirt",
 ];
 
 /// What the vocabulary says about one required name.
@@ -234,6 +239,11 @@ pub fn derived(preset: Preset) -> Vec<&'static str> {
     }
     if f.canopy.acanthophylls > 0 && f.canopy.acanthophyll_length > 0.0 && pinnate {
         produced.push("acanthophyll");
+    }
+    // The skirt is the crown's history above the bases: its dead fronds hang
+    // on the rosette's own spiral, so it is never produced without the crown.
+    if f.canopy.skirt_fronds > 0 && f.canopy.skirt_length > 0.0 && rosette {
+        produced.push("dead-frond-skirt");
     }
     produced
 }
