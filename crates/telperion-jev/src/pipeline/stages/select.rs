@@ -15,7 +15,7 @@
 
 use serde_json::{json, Map, Value};
 
-use crate::pipeline::canon::write_canonical;
+use crate::pipeline::canon::{read_json, write_canonical};
 use crate::pipeline::decision::{append_decisions, retire_unfiled};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::{Described, Manifest};
@@ -207,9 +207,16 @@ fn write_packet(
         .iter()
         .map(|s| json!({"id": s.id, "url": s.url, "attribution": s.title, "verified": "pipeline", "use": s.rights}))
         .collect();
+    // Select owns only `sources`; a recorded reference photograph and its
+    // matched shot are kept byte for byte across a rerun (fn-142).
+    let references_path = ctx.paths.packet("references");
+    let references = read_json(&references_path)
+        .ok()
+        .and_then(|v| v["references"].as_array().cloned())
+        .unwrap_or_default();
     write_canonical(
-        &ctx.paths.packet("references"),
-        &json!({"reference_version": "fn19-references-v1", "sources": sources, "references": []}),
+        &references_path,
+        &json!({"reference_version": "fn19-references-v1", "sources": sources, "references": references}),
     )?;
     Ok(())
 }
