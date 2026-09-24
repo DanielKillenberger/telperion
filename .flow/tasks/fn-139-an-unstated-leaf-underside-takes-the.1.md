@@ -24,6 +24,6 @@ Gate: `cargo test --profile ci --workspace --no-fail-fast` - 144 suites, 1052 pa
 
 No friction to report - both rounds were contained additions to `appearance.rs`'s existing default pattern, and the existing test fixtures (`judged` helpers, `verify::unsupported`'s payload shape) already covered everything R4 needed without new fixture machinery.
 ## Evidence
-- Commits: 03e1cc9a16b962b0a867abf0822d12ba4e02a21c, <R4 commit sha>
+- Commits: 03e1cc9a16b962b0a867abf0822d12ba4e02a21c, 1fb7986200522845c35a63e31ed4aab5f5b77bb7
 - Tests: cargo test -p telperion-jev --profile ci --test judged_select, cargo test --profile ci --workspace --no-fail-fast
 - PRs:
