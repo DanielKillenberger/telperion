@@ -98,6 +98,14 @@ impl SkeletonParams {
         let mut c = default_growth(self.envelope, scattered, self.step);
         c.seed = self.seed;
         let o = self.growth;
+        // A crown with no node, or no bole below it, is no tree the build can
+        // sweep: each override's floor is above zero.
+        if o.max_nodes == Some(0) {
+            return Err(Error::InvalidInput("maxNodes"));
+        }
+        if o.trunk_height.is_some_and(|v| v <= 0.0) {
+            return Err(Error::InvalidInput("trunkHeight"));
+        }
         if let Some(v) = o.influence_radius {
             c.influence_radius = v
         }

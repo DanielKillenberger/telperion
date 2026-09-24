@@ -309,6 +309,9 @@ pub(crate) fn rows(p: CanopyParams, twig: Option<TwigPlacement>) -> Result<()> {
     ] {
         range(v, l, h, n)?;
     }
+    if p.max_instances == 0 {
+        return Err(Error::InvalidInput("foliage instance budget"));
+    }
     if p.clump > 64 {
         return Err(Error::InvalidInput("foliage clump"));
     }
