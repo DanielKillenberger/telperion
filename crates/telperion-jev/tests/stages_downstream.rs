@@ -901,3 +901,37 @@ fn new_specimens_rerun_the_gate() {
         gate::Outcome::Current
     ));
 }
+
+/// fn-80, 2026-09-24: the seeds gate passed once the holdout specimens were
+/// written, but its old decision stayed open because the retire check compared
+/// select.json alone. A gate that no longer files its decision retires it.
+#[test]
+fn a_seeds_gate_that_passes_on_new_specimens_retires_its_decision() {
+    let dir = scratch("seeds-retire", 2);
+    let checks = Checks {
+        registered: true,
+        derived: Ok(vec![]),
+    };
+    let paths = Paths::new(&dir);
+    gate::run(&paths, &checks).unwrap();
+    assert!(of_kind(&dir, "onboarding-gate")
+        .iter()
+        .any(|d| d["field"] == "seeds" && d["status"] == "open"));
+    let cases: Vec<Value> = [1, 2, 3, 101, 102, 103]
+        .iter()
+        .enumerate()
+        .map(|(i, seed)| json!({"seed": seed, "seed_role": if i < 3 {"regression"} else {"holdout"}}))
+        .collect();
+    let specimens = paths.packet("specimens");
+    std::fs::create_dir_all(specimens.parent().unwrap()).unwrap();
+    std::fs::write(
+        &specimens,
+        serde_json::to_vec(&json!({"cases": cases})).unwrap(),
+    )
+    .unwrap();
+    gate::run(&paths, &checks).unwrap();
+    assert_eq!(body_of(&dir, "gate")["seeds"]["status"], "resolved");
+    assert!(!of_kind(&dir, "onboarding-gate")
+        .iter()
+        .any(|d| d["field"] == "seeds" && d["status"] == "open"));
+}

@@ -168,7 +168,7 @@ pub fn run(paths: &Paths, checks: &dyn GateChecks) -> Result<Outcome, StageError
             &ctx.paths.decisions(),
             STAGE,
             &ids,
-            &inputs(&[("select.json", &select_sha)]),
+            &inputs(&pairs),
             &crate::pipeline::gap::now(),
         )?;
     }
