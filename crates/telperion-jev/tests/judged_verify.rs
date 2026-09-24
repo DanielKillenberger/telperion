@@ -149,6 +149,67 @@ fn claims_are_per_pointer_and_the_appearance_claim_can_fail() {
     );
 }
 
+/// fn-141 R1: a claim decision is keyed to its own claim (pointer, value,
+/// source, sentence), not the whole select.json checksum. A rerun that
+/// changes an unrelated part of select.json leaves a resolved claim
+/// resolved; a rerun that changes the claim's own cited sentence voids it,
+/// as before.
+#[test]
+fn a_resolved_claim_stays_resolved_while_the_claim_is_unchanged() {
+    let t = checker("says_nothing");
+    let dir = filled("stable-claim", &t);
+    let paths = Paths::new(&dir);
+    verify::run(&paths, &judge(&t)).unwrap();
+    let front_id = claim_id(FRONT);
+    let before = decision(&dir, &front_id).unwrap();
+
+    write_canonical(
+        &paths.resolutions(),
+        &json!({"resolutions": [{"id": front_id, "inputs_sha256": before["inputs_sha256"],
+                                 "option": "accept", "by": "owner", "at": "2026-09-24"}]}),
+    )
+    .unwrap();
+    let list = reconcile(&paths).unwrap();
+    assert_eq!(
+        list.iter().find(|d| d.id == front_id).unwrap().status,
+        Status::Resolved
+    );
+
+    // Bump select.json's bytes with a field unrelated to FRONT's claim; its
+    // own sidecar entry (provenance.json) is untouched.
+    let select_path = dir.join("select.json");
+    let mut select_value = read_json(&select_path).unwrap();
+    select_value["body"]["note"] = json!("an unrelated bump");
+    write_canonical(&select_path, &select_value).unwrap();
+
+    verify::run(&paths, &judge(&t)).unwrap();
+    let after = decision(&dir, &front_id).unwrap();
+    assert_eq!(
+        after["inputs_sha256"], before["inputs_sha256"],
+        "an unrelated select.json change must not change the claim's own key"
+    );
+    assert_eq!(
+        after["status"], "resolved",
+        "a resolved claim must stay resolved while its own claim is unchanged: {after}"
+    );
+
+    // Now the claim's own cited sentence changes (a real select rerun would
+    // touch both the sidecar entry and select.json's bytes together).
+    let sidecar_path = paths.sidecar();
+    let mut sidecar_value = read_json(&sidecar_path).unwrap();
+    sidecar_value["entries"][FRONT]["span"] = json!("a different sentence entirely");
+    write_canonical(&sidecar_path, &sidecar_value).unwrap();
+    select_value["body"]["note"] = json!("a second unrelated bump");
+    write_canonical(&select_path, &select_value).unwrap();
+
+    verify::run(&paths, &judge(&t)).unwrap();
+    let voided = decision(&dir, &front_id).unwrap();
+    assert_eq!(
+        voided["status"], "open",
+        "a changed cited sentence must void the resolution: {voided}"
+    );
+}
+
 /// R4: `drop-value` takes the flagged value out of the packet, and the
 /// field, which the table requires, is filed `requirements-unmet` again.
 #[test]

@@ -6,12 +6,18 @@
 //! is asked whether that sentence describes the level instead (fn-128), and
 //! a sentence that does not files a claim decision. Every claim decision is
 //! keyed by its value's pointer and acts: select consumes `drop-value` and
-//! `replace-source` (fn-131).
+//! `replace-source` (fn-131). A decision's `inputs_sha256` is a checksum
+//! over the claim itself - its pointer, the selected value, the source id
+//! and the cited sentence - never the whole packet, so a rerun that leaves
+//! the claim unchanged files the same key and a person's resolution stays
+//! bound; a changed value, source or sentence still voids it (fn-141).
+
+use std::collections::BTreeMap;
 
 use serde_json::{json, Value};
 
 use crate::cite::{cite, ResearchClaim, SourceLoad};
-use crate::pipeline::canon::read_json;
+use crate::pipeline::canon::{canonical_sha256, read_json};
 use crate::pipeline::decision::{append_decisions, retire_unfiled, Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::requirements::table;
@@ -82,7 +88,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
             decisions.push(Decision::new(
                 DecisionParts { species, stage: STAGE, kind, field: Some(pointer), age_years: None },
                 &["generate"],
-                [("select.json".to_string(), select_sha.clone())].into_iter().collect(),
+                entry_claim_inputs(pointer, entry),
                 vec![row.identity.clone()],
                 json!({"claim": row.claim, "section": row.section, "relation": row.relation, "reason": row.reason,
                        "pointer": pointer, "source": entry["source"], "span": entry["span"]}),
@@ -111,12 +117,20 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
         header.ledger.push(judgment.reference.clone());
         obligations.push(json!({"obligation": "inspected_image", "reference": reference["id"], "held": held, "ledger": judgment.reference}));
         if !held {
+            let reference_id = reference["id"].as_str().unwrap_or("");
+            let observation = reference["observation"].as_str().unwrap_or("");
+            let asset = reference["asset_sha256"].as_str().unwrap_or("");
             decisions.push(unmet(
                 species,
                 "inspected_image",
-                reference["id"].as_str().unwrap_or(""),
+                reference_id,
                 &judgment.reference,
-                &select_sha,
+                claim_key(&[
+                    ("pointer", reference_id),
+                    ("value", observation),
+                    ("source", asset),
+                    ("sentence", observation),
+                ]),
             ));
         }
     }
@@ -136,9 +150,15 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
             continue;
         }
         decisions.push(if obligation == SUPPORTED {
-            unsupported(species, pointer, entry, &reference, &select_sha)
+            unsupported(species, pointer, entry, &reference)
         } else {
-            unmet(species, obligation, pointer, &reference, &select_sha)
+            unmet(
+                species,
+                obligation,
+                pointer,
+                &reference,
+                entry_claim_inputs(pointer, entry),
+            )
         });
     }
 
@@ -153,7 +173,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
                 age_years: None,
             },
             &["generate"],
-            [("select.json".to_string(), select_sha.clone())]
+            [("claim".to_string(), canonical_sha256(failure))]
                 .into_iter()
                 .collect(),
             vec![],
@@ -248,13 +268,7 @@ fn supported(judge: &Judge<'_>, pointer: &str, entry: &Value) -> Result<Checked,
 
 /// A claim decision on an appearance value whose sentence does not describe
 /// its level.
-fn unsupported(
-    species: &str,
-    pointer: &str,
-    entry: &Value,
-    ledger: &str,
-    select_sha: &str,
-) -> Decision {
+fn unsupported(species: &str, pointer: &str, entry: &Value, ledger: &str) -> Decision {
     Decision::new(
         DecisionParts {
             species,
@@ -264,9 +278,7 @@ fn unsupported(
             age_years: None,
         },
         &["generate"],
-        [("select.json".to_string(), select_sha.to_string())]
-            .into_iter()
-            .collect(),
+        entry_claim_inputs(pointer, entry),
         vec![ledger.to_string()],
         json!({"value": pointer, "level": entry["level"], "sentence": entry["span"], "source": entry["source"],
                "pointer": pointer, "span": entry["span"]}),
@@ -345,7 +357,13 @@ fn excerpt_for(ctx: &Context, source_id: &str, record: &Value, entry: &Value) ->
     Some(text[start..end].to_string())
 }
 
-fn unmet(species: &str, obligation: &str, value: &str, ledger: &str, select_sha: &str) -> Decision {
+fn unmet(
+    species: &str,
+    obligation: &str,
+    value: &str,
+    ledger: &str,
+    inputs: BTreeMap<String, String>,
+) -> Decision {
     Decision::new(
         DecisionParts {
             species,
@@ -355,14 +373,47 @@ fn unmet(species: &str, obligation: &str, value: &str, ledger: &str, select_sha:
             age_years: None,
         },
         &["generate"],
-        [("select.json".to_string(), select_sha.to_string())]
-            .into_iter()
-            .collect(),
+        inputs,
         vec![ledger.to_string()],
         json!({"obligation": obligation, "value": value}),
         &["accept", "replace-reference", "drop-value"],
         "Jev judged this semantic obligation unmet.",
     )
+}
+
+/// Keys a claim decision on the claim itself, not the whole packet, so a
+/// rerun that leaves it unchanged files the same key and a resolution stays
+/// bound; a changed part voids it (fn-141).
+fn claim_key(parts: &[(&str, &str)]) -> BTreeMap<String, String> {
+    let claim: serde_json::Map<String, Value> = parts
+        .iter()
+        .map(|(k, v)| (k.to_string(), json!(v)))
+        .collect();
+    [("claim".to_string(), canonical_sha256(&Value::Object(claim)))]
+        .into_iter()
+        .collect()
+}
+
+/// A sidecar entry's claim: its pointer, the selected value (an appearance
+/// level, or a measured value's span as the range it states), the source id,
+/// and the cited sentence - the sentence field, or the span when the entry
+/// carries no separate one, as the appearance route does not.
+fn entry_claim_inputs(pointer: &str, entry: &Value) -> BTreeMap<String, String> {
+    let value = entry["level"]
+        .as_str()
+        .or_else(|| entry["span"].as_str())
+        .unwrap_or_default();
+    let sentence = entry["sentence"]
+        .as_str()
+        .or_else(|| entry["span"].as_str())
+        .unwrap_or_default();
+    let source = entry["source"].as_str().unwrap_or_default();
+    claim_key(&[
+        ("pointer", pointer),
+        ("value", value),
+        ("source", source),
+        ("sentence", sentence),
+    ])
 }
 
 /// Provenance on every filled value, an asset hash on every inspected image,

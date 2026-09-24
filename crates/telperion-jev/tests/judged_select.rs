@@ -348,3 +348,37 @@ fn a_sufficiency_level_is_the_most_probable_one() {
     assert_eq!(fields["frond_length_m"]["level"], "none", "{fields}");
     assert_eq!(fields["frond_length_m"]["passed"], false);
 }
+
+/// R1: a references file already holding the palm's recorded shots keeps
+/// them byte for byte after a select rerun whose sources differ from what
+/// the file held before - fn-80's fourth tuning revision overwrote three
+/// recorded shots with an empty list on a 2026-09-23 stage rerun.
+#[test]
+fn a_select_rerun_keeps_the_recorded_references_and_only_rewrites_sources() {
+    let dir = palm("keeps-references");
+    let recorded = json!([
+        {"id": "P-WHOLE", "source_id": "R1", "kind": "real", "shot": {"camera": {"azimuth": 20}}},
+        {"id": "P-TRUNK", "source_id": "R1", "kind": "real", "shot": {"camera": {"azimuth": 0}}},
+        {"id": "P-BASE", "source_id": "R2", "kind": "real", "shot": {"camera": {"azimuth": 340}}},
+    ]);
+    let stale_sources = json!([
+        {"id": "OLD", "url": "https://example.test/old", "attribution": "old", "verified": "pipeline", "use": "cited"}
+    ]);
+    write_canonical(
+        &dir.join("packet").join("references.json"),
+        &json!({"reference_version": "fn19-references-v1", "sources": stale_sources, "references": recorded}),
+    )
+    .unwrap();
+    let palm = Palm::new(frond_from_f1);
+    quality_then_select(&dir, &palm);
+    let after = read_json(&dir.join("packet").join("references.json")).unwrap();
+    assert_eq!(after["references"], recorded, "{after}");
+    assert_ne!(after["sources"], stale_sources, "{after}");
+    let sources: Vec<&str> = after["sources"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|s| s["id"].as_str().unwrap())
+        .collect();
+    assert_eq!(sources, vec!["A1", "F1", "M1", "P4", "P5"]);
+}
