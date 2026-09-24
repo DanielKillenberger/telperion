@@ -15,9 +15,11 @@
 pub mod cases;
 pub mod cli;
 pub mod dependency;
+pub mod derive;
 pub mod dispatch;
 pub mod gapcheck;
 pub mod handoff;
+pub mod overlay;
 pub mod packet;
 pub mod plan;
 pub mod policy;

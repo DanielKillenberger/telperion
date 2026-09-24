@@ -148,6 +148,42 @@ handoff by content hash as the design revision; verified implementation
 waits on the host's landing authority, which `land --commit` records, and a
 landing reruns the affected stages and the next tuning revision.
 
+## The tree tuning starts from
+
+A species' first tuned tree starts from its sourced profile (fn-135). Before
+a tuning revision starts, and so again after the literature has changed the
+profile, the conductor derives wire values from `DIR/packet/profile.json`
+(the profile whose id is the tuning config's `profile_id`) and writes them
+into the tuning config's `initial_overrides`. A revision already under way
+(its `run.json` exists) keeps the overlay it started from, because its
+resume refuses a changed baseline. A species folder with no profile derives
+nothing and leaves the config alone.
+
+The derivation is code over `crates/telperion-jev/data/profile-to-preset.json`,
+which names no species. Every appearance range keyed by a material field
+sets `/material/<field>` to its middle. Each metric then goes through the
+table's rows whose condition the family meets, the family being the preset
+with the manual entries laid over it: `midpoint` takes a range's middle,
+`identity` a single stated value, `ratio` a middle times a factor over
+another metric's middle or a family value. Height reaches the envelope
+height, half the trunk diameter over the height the trunk radius, crown
+width over twice the height the envelope spread (no rosette), frond length
+the rachis (a rosette), and leaflet or leaf sizes the element over the
+canopy size. Each value is clamped to its dial in `data/dials.json`.
+
+`TUNING.derived.json` beside the tuning config records every value with its
+profile entry, citations, formula and any clamp, every profile entry left
+out and why, and the manual entries. A manual entry wins: an entry counts as
+derived only while it holds the value the last provenance recorded for it,
+so an edited or added entry is the person's and stays. The same inputs write
+the same bytes. Shipping tuned values into the preset stays the species
+spec's last step.
+
+The same step makes each gating metric of the tuning profile (the tuning
+config's `profiles`) that `species_measure` cannot read contextual, so it
+reports and never fails an evaluation; the list is `derive::MEASURED`, and a
+test checks each of its names against the measurer's source.
+
 ## Gaps, pauses and resume
 
 Every tuning revision ends with `result.json`; the conductor checks each

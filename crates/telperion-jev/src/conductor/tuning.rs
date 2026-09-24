@@ -102,12 +102,22 @@ pub fn tune(
         }
     }
     let out = config.tuning_dir(revision);
+    // A revision starts from the sourced profile's values; one already
+    // under way keeps the overlay it started from, as its resume requires.
+    let derived = match out.join("run.json").exists() || ended(&out)? {
+        true => None,
+        false => super::overlay::refresh(config)?,
+    };
     let ran = if ended(&out)? {
         Ok(())
     } else {
         executor.tune(config, revision, focus, &out, None)
     };
-    settle(config, run, revision, out, ran)
+    let settled = settle(config, run, revision, out, ran)?;
+    Ok(match derived {
+        Some(words) => format!("{words}\n{settled}"),
+        None => settled,
+    })
 }
 
 /// Resumes from the decision file. On a carried tuning pause the conductor's

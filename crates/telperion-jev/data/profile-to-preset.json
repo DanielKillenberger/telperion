@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "meaning": "How a sourced profile becomes the tree a species' tuning starts from (fn-135). Each row maps one profile metric to one wire path through a code-owned formula: midpoint takes a range's middle, identity a single stated value, ratio a metric's middle times factor over another metric's middle or a value of the family's own. A row's condition reads the family's values only; no row names a species. Every appearance range keyed by a material field sets /material/<field> to its middle without a row. Code clamps each value to its dial's range in data/dials.json.",
+  "rows": [
+    {
+      "metric": "height_m",
+      "path": "/skeleton/envelope/height",
+      "formula": "midpoint",
+      "basis": "the envelope height is the tree's height in metres"
+    },
+    {
+      "metric": "dbh_m",
+      "path": "/radii/trunkRadius",
+      "formula": "ratio",
+      "factor": 0.5,
+      "over": {"metric": "height_m"},
+      "basis": "the trunk radius is a share of the height; half the diameter at breast height stands in for the radius at the ground"
+    },
+    {
+      "metric": "crown_width_m",
+      "path": "/skeleton/envelope/spread",
+      "formula": "ratio",
+      "factor": 0.5,
+      "over": {"metric": "height_m"},
+      "when": {"path": "/canopy/rosetteFronds", "at_most": 0},
+      "basis": "spread is the crown's widest radius as a share of the height; a rosette's width is its fronds', not the envelope's"
+    },
+    {
+      "metric": "frond_length_m",
+      "path": "/canopy/rachisLength",
+      "formula": "midpoint",
+      "when": {"path": "/canopy/rosetteFronds", "above": 0},
+      "basis": "the rachis is the metres of frond the leaflets are strung along"
+    },
+    {
+      "metric": "leaflet_length_m",
+      "path": "/element/length",
+      "formula": "ratio",
+      "over": {"family": "/canopy/size"},
+      "when": {"path": "/canopy/leafletCount", "above": 1},
+      "basis": "a leaflet is the element, drawn at the canopy size times its own length"
+    },
+    {
+      "metric": "leaflet_width_m",
+      "path": "/element/width",
+      "formula": "ratio",
+      "over": {"family": "/canopy/size"},
+      "when": {"path": "/canopy/leafletCount", "above": 1},
+      "basis": "a leaflet is the element, drawn at the canopy size times its own width"
+    },
+    {
+      "metric": "foliage_length_m",
+      "path": "/element/length",
+      "formula": "ratio",
+      "over": {"family": "/canopy/size"},
+      "when": {"path": "/canopy/leafletCount", "at_most": 1},
+      "basis": "a simple leaf is the element, drawn at the canopy size times its own length"
+    },
+    {
+      "metric": "foliage_width_m",
+      "path": "/element/width",
+      "formula": "ratio",
+      "over": {"family": "/canopy/size"},
+      "when": {"path": "/canopy/leafletCount", "at_most": 1},
+      "basis": "a simple leaf is the element, drawn at the canopy size times its own width"
+    }
+  ]
+}
