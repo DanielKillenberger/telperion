@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-102-one-build-pipeline-in-place-of-the",
   "spec_path": ".flow/tasks/fn-102-one-build-pipeline-in-place-of-the.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement One build pipeline in place of the copied chains",
   "updated_at": "2026-09-23T16:50:58.607462Z"
 }

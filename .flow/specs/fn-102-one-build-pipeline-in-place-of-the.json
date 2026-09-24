@@ -72,7 +72,7 @@
     "impl:fn-102-one-build-pipeline-in-place-of-the.1": 0
   },
   "spec_path": ".flow/specs/fn-102-one-build-pipeline-in-place-of-the.md",
-  "status": "open",
+  "status": "done",
   "title": "One build pipeline in place of the copied chains",
   "tracker": {
     "baseHashFlow": null,
@@ -85,5 +85,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-23T18:50:38.774355Z"
+  "updated_at": "2026-09-24T07:23:13.029056Z"
 }
