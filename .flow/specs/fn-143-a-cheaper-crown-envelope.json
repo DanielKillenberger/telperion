@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-143-a-cheaper-crown-envelope",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-09-24T17:28:24.693732Z",
   "created_at": "2026-09-24T15:21:08.882494Z",
   "default_impl": null,
   "default_review": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-24T16:17:20.318506Z"
+  "updated_at": "2026-09-24T17:28:24.693740Z"
 }
