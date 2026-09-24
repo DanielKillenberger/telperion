@@ -1,0 +1,347 @@
+{
+  "cases": [
+    {
+      "expected_ready": false,
+      "id": "beech-negative",
+      "provenance": "fn-68 blinded beech negative; owner rejected round22 for a regular outline and insufficient leaf-weight droop",
+      "request": {
+        "comparison": {
+          "checklist": "Review all supplied views jointly for believable reference character at the catalogue finish floor. Rank the largest grounded gaps; distinguish visible observations, uncertain causal hypotheses, acceptable variation and optional refinement. Compare cross-view constraints without assuming photographs show the same specimen or a causal change. Assess only supported required conclusions; missing, clipped or ambiguous evidence means unknown. No photographic pixel matching or photorealism requirement.",
+          "identity": "beech-round22-4e6d903c-seed1-whole",
+          "images": [
+            {
+              "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/blind-transport/render-0.png",
+              "seed": 1,
+              "sha256": "7e69fda3e95b317fcb9d89e15e32179c54fdd316a57d1c3223d6e26639b8b490",
+              "view": "B-WHOLE"
+            }
+          ],
+          "joint": {
+            "inputs": [
+              {
+                "condition": "historical_reconstructed_still",
+                "framing": "clipped",
+                "geometry_group": "beech-round22-4e6d903c-seed1-whole:seed:1",
+                "id": "render-0",
+                "render_identity": "beech-round22-4e6d903c-seed1-whole",
+                "role": "render",
+                "seed": 1,
+                "sha256": "7e69fda3e95b317fcb9d89e15e32179c54fdd316a57d1c3223d6e26639b8b490",
+                "view": "B-WHOLE",
+                "visibility": "shown"
+              },
+              {
+                "condition": "unknown",
+                "framing": "unknown",
+                "geometry_group": null,
+                "id": "reference-0",
+                "render_identity": null,
+                "role": "reference",
+                "seed": 1,
+                "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+                "view": "B-WHOLE",
+                "visibility": "unknown"
+              },
+              {
+                "condition": "unknown",
+                "framing": "unknown",
+                "geometry_group": null,
+                "id": "reference-1",
+                "render_identity": null,
+                "role": "reference",
+                "seed": 1,
+                "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+                "view": "B-BARE",
+                "visibility": "unknown"
+              },
+              {
+                "condition": "unknown",
+                "framing": "unknown",
+                "geometry_group": null,
+                "id": "reference-2",
+                "render_identity": null,
+                "role": "reference",
+                "seed": 1,
+                "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+                "view": "B-BASE",
+                "visibility": "unknown"
+              },
+              {
+                "condition": "unknown",
+                "framing": "unknown",
+                "geometry_group": null,
+                "id": "anchor-0",
+                "render_identity": null,
+                "role": "anchor",
+                "seed": 1,
+                "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+                "view": "whole",
+                "visibility": "unknown"
+              }
+            ],
+            "reference_relation": "unknown",
+            "relation_source": null,
+            "shot_source": {
+              "excerpt": "\"references\"",
+              "path": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/assets/beech-references-4e6d903c.json",
+              "sha256": "152c1ed99c9dd426977f127c36dfe888186de8de6286d882fa7bfd677898a8c0"
+            }
+          },
+          "quality_anchors": [
+            {
+              "image": {
+                "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn9/final/preview/norway-spruce-1-whole.png",
+                "seed": 1,
+                "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+                "view": "whole"
+              },
+              "provenance": "established catalogue anchor image sha256:8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+              "scope": "finish/style only; not species morphology"
+            }
+          ],
+          "references": [
+            {
+              "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg",
+              "seed": 1,
+              "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+              "view": "B-WHOLE"
+            },
+            {
+              "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg",
+              "seed": 1,
+              "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+              "view": "B-BARE"
+            },
+            {
+              "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg",
+              "seed": 1,
+              "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+              "view": "B-BASE"
+            }
+          ],
+          "required": [
+            {
+              "item": "reference_character",
+              "seed": 1,
+              "view": "B-WHOLE"
+            }
+          ],
+          "schema": "tuning-vision-v3",
+          "target_species": "european-beech"
+        },
+        "inventory": {
+          "effort": "medium",
+          "ledger": ".flow/evidence/fn-80-the-gap-loops-first-live-run/vision-ledger/18d7ad738630a31d-1752ec-0.json#sha256:6b113fad69601283f40288dcf05e8847ca728fa0dd51bcc302b8db46cf8be2dd",
+          "model": "opus",
+          "observations": [
+            "Three references supplied; reference-1 and reference-2 share one image file and checksum, differing only in declared view label.",
+            "reference-0 is a two-panel composite showing two leafed open-grown trees in summer; reference-1/2 is a two-panel composite showing a leafless tree in a park plus a close bark crop.",
+            "Strongest recognition signal across the set is the combination of smooth, unfissured, lichen-flecked grey bark with a short flared bole.",
+            "Second strongest is the dense low-skirted crown with near-horizontal layered limb tiers.",
+            "Winter silhouette contributes the fine twiggy periphery and clear scaffold-to-twig size hierarchy.",
+            "Leaf-level morphology (margin, venation, petiole, bud shape) is below the resolution of all supplied frames and is left uncertain.",
+            "Fruit, flowers, buds and autumn or marcescent foliage are absent from the references; no evidence recorded for them.",
+            "Backgrounds (buildings, fencing, playground, benches) are context only and were excluded from the morphology inventory.",
+            "No claim is made that any two frames show the same specimen, nor that any difference between frames reflects a change over time.",
+            "Causes of bark flecking and vertical streaking are listed as undetermined rather than attributed."
+          ],
+          "prompt_sha256": "b977396bce80653bb49b01ba0711ae5f59325eab09c2c5a681f87fff43ab3911",
+          "request": {
+            "protocol": "reference-first-v1",
+            "references": [
+              {
+                "id": "reference-0",
+                "image": {
+                  "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg",
+                  "seed": 1,
+                  "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+                  "view": "B-WHOLE"
+                }
+              },
+              {
+                "id": "reference-1",
+                "image": {
+                  "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg",
+                  "seed": 1,
+                  "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+                  "view": "B-BARE"
+                }
+              },
+              {
+                "id": "reference-2",
+                "image": {
+                  "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg",
+                  "seed": 1,
+                  "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+                  "view": "B-BASE"
+                }
+              }
+            ],
+            "specimen_relationship": "unknown",
+            "target_species": "european-beech"
+          },
+          "request_sha256": "577e35ca56cdeab5590424f2a75725ed77c5f294a019fb6f1ee6ae0b560be6eb",
+          "traits": [
+            {
+              "id": "bark-smooth-unfissured-grey",
+              "observation": "Trunk bark is smooth and unfissured over its full visible height, mid-grey and matte, with no ridges, plates or peeling; surface relief is limited to faint shallow undulations and fine dark vertical striations. In the leafed and bare whole-tree views the bole reads as a uniform pale-to-mid grey column against darker surroundings.",
+              "priority": "core",
+              "reference_ids": [
+                "reference-2",
+                "reference-0",
+                "reference-1"
+              ],
+              "uncertain": false
+            },
+            {
+              "id": "bark-lichen-flecking",
+              "observation": "The smooth bark carries scattered, irregular pale whitish-green flecks and roundish patches of varying size (roughly a few millimetres to several centimetres across in apparent scale), densest in the mid-trunk field and giving a mottled, speckled appearance over the grey ground. Cause not determined from the image alone.",
+              "priority": "core",
+              "reference_ids": [
+                "reference-2"
+              ],
+              "uncertain": false
+            },
+            {
+              "id": "crown-dense-ovoid-to-conic",
+              "observation": "In leaf the crown is a single continuous dense mass, broadly ovoid with a somewhat conic to rounded upper outline and no visible internal sky gaps through the upper two-thirds; outline is bumpy/cauliflower-like rather than smooth.",
+              "priority": "core",
+              "reference_ids": [
+                "reference-0"
+              ],
+              "uncertain": false
+            },
+            {
+              "id": "crown-tall-relative-to-spread",
+              "observation": "Overall habit is a large single-stemmed tree with crown height noticeably greater than crown width in the left leafed view, and closer to roughly equal height and width in the right leafed view; both read as tall, heavy, broad-domed specimens.",
+              "priority": "core",
+              "reference_ids": [
+                "reference-0"
+              ],
+              "uncertain": false
+            },
+            {
+              "id": "foliage-to-low-skirt",
+              "observation": "Foliage-bearing branches descend very low on the trunk, with the lowest limbs sweeping outward and downward to near ground level and shading the turf beneath; only a short length of clear bole is exposed below the skirt.",
+              "priority": "core",
+              "reference_ids": [
+                "reference-0"
+              ],
+              "uncertain": false
+            },
+            {
+              "id": "branch-layered-horizontal-tiers",
+              "observation": "Lateral limbs leave the trunk at wide angles and run outward in near-horizontal tiers, the tier tips arching slightly downward; this produces visible stacked layers of foliage within the crown mass and a strongly horizontal texture along the crown edges.",
+              "priority": "core",
+              "reference_ids": [
+                "reference-0",
+                "reference-1"
+              ],
+              "uncertain": false
+            },
+            {
+              "id": "bole-short-with-basal-flare",
+              "observation": "The bole is stout and comparatively short before dividing into several large ascending scaffold limbs; at ground level it widens into a smooth buttressed flare with broad low root swellings spreading into the lawn.",
+              "priority": "core",
+              "reference_ids": [
+                "reference-0",
+                "reference-1"
+              ],
+              "uncertain": false
+            },
+            {
+              "id": "winter-fine-twiggy-periphery",
+              "observation": "In the leafless view the crown periphery is a fine, dense haze of very slender twigs, markedly finer than the scaffold limbs, producing a soft grey-brown cloud outline rather than a coarse open framework.",
+              "priority": "core",
+              "reference_ids": [
+                "reference-1"
+              ],
+              "uncertain": false
+            },
+            {
+              "id": "winter-branch-hierarchy",
+              "observation": "Bare silhouette shows a clear size hierarchy: a few heavy ascending scaffold limbs from the low bole, dividing repeatedly into progressively thinner sub-branches, with lower limbs angled outward and near-horizontal and upper ones steeply ascending.",
+              "priority": "secondary",
+              "reference_ids": [
+                "reference-1"
+              ],
+              "uncertain": false
+            },
+            {
+              "id": "foliage-mid-green-glossy",
+              "observation": "Leaf mass reads as mid to deep green with a slight sheen, with lighter yellow-green highlight zones on sun-facing outer foliage and deep shadowed interiors; no marked blue or grey cast.",
+              "priority": "secondary",
+              "reference_ids": [
+                "reference-0"
+              ],
+              "uncertain": false
+            },
+            {
+              "id": "leaf-small-dense-shingled",
+              "observation": "Individual leaves are not resolvable, but foliage granularity indicates small to medium simple leaves borne densely and flatly along the twigs, forming overlapping sprays along the horizontal branchlets rather than tufted or needle-like clusters.",
+              "priority": "secondary",
+              "reference_ids": [
+                "reference-0"
+              ],
+              "uncertain": true
+            },
+            {
+              "id": "leaf-margin-venation",
+              "observation": "Leaf margin form, venation pattern and petiole detail are not visible at the image scale supplied; no evidence available.",
+              "priority": "secondary",
+              "reference_ids": [
+                "reference-0"
+              ],
+              "uncertain": true
+            },
+            {
+              "id": "trunk-dark-vertical-streaking",
+              "observation": "Faint darker vertical streaks and short thin scratch-like lines run down the smooth bark field; their origin (moisture staining, surface marking, or other) is not determinable.",
+              "priority": "secondary",
+              "reference_ids": [
+                "reference-2"
+              ],
+              "uncertain": true
+            },
+            {
+              "id": "crown-interior-visible-limbs",
+              "observation": "Degree to which interior scaffold limbs show through the leafed crown varies between the two leafed views: the left is almost fully opaque, the right shows dark limb segments and small sky gaps in the lower and mid crown.",
+              "priority": "variation",
+              "reference_ids": [
+                "reference-0"
+              ],
+              "uncertain": false
+            },
+            {
+              "id": "habit-open-grown-context",
+              "observation": "All views show open-grown landscape settings (mown lawn, path, building, fence, playground equipment) with unrestricted lateral room; a forest-grown narrow-crowned expression is not represented in the supplied references.",
+              "priority": "variation",
+              "reference_ids": [
+                "reference-0",
+                "reference-1"
+              ],
+              "uncertain": false
+            },
+            {
+              "id": "reference-view-redundancy",
+              "observation": "reference-1 and reference-2 are supplied as different views (B-BARE, B-BASE) of the same image file and share a checksum; the bare-crown panel and the bark close-up panel appear side by side within that single frame. Whether any two references depict the same individual tree is not determinable.",
+              "priority": "variation",
+              "reference_ids": [
+                "reference-1",
+                "reference-2",
+                "reference-0"
+              ],
+              "uncertain": true
+            }
+          ]
+        },
+        "prompt_sha256": "41ce0317d48d66c48f27d90ac1b32c243e3040b9e4e995bf9fe78793a495333b",
+        "protocol": "reference-first-comparison-v2"
+      }
+    }
+  ],
+  "effort": "medium",
+  "model": "opus",
+  "protocol_sha256": "9db1c78eaa4cfa1496b2d173845f64cb21abe517917d536183dd99b03f3dec28",
+  "schema": "reference-first-replay-v1"
+}

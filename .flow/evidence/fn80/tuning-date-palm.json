@@ -3802,7 +3802,7 @@
   "vision_protocol": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/scripts/reference-first-claude.py",
   "visual_bootstrap": true,
   "visual_validation": {
-    "manifest": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.flow/evidence/fn80/opus-replay/replay-negatives-v2.json",
-    "result": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.flow/evidence/fn80/opus-replay/replay-result-negatives-v2.json"
+    "manifest": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.flow/evidence/fn80/opus-replay/replay-negatives-v3.json",
+    "result": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.flow/evidence/fn80/opus-replay/replay-result-negatives-v3.json"
   }
 }

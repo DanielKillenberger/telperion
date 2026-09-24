@@ -1,0 +1,16 @@
+{
+ "pause_id": "18d84f7521e16389-141533-c0",
+ "identity": "07c5ad09a199958a53d37b0b572029aeb1b1320578ef40f831a55757e359e853",
+ "action": "reassess or diagnose",
+ "by": "host (fn-80 conductor session)",
+ "rationale": "The receipt refused a paid reviewer answer because it held 16 findings and the receipt's own core-coverage-gate finding made 17. fn-80 amendment a4b3d056 makes the receipt repair a tidiness violation once, then trim and record, and reserves room for the gate finding; trust violations still refuse. Recover the attempt and continue on the same inputs. The rebuilt tuning binary changes the run identity, so the run moves to the new identity.",
+ "recover_interrupted": true,
+ "preserve_evidence": false,
+ "experimental_pilot": {
+  "visual_bootstrap": true,
+  "purpose": "fourth tuning revision of the date palm (fn-82) through the conductor (fn-80): sourced starting values, every drawable trait an objective, the date cluster a known gap",
+  "reason": "magnitude and gap-magnitude live efficacy unvalidated; the owner asked for the Opus reviewer and dropped run caps while the loop is built",
+  "next_identity": "ef5761478893b72dcf19c3c7d244ec0b90c7f5a9e2e1091170abf74040c85184"
+ },
+ "next_identity": "ef5761478893b72dcf19c3c7d244ec0b90c7f5a9e2e1091170abf74040c85184"
+}
