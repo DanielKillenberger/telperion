@@ -1,0 +1,16 @@
+{
+ "pause_id": "18d85943e039a75a-1d3663-3",
+ "identity": "7a440d8a1c8d15f6526b4a7ffdadfe9d68e6cc7856923a9fce71f4a340619c0b",
+ "action": "authorize bounded experimental pilot",
+ "by": "host (fn-80 conductor session)",
+ "rationale": "Revision 2 restarted from revision 1's final overlay (manual initial_overrides) instead of the sourced starting values, so the crown, trunk and frond gains of revision 1's 33 adoptions carry into the run that tunes the new lattice. Pilot authority as in revision 1: Opus reviewer under bootstrap, no run caps (owner).",
+ "next_identity": "7a440d8a1c8d15f6526b4a7ffdadfe9d68e6cc7856923a9fce71f4a340619c0b",
+ "recover_interrupted": false,
+ "preserve_evidence": false,
+ "experimental_pilot": {
+  "visual_bootstrap": true,
+  "purpose": "date palm tuning revision 2 through the conductor (fn-80): starts from revision 1's final values; fn-144's leaf-base lattice and fn-120's skirt dials join the table",
+  "reason": "magnitude and gap-magnitude live efficacy unvalidated; the owner asked for the Opus reviewer and dropped run caps while the loop is built",
+  "next_identity": "7a440d8a1c8d15f6526b4a7ffdadfe9d68e6cc7856923a9fce71f4a340619c0b"
+ }
+}

@@ -1,7 +1,7 @@
 {
   "adjustments": {
-    "manifest": ".flow/tmp/fn80-palm/recal2/magnitude.json",
-    "result": ".flow/tmp/fn80-palm/recal2/magnitude-result.json"
+    "manifest": ".flow/tmp/fn80-palm/recal3/magnitude.json",
+    "result": ".flow/tmp/fn80-palm/recal3/magnitude-result.json"
   },
   "budget": {
     "evaluations": 0,
@@ -18,8 +18,8 @@
   ],
   "checklist": "Recognizable mature date palm (Phoenix dactylifera) at established catalogue rendering quality, not photorealism. Whole: a single unbranched trunk carrying a rosette of arching pinnate fronds at the apex, the lower fronds drooping below the crown base, no branches, no foliage on the trunk. Trunk: the trunk clothed in retained leaf bases in a spiral from the crown down (not yet expressed by the generator; assess what is drawn, never invent it). Base: the leaf-base pattern at close range (same caveat). Photographs establish species character; the independent spruce anchor establishes finish quality only, never morphology. Additional realism optional. Unassessable cells unknown.",
   "continuation": {
-    "manifest": ".flow/tmp/fn80-palm/recal2/continuation.json",
-    "result": ".flow/tmp/fn80-palm/recal2/continuation-result.json"
+    "manifest": ".flow/tmp/fn80-palm/recal3/continuation.json",
+    "result": ".flow/tmp/fn80-palm/recal3/continuation-result.json"
   },
   "convergence_run": null,
   "dials": [
@@ -213,10 +213,10 @@
       "max": 2.925,
       "meaning": "metres between lateral stations away from the leader",
       "meaning_basis": "doc comment",
-      "min": 1e-06,
+      "min": 1e-6,
       "path": "/skeleton/habit/lateralSpacing",
       "preset_span": [
-        1e-06,
+        1e-6,
         2.925
       ],
       "range_basis": "capped",
@@ -372,10 +372,10 @@
       "max": 0.0325,
       "meaning": "the metres of stalk below the blade",
       "meaning_basis": "doc comment",
-      "min": 1e-06,
+      "min": 1e-6,
       "path": "/element/connectorLength",
       "preset_span": [
-        1e-06,
+        1e-6,
         0.0325
       ],
       "range_basis": "capped",
@@ -650,7 +650,7 @@
       "max": 1000000.0,
       "meaning": "the finished thickness of a twig, in metres",
       "meaning_basis": "doc comment",
-      "min": 1e-06,
+      "min": 1e-6,
       "path": "/skeleton/twigs/twig/diameter",
       "preset_span": [
         0.0005,
@@ -669,7 +669,7 @@
       "max": 1000000.0,
       "meaning": "the metres a twig shoot grows before it stops",
       "meaning_basis": "doc comment",
-      "min": 1e-06,
+      "min": 1e-6,
       "path": "/skeleton/twigs/twig/length",
       "preset_span": [
         0.15,
@@ -688,10 +688,10 @@
       "max": 1000000.0,
       "meaning": "metres between the joints on wood thicker than the bearing diameter",
       "meaning_basis": "doc comment",
-      "min": 1e-06,
+      "min": 1e-6,
       "path": "/skeleton/twigs/twig/internodeLength",
       "preset_span": [
-        1e-06,
+        1e-6,
         0.08875
       ],
       "range_basis": "validated bound",
@@ -726,7 +726,7 @@
       "max": 1000000.0,
       "meaning": "the thickness in metres at or below which a shoot bears leaves and side shoots",
       "meaning_basis": "doc comment",
-      "min": 1e-06,
+      "min": 1e-6,
       "path": "/skeleton/twigs/twig/bearingDiameter",
       "preset_span": [
         0.005,
@@ -1082,7 +1082,7 @@
       "max": 0.023,
       "meaning": "the trunk's radius at the ground as a share of the height",
       "meaning_basis": "doc comment",
-      "min": 4e-06,
+      "min": 4e-6,
       "path": "/radii/trunkRadius",
       "preset_span": [
         0.011,
@@ -3595,162 +3595,222 @@
       "substantial": 10
     },
     {
+      "group": "material",
       "id": "material_leaf_dead_red",
-      "path": "/material/leafDeadRed",
+      "integer": false,
+      "max": 1,
       "meaning": "the red in the colour a dead frond has aged to",
-      "min": 0,
-      "max": 1,
-      "integer": false,
-      "small": 0.05,
-      "substantial": 0.1,
-      "group": "material",
-      "score_visible": false,
       "meaning_basis": "doc comment",
+      "min": 0,
+      "path": "/material/leafDeadRed",
       "range_basis": "validated bound",
-      "source": "crates/telperion-core/src/material.rs:43"
+      "score_visible": false,
+      "small": 0.05,
+      "source": "crates/telperion-core/src/material.rs:43",
+      "substantial": 0.1
     },
     {
+      "group": "material",
       "id": "material_leaf_dead_green",
-      "path": "/material/leafDeadGreen",
+      "integer": false,
+      "max": 1,
       "meaning": "the green in the colour a dead frond has aged to",
-      "min": 0,
-      "max": 1,
-      "integer": false,
-      "small": 0.05,
-      "substantial": 0.1,
-      "group": "material",
-      "score_visible": false,
       "meaning_basis": "doc comment",
+      "min": 0,
+      "path": "/material/leafDeadGreen",
       "range_basis": "validated bound",
-      "source": "crates/telperion-core/src/material.rs:44"
+      "score_visible": false,
+      "small": 0.05,
+      "source": "crates/telperion-core/src/material.rs:44",
+      "substantial": 0.1
     },
     {
+      "group": "material",
       "id": "material_leaf_dead_blue",
-      "path": "/material/leafDeadBlue",
+      "integer": false,
+      "max": 1,
       "meaning": "the blue in the colour a dead frond has aged to",
+      "meaning_basis": "doc comment",
       "min": 0,
-      "max": 1,
-      "integer": false,
-      "small": 0.05,
-      "substantial": 0.1,
-      "group": "material",
+      "path": "/material/leafDeadBlue",
+      "range_basis": "validated bound",
       "score_visible": false,
-      "meaning_basis": "doc comment",
-      "range_basis": "validated bound",
-      "source": "crates/telperion-core/src/material.rs:45"
+      "small": 0.05,
+      "source": "crates/telperion-core/src/material.rs:45",
+      "substantial": 0.1
     },
     {
+      "group": "canopy",
       "id": "leaf_base_width",
-      "path": "/canopy/leafBaseWidth",
-      "meaning": "how broad a retained base is across the trunk as a share of the cell the crown's spiral gives it: 1 meets its neighbours edge to edge; at zero the base is a round peg and any rise packs the bases into the lattice",
-      "min": 0,
+      "integer": false,
       "max": 2,
-      "integer": false,
-      "small": 0.05,
-      "substantial": 0.2,
-      "group": "canopy",
-      "score_visible": true,
+      "meaning": "how broad a retained base is across the trunk as a share of the cell the crown's spiral gives it: 1 meets its neighbours edge to edge; at zero the base is a round peg and any rise packs the bases into the lattice",
       "meaning_basis": "doc comment",
+      "min": 0,
+      "path": "/canopy/leafBaseWidth",
       "range_basis": "validated bound",
-      "source": "crates/telperion-core/src/foliage/canopy.rs:176"
+      "score_visible": true,
+      "small": 0.05,
+      "source": "crates/telperion-core/src/foliage/canopy.rs:176",
+      "substantial": 0.2
     },
     {
+      "group": "canopy",
       "id": "leaf_base_flatness",
-      "path": "/canopy/leafBaseFlatness",
+      "integer": false,
+      "max": 1,
       "meaning": "how flat-sided a packed base is drawn: 1 the diamond cell with flat faces, cut square at its end; at zero the section stays round",
+      "meaning_basis": "doc comment",
       "min": 0,
-      "max": 1,
-      "integer": false,
+      "path": "/canopy/leafBaseFlatness",
+      "range_basis": "validated bound",
+      "score_visible": true,
       "small": 0.1,
-      "substantial": 0.25,
-      "group": "canopy",
-      "score_visible": true,
-      "meaning_basis": "doc comment",
-      "range_basis": "validated bound",
-      "source": "crates/telperion-core/src/foliage/canopy.rs:182"
+      "source": "crates/telperion-core/src/foliage/canopy.rs:182",
+      "substantial": 0.25
     },
     {
+      "group": "canopy",
       "id": "skirt_fronds",
-      "path": "/canopy/skirtFronds",
-      "meaning": "dead fronds a rosette keeps below its living crown; at zero none is kept",
-      "min": 0,
-      "max": 128,
       "integer": true,
+      "max": 128,
+      "meaning": "dead fronds a rosette keeps below its living crown; at zero none is kept",
+      "meaning_basis": "doc comment",
+      "min": 0,
+      "path": "/canopy/skirtFronds",
+      "range_basis": "validated bound",
+      "score_visible": true,
       "small": 2,
-      "substantial": 6,
-      "group": "canopy",
-      "score_visible": true,
-      "meaning_basis": "doc comment",
-      "range_basis": "validated bound",
-      "source": "crates/telperion-core/src/foliage/canopy.rs:192"
+      "source": "crates/telperion-core/src/foliage/canopy.rs:192",
+      "substantial": 6
     },
     {
+      "group": "canopy",
       "id": "skirt_pitch",
-      "path": "/canopy/skirtPitch",
-      "meaning": "degrees from the axis a dead frond hangs: 90 level, 180 collapsed against the stem",
-      "min": 0,
-      "max": 180,
       "integer": false,
-      "small": 5,
-      "substantial": 15,
-      "group": "canopy",
-      "score_visible": true,
+      "max": 180,
+      "meaning": "degrees from the axis a dead frond hangs: 90 level, 180 collapsed against the stem",
       "meaning_basis": "doc comment",
+      "min": 0,
+      "path": "/canopy/skirtPitch",
       "range_basis": "validated bound",
-      "source": "crates/telperion-core/src/foliage/canopy.rs:199"
+      "score_visible": true,
+      "small": 5,
+      "source": "crates/telperion-core/src/foliage/canopy.rs:199",
+      "substantial": 15
     },
     {
-      "id": "skirt_length",
-      "path": "/canopy/skirtLength",
-      "meaning": "a dead frond's length as a share of a living one's; at zero no dead frond is drawn",
-      "min": 0,
-      "max": 1,
-      "integer": false,
-      "small": 0.05,
-      "substantial": 0.15,
       "group": "canopy",
-      "score_visible": true,
+      "id": "skirt_length",
+      "integer": false,
+      "max": 1,
+      "meaning": "a dead frond's length as a share of a living one's; at zero no dead frond is drawn",
       "meaning_basis": "doc comment",
+      "min": 0,
+      "path": "/canopy/skirtLength",
       "range_basis": "validated bound",
-      "source": "crates/telperion-core/src/foliage/canopy.rs:206"
+      "score_visible": true,
+      "small": 0.05,
+      "source": "crates/telperion-core/src/foliage/canopy.rs:206",
+      "substantial": 0.15
     }
   ],
   "direction": {
-    "manifest": ".flow/tmp/fn80-palm/recal2/direction.json",
-    "result": ".flow/tmp/fn80-palm/recal2/direction-result.json"
+    "manifest": ".flow/tmp/fn80-palm/recal3/direction.json",
+    "result": ".flow/tmp/fn80-palm/recal3/direction-result.json"
   },
   "gap_specs": {},
   "initial_overrides": {
     "canopy": {
-      "rachisLength": 6.0
+      "leafBaseLength": 0.255,
+      "leafBaseRadius": 0.35000000000000003,
+      "leafBaseWeathering": 0.65,
+      "leafBases": 96,
+      "leafletCount": 113,
+      "rachisArch": -0.5000000000000001,
+      "rachisLength": 6.799999999999998,
+      "rosetteFronds": 42,
+      "rosettePitch": 12.5,
+      "rosettePitchSpread": 95.0,
+      "size": 2.05,
+      "upward": 0.22499999999999998
     },
     "element": {
-      "length": 0.45720000000000005,
-      "width": 0.02
+      "axialSegments": 13,
+      "length": 0.6197,
+      "sectionRoundness": 0.15,
+      "tipSharpness": 2.6,
+      "width": 0.07250000000000001
     },
     "material": {
-      "barkBlue": 0.21,
-      "barkGreen": 0.23500000000000001,
-      "barkRed": 0.25,
-      "barkRoughness": 0.9650000000000001,
-      "brightnessRangeHigh": 0.04,
+      "barkBlue": 0.13499999999999998,
+      "barkGreen": 0.1975,
+      "barkRed": 0.32499999999999996,
+      "barkRoughness": 0.7775000000000001,
+      "brightnessRangeHigh": 0.036250000000000004,
       "brightnessRangeLow": -0.04,
+      "crestRed": 0.043750000000000004,
+      "crestStrength": 0.22499999999999998,
+      "depthStrength": 0.075,
+      "fissureRed": 0.4375,
+      "fissureStrength": 0.3,
+      "furrowStrength": 0.85,
       "hueRangeHigh": 0.0275,
       "hueRangeLow": -0.0275,
-      "leafBackBlue": 0.11000000000000001,
-      "leafBackGreen": 0.16,
+      "leafBackBlue": 0.11625000000000002,
+      "leafBackGreen": 0.15375,
       "leafBackRed": 0.12,
-      "leafFrontBlue": 0.11000000000000001,
+      "leafFrontBlue": 0.11750000000000002,
       "leafFrontGreen": 0.16,
-      "leafFrontRed": 0.12
+      "leafFrontRed": 0.12,
+      "orientationRed": 0.03,
+      "orientationStrength": 0.22499999999999998,
+      "plateFurrowWidth": 0.0375,
+      "plateScale": 0.11249999999999999,
+      "ridgeScale": 0.01,
+      "weatheringRed": 0.00875,
+      "weatheringStrength": 0.3
     },
     "radii": {
-      "trunkRadius": 0.01
+      "lengthTaper": 0.05,
+      "trunkRadius": 0.013
     },
+    "shellDepth": 0.85,
     "skeleton": {
+      "bias": {
+        "gravitropism": 0.55,
+        "lean": 0.019999999999999997,
+        "supernatural": {
+          "writheWavelength": 0.35
+        }
+      },
       "envelope": {
-        "height": 22.86
+        "crownBase": 0.44999999999999996,
+        "height": 22.86,
+        "shoulder": 0.4500000000000002,
+        "spread": 0.09999999999999998
+      },
+      "habit": {
+        "apicalDominance": 0.85,
+        "attractorWeight": 0.625,
+        "crookedness": 1.5,
+        "lateralsPerStation": 1,
+        "riseSecondary": -0.75
+      },
+      "twigs": {
+        "curtainDrop": 0.15,
+        "curtainStepClearance": 0.7250000000000001,
+        "hang": 2.75,
+        "maxDroop": 8.6,
+        "pendulousLength": 2.75,
+        "sag": 0.7499999999999999,
+        "twig": {
+          "diameter": 0.007
+        }
       }
+    },
+    "surface": {
+      "flareRadius": 2.0
     }
   },
   "judgment_model": "jev-1.13.0",

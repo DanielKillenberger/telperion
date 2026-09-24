@@ -1,12 +1,12 @@
 {
- "pause_id": "18d7f84efddf22f5-55aba-14",
- "identity": "0b99151042d044ca75ff04d2567660b499960282886ced9280ddbae7600413ed",
+ "pause_id": "18d85959844588f8-1d3a75-15",
+ "identity": "7a440d8a1c8d15f6526b4a7ffdadfe9d68e6cc7856923a9fce71f4a340619c0b",
  "action": "approve gap priorities",
- "by": "host (fn-80 conductor session) relaying the owner's written priorities of 2026-09-22",
- "rationale": "The owner's priorities are unchanged from the first revision: the three written into the tuning config's owner_notes on 2026-09-22, recorded verbatim in the owner's order. The reviewer's top three (finding-0 crown, finding-1 leaflets, finding-2 wavy trunk) are answered by the first two. Nothing is added beyond the owner's words; the reviewer's other findings (leaf-base density, fibre, skirt, fruit) stay visible in the record. This chooses objectives only, never readiness or acceptance. The pilot authority is carried in the same decision.",
+ "by": "host (fn-80 conductor session) relaying the owner's priorities",
+ "rationale": "The objectives the owner approved for revision 1 (scope 869a92bc unchanged): the owner's four priorities, then the seven drawable traits the run proposed, in its order.",
  "preserve_evidence": true,
  "priority_approval": {
-  "checkpoint_sha256": "f3059e2239d8193e3a7fedbd6a7ee016369688ed727bfa135233c906fdff0606",
+  "checkpoint_sha256": "3c71dda9ba3b4925ed517397ddae4de6f2826ae25571412111af0a95846b0dee",
   "scope_sha256": "869a92bcf0fcd8d99411d6f339f9ac207ac2227c4e56a246e10a78cd130271b7",
   "ordered": [
    {
@@ -19,7 +19,8 @@
     ],
     "views": [
      "P-WHOLE"
-    ]
+    ],
+    "track": "structure"
    },
    {
     "id": "owner-trunk-straight-constant",
@@ -27,12 +28,12 @@
     "evidence_ids": [
      "render-0",
      "reference-0",
-     "reference-1",
-     "reference-2"
+     "reference-1"
     ],
     "views": [
      "P-WHOLE"
-    ]
+    ],
+    "track": "structure"
    },
    {
     "id": "owner-trunk-bare",
@@ -44,19 +45,123 @@
     ],
     "views": [
      "P-WHOLE"
-    ]
+    ],
+    "track": "structure"
+   },
+   {
+    "id": "owner-frond-colour",
+    "observation": "the fronds read blue-green to grey-green, as the sources and the photographs show",
+    "evidence_ids": [
+     "render-0",
+     "reference-0",
+     "reference-1"
+    ],
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "materials"
+   },
+   {
+    "evidence_ids": [
+     "render-0",
+     "reference-0",
+     "reference-1"
+    ],
+    "id": "crown-pinnate-arching-fronds",
+    "observation": "Crown composed of many long once-pinnate (feather) fronds radiating from a single apical point, each frond arching outward and downward so the outline of the crown reads as a rounded hemisphere to shuttlecock shape; frond count per crown appears high (roughly 30-60 visible), with the newest fronds held stiffly upward near the center and older ones progressively more recurved.",
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "structure"
+   },
+   {
+    "evidence_ids": [
+     "render-0",
+     "reference-0",
+     "reference-1",
+     "reference-2"
+    ],
+    "id": "leaflet-arrangement-stiff-narrow",
+    "observation": "Leaflets are narrow, stiff, linear-lanceolate and taper to sharp points; they are inserted along the rachis in groups and at differing angles so the frond has a plumose/V-sectioned look rather than a flat plane. Leaflet tips appear rigid and spreading, giving the frond margin a bristly silhouette.",
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "structure"
+   },
+   {
+    "evidence_ids": [
+     "render-0",
+     "reference-1",
+     "reference-2",
+     "reference-0"
+    ],
+    "id": "trunk-leaf-base-diamond-pattern",
+    "observation": "Trunk surface is covered in persistent cut or broken leaf-base stubs arranged in a spiral, tessellating into a diamond/rhomboid lattice; each stub is a blunt wedge projecting several centimetres from the trunk with a flat, angular outer face. The pattern is coarse and irregular in reference-1/2 and reads as a finer knobbly texture at distance in reference-0.",
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "structure"
+   },
+   {
+    "evidence_ids": [
+     "render-0",
+     "reference-0",
+     "reference-1",
+     "reference-2"
+    ],
+    "id": "solitary-columnar-stem",
+    "observation": "A single unbranched columnar stem of roughly constant diameter carries the crown; no branching is visible anywhere along the stem in any reference.",
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "structure"
+   },
+   {
+    "evidence_ids": [
+     "render-0",
+     "reference-0"
+    ],
+    "id": "dead-frond-skirt",
+    "observation": "Beneath the living crown hangs a collar of dead and dying fronds, brown to grey, collapsed downward against the upper trunk and partly obscuring it; the transition from green living fronds to brown dead fronds is abrupt in reference-0.",
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "structure"
+   },
+   {
+    "evidence_ids": [
+     "render-0",
+     "reference-0",
+     "reference-1",
+     "reference-2"
+    ],
+    "id": "trunk-colour-and-weathering",
+    "observation": "Trunk colour ranges from mid grey-brown to warm reddish-brown; stub faces are lighter and greyer than the surrounding fibre, some bleached to pale grey, consistent with weathered exposed surfaces. Lower trunk in reference-0 reads more uniformly grey-brown with a finer texture than the coarse stubs shown close up.",
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "materials"
+   },
+   {
+    "evidence_ids": [
+     "render-0",
+     "reference-0"
+    ],
+    "id": "basal-flare",
+    "observation": "Where the trunk meets the ground in reference-0 it widens into a broad rooted base merging into the soil mound; no clear detail of root boss or offshoots is resolvable at this scale.",
+    "views": [
+     "P-WHOLE"
+    ],
+    "track": "structure"
    }
   ]
  },
+ "next_identity": "7a440d8a1c8d15f6526b4a7ffdadfe9d68e6cc7856923a9fce71f4a340619c0b",
+ "recover_interrupted": false,
  "experimental_pilot": {
   "visual_bootstrap": true,
-  "purpose": "second tuning revision of the date palm (fn-82) as the gap loop's live proof (fn-80): rosette and trunk organs, infructescence not landed",
-  "reason": "magnitude and gap-magnitude live efficacy unvalidated; the owner asked for the proper run with Opus as the visual reviewer and a 6 M total cap",
-  "next_identity": "0b99151042d044ca75ff04d2567660b499960282886ced9280ddbae7600413ed",
-  "max_tokens": 4000000,
-  "max_rounds": 24,
-  "max_evaluations": 120,
-  "max_images": 600,
-  "max_visual_passes": 60
+  "purpose": "date palm tuning revision 2 through the conductor (fn-80): starts from revision 1's final values; fn-144's leaf-base lattice and fn-120's skirt dials join the table",
+  "reason": "magnitude and gap-magnitude live efficacy unvalidated; the owner asked for the Opus reviewer and dropped run caps while the loop is built",
+  "next_identity": "7a440d8a1c8d15f6526b4a7ffdadfe9d68e6cc7856923a9fce71f4a340619c0b"
  }
 }

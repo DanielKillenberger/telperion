@@ -1,13 +1,75 @@
 {
   "made_contextual": [],
-  "manual": [],
+  "manual": [
+    "/canopy/leafBaseLength",
+    "/canopy/leafBaseRadius",
+    "/canopy/leafBaseWeathering",
+    "/canopy/leafBases",
+    "/canopy/leafletCount",
+    "/canopy/rachisArch",
+    "/canopy/rachisLength",
+    "/canopy/rosetteFronds",
+    "/canopy/rosettePitch",
+    "/canopy/rosettePitchSpread",
+    "/canopy/size",
+    "/canopy/upward",
+    "/element/axialSegments",
+    "/element/length",
+    "/element/sectionRoundness",
+    "/element/tipSharpness",
+    "/element/width",
+    "/material/barkBlue",
+    "/material/barkGreen",
+    "/material/barkRed",
+    "/material/barkRoughness",
+    "/material/brightnessRangeHigh",
+    "/material/crestRed",
+    "/material/crestStrength",
+    "/material/depthStrength",
+    "/material/fissureRed",
+    "/material/fissureStrength",
+    "/material/furrowStrength",
+    "/material/leafBackBlue",
+    "/material/leafBackGreen",
+    "/material/leafFrontBlue",
+    "/material/orientationRed",
+    "/material/orientationStrength",
+    "/material/plateFurrowWidth",
+    "/material/plateScale",
+    "/material/ridgeScale",
+    "/material/weatheringRed",
+    "/material/weatheringStrength",
+    "/radii/lengthTaper",
+    "/radii/trunkRadius",
+    "/shellDepth",
+    "/skeleton/bias/gravitropism",
+    "/skeleton/bias/lean",
+    "/skeleton/bias/supernatural/writheWavelength",
+    "/skeleton/envelope/crownBase",
+    "/skeleton/envelope/shoulder",
+    "/skeleton/envelope/spread",
+    "/skeleton/habit/apicalDominance",
+    "/skeleton/habit/attractorWeight",
+    "/skeleton/habit/crookedness",
+    "/skeleton/habit/lateralsPerStation",
+    "/skeleton/habit/riseSecondary",
+    "/skeleton/twigs/curtainDrop",
+    "/skeleton/twigs/curtainStepClearance",
+    "/skeleton/twigs/hang",
+    "/skeleton/twigs/maxDroop",
+    "/skeleton/twigs/pendulousLength",
+    "/skeleton/twigs/sag",
+    "/skeleton/twigs/twig/diameter",
+    "/surface/flareRadius"
+  ],
   "meaning": "fn-135: the values the sourced profile derived for the tuning config's initial_overrides; a manual entry wins over a derived one",
   "preset": "date-palm",
   "profile": ".flow/evidence/date-palm/pipeline/packet/profile.json",
-  "profile_sha256": "48ff0875f24c5a106a97036e72d95e2772bfe93495b1a6f9cda1d3ced4f5cca4",
+  "profile_sha256": "3e96f3dd064a4279adfc225ba864ed8ca0123af2d1d9921f9f411cf9dc8984e4",
   "rows": [
     {
       "formula": "midpoint",
+      "manual_wins": true,
       "path": "/material/barkBlue",
       "source": "appearance.bark_colour.bark_blue",
       "sources": [
@@ -17,6 +79,7 @@
     },
     {
       "formula": "midpoint",
+      "manual_wins": true,
       "path": "/material/barkGreen",
       "source": "appearance.bark_colour.bark_green",
       "sources": [
@@ -26,6 +89,7 @@
     },
     {
       "formula": "midpoint",
+      "manual_wins": true,
       "path": "/material/barkRed",
       "source": "appearance.bark_colour.bark_red",
       "sources": [
@@ -35,6 +99,7 @@
     },
     {
       "formula": "midpoint",
+      "manual_wins": true,
       "path": "/material/barkRoughness",
       "source": "appearance.bark_roughness.bark_roughness",
       "sources": [
@@ -44,6 +109,7 @@
     },
     {
       "formula": "midpoint",
+      "manual_wins": true,
       "path": "/material/leafBackBlue",
       "source": "appearance.leaf_back_colour.leaf_back_blue",
       "sources": [
@@ -53,6 +119,7 @@
     },
     {
       "formula": "midpoint",
+      "manual_wins": true,
       "path": "/material/leafBackGreen",
       "source": "appearance.leaf_back_colour.leaf_back_green",
       "sources": [
@@ -71,6 +138,7 @@
     },
     {
       "formula": "midpoint",
+      "manual_wins": true,
       "path": "/material/brightnessRangeHigh",
       "source": "appearance.leaf_brightness_range.brightness_range_high",
       "sources": [],
@@ -85,6 +153,7 @@
     },
     {
       "formula": "midpoint",
+      "manual_wins": true,
       "path": "/material/leafFrontBlue",
       "source": "appearance.leaf_front_colour.leaf_front_blue",
       "sources": [
@@ -130,6 +199,7 @@
     },
     {
       "formula": "ratio",
+      "manual_wins": true,
       "path": "/radii/trunkRadius",
       "source": "metrics.dbh_m",
       "sources": [
@@ -139,6 +209,7 @@
     },
     {
       "formula": "midpoint",
+      "manual_wins": true,
       "path": "/canopy/rachisLength",
       "source": "metrics.frond_length_m",
       "sources": [
@@ -157,21 +228,23 @@
     },
     {
       "formula": "ratio",
+      "manual_wins": true,
       "path": "/element/length",
       "source": "metrics.leaflet_length_m",
       "sources": [
-        "P5"
+        "A1"
       ],
-      "value": 0.45720000000000005
+      "value": 0.22302439024390244
     },
     {
       "formula": "ratio",
+      "manual_wins": true,
       "path": "/element/width",
       "source": "metrics.leaflet_width_m",
       "sources": [
         "P4"
       ],
-      "value": 0.02
+      "value": 0.009756097560975611
     }
   ],
   "schema_version": 1,

@@ -1,0 +1,16 @@
+{
+ "pause_id": "18d858dd5bc7dbb0-1cb7f3-3",
+ "identity": "10dcb248c50282cee01fb685267e4436c1b8047d702efb2f5c16e1ac79ea9fe1",
+ "action": "supply verified calibration",
+ "by": "host (fn-80 conductor session)",
+ "rationale": "The dial table gained fn-144's lattice rows and fn-120's skirt and dead-leaf rows, which changed the table hash the Jev calibrations bind. Re-frozen from the recal2 manifests on the new table (recal3) and re-run: magnitude 7/8, direction 4/5, continuation policy 4/4, no unsafe answers, about 16k tokens. The config now names recal3.",
+ "next_identity": "966d47a73474a86877e2b9325b0ad7e68a8bfe7d53344ddec8bffb059d310b28",
+ "recover_interrupted": false,
+ "preserve_evidence": false,
+ "experimental_pilot": {
+  "visual_bootstrap": true,
+  "purpose": "date palm tuning revision 2 through the conductor (fn-80): fn-144's leaf-base lattice and fn-120's skirt dials join the table; sourced starting values, every drawable trait an objective",
+  "reason": "magnitude and gap-magnitude live efficacy unvalidated; the owner asked for the Opus reviewer and dropped run caps while the loop is built",
+  "next_identity": "966d47a73474a86877e2b9325b0ad7e68a8bfe7d53344ddec8bffb059d310b28"
+ }
+}
