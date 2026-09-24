@@ -18,7 +18,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-134-the-bark-rings-are-a-plan-artifact.md",
-  "status": "open",
+  "status": "done",
   "title": "The bark rings are a plan artifact",
   "tracker": {
     "baseHashFlow": null,
@@ -31,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-24T13:27:10.314647Z"
+  "updated_at": "2026-09-24T13:40:21.849563Z"
 }
