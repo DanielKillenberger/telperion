@@ -146,6 +146,13 @@ impl Default for SurfaceParams {
         }
     }
 }
+/// The height a surface is swept against: a tree with no height has no wood.
+pub(crate) fn height(height: f64) -> Result<()> {
+    if !height.is_finite() || height <= 0.0 {
+        return Err(Error::InvalidInput("surface height"));
+    }
+    Ok(())
+}
 impl SurfaceParams {
     pub fn validate(&self) -> Result<()> {
         use crate::ranges;

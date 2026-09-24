@@ -71,9 +71,7 @@ impl AttachmentSurface<'static> {
     ) -> Result<Self> {
         tree.validate_solved()?;
         params.validate()?;
-        if !height.is_finite() || height <= 0.0 {
-            return Err(Error::InvalidInput("surface height"));
-        }
+        crate::surface::height(height)?;
         let height = height.max(1e-6);
         let paths = paths(&tree.nodes)?;
         let segments = segments(params);

@@ -283,6 +283,12 @@ pub(super) fn validate(
 ) -> Result<()> {
     tree.validate_solved()?;
     envelope.validate()?;
+    rows(p, twig)
+}
+
+/// Every row on its rail, each refused by its own name, with no tree to read
+/// them against.
+pub(crate) fn rows(p: CanopyParams, twig: Option<TwigPlacement>) -> Result<()> {
     for (v, l, h, n) in [
         (p.shoot_radius, 0., 1., "shoot radius"),
         (p.spacing, 0.001, 1e6, "foliage spacing"),

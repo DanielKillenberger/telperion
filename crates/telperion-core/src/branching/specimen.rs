@@ -72,26 +72,49 @@ fn stem_root(node: &Node) -> bool {
     node.parent == Some(0) && node.kind == NodeKind::Structural
 }
 
+/// The rows `Specimen::new` judges before it scatters an attractor, each
+/// refused by its own name; the twig rows come back resolved.
+fn rows(params: &SkeletonParams, radii: RadiusParams) -> Result<TwigParams> {
+    crate::ranges::POSITIVE_COUNT.check(
+        params.sampling_attempts_per_attractor as f64,
+        "samplingAttemptsPerAttractor",
+    )?;
+    if params.attractors > crate::ranges::MAX_ATTRACTORS {
+        return Err(Error::InvalidInput("attractors"));
+    }
+    params.envelope.validate()?;
+    params.bias.validate()?;
+    params.habit.validate()?;
+    radii.resolved()?;
+    let twigs = params.twigs.resolved()?;
+    if !params.step.is_finite() || params.step <= 0.0 {
+        return Err(Error::InvalidInput("growth step"));
+    }
+    if params.habit.attractor_weight > 0.0 && params.attractors == 0 {
+        return Err(Error::InvalidInput("attractor weight and attractor count"));
+    }
+    Ok(twigs)
+}
+
+/// Every refusal `Specimen::new` can make of the rows, with no attractor
+/// scattered and no node grown. The scatter's count stands in for the points:
+/// a scatter that succeeds places exactly that many, or none in a crown with
+/// no volume, and either way the growth configuration it resolves is the same.
+pub(crate) fn validate(params: &SkeletonParams, radii: RadiusParams) -> Result<()> {
+    let twigs = rows(params, radii)?;
+    inner_envelope(params.envelope, twigs.reach).validate()?;
+    let scattered = if params.habit.attractor_weight > 0.0 {
+        params.attractors
+    } else {
+        0
+    };
+    let config = params.resolved_growth(scattered)?;
+    scaffold::stems_placed(params, &config)
+}
+
 impl Specimen {
     pub fn new(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
-        crate::ranges::POSITIVE_COUNT.check(
-            params.sampling_attempts_per_attractor as f64,
-            "samplingAttemptsPerAttractor",
-        )?;
-        if params.attractors > crate::ranges::MAX_ATTRACTORS {
-            return Err(Error::InvalidInput("attractors"));
-        }
-        params.envelope.validate()?;
-        params.bias.validate()?;
-        params.habit.validate()?;
-        radii.resolved()?;
-        let twigs = params.twigs.resolved()?;
-        if !params.step.is_finite() || params.step <= 0.0 {
-            return Err(Error::InvalidInput("growth step"));
-        }
-        if params.habit.attractor_weight > 0.0 && params.attractors == 0 {
-            return Err(Error::InvalidInput("attractor weight and attractor count"));
-        }
+        let twigs = rows(params, radii)?;
         let inner = inner_envelope(params.envelope, twigs.reach);
         let points = if params.habit.attractor_weight > 0.0 {
             inner.sample_with_attempts(
