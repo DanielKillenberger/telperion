@@ -37,7 +37,11 @@ fn value(derived: &Derived, path: &str) -> f64 {
 
 #[test]
 fn the_palm_derives_its_colours_and_the_sizes_the_table_maps() {
-    let derived = derive::derive(&palm(), &family("date-palm")).unwrap();
+    // The sizes below were read against a canopy drawn at its own size; the
+    // shipped palm's tuned size would divide every leaflet ratio by it.
+    let mut palm_family = family("date-palm");
+    palm_family["canopy"]["size"] = json!(1.0);
+    let derived = derive::derive(&palm(), &palm_family).unwrap();
     let expected = [
         ("/material/barkRed", 0.25),
         ("/material/barkGreen", 0.235),

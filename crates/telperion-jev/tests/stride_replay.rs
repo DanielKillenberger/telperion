@@ -36,6 +36,9 @@ struct Replay {
     rounds: Vec<Value>,
 }
 
+/// The rachis length the recorded run started from.
+const RECORDED_START: f64 = 3.5;
+
 fn replay() -> Replay {
     serde_json::from_str(include_str!("fixtures/fn80-palm-frond-rounds.json")).unwrap()
 }
@@ -45,6 +48,9 @@ fn replay() -> Replay {
 fn rounds_to_target(fx: &Replay, multiplier: f64) -> Option<usize> {
     let preset = telperion_core::presets::Preset::from_id("date-palm").unwrap();
     let mut wire = telperion_core::params::metadata(&preset.parameters());
+    // The run started from the untuned palm's 3.5 m rachis; tuning has since
+    // shipped the target itself.
+    *wire.pointer_mut(&fx.dial.path).unwrap() = json!(RECORDED_START);
     let top = fx.bundle_strengths.last().unwrap() * multiplier;
     let wanted = [(fx.dial.id.clone(), 1)];
     for round in 1..=fx.max_rounds {

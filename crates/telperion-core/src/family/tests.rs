@@ -111,6 +111,9 @@ fn built(f: &Family) -> Result<(), Error> {
 /// fails this test. The palm's packed leaf bases (fn-144) are cells one base
 /// spacing tall wrapped on a trunk four thousand million metres round, and
 /// float32 collapses them where the round pegs they replaced still resolved.
+/// One row is no magnitude: the tuned palm's narrow column, shrunk to the 64
+/// attractors of `small`, grows no geometry from a crown base of zero; at its
+/// own attractor count it builds.
 const BUILD_ONLY: &[(&str, &str, &[&str])] = &[
     ("/radii/lengthTaper", "10000000.0", SWEPT),
     ("/radii/lengthTaper", "4294967295", SWEPT),
@@ -119,6 +122,7 @@ const BUILD_ONLY: &[(&str, &str, &[&str])] = &[
     ("/radii/trunkRadius", "4294967295", &["date-palm"]),
     ("/radii/trunkRadius", "18446744073709551615", ALL),
     ("/radii/trunkRadius", "1e+300", ALL),
+    ("/skeleton/envelope/crownBase", "0", &["date-palm"]),
     ("/skeleton/envelope/height", "18446744073709551615", TALL),
     ("/skeleton/envelope/spread", "1e+300", &["european-beech"]),
     ("/skeleton/growth/trunkHeight", "18446744073709551615", LONG),
@@ -147,7 +151,6 @@ const LONG: &[&str] = &[
     "oregon-white-oak",
     "norway-spruce",
     "silver-birch",
-    "date-palm",
 ];
 
 /// Refused by both under different names: the build finds nothing to sweep

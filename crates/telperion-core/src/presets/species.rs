@@ -322,59 +322,112 @@ pub(super) fn silver_birch(p: &mut Family) {
 }
 
 pub(super) fn date_palm(p: &mut Family) {
-    // Registration only (fn-108): the four reachable rows the capability
-    // assessment of 2026-09-19 found for Corner's unbranched, monopodial
-    // habit - a single stem that stations no laterals, whose leader
-    // persists, on a trunk of near-constant diameter. Every other row is
-    // the family default; the apical rosette, the pinnate frond and the
-    // rest of the palm's anatomy remain unsupported and are their own
-    // specs.
+    // Corner's unbranched, monopodial habit (fn-108): a single stem that
+    // stations no laterals and whose leader persists. The values from here
+    // down are tuning revision 3 of fn-80's live run unless a comment says
+    // otherwise; the owner accepted the palm on them in the harness on
+    // 2026-09-24 (fn-82).
     p.skeleton.habit.stems = 1;
     p.skeleton.habit.lateral_orders = 0;
-    p.skeleton.habit.apical_dominance = 1.0;
-    p.radii.length_taper = 0.0;
-    // The crown (fn-109): a rosette of pinnate fronds at the apex and nothing
-    // borne below it. These are first values, not tuned ones - fn-82 owns what
-    // the species is measured and judged on.
-    p.canopy.rosette_fronds = 40;
-    p.canopy.rosette_pitch = 35.0;
-    p.canopy.rosette_pitch_spread = 75.0;
+    p.skeleton.habit.apical_dominance = 0.85;
+    p.skeleton.habit.laterals_per_station = 1;
+    p.skeleton.habit.rise_secondary = -1.0;
+    p.skeleton.habit.crookedness = 1.5;
+    p.skeleton.habit.attractor_weight = 0.625;
+    p.skeleton.bias.gravitropism = 0.25;
+    p.skeleton.bias.lean = 0.02;
+    p.skeleton.bias.supernatural.writhe_wavelength = 0.35;
+    // A narrow envelope whose crown starts at 45 % of the height.
+    p.skeleton.envelope.height = 22.86;
+    p.skeleton.envelope.crown_base = 0.45;
+    p.skeleton.envelope.spread = 0.1;
+    p.skeleton.envelope.shoulder = 0.45;
+    p.skeleton.twigs.twig.diameter = 0.007;
+    p.skeleton.twigs.hang = 2.75;
+    p.skeleton.twigs.sag = 1.0;
+    p.skeleton.twigs.max_droop = 8.6;
+    p.skeleton.twigs.pendulous_length = 2.75;
+    p.skeleton.twigs.curtain_drop = 0.15;
+    p.skeleton.twigs.curtain_step_clearance = 0.725;
+    p.radii.trunk_radius = 0.013;
+    p.radii.length_taper = 0.25;
+    p.surface.flare_radius = 2.0;
+    // The crown (fn-109): a rosette of pinnate fronds at the apex and
+    // nothing borne below it.
+    p.canopy.rosette_fronds = 42;
+    p.canopy.rosette_pitch = 12.5;
+    p.canopy.rosette_pitch_spread = 105.0;
     p.canopy.rosette_depth = 0.35;
-    p.canopy.leaflet_count = 110;
-    p.canopy.rachis_length = 3.5;
+    p.canopy.leaflet_count = 113;
+    p.canopy.rachis_length = 7.0;
     p.canopy.leaflet_pitch = 55.0;
-    p.canopy.rachis_arch = -0.25;
+    p.canopy.rachis_arch = -0.6;
     p.canopy.terminal_leaflet = 1.0;
-    // The trunk organs (fn-110): the boots of a hundred shed fronds clothing
-    // the bole on the crown's own spiral, worn back toward the ground, and the
-    // eight basal leaflets of a Phoenix frond borne as spines. First values
-    // again - fn-82 owns what the species is measured and judged on.
-    p.canopy.leaf_bases = 100;
-    p.canopy.leaf_base_length = 0.28;
-    p.canopy.leaf_base_radius = 0.3;
+    p.canopy.size = 2.35;
+    p.canopy.upward = 0.225;
+    // The leaflet: long, narrow and sharp-tipped, with enough axial
+    // stations to bend smoothly along its length.
+    p.element.length = 0.6197;
+    p.element.width = 0.0725;
+    p.element.tip_sharpness = 2.6;
+    p.element.section_roundness = 0.15;
+    p.element.axial_segments = 13;
+    // The trunk organs (fn-110): the boots of shed fronds clothing the bole
+    // on the crown's own spiral, worn back toward the ground, and the eight
+    // basal leaflets of a Phoenix frond borne as spines. Revision 3 packed
+    // 256 boots (owner's call).
+    p.canopy.leaf_bases = 256;
+    p.canopy.leaf_base_length = 0.255;
+    p.canopy.leaf_base_radius = 0.25;
     p.canopy.leaf_base_pitch = 55.0;
-    p.canopy.leaf_base_weathering = 0.6;
-    // The lattice (fn-144): the boots packed edge to edge on the crown's
-    // spiral as flat-faced diamonds. Swept by code on this tree at seed 1, a
-    // flat section crowded least at every width and full width alone covered
-    // each cell; the rest of the trunk is tuning's.
-    p.canopy.leaf_base_width = 1.0;
+    p.canopy.leaf_base_weathering = 0.75;
+    // The lattice (fn-144): the boots packed edge to edge as flat-faced
+    // diamonds; a flat section crowded least at every width.
+    p.canopy.leaf_base_width = 0.9;
     p.canopy.leaf_base_flatness = 1.0;
     p.canopy.acanthophylls = 8;
     p.canopy.acanthophyll_length = 0.3;
     p.canopy.acanthophyll_pitch = 75.0;
     // The skirt (fn-120): the oldest fronds kept after they die, collapsed
-    // against the upper trunk below the living crown, brown to grey. Growers
-    // trim the lower leaves (F1), so a partial ring rather than a full
-    // petticoat; fronds a little shorter than the living 3.5 m. First values
-    // again - fn-82 owns what the species is measured and judged on.
+    // against the upper trunk below the living crown. Growers trim the lower
+    // leaves (F1), so a partial ring rather than a full petticoat. Set before
+    // tuning; revision 3 left them.
     p.canopy.skirt_fronds = 16;
     p.canopy.skirt_pitch = 165.0;
     p.canopy.skirt_length = 0.85;
-    // A skirt hangs against the trunk, the deepest place inside the crown's
-    // envelope, where the default shell cull drops two thirds of it; a crown
-    // of a few dozen fronds hides no interior worth culling.
-    p.shell_depth = 1.0;
+    // The skirt hangs against the trunk, the deepest place inside the
+    // crown's envelope, where the default shell cull drops most of it.
+    p.shell_depth = 0.85;
+    // Bark: a warm brown, with plate, fissure, crest and weathering relief.
+    p.material.bark_red = 0.325;
+    p.material.bark_green = 0.1975;
+    p.material.bark_blue = 0.135;
+    p.material.bark_roughness = 0.7775;
+    p.material.furrow_strength = 0.85;
+    p.material.plate_scale = 0.1125;
+    p.material.plate_furrow_width = 0.0375;
+    p.material.ridge_scale = 0.01;
+    p.material.fissure_red = 0.4375;
+    p.material.fissure_strength = 0.3;
+    p.material.crest_red = 0.04375;
+    p.material.crest_strength = 0.225;
+    p.material.depth_strength = 0.075;
+    p.material.orientation_red = 0.03;
+    p.material.orientation_strength = 0.225;
+    p.material.weathering_red = 0.00875;
+    p.material.weathering_strength = 0.3;
+    // Leaflets: a dull grey-green, the same on both faces, varying little.
+    p.material.leaf_front_red = 0.12;
+    p.material.leaf_front_green = 0.16;
+    p.material.leaf_front_blue = 0.1175;
+    p.material.leaf_back_red = 0.12;
+    p.material.leaf_back_green = 0.15375;
+    p.material.leaf_back_blue = 0.11625;
+    p.material.hue_range_low = -0.0275;
+    p.material.hue_range_high = 0.0275;
+    p.material.brightness_range_low = -0.04;
+    p.material.brightness_range_high = 0.03625;
+    // Dead fronds of the skirt, brown to grey; set before tuning.
     p.material.leaf_dead_red = 0.34;
     p.material.leaf_dead_green = 0.29;
     p.material.leaf_dead_blue = 0.22;

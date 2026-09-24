@@ -175,3 +175,15 @@ Revision 2 stopped on the no-progress guard with the trunk failing as "a few ver
 ## 2026-09-24 — the packet looked for the article where nothing writes it
 
 The palm's packet was withheld for "ARTICLE.md is missing" although `catalogue/date-palm/ARTICLE.md` had been written by the document stage's own script that evening. The stage and the packet both read `ARTICLE.md` from the run folder, where nothing writes one, so the stage also cited zero claims and marked the empty article validated. Fixed in this commit: the stage reads the catalogue article, the packet follows the path the stage records. Cost: about 15 minutes.
+
+## 2026-09-24 — the tuned overlay had no path back into the preset
+
+Shipping the accepted palm meant writing revision 3's 68-value `family.json` overlay into `species::date_palm` by hand. Nothing maps a wire path (`skeleton/twigs/curtainStepClearance`) to its Rust field or prints a preset's current wire, so the agent parsed the `fields!` macro with a regex and added a throwaway example to dump `params::metadata`, then diffed the preset against the overlay to prove the table matched (it does to 1.8e-15; the overlay carries float-step noise such as 6.999999999999998 that the table writes as 7.0). Cost: about 10 minutes. What would have removed it: a `species_measure`-style tool that prints a preset's wire and emits an overlay as Rust assignments, grouped by struct.
+
+## 2026-09-24 — the catalogue check reads untracked folders
+
+`node scripts/catalogue-check.mjs` walks every folder under `catalogue/` on disk, so the untracked, incomplete `catalogue/date-palm/` (no README.md) fails it in this worktree while the committed tree passes; `npm test` runs that check first and stops there. The agent ran the check against a `git archive HEAD` copy to tell the two apart. Cost: about 5 minutes. What would have removed it: the check (or `npm test`) naming whether a failing folder is tracked, or a flag to check only tracked files.
+
+## 2026-09-24 — the untracked palm folder also fails vitest's profile-set case
+
+`scripts/species-profiles.test.mjs` ("covers every shipped preset") reads `catalogue/` off disk too: the untracked `catalogue/date-palm/` carries matched records that no profile set lists, so `resolveProfileSet('date-palm')` throws in this worktree, while against the tracked catalogue it resolves to the fn9 fallback. Telling the two apart took a second run against the `git archive` copy. Cost: about 5 minutes. When the palm's catalogue folder is committed, a profile set has to list the palm or this case goes red for real.
