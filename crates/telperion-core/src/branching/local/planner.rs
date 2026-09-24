@@ -84,8 +84,11 @@ impl Planner<'_> {
                 stations[station - 1] = (j + 1) as f64 / (self.twigs.laterals + 1) as f64;
             }
         }
-        let mut points = Vec::with_capacity(count + 1);
-        let mut along = Vec::with_capacity(count + 1);
+        // A run's full length is only a hint: most stop early at the shell, so
+        // a reservation the allocator refuses is skipped, never a failure.
+        let (mut points, mut along) = (Vec::new(), Vec::new());
+        let _ = points.try_reserve(count.saturating_add(1));
+        let _ = along.try_reserve(count.saturating_add(1));
         points.push(start);
         along.push(0.0);
         // The course is where the branch law holds the shoot; the heading is

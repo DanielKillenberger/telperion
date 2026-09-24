@@ -86,10 +86,23 @@ mod tests {
                 |r: &mut Rng| f64::from_bits(((r.next_u32() as u64) << 32) | r.next_u32() as u64);
             cases.push((bits(&mut rng), bits(&mut rng)));
         }
+        // Either side of the exponent-gap shortcut and the scaling thresholds.
+        for e in [
+            -1100, -1022, -600, -512, -66, -65, -64, -63, 510, 511, 512, 600, 1023,
+        ] {
+            let small = 2f64.powi(e);
+            cases.extend([
+                (1.0, small),
+                (small, 1.0),
+                (1.5, small * 1.5),
+                (small, small),
+            ]);
+        }
         for (x, y) in cases {
             let (ours, theirs) = (hypot(x, y), libm::hypot(x, y));
-            assert!(
-                ours.to_bits() == theirs.to_bits() || (ours.is_nan() && theirs.is_nan()),
+            assert_eq!(
+                ours.to_bits(),
+                theirs.to_bits(),
                 "hypot({x:e}, {y:e}): {ours:e} against libm's {theirs:e}"
             );
         }
