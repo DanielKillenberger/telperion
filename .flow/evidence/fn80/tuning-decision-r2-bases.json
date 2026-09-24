@@ -1,0 +1,16 @@
+{
+ "pause_id": "18d85a1b0165e8f8-1d4be6-60b",
+ "identity": "7a440d8a1c8d15f6526b4a7ffdadfe9d68e6cc7856923a9fce71f4a340619c0b",
+ "action": "reassess or diagnose",
+ "by": "host (fn-80 conductor session)",
+ "rationale": "Diagnosed: every stalled round failed on the trunk reading as 'a few very large lozenges in a tight helix'. The lattice's coarseness is the base count (96, from revision 1's peg world), a dial tuning never proposed in revision 2 and whose steps (4 and 16) are too small to reach the range anyway. Host renders of the current tree at 96 and 256 bases: 256 reads as the fine diamond lattice the references show. The run resumes from its current tree with 256 bases seeded.",
+ "next_identity": "ac78067eb9b207a4d35d024bd074ac564ca69976276904c8f1265a35dc4a9f65",
+ "recover_interrupted": false,
+ "preserve_evidence": false,
+ "experimental_pilot": {
+  "visual_bootstrap": true,
+  "purpose": "date palm tuning revision 2 through the conductor (fn-80): starts from revision 1's final values; fn-144's leaf-base lattice and fn-120's skirt dials join the table",
+  "reason": "magnitude and gap-magnitude live efficacy unvalidated; the owner asked for the Opus reviewer and dropped run caps while the loop is built",
+  "next_identity": "ac78067eb9b207a4d35d024bd074ac564ca69976276904c8f1265a35dc4a9f65"
+ }
+}

@@ -3725,7 +3725,7 @@
       "leafBaseLength": 0.255,
       "leafBaseRadius": 0.35000000000000003,
       "leafBaseWeathering": 0.65,
-      "leafBases": 96,
+      "leafBases": 256,
       "leafletCount": 113,
       "rachisArch": -0.5000000000000001,
       "rachisLength": 6.799999999999998,
