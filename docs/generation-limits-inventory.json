@@ -60,6 +60,12 @@
     "reason": "A zero-height family has no positive-volume tree to generate."
   },
   {
+    "path": "crates/telperion-core/src/branching.rs",
+    "site": "if o . trunk_height . is_some_and ( | v | v < = 0 . 0 ) {",
+    "classification": "parameter",
+    "reason": "The trunkHeight override is refused by name at zero or below: a crown with no bole below it leaves the build nothing to sweep (fn-123, host design)."
+  },
+  {
     "path": "crates/telperion-core/src/branching/local/advance.rs",
     "site": ". clamp ( crate : : ranges : : ANGLE . 0 , crate : : ranges : : ANGLE . 1 )",
     "classification": "parameter",

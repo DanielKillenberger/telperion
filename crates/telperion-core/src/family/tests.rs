@@ -147,6 +147,10 @@ const LONG: &[&str] = &[
     "date-palm",
 ];
 
+/// Refused by both under different names: the build finds nothing to sweep
+/// ("mesh has no geometry"), where `validate` names the zero ceiling.
+const RENAMED: &[(&str, &str)] = &[("/skeleton/growth/maxNodes", "0")];
+
 /// Every ladder value on every row of every family, made small: the build and
 /// `validate` agree on it, error for error, save the values named above.
 #[test]
@@ -158,7 +162,13 @@ fn the_build_and_validate_refuse_the_same_values_by_the_same_name() {
         for row in every_row(&base) {
             for (value, f) in walked(&base, &row) {
                 let (build, validate) = (built(&f).err(), f.validate().err());
-                if build.is_some() && validate.is_none() {
+                let renamed = RENAMED.contains(&(row.as_str(), &*value.to_string()));
+                if renamed {
+                    assert!(
+                        build.is_some() && validate.is_some(),
+                        "{id}: {row} at {value}"
+                    );
+                } else if build.is_some() && validate.is_none() {
                     build_only.push((id, row.clone(), value.to_string()));
                 } else {
                     assert_eq!(build, validate, "{id}: {row} at {value}");
