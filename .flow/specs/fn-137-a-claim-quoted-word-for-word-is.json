@@ -1,0 +1,33 @@
+{
+  "branch_name": "fn-137-a-claim-quoted-word-for-word-is",
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-09-24T14:02:37.171019Z",
+  "created_at": "2026-09-24T13:40:05.263190Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-137-a-claim-quoted-word-for-word-is",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-137-a-claim-quoted-word-for-word-is.md",
+  "status": "open",
+  "title": "A claim quoted word for word is accepted by code",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-24T14:02:37.171028Z"
+}

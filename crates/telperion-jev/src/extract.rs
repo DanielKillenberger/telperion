@@ -149,7 +149,8 @@ fn window(text: &str, start: usize, end: usize, radius: usize) -> String {
     collapse_ws(slice_at(text, from, to))
 }
 
-fn collapse_ws(text: &str) -> String {
+/// Join `text` on single spaces, dropping all other whitespace variance.
+pub fn collapse_ws(text: &str) -> String {
     text.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 

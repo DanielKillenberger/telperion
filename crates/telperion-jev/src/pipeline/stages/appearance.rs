@@ -8,9 +8,13 @@
 //! (fn-127): a value with no source is never written. Nothing renders or
 //! measures it. A variation trait (a hue or brightness range) the sources
 //! leave unstated takes its zero-width level as a default with its reason
-//! (fn-133). Any other trait the table requires that the sources leave
-//! unstated files a requirements-unmet decision, which the pipeline
-//! searches again before the owner has it.
+//! (fn-133). `leaf_back_colour` left unstated while `leaf_front_colour` has
+//! a sourced level takes the front's level, its ranges mapped onto the
+//! back's material fields, as a default citing the front's source (fn-139);
+//! bark colour and every other colour trait never default this way. Any
+//! other trait the table requires that the sources leave unstated files a
+//! requirements-unmet decision, which the pipeline searches again before
+//! the owner has it.
 
 use std::collections::BTreeMap;
 
@@ -33,6 +37,10 @@ use super::select::STAGE;
 
 const SECTION_RADIUS: usize = 600;
 
+/// The two leaf-face colour traits the front-default rule (fn-139) names.
+const LEAF_FRONT_COLOUR: &str = "leaf_front_colour";
+const LEAF_BACK_COLOUR: &str = "leaf_back_colour";
+
 /// What the route leaves for the select stage to write.
 #[derive(Default)]
 pub struct Copied {
@@ -51,6 +59,10 @@ pub struct Copied {
 pub fn run(judge: &Judge<'_>, ctx: &Context, fetch: &Value) -> Result<Copied, StageError> {
     let manifest = &ctx.admitted.manifest;
     let mut copied = Copied::default();
+    // Every trait's chosen sentence, gathered first so the back-colour
+    // default (fn-139) can read the front's outcome regardless of the
+    // manifest's own appearance order.
+    let mut chosen_by_trait: BTreeMap<String, Chosen> = BTreeMap::new();
     for trait_ in &manifest.appearance {
         let name = trait_.trait_name.as_str();
         let levels = table().levels(name).unwrap_or_default();
@@ -60,6 +72,11 @@ pub fn run(judge: &Judge<'_>, ctx: &Context, fetch: &Value) -> Result<Copied, St
             name.into(),
             json!({"level": chosen.level, "source": chosen.source, "sentence": chosen.span, "ledger": chosen.ledger}),
         );
+        chosen_by_trait.insert(name.to_string(), chosen);
+    }
+    for trait_ in &manifest.appearance {
+        let name = trait_.trait_name.as_str();
+        let chosen = &chosen_by_trait[name];
         let pointer = format!("/profiles/0/appearance/{name}");
         let row = table().level(name, &chosen.level);
         if let Some((row, source)) = row.zip(chosen.source.as_ref()) {
@@ -73,6 +90,11 @@ pub fn run(judge: &Judge<'_>, ctx: &Context, fetch: &Value) -> Result<Copied, St
             );
         } else if let Some(zero) = table().zero_width(name) {
             copied.default_to(name, pointer, zero, &chosen.ledger);
+        } else if let Some((front_level, front_source)) = (name == LEAF_BACK_COLOUR)
+            .then(|| front_sourced_level(&chosen_by_trait))
+            .flatten()
+        {
+            copied.default_to_front(pointer, front_level, front_source, &chosen.ledger);
         } else if requires_appearance(manifest, name) {
             let sources = sources_sha256(&ctx.paths.manifest())?;
             copied
@@ -81,6 +103,25 @@ pub fn run(judge: &Judge<'_>, ctx: &Context, fetch: &Value) -> Result<Copied, St
         }
     }
     Ok(copied)
+}
+
+/// `leaf_front_colour`'s chosen level and source when a source states it;
+/// `None` when the front is itself unstated (fn-139).
+fn front_sourced_level(
+    chosen_by_trait: &BTreeMap<String, Chosen>,
+) -> Option<(&AppearanceLevel, &str)> {
+    let front = chosen_by_trait.get(LEAF_FRONT_COLOUR)?;
+    let source = front.source.as_deref()?;
+    let level = table().level(LEAF_FRONT_COLOUR, &front.level)?;
+    Some((level, source))
+}
+
+/// Why an unstated `leaf_back_colour` reads the front's level (fn-139).
+fn front_colour_default_reason(front_source: &str) -> String {
+    format!(
+        "no admitted source states the leaf underside colour; it takes leaf_front_colour's \
+         sourced level, cited to {front_source}"
+    )
 }
 
 /// Why an unstated variation trait reads zero width (fn-133).
@@ -107,6 +148,40 @@ impl Copied {
         self.defaults.insert(
             pointer,
             json!({"route": "default", "level": zero.key, "reason": ZERO_WIDTH_DEFAULT, "ledger": ledger}),
+        );
+    }
+
+    /// Records `leaf_back_colour` at the front's chosen level and its
+    /// ranges mapped onto the back's material fields, as a default citing
+    /// the front's source (fn-139), never a sourced value.
+    fn default_to_front(
+        &mut self,
+        pointer: String,
+        front_level: &AppearanceLevel,
+        front_source: &str,
+        ledger: &[String],
+    ) {
+        let reason = front_colour_default_reason(front_source);
+        let ranges: BTreeMap<String, [f64; 2]> = front_level
+            .ranges
+            .iter()
+            .filter_map(|(field, range)| {
+                field
+                    .strip_prefix("leaf_front_")
+                    .map(|suffix| (format!("leaf_back_{suffix}"), *range))
+            })
+            .collect();
+        self.body.insert(
+            LEAF_BACK_COLOUR.into(),
+            json!({"level": front_level.key, "source": front_source, "sentence": "", "ledger": ledger, "default": reason}),
+        );
+        self.profile.insert(
+            LEAF_BACK_COLOUR.into(),
+            json!({"level": front_level.key, "summary": front_level.summary, "ranges": ranges, "sources": [front_source], "default": reason}),
+        );
+        self.defaults.insert(
+            pointer,
+            json!({"route": "default", "level": front_level.key, "reason": reason, "source": front_source, "ledger": ledger}),
         );
     }
 }
