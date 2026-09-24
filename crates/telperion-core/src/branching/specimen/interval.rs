@@ -203,6 +203,7 @@ impl Specimen {
             nodes,
             crossover,
             diagnostics: self.tree.diagnostics,
+            sections: Vec::new(),
         })
     }
 }

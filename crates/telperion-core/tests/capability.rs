@@ -52,8 +52,8 @@ fn every_name_is_declared_once_and_carries_one_line_of_meaning() {
 }
 
 #[test]
-fn the_twelve_names_the_derivation_produces_are_all_in_the_vocabulary() {
-    assert_eq!(DERIVABLE.len(), 12);
+fn the_thirteen_names_the_derivation_produces_are_all_in_the_vocabulary() {
+    assert_eq!(DERIVABLE.len(), 13);
     for name in DERIVABLE {
         assert_eq!(
             capability::support(name),

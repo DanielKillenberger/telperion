@@ -236,6 +236,16 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .remove(row)
                 .expect("the canopy publishes its trunk-organ rows");
         }
+        // fn-144 packs the bases into their lattice with two more canopy
+        // rows. The frozen file predates them, and at no width a base is the
+        // round peg it always was.
+        for row in ["leafBaseWidth", "leafBaseFlatness"] {
+            emitted["canopy"]
+                .as_object_mut()
+                .unwrap()
+                .remove(row)
+                .expect("the canopy publishes its lattice rows");
+        }
         // fn-120 adds the skirt as three more canopy rows. The frozen file
         // predates them, and the count is zero there, which keeps no dead
         // frond.

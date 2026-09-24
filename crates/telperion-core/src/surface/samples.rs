@@ -31,6 +31,9 @@ pub(super) fn sample_path(
     } else {
         branch_run(tree, params, path_nodes, girths, distance, &flare, samples);
     }
+    if let Some(section) = super::section::of(tree, paths, run) {
+        super::section::reshape(section, samples);
+    }
 }
 
 /// Each node's girth along a run, from its first node: the node's own radius,

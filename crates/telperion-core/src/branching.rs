@@ -1,5 +1,6 @@
 //! Crown, local branches, shell shedding, and final radius solve, in botanical order.
 use crate::math::Transcendental;
+mod lattice;
 mod leaf_bases;
 mod local;
 mod scaffold;

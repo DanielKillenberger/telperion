@@ -108,12 +108,15 @@ fn built(f: &Family) -> Result<(), Error> {
 /// triangles collapsed in float32, a scaffold too long to step, a leaf
 /// transform past float32. They stay the build's to raise (fn-123, host
 /// design), and are named here with the families they reach, so a new one
-/// fails this test.
+/// fails this test. The palm's packed leaf bases (fn-144) are cells one base
+/// spacing tall wrapped on a trunk four thousand million metres round, and
+/// float32 collapses them where the round pegs they replaced still resolved.
 const BUILD_ONLY: &[(&str, &str, &[&str])] = &[
     ("/radii/lengthTaper", "10000000.0", SWEPT),
     ("/radii/lengthTaper", "4294967295", SWEPT),
     ("/radii/lengthTaper", "18446744073709551615", SWEPT),
     ("/radii/lengthTaper", "1e+300", SWEPT),
+    ("/radii/trunkRadius", "4294967295", &["date-palm"]),
     ("/radii/trunkRadius", "18446744073709551615", ALL),
     ("/radii/trunkRadius", "1e+300", ALL),
     ("/skeleton/envelope/height", "18446744073709551615", TALL),

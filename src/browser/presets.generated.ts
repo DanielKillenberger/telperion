@@ -11,10 +11,12 @@ export interface Family {
   clumpSystemOrder: number;
   divergence: number;
   forwardLean: number;
+  leafBaseFlatness: number;
   leafBaseLength: number;
   leafBasePitch: number;
   leafBaseRadius: number;
   leafBaseWeathering: number;
+  leafBaseWidth: number;
   leafBases: number;
   leafletCount: number;
   leafletPitch: number;
@@ -291,10 +293,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "clumpSystemOrder": 2,
         "divergence": 137.508,
         "forwardLean": 0,
+        "leafBaseFlatness": 0,
         "leafBaseLength": 0,
         "leafBasePitch": 60,
         "leafBaseRadius": 0.35,
         "leafBaseWeathering": 0,
+        "leafBaseWidth": 0,
         "leafBases": 0,
         "leafletCount": 1,
         "leafletPitch": 45,
@@ -569,10 +573,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "clumpSystemOrder": 2,
         "divergence": 180,
         "forwardLean": 0.25,
+        "leafBaseFlatness": 0,
         "leafBaseLength": 0,
         "leafBasePitch": 60,
         "leafBaseRadius": 0.35,
         "leafBaseWeathering": 0,
+        "leafBaseWidth": 0,
         "leafBases": 0,
         "leafletCount": 1,
         "leafletPitch": 45,
@@ -847,10 +853,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "clumpSystemOrder": 2,
         "divergence": 137.508,
         "forwardLean": 0.05,
+        "leafBaseFlatness": 0,
         "leafBaseLength": 0,
         "leafBasePitch": 60,
         "leafBaseRadius": 0.35,
         "leafBaseWeathering": 0,
+        "leafBaseWidth": 0,
         "leafBases": 0,
         "leafletCount": 1,
         "leafletPitch": 45,
@@ -1125,10 +1133,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "clumpSystemOrder": 2,
         "divergence": 180,
         "forwardLean": 0.6,
+        "leafBaseFlatness": 0,
         "leafBaseLength": 0,
         "leafBasePitch": 60,
         "leafBaseRadius": 0.35,
         "leafBaseWeathering": 0,
+        "leafBaseWidth": 0,
         "leafBases": 0,
         "leafletCount": 1,
         "leafletPitch": 45,
@@ -1403,10 +1413,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "clumpSystemOrder": 2,
         "divergence": 137.508,
         "forwardLean": 0,
+        "leafBaseFlatness": 0,
         "leafBaseLength": 0,
         "leafBasePitch": 60,
         "leafBaseRadius": 0.35,
         "leafBaseWeathering": 0,
+        "leafBaseWidth": 0,
         "leafBases": 0,
         "leafletCount": 1,
         "leafletPitch": 45,
@@ -1681,10 +1693,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "clumpSystemOrder": 2,
         "divergence": 99.502,
         "forwardLean": 0,
+        "leafBaseFlatness": 0,
         "leafBaseLength": 0,
         "leafBasePitch": 60,
         "leafBaseRadius": 0.35,
         "leafBaseWeathering": 0,
+        "leafBaseWidth": 0,
         "leafBases": 0,
         "leafletCount": 1,
         "leafletPitch": 45,

@@ -166,6 +166,20 @@ pub struct CanopyParams {
     /// whole trunk, and any rise wears the foot away.
     #[cfg_attr(feature = "json", serde(default))]
     pub leaf_base_weathering: f64,
+    /// How broad a retained base is across the trunk, as a share of the cell
+    /// the crown's spiral gives it on the bark: at 1 every base meets its
+    /// neighbours edge to edge whatever the count and the trunk's girth, below
+    /// it the bark shows between them and above it they crowd into each
+    /// other. At zero the base is the round peg the radius row sizes and the
+    /// lattice rows say nothing; any rise packs the bases into the lattice.
+    #[cfg_attr(feature = "json", serde(default))]
+    pub leaf_base_width: f64,
+    /// How flat-sided a lattice base is drawn: 0 the ellipse through its
+    /// cell's corners, 1 the cell itself, a diamond with flat faces that meets
+    /// each neighbour along a straight edge and is cut square at its outer
+    /// end. At zero the section stays round, and at no width it reads nothing.
+    #[cfg_attr(feature = "json", serde(default))]
+    pub leaf_base_flatness: f64,
     /// Leaflets at a frond's base borne as spines rather than blades. At zero
     /// the frond carries blades all the way down; any rise hardens that many
     /// of them.
@@ -254,6 +268,8 @@ impl Default for CanopyParams {
             leaf_base_radius: crate::ranges::default_leaf_base_radius(),
             leaf_base_pitch: crate::ranges::default_leaf_base_pitch(),
             leaf_base_weathering: 0.,
+            leaf_base_width: 0.,
+            leaf_base_flatness: 0.,
             acanthophylls: 0,
             acanthophyll_length: crate::ranges::default_acanthophyll_length(),
             acanthophyll_pitch: crate::ranges::default_acanthophyll_pitch(),

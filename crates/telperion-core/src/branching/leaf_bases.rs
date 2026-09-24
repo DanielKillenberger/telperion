@@ -20,10 +20,15 @@
 //! frame the crown's fronds are turned in, so the crown's spiral and the
 //! trunk's lattice are one sequence with one divergence and nothing authors a
 //! second spiral.
+//!
+//! At a width the bases pack: each is drawn as the cell that spiral gives it
+//! on the bark, carried outward as a wedge, so neighbours meet edge to edge
+//! and the trunk reads as the diamond lattice of flat-faced boots.
+use super::lattice;
 use crate::{
     foliage::{self, CanopyParams},
     math::{Transcendental, Vec3},
-    tree::{Node, NodeKind, Tree},
+    tree::{Node, NodeKind, Section, SectionRing, Tree},
     Error, Result,
 };
 
@@ -35,13 +40,22 @@ pub const MAX_LEAF_BASES: u32 = 256;
 /// worn away to nothing is no base, and a node of no radius is no wood.
 const WORN: f64 = 0.05;
 
+/// The nearest a packed base leans to the stem's axis, in degrees either way.
+/// A base packed into the lattice stands out of the bark at its cell; one
+/// lying along the axis would never leave it.
+const UPRIGHT: f64 = 15.;
+
 /// One retained base: the stem node it is borne on, the point it leaves the
 /// axis, the radial its place on the spiral puts it on, the heading it stands
-/// on, how far down the spiral it is and the stem's own girth where it leaves.
+/// on, how far down the spiral it is, the stem's own girth and axis where it
+/// leaves, and the lattice its stem packs its bases into: the girth the
+/// lattice is laid on, the stem's mean over its bases, and the full cell that
+/// girth gives each base.
 ///
 /// The radial is the spiral itself, square to the stem's own axis where the
 /// base leaves it; the heading is that radial leaned back toward the axis by
-/// the pitch the row states.
+/// the pitch the row states, held at least [`UPRIGHT`] off the axis when the
+/// bases pack.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct LeafBase {
     pub at: usize,
@@ -50,12 +64,21 @@ pub struct LeafBase {
     pub heading: Vec3,
     pub age: f64,
     pub girth: f64,
+    pub axis: Vec3,
+    pub bark: f64,
+    pub cell: [[f64; 2]; 2],
 }
 
 /// Whether this table clothes a trunk at all. At no count or no length the
 /// trunk is bare and the bark is what it always was.
 fn bearing(p: &CanopyParams) -> bool {
     p.leaf_bases > 0 && p.leaf_base_length > 0.
+}
+
+/// Whether this table packs its bases into the lattice rather than hanging
+/// round pegs. At no width every base is the peg it always was.
+fn packed(p: &CanopyParams) -> bool {
+    p.leaf_base_width > 0.
 }
 
 /// Where this table's retained bases stand on this tree, newest first, in the
@@ -87,19 +110,29 @@ pub fn leaf_bases(tree: &Tree, p: &CanopyParams) -> Vec<LeafBase> {
         // own, so the two sequences are one spiral.
         let (reference, _) = foliage::frame(rosette.axis);
         let oldest = f64::from(p.leaf_bases.saturating_sub(1));
+        let spacing = clothed / oldest.max(1.);
+        let pitch = if packed(p) {
+            p.leaf_base_pitch.clamp(UPRIGHT, 180. - UPRIGHT)
+        } else {
+            p.leaf_base_pitch
+        };
+        let first = out.len();
         for k in 0..p.leaf_bases {
             let age = if oldest > 0. {
                 f64::from(k) / oldest
             } else {
                 0.
             };
-            let (at, from, axis, girth) =
-                along(tree, &stem, &depth, p.rosette_depth + clothed * age);
+            let want = p.rosette_depth + clothed * age;
+            let (at, mut from, mut axis, girth) = along(tree, &stem, &depth, want);
+            if packed(p) {
+                (from, axis) = centreline(tree, &stem, &depth, p.rosette_depth, want, girth);
+            }
             let (sin, cos) = (f64::from(p.rosette_fronds + k) * p.rosette_divergence.to_radians())
                 .sin_cos_fixed();
             let (normal, binormal) = carried(rosette.axis, axis, reference);
             let radial = (normal * cos + binormal * sin).normalized();
-            let (lean, upright) = p.leaf_base_pitch.to_radians().sin_cos_fixed();
+            let (lean, upright) = pitch.to_radians().sin_cos_fixed();
             out.push(LeafBase {
                 at,
                 from,
@@ -107,7 +140,30 @@ pub fn leaf_bases(tree: &Tree, p: &CanopyParams) -> Vec<LeafBase> {
                 heading: (axis * upright + radial * lean).normalized(),
                 age,
                 girth,
+                axis,
+                bark: girth,
+                cell: [[0.; 2]; 2],
             });
+        }
+        // One lattice a stem, laid on its mean girth: a cell is an angle and
+        // a height, so the bases of a tapering stem still share one tiling.
+        let bases = &mut out[first..];
+        let bark = bases.iter().map(|b| b.girth).sum::<f64>() / bases.len() as f64;
+        // Packed bases stand on the smoothed centreline, which is shorter than
+        // the polyline by every turn smoothed away; the lattice's rows are set
+        // the distance its bases actually stand apart along it.
+        let pitch = if packed(p) && bases.len() > 1 {
+            let length: f64 = bases
+                .windows(2)
+                .map(|w| w[0].from.distance(w[1].from))
+                .sum();
+            length / (bases.len() - 1) as f64
+        } else {
+            spacing
+        };
+        let cell = lattice::cell(bark, pitch, p.rosette_divergence, 1.);
+        for base in bases {
+            (base.bark, base.cell) = (bark, cell);
         }
     }
     out
@@ -150,8 +206,22 @@ pub fn clothe_leaf_bases(tree: &mut Tree, p: &CanopyParams) -> Result<()> {
             stem: false,
             ..Node::root()
         });
+        // A packed base stands its length out of the bark, where its cell is;
+        // a peg stands it out of a girth's reach along its heading.
+        let emerges = if packed(p) {
+            base.girth / base.radial.dot(base.heading)
+        } else {
+            base.girth
+        };
+        let reach = emerges + p.leaf_base_length * wear;
+        let mut tip = base.from + base.heading * reach;
+        if packed(p) {
+            let drawn = section(base, p, leaves + 1, emerges, reach, wear);
+            tip = drawn.centre(&drawn.rings[2]);
+            tree.sections.push(drawn);
+        }
         tree.nodes.push(Node {
-            position: base.from + base.heading * (base.girth + p.leaf_base_length * wear),
+            position: tip,
             parent: Some(leaves),
             radius: thick * wear,
             start_radius: thick,
@@ -163,6 +233,41 @@ pub fn clothe_leaf_bases(tree: &mut Tree, p: &CanopyParams) -> Result<()> {
         });
     }
     tree.validate_solved()
+}
+
+/// The cell a packed base is drawn as: its stem's cell at the row's width,
+/// standing inside the trunk, on the bark and at the outer end, and worn at
+/// the end as the base is worn. A base where the stem is thinner than the
+/// lattice's girth is raised along the axis by the difference its heading
+/// makes, so it meets the bark at the height its neighbours meet it.
+fn section(
+    base: &LeafBase,
+    p: &CanopyParams,
+    node: u32,
+    emerges: f64,
+    reach: f64,
+    wear: f64,
+) -> Section {
+    let lean = base.radial.dot(base.heading);
+    let upright = base.axis.dot(base.heading);
+    let lift = (base.bark - base.girth) * upright / lean;
+    let ring = |along: f64, scale: f64| SectionRing {
+        reach: along * lean,
+        rise: along * upright + lift,
+        scale,
+    };
+    let width = p.leaf_base_width;
+    let [a, b] = base.cell;
+    Section {
+        node,
+        origin: base.from,
+        axis: base.axis,
+        radial: base.radial,
+        across: base.axis.cross(base.radial),
+        corners: [a.map(|v| v * width), b.map(|v| v * width)],
+        flatness: p.leaf_base_flatness,
+        rings: [ring(emerges / 2., 1.), ring(emerges, 1.), ring(reach, wear)],
+    }
 }
 
 /// The crown's own frame carried down to the axis a base leaves on: the
@@ -199,6 +304,44 @@ fn polyline(tree: &Tree, apex: usize) -> Vec<usize> {
         stem.push(parent);
     }
     stem
+}
+
+/// The stem's centreline about a depth: the mean of its polyline over a
+/// trunk's width either way, and the way that mean runs there. A stem's
+/// polyline turns at every node by its crookedness, and a lattice laid on each
+/// segment's own axis would tilt every cell against its neighbours; the trunk
+/// the lattice wraps is the polyline with its turns shorter than its own
+/// width smoothed away. The mean never reaches above `top`, where the crown's
+/// own fronds leave the axis.
+fn centreline(
+    tree: &Tree,
+    stem: &[usize],
+    depth: &[f64],
+    top: f64,
+    want: f64,
+    girth: f64,
+) -> (Vec3, Vec3) {
+    let run = depth[depth.len() - 1];
+    // Symmetric about a depth, narrowed toward either end of the clothed run
+    // so a base near the crown or the foot stays centred on its own place.
+    let mean = |at: f64| {
+        const SAMPLES: u32 = 9;
+        let at = at.clamp(top, run);
+        let half = (2. * girth).min(at - top).min(run - at);
+        let mut sum = Vec3::ZERO;
+        for k in 0..SAMPLES {
+            let d = at - half + 2. * half * f64::from(k) / f64::from(SAMPLES - 1);
+            sum += along(tree, stem, depth, d).1;
+        }
+        sum * (1. / f64::from(SAMPLES))
+    };
+    let chord = mean(want - girth) - mean(want + girth);
+    let axis = if chord.length_squared() > 1e-18 {
+        chord.normalized()
+    } else {
+        along(tree, stem, depth, want).2
+    };
+    (mean(want), axis)
 }
 
 /// Where a depth below the apex falls on the stem: the node the base is borne

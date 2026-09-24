@@ -208,6 +208,10 @@ pub(super) fn build_mode(
         .map_err(|_| Error::ResourceLimit("surface indices"))?;
         sample_path(tree, height, params, &paths, path, &distance, &mut samples);
         frames(&samples, &mut segments_scratch, &mut frame);
+        let shape = section::of(tree, &paths, path);
+        if let Some(s) = shape {
+            section::square(s, &mut frame);
+        }
         let base = (mesh.positions.len() / 3) as u32;
         let seg = segments as u32;
         if let Some(edges) = contacts.as_deref_mut() {
@@ -221,12 +225,20 @@ pub(super) fn build_mode(
                 ]);
             }
         }
-        emit_run(&samples, &frame, &angular, params, height, |xyz, coord| {
-            mesh.positions.extend(xyz);
-            if prepared.is_none() {
-                mesh.coords.extend(coord);
-            }
-        })?;
+        emit_run(
+            &samples,
+            &frame,
+            &angular,
+            params,
+            height,
+            shape,
+            |xyz, coord| {
+                mesh.positions.extend(xyz);
+                if prepared.is_none() {
+                    mesh.coords.extend(coord);
+                }
+            },
+        )?;
         let run = prepared::Run {
             base,
             first_index,
@@ -320,6 +332,7 @@ pub(super) fn emit_run(
     angular: &[angular::Angular],
     params: &SurfaceParams,
     height: f64,
+    shape: Option<&crate::tree::Section>,
     mut emit: impl FnMut([f32; 3], [f32; 2]),
 ) -> Result<()> {
     let mut vertex = |p: Vec3, coord: [f32; 2]| {
@@ -331,6 +344,14 @@ pub(super) fn emit_run(
         Ok(())
     };
     for (i, s) in samples.iter().enumerate() {
+        if let Some(shape) = shape {
+            let ring = shape.ring(i, samples.len());
+            for sample in angular {
+                let p = shape.vertex(ring, sample.cos, sample.sin);
+                vertex(p, [s.d as f32, sample.angle as f32])?;
+            }
+            continue;
+        }
         let (normal, binormal) = frame[i];
         let phase = std::f64::consts::TAU * params.twist_rate * (s.d / height);
         for sample in angular {

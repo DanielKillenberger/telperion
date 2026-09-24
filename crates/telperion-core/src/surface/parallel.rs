@@ -213,11 +213,23 @@ pub(super) fn build(
                         &mut samples,
                     );
                     frames(&samples, &mut scratch, &mut frame);
-                    emit_run(&samples, &frame, angular, params, height, |xyz, coord| {
-                        out_p[offset * 3..offset * 3 + 3].copy_from_slice(&xyz);
-                        out_c[offset * 2..offset * 2 + 2].copy_from_slice(&coord);
-                        offset += 1;
-                    })?;
+                    let shape = section::of(tree, paths, &paths.runs[run.path as usize]);
+                    if let Some(s) = shape {
+                        section::square(s, &mut frame);
+                    }
+                    emit_run(
+                        &samples,
+                        &frame,
+                        angular,
+                        params,
+                        height,
+                        shape,
+                        |xyz, coord| {
+                            out_p[offset * 3..offset * 3 + 3].copy_from_slice(&xyz);
+                            out_c[offset * 2..offset * 2 + 2].copy_from_slice(&coord);
+                            offset += 1;
+                        },
+                    )?;
                 }
                 Ok(())
             });

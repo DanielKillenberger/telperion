@@ -151,6 +151,9 @@ fn no_base_stands_above_the_oldest_living_frond() {
 fn weathering_wears_the_lowest_bases_back() {
     let mut f = family("date-palm", 1);
     f.canopy.leaf_base_weathering = 0.6;
+    // The round pegs: a packed base's reach is its length out of the bark,
+    // and its outer end is worn in `leaf_base_lattice.rs`.
+    f.canopy.leaf_base_width = 0.;
     let tree = mesh::grow(&f).expect("the skeleton grows");
     let table = branching::leaf_bases(&tree, &f.canopy);
     let bases = hung(&tree);

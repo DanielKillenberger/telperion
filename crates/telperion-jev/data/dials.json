@@ -3601,6 +3601,36 @@
   "source": "crates/telperion-core/src/foliage/placement.rs:168"
  },
  {
+  "id": "leaf_base_width",
+  "path": "/canopy/leafBaseWidth",
+  "meaning": "how broad a retained base is across the trunk as a share of the cell the crown's spiral gives it: 1 meets its neighbours edge to edge; at zero the base is a round peg and any rise packs the bases into the lattice",
+  "min": 0,
+  "max": 2,
+  "integer": false,
+  "small": 0.05,
+  "substantial": 0.2,
+  "group": "canopy",
+  "score_visible": true,
+  "meaning_basis": "doc comment",
+  "range_basis": "validated bound",
+  "source": "crates/telperion-core/src/foliage/canopy.rs:176"
+ },
+ {
+  "id": "leaf_base_flatness",
+  "path": "/canopy/leafBaseFlatness",
+  "meaning": "how flat-sided a packed base is drawn: 1 the diamond cell with flat faces, cut square at its end; at zero the section stays round",
+  "min": 0,
+  "max": 1,
+  "integer": false,
+  "small": 0.1,
+  "substantial": 0.25,
+  "group": "canopy",
+  "score_visible": true,
+  "meaning_basis": "doc comment",
+  "range_basis": "validated bound",
+  "source": "crates/telperion-core/src/foliage/canopy.rs:182"
+ },
+ {
   "id": "acanthophylls",
   "path": "/canopy/acanthophylls",
   "meaning": "leaflets at a frond's base borne as spines rather than blades; at zero the frond carries blades",
