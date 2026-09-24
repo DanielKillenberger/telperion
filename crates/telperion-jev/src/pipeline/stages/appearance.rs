@@ -10,11 +10,13 @@
 //! leave unstated takes its zero-width level as a default with its reason
 //! (fn-133). `leaf_back_colour` left unstated while `leaf_front_colour` has
 //! a sourced level takes the front's level, its ranges mapped onto the
-//! back's material fields, as a default citing the front's source (fn-139);
-//! bark colour and every other colour trait never default this way. Any
-//! other trait the table requires that the sources leave unstated files a
-//! requirements-unmet decision, which the pipeline searches again before
-//! the owner has it.
+//! back's material fields, as a default citing the front's source (fn-139
+//! R1-R3); a back a claim resolution dropped with no replacement source
+//! found and the front still sourced takes the same default - a dropped
+//! underside is an unstated one (fn-139 R4). Bark colour and every other
+//! colour trait never default this way. Any other trait the table requires
+//! that the sources leave unstated files a requirements-unmet decision,
+//! which the pipeline searches again before the owner has it.
 
 use std::collections::BTreeMap;
 
@@ -187,15 +189,20 @@ impl Copied {
 }
 
 /// Takes out every appearance value a resolution dropped (fn-131): the
-/// trait reads unstated in the select body, naming the decision, and a
-/// trait the table requires, or one sent for another source, files
-/// requirements-unmet, which the pipeline searches again for.
+/// trait reads unstated in the select body, naming the decision. A dropped
+/// `leaf_back_colour` with no replacement source found on this rerun and
+/// `leaf_front_colour` still sourced takes the front's level the same as a
+/// back that was never sourced at all (fn-139 R4) - a dropped underside is
+/// an unstated one. Any other dropped trait the table requires, or one sent
+/// for another source, files requirements-unmet, which the pipeline
+/// searches again for.
 pub fn drop_flagged(
     ctx: &Context,
     copied: &mut Copied,
     flags: &BTreeMap<String, Flag>,
 ) -> Result<(), StageError> {
     let manifest = &ctx.admitted.manifest;
+    let mut dropped = Vec::new();
     for trait_ in &manifest.appearance {
         let name = trait_.trait_name.as_str();
         let pointer = format!("/profiles/0/appearance/{name}");
@@ -211,12 +218,38 @@ pub fn drop_flagged(
             name.into(),
             json!({"level": DESCRIBED_UNSTATED, "source": null, "sentence": "", "ledger": [], "dropped": flag.reason()}),
         );
+        dropped.push(trait_);
+    }
+    // A second pass so the back-colour default can read the front's
+    // post-drop state regardless of the manifest's own appearance order,
+    // the same reason `run` gathers its choices before writing them.
+    for trait_ in dropped {
+        let name = trait_.trait_name.as_str();
+        let pointer = format!("/profiles/0/appearance/{name}");
+        if name == LEAF_BACK_COLOUR {
+            if let Some((front_level, front_source)) = front_sourced_level_in(copied) {
+                copied.default_to_front(pointer, &front_level, &front_source, &[]);
+                continue;
+            }
+        }
+        let flag = &flags[&pointer];
         if flag.option == REPLACE_SOURCE || requires_appearance(manifest, name) {
             let sources = sources_sha256(&ctx.paths.manifest())?;
             copied.decisions.push(unstated(ctx, trait_, &[], &sources));
         }
     }
     Ok(())
+}
+
+/// `leaf_front_colour`'s level and source as `copied.sidecar` currently
+/// holds them (post-drop): `None` when the front has no sourced entry of
+/// its own left, including one this same rerun just dropped (fn-139 R4).
+fn front_sourced_level_in(copied: &Copied) -> Option<(AppearanceLevel, String)> {
+    let pointer = format!("/profiles/0/appearance/{LEAF_FRONT_COLOUR}");
+    let entry = copied.sidecar.get(&pointer)?;
+    let source = entry["source"].as_str()?.to_string();
+    let level = table().level(LEAF_FRONT_COLOUR, entry["level"].as_str()?)?;
+    Some((level.clone(), source))
 }
 
 /// The sentence a trait's level was read from, its source, and every

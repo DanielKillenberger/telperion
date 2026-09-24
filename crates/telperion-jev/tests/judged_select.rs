@@ -8,7 +8,8 @@ use std::path::PathBuf;
 use judged::*;
 use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
-use telperion_jev::pipeline::canon::read_json;
+use telperion_jev::pipeline::canon::{read_json, write_canonical};
+use telperion_jev::pipeline::decision::{append_decisions, Decision, DecisionParts};
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::stage::Paths;
 use telperion_jev::pipeline::stages::{quality, select};
@@ -226,6 +227,89 @@ fn both_faces_unstated_file_requirements_unmet_and_bark_never_defaults() {
         let id = format!("date-palm/select/requirements-unmet/{field}");
         assert!(ids.contains(&id.as_str()), "{ids:?}");
     }
+}
+
+/// fn-139 R4 (host design): a back a claim resolution dropped, with no
+/// replacement source found on the rerun, is an unstated one - it takes the
+/// still-sourced front's level the same as a back that was never sourced at
+/// all (R1). Front sourced `grey_green` from F1; back is first sourced
+/// (wrongly) to `silvery_white` off the same F1 sentence, then a
+/// `drop-value` resolution against that exact source and span takes it out.
+#[test]
+fn a_back_a_resolution_dropped_with_no_replacement_defaults_to_the_sourced_front() {
+    let dir = fetched_f1("back-dropped");
+    let mut palm = Palm::new(|_, _| None);
+    palm.levels = |name| match name {
+        "leaf_front_colour" => Some(score(
+            json!({"0": 0.0, "1": 0.0, "2": 0.0, "3": 1.0, "4": 0.0, "5": 0.0}),
+            3.0,
+        )),
+        "leaf_back_colour" => Some(score(json!({"0": 0.0, "1": 0.0, "2": 0.0, "3": 1.0}), 3.0)),
+        _ => None,
+    };
+    let paths = Paths::new(&dir);
+    select::run(&paths, &judge(&palm)).unwrap();
+
+    let back_pointer = "/profiles/0/appearance/leaf_back_colour";
+    let sidecar = read_json(&dir.join("provenance.json")).unwrap();
+    let entry = sidecar["entries"][back_pointer].clone();
+    // Sanity: the back really was sourced first, off F1's frond sentence,
+    // before anything drops it - never plain-unstated (that's R1).
+    assert_eq!(entry["level"], "silvery_white", "{entry}");
+    assert_eq!(entry["source"], "F1", "{entry}");
+    assert_eq!(entry["span"], F1_FROND, "{entry}");
+
+    let claim = Decision::new(
+        DecisionParts {
+            species: "date-palm",
+            stage: "verify",
+            kind: "claim-unsupported",
+            field: Some(back_pointer),
+            age_years: None,
+        },
+        &["generate"],
+        [("select.json".to_string(), "test-fixture".to_string())]
+            .into_iter()
+            .collect(),
+        vec![],
+        json!({"value": back_pointer, "level": entry["level"], "sentence": entry["span"],
+               "source": entry["source"], "pointer": back_pointer, "span": entry["span"]}),
+        &["accept", "replace-source", "drop-value"],
+        "Jev judged that the cited sentence does not describe this appearance level.",
+    );
+    let (id, inputs) = (claim.id.clone(), claim.inputs_sha256.clone());
+    append_decisions(&paths.decisions(), vec![claim]).unwrap();
+    write_canonical(
+        &paths.resolutions(),
+        &json!({"resolutions": [{"id": id, "inputs_sha256": inputs,
+                                 "option": "drop-value", "by": "owner", "at": "2026-09-24"}]}),
+    )
+    .unwrap();
+
+    // No replacement source was added: the rerun re-derives the same
+    // flagged (source, span), so the resolution's drop actually applies.
+    select::run(&paths, &judge(&palm)).unwrap();
+    let body = &read_json(&dir.join("select.json")).unwrap()["body"]["appearance"];
+    assert_eq!(body["leaf_back_colour"]["level"], "grey_green", "{body}");
+    assert_eq!(body["leaf_back_colour"]["source"], "F1", "{body}");
+    assert!(body["leaf_back_colour"]["default"].is_string(), "{body}");
+    assert_eq!(body["leaf_front_colour"]["level"], "grey_green", "{body}");
+
+    let profile = read_json(&dir.join("packet").join("profile.json")).unwrap();
+    let back = &profile["profiles"][0]["appearance"]["leaf_back_colour"];
+    assert_eq!(back["level"], "grey_green", "{back}");
+    assert_eq!(back["sources"], json!(["F1"]), "{back}");
+
+    let list = read_json(&dir.join("decisions.json")).unwrap();
+    let decisions = list["decisions"].as_array().unwrap();
+    assert!(
+        decisions
+            .iter()
+            .all(|d| d["id"] != "date-palm/select/requirements-unmet/leaf_back_colour"),
+        "{list}"
+    );
+    let consumed = decisions.iter().find(|d| d["id"] == id).unwrap();
+    assert_eq!(consumed["consumed_by"], "select", "{consumed}");
 }
 
 /// R3 on the gate: a sufficiency whose average rounds to `proxy_only`, a
