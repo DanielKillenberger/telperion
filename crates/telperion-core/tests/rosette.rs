@@ -59,7 +59,8 @@ fn the_palm_bears_a_frond_for_every_row_its_table_states() {
 }
 
 /// R3: no foliage is borne below the apex. Every leaflet stands within one
-/// rosette's depth and one rachis of a stem apex.
+/// rosette's depth and one arched rachis of a stem apex: the arch lifts the
+/// rachis out of its straight line by up to `rachis_arch` of its length.
 #[test]
 fn no_leaflet_stands_below_the_frond_crown() {
     let f = family("date-palm", 1);
@@ -68,7 +69,8 @@ fn no_leaflet_stands_below_the_frond_crown() {
     // The skirt continues the crown's spacing below its oldest living frond.
     let last = f64::from(f.canopy.rosette_fronds + f.canopy.skirt_fronds - 1);
     let spacing = f.canopy.rosette_depth / f64::from(f.canopy.rosette_fronds - 1);
-    let reach = spacing * last + f.canopy.rachis_length;
+    let rachis = f.canopy.rachis_length * f.canopy.rachis_arch.hypot(1.0);
+    let reach = spacing * last + rachis;
     for i in 0..crown.placed() {
         let at = crown.position(i);
         let nearest = apices
@@ -111,11 +113,13 @@ fn an_apex_that_bears_a_rosette_bears_no_twig() {
 }
 
 /// The rosette absent, the family clothes its wood as it always did - the twig
-/// layer back, the crown borne on it.
+/// layer back, the crown borne on it. The palm's own column is too narrow to
+/// bear a twig crown, so the wood is grown in the default envelope.
 #[test]
 fn the_rosette_absent_leaves_the_wood_clothed_as_it_was() {
     let mut f = family("date-palm", 1);
     f.canopy.rosette_fronds = 0;
+    f.skeleton.envelope = Family::default().skeleton.envelope;
     let (tree, crown) = placed(&f);
     assert!(
         tree.nodes.iter().any(|n| n.kind != NodeKind::Structural),

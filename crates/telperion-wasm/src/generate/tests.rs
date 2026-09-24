@@ -74,10 +74,13 @@ fn a_field_request_reads_the_plan_and_names_its_stages_for_every_preset() {
             json!(if planned { "plan" } else { "placed" }),
             "{id}: {stages}"
         );
-        assert_eq!(meta["leavesPlaced"], json!(0), "{id}");
         if planned {
+            assert_eq!(meta["leavesPlaced"], json!(0), "{id}");
             assert!(meta["leavesPlanned"].as_u64().unwrap() > 0, "{id}");
             assert_eq!(meta["biologicalUnits"], Value::Null, "{id}");
+        } else {
+            // The placed path grows its field from the leaves it placed.
+            assert!(meta["leavesPlaced"].as_u64().unwrap() > 0, "{id}");
         }
     }
     let (_, meta) = generate(json!({
