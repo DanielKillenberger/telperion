@@ -179,7 +179,7 @@ pub fn run(
     header.ledger.extend(shipped.ledger.iter().cloned());
 
     write_sidecar(&ctx, &shipped)?;
-    write_packet(&ctx, manifest, overlaid(parameters, &shipped))?;
+    write_packet(&ctx.paths, manifest, overlaid(parameters, &shipped))?;
     let stills = draw_stills(&ctx, manifest, example, &shipped);
     let drawn: Vec<&Value> = stills.iter().filter(|s| s.get("path").is_some()).collect();
     if !drawn.is_empty() {

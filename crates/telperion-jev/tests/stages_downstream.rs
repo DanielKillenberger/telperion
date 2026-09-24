@@ -742,11 +742,28 @@ fn the_packets_species_record_carries_exactly_the_closed_keys() {
         ]
     );
     assert_eq!(species["fixed_seeds"], json!([7, 8, 9]));
+    let holdout: Vec<u32> = species["holdout_seeds"]
+        .as_array()
+        .expect("holdout_seeds is an array")
+        .iter()
+        .map(|v| v.as_u64().expect("a seed is a number") as u32)
+        .collect();
+    assert_eq!(holdout.len(), 3, "three holdout seeds: {holdout:?}");
+    for seed in [7, 8, 9] {
+        assert!(
+            !holdout.contains(&seed),
+            "holdout seed collides with a fixed seed: {holdout:?}"
+        );
+    }
     assert_eq!(species["profile_path"], "packet/profile.json");
     assert_eq!(species["profile_sha256"].as_str().unwrap().len(), 64);
     let specimens = read_json(&dir.join("packet").join("specimens.json")).unwrap();
     assert_eq!(specimens["generation_status"], "measured-by-pipeline");
-    assert_eq!(specimens["cases"].as_array().unwrap().len(), 3);
+    let cases = specimens["cases"].as_array().unwrap();
+    assert_eq!(cases.len(), 6, "three fixed and three holdout cases");
+    let count = |role: &str| cases.iter().filter(|c| c["seed_role"] == role).count();
+    assert_eq!(count("regression"), 3);
+    assert_eq!(count("holdout"), 3);
 }
 
 // ----------------------------------------------------------------- the report
