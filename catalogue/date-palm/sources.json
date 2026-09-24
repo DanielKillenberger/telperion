@@ -1,0 +1,117 @@
+{
+  "schema": "sources",
+  "schema_version": 1,
+  "species": "date-palm",
+  "sources": [
+    {
+      "id": "F1",
+      "title": "FOR 252/FR314: Phoenix dactylifera, Date Palm - Ask IFAS",
+      "attribution": "FOR 252/FR314: Phoenix dactylifera, Date Palm - Ask IFAS",
+      "url": "https://ask.ifas.ufl.edu/publication/FR314",
+      "rights": "UF/IFAS EDIS extension publication, free to read and cite; measured values are cited, no text reproduced",
+      "use": "",
+      "verified": "2026-09-22",
+      "sha256": null,
+      "tables": []
+    },
+    {
+      "id": "A1",
+      "title": "Phoenix dactylifera - Find Trees & Learn | UA Campus Arboretum",
+      "attribution": "Phoenix dactylifera - Find Trees & Learn | UA Campus Arboretum",
+      "url": "https://apps.cals.arizona.edu/arboretum/taxon.aspx?id=207",
+      "rights": "University of Arizona Campus Arboretum public taxon page, free to read and cite; measured values are cited, no text reproduced",
+      "use": "",
+      "verified": "2026-09-22",
+      "sha256": null,
+      "tables": []
+    },
+    {
+      "id": "M1",
+      "title": "Comparative study of the morphological characteristics of Phoenix dactylifera L. cultivars in Al-Madinah Al-Munawarah-Saudi Arabia.",
+      "attribution": "Comparative study of the morphological characteristics of Phoenix dactylifera L. cultivars in Al-Madinah Al-Munawarah-Saudi Arabia.",
+      "url": "https://doi.org/10.1186/s12870-022-03841-0",
+      "rights": "BMC Plant Biology, open access under CC BY 4.0; measured values are cited with attribution",
+      "use": "",
+      "verified": "2026-09-22",
+      "sha256": null,
+      "tables": []
+    },
+    {
+      "id": "P4",
+      "title": "Date palm - Wikipedia",
+      "attribution": "Date palm - Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Date_palm",
+      "rights": "Wikipedia, CC BY-SA 4.0; measured values are cited with attribution, no text reproduced",
+      "use": "",
+      "verified": "2026-09-24",
+      "sha256": null,
+      "tables": []
+    },
+    {
+      "id": "P5",
+      "title": "Date Palm, Phoenix dactylifera - Growables",
+      "attribution": "Date Palm, Phoenix dactylifera - Growables",
+      "url": "https://www.growables.org/information/TropicalFruit/PalmPhoenixDactilifera.htm",
+      "rights": "growables.org private page, no stated licence; measured values are cited only, no text reproduced (owner admitted, 2026-09-23)",
+      "use": "",
+      "verified": "2026-09-24",
+      "sha256": null,
+      "tables": []
+    },
+    {
+      "id": "P6",
+      "title": "An Overview of Date (Phoenix dactylifera) Fruits as an Important ...",
+      "attribution": "An Overview of Date (Phoenix dactylifera) Fruits as an Important ...",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11011438/",
+      "rights": "Foods (MDPI) 2024, open access CC BY; measured values are cited with attribution",
+      "use": "",
+      "verified": "2026-09-24",
+      "sha256": null,
+      "tables": []
+    },
+    {
+      "id": "P7",
+      "title": "Comparative study of the morphological characteristics of ...",
+      "attribution": "Comparative study of the morphological characteristics of ...",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9511727/",
+      "rights": "BMC Plant Biology 2022, open access CC BY 4.0; measured values are cited with attribution",
+      "use": "",
+      "verified": "2026-09-24",
+      "sha256": null,
+      "tables": []
+    },
+    {
+      "id": "P8",
+      "title": "Carbon stock estimation of mixed-age date palm (Phoenix dactylifera L.) farms in northeastern Ethiopia (Heliyon, 2022)",
+      "attribution": "Carbon stock estimation of mixed-age date palm (Phoenix dactylifera L.) farms in northeastern Ethiopia (Heliyon, 2022)",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8810365/",
+      "rights": "Heliyon 2022, open access CC BY (Europe PMC licence record); measured values are cited with attribution, no text reproduced; admitted by the host as the pipeline would under fn-129",
+      "use": "",
+      "verified": "2026-09-24",
+      "sha256": null,
+      "tables": []
+    },
+    {
+      "attribution": "Apurv013, Wikimedia Commons, CC0 1.0 Universal Public Domain Dedication",
+      "id": "R1",
+      "rights": "CC0 1.0 Universal Public Domain Dedication; reference photograph, shown with attribution",
+      "sha256": null,
+      "tables": [],
+      "title": "Wikimedia Commons: Phoenix dactylifera - Date palm .jpg",
+      "url": "https://commons.wikimedia.org/wiki/File:Phoenix_dactylifera_-_Date_palm_.jpg",
+      "use": "Reference photograph the tuning reviewer compared renders against (P-WHOLE from R1; P-TRUNK and P-BASE from R2).",
+      "verified": "2026-09-22"
+    },
+    {
+      "attribution": "Agnieszka Kwiecień, Nova, Wikimedia Commons, CC BY-SA 4.0 (Attribution-Share Alike 4.0 International)",
+      "id": "R2",
+      "rights": "CC BY-SA 4.0 (Attribution-Share Alike 4.0 International); reference photograph, shown with attribution",
+      "sha256": null,
+      "tables": [],
+      "title": "Wikimedia Commons: Phoenix dactylifera 2018-07-17 Orlando 06.jpg",
+      "url": "https://commons.wikimedia.org/wiki/File:Phoenix_dactylifera_2018-07-17_Orlando_06.jpg",
+      "use": "Reference photograph the tuning reviewer compared renders against (P-WHOLE from R1; P-TRUNK and P-BASE from R2).",
+      "verified": "2026-09-22"
+    }
+  ]
+}

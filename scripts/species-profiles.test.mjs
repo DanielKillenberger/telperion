@@ -13,6 +13,7 @@ import { ROOT, FALLBACK_PROFILE_SET, matchedRecords, resolveProfileSet } from '.
 
 const FN9 = join(ROOT, '.flow/evidence/fn9/profiles.json');
 const FN34 = join(ROOT, '.flow/evidence/fn34/profiles.json');
+const FN80 = join(ROOT, '.flow/evidence/fn80/profiles-date-palm.json');
 const catalogue = join(ROOT, 'catalogue');
 const listed = (path) => JSON.parse(readFileSync(path, 'utf8')).profiles.map((profile) => profile.id);
 
@@ -39,7 +40,7 @@ const EXPECTED = {
   'norway-spruce': FN9,
   'european-beech': FN34,
   'silver-birch': FN34,
-  'date-palm': FN9,
+  'date-palm': FN80,
   'telperion': FN9,
   'laurelin': FN9,
 };
