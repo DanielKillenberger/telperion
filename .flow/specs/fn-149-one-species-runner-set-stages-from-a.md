@@ -44,7 +44,7 @@ The date palm run (fn-80, fn-82) proved the method: literature sets the starting
 - **R2:** A run stops only for a contradicted or unsupported claim, an identity gap and the owner's look; every other condition reruns or is logged. [inferred]
 - **R3:** A revision starts from the last kept tree, reads the dial table live and offers only live dials; the render tools it uses are rebuilt from the same commit. [inferred]
 - **R4:** `gaps.md` classes every failing trait as reachable, identity or global, each with its evidence, and the runner writes no spec. [inferred]
-- **R5:** Accepting writes the preset and the catalogue pins with no hand-editing. [inferred]
+- **R5:** Accepting writes the preset and the catalogue pins with no hand-editing, and the catalogue folder the run writes passes `scripts/catalogue-check.mjs` as written (the date palm's first folder failed it on four counts: a `catalogue-sources` schema name, references citing unrecorded sources R1 and R2, an unversioned `packet/specimens.json` and an article decision left open by a script crash, so the palm shipped in npm 0.1.3 without its catalogue entry). [checked]
 - **R6:** The date palm reruns end to end from its recorded sources to the same accepted tree class, and one new proof species runs from a name to the owner's look; stops and tokens for each are reported against the palm's first run (about 30 stops on its last day, about 12M tuning tokens). [inferred]
 - **R7:** The removed modules are gone, not disabled; the workspace gate is green; the lines before and after are reported. [inferred]
 
