@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-147-a-species-run-can-start-from-a-photo-of",
+  "created_at": "2026-09-24T21:48:28.505910Z",
+  "depends_on_epics": [],
+  "id": "fn-147-a-species-run-can-start-from-a-photo-of",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-147-a-species-run-can-start-from-a-photo-of.md",
+  "status": "open",
+  "title": "A species run can start from a photo of a tree",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-24T21:48:28.512061Z"
+}
