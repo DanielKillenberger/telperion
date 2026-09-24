@@ -27,6 +27,8 @@ pub mod prepared;
 #[cfg(feature = "geometry")]
 mod samples;
 #[cfg(feature = "geometry")]
+mod section;
+#[cfg(feature = "geometry")]
 pub(crate) use attachment::AttachmentSurface;
 #[cfg(feature = "geometry")]
 use build::*;

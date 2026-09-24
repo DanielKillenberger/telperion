@@ -1680,6 +1680,48 @@
     "reason": "The least length and girth weathering leaves a retained base at, so a worn base is still wood a node of positive radius can carry; it does not limit generated populations."
   },
   {
+    "path": "crates/telperion-core/src/branching/lattice.rs",
+    "site": "const STEPS : usize = 64 ;",
+    "classification": "algorithm",
+    "reason": "Lagrange reduction of a two-vector lattice ends as soon as the longer vector stops shortening, within a few steps for any stem; the bound only guards a pathological input and does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/branching/lattice.rs",
+    "site": "for _ in 0 . . STEPS {",
+    "classification": "algorithm",
+    "reason": "The reduction loop bounded by STEPS; it reduces one lattice basis and does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/branching/leaf_bases.rs",
+    "site": ". clamp ( UPRIGHT , 180 . - UPRIGHT )",
+    "classification": "numeric",
+    "reason": "A packed base leans at least 15 degrees off its stem axis so its wedge leaves the bark at its cell; it bounds an angle, not a generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/branching/leaf_bases.rs",
+    "site": ". max ( 1 . )",
+    "classification": "numeric",
+    "reason": "Spacing between bases divides by the base count less one, held at one for a single base; it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/branching/leaf_bases.rs",
+    "site": "const SAMPLES : u32 = 9 ;",
+    "classification": "algorithm",
+    "reason": "Points averaged to smooth the stem centreline under one packed base; a fixed quadrature, not a limit on generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/branching/leaf_bases.rs",
+    "site": "for k in 0 . . SAMPLES {",
+    "classification": "algorithm",
+    "reason": "The centreline average over SAMPLES points; it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/tree/section.rs",
+    "site": ". clamp ( 2 , 3 )",
+    "classification": "algorithm",
+    "reason": "A shaped run has two or three sampled rings; the clamp maps its sample index onto the section's three rings and does not limit generated populations."
+  },
+  {
     "path": "crates/telperion-core/src/foliage/rosette.rs",
     "site": "for column in 0 . . 3 {",
     "classification": "algorithm",

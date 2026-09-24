@@ -32,7 +32,7 @@ const PILOT_TABLE_SHA256: &str = "32a9af4ea8d920ca1ff711145a4ebbe5a7912fbd7311be
 /// raises two of them at once reads as two small steps and lands a new
 /// feature. Read off the use sites, one row at a time; a row is on this list
 /// only where the code guards on the value or multiplies by it.
-const SWITCHES_AT_ZERO: [&str; 34] = [
+const SWITCHES_AT_ZERO: [&str; 36] = [
     "attractor_weight",
     "stem_divergence",
     "stem_lean",
@@ -50,6 +50,8 @@ const SWITCHES_AT_ZERO: [&str; 34] = [
     "rachis_length",
     "leaf_bases",
     "leaf_base_length",
+    "leaf_base_width",
+    "leaf_base_flatness",
     "acanthophylls",
     "acanthophyll_length",
     "skirt_fronds",
