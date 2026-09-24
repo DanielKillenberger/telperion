@@ -216,6 +216,7 @@ pub(super) fn emit_run(
     samples: &[Sample],
     frame: &[(Vec3, Vec3)],
     at: Swept,
+    shape: Option<&crate::tree::Section>,
     caps: bool,
     mut emit: impl FnMut([f32; 3], [f32; 2]),
 ) -> Result<()> {
@@ -229,6 +230,14 @@ pub(super) fn emit_run(
         Ok(())
     };
     for (i, s) in samples.iter().enumerate() {
+        if let Some(shape) = shape {
+            let ring = shape.ring(i, samples.len());
+            for sample in at.angular {
+                let p = shape.vertex(ring, sample.cos, sample.sin);
+                vertex(p, [s.d as f32, sample.angle as f32])?;
+            }
+            continue;
+        }
         let (normal, binormal) = frame[i];
         let phase = std::f64::consts::TAU * params.twist_rate * (s.d / height);
         for sample in at.angular {

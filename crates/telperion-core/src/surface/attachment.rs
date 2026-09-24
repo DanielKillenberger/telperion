@@ -106,7 +106,16 @@ impl AttachmentSurface<'static> {
             sample_path(tree, height, params, &paths, path, &distance, &mut samples);
             frames(&samples, &mut scratch, &mut frame);
             let base = rings.len() / 3;
+            let shape = section::of(tree, &paths, path);
             for (i, s) in samples.iter().enumerate() {
+                if let Some(shape) = shape {
+                    let ring = shape.ring(i, samples.len());
+                    for sample in &angular {
+                        let p = shape.vertex(ring, sample.cos, sample.sin);
+                        rings.extend([p.x as f32, p.y as f32, p.z as f32]);
+                    }
+                    continue;
+                }
                 let (normal, binormal) = frame[i];
                 let phase = std::f64::consts::TAU * params.twist_rate * (s.d / height);
                 for sample in &angular {

@@ -108,6 +108,8 @@ pub(crate) fn validate(p: &CanopyParams) -> Result<()> {
         (p.leaf_base_radius, 0., 1., "leaf base radius"),
         (p.leaf_base_pitch, 0., 180., "leaf base pitch"),
         (p.leaf_base_weathering, 0., 1., "leaf base weathering"),
+        (p.leaf_base_width, 0., 2., "leaf base width"),
+        (p.leaf_base_flatness, 0., 1., "leaf base flatness"),
         (p.acanthophyll_length, 0., 1., "acanthophyll length"),
         (p.acanthophyll_pitch, 0., 90., "acanthophyll pitch"),
         (p.skirt_pitch, 0., 180., "skirt pitch"),

@@ -72,8 +72,8 @@ const SWEEP_NODES: usize = 8_000;
 // palm's, and the palm is not a preset the sweep walks: every other table
 // leaves them at their neutral, so they are held here.
 // fn-120's three skirt rows and its dead colour are the palm's too, held for
-// the same reason.
-const HELD: [&str; 66] = [
+// the same reason, and so are fn-144's two lattice rows.
+const HELD: [&str; 68] = [
     "/canopy/clumpSystemOrder",
     "/canopy/rosetteFronds",
     "/canopy/rosetteDivergence",
@@ -90,6 +90,8 @@ const HELD: [&str; 66] = [
     "/canopy/leafBaseRadius",
     "/canopy/leafBasePitch",
     "/canopy/leafBaseWeathering",
+    "/canopy/leafBaseWidth",
+    "/canopy/leafBaseFlatness",
     "/canopy/acanthophylls",
     "/canopy/acanthophyllLength",
     "/canopy/acanthophyllPitch",

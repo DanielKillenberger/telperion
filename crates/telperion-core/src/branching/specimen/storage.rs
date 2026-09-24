@@ -53,6 +53,7 @@ impl Specimen {
                 nodes: Vec::with_capacity(self.tree.nodes.capacity()),
                 crossover: structural,
                 diagnostics: self.tree.diagnostics,
+                sections: Vec::new(),
             };
             for structural in [true, false] {
                 tree.nodes.extend(

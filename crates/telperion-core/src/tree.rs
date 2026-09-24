@@ -4,10 +4,12 @@
 //! Timeline nodes retain their birth identity and slot after their death year;
 //! the legacy envelope builder still compacts. Consumer reads exclude dead nodes.
 mod identity;
+mod section;
 mod shoot;
 use crate::{math::Vec3, Error, Result};
 pub use identity::NodeIdentity;
 pub(crate) use identity::NodeKey;
+pub use section::{Section, SectionRing};
 pub(crate) use shoot::LocalWidth;
 pub use shoot::{BudFate, ShootState};
 
@@ -77,6 +79,13 @@ pub struct Tree {
     pub nodes: Vec<Node>,
     pub crossover: usize,
     pub diagnostics: Diagnostics,
+    /// The runs drawn as a cell of their stem's lattice rather than round,
+    /// ordered by the last node of each. Empty on every tree that shapes none.
+    /// Drawn from the tree's own rows after it is grown and never stored: a
+    /// specimen or a snapshot is the skeleton, and its bytes are the ones they
+    /// always were.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub sections: Vec<Section>,
 }
 impl Tree {
     /// The wood a canopy or a twig layer measures itself against: the thickest
@@ -166,7 +175,25 @@ impl Tree {
         if self.nodes.iter().any(|n| n.radius <= 0.0) {
             return Err(Error::InvalidInput("unsolved radii"));
         }
+        let ordered = self.sections.windows(2).all(|w| w[0].node < w[1].node);
+        let held = self
+            .sections
+            .iter()
+            .all(|s| (s.node as usize) < self.nodes.len() && s.is_finite());
+        if !ordered || !held {
+            return Err(Error::InvalidInput("run sections"));
+        }
         Ok(())
+    }
+    /// The section the run ending at `node` is drawn as, if it is shaped.
+    pub fn section(&self, node: usize) -> Option<&Section> {
+        if self.sections.is_empty() {
+            return None;
+        }
+        self.sections
+            .binary_search_by_key(&node, |s| s.node as usize)
+            .ok()
+            .map(|i| &self.sections[i])
     }
 }
 

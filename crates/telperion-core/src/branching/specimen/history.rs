@@ -197,6 +197,7 @@ impl Specimen {
             nodes,
             crossover,
             diagnostics,
+            sections: Vec::new(),
         })
     }
 }
