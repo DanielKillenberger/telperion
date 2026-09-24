@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-137-a-claim-quoted-word-for-word-is",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-09-24T14:02:37.171019Z",
   "created_at": "2026-09-24T13:40:05.263190Z",
   "default_impl": null,
   "default_review": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-24T13:40:07.309115Z"
+  "updated_at": "2026-09-24T14:02:37.171028Z"
 }
