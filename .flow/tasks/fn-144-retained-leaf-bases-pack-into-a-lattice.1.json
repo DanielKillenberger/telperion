@@ -1,0 +1,15 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-24T18:05:44.134197Z",
+  "depends_on": [],
+  "id": "fn-144-retained-leaf-bases-pack-into-a-lattice.1",
+  "implicit_owner": true,
+  "priority": null,
+  "spec": "fn-144-retained-leaf-bases-pack-into-a-lattice",
+  "spec_path": ".flow/tasks/fn-144-retained-leaf-bases-pack-into-a-lattice.1.md",
+  "status": "todo",
+  "title": "Pack retained leaf bases into a lattice of flat-faced boots",
+  "updated_at": "2026-09-24T18:05:44.134197Z"
+}
