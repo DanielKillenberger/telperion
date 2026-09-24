@@ -114,5 +114,5 @@ The separate ring sweep in `AttachmentSurface::new` goes too: station preparatio
 
 - Owner decision 2026-09-23 (fn-102 review, item I): consumers are GPU applications and receive the full-fidelity tree. [user]
 - Rescoped 2026-09-24 from "contract for the families the station path supports, the rest in gap specs" to one pipeline for every tree, after the owner rejected per-family paths. The feasibility check read short shoots, limb clumping, rosettes, lobed wood, the numeric fallbacks and every current expansion implementation; no feature needs a second path. [user]
-- fn-126 (a fast CPU placement and cull) optimised code this spec deletes or rewrites; its fate is the owner's call. [inferred]
+- fn-126 speeds up this spec's CPU reference executor once it lands, and depends on this spec. [user]
 - Depends on fn-102 and fn-134, both merged. [inferred]
