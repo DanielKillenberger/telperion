@@ -8,6 +8,7 @@ reference images the project may keep, and the owner's notes. A run under
 
 | Species | Scientific name | Architectural model | Preset | Sources | Verdict |
 |---|---|---|---|---|---|
+| [Date palm](date-palm/README.md) | Phoenix dactylifera | not recorded | date-palm | 10 | no stills |
 | [European ash](european-ash/README.md) | Fraxinus excelsior | not recorded | none yet | 7 | no stills |
 | [European beech](european-beech/README.md) | Fagus sylvatica | not recorded | european-beech | 4 | no stills |
 | [Norway spruce](norway-spruce/README.md) | Picea abies | not recorded | norway-spruce | 2 | unassessed |
