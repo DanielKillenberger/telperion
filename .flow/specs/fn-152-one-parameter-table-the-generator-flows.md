@@ -53,9 +53,9 @@ The table's edges form an acyclic dependency graph.
 <!-- scope: both -->
 
 - **R1:** Every parameter in the wire table has one row with its type, range, meaning, stage, gate and derivation. The graph is acyclic, and no row is unread. [inferred]
-- **R2:** Every stage reads only its view of `Resolved`. A guard test fails on a stage that reads the raw family, and fn-151's one-path guard covers it. [inferred]
+- **R2:** Every stage reads only its view of `Resolved`: a stage's signature takes its view, never `&Family`, so reading the raw family does not compile, the same compile-time enforcement as R6 (fn-151's source guard was withdrawn for structure, owner 2026-09-25). [inferred]
 - **R3:** The wire schema, validation, tuning dial table, harness sliders and parameter reference are generated from the table. `dials.json` and the harness's hand-kept list are gone. Every shipped preset is a value file validated against the table, and fn-149's Accept writes that file. [inferred]
-- **R4:** Every shipped preset is byte-identical in mesh, field and metrics. Build time and peak memory are no worse, measured on the budgets fn-151 records. [inferred]
+- **R4:** Every shipped preset is byte-identical in mesh, field and metrics, and every artifact stays within CI's size budget (fn-151). Build time and peak memory are no worse: the implementer measures each shipped preset's build before and after on the owner's named machine (the RTX 3080 workstation, STRATEGY.md "Frame"), release profile, at least five runs each, and reports medians with spread. Errors: a regression beyond the runs' spread is reported with its cause, never absorbed. [inferred]
 - **R5:** The workspace gate and `npm test` are green. [inferred]
 - **R6:** No crate outside the core pipeline can call a build stage: a scratch caller in `telperion-wasm` fails to compile, and the growth path and GPU executor build through their deliberately exposed items. [user]
 
