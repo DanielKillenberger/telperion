@@ -1,16 +1,21 @@
-//! What the repository already knows before any search: the sources the
-//! catalogue's own bibliographies hold, the sources every admitted manifest
-//! under the evidence tree names, with the dimensions their tables cover and
-//! any fetch error their run recorded, and the URLs the specs'
-//! `## Resolved via Research` sections cite. Discovery lists them as
-//! candidates Jev ranks like searched ones, with their origin marked; nothing
-//! is fetched here and nothing is admitted by being known.
+//! What the repository already knows about this species before any search:
+//! the sources its catalogue bibliography holds and the sources every
+//! admitted manifest of the same species or taxon under the evidence tree
+//! names, with the dimensions their tables cover and any fetch error their
+//! run recorded. Discovery lists them as candidates Jev ranks like searched
+//! ones, with their origin marked; nothing is fetched here and nothing is
+//! admitted by being known.
+//!
+//! Only the same species is known (owner, 2026-09-25): the beech's second
+//! proof run ranked spruce and oak validation sources and fn-11's
+//! growth-model papers first for every field. Specs' method references are
+//! never sources, and raw evidence (`raw/`, a proof run's scratch) is never
+//! read.
 
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use super::canon::read_json;
@@ -22,8 +27,7 @@ pub struct KnownSource {
     pub url: String,
     pub title: String,
     pub snippet: String,
-    /// `catalogue:<species id>#<source id>`, `manifest:<path>#<source id>`
-    /// or `spec:<spec id>`.
+    /// `catalogue:<species id>#<source id>` or `manifest:<path>#<source id>`.
     pub origin: String,
     /// The dimensions the source's admitted tables cover; empty when the
     /// source is named for every field.
@@ -32,9 +36,6 @@ pub struct KnownSource {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
 }
-
-/// How many research URLs from the specs join one field's candidate list.
-pub const SPEC_URLS_PER_FIELD: usize = 8;
 
 /// The `.flow` directory a run directory sits under: the nearest ancestor
 /// named `.flow`, so the scan never depends on the process's working
@@ -53,108 +54,98 @@ pub struct KnownSources {
 }
 
 impl KnownSources {
-    /// Every species bibliography under `catalogue`, every manifest under
-    /// `<flow>/evidence` other than the run's own, and every research URL
-    /// under `<flow>/specs`, one entry per URL. A catalogue that is absent or
-    /// unreadable yields nothing and the rest is scanned as before.
+    /// The bibliography of the run's own species under `catalogue` and every
+    /// manifest of the same species or taxon under `<flow>/evidence` other
+    /// than the run's own and outside any `raw/` directory, one entry per
+    /// URL. A run whose manifest cannot be read knows nothing; a catalogue
+    /// that is absent or unreadable yields nothing and the rest is scanned.
     pub fn scan(catalogue: &Path, flow: &Path, own_manifest: &Path) -> Self {
-        let own = fs::canonicalize(own_manifest).ok();
+        let Some(own) = load(own_manifest) else {
+            return Self::default();
+        };
+        let same = |m: &Manifest| {
+            m.species == own.species
+                || m.taxon
+                    .scientific_name
+                    .eq_ignore_ascii_case(&own.taxon.scientific_name)
+        };
+        let own_path = fs::canonicalize(own_manifest).ok();
         let mut manifests = Vec::new();
         collect_manifests(&flow.join("evidence"), &mut manifests);
         manifests.sort();
         let mut by_url: BTreeMap<String, KnownSource> = BTreeMap::new();
-        for source in catalogue_sources(catalogue) {
+        for source in catalogue_sources(catalogue, &own.species) {
             merge(&mut by_url, source);
         }
         for path in manifests {
-            if fs::canonicalize(&path).ok() == own {
+            if fs::canonicalize(&path).ok() == own_path {
                 continue;
             }
-            for source in manifest_sources(&path) {
+            let Some(manifest) = load(&path).filter(|m| same(m)) else {
+                continue;
+            };
+            for source in manifest_sources(&path, &manifest) {
                 merge(&mut by_url, source);
             }
-        }
-        for source in spec_sources(&flow.join("specs")) {
-            merge(&mut by_url, source);
         }
         Self {
             sources: by_url.into_values().collect(),
         }
     }
 
-    /// The sources named for `field`: every catalogued source and every
-    /// manifest source whose tables cover it or that is named for every
-    /// field, then at most `SPEC_URLS_PER_FIELD` research URLs from the
-    /// specs, in URL order. The cap keeps the list Jev ranks from growing
-    /// with the spec count.
+    /// The sources named for `field`: every one whose tables cover it or
+    /// that is named for every field.
     pub fn for_field(&self, field: &str) -> Vec<&KnownSource> {
-        let named =
-            |s: &&KnownSource| s.dimensions.is_empty() || s.dimensions.iter().any(|d| d == field);
-        let recorded = |s: &&KnownSource| {
-            s.origin.starts_with("catalogue:") || s.origin.starts_with("manifest:")
-        };
-        let from_records = self.sources.iter().filter(recorded).filter(named);
-        let from_specs = self
-            .sources
+        self.sources
             .iter()
-            .filter(|s| !recorded(s))
-            .filter(named)
-            .take(SPEC_URLS_PER_FIELD);
-        from_records.chain(from_specs).collect()
+            .filter(|s| s.dimensions.is_empty() || s.dimensions.iter().any(|d| d == field))
+            .collect()
     }
 }
 
-/// Every source the catalogue's species bibliographies hold, in folder order.
-/// A folder without a readable `sources.json` is skipped, so a catalogue that
-/// is absent or half-written never stops discovery.
-fn catalogue_sources(catalogue: &Path) -> Vec<KnownSource> {
-    let Ok(entries) = fs::read_dir(catalogue) else {
+fn load(path: &Path) -> Option<Manifest> {
+    serde_json::from_value(read_json(path).ok()?).ok()
+}
+
+/// Every source the species' own catalogue bibliography holds. A folder
+/// without a readable `sources.json` yields nothing, so a catalogue that is
+/// absent or half-written never stops discovery.
+fn catalogue_sources(catalogue: &Path, species: &str) -> Vec<KnownSource> {
+    let Ok(value) = read_json(&catalogue.join(species).join("sources.json")) else {
         return Vec::new();
     };
-    let mut folders: Vec<PathBuf> = entries.flatten().map(|entry| entry.path()).collect();
-    folders.sort();
     let mut out = Vec::new();
-    for folder in folders {
-        let Ok(value) = read_json(&folder.join("sources.json")) else {
+    for source in value["sources"].as_array().into_iter().flatten() {
+        let (Some(url), Some(title)) = (source["url"].as_str(), source["title"].as_str()) else {
             continue;
         };
-        let species = folder
-            .file_name()
-            .map(|name| name.to_string_lossy().into_owned())
-            .unwrap_or_default();
-        for source in value["sources"].as_array().into_iter().flatten() {
-            let (Some(url), Some(title)) = (source["url"].as_str(), source["title"].as_str())
-            else {
-                continue;
-            };
-            let id = source["id"].as_str().unwrap_or("?");
-            let mut dimensions: Vec<String> = source["tables"]
-                .as_array()
-                .into_iter()
-                .flatten()
-                .filter_map(|table| table["dimension"].as_str().map(str::to_string))
-                .collect();
-            dimensions.sort();
-            dimensions.dedup();
-            let covers = if dimensions.is_empty() {
-                String::new()
-            } else {
-                format!(" with tables for {}", dimensions.join(", "))
-            };
-            out.push(KnownSource {
-                url: url.to_string(),
-                title: title.to_string(),
-                snippet: format!(
-                    "Held by the {species} catalogue as {id}{covers}. {}",
-                    source["use"].as_str().unwrap_or("").trim()
-                )
-                .trim_end()
-                .to_string(),
-                origin: format!("catalogue:{species}#{id}"),
-                dimensions,
-                error: None,
-            });
-        }
+        let id = source["id"].as_str().unwrap_or("?");
+        let mut dimensions: Vec<String> = source["tables"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(|table| table["dimension"].as_str().map(str::to_string))
+            .collect();
+        dimensions.sort();
+        dimensions.dedup();
+        let covers = if dimensions.is_empty() {
+            String::new()
+        } else {
+            format!(" with tables for {}", dimensions.join(", "))
+        };
+        out.push(KnownSource {
+            url: url.to_string(),
+            title: title.to_string(),
+            snippet: format!(
+                "Held by the {species} catalogue as {id}{covers}. {}",
+                source["use"].as_str().unwrap_or("").trim()
+            )
+            .trim_end()
+            .to_string(),
+            origin: format!("catalogue:{species}#{id}"),
+            dimensions,
+            error: None,
+        });
     }
     out
 }
@@ -165,7 +156,7 @@ fn collect_manifests(dir: &Path, out: &mut Vec<PathBuf>) {
     };
     for entry in entries.flatten() {
         let path = entry.path();
-        if path.is_dir() {
+        if path.is_dir() && entry.file_name() != "raw" {
             collect_manifests(&path, out);
         } else if path.file_name().is_some_and(|name| name == "manifest.json") {
             out.push(path);
@@ -175,13 +166,7 @@ fn collect_manifests(dir: &Path, out: &mut Vec<PathBuf>) {
 
 /// The sources one admitted manifest names, with the fetch errors the
 /// decisions beside it recorded.
-fn manifest_sources(path: &Path) -> Vec<KnownSource> {
-    let Ok(value) = read_json(path) else {
-        return Vec::new();
-    };
-    let Ok(manifest) = serde_json::from_value::<Manifest>(value) else {
-        return Vec::new();
-    };
+fn manifest_sources(path: &Path, manifest: &Manifest) -> Vec<KnownSource> {
     let errors: BTreeMap<String, String> = path
         .parent()
         .map(|dir| dir.join("decisions.json"))
@@ -225,61 +210,6 @@ fn manifest_sources(path: &Path) -> Vec<KnownSource> {
         .collect()
 }
 
-/// The URLs every spec cites under `## Resolved via Research`.
-fn spec_sources(dir: &Path) -> Vec<KnownSource> {
-    let Ok(entries) = fs::read_dir(dir) else {
-        return Vec::new();
-    };
-    let url = Regex::new(r#"https?://[^\s<>()\[\]"']+"#).expect("a url pattern");
-    let mut paths: Vec<PathBuf> = entries
-        .flatten()
-        .map(|e| e.path())
-        .filter(|p| p.extension().is_some_and(|ext| ext == "md"))
-        .collect();
-    paths.sort();
-    let mut out = Vec::new();
-    for path in paths {
-        let Ok(text) = fs::read_to_string(&path) else {
-            continue;
-        };
-        let spec = path
-            .file_stem()
-            .map(|s| s.to_string_lossy().into_owned())
-            .unwrap_or_default();
-        for found in url.find_iter(&research_section(&text)) {
-            out.push(KnownSource {
-                url: found
-                    .as_str()
-                    .trim_end_matches(['.', ',', ';', ':'])
-                    .to_string(),
-                title: spec.clone(),
-                snippet: format!("Cited in the research section of spec {spec}."),
-                origin: format!("spec:{spec}"),
-                dimensions: Vec::new(),
-                error: None,
-            });
-        }
-    }
-    out
-}
-
-/// The text under `## Resolved via Research`, up to the next `## ` heading.
-fn research_section(text: &str) -> String {
-    let mut inside = false;
-    let mut out = String::new();
-    for line in text.lines() {
-        if line.starts_with("## ") {
-            inside = line.trim_start_matches("## ").trim() == "Resolved via Research";
-            continue;
-        }
-        if inside {
-            out.push_str(line);
-            out.push('\n');
-        }
-    }
-    out
-}
-
 /// One entry per URL: the first title and snippet stand, the dimensions
 /// widen (any entry named for every field keeps it so), an error stands.
 fn merge(by_url: &mut BTreeMap<String, KnownSource>, source: KnownSource) {
@@ -310,22 +240,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn the_research_section_ends_at_the_next_heading_and_urls_lose_trailing_punctuation() {
-        let text = "# Spec\n\n## Resolved via Research\n\nSee https://example.test/a, and https://example.test/b.\n\n## Boundaries\n\nNot https://example.test/c\n";
-        let dir = std::env::temp_dir().join(format!("jev-known-{}", std::process::id()));
-        fs::create_dir_all(&dir).unwrap();
-        fs::write(dir.join("fn-1-spec.md"), text).unwrap();
-        let sources = spec_sources(&dir);
-        let urls: Vec<&str> = sources.iter().map(|s| s.url.as_str()).collect();
-        assert_eq!(
-            urls,
-            vec!["https://example.test/a", "https://example.test/b"]
-        );
-        assert_eq!(sources[0].origin, "spec:fn-1-spec");
-        assert!(sources[0].dimensions.is_empty());
-    }
-
-    #[test]
     fn a_catalogued_source_is_known_by_its_species_folder_and_the_tables_it_holds() {
         let catalogue = std::env::temp_dir().join(format!(
             "jev-catalogue-{}-{}",
@@ -353,7 +267,7 @@ mod tests {
         // A folder without a bibliography is skipped, never an error.
         fs::create_dir_all(catalogue.join("half-written")).unwrap();
 
-        let sources = catalogue_sources(&catalogue);
+        let sources = catalogue_sources(&catalogue, "european-ash");
         assert_eq!(sources.len(), 2, "{sources:?}");
         assert_eq!(sources[0].origin, "catalogue:european-ash#E1");
         assert_eq!(sources[0].dimensions, vec!["height_m"]);

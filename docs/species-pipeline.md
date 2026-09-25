@@ -205,15 +205,18 @@ Other kinds: `obligation-unmet`,
 
 ## Sources and tables
 
-Discovery lists what the repository already knows before any search: the
-sources every species bibliography under `catalogue/*/sources.json` holds, the
-sources every admitted manifest under `.flow/evidence` names, with the
-dimensions their tables cover and any fetch error their run recorded, and the
-URLs the specs cite under `## Resolved via Research` (`.flow` is the tree the
-run directory sits under, else the one under the working directory the runbook
-runs from). They enter Jev's ranking as candidates of kind `known` with their
-origin marked - `catalogue:<species>#<id>`, `manifest:<path>#<id>` or
-`spec:<id>` - never admitted by being known, and a known candidate carrying a
+Discovery lists what the repository already knows about this species before
+any search: the sources its own bibliography under
+`catalogue/<species>/sources.json` holds, and the sources every admitted
+manifest of the same species or taxon under `.flow/evidence` names, with the
+dimensions their tables cover and any fetch error their run recorded (`.flow`
+is the tree the run directory sits under, else the one under the working
+directory the runbook runs from). Another species' sources, the specs'
+method references and anything under a `raw/` directory are never known
+(owner, 2026-09-25): a run from a name sees nothing another species left.
+They enter Jev's ranking as candidates of kind `known` with their origin
+marked - `catalogue:<species>#<id>` or `manifest:<path>#<id>` - never
+admitted by being known, and a known candidate carrying a
 fetch error is listed and never proposed. The search query is the field in plain words (`Fraxinus excelsior
 height at age, open grown`), not the field id.
 

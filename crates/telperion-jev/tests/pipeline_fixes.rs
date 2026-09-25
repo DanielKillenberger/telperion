@@ -25,6 +25,8 @@ const MOBOT: &str = "https://plantfinder.mobot.org/PlantFinderDetails.aspx?taxon
 /// A source an earlier run failed on and then retried: known, without an error.
 const RETRIED: &str = "https://www.tree-guide.com/ash";
 const TLS_ERROR: &str = "fetch failed for https://plantfinder.mobot.org/PlantFinderDetails.aspx?taxonid=282928: Connection Failed: tls connection init failed: invalid peer certificate: UnknownIssuer";
+/// A source only a proof run's raw scratch names.
+const RAW_ONLY: &str = "https://example.test/raw-ash";
 const HEIGHT_QUERY: &str = "Fraxinus excelsior height at age, open grown";
 const DBH_QUERY: &str = "Fraxinus excelsior trunk diameter at breast height at age, open grown";
 
@@ -158,9 +160,11 @@ impl Run {
         }
     }
 
-    /// An evidence tree with the spruce manifest that admits the extract for
-    /// height and diameter, a manifest whose run recorded the MoBot page as
-    /// unavailable, and a spec citing a URL in its research section.
+    /// An evidence tree with an earlier ash manifest that admits the extract
+    /// for height and whose run recorded the MoBot page as unavailable, and
+    /// what the ash must never see (owner, 2026-09-25): the spruce manifest,
+    /// an ash manifest under a proof run's `raw/`, and a spec citing a method
+    /// paper in its research section.
     fn known_tree(flow: &Path) {
         let spruce = flow.join("evidence/fn58/validation/norway-spruce");
         fs::create_dir_all(&spruce).unwrap();
@@ -174,8 +178,16 @@ impl Run {
         fs::create_dir_all(&earlier).unwrap();
         let mut manifest = seed();
         manifest["species"] = json!("earlier-ash");
-        manifest["sources"] = json!([source("M1", MOBOT, vec![]), source("O1", RETRIED, vec![])]);
+        manifest["sources"] = json!([
+            source("E1", ERTRAGSTAFELN, vec![table(Some("Esche"))]),
+            source("M1", MOBOT, vec![]),
+            source("O1", RETRIED, vec![])
+        ]);
         write_manifest(&earlier, &manifest);
+        let raw = flow.join("evidence/beech-proof/raw/ash-proof");
+        fs::create_dir_all(&raw).unwrap();
+        manifest["sources"] = json!([source("R9", RAW_ONLY, vec![])]);
+        write_manifest(&raw, &manifest);
         write_canonical(
             &earlier.join("decisions.json"),
             &json!({"schema": "decisions", "schema_version": 1, "decisions": [{
@@ -500,10 +512,14 @@ fn discovery_lists_the_repository_sources_first_and_never_proposes_one_with_a_fe
     let urls: Vec<&str> = known.sources.iter().map(|s| s.url.as_str()).collect();
     assert!(urls.contains(&ERTRAGSTAFELN), "{urls:?}");
     assert!(urls.contains(&MOBOT), "{urls:?}");
-    assert!(
-        urls.contains(&"https://algorithmicbotany.org/papers/selforg.sig2009.html"),
-        "{urls:?}"
-    );
+    // Another species, a spec's method paper and raw evidence are never known.
+    for never in [
+        "https://hortnews.extension.iastate.edu/norway-spruce",
+        "https://algorithmicbotany.org/papers/selforg.sig2009.html",
+        RAW_ONLY,
+    ] {
+        assert!(!urls.contains(&never), "{never}: {urls:?}");
+    }
     let for_height: Vec<&str> = known
         .for_field("height_m")
         .iter()

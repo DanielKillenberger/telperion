@@ -1,9 +1,9 @@
 //! Discovery proposes sources and admits the ones it may (fn-129).
 //!
 //! For every evidence field the manifest requires, the candidates are what
-//! the repository already knows for that field - the sources the catalogue's
-//! own bibliographies hold, the sources admitted manifests in the evidence
-//! tree name, and the URLs the specs cite - then the adapter's web search and
+//! the repository already knows about this species for that field - its own
+//! catalogue bibliography and the admitted manifests of the same species or
+//! taxon (`pipeline::known`) - then the adapter's web search and
 //! research index on a plain-word query. Jev ranks them per field and the
 //! stage files a manifest-proposed decision carrying the draft manifest and
 //! the ranking judgment behind every proposal. When the draft only adds
