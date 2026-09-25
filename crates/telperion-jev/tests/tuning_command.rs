@@ -303,3 +303,22 @@ fn a_judgment_the_service_refuses_says_so() {
 
     fs::remove_dir_all(&root).ok();
 }
+
+/// fn-149: a first revision from a name has no owner notes, and runs; what
+/// cannot run is a revision with no reference photograph of the whole tree.
+#[test]
+fn a_first_revision_needs_no_owner_notes_but_a_whole_tree_reference() {
+    let _serial = serial();
+    let f = fixture::verifying_fixture(opening());
+    let mut value: Value = serde_json::from_slice(&fs::read(&f.config_path).unwrap()).unwrap();
+    value["owner_notes"] = json!("");
+    let config: Config = serde_json::from_value(value.clone()).unwrap();
+    config.verify().expect("no owner notes is a first revision");
+    for reference in value["references"].as_array_mut().unwrap() {
+        reference["view"] = json!("bark");
+    }
+    let config: Config = serde_json::from_value(value).unwrap();
+    let err = config.verify().unwrap_err();
+    assert_eq!(err, "no reference photograph of the whole tree");
+    f.cleanup();
+}

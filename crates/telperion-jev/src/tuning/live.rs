@@ -151,13 +151,23 @@ impl Config {
             .map_err(|e| format!("contact-sheet protocol unreadable: {e}"))?;
         self.strengths()?;
         super::bundle::verify_tracks(&self.tracks, &self.required)?;
-        if self.owner_notes.is_empty()
-            || self.dials.is_empty()
-            || self.required.is_empty()
-            || !self.required.iter().any(|c| c.seed == self.seed)
+        // A first revision from a name has no owner notes; what cannot run
+        // is a revision with no dial, no fixed and fresh seed to look at, or
+        // no photograph of the whole tree to compare against (fn-149).
+        if self.dials.is_empty() {
+            return Err("no live dial to tune".into());
+        }
+        if !self.required.iter().any(|c| c.seed == self.seed)
             || !self.required.iter().any(|c| c.seed != self.seed)
         {
-            return Err("missing owner notes, dials or fixed/fresh seed checklist".into());
+            return Err("the required cells name no fixed and fresh seed".into());
+        }
+        if !self
+            .references
+            .iter()
+            .any(|r| r.view.to_ascii_lowercase().contains("whole"))
+        {
+            return Err("no reference photograph of the whole tree".into());
         }
         for dial in &self.dials {
             dial.validate()?;
