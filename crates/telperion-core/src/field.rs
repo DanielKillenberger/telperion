@@ -57,9 +57,10 @@ enum Foliage {
 /// Wood records are [ax, ay, az, bx, by, bz, start_radius, end_radius]. Plan
 /// records are [ax, ay, az, bx, by, bz, reach] with [count, system] beside
 /// them; a planned field has an empty leaf index, a placed field an empty plan.
-/// A plan holding a ribbon also carries six f64 a record in `plan_sides`,
-/// the ribbon's half-width vectors at its two ends (zero for a capsule), its
-/// reach being its thickness; a plan of capsules alone leaves it empty.
+/// A plan holding a ribbon also carries eight f64 a record in `plan_sides`:
+/// the ribbon's half-width vectors at its two ends, then its half-thickness
+/// at each (all zero for a capsule, whose reach is its radius); a plan of
+/// capsules alone leaves it empty.
 pub struct FieldSnapshot {
     pub wood: Vec<f64>,
     pub wood_index: IndexSnapshot,
@@ -376,10 +377,12 @@ impl Field {
                     stations.extend([s.count as u32, s.system]);
                 }
                 if sweeps.iter().any(|s| s.ribbon.is_some()) {
-                    plan_sides = records(sweeps.len(), 6)?;
+                    plan_sides = records(sweeps.len(), 8)?;
                     for s in sweeps {
-                        let [a, b] = s.ribbon.map_or([Vec3::ZERO; 2], |r| r.sides);
-                        plan_sides.extend([a.x, a.y, a.z, b.x, b.y, b.z]);
+                        let ([a, b], [t0, t1]) = s
+                            .ribbon
+                            .map_or(([Vec3::ZERO; 2], [0.; 2]), |r| (r.sides, r.thickness));
+                        plan_sides.extend([a.x, a.y, a.z, b.x, b.y, b.z, t0, t1]);
                     }
                 }
                 (

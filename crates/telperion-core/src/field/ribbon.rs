@@ -9,6 +9,7 @@ use crate::{foliage::Bounds, math::Vec3, Error, Result};
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Ribbon {
     pub(super) sides: [Vec3; 2],
+    pub(super) thickness: [f64; 2],
     /// The slab's own face and edge normals with its extent along each; the
     /// world axes are its bounds.
     axes: [(Vec3, [f64; 2]); 5],
@@ -81,6 +82,7 @@ impl Ribbon {
         checked(bounds)?;
         Ok(Self {
             sides,
+            thickness,
             axes,
             bounds,
         })
