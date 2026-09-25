@@ -83,3 +83,10 @@
 - Slowed by: `python3 scripts/test-reviewers.py` is run by neither `cargo test --profile ci --workspace` nor `npm test`, so these tests pass only when someone runs them by hand; a change to the adapter scripts can break the recorded replay with no gate going red.
 - Cost: none yet; a silent break would cost a live rerun.
 - Would remove it: a workspace test that runs `python3 scripts/test-reviewers.py` (or an npm script the gate calls).
+
+## 2026-09-25 21:25, worker fn-149.1 (continuation 5): the review cap stopped the third look at a half-fixed finding
+
+- Doing: fixing Codex finding #3 (replay keys tied to the recording's run directory) for the record-and-replay layer.
+- Slowed by: round 1 found it, round 2 confirmed the path and request-hash half fixed and found the ledger and identity half; the fix for that half (3f9d6a86) could not be reviewed because MAX_REVIEW_ITERATIONS=2 answered ESCALATE. This worker did not reset the rounds itself: this was not an owner re-plan.
+- Cost: one blocked review; the host must reset or review.
+- Would remove it: a replay test over a real two-directory run before the first review, which the host's recording will give, or a cap of three for a task that adds a new layer.
