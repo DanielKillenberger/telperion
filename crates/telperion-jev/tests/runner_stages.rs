@@ -129,13 +129,28 @@ fn every_failing_trait_is_classed_reachable_identity_or_global_with_its_evidence
     assert_eq!(classed[0].kind, Kind::Identity);
 }
 
+/// A repository root whose catalogue check prints `stderr` and exits `code`.
+fn checked_root(dir: &Path, stderr: &str, code: i32) -> PathBuf {
+    let root = dir.join("repo");
+    std::fs::create_dir_all(root.join("scripts")).unwrap();
+    let script = format!(
+        "process.stderr.write({});\nprocess.exit({code});\n",
+        serde_json::to_string(stderr).unwrap()
+    );
+    std::fs::write(root.join("scripts/catalogue-check.mjs"), script).unwrap();
+    root
+}
+
 #[test]
 fn an_acceptance_names_the_tree_the_owner_looked_at() {
     let dir = scratch("accept");
     let path = tune::result(&dir);
     std::fs::write(&path, result(tree("k1"), json!([]), json!([])).to_string()).unwrap();
     assert!(!accept::accepted(&path, &dir).unwrap());
-    accept::run(&path, &dir).unwrap();
+    // Another species' failure does not hold this one back.
+    let other = "catalogue/oak/ARTICLE.md: stale\n\ncatalogue: 1 failure\n";
+    let root = checked_root(&dir, other, 1);
+    accept::run(&root, "date-palm", &path, &dir).unwrap();
     assert!(accept::accepted(&path, &dir).unwrap());
     let record: Value =
         serde_json::from_str(&std::fs::read_to_string(accept::file(&dir)).unwrap()).unwrap();
@@ -143,4 +158,23 @@ fn an_acceptance_names_the_tree_the_owner_looked_at() {
     // A later revision's tree waits for a look of its own.
     std::fs::write(&path, result(tree("k2"), json!([]), json!([])).to_string()).unwrap();
     assert!(!accept::accepted(&path, &dir).unwrap());
+}
+
+#[test]
+fn an_acceptance_is_refused_while_the_catalogue_entry_fails_or_the_check_does_not_run() {
+    let dir = scratch("refused");
+    let path = tune::result(&dir);
+    std::fs::write(&path, result(tree("k1"), json!([]), json!([])).to_string()).unwrap();
+    let failing =
+        "catalogue/date-palm/sources.json: schema is not \"sources\"\n\ncatalogue: 1 failure\n";
+    let root = checked_root(&dir, failing, 1);
+    let err = accept::run(&root, "date-palm", &path, &dir).unwrap_err();
+    assert!(err.contains("schema is not"), "{err}");
+    let crashed = checked_root(&dir, "TypeError: undefined\n", 1);
+    let err = accept::run(&crashed, "date-palm", &path, &dir).unwrap_err();
+    assert!(err.starts_with("the catalogue check did not run"), "{err}");
+    assert!(
+        !accept::file(&dir).exists(),
+        "a refused acceptance wrote a record"
+    );
 }

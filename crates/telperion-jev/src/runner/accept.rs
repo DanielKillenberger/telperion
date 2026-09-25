@@ -1,8 +1,11 @@
 //! The Accept stage: the owner looks at the tuned tree in the harness, and
 //! `--accept` records the tree they looked at as a value table, one wire
 //! pointer to one value, in `accepted.json`. An acceptance names the tree's
-//! key, so a later revision's tree waits for a look of its own.
+//! key, so a later revision's tree waits for a look of its own, and it is
+//! refused while the species' catalogue folder fails
+//! `scripts/catalogue-check.mjs`: the palm shipped without its entry.
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use serde_json::{json, Value};
 
@@ -32,8 +35,46 @@ pub fn accepted(result: &Path, out: &Path) -> Result<bool, String> {
     Ok(record["key"] == current(result)?["tree"]["key"])
 }
 
-/// Writes the acceptance of the current tree.
-pub fn run(result: &Path, out: &Path) -> Result<String, String> {
+/// The catalogue check's failures that name this species' folder, run from
+/// the repository `root`. A check that did not run is an error, never a pass.
+pub fn catalogue_failures(root: &Path, species: &str) -> Result<Vec<String>, String> {
+    let output = Command::new("node")
+        .current_dir(root)
+        .arg("scripts/catalogue-check.mjs")
+        .output()
+        .map_err(|e| format!("node scripts/catalogue-check.mjs: {e}"))?;
+    if output.status.success() {
+        return Ok(vec![]);
+    }
+    let printed = String::from_utf8_lossy(&output.stderr);
+    let counted = printed
+        .lines()
+        .rev()
+        .find(|l| !l.trim().is_empty())
+        .is_some_and(|l| l.starts_with("catalogue: ") && l.contains("failure"));
+    if !counted {
+        return Err(format!(
+            "the catalogue check did not run: {}",
+            printed.trim()
+        ));
+    }
+    let folder = format!("catalogue/{species}");
+    Ok(printed
+        .lines()
+        .filter(|l| l.starts_with(&format!("{folder}:")) || l.starts_with(&format!("{folder}/")))
+        .map(str::to_string)
+        .collect())
+}
+
+/// Writes the acceptance of the current tree, once the catalogue entry holds.
+pub fn run(root: &Path, species: &str, result: &Path, out: &Path) -> Result<String, String> {
+    let failures = catalogue_failures(root, species)?;
+    if !failures.is_empty() {
+        return Err(format!(
+            "the catalogue entry fails its check: {}",
+            failures.join("; ")
+        ));
+    }
     let now = current(result)?;
     let tree = &now["tree"];
     let table = flatten(&tree["overrides"]);

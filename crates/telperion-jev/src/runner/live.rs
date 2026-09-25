@@ -1,5 +1,5 @@
 //! The eight stages as a real run executes them.
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use super::pipeline::{self, Literature};
 use super::tools::Tools;
@@ -91,7 +91,9 @@ impl Stages for Live {
                 &tune::result(&out),
                 &out,
             )?,
-            Stage::Accept if run.accept => accept::run(&tune::result(&out), &out)?,
+            Stage::Accept if run.accept => {
+                accept::run(Path::new("."), &run.species, &tune::result(&out), &out)?
+            }
             Stage::Accept => return Ok(Done::Current),
             _ => {
                 let word = self.literature(run).run(stage)?;

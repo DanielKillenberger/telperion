@@ -56,7 +56,9 @@ A run stops for three things only, and prints `STOPPED:` with the reason:
   `packet/capability.json`.
 - **The owner's look.** The owner looks at the tuned tree in the harness and
   runs `species <id> --accept`. An acceptance names the tree's key, so a later
-  revision's tree waits for a look of its own.
+  revision's tree waits for a look of its own, and it is refused while
+  `scripts/catalogue-check.mjs` fails the species' catalogue folder or does
+  not run.
 
 Every other condition is rerun or logged. A stage that fails names itself and
 leaves no record, so the next run tries it again.
