@@ -138,10 +138,12 @@ pub struct Descriptor {
     pub radii: [f64; 2],
     pub count: u32,
     pub system: u32,
-    /// Zero for a capsule, the sphere swept along the segment. Otherwise a
-    /// ribbon: the rectangle the segment sweeps from `-side` to `side`,
-    /// thickened by its radius on every side.
-    pub side: Vec3,
+    /// Zero at both ends for a capsule, the sphere swept along the segment.
+    /// Otherwise a ribbon: the half-width at each endpoint, square to the
+    /// segment's run and parallel to each other. Its half-width varies
+    /// linearly between them, so the ribbon is a trapezoid, pushed out by its
+    /// radius either way along its normal.
+    pub sides: [Vec3; 2],
 }
 
 /// Every descriptor of one tree under one family, with the family's reach.
@@ -236,7 +238,7 @@ pub fn plan(
                 radii: [distal.start_radius, distal.radius],
                 count: (last - first) * run.leaflets,
                 system: system[run.nodes[segment + 1]],
-                side: Vec3::ZERO,
+                sides: [Vec3::ZERO; 2],
             });
         }
         total += run.count * run.leaflets;

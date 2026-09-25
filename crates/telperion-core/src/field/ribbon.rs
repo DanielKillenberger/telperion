@@ -1,76 +1,106 @@
-//! The plan's flat primitive: the rectangle a segment sweeps from `-side` to
-//! `side`, pushed out by `thickness` either way along its normal, a flat box.
-//! A frond's leaflets fan in one plane, and a ribbon holds them the way a
+//! The plan's flat primitive: the trapezoid a segment sweeps from `-side` to
+//! `side`, its half-width varying linearly from one end to the other, pushed
+//! out either way along its normal by a thickness that varies the same way. A frond's leaflets fan in
+//! one plane and shorten toward its tip, and a ribbon holds them the way a
 //! capsule holds a shoot's.
 use super::index::checked;
-use crate::{foliage::Bounds, math::Vec3, Result};
+use crate::{foliage::Bounds, math::Vec3, Error, Result};
 
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Ribbon {
-    pub(super) a: Vec3,
-    pub(super) b: Vec3,
-    /// Half the width, square to `b - a`.
-    pub(super) side: Vec3,
-    pub(super) thickness: f64,
+    pub(super) sides: [Vec3; 2],
+    /// The slab's own face and edge normals with its extent along each; the
+    /// world axes are its bounds.
+    axes: [(Vec3, [f64; 2]); 5],
+    pub(super) bounds: Bounds,
 }
 impl Ribbon {
-    /// The box's centre, its three unit axes and its half extent along each.
-    fn frame(&self) -> (Vec3, [Vec3; 3], [f64; 3]) {
-        let d = self.b - self.a;
-        let (length, width) = (d.length(), self.side.length());
-        let side = self.side / width;
-        let along = if length > 0. {
-            d / length
+    /// The slab over the segment `a`, `b` with half-widths `sides` and
+    /// half-thicknesses `thickness` at its ends, the sides square to the run
+    /// and parallel: the convex hull of its two end rectangles.
+    pub(super) fn new(a: Vec3, b: Vec3, sides: [Vec3; 2], thickness: [f64; 2]) -> Result<Self> {
+        let width = sides[0] + sides[1];
+        let breadth = width.length_squared();
+        if breadth.is_nan() || breadth <= 0. {
+            return Err(Error::InvalidInput("ribbon width"));
+        }
+        let side = width.normalized();
+        let run = (b - a) - side * (b - a).dot(side);
+        let along = if run.length_squared() > 0. {
+            run.normalized()
         } else {
             side.perpendicular()
         };
-        let axes = [along, side, along.cross(side)];
-        let centre = (self.a + self.b) * 0.5;
-        (centre, axes, [length / 2., width, self.thickness])
-    }
-    /// Whether the closed cube of `half` extent about `p` meets the box. The
-    /// cube's axes and the box's are tried as separating axes; where neither
-    /// separates, the cell counts, so a cell only an edge pair would part is
-    /// kept and the answer stays conservative.
-    pub(super) fn meets(&self, p: Vec3, half: f64) -> bool {
-        let (centre, axes, extent) = self.frame();
-        let q = p - centre;
-        let reach = |u: Vec3| half * (u.x.abs() + u.y.abs() + u.z.abs());
-        let box_meets = axes
-            .iter()
-            .zip(extent)
-            .all(|(u, e)| q.dot(*u).abs() <= e + reach(*u));
-        box_meets && (0..3).all(|k| component(q, k).abs() <= half + self.reach(axes, extent, k))
-    }
-    /// The box's half extent along world axis `k`.
-    fn reach(&self, axes: [Vec3; 3], extent: [f64; 3], k: usize) -> f64 {
-        axes.iter()
-            .zip(extent)
-            .map(|(u, e)| component(*u, k).abs() * e)
-            .sum()
-    }
-    /// The world box around the ribbon.
-    pub(super) fn bounds(&self) -> Result<Bounds> {
-        let (centre, axes, extent) = self.frame();
-        let r = Vec3::new(
-            self.reach(axes, extent, 0),
-            self.reach(axes, extent, 1),
-            self.reach(axes, extent, 2),
-        );
-        let b = Bounds {
-            min: centre - r,
-            max: centre + r,
+        let normal = along.cross(side);
+        // Corner `[end][s][n]`: `s` and `n` pick the side and face.
+        let corner = |end: usize, s: f64, n: f64| {
+            let (at, half, out) = if end == 0 {
+                (a, sides[0], thickness[0])
+            } else {
+                (b, sides[1], thickness[1])
+            };
+            at + half * s + normal * (out * n)
         };
-        checked(b)?;
-        Ok(b)
+        let corners: Vec<Vec3> = [0, 1]
+            .into_iter()
+            .flat_map(|e| {
+                [(1., 1.), (1., -1.), (-1., 1.), (-1., -1.)].map(|(s, n)| corner(e, s, n))
+            })
+            .collect();
+        let span = |u: Vec3| {
+            corners
+                .iter()
+                .fold([f64::INFINITY, f64::NEG_INFINITY], |r, c| {
+                    let x = c.dot(u);
+                    [r[0].min(x), r[1].max(x)]
+                })
+        };
+        // Each long face through three of its corners: two at one end, one
+        // at the other; each is a plane, since its edge runs linearly.
+        let face = |s: f64, n: f64, flip: bool| {
+            let (p, q, r) = if flip {
+                (corner(0, s, n), corner(0, s, -n), corner(1, s, n))
+            } else {
+                (corner(0, s, n), corner(0, -s, n), corner(1, s, n))
+            };
+            (q - p).cross(r - p).normalized()
+        };
+        let axes = [
+            along,
+            face(1., 1., true),
+            face(-1., 1., true),
+            face(1., 1., false),
+            face(1., -1., false),
+        ]
+        .map(|u| (u, span(u)));
+        let [x, y, z] = [Vec3::X, Vec3::Y, Vec3::Z].map(span);
+        let bounds = Bounds {
+            min: Vec3::new(x[0], y[0], z[0]),
+            max: Vec3::new(x[1], y[1], z[1]),
+        };
+        checked(bounds)?;
+        Ok(Self {
+            sides,
+            axes,
+            bounds,
+        })
     }
-}
-
-/// One of a vector's components, by world axis.
-fn component(v: Vec3, k: usize) -> f64 {
-    match k {
-        0 => v.x,
-        1 => v.y,
-        _ => v.z,
+    /// Whether the closed cube of `half` extent about `p` meets the slab. The
+    /// cube's axes and the slab's faces are tried as separating axes; where
+    /// none separates, the cell counts, so a cell only an edge pair would
+    /// part is kept and the answer stays conservative.
+    pub(super) fn meets(&self, p: Vec3, half: f64) -> bool {
+        let b = &self.bounds;
+        let world = p.x + half >= b.min.x
+            && p.x - half <= b.max.x
+            && p.y + half >= b.min.y
+            && p.y - half <= b.max.y
+            && p.z + half >= b.min.z
+            && p.z - half <= b.max.z;
+        world
+            && self.axes.iter().all(|(u, [lo, hi])| {
+                let (c, r) = (p.dot(*u), half * (u.x.abs() + u.y.abs() + u.z.abs()));
+                c + r >= *lo && c - r <= *hi
+            })
     }
 }

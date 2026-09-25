@@ -2,15 +2,18 @@
 //! wood, so no run describes them: each frond, living or dead, is cut into a
 //! few chords along its arched rachis, on the spiral, frame and scale the
 //! placement hangs it at (`rosette::fronds`, `leaflet::leaflets`), and each
-//! chord is described by one ribbon, the flat box its leaflets fan in.
+//! row of leaflets on a chord is described by one ribbon, the flat tapered
+//! slab they fan in.
 //!
-//! The ribbon is fitted, not guessed. Its segment runs along the chord, its
-//! side lies square to it in the frond's plane and its thickness is taken
-//! square to both. Every leaflet is drawn on the frond's own stream exactly
-//! as placement draws it (`leaflet::drawn`), and each corner of the leaf's
-//! box is bounded along those three directions. The leaflets' V about the
-//! frond's plane, their droop and their scatter all set the thickness. A
-//! margin covers what storing a leaf in twelve bytes moves it by.
+//! The ribbon is fitted, not guessed. It runs along the chord, its width lies
+//! square to it in the row's plane and its thickness square to both. Every
+//! leaflet is drawn on the frond's own stream exactly as placement draws it
+//! (`leaflet::drawn`), and each corner of the leaf's box is placed in that
+//! frame. The row's plane is rolled about the chord to the thinnest slab,
+//! and within it the inner and outer edges are each the line nearest the
+//! row that no corner crosses, so the ribbon narrows as its leaflets
+//! shorten toward the tip. A margin covers what storing a leaf in twelve
+//! bytes moves it by.
 use super::Descriptor;
 use crate::{
     foliage::{
@@ -25,7 +28,7 @@ use crate::{
 };
 
 /// Chords a rachis is cut into.
-const CHORDS: usize = 3;
+const CHORDS: usize = 4;
 
 /// What packing may move a leaf corner by: a centimetre, and a hundredth of
 /// its distance from the attachment for the rotation's ten-bit codes.
@@ -68,7 +71,7 @@ pub(super) fn describe(
                     radii: [reach * frond.canopy.size * (1.0 + p.size_variation); 2],
                     count: 1,
                     system,
-                    side: Vec3::ZERO,
+                    sides: [Vec3::ZERO; 2],
                 });
                 continue;
             }
@@ -186,7 +189,8 @@ impl Row {
         }
         (axes, span)
     }
-    /// The thinnest ribbon over the tried rolls that holds every corner.
+    /// The thinnest ribbon over the tried rolls that holds every corner,
+    /// its edges fitted to the row within that plane.
     fn ribbon(&self, system: u32) -> Descriptor {
         let (axes, span) = ROLLS
             .iter()
@@ -194,15 +198,72 @@ impl Row {
             .min_by(|a, b| (a.1[2][1] - a.1[2][0]).total_cmp(&(b.1[2][1] - b.1[2][0])))
             .expect("rolls are tried");
         let [along, side, across] = axes;
+        // Each corner, with its margin, as the square it may stand in: its
+        // two outer corners on either edge bound every point of it.
+        let bounds = |axis: Vec3| {
+            let mut up = Vec::with_capacity(self.corners.len() * 2);
+            let mut down = Vec::with_capacity(self.corners.len() * 2);
+            for &(at, slack) in &self.corners {
+                let (d, v) = (at.dot(along), at.dot(axis));
+                for x in [d - slack, d + slack] {
+                    up.push((x, v + slack));
+                    down.push((x, -(v - slack)));
+                }
+            }
+            let [hi0, hi1] = edge(&up, span[0]);
+            let [lo0, lo1] = edge(&down, span[0]).map(|v| -v);
+            [[lo0, hi0], [lo1, hi1]]
+        };
+        let (width, depth) = (bounds(side), bounds(across));
         let mid = |r: [f64; 2]| (r[0] + r[1]) / 2.0;
         let half = |r: [f64; 2]| (r[1] - r[0]) / 2.0;
-        let centre = self.from + side * mid(span[1]) + across * mid(span[2]);
+        let at = |end: usize| {
+            self.from + along * span[0][end] + side * mid(width[end]) + across * mid(depth[end])
+        };
         Descriptor {
-            endpoints: [centre + along * span[0][0], centre + along * span[0][1]],
-            radii: [half(span[2]); 2],
+            endpoints: [at(0), at(1)],
+            radii: [half(depth[0]), half(depth[1])],
             count: self.count,
             system,
-            side: side * half(span[1]),
+            sides: [side * half(width[0]), side * half(width[1])],
         }
     }
 }
+
+/// The line over `[ends[0], ends[1]]` no point stands above that is lowest
+/// at the middle, so least in area: its heights at the two ends. Its height
+/// at the middle is convex in its slope, falling while the point that binds
+/// it stands left of the middle, so the slope is found by bisection; any
+/// slope gives a line above every point.
+fn edge(points: &[(f64, f64)], ends: [f64; 2]) -> [f64; 2] {
+    let mid = (ends[0] + ends[1]) / 2.0;
+    let top = |m: f64| {
+        points
+            .iter()
+            .fold((f64::NEG_INFINITY, mid), |best, &(x, y)| {
+                let h = y - m * (x - mid);
+                if h > best.0 {
+                    (h, x)
+                } else {
+                    best
+                }
+            })
+    };
+    let (mut lo, mut hi) = (-SLOPE, SLOPE);
+    for _ in 0..BISECTIONS {
+        let m = (lo + hi) / 2.0;
+        if top(m).1 < mid {
+            hi = m;
+        } else {
+            lo = m;
+        }
+    }
+    let m = (lo + hi) / 2.0;
+    let h = top(m).0;
+    [h + m * (ends[0] - mid), h + m * (ends[1] - mid)]
+}
+
+/// The steepest edge tried, across per metre along, and the bisections that
+/// find it to well under a millimetre over a frond's chord.
+const SLOPE: f64 = 8.0;
+const BISECTIONS: usize = 32;

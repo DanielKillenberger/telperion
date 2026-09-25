@@ -57,9 +57,9 @@ enum Foliage {
 /// Wood records are [ax, ay, az, bx, by, bz, start_radius, end_radius]. Plan
 /// records are [ax, ay, az, bx, by, bz, reach] with [count, system] beside
 /// them; a planned field has an empty leaf index, a placed field an empty plan.
-/// A plan holding a ribbon also carries three f64 a record in `plan_sides`,
-/// the ribbon's half-width vector (zero for a capsule), its reach being its
-/// thickness; a plan of capsules alone leaves `plan_sides` empty.
+/// A plan holding a ribbon also carries six f64 a record in `plan_sides`,
+/// the ribbon's half-width vectors at its two ends (zero for a capsule), its
+/// reach being its thickness; a plan of capsules alone leaves it empty.
 pub struct FieldSnapshot {
     pub wood: Vec<f64>,
     pub wood_index: IndexSnapshot,
@@ -219,14 +219,11 @@ impl Field {
                 return Err(Error::InvalidInput("foliage reach"));
             }
             let [a, b] = d.endpoints;
-            let ribbon = (d.side != Vec3::ZERO).then_some(Ribbon {
-                a,
-                b,
-                side: d.side,
-                thickness: reach,
-            });
+            let ribbon = (d.sides != [Vec3::ZERO; 2])
+                .then(|| Ribbon::new(a, b, d.sides, d.radii))
+                .transpose()?;
             let bounds = match &ribbon {
-                Some(r) => r.bounds()?,
+                Some(r) => r.bounds,
                 None => union(cube(a, reach)?, cube(b, reach)?),
             };
             items.push(Item {
@@ -379,10 +376,10 @@ impl Field {
                     stations.extend([s.count as u32, s.system]);
                 }
                 if sweeps.iter().any(|s| s.ribbon.is_some()) {
-                    plan_sides = records(sweeps.len(), 3)?;
+                    plan_sides = records(sweeps.len(), 6)?;
                     for s in sweeps {
-                        let side = s.ribbon.map_or(Vec3::ZERO, |r| r.side);
-                        plan_sides.extend([side.x, side.y, side.z]);
+                        let [a, b] = s.ribbon.map_or([Vec3::ZERO; 2], |r| r.sides);
+                        plan_sides.extend([a.x, a.y, a.z, b.x, b.y, b.z]);
                     }
                 }
                 (
