@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-151-the-design-principles-are-checked",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-09-25T19:29:42.583350Z",
   "created_at": "2026-09-25T08:25:44.665023Z",
   "default_impl": null,
   "default_review": null,
@@ -19,7 +19,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-151-the-design-principles-are-checked.md",
-  "status": "open",
+  "status": "done",
   "title": "The design principles are checked before a push",
   "tracker": {
     "baseHashFlow": null,
@@ -32,5 +32,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-25T14:41:31.999356Z"
+  "updated_at": "2026-09-25T19:29:43.105057Z"
 }
