@@ -231,6 +231,13 @@ pub extern "C" fn buffer_ptr(slot: u32) -> *const u8 {
             // Beside slots 19 and 20: one f32 wood radius per cell, the
             // thickest wood sweep reaching it in metres, zero without wood.
             25 => e.wood_radii.as_ptr().cast(),
+            // Beside the plan in slot 21: three f64 a sweep, a ribbon's
+            // half-width vector (zero for a capsule); empty where the plan
+            // holds no ribbon.
+            26 => o
+                .snapshot
+                .as_ref()
+                .map_or(std::ptr::null(), |s| s.plan_sides.as_ptr().cast()),
             _ => std::ptr::null(),
         }
     })
@@ -273,6 +280,7 @@ pub extern "C" fn buffer_len(slot: u32) -> usize {
                 .as_ref()
                 .map_or(0, |s| s.plan_index.topology.len()),
             25 => e.wood_radii.len(),
+            26 => o.snapshot.as_ref().map_or(0, |s| s.plan_sides.len()),
             _ => 0,
         }
     })

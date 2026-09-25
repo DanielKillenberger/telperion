@@ -130,14 +130,18 @@ pub fn runs(
 
 /// One leaf-bearing segment: its endpoints, the wood's radii at them, the
 /// leaves it carries before any cull and the limb system that owns it. A
-/// frond's chord stands on no wood: its radii are its whole reach, the
-/// leaflets' extent plus the chord's distance from the arched rachis.
+/// frond's chord is a ribbon standing on no wood: its radii are its
+/// thickness.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Descriptor {
     pub endpoints: [Vec3; 2],
     pub radii: [f64; 2],
     pub count: u32,
     pub system: u32,
+    /// Zero for a capsule, the sphere swept along the segment. Otherwise a
+    /// ribbon: the rectangle the segment sweeps from `-side` to `side`,
+    /// thickened by its radius on every side.
+    pub side: Vec3,
 }
 
 /// Every descriptor of one tree under one family, with the family's reach.
@@ -156,8 +160,9 @@ pub struct Plan {
     /// of that line again; zero where a placement is one blade.
     pub rachis: f64,
 }
-// A rosette's plan is its fronds' chords alone, each carrying its whole reach
-// in its radii: its `blade` and `rachis` are zero and its `seat` one.
+// A rosette's plan is its fronds' ribbons alone, each carrying its whole
+// reach in its side and thickness: its `blade` and `rachis` are zero and its
+// `seat` one.
 impl Plan {
     /// Every point a leaf on this segment can occupy lies within this
     /// distance of the segment: the wood's radius carried out to the seat,
@@ -192,7 +197,11 @@ pub(crate) fn seating(surface: &SurfaceParams, canopy: CanopyParams) -> f64 {
 /// The plan of one tree, or `None` for a family the plan cannot describe.
 /// `limb_order` is the deepest lateral order that opens a limb system of its
 /// own, `None` for the family's `clump_system_order`; a higher order parts
-/// the crown into more and smaller systems.
+/// the crown into more and smaller systems. `seed` is the family's: a frond
+/// crown is bounded leaflet by leaflet on the streams placement draws from.
+// Each argument is a table the plan reads; bundling them would only rename
+// the family.
+#[allow(clippy::too_many_arguments)]
 pub fn plan(
     tree: &Tree,
     envelope: Envelope,
@@ -201,6 +210,7 @@ pub fn plan(
     surface: &SurfaceParams,
     element: &Element,
     limb_order: Option<u32>,
+    seed: u32,
 ) -> Result<Option<Plan>> {
     surface.validate()?;
     element.validate()?;
@@ -226,6 +236,7 @@ pub fn plan(
                 radii: [distal.start_radius, distal.radius],
                 count: (last - first) * run.leaflets,
                 system: system[run.nodes[segment + 1]],
+                side: Vec3::ZERO,
             });
         }
         total += run.count * run.leaflets;
@@ -236,7 +247,7 @@ pub fn plan(
         .map(|v| v.length())
         .fold(0.0, f64::max);
     if rosette::bearing(&p) {
-        total = fronds::describe(tree, p, extent, &system, &mut descriptors)?;
+        total = fronds::describe(tree, p, element, seed, &system, &mut descriptors)?;
         return Ok(Some(Plan {
             descriptors,
             total,

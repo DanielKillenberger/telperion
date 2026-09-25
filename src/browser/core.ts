@@ -78,8 +78,11 @@ export interface FieldSnapshot {
   leaves: FieldIndexSnapshot;
   /** The leaf plan's sweeps: seven f64 (a xyz, b xyz, reach) and two u32
    * (station count, limb system) a sweep, with their index. Empty on a
-   * placed field. */
-  plan: { segments: Float64Array; stations: Uint32Array; index: FieldIndexSnapshot };
+   * placed field. Where the plan holds a ribbon, `sides` carries three f64 a
+   * sweep, its half-width vector (zero for a capsule), and its reach is its
+   * thickness: the flat box the segment sweeps from -side to side, pushed
+   * out by the thickness along its normal. Empty otherwise. */
+  plan: { segments: Float64Array; stations: Uint32Array; sides: Float64Array; index: FieldIndexSnapshot };
   timings: { extractionMs: number; copyMs: number; totalMs: number };
 }
 export interface TreeOutput {
@@ -174,7 +177,7 @@ export class TreeEngine {
         wood: f64(9),
         woodIndex: { bounds: f64(10), topology: u32(11), nodeCount: meta.woodNodes },
         leaves: { bounds: f64(12), topology: u32(13), nodeCount: meta.leafNodes },
-        plan: { segments: f64(21), stations: u32(22), index: { bounds: f64(23), topology: u32(24), nodeCount: meta.planNodes } },
+        plan: { segments: f64(21), stations: u32(22), sides: f64(26), index: { bounds: f64(23), topology: u32(24), nodeCount: meta.planNodes } },
         timings: { extractionMs: meta.extractionMs, copyMs: performance.now() - copy, totalMs: 0 },
       };
     } finally { e.field_snapshot_release(); }

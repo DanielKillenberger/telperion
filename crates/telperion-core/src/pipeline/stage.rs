@@ -53,6 +53,7 @@ pub(super) fn prepare(
             &family.surface,
             element,
             limb_order,
+            family.skeleton.seed,
         )?;
         ms = (request.clock)() - start;
     }

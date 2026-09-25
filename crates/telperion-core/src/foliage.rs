@@ -3,6 +3,7 @@ use crate::math::Transcendental;
 mod canopy;
 mod clumping;
 mod element;
+mod leaflet;
 mod levels;
 mod outline;
 pub(crate) mod packed;

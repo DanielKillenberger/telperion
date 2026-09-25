@@ -54,6 +54,7 @@ fn descriptors_carry_counts_systems_and_reach() {
             &SurfaceParams::default(),
             &element,
             order,
+            1,
         )
         .unwrap()
         .unwrap()
@@ -111,6 +112,7 @@ fn unsupported_families_have_no_plan_and_bad_rows_are_refused() {
             &SurfaceParams::default(),
             &element,
             None,
+            1,
         )
     };
     assert!(none(CanopyParams::default(), None).unwrap().is_none());
@@ -163,6 +165,7 @@ fn a_rosette_is_planned_by_fronds_and_leaflets_multiply_the_counts() {
             &SurfaceParams::default(),
             &element,
             None,
+            1,
         )
         .unwrap()
     };
@@ -178,16 +181,18 @@ fn a_rosette_is_planned_by_fronds_and_leaflets_multiply_the_counts() {
     assert!(supports(crown, twig));
     assert!(bearing_runs(&tree, crown).is_empty());
     let fronds = at(crown).unwrap();
-    assert_eq!(fronds.descriptors.len(), 16 * 3);
+    // Three chords a frond, one ribbon for each row of leaflets on each: the
+    // seven leaflets alternate sides, two, two and three to a chord.
+    assert_eq!(fronds.descriptors.len(), 16 * 6);
     assert_eq!(fronds.total, 16 * 7);
-    let counts: Vec<u32> = fronds.descriptors[..3].iter().map(|d| d.count).collect();
-    assert_eq!(counts, [2, 2, 3]);
+    let counts: Vec<u32> = fronds.descriptors[..6].iter().map(|d| d.count).collect();
+    assert_eq!(counts, [1, 1, 1, 1, 2, 1]);
+    assert!(fronds.descriptors.iter().all(|d| d.side != Vec3::ZERO));
     assert_eq!((fronds.blade, fronds.rachis, fronds.seat), (0.0, 0.0, 1.0));
-    // The youngest frond leaves the apex itself; a dead frond reaches less
-    // far than a living one, drawn at its share of the size.
-    assert_eq!(fronds.descriptors[0].endpoints[0], tree.nodes[1].position);
-    let reach = |i: usize| fronds.reach(&fronds.descriptors[i]);
-    assert!(reach(12 * 3) < reach(0));
+    // A dead frond is drawn at its share of a living one's size, so its
+    // ribbons are narrower.
+    let width = |i: usize| fronds.descriptors[i].side.length();
+    assert!(width(12 * 6) < width(0));
     let single = CanopyParams {
         leaflet_count: 1,
         ..crown
@@ -195,6 +200,7 @@ fn a_rosette_is_planned_by_fronds_and_leaflets_multiply_the_counts() {
     let blades = at(single).unwrap();
     assert_eq!(blades.descriptors.len(), 16);
     assert_eq!(blades.total, 16);
+    assert!(blades.descriptors.iter().all(|d| d.side == Vec3::ZERO));
     let budget = CanopyParams {
         max_instances: 16 * 7 - 1,
         ..crown
@@ -207,6 +213,7 @@ fn a_rosette_is_planned_by_fronds_and_leaflets_multiply_the_counts() {
         &SurfaceParams::default(),
         &element,
         None,
+        1,
     );
     assert!(refused.is_err());
     let single = at(CanopyParams::default()).unwrap();

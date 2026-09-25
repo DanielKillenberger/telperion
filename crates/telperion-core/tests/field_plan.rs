@@ -33,6 +33,7 @@ fn subject(id: &str) -> (Family, Subject) {
         &family.surface,
         &element,
         None,
+        1,
     )
     .unwrap()
     .unwrap_or_else(|| panic!("{id} has a plan"));
@@ -211,6 +212,7 @@ fn two_limbs(order: Option<u32>) -> (Tree, plan::Plan) {
         &SurfaceParams::default(),
         &element,
         order,
+        1,
     )
     .unwrap()
     .unwrap();

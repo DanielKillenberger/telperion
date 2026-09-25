@@ -136,7 +136,16 @@ impl Tree {
         let mut found: Vec<usize> = (1..self.nodes.len())
             .filter(|&i| self.nodes[i].stem && !carried[i])
             .collect();
-        found.sort_by_key(|&i| self.nodes[i].identity);
+        // One apex a stem, so a handful: an insertion sort on the unique
+        // identity gives the library sort's order in a fraction of its code,
+        // which the slim field binding carries.
+        for i in 1..found.len() {
+            let mut j = i;
+            while j > 0 && self.nodes[found[j - 1]].identity > self.nodes[found[j]].identity {
+                found.swap(j - 1, j);
+                j -= 1;
+            }
+        }
         found
     }
     pub fn validate(&self) -> Result<()> {

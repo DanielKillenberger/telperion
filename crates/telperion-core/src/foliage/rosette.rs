@@ -32,7 +32,6 @@ use super::{
     Instances,
 };
 use crate::branching::MAX_LEAF_BASES;
-#[cfg(feature = "geometry")]
 use crate::rng::Rng;
 use crate::{
     math::{Transcendental, Vec3},
@@ -258,7 +257,7 @@ pub(super) fn clothe(
             if frond.dead && withered.is_none() {
                 withered = Some(out.leaves.len());
             }
-            let mut rng = Rng::new(key(seed, birth, frond.k));
+            let mut rng = stream(seed, birth, &frond);
             let (at, heading, radial) = (frond.at, frond.heading, frond.radial);
             fan(
                 at,
@@ -292,12 +291,8 @@ pub fn place_rosette(tree: &Tree, seed: u32, p: CanopyParams, out: &mut Instance
 
 #[cfg(feature = "geometry")]
 /// The matrices one placement stands for: one where the grouping is off, else
-/// `leaflet_count` leaflets along the rachis that leaves `point` on `heading`.
-///
-/// The rachis runs a `rachis_length` from the station, bending out of that
-/// straight line by its arch as it goes, and each leaflet leaves it by
-/// `leaflet_pitch` to alternating sides. The last of them closes the rachis's
-/// end as `terminal_leaflet` blends its pitch back toward the rachis itself.
+/// `leaflet_count` leaflets along the rachis that leaves `point` on `heading`
+/// (`leaflet::leaflets`), each turned in the frond's plane.
 pub(super) fn fan(
     point: Vec3,
     heading: Vec3,
@@ -312,30 +307,10 @@ pub(super) fn fan(
         out.push(&matrix(point, heading, tangent, normal, p, rng)?);
         return Ok(());
     }
-    // The frond's own plane: the rachis runs along `heading`, the leaflets
-    // leave it to either side, and the arch lifts it out of the line between.
-    let (lift, side) = frame(heading);
-    let length = p.rachis_length;
-    let pitch = p.leaflet_pitch.to_radians();
-    for leaf in 0..count {
-        let t = (leaf + 1) as f64 / count as f64;
-        let at = point + heading * (length * t) + lift * (p.rachis_arch * length * t * t);
-        // The rachis's own direction where this leaflet leaves it.
-        let run = (heading + lift * (2. * p.rachis_arch * t)).normalized();
-        let closing = if leaf + 1 == count {
-            1. - p.terminal_leaflet
-        } else {
-            1.
-        };
-        let hand = if leaf % 2 == 0 { 1. } else { -1. };
-        // A basal leaflet borne as a spine leaves the rachis at its own pitch
-        // and is drawn at its own share of the size the leaflet would have
-        // had. No draw moves: the spine is the same instance, scaled.
-        let borne = spine(leaf, &p);
-        let pitch = borne.map_or(pitch, |(_, steeper)| steeper);
-        let axis = run.rotate(lift, hand * pitch * closing);
-        let mut placed = matrix(at, axis, run, side, p, rng)?;
-        if let Some((share, _)) = borne {
+    let (_, side) = frame(heading);
+    for leaflet in super::leaflet::leaflets(point, heading, p, count) {
+        let mut placed = matrix(leaflet.at, leaflet.axis, leaflet.run, side, p, rng)?;
+        if let Some(share) = leaflet.share {
             for column in 0..3 {
                 for row in 0..3 {
                     placed[column * 4 + row] *= share as f32;
@@ -345,15 +320,6 @@ pub(super) fn fan(
         out.push(&placed);
     }
     Ok(())
-}
-
-/// The share of its own size a basal leaflet is drawn at and the radians it
-/// leaves the rachis on, where the rows bear it as a spine. None everywhere
-/// else, so a frond that bears none is scaled by nothing at all.
-#[cfg(feature = "geometry")]
-fn spine(index: usize, p: &CanopyParams) -> Option<(f64, f64)> {
-    let borne = (index as u64) < u64::from(p.acanthophylls) && p.acanthophyll_length > 0.;
-    borne.then(|| (p.acanthophyll_length, p.acanthophyll_pitch.to_radians()))
 }
 
 /// Two unit vectors square to `axis` and to each other: the frame a spiral is
@@ -370,7 +336,11 @@ pub fn frame(axis: Vec3) -> (Vec3, Vec3) {
     (normal, axis.cross(normal))
 }
 
-#[cfg(feature = "geometry")]
+/// The stream one frond draws from: its leaflets' scatter and size, in order.
+pub(super) fn stream(seed: u32, birth: u64, frond: &Frond) -> Rng {
+    Rng::new(key(seed, birth, frond.k))
+}
+
 /// SplitMix64's finaliser over the seed, the apex's birth order and the
 /// frond's place on the spiral: the frond's own stream.
 fn key(seed: u32, birth: u64, frond: u32) -> u32 {
