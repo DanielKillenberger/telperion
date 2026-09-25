@@ -76,3 +76,10 @@
 - Slowed by: each ledger entry keeps the question, the answer and the state's sha256, never the state itself, so the licence lines Jev read could not be read back. The PDF's case was rebuilt by running pdftotext over the Firecrawl cache, and the Commons case by fetching the Commons API again.
 - Cost: about 15 minutes.
 - Would remove it: the ledger keeping the state it hashed (it is a few hundred bytes for rights), or a `flowctl`-side reader that pairs a ledger entry with the artifact that holds its state.
+
+## 2026-09-25 21:20, worker fn-149.1 (continuation 5): the adapter scripts' tests run in no gate
+
+- Doing: adding the tape, error and probe stages to scripts/reference-first.py, scripts/vision_claude.py and scripts/tape-adapter.py, each with a test in scripts/test-reviewers.py.
+- Slowed by: `python3 scripts/test-reviewers.py` is run by neither `cargo test --profile ci --workspace` nor `npm test`, so these tests pass only when someone runs them by hand; a change to the adapter scripts can break the recorded replay with no gate going red.
+- Cost: none yet; a silent break would cost a live rerun.
+- Would remove it: a workspace test that runs `python3 scripts/test-reviewers.py` (or an npm script the gate calls).
