@@ -42,6 +42,7 @@ before them never builds. The key must be visible to an interactive shell
 | `--adapter` | `firecrawl`; `fixture:DIR` for pinned sources |
 | `--accept` | the owner accepts the tree they looked at |
 | `--record DIR` | keep every external answer in `DIR` (below, "Record and replay") |
+| `--tools DIR` | draw with render tools already built in `DIR`, never build them |
 | `--replay DIR` | serve every external answer from `DIR`, with no network and no key |
 | `--settle-claims` | a claim the search could not settle stops the run for a person instead of the runner settling it |
 
@@ -60,10 +61,22 @@ transport and adapter programs through it and have no second path. A
 recording holds the renders' bytes in its adapter keys, so a generator change
 that moves a render needs the tuning part recorded again.
 
-The proof of the runner is a recorded run (owner, 2026-09-25): the beech from
-a bare seed, recorded live once and replayed in the workspace gate through
-its first tuning revision. A defect a later live run finds is recorded as a
-case beside it.
+The proof of the runner is a recorded run (owner, 2026-09-25): the beech,
+recorded live from a bare seed and replayed in the workspace gate through
+Start by `crates/telperion-jev/tests/replay.rs`, with no network and no key,
+and a second replay reruns nothing. The recording is
+`tests/fixtures/replay/european-beech`. A defect a later live run finds is
+recorded as a case beside it. The repository is public, so a recording is
+trimmed before it is committed (`tape_trim <dir>/tape`, then `--check`): a
+page that is not openly licensed keeps only the passages the run quoted to
+Jev and its licence statements, and every recorded answer is filed under
+the key the current tape computes. A key ignores a fetched page's own
+`sha256` and `bytes` beside its `url`, which a trimmed page changes. `--tools <dir>` draws with render tools already
+built there (the gate's own examples) instead of building them.
+
+Within one run, a file a later stage writes that an earlier stage reads (the
+resolutions Profile settles claims into, which Sources reads) leaves the
+earlier stage current; an edit between runs still reruns it.
 
 ## The stages
 
@@ -142,7 +155,10 @@ The config at `--tuning` is authored once per species with the manifest: the
 preset, the profile manifest and id the measurer reads, the required cells,
 the reviewer adapters, the tracks and the dial ids the run tunes. Its
 `references` may be an empty list: the run then compares against the
-photographs the Profile stage found. The runner fills the rest per revision:
+photographs the Profile stage found. A first revision from a name needs no
+`owner_notes`; a revision refuses only what cannot run: no live dial, no
+fixed and fresh seed among the required cells, or no reference photograph of
+the whole tree. The runner fills the rest per revision:
 
 - `measure_binary` and `matched.headless` are the tools the runner just
   built, `references` are the config's own or else the found ones

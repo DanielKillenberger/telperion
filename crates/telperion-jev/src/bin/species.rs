@@ -12,7 +12,7 @@ use telperion_jev::runner::record::State;
 use telperion_jev::runner::{self, folder, preflight, Run, Scope, STAGES};
 use telperion_jev::tape;
 
-const USAGE: &str = "usage: species <id> [--until STAGE | --stage STAGE | --status] [--record DIR | --replay DIR] [--accept] [--settle-claims] [--tuning FILE] [--dir DIR] [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR]";
+const USAGE: &str = "usage: species <id> [--until STAGE | --stage STAGE | --status] [--record DIR | --replay DIR] [--tools DIR] [--accept] [--settle-claims] [--tuning FILE] [--dir DIR] [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR]";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -45,6 +45,7 @@ fn main() -> ExitCode {
     run.adapter = value("--adapter").unwrap_or(run.adapter);
     run.accept = has("--accept");
     run.settle_claims = has("--settle-claims");
+    run.tools_dir = path("--tools");
     // One tape for the process and every adapter program it starts.
     match (value("--record"), value("--replay")) {
         (Some(_), Some(_)) => {

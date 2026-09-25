@@ -1,0 +1,1 @@
+{"model":"jev-1.13.0","answers":{"span":{"type":"choice","choice":"P1.1: 85 feet","confidence":0.82,"probabilities":{"P2.2: 0 in.":0.0,"P1.1: 85 feet":0.84,"P1.1: 171.6 inches":0.0,"P2.1: 50 to 60 feet":0.03,"P2.2: 35 ft":0.12,"none":0.01,"P1.1: 125 feet":0.0}}},"usage":{"input_tokens":686,"output_tokens":130}}

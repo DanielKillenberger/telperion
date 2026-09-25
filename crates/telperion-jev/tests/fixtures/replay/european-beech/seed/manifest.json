@@ -1,0 +1,121 @@
+{
+  "appearance": [
+    {
+      "sources": [],
+      "trait_name": "bark_colour"
+    },
+    {
+      "sources": [],
+      "trait_name": "bark_roughness"
+    },
+    {
+      "sources": [],
+      "trait_name": "leaf_front_colour"
+    },
+    {
+      "sources": [],
+      "trait_name": "leaf_back_colour"
+    },
+    {
+      "sources": [],
+      "trait_name": "leaf_hue_range"
+    },
+    {
+      "sources": [],
+      "trait_name": "leaf_brightness_range"
+    }
+  ],
+  "context": "Mature open-grown European beech (Fagus sylvatica) in parkland or a field edge; single-stemmed, healthy, leaf-on; not a copper, weeping or fastigiate cultivar, not a forest-grown stand tree, not a hedge.",
+  "curves": null,
+  "described": [],
+  "engineering": {
+    "required_capabilities": {
+      "rationale": "Capability assessment 2026-09-25 (host). The beech needs wood on every axis, an entire blade and an alternate petiole, all expressed. Its Troll's-model limbs (pitch by height, ragged reach) are missing rows, not named capabilities: fn-61. See packet/capability.json.",
+      "value": [
+        "woody-axes",
+        "entire-blade",
+        "alternate-petiole"
+      ]
+    }
+  },
+  "fields": [
+    {
+      "bar": "proxy_only",
+      "condition": "open_grown",
+      "field": "height_m",
+      "proxy": null,
+      "question": "Which candidate span states the usual mature height of a European beech grown in the open?",
+      "required_ages_years": []
+    },
+    {
+      "bar": "proxy_only",
+      "condition": "open_grown",
+      "field": "dbh_m",
+      "proxy": null,
+      "question": "Which candidate span states the trunk diameter at breast height of a mature European beech grown in the open?",
+      "required_ages_years": []
+    },
+    {
+      "bar": "proxy_only",
+      "condition": "open_grown",
+      "field": "crown_width_m",
+      "proxy": null,
+      "question": "Which candidate span states the crown width or spread of a mature European beech grown in the open?",
+      "required_ages_years": []
+    },
+    {
+      "bar": "proxy_only",
+      "condition": "open_grown",
+      "field": "crown_base_m",
+      "proxy": null,
+      "question": "Which candidate span states the height of the crown base or clear bole (height to the lowest live branch) of a mature European beech grown in the open?",
+      "required_ages_years": []
+    },
+    {
+      "bar": "proxy_only",
+      "condition": "open_grown",
+      "field": "leaf_length_m",
+      "proxy": null,
+      "question": "Which candidate span states the length of a mature European beech leaf blade?",
+      "required_ages_years": []
+    },
+    {
+      "bar": "proxy_only",
+      "condition": "open_grown",
+      "field": "leaf_width_m",
+      "proxy": null,
+      "question": "Which candidate span states the width of a mature European beech leaf blade?",
+      "required_ages_years": []
+    }
+  ],
+  "growth_form": "broadleaf",
+  "model": "jev-latest",
+  "preset": "european-beech",
+  "profile_id": "european-beech",
+  "schema": "manifest",
+  "schema_version": 2,
+  "seed": 1,
+  "sources": [],
+  "species": "european-beech",
+  "taxon": {
+    "common_name": "European beech",
+    "cultivar": null,
+    "rank": "species",
+    "scientific_name": "Fagus sylvatica"
+  },
+  "transfers": [],
+  "versions": {
+    "question_sets": {
+      "citation": 1,
+      "described": 1,
+      "obligations": 1,
+      "ranking": 1,
+      "screen": 1,
+      "sufficiency": 1
+    },
+    "tools": {
+      "firecrawl": "1.23.3",
+      "species-pipeline": "0.1.0"
+    }
+  }
+}

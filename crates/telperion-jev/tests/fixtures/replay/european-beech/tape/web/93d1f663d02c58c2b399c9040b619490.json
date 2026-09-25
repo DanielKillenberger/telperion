@@ -1,0 +1,1 @@
+{"key":"93d1f663d02c58c2b399c9040b619490bf7cedab953e3ff5596dbd6a05968446","kind":"web","request":{"url":"https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrlimit=3&gsrsearch=Fagus+sylvatica+winter+filetype%3Abitmap&prop=imageinfo&iiprop=url|mime|extmetadata&iiurlwidth=1280"},"response":{"ok":"application/json"}}

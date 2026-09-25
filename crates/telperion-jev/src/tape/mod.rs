@@ -13,6 +13,8 @@
 //! binary and inherited by the adapter programs it starts.
 use std::path::{Path, PathBuf};
 
+pub mod trim;
+
 use serde_json::{json, Map, Value};
 
 use crate::caller::{HttpRequest, HttpResponse, Transport};
@@ -63,7 +65,7 @@ impl Tape {
     /// names the run (`UNSTABLE`), so a replay from another directory finds
     /// the same answer.
     fn entry(&self, kind: &str, request: &Value) -> (String, PathBuf) {
-        let key = canonical_sha256(&json!({"kind": kind, "request": stable(request)}));
+        let key = entry_key(kind, request);
         let path = self.dir().join(kind).join(format!("{}.json", &key[..32]));
         (key, path)
     }
@@ -112,12 +114,23 @@ pub const UNSTABLE: [&str; 7] = [
     "render_identity",
 ];
 
+/// A fetched page's own fingerprint beside its `url`: a recording trimmed
+/// to the passages the run quoted (`trim`) holds other bytes of the page,
+/// while every passage a request quotes stays as it was.
+pub const PAGE_PRINT: [&str; 2] = ["sha256", "bytes"];
+
+/// The key an answer of `kind` to `request` is kept under.
+pub fn entry_key(kind: &str, request: &Value) -> String {
+    canonical_sha256(&json!({"kind": kind, "request": stable(request)}))
+}
+
 /// `value` without any run-specific key, at any depth.
 pub fn stable(value: &Value) -> Value {
     match value {
         Value::Object(map) => Value::Object(
             map.iter()
                 .filter(|(k, _)| !UNSTABLE.contains(&k.as_str()))
+                .filter(|(k, _)| !(map.contains_key("url") && PAGE_PRINT.contains(&k.as_str())))
                 .map(|(k, v)| (k.clone(), stable(v)))
                 .collect::<Map<_, _>>(),
         ),
@@ -342,6 +355,14 @@ mod tests {
             stable(&asked("a", "height_m")),
             stable(&asked("b", "height_m"))
         );
+        // A trimmed recording holds other bytes of a page, never another
+        // question; an image's own bytes still decide its key.
+        let page = |print: &str| {
+            json!({"source": {"url": "u", "sha256": print, "bytes": 1},
+                                        "image": {"sha256": print}})
+        };
+        assert_eq!(stable(&page("a"))["source"], stable(&page("b"))["source"]);
+        assert_ne!(stable(&page("a")), stable(&page("b")));
         assert_ne!(
             stable(&asked("a", "height_m")),
             stable(&asked("a", "dbh_m"))

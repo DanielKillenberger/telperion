@@ -76,6 +76,16 @@ fn meta_re() -> &'static Regex {
     })
 }
 
+/// The licence metadata tags of a page, as they stand in its bytes: what
+/// `licence_lines` reads from the markup, kept whole by a trimmed recording.
+pub fn licence_tags(raw: &[u8]) -> Vec<String> {
+    let html = String::from_utf8_lossy(raw);
+    meta_re()
+        .find_iter(&html)
+        .map(|m| m.as_str().to_string())
+        .collect()
+}
+
 /// The licence statements in one page: its licence metadata first, then a
 /// window around every licence word in its visible text (the markdown when
 /// the response is a PDF), overlapping windows merged, at most `MAX_LINES`.

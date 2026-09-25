@@ -111,6 +111,8 @@ pub struct Run {
     /// Whether the render tools are built when first read; a status run
     /// reads the ones on disk.
     pub build: bool,
+    /// Tools already built elsewhere (`--tools`), used as they are.
+    pub tools_dir: Option<PathBuf>,
     tools: OnceCell<Tools>,
 }
 
@@ -125,6 +127,7 @@ impl Run {
             accept: false,
             settle_claims: false,
             build: true,
+            tools_dir: None,
             tools: OnceCell::new(),
         }
     }
@@ -145,9 +148,10 @@ impl Run {
             return Ok(tools);
         }
         let root = Path::new(".");
-        let tools = match self.build {
-            true => Tools::build(root)?,
-            false => Tools::at(root),
+        let tools = match (&self.tools_dir, self.build) {
+            (Some(dir), _) => Tools::in_dir(dir),
+            (None, true) => Tools::build(root)?,
+            (None, false) => Tools::at(root),
         };
         Ok(self.tools.get_or_init(|| tools))
     }

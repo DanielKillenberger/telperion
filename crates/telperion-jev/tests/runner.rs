@@ -207,3 +207,48 @@ fn a_failed_stage_names_itself_and_is_not_recorded() {
     let log = std::fs::read_to_string(run.out().join("log.jsonl")).unwrap();
     assert!(log.contains("failed: tool failed"));
 }
+
+/// A file an earlier stage reads and a later stage of the same run writes
+/// (the beech's `resolutions.json`, which Sources reads and Profile settles
+/// claims into) leaves the earlier stage current: a second run reruns
+/// nothing. An edit between runs still reruns it.
+#[test]
+fn a_file_a_later_stage_writes_leaves_the_earlier_one_current() {
+    struct Step(&'static str, &'static str, &'static str);
+    impl Stage for Step {
+        fn name(&self) -> &'static str {
+            self.0
+        }
+        fn inputs(&self, run: &Run) -> Result<Vec<PathBuf>, String> {
+            Ok(vec![
+                run.paths.dir.join(self.1),
+                run.paths.dir.join("shared"),
+            ])
+        }
+        fn outputs(&self, run: &Run) -> Result<Vec<PathBuf>, String> {
+            Ok(vec![run.paths.dir.join(self.2)])
+        }
+        fn run(&self, run: &Run) -> Result<Done, String> {
+            let dir = &run.paths.dir;
+            let log = std::fs::read_to_string(dir.join("ran")).unwrap_or_default();
+            std::fs::write(dir.join("ran"), format!("{log}{}\n", self.0)).unwrap();
+            std::fs::write(dir.join(self.2), self.0).unwrap();
+            let shared = std::fs::read_to_string(dir.join("shared")).unwrap_or_default();
+            std::fs::write(dir.join("shared"), format!("{shared}{}\n", self.0)).unwrap();
+            Ok(Done::Ran("wrote".into()))
+        }
+        fn stop(&self, _: &Run) -> Result<Option<Stop>, String> {
+            Ok(None)
+        }
+    }
+    let steps: [&dyn Stage; 2] = [&Step("sources", "seed", "a"), &Step("profile", "a", "b")];
+    let dir = scratch("later-writes");
+    let run = run_in(&dir);
+    runner::run(&run, &steps, &Scope::All).unwrap();
+    assert_eq!(ran(&dir), ["sources", "profile"]);
+    runner::run(&run, &steps, &Scope::All).unwrap();
+    assert!(ran(&dir).is_empty(), "a second run reran a stage");
+    std::fs::write(dir.join("shared"), "edited by a person").unwrap();
+    runner::run(&run, &steps, &Scope::All).unwrap();
+    assert_eq!(ran(&dir), ["sources", "profile"]);
+}

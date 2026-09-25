@@ -37,7 +37,10 @@ def key(argv, stdin):
         envelope = stable(json.loads(stdin))
     except json.JSONDecodeError:
         envelope = stdin
-    canonical = json.dumps({"argv": argv, "stdin": envelope}, sort_keys=True, separators=(",", ":"))
+    # A script named by path is named by its file: a checkout elsewhere asks
+    # the same question.
+    named = [a.rsplit("/", 1)[-1] for a in argv]
+    canonical = json.dumps({"argv": named, "stdin": envelope}, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode()).hexdigest()
 
 

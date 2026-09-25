@@ -27,8 +27,20 @@ pub fn run(run: &Run, stages: &[&dyn Stage], scope: &Scope) -> Result<Option<Sto
             &stages[at..=at]
         }
     };
+    // A file an earlier stage of this run reads and a later one writes (the
+    // resolutions Profile settles claims into, which Sources reads) is
+    // settled by the run: the earlier stage's record takes the new bytes,
+    // so a second run reruns nothing. An edit between runs still reruns it.
+    let mut settled: Vec<&dyn Stage> = Vec::new();
     for stage in taken {
-        if let Some(stop) = step(run, &mut records, *stage)? {
+        let (ran, stop) = step(run, &mut records, *stage)?;
+        if ran {
+            for earlier in &settled {
+                records.set(earlier.name(), &earlier.inputs(run)?)?;
+            }
+        }
+        settled.push(*stage);
+        if let Some(stop) = stop {
             records.log(stage.name(), &format!("stopped: {stop}"))?;
             return Ok(Some(stop));
         }
@@ -47,8 +59,13 @@ pub fn status(run: &Run, stages: &[&dyn Stage]) -> Result<Vec<(&'static str, Sta
         .collect())
 }
 
-/// Runs `stage` unless it is current, records it, and reads its stop.
-fn step(run: &Run, records: &mut Records, stage: &dyn Stage) -> Result<Option<Stop>, String> {
+/// Runs `stage` unless it is current, records it, and reads its stop; the
+/// flag says whether it ran.
+fn step(
+    run: &Run,
+    records: &mut Records,
+    stage: &dyn Stage,
+) -> Result<(bool, Option<Stop>), String> {
     let name = stage.name();
     let state = records.state(name, &stage.inputs(run)?, &stage.outputs(run)?)?;
     let done = match state {
@@ -69,7 +86,7 @@ fn step(run: &Run, records: &mut Records, stage: &dyn Stage) -> Result<Option<St
     };
     records.log(name, &word)?;
     println!("{name}: {word}");
-    stage.stop(run)
+    Ok((matches!(done, Done::Ran(_)), stage.stop(run)?))
 }
 
 fn at(stages: &[&dyn Stage], name: &str) -> Result<usize, String> {

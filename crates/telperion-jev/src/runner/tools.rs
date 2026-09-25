@@ -15,7 +15,13 @@ pub struct Tools {
 impl Tools {
     /// The release examples under `<root>/target`.
     pub fn at(root: &Path) -> Self {
-        let example = |name: &str| root.join("target/release/examples").join(name);
+        Self::in_dir(&root.join("target/release/examples"))
+    }
+
+    /// The examples already built in `dir` (`species --tools`): a replay in
+    /// the workspace gate draws with the ones the gate built.
+    pub fn in_dir(dir: &Path) -> Self {
+        let example = |name: &str| dir.join(name);
         Self {
             species_measure: example("species_measure"),
             geometry_benchmark: example("geometry_benchmark"),
