@@ -8,7 +8,7 @@ use std::path::PathBuf;
 use serde_json::Value;
 
 use crate::caller::{load_key, UreqTransport};
-use crate::pipeline::adapter::{FetchAdapter, FirecrawlCli, FixtureAdapter, RawSource};
+use crate::pipeline::adapter::{FetchAdapter, FirecrawlCli, FixtureAdapter, RawSource, Retrying};
 use crate::pipeline::admission::record_resolution;
 use crate::pipeline::decision::{
     apply_resolutions, read_decisions, read_resolutions, Decision, Resolution, Status,
@@ -49,8 +49,9 @@ pub fn e(err: StageError) -> String {
     err.to_string()
 }
 
+/// The fetch adapter, retrying what a rate limit refused.
 pub fn adapter(run: &Run) -> Box<dyn FetchAdapter> {
-    match run.adapter.strip_prefix("fixture:") {
+    let inner: Box<dyn FetchAdapter> = match run.adapter.strip_prefix("fixture:") {
         Some(dir) => Box::new(FixtureAdapter::new(dir)),
         None => {
             let mut cli = FirecrawlCli::new();
@@ -58,7 +59,8 @@ pub fn adapter(run: &Run) -> Box<dyn FetchAdapter> {
             cli.raw_from = RawSource::Direct;
             Box::new(cli)
         }
-    }
+    };
+    Box::new(Retrying::new(inner))
 }
 
 /// The measurement example, reading the tuning config's profile manifest.

@@ -55,3 +55,17 @@
 - Slowed by: a python heredoc whose replacement text quoted Markdown code spans was refused as an unverifiable shell launcher; the script went to a scratch file instead.
 - Cost: about 1 minute and one retry.
 - Would remove it: a dcg rule that treats a quoted heredoc fed to python3 as data, or the habit of writing edit scripts to a scratch file first.
+
+## 2026-09-25, add-species agent (R6 beech proof): the tuning config needs reference photographs a name cannot supply
+
+- Doing: writing the beech's tuning config before `--until profile`.
+- Slowed by: the Profile stage ends by building the reference inventory, which deserializes the whole `tuning::live::Config` (every key, `deny_unknown_fields`) and needs one to eight hash-pinned reference photographs (`ReferenceRequest::verify` refuses an empty list before any paid call). Nothing in the runner or the pipeline finds or admits photographs, and `docs/species-runner.md` names `references` as authored but says nothing of where they come from; the only beech photographs are fn34's, which this proof may not read. The config was written with `references: []`, so the inventory is expected to refuse. The config's other keys (adapters, protocols, matched, anchors, ledger, budget) had to be reconstructed from the palm's fn-80 config and the struct, since the doc lists them only in prose.
+- Cost: about 15 minutes of reading code to find the config's shape and the reference source.
+- Would remove it: a documented minimal tuning config (or a `species <id> --init-tuning` that writes one), and a stated source for reference photographs in a run from a name (a host step, or a stage that admits them).
+
+## 2026-09-25 17:22, add-species agent (R6 beech proof): a Firecrawl rate limit dropped two of three sources
+
+- Doing: `species european-beech --until profile` from a name.
+- Slowed by: fetch hit Firecrawl's per-minute rate limit ("Rate limit exceeded. Consumed (req/min): 11, Remaining (req/min): 0 ... retry after 9s") on P2 (NC State plant toolbox) and P3 (PLOS ONE doi), and the runner settled both `unavailable-source` decisions as `drop-source`. A transient, self-describing 9-second wait became a permanent drop, so the profile rests on Wikipedia alone: one field sourced of six, no appearance trait described, nine requirements-unmet decisions open. Then the Profile stage failed at the inventory (`invalid reference-only request`, no references in the config, see the entry above), after about 110 stage-counted Jev calls (147 ledger entries) and roughly 27 Firecrawl credits plus 19 search rounds.
+- Cost: 262 s of wall time and the run's literature spend, with a thin profile to show for it.
+- Would remove it: fetch retrying after the wait the rate-limit error names (or pacing its calls under the plan's req/min) before filing `unavailable-source`, and the runner's automatic `drop-source` sparing a rate-limit error.

@@ -16,9 +16,11 @@ use crate::sha256_hex;
 
 pub mod content;
 pub mod firecrawl;
+pub mod retry;
 pub mod tables;
 
 pub use firecrawl::{fetch_raw, FirecrawlCli, RawSource};
+pub use retry::Retrying;
 pub use tables::{
     age_indexed_rows, block_rows, coverage, markdown_tables, table_rows_for, AgeRow, Coverage,
 };

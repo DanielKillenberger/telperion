@@ -234,8 +234,7 @@ fn a_dropped_value_leaves_the_packet_and_refiles_its_requirement() {
     assert!(body["filled"].get(LEAFLET).is_some(), "{body}");
     let profile = read_json(&paths.packet("profile")).unwrap();
     assert_eq!(
-        profile["profiles"][0]["metrics"]["frond_length_m"]["classification"],
-        "unsourced",
+        profile["profiles"][0]["metrics"]["frond_length_m"]["classification"], "unsourced",
         "a dropped value leaves its field unsourced (fn-149, owner 2026-09-25)"
     );
     let unmet = decision(&dir, "date-palm/select/requirements-unmet/frond_length_m").unwrap();
