@@ -5,6 +5,12 @@ name: Tests
 # that live under those trees: the species profiles and the benchmark protocol
 # the core tests read, the spec the citation parser is tested on, and the
 # catalogue, whose generated pages are markdown the structure check gates.
+#
+# This workflow is also the release. Every run builds the package once and
+# tests that tarball; a push to master whose package.json version is not on
+# npm yet publishes that tarball once every suite is green for the commit, by
+# receipt or by run, and then tags the commit v<version>. Nothing else
+# publishes.
 on:
   push:
     branches: [master]
@@ -30,9 +36,11 @@ on:
       - '.flow/specs/fn-11-growth-over-time.md'
       - 'catalogue/**'
 
+# A pull request's newer push cancels its older run. Master's runs queue
+# instead, so a publish is never cancelled between its upload and its tag.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -243,10 +251,7 @@ jobs:
         with:
           cache-on-failure: true
 
-      # The version Cargo.lock pins for the wasm-bindgen crate; render:build
-      # refuses any other CLI. The binary is restored by the cache above.
-      - name: Install wasm-bindgen-cli at the crate's pin
-        run: cargo install wasm-bindgen-cli --version "$(cargo pkgid wasm-bindgen | sed 's/.*@//')"
+      - uses: ./.github/actions/wasm-bindgen
 
       - uses: actions/setup-node@v7
         with:
@@ -263,3 +268,178 @@ jobs:
           run: |
             npm test
             npm run typecheck
+
+  # The package, built once per commit. Its tarball is what the tests below
+  # load and what the release publishes: test:dist runs on the dist unpacked
+  # from the tarball, and the tarball is uploaded with its sha256.
+  package:
+    runs-on: ubuntu-latest
+    outputs:
+      tarball: ${{ steps.pack.outputs.tarball }}
+      sha256: ${{ steps.pack.outputs.sha256 }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+
+      - uses: ./.github/actions/wasm-bindgen
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: package.json
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build the package
+        run: npm run build
+
+      - id: pack
+        name: Pack the tarball
+        run: |
+          tarball=$(npm pack --json | jq -r '.[0].filename')
+          sha256=$(sha256sum "$tarball" | cut -d' ' -f1)
+          echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
+          echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
+          echo "$tarball sha256 $sha256"
+
+      - name: Load the tarball's entries in Node with no Wasm source given
+        env:
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+        run: |
+          rm -rf dist
+          tar -xzf "$TARBALL" --strip-components=1 package/dist
+          npm run test:dist
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: package
+          path: ${{ steps.pack.outputs.tarball }}
+          if-no-files-found: error
+
+  # A push to master publishes when its package.json version is new: every
+  # suite green for this commit by receipt or by run, the tarball the package
+  # job tested published unchanged, then the commit tagged. A version already
+  # on npm publishes nothing; a version below npm's latest, a tag that names
+  # another commit, a suite neither receipted nor green, and a missing or
+  # altered tarball each refuse before anything is uploaded. The publish
+  # authenticates with the workflow's OIDC token under the trusted publisher
+  # configured on npmjs.com for this repository and this workflow file;
+  # provenance binds the tarball to this commit and this run.
+  publish:
+    needs: [receipts, core, core-plan, render, wasm-jev, node, package]
+    if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - id: version
+        name: Decide whether this commit publishes
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          tag="v$version"
+          versions=$(npm view telperion versions --json)
+          latest=$(npm view telperion dist-tags.latest)
+          on_npm=$(node -p '[].concat(JSON.parse(process.argv[1])).includes(process.argv[2])' "$versions" "$version")
+          tagged=$(git ls-remote --tags origin | awk -v t="refs/tags/$tag" '$2 == t "^{}" { p = $1 } $2 == t { l = $1 } END { print p ? p : l }')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if [ "$on_npm" = true ]; then
+            echo "$version is already on npm; nothing is published."
+            [ -n "$tagged" ] || echo "::warning::$version is on npm but no $tag tag exists; tag its commit by hand."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$(printf '%s\n%s\n' "$latest" "$version" | sort -V | tail -n1)" != "$version" ]; then
+            echo "::error::$version is lower than npm's latest $latest; nothing is published"
+            exit 1
+          fi
+          if [ -n "$tagged" ] && [ "$tagged" != "$GITHUB_SHA" ]; then
+            echo "::error::$tag already names $tagged, not $GITHUB_SHA; nothing is published"
+            exit 1
+          fi
+          echo "$version is new (npm's latest is $latest); this commit publishes it."
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+          echo "tagged=${tagged:+true}" >> "$GITHUB_OUTPUT"
+
+      # A suite is green for this commit when its receipt matched the commit's
+      # inputs or its jobs ran green here. There is no fallback run.
+      - if: steps.version.outputs.publish == 'true'
+        name: Every suite is green for this commit
+        env:
+          SUITES: |-
+            rust-core ${{ needs.receipts.outputs.rust-core }} ${{ needs.core.result == 'success' && needs.core-plan.result == 'success' && 'success' || 'failure' }}
+            rust-render ${{ needs.receipts.outputs.rust-render }} ${{ needs.render.result }}
+            rust-wasm ${{ needs.receipts.outputs.rust-wasm }} ${{ needs.wasm-jev.result }}
+            rust-jev ${{ needs.receipts.outputs.rust-jev }} ${{ needs.wasm-jev.result }}
+            node ${{ needs.receipts.outputs.node }} ${{ needs.node.result }}
+            package false ${{ needs.package.result }}
+        run: |
+          refused=0
+          while read -r suite hit result; do
+            if [ "$hit" = true ]; then
+              echo "$suite: green by receipt."
+            elif [ "$result" = success ]; then
+              echo "$suite: green by run."
+            else
+              echo "::error::$suite has no receipt for this commit and its run is ${result:-missing}; nothing is published"
+              refused=1
+            fi
+          done <<< "$SUITES"
+          exit "$refused"
+
+      - if: steps.version.outputs.publish == 'true'
+        uses: actions/download-artifact@v8
+        with:
+          name: package
+          path: ${{ runner.temp }}/package
+
+      - if: steps.version.outputs.publish == 'true'
+        name: The tarball is the one the package job tested
+        env:
+          TARBALL: ${{ runner.temp }}/package/${{ needs.package.outputs.tarball }}
+          TESTED: ${{ needs.package.outputs.sha256 }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          [ "$(basename "$TARBALL")" = "telperion-$VERSION.tgz" ] || { echo "::error::the tested tarball is not telperion-$VERSION.tgz; nothing is published"; exit 1; }
+          [ -f "$TARBALL" ] || { echo "::error::the package artifact holds no $(basename "$TARBALL"); nothing is published"; exit 1; }
+          actual=$(sha256sum "$TARBALL" | cut -d' ' -f1)
+          echo "tested  sha256 $TESTED"
+          echo "publish sha256 $actual"
+          [ "$actual" = "$TESTED" ] || { echo "::error::the tarball differs from the one CI tested; nothing is published"; exit 1; }
+
+      - if: steps.version.outputs.publish == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      # Trusted publishing needs npm 11.5.1 or later; the npm a Node release
+      # bundles may be older.
+      - if: steps.version.outputs.publish == 'true'
+        name: Install an npm that publishes through a trusted publisher
+        run: npm install -g npm@^11.5.1 && npm --version
+
+      - if: steps.version.outputs.publish == 'true'
+        name: Publish the tested tarball to npm with provenance
+        env:
+          TARBALL: ${{ runner.temp }}/package/${{ needs.package.outputs.tarball }}
+        run: npm publish --provenance --access public "$TARBALL"
+
+      - if: steps.version.outputs.publish == 'true' && steps.version.outputs.tagged != 'true'
+        name: Tag the published commit
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git tag -a "$TAG" -m "telperion ${TAG#v}" "$GITHUB_SHA"
+          git push origin "refs/tags/$TAG"
