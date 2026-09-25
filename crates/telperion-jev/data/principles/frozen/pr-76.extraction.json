@@ -1,0 +1,408 @@
+{
+  "extractor": "extract-1",
+  "base": "18cd78a3e49523d9d1fe346a8dfa123e3d3c5a4f",
+  "head": "c571b0e51bfc7736d990ee3ae08b94875deffa29",
+  "candidates": [
+    {
+      "id": "c1",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/bin/species_pipeline.rs:149",
+      "shape": "arms run different builders on a setting: `stops . is_empty ()`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/bin/species_pipeline.rs",
+          "lines": [
+            149,
+            153
+          ],
+          "text": "    if stops.is_empty() {\n        String::new()\n    } else {\n        format!(\"\\nNEEDS_HUMAN: {}\", stops.join(\", \"))\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/bin/species_pipeline.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/pipeline/stages/quality.rs:106",
+      "shape": "arms run different builders on a setting: `let Some (bar) = required`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/stages/quality.rs",
+          "lines": [
+            106,
+            111
+          ],
+          "text": "        if let Some(bar) = required {\n            let sources = sources_sha256(&ctx.paths.manifest())?;\n            decisions.push(unmet(manifest, &shortfall, bar, &sources));\n        } else if !passed {\n            decisions.push(insufficient(manifest, &shortfall));\n        }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/pipeline/stages/quality.rs",
+          "lines": [
+            29,
+            38
+          ],
+          "text": "pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {\n    let (ctx, _) = Context::open(paths, STAGE)?;\n    let (fetch, fetch_sha) = body(&ctx, STAGE, \"fetch\")?;\n    let (screen, screen_sha) = body(&ctx, STAGE, \"screen\")?;\n    let mut header = ctx.header(\n        STAGE,\n        \"quality\",\n        inputs(&[(\"fetch.json\", &fetch_sha), (\"screen.json\", &screen_sha)]),\n        vec![],\n    );",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/pipeline/manifest.rs:244",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `m . schema != \"manifest\" || ! (1 ..= MANIFEST_SCHEMA_VERSION) . contains (& m . schema_version)`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/manifest.rs",
+          "lines": [
+            244,
+            248
+          ],
+          "text": "    if m.schema != \"manifest\" || !(1..=MANIFEST_SCHEMA_VERSION).contains(&m.schema_version) {\n        return bad(format!(\n            \"schema must be manifest version 1 to {MANIFEST_SCHEMA_VERSION}\"\n        ));\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/pipeline/manifest.rs",
+          "lines": [
+            229,
+            238
+          ],
+          "text": "pub fn validate(m: &Manifest) -> Result<(), ManifestError> {\n    let bad = |msg: String| Err(ManifestError::Invalid(msg));\n    if m.schema != \"manifest\" || m.schema_version != MANIFEST_SCHEMA_VERSION {\n        return bad(format!(\n            \"schema must be manifest version {MANIFEST_SCHEMA_VERSION}\"\n        ));\n    }\n    if m.species.is_empty() || m.species != m.species.to_lowercase() {\n        return bad(\"species must be a lowercase stable id\".into());\n    }",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c4",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/pipeline/requirements.rs:106",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `m . schema_version < REQUIRED_FROM_VERSION`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/requirements.rs",
+          "lines": [
+            106,
+            108
+          ],
+          "text": "    if m.schema_version < REQUIRED_FROM_VERSION {\n        return Vec::new();\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/pipeline/requirements.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c5",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/pipeline/consume.rs:105",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `decision . kind != REQUIREMENTS_UNMET || decision . status != Status :: Resolved || ! unchanged`",
+      "weight": 2.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/consume.rs",
+          "lines": [
+            105,
+            108
+          ],
+          "text": "        if decision.kind != REQUIREMENTS_UNMET || decision.status != Status::Resolved || !unchanged\n        {\n            continue;\n        }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/pipeline/consume.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c6",
+      "class": "unread",
+      "location": "crates/telperion-jev/src/pipeline/requirements.rs:36",
+      "shape": "new output `AppearanceTable.feeds` is read 0 time(s) in production Rust",
+      "weight": 2.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/requirements.rs",
+          "lines": [
+            35,
+            37
+          ],
+          "text": "pub struct AppearanceTable {\n    pub feeds: Vec<String>,\n    pub levels: Vec<AppearanceLevel>,",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "after",
+          "path": "harness/family.ts",
+          "lines": [
+            14,
+            16
+          ],
+          "text": " * generator takes. Nothing here draws anything, and nothing here knows\n * what will - the same composition feeds the renderer in the browser\n * and would feed a native caller unchanged.",
+          "added": false
+        },
+        {
+          "id": "e3",
+          "side": "after",
+          "path": "harness/family.ts",
+          "lines": [
+            15,
+            17
+          ],
+          "text": " * what will - the same composition feeds the renderer in the browser\n * and would feed a native caller unchanged.\n * ------------------------------------------------------------------ */",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c7",
+      "class": "unread",
+      "location": "crates/telperion-jev/src/pipeline/requirements.rs:23",
+      "shape": "new output `FieldTerms.terms` is read 1 time(s) in production Rust",
+      "weight": 1.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/requirements.rs",
+          "lines": [
+            22,
+            24
+          ],
+          "text": "    /// Words a sentence must carry to count as a point for the field.\n    pub terms: Vec<String>,\n}",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/requirements.rs",
+          "lines": [
+            152,
+            154
+          ],
+          "text": "pub fn terms(field: &str) -> Option<&'static [String]> {\n    table().fields.get(field).map(|f| f.terms.as_slice())\n}",
+          "added": true
+        },
+        {
+          "id": "e3",
+          "side": "after",
+          "path": "crates/telperion-render/src/shaders/canopy.wgsl",
+          "lines": [
+            1,
+            3
+          ],
+          "text": "// A leaf lit as part of its crown rather than as a lone card, and the one\n// highlight every material glances the sun off in. Every term here is a pure\n// function of directions and one row value, so a synthetic surface can be put",
+          "added": false
+        },
+        {
+          "id": "e4",
+          "side": "after",
+          "path": "crates/telperion-render/src/shaders/canopy.wgsl",
+          "lines": [
+            4,
+            6
+          ],
+          "text": "// to it with nothing else bound, and at a value of zero each returns exactly\n// what the card was lit by before the term existed.\n",
+          "added": false
+        }
+      ]
+    }
+  ],
+  "dropped": 0,
+  "boundary_base": [
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 14,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 15,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 16,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 26,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::field::Field::planned"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 103,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 112,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 129,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 134,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 152,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 162,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 191,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::planned"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 192,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_head": [
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 14,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 15,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 16,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 26,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::field::Field::planned"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 103,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 112,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 129,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 134,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 152,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 162,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 191,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::planned"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 192,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_unresolved": [],
+  "paths": []
+}

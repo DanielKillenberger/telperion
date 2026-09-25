@@ -1,0 +1,31 @@
+[
+  {
+    "id": "EX-17",
+    "principle": "P-ONE-PIPELINE",
+    "callers": ["telperion_core::specimen::view::SpecimenView::mesh"],
+    "stages": [
+      "telperion_core::surface::build",
+      "telperion_core::foliage::build_element",
+      "telperion_core::foliage::place_short_shoots",
+      "telperion_core::foliage::place_short_shoots_clumped",
+      "telperion_core::foliage::place_rosette",
+      "telperion_core::foliage::cull"
+    ],
+    "rationale": "The growth path draws a specimen grown to an age from its recorded leaves: a hidden feature, kept buildable and pinned, never a default and never a gate on species work.",
+    "source_kind": "owner-decision",
+    "source": "AGENTS.md, Mature trees are the product (owner, 2026-09-18); PR #17 (Growth over time)"
+  },
+  {
+    "id": "EX-50",
+    "principle": "P-ONE-PIPELINE",
+    "callers": ["telperion_render::generation::preparation::Generator::prepare_async"],
+    "stages": [
+      "telperion_core::foliage::build_element",
+      "telperion_core::surface::prepared::prepare",
+      "telperion_core::surface::build"
+    ],
+    "rationale": "The GPU executor prepares the wood the GPU expands, and the CPU reference builds it where the GPU cannot: one algorithm with two executors.",
+    "source_kind": "strategy-allowance",
+    "source": "STRATEGY.md, Our approach: \"The expansion is one algorithm with two executors, the GPU and a CPU reference that defines correct and serves consumers without one\"; PR #50 (Fast tree generation as a core engine capability)"
+  }
+]

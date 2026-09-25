@@ -66,7 +66,7 @@ Timing and memory are measured separately, on named hardware, never per push.
 
 **Guidance.** [paraphrase]
 - STRATEGY.md takes the owner-approved continuity sentence ("every parameter is a numeric trait defined for every tree ... a small change in any parameter makes a small change in the tree. A parameter may be dormant where the structure it shapes is absent, and it wakes smoothly ... No parameter is a switch between ways of building, and a count steps only by one unit of the structure it counts") and the process line above.
-- CLAUDE.md states that specs and pushes are checked against these principles, and gives four short questions.
+- AGENTS.md states that specs and pushes are checked against these principles, and gives four short questions (host decision, 2026-09-25: fn-154 made AGENTS.md the one instruction file and removed CLAUDE.md).
 - `docs/pr-format.md` asks that a trade-off name its principle and exception id.
 
 **The evaluation corpus.** [paraphrase]
@@ -95,7 +95,7 @@ Timing and memory are measured separately, on named hardware, never per push.
 - **R5:** A live, held-out evaluation reports Jev's recall, precision and clean-push false flags with their counts and uncertainty. A principle leaves shadow mode only when its warnings reach at least 95% precision on real pushes. Errors: no Jev finding blocks at launch. [paraphrase]
 - **R6:** The pre-push hook runs on a push from any worktree, and meets the cost bounds above, measured and reported. Errors: timeout, missing key or overflow reports "incomplete"; `--no-verify` skips it. [paraphrase]
 - **R7:** Spec mode yields no finding on fn-150's final design, and flags a labelled spec that proposes a surviving duplicate path. It adds no readiness step. Errors: missing decision context abstains. [paraphrase]
-- **R8:** STRATEGY.md, CLAUDE.md and `docs/pr-format.md` carry the guidance above, the exception registry holds its day-one entries, and the workspace gate and `npm test` are green. [paraphrase]
+- **R8:** STRATEGY.md, AGENTS.md and `docs/pr-format.md` carry the guidance above (host decision, 2026-09-25), the exception registry holds its day-one entries, and the workspace gate and `npm test` are green. [paraphrase]
 
 ## Boundaries
 <!-- scope: business -->

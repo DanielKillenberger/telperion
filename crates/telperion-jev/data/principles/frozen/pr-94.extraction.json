@@ -1,0 +1,344 @@
+{
+  "extractor": "extract-1",
+  "base": "6343ee7e7858eabaa14c900a3ebae7c58d0161ed",
+  "head": "79290346951e4ebbe4f67cb22202b13295e37727",
+  "candidates": [
+    {
+      "id": "c1",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/pipeline/stages/gate.rs:199",
+      "shape": "arms run different builders on a setting: `classes`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/stages/gate.rs",
+          "lines": [
+            199,
+            208
+          ],
+          "text": "    let (blocking, known_gaps) = match classes {\n        Ok(classes) => capability_class::split(&missing, classes),\n        Err(error) => {\n            details.push(gate_detail(\n                \"capability\",\n                &format!(\"the capability assessment's classes are refused: {error}\"),\n            ));\n            (missing.clone(), Vec::new())\n        }\n    };",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/pipeline/stages/gate.rs",
+          "lines": [
+            152,
+            161
+          ],
+          "text": "/// The capability gate: what the species requires, read against the\n/// generator's declared vocabulary and against the preset's own table.\n///\n/// A required name the vocabulary expresses is met; one it carries as\n/// unexpressed is missing; one it does not carry at all is unrecognised,\n/// which is a different report, because nobody has said what the name means.\n/// The gate fails closed: a species with no recorded requirement has had no\n/// capability assessment, and that is unresolved rather than met.\nfn capability_gate(\n    required: &[String],",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/conductor/packet.rs:61",
+      "shape": "arms run different builders on a setting: `& latest`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/conductor/packet.rs",
+          "lines": [
+            61,
+            70
+          ],
+          "text": "    let (visual, views, mut checklist, identity, preset) = match &latest {\n        Some(t) => match gapcheck::read_result(&t.out) {\n            Ok(result) => {\n                let views: Vec<Value> = result\n                    .outcome\n                    .current\n                    .as_ref()\n                    .map(|c| {\n                        c.stills\n                            .iter()",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/conductor/packet.rs",
+          "lines": [
+            37,
+            46
+          ],
+          "text": "/// Assembles the packet from the artifacts and the latest tuning result and\n/// writes it. Returns one line saying ready, or what keeps it unready.\npub fn assemble(config: &Config, run: &mut Run) -> Result<String> {\n    let paths = config.paths();\n    let mut unready: Vec<String> = Vec::new();\n    let report = paths.artifact(\"report\");\n    let numeric = report.exists()\n        && read_json(&report)\n            .ok()\n            .is_some_and(|r| r[\"body\"][\"status\"] == \"complete\");",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/conductor/tuning.rs:183",
+      "shape": "arms run different builders on a setting: `(result , why)`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/conductor/tuning.rs",
+          "lines": [
+            183,
+            189
+          ],
+          "text": "        return match (result, why) {\n            (Some(result), Some(why)) => {\n                run.route(&format!(\"tuning:{revision}\"), \"packet\", &why);\n                Ok(revised(run, revision, out, &result, Some(why)))\n            }\n            _ => carry(config, run, revision, &out, pause, ran.err()),\n        };",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/conductor/tuning.rs",
+          "lines": [
+            165,
+            174
+          ],
+          "text": "/// Reads the tuning run's record after it exits: a pause is carried, an\n/// exit that left none is the tool's failure, and an ended revision is\n/// recorded for its gap check.\nfn settle(\n    config: &Config,\n    run: &mut Run,\n    revision: u64,\n    out: PathBuf,\n    ran: std::result::Result<(), String>,\n) -> Result<String> {",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c4",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/pipeline/stages/gate.rs:92",
+      "shape": "arms run different builders on a setting: `assessment . exists ()`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/stages/gate.rs",
+          "lines": [
+            92,
+            95
+          ],
+          "text": "    let assessment_sha = match assessment.exists() {\n        true => file_sha256(&assessment)?,\n        false => String::new(),\n    };",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/pipeline/stages/gate.rs",
+          "lines": [
+            85,
+            94
+          ],
+          "text": "pub fn run(paths: &Paths, checks: &dyn GateChecks) -> Result<Outcome, StageError> {\n    let (ctx, _) = Context::open(paths, STAGE)?;\n    let (_, select_sha) = body(&ctx, STAGE, \"select\")?;\n    let header = ctx.header(\n        STAGE,\n        \"gate\",\n        inputs(&[(\"select.json\", &select_sha)]),\n        vec![],\n    );\n    if ctx.is_current(STAGE, &header.idempotence_key) {",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c5",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/tuning/unexpressed.rs:62",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `statuses . iter () . find (| s | s . trait_id == t . id) . map (| s | s . status)`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/tuning/unexpressed.rs",
+          "lines": [
+            62,
+            71
+          ],
+          "text": "        match statuses\n            .iter()\n            .find(|s| s.trait_id == t.id)\n            .map(|s| s.status)\n        {\n            Some(CellStatus::Pass) if !t.uncertain => continue,\n            Some(CellStatus::Fail) => status = CellStatus::Fail,\n            _ if status == CellStatus::Pass => status = CellStatus::Unknown,\n            _ => {}\n        }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/tuning/unexpressed.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c6",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/conductor/plan.rs:274",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `latest . converged . is_some ()`",
+      "weight": 2.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/conductor/plan.rs",
+          "lines": [
+            274,
+            276
+          ],
+          "text": "    if latest.converged.is_some() {\n        return packet_or_ready(config, latest);\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/conductor/plan.rs",
+          "lines": [
+            182,
+            191
+          ],
+          "text": "pub fn next(config: &Config, run: &Run) -> Result<Next> {\n    if let Some(pause) = &run.pause {\n        return Ok(Next::Paused {\n            id: pause.id.clone(),\n            reason: pause.reason.clone(),\n        });\n    }\n    if let Some(dispatch) = run.open_dispatch() {\n        return Ok(Next::AwaitDispatch {\n            id: dispatch.id.clone(),",
+          "added": false
+        }
+      ]
+    }
+  ],
+  "dropped": 0,
+  "boundary_base": [
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 14,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 15,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 16,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 26,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::field::Field::planned"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 103,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 112,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 129,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 134,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 152,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 162,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 191,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::planned"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 192,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_head": [
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 14,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 15,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 16,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 26,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::field::Field::planned"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 103,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 112,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 129,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 134,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 152,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 162,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 191,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::planned"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 192,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_unresolved": [],
+  "paths": []
+}

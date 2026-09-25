@@ -1,0 +1,495 @@
+{
+  "extractor": "extract-1",
+  "base": "2fcac3540993afcd13927a30e9e5238f7bad0df3",
+  "head": "b37c62dc2410e12e5c621c4d8d57b0255ad68c43",
+  "candidates": [
+    {
+      "id": "c1",
+      "class": "switch",
+      "location": "crates/telperion-core/src/branching.rs:262",
+      "shape": "arms run different builders on a setting: `params . habit == BranchHabit :: Colonizing`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/branching.rs",
+          "lines": [
+            262,
+            266
+          ],
+          "text": "    let points = if params.habit == BranchHabit::Colonizing {\n        inner.sample(params.attractors, &mut Rng::new(params.seed))?\n    } else {\n        Vec::new()\n    };",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/branching.rs",
+          "lines": [
+            247,
+            256
+          ],
+          "text": "/// Generate solved structure only. Representations are independent borrowed-tree requests.\npub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthReport> {\n    params.envelope.validate()?;\n    params.bias.validate()?;\n    radii.resolved()?;\n    let twigs = params.twigs.resolved()?;\n    if !params.step.is_finite() || params.step <= 0.0 {\n        return Err(Error::InvalidInput(\"growth step\"));\n    }\n    let inner = inner_envelope(params.envelope, twigs.reach);",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "class": "switch",
+      "location": "crates/telperion-core/src/branching.rs:269",
+      "shape": "arms run different builders on a setting: `params . habit == BranchHabit :: Colonizing`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/branching.rs",
+          "lines": [
+            269,
+            273
+          ],
+          "text": "    let mut tree = if params.habit == BranchHabit::Colonizing {\n        colonization::colonize(&points, Vec3::ZERO, &config, Some(&bias))?\n    } else {\n        habit::generate(params, &config, &bias)?\n    };",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/branching.rs",
+          "lines": [
+            247,
+            256
+          ],
+          "text": "/// Generate solved structure only. Representations are independent borrowed-tree requests.\npub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthReport> {\n    params.envelope.validate()?;\n    params.bias.validate()?;\n    radii.resolved()?;\n    let twigs = params.twigs.resolved()?;\n    if !params.step.is_finite() || params.step <= 0.0 {\n        return Err(Error::InvalidInput(\"growth step\"));\n    }\n    let inner = inner_envelope(params.envelope, twigs.reach);",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "class": "switch",
+      "location": "crates/telperion-core/src/surface.rs:116",
+      "shape": "arms run different builders on a setting: `trunk`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/surface.rs",
+          "lines": [
+            116,
+            125
+          ],
+          "text": "    if trunk {\n        let root = &nodes[path_nodes[0]];\n        if burial > 0.0 {\n            samples.push(Sample {\n                p: Vec3::new(root.position.x, root.position.y - burial, root.position.z),\n                r: root.radius * flare(root.position.y),\n                d: 0.0,\n            });\n        }\n        for &i in path_nodes {",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/surface.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c4",
+      "class": "switch",
+      "location": "crates/telperion-core/src/branching/local.rs:351",
+      "shape": "arms run different builders on a setting: `lateral && s . pendant`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/branching/local.rs",
+          "lines": [
+            351,
+            360
+          ],
+          "text": "                let wanted = if lateral && s.pendant {\n                    let across = s.curtain_across;\n                    let side = if (first_lateral + c) % 2 == 0 {\n                        -1.0\n                    } else {\n                        1.0\n                    };\n                    let downward = s.pendant_floor.map_or(0.35, |floor| {\n                        ((position.y - floor) / t.twig.length * 0.5).clamp(0.0, 0.35)\n                    });",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/branching/local.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c5",
+      "class": "switch",
+      "location": "crates/telperion-core/src/foliage/element.rs:211",
+      "shape": "arms run different builders on a setting: `needle`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/foliage/element.rs",
+          "lines": [
+            211,
+            220
+          ],
+          "text": "    if needle {\n        let rows = p.axial_segments.max(4);\n        for row in 0..rows {\n            let t = row as f64 / rows as f64;\n            let radius = p.width\n                * 0.5\n                * if row == 0 {\n                    0.35\n                } else {\n                    // Retain the four-sided shaft until the short distal point.",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/foliage/element.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c6",
+      "class": "switch",
+      "location": "crates/telperion-core/src/branching/habit.rs:103",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `(1 ..= 8) . any (| k | { let p = start . lerp (position , k as f64 / 8.0) ; ! self . envelope . contains (p , 0.0) || (c`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/branching/habit.rs",
+          "lines": [
+            103,
+            108
+          ],
+          "text": "        if (1..=8).any(|k| {\n            let p = start.lerp(position, k as f64 / 8.0);\n            !self.envelope.contains(p, 0.0) || (crown && p.y < self.config.trunk_height)\n        }) {\n            return Ok(None);\n        }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/branching/habit.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c7",
+      "class": "switch",
+      "location": "crates/telperion-core/src/branching/habit.rs:226",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `end == start || order == p . subdivisions`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/branching/habit.rs",
+          "lines": [
+            226,
+            228
+          ],
+          "text": "                if end == start || order == p.subdivisions {\n                    continue;\n                }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/branching/habit.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c8",
+      "class": "switch",
+      "location": "crates/telperion-core/src/branching/local.rs:390",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `rejected (config , p) || s . pendant_floor . is_some_and (| floor | p . y < floor)`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/branching/local.rs",
+          "lines": [
+            390,
+            392
+          ],
+          "text": "                    if rejected(config, p) || s.pendant_floor.is_some_and(|floor| p.y < floor) {\n                        continue;\n                    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/branching/local.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c9",
+      "class": "switch",
+      "location": "crates/telperion-core/src/foliage/placement.rs:134",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `tree . nodes . len () < 2 || p . size == 0.`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/foliage/placement.rs",
+          "lines": [
+            134,
+            136
+          ],
+          "text": "    if tree.nodes.len() < 2 || p.size == 0. {\n        return Ok(Instances::default());\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/foliage/placement.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c10",
+      "class": "switch",
+      "location": "crates/telperion-core/src/foliage/placement.rs:154",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `p . attachment != Attachment :: Generic`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/foliage/placement.rs",
+          "lines": [
+            154,
+            163
+          ],
+          "text": "        if p.attachment != Attachment::Generic {\n            for run in twig_runs(tree, p) {\n                place_run(\n                    tree,\n                    &run,\n                    envelope,\n                    p,\n                    Some(t),\n                    &mut rng,\n                    &mut out,",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/foliage/placement.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c11",
+      "class": "switch",
+      "location": "crates/telperion-core/src/foliage/placement.rs:91",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `p . attachment != Attachment :: RadialNeedles`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/foliage/placement.rs",
+          "lines": [
+            91,
+            93
+          ],
+          "text": "    if p.attachment != Attachment::RadialNeedles {\n        return place(tree, envelope, seed, p, twig);\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/foliage/placement.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c12",
+      "class": "switch",
+      "location": "crates/telperion-core/src/branching/habit.rs:194",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `self . tree . diagnostics . node_capped || span <= 0.0`",
+      "weight": 2.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/branching/habit.rs",
+          "lines": [
+            194,
+            196
+          ],
+          "text": "        if self.tree.diagnostics.node_capped || span <= 0.0 {\n            return Ok(());\n        }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/branching/habit.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    }
+  ],
+  "dropped": 8,
+  "boundary_base": [
+    {
+      "file": "crates/telperion-wasm/src/lib.rs",
+      "line": 165,
+      "symbol": "telperion_wasm::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/lib.rs",
+      "line": 174,
+      "symbol": "telperion_wasm::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/lib.rs",
+      "line": 191,
+      "symbol": "telperion_wasm::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/lib.rs",
+      "line": 192,
+      "symbol": "telperion_wasm::generate",
+      "stage": "telperion_core::foliage::placement::place"
+    },
+    {
+      "file": "crates/telperion-wasm/src/lib.rs",
+      "line": 203,
+      "symbol": "telperion_wasm::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/lib.rs",
+      "line": 221,
+      "symbol": "telperion_wasm::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_head": [
+    {
+      "file": "crates/telperion-wasm/src/lib.rs",
+      "line": 180,
+      "symbol": "telperion_wasm::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/lib.rs",
+      "line": 189,
+      "symbol": "telperion_wasm::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/lib.rs",
+      "line": 207,
+      "symbol": "telperion_wasm::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/lib.rs",
+      "line": 208,
+      "symbol": "telperion_wasm::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/lib.rs",
+      "line": 220,
+      "symbol": "telperion_wasm::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/lib.rs",
+      "line": 244,
+      "symbol": "telperion_wasm::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_unresolved": [],
+  "paths": [
+    "Cargo.lock",
+    "crates/telperion-core/Cargo.toml",
+    "crates/telperion-core/examples/curtain_audit.rs",
+    "crates/telperion-core/examples/measure.rs",
+    "crates/telperion-core/examples/occupancy_audit.rs",
+    "crates/telperion-core/examples/species_measure.rs",
+    "crates/telperion-core/examples/species_metrics/mod.rs",
+    "crates/telperion-core/src/bias.rs",
+    "crates/telperion-core/src/branching.rs",
+    "crates/telperion-core/src/branching/audit.rs",
+    "crates/telperion-core/src/branching/habit.rs",
+    "crates/telperion-core/src/branching/local.rs",
+    "crates/telperion-core/src/foliage.rs",
+    "crates/telperion-core/src/foliage/element.rs",
+    "crates/telperion-core/src/foliage/placement.rs",
+    "crates/telperion-core/src/presets.rs",
+    "crates/telperion-core/src/surface.rs",
+    "crates/telperion-core/src/surface/attachment.rs",
+    "crates/telperion-core/tests/crown_reference.rs",
+    "crates/telperion-core/tests/crown_retention.rs",
+    "crates/telperion-core/tests/field.rs",
+    "crates/telperion-core/tests/foliage.rs",
+    "crates/telperion-core/tests/growth.rs",
+    "crates/telperion-core/tests/species.rs",
+    "crates/telperion-core/tests/species_metrics.rs",
+    "crates/telperion-core/tests/surface_attachments.rs",
+    "crates/telperion-core/tests/terminal_taper.rs",
+    "crates/telperion-wasm/Cargo.toml",
+    "crates/telperion-wasm/src/lib.rs",
+    "crates/telperion-wasm/src/params.rs",
+    "package.json",
+    "scripts/build-wasm.mjs",
+    "src/browser/core.ts",
+    "src/browser/presets.generated.ts",
+    "src/browser/three.ts",
+    "src/index.ts"
+  ]
+}

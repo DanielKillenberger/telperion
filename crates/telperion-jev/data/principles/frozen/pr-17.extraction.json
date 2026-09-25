@@ -1,0 +1,575 @@
+{
+  "extractor": "extract-1",
+  "base": "3fa6a09944fe604b99611f0513cdc65c8f6cbd65",
+  "head": "0377f822f983e7140070d2a7b00af7ef5aeb38fb",
+  "candidates": [
+    {
+      "id": "c1",
+      "class": "switch",
+      "location": "crates/telperion-core/src/branching/local/advance.rs:374",
+      "shape": "arms run different builders on a setting: `planner . clock . is_some () && next_wake > immediate`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/branching/local/advance.rs",
+          "lines": [
+            374,
+            378
+          ],
+          "text": "                if planner.clock.is_some() && next_wake > immediate {\n                    self.sleeping.entry(next_wake).or_default().push(s);\n                } else {\n                    self.queue.push_back(s);\n                }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/branching/local/advance.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "class": "switch",
+      "location": "crates/telperion-core/src/branching/scaffold/frontier.rs:29",
+      "shape": "arms run different builders on a setting: `params . envelope . height > 0.0 && top > 0.0`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/branching/scaffold/frontier.rs",
+          "lines": [
+            29,
+            33
+          ],
+          "text": "        let queue = if params.envelope.height > 0.0 && top > 0.0 {\n            VecDeque::from([Axis::new(0, Vec3::Y, top, 0, params.seed ^ 0x742b_e831)])\n        } else {\n            VecDeque::new()\n        };",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/branching/scaffold/frontier.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "class": "switch",
+      "location": "crates/telperion-core/src/branching/specimen.rs:75",
+      "shape": "arms run different builders on a setting: `params . habit . attractor_weight > 0.0`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/branching/specimen.rs",
+          "lines": [
+            75,
+            79
+          ],
+          "text": "        let points = if params.habit.attractor_weight > 0.0 {\n            inner.sample(params.attractors, &mut Rng::new(params.seed))?\n        } else {\n            Vec::new()\n        };",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/branching/specimen.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c4",
+      "class": "switch",
+      "location": "crates/telperion-core/src/branching/specimen/crown.rs:74",
+      "shape": "arms run different builders on a setting: `i >= count`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/branching/specimen/crown.rs",
+          "lines": [
+            74,
+            83
+          ],
+          "text": "        if i >= count {\n            #[cfg(test)]\n            {\n                self.segments += 1;\n            }\n            *best = best.min(distance_to_profile(\n                &self.profile[i - count..=i - count + 1],\n                p[0],\n                p[1],\n            ));",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/branching/specimen/crown.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c5",
+      "class": "switch",
+      "location": "crates/telperion-core/src/branching/specimen/history.rs:48",
+      "shape": "arms run different builders on a setting: `age == t . age && self . keyframes . finalized ()`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/branching/specimen/history.rs",
+          "lines": [
+            48,
+            52
+          ],
+          "text": "        let (tree, envelope) = if age == t.age && self.keyframes.finalized() {\n            (self.tree().clone(), self.envelope())\n        } else {\n            self.wood_at(age, true)?\n        };",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/branching/specimen/history.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c6",
+      "class": "switch",
+      "location": "crates/telperion-core/src/branching/specimen/history.rs:53",
+      "shape": "arms run different builders on a setting: `age == t . age`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/branching/specimen/history.rs",
+          "lines": [
+            53,
+            57
+          ],
+          "text": "        let placements = if age == t.age {\n            t.foliage.read(&tree, envelope, age)?\n        } else {\n            t.foliage.read_uncached(&tree, envelope, age)?\n        };",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/branching/specimen/history.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c7",
+      "class": "switch",
+      "location": "crates/telperion-core/src/branching/specimen/interval.rs:35",
+      "shape": "arms run different builders on a setting: `alive (id , to)`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/branching/specimen/interval.rs",
+          "lines": [
+            35,
+            44
+          ],
+          "text": "            if alive(id, to) {\n                let nodes = self.links[id.key]\n                    .members\n                    .iter()\n                    .filter(|&&member| alive(member, to))\n                    .map(|&member| {\n                        let n = &self.tree.nodes[self.identities[member.key]];\n                        Ok(RunNode {\n                            identity: member,\n                            parent: self.links[member.key].parent,",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/branching/specimen/interval.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c8",
+      "class": "switch",
+      "location": "crates/telperion-core/src/branching/specimen/shared/map.rs:73",
+      "shape": "arms run different builders on a setting: `level == 1`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/branching/specimen/shared/map.rs",
+          "lines": [
+            73,
+            77
+          ],
+          "text": "                Arc::new(if level == 1 {\n                    Page::Leaf(std::array::from_fn(|_| None))\n                } else {\n                    Page::Branch(std::array::from_fn(|_| None))\n                })",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/branching/specimen/shared/map.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c9",
+      "class": "switch",
+      "location": "crates/telperion-core/src/specimen/view.rs:44",
+      "shape": "arms run different builders on a setting: `age > self . frontier ()`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/specimen/view.rs",
+          "lines": [
+            44,
+            53
+          ],
+          "text": "        if age > self.frontier() {\n            let from = self.frontier();\n            // Capture the return to the frontier before an advance can compact\n            // the age currently on screen out of the retained history window.\n            let return_to_frontier = (self.age != from)\n                .then(|| self.specimen.changes_between(self.age, from))\n                .transpose()?;\n            let record = self.specimen.advance(age - from)?;\n            if let Some(record) = return_to_frontier {\n                record.apply(&mut self.buffers)?;",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/specimen/view.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c10",
+      "class": "switch",
+      "location": "crates/telperion-wasm/src/specimen.rs:120",
+      "shape": "arms run different builders on a setting: `len > 512 * 1024 * 1024`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-wasm/src/specimen.rs",
+          "lines": [
+            120,
+            124
+          ],
+          "text": "        let result = if len > 512 * 1024 * 1024 {\n            Err(Error::ResourceLimit(\"specimen snapshot size\"))\n        } else {\n            reserve(&mut e.specimen_bytes, len as usize)\n        };",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-wasm/src/specimen.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c11",
+      "class": "switch",
+      "location": "crates/telperion-core/src/branching/local/advance.rs:169",
+      "shape": "arms run different builders on a setting: `lateral && s . pendant`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/branching/local/advance.rs",
+          "lines": [
+            169,
+            178
+          ],
+          "text": "                let wanted = if lateral && s.pendant {\n                    let across = s.curtain_across;\n                    let side = if (first_lateral + c) % 2 == 0 {\n                        -1.0\n                    } else {\n                        1.0\n                    };\n                    let downward = s.pendant_floor.map_or(0.35, |floor| {\n                        ((position.y - floor) / t.twig.length * 0.5).clamp(0.0, 0.35)\n                    });",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/branching/local/advance.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c12",
+      "class": "switch",
+      "location": "crates/telperion-core/src/branching/local/advance.rs:192",
+      "shape": "arms run different builders on a setting: `is_twig`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/branching/local/advance.rs",
+          "lines": [
+            192,
+            201
+          ],
+          "text": "                let (candidate, heading) = if is_twig {\n                    let heading = planner.heading(\n                        position,\n                        if lateral { wanted } else { from },\n                        wanted,\n                        t.twig.length,\n                    );\n                    let twig_length = s.pendant_floor.map_or(t.twig.length, |floor| {\n                        t.twig\n                            .length",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/branching/local/advance.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    }
+  ],
+  "dropped": 74,
+  "boundary_base": [
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 79,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 88,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 106,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 107,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 119,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 144,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_head": [
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 79,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 88,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 106,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 107,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 119,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 144,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_unresolved": [],
+  "paths": [
+    "Cargo.lock",
+    "crates/telperion-core/Cargo.toml",
+    "crates/telperion-core/examples/node_buffer.rs",
+    "crates/telperion-core/src/bias.rs",
+    "crates/telperion-core/src/blend.rs",
+    "crates/telperion-core/src/branching.rs",
+    "crates/telperion-core/src/branching/audit.rs",
+    "crates/telperion-core/src/branching/local.rs",
+    "crates/telperion-core/src/branching/local/advance.rs",
+    "crates/telperion-core/src/branching/local/append.rs",
+    "crates/telperion-core/src/branching/local/monthly_tests.rs",
+    "crates/telperion-core/src/branching/local/planner.rs",
+    "crates/telperion-core/src/branching/local/seed.rs",
+    "crates/telperion-core/src/branching/local/waiting.rs",
+    "crates/telperion-core/src/branching/scaffold.rs",
+    "crates/telperion-core/src/branching/scaffold/frontier.rs",
+    "crates/telperion-core/src/branching/specimen.rs",
+    "crates/telperion-core/src/branching/specimen/change_tests.rs",
+    "crates/telperion-core/src/branching/specimen/changes.rs",
+    "crates/telperion-core/src/branching/specimen/chronicle.rs",
+    "crates/telperion-core/src/branching/specimen/chronicle_tests.rs",
+    "crates/telperion-core/src/branching/specimen/cohort_tests.rs",
+    "crates/telperion-core/src/branching/specimen/contacts.rs",
+    "crates/telperion-core/src/branching/specimen/cost_tests.rs",
+    "crates/telperion-core/src/branching/specimen/crown.rs",
+    "crates/telperion-core/src/branching/specimen/events.rs",
+    "crates/telperion-core/src/branching/specimen/foliage_tests.rs",
+    "crates/telperion-core/src/branching/specimen/history.rs",
+    "crates/telperion-core/src/branching/specimen/history/tests.rs",
+    "crates/telperion-core/src/branching/specimen/interval.rs",
+    "crates/telperion-core/src/branching/specimen/interval/tests.rs",
+    "crates/telperion-core/src/branching/specimen/keyframes.rs",
+    "crates/telperion-core/src/branching/specimen/keyframes/tests.rs",
+    "crates/telperion-core/src/branching/specimen/measurement.rs",
+    "crates/telperion-core/src/branching/specimen/monthly_tests.rs",
+    "crates/telperion-core/src/branching/specimen/read_tests.rs",
+    "crates/telperion-core/src/branching/specimen/retention.rs",
+    "crates/telperion-core/src/branching/specimen/retention/tests.rs",
+    "crates/telperion-core/src/branching/specimen/shared.rs",
+    "crates/telperion-core/src/branching/specimen/shared/map.rs",
+    "crates/telperion-core/src/branching/specimen/shared/tests.rs",
+    "crates/telperion-core/src/branching/specimen/snapshot.rs",
+    "crates/telperion-core/src/branching/specimen/storage.rs",
+    "crates/telperion-core/src/branching/specimen/storage/frontier.rs",
+    "crates/telperion-core/src/branching/specimen/survival.rs",
+    "crates/telperion-core/src/branching/specimen/tests.rs",
+    "crates/telperion-core/src/branching/specimen/thickening_tests.rs",
+    "crates/telperion-core/src/branching/specimen/timeline.rs",
+    "crates/telperion-core/src/branching/specimen/widths.rs",
+    "crates/telperion-core/src/branching/traits.rs",
+    "crates/telperion-core/src/colonization.rs",
+    "crates/telperion-core/src/colonization/fill.rs",
+    "crates/telperion-core/src/envelope.rs",
+    "crates/telperion-core/src/foliage.rs",
+    "crates/telperion-core/src/foliage/outline.rs",
+    "crates/telperion-core/src/foliage/placement.rs",
+    "crates/telperion-core/src/foliage/station.rs",
+    "crates/telperion-core/src/foliage/timeline.rs",
+    "crates/telperion-core/src/foliage/timeline/interval.rs",
+    "crates/telperion-core/src/growth.rs",
+    "crates/telperion-core/src/growth/clock.rs",
+    "crates/telperion-core/src/lib.rs",
+    "crates/telperion-core/src/math.rs",
+    "crates/telperion-core/src/math/transcendental.rs",
+    "crates/telperion-core/src/mesh.rs",
+    "crates/telperion-core/src/params.rs",
+    "crates/telperion-core/src/params/tests.rs",
+    "crates/telperion-core/src/presets.rs",
+    "crates/telperion-core/src/radius.rs",
+    "crates/telperion-core/src/radius/history.rs",
+    "crates/telperion-core/src/radius/incremental.rs",
+    "crates/telperion-core/src/rng.rs",
+    "crates/telperion-core/src/specimen.rs",
+    "crates/telperion-core/src/specimen/portable.rs",
+    "crates/telperion-core/src/specimen/view.rs",
+    "crates/telperion-core/src/surface.rs",
+    "crates/telperion-core/src/surface/attachment.rs",
+    "crates/telperion-core/src/surface/dependencies.rs",
+    "crates/telperion-core/src/tree.rs",
+    "crates/telperion-core/src/tree/identity.rs",
+    "crates/telperion-core/src/tree/shoot.rs",
+    "crates/telperion-core/src/twigs.rs",
+    "crates/telperion-core/tests/foliage.rs",
+    "crates/telperion-core/tests/foliage/attachments.rs",
+    "crates/telperion-core/tests/foliage/elements.rs",
+    "crates/telperion-core/tests/foliage/levels.rs",
+    "crates/telperion-core/tests/foliage/stations.rs",
+    "crates/telperion-core/tests/foliage_reference.rs",
+    "crates/telperion-core/tests/geometry_benchmark.rs",
+    "crates/telperion-core/tests/growth.rs",
+    "crates/telperion-core/tests/growth/anatomy.rs",
+    "crates/telperion-core/tests/growth/habit.rs",
+    "crates/telperion-core/tests/growth/limits.rs",
+    "crates/telperion-core/tests/identity.rs",
+    "crates/telperion-core/tests/species_metrics.rs",
+    "crates/telperion-core/tests/specimen_handle.rs",
+    "crates/telperion-core/tests/specimen_view.rs",
+    "crates/telperion-core/tests/surface_attachments.rs",
+    "crates/telperion-core/tests/sweep.rs",
+    "crates/telperion-render/src/select.rs",
+    "crates/telperion-render/src/select/bind.rs",
+    "crates/telperion-render/src/select/tests.rs",
+    "crates/telperion-render/src/shaders/select.wgsl",
+    "crates/telperion-render/src/submit.rs",
+    "crates/telperion-render/src/web.rs",
+    "crates/telperion-render/src/web/growth.rs",
+    "crates/telperion-render/tests/look.rs",
+    "crates/telperion-wasm/Cargo.toml",
+    "crates/telperion-wasm/src/lib.rs",
+    "crates/telperion-wasm/src/specimen.rs",
+    "src/browser/core.ts",
+    "src/browser/presets.generated.ts",
+    "src/browser/render.ts",
+    "src/browser/specimen-wire.ts",
+    "src/browser/specimen.ts",
+    "src/index.ts"
+  ]
+}

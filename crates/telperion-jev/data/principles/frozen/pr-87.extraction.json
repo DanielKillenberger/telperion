@@ -1,0 +1,563 @@
+{
+  "extractor": "extract-1",
+  "base": "f8dcc23c0385da6942fc051fa780579196a51396",
+  "head": "2ba4d483da358971b2630c660f780d065ff847d9",
+  "candidates": [
+    {
+      "id": "c1",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/pipeline/rights.rs:164",
+      "shape": "arms run different builders on a setting: `let Some (id) = pmc . find (url)`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/rights.rs",
+          "lines": [
+            164,
+            173
+          ],
+          "text": "    if let Some(id) = pmc.find(url) {\n        out.push((\n            \"europe-pmc\",\n            format!(\n                \"https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=PMCID:{}&resultType=core&format=json\",\n                id.as_str()\n            ),\n        ));\n    } else if let Some(found) = doi.find(url) {\n        let encoded = found.as_str().replace('/', \"%2F\");",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/pipeline/rights.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/conductor/plan.rs:187",
+      "shape": "arms run different builders on a setting: `proposal_open`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/conductor/plan.rs",
+          "lines": [
+            187,
+            191
+          ],
+          "text": "    let again = if proposal_open {\n        Vec::new()\n    } else {\n        search::searchable(&config.paths(), &open)\n    };",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/conductor/plan.rs",
+          "lines": [
+            164,
+            173
+          ],
+          "text": "pub fn next(config: &Config, run: &Run) -> Result<Next> {\n    if let Some(pause) = &run.pause {\n        return Ok(Next::Paused {\n            id: pause.id.clone(),\n            reason: pause.reason.clone(),\n        });\n    }\n    if let Some(dispatch) = run.open_dispatch() {\n        return Ok(Next::AwaitDispatch {\n            id: dispatch.id.clone(),",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/pipeline/search/mod.rs:145",
+      "shape": "arms run different builders on a setting: `on_trait`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/search/mod.rs",
+          "lines": [
+            145,
+            154
+          ],
+          "text": "    let mut hits: Vec<(&str, SearchHit)> = if on_trait {\n        manifest\n            .sources\n            .iter()\n            .filter(|s| !on_list.contains(&s.id))\n            .map(|s| {\n                (\n                    \"admitted\",\n                    SearchHit {\n                        url: s.url.clone(),",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/pipeline/search/mod.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c4",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/pipeline/admission.rs:68",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `key == \"appearance\" && trait_sources_only (admitted , draft)`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/admission.rs",
+          "lines": [
+            68,
+            70
+          ],
+          "text": "        if key == \"appearance\" && trait_sources_only(admitted, draft) {\n            continue;\n        }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/pipeline/admission.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c5",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/pipeline/search/mod.rs:166",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `searched (adapter , & query , & excluded)`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/search/mod.rs",
+          "lines": [
+            166,
+            172
+          ],
+          "text": "    match searched(adapter, &query, &excluded) {\n        Ok(found) => hits.extend(found),\n        Err(err) => {\n            round.error = Some(err);\n            return round;\n        }\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/pipeline/search/mod.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c6",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/pipeline/search/mod.rs:178",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `rank (judge , manifest , & field , & condition , & mut round . hits)`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/search/mod.rs",
+          "lines": [
+            178,
+            184
+          ],
+          "text": "    match rank(judge, manifest, &field, &condition, &mut round.hits) {\n        Ok(ranked) => round.ledger.extend(ranked),\n        Err(err) => {\n            round.error = Some(err.to_string());\n            return round;\n        }\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/pipeline/search/mod.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c7",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/pipeline/search/mod.rs:189",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `let Some (known) = manifest . sources . iter () . find (| s | s . url == url)`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/search/mod.rs",
+          "lines": [
+            189,
+            195
+          ],
+          "text": "    if let Some(known) = manifest.sources.iter().find(|s| s.url == url) {\n        // Already admitted: its id joins the trait's list with no rights call.\n        let id = known.id.clone();\n        add_to_trait(manifest, &field, &id);\n        round.admitted.push(id);\n        return round;\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/pipeline/search/mod.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c8",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/pipeline/search/mod.rs:206",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `admission :: classify (adapter , judge , & [(source . clone () , vec ! [field . clone ()])])`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/search/mod.rs",
+          "lines": [
+            206,
+            212
+          ],
+          "text": "        match admission::classify(adapter, judge, &[(source.clone(), vec![field.clone()])]) {\n            Ok(checked) => checked,\n            Err(err) => {\n                round.error = Some(err.to_string());\n                return round;\n            }\n        };",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/pipeline/search/mod.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c9",
+      "class": "duplicate",
+      "location": "crates/telperion-jev/src/pipeline/rights.rs:292",
+      "shape": "`telperion_jev::pipeline::rights::run_cases` shares 45% of its body with `telperion_jev::pipeline::sets::cases::run_ranking`, which survives",
+      "weight": 2.452,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/rights.rs",
+          "lines": [
+            292,
+            301
+          ],
+          "text": "/// Asks every labelled case and scores the class over the labelled and the\n/// held-out cases, against the accuracy bar.\npub fn run_cases(\n    transport: &dyn Transport,\n    key: &str,\n    ledger_dir: &std::path::Path,\n) -> Result<Rows, CallerError> {\n    let questions = rights_questions();\n    let mut rows = Rows::new();\n    for case in rights_cases() {",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/sets/cases.rs",
+          "lines": [
+            248,
+            257
+          ],
+          "text": "fn run_ranking(\n    transport: &dyn Transport,\n    key: &str,\n    ledger_dir: &Path,\n) -> Result<Rows, CallerError> {\n    let mut rows = Rows::new();\n    for case in super::ranking_cases() {\n        let ids: Vec<String> = case.candidates.iter().map(|c| c.id.clone()).collect();\n        let questions = ranking_questions(&ids);\n        let state = ranking_state(&case);",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c10",
+      "class": "unread",
+      "location": "crates/telperion-jev/src/pipeline/rights.rs:265",
+      "shape": "new output `RightsCase.lines` is read 0 time(s) in production Rust",
+      "weight": 2.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/rights.rs",
+          "lines": [
+            264,
+            266
+          ],
+          "text": "    pub title: String,\n    pub lines: Vec<String>,\n    #[serde(default)]",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "after",
+          "path": "crates/telperion-render/src/shaders/foliage.wgsl",
+          "lines": [
+            73,
+            75
+          ],
+          "text": "\n// Vein widths are in leaf coordinates; a pixel footprint filters the lines\n// on every level, without a level-dependent phase or per-triangle randomness.",
+          "added": false
+        },
+        {
+          "id": "e3",
+          "side": "after",
+          "path": "harness/dials.tsx",
+          "lines": [
+            9,
+            11
+          ],
+          "text": " * stage's lifecycle and the params, and a file that owns those has no\n * room left for a hundred lines of form.\n *",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c11",
+      "class": "unread",
+      "location": "crates/telperion-jev/src/pipeline/rights.rs:267",
+      "shape": "new output `RightsCase.records` is read 0 time(s) in production Rust",
+      "weight": 2.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/rights.rs",
+          "lines": [
+            266,
+            268
+          ],
+          "text": "    #[serde(default)]\n    pub records: Vec<Value>,\n    #[serde(default)]",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "after",
+          "path": "src/browser/leaf.ts",
+          "lines": [
+            4,
+            6
+          ],
+          "text": " * only place in the browser source that knows the bit layout: a second copy\n * would be a reader free to drift from the writer. The Rust encoder of record\n * is `telperion-core`'s `foliage::packed`, and the shader that draws these",
+          "added": false
+        },
+        {
+          "id": "e3",
+          "side": "after",
+          "path": "src/browser/render.ts",
+          "lines": [
+            97,
+            99
+          ],
+          "text": "\n/** The timing session's record, as the Rust report writes it, field for\n *  field. The GPU percentiles exist only on a valid verdict, so nothing",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c12",
+      "class": "duplicate",
+      "location": "crates/telperion-jev/src/conductor/plan.rs:193",
+      "shape": "an added exit from `telperion_jev::conductor::plan::next` hands back a state that stops the work",
+      "weight": 1.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/conductor/plan.rs",
+          "lines": [
+            190,
+            194
+          ],
+          "text": "        search::searchable(&config.paths(), &open)\n    };\n    if !again.is_empty() {\n        return Ok(Next::SearchAgain { decisions: again });\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "after",
+          "path": "crates/telperion-jev/src/conductor/plan.rs",
+          "lines": [
+            168,
+            170
+          ],
+          "text": "pub fn next(config: &Config, run: &Run) -> Result<Next> {\n    if let Some(pause) = &run.pause {\n        return Ok(Next::Paused {",
+          "added": false
+        },
+        {
+          "id": "e3",
+          "side": "after",
+          "path": "crates/telperion-jev/src/conductor/plan.rs",
+          "lines": [
+            174,
+            176
+          ],
+          "text": "    }\n    if let Some(dispatch) = run.open_dispatch() {\n        return Ok(Next::AwaitDispatch {",
+          "added": false
+        }
+      ]
+    }
+  ],
+  "dropped": 2,
+  "boundary_base": [
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 14,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 15,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 16,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 26,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::field::Field::planned"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 103,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 112,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 129,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 134,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 152,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 162,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 191,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::planned"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 192,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_head": [
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 14,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 15,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 16,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 26,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::field::Field::planned"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 103,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 112,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 129,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 134,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 152,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 162,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 191,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::planned"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 192,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_unresolved": [],
+  "paths": []
+}

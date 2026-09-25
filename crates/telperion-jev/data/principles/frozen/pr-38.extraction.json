@@ -1,0 +1,343 @@
+{
+  "extractor": "extract-1",
+  "base": "b650a697e060b9c44e6542601d52cd986595edff",
+  "head": "3f2e53145c6d837fa6c7977c43fa001af0ac04c2",
+  "candidates": [
+    {
+      "id": "c1",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/pipeline/gap/cli.rs:71",
+      "shape": "arms run different builders on a setting: `flag (args , \"--verdicts\")`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/gap/cli.rs",
+          "lines": [
+            71,
+            74
+          ],
+          "text": "            let verdicts = match flag(args, \"--verdicts\") {\n                Some(path) => read_strings(&path)?,\n                None => Vec::new(),\n            };",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/pipeline/gap/cli.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/pipeline/stages/report.rs:318",
+      "shape": "arms run different builders on a setting: `let Some (missing) = numbers [\"missing\"] . as_str ()`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/stages/report.rs",
+          "lines": [
+            318,
+            327
+          ],
+          "text": "    if let Some(missing) = numbers[\"missing\"].as_str() {\n        out.push_str(&format!(\"Missing: {missing}.\\n\"));\n    } else {\n        out.push_str(&table(\n            &[\"Autonomy\", \"Quality\", \"Efficiency\"],\n            vec![vec![\n                format!(\n                    \"{} gaps, {} routed, {} taken by the loop\",\n                    cell(&numbers[\"autonomy\"][\"gaps\"]),\n                    cell(&numbers[\"autonomy\"][\"routed\"]),",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/pipeline/stages/report.rs",
+          "lines": [
+            195,
+            204
+          ],
+          "text": "/// The page beside the artifact: one heading and one table per section.\nfn page(body: &Value) -> String {\n    let mut out = format!(\n        \"# {} pipeline report\\n\\nStatus: {}.\\n\\n## Sources\\n\\n\",\n        cell(&body[\"species\"]),\n        cell(&body[\"status\"])\n    );\n    let rows = body[\"sources\"]\n        .as_array()\n        .into_iter()",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/pipeline/gap/route.rs:125",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `decided . route == Route :: Stronger && author == Author :: Stronger`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/gap/route.rs",
+          "lines": [
+            125,
+            134
+          ],
+          "text": "    if decided.route == Route::Stronger && author == Author::Stronger {\n        return Decided {\n            route: Route::Owner,\n            row: decided.row,\n            why: format!(\n                \"{}; the stronger model's set routes no further, so the owner takes it\",\n                decided.why\n            ),\n        };\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/pipeline/gap/route.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c4",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/pipeline/gap/table.rs:104",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `row . when . iter () . all (| (key , expected) | holds (signals , key , expected))`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/gap/table.rs",
+          "lines": [
+            104,
+            113
+          ],
+          "text": "            if row\n                .when\n                .iter()\n                .all(|(key, expected)| holds(signals, key, expected))\n            {\n                return Decided {\n                    route: row.route,\n                    row: Some(index),\n                    why: row.why.clone(),\n                };",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/pipeline/gap/table.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c5",
+      "class": "unread",
+      "location": "crates/telperion-jev/src/pipeline/gap/option.rs:70",
+      "shape": "new output `GapOption.changes_preset_output` is read 0 time(s) in production Rust",
+      "weight": 2.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/gap/option.rs",
+          "lines": [
+            69,
+            71
+          ],
+          "text": "    pub moves_pin: bool,\n    pub changes_preset_output: Vec<String>,\n    pub serves_species: Vec<String>,",
+          "added": true
+        }
+      ]
+    },
+    {
+      "id": "c6",
+      "class": "unread",
+      "location": "crates/telperion-jev/src/pipeline/gap/option.rs:71",
+      "shape": "new output `GapOption.serves_species` is read 0 time(s) in production Rust",
+      "weight": 2.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/gap/option.rs",
+          "lines": [
+            70,
+            72
+          ],
+          "text": "    pub changes_preset_output: Vec<String>,\n    pub serves_species: Vec<String>,\n    pub reversible: bool,",
+          "added": true
+        }
+      ]
+    },
+    {
+      "id": "c7",
+      "class": "unread",
+      "location": "crates/telperion-jev/src/pipeline/gap/resume.rs:143",
+      "shape": "new output `Resumed.reruns` is read 0 time(s) in production Rust",
+      "weight": 2.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/gap/resume.rs",
+          "lines": [
+            142,
+            144
+          ],
+          "text": "    /// The stages whose keys expired, from the halted one down.\n    pub reruns: Vec<String>,\n}",
+          "added": true
+        }
+      ]
+    },
+    {
+      "id": "c8",
+      "class": "unread",
+      "location": "crates/telperion-jev/src/pipeline/gap/questions.rs:97",
+      "shape": "new output `GapCase.verdicts` is read 1 time(s) in production Rust",
+      "weight": 1.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/gap/questions.rs",
+          "lines": [
+            96,
+            98
+          ],
+          "text": "    pub gap: Value,\n    pub verdicts: Vec<String>,\n    pub options: Vec<GapOption>,",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/gap/questions.rs",
+          "lines": [
+            111,
+            113
+          ],
+          "text": "pub fn case_state(case: &GapCase) -> Value {\n    gap_state(&case.gap, &case.verdicts, &case.options)\n}",
+          "added": true
+        },
+        {
+          "id": "e3",
+          "side": "after",
+          "path": "harness/GrowerDev.tsx",
+          "lines": [
+            48,
+            50
+          ],
+          "text": "  const who = `${report.adapter} (${report.backend})`;\n  if (report.verdict !== \"valid\" || report.p50_ms === undefined || report.p95_ms === undefined) {\n    return `${report.verdict}: ${report.reason ?? \"no reason given\"} - no frame time reported, on ${who}`;",
+          "added": false
+        },
+        {
+          "id": "e4",
+          "side": "after",
+          "path": "harness/GrowerDev.tsx",
+          "lines": [
+            49,
+            51
+          ],
+          "text": "  if (report.verdict !== \"valid\" || report.p50_ms === undefined || report.p95_ms === undefined) {\n    return `${report.verdict}: ${report.reason ?? \"no reason given\"} - no frame time reported, on ${who}`;\n  }",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c9",
+      "class": "duplicate",
+      "location": "crates/telperion-jev/src/pipeline/gap/rounds.rs:100",
+      "shape": "an added exit from `telperion_jev::pipeline::gap::rounds::open_round` hands back a state that stops the work",
+      "weight": 1.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/pipeline/gap/rounds.rs",
+          "lines": [
+            97,
+            101
+          ],
+          "text": "        list[index][\"spent\"] = json!({\"at\": now(), \"round\": round, \"decision\": id, \"note\": note});\n        append_decisions(&paths.decisions(), vec![decision])?;\n        write(paths, &record)?;\n        return Ok(Opened::Spent {\n            round,",
+          "added": true
+        }
+      ]
+    }
+  ],
+  "dropped": 0,
+  "boundary_base": [
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 79,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 88,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 106,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 107,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 119,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 144,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_head": [
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 79,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 88,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 106,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 107,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 119,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 144,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_unresolved": [],
+  "paths": []
+}

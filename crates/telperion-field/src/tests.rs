@@ -134,7 +134,8 @@ fn the_date_palm_grows_at_every_seed_the_owner_tried() {
 
 /// R2: every shipped preset grows through the slim binding, and its answers
 /// are byte for byte those of the core pipeline's field-only build, the one
-/// the main binding runs, on the same cells at the same seed.
+/// the main binding runs, on the same cells at the same seed. fn-151's entry
+/// coverage guard runs this test for the slim entry.
 #[test]
 fn every_shipped_preset_answers_as_the_main_pipeline_does() {
     use telperion_core::{
@@ -145,7 +146,8 @@ fn every_shipped_preset_answers_as_the_main_pipeline_does() {
     for &(_, id, ..) in CATALOGUE {
         for seed in [1, 4242] {
             write_species(id);
-            assert_eq!(grow(seed, FAMILY_ORDER), 0, "{id} {seed}: {}", error());
+            let status = grow(seed, FAMILY_ORDER);
+            assert_eq!(status, 0, "entry telperion/field (slim): preset {id} seed {seed}: {}", error());
             write_grid(10);
             assert_eq!(query(revision()), 0, "{id}: {}", error());
             let slim = answers();

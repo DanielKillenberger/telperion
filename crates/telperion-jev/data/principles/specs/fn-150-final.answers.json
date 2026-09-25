@@ -1,0 +1,90 @@
+{
+  "calls": 1,
+  "candidates": [
+    "proposal: shape",
+    "proposal: host decision (2026-09-25)",
+    "proposal: host decision (2026-09-25, fourth): one oriented box per leaflet"
+  ],
+  "input_tokens": 3170,
+  "ledger": [
+    "principles-p1:18d899f1a48711ae-139e49-0"
+  ],
+  "phase_one": {
+    "c1_evidence": {
+      "choice": "none",
+      "confidence": 0.69,
+      "probabilities": {
+        "e1": 0.2,
+        "e2": 0.01,
+        "none": 0.79
+      },
+      "type": "choice"
+    },
+    "c1_mechanism": {
+      "choice": "none",
+      "confidence": 0.9,
+      "probabilities": {
+        "fallback_path": 0.0,
+        "insufficient_evidence": 0.06,
+        "none": 0.93,
+        "redundant_stop": 0.0,
+        "selects_builder": 0.0,
+        "suppresses_structure": 0.0,
+        "surviving_duplicate": 0.01,
+        "unread_output": 0.0
+      },
+      "type": "choice"
+    },
+    "c2_evidence": {
+      "choice": "e1",
+      "confidence": 0.85,
+      "probabilities": {
+        "e1": 0.9,
+        "e2": 0.0,
+        "none": 0.1
+      },
+      "type": "choice"
+    },
+    "c2_mechanism": {
+      "choice": "fallback_path",
+      "confidence": 0.29,
+      "probabilities": {
+        "fallback_path": 0.38,
+        "insufficient_evidence": 0.04,
+        "none": 0.25,
+        "redundant_stop": 0.0,
+        "selects_builder": 0.26,
+        "suppresses_structure": 0.05,
+        "surviving_duplicate": 0.01,
+        "unread_output": 0.01
+      },
+      "type": "choice"
+    },
+    "c3_evidence": {
+      "choice": "e1",
+      "confidence": 0.44,
+      "probabilities": {
+        "e1": 0.62,
+        "e2": 0.01,
+        "none": 0.37
+      },
+      "type": "choice"
+    },
+    "c3_mechanism": {
+      "choice": "none",
+      "confidence": 0.63,
+      "probabilities": {
+        "fallback_path": 0.05,
+        "insufficient_evidence": 0.05,
+        "none": 0.67,
+        "redundant_stop": 0.0,
+        "selects_builder": 0.17,
+        "suppresses_structure": 0.01,
+        "surviving_duplicate": 0.05,
+        "unread_output": 0.0
+      },
+      "type": "choice"
+    }
+  },
+  "phase_two": {}
+}

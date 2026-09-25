@@ -1,0 +1,327 @@
+{
+  "extractor": "extract-1",
+  "base": "b8acb508208cb17b163cc7bf7d25f3edfb1e7613",
+  "head": "123c426108a0e473a5eb7c830d696e02e361b404",
+  "candidates": [
+    {
+      "id": "c1",
+      "class": "switch",
+      "location": "crates/telperion-core/src/surface/rings.rs:132",
+      "shape": "arms run different builders on a setting: `parallel :: rings (at , & ordered , & mut out , sweep , longest , workers)`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/surface/rings.rs",
+          "lines": [
+            132,
+            135
+          ],
+          "text": "            return match parallel::rings(at, &ordered, &mut out, sweep, longest, workers) {\n                Ok(()) => table(at, ordered, out),\n                Err(_) => rings_mode(tree, height, params, sweep, false),\n            };",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/surface/rings.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "class": "switch",
+      "location": "crates/telperion-core/src/surface/rings.rs:88",
+      "shape": "arms run different builders on a setting: `sweep . edges`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/surface/rings.rs",
+          "lines": [
+            88,
+            92
+          ],
+          "text": "    let edges = if sweep.edges {\n        filled(tree.nodes.len(), None)?\n    } else {\n        Vec::new()\n    };",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/surface/rings.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "class": "switch",
+      "location": "crates/telperion-core/src/surface/build.rs:101",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `rings . runs . is_empty ()`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/surface/build.rs",
+          "lines": [
+            101,
+            103
+          ],
+          "text": "    if rings.runs.is_empty() {\n        return Ok(Faces::default());\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/surface/build.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c4",
+      "class": "switch",
+      "location": "crates/telperion-core/src/surface/build.rs:105",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `let Some (workers) = rings . workers`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/surface/build.rs",
+          "lines": [
+            105,
+            110
+          ],
+          "text": "    #[cfg(all(target_os = \"linux\", target_arch = \"x86_64\"))]\n    if let Some(workers) = rings.workers {\n        if let Ok(faces) = parallel::faces(rings, &resweep, workers) {\n            return Ok(faces);\n        }\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/surface/build.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c5",
+      "class": "switch",
+      "location": "crates/telperion-core/src/surface/build.rs:107",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `let Ok (faces) = parallel :: faces (rings , & resweep , workers)`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/surface/build.rs",
+          "lines": [
+            107,
+            109
+          ],
+          "text": "        if let Ok(faces) = parallel::faces(rings, &resweep, workers) {\n            return Ok(faces);\n        }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/surface/build.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c6",
+      "class": "switch",
+      "location": "crates/telperion-core/src/surface/rings.rs:121",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `! sweep . drawn`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/surface/rings.rs",
+          "lines": [
+            121,
+            124
+          ],
+          "text": "    if !sweep.drawn {\n        out.positions = reserved(extent.positions - paths.runs.len() * 6)?;\n        return in_turn(at, out, sweep, scratch, 0..paths.runs.len());\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/surface/rings.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c7",
+      "class": "switch",
+      "location": "crates/telperion-core/src/surface/prepared.rs:135",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `rings . runs . is_empty ()`",
+      "weight": 2.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/surface/prepared.rs",
+          "lines": [
+            135,
+            137
+          ],
+          "text": "    if rings.runs.is_empty() {\n        return Ok((p, rings.edges));\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/surface/prepared.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c8",
+      "class": "switch",
+      "location": "crates/telperion-core/src/surface/rings.rs:103",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `paths . runs . is_empty ()`",
+      "weight": 2.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/surface/rings.rs",
+          "lines": [
+            103,
+            105
+          ],
+          "text": "    if paths.runs.is_empty() {\n        return Ok(out);\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/surface/rings.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    }
+  ],
+  "dropped": 0,
+  "boundary_base": [
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 14,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 15,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 16,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 26,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::field::Field::planned"
+    }
+  ],
+  "boundary_head": [
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 14,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 15,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 16,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 26,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::field::Field::planned"
+    }
+  ],
+  "boundary_unresolved": [],
+  "paths": [
+    "crates/telperion-core/examples/generation_stages.rs",
+    "crates/telperion-core/src/pipeline.rs",
+    "crates/telperion-core/src/pipeline/stage.rs",
+    "crates/telperion-core/src/pipeline/tests.rs",
+    "crates/telperion-core/src/surface.rs",
+    "crates/telperion-core/src/surface/attachment.rs",
+    "crates/telperion-core/src/surface/attachment/tests.rs",
+    "crates/telperion-core/src/surface/build.rs",
+    "crates/telperion-core/src/surface/normals.rs",
+    "crates/telperion-core/src/surface/parallel.rs",
+    "crates/telperion-core/src/surface/parallel/tests.rs",
+    "crates/telperion-core/src/surface/parallel/unfilled.rs",
+    "crates/telperion-core/src/surface/prepared.rs",
+    "crates/telperion-core/src/surface/rings.rs",
+    "crates/telperion-core/tests/surface_collapse.rs",
+    "crates/telperion-wasm/src/generate.rs"
+  ]
+}

@@ -24,12 +24,21 @@ fn main() -> ExitCode {
     let mut args = env::args().skip(1).collect::<Vec<_>>();
     if args.is_empty() {
         eprintln!(
-            "usage: jev <screen|select|cite|triage|cases|ask> [options]\n  cases: [--only labelled|pipeline|gap]\n  key: {path} via bash -ic",
+            "usage: jev <screen|select|cite|triage|cases|ask|principles> [options]\n  cases: [--only labelled|pipeline|gap]\n  key: {path} via bash -ic",
             path = telperion_jev::INTERACTIVE_SHELL
         );
         return ExitCode::from(2);
     }
     let cmd = args.remove(0);
+    if cmd == "principles" {
+        return match telperion_jev::principles::cli::run(&args) {
+            Ok(code) => ExitCode::from(code as u8),
+            Err(err) => {
+                eprintln!("{err}");
+                ExitCode::from(2)
+            }
+        };
+    }
     match run(&cmd, &args) {
         Ok(()) => ExitCode::SUCCESS,
         Err(err) => {

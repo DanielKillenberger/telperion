@@ -1,0 +1,35 @@
+{
+  "recipe": "npm run build on the pinned toolchain: scripts/build-wasm.mjs (release, the slim module stripped), scripts/build-render.mjs, then vite build",
+  "artifacts": [
+    {
+      "path": "dist/telperion.wasm",
+      "max_bytes": 1397000,
+      "evidence": { "measured_bytes": 1330623, "measured_on": "npm telperion@0.1.4", "decisions": "fn-151 R3: the shipped 0.1.4 size plus 5%" }
+    },
+    {
+      "path": "dist/telperion-render.wasm",
+      "max_bytes": 1996000,
+      "evidence": { "measured_bytes": 1900399, "measured_on": "npm telperion@0.1.4", "decisions": "fn-151 R3: the shipped 0.1.4 size plus 5%" }
+    },
+    {
+      "path": "dist/telperion-field.wasm",
+      "max_bytes": 362000,
+      "evidence": { "measured_bytes": 344798, "measured_on": "npm telperion@0.1.4", "decisions": "fn-151 R3: the shipped 0.1.4 size plus 5%; fn-150 rejected 526,965 bytes (+48%)" }
+    },
+    {
+      "path": "dist/telperion.js",
+      "max_bytes": 124300,
+      "evidence": { "measured_bytes": 118387, "measured_on": "npm telperion@0.1.4", "decisions": "fn-151 R3: the shipped 0.1.4 size plus 5%" }
+    },
+    {
+      "path": "dist/field.js",
+      "max_bytes": 2860,
+      "evidence": { "measured_bytes": 2720, "measured_on": "npm telperion@0.1.4", "decisions": "fn-151 R3: the shipped 0.1.4 size plus 5%" }
+    },
+    {
+      "path": "dist/voxelize.js",
+      "max_bytes": 4760,
+      "evidence": { "measured_bytes": 4526, "measured_on": "npm telperion@0.1.4", "decisions": "fn-151 R3: the shipped 0.1.4 size plus 5%" }
+    }
+  ]
+}

@@ -36,10 +36,11 @@ const SUITES = {
   'rust-render': { profile: 'ci', inputs: [CORE, RENDER] },
   'rust-wasm': { profile: 'ci', inputs: [CORE, WASM, FIELD] },
   // The isolation test walks the generation crates and the browser source,
-  // and the citation parser is tested on the fn-11 research section.
+  // the citation parser is tested on the fn-11 research section, and the
+  // principles guards read every crate and the package's exports.
   'rust-jev': {
     profile: 'ci',
-    inputs: ['crates/telperion-jev', CORE, RENDER, WASM, FIELD, 'src', '.flow/specs/fn-11-growth-over-time.md'],
+    inputs: ['crates/telperion-jev', CORE, RENDER, WASM, FIELD, 'src', '.flow/specs/fn-11-growth-over-time.md', 'package.json'],
   },
   // npm test and npm run typecheck: the pretest builds the three wasm crates.
   node: {

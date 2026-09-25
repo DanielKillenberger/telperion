@@ -1,0 +1,70 @@
+{
+  "extractor": "extract-1",
+  "base": "7223261d9745400ff4be51fad300d5fedac98551",
+  "head": "39348def29dd5cbbbce65e1403a07a43e324ad90",
+  "candidates": [],
+  "dropped": 0,
+  "boundary_base": [
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 14,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 15,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 16,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 26,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::field::Field::planned"
+    }
+  ],
+  "boundary_head": [
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 14,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 15,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 16,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 26,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::field::Field::planned"
+    }
+  ],
+  "boundary_unresolved": [],
+  "paths": [
+    "crates/telperion-core/src/family/tests.rs",
+    "crates/telperion-core/src/presets.rs",
+    "crates/telperion-core/src/presets/species.rs",
+    "crates/telperion-core/tests/packed_leaf.rs",
+    "crates/telperion-core/tests/rosette.rs",
+    "crates/telperion-wasm/src/generate/tests.rs",
+    "package.json",
+    "src/browser/presets.generated.ts"
+  ]
+}

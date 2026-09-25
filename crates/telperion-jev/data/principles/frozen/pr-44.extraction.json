@@ -1,0 +1,100 @@
+{
+  "extractor": "extract-1",
+  "base": "76175e2586f66e4b632c89a4a7a62ab69bd63081",
+  "head": "eddedbebfd9f5b63a9f384d55d40fa86a77ab9be",
+  "candidates": [],
+  "dropped": 0,
+  "boundary_base": [
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 79,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 88,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 106,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 107,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 119,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 144,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_head": [
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 79,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 88,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 106,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 107,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 119,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 144,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_unresolved": [],
+  "paths": [
+    "crates/telperion-core/examples/geometry_benchmark.rs",
+    "crates/telperion-core/examples/measure.rs",
+    "crates/telperion-core/examples/species_measure.rs",
+    "crates/telperion-core/src/foliage.rs",
+    "crates/telperion-core/src/mesh.rs",
+    "crates/telperion-core/src/specimen/view.rs",
+    "crates/telperion-core/tests/field.rs",
+    "crates/telperion-core/tests/foliage/attachments.rs",
+    "crates/telperion-core/tests/foliage/stations.rs",
+    "crates/telperion-core/tests/foliage_reference.rs",
+    "crates/telperion-core/tests/short_shoots/order.rs",
+    "crates/telperion-core/tests/species.rs",
+    "crates/telperion-core/tests/specimen_view.rs",
+    "crates/telperion-wasm/src/generate.rs"
+  ]
+}

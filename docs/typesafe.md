@@ -12,6 +12,10 @@ read fetched source bytes, a spec's research section, an owner's written note,
 or a report's section headings. They write a ledger entry and a proposal the
 host session reads.
 
+The design-principles reviewer (`jev principles`, `docs/principles.md`) is
+evidence tooling: it runs in the pre-push hook and in spec mode, advises
+only, and its workspace tests replay recorded answers.
+
 ## Where it never runs
 
 Generation, rendering, presets, the Wasm bindings, the browser source, and any

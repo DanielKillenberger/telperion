@@ -1,0 +1,333 @@
+{
+  "calls": 1,
+  "elapsed_ms": 808,
+  "input_tokens": 4598,
+  "ledger": [
+    "principles-p2:18d8999373b87246-132e4c-0"
+  ],
+  "output_tokens": 279,
+  "phase_one": {
+    "c10_evidence": {
+      "choice": "e1",
+      "confidence": 0.75,
+      "probabilities": {
+        "e1": 0.84,
+        "e2": 0.0,
+        "none": 0.16
+      },
+      "type": "choice"
+    },
+    "c10_mechanism": {
+      "choice": "none",
+      "confidence": 0.83,
+      "probabilities": {
+        "insufficient_evidence": 0.01,
+        "none": 0.87,
+        "redundant_stop": 0.05,
+        "selects_builder": 0.02,
+        "suppresses_structure": 0.05
+      },
+      "type": "choice"
+    },
+    "c11_evidence": {
+      "choice": "e1",
+      "confidence": 0.52,
+      "probabilities": {
+        "e1": 0.68,
+        "e2": 0.0,
+        "none": 0.32
+      },
+      "type": "choice"
+    },
+    "c11_mechanism": {
+      "choice": "none",
+      "confidence": 0.88,
+      "probabilities": {
+        "insufficient_evidence": 0.0,
+        "none": 0.91,
+        "redundant_stop": 0.02,
+        "selects_builder": 0.03,
+        "suppresses_structure": 0.04
+      },
+      "type": "choice"
+    },
+    "c12_evidence": {
+      "choice": "none",
+      "confidence": 0.54,
+      "probabilities": {
+        "e1": 0.24,
+        "e2": 0.06,
+        "none": 0.7
+      },
+      "type": "choice"
+    },
+    "c12_mechanism": {
+      "choice": "surviving_duplicate",
+      "confidence": 0.96,
+      "probabilities": {
+        "fallback_path": 0.0,
+        "insufficient_evidence": 0.01,
+        "none": 0.02,
+        "redundant_stop": 0.0,
+        "surviving_duplicate": 0.97
+      },
+      "type": "choice"
+    },
+    "c1_evidence": {
+      "choice": "e1",
+      "confidence": 0.79,
+      "probabilities": {
+        "e1": 0.86,
+        "e2": 0.0,
+        "none": 0.14
+      },
+      "type": "choice"
+    },
+    "c1_mechanism": {
+      "choice": "selects_builder",
+      "confidence": 0.71,
+      "probabilities": {
+        "insufficient_evidence": 0.01,
+        "none": 0.22,
+        "redundant_stop": 0.0,
+        "selects_builder": 0.77,
+        "suppresses_structure": 0.0
+      },
+      "type": "choice"
+    },
+    "c2_evidence": {
+      "choice": "e1",
+      "confidence": 0.55,
+      "probabilities": {
+        "e1": 0.7,
+        "e2": 0.0,
+        "none": 0.3
+      },
+      "type": "choice"
+    },
+    "c2_mechanism": {
+      "choice": "selects_builder",
+      "confidence": 0.54,
+      "probabilities": {
+        "insufficient_evidence": 0.01,
+        "none": 0.35,
+        "redundant_stop": 0.0,
+        "selects_builder": 0.64,
+        "suppresses_structure": 0.0
+      },
+      "type": "choice"
+    },
+    "c3_evidence": {
+      "choice": "e1",
+      "confidence": 0.55,
+      "probabilities": {
+        "e1": 0.71,
+        "e2": 0.0,
+        "none": 0.29
+      },
+      "type": "choice"
+    },
+    "c3_mechanism": {
+      "choice": "selects_builder",
+      "confidence": 0.67,
+      "probabilities": {
+        "insufficient_evidence": 0.0,
+        "none": 0.26,
+        "redundant_stop": 0.0,
+        "selects_builder": 0.74,
+        "suppresses_structure": 0.0
+      },
+      "type": "choice"
+    },
+    "c4_evidence": {
+      "choice": "e1",
+      "confidence": 0.82,
+      "probabilities": {
+        "e1": 0.88,
+        "e2": 0.0,
+        "none": 0.12
+      },
+      "type": "choice"
+    },
+    "c4_mechanism": {
+      "choice": "selects_builder",
+      "confidence": 0.51,
+      "probabilities": {
+        "insufficient_evidence": 0.0,
+        "none": 0.25,
+        "redundant_stop": 0.0,
+        "selects_builder": 0.62,
+        "suppresses_structure": 0.13
+      },
+      "type": "choice"
+    },
+    "c5_evidence": {
+      "choice": "e1",
+      "confidence": 0.65,
+      "probabilities": {
+        "e1": 0.77,
+        "e2": 0.0,
+        "none": 0.23
+      },
+      "type": "choice"
+    },
+    "c5_mechanism": {
+      "choice": "none",
+      "confidence": 0.34,
+      "probabilities": {
+        "insufficient_evidence": 0.0,
+        "none": 0.47,
+        "redundant_stop": 0.01,
+        "selects_builder": 0.38,
+        "suppresses_structure": 0.14
+      },
+      "type": "choice"
+    },
+    "c6_evidence": {
+      "choice": "e1",
+      "confidence": 0.79,
+      "probabilities": {
+        "e1": 0.86,
+        "e2": 0.0,
+        "none": 0.14
+      },
+      "type": "choice"
+    },
+    "c6_mechanism": {
+      "choice": "selects_builder",
+      "confidence": 0.69,
+      "probabilities": {
+        "insufficient_evidence": 0.0,
+        "none": 0.15,
+        "redundant_stop": 0.0,
+        "selects_builder": 0.75,
+        "suppresses_structure": 0.1
+      },
+      "type": "choice"
+    },
+    "c7_evidence": {
+      "choice": "e1",
+      "confidence": 0.32,
+      "probabilities": {
+        "e1": 0.55,
+        "e2": 0.0,
+        "none": 0.45
+      },
+      "type": "choice"
+    },
+    "c7_mechanism": {
+      "choice": "none",
+      "confidence": 0.7,
+      "probabilities": {
+        "insufficient_evidence": 0.01,
+        "none": 0.77,
+        "redundant_stop": 0.0,
+        "selects_builder": 0.22,
+        "suppresses_structure": 0.0
+      },
+      "type": "choice"
+    },
+    "c8_evidence": {
+      "choice": "none",
+      "confidence": 0.48,
+      "probabilities": {
+        "e1": 0.23,
+        "e2": 0.11,
+        "none": 0.66
+      },
+      "type": "choice"
+    },
+    "c8_mechanism": {
+      "choice": "surviving_duplicate",
+      "confidence": 0.82,
+      "probabilities": {
+        "fallback_path": 0.0,
+        "insufficient_evidence": 0.01,
+        "none": 0.13,
+        "redundant_stop": 0.0,
+        "surviving_duplicate": 0.86
+      },
+      "type": "choice"
+    },
+    "c9_evidence": {
+      "choice": "e1",
+      "confidence": 0.62,
+      "probabilities": {
+        "e1": 0.75,
+        "e2": 0.0,
+        "none": 0.25
+      },
+      "type": "choice"
+    },
+    "c9_mechanism": {
+      "choice": "none",
+      "confidence": 0.86,
+      "probabilities": {
+        "insufficient_evidence": 0.01,
+        "none": 0.89,
+        "redundant_stop": 0.05,
+        "selects_builder": 0.02,
+        "suppresses_structure": 0.03
+      },
+      "type": "choice"
+    }
+  },
+  "phase_two": {
+    "c12_covered": {
+      "noul": 0.48,
+      "type": "noul"
+    },
+    "c12_shown": {
+      "noul": 0.21,
+      "type": "noul"
+    },
+    "c1_covered": {
+      "noul": 0.6,
+      "type": "noul"
+    },
+    "c1_shown": {
+      "noul": 0.16,
+      "type": "noul"
+    },
+    "c2_covered": {
+      "noul": 0.66,
+      "type": "noul"
+    },
+    "c2_shown": {
+      "noul": 0.18,
+      "type": "noul"
+    },
+    "c3_covered": {
+      "noul": 0.64,
+      "type": "noul"
+    },
+    "c3_shown": {
+      "noul": 0.4,
+      "type": "noul"
+    },
+    "c4_covered": {
+      "noul": 0.53,
+      "type": "noul"
+    },
+    "c4_shown": {
+      "noul": 0.43,
+      "type": "noul"
+    },
+    "c6_covered": {
+      "noul": 0.57,
+      "type": "noul"
+    },
+    "c6_shown": {
+      "noul": 0.52,
+      "type": "noul"
+    },
+    "c8_covered": {
+      "noul": 0.41,
+      "type": "noul"
+    },
+    "c8_shown": {
+      "noul": 0.19,
+      "type": "noul"
+    }
+  }
+}

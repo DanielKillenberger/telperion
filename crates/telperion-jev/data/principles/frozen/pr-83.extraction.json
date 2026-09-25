@@ -1,0 +1,251 @@
+{
+  "extractor": "extract-1",
+  "base": "1f48b8bab0cfa09b452445e355742d243d90dfe8",
+  "head": "b716a7152b9e0d56ba9379fb3f4958441644a5c2",
+  "candidates": [
+    {
+      "id": "c1",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/conductor/tuning.rs:77",
+      "shape": "arms run different builders on a setting: `super :: questions :: continuation (asker , run , & basis , & context) ?`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/conductor/tuning.rs",
+          "lines": [
+            77,
+            86
+          ],
+          "text": "        match super::questions::continuation(asker, run, &basis, &context)? {\n            Ok(_) => run.route(\n                &format!(\"tuning:{revision}\"),\n                \"tune\",\n                \"continuation justified\",\n            ),\n            Err((reason, assessment)) => {\n                let judged = if assessment.is_some() {\n                    \"unjustified\"\n                } else {",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/conductor/tuning.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/conductor/tuning.rs:165",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `let Some (pause) = record (& out) ? . pause`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/conductor/tuning.rs",
+          "lines": [
+            165,
+            167
+          ],
+          "text": "    if let Some(pause) = record(&out)?.pause {\n        return carry(config, run, revision, &out, pause, ran.err());\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/conductor/tuning.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/conductor/tuning.rs:57",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `run . budget . max_tuning_revisions . is_some_and (| cap | run . tuning . len () as u64 >= cap)`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/conductor/tuning.rs",
+          "lines": [
+            57,
+            66
+          ],
+          "text": "    if run\n        .budget\n        .max_tuning_revisions\n        .is_some_and(|cap| run.tuning.len() as u64 >= cap)\n    {\n        let basis = basis(run, revision, focus);\n        handoff::pause(\n            config,\n            run,\n            &format!(\"pause-tuning-{revision}\"),",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/conductor/tuning.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    }
+  ],
+  "dropped": 0,
+  "boundary_base": [
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 14,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 15,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 16,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 26,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::field::Field::planned"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 103,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 112,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 129,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 134,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 152,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 162,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 191,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::planned"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 192,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_head": [
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 14,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 15,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 16,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 26,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::field::Field::planned"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 103,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 112,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 129,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 134,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 152,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 162,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 191,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::planned"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 192,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_unresolved": [],
+  "paths": []
+}

@@ -1,0 +1,43 @@
+{
+  "calls": 1,
+  "elapsed_ms": 577,
+  "input_tokens": 1301,
+  "ledger": [
+    "principles-p2:18d89996f4874ab6-132e4c-17"
+  ],
+  "output_tokens": 43,
+  "phase_one": {
+    "c1_evidence": {
+      "choice": "e1",
+      "confidence": 0.95,
+      "probabilities": {
+        "e1": 0.97,
+        "e2": 0.0,
+        "none": 0.03
+      },
+      "type": "choice"
+    },
+    "c1_mechanism": {
+      "choice": "selects_builder",
+      "confidence": 0.72,
+      "probabilities": {
+        "insufficient_evidence": 0.0,
+        "none": 0.13,
+        "redundant_stop": 0.0,
+        "selects_builder": 0.78,
+        "suppresses_structure": 0.09
+      },
+      "type": "choice"
+    }
+  },
+  "phase_two": {
+    "c1_covered": {
+      "noul": 0.8,
+      "type": "noul"
+    },
+    "c1_shown": {
+      "noul": 0.11,
+      "type": "noul"
+    }
+  }
+}

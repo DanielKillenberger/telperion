@@ -1,0 +1,226 @@
+{
+  "extractor": "extract-1",
+  "base": "0d98f5d06c2a059e8436ee5b8f5858ce6cea66a8",
+  "head": "c92fe94e3b3b972b95beb55b48d86194adbf9878",
+  "candidates": [
+    {
+      "id": "c1",
+      "class": "switch",
+      "location": "crates/telperion-core/src/foliage/placement.rs:221",
+      "shape": "arms run different builders on a setting: `twig`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/foliage/placement.rs",
+          "lines": [
+            221,
+            227
+          ],
+          "text": "    match twig {\n        Some(_) => bearing_runs(tree, p),\n        None => shoots(\n            tree,\n            tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius,\n        ),\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/foliage/placement.rs",
+          "lines": [
+            305,
+            314
+          ],
+          "text": "/// Every unbranched run of leaf-bearing wood: what the twig layer marked, plus\n/// whatever else is slender enough for shoot_radius to clothe.\nfn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {\n    let slender = tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius;\n    let bearing = |i: usize| {\n        let n = &tree.nodes[i];\n        n.parent.is_some()\n            && (n.kind == NodeKind::Twig\n                || (slender > 0. && n.radius.max(n.start_radius) <= slender))\n    };",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "class": "switch",
+      "location": "crates/telperion-core/src/foliage/placement.rs:261",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `! bearing (tree , envelope , p , twig) ?`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/foliage/placement.rs",
+          "lines": [
+            261,
+            263
+          ],
+          "text": "    if !bearing(tree, envelope, p, twig)? {\n        return Ok(0);\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/foliage/placement.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "class": "switch",
+      "location": "crates/telperion-core/src/foliage/placement.rs:276",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `! bearing (tree , envelope , p , twig) ?`",
+      "weight": 2.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/foliage/placement.rs",
+          "lines": [
+            276,
+            278
+          ],
+          "text": "    if !bearing(tree, envelope, p, twig)? {\n        return Ok(Instances::new(reference));\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/foliage/placement.rs",
+          "lines": [
+            146,
+            155
+          ],
+          "text": "fn place_impl(\n    tree: &Tree,\n    envelope: Envelope,\n    seed: u32,\n    p: CanopyParams,\n    twig: Option<TwigPlacement>,\n    contacts: Option<&AttachmentSurface>,\n    reference: Reference,\n) -> Result<Instances> {\n    tree.validate_solved()?;",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c4",
+      "class": "switch",
+      "location": "crates/telperion-core/src/surface.rs:194",
+      "shape": "an arm drops the work the other arm or the rest of the function does: `paths . runs . is_empty ()`",
+      "weight": 2.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/surface.rs",
+          "lines": [
+            194,
+            196
+          ],
+          "text": "    if paths.runs.is_empty() {\n        return Ok(WoodExtent::default());\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-core/src/surface.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    }
+  ],
+  "dropped": 0,
+  "boundary_base": [
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 79,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 88,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 106,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 107,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 120,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 145,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_head": [
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 79,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 88,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 106,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 107,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 120,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 145,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_unresolved": [],
+  "paths": [
+    "crates/telperion-core/src/foliage.rs",
+    "crates/telperion-core/src/foliage/clumping.rs",
+    "crates/telperion-core/src/foliage/placement.rs",
+    "crates/telperion-core/src/foliage/short_shoots.rs",
+    "crates/telperion-core/src/foliage/station.rs",
+    "crates/telperion-core/src/footprint.rs",
+    "crates/telperion-core/src/lib.rs",
+    "crates/telperion-core/src/specimen/view.rs",
+    "crates/telperion-core/src/surface.rs",
+    "crates/telperion-core/tests/packed_leaf.rs",
+    "crates/telperion-core/tests/short_shoots/order.rs",
+    "crates/telperion-core/tests/species.rs",
+    "crates/telperion-core/tests/species/budget.rs",
+    "crates/telperion-core/tests/specimen_view.rs",
+    "crates/telperion-wasm/src/specimen.rs"
+  ]
+}

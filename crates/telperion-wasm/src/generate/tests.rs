@@ -155,3 +155,16 @@ fn the_field_request_selects_the_limb_order_and_defaults_to_the_family() {
         generate(json!({"family": "oregon-white-oak", "outputs": {"field": false}})).unwrap();
     assert!(out.field.is_none() && meta["stages"]["field"] == json!(false));
 }
+
+/// Entry coverage (fn-151 R2): every shipped preset builds its wood and its
+/// leaves through the main binding; a failure names the entry and the preset.
+#[test]
+fn every_shipped_preset_builds_through_the_main_entry() {
+    for &(_, id, _, _) in params::CATALOGUE.iter() {
+        let request = json!({"family": id, "outputs": {"surface": true, "foliage": true}});
+        let (_, meta) = generate(request)
+            .unwrap_or_else(|e| panic!("entry telperion (main Wasm): preset {id}: {e}"));
+        let leaves = meta["instances"].as_u64().unwrap_or(0);
+        assert!(leaves > 0, "entry telperion (main Wasm): preset {id}: no leaves");
+    }
+}

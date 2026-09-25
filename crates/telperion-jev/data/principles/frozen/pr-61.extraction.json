@@ -1,0 +1,179 @@
+{
+  "extractor": "extract-1",
+  "base": "8f7e9e382a107af929285a2bc207d2059d12b704",
+  "head": "77f5def8412f6a0e964e1ed61812b3728f358df6",
+  "candidates": [
+    {
+      "id": "c1",
+      "class": "duplicate",
+      "location": "scripts/contact-sheet-claude.py:1",
+      "shape": "new script `scripts/contact-sheet-claude.py` shares 62% of its text with `scripts/progress-review-claude.py`, which survives",
+      "weight": 2.615168539325843,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "scripts/contact-sheet-claude.py",
+          "lines": [
+            1,
+            10
+          ],
+          "text": "#!/usr/bin/env python3\n\"\"\"Claude twin of contact-sheet-codex.py.\n\nImports the codex script for its `prepare` (same allowlist, redaction and\nprompt/schema construction, unchanged) and reuses its cardinality rule\nverbatim; only the model call differs, going through vision_claude.run\n(Claude) instead of `codex exec`.\n\"\"\"\nimport argparse\nimport hashlib",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "after",
+          "path": "scripts/progress-review-claude.py",
+          "lines": [
+            1,
+            10
+          ],
+          "text": "#!/usr/bin/env python3\n\"\"\"Claude twin of progress-review-codex.py.\n\nImports the codex script for its `prepare` (same allowlist, redaction and\nprompt/schema construction, unchanged) and reuses its cardinality rule\nverbatim; only the model call differs, going through vision_claude.run\n(Claude) instead of `codex exec`.\n\"\"\"\nimport argparse\nimport hashlib",
+          "added": true
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "class": "duplicate",
+      "location": "scripts/progress-review-claude.py:1",
+      "shape": "new script `scripts/progress-review-claude.py` shares 62% of its text with `scripts/contact-sheet-claude.py`, which survives",
+      "weight": 2.615168539325843,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "scripts/progress-review-claude.py",
+          "lines": [
+            1,
+            10
+          ],
+          "text": "#!/usr/bin/env python3\n\"\"\"Claude twin of progress-review-codex.py.\n\nImports the codex script for its `prepare` (same allowlist, redaction and\nprompt/schema construction, unchanged) and reuses its cardinality rule\nverbatim; only the model call differs, going through vision_claude.run\n(Claude) instead of `codex exec`.\n\"\"\"\nimport argparse\nimport hashlib",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "after",
+          "path": "scripts/contact-sheet-claude.py",
+          "lines": [
+            1,
+            10
+          ],
+          "text": "#!/usr/bin/env python3\n\"\"\"Claude twin of contact-sheet-codex.py.\n\nImports the codex script for its `prepare` (same allowlist, redaction and\nprompt/schema construction, unchanged) and reuses its cardinality rule\nverbatim; only the model call differs, going through vision_claude.run\n(Claude) instead of `codex exec`.\n\"\"\"\nimport argparse\nimport hashlib",
+          "added": true
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "class": "duplicate",
+      "location": "scripts/reference-first-claude.py:1",
+      "shape": "new script `scripts/reference-first-claude.py` shares 57% of its text with `scripts/progress-review-claude.py`, which survives",
+      "weight": 2.571428571428571,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "scripts/reference-first-claude.py",
+          "lines": [
+            1,
+            10
+          ],
+          "text": "#!/usr/bin/env python3\n\"\"\"Claude twin of reference-first-codex.py.\n\nImports the codex script for its `prepare` (same allowlist, image handling\nand prompt/schema construction, unchanged) and reuses its cardinality rule\nverbatim; only the model call differs, going through vision_claude.run\n(Claude) instead of `codex exec`.\n\"\"\"\nimport argparse\nimport hashlib",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "after",
+          "path": "scripts/progress-review-claude.py",
+          "lines": [
+            1,
+            10
+          ],
+          "text": "#!/usr/bin/env python3\n\"\"\"Claude twin of progress-review-codex.py.\n\nImports the codex script for its `prepare` (same allowlist, redaction and\nprompt/schema construction, unchanged) and reuses its cardinality rule\nverbatim; only the model call differs, going through vision_claude.run\n(Claude) instead of `codex exec`.\n\"\"\"\nimport argparse\nimport hashlib",
+          "added": true
+        }
+      ]
+    }
+  ],
+  "dropped": 0,
+  "boundary_base": [
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 79,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 88,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 106,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 107,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 120,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 145,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_head": [
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 79,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 88,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 106,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 107,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 120,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 145,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_unresolved": [],
+  "paths": []
+}

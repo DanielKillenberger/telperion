@@ -1,0 +1,73 @@
+{
+  "extractor": "extract-1",
+  "base": "5fd2db6f28f68f64d4e5ee1e9bdc431379cfac10",
+  "head": "d990ca0711a42fcbba89473531b6ff292e559d76",
+  "candidates": [],
+  "dropped": 0,
+  "boundary_base": [
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 14,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 15,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 16,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 26,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::field::Field::planned"
+    }
+  ],
+  "boundary_head": [
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 14,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 15,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 16,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::foliage::plan::plan"
+    },
+    {
+      "file": "crates/telperion-field/src/grow.rs",
+      "line": 26,
+      "symbol": "telperion_field::grow::field",
+      "stage": "telperion_core::field::Field::planned"
+    }
+  ],
+  "boundary_unresolved": [],
+  "paths": [
+    "crates/telperion-core/src/branching/audit.rs",
+    "crates/telperion-core/src/branching/local/pendant.rs",
+    "crates/telperion-core/src/envelope.rs",
+    "crates/telperion-core/src/math/transcendental.rs",
+    "crates/telperion-core/tests/drop.rs",
+    "crates/telperion-core/tests/envelope_profile.rs",
+    "crates/telperion-core/tests/identity.rs",
+    "crates/telperion-core/tests/sag.rs",
+    "crates/telperion-core/tests/species/digests.json",
+    "crates/telperion-core/tests/strands.rs",
+    "crates/telperion-render/src/generation/place.wgsl"
+  ]
+}

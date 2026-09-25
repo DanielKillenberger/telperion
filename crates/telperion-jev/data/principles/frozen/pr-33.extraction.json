@@ -1,0 +1,167 @@
+{
+  "extractor": "extract-1",
+  "base": "d5365a0d2800d6e51cd1fc55d5dcc4f4fe8d406c",
+  "head": "6925e56a42e0ef0b12beabb18103317dca874757",
+  "candidates": [
+    {
+      "id": "c1",
+      "class": "duplicate",
+      "location": "crates/telperion-core/src/material.rs:186",
+      "shape": "`telperion_core::material::MaterialParams::default` shares 84% of its body with `telperion_core::presets::materials::birch`, which survives",
+      "weight": 2.8369829683698295,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/material.rs",
+          "lines": [
+            186,
+            195
+          ],
+          "text": "    /// A mid-brown bark under a mid-green blade, paler underneath, varying a\n    /// little. Neither a species nor a look: the row every family starts from.\n    fn default() -> Self {\n        Self {\n            bark_red: 0.147,\n            bark_green: 0.105,\n            bark_blue: 0.068,\n            bark_roughness: 0.8,\n            // Young wood the colour of the bark, and none of it young.\n            shoot_red: 0.147,",
+          "added": false
+        },
+        {
+          "id": "e2",
+          "side": "after",
+          "path": "crates/telperion-core/src/presets/materials.rs",
+          "lines": [
+            316,
+            325
+          ],
+          "text": "pub(super) fn birch() -> MaterialParams {\n    MaterialParams {\n        bark_red: 0.78,\n        bark_green: 0.76,\n        bark_blue: 0.7,\n        // Rough, not glossy, in the oak's and the spruce's range after the\n        // owner read the close-ups as plastic.\n        bark_roughness: 0.95,\n        // Young shoots dark red-brown, glossy, with pale resin warts; the\n        // bark whitens only once it has thickened (VT Dendrology, Betula",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "class": "duplicate",
+      "location": "crates/telperion-core/src/presets/materials.rs:162",
+      "shape": "`telperion_core::presets::materials::beech` shares 84% of its body with `telperion_core::material::MaterialParams::default`, which survives",
+      "weight": 2.8369829683698295,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/presets/materials.rs",
+          "lines": [
+            162,
+            171
+          ],
+          "text": "pub(super) fn beech() -> MaterialParams {\n    MaterialParams {\n        // fn-40: B-BASE's smooth grey reads 132/133/138 at the centre of its\n        // close-up; the old 0.36/0.335/0.295 drew it at 96/101/106 under the\n        // shot's sun and sky, and this row draws it at 127/133/138.\n        bark_red: 0.54,\n        bark_green: 0.5,\n        bark_blue: 0.44,\n        // Rough, not glossy, in the oak's and the spruce's range after the\n        // owner read the close-ups as plastic. At B-BASE's own light the old",
+          "added": false
+        },
+        {
+          "id": "e2",
+          "side": "after",
+          "path": "crates/telperion-core/src/material.rs",
+          "lines": [
+            186,
+            195
+          ],
+          "text": "    /// A mid-brown bark under a mid-green blade, paler underneath, varying a\n    /// little. Neither a species nor a look: the row every family starts from.\n    fn default() -> Self {\n        Self {\n            bark_red: 0.147,\n            bark_green: 0.105,\n            bark_blue: 0.068,\n            bark_roughness: 0.8,\n            // Young wood the colour of the bark, and none of it young.\n            shoot_red: 0.147,",
+          "added": false
+        }
+      ]
+    }
+  ],
+  "dropped": 0,
+  "boundary_base": [
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 79,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 88,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 106,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 107,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 119,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 144,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_head": [
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 79,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 88,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 106,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 107,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 119,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 144,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_unresolved": [],
+  "paths": [
+    "crates/telperion-core/src/blend.rs",
+    "crates/telperion-core/src/material.rs",
+    "crates/telperion-core/src/material/tests.rs",
+    "crates/telperion-core/src/params.rs",
+    "crates/telperion-core/src/params/tests.rs",
+    "crates/telperion-core/src/presets/materials.rs",
+    "crates/telperion-core/tests/sweep.rs",
+    "crates/telperion-render/src/scene.rs",
+    "crates/telperion-render/src/scene/frame.rs",
+    "crates/telperion-render/src/shaders/bark.wgsl",
+    "crates/telperion-render/src/shaders/canopy.wgsl",
+    "crates/telperion-render/src/shaders/common.wgsl",
+    "crates/telperion-render/src/shaders/foliage.wgsl",
+    "crates/telperion-render/src/shaders/wood.wgsl",
+    "crates/telperion-render/tests/bark_distance.rs",
+    "crates/telperion-render/tests/canopy_terms.rs",
+    "crates/telperion-render/tests/grain.rs",
+    "src/browser/presets.generated.ts"
+  ]
+}

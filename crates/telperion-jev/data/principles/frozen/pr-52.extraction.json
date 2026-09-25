@@ -1,0 +1,483 @@
+{
+  "extractor": "extract-1",
+  "base": "3fdfb440153202b391b7606ddbc4a2e7f47da2dc",
+  "head": "44aaccce38ca8a843ab775095904c55e16f7964d",
+  "candidates": [
+    {
+      "id": "c1",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/tuning/bundle/track.rs:47",
+      "shape": "arms run different builders on a setting: `declared . is_empty ()`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/tuning/bundle/track.rs",
+          "lines": [
+            47,
+            51
+          ],
+          "text": "    if declared.is_empty() {\n        vec![implicit()]\n    } else {\n        declared.to_vec()\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/tuning/bundle/track.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/tuning/command.rs:67",
+      "shape": "arms run different builders on a setting: `path . exists ()`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/tuning/command.rs",
+          "lines": [
+            67,
+            76
+          ],
+          "text": "    let state: Run = if path.exists() {\n        let mut old: Run = serde_json::from_slice(&fs::read(&path).map_err(|e| e.to_string())?)\n            .map_err(|e| e.to_string())?;\n        if old.pending.is_some() && old.pause.is_none() {\n            old.pause = Some(Pause {\n                id: crate::ledger::new_entry_id(),\n                identity: old.identity.clone(),\n                reason: \"interrupted attempt; spend retained\".into(),\n                basis: Basis {\n                    identity: old.identity.clone(),",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/tuning/command.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/tuning/live.rs:583",
+      "shape": "arms run different builders on a setting: `let Some (approval) = priorities`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/tuning/live.rs",
+          "lines": [
+            583,
+            591
+          ],
+          "text": "        if let Some(approval) = priorities {\n            let required = super::priority::requirements(&self.config.required, Some(approval));\n            40000\n                + serde_json::to_vec(&approval.ordered).unwrap().len() as u64\n                + serde_json::to_vec(&required).unwrap().len() as u64\n                + 256\n        } else {\n            self.visual_tokens(trial)\n        }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/tuning/live.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c4",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/tuning/live.rs:669",
+      "shape": "arms run different builders on a setting: `priorities . is_some ()`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/tuning/live.rs",
+          "lines": [
+            669,
+            673
+          ],
+          "text": "        if priorities.is_some() {\n            live.assess_visual(trial, required.to_vec())\n        } else {\n            live.visual(trial)\n        }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/tuning/live.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c5",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/tuning/priority.rs:222",
+      "shape": "arms run different builders on a setting: `let Some (packet) = & visual . joint`",
+      "weight": 3.5,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/tuning/priority.rs",
+          "lines": [
+            222,
+            231
+          ],
+          "text": "    if let Some(packet) = &visual.joint {\n        for input in &packet.inputs {\n            let source = match input.role.as_str() {\n                \"render\" => renders,\n                \"reference\" => references,\n                \"anchor\" => anchors,\n                _ => return Err(\"unknown image role\".into()),\n            };\n            let image = source\n                .iter()",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/tuning/priority.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c6",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/tuning/bundle/round.rs:298",
+      "shape": "arms run different builders on a setting: `sheet :: to_split (& verdict , & shown)`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/tuning/bundle/round.rs",
+          "lines": [
+            298,
+            307
+          ],
+          "text": "    let clean = match sheet::to_split(&verdict, &shown) {\n        Some(start) => isolate(\n            state,\n            services,\n            save,\n            old,\n            &base,\n            track,\n            ledger,\n            &mut variants,",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/tuning/bundle/round.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c7",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/tuning/command.rs:221",
+      "shape": "arms run different builders on a setting: `let Some (amendment) = & decision . baseline_amendment`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/tuning/command.rs",
+          "lines": [
+            221,
+            230
+          ],
+          "text": "        if let Some(amendment) = &decision.baseline_amendment {\n            if decision.preserve_evidence\n                || amendment.previous != old.overrides\n                || amendment.next != config.initial_overrides\n            {\n                return Err(\n                    \"baseline amendment requires exact old/new overlay and fresh evidence\".into(),\n                );\n            }\n            let base =",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/tuning/command.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c8",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/tuning/engine.rs:571",
+      "shape": "arms run different builders on a setting: `self . visual . as_ref () . is_none_or (| v | { required . iter () . any (| c | ! v . cells . iter () . any (| (got , _)`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/tuning/engine.rs",
+          "lines": [
+            571,
+            580
+          ],
+          "text": "        if self.visual.as_ref().is_none_or(|v| {\n            required\n                .iter()\n                .any(|c| !v.cells.iter().any(|(got, _)| got == c))\n        }) {\n            self.assess(services, save)?;\n        } else {\n            let passed = self\n                .current\n                .zip(self.visual.as_ref())",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/tuning/engine.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c9",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/tuning/live.rs:325",
+      "shape": "arms run different builders on a setting: `self . reference_first . is_some ()`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/tuning/live.rs",
+          "lines": [
+            325,
+            334
+          ],
+          "text": "        let (model, effort, protocol, score) = if self.reference_first.is_some() {\n            self.preparation()?;\n            let result = serde_json::from_value(result).map_err(|e| e.to_string())?;\n            let (replay, score) = super::reference_first::replay_score(&manifest, &result)?;\n            (replay.model, replay.effort, replay.protocol_sha256, score)\n        } else {\n            let replay: vision::Replay =\n                serde_json::from_slice(&manifest).map_err(|e| e.to_string())?;\n            if replay\n                .cases",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/tuning/live.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c10",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/tuning/live.rs:508",
+      "shape": "arms run different builders on a setting: `let Some (prepared) = & self . config . reference_first`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/tuning/live.rs",
+          "lines": [
+            508,
+            517
+          ],
+          "text": "        let mut result = if let Some(prepared) = &self.config.reference_first {\n            self.config.verify_reference_protocol()?;\n            self.config.preparation()?;\n            let (inventory, _) =\n                prepared.load(&self.config.vision.model, &self.config.vision.effort)?;\n            request.checklist = format!(\n                \"{}\\nAuthoritative owner requirements: {}\",\n                request.checklist, self.config.owner_notes\n            );\n            let comparison =",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/tuning/live.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c11",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/tuning/result.rs:270",
+      "shape": "arms run different builders on a setting: `& o . current`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/tuning/result.rs",
+          "lines": [
+            270,
+            279
+          ],
+          "text": "    match &o.current {\n        Some(c) => {\n            s.push_str(&format!(\"\\n## Current tree\\n\\nTrial `{}`, round {}, {}\", c.key, c.round, c.label));\n            if let Some(score) = c.score_telemetry {\n                s.push_str(&format!(\", score telemetry {score:.4}\"));\n            }\n            s.push_str(\".\\n\\nStills:\\n\\n\");\n            for st in &c.stills {\n                s.push_str(&format!(\"- {} seed {}: `{}` ({})\\n\", st.view, st.seed, st.path, &st.sha256[..12.min(st.sha256.len())]));\n            }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/tuning/result.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c12",
+      "class": "switch",
+      "location": "crates/telperion-jev/src/tuning/result/html.rs:94",
+      "shape": "arms run different builders on a setting: `let Some (c) = & o . current`",
+      "weight": 3.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-jev/src/tuning/result/html.rs",
+          "lines": [
+            94,
+            103
+          ],
+          "text": "    if let Some(c) = &o.current {\n        s.push_str(&format!(\n            \"<h2>Current tree</h2><p>Trial <code>{}</code>, round {}, {}{}.</p>{}\",\n            esc(&c.key[..12.min(c.key.len())]), c.round, esc(&c.label),\n            c.score_telemetry.map(|v| format!(\", score telemetry {v:.4}\")).unwrap_or_default(),\n            stills(&c.stills, run_dir)\n        ));\n    } else {\n        s.push_str(\"<h2>Current tree</h2><p>None: no candidate was ever current.</p>\");\n    }",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "before",
+          "path": "crates/telperion-jev/src/tuning/result/html.rs",
+          "lines": [
+            0,
+            0
+          ],
+          "text": "(the enclosing function is new in this change)",
+          "added": false
+        }
+      ]
+    }
+  ],
+  "dropped": 76,
+  "boundary_base": [
+    {
+      "file": "crates/telperion-render/src/generation/preparation.rs",
+      "line": 14,
+      "symbol": "telperion_render::generation::preparation::Generator::prepare_async",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 79,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 88,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 106,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 107,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 120,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 145,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_head": [
+    {
+      "file": "crates/telperion-render/src/generation/preparation.rs",
+      "line": 14,
+      "symbol": "telperion_render::generation::preparation::Generator::prepare_async",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 79,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 88,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 106,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 107,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 120,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 145,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_unresolved": [],
+  "paths": [
+    "crates/telperion-core/src/bias.rs",
+    "crates/telperion-core/src/branching.rs",
+    "crates/telperion-core/src/branching/traits.rs",
+    "crates/telperion-core/src/envelope.rs",
+    "crates/telperion-core/src/family.rs",
+    "crates/telperion-core/src/foliage/element.rs",
+    "crates/telperion-core/src/foliage/placement.rs",
+    "crates/telperion-core/src/material.rs",
+    "crates/telperion-core/src/radius.rs",
+    "crates/telperion-core/src/surface.rs",
+    "crates/telperion-core/src/twigs.rs",
+    "crates/telperion-render/examples/headless.rs"
+  ]
+}

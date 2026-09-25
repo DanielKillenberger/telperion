@@ -1,0 +1,158 @@
+{
+  "version": "2026-09-25.4",
+  "principles": [
+    {
+      "id": "P-ONE-PIPELINE",
+      "name": "one pipeline",
+      "clause": "STRATEGY.md, Our approach: \"Generation is one pipeline (grow, plan, expand, cull, draw) that every tree passes through; each family feature is a term inside a stage, never a route around it.\"",
+      "allowances": [
+        "STRATEGY.md, Our approach: \"The expansion is one algorithm with two executors, the GPU and a CPU reference that defines correct and serves consumers without one\" (exception EX-50).",
+        "AGENTS.md, Mature trees are the product: the growth path is a hidden feature, kept buildable and pinned (exception EX-17).",
+        "Extracting shared code into one function both callers use, or delegating to the pipeline, removes a copy; it never adds one."
+      ],
+      "mode": "shadow",
+      "select_min": 0.5,
+      "confirm_min": 0.7,
+      "cover_max": 0.5
+    },
+    {
+      "id": "P-NO-FALLBACK",
+      "name": "never a fallback path",
+      "clause": "STRATEGY.md, Our approach: \"an input the pipeline cannot represent is an explicit error, never a fallback path.\"",
+      "allowances": [
+        "STRATEGY.md, Surface and rendering at scale: \"geometry-dependent choices are allowed, and unsupported inputs remain explicit errors, never a second path.\"",
+        "A GPU executor that hands work to the CPU reference is one algorithm with two executors (exception EX-50)."
+      ],
+      "mode": "shadow",
+      "select_min": 0.5,
+      "confirm_min": 0.7,
+      "cover_max": 0.5
+    },
+    {
+      "id": "P-NO-SWITCH",
+      "name": "no switch between ways of building",
+      "clause": "STRATEGY.md, Our approach: \"Every generator parameter is a numeric trait defined for every tree, and a small change in any parameter makes a small change in the tree. A parameter may be dormant where the structure it shapes is absent, and it wakes smoothly as that structure appears. No parameter is a switch between ways of building, and a count steps only by one unit of the structure it counts.\"",
+      "allowances": [
+        "Dormancy is clean: a term that contributes nothing while its structure is absent, and grows from zero as it appears.",
+        "A count that adds or removes one unit of the structure it counts is a count step, not a switch.",
+        "A backend or schedule choice (GPU or CPU executor, concurrent or serial stages) that yields the same tree is not a way of building.",
+        "Rejecting an input the pipeline cannot represent with an explicit error is validation."
+      ],
+      "mode": "shadow",
+      "select_min": 0.5,
+      "confirm_min": 0.85,
+      "cover_max": 0.5
+    },
+    {
+      "id": "P-CONSUMER-READS",
+      "name": "only the detail the consumer reads",
+      "clause": "STRATEGY.md, Our approach: \"generate only the detail the consuming engine needs\"",
+      "allowances": [
+        "An output a named consumer reads, or one a test or measurement in the same change reads as its contract, is consumed."
+      ],
+      "mode": "shadow",
+      "select_min": 0.5,
+      "confirm_min": 0.7,
+      "cover_max": 0.5
+    },
+    {
+      "id": "P-BLOCKING-STEP",
+      "name": "a stop must catch what its neighbours cannot",
+      "clause": "STRATEGY.md, Our approach: \"a step that stops work must catch a defect the steps around it cannot.\"",
+      "allowances": [
+        "AGENTS.md, Dispatch and escalation: reasoning and system design escalate to the host; a stop that hands such a step up is mandated.",
+        "Validation that rejects malformed input nothing else checks is necessary."
+      ],
+      "mode": "shadow",
+      "select_min": 0.5,
+      "confirm_min": 0.7,
+      "cover_max": 0.5
+    }
+  ],
+  "boundary": {
+    "pipeline": [
+      "telperion_core::pipeline",
+      "telperion_core::mesh"
+    ],
+    "stages": [
+      "telperion_core::branching::generate",
+      "telperion_core::branching::clear_apical_twigs",
+      "telperion_core::branching::clothe_leaf_bases",
+      "telperion_core::foliage::build_element",
+      "telperion_core::foliage::plan::plan",
+      "telperion_core::surface::build",
+      "telperion_core::surface::rings",
+      "telperion_core::surface::faces",
+      "telperion_core::surface::prepared::prepare",
+      "telperion_core::foliage::place",
+      "telperion_core::foliage::place_on_surface",
+      "telperion_core::foliage::place_short_shoots",
+      "telperion_core::foliage::place_short_shoots_clumped",
+      "telperion_core::foliage::place_rosette",
+      "telperion_core::foliage::cull",
+      "telperion_core::field::Field::new",
+      "telperion_core::field::Field::planned"
+    ]
+  },
+  "entry_triggers": [
+    "crates/telperion-core/src/presets",
+    "crates/telperion-core/src/pipeline",
+    "crates/telperion-core/src/foliage/plan",
+    "crates/telperion-core/src/field",
+    "crates/telperion-core/Cargo.toml",
+    "crates/telperion-wasm/",
+    "crates/telperion-field/",
+    "scripts/build-wasm.mjs",
+    "src/field/",
+    "src/browser/core.ts",
+    "package.json",
+    "Cargo.lock"
+  ],
+  "entries": [
+    {
+      "export": "native",
+      "role": "generation",
+      "guard": "cargo test --profile ci -p telperion-core --lib every_family_builds_the_same_bytes_under_either_schedule"
+    },
+    {
+      "export": ".",
+      "role": "generation",
+      "guard": "cargo test --profile ci -p telperion-wasm every_shipped_preset"
+    },
+    {
+      "export": "./field",
+      "role": "generation",
+      "guard": "cargo test --profile ci -p telperion-field every_shipped_preset"
+    },
+    {
+      "export": "./field/voxelize",
+      "role": "consumer"
+    },
+    {
+      "export": "./telperion.wasm",
+      "role": "distribution"
+    },
+    {
+      "export": "./telperion-render.wasm",
+      "role": "distribution"
+    },
+    {
+      "export": "./telperion-field.wasm",
+      "role": "distribution"
+    }
+  ],
+  "artifact_triggers": [
+    "crates/telperion-core/",
+    "crates/telperion-wasm/",
+    "crates/telperion-field/",
+    "crates/telperion-render/",
+    "scripts/build-wasm.mjs",
+    "scripts/build-render.mjs",
+    "vite.config.ts",
+    "src/",
+    "package.json",
+    "Cargo.lock",
+    "Cargo.toml",
+    "crates/telperion-jev/data/principles/budgets.json"
+  ]
+}

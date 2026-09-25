@@ -1,0 +1,280 @@
+{
+  "extractor": "extract-1",
+  "base": "3345b07fd48616fe278eb58971458ff85407b2b9",
+  "head": "cd8f841f008718ff83ba7937bf87c818362cf74f",
+  "candidates": [
+    {
+      "id": "c1",
+      "class": "duplicate",
+      "location": "crates/telperion-core/src/foliage/packed.rs:80",
+      "shape": "`telperion_core::foliage::packed::Reference::contains` shares 42% of its body with `telperion_core::foliage::Bounds::contains`, which survives",
+      "weight": 2.4239130434782608,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-core/src/foliage/packed.rs",
+          "lines": [
+            80,
+            89
+          ],
+          "text": "    /// Whether a point stands in the box, which every station does by\n    /// construction: the box is what the parameters allow the crown to reach.\n    pub fn contains(&self, p: Vec3) -> bool {\n        let max = self.max();\n        p.x >= self.min.x\n            && p.y >= self.min.y\n            && p.z >= self.min.z\n            && p.x <= max.x\n            && p.y <= max.y\n            && p.z <= max.z",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "after",
+          "path": "crates/telperion-core/src/foliage.rs",
+          "lines": [
+            34,
+            41
+          ],
+          "text": "    pub fn contains(&self, p: Vec3) -> bool {\n        p.x >= self.min.x\n            && p.y >= self.min.y\n            && p.z >= self.min.z\n            && p.x <= self.max.x\n            && p.y <= self.max.y\n            && p.z <= self.max.z\n    }",
+          "added": false
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "class": "unread",
+      "location": "crates/telperion-render/src/select/frame.rs:21",
+      "shape": "new output `Uniforms.box_min` is read 0 time(s) in production Rust",
+      "weight": 2.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-render/src/select/frame.rs",
+          "lines": [
+            20,
+            22
+          ],
+          "text": "    /// The box the core quantised every leaf position against.\n    pub box_min: [f32; 4],\n    pub box_extent: [f32; 4],",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "after",
+          "path": "crates/telperion-render/src/shaders/leaf.wgsl",
+          "lines": [
+            50,
+            52
+          ],
+          "text": "/// Where a leaf stands: its three unsigned normals over the reference box.\nfn leaf_position(words: vec3<u32>, box_min: vec3<f32>, box_extent: vec3<f32>) -> vec3<f32> {\n    let xy = unpack2x16unorm(words.y);",
+          "added": true
+        },
+        {
+          "id": "e3",
+          "side": "after",
+          "path": "crates/telperion-render/src/shaders/leaf.wgsl",
+          "lines": [
+            53,
+            55
+          ],
+          "text": "    let z = unpack2x16unorm(words.z).x;\n    return box_min + box_extent * vec3<f32>(xy.x, xy.y, z);\n}",
+          "added": true
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "class": "unread",
+      "location": "crates/telperion-render/src/select/frame.rs:22",
+      "shape": "new output `Uniforms.box_extent` is read 0 time(s) in production Rust",
+      "weight": 2.0,
+      "evidence": [
+        {
+          "id": "e1",
+          "side": "after",
+          "path": "crates/telperion-render/src/select/frame.rs",
+          "lines": [
+            21,
+            23
+          ],
+          "text": "    pub box_min: [f32; 4],\n    pub box_extent: [f32; 4],\n    pub instances: u32,",
+          "added": true
+        },
+        {
+          "id": "e2",
+          "side": "after",
+          "path": "crates/telperion-render/src/shaders/leaf.wgsl",
+          "lines": [
+            50,
+            52
+          ],
+          "text": "/// Where a leaf stands: its three unsigned normals over the reference box.\nfn leaf_position(words: vec3<u32>, box_min: vec3<f32>, box_extent: vec3<f32>) -> vec3<f32> {\n    let xy = unpack2x16unorm(words.y);",
+          "added": true
+        },
+        {
+          "id": "e3",
+          "side": "after",
+          "path": "crates/telperion-render/src/shaders/leaf.wgsl",
+          "lines": [
+            53,
+            55
+          ],
+          "text": "    let z = unpack2x16unorm(words.z).x;\n    return box_min + box_extent * vec3<f32>(xy.x, xy.y, z);\n}",
+          "added": true
+        }
+      ]
+    }
+  ],
+  "dropped": 0,
+  "boundary_base": [
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 79,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 88,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 106,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 107,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 119,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 144,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_head": [
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 79,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::branching::generate"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 88,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::surface::build"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 106,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::element::build_element"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 107,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::placement::place_on_surface"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 120,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::foliage::cull"
+    },
+    {
+      "file": "crates/telperion-wasm/src/generate.rs",
+      "line": 145,
+      "symbol": "telperion_wasm::generate::generate",
+      "stage": "telperion_core::field::Field::new"
+    }
+  ],
+  "boundary_unresolved": [],
+  "paths": [
+    "crates/telperion-core/examples/geometry_benchmark.rs",
+    "crates/telperion-core/examples/geometry_benchmark/metrics.rs",
+    "crates/telperion-core/examples/measure.rs",
+    "crates/telperion-core/examples/node_buffer.rs",
+    "crates/telperion-core/examples/occupancy_audit.rs",
+    "crates/telperion-core/examples/species_measure.rs",
+    "crates/telperion-core/examples/species_metrics/mod.rs",
+    "crates/telperion-core/src/branching/specimen/change_tests.rs",
+    "crates/telperion-core/src/branching/specimen/history.rs",
+    "crates/telperion-core/src/branching/specimen/history/tests.rs",
+    "crates/telperion-core/src/branching/specimen/shared.rs",
+    "crates/telperion-core/src/branching/specimen/timeline.rs",
+    "crates/telperion-core/src/field.rs",
+    "crates/telperion-core/src/foliage.rs",
+    "crates/telperion-core/src/foliage/clumping.rs",
+    "crates/telperion-core/src/foliage/packed.rs",
+    "crates/telperion-core/src/foliage/packed/tests.rs",
+    "crates/telperion-core/src/foliage/placement.rs",
+    "crates/telperion-core/src/foliage/reference.rs",
+    "crates/telperion-core/src/foliage/short_shoots.rs",
+    "crates/telperion-core/src/foliage/station.rs",
+    "crates/telperion-core/src/foliage/timeline.rs",
+    "crates/telperion-core/src/mesh.rs",
+    "crates/telperion-core/src/params/tests.rs",
+    "crates/telperion-core/src/specimen/view.rs",
+    "crates/telperion-core/tests/field.rs",
+    "crates/telperion-core/tests/foliage.rs",
+    "crates/telperion-core/tests/foliage/attachments.rs",
+    "crates/telperion-core/tests/foliage/stations.rs",
+    "crates/telperion-core/tests/foliage_reference.rs",
+    "crates/telperion-core/tests/geometry_benchmark.rs",
+    "crates/telperion-core/tests/identity.rs",
+    "crates/telperion-core/tests/limb_clumping.rs",
+    "crates/telperion-core/tests/mesh.rs",
+    "crates/telperion-core/tests/packed_leaf.rs",
+    "crates/telperion-core/tests/short_shoots.rs",
+    "crates/telperion-core/tests/short_shoots/order.rs",
+    "crates/telperion-core/tests/species.rs",
+    "crates/telperion-core/tests/species/digests.json",
+    "crates/telperion-core/tests/species_metrics.rs",
+    "crates/telperion-core/tests/specimen_view.rs",
+    "crates/telperion-core/tests/stem_fork_height.rs",
+    "crates/telperion-core/tests/stem_lean_spread.rs",
+    "crates/telperion-core/tests/stems.rs",
+    "crates/telperion-core/tests/surface_attachments.rs",
+    "crates/telperion-core/tests/twig_generations.rs",
+    "crates/telperion-render/src/foliage.rs",
+    "crates/telperion-render/src/lib.rs",
+    "crates/telperion-render/src/mass.rs",
+    "crates/telperion-render/src/scene.rs",
+    "crates/telperion-render/src/scene/frame.rs",
+    "crates/telperion-render/src/select.rs",
+    "crates/telperion-render/src/select/bind.rs",
+    "crates/telperion-render/src/select/frame.rs",
+    "crates/telperion-render/src/select/tests.rs",
+    "crates/telperion-render/src/shaders/common.wgsl",
+    "crates/telperion-render/src/shaders/foliage.wgsl",
+    "crates/telperion-render/src/shaders/leaf.wgsl",
+    "crates/telperion-render/src/shaders/select.wgsl",
+    "crates/telperion-render/src/shaders/shadow.wgsl",
+    "crates/telperion-render/src/shadow.rs",
+    "crates/telperion-render/src/submit.rs",
+    "crates/telperion-render/tests/bark_detail.rs",
+    "crates/telperion-render/tests/canopy_light.rs",
+    "crates/telperion-render/tests/colour_cavity.rs",
+    "crates/telperion-render/tests/lobe_shade.rs",
+    "crates/telperion-render/tests/material_shaders.rs",
+    "crates/telperion-render/tests/shadow.rs",
+    "crates/telperion-render/tests/shoot_colour.rs",
+    "crates/telperion-render/tests/submit.rs",
+    "crates/telperion-wasm/src/generate.rs",
+    "crates/telperion-wasm/src/lib.rs",
+    "crates/telperion-wasm/src/specimen.rs",
+    "src/browser/core.ts",
+    "src/browser/leaf.ts",
+    "src/browser/specimen-wire.ts",
+    "src/browser/specimen.ts",
+    "src/index.ts"
+  ]
+}
