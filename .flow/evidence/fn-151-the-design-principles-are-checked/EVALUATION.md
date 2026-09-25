@@ -1,5 +1,7 @@
 # fn-151 evaluation, 2026-09-25
 
+> Cut (owner, 2026-09-25): the Jev reviewer measured here was removed from fn-151 and its design review moved to fn-156; this file and the ignored `raw/` recordings are fn-156's baseline. The corpus, frozen extractions, recorded answers and the `jev principles report`, `eval` and `spec` commands are in git history at `132257f3`.
+
 The corpus is `crates/telperion-jev/data/principles/corpus.json`: 17 positives and 22 clean pull requests, labelled by the owner on 2026-09-25, each positive by one mechanism and span on its immutable revision. Lineages decide the groups: calibration holds the pipeline copies, the habit enum, render and memory work (5 positives, 16 clean); holdout holds the species runner and the palm stack (12 positives, 6 clean). `jev principles report` reproduces every number below from the frozen extractions and recorded answers.
 
 ## Replay per labelled PR (R4)

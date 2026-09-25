@@ -45,14 +45,14 @@ Two checkouts of the same crate never share a `target/` directory. Test binary n
 
 ## Design principles, checked (owner, 2026-09-25)
 
-Specs and pushes are checked against STRATEGY.md's "Our approach" before work starts and before a push lands; `docs/principles.md` is the guide. Four questions steer every decision:
+Code guards check every push against STRATEGY.md's "Our approach"; `docs/principles.md` is the guide, and Jev review of specs and designs is planned in fn-156. Four questions steer every decision:
 
 - Does every tree still pass through the one pipeline, with no copy of a stage outside it?
 - Does an input the pipeline cannot draw fail with an error, never take a fallback path?
 - Does every parameter change the tree by degree, dormant where its structure is absent, never a switch between ways of building?
 - Is each new output read by a consumer, each cost measured, and each new stop one that catches what its neighbours cannot?
 
-Three deterministic guards block, in `cargo test` and in the pre-push hook (`npm run setup` installs it once): the production boundary, entry coverage of every shipped preset, and the artifact budgets. The Jev reviewer, `jev principles`, only advises; each principle stays in shadow until its warnings reach 95% precision on real pushes. A sanctioned trade-off cites an id from `crates/telperion-jev/data/principles/exceptions.json`; a claim of approval with no entry there is none. `git push --no-verify` skips the hook.
+Three deterministic guards block, in `cargo test` and in the pre-push hook (`npm run setup` installs it once): the production boundary, entry coverage of every shipped preset, and the artifact budgets. A sanctioned trade-off cites an id from `crates/telperion-jev/data/principles/exceptions.json`; a claim of approval with no entry there is none. `git push --no-verify` skips the hook.
 
 ## Pull requests (owner, 2026-09-20)
 

@@ -1,5 +1,5 @@
 //! The maintained policy: principle question ids citing exact clauses, the
-//! boundary's pipeline and stages, the Jev modes and thresholds, and the
+//! boundary's pipeline and stages, the guards' triggers and entries, and the
 //! exception registry. Nothing here is derived from STRATEGY.md by code; a
 //! clause changes when a person edits this file, and its version with it.
 
@@ -40,17 +40,9 @@ pub struct Principle {
     pub name: String,
     /// The exact clause, quoted, with where it lives.
     pub clause: String,
-    /// Sanctioned readings the confirming question states.
+    /// Sanctioned readings: what the principle does not forbid.
     #[serde(default)]
     pub allowances: Vec<String>,
-    /// `shadow`, `warn` or `block`; see `review::Mode`.
-    pub mode: String,
-    /// Phase-one mechanism probability a warning needs.
-    pub select_min: f64,
-    /// Phase-two `shown` a warning needs.
-    pub confirm_min: f64,
-    /// Phase-two `covered` a warning may not pass.
-    pub cover_max: f64,
 }
 
 #[derive(Debug, Clone, Deserialize)]

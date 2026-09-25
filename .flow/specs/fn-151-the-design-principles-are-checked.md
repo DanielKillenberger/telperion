@@ -85,16 +85,18 @@ Timing and memory are measured separately, on named hardware, never per push.
 
 **Unknown.** The corpus size needed before any principle can graduate, which the implementer reports from real pushes. [unknown]
 
+**The cut (owner, 2026-09-25).** The shipped change keeps the three deterministic guards, the exception registry, the policy's question ids, the pre-push hook running the guards and the guidance. The Jev reviewer (candidate extraction, the two-phase decision and its cuts, spec mode, the replay corpus and its recorded answers) was built, measured and removed; design review moves to fn-156. Evidence: `.flow/evidence/fn-151-the-design-principles-are-checked/EVALUATION.md` (Jev recall 2/3 in calibration, 0/11 in the holdout, 0/22 clean pushes flagged; the labelled duplicate-path spec not flagged) and the ignored recordings under `raw/`. [decision]
+
 ## Acceptance Criteria
 <!-- scope: both -->
 
 - **R1:** The production-boundary guard fails on a scratch change that calls a build stage from production code outside the pipeline. It passes on #82's revision and on test code. Errors: an unresolvable alias fails the guard with its location. [paraphrase]
 - **R2:** The entry-coverage guard fails for `date-palm` through the slim entry on the master before fn-150. It passes on master after fn-150, and triggers on a change to preset values, catalogue membership or entry wiring. Errors: a failing entry names the preset and the entry. [paraphrase]
 - **R3:** The artifact-budget guard fails on the +48% slim build from fn-150's first attempt, and passes on the shipped 0.1.4 build. Errors: a budget change without evidence fails. [paraphrase]
-- **R4:** On the offline replay (frozen extractions with recorded answers), every confirmed positive's labelled mechanism is caught by a guard or by a Jev finding that cites that mechanism, and every confirmed clean case yields no finding. Errors: a positive with no supporting candidate class is reported as unsupported coverage, never as a pass. [paraphrase]
-- **R5:** A live, held-out evaluation reports Jev's recall, precision and clean-push false flags with their counts and uncertainty. A principle leaves shadow mode only when its warnings reach at least 95% precision on real pushes. Errors: no Jev finding blocks at launch. [paraphrase]
+- **R4:** On the offline replay (frozen extractions with recorded answers), every confirmed positive's labelled mechanism is caught by a guard or by a Jev finding that cites that mechanism, and every confirmed clean case yields no finding. Errors: a positive with no supporting candidate class is reported as unsupported coverage, never as a pass. [paraphrase] **Moved to fn-156 (owner, 2026-09-25):** see "Jev judges a spec's design against what already exists" and Decision Context below.
+- **R5:** A live, held-out evaluation reports Jev's recall, precision and clean-push false flags with their counts and uncertainty. A principle leaves shadow mode only when its warnings reach at least 95% precision on real pushes. Errors: no Jev finding blocks at launch. [paraphrase] **Moved to fn-156 (owner, 2026-09-25):** see "Jev judges a spec's design against what already exists" and Decision Context below.
 - **R6:** The pre-push hook runs on a push from any worktree, and meets the cost bounds above, measured and reported. Errors: timeout, missing key or overflow reports "incomplete"; `--no-verify` skips it. [paraphrase]
-- **R7:** Spec mode yields no finding on fn-150's final design, and flags a labelled spec that proposes a surviving duplicate path. It adds no readiness step. Errors: missing decision context abstains. [paraphrase]
+- **R7:** Spec mode yields no finding on fn-150's final design, and flags a labelled spec that proposes a surviving duplicate path. It adds no readiness step. Errors: missing decision context abstains. [paraphrase] **Moved to fn-156 (owner, 2026-09-25):** see "Jev judges a spec's design against what already exists" and Decision Context below.
 - **R8:** STRATEGY.md, AGENTS.md and `docs/pr-format.md` carry the guidance above (host decision, 2026-09-25), the exception registry holds its day-one entries, and the workspace gate and `npm test` are green. [paraphrase]
 
 ## Boundaries
@@ -106,6 +108,8 @@ Timing and memory are measured separately, on named hardware, never per push.
 <!-- scope: both — conditionally substructured -->
 
 The pre-review draft let Jev block pushes on "touches a principle", derived principles automatically, and treated names, cfg gates and CLI commands as suspicion. Astra's review showed it would reject its own clean cases, miss omissions and breaches inside existing functions, and over-claim reliability from about 40 labelled PRs. The design now blocks only on deterministic checks. Jev findings need evidence and a confirming question, and earn blocking one principle at a time by measured precision. [paraphrase]
+
+The implementation (PR #120) measured the advisory reviewer on the owner-labelled corpus. The guards caught every guard-owned positive (#6, #55, #58, #115), while Jev caught #3 and #13 and missed or could not reach the runner's stop sites and the palm's switch. The owner cut the reviewer from fn-151 on 2026-09-25 and kept what caught real breaches; R4, R5 and R7 moved to fn-156, which judges a spec's design against what already exists. [decision]
 
 ## Strategy Alignment
 

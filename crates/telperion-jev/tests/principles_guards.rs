@@ -115,8 +115,10 @@ fn exceptions_are_scoped_sourced_and_live() {
     let registry = exceptions();
     let ids: Vec<&str> = registry.iter().map(|e| e.id.as_str()).collect();
     assert_eq!(ids, ["EX-17", "EX-50"]);
+    let principles = policy();
     for e in &registry {
         assert_eq!(e.defect(), None);
+        assert!(principles.principle(&e.principle).is_some(), "{} cites no question id", e.id);
     }
     let scan = run(&workspace());
     for e in &registry {

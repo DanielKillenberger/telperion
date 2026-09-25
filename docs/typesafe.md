@@ -12,9 +12,8 @@ read fetched source bytes, a spec's research section, an owner's written note,
 or a report's section headings. They write a ledger entry and a proposal the
 host session reads.
 
-The design-principles reviewer (`jev principles`, `docs/principles.md`) is
-evidence tooling: it runs in the pre-push hook and in spec mode, advises
-only, and its workspace tests replay recorded answers.
+`jev principles` runs the design-principles guards (`docs/principles.md`);
+they are code and call no model. Jev review of designs is planned in fn-156.
 
 ## Where it never runs
 

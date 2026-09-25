@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The design principles, checked before a push (fn-151, docs/principles.md).
-# Deterministic guards block; the Jev reviewer advises and never blocks while
-# its principles are in shadow. `git push --no-verify` skips this hook.
+# The three deterministic guards block; Jev review is planned in fn-156.
+# `git push --no-verify` skips this hook.
 # Installed once by `npm run setup` (core.hooksPath = .githooks), so it runs
 # on a push from any worktree of this repository.
 set -u

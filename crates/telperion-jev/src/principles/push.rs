@@ -1,7 +1,7 @@
-//! A push, checked: the three deterministic guards block, the reviewer
-//! advises. Guards read the pushed revisions, never the working tree, except
-//! entry coverage, which runs its tests only when the checkout is the pushed
-//! head and reports incomplete otherwise.
+//! A push, checked by the three deterministic guards, each of which blocks.
+//! The boundary and the budget file are read at the pushed revisions, never
+//! the working tree; entry coverage runs its tests only when the checkout is
+//! the pushed head, and reports incomplete otherwise.
 
 use std::path::Path;
 use std::process::Command;
@@ -9,16 +9,12 @@ use std::time::Instant;
 
 use serde::Serialize;
 
-use super::boundary::{added, Caller, Scan};
+use super::boundary::{added, scan, Caller, Scan};
 use super::budget::{change_defects, parse, Budgets};
-use super::candidates::Extraction;
-use super::policy::Policy;
-use super::review::{Finding, Mode};
-use super::run::Run;
-use super::source::git;
+use super::policy::{exceptions, Policy};
+use super::source::{git, wanted, Snapshot};
 
 const BUDGETS_PATH: &str = "crates/telperion-jev/data/principles/budgets.json";
-pub const SHOWN: usize = 3;
 
 #[derive(Debug, Default, Serialize)]
 pub struct Report {
@@ -29,10 +25,6 @@ pub struct Report {
     /// Guards that could not run here, and why.
     pub incomplete: Vec<String>,
     pub notes: Vec<String>,
-    pub findings: Vec<Finding>,
-    pub calls: u32,
-    pub input_tokens: u64,
-    /// Extraction and review, the part the deadline bounds.
     pub elapsed_ms: u64,
 }
 
@@ -45,10 +37,12 @@ pub fn triggered<'a>(paths: impl IntoIterator<Item = &'a String>, prefixes: &[St
         .collect()
 }
 
-/// `run_entries` false leaves entry coverage to the workspace tests, as CI's
-/// crate jobs run them.
-pub fn guards(repo: &Path, base: &str, head: &str, policy: &Policy, x: &Extraction, run_entries: bool, report: &mut Report) -> Result<(), String> {
-    for c in boundary_added(x) {
+/// Runs the guards on `base..head`. `run_entries` false leaves entry
+/// coverage to the workspace tests, as CI's crate jobs run them.
+pub fn guards(repo: &Path, base: &str, head: &str, policy: &Policy, run_entries: bool) -> Result<Report, String> {
+    let started = Instant::now();
+    let mut report = Report { base: base.into(), head: head.into(), ..Report::default() };
+    for c in boundary_added(repo, base, head, policy)? {
         report.blocking.push(format!(
             "boundary: {}:{} `{}` calls the build stage `{}` outside the pipeline, with no exception covering it. Route it through `pipeline::build`, or cite an exception id from crates/telperion-jev/data/principles/exceptions.json.",
             c.file, c.line, c.symbol, c.stage
@@ -64,27 +58,44 @@ pub fn guards(repo: &Path, base: &str, head: &str, policy: &Policy, x: &Extracti
         }
         Err(_) => report.notes.push("budgets: the head carries no budget file".into()),
     }
-    let entry = triggered(&x.paths, &policy.entry_triggers);
+    let paths: Vec<String> = git(repo, &["diff", "--name-only", "--no-renames", base, head])?
+        .lines()
+        .map(str::to_string)
+        .collect();
+    let entry = triggered(&paths, &policy.entry_triggers);
     if !entry.is_empty() && run_entries {
-        entry_coverage(repo, head, policy, &entry, report)?;
+        entry_coverage(repo, head, policy, &entry, &mut report)?;
     } else if !entry.is_empty() {
         report.notes.push(format!("entry coverage: triggered by {}; the crate jobs run it", entry[0]));
     }
-    if !triggered(&x.paths, &policy.artifact_triggers).is_empty() {
-        report.notes.push("artifact sizes: triggered; the fixed recipe (npm run build) is measured by CI's package job with `jev principles budget`".into());
+    if !triggered(&paths, &policy.artifact_triggers).is_empty() {
+        report.notes.push("artifact sizes: triggered; CI's package job measures the fixed recipe (npm run build) with `jev principles budget`".into());
     }
-    Ok(())
+    report.elapsed_ms = started.elapsed().as_millis() as u64;
+    Ok(report)
 }
 
-/// Callers the head adds over the base, and every unresolvable import at
-/// the head, from the extraction's frozen scans.
-pub fn boundary_added(x: &Extraction) -> Vec<Caller> {
-    let scan_of = |v: &Vec<Caller>| Scan { violations: v.clone(), ..Scan::default() };
-    let mut out = added(&scan_of(&x.boundary_base), &scan_of(&x.boundary_head));
-    for u in &x.boundary_unresolved {
-        out.push(Caller { file: u.clone(), line: 0, symbol: "unresolvable import".into(), stage: "(unresolvable)".into() });
+/// Callers `head` adds over `base`, and every import at the head the guard
+/// cannot follow. The two revisions are scanned on their own threads.
+pub fn boundary_added(repo: &Path, base: &str, head: &str, policy: &Policy) -> Result<Vec<Caller>, String> {
+    let ex = exceptions();
+    let side = |rev: &str| -> Result<Scan, String> {
+        Ok(scan(&Snapshot::from_git(repo, rev, wanted)?, &policy.boundary, &ex))
+    };
+    let (b, h) = std::thread::scope(|s| {
+        let b = s.spawn(|| side(base));
+        let h = side(head);
+        (b.join().expect("base scan"), h)
+    });
+    let (b, h) = (b?, h?);
+    let mut out = added(&b, &h);
+    for u in &h.unresolved {
+        out.push(Caller { file: u.file.clone(), line: u.line, symbol: u.what.clone(), stage: "(unresolvable)".into() });
     }
-    out
+    for e in &h.parse_errors {
+        out.push(Caller { file: e.path.clone(), line: 0, symbol: e.message.clone(), stage: "(does not parse)".into() });
+    }
+    Ok(out)
 }
 
 fn entry_coverage(repo: &Path, head: &str, policy: &Policy, why: &[String], report: &mut Report) -> Result<(), String> {
@@ -103,16 +114,16 @@ fn entry_coverage(repo: &Path, head: &str, policy: &Policy, why: &[String], repo
         let started = Instant::now();
         let mut args = test.split_whitespace();
         let program = args.next().unwrap_or("cargo");
-        let status = Command::new(program)
+        let out = Command::new(program)
             .current_dir(repo)
             .args(args)
             .output()
             .map_err(|err| format!("{test}: {err}"))?;
         let secs = started.elapsed().as_secs_f64();
-        if status.status.success() {
+        if out.status.success() {
             report.notes.push(format!("entry coverage `{}`: pass in {secs:.1} s", e.export));
         } else {
-            let tail: String = String::from_utf8_lossy(&status.stdout)
+            let tail: String = String::from_utf8_lossy(&out.stdout)
                 .lines()
                 .filter(|l| l.contains("entry ") || l.contains("panicked"))
                 .take(3)
@@ -124,17 +135,8 @@ fn entry_coverage(repo: &Path, head: &str, policy: &Policy, why: &[String], repo
     Ok(())
 }
 
-pub fn absorb(report: &mut Report, run: &Run) {
-    report.findings = run.outcome.findings.clone();
-    report.calls = run.calls;
-    report.input_tokens = run.input_tokens;
-    if let Some(why) = &run.outcome.incomplete {
-        report.incomplete.push(format!("reviewer: {why}"));
-    }
-}
-
-/// At most three shown findings, deduplicated by location and principle.
 pub fn format(report: &Report) -> String {
+    let short = |rev: &str| rev[..rev.len().min(8)].to_string();
     let mut out = format!("principles: {} against {}\n", short(&report.head), short(&report.base));
     for b in &report.blocking {
         out.push_str(&format!("  BLOCK {b}\n"));
@@ -142,48 +144,11 @@ pub fn format(report: &Report) -> String {
     for n in &report.notes {
         out.push_str(&format!("  {n}\n"));
     }
-    let mut seen = std::collections::BTreeSet::new();
-    let shown: Vec<&Finding> = report
-        .findings
-        .iter()
-        .filter(|f| f.mode != Mode::Shadow)
-        .filter(|f| seen.insert((f.location.clone(), f.principle.clone())))
-        .collect();
-    let shadow = report.findings.iter().filter(|f| f.mode == Mode::Shadow).count();
-    out.push_str(&format!(
-        "  reviewer: {} warning(s), {shadow} logged in shadow, {} Jev call(s), {} input tokens\n",
-        shown.len(),
-        report.calls,
-        report.input_tokens
-    ));
-    for f in shown.iter().take(SHOWN) {
-        out.push_str(&format!(
-            "  WARN [{}] {} {}: {}. Evidence: {}. Consequence: {}. Repair: {}\n",
-            f.principle,
-            f.location,
-            f.mechanism,
-            super::ask::mechanisms(f.class).iter().find(|m| m.0 == f.mechanism).map_or("", |m| m.2),
-            f.evidence.join(", "),
-            consequence(&f.mechanism),
-            "rework it inside the one pipeline, or cite a registered exception id; `jev principles push --json` prints the full record"
-        ));
-    }
     for i in &report.incomplete {
         out.push_str(&format!("  INCOMPLETE {i}\n"));
     }
-    out
-}
-
-fn consequence(mechanism: &str) -> &'static str {
-    match mechanism {
-        "selects_builder" | "suppresses_structure" => "a small change in the setting makes a jump in the tree",
-        "surviving_duplicate" => "two copies drift, and a fix lands in one of them",
-        "fallback_path" => "an input the pipeline cannot draw ships on a path nobody judges",
-        "redundant_stop" => "work halts for a defect another step already catches",
-        _ => "the output costs build time and memory no consumer repays",
+    if report.blocking.is_empty() {
+        out.push_str("  guards: pass\n");
     }
-}
-
-fn short(rev: &str) -> &str {
-    &rev[..rev.len().min(8)]
+    out
 }
