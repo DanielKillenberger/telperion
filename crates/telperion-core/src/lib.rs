@@ -23,7 +23,6 @@ pub mod mesh;
 pub mod noise;
 #[cfg(feature = "json")]
 pub mod params;
-#[cfg(feature = "geometry")]
 pub mod pipeline;
 pub mod presets;
 pub mod radius;

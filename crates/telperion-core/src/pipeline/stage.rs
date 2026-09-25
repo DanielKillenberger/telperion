@@ -1,10 +1,9 @@
 //! The stages past the skeleton, each run only where the request asks.
-use super::{both, Leaves, Request, Schedule, Structure};
+use super::{Request, Structure};
 use crate::{
     field::Field,
-    foliage::{self, plan, Element, Instances, Reference, TwigPlacement},
+    foliage::{self, plan, Element, Reference, TwigPlacement},
     presets::Family,
-    surface::{self, AttachmentSurface, Faces, Rings, Sweep},
     tree::{NodeKind, Tree},
     Error, Result,
 };
@@ -14,7 +13,7 @@ pub(super) struct Prepared {
     pub(super) element: Option<Element>,
     pub(super) leaf_plan: Option<plan::Plan>,
     /// The quantisation box, present exactly where leaves are placed.
-    reference: Option<Reference>,
+    pub(super) reference: Option<Reference>,
     /// The leaf plan's time.
     pub(super) ms: f64,
 }
@@ -54,6 +53,7 @@ pub(super) fn prepare(
             &family.surface,
             element,
             limb_order,
+            family.skeleton.seed,
         )?;
         ms = (request.clock)() - start;
     }
@@ -66,125 +66,8 @@ pub(super) fn prepare(
     })
 }
 
-/// Stage 3's rings and their time: with their coords where the wood is
-/// drawn, and their contacts where leaves are seated on them.
-pub(super) fn rings(
-    tree: &Tree,
-    family: &Family,
-    request: Request,
-    seats: bool,
-) -> Result<(Rings, f64)> {
-    let start = (request.clock)();
-    let (height, params) = (family.skeleton.envelope.height, &family.surface);
-    let sweep = Sweep {
-        drawn: request.wood,
-        edges: seats,
-    };
-    let rings = surface::rings(tree, height, params, sweep)?;
-    Ok((rings, (request.clock)() - start))
-}
-
-/// The wood's mesh step around its rings, and its time.
-pub(super) fn wood(
-    tree: &Tree,
-    family: &Family,
-    request: Request,
-    rings: &Rings,
-) -> Result<(Faces, f64)> {
-    let start = (request.clock)();
-    let (height, params) = (family.skeleton.envelope.height, &family.surface);
-    let faces = surface::faces(rings, tree, height, params)?;
-    Ok((faces, (request.clock)() - start))
-}
-
-/// Where the leaves sit: free of the wood, on rings the wood shares, or on
-/// rings they sweep themselves where no wood is drawn.
-#[derive(Clone, Copy)]
-pub(super) enum Seat<'r> {
-    Free,
-    Shared(&'r Rings),
-    Own,
-}
-
-/// The leaves with the time of their own rings, placement and the cull.
-pub(super) type TimedLeaves = Option<(Leaves, [f64; 3])>;
-
-/// The leaves and the field read from the plan, side by side where the
-/// schedule allows; neither reads the other.
-pub(super) fn leaves_and_field(
-    tree: &Tree,
-    family: &Family,
-    request: Request,
-    prepared: &Prepared,
-    twig: Option<TwigPlacement>,
-    seat: Seat,
-) -> (Result<TimedLeaves>, Result<Option<(Field, f64)>>) {
-    let both_run = prepared.reference.is_some() && prepared.leaf_plan.is_some();
-    both(
-        request.schedule == Schedule::Concurrent && both_run,
-        || leaves(tree, family, request, prepared, twig, seat),
-        || planned_field(tree, request, prepared),
-    )
-}
-
-/// Placement and the cull, timed apart, and the retained leaves' bounds
-/// where leaves were asked for. Seated leaves read their rings in place and
-/// free what they own of them once placed.
-fn leaves(
-    tree: &Tree,
-    family: &Family,
-    request: Request,
-    prepared: &Prepared,
-    twig: Option<TwigPlacement>,
-    seat: Seat,
-) -> Result<TimedLeaves> {
-    let (Some(reference), Some(element)) = (prepared.reference, prepared.element.as_ref()) else {
-        return Ok(None);
-    };
-    let clock = request.clock;
-    let envelope = family.skeleton.envelope;
-    let start = clock();
-    let own = match seat {
-        Seat::Own => Some(rings(tree, family, request, true)?.0),
-        _ => None,
-    };
-    let rung = clock();
-    let rings = match seat {
-        Seat::Shared(rings) => Some(rings),
-        _ => own.as_ref(),
-    };
-    let contacts = rings.map(AttachmentSurface::on_wood).transpose()?;
-    let placed = foliage::place_on(
-        tree,
-        envelope,
-        family.skeleton.seed,
-        family.canopy,
-        twig,
-        contacts.as_ref(),
-        reference,
-    )?;
-    drop(contacts);
-    drop(own);
-    let placed_at = clock();
-    let placed_count = placed.len();
-    let instances = foliage::cull(placed, element, envelope, family.shell_depth)?;
-    let bounds = if request.leaves {
-        instances.bounds(element)?
-    } else {
-        None
-    };
-    let leaves = Leaves {
-        retained: instances.len(),
-        instances,
-        placed: placed_count,
-        bounds,
-    };
-    let ms = [rung - start, placed_at - rung, clock() - placed_at];
-    Ok(Some((leaves, ms)))
-}
-
 /// The field read from the leaf plan, where the plan describes the family.
-fn planned_field(
+pub(super) fn planned_field(
     tree: &Tree,
     request: Request,
     prepared: &Prepared,
@@ -196,16 +79,6 @@ fn planned_field(
         }
         _ => Ok(None),
     }
-}
-
-/// The field read from placed leaves, where the plan cannot describe them.
-pub(super) fn placed_field(
-    tree: &Tree,
-    request: Request,
-    placed: Option<(&Instances, &Element)>,
-) -> Result<(Field, f64)> {
-    let start = (request.clock)();
-    Ok((Field::new(tree, placed)?, (request.clock)() - start))
 }
 
 /// The structure export: every node's record, in node order.

@@ -41,7 +41,10 @@ await mkdir(new URL('dist/', root), { recursive: true });
 await copyFile(source, new URL('src/browser/telperion.wasm', root));
 await copyFile(source, new URL('dist/telperion.wasm', root));
 // The slim binding (crates/telperion-field): the core without its geometry, no JSON.
-execFileSync('cargo', ['build', '--release', '--target', 'wasm32-unknown-unknown', '-p', 'telperion-field'], { cwd: root, stdio: 'inherit', timeout: 600_000 });
+// Its function names are stripped here, for the package only: the download is
+// the point of the slim entry, and test binaries keep their symbols.
+const strip = ['--config', 'profile.release.package.telperion-field.strip=true'];
+execFileSync('cargo', ['build', '--release', '--target', 'wasm32-unknown-unknown', '-p', 'telperion-field', ...strip], { cwd: root, stdio: 'inherit', timeout: 600_000 });
 const slim = new URL('target/wasm32-unknown-unknown/release/telperion_field.wasm', root);
 await copyFile(slim, new URL('src/field/telperion-field.wasm', root));
 await copyFile(slim, new URL('dist/telperion-field.wasm', root));

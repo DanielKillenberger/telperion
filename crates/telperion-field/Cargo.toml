@@ -4,8 +4,9 @@ version = "0.1.0"
 edition = "2021"
 license = "MIT"
 
-# The slim binding: the core without its geometry, and nothing that
-# serializes. A species id and a seed are the whole request.
+# The slim binding: the core's build pipeline asked for the field alone,
+# without its geometry and with nothing that serializes. A species id and a
+# seed are the whole request.
 [lib]
 crate-type = ["cdylib", "rlib"]
 

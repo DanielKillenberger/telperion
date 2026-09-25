@@ -12,6 +12,7 @@
 //! Sweeps use the cube's circumsphere, overestimating by at most its half
 //! diagonal; placed leaves use box overlap. Smaller cells reduce the
 //! resolution-dependent sweep inflation.
+mod cuboid;
 mod index;
 use crate::{
     foliage::{plan::Plan, transform_point, Bounds, Element, Instances},
@@ -19,6 +20,7 @@ use crate::{
     tree::Tree,
     Error, Result,
 };
+use cuboid::Cuboid;
 pub use index::IndexSnapshot;
 use index::{bounds_of, checked, cube, reserved, union, Index, Item};
 
@@ -55,6 +57,9 @@ enum Foliage {
 /// Wood records are [ax, ay, az, bx, by, bz, start_radius, end_radius]. Plan
 /// records are [ax, ay, az, bx, by, bz, reach] with [count, system] beside
 /// them; a planned field has an empty leaf index, a placed field an empty plan.
+/// A plan holding a box also carries three f64 a record in `plan_sides`,
+/// the box's half-width vector (zero for a capsule), its reach being its
+/// half-thickness; a plan of capsules alone leaves it empty.
 pub struct FieldSnapshot {
     pub wood: Vec<f64>,
     pub wood_index: IndexSnapshot,
@@ -62,6 +67,7 @@ pub struct FieldSnapshot {
     pub plan: Vec<f64>,
     pub plan_stations: Vec<u32>,
     pub plan_index: IndexSnapshot,
+    pub plan_sides: Vec<f64>,
 }
 struct Segment {
     a: Vec3,
@@ -110,10 +116,23 @@ impl Segment {
         (t1 - t0).max(0.)
     }
 }
+/// A plan record: a capsule, the segment itself, or an oriented box about
+/// it. The box's midline is the segment, which the count estimates run along.
 struct Sweep {
     segment: Segment,
+    cuboid: Option<Cuboid>,
     count: f64,
     system: u32,
+}
+impl Sweep {
+    /// Whether the cell of `half` extent about `p` meets the record: a
+    /// capsule by the cell's circumsphere, `inflation`, a box cell to box.
+    fn meets(&self, p: Vec3, half: f64, inflation: f64) -> bool {
+        match &self.cuboid {
+            Some(r) => r.meets(p, half),
+            None => self.segment.contains(p, inflation),
+        }
+    }
 }
 /// Per-system estimates of one query, on the stack for the systems a cell
 /// ordinarily meets and spilling only past sixteen.
@@ -200,8 +219,15 @@ impl Field {
                 return Err(Error::InvalidInput("foliage reach"));
             }
             let [a, b] = d.endpoints;
+            let cuboid = (d.side != Vec3::ZERO)
+                .then(|| Cuboid::new(a, b, d.side, reach))
+                .transpose()?;
+            let bounds = match &cuboid {
+                Some(c) => c.bounds,
+                None => union(cube(a, reach)?, cube(b, reach)?),
+            };
             items.push(Item {
-                bounds: union(cube(a, reach)?, cube(b, reach)?),
+                bounds,
                 id: sweeps.len(),
             });
             sweeps.push(Sweep {
@@ -211,6 +237,7 @@ impl Field {
                     start: reach,
                     end: reach,
                 },
+                cuboid,
                 count: f64::from(d.count),
                 system: d.system,
             });
@@ -302,7 +329,7 @@ impl Field {
                 let mut foliage = false;
                 index.each(wood_cell, &mut |id| {
                     let s = &sweeps[id];
-                    if s.segment.contains(center, inflation) {
+                    if s.meets(center, half_extent, inflation) {
                         foliage = true;
                         tally.add(
                             s.system,
@@ -332,6 +359,7 @@ impl Field {
         for s in &self.wood {
             wood.extend([s.a.x, s.a.y, s.a.z, s.b.x, s.b.y, s.b.z, s.start, s.end]);
         }
+        let mut plan_sides = Vec::new();
         let (leaves, plan, plan_stations, plan_index) = match &self.foliage {
             Foliage::Placed(index) => (
                 index.snapshot()?,
@@ -346,6 +374,13 @@ impl Field {
                     let g = &s.segment;
                     plan.extend([g.a.x, g.a.y, g.a.z, g.b.x, g.b.y, g.b.z, g.start]);
                     stations.extend([s.count as u32, s.system]);
+                }
+                if sweeps.iter().any(|s| s.cuboid.is_some()) {
+                    plan_sides = records(sweeps.len(), 3)?;
+                    for s in sweeps {
+                        let side = s.cuboid.map_or(Vec3::ZERO, |c| c.side);
+                        plan_sides.extend([side.x, side.y, side.z]);
+                    }
                 }
                 (
                     Index::default().snapshot()?,
@@ -362,6 +397,7 @@ impl Field {
             plan,
             plan_stations,
             plan_index,
+            plan_sides,
         })
     }
     /// Heap capacity owned by this field, excluding allocator bookkeeping.

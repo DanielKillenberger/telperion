@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { growField, compileField, NO_LIMB } from "./index";
 import { grid } from "./voxelize";
-import { TreeEngine, presetById } from "../browser/core";
+import { TreeEngine, presetById, PRESETS } from "../browser/core";
 
 /* The slim entry point in Node (R5): the module's bytes passed in, one
  * query answered. Beside it, the answers held to the full binding's on the
@@ -48,6 +48,40 @@ describe("the slim field entry point", () => {
     const engine = await TreeEngine.create();
     expect(engine.build(presetById("ordinary"), { structure: true }).diagnostics.nodes).toBeGreaterThan(0);
     engine.dispose();
+  });
+
+  it("grows every shipped preset, byte for byte the main entry's field, bounds included (fn-150 R2, R3, R5)", async () => {
+    const module = await compileField(source);
+    const engine = await TreeEngine.create(readFileSync("src/browser/telperion.wasm"));
+    for (const preset of PRESETS) {
+      for (const seed of [1, 4242]) {
+        const tree = await growField(preset.id, seed, { source: module });
+        const family = presetById(preset.id);
+        family.skeleton.seed = seed;
+        const field = engine.build(family, { field: true }).field!;
+        expect(field.bounds, `${preset.id} ${seed}`).toEqual(tree.bounds);
+        const g = grid(tree.bounds, 10);
+        const slim = tree.query(g.cells), full = field.query(g.cells);
+        expect(slim.flags.some(f => f & 2), `${preset.id} ${seed} foliage`).toBe(true);
+        expect(full.flags, `${preset.id} ${seed}`).toEqual(slim.flags);
+        expect(full.woodRadius).toEqual(slim.woodRadius);
+        expect(full.leaves).toEqual(slim.leaves);
+        expect(full.limbs).toEqual(slim.limbs);
+        tree.release();
+      }
+    }
+    engine.dispose();
+  });
+
+  it("grows the date palm at every seed the owner tried (fn-150 R1)", async () => {
+    const module = await compileField(source);
+    for (const seed of [1, 7, 1407, 4242]) {
+      const tree = await growField("date-palm", seed, { source: module });
+      const answer = tree.query(grid(tree.bounds, 8).cells);
+      expect(answer.flags.some(f => f & 1), `seed ${seed} wood`).toBe(true);
+      expect(answer.flags.some(f => f & 2), `seed ${seed} fronds`).toBe(true);
+      tree.release();
+    }
   });
 
   it("refuses what the core refuses, whole", async () => {

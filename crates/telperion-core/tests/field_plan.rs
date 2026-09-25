@@ -33,6 +33,7 @@ fn subject(id: &str) -> (Family, Subject) {
         &family.surface,
         &element,
         None,
+        1,
     )
     .unwrap()
     .unwrap_or_else(|| panic!("{id} has a plan"));
@@ -211,6 +212,7 @@ fn two_limbs(order: Option<u32>) -> (Tree, plan::Plan) {
         &SurfaceParams::default(),
         &element,
         order,
+        1,
     )
     .unwrap()
     .unwrap();
@@ -354,8 +356,8 @@ fn a_cube_touching_only_the_sweep_boundary_is_covered() {
 }
 
 /// R1: every shipped preset but the beech, whose short shoots and limb
-/// clumping have no plan, and the date palm, whose fronds stand at the
-/// apices, is described by the plan.
+/// clumping have no plan, is described by the plan; the date palm's fronds
+/// frond by frond (fn-150).
 #[test]
 fn every_shipped_preset_but_the_beech_has_a_plan() {
     for (id, planned) in [
@@ -366,7 +368,7 @@ fn every_shipped_preset_but_the_beech_has_a_plan() {
         ("silver-birch", true),
         ("telperion", true),
         ("laurelin", true),
-        ("date-palm", false),
+        ("date-palm", true),
     ] {
         let family = Preset::from_id(id).unwrap().parameters();
         let twig = Some(TwigPlacement::of(&family).unwrap());

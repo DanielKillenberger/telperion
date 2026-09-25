@@ -264,33 +264,13 @@ pub(super) fn axis(point: Vec3, radial: Vec3, tangent: Vec3, p: CanopyParams) ->
 
 pub(super) fn matrix(
     point: Vec3,
-    mut axis: Vec3,
+    axis: Vec3,
     tangent: Vec3,
     normal: Vec3,
     p: CanopyParams,
     rng: &mut Rng,
 ) -> Result<[f32; 16]> {
-    let mut face = Vec3::Y - axis * axis.y;
-    if face.length_squared() <= 1e-12 {
-        face = tangent - axis * tangent.dot(axis);
-    }
-    if face.length_squared() <= 1e-12 {
-        face = normal - axis * normal.dot(axis);
-    }
-    face = face.normalized();
-    let mut side = axis.cross(face).normalized();
-    if p.scatter > 0. {
-        let z = rng.range(-1., 1.);
-        let phi = rng.range(0., TAU);
-        let ring = (1. - z * z).max(0.).sqrt();
-        let jitter = Vec3::new(ring * phi.cos_fixed(), z, ring * phi.sin_fixed());
-        let angle = p.scatter * PI / 180. * rng.next_f64();
-        let sin_cos = angle.sin_cos_fixed();
-        axis = axis.rotate_sin_cos(jitter, sin_cos);
-        face = face.rotate_sin_cos(jitter, sin_cos);
-        side = side.rotate_sin_cos(jitter, sin_cos);
-    }
-    let scale = p.size * (1. + p.size_variation * rng.range(-1., 1.));
+    let ([side, axis, face], scale) = super::leaflet::drawn(axis, tangent, normal, &p, rng);
     let matrix = [
         side.x * scale,
         side.y * scale,

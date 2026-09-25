@@ -30,8 +30,6 @@ use crate::{
     tree::Tree,
     Result,
 };
-use stage::Seat;
-use std::sync::OnceLock;
 
 /// How stages independent of each other are run. `Concurrent` falls back to
 /// one stage at a time where the target has no threads.
@@ -192,133 +190,21 @@ pub fn build(family: &Family, request: Request) -> Result<Built> {
     Ok(Built { skeleton, outputs })
 }
 
-/// Runs stages 3 and 4 on a skeleton already grown.
+/// Runs stages 3 and 4 on a skeleton already grown. Without the `geometry`
+/// feature only the plan's outputs are built: the field from the leaf plan
+/// and the structure. Wood, leaves and a field a family's plan cannot
+/// describe are refused there, since they need placement.
 pub fn outputs(tree: &Tree, family: &Family, request: Request) -> Result<Outputs> {
-    let twig = stage::twig(family);
-    // Leaves are placed for their own sake, or for a field the plan cannot
-    // describe; placed with surface contact, they sit on the rings.
-    let places = request.leaves
-        || (request.field.is_some() && !plan::supports(family.canopy, twig.clone().ok()));
-    let seats = places && family.canopy.surface_contact > 0.0;
-    let rings = OnceLock::new();
-    let sweep = || stage::rings(tree, family, request, seats);
-    let shared = || rings.get_or_init(sweep).as_ref().map_err(Clone::clone);
-    let (wood, planned) = both(
-        request.schedule == Schedule::Concurrent && request.wood && places,
-        || {
-            let wood = |r: &(_, _)| stage::wood(tree, family, request, &r.0);
-            request.wood.then(|| shared().and_then(wood)).transpose()
-        },
-        || {
-            let prepared = stage::prepare(tree, family, request, &twig, places)?;
-            let seat = match (seats, request.wood) {
-                (false, _) => Ok(Seat::Free),
-                (true, false) => Ok(Seat::Own),
-                (true, true) => shared().map(|r| Seat::Shared(&r.0)),
-            };
-            let twig = twig.clone().ok();
-            let made = match seat {
-                Ok(seat) => stage::leaves_and_field(tree, family, request, &prepared, twig, seat),
-                Err(error) => (Err(error), Ok(None)),
-            };
-            Ok((prepared, made))
-        },
-    );
-    // The wood's error answers first, as it did run in turn.
-    let wood = wood?;
-    let (prepared, (leaves, field)) = planned?;
-    let (mut leaves, mut field) = (leaves?, field?);
-    let rings = rings.into_inner().transpose()?;
-    let mut stages = Stages {
-        plan_ms: prepared.ms,
-        ..Stages::default()
-    };
-    if let Some((_, ms)) = rings {
-        stages.rings_ms = ms;
-    }
-    if let Some((_, ms)) = wood {
-        stages.wood_ms = ms;
-    }
-    if let Some((_, [own, placement, cull])) = leaves {
-        stages.rings_ms += own;
-        [stages.placement_ms, stages.cull_ms] = [placement, cull];
-    }
-    if request.field.is_some() && field.is_none() {
-        let placed = leaves.as_ref().map(|(l, _)| &l.instances);
-        let placed = placed.zip(prepared.element.as_ref());
-        field = Some(stage::placed_field(tree, request, placed)?);
-    }
-    if let Some((_, ms)) = field {
-        stages.field_ms = ms;
-    }
-    if !request.leaves {
-        for (l, _) in leaves.iter_mut() {
-            l.instances = Instances::new(l.instances.reference);
-        }
-    }
-    let structure = request
-        .structure
-        .then(|| stage::structure(tree))
-        .transpose()?;
-    #[cfg(test)]
-    tests::count(|t| {
-        let own = seats && !request.wood && leaves.is_some();
-        t.sweeps += u32::from(rings.is_some()) + u32::from(own);
-        t.elements += u32::from(prepared.element.is_some());
-    });
-    let wood = wood
-        .zip(rings)
-        .map(|((faces, _), (rings, _))| rings.into_mesh(faces));
-    Ok(Outputs {
-        element: prepared.element,
-        plan: prepared.leaf_plan,
-        wood,
-        leaves: leaves.map(|(l, _)| l),
-        field: field.map(|(f, _)| f),
-        structure,
-        stages,
-    })
+    #[cfg(feature = "geometry")]
+    return drawn::outputs(tree, family, request);
+    #[cfg(not(feature = "geometry"))]
+    planned::outputs(tree, family, request)
 }
 
-/// Runs `a` and `b`, `a` on a thread of its own where `concurrent` asks and
-/// the target has threads, else `a` first. The pair comes back in that order
-/// either way.
-fn both<A: Send, B>(
-    concurrent: bool,
-    a: impl FnOnce() -> A + Send,
-    b: impl FnOnce() -> B,
-) -> (A, B) {
-    #[cfg(not(target_arch = "wasm32"))]
-    if concurrent {
-        #[cfg(test)]
-        tests::count(|t| t.split = true);
-        // The stage waits in a slot the thread takes it from, so a thread
-        // the system refuses leaves it here to run in turn.
-        let slot = std::sync::Mutex::new(Some(a));
-        let take = || slot.lock().ok().and_then(|mut a| a.take());
-        return std::thread::scope(|scope| {
-            let spawned = std::thread::Builder::new()
-                .stack_size(STACK)
-                .spawn_scoped(scope, || take().map(|a| a()));
-            let Ok(handle) = spawned else {
-                let a = take().expect("a refused thread leaves its stage")();
-                return (a, b());
-            };
-            let b = b();
-            let a = handle
-                .join()
-                .unwrap_or_else(|panic| std::panic::resume_unwind(panic))
-                .expect("the thread ran its stage");
-            (a, b)
-        });
-    }
-    #[cfg(target_arch = "wasm32")]
-    let _ = concurrent;
-    (a(), b())
-}
-#[cfg(not(target_arch = "wasm32"))]
-const STACK: usize = 8 << 20;
-
+#[cfg(feature = "geometry")]
+mod drawn;
+#[cfg(not(feature = "geometry"))]
+mod planned;
 mod stage;
 #[cfg(test)]
 mod tests;

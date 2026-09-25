@@ -44,6 +44,7 @@ fn main() {
                 &f.surface,
                 &element,
                 None,
+                f.skeleton.seed,
             )
             .unwrap()
         } else {
