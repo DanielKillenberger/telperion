@@ -21,7 +21,7 @@ fn-34 was written for three species and closed only on accepting verdicts. Every
 
 ## The rules this set
 
-- One species per spec (CLAUDE.md, owner, 2026-09-16).
+- One species per spec (AGENTS.md, owner, 2026-09-16).
 - At most two value rounds per verdict before a generator spec or a stop.
 - Jev classifies an owner note as a value row, a generator gap or a tone issue and picks the checklist traits a verdict touches; it does not run row-mapping trial loops where a note names a missing row.
 - A trait the reference cannot show, such as a base the matched cameras never frame, gets its own view in the judging set.

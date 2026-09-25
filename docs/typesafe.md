@@ -1,7 +1,7 @@
 # TypeSafe usage
 
 Jev is the typed-judgment model behind TypeSafe. A new agent follows this page.
-The short form lives in `CLAUDE.md` under TypeSafe. The tools live in
+The short form lives in `AGENTS.md` under TypeSafe. The tools live in
 `crates/telperion-jev`. The labelled cases and the 2026-09-16 sweep live under
 `.flow/evidence/fn57/`.
 

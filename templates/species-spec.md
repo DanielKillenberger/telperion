@@ -37,7 +37,7 @@ This spec adds no generator or renderer capability. If the profile asks for a fo
 - **Seeds.** Twelve fixed seeds from the fn-9 list and twelve fresh seeds drawn once with `--draw-seeds` and recorded; fresh failures are retained as regressions and never resampled away. [paraphrase]
 - **Stills.** Every reference record carries a shot block (fn-36-reference-matched-stills-and-the) and the species runner renders one matched still per reference at the first fixed seed, plus the fixed whole and bare views for three fixed seeds, to the ignored evidence stills directory; the compare script writes the pair composites and the comparison numbers; `stills.json` records sha256, preset, seed, view or reference id and the verdict slot; the implementer reads at most four pairs and never awards a visual pass. [paraphrase]
 - **Determinism.** Same seed and parameters give a byte-identical tree; the pins assert it. [paraphrase]
-- **Budget.** The per-task budget from CLAUDE.md binds; a species that cannot pass its gates inside it stops with `NEEDS_HUMAN` and the profile marked unready. [paraphrase]
+- **Budget.** The per-task budget from AGENTS.md binds; a species that cannot pass its gates inside it stops with `NEEDS_HUMAN` and the profile marked unready. [paraphrase]
 - **Two prohibitions.** No generator or renderer code change, and no hand edit of a generated file. [user]
 
 ## Acceptance Criteria

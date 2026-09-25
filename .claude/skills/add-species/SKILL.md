@@ -11,7 +11,7 @@ method lives in [`docs/species-onboarding.md`](../../../docs/species-onboarding.
 and the runbook in [`docs/species-pipeline.md`](../../../docs/species-pipeline.md),
 whose **The gap loop** section is the one every halt below goes through.
 
-One species per spec (CLAUDE.md, owner 2026-09-16). A generator gap the
+One species per spec (AGENTS.md, owner 2026-09-16). A generator gap the
 species needs is its own spec that the species spec depends on, never a patch
 inside this run.
 
@@ -79,7 +79,7 @@ route the table gave:
 | Route | What you do |
 |---|---|
 | `proceed` | Mint the fix as its own spec, make the species spec depend on it (`flowctl`), record it here (`gap spec`), work it under the repo's review on its own branch, record each verdict (`gap review`), insert it into the species stack below the species branch and open its PR in `docs/pr-format.md`'s stacked mode, and run `gap resume --commit <sha>` with its commit on the stack. Then rerun the stages it names and `gap metrics` before the report. |
-| `stronger` | Hand the same gap to the stronger reasoning model named in CLAUDE.md's routing block. It writes the set; record it with `--author stronger`, and route again. |
+| `stronger` | Hand the same gap to the stronger reasoning model named in AGENTS.md's routing block. It writes the set; record it with `--author stronger`, and route again. |
 | `owner` | Stop. The decision the route filed is the owner's; say what it is and wait. Never resolve it yourself. |
 
 An empty set from you goes to the stronger model; an empty set from both is
@@ -100,7 +100,7 @@ that moves a pin lands only with a `--pin-note` under fn-53's rule.
 - No threshold edited to reach a route you wanted. `data/gap-routes.json` is
   the owner's dial; a route you disagree with is reported, not routed around.
 - No full-forest capture, and no capture at all before the defect reproduces
-  small (CLAUDE.md's token and evidence budget).
+  small (AGENTS.md's token and evidence budget).
 
 ## Friction
 
