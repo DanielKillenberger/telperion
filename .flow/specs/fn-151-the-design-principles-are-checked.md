@@ -5,7 +5,7 @@
 > owner: "so 151 really needs to be designed well. It needs to be token efficient, fast but be highly reliable in catching offending pushes ... can we run jev on specs before we start work?"
 > owner: "fn-151 should also make sure that STRATEGY.md is upheld" / "for fn-151 we should check through previous PR's identify ones that should definitely have raised flags and make sure that the hook catches it"
 > owner, on continuity: "I can imagine a multidimensional tree space where if you're on one part of the space some dimensions just don't change the output ... we need to find a principle here that holds."
-> owner: "I want an in depth review with astra on how to make sure this isn't overbearing and full of false positives. This needs to be tight." (review: `.flow/evidence/fn-151-the-design-principles-are-checked/ASTRA-REVIEW.md`, verdict "needs redesign before implementation") / host's revised outcome / owner: "ok"
+> owner: "I want an in depth review with astra on how to make sure this isn't overbearing and full of false positives. This needs to be tight." (review: `.flow/evidence/fn-151-the-design-principles-are-checked/ASTRA-REVIEW.md` on the pipeline branch `fn-80-the-gap-loops-first-live-run`, verdict "needs redesign before implementation") / host's revised outcome / owner: "ok"
 
 ## Goal & Context
 <!-- scope: business -->
@@ -76,7 +76,7 @@ Timing and memory are measured separately, on named hardware, never per push.
     - #115, owned by entry coverage;
     - #3, #59, #52, #53, #61 and #13;
     - the runner's approval layers #38, #75, #76, #77, #83, #87 and #94.
-  - Clean: #17, #50 and #82, plus the survey's other clean PRs.
+  - Clean: #17, #50 and #82, plus the survey's other clean PRs (`PR-SURVEY.md` beside the review, on the pipeline branch).
   - The survey's own draft labels (#50 positive, #17 likely) are superseded by these.
 - **How it is labelled:** by defect mechanism and evidence span, on immutable revisions, with calibration and holdout groups separated by lineage.
 - **Matched clean cases:** dormancy, count steps, backend choice, extraction or delegation, necessary validation, and accepted byte changes.
