@@ -159,6 +159,11 @@ No run from a name needs a person to supply photographs (owner,
    Commons file), attribution, licence and sha256. A recorded reference is
    never removed or rewritten.
 
+When none is kept and the tuning config lists none, the Profile stage still
+completes: it skips the inventory and writes a `references` line to
+`gaps.md`, which stops nothing. Tune refuses, saying so, until a photograph
+is recorded in the config or a later Profile run finds one.
+
 The cost is bounded: three free Commons queries, one Jev rights call per
 Commons candidate without an open licence code (twelve at most) and one
 vision call. The counts and the
@@ -178,5 +183,8 @@ Code classes each failing trait from what the run recorded:
   the config lists unexpressed, with the specs that capture it.
 - **unsourced**: a profile field no source settled (above, "Claims"); the
   generator's default stands and Tune sets it from the photographs.
+- **references**: no reference photograph to compare against (above,
+  "Reference photographs"). It stops nothing; Tune refuses until one is
+  recorded.
 
 The host reviews `gaps.md` and writes every spec; the runner mints none.

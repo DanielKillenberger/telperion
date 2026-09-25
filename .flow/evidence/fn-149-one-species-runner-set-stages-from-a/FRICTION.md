@@ -69,3 +69,10 @@
 - Slowed by: fetch hit Firecrawl's per-minute rate limit ("Rate limit exceeded. Consumed (req/min): 11, Remaining (req/min): 0 ... retry after 9s") on P2 (NC State plant toolbox) and P3 (PLOS ONE doi), and the runner settled both `unavailable-source` decisions as `drop-source`. A transient, self-describing 9-second wait became a permanent drop, so the profile rests on Wikipedia alone: one field sourced of six, no appearance trait described, nine requirements-unmet decisions open. Then the Profile stage failed at the inventory (`invalid reference-only request`, no references in the config, see the entry above), after about 110 stage-counted Jev calls (147 ledger entries) and roughly 27 Firecrawl credits plus 19 search rounds.
 - Cost: 262 s of wall time and the run's literature spend, with a thin profile to show for it.
 - Would remove it: fetch retrying after the wait the rate-limit error names (or pacing its calls under the plan's req/min) before filing `unavailable-source`, and the runner's automatic `drop-source` sparing a rate-limit error.
+
+## 2026-09-25 19:48, worker fn-149.1 (continuation 4): a Jev ledger entry cannot show what the question was given
+
+- Doing: diagnosing why the beech's JFS PDF and eleven Commons files classed rights "none".
+- Slowed by: each ledger entry keeps the question, the answer and the state's sha256, never the state itself, so the licence lines Jev read could not be read back. The PDF's case was rebuilt by running pdftotext over the Firecrawl cache, and the Commons case by fetching the Commons API again.
+- Cost: about 15 minutes.
+- Would remove it: the ledger keeping the state it hashed (it is a few hundred bytes for rights), or a `flowctl`-side reader that pairs a ledger entry with the artifact that holds its state.

@@ -114,6 +114,9 @@ pub fn base(out: &Path) -> Result<Value, String> {
 /// Runs the next revision and, when it ended with a tree, copies its result
 /// to the stage's artifact.
 pub fn run(template: &Path, tools: &Tools, out: &Path) -> Result<String, String> {
+    if super::inventory::none(template, out)? {
+        return Err("no reference photograph: the Profile stage found none and the tuning config lists none (gaps.md, references); add references to the tuning config or run the Profile stage again".into());
+    }
     let mut config = read_json(template).map_err(|e| e.to_string())?;
     let (dials, gone) = live_dials(&config["dials"])?;
     config["dials"] = json!(dials);

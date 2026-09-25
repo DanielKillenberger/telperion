@@ -11,6 +11,8 @@
 //!   trait the tuning config lists unexpressed, with the specs that capture it.
 //! - **unsourced**: a profile field no source settled; the generator's
 //!   default stands and Tune sets it from the photographs.
+//! - **references**: no reference photograph was found and the tuning config
+//!   lists none. It stops nothing; Tune refuses until one is recorded.
 //!
 //! The runner drafts and never mints: the host reviews each line and writes
 //! the spec. Identity gaps stop the run until their spec lands or the host
@@ -20,7 +22,7 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use super::{tune, Done, Run, Stage, Stop};
+use super::{inventory, tune, Done, Run, Stage, Stop};
 use crate::pipeline::canon::{read_json, write_canonical};
 use crate::pipeline::stages::capability_class::{self, Class};
 use crate::tuning::bundle::Move;
@@ -33,6 +35,7 @@ pub enum Kind {
     Identity,
     Global,
     Unsourced,
+    References,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -194,6 +197,8 @@ impl Stage for Gaps {
             p.artifact("gate"),
             p.packet("capability"),
             p.packet("profile"),
+            run.tuning.clone(),
+            inventory::found(&run.out()),
         ])
     }
 
@@ -209,6 +214,7 @@ impl Stage for Gaps {
             serde_json::from_value(read(&tune::result(&out))?).map_err(|e| e.to_string())?;
         let mut gaps = classify(&read(&p.artifact("gate"))?, &p.packet("capability"), &tuned)?;
         gaps.extend(unsourced(&read(&p.packet("profile"))?));
+        gaps.extend(references(&run.tuning, &out)?);
         write(&out, &gaps)?;
         let count = |k: Kind| gaps.iter().filter(|g| g.kind == k).count();
         Ok(Done::Ran(format!(
@@ -224,6 +230,27 @@ impl Stage for Gaps {
         let ids = identity(&run.out())?;
         Ok((!ids.is_empty()).then_some(Stop::IdentityGaps(ids)))
     }
+}
+
+/// The references gap, when the run has no photograph to compare against.
+pub fn references(template: &Path, out: &Path) -> Result<Option<Gap>, String> {
+    Ok(inventory::none(template, out)?.then(|| Gap {
+        trait_id: "references".into(),
+        kind: Kind::References,
+        evidence: vec!["no reference photograph: the Profile stage kept none (<run-dir>/cache/photos/find.json) and the tuning config lists none; Tune refuses until one is recorded".into()],
+        specs: vec![],
+    }))
+}
+
+/// Sets the references line of `gaps.md` as the Profile stage finds it,
+/// before the Gaps stage classes the rest.
+pub fn note_references(template: &Path, out: &Path) -> Result<(), String> {
+    let (json_path, _) = files(out);
+    let recorded = read_json(&json_path).map_or(Value::Null, |v| v["gaps"].clone());
+    let mut gaps: Vec<Gap> = serde_json::from_value(recorded).unwrap_or_default();
+    gaps.retain(|g| g.kind != Kind::References);
+    gaps.extend(references(template, out)?);
+    write(out, &gaps)
 }
 
 /// The profile fields no source settled, which the profile marks unsourced.
@@ -276,6 +303,10 @@ fn markdown(gaps: &[Gap]) -> String {
         (Kind::Global, "Global: backlog"),
         (Kind::Reachable, "Reachable: a live dial moves it"),
         (Kind::Unsourced, "Unsourced: no source settled it"),
+        (
+            Kind::References,
+            "References: no photograph to compare against",
+        ),
     ] {
         out.push_str(&format!("\n## {title}\n\n"));
         let listed: Vec<&Gap> = gaps.iter().filter(|g| g.kind == kind).collect();

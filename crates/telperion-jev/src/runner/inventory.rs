@@ -57,8 +57,19 @@ pub fn dir(template: &Path, out: &Path) -> Result<PathBuf, String> {
     Ok(out.join("inventory").join(&key[..16]))
 }
 
-/// Builds the inventory unless these references already have one.
+/// Whether the run has no reference photograph to compare against.
+pub fn none(template: &Path, out: &Path) -> Result<bool, String> {
+    Ok(references(template, out)?
+        .as_array()
+        .is_none_or(Vec::is_empty))
+}
+
+/// Builds the inventory unless these references already have one, and
+/// skips it when there is no photograph (`gaps::note_references`).
 pub fn build(template: &Path, out: &Path) -> Result<String, String> {
+    if none(template, out)? {
+        return Ok("no reference photographs: the inventory skipped".into());
+    }
     let dir = dir(template, out)?;
     if dir.join("inventory.json").exists() {
         return Ok("reference inventory current".into());
@@ -89,6 +100,9 @@ pub fn pins(template: &Path, out: &Path) -> Result<Value, String> {
 /// The inventory's files and the found references, as inputs to what reads
 /// them.
 pub fn files(template: &Path, out: &Path) -> Result<Vec<PathBuf>, String> {
+    if none(template, out)? {
+        return Ok(vec![found(out)]);
+    }
     let dir = dir(template, out)?;
     Ok(vec![
         dir.join("inventory.json"),

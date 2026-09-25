@@ -7,7 +7,7 @@
 use std::path::PathBuf;
 
 use super::literature::{self as lit, e, said, settle, Jev};
-use super::{inventory, Done, Run, Stage, Stop};
+use super::{gaps, inventory, Done, Run, Stage, Stop};
 use crate::pipeline::canon::read_json;
 use crate::pipeline::judge::Judge;
 use crate::pipeline::photos;
@@ -66,6 +66,7 @@ impl Stage for Profile {
         words.push(photographs(run, &judge)?);
         inventory::record(paths, &run.out())?;
         words.push(inventory::build(&run.tuning, &run.out())?);
+        gaps::note_references(&run.tuning, &run.out())?;
         lit::logged(run, words.join(", "))
     }
 

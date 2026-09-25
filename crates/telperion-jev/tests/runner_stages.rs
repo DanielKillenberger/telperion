@@ -206,7 +206,8 @@ fn a_failed_revision_leaves_the_last_kept_result_and_fails_the_stage() {
     std::fs::write(tune::result(&dir), &kept).unwrap();
     // A config the revision cannot read fails before any tree is kept.
     let template = dir.join("tuning.json");
-    std::fs::write(&template, json!({"dials": []}).to_string()).unwrap();
+    let config = json!({"dials": [], "references": [{"path": "r.png", "sha256": "r", "view": "whole", "seed": 0}]});
+    std::fs::write(&template, config.to_string()).unwrap();
     let inventory = telperion_jev::runner::inventory::dir(&template, &dir).unwrap();
     std::fs::create_dir_all(&inventory).unwrap();
     for file in ["inventory.json", "preparation.json"] {
@@ -216,6 +217,33 @@ fn a_failed_revision_leaves_the_last_kept_result_and_fails_the_stage() {
     let err = tune::run(&template, &tools, &dir).unwrap_err();
     assert!(err.starts_with("revision 1 failed"), "{err}");
     assert_eq!(std::fs::read_to_string(tune::result(&dir)).unwrap(), kept);
+}
+
+/// No photograph found and none in the config (the beech, 2026-09-25): the
+/// Profile stage skips the inventory and notes a references gap that stops
+/// nothing, and Tune refuses, naming why.
+#[test]
+fn no_reference_photograph_skips_the_inventory_notes_a_gap_and_tune_refuses() {
+    use telperion_jev::runner::inventory;
+    let dir = scratch("no-references");
+    let template = dir.join("tuning.json");
+    std::fs::write(&template, json!({"references": []}).to_string()).unwrap();
+    let word = inventory::build(&template, &dir).unwrap();
+    assert!(word.contains("inventory skipped"), "{word}");
+    assert_eq!(
+        inventory::files(&template, &dir).unwrap(),
+        [inventory::found(&dir)]
+    );
+    gaps::note_references(&template, &dir).unwrap();
+    let md = std::fs::read_to_string(gaps::files(&dir).1).unwrap();
+    assert!(md.contains("**references**"), "{md}");
+    assert!(
+        gaps::identity(&dir).unwrap().is_empty(),
+        "a missing photograph stops nothing"
+    );
+    let tools = telperion_jev::runner::tools::Tools::at(&dir);
+    let err = tune::run(&template, &tools, &dir).unwrap_err();
+    assert!(err.starts_with("no reference photograph"), "{err}");
 }
 
 /// Settles every decision the runner owns: a claim goes to the search
