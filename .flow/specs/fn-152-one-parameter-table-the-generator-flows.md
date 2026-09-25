@@ -47,6 +47,8 @@ The table's edges form an acyclic dependency graph.
 - Whether every stage can move to views in one pass or needs a staged migration. The implementer maps the reads first and reports.
 - Which of today's cross-parameter couplings are hidden, found only by the mapping.
 
+**Stages private to the pipeline (owner, 2026-09-25, moved from fn-151).** The build stages become `pub(crate)` in the core, so bindings, packages and the renderer reach generation only through `pipeline::build`, and a second chain does not compile. The sanctioned exceptions (the growth path and the GPU executor, STRATEGY.md "one algorithm with two executors") are deliberately exposed items. Tests that call a stage directly use a test-only feature. [user]
+
 ## Acceptance Criteria
 <!-- scope: both -->
 
@@ -55,6 +57,7 @@ The table's edges form an acyclic dependency graph.
 - **R3:** The wire schema, validation, tuning dial table, harness sliders and parameter reference are generated from the table. `dials.json` and the harness's hand-kept list are gone. Every shipped preset is a value file validated against the table, and fn-149's Accept writes that file. [inferred]
 - **R4:** Every shipped preset is byte-identical in mesh, field and metrics. Build time and peak memory are no worse, measured on the budgets fn-151 records. [inferred]
 - **R5:** The workspace gate and `npm test` are green. [inferred]
+- **R6:** No crate outside the core pipeline can call a build stage: a scratch caller in `telperion-wasm` fails to compile, and the growth path and GPU executor build through their deliberately exposed items. [user]
 
 ## Boundaries
 <!-- scope: business -->
