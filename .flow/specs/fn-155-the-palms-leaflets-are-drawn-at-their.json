@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-155-the-palms-leaflets-are-drawn-at-their",
+  "created_at": "2026-09-25T15:06:25.311595Z",
+  "depends_on_epics": [],
+  "id": "fn-155-the-palms-leaflets-are-drawn-at-their",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-155-the-palms-leaflets-are-drawn-at-their.md",
+  "status": "open",
+  "title": "The palm's leaflets are drawn at their measured size or the reason is named",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-25T15:06:25.319885Z"
+}
