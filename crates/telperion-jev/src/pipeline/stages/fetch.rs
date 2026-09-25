@@ -32,6 +32,7 @@ use crate::pipeline::cost::Cost;
 use crate::pipeline::decision::{
     append_decisions, decision_id, Decision, DecisionParts, Resolution,
 };
+use crate::pipeline::leads;
 use crate::pipeline::manifest::{AdmittedTable, Source};
 use crate::pipeline::stage::{Context, Paths, StageError};
 
@@ -65,6 +66,14 @@ pub fn run(paths: &Paths, adapter: &dyn FetchAdapter) -> Result<Outcome, StageEr
     let mut tables = Map::new();
     let mut decisions = Vec::new();
     for source in &manifest.sources {
+        // A tertiary page is a lead, never a citation: nothing is read from it.
+        if leads::is_tertiary(&source.url) {
+            dropped.insert(
+                source.id.clone(),
+                json!({"url": source.url, "option": "tertiary: a lead, never a citation"}),
+            );
+            continue;
+        }
         let resolved = unavailable::bound(&ctx, species, source);
         let option = resolved.map(|r| r.option.as_str());
         if option == Some("drop-source") {

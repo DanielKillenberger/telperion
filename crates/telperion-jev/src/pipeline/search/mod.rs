@@ -264,7 +264,8 @@ fn searched(
     let web = adapter.search(query, HITS_PER_QUERY);
     let research = adapter.research(query, HITS_PER_QUERY);
     for (kind, list) in [("web", web), ("research", research)] {
-        for hit in list.map_err(|err| err.to_string())? {
+        let list = list.map_err(|err| err.to_string())?;
+        for hit in super::leads::follow(adapter, list) {
             if !seen.contains(&hit.url) {
                 seen.push(hit.url.clone());
                 out.push((kind, hit));

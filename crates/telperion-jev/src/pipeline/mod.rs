@@ -15,6 +15,7 @@ pub mod decision;
 pub mod floors;
 pub mod judge;
 pub mod known;
+pub mod leads;
 pub mod manifest;
 pub mod render;
 pub mod requirements;

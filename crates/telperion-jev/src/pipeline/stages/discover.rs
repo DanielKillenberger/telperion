@@ -13,6 +13,10 @@
 //! The stage keys on the seed (species, taxon, fields), not the whole
 //! manifest, so admitting sources does not rerun it.
 //!
+//! A tertiary encyclopedic page (Wikipedia and its kind) is never proposed:
+//! it is a lead, and the primary sources it cites are the candidates in its
+//! place (`pipeline::leads`).
+//!
 //! What the repository knows comes first because a source it has already
 //! verified is the cheapest evidence there is: the first ash run spent six
 //! driver dispatches searching the web for a yield table a reference file in
@@ -31,6 +35,7 @@ use crate::pipeline::decision::{
 };
 use crate::pipeline::judge::Judge;
 use crate::pipeline::known::KnownSources;
+use crate::pipeline::leads;
 use crate::pipeline::manifest::{seed_sha256, Manifest, Source, MANIFEST_SCHEMA_VERSION};
 use crate::pipeline::sets::ranking_questions;
 use crate::pipeline::stage::{Context, Paths, StageError, STAGES};
@@ -243,6 +248,7 @@ fn known_hits(known: &KnownSources, field: &str) -> Vec<Value> {
     known
         .for_field(field)
         .into_iter()
+        .filter(|source| !leads::is_tertiary(&source.url))
         .enumerate()
         .map(|(index, source)| {
             let mut hit = hit_value(
@@ -278,14 +284,21 @@ fn searched_hits(
         .iter()
         .filter_map(|hit| hit["url"].as_str().map(str::to_string))
         .collect();
+    // A tertiary page is a lead: its cited primary sources stand in for it.
     for (kind, list) in [
         (
             "web",
-            adapter.search(query, HITS_PER_QUERY).map_err(failed)?,
+            leads::follow(
+                adapter,
+                adapter.search(query, HITS_PER_QUERY).map_err(failed)?,
+            ),
         ),
         (
             "research",
-            adapter.research(query, HITS_PER_QUERY).map_err(failed)?,
+            leads::follow(
+                adapter,
+                adapter.research(query, HITS_PER_QUERY).map_err(failed)?,
+            ),
         ),
     ] {
         for hit in list {

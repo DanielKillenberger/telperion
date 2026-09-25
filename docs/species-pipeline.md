@@ -217,6 +217,27 @@ origin marked - `catalogue:<species>#<id>`, `manifest:<path>#<id>` or
 fetch error is listed and never proposed. The search query is the field in plain words (`Fraxinus excelsior
 height at age, open grown`), not the field id.
 
+Wikipedia is a lead, never a citation (owner, fn-82 and 2026-09-25). A
+tertiary encyclopedic page, known by its host (`wikipedia.org`,
+`wikiwand.com`, `britannica.com`, `encyclopedia.com`,
+`newworldencyclopedia.org`, `dbpedia.org`, subdomains included), is never
+proposed, admitted or fetched. Discovery and the search rounds read its
+reference section and offer up to eight of the primary sources it cites
+(silvics literature, forestry tables, floras, papers) as candidates in its
+place, and those pass the same ranking and rights checks as any other. A
+tertiary source already in a manifest is recorded under `dropped` in
+`fetch.json` and never read, so no profile value can cite one. The rule is
+code (`pipeline::leads`), never a judgment. Wikimedia Commons is a photograph
+host, not a citation, and the reference photographs may come from it
+(`docs/species-runner.md`, "Reference photographs").
+
+A rate limit is not a missing source. Every call the runner makes goes
+through `adapter::Retrying`: a call refused by a rate limit waits the delay
+the error names (ten seconds when it names none, never more than a minute)
+and tries again, up to four tries, and once the provider has reported its
+per-minute limit the calls are paced to stay under it. Only a permanent
+failure, or a limit that outlasts every try, files `unavailable-source`.
+
 An admitted table names its markdown table by `table_index` and, when one
 markdown table packs several species under label rows (a name in the first
 cell, every other cell empty, as Firecrawl parses the Ertragstafeln extract),
