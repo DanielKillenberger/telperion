@@ -16,7 +16,7 @@ use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::adapter::FixtureAdapter;
 use telperion_jev::pipeline::canon::{read_json, write_canonical};
-use telperion_jev::pipeline::consume::owner_stops;
+use telperion_jev::pipeline::consume::open_requirements;
 use telperion_jev::pipeline::decision::reconcile;
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::requirements::table;
@@ -173,7 +173,7 @@ fn a_required_field_below_the_tables_bar_stops_the_run_for_the_owner() {
     );
     selected.unwrap();
     let paths = Paths::new(&dir);
-    let stops = owner_stops(&reconcile(&paths).unwrap());
+    let stops = open_requirements(&reconcile(&paths).unwrap());
     // The four fields quality passed at proxy only and select could not
     // fill stop the run too (fn-131): no gap passes silently.
     let unfilled = [
@@ -223,13 +223,13 @@ fn a_required_field_below_the_tables_bar_stops_the_run_for_the_owner() {
 
     // Adding sources without adding one leaves the decision open.
     resolve(&dir, height, "add-sources");
-    assert!(owner_stops(&reconcile(&paths).unwrap()).contains(&height.to_string()));
+    assert!(open_requirements(&reconcile(&paths).unwrap()).contains(&height.to_string()));
 
     // A source added to the manifest lets the resolution bind.
     let mut added = manifest();
     added["sources"].as_array_mut().unwrap().push(json!({"id": "S2", "url": "https://example.test/yield", "title": "Yield table", "rights": "cited"}));
     write_canonical(&dir.join("manifest.json"), &added).unwrap();
-    assert!(!owner_stops(&reconcile(&paths).unwrap()).contains(&height.to_string()));
+    assert!(!open_requirements(&reconcile(&paths).unwrap()).contains(&height.to_string()));
 }
 
 #[test]
@@ -257,7 +257,7 @@ fn a_described_appearance_level_is_copied_into_the_profile_as_ranges() {
     );
     // Every appearance trait is described; what stops the run is only the
     // measured fields no span of this page fills (fn-131).
-    let stops = owner_stops(&reconcile(&Paths::new(&dir)).unwrap());
+    let stops = open_requirements(&reconcile(&Paths::new(&dir)).unwrap());
     let fields = &table().growth_forms["broadleaf"].fields;
     assert_eq!(stops.len(), fields.len(), "{stops:?}");
     for field in fields.keys() {

@@ -5,11 +5,9 @@
 //! question-set versions, the model name and the tool versions, and does
 //! nothing when the artifact on disk already carries that key. The key reads
 //! content, never the build: a changed binary with unchanged inputs reruns
-//! nothing (fn-149). Missing
-//! inputs, an open decision that stops the stage, or a changed checksum stop
-//! it by name. Opening a stage records it on the resolutions it consumes, and
-//! every artifact carries what its stage spent. Every run appends to the
-//! command log.
+//! nothing (fn-149). Missing inputs, an open decision that stops the stage,
+//! or a changed checksum stop it by name. Opening a stage records it on the
+//! resolutions it consumes, and every artifact carries what its stage spent.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -39,7 +37,7 @@ pub static STAGES: [&str; 11] = [
 /// tree and holds the scratch a run leaves behind - the fetch cache, the
 /// ledger, the command log and rendered stills - so none of it enters the
 /// catalogue. A directory given without a run of its own is its own run
-/// directory, which is what a test and a swap trial use.
+/// directory, which is what a test uses.
 #[derive(Debug, Clone)]
 pub struct Paths {
     pub dir: PathBuf,
@@ -391,23 +389,6 @@ pub fn log_command(paths: &Paths, argv: &[String], exit: i32) -> Result<(), Cano
     Ok(())
 }
 
-/// Reads the stage names the command log ran, in order.
-pub fn logged_stages(paths: &Paths) -> Result<Vec<String>, CanonError> {
-    let path = paths.command_log();
-    if !path.exists() {
-        return Ok(Vec::new());
-    }
-    let value = read_json(&path)?;
-    Ok(value["commands"]
-        .as_array()
-        .map(|list| {
-            list.iter()
-                .filter_map(|c| c["argv"][0].as_str().map(str::to_string))
-                .collect()
-        })
-        .unwrap_or_default())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -541,8 +522,8 @@ mod tests {
         let paths = Paths::new(&dir);
         log_command(&paths, &["discover".into(), "--dir".into(), "x".into()], 0).unwrap();
         log_command(&paths, &["fetch".into()], 1).unwrap();
-        assert_eq!(logged_stages(&paths).unwrap(), vec!["discover", "fetch"]);
         let log = read_json(&paths.command_log()).unwrap();
+        assert_eq!(log["commands"][0]["argv"][0], "discover");
         assert_eq!(log["commands"][1]["exit"], 1);
     }
 }

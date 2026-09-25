@@ -112,6 +112,6 @@ pub fn unmet(
             "sources_sha256": sources_sha256(&ctx.paths.manifest())?,
         }),
         &["add-sources"],
-        "The requirements table asks this field and select filled no value for it. The pipeline searches again for a source aimed at the gap, two rounds at most; after them it is NEEDS_HUMAN and the owner adds sources.",
+        "The requirements table asks this field and select filled no value for it. The pipeline searches again for a source aimed at the gap, two rounds at most; after them the runner logs it and runs on without the field; a person may still add sources.",
     ))
 }

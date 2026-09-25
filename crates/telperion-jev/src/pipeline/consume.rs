@@ -165,8 +165,9 @@ fn trait_list(traits: &Value, decision: &Decision) -> Value {
         .map_or(Value::Null, |t| t["sources"].clone())
 }
 
-/// The open decisions that stop the run for the owner: NEEDS_HUMAN.
-pub fn owner_stops(decisions: &[Decision]) -> Vec<String> {
+/// The requirements still below their bar: logged by the runner and never
+/// waited on (fn-149).
+pub fn open_requirements(decisions: &[Decision]) -> Vec<String> {
     decisions
         .iter()
         .filter(|d| d.kind == REQUIREMENTS_UNMET && d.status == Status::Open)
@@ -367,7 +368,7 @@ mod tests {
         apply_resolutions(&mut held, std::slice::from_ref(&add));
         assert!(hold_unmet(&mut held, "before", &Value::Null));
         assert_eq!(held[0].status, Status::Open);
-        assert_eq!(owner_stops(&held), vec![held[0].id.clone()]);
+        assert_eq!(open_requirements(&held), vec![held[0].id.clone()]);
         let once = held[0].note.clone();
         apply_resolutions(&mut held, std::slice::from_ref(&add));
         hold_unmet(&mut held, "before", &Value::Null);
@@ -377,6 +378,6 @@ mod tests {
         apply_resolutions(&mut added, &[add]);
         assert!(!hold_unmet(&mut added, "after", &Value::Null));
         assert_eq!(added[0].status, Status::Resolved);
-        assert!(owner_stops(&added).is_empty());
+        assert!(open_requirements(&added).is_empty());
     }
 }

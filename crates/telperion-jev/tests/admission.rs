@@ -12,7 +12,7 @@ use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::adapter::FixtureAdapter;
 use telperion_jev::pipeline::canon::{read_json, write_canonical};
-use telperion_jev::pipeline::consume::{owner_stops, sources_sha256, REQUIREMENTS_UNMET};
+use telperion_jev::pipeline::consume::{open_requirements, sources_sha256, REQUIREMENTS_UNMET};
 use telperion_jev::pipeline::decision::{
     reconcile, write_decisions, Decision, DecisionParts, Status,
 };
@@ -277,7 +277,7 @@ fn two_empty_rounds_hand_the_owner_the_decision_with_the_sources_tried() {
     assert!(!dir.join("resolutions.json").exists());
     let list = reconcile(&paths).unwrap();
     assert!(search::searchable(&paths, &list).is_empty());
-    assert_eq!(owner_stops(&list), vec![decision.id]);
+    assert_eq!(open_requirements(&list), vec![decision.id]);
     assert!(matches!(
         search::run(&paths, &adapter, &judge(&mock, &dir)).unwrap(),
         search::Outcome::Nothing

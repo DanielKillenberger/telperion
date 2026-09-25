@@ -329,7 +329,7 @@ fn unstated(ctx: &Context, trait_: &Appearance, ledger: &[String], sources: &str
             "sources_tried": trait_.sources, "sources_sha256": sources,
         }),
         &["add-sources"],
-        "The requirements table asks for this appearance trait and no source it names describes it. The pipeline searches again, two rounds at most, and adds the source it finds to the trait's list; after them it is NEEDS_HUMAN and the owner adds a source. A resolution that adds none stays open.",
+        "The requirements table asks for this appearance trait and no source it names describes it. The pipeline searches again, two rounds at most, and adds the source it finds to the trait's list; after them the runner logs it and runs on without the trait; a person may still add a source. A resolution that adds none stays open.",
     )
 }
 

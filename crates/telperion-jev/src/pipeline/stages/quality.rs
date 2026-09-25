@@ -389,7 +389,7 @@ fn insufficient(manifest: &Manifest, s: &Shortfall<'_>) -> Decision {
 }
 
 /// A required field below the requirements table's bar. The pipeline adds
-/// sources for two rounds, then the owner does (NEEDS_HUMAN); the bar is
+/// sources for two rounds, then the runner logs it and runs on; the bar is
 /// the table's and no option lowers it.
 fn unmet(manifest: &Manifest, s: &Shortfall<'_>, bar: Sufficiency, sources: &str) -> Decision {
     s.decision(
@@ -397,6 +397,6 @@ fn unmet(manifest: &Manifest, s: &Shortfall<'_>, bar: Sufficiency, sources: &str
         REQUIREMENTS_UNMET,
         json!({"bar": bar.key(), "sources_sha256": sources}),
         &["add-sources"],
-        "The requirements table asks this field at its bar and the literature falls short. The pipeline searches again for sources aimed at the dominant gap, two rounds at most; after them it is NEEDS_HUMAN and the owner adds sources. A resolution that adds none stays open, and the table's bar is never lowered.",
+        "The requirements table asks this field at its bar and the literature falls short. The pipeline searches again for sources aimed at the dominant gap, two rounds at most; after them the runner logs it and runs on without the field; a person may still add sources. A resolution that adds none stays open, and the table's bar is never lowered.",
     )
 }
