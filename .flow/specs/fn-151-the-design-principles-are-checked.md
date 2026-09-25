@@ -68,6 +68,22 @@ The species runner also grew about 30 stop sites of approval and re-checking. Th
 - A run on a typical branch finishes in seconds and costs a handful of calls; the PR reports both from the labelled set's runs.
 - Reliability is measured, not assumed: on the labelled set, recall on offending cases is at least 0.9 and the false-flag rate on clean cases is at most 0.1, each reported. A candidate class the extractor misses is a test failure, never a silent pass.
 
+**The labelled PRs (owner confirmed, 2026-09-25: "seems reasonable what you proposed").** [user]
+- Positives, which must be flagged:
+  - #6: copied build chain in the Wasm binding;
+  - #58: the slim field crate's third copy;
+  - #55: the placed-leaf fallback;
+  - #115: the palm unbuildable through the slim entry (the code guard, not Jev);
+  - #3: an enum switching builders;
+  - #59: the first frond removes all other foliage, a jump;
+  - #52: twin reviewers and assessors;
+  - #53: the copied route table and approval pauses;
+  - #61: the Claude twin scripts;
+  - #13: an unread per-vertex buffer;
+  - the runner's approval layers: #38, #75, #76, #77, #83, #87 and #94.
+- Clean, which must pass: #17, growth as a sanctioned hidden feature; #50, the GPU executor STRATEGY.md allows; #82, fn-102's cleanup; and the survey's other clean PRs (`.flow/evidence/fn-151-the-design-principles-are-checked/PR-SURVEY.md`).
+- STRATEGY.md gains one line on process: a step that stops work must catch defects that the steps around it cannot. The runner positives then cite a stated principle.
+
 **Where it runs.** [inferred]
 - A checked-in `.githooks/pre-push` runs the reviewer on the pushed branch's diff against `origin/master`, through `bash -ic` for the key. `scripts/setup` (or the existing setup path) sets `core.hooksPath` once, so every checkout and worktree gets it.
 - A finding stops the push with its file, line, principle and a one-line reason. The author fixes it, or pushes with `--no-verify` and names the trade-off in the PR's Decisions section.
