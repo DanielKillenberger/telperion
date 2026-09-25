@@ -73,6 +73,11 @@ pub struct DispatchResult {
     pub handoff: Option<PathBuf>,
     #[serde(default)]
     pub failure: Option<String>,
+    /// True when the result reported no usage and the dispatch's reservation
+    /// was charged in its place: the spend stays bounded and known, and the
+    /// report still lists the cost as unknown.
+    #[serde(default)]
+    pub usage_is_reservation: bool,
     #[serde(default)]
     pub outcome: Option<Outcome>,
     #[serde(default)]
@@ -96,7 +101,10 @@ pub struct Dispatch {
     pub scope: String,
     /// Ledger identities of the judgments that chose this route.
     pub judgments: Vec<String>,
-    pub reserved_tokens: u64,
+    /// The allowance the dispatch opened with; unknown with no attempt bound
+    /// and no usage reported yet.
+    #[serde(default)]
+    pub reserved_tokens: Option<u64>,
     pub opened_at: String,
     #[serde(default)]
     pub result: Option<DispatchResult>,
@@ -148,7 +156,18 @@ impl Run {
                     .tokens
                     .saturating_add(usage.input_tokens.saturating_add(usage.output_tokens));
             }
-            None => self.budget.usage_known = false,
+            None => {
+                // A finished dispatch that could not count charges what it
+                // reserved. The first live run's host-written option set had
+                // no count, and an unknown usage had made every later
+                // continuation judgment unavailable.
+                // With no cap there may be no reservation (fn-117): nothing to charge.
+                self.budget.tokens = self
+                    .budget
+                    .tokens
+                    .saturating_add(dispatch.reserved_tokens.unwrap_or(0));
+                result.usage_is_reservation = true;
+            }
         }
         dispatch.result = Some(result);
         Ok(outcome)

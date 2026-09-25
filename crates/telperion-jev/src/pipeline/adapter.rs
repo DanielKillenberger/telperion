@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::sha256_hex;
 
+pub mod content;
 pub mod firecrawl;
 pub mod tables;
 

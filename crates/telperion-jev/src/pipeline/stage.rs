@@ -2,7 +2,8 @@
 //!
 //! A stage reads the admitted manifest and earlier artifacts at fixed paths,
 //! computes its key over their checksums, the manifest checksum, the
-//! question-set versions, the model name and the tool versions, and does
+//! question-set versions, the model name and the tool versions, the build
+//! identity among them (a digest of the crate's code, fn-131), and does
 //! nothing when the artifact on disk already carries that key. Missing
 //! inputs, an open decision that stops the stage, or a changed checksum stop
 //! it by name. Opening a stage records it on the resolutions it consumes, and
@@ -15,6 +16,7 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
+use super::build_id::{BUILD_ID, BUILD_TOOL};
 use super::canon::{canonical_sha256, file_sha256, read_json, write_canonical, CanonError};
 use super::consume::{mark_consumed, rejected_proposal, ReconcileError};
 use super::cost::{earlier_cost, Cost};
@@ -65,6 +67,11 @@ impl Paths {
     }
     pub fn resolutions(&self) -> PathBuf {
         self.dir.join("resolutions.json")
+    }
+    /// The pipeline's own searches for a requirement it could not meet
+    /// (fn-129): the rounds it ran per field and the sources it tried.
+    pub fn search_rounds(&self) -> PathBuf {
+        self.dir.join("search-rounds.json")
     }
     pub fn command_log(&self) -> PathBuf {
         self.run.join("command-log.json")
@@ -192,14 +199,13 @@ impl Context {
             });
         }
         let admitted = manifest::load(&manifest_path).map_err(StageError::Manifest)?;
-        let decisions =
-            reconcile(&paths.decisions(), &paths.resolutions()).map_err(|err| match err {
-                ReconcileError::File(err) => StageError::File(err),
-                refused @ ReconcileError::Refused(_) => StageError::Failed {
-                    stage: stage.into(),
-                    reason: refused.to_string(),
-                },
-            })?;
+        let decisions = reconcile(&paths).map_err(|err| match err {
+            ReconcileError::File(err) => StageError::File(err),
+            refused @ ReconcileError::Refused(_) => StageError::Failed {
+                stage: stage.into(),
+                reason: refused.to_string(),
+            },
+        })?;
         let (global, fields) = open_for_stage(&decisions, stage);
         if !global.is_empty() {
             return Err(StageError::OpenDecision {
@@ -287,6 +293,7 @@ impl Context {
         let m = &self.admitted.manifest;
         let mut tools = m.versions.tools.clone();
         tools.insert("species-pipeline".into(), TOOL_VERSION.into());
+        tools.insert(BUILD_TOOL.into(), BUILD_ID.into());
         // A landed gap fix is a tool version: it expires the key of the stage
         // that halted and of every stage after it, and leaves the earlier
         // ones current, so the run resumes where it stopped (fn-63 R4).

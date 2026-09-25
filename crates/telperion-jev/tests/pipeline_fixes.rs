@@ -347,21 +347,21 @@ fn admitting_the_manifest_does_not_rerun_discovery_and_a_seed_edit_does() {
 
 /// R2: each option on unavailable-source changes the next fetch as it says
 /// and records the consuming stage; an option no stage consumes and a
-/// replace-source without a url are refused by name.
+/// replace-source without a url are refused by name; a retry that fails
+/// again reopens the decision (fn-130).
 #[test]
 fn each_unavailable_source_option_changes_the_next_fetch_and_the_rest_are_refused() {
     let run = Run::new();
     run.discover().unwrap();
     let admission = run.admit(&admitted(Some("Esche"), vec![source("M1", MOBOT, vec![])]));
     run.resolve(vec![admission.clone()]);
-    let err = run.fetch().unwrap_err().to_string();
-    assert!(
-        err.starts_with(
-            "fetch: unavailable-source european-ash/fetch/unavailable-source/M1: fetch failed for"
-        ),
-        "{err}"
-    );
     let id = "european-ash/fetch/unavailable-source/M1";
+    assert!(matches!(run.fetch().unwrap(), fetch::Outcome::Ran { decisions } if decisions == [id]));
+    let error = run.decision(id)["payload"]["error"].clone();
+    assert!(
+        error.as_str().unwrap().starts_with("fetch failed for"),
+        "{error}"
+    );
 
     let refused = run.resolution(id, "ignore", Value::Null);
     run.resolve(vec![admission.clone(), refused]);
@@ -399,12 +399,9 @@ fn each_unavailable_source_option_changes_the_next_fetch_and_the_rest_are_refuse
 
     let retry = run.resolution(id, "retry", Value::Null);
     run.resolve(vec![admission, retry]);
-    let err = run.fetch().unwrap_err().to_string();
-    assert!(
-        err.contains("unavailable-source european-ash/fetch/unavailable-source/M1"),
-        "{err}"
-    );
-    assert_eq!(run.decision(id)["consumed_by"], "fetch");
+    assert!(matches!(run.fetch().unwrap(), fetch::Outcome::Ran { .. }));
+    assert!(run.fetch_body()["sources"].get("M1").is_none());
+    assert_eq!(run.decision(id)["status"], "open");
 }
 
 /// R3: the merged table files coverage-gap at 31 against 11, a missing block
@@ -578,7 +575,8 @@ fn discovery_lists_the_repository_sources_first_and_never_proposes_one_with_a_fe
 }
 
 /// R5's error case: a page the store rejects files unavailable-source with
-/// the adapter's error verbatim, and nothing is fetched in its place.
+/// the adapter's error verbatim, nothing is fetched in its place, and the
+/// other sources are still fetched (fn-130).
 #[test]
 fn a_page_the_store_rejects_files_unavailable_source_with_the_error_verbatim() {
     let run = Run::new();
@@ -586,16 +584,17 @@ fn a_page_the_store_rejects_files_unavailable_source_with_the_error_verbatim() {
     run.resolve(vec![
         run.admit(&admitted(Some("Esche"), vec![source("M1", MOBOT, vec![])]))
     ]);
-    let err = run.fetch().unwrap_err().to_string();
+    run.fetch().unwrap();
     let decision = run.decision("european-ash/fetch/unavailable-source/M1");
     assert_eq!(decision["status"], "open");
     let recorded = decision["payload"]["error"].as_str().unwrap();
-    assert!(err.ends_with(recorded), "{err}\n{recorded}");
     assert!(
         recorded.starts_with("fetch failed for https://plantfinder.mobot.org/"),
         "{recorded}"
     );
-    assert!(!run.dir.join("fetch.json").exists());
+    let sources = &run.fetch_body()["sources"];
+    assert!(sources.get("M1").is_none());
+    assert!(sources.get("E1").is_some() && sources.get("O1").is_some());
 }
 
 /// R6: the report lists Firecrawl credits and Jev calls per stage and in

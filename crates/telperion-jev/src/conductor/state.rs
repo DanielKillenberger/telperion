@@ -17,10 +17,15 @@ use crate::tuning::continuation::{Basis, HumanDecision, Pause};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Budget {
-    pub max_tokens: u64,
-    pub attempt_max_tokens: u64,
-    pub max_dispatches: u64,
-    pub max_tuning_revisions: u64,
+    /// The config's caps; each absent one is no cap.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_tokens: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub attempt_max_tokens: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_dispatches: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_tuning_revisions: Option<u64>,
     /// Tokens known to be spent: dispatch usage, Jev usage and tuning runs.
     pub tokens: u64,
     /// False once a finished dispatch reported no usage; the continuation
@@ -30,8 +35,9 @@ pub struct Budget {
 }
 
 impl Budget {
-    pub fn remaining(&self) -> u64 {
-        self.max_tokens.saturating_sub(self.tokens)
+    /// Tokens left under the cap; `None` when no token cap is set.
+    pub fn remaining(&self) -> Option<u64> {
+        self.max_tokens.map(|cap| cap.saturating_sub(self.tokens))
     }
 }
 
@@ -64,6 +70,13 @@ pub struct Dependency {
     #[serde(default)]
     pub landed_commit: Option<String>,
     pub attached_at: String,
+    /// Jev's judgments over this dependency, keyed by the evidence they
+    /// read (`design:<spec sha>`, `implementation:<design revision>`), as
+    /// `choice|ledger`. A judgment over unchanged evidence is reused, never
+    /// re-bought: the first live run re-asked implementation complexity on
+    /// every step and watched it flip.
+    #[serde(default)]
+    pub judged: std::collections::BTreeMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -80,6 +93,10 @@ pub struct TuningRevision {
     /// landing asks for the next one.
     pub landed_count: usize,
     pub at: String,
+    /// Why the revision converged on what the generator can draw, when it
+    /// did; the packet then follows without another revision (fn-136).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub converged: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -106,12 +123,25 @@ pub struct Run {
     pub budget: Budget,
     pub dispatches: Vec<Dispatch>,
     pub dependencies: Vec<Dependency>,
+    /// The pause a scoped human decision just resumed from; the next attempt
+    /// it names runs without a continuation question, and opening that
+    /// attempt clears it.
+    #[serde(default)]
+    pub resumed_from: Option<String>,
+    /// Landed commits whose stages have rerun since, halt or not; a landing
+    /// not in this list sends the stages before any halt is acted on.
+    #[serde(default)]
+    pub stages_rerun_for: Vec<String>,
     pub tuning: Vec<TuningRevision>,
     /// Every route the policy took, in order: `<context>=<route>: <why>`.
     pub routes: Vec<String>,
     pub waits: Vec<Wait>,
     #[serde(default)]
     pub pause: Option<Pause>,
+    /// The tuning revision whose own pause the current one carries; its
+    /// resume runs the tuning loop with the same decision.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tuning_pause: Option<u64>,
     #[serde(default)]
     pub authorizations: Vec<HumanDecision>,
     /// Gap ids the run has checked, with the verdict, so a resume asks again
@@ -121,12 +151,18 @@ pub struct Run {
     /// The fingerprint the stages were last found current under.
     #[serde(default)]
     pub stage_fingerprint: Option<String>,
+    /// The pipeline build the stages last ran at (fn-132): stages a code
+    /// change left stale rerun once per build, before a search or a pause.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stages_build: Option<String>,
 }
 
 impl Run {
     pub fn new(config: &Config) -> Self {
         let at = now();
         Self {
+            stages_rerun_for: Vec::new(),
+            resumed_from: None,
             schema: "conductor-run".into(),
             schema_version: SCHEMA_VERSION,
             species: config.species.clone(),
@@ -150,9 +186,11 @@ impl Run {
             routes: Vec::new(),
             waits: Vec::new(),
             pause: None,
+            tuning_pause: None,
             authorizations: Vec::new(),
             gap_checks: BTreeMap::new(),
             stage_fingerprint: None,
+            stages_build: None,
         }
     }
 
@@ -165,8 +203,9 @@ impl Run {
         if !path.exists() {
             return Ok(Self::new(config));
         }
-        let run: Run = serde_json::from_value(read_json(&path)?)
+        let mut run: Run = serde_json::from_value(read_json(&path)?)
             .map_err(|err| ConductorError::Invalid(format!("{}: {err}", path.display())))?;
+        run.charge_unknown_usage();
         if run.species != config.species || run.spec != config.spec {
             return Err(format!(
                 "{} belongs to {} ({}); this config names {} ({})",
@@ -189,6 +228,25 @@ impl Run {
             &serde_json::to_value(&*self).expect("run serializes"),
         )?;
         Ok(path)
+    }
+
+    /// A record written before unknown usage charged its reservation: every
+    /// finished dispatch without a count is charged now, once, and the run's
+    /// usage is known again.
+    pub fn charge_unknown_usage(&mut self) {
+        let mut charged = 0u64;
+        for d in self.dispatches.iter_mut() {
+            if let Some(r) = d.result.as_mut() {
+                if r.usage.is_none() && !r.usage_is_reservation {
+                    charged = charged.saturating_add(d.reserved_tokens.unwrap_or(0));
+                    r.usage_is_reservation = true;
+                }
+            }
+        }
+        if charged > 0 || !self.budget.usage_known {
+            self.budget.tokens = self.budget.tokens.saturating_add(charged);
+            self.budget.usage_known = true;
+        }
     }
 
     pub fn open_dispatch(&self) -> Option<&Dispatch> {
@@ -243,7 +301,18 @@ impl Run {
             .as_ref()
             .ok_or_else(|| ConductorError::Invalid("the run is not paused".into()))?;
         pause.resume(&decision)?;
+        // A cap moves only by the human's scoped decision, and only from the
+        // value the run holds now: the caps live on the record, not the
+        // config, so a raise the owner made in the file alone never reached
+        // a paused run. The dispatch cap rides the shared round-cap field.
+        if let Some(ext) = &decision.round_cap_extension {
+            self.budget.max_dispatches = raise("dispatch", ext, self.budget.max_dispatches)?;
+        }
+        if let Some(ext) = &decision.token_cap_extension {
+            self.budget.max_tokens = raise("token", ext, self.budget.max_tokens)?;
+        }
         self.pause = None;
+        self.resumed_from = Some(decision.pause_id.clone());
         self.end_wait();
         self.authorizations.push(decision);
         Ok(())
@@ -263,5 +332,22 @@ impl Run {
             "tuning_revisions": self.tuning.len(),
             "paused": self.pause.as_ref().map(|p| p.id.clone()),
         })
+    }
+}
+
+/// A cap the run holds, moved by a scoped extension from exactly that value.
+/// A run without the cap has nothing to raise (fn-117).
+fn raise(
+    name: &str,
+    ext: &crate::tuning::continuation::TokenCapExtension,
+    held: Option<u64>,
+) -> Result<Option<u64>> {
+    match held {
+        Some(held) if ext.previous == held && ext.next > held => Ok(Some(ext.next)),
+        _ => Err(format!(
+            "{name} cap extension names {} -> {}; the run holds {held:?}",
+            ext.previous, ext.next
+        )
+        .into()),
     }
 }

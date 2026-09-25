@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "growth_rate": {
+    "type": "score",
+    "instructions": "Given `requirement` and the `evidence` sentences from every admitted source that name a growth rate, with the tallies code laid out in `counts`, how well do the sources state the rate `requirement.field` names for a plant of this taxon: a size gained per year, using only the numbers the sentences state? No age is asked: a typical yearly rate or range of rates is the evidence.",
+    "criteria": [
+      {
+        "summary": "None: no sentence states this dimension's growth as a number per year for this taxon; the sentences give a size, a size at an age, a growth rate in words only such as slow or moderate, the rate of another dimension, or no number",
+        "signals": [
+          "slow growing, with no number",
+          "a height or a size at an age, not a rate"
+        ]
+      },
+      {
+        "summary": "Proxy only: the rate is stated only for another taxon, a named cultivar, a seedling or a nursery plant",
+        "signals": [
+          "another species or a cultivar only",
+          "seedlings in the nursery"
+        ]
+      },
+      {
+        "summary": "Partial: one source states a typical yearly rate or range of this dimension for this taxon",
+        "signals": [
+          "one source states cm or ft a year"
+        ]
+      },
+      {
+        "summary": "Sufficient: two or more sources each state a typical yearly rate or range of this dimension for this taxon",
+        "signals": [
+          "several sources state the rate"
+        ]
+      }
+    ]
+  },
+  "rate_gap": {
+    "type": "choice",
+    "instructions": "What is the main reason the `evidence` falls short of stating `requirement.field` as a yearly growth rate of `requirement.taxon`, if it does?",
+    "criteria": {
+      "no_growth_rate": "No sentence states this dimension's growth as a number per year",
+      "wrong_taxon": "The rate is stated only for another taxon, a named cultivar, a seedling or a nursery plant",
+      "single_source": "Only one source states a typical yearly rate",
+      "none": "The evidence meets the requirement"
+    }
+  }
+}

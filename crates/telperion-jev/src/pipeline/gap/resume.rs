@@ -70,6 +70,15 @@ pub fn record_spec(paths: &Paths, gap_id: &str, spec: &str) -> Result<(), GapErr
     };
     record["spec"] = json!(spec);
     record["fix"] = json!(chosen.option);
+    // Every spec the gap has minted stays on the record, so a landing can
+    // name any of them; `spec` is the latest.
+    if !record["specs"].is_array() {
+        record["specs"] = json!([]);
+    }
+    let specs = record["specs"].as_array_mut().unwrap();
+    if !specs.iter().any(|s| s == spec) {
+        specs.push(json!(spec));
+    }
     super::write(paths, &record)?;
     Ok(())
 }
@@ -149,6 +158,7 @@ pub fn resume(
     gap_id: &str,
     commit: &str,
     pin_note: Option<&str>,
+    named: Option<&str>,
 ) -> Result<Resumed, GapError> {
     let mut record = super::read(paths, gap_id)?;
     let Some(spec) = record["spec"].as_str().map(str::to_string) else {
@@ -156,11 +166,53 @@ pub fn resume(
             "no spec is recorded for this gap; mint it and record it first".into(),
         ));
     };
-    if !record["landed"].is_null() {
+    // A gap that minted several specs lands the one named; the date palm's
+    // capability gate minted two organ specs in one round and the first
+    // landing was recorded against the wrong one.
+    let spec = match named {
+        None => spec,
+        Some(n) if n == spec => spec,
+        Some(n)
+            if record["specs"]
+                .as_array()
+                .is_some_and(|all| all.iter().any(|s| s == n)) =>
+        {
+            n.to_string()
+        }
+        Some(n) => {
+            return Err(GapError::Invalid(format!(
+                "{gap_id} minted no spec {n}; its specs are {}",
+                record["specs"]
+            )))
+        }
+    };
+    // One landing per round. A halt that stood after a landing, narrower,
+    // ran another round and recorded another spec; that spec lands too, and
+    // the earlier landing moves into the record's history so every fix
+    // stays in the rerun's idempotence key. The same spec landing twice is
+    // still refused. The date palm's capability gate was the first halt to
+    // take two rounds.
+    let already = |v: &Value| v["spec"].as_str() == Some(spec.as_str());
+    if record["landings"]
+        .as_array()
+        .is_some_and(|l| l.iter().any(already))
+    {
         return Err(GapError::Invalid(format!(
-            "{gap_id} already resumed at {}",
-            record["landed"]["commit"].as_str().unwrap_or_default()
+            "{gap_id} already resumed for {spec}"
         )));
+    }
+    if !record["landed"].is_null() {
+        if already(&record["landed"]) {
+            return Err(GapError::Invalid(format!(
+                "{gap_id} already resumed at {}",
+                record["landed"]["commit"].as_str().unwrap_or_default()
+            )));
+        }
+        let earlier = record["landed"].take();
+        if !record["landings"].is_array() {
+            record["landings"] = json!([]);
+        }
+        record["landings"].as_array_mut().unwrap().push(earlier);
     }
     if commit.trim().is_empty() {
         return Err(GapError::Invalid("the landing commit is empty".into()));
@@ -247,10 +299,18 @@ pub fn landed_tools(dir: &Path, stage: &str) -> BTreeMap<String, String> {
                 .position(|s| *s == halt)
                 .is_some_and(|h| h <= index)
         })
-        .filter_map(|record| {
-            let spec = record["landed"]["spec"].as_str()?;
-            let commit = record["landed"]["commit"].as_str()?;
-            Some((format!("fix:{spec}"), commit.to_string()))
+        .flat_map(|record| {
+            // Every landing on the gap, the earlier rounds' and the current.
+            let history = record["landings"].as_array().cloned().unwrap_or_default();
+            history
+                .into_iter()
+                .chain(std::iter::once(record["landed"].clone()))
+                .filter_map(|landing| {
+                    let spec = landing["spec"].as_str()?;
+                    let commit = landing["commit"].as_str()?;
+                    Some((format!("fix:{spec}"), commit.to_string()))
+                })
+                .collect::<Vec<_>>()
         })
         .collect()
 }

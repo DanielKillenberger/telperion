@@ -103,6 +103,14 @@ pub struct Trial {
     /// took it back. The attempt stands as tried; the tree does not.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vetoed: Option<super::veto::Veto>,
+    /// True once a round made this attempt the tree the loop stands on,
+    /// whether or not the closing review then let it stand.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub adopted: bool,
+    /// The one dial a single-dial attempt moved, from where to where. A bundle
+    /// attempt's moves live on its bundle.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub step: Option<super::bundle::Move>,
 }
 
 fn completed(receipt: &str) -> Result<Value, String> {
@@ -218,6 +226,8 @@ pub fn evaluate(
         parent_bundle: None,
         sheet: None,
         vetoed: None,
+        adopted: false,
+        step: None,
         key,
         identity: identity.into(),
         seed,

@@ -78,6 +78,26 @@ struct Mock {
     sheet_views: std::cell::RefCell<Vec<Option<String>>>,
     /// One entry per extra-view capture: the trial key and the views asked for.
     captures: Vec<(String, Vec<String>)>,
+    /// The gap class the owner's priority carries in the config.
+    owner_class: Option<telperion_jev::tuning::stride::Class>,
+    /// Per-priority owner classes; a priority named here overrides `owner_class`.
+    owner_classes: std::collections::BTreeMap<String, telperion_jev::tuning::stride::Class>,
+    /// The gap question's raw answer, confidence and calibration; `None`
+    /// offers no question.
+    gap_answer: Option<(String, f64, bool)>,
+    gap_calls: u64,
+    /// One adjustment per proposal call, consumed in order; empty keeps
+    /// `proposal_action`.
+    proposal_actions: Vec<Action>,
+    /// The status each visual reports for the coverage trait `fruit`, in
+    /// order. Empty reports no coverage.
+    fruit: Vec<CellStatus>,
+    /// Traits the config lists as not yet drawable.
+    unexpressed: Vec<telperion_jev::tuning::unexpressed::Unexpressed>,
+    /// The reference-first inventory the pause proposes objectives from.
+    inventory: Option<telperion_jev::tuning::reference_first::Inventory>,
+    /// Rounds in a row that keep nothing before the run pauses as a runaway.
+    runaway: u64,
 }
 
 fn mock() -> Mock {
@@ -123,9 +143,21 @@ fn mock() -> Mock {
         tracks: vec![],
         sheet_views: std::cell::RefCell::new(vec![]),
         captures: vec![],
+        owner_class: None,
+        owner_classes: Default::default(),
+        gap_answer: None,
+        gap_calls: 0,
+        proposal_actions: vec![],
+        fruit: vec![],
+        unexpressed: vec![],
+        inventory: None,
+        runaway: telperion_jev::tuning::runaway::ROUNDS,
     }
 }
 impl Services for Mock {
+    fn runaway_rounds(&self) -> u64 {
+        self.runaway
+    }
     fn priority_references(&self) -> Vec<telperion_jev::tuning::evaluation::Image> {
         vec![priority_image("whole"), priority_image("bark")]
     }
@@ -262,6 +294,40 @@ impl Services for Mock {
     fn tracks(&self) -> Vec<telperion_jev::tuning::bundle::Track> {
         self.tracks.clone()
     }
+    fn unexpressed(&self) -> Vec<telperion_jev::tuning::unexpressed::Unexpressed> {
+        self.unexpressed.clone()
+    }
+    fn inventory(
+        &self,
+    ) -> Result<Option<telperion_jev::tuning::reference_first::Inventory>, String> {
+        Ok(self.inventory.clone())
+    }
+    fn owner_magnitude(&self, priority: &str) -> Option<telperion_jev::tuning::stride::Class> {
+        self.owner_classes
+            .get(priority)
+            .copied()
+            .or(self.owner_class)
+    }
+    fn offers_gap_magnitude(&self) -> bool {
+        self.gap_answer.is_some()
+    }
+    fn gap_magnitude(
+        &mut self,
+        _: &serde_json::Value,
+    ) -> Result<Answer<telperion_jev::tuning::stride::Judged>, String> {
+        self.gap_calls += 1;
+        let (choice, confidence, calibrated) = self.gap_answer.clone().unwrap();
+        Ok(Answer {
+            ledger: Some("jev:gap".into()),
+            tokens: Some(20),
+            value: telperion_jev::tuning::stride::Judged {
+                choice,
+                confidence: Some(confidence),
+                threshold: 0.5,
+                calibrated,
+            },
+        })
+    }
     fn capture_views(
         &mut self,
         trial: &Trial,
@@ -378,6 +444,8 @@ impl Services for Mock {
             parent_bundle: None,
             sheet: None,
             vetoed: None,
+            adopted: false,
+            step: None,
             key: format!("candidate{}", self.evaluations),
             identity: "input1".into(),
             seed: 1,
@@ -414,7 +482,16 @@ impl Services for Mock {
                 observations: vec![],
                 findings: vec![],
                 joint: None,
-                coverage: vec![],
+                known_gaps: vec![],
+                coverage: self
+                    .fruit
+                    .get(self.visuals as usize - 1)
+                    .map(|status| telperion_jev::tuning::state::TraitStatus {
+                        trait_id: "fruit".into(),
+                        status: *status,
+                    })
+                    .into_iter()
+                    .collect(),
                 cells: vec![(
                     cell(),
                     match self.cell_status.get(self.visuals as usize - 1) {
@@ -501,6 +578,9 @@ impl Services for Mock {
     }
     fn propose(&mut self, _: &Run, batch: usize) -> Result<Answer<Vec<Proposal>>, String> {
         self.proposal_calls += 1;
+        if !self.proposal_actions.is_empty() {
+            self.proposal_action = self.proposal_actions.remove(0);
+        }
         let slice: Vec<Proposal> = if self.batch == 0 {
             self.proposals.clone()
         } else {
@@ -649,6 +729,8 @@ fn run() -> Run {
             meaning_basis: None,
             range_basis: None,
             source: None,
+            preset_span: None,
+            cap: None,
         }],
         owner_notes: "irregular outline".into(),
         required: vec![cell()],
@@ -659,10 +741,10 @@ fn run() -> Run {
             images: 0,
             tokens: 0,
             rounds: 0,
-            max_evaluations: 13,
-            max_images: 52,
-            max_tokens: 150000,
-            max_rounds: 3,
+            max_evaluations: Some(13),
+            max_images: Some(52),
+            max_tokens: Some(150000),
+            max_rounds: Some(3),
         },
         usage_known: true,
         trials: vec![],
@@ -679,6 +761,8 @@ fn run() -> Run {
         judgment_inputs: vec![],
         visual_bootstrap: false,
         reviewer_passed_unqualified: false,
+        strides: Default::default(),
+        unkept: None,
     }
 }
 
@@ -837,7 +921,7 @@ fn baseline_capability_defect_routes_before_spending_tuning_evaluations() {
 fn bounded_plan_and_round_limit_are_checked_before_paid_routing() {
     let mut state = run();
     let mut mock = mock();
-    state.budget.max_rounds = 0;
+    state.budget.max_rounds = Some(0);
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     approve_priorities(&mut state, &mock, json!([]));
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
@@ -849,8 +933,8 @@ fn bounded_plan_and_round_limit_are_checked_before_paid_routing() {
     assert!(basis.proposed_action.contains("current"));
     assert_eq!(basis.next_tokens, Some(29000));
     state.pause = None;
-    state.budget.max_rounds = 1;
-    state.budget.max_tokens = state.budget.tokens + 100;
+    state.budget.max_rounds = Some(1);
+    state.budget.max_tokens = Some(state.budget.tokens + 100);
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     assert_eq!(mock.routes, 0);
     assert!(state
@@ -967,7 +1051,7 @@ fn attributed_diagnosis_projects_to_both_judgments_and_rechecks_sources() {
 #[test]
 fn mixed_routes_tune_and_hand_off_without_claiming_readiness() {
     let mut state = run();
-    state.budget.max_rounds = 1;
+    state.budget.max_rounds = Some(1);
     let mut mock = Mock {
         route_plan: vec![
             ("tuning".into(), 0.9),
@@ -1075,7 +1159,7 @@ fn mixed_routes_tune_and_hand_off_without_claiming_readiness() {
     assert!(state.budget.tokens > spent_before, "spend was not recorded");
 
     // A repeated round replaces this revision's handoffs instead of piling up.
-    state.budget.max_rounds = 2;
+    state.budget.max_rounds = Some(2);
     state.pause = None;
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     assert_eq!(state.handoffs.len(), 2);
@@ -1138,7 +1222,7 @@ fn a_handoffs_owner_cell_not_passing_keeps_the_run_unready() {
 #[test]
 fn re_routing_an_unchanged_candidate_reuses_its_pre_dispatch_judgment() {
     let mut state = run();
-    state.budget.max_rounds = 2;
+    state.budget.max_rounds = Some(2);
     let mut mock = Mock {
         route_plan: vec![
             ("tuning".into(), 0.9),
@@ -1199,7 +1283,7 @@ fn re_routing_an_unchanged_candidate_reuses_its_pre_dispatch_judgment() {
         .push(mock.evaluate(json!({}), 9, "crookedness", None));
     state.current = Some(state.trials.len() - 1);
     state.pause = None;
-    state.budget.max_rounds = 3;
+    state.budget.max_rounds = Some(3);
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     assert_eq!(mock.pre_dispatch_calls, 2);
 }
@@ -1243,7 +1327,7 @@ fn stalled_one_candidate_rounds_work_through_the_dials_before_stopping() {
          "min":0.01,"max":0.08,"small":0.01,"substantial":0.02,"integer":false}
     ]))
     .unwrap();
-    state.budget.max_rounds = 5;
+    state.budget.max_rounds = Some(5);
     let proposal = |id: &str, mass: f64| Proposal {
         dial: id.into(),
         action: Action::SmallIncrease,
@@ -1315,7 +1399,7 @@ fn a_stall_with_new_evidence_asks_exactly_one_question_and_obeys_it() {
             ..mock()
         };
         let mut state = ready_to_round(&mut mock);
-        state.budget.max_rounds = 3;
+        state.budget.max_rounds = Some(3);
         state.execute(&mut mock, &mut |_| Ok(())).unwrap();
         // New evidence arrives: a fresh assessment the last attempt never saw.
         let mut fresh = state.visual.clone().unwrap();
@@ -1364,7 +1448,7 @@ fn a_repeated_dial_and_action_is_refused_before_it_is_evaluated() {
         ..mock()
     };
     let mut state = ready_to_round(&mut mock);
-    state.budget.max_rounds = 3;
+    state.budget.max_rounds = Some(3);
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     let spent = mock.evaluations;
 
@@ -1689,7 +1773,7 @@ fn a_cap_only_resume_keeps_one_handoff_per_priority_and_rebuys_no_risk() {
         ..mock()
     };
     let mut state = run();
-    state.budget.max_rounds = 4;
+    state.budget.max_rounds = Some(4);
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     approve_priorities(&mut state, &mock, gap.clone());
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
@@ -1712,7 +1796,7 @@ fn a_cap_only_resume_keeps_one_handoff_per_priority_and_rebuys_no_risk() {
         .unwrap(),
     );
     state.pause = None;
-    state.budget.max_rounds = 6;
+    state.budget.max_rounds = Some(6);
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
 
     // The handoff carried across, so its judgment was not bought again and no
@@ -1761,7 +1845,7 @@ fn a_large_dial_table_is_asked_in_batches_each_its_own_judgment() {
     let mut state = run();
     state.dials = serde_json::from_value(dials).unwrap();
     // One round at a time, so the call count is the batch count.
-    state.budget.max_rounds = 1;
+    state.budget.max_rounds = Some(1);
     let mut mock = Mock {
         stall: true,
         candidates: 1,
@@ -1809,7 +1893,7 @@ fn a_large_dial_table_is_asked_in_batches_each_its_own_judgment() {
 
     // The next round re-asks, and the repeat refused does not eat the slot.
     let spent = mock.evaluations;
-    state.budget.max_rounds = 2;
+    state.budget.max_rounds = Some(2);
     state.pause = None;
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     assert_eq!(
@@ -1868,7 +1952,7 @@ fn a_failed_visual_keeps_its_reservation_and_leaves_the_attempt_pending() {
 
 fn reviewed_run() -> (Run, Mock) {
     let mut state = run();
-    state.budget.max_rounds = 2;
+    state.budget.max_rounds = Some(2);
     let mock = Mock {
         selection: Selection::Visual,
         route_plan: vec![("tuning".into(), 0.9)],
@@ -1931,6 +2015,16 @@ fn under_visual_selection_the_reviewer_adopts_the_candidate_it_judged_better() {
     // the scores did, and each review spent a pass of its own.
     let adopted = &state.trials[state.current.unwrap()];
     assert_eq!(adopted.progress.as_ref().unwrap().better(), 1);
+    // The trial records the adoption and the one dial's from and to.
+    for trial in &reviewed {
+        assert_eq!(trial.adopted, trial.key == adopted.key);
+        let step = trial
+            .step
+            .as_ref()
+            .expect("a single-dial attempt keeps its move");
+        assert_eq!(step.dial, trial.label);
+        assert_ne!(step.from, step.to);
+    }
     assert!(state.budget.visual_passes.unwrap() >= passes_before + 2);
     // The reviewer's words reach whoever is asked next.
     let projected = telperion_jev::tuning::judgments::summary(&state);
@@ -2056,7 +2150,7 @@ fn three_proposals() -> Vec<Proposal> {
 
 fn reviewed_three(inert: Vec<bool>, reviews: Vec<Vec<Choice>>) -> (Run, Mock) {
     let mut state = run();
-    state.budget.max_rounds = 2;
+    state.budget.max_rounds = Some(2);
     state.dials = ["twig_hang", "irregularity", "rise_secondary"]
         .iter()
         .map(|id| Dial {
@@ -2073,6 +2167,8 @@ fn reviewed_three(inert: Vec<bool>, reviews: Vec<Vec<Choice>>) -> (Run, Mock) {
             meaning_basis: None,
             range_basis: None,
             source: None,
+            preset_span: None,
+            cap: None,
         })
         .collect();
     let mock = Mock {
@@ -2290,6 +2386,8 @@ fn bundle_dial(id: &str, path: &str, min: f64, max: f64, small: f64, group: &str
         meaning_basis: None,
         range_basis: None,
         source: None,
+        preset_span: None,
+        cap: None,
     }
 }
 
@@ -2297,7 +2395,7 @@ fn bundle_dial(id: &str, path: &str, min: f64, max: f64, small: f64, group: &str
 /// dials share a group, so a split cuts the pair against the single.
 fn bundle_run() -> (Run, Mock) {
     let mut state = run();
-    state.budget.max_rounds = 2;
+    state.budget.max_rounds = Some(2);
     state.budget.max_visual_passes = Some(8);
     state.dials = vec![
         bundle_dial("twig_hang", "/skeleton/twigs/hang", 0., 3., 0.5, "twigs"),
@@ -2426,6 +2524,10 @@ fn a_variant_that_draws_the_current_tree_or_another_variant_is_never_shown() {
         2
     );
     assert_eq!(state.trials[state.current.unwrap()].label, "bundle@1");
+    assert!(
+        state.trials[state.current.unwrap()].adopted,
+        "the kept bundle records its adoption"
+    );
 }
 
 #[test]
@@ -2583,7 +2685,7 @@ fn a_worse_bundle_is_cut_by_family_and_a_good_family_is_the_one_kept() {
 /// next round has something different to build.
 fn three_family_run() -> (Run, Mock) {
     let (mut state, mut mock) = bundle_run();
-    state.budget.max_rounds = 2;
+    state.budget.max_rounds = Some(2);
     state.dials.push(bundle_dial(
         "leaf_outward",
         "/canopy/outward",
@@ -2863,6 +2965,35 @@ fn a_required_cell_that_went_backwards_rolls_the_adoption_back_unasked() {
         state.pause.as_ref().unwrap().reason,
         "bundle already tried; no new direction"
     );
+}
+
+/// The palm's second revision: every time the crown grew enough to be seen,
+/// the date clusters no organ can draw yet were judged absent.
+#[test]
+fn a_trait_the_generator_cannot_draw_yet_never_rolls_an_adoption_back() {
+    use CellStatus::{Fail, Unknown};
+    for listed in [true, false] {
+        let (mut state, mut mock) = adopting_run();
+        mock.fruit = vec![Unknown, Unknown, Fail];
+        if listed {
+            mock.unexpressed = vec![telperion_jev::tuning::unexpressed::Unexpressed {
+                trait_id: "fruit".into(),
+                spec: "fn-111".into(),
+            }];
+        }
+        to_the_round(&mut state, &mut mock);
+
+        let rolled_back = state.trials.iter().any(|t| t.vetoed.is_some());
+        assert_eq!(rolled_back, !listed, "listed={listed}: {:?}", state.routes);
+        let noted = state.routes.iter().any(|r| {
+            r == "trait fruit went from Unknown to Fail; not a veto: \
+                  the generator cannot draw it until fn-111 lands"
+        });
+        assert_eq!(noted, listed, "listed={listed}: {:?}", state.routes);
+        if listed {
+            assert_eq!(state.trials[state.current.unwrap()].label, "bundle@1");
+        }
+    }
 }
 
 #[test]
@@ -3290,4 +3421,352 @@ fn twelve_rounds_of_attempts_fold_into_a_digest_that_still_fits() {
         expected,
         "the state shipped the least-trimmed digest that fits ({sizes:?} beside {base} bytes)"
     );
+}
+
+/// The strengths each round drew, in round order, read off the variants.
+fn drawn_by_round(state: &Run) -> Vec<Vec<f64>> {
+    let mut rounds: Vec<(u64, Vec<f64>)> = vec![];
+    for t in state.trials.iter().filter(|t| t.parent_bundle.is_none()) {
+        let Some(b) = &t.bundle else { continue };
+        match rounds.iter_mut().find(|(r, _)| *r == t.round) {
+            Some((_, s)) => s.push(b.strength),
+            None => rounds.push((t.round, vec![b.strength])),
+        }
+    }
+    rounds.into_iter().map(|(_, s)| s).collect()
+}
+
+fn stride_notes(state: &Run) -> Vec<String> {
+    state
+        .routes
+        .iter()
+        .filter(|r| r.contains("stride"))
+        .cloned()
+        .collect()
+}
+
+/// R1: the owner's class draws the round at a multiple of the ladder code
+/// owns, and asks nobody.
+#[test]
+fn an_owner_class_scales_the_ladder_and_asks_nobody() {
+    use telperion_jev::tuning::stride::Class;
+    for (class, drawn, multiplier) in [
+        (None, vec![0.5, 1., 2., 4.], "multiplier 1"),
+        (Some(Class::Near), vec![0.5, 1., 2., 4.], "multiplier 1"),
+        (
+            Some(Class::ClearlyOff),
+            vec![1., 2., 4., 8.],
+            "multiplier 2",
+        ),
+        (Some(Class::FarOff), vec![2., 4., 8., 16.], "multiplier 4"),
+    ] {
+        let (mut state, mut mock) = adopting_run();
+        mock.owner_class = class;
+        mock.gap_answer = Some(("near".into(), 0.9, true));
+        to_the_round(&mut state, &mut mock);
+
+        assert_eq!(drawn_by_round(&state)[0], drawn, "{class:?}");
+        assert_eq!(
+            mock.gap_calls, 0,
+            "{class:?}: the owner's word costs nothing"
+        );
+        let note = &stride_notes(&state)[0];
+        assert!(note.contains(multiplier), "{note}");
+        if class.is_some() {
+            assert!(note.contains("from owner on owner-crown"), "{note}");
+        }
+    }
+}
+
+/// R1: with no owner class, the reviewer's latest words on the priority are
+/// put to Jev before the draw; anything short of a trusted class keeps the
+/// ladder as configured and the note says why.
+#[test]
+fn the_reviewer_s_words_choose_the_next_round_s_stride_or_the_ladder_stands() {
+    for (answer, drawn, says) in [
+        (
+            ("far_off", 0.9, true),
+            vec![2., 4., 8., 16.],
+            "stride class far_off from jev",
+        ),
+        (
+            ("near", 0.9, true),
+            vec![0.5, 1., 2., 4.],
+            "stride class near from jev",
+        ),
+        (
+            ("no_match", 0.9, true),
+            vec![0.5, 1., 2., 4.],
+            "default: jev no_match",
+        ),
+        (
+            ("far_off", 0.3, true),
+            vec![0.5, 1., 2., 4.],
+            "below the threshold",
+        ),
+        (
+            ("far_off", 0.9, false),
+            vec![0.5, 1., 2., 4.],
+            "has not qualified",
+        ),
+    ] {
+        let (mut state, mut mock) = adopting_run();
+        mock.cell_status = vec![CellStatus::Fail; 8];
+        mock.gap_answer = Some((answer.0.into(), answer.1, answer.2));
+        to_the_round(&mut state, &mut mock);
+
+        let rounds = drawn_by_round(&state);
+        assert_eq!(
+            rounds[0],
+            vec![0.5, 1., 2., 4.],
+            "{answer:?}: no finding yet"
+        );
+        assert_eq!(rounds[1], drawn, "{answer:?}");
+        assert_eq!(mock.gap_calls, 1, "{answer:?}: one question, in round two");
+        let notes = stride_notes(&state);
+        assert!(notes[0].contains("default: no finding yet"), "{notes:?}");
+        assert!(notes[1].contains(says), "{notes:?}");
+        let shown = state
+            .judgment_inputs
+            .iter()
+            .find(|i| i.label == telperion_jev::tuning::stride::LABEL)
+            .expect("the question's state is recorded");
+        let words = serde_json::to_string(&shown.state).unwrap();
+        assert!(words.contains("the crown is still enclosed"), "{words}");
+    }
+}
+
+/// R4: a raised stride the closing review takes back is capped a level lower
+/// for the next round, and again, so the ladder steps down instead of
+/// swinging back out.
+#[test]
+fn an_overshoot_rolled_back_steps_the_stride_down_rather_than_oscillating() {
+    let (mut state, mut mock) = bundle_run();
+    state.budget.max_rounds = Some(3);
+    mock.owner_class = Some(telperion_jev::tuning::stride::Class::FarOff);
+    mock.side_effect_answer = Some(("new_defect".into(), 0.9));
+    mock.sheets = vec![
+        vec![did(&key(3), Movement::Clear)],
+        vec![did(&key(6), Movement::Clear)],
+    ];
+    to_the_round(&mut state, &mut mock);
+
+    let rounds = drawn_by_round(&state);
+    assert_eq!(rounds[0], vec![2., 4., 8., 16.]);
+    assert_eq!(rounds[1], vec![1.], "2, 4 and 8 were already tried here");
+    assert_eq!(rounds[2], vec![0.5]);
+    let top = rounds
+        .iter()
+        .map(|r| r.iter().copied().fold(0., f64::max))
+        .collect::<Vec<_>>();
+    assert!(top.windows(2).all(|w| w[1] < w[0]), "{top:?}");
+    let notes = stride_notes(&state);
+    for expected in [
+        "stride class far_off from owner",
+        "stride capped at clearly_off after the bundle at far_off was rolled back",
+        "stride class clearly_off from owner on owner-crown, multiplier 2; far_off capped at clearly_off",
+        "stride capped at near after the bundle at clearly_off was rolled back",
+        "stride class near from owner on owner-crown, multiplier 1; far_off capped at near",
+    ] {
+        assert!(notes.iter().any(|n| n.contains(expected)), "{expected}: {notes:?}");
+    }
+    assert_eq!(state.current, Some(0), "no raised bundle stood");
+}
+
+/// R4: after a raised bundle stands, a round that turns one of its dials back
+/// is an overshoot too, and draws a level lower.
+#[test]
+fn a_direction_that_turns_round_after_a_raised_bundle_caps_the_stride() {
+    let (mut state, mut mock) = adopting_run();
+    mock.cell_status = vec![CellStatus::Fail; 8];
+    mock.owner_class = Some(telperion_jev::tuning::stride::Class::FarOff);
+    mock.proposal_actions = vec![Action::SmallIncrease, Action::SmallDecrease];
+    to_the_round(&mut state, &mut mock);
+
+    let rounds = drawn_by_round(&state);
+    assert_eq!(rounds[0], vec![2., 4., 8., 16.]);
+    assert_eq!(rounds[1], vec![1., 2., 4., 8.]);
+    let notes = stride_notes(&state);
+    assert!(
+        notes[1].contains("far_off capped at clearly_off")
+            && notes[1].contains("turned round from the bundle at far_off"),
+        "{notes:?}"
+    );
+}
+
+/// fn-117: with no cap the loop runs round after round, and what stops a run
+/// that keeps nothing is the runaway count, naming the rounds and their spend.
+#[test]
+fn an_uncapped_run_pauses_as_a_runaway_after_rounds_that_keep_nothing() {
+    let mut state = run();
+    state.budget = Budget {
+        visual_passes: Some(0),
+        ..Budget::default()
+    };
+    let mut mock = Mock {
+        stall: true,
+        runaway: 2,
+        proposal_actions: vec![Action::SmallIncrease, Action::SmallDecrease],
+        ..mock()
+    };
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(&mut state, &mock, json!([]));
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    let reason = &state.pause.as_ref().unwrap().reason;
+    assert!(
+        reason.starts_with("runaway: 2 rounds in a row kept nothing (rounds 1, 2)"),
+        "{reason}"
+    );
+    assert!(reason.contains("2 evaluations, 8 images"), "{reason}");
+    let streak = state.unkept.clone().unwrap();
+    assert_eq!(streak.rounds, vec![1, 2]);
+    assert!(state.budget.tokens > streak.opening.tokens);
+    // The owner's scoped resume of the runaway starts the count again.
+    state.resume_runaway();
+    assert_eq!(state.unkept, None);
+}
+
+/// One objective per track, each named to its track by the approval.
+fn tracked(id: &str, track: &str) -> serde_json::Value {
+    json!({"id":id,"observation":format!("objective {id}"),
+        "evidence_ids":["render-0","reference-0"],"views":["whole"],"track":track})
+}
+
+/// fn-119 R2: each track's stride is judged on its own lead objective, so the
+/// material track no longer draws at the structure track's far off.
+#[test]
+fn each_track_s_stride_is_judged_on_its_own_lead_objective() {
+    use telperion_jev::tuning::stride::Class;
+    let (mut state, mut mock) = two_track_run();
+    mock.owner_classes = [
+        ("owner-crown".to_string(), Class::FarOff),
+        ("owner-bark".to_string(), Class::Near),
+    ]
+    .into();
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(
+        &mut state,
+        &mock,
+        json!([
+            tracked("owner-crown", "structure"),
+            tracked("owner-bark", "materials")
+        ]),
+    );
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    let notes = stride_notes(&state);
+    for expected in [
+        "track structure: stride class far_off from owner on owner-crown, multiplier 4",
+        "track materials: stride class near from owner on owner-bark, multiplier 1",
+    ] {
+        assert!(notes.iter().any(|n| n == expected), "{expected}: {notes:?}");
+    }
+    assert_eq!(drawn_by_round(&state)[0], vec![4., 1.]);
+}
+
+/// fn-119 R3: a track no objective is routed to is skipped with a route note
+/// and draws nothing; a track named nowhere in the run is refused.
+#[test]
+fn a_track_with_no_objective_is_skipped_and_an_undeclared_track_is_refused() {
+    let (mut state, mut mock) = two_track_run();
+    mock.sheets = vec![vec![did(&key(2), Movement::Clear)]];
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(
+        &mut state,
+        &mock,
+        json!([tracked("owner-crown", "structure")]),
+    );
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    assert_eq!(
+        mock.sheet_calls, 1,
+        "the objectiveless track bought a sheet"
+    );
+    assert_eq!(mock.evaluations, 2, "the baseline and the structure bundle");
+    assert!(
+        state
+            .routes
+            .iter()
+            .any(|r| r == "track materials: skipped: no objective routed to this track"),
+        "{:?}",
+        state.routes
+    );
+
+    let (mut state, mut mock) = two_track_run();
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(&mut state, &mock, json!([tracked("owner-crown", "leaves")]));
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    let refused = &state.pause.as_ref().expect("the run pauses").reason;
+    assert!(refused.contains("names track leaves"), "{refused}");
+    assert_eq!(
+        mock.evaluations, 1,
+        "nothing was drawn for an undeclared track"
+    );
+}
+
+/// fn-119 R1 through the engine: the priority pause proposes the drawable
+/// inventory traits and records the rest, and the proposal approves as offered.
+#[test]
+fn the_priority_pause_proposes_every_drawable_inventory_trait() {
+    let (mut state, mut mock) = bundle_run();
+    let shot =
+        |i: usize, view: &str| json!({"id":format!("reference-{i}"),"image":priority_image(view)});
+    let item = |id: &str, priority: &str, cited: &[&str]| {
+        json!({"id":id,"priority":priority,"observation":format!("{id} as photographed"),
+            "reference_ids":cited,"uncertain":false})
+    };
+    mock.inventory = Some(
+        serde_json::from_value(json!({"request":{"protocol":"reference-first-v1",
+            "target_species":"european-beech","specimen_relationship":"unknown",
+            "references":[shot(0, "whole"), shot(1, "bark")]},
+            "request_sha256":"r","prompt_sha256":"p","model":"m","effort":"e","ledger":"l",
+            "observations":[],"traits":[
+                item("crown", "core", &["reference-0"]),
+                item("fruit", "core", &["reference-0"]),
+                item("bark-colour", "secondary", &["reference-1"]),
+                item("lean", "variation", &["reference-0"])]}))
+        .unwrap(),
+    );
+    mock.unexpressed = vec![telperion_jev::tuning::unexpressed::Unexpressed {
+        trait_id: "fruit".into(),
+        spec: "fn-111".into(),
+    }];
+    mock.sheets = vec![vec![did(&key(2), Movement::Clear)]];
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    let checkpoint = state.priority_checkpoints.last().unwrap().clone();
+    let proposed = checkpoint
+        .proposed
+        .iter()
+        .map(|g| g.id.as_str())
+        .collect::<Vec<_>>();
+    assert_eq!(proposed, vec!["crown"]);
+    let left = checkpoint
+        .left_out
+        .iter()
+        .map(|l| (l.trait_id.as_str(), l.reason.as_str()))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        left,
+        vec![
+            ("fruit", "unexpressed until fn-111 lands"),
+            (
+                "bark-colour",
+                "no assessed view renders it beside its references"
+            ),
+            ("lean", "variation: recorded, not an objective"),
+        ]
+    );
+    approve_priorities(
+        &mut state,
+        &mock,
+        serde_json::to_value(&checkpoint.proposed).unwrap(),
+    );
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert!(
+        state.routes.iter().any(|r| r == "crown=tuning"),
+        "{:?}",
+        state.routes
+    );
+    assert_eq!(mock.sheet_calls, 1);
 }

@@ -5,6 +5,8 @@ use telperion_jev::{
         joint::{Finding, Impact, Packet},
         reference_first::*,
         state::{ready, CellStatus},
+        unexpressed::Unexpressed,
+        veto::worsened,
         vision,
     },
 };
@@ -84,6 +86,7 @@ fn coverage_unknown_and_positive_finish_are_enforced() {
         impact: Impact::Supported,
         uncertain: false,
         causal_hypothesis: None,
+        trait_id: None,
     };
     let visual:vision::Result=serde_json::from_value(json!({"request_sha256":r.hash(),"assessment":{"identity":r.identity,"model":"mock","ledger":"receipt","cells":[[r.required[0],"pass"]],"defects":[],"findings":[finding]},"effort":"medium","usage":{"input_tokens":1,"output_tokens":1},"observations":[]})).unwrap();
     let base = ComparisonResult {
@@ -147,6 +150,20 @@ fn coverage_unknown_and_positive_finish_are_enforced() {
         bad.coverage[0].status = status;
         bad.bind(&request).unwrap();
         assert!(!ready(&r.required, &r.identity, &bad.visual.assessment));
+        // Listing the core trait as one the generator cannot draw yet keeps
+        // the adoption; the tree still does not read ready.
+        let listed = [Unexpressed {
+            trait_id: "trait-1".into(),
+            spec: "fn-111".into(),
+        }];
+        let kept = worsened(
+            &good.visual.assessment,
+            &bad.visual.assessment,
+            &r.required,
+            &listed,
+        );
+        assert!(kept.reasons.is_empty(), "{kept:?}");
+        assert_eq!(kept.notes.len(), usize::from(status == CellStatus::Fail));
         assert_eq!(
             bad.visual.assessment.cells, base.visual.assessment.cells,
             "global coverage does not rewrite per-view observations"
@@ -181,10 +198,26 @@ fn coverage_unknown_and_positive_finish_are_enforced() {
     wrong_source.request_sha256 = two.hash();
     wrong_source.visual.request_sha256 = two.comparison.hash();
     wrong_source.coverage[0].evidence_ids = vec!["render-0".into(), "reference-1".into()];
-    assert!(wrong_source.bind(&two).is_err());
+    // A pass citing none of the trait's own references is downgraded to
+    // unknown and recorded, not refused: the palm's fourth run lost a paid
+    // pass to one variation row that cited the whole-tree photograph.
+    wrong_source.bind(&two).unwrap();
+    assert_eq!(wrong_source.coverage[0].status, CellStatus::Unknown);
+    assert!(wrong_source
+        .visual
+        .observations
+        .iter()
+        .any(|o| o.starts_with("downgraded coverage row citing a different reference trait-1")));
+    assert!(!ready(
+        &r.required,
+        &r.identity,
+        &wrong_source.visual.assessment
+    ));
     let mut duplicate = base.clone();
     duplicate.coverage.push(duplicate.coverage[0].clone());
-    assert!(duplicate.bind(&request).is_err());
+    // A repeated trait row is dropped and recorded, not a refused pass (fn-80).
+    duplicate.bind(&request).unwrap();
+    assert_eq!(duplicate.coverage.len(), base.coverage.len());
     let mut uncertain_request = request.clone();
     uncertain_request.inventory.traits[0].uncertain = true;
     let mut uncertain = base.clone();
@@ -232,7 +265,7 @@ fn preparation_is_verified_charged_once_and_never_inferred_from_a_floor() {
     assert!(charge_preparation(&mut budget, &mut proof, &changed).is_err());
     assert_eq!(budget.tokens, 110);
     let mut low = budget.clone();
-    low.max_tokens = 115;
+    low.max_tokens = Some(115);
     let mut empty = None;
     assert!(charge_preparation(&mut low, &mut empty, &charge).is_err());
     assert_eq!(low.tokens, 110);
@@ -313,6 +346,8 @@ print(json.dumps({'status':'ok','model':'mock','effort':'medium','request_sha256
         parent_bundle: None,
         sheet: None,
         vetoed: None,
+        adopted: false,
+        step: None,
         key: r.identity.clone(),
         identity: identity.clone(),
         seed: 1,
@@ -467,6 +502,59 @@ print(json.dumps({'request_sha256':e['request_sha256'],'assessment':{'identity':
 /// whole paid pass today. It is dropped and recorded instead, and it can
 /// never stand in for a trait the inventory does state.
 #[test]
+fn a_coverage_row_without_render_evidence_is_dropped_and_recorded() {
+    let original = request();
+    let request = ComparisonRequest::new(&original, inventory(&original));
+    let r = request.comparison.clone();
+    let finding = Finding {
+        observation: "Supported match".into(),
+        evidence_ids: vec!["render-0".into(), "reference-0".into()],
+        impact: Impact::Supported,
+        uncertain: false,
+        causal_hypothesis: None,
+        trait_id: None,
+    };
+    let visual:vision::Result=serde_json::from_value(json!({"request_sha256":r.hash(),"assessment":{"identity":r.identity,"model":"mock","ledger":"receipt","cells":[[r.required[0],"pass"]],"defects":[],"findings":[finding]},"effort":"medium","usage":{"input_tokens":1,"output_tokens":1},"observations":[]})).unwrap();
+    let known = Coverage {
+        trait_id: "trait-1".into(),
+        status: CellStatus::Pass,
+        evidence_ids: vec!["render-0".into(), "reference-0".into()],
+        explanation: "Visible match; no defining mismatch".into(),
+    };
+    let references_only = Coverage {
+        trait_id: "trait-1".into(),
+        status: CellStatus::Unknown,
+        evidence_ids: vec!["reference-0".into()],
+        explanation: "the references show one specimen twice".into(),
+    };
+    let mut result = ComparisonResult {
+        request_sha256: request.hash(),
+        visual,
+        coverage: vec![references_only.clone(), known.clone()],
+    };
+    result.bind(&request).unwrap();
+    assert_eq!(
+        result
+            .coverage
+            .iter()
+            .map(|c| c.explanation.clone())
+            .collect::<Vec<_>>(),
+        vec![known.explanation.clone()],
+        "a row citing no render must leave the bound coverage"
+    );
+    let recorded = result
+        .visual
+        .observations
+        .iter()
+        .find(|o| o.starts_with("dropped coverage row without render and reference evidence"))
+        .expect("the dropped row is recorded verbatim");
+    assert!(
+        recorded.contains("trait-1") && recorded.contains("the references show one specimen twice"),
+        "{recorded}"
+    );
+}
+
+#[test]
 fn a_coverage_row_for_an_unknown_trait_is_dropped_and_recorded() {
     let original = request();
     let request = ComparisonRequest::new(&original, inventory(&original));
@@ -477,6 +565,7 @@ fn a_coverage_row_for_an_unknown_trait_is_dropped_and_recorded() {
         impact: Impact::Supported,
         uncertain: false,
         causal_hypothesis: None,
+        trait_id: None,
     };
     let visual:vision::Result=serde_json::from_value(json!({"request_sha256":r.hash(),"assessment":{"identity":r.identity,"model":"mock","ledger":"receipt","cells":[[r.required[0],"pass"]],"defects":[],"findings":[finding]},"effort":"medium","usage":{"input_tokens":1,"output_tokens":1},"observations":[]})).unwrap();
     let known = Coverage {
@@ -547,7 +636,16 @@ fn a_coverage_row_for_an_unknown_trait_is_dropped_and_recorded() {
     let mut duplicate = base.clone();
     duplicate.coverage.push(known.clone());
     duplicate.coverage.push(stray.clone());
-    assert!(duplicate.bind(&request).is_err());
+    // A repeated trait row is dropped and recorded, not a refused pass (fn-80).
+    duplicate.bind(&request).unwrap();
+    assert_eq!(
+        duplicate
+            .coverage
+            .iter()
+            .filter(|c| c.trait_id == known.trait_id)
+            .count(),
+        1
+    );
     let mut invalid = base.clone();
     invalid.coverage[0].evidence_ids = vec!["invented".into()];
     invalid.coverage.push(stray.clone());
@@ -559,5 +657,117 @@ fn a_coverage_row_for_an_unknown_trait_is_dropped_and_recorded() {
             ..stray.clone()
         })
         .collect();
-    assert!(too_many.bind(&request).is_err());
+    // Over the cap is a tidiness rule now (fn-80, 2026-09-24): every row is
+    // dropped as an unknown trait and recorded, never a refused pass.
+    too_many.bind(&request).unwrap();
+    assert!(too_many.coverage.is_empty());
+    assert!(!ready(
+        &r.required,
+        &r.identity,
+        &too_many.visual.assessment
+    ));
+}
+
+/// fn-136: the request names the traits the generator cannot draw yet as
+/// known gaps. The core-coverage gate leaves them out, and a blocker the
+/// reviewer ties to one by `trait_id` does not keep the tree from ready.
+#[test]
+fn a_known_gap_named_on_the_request_leaves_readiness() {
+    let original = request();
+    let mut request = ComparisonRequest::new(&original, inventory(&original));
+    let listed = vec![Unexpressed {
+        trait_id: "trait-1".into(),
+        spec: "fn-111".into(),
+    }];
+    request.known_gaps = listed.clone();
+    request.verify().unwrap();
+    assert_eq!(request.protocol, COMPARISON_VERSION);
+    assert!(COMPARISON_PROMPT.contains("trait_id"));
+    let r = request.comparison.clone();
+    let finding = |impact, trait_id: Option<&str>| Finding {
+        observation: "The trait is absent".into(),
+        evidence_ids: vec!["render-0".into(), "reference-0".into()],
+        impact,
+        uncertain: false,
+        causal_hypothesis: None,
+        trait_id: trait_id.map(str::to_string),
+    };
+    let visual:vision::Result=serde_json::from_value(json!({"request_sha256":r.hash(),"assessment":{"identity":r.identity,"model":"mock","ledger":"receipt","cells":[[r.required[0],"pass"]],"defects":[],"findings":[finding(Impact::Supported, None), finding(Impact::Blocker, Some("trait-1"))]},"effort":"medium","usage":{"input_tokens":1,"output_tokens":1},"observations":[]})).unwrap();
+    let mut result = ComparisonResult {
+        request_sha256: request.hash(),
+        visual,
+        coverage: vec![Coverage {
+            trait_id: "trait-1".into(),
+            status: CellStatus::Fail,
+            evidence_ids: vec!["render-0".into(), "reference-0".into()],
+            explanation: "No organ draws it".into(),
+        }],
+    };
+    let defects = vec![telperion_jev::tuning::unexpressed::Defect {
+        defect: "trait-1: absent".into(),
+        trait_id: Some("trait-1".into()),
+    }];
+    telperion_jev::tuning::unexpressed::set_aside(
+        &mut result.visual.assessment,
+        defects,
+        &request.known_gaps,
+    );
+    result.bind(&request).unwrap();
+    assert!(ready(&r.required, &r.identity, &result.visual.assessment));
+    assert_eq!(
+        result.visual.assessment.known_gaps[0].defects,
+        vec!["trait-1: absent"]
+    );
+    // Without the known gap the same answer blocks.
+    let mut plain = ComparisonRequest::new(&original, inventory(&original));
+    plain.verify().unwrap();
+    let mut blocked = result.clone();
+    blocked.visual.assessment.known_gaps.clear();
+    blocked.request_sha256 = plain.hash();
+    blocked.bind(&plain).unwrap();
+    assert!(!ready(&r.required, &r.identity, &blocked.visual.assessment));
+    plain.protocol = "reference-first-v1".into();
+    assert!(plain.verify().is_err());
+}
+
+/// fn-80, 2026-09-24: a repeated trait row refused a whole paid pass
+/// ("invalid trait coverage"). The first row per trait stands; the repeat is
+/// dropped and recorded.
+#[test]
+fn a_repeated_coverage_row_is_dropped_and_recorded_not_refused() {
+    let original = request();
+    let request = ComparisonRequest::new(&original, inventory(&original));
+    let r = request.comparison.clone();
+    let finding = Finding {
+        observation: "Supported match".into(),
+        evidence_ids: vec!["render-0".into(), "reference-0".into()],
+        impact: Impact::Supported,
+        uncertain: false,
+        causal_hypothesis: None,
+        trait_id: None,
+    };
+    let visual:vision::Result=serde_json::from_value(json!({"request_sha256":r.hash(),"assessment":{"identity":r.identity,"model":"mock","ledger":"receipt","cells":[[r.required[0],"pass"]],"defects":[],"findings":[finding]},"effort":"medium","usage":{"input_tokens":1,"output_tokens":1},"observations":[]})).unwrap();
+    let first = Coverage {
+        trait_id: "trait-1".into(),
+        status: CellStatus::Pass,
+        evidence_ids: vec!["render-0".into(), "reference-0".into()],
+        explanation: "Visible match; no defining mismatch".into(),
+    };
+    let repeat = Coverage {
+        explanation: "The same trait again".into(),
+        ..first.clone()
+    };
+    let mut result = ComparisonResult {
+        request_sha256: request.hash(),
+        visual,
+        coverage: vec![first.clone(), repeat],
+    };
+    result.bind(&request).unwrap();
+    assert_eq!(result.coverage.len(), 1);
+    assert_eq!(result.coverage[0].explanation, first.explanation);
+    assert!(result
+        .visual
+        .observations
+        .iter()
+        .any(|o| o.starts_with("dropped coverage row repeating its trait trait-1")));
 }

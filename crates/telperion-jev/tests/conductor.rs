@@ -5,305 +5,16 @@
 //! under the continuation check, the packet and the report. Jev answers
 //! through a scripted transport; nothing here reaches the network.
 use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use serde_json::{json, Value};
-use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
-use telperion_jev::conductor::dispatch::{DispatchResult, Outcome};
+use telperion_jev::conductor::dispatch::Outcome;
 use telperion_jev::conductor::plan::{self, Next};
-use telperion_jev::conductor::questions::Asker;
 use telperion_jev::conductor::state::{DependencyStatus, Run};
-use telperion_jev::conductor::step::{self, Executor, StageOutcome};
 use telperion_jev::conductor::{handoff, report, BudgetConfig, Config};
-use telperion_jev::ledger::Usage;
-use telperion_jev::pipeline::judge::Judge;
-use telperion_jev::pipeline::stage::STAGES;
-use telperion_jev::tuning::handoff::Attempt;
-use telperion_jev::tuning::result::{
-    CurrentTree, EndResult, GapEntry, Outcome as TuningOutcome, Still,
-};
 
-/// Answers by question name. Reach and cover read the trait's words: a
-/// trait saying "reachable" gets the first untried dial, one saying
-/// "covered" the first open spec, anything else the no-match answer.
-struct Script {
-    choices: Mutex<BTreeMap<String, String>>,
-}
-
-impl Script {
-    fn new() -> Self {
-        let mut choices = BTreeMap::new();
-        for (q, a) in [
-            ("design_complexity", "complex"),
-            ("implementation_complexity", "straightforward"),
-            ("tractability", "supported"),
-            ("progress", "supported"),
-            ("risk", "bounded"),
-        ] {
-            choices.insert(q.to_string(), a.to_string());
-        }
-        Self {
-            choices: Mutex::new(choices),
-        }
-    }
-    fn set(&self, question: &str, answer: &str) {
-        self.choices
-            .lock()
-            .unwrap()
-            .insert(question.into(), answer.into());
-    }
-}
-
-impl Transport for Script {
-    fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String> {
-        let body: Value = serde_json::from_slice(request.body.as_deref().unwrap_or(b"{}"))
-            .map_err(|err| err.to_string())?;
-        let trait_words = body["state"]["trait"]
-            .as_str()
-            .unwrap_or_default()
-            .to_string();
-        let mut answers = serde_json::Map::new();
-        for (name, question) in body["questions"].as_object().into_iter().flatten() {
-            let choice = match name.as_str() {
-                "reachable_with" | "covered_by" => {
-                    let wanted = if name == "reachable_with" {
-                        "reachable"
-                    } else {
-                        "covered"
-                    };
-                    if trait_words.contains(wanted) {
-                        question["criteria"]
-                            .as_object()
-                            .and_then(|c| c.keys().find(|k| *k != "none").cloned())
-                            .unwrap_or_else(|| "none".into())
-                    } else {
-                        "none".into()
-                    }
-                }
-                other => self
-                    .choices
-                    .lock()
-                    .unwrap()
-                    .get(other)
-                    .cloned()
-                    .unwrap_or_else(|| "none".into()),
-            };
-            answers.insert(
-                name.clone(),
-                json!({"type": "choice", "choice": choice, "probabilities": {choice.clone(): 0.9}, "confidence": 0.9}),
-            );
-        }
-        Ok(HttpResponse {
-            status: 200,
-            body: serde_json::to_vec(&json!({"model": "jev-latest", "answers": answers,
-                "usage": {"input_tokens": 50, "output_tokens": 5}}))
-            .unwrap(),
-        })
-    }
-}
-
-/// Every stage runs; a tuning revision writes the result the test staged.
-struct Scripted {
-    results: Mutex<Vec<EndResult>>,
-    stage_stops: Mutex<BTreeMap<String, String>>,
-}
-
-impl Executor for Scripted {
-    fn stage(&self, _config: &Config, stage: &str) -> Result<StageOutcome, String> {
-        if let Some(stop) = self.stage_stops.lock().unwrap().get(stage) {
-            return Err(stop.clone());
-        }
-        Ok(StageOutcome::Ran)
-    }
-    fn tune(
-        &self,
-        _config: &Config,
-        _revision: u64,
-        _focus: &[String],
-        out: &PathBuf,
-    ) -> Result<(), String> {
-        let mut results = self.results.lock().unwrap();
-        let result = results.remove(0);
-        std::fs::create_dir_all(out).unwrap();
-        std::fs::write(
-            out.join("result.json"),
-            serde_json::to_vec_pretty(&result).unwrap(),
-        )
-        .unwrap();
-        Ok(())
-    }
-}
-
-fn scratch(tag: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "jev-conductor-{tag}-{}-{}",
-        std::process::id(),
-        telperion_jev::ledger::new_entry_id()
-    ));
-    std::fs::create_dir_all(&dir).unwrap();
-    dir
-}
-
-fn write(path: &Path, value: &Value) {
-    std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-    std::fs::write(path, serde_json::to_vec_pretty(value).unwrap()).unwrap();
-}
-
-fn config(root: &Path) -> Config {
-    let flow = root.join(".flow");
-    write(
-        &flow.join("specs/fn-103.json"),
-        &json!({"id": "fn-103", "title": "Leaders keep their girth", "status": "open"}),
-    );
-    std::fs::write(
-        flow.join("specs/fn-103.md"),
-        "# Leaders keep their girth\n\nA lateral takes girth from its parent.\n",
-    )
-    .unwrap();
-    write(
-        &flow.join("specs/fn-1.json"),
-        &json!({"id": "fn-1", "title": "Closed", "status": "done"}),
-    );
-    write(
-        &flow.join("specs/fn-200.json"),
-        &json!({"id": "fn-200", "title": "Minted later", "status": "open"}),
-    );
-    std::fs::write(flow.join("specs/fn-200.md"), "# Minted later\n").unwrap();
-    let tuning = root.join("tuning.json");
-    write(
-        &tuning,
-        &json!({"dials": [{"id": "crown_width", "meaning": "how wide the crown spreads"}, {"id": "taper", "meaning": "how fast an axis thins"}]}),
-    );
-    let dir = root.join("catalogue/beech");
-    std::fs::create_dir_all(&dir).unwrap();
-    for stage in STAGES {
-        write(
-            &dir.join(format!("{stage}.json")),
-            &json!({"stage": stage, "body": {"status": "complete"}}),
-        );
-    }
-    write(&dir.join("manifest.json"), &json!({"species": "beech"}));
-    Config {
-        species: "beech".into(),
-        spec: "fn-62".into(),
-        dir,
-        run_dir: root.join("run"),
-        flow,
-        tuning_config: tuning,
-        species_pipeline: PathBuf::from("unused"),
-        tuning_loop: PathBuf::from("unused"),
-        stage_args: vec![],
-        budget: BudgetConfig {
-            max_tokens: 200_000,
-            attempt_max_tokens: 40_000,
-            max_dispatches: 8,
-            max_tuning_revisions: 3,
-        },
-        judgment_model: "jev-latest".into(),
-        continuation_validated: true,
-    }
-}
-
-fn attempt(dial: &str) -> Attempt {
-    Attempt {
-        dial: dial.into(),
-        round: 1,
-        action_ledger: None,
-        score_before_round: None,
-        score_after: None,
-        feasible: true,
-        reason: Some("no better".into()),
-        visual_outcome: None,
-        review: None,
-    }
-}
-
-fn gap(id: &str, priority: &str, status: &str, existing: Option<&str>) -> GapEntry {
-    GapEntry {
-        id: id.into(),
-        rank: 1,
-        priority: priority.into(),
-        status: status.into(),
-        latest_route: Some("tuning".into()),
-        existing_spec: existing.map(str::to_string),
-        attempts: vec![attempt("crown_width")],
-        reviewer_words: vec![priority.into()],
-        stills: vec![],
-        check: String::new(),
-    }
-}
-
-fn result(root: &Path, identity: &str, machine_ready: bool, gaps: Vec<GapEntry>) -> EndResult {
-    let still = root.join("run/stills/whole-1.png");
-    std::fs::create_dir_all(still.parent().unwrap()).unwrap();
-    std::fs::write(&still, b"png").unwrap();
-    EndResult {
-        meaning: "test".into(),
-        outcome: TuningOutcome {
-            run_identity: identity.into(),
-            preset: "beech".into(),
-            seed: 1,
-            bootstrap: false,
-            machine_ready,
-            reviewer_passed_unqualified: false,
-            owner_acceptance: "pending".into(),
-            stopped: "ended".into(),
-            adoptions_kept: 1,
-            adoptions_rolled_back: 0,
-            budget: json!({"tokens": 1000, "images": 4}),
-            current: Some(CurrentTree {
-                key: "t1".into(),
-                round: 2,
-                label: "taper up".into(),
-                score_telemetry: None,
-                overrides: json!({"taper": 0.4}),
-                stills: vec![Still {
-                    view: "whole".into(),
-                    seed: 1,
-                    sha256: "ab".repeat(32),
-                    path: still.display().to_string(),
-                }],
-            }),
-            finalists: vec![],
-        },
-        gaps,
-        gaps_note: String::new(),
-    }
-}
-
-fn verified(identity: &str, revision: Option<&str>, handoff: Option<&Path>) -> DispatchResult {
-    DispatchResult {
-        input_identity: identity.into(),
-        design_revision: revision.map(str::to_string),
-        actual_model: "model-x".into(),
-        actual_effort: "medium".into(),
-        usage: Some(Usage {
-            input_tokens: 1000,
-            output_tokens: 200,
-        }),
-        cost_usd: None,
-        wall_ms: Some(10),
-        verification: "verified".into(),
-        observed: "done".into(),
-        handoff: handoff.map(Path::to_path_buf),
-        failure: None,
-        outcome: None,
-        finished_at: String::new(),
-    }
-}
-
-fn drive(script: &Script, config: &Config, run: &mut Run, executor: &Scripted) -> (String, Next) {
-    let asker = Asker {
-        judge: Judge {
-            transport: script,
-            key: "k",
-            ledger_dir: config.ledger_dir(),
-        },
-        config,
-    };
-    step::drive(&asker, config, run, executor).unwrap()
-}
+mod conductor_support;
+use conductor_support::*;
 
 #[test]
 fn a_run_walks_the_stages_tunes_checks_every_gap_and_escalates_the_new_one() {
@@ -457,8 +168,13 @@ fn a_dependency_is_designed_then_implemented_on_separately_judged_tiers_and_land
     assert_eq!(design.route, "design");
     assert_eq!(
         design.judgments.len(),
-        2,
-        "a design judgment and a continuation assessment"
+        1,
+        "a design judgment only: a first attempt is bounded by construction and asks no continuation"
+    );
+    assert_eq!(
+        run.dependencies[0].judged.len(),
+        1,
+        "the design judgment is kept with the evidence it read"
     );
     // A step while the dispatch is open re-dispatches nothing.
     drive(&script, &config, &mut run, &executor);
@@ -564,12 +280,29 @@ fn a_dependency_is_designed_then_implemented_on_separately_judged_tiers_and_land
             focus: vec![]
         }
     );
+    // An unjustified second revision pauses; the owner's scoped resume
+    // authorizes it, and the next step tunes without asking the trio again.
+    script.set("risk", "unusual");
+    let (word, _) = drive(&script, &config, &mut run, &executor);
+    assert!(word.starts_with("paused"), "{word}");
+    let pause = run.pause.clone().unwrap();
+    assert_eq!(pause.id, "pause-tuning-2");
+    run.resume(
+        serde_json::from_value(json!({
+            "pause_id": pause.id, "identity": pause.basis.identity,
+            "action": pause.basis.proposed_action, "by": "test owner", "rationale": "tune"
+        }))
+        .unwrap(),
+    )
+    .unwrap();
     let (word, next) = drive(&script, &config, &mut run, &executor);
     assert!(word.contains("tuning revision 2"), "{word}");
     assert!(run
         .routes
         .iter()
-        .any(|r| r == "tuning:2=tune: continuation justified"));
+        .any(|r| r == "tuning:2=tune: authorized by the scoped resume of pause-tuning-2"));
+    assert!(run.resumed_from.is_none());
+    script.set("risk", "bounded");
     assert_eq!(next, Next::Packet);
     let (word, next) = drive(&script, &config, &mut run, &executor);
     assert!(word.contains("packet withheld"), "{word}");
@@ -606,7 +339,7 @@ fn a_dependency_is_designed_then_implemented_on_separately_judged_tiers_and_land
     assert_eq!(report["wrong_routes"], 2);
     assert!(report["jev"]["calls"].as_u64().unwrap() >= 8);
     assert!(report["comparison"].is_null());
-    assert_eq!(report["human_escalations"], 0);
+    assert_eq!(report["human_escalations"], 1, "the paused second revision");
 }
 
 #[test]
@@ -628,15 +361,51 @@ fn an_unjustified_next_attempt_pauses_with_budget_remaining_and_a_stage_halt_rou
     for _ in 0..3 {
         drive(&script, &config, &mut run, &executor);
     }
+    // The first attempt is bounded by construction and proceeds without a
+    // continuation question; it fails, and the repeat is what the trio judges.
+    let (word, _) = drive(&script, &config, &mut run, &executor);
+    assert!(word.starts_with("dispatch"), "{word}");
+    let first = run.dispatches[0].clone();
+    let mut failed = verified(&first.input_identity, None, None);
+    failed.failure = Some("the design did not verify".into());
+    run.ingest(&first.id, failed).unwrap();
     let (word, next) = drive(&script, &config, &mut run, &executor);
     assert!(word.starts_with("paused"), "{word}");
     assert!(word.contains("human decision required"), "{word}");
     assert!(matches!(next, Next::Paused { .. }));
-    assert!(
-        run.dispatches.is_empty(),
-        "no frontier attempt was bought first"
+    assert_eq!(
+        run.dispatches.len(),
+        1,
+        "the first bounded attempt was bought; no second frontier attempt was"
     );
-    assert!(run.budget.remaining() > 100_000);
+    // A scoped human resume authorizes the attempt it names: the next step
+    // opens it without asking the trio again, even with risk still unusual.
+    let pause = run.pause.clone().unwrap();
+    let decision: telperion_jev::tuning::continuation::HumanDecision = serde_json::from_value(json!({
+        "pause_id": pause.id, "identity": pause.basis.identity, "action": pause.basis.proposed_action,
+        "by": "test owner", "rationale": "continue"
+    }))
+    .unwrap();
+    // A cap moves only from the value the run holds: a stale `previous` is refused.
+    let mut wrong = decision.clone();
+    wrong.round_cap_extension =
+        Some(serde_json::from_value(json!({"previous": 99, "next": 100})).unwrap());
+    assert!(run.resume(wrong).is_err());
+    let mut raise = decision.clone();
+    let held = run.budget.max_dispatches.unwrap();
+    raise.round_cap_extension =
+        Some(serde_json::from_value(json!({"previous": held, "next": held + 4})).unwrap());
+    run.resume(raise).unwrap();
+    assert_eq!(run.budget.max_dispatches, Some(held + 4));
+    assert_eq!(run.resumed_from.as_deref(), Some("pause-1"));
+    let (word, _) = drive(&script, &config, &mut run, &executor);
+    assert!(word.starts_with("dispatch"), "{word}");
+    assert!(
+        run.resumed_from.is_none(),
+        "opening the attempt clears the authorization"
+    );
+    assert_eq!(run.dispatches.len(), 2);
+    assert!(run.budget.remaining() > Some(100_000));
     assert!(run
         .routes
         .iter()
@@ -661,19 +430,24 @@ fn an_unjustified_next_attempt_pauses_with_budget_remaining_and_a_stage_halt_rou
         )
     };
     assert!(matches!(
-        plan::decision_action(&table, &run, &decision("onboarding-gate")),
+        plan::decision_action(&config, &table, &run, &decision("onboarding-gate")),
         Next::GapLoop { .. }
     ));
     assert!(matches!(
-        plan::decision_action(&table, &run, &decision("unavailable-source")),
+        plan::decision_action(&config, &table, &run, &decision("unavailable-source")),
         Next::Routine { .. }
     ));
     assert!(matches!(
-        plan::decision_action(&table, &run, &decision("tolerance-miss")),
+        plan::decision_action(&config, &table, &run, &decision("tolerance-miss")),
         Next::AwaitOwner { .. }
     ));
     assert!(matches!(
-        plan::decision_action(&table, &run, &decision("manifest-proposed")),
+        plan::decision_action(&config, &table, &run, &decision("manifest-proposed")),
+        Next::AwaitOwner { .. }
+    ));
+    // A required field below the requirements table's bar is NEEDS_HUMAN.
+    assert!(matches!(
+        plan::decision_action(&config, &table, &run, &decision("requirements-unmet")),
         Next::AwaitOwner { .. }
     ));
     // A routine dispatch that returned without resolving hands the decision to the owner.
@@ -694,17 +468,78 @@ fn an_unjustified_next_attempt_pauses_with_budget_remaining_and_a_stage_halt_rou
                 source.id
             ),
             judgments: vec![],
-            reserved_tokens: 1,
+            reserved_tokens: Some(1),
             opened_at: String::new(),
             result: None,
         });
     assert!(matches!(
-        plan::decision_action(&table, &run, &source),
+        plan::decision_action(&config, &table, &run, &source),
         Next::Routine { .. }
     ));
     run.ingest("dispatch-9", verified("i", None, None)).unwrap();
     assert!(matches!(
-        plan::decision_action(&table, &run, &source),
+        plan::decision_action(&config, &table, &run, &source),
         Next::AwaitOwner { .. }
     ));
+}
+
+#[test]
+fn an_open_decision_that_blocks_nothing_does_not_stop_the_run_for_the_owner() {
+    let root = scratch("nonblocking");
+    let config = config(&root);
+    let decisions = telperion_jev::pipeline::decision::Decision::new(
+        telperion_jev::pipeline::decision::DecisionParts {
+            species: "beech",
+            stage: "generate",
+            kind: "visual-unassessed",
+            field: None,
+            age_years: None,
+        },
+        &[],
+        BTreeMap::new(),
+        vec![],
+        json!({}),
+        &["accept", "reject"],
+        "the owner's verdict on the stills, after tuning",
+    );
+    write(
+        &config.paths().decisions(),
+        &json!({"schema": "decisions", "schema_version": 1, "decisions": [decisions]}),
+    );
+    let run = Run::open(&config).unwrap();
+    let next = plan::next(&config, &run).unwrap();
+    assert!(!matches!(next, Next::AwaitOwner { .. }), "{next:?}");
+}
+
+/// fn-117: a config with no budget block carries no cap. The tuning revision
+/// runs where a set cap pauses, and the spend is recorded and reported either way.
+#[test]
+fn a_run_without_a_budget_block_runs_where_a_set_cap_pauses_and_records_its_spend() {
+    for (cap, expect) in [
+        (None, "tuning revision 1"),
+        (Some(0), "paused: tuning revision cap"),
+    ] {
+        let root = scratch("uncapped");
+        let mut config = config(&root);
+        let mut raw = serde_json::to_value(&config).unwrap();
+        raw.as_object_mut().unwrap().remove("budget");
+        write(&root.join("conductor.json"), &raw);
+        config = Config::load(&root.join("conductor.json")).unwrap();
+        assert_eq!(config.budget, BudgetConfig::default());
+        config.budget.max_tuning_revisions = cap;
+        let executor = Scripted {
+            results: Mutex::new(vec![result(&root, "run-1", false, vec![])]),
+            stage_stops: Mutex::new(BTreeMap::new()),
+        };
+        let script = Script::new();
+        let mut run = Run::open(&config).unwrap();
+        drive(&script, &config, &mut run, &executor);
+        let (word, _) = drive(&script, &config, &mut run, &executor);
+        assert!(word.contains(expect), "{cap:?}: {word}");
+        if cap.is_none() {
+            assert!(run.budget.tokens >= 1000, "{}", run.budget.tokens);
+            let report = report::compute(&config, &run);
+            assert_eq!(report["tokens_total_known"], run.budget.tokens);
+        }
+    }
 }

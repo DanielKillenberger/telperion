@@ -30,7 +30,7 @@ const CM_PER_M: f64 = 100.0;
 #[derive(Debug)]
 pub enum Outcome {
     Current,
-    /// The manifest names no curve; the stage writes nothing.
+    /// The manifest names no curve; the stage writes its record and nothing else.
     Skipped,
     Ran {
         decisions: Vec<String>,
@@ -52,6 +52,9 @@ pub fn run(paths: &Paths) -> Result<Outcome, StageError> {
     }
     let manifest = &ctx.admitted.manifest;
     let Some(curves) = &manifest.curves else {
+        // The record still lands, so the stage is current on the next pass:
+        // the palm's conductor reran fit on every step until it did.
+        ctx.write(&header, json!({"skipped": "the manifest names no curve"}))?;
         return Ok(Outcome::Skipped);
     };
     let tables = &fetch["tables"];

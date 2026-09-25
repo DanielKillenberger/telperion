@@ -7,11 +7,14 @@ use serde_json::{json, Value};
 
 use super::gapcheck::{self, Verdict, PASSING};
 use super::policy;
-use super::state::{DependencyStatus, Run};
+use super::state::{DependencyStatus, Run, TuningRevision};
 use super::{Config, Result};
-use crate::pipeline::canon::{canonical_sha256, file_sha256};
+use crate::pipeline::build_id::{BUILD_ID, BUILD_TOOL};
+use crate::pipeline::canon::{canonical_sha256, file_sha256, read_json};
+use crate::pipeline::consume::REQUIREMENTS_UNMET;
 use crate::pipeline::decision::{reconcile, Decision, Status};
 use crate::pipeline::gap::HALT_KINDS;
+use crate::pipeline::search;
 use crate::pipeline::stage::STAGES;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -28,6 +31,12 @@ pub enum Next {
     },
     /// A decision only the owner resolves.
     AwaitOwner { decision: String, kind: String },
+    /// Open owner-only decisions (fn-127): the run pauses with their handoff
+    /// before the gap loop, the stages or tuning.
+    OwnerFirst { decisions: Vec<String> },
+    /// Requirements the pipeline searches again for before the owner has
+    /// them (fn-129): one round each.
+    SearchAgain { decisions: Vec<String> },
     /// A decision policy lets the cheap agent resolve, with the options it may choose.
     Routine {
         decision: String,
@@ -54,6 +63,11 @@ pub enum Next {
     /// The packet is written; only the owner's verdict remains.
     Ready,
 }
+
+/// Decision kinds that stop the run before any other work: a manifest the
+/// pipeline could not admit, a requirement its own searches did not meet.
+/// Open, each is the owner's, except a requirement with a search round left.
+pub const OWNER_FIRST: [&str; 2] = ["manifest-proposed", REQUIREMENTS_UNMET];
 
 /// The stages' current fingerprint: the manifest, the resolutions and every
 /// landed fix. When it matches the one recorded after a full pass, the
@@ -82,8 +96,8 @@ pub fn open_decisions(config: &Config) -> Result<Vec<Decision>> {
     if !paths.decisions().exists() {
         return Ok(Vec::new());
     }
-    let decisions = reconcile(&paths.decisions(), &paths.resolutions())
-        .map_err(|err| super::ConductorError::Invalid(err.to_string()))?;
+    let decisions =
+        reconcile(&paths).map_err(|err| super::ConductorError::Invalid(err.to_string()))?;
     Ok(decisions
         .into_iter()
         .filter(|d| d.status == Status::Open)
@@ -92,15 +106,24 @@ pub fn open_decisions(config: &Config) -> Result<Vec<Decision>> {
 
 /// Who a decision belongs to: the gap loop, the cheap agent under policy, or
 /// the owner. Anything the policy does not name is the owner's by rule.
-pub fn decision_action(table: &policy::Table, run: &Run, decision: &Decision) -> Next {
+pub fn decision_action(
+    config: &Config,
+    table: &policy::Table,
+    run: &Run,
+    decision: &Decision,
+) -> Next {
     if HALT_KINDS.contains(&decision.kind.as_str()) {
         // The loop ran once for this halt and did not mint a spec: its route
         // was the owner's or the stronger model's, so the halt is theirs now.
+        // A round whose spec landed and left the halt standing, narrower,
+        // is a fresh gap and loops again: the first live run's capability
+        // gate lost woody-axes to fn-108 and kept five anatomy names.
         let looped = run
             .dispatches
             .iter()
             .any(|d| d.scope.starts_with(&format!("gap-loop:{}:", decision.id)));
-        return if looped {
+        let landed_round = looped && gap_record_landed(config, &decision.id);
+        return if looped && !landed_round {
             Next::AwaitOwner {
                 decision: decision.id.clone(),
                 kind: decision.kind.clone(),
@@ -132,12 +155,49 @@ pub fn decision_action(table: &policy::Table, run: &Run, decision: &Decision) ->
     }
 }
 
+/// Whether the gap record for this halt shows a landed round that no route
+/// has followed: the halt stood after the landing and nobody has looped on
+/// it since. A route recorded after the landing is the next round already
+/// run, and its outcome is the record's, not another loop. Read-only: the
+/// record is the pipeline's; timestamps are RFC 3339 and compare as text.
+fn gap_record_landed(config: &Config, decision_id: &str) -> bool {
+    let path = crate::pipeline::gap::gap_dir(&config.paths(), decision_id).join("gap.json");
+    let Some(record) = std::fs::read(&path)
+        .ok()
+        .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok())
+    else {
+        return false;
+    };
+    let Some(landed_at) = record["landed"]["at"].as_str() else {
+        return false;
+    };
+    let last_route_at = record["routes"]
+        .as_array()
+        .and_then(|routes| routes.last())
+        .and_then(|route| route["at"].as_str())
+        .unwrap_or("");
+    last_route_at <= landed_at
+}
+
 fn first_missing_stage(config: &Config) -> Option<&'static str> {
     let paths = config.paths();
     STAGES
         .iter()
         .copied()
         .find(|stage| !paths.artifact(stage).exists())
+}
+
+/// The first stage whose artifact records a build other than this one: a
+/// code change expired its key (fn-132). An artifact that records no build
+/// predates the build id and is left to the stage fingerprint.
+pub fn first_stale_stage(config: &Config) -> Option<&'static str> {
+    let paths = config.paths();
+    STAGES.iter().copied().find(|stage| {
+        read_json(&paths.artifact(stage))
+            .ok()
+            .and_then(|v| v["tools"][BUILD_TOOL].as_str().map(|b| b != BUILD_ID))
+            .unwrap_or(false)
+    })
 }
 
 /// The gap verdicts of the latest revision, read from the run record.
@@ -167,6 +227,34 @@ pub fn next(config: &Config, run: &Run) -> Result<Next> {
             effort: dispatch.effort.clone(),
         });
     }
+    let open = open_decisions(config)?;
+    let proposal_open = open.iter().any(|d| d.kind == OWNER_FIRST[0]);
+    // Stages a code change left stale read the literature again before a
+    // search adds to it or the owner is asked for it (fn-132); once per
+    // build, so a stage that stops cannot hold the run.
+    if !proposal_open && run.stages_build.as_deref() != Some(BUILD_ID) {
+        if let Some(stage) = first_stale_stage(config) {
+            return Ok(Next::Stages { from: stage.into() });
+        }
+    }
+    // A search waits while a manifest proposal is open: the owner's
+    // admission would overwrite the sources a search added.
+    let again = if proposal_open {
+        Vec::new()
+    } else {
+        search::searchable(&config.paths(), &open)
+    };
+    if !again.is_empty() {
+        return Ok(Next::SearchAgain { decisions: again });
+    }
+    let owners: Vec<String> = open
+        .iter()
+        .filter(|d| OWNER_FIRST.contains(&d.kind.as_str()))
+        .map(|d| d.id.clone())
+        .collect();
+    if !owners.is_empty() {
+        return Ok(Next::OwnerFirst { decisions: owners });
+    }
     if let Some(dependency) = run
         .dependencies
         .iter()
@@ -184,10 +272,29 @@ pub fn next(config: &Config, run: &Run) -> Result<Next> {
             },
         });
     }
+    // A landing changes what the stages would file: the halts on record were
+    // filed before it. Rerun the stages before acting on any of them, or the
+    // loop is sent after a gate the landing just cleared. The first live run
+    // did exactly that with the registry gate after fn-108 landed.
+    let landed_unrun = run
+        .dependencies
+        .iter()
+        .filter(|d| d.status == DependencyStatus::Landed)
+        .filter_map(|d| d.landed_commit.as_ref())
+        .any(|c| !run.stages_rerun_for.contains(c));
+    if landed_unrun {
+        return Ok(Next::Stages {
+            from: STAGES[0].into(),
+        });
+    }
     let table = policy::load();
-    let open = open_decisions(config)?;
+    // Only a decision that blocks a stage is acted on here. One that blocks
+    // nothing, the pipeline's visual-unassessed and the like, is answered by
+    // the tuning revisions and the packet, never by the owner before them:
+    // the first live run was sent to the owner on one before the palm had
+    // ever been tuned.
     if let Some(decision) = open.iter().find(|d| !d.blocks.is_empty()) {
-        return Ok(decision_action(&table, run, decision));
+        return Ok(decision_action(config, &table, run, decision));
     }
     if let Some(stage) = first_missing_stage(config) {
         return Ok(Next::Stages { from: stage.into() });
@@ -196,9 +303,6 @@ pub fn next(config: &Config, run: &Run) -> Result<Next> {
         return Ok(Next::Stages {
             from: STAGES[0].into(),
         });
-    }
-    if let Some(decision) = open.first() {
-        return Ok(decision_action(&table, run, decision));
     }
     let landed = run
         .dependencies
@@ -216,6 +320,9 @@ pub fn next(config: &Config, run: &Run) -> Result<Next> {
             revision: latest.revision + 1,
             focus: Vec::new(),
         });
+    }
+    if latest.converged.is_some() {
+        return packet_or_ready(config, latest);
     }
     let result = gapcheck::read_result(&latest.out)?;
     let unchecked: Vec<String> = result
@@ -251,8 +358,13 @@ pub fn next(config: &Config, run: &Run) -> Result<Next> {
             focus,
         });
     }
-    // Nothing is left to dispatch: the packet is assembled, and it is the
-    // packet that says ready or names what keeps the species unready.
+    packet_or_ready(config, latest)
+}
+
+/// Nothing is left to dispatch, or the revision converged (fn-136): the
+/// packet is assembled, and it is the packet that says ready or names what
+/// keeps the species unready.
+fn packet_or_ready(config: &Config, latest: &TuningRevision) -> Result<Next> {
     match super::packet::read(config)? {
         Some(packet)
             if packet["ready_for_owner_review"] == true

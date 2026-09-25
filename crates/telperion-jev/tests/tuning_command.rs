@@ -1033,6 +1033,25 @@ impl telperion_jev::caller::Transport for EveryDial {
 }
 
 #[test]
+fn an_unexpressed_trait_must_be_in_the_inventory_and_name_its_spec() {
+    let _serial = serial();
+    let f = fixture::verifying_fixture(opening());
+    let mut config: Config = serde_json::from_slice(&fs::read(&f.config_path).unwrap()).unwrap();
+    let listed = |trait_id: &str, spec: &str| -> Value { json!([{"trait":trait_id,"spec":spec}]) };
+    config.unexpressed = serde_json::from_value(listed("trait-core", "fn-111")).unwrap();
+    config.verify().unwrap();
+    for (trait_id, spec, refused) in [
+        ("fruit-clusters-pendent", "fn-111", "not in the inventory"),
+        ("trait-core", " ", "names no spec"),
+    ] {
+        config.unexpressed = serde_json::from_value(listed(trait_id, spec)).unwrap();
+        let error = config.verify().unwrap_err();
+        assert!(error.contains(refused), "{trait_id}/{spec:?}: {error}");
+    }
+    f.cleanup();
+}
+
+#[test]
 fn max_candidates_is_validated_and_bounds_one_round() {
     let _serial = serial();
     use telperion_jev::tuning::{
@@ -1092,6 +1111,8 @@ fn max_candidates_is_validated_and_bounds_one_round() {
         judgment_inputs: vec![],
         visual_bootstrap: false,
         reviewer_passed_unqualified: false,
+        strides: Default::default(),
+        unkept: None,
     };
     // `propose` now returns every accepted move, ordered, and reports the
     // bound; the engine truncates after refusing repeats, so a move already
@@ -1471,6 +1492,8 @@ fn image_and_evaluation_caps_extend_only_on_an_exact_scoped_decision() {
         parent_bundle: None,
         sheet: None,
         vetoed: None,
+        adopted: false,
+        step: None,
         key: "candidate-1".into(),
         identity: state.identity.clone(),
         seed: 1,
@@ -1567,8 +1590,8 @@ fn image_and_evaluation_caps_extend_only_on_an_exact_scoped_decision() {
     assert!(error.contains("stops before dispatch"), "{error}");
 
     let after: Run = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
-    assert_eq!(after.budget.max_images, 60);
-    assert_eq!(after.budget.max_evaluations, 20);
+    assert_eq!(after.budget.max_images, Some(60));
+    assert_eq!(after.budget.max_evaluations, Some(20));
     // Spend and evidence survive the extension.
     assert_eq!(after.budget.images, 30);
     assert_eq!(after.budget.evaluations, 6);
@@ -1609,6 +1632,8 @@ fn two_consecutive_cap_only_resumes_keep_the_evidence_they_preserved() {
         parent_bundle: None,
         sheet: None,
         vetoed: None,
+        adopted: false,
+        step: None,
         key: "candidate-1".into(),
         identity: state.identity.clone(),
         seed: 1,
@@ -1686,7 +1711,7 @@ fn two_consecutive_cap_only_resumes_keep_the_evidence_they_preserved() {
         );
         let after: Run = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
         assert_eq!(after.identity, identity);
-        assert_eq!(after.budget.max_images, next);
+        assert_eq!(after.budget.max_images, Some(next));
         // The evidence measured under the first revision is still here, and
         // still visible to everything that reads it.
         assert_eq!(after.trials.len(), 1, "cap {next}: the trial was dropped");

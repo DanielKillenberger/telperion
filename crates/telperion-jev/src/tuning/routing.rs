@@ -208,7 +208,17 @@ impl Run {
                 self.measured_here(&t.identity)
                     && (t.bundle.is_some() || self.dials.iter().any(|d| d.id == t.label))
             })
-            .map(|(i, t)| Attempt {
+            .map(|(i, t)| (i, t, self.adopted(i)))
+            .map(|(i, t, adopted)| Attempt {
+                moves: t
+                    .bundle
+                    .as_ref()
+                    .map(|b| b.moves.clone())
+                    .or_else(|| t.step.clone().map(|m| vec![m]))
+                    .unwrap_or_default(),
+                adopted,
+                stood: adopted.then_some(t.vetoed.is_none()),
+                rolled_back: t.vetoed.as_ref().map(|v| v.reasons.join("; ")),
                 review: super::progress::words(t),
                 dial: t.label.clone(),
                 round: t.round,
@@ -241,6 +251,14 @@ impl Run {
                     .filter(|cells: &Vec<CellOutcome>| !cells.is_empty()),
             })
             .collect()
+    }
+
+    /// Whether a round adopted this trial. A record from before `adopted` was
+    /// kept still shows its adoptions: a veto, a passed-over round, the tree
+    /// the run stands on.
+    fn adopted(&self, index: usize) -> bool {
+        let t = &self.trials[index];
+        t.adopted || t.vetoed.is_some() || !t.adopted_over.is_empty() || self.current == Some(index)
     }
 
     /// Priorities that have not been resolved: an open handoff, or an owner

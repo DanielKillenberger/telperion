@@ -40,11 +40,23 @@ class ReferenceFirstAdapter(unittest.TestCase):
                 receipt=json.loads(captured.getvalue())
                 self.assertEqual(receipt["status"],"failed_or_tools_or_unknown_usage_or_cardinality")
                 self.assertEqual(receipt["usage"]["input_tokens"],2)
-            comparison=dict(envelope,stage="comparison",request={"comparison":{"required":[{"view":"whole"},{"view":"bare"}],"images":[],"references":[request["references"][0]["image"]],"quality_anchors":[]}})
+            _,inventory_schema,_=adapter.prepare(envelope)
+            self.assertEqual(inventory_schema["properties"]["traits"]["maxItems"],16)
+            self.assertEqual(inventory_schema["properties"]["observations"]["maxItems"],16)
+            self.assertEqual(inventory_schema["properties"]["traits"]["items"]["properties"]["id"]["maxLength"],64)
+            comparison=dict(envelope,stage="comparison",request={"protocol":"reference-first-comparison-v2","comparison":{"required":[{"view":"whole"},{"view":"bare"}],"images":[],"references":[request["references"][0]["image"]],"quality_anchors":[]}})
             _,schema,prompt=adapter.prepare(comparison)
             self.assertEqual(schema["properties"]["passes"]["minItems"],2)
             self.assertEqual(schema["properties"]["passes"]["maxItems"],2)
+            self.assertEqual(schema["properties"]["coverage"]["maxItems"],16)
+            self.assertEqual(schema["properties"]["findings"]["maxItems"],16)
             self.assertIn("exact order",prompt)
+            finding=schema["properties"]["findings"]["items"]
+            defect=schema["properties"]["defects"]["items"]
+            for item in (finding,defect):
+                self.assertIn("trait_id",item["required"])
+                self.assertEqual(item["properties"]["trait_id"]["type"],["string","null"])
+            with self.assertRaises(ValueError):adapter.prepare(dict(comparison,request=dict(comparison["request"],protocol="reference-first-v1")))
             def wrong_count(command,**kwargs):
                 Path(command[command.index("-o")+1]).write_text('{"passes":["fail"]}')
                 return type("Done",(),{"returncode":0,"stdout":b'{"type":"turn.completed","usage":{"input_tokens":2,"output_tokens":3}}\n',"stderr":b""})()

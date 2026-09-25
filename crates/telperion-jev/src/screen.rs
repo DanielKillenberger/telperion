@@ -5,7 +5,8 @@ use std::path::Path;
 use serde_json::json;
 
 use crate::caller::{evaluate, CallerError, EvaluateRequest, Transport};
-use crate::extract::{bound_state_text, candidate_sentences, split_for_state, visible_text};
+use crate::extract::{bound_state_text, candidate_sentences, split_for_state, CandidateSentence};
+use crate::html::source_text;
 use crate::ledger::{LedgerEntry, SourceRef};
 use crate::questions::{screen_questions, thresholds};
 
@@ -31,7 +32,9 @@ pub struct ScreenReport {
     pub elapsed_ms: u64,
 }
 
-/// Screen a fetched source. An empty candidate list is a successful empty table.
+/// Screen a loaded source: its candidate sentences, from its text (an HTML
+/// document is converted first). An empty candidate list is a successful
+/// empty table.
 pub fn screen(
     transport: &dyn Transport,
     key: &str,
@@ -40,14 +43,27 @@ pub fn screen(
     bytes: &[u8],
     species: &str,
 ) -> Result<ScreenReport, CallerError> {
-    let text = visible_text(bytes);
+    let candidates = candidate_sentences(&source_text(bytes));
+    screen_candidates(transport, key, ledger_dir, source, &candidates, species)
+}
+
+/// Screen exactly `candidates`, in order: the pipeline passes the ones
+/// extract.json holds, so the artifact and the judgment cannot disagree.
+pub fn screen_candidates(
+    transport: &dyn Transport,
+    key: &str,
+    ledger_dir: &Path,
+    source: &SourceRef,
+    candidates: &[CandidateSentence],
+    species: &str,
+) -> Result<ScreenReport, CallerError> {
     let questions = screen_questions();
     let mut rows = Vec::new();
     let mut input_tokens = 0u64;
     let mut output_tokens = 0u64;
     let mut elapsed_ms = 0u64;
 
-    for candidate in candidate_sentences(&text) {
+    for candidate in candidates {
         for (part, neighborhood) in split_for_state(&candidate.sentence) {
             let context = if part.len() == candidate.sentence.len() {
                 bound_state_text(&candidate.context)

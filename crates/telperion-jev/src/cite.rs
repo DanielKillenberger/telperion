@@ -6,7 +6,8 @@ use regex::Regex;
 use serde_json::json;
 
 use crate::caller::{evaluate, CallerError, EvaluateRequest, HttpRequest, Transport};
-use crate::extract::{key_terms, section_for_terms, visible_text};
+use crate::extract::{candidate_spans, collapse_ws, key_terms, section_for_terms};
+use crate::html::source_text;
 use crate::ledger::SourceRef;
 use crate::questions::{citation_questions, thresholds, Thresholds};
 use crate::screen::{accumulate, compose_kind};
@@ -219,7 +220,7 @@ pub fn cite(
                 ));
             }
             SourceLoad::Bytes(bytes) => {
-                let text = visible_text(bytes);
+                let text = source_text(bytes);
                 let terms = key_terms(&claim.claim);
                 let Some(section) = section_for_terms(&text, &terms, 260) else {
                     rows.push(listed_row(
@@ -282,6 +283,7 @@ pub fn cite(
                 let (listed, reason) = list_reason(
                     &relation,
                     confidence,
+                    is_verbatim(&claim.claim, &section),
                     kind.as_deref(),
                     kind_confidence,
                     anchor_usable,
@@ -339,9 +341,21 @@ pub fn looks_like_height_at_age(claim: &str) -> bool {
     has_length && has_age
 }
 
+/// A claim's span (the number and unit as selected) stands, byte for byte
+/// after whitespace collapse, in the cited sentence - the claim quotes the
+/// source rather than paraphrasing it (fn-137). Whitespace is the only
+/// normalisation: no case-folding, no unit conversion.
+pub fn is_verbatim(claim: &str, section: &str) -> bool {
+    let section = collapse_ws(section);
+    candidate_spans(claim)
+        .iter()
+        .any(|span| section.contains(span.as_str()))
+}
+
 pub fn list_reason(
     relation: &str,
     confidence: f64,
+    verbatim: bool,
     kind: Option<&str>,
     kind_confidence: f64,
     anchor_usable: f64,
@@ -354,14 +368,19 @@ pub fn list_reason(
     if relation != "supports" {
         return (true, relation.to_string());
     }
+    let mut verbatim_saved = false;
     if confidence < cuts.citation_auto_accept {
-        return (
-            true,
-            format!(
-                "confidence {confidence:.2} below {}",
-                cuts.citation_auto_accept
-            ),
-        );
+        if verbatim {
+            verbatim_saved = true;
+        } else {
+            return (
+                true,
+                format!(
+                    "confidence {confidence:.2} below {}",
+                    cuts.citation_auto_accept
+                ),
+            );
+        }
     }
     if kind == Some("site_quality_criterion") {
         return (true, "source sentence is a site-quality criterion".into());
@@ -395,7 +414,11 @@ pub fn list_reason(
             );
         }
     }
-    (false, "pass".into())
+    if verbatim_saved {
+        (false, "verbatim".into())
+    } else {
+        (false, "pass".into())
+    }
 }
 
 pub fn format_report(report: &CiteReport) -> String {

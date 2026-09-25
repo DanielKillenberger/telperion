@@ -172,7 +172,7 @@ pub(super) fn split(
     if drawn.is_empty() {
         return Ok(None);
     }
-    let priorities = progress::tuning_priorities(state);
+    let priorities = progress::track_priorities(state, track);
     let look = services.sheet_request(state, old, &drawn, &priorities, track.view.as_deref())?;
     note_unshown(state, &look);
     let Some(plan) = &look.plan else {

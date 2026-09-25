@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "kind": {
     "type": "choice",
     "instructions": "The state holds one sentence from a source about a tree species, with the surrounding text. What kind of statement is `candidate.sentence`, read in its context?",
@@ -20,17 +20,37 @@
         "not_for": "an observed growth rate reported as typical or usual"
       },
       "mature_size_range": {
-        "what": "The size of mature or full-grown trees with no age given, or a maximum size"
+        "what": "The size of mature or full-grown trees with no age given, or a maximum size: the tree's height, trunk diameter or crown spread",
+        "not_for": "a leaf, leaflet, frond, needle or cone"
       },
       "typical_growth_rate": {
         "what": "A rate of growth per year or per period reported as typical or usual for the species, not tied to a site test",
-        "not_for": "stump sprouts, cultivars or nursery stock"
+        "not_for": "stump sprouts or nursery stock"
       },
-      "sprout_cultivar_or_nursery": {
-        "what": "Growth or size of stump sprouts, coppice, a named cultivar, or nursery seedling stock, which does not describe a seed-grown wild tree"
+      "leaf_size": {
+        "what": "The length or width of a leaf or leaf blade of a broadleaved tree",
+        "not_for": "a leaflet of a compound leaf, or a palm frond"
+      },
+      "leaflet_size": {
+        "what": "The length or width of a leaflet or pinna of a compound leaf or frond"
+      },
+      "frond_size": {
+        "what": "The length or width of a palm or fern frond, the whole leaf with its stalk"
+      },
+      "needle_size": {
+        "what": "The length of a conifer needle"
+      },
+      "cone_size": {
+        "what": "The length or width of a cone"
+      },
+      "cultivar_size": {
+        "what": "The size of a named cultivar or variety of the species, of the tree or of one of its organs; it still describes the species"
+      },
+      "sprout_or_nursery": {
+        "what": "Growth or size of stump sprouts, coppice or nursery seedling stock, which does not describe a grown tree"
       },
       "not_about_tree_size": {
-        "what": "The number is about something else: elevation, range, cones, needles, longevity, wood durability, seed bearing"
+        "what": "The number is about something else: elevation, range, flowers, fruit, seeds, spines, longevity, wood durability, seed bearing"
       }
     }
   },

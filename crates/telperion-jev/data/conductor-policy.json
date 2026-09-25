@@ -37,6 +37,8 @@
     {"when": {"verification": "failed", "last_route": "implement_cheap"}, "route": "implement_strong_low", "why": "straightforward work failed on the cheap tier; a stronger model at low effort"},
     {"when": {"verification": "failed", "last_route": "design_again"}, "route": "human", "why": "design failed twice"},
     {"when": {"verification": "failed", "last_route": "design"}, "route": "design_again", "why": "the design did not resolve its unknowns; design again at high effort"},
+    {"when": {"design_present": false, "design_complexity": "insufficient_after_investigation"}, "route": "human", "why": "insufficient evidence after one investigation: the design judgment is still under the floor, and a second investigation of the same revision is never bought"},
+    {"when": {"design_present": true, "implementation_complexity": "insufficient_after_investigation"}, "route": "human", "why": "insufficient evidence after one investigation: the implementation judgment is still under the floor, and a second investigation of the same revision is never bought"},
     {"when": {"design_present": false, "design_complexity": "insufficient_evidence"}, "route": "investigate", "why": "no match or missing evidence: investigate rather than guess a cheap route"},
     {"when": {"design_present": false, "design_complexity": "routine"}, "route": "routine", "why": "routine work runs on the cheap agent"},
     {"when": {"design_present": false, "design_complexity": "complex"}, "route": "design", "why": "complex design goes to a high-reasoning model at medium effort"},
@@ -47,12 +49,14 @@
     {"when": {}, "route": "human", "why": "no row justified an unattended route"}
   ],
   "decisions": {
-    "note": "Decision kinds a cheap agent may resolve under policy, with the options it may choose; every other kind and option is the owner's. Lowering a bar, overriding a ruling or changing a boundary is never routine.",
+    "note": "Decision kinds a cheap agent may resolve under policy, with the options it may choose; every other kind and option is the owner's. Lowering a bar, overriding a ruling or changing a boundary is never routine. Two kinds the pipeline resolves itself, by code, never by an agent (fn-129): manifest-proposed is admitted by the pipeline when the draft only adds sources and every one is chosen for its field and carries an open licence or a public cite-only page; requirements-unmet (fn-118) add-sources is the pipeline's for two search rounds per field or appearance trait, aimed at the gap; a source for a trait joins the trait's sources list. Every other draft, a requirement still unmet after its two rounds, and any change to a trait's name or level table are the owner's, with the sources tried. No table bar is ever lowered. A value verify flagged (claim-contradicted, claim-unsupported, fn-131) is routine: drop-value takes it out of the packet and files its requirement again, replace-source sends the field to the pipeline's search; accept keeps a flagged value and stays the owner's.",
     "routine": {
       "unavailable-source": ["retry", "replace-source", "drop-source"],
       "coverage-gap": ["accept-rows", "fix-table", "drop-table"],
       "data-insufficient": ["admit-proxy", "add-sources"],
-      "article-claim-unsupported": ["recite", "rewrite-sentence"]
+      "article-claim-unsupported": ["recite", "rewrite-sentence"],
+      "claim-contradicted": ["replace-source", "drop-value"],
+      "claim-unsupported": ["replace-source", "drop-value"]
     }
   }
 }

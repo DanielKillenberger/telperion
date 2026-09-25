@@ -1,7 +1,6 @@
 //! Code finds candidate sentences and numeric spans. The model never does this.
 
-use regex::Regex;
-use std::sync::OnceLock;
+use crate::quantity::unit_re;
 
 /// Byte budget for one sentence field in the state sent to Jev.
 /// A longer sentence is split at sentence boundaries; each part is judged
@@ -48,70 +47,6 @@ pub fn bound_state_text(text: &str) -> String {
     }
 }
 
-fn unit_re() -> &'static Regex {
-    static RE: OnceLock<Regex> = OnceLock::new();
-    RE.get_or_init(|| {
-        Regex::new(
-            r"(?i)\d[\d,]*(?:\.\d+)?(?:\s*(?:to|-|–|—)\s*\d[\d,]*(?:\.\d+)?)?\s*(?:ft|feet|foot|in\.|inches|inch|m\b|metres?|meters?|cm|mm|years?|yr|rings/in)",
-        )
-        .expect("unit regex")
-    })
-}
-
-fn sentence_end_re() -> &'static Regex {
-    static RE: OnceLock<Regex> = OnceLock::new();
-    RE.get_or_init(|| Regex::new(r"[.!?]+\s+").expect("sentence regex"))
-}
-
-/// Visible text from fetched source bytes. Tags are stripped; the checksum
-/// stays on the raw bytes.
-pub fn visible_text(bytes: &[u8]) -> String {
-    let raw = String::from_utf8_lossy(bytes);
-    let without_script = strip_blocks(&raw, "script");
-    let without_style = strip_blocks(&without_script, "style");
-    let mut out = String::with_capacity(without_style.len());
-    let mut in_tag = false;
-    for ch in without_style.chars() {
-        match ch {
-            '<' => in_tag = true,
-            '>' => in_tag = false,
-            _ if !in_tag => out.push(ch),
-            _ => {}
-        }
-    }
-    decode_entities(&out)
-}
-
-fn strip_blocks(input: &str, tag: &str) -> String {
-    let open = format!("<{tag}");
-    let close = format!("</{tag}>");
-    let lower = input.to_ascii_lowercase();
-    let mut out = String::new();
-    let mut cursor = 0;
-    while let Some(start) = lower[cursor..].find(&open) {
-        let abs = cursor + start;
-        out.push_str(&input[cursor..abs]);
-        let after_open = abs + open.len();
-        let end = lower[after_open..]
-            .find(&close)
-            .map(|i| after_open + i + close.len())
-            .unwrap_or(input.len());
-        cursor = end;
-    }
-    out.push_str(&input[cursor..]);
-    out
-}
-
-fn decode_entities(input: &str) -> String {
-    input
-        .replace("&nbsp;", " ")
-        .replace("&amp;", "&")
-        .replace("&lt;", "<")
-        .replace("&gt;", ">")
-        .replace("&quot;", "\"")
-        .replace("&#39;", "'")
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CandidateSentence {
     pub sentence: String,
@@ -120,10 +55,11 @@ pub struct CandidateSentence {
 
 /// Every sentence that carries a number with a length, age or rate unit.
 pub fn candidate_sentences(text: &str) -> Vec<CandidateSentence> {
+    let ends = sentence_ends(text);
     let mut found = Vec::new();
     let mut seen = std::collections::BTreeSet::new();
     for mat in unit_re().find_iter(text) {
-        let sentence = enclosing_sentence(text, mat.start(), mat.end());
+        let sentence = enclosing_sentence(text, &ends, mat.start(), mat.end());
         let trimmed = collapse_ws(&sentence);
         if trimmed.is_empty() || !seen.insert(trimmed.clone()) {
             continue;
@@ -135,6 +71,28 @@ pub fn candidate_sentences(text: &str) -> Vec<CandidateSentence> {
         });
     }
     found
+}
+
+/// Every sentence that carries one of `terms` (lowercase), each once, in
+/// text order.
+pub fn sentences_with_terms(text: &str, terms: &[String]) -> Vec<String> {
+    let lower = text.to_ascii_lowercase();
+    let mut hits: Vec<(usize, usize)> = terms
+        .iter()
+        .filter(|term| !term.is_empty())
+        .flat_map(|term| {
+            lower
+                .match_indices(term.as_str())
+                .map(|(at, t)| (at, at + t.len()))
+        })
+        .collect();
+    hits.sort_unstable();
+    let ends = sentence_ends(text);
+    let mut seen = std::collections::BTreeSet::new();
+    hits.into_iter()
+        .map(|(start, end)| collapse_ws(&enclosing_sentence(text, &ends, start, end)))
+        .filter(|sentence| !sentence.is_empty() && seen.insert(sentence.clone()))
+        .collect()
 }
 
 /// Numeric spans the selection tool presents, plus the coverage of `foot`.
@@ -150,16 +108,37 @@ pub fn candidate_spans(text: &str) -> Vec<String> {
     spans
 }
 
-fn enclosing_sentence(text: &str, start: usize, end: usize) -> String {
+/// Byte offsets where a sentence ends, in text order: after each `.`, `!`
+/// or `?`, except one a digit follows or one inside a quantity the unit
+/// pattern matches (`3 in.`). So the point in "5.5-6.1 m" never cuts the
+/// frond's sentence in two (fn-130, the palm's P5).
+pub fn sentence_ends(text: &str) -> Vec<usize> {
+    let units: Vec<(usize, usize)> = unit_re()
+        .find_iter(text)
+        .map(|m| (m.start(), m.end()))
+        .collect();
+    let bytes = text.as_bytes();
+    (0..bytes.len())
+        .filter(|&at| matches!(bytes[at], b'.' | b'!' | b'?'))
+        .filter(|&at| !bytes.get(at + 1).is_some_and(u8::is_ascii_digit))
+        .filter(|&at| {
+            let unit = units.partition_point(|&(from, _)| from <= at);
+            unit == 0 || at >= units[unit - 1].1
+        })
+        .map(|at| at + 1)
+        .collect()
+}
+
+/// The sentence around `[start, end)`, cut at the `ends` of `sentence_ends`.
+fn enclosing_sentence(text: &str, ends: &[usize], start: usize, end: usize) -> String {
     let start = floor_char_boundary(text, start);
     let end = ceil_char_boundary(text, end);
-    let before = text[..start]
-        .rfind(['.', '!', '?'])
-        .map(|i| i + 1)
-        .unwrap_or(0);
-    let after = text[end..]
-        .find(['.', '!', '?'])
-        .map(|i| end + i + 1)
+    let from = ends.partition_point(|&e| e <= start);
+    let before = if from == 0 { 0 } else { ends[from - 1] };
+    let after = ends[from..]
+        .iter()
+        .copied()
+        .find(|&e| e >= end)
         .unwrap_or(text.len());
     slice_at(text, before, after).trim().to_string()
 }
@@ -170,7 +149,8 @@ fn window(text: &str, start: usize, end: usize, radius: usize) -> String {
     collapse_ws(slice_at(text, from, to))
 }
 
-fn collapse_ws(text: &str) -> String {
+/// Join `text` on single spaces, dropping all other whitespace variance.
+pub fn collapse_ws(text: &str) -> String {
     text.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
@@ -193,10 +173,9 @@ pub fn split_for_state(sentence: &str) -> Vec<(String, String)> {
             sentence.len()
         } else {
             let window = &sentence[cursor..cap];
-            let rel = sentence_end_re()
-                .find_iter(window)
-                .last()
-                .map(|m| m.end())
+            let rel = sentence_ends(window)
+                .into_iter()
+                .rfind(|&end| end < window.len())
                 .or_else(|| window.rfind(char::is_whitespace))
                 .unwrap_or(window.len());
             let abs = floor_char_boundary(sentence, cursor + rel);

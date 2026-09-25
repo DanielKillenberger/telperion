@@ -35,6 +35,23 @@ pub fn select(
     source: Option<&SourceRef>,
 ) -> Result<SelectReport, CallerError> {
     let spans = candidate_spans(document);
+    select_among(
+        transport, key, ledger_dir, document, question, spans, source,
+    )
+}
+
+/// Jev chooses one of `spans`, the candidates code laid out for `document`,
+/// or none. The pipeline keys each span to its sentence and source (fn-131),
+/// so one number in two sentences is two candidates.
+pub fn select_among(
+    transport: &dyn Transport,
+    key: &str,
+    ledger_dir: &Path,
+    document: &str,
+    question: &str,
+    spans: Vec<String>,
+    source: Option<&SourceRef>,
+) -> Result<SelectReport, CallerError> {
     let questions = selection_questions(question, &spans);
     let state = json!({
         "document": document,

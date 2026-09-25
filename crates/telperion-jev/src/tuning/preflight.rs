@@ -44,6 +44,8 @@ fn placeholder(config: &Config, identity: &str) -> Trial {
         parent_bundle: None,
         sheet: None,
         vetoed: None,
+        adopted: false,
+        step: None,
         key: String::new(),
         identity: identity.into(),
         seed: config.seed,
@@ -258,11 +260,11 @@ pub fn plan(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<Val
 }
 
 fn totals(budget: &Budget, evaluations: u64, images: u64, tokens: u64, visual: u64) -> Value {
-    let fits = |spent: u64, need: u64, cap: u64| json!({"spent":spent,"needed":need,"cap":cap,"fits":spent.saturating_add(need) <= cap});
+    let fits = |spent: u64, need: u64, cap: Option<u64>| json!({"spent":spent,"needed":need,"cap":cap,"fits":!super::state::over(spent.saturating_add(need), cap)});
     json!({
         "evaluations":fits(budget.evaluations, evaluations, budget.max_evaluations),
         "images":fits(budget.images, images, budget.max_images),
         "tokens":fits(budget.tokens, tokens, budget.max_tokens),
-        "visual_passes":fits(budget.visual_passes.unwrap_or(0), visual, budget.max_visual_passes.unwrap_or(0)),
+        "visual_passes":fits(budget.visual_passes.unwrap_or(0), visual, budget.max_visual_passes),
     })
 }

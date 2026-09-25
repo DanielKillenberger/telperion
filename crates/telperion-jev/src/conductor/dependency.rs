@@ -89,37 +89,58 @@ fn no_progress(history: &[&Dispatch], limit: usize) -> bool {
     trailing >= limit
 }
 
+/// A set cap the next attempt would reach. With no cap set nothing is hard.
 fn hard_limit(run: &Run) -> bool {
-    run.dispatches.len() as u64 >= run.budget.max_dispatches
-        || run
-            .budget
-            .tokens
-            .saturating_add(run.budget.attempt_max_tokens)
-            > run.budget.max_tokens
+    let budget = &run.budget;
+    budget
+        .max_dispatches
+        .is_some_and(|cap| run.dispatches.len() as u64 >= cap)
+        || budget.max_tokens.is_some_and(|cap| {
+            budget
+                .tokens
+                .saturating_add(budget.attempt_max_tokens.unwrap_or(0))
+                > cap
+        })
 }
 
-/// The bounded next-attempt estimate: the mean of the finished dispatches
-/// that reported usage, capped by the attempt bound; the bound itself when
-/// nothing has run. The basis names which.
-pub fn estimate(run: &Run) -> (u64, String) {
+/// The next-attempt estimate: the mean of the finished dispatches that
+/// reported usage, capped by the attempt bound when one is set; the bound
+/// itself when nothing has run, and unknown with neither. The basis names which.
+pub fn estimate(run: &Run) -> (Option<u64>, String) {
+    let bound = run.budget.attempt_max_tokens;
     let known: Vec<u64> = run
         .dispatches
         .iter()
         .filter_map(|d| d.result.as_ref()?.usage.as_ref())
         .map(|u| u.input_tokens.saturating_add(u.output_tokens))
+        // A zero is a driver that could not count, not a free attempt: the
+        // first live run's one known usage was 0 and the mean priced the next
+        // attempt at one token, which the continuation check rightly refused.
+        .filter(|total| *total > 0)
         .collect();
     if known.is_empty() {
-        return (
-            run.budget.attempt_max_tokens,
-            "the configured attempt bound; no dispatch has reported usage yet".into(),
-        );
+        return match bound {
+            Some(bound) => (
+                Some(bound),
+                "the configured attempt bound; no dispatch has reported usage yet".into(),
+            ),
+            None => (
+                None,
+                "unknown: no dispatch has reported usage yet and no attempt bound is set".into(),
+            ),
+        };
     }
     let mean = known.iter().sum::<u64>() / known.len() as u64;
-    let bounded = mean.min(run.budget.attempt_max_tokens);
+    let bounded = bound.map_or(mean, |bound| mean.min(bound));
+    let capped = if bound.is_some() {
+        ", capped by the attempt bound"
+    } else {
+        ""
+    };
     (
-        bounded.max(1),
+        Some(bounded.max(1)),
         format!(
-            "mean of {} dispatches with known usage, capped by the attempt bound",
+            "mean of {} dispatches with known usage{capped}",
             known.len()
         ),
     )
@@ -153,6 +174,22 @@ fn judge(
 ) -> Result<(String, String, Vec<String>)> {
     let designed = dependency.status == DependencyStatus::Designed;
     let spec = spec_evidence(config, &dependency.spec)?;
+    let key = if designed {
+        format!(
+            "implementation:{}",
+            dependency.design_revision.clone().unwrap_or_default()
+        )
+    } else {
+        format!("design:{}", canonical_sha256(&spec))
+    };
+    if let Some(memo) = dependency.judged.get(&key) {
+        let (choice, ledger) = memo.split_once('|').unwrap_or((memo, ""));
+        return Ok(if designed {
+            ("not_asked".into(), choice.into(), vec![ledger.into()])
+        } else {
+            (choice.into(), "not_asked".into(), vec![ledger.into()])
+        });
+    }
     let gap = gap_evidence(config, run, dependency);
     let investigations: Vec<String> = history(run, &dependency.spec)
         .iter()
@@ -171,11 +208,23 @@ fn judge(
             &state,
             &questions::implementation_questions(),
         )?;
-        let choice = policy::thresholded(
-            judgment.entry.choice("implementation_complexity"),
-            judgment.entry.confidence("implementation_complexity"),
-            table.min_confidence,
+        let choice = after_investigation(
+            policy::thresholded(
+                judgment.entry.choice("implementation_complexity"),
+                judgment.entry.confidence("implementation_complexity"),
+                table.min_confidence,
+            ),
+            investigated(run, dependency),
+            || {
+                policy::on_mass(
+                    judgment.entry.probabilities("implementation_complexity"),
+                    "straightforward",
+                    &["complex", "needs_design"],
+                    table.min_confidence,
+                )
+            },
         );
+        remember(run, &dependency.spec, &key, &choice, &judgment.reference);
         return Ok(("not_asked".into(), choice, vec![judgment.reference]));
     }
     let state = json!({"spec": spec, "gap": gap, "investigations": investigations});
@@ -185,12 +234,65 @@ fn judge(
         &state,
         &questions::design_questions(),
     )?;
-    let choice = policy::thresholded(
-        judgment.entry.choice("design_complexity"),
-        judgment.entry.confidence("design_complexity"),
-        table.min_confidence,
+    let choice = after_investigation(
+        policy::thresholded(
+            judgment.entry.choice("design_complexity"),
+            judgment.entry.confidence("design_complexity"),
+            table.min_confidence,
+        ),
+        investigated(run, dependency),
+        || {
+            policy::on_mass(
+                judgment.entry.probabilities("design_complexity"),
+                "routine",
+                &["complex"],
+                table.min_confidence,
+            )
+        },
     );
+    remember(run, &dependency.spec, &key, &choice, &judgment.reference);
     Ok((choice, "not_asked".into(), vec![judgment.reference]))
+}
+
+/// One investigation is what an under-floor answer buys. After a verified
+/// one at the current revision, the same answer under the floor is decided
+/// on the mass its side carries; with neither side over the floor it is the
+/// human's (`insufficient_after_investigation`), never a second
+/// investigation of the same revision: the date palm's run opened two
+/// investigations of fn-144's one revision, dispatch-18 and dispatch-19.
+fn after_investigation(
+    choice: String,
+    investigated: bool,
+    on_mass: impl FnOnce() -> Option<String>,
+) -> String {
+    if choice != policy::INSUFFICIENT || !investigated {
+        return choice;
+    }
+    on_mass().unwrap_or_else(|| policy::INVESTIGATED.into())
+}
+
+/// Whether a verified investigation already exists for this dependency at
+/// its current design revision.
+fn investigated(run: &Run, dependency: &Dependency) -> bool {
+    history(run, &dependency.spec).iter().any(|d| {
+        d.role == Role::Investigate
+            && d.design_revision == dependency.design_revision
+            && d.result
+                .as_ref()
+                .is_some_and(|r| r.outcome == Some(Outcome::Verified))
+    })
+}
+
+/// Keeps a judgment with the evidence it read, so the same evidence is never
+/// judged twice. An under-floor answer is not kept, investigated or not:
+/// new evidence may settle it, and the next step asks again.
+fn remember(run: &mut Run, spec: &str, key: &str, choice: &str, ledger: &str) {
+    if choice == policy::INSUFFICIENT || choice == policy::INVESTIGATED {
+        return;
+    }
+    if let Some(d) = run.dependency_mut(spec) {
+        d.judged.insert(key.into(), format!("{choice}|{ledger}"));
+    }
 }
 
 /// The next hop on a dependency: judge, route, check continuation, and open
@@ -208,6 +310,7 @@ pub fn advance(asker: &Asker<'_>, config: &Config, run: &mut Run, spec: &str) ->
     let no_progress = no_progress(&past, table.no_progress_attempts);
     let hard = hard_limit(run);
     let recent = outcomes(&past);
+    let first_attempt = past.is_empty();
     drop(past);
     let (design_complexity, implementation_complexity, mut judgments) = if hard || no_progress {
         ("not_asked".into(), "not_asked".into(), Vec::new())
@@ -237,11 +340,34 @@ pub fn advance(asker: &Asker<'_>, config: &Config, run: &mut Run, spec: &str) ->
             format!("judgments {}", judgments.join(",")),
         ],
         recent_outcomes: recent,
-        next_tokens: Some(next_tokens),
+        next_tokens,
         estimate_basis,
         usage_known: run.budget.usage_known,
     };
-    if !decided.human() {
+    // A first attempt on a dependency is bounded by construction: one
+    // dispatch, the attempt bound, a route the table justified. Nothing has
+    // been tried, so the continuation trio has no progress, risk or
+    // tractability to read and can only answer insufficient evidence; the
+    // first live run paused on exactly that. As fn-68's R11 settled for the
+    // tuning loop, only a repeat asks.
+    if !decided.human() && first_attempt {
+        decided.why = format!(
+            "{} (first attempt within the bound; no continuation question)",
+            decided.why
+        );
+    }
+    // A scoped human decision that resumed the run authorizes the attempt
+    // it named; the trio does not second-guess it. Opening the attempt
+    // clears the authorization, so the one after asks again.
+    let authorized = run.resumed_from.clone();
+    if !decided.human() && !first_attempt && authorized.is_some() {
+        decided.why = format!(
+            "{} (attempt authorized by the scoped resume of {}; no continuation question)",
+            decided.why,
+            authorized.clone().unwrap_or_default()
+        );
+    }
+    if !decided.human() && !first_attempt && authorized.is_none() {
         let risks = vec![format!(
             "route {} on tier {}",
             decided.route,
@@ -278,7 +404,7 @@ pub fn advance(asker: &Asker<'_>, config: &Config, run: &mut Run, spec: &str) ->
             &decided.why,
             basis,
             &record,
-            "continue, redesign, reassign or park this dependency",
+            "continue, redesign, reassign or park this dependency, or adopt it if the host built it",
         )?;
         return Ok(format!("paused {id}: {}", decided.why));
     }
@@ -288,6 +414,7 @@ pub fn advance(asker: &Asker<'_>, config: &Config, run: &mut Run, spec: &str) ->
         .expect("routes are listed");
     let id = format!("dispatch-{}", run.dispatches.len() + 1);
     let input_identity = basis.identity.clone();
+    run.resumed_from = None;
     run.dispatches.push(Dispatch {
         id: id.clone(),
         role: allocation.role,
@@ -373,4 +500,49 @@ pub fn land(run: &mut Run, spec: &str, commit: &str) -> Result<()> {
     dependency.status = DependencyStatus::Landed;
     dependency.landed_commit = Some(commit.into());
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::conductor::{BudgetConfig, Config};
+
+    /// fn-117: only a cap the config sets is ever hard.
+    #[test]
+    fn only_a_set_cap_is_a_hard_limit() {
+        let config: Config = serde_json::from_value(json!({"species": "palm",
+            "spec": "fn-82", "dir": "d", "run_dir": "r", "tuning_config": "t"}))
+        .unwrap();
+        for (budget, hard) in [
+            (BudgetConfig::default(), false),
+            (
+                BudgetConfig {
+                    max_dispatches: Some(0),
+                    ..Default::default()
+                },
+                true,
+            ),
+            (
+                BudgetConfig {
+                    max_tokens: Some(10),
+                    ..Default::default()
+                },
+                true,
+            ),
+        ] {
+            let mut run = Run::new(&Config {
+                budget: budget.clone(),
+                ..config.clone()
+            });
+            run.budget.tokens = if budget.max_tokens.is_some() {
+                11
+            } else {
+                u64::MAX / 2
+            };
+            assert_eq!(hard_limit(&run), hard, "{budget:?}");
+        }
+        let (next, basis) = estimate(&Run::new(&config));
+        assert_eq!(next, None);
+        assert!(basis.starts_with("unknown"), "{basis}");
+    }
 }

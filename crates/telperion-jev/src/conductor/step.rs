@@ -2,7 +2,7 @@
 //! code can execute (a stage, a tuning revision, a gap check, a dispatch
 //! opening, the packet) and returns what the run waits on. A repeated step
 //! on the same state observes the same artifacts and creates nothing twice.
-use std::path::PathBuf;
+use std::path::Path;
 use std::process::Command;
 
 use serde_json::json;
@@ -11,9 +11,12 @@ use super::dispatch::{Dispatch, Role};
 use super::gapcheck::{self, Verdict};
 use super::plan::{self, Next};
 use super::questions::Asker;
-use super::state::{Run, TuningRevision};
+use super::state::Run;
 use super::{dependency, handoff, now, packet, Config, Result};
+use crate::pipeline::build_id::BUILD_ID;
 use crate::pipeline::canon::{canonical_sha256, read_json};
+use crate::pipeline::decision::read_decisions;
+use crate::pipeline::search;
 use crate::pipeline::stage::STAGES;
 use crate::tuning::continuation::Basis;
 
@@ -29,14 +32,20 @@ pub trait Executor {
     /// `Err` is the stage's own stop message: a decision, a missing input, a
     /// tool failure. The step reads the decisions after it.
     fn stage(&self, config: &Config, stage: &str) -> std::result::Result<StageOutcome, String>;
-    /// Runs one tuning revision into `out` and returns once `result.json` exists.
+    /// Runs one tuning revision into `out`, or resumes it there with the
+    /// decision file. `Err` is the run's exit; its `run.json` says whether
+    /// that was a pause.
     fn tune(
         &self,
         config: &Config,
         revision: u64,
         focus: &[String],
-        out: &PathBuf,
+        out: &Path,
+        resume: Option<&Path>,
     ) -> std::result::Result<(), String>;
+    /// Runs the pipeline's search-again command once: a round for every
+    /// requirement with one left. `Ok` is its report line.
+    fn search(&self, config: &Config) -> std::result::Result<String, String>;
 }
 
 pub struct LiveExecutor;
@@ -61,17 +70,37 @@ impl Executor for LiveExecutor {
         })
     }
 
+    fn search(&self, config: &Config) -> std::result::Result<String, String> {
+        let output = Command::new(&config.species_pipeline)
+            .arg(crate::pipeline::search::COMMAND)
+            .args(["--dir", &config.dir.display().to_string()])
+            .args(["--run-dir", &config.run_dir.display().to_string()])
+            .args(&config.stage_args)
+            .output()
+            .map_err(|err| format!("{}: {err}", config.species_pipeline.display()))?;
+        if !output.status.success() {
+            return Err(String::from_utf8_lossy(&output.stderr).trim().to_string());
+        }
+        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    }
+
     fn tune(
         &self,
         config: &Config,
         _revision: u64,
         _focus: &[String],
-        out: &PathBuf,
+        out: &Path,
+        resume: Option<&Path>,
     ) -> std::result::Result<(), String> {
-        let status = Command::new(&config.tuning_loop)
+        let mut command = Command::new(&config.tuning_loop);
+        command
             .arg("run")
             .args(["--config", &config.tuning_config.display().to_string()])
-            .args(["--out", &out.display().to_string()])
+            .args(["--out", &out.display().to_string()]);
+        if let Some(decision) = resume {
+            command.args(["--resume", &decision.display().to_string()]);
+        }
+        let status = command
             .status()
             .map_err(|err| format!("{}: {err}", config.tuning_loop.display()))?;
         if !status.success() {
@@ -84,7 +113,18 @@ impl Executor for LiveExecutor {
 /// Runs the stages from `from` in order; stops at the first that stops.
 fn stages(config: &Config, run: &mut Run, executor: &dyn Executor, from: &str) -> Result<String> {
     let start = STAGES.iter().position(|s| *s == from).unwrap_or(0);
+    run.stages_build = Some(BUILD_ID.into());
     let mut words = Vec::new();
+    for commit in run
+        .dependencies
+        .iter()
+        .filter_map(|d| d.landed_commit.clone())
+        .collect::<Vec<_>>()
+    {
+        if !run.stages_rerun_for.contains(&commit) {
+            run.stages_rerun_for.push(commit);
+        }
+    }
     for stage in &STAGES[start..] {
         match executor.stage(config, stage) {
             Ok(StageOutcome::Current) => words.push(format!("{stage}: current")),
@@ -103,6 +143,7 @@ fn stages(config: &Config, run: &mut Run, executor: &dyn Executor, from: &str) -
 /// decision with the options it may choose, or the runbook's gap loop.
 fn routine(run: &mut Run, scope: String, input: &serde_json::Value) -> String {
     let id = format!("dispatch-{}", run.dispatches.len() + 1);
+    run.resumed_from = None;
     run.dispatches.push(Dispatch {
         id: id.clone(),
         role: Role::Routine,
@@ -119,117 +160,6 @@ fn routine(run: &mut Run, scope: String, input: &serde_json::Value) -> String {
         result: None,
     });
     format!("dispatch {id}: routine on cheap")
-}
-
-fn tune(
-    asker: &Asker<'_>,
-    config: &Config,
-    run: &mut Run,
-    executor: &dyn Executor,
-    revision: u64,
-    focus: &[String],
-) -> Result<String> {
-    if run.tuning.len() as u64 >= run.budget.max_tuning_revisions {
-        let basis = tuning_basis(run, revision, focus);
-        handoff::pause(
-            config,
-            run,
-            &format!("pause-tuning-{revision}"),
-            "tuning revision cap reached",
-            basis,
-            &json!({"hard_limit": true}),
-            "extend the tuning revision cap or park the species",
-        )?;
-        return Ok("paused: tuning revision cap".into());
-    }
-    if revision > 1 {
-        let basis = tuning_basis(run, revision, focus);
-        match super::questions::continuation(
-            asker,
-            run,
-            &basis,
-            &[format!("tuning revision {revision}")],
-        )? {
-            Ok(_) => run.route(
-                &format!("tuning:{revision}"),
-                "tune",
-                "continuation justified",
-            ),
-            Err((reason, assessment)) => {
-                let signals = json!({"continuation": if assessment.is_some() { "unjustified" } else { "unavailable" }, "reason": reason});
-                run.route(&format!("tuning:{revision}"), "human", &reason);
-                handoff::pause(
-                    config,
-                    run,
-                    &format!("pause-tuning-{revision}"),
-                    &reason,
-                    basis,
-                    &signals,
-                    "authorize another tuning revision or park the species",
-                )?;
-                return Ok(format!("paused: {reason}"));
-            }
-        }
-    }
-    let out = config.tuning_dir(revision);
-    if !out.join("result.json").exists() {
-        executor.tune(config, revision, focus, &out)?;
-    }
-    let result = gapcheck::read_result(&out)?;
-    let tokens = result.outcome.budget["tokens"].as_u64().unwrap_or(0);
-    run.budget.tokens = run.budget.tokens.saturating_add(tokens);
-    let landed_count = run
-        .dependencies
-        .iter()
-        .filter(|d| d.landed_commit.is_some())
-        .count();
-    run.tuning.push(TuningRevision {
-        revision,
-        out,
-        run_identity: result.outcome.run_identity.clone(),
-        machine_ready: result.outcome.machine_ready,
-        bootstrap: result.outcome.bootstrap,
-        tokens,
-        gaps: result.gaps.len(),
-        landed_count,
-        at: now(),
-    });
-    Ok(format!(
-        "tuning revision {revision}: {} ({} gaps listed)",
-        result.outcome.stopped,
-        result.gaps.len()
-    ))
-}
-
-fn tuning_basis(run: &Run, revision: u64, focus: &[String]) -> Basis {
-    let (next_tokens, estimate_basis) = dependency::estimate(run);
-    Basis {
-        identity: canonical_sha256(
-            &json!({"tuning": revision, "focus": focus, "landed": run.dependencies.len()}),
-        ),
-        proposed_action: format!("tuning revision {revision}"),
-        evidence: if focus.is_empty() {
-            vec!["a landed dependency changed the generator; rebuild, render and reassess".into()]
-        } else {
-            focus
-                .iter()
-                .map(|d| format!("untried dial {d} judged reachable"))
-                .collect()
-        },
-        recent_outcomes: run
-            .tuning
-            .iter()
-            .map(|t| {
-                format!(
-                    "revision {}: machine_ready {}, {} gaps",
-                    t.revision, t.machine_ready, t.gaps
-                )
-            })
-            .collect(),
-        next_tokens: Some(next_tokens),
-        estimate_basis,
-        usage_known: run.budget.usage_known,
-    }
 }
 
 fn gap_check(
@@ -275,7 +205,7 @@ fn gap_check(
                 .map(|p| format!("gap package {p}"))
                 .collect(),
             recent_outcomes: words.clone(),
-            next_tokens: Some(next_tokens),
+            next_tokens,
             estimate_basis,
             usage_known: run.budget.usage_known,
         };
@@ -297,6 +227,53 @@ fn gap_check(
     Ok(words.join("; "))
 }
 
+/// Pauses for the owner's open decisions with their handoff. The pause is
+/// keyed on the set of decisions, so the same open set pauses under the same
+/// id and a changed set under a new one.
+fn owner_first(config: &Config, run: &mut Run, decisions: &[String]) -> Result<String> {
+    let identity = canonical_sha256(&json!({"owner_first": decisions}));
+    let id = format!("pause-owner-{}", &identity[..12]);
+    let (next_tokens, estimate_basis) = dependency::estimate(run);
+    let basis = Basis {
+        identity,
+        proposed_action: "resume once the owner has resolved each decision".into(),
+        evidence: decisions.to_vec(),
+        recent_outcomes: Vec::new(),
+        next_tokens,
+        estimate_basis,
+        usage_known: run.budget.usage_known,
+    };
+    let reason = format!("the owner's decisions are open: {}", decisions.join(", "));
+    run.route("owner-first", "human", &reason);
+    handoff::pause(
+        config,
+        run,
+        &id,
+        &reason,
+        basis,
+        &json!({"owner_decisions": decisions, "sources_tried": sources_tried(config, decisions)}),
+        "resolve each decision (add the sources the requirements ask for, beyond those the pipeline tried, or admit or reject the manifest), then resume",
+    )?;
+    Ok(format!("paused {id}: {reason}"))
+}
+
+/// The URLs the pipeline's own searches tried for each decision's field,
+/// so the owner starts from what failed (fn-129).
+fn sources_tried(config: &Config, decisions: &[String]) -> serde_json::Value {
+    let paths = config.paths();
+    let rounds = search::read_rounds(&paths).unwrap_or_default();
+    let list = read_decisions(&paths.decisions()).unwrap_or_default();
+    let tried: serde_json::Map<String, serde_json::Value> = list
+        .iter()
+        .filter(|d| decisions.contains(&d.id))
+        .filter_map(|d| {
+            let urls = search::tried(&rounds, d.field.as_deref()?);
+            (!urls.is_empty()).then(|| (d.id.clone(), json!(urls)))
+        })
+        .collect();
+    json!(tried)
+}
+
 /// Executes one hop and returns the action the run now waits on.
 pub fn drive(
     asker: &Asker<'_>,
@@ -316,6 +293,11 @@ pub fn drive(
             run.wait(&format!("dispatch {id}"));
             format!("awaiting {id} ({role} on {tier} at {effort})")
         }
+        Next::OwnerFirst { decisions } => owner_first(config, run, decisions)?,
+        Next::SearchAgain { .. } => match executor.search(config) {
+            Ok(words) => words,
+            Err(message) => format!("search-again: stopped: {message}"),
+        },
         Next::AwaitOwner { decision, kind } => {
             run.wait(&format!("owner: {decision}"));
             format!("awaiting the owner: {decision} ({kind})")
@@ -348,7 +330,9 @@ pub fn drive(
         }
         Next::Dependency { spec, .. } => dependency::advance(asker, config, run, spec)?,
         Next::Stages { from } => stages(config, run, executor, from)?,
-        Next::Tune { revision, focus } => tune(asker, config, run, executor, *revision, focus)?,
+        Next::Tune { revision, focus } => {
+            super::tuning::tune(asker, config, run, executor, *revision, focus)?
+        }
         Next::GapCheck { revision, gaps } => gap_check(asker, config, run, *revision, gaps)?,
         Next::Packet => packet::assemble(config, run)?,
         Next::Ready => "ready for the owner's review; only their verdict accepts".into(),
@@ -356,6 +340,7 @@ pub fn drive(
     if !matches!(
         next,
         Next::Paused { .. }
+            | Next::OwnerFirst { .. }
             | Next::AwaitDispatch { .. }
             | Next::AwaitOwner { .. }
             | Next::AwaitLanding { .. }

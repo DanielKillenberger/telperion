@@ -179,7 +179,7 @@ fn every_authored_row_is_a_dial_the_loop_can_ask_about() {
         assert!(
             matches!(
                 dial.range_basis.as_deref(),
-                Some("validated bound" | "preset span" | "authored")
+                Some("validated bound" | "capped" | "authored")
             ),
             "{}: range basis {:?}",
             dial.id,

@@ -11,10 +11,13 @@ use std::process::ExitCode;
 
 use telperion_jev::caller::{load_key, UreqTransport};
 use telperion_jev::pipeline::adapter::{FetchAdapter, FirecrawlCli, FixtureAdapter, RawSource};
+use telperion_jev::pipeline::consume::owner_stops;
+use telperion_jev::pipeline::decision::read_decisions;
 use telperion_jev::pipeline::gap::cli as gap_cli;
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::known::{flow_root, KnownSources};
 use telperion_jev::pipeline::render::{Measurer, SpeciesExample};
+use telperion_jev::pipeline::search;
 use telperion_jev::pipeline::stage::{log_command, Paths, STAGES};
 use telperion_jev::pipeline::stages::{
     discover, document, extract, fetch, fit, gate, generate, quality, report, screen, select,
@@ -22,7 +25,7 @@ use telperion_jev::pipeline::stages::{
 };
 use telperion_jev::pipeline::swap;
 
-const USAGE: &str = "usage: species-pipeline <stage> --dir DIR [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR] [--example] [--profiles FILE]\n       species-pipeline swap --left DIR --right DIR\n       species-pipeline gap <command> --dir DIR  (see `gap` for its own usage)\n  stages: discover fetch extract screen quality select verify fit gate generate document report";
+const USAGE: &str = "usage: species-pipeline <stage> --dir DIR [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR] [--example] [--profiles FILE]\n       species-pipeline swap --left DIR --right DIR\n       species-pipeline gap <command> --dir DIR  (see `gap` for its own usage)\n       species-pipeline search-again --dir DIR [--run-dir DIR] [--adapter firecrawl|fixture:DIR]\n  stages: discover fetch extract screen quality select verify fit gate generate document report";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -80,14 +83,21 @@ fn finish(result: Result<String, String>, paths: &Paths, args: &[String]) -> Exi
 }
 
 fn run(stage: &str, paths: &Paths, args: &[String]) -> Result<String, String> {
-    if !STAGES.contains(&stage) {
+    if !STAGES.contains(&stage) && stage != search::COMMAND {
         return Err(format!("unknown stage {stage}\n{USAGE}"));
     }
     let ledger_dir = paths.ledger().join("entries");
     let transport = UreqTransport;
     let needs_jev = matches!(
         stage,
-        "discover" | "screen" | "quality" | "select" | "verify" | "generate" | "document"
+        "discover"
+            | "screen"
+            | "quality"
+            | "select"
+            | "verify"
+            | "generate"
+            | "document"
+            | search::COMMAND
     );
     let key = if needs_jev {
         load_key().map_err(|err| err.to_string())?
@@ -133,9 +143,41 @@ fn run(stage: &str, paths: &Paths, args: &[String]) -> Result<String, String> {
         )),
         "document" => describe(document::run(paths, &judge)),
         "report" => describe(report::run(paths)),
+        search::COMMAND => search_again(paths, adapter.as_ref(), &judge),
         _ => unreachable!("stage list checked above"),
     };
-    outcome.map(|word| format!("{stage}: {word}"))
+    outcome.map(|word| format!("{stage}: {word}{}", needs_human(paths)))
+}
+
+/// The lines that follow a command: the requirements the pipeline still
+/// searches for (`SEARCH_AGAIN`), and every other open decision the
+/// requirements table raised, which stops the run for the owner.
+fn needs_human(paths: &Paths) -> String {
+    let list = read_decisions(&paths.decisions()).unwrap_or_default();
+    let again = search::searchable(paths, &list);
+    let stops: Vec<String> = owner_stops(&list)
+        .into_iter()
+        .filter(|id| !again.contains(id))
+        .collect();
+    let mut out = String::new();
+    if !again.is_empty() {
+        out.push_str(&format!("\nSEARCH_AGAIN: {}", again.join(", ")));
+    }
+    if !stops.is_empty() {
+        out.push_str(&format!("\nNEEDS_HUMAN: {}", stops.join(", ")));
+    }
+    out
+}
+
+fn search_again(
+    paths: &Paths,
+    adapter: &dyn FetchAdapter,
+    judge: &Judge<'_>,
+) -> Result<String, String> {
+    match search::run(paths, adapter, judge).map_err(|e| e.to_string())? {
+        search::Outcome::Nothing => Ok("nothing to search: no requirement has a round left".into()),
+        search::Outcome::Ran { words } => Ok(format!("ran: {}", words.join("; "))),
+    }
 }
 
 fn describe<T: Outcome, E: std::fmt::Display>(result: Result<T, E>) -> Result<String, String> {

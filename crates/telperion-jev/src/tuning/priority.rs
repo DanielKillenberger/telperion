@@ -23,6 +23,25 @@ pub struct Gap {
     pub observation: String,
     pub evidence_ids: Vec<String>,
     pub views: Vec<String>,
+    /// The track this objective belongs to. None belongs to every track.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub track: Option<String>,
+}
+impl Gap {
+    /// Whether this objective is one the named track tunes toward.
+    pub fn belongs_to(&self, track: &str) -> bool {
+        self.track.as_deref().is_none_or(|t| t == track)
+    }
+    /// The same objective, whatever track the approval assigned it.
+    fn same(&self, other: &Gap) -> bool {
+        Gap {
+            track: None,
+            ..self.clone()
+        } == Gap {
+            track: None,
+            ..other.clone()
+        }
+    }
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -33,6 +52,13 @@ pub struct Checkpoint {
     pub evidence: Vec<Evidence>,
     pub gaps: Vec<Gap>,
     pub proposed_top_three: Vec<String>,
+    /// The approval this pause proposes: the owner's priorities, then every
+    /// expressible core and secondary inventory trait, in inventory order.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub proposed: Vec<Gap>,
+    /// Inventory traits that are not objectives, and why.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub left_out: Vec<super::objectives::LeftOut>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -41,6 +67,9 @@ pub struct Approval {
     pub scope_sha256: String,
     pub ordered: Vec<Gap>,
 }
+
+/// How many objectives one approval may order.
+pub const MAX_OBJECTIVES: usize = 32;
 
 pub fn scope(species: &str, objectives: &str, required: &[Cell], references: &[Image]) -> String {
     sha256_hex(&serde_json::to_vec(&json!({"species":species,"objectives":objectives,"required":required,"references":references.iter().map(|i|json!({"sha256":i.sha256,"view":i.view,"seed":i.seed})).collect::<Vec<_>>()})).unwrap())
@@ -93,6 +122,7 @@ impl Checkpoint {
                     observation: f.observation.clone(),
                     evidence_ids: f.evidence_ids.clone(),
                     views,
+                    track: None,
                 })
             })
             .collect::<Vec<_>>();
@@ -104,6 +134,8 @@ impl Checkpoint {
             evidence,
             gaps,
             proposed_top_three,
+            proposed: vec![],
+            left_out: vec![],
         };
         value.verify()?;
         Ok(value)
@@ -149,6 +181,15 @@ impl Checkpoint {
         {
             return Err("invalid proposed gap ranking".into());
         }
+        let mut proposed = HashSet::new();
+        if self.proposed.len() > MAX_OBJECTIVES
+            || self
+                .proposed
+                .iter()
+                .any(|g| !proposed.insert(&g.id) || !gap_valid(g, &self.evidence))
+        {
+            return Err("invalid proposed objectives".into());
+        }
         Ok(())
     }
 }
@@ -158,7 +199,7 @@ impl Approval {
         if self.checkpoint_sha256 != checkpoint.hash()
             || self.scope_sha256 != checkpoint.scope_sha256
             || self.scope_sha256 != current_scope
-            || self.ordered.len() > 8
+            || self.ordered.len() > MAX_OBJECTIVES
         {
             return Err("missing or stale owner priority scope".into());
         }
@@ -167,12 +208,16 @@ impl Approval {
             if !ids.insert(&gap.id) || !gap_valid(gap, &checkpoint.evidence) {
                 return Err("invalid owner priority".into());
             }
-            if let Some(original) = checkpoint.gaps.iter().find(|g| g.id == gap.id) {
-                if original != gap {
+            // The owner's own priorities are theirs to reword; a finding or an
+            // inventory trait is approved as offered, a track aside.
+            let mut offered = checkpoint.gaps.iter().chain(&checkpoint.proposed);
+            match offered.find(|g| g.id == gap.id) {
+                _ if gap.id.starts_with("owner-") => {}
+                Some(original) if !original.same(gap) => {
                     return Err("modified reviewer gap must be an attributed owner addition".into());
                 }
-            } else if !gap.id.starts_with("owner-") {
-                return Err("new gap must use owner- identity".into());
+                Some(_) => {}
+                None => return Err("new gap must use owner- identity".into()),
             }
             if !["render", "reference"].iter().all(|role| {
                 gap.evidence_ids.iter().any(|id| {

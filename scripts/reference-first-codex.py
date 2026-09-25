@@ -17,6 +17,15 @@ def strings():
     return {"type": "array", "items": {"type": "string"}}
 
 
+# The comparison schema's version: v2 (fn-136) ties each finding and defect to
+# an inventory trait, or null, and the request names the known gaps.
+COMPARISON_VERSION = "reference-first-comparison-v2"
+
+
+def trait_id():
+    return {"type": ["string", "null"]}
+
+
 def prepare(envelope):
     stage, request = envelope["stage"], envelope["request"]
     if stage == "inventory":
@@ -25,23 +34,34 @@ def prepare(envelope):
         if request["specimen_relationship"] != "unknown":
             raise ValueError("unsupported specimen relationship")
         images = [r["image"] for r in request["references"]]
-        schema = object_schema({"traits": {"type": "array", "items": object_schema({
-            "id": {"type": "string"}, "priority": {"type": "string", "enum": ["core", "secondary", "variation"]},
-            "observation": {"type": "string"}, "reference_ids": strings(), "uncertain": {"type": "boolean"}})}, "observations": strings()})
-    elif stage == "comparison":
+        # The receipt (reference_first.rs, Inventory::verify) holds at most 16
+        # traits and 16 observations; the schema states the cap so the model
+        # never returns an inventory the receipt then rejects.
+        schema = object_schema({"traits": {"type": "array", "minItems": 1, "maxItems": 16, "items": object_schema({
+            "id": {"type": "string", "maxLength": 64}, "priority": {"type": "string", "enum": ["core", "secondary", "variation"]},
+            "observation": {"type": "string"}, "reference_ids": strings(), "uncertain": {"type": "boolean"}})},
+            "observations": {**strings(), "maxItems": 16}})
+    elif stage in ("comparison", "repair"):
+        if request.get("protocol") != COMPARISON_VERSION:
+            raise ValueError("stale comparison protocol")
         r = request["comparison"]
-        images = r["images"] + r["references"] + [a["image"] for a in r["quality_anchors"]]
+        # A repair (fn-80) is text only: the reviewer's own answer and the
+        # exact tidiness rules it broke, answered in the comparison's schema.
+        images = [] if stage == "repair" else r["images"] + r["references"] + [a["image"] for a in r["quality_anchors"]]
         schema = object_schema({
             "passes": {"type": "array", "minItems": len(r["required"]), "maxItems": len(r["required"]), "items": {"type": "string", "enum": ["pass", "fail", "unknown"]}},
-            "defects": strings(), "observations": strings(),
-            "findings": {"type": "array", "items": object_schema({"observation": {"type": "string"}, "evidence_ids": strings(),
+            "defects": {"type": "array", "items": object_schema({"defect": {"type": "string"}, "trait_id": trait_id()})},
+            "observations": strings(),
+            # The receipt holds at most 16 findings and 16 coverage rows
+            # (reference_first.rs, ComparisonResult::bind; joint.rs, verify_findings).
+            "findings": {"type": "array", "maxItems": 16, "items": object_schema({"observation": {"type": "string"}, "evidence_ids": strings(),
                 "impact": {"type": "string", "enum": ["supported", "blocker", "required_unknown", "variation", "optional"]},
-                "uncertain": {"type": "boolean"}, "causal_hypothesis": {"type": ["string", "null"]}})},
-            "coverage": {"type": "array", "items": object_schema({"trait_id": {"type": "string"},
+                "uncertain": {"type": "boolean"}, "causal_hypothesis": {"type": ["string", "null"]}, "trait_id": trait_id()})},
+            "coverage": {"type": "array", "maxItems": 16, "items": object_schema({"trait_id": {"type": "string"},
                 "status": {"type": "string", "enum": ["pass", "fail", "unknown"]}, "evidence_ids": strings(), "explanation": {"type": "string"}})}})
     else:
         raise ValueError("unknown stage")
-    if not images or len(images) > 12:
+    if stage != "repair" and (not images or len(images) > 12):
         raise ValueError("invalid image count")
     paths = []
     for image in images:
@@ -51,6 +71,13 @@ def prepare(envelope):
         paths.append(p)
     if hashlib.sha256(envelope["prompt"].encode()).hexdigest() != envelope["prompt_sha256"]:
         raise ValueError("prompt hash mismatch")
+    if stage == "repair":
+        violations, answer = envelope.get("violations"), envelope.get("answer")
+        if not isinstance(answer, dict) or not violations or not all(isinstance(v, str) for v in violations):
+            raise ValueError("a repair needs the previous answer and its violations")
+        prompt = (envelope["prompt"] + "\nDo not use tools or inspect files. Return JSON only.\nViolations:\n"
+                  + json.dumps(violations) + "\nPrevious answer:\n" + json.dumps(answer))
+        return paths, schema, prompt
     prompt = envelope["prompt"] + "\nDo not use tools or inspect files. Attached images follow metadata order. Return JSON only.\n" + json.dumps(request)
     if stage == "comparison":
         prompt += "\nReturn exactly one passes entry for each comparison.required cell, in that exact order; this is not an aggregate pass."
@@ -87,7 +114,7 @@ def main():
         if not usage or any(type(usage.get(k)) is not int or usage[k] < 0 for k in ("input_tokens", "output_tokens")):
             usage = None
         answer = json.loads(out.read_text()) if out.exists() else None
-        valid_count = envelope["stage"] != "comparison" or (isinstance(answer, dict) and len(answer.get("passes", [])) == len(envelope["request"]["comparison"]["required"]))
+        valid_count = envelope["stage"] not in ("comparison", "repair") or (isinstance(answer, dict) and len(answer.get("passes", [])) == len(envelope["request"]["comparison"]["required"]))
         print(json.dumps({"request_sha256": envelope["request_sha256"], "prompt_sha256": envelope["prompt_sha256"],
             "dispatched_prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(), "schema_sha256": hashlib.sha256(json.dumps(schema).encode()).hexdigest(),
             "model": args.model, "model_identity_basis": "requested command argument; actual resolved identity not exposed", "effort": args.effort,

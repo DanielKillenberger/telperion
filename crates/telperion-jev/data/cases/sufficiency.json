@@ -11,7 +11,7 @@
       {"source": "OWIC", "sentence": "Mature Oregon white oaks are 50 to 90 ft tall (120 ft maximum)", "kind": "mature_size_range", "condition": "unstated"},
       {"source": "OWIC", "sentence": "Sustained height growth of 1 to 2 ft per year for trees 10 to 30 years old", "kind": "site_quality_criterion", "condition": "stand_grown"},
       {"source": "OWIC", "sentence": "Height growth is usually less than 1 ft per year", "kind": "typical_growth_rate", "condition": "stand_grown"},
-      {"source": "OWIC", "sentence": "Stump sprouts may grow as much as 3 ft per year during the first 3 years", "kind": "sprout_cultivar_or_nursery", "condition": "stand_grown"},
+      {"source": "OWIC", "sentence": "Stump sprouts may grow as much as 3 ft per year during the first 3 years", "kind": "sprout_or_nursery", "condition": "stand_grown"},
       {"source": "OWIC", "sentence": "The shoot of natural seedlings often remains small and shrubby for many years", "kind": "qualitative_description", "condition": "unstated"},
       {"source": "Stein 1990 Silvics", "sentence": "forest-grown trees reach 24 m at 95 to 135 years", "kind": "measured_size_at_age", "condition": "stand_grown"},
       {"source": "Juettner 1955 yield table", "sentence": "Quercus robur/petraea site class II: height by age 30 to 200 in ten-year rows", "kind": "measured_size_at_age", "condition": "stand_grown", "taxon": "Quercus robur/petraea (proxy)"}

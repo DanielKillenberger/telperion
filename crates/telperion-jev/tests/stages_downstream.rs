@@ -406,6 +406,25 @@ fn a_one_row_table_files_missing_curve_and_the_other_dimension_still_fits() {
 }
 
 #[test]
+fn a_fit_with_no_curve_is_skipped_once_and_current_after() {
+    let mut manifest = manifest();
+    manifest["curves"] = Value::Null;
+    let dir = scratch_with("no-curve", 2, manifest);
+    assert!(matches!(
+        fit::run(&Paths::new(&dir)).unwrap(),
+        fit::Outcome::Skipped
+    ));
+    assert_eq!(
+        body_of(&dir, "fit")["skipped"],
+        "the manifest names no curve"
+    );
+    assert!(matches!(
+        fit::run(&Paths::new(&dir)).unwrap(),
+        fit::Outcome::Current
+    ));
+}
+
+#[test]
 fn an_unchanged_rerun_of_the_fit_is_current_and_writes_nothing_new() {
     let dir = scratch("current", 2);
     fit::run(&Paths::new(&dir)).unwrap();
@@ -502,6 +521,34 @@ fn the_date_palms_recorded_needs_are_one_missing_organ_and_no_false_positive() {
     assert_eq!(
         capability_gate["payload"]["detail"],
         "the generator does not express infructescence"
+    );
+}
+
+/// fn-136: with the date cluster classed an improvement on the palm's
+/// assessment, the gate files no capability decision and records the gap
+/// with the specs that capture it.
+#[test]
+fn a_missing_improvement_passes_the_gate_as_a_known_gap_with_its_specs() {
+    let dir = scratch_with("date-palm-classed", 2, requiring(&DATE_PALM));
+    std::fs::write(
+        dir.join("packet/capability.json"),
+        include_str!("fixtures/fn136-palm-capability.json"),
+    )
+    .unwrap();
+    gate::run(&Paths::new(&dir), &Checks::producing(&["woody-axes"])).unwrap();
+    let capability = body_of(&dir, "gate")["capability"].clone();
+    assert_eq!(capability["missing"], json!(["infructescence"]));
+    assert_eq!(
+        capability["known_gaps"],
+        json!([{"capability": "infructescence",
+                "captured_by": ["fn-33-flowers-cones-and-compound-leaves-as",
+                                "fn-111-the-palms-infructescence-a-hanging-date"],
+                "reason": "The date cluster adds realism; the palm is recognisable without it. The owner put the palm's date clusters in the backlog on 2026-09-24."}])
+    );
+    let filed = of_kind(&dir, "onboarding-gate");
+    assert!(
+        filed.iter().all(|d| d["field"] != "capability"),
+        "{filed:?}"
     );
 }
 
@@ -714,11 +761,28 @@ fn the_packets_species_record_carries_exactly_the_closed_keys() {
         ]
     );
     assert_eq!(species["fixed_seeds"], json!([7, 8, 9]));
+    let holdout: Vec<u32> = species["holdout_seeds"]
+        .as_array()
+        .expect("holdout_seeds is an array")
+        .iter()
+        .map(|v| v.as_u64().expect("a seed is a number") as u32)
+        .collect();
+    assert_eq!(holdout.len(), 3, "three holdout seeds: {holdout:?}");
+    for seed in [7, 8, 9] {
+        assert!(
+            !holdout.contains(&seed),
+            "holdout seed collides with a fixed seed: {holdout:?}"
+        );
+    }
     assert_eq!(species["profile_path"], "packet/profile.json");
     assert_eq!(species["profile_sha256"].as_str().unwrap().len(), 64);
     let specimens = read_json(&dir.join("packet").join("specimens.json")).unwrap();
     assert_eq!(specimens["generation_status"], "measured-by-pipeline");
-    assert_eq!(specimens["cases"].as_array().unwrap().len(), 3);
+    let cases = specimens["cases"].as_array().unwrap();
+    assert_eq!(cases.len(), 6, "three fixed and three holdout cases");
+    let count = |role: &str| cases.iter().filter(|c| c["seed_role"] == role).count();
+    assert_eq!(count("regression"), 3);
+    assert_eq!(count("holdout"), 3);
 }
 
 // ----------------------------------------------------------------- the report
@@ -811,4 +875,63 @@ fn the_reports_inputs_name_every_artifact_it_read() {
         !recorded.contains_key("generate.json"),
         "generate never ran"
     );
+}
+
+/// fn-80, 2026-09-24: the gate audits the specimens generate writes after it,
+/// but its key left them out, so new holdout specimens left it `current` and
+/// the seeds decision open. New specimens rerun the gate.
+#[test]
+fn new_specimens_rerun_the_gate() {
+    let dir = scratch("specimens-key", 2);
+    let checks = Checks {
+        registered: true,
+        derived: Ok(vec![]),
+    };
+    let paths = Paths::new(&dir);
+    gate::run(&paths, &checks).unwrap();
+    assert!(matches!(
+        gate::run(&paths, &checks).unwrap(),
+        gate::Outcome::Current
+    ));
+    let specimens = paths.packet("specimens");
+    std::fs::create_dir_all(specimens.parent().unwrap()).unwrap();
+    std::fs::write(&specimens, br#"{"cases":[]}"#).unwrap();
+    assert!(!matches!(
+        gate::run(&paths, &checks).unwrap(),
+        gate::Outcome::Current
+    ));
+}
+
+/// fn-80, 2026-09-24: the seeds gate passed once the holdout specimens were
+/// written, but its old decision stayed open because the retire check compared
+/// select.json alone. A gate that no longer files its decision retires it.
+#[test]
+fn a_seeds_gate_that_passes_on_new_specimens_retires_its_decision() {
+    let dir = scratch("seeds-retire", 2);
+    let checks = Checks {
+        registered: true,
+        derived: Ok(vec![]),
+    };
+    let paths = Paths::new(&dir);
+    gate::run(&paths, &checks).unwrap();
+    assert!(of_kind(&dir, "onboarding-gate")
+        .iter()
+        .any(|d| d["field"] == "seeds" && d["status"] == "open"));
+    let cases: Vec<Value> = [1, 2, 3, 101, 102, 103]
+        .iter()
+        .enumerate()
+        .map(|(i, seed)| json!({"seed": seed, "seed_role": if i < 3 {"regression"} else {"holdout"}}))
+        .collect();
+    let specimens = paths.packet("specimens");
+    std::fs::create_dir_all(specimens.parent().unwrap()).unwrap();
+    std::fs::write(
+        &specimens,
+        serde_json::to_vec(&json!({"cases": cases})).unwrap(),
+    )
+    .unwrap();
+    gate::run(&paths, &checks).unwrap();
+    assert_eq!(body_of(&dir, "gate")["seeds"]["status"], "resolved");
+    assert!(!of_kind(&dir, "onboarding-gate")
+        .iter()
+        .any(|d| d["field"] == "seeds" && d["status"] == "open"));
 }

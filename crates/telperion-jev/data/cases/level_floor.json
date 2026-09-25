@@ -1,0 +1,71 @@
+{
+  "set_from": "fn-131 (2026-09-23): the palm's live appearance judgments whose sentence the run recorded (select.json on fn-80), each the most probable real level and its probability, labelled by whether the sentence states that level. A level below the floor answers the no-match level.",
+  "cases": [
+    {
+      "id": "bark-colour-grey",
+      "asked": "bark_colour on A1's 'rough gray' trunk sentence",
+      "picked": "grey",
+      "probability": 0.98,
+      "correct": true
+    },
+    {
+      "id": "bark-roughness-textured",
+      "asked": "bark_roughness on F1's 'textured trunk' sentence (first pass)",
+      "picked": "rough",
+      "probability": 0.58,
+      "correct": true
+    },
+    {
+      "id": "bark-roughness-textured-2",
+      "asked": "bark_roughness on F1's 'textured trunk' sentence (second pass)",
+      "picked": "rough",
+      "probability": 0.56,
+      "correct": true
+    },
+    {
+      "id": "leaf-front-grey-green",
+      "asked": "leaf_front_colour on F1's 'blue-green to gray-green leaves'",
+      "picked": "grey_green",
+      "probability": 1.0,
+      "correct": true
+    },
+    {
+      "id": "leaf-hue-varied",
+      "asked": "leaf_hue_range on F1's 'blue-green to gray-green leaves'",
+      "picked": "varied",
+      "probability": 0.79,
+      "correct": true
+    },
+    {
+      "id": "leaf-hue-varied-2",
+      "asked": "leaf_hue_range on the same sentence (second pass)",
+      "picked": "varied",
+      "probability": 0.76,
+      "correct": true
+    },
+    {
+      "id": "leaf-back-grey-green",
+      "asked": "leaf_back_colour on F1's leaf sentence, which never names the underside",
+      "picked": "grey_green",
+      "probability": 0.46,
+      "correct": false,
+      "note": "the most probable level was unstated at 0.54"
+    },
+    {
+      "id": "leaf-back-grey-green-2",
+      "asked": "the same (second pass)",
+      "picked": "grey_green",
+      "probability": 0.48,
+      "correct": false,
+      "note": "unstated at 0.52"
+    },
+    {
+      "id": "brightness-uniform",
+      "asked": "leaf_brightness_range on F1's leaf sentence, which says nothing of lightness",
+      "picked": "uniform",
+      "probability": 0.17,
+      "correct": false,
+      "note": "unstated at 0.74"
+    }
+  ]
+}

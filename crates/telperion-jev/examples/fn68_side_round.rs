@@ -56,15 +56,15 @@ fn run() -> Result<(), String> {
     state.visual = Some(visual);
     state.required = required;
     state.budget.tokens = 677247;
-    state.budget.max_tokens = 902431;
+    state.budget.max_tokens = Some(902431);
     state.budget.visual_passes = Some(25);
     state.budget.max_visual_passes = Some(26);
     state.budget.evaluations = 6;
-    state.budget.max_evaluations = 13;
+    state.budget.max_evaluations = Some(13);
     state.budget.images = 30;
-    state.budget.max_images = 52;
+    state.budget.max_images = Some(52);
     state.budget.rounds = 2;
-    state.budget.max_rounds = 3;
+    state.budget.max_rounds = Some(3);
     state.usage_known = true;
     let mut save = |s: &Run| {
         write(SIDE, &serde_json::to_value(s).unwrap());

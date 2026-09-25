@@ -4,8 +4,8 @@ use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::cases::run_labelled_cases;
 use telperion_jev::cite::{
-    carries_number, cite, format_report, load_claim_source, looks_like_height_at_age,
-    parse_research, research_markdown, ResearchClaim, SourceLoad,
+    carries_number, cite, format_report, is_verbatim, list_reason, load_claim_source,
+    looks_like_height_at_age, parse_research, research_markdown, ResearchClaim, SourceLoad,
 };
 use telperion_jev::questions::{citation_cases, severity_level, thresholds, triage_cases};
 use telperion_jev::triage::{format_proposal, triage};
@@ -178,6 +178,116 @@ fn low_confidence_measured_size_is_listed_with_both_ledgers() {
     let printed = format_report(&report);
     assert!(printed.contains("cite="), "{printed}");
     assert!(printed.contains("screen="), "{printed}");
+}
+
+/// fn-137, fn-80 A1: the palm's "50 - 100 feet" height stands verbatim in
+/// A1's size-table sentence. A `supports` relation at 0.65, below the 0.8
+/// auto-accept cut, must not be listed on confidence when the claim quotes
+/// the source; the record says why.
+#[test]
+fn verbatim_span_skips_the_confidence_cut() {
+    struct PalmHeight;
+    impl Transport for PalmHeight {
+        fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String> {
+            let body: Value = serde_json::from_slice(request.body.as_deref().unwrap_or(b"{}"))
+                .map_err(|err| err.to_string())?;
+            let answers = if body["questions"].get("kind").is_some() {
+                json!({
+                    "kind": {
+                        "type": "choice",
+                        "choice": "not_about_tree_size",
+                        "probabilities": { "not_about_tree_size": 0.9 },
+                        "confidence": 0.9
+                    },
+                    "condition": {
+                        "type": "choice",
+                        "choice": "unstated",
+                        "probabilities": { "unstated": 0.9 },
+                        "confidence": 0.8
+                    },
+                    "anchor_usable": { "type": "noul", "noul": 0.9 }
+                })
+            } else {
+                json!({
+                    "relation": {
+                        "type": "choice",
+                        "choice": "supports",
+                        "probabilities": { "supports": 0.65 },
+                        "confidence": 0.65
+                    }
+                })
+            };
+            Ok(HttpResponse {
+                status: 200,
+                body: serde_json::to_vec(&json!({
+                    "model": "jev-latest",
+                    "answers": answers,
+                    "usage": {"input_tokens": 1, "output_tokens": 1}
+                }))
+                .unwrap(),
+            })
+        }
+    }
+    let claims = [ResearchClaim {
+        claim: "Date palm height: 50 - 100 feet.".into(),
+        url: "file:x".into(),
+        source_id: "x".into(),
+        unresolved: None,
+    }];
+    let loads = [SourceLoad::Bytes(
+        b"**Height:** 50 - 100 feet **Width:** 20 - 50 feet **Growth Rate:** Slow.".to_vec(),
+    )];
+    let report = cite(
+        &PalmHeight,
+        "k",
+        &ledger_dir("verbatim-palm"),
+        &claims,
+        &loads,
+    )
+    .unwrap();
+    assert_eq!(report.rows[0].confidence, 0.65);
+    assert!(!report.rows[0].listed, "{}", report.rows[0].reason);
+    assert_eq!(report.rows[0].reason, "verbatim");
+}
+
+/// fn-137 R2: the verbatim exemption only waives the confidence cut - a
+/// non-verbatim span stays listed below the cut, and a verbatim span still
+/// gets listed on a site-quality criterion (the other listing rules apply).
+#[test]
+fn verbatim_only_waives_the_confidence_cut() {
+    let cuts = thresholds();
+
+    let (listed, reason) = list_reason("supports", 0.65, false, None, 0.0, 0.0, false, &cuts);
+    assert!(listed);
+    assert!(reason.contains("confidence 0.65 below 0.8"), "{reason}");
+
+    let (listed, reason) = list_reason(
+        "supports",
+        0.65,
+        true,
+        Some("site_quality_criterion"),
+        0.0,
+        0.0,
+        false,
+        &cuts,
+    );
+    assert!(listed);
+    assert_eq!(reason, "source sentence is a site-quality criterion");
+}
+
+/// fn-137: whitespace-only normalisation - a paraphrased unit ("75 feet" vs
+/// the claim's "23 m") is never verbatim, and internal whitespace
+/// differences alone do not defeat the match.
+#[test]
+fn is_verbatim_checks_whitespace_only() {
+    assert!(is_verbatim(
+        "Height: 50 - 100 feet.",
+        "Height:  50 - 100  feet tall."
+    ));
+    assert!(!is_verbatim(
+        "Norway spruce reaches 23 m.",
+        "Norway spruce may grow to 75 feet."
+    ));
 }
 
 #[test]

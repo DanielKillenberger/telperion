@@ -60,6 +60,8 @@ fn trial(key: &str, images: Vec<Image>) -> Trial {
         parent_bundle: None,
         sheet: None,
         vetoed: None,
+        adopted: false,
+        step: None,
     }
 }
 
@@ -69,6 +71,7 @@ fn gap(id: &str) -> Gap {
         observation: format!("observation for {id}"),
         evidence_ids: vec!["render-0".into()],
         views: vec!["whole".into()],
+        track: None,
     }
 }
 

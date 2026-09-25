@@ -1,15 +1,27 @@
 //! Packet verification: fn-57's citation check over every filled value
 //! against its source, the semantic obligation questions, and the structural
 //! obligations in code. Contradicted, unsupported and unmet items become
-//! decisions of their kinds.
+//! decisions of their kinds. A measured value is asked whether it is a
+//! measurement; an appearance value is a level read from one sentence, so it
+//! is asked whether that sentence describes the level instead (fn-128), and
+//! a sentence that does not files a claim decision. Every claim decision is
+//! keyed by its value's pointer and acts: select consumes `drop-value` and
+//! `replace-source` (fn-131). A decision's `inputs_sha256` is a checksum
+//! over the claim itself - its pointer, the selected value, the source id
+//! and the cited sentence - never the whole packet, so a rerun that leaves
+//! the claim unchanged files the same key and a person's resolution stays
+//! bound; a changed value, source or sentence still voids it (fn-141).
+
+use std::collections::BTreeMap;
 
 use serde_json::{json, Value};
 
 use crate::cite::{cite, ResearchClaim, SourceLoad};
-use crate::pipeline::canon::read_json;
-use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
+use crate::pipeline::canon::{canonical_sha256, read_json};
+use crate::pipeline::decision::{append_decisions, retire_unfiled, Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
-use crate::pipeline::sets::{measurement_state, obligation_questions};
+use crate::pipeline::requirements::table;
+use crate::pipeline::sets::{appearance_state, measurement_state, obligation_questions};
 use crate::pipeline::stage::{Context, Paths, StageError};
 use crate::questions::thresholds;
 
@@ -43,7 +55,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     let species = manifest.species.as_str();
     let mut decisions = Vec::new();
 
-    let (claims, loads) = claims_for(&ctx, &sidecar, &fetch)?;
+    let (claims, loads, pointers) = claims_for(&ctx, &sidecar, &fetch)?;
     let report = cite(
         judge.transport,
         judge.key,
@@ -56,7 +68,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
         reason: err.to_string(),
     })?;
     let mut rows = Vec::new();
-    for (claim, row) in claims.iter().zip(report.rows.iter()) {
+    for (pointer, row) in pointers.iter().zip(report.rows.iter()) {
         if !row.identity.is_empty() {
             header.ledger.push(row.identity.clone());
         }
@@ -70,14 +82,18 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
             } else {
                 "claim-unsupported"
             };
+            // One decision per value, keyed by its pointer (fn-131): two
+            // values of one source are two claims.
+            let entry = &sidecar["entries"][pointer];
             decisions.push(Decision::new(
-                DecisionParts { species, stage: STAGE, kind, field: Some(&claim.source_id), age_years: None },
+                DecisionParts { species, stage: STAGE, kind, field: Some(pointer), age_years: None },
                 &["generate"],
-                [("select.json".to_string(), select_sha.clone())].into_iter().collect(),
+                entry_claim_inputs(pointer, entry),
                 vec![row.identity.clone()],
-                json!({"claim": row.claim, "section": row.section, "relation": row.relation, "reason": row.reason}),
-                &["accept", "replace-source", "drop-value"],
-                "The citation check listed this claim for a person.",
+                json!({"claim": row.claim, "section": row.section, "relation": row.relation, "reason": row.reason,
+                       "pointer": pointer, "source": entry["source"], "span": entry["span"]}),
+                &CLAIM_OPTIONS,
+                "The citation check listed this claim. drop-value takes the value out of the packet and files its requirement again; replace-source files it for the pipeline's search; accept keeps it.",
             ));
         }
     }
@@ -101,50 +117,49 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
         header.ledger.push(judgment.reference.clone());
         obligations.push(json!({"obligation": "inspected_image", "reference": reference["id"], "held": held, "ledger": judgment.reference}));
         if !held {
+            let reference_id = reference["id"].as_str().unwrap_or("");
+            let observation = reference["observation"].as_str().unwrap_or("");
+            let asset = reference["asset_sha256"].as_str().unwrap_or("");
             decisions.push(unmet(
                 species,
                 "inspected_image",
-                reference["id"].as_str().unwrap_or(""),
+                reference_id,
                 &judgment.reference,
-                &select_sha,
+                claim_key(&[
+                    ("pointer", reference_id),
+                    ("value", observation),
+                    ("source", asset),
+                    ("sentence", observation),
+                ]),
             ));
         }
     }
     for (pointer, entry) in sidecar["entries"].as_object().into_iter().flatten() {
-        let span = entry["span"].as_str().unwrap_or_default();
-        let source_id = entry["source"].as_str().unwrap_or_default();
-        let Some(excerpt) = excerpt_for(&ctx, source_id, &fetch["sources"][source_id], span) else {
-            obligations.push(json!({"obligation": "measurement_not_invention", "pointer": pointer, "held": Value::Null, "unchecked": "source not cached"}));
+        let checked = if entry["route"] == "appearance" {
+            Some(supported(judge, pointer, entry)?)
+        } else {
+            measured(judge, &ctx, &fetch, pointer, entry)?
+        };
+        let Some((obligation, held, reference)) = checked else {
+            obligations.push(json!({"obligation": "measurement_not_invention", "pointer": pointer, "held": Value::Null, "unchecked": "the value's sentence is not in its cached source"}));
             continue;
         };
-        let state = measurement_state(span, &excerpt);
-        let judgment = judge
-            .ask(
-                "obligation:measurement_not_invention",
-                None,
-                &state,
-                &obligation_questions("measurement_not_invention"),
-            )
-            .map_err(|err| StageError::Failed {
-                stage: STAGE.into(),
-                reason: err.to_string(),
-            })?;
-        let held = judgment
-            .entry
-            .noul("measurement_not_invention")
-            .unwrap_or(0.0)
-            >= thresholds().obligation_cut;
-        header.ledger.push(judgment.reference.clone());
-        obligations.push(json!({"obligation": "measurement_not_invention", "pointer": pointer, "held": held, "ledger": judgment.reference}));
-        if !held {
-            decisions.push(unmet(
-                species,
-                "measurement_not_invention",
-                pointer,
-                &judgment.reference,
-                &select_sha,
-            ));
+        header.ledger.push(reference.clone());
+        obligations.push(json!({"obligation": obligation, "pointer": pointer, "held": held, "ledger": reference}));
+        if held {
+            continue;
         }
+        decisions.push(if obligation == SUPPORTED {
+            unsupported(species, pointer, entry, &reference)
+        } else {
+            unmet(
+                species,
+                obligation,
+                pointer,
+                &reference,
+                entry_claim_inputs(pointer, entry),
+            )
+        });
     }
 
     let structural = structural_checks(manifest, &sidecar, &references);
@@ -158,7 +173,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
                 age_years: None,
             },
             &["generate"],
-            [("select.json".to_string(), select_sha.clone())]
+            [("claim".to_string(), canonical_sha256(failure))]
                 .into_iter()
                 .collect(),
             vec![],
@@ -167,10 +182,23 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
             "A structural obligation failed in code.",
         ));
     }
+    // The citation check and the support question may both find one
+    // appearance value unsupported: one decision per pointer.
+    let mut seen = std::collections::BTreeSet::new();
+    decisions.retain(|d| seen.insert(d.id.clone()));
     let ids: Vec<String> = decisions.iter().map(|d| d.id.clone()).collect();
     if !decisions.is_empty() {
         append_decisions(&ctx.paths.decisions(), decisions)?;
     }
+    // A value this rerun found supported or measured files nothing: its
+    // earlier decision is stale.
+    retire_unfiled(
+        &ctx.paths.decisions(),
+        STAGE,
+        &ids,
+        &header.inputs,
+        &crate::pipeline::gap::now(),
+    )?;
     ctx.write(
         &header,
         json!({"claims": rows, "obligations": obligations, "structural": structural}),
@@ -178,24 +206,116 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     Ok(Outcome::Ran { decisions: ids })
 }
 
-/// One claim per filled value: the copied span, checked against the cached
-/// markdown of its source. An uncached source lists its claim as unchecked.
-fn claims_for(
+/// The obligation an appearance value is asked in place of a measurement's.
+const SUPPORTED: &str = "appearance_supported";
+/// A claim decision's options, each consumed by select (fn-131).
+const CLAIM_OPTIONS: [&str; 3] = ["accept", "replace-source", "drop-value"];
+
+/// One judged obligation: its name, whether it held, and the ledger reference.
+type Checked = (&'static str, bool, String);
+
+fn noul(judge: &Judge<'_>, name: &'static str, state: &Value) -> Result<Checked, StageError> {
+    let judgment = judge
+        .ask(
+            &format!("obligation:{name}"),
+            None,
+            state,
+            &obligation_questions(name),
+        )
+        .map_err(|err| StageError::Failed {
+            stage: STAGE.into(),
+            reason: err.to_string(),
+        })?;
+    let held = judgment.entry.noul(name).unwrap_or(0.0) >= thresholds().obligation_cut;
+    Ok((name, held, judgment.reference))
+}
+
+/// A measured value, named by its field, against the cached source text
+/// around its sentence; None when the source is not cached or does not
+/// hold the sentence, since the span is never its own evidence.
+fn measured(
+    judge: &Judge<'_>,
     ctx: &Context,
-    sidecar: &Value,
     fetch: &Value,
-) -> Result<(Vec<ResearchClaim>, Vec<SourceLoad>), StageError> {
+    pointer: &str,
+    entry: &Value,
+) -> Result<Option<Checked>, StageError> {
+    let span = entry["span"].as_str().unwrap_or_default();
+    let source_id = entry["source"].as_str().unwrap_or_default();
+    let record = &fetch["sources"][source_id];
+    let Some(excerpt) = excerpt_for(ctx, source_id, record, entry) else {
+        return Ok(None);
+    };
+    let field = pointer.rsplit('/').next();
+    noul(
+        judge,
+        "measurement_not_invention",
+        &measurement_state(field, span, &excerpt),
+    )
+    .map(Some)
+}
+
+/// An appearance value: does its cited sentence describe its level?
+fn supported(judge: &Judge<'_>, pointer: &str, entry: &Value) -> Result<Checked, StageError> {
+    let trait_name = pointer.rsplit('/').next().unwrap_or_default();
+    let state = appearance_state(
+        trait_name,
+        entry["level"].as_str().unwrap_or_default(),
+        entry["span"].as_str().unwrap_or_default(),
+    );
+    noul(judge, SUPPORTED, &state)
+}
+
+/// A claim decision on an appearance value whose sentence does not describe
+/// its level.
+fn unsupported(species: &str, pointer: &str, entry: &Value, ledger: &str) -> Decision {
+    Decision::new(
+        DecisionParts {
+            species,
+            stage: STAGE,
+            kind: "claim-unsupported",
+            field: Some(pointer),
+            age_years: None,
+        },
+        &["generate"],
+        entry_claim_inputs(pointer, entry),
+        vec![ledger.to_string()],
+        json!({"value": pointer, "level": entry["level"], "sentence": entry["span"], "source": entry["source"],
+               "pointer": pointer, "span": entry["span"]}),
+        &CLAIM_OPTIONS,
+        "Jev judged that the cited sentence does not describe this appearance level.",
+    )
+}
+
+/// One claim per filled value, with its pointer, checked against the
+/// cached markdown of its source: a measured value's copied span, and an
+/// appearance value's level as the table words it beside the sentence it
+/// was read from (fn-131), since the sentence alone always supports itself. An uncached source lists its
+/// claim as unchecked.
+type Claims = (Vec<ResearchClaim>, Vec<SourceLoad>, Vec<String>);
+
+fn claims_for(ctx: &Context, sidecar: &Value, fetch: &Value) -> Result<Claims, StageError> {
     let mut claims = Vec::new();
     let mut loads = Vec::new();
+    let mut pointers = Vec::new();
     for (pointer, entry) in sidecar["entries"].as_object().into_iter().flatten() {
         let source_id = entry["source"].as_str().unwrap_or_default().to_string();
         let record = &fetch["sources"][&source_id];
-        claims.push(ResearchClaim {
-            claim: format!(
-                "{}: {}",
-                pointer.rsplit('/').next().unwrap_or_default(),
+        let name = pointer.rsplit('/').next().unwrap_or_default();
+        let stated = if entry["route"] == "appearance" {
+            let summary = table()
+                .level(name, entry["level"].as_str().unwrap_or_default())
+                .map_or_else(String::new, |l| l.summary.clone());
+            format!(
+                "{summary}, as read from: {}",
                 entry["span"].as_str().unwrap_or_default()
-            ),
+            )
+        } else {
+            entry["span"].as_str().unwrap_or_default().to_string()
+        };
+        pointers.push(pointer.clone());
+        claims.push(ResearchClaim {
+            claim: format!("{name}: {stated}"),
             url: record["final_url"].as_str().unwrap_or_default().to_string(),
             source_id: source_id.clone(),
             unresolved: None,
@@ -205,28 +325,45 @@ fn claims_for(
             Err(err) => SourceLoad::Unreachable(err.to_string()),
         });
     }
-    Ok((claims, loads))
+    Ok((claims, loads, pointers))
 }
 
-/// The cached source text around the span, bounded to a few hundred
-/// characters each side, or None when the source is not cached: the value's
-/// evidence is its source, never the span itself.
-fn excerpt_for(ctx: &Context, source_id: &str, record: &Value, span: &str) -> Option<String> {
+/// The cached source text around the value's sentence (or, lacking one,
+/// its span), whitespace collapsed, bounded to a few hundred characters
+/// each side; None when the source is not cached or does not hold it
+/// (fn-131): the value's evidence is its source, never the document's
+/// first page and never the span itself.
+fn excerpt_for(ctx: &Context, source_id: &str, record: &Value, entry: &Value) -> Option<String> {
     let markdown = cached_markdown(ctx, STAGE, source_id, record).ok()?;
-    let at = markdown.find(span).unwrap_or(0);
-    let start = markdown[..at]
+    let text = markdown.split_whitespace().collect::<Vec<_>>().join(" ");
+    let wanted = entry["sentence"]
+        .as_str()
+        .or_else(|| entry["span"].as_str())
+        .unwrap_or_default();
+    let wanted = wanted.split_whitespace().collect::<Vec<_>>().join(" ");
+    if wanted.is_empty() {
+        return None;
+    }
+    let at = text.find(&wanted)?;
+    let start = text[..at]
         .char_indices()
         .rev()
         .nth(600)
         .map_or(0, |(i, _)| i);
-    let end = markdown[at..]
+    let end = text[at..]
         .char_indices()
-        .nth(span.chars().count() + 600)
-        .map_or(markdown.len(), |(i, _)| at + i);
-    Some(markdown[start..end].to_string())
+        .nth(wanted.chars().count() + 600)
+        .map_or(text.len(), |(i, _)| at + i);
+    Some(text[start..end].to_string())
 }
 
-fn unmet(species: &str, obligation: &str, value: &str, ledger: &str, select_sha: &str) -> Decision {
+fn unmet(
+    species: &str,
+    obligation: &str,
+    value: &str,
+    ledger: &str,
+    inputs: BTreeMap<String, String>,
+) -> Decision {
     Decision::new(
         DecisionParts {
             species,
@@ -236,14 +373,47 @@ fn unmet(species: &str, obligation: &str, value: &str, ledger: &str, select_sha:
             age_years: None,
         },
         &["generate"],
-        [("select.json".to_string(), select_sha.to_string())]
-            .into_iter()
-            .collect(),
+        inputs,
         vec![ledger.to_string()],
         json!({"obligation": obligation, "value": value}),
         &["accept", "replace-reference", "drop-value"],
         "Jev judged this semantic obligation unmet.",
     )
+}
+
+/// Keys a claim decision on the claim itself, not the whole packet, so a
+/// rerun that leaves it unchanged files the same key and a resolution stays
+/// bound; a changed part voids it (fn-141).
+fn claim_key(parts: &[(&str, &str)]) -> BTreeMap<String, String> {
+    let claim: serde_json::Map<String, Value> = parts
+        .iter()
+        .map(|(k, v)| (k.to_string(), json!(v)))
+        .collect();
+    [("claim".to_string(), canonical_sha256(&Value::Object(claim)))]
+        .into_iter()
+        .collect()
+}
+
+/// A sidecar entry's claim: its pointer, the selected value (an appearance
+/// level, or a measured value's span as the range it states), the source id,
+/// and the cited sentence - the sentence field, or the span when the entry
+/// carries no separate one, as the appearance route does not.
+fn entry_claim_inputs(pointer: &str, entry: &Value) -> BTreeMap<String, String> {
+    let value = entry["level"]
+        .as_str()
+        .or_else(|| entry["span"].as_str())
+        .unwrap_or_default();
+    let sentence = entry["sentence"]
+        .as_str()
+        .or_else(|| entry["span"].as_str())
+        .unwrap_or_default();
+    let source = entry["source"].as_str().unwrap_or_default();
+    claim_key(&[
+        ("pointer", pointer),
+        ("value", value),
+        ("source", source),
+        ("sentence", sentence),
+    ])
 }
 
 /// Provenance on every filled value, an asset hash on every inspected image,

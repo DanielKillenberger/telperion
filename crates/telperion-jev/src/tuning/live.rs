@@ -94,6 +94,14 @@ pub struct Config {
     /// every dial, which is every run before 2026-09-21.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub tracks: Vec<super::bundle::Track>,
+    /// Owner priorities that carry the size of their gap. A round on one of
+    /// them asks nobody how far to move.
+    #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
+    pub magnitudes: std::collections::BTreeMap<String, super::stride::Class>,
+    /// The frozen gap-magnitude calibration. Until it qualifies, a class above
+    /// near that Jev chose needs scoped experimental authority.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gap_magnitude: Option<Validation>,
     pub initial_overrides: Value,
     pub dials: Vec<Dial>,
     pub owner_notes: String,
@@ -118,6 +126,10 @@ pub struct Config {
     /// engine's own limit of four; a lower bound buys a cheaper round.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_candidates: Option<u64>,
+    /// Rounds in a row that keep nothing before the run pauses as a runaway.
+    /// `None` is the engine's own count of five.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runaway_rounds: Option<std::num::NonZeroU64>,
     /// The reviewer has never been shown to pass an owner-accepted tree, so a
     /// replay with no positive is admitted and no run can claim readiness.
     /// Dials per proposal call. `None` asks them all in one call, as before.
@@ -132,6 +144,10 @@ pub struct Config {
     pub judgment_model: String,
     #[serde(default)]
     pub gap_specs: std::collections::BTreeMap<String, String>,
+    /// Inventory traits the generator cannot draw until an open spec lands.
+    /// One going backwards is recorded, never a reason to roll back.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub unexpressed: Vec<super::unexpressed::Unexpressed>,
     pub ledger: PathBuf,
     pub budget: super::state::Budget,
 }
@@ -251,6 +267,7 @@ impl Config {
         self.max_split_reviews.unwrap_or(6)
     }
     pub fn verify(&self) -> Result<(), String> {
+        super::unexpressed::verify(&self.unexpressed, self.reference_first.as_ref())?;
         if self.selection == Selection::Bundle {
             let sheet = self
                 .sheet
@@ -395,9 +412,9 @@ impl Config {
                 || proof.required != self.required
                 || !super::state::ready(&proof.required_cells(), &trial.key, visual)
                 || !proof.usage_known
-                || proof.budget.tokens > proof.budget.max_tokens
-                || proof.budget.images > proof.budget.max_images
-                || proof.budget.evaluations > proof.budget.max_evaluations
+                || super::state::over(proof.budget.tokens, proof.budget.max_tokens)
+                || super::state::over(proof.budget.images, proof.budget.max_images)
+                || super::state::over(proof.budget.evaluations, proof.budget.max_evaluations)
             {
                 return Err("bounded convergence remains unproven".into());
             }
@@ -514,8 +531,9 @@ impl Live<'_> {
                 "{}\nAuthoritative owner requirements: {}",
                 request.checklist, self.config.owner_notes
             );
-            let comparison =
+            let mut comparison =
                 super::reference_first::ComparisonRequest::production(&request, inventory);
+            comparison.known_gaps = self.config.unexpressed.clone();
             super::reference_first::assess(&self.config.vision, &comparison)?.visual
         } else {
             self.config.vision.assess(&request)?
@@ -718,6 +736,42 @@ impl Services for Live<'_> {
     fn tracks(&self) -> Vec<super::bundle::Track> {
         self.config.tracks.clone()
     }
+    fn unexpressed(&self) -> Vec<super::unexpressed::Unexpressed> {
+        self.config.unexpressed.clone()
+    }
+    fn inventory(&self) -> Result<Option<super::reference_first::Inventory>, String> {
+        let Some(prepared) = &self.config.reference_first else {
+            return Ok(None);
+        };
+        serde_json::from_slice(&prepared.inventory.bytes()?)
+            .map(Some)
+            .map_err(|e| e.to_string())
+    }
+    fn owner_magnitude(&self, priority: &str) -> Option<super::stride::Class> {
+        self.config.magnitudes.get(priority).copied()
+    }
+    fn offers_gap_magnitude(&self) -> bool {
+        true
+    }
+    fn gap_magnitude_tokens(&self, state: &Value) -> u64 {
+        super::judgments::allowance(state, &super::stride::questions())
+    }
+    fn gap_magnitude(&mut self, state: &Value) -> Result<Answer<super::stride::Judged>, String> {
+        let table = sha256_hex(&serde_json::to_vec(&self.config.dials).unwrap());
+        let (threshold, calibrated) = super::stride::calibration(
+            self.config.gap_magnitude.as_ref(),
+            &self.config.judgment_model,
+            &table,
+        );
+        let entry = self.ask(state, &super::stride::questions())?;
+        let judged = super::stride::Judged {
+            choice: entry.choice(super::stride::QUESTION).unwrap_or_default(),
+            confidence: entry.confidence(super::stride::QUESTION),
+            threshold,
+            calibrated,
+        };
+        Ok(Self::answer(&entry, judged))
+    }
     fn capture_views(
         &mut self,
         trial: &Trial,
@@ -789,6 +843,11 @@ impl Services for Live<'_> {
     }
     fn max_candidates(&self) -> u64 {
         self.config.max_candidates.unwrap_or(CANDIDATE_LIMIT)
+    }
+    fn runaway_rounds(&self) -> u64 {
+        self.config
+            .runaway_rounds
+            .map_or(super::runaway::ROUNDS, |n| n.get())
     }
     fn route_questions(&self, state: &Run) -> Value {
         super::judgments::routes(&self.config.gap_specs, state.approved_priorities())

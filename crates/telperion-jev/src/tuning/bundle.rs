@@ -10,7 +10,7 @@ mod round;
 mod track;
 mod words;
 mod worse;
-pub(in crate::tuning) use round::round;
+pub(in crate::tuning) use round::{note as note_for, round};
 pub use track::{verify as verify_tracks, Track};
 pub(in crate::tuning) use words::words;
 pub use worse::{excluded_families, part_family, EXCLUDED};
@@ -62,6 +62,17 @@ pub fn direction(action: Action) -> Option<i8> {
         Action::SmallDecrease | Action::SubstantialDecrease => Some(-1),
         Action::Hold | Action::InsufficientEvidence => None,
     }
+}
+
+/// What a single-dial attempt moved: the dial's value on the wire it stepped
+/// from, and the value its patch carries.
+pub fn single(dial: &Dial, effective: &Value, patch: &Value, action: Action) -> Option<Move> {
+    Some(Move {
+        dial: dial.id.clone(),
+        direction: if direction(action)? > 0 { "up" } else { "down" }.into(),
+        from: effective.pointer(&dial.path)?.as_f64()?,
+        to: patch.pointer(&dial.path)?.as_f64()?,
+    })
 }
 
 /// Every dial Jev supported, in the order it proposed them, each once. A dial

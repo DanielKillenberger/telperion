@@ -1,17 +1,18 @@
-//! The four pipeline question sets (fn-58), their labelled cases and scoring.
+//! The pipeline question sets (fn-58), their labelled cases and scoring.
 //!
 //! Each set is versioned JSON under `data/questions`, its labelled cases are
 //! JSON under `data/cases`, and every question offers a no-match answer:
 //! `none` for the ranking Choice and the dominant gap, the `none` level for
-//! sufficiency, the trailing `unstated` level for a described trait, and the
-//! false criterion of each obligation Noul. Code lays out the state and owns
+//! sufficiency, the mature size and the growth rate (fn-132), the trailing `unstated` level for a described trait, and the
+//! false criterion of each obligation Noul, the appearance support among them (fn-128). Code lays out the state and owns
 //! every count; Jev only picks a level, a candidate or a side.
 //!
 //! A case is `holdout` when it is held out of the labelled set that tuned the
 //! wording, and `negative` when the admitted answer is the one that rejects:
 //! evidence that misses its requirement, a candidate list with no usable
-//! source, a trait the sentences never describe, an image never inspected, or
-//! a value the author composed rather than measured.
+//! source, a trait the sentences never describe, an image never inspected,
+//! a value the author composed rather than measured, or a sentence that does
+//! not describe the appearance level it was cited for.
 
 pub mod cases;
 
@@ -19,10 +20,14 @@ use serde::Deserialize;
 use serde_json::{json, Map, Value};
 
 pub const SUFFICIENCY_JSON: &str = include_str!("../../data/questions/sufficiency.json");
+pub const MATURE_JSON: &str = include_str!("../../data/questions/mature_size.json");
+pub const RATE_JSON: &str = include_str!("../../data/questions/growth_rate.json");
 pub const RANKING_JSON: &str = include_str!("../../data/questions/ranking.json");
 pub const DESCRIBED_JSON: &str = include_str!("../../data/questions/described.json");
 pub const OBLIGATIONS_JSON: &str = include_str!("../../data/questions/obligations.json");
 pub const SUFFICIENCY_CASES: &str = include_str!("../../data/cases/sufficiency.json");
+pub const MATURE_CASES: &str = include_str!("../../data/cases/mature_size.json");
+pub const RATE_CASES: &str = include_str!("../../data/cases/growth_rate.json");
 pub const RANKING_CASES: &str = include_str!("../../data/cases/ranking.json");
 pub const DESCRIBED_CASES: &str = include_str!("../../data/cases/described.json");
 pub const OBLIGATION_CASES: &str = include_str!("../../data/cases/obligations.json");
@@ -34,7 +39,11 @@ pub const DESCRIBED_UNSTATED: &str = "unstated";
 /// The no-match key of the ranking Choice.
 pub const RANKING_NONE: &str = "none";
 /// The obligation Nouls, each asked alone with its own state.
-pub const OBLIGATION_NAMES: [&str; 2] = ["inspected_image", "measurement_not_invention"];
+pub const OBLIGATION_NAMES: [&str; 3] = [
+    "inspected_image",
+    "measurement_not_invention",
+    "appearance_supported",
+];
 
 fn parse(raw: &str, what: &str) -> Value {
     serde_json::from_str(raw).unwrap_or_else(|err| panic!("{what}: {err}"))
@@ -44,6 +53,8 @@ fn parse(raw: &str, what: &str) -> Value {
 pub fn set_version(name: &str) -> u32 {
     let raw = match name {
         "sufficiency" => SUFFICIENCY_JSON,
+        "mature_size" => MATURE_JSON,
+        "growth_rate" => RATE_JSON,
         "ranking" => RANKING_JSON,
         "described" => DESCRIBED_JSON,
         "obligations" => OBLIGATIONS_JSON,
@@ -58,6 +69,26 @@ pub fn sufficiency_questions() -> Value {
     json!({
         "sufficiency": raw["sufficiency"],
         "dominant_gap": raw["dominant_gap"],
+    })
+}
+
+/// Mature-size Score over the same four levels, and its gap Choice (fn-127):
+/// a stated mature value or range for the taxon, with no age asked.
+pub fn mature_questions() -> Value {
+    let raw = parse(MATURE_JSON, "mature_size.json");
+    json!({
+        "mature_size": raw["mature_size"],
+        "mature_gap": raw["mature_gap"],
+    })
+}
+
+/// Growth-rate Score over the same four levels, and its gap Choice
+/// (fn-132): a stated yearly rate for the taxon, with no age asked.
+pub fn rate_questions() -> Value {
+    let raw = parse(RATE_JSON, "growth_rate.json");
+    json!({
+        "growth_rate": raw["growth_rate"],
+        "rate_gap": raw["rate_gap"],
     })
 }
 
@@ -114,7 +145,35 @@ pub fn obligation_questions(name: &str) -> Value {
     Value::Object(out)
 }
 
-/// Round a Score to the nearest level index, clamped into the table. A
+/// The level Jev gave the highest probability, by index among `count`
+/// levels (fn-131). A level table is a set of choices, not a scale: the
+/// rounded average once put a leaf underside on `silvery_white` at
+/// probability 0. A tie goes to `no_match`; no probabilities, or a most
+/// probable level below `floor`, answers `no_match` too.
+pub fn chosen_level(
+    probabilities: Option<&Value>,
+    count: usize,
+    no_match: usize,
+    floor: f64,
+) -> usize {
+    let Some(map) = probabilities.and_then(Value::as_object) else {
+        return no_match;
+    };
+    let p = |i: usize| {
+        map.get(&i.to_string())
+            .and_then(Value::as_f64)
+            .unwrap_or(0.0)
+    };
+    let best = (0..count).fold(no_match, |best, i| if p(i) > p(best) { i } else { best });
+    if p(best) < floor {
+        no_match
+    } else {
+        best
+    }
+}
+
+/// Round a Score to the nearest level index, clamped into the table: for an
+/// ordered scale only (the transfer relation), never a level table. A
 /// missing or non-finite score is no level at all: the caller routes it to
 /// its no-match answer, never to the first row.
 pub fn level_from_score(score: f64, level_count: usize) -> Option<usize> {
@@ -136,6 +195,23 @@ pub struct SufficiencyCase {
     pub holdout: bool,
     pub negative: bool,
 }
+
+/// A mature-size case: the state the quality stage lays out for a mature
+/// field, with the level and gap a person admits.
+#[derive(Debug, Clone, Deserialize)]
+pub struct MatureCase {
+    pub id: String,
+    pub requirement: Value,
+    pub evidence: Value,
+    pub counts: Value,
+    pub expect_level: String,
+    pub expect_gap: String,
+    pub holdout: bool,
+    pub negative: bool,
+}
+
+/// A growth-rate case (fn-132) lays out the same state as a mature-size one.
+pub type RateCase = MatureCase;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct RankingCandidate {
@@ -186,14 +262,37 @@ pub struct MeasurementCase {
     pub negative: bool,
 }
 
+/// An appearance value's cited sentence and the level it was placed on
+/// (fn-128); the summary is the requirements table's.
+#[derive(Debug, Clone, Deserialize)]
+pub struct AppearanceCase {
+    pub id: String,
+    #[serde(rename = "trait")]
+    pub trait_name: String,
+    pub level: String,
+    pub sentence: String,
+    pub expect: bool,
+    pub holdout: bool,
+    pub negative: bool,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct ObligationCases {
     pub inspected_image: Vec<InspectedImageCase>,
     pub measurement_not_invention: Vec<MeasurementCase>,
+    pub appearance_supported: Vec<AppearanceCase>,
 }
 
 pub fn sufficiency_cases() -> Vec<SufficiencyCase> {
     serde_json::from_str(SUFFICIENCY_CASES).expect("sufficiency cases")
+}
+
+pub fn mature_cases() -> Vec<MatureCase> {
+    serde_json::from_str(MATURE_CASES).expect("mature size cases")
+}
+
+pub fn rate_cases() -> Vec<RateCase> {
+    serde_json::from_str(RATE_CASES).expect("growth rate cases")
 }
 
 pub fn ranking_cases() -> Vec<RankingCase> {
@@ -211,6 +310,14 @@ pub fn obligation_cases() -> ObligationCases {
 /// The state the data-quality gate lays out: the requirement, the screened
 /// evidence, and the counts code owns.
 pub fn sufficiency_state(case: &SufficiencyCase) -> Value {
+    json!({
+        "requirement": case.requirement,
+        "evidence": case.evidence,
+        "counts": case.counts,
+    })
+}
+
+pub fn mature_state(case: &MatureCase) -> Value {
     json!({
         "requirement": case.requirement,
         "evidence": case.evidence,
@@ -242,8 +349,28 @@ pub fn inspected_image_state(observation: &str) -> Value {
     json!({ "observation": observation })
 }
 
-pub fn measurement_state(value_statement: &str, source_excerpt: &str) -> Value {
-    json!({ "value_statement": value_statement, "source_excerpt": source_excerpt })
+/// The measurement question's state; the pipeline names the field the value
+/// fills (fn-131), so a number copied from a sentence about another organ
+/// or a rate reads as no measurement of it.
+pub fn measurement_state(
+    field: Option<&str>,
+    value_statement: &str,
+    source_excerpt: &str,
+) -> Value {
+    let mut state = json!({ "value_statement": value_statement, "source_excerpt": source_excerpt });
+    if let Some(field) = field {
+        state["field"] = json!(field);
+    }
+    state
+}
+
+/// The state of the appearance support question: the trait, the level the
+/// value was placed on with the table's summary of it, and the sentence.
+pub fn appearance_state(trait_name: &str, level: &str, sentence: &str) -> Value {
+    let summary = super::requirements::table()
+        .level(trait_name, level)
+        .map(|l| l.summary.as_str());
+    json!({"trait": trait_name, "level": level, "summary": summary, "sentence": sentence})
 }
 
 /// The ids of the cases a set answered wrongly, for the miss report.
