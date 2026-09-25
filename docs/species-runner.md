@@ -16,8 +16,12 @@ bash -ic 'target/release/species date-palm --stage start'   # one stage alone
 ```
 
 `--status` prints each stage as `current`, `stale` (with the inputs that
-changed) or `missing` (never ran, or an output is gone), and runs and builds
-nothing. `--until <stage>` runs every stage up to and including it.
+changed) or `missing` (never ran, or an output is gone), then preflights the
+paid services: the Jev key is visible, Firecrawl answers (`firecrawl
+--status`), and the tuning config's vision adapter makes its smallest call
+(the `probe` stage of `scripts/reference-first.py`, no image). It prints what
+each stage that would run is expected to spend, and exits 1 when a check
+fails. It runs no stage and builds nothing. `--until <stage>` runs every stage up to and including it.
 `--stage <stage>` runs that stage alone when it is not current; it refuses,
 naming the file and the stage that writes it, while a file an earlier stage
 writes for it is missing.
@@ -37,7 +41,29 @@ before them never builds. The key must be visible to an interactive shell
 | `--catalogue DIR` | `catalogue` |
 | `--adapter` | `firecrawl`; `fixture:DIR` for pinned sources |
 | `--accept` | the owner accepts the tree they looked at |
+| `--record DIR` | keep every external answer in `DIR` (below, "Record and replay") |
+| `--replay DIR` | serve every external answer from `DIR`, with no network and no key |
 | `--settle-claims` | a claim the search could not settle stops the run for a person instead of the runner settling it |
+
+## Record and replay
+
+`--record <dir>` keeps every external answer a run receives in `<dir>`,
+keyed by a stable hash of its request: Firecrawl searches, scrapes and PDF
+parses (`firecrawl/`), Jev calls (`jev/`, the key never recorded), the
+Wikimedia Commons API and image bytes (`web/`), and every vision adapter
+reply (`adapter/`, through `scripts/tape-adapter.py`, which wraps each
+adapter program the configs name). A key ignores every `path`, so a replay
+from another directory finds the same answer. `--replay <dir>` serves them
+back with no network and no key and fails, naming the request, on any the
+recording lacks. The layer is `crate::tape`; the stages take their adapter,
+transport and adapter programs through it and have no second path. A
+recording holds the renders' bytes in its adapter keys, so a generator change
+that moves a render needs the tuning part recorded again.
+
+The proof of the runner is a recorded run (owner, 2026-09-25): the beech from
+a bare seed, recorded live once and replayed in the workspace gate through
+its first tuning revision. A defect a later live run finds is recorded as a
+case beside it.
 
 ## The stages
 
@@ -106,7 +132,9 @@ A run stops for two things, and prints `STOPPED:` with the reason:
   its own.
 
 Every other condition is rerun or logged. A stage that fails names itself and
-leaves no record, so the next run tries it again.
+leaves no record, so the next run tries it again. A vision adapter's failure
+carries the adapter's own words (a spent Claude quota reads as "You've hit
+your weekly limit", a replay's missing answer as `replay: ...`).
 
 ## The tuning config
 
