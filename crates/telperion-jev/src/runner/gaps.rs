@@ -9,6 +9,8 @@
 //!   or leaves unclassed, and a failing trait no dial moved.
 //! - **global**: a capability the assessment classes an improvement, or a
 //!   trait the tuning config lists unexpressed, with the specs that capture it.
+//! - **unsourced**: a profile field no source settled; the generator's
+//!   default stands and Tune sets it from the photographs.
 //!
 //! The runner drafts and never mints: the host reviews each line and writes
 //! the spec. Identity gaps stop the run until their spec lands or the host
@@ -18,6 +20,7 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use super::{tune, Done, Run, Stage, Stop};
 use crate::pipeline::canon::{read_json, write_canonical};
 use crate::pipeline::stages::capability_class::{self, Class};
 use crate::tuning::bundle::Move;
@@ -29,6 +32,7 @@ pub enum Kind {
     Reachable,
     Identity,
     Global,
+    Unsourced,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -176,19 +180,69 @@ fn ab(m: &Move, attempt: &Attempt) -> String {
     )
 }
 
-/// Writes `gaps.json` and `gaps.md`; the word counts each class.
-pub fn run(gate: &Path, assessment: &Path, result: &Path, out: &Path) -> Result<String, String> {
-    let read = |p: &Path| read_json(p).map_err(|e| e.to_string());
-    let tuned: EndResult = serde_json::from_value(read(result)?).map_err(|e| e.to_string())?;
-    let gaps = classify(&read(gate)?, assessment, &tuned)?;
-    write(out, &gaps)?;
-    let count = |k: Kind| gaps.iter().filter(|g| g.kind == k).count();
-    Ok(format!(
-        "{} reachable, {} identity, {} global",
-        count(Kind::Reachable),
-        count(Kind::Identity),
-        count(Kind::Global)
-    ))
+pub struct Gaps;
+
+impl Stage for Gaps {
+    fn name(&self) -> &'static str {
+        "gaps"
+    }
+
+    fn inputs(&self, run: &Run) -> Result<Vec<PathBuf>, String> {
+        let p = &run.paths;
+        Ok(vec![
+            tune::result(&run.out()),
+            p.artifact("gate"),
+            p.packet("capability"),
+            p.packet("profile"),
+        ])
+    }
+
+    fn outputs(&self, run: &Run) -> Result<Vec<PathBuf>, String> {
+        let (json, md) = files(&run.out());
+        Ok(vec![json, md])
+    }
+
+    fn run(&self, run: &Run) -> Result<Done, String> {
+        let (p, out) = (&run.paths, run.out());
+        let read = |p: &Path| read_json(p).map_err(|e| e.to_string());
+        let tuned: EndResult =
+            serde_json::from_value(read(&tune::result(&out))?).map_err(|e| e.to_string())?;
+        let mut gaps = classify(&read(&p.artifact("gate"))?, &p.packet("capability"), &tuned)?;
+        gaps.extend(unsourced(&read(&p.packet("profile"))?));
+        write(&out, &gaps)?;
+        let count = |k: Kind| gaps.iter().filter(|g| g.kind == k).count();
+        Ok(Done::Ran(format!(
+            "{} reachable, {} identity, {} global, {} unsourced",
+            count(Kind::Reachable),
+            count(Kind::Identity),
+            count(Kind::Global),
+            count(Kind::Unsourced)
+        )))
+    }
+
+    fn stop(&self, run: &Run) -> Result<Option<Stop>, String> {
+        let ids = identity(&run.out())?;
+        Ok((!ids.is_empty()).then_some(Stop::IdentityGaps(ids)))
+    }
+}
+
+/// The profile fields no source settled, which the profile marks unsourced.
+pub fn unsourced(profile: &Value) -> Vec<Gap> {
+    let metrics = profile["profiles"][0]["metrics"].as_object();
+    metrics
+        .into_iter()
+        .flatten()
+        .filter(|(_, m)| m["classification"] == "unsourced")
+        .map(|(field, m)| Gap {
+            trait_id: field.clone(),
+            kind: Kind::Unsourced,
+            evidence: vec![format!(
+                "{}; the generator's default stands and Tune sets it from the photographs",
+                m["note"].as_str().unwrap_or("no source settled it")
+            )],
+            specs: vec![],
+        })
+        .collect()
 }
 
 /// Writes `gaps.json` and `gaps.md` for `gaps`.
@@ -221,6 +275,7 @@ fn markdown(gaps: &[Gap]) -> String {
         (Kind::Identity, "Identity: the species waits on these"),
         (Kind::Global, "Global: backlog"),
         (Kind::Reachable, "Reachable: a live dial moves it"),
+        (Kind::Unsourced, "Unsourced: no source settled it"),
     ] {
         out.push_str(&format!("\n## {title}\n\n"));
         let listed: Vec<&Gap> = gaps.iter().filter(|g| g.kind == kind).collect();

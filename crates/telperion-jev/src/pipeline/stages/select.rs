@@ -24,8 +24,8 @@ use crate::pipeline::sets::DescribedLevel;
 use crate::pipeline::stage::{Context, Paths, StageError};
 
 use super::appearance::{self, score_levels};
-use super::flagged::{flags, flags_sha256, unmet, REPLACE_SOURCE};
-use super::pick::{pick, Pick};
+use super::flagged::{flags, flags_sha256, unmet, Flag, DROP_VALUE, KEEP_RANGE, REPLACE_SOURCE};
+use super::pick::{pick, Pick, Spread};
 use super::{body, inputs};
 
 pub const STAGE: &str = "select";
@@ -75,16 +75,22 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
         let (picked, identity) = pick(judge, field, unit, &screen)?;
         header.ledger.extend(identity);
         let (reason, search) = match picked {
-            Pick::Filled(metric, entry, p) => match flags.get(&pointer).filter(|f| f.names(&entry))
-            {
-                None => {
-                    picked_at.insert(field.field.clone(), json!(p));
-                    filled.insert(pointer.clone(), metric);
-                    sidecar.insert(pointer, entry);
-                    continue;
+            Pick::Filled(metric, entry, p, spread) => {
+                let kept = match flags.get(&pointer).filter(|f| f.names(&entry)) {
+                    None => Ok(metric),
+                    Some(f) if f.option == KEEP_RANGE => kept_range(metric, spread, f),
+                    Some(f) => Err((f.reason(), f.option == REPLACE_SOURCE)),
+                };
+                match kept {
+                    Ok(metric) => {
+                        picked_at.insert(field.field.clone(), json!(p));
+                        filled.insert(pointer.clone(), metric);
+                        sidecar.insert(pointer, entry);
+                        continue;
+                    }
+                    Err(left) => left,
                 }
-                Some(flag) => (flag.reason(), flag.option == REPLACE_SOURCE),
-            },
+            }
             Pick::Unfilled(reason) => (reason.to_string(), false),
         };
         if search || required_bar(manifest, &field.field).is_some() {
@@ -139,6 +145,21 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     })
 }
 
+/// A contradicted value kept as the range its sources span, every source
+/// cited (fn-149); with no spread, the value leaves as flagged.
+fn kept_range(
+    mut metric: Value,
+    spread: Option<Spread>,
+    flag: &Flag,
+) -> Result<Value, (String, bool)> {
+    let (range, sources) = spread.ok_or((flag.reason(), false))?;
+    metric["range"] = json!(range);
+    metric["source"] = json!(sources);
+    metric["confidence"] = json!("spanned");
+    metric["note"] = json!(format!("{}: the range the sources span", flag.reason()));
+    Ok(metric)
+}
+
 /// Jev scores the trait over the manifest's levels on the source sections
 /// that carry the trait's terms.
 fn score_described(
@@ -180,7 +201,11 @@ fn write_packet(
         metrics.insert(name.to_string(), metric.clone());
     }
     for (field, reason) in unavailable {
-        metrics.insert(field.clone(), json!({"unit": "m", "range": null, "classification": "unavailable", "source": [], "confidence": "unavailable", "note": reason}));
+        // A dropped value leaves its field unsourced: the generator's
+        // default stands and Tune sets it from the photographs (fn-149).
+        let dropped = reason.as_str().is_some_and(|r| r.starts_with(DROP_VALUE));
+        let class = if dropped { "unsourced" } else { "unavailable" };
+        metrics.insert(field.clone(), json!({"unit": "m", "range": null, "classification": class, "source": [], "confidence": class, "note": reason}));
     }
     let mut profile = json!({
         "schema_version": 1,

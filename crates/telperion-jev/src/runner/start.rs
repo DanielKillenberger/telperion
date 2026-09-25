@@ -12,6 +12,7 @@ use serde_json::{json, Map, Value};
 use telperion_core::{params, presets::Preset};
 
 use super::derive::{self, TABLE_JSON};
+use super::{Done, Run, Stage, Stop};
 use crate::pipeline::canon::{canonical_sha256, read_json, write_canonical};
 
 /// The derivation table this binary was built with, as a stage input.
@@ -30,6 +31,38 @@ pub fn field(tuning: &Value, key: &str) -> Result<String, String> {
         .as_str()
         .map(str::to_string)
         .ok_or_else(|| format!("tuning config: no {key}"))
+}
+
+pub struct Start;
+
+impl Stage for Start {
+    fn name(&self) -> &'static str {
+        "start"
+    }
+
+    fn inputs(&self, run: &Run) -> Result<Vec<PathBuf>, String> {
+        let tuning =
+            read_json(&run.tuning).map_err(|e| format!("{}: {e}", run.tuning.display()))?;
+        let profiles = PathBuf::from(field(&tuning, "profiles")?);
+        Ok(vec![
+            run.paths.packet("profile"),
+            run.tuning.clone(),
+            profiles,
+            table(),
+        ])
+    }
+
+    fn outputs(&self, run: &Run) -> Result<Vec<PathBuf>, String> {
+        Ok(vec![file(&run.out())])
+    }
+
+    fn run(&self, run: &Run) -> Result<Done, String> {
+        self::run(&run.paths.packet("profile"), &run.tuning, &run.out()).map(Done::Ran)
+    }
+
+    fn stop(&self, _: &Run) -> Result<Option<Stop>, String> {
+        Ok(None)
+    }
 }
 
 /// Derives the starting overlay and writes it; the word says what it did.

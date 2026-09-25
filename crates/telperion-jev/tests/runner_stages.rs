@@ -218,13 +218,17 @@ fn a_failed_revision_leaves_the_last_kept_result_and_fails_the_stage() {
     assert_eq!(std::fs::read_to_string(tune::result(&dir)).unwrap(), kept);
 }
 
+/// Settles every decision the runner owns: a claim goes to the search
+/// while its field has a round left; after that a contradicted measurement
+/// keeps its sources' range and an unsupported one is dropped, unless the
+/// run leaves claims to a person (`--settle-claims`).
 #[test]
-fn the_runner_settles_what_it_can_and_leaves_a_claim_without_rounds_open() {
+fn the_runner_settles_claims_itself_unless_a_person_settles_them() {
     use telperion_jev::pipeline::decision::{
         append_decisions, read_resolutions, Decision, DecisionParts,
     };
     use telperion_jev::pipeline::stage::Paths;
-    let dir = scratch("settle");
+    use telperion_jev::runner::{literature, Run};
     let decision = |kind: &str, field: Option<&str>| {
         Decision::new(
             DecisionParts {
@@ -240,56 +244,66 @@ fn the_runner_settles_what_it_can_and_leaves_a_claim_without_rounds_open() {
                 .collect(),
             vec![],
             json!({}),
-            &["admit"],
+            &[
+                "skip",
+                "drop-source",
+                "replace-source",
+                "keep-range",
+                "drop-value",
+            ],
             "",
         )
     };
-    append_decisions(
-        &dir.join("decisions.json"),
-        vec![
-            decision("manifest-proposed", None),
-            decision("unavailable-source", Some("M1")),
-            decision(
-                "claim-unsupported",
-                Some("/profiles/0/metrics/height_m/range"),
-            ),
-            decision(
-                "claim-contradicted",
-                Some("/profiles/0/metrics/dbh_m/range"),
-            ),
-            decision("level-miss", Some("crown")),
-        ],
-    )
-    .unwrap();
-    // The dbh field has spent both its search rounds.
-    let round = json!({"round": 1, "decision": "d", "gap": "g", "query": "q", "hits": [],
-        "tried": [], "admitted": [], "ledger": [], "at": "t"});
-    std::fs::write(
-        dir.join("search-rounds.json"),
-        json!({"fields": {"dbh_m": [round, round]}}).to_string(),
-    )
-    .unwrap();
-    let run = telperion_jev::runner::Run {
-        species: "s".into(),
-        paths: Paths::new(&dir),
-        catalogue: dir.join("catalogue"),
-        tuning: dir.join("tuning.json"),
-        adapter: "fixture:none".into(),
-        accept: false,
+    let settled = |tag: &str, person: bool| {
+        let dir = scratch(tag);
+        append_decisions(
+            &dir.join("decisions.json"),
+            vec![
+                decision("manifest-proposed", None),
+                decision("unavailable-source", Some("M1")),
+                decision("claim-unsupported", Some("/profiles/0/metrics/height_m")),
+                decision("claim-contradicted", Some("/profiles/0/metrics/dbh_m")),
+                decision("claim-unsupported", Some("/profiles/0/metrics/dbh_m/x")),
+                decision("level-miss", Some("crown")),
+            ],
+        )
+        .unwrap();
+        // The dbh field has spent both its search rounds.
+        let round = json!({"round": 1, "decision": "d", "gap": "g", "query": "q", "hits": [],
+            "tried": [], "admitted": [], "ledger": [], "at": "t"});
+        std::fs::write(
+            dir.join("search-rounds.json"),
+            json!({"fields": {"dbh_m": [round, round]}}).to_string(),
+        )
+        .unwrap();
+        let mut run = Run::new("s", Paths::new(&dir), dir.join("c"), dir.join("t.json"));
+        run.settle_claims = person;
+        let words = literature::settle(&run).unwrap();
+        let options: Vec<String> = read_resolutions(&dir.join("resolutions.json"))
+            .unwrap()
+            .into_iter()
+            .map(|r| r.option)
+            .collect();
+        assert_eq!(words.len(), options.len());
+        (words, literature::claims(&run).unwrap())
     };
-    let settled = telperion_jev::runner::pipeline::settle(&run).unwrap();
+    let (words, stop) = settled("settle", false);
     assert_eq!(
-        settled,
+        words,
         [
-            "s/x/claim-unsupported//profiles/0/metrics/height_m/range",
-            "s/x/manifest-proposed",
-            "s/x/unavailable-source/M1",
+            "keep-range s/x/claim-contradicted//profiles/0/metrics/dbh_m",
+            "drop-value s/x/claim-unsupported//profiles/0/metrics/dbh_m/x",
+            "replace-source s/x/claim-unsupported//profiles/0/metrics/height_m",
+            "skip s/x/manifest-proposed",
+            "drop-source s/x/unavailable-source/M1",
         ]
     );
-    let options: Vec<String> = read_resolutions(&dir.join("resolutions.json"))
-        .unwrap()
-        .into_iter()
-        .map(|r| r.option)
-        .collect();
-    assert_eq!(options, ["replace-source", "skip", "drop-source"]);
+    assert_eq!(stop, None);
+    let (words, stop) = settled("settle-person", true);
+    assert_eq!(words.len(), 3, "{words:?}");
+    let ids = vec![
+        "s/x/claim-contradicted//profiles/0/metrics/dbh_m".to_string(),
+        "s/x/claim-unsupported//profiles/0/metrics/dbh_m/x".to_string(),
+    ];
+    assert_eq!(stop, Some(telperion_jev::runner::Stop::Claims(ids)));
 }

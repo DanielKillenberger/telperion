@@ -38,16 +38,24 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     let (fetch, fetch_sha) = body(&ctx, STAGE, "fetch")?;
     let (_, select_sha) = body(&ctx, STAGE, "select")?;
     let (_, generate_sha) = body(&ctx, STAGE, "generate")?;
+    // The article is written by a person or the add-species agent after
+    // the scaffold; its bytes key the cite check, so a written article is
+    // checked on the next run (fn-149).
+    let species = ctx.admitted.manifest.species.clone();
+    let article = std::path::Path::new("catalogue")
+        .join(&species)
+        .join("ARTICLE.md");
+    let article_sha = std::fs::read(&article).map_or("absent".into(), |b| crate::sha256_hex(&b));
     let pinned = inputs(&[
         ("fetch.json", &fetch_sha),
         ("select.json", &select_sha),
         ("generate.json", &generate_sha),
+        ("ARTICLE.md", &article_sha),
     ]);
     let mut header = ctx.header(STAGE, "document", pinned, vec![]);
     if ctx.is_current(STAGE, &header.idempotence_key) {
         return Ok(Outcome::Current);
     }
-    let species = ctx.admitted.manifest.species.clone();
     let bound: BTreeMap<String, String> =
         [("select.json".into(), select_sha)].into_iter().collect();
     let mut decisions = Vec::new();
@@ -73,9 +81,6 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     }
     // The catalogue script writes the article into the species' catalogue
     // folder, read from the repository root as the script runs.
-    let article = std::path::Path::new("catalogue")
-        .join(&species)
-        .join("ARTICLE.md");
     let written = std::fs::read_to_string(&article).unwrap_or_default();
     let folder = article.parent().unwrap_or(std::path::Path::new("."));
     let (claims, loads) = claims_in(&ctx, judge, folder, &written);

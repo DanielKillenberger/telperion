@@ -15,9 +15,39 @@ use std::path::{Path, PathBuf};
 use serde_json::{json, Value};
 
 use super::tools::Tools;
+use super::{Done, Run, Stage, Stop};
 use crate::caller::{load_key, UreqTransport};
 use crate::pipeline::canon::read_json;
 use crate::tuning::actions::Dial;
+
+pub struct Tune;
+
+impl Stage for Tune {
+    fn name(&self) -> &'static str {
+        "tune"
+    }
+
+    fn inputs(&self, run: &Run) -> Result<Vec<PathBuf>, String> {
+        let out = run.out();
+        let mut files = vec![super::start::file(&out), run.tuning.clone(), table()];
+        files.extend(referenced(&run.tuning)?);
+        files.extend(super::inventory::files(&run.tuning, &out)?);
+        files.extend(run.tools()?.files());
+        Ok(files)
+    }
+
+    fn outputs(&self, run: &Run) -> Result<Vec<PathBuf>, String> {
+        Ok(vec![result(&run.out())])
+    }
+
+    fn run(&self, run: &Run) -> Result<Done, String> {
+        self::run(&run.tuning, run.tools()?, &run.out()).map(Done::Ran)
+    }
+
+    fn stop(&self, _: &Run) -> Result<Option<Stop>, String> {
+        Ok(None)
+    }
+}
 
 /// The dial table, as a stage input and as the rows a revision offers.
 pub fn table() -> PathBuf {

@@ -14,6 +14,7 @@ use serde_json::Value;
 use super::canon::{canonical_sha256, read_json, CanonError};
 use super::decision::{Decision, Resolution, Status};
 use super::stage::STAGES;
+use super::stages::flagged::CLAIM_OPTIONS;
 
 /// A required field or appearance trait below the requirements table's bar,
 /// whose only option adds sources: the pipeline's for two search rounds on
@@ -37,10 +38,9 @@ pub fn consumers(kind: &str) -> Option<(&'static [&'static str], &'static [&'sta
         "data-insufficient" => Some((&["admit-proxy", "add-sources", "lower-bar"], &["quality"])),
         REQUIREMENTS_UNMET => Some((&["add-sources"], &["quality", "select"])),
         // A flagged value (fn-131): select drops it on drop-value and on
-        // replace-source, and files its requirement for the search again.
-        "claim-contradicted" | "claim-unsupported" => {
-            Some((&["accept", "replace-source", "drop-value"], &["select"]))
-        }
+        // replace-source, and files its requirement for the search again;
+        // keep-range keeps the range its sources span (fn-149).
+        "claim-contradicted" | "claim-unsupported" => Some((&CLAIM_OPTIONS, &["select"])),
         _ => None,
     }
 }

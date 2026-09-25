@@ -7,7 +7,7 @@ use std::process::Command;
 use serde_json::{json, Value};
 use telperion_core::presets::Preset;
 use telperion_jev::pipeline::manifest;
-use telperion_jev::runner::{catalogue, pins};
+use telperion_jev::runner::{folder, pins};
 
 fn repo() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
@@ -93,12 +93,12 @@ fn a_folder_the_runner_writes_passes_the_catalogue_check() {
         &std::fs::read_to_string(folder.join("packet/references.json")).unwrap(),
     )
     .unwrap();
-    catalogue::sources(&folder, m, &fetch, &references).unwrap();
-    catalogue::reference_copies(&root, &folder, &m.species, &references).unwrap();
+    folder::sources(&folder, m, &fetch, &references).unwrap();
+    folder::reference_copies(&root, &folder, &m.species, &references).unwrap();
     assert!(folder.join("sources/R1.md").exists() && folder.join("sources/R2.md").exists());
-    catalogue::stills(&folder, &m.species, &m.preset, &[]).unwrap();
-    catalogue::notes(&folder, m).unwrap();
-    catalogue::pins_stub(&folder, &m.species).unwrap();
+    folder::stills(&folder, &m.species, &m.preset, &[]).unwrap();
+    folder::notes(&folder, m).unwrap();
+    folder::pins_stub(&folder, &m.species).unwrap();
     let stub: Value =
         serde_json::from_str(&std::fs::read_to_string(folder.join("pins.json")).unwrap()).unwrap();
     assert_eq!(stub["empty"], true);
@@ -108,14 +108,14 @@ fn a_folder_the_runner_writes_passes_the_catalogue_check() {
         &["scripts/catalogue-article.mjs", "--species", "date-palm"],
     );
     assert!(ok, "{err}");
-    catalogue::pages(&root).unwrap();
+    folder::pages(&root).unwrap();
     let (ok, err) = node(&root, &["scripts/catalogue-check.mjs"]);
     assert!(ok, "the stub folder fails its check: {err}");
 
     // Accept fills the pins; the folder still passes.
     let family = Preset::from_id("date-palm").unwrap().parameters();
     pins::write(&folder, "date-palm", &family).unwrap();
-    catalogue::pages(&root).unwrap();
+    folder::pages(&root).unwrap();
     let (ok, err) = node(&root, &["scripts/catalogue-check.mjs"]);
     assert!(ok, "the accepted folder fails its check: {err}");
     let notes = std::fs::read_to_string(folder.join("NOTES.md")).unwrap();
@@ -138,7 +138,7 @@ fn a_record_that_holds_the_same_values_is_left_byte_for_byte() {
         &std::fs::read_to_string(folder.join("packet/references.json")).unwrap(),
     )
     .unwrap();
-    catalogue::sources(
+    folder::sources(
         &folder,
         m,
         &json!({"body": {"sources": fetched}}),

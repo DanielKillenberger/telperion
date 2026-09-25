@@ -26,6 +26,7 @@ use crate::pipeline::stage::{Context, Paths, StageError};
 use crate::questions::thresholds;
 
 use super::extract::cached_markdown;
+use super::flagged::CLAIM_OPTIONS;
 use super::{body, inputs};
 
 pub const STAGE: &str = "verify";
@@ -93,7 +94,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
                 json!({"claim": row.claim, "section": row.section, "relation": row.relation, "reason": row.reason,
                        "pointer": pointer, "source": entry["source"], "span": entry["span"]}),
                 &CLAIM_OPTIONS,
-                "The citation check listed this claim. drop-value takes the value out of the packet and files its requirement again; replace-source files it for the pipeline's search; accept keeps it.",
+                "The citation check listed this claim. drop-value takes the value out of the packet and files its requirement again; replace-source files it for the pipeline's search; keep-range keeps the range every source spans; accept keeps it.",
             ));
         }
     }
@@ -208,8 +209,6 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
 
 /// The obligation an appearance value is asked in place of a measurement's.
 const SUPPORTED: &str = "appearance_supported";
-/// A claim decision's options, each consumed by select (fn-131).
-const CLAIM_OPTIONS: [&str; 3] = ["accept", "replace-source", "drop-value"];
 
 /// One judged obligation: its name, whether it held, and the ledger reference.
 type Checked = (&'static str, bool, String);

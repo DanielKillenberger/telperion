@@ -1,52 +1,81 @@
 //! `species <id>`: the species runner (fn-149). Runs the eight stages from
 //! the seeded manifest to the owner's look, rerunning only what changed, and
-//! prints why it stopped. The runbook is `docs/species-runner.md`.
+//! prints why it stopped. `--until <stage>` stops after a stage, `--stage
+//! <stage>` runs one alone, `--status` says what each would do and runs
+//! nothing. The runbook is `docs/species-runner.md`.
 use std::env;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
 use telperion_jev::pipeline::stage::Paths;
-use telperion_jev::runner::{self, live::Live, tools::Tools, Run};
+use telperion_jev::runner::{self, Run, Scope, STAGES};
 
-const USAGE: &str = "usage: species <id> [--accept] [--tuning FILE] [--dir DIR] [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR]";
+const USAGE: &str = "usage: species <id> [--until STAGE | --stage STAGE | --status] [--accept] [--settle-claims] [--tuning FILE] [--dir DIR] [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR]";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
-    let Some(species) = args.first().filter(|a| !a.starts_with("--")).cloned() else {
+    let Some(species) = args.first().filter(|a| !a.starts_with("--")) else {
         eprintln!("{USAGE}");
         return ExitCode::from(2);
     };
-    let flag = |name: &str| {
+    let value = |name: &str| {
         args.windows(2)
             .find(|pair| pair[0] == name)
-            .map(|pair| PathBuf::from(&pair[1]))
+            .map(|pair| pair[1].clone())
     };
+    let has = |name: &str| args.iter().any(|a| a == name);
     // The species' catalogue folder holds the manifest and every stage
     // artifact, which the catalogue scripts read in place; the run's scratch
     // stays in the evidence tree.
-    let evidence = PathBuf::from(".flow/evidence").join(&species);
-    let catalogue = flag("--catalogue").unwrap_or_else(|| PathBuf::from("catalogue"));
-    let dir = flag("--dir").unwrap_or_else(|| catalogue.join(&species));
-    let run_dir = flag("--run-dir").unwrap_or_else(|| evidence.join("run"));
-    let run = Run {
-        paths: Paths::with_run(&dir, &run_dir),
-        catalogue,
-        tuning: flag("--tuning").unwrap_or_else(|| evidence.join("tuning.json")),
-        adapter: flag("--adapter").map_or("firecrawl".into(), |p| p.display().to_string()),
-        accept: args.iter().any(|a| a == "--accept"),
-        species,
+    let evidence = PathBuf::from(".flow/evidence").join(species);
+    let path = |name: &str| value(name).map(PathBuf::from);
+    let catalogue = path("--catalogue").unwrap_or_else(|| PathBuf::from("catalogue"));
+    let dir = path("--dir").unwrap_or_else(|| catalogue.join(species));
+    let run_dir = path("--run-dir").unwrap_or_else(|| evidence.join("run"));
+    let tuning = path("--tuning").unwrap_or_else(|| evidence.join("tuning.json"));
+    let mut run = Run::new(species, Paths::with_run(&dir, &run_dir), catalogue, tuning);
+    run.adapter = value("--adapter").unwrap_or(run.adapter);
+    run.accept = has("--accept");
+    run.settle_claims = has("--settle-claims");
+    if has("--status") {
+        run.build = false;
+        return status(&run);
+    }
+    let scope = match (value("--until"), value("--stage")) {
+        (Some(_), Some(_)) => {
+            eprintln!("--until and --stage are one or the other\n{USAGE}");
+            return ExitCode::from(2);
+        }
+        (Some(name), None) => Scope::Until(name),
+        (None, Some(name)) => Scope::Only(name),
+        (None, None) => Scope::All,
     };
-    let outcome = Tools::build(&PathBuf::from("."))
-        .and_then(|tools| Live::new(&run, tools))
-        .and_then(|live| runner::run(&run, &live));
-    match outcome {
+    match runner::run(&run, &STAGES, &scope) {
         Ok(None) => {
-            println!("accepted");
+            match scope {
+                Scope::All => println!("accepted"),
+                Scope::Until(name) | Scope::Only(name) => println!("reached {name}"),
+            }
             ExitCode::SUCCESS
         }
         Ok(Some(stop)) => {
             println!("STOPPED: {stop}");
             ExitCode::from(3)
+        }
+        Err(err) => {
+            eprintln!("{err}");
+            ExitCode::from(1)
+        }
+    }
+}
+
+fn status(run: &Run) -> ExitCode {
+    match runner::status(run, &STAGES) {
+        Ok(states) => {
+            for (name, state) in states {
+                println!("{name}: {state}");
+            }
+            ExitCode::SUCCESS
         }
         Err(err) => {
             eprintln!("{err}");

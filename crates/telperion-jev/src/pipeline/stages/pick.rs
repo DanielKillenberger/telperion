@@ -29,11 +29,15 @@ pub const NO_CANDIDATE: &str = "no admissible candidate span";
 pub const BELOW_FLOOR: &str = "pick below the selection floor";
 pub const NO_LENGTH: &str = "the chosen span states no length";
 
+/// The range the sources span and the sources behind it.
+pub type Spread = ([f64; 2], Vec<String>);
+
 pub enum Pick {
-    /// The profile metric, its sidecar entry, and the chosen span's
+    /// The profile metric, its sidecar entry, the chosen span's
     /// probability, which the select body records and provenance never
-    /// carries.
-    Filled(Value, Value, Option<f64>),
+    /// carries, and the sources' spread, which a contradicted value keeps
+    /// when no source settles it (fn-149).
+    Filled(Value, Value, Option<f64>, Option<Spread>),
     Unfilled(&'static str),
 }
 
@@ -98,7 +102,34 @@ pub fn pick(
         "route": "copied", "source": source, "sentence": row["sentence"], "span": span,
         "unit": stated, "pick_confidence": report.confidence, "ledger": [report.identity],
     });
-    Ok((Pick::Filled(metric, entry, probability), identity))
+    let spread = spread(&keyed, &report.probabilities);
+    Ok((Pick::Filled(metric, entry, probability, spread), identity))
+}
+
+/// Each source's most probable span, parsed by code, and the range they
+/// span. A source counts when its best span has probability and reaches
+/// the selection floor once that is calibrated; None when none counts.
+fn spread(keyed: &[(String, &Value, String)], probabilities: &Value) -> Option<Spread> {
+    let mut best: BTreeMap<&str, (f64, &str)> = BTreeMap::new();
+    for (key, row, span) in keyed {
+        let p = probabilities[key].as_f64().unwrap_or(0.0);
+        let source = row["source"].as_str().unwrap_or_default();
+        if p > best.get(source).map_or(0.0, |b| b.0) {
+            best.insert(source, (p, span));
+        }
+    }
+    let floor = selection_floor().unwrap_or(0.0);
+    let parsed: Vec<(&str, [f64; 2])> = best
+        .into_iter()
+        .filter(|(_, (p, _))| *p >= floor)
+        .filter_map(|(source, (_, span))| Some((source, parse_span(span)?.0)))
+        .collect();
+    let lo = parsed.iter().map(|(_, r)| r[0]).reduce(f64::min)?;
+    let hi = parsed.iter().map(|(_, r)| r[1]).reduce(f64::max)?;
+    Some((
+        [lo, hi],
+        parsed.into_iter().map(|(s, _)| s.to_string()).collect(),
+    ))
 }
 
 /// The first length in a span, in metres: `50 to 90 ft` -> [15.24, 27.432];
@@ -109,7 +140,28 @@ pub fn parse_span(span: &str) -> Option<([f64; 2], String)> {
 
 #[cfg(test)]
 mod tests {
-    use super::parse_span;
+    use super::{parse_span, spread};
+    use serde_json::json;
+
+    #[test]
+    fn the_spread_takes_each_sources_most_probable_span() {
+        let (f1, p5) = (json!({"source": "F1"}), json!({"source": "P5"}));
+        let key = |k: &str, row, span: &str| (k.to_string(), row, span.to_string());
+        let keyed = [
+            key("F1.1: 20 feet", &f1, "20 feet"),
+            key("F1.1: 1 to 2 feet", &f1, "1 to 2 feet"),
+            key("P5.1: 5-7 m", &p5, "5-7 m"),
+            key("P5.1: 0.3-0.6 m", &p5, "0.3-0.6 m"),
+        ];
+        let probabilities = json!({"F1.1: 20 feet": 0.6, "F1.1: 1 to 2 feet": 0.1,
+                                   "P5.1: 5-7 m": 0.3, "P5.1: 0.3-0.6 m": 0.0});
+        let (range, sources) = spread(&keyed, &probabilities).unwrap();
+        assert_eq!(range, [5.0, 7.0]);
+        assert_eq!(sources, ["F1", "P5"]);
+        let (f1_only, _) = spread(&keyed[..2], &probabilities).unwrap();
+        assert!((f1_only[0] - 6.096).abs() < 1e-9 && (f1_only[1] - 6.096).abs() < 1e-9);
+        assert!(spread(&keyed, &json!({})).is_none());
+    }
 
     #[test]
     fn a_span_yields_its_numbers_in_metres() {

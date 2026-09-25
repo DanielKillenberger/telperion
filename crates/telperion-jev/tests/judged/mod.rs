@@ -105,6 +105,8 @@ pub struct Palm {
     pub confidence: f64,
     pub spans: Mutex<Vec<Value>>,
     pub levels: fn(&str) -> Option<Value>,
+    /// The span answer's probabilities over its candidates.
+    pub spread: fn(&[String]) -> Value,
 }
 
 impl Palm {
@@ -114,6 +116,7 @@ impl Palm {
             confidence: 0.9,
             spans: Mutex::new(Vec::new()),
             levels: |_| None,
+            spread: |_| json!({}),
         }
     }
     /// The span state the select stage laid out for `field`.
@@ -146,7 +149,7 @@ impl Transport for Palm {
                 serde_json::from_value(state["candidates"].clone()).unwrap();
             let question = state["question"].as_str().unwrap();
             let chosen = (self.pick)(question, &candidates).unwrap_or_else(|| "none".into());
-            json!({"span": {"type": "choice", "choice": chosen, "confidence": self.confidence, "probabilities": {}}})
+            json!({"span": {"type": "choice", "choice": chosen, "confidence": self.confidence, "probabilities": (self.spread)(&candidates)}})
         } else if questions.get("level").is_some() {
             let name = state["trait"].as_str().unwrap();
             let count = table().levels(name).unwrap().len();

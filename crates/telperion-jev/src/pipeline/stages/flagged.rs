@@ -1,6 +1,7 @@
 //! What select owes the gate beyond its picks (fn-131). A value verify
 //! flagged and a resolution dropped (`drop-value`) or sent for another
-//! source (`replace-source`) leaves the packet; a required field select
+//! source (`replace-source`) leaves the packet; one kept as the range its
+//! sources span (`keep-range`, fn-149) stays with every source cited; a required field select
 //! cannot fill, or whose value left it, files `requirements-unmet`, which
 //! the pipeline searches again for (`pipeline::search`) before the owner
 //! has it. No gap passes silently.
@@ -21,6 +22,9 @@ use super::select::STAGE;
 pub const CLAIM_KINDS: [&str; 2] = ["claim-contradicted", "claim-unsupported"];
 pub const DROP_VALUE: &str = "drop-value";
 pub const REPLACE_SOURCE: &str = "replace-source";
+pub const KEEP_RANGE: &str = "keep-range";
+/// A claim decision's options, each consumed by select.
+pub const CLAIM_OPTIONS: [&str; 4] = ["accept", REPLACE_SOURCE, DROP_VALUE, KEEP_RANGE];
 
 /// A value a resolution took out of the packet: the decision, its option,
 /// and the source and span the claim was filed on.
@@ -43,8 +47,8 @@ impl Flag {
     }
 }
 
-/// The bound resolutions of claim decisions that drop their value, keyed
-/// by the value's JSON Pointer.
+/// The bound resolutions of claim decisions that drop their value or keep
+/// its sources' range, keyed by the value's JSON Pointer.
 pub fn flags(ctx: &Context) -> BTreeMap<String, Flag> {
     ctx.decisions
         .iter()
@@ -52,7 +56,7 @@ pub fn flags(ctx: &Context) -> BTreeMap<String, Flag> {
         .filter_map(|d| {
             let option = d.resolution.as_ref()?.option.clone();
             let pointer = d.payload["pointer"].as_str()?.to_string();
-            [DROP_VALUE, REPLACE_SOURCE]
+            [DROP_VALUE, REPLACE_SOURCE, KEEP_RANGE]
                 .contains(&option.as_str())
                 .then(|| {
                     let flag = Flag {

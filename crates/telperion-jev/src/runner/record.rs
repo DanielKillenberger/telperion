@@ -29,6 +29,24 @@ fn hashes(paths: &[PathBuf]) -> Result<BTreeMap<String, String>, String> {
         .collect()
 }
 
+/// A stage's state, with the reason when it is not current.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum State {
+    Current,
+    Stale(String),
+    Missing(String),
+}
+
+impl std::fmt::Display for State {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Current => write!(f, "current"),
+            Self::Stale(why) => write!(f, "stale ({why})"),
+            Self::Missing(why) => write!(f, "missing ({why})"),
+        }
+    }
+}
+
 pub struct Records {
     dir: PathBuf,
     stages: BTreeMap<String, Value>,
@@ -50,17 +68,35 @@ impl Records {
         })
     }
 
-    /// True when the stage's inputs hash as recorded and its outputs exist.
-    pub fn current(
+    /// Current when the stage's inputs hash as recorded and its outputs
+    /// exist; missing when it never ran or an output is gone; stale when an
+    /// input's bytes changed.
+    pub fn state(
         &self,
         stage: &str,
         inputs: &[PathBuf],
         outputs: &[PathBuf],
-    ) -> Result<bool, String> {
+    ) -> Result<State, String> {
         let Some(record) = self.stages.get(stage) else {
-            return Ok(false);
+            return Ok(State::Missing("never ran".into()));
         };
-        Ok(record["inputs"] == json!(hashes(inputs)?) && outputs.iter().all(|p| p.exists()))
+        if let Some(gone) = outputs.iter().find(|p| !p.exists()) {
+            return Ok(State::Missing(format!("{} is gone", gone.display())));
+        }
+        let now = hashes(inputs)?;
+        let changed: Vec<&str> = now
+            .iter()
+            .filter(|(path, hash)| record["inputs"][path.as_str()] != **hash)
+            .map(|(path, _)| path.as_str())
+            .collect();
+        let dropped = record["inputs"]
+            .as_object()
+            .is_some_and(|r| r.keys().any(|k| !now.contains_key(k)));
+        Ok(match (changed.is_empty(), dropped) {
+            (true, false) => State::Current,
+            (true, true) => State::Stale("its input list changed".into()),
+            (false, _) => State::Stale(format!("changed: {}", changed.join(", "))),
+        })
     }
 
     pub fn set(&mut self, stage: &str, inputs: &[PathBuf]) -> Result<(), String> {

@@ -11,9 +11,57 @@ use std::process::Command;
 use serde_json::{json, Value};
 
 use super::preset::{self, Names};
-use super::{catalogue, pins, start::flatten};
+use super::{folder, pins, start::flatten, tune, Done, Run, Stage, Stop};
 use crate::pipeline::canon::{read_json, write_canonical};
+use crate::pipeline::manifest;
 use telperion_core::{params, presets::Preset, Family};
+
+pub struct Accept;
+
+impl Stage for Accept {
+    fn name(&self) -> &'static str {
+        "accept"
+    }
+
+    fn inputs(&self, run: &Run) -> Result<Vec<PathBuf>, String> {
+        Ok(vec![tune::result(&run.out())])
+    }
+
+    fn outputs(&self, run: &Run) -> Result<Vec<PathBuf>, String> {
+        Ok(vec![file(&run.out())])
+    }
+
+    fn run(&self, run: &Run) -> Result<Done, String> {
+        if !run.accept {
+            return Ok(Done::Current);
+        }
+        let out = run.out();
+        let word = self::run(
+            Path::new("."),
+            &names(run)?,
+            &run.folder(),
+            &tune::result(&out),
+            &out,
+        )?;
+        Ok(Done::Ran(word))
+    }
+
+    fn stop(&self, run: &Run) -> Result<Option<Stop>, String> {
+        let out = run.out();
+        Ok((!accepted(&tune::result(&out), &out)?).then_some(Stop::OwnerLook))
+    }
+}
+
+/// What the species registers under, from its admitted manifest.
+fn names(run: &Run) -> Result<Names, String> {
+    let admitted = manifest::load(&run.paths.manifest()).map_err(|e| e.to_string())?;
+    let taxon = &admitted.manifest.taxon;
+    Ok(Names {
+        id: run.species.clone(),
+        common: taxon.common_name.clone(),
+        scientific: taxon.scientific_name.clone(),
+    })
+}
 
 pub fn file(out: &Path) -> PathBuf {
     out.join("accepted.json")
@@ -98,8 +146,8 @@ pub fn run(
         .flatten()
         .map(|s| json!({"path": s["path"], "seed": s["seed"], "view": s["view"], "visual_status": "accepted"}))
         .collect();
-    catalogue::stills(folder, &names.id, &names.id, &shown)?;
-    catalogue::pages(root)?;
+    folder::stills(folder, &names.id, &names.id, &shown)?;
+    folder::pages(root)?;
     let failures = catalogue_failures(root, &names.id)?;
     if !failures.is_empty() {
         return Err(format!(

@@ -1,6 +1,8 @@
 //! The render tools a run measures and draws with, built from the checkout
 //! the runner runs in, so a revision never draws with a binary from an older
-//! commit. Cargo leaves a current binary alone; the runner builds every time.
+//! commit. Cargo leaves a current binary alone; the runner builds at the
+//! first stage that reads the tools (`Run::tools`), so a run that stops
+//! before Capability, and a status run, never builds.
 use std::path::{Path, PathBuf};
 use std::process::Command;
 

@@ -9,13 +9,25 @@ run with nothing changed reruns nothing. The code is
 
 ```sh
 cargo build --release -p telperion-jev --bin species
-bash -ic 'target/release/species date-palm'
+bash -ic 'target/release/species date-palm'                 # every stage
+target/release/species date-palm --status                   # what each would do
+bash -ic 'target/release/species date-palm --until profile' # stop after a stage
+bash -ic 'target/release/species date-palm --stage start'   # one stage alone
 ```
+
+`--status` prints each stage as `current`, `stale` (with the inputs that
+changed) or `missing` (never ran, or an output is gone), and runs and builds
+nothing. `--until <stage>` runs every stage up to and including it.
+`--stage <stage>` runs that stage alone when it is not current; it refuses,
+naming the file and the stage that writes it, while a file an earlier stage
+writes for it is missing.
 
 The runner builds the three render tools itself (`species_measure`,
 `geometry_benchmark`, `headless`, in release) from the checkout it runs in,
-so a revision never draws with a binary from an older commit. The key must be
-visible to an interactive shell (`docs/typesafe.md`).
+at the first stage that reads them (Capability, Catalogue and Tune), so a
+revision never draws with a binary from an older commit and a run that stops
+before them never builds. The key must be visible to an interactive shell
+(`docs/typesafe.md`).
 
 | Flag | Default |
 |---|---|
@@ -25,32 +37,58 @@ visible to an interactive shell (`docs/typesafe.md`).
 | `--catalogue DIR` | `catalogue` |
 | `--adapter` | `firecrawl`; `fixture:DIR` for pinned sources |
 | `--accept` | the owner accepts the tree they looked at |
+| `--settle-claims` | a claim the search could not settle stops the run for a person instead of the runner settling it |
 
 ## The stages
 
 | Stage | Runs | Writes |
 |---|---|---|
 | Sources | discover, fetch (`docs/species-pipeline.md`); an unadmitted proposal is skipped and an unreadable source dropped, both logged | `discover.json`, `fetch.json`, the admitted manifest |
-| Profile | extract, screen, quality, select, verify, fit; search-again while a requirement or a flagged claim's field has a round left, then the profile again; the reference inventory | `packet/profile.json`, `packet/references.json`, `runner/inventory/<hash>/` |
+| Profile | extract, screen, quality, select, verify, fit; search-again while a requirement or a flagged claim's field has a round left, then the profile again; once the rounds are spent, each claim settled by the runner (below); the reference inventory | `packet/profile.json`, `packet/references.json`, `runner/inventory/<hash>/` |
 | Capability | the gate: the host's `packet/capability.json` against the generator's vocabulary; it runs before Catalogue, which generates from it | `gate.json` |
-| Catalogue | generate, the gate's seed audit, the records no stage writes, document, the pages | `packet/species.json`, `packet/specimens.json`, `sources.json`, `stills.json`, `NOTES.md`, the `pins.json` stub, source copies, `ARTICLE.md`, `README.md` |
+| Catalogue | generate, the gate's seed audit, the records no stage writes, document (the article scaffold and the cite check over it), the pages | `packet/species.json`, `packet/specimens.json`, `sources.json`, `stills.json`, `NOTES.md`, the `pins.json` stub, source copies, `ARTICLE.md`, `README.md` |
 | Start | the profile's values mapped onto dials (`data/profile-to-preset.json`) | `runner/start.json` |
 | Tune | one tuning revision (`docs/tuning-loop.md`) | `runner/tuning/<n>/`, `runner/tuning/result.json` |
-| Gaps | every trait still failing, classed | `runner/gaps.json`, `runner/gaps.md` |
+| Gaps | every trait still failing and every unsourced field, classed | `runner/gaps.json`, `runner/gaps.md` |
 | Accept | the owner's look; with `--accept`, the tree into core as the species' preset and its pins | `crates/telperion-core/src/presets/species.rs` (and `presets.rs` for a new species), `pins.json`, `stills.json`, `runner/accepted.json` |
 
 Every stage's word goes to `runner/log.jsonl`, with each open decision the
 run logged and did not wait on.
 
+## Claims
+
+A value the citation check flags (`claim-contradicted`,
+`claim-unsupported`) goes to the search while its field has a round left.
+Once the rounds are spent the runner settles it itself and logs it:
+
+- **Contradicted measurement: the range the sources span.** Select keeps
+  the field as the range from the lowest to the highest of each source's
+  most probable span, parsed by code, with every such source cited
+  (`keep-range`). Start takes its midpoint and Tune narrows it.
+- **Anything else: unsourced.** The value is dropped (`drop-value`); the
+  profile marks the field `unsourced`, `gaps.md` lists it, and the
+  generator's default stands until Tune sets it from the photographs.
+
+Jev never supplies a number: the range is code's parse of the spans the
+sources state. A resolution a person writes in `resolutions.json` still wins
+(`docs/species-pipeline.md`, "Decisions"). With `--settle-claims` the runner
+settles none of them and the run stops on the open claims, the article's
+included, for a person. Without it, an open article claim is logged.
+
+## The article
+
+The document stage scaffolds `ARTICLE.md` and the cite check verifies every
+claim it makes. The prose is the add-species agent's: when `--accept` is
+refused because `scripts/catalogue-check.mjs` fails the article, the agent
+writes it from the folder's source copies, then runs
+`species <id> --stage catalogue`, whose cite check reads the written article
+(its bytes are an input of the stage and key the document stage), and hands
+the owner the look again.
+
 ## Stops
 
-A run stops for three things only, and prints `STOPPED:` with the reason:
+A run stops for two things, and prints `STOPPED:` with the reason:
 
-- **A claim.** `claim-contradicted` or `claim-unsupported` once its field
-  has no search round left, and the article kinds: a person settles each in
-  `resolutions.json` (`docs/species-pipeline.md`, "Decisions"), and the next
-  run reruns what reads the resolutions. While a round is left, the runner
-  sends the claim to the search itself.
 - **An identity gap.** A capability the species needs and the generator
   cannot express stops the run at the Capability stage (evidence in
   `gate.json`); a trait tuning could not move stops it at Gaps (`gaps.md`). It waits until its spec lands, which rebuilds the
@@ -98,5 +136,7 @@ Code classes each failing trait from what the run recorded:
   moved.
 - **global**: a capability the assessment classes an improvement, or a trait
   the config lists unexpressed, with the specs that capture it.
+- **unsourced**: a profile field no source settled (above, "Claims"); the
+  generator's default stands and Tune sets it from the photographs.
 
 The host reviews `gaps.md` and writes every spec; the runner mints none.

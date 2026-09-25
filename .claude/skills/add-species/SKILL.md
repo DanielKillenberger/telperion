@@ -1,6 +1,6 @@
 ---
 name: add-species
-description: Onboard one real species end to end - seed its manifest and tuning config, run the species runner, settle the claims it stops on, hand identity gaps to the host, and hand the owner the tree to look at. Use when asked to "add species A", onboard a taxon, or resume a halted species run. Triggers - "add <species>", "onboard <species>", "resume the <species> run", "what is blocking the <species> run".
+description: Onboard one real species end to end - seed its manifest and tuning config, run the species runner, write the article the acceptance names, hand identity gaps to the host, and hand the owner the tree to look at. Use when asked to "add species A", onboard a taxon, or resume a halted species run. Triggers - "add <species>", "onboard <species>", "resume the <species> run", "what is blocking the <species> run".
 ---
 
 # Add a species
@@ -27,15 +27,21 @@ species needs is its own spec, never a patch inside this run.
    wait for it before the Capability stage.
 4. **Run.** `bash -ic 'target/release/species <species>'` from the repository
    root. Run it again after anything changes; it reruns only what changed.
-5. **A stop.** The run prints `STOPPED:` with one of three reasons.
-   - **Claims.** Read each named decision in `decisions.json` and the source
-     text it cites. A resolution that drops or replaces a value is the
-     runbook's; one that keeps a flagged value is the owner's.
+   `--status` says what each stage would do; `--until` and `--stage` run
+   part of it (`docs/species-runner.md`). The runner settles claims itself
+   once the search is spent (runbook, "Claims").
+5. **A stop.** The run prints `STOPPED:` with one of two reasons.
    - **Identity gaps.** Stop and hand `runner/gaps.md` to the host. The host
      writes the spec; the species spec depends on it; the run continues once
      it lands on the stack.
    - **The owner's look.** Hand the owner the tree and the checklist. Only
      they run `species <species> --accept`.
+6. **The article.** When the acceptance is refused because the catalogue
+   check fails `ARTICLE.md`, the article is yours to write: fill each
+   section from the folder's source copies, cite each claim, run
+   `species <species> --stage catalogue` so the cite check verifies it, and
+   hand the owner the look again. A claim the check flags is rewritten or
+   cut, never argued.
 
 ## What is never yours
 

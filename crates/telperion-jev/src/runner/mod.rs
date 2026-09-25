@@ -4,82 +4,66 @@
 //! stage records the content hash of every file it read; it reruns when an
 //! input's bytes change or an output is gone, and never otherwise, so a
 //! second run with nothing changed reruns nothing.
-//! A run stops for three things only: a sourced claim a person settles, an
-//! identity gap waiting on its spec, and the owner's look. Every other
-//! condition is rerun or written to the log.
+//! A run stops for two things: an identity gap waiting on its spec, and the
+//! owner's look. A claim the search could not settle is kept as the range
+//! its sources span or left unsourced, unless the run was asked to stop for
+//! claims (`--settle-claims`). Every other condition is logged.
 
 pub mod accept;
+pub mod capability;
 pub mod catalogue;
 pub mod derive;
+pub mod folder;
 pub mod gaps;
 pub mod inventory;
-pub mod live;
+pub mod literature;
 pub mod pins;
-pub mod pipeline;
 pub mod preset;
+pub mod profile;
 pub mod record;
+pub mod sources;
 pub mod start;
 pub mod tools;
 pub mod tune;
 
+mod drive;
+
+use std::cell::OnceCell;
 use std::path::{Path, PathBuf};
 
 use crate::pipeline::stage::Paths;
-use record::Records;
+pub use drive::{run, status, Scope};
+use tools::Tools;
+
+/// One stage: what it reads and writes, its body, and whether the run
+/// stops after it, read from what is on disk.
+pub trait Stage {
+    fn name(&self) -> &'static str;
+    /// Every file whose bytes the stage's output depends on.
+    fn inputs(&self, run: &Run) -> Result<Vec<PathBuf>, String>;
+    /// Every file the stage writes.
+    fn outputs(&self, run: &Run) -> Result<Vec<PathBuf>, String>;
+    fn run(&self, run: &Run) -> Result<Done, String>;
+    fn stop(&self, run: &Run) -> Result<Option<Stop>, String>;
+}
 
 /// The stages, in the order they run.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Stage {
-    /// Discover, fetch and self-admit sources.
-    Sources,
-    /// Extract, screen, select, verify and fit: `packet/profile.json`.
-    Profile,
-    /// The species' needs against the generator's vocabulary.
-    Capability,
-    /// The packet's species record and stills, the source copies and the
-    /// article in the catalogue folder.
-    Catalogue,
-    /// The profile's values mapped onto dials: the starting overlay.
-    Start,
-    /// Rounds over the live dials until a round keeps nothing.
-    Tune,
-    /// Every failing trait classed reachable, identity or global.
-    Gaps,
-    /// The owner's look; accepting writes the tree and the pins.
-    Accept,
-}
-
-pub const STAGES: [Stage; 8] = [
-    Stage::Sources,
-    Stage::Profile,
-    Stage::Capability,
-    Stage::Catalogue,
-    Stage::Start,
-    Stage::Tune,
-    Stage::Gaps,
-    Stage::Accept,
+pub const STAGES: [&dyn Stage; 8] = [
+    &sources::Sources,
+    &profile::Profile,
+    &capability::Capability,
+    &catalogue::Catalogue,
+    &start::Start,
+    &tune::Tune,
+    &gaps::Gaps,
+    &accept::Accept,
 ];
 
-impl Stage {
-    pub fn name(self) -> &'static str {
-        match self {
-            Self::Sources => "sources",
-            Self::Profile => "profile",
-            Self::Capability => "capability",
-            Self::Catalogue => "catalogue",
-            Self::Start => "start",
-            Self::Tune => "tune",
-            Self::Gaps => "gaps",
-            Self::Accept => "accept",
-        }
-    }
-}
-
-/// The three reasons a run stops.
+/// Why a run stops.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Stop {
-    /// Contradicted or unsupported claims a person settles in
-    /// `resolutions.json`; their ids.
+    /// Claims left for a person in `resolutions.json` (`--settle-claims`);
+    /// their ids.
     Claims(Vec<String>),
     /// Identity gaps waiting on their spec; their trait ids.
     IdentityGaps(Vec<String>),
@@ -121,15 +105,50 @@ pub struct Run {
     pub adapter: String,
     /// The owner accepted the tree they looked at.
     pub accept: bool,
+    /// Claims the search could not settle stop the run for a person.
+    pub settle_claims: bool,
+    /// Whether the render tools are built when first read; a status run
+    /// reads the ones on disk.
+    pub build: bool,
+    tools: OnceCell<Tools>,
 }
 
 impl Run {
+    pub fn new(species: &str, paths: Paths, catalogue: PathBuf, tuning: PathBuf) -> Self {
+        Self {
+            species: species.into(),
+            paths,
+            catalogue,
+            tuning,
+            adapter: "firecrawl".into(),
+            accept: false,
+            settle_claims: false,
+            build: true,
+            tools: OnceCell::new(),
+        }
+    }
+
     /// The runner's own files: records, log, tuning revisions, gaps.
     pub fn out(&self) -> PathBuf {
         self.paths.run.join("runner")
     }
+
     pub fn folder(&self) -> PathBuf {
         self.catalogue.join(&self.species)
+    }
+
+    /// The render tools, built from this checkout at the first stage that
+    /// reads them, so a run that never draws or measures never builds.
+    pub fn tools(&self) -> Result<&Tools, String> {
+        if let Some(tools) = self.tools.get() {
+            return Ok(tools);
+        }
+        let root = Path::new(".");
+        let tools = match self.build {
+            true => Tools::build(root)?,
+            false => Tools::at(root),
+        };
+        Ok(self.tools.get_or_init(|| tools))
     }
 }
 
@@ -137,53 +156,6 @@ impl Run {
 pub enum Done {
     Current,
     Ran(String),
-}
-
-/// Runs every stage in order until one stops. `Ok(None)` is a run that
-/// reached the end with the tree accepted.
-pub fn run(run: &Run, stages: &dyn Stages) -> Result<Option<Stop>, String> {
-    std::fs::create_dir_all(run.out()).map_err(|e| e.to_string())?;
-    let mut records = Records::load(&run.out())?;
-    for stage in STAGES {
-        let inputs = stages.inputs(run, stage)?;
-        let outputs = stages.outputs(run, stage);
-        let done = match records.current(stage.name(), &inputs, &outputs)? {
-            true => Done::Current,
-            false => {
-                let done = stages.run(run, stage).map_err(|e| {
-                    let _ = records.log(stage.name(), &format!("failed: {e}"));
-                    format!("{}: {e}", stage.name())
-                })?;
-                // Inputs are read again: a stage may write a file it also reads.
-                let inputs = stages.inputs(run, stage)?;
-                records.set(stage.name(), &inputs)?;
-                done
-            }
-        };
-        let word = match &done {
-            Done::Current => "current".to_string(),
-            Done::Ran(word) => format!("ran: {word}"),
-        };
-        records.log(stage.name(), &word)?;
-        println!("{}: {word}", stage.name());
-        if let Some(stop) = stages.stop(run, stage)? {
-            records.log(stage.name(), &format!("stopped: {stop}"))?;
-            return Ok(Some(stop));
-        }
-    }
-    Ok(None)
-}
-
-/// The eight stages' bodies, behind a trait so a test drives the runner
-/// without the network, Jev or a renderer.
-pub trait Stages {
-    /// Every file whose bytes the stage's output depends on.
-    fn inputs(&self, run: &Run, stage: Stage) -> Result<Vec<PathBuf>, String>;
-    /// Every file the stage writes.
-    fn outputs(&self, run: &Run, stage: Stage) -> Vec<PathBuf>;
-    fn run(&self, run: &Run, stage: Stage) -> Result<Done, String>;
-    /// Whether the run stops after `stage`, read from what is on disk.
-    fn stop(&self, run: &Run, stage: Stage) -> Result<Option<Stop>, String>;
 }
 
 /// A path under the repository root, as written in a record.

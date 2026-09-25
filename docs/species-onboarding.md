@@ -33,7 +33,7 @@ entry, the starting overlay, tuning and the gap list to the owner's look, with
 Jev judging every reading step through `crates/telperion-jev` and code owning
 every number. `docs/species-pipeline.md` holds the literature stages it runs.
 The stage handoffs above name what each artifact must carry; the runner
-produces them, and a person settles the claims it stops on. A species spec runs
+produces them and settles the claims its search could not. A species spec runs
 the runner and restates none of the method.
 
 A trait the generator cannot draw ends as a line in the run's `gaps.md`,
