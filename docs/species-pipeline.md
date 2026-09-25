@@ -56,7 +56,7 @@ Firecrawl with pinned fixtures for the model-swap test.
 The pipeline's eleven commands are mechanical. Deciding what the generator
 cannot express is not, so the capability assessment is a **host step**, never
 a driver's and never a stage: reasoning and system design escalate to the host
-(`CLAUDE.md`, routing). The pipeline only checks its output.
+(`AGENTS.md`, routing). The pipeline only checks its output.
 
 **It runs before the literature stages.** After the manifest is admitted and
 before `fetch`. A species whose form the field cannot draw is then parked for
