@@ -36,9 +36,10 @@ pub struct PreparedStations<R = Vec<Vec3>> {
     pub ring_size: u32,
 }
 
-/// Capability check only; preparation still validates every parameter.
+/// Capability check only; preparation still validates every parameter. A
+/// rosette is planned frond by frond but has no stations to prepare.
 pub fn supports_stations(p: CanopyParams, twig: Option<TwigPlacement>) -> bool {
-    plan::supports(p, twig)
+    plan::supports(p, twig) && !super::rosette::bearing(&p)
 }
 
 /// `None` is an explicit capability fallback, after parameter validation.
@@ -136,7 +137,7 @@ fn prepare_inner<C>(
 ) -> Result<Option<(Vec<StationSegment>, u32, Option<C>)>> {
     super::canopy::validate(tree, envelope, p, twig)?;
     surface.validate()?;
-    if !plan::supports(p, twig) {
+    if !supports_stations(p, twig) {
         return Ok(None);
     }
     let twig = twig.unwrap();

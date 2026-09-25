@@ -33,8 +33,12 @@ use super::{
 };
 use crate::branching::MAX_LEAF_BASES;
 #[cfg(feature = "geometry")]
-use crate::{math::Transcendental, rng::Rng};
-use crate::{math::Vec3, tree::Tree, Error, Result};
+use crate::rng::Rng;
+use crate::{
+    math::{Transcendental, Vec3},
+    tree::Tree,
+    Error, Result,
+};
 
 /// The most fronds one rosette bears, and the most leaflets one rachis
 /// carries: rails wide enough for any crown a table has asked for.
@@ -172,8 +176,69 @@ pub(super) fn count(tree: &Tree, p: &CanopyParams) -> Result<usize> {
         .ok_or_else(budget)
 }
 
+/// One frond on a rosette's spiral: where it leaves the axis, the way its
+/// rachis heads, the radial it leans out along, the canopy it is drawn at (a
+/// dead frond at its share of a living one) and its place `k` on the spiral,
+/// which keys its draws.
+#[derive(Debug, Clone, Copy)]
+pub(super) struct Frond {
+    pub(super) k: u32,
+    pub(super) at: Vec3,
+    pub(super) heading: Vec3,
+    pub(super) radial: Vec3,
+    pub(super) canopy: CanopyParams,
+    pub(super) dead: bool,
+}
+
+/// Every frond of one rosette, living then dead, in spiral order. The living
+/// crown opens from a spike to a skirt: the youngest frond stands at the
+/// pitch the row states and the oldest that much further out again. The
+/// skirt continues the same spiral and spacing past the oldest living frond,
+/// each dead frond hung at the skirt's pitch and drawn at its share of a
+/// living frond's length. The placement and the leaf plan both read this.
+pub(super) fn fronds(rosette: &Rosette, p: &CanopyParams) -> impl Iterator<Item = Frond> {
+    let (fronds, steps) = (p.rosette_fronds, spacing(p));
+    let oldest = f64::from(fronds.saturating_sub(1));
+    let dead = CanopyParams {
+        size: p.size * p.skirt_length,
+        rachis_length: p.rachis_length * p.skirt_length,
+        ..*p
+    };
+    let (normal, binormal) = frame(rosette.axis);
+    let (rosette, p) = (*rosette, *p);
+    (0..fronds + skirt(&p)).map(move |k| {
+        let (sin, cos) = (f64::from(k) * p.rosette_divergence.to_radians()).sin_cos_fixed();
+        let radial = normal * cos + binormal * sin;
+        let living = k < fronds;
+        let (pitch, depth) = if living {
+            let age = if oldest > 0. {
+                f64::from(k) / oldest
+            } else {
+                0.
+            };
+            let pitch = (p.rosette_pitch + p.rosette_pitch_spread * age).to_radians();
+            (pitch, p.rosette_depth * age)
+        } else {
+            (
+                p.skirt_pitch.to_radians(),
+                p.rosette_depth * (f64::from(k) / steps),
+            )
+        };
+        let (lean, upright) = pitch.sin_cos_fixed();
+        Frond {
+            k,
+            at: rosette.at - rosette.axis * depth,
+            heading: (rosette.axis * upright + radial * lean).normalized(),
+            radial,
+            canopy: if living { p } else { dead },
+            dead: !living,
+        }
+    })
+}
+
 #[cfg(feature = "geometry")]
-/// Hang every rosette's fronds into an already-sized crown.
+/// Hang every rosette's fronds into an already-sized crown, the skirt's in
+/// the dead colour.
 pub(super) fn clothe(
     tree: &Tree,
     seed: u32,
@@ -184,69 +249,33 @@ pub(super) fn clothe(
     if !bearing(p) || p.size == 0. {
         return Ok(());
     }
-    let fronds = p.rosette_fronds;
-    let kept = skirt(p);
     let per = leaflets(p);
-    // The youngest frond stands at the pitch the row states and the oldest
-    // that much further out again, so the crown opens from a spike to a skirt.
-    let oldest = f64::from(fronds.saturating_sub(1));
     for rosette in rosettes(tree) {
-        reserve(out, (fronds + kept) as usize * per, *p)?;
+        reserve(out, (p.rosette_fronds + skirt(p)) as usize * per, *p)?;
         let birth = tree.nodes[rosette.apex].identity.birth_order();
-        let (normal, binormal) = frame(rosette.axis);
-        for k in 0..fronds {
-            let mut rng = Rng::new(key(seed, birth, k));
-            let age = if oldest > 0. {
-                f64::from(k) / oldest
-            } else {
-                0.
-            };
-            let (sin, cos) = (f64::from(k) * p.rosette_divergence.to_radians()).sin_cos_fixed();
-            let radial = normal * cos + binormal * sin;
-            let pitch = (p.rosette_pitch + p.rosette_pitch_spread * age).to_radians();
-            let (lean, upright) = pitch.sin_cos_fixed();
-            let heading = (rosette.axis * upright + radial * lean).normalized();
-            let at = rosette.at - rosette.axis * (p.rosette_depth * age);
-            fan(at, heading, radial, rosette.axis, *p, &mut rng, out)?;
+        let mut withered = None;
+        for frond in fronds(&rosette, p) {
+            if frond.dead && withered.is_none() {
+                withered = Some(out.leaves.len());
+            }
+            let mut rng = Rng::new(key(seed, birth, frond.k));
+            let (at, heading, radial) = (frond.at, frond.heading, frond.radial);
+            fan(
+                at,
+                heading,
+                radial,
+                rosette.axis,
+                frond.canopy,
+                &mut rng,
+                out,
+            )?;
         }
-        if kept > 0 {
-            let from = out.leaves.len();
-            hang(&rosette, birth, seed, p, out)?;
+        if let Some(from) = withered {
             out.wither(from);
         }
         if let Some(owners) = owners.as_mut() {
             owners.resize(out.leaves.len(), rosette.apex as u32);
         }
-    }
-    Ok(())
-}
-
-#[cfg(feature = "geometry")]
-/// The skirt below one rosette: its dead fronds on the crown's own spiral and
-/// spacing, continued past the oldest living frond, each hung at the skirt's
-/// pitch and drawn at its share of a living frond's length.
-fn hang(
-    rosette: &Rosette,
-    birth: u64,
-    seed: u32,
-    p: &CanopyParams,
-    out: &mut Instances,
-) -> Result<()> {
-    let (fronds, steps) = (p.rosette_fronds, spacing(p));
-    let dead = CanopyParams {
-        size: p.size * p.skirt_length,
-        rachis_length: p.rachis_length * p.skirt_length,
-        ..*p
-    };
-    let (normal, binormal) = frame(rosette.axis);
-    let (lean, upright) = p.skirt_pitch.to_radians().sin_cos_fixed();
-    for k in fronds..fronds + skirt(p) {
-        let mut rng = Rng::new(key(seed, birth, k));
-        let (sin, cos) = (f64::from(k) * p.rosette_divergence.to_radians()).sin_cos_fixed();
-        let radial = normal * cos + binormal * sin;
-        let heading = (rosette.axis * upright + radial * lean).normalized();
-        let at = rosette.at - rosette.axis * (p.rosette_depth * (f64::from(k) / steps));
-        fan(at, heading, radial, rosette.axis, dead, &mut rng, out)?;
     }
     Ok(())
 }

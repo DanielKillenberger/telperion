@@ -1,7 +1,7 @@
 //! The slim request: a served family at a seed, and the field alone from the
-//! one build pipeline the main binding runs. No wood surface is built; leaves
-//! are placed only for a family the leaf plan cannot describe, whose field
-//! reads them.
+//! one build pipeline the main binding runs. The core is built without its
+//! geometry, so the field is always the leaf plan's: no wood surface is built
+//! and no leaf is placed, and a family the plan cannot describe is refused.
 use telperion_core::{
     field::Field,
     pipeline::{self, Request},
