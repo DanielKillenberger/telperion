@@ -9,6 +9,7 @@
 //! condition is rerun or written to the log.
 
 pub mod accept;
+pub mod catalogue;
 pub mod derive;
 pub mod gaps;
 pub mod live;

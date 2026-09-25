@@ -2,7 +2,9 @@
 //! Capability and Catalogue, each a fixed run of the pipeline's own stages,
 //! in process. The pipeline keeps its per-stage idempotence records; the
 //! runner adds nothing to them.
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+
+use serde_json::{json, Value};
 
 use crate::caller::{load_key, UreqTransport};
 use crate::pipeline::adapter::{FetchAdapter, FirecrawlCli, FixtureAdapter, RawSource};
@@ -15,7 +17,9 @@ use crate::pipeline::stages::{
     discover, document, extract, fetch, fit, gate, generate, quality, screen, select, verify,
 };
 
-use super::{tools::Tools, Run, Stage};
+use super::{catalogue, tools::Tools, Run, Stage};
+use crate::pipeline::canon::read_json;
+use crate::pipeline::manifest;
 
 /// The decision kinds that stop a run: a sourced claim a person settles.
 pub const CLAIMS: [&str; 4] = [
@@ -62,6 +66,28 @@ impl Literature<'_> {
             geometry_benchmark: self.tools.geometry_benchmark.clone(),
             species_measure: self.tools.species_measure.clone(),
         }
+    }
+
+    /// Writes the catalogue records no pipeline stage writes, before the
+    /// document stage's scripts read them.
+    fn folder(&self) -> Result<(), String> {
+        let (paths, folder) = (&self.run.paths, self.run.folder());
+        let admitted = manifest::load(&paths.manifest()).map_err(|e| e.to_string())?;
+        let m = &admitted.manifest;
+        let fetch = read_json(&paths.artifact("fetch")).map_err(|e| e.to_string())?;
+        let references = read_json(&paths.packet("references")).map_err(|e| e.to_string())?;
+        catalogue::sources(&folder, m, &fetch, &references)?;
+        catalogue::reference_copies(Path::new("."), &folder, &m.species, &references)?;
+        let generate = read_json(&paths.artifact("generate")).map_err(|e| e.to_string())?;
+        let drawn: Vec<Value> = generate["body"]["stills"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .map(|s| json!({"path": s["path"], "seed": m.seed, "view": "whole"}))
+            .collect();
+        catalogue::stills(&folder, &m.species, &m.preset, &drawn)?;
+        catalogue::notes(&folder, m)?;
+        catalogue::pins_stub(&folder, &m.species)
     }
 
     /// Runs `stage`'s pipeline stages in order; the words say which ran.
@@ -139,8 +165,10 @@ impl Literature<'_> {
                 forget(paths.artifact("gate"))?;
                 gate::run(paths, &self.checks()).map_err(e)?;
                 note("gate", true);
+                self.folder()?;
                 let ran = document::run(paths, &judge).map_err(e)?;
                 note("document", !matches!(ran, document::Outcome::Current));
+                catalogue::pages(Path::new("."))?;
             }
             _ => unreachable!("not a literature stage"),
         }
@@ -220,6 +248,11 @@ pub fn files(run: &Run, stage: Stage) -> (Vec<PathBuf>, Vec<PathBuf>) {
                 p.packet("species"),
                 p.packet("specimens"),
                 run.folder().join("ARTICLE.md"),
+                run.folder().join("sources.json"),
+                run.folder().join("stills.json"),
+                run.folder().join("NOTES.md"),
+                run.folder().join("README.md"),
+                run.folder().join("pins.json"),
             ],
         ),
         _ => unreachable!("not a literature stage"),

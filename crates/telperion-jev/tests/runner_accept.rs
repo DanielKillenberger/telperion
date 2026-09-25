@@ -21,8 +21,8 @@ fn repo() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
-/// A repository root holding copies of the two preset sources and a
-/// catalogue check that prints `stderr` and exits `code`.
+/// A repository root holding copies of the two preset sources, a catalogue
+/// check that prints `stderr` and exits `code`, and a page renderer.
 fn root(dir: &Path, stderr: &str, code: i32) -> PathBuf {
     let root = dir.join("repo");
     let presets = root.join("crates/telperion-core/src/presets");
@@ -39,6 +39,7 @@ fn root(dir: &Path, stderr: &str, code: i32) -> PathBuf {
         serde_json::to_string(stderr).unwrap()
     );
     std::fs::write(root.join("scripts/catalogue-check.mjs"), script).unwrap();
+    std::fs::write(root.join("scripts/catalogue-pages.mjs"), "").unwrap();
     root
 }
 

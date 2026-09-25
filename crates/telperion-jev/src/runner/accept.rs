@@ -11,7 +11,7 @@ use std::process::Command;
 use serde_json::{json, Value};
 
 use super::preset::{self, Names};
-use super::{pins, start::flatten};
+use super::{catalogue, pins, start::flatten};
 use crate::pipeline::canon::{read_json, write_canonical};
 use telperion_core::{params, presets::Preset, Family};
 
@@ -91,6 +91,15 @@ pub fn run(
 ) -> Result<String, String> {
     let accepted = family(result)?;
     pins::write(folder, &names.id, &accepted)?;
+    let now = current(result)?;
+    let shown: Vec<Value> = now["tree"]["stills"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .map(|s| json!({"path": s["path"], "seed": s["seed"], "view": s["view"], "visual_status": "accepted"}))
+        .collect();
+    catalogue::stills(folder, &names.id, &names.id, &shown)?;
+    catalogue::pages(root)?;
     let failures = catalogue_failures(root, &names.id)?;
     if !failures.is_empty() {
         return Err(format!(
@@ -98,7 +107,6 @@ pub fn run(
             failures.join("; ")
         ));
     }
-    let now = current(result)?;
     let tree = &now["tree"];
     let note = format!(
         "Accepted by the owner on {} as tuning tree {} (species runner, fn-149).",
