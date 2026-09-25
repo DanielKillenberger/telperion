@@ -43,6 +43,17 @@ A spec rests only on claims somebody ran. A defect spec's repro is run as a stan
 
 Two checkouts of the same crate never share a `target/` directory. Test binary names do not depend on the checkout path, so cargo reuses the other checkout's binary without rebuilding: fn-92 counted four crashes against the fix that most likely came from the base binary.
 
+## Design principles (owner, 2026-09-25)
+
+STRATEGY.md's "Our approach" is enforced by structure, not policing; `docs/principles.md` is the guide, and Jev review of specs and designs is planned in fn-156. Four questions steer every decision:
+
+- Does every tree still pass through the one pipeline, with no copy of a stage outside it?
+- Does an input the pipeline cannot draw fail with an error, never take a fallback path?
+- Does every parameter change the tree by degree, dormant where its structure is absent, never a switch between ways of building?
+- Is each new output read by a consumer, each cost measured, and each new stop one that catches what its neighbours cannot?
+
+Three things hold them: the one pipeline, whose stages become private to it in fn-152 so a second chain does not compile; an ordinary test that builds every shipped preset's every artifact through the pipeline and through each package entry; and CI's size budget on every shipped artifact. A sanctioned trade-off names one of the exceptions `docs/principles.md` lists; a claim of approval without one is none.
+
 ## Pull requests (owner, 2026-09-20)
 
 The format and the procedure are `docs/pr-format.md`. Every run of `/flow-next:make-pr`, by hand or under `flow --auto`, follows that file in place of the skill's body phases and does not read the skill's `workflow.md` or its companion files. The body is Change, Proof, Look here, Decisions and Open, 1,500 characters for a small diff and at most 4,000 for a large one, ending in the make-pr marker. The reason: bodies had reached 57 KB, and fn-72 recorded about 30k tokens of skill reading before a three-criterion fix could open its PR.

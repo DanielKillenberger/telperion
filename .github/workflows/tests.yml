@@ -292,6 +292,9 @@ jobs:
       - name: Build the package
         run: npm run build
 
+      - name: Hold every shipped artifact to its budget (docs/principles.md)
+        run: node scripts/artifact-budgets.mjs
+
       - id: pack
         name: Pack the tarball
         run: |

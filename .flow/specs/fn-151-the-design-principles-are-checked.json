@@ -1,0 +1,36 @@
+{
+  "branch_name": "fn-151-the-design-principles-are-checked",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-25T08:25:44.665023Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-150-the-slim-field-package-grows-every",
+    "fn-154-agentsmd-is-the-one-instruction-file"
+  ],
+  "id": "fn-151-the-design-principles-are-checked",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-151-the-design-principles-are-checked.md",
+  "status": "open",
+  "title": "The design principles are checked before a push",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-25T14:41:31.999356Z"
+}
