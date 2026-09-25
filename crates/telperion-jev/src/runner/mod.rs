@@ -2,7 +2,8 @@
 //!
 //! Eight stages run in order, each writing the artifacts the next reads. A
 //! stage records the content hash of every file it read; it reruns when an
-//! input's bytes change or an output is gone, and never otherwise, so a second run with nothing changed reruns nothing.
+//! input's bytes change or an output is gone, and never otherwise, so a
+//! second run with nothing changed reruns nothing.
 //! A run stops for three things only: a sourced claim a person settles, an
 //! identity gap waiting on its spec, and the owner's look. Every other
 //! condition is rerun or written to the log.
@@ -11,7 +12,9 @@ pub mod accept;
 pub mod derive;
 pub mod gaps;
 pub mod live;
+pub mod pins;
 pub mod pipeline;
+pub mod preset;
 pub mod record;
 pub mod start;
 pub mod tools;

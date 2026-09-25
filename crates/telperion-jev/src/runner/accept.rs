@@ -1,6 +1,7 @@
 //! The Accept stage: the owner looks at the tuned tree in the harness, and
 //! `--accept` records the tree they looked at as a value table, one wire
-//! pointer to one value, in `accepted.json`. An acceptance names the tree's
+//! pointer to one value, in `accepted.json`, writes the tree into core as the
+//! species' preset and refreshes its pins. An acceptance names the tree's
 //! key, so a later revision's tree waits for a look of its own, and it is
 //! refused while the species' catalogue folder fails
 //! `scripts/catalogue-check.mjs`: the palm shipped without its entry.
@@ -9,8 +10,10 @@ use std::process::Command;
 
 use serde_json::{json, Value};
 
-use super::start::flatten;
+use super::preset::{self, Names};
+use super::{pins, start::flatten};
 use crate::pipeline::canon::{read_json, write_canonical};
+use telperion_core::{params, presets::Preset, Family};
 
 pub fn file(out: &Path) -> PathBuf {
     out.join("accepted.json")
@@ -66,9 +69,29 @@ pub fn catalogue_failures(root: &Path, species: &str) -> Result<Vec<String>, Str
         .collect())
 }
 
-/// Writes the acceptance of the current tree, once the catalogue entry holds.
-pub fn run(root: &Path, species: &str, result: &Path, out: &Path) -> Result<String, String> {
-    let failures = catalogue_failures(root, species)?;
+/// The family the owner accepted: the tuning base with the tree's overlay.
+pub fn family(result: &Path) -> Result<Family, String> {
+    let now = current(result)?;
+    let base = now["preset"]
+        .as_str()
+        .ok_or("the tuning result names no preset")?;
+    let preset = Preset::from_id(base).ok_or(format!("unknown preset {base}"))?;
+    params::overlay(&preset.parameters(), &now["tree"]["overrides"]).map_err(|e| format!("{e:?}"))
+}
+
+/// Accepts the current tree: its pins into the species' catalogue folder,
+/// the folder through its check, the tree into core as the species' preset,
+/// then the record. A refusal leaves the preset untouched.
+pub fn run(
+    root: &Path,
+    names: &Names,
+    folder: &Path,
+    result: &Path,
+    out: &Path,
+) -> Result<String, String> {
+    let accepted = family(result)?;
+    pins::write(folder, &names.id, &accepted)?;
+    let failures = catalogue_failures(root, &names.id)?;
     if !failures.is_empty() {
         return Err(format!(
             "the catalogue entry fails its check: {}",
@@ -77,6 +100,12 @@ pub fn run(root: &Path, species: &str, result: &Path, out: &Path) -> Result<Stri
     }
     let now = current(result)?;
     let tree = &now["tree"];
+    let note = format!(
+        "Accepted by the owner on {} as tuning tree {} (species runner, fn-149).",
+        &crate::pipeline::stage::now()[..10],
+        tree["key"].as_str().unwrap_or_default()
+    );
+    let written = preset::write(root, names, &accepted, &note)?;
     let table = flatten(&tree["overrides"]);
     let record = json!({
         "schema": "runner-accepted", "schema_version": 1,
@@ -84,5 +113,8 @@ pub fn run(root: &Path, species: &str, result: &Path, out: &Path) -> Result<Stri
         "values": table, "stills": tree["stills"],
     });
     write_canonical(&file(out), &record).map_err(|e| e.to_string())?;
-    Ok(format!("accepted {} ({} values)", tree["key"], table.len()))
+    Ok(format!(
+        "accepted {}: {written}; pins refreshed",
+        tree["key"]
+    ))
 }

@@ -2,9 +2,11 @@
 use std::path::{Path, PathBuf};
 
 use super::pipeline::{self, Literature};
+use super::preset::Names;
 use super::tools::Tools;
 use super::{accept, gaps, start, tune, Done, Run, Stage, Stages, Stop};
 use crate::pipeline::canon::read_json;
+use crate::pipeline::manifest;
 
 pub struct Live {
     pub tools: Tools,
@@ -93,9 +95,13 @@ impl Stages for Live {
                 &tune::result(&out),
                 &out,
             )?,
-            Stage::Accept if run.accept => {
-                accept::run(Path::new("."), &run.species, &tune::result(&out), &out)?
-            }
+            Stage::Accept if run.accept => accept::run(
+                Path::new("."),
+                &names(run)?,
+                &run.folder(),
+                &tune::result(&out),
+                &out,
+            )?,
             Stage::Accept => return Ok(Done::Current),
             _ => {
                 let word = self.literature(run).run(stage)?;
@@ -153,4 +159,15 @@ impl Stages for Live {
 fn capability_gaps(run: &Run) -> Result<Vec<gaps::Gap>, String> {
     let gate = read_json(&run.paths.artifact("gate")).map_err(|e| e.to_string())?;
     gaps::capability(&gate, &run.paths.packet("capability"))
+}
+
+/// What the species registers under, from its admitted manifest.
+fn names(run: &Run) -> Result<Names, String> {
+    let admitted = manifest::load(&run.paths.manifest()).map_err(|e| e.to_string())?;
+    let taxon = &admitted.manifest.taxon;
+    Ok(Names {
+        id: run.species.clone(),
+        common: taxon.common_name.clone(),
+        scientific: taxon.scientific_name.clone(),
+    })
 }
