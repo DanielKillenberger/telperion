@@ -41,3 +41,10 @@
 - Slowed by: the catalogue's JSON is written by the Node scripts in insertion order while the jev crate's serde_json sorts keys, so a record rewritten with the same values changed its bytes and made the article that recorded its checksum stale.
 - Cost: about 10 minutes; fixed by rewriting a record only when its values change.
 - Would remove it: one canonical JSON form for the catalogue records, shared by the scripts and the Rust writers.
+
+## 2026-09-25 14:50, worker fn-149.1 (continuation): the review cap is two rounds
+
+- Doing: the re-review after the owner's 2026-09-25 decisions.
+- Slowed by: MAX_REVIEW_ITERATIONS is 2 here, and the two rounds were spent before the owner decided the open design questions, so the re-review refused with ESCALATE. The owner's decisions re-planned the spec, so this worker reset the task's review cycle (`flowctl spec reset-review-rounds --task`) as the documented re-plan path and says so in the handover.
+- Cost: about 2 minutes.
+- Would remove it: resetting the task's review rounds when the host records an owner re-plan, rather than leaving the worker to judge it.

@@ -8,9 +8,7 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-149-one-species-runner-set-stages-from-a",
-  "impl_review_rounds": {
-    "fn-149-one-species-runner-set-stages-from-a.1": 2
-  },
+  "impl_review_rounds": {},
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
@@ -156,7 +154,9 @@
       "verdict": "NEEDS_WORK"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-149-one-species-runner-set-stages-from-a.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -176,5 +176,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-25T11:37:59.934694Z"
+  "updated_at": "2026-09-25T12:31:02.214987Z"
 }
