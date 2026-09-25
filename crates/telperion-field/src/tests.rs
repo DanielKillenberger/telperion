@@ -117,3 +117,17 @@ fn the_same_species_and_seed_answer_identically_and_the_order_names_limbs() {
     assert_eq!(query(revision()), 0);
     assert_ne!(answers().0, first.0, "another seed is another tree");
 }
+
+#[test]
+fn the_date_palm_grows_at_every_seed_the_owner_tried() {
+    for seed in [1, 7, 1407, 4242] {
+        write_species("date-palm");
+        assert_eq!(grow(seed, FAMILY_ORDER), 0, "seed {seed}: {}", error());
+        assert_eq!(bounds_len(), 6, "seed {seed}");
+        write_grid(8);
+        assert_eq!(query(revision()), 0, "seed {seed}: {}", error());
+        let flags = answers().0;
+        assert!(flags.iter().any(|f| f & 1 != 0), "seed {seed}: wood");
+        assert!(flags.iter().any(|f| f & 2 != 0), "seed {seed}: fronds");
+    }
+}
