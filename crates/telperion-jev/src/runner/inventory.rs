@@ -80,6 +80,7 @@ pub fn build(template: &Path, out: &Path) -> Result<String, String> {
     }
     value["references"] = references(template, out)?;
     value.as_object_mut().map(|o| o.remove("reference_first"));
+    crate::tape::adapters(&mut value);
     let config: Config =
         serde_json::from_value(value).map_err(|e| format!("tuning config: {e}"))?;
     crate::tuning::inventory::run(&config, &dir)?;

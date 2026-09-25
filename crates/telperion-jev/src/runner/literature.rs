@@ -21,18 +21,20 @@ use crate::pipeline::stages::flagged::{DROP_VALUE, KEEP_RANGE, REPLACE_SOURCE};
 use crate::pipeline::stages::gate;
 
 use super::{start, Done, Run, Stop};
+use crate::tape;
 
-/// The key and transport a stage's Jev calls go through.
+/// The key and transport a stage's Jev calls go through, recorded or
+/// replayed when the run has a tape.
 pub struct Jev {
     key: String,
-    transport: UreqTransport,
+    transport: tape::Jev<'static>,
 }
 
 impl Jev {
     pub fn load() -> Result<Self, String> {
         Ok(Self {
-            key: load_key().map_err(|e| e.to_string())?,
-            transport: UreqTransport,
+            key: tape::key(|| load_key().map_err(|e| e.to_string()))?,
+            transport: tape::Jev::new(&UreqTransport),
         })
     }
     pub fn judge(&self, run: &Run) -> Judge<'_> {
@@ -60,7 +62,7 @@ pub fn adapter(run: &Run) -> Box<dyn FetchAdapter> {
             Box::new(cli)
         }
     };
-    Box::new(Retrying::new(inner))
+    Box::new(Retrying::new(tape::fetch(inner)))
 }
 
 /// The measurement example, reading the tuning config's profile manifest.

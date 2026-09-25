@@ -45,7 +45,7 @@ pub struct Scrape {
 
 /// Every way a fetch fails. `Failed.url` carries the query for `search` and
 /// `research`, which have no URL of their own.
-#[derive(Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum AdapterError {
     Unauthenticated(String),
     Failed { url: String, error: String },

@@ -16,6 +16,7 @@ pub mod questions;
 pub mod runner;
 pub mod screen;
 pub mod select;
+pub mod tape;
 pub mod triage;
 pub mod tuning;
 

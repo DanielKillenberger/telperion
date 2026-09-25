@@ -79,14 +79,15 @@ impl Stage for Profile {
 /// the tuning config's reviewer adapter.
 fn photographs(run: &Run, judge: &Judge<'_>) -> Result<String, String> {
     let tuning = read_json(&run.tuning).map_err(|e| format!("{}: {e}", run.tuning.display()))?;
-    let adapter = serde_json::from_value(tuning["vision"].clone())
-        .map_err(|e| format!("tuning config vision: {e}"))?;
-    photos::find(
-        &run.paths,
-        &photos::Http,
-        judge,
-        &photos::Vision { adapter },
-    )
+    let mut vision = tuning["vision"].clone();
+    crate::tape::adapters(&mut vision);
+    let adapter =
+        serde_json::from_value(vision).map_err(|e| format!("tuning config vision: {e}"))?;
+    let web = crate::tape::Photos {
+        inner: &photos::Http,
+        tape: crate::tape::Tape::from_env(),
+    };
+    photos::find(&run.paths, &web, judge, &photos::Vision { adapter })
 }
 
 /// One pass of the six pipeline stages.

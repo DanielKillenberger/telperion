@@ -9,8 +9,9 @@ use std::process::ExitCode;
 
 use telperion_jev::pipeline::stage::Paths;
 use telperion_jev::runner::{self, Run, Scope, STAGES};
+use telperion_jev::tape;
 
-const USAGE: &str = "usage: species <id> [--until STAGE | --stage STAGE | --status] [--accept] [--settle-claims] [--tuning FILE] [--dir DIR] [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR]";
+const USAGE: &str = "usage: species <id> [--until STAGE | --stage STAGE | --status] [--record DIR | --replay DIR] [--accept] [--settle-claims] [--tuning FILE] [--dir DIR] [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR]";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -37,6 +38,16 @@ fn main() -> ExitCode {
     run.adapter = value("--adapter").unwrap_or(run.adapter);
     run.accept = has("--accept");
     run.settle_claims = has("--settle-claims");
+    // One tape for the process and every adapter program it starts.
+    match (value("--record"), value("--replay")) {
+        (Some(_), Some(_)) => {
+            eprintln!("--record and --replay are one or the other\n{USAGE}");
+            return ExitCode::from(2);
+        }
+        (Some(dir), None) => env::set_var(tape::VAR, format!("record:{}", absolute(&dir))),
+        (None, Some(dir)) => env::set_var(tape::VAR, format!("replay:{}", absolute(&dir))),
+        (None, None) => env::remove_var(tape::VAR),
+    }
     if has("--status") {
         run.build = false;
         return status(&run);
@@ -67,6 +78,12 @@ fn main() -> ExitCode {
             ExitCode::from(1)
         }
     }
+}
+
+/// `dir` from the repository root, so an adapter program finds it too.
+fn absolute(dir: &str) -> String {
+    let _ = std::fs::create_dir_all(dir);
+    std::fs::canonicalize(dir).map_or(dir.into(), |p| p.display().to_string())
 }
 
 fn status(run: &Run) -> ExitCode {

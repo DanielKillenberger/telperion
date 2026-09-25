@@ -130,10 +130,12 @@ pub fn run(template: &Path, tools: &Tools, out: &Path) -> Result<String, String>
     let dir = revisions.join(revision.to_string());
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     let config_path = dir.join("config.json");
+    crate::tape::adapters(&mut config);
     let bytes = serde_json::to_vec_pretty(&config).map_err(|e| e.to_string())?;
     std::fs::write(&config_path, bytes).map_err(|e| e.to_string())?;
-    let ended = crate::tuning::command::run_with(&config_path, &dir, &UreqTransport, &|| {
-        load_key().map_err(|e| e.to_string())
+    let transport = crate::tape::Jev::new(&UreqTransport);
+    let ended = crate::tuning::command::run_with(&config_path, &dir, &transport, &|| {
+        crate::tape::key(|| load_key().map_err(|e| e.to_string()))
     });
     ended.map_err(|e| format!("revision {revision} failed: {e}"))?;
     let written = dir.join("result.json");

@@ -239,5 +239,30 @@ class ReferenceFirstClaude(unittest.TestCase):
                 prepared.prepare(dict(envelope, request=dict(request, protocol="old")))
 
 
+class TapeAdapter(unittest.TestCase):
+    """fn-149: an adapter call recorded once replays with no adapter run, and
+    a call the recording lacks fails, naming it."""
+
+    def run_tape(self, mode, envelope):
+        script = Path(__file__).resolve().parent / "tape-adapter.py"
+        echo = [sys.executable, "-c", "import sys; print(sys.stdin.read().upper())"]
+        return subprocess.run([sys.executable, str(script), mode, "--", *echo],
+                              input=json.dumps(envelope), text=True, capture_output=True)
+
+    def test_a_recorded_call_replays_and_a_missing_one_names_its_request(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            asked = {"stage": "screen", "request": {"image": {"path": "/a/x.png", "sha256": "s"}}}
+            live = self.run_tape(f"record:{tmp}", asked)
+            self.assertEqual(live.returncode, 0)
+            # Another directory for the image is the same request.
+            moved = {"stage": "screen", "request": {"image": {"path": "/b/x.png", "sha256": "s"}}}
+            replayed = self.run_tape(f"replay:{tmp}", moved)
+            self.assertEqual((replayed.returncode, replayed.stdout), (0, live.stdout))
+            other = self.run_tape(f"replay:{tmp}", {"stage": "inventory"})
+            self.assertEqual(other.returncode, 3)
+            self.assertIn("replay:", other.stderr)
+            self.assertIn("inventory", other.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()
