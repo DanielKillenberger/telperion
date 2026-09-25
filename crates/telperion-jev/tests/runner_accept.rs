@@ -228,3 +228,30 @@ fn an_accepted_oak_sets_its_function_where_it_lives() {
         "{originals}"
     );
 }
+
+/// fn-149: the run's own catalogue (`species --catalogue`), not the
+/// repository's. The check runs over the folder's catalogue and a failure it
+/// names there refuses the acceptance.
+#[test]
+fn an_acceptance_checks_the_catalogue_the_run_keeps() {
+    let dir = scratch("elsewhere");
+    let elsewhere = dir.join("elsewhere/catalogue/date-palm");
+    std::fs::create_dir_all(elsewhere.join("packet")).unwrap();
+    std::fs::copy(
+        folder(&dir).join("packet/profile.json"),
+        elsewhere.join("packet/profile.json"),
+    )
+    .unwrap();
+    let path = tune::result(&dir);
+    std::fs::write(&path, result("date-palm", "k1", json!({})).to_string()).unwrap();
+    let root = root(&dir, "", 0);
+    // The check fails the folder only when it is pointed at that catalogue.
+    let script = "const at = process.env.TELPERION_CATALOGUE ?? '';\n\
+        if (at.endsWith('elsewhere/catalogue')) {\n\
+          process.stderr.write('elsewhere/catalogue/date-palm/sources.json: no source R1\\n\\ncatalogue: 1 failure\\n');\n\
+          process.exit(1);\n\
+        }\n";
+    std::fs::write(root.join("scripts/catalogue-check.mjs"), script).unwrap();
+    let err = accept::run(&root, &palm(), &elsewhere, &path, &dir).unwrap_err();
+    assert!(err.contains("no source R1"), "{err}");
+}

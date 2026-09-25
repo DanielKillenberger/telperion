@@ -10,11 +10,16 @@
 // the folder's page with LFS images inline, and Obsidian opens `catalogue/` as
 // a vault; neither needs a server.
 import { readFileSync, readdirSync, writeFileSync, existsSync, statSync } from 'node:fs';
-import { join, dirname, resolve } from 'node:path';
+import { join, dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-export const CATALOGUE = 'catalogue';
+// The catalogue the scripts read and write, as a path from ROOT: `catalogue`,
+// or the one a species run keeps elsewhere (`species --catalogue`), named by
+// TELPERION_CATALOGUE from the working directory (fn-149).
+export const CATALOGUE = process.env.TELPERION_CATALOGUE
+  ? relative(ROOT, resolve(process.env.TELPERION_CATALOGUE))
+  : 'catalogue';
 
 const json = (root, path) => JSON.parse(readFileSync(join(root, path), 'utf8'));
 const isEmpty = (record) => record?.empty === true;

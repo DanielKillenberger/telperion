@@ -31,6 +31,8 @@ const PAGE_URL: &str = "https://example.test/oak";
 struct Answers {
     sufficiency: f64,
     level: f64,
+    /// Fields whose evidence reaches no level at all, below every bar.
+    short: &'static [&'static str],
 }
 
 impl Transport for Answers {
@@ -49,8 +51,15 @@ impl Transport for Answers {
                 "dominant_gap": {"type": "choice", "choice": "age_range_uncovered", "confidence": 0.9, "probabilities": {}},
             })
         } else if questions.get("mature_size").is_some() {
+            let field = body["state"]["requirement"]["field"]
+                .as_str()
+                .unwrap_or_default();
+            let level = match self.short.contains(&field) {
+                true => 0.0,
+                false => self.sufficiency,
+            };
             json!({
-                "mature_size": score(self.sufficiency),
+                "mature_size": score(level),
                 "mature_gap": {"type": "choice", "choice": "single_source", "confidence": 0.9, "probabilities": {}},
             })
         } else if questions.get("level").is_some() {
@@ -159,14 +168,18 @@ fn resolve(dir: &std::path::Path, id: &str, option: &str) {
     .unwrap();
 }
 
+/// Every broadleaf field is asked at the proxy bar since fn-149 (host,
+/// 2026-09-25), so the literature here states height and trunk diameter at
+/// no level at all: below the table's bar.
 #[test]
 fn a_required_field_below_the_tables_bar_stops_the_run_for_the_owner() {
     let (dir, filed, selected) = run_to_select(&Answers {
         sufficiency: 1.0,
         level: 99.0,
+        short: &["height_m", "dbh_m"],
     });
     let height = "oregon-white-oak/quality/requirements-unmet/height_m";
-    // Proxy only passes the crown and leaf fields and fails the two at partial.
+    // Proxy only passes the crown and leaf fields and fails the two below it.
     assert_eq!(
         filed,
         ["oregon-white-oak/quality/requirements-unmet/dbh_m", height]
@@ -198,7 +211,7 @@ fn a_required_field_below_the_tables_bar_stops_the_run_for_the_owner() {
         .iter()
         .find(|d| d["id"] == height)
         .unwrap();
-    assert_eq!(unmet["payload"]["bar"], "partial");
+    assert_eq!(unmet["payload"]["bar"], "proxy_only");
     assert_eq!(unmet["options"], json!(["add-sources"]));
 
     // Lowering the bar is refused by name.
@@ -209,6 +222,7 @@ fn a_required_field_below_the_tables_bar_stops_the_run_for_the_owner() {
             transport: &Answers {
                 sufficiency: 1.0,
                 level: 99.0,
+                short: &[],
             },
             key: "test-key",
             ledger_dir: dir.join("ledger").join("entries"),
@@ -237,6 +251,7 @@ fn a_described_appearance_level_is_copied_into_the_profile_as_ranges() {
     let (dir, filed, selected) = run_to_select(&Answers {
         sufficiency: 3.0,
         level: 0.0,
+        short: &[],
     });
     assert!(filed.is_empty());
     selected.unwrap();
@@ -274,6 +289,7 @@ fn every_appearance_value_carries_its_sources_id_and_verify_holds() {
     let answers = Answers {
         sufficiency: 3.0,
         level: 0.0,
+        short: &[],
     };
     let (dir, _, selected) = run_to_select(&answers);
     selected.unwrap();

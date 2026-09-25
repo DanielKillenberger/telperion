@@ -42,9 +42,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     // the scaffold; its bytes key the cite check, so a written article is
     // checked on the next run (fn-149).
     let species = ctx.admitted.manifest.species.clone();
-    let article = std::path::Path::new("catalogue")
-        .join(&species)
-        .join("ARTICLE.md");
+    let article = catalogue().join(&species).join("ARTICLE.md");
     let article_sha = sha_of(&article);
     let pinned = inputs(&[
         ("fetch.json", &fetch_sha),
@@ -309,6 +307,14 @@ fn source_urls(ctx: &Context) -> BTreeMap<String, String> {
         ))
     };
     sources.iter().filter_map(pair).collect()
+}
+
+/// The catalogue the scripts write the article and the source copies into:
+/// the one a species run names (`TELPERION_CATALOGUE`, fn-149), else
+/// `catalogue` under the working directory.
+fn catalogue() -> PathBuf {
+    std::env::var_os("TELPERION_CATALOGUE")
+        .map_or_else(|| PathBuf::from("catalogue"), PathBuf::from)
 }
 
 /// One catalogue script, run from the repository root and appended to the

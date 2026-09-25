@@ -6,7 +6,6 @@
 //! refused while the species' catalogue folder fails
 //! `scripts/catalogue-check.mjs`: the palm shipped without its entry.
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use serde_json::{json, Value};
 
@@ -86,12 +85,16 @@ pub fn accepted(result: &Path, out: &Path) -> Result<bool, String> {
     Ok(record["key"] == current(result)?["tree"]["key"])
 }
 
-/// The catalogue check's failures that name this species' folder, run from
-/// the repository `root`. A check that did not run is an error, never a pass.
-pub fn catalogue_failures(root: &Path, species: &str) -> Result<Vec<String>, String> {
-    let output = Command::new("node")
-        .current_dir(root)
-        .arg("scripts/catalogue-check.mjs")
+/// The catalogue check's failures that name this species' `folder`, run from
+/// the repository `root` over the folder's own catalogue. A check that did
+/// not run is an error, never a pass.
+pub fn catalogue_failures(root: &Path, folder: &Path) -> Result<Vec<String>, String> {
+    let catalogue = folder.parent().unwrap_or(Path::new("."));
+    let species = folder
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let output = folder::script(root, catalogue, "catalogue-check.mjs")
         .output()
         .map_err(|e| format!("node scripts/catalogue-check.mjs: {e}"))?;
     if output.status.success() {
@@ -109,12 +112,12 @@ pub fn catalogue_failures(root: &Path, species: &str) -> Result<Vec<String>, Str
             printed.trim()
         ));
     }
-    let folder = format!("catalogue/{species}");
-    Ok(printed
-        .lines()
-        .filter(|l| l.starts_with(&format!("{folder}:")) || l.starts_with(&format!("{folder}/")))
-        .map(str::to_string)
-        .collect())
+    // The check names a folder from the root, `<catalogue>/<species>`.
+    let names = |l: &&str| {
+        let at = l.split(':').next().unwrap_or_default();
+        at.split('/').any(|part| part == species) && at.split('/').next_back() != Some("")
+    };
+    Ok(printed.lines().filter(names).map(str::to_string).collect())
 }
 
 /// The family the owner accepted: the tuning base with the tree's overlay.
@@ -147,8 +150,9 @@ pub fn run(
         .map(|s| json!({"path": s["path"], "seed": s["seed"], "view": s["view"], "visual_status": "accepted"}))
         .collect();
     folder::stills(folder, &names.id, &names.id, &shown)?;
-    folder::pages(root)?;
-    let failures = catalogue_failures(root, &names.id)?;
+    let catalogue = folder.parent().unwrap_or(Path::new("."));
+    folder::pages(root, catalogue)?;
+    let failures = catalogue_failures(root, folder)?;
     if !failures.is_empty() {
         return Err(format!(
             "the catalogue entry fails its check: {}",

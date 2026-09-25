@@ -71,7 +71,7 @@ impl Stage for Catalogue {
             "document",
             !matches!(ran, document::Outcome::Current),
         );
-        folder::pages(Path::new("."))?;
+        folder::pages(Path::new("."), &run.catalogue)?;
         lit::logged(run, words.join(", "))
     }
 

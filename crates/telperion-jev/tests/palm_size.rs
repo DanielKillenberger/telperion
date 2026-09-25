@@ -226,19 +226,19 @@ fn the_palm_is_sized_by_its_growth_rate_and_its_mature_ranges() {
 /// 2026-09-25) they ask height and trunk diameter mature too, as the palm
 /// does: none of the three refuses a size named at no age.
 #[test]
-fn broadleaf_and_conifer_rows_keep_their_bars_and_ask_sizes_mature() {
+fn broadleaf_and_conifer_rows_ask_sizes_mature_at_the_proxy_bar() {
     let bars = |pairs: &[(&str, Sufficiency)]| -> Vec<(String, Sufficiency)> {
         pairs.iter().map(|(n, b)| (n.to_string(), *b)).collect()
     };
-    let (partial, proxy) = (Sufficiency::Partial, Sufficiency::ProxyOnly);
+    let proxy = Sufficiency::ProxyOnly;
     let rows = [
         (
             "broadleaf",
             bars(&[
                 ("crown_base_m", proxy),
                 ("crown_width_m", proxy),
-                ("dbh_m", partial),
-                ("height_m", partial),
+                ("dbh_m", proxy),
+                ("height_m", proxy),
                 ("leaf_length_m", proxy),
                 ("leaf_width_m", proxy),
             ]),
@@ -248,8 +248,8 @@ fn broadleaf_and_conifer_rows_keep_their_bars_and_ask_sizes_mature() {
             bars(&[
                 ("crown_base_m", proxy),
                 ("crown_width_m", proxy),
-                ("dbh_m", partial),
-                ("height_m", partial),
+                ("dbh_m", proxy),
+                ("height_m", proxy),
                 ("needle_length_m", proxy),
             ]),
         ),

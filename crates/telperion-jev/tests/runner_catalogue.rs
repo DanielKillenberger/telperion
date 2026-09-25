@@ -25,8 +25,9 @@ fn copy(from: &Path, to: &Path) {
     }
 }
 
-/// A repository root holding the catalogue scripts and the palm's folder.
-fn root(name: &str) -> PathBuf {
+/// A repository root holding the catalogue scripts and the palm's folder
+/// under `catalogue`, a path from the root.
+fn root_with(name: &str, catalogue: &str) -> PathBuf {
     let root = std::env::temp_dir().join(format!(
         "jev-runner-catalogue-{name}-{}-{}",
         std::process::id(),
@@ -48,14 +49,19 @@ fn root(name: &str) -> PathBuf {
     std::fs::copy(repo().join(".gitattributes"), root.join(".gitattributes")).unwrap();
     copy(
         &repo().join("catalogue/date-palm"),
-        &root.join("catalogue/date-palm"),
+        &root.join(catalogue).join("date-palm"),
     );
     root
 }
 
-fn node(root: &Path, args: &[&str]) -> (bool, String) {
+fn root(name: &str) -> PathBuf {
+    root_with(name, "catalogue")
+}
+
+fn node(root: &Path, catalogue: &Path, args: &[&str]) -> (bool, String) {
     let out = Command::new("node")
         .current_dir(root)
+        .env(folder::CATALOGUE_VAR, catalogue)
         .args(args)
         .output()
         .unwrap();
@@ -65,10 +71,20 @@ fn node(root: &Path, args: &[&str]) -> (bool, String) {
     )
 }
 
+/// Wherever the run keeps its catalogue (`species --catalogue`): the
+/// beech's recording kept it under the evidence tree, and the source copy
+/// of its Commons photograph was looked for under `catalogue/` instead.
 #[test]
 fn a_folder_the_runner_writes_passes_the_catalogue_check() {
-    let root = root("fresh");
-    let folder = root.join("catalogue/date-palm");
+    for place in ["catalogue", "elsewhere/catalogue"] {
+        written_folder_passes(place);
+    }
+}
+
+fn written_folder_passes(place: &str) {
+    let root = root_with(&format!("fresh-{}", place.len()), place);
+    let catalogue = root.join(place);
+    let folder = catalogue.join("date-palm");
     for file in [
         "sources.json",
         "stills.json",
@@ -105,18 +121,19 @@ fn a_folder_the_runner_writes_passes_the_catalogue_check() {
     // The document stage refreshes the article over the new records.
     let (ok, err) = node(
         &root,
+        &catalogue,
         &["scripts/catalogue-article.mjs", "--species", "date-palm"],
     );
     assert!(ok, "{err}");
-    folder::pages(&root).unwrap();
-    let (ok, err) = node(&root, &["scripts/catalogue-check.mjs"]);
+    folder::pages(&root, &catalogue).unwrap();
+    let (ok, err) = node(&root, &catalogue, &["scripts/catalogue-check.mjs"]);
     assert!(ok, "the stub folder fails its check: {err}");
 
     // Accept fills the pins; the folder still passes.
     let family = Preset::from_id("date-palm").unwrap().parameters();
     pins::write(&folder, "date-palm", &family).unwrap();
-    folder::pages(&root).unwrap();
-    let (ok, err) = node(&root, &["scripts/catalogue-check.mjs"]);
+    folder::pages(&root, &catalogue).unwrap();
+    let (ok, err) = node(&root, &catalogue, &["scripts/catalogue-check.mjs"]);
     assert!(ok, "the accepted folder fails its check: {err}");
     let notes = std::fs::read_to_string(folder.join("NOTES.md")).unwrap();
     assert!(notes.starts_with("# Date palm notes"), "{notes}");

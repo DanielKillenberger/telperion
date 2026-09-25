@@ -107,15 +107,9 @@ pub fn reference_copies(
         if folder.join("sources").join(format!("{id}.md")).exists() {
             continue;
         }
-        let output = Command::new("node")
-            .current_dir(root)
-            .args([
-                "scripts/catalogue-sources.mjs",
-                "--species",
-                species,
-                "--source",
-                &id,
-            ])
+        let catalogue = folder.parent().unwrap_or(Path::new("."));
+        let output = script(root, catalogue, "catalogue-sources.mjs")
+            .args(["--species", species, "--source", &id])
             .args(["--fetched", &today(), "--unavailable"])
             .output()
             .map_err(|e| format!("node scripts/catalogue-sources.mjs: {e}"))?;
@@ -173,11 +167,27 @@ pub fn pins_stub(folder: &Path, species: &str) -> Result<(), String> {
     write(&path, &record)
 }
 
-/// Renders the catalogue's pages from its records.
-pub fn pages(root: &Path) -> Result<(), String> {
-    let output = Command::new("node")
+/// The variable that names the catalogue to the catalogue scripts.
+pub const CATALOGUE_VAR: &str = "TELPERION_CATALOGUE";
+
+/// A catalogue script run from the repository `root` over `catalogue`, the
+/// run's own (`species --catalogue`), never the repository's by default.
+pub fn script(root: &Path, catalogue: &Path, name: &str) -> Command {
+    let mut command = Command::new("node");
+    command
         .current_dir(root)
-        .arg("scripts/catalogue-pages.mjs")
+        .env(CATALOGUE_VAR, absolute(catalogue))
+        .arg(format!("scripts/{name}"));
+    command
+}
+
+fn absolute(path: &Path) -> std::path::PathBuf {
+    std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf())
+}
+
+/// Renders the catalogue's pages from its records.
+pub fn pages(root: &Path, catalogue: &Path) -> Result<(), String> {
+    let output = script(root, catalogue, "catalogue-pages.mjs")
         .output()
         .map_err(|e| format!("node scripts/catalogue-pages.mjs: {e}"))?;
     match output.status.success() {

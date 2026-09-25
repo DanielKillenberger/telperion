@@ -9,7 +9,7 @@ use std::process::ExitCode;
 
 use telperion_jev::pipeline::stage::Paths;
 use telperion_jev::runner::record::State;
-use telperion_jev::runner::{self, preflight, Run, Scope, STAGES};
+use telperion_jev::runner::{self, folder, preflight, Run, Scope, STAGES};
 use telperion_jev::tape;
 
 const USAGE: &str = "usage: species <id> [--until STAGE | --stage STAGE | --status] [--record DIR | --replay DIR] [--accept] [--settle-claims] [--tuning FILE] [--dir DIR] [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR]";
@@ -35,6 +35,12 @@ fn main() -> ExitCode {
     let dir = path("--dir").unwrap_or_else(|| catalogue.join(species));
     let run_dir = path("--run-dir").unwrap_or_else(|| evidence.join("run"));
     let tuning = path("--tuning").unwrap_or_else(|| evidence.join("tuning.json"));
+    // The catalogue scripts every stage starts write where the run keeps its
+    // catalogue, never the repository's by default.
+    env::set_var(
+        folder::CATALOGUE_VAR,
+        absolute(&catalogue.display().to_string()),
+    );
     let mut run = Run::new(species, Paths::with_run(&dir, &run_dir), catalogue, tuning);
     run.adapter = value("--adapter").unwrap_or(run.adapter);
     run.accept = has("--accept");
