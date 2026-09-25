@@ -12,17 +12,17 @@
 //! Sweeps use the cube's circumsphere, overestimating by at most its half
 //! diagonal; placed leaves use box overlap. Smaller cells reduce the
 //! resolution-dependent sweep inflation.
+mod cuboid;
 mod index;
-mod ribbon;
 use crate::{
     foliage::{plan::Plan, transform_point, Bounds, Element, Instances},
     math::Vec3,
     tree::Tree,
     Error, Result,
 };
+use cuboid::Cuboid;
 pub use index::IndexSnapshot;
 use index::{bounds_of, checked, cube, reserved, union, Index, Item};
-use ribbon::Ribbon;
 
 /// One cell's answer. `wood_radius` is the larger end radius of the thickest
 /// wood sweep reaching the cell, in metres, zero where no wood does.
@@ -57,10 +57,9 @@ enum Foliage {
 /// Wood records are [ax, ay, az, bx, by, bz, start_radius, end_radius]. Plan
 /// records are [ax, ay, az, bx, by, bz, reach] with [count, system] beside
 /// them; a planned field has an empty leaf index, a placed field an empty plan.
-/// A plan holding a ribbon also carries eight f64 a record in `plan_sides`:
-/// the ribbon's half-width vectors at its two ends, then its half-thickness
-/// at each (all zero for a capsule, whose reach is its radius); a plan of
-/// capsules alone leaves it empty.
+/// A plan holding a box also carries three f64 a record in `plan_sides`,
+/// the box's half-width vector (zero for a capsule), its reach being its
+/// half-thickness; a plan of capsules alone leaves it empty.
 pub struct FieldSnapshot {
     pub wood: Vec<f64>,
     pub wood_index: IndexSnapshot,
@@ -117,19 +116,19 @@ impl Segment {
         (t1 - t0).max(0.)
     }
 }
-/// A plan record: a capsule, the segment itself, or a ribbon along it. The
-/// ribbon's midline is the segment, which the count estimates run along.
+/// A plan record: a capsule, the segment itself, or an oriented box about
+/// it. The box's midline is the segment, which the count estimates run along.
 struct Sweep {
     segment: Segment,
-    ribbon: Option<Ribbon>,
+    cuboid: Option<Cuboid>,
     count: f64,
     system: u32,
 }
 impl Sweep {
     /// Whether the cell of `half` extent about `p` meets the record: a
-    /// capsule by the cell's circumsphere, `inflation`, a ribbon cell to box.
+    /// capsule by the cell's circumsphere, `inflation`, a box cell to box.
     fn meets(&self, p: Vec3, half: f64, inflation: f64) -> bool {
-        match &self.ribbon {
+        match &self.cuboid {
             Some(r) => r.meets(p, half),
             None => self.segment.contains(p, inflation),
         }
@@ -220,11 +219,11 @@ impl Field {
                 return Err(Error::InvalidInput("foliage reach"));
             }
             let [a, b] = d.endpoints;
-            let ribbon = (d.sides != [Vec3::ZERO; 2])
-                .then(|| Ribbon::new(a, b, d.sides, d.radii))
+            let cuboid = (d.side != Vec3::ZERO)
+                .then(|| Cuboid::new(a, b, d.side, reach))
                 .transpose()?;
-            let bounds = match &ribbon {
-                Some(r) => r.bounds,
+            let bounds = match &cuboid {
+                Some(c) => c.bounds,
                 None => union(cube(a, reach)?, cube(b, reach)?),
             };
             items.push(Item {
@@ -238,7 +237,7 @@ impl Field {
                     start: reach,
                     end: reach,
                 },
-                ribbon,
+                cuboid,
                 count: f64::from(d.count),
                 system: d.system,
             });
@@ -376,13 +375,11 @@ impl Field {
                     plan.extend([g.a.x, g.a.y, g.a.z, g.b.x, g.b.y, g.b.z, g.start]);
                     stations.extend([s.count as u32, s.system]);
                 }
-                if sweeps.iter().any(|s| s.ribbon.is_some()) {
-                    plan_sides = records(sweeps.len(), 8)?;
+                if sweeps.iter().any(|s| s.cuboid.is_some()) {
+                    plan_sides = records(sweeps.len(), 3)?;
                     for s in sweeps {
-                        let ([a, b], [t0, t1]) = s
-                            .ribbon
-                            .map_or(([Vec3::ZERO; 2], [0.; 2]), |r| (r.sides, r.thickness));
-                        plan_sides.extend([a.x, a.y, a.z, b.x, b.y, b.z, t0, t1]);
+                        let side = s.cuboid.map_or(Vec3::ZERO, |c| c.side);
+                        plan_sides.extend([side.x, side.y, side.z]);
                     }
                 }
                 (

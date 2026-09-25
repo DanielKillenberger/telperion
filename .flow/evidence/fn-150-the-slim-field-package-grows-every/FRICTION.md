@@ -27,3 +27,10 @@
 - Hindered: agreement stayed near 95.4 % through every chord count and every fit. Only after five tries did a ceiling measurement show that the exact leaflets themselves agree with the placed field on just 95.1 to 95.3 %, because the placed field answers from world-aligned leaf boxes.
 - Cost: about 30 minutes, and eight palm field runs.
 - Would remove it: measure a target's ceiling (the exact geometry against the reference) before setting the target. Keep `examples/palm_field_ceiling.rs` for that.
+
+## 2026-09-25: four primitives before the one the truth measure pointed to
+
+- Doing: the host's fourth design round, one oriented box a leaflet.
+- Hindered: nothing in this round. It met every target on its first fit and runs faster than placement. Capsules, rectangular ribbons and tapered ribbons each cost a build-and-measure round first, because no round had measured a candidate against the real leaflet shapes.
+- Cost: this round about 25 minutes; the three earlier rounds about 2 hours together.
+- Would remove it: build a truth field (`tests/oriented/mod.rs`) before choosing a primitive, and let the first design compare candidates against it.

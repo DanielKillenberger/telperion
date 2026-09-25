@@ -78,10 +78,10 @@ export interface FieldSnapshot {
   leaves: FieldIndexSnapshot;
   /** The leaf plan's sweeps: seven f64 (a xyz, b xyz, reach) and two u32
    * (station count, limb system) a sweep, with their index. Empty on a
-   * placed field. Where the plan holds a ribbon, `sides` carries eight f64 a
-   * sweep: its half-width vectors at its two ends, then its half-thickness at
-   * each (zero for a capsule). The ribbon is the convex hull of the two end
-   * rectangles those describe about the segment's ends. Empty otherwise. */
+   * placed field. Where the plan holds an oriented box, `sides` carries
+   * three f64 a sweep, its half-width vector (zero for a capsule), and its
+   * reach is its half-thickness: the rectangle the segment sweeps from -side
+   * to side, pushed out by the reach along its normal. Empty otherwise. */
   plan: { segments: Float64Array; stations: Uint32Array; sides: Float64Array; index: FieldIndexSnapshot };
   timings: { extractionMs: number; copyMs: number; totalMs: number };
 }

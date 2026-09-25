@@ -822,10 +822,10 @@
     "reason": "A leaf reach is a finite non-negative length; anything else is an invalid plan."
   },
   {
-    "path": "crates/telperion-core/src/field/ribbon.rs",
+    "path": "crates/telperion-core/src/field/cuboid.rs",
     "site": "if breadth . is_nan ( ) | | breadth < = 0 . {",
     "classification": "parameter",
-    "reason": "A ribbon without width is refused explicitly as invalid input; the plan never writes one."
+    "reason": "A box without width is refused explicitly as invalid input; the plan never writes one."
   },
   {
     "path": "crates/telperion-core/src/foliage.rs",
@@ -1096,18 +1096,6 @@
     "site": "if tree . nodes . len ( ) < 2 | | p . size = = 0 . 0 {",
     "classification": "algorithm",
     "reason": "Fewer than two nodes or zero foliage size is empty or disabled foliage, matching the CPU path."
-  },
-  {
-    "path": "crates/telperion-core/src/foliage/plan/fronds.rs",
-    "site": "const BISECTIONS : usize = 32 ;",
-    "classification": "numeric",
-    "reason": "Bisection count for a ribbon edge's slope: 2^-32 of the slope range, far under a millimetre over a chord; any slope still bounds every leaflet corner."
-  },
-  {
-    "path": "crates/telperion-core/src/foliage/plan/fronds.rs",
-    "site": "for _ in 0 . . BISECTIONS {",
-    "classification": "numeric",
-    "reason": "Bisection count for a ribbon edge's slope: 2^-32 of the slope range, far under a millimetre over a chord; any slope still bounds every leaflet corner."
   },
   {
     "path": "crates/telperion-core/src/foliage/prepared.rs",

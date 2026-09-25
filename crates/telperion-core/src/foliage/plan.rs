@@ -130,20 +130,18 @@ pub fn runs(
 
 /// One leaf-bearing segment: its endpoints, the wood's radii at them, the
 /// leaves it carries before any cull and the limb system that owns it. A
-/// frond's chord is a ribbon standing on no wood: its radii are its
-/// thickness.
+/// frond's leaflet is a box standing on no wood: its radii are its
+/// half-thickness.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Descriptor {
     pub endpoints: [Vec3; 2],
     pub radii: [f64; 2],
     pub count: u32,
     pub system: u32,
-    /// Zero at both ends for a capsule, the sphere swept along the segment.
-    /// Otherwise a ribbon: the half-width at each endpoint, square to the
-    /// segment's run and parallel to each other. Its half-width varies
-    /// linearly between them, so the ribbon is a trapezoid, pushed out by its
-    /// radius either way along its normal.
-    pub sides: [Vec3; 2],
+    /// Zero for a capsule, the sphere swept along the segment. Otherwise an
+    /// oriented box: the rectangle the segment sweeps from `-side` to
+    /// `side`, pushed out by its radius either way along its normal.
+    pub side: Vec3,
 }
 
 /// Every descriptor of one tree under one family, with the family's reach.
@@ -162,7 +160,7 @@ pub struct Plan {
     /// of that line again; zero where a placement is one blade.
     pub rachis: f64,
 }
-// A rosette's plan is its fronds' ribbons alone, each carrying its whole
+// A rosette's plan is its leaflets' boxes alone, each carrying its whole
 // reach in its side and thickness: its `blade` and `rachis` are zero and its
 // `seat` one.
 impl Plan {
@@ -238,7 +236,7 @@ pub fn plan(
                 radii: [distal.start_radius, distal.radius],
                 count: (last - first) * run.leaflets,
                 system: system[run.nodes[segment + 1]],
-                sides: [Vec3::ZERO; 2],
+                side: Vec3::ZERO,
             });
         }
         total += run.count * run.leaflets;

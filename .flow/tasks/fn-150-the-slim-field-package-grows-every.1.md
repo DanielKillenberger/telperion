@@ -6,16 +6,14 @@ satisfies: [R1, R2, R3, R4, R5]
 ## Description
 The spec's R1 to R5 as one task: the slim crate asks the core pipeline for the field, and the tests, npm test and 0.1.4 follow.
 
-## Blocker (NEEDS_HUMAN, 2026-09-25, third)
-The tapered ribbons are built, but both of the owner round's targets are missed, and the agreement target cannot be met against the placed field. At 4 chords, with width and thickness tapered, the plan holds 1.15 to 1.18 times the placed foliage cells (target 1.10) and 95.3 to 95.5 % of cells agree (target 97.5 %), with every leaflet vertex covered. Chords 3, 5, 6 and 8 and a finer roll step do no better on both counts. `examples/palm_field_ceiling.rs` shows why agreement stalls: the exact leaflets, each leaf's own oriented box, agree with the placed field on only 94.9 to 95.3 % of cells and hold 0.56 times its cells. The placed field answers from world-aligned leaf boxes, so it inflates a diagonal leaflet. The plan holds about 2.1 times the exact leaflets' cells, and that is what makes its fronds read blunt in the 3x still (`raw/palm-field-tapered-seed1-x3.png`). The host chooses: re-base the targets on the exact leaflets, change what the placed field answers, or carry the plan closer to the leaflets (for example, finer rows or one descriptor per leaflet). The owner's eye on the still decides the look.
-
 ## Acceptance
 - [x] R1: the date palm grows through the slim crate at seeds 1, 7, 1407 and 4242 (red on master: "family without a leaf plan").
 - [x] R2: every shipped preset's slim field answers equal the main pipeline's field-only build, byte for byte, in Rust and between the two Wasm artifacts.
 - [x] R3: the npm tests grow every entry of `PRESETS` through the slim entry, and `test:dist` does it through the built `dist/field.js`.
 - [x] R4: `telperion-field.wasm` size reported; version 0.1.4; the workspace gate and `npm test` run.
 - [x] R5: the main entry's `field: true` result carries `bounds`, equal to `FieldTree.bounds`.
-- [x] Host design: the ribbon primitive; the palm meets the quarter-metre target at four seeds; capsules byte-identical.
+- [x] Host design: one oriented box a leaflet. Against the real leaflet shapes the palm meets the quarter-metre targets at four seeds (99.7 % agreeing, 1.04 times the cells, every vertex covered). Capsule families are byte-identical.
+- [ ] The owner judges the three-panel still (`raw/palm-field-boxes-seed1-x3.png`); the PR stays a draft until then.
 
 ## Done summary
 The slim field crate now runs the one core pipeline with a field-only request, and every shipped preset grows through `telperion/field`, the date palm included.

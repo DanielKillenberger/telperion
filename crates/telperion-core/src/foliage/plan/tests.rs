@@ -181,18 +181,22 @@ fn a_rosette_is_planned_by_fronds_and_leaflets_multiply_the_counts() {
     assert!(supports(crown, twig));
     assert!(bearing_runs(&tree, crown).is_empty());
     let fronds = at(crown).unwrap();
-    // Four chords a frond, one ribbon for each row of leaflets on each: the
-    // seven leaflets alternate sides, one, two, two and two to a chord, so
-    // the first chord's second row is empty and seven ribbons remain.
+    // One oriented box a leaflet, seven to each of the sixteen fronds.
     assert_eq!(fronds.descriptors.len(), 16 * 7);
     assert_eq!(fronds.total, 16 * 7);
     assert!(fronds.descriptors.iter().all(|d| d.count == 1));
-    assert!(fronds.descriptors.iter().all(|d| d.sides[0] != Vec3::ZERO));
+    assert!(fronds.descriptors.iter().all(|d| d.side != Vec3::ZERO));
     assert_eq!((fronds.blade, fronds.rachis, fronds.seat), (0.0, 0.0, 1.0));
     // A dead frond is drawn at its share of a living one's size, so its
-    // ribbons are narrower.
-    let width = |i: usize| fronds.descriptors[i].sides[0].length();
-    assert!(width(12 * 7) < width(0));
+    // leaflets' boxes are narrower on the whole.
+    let width = |range: std::ops::Range<usize>| {
+        let n = range.len() as f64;
+        range
+            .map(|i| fronds.descriptors[i].side.length())
+            .sum::<f64>()
+            / n
+    };
+    assert!(width(12 * 7..16 * 7) < width(0..12 * 7));
     let single = CanopyParams {
         leaflet_count: 1,
         ..crown
@@ -200,10 +204,7 @@ fn a_rosette_is_planned_by_fronds_and_leaflets_multiply_the_counts() {
     let blades = at(single).unwrap();
     assert_eq!(blades.descriptors.len(), 16);
     assert_eq!(blades.total, 16);
-    assert!(blades
-        .descriptors
-        .iter()
-        .all(|d| d.sides == [Vec3::ZERO; 2]));
+    assert!(blades.descriptors.iter().all(|d| d.side != Vec3::ZERO));
     let budget = CanopyParams {
         max_instances: 16 * 7 - 1,
         ..crown

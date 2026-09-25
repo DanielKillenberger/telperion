@@ -1,24 +1,14 @@
 //! A frond crown in the plan. Fronds are placements at the stem apices, not
-//! wood, so no run describes them: each frond, living or dead, is cut into a
-//! few chords along its arched rachis, on the spiral, frame and scale the
-//! placement hangs it at (`rosette::fronds`, `leaflet::leaflets`), and each
-//! row of leaflets on a chord is described by one ribbon, the flat tapered
-//! slab they fan in.
-//!
-//! The ribbon is fitted, not guessed. It runs along the chord, its width lies
-//! square to it in the row's plane and its thickness square to both. Every
-//! leaflet is drawn on the frond's own stream exactly as placement draws it
-//! (`leaflet::drawn`), and each corner of the leaf's box is placed in that
-//! frame. The row's plane is rolled about the chord to the thinnest slab,
-//! and within it the inner and outer edges are each the line nearest the
-//! row that no corner crosses, so the ribbon narrows as its leaflets
-//! shorten toward the tip. A margin covers what storing a leaf in twelve
-//! bytes moves it by.
+//! wood, so no run describes them: every leaflet of every frond, living or
+//! dead, is described by its own oriented box. Each is drawn on the frond's
+//! stream exactly as placement draws it (`rosette::fronds`,
+//! `leaflet::leaflets`, `leaflet::drawn`), so the planned leaflet stands
+//! where the placed one does, and no instance or matrix is built.
 use super::Descriptor;
 use crate::{
     foliage::{
         leaflet::{self, Leaflet},
-        rosette::{self, frame, Frond},
+        rosette::{self, frame},
         CanopyParams, Element,
     },
     math::Vec3,
@@ -27,16 +17,14 @@ use crate::{
     Error, Result,
 };
 
-/// Chords a rachis is cut into.
-const CHORDS: usize = 4;
+/// What packing a leaf into twelve bytes may move a corner by: a millimetre
+/// for its position and scale, and half a percent of the corner's distance
+/// from the attachment for the rotation's ten-bit codes.
+const MARGIN: (f64, f64) = (0.001, 0.005);
 
-/// What packing may move a leaf corner by: a centimetre, and a hundredth of
-/// its distance from the attachment for the rotation's ten-bit codes.
-const MARGIN: (f64, f64) = (0.01, 0.01);
-
-/// Appends every rosette's fronds and returns the leaves they carry, before
-/// any cull. `system` names each node's limb system, a frond taking its
-/// apex's. Over the instance budget is an error, as placement's count is.
+/// Appends a box for every leaflet of every rosette and returns how many,
+/// before any cull. `system` names each node's limb system, a leaflet taking
+/// its apex's. Over the instance budget is an error, as placement's count is.
 pub(super) fn describe(
     tree: &Tree,
     p: CanopyParams,
@@ -55,215 +43,80 @@ pub(super) fn describe(
     if total > p.max_instances || total > u32::MAX as usize {
         return Err(Error::ResourceLimit("foliage instance budget"));
     }
-    let chords = if per > 1 { CHORDS } else { 1 };
-    out.try_reserve(apices.len() * fronds * chords)
+    out.try_reserve(total)
         .map_err(|_| Error::ResourceLimit("foliage plan allocation"))?;
-    let corners = corners(element);
+    let shape = Shape::of(element);
     for apex in &apices {
         let system = system[apex.apex];
         let birth = tree.nodes[apex.apex].identity.birth_order();
         for frond in rosette::fronds(apex, &p) {
+            let c = frond.canopy;
+            let mut rng = rosette::stream(seed, birth, &frond);
             if per == 1 {
-                // One blade at the station: the capsule of its reach.
-                let reach = corners.iter().map(|c| c.length()).fold(0.0, f64::max);
-                out.push(Descriptor {
-                    endpoints: [frond.at; 2],
-                    radii: [reach * frond.canopy.size * (1.0 + p.size_variation); 2],
-                    count: 1,
-                    system,
-                    sides: [Vec3::ZERO; 2],
-                });
+                // One blade at the station, turned as `fan` turns it.
+                let blade = Leaflet {
+                    at: frond.at,
+                    axis: frond.heading,
+                    run: frond.radial,
+                    share: None,
+                };
+                out.push(shape.boxed(&blade, apex.axis, &c, &mut rng, system));
                 continue;
             }
-            let mut rng = rosette::stream(seed, birth, &frond);
-            ribbons(&frond, per, &corners, &mut rng, system, out);
+            let (_, side) = frame(frond.heading);
+            for leaf in leaflet::leaflets(frond.at, frond.heading, c, per) {
+                out.push(shape.boxed(&leaf, side, &c, &mut rng, system));
+            }
         }
     }
     Ok(total as u32)
 }
 
-/// The eight corners of the leaf element's box, in its own frame.
-fn corners(element: &Element) -> Vec<Vec3> {
-    let first = element.positions.first().copied().unwrap_or(Vec3::ZERO);
-    let (lo, hi) = element
-        .positions
-        .iter()
-        .fold((first, first), |(lo, hi), v| {
-            (
-                Vec3::new(lo.x.min(v.x), lo.y.min(v.y), lo.z.min(v.z)),
-                Vec3::new(hi.x.max(v.x), hi.y.max(v.y), hi.z.max(v.z)),
-            )
-        });
-    (0..8)
-        .map(|i| {
-            let pick = |bit: usize, lo: f64, hi: f64| if i & bit == 0 { lo } else { hi };
-            Vec3::new(
-                pick(1, lo.x, hi.x),
-                pick(2, lo.y, hi.y),
-                pick(4, lo.z, hi.z),
-            )
-        })
-        .collect()
+/// The leaf element's box in its own frame: its centre and half extents.
+struct Shape {
+    centre: Vec3,
+    half: Vec3,
 }
-
-/// One frond's ribbons: on each chord, one for each row of leaflets.
-fn ribbons(
-    frond: &Frond,
-    per: usize,
-    corners: &[Vec3],
-    rng: &mut Rng,
-    system: u32,
-    out: &mut Vec<Descriptor>,
-) {
-    let c = frond.canopy;
-    let (lift, side) = frame(frond.heading);
-    let point = |t: f64| leaflet::rachis(frond.at, frond.heading, lift, &c, t);
-    let mut rows: [Row; 2 * CHORDS] = std::array::from_fn(|r| {
-        let j = r / 2;
-        let from = point(j as f64 / CHORDS as f64);
-        let along = (point((j + 1) as f64 / CHORDS as f64) - from).normalized();
-        Row {
-            from,
-            along,
-            side,
-            corners: Vec::new(),
-            count: 0,
+impl Shape {
+    fn of(element: &Element) -> Self {
+        let first = element.positions.first().copied().unwrap_or(Vec3::ZERO);
+        let (lo, hi) = element
+            .positions
+            .iter()
+            .fold((first, first), |(lo, hi), v| {
+                (
+                    Vec3::new(lo.x.min(v.x), lo.y.min(v.y), lo.z.min(v.z)),
+                    Vec3::new(hi.x.max(v.x), hi.y.max(v.y), hi.z.max(v.z)),
+                )
+            });
+        Self {
+            centre: (lo + hi) * 0.5,
+            half: (hi - lo) * 0.5,
         }
-    });
-    for (i, leaf) in leaflet::leaflets(frond.at, frond.heading, c, per).enumerate() {
-        // Leaflet `i` stands at `(i + 1) / per` along the rachis, on the
-        // chord whose span of `1 / CHORDS` holds that point, in the row of
-        // its side; the rows alternate as the leaflets do.
-        let chord = ((i + 1) * CHORDS - 1) / per;
-        let drawn = leaflet::drawn(leaf.axis, leaf.run, side, &c, rng);
-        rows[2 * chord + i % 2].add(&leaf, drawn, corners);
     }
-    out.extend(
-        rows.iter()
-            .filter(|r| r.count > 0)
-            .map(|r| r.ribbon(system)),
-    );
-}
-
-/// One row of one chord: the chord's start and direction, the frond's side,
-/// and every corner of its leaflets' boxes, from the start, with the margin
-/// each carries.
-struct Row {
-    from: Vec3,
-    along: Vec3,
-    side: Vec3,
-    corners: Vec<(Vec3, f64)>,
-    count: u32,
-}
-
-/// The rolls about the chord a row's plane is tried at: a row of leaflets
-/// leaves the frond's plane in a V, each row tilted its own way.
-const ROLLS: [f64; 13] = [
-    -60., -50., -40., -30., -20., -10., 0., 10., 20., 30., 40., 50., 60.,
-];
-
-impl Row {
-    /// Keeps every corner of one drawn leaflet's box.
-    fn add(&mut self, leaf: &Leaflet, drawn: ([Vec3; 3], f64), corners: &[Vec3]) {
-        let ([flank, axis, face], scale) = drawn;
+    /// The oriented box one drawn leaflet stands in, with the packing margin:
+    /// its run along the leaf's axis, its side along its flank and its
+    /// radius across its face.
+    fn boxed(
+        &self,
+        leaf: &Leaflet,
+        normal: Vec3,
+        c: &CanopyParams,
+        rng: &mut Rng,
+        system: u32,
+    ) -> Descriptor {
+        let ([flank, axis, face], scale) = leaflet::drawn(leaf.axis, leaf.run, normal, c, rng);
         let k = scale * leaf.share.unwrap_or(1.0);
-        for corner in corners {
-            let q = (flank * corner.x + axis * corner.y + face * corner.z) * k;
-            let slack = MARGIN.0 + MARGIN.1 * q.length();
-            self.corners.push((leaf.at + q - self.from, slack));
-        }
-        self.count += 1;
-    }
-    /// The corners' spans along the chord, across it in a plane rolled by
-    /// `roll` degrees from the frond's, and square to both.
-    fn spans(&self, roll: f64) -> ([Vec3; 3], [[f64; 2]; 3]) {
-        let side = self.side.rotate(self.along, roll.to_radians());
-        let axes = [self.along, side, self.along.cross(side)];
-        let mut span = [[f64::INFINITY, f64::NEG_INFINITY]; 3];
-        for &(at, slack) in &self.corners {
-            for (axis, range) in axes.iter().zip(&mut span) {
-                let x = at.dot(*axis);
-                range[0] = range[0].min(x - slack);
-                range[1] = range[1].max(x + slack);
-            }
-        }
-        (axes, span)
-    }
-    /// The thinnest ribbon over the tried rolls that holds every corner,
-    /// its edges fitted to the row within that plane.
-    fn ribbon(&self, system: u32) -> Descriptor {
-        let (axes, span) = ROLLS
-            .iter()
-            .map(|&roll| self.spans(roll))
-            .min_by(|a, b| (a.1[2][1] - a.1[2][0]).total_cmp(&(b.1[2][1] - b.1[2][0])))
-            .expect("rolls are tried");
-        let [along, side, across] = axes;
-        // Each corner, with its margin, as the square it may stand in: its
-        // two outer corners on either edge bound every point of it.
-        let bounds = |axis: Vec3| {
-            let mut up = Vec::with_capacity(self.corners.len() * 2);
-            let mut down = Vec::with_capacity(self.corners.len() * 2);
-            for &(at, slack) in &self.corners {
-                let (d, v) = (at.dot(along), at.dot(axis));
-                for x in [d - slack, d + slack] {
-                    up.push((x, v + slack));
-                    down.push((x, -(v - slack)));
-                }
-            }
-            let [hi0, hi1] = edge(&up, span[0]);
-            let [lo0, lo1] = edge(&down, span[0]).map(|v| -v);
-            [[lo0, hi0], [lo1, hi1]]
-        };
-        let (width, depth) = (bounds(side), bounds(across));
-        let mid = |r: [f64; 2]| (r[0] + r[1]) / 2.0;
-        let half = |r: [f64; 2]| (r[1] - r[0]) / 2.0;
-        let at = |end: usize| {
-            self.from + along * span[0][end] + side * mid(width[end]) + across * mid(depth[end])
-        };
+        let (centre, half) = (self.centre * k, self.half * k);
+        let reach = (centre.length() + half.length()) * MARGIN.1 + MARGIN.0;
+        let at = leaf.at + flank * centre.x + axis * centre.y + face * centre.z;
+        let run = axis * (half.y + reach);
         Descriptor {
-            endpoints: [at(0), at(1)],
-            radii: [half(depth[0]), half(depth[1])],
-            count: self.count,
+            endpoints: [at - run, at + run],
+            radii: [half.z + reach; 2],
+            count: 1,
             system,
-            sides: [side * half(width[0]), side * half(width[1])],
+            side: flank * (half.x + reach),
         }
     }
 }
-
-/// The line over `[ends[0], ends[1]]` no point stands above that is lowest
-/// at the middle, so least in area: its heights at the two ends. Its height
-/// at the middle is convex in its slope, falling while the point that binds
-/// it stands left of the middle, so the slope is found by bisection; any
-/// slope gives a line above every point.
-fn edge(points: &[(f64, f64)], ends: [f64; 2]) -> [f64; 2] {
-    let mid = (ends[0] + ends[1]) / 2.0;
-    let top = |m: f64| {
-        points
-            .iter()
-            .fold((f64::NEG_INFINITY, mid), |best, &(x, y)| {
-                let h = y - m * (x - mid);
-                if h > best.0 {
-                    (h, x)
-                } else {
-                    best
-                }
-            })
-    };
-    let (mut lo, mut hi) = (-SLOPE, SLOPE);
-    for _ in 0..BISECTIONS {
-        let m = (lo + hi) / 2.0;
-        if top(m).1 < mid {
-            hi = m;
-        } else {
-            lo = m;
-        }
-    }
-    let m = (lo + hi) / 2.0;
-    let h = top(m).0;
-    [h + m * (ends[0] - mid), h + m * (ends[1] - mid)]
-}
-
-/// The steepest edge tried, across per metre along, and the bisections that
-/// find it to well under a millimetre over a frond's chord.
-const SLOPE: f64 = 8.0;
-const BISECTIONS: usize = 32;

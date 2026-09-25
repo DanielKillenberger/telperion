@@ -1,7 +1,8 @@
-//! The date palm's field from the leaf plan (fn-150): every frond, living and
-//! dead, walked in chords along its rachis. Conservative against the leaves
-//! placement hangs, exact in its counts over a grid, and measured against the
-//! field read from the placed leaves.
+//! The date palm's field from the leaf plan (fn-150): one oriented box a
+//! leaflet, living and dead, drawn as placement draws it. Conservative
+//! against the leaves placement hangs, exact in its counts over a grid, and
+//! held to the real leaflet shapes, each placed leaf's own oriented box.
+mod oriented;
 use std::collections::HashSet;
 use telperion_core::{
     field::Field,
@@ -121,35 +122,41 @@ fn the_palm_estimates_sum_to_every_leaflet() {
     assert!((sum - total).abs() <= total * 0.01, "{sum} against {total}");
 }
 
-/// The planned crown against the placed one on the same quarter-metre grid
-/// (host target, 2026-09-25): at least 95 % of cells agree, and the plan
-/// reports at most 1.3 times the placed foliage cells. The placed field
-/// answers from each leaf's world-aligned box, which stands well past a
-/// diagonal leaflet, so the cells only it reports are counted, not failed;
-/// the vertex test above is the plan's conservative contract, and each
-/// ribbon holds the whole box of every leaflet it is fitted to.
+/// The planned crown against the real leaflet shapes on the same
+/// quarter-metre grid (host target, 2026-09-25): at least 99 % of cells
+/// agree and the plan reports at most 1.05 times the leaflets' foliage cells.
+/// The same numbers against the placed field, whose world-aligned leaf boxes
+/// overfill a diagonal leaflet, are printed for the record.
 #[test]
-fn the_planned_palm_agrees_with_the_placed_one() {
+fn the_planned_palm_agrees_with_its_leaflets() {
     for seed in SEEDS {
         let (built, placed) = fields(seed);
-        let planned = built.outputs.field.as_ref().unwrap();
-        let [mut agree, mut cells, mut base, mut plan, mut only] = [0usize; 5];
+        let o = &built.outputs;
+        let planned = o.field.as_ref().unwrap();
+        let leaves = &o.leaves.as_ref().unwrap().instances;
+        let exact = oriented::leaflets(&built.skeleton.tree, leaves, o.element.as_ref().unwrap());
+        let [mut cells, mut agree, mut kept, mut ours, mut boxes, mut matched] = [0usize; 6];
         for c in grid(planned, 0.25) {
             let p = planned.query(c, 0.125).unwrap().foliage;
+            let e = exact.query(c, 0.125).unwrap().foliage;
             let q = placed.query(c, 0.125).unwrap().foliage;
             cells += 1;
-            agree += usize::from(p == q);
-            base += usize::from(q);
-            plan += usize::from(p);
-            only += usize::from(q && !p);
+            agree += usize::from(p == e);
+            kept += usize::from(e);
+            ours += usize::from(p);
+            boxes += usize::from(q);
+            matched += usize::from(p == q);
         }
         let share = agree as f64 / cells as f64;
-        let ratio = plan as f64 / base as f64;
+        let ratio = ours as f64 / kept as f64;
+        let placed_share = matched as f64 / cells as f64;
         eprintln!(
-            "palm seed {seed}: {agree} of {cells} cells agree ({share:.4}); foliage cells \
-             planned {plan}, placed {base}, ratio {ratio:.3}; placed boxes only {only}"
+            "palm seed {seed}: against the leaflets {share:.4} of {cells} cells agree, \
+             ratio {ratio:.3} ({ours} / {kept}); against the placed field \
+             {placed_share:.4}, ratio {:.3} ({ours} / {boxes})",
+            ours as f64 / boxes as f64
         );
-        assert!(share >= 0.95, "seed {seed}: {share}");
-        assert!(ratio <= 1.3, "seed {seed}: {ratio}");
+        assert!(share >= 0.99, "seed {seed}: {share}");
+        assert!(ratio <= 1.05, "seed {seed}: {ratio}");
     }
 }
