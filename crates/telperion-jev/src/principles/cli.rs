@@ -73,7 +73,7 @@ pub fn run(args: &[String]) -> Result<i32, String> {
         "spec" => {
             let path = args.first().ok_or("usage: jev principles spec <spec.md>")?;
             let text = std::fs::read_to_string(path).map_err(|e| format!("{path}: {e}"))?;
-            let (x, abstained) = super::spec::extract(path, &text);
+            let (x, abstained) = super::spec::extract(path, &text, &policy);
             for (at, why) in &abstained {
                 println!("  abstain {at}: {why}");
             }

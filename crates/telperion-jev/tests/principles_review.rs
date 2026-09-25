@@ -127,7 +127,7 @@ fn scratch(name: &str) -> PathBuf {
 
 fn extraction(n: usize) -> Extraction {
     let found = (0..n).map(|i| candidate(&format!("x{i}"), Class::Switch)).collect();
-    let (candidates, dropped) = bound(found);
+    let (candidates, dropped) = bound(found, &policy());
     Extraction { candidates, dropped, ..Extraction::default() }
 }
 
@@ -196,7 +196,7 @@ fn spec_mode_judges_current_proposals_and_abstains_without_context() {
     let policy = policy();
     let dir = data().join("specs");
     let read_spec = |name: &str| std::fs::read_to_string(dir.join(format!("{name}.md"))).unwrap();
-    let (x, abstained) = spec::extract("fn-150-final.md", &read_spec("fn-150-final"));
+    let (x, abstained) = spec::extract("fn-150-final.md", &read_spec("fn-150-final"), &policy);
     assert!(abstained.is_empty());
     assert!(x.candidates.iter().all(|c| !c.shape.contains("ribbon")), "superseded designs are left out");
     assert!(x.candidates.iter().any(|c| c.shape.contains("one oriented box per leaflet")));
@@ -205,10 +205,10 @@ fn spec_mode_judges_current_proposals_and_abstains_without_context() {
     assert_eq!(answers["candidates"], json!(shapes), "the answers were recorded on these proposals");
     let (picked, _) = select(&x, &answers["phase_one"], &policy, true);
     assert!(decide(&x, &picked, &answers["phase_two"], &policy).findings.is_empty(), "fn-150's final design");
-    let (x, abstained) = spec::extract("no-context.md", &read_spec("no-context"));
+    let (x, abstained) = spec::extract("no-context.md", &read_spec("no-context"), &policy);
     assert!(x.candidates.is_empty());
     assert_eq!(abstained[0].1, "no decision context");
-    let (x, _) = spec::extract("duplicate-path.md", &read_spec("duplicate-path"));
+    let (x, _) = spec::extract("duplicate-path.md", &read_spec("duplicate-path"), &policy);
     let answers: Value = read(&dir.join("duplicate-path.answers.json")).unwrap();
     let shapes: Vec<&str> = x.candidates.iter().map(|c| c.shape.as_str()).collect();
     assert_eq!(answers["candidates"], json!(shapes));

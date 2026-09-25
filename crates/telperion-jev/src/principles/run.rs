@@ -67,26 +67,40 @@ pub fn review(transport: &dyn Transport, s: &Settings, x: &Extraction, policy: &
     let (picked, mut abstained) = select(x, &run.phase_one, policy, !s.record_all);
     let chosen: Vec<&Candidate> = picked.iter().map(|p| p.candidate).collect();
     let misses: Vec<&Candidate> = fill(&mut run.phase_two, s.cache, policy, &chosen, "p2");
+    let mut short = None;
     if !misses.is_empty() {
-        let pairs: Vec<(&Candidate, &str, &str)> = picked
+        let mut pairs: Vec<(&Candidate, &str, &str, f64)> = picked
             .iter()
             .filter(|p| misses.iter().any(|m| m.id == p.candidate.id))
-            .map(|p| (p.candidate, p.mechanism.as_str(), p.evidence.as_str()))
+            .map(|p| (p.candidate, p.mechanism.as_str(), p.evidence.as_str(), p.probability))
             .collect();
-        let (state, questions) = ask::phase_two(policy, exceptions, &pairs);
-        // Three bytes a token: measured runs tokenise denser than four.
-        let estimate = (state.to_string().len() + questions.to_string().len()) as u64 / 3;
-        if !s.record_all && run.input_tokens + estimate > MAX_INPUT_TOKENS as u64 {
-            let why = format!("token budget: {} spent, phase two needs about {estimate}", run.input_tokens);
-            return incomplete(run, started, why);
+        pairs.sort_by(|a, b| b.3.total_cmp(&a.3));
+        // The surest selections are confirmed first; those past the token
+        // budget are left unasked and the run cannot say clean.
+        let mut asked: Vec<(&Candidate, &str, &str)> = Vec::new();
+        for (c, m, e, _) in &pairs {
+            asked.push((c, m, e));
+            let (state, questions) = ask::phase_two(policy, exceptions, &asked);
+            // Three bytes a token: measured runs tokenise denser than four.
+            let estimate = (state.to_string().len() + questions.to_string().len()) as u64 / 3;
+            if !s.record_all && run.input_tokens + estimate > MAX_INPUT_TOKENS as u64 {
+                asked.pop();
+                short = Some(format!("token budget: {} of {} selections left unconfirmed", pairs.len() - asked.len(), pairs.len()));
+                break;
+            }
         }
-        if let Err(e) = call(transport, s, &mut run, "principles-p2", &state, &questions, &misses, policy, "p2") {
-            return incomplete(run, started, e);
+        if !asked.is_empty() {
+            let (state, questions) = ask::phase_two(policy, exceptions, &asked);
+            let sent: Vec<&Candidate> = asked.iter().map(|a| a.0).collect();
+            if let Err(e) = call(transport, s, &mut run, "principles-p2", &state, &questions, &sent, policy, "p2") {
+                return incomplete(run, started, e);
+            }
         }
     }
     let mut outcome = decide(x, &picked, &run.phase_two, policy);
     abstained.append(&mut outcome.abstained);
     outcome.abstained = abstained;
+    outcome.incomplete = outcome.incomplete.or(short);
     run.outcome = outcome;
     run.elapsed_ms = started.elapsed().as_millis() as u64;
     run

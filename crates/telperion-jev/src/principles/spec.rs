@@ -24,7 +24,7 @@ pub struct Proposal {
 
 /// Candidates from a spec's markdown, and the proposals that abstained for
 /// want of decision context.
-pub fn extract(path: &str, markdown: &str) -> (Extraction, Vec<(String, String)>) {
+pub fn extract(path: &str, markdown: &str, policy: &super::policy::Policy) -> (Extraction, Vec<(String, String)>) {
     let sections = sections(markdown);
     let context: String = sections
         .iter()
@@ -52,7 +52,7 @@ pub fn extract(path: &str, markdown: &str) -> (Extraction, Vec<(String, String)>
             evidence,
         });
     }
-    let (candidates, dropped) = bound(found);
+    let (candidates, dropped) = bound(found, policy);
     let x = Extraction { extractor: super::candidates::EXTRACTOR_VERSION.into(), candidates, dropped, ..Extraction::default() };
     (x, abstained)
 }

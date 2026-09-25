@@ -17,13 +17,13 @@ use super::source::{wanted, Snapshot};
 use super::{duplicate, switch, unread};
 
 /// Bumped whenever extraction changes what it hands the reviewer.
-pub const EXTRACTOR_VERSION: &str = "extract-1";
+pub const EXTRACTOR_VERSION: &str = "extract-2";
 pub const MAX_CANDIDATES: usize = 12;
 /// Input tokens one run may send, estimated at four bytes a token.
 pub const MAX_INPUT_TOKENS: usize = 8_000;
-/// The share of it phase one's evidence may take; phase two re-sends only
-/// the cited excerpt of each selected candidate.
-const PHASE_ONE_TOKENS: usize = 4_500;
+/// The share of it phase one may take; phase two re-sends only the cited
+/// excerpt of each selected candidate.
+const PHASE_ONE_TOKENS: usize = 5_000;
 const EXCERPT_LINES: usize = 10;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Ord)]
@@ -130,7 +130,7 @@ pub fn extract(repo: &Path, base: &str, head: &str, policy: &Policy) -> Result<E
     found.extend(switch::find(&ctx, &head_files, &base_fns));
     found.extend(duplicate::find(&ctx, &head_fns, &base_fns));
     found.extend(unread::find(&ctx, &head_files));
-    let (candidates, dropped) = bound(found);
+    let (candidates, dropped) = bound(found, policy);
     Ok(Extraction {
         extractor: EXTRACTOR_VERSION.into(),
         base: base.into(),
@@ -180,24 +180,25 @@ impl Context<'_> {
     }
 }
 
-/// Keeps the heaviest candidates inside the count cap and the token budget,
-/// numbers them and their evidence, and counts what was dropped.
-pub fn bound(mut found: Vec<Candidate>) -> (Vec<Candidate>, usize) {
+/// Keeps the heaviest candidates inside the count cap and phase one's share
+/// of the token budget, measured on the request phase one would send at
+/// three bytes a token, numbers them and their evidence, and counts what was
+/// dropped.
+pub fn bound(mut found: Vec<Candidate>, policy: &Policy) -> (Vec<Candidate>, usize) {
     found.sort_by(|a, b| b.weight.total_cmp(&a.weight).then(a.location.cmp(&b.location)));
     let total = found.len();
-    let mut kept = Vec::new();
-    let mut bytes = 0;
+    let mut kept: Vec<Candidate> = Vec::new();
     for mut c in found.into_iter().take(MAX_CANDIDATES) {
-        let size: usize = c.evidence.iter().map(|e| e.text.len() + 60).sum::<usize>() + 200;
-        if (bytes + size) / 4 > PHASE_ONE_TOKENS {
-            continue;
-        }
-        bytes += size;
         c.id = format!("c{}", kept.len() + 1);
         for (i, e) in c.evidence.iter_mut().enumerate() {
             e.id = format!("e{}", i + 1);
         }
         kept.push(c);
+        let refs: Vec<&Candidate> = kept.iter().collect();
+        let (state, questions) = super::ask::phase_one(policy, &refs);
+        if (state.to_string().len() + questions.to_string().len()) / 3 > PHASE_ONE_TOKENS {
+            kept.pop();
+        }
     }
     let dropped = total - kept.len();
     (kept, dropped)
