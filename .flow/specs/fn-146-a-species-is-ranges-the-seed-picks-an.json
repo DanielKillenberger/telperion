@@ -1,7 +1,9 @@
 {
   "branch_name": "fn-146-a-species-is-ranges-the-seed-picks-an",
   "created_at": "2026-09-24T21:47:59.700900Z",
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-152-one-parameter-table-the-generator-flows"
+  ],
   "id": "fn-146-a-species-is-ranges-the-seed-picks-an",
   "next_task": 1,
   "plan_review_status": "unknown",
@@ -20,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-24T21:47:59.708112Z"
+  "updated_at": "2026-09-25T08:54:34.229511Z"
 }
