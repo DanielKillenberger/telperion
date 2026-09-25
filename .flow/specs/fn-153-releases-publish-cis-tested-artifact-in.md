@@ -35,6 +35,7 @@ Publishing a Telperion release to npm takes about 17 minutes after the tag, and 
 - **R3:** The published tarball is the artifact master's CI built and tested for that commit, shown by matching checksums in the release log. Errors: a missing artifact refuses the release. [paraphrase]
 - **R4:** wasm-bindgen-cli is not compiled during a CI or release run. Errors: no error surface beyond the pinned version failing to download, which fails the run. [paraphrase]
 - **R5:** A merge to master that bumps the version publishes that version with no manual tag; a merge that leaves the version unchanged publishes nothing. Errors: a version lower than or equal to the latest published one refuses. [paraphrase]
+- **R6:** The publish step authenticates to npm by trusted publishing, with no stored npm token, once the owner has configured the package on npmjs.com. [user]
 
 ## Boundaries
 <!-- scope: business -->

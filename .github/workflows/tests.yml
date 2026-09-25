@@ -328,9 +328,11 @@ jobs:
   # on npm publishes nothing; a version below npm's latest, a tag that names
   # another commit, a suite neither receipted nor green, and a missing or
   # altered tarball each refuse before anything is uploaded. The publish
-  # authenticates with the workflow's OIDC token under the trusted publisher
-  # configured on npmjs.com for this repository and this workflow file;
-  # provenance binds the tarball to this commit and this run.
+  # authenticates by npm trusted publishing: the workflow's OIDC token
+  # (id-token: write, npm 11.5.1 or later, Node 22.14 or later) under the
+  # trusted publisher configured on npmjs.com for this repository and this
+  # workflow file. No npm token is stored or set. Provenance binds the tarball
+  # to this commit and this run.
   publish:
     needs: [receipts, core, core-plan, render, wasm-jev, node, package]
     if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/master' }}

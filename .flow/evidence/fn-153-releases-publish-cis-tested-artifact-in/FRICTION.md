@@ -13,3 +13,10 @@
 - **Hindrance:** dcg blocks `mv` and `>` redirects whose target is a shell variable, so both commands were rewritten with literal paths or the Edit tool.
 - **Cost:** about 3 minutes and two retries.
 - **Would have removed it:** a `flowctl task set-satisfies` verb (only `task create --satisfies` exists). The dcg rule itself is a local setup matter.
+
+## 2026-09-25: npm's 2FA-bypass notice read as a token in use
+
+- **Doing:** adding R6 (trusted publishing, no stored token) mid-task.
+- **Hindrance:** the v0.1.4 publish log prints npm's generic "tokens that bypass 2FA are being restricted" notice, which read as the release using such a token. It does not: the repository's only secret is `JEV_API_KEY`, the publish step sets no `NODE_AUTH_TOKEN`, and `npm view telperion@0.1.4 _npmUser` is `GitHub Actions <npm-oidc-no-reply@github.com>`, the OIDC publisher. Every release since 0.1.0 has published by trusted publishing (fn-112 RESULTS.md, R6).
+- **Cost:** about 10 minutes checking the log, the secrets and the registry.
+- **Would have removed it:** the registry's `_npmUser` for the latest version, quoted next to the notice when it was raised.
