@@ -13,3 +13,10 @@
 - Hindered: the design fixed each frond's reach at the leaflet extent (about 1.97 m for the palm), and I only saw that this makes the crown a round bush after building and measuring it. Agreement is 81%; the plan reports 2.8 times the placed foliage cells.
 - Cost: about 40 minutes of build, plus a second NEEDS_HUMAN round trip.
 - Would remove it: check a primitive's shape against the organ's in the design step, or have the host render one palm's field before specifying the shape. A two-line calculation of reach against frond thickness would have shown it.
+
+## 2026-09-25: the ribbon took three fits to reach the target
+
+- Doing: fitting frond ribbons to the host's accuracy target.
+- Hindered: the first ribbon took worst-case slack for the leaflet draws (3.54 times the placed cells, worse than capsules). Replaying the draws gave 1.77, one rolled ribbon per row 1.64, and only the flat-box ribbon with a cell-to-box test reached 1.26. The unstable sort the host asked for was 16 KB against the stable sort's 8.5 KB, so an insertion sort replaced both.
+- Cost: about 45 minutes, and five palm field runs of under a second each.
+- Would remove it: a design step that names the primitive's cell test and whether draws are replayed or bounded, and a Wasm size measurement per candidate before a fix is prescribed. Twiggy's hashed crate names also need a normalising diff script, rewritten here each time.

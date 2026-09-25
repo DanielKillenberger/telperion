@@ -131,3 +131,48 @@ fn the_date_palm_grows_at_every_seed_the_owner_tried() {
         assert!(flags.iter().any(|f| f & 2 != 0), "seed {seed}: fronds");
     }
 }
+
+/// R2: every shipped preset grows through the slim binding, and its answers
+/// are byte for byte those of the core pipeline's field-only build, the one
+/// the main binding runs, on the same cells at the same seed.
+#[test]
+fn every_shipped_preset_answers_as_the_main_pipeline_does() {
+    use telperion_core::{
+        math::Vec3,
+        pipeline::{self, Request},
+        presets::{Preset, CATALOGUE},
+    };
+    for &(_, id, ..) in CATALOGUE {
+        for seed in [1, 4242] {
+            write_species(id);
+            assert_eq!(grow(seed, FAMILY_ORDER), 0, "{id} {seed}: {}", error());
+            write_grid(10);
+            assert_eq!(query(revision()), 0, "{id}: {}", error());
+            let slim = answers();
+            let cells = unsafe { std::slice::from_raw_parts(query_ptr(), 4000) }.to_vec();
+            let mut family = Preset::from_id(id).unwrap().parameters();
+            family.skeleton.seed = seed;
+            let request = Request {
+                field: Some(None),
+                ..Request::default()
+            };
+            let main = pipeline::build(&family, request)
+                .unwrap()
+                .outputs
+                .field
+                .unwrap();
+            let mut expected = (Vec::new(), Vec::new(), Vec::new(), Vec::new());
+            for c in cells.as_chunks::<4>().0 {
+                let hit = main.query(Vec3::new(c[0], c[1], c[2]), c[3]).unwrap();
+                expected
+                    .0
+                    .push(u8::from(hit.wood) | (u8::from(hit.foliage) << 1));
+                expected.1.push(hit.wood_radius as f32);
+                expected.2.push(hit.leaves as f32);
+                expected.3.push(hit.limb.unwrap_or(u32::MAX));
+            }
+            assert!(slim.0.iter().any(|f| f & 2 != 0), "{id} {seed}: foliage");
+            assert_eq!(slim, expected, "{id} {seed}");
+        }
+    }
+}

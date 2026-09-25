@@ -94,8 +94,10 @@ export interface TreeOutput {
    * Three u32 values per node: parent (UINT32_MAX for root), branch, kind (0/1/2). */
   structure?: { values: Float64Array; topology: Uint32Array };
   /** Query packed x,y,z,halfExtent cells. Invalid after this engine's next
-   * build or release; copied results remain owned. */
-  field?: { query(cells: Float64Array): FieldQuery; snapshot(): FieldSnapshot };
+   * build or release; copied results remain owned. `bounds` encloses the
+   * field's wood and foliage, as the slim entry's `FieldTree.bounds` does;
+   * null for an empty field. */
+  field?: { bounds: Bounds | null; query(cells: Float64Array): FieldQuery; snapshot(): FieldSnapshot };
   diagnostics: Diagnostics;
 }
 interface Exports extends WebAssembly.Exports, SpecimenExports {
@@ -158,7 +160,7 @@ export class TreeEngine {
     if (outputs.surface) result.surface = { positions: f32(0), normals: f32(1), indices: u32(2), bounds: diagnostics.surfaceBounds };
     if (outputs.foliage) result.foliage = { positions: f32(3), indices: u32(4), leaves: u32(5), reference: diagnostics.foliageReference, anatomy: diagnostics.foliageAnatomy, bounds: diagnostics.foliageBounds };
     if (outputs.structure) result.structure = { values: new Float64Array(e.memory.buffer, e.buffer_ptr(6), e.buffer_len(6)).slice(), topology: u32(7) };
-    if (outputs.field) result.field = { query: cells => this.query(diagnostics.revision, cells), snapshot: () => this.snapshot(diagnostics) };
+    if (outputs.field) result.field = { bounds: structuredClone(diagnostics.fieldBounds), query: cells => this.query(diagnostics.revision, cells), snapshot: () => this.snapshot(diagnostics) };
     diagnostics.timings.transferMs = performance.now() - transfer;
     diagnostics.timings.buildMs = performance.now() - started;
     return result;
