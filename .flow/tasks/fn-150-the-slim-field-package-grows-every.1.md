@@ -15,9 +15,16 @@ The spec's R1 to R5 as one task: the slim crate asks the core pipeline for the f
 - [x] Host design: the ribbon primitive; the palm meets the quarter-metre target at four seeds; capsules byte-identical.
 
 ## Done summary
-TBD
+The slim field crate now runs the one core pipeline with a field-only request, and every shipped preset grows through `telperion/field`, the date palm included.
 
+- Root cause: `crates/telperion-field/src/grow.rs` kept its own chain. It refused a family without a leaf plan and skipped `clear_apical_twigs` and `clothe_leaf_bases`. R1 was red on master with "family without a leaf plan".
+- The pipeline compiles without `geometry`: `pipeline/drawn.rs` (wood, placement, placed-field fallback) is behind it, and `pipeline/planned.rs` refuses those by name.
+- The leaf plan describes a frond crown with ribbons (host decision), the plan's second primitive: a flat box swept by a segment and a side vector, pushed out by a thickness. Each frond has 3 chords with one ribbon per leaflet row, fitted to the leaflets drawn on placement's own stream (`foliage/leaflet.rs`, shared). Capsule families are byte-identical to master; the placed palm crown is byte-identical.
+- Palm, quarter-metre grid, seeds 1, 7, 1407 and 4242: every leaflet vertex covered, 95.1-95.4 % of cells agree, 1.24-1.28 times the placed foliage cells.
+- `telperion-field.wasm`: 347,167 B raw, 132,212 gzip and 108,609 brotli, names stripped in `build-wasm.mjs`. 0.1.3 was 355,100 / 126,663 / 104,737; unstripped it is now 384,319.
+- R2 (Rust and npm, byte for byte), R3 (npm and `test:dist`) and R5 (`field.bounds` on the main entry) are covered. Version 0.1.4.
+- Gate, run once: 950 passed, 2 failed, 21 ignored. Both failures were stale expectations (the palm's field source in a binding test, and the moved limit-inventory sites). They were fixed and their two targets rerun green. `npm test`: 128 passed.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 281926e9, 509237f7, 461a96bf, c58482a2, 928d4bbb
+- Tests: cargo test --profile ci --workspace --no-fail-fast, cargo test --profile ci -p telperion-wasm --lib, cargo test --profile ci -p telperion-core --test generation_limit_guard, npm test, npm run build && npm run test:dist
 - PRs:
