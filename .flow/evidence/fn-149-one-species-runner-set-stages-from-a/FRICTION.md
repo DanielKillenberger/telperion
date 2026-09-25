@@ -97,3 +97,10 @@
 - Slowed by: three things a replay found that no unit test had: the adapter tape keyed the adapter script by its absolute checkout path (re-keyed by file name); the recorded tuning config held absolute worktree paths (made repo-relative, run paths set by the test); and a second run reran Sources because Profile writes the resolutions Sources reads (fixed in the runner). Pruning the tape needed inotifywait, since no replay log names the entries it served; dcg also refused an os.remove and a redirect in the helper scripts.
 - Cost: about 25 minutes.
 - Would remove it: the tape writing a served-keys list in replay, and recording configs with repo-relative paths from the start.
+
+## 2026-09-25 23:52, worker fn-149.1 (pre-push correction): a memory ceiling test failed once under a loaded host
+
+- Doing: the gate on the rewritten fn-149 tail.
+- Slowed by: four telperion-core species budget tests (`fixed_*_pass_geometry_and_profile_gates_with_repeatable_varied_specimens`) failed on the process peak resident ceiling (3.6 GB against 2.16 GB) with no core change since the last green gate; the same binary passed alone and the whole gate passed on the rerun. The ceiling reads the process VmHWM, which other test threads in the same binary share.
+- Cost: one extra gate run, about 10 minutes.
+- Would remove it: measuring the ceiling in a process of its own, or on the charged bytes the test already counts.
