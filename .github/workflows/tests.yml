@@ -265,24 +265,6 @@ jobs:
             npm test
             npm run typecheck
 
-  # The design principles on a pull request (fn-151, docs/principles.md):
-  # the production boundary and the budget file's evidence against the base.
-  # Entry coverage runs in the crate jobs above.
-  principles:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - name: Install the pinned Rust toolchain
-        run: rustup toolchain install
-      - uses: Swatinem/rust-cache@v2
-        with:
-          cache-on-failure: true
-      - name: Check the pushed change against the principles
-        run: cargo run --profile ci -p telperion-jev --bin jev -- principles push --base "origin/${{ github.base_ref }}" --head HEAD --no-entry
-
   # The package, built once per commit. Its tarball is what the tests below
   # load and what release.yml publishes: test:dist runs on the dist unpacked
   # from the tarball, and the tarball is uploaded beside its sha256.
@@ -310,8 +292,8 @@ jobs:
       - name: Build the package
         run: npm run build
 
-      - name: Hold every shipped artifact to its budget (fn-151)
-        run: cargo run --profile ci -p telperion-jev --bin jev -- principles budget
+      - name: Hold every shipped artifact to its budget (docs/principles.md)
+        run: node scripts/artifact-budgets.mjs
 
       - id: pack
         name: Pack the tarball

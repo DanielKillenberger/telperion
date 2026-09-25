@@ -1,0 +1,48 @@
+{
+  "recipe": "npm run build on the pinned toolchain: scripts/build-wasm.mjs (release, the slim module stripped), scripts/build-render.mjs, then vite build",
+  "note": "A budget rises only by editing this file in the same PR, with the new measurement and a Decisions line (docs/principles.md).",
+  "artifacts": [
+    {
+      "path": "dist/telperion.wasm",
+      "maxBytes": 1397000,
+      "measuredBytes": 1330623,
+      "measuredOn": "npm telperion@0.1.4",
+      "decisions": "fn-151: the shipped 0.1.4 size plus 5%"
+    },
+    {
+      "path": "dist/telperion-render.wasm",
+      "maxBytes": 1996000,
+      "measuredBytes": 1900399,
+      "measuredOn": "npm telperion@0.1.4",
+      "decisions": "fn-151: the shipped 0.1.4 size plus 5%"
+    },
+    {
+      "path": "dist/telperion-field.wasm",
+      "maxBytes": 362000,
+      "measuredBytes": 344798,
+      "measuredOn": "npm telperion@0.1.4",
+      "decisions": "fn-151: the shipped 0.1.4 size plus 5%"
+    },
+    {
+      "path": "dist/telperion.js",
+      "maxBytes": 124300,
+      "measuredBytes": 118387,
+      "measuredOn": "npm telperion@0.1.4",
+      "decisions": "fn-151: the shipped 0.1.4 size plus 5%"
+    },
+    {
+      "path": "dist/field.js",
+      "maxBytes": 2860,
+      "measuredBytes": 2720,
+      "measuredOn": "npm telperion@0.1.4",
+      "decisions": "fn-151: the shipped 0.1.4 size plus 5%"
+    },
+    {
+      "path": "dist/voxelize.js",
+      "maxBytes": 4760,
+      "measuredBytes": 4526,
+      "measuredOn": "npm telperion@0.1.4",
+      "decisions": "fn-151: the shipped 0.1.4 size plus 5%"
+    }
+  ]
+}

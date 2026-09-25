@@ -33,6 +33,3 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["float_roundtrip"] }
 sha2 = "0.10"
 ureq = { version = "2.12", default-features = true, features = ["native-certs"] }
-# The principles guards read Rust source: paths, uses and calls, with lines.
-syn = { version = "2", features = ["full", "visit"] }
-proc-macro2 = { version = "1", features = ["span-locations"] }

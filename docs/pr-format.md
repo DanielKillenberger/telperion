@@ -32,7 +32,7 @@ A species run is one GitHub stack (`docs/species-onboarding.md`, "The stack"). W
 - **Change.** Two to four sentences: the behaviour before, the behaviour after, and what did not change.
 - **Proof.** One line per R-ID: `R1 ✅ <test or command>`, `⏳ claimed, not yet evidenced`, or `⚠️ uncovered`. Then one line for the commands that passed, with counts. Anything untested is said plainly, with the reason.
 - **Look here.** The paths that deserve the owner's eyes, one reason each, drawn from `diff_summary` (churn, public exports, cross-module changes, security paths). The rest is safe to skim, and the section says so.
-- **Decisions.** One line per entry in `memory_during_epic.decisions`, with its ID. Omitted when there are none. A trade-off against a design principle names the principle and the exception id it rests on (`docs/principles.md`), for example `P-ONE-PIPELINE, EX-50`.
+- **Decisions.** One line per entry in `memory_during_epic.decisions`, with its ID. Omitted when there are none. A trade-off against a design principle names the principle and the sanctioned exception it rests on (`docs/principles.md`), for example "one pipeline; the GPU executor".
 - **Open.** Open tasks, deferred findings, the QA verdict, and the count and path of FRICTION.md entries. Omitted when empty.
 - **Marker.** The last line, always; land's authorship probe keys on it.
 

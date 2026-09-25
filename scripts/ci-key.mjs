@@ -36,11 +36,10 @@ const SUITES = {
   'rust-render': { profile: 'ci', inputs: [CORE, RENDER] },
   'rust-wasm': { profile: 'ci', inputs: [CORE, WASM, FIELD] },
   // The isolation test walks the generation crates and the browser source,
-  // the citation parser is tested on the fn-11 research section, and the
-  // principles guards read every crate and the package's exports.
+  // and the citation parser is tested on the fn-11 research section.
   'rust-jev': {
     profile: 'ci',
-    inputs: ['crates/telperion-jev', CORE, RENDER, WASM, FIELD, 'src', '.flow/specs/fn-11-growth-over-time.md', 'package.json'],
+    inputs: ['crates/telperion-jev', CORE, RENDER, WASM, FIELD, 'src', '.flow/specs/fn-11-growth-over-time.md'],
   },
   // npm test and npm run typecheck: the pretest builds the three wasm crates.
   node: {
@@ -50,6 +49,7 @@ const SUITES = {
       'catalogue', '.gitattributes',
       'scripts/build-wasm.mjs', 'scripts/build-render.mjs',
       'scripts/catalogue-check.mjs', 'scripts/catalogue-pages.mjs',
+      'scripts/artifact-budgets.mjs', 'scripts/artifact-budgets.json', 'scripts/artifact-budgets.test.mjs',
       'package.json', 'package-lock.json',
       'tsconfig.json', 'tsconfig.build.json', 'vite.config.ts', 'vitest.config.ts',
     ],

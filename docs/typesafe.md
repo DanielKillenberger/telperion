@@ -12,9 +12,6 @@ read fetched source bytes, a spec's research section, an owner's written note,
 or a report's section headings. They write a ledger entry and a proposal the
 host session reads.
 
-`jev principles` runs the design-principles guards (`docs/principles.md`);
-they are code and call no model. Jev review of designs is planned in fn-156.
-
 ## Where it never runs
 
 Generation, rendering, presets, the Wasm bindings, the browser source, and any

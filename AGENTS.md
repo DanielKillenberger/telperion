@@ -43,16 +43,16 @@ A spec rests only on claims somebody ran. A defect spec's repro is run as a stan
 
 Two checkouts of the same crate never share a `target/` directory. Test binary names do not depend on the checkout path, so cargo reuses the other checkout's binary without rebuilding: fn-92 counted four crashes against the fix that most likely came from the base binary.
 
-## Design principles, checked (owner, 2026-09-25)
+## Design principles (owner, 2026-09-25)
 
-Code guards check every push against STRATEGY.md's "Our approach"; `docs/principles.md` is the guide, and Jev review of specs and designs is planned in fn-156. Four questions steer every decision:
+STRATEGY.md's "Our approach" is enforced by structure, not policing; `docs/principles.md` is the guide, and Jev review of specs and designs is planned in fn-156. Four questions steer every decision:
 
 - Does every tree still pass through the one pipeline, with no copy of a stage outside it?
 - Does an input the pipeline cannot draw fail with an error, never take a fallback path?
 - Does every parameter change the tree by degree, dormant where its structure is absent, never a switch between ways of building?
 - Is each new output read by a consumer, each cost measured, and each new stop one that catches what its neighbours cannot?
 
-Three deterministic guards block, in `cargo test` and in the pre-push hook (`npm run setup` installs it once): the production boundary, entry coverage of every shipped preset, and the artifact budgets. A sanctioned trade-off cites an id from `crates/telperion-jev/data/principles/exceptions.json`; a claim of approval with no entry there is none. `git push --no-verify` skips the hook.
+Three things hold them: the one pipeline, whose stages become private to it in fn-152 so a second chain does not compile; an ordinary test that builds every shipped preset's every artifact through the pipeline and through each package entry; and CI's size budget on every shipped artifact. A sanctioned trade-off names one of the exceptions `docs/principles.md` lists; a claim of approval without one is none.
 
 ## Pull requests (owner, 2026-09-20)
 

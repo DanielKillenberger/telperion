@@ -179,3 +179,36 @@ fn the_leaves_own_rings_fail_after_the_plan() {
     let element = Some(Error::InvalidInput("leaf segments"));
     assert_eq!(outputs(&tree, &family, leaves).err(), element);
 }
+
+/// Every shipped preset builds every artifact kind through the pipeline, one
+/// request each: the skeleton, the wood surface, the leaves, the field and
+/// the structure (docs/principles.md). A failure names the preset and the
+/// artifact. The package entries are held by the binding tests.
+#[test]
+fn every_shipped_preset_builds_every_artifact_through_the_pipeline() {
+    for &(_, id, _, _) in CATALOGUE {
+        let family = crate::presets::by_identity(id).unwrap();
+        let tree = skeleton(&family)
+            .unwrap_or_else(|e| panic!("preset {id}: skeleton: {e}"))
+            .tree;
+        assert!(tree.nodes.len() > 1, "preset {id}: skeleton: no wood");
+        let kinds: [(&str, Request); 4] = [
+            ("surface", Request { wood: true, ..Request::default() }),
+            ("leaves", Request { leaves: true, ..Request::default() }),
+            ("field", Request { field: Some(None), ..Request::default() }),
+            ("structure", Request { structure: true, ..Request::default() }),
+        ];
+        for (kind, request) in kinds {
+            let out = outputs(&tree, &family, request)
+                .unwrap_or_else(|e| panic!("preset {id}: {kind}: {e}"));
+            let built = match kind {
+                "surface" => out.wood.is_some_and(|w| !w.indices.is_empty()),
+                "leaves" => out.leaves.is_some_and(|l| l.retained > 0),
+                "field" => out.field.is_some(),
+                _ => out.structure.is_some_and(|s| !s.nodes.is_empty()),
+            };
+            assert!(built, "preset {id}: {kind}: nothing built");
+        }
+    }
+}
+

@@ -50,7 +50,6 @@
   },
   "scripts": {
     "dev": "npm run wasm:build && npm run render:build && vite",
-    "setup": "sh scripts/setup.sh",
     "build": "npm run wasm:build && npm run render:build && tsc -p tsconfig.build.json && vite build",
     "test:dist": "node scripts/test-dist.mjs",
     "pretest": "npm run wasm:build && npm run render:build",
