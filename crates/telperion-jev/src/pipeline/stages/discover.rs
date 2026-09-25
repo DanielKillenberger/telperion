@@ -102,8 +102,8 @@ pub fn run(
             "draft_sha256": draft_sha256,
             "proposals": proposals,
         }),
-        &["admit", "reject"],
-        "The pipeline admits a draft that only adds sources, each chosen for its field and carrying an open licence or a public cite-only page; any other draft a person admits, edited or not, by writing it to manifest.json and resolving this decision. The resolution binds to the seed, so admitting sources keeps it.",
+        &["admit", "reject", "skip"],
+        "The pipeline admits a draft that only adds sources, each chosen for its field and carrying an open licence or a public cite-only page; any other draft a person admits, edited or not, by writing it to manifest.json and resolving this decision. The species runner skips a draft it cannot admit and goes on with the manifest as it stands. The resolution binds to the seed, so admitting sources keeps it.",
     );
     let id = decision.id.clone();
     let verdict = if already_resolved(&ctx.paths, &decision)? {

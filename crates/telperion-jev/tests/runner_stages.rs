@@ -195,10 +195,7 @@ fn a_revision_reads_every_file_its_config_names() {
         .iter()
         .map(|p| p.display().to_string())
         .collect();
-    assert_eq!(
-        files,
-        ["p.json", "shots.json", "inv.json", "prep.json", "sheet.py"]
-    );
+    assert_eq!(files, ["p.json", "shots.json", "sheet.py"]);
 }
 
 #[test]
@@ -210,8 +207,89 @@ fn a_failed_revision_leaves_the_last_kept_result_and_fails_the_stage() {
     // A config the revision cannot read fails before any tree is kept.
     let template = dir.join("tuning.json");
     std::fs::write(&template, json!({"dials": []}).to_string()).unwrap();
+    let inventory = telperion_jev::runner::inventory::dir(&template, &dir).unwrap();
+    std::fs::create_dir_all(&inventory).unwrap();
+    for file in ["inventory.json", "preparation.json"] {
+        std::fs::write(inventory.join(file), "{}").unwrap();
+    }
     let tools = telperion_jev::runner::tools::Tools::at(&dir);
     let err = tune::run(&template, &tools, &dir).unwrap_err();
     assert!(err.starts_with("revision 1 failed"), "{err}");
     assert_eq!(std::fs::read_to_string(tune::result(&dir)).unwrap(), kept);
+}
+
+#[test]
+fn the_runner_settles_what_it_can_and_leaves_a_claim_without_rounds_open() {
+    use telperion_jev::pipeline::decision::{
+        append_decisions, read_resolutions, Decision, DecisionParts,
+    };
+    use telperion_jev::pipeline::stage::Paths;
+    let dir = scratch("settle");
+    let decision = |kind: &str, field: Option<&str>| {
+        Decision::new(
+            DecisionParts {
+                species: "s",
+                stage: "x",
+                kind,
+                field,
+                age_years: None,
+            },
+            &["extract"],
+            [("seed".to_string(), "a".to_string())]
+                .into_iter()
+                .collect(),
+            vec![],
+            json!({}),
+            &["admit"],
+            "",
+        )
+    };
+    append_decisions(
+        &dir.join("decisions.json"),
+        vec![
+            decision("manifest-proposed", None),
+            decision("unavailable-source", Some("M1")),
+            decision(
+                "claim-unsupported",
+                Some("/profiles/0/metrics/height_m/range"),
+            ),
+            decision(
+                "claim-contradicted",
+                Some("/profiles/0/metrics/dbh_m/range"),
+            ),
+            decision("level-miss", Some("crown")),
+        ],
+    )
+    .unwrap();
+    // The dbh field has spent both its search rounds.
+    let round = json!({"round": 1, "decision": "d", "gap": "g", "query": "q", "hits": [],
+        "tried": [], "admitted": [], "ledger": [], "at": "t"});
+    std::fs::write(
+        dir.join("search-rounds.json"),
+        json!({"fields": {"dbh_m": [round, round]}}).to_string(),
+    )
+    .unwrap();
+    let run = telperion_jev::runner::Run {
+        species: "s".into(),
+        paths: Paths::new(&dir),
+        catalogue: dir.join("catalogue"),
+        tuning: dir.join("tuning.json"),
+        adapter: "fixture:none".into(),
+        accept: false,
+    };
+    let settled = telperion_jev::runner::pipeline::settle(&run).unwrap();
+    assert_eq!(
+        settled,
+        [
+            "s/x/claim-unsupported//profiles/0/metrics/height_m/range",
+            "s/x/manifest-proposed",
+            "s/x/unavailable-source/M1",
+        ]
+    );
+    let options: Vec<String> = read_resolutions(&dir.join("resolutions.json"))
+        .unwrap()
+        .into_iter()
+        .map(|r| r.option)
+        .collect();
+    assert_eq!(options, ["replace-source", "skip", "drop-source"]);
 }

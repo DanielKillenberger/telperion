@@ -30,14 +30,14 @@ visible to an interactive shell (`docs/typesafe.md`).
 
 | Stage | Runs | Writes |
 |---|---|---|
-| Sources | discover, fetch (`docs/species-pipeline.md`) | `discover.json`, `fetch.json`, the admitted manifest |
-| Profile | extract, screen, quality, select, verify, fit; search-again while a requirement has a round left, then the profile again | `packet/profile.json`, `packet/references.json` |
-| Capability | the gate: the host's `packet/capability.json` against the generator's vocabulary | `gate.json` |
-| Catalogue | generate, the gate's seed audit, document | `packet/species.json`, `packet/specimens.json`, `catalogue/<id>/ARTICLE.md` and source copies |
+| Sources | discover, fetch (`docs/species-pipeline.md`); an unadmitted proposal is skipped and an unreadable source dropped, both logged | `discover.json`, `fetch.json`, the admitted manifest |
+| Profile | extract, screen, quality, select, verify, fit; search-again while a requirement or a flagged claim's field has a round left, then the profile again; the reference inventory | `packet/profile.json`, `packet/references.json`, `runner/inventory/<hash>/` |
+| Capability | the gate: the host's `packet/capability.json` against the generator's vocabulary; it runs before Catalogue, which generates from it | `gate.json` |
+| Catalogue | generate, the gate's seed audit, the records no stage writes, document, the pages | `packet/species.json`, `packet/specimens.json`, `sources.json`, `stills.json`, `NOTES.md`, the `pins.json` stub, source copies, `ARTICLE.md`, `README.md` |
 | Start | the profile's values mapped onto dials (`data/profile-to-preset.json`) | `runner/start.json` |
 | Tune | one tuning revision (`docs/tuning-loop.md`) | `runner/tuning/<n>/`, `runner/tuning/result.json` |
 | Gaps | every trait still failing, classed | `runner/gaps.json`, `runner/gaps.md` |
-| Accept | the owner's look; with `--accept`, the tree as a value table | `runner/accepted.json` |
+| Accept | the owner's look; with `--accept`, the tree into core as the species' preset and its pins | `crates/telperion-core/src/presets/species.rs` (and `presets.rs` for a new species), `pins.json`, `stills.json`, `runner/accepted.json` |
 
 Every stage's word goes to `runner/log.jsonl`, with each open decision the
 run logged and did not wait on.
@@ -46,20 +46,26 @@ run logged and did not wait on.
 
 A run stops for three things only, and prints `STOPPED:` with the reason:
 
-- **A claim.** `claim-contradicted`, `claim-unsupported` and their article
-  kinds: a person settles each in `resolutions.json`
-  (`docs/species-pipeline.md`, "Decisions"), and the next run reruns what
-  reads the resolutions.
+- **A claim.** `claim-contradicted` or `claim-unsupported` once its field
+  has no search round left, and the article kinds: a person settles each in
+  `resolutions.json` (`docs/species-pipeline.md`, "Decisions"), and the next
+  run reruns what reads the resolutions. While a round is left, the runner
+  sends the claim to the search itself.
 - **An identity gap.** A capability the species needs and the generator
   cannot express stops the run at the Capability stage (evidence in
   `gate.json`); a trait tuning could not move stops it at Gaps (`gaps.md`). It waits until its spec lands, which rebuilds the
   tools and reruns Tune, or until the host reclasses it in
   `packet/capability.json`.
 - **The owner's look.** The owner looks at the tuned tree in the harness and
-  runs `species <id> --accept`. An acceptance names the tree's key, so a later
-  revision's tree waits for a look of its own, and it is refused while
-  `scripts/catalogue-check.mjs` fails the species' catalogue folder or does
-  not run.
+  runs `species <id> --accept`. Accepting refreshes the folder's pins and
+  stills, and writes the tree into `presets/species.rs` in the shipped
+  presets' style: a shipped species keeps its function and comments, with
+  each moved row's line set or added under the acceptance's note; a new
+  species gets a function of every row off the default family and its
+  registration in `presets.rs`. It is refused, with core untouched, while
+  `scripts/catalogue-check.mjs` fails the folder or does not run. An
+  acceptance names the tree's key, so a later revision waits for a look of
+  its own.
 
 Every other condition is rerun or logged. A stage that fails names itself and
 leaves no record, so the next run tries it again.
@@ -72,7 +78,7 @@ required cells, the reviewer adapters, the tracks and the dial ids the run
 tunes. The runner fills the rest per revision:
 
 - `measure_binary` and `matched.headless` are the tools the runner just
-  built.
+  built, and `reference_first` is the inventory the Profile stage built.
 - `initial_overrides` is the last kept tree's overlay, or `start.json`'s on
   the first revision. The config's own `initial_overrides` are the person's
   entries and win over a derived value in Start.

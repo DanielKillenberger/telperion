@@ -4,7 +4,8 @@
 //! the first. Its dials are the rows of the dial table read from disk when it
 //! starts, never a copy frozen into the config, so a row the generator gained
 //! or lost is offered or dropped on the next revision. It draws and measures
-//! with the tools the runner just built. The revision ends when its rounds
+//! with the tools the runner just built, against the reference inventory the
+//! Profile stage built. The revision ends when its rounds
 //! stop keeping anything, and its result becomes the stage's artifact. A
 //! revision that failed (no key, an interrupted paid call, no tree kept)
 //! leaves the last kept result alone and fails the stage, so the next run
@@ -24,17 +25,11 @@ pub fn table() -> PathBuf {
 }
 
 /// The files the tuning config names whose bytes a revision reads: the
-/// profile manifest, the camera references, the reference inventory and its
-/// preparation, and the contact-sheet protocol.
+/// profile manifest, the camera references and the contact-sheet protocol.
+/// The reference inventory is the Profile stage's (`runner::inventory`).
 pub fn referenced(template: &Path) -> Result<Vec<PathBuf>, String> {
     let config = read_json(template).map_err(|e| e.to_string())?;
-    let named = [
-        "/profiles",
-        "/matched/references",
-        "/reference_first/inventory/path",
-        "/reference_first/preparation/path",
-        "/sheet/protocol",
-    ];
+    let named = ["/profiles", "/matched/references", "/sheet/protocol"];
     Ok(named
         .iter()
         .filter_map(|at| config.pointer(at).and_then(Value::as_str))
@@ -93,6 +88,7 @@ pub fn run(template: &Path, tools: &Tools, out: &Path) -> Result<String, String>
     let (dials, gone) = live_dials(&config["dials"])?;
     config["dials"] = json!(dials);
     config["initial_overrides"] = base(out)?;
+    config["reference_first"] = super::inventory::pins(template, out)?;
     config["measure_binary"] = json!(tools.species_measure);
     config["matched"]["headless"] = json!(tools.headless);
     let revisions = out.join("tuning");

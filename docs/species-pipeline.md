@@ -187,7 +187,7 @@ resolution records itself as `consumed_by` on the decision.
 
 | Kind | Options | Consumed by |
 |---|---|---|
-| `manifest-proposed` | `admit`, `reject` | every stage after discover; a rejected proposal stops them until the seed is edited and discover runs again |
+| `manifest-proposed` | `admit`, `reject`, `skip` | every stage after discover; a rejected proposal stops them until the seed is edited and discover runs again; `skip` (the runner's) goes on with the manifest as it stands |
 | `unavailable-source` | `retry`, `replace-source`, `drop-source` | fetch: `retry` fetches again, `replace-source` fetches the `url` in the resolution's `payload` under the same source id and records both urls, `drop-source` skips the source and records it under `dropped` |
 | `coverage-gap` | `accept-rows`, `fix-table`, `drop-table` | fetch: `accept-rows` keeps the rows as parsed, `fix-table` reads the table entry the manifest now admits (and stops if the count still differs), `drop-table` records the table with no rows |
 | `data-insufficient` | `admit-proxy`, `add-sources`, `lower-bar` | quality, by editing the manifest's fields only |

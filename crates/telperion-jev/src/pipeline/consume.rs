@@ -30,7 +30,8 @@ pub const SUPERSEDED: &str = "superseded";
 /// listed here is resolved by a person and consumed by no stage.
 pub fn consumers(kind: &str) -> Option<(&'static [&'static str], &'static [&'static str])> {
     match kind {
-        "manifest-proposed" => Some((&["admit", "reject"], &STAGES[1..])),
+        // `skip` goes on with the manifest as it stands (fn-149).
+        "manifest-proposed" => Some((&["admit", "reject", "skip"], &STAGES[1..])),
         "unavailable-source" => Some((&["retry", "replace-source", "drop-source"], &["fetch"])),
         "coverage-gap" => Some((&["accept-rows", "fix-table", "drop-table"], &["fetch"])),
         "data-insufficient" => Some((&["admit-proxy", "add-sources", "lower-bar"], &["quality"])),

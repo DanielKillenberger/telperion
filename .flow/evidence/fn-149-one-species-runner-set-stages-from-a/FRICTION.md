@@ -34,3 +34,10 @@
 - Slowed by: fn-80's `catalogue-article.mjs` requires an appearance block that master's palm article, written with the older script, lacks, so `npm test` failed on `catalogue/date-palm/ARTICLE.md` after the carry; master itself was green. The workspace cargo gate never sees it.
 - Cost: about 5 minutes; fixed by the script's own refresh (`node scripts/catalogue-article.mjs --species date-palm`).
 - Would remove it: running `node scripts/catalogue-check.mjs` in the Rust gate's neighbourhood whenever `scripts/catalogue-*.mjs` changes, or refreshing every article from the script that validates it in the same commit.
+
+## 2026-09-25 14:40, worker fn-149.1 (continuation): serde_json sorts keys, the catalogue scripts do not
+
+- Doing: writing `sources.json` from the run's records for the Catalogue stage.
+- Slowed by: the catalogue's JSON is written by the Node scripts in insertion order while the jev crate's serde_json sorts keys, so a record rewritten with the same values changed its bytes and made the article that recorded its checksum stale.
+- Cost: about 10 minutes; fixed by rewriting a record only when its values change.
+- Would remove it: one canonical JSON form for the catalogue records, shared by the scripts and the Rust writers.

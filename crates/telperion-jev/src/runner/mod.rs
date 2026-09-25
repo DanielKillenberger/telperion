@@ -12,6 +12,7 @@ pub mod accept;
 pub mod catalogue;
 pub mod derive;
 pub mod gaps;
+pub mod inventory;
 pub mod live;
 pub mod pins;
 pub mod pipeline;

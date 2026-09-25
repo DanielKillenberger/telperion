@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use super::pipeline::{self, Literature};
 use super::preset::Names;
 use super::tools::Tools;
-use super::{accept, gaps, start, tune, Done, Run, Stage, Stages, Stop};
+use super::{accept, gaps, inventory, start, tune, Done, Run, Stage, Stages, Stop};
 use crate::pipeline::canon::read_json;
 use crate::pipeline::manifest;
 
@@ -42,7 +42,12 @@ impl Stages for Live {
         let out = run.out();
         let p = &run.paths;
         Ok(match stage {
-            Stage::Sources | Stage::Profile => pipeline::files(run, stage).0,
+            Stage::Sources => pipeline::files(run, stage).0,
+            Stage::Profile => {
+                let mut files = pipeline::files(run, stage).0;
+                files.push(run.tuning.clone());
+                files
+            }
             Stage::Capability | Stage::Catalogue => {
                 let mut files = pipeline::files(run, stage).0;
                 files.extend(self.tools.files());
@@ -57,6 +62,7 @@ impl Stages for Live {
             Stage::Tune => {
                 let mut files = vec![start::file(&out), run.tuning.clone(), tune::table()];
                 files.extend(tune::referenced(&run.tuning)?);
+                files.extend(inventory::files(&run.tuning, &out)?);
                 files.extend(self.tools.files());
                 files
             }
@@ -79,6 +85,11 @@ impl Stages for Live {
                 vec![json, md]
             }
             Stage::Accept => vec![accept::file(&out)],
+            Stage::Profile => {
+                let mut files = pipeline::files(run, stage).1;
+                files.extend(inventory::files(&run.tuning, &out).unwrap_or_default());
+                files
+            }
             _ => pipeline::files(run, stage).1,
         }
     }

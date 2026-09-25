@@ -22,14 +22,14 @@ The date palm run (fn-80, fn-82) proved the method: literature sets the starting
 
 **The runner.** One binary, `species <id>`, reruns only the stages whose inputs changed (a content hash of the input artifacts, never the build id), and each stage writes one artifact: [inferred]
 
-1. **Sources.** Discover, fetch and self-admit sources by rights → `sources.json` and the fetch cache.
-2. **Profile.** Extract, screen, select, verify and fit → `packet/profile.json` (values with their ranges) and `packet/references.json` (reference photographs). A contradicted or unsupported claim is the one decision a person settles here.
-3. **Catalogue.** The article, source copies and README in `catalogue/<id>/`, as the catalogue scripts write them today.
-4. **Capability.** The species' traits against the generator's vocabulary → `packet/capability.json`: expressed, missing identity traits, missing global traits.
+1. **Sources.** Discover, fetch and self-admit sources by rights → the admitted manifest and the fetch cache. An unavailable source or an unadmitted proposal is skipped and logged, never waited on (owner, 2026-09-25).
+2. **Profile.** Extract, screen, select, verify and fit → `packet/profile.json` (values with their ranges) and `packet/references.json` (reference photographs), then the reference inventory the reviewer compares against (owner, 2026-09-25). A contradicted or unsupported claim goes to the search-again rounds; once its field has no round left it is the one decision a person settles here.
+3. **Capability.** The species' traits against the generator's vocabulary → `gate.json` from the host's `packet/capability.json`: expressed, missing identity traits, missing global traits. It runs before Catalogue because Catalogue generates from the gate (owner, 2026-09-25).
+4. **Catalogue.** The packet's species record and stills, then `sources.json`, `stills.json`, `NOTES.md`, the pins stub, the source copies, the article and the pages in `catalogue/<id>/`, so `scripts/catalogue-check.mjs` passes a fresh run's folder.
 5. **Start.** The profile's values mapped onto dials → the starting overlay (today's `conductor/derive.rs`).
 6. **Tune.** Rounds over the live dials of the current tree (fn-148's gates): render, the reference-first reviewer against the photographs, proposals, keep or roll back. Each revision starts from the last kept tree. It stops when rounds stop keeping anything → `tuning/result.json` with the tree, its stills and the traits still failing.
 7. **Gaps.** Each failing trait becomes one line in `gaps.md`: reachable (the dial and a two-value A/B render the runner made), an identity gap (a spec draft the species waits on) or a global gap (a spec draft for the backlog). The host reviews and mints; the runner never mints.
-8. **Accept.** The owner looks in the harness; accepting writes the overlay into the preset as a value table and refreshes the catalogue pins.
+8. **Accept.** The owner looks in the harness; accepting writes the tree into core as the species' preset function in today's style (a new species also registered) and refreshes the catalogue pins (owner, 2026-09-25; value files are fn-152's).
 
 **Kept, because they earned it this run.** The literature stages and their Jev selections; the reviewer's receipt with one repair and code trimming (fn-80, a4b3d056); the no-progress stop; the stage-idempotence records; the catalogue scripts. Jev's labelled sets stay as the tests that set its thresholds, never as runtime gates. [inferred]
 

@@ -8,7 +8,8 @@ use serde_json::{json, Value};
 
 use crate::caller::{load_key, UreqTransport};
 use crate::pipeline::adapter::{FetchAdapter, FirecrawlCli, FixtureAdapter, RawSource};
-use crate::pipeline::decision::{read_decisions, Decision, Status};
+use crate::pipeline::admission::record_resolution;
+use crate::pipeline::decision::{read_decisions, Decision, Resolution, Status};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::known::{flow_root, KnownSources};
 use crate::pipeline::render::SpeciesExample;
@@ -113,9 +114,6 @@ impl Literature<'_> {
         };
         let paths = &self.run.paths;
         let mut words = Vec::new();
-        let mut note = |name: &str, ran: bool| {
-            words.push(format!("{name} {}", if ran { "ran" } else { "current" }))
-        };
         let e = |err: crate::pipeline::stage::StageError| err.to_string();
         match stage {
             Stage::Sources => {
@@ -126,54 +124,169 @@ impl Literature<'_> {
                     &paths.manifest(),
                 );
                 let ran = discover::run(paths, adapter.as_ref(), &judge, &known).map_err(e)?;
-                note("discover", !matches!(ran, discover::Outcome::Current));
+                said(
+                    &mut words,
+                    "discover",
+                    !matches!(ran, discover::Outcome::Current),
+                );
+                for id in settle(self.run)? {
+                    words.push(format!("skipped {id}"));
+                }
                 let ran = fetch::run(paths, adapter.as_ref()).map_err(e)?;
-                note("fetch", !matches!(ran, fetch::Outcome::Current));
+                said(&mut words, "fetch", !matches!(ran, fetch::Outcome::Current));
+                let dropped = settle(self.run)?;
+                if !dropped.is_empty() {
+                    fetch::run(paths, adapter.as_ref()).map_err(e)?;
+                    words.extend(dropped.into_iter().map(|id| format!("skipped {id}")));
+                }
             }
             Stage::Profile => {
                 // A requirement below its bar is searched for again and the
                 // profile rerun, until the search has no round left.
                 loop {
                     let ran = extract::run(paths).map_err(e)?;
-                    note("extract", !matches!(ran, extract::Outcome::Current));
+                    said(
+                        &mut words,
+                        "extract",
+                        !matches!(ran, extract::Outcome::Current),
+                    );
                     let ran = screen::run(paths, &judge).map_err(e)?;
-                    note("screen", !matches!(ran, screen::Outcome::Current));
+                    said(
+                        &mut words,
+                        "screen",
+                        !matches!(ran, screen::Outcome::Current),
+                    );
                     let ran = quality::run(paths, &judge).map_err(e)?;
-                    note("quality", !matches!(ran, quality::Outcome::Current));
+                    said(
+                        &mut words,
+                        "quality",
+                        !matches!(ran, quality::Outcome::Current),
+                    );
                     let ran = select::run(paths, &judge).map_err(e)?;
-                    note("select", !matches!(ran, select::Outcome::Current));
+                    said(
+                        &mut words,
+                        "select",
+                        !matches!(ran, select::Outcome::Current),
+                    );
                     let ran = verify::run(paths, &judge).map_err(e)?;
-                    note("verify", !matches!(ran, verify::Outcome::Current));
+                    said(
+                        &mut words,
+                        "verify",
+                        !matches!(ran, verify::Outcome::Current),
+                    );
                     let ran = fit::run(paths).map_err(e)?;
-                    note("fit", !matches!(ran, fit::Outcome::Current));
+                    said(&mut words, "fit", !matches!(ran, fit::Outcome::Current));
+                    // A flagged claim with a search round left goes to the
+                    // search; one without is the person's to settle.
+                    let sent = settle(self.run)?;
                     let adapter = self.adapter();
                     match search::run(paths, adapter.as_ref(), &judge).map_err(e)? {
-                        search::Outcome::Nothing => break,
-                        search::Outcome::Ran { .. } => note("search-again", true),
+                        search::Outcome::Nothing if sent.is_empty() => break,
+                        search::Outcome::Nothing => {}
+                        search::Outcome::Ran { .. } => {
+                            said(&mut words, "search-again", true);
+                            // What the search admitted is fetched before
+                            // the profile reads it again.
+                            fetch::run(paths, adapter.as_ref()).map_err(e)?;
+                            for id in settle(self.run)? {
+                                words.push(format!("skipped {id}"));
+                            }
+                        }
                     }
+                    words.extend(sent.into_iter().map(|id| format!("searching for {id}")));
                 }
+                // The references are chosen: the reviewer's inventory of them.
+                words.push(super::inventory::build(&self.run.tuning, &self.run.out())?);
             }
             Stage::Capability => {
                 gate::run(paths, &self.checks()).map_err(e)?;
-                note("gate", true);
+                said(&mut words, "gate", true);
             }
             Stage::Catalogue => {
                 let example = self.example();
                 let ran = generate::run(paths, &judge, &example, Some(&example)).map_err(e)?;
-                note("generate", !matches!(ran, generate::Outcome::Current));
+                said(
+                    &mut words,
+                    "generate",
+                    !matches!(ran, generate::Outcome::Current),
+                );
                 // The gate audits the specimen seeds generate just wrote.
                 forget(paths.artifact("gate"))?;
                 gate::run(paths, &self.checks()).map_err(e)?;
-                note("gate", true);
+                said(&mut words, "gate", true);
                 self.folder()?;
                 let ran = document::run(paths, &judge).map_err(e)?;
-                note("document", !matches!(ran, document::Outcome::Current));
+                said(
+                    &mut words,
+                    "document",
+                    !matches!(ran, document::Outcome::Current),
+                );
                 catalogue::pages(Path::new("."))?;
             }
             _ => unreachable!("not a literature stage"),
         }
         Ok(words.join(", "))
     }
+}
+
+fn said(words: &mut Vec<String>, name: &str, ran: bool) {
+    words.push(format!("{name} {}", if ran { "ran" } else { "current" }));
+}
+
+/// The option the runner resolves an open decision of `kind` with, where it
+/// settles that kind itself: an unadmitted proposal is skipped, an unreadable
+/// source dropped, and a flagged claim sent to the search for another source.
+fn option(kind: &str) -> Option<&'static str> {
+    match kind {
+        "manifest-proposed" => Some("skip"),
+        "unavailable-source" => Some("drop-source"),
+        "claim-contradicted" | "claim-unsupported" => Some("replace-source"),
+        _ => None,
+    }
+}
+
+/// The field a flagged claim's pointer names: the metric after `metrics`,
+/// else its last key.
+fn claimed(pointer: &str) -> &str {
+    let keys: Vec<&str> = pointer.split('/').collect();
+    keys.iter()
+        .position(|k| *k == "metrics")
+        .and_then(|at| keys.get(at + 1))
+        .or(keys.last())
+        .copied()
+        .unwrap_or_default()
+}
+
+/// Resolves every open decision the runner settles itself, recording each
+/// as the runner's resolution, and returns their ids. A claim is sent to the
+/// search only while its field has a round left.
+pub fn settle(run: &Run) -> Result<Vec<String>, String> {
+    let paths = &run.paths;
+    let list = read_decisions(&paths.decisions()).map_err(|e| e.to_string())?;
+    let rounds = search::read_rounds(paths).unwrap_or_default();
+    let mut settled = Vec::new();
+    for d in list.iter().filter(|d| d.status == Status::Open) {
+        let Some(option) = option(&d.kind) else {
+            continue;
+        };
+        let field = claimed(d.field.as_deref().unwrap_or_default());
+        if option == "replace-source" && rounds.get(field).map_or(0, Vec::len) >= search::MAX_ROUNDS
+        {
+            continue;
+        }
+        let resolution = Resolution {
+            id: d.id.clone(),
+            inputs_sha256: d.inputs_sha256.clone(),
+            option: option.into(),
+            by: "species runner".into(),
+            at: crate::pipeline::stage::now(),
+            note: "settled by the runner, never waited on (fn-149)".into(),
+            payload: Value::Null,
+        };
+        record_resolution(&paths.resolutions(), &resolution).map_err(|e| e.to_string())?;
+        settled.push(d.id.clone());
+    }
+    Ok(settled)
 }
 
 /// The pipeline stages a runner stage runs, whose records carry their keys.
