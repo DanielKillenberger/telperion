@@ -27,6 +27,8 @@ COMPARISON_VERSION = "reference-first-comparison-v2"
 # The photograph screen's version (fn-149, reference photographs found by the
 # Profile stage).
 SCREEN_VERSION = "reference-screen-v1"
+# The preflight probe's version (fn-149, `species --status`).
+PROBE_VERSION = "reference-probe-v1"
 
 
 def trait_id():
@@ -48,6 +50,13 @@ def prepare(envelope):
             "id": {"type": "string", "maxLength": 64}, "priority": {"type": "string", "enum": ["core", "secondary", "variation"]},
             "observation": {"type": "string"}, "reference_ids": strings(), "uncertain": {"type": "boolean"}})},
             "observations": {**strings(), "maxItems": 16}})
+    elif stage == "probe":
+        # fn-149: `species --status` asks the smallest call the adapter makes,
+        # no image and a one-field answer, to learn the CLI can answer at all.
+        if request.get("protocol") != PROBE_VERSION:
+            raise ValueError("stale probe protocol")
+        images = []
+        schema = object_schema({"ok": {"type": "boolean"}})
     elif stage == "screen":
         # fn-149: one look over candidate photographs the Profile stage found;
         # per photograph, the species, maturity, open growth, framing and view.
@@ -78,7 +87,7 @@ def prepare(envelope):
                 "status": {"type": "string", "enum": ["pass", "fail", "unknown"]}, "evidence_ids": strings(), "explanation": {"type": "string"}})}})
     else:
         raise ValueError("unknown stage")
-    if stage != "repair" and (not images or len(images) > 12):
+    if stage not in ("repair", "probe") and (not images or len(images) > 12):
         raise ValueError("invalid image count")
     paths = []
     for image in images:
@@ -88,6 +97,8 @@ def prepare(envelope):
         paths.append(p)
     if hashlib.sha256(envelope["prompt"].encode()).hexdigest() != envelope["prompt_sha256"]:
         raise ValueError("prompt hash mismatch")
+    if stage == "probe":
+        return paths, schema, envelope["prompt"] + "\nDo not use tools or inspect files. Return JSON only."
     if stage == "repair":
         violations, answer = envelope.get("violations"), envelope.get("answer")
         if not isinstance(answer, dict) or not violations or not all(isinstance(v, str) for v in violations):

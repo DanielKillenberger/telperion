@@ -18,6 +18,7 @@ pub mod gaps;
 pub mod inventory;
 pub mod literature;
 pub mod pins;
+pub mod preflight;
 pub mod preset;
 pub mod profile;
 pub mod record;

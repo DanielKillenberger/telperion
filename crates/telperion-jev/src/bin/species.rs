@@ -8,7 +8,8 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use telperion_jev::pipeline::stage::Paths;
-use telperion_jev::runner::{self, Run, Scope, STAGES};
+use telperion_jev::runner::record::State;
+use telperion_jev::runner::{self, preflight, Run, Scope, STAGES};
 use telperion_jev::tape;
 
 const USAGE: &str = "usage: species <id> [--until STAGE | --stage STAGE | --status] [--record DIR | --replay DIR] [--accept] [--settle-claims] [--tuning FILE] [--dir DIR] [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR]";
@@ -86,17 +87,36 @@ fn absolute(dir: &str) -> String {
     std::fs::canonicalize(dir).map_or(dir.into(), |p| p.display().to_string())
 }
 
+/// Each stage's state, the preflight, and what the stages that would run
+/// are expected to spend. No stage runs.
 fn status(run: &Run) -> ExitCode {
-    match runner::status(run, &STAGES) {
-        Ok(states) => {
-            for (name, state) in states {
-                println!("{name}: {state}");
-            }
-            ExitCode::SUCCESS
-        }
+    let states = match runner::status(run, &STAGES) {
+        Ok(states) => states,
         Err(err) => {
             eprintln!("{err}");
-            ExitCode::from(1)
+            return ExitCode::from(1);
         }
+    };
+    for (name, state) in &states {
+        println!("{name}: {state}");
+    }
+    let mut failed = false;
+    for (name, found) in preflight::checks(run, tape::Tape::from_env().as_ref()) {
+        match found {
+            Ok(said) => println!("preflight {name}: ok, {said}"),
+            Err(why) => {
+                failed = true;
+                println!("preflight {name}: FAILED, {why}");
+            }
+        }
+    }
+    for (name, state) in &states {
+        if *state != State::Current {
+            println!("expected {name}: {}", preflight::expected(run, name));
+        }
+    }
+    match failed {
+        true => ExitCode::from(1),
+        false => ExitCode::SUCCESS,
     }
 }

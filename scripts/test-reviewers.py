@@ -211,6 +211,18 @@ class ReferenceFirstClaude(unittest.TestCase):
                 self.assertNotEqual(result["status"], "ok")
                 self.assertIn("You've hit your weekly limit", result["error"], script)
 
+    def test_the_probe_is_one_call_with_no_image(self):
+        """fn-149: the preflight's smallest call."""
+        prepared = load_module("reference-first.py")
+        prompt = "Answer ok true."
+        envelope = {"stage": "probe", "request": {"protocol": prepared.PROBE_VERSION}, "request_sha256": "r",
+                    "prompt": prompt, "prompt_sha256": sha256(prompt.encode())}
+        paths, schema, _ = prepared.prepare(envelope)
+        self.assertEqual(paths, [])
+        self.assertEqual(list(schema["properties"]), ["ok"])
+        result, calls = run_adapter("reference-first.py", envelope, fake_claude=success_claude_fake({"ok": True}))
+        self.assertEqual((len(calls), result["status"]), (1, "ok"))
+
     def test_repair_is_one_text_only_call_in_the_comparison_schema(self):
         """fn-80: a repair carries the previous answer and the exact broken
         rules, no images, and is answered in the comparison's schema."""
