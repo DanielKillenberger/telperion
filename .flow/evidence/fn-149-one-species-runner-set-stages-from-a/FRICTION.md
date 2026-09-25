@@ -90,3 +90,10 @@
 - Slowed by: round 1 found it, round 2 confirmed the path and request-hash half fixed and found the ledger and identity half; the fix for that half (3f9d6a86) could not be reviewed because MAX_REVIEW_ITERATIONS=2 answered ESCALATE. This worker did not reset the rounds itself: this was not an owner re-plan.
 - Cost: one blocked review; the host must reset or review.
 - Would remove it: a replay test over a real two-directory run before the first review, which the host's recording will give, or a cap of three for a task that adds a new layer.
+
+## 2026-09-25 23:05, worker fn-149.1 (final continuation): the recording held run-specific paths and a second run reran
+
+- Doing: turning the live beech recording into the replay fixture.
+- Slowed by: three things a replay found that no unit test had: the adapter tape keyed the adapter script by its absolute checkout path (re-keyed by file name); the recorded tuning config held absolute worktree paths (made repo-relative, run paths set by the test); and a second run reran Sources because Profile writes the resolutions Sources reads (fixed in the runner). Pruning the tape needed inotifywait, since no replay log names the entries it served; dcg also refused an os.remove and a redirect in the helper scripts.
+- Cost: about 25 minutes.
+- Would remove it: the tape writing a served-keys list in replay, and recording configs with repo-relative paths from the start.
