@@ -20,7 +20,7 @@ The repository keeps two instruction files that have drifted apart. Codex agents
 
 **The change.** [paraphrase]
 - AGENTS.md takes CLAUDE.md's full current content: every owner rule, the flow-next snippet and the model-routing block. No rule is reworded.
-- CLAUDE.md becomes a single `@AGENTS.md` import, plus one line saying where the rules live.
+- CLAUDE.md is removed. Claude Code reads AGENTS.md natively: verified 2026-09-25 in a directory holding only AGENTS.md, outside the repository, with every tool disabled. A fresh `claude -p` session stated the gate command and the mantra (owner: "we can remove claude.md now ... claude.md is not needed anymore").
 
 **Unknown.** Whether flow-next's setup, run again later, writes its snippet back into CLAUDE.md; the implementer checks its behaviour and records it. [unknown]
 
@@ -28,7 +28,7 @@ The repository keeps two instruction files that have drifted apart. Codex agents
 <!-- scope: both -->
 
 - **R1:** Every section and rule in CLAUDE.md on master appears in AGENTS.md word for word, and AGENTS.md holds nothing that contradicts it. Errors: a rule present only in the old AGENTS.md is carried over only if CLAUDE.md lacks it, and the PR names it. [paraphrase]
-- **R2:** CLAUDE.md contains only the `@AGENTS.md` import and one pointer line. A fresh Claude Code session in the repo sees the rules, which a test prompt or `/memory` confirms. [paraphrase]
+- **R2:** There is no CLAUDE.md. A fresh Claude Code session, run with tools disabled in a directory holding only AGENTS.md, states the rules. [paraphrase]
 - **R3:** Nothing else in the repository refers to a CLAUDE.md section as the home of a rule; such references point to AGENTS.md. Errors: no error surface beyond stale references, which are updated. [paraphrase]
 
 ## Boundaries
