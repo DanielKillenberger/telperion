@@ -2,13 +2,15 @@
 //! write `packet/profile.json`. A requirement below its bar, or a flagged
 //! value with a search round left, is searched for again and the profile
 //! rerun; once the rounds are spent the runner settles the claim itself
-//! (`literature::settle`). The references chosen, it builds the reviewer's
-//! inventory of them.
+//! (`literature::settle`). It then finds the reference photographs
+//! (`pipeline::photos`) and builds the reviewer's inventory of them.
 use std::path::PathBuf;
 
 use super::literature::{self as lit, e, said, settle, Jev};
 use super::{inventory, Done, Run, Stage, Stop};
+use crate::pipeline::canon::read_json;
 use crate::pipeline::judge::Judge;
+use crate::pipeline::photos;
 use crate::pipeline::search;
 use crate::pipeline::stages::{extract, fetch, fit, quality, screen, select, verify};
 
@@ -61,6 +63,8 @@ impl Stage for Profile {
             }
             words.extend(sent);
         }
+        words.push(photographs(run, &judge)?);
+        inventory::record(paths, &run.out())?;
         words.push(inventory::build(&run.tuning, &run.out())?);
         lit::logged(run, words.join(", "))
     }
@@ -68,6 +72,20 @@ impl Stage for Profile {
     fn stop(&self, run: &Run) -> Result<Option<Stop>, String> {
         lit::claims(run)
     }
+}
+
+/// The reference photographs the run finds for itself, looked at through
+/// the tuning config's reviewer adapter.
+fn photographs(run: &Run, judge: &Judge<'_>) -> Result<String, String> {
+    let tuning = read_json(&run.tuning).map_err(|e| format!("{}: {e}", run.tuning.display()))?;
+    let adapter = serde_json::from_value(tuning["vision"].clone())
+        .map_err(|e| format!("tuning config vision: {e}"))?;
+    photos::find(
+        &run.paths,
+        &photos::Http,
+        judge,
+        &photos::Vision { adapter },
+    )
 }
 
 /// One pass of the six pipeline stages.

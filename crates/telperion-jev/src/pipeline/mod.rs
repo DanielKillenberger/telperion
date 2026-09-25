@@ -17,6 +17,7 @@ pub mod judge;
 pub mod known;
 pub mod leads;
 pub mod manifest;
+pub mod photos;
 pub mod render;
 pub mod requirements;
 pub mod rights;

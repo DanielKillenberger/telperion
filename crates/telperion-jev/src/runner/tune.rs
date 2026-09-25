@@ -118,6 +118,7 @@ pub fn run(template: &Path, tools: &Tools, out: &Path) -> Result<String, String>
     let (dials, gone) = live_dials(&config["dials"])?;
     config["dials"] = json!(dials);
     config["initial_overrides"] = base(out)?;
+    config["references"] = super::inventory::references(template, out)?;
     config["reference_first"] = super::inventory::pins(template, out)?;
     config["measure_binary"] = json!(tools.species_measure);
     config["matched"]["headless"] = json!(tools.headless);

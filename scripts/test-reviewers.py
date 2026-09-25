@@ -220,6 +220,24 @@ class ReferenceFirstClaude(unittest.TestCase):
             with self.assertRaises(ValueError):
                 prepared.prepare(dict(envelope, violations=[]))
 
+    def test_screen_asks_one_verdict_per_candidate_photograph(self):
+        """fn-149: the Profile stage's look over the photographs it found."""
+        prepared = load_module("reference-first.py")
+        with tempfile.TemporaryDirectory() as tmp:
+            image = self.build_envelope(tmp)["request"]["references"][0]["image"]
+            request = {"protocol": prepared.SCREEN_VERSION, "target_species": "Fagus sylvatica",
+                       "candidates": [{"id": "candidate-0", "image": image}, {"id": "candidate-1", "image": image}]}
+            prompt = "Screen instruction"
+            envelope = {"stage": "screen", "request": request, "request_sha256": "bound-by-rust",
+                        "prompt": prompt, "prompt_sha256": sha256(prompt.encode())}
+            paths, schema, _ = prepared.prepare(envelope)
+            self.assertEqual(len(paths), 2)
+            listed = schema["properties"]["candidates"]
+            self.assertEqual((listed["minItems"], listed["maxItems"]), (2, 2))
+            self.assertEqual(listed["items"]["properties"]["view"]["enum"], ["leaf-on", "bare", "bark", "other"])
+            with self.assertRaises(ValueError):
+                prepared.prepare(dict(envelope, request=dict(request, protocol="old")))
+
 
 if __name__ == "__main__":
     unittest.main()

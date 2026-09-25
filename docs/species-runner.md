@@ -44,7 +44,7 @@ before them never builds. The key must be visible to an interactive shell
 | Stage | Runs | Writes |
 |---|---|---|
 | Sources | discover, fetch (`docs/species-pipeline.md`); an unadmitted proposal is skipped and an unreadable source dropped, both logged | `discover.json`, `fetch.json`, the admitted manifest |
-| Profile | extract, screen, quality, select, verify, fit; search-again while a requirement or a flagged claim's field has a round left, then the profile again; once the rounds are spent, each claim settled by the runner (below); the reference inventory | `packet/profile.json`, `packet/references.json`, `runner/inventory/<hash>/` |
+| Profile | extract, screen, quality, select, verify, fit; search-again while a requirement or a flagged claim's field has a round left, then the profile again; once the rounds are spent, each claim settled by the runner (below); the reference photographs (below) and their inventory | `packet/profile.json`, `packet/references.json`, `runner/references.json`, `runner/inventory/<hash>/` |
 | Capability | the gate: the host's `packet/capability.json` against the generator's vocabulary; it runs before Catalogue, which generates from it | `gate.json` |
 | Catalogue | generate, the gate's seed audit, the records no stage writes, document (the article scaffold and the cite check over it), the pages | `packet/species.json`, `packet/specimens.json`, `sources.json`, `stills.json`, `NOTES.md`, the `pins.json` stub, source copies, `ARTICLE.md`, `README.md` |
 | Start | the profile's values mapped onto dials (`data/profile-to-preset.json`) | `runner/start.json` |
@@ -111,18 +111,51 @@ leaves no record, so the next run tries it again.
 ## The tuning config
 
 The config at `--tuning` is authored once per species with the manifest: the
-preset, the profile manifest and id the measurer reads, the references and
-required cells, the reviewer adapters, the tracks and the dial ids the run
-tunes. The runner fills the rest per revision:
+preset, the profile manifest and id the measurer reads, the required cells,
+the reviewer adapters, the tracks and the dial ids the run tunes. Its
+`references` may be an empty list: the run then compares against the
+photographs the Profile stage found. The runner fills the rest per revision:
 
 - `measure_binary` and `matched.headless` are the tools the runner just
-  built, and `reference_first` is the inventory the Profile stage built.
+  built, `references` are the config's own or else the found ones
+  (`runner/references.json`), and `reference_first` is the inventory the
+  Profile stage built of them.
 - `initial_overrides` is the last kept tree's overlay, or `start.json`'s on
   the first revision. The config's own `initial_overrides` are the person's
   entries and win over a derived value in Start.
 - `dials` are the rows of `crates/telperion-jev/data/dials.json`, read when
   the revision starts, that the config names, all of them when it names none. A row the table no longer
   has is dropped and named in the log.
+
+## Reference photographs
+
+No run from a name needs a person to supply photographs (owner,
+2026-09-25). Once the profile is settled, the Profile stage finds them
+(`pipeline::photos`) unless `packet/references.json` already records two:
+
+1. **Candidates**, at most twelve: up to two images from each admitted
+   open-licence source's page (four in all), then Wikimedia Commons, asked
+   for the taxon (six), its bark (three) and the tree in winter (three).
+   Commons is a photograph host; the no-Wikipedia rule is about citing
+   values.
+2. **Rights.** Each Commons file's licence statements go to Jev's rights
+   question set; only `open-licence` goes on. An admitted source's image
+   takes its source's class.
+3. **Copies.** Code downloads each JPEG or PNG into the run's cache,
+   named by its sha256.
+4. **One look.** The reviewer adapter in the tuning config (`vision`,
+   `scripts/reference-first.py`, stage `screen`) looks at the whole batch
+   once and says, per photograph, whether it shows the species, a mature
+   open-grown tree and the whole tree, and its view: leaf-on, bare, bark or
+   other.
+5. **Kept**: up to two whole trees in leaf, one bare, one bark close-up,
+   appended to `packet/references.json` with their source (`R<n>` for a
+   Commons file), attribution, licence and sha256. A recorded reference is
+   never removed or rewritten.
+
+The cost is bounded: three free Commons queries, one Jev rights call per
+Commons candidate (twelve at most) and one vision call. The counts and the
+look's token usage go to `<run-dir>/cache/photos/find.json`.
 
 ## Gaps
 

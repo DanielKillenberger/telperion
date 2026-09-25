@@ -24,6 +24,11 @@ def strings():
 COMPARISON_VERSION = "reference-first-comparison-v2"
 
 
+# The photograph screen's version (fn-149, reference photographs found by the
+# Profile stage).
+SCREEN_VERSION = "reference-screen-v1"
+
+
 def trait_id():
     return {"type": ["string", "null"]}
 
@@ -43,6 +48,16 @@ def prepare(envelope):
             "id": {"type": "string", "maxLength": 64}, "priority": {"type": "string", "enum": ["core", "secondary", "variation"]},
             "observation": {"type": "string"}, "reference_ids": strings(), "uncertain": {"type": "boolean"}})},
             "observations": {**strings(), "maxItems": 16}})
+    elif stage == "screen":
+        # fn-149: one look over candidate photographs the Profile stage found;
+        # per photograph, the species, maturity, open growth, framing and view.
+        if request.get("protocol") != SCREEN_VERSION:
+            raise ValueError("stale screen protocol")
+        images = [c["image"] for c in request["candidates"]]
+        verdict = object_schema({"id": {"type": "string"}, "species": {"type": "string", "enum": ["yes", "no", "unsure"]},
+            "mature_open_grown": {"type": "boolean"}, "whole_tree": {"type": "boolean"},
+            "view": {"type": "string", "enum": ["leaf-on", "bare", "bark", "other"]}})
+        schema = object_schema({"candidates": {"type": "array", "minItems": len(images), "maxItems": len(images), "items": verdict}})
     elif stage in ("comparison", "repair"):
         if request.get("protocol") != COMPARISON_VERSION:
             raise ValueError("stale comparison protocol")
