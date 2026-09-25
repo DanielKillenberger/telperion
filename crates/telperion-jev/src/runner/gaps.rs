@@ -2,7 +2,8 @@
 //! run recorded, one line each in `gaps.md` with its evidence.
 //!
 //! - **reachable**: a live dial moved it in a rendered attempt the reviewer
-//!   judged; the line names the dial and the two values it was drawn at.
+//!   judged; the line names the dial, the two values it was drawn at and the
+//!   renders of both sides.
 //! - **identity**: the species is not recognisable without it. No capability
 //!   assessment at all, a missing capability the assessment classes identity
 //!   or leaves unclassed, and a failing trait no dial moved.
@@ -19,7 +20,8 @@ use serde_json::Value;
 
 use crate::pipeline::canon::{read_json, write_canonical};
 use crate::pipeline::stages::capability_class::{self, Class};
-use crate::tuning::result::{EndResult, PASSING};
+use crate::tuning::bundle::Move;
+use crate::tuning::result::{Attempt, EndResult, Still, PASSING};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -117,13 +119,13 @@ fn tuned(result: &EndResult) -> Vec<Gap> {
     }
     for entry in result.gaps.iter().filter(|g| g.status != PASSING) {
         // Only a move that rendered and that the reviewer judged is evidence
-        // a live dial reaches the trait.
+        // a live dial reaches the trait: its dial, both values and the
+        // renders of both sides.
         let moves: Vec<String> = entry
             .attempts
             .iter()
             .filter(|a| a.feasible && a.review.is_some())
-            .flat_map(|a| &a.moves)
-            .map(|m| format!("{} {} -> {}", m.dial, m.from, m.to))
+            .flat_map(|a| a.moves.iter().map(move |m| ab(m, a)))
             .collect();
         let mut evidence: Vec<String> = entry.reviewer_words.clone();
         evidence.extend(
@@ -150,6 +152,28 @@ fn tuned(result: &EndResult) -> Vec<Gap> {
         });
     }
     gaps
+}
+
+/// One reachable move: the dial, its two values, and the renders at each.
+fn ab(m: &Move, attempt: &Attempt) -> String {
+    let side = |stills: &[Still]| -> String {
+        let links: Vec<String> = stills
+            .iter()
+            .map(|s| format!("[{} seed {}]({})", s.view, s.seed, s.path))
+            .collect();
+        match links.is_empty() {
+            true => "no render recorded".into(),
+            false => links.join(", "),
+        }
+    };
+    format!(
+        "{} {} -> {} (A {}; B {})",
+        m.dial,
+        m.from,
+        m.to,
+        side(&attempt.before),
+        side(&attempt.after)
+    )
 }
 
 /// Writes `gaps.json` and `gaps.md`; the word counts each class.

@@ -212,7 +212,12 @@ fn every_attempt_carries_its_moves_its_adoption_and_whether_it_stood() {
         .unwrap();
     }
     run.trials[2].adopted = true;
+    run.trials[1].base = Some("base".into());
     let attempts = run.attempts_for(&gap());
+    // Both sides of the comparison travel with the attempt.
+    assert_eq!(attempts[0].before.len(), 1, "the tree it moved from");
+    assert_eq!(attempts[0].after[0].view, "B-WHOLE");
+    assert!(attempts[1].before.is_empty(), "no base, no before");
     let seen: Vec<_> = attempts
         .iter()
         .map(|a| (a.dial.as_str(), a.moves.len(), a.adopted, a.stood))

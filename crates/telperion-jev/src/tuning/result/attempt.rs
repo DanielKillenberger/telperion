@@ -1,6 +1,7 @@
 //! What each evaluated candidate did, as the result names it: the moves, the
 //! reviewer's words, and whether an adoption stood.
-use crate::tuning::{engine::Run, priority::Gap, state::CellStatus};
+use super::{still, Still};
+use crate::tuning::{engine::Run, evaluation::Trial, priority::Gap, state::CellStatus};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -42,6 +43,12 @@ pub struct Attempt {
     /// Why the closing review rolled the adoption back.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rolled_back: Option<String>,
+    /// The renders of the tree the attempt moved from, and of the attempt
+    /// itself: the two sides of the comparison the reviewer judged.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub before: Vec<Still>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub after: Vec<Still>,
 }
 
 /// Most moves one summary line names; a bundle beyond it is counted.
@@ -79,6 +86,15 @@ impl Attempt {
     }
 }
 
+/// Every still a trial was drawn at.
+fn renders(trial: &Trial) -> Vec<Still> {
+    trial
+        .comparisons
+        .iter()
+        .flat_map(|c| c.images.iter().map(still))
+        .collect()
+}
+
 fn number(v: f64) -> String {
     let s = format!("{v:.4}");
     s.trim_end_matches('0').trim_end_matches('.').to_string()
@@ -106,6 +122,13 @@ impl Run {
                 adopted,
                 stood: adopted.then_some(t.vetoed.is_none()),
                 rolled_back: t.vetoed.as_ref().map(|v| v.reasons.join("; ")),
+                before: t
+                    .base
+                    .as_deref()
+                    .and_then(|key| self.trials.iter().find(|b| b.key == key))
+                    .map(renders)
+                    .unwrap_or_default(),
+                after: renders(t),
                 review: crate::tuning::look::words(t),
                 dial: t.label.clone(),
                 round: t.round,

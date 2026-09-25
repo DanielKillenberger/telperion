@@ -85,7 +85,8 @@ tunes. The runner fills the rest per revision:
 Code classes each failing trait from what the run recorded:
 
 - **reachable**: a live dial moved it in a rendered attempt the reviewer
-  judged; the line names the dial and the two values it was drawn at.
+  judged; the line names the dial, the two values it was drawn at and links
+  the renders of both sides.
 - **identity**: no capability assessment at all, a missing capability the
   assessment classes identity or leaves unclassed, or a failing trait no dial
   moved.

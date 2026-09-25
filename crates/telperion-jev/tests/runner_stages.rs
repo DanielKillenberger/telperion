@@ -44,7 +44,9 @@ fn gap(id: &str, status: &str, moves: Value, feasible: bool, reviewed: bool) -> 
     let attempts = match moves.as_array().is_some_and(|m| !m.is_empty()) {
         true => json!([{"dial": "bundle", "round": 1, "action_ledger": null,
             "score_before_round": null, "score_after": null, "feasible": feasible,
-            "reason": null, "visual_outcome": null, "moves": moves, "review": review}]),
+            "reason": null, "visual_outcome": null, "moves": moves, "review": review,
+            "before": [{"view": "P-WHOLE", "seed": 1, "sha256": "a", "path": "r/a.png"}],
+            "after": [{"view": "P-WHOLE", "seed": 1, "sha256": "b", "path": "r/b.png"}]}]),
         false => json!([]),
     };
     json!({"id": id, "rank": 1, "priority": id, "status": status, "attempts": attempts, "reviewer_words": ["still thin"],
@@ -160,7 +162,10 @@ fn every_failing_trait_is_classed_reachable_identity_or_global_with_its_evidence
         .iter()
         .find(|g| g.trait_id == "crown-density")
         .unwrap();
-    assert_eq!(reachable.evidence[0], "leaf_base_width 0.5 -> 0.9");
+    assert_eq!(
+        reachable.evidence[0],
+        "leaf_base_width 0.5 -> 0.9 (A [P-WHOLE seed 1](r/a.png); B [P-WHOLE seed 1](r/b.png))"
+    );
     assert!(classed.iter().all(|g| !g.evidence.is_empty()));
     assert_eq!(kind("capability-assessment"), None);
     // No assessment at all blocks as an unclassed capability does.

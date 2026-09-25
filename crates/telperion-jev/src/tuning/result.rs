@@ -82,7 +82,7 @@ pub struct EndResult {
     pub known_gaps: Vec<super::unexpressed::Unexpressed>,
 }
 
-fn still(image: &Image) -> Still {
+pub(super) fn still(image: &Image) -> Still {
     Still {
         view: image.view.clone(),
         seed: image.seed,
