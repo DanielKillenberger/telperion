@@ -3,11 +3,12 @@
 
 The species runner wraps every adapter program in its configs as
 `python3 scripts/tape-adapter.py record:<dir>|replay:<dir> -- <program> <args...>`.
-The call's stdin envelope and the adapter's argv, with every `path` key
-dropped so a replay from another directory matches, are the key. Recording
-runs the adapter and stores its stdout, stderr and exit status; replaying
-prints the stored stdout and exits with the stored status, and fails, naming
-the request, when the recording lacks it. Nothing here reaches a model.
+The call's stdin envelope and the adapter's argv are the key, without what
+names the run directory: every `path`, and the request hash the caller took
+over those paths. Recording runs the adapter and stores its stdout, stderr
+and exit status; replaying prints the stored stdout, bound to this call's
+own request hash, and exits with the stored status, and fails, naming the
+request, when the recording lacks it. Nothing here reaches a model.
 """
 import hashlib
 import json
@@ -16,9 +17,14 @@ import subprocess
 import sys
 
 
+# What names the run directory: a file's path, and the caller's hash of a
+# request that carries paths.
+UNSTABLE = ("path", "request_sha256")
+
+
 def stable(value):
     if isinstance(value, dict):
-        return {k: stable(v) for k, v in value.items() if k != "path"}
+        return {k: stable(v) for k, v in value.items() if k not in UNSTABLE}
     if isinstance(value, list):
         return [stable(v) for v in value]
     return value
@@ -31,6 +37,19 @@ def key(argv, stdin):
         envelope = stdin
     canonical = json.dumps({"argv": argv, "stdin": envelope}, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode()).hexdigest()
+
+
+def bound(stdout, stdin):
+    """The recorded answer bound to this call's own request hash, the one
+    thing in it that named the recording's run directory."""
+    try:
+        answer, envelope = json.loads(stdout), json.loads(stdin)
+    except json.JSONDecodeError:
+        return stdout
+    if isinstance(answer, dict) and "request_sha256" in answer and "request_sha256" in envelope:
+        answer["request_sha256"] = envelope["request_sha256"]
+        return json.dumps(answer) + "\n"
+    return stdout
 
 
 def main(argv):
@@ -48,7 +67,7 @@ def main(argv):
             sys.stderr.write(f"replay: {directory} holds no adapter answer for {' '.join(program)} <<< {envelope} (key {digest})\n")
             return 3
         recorded = json.loads(entry.read_text())
-        sys.stdout.write(recorded["stdout"])
+        sys.stdout.write(bound(recorded["stdout"], stdin))
         sys.stderr.write(recorded["stderr"])
         return recorded["exit"]
     done = subprocess.run(program, input=stdin, text=True, capture_output=True)

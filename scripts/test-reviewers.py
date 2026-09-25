@@ -295,6 +295,31 @@ class TapeAdapter(unittest.TestCase):
             self.assertIn("replay:", other.stderr)
             self.assertIn("inventory", other.stderr)
 
+    def test_a_replay_from_another_run_directory_binds_to_its_own_request(self):
+        """Codex, fn-149: the caller's request hash covers the image paths, so
+        a key or a response bound to it would tie a recording to the run
+        directory it was made in."""
+        script = Path(__file__).resolve().parent / "tape-adapter.py"
+        answer = ("import json, sys; e = json.load(sys.stdin); "
+                  "print(json.dumps({'status': 'ok', 'request_sha256': e['request_sha256'], 'answer': 1}))")
+
+        def envelope(run_dir):
+            request = {"references": [{"image": {"path": f"{run_dir}/cache/photos/a.png", "sha256": "s"}}]}
+            return {"stage": "inventory", "request": request,
+                    "request_sha256": sha256(json.dumps(request).encode()), "prompt_sha256": "p"}
+
+        def run(mode, asked):
+            return subprocess.run([sys.executable, str(script), mode, "--", sys.executable, "-c", answer],
+                                  input=json.dumps(asked), text=True, capture_output=True)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            recorded, moved = envelope("/rec/run"), envelope("/replay/run")
+            self.assertNotEqual(recorded["request_sha256"], moved["request_sha256"])
+            self.assertEqual(run(f"record:{tmp}", recorded).returncode, 0)
+            replayed = run(f"replay:{tmp}", moved)
+            self.assertEqual(replayed.returncode, 0, replayed.stderr)
+            self.assertEqual(json.loads(replayed.stdout)["request_sha256"], moved["request_sha256"])
+
 
 if __name__ == "__main__":
     unittest.main()
