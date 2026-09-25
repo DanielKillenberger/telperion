@@ -4,8 +4,9 @@
 The species runner wraps every adapter program in its configs as
 `python3 scripts/tape-adapter.py record:<dir>|replay:<dir> -- <program> <args...>`.
 The call's stdin envelope and the adapter's argv are the key, without what
-names the run directory: every `path`, and the request hash the caller took
-over those paths. Recording runs the adapter and stores its stdout, stderr
+names the run rather than the question: every `path`, the request hash the
+caller took over those paths, every `ledger` reference (a fresh entry id per
+call) and every run `identity` (a hash of a config that holds paths). Recording runs the adapter and stores its stdout, stderr
 and exit status; replaying prints the stored stdout, bound to this call's
 own request hash, and exits with the stored status, and fails, naming the
 request, when the recording lacks it. Nothing here reaches a model.
@@ -17,9 +18,10 @@ import subprocess
 import sys
 
 
-# What names the run directory: a file's path, and the caller's hash of a
-# request that carries paths.
-UNSTABLE = ("path", "request_sha256")
+# What names the run rather than the question. Kept in step with
+# `crate::tape::UNSTABLE`.
+UNSTABLE = ("path", "request_sha256", "ledger", "identity", "run_identity",
+            "current_identity", "render_identity")
 
 
 def stable(value):

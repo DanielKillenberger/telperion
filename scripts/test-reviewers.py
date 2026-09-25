@@ -320,6 +320,29 @@ class TapeAdapter(unittest.TestCase):
             self.assertEqual(replayed.returncode, 0, replayed.stderr)
             self.assertEqual(json.loads(replayed.stdout)["request_sha256"], moved["request_sha256"])
 
+    def test_a_comparison_replays_across_inventory_ledgers_and_run_identities(self):
+        """Codex, fn-149: an inventory's ledger reference is a fresh entry id
+        per call and a run identity hashes a config holding paths; neither
+        is part of the question a comparison asks."""
+        script = Path(__file__).resolve().parent / "tape-adapter.py"
+        answer = "import sys; sys.stdin.read(); print('{\"status\": \"ok\"}')"
+
+        def envelope(run):
+            request = {"comparison": {"identity": f"id-{run}", "images": [{"path": f"/{run}/r.png", "sha256": "r"}]},
+                       "inventory": {"ledger": f"/{run}/ledger/{run}.json#sha256:{run}", "traits": ["t"]}}
+            return {"stage": "comparison", "request": request, "request_sha256": run}
+
+        def run(mode, asked):
+            return subprocess.run([sys.executable, str(script), mode, "--", sys.executable, "-c", answer],
+                                  input=json.dumps(asked), text=True, capture_output=True)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(run(f"record:{tmp}", envelope("a")).returncode, 0)
+            self.assertEqual(run(f"replay:{tmp}", envelope("b")).returncode, 0)
+            changed = envelope("b")
+            changed["request"]["inventory"]["traits"] = ["u"]
+            self.assertEqual(run(f"replay:{tmp}", changed).returncode, 3, "a different question is not served")
+
 
 if __name__ == "__main__":
     unittest.main()

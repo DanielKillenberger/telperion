@@ -59,8 +59,9 @@ impl Tape {
         }
     }
 
-    /// Where the answer to `request` of `kind` lives. The key ignores every
-    /// `path`, so a replay from another directory finds the same answer.
+    /// Where the answer to `request` of `kind` lives. The key ignores what
+    /// names the run (`UNSTABLE`), so a replay from another directory finds
+    /// the same answer.
     fn entry(&self, kind: &str, request: &Value) -> (String, PathBuf) {
         let key = canonical_sha256(&json!({"kind": kind, "request": stable(request)}));
         let path = self.dir().join(kind).join(format!("{}.json", &key[..32]));
@@ -97,12 +98,26 @@ impl Tape {
     }
 }
 
-/// `value` without any `path` key, at any depth.
-fn stable(value: &Value) -> Value {
+/// What names the run rather than the question: a file's path, a caller's
+/// hash of a request that carries paths, a ledger reference (a fresh entry
+/// id per call) and a run identity (a hash of a config that holds paths).
+/// Kept in step with `scripts/tape-adapter.py`.
+pub const UNSTABLE: [&str; 7] = [
+    "path",
+    "request_sha256",
+    "ledger",
+    "identity",
+    "run_identity",
+    "current_identity",
+    "render_identity",
+];
+
+/// `value` without any run-specific key, at any depth.
+pub fn stable(value: &Value) -> Value {
     match value {
         Value::Object(map) => Value::Object(
             map.iter()
-                .filter(|(k, _)| k.as_str() != "path")
+                .filter(|(k, _)| !UNSTABLE.contains(&k.as_str()))
                 .map(|(k, v)| (k.clone(), stable(v)))
                 .collect::<Map<_, _>>(),
         ),
@@ -308,5 +323,28 @@ pub fn wrap(value: &mut Value, tape: &Tape) {
         Value::Object(map) => map.values_mut().for_each(|v| wrap(v, tape)),
         Value::Array(list) => list.iter_mut().for_each(|v| wrap(v, tape)),
         _ => {}
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::stable;
+    use serde_json::json;
+
+    #[test]
+    fn a_key_ignores_what_names_the_run_and_keeps_the_question() {
+        let asked = |run: &str, field: &str| {
+            json!({"state": {"current_identity": run, "field": field,
+                             "trials": [{"identity": run, "label": "bundle@1"}],
+                             "stills": [{"path": format!("/{run}/a.png"), "sha256": "s"}]}})
+        };
+        assert_eq!(
+            stable(&asked("a", "height_m")),
+            stable(&asked("b", "height_m"))
+        );
+        assert_ne!(
+            stable(&asked("a", "height_m")),
+            stable(&asked("a", "dbh_m"))
+        );
     }
 }
