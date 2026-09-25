@@ -16,7 +16,7 @@ pub use outcome::Outcome;
 pub use request::{look, skeleton, Look, NotShown, INERT};
 pub(in crate::tuning) use review::review;
 
-use super::{evaluation::Image, progress::Priority};
+use super::{evaluation::Image, look::Priority};
 use crate::sha256_hex;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -63,7 +63,7 @@ impl Request {
     pub fn verify(&self) -> Result<(), String> {
         if self.schema != VERSION
             || self.priorities.is_empty()
-            || self.priorities.len() > super::progress::MAX_PRIORITIES
+            || self.priorities.len() > super::look::MAX_PRIORITIES
             || self.references.is_empty()
             || self.renders.len() < 2
             || self.renders.len() > 5

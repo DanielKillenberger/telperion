@@ -3,8 +3,8 @@ use super::{shown, Class, Judged, LABEL};
 use crate::tuning::{
     bundle::Track,
     engine::{Run, Services},
+    look,
     priority::Gap,
-    progress,
 };
 
 /// The class a track's bundle is drawn at this round, and the multiplier on
@@ -58,7 +58,7 @@ fn flipped(state: &mut Run, track: &Track, wanted: &[(String, i8)]) -> Option<St
 }
 
 /// The class Jev chose, or why none is used.
-fn read(state: &Run, judged: &Judged) -> Result<Class, String> {
+fn read(judged: &Judged) -> Result<Class, String> {
     let at = format!(
         "{} at {:?} against {}",
         judged.choice, judged.confidence, judged.threshold
@@ -69,19 +69,13 @@ fn read(state: &Run, judged: &Judged) -> Result<Class, String> {
     {
         return Err(format!("default: jev {at}, below the threshold"));
     }
-    let class = Class::parse(&judged.choice).ok_or(format!("default: jev {at}"))?;
-    if class > Class::Near && !judged.calibrated && state.pilot_authority().is_err() {
-        return Err(format!(
-            "default: jev {at} refused, the gap_magnitude set has not qualified and no experimental authority is scoped"
-        ));
-    }
-    Ok(class)
+    Class::parse(&judged.choice).ok_or(format!("default: jev {at}"))
 }
 
 /// The objective a track's stride is judged on: its own first, never the
 /// run's.
 pub fn lead(state: &Run, track: &Track) -> Option<Gap> {
-    progress::track_priorities(state, track).into_iter().next()
+    look::track_objectives(state, track).into_iter().next()
 }
 
 /// The class this round's words select, and where it came from. Owner first
@@ -110,15 +104,10 @@ fn choose(
     state.reserve(0, 0, allowance, 0, LABEL, save)?;
     let answer = services.gap_magnitude(&asked)?;
     let judged = state.settle(answer, allowance)?;
-    Ok(match read(state, &judged) {
+    Ok(match read(&judged) {
         Ok(class) => {
-            let trust = if judged.calibrated {
-                ""
-            } else {
-                ", uncalibrated under experimental authority"
-            };
             let source = format!(
-                "jev at {:?} against {}{trust} on {}",
+                "jev at {:?} against {} on {}",
                 judged.confidence, judged.threshold, priority.id
             );
             (Some(class), source)

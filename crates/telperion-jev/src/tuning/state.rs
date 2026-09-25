@@ -121,14 +121,9 @@ pub fn ready(required: &[Cell], identity: &str, assessment: &Visual) -> bool {
             == required.len()
 }
 
-/// Whether a spend passes a cap. An absent cap is no cap.
-pub fn over(spent: u64, cap: Option<u64>) -> bool {
-    cap.is_some_and(|cap| spent > cap)
-}
-
-/// Reservations are charged before dispatch and persisted, including
-/// interrupted work. Spend is always counted; every cap is optional, and one
-/// the config leaves out is no cap (fn-117).
+/// What a revision spent. Spend is always counted and never capped: what
+/// ends a loop that keeps spending and keeps nothing is the no-progress stop
+/// (`runaway`), never a cap (fn-149).
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Budget {
@@ -140,86 +135,18 @@ pub struct Budget {
     pub tokens: u64,
     #[serde(default)]
     pub rounds: u64,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub max_evaluations: Option<u64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub max_images: Option<u64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub max_tokens: Option<u64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub max_rounds: Option<u64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub visual_passes: Option<u64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub max_visual_passes: Option<u64>,
+    #[serde(default)]
+    pub visual_passes: u64,
 }
 
 impl Budget {
-    /// A fresh run's balance: the config's opening spend, with the visual
-    /// counter started at zero when the config names none.
-    pub fn opening(&self) -> Self {
-        let mut budget = self.clone();
-        budget.visual_passes.get_or_insert(0);
-        budget
+    pub fn reserve_visual(&mut self) {
+        self.visual_passes = self.visual_passes.saturating_add(1);
     }
-    /// An opening balance carried from audited prior spend must already fit its
-    /// own caps; otherwise the first reservation would fail with prior cost
-    /// silently blamed on this run.
-    pub fn validate(&self) -> Result<(), String> {
-        if over(self.evaluations, self.max_evaluations)
-            || over(self.images, self.max_images)
-            || over(self.tokens, self.max_tokens)
-            || over(self.rounds, self.max_rounds)
-            || self
-                .visual_passes
-                .is_some_and(|used| over(used, self.max_visual_passes))
-        {
-            return Err("opening balance exceeds its own caps".into());
-        }
-        Ok(())
-    }
-    pub fn reserve_visual(&mut self) -> Result<(), String> {
-        let next = self
-            .visual_passes
-            .ok_or("visual usage requires reconciliation")?
-            .checked_add(1)
-            .ok_or("visual usage overflow")?;
-        if over(next, self.max_visual_passes) {
-            return Err("visual pass limit exhausted".into());
-        }
-        self.visual_passes = Some(next);
-        Ok(())
-    }
-    pub fn reserve(
-        &mut self,
-        evaluations: u64,
-        images: u64,
-        tokens: u64,
-        rounds: u64,
-    ) -> Result<(), String> {
-        let next = [
-            self.evaluations.checked_add(evaluations),
-            self.images.checked_add(images),
-            self.tokens.checked_add(tokens),
-            self.rounds.checked_add(rounds),
-        ];
-        let limits = [
-            self.max_evaluations,
-            self.max_images,
-            self.max_tokens,
-            self.max_rounds,
-        ];
-        if next
-            .iter()
-            .zip(limits)
-            .any(|(v, limit)| v.is_none_or(|v| over(v, limit)))
-        {
-            return Err("hard budget exhausted".into());
-        }
-        self.evaluations = next[0].unwrap();
-        self.images = next[1].unwrap();
-        self.tokens = next[2].unwrap();
-        self.rounds = next[3].unwrap();
-        Ok(())
+    pub fn reserve(&mut self, evaluations: u64, images: u64, tokens: u64, rounds: u64) {
+        self.evaluations = self.evaluations.saturating_add(evaluations);
+        self.images = self.images.saturating_add(images);
+        self.tokens = self.tokens.saturating_add(tokens);
+        self.rounds = self.rounds.saturating_add(rounds);
     }
 }

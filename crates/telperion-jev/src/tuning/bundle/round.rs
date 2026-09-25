@@ -11,7 +11,7 @@ use super::{
 };
 use crate::tuning::{
     engine::{Proposal, Run, Services},
-    progress,
+    look,
     sheet::{self, Outcome},
     stride,
 };
@@ -87,7 +87,7 @@ pub(super) fn note_unshown(state: &mut Run, look: &sheet::Look) {
 /// nobody buys the same look again.
 pub(super) fn note_failure(state: &mut Run, look: &sheet::Look) {
     for index in &look.shown {
-        state.trials[*index].reason = Some(progress::REVIEW_FAILED.into());
+        state.trials[*index].reason = Some(look::REVIEW_FAILED.into());
     }
     state.routes.push(sheet::FAILED_NOTE.into());
 }
@@ -267,14 +267,12 @@ fn one_track(
             variants.push(Variant { trial, overlay });
         }
     }
-    let priorities = progress::track_priorities(state, track);
+    let priorities = look::track_objectives(state, track);
     let drawn = variants.iter().map(|v| v.trial).collect::<Vec<_>>();
     let look = services.sheet_request(state, old, &drawn, &priorities, track.view.as_deref())?;
     note_unshown(state, &look);
     let Some(plan) = &look.plan else {
-        state
-            .routes
-            .push(note(track, progress::stall(services.selection())));
+        state.routes.push(note(track, look::STALL.into()));
         save(state)?;
         return Ok(Turn::Stalled);
     };
@@ -320,9 +318,7 @@ fn one_track(
         )?,
     };
     let Some(key) = clean else {
-        state
-            .routes
-            .push(note(track, progress::stall(services.selection())));
+        state.routes.push(note(track, look::STALL.into()));
         save(state)?;
         return Ok(Turn::Stalled);
     };
@@ -361,11 +357,10 @@ pub(in crate::tuning) fn round(
     let mut outcomes = vec![];
     for (track, moves) in tracks.iter().zip(shares) {
         // No objective, no turn: a track nobody aims at draws nothing.
-        if progress::track_priorities(state, track).is_empty() {
-            state.routes.push(note(
-                track,
-                "skipped: no objective routed to this track".into(),
-            ));
+        if look::track_objectives(state, track).is_empty() {
+            state
+                .routes
+                .push(note(track, "skipped: no objective names this track".into()));
             continue;
         }
         if moves.is_empty() {

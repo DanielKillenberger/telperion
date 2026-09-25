@@ -10,13 +10,8 @@ mod decide;
 pub use decide::lead;
 pub(in crate::tuning) use decide::{decide, settle, Decision};
 
-use super::{
-    calibration::{self, Manifest},
-    live::Validation,
-};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use std::fs;
 
 pub const QUESTION: &str = "gap_magnitude";
 pub const VERSION: &str = "gap-magnitude-v1";
@@ -86,8 +81,6 @@ pub struct Judged {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub confidence: Option<f64>,
     pub threshold: f64,
-    /// The labelled set qualified on this run's frozen calibration.
-    pub calibrated: bool,
 }
 
 pub fn questions() -> Value {
@@ -99,31 +92,14 @@ pub fn shown(priority: &str, finding: &str) -> Value {
     json!({"priority":priority,"finding":finding})
 }
 
-/// The labelled set as authored, before a run freezes it to its dial table.
-pub fn labelled() -> Manifest {
-    serde_json::from_str(CASES_JSON).expect("cases/gap_magnitude.json")
+/// The labelled set: its cases and the confidence cut they set.
+#[derive(Debug, Clone, Deserialize)]
+pub struct Labelled {
+    pub min_confidence: f64,
+    pub cases: Vec<Value>,
 }
 
-/// The confidence cut, and whether the labelled set has qualified for this
-/// run. No frozen calibration, or one that does not qualify, is untrusted and
-/// cuts at the labelled set's own threshold.
-pub fn calibration(v: Option<&Validation>, model: &str, table: &str) -> (f64, bool) {
-    let fallback = labelled().min_confidence;
-    let Some(v) = v else {
-        return (fallback, false);
-    };
-    let qualified = || -> Result<f64, String> {
-        let bytes = fs::read(&v.manifest).map_err(|e| e.to_string())?;
-        let m: Manifest = serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
-        if m.model != model {
-            return Err("gap-magnitude calibration is for another model".into());
-        }
-        let raw: Value = serde_json::from_slice(&fs::read(&v.result).map_err(|e| e.to_string())?)
-            .map_err(|e| e.to_string())?;
-        let result = serde_json::from_value(raw.get("result").unwrap_or(&raw).clone())
-            .map_err(|e| e.to_string())?;
-        calibration::qualified(&bytes, &result, QUESTION, VERSION, table)?;
-        Ok(m.min_confidence)
-    };
-    qualified().map_or((fallback, false), |cut| (cut, true))
+/// The labelled set as authored; its cut is the one a run acts at.
+pub fn labelled() -> Labelled {
+    serde_json::from_str(CASES_JSON).expect("cases/gap_magnitude.json")
 }

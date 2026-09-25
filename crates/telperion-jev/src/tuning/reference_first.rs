@@ -317,89 +317,10 @@ pub fn charge_preparation(
     if charge.visual_attempts != 1 {
         return Err("invalid preparation attempt count".into());
     }
-    let mut next = budget.clone();
-    next.reserve_visual()?;
-    next.reserve(0, 0, charge.tokens, 0)?;
-    *budget = next;
+    budget.reserve_visual();
+    budget.reserve(0, 0, charge.tokens, 0);
     *record = Some(charge.clone());
     Ok(())
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct ReplayCase {
-    pub id: String,
-    pub provenance: String,
-    pub expected_ready: bool,
-    pub request: ComparisonRequest,
-}
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Replay {
-    pub schema: String,
-    pub model: String,
-    pub effort: String,
-    pub protocol_sha256: String,
-    pub cases: Vec<ReplayCase>,
-}
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct ReplayResult {
-    pub manifest_sha256: String,
-    pub results: Vec<ComparisonResult>,
-}
-pub fn replay_score(
-    manifest: &[u8],
-    result: &ReplayResult,
-) -> Result<(Replay, vision::ReplayScore), String> {
-    let replay: Replay = serde_json::from_slice(manifest).map_err(|e| e.to_string())?;
-    if replay.schema != "reference-first-replay-v1"
-        || result.manifest_sha256 != sha256_hex(manifest)
-        || result.results.len() != replay.cases.len()
-    {
-        return Err("reference-first requires fresh complete replay".into());
-    }
-    let mut score = vision::ReplayScore {
-        positives: 0,
-        negatives: 0,
-        false_ready: 0,
-        false_rejections: 0,
-        abstentions: 0,
-    };
-    let mut ids = HashSet::new();
-    for (case, observed) in replay.cases.iter().zip(&result.results) {
-        if !text(&case.id)
-            || !ids.insert(&case.id)
-            || !text(&case.provenance)
-            || observed.visual.assessment.model != replay.model
-            || observed.visual.effort != replay.effort
-            || observed.visual.usage.is_none()
-            || case.request.inventory.model != replay.model
-            || case.request.inventory.effort != replay.effort
-        {
-            return Err("unattributed reference-first replay".into());
-        }
-        let mut bound = observed.clone();
-        bound.bind(&case.request)?;
-        let r = &case.request.comparison;
-        let got = super::state::ready(&r.required, &r.identity, &bound.visual.assessment);
-        if case.expected_ready {
-            score.positives += 1;
-            score.false_rejections += usize::from(!got);
-        } else {
-            score.negatives += 1;
-            score.false_ready += usize::from(got);
-        }
-        score.abstentions += usize::from(
-            bound
-                .visual
-                .assessment
-                .cells
-                .iter()
-                .any(|(_, s)| *s == CellStatus::Unknown),
-        );
-    }
-    Ok((replay, score))
 }
 
 /// Executes only Stage B. Stage A is separately prepared, pinned and charged
@@ -476,54 +397,6 @@ pub(super) fn bind_response(
     Ok((result, untidy))
 }
 
-/// Rebind the persisted Stage B receipt; a legacy ready visual is not convergence proof.
-pub fn verify_convergence(
-    adapter: &vision::Adapter,
-    prepared: &RuntimeConfig,
-    visual: &super::state::Visual,
-) -> Result<(), String> {
-    let path = std::path::Path::new(&visual.ledger);
-    let metadata = std::fs::metadata(path).map_err(|e| e.to_string())?;
-    if !metadata.is_file() || metadata.len() > 1_048_576 {
-        return Err("invalid convergence receipt".into());
-    }
-    let record: serde_json::Value =
-        serde_json::from_slice(&std::fs::read(path).map_err(|e| e.to_string())?)
-            .map_err(|e| e.to_string())?;
-    if record["exit"] != 0 || record["model"] != adapter.model || record["effort"] != adapter.effort
-    {
-        return Err("unattributed convergence receipt".into());
-    }
-    let request: ComparisonRequest =
-        serde_json::from_value(record["request"].clone()).map_err(|e| e.to_string())?;
-    let (inventory, _) = prepared.load(&adapter.model, &adapter.effort)?;
-    if request.inventory.hash() != inventory.hash() {
-        return Err("convergence inventory differs".into());
-    }
-    let raw: serde_json::Value = serde_json::from_str(
-        record["stdout"]
-            .as_str()
-            .ok_or("missing convergence output")?,
-    )
-    .map_err(|e| e.to_string())?;
-    let repair: Option<Vec<String>> = match record.get("repair") {
-        Some(r) => {
-            Some(serde_json::from_value(r["violations"].clone()).map_err(|e| e.to_string())?)
-        }
-        None => None,
-    };
-    let (bound, _) = bind_response(adapter, &request, &raw, path, repair.as_deref())?;
-    if !super::state::ready(
-        &request.comparison.required,
-        &request.comparison.identity,
-        &bound.visual.assessment,
-    ) || serde_json::to_value(&bound.visual.assessment).unwrap()
-        != serde_json::to_value(visual).unwrap()
-    {
-        return Err("convergence assessment differs from bound receipt".into());
-    }
-    Ok(())
-}
 impl ComparisonResult {
     pub fn bind(&mut self, request: &ComparisonRequest) -> Result<(), String> {
         self.bind_tidy(request).map(|_| ())

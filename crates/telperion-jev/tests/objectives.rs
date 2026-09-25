@@ -7,12 +7,11 @@ use telperion_jev::{
     sha256_hex,
     tuning::{
         bundle::Track,
-        continuation::HumanDecision,
         engine::Run,
         evaluation::Image,
+        look,
         objectives::{self, LeftOut},
         priority::{scope, Approval, Checkpoint, Evidence, Gap},
-        progress,
         reference_first::Inventory,
         state::{Cell, Visual},
         stride,
@@ -261,19 +260,14 @@ fn palm_run() -> Run {
     };
     approval.verify(&checkpoint, &scope).unwrap();
     objectives::verify_tracks(&ordered, &palm_tracks()).unwrap();
-    let decision: HumanDecision = serde_json::from_value(json!({"pause_id":"p","identity":"palm",
-        "action":"approve gap priorities","by":"owner","rationale":"recorded palm state",
-        "preserve_evidence":true,"priority_approval":approval}))
-    .unwrap();
     let mut state: Run = serde_json::from_value(json!({"identity":"palm","preset":"date-palm",
         "seed":1,"effective":{},"overrides":{},"dials":[],"owner_notes":"owner notes",
         "required":required(),"budget":{"evaluations":0,"images":0,"tokens":0,"rounds":0},
-        "usage_known":true,"trials":[],"current":null,"visual":null,"pause":null,
+        "usage_known":true,"trials":[],"current":null,"visual":null,"stopped":null,
         "machine_ready":false,"pending":null,"routes":[]}))
     .unwrap();
-    state.routes = ordered.iter().map(|g| format!("{}=tuning", g.id)).collect();
     state.priority_checkpoints = vec![checkpoint];
-    state.authorizations = vec![decision];
+    state.approval = Some(approval);
     state
 }
 
@@ -287,12 +281,12 @@ fn the_palm_s_materials_track_leads_with_its_own_objective() {
     assert_eq!(lead(0).as_deref(), Some("owner-fronds-long-arching"));
     assert_eq!(lead(1).as_deref(), Some("trunk-colour-and-weathering"));
 
-    let materials = progress::track_priorities(&state, &tracks[1]);
+    let materials = look::track_objectives(&state, &tracks[1]);
     assert!(materials.iter().all(|g| !g.id.starts_with("owner-")));
     assert_eq!(materials.len(), 11, "its two, then every unassigned trait");
-    let structure = progress::track_priorities(&state, &tracks[0]);
+    let structure = look::track_objectives(&state, &tracks[0]);
     assert!(!structure.iter().any(|g| g.id == "trunk-fibrous-matting"));
     assert_eq!(structure.len(), 12, "the owner's three and nine unassigned");
-    assert!(materials.len() <= progress::MAX_PRIORITIES);
-    assert!(structure.len() <= progress::MAX_PRIORITIES);
+    assert!(materials.len() <= look::MAX_PRIORITIES);
+    assert!(structure.len() <= look::MAX_PRIORITIES);
 }

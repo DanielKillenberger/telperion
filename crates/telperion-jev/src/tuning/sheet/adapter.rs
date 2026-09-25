@@ -6,8 +6,10 @@
 //! the sheet exists to hide.
 use super::{bind, Answer, Plan, Request, Verdict, PROMPT, UNCALIBRATED};
 use crate::tuning::engine::Answer as Reply;
-use crate::tuning::progress::{redacted, shell, Adapter};
+use crate::tuning::look::{redacted, Adapter};
+use crate::tuning::vision;
 use serde_json::{json, Value};
+use std::path::PathBuf;
 
 /// The request with every path taken out of it: each render is the number it
 /// carries on the sheet and the digest of its bytes, and nothing else.
@@ -57,4 +59,61 @@ pub fn dispatch(adapter: &Adapter, plan: &Plan) -> Result<Reply<Verdict>, String
         tokens,
         ledger: Some(ledger),
     })
+}
+
+/// One isolated adapter dispatch, its receipt written before the answer is
+/// read, so a refused answer still has a record of what was spent.
+pub(super) fn shell(
+    stage: &str,
+    adapter: &vision::Adapter,
+    envelope: &Value,
+    uncalibrated: &str,
+) -> Result<(Value, PathBuf), String> {
+    use std::io::Write;
+    use std::process::{Command, Stdio};
+    if adapter.timeout_seconds == 0
+        || adapter.timeout_seconds > 600
+        || adapter.model.is_empty()
+        || adapter.effort.is_empty()
+    {
+        return Err(format!("invalid {stage} adapter"));
+    }
+    let mut child = Command::new("timeout")
+        .arg(adapter.timeout_seconds.to_string())
+        .arg(&adapter.program)
+        .args(&adapter.args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| e.to_string())?;
+    child
+        .stdin
+        .take()
+        .ok_or("missing adapter stdin")?
+        .write_all(&serde_json::to_vec(envelope).unwrap())
+        .map_err(|e| e.to_string())?;
+    let out = child.wait_with_output().map_err(|e| e.to_string())?;
+    std::fs::create_dir_all(&adapter.ledger).map_err(|e| e.to_string())?;
+    let path = adapter
+        .ledger
+        .join(format!("{}.json", crate::ledger::new_entry_id()));
+    let record = json!({"stage":stage,"request":envelope["request"],"model":adapter.model,
+        "effort":adapter.effort,"exit":out.status.code(),
+        "stdout":String::from_utf8_lossy(&out.stdout),
+        "stderr":String::from_utf8_lossy(&out.stderr),"uncalibrated":uncalibrated});
+    std::fs::OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(&path)
+        .map_err(|e| e.to_string())?
+        .write_all(&serde_json::to_vec_pretty(&record).unwrap())
+        .map_err(|e| e.to_string())?;
+    if !out.status.success() {
+        return Err(format!("{stage} adapter failed; reservation retained"));
+    }
+    Ok((
+        serde_json::from_slice(&out.stdout).map_err(|e| e.to_string())?,
+        path,
+    ))
 }

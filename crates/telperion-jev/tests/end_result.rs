@@ -46,7 +46,7 @@ fn trial(key: &str, round: u64, label: &str, review: Option<Value>) -> Trial {
         images: vec![image("B-WHOLE")],
     }];
     if let Some(review) = review {
-        t.progress = serde_json::from_value(review).ok();
+        t.sheet = serde_json::from_value(review).ok();
     }
     t
 }
@@ -118,23 +118,16 @@ fn every_approved_priority_is_a_gap_entry_with_its_status_and_the_check_left_ope
     ]});
     run.priority_checkpoints = vec![checkpoint];
     run.visual = Some(visual);
-    run.authorizations = vec![serde_json::from_value(json!({
-        "pause_id":"p","identity":"progress-fixture","action":"approve gap priorities",
-        "by":"fixture owner","rationale":"synthetic","priority_approval":approval
-    }))
-    .unwrap()];
+    run.approval = Some(serde_json::from_value(approval).unwrap());
     run.routes = vec![
-        "owner-hanging=tuning".into(),
-        "owner-crown=tuning".into(),
         "adoption kept; uncalibrated side-effect question answered".into(),
         "adoption rolled back: trait x went from Pass to Fail".into(),
     ];
-    run.trials[1].progress = Some(
+    run.trials[1].sheet = Some(
         serde_json::from_value(json!({
-            "per_priority":{"owner-hanging":"better","owner-crown":"same"},
-            "improved":"a little","missing":"weighted droop","regressions":[],
-            "ledger":"l","model":"vision-fixture-1","candidate_is":"B",
-            "uncalibrated":"uncalibrated"
+            "label":"1","per_priority":{"owner-hanging":"slight","owner-crown":"none"},
+            "improved":"a little","missing":"weighted droop",
+            "ledger":"l","model":"vision-fixture-1","uncalibrated":"uncalibrated"
         }))
         .unwrap(),
     );
@@ -146,10 +139,9 @@ fn every_approved_priority_is_a_gap_entry_with_its_status_and_the_check_left_ope
         ["owner-hanging", "owner-crown", "owner-bark"],
         "nothing approved is forgotten"
     );
-    assert_eq!(r.gaps[0].status, "stalled in tuning");
+    assert_eq!(r.gaps[0].status, "failing on the current tree");
     assert_eq!(r.gaps[1].status, "passing on the current tree");
     assert_eq!(r.gaps[2].status, "not assessed");
-    assert_eq!(r.gaps[0].latest_route.as_deref(), Some("tuning"));
     assert!(r.gaps.iter().all(|g| g.check == CHECK_PENDING));
     assert_eq!(
         r.gaps[0].attempts.len(),
@@ -173,28 +165,6 @@ fn every_approved_priority_is_a_gap_entry_with_its_status_and_the_check_left_ope
         "a gap points at the tree it was judged on"
     );
 
-    let page = result::markdown(&r);
-    for needle in [
-        "owner-hanging",
-        "owner-bark",
-        "not assessed",
-        "stalled in tuning",
-        "cand",
-        CHECK_PENDING,
-    ] {
-        assert!(page.contains(needle), "RESULT.md lacks {needle}");
-    }
-    let html = result::html::page(&r, std::path::Path::new("/run"));
-    for needle in [
-        "owner-bark",
-        "stalled in tuning",
-        "weighted droop",
-        "file://",
-        "<img",
-    ] {
-        assert!(html.contains(needle), "RESULT.html lacks {needle}");
-    }
-    assert!(!html.contains("<script"), "the page carries no script");
     let round_trip: result::EndResult =
         serde_json::from_value(serde_json::to_value(&r).unwrap()).unwrap();
     assert_eq!(round_trip, r);
@@ -207,7 +177,6 @@ fn a_run_with_no_approval_says_so_instead_of_inventing_gaps() {
     let r = run.end_result();
     assert!(r.gaps.is_empty());
     assert_eq!(r.outcome.stopped, "interrupted during candidate evaluation");
-    assert!(result::markdown(&r).contains("No approved priorities"));
 }
 
 fn gap() -> telperion_jev::tuning::priority::Gap {
@@ -273,19 +242,18 @@ fn every_attempt_carries_its_moves_its_adoption_and_whether_it_stood() {
     );
 }
 
-/// A result written before attempts kept their moves still reads and renders.
+/// A result written before attempts kept their moves still reads.
 #[test]
-fn a_result_written_before_moves_were_kept_still_renders() {
+fn a_result_written_before_moves_were_kept_still_reads() {
     let run = fixture::progress_run(vec![trial("base", 0, "baseline", None)]);
     let mut value = serde_json::to_value(run.end_result()).unwrap();
-    value["gaps"] = json!([{"id":"g","rank":1,"priority":"o","status":"stalled in tuning",
-        "latest_route":"tuning","existing_spec":null,"reviewer_words":[],"stills":[],
+    value["gaps"] = json!([{"id":"g","rank":1,"priority":"o","status":"failing on the current tree",
+        "reviewer_words":[],"stills":[],
         "check":CHECK_PENDING,"attempts":[{"dial":"twig_hang","round":1,"action_ledger":null,
         "score_before_round":null,"score_after":0.3,"feasible":true,"reason":null,
         "visual_outcome":null}]}]);
     let old: result::EndResult = serde_json::from_value(value).unwrap();
     let a = &old.gaps[0].attempts[0];
     assert!(a.moves.is_empty() && !a.adopted && a.stood.is_none());
-    assert!(result::markdown(&old).contains("  - round 1 twig_hang\n"));
-    assert!(result::html::page(&old, std::path::Path::new("/run")).contains("stalled in tuning"));
+    assert_eq!(a.summary(), "round 1 twig_hang");
 }

@@ -1,14 +1,14 @@
-//! The runaway guard (fn-117). With no cap on a run, what stops a loop that
-//! keeps spending and keeps nothing is code counting the rounds in a row that
-//! kept no adoption. At the count the run pauses and names the rounds and
-//! what they spent; the owner's scoped resume starts the count again.
+//! The no-progress stop (fn-117). What ends a revision that keeps spending
+//! and keeps nothing is code counting the rounds in a row that kept no
+//! adoption. At the count the revision ends and names the rounds and what
+//! they spent.
 use super::engine::Run;
 use super::state::Budget;
 use serde::{Deserialize, Serialize};
 
-/// Consecutive rounds without a kept adoption before the run pauses.
+/// Consecutive rounds without a kept adoption before the revision ends.
 pub const ROUNDS: u64 = 5;
-/// How a runaway pause reason begins.
+/// How a no-progress stop reason begins.
 pub const REASON: &str = "runaway";
 
 /// The spend counters a round opens on.
@@ -27,7 +27,7 @@ impl Spend {
             tokens: budget.tokens,
             evaluations: budget.evaluations,
             images: budget.images,
-            visual_passes: budget.visual_passes.unwrap_or(0),
+            visual_passes: budget.visual_passes,
         }
     }
     /// What was spent between this opening and `budget`.
@@ -96,16 +96,5 @@ impl Run {
             spent.images,
             spent.visual_passes
         ))
-    }
-
-    /// The owner's scoped resume of a runaway pause starts the count again.
-    pub fn resume_runaway(&mut self) {
-        if self
-            .pause
-            .as_ref()
-            .is_some_and(|p| p.reason.starts_with(REASON))
-        {
-            self.unkept = None;
-        }
     }
 }

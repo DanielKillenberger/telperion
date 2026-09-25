@@ -7,8 +7,8 @@ use super::{plan, Plan, Request, VERSION};
 use crate::tuning::{
     engine::Run,
     evaluation::Image,
+    look::{self, Priority},
     priority::Gap,
-    progress::{self, Priority},
 };
 use serde_json::{json, Value};
 
@@ -68,14 +68,14 @@ pub fn look(
     fixed: Option<&str>,
 ) -> Result<Look, String> {
     if priorities.is_empty() {
-        return Err("no tuning-routed priority to review".into());
+        return Err("no objective to review".into());
     }
     let here = state.trials.get(current).ok_or("no current trial")?;
     let mut not_shown = vec![];
     let mut alive = vec![];
     for index in variants {
         let trial = state.trials.get(*index).ok_or("no variant trial")?;
-        let mut shared = progress::shared_views(here, trial, state.seed);
+        let mut shared = look::shared_views(here, trial, state.seed);
         // A track judged at one view is judged on that view alone: a material
         // move changes nothing on the whole-tree still, and judging it there
         // would call every material variant inert.
@@ -115,7 +115,7 @@ pub fn look(
     };
     let mut shown: Vec<(usize, Image)> = vec![];
     for (index, _) in alive {
-        let Some(image) = progress::still(&state.trials[index], &view, state.seed) else {
+        let Some(image) = look::still(&state.trials[index], &view, state.seed) else {
             not_shown.push(NotShown {
                 trial: index,
                 inert: false,
@@ -148,7 +148,7 @@ pub fn look(
             plan: None,
         });
     }
-    let here_still = progress::still(here, &view, state.seed)
+    let here_still = look::still(here, &view, state.seed)
         .ok_or("the current tree has no still at the reviewed view")?;
     let plan = plan(
         species,
@@ -180,6 +180,6 @@ pub fn look(
 pub fn skeleton(state: &Run, references: &[Image]) -> Value {
     json!({"schema":VERSION,"prompt_sha256":Request::prompt_hash(),"seed":state.seed,
         "references":references,"owner_notes":state.owner_notes,
-        "priorities":progress::tuning_priorities(state).iter().map(|gap| Priority{
+        "priorities":look::objectives(state).iter().map(|gap| Priority{
             id:gap.id.clone(),observation:gap.observation.clone()}).collect::<Vec<_>>()})
 }

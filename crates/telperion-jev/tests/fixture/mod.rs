@@ -8,19 +8,11 @@
 use serde_json::{json, Value};
 use std::{fs, path::PathBuf};
 use telperion_jev::{
-    ledger::derived_identity,
     sha256_hex,
     tuning::{
-        actions::{Dial, DIRECTION_VERSION, QUESTION_VERSION},
-        calibration, continuation,
+        actions::Dial,
         engine::Run,
-        joint::Packet,
-        reference_first::{
-            ComparisonRequest, ComparisonResult, Coverage, Inventory, Priority, ReferenceImage,
-            ReferenceRequest, Replay, ReplayCase, ReplayResult, Trait, VERSION,
-        },
-        state::CellStatus,
-        vision,
+        reference_first::{Inventory, Priority, ReferenceImage, ReferenceRequest, Trait, VERSION},
     },
 };
 
@@ -77,58 +69,6 @@ fn image(root: &std::path::Path, view: &str, seed: u32) -> Value {
     json!({"path":path,"sha256":sha256_hex(&bytes),"view":view,"seed":seed})
 }
 
-/// One calibration manifest and its result set, both synthetic.
-fn calibration_pair(root: &PathBuf, kind: &str, version: &str, table: &str) -> Value {
-    let dial = json!({"id":"crookedness","path":"/skeleton/habit/crookedness",
-        "meaning":"turn variation","min":0.,"max":15.,"small":1.,"substantial":3.,"integer":false});
-    let expected: Value = if kind == "continuation" {
-        json!({"tractability":"supported","progress":"supported","risk":"bounded"})
-    } else {
-        json!({ "adjustment": "hold" })
-    };
-    let mut cases = vec![];
-    let mut ledgers = serde_json::Map::new();
-    for (i, split) in ["tuning", "heldout"].iter().enumerate() {
-        let state = if kind == "continuation" {
-            json!({"case":i,"note":SYNTHETIC})
-        } else {
-            json!({"dial":dial,"current":5.0 + i as f64})
-        };
-        let questions = calibration::questions(kind, &state).unwrap();
-        let id = format!("{kind}-case-{i}");
-        let answers = expected
-            .as_object()
-            .unwrap()
-            .iter()
-            .map(|(k, v)| (k.clone(), json!({"choice":v,"confidence":0.9})))
-            .collect::<serde_json::Map<_, _>>();
-        let state_sha256 = sha256_hex(&serde_json::to_vec(&state).unwrap());
-        let entry = json!({"id":id,"tool":"tuning","state_sha256":state_sha256,"source":null,
-            "model":JUDGMENT_MODEL,"questions":questions,"answers":answers,
-            "usage":{"input_tokens":10,"output_tokens":5},"elapsed_ms":1,
-            "recorded_at":"2026-09-20T00:00:00Z",
-            "identity":derived_identity(&state_sha256, &questions, JUDGMENT_MODEL)});
-        let ledger_path = root.join(format!("{id}.ledger.json"));
-        write(&ledger_path, &entry);
-        ledgers.insert(id.clone(), json!(ledger_path));
-        cases.push(
-            json!({"id":id,"split":split,"provenance":SYNTHETIC,"state":state,
-            "questions":questions,"expected":expected,"unsafe_answers":{}}),
-        );
-    }
-    let manifest = json!({"schema":"tuning-calibration-v1","question_version":version,
-        "table_sha256":table,"kind":kind,"model":JUDGMENT_MODEL,
-        "min_accuracy":0.8,"min_confidence":0.5,"cases":cases});
-    let manifest_path = root.join(format!("{kind}.manifest.json"));
-    let manifest_sha256 = write(&manifest_path, &manifest);
-    let result_path = root.join(format!("{kind}.result.json"));
-    write(
-        &result_path,
-        &json!({"manifest_sha256":manifest_sha256,"ledgers":ledgers}),
-    );
-    json!({"manifest":manifest_path,"result":result_path})
-}
-
 /// The adapter the runtime shells out to. It answers from the request alone,
 /// so it needs no network and no key.
 const ADAPTER: &str = r#"import json, sys
@@ -144,6 +84,17 @@ if e["stage"] == "inventory":
             "observation": "synthetic core recognition trait",
             "reference_ids": [r["references"][0]["id"]], "uncertain": False}],
             "observations": ["synthetic fixture observation"]}}))
+    raise SystemExit
+if e["stage"] == "sheet":
+    labels = [str(i + 1) for i in range(len(r["renders"]))]
+    steps = [{"from": a, "to": b, "grade": "none"} for a, b in zip(labels, labels[1:])]
+    print(json.dumps({"status": "ok", "request_sha256": e["request_sha256"],
+        "prompt_sha256": e["prompt_sha256"], "model": model, "effort": effort,
+        "usage": {"input_tokens": 90, "output_tokens": 30},
+        "answer": {"priorities": [{"priority_id": p["id"], "closest": labels[0],
+            "ranking": labels, "steps": steps} for p in r["priorities"]],
+            "overall": labels, "wrong": [], "breaks": [],
+            "improved": "synthetic: nothing moved", "missing": "synthetic"}}))
     raise SystemExit
 c = r["comparison"]
 inv = r["inventory"]
@@ -215,7 +166,6 @@ pub fn verifying_fixture(budget: Value) -> Fixture {
         "path":"/skeleton/habit/crookedness","meaning":"turn variation",
         "min":0.,"max":15.,"small":1.,"substantial":3.,"integer":false}]))
     .unwrap();
-    let table = sha256_hex(&serde_json::to_vec(&dials).unwrap());
 
     let protocol = root.join("adapter.py");
     script(&protocol, ADAPTER);
@@ -241,7 +191,6 @@ pub fn verifying_fixture(budget: Value) -> Fixture {
 
     let reference = image(&root, "whole", 1);
     let anchor = image(&root, "anchor", 1);
-    let render = image(&root, "whole", 1);
     let references = vec![reference.clone()];
 
     // Stage A: the inventory the runtime pins, and the receipt that attributes it.
@@ -281,76 +230,6 @@ pub fn verifying_fixture(budget: Value) -> Fixture {
             "answer":{"traits":inventory.traits,"observations":inventory.observations}}),
     );
 
-    // The replay that qualifies the visual role: one positive, one negative.
-    let comparison = |identity: &str| -> vision::Request {
-        let mut r: vision::Request = serde_json::from_value(json!({
-            "schema":"tuning-vision-v3","identity":identity,"target_species":PRESET,
-            "required":[{"item":"reference_character","view":"whole","seed":1}],
-            "images":[render.clone()],"references":references,
-            "quality_anchors":[{"image":anchor,"provenance":SYNTHETIC,"scope":"finish only"}],
-            "checklist":SYNTHETIC}))
-        .unwrap();
-        r.joint = Some(Packet::from_request(&r));
-        r
-    };
-    let mut cases = vec![];
-    let mut results = vec![];
-    for (id, ready) in [("positive", true), ("negative", false)] {
-        let request = ComparisonRequest::new(&comparison(id), inventory.clone());
-        let bound = request.comparison.clone();
-        let status = if ready { "pass" } else { "fail" };
-        let impact = if ready { "supported" } else { "blocker" };
-        let visual: vision::Result = serde_json::from_value(json!({
-            "request_sha256":bound.hash(),
-            "assessment":{"identity":bound.identity,"model":VISION_MODEL,"ledger":SYNTHETIC,
-                "cells":[[bound.required[0], status]],"defects":[],
-                "findings":[{"observation":format!("synthetic {impact} finding"),
-                    "evidence_ids":["render-0","reference-0"],"impact":impact,
-                    "uncertain":false,"causal_hypothesis":null}]},
-            "effort":EFFORT,"usage":{"input_tokens":100,"output_tokens":20},
-            "observations":[SYNTHETIC]}))
-        .unwrap();
-        results.push(ComparisonResult {
-            request_sha256: request.hash(),
-            visual,
-            coverage: vec![Coverage {
-                trait_id: "trait-core".into(),
-                status: if ready {
-                    CellStatus::Pass
-                } else {
-                    CellStatus::Fail
-                },
-                evidence_ids: vec!["render-0".into(), "reference-0".into()],
-                explanation: SYNTHETIC.into(),
-            }],
-        });
-        cases.push(ReplayCase {
-            id: id.into(),
-            provenance: SYNTHETIC.into(),
-            expected_ready: ready,
-            request,
-        });
-    }
-    let replay = Replay {
-        schema: "reference-first-replay-v1".into(),
-        model: VISION_MODEL.into(),
-        effort: EFFORT.into(),
-        protocol_sha256: sha256_hex(&fs::read(&protocol).unwrap()),
-        cases,
-    };
-    let replay_path = root.join("replay.json");
-    let replay_bytes = serde_json::to_vec_pretty(&replay).unwrap();
-    fs::write(&replay_path, &replay_bytes).unwrap();
-    let replay_result_path = root.join("replay-result.json");
-    write(
-        &replay_result_path,
-        &serde_json::to_value(ReplayResult {
-            manifest_sha256: sha256_hex(&replay_bytes),
-            results,
-        })
-        .unwrap(),
-    );
-
     let config = json!({
         "preset":PRESET,"seed":1,"initial_overrides":{},
         "owner_notes":"synthetic owner notes for an offline fixture",
@@ -362,19 +241,17 @@ pub fn verifying_fixture(budget: Value) -> Fixture {
         "vision":{"program":"python3","args":[protocol,"--model",VISION_MODEL,"--effort",EFFORT],
             "model":VISION_MODEL,"effort":EFFORT,"timeout_seconds":60,
             "ledger":root.join("vision-ledger")},
+        "sheet":{"adapter":{"program":"python3","args":[protocol,"--model",VISION_MODEL,"--effort",EFFORT],
+            "model":VISION_MODEL,"effort":EFFORT,"timeout_seconds":60,
+            "ledger":root.join("sheet-ledger")},"protocol":protocol},
         "references":references,
         "required":[{"item":"reference_character","view":"whole","seed":1},
             {"item":"reference_character","view":"whole","seed":42}],
         "checklist":SYNTHETIC,
         "quality_anchors":[{"image":anchor,"provenance":SYNTHETIC,"scope":"finish only"}],
-        "adjustments":calibration_pair(&root,"magnitude",QUESTION_VERSION,&table),
-        "direction":calibration_pair(&root,"direction",DIRECTION_VERSION,&table),
-        "continuation":calibration_pair(&root,"continuation",continuation::VERSION,&table),
-        "visual_validation":{"manifest":replay_path,"result":replay_result_path},
-        "vision_protocol":protocol,
         "reference_first":{"inventory":{"path":inventory_path,"sha256":inventory_sha},
             "preparation":{"path":preparation_path,"sha256":preparation_sha}},
-        "convergence_run":null,"judgment_model":JUDGMENT_MODEL,"gap_specs":{},
+        "judgment_model":JUDGMENT_MODEL,
         "ledger":root.join("jev-ledger"),
         "budget":budget});
     let config_path = root.join("config.json");
@@ -400,22 +277,18 @@ pub fn progress_run(trials: Vec<telperion_jev::tuning::evaluation::Trial>) -> Ru
         dials: vec![],
         owner_notes: "owner notes".into(),
         required: vec![],
-        budget: serde_json::from_value(json!({"evaluations":0,"images":0,"tokens":0,"rounds":0,
-            "max_evaluations":13,"max_images":52,"max_tokens":902431,"max_rounds":3,
-            "visual_passes":0,"max_visual_passes":26}))
-        .unwrap(),
+        budget: Default::default(),
         usage_known: true,
         trials,
         current: Some(0),
         visual: None,
-        pause: None,
+        stopped: None,
         machine_ready: false,
         pending: None,
         routes: vec![],
-        authorizations: vec![],
+        approval: None,
         preparation_charge: None,
         priority_checkpoints: vec![],
-        handoffs: vec![],
         judgment_inputs: vec![],
         visual_bootstrap: true,
         reviewer_passed_unqualified: false,

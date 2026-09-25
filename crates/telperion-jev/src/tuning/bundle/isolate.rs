@@ -14,7 +14,7 @@ use super::{
 };
 use crate::tuning::{
     engine::{Run, Services},
-    progress, sheet,
+    look, sheet,
 };
 
 type Save<'a> = &'a mut dyn FnMut(&Run) -> Result<(), String>;
@@ -86,7 +86,7 @@ pub(super) fn isolate(
         if halves.is_empty() {
             break;
         }
-        let priorities = progress::track_priorities(state, track);
+        let priorities = look::track_objectives(state, track);
         // A track judged at one view is split at that view too: a material
         // half on the whole-tree still would read inert.
         let look =

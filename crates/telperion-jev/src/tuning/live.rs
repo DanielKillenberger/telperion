@@ -1,12 +1,12 @@
-//! Live services for the bounded engine. Construction verifies frozen judgment evidence.
+//! Live services for the engine: the renderer, the reviewer and Jev. The
+//! thresholds a judgment is acted on at come from the labelled sets
+//! (`data/thresholds.json`), never from a runtime calibration gate.
 use super::{
-    actions::{Action, Dial, DIRECTION_VERSION, QUESTION_VERSION},
-    calibration,
-    continuation::{self, Basis},
+    actions::{Action, Dial},
     engine::{Answer, Proposal, Run, Services},
     evaluation::{self, Image, Trial},
+    look,
     matched::Matched,
-    progress::{self, Selection},
     state::{Cell, Visual},
     vision,
 };
@@ -24,65 +24,14 @@ fn is_false(value: &bool) -> bool {
     !value
 }
 
-/// An owner's recorded verdict that a replay case's expected label was wrong.
-/// It never rewrites the manifest or the result; it only records that the
-/// rejection was correct.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct OwnerRelabel {
-    pub case_id: String,
-    pub by: String,
-    /// The owner's words, verbatim, which must appear in the evidence file.
-    pub verdict: String,
-    pub evidence: PathBuf,
-    pub sha256: String,
-}
-
-impl OwnerRelabel {
-    pub fn verify(&self) -> Result<(), String> {
-        if self.case_id.trim().is_empty()
-            || self.by.trim().is_empty()
-            || self.verdict.trim().is_empty()
-        {
-            return Err("owner relabel lacks a case, an author or a verdict".into());
-        }
-        let bytes = fs::read(&self.evidence).map_err(|e| format!("owner relabel: {e}"))?;
-        if sha256_hex(&bytes) != self.sha256 {
-            return Err("owner relabel evidence changed".into());
-        }
-        if !String::from_utf8_lossy(&bytes).contains(&self.verdict) {
-            return Err("owner relabel verdict is not in its evidence".into());
-        }
-        Ok(())
-    }
-}
-
-/// The engine refuses more than this many candidates in one round.
-pub const CANDIDATE_LIMIT: u64 = 4;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Validation {
-    pub manifest: PathBuf,
-    pub result: PathBuf,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub preset: String,
     pub seed: u32,
-    /// What decides between the current tree and a candidate. `score` is every
-    /// run before 2026-09-21; `visual` puts the reviewer's comparative verdict
-    /// in its place and leaves the numbers as telemetry.
-    #[serde(default, skip_serializing_if = "Selection::is_score")]
-    pub selection: Selection,
-    /// The adapter the progress review is asked through. Required by `visual`.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub progress: Option<progress::Adapter>,
-    /// The adapter the contact sheet is asked through. Required by `bundle`.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub sheet: Option<progress::Adapter>,
+    /// The adapter the contact sheet, a round's one comparison, is asked
+    /// through.
+    pub sheet: look::Adapter,
     /// The strengths one bundle is drawn at, as multiples of each dial's own
     /// small step. Ascending, one to four of them, each above zero.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -98,10 +47,6 @@ pub struct Config {
     /// them asks nobody how far to move.
     #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
     pub magnitudes: std::collections::BTreeMap<String, super::stride::Class>,
-    /// The frozen gap-magnitude calibration. Until it qualifies, a class above
-    /// near that Jev chose needs scoped experimental authority.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub gap_magnitude: Option<Validation>,
     pub initial_overrides: Value,
     pub dials: Vec<Dial>,
     pub owner_notes: String,
@@ -114,18 +59,8 @@ pub struct Config {
     pub required: Vec<Cell>,
     pub checklist: String,
     pub quality_anchors: Vec<vision::QualityAnchor>,
-    pub adjustments: Validation,
-    pub direction: Validation,
-    pub continuation: Validation,
-    pub visual_validation: Validation,
-    pub vision_protocol: PathBuf,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reference_first: Option<super::reference_first::RuntimeConfig>,
-    pub convergence_run: Option<PathBuf>,
-    /// Upper bound on candidates evaluated in one round. `None` keeps the
-    /// engine's own limit of four; a lower bound buys a cheaper round.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub max_candidates: Option<u64>,
     /// Rounds in a row that keep nothing before the run pauses as a runaway.
     /// `None` is the engine's own count of five.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -138,12 +73,7 @@ pub struct Config {
     pub max_questions_per_call: Option<u64>,
     #[serde(default, skip_serializing_if = "is_false")]
     pub visual_bootstrap: bool,
-    /// Owner verdicts that a falsely-rejected replay case was labelled wrong.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub owner_relabels: Vec<OwnerRelabel>,
     pub judgment_model: String,
-    #[serde(default)]
-    pub gap_specs: std::collections::BTreeMap<String, String>,
     /// Inventory traits the generator cannot draw until an open spec lands.
     /// One going backwards is recorded, never a reason to roll back.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -155,21 +85,6 @@ pub struct Config {
 impl Config {
     pub fn priority_scope(&self, state: &Run) -> String {
         sha256_hex(&serde_json::to_vec(&json!({"base":state.priority_scope(&self.references),"checklist":self.checklist,"finish_anchors":self.quality_anchors.iter().map(|a|json!({"sha256":a.image.sha256,"scope":a.scope})).collect::<Vec<_>>()})).unwrap())
-    }
-    fn verify_reference_protocol(&self) -> Result<(), String> {
-        if self.reference_first.is_some() {
-            let replay: super::reference_first::Replay = serde_json::from_slice(
-                &fs::read(&self.visual_validation.manifest).map_err(|e| e.to_string())?,
-            )
-            .map_err(|e| e.to_string())?;
-            if replay.schema != "reference-first-replay-v1"
-                || replay.protocol_sha256
-                    != sha256_hex(&fs::read(&self.vision_protocol).map_err(|e| e.to_string())?)
-            {
-                return Err("reference-first adapter protocol changed or unqualified".into());
-            }
-        }
-        Ok(())
     }
     pub fn identity(&self) -> Result<String, String> {
         let mut bytes = serde_json::to_vec(self).unwrap();
@@ -185,11 +100,8 @@ impl Config {
         if let Some(prepared) = &self.reference_first {
             bytes.extend(prepared.inventory.bytes()?);
             bytes.extend(prepared.preparation.bytes()?);
-            bytes.extend(fs::read(&self.vision_protocol).map_err(|e| e.to_string())?);
         }
-        for review in [&self.progress, &self.sheet].into_iter().flatten() {
-            bytes.extend(fs::read(&review.protocol).map_err(|e| e.to_string())?);
-        }
+        bytes.extend(fs::read(&self.sheet.protocol).map_err(|e| e.to_string())?);
         Ok(sha256_hex(&bytes))
     }
     pub fn preparation(&self) -> Result<Option<super::reference_first::PreparationCharge>, String> {
@@ -215,39 +127,6 @@ impl Config {
             })
             .transpose()
     }
-    /// True when every falsely-rejected case carries an owner verdict naming
-    /// it. Only reachable under bootstrap; it never touches the manifest.
-    fn relabelled_rejections(&self, manifest: &[u8], result: &Value) -> Result<bool, String> {
-        if !self.visual_bootstrap || self.owner_relabels.is_empty() {
-            return Ok(false);
-        }
-        let replay: super::reference_first::Replay =
-            serde_json::from_slice(manifest).map_err(|e| e.to_string())?;
-        let observed: super::reference_first::ReplayResult =
-            serde_json::from_value(result.clone()).map_err(|e| e.to_string())?;
-        let mut rejected = vec![];
-        for (case, got) in replay.cases.iter().zip(&observed.results) {
-            let mut bound = got.clone();
-            bound.bind(&case.request)?;
-            let r = &case.request.comparison;
-            let ready = super::state::ready(&r.required, &r.identity, &bound.visual.assessment);
-            if case.expected_ready && !ready {
-                rejected.push(case.id.clone());
-            }
-        }
-        for relabel in &self.owner_relabels {
-            relabel.verify()?;
-            if !replay.cases.iter().any(|c| c.id == relabel.case_id) {
-                return Err("owner relabel names a case the replay does not have".into());
-            }
-            if !rejected.contains(&relabel.case_id) {
-                return Err("owner relabel names a case that was not falsely rejected".into());
-            }
-        }
-        Ok(rejected
-            .iter()
-            .all(|id| self.owner_relabels.iter().any(|r| &r.case_id == id)))
-    }
     /// The strengths a bundle round draws, defaulted and checked.
     pub fn strengths(&self) -> Result<Vec<f64>, String> {
         let strengths = self
@@ -268,34 +147,10 @@ impl Config {
     }
     pub fn verify(&self) -> Result<(), String> {
         super::unexpressed::verify(&self.unexpressed, self.reference_first.as_ref())?;
-        if self.selection == Selection::Bundle {
-            let sheet = self
-                .sheet
-                .as_ref()
-                .ok_or("bundle selection requires a contact-sheet adapter")?;
-            fs::read(&sheet.protocol)
-                .map_err(|e| format!("contact-sheet protocol unreadable: {e}"))?;
-            self.strengths()?;
-            super::bundle::verify_tracks(&self.tracks, &self.required)?;
-            if !self.visual_bootstrap {
-                return Err(
-                    "bundle selection is uncalibrated; bootstrap authority required".into(),
-                );
-            }
-        }
-        if !self.selection.is_score() && self.selection != Selection::Bundle {
-            let progress = self
-                .progress
-                .as_ref()
-                .ok_or("visual selection requires a progress adapter")?;
-            fs::read(&progress.protocol)
-                .map_err(|e| format!("progress protocol unreadable: {e}"))?;
-            if !self.visual_bootstrap {
-                return Err(
-                    "visual selection is uncalibrated; bootstrap authority required".into(),
-                );
-            }
-        }
+        fs::read(&self.sheet.protocol)
+            .map_err(|e| format!("contact-sheet protocol unreadable: {e}"))?;
+        self.strengths()?;
+        super::bundle::verify_tracks(&self.tracks, &self.required)?;
         if self.owner_notes.is_empty()
             || self.dials.is_empty()
             || self.required.is_empty()
@@ -307,123 +162,7 @@ impl Config {
         for dial in &self.dials {
             dial.validate()?;
         }
-        if self
-            .max_candidates
-            .is_some_and(|n| !(1..=CANDIDATE_LIMIT).contains(&n))
-        {
-            return Err("max_candidates must be between 1 and 4".into());
-        }
-        let table = sha256_hex(&serde_json::to_vec(&self.dials).unwrap());
-        for (v, kind, version) in [
-            (&self.adjustments, "magnitude", QUESTION_VERSION),
-            (&self.direction, "direction", DIRECTION_VERSION),
-            (&self.continuation, "continuation", continuation::VERSION),
-        ] {
-            let manifest = fs::read(&v.manifest).map_err(|e| e.to_string())?;
-            let declared: calibration::Manifest =
-                serde_json::from_slice(&manifest).map_err(|e| e.to_string())?;
-            if declared.model != self.judgment_model {
-                return Err("calibrated judgment model mismatch".into());
-            }
-            let raw: Value =
-                serde_json::from_slice(&fs::read(&v.result).map_err(|e| e.to_string())?)
-                    .map_err(|e| e.to_string())?;
-            let result = serde_json::from_value(raw.get("result").unwrap_or(&raw).clone())
-                .map_err(|e| e.to_string())?;
-            calibration::qualified(&manifest, &result, kind, version, &table)?;
-        }
-        let manifest = fs::read(&self.visual_validation.manifest).map_err(|e| e.to_string())?;
-        let raw: Value = serde_json::from_slice(
-            &fs::read(&self.visual_validation.result).map_err(|e| e.to_string())?,
-        )
-        .map_err(|e| e.to_string())?;
-        let result = raw.get("result").unwrap_or(&raw).clone();
-        let raw_result = result.clone();
-        let (model, effort, protocol, score) = if self.reference_first.is_some() {
-            self.preparation()?;
-            let result = serde_json::from_value(result).map_err(|e| e.to_string())?;
-            let (replay, score) = super::reference_first::replay_score(&manifest, &result)?;
-            (replay.model, replay.effort, replay.protocol_sha256, score)
-        } else {
-            let replay: vision::Replay =
-                serde_json::from_slice(&manifest).map_err(|e| e.to_string())?;
-            if replay
-                .cases
-                .iter()
-                .any(|c| c.request.schema != "tuning-vision-v3" || c.request.joint.is_none())
-            {
-                return Err("joint visual protocol requires fresh calibration".into());
-            }
-            let result = serde_json::from_value(result).map_err(|e| e.to_string())?;
-            let score = vision::replay_score(&manifest, &result)?;
-            (replay.model, replay.effort, replay.protocol_sha256, score)
-        };
-        // Bootstrap admits a replay with no positive, because no owner-accepted
-        // render exists yet for one. Every other guard stands.
-        if model != self.vision.model
-            || effort != self.vision.effort
-            || score.negatives == 0
-            || (score.positives == 0 && !self.visual_bootstrap)
-            || score.false_ready > 0
-        {
-            return Err(
-                "visual role lacks qualifying replay; human policy/convergence assessment required"
-                    .into(),
-            );
-        }
-        if protocol != sha256_hex(&fs::read(&self.vision_protocol).map_err(|e| e.to_string())?) {
-            return Err("vision protocol differs from replay".into());
-        }
-        if score.false_rejections > 0 && self.relabelled_rejections(&manifest, &raw_result)? {
-            // Every false rejection carries an owner verdict that the expected
-            // label was wrong, so there is no reviewer error to converge on.
-        } else if score.false_rejections > 0 {
-            let path = self
-                .convergence_run
-                .as_ref()
-                .ok_or("stricter role: bounded convergence remains unproven")?;
-            let proof: Run = serde_json::from_slice(&fs::read(path).map_err(|e| e.to_string())?)
-                .map_err(|e| e.to_string())?;
-            let trial = proof
-                .current
-                .and_then(|i| proof.trials.get(i))
-                .ok_or("missing convergence finalist")?;
-            let visual = proof
-                .visual
-                .as_ref()
-                .ok_or("missing convergence assessment")?;
-            if let Some(prepared) = &self.reference_first {
-                if proof.identity != self.identity()? {
-                    return Err(
-                        "reference-first convergence belongs to a different configuration".into(),
-                    );
-                }
-                let expected = self.preparation()?;
-                super::reference_first::verify_preparation(
-                    expected.as_ref(),
-                    proof.preparation_charge.as_ref(),
-                )?;
-                super::reference_first::verify_convergence(&self.vision, prepared, visual)?;
-            }
-            if !proof.machine_ready
-                || proof.pause.is_some()
-                || !trial.feasible
-                || visual.model != self.vision.model
-                || proof.required != self.required
-                || !super::state::ready(&proof.required_cells(), &trial.key, visual)
-                || !proof.usage_known
-                || super::state::over(proof.budget.tokens, proof.budget.max_tokens)
-                || super::state::over(proof.budget.images, proof.budget.max_images)
-                || super::state::over(proof.budget.evaluations, proof.budget.max_evaluations)
-            {
-                return Err("bounded convergence remains unproven".into());
-            }
-            for c in &trial.comparisons {
-                for image in &c.images {
-                    image.verify()?;
-                }
-            }
-        }
+        self.preparation()?;
         Ok(())
     }
     pub fn measurer(&self) -> SpeciesExample {
@@ -522,8 +261,12 @@ impl Live<'_> {
             super::joint::Packet::from_request(&request)
                 .with_shots(&self.config.matched.references)?,
         );
-        let mut result = if let Some(prepared) = &self.config.reference_first {
-            self.config.verify_reference_protocol()?;
+        let prepared = self
+            .config
+            .reference_first
+            .as_ref()
+            .ok_or("the reviewer needs a reference-first inventory")?;
+        let mut result = {
             self.config.preparation()?;
             let (inventory, _) =
                 prepared.load(&self.config.vision.model, &self.config.vision.effort)?;
@@ -535,8 +278,6 @@ impl Live<'_> {
                 super::reference_first::ComparisonRequest::production(&request, inventory);
             comparison.known_gaps = self.config.unexpressed.clone();
             super::reference_first::assess(&self.config.vision, &comparison)?.visual
-        } else {
-            self.config.vision.assess(&request)?
         };
         for cell in &self.config.required {
             if !required.contains(cell) {
@@ -574,7 +315,7 @@ impl Live<'_> {
             other => other.to_string(),
         })?;
         if entry.model != self.config.judgment_model {
-            return Err("runtime judgment model differs from calibrated role".into());
+            return Err("runtime judgment model differs from the config's".into());
         }
         Ok(entry)
     }
@@ -693,40 +434,6 @@ impl Services for Live<'_> {
     fn preparation(&self) -> Result<Option<super::reference_first::PreparationCharge>, String> {
         self.config.preparation()
     }
-    fn selection(&self) -> Selection {
-        self.config.selection
-    }
-    fn progress_request(
-        &self,
-        state: &Run,
-        current: usize,
-        candidate: usize,
-        priorities: &[super::priority::Gap],
-    ) -> Result<progress::Look, String> {
-        progress::request(
-            state,
-            &self.config.preset,
-            &self.config.references,
-            state.trials.get(current).ok_or("no current trial")?,
-            state.trials.get(candidate).ok_or("no candidate trial")?,
-            priorities,
-        )
-    }
-    fn progress_tokens(&self, request: &progress::Request) -> u64 {
-        30_000 + serde_json::to_vec(request).unwrap().len() as u64
-    }
-    fn progress(
-        &mut self,
-        request: &progress::Request,
-        side: &str,
-    ) -> Result<Answer<progress::Verdict>, String> {
-        let adapter = self
-            .config
-            .progress
-            .as_ref()
-            .ok_or("progress review has no adapter")?;
-        progress::dispatch(adapter, request, side)
-    }
     fn bundle_strengths(&self) -> Vec<f64> {
         self.config.strengths().unwrap_or_default()
     }
@@ -757,18 +464,11 @@ impl Services for Live<'_> {
         super::judgments::allowance(state, &super::stride::questions())
     }
     fn gap_magnitude(&mut self, state: &Value) -> Result<Answer<super::stride::Judged>, String> {
-        let table = sha256_hex(&serde_json::to_vec(&self.config.dials).unwrap());
-        let (threshold, calibrated) = super::stride::calibration(
-            self.config.gap_magnitude.as_ref(),
-            &self.config.judgment_model,
-            &table,
-        );
         let entry = self.ask(state, &super::stride::questions())?;
         let judged = super::stride::Judged {
             choice: entry.choice(super::stride::QUESTION).unwrap_or_default(),
             confidence: entry.confidence(super::stride::QUESTION),
-            threshold,
-            calibrated,
+            threshold: super::stride::labelled().min_confidence,
         };
         Ok(Self::answer(&entry, judged))
     }
@@ -816,12 +516,7 @@ impl Services for Live<'_> {
         &mut self,
         plan: &super::sheet::Plan,
     ) -> Result<Answer<super::sheet::Verdict>, String> {
-        let adapter = self
-            .config
-            .sheet
-            .as_ref()
-            .ok_or("contact-sheet review has no adapter")?;
-        super::sheet::dispatch(adapter, plan)
+        super::sheet::dispatch(&self.config.sheet, plan)
     }
     fn proposal_tokens(&self, state: &Run) -> u64 {
         super::judgments::allowance(
@@ -829,28 +524,10 @@ impl Services for Live<'_> {
             &super::judgments::proposals(state).unwrap_or(Value::Null),
         )
     }
-    fn continuation_tokens(&self, basis: &Basis) -> u64 {
-        super::judgments::allowance(
-            &serde_json::to_value(basis).unwrap(),
-            &continuation::questions(),
-        )
-    }
-    fn route_tokens(&self, state: &Run) -> u64 {
-        super::judgments::allowance(
-            &super::judgments::summary(state),
-            &self.route_questions(state),
-        )
-    }
-    fn max_candidates(&self) -> u64 {
-        self.config.max_candidates.unwrap_or(CANDIDATE_LIMIT)
-    }
     fn runaway_rounds(&self) -> u64 {
         self.config
             .runaway_rounds
             .map_or(super::runaway::ROUNDS, |n| n.get())
-    }
-    fn route_questions(&self, state: &Run) -> Value {
-        super::judgments::routes(&self.config.gap_specs, state.approved_priorities())
     }
     fn evaluation_images(&self) -> u64 {
         (self.config.matched.numeric_references.len() * 2) as u64
@@ -899,33 +576,12 @@ impl Services for Live<'_> {
     fn visual(&mut self, trial: &Trial) -> Result<Answer<Visual>, String> {
         self.assess_visual(trial, self.visual_cells(trial))
     }
-    fn risk(&mut self, basis: &Basis) -> Result<Answer<String>, String> {
-        let entry = self.ask(
-            &serde_json::to_value(basis).unwrap(),
-            &continuation::risk_only(),
-        )?;
-        let risk = supported(
-            &entry,
-            "risk",
-            super::judgments::threshold(&self.config.continuation)?,
-        );
-        Ok(Self::answer(&entry, risk))
-    }
-    fn evidence(&mut self, state: &Value) -> Result<Answer<String>, String> {
-        let entry = self.ask(state, &super::round::questions())?;
-        let answer = supported(
-            &entry,
-            super::round::EVIDENCE_QUESTION,
-            super::judgments::threshold(&self.config.continuation)?,
-        );
-        Ok(Self::answer(&entry, answer))
-    }
     fn side_effect_tokens(&self, state: &Value) -> u64 {
         super::judgments::allowance(state, &super::veto::questions())
     }
     fn side_effects(&mut self, state: &Value) -> Result<Answer<super::veto::Judged>, String> {
         let entry = self.ask(state, &super::veto::questions())?;
-        let threshold = super::judgments::threshold(&self.config.continuation)?;
+        let threshold = crate::thresholds().tuning_min_confidence;
         let judged = super::veto::Judged {
             choice: super::judgments::thresholded(&entry, super::veto::QUESTION, threshold),
             raw_choice: entry.choice(super::veto::QUESTION),
@@ -935,17 +591,12 @@ impl Services for Live<'_> {
         };
         Ok(Self::answer(&entry, judged))
     }
-    fn evidence_tokens(&self, state: &Value) -> u64 {
-        super::judgments::allowance(state, &super::round::questions())
-    }
     fn proposal_batches(&self, state: &Run) -> usize {
         let size = self.batch_size(state);
         state.dials.len().div_ceil(size.max(1)).max(1)
     }
     fn propose(&mut self, state: &Run, batch: usize) -> Result<Answer<Vec<Proposal>>, String> {
-        let bytes = fs::read(&self.config.adjustments.manifest).map_err(|e| e.to_string())?;
-        let manifest: calibration::Manifest =
-            serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+        let floor = crate::thresholds().tuning_min_confidence;
         let focused = self.proposal_state(state);
         let size = self.batch_size(state);
         let mut accepted = vec![];
@@ -980,7 +631,7 @@ impl Services for Live<'_> {
                 .collect::<Vec<_>>();
                 let Some(choice) = entry
                     .probabilities(&dial.id)
-                    .and_then(|p| super::direction::accept(p, &available, manifest.min_confidence))
+                    .and_then(|p| super::direction::accept(p, &available, floor))
                 else {
                     continue;
                 };
@@ -1010,16 +661,6 @@ impl Services for Live<'_> {
             tokens,
             ledger,
         })
-    }
-    fn route(&mut self, state: &Run) -> Result<Answer<Vec<super::handoff::PriorityRoute>>, String> {
-        let questions = self.route_questions(state);
-        let entry = self.ask(&self.route_state(state), &questions)?;
-        let routes = super::judgments::priority_routes(
-            &entry,
-            state.approved_priorities(),
-            super::judgments::threshold(&self.config.continuation)?,
-        );
-        Ok(Self::answer(&entry, routes))
     }
 }
 
@@ -1053,8 +694,4 @@ fn refused(status: u16, body: &str, bytes: usize) -> String {
         "{REFUSED}: {status} {}; request bytes {bytes}",
         error_type(body)
     )
-}
-
-fn supported(entry: &LedgerEntry, question: &str, threshold: f64) -> String {
-    super::judgments::thresholded(entry, question, threshold)
 }

@@ -19,7 +19,7 @@ use serde_json::Value;
 
 use crate::pipeline::canon::{read_json, write_canonical};
 use crate::pipeline::stages::capability_class::{self, Class};
-use crate::tuning::result::EndResult;
+use crate::tuning::result::{EndResult, PASSING};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -101,11 +101,7 @@ pub fn classify(gate: &Value, assessment: &Path, result: &EndResult) -> Result<V
             specs: vec![known.spec.clone()],
         });
     }
-    for entry in result
-        .gaps
-        .iter()
-        .filter(|g| g.status != "passing on the current tree")
-    {
+    for entry in result.gaps.iter().filter(|g| g.status != PASSING) {
         let moves: Vec<String> = entry
             .attempts
             .iter()
@@ -133,7 +129,7 @@ pub fn classify(gate: &Value, assessment: &Path, result: &EndResult) -> Result<V
             trait_id: entry.id.clone(),
             kind,
             evidence,
-            specs: entry.existing_spec.iter().cloned().collect(),
+            specs: vec![],
         });
     }
     Ok(gaps)

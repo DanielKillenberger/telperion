@@ -9,7 +9,7 @@ use telperion_jev::tuning::{
     bundle,
     engine::Proposal,
     evaluation::{Comparison, Image, Trial},
-    progress::Priority,
+    look::Priority,
     sheet::{self, Answer, Break, Grade, Movement, PriorityAnswer, Step},
 };
 
@@ -698,7 +698,6 @@ fn variant(key: &str, label: &str, strength: f64, images: Vec<Image>) -> Trial {
         evidence: None,
         direction_mass: None,
         rule: None,
-        progress: None,
         adopted_over: vec![],
         bundle: None,
         parent_bundle: None,

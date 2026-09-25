@@ -10,10 +10,6 @@ name = "jev"
 path = "src/bin/jev.rs"
 
 [[bin]]
-name = "tuning-loop"
-path = "src/bin/tuning_loop.rs"
-
-[[bin]]
 name = "species"
 path = "src/bin/species.rs"
 

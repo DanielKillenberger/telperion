@@ -32,6 +32,10 @@ pub struct Thresholds {
     /// (fn-131), calibrated on `data/cases/level_floor.json`; below it the
     /// no-match level holds.
     pub level_floor: f64,
+    /// The lowest confidence a tuning judgment is acted on at: a dial's
+    /// direction and the closing review's side-effect question. The value
+    /// fn-80's labelled calibration sets qualified at.
+    pub tuning_min_confidence: f64,
 }
 
 pub fn thresholds() -> Thresholds {

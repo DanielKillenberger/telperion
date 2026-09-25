@@ -67,21 +67,8 @@ fn outcome(trial: &Trial, current: Option<&str>) -> Outcome {
     if !trial.adopted_over.is_empty() || current == Some(trial.key.as_str()) {
         return Outcome::Adopted;
     }
-    if trial.sheet.as_ref().is_some_and(|s| s.inert)
-        || trial.progress.as_ref().is_some_and(|p| p.inert)
-    {
+    if trial.sheet.as_ref().is_some_and(|s| s.inert) {
         return Outcome::Inert;
-    }
-    if let Some(review) = &trial.progress {
-        return if review.worse() > 0 {
-            Outcome::Worse
-        } else if review.breaks_something() {
-            Outcome::Breaks
-        } else if review.better() > 0 {
-            Outcome::Slight
-        } else {
-            Outcome::None
-        };
     }
     let Some(sheet) = &trial.sheet else {
         return Outcome::None;
@@ -257,7 +244,7 @@ pub fn attempts(state: &Run, trim: Trim) -> Value {
             row
         })
         .collect::<Vec<_>>();
-    let last = history.last().and_then(|t| super::progress::words(t));
+    let last = history.last().and_then(|t| super::look::words(t));
     let mut out = json!({"meaning":MEANING,"attempts":history.len(),
         "last_attempt":last,"by_dial_family":rows});
     if trim != Trim::PhrasesAndDials {

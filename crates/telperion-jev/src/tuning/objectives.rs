@@ -163,12 +163,7 @@ pub fn of_track(objectives: &[Gap], track: &Track) -> Vec<Gap> {
 /// The owner's priorities from the last approval they gave, still citable in
 /// this packet, in their order.
 fn owner(state: &Run, evidence: &[Evidence]) -> Vec<Gap> {
-    let Some(last) = state
-        .authorizations
-        .iter()
-        .rev()
-        .find_map(|d| d.priority_approval.as_ref())
-    else {
+    let Some(last) = state.approval.as_ref() else {
         return vec![];
     };
     last.ordered

@@ -72,7 +72,7 @@ pub fn run(template: &Path, out: &Path) -> Result<String, String> {
     let config_path = dir.join("config.json");
     let bytes = serde_json::to_vec_pretty(&config).map_err(|e| e.to_string())?;
     std::fs::write(&config_path, bytes).map_err(|e| e.to_string())?;
-    let ended = crate::tuning::command::run_with(&config_path, &dir, None, &UreqTransport, &|| {
+    let ended = crate::tuning::command::run_with(&config_path, &dir, &UreqTransport, &|| {
         load_key().map_err(|e| e.to_string())
     });
     let written = dir.join("result.json");

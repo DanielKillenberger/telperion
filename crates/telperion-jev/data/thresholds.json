@@ -11,5 +11,6 @@
   "accuracy_bar": 0.9,
   "ranking_bar": 0.8,
   "selection_floor": 0.34,
-  "level_floor": 0.56
+  "level_floor": 0.56,
+  "tuning_min_confidence": 0.5
 }

@@ -19,13 +19,7 @@ fn blind_packet_labels_never_reach_request_and_metadata_is_bound() {
     request.quality_anchors[0].provenance = "SECRET PROVENANCE".into();
     let packet = Packet::from_request(&request);
     request.joint = Some(packet);
-    let mut fixture = telperion_jev::tuning::vision::ReplayCase {
-        id: "fixture".into(),
-        provenance: "SECRET LABEL SOURCE".into(),
-        expected_ready: false,
-        request,
-    };
-    let blind = fixture.blind_request();
+    let blind = request.blind();
     let hash = blind.hash();
     assert_eq!(blind.target_species, "European beech / Fagus sylvatica");
     let mut species = blind.clone();
@@ -33,9 +27,7 @@ fn blind_packet_labels_never_reach_request_and_metadata_is_bound() {
     assert_ne!(hash, species.hash());
     species.target_species.clear();
     assert!(species.verify().is_err());
-    fixture.expected_ready = true;
-    fixture.provenance = "ANOTHER SECRET LABEL".into();
-    assert_eq!(hash, fixture.blind_request().hash());
+    assert_eq!(hash, request.blind().hash());
     assert!(!serde_json::to_string(&blind).unwrap().contains("SECRET"));
     assert_eq!(blind.joint.as_ref().unwrap().reference_relation, "unknown");
     blind.verify().unwrap();

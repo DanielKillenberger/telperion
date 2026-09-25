@@ -25,9 +25,6 @@ pub(in crate::tuning) fn settle(
     restore: Restore,
     trial: usize,
 ) -> Result<bool, String> {
-    if services.selection().is_score() {
-        return Ok(true);
-    }
     let (Some(before), Some(after)) = (restore.visual.clone(), state.visual.clone()) else {
         return Ok(true);
     };

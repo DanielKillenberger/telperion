@@ -132,11 +132,10 @@ fn the_restore_point_puts_every_field_back_as_it_was() {
         "identity":"run","preset":"european-beech","seed":1,
         "effective":{"skeleton":{"twigs":{"hang":0.25}}},"overrides":{},
         "dials":[],"owner_notes":"notes","required":[],
-        "budget":{"evaluations":0,"images":0,"tokens":0,"rounds":0,"max_evaluations":1,
-            "max_images":1,"max_tokens":1,"max_rounds":1},
+        "budget":{"evaluations":0,"images":0,"tokens":0,"rounds":0},
         "usage_known":true,"trials":[],"current":null,
         "visual":serde_json::to_value(visual(&[("crown",CellStatus::Pass)],&[])).unwrap(),
-        "pause":null,"machine_ready":false,"pending":null,"routes":[]
+        "stopped":null,"machine_ready":false,"pending":null,"routes":[]
     }))
     .unwrap();
     state.current = Some(0);

@@ -80,10 +80,6 @@ pub struct Trial {
     pub direction_mass: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rule: Option<String>,
-    /// The reviewer's comparative verdict on this attempt against the tree it
-    /// came from. Present only under visual selection.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub progress: Option<super::progress::Verdict>,
     /// Owner-facing telemetry: the other candidates of this round the reviewer
     /// also judged adoptable, when this one was the move that was kept.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -220,7 +216,6 @@ pub fn evaluate(
     let start = Instant::now();
     let key = sha256_hex(format!("{identity}:{seed}:{}", overrides).as_bytes());
     let mut trial = Trial {
-        progress: None,
         adopted_over: vec![],
         bundle: None,
         parent_bundle: None,

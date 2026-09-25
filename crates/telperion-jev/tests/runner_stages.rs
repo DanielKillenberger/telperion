@@ -41,8 +41,7 @@ fn gap(id: &str, status: &str, moves: Value) -> Value {
             "visual_outcome": null, "moves": moves}]),
         false => json!([]),
     };
-    json!({"id": id, "rank": 1, "priority": id, "status": status, "latest_route": null,
-           "existing_spec": null, "attempts": attempts, "reviewer_words": ["still thin"],
+    json!({"id": id, "rank": 1, "priority": id, "status": status, "attempts": attempts, "reviewer_words": ["still thin"],
            "stills": [], "check": "pending"})
 }
 
@@ -96,8 +95,8 @@ fn every_failing_trait_is_classed_reachable_identity_or_global_with_its_evidence
     let tuned: EndResult = serde_json::from_value(result(
         tree("k"),
         json!([
-            gap("crown-density", "stalled in tuning", moved),
-            gap("trunk-texture", "stalled in tuning", json!([])),
+            gap("crown-density", "failing on the current tree", moved),
+            gap("trunk-texture", "failing on the current tree", json!([])),
             gap("frond-count", "passing on the current tree", json!([])),
         ]),
         json!([{"trait": "fruit-clusters-pendent", "spec": "fn-111"}]),
