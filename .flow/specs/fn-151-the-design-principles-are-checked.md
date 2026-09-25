@@ -1,119 +1,112 @@
-# The design principles are checked before a push
-
 ## Conversation Evidence
 
-> owner (2026-09-25): "let's do it properly and make sure that we have something in place that makes sure these design philosophies really get adhered to. What kind of check would make sense to enforce this? It shouldn't be overbearing but agents should live and breathe this and have their decisions guided."
-> owner (2026-09-25): "can we actually have a test suite that we run through jev to check if the diff adheres to our guiding principles."
-> owner (2026-09-25): "but why just ci? if we have it part of the local suite we don't have to open a PR first to figure out the mistake"
-> owner (2026-09-25): "we could make it a pre_commit hook?" / host: pre-push instead, once per push on the whole branch / owner: "yes"
-> owner (2026-09-25): "fn-151 should also make sure that STRATEGY.md is upheld"
-> owner (2026-09-25): "for fn-151 we should check through previous PR's identify ones that should definitely have raised flags and make sure that the hook catches it"
-> owner (2026-09-25): "so 151 really needs to be designed well. It needs to be token efficient, fast but be highly reliable in catching offending pushes. We should have in agents.md and claude.md (or can we just remove claude.md at this point, claude reads agents.md?) that the design of specs and implementation will be evaluated with jev to align with design principles. Actually as I write this can we run jev on specs before we start work?"
+> owner (2026-09-25): "let's do it properly and make sure that we have something in place that makes sure these design philosophies really get adhered to ... It shouldn't be overbearing but agents should live and breathe this and have their decisions guided."
+> owner: "can we actually have a test suite that we run through jev to check if the diff adheres to our guiding principles." / "but why just ci? if we have it part of the local suite we don't have to open a PR first to figure out the mistake" / "we could make it a pre_commit hook?" (host: pre-push; owner: "yes")
+> owner: "so 151 really needs to be designed well. It needs to be token efficient, fast but be highly reliable in catching offending pushes ... can we run jev on specs before we start work?"
+> owner: "fn-151 should also make sure that STRATEGY.md is upheld" / "for fn-151 we should check through previous PR's identify ones that should definitely have raised flags and make sure that the hook catches it"
+> owner, on continuity: "I can imagine a multidimensional tree space where if you're on one part of the space some dimensions just don't change the output ... we need to find a principle here that holds."
+> owner: "I want an in depth review with astra on how to make sure this isn't overbearing and full of false positives. This needs to be tight." (review: `.flow/evidence/fn-151-the-design-principles-are-checked/ASTRA-REVIEW.md`, verdict "needs redesign before implementation") / host's revised outcome / owner: "ok"
 
 ## Goal & Context
 <!-- scope: business -->
 
-STRATEGY.md states the principles ("Our approach" and "Key metrics"): one pipeline every tree passes through, never a fallback path, one continuous tree space with no switch, no renderer code per template, generate only the detail the consumer needs, and every change measured for cost and look ("Minimalist af, efficient af and beautiful"). Nothing checks them, so they slip. Three slips this week:
-- the slim field crate kept its own copy of the build chain after fn-102;
-- the date palm shipped in 0.1.3 unable to grow through `telperion/field`;
-- the first fix for that grew the slim Wasm 48% and was stopped only by a manual instruction.
-
-The species runner also grew about 30 stop sites of approval and re-checking. The concrete slips get code guards in the gate. The judgement-shaped ones get a Jev reviewer that reads the branch's diff before every push. Four questions in CLAUDE.md guide the calls no check can make. [paraphrase]
+STRATEGY.md's principles slipped three times in a week, and nothing checked them. The slim field package kept a copied build chain (#58). The date palm shipped unbuildable through that package (#115). A first fix grew its Wasm 48%, stopped only by a hand instruction. The species runner grew about 30 stop sites. This spec puts the principles in front of every push and every spec. Deterministic checks block what is certain. Jev warns on judgement-shaped breaches, and earns blocking only through measured precision on real pushes. The guard must be tight: it catches real breaches and stays quiet on healthy work, including sanctioned exceptions and harmless dormancy. Otherwise people learn to bypass it. [paraphrase]
 
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-**What exists, checked 2026-09-25 on master (39348def).** [checked]
-- There are no git hooks in the repository and `core.hooksPath` is unset.
-- The `jev` binary (`crates/telperion-jev/src/bin/jev.rs`) has the subcommands screen, select, cite, triage, ask and cases.
-- Question sets and labelled cases live in `crates/telperion-jev/data/{questions,cases}`, with thresholds in `data/thresholds.json`.
-- CLAUDE.md keeps Jev out of every workspace test command, and its key is visible only to an interactive shell (`bash -ic`).
+**What exists, checked 2026-09-25.** [checked]
+- There are no git hooks in the repository, and `core.hooksPath` is unset.
+- The `jev` binary has the subcommands screen, select, cite, triage, ask and cases. Question sets and labelled cases are in `crates/telperion-jev/data`. The shared caller retries with delays and uses the `jev-latest` alias.
+- CLAUDE.md keeps Jev out of workspace tests, and its key is visible only to an interactive shell.
+- STRATEGY.md allows a GPU executor beside the CPU reference, and a qualified fallback geometry, outside "Our approach". The growth path is sanctioned in CLAUDE.md.
+- The core pipeline's `placed_field` fallback remains for families the plan cannot describe.
 
-**The principles are STRATEGY.md's, never a second list.** [inferred]
-- Code reads STRATEGY.md's "Our approach" and "Key metrics" and takes each commitment as one principle with a stable id. Among them:
-  - one continuous tree space, where no family field is a switch;
-  - no renderer code for a new parameter or template;
-  - one pipeline, with each feature a term inside a stage and never a route around it;
-  - an input the pipeline cannot represent is an explicit error, never a fallback path;
-  - generate only the detail the consuming engine needs;
-  - measured runtime cost and visual evidence;
-  - Build, Frame, Fidelity and Attributability as stated.
-- **STRATEGY.md's continuity sentence changes with this spec** (owner approved, 2026-09-25: "that's good"). "The generator is one continuous tree space: every generator parameter is a numeric trait that acts on every tree ..." becomes: "The generator is one continuous tree space: every parameter is a numeric trait defined for every tree, a template is a point in that space, and a small change in any parameter makes a small change in the tree. A parameter may be dormant where the structure it shapes is absent, and it wakes smoothly as that structure appears; its description states where it is dormant. No parameter is a switch between ways of building, and a count steps only by one unit of the structure it counts." The rest of the paragraph is unchanged. Under it, a dormant dimension (branching rows on a palm) is clean and a jump is a breach (#59: the first frond removes every other foliage source). [checked]
-- The question set's version is STRATEGY.md's hash. An edit to the strategy re-derives the principles and requires the labelled set to be re-run before the reviewer is trusted again.
-- The four AGENTS.md questions are a short rendering of these principles, and the spec template's "Strategy Alignment" line must name sections STRATEGY.md has; code checks that.
-- Checked on master (39348def), the core pipeline's `placed_field` fallback (`pipeline/stage.rs`) contradicts "never a fallback path". It is the first finding this spec's reviewer must report, and fn-150 removes it from the slim build. [checked]
+**The policy.** A short maintained list of question ids, each citing the exact STRATEGY.md clause or owner ruling it rests on, versioned on its own. Nothing is extracted automatically. It includes:
+- one pipeline;
+- never a fallback path, with STRATEGY.md's qualified allowances;
+- no switch between ways of building, where dormancy is clean and a jump is a breach;
+- only the detail the consumer reads;
+- measured cost and look;
+- a step that stops work must catch defects the steps around it cannot. [paraphrase]
 
-**Code guards, in `cargo test`** (deterministic, offline, free). [inferred]
-1. **One path.** A test lists the only modules allowed to call the build stages (`branching::generate`, `foliage::plan::plan`, leaf placement, the `Field` constructors, `surface::build`); today that is the core pipeline. Any other caller fails with a message naming the principle.
-2. **Every preset through every entry.** Each shipped preset builds through the native pipeline, the main Wasm binding and the slim field entry. A new preset or entry joins without editing the test.
-3. **Budgets.** A checked-in `budgets.json` records each Wasm artifact's raw and brotli size and each preset's build time and peak memory. Growth past a stated margin fails unless the same change updates the file, so a trade-off is a visible line in the diff.
+**Exceptions.** A registry of scoped entries. Each names the principle, the specific symbols or operation it covers, the rationale and its authoritative source: an owner decision or a strategy allowance. Code annotations, specs and a PR's Decisions line cite an entry by id. A claim of approval without an entry creates none. No entry covers a whole PR, a directory or future behaviour. The day-one entries are the growth path (#17) and the GPU executor (#50). [paraphrase]
 
-**The principles reviewer: `jev principles --base <ref>`.** [inferred]
-- **Candidates.** Code extracts them from the diff against the base: new callers of build stages, new cargo features and cfg gates, new pause, decision or approval sites, new modules or scripts whose names or public items resemble an existing one, new CLI subcommands, and new or removed presets and package entries.
-- **Judgement.** Jev judges each candidate against the four principles, with "touches none" always an answer. Code writes every finding with file and line.
-- **Thresholds.** They come from a labelled set drawn from this repository's merged and closed PRs: a survey (`.flow/evidence/fn-151-the-design-principles-are-checked/PR-SURVEY.md`) proposes which PRs should have raised a flag and which are clean, the host labels them and the owner confirms the positives; the set includes at least:
-  - fn-102's removal of the copied chains;
-  - the slim crate's surviving copy;
-  - #115's missing slim support;
-  - the conductor's approval layers;
-  - the twin reviewer paths;
-  - the leaf-plan fallback's +48%;
-  - and clean diffs as negatives.
-- **Cost.** The result is cached by the diff's hash, so an unchanged diff costs nothing to recheck.
+**Deterministic guards, which block** (in `cargo test` and the pre-push hook): [paraphrase]
+1. **Production boundary.** Production code outside the pipeline never calls the build stages. Aliases are resolved, tests are excluded, registered exceptions are honoured, and removed and added callers are compared together.
+2. **Entry coverage.** Every shipped preset builds through every callable generation entry (native, main Wasm and slim field) in their shipped configurations. It triggers when preset values, catalogue membership, entry wiring or their dependencies change. This owns omissions such as #115; it reuses fn-150's regression.
+3. **Artifact budgets.** Each shipped Wasm and package artifact's size, from a fixed build recipe, against a checked-in budget. A change to the budget carries measured evidence and a Decisions reference.
 
-**Specs, before work.** `jev principles --spec <id>` takes each bullet of the spec's Architecture section as a candidate and judges it the same way; the host runs it before `flowctl spec ready`, and the pre-push run covers any `.flow/specs/*.md` in the diff. A design that adds a second path or an approval layer is caught before anyone builds it. [inferred]
+Timing and memory are measured separately, on named hardware, never per push.
 
-**Cost, speed and reliability.** [inferred]
-- Code extracts candidates; Jev never reads the whole diff or spec. Each question carries one candidate's few lines of state, and questions are batched up to the caller's limit.
-- A run on a typical branch finishes in seconds and costs a handful of calls; the PR reports both from the labelled set's runs.
-- Reliability is measured, not assumed: on the labelled set, recall on offending cases is at least 0.9 and the false-flag rate on clean cases is at most 0.1, each reported. A candidate class the extractor misses is a test failure, never a silent pass.
+**The Jev reviewer, `jev principles`, which advises.** [paraphrase]
+- **Candidates.** Code extracts only newly introduced or worsened behaviour of three kinds, each with before and after spans, relevant callers or consumers, removed implementations, the governing clause and the applicable exceptions:
+  - a setting that selects a builder or suppresses existing structure;
+  - surviving duplicate implementations, or redundant blocking steps;
+  - output that is generated or uploaded with no consumer reading it.
+- **What is never a candidate on its own:** cargo features, cfg gates, names, CLI commands and package exports. They are context, or triggers for the deterministic guards.
+- **Decision.**
+  - Jev selects a breach mechanism and code-supplied evidence ids, or "none", or "insufficient evidence".
+  - Only an above-threshold answer gets a second, confirming question, which states the legitimate readings and the exceptions.
+  - A warning needs both to clear calibrated per-principle thresholds, and code to validate the cited spans. Otherwise the reviewer abstains.
+- **Graduation.** Each principle starts in shadow mode (logged, not shown), moves to warnings, and blocks only after its measured precision on real pushes reaches at least 95%.
+- **Specs.** Spec mode judges each current proposal with its decision context, and excludes rejected, historical and superseded designs. It advises before ready and adds no approval step.
+- **Audit mode.** An explicit audit mode reports debt that already exists. Push and spec modes report only what a change introduces.
 
-**The labelled PRs (owner confirmed, 2026-09-25: "seems reasonable what you proposed").** [user]
-- Positives, which must be flagged:
-  - #6: copied build chain in the Wasm binding;
-  - #58: the slim field crate's third copy;
-  - #55: the placed-leaf fallback;
-  - #115: the palm unbuildable through the slim entry (the code guard, not Jev);
-  - #3: an enum switching builders;
-  - #59: the first frond removes all other foliage, a jump;
-  - #52: twin reviewers and assessors;
-  - #53: the copied route table and approval pauses;
-  - #61: the Claude twin scripts;
-  - #13: an unread per-vertex buffer;
-  - the runner's approval layers: #38, #75, #76, #77, #83, #87 and #94.
-- Clean, which must pass: #17, growth as a sanctioned hidden feature; #50, the GPU executor STRATEGY.md allows; #82, fn-102's cleanup; and the survey's other clean PRs (`.flow/evidence/fn-151-the-design-principles-are-checked/PR-SURVEY.md`).
-- STRATEGY.md gains one line on process: a step that stops work must catch defects that the steps around it cannot. The runner positives then cite a stated principle.
+**Where it runs.** [paraphrase]
+- A checked-in `.githooks/pre-push`, installed once through `core.hooksPath` by the setup script, runs the guards and the reviewer on the pushed revisions against an explicit merge base. It calls Jev through `bash -ic`, and a missing key or network reports "incomplete".
+- CI runs the same checks on each PR.
+- **Output:** at most three findings, deduplicated. Each carries its location, the principle, the before and after evidence, the consequence and one repair or test command, with the full structured output on request.
 
-**Where it runs.** [inferred]
-- A checked-in `.githooks/pre-push` runs the reviewer on the pushed branch's diff against `origin/master`, through `bash -ic` for the key. `scripts/setup` (or the existing setup path) sets `core.hooksPath` once, so every checkout and worktree gets it.
-- A finding stops the push with its file, line, principle and a one-line reason. The author fixes it, or pushes with `--no-verify` and names the trade-off in the PR's Decisions section.
-- A missing key or network skips with a warning, never a failure.
-- CI runs the same command on each PR as advice, for pushes that skipped the hook.
+**Cost.** [paraphrase]
+- Cached p95 at most 0.5 s; uncached p95 at most 5 s; a 10 s deadline.
+- At most two batched Jev phases, at most 12 candidates, and at most 8,000 input tokens per run.
+- An overflow, timeout or unavailable service reports "incomplete", never "clean".
+- The cache key is the candidate's full inputs plus the extractor, question, model, policy, threshold and exception versions.
 
-**Guidance.** [inferred]
-- AGENTS.md becomes the one instruction file, and CLAUDE.md shrinks to `@AGENTS.md` so Claude Code imports it (today AGENTS.md is a partial, older copy: 66 lines against CLAUDE.md's 109). The file states that every spec and every push is checked by Jev against the design principles.
-- AGENTS.md gains four questions: Does this add a second path? Does it compute detail the consumer doesn't read? Does it add a switch to tree space? Is its cost and look measured?
-- A PR whose change trades one principle for another names the tension under Decisions (`docs/pr-format.md`).
-- The spec template gains a "Principles" line, filled at spec time by the host.
+**Guidance.** [paraphrase]
+- STRATEGY.md takes the owner-approved continuity sentence ("every parameter is a numeric trait defined for every tree ... a small change in any parameter makes a small change in the tree. A parameter may be dormant where the structure it shapes is absent, and it wakes smoothly ... No parameter is a switch between ways of building, and a count steps only by one unit of the structure it counts") and the process line above.
+- CLAUDE.md states that specs and pushes are checked against these principles, and gives four short questions.
+- `docs/pr-format.md` asks that a trade-off name its principle and exception id.
 
-**Unknown.** [unknown]
-- Whether `jev principles` belongs in the `jev` binary or the split fn-107 plans (a crate for Jev primitives).
-- The labelled set's size needed for a threshold, which the implementer measures.
+**The evaluation corpus.** [paraphrase]
+- **Owner-confirmed labels (2026-09-25).**
+  - Positives:
+    - #6, #58 and #55;
+    - #115, owned by entry coverage;
+    - #3, #59, #52, #53, #61 and #13;
+    - the runner's approval layers #38, #75, #76, #77, #83, #87 and #94.
+  - Clean: #17, #50 and #82, plus the survey's other clean PRs.
+  - The survey's own draft labels (#50 positive, #17 likely) are superseded by these.
+- **How it is labelled:** by defect mechanism and evidence span, on immutable revisions, with calibration and holdout groups separated by lineage.
+- **Matched clean cases:** dormancy, count steps, backend choice, extraction or delegation, necessary validation, and accepted byte changes.
+- **Mutations:** omission mutations for the guards.
+- **Growth:** it grows from confirmed findings and dismissals, plus a small chronological sample of clean changes.
+
+**Unknown.** The corpus size needed before any principle can graduate, which the implementer reports from real pushes. [unknown]
 
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** On a checkout of master before fn-150, the every-preset guard fails for `date-palm` through the slim entry. Each guard also fails on a scratch branch that breaks it (a direct stage call outside the pipeline, a Wasm over budget) and passes on master after fn-150. [inferred]
-- **R1b:** Replayed on the diff of every PR the owner confirmed as a positive, the pre-push check flags it with the principle named; replayed on the confirmed clean PRs, it passes. The replay is a test over stored diffs, runs offline against recorded Jev answers, and a new positive joins by adding its PR number. [inferred]
-- **R2:** On the labelled set, recall on offending cases is at least 0.9 and false flags on clean cases at most 0.1; a branch run finishes in seconds with its call count reported; `jev principles` flags the slim crate's copied chain and the +48% fallback diff, and passes a clean diff. It meets the labelled set's accuracy at its threshold and never answers without a candidate. [inferred]
-- **R3:** A push from any worktree runs the hook once per push. A cached diff costs no Jev call, a missing key warns and passes, and `--no-verify` skips it. [inferred]
-- **R4:** `jev principles --spec` flags a labelled spec that adds a second path or an approval layer and passes fn-150's final design. AGENTS.md is the one instruction file with CLAUDE.md importing it, and it, `docs/pr-format.md` and the spec template carry the guidance above. The workspace gate and `npm test` are green. [inferred]
+- **R1:** The production-boundary guard fails on a scratch change that calls a build stage from production code outside the pipeline. It passes on #82's revision and on test code. Errors: an unresolvable alias fails the guard with its location. [paraphrase]
+- **R2:** The entry-coverage guard fails for `date-palm` through the slim entry on the master before fn-150. It passes on master after fn-150, and triggers on a change to preset values, catalogue membership or entry wiring. Errors: a failing entry names the preset and the entry. [paraphrase]
+- **R3:** The artifact-budget guard fails on the +48% slim build from fn-150's first attempt, and passes on the shipped 0.1.4 build. Errors: a budget change without evidence fails. [paraphrase]
+- **R4:** On the offline replay (frozen extractions with recorded answers), every confirmed positive's labelled mechanism is caught by a guard or by a Jev finding that cites that mechanism, and every confirmed clean case yields no finding. Errors: a positive with no supporting candidate class is reported as unsupported coverage, never as a pass. [paraphrase]
+- **R5:** A live, held-out evaluation reports Jev's recall, precision and clean-push false flags with their counts and uncertainty. A principle leaves shadow mode only when its warnings reach at least 95% precision on real pushes. Errors: no Jev finding blocks at launch. [paraphrase]
+- **R6:** The pre-push hook runs on a push from any worktree, and meets the cost bounds above, measured and reported. Errors: timeout, missing key or overflow reports "incomplete"; `--no-verify` skips it. [paraphrase]
+- **R7:** Spec mode yields no finding on fn-150's final design, and flags a labelled spec that proposes a surviving duplicate path. It adds no readiness step. Errors: missing decision context abstains. [paraphrase]
+- **R8:** STRATEGY.md, CLAUDE.md and `docs/pr-format.md` carry the guidance above, the exception registry holds its day-one entries, and the workspace gate and `npm test` are green. [paraphrase]
 
 ## Boundaries
 <!-- scope: business -->
 
-- Not the continuity measure (fn-148), which joins the guards when it lands. The reviewer advises and never blocks CI; only the code guards fail the gate. It follows fn-150.
+- Not the continuity measure (fn-148). Not per-push timing or memory benchmarks. Not consolidating AGENTS.md and CLAUDE.md, which is its own change. Not removing the core `placed_field` fallback, which the audit mode reports for its own fix.
+
+## Decision Context
+<!-- scope: both — conditionally substructured -->
+
+The pre-review draft let Jev block pushes on "touches a principle", derived principles automatically, and treated names, cfg gates and CLI commands as suspicion. Astra's review showed it would reject its own clean cases, miss omissions and breaches inside existing functions, and over-claim reliability from about 40 labelled PRs. The design now blocks only on deterministic checks. Jev findings need evidence and a confirming question, and earn blocking one principle at a time by measured precision. [paraphrase]
 
 ## Strategy Alignment
 
-- Serves "Our approach" and the mantra "Minimalist af, efficient af and beautiful". [strategy:Our approach]
+- Serves "Our approach": one pipeline, no fallback, continuous tree space, only the detail the consumer needs, measured cost and look. [strategy:Our approach]
