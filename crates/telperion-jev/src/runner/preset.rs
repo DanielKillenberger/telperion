@@ -1,6 +1,7 @@
 //! The accepted tree written into core as a preset in the style the shipped
 //! ones are: a function of `p.<row> = <value>;` lines in
-//! `crates/telperion-core/src/presets/species.rs`, registered in
+//! `crates/telperion-core/src/presets/` (`species.rs`, or `originals.rs` for
+//! the oak and the spruce), registered in
 //! `presets.rs` beside the others. A species that already has a function
 //! keeps its lines and comments; each row the accepted tree moved has its
 //! line's value replaced, or gains a line under the acceptance's comment. A
@@ -17,6 +18,8 @@ use super::start::flatten;
 
 const SPECIES: &str = "crates/telperion-core/src/presets/species.rs";
 const PRESETS: &str = "crates/telperion-core/src/presets.rs";
+/// Every file a species' function may live in; a new one goes to `SPECIES`.
+const FILES: [&str; 2] = [SPECIES, "crates/telperion-core/src/presets/originals.rs"];
 
 /// What a new preset registers under.
 pub struct Names {
@@ -125,7 +128,7 @@ pub fn edit(
     rows: &[(String, String)],
     note: &str,
 ) -> Result<String, String> {
-    let (start, end) = body(source, name).ok_or(format!("no fn {name} in {SPECIES}"))?;
+    let (start, end) = body(source, name).ok_or(format!("no fn {name}"))?;
     let mut text = source[start..end].to_string();
     let mut added = Vec::new();
     for (field, value) in rows {
@@ -212,32 +215,29 @@ pub fn register(source: &str, names: &Names) -> Result<String, String> {
 /// what it did. `note` heads the lines the acceptance adds.
 pub fn write(root: &Path, names: &Names, accepted: &Family, note: &str) -> Result<String, String> {
     let read = |p: &str| std::fs::read_to_string(root.join(p)).map_err(|e| format!("{p}: {e}"));
-    let species = read(SPECIES)?;
     let name = snake(&names.id);
-    let (text, word) = match Preset::from_id(&names.id) {
-        Some(shipped) => {
-            let rows = lines(&moved(&shipped.parameters(), accepted))?;
-            let count = rows.len();
-            (
-                edit(&species, &name, &rows, note)?,
-                format!("{count} rows of fn {name} set"),
-            )
-        }
-        None => {
-            let rows = lines(&moved(&Family::default(), accepted))?;
-            let presets = register(&read(PRESETS)?, names)?;
-            std::fs::write(root.join(PRESETS), presets).map_err(|e| e.to_string())?;
-            let text = format!(
-                "{}{}",
-                species.trim_end_matches('\n'),
-                function(&name, &rows, note)
-            );
-            (
-                text,
-                format!("fn {name} written with {} rows and registered", rows.len()),
-            )
-        }
-    };
+    if let Some(shipped) = Preset::from_id(&names.id) {
+        let rows = lines(&moved(&shipped.parameters(), accepted))?;
+        let file = FILES
+            .iter()
+            .find(|f| read(f).is_ok_and(|s| body(&s, &name).is_some()))
+            .ok_or(format!("no fn {name} in {}", FILES.join(" or ")))?;
+        let text = edit(&read(file)?, &name, &rows, note)?;
+        std::fs::write(root.join(file), text).map_err(|e| e.to_string())?;
+        return Ok(format!("{} rows of fn {name} set", rows.len()));
+    }
+    let rows = lines(&moved(&Family::default(), accepted))?;
+    let presets = register(&read(PRESETS)?, names)?;
+    std::fs::write(root.join(PRESETS), presets).map_err(|e| e.to_string())?;
+    let species = read(SPECIES)?;
+    let text = format!(
+        "{}{}",
+        species.trim_end_matches('\n'),
+        function(&name, &rows, note)
+    );
     std::fs::write(root.join(SPECIES), text).map_err(|e| e.to_string())?;
-    Ok(word)
+    Ok(format!(
+        "fn {name} written with {} rows and registered",
+        rows.len()
+    ))
 }

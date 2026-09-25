@@ -31,6 +31,7 @@ fn root(dir: &Path, stderr: &str, code: i32) -> PathBuf {
     for file in [
         "crates/telperion-core/src/presets.rs",
         "crates/telperion-core/src/presets/species.rs",
+        "crates/telperion-core/src/presets/originals.rs",
     ] {
         std::fs::copy(repo().join(file), root.join(file)).unwrap();
     }
@@ -201,4 +202,29 @@ fn an_acceptance_is_refused_while_the_catalogue_entry_fails_or_the_check_does_no
     // A later revision's tree waits for a look of its own.
     std::fs::write(&path, result("date-palm", "k2", json!({})).to_string()).unwrap();
     assert!(!accept::accepted(&path, &dir).unwrap());
+}
+
+#[test]
+fn an_accepted_oak_sets_its_function_where_it_lives() {
+    let dir = scratch("oak");
+    let root = root(&dir, "", 0);
+    let folder = folder(&dir);
+    let path = tune::result(&dir);
+    let moved = json!({"skeleton": {"envelope": {"height": 25.0}}});
+    std::fs::write(&path, result("oregon-white-oak", "k1", moved).to_string()).unwrap();
+    let names = Names {
+        id: "oregon-white-oak".into(),
+        common: "Oregon white oak".into(),
+        scientific: "Quercus garryana".into(),
+    };
+    let word = accept::run(&root, &names, &folder, &path, &dir).unwrap();
+    assert!(word.contains("1 rows of fn oregon_white_oak set"), "{word}");
+    let originals =
+        std::fs::read_to_string(root.join("crates/telperion-core/src/presets/originals.rs"))
+            .unwrap();
+    // Its height sits in a struct literal, so the acceptance adds the row.
+    assert!(
+        originals.contains("    p.skeleton.envelope.height = 25.0;\n"),
+        "{originals}"
+    );
 }

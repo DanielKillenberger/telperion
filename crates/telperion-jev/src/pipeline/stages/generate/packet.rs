@@ -99,6 +99,7 @@ pub(super) fn write_packet(
     write_canonical(
         &paths.packet("specimens"),
         &json!({
+            "schema": "specimens", "schema_version": 1,
             "benchmark_id": "fn19-v1", "cases": cases, "seed_evidence": "unaudited",
             "fresh_for_future_tuning": false, "receipts": [],
             "generation_status": "measured-by-pipeline", "expert_status": "unassessed",
@@ -172,6 +173,11 @@ mod tests {
         }
 
         let specimens: Value = read_json(&paths.packet("specimens")).unwrap();
+        // The catalogue check reads the record by its schema (fn-149).
+        assert_eq!(
+            (&specimens["schema"], &specimens["schema_version"]),
+            (&json!("specimens"), &json!(1))
+        );
         let cases = specimens["cases"].as_array().expect("cases is an array");
         let count = |role: &str| cases.iter().filter(|c| c["seed_role"] == role).count();
         assert_eq!(count("regression"), 3, "three fixed cases");
