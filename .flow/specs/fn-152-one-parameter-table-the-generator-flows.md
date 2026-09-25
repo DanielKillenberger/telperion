@@ -41,6 +41,8 @@ The table's edges form an acyclic dependency graph.
 - the harness sliders, with dormant ones shown with their gate;
 - a generated parameter reference in `docs/`.
 
+**Presets as data (owner, 2026-09-25).** Each shipped preset moves from its Rust function in `presets/species.rs` to a value file checked against the table's rows, so the species runner's Accept stage (fn-149) writes values, never code. Until this lands, Accept writes the Rust function in today's style. [inferred]
+
 **Unknown.** [unknown]
 - Whether every stage can move to views in one pass or needs a staged migration. The implementer maps the reads first and reports.
 - Which of today's cross-parameter couplings are hidden, found only by the mapping.
@@ -50,7 +52,7 @@ The table's edges form an acyclic dependency graph.
 
 - **R1:** Every parameter in the wire table has one row with its type, range, meaning, stage, gate and derivation. The graph is acyclic, and no row is unread. [inferred]
 - **R2:** Every stage reads only its view of `Resolved`. A guard test fails on a stage that reads the raw family, and fn-151's one-path guard covers it. [inferred]
-- **R3:** The wire schema, validation, tuning dial table, harness sliders and parameter reference are generated from the table. `dials.json` and the harness's hand-kept list are gone. [inferred]
+- **R3:** The wire schema, validation, tuning dial table, harness sliders and parameter reference are generated from the table. `dials.json` and the harness's hand-kept list are gone. Every shipped preset is a value file validated against the table, and fn-149's Accept writes that file. [inferred]
 - **R4:** Every shipped preset is byte-identical in mesh, field and metrics. Build time and peak memory are no worse, measured on the budgets fn-151 records. [inferred]
 - **R5:** The workspace gate and `npm test` are green. [inferred]
 
