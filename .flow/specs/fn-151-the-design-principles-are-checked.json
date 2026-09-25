@@ -2,7 +2,8 @@
   "branch_name": "fn-151-the-design-principles-are-checked",
   "created_at": "2026-09-25T08:25:44.665023Z",
   "depends_on_epics": [
-    "fn-150-the-slim-field-package-grows-every"
+    "fn-150-the-slim-field-package-grows-every",
+    "fn-154-agentsmd-is-the-one-instruction-file"
   ],
   "id": "fn-151-the-design-principles-are-checked",
   "next_task": 1,
@@ -22,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-25T14:38:25.209365Z"
+  "updated_at": "2026-09-25T14:39:31.942924Z"
 }
