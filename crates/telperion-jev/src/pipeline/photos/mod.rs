@@ -2,9 +2,12 @@
 //! option A): no run from a name needs a person to supply photographs.
 //!
 //! Code collects candidates from the admitted open-licence sources' pages
-//! and from Wikimedia Commons, at most `MAX_CANDIDATES`. Jev classes each
-//! Commons file's licence statements with the rights question set, and only
-//! an open licence goes on. Code downloads the rest and pins each by its
+//! and from Wikimedia Commons, at most `MAX_CANDIDATES`. A Commons file whose
+//! machine-readable licence code is CC0, public domain, CC BY or CC BY-SA is
+//! open by that code; Jev classes any other file from its full licence
+//! metadata with the rights question set, whose question weighs a page's
+//! text and set aside a photograph's licence as a figure credit (eleven of
+//! the beech's twelve files, 2026-09-25). Only an open licence goes on. Code downloads the rest and pins each by its
 //! bytes, then one look (`screen`) keeps those that show a mature,
 //! open-grown whole tree of the species, or its bark: up to two in leaf,
 //! one bare and one bark close-up. The kept ones are appended to
@@ -54,6 +57,8 @@ pub struct Candidate {
     pub image: String,
     pub title: String,
     pub attribution: String,
+    /// The machine-readable licence code, where the host gives one.
+    pub licence: String,
     pub statements: Vec<String>,
     pub origin: Origin,
 }
@@ -109,6 +114,7 @@ pub fn find(
     for candidate in candidates {
         let class = match candidate.origin {
             Origin::Source(_) => OPEN_LICENCE.to_string(),
+            Origin::Commons if commons::open_code(&candidate.licence) => OPEN_LICENCE.to_string(),
             Origin::Commons => {
                 let state = json!({"source": {"url": candidate.page, "host": host(&candidate.page),
                     "title": candidate.title}, "lines": candidate.statements, "records": []});
@@ -187,6 +193,7 @@ fn from_sources(paths: &Paths, m: &Manifest) -> Vec<Candidate> {
             image: c[2].to_string(),
             title: c[1].to_string(),
             attribution: format!("{} ({})", source.title, source.url),
+            licence: String::new(),
             statements: vec![],
             origin: Origin::Source(source.id.clone()),
         }));

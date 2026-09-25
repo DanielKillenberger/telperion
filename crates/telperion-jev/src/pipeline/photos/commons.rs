@@ -11,11 +11,12 @@ const API: &str = "https://commons.wikimedia.org/w/api.php";
 /// The width of the copy downloaded, enough for a reviewer's look.
 const WIDTH: u32 = 1280;
 
-/// The queries per taxon and the candidates each may add: the tree, its
-/// bark close up and its bare winter form.
+/// The queries per taxon and the candidates each may add: the whole tree
+/// (the bare taxon found leaves, buds and nuts for the beech), its bark
+/// close up and its bare winter form.
 pub fn queries(taxon: &str) -> [(String, usize); 3] {
     [
-        (taxon.to_string(), 6),
+        (format!("{taxon} tree"), 6),
         (format!("{taxon} bark"), 3),
         (format!("{taxon} winter"), 3),
     ]
@@ -80,11 +81,14 @@ fn file(page: &Value) -> Option<Candidate> {
     let field = |key: &str| strip(meta[key]["value"].as_str().unwrap_or_default());
     let licence = field("LicenseShortName");
     let statements = [
+        "License",
         "LicenseShortName",
         "UsageTerms",
         "LicenseUrl",
+        "AttributionRequired",
         "Copyrighted",
         "Restrictions",
+        "Artist",
     ]
     .into_iter()
     .map(|key| (key, field(key)))
@@ -99,9 +103,22 @@ fn file(page: &Value) -> Option<Candidate> {
             .to_string(),
         title: page["title"].as_str().unwrap_or_default().to_string(),
         attribution: format!("{}, Wikimedia Commons, {licence}", field("Artist")),
+        licence: field("License"),
         statements,
         origin: Origin::Commons,
     })
+}
+
+/// Whether a file's machine-readable licence code is an open one the
+/// rights question admits: CC0, public domain, CC BY or CC BY-SA. Any other
+/// code, or none, goes to the rights question.
+pub fn open_code(code: &str) -> bool {
+    let code = code.to_ascii_lowercase();
+    let versioned = |prefix: &str| {
+        code.strip_prefix(prefix)
+            .is_some_and(|rest| rest.starts_with(|c: char| c.is_ascii_digit()))
+    };
+    code == "cc0" || code.starts_with("pd") || versioned("cc-by-") || versioned("cc-by-sa-")
 }
 
 /// Text without HTML tags or surrounding space.
@@ -142,7 +159,22 @@ mod tests {
         let titles: Vec<&str> = found.iter().map(|c| c.title.as_str()).collect();
         assert_eq!(titles, ["File:a.png", "File:b.jpg"]);
         assert_eq!(found[0].attribution, "Ann, Wikimedia Commons, CC BY-SA 4.0");
-        assert_eq!(found[0].statements, ["LicenseShortName: CC BY-SA 4.0"]);
+        assert_eq!(
+            found[0].statements,
+            ["LicenseShortName: CC BY-SA 4.0", "Artist: Ann"]
+        );
+        for code in [
+            "cc0",
+            "pd-old-100",
+            "cc-by-3.0",
+            "cc-by-sa-4.0",
+            "CC-BY-SA-2.5-NL",
+        ] {
+            assert!(open_code(code), "{code}");
+        }
+        for code in ["", "cc-by-nc-4.0", "cc-by-nd-2.0", "gfdl", "cc-by-sa"] {
+            assert!(!open_code(code), "{code}");
+        }
         assert!(url("Fagus sylvatica", 6).contains("gsrsearch=Fagus+sylvatica+filetype%3Abitmap"));
     }
 }

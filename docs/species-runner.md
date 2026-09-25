@@ -135,12 +135,18 @@ No run from a name needs a person to supply photographs (owner,
 
 1. **Candidates**, at most twelve: up to two images from each admitted
    open-licence source's page (four in all), then Wikimedia Commons, asked
-   for the taxon (six), its bark (three) and the tree in winter (three).
+   for the tree (six), its bark (three) and the tree in winter (three).
    Commons is a photograph host; the no-Wikipedia rule is about citing
    values.
-2. **Rights.** Each Commons file's licence statements go to Jev's rights
-   question set; only `open-licence` goes on. An admitted source's image
-   takes its source's class.
+2. **Rights.** A Commons file whose machine-readable licence code
+   (`extmetadata.License`) is CC0, public domain, CC BY or CC BY-SA is open
+   by that code. Any other file's full licence metadata (`License`,
+   `LicenseShortName`, `UsageTerms`, `LicenseUrl`, `AttributionRequired`,
+   `Artist`) goes to Jev's rights question set. The question weighs a page's
+   text and sets a photograph's licence aside as a figure credit, and it
+   classed eleven of the beech's twelve CC files "none" (2026-09-25). Only
+   `open-licence` goes on. An admitted source's image takes its source's
+   class.
 3. **Copies.** Code downloads each JPEG or PNG into the run's cache,
    named by its sha256.
 4. **One look.** The reviewer adapter in the tuning config (`vision`,
@@ -154,7 +160,8 @@ No run from a name needs a person to supply photographs (owner,
    never removed or rewritten.
 
 The cost is bounded: three free Commons queries, one Jev rights call per
-Commons candidate (twelve at most) and one vision call. The counts and the
+Commons candidate without an open licence code (twelve at most) and one
+vision call. The counts and the
 look's token usage go to `<run-dir>/cache/photos/find.json`.
 
 ## Gaps

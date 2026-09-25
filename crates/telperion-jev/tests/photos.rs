@@ -216,3 +216,64 @@ fn a_run_from_a_name_finds_checks_and_records_its_own_photographs() {
     );
     assert_eq!(look.0.lock().unwrap().len(), 1);
 }
+
+/// Answers every rights question with the no-match class, as Jev answered
+/// eleven of the beech's twelve Commons files on 2026-09-25.
+struct Unsettled(Mutex<usize>);
+
+impl Transport for Unsettled {
+    fn send(&self, _: &HttpRequest) -> Result<HttpResponse, String> {
+        *self.0.lock().unwrap() += 1;
+        let answers = json!({"rights": {"type": "choice", "choice": "none", "confidence": 0.7, "probabilities": {"none": 0.7}}});
+        let body = json!({"model": "jev-latest", "answers": answers});
+        Ok(HttpResponse {
+            status: 200,
+            body: serde_json::to_vec(&body).unwrap(),
+        })
+    }
+}
+
+/// A recorded Commons answer for the taxon (2026-09-25): five files under
+/// CC BY or CC BY-SA and one under the GFDL. A machine-readable open licence
+/// is open without a question; only the GFDL file is asked.
+#[test]
+fn a_commons_file_under_cc_by_or_cc0_is_open_without_a_question() {
+    let recorded = fs::read(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/photos/commons-fagus-sylvatica.json"),
+    )
+    .unwrap();
+    let answer: Value = serde_json::from_slice(&recorded).unwrap();
+    let mut pages = BTreeMap::new();
+    let (query, limit) = commons::queries(TAXON)[0].clone();
+    pages.insert(commons::url(&query, limit), recorded);
+    for (i, page) in answer["query"]["pages"]
+        .as_object()
+        .unwrap()
+        .values()
+        .enumerate()
+    {
+        let thumb = page["imageinfo"][0]["thumburl"]
+            .as_str()
+            .unwrap()
+            .to_string();
+        pages.insert(thumb, vec![0xFF, 0xD8, 0xFF, 0xE0, i as u8]);
+    }
+    let dir = scratch();
+    fs::remove_file(dir.join("packet/references.json")).unwrap();
+    let transport = Unsettled(Mutex::new(0));
+    let judge = Judge {
+        transport: &transport,
+        key: "test-key",
+        ledger_dir: dir.join("ledger"),
+    };
+    photos::find(&Paths::new(&dir), &FakeWeb(pages), &judge, &Look::default()).unwrap();
+    let report = read_json(&photos::dir(&Paths::new(&dir)).join("find.json")).unwrap();
+    assert_eq!(report["candidates"], 6, "{report}");
+    assert_eq!(report["open_licence_downloaded"], 5, "{report}");
+    assert_eq!(
+        *transport.0.lock().unwrap(),
+        1,
+        "only the GFDL file is asked"
+    );
+}
