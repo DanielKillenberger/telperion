@@ -13,6 +13,6 @@ R1, R2, R3, R6 and R8 are met. R4 holds for every guard-owned positive and every
 
 stage: impl-review - skipped(config: REVIEW_MODE=none)
 ## Evidence
-- Commits: 9734cb0c29f7b529bd9d12ddcb7b55bf74071e35, 70c0dd230119916337d1e2c11c7b81205e37fdea
-- Tests: cargo test --profile ci --workspace --no-fail-fast (969 passed, 0 failed, 21 ignored, 129 suites), npm test (128 passed, 11 files), npm run build && jev principles budget (all six artifacts at their 0.1.4 sizes), cargo test -p telperion-field every_shipped_preset on 39348def (red: date-palm, slim entry), jev principles report (offline replay of 39 PRs), baseline: none run (AGENTS.md: the gate runs once, at the end)
+- Commits: 9734cb0c29f7b529bd9d12ddcb7b55bf74071e35, 70c0dd230119916337d1e2c11c7b81205e37fdea, dd895923f1249351ccf8fa1ab97978db7bd61daa, 40491095860d1ce409bb3abc844d317db117054b
+- Tests: cargo test --profile ci --workspace --no-fail-fast (969 passed, 0 failed, 21 ignored, 129 suites; before the last fix commit), cargo test --profile ci -p telperion-jev --no-fail-fast (330 passed, 0 failed, 1 ignored; after it), npm test (128 passed, 11 files), npm run build && jev principles budget (all six artifacts at their 0.1.4 sizes), cargo test -p telperion-field every_shipped_preset on 39348def (red: date-palm, slim entry), jev principles report (offline replay of 39 PRs), baseline: none run (AGENTS.md: the gate runs once, at the end)
 - PRs:
