@@ -32,6 +32,7 @@ pub struct Report {
     pub findings: Vec<Finding>,
     pub calls: u32,
     pub input_tokens: u64,
+    /// Extraction and review, the part the deadline bounds.
     pub elapsed_ms: u64,
 }
 

@@ -49,7 +49,8 @@ pub fn run(args: &[String]) -> Result<i32, String> {
             let head = flag(args, "--head").unwrap_or_else(|| "HEAD".into());
             let x = cached_extract(&repo, &base, &head, &policy)?;
             let mut report = Report { base: base.clone(), head: head.clone(), ..Report::default() };
-            guards(&repo, &base, &head, &policy, &x, !has(args, "--no-entry"), &mut report)?;
+            // The reviewer runs first, inside the deadline; the guards'
+            // triggered entry tests run after it and are timed on their own.
             if has(args, "--no-jev") {
                 report.incomplete.push("reviewer: skipped by --no-jev".into());
             } else if !x.candidates.is_empty() {
@@ -57,12 +58,14 @@ pub fn run(args: &[String]) -> Result<i32, String> {
                 absorb(&mut report, &reviewer);
             }
             report.elapsed_ms = started.elapsed().as_millis() as u64;
+            guards(&repo, &base, &head, &policy, &x, !has(args, "--no-entry"), &mut report)?;
             log(&repo, &report);
             if has(args, "--json") {
                 println!("{}", serde_json::to_string_pretty(&report).map_err(|e| e.to_string())?);
             } else {
                 print!("{}", format(&report));
-                println!("  {} candidate(s), {:.2} s", x.candidates.len(), report.elapsed_ms as f64 / 1000.0);
+                let total = started.elapsed().as_secs_f64();
+                println!("  {} candidate(s); review {:.2} s, all {total:.2} s", x.candidates.len(), report.elapsed_ms as f64 / 1000.0);
             }
             let blocks = !report.blocking.is_empty() || report.findings.iter().any(|f| f.mode == super::review::Mode::Block);
             Ok(i32::from(blocks))
