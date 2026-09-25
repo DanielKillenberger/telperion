@@ -222,10 +222,11 @@ fn the_palm_is_sized_by_its_growth_rate_and_its_mature_ranges() {
     assert_eq!(dbh["source"], json!(["A1"]));
 }
 
-/// R2: broadleaf and conifer keep their rows, and still ask height and
-/// trunk diameter at an age; the palm asks neither at an age.
+/// R2: broadleaf and conifer keep their bars. Since fn-149 (host,
+/// 2026-09-25) they ask height and trunk diameter mature too, as the palm
+/// does: none of the three refuses a size named at no age.
 #[test]
-fn broadleaf_and_conifer_rows_are_unchanged() {
+fn broadleaf_and_conifer_rows_keep_their_bars_and_ask_sizes_mature() {
     let bars = |pairs: &[(&str, Sufficiency)]| -> Vec<(String, Sufficiency)> {
         pairs.iter().map(|(n, b)| (n.to_string(), *b)).collect()
     };
@@ -268,8 +269,9 @@ fn broadleaf_and_conifer_rows_are_unchanged() {
         validate(&manifest).err().map(|e| e.to_string())
     };
     for form in ["broadleaf", "conifer"] {
-        let err = refusal(form).expect("an age-indexed row refuses a field with no age");
-        assert!(err.contains("dbh_m names no required age"), "{form}: {err}");
+        // The palm's fields fall short of these rows, never for want of an age.
+        let err = refusal(form).unwrap_or_default();
+        assert!(!err.contains("names no required age"), "{form}: {err}");
     }
     assert_eq!(refusal("palm"), None);
 }

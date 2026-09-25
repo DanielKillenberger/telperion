@@ -310,3 +310,35 @@ fn every_appearance_value_carries_its_sources_id_and_verify_holds() {
         assert_eq!(claim["relation"], "supports", "{}", claim["claim"]);
     }
 }
+
+/// fn-149 (host, 2026-09-25): a first run asks what sources hold, the mature
+/// size. A broadleaf or conifer seed naming no age for height, trunk diameter
+/// or crown base validates, and the table asks them mature; one that names
+/// ages stays valid.
+#[test]
+fn a_broadleaf_or_conifer_seed_asks_its_sizes_mature_at_no_age() {
+    use telperion_jev::pipeline::manifest::{validate, Manifest};
+    use telperion_jev::pipeline::requirements::{asked, Asked};
+    for form in ["broadleaf", "conifer"] {
+        let mut seed = manifest();
+        seed["growth_form"] = json!(form);
+        seed["fields"] = table().growth_forms[form]
+            .fields
+            .iter()
+            .map(|(name, bar)| json!({"field": name, "condition": "open_grown", "required_ages_years": [100], "bar": bar.key(), "question": "q"}))
+            .collect();
+        let named = serde_json::from_value::<Manifest>(seed.clone()).unwrap();
+        assert!(
+            validate(&named).is_ok(),
+            "{form}: a seed naming ages stays valid"
+        );
+        for field in seed["fields"].as_array_mut().unwrap() {
+            field["required_ages_years"] = json!([]);
+        }
+        let bare: Manifest = serde_json::from_value(seed).unwrap();
+        assert!(validate(&bare).is_ok(), "{form}: {:?}", validate(&bare));
+        for field in ["height_m", "dbh_m", "crown_base_m"] {
+            assert_eq!(asked(&bare, field), Asked::Mature, "{form} {field}");
+        }
+    }
+}
