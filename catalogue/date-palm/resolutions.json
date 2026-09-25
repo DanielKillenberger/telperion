@@ -1,0 +1,65 @@
+{
+ "resolutions": [
+  {
+   "at": "2026-09-18",
+   "by": "owner",
+   "id": "date-palm/discover/manifest-proposed",
+   "inputs_sha256": {
+    "seed": "b28fb581f9278cffc9f5003977255409e3719cab27b3c3090b7efaa503d1b37b"
+   },
+   "note": "The owner admitted the three sources and chose to run the literature stages to the gate, knowing the capability gate sits behind them; rights confirmed by the host against what each source is.",
+   "option": "admit"
+  },
+  {
+   "id": "date-palm/gap/gap-fix/gate-onboarding-gate-capability",
+   "inputs_sha256": {
+    "options": "ac7301194c1311a86000c68a0c8a418de5016de9a5d3a1843daa56700fc36689",
+    "table_version": "1"
+   },
+   "option": "apical-rosette-of-pinnate-fronds",
+   "by": "owner",
+   "at": "2026-09-22",
+   "note": "Owner, verbatim: \"ok it's really hard for me to judge if the palm needs a apical rosette but if confidence is high let's go for it?\" The host's reading: the need is the capability packet's high-confidence trait, not Jev's 0.42 best-match, which answered a five-part gap with one option. Confirmed, not a reversal."
+  },
+  {
+   "id": "date-palm/gate/onboarding-gate/seeds",
+   "inputs_sha256": {
+    "select.json": "027748aef2b61895c6b2da2023093f42885aca751f5254530c0d35606fb63b2e"
+   },
+   "option": "waive",
+   "by": "host claude-fable-5-1 under the owner's standing rule",
+   "at": "2026-09-22",
+   "note": "First run: the seeds gate audits packet/specimens.json, which the generate stage it blocks is what writes; nothing can be audited before generate runs once. Waived for this pass only; the gate reruns after generate and audits the counts then. Not a lowered bar: sequencing."
+  },
+  {
+   "id": "date-palm/gate/onboarding-gate/capability",
+   "inputs_sha256": {
+    "select.json": "027748aef2b61895c6b2da2023093f42885aca751f5254530c0d35606fb63b2e"
+   },
+   "option": "waive",
+   "by": "owner",
+   "at": "2026-09-22",
+   "note": "Owner, verbatim: \"we can do both no? tune and build the missing capabilities?\" Waived for this pass: the generator lacks acanthophyll, persistent-leaf-base and infructescence (capability packet, host-verified); generate and tuning run with the rosette, the two organ specs are minted as fn-82 dependencies and built in parallel, and the gate reruns when each lands."
+  },
+  {
+   "id": "date-palm/quality/data-insufficient/dbh_m",
+   "inputs_sha256": {
+    "fetch.json": "5431d70cbec3447aa2a7ecaf393d1253da432662507bceded490f4eb0f777116"
+   },
+   "option": "add-sources",
+   "by": "cheap driver claude-sonnet-5 under the conductor's routine policy",
+   "at": "2026-09-22",
+   "note": "Runbook rule applied (docs/species-pipeline.md, Decisions table, data-insufficient row): admit-proxy accepts a composition from an already-admitted source naming a different taxon or condition, per the sufficiency question set proxy_only criterion (\"age-indexed sizes exist but for another taxon [or] condition\"). This field's recorded evidence is points: [] with dominant_gap no_age_indexed_points (\"No source states a size at an age at all\") across every admitted source (F1, A1, M1) tried: there is no age-indexed reading, proxy or otherwise, on hand to admit. lower-bar is the owner's. add-sources is the only routine option the evidence supports."
+  },
+  {
+   "id": "date-palm/verify/claim-unsupported/A1",
+   "inputs_sha256": {
+    "select.json": "027748aef2b61895c6b2da2023093f42885aca751f5254530c0d35606fb63b2e"
+   },
+   "option": "accept",
+   "by": "host claude-fable-5-1 under the owner's standing rule",
+   "at": "2026-09-22",
+   "note": "The claim 'height_m: 50 - 100 feet' is present verbatim in the cited section of A1 ('**Height:** 50 - 100 feet'); Jev's support confidence of 0.73 sat under the 0.8 bar on a page that mixes cultural history with the size table. Accepted on the verbatim match; a height stated without an age, which the fit stage treats as the mature range it is."
+  }
+ ]
+}

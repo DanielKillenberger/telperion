@@ -1,0 +1,225 @@
+{
+ "reference_version": "fn19-references-v1",
+ "references": [
+  {
+   "accessed_at": "2026-09-22",
+   "age_years": null,
+   "asset_sha256": "4c3ed7951624006bf924397f23506609936bb4653a6f7ff14437780eb8639e35",
+   "attribution": "Apurv013, Wikimedia Commons, CC0 1.0 Universal Public Domain Dedication",
+   "context": "Ranaghat, West Bengal: a mature open-grown tree at a pond's edge at sunset, in fruit, leaning about fifteen degrees, whole trunk and crown in frame against sky.",
+   "dimensions_m": null,
+   "id": "P-WHOLE",
+   "kept": false,
+   "kind": "real",
+   "limitations": [
+    "Uncalibrated photograph from Wikimedia Commons; no measured height, crown fraction or age.",
+    "Host opened the raster once to derive the shot; the derivation is an estimate, confidence as stated.",
+    "Qualitative evidence only; appearance matching does not establish numerical botanical superiority."
+   ],
+   "matching": "qualitative",
+   "observation": "A single leaning trunk clothed in retained leaf bases to the crown; a rosette of about thirty arching pinnate fronds, the lower ones drooping well below the crown base; two hanging date clusters on orange stalks; no laterals.",
+   "scale": [
+    "whole"
+   ],
+   "shot": {
+    "aspect": [
+     3286,
+     4381
+    ],
+    "camera": {
+     "azimuth": 20,
+     "elevation": -20,
+     "fill": 0.72,
+     "fov": 62,
+     "targetHeight": 0.55
+    },
+    "confidence": "medium",
+    "crop": [
+     0,
+     0,
+     1,
+     1
+    ],
+    "derivation": "Phone at eye height about 1.6 m on the bank, wide lens, sunset low to the left behind the crown: the eye sits about twenty degrees below the aim at mid-crown roughly ten metres away. Crown top at about a tenth from the top edge, base at about four fifths down: fill about 0.72. Trunk clear for about half the height; the lean is the tree's, not the camera's.",
+    "foliage": "leaf-on",
+    "light": {
+     "overcast": 0.5,
+     "sunAzimuth": 250,
+     "sunElevation": 5
+    },
+    "tree": {
+     "box": [
+      0.28,
+      0.1,
+      0.9,
+      0.8
+     ],
+     "crownBase": 0.5
+    }
+   },
+   "source_id": "R1",
+   "species_id": "date-palm",
+   "url": "https://commons.wikimedia.org/wiki/File:Phoenix_dactylifera_-_Date_palm_.jpg",
+   "usage": "CC0 1.0 Universal Public Domain Dedication; attribution recorded; local copy under .refs/fn80/date-palm/whole.jpg, not redistributed"
+  },
+  {
+   "accessed_at": "2026-09-22",
+   "age_years": null,
+   "asset_sha256": "80b187a41158be29fb690e1b05d110517e3a99f297c5581993e7d780636eaf51",
+   "attribution": "Agnieszka Kwiecie\u0144, Nova, Wikimedia Commons, CC BY-SA 4.0 (Attribution-Share Alike 4.0 International)",
+   "context": "Orlando, Florida, July 2018: a cultivated tree photographed from below with the crown base and a long run of the trunk's diamond pattern of retained leaf bases; the crown is clipped at the top edge.",
+   "dimensions_m": null,
+   "id": "P-TRUNK",
+   "kept": false,
+   "kind": "real",
+   "limitations": [
+    "Uncalibrated photograph from Wikimedia Commons; no measured height, crown fraction or age.",
+    "Host opened the raster once to derive the shot; the derivation is an estimate, confidence as stated.",
+    "Qualitative evidence only; appearance matching does not establish numerical botanical superiority."
+   ],
+   "matching": "qualitative",
+   "observation": "Retained petiole bases in a tight spiral clothe the trunk from the crown base down; ferns grow in the pockets; fronds arch out from a compact crown base; the trunk narrows slightly at the bottom of the frame where older bases have weathered off.",
+   "scale": [
+    "whole",
+    "base"
+   ],
+   "shot": {
+    "aspect": [
+     3456,
+     4608
+    ],
+    "camera": {
+     "azimuth": 0,
+     "elevation": 20,
+     "fill": 1.25,
+     "fov": 42,
+     "targetHeight": 0.6
+    },
+    "confidence": "low",
+    "crop": [
+     0,
+     0,
+     1,
+     1
+    ],
+    "derivation": "Eye height about 1.6 m some six metres from the trunk, looking up about twenty degrees: the crown base sits a quarter from the top and the fronds run off the top edge, so the tree overfills the frame (fill about 1.25). Sun high and to the right, clear sky.",
+    "foliage": "leaf-on",
+    "light": {
+     "overcast": 0.1,
+     "sunAzimuth": 120,
+     "sunElevation": 50
+    },
+    "tree": {
+     "box": [
+      0.38,
+      -0.15,
+      0.7,
+      1.05
+     ],
+     "crownBase": 0.55
+    }
+   },
+   "source_id": "R2",
+   "species_id": "date-palm",
+   "url": "https://commons.wikimedia.org/wiki/File:Phoenix_dactylifera_2018-07-17_Orlando_06.jpg",
+   "usage": "CC BY-SA 4.0 (Attribution-Share Alike 4.0 International); attribution recorded; local copy under .refs/fn80/date-palm/trunk.jpg, not redistributed"
+  },
+  {
+   "accessed_at": "2026-09-22",
+   "age_years": null,
+   "asset_sha256": "4476c0befef84cd1565f8fbcbb2a764287d03ab396cc70e46b749e0d3d3c33db",
+   "attribution": "Agnieszka Kwiecie\u0144, Nova, Wikimedia Commons, CC BY-SA 4.0 (Attribution-Share Alike 4.0 International)",
+   "context": "Orlando, Florida, July 2018, the same tree as P-TRUNK: about two metres of trunk filling the frame, the retained leaf bases sharp, fronds behind.",
+   "dimensions_m": null,
+   "id": "P-BASE",
+   "kept": false,
+   "kind": "real",
+   "limitations": [
+    "Uncalibrated photograph from Wikimedia Commons; no measured height, crown fraction or age.",
+    "Host opened the raster once to derive the shot; the derivation is an estimate, confidence as stated.",
+    "Qualitative evidence only; appearance matching does not establish numerical botanical superiority."
+   ],
+   "matching": "qualitative",
+   "observation": "The bark is not bark: it is the cut, weathered petiole bases in a phyllotactic spiral, each a wedge a hand wide, brown, fibrous between them, with ferns rooted in the pockets.",
+   "scale": [
+    "base"
+   ],
+   "shot": {
+    "aspect": [
+     3456,
+     4608
+    ],
+    "camera": {
+     "azimuth": 0,
+     "distance": 2.5,
+     "elevation": 5,
+     "fill": 1.0,
+     "fov": 42,
+     "targetHeight": 0.45
+    },
+    "confidence": "low",
+    "crop": [
+     0,
+     0,
+     1,
+     1
+    ],
+    "derivation": "The trunk from about two and a half metres, nearly level with it, the bases filling the frame; the distance is stated because a close-up is not a fill. Fronds of the same tree cross the top and left.",
+    "foliage": "hidden",
+    "light": {
+     "overcast": 0.1,
+     "sunAzimuth": 120,
+     "sunElevation": 50
+    },
+    "tree": {
+     "box": [
+      0.3,
+      0.0,
+      0.85,
+      1.0
+     ],
+     "crownBase": 1.0
+    }
+   },
+   "source_id": "R2",
+   "species_id": "date-palm",
+   "url": "https://commons.wikimedia.org/wiki/File:Phoenix_dactylifera_2018-07-17_Orlando_07.jpg",
+   "usage": "CC BY-SA 4.0 (Attribution-Share Alike 4.0 International); attribution recorded; local copy under .refs/fn80/date-palm/base.jpg, not redistributed"
+  }
+ ],
+ "sources": [
+  {
+   "attribution": "FOR 252/FR314: Phoenix dactylifera, Date Palm - Ask IFAS",
+   "id": "F1",
+   "url": "https://ask.ifas.ufl.edu/publication/FR314",
+   "use": "UF/IFAS EDIS extension publication, free to read and cite; measured values are cited, no text reproduced",
+   "verified": "pipeline"
+  },
+  {
+   "attribution": "Phoenix dactylifera - Find Trees & Learn | UA Campus Arboretum",
+   "id": "A1",
+   "url": "https://apps.cals.arizona.edu/arboretum/taxon.aspx?id=207",
+   "use": "University of Arizona Campus Arboretum public taxon page, free to read and cite; measured values are cited, no text reproduced",
+   "verified": "pipeline"
+  },
+  {
+   "attribution": "Comparative study of the morphological characteristics of Phoenix dactylifera L. cultivars in Al-Madinah Al-Munawarah-Saudi Arabia.",
+   "id": "M1",
+   "url": "https://doi.org/10.1186/s12870-022-03841-0",
+   "use": "BMC Plant Biology, open access under CC BY 4.0; measured values are cited with attribution",
+   "verified": "pipeline"
+  },
+  {
+   "id": "R1",
+   "attribution": "Apurv013, Wikimedia Commons, CC0 1.0 Universal Public Domain Dedication",
+   "url": "https://commons.wikimedia.org/wiki/File:Phoenix_dactylifera_-_Date_palm_.jpg",
+   "kind": "photograph"
+  },
+  {
+   "id": "R2",
+   "attribution": "Agnieszka Kwiecie\u0144, Nova, Wikimedia Commons, CC BY-SA 4.0 (Attribution-Share Alike 4.0 International)",
+   "url": "https://commons.wikimedia.org/wiki/File:Phoenix_dactylifera_2018-07-17_Orlando_06.jpg",
+   "kind": "photograph"
+  }
+ ]
+}

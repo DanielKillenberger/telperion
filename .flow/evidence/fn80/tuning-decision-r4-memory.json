@@ -1,0 +1,15 @@
+{
+ "pause_id": "18d84f4423e0f0a8-141162-0",
+ "identity": "07c5ad09a199958a53d37b0b572029aeb1b1320578ef40f831a55757e359e853",
+ "action": "recover interrupted attempt",
+ "by": "host (fn-80 conductor session)",
+ "rationale": "The tuning run was stopped by the session under memory pressure (not by the run); recover the interrupted attempt, its spend retained, and continue with nothing else running beside it.",
+ "recover_interrupted": true,
+ "preserve_evidence": false,
+ "experimental_pilot": {
+  "visual_bootstrap": true,
+  "purpose": "fourth tuning revision of the date palm (fn-82) through the conductor (fn-80): sourced starting values, every drawable trait an objective, the date cluster a known gap",
+  "reason": "magnitude and gap-magnitude live efficacy unvalidated; the owner asked for the Opus reviewer and dropped run caps while the loop is built",
+  "next_identity": "07c5ad09a199958a53d37b0b572029aeb1b1320578ef40f831a55757e359e853"
+ }
+}
