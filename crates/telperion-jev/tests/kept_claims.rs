@@ -1,6 +1,6 @@
-//! fn-149 D: a claim the search could not settle is kept as the range its
-//! sources span (`keep-range`), every source cited, or dropped, leaving the
-//! field `unsourced` for the generator's default (`drop-value`).
+//! fn-149 D: a contradicted claim the search could not settle is kept as
+//! the range its sources span (`keep-range`), every source cited. A dropped
+//! value leaving its field `unsourced` is `judged_verify`'s.
 
 mod common;
 mod judged;
@@ -84,11 +84,4 @@ fn a_kept_range_spans_each_sources_value_and_cites_every_source() {
     assert_eq!(frond["range"], json!([5.0, 7.0]), "{frond}");
     assert_eq!(frond["source"], json!(["A1", "F1"]), "{frond}");
     assert_eq!(frond["confidence"], "spanned", "{frond}");
-}
-
-#[test]
-fn a_dropped_value_leaves_its_field_unsourced() {
-    let frond = resolved("drop-value", "drop-value");
-    assert_eq!(frond["classification"], "unsourced", "{frond}");
-    assert_eq!(frond["range"], Value::Null, "{frond}");
 }
