@@ -172,6 +172,25 @@ impl Result {
     }
 }
 
+/// Why an adapter's answer is refused, in the adapter's own words when it
+/// gave any (its `error`, else the tail of what it printed to stderr), so a
+/// spent quota or a replay without the call reads as that and not as a bare
+/// failure (fn-149).
+pub fn refused(fallback: &str, raw: &serde_json::Value, stderr: &str) -> String {
+    let said = raw["error"]
+        .as_str()
+        .map(str::to_string)
+        .filter(|e| !e.trim().is_empty())
+        .or_else(|| {
+            let tail: String = stderr.trim().chars().rev().take(400).collect();
+            (!tail.is_empty()).then(|| tail.chars().rev().collect())
+        });
+    match said {
+        Some(said) => format!("{fallback}: {said}"),
+        None => fallback.to_string(),
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Adapter {
@@ -181,4 +200,31 @@ pub struct Adapter {
     pub effort: String,
     pub timeout_seconds: u64,
     pub ledger: PathBuf,
+}
+
+#[cfg(test)]
+mod refusal_tests {
+    use super::refused;
+    use serde_json::json;
+
+    #[test]
+    fn a_refusal_carries_the_adapters_own_words() {
+        let limit =
+            json!({"status": "failed", "error": "You've hit your weekly limit · resets 6pm"});
+        let said = refused("stale or failed Stage A response", &limit, "");
+        assert!(
+            said.ends_with("You've hit your weekly limit · resets 6pm"),
+            "{said}"
+        );
+        let replay = refused(
+            "Stage A failed",
+            &serde_json::Value::Null,
+            "replay: /rec holds no adapter answer\n",
+        );
+        assert_eq!(
+            replay,
+            "Stage A failed: replay: /rec holds no adapter answer"
+        );
+        assert_eq!(refused("failed", &json!({"error": null}), " "), "failed");
+    }
 }

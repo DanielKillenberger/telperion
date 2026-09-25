@@ -82,10 +82,11 @@ impl Screen for Vision {
             .map_err(|e| e.to_string())?;
         let output = child.wait_with_output().map_err(|e| e.to_string())?;
         ledger(&a.ledger, &request, &output)?;
-        let raw: Value = serde_json::from_slice(&output.stdout)
-            .map_err(|_| "the photograph screen failed; the attempt is charged".to_string())?;
+        let raw: Value = serde_json::from_slice(&output.stdout).unwrap_or(Value::Null);
         if raw["status"] != "ok" {
-            return Err(format!("the photograph screen answered {}", raw["status"]));
+            let failed = "the photograph screen failed; the attempt is charged";
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(crate::tuning::vision::refused(failed, &raw, &stderr));
         }
         let verdicts = serde_json::from_value(raw["answer"]["candidates"].clone())
             .map_err(|e| format!("screen answer: {e}"))?;

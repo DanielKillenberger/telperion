@@ -119,7 +119,7 @@ def main():
         "dispatched_prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(), "schema_sha256": hashlib.sha256(json.dumps(schema).encode()).hexdigest(),
         "model": args.model, "model_identity_basis": model_identity_basis, "effort": args.effort,
         "status": "ok" if result["returncode"] == 0 and not result["forbidden_tools"] and result["usage"] is not None and valid_count else "failed_or_tools_or_unknown_usage_or_cardinality",
-        "forbidden_tools": result["forbidden_tools"], "usage": result["usage"], "answer": answer,
+        "forbidden_tools": result["forbidden_tools"], "error": result["error"], "usage": result["usage"], "answer": answer,
         "raw_events": result["raw_events"], "stderr": result["stderr"], "image_sha256": [hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in paths]}))
 
 

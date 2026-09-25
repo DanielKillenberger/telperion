@@ -74,4 +74,18 @@ def run(model, effort, paths, prompt, schema, timeout=600) -> dict:
                 answer = None
     return {"returncode": completed.returncode, "usage": usage, "answer": answer,
             "actual_model": actual_model, "forbidden_tools": forbidden_tools,
-            "raw_events": completed.stdout, "stderr": completed.stderr}
+            "raw_events": completed.stdout, "stderr": completed.stderr,
+            "error": _error(result_event, completed)}
+
+
+def _error(result_event, completed):
+    """The CLI's own words when the call failed ("You've hit your weekly
+    limit", a max-turns stop), so the runner reports them and not a bare
+    failure; None when it succeeded."""
+    if result_event is not None and result_event.get("is_error"):
+        return str(result_event.get("result") or result_event.get("subtype") or "error")
+    if result_event is None:
+        return (completed.stderr.strip() or f"no result event, exit {completed.returncode}")[-500:]
+    if completed.returncode != 0:
+        return f"exit {completed.returncode}: {completed.stderr.strip()[-500:]}"
+    return None

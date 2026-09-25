@@ -44,7 +44,8 @@ pub fn dispatch(adapter: &Adapter, plan: &Plan) -> Result<Reply<Verdict>, String
         || raw["model"] != adapter.adapter.model
         || raw["effort"] != adapter.adapter.effort
     {
-        return Err("stale or failed sheet response; reservation retained".into());
+        let failed = "stale or failed sheet response; reservation retained";
+        return Err(crate::tuning::vision::refused(failed, &raw, ""));
     }
     let answer: Answer =
         serde_json::from_value(raw["answer"].clone()).map_err(|e| e.to_string())?;

@@ -75,6 +75,15 @@ def failing_claude_fake():
     return fake
 
 
+def limit_claude_fake():
+    """The CLI's answer once the weekly limit is spent (beech-proof-3, 2026-09-25)."""
+    def fake(command, **kwargs):
+        result_event = {"type": "result", "subtype": "success", "is_error": True,
+                        "result": "You've hit your weekly limit \u00b7 resets Sep 29, 6pm"}
+        return subprocess.CompletedProcess(command, 1, json.dumps(result_event) + "\n", "")
+    return fake
+
+
 def assert_claude_command_and_images(test, command, kwargs, paths, expected_prompt, expected_schema):
     test.assertEqual(command[0], "claude")
     test.assertEqual(command[1], "-p")
@@ -190,6 +199,17 @@ class ReferenceFirstClaude(unittest.TestCase):
             self.assertEqual(len(calls), 1)
             self.assertEqual(result["status"], "failed_or_tools_or_unknown_usage_or_cardinality")
             self.assertIsNone(result["usage"])
+
+    def test_the_clis_own_error_reaches_the_runner(self):
+        """fn-149: the runner reported a spent weekly limit only as a stale
+        or failed response; the adapter now carries the CLI's words."""
+        for script in ("reference-first.py", "contact-sheet.py"):
+            with tempfile.TemporaryDirectory() as tmp:
+                envelope = (ContactSheetClaude().build_envelope(tmp) if script == "contact-sheet.py"
+                            else self.build_envelope(tmp))
+                result, _ = run_adapter(script, envelope, fake_claude=limit_claude_fake())
+                self.assertNotEqual(result["status"], "ok")
+                self.assertIn("You've hit your weekly limit", result["error"], script)
 
     def test_repair_is_one_text_only_call_in_the_comparison_schema(self):
         """fn-80: a repair carries the previous answer and the exact broken

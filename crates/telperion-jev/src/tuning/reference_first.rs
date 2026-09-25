@@ -353,7 +353,8 @@ pub(super) fn bind_response(
         || raw["model"] != adapter.model
         || raw["effort"] != adapter.effort
     {
-        return Err("stale or failed reference-first response".into());
+        let failed = "stale or failed reference-first response";
+        return Err(super::vision::refused(failed, raw, ""));
     }
     let answer = &raw["answer"];
     let passes = answer["passes"].as_array().ok_or("missing passes")?;
