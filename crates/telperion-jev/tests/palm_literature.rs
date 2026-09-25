@@ -194,16 +194,15 @@ fn a_proxy_only_trunk_diameter_with_points_passes_its_proxy_only_bar() {
 }
 
 /// R2: the palm asks its mature height at `proxy_only`, a bound like its
-/// trunk diameter; the live `proxy_only` height passes.
+/// trunk diameter; the live `proxy_only` height passes. Since fn-149 (host,
+/// 2026-09-25) broadleaf and conifer ask their mature height at that bar too.
 #[test]
 fn the_palm_asks_its_mature_height_at_proxy_only() {
-    let palm = &table().growth_forms["palm"];
-    assert_eq!(palm.fields.get("height_m"), Some(&Sufficiency::ProxyOnly));
-    for form in ["broadleaf", "conifer"] {
+    for form in ["palm", "broadleaf", "conifer"] {
         let row = &table().growth_forms[form];
         assert_eq!(
             row.fields.get("height_m"),
-            Some(&Sufficiency::Partial),
+            Some(&Sufficiency::ProxyOnly),
             "{form}"
         );
     }
