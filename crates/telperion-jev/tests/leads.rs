@@ -129,3 +129,47 @@ fn a_tertiary_source_in_the_manifest_is_never_fetched() {
         .unwrap()
         .starts_with("tertiary"));
 }
+
+/// The beech run of 2026-09-25 ranked nothing for five of six fields: each
+/// lead reached Jev as a bare URL "cited by Wikipedia". A lead now carries
+/// its citation and the sentence that cites it, one link per reference.
+#[test]
+fn a_lead_carries_its_citation_and_the_sentence_that_cites_it() {
+    let page = fs::read_to_string(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/leads/fagus-sylvatica.md"),
+    )
+    .unwrap();
+    let found = telperion_jev::pipeline::leads::primary(&page, "Fagus sylvatica - Wikipedia");
+    let urls: Vec<&str> = found.iter().map(|h| h.url.as_str()).collect();
+    assert_eq!(
+        urls,
+        [
+            "https://doi.org/10.2305%2FIUCN.UK.2018-1.RLTS.T62004722A62004725.en",
+            "https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:305836-2",
+            "https://mortonarb.org/plant-and-protect/trees-and-plants/european-beech/",
+            "http://bomeninfo.nl/tall%20trees.htm",
+            "https://doi.org/10.1080%2F03071375.2013.767078",
+        ]
+    );
+    let tall = &found[3];
+    assert!(
+        tall.title.starts_with("Tall Trees. Bomeninfo.nl."),
+        "{}",
+        tall.title
+    );
+    assert!(
+        tall.snippet
+            .contains("capable of reaching heights of up to 50 metres (160 feet) tall"),
+        "{}",
+        tall.snippet
+    );
+    let old = &found[4];
+    assert!(
+        old.snippet
+            .contains("Undisturbed, the European beech has a lifespan of 300 years"),
+        "{}",
+        old.snippet
+    );
+    assert!(!old.snippet.contains("sapling"), "{}", old.snippet);
+}
