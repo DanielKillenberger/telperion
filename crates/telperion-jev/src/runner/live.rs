@@ -41,12 +41,7 @@ impl Stages for Live {
         let p = &run.paths;
         Ok(match stage {
             Stage::Sources | Stage::Profile => pipeline::files(run, stage).0,
-            Stage::Capability => {
-                let mut files = pipeline::files(run, stage).0;
-                files.extend(self.tools.files());
-                files
-            }
-            Stage::Catalogue => {
+            Stage::Capability | Stage::Catalogue => {
                 let mut files = pipeline::files(run, stage).0;
                 files.extend(self.tools.files());
                 files
@@ -104,6 +99,14 @@ impl Stages for Live {
             Stage::Accept => return Ok(Done::Current),
             _ => {
                 let word = self.literature(run).run(stage)?;
+                if stage == Stage::Capability {
+                    // The evidence for a capability identity gap is in
+                    // gaps.md before the run stops on it.
+                    let found = capability_gaps(run)?;
+                    if found.iter().any(|g| g.kind == gaps::Kind::Identity) {
+                        gaps::write(&out, &found)?;
+                    }
+                }
                 let (_, logged) = pipeline::open(run)?;
                 match logged.is_empty() {
                     true => word,
@@ -127,13 +130,11 @@ impl Stages for Live {
             // A capability the species needs and the generator cannot
             // express stops here, before generation refuses to run on it.
             Stage::Capability => {
-                let gate = read_json(&run.paths.artifact("gate")).map_err(|e| e.to_string())?;
-                let identity: Vec<String> =
-                    gaps::capability(&gate, &run.paths.packet("capability"))?
-                        .into_iter()
-                        .filter(|g| g.kind == gaps::Kind::Identity)
-                        .map(|g| g.trait_id)
-                        .collect();
+                let identity: Vec<String> = capability_gaps(run)?
+                    .into_iter()
+                    .filter(|g| g.kind == gaps::Kind::Identity)
+                    .map(|g| g.trait_id)
+                    .collect();
                 (!identity.is_empty()).then_some(Stop::IdentityGaps(identity))
             }
             Stage::Gaps => {
@@ -146,4 +147,10 @@ impl Stages for Live {
             _ => None,
         })
     }
+}
+
+/// The capability half of the gap list, read off the gate record.
+fn capability_gaps(run: &Run) -> Result<Vec<gaps::Gap>, String> {
+    let gate = read_json(&run.paths.artifact("gate")).map_err(|e| e.to_string())?;
+    gaps::capability(&gate, &run.paths.packet("capability"))
 }

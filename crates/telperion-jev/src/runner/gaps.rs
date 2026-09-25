@@ -157,10 +157,7 @@ pub fn run(gate: &Path, assessment: &Path, result: &Path, out: &Path) -> Result<
     let read = |p: &Path| read_json(p).map_err(|e| e.to_string());
     let tuned: EndResult = serde_json::from_value(read(result)?).map_err(|e| e.to_string())?;
     let gaps = classify(&read(gate)?, assessment, &tuned)?;
-    let (json_path, md_path) = files(out);
-    let value = serde_json::json!({"schema": "runner-gaps", "schema_version": 1, "gaps": gaps});
-    write_canonical(&json_path, &value).map_err(|e| e.to_string())?;
-    std::fs::write(&md_path, markdown(&gaps)).map_err(|e| e.to_string())?;
+    write(out, &gaps)?;
     let count = |k: Kind| gaps.iter().filter(|g| g.kind == k).count();
     Ok(format!(
         "{} reachable, {} identity, {} global",
@@ -168,6 +165,14 @@ pub fn run(gate: &Path, assessment: &Path, result: &Path, out: &Path) -> Result<
         count(Kind::Identity),
         count(Kind::Global)
     ))
+}
+
+/// Writes `gaps.json` and `gaps.md` for `gaps`.
+pub fn write(out: &Path, gaps: &[Gap]) -> Result<(), String> {
+    let (json_path, md_path) = files(out);
+    let value = serde_json::json!({"schema": "runner-gaps", "schema_version": 1, "gaps": gaps});
+    write_canonical(&json_path, &value).map_err(|e| e.to_string())?;
+    std::fs::write(&md_path, markdown(gaps)).map_err(|e| e.to_string())
 }
 
 /// The identity gaps on disk: what stops the run.
