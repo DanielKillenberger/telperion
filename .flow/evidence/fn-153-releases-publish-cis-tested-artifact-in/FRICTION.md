@@ -20,3 +20,10 @@
 - **Hindrance:** the v0.1.4 publish log prints npm's generic "tokens that bypass 2FA are being restricted" notice, which read as the release using such a token. It does not: the repository's only secret is `JEV_API_KEY`, the publish step sets no `NODE_AUTH_TOKEN`, and `npm view telperion@0.1.4 _npmUser` is `GitHub Actions <npm-oidc-no-reply@github.com>`, the OIDC publisher. Every release since 0.1.0 has published by trusted publishing (fn-112 RESULTS.md, R6).
 - **Cost:** about 10 minutes checking the log, the secrets and the registry.
 - **Would have removed it:** the registry's `_npmUser` for the latest version, quoted next to the notice when it was raised.
+
+## 2026-09-25: the publish moved to release.yml after the task was done
+
+- **Doing:** restructuring PR #118 after the owner decided that publishing does not live in tests.yml.
+- **Hindrance:** the first design followed the dispatch ("publishes from the master CI workflow itself"). The trusted-publisher binding to `release.yml` was an external constraint that neither the spec nor the dispatch named, so the design had to be redone after the PR's CI went green. A cross-workflow constraint also showed up: job outputs cannot cross workflows, so the tested sha256 now travels inside the artifact as a `.sha256` file.
+- **Cost:** about 25 minutes and one more full CI run on the PR.
+- **Would have removed it:** the spec's "What exists" naming the trusted-publisher file binding, which would have led to `workflow_run` in the first dispatch.

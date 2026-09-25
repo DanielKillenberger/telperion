@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-153-releases-publish-cis-tested-artifact-in",
   "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_reviewed_at": "2026-09-25T10:37:59.356575Z",
   "created_at": "2026-09-25T10:17:57.266224Z",
   "default_impl": null,
   "default_review": null,
@@ -28,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-25T10:32:02.178079Z"
+  "updated_at": "2026-09-25T10:42:53.692763Z"
 }
