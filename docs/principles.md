@@ -35,7 +35,7 @@ They run in `cargo test` (`crates/telperion-jev/tests/principles_guards.rs`, and
 
 `npm run setup` sets `core.hooksPath` to `.githooks` once, and every worktree of the clone then runs `.githooks/pre-push`. It runs `jev principles push` on each pushed ref, against its remote tip or, for a new branch, its merge base with `origin/master`, and builds the checker once per change to `crates/telperion-jev`. A guard failure blocks the push. Entry coverage triggered on a checkout that is not the pushed head reports **incomplete**, never clean. `git push --no-verify` skips the hook. CI runs the boundary and budget-evidence guards on each pull request, and its crate jobs run the entry tests.
 
-Measured on this desk: 1.2 to 2 s for the boundary and budget guards on a push; the first run in a checkout builds the checker (about 45 s), and a triggered entry-coverage run adds 57 to 91 s of cargo tests.
+Measured on this desk under a load average of 15: 0.40 to 0.49 s for the boundary and budget guards on this branch's push; the first run in a checkout builds the checker (about 45 s), and a triggered entry-coverage run adds 57 to 91 s of cargo tests.
 
 ## Jev review, planned
 
