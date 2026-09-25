@@ -14,7 +14,8 @@ const root = new URL('../', import.meta.url);
 const SHARED = [
   'Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', '.config/nextest.toml',
   '.github/workflows/tests.yml', '.github/actions/suite/action.yml',
-  '.github/actions/nextest/action.yml', 'scripts/ci-key.mjs',
+  '.github/actions/nextest/action.yml', '.github/actions/wasm-bindgen/action.yml',
+  'scripts/ci-key.mjs',
 ];
 const CORE = 'crates/telperion-core';
 const RENDER = 'crates/telperion-render';

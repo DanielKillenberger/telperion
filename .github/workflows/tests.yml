@@ -5,6 +5,10 @@ name: Tests
 # that live under those trees: the species profiles and the benchmark protocol
 # the core tests read, the spec the citation parser is tested on, and the
 # catalogue, whose generated pages are markdown the structure check gates.
+#
+# Every run also builds the package once, tests that tarball and uploads it.
+# A green run on master is what release.yml publishes from; this workflow
+# publishes nothing.
 on:
   push:
     branches: [master]
@@ -243,10 +247,7 @@ jobs:
         with:
           cache-on-failure: true
 
-      # The version Cargo.lock pins for the wasm-bindgen crate; render:build
-      # refuses any other CLI. The binary is restored by the cache above.
-      - name: Install wasm-bindgen-cli at the crate's pin
-        run: cargo install wasm-bindgen-cli --version "$(cargo pkgid wasm-bindgen | sed 's/.*@//')"
+      - uses: ./.github/actions/wasm-bindgen
 
       - uses: actions/setup-node@v7
         with:
@@ -263,3 +264,55 @@ jobs:
           run: |
             npm test
             npm run typecheck
+
+  # The package, built once per commit. Its tarball is what the tests below
+  # load and what release.yml publishes: test:dist runs on the dist unpacked
+  # from the tarball, and the tarball is uploaded beside its sha256.
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+
+      - uses: ./.github/actions/wasm-bindgen
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: package.json
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build the package
+        run: npm run build
+
+      - id: pack
+        name: Pack the tarball
+        run: |
+          tarball=$(npm pack --json | jq -r '.[0].filename')
+          sha256sum "$tarball" > "$tarball.sha256"
+          echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
+          echo "$tarball sha256 $(cut -d' ' -f1 "$tarball.sha256")"
+
+      - name: Load the tarball's entries in Node with no Wasm source given
+        env:
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+        run: |
+          rm -rf dist
+          tar -xzf "$TARBALL" --strip-components=1 package/dist
+          npm run test:dist
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: package
+          path: |
+            ${{ steps.pack.outputs.tarball }}
+            ${{ steps.pack.outputs.tarball }}.sha256
+          if-no-files-found: error
+

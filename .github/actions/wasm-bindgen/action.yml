@@ -1,0 +1,26 @@
+name: wasm-bindgen at the crate's pin
+description: >-
+  Puts the prebuilt wasm-bindgen CLI at the version Cargo.lock pins for the
+  wasm-bindgen crate on the path, downloaded from the project's GitHub release
+  and checked against the release's checksum. It is never compiled in a run;
+  a pin with no prebuilt release fails the step.
+
+runs:
+  using: composite
+  steps:
+    # render:build refuses any CLI but the crate's pin (scripts/build-render.mjs).
+    - name: Install the prebuilt wasm-bindgen CLI at the crate's pin
+      shell: bash
+      run: |
+        version=$(grep -A1 '^name = "wasm-bindgen"$' Cargo.lock | sed -n 's/^version = "\(.*\)"$/\1/p')
+        [ -n "$version" ] || { echo "::error::Cargo.lock pins no wasm-bindgen version"; exit 1; }
+        name="wasm-bindgen-$version-x86_64-unknown-linux-musl"
+        url="https://github.com/wasm-bindgen/wasm-bindgen/releases/download/$version/$name.tar.gz"
+        cd "$RUNNER_TEMP"
+        curl -fsSL "$url" -o "$name.tar.gz"
+        expected=$(curl -fsSL "$url.sha256sum" | cut -d' ' -f1)
+        echo "$expected  $name.tar.gz" | sha256sum -c -
+        tar -xzf "$name.tar.gz" "$name/wasm-bindgen"
+        mkdir -p "$HOME/.cargo/bin"
+        install -m 755 "$name/wasm-bindgen" "$HOME/.cargo/bin/wasm-bindgen"
+        wasm-bindgen --version
