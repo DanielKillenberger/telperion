@@ -1,8 +1,8 @@
 //! The Gaps stage: every trait still failing, classed by code from what the
 //! run recorded, one line each in `gaps.md` with its evidence.
 //!
-//! - **reachable**: a live dial moved it during tuning; the line names the
-//!   dial and the two values it was drawn at.
+//! - **reachable**: a live dial moved it in a rendered attempt the reviewer
+//!   judged; the line names the dial and the two values it was drawn at.
 //! - **identity**: the species is not recognisable without it. No capability
 //!   assessment at all, a missing capability the assessment classes identity
 //!   or leaves unclassed, and a failing trait no dial moved.
@@ -46,6 +46,14 @@ pub fn files(out: &Path) -> (PathBuf, PathBuf) {
 /// Classes every failing trait from the gate's capability record, the
 /// assessment's classes and the tuning result.
 pub fn classify(gate: &Value, assessment: &Path, result: &EndResult) -> Result<Vec<Gap>, String> {
+    let mut gaps = capability(gate, assessment)?;
+    gaps.extend(tuned(result));
+    Ok(gaps)
+}
+
+/// The capabilities the species needs that the generator does not express,
+/// classed by the assessment, and no assessment at all as an identity gap.
+pub fn capability(gate: &Value, assessment: &Path) -> Result<Vec<Gap>, String> {
     let classes = capability_class::read(assessment)?;
     let capability = &gate["body"]["capability"];
     let names = |key: &str| -> Vec<String> {
@@ -93,6 +101,12 @@ pub fn classify(gate: &Value, assessment: &Path, result: &EndResult) -> Result<V
             specs,
         });
     }
+    Ok(gaps)
+}
+
+/// The traits tuning left failing, and the ones the config lists unexpressed.
+fn tuned(result: &EndResult) -> Vec<Gap> {
+    let mut gaps = Vec::new();
     for known in &result.known_gaps {
         gaps.push(Gap {
             trait_id: known.trait_id.clone(),
@@ -102,9 +116,12 @@ pub fn classify(gate: &Value, assessment: &Path, result: &EndResult) -> Result<V
         });
     }
     for entry in result.gaps.iter().filter(|g| g.status != PASSING) {
+        // Only a move that rendered and that the reviewer judged is evidence
+        // a live dial reaches the trait.
         let moves: Vec<String> = entry
             .attempts
             .iter()
+            .filter(|a| a.feasible && a.review.is_some())
             .flat_map(|a| &a.moves)
             .map(|m| format!("{} {} -> {}", m.dial, m.from, m.to))
             .collect();
@@ -132,7 +149,7 @@ pub fn classify(gate: &Value, assessment: &Path, result: &EndResult) -> Result<V
             specs: vec![],
         });
     }
-    Ok(gaps)
+    gaps
 }
 
 /// Writes `gaps.json` and `gaps.md`; the word counts each class.

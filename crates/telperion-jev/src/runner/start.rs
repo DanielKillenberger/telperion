@@ -14,6 +14,11 @@ use telperion_core::{params, presets::Preset};
 use super::derive::{self, TABLE_JSON};
 use crate::pipeline::canon::{canonical_sha256, read_json, write_canonical};
 
+/// The derivation table this binary was built with, as a stage input.
+pub fn table() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("data/profile-to-preset.json")
+}
+
 /// The file the stage writes.
 pub fn file(out: &Path) -> PathBuf {
     out.join("start.json")

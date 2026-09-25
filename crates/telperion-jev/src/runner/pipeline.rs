@@ -65,7 +65,19 @@ impl Literature<'_> {
     }
 
     /// Runs `stage`'s pipeline stages in order; the words say which ran.
+    /// The gate asks the generator's vocabulary and the rebuilt tools, which
+    /// its own key does not cover, so it is recomputed whenever it is run.
+    /// When an output the stage owns is missing, the inner stages' records
+    /// are dropped first, so their own keys cannot report them current.
     pub fn run(&self, stage: Stage) -> Result<String, String> {
+        if stage == Stage::Capability {
+            forget(self.run.paths.artifact("gate"))?;
+        }
+        if files(self.run, stage).1.iter().any(|p| !p.exists()) {
+            for name in inner(stage) {
+                forget(self.run.paths.artifact(name))?;
+            }
+        }
         let key = load_key().map_err(|e| e.to_string())?;
         let transport = UreqTransport;
         let judge = Judge {
@@ -116,22 +128,43 @@ impl Literature<'_> {
                 }
             }
             Stage::Capability => {
-                let ran = gate::run(paths, &self.checks()).map_err(e)?;
-                note("gate", !matches!(ran, gate::Outcome::Current));
+                gate::run(paths, &self.checks()).map_err(e)?;
+                note("gate", true);
             }
             Stage::Catalogue => {
                 let example = self.example();
                 let ran = generate::run(paths, &judge, &example, Some(&example)).map_err(e)?;
                 note("generate", !matches!(ran, generate::Outcome::Current));
                 // The gate audits the specimen seeds generate just wrote.
-                let ran = gate::run(paths, &self.checks()).map_err(e)?;
-                note("gate", !matches!(ran, gate::Outcome::Current));
+                forget(paths.artifact("gate"))?;
+                gate::run(paths, &self.checks()).map_err(e)?;
+                note("gate", true);
                 let ran = document::run(paths, &judge).map_err(e)?;
                 note("document", !matches!(ran, document::Outcome::Current));
             }
             _ => unreachable!("not a literature stage"),
         }
         Ok(words.join(", "))
+    }
+}
+
+/// The pipeline stages a runner stage runs, whose records carry their keys.
+fn inner(stage: Stage) -> &'static [&'static str] {
+    match stage {
+        Stage::Sources => &["discover", "fetch"],
+        Stage::Profile => &["extract", "screen", "quality", "select", "verify", "fit"],
+        Stage::Capability => &["gate"],
+        Stage::Catalogue => &["generate", "document"],
+        _ => &[],
+    }
+}
+
+fn forget(path: PathBuf) -> Result<(), String> {
+    match std::fs::remove_file(&path) {
+        Err(e) if e.kind() != std::io::ErrorKind::NotFound => {
+            Err(format!("{}: {e}", path.display()))
+        }
+        _ => Ok(()),
     }
 }
 

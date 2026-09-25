@@ -21,12 +21,16 @@ fn main() -> ExitCode {
             .find(|pair| pair[0] == name)
             .map(|pair| PathBuf::from(&pair[1]))
     };
+    // The species' catalogue folder holds the manifest and every stage
+    // artifact, which the catalogue scripts read in place; the run's scratch
+    // stays in the evidence tree.
     let evidence = PathBuf::from(".flow/evidence").join(&species);
-    let dir = flag("--dir").unwrap_or_else(|| evidence.join("pipeline"));
-    let run_dir = flag("--run-dir").unwrap_or_else(|| dir.clone());
+    let catalogue = flag("--catalogue").unwrap_or_else(|| PathBuf::from("catalogue"));
+    let dir = flag("--dir").unwrap_or_else(|| catalogue.join(&species));
+    let run_dir = flag("--run-dir").unwrap_or_else(|| evidence.join("run"));
     let run = Run {
         paths: Paths::with_run(&dir, &run_dir),
-        catalogue: flag("--catalogue").unwrap_or_else(|| PathBuf::from("catalogue")),
+        catalogue,
         tuning: flag("--tuning").unwrap_or_else(|| evidence.join("tuning.json")),
         adapter: flag("--adapter").map_or("firecrawl".into(), |p| p.display().to_string()),
         accept: args.iter().any(|a| a == "--accept"),

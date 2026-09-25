@@ -1,20 +1,46 @@
 //! The Tune stage: one tuning revision over the live dials.
 //!
 //! A revision starts from the last kept tree, or from the Start overlay on
-//! the first. Its dials are the rows of the dial table compiled into this
-//! binary, never a copy frozen into the config, so a row the generator gained
-//! or lost is offered or dropped on the next revision. The revision ends when
-//! its rounds stop keeping anything; whatever stopped it is recorded in its
-//! result, and its result is the stage's artifact.
+//! the first. Its dials are the rows of the dial table read from disk when it
+//! starts, never a copy frozen into the config, so a row the generator gained
+//! or lost is offered or dropped on the next revision. It draws and measures
+//! with the tools the runner just built. The revision ends when its rounds
+//! stop keeping anything, and its result becomes the stage's artifact. A
+//! revision that failed (no key, an interrupted paid call, no tree kept)
+//! leaves the last kept result alone and fails the stage, so the next run
+//! tries again.
 use std::path::{Path, PathBuf};
 
 use serde_json::{json, Value};
 
+use super::tools::Tools;
 use crate::caller::{load_key, UreqTransport};
 use crate::pipeline::canon::read_json;
 use crate::tuning::actions::Dial;
 
-const DIALS_JSON: &str = include_str!("../../data/dials.json");
+/// The dial table, as a stage input and as the rows a revision offers.
+pub fn table() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("data/dials.json")
+}
+
+/// The files the tuning config names whose bytes a revision reads: the
+/// profile manifest, the camera references, the reference inventory and its
+/// preparation, and the contact-sheet protocol.
+pub fn referenced(template: &Path) -> Result<Vec<PathBuf>, String> {
+    let config = read_json(template).map_err(|e| e.to_string())?;
+    let named = [
+        "/profiles",
+        "/matched/references",
+        "/reference_first/inventory/path",
+        "/reference_first/preparation/path",
+        "/sheet/protocol",
+    ];
+    Ok(named
+        .iter()
+        .filter_map(|at| config.pointer(at).and_then(Value::as_str))
+        .map(PathBuf::from)
+        .collect())
+}
 
 /// The stage's artifact: the latest revision's result.
 pub fn result(out: &Path) -> PathBuf {
@@ -25,7 +51,8 @@ pub fn result(out: &Path) -> PathBuf {
 /// id the config names, or every row when it names none. Returns the rows
 /// and the ids the table no longer has.
 pub fn live_dials(asked: &Value) -> Result<(Vec<Dial>, Vec<String>), String> {
-    let table: Vec<Dial> = serde_json::from_str(DIALS_JSON).map_err(|e| e.to_string())?;
+    let bytes = std::fs::read(table()).map_err(|e| format!("{}: {e}", table().display()))?;
+    let table: Vec<Dial> = serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
     let ids: Vec<String> = asked
         .as_array()
         .into_iter()
@@ -59,12 +86,15 @@ pub fn base(out: &Path) -> Result<Value, String> {
     Ok(start["overrides"].clone())
 }
 
-/// Runs the next revision and copies its result to the stage's artifact.
-pub fn run(template: &Path, out: &Path) -> Result<String, String> {
+/// Runs the next revision and, when it ended with a tree, copies its result
+/// to the stage's artifact.
+pub fn run(template: &Path, tools: &Tools, out: &Path) -> Result<String, String> {
     let mut config = read_json(template).map_err(|e| e.to_string())?;
     let (dials, gone) = live_dials(&config["dials"])?;
     config["dials"] = json!(dials);
     config["initial_overrides"] = base(out)?;
+    config["measure_binary"] = json!(tools.species_measure);
+    config["matched"]["headless"] = json!(tools.headless);
     let revisions = out.join("tuning");
     let revision = next_revision(&revisions)?;
     let dir = revisions.join(revision.to_string());
@@ -75,18 +105,20 @@ pub fn run(template: &Path, out: &Path) -> Result<String, String> {
     let ended = crate::tuning::command::run_with(&config_path, &dir, &UreqTransport, &|| {
         load_key().map_err(|e| e.to_string())
     });
+    ended.map_err(|e| format!("revision {revision} failed: {e}"))?;
     let written = dir.join("result.json");
-    if !written.exists() {
+    let record = read_json(&dir.join("run.json")).map_err(|e| e.to_string())?;
+    let outcome = read_json(&written).map_err(|e| e.to_string())?["outcome"].clone();
+    let stopped = outcome["stopped"].as_str().unwrap_or("ended").to_string();
+    if let Some(pending) = record["pending"].as_str() {
         return Err(format!(
-            "revision {revision} wrote no result: {}",
-            ended.err().unwrap_or_default()
+            "revision {revision} was interrupted during {pending}: {stopped}"
         ));
     }
+    if outcome["current"].is_null() {
+        return Err(format!("revision {revision} kept no tree: {stopped}"));
+    }
     std::fs::copy(&written, result(out)).map_err(|e| e.to_string())?;
-    let stopped = read_json(&written).map_err(|e| e.to_string())?["outcome"]["stopped"]
-        .as_str()
-        .unwrap_or("ended")
-        .to_string();
     let mut word = format!("revision {revision}: {stopped}");
     if !gone.is_empty() {
         word.push_str(&format!(

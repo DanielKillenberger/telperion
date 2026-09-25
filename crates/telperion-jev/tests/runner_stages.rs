@@ -34,11 +34,17 @@ fn tree(key: &str) -> Value {
            "overrides": {"canopy": {"leafBases": 256, "size": 2.35}}, "stills": []})
 }
 
-fn gap(id: &str, status: &str, moves: Value) -> Value {
+/// A gap entry whose one attempt made `moves`, rendered or not, and judged
+/// by the reviewer or not.
+fn gap(id: &str, status: &str, moves: Value, feasible: bool, reviewed: bool) -> Value {
+    let review = match reviewed {
+        true => json!({"per_priority": {id: "slight"}}),
+        false => Value::Null,
+    };
     let attempts = match moves.as_array().is_some_and(|m| !m.is_empty()) {
         true => json!([{"dial": "bundle", "round": 1, "action_ledger": null,
-            "score_before_round": null, "score_after": null, "feasible": true, "reason": null,
-            "visual_outcome": null, "moves": moves}]),
+            "score_before_round": null, "score_after": null, "feasible": feasible,
+            "reason": null, "visual_outcome": null, "moves": moves, "review": review}]),
         false => json!([]),
     };
     json!({"id": id, "rank": 1, "priority": id, "status": status, "attempts": attempts, "reviewer_words": ["still thin"],
@@ -46,7 +52,7 @@ fn gap(id: &str, status: &str, moves: Value) -> Value {
 }
 
 #[test]
-fn a_revision_offers_the_compiled_table_rows_it_names_and_reports_the_gone() {
+fn a_revision_offers_the_table_rows_it_names_and_reports_the_gone() {
     let (rows, gone) = tune::live_dials(&json!([{"id": "leaf_bases"}, "no_such_dial"])).unwrap();
     assert_eq!(rows.len(), 1);
     assert_eq!(rows[0].id, "leaf_bases");
@@ -95,9 +101,41 @@ fn every_failing_trait_is_classed_reachable_identity_or_global_with_its_evidence
     let tuned: EndResult = serde_json::from_value(result(
         tree("k"),
         json!([
-            gap("crown-density", "failing on the current tree", moved),
-            gap("trunk-texture", "failing on the current tree", json!([])),
-            gap("frond-count", "passing on the current tree", json!([])),
+            gap(
+                "crown-density",
+                "failing on the current tree",
+                moved.clone(),
+                true,
+                true
+            ),
+            gap(
+                "trunk-texture",
+                "failing on the current tree",
+                json!([]),
+                true,
+                true
+            ),
+            gap(
+                "frond-count",
+                "passing on the current tree",
+                json!([]),
+                true,
+                true
+            ),
+            gap(
+                "leaf-sheen",
+                "failing on the current tree",
+                moved.clone(),
+                false,
+                true
+            ),
+            gap(
+                "crown-shape",
+                "failing on the current tree",
+                moved,
+                true,
+                false
+            ),
         ]),
         json!([{"trait": "fruit-clusters-pendent", "spec": "fn-111"}]),
     ))
@@ -115,6 +153,9 @@ fn every_failing_trait_is_classed_reachable_identity_or_global_with_its_evidence
     assert_eq!(kind("crown-density"), Some(Kind::Reachable));
     assert_eq!(kind("trunk-texture"), Some(Kind::Identity));
     assert_eq!(kind("frond-count"), None, "a passing trait is no gap");
+    // A move that never rendered, or that no reviewer judged, reaches nothing.
+    assert_eq!(kind("leaf-sheen"), Some(Kind::Identity));
+    assert_eq!(kind("crown-shape"), Some(Kind::Identity));
     let reachable = classed
         .iter()
         .find(|g| g.trait_id == "crown-density")
@@ -127,6 +168,47 @@ fn every_failing_trait_is_classed_reachable_identity_or_global_with_its_evidence
     let classed = gaps::classify(&unassessed, &dir.join("absent.json"), &tuned).unwrap();
     assert_eq!(classed[0].trait_id, "capability-assessment");
     assert_eq!(classed[0].kind, Kind::Identity);
+    // The capability half alone is what stops a run at its Capability stage.
+    let capability = gaps::capability(&gate, &assessment(&dir)).unwrap();
+    let names: Vec<&str> = capability.iter().map(|g| g.trait_id.as_str()).collect();
+    assert_eq!(
+        names,
+        ["infructescence", "leaf-base-lattice", "mystery-organ"]
+    );
+}
+
+#[test]
+fn a_revision_reads_every_file_its_config_names() {
+    let dir = scratch("referenced");
+    let template = dir.join("tuning.json");
+    let config = json!({"profiles": "p.json", "matched": {"references": "shots.json"},
+        "reference_first": {"inventory": {"path": "inv.json"}, "preparation": {"path": "prep.json"}},
+        "sheet": {"protocol": "sheet.py"}});
+    std::fs::write(&template, config.to_string()).unwrap();
+    let files: Vec<String> = tune::referenced(&template)
+        .unwrap()
+        .iter()
+        .map(|p| p.display().to_string())
+        .collect();
+    assert_eq!(
+        files,
+        ["p.json", "shots.json", "inv.json", "prep.json", "sheet.py"]
+    );
+}
+
+#[test]
+fn a_failed_revision_leaves_the_last_kept_result_and_fails_the_stage() {
+    let dir = scratch("failed-revision");
+    std::fs::write(dir.join("start.json"), json!({"overrides": {}}).to_string()).unwrap();
+    let kept = result(tree("k1"), json!([]), json!([])).to_string();
+    std::fs::write(tune::result(&dir), &kept).unwrap();
+    // A config the revision cannot read fails before any tree is kept.
+    let template = dir.join("tuning.json");
+    std::fs::write(&template, json!({"dials": []}).to_string()).unwrap();
+    let tools = telperion_jev::runner::tools::Tools::at(&dir);
+    let err = tune::run(&template, &tools, &dir).unwrap_err();
+    assert!(err.starts_with("revision 1 failed"), "{err}");
+    assert_eq!(std::fs::read_to_string(tune::result(&dir)).unwrap(), kept);
 }
 
 /// A repository root whose catalogue check prints `stderr` and exits `code`.

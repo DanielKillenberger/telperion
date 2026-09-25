@@ -19,7 +19,7 @@ species needs is its own spec, never a patch inside this run.
    species spec from `templates/species-spec.md`. Refine it, mark it ready,
    and start the run's stack from its branch (`docs/species-onboarding.md`,
    "The stack").
-2. **Seed.** Write the seed manifest to `.flow/evidence/<species>/pipeline/manifest.json`
+2. **Seed.** Write the seed manifest to `catalogue/<species>/manifest.json`
    and the tuning config to `.flow/evidence/<species>/tuning.json`
    (`docs/species-runner.md`, "The tuning config").
 3. **Capability assessment.** `packet/capability.json` is the host's, not

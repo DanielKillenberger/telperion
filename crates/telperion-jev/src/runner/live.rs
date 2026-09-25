@@ -40,7 +40,12 @@ impl Stages for Live {
         let out = run.out();
         let p = &run.paths;
         Ok(match stage {
-            Stage::Sources | Stage::Profile | Stage::Capability => pipeline::files(run, stage).0,
+            Stage::Sources | Stage::Profile => pipeline::files(run, stage).0,
+            Stage::Capability => {
+                let mut files = pipeline::files(run, stage).0;
+                files.extend(self.tools.files());
+                files
+            }
             Stage::Catalogue => {
                 let mut files = pipeline::files(run, stage).0;
                 files.extend(self.tools.files());
@@ -50,9 +55,11 @@ impl Stages for Live {
                 p.packet("profile"),
                 run.tuning.clone(),
                 self.profiles.clone(),
+                start::table(),
             ],
             Stage::Tune => {
-                let mut files = vec![start::file(&out), run.tuning.clone()];
+                let mut files = vec![start::file(&out), run.tuning.clone(), tune::table()];
+                files.extend(tune::referenced(&run.tuning)?);
                 files.extend(self.tools.files());
                 files
             }
@@ -84,7 +91,7 @@ impl Stages for Live {
         let p = &run.paths;
         let word = match stage {
             Stage::Start => start::run(&p.packet("profile"), &run.tuning, &out)?,
-            Stage::Tune => tune::run(&run.tuning, &out)?,
+            Stage::Tune => tune::run(&run.tuning, &self.tools, &out)?,
             Stage::Gaps => gaps::run(
                 &p.artifact("gate"),
                 &p.packet("capability"),
@@ -116,6 +123,18 @@ impl Stages for Live {
             Stage::Profile | Stage::Catalogue => {
                 let (claims, _) = pipeline::open(run)?;
                 (!claims.is_empty()).then_some(Stop::Claims(claims))
+            }
+            // A capability the species needs and the generator cannot
+            // express stops here, before generation refuses to run on it.
+            Stage::Capability => {
+                let gate = read_json(&run.paths.artifact("gate")).map_err(|e| e.to_string())?;
+                let identity: Vec<String> =
+                    gaps::capability(&gate, &run.paths.packet("capability"))?
+                        .into_iter()
+                        .filter(|g| g.kind == gaps::Kind::Identity)
+                        .map(|g| g.trait_id)
+                        .collect();
+                (!identity.is_empty()).then_some(Stop::IdentityGaps(identity))
             }
             Stage::Gaps => {
                 let identity = gaps::identity(&out)?;

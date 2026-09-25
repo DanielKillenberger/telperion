@@ -8,13 +8,131 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-149-one-species-runner-set-stages-from-a",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-149-one-species-runner-set-stages-from-a.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "cbaa308172cf35286c04a45886620f6fc71d92d7a9e9c84c2347ee1ca1b05268",
+      "backend": "codex",
+      "base_sha": "29b696de10e7d65fcedbc776410afd0932364b88",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-96c37973d970a409313aa6b11296bc9e",
+            "classification": "introduced",
+            "findingId": "finding-96c37973d970a409313aa6b11296bc9e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6f9ab523faa5fdf133767b1f2792d79e",
+            "classification": "introduced",
+            "findingId": "finding-6f9ab523faa5fdf133767b1f2792d79e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2388f3b5a16332a4872e3c0ca716952f",
+            "classification": "introduced",
+            "findingId": "finding-2388f3b5a16332a4872e3c0ca716952f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b8174173c0f37bed04e606927e3eef0f",
+            "classification": "introduced",
+            "findingId": "finding-b8174173c0f37bed04e606927e3eef0f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-81d4e4a7e3f841f9d733a7a3efe3883f",
+            "classification": "introduced",
+            "findingId": "finding-81d4e4a7e3f841f9d733a7a3efe3883f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1361dbeecb1b8a998a6590c5c396d7b9",
+            "classification": "introduced",
+            "findingId": "finding-1361dbeecb1b8a998a6590c5c396d7b9",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-85f347684daf7f3ed807b33f20c9754d",
+            "classification": "introduced",
+            "findingId": "finding-85f347684daf7f3ed807b33f20c9754d",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2596766a76f076e597dee195ff03d1cb",
+            "classification": "introduced",
+            "findingId": "finding-2596766a76f076e597dee195ff03d1cb",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c6977f400e610cbb4e8a0187c14a3d1e",
+            "classification": "introduced",
+            "findingId": "finding-c6977f400e610cbb4e8a0187c14a3d1e",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "62c32303247a95c98b5f716d5f2229789434d0b5",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 6001,
+      "output_sha256": "f616a287846ea7cb759336b695e92a01be77e5fc0b9f68f1f312856b74eaa191",
+      "reservation_id": "6bce2835dd40490aaf90bbd7bb76bbe7",
+      "round_consumed": true,
+      "scope": "impl:fn-149-one-species-runner-set-stages-from-a.1",
+      "superseded_by": null,
+      "task": "fn-149-one-species-runner-set-stages-from-a.1",
+      "timestamp": "2026-09-25T11:33:11.737849Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-149-one-species-runner-set-stages-from-a.1": 0
+  },
   "spec_path": ".flow/specs/fn-149-one-species-runner-set-stages-from-a.md",
   "status": "open",
   "title": "One species runner: set stages from a name to an accepted tree",
@@ -29,5 +147,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-25T10:31:11.313169Z"
+  "updated_at": "2026-09-25T11:33:11.740795Z"
 }

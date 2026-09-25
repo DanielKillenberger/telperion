@@ -19,8 +19,8 @@ visible to an interactive shell (`docs/typesafe.md`).
 
 | Flag | Default |
 |---|---|
-| `--dir DIR` | `.flow/evidence/<id>/pipeline`: the manifest, decisions, resolutions and every stage artifact |
-| `--run-dir DIR` | `--dir`: the fetch cache, the ledger and the stills; the runner's own files go to `<run-dir>/runner/` |
+| `--dir DIR` | `catalogue/<id>`: the manifest, decisions, resolutions and every stage artifact, which the catalogue scripts read in place |
+| `--run-dir DIR` | `.flow/evidence/<id>/run`: the fetch cache, the ledger and the stills; the runner's own files go to `<run-dir>/runner/` |
 | `--tuning FILE` | `.flow/evidence/<id>/tuning.json`: the tuning config (below) |
 | `--catalogue DIR` | `catalogue` |
 | `--adapter` | `firecrawl`; `fixture:DIR` for pinned sources |
@@ -50,8 +50,9 @@ A run stops for three things only, and prints `STOPPED:` with the reason:
   kinds: a person settles each in `resolutions.json`
   (`docs/species-pipeline.md`, "Decisions"), and the next run reruns what
   reads the resolutions.
-- **An identity gap.** `gaps.md` lists a trait the species is not
-  recognisable without. It waits until its spec lands, which rebuilds the
+- **An identity gap.** A capability the species needs and the generator
+  cannot express stops the run at the Capability stage (evidence in
+  `gate.json`); a trait tuning could not move stops it at Gaps (`gaps.md`). It waits until its spec lands, which rebuilds the
   tools and reruns Tune, or until the host reclasses it in
   `packet/capability.json`.
 - **The owner's look.** The owner looks at the tuned tree in the harness and
@@ -70,19 +71,21 @@ preset, the profile manifest and id the measurer reads, the references and
 required cells, the reviewer adapters, the tracks and the dial ids the run
 tunes. The runner fills the rest per revision:
 
+- `measure_binary` and `matched.headless` are the tools the runner just
+  built.
 - `initial_overrides` is the last kept tree's overlay, or `start.json`'s on
   the first revision. The config's own `initial_overrides` are the person's
   entries and win over a derived value in Start.
-- `dials` are the rows of the dial table compiled into the runner that the
-  config names, all of them when it names none. A row the table no longer
+- `dials` are the rows of `crates/telperion-jev/data/dials.json`, read when
+  the revision starts, that the config names, all of them when it names none. A row the table no longer
   has is dropped and named in the log.
 
 ## Gaps
 
 Code classes each failing trait from what the run recorded:
 
-- **reachable**: a live dial moved it during tuning; the line names the dial
-  and the two values it was drawn at.
+- **reachable**: a live dial moved it in a rendered attempt the reviewer
+  judged; the line names the dial and the two values it was drawn at.
 - **identity**: no capability assessment at all, a missing capability the
   assessment classes identity or leaves unclassed, or a failing trait no dial
   moved.
