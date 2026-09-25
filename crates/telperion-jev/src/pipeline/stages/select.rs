@@ -130,7 +130,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
         STAGE,
         &ids,
         &header.inputs,
-        &crate::pipeline::gap::now(),
+        &crate::pipeline::stage::now(),
     )?;
     ctx.write(&header, out)?;
     Ok(Outcome::Ran {

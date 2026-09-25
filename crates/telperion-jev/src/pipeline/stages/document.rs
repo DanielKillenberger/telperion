@@ -4,8 +4,8 @@
 //! The copy's file format, the rights rule that shapes it and the article's
 //! structure belong to the catalogue scripts, which this stage runs and never
 //! restates. The stage owns what their output means for the run: a claim the
-//! check lists, and an article it leaves unfilled, each raise a decision that
-//! blocks the report, so an unsupported sentence cannot ship.
+//! check lists raises a decision the runner stops on, so an unsupported
+//! sentence cannot ship, and an article it leaves unfilled is logged.
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
@@ -63,7 +63,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
         };
         decisions.push(Decision::new(
             parts,
-            &["report"],
+            &[],
             bound.clone(),
             vec![],
             json!({"work": work}),
@@ -73,7 +73,9 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     }
     // The catalogue script writes the article into the species' catalogue
     // folder, read from the repository root as the script runs.
-    let article = std::path::Path::new("catalogue").join(&species).join("ARTICLE.md");
+    let article = std::path::Path::new("catalogue")
+        .join(&species)
+        .join("ARTICLE.md");
     let written = std::fs::read_to_string(&article).unwrap_or_default();
     let folder = article.parent().unwrap_or(std::path::Path::new("."));
     let (claims, loads) = claims_in(&ctx, judge, folder, &written);
@@ -115,7 +117,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
             let payload = json!({"claim": row.claim, "section": row.section, "relation": row.relation, "reason": row.reason});
             decisions.push(Decision::new(
                 parts,
-                &["report"],
+                &[],
                 bound.clone(),
                 vec![row.identity.clone()],
                 payload,
@@ -327,7 +329,7 @@ fn args(argv: &[&str]) -> Vec<String> {
 /// The date the copies record as their fetch date, pinnable like every other
 /// clock in the pipeline.
 fn today() -> String {
-    let now = crate::pipeline::gap::now();
+    let now = crate::pipeline::stage::now();
     now.get(..10).unwrap_or(&now).to_string()
 }
 

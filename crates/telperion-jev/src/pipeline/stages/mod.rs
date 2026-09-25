@@ -28,8 +28,6 @@
 //! - `document.body`: `{"sources": [{"id", "form", "cached"}], "article",
 //!   "article_validated", "article_work": [...], "claims": [CiteRow],
 //!   "tokens": {"input", "output"}}`.
-//! - `report.body`: the report's sections, also rendered to `report.md`, with
-//!   `costs.stages.<stage>` and `costs.total` summed from every artifact's `cost`.
 
 pub mod appearance;
 pub mod capability_class;
@@ -44,7 +42,6 @@ pub mod generate;
 pub mod pick;
 pub mod points;
 pub mod quality;
-pub mod report;
 pub mod rows;
 pub mod screen;
 pub mod select;

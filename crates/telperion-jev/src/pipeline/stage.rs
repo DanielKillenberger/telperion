@@ -2,9 +2,10 @@
 //!
 //! A stage reads the admitted manifest and earlier artifacts at fixed paths,
 //! computes its key over their checksums, the manifest checksum, the
-//! question-set versions, the model name and the tool versions, the build
-//! identity among them (a digest of the crate's code, fn-131), and does
-//! nothing when the artifact on disk already carries that key. Missing
+//! question-set versions, the model name and the tool versions, and does
+//! nothing when the artifact on disk already carries that key. The key reads
+//! content, never the build: a changed binary with unchanged inputs reruns
+//! nothing (fn-149). Missing
 //! inputs, an open decision that stops the stage, or a changed checksum stop
 //! it by name. Opening a stage records it on the resolutions it consumes, and
 //! every artifact carries what its stage spent. Every run appends to the
@@ -16,7 +17,6 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-use super::build_id::{BUILD_ID, BUILD_TOOL};
 use super::canon::{canonical_sha256, file_sha256, read_json, write_canonical, CanonError};
 use super::consume::{mark_consumed, rejected_proposal, ReconcileError};
 use super::cost::{earlier_cost, Cost};
@@ -29,9 +29,9 @@ pub const TOOL_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// The fixed sequence. Discovery proposes; every later stage reads the
 /// admitted manifest.
-pub static STAGES: [&str; 12] = [
+pub static STAGES: [&str; 11] = [
     "discover", "fetch", "extract", "screen", "quality", "select", "verify", "fit", "gate",
-    "generate", "document", "report",
+    "generate", "document",
 ];
 
 /// Fixed artifact paths. `dir` is the species folder in the catalogue and holds
@@ -293,11 +293,6 @@ impl Context {
         let m = &self.admitted.manifest;
         let mut tools = m.versions.tools.clone();
         tools.insert("species-pipeline".into(), TOOL_VERSION.into());
-        tools.insert(BUILD_TOOL.into(), BUILD_ID.into());
-        // A landed gap fix is a tool version: it expires the key of the stage
-        // that halted and of every stage after it, and leaves the earlier
-        // ones current, so the run resumes where it stopped (fn-63 R4).
-        tools.extend(super::gap::resume::landed_tools(&self.paths.dir, stage));
         let key = idempotence_key(
             &inputs,
             keyed_on,
@@ -333,19 +328,13 @@ impl Context {
     /// Writes the stage artifact: the header's fields at the top level and the
     /// body under `body`. The cost written is the sum over every run that
     /// wrote this artifact: the header carries this run's adapter spend, and
-    /// its ledger references count its Jev calls, except in the report,
-    /// whose ledger cites every earlier artifact's references and which asks
-    /// nothing itself.
+    /// its ledger references count its Jev calls.
     pub fn write(&self, header: &Header, body: Value) -> Result<PathBuf, StageError> {
         let path = self.paths.artifact(&header.stage);
         let mut cost = earlier_cost(&path);
         let mut this_run = header.cost.clone();
         this_run.runs = 1;
-        this_run.jev_calls = if header.stage == "report" {
-            0
-        } else {
-            header.ledger.len() as u32
-        };
+        this_run.jev_calls = header.ledger.len() as u32;
         cost.add(&this_run);
         let mut header = header.clone();
         header.cost = cost;
@@ -362,6 +351,12 @@ impl Context {
         }
         Ok(path)
     }
+}
+
+/// The clock every record is stamped with; `TELPERION_PIPELINE_CLOCK` pins
+/// it, so a test's rerun writes the same bytes.
+pub fn now() -> String {
+    std::env::var("TELPERION_PIPELINE_CLOCK").unwrap_or_else(|_| crate::caller::now_rfc3339())
 }
 
 pub fn idempotence_key(

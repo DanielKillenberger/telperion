@@ -136,7 +136,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
         STAGE,
         &ids,
         &header.inputs,
-        &crate::pipeline::gap::now(),
+        &crate::pipeline::stage::now(),
     )?;
     ctx.write(&header, json!({"fields": fields}))?;
     Ok(Outcome::Ran { decisions: ids })

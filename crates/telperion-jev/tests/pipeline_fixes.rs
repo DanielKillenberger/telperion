@@ -17,7 +17,7 @@ use telperion_jev::pipeline::canon::{read_json, write_canonical};
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::known::KnownSources;
 use telperion_jev::pipeline::stage::{Context, Paths, StageError};
-use telperion_jev::pipeline::stages::{discover, fetch, report};
+use telperion_jev::pipeline::stages::{discover, fetch};
 
 const ERTRAGSTAFELN: &str = "https://www.forstpraxis.de/sites/forstpraxis.de/files/2023-07/AFZ_FHJ_Kalender_2024_306_318_Ertragstafeln_ste_OK.pdf";
 const OSU: &str = "https://landscapeplants.oregonstate.edu/plants/fraxinus-excelsior";
@@ -597,10 +597,10 @@ fn a_page_the_store_rejects_files_unavailable_source_with_the_error_verbatim() {
     assert!(sources.get("E1").is_some() && sources.get("O1").is_some());
 }
 
-/// R6: the report lists Firecrawl credits and Jev calls per stage and in
-/// total, and a rerun from the recorded seed shows one discovery.
+/// R6: every artifact records what its stage spent, Firecrawl credits and
+/// Jev calls, and a rerun from the recorded seed shows one discovery.
 #[test]
-fn the_report_sums_cost_per_stage_and_a_rerun_shows_one_discovery() {
+fn every_artifact_records_its_cost_and_a_rerun_shows_one_discovery() {
     let run = Run::new();
     run.discover().unwrap();
     run.resolve(vec![run.admit(&admitted(Some("Esche"), vec![]))]);
@@ -610,10 +610,6 @@ fn the_report_sums_cost_per_stage_and_a_rerun_shows_one_discovery() {
         discover::Outcome::Current
     ));
     assert!(matches!(run.fetch().unwrap(), fetch::Outcome::Current));
-    assert!(matches!(
-        report::run(&run.paths()).unwrap(),
-        report::Outcome::Ran { .. }
-    ));
 
     let discover_cost = read_json(&run.dir.join("discover.json")).unwrap()["cost"].clone();
     assert_eq!(discover_cost["runs"], 1);
@@ -624,22 +620,13 @@ fn the_report_sums_cost_per_stage_and_a_rerun_shows_one_discovery() {
         .as_str()
         .unwrap()
         .starts_with("estimated"));
-
-    let costs = read_json(&run.dir.join("report.json")).unwrap()["body"]["costs"].clone();
-    assert_eq!(costs["stages"]["discover"], discover_cost);
+    let fetch_cost = read_json(&run.dir.join("fetch.json")).unwrap()["cost"].clone();
     // Two scrapes and one PDF parse.
-    assert_eq!(costs["stages"]["fetch"]["firecrawl_credits"], 3);
-    assert_eq!(costs["stages"]["fetch"]["jev_calls"], 0);
-    assert_eq!(costs["total"]["firecrawl_credits"], 7);
-    assert_eq!(costs["total"]["jev_calls"], 2);
-    assert_eq!(costs["total"]["runs"], 2);
-    let page = fs::read_to_string(run.dir.join("report.md")).unwrap();
-    assert!(page.contains("## Cost"), "{page}");
-    assert!(page.contains("| discover | 1 | 4 |"), "{page}");
-    assert!(page.contains("| total | 2 | 7 |"), "{page}");
+    assert_eq!(fetch_cost["firecrawl_credits"], 3);
+    assert_eq!(fetch_cost["jev_calls"], 0);
 
-    // The stage reports itself current and the rejected proposal stops fetch.
-    let (ctx, _) = Context::open(&run.paths(), "report").unwrap();
+    // The rejected proposal stops fetch.
+    let (ctx, _) = Context::open(&run.paths(), "fetch").unwrap();
     assert_eq!(ctx.decisions.len(), 1);
     run.resolve(vec![run.resolution(
         "european-ash/discover/manifest-proposed",

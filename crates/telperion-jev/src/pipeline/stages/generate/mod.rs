@@ -12,7 +12,7 @@
 //! `{"template", "shipped_value", "growth_form"}`, an ordinary engineering
 //! entry with its rationale that a person admits. Stills are never judged
 //! here: they file one `visual-unassessed` decision that blocks nothing, so
-//! the report may describe them and the owner's eye has the last word.
+//! the owner's eye has the last word.
 
 use serde_json::{json, Map, Value};
 
@@ -249,7 +249,7 @@ fn run_described(
             DescribedOutcome::LevelMiss(miss) => {
                 let payload = serde_json::to_value(&miss).expect("a level miss serializes");
                 body.insert(name.into(), payload.clone());
-                shipped.file(manifest, MISS, Some(name), &["report"], payload, sha);
+                shipped.file(manifest, MISS, Some(name), &[], payload, sha);
             }
             DescribedOutcome::Unavailable { reason } => {
                 unavailable.insert(name.into(), json!(reason));
@@ -332,12 +332,12 @@ fn run_transfer(
         }
         TransferOutcome::NoReference { reason, .. } => {
             let payload = json!({"dial": spec.dial, "reason": reason});
-            shipped.file(manifest, NONE, dial, &["report"], payload.clone(), sha);
+            shipped.file(manifest, NONE, dial, &[], payload.clone(), sha);
             payload
         }
         TransferOutcome::Unavailable { reason } => {
             let payload = json!({"dial": spec.dial, "reason": reason});
-            shipped.file(manifest, MISS, dial, &["report"], payload.clone(), sha);
+            shipped.file(manifest, MISS, dial, &[], payload.clone(), sha);
             payload
         }
     })

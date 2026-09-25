@@ -190,7 +190,7 @@ fn admit(
             inputs_sha256: decision.inputs_sha256.clone(),
             option: "admit".into(),
             by: admission::BY.into(),
-            at: crate::pipeline::gap::now(),
+            at: crate::pipeline::stage::now(),
             note: format!(
                 "admitted {}: each chosen for its field, each open-licence or public-cite-only",
                 ids.join(", ")

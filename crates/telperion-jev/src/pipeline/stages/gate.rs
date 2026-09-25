@@ -169,7 +169,7 @@ pub fn run(paths: &Paths, checks: &dyn GateChecks) -> Result<Outcome, StageError
             STAGE,
             &ids,
             &inputs(&pairs),
-            &crate::pipeline::gap::now(),
+            &crate::pipeline::stage::now(),
         )?;
     }
     ctx.write(

@@ -10,7 +10,7 @@
 //! the other dimension still fits and its missing reference values are
 //! recorded as unavailable. A field a `data-insufficient` decision blocks is
 //! skipped the same way. Every `ToleranceMiss` files `tolerance-miss`, which
-//! blocks generation and the report; the stage never accepts one.
+//! blocks generation; the stage never accepts one.
 
 use serde_json::{json, Map, Value};
 
@@ -309,7 +309,7 @@ fn tolerance_miss(
             field: Some(&miss.field),
             age_years: Some(miss.age_years),
         },
-        &["generate", "report"],
+        &["generate"],
         [("fetch.json".to_string(), fetch_sha.to_string())]
             .into_iter()
             .collect(),

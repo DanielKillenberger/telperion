@@ -8,19 +8,17 @@
 
 mod common;
 
-use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use common::{ledger_dir, CaseTransport};
 use serde_json::{json, Map, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::canon::{read_json, write_canonical};
-use telperion_jev::pipeline::gap::metrics;
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::render::{Measured, Measurer, RenderError};
 use telperion_jev::pipeline::stage::{Context, Paths};
 use telperion_jev::pipeline::stages::gate::GateChecks;
-use telperion_jev::pipeline::stages::{fit, gate, generate, inputs, report};
+use telperion_jev::pipeline::stages::{fit, gate, generate, inputs};
 
 /// The dial the described route lays its candidates on.
 const SPREAD: &str = "skeleton.envelope.spread";
@@ -366,7 +364,7 @@ fn the_fit_reproduces_fn30s_oak_and_files_a_tolerance_miss_per_age() {
     assert_eq!(misses.len(), 3, "{misses:?}");
     for miss in &misses {
         assert_eq!(miss["field"], "dbh_m");
-        assert_eq!(miss["blocks"], json!(["generate", "report"]));
+        assert_eq!(miss["blocks"], json!(["generate"]));
         assert_eq!(miss["payload"]["sources"], json!(["G1"]));
         assert_eq!(miss["payload"]["field"], "dbh_m");
         for key in ["age_years", "measured", "reference", "error_percent"] {
@@ -705,7 +703,7 @@ fn generate_files_level_miss_when_no_candidate_lands_in_range() {
     let filed = of_kind(&dir, "level-miss");
     assert_eq!(filed.len(), 1, "{filed:?}");
     assert_eq!(filed[0]["field"], "crown_spread");
-    assert_eq!(filed[0]["blocks"], json!(["report"]));
+    assert_eq!(filed[0]["blocks"], json!([]));
     assert_eq!(filed[0]["payload"]["target_range"], json!([0.9, 1.1]));
     assert_eq!(
         filed[0]["payload"]["candidates"].as_array().unwrap().len(),
@@ -724,7 +722,7 @@ fn generate_files_no_reference_when_the_nearest_answer_is_none() {
     let filed = of_kind(&dir, "no-reference");
     assert_eq!(filed.len(), 1, "{filed:?}");
     assert_eq!(filed[0]["field"], RISE);
-    assert_eq!(filed[0]["blocks"], json!(["report"]));
+    assert_eq!(filed[0]["blocks"], json!([]));
     assert_eq!(filed[0]["payload"]["dial"], RISE);
     assert!(filed[0]["payload"]["reason"].is_string());
     assert_eq!(body_of(&dir, "generate")["transfers"][RISE]["dial"], RISE);
@@ -783,98 +781,6 @@ fn the_packets_species_record_carries_exactly_the_closed_keys() {
     let count = |role: &str| cases.iter().filter(|c| c["seed_role"] == role).count();
     assert_eq!(count("regression"), 3);
     assert_eq!(count("holdout"), 3);
-}
-
-// ----------------------------------------------------------------- the report
-
-#[test]
-fn the_report_is_halted_with_an_open_decision_and_complete_once_it_is_resolved() {
-    let dir = scratch("report", 2);
-    fit::run(&Paths::new(&dir)).unwrap();
-    assert!(matches!(
-        report::run(&Paths::new(&dir)).unwrap(),
-        report::Outcome::Ran { .. }
-    ));
-    let body = body_of(&dir, "report");
-    assert_eq!(body["status"], "halted");
-    assert_eq!(body["sources"][0]["raw_sha256"], "bb");
-    assert_eq!(body["fields"]["height_m"]["level"], "partial");
-    assert_eq!(body["curves"]["rate"], json!(0.032));
-    assert_eq!(body["decisions"].as_array().unwrap().len(), 3);
-    let page = std::fs::read_to_string(dir.join("report.md")).unwrap();
-    for heading in [
-        "## Sources",
-        "## Fields",
-        "## Curves",
-        "## Decisions",
-        "## Stills",
-    ] {
-        assert!(page.contains(heading), "{heading} is missing");
-    }
-    assert!(!page.contains('\u{2014}'), "the page has an em dash");
-    assert!(!page.to_lowercase().contains("probabilit"));
-
-    let resolutions: Vec<Value> = decisions(&dir)
-        .iter()
-        .map(|d| {
-            json!({"id": d["id"], "inputs_sha256": d["inputs_sha256"],
-                   "option": "accept-composed-reference", "by": "test", "at": "2026-09-18"})
-        })
-        .collect();
-    write_canonical(
-        &dir.join("resolutions.json"),
-        &json!({"schema": "resolutions", "schema_version": 1, "resolutions": resolutions}),
-    )
-    .unwrap();
-    assert!(matches!(
-        report::run(&Paths::new(&dir)).unwrap(),
-        report::Outcome::Ran { .. }
-    ));
-    // Every decision is resolved, but the run's three numbers are not written
-    // yet: the report names the missing record rather than calling it done.
-    let body = body_of(&dir, "report");
-    assert_eq!(body["status"], "incomplete");
-    assert!(body["metrics"]["missing"]
-        .as_str()
-        .is_some_and(|said| said.contains("metrics.json")));
-    let page = std::fs::read_to_string(dir.join("report.md")).unwrap();
-    assert!(page.contains("## The run's numbers"));
-    assert!(page.contains("Missing: metrics.json"), "{page}");
-
-    metrics::write(&Paths::new(&dir), "oregon-white-oak").unwrap();
-    assert!(matches!(
-        report::run(&Paths::new(&dir)).unwrap(),
-        report::Outcome::Ran { .. }
-    ));
-    let body = body_of(&dir, "report");
-    assert_eq!(body["status"], "complete");
-    assert_eq!(body["metrics"]["autonomy"]["gaps"], 0);
-    let page = std::fs::read_to_string(dir.join("report.md")).unwrap();
-    assert!(page.contains("0 gaps, 0 routed"), "{page}");
-}
-
-#[test]
-fn the_reports_inputs_name_every_artifact_it_read() {
-    let dir = scratch("report-inputs", 2);
-    fit::run(&Paths::new(&dir)).unwrap();
-    report::run(&Paths::new(&dir)).unwrap();
-    let header = read_json(&dir.join("report.json")).unwrap();
-    let recorded: BTreeMap<String, String> = serde_json::from_value(header["inputs"].clone())
-        .expect("the header records the inputs it read");
-    for name in [
-        "fetch.json",
-        "quality.json",
-        "select.json",
-        "fit.json",
-        "decisions.json",
-        "provenance.json",
-    ] {
-        assert!(recorded.contains_key(name), "{name} is not recorded");
-    }
-    assert!(
-        !recorded.contains_key("generate.json"),
-        "generate never ran"
-    );
 }
 
 /// fn-80, 2026-09-24: the gate audits the specimens generate writes after it,

@@ -141,7 +141,7 @@ fn search_round(
         admitted: Vec::new(),
         error: None,
         ledger: Vec::new(),
-        at: crate::pipeline::gap::now(),
+        at: crate::pipeline::stage::now(),
     };
     let on_list = trait_sources(manifest, &field);
     let mut hits: Vec<(&str, SearchHit)> = if on_trait {
@@ -288,7 +288,7 @@ fn resolution(decision: &Decision, added: &[String]) -> Resolution {
         inputs_sha256: decision.inputs_sha256.clone(),
         option: "add-sources".into(),
         by: admission::BY.into(),
-        at: crate::pipeline::gap::now(),
+        at: crate::pipeline::stage::now(),
         note: format!(
             "the pipeline searched again for the field's gap and admitted {}",
             added.join(", ")

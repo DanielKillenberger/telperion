@@ -11,13 +11,12 @@ use std::path::{Path, PathBuf};
 use judged::{palm, score, Palm, A1_RATE, F1_FROND};
 use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
-use telperion_jev::pipeline::build_id::{tree_digest, BUILD_ID};
 use telperion_jev::pipeline::canon::{read_json, write_canonical};
 use telperion_jev::pipeline::decision::{
     append_decisions, reconcile, retire_unfiled, Decision, DecisionParts, Status,
 };
 use telperion_jev::pipeline::judge::Judge;
-use telperion_jev::pipeline::stage::{idempotence_key, Context, Paths};
+use telperion_jev::pipeline::stage::{Context, Paths};
 use telperion_jev::pipeline::stages::{inputs, quality, select, verify};
 
 const FROND: &str = "/profiles/0/metrics/frond_length_m";
@@ -347,29 +346,4 @@ fn no_mature_size_fails_a_mature_field() {
     assert_eq!(crown["level"], "proxy_only");
     assert_ne!(crown["dominant_gap"], "no_mature_size", "{crown}");
     assert_eq!(crown["passed"], true, "{fields}");
-}
-
-/// R8: a stage's key carries the build identity, a digest of the crate's
-/// code and data; a record written by other code is not current.
-#[test]
-fn a_code_change_expires_a_stages_key() {
-    assert_eq!(BUILD_ID, tree_digest(Path::new(env!("CARGO_MANIFEST_DIR"))));
-    let dir = palm("key");
-    let (ctx, _) = Context::open(&Paths::new(&dir), "extract").unwrap();
-    let header = ctx.header("extract", "candidates", inputs(&[]), vec![]);
-    assert_eq!(header.tools["species-pipeline-build"], BUILD_ID);
-    let mut older = header.tools.clone();
-    older.insert("species-pipeline-build".into(), "other-code".into());
-    let m = &ctx.admitted.manifest;
-    let stale = idempotence_key(
-        &header.inputs,
-        &ctx.admitted.sha256,
-        &m.versions.question_sets,
-        &m.model,
-        &older,
-    );
-    let mut written = header.clone();
-    written.idempotence_key = stale;
-    ctx.write(&written, json!({"candidates": []})).unwrap();
-    assert!(!ctx.is_current("extract", &header.idempotence_key));
 }

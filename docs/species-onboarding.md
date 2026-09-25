@@ -27,25 +27,20 @@ Generation and captures use windows coordinated with fn13/fn18: owner, UTC inter
 
 ## The pipeline
 
-`docs/species-pipeline.md` is the runbook: a fixed sequence of
-`species-pipeline` commands takes the admitted sources to the packet, the
-provenance sidecar, the fitted curves, the decision list, the species'
-documentation - a markdown copy of every admitted source and the article
-distilled from them, written by the `document` stage - and the report, with
+`docs/species-runner.md` is the runbook: `species <id>` takes the seeded
+manifest through sources, the profile, the capability gate, the catalogue
+entry, the starting overlay, tuning and the gap list to the owner's look, with
 Jev judging every reading step through `crates/telperion-jev` and code owning
-every number. The stage handoffs above name what each artifact must carry; the
-pipeline produces them, and a person admits the manifest and resolves the
-decisions it files. A species spec runs the pipeline once and restates none of
-the method.
+every number. `docs/species-pipeline.md` holds the literature stages it runs.
+The stage handoffs above name what each artifact must carry; the runner
+produces them, and a person settles the claims it stops on. A species spec runs
+the runner and restates none of the method.
 
-When a stage halts on a capability the generator cannot express, the runbook's
-**The gap loop** section takes over: the agent writes candidate fixes, a
-threshold table routes the gap to the loop, to a stronger reasoning model or to
-the owner, and the chosen fix becomes its own spec the species spec depends on.
-The run resumes from the halted stage once that spec lands. `add-species` is
-the skill that walks the whole path, from "add species A" to the checklist the
-owner ticks, with the run's autonomy, quality and efficiency numbers written
-beside its report.
+A trait the generator cannot draw ends as a line in the run's `gaps.md`,
+classed identity or global. The host reviews it and writes the spec; an
+identity gap's spec is one the species spec depends on, and the run stops on
+it until that spec lands. `add-species` is the skill that walks the whole path,
+from "add species A" to the checklist the owner ticks.
 
 ## The stack
 
@@ -53,10 +48,10 @@ A species run's pull requests go in together as one GitHub stack (`gh stack`, ow
 
 - **Start.** When the manifest is drafted, `gh stack init <species branch>` from the species spec's branch.
 - **A fix.** A gap spec is worked on its own branch as usual. When its task is done it goes in below the species: on a stack branch run `gh stack unstack --local`, then `gh stack init <fix 1> ... <new fix> <species branch>` bottom to top, then `gh stack rebase --no-trunk`. GitHub takes new PRs only on top of a stack, so once the stack's PRs exist the GitHub side is rebuilt too: `gh stack unstack <number>` removes it on GitHub and `gh stack link <PRs bottom to top>` links it again in the new order. Its PR follows `docs/pr-format.md`'s stacked mode.
-- **Landing.** The conductor records the fix's commit on the stack (`species-conductor land --commit SHA`, `gap resume --commit SHA`); the run resumes on the stack without a master merge.
+- **Landing.** The fix's commit on the stack changes the render tools the runner builds, so the next `species <id>` reruns Tune on the stack without a master merge.
 - **Linear.** Stack branches are rebased, never merged into. `gh stack rebase` brings master up the stack.
 - **Merge.** After the owner ticks the checklist, the owner merges the whole stack with `gh stack merge`, all or nothing. No stage and no driver runs it. A fix another species also needs lands alone first, by the owner's word, and leaves the stack.
-- **Admission.** The species spec is driven by `add-species` and the conductor, not selected by `flow --auto`, so `flowctl spec chain`'s single-parent rule does not gate it; its dependencies stay for the record.
+- **Admission.** The species spec is driven by `add-species` and the runner, not selected by `flow --auto`, so `flowctl spec chain`'s single-parent rule does not gate it; its dependencies stay for the record.
 
 ## One command per species
 

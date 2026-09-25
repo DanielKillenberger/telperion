@@ -5,7 +5,7 @@
 use serde_json::{json, Value};
 use telperion_core::params;
 use telperion_core::presets::{Preset, CATALOGUE, IN_WORK};
-use telperion_jev::conductor::derive::{self, Derived, MEASURED, TABLE_JSON};
+use telperion_jev::runner::derive::{self, Derived, MEASURED, TABLE_JSON};
 
 fn fixture(name: &str) -> Value {
     let path = format!("{}/tests/fixtures/palm/{name}", env!("CARGO_MANIFEST_DIR"));
