@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 use super::canon::{read_json, write_canonical, CanonError};
-use super::consume::{check_resolutions, hold_unmet, sources_sha256, ReconcileError, SUPERSEDED};
+use super::consume::{check_resolutions, ReconcileError, SUPERSEDED};
 use super::stage::Paths;
 
 pub const DECISIONS_SCHEMA_VERSION: u32 = 1;
@@ -254,17 +254,12 @@ pub fn apply_resolutions(decisions: &mut [Decision], resolutions: &[Resolution])
 }
 
 /// Reads decisions and resolutions, refuses a resolution the kinds table
-/// refuses, applies the rest, holds open a requirements-unmet resolution
-/// that added no source, and rewrites the list.
+/// refuses, applies the rest, and rewrites the list.
 pub fn reconcile(paths: &Paths) -> Result<Vec<Decision>, ReconcileError> {
     let mut list = read_decisions(&paths.decisions())?;
     let resolutions = read_resolutions(&paths.resolutions())?;
     check_resolutions(&list, &resolutions)?;
     apply_resolutions(&mut list, &resolutions);
-    if paths.manifest().exists() {
-        let traits = super::canon::read_json(&paths.manifest())?["appearance"].clone();
-        hold_unmet(&mut list, &sources_sha256(&paths.manifest())?, &traits);
-    }
     if !list.is_empty() {
         write_decisions(&paths.decisions(), &list)?;
     }
@@ -348,17 +343,17 @@ mod tests {
         let path = dir.join("decisions.json");
         let mut registry = miss("registry", &[]);
         registry.stage = "gate".into();
-        registry.inputs_sha256 = sha(&[("select.json", "old")]);
+        registry.inputs_sha256 = sha(&[("aggregate.json", "old")]);
         let mut capability = miss("capability", &[]);
         capability.stage = "gate".into();
-        capability.inputs_sha256 = sha(&[("select.json", "old")]);
+        capability.inputs_sha256 = sha(&[("aggregate.json", "old")]);
         append_decisions(&path, vec![registry, capability]).unwrap();
         // The rerun files only the capability gate under new inputs.
         let retired = retire_unfiled(
             &path,
             "gate",
             &[miss("capability", &[]).id],
-            &sha(&[("select.json", "new")]),
+            &sha(&[("aggregate.json", "new")]),
             "2026-09-22",
         )
         .unwrap();
@@ -372,7 +367,7 @@ mod tests {
         assert_eq!(reg.resolution.as_ref().unwrap().option, "superseded");
         // Same inputs again: nothing is retired, the file is untouched.
         let again =
-            retire_unfiled(&path, "gate", &[], &sha(&[("select.json", "old")]), "x").unwrap();
+            retire_unfiled(&path, "gate", &[], &sha(&[("aggregate.json", "old")]), "x").unwrap();
         assert!(again.is_empty());
     }
 
@@ -426,10 +421,10 @@ mod tests {
     fn open_for_stage_splits_global_and_field_scoped() {
         let mut global = miss("dbh_m", &[]);
         global.field = None;
-        global.id = "oak/discover/manifest-proposed".into();
+        global.id = "oak/fetch/coverage-gap".into();
         let list = vec![global, miss("height_m", &[])];
         let (g, f) = open_for_stage(&list, "generate");
-        assert_eq!(g, vec!["oak/discover/manifest-proposed".to_string()]);
+        assert_eq!(g, vec!["oak/fetch/coverage-gap".to_string()]);
         assert!(f.contains("height_m"));
         assert!(open_for_stage(&list, "fetch").0.is_empty());
     }

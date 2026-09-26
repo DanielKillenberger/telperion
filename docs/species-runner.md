@@ -44,7 +44,7 @@ before them never builds. The key must be visible to an interactive shell
 | `--record DIR` | keep every external answer in `DIR` (below, "Record and replay") |
 | `--tools DIR` | draw with render tools already built in `DIR`, never build them |
 | `--replay DIR` | serve every external answer from `DIR`, with no network and no key |
-| `--settle-claims` | a claim the search could not settle stops the run for a person instead of the runner settling it |
+| `--settle-claims` | an article claim the cite check flagged stops the run for a person instead of being logged |
 
 ## Record and replay
 
@@ -74,16 +74,15 @@ the key the current tape computes. A key ignores a fetched page's own
 `sha256` and `bytes` beside its `url`, which a trimmed page changes. `--tools <dir>` draws with render tools already
 built there (the gate's own examples) instead of building them.
 
-Within one run, a file a later stage writes that an earlier stage reads (the
-resolutions Profile settles claims into, which Sources reads) leaves the
-earlier stage current; an edit between runs still reruns it.
+Within one run, a file a later stage writes that an earlier stage reads
+leaves the earlier stage current; an edit between runs still reruns it.
 
 ## The stages
 
 | Stage | Runs | Writes |
 |---|---|---|
-| Sources | discover, fetch (`docs/species-pipeline.md`); an unadmitted proposal is skipped and an unreadable source dropped, both logged | `discover.json`, `fetch.json`, the admitted manifest |
-| Profile | extract, screen, quality, select, verify, fit; search-again while a requirement or a flagged claim's field has a round left, then the profile again; once the rounds are spent, each claim settled by the runner (below); the reference photographs (below) and their inventory | `packet/profile.json`, `packet/references.json`, `runner/references.json`, `runner/inventory/<hash>/` |
+| Sources | gather, fetch (`docs/species-pipeline.md`): everything written about the species, read without admission; an unreadable document is dropped and logged | `gather.json`, `fetch.json`, the manifest's gathered sources |
+| Profile | read, aggregate, fit: each value the aggregate of every document (below, "Values"); the reference photographs (below) and their inventory | `packet/profile.json`, `packet/references.json`, `runner/references.json`, `runner/inventory/<hash>/` |
 | Capability | the gate: the host's `packet/capability.json` against the generator's vocabulary; it runs before Catalogue, which generates from it | `gate.json` |
 | Catalogue | generate, the gate's seed audit, the records no stage writes, document (the article scaffold and the cite check over it), the pages | `packet/species.json`, `packet/specimens.json`, `sources.json`, `stills.json`, `NOTES.md`, the `pins.json` stub, source copies, `ARTICLE.md`, `README.md` |
 | Start | the profile's values mapped onto dials (`data/profile-to-preset.json`) | `runner/start.json` |
@@ -94,25 +93,20 @@ earlier stage current; an edit between runs still reruns it.
 Every stage's word goes to `runner/log.jsonl`, with each open decision the
 run logged and did not wait on.
 
-## Claims
+## Values
 
-A value the citation check flags (`claim-contradicted`,
-`claim-unsupported`) goes to the search while its field has a round left.
-Once the rounds are spent the runner settles it itself and logs it:
-
-- **Contradicted measurement: the range the sources span.** Select keeps
-  the field as the range from the lowest to the highest of each source's
-  most probable span, parsed by code, with every such source cited
-  (`keep-range`). Start takes its midpoint and Tune narrows it.
-- **Anything else: unsourced.** The value is dropped (`drop-value`); the
-  profile marks the field `unsourced`, `gaps.md` lists it, and the
-  generator's default stands until Tune sets it from the photographs.
-
-Jev never supplies a number: the range is code's parse of the spans the
-sources state. A resolution a person writes in `resolutions.json` still wins
-(`docs/species-pipeline.md`, "Decisions"). With `--settle-claims` the runner
-settles none of them and the run stops on the open claims, the article's
-included, for a person. Without it, an open article claim is logged.
+A value is the aggregate of every document that states it (fn-157,
+`docs/species-pipeline.md`, "Values"): the median of one point per
+independent source, its range their extent, with a record or a single tree
+kept as the field's maximum and a value far from the others set aside and
+named. Jev labels each span and never chooses between sources; code owns
+every number. Start takes the midpoint of the range, and Tune narrows it. A
+field no document states typically is `unsourced`: `gaps.md` lists it, and
+the generator's default stands until Tune sets it from the photographs.
+Nothing about a value waits on a person: no claim is filed, searched again
+or settled. The article's claims are the cite check's (below); with
+`--settle-claims` an open one stops the run for a person, and without it it
+is logged.
 
 ## The article
 
@@ -179,9 +173,12 @@ No run from a name needs a person to supply photographs (owner,
 2026-09-25). Once the profile is settled, the Profile stage finds them
 (`pipeline::photos`) unless `packet/references.json` already records two:
 
-1. **Candidates**, at most twelve: up to two images from each admitted
-   open-licence source's page (four in all), then Wikimedia Commons, asked
-   for the tree (six), its bark (three) and the tree in winter (three).
+1. **Candidates**, at most twelve: up to two images from each open-licence
+   source's page (four in all; a gathered document is open when its markup
+   declares an open deed), then Wikimedia Commons, asked for the whole tree
+   as its habit (four) and as a solitary tree (four), its bark (two) and the
+   tree in winter (two). The bare taxon found the beech's leaves, buds, nuts
+   and a copper cultivar, and the look kept only a bark close-up (fn-157).
    Commons is a photograph host; the no-Wikipedia rule is about citing
    values.
 2. **Rights.** A Commons file whose machine-readable licence code
@@ -191,15 +188,15 @@ No run from a name needs a person to supply photographs (owner,
    `Artist`) goes to Jev's rights question set. The question weighs a page's
    text and sets a photograph's licence aside as a figure credit, and it
    classed eleven of the beech's twelve CC files "none" (2026-09-25). Only
-   `open-licence` goes on. An admitted source's image takes its source's
-   class.
+   `open-licence` goes on. A source's image takes its source's class.
 3. **Copies.** Code downloads each JPEG or PNG into the run's cache,
    named by its sha256.
 4. **One look.** The reviewer adapter in the tuning config (`vision`,
    `scripts/reference-first.py`, stage `screen`) looks at the whole batch
-   once and says, per photograph, whether it shows the species, a mature
-   open-grown tree and the whole tree, and its view: leaf-on, bare, bark or
-   other.
+   once and says, per photograph, whether it shows the species (a copper,
+   weeping or columnar cultivar is not the species as it grows wild), a
+   mature open-grown tree and the whole tree, and its view: leaf-on, bare,
+   bark or other.
 5. **Kept**: up to two whole trees in leaf, one bare, one bark close-up,
    appended to `packet/references.json` with their source (`R<n>` for a
    Commons file), attribution, licence and sha256. A recorded reference is
@@ -227,7 +224,7 @@ Code classes each failing trait from what the run recorded:
   moved.
 - **global**: a capability the assessment classes an improvement, or a trait
   the config lists unexpressed, with the specs that capture it.
-- **unsourced**: a profile field no source settled (above, "Claims"); the
+- **unsourced**: a profile field no document states typically (above, "Values"); the
   generator's default stands and Tune sets it from the photographs.
 - **references**: no reference photograph to compare against (above,
   "Reference photographs"). It stops nothing; Tune refuses until one is

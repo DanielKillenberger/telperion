@@ -1,12 +1,12 @@
-//! Species template pipeline: literature to preset (fn-58).
+//! Species template pipeline: literature to preset (fn-58, fn-157).
 //!
-//! A fixed sequence of stages, each reading the admitted manifest and earlier
+//! A fixed sequence of stages, each reading the manifest and earlier
 //! artifacts at fixed paths and writing one complete artifact atomically under
 //! a versioned schema with a canonical serialization. Jev answers choices,
 //! scores and nouls through the shared caller; code owns every number.
 
 pub mod adapter;
-pub mod admission;
+pub mod agree;
 pub mod canon;
 pub mod consume;
 pub mod cost;
@@ -22,7 +22,6 @@ pub mod render;
 pub mod requirements;
 pub mod rights;
 pub mod routes;
-pub mod search;
 pub mod sets;
 pub mod stage;
 pub mod stages;

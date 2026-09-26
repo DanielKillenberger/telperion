@@ -18,7 +18,7 @@ impl Stage for Capability {
 
     fn inputs(&self, run: &Run) -> Result<Vec<PathBuf>, String> {
         let p = &run.paths;
-        let mut files = vec![p.artifact("select"), p.packet("capability")];
+        let mut files = vec![p.artifact("aggregate"), p.packet("capability")];
         files.extend(run.tools()?.files());
         Ok(files)
     }

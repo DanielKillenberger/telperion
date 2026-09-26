@@ -6,7 +6,7 @@
 //! call waits the delay the error names and tries again, up to `ATTEMPTS`
 //! times; once a limit has been reported, calls are paced to stay under it.
 //! Only a permanent failure, or a limit that outlasts every attempt, reaches
-//! the stage as an error, which files `unavailable-source`.
+//! the stage as an error, and fetch drops the document.
 use std::cell::{Cell, RefCell};
 use std::collections::VecDeque;
 use std::path::Path;

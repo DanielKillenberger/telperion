@@ -12,13 +12,16 @@ const API: &str = "https://commons.wikimedia.org/w/api.php";
 const WIDTH: u32 = 1280;
 
 /// The queries per taxon and the candidates each may add: the whole tree
-/// (the bare taxon found leaves, buds and nuts for the beech), its bark
-/// close up and its bare winter form.
-pub fn queries(taxon: &str) -> [(String, usize); 3] {
+/// twice over, as a botanist files its habit and as a solitary tree (fn-157:
+/// "<taxon> tree" found the beech's leaves, buds, nuts and a copper
+/// cultivar, and the look kept only a bark close-up), its bark close up and
+/// its bare winter form.
+pub fn queries(taxon: &str) -> [(String, usize); 4] {
     [
-        (format!("{taxon} tree"), 6),
-        (format!("{taxon} bark"), 3),
-        (format!("{taxon} winter"), 3),
+        (format!("{taxon} habitus"), 4),
+        (format!("{taxon} solitary tree"), 4),
+        (format!("{taxon} bark"), 2),
+        (format!("{taxon} winter"), 2),
     ]
 }
 
@@ -140,6 +143,21 @@ fn strip(html: &str) -> String {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    /// fn-157 R7: two of the four queries ask for the whole tree, as a habit
+    /// and as a solitary tree, never the bare taxon.
+    #[test]
+    fn the_queries_ask_for_the_whole_tree_first() {
+        let asked: Vec<String> = super::queries("Fagus sylvatica")
+            .into_iter()
+            .map(|q| q.0)
+            .collect();
+        assert_eq!(
+            asked[..2],
+            ["Fagus sylvatica habitus", "Fagus sylvatica solitary tree"]
+        );
+        assert!(!asked.contains(&"Fagus sylvatica tree".to_string()));
+    }
 
     #[test]
     fn an_answer_yields_its_bitmaps_in_rank_order_with_their_licence() {

@@ -15,7 +15,7 @@ use crate::tuning::evaluation::Image;
 use crate::tuning::vision::Adapter;
 
 pub const PROTOCOL: &str = "reference-screen-v1";
-pub const PROMPT: &str = "You are shown candidate photographs for one tree species, in the order the request lists them. For each, say whether it shows that species (yes, no or unsure), whether it shows a mature tree grown in the open rather than in a stand or a nursery, whether the whole tree is in frame from the ground to the top of the crown, and which view it is: leaf-on for a whole tree in leaf, bare for a whole tree without leaves, bark for a close view of the trunk's bark, or other for anything else. Judge only what the photograph shows; give no numbers.";
+pub const PROMPT: &str = "You are shown candidate photographs for one tree species, in the order the request lists them. For each, say whether it shows that species (yes, no or unsure), whether it shows a mature tree grown in the open rather than in a stand or a nursery, whether the whole tree is in frame from the ground to the top of the crown, and which view it is: leaf-on for a whole tree in leaf, bare for a whole tree without leaves, bark for a close view of the trunk's bark, or other for anything else. A cultivar whose leaf colour or form departs from the wild species, such as a copper, weeping or columnar form, is not the species as it grows wild: answer no for it. Judge only what the photograph shows; give no numbers.";
 
 /// What the look said of one photograph.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

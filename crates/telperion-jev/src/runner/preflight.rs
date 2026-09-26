@@ -11,7 +11,9 @@ use serde_json::{json, Value};
 use super::Run;
 use crate::caller::load_key;
 use crate::pipeline::canon::read_json;
+use crate::pipeline::leads;
 use crate::pipeline::manifest;
+use crate::pipeline::stages::{gather, read};
 use crate::sha256_hex;
 use crate::tape::{self, Tape};
 use crate::tuning::vision::{refused, Adapter};
@@ -113,17 +115,18 @@ pub fn expected(run: &Run, stage: &str) -> String {
 }
 
 pub fn estimate(stage: &str, fields: usize, traits: usize, sources: usize, views: usize) -> String {
+    let (searches, documents) = (gather::queries("", "").0.len() + 1, gather::MAX_DOCUMENTS);
     match stage {
         "sources" => format!(
-            "about {} Firecrawl searches and up to {} scrapes (leads, rights), about {} Jev calls (ranking, rights)",
-            2 * fields,
-            8 * fields + sources,
-            2 * fields
+            "{searches} Firecrawl searches, up to {} scrapes (leads, then at most {documents} documents); no Jev call",
+            documents + leads::PER_LEAD
         ),
         "profile" => format!(
-            "about {} Jev calls (screen, quality, select, verify) and up to {} more in search-again rounds; up to 12 Jev rights calls and 1 vision call for photographs; 1 vision call for the inventory",
-            sources + 4 * fields + 2 * traits,
-            8 * fields
+            "up to {} Jev label calls ({} spans a document over {} documents, {fields} fields) and about {} for traits; up to 12 Jev rights calls and 1 vision call for photographs; 1 vision call for the inventory",
+            read::SPANS_PER_DOCUMENT * sources.max(documents),
+            read::SPANS_PER_DOCUMENT,
+            sources.max(documents),
+            2 * traits
         ),
         "catalogue" => format!("about {} Jev calls (generate, cite check)", traits + sources),
         "tune" => format!("per round, {views} contact-sheet look(s) and 1 reference-first comparison; rounds end when one keeps nothing"),
@@ -149,7 +152,8 @@ mod tests {
 
     #[test]
     fn only_the_paid_stages_expect_a_spend() {
-        assert!(estimate("sources", 6, 4, 1, 2).starts_with("about 12 Firecrawl searches"));
+        assert!(estimate("sources", 6, 4, 1, 2).starts_with("6 Firecrawl searches"));
+        assert!(estimate("profile", 6, 4, 1, 2).starts_with("up to 640 Jev label calls"));
         assert!(estimate("tune", 6, 4, 1, 2).starts_with("per round, 2 contact-sheet"));
         for free in ["capability", "start", "gaps", "accept"] {
             assert_eq!(estimate(free, 6, 4, 1, 2), "no paid call");

@@ -25,9 +25,6 @@ pub struct Thresholds {
     pub obligation_cut: f64,
     pub accuracy_bar: f64,
     pub ranking_bar: f64,
-    /// The lowest confidence a span pick fills a field at (fn-131),
-    /// calibrated on `data/cases/selection_floor.json`.
-    pub selection_floor: f64,
     /// The lowest probability an appearance or described level is chosen at
     /// (fn-131), calibrated on `data/cases/level_floor.json`; below it the
     /// no-match level holds.

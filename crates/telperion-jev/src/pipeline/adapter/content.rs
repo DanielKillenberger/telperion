@@ -59,8 +59,7 @@ pub fn refusal(text: &str, raw: &[u8], pdf: bool) -> Option<String> {
 }
 
 /// The scrape's markdown when it is the source; else the raw body's own
-/// conversion when that is; else why neither is, which files
-/// unavailable-source.
+/// conversion when that is; else why neither is, which drops the document.
 pub fn readable(markdown: &str, raw: &[u8], pdf: bool) -> Result<Readable, String> {
     let Some(refused) = refusal(markdown, raw, pdf) else {
         return Ok(Readable {

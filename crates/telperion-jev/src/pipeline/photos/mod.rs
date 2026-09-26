@@ -1,7 +1,7 @@
 //! Reference photographs, found by the Profile stage (owner, 2026-09-25,
 //! option A): no run from a name needs a person to supply photographs.
 //!
-//! Code collects candidates from the admitted open-licence sources' pages
+//! Code collects candidates from the open-licence sources' pages
 //! and from Wikimedia Commons, at most `MAX_CANDIDATES`. A Commons file whose
 //! machine-readable licence code is CC0, public domain, CC BY or CC BY-SA is
 //! open by that code; Jev classes any other file from its full licence
@@ -170,19 +170,27 @@ pub fn copy(paths: &Paths, sha256: &str) -> Option<PathBuf> {
         .find(|p| p.exists())
 }
 
-/// Images on the pages of the admitted open-licence sources.
+/// Images on the pages of the open-licence sources: a person's source the
+/// pipeline classed open, or a gathered document whose page declares an
+/// open licence in its markup (fn-157).
 fn from_sources(paths: &Paths, m: &Manifest) -> Vec<Candidate> {
     static IMAGE: OnceLock<Regex> = OnceLock::new();
     let image = IMAGE.get_or_init(|| {
         Regex::new(r"(?i)!\[([^\]]*)\]\((https?://[^)\s]+\.(?:jpe?g|png))\)").expect("image regex")
     });
     let fetch = read_json(&paths.artifact("fetch")).unwrap_or_default();
+    let open = |source: &manifest::Source| {
+        let lines: Vec<String> = fetch["body"]["sources"][&source.id]["licence"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(|l| l.as_str().map(str::to_string))
+            .collect();
+        source.rights_class.as_deref() == Some(OPEN_LICENCE)
+            || rights::open_licence(&lines).is_some()
+    };
     let mut out = Vec::new();
-    for source in m
-        .sources
-        .iter()
-        .filter(|s| s.rights_class.as_deref() == Some(OPEN_LICENCE))
-    {
+    for source in m.sources.iter().filter(|s| open(s)) {
         let name = fetch["body"]["sources"][&source.id]["cached"]["markdown"].as_str();
         let Some(text) = name.and_then(|n| std::fs::read_to_string(paths.cache().join(n)).ok())
         else {

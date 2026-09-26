@@ -3,11 +3,8 @@ use std::sync::Mutex;
 use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::rights::{rights_cases, rights_state};
-use telperion_jev::pipeline::sets::{
-    appearance_state, described_cases, described_state, mature_cases, mature_state,
-    obligation_cases, ranking_cases, ranking_state, rate_cases, sufficiency_cases,
-    sufficiency_state, SUFFICIENCY_LEVELS,
-};
+use telperion_jev::pipeline::sets::cases::marked;
+use telperion_jev::pipeline::sets::{described_cases, described_state, label_cases};
 use telperion_jev::questions::{citation_cases, screen_cases, selection_cases, triage_cases};
 
 pub struct CaseTransport;
@@ -178,54 +175,31 @@ fn answers_for(body: &Value) -> Value {
             }
         });
     }
-    if questions.get("sufficiency").is_some() {
-        let case = sufficiency_cases()
+    if questions.get("field").is_some() {
+        // A label case's marked sentence answers with the label a person
+        // admits; any other span measures nothing asked.
+        let asked = body["state"]["candidate"]["marked"].as_str().unwrap_or("");
+        let case = label_cases()
             .into_iter()
-            .find(|case| sufficiency_state(case) == body["state"])
-            .expect("a sufficiency case for this state");
-        let index = SUFFICIENCY_LEVELS
-            .iter()
-            .position(|level| *level == case.expect_level)
-            .unwrap_or(0);
-        return json!({
-            "sufficiency": score_answer(index, SUFFICIENCY_LEVELS.len()),
-            "dominant_gap": choice_answer(&case.expect_gap),
-        });
-    }
-    if questions.get("mature_size").is_some() {
-        let case = mature_cases()
-            .into_iter()
-            .find(|case| mature_state(case) == body["state"])
-            .expect("a mature size case for this state");
-        let index = SUFFICIENCY_LEVELS
-            .iter()
-            .position(|level| *level == case.expect_level)
-            .unwrap_or(0);
-        return json!({
-            "mature_size": score_answer(index, SUFFICIENCY_LEVELS.len()),
-            "mature_gap": choice_answer(&case.expect_gap),
-        });
-    }
-    if questions.get("growth_rate").is_some() {
-        let case = rate_cases()
-            .into_iter()
-            .find(|case| mature_state(case) == body["state"])
-            .expect("a growth rate case for this state");
-        let index = SUFFICIENCY_LEVELS
-            .iter()
-            .position(|level| *level == case.expect_level)
-            .unwrap_or(0);
-        return json!({
-            "growth_rate": score_answer(index, SUFFICIENCY_LEVELS.len()),
-            "rate_gap": choice_answer(&case.expect_gap),
-        });
-    }
-    if questions.get("source").is_some() {
-        let case = ranking_cases()
-            .into_iter()
-            .find(|case| ranking_state(case) == body["state"])
-            .expect("a ranking case for this state");
-        return json!({ "source": choice_answer(&case.expect_source) });
+            .find(|case| marked(case).is_some_and(|o| o.marked() == asked));
+        let (field, basis, age, condition) = case.map_or(
+            (
+                "none".into(),
+                "unclear".into(),
+                "mature".into(),
+                "unstated".into(),
+            ),
+            |c| {
+                (
+                    c.expect_field,
+                    c.expect_basis,
+                    c.expect_age,
+                    c.expect_condition,
+                )
+            },
+        );
+        return json!({"field": choice_answer(&field), "basis": choice_answer(&basis),
+                      "age": choice_answer(&age), "condition": choice_answer(&condition)});
     }
     if questions.get("level").is_some() {
         let case = described_cases()
@@ -239,38 +213,12 @@ fn answers_for(body: &Value) -> Value {
             .unwrap_or(case.levels.len());
         return json!({ "level": score_answer(index, case.levels.len() + 1) });
     }
-    if questions.get("inspected_image").is_some() {
-        let observation = body["state"]["observation"].as_str().unwrap_or("");
-        let case = obligation_cases()
-            .inspected_image
-            .into_iter()
-            .find(|case| case.observation == observation)
-            .expect("an inspected_image case for this observation");
-        return json!({ "inspected_image": noul_answer(case.expect) });
-    }
-    if questions.get("measurement_not_invention").is_some() {
-        let statement = body["state"]["value_statement"].as_str().unwrap_or("");
-        let case = obligation_cases()
-            .measurement_not_invention
-            .into_iter()
-            .find(|case| case.value_statement == statement)
-            .expect("a measurement_not_invention case for this statement");
-        return json!({ "measurement_not_invention": noul_answer(case.expect) });
-    }
     if questions.get("rights").is_some() {
         let case = rights_cases()
             .into_iter()
             .find(|case| rights_state(case) == body["state"])
             .expect("a rights case for this state");
         return json!({ "rights": choice_answer(&case.expect_class) });
-    }
-    if questions.get("appearance_supported").is_some() {
-        let case = obligation_cases()
-            .appearance_supported
-            .into_iter()
-            .find(|c| appearance_state(&c.trait_name, &c.level, &c.sentence) == body["state"])
-            .expect("an appearance_supported case for this state");
-        return json!({ "appearance_supported": noul_answer(case.expect) });
     }
     json!({})
 }
@@ -303,11 +251,6 @@ fn score_answer(index: usize, levels: usize) -> Value {
         "probabilities": probabilities,
         "confidence": 0.85
     })
-}
-
-/// A Noul on the side the labelled case admits.
-fn noul_answer(yes: bool) -> Value {
-    json!({ "type": "noul", "noul": if yes { 0.9 } else { 0.1 } })
 }
 
 pub fn ledger_dir(tag: &str) -> std::path::PathBuf {

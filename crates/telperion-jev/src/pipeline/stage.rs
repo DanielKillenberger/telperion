@@ -1,6 +1,6 @@
 //! One stage: fixed input paths, an idempotence key, one atomic output.
 //!
-//! A stage reads the admitted manifest and earlier artifacts at fixed paths,
+//! A stage reads the manifest and earlier artifacts at fixed paths,
 //! computes its key over their checksums, the manifest checksum, the
 //! question-set versions, the model name and the tool versions, and does
 //! nothing when the artifact on disk already carries that key. The key reads
@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 use super::canon::{canonical_sha256, file_sha256, read_json, write_canonical, CanonError};
-use super::consume::{mark_consumed, rejected_proposal, ReconcileError};
+use super::consume::{mark_consumed, ReconcileError};
 use super::cost::{earlier_cost, Cost};
 use super::decision::{
     open_for_stage, read_decisions, reconcile, write_decisions, Decision, Resolution,
@@ -25,11 +25,17 @@ use super::manifest::{self, Admitted, ManifestError};
 
 pub const TOOL_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-/// The fixed sequence. Discovery proposes; every later stage reads the
-/// admitted manifest.
-pub static STAGES: [&str; 11] = [
-    "discover", "fetch", "extract", "screen", "quality", "select", "verify", "fit", "gate",
-    "generate", "document",
+/// The fixed sequence. Gather adds the documents it found to the manifest;
+/// every later stage reads the manifest.
+pub static STAGES: [&str; 8] = [
+    "gather",
+    "fetch",
+    "read",
+    "aggregate",
+    "fit",
+    "gate",
+    "generate",
+    "document",
 ];
 
 /// Fixed artifact paths. `dir` is the species folder in the catalogue and holds
@@ -66,11 +72,6 @@ impl Paths {
     pub fn resolutions(&self) -> PathBuf {
         self.dir.join("resolutions.json")
     }
-    /// The pipeline's own searches for a requirement it could not meet
-    /// (fn-129): the rounds it ran per field and the sources it tried.
-    pub fn search_rounds(&self) -> PathBuf {
-        self.dir.join("search-rounds.json")
-    }
     pub fn command_log(&self) -> PathBuf {
         self.run.join("command-log.json")
     }
@@ -78,7 +79,7 @@ impl Paths {
         self.run.join("ledger")
     }
     /// One artifact per stage, named after it; the packet records and the
-    /// sidecar are the select stage's outputs and sit beside it.
+    /// sidecar are the aggregate stage's outputs and sit beside it.
     pub fn artifact(&self, stage: &str) -> PathBuf {
         self.dir.join(format!("{stage}.json"))
     }
@@ -211,14 +212,6 @@ impl Context {
                 decisions: global,
             });
         }
-        if let Some(id) = rejected_proposal(&decisions, stage) {
-            return Err(StageError::Failed {
-                stage: stage.into(),
-                reason: format!(
-                    "manifest-proposed {id} was rejected; edit the seed and run discover again"
-                ),
-            });
-        }
         Ok((
             Self {
                 paths,
@@ -278,8 +271,8 @@ impl Context {
     }
 
     /// The header for `stage` with its idempotence key over `keyed_on` in place
-    /// of the manifest checksum: discovery keys on the seed, so admitting the
-    /// manifest does not rerun it.
+    /// of the manifest checksum: gather keys on the seed, so adding the
+    /// documents it found to the manifest does not rerun it.
     pub fn header_keyed(
         &self,
         stage: &str,
@@ -430,27 +423,27 @@ mod tests {
         let decision = Decision::new(
             DecisionParts {
                 species: "oregon-white-oak",
-                stage: "discover",
-                kind: "manifest-proposed",
+                stage: "fetch",
+                kind: "coverage-gap",
                 field: None,
                 age_years: None,
             },
-            &["fetch"],
+            &["read"],
             BTreeMap::new(),
             vec![],
             json!({}),
-            &["admit"],
+            &["accept-rows"],
             "",
         );
         append_decisions(&paths.decisions(), vec![decision]).unwrap();
-        let err = Context::open(&Paths::new(&dir), "fetch")
+        let err = Context::open(&Paths::new(&dir), "read")
             .unwrap_err()
             .to_string();
         assert_eq!(
             err,
-            "fetch: open decision: oregon-white-oak/discover/manifest-proposed"
+            "read: open decision: oregon-white-oak/fetch/coverage-gap"
         );
-        assert!(Context::open(&Paths::new(&dir), "discover").is_ok());
+        assert!(Context::open(&Paths::new(&dir), "fetch").is_ok());
     }
 
     #[test]
@@ -458,7 +451,7 @@ mod tests {
         let dir = scratch();
         write_manifest(&dir);
         let (ctx, _) = Context::open(&Paths::new(&dir), "fetch").unwrap();
-        let inputs: BTreeMap<String, String> = [("discover.json".to_string(), "aaa".to_string())]
+        let inputs: BTreeMap<String, String> = [("gather.json".to_string(), "aaa".to_string())]
             .into_iter()
             .collect();
         let header = ctx.header("fetch", "sources", inputs.clone(), vec![]);
@@ -475,7 +468,7 @@ mod tests {
         );
         assert_eq!(base, header.idempotence_key);
         let mut other_inputs = inputs.clone();
-        other_inputs.insert("discover.json".into(), "bbb".into());
+        other_inputs.insert("gather.json".into(), "bbb".into());
         let mut other_sets = m.versions.question_sets.clone();
         other_sets.insert("screen".into(), 2);
         let variants = [
@@ -520,10 +513,10 @@ mod tests {
     fn the_command_log_keeps_every_argv_in_order() {
         let dir = scratch();
         let paths = Paths::new(&dir);
-        log_command(&paths, &["discover".into(), "--dir".into(), "x".into()], 0).unwrap();
+        log_command(&paths, &["gather".into(), "--dir".into(), "x".into()], 0).unwrap();
         log_command(&paths, &["fetch".into()], 1).unwrap();
         let log = read_json(&paths.command_log()).unwrap();
-        assert_eq!(log["commands"][0]["argv"][0], "discover");
+        assert_eq!(log["commands"][0]["argv"][0], "gather");
         assert_eq!(log["commands"][1]["exit"], 1);
     }
 }

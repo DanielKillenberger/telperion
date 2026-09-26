@@ -1,23 +1,18 @@
 //! What the four literature stages (Sources, Profile, Capability,
 //! Catalogue) share: Jev, the fetch adapter, the measurement example, the
-//! decisions the runner settles itself, and the dropping of an inner stage's
-//! record when an output it writes is gone. The pipeline keeps its own
+//! article claims a run may leave to a person, and the dropping of an inner
+//! stage's record when an output it writes is gone. The pipeline keeps its own
 //! per-stage idempotence records; the runner adds nothing to them.
 use std::path::PathBuf;
 
-use serde_json::Value;
-
 use crate::caller::{load_key, UreqTransport};
 use crate::pipeline::adapter::{FetchAdapter, FirecrawlCli, FixtureAdapter, RawSource, Retrying};
-use crate::pipeline::admission::record_resolution;
 use crate::pipeline::decision::{
-    apply_resolutions, read_decisions, read_resolutions, Decision, Resolution, Status,
+    apply_resolutions, read_decisions, read_resolutions, Decision, Status,
 };
 use crate::pipeline::judge::Judge;
 use crate::pipeline::render::SpeciesExample;
-use crate::pipeline::search;
 use crate::pipeline::stage::StageError;
-use crate::pipeline::stages::flagged::{DROP_VALUE, KEEP_RANGE, REPLACE_SOURCE};
 use crate::pipeline::stages::gate;
 
 use super::{start, Done, Run, Stop};
@@ -112,53 +107,9 @@ pub fn forget(path: PathBuf) -> Result<(), String> {
     }
 }
 
-/// The decision kinds that are claims: a sourced value or an article
-/// sentence the citation check flagged.
-pub const CLAIMS: [&str; 4] = [
-    "claim-contradicted",
-    "claim-unsupported",
-    "article-claim-contradicted",
-    "article-claim-unsupported",
-];
-
-/// The option the runner settles `d` with, if it settles it: an unadmitted
-/// proposal is skipped and an unreadable source dropped. A flagged value is
-/// sent to the search while its field has a round left; after that a
-/// contradicted measurement keeps the range its sources span and anything
-/// else is dropped, leaving the field unsourced, unless the run leaves
-/// claims to a person.
-fn option(run: &Run, d: &Decision) -> Option<&'static str> {
-    let pointer = d.field.as_deref().unwrap_or_default();
-    match d.kind.as_str() {
-        "manifest-proposed" => Some("skip"),
-        "unavailable-source" => Some("drop-source"),
-        "claim-contradicted" | "claim-unsupported" if !exhausted(run, claimed(pointer)) => {
-            Some(REPLACE_SOURCE)
-        }
-        _ if run.settle_claims => None,
-        "claim-contradicted" if pointer.contains("/metrics/") => Some(KEEP_RANGE),
-        "claim-contradicted" | "claim-unsupported" => Some(DROP_VALUE),
-        _ => None,
-    }
-}
-
-/// The field a flagged claim's pointer names: the metric after `metrics`,
-/// else its last key.
-fn claimed(pointer: &str) -> &str {
-    let keys: Vec<&str> = pointer.split('/').collect();
-    keys.iter()
-        .position(|k| *k == "metrics")
-        .and_then(|at| keys.get(at + 1))
-        .or(keys.last())
-        .copied()
-        .unwrap_or_default()
-}
-
-/// Whether `field` has spent its search rounds.
-fn exhausted(run: &Run, field: &str) -> bool {
-    let rounds = search::read_rounds(&run.paths).unwrap_or_default();
-    rounds.get(field).map_or(0, Vec::len) >= search::MAX_ROUNDS
-}
+/// The decision kinds that are claims: an article sentence the citation
+/// check flagged.
+pub const CLAIMS: [&str; 2] = ["article-claim-contradicted", "article-claim-unsupported"];
 
 /// The decisions of the run no bound resolution settles yet.
 fn open(run: &Run) -> Result<Vec<Decision>, String> {
@@ -170,29 +121,6 @@ fn open(run: &Run) -> Result<Vec<Decision>, String> {
         .into_iter()
         .filter(|d| d.status == Status::Open)
         .collect())
-}
-
-/// Resolves every open decision the runner settles itself, recording each
-/// as the runner's resolution; the words name each option and id.
-pub fn settle(run: &Run) -> Result<Vec<String>, String> {
-    let mut settled = Vec::new();
-    for d in open(run)? {
-        let Some(option) = option(run, &d) else {
-            continue;
-        };
-        let resolution = Resolution {
-            id: d.id.clone(),
-            inputs_sha256: d.inputs_sha256.clone(),
-            option: option.into(),
-            by: "species runner".into(),
-            at: crate::pipeline::stage::now(),
-            note: "settled by the runner, never waited on (fn-149)".into(),
-            payload: Value::Null,
-        };
-        record_resolution(&run.paths.resolutions(), &resolution).map_err(|e| e.to_string())?;
-        settled.push(format!("{option} {}", d.id));
-    }
-    Ok(settled)
 }
 
 /// The claims left open: what stops a run that leaves them to a person.

@@ -1,7 +1,7 @@
 //! Generation: the two value routes, the packet records and the stills (R3).
 //!
 //! The stage measures the shipped preset once, runs the described route for
-//! every trait the select stage scored above `unstated`, runs the reference
+//! every trait the aggregate stage scored above `unstated`, runs the reference
 //! transfer for every dial the manifest lists, and writes the packet's
 //! `species.json` and `specimens.json`. Every value that ships is one code
 //! proposed and a render measured; Jev only names the nearest template and
@@ -84,7 +84,7 @@ pub(super) struct Shipped {
 
 impl Shipped {
     /// Files one decision: its kind, the field it scopes to, the stages it
-    /// blocks, the payload code built, and the checksum of the select
+    /// blocks, the payload code built, and the checksum of the aggregate
     /// artifact a resolution binds to.
     fn file(
         &mut self,
@@ -102,7 +102,7 @@ impl Shipped {
             field,
             age_years: None,
         };
-        let inputs = [("select.json".to_string(), sha.to_string())];
+        let inputs = [("aggregate.json".to_string(), sha.to_string())];
         let decision = Decision::new(parts, blocks, inputs.into(), vec![], p, k.1, k.2);
         self.decisions.push(decision);
     }
@@ -130,7 +130,7 @@ pub fn run(
             decisions: halting,
         });
     }
-    let (select, sha) = body(&ctx, STAGE, "select")?;
+    let (aggregated, sha) = body(&ctx, STAGE, "aggregate")?;
     let (_, gate_sha) = body(&ctx, STAGE, "gate")?;
     let fit_sha = ctx
         .paths
@@ -139,7 +139,7 @@ pub fn run(
         .then(|| body(&ctx, STAGE, "fit").map(|(_, sha)| sha))
         .transpose()?;
     let mut pairs = vec![
-        ("select.json", sha.as_str()),
+        ("aggregate.json", sha.as_str()),
         ("gate.json", gate_sha.as_str()),
     ];
     if let Some(fit) = &fit_sha {
@@ -169,11 +169,25 @@ pub fn run(
     };
 
     let mut shipped = Shipped::default();
-    let (described, unavailable) =
-        run_described(manifest, &select, &blocked, measurer, &mut shipped, &sha)?;
+    let (described, unavailable) = run_described(
+        manifest,
+        &aggregated,
+        &blocked,
+        measurer,
+        &mut shipped,
+        &sha,
+    )?;
     let mut transfers = Map::new();
     for spec in &manifest.transfers {
-        let entry = run_transfer(judge, manifest, spec, &select, measurer, &mut shipped, &sha)?;
+        let entry = run_transfer(
+            judge,
+            manifest,
+            spec,
+            &aggregated,
+            measurer,
+            &mut shipped,
+            &sha,
+        )?;
         transfers.insert(spec.dial.clone(), entry);
     }
     header.ledger.extend(shipped.ledger.iter().cloned());
@@ -192,7 +206,7 @@ pub fn run(
         "unavailable": unavailable, "stills": stills, "note": note,
     });
     if !manifest.appearance.is_empty() {
-        let skip = json!("copied by select into the profile; not rendered or measured");
+        let skip = json!("copied by aggregate into the profile; not rendered or measured");
         let skipped: Map<String, Value> = manifest
             .appearance
             .iter()
@@ -208,7 +222,7 @@ pub fn run(
     Ok(Outcome::Ran { decisions: ids })
 }
 
-/// The described route over every trait the select stage scored above the
+/// The described route over every trait the aggregate stage scored above the
 /// no-match level and no open decision blocks. Returns the body's `described`
 /// and `unavailable` maps.
 fn run_described(

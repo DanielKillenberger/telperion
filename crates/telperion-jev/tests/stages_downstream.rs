@@ -142,12 +142,7 @@ fn scratch_with(tag: &str, dbh_rows: usize, manifest: Value) -> PathBuf {
         },
     });
     write(&ctx, "fetch", "sources", fetch);
-    let quality = json!({"fields": {"height_m": {
-        "level": "partial", "bar": "partial", "passed": true, "dominant_gap": "none",
-        "points": [], "required_ages_covered": [26.7, 56.1], "required_ages_uncovered": [],
-        "ledger": "q1"}}});
-    write(&ctx, "quality", "quality", quality);
-    let select = json!({
+    let aggregated = json!({
         "filled": {"/profiles/0/metrics/height_m": {"unit": "m", "range": [15.24, 27.432],
                    "classification": "gating", "source": ["S1"], "confidence": "pipeline",
                    "note": "50 to 90 ft tall"}},
@@ -155,7 +150,7 @@ fn scratch_with(tag: &str, dbh_rows: usize, manifest: Value) -> PathBuf {
         "described": {"crown_spread": {"level": "broad",
                       "sentence": "The crown is as broad as the tree is tall.", "ledger": "d1"}},
     });
-    write(&ctx, "select", "select", select);
+    write(&ctx, "aggregate", "aggregate", aggregated);
     write_canonical(
         &ctx.paths.sidecar(),
         &json!({"schema": "provenance", "schema_version": 1, "entries": {}, "unavailable": {}}),
@@ -810,7 +805,7 @@ fn new_specimens_rerun_the_gate() {
 
 /// fn-80, 2026-09-24: the seeds gate passed once the holdout specimens were
 /// written, but its old decision stayed open because the retire check compared
-/// select.json alone. A gate that no longer files its decision retires it.
+/// the profile's artifact alone. A gate that no longer files its decision retires it.
 #[test]
 fn a_seeds_gate_that_passes_on_new_specimens_retires_its_decision() {
     let dir = scratch("seeds-retire", 2);

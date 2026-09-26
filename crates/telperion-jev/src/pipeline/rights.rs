@@ -1,13 +1,14 @@
-//! A proposed source's rights, found by code and classified by Jev (fn-129).
+//! A page's rights, found by code (fn-129, fn-157).
 //!
-//! Code fetches the page and lays out every licence or copyright statement
-//! it finds in the page's metadata and text, beside the open-access records
-//! it looks up for it: the Europe PMC record for a PMC article, the DOAJ
-//! record for a DOI. Jev chooses one class among `open-licence`,
-//! `public-cite-only` and `restricted`, or the no-match answer. Only the
-//! first two admit; the class is recorded on the source. The statements are
-//! short licence lines, never the page's text, and the numbers a source
-//! yields are cited, never its prose.
+//! Code lays out every licence or copyright statement it finds in a page's
+//! metadata and text. Reading a page for its facts needs none of them
+//! (fn-157): the fetch stage records them, and only an open licence the
+//! page's own markup declares lets the catalogue keep a copy
+//! (`open_licence`). A photograph's licence metadata that no code settles
+//! goes to Jev, which chooses one class among `open-licence`,
+//! `public-cite-only` and `restricted`, or the no-match answer; only an
+//! open licence keeps a photograph (`photos`). The statements are short
+//! licence lines, never the page's text.
 
 use std::sync::OnceLock;
 
@@ -20,7 +21,7 @@ use crate::cases::CaseRow;
 use crate::extract::slice_at;
 use crate::html::source_text;
 
-use super::adapter::{is_pdf, FetchAdapter};
+use super::adapter::is_pdf;
 use super::judge::Judge;
 use super::sets::cases::{split, Rows};
 
@@ -33,18 +34,10 @@ pub const RESTRICTED: &str = "restricted";
 /// The no-match answer: the statements do not settle the rights.
 pub const RIGHTS_NONE: &str = "none";
 
-/// Statements kept per page or record, and the characters kept either side
-/// of the words that found one: a page's statement is a sentence, a
-/// record's is a key and its value.
+/// Statements kept per page, and the characters kept either side of the
+/// words that found one.
 const MAX_LINES: usize = 10;
 const PAGE_RADIUS: usize = 100;
-const RECORD_RADIUS: usize = 60;
-
-/// Whether a class admits a source: an open licence or a public page whose
-/// numbers are cited. A restricted page and the no-match answer never do.
-pub fn admits(class: &str) -> bool {
-    class == OPEN_LICENCE || class == PUBLIC_CITE_ONLY
-}
 
 fn page_terms() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
@@ -53,16 +46,6 @@ fn page_terms() -> &'static Regex {
             r"(?i)creativecommons\.org/(?:licenses|publicdomain)/[a-z0-9./-]*|creative commons|\bcc[ -]by\b|\bcc0\b|open access|public domain|all rights reserved|copyright|©|&copy;|licen[cs]ed under|terms of use|subscribe to (?:read|continue)|purchase (?:this )?(?:article|pdf)|access through|get full-text access|(?:log|sign) ?in to (?:read|view|continue)",
         )
         .expect("licence terms regex")
-    })
-}
-
-/// A record is a licence answer itself, so its bare `license` key counts,
-/// and so does its hit count: a DOI DOAJ does not list is a finding.
-fn record_terms() -> &'static Regex {
-    static RE: OnceLock<Regex> = OnceLock::new();
-    RE.get_or_init(|| {
-        Regex::new(r#"(?i)licen[cs]e|open ?access|"(?:total|hitCount)"\s*:\s*\d+"#)
-            .expect("record terms regex")
     })
 }
 
@@ -149,6 +132,36 @@ fn push_unique(lines: &mut Vec<String>, line: String) {
     }
 }
 
+/// The open licence a page declares in its own markup, as the catalogue
+/// names it (`CC BY 4.0`, `CC BY-SA 4.0`, `CC0`): a `rel="license"` link or
+/// a rights meta tag pointing at a Creative Commons deed that allows copies
+/// and changes. A licence named only in the page's text is left out: on a
+/// page it is as often a photograph's credit as the page's own (fn-157).
+pub fn open_licence(lines: &[String]) -> Option<String> {
+    static DEED: OnceLock<Regex> = OnceLock::new();
+    let deed = DEED.get_or_init(|| {
+        Regex::new(
+            r"(?i)creativecommons\.org/(?:licenses/(by|by-sa)/(\d\.\d)|publicdomain/(zero|mark))",
+        )
+        .expect("deed regex")
+    });
+    lines
+        .iter()
+        .filter(|line| line.starts_with("metadata:"))
+        .find_map(|line| {
+            let c = deed.captures(line)?;
+            Some(match (c.get(1), c.get(2), c.get(3)) {
+                (Some(kind), Some(version), _) => format!(
+                    "CC {} {}",
+                    kind.as_str().to_ascii_uppercase(),
+                    version.as_str()
+                ),
+                (_, _, Some(pd)) if pd.as_str().eq_ignore_ascii_case("zero") => "CC0".into(),
+                _ => "public domain".into(),
+            })
+        })
+}
+
 /// The host of a URL, lowercased, without a port.
 pub fn host(url: &str) -> String {
     url.split("://")
@@ -161,72 +174,6 @@ pub fn host(url: &str) -> String {
         .next()
         .unwrap_or_default()
         .to_ascii_lowercase()
-}
-
-/// The open-access records code looks up for a URL: Europe PMC's record for
-/// a PMC id (it carries PubMed Central's licence), the DOAJ article search
-/// for a DOI.
-pub fn records(url: &str) -> Vec<(&'static str, String)> {
-    static PMC: OnceLock<Regex> = OnceLock::new();
-    static DOI: OnceLock<Regex> = OnceLock::new();
-    let pmc = PMC.get_or_init(|| Regex::new(r"PMC\d+").expect("pmc regex"));
-    let doi = DOI.get_or_init(|| Regex::new(r"10\.\d{4,9}/[^\s?#]+").expect("doi regex"));
-    let mut out = Vec::new();
-    if let Some(id) = pmc.find(url) {
-        out.push((
-            "europe-pmc",
-            format!(
-                "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=PMCID:{}&resultType=core&format=json",
-                id.as_str()
-            ),
-        ));
-    } else if let Some(found) = doi.find(url) {
-        let encoded = found.as_str().replace('/', "%2F");
-        out.push((
-            "doaj",
-            format!("https://doaj.org/api/search/articles/doi%3A{encoded}"),
-        ));
-    }
-    out
-}
-
-/// The state Jev classifies for one proposed source. A fetch that fails is
-/// recorded with its error, never retried here: thin evidence is the
-/// no-match answer's to take.
-pub fn evidence(adapter: &dyn FetchAdapter, url: &str, title: &str) -> Value {
-    let mut state = json!({
-        "source": {"url": url, "host": host(url), "title": title},
-        "lines": [],
-        "records": [],
-    });
-    match adapter.scrape(url) {
-        Ok(page) => {
-            state["lines"] = json!(licence_lines(
-                &page.raw,
-                &page.markdown,
-                &page.content_type,
-                &page.final_url
-            ))
-        }
-        Err(err) => state["error"] = json!(err.to_string()),
-    }
-    let looked_up: Vec<Value> = records(url)
-        .into_iter()
-        .map(|(kind, record_url)| match adapter.scrape(&record_url) {
-            Ok(record) => {
-                let text = String::from_utf8_lossy(&record.raw).into_owned();
-                let text = if text.trim().is_empty() {
-                    record.markdown
-                } else {
-                    text
-                };
-                json!({"kind": kind, "url": record_url, "lines": windows(&text, record_terms(), RECORD_RADIUS)})
-            }
-            Err(err) => json!({"kind": kind, "url": record_url, "error": err.to_string()}),
-        })
-        .collect();
-    state["records"] = json!(looked_up);
-    state
 }
 
 /// The rights Choice: the three classes and the no-match answer.
@@ -372,30 +319,23 @@ mod tests {
     }
 
     #[test]
-    fn a_pmc_article_and_a_doi_each_name_their_open_access_record() {
-        let table = [
-            (
-                "https://pmc.ncbi.nlm.nih.gov/articles/PMC9511727/",
-                Some("https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=PMCID:PMC9511727&resultType=core&format=json"),
-            ),
-            (
-                "https://doi.org/10.1186/s12870-022-03841-0",
-                Some("https://doaj.org/api/search/articles/doi%3A10.1186%2Fs12870-022-03841-0"),
-            ),
-            ("https://ask.ifas.ufl.edu/publication/FR314", None),
-        ];
-        for (url, expect) in table {
-            let found = records(url).into_iter().next().map(|(_, u)| u);
-            assert_eq!(found.as_deref(), expect, "{url}");
-        }
+    fn a_host_is_lowercased_without_its_port_and_an_unknown_class_is_none() {
         assert_eq!(host("https://Ask.IFAS.ufl.edu:443/x"), "ask.ifas.ufl.edu");
+        assert_eq!(known_class(Some("public domain".into())), RIGHTS_NONE);
+        assert_eq!(known_class(None), RIGHTS_NONE);
     }
 
     #[test]
-    fn only_an_open_licence_or_a_public_page_admits() {
-        assert!(admits(OPEN_LICENCE) && admits(PUBLIC_CITE_ONLY));
-        assert!(!admits(RESTRICTED) && !admits(RIGHTS_NONE));
-        assert_eq!(known_class(Some("public domain".into())), RIGHTS_NONE);
-        assert_eq!(known_class(None), RIGHTS_NONE);
+    fn only_the_page_markup_declares_an_open_licence() {
+        let line = |s: &str| vec![s.to_string()];
+        let deed = "metadata: license link https://creativecommons.org/licenses/by-sa/4.0/";
+        assert_eq!(open_licence(&line(deed)).as_deref(), Some("CC BY-SA 4.0"));
+        let zero = "metadata: dc.rights = https://creativecommons.org/publicdomain/zero/1.0/";
+        assert_eq!(open_licence(&line(zero)).as_deref(), Some("CC0"));
+        let nc = "metadata: license link https://creativecommons.org/licenses/by-nc-nd/4.0/";
+        assert_eq!(open_licence(&line(nc)), None);
+        // A photograph's credit in the text is no licence of the page.
+        let credit = "Leaves close-up Randy Harter CC BY 4.0 (http://creativecommons.org/licenses/by/4.0/legalcode)";
+        assert_eq!(open_licence(&line(credit)), None);
     }
 }

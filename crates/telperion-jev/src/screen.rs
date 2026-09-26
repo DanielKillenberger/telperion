@@ -47,8 +47,7 @@ pub fn screen(
     screen_candidates(transport, key, ledger_dir, source, &candidates, species)
 }
 
-/// Screen exactly `candidates`, in order: the pipeline passes the ones
-/// extract.json holds, so the artifact and the judgment cannot disagree.
+/// Screen exactly `candidates`, in order.
 pub fn screen_candidates(
     transport: &dyn Transport,
     key: &str,

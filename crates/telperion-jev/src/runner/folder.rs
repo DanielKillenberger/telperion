@@ -10,7 +10,14 @@ use std::process::Command;
 use serde_json::{json, Value};
 
 use crate::pipeline::canon::read_json;
-use crate::pipeline::manifest::Manifest;
+use crate::pipeline::manifest::{Manifest, Source};
+use crate::pipeline::rights::open_licence;
+use crate::pipeline::stages::gather::GATHERED;
+
+/// A gathered document's rights when its page declares no open licence in
+/// its markup: its facts are read and cited, and the catalogue keeps only
+/// the passages the profile quotes (fn-157).
+pub const NOT_COPIED: &str = "No open licence in the page's markup: read for its facts and cited; the catalogue keeps only the passages it quotes (fn-157)";
 
 /// Writes `value` unless the file already holds it: a record the catalogue
 /// scripts wrote in their own key order is left byte for byte, so the
@@ -28,7 +35,26 @@ fn today() -> String {
     crate::pipeline::stage::now()[..10].to_string()
 }
 
-/// One record per admitted source that was fetched and per source a kept
+/// The rights a source's record carries: a person's or a table's as
+/// written, and for a gathered document the open licence its page declares
+/// (`rights::open_licence`), which alone lets the catalogue copy it whole.
+pub fn rights(source: &Source, fetched: &Value) -> String {
+    if source.rights != GATHERED {
+        return source.rights.clone();
+    }
+    let lines: Vec<String> = fetched["licence"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(|l| l.as_str().map(str::to_string))
+        .collect();
+    open_licence(&lines).map_or_else(
+        || NOT_COPIED.into(),
+        |l| format!("{l}, declared in the page's markup; read, cited and copied (fn-157)"),
+    )
+}
+
+/// One record per source that was fetched and per source a kept
 /// reference photograph cites. A record already written for the same id and
 /// url is kept as it stands, the date it was verified on with it.
 pub fn sources(
@@ -55,7 +81,7 @@ pub fn sources(
         .map(|s| {
             kept(&s.id, &s.url).unwrap_or_else(|| {
                 json!({"id": s.id, "url": s.url, "title": s.title, "attribution": s.title,
-                    "rights": s.rights, "sha256": s.sha256, "use": "", "verified": today(),
+                    "rights": rights(s, &fetched[&s.id]), "sha256": s.sha256, "use": "", "verified": today(),
                     "tables": s.tables})
             })
         })
@@ -196,5 +222,38 @@ pub fn pages(root: &Path, catalogue: &Path) -> Result<(), String> {
             "catalogue-pages: {}",
             String::from_utf8_lossy(&output.stderr).trim()
         )),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{rights, NOT_COPIED};
+    use crate::pipeline::manifest::Source;
+    use crate::pipeline::stages::gather::GATHERED;
+    use serde_json::json;
+
+    /// fn-157 R3: a gathered document stating no licence is read and cited,
+    /// never copied; one whose markup declares an open deed may be copied;
+    /// a person's rights line stands as written.
+    #[test]
+    fn only_a_page_declaring_an_open_licence_is_copied() {
+        let source = |rights: &str| Source {
+            id: "P1".into(),
+            url: "https://example.test/p1".into(),
+            title: "P1".into(),
+            sha256: None,
+            rights: rights.into(),
+            rights_class: None,
+            tables: vec![],
+        };
+        let credit = json!({"licence": ["Leaves Randy Harter CC BY 4.0 (http://creativecommons.org/licenses/by/4.0/legalcode)"]});
+        assert_eq!(rights(&source(GATHERED), &credit), NOT_COPIED);
+        assert_eq!(rights(&source(GATHERED), &json!({})), NOT_COPIED);
+        let deed = json!({"licence": ["metadata: license link https://creativecommons.org/licenses/by/4.0/"]});
+        assert!(rights(&source(GATHERED), &deed).starts_with("CC BY 4.0,"));
+        assert_eq!(
+            rights(&source("public domain"), &json!({})),
+            "public domain"
+        );
     }
 }

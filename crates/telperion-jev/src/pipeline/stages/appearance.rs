@@ -1,41 +1,35 @@
-//! The select stage's appearance route (fn-118). Code extracts, from each
-//! admitted source's cached text in the manifest's order, every sentence
-//! that carries the trait's words in the requirements table, and Jev scores
-//! each sentence alone over the table's levels, as a field's sentences are
-//! screened one at a time (fn-128). The first sentence it places on a level
-//! is the chosen span; code copies that level's range for every material
-//! field the trait feeds into the profile, with that sentence and its source
-//! (fn-127): a value with no source is never written. Nothing renders or
-//! measures it. A variation trait (a hue or brightness range) the sources
-//! leave unstated takes its zero-width level as a default with its reason
-//! (fn-133). `leaf_back_colour` left unstated while `leaf_front_colour` has
-//! a sourced level takes the front's level, its ranges mapped onto the
-//! back's material fields, as a default citing the front's source (fn-139
-//! R1-R3); a back a claim resolution dropped with no replacement source
-//! found and the front still sourced takes the same default - a dropped
-//! underside is an unstated one (fn-139 R4). Bark colour and every other
-//! colour trait never default this way. Any other trait the table requires
-//! that the sources leave unstated files a requirements-unmet decision,
-//! which the pipeline searches again before the owner has it.
+//! The aggregate stage's appearance route (fn-118). Code extracts, from
+//! each fetched document's cached text in the manifest's order (the trait's
+//! own list when it names one, fn-157), every sentence that carries the
+//! trait's words in the requirements table, and Jev scores each sentence
+//! alone over the table's levels (fn-128). The first sentence it places on a
+//! level is the chosen span; code copies that level's range for every
+//! material field the trait feeds into the profile, with that sentence and
+//! its source (fn-127): a value with no source is never written. Nothing
+//! renders or measures it. A variation trait (a hue or brightness range) the
+//! sources leave unstated takes its zero-width level as a default with its
+//! reason (fn-133). `leaf_back_colour` left unstated while
+//! `leaf_front_colour` has a sourced level takes the front's level, its
+//! ranges mapped onto the back's material fields, as a default citing the
+//! front's source (fn-139). Bark colour and every other colour trait never
+//! default this way; any other trait the sources leave unstated stays
+//! unstated, and the generator's default stands.
 
 use std::collections::BTreeMap;
 
 use serde_json::{json, Map, Value};
 
 use crate::extract::{key_terms, section_for_terms, sentences_with_terms};
-use crate::pipeline::consume::{sources_sha256, REQUIREMENTS_UNMET};
-use crate::pipeline::decision::{Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
-use crate::pipeline::manifest::Appearance;
-use crate::pipeline::requirements::{requires_appearance, table, AppearanceLevel};
+use crate::pipeline::manifest::Manifest;
+use crate::pipeline::requirements::{table, AppearanceLevel};
 use crate::pipeline::sets::{
     chosen_level, described_questions, DescribedLevel, DESCRIBED_UNSTATED,
 };
 use crate::pipeline::stage::{Context, StageError};
 
-use super::extract::cached_markdown;
-use super::flagged::{Flag, REPLACE_SOURCE};
-use super::select::STAGE;
+use super::aggregate::STAGE;
+use super::cached_markdown;
 
 const SECTION_RADIUS: usize = 600;
 
@@ -43,10 +37,10 @@ const SECTION_RADIUS: usize = 600;
 const LEAF_FRONT_COLOUR: &str = "leaf_front_colour";
 const LEAF_BACK_COLOUR: &str = "leaf_back_colour";
 
-/// What the route leaves for the select stage to write.
+/// What the route leaves for the aggregate stage to write.
 #[derive(Default)]
 pub struct Copied {
-    /// `select.body.appearance`: trait -> level, sentence, ledger.
+    /// `aggregate.body.appearance`: trait -> level, sentence, ledger.
     pub body: Map<String, Value>,
     /// `profiles[0].appearance`: trait -> level, summary, ranges, sources.
     pub profile: Map<String, Value>,
@@ -55,7 +49,14 @@ pub struct Copied {
     /// Sidecar defaults keyed by JSON Pointer: values no source states.
     pub defaults: Map<String, Value>,
     pub ledger: Vec<String>,
-    pub decisions: Vec<Decision>,
+}
+
+/// The documents a trait is read from: its own list, or every source.
+pub fn read_from(manifest: &Manifest, listed: &[String]) -> Vec<String> {
+    match listed.is_empty() {
+        true => manifest.sources.iter().map(|s| s.id.clone()).collect(),
+        false => listed.to_vec(),
+    }
 }
 
 pub fn run(judge: &Judge<'_>, ctx: &Context, fetch: &Value) -> Result<Copied, StageError> {
@@ -68,7 +69,8 @@ pub fn run(judge: &Judge<'_>, ctx: &Context, fetch: &Value) -> Result<Copied, St
     for trait_ in &manifest.appearance {
         let name = trait_.trait_name.as_str();
         let levels = table().levels(name).unwrap_or_default();
-        let chosen = chosen_sentence(judge, ctx, name, &trait_.sources, &levels, fetch)?;
+        let sources = read_from(manifest, &trait_.sources);
+        let chosen = chosen_sentence(judge, ctx, name, &sources, &levels, fetch)?;
         copied.ledger.extend(chosen.ledger.iter().cloned());
         copied.body.insert(
             name.into(),
@@ -97,11 +99,6 @@ pub fn run(judge: &Judge<'_>, ctx: &Context, fetch: &Value) -> Result<Copied, St
             .flatten()
         {
             copied.default_to_front(pointer, front_level, front_source, &chosen.ledger);
-        } else if requires_appearance(manifest, name) {
-            let sources = sources_sha256(&ctx.paths.manifest())?;
-            copied
-                .decisions
-                .push(unstated(ctx, trait_, &chosen.ledger, &sources));
         }
     }
     Ok(copied)
@@ -188,70 +185,6 @@ impl Copied {
     }
 }
 
-/// Takes out every appearance value a resolution dropped (fn-131): the
-/// trait reads unstated in the select body, naming the decision. A dropped
-/// `leaf_back_colour` with no replacement source found on this rerun and
-/// `leaf_front_colour` still sourced takes the front's level the same as a
-/// back that was never sourced at all (fn-139 R4) - a dropped underside is
-/// an unstated one. Any other dropped trait the table requires, or one sent
-/// for another source, files requirements-unmet, which the pipeline
-/// searches again for.
-pub fn drop_flagged(
-    ctx: &Context,
-    copied: &mut Copied,
-    flags: &BTreeMap<String, Flag>,
-) -> Result<(), StageError> {
-    let manifest = &ctx.admitted.manifest;
-    let mut dropped = Vec::new();
-    for trait_ in &manifest.appearance {
-        let name = trait_.trait_name.as_str();
-        let pointer = format!("/profiles/0/appearance/{name}");
-        let Some(flag) = flags.get(&pointer) else {
-            continue;
-        };
-        if !copied.sidecar.get(&pointer).is_some_and(|e| flag.names(e)) {
-            continue;
-        }
-        copied.sidecar.remove(&pointer);
-        copied.profile.remove(name);
-        copied.body.insert(
-            name.into(),
-            json!({"level": DESCRIBED_UNSTATED, "source": null, "sentence": "", "ledger": [], "dropped": flag.reason()}),
-        );
-        dropped.push(trait_);
-    }
-    // A second pass so the back-colour default can read the front's
-    // post-drop state regardless of the manifest's own appearance order,
-    // the same reason `run` gathers its choices before writing them.
-    for trait_ in dropped {
-        let name = trait_.trait_name.as_str();
-        let pointer = format!("/profiles/0/appearance/{name}");
-        if name == LEAF_BACK_COLOUR {
-            if let Some((front_level, front_source)) = front_sourced_level_in(copied) {
-                copied.default_to_front(pointer, &front_level, &front_source, &[]);
-                continue;
-            }
-        }
-        let flag = &flags[&pointer];
-        if flag.option == REPLACE_SOURCE || requires_appearance(manifest, name) {
-            let sources = sources_sha256(&ctx.paths.manifest())?;
-            copied.decisions.push(unstated(ctx, trait_, &[], &sources));
-        }
-    }
-    Ok(())
-}
-
-/// `leaf_front_colour`'s level and source as `copied.sidecar` currently
-/// holds them (post-drop): `None` when the front has no sourced entry of
-/// its own left, including one this same rerun just dropped (fn-139 R4).
-fn front_sourced_level_in(copied: &Copied) -> Option<(AppearanceLevel, String)> {
-    let pointer = format!("/profiles/0/appearance/{LEAF_FRONT_COLOUR}");
-    let entry = copied.sidecar.get(&pointer)?;
-    let source = entry["source"].as_str()?.to_string();
-    let level = table().level(LEAF_FRONT_COLOUR, entry["level"].as_str()?)?;
-    Some((level.clone(), source))
-}
-
 /// The sentence a trait's level was read from, its source, and every
 /// ledger reference asked. With no sentence placed on a level the level is
 /// the no-match level and there is no source.
@@ -307,30 +240,6 @@ fn chosen_sentence(
         span: String::new(),
         ledger,
     })
-}
-
-/// A required appearance trait no source it names describes: searched again
-/// by the pipeline (fn-129 R6), then the owner's.
-fn unstated(ctx: &Context, trait_: &Appearance, ledger: &[String], sources: &str) -> Decision {
-    let manifest = &ctx.admitted.manifest;
-    Decision::new(
-        DecisionParts {
-            species: &manifest.species,
-            stage: STAGE,
-            kind: REQUIREMENTS_UNMET,
-            field: Some(&trait_.trait_name),
-            age_years: None,
-        },
-        &["generate"],
-        [("manifest".to_string(), ctx.admitted.sha256.clone())].into_iter().collect(),
-        ledger.to_vec(),
-        json!({
-            "field": trait_.trait_name, "level": DESCRIBED_UNSTATED, "bar": "stated",
-            "sources_tried": trait_.sources, "sources_sha256": sources,
-        }),
-        &["add-sources"],
-        "The requirements table asks for this appearance trait and no source it names describes it. The pipeline searches again, two rounds at most, and adds the source it finds to the trait's list; after them the runner logs it and runs on without the trait; a person may still add a source. A resolution that adds none stays open.",
-    )
 }
 
 /// Jev scores a trait over `levels` on the sections of `sources` that carry

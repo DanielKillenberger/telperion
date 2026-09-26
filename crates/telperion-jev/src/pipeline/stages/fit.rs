@@ -8,8 +8,8 @@
 //! A dimension whose table the fetch stage did not yield, or which yields
 //! fewer than two age-indexed rows, files `missing-curve` and skips that fit;
 //! the other dimension still fits and its missing reference values are
-//! recorded as unavailable. A field a `data-insufficient` decision blocks is
-//! skipped the same way. Every `ToleranceMiss` files `tolerance-miss`, which
+//! recorded as unavailable. A field an open decision blocks is skipped the
+//! same way. Every `ToleranceMiss` files `tolerance-miss`, which
 //! blocks generation; the stage never accepts one.
 
 use serde_json::{json, Map, Value};
@@ -40,13 +40,7 @@ pub enum Outcome {
 pub fn run(paths: &Paths) -> Result<Outcome, StageError> {
     let (ctx, blocked) = Context::open(paths, STAGE)?;
     let (fetch, fetch_sha) = body(&ctx, STAGE, "fetch")?;
-    let (_, quality_sha) = body(&ctx, STAGE, "quality")?;
-    let header = ctx.header(
-        STAGE,
-        "fit",
-        inputs(&[("fetch.json", &fetch_sha), ("quality.json", &quality_sha)]),
-        vec![],
-    );
+    let header = ctx.header(STAGE, "fit", inputs(&[("fetch.json", &fetch_sha)]), vec![]);
     if ctx.is_current(STAGE, &header.idempotence_key) {
         return Ok(Outcome::Current);
     }
@@ -82,7 +76,7 @@ pub fn run(paths: &Paths) -> Result<Outcome, StageError> {
         if blocked.contains(&dimension.to_string()) {
             skipped.insert(
                 dimension.to_string(),
-                json!("an open data-insufficient decision blocks this field"),
+                json!("an open decision blocks this field"),
             );
             continue;
         }

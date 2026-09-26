@@ -63,7 +63,8 @@ pub struct Source {
     pub tables: Vec<AdmittedTable>,
 }
 
-/// The bar a field must clear at the data-quality gate.
+/// The bar the requirements table asks of a field, which a manifest at
+/// version 2 must reach (`requirements::shortfalls`).
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "snake_case")]
 #[repr(usize)]
@@ -86,9 +87,9 @@ impl Sufficiency {
         Self::LEVELS[index.min(3)]
     }
 
-    /// The level's key, the same table the sufficiency question set scores.
+    /// The level's key, as a manifest writes it.
     pub fn key(self) -> &'static str {
-        super::sets::SUFFICIENCY_LEVELS[self as usize]
+        ["none", "proxy_only", "partial", "sufficient"][self as usize]
     }
 }
 
@@ -325,10 +326,10 @@ pub fn validate(m: &Manifest) -> Result<(), ManifestError> {
     Ok(())
 }
 
-/// The checksum of what a person seeds before discovery: the species, the
+/// The checksum of what a person seeds before gather: the species, the
 /// taxon and the evidence fields with their conditions and required ages.
-/// Discovery keys on it, so admitting sources, curves or engineering rows
-/// does not rerun it; a seed edit does.
+/// Gather keys on it, so adding sources, curves or engineering rows does not
+/// rerun it; a seed edit does.
 pub fn seed_sha256(m: &Manifest) -> String {
     let fields: Vec<Value> = m
         .fields

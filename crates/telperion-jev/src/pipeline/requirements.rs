@@ -22,11 +22,9 @@ pub struct FieldTerms {
     /// Words a sentence must carry to count as a point for the field, each
     /// matched as a whole word or its plural (fn-131).
     pub terms: Vec<String>,
-    /// The screen kinds a row must carry to count for the field (fn-131):
-    /// an organ size by its organ class, a named cultivar's size toward the
-    /// species. Empty keeps the tree-size kinds.
-    #[serde(default)]
-    pub kinds: Vec<String>,
+    /// What the field measures, in words: the read stage's label question
+    /// offers it as the field's answer (fn-157).
+    pub what: String,
     /// How the field is asked when a growth form names no other way.
     #[serde(default)]
     pub asked: Asked,
@@ -121,18 +119,6 @@ impl Requirements {
     }
 }
 
-fn bound(m: &Manifest) -> Option<&'static GrowthForm> {
-    (m.schema_version >= REQUIRED_FROM_VERSION)
-        .then(|| table().growth_forms.get(&m.growth_form))
-        .flatten()
-}
-
-/// The table's bar for `field` when the manifest is bound by the table and
-/// its growth form requires the field.
-pub fn required_bar(m: &Manifest, field: &str) -> Option<Sufficiency> {
-    bound(m).and_then(|form| form.fields.get(field).copied())
-}
-
 /// How the table asks `field` of a manifest at version 2 or later: its
 /// growth form's way, else the field's own; a legacy manifest asks every
 /// field at its ages.
@@ -147,11 +133,6 @@ pub fn asked(m: &Manifest, field: &str) -> Asked {
         .get(&m.growth_form)
         .and_then(|form| form.asked.get(field).copied())
         .unwrap_or(own)
-}
-
-/// Whether the manifest's growth form requires `trait_name` described.
-pub fn requires_appearance(m: &Manifest, trait_name: &str) -> bool {
-    bound(m).is_some_and(|form| form.appearance.iter().any(|t| t == trait_name))
 }
 
 /// Every way the manifest falls short of the table, each naming its field
@@ -205,16 +186,6 @@ pub fn shortfalls(m: &Manifest) -> Vec<String> {
 /// sentence.
 pub fn terms(field: &str) -> Option<&'static [String]> {
     table().fields.get(field).map(|f| f.terms.as_slice())
-}
-
-/// The screen kinds that count for `field`; the tree-size kinds when the
-/// table names none.
-pub fn kinds(field: &str) -> Vec<&'static str> {
-    const TREE: [&str; 2] = ["measured_size_at_age", "mature_size_range"];
-    match table().fields.get(field) {
-        Some(f) if !f.kinds.is_empty() => f.kinds.iter().map(String::as_str).collect(),
-        _ => TREE.to_vec(),
-    }
 }
 
 /// Whether `sentence` is about `field`: it carries one of the field's terms
@@ -317,25 +288,6 @@ mod tests {
         crate::pipeline::manifest::validate(&manifest)
             .err()
             .map(|e| e.to_string())
-    }
-
-    fn palm_manifest() -> Manifest {
-        serde_json::from_value(covered_palm()).unwrap()
-    }
-
-    #[test]
-    fn a_bound_manifest_reads_its_bars_and_a_legacy_one_reads_none() {
-        let palm = palm_manifest();
-        assert_eq!(
-            required_bar(&palm, "height_m"),
-            Some(Sufficiency::ProxyOnly)
-        );
-        assert_eq!(required_bar(&palm, "age_years"), None);
-        assert!(requires_appearance(&palm, "bark_colour"));
-        let mut legacy = palm;
-        legacy.schema_version = 1;
-        assert_eq!(required_bar(&legacy, "height_m"), None);
-        assert!(!requires_appearance(&legacy, "bark_colour"));
     }
 
     #[test]
