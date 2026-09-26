@@ -69,3 +69,17 @@
 - **Hindered:** the tuning config names no dial, so a revision offers every row of the dial table (227, the palm's fronds and spines among them), and with no `max_questions_per_call` the first targeted proposal asked all 227 in one request (302 KB); the service refused it with a bare 400. The revision stopped after its paid baseline look.
 - **Cost:** one interrupted revision (the shot looks and the baseline visual pass, replayed on the rerun) and about 20 minutes.
 - **Would have removed it:** a config that names the dials a species tunes, or a default cap on questions per call; `--init-tuning` (fn-165) is where either belongs. This run sets `max_questions_per_call` 32 in the recorded configs.
+
+## 2026-09-26, worker, fn-157.1: Tune spent 2 million Jev tokens on rounds that could keep nothing
+
+- **Doing:** the beech's Tune revision 1 through Gaps (R8).
+- **Hindered:** from round 3 every bundle widened the crown past the gating crown width (10.7-18.3 m, two American extension pages) while the photograph shows a crown about as wide as the tree is tall; every candidate failed the numeric gate, and the revision ran five such rounds before the runaway stop. Every round asked Jev about all 227 dials in eight calls.
+- **Cost:** about 2.04 million Jev tokens over 63 calls, 33 evaluations, 70 images and 7 visual passes for one kept round.
+- **Would have removed it:** a stop after the first round whose every bundle fails the same gate, naming the gate; and a dial set sized to the species. Whether a crown range from landscape pages should gate against a photograph that disagrees is the host's call.
+
+## 2026-09-26, worker, fn-157.1: gaps.md is 306 KB
+
+- **Doing:** reading the beech's Gaps result.
+- **Hindered:** every reachable gap repeats the full list of render links for every dial it names; five gaps make a 306 KB file a person cannot read.
+- **Cost:** a few minutes and a truncated read.
+- **Would have removed it:** one link per render pair, or the links in `gaps.json` only.
