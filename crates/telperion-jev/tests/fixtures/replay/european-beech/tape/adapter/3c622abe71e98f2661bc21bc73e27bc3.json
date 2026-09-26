@@ -1,0 +1,87 @@
+{
+ "argv": [
+  "python3",
+  "scripts/reference-first.py",
+  "--model",
+  "opus",
+  "--effort",
+  "medium"
+ ],
+ "exit": 0,
+ "key": "3c622abe71e98f2661bc21bc73e27bc3c6f86477c9fd445963abbe1be69280d3",
+ "stderr": "",
+ "stdin": {
+  "prompt": "The first image is a photograph of a tree of the species `target_species`; the others are renders of a generated tree of that species under candidate cameras, in the order `candidates` lists them. Choose the candidate whose framing best matches the photograph: where the tree stands in the frame, how much of the frame's height it fills, and how far below the crown the camera looks up from. Judge the framing only, not the tree's shape, colour or detail. Answer none when no candidate frames the tree the way the photograph does. Give no numbers.",
+  "prompt_sha256": "38050ca2faffbd0c49d373cbe1c5d1e8134b254517fd8c7597e309f4be086e5f",
+  "request": {
+   "candidates": [
+    {
+     "id": "camera-0",
+     "image": {
+      "path": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/run/runner/shots/photo-1/camera-0.png",
+      "seed": 0,
+      "sha256": "ea009f9c9790f1ed7a767ecd01051c353d8fbd60614b02c0089c839517e02dfc",
+      "view": "leaf-on"
+     }
+    },
+    {
+     "id": "camera-1",
+     "image": {
+      "path": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/run/runner/shots/photo-1/camera-1.png",
+      "seed": 0,
+      "sha256": "216e6d54017bd0095ce865ba243841fd3d192d8a1a0415ec8ad71c4d57ddd0cd",
+      "view": "leaf-on"
+     }
+    },
+    {
+     "id": "camera-2",
+     "image": {
+      "path": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/run/runner/shots/photo-1/camera-2.png",
+      "seed": 0,
+      "sha256": "dd862d4a06b39173a6a8dc4148662abb7b301c2b9b08d3d78889489d7167033b",
+      "view": "leaf-on"
+     }
+    },
+    {
+     "id": "camera-3",
+     "image": {
+      "path": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/run/runner/shots/photo-1/camera-3.png",
+      "seed": 0,
+      "sha256": "84461ff1e28d08baa0fb3f24e5677079e6b41eac655266e0a43eb9fb4e2371f4",
+      "view": "leaf-on"
+     }
+    },
+    {
+     "id": "camera-4",
+     "image": {
+      "path": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/run/runner/shots/photo-1/camera-4.png",
+      "seed": 0,
+      "sha256": "929186c4fe76cbb20700fb013d777c4a7c1607a42ea6d123c39ec7fd7c7ca5db",
+      "view": "leaf-on"
+     }
+    },
+    {
+     "id": "camera-5",
+     "image": {
+      "path": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/run/runner/shots/photo-1/camera-5.png",
+      "seed": 0,
+      "sha256": "3c91621db2ebe559c6a563bd99c9148d51e5bb2d769f4973875bfa0ec1284e53",
+      "view": "leaf-on"
+     }
+    }
+   ],
+   "photograph": {
+    "path": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/run/cache/photos/9c57905fbcf78dee583b351d3b4ac979904d88530bfeed8c30f7f5203a98c748.jpg",
+    "seed": 0,
+    "sha256": "9c57905fbcf78dee583b351d3b4ac979904d88530bfeed8c30f7f5203a98c748",
+    "view": "leaf-on"
+   },
+   "protocol": "reference-shot-v1",
+   "target_species": "european-beech",
+   "view": "leaf-on"
+  },
+  "request_sha256": "7dad75c32abad7f7b6e444ab5307fbd6e3a5c238abdfe74a3dd5558f1d109ef9",
+  "stage": "shot"
+ },
+ "stdout": "{\"request_sha256\": \"7dad75c32abad7f7b6e444ab5307fbd6e3a5c238abdfe74a3dd5558f1d109ef9\", \"prompt_sha256\": \"38050ca2faffbd0c49d373cbe1c5d1e8134b254517fd8c7597e309f4be086e5f\", \"dispatched_prompt_sha256\": \"6f716f52bbca0049fe59dcb0d879a5a6e2c5d585b466faa67184c75d352f2261\", \"schema_sha256\": \"5ad4dbd4184e00360ac37a962ad9df99817cd4fd27e49f985213a509313af969\", \"model\": \"opus\", \"model_identity_basis\": \"claude CLI result event modelUsage key: claude-opus-5-5\", \"effort\": \"medium\", \"status\": \"ok\", \"forbidden_tools\": [], \"error\": null, \"usage\": {\"input_tokens\": 2, \"output_tokens\": 532}, \"answer\": {\"choice\": \"camera-2\"}, \"raw_events\": \"{\\\"type\\\":\\\"system\\\",\\\"subtype\\\":\\\"init\\\",\\\"cwd\\\":\\\"/home/daniel/Projects/telperion/.worktrees/fn-157\\\",\\\"session_id\\\":\\\"73ca4432-0bd0-4363-9ac7-99584ec8c4f1\\\",\\\"tools\\\":[\\\"StructuredOutput\\\"],\\\"mcp_servers\\\":[],\\\"model\\\":\\\"claude-opus-5-5\\\",\\\"permissionMode\\\":\\\"default\\\",\\\"slash_commands\\\":[\\\"deep-research\\\",\\\"design\\\",\\\"design-sync\\\",\\\"dataviz\\\",\\\"update-config\\\",\\\"verify\\\",\\\"debug\\\",\\\"code-review\\\",\\\"simplify\\\",\\\"batch\\\",\\\"fewer-permission-prompts\\\",\\\"doctor\\\",\\\"loop\\\",\\\"schedule\\\",\\\"claude-api\\\",\\\"workflow-authoring\\\",\\\"run\\\",\\\"run-skill-generator\\\",\\\"advisor\\\",\\\"agents\\\",\\\"auto-mode-setup\\\",\\\"autocompact\\\",\\\"clear\\\",\\\"color\\\",\\\"compact\\\",\\\"config\\\",\\\"output-style\\\",\\\"context\\\",\\\"effort\\\",\\\"fast\\\",\\\"heapdump\\\",\\\"init\\\",\\\"mcp\\\",\\\"import\\\",\\\"model\\\",\\\"__remote-workflow\\\",\\\"workflow-launch-exec\\\",\\\"reload-plugins\\\",\\\"reload-skills\\\",\\\"rename\\\",\\\"ultrareview\\\",\\\"security-review\\\",\\\"usage-credits\\\",\\\"extra-usage\\\",\\\"usage\\\",\\\"insights\\\",\\\"recap\\\",\\\"skill-doctor\\\",\\\"goal\\\",\\\"design-consent\\\",\\\"design-revoke\\\",\\\"list-agents\\\",\\\"team-onboarding\\\"],\\\"terminal_slash_commands\\\":[\\\"doctor\\\",\\\"color\\\",\\\"reload-plugins\\\"],\\\"apiKeySource\\\":\\\"none\\\",\\\"claude_code_version\\\":\\\"2.1.280\\\",\\\"output_style\\\":\\\"default\\\",\\\"agents\\\":[\\\"claude\\\",\\\"Explore\\\",\\\"general-purpose\\\",\\\"Plan\\\"],\\\"skills\\\":[\\\"deep-research\\\",\\\"design\\\",\\\"design-sync\\\",\\\"dataviz\\\",\\\"update-config\\\",\\\"verify\\\",\\\"debug\\\",\\\"code-review\\\",\\\"simplify\\\",\\\"batch\\\",\\\"fewer-permission-prompts\\\",\\\"doctor\\\",\\\"loop\\\",\\\"schedule\\\",\\\"claude-api\\\",\\\"workflow-authoring\\\",\\\"run\\\",\\\"run-skill-generator\\\"],\\\"plugins\\\":[{\\\"name\\\":\\\"flow-next\\\",\\\"path\\\":\\\"/home/daniel/.claude-profiles/danithekiller93/plugins/cache/flow-next/flow-next/6.0.0\\\",\\\"source\\\":\\\"flow-next@flow-next\\\",\\\"version\\\":\\\"6.0.0\\\"},{\\\"name\\\":\\\"typesafe\\\",\\\"path\\\":\\\"/home/daniel/.claude/plugins/cache/typesafe-ai/typesafe/0.5.7\\\",\\\"source\\\":\\\"typesafe@typesafe-ai\\\",\\\"version\\\":\\\"0.5.7\\\"},{\\\"name\\\":\\\"firecrawl\\\",\\\"path\\\":\\\"/home/daniel/.claude/plugins/cache/claude-plugins-official/firecrawl/1.0.9\\\",\\\"source\\\":\\\"firecrawl@claude-plugins-official\\\",\\\"version\\\":\\\"1.0.9\\\"},{\\\"name\\\":\\\"rust-analyzer-lsp\\\",\\\"path\\\":\\\"/home/daniel/.claude/plugins/cache/claude-plugins-official/rust-analyzer-lsp/1.0.0\\\",\\\"source\\\":\\\"rust-analyzer-lsp@claude-plugins-official\\\",\\\"version\\\":\\\"1.0.0\\\"},{\\\"name\\\":\\\"agents-md\\\",\\\"path\\\":\\\"builtin\\\",\\\"source\\\":\\\"agents-md@builtin\\\"},{\\\"name\\\":\\\"telemetry\\\",\\\"path\\\":\\\"builtin\\\",\\\"source\\\":\\\"telemetry@builtin\\\"}],\\\"capabilities\\\":[\\\"interrupt_receipt_v1\\\",\\\"interrupt_cancel_queued_v1\\\",\\\"msg_lifecycle_v1\\\",\\\"mcp_read_resource_v1\\\",\\\"mcp_tool_ui_meta_v1\\\"],\\\"analytics_disabled\\\":false,\\\"product_feedback_disabled\\\":false,\\\"uuid\\\":\\\"3868a081-1560-461f-9611-87b5b42b9cd9\\\",\\\"messaging_socket_path\\\":\\\"/run/user/1000/cc-socks/1064902.sock\\\",\\\"fast_mode_state\\\":\\\"off\\\",\\\"fast_mode_disabled_reason\\\":\\\"sdk_opt_in_required\\\"}\\n{\\\"type\\\":\\\"system\\\",\\\"subtype\\\":\\\"thinking_tokens\\\",\\\"estimated_tokens\\\":50,\\\"estimated_tokens_delta\\\":50,\\\"session_id\\\":\\\"73ca4432-0bd0-4363-9ac7-99584ec8c4f1\\\",\\\"uuid\\\":\\\"3484bf15-3f16-4391-bdcf-cbf5f78eb382\\\"}\\n{\\\"type\\\":\\\"system\\\",\\\"subtype\\\":\\\"thinking_tokens\\\",\\\"estimated_tokens\\\":150,\\\"estimated_tokens_delta\\\":100,\\\"session_id\\\":\\\"73ca4432-0bd0-4363-9ac7-99584ec8c4f1\\\",\\\"uuid\\\":\\\"ebf5c45e-d6ed-435f-a816-9f806603906f\\\"}\\n{\\\"type\\\":\\\"system\\\",\\\"subtype\\\":\\\"thinking_tokens\\\",\\\"estimated_tokens\\\":300,\\\"estimated_tokens_delta\\\":150,\\\"session_id\\\":\\\"73ca4432-0bd0-4363-9ac7-99584ec8c4f1\\\",\\\"uuid\\\":\\\"b5d42fc9-8da7-4600-abd9-2680628c728f\\\"}\\n{\\\"type\\\":\\\"system\\\",\\\"subtype\\\":\\\"thinking_tokens\\\",\\\"estimated_tokens\\\":450,\\\"estimated_tokens_delta\\\":150,\\\"session_id\\\":\\\"73ca4432-0bd0-4363-9ac7-99584ec8c4f1\\\",\\\"uuid\\\":\\\"1fcf66ad-a087-43bf-bb4d-3adca6145f3e\\\"}\\n{\\\"type\\\":\\\"assistant\\\",\\\"message\\\":{\\\"model\\\":\\\"claude-opus-5-5\\\",\\\"id\\\":\\\"msg_011CfSWZGQhCRccEVbZPZbn5\\\",\\\"type\\\":\\\"message\\\",\\\"role\\\":\\\"assistant\\\",\\\"content\\\":[{\\\"type\\\":\\\"thinking\\\",\\\"thinking\\\":\\\"\\\",\\\"signature\\\":\\\"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\\\"}],\\\"container\\\":null,\\\"stop_reason\\\":null,\\\"stop_sequence\\\":null,\\\"stop_details\\\":null,\\\"usage\\\":{\\\"input_tokens\\\":2,\\\"cache_creation_input_tokens\\\":8671,\\\"cache_read_input_tokens\\\":0,\\\"cache_creation\\\":{\\\"ephemeral_5m_input_tokens\\\":0,\\\"ephemeral_1h_input_tokens\\\":8671},\\\"output_tokens\\\":8,\\\"service_tier\\\":\\\"standard\\\",\\\"inference_geo\\\":\\\"not_available\\\"},\\\"input_transformations\\\":[],\\\"diagnostics\\\":null,\\\"context_management\\\":null},\\\"parent_tool_use_id\\\":null,\\\"session_id\\\":\\\"73ca4432-0bd0-4363-9ac7-99584ec8c4f1\\\",\\\"uuid\\\":\\\"6b535e3c-f460-4e09-9e0d-c4589d735894\\\",\\\"timestamp\\\":\\\"2026-09-26T18:17:58.120Z\\\",\\\"request_id\\\":\\\"req_011CfSWZFTeLswE6Wo81kgMh\\\"}\\n{\\\"type\\\":\\\"assistant\\\",\\\"message\\\":{\\\"model\\\":\\\"claude-opus-5-5\\\",\\\"id\\\":\\\"msg_011CfSWZGQhCRccEVbZPZbn5\\\",\\\"type\\\":\\\"message\\\",\\\"role\\\":\\\"assistant\\\",\\\"content\\\":[{\\\"type\\\":\\\"tool_use\\\",\\\"id\\\":\\\"toolu_01LZ9zocGRzPTLpnngHRU2eE\\\",\\\"name\\\":\\\"StructuredOutput\\\",\\\"input\\\":{\\\"choice\\\":\\\"camera-2\\\"},\\\"caller\\\":{\\\"type\\\":\\\"direct\\\"}}],\\\"container\\\":null,\\\"stop_reason\\\":null,\\\"stop_sequence\\\":null,\\\"stop_details\\\":null,\\\"usage\\\":{\\\"input_tokens\\\":2,\\\"cache_creation_input_tokens\\\":8671,\\\"cache_read_input_tokens\\\":0,\\\"cache_creation\\\":{\\\"ephemeral_5m_input_tokens\\\":0,\\\"ephemeral_1h_input_tokens\\\":8671},\\\"output_tokens\\\":8,\\\"service_tier\\\":\\\"standard\\\",\\\"inference_geo\\\":\\\"not_available\\\"},\\\"input_transformations\\\":[],\\\"diagnostics\\\":null,\\\"context_management\\\":null},\\\"parent_tool_use_id\\\":null,\\\"session_id\\\":\\\"73ca4432-0bd0-4363-9ac7-99584ec8c4f1\\\",\\\"uuid\\\":\\\"f56bcb2b-efdb-4fcc-8361-016823f6edb7\\\",\\\"timestamp\\\":\\\"2026-09-26T18:17:58.123Z\\\",\\\"request_id\\\":\\\"req_011CfSWZFTeLswE6Wo81kgMh\\\",\\\"wire_tool_inputs\\\":{\\\"toolu_01LZ9zocGRzPTLpnngHRU2eE\\\":{\\\"choice\\\":\\\"camera-2\\\"}}}\\n{\\\"type\\\":\\\"user\\\",\\\"message\\\":{\\\"role\\\":\\\"user\\\",\\\"content\\\":[{\\\"tool_use_id\\\":\\\"toolu_01LZ9zocGRzPTLpnngHRU2eE\\\",\\\"type\\\":\\\"tool_result\\\",\\\"content\\\":\\\"Structured output provided successfully\\\"}]},\\\"parent_tool_use_id\\\":null,\\\"session_id\\\":\\\"73ca4432-0bd0-4363-9ac7-99584ec8c4f1\\\",\\\"uuid\\\":\\\"777f927c-5e88-41d9-adb7-f97d2878cefa\\\",\\\"timestamp\\\":\\\"2026-09-26T18:17:58.128Z\\\",\\\"tool_use_result\\\":\\\"Structured output provided successfully\\\"}\\n{\\\"type\\\":\\\"rate_limit_event\\\",\\\"rate_limit_info\\\":{\\\"status\\\":\\\"allowed\\\",\\\"resetsAt\\\":1790460000,\\\"rateLimitType\\\":\\\"five_hour\\\",\\\"overageStatus\\\":\\\"rejected\\\",\\\"overageDisabledReason\\\":\\\"org_level_disabled\\\",\\\"isUsingOverage\\\":false,\\\"unifiedWindows\\\":{\\\"five_hour\\\":{\\\"utilization\\\":0.09,\\\"resetsAt\\\":1790460000},\\\"seven_day\\\":{\\\"utilization\\\":0.09,\\\"resetsAt\\\":1791036000}}},\\\"uuid\\\":\\\"86b5605a-60a0-4897-95fe-071ef943522f\\\",\\\"session_id\\\":\\\"73ca4432-0bd0-4363-9ac7-99584ec8c4f1\\\"}\\n{\\\"duration_api_ms\\\":6361,\\\"stop_reason\\\":\\\"tool_use\\\",\\\"session_id\\\":\\\"73ca4432-0bd0-4363-9ac7-99584ec8c4f1\\\",\\\"total_cost_usd\\\":0.080016,\\\"usage\\\":{\\\"input_tokens\\\":2,\\\"cache_creation_input_tokens\\\":8671,\\\"cache_read_input_tokens\\\":0,\\\"output_tokens\\\":532,\\\"output_tokens_details\\\":{\\\"thinking_tokens\\\":476},\\\"server_tool_use\\\":{\\\"web_search_requests\\\":0,\\\"web_fetch_requests\\\":0},\\\"service_tier\\\":\\\"standard\\\",\\\"cache_creation\\\":{\\\"ephemeral_1h_input_tokens\\\":8671,\\\"ephemeral_5m_input_tokens\\\":0},\\\"inference_geo\\\":\\\"not_available\\\",\\\"iterations\\\":[{\\\"input_tokens\\\":2,\\\"output_tokens\\\":532,\\\"cache_read_input_tokens\\\":0,\\\"cache_creation_input_tokens\\\":8671,\\\"cache_creation\\\":{\\\"ephemeral_5m_input_tokens\\\":0,\\\"ephemeral_1h_input_tokens\\\":8671},\\\"type\\\":\\\"message\\\"}],\\\"speed\\\":\\\"standard\\\"},\\\"modelUsage\\\":{\\\"claude-opus-5-5\\\":{\\\"inputTokens\\\":2,\\\"outputTokens\\\":532,\\\"cacheReadInputTokens\\\":0,\\\"cacheCreationInputTokens\\\":8671,\\\"webSearchRequests\\\":0,\\\"costUSD\\\":0.080016,\\\"contextWindow\\\":1000000,\\\"maxOutputTokens\\\":128000,\\\"thinkingTokens\\\":476,\\\"canonicalModel\\\":\\\"claude-opus-5-5\\\",\\\"provider\\\":\\\"firstParty\\\",\\\"costBasis\\\":\\\"list\\\"}},\\\"permission_denials\\\":[],\\\"terminal_reason\\\":\\\"completed\\\",\\\"fast_mode_state\\\":\\\"off\\\",\\\"fast_mode_disabled_reason\\\":\\\"sdk_opt_in_required\\\",\\\"subagent_stats\\\":{\\\"spawned\\\":0,\\\"requested\\\":{\\\"background\\\":0,\\\"foreground\\\":0,\\\"unset\\\":0},\\\"started_in_background\\\":0,\\\"max_depth\\\":0,\\\"spawned_by_subagents\\\":0,\\\"completed\\\":0,\\\"failed\\\":0,\\\"killed\\\":{\\\"parent\\\":0,\\\"user\\\":0,\\\"system\\\":0},\\\"refused\\\":{\\\"depth_limit\\\":0,\\\"concurrency_limit\\\":0,\\\"budget\\\":0},\\\"by_type\\\":{}},\\\"is_error\\\":false,\\\"num_turns\\\":2,\\\"subtype\\\":\\\"success\\\",\\\"api_error_status\\\":null,\\\"result\\\":\\\"{\\\\\\\"choice\\\\\\\":\\\\\\\"camera-2\\\\\\\"}\\\",\\\"structured_output\\\":{\\\"choice\\\":\\\"camera-2\\\"},\\\"ttft_ms\\\":6469,\\\"type\\\":\\\"result\\\",\\\"duration_ms\\\":6485,\\\"uuid\\\":\\\"136cfcec-c403-48ea-b346-d8bba8605077\\\",\\\"ttft_stream_ms\\\":1183,\\\"time_to_request_ms\\\":123,\\\"first_content_frame_ms\\\":1183,\\\"queued_turn_count\\\":0,\\\"result_index\\\":0}\\n\", \"stderr\": \"\", \"image_sha256\": [\"9c57905fbcf78dee583b351d3b4ac979904d88530bfeed8c30f7f5203a98c748\", \"ea009f9c9790f1ed7a767ecd01051c353d8fbd60614b02c0089c839517e02dfc\", \"216e6d54017bd0095ce865ba243841fd3d192d8a1a0415ec8ad71c4d57ddd0cd\", \"dd862d4a06b39173a6a8dc4148662abb7b301c2b9b08d3d78889489d7167033b\", \"84461ff1e28d08baa0fb3f24e5677079e6b41eac655266e0a43eb9fb4e2371f4\", \"929186c4fe76cbb20700fb013d777c4a7c1607a42ea6d123c39ec7fd7c7ca5db\", \"3c91621db2ebe559c6a563bd99c9148d51e5bb2d769f4973875bfa0ec1284e53\"]}\n"
+}

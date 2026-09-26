@@ -12,13 +12,17 @@ with no network and no key. It is the runner's proof, recorded live on
 - `tape/`: every external answer a replay asks for, keyed by a stable hash
   of its request (`crate::tape`, `scripts/tape-adapter.py`). Recorded live
   on 2026-09-26 (`species european-beech --record`) and extended the same
-  day for the agreement rule (`--extend`, no Firecrawl call): 37 Firecrawl
-  answers (the searches, the Wikipedia lead, a scrape of each gathered
-  document and the EUFORGEN guideline's PDF parse), 168 Jev calls, 19
-  Wikimedia Commons answers and images. Tune's first revision is not in it:
-  on a run from a name it stops before a round (FRICTION.md, the matched
-  shot). Answers a replay never asks for were left out, so a replay opens
-  every file here.
+  day (`--extend`, no Firecrawl call) for the agreement rule, the chosen
+  shot and Tune's first revision: 37 Firecrawl answers (the searches, the
+  Wikipedia lead, a scrape of each gathered document and the EUFORGEN
+  guideline's PDF parse), 176 Jev calls, 19 Wikimedia Commons answers and
+  images, and 6 vision adapter answers (the screen, the inventory, the
+  shot's two looks and the baseline's comparison). Tune's recorded Jev
+  requests were migrated to the content-named inventory (eef7af1e) and
+  every answer refiled under today's keys (`tape_trim`,
+  `tape-adapter.py rekey:`). A replay opens every file here; it stops at
+  the first round's sheet, recorded in an order the runner no longer lays
+  out (FRICTION.md).
 
 The repository is public, so a page that is not openly licensed keeps only
 what the run quoted from it (owner, 2026-09-25): the passages that reached a
