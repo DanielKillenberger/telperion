@@ -370,7 +370,7 @@
     "impl:fn-157-a-species-values-are-the-confident.1": 0
   },
   "spec_path": ".flow/specs/fn-157-a-species-values-are-the-confident.md",
-  "status": "open",
+  "status": "done",
   "title": "A species' values are the confident aggregate of everything written about it",
   "tracker": {
     "baseHashFlow": null,
@@ -383,5 +383,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-26T21:55:17.079175Z"
+  "updated_at": "2026-09-26T22:16:30.770549Z"
 }
