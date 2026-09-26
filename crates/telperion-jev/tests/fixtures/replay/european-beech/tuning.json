@@ -16,9 +16,7 @@
     "compare_script": "scripts/compare-references.py",
     "headless": "target/release/examples/headless",
     "height": 1440,
-    "numeric_references": [
-      "B-WHOLE"
-    ],
+    "numeric_references": [],
     "references": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/catalogue/european-beech/packet/references.json",
     "refs": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/refs",
     "scratch": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/run/matched"
@@ -41,28 +39,7 @@
     }
   ],
   "references": [],
-  "required": [
-    {
-      "item": "crown-character",
-      "seed": 1,
-      "view": "B-WHOLE"
-    },
-    {
-      "item": "crown-character",
-      "seed": 42,
-      "view": "B-WHOLE"
-    },
-    {
-      "item": "branching-character",
-      "seed": 1,
-      "view": "B-BARE"
-    },
-    {
-      "item": "bark-base",
-      "seed": 1,
-      "view": "B-BASE"
-    }
-  ],
+  "required": [],
   "seed": 1,
   "sheet": {
     "adapter": {

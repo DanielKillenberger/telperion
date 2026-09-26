@@ -12,6 +12,7 @@
 pub mod accept;
 pub mod capability;
 pub mod catalogue;
+pub mod cells;
 pub mod derive;
 pub mod folder;
 pub mod gaps;

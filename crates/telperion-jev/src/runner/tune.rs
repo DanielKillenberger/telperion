@@ -150,6 +150,7 @@ pub fn run(template: &Path, tools: &Tools, out: &Path) -> Result<String, String>
     config["dials"] = json!(dials);
     config["initial_overrides"] = base(out)?;
     config["references"] = super::inventory::references(template, out)?;
+    super::cells::fill(&mut config)?;
     config["reference_first"] = super::inventory::pins(template, out)?;
     config["measure_binary"] = json!(tools.species_measure);
     config["matched"]["headless"] = json!(tools.headless);
