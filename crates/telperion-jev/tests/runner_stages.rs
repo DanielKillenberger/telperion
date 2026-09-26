@@ -37,14 +37,31 @@ fn tree(key: &str) -> Value {
 /// A gap entry whose one attempt made `moves`, rendered or not, and judged
 /// by the reviewer or not.
 fn gap(id: &str, status: &str, moves: Value, feasible: bool, reviewed: bool) -> Value {
+    gap_passing(id, status, moves, feasible, reviewed, false)
+}
+
+/// As `gap`, with the attempt's own visual passing the trait when `passed`.
+fn gap_passing(
+    id: &str,
+    status: &str,
+    moves: Value,
+    feasible: bool,
+    reviewed: bool,
+    passed: bool,
+) -> Value {
     let review = match reviewed {
         true => json!({"per_priority": {id: "slight"}}),
+        false => Value::Null,
+    };
+    let visual = match passed {
+        true => json!([{"item": format!("owner-priority:{id}: the trait"), "view": "P-WHOLE",
+                        "seed": 1, "status": "pass"}]),
         false => Value::Null,
     };
     let attempts = match moves.as_array().is_some_and(|m| !m.is_empty()) {
         true => json!([{"dial": "bundle", "round": 1, "action_ledger": null,
             "score_before_round": null, "score_after": null, "feasible": feasible,
-            "reason": null, "visual_outcome": null, "moves": moves, "review": review,
+            "reason": null, "visual_outcome": visual, "moves": moves, "review": review,
             "before": [{"view": "P-WHOLE", "seed": 1, "sha256": "a", "path": "r/a.png"}],
             "after": [{"view": "P-WHOLE", "seed": 1, "sha256": "b", "path": "r/b.png"}]}]),
         false => json!([]),
@@ -102,7 +119,18 @@ fn assessment(dir: &Path) -> PathBuf {
         json!({"capability": name, "class": class, "reason": "read", "captured_by": specs,
                "decided_by": "host", "decided_on": "2026-09-25"})
     };
-    let classes = json!({"classes": [
+    // The traits the host assessed (fn-157): one the generator cannot draw,
+    // waiting on its spec, and one a missing capability classed an
+    // improvement covers.
+    let traits = json!([
+        {"trait": "trunk-texture", "need": "a lattice of leaf bases", "outcome": "unsupported-anatomy",
+         "capability": null, "depends_on": "fn-144", "confidence": "high", "note": ""},
+        {"trait": "fruit-look", "need": "hanging date clusters", "outcome": "unreachable-value",
+         "capability": "infructescence", "depends_on": null, "confidence": "high", "note": ""},
+        {"trait": "leaf-sheen", "need": "a glossy leaf", "outcome": "reachable",
+         "capability": null, "depends_on": "fn-999", "confidence": "high", "note": ""},
+    ]);
+    let classes = json!({"traits": traits, "classes": [
         class("infructescence", "improvement", json!(["fn-111"])),
         class("leaf-base-lattice", "identity", json!(["fn-144"])),
     ]});
@@ -153,9 +181,24 @@ fn every_failing_trait_is_classed_reachable_identity_or_global_with_its_evidence
             gap(
                 "crown-shape",
                 "failing on the current tree",
-                moved,
+                moved.clone(),
                 true,
                 false
+            ),
+            gap_passing(
+                "crown-openness",
+                "failing on the current tree",
+                moved.clone(),
+                true,
+                true,
+                true
+            ),
+            gap(
+                "fruit-look",
+                "failing on the current tree",
+                moved,
+                true,
+                true
             ),
         ]),
         json!([{"trait": "fruit-clusters-pendent", "spec": "fn-111"}]),
@@ -171,15 +214,48 @@ fn every_failing_trait_is_classed_reachable_identity_or_global_with_its_evidence
         "unclassed blocks"
     );
     assert_eq!(kind("fruit-clusters-pendent"), Some(Kind::Global));
-    assert_eq!(kind("crown-density"), Some(Kind::Reachable));
+    // Host, 2026-09-26: reachable is a dial that moved the trait to passing
+    // in a rendered attempt the reviewer judged. A trait moved but still
+    // failing is the assessment's: identity with the spec it waits on,
+    // global when a capability classed an improvement covers it, else
+    // identity for the host to assess.
+    assert_eq!(kind("crown-openness"), Some(Kind::Reachable));
+    assert_eq!(kind("crown-density"), Some(Kind::Identity));
+    let specs = |id: &str| {
+        classed
+            .iter()
+            .find(|g| g.trait_id == id)
+            .unwrap()
+            .specs
+            .clone()
+    };
+    let said = |id: &str| {
+        classed
+            .iter()
+            .find(|g| g.trait_id == id)
+            .unwrap()
+            .evidence
+            .join(" ")
+    };
+    assert!(specs("crown-density").is_empty());
+    assert!(
+        said("crown-density").contains("host to assess"),
+        "{}",
+        said("crown-density")
+    );
     assert_eq!(kind("trunk-texture"), Some(Kind::Identity));
+    assert_eq!(specs("trunk-texture"), ["fn-144"]);
+    assert_eq!(kind("fruit-look"), Some(Kind::Global));
+    assert_eq!(specs("fruit-look"), ["fn-111"]);
     assert_eq!(kind("frond-count"), None, "a passing trait is no gap");
-    // A move that never rendered, or that no reviewer judged, reaches nothing.
+    // A move that never rendered, or that no reviewer judged, reaches
+    // nothing; an assessment entry the host found reachable names no spec.
     assert_eq!(kind("leaf-sheen"), Some(Kind::Identity));
+    assert!(specs("leaf-sheen").is_empty());
     assert_eq!(kind("crown-shape"), Some(Kind::Identity));
     let reachable = classed
         .iter()
-        .find(|g| g.trait_id == "crown-density")
+        .find(|g| g.trait_id == "crown-openness")
         .unwrap();
     assert_eq!(
         reachable.evidence[0],
