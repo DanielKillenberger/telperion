@@ -327,6 +327,10 @@ pub struct Meanings<S>(std::marker::PhantomData<S>);
 #[doc(hidden)]
 pub struct Getters<S>(std::marker::PhantomData<S>);
 
+/// Where `rows!` keeps each row's setter, shared by `ROWS` and `SETTERS`.
+#[doc(hidden)]
+pub struct Setters<S>(std::marker::PhantomData<S>);
+
 /// Declares a parameter group: the struct, with each field's doc comment and
 /// serde attribute as written, and one catalogue row per field that names its
 /// wire key. A row states its key, unit, bounds and the stages that read it;
@@ -372,6 +376,18 @@ macro_rules! rows {
                 };
             )?)*
         }
+        #[allow(non_upper_case_globals)]
+        impl $crate::catalogue::Setters<$name> {
+            $($(
+                #[doc = $key]
+                pub const $field: fn(&mut $name) -> &mut dyn $crate::catalogue::Scalar = {
+                    fn set(s: &mut $name) -> &mut dyn $crate::catalogue::Scalar {
+                        &mut s.$field
+                    }
+                    set
+                };
+            )?)*
+        }
         impl $name {
             /// This group's catalogue rows, in declaration order.
             pub const ROWS: &'static [$crate::catalogue::Row<Self>] = &[$($(
@@ -386,16 +402,23 @@ macro_rules! rows {
                         kind: <$ty as $crate::catalogue::Typed>::KIND,
                         wire: DECLARED.wire,
                         get: $crate::catalogue::Getters::<$name>::$field,
-                        set: {
-                            fn set(s: &mut $name) -> &mut dyn $crate::catalogue::Scalar {
-                                &mut s.$field
-                            }
-                            set
-                        },
+                        set: $crate::catalogue::Setters::<$name>::$field,
                         blend: DECLARED.blend,
                     }
                 },
             )?)*];
+            /// Each row's setter alone, at its index in `ROWS`: a preset sets
+            /// its rows through these, so a build that never reads a path
+            /// carries none.
+            pub const SETTERS: &'static [fn(&mut Self) -> &mut dyn $crate::catalogue::Scalar] =
+                &[$($(
+                    {
+                        #[doc = $key]
+                        const SET: fn(&mut $name) -> &mut dyn $crate::catalogue::Scalar =
+                            $crate::catalogue::Setters::<$name>::$field;
+                        SET
+                    },
+                )?)*];
             /// What the scalar check reads of each row, at its index in `ROWS`.
             pub const CHECKS: &'static [$crate::catalogue::Checked<Self>] = &[$($(
                 {

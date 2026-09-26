@@ -47,7 +47,7 @@ impl Value {
     }
 
     pub fn apply(self, f: &mut Family) {
-        self.entry.set(f).put(self.value);
+        self.entry.put(f, self.value);
     }
 }
 

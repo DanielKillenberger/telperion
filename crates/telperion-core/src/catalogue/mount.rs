@@ -97,6 +97,23 @@ macro_rules! groups {
             let _ = group;
             None
         }
+
+        impl Entry {
+            /// Stores a real in the row the way `Scalar::put` converts it,
+            /// through the group's setter alone, so a build that sets rows
+            /// without reading paths carries none.
+            pub fn put(self, f: &mut Family, value: f64) {
+                let mut group = 0;
+                $(
+                    if self.group == group {
+                        return (<$group>::SETTERS[self.index])(&mut (*f)$(.$at)*).put(value);
+                    }
+                    group += 1;
+                )*
+                let _ = group;
+                unreachable!("an entry names a group of the catalogue");
+            }
+        }
     };
 }
 groups! {
@@ -200,6 +217,18 @@ mod tests {
                 assert_eq!(group.rule(index), (info.bounds, info.check, info.blend));
                 assert_eq!(group.wire(index), info.wire);
             }
+        }
+    }
+
+    /// A preset's setter is the row's own: a row put through `put` leaves the
+    /// family the wire's setter leaves it.
+    #[test]
+    fn every_row_is_put_where_the_wire_sets_it() {
+        for e in entries() {
+            let (mut put, mut set) = (Family::default(), Family::default());
+            e.put(&mut put, 3.0);
+            e.set(&mut set).put(3.0);
+            assert_eq!(format!("{put:?}"), format!("{set:?}"), "{}", e.path());
         }
     }
 }
