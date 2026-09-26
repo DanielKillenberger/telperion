@@ -196,6 +196,10 @@ fn start_gives_the_measurer_the_profile_it_derived_from() {
     assert_eq!(written["status"], "ready");
     assert!(written["frozen_at"].is_string());
     assert_eq!(written["profiles"][0]["readiness"], "ready");
+    for (key, metric) in written["profiles"][0]["metrics"].as_object().unwrap() {
+        let class = metric["classification"].as_str().unwrap();
+        assert!(class == "gating" || class == "contextual", "{key}: {class}");
+    }
     assert_eq!(
         read_json(&packet).unwrap()["profiles"][0]["readiness"],
         "draft"

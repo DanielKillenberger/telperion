@@ -120,7 +120,8 @@ pub fn run(profile_path: &Path, tuning_path: &Path, out: &Path) -> Result<String
 }
 
 /// The packet's profile as the measurer takes it: a frozen, ready manifest
-/// whose `profile_id` entry is ready. The packet's own profile stays draft;
+/// whose `profile_id` entry is ready and whose every metric gates or is
+/// contextual. The packet's own profile stays draft;
 /// this copy exists only so a run from a name can measure its first tree.
 fn measurable_copy(packet: &Value, profile_id: &str) -> Value {
     let mut frozen = packet.clone();
@@ -132,6 +133,13 @@ fn measurable_copy(packet: &Value, profile_id: &str) -> Value {
     for profile in frozen["profiles"].as_array_mut().into_iter().flatten() {
         if profile["id"] == profile_id {
             profile["readiness"] = json!("ready");
+            // The measurer gates or reports; a field no source settled only
+            // reports.
+            for metric in profile["metrics"].as_object_mut().into_iter().flatten() {
+                if metric.1["classification"] != "gating" {
+                    metric.1["classification"] = json!("contextual");
+                }
+            }
         }
     }
     frozen
