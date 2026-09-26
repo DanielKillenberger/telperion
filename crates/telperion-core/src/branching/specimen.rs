@@ -75,13 +75,13 @@ fn stem_root(node: &Node) -> bool {
 /// The rows `Specimen::new` judges before it scatters an attractor, each
 /// refused by its own name; the twig rows come back resolved.
 fn rows(params: &SkeletonParams, radii: RadiusParams) -> Result<TwigParams> {
-    crate::catalogue::check(SkeletonParams::ROWS, params, Site::Sampling)?;
+    crate::catalogue::check(SkeletonParams::CHECKS, params, Site::Sampling)?;
     params.envelope.validate()?;
     params.bias.validate()?;
     params.habit.validate()?;
     radii.resolved()?;
     let twigs = params.twigs.resolved()?;
-    crate::catalogue::check(SkeletonParams::ROWS, params, Site::Step)?;
+    crate::catalogue::check(SkeletonParams::CHECKS, params, Site::Step)?;
     if params.habit.attractor_weight > 0.0 && params.attractors == 0 {
         return Err(Error::InvalidInput("attractor weight and attractor count"));
     }

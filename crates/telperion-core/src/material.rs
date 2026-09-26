@@ -17,7 +17,7 @@ impl MaterialParams {
     /// that the material was. A range whose low end is above its high end is
     /// refused by the pair's name: no leaf could be drawn from it.
     pub fn validate(&self) -> Result<()> {
-        crate::catalogue::check(Self::ROWS, self, Site::Material)?;
+        crate::catalogue::check(Self::CHECKS, self, Site::Material)?;
         for (low, high, name) in [
             (self.hue_range_low, self.hue_range_high, "leaf hue range"),
             (

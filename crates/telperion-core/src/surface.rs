@@ -217,7 +217,7 @@ pub(crate) fn height(height: f64) -> Result<()> {
 }
 impl SurfaceParams {
     pub fn validate(&self) -> Result<()> {
-        crate::catalogue::check(Self::ROWS, self, Site::Surface)
+        crate::catalogue::check(Self::CHECKS, self, Site::Surface)
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq)]

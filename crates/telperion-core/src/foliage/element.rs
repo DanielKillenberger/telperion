@@ -239,14 +239,14 @@ impl Element {
 /// profile and its lobes, the transverse section from the roundness, and the
 /// axial ladder from the sections either way.
 pub fn build_element(p: ElementParams) -> Result<Element> {
-    crate::catalogue::check(ElementParams::ROWS, &p, Site::Leaf)?;
+    crate::catalogue::check(ElementParams::CHECKS, &p, Site::Leaf)?;
     range(
         p.connector_length,
         1e-6,
         p.length,
         "foliage connector length",
     )?;
-    crate::catalogue::check(ElementParams::ROWS, &p, Site::LeafCounts)?;
+    crate::catalogue::check(ElementParams::CHECKS, &p, Site::LeafCounts)?;
     // A lobed margin needs a section at every crest and every sinus, plus the
     // base and the tip. Both sides are linear in a blend, and the blend rounds
     // counts the way that keeps them so.

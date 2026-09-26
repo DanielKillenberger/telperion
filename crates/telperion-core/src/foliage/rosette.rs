@@ -100,7 +100,7 @@ pub(super) fn leaflets(p: &CanopyParams) -> usize {
 
 /// Every row on its rail, each refused by its own name.
 pub(crate) fn validate(p: &CanopyParams) -> Result<()> {
-    crate::catalogue::check(CanopyParams::ROWS, p, crate::catalogue::Site::Rosette)
+    crate::catalogue::check(CanopyParams::CHECKS, p, crate::catalogue::Site::Rosette)
 }
 
 /// Every stem apex this tree offers, in identity order. The apex is the last

@@ -10,7 +10,7 @@ pub fn walk(a: &Family, b: &Family, t: f64, f: &mut Family) {
         let (Some(x), Some(y)) = (entry.get(a).number(), entry.get(b).number()) else {
             continue;
         };
-        let value = match entry.info().blend {
+        let value = match entry.blend() {
             Blend::Linear => linear(x, y, t),
             Blend::Weighted => weighted(x, y, t),
             Blend::Degrees => degrees(x, y, t),

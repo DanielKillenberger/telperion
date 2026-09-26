@@ -59,7 +59,7 @@ pub(super) fn validate(
 /// Every row on its rail, each refused by its own name, with no tree to read
 /// them against.
 pub(crate) fn rows(p: CanopyParams, twig: Option<TwigPlacement>) -> Result<()> {
-    crate::catalogue::check(CanopyParams::ROWS, &p, Site::Canopy)?;
+    crate::catalogue::check(CanopyParams::CHECKS, &p, Site::Canopy)?;
     validate_short_shoots(&p)?;
     rosette::validate(&p)?;
     if let Some(t) = twig {
@@ -73,5 +73,5 @@ pub(crate) fn rows(p: CanopyParams, twig: Option<TwigPlacement>) -> Result<()> {
 
 /// The short-shoot rows on their rails.
 pub(super) fn validate_short_shoots(p: &CanopyParams) -> Result<()> {
-    crate::catalogue::check(CanopyParams::ROWS, p, Site::ShortShoots)
+    crate::catalogue::check(CanopyParams::CHECKS, p, Site::ShortShoots)
 }

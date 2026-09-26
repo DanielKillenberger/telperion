@@ -18,19 +18,13 @@
     "reason": "Unit progress or blend weight saturates at its endpoint; the authored length and population remain independent."
   },
   {
-    "path": "crates/telperion-core/src/bias.rs",
-    "site": "if ! [ self . gravitropism , self . lean , self . supernatural . writhe_amplitude , self . supernatural . writhe_wavelength , self . supernatural . spiral_rate , ] . iter ( ) . all ( | v | v . is_finite ( ) & & * v > = 0 . 0 ) {",
-    "classification": "parameter",
-    "reason": "Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."
+    "path": "crates/telperion-core/src/catalogue/check.rs",
+    "site": "const GROUP_LIMIT : usize = 128 ;",
+    "classification": "algorithm",
+    "reason": "The generated scalar check's stack buffer holds one group's rows; `every_group_fits_the_check` keeps every catalogue group within it, so it never limits a family."
   },
   {
-    "path": "crates/telperion-core/src/bias.rs",
-    "site": "if ! self . supernatural . writhe_wavelength . is_finite ( ) | | self . supernatural . writhe_wavelength < = 0 . 0 {",
-    "classification": "parameter",
-    "reason": "Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."
-  },
-  {
-    "path": "crates/telperion-core/src/blend.rs",
+    "path": "crates/telperion-core/src/catalogue/walk.rs",
     "site": ". min ( crate : : foliage : : SHORT_SHOOT_SPACING . 1 )",
     "classification": "parameter",
     "reason": "Sparse short-shoot spacing interpolates within the named validated SHORT_SHOOT_SPACING range."
@@ -364,12 +358,6 @@
     "site": "if stems . len ( ) < 2 {",
     "classification": "algorithm",
     "reason": "An edge or fork requires at least two endpoints/stems; empty/root-only topology has no segment to process."
-  },
-  {
-    "path": "crates/telperion-core/src/branching/specimen.rs",
-    "site": "if ! params . step . is_finite ( ) | | params . step < = 0 . 0 {",
-    "classification": "parameter",
-    "reason": "Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."
   },
   {
     "path": "crates/telperion-core/src/branching/specimen.rs",
@@ -751,12 +739,6 @@
   },
   {
     "path": "crates/telperion-core/src/envelope.rs",
-    "site": "if ! values . iter ( ) . all ( | v | v . is_finite ( ) ) | | self . height < 0 . 0 | | self . spread < 0 . 0 | | ! ( 0 . 0 . . = 1 . 0 ) . contains ( & self . crown_base ) | | ! ( 0 . 0 . . = 1 . 0 ) . contains ( & self . fullness ) | | self . shoulder < = 0 . 0 | | ! ( self . height * self . spread ) . is_finite ( ) {",
-    "classification": "parameter",
-    "reason": "Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."
-  },
-  {
-    "path": "crates/telperion-core/src/envelope.rs",
     "site": "if r < = 0 . 0 | | self . height < = base {",
     "classification": "algorithm",
     "reason": "Degenerate or out-of-domain shell point has no crown volume to sample."
@@ -862,12 +844,6 @@
     "site": "if p . lobe_count > 0 | | p . section_roundness > 0 . {",
     "classification": "algorithm",
     "reason": "Element topology validation and contour construction follow the authored lobe/section anatomy."
-  },
-  {
-    "path": "crates/telperion-core/src/foliage/element.rs",
-    "site": "if p . lobe_count > 8 {",
-    "classification": "parameter",
-    "reason": "Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."
   },
   {
     "path": "crates/telperion-core/src/foliage/element.rs",
@@ -1036,12 +1012,6 @@
     "site": "if extent < = 0 . 0 {",
     "classification": "numeric",
     "reason": "Packed leaf encoding normalizes quaternion/position domains and implements finite binary16 scale limits; no leaf instances are dropped."
-  },
-  {
-    "path": "crates/telperion-core/src/foliage/canopy.rs",
-    "site": "if p . clump > 64 {",
-    "classification": "parameter",
-    "reason": "Existing named parameter/geometry validation rejects invalid input explicitly; it does not silently truncate generation."
   },
   {
     "path": "crates/telperion-core/src/foliage/placement.rs",
@@ -1303,25 +1273,7 @@
   },
   {
     "path": "crates/telperion-core/src/ranges.rs",
-    "site": "const MAX_DROOP : Range = Range ( 0 . , 10 . ) ;",
-    "classification": "parameter",
-    "reason": "Central declared authoring range or default; callers may select values within the validated wire contract."
-  },
-  {
-    "path": "crates/telperion-core/src/ranges.rs",
     "site": "const MAX_NODES : usize = u32 : : MAX as usize ;",
-    "classification": "parameter",
-    "reason": "Central declared authoring range or default; callers may select values within the validated wire contract."
-  },
-  {
-    "path": "crates/telperion-core/src/ranges.rs",
-    "site": "const MAX_TAPER : Range = Range ( 0 . , 64 . ) ;",
-    "classification": "parameter",
-    "reason": "Central declared authoring range or default; callers may select values within the validated wire contract."
-  },
-  {
-    "path": "crates/telperion-core/src/ranges.rs",
-    "site": "const MAX_WRITHE : Range = Range ( 0 . , 8 . ) ;",
     "classification": "parameter",
     "reason": "Central declared authoring range or default; callers may select values within the validated wire contract."
   },
@@ -1372,12 +1324,6 @@
     "site": ". min ( p [ 2 ] as f64 )",
     "classification": "algorithm",
     "reason": "Bounds, radius floors, or array-index containment computed from existing geometry; numeric tokens are component indices, not population limits."
-  },
-  {
-    "path": "crates/telperion-core/src/surface.rs",
-    "site": "if ! [ ( self . radial_segments as f64 , ranges : : SURFACE_RADIAL_SEGMENTS ) , ( self . lobes as f64 , ranges : : SURFACE_LOBES ) , ( self . lobe_depth , ranges : : SURFACE_LOBE_DEPTH ) , ( self . twist_rate , ranges : : SURFACE_TWIST_RATE ) , ( self . flare_radius , ranges : : SURFACE_FLARE_RADIUS ) , ( self . flare_falloff , ranges : : SURFACE_FLARE_FALLOFF ) , ( self . flare_depth , ranges : : UNIT ) , ( self . fork_socket , ranges : : SURFACE_FORK_SOCKET ) , ( self . fork_swell , ranges : : SURFACE_FORK_SWELL ) , ] . iter ( ) . all ( | & ( v , range ) | v . is_finite ( ) & & v > = range . 0 & & v < = range . 1 ) {",
-    "classification": "parameter",
-    "reason": "Named surface authoring bounds live in ranges.rs; validation preserves the existing generic surface parameters error and never silently truncates geometry."
   },
   {
     "path": "crates/telperion-core/src/surface.rs",

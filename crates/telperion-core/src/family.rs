@@ -87,7 +87,7 @@ impl Family {
         foliage::build_element(self.element)?;
         foliage::canopy_rows(self.canopy, Some(TwigPlacement::of(self)?))?;
         Instances::new(Reference::of(self)?).validate()?;
-        crate::catalogue::check(Self::ROWS, self, Site::Shell)
+        crate::catalogue::check(Self::CHECKS, self, Site::Shell)
     }
 }
 

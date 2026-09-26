@@ -288,12 +288,23 @@ impl Info {
     };
 }
 
-/// One row of a group `S`: its wire path and its value inside `S`.
+/// One row of a group `S` as the wire and a walk read it: its path and its
+/// value inside `S`. What the scalar check reads is `S::CHECKS`, and what the
+/// row documents `S::INFO`, both at the same index and kept apart, so a build
+/// that only validates carries no path and one that never renders a row
+/// carries none of its prose.
 pub struct Row<S: 'static> {
     pub path: &'static str,
     pub get: fn(&S) -> &dyn Scalar,
     pub set: fn(&mut S) -> &mut dyn Scalar,
-    pub info: Info,
+    pub blend: Blend,
+}
+
+/// One row of a group `S` as the scalar check reads it.
+pub struct Checked<S: 'static> {
+    pub get: fn(&S) -> &dyn Scalar,
+    pub bounds: Bounds,
+    pub check: Option<Check>,
 }
 
 /// Where `rows!` keeps each field's doc comment as a string, one inherent
@@ -301,11 +312,17 @@ pub struct Row<S: 'static> {
 #[doc(hidden)]
 pub struct Meanings<S>(std::marker::PhantomData<S>);
 
+/// Where `rows!` keeps each row's getter, shared by `ROWS` and `CHECKS`.
+#[doc(hidden)]
+pub struct Getters<S>(std::marker::PhantomData<S>);
+
 /// Declares a parameter group: the struct, with each field's doc comment and
 /// serde attribute as written, and one catalogue row per field that names its
 /// wire key. A row states its key, unit, bounds and the stages that read it;
 /// the rest of `Info` follows in braces where it differs from the default. A
 /// row with no doc comment, and a row that names no stage, does not compile.
+/// `ROWS` carries what the wire reads, `CHECKS` what the scalar check reads
+/// and `INFO` everything declared.
 macro_rules! rows {
     (
         $(#[$meta:meta])*
@@ -331,35 +348,68 @@ macro_rules! rows {
         impl $crate::catalogue::Meanings<$name> {
             $(pub const $field: &'static str = concat!($($doc, "\n",)* "");)*
         }
+        #[allow(non_upper_case_globals)]
+        impl $crate::catalogue::Getters<$name> {
+            $($(
+                #[doc = $key]
+                pub const $field: fn(&$name) -> &dyn $crate::catalogue::Scalar = {
+                    fn get(s: &$name) -> &dyn $crate::catalogue::Scalar {
+                        &s.$field
+                    }
+                    get
+                };
+            )?)*
+        }
         impl $name {
             /// This group's catalogue rows, in declaration order.
             pub const ROWS: &'static [$crate::catalogue::Row<Self>] = &[$($(
-                $crate::catalogue::Row {
-                    path: concat!($prefix, "/", $key),
-                    get: {
-                        fn get(s: &$name) -> &dyn $crate::catalogue::Scalar {
-                            &s.$field
-                        }
-                        get
-                    },
-                    set: {
-                        fn set(s: &mut $name) -> &mut dyn $crate::catalogue::Scalar {
-                            &mut s.$field
-                        }
-                        set
-                    },
-                    info: $crate::catalogue::Info {
-                        meaning: {
-                            let meaning = $crate::catalogue::Meanings::<$name>::$field;
-                            assert!(!meaning.is_empty(), concat!($key, " has no meaning"));
-                            meaning
-                        },
-                        unit: $unit,
+                {
+                    const DECLARED: $crate::catalogue::Info = $crate::catalogue::Info {
                         bounds: $bounds,
-                        reads: &[$($crate::catalogue::Stage::$stage),+],
                         $($($k: $v,)*)?
                         ..$crate::catalogue::Info::OPTIONAL
+                    };
+                    $crate::catalogue::Row {
+                        path: concat!($prefix, "/", $key),
+                        get: $crate::catalogue::Getters::<$name>::$field,
+                        set: {
+                            fn set(s: &mut $name) -> &mut dyn $crate::catalogue::Scalar {
+                                &mut s.$field
+                            }
+                            set
+                        },
+                        blend: DECLARED.blend,
+                    }
+                },
+            )?)*];
+            /// What the scalar check reads of each row, at its index in `ROWS`.
+            pub const CHECKS: &'static [$crate::catalogue::Checked<Self>] = &[$($(
+                {
+                    const DECLARED: $crate::catalogue::Info = $crate::catalogue::Info {
+                        bounds: $bounds,
+                        $($($k: $v,)*)?
+                        ..$crate::catalogue::Info::OPTIONAL
+                    };
+                    $crate::catalogue::Checked {
+                        get: $crate::catalogue::Getters::<$name>::$field,
+                        bounds: DECLARED.bounds,
+                        check: DECLARED.check,
+                    }
+                },
+            )?)*];
+            /// Everything each row declares, at its index in `ROWS`.
+            pub const INFO: &'static [$crate::catalogue::Info] = &[$($(
+                $crate::catalogue::Info {
+                    meaning: {
+                        let meaning = $crate::catalogue::Meanings::<$name>::$field;
+                        assert!(!meaning.is_empty(), concat!($key, " has no meaning"));
+                        meaning
                     },
+                    unit: $unit,
+                    bounds: $bounds,
+                    reads: &[$($crate::catalogue::Stage::$stage),+],
+                    $($($k: $v,)*)?
+                    ..$crate::catalogue::Info::OPTIONAL
                 },
             )?)*];
         }

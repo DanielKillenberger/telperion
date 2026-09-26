@@ -244,6 +244,6 @@ impl Default for HabitParams {
 }
 impl HabitParams {
     pub fn validate(&self) -> Result<()> {
-        crate::catalogue::check(Self::ROWS, self, Site::Habit)
+        crate::catalogue::check(Self::CHECKS, self, Site::Habit)
     }
 }

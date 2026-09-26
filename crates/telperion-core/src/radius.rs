@@ -64,7 +64,7 @@ impl Default for RadiusParams {
 }
 impl RadiusParams {
     pub fn resolved(self) -> Result<Self> {
-        crate::catalogue::check(Self::ROWS, &self, Site::Radius)?;
+        crate::catalogue::check(Self::CHECKS, &self, Site::Radius)?;
         Ok(self)
     }
 }

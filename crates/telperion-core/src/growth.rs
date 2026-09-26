@@ -109,7 +109,7 @@ impl Default for GrowthTraits {
 }
 impl GrowthTraits {
     pub fn validate(self) -> Result<()> {
-        crate::catalogue::check(Self::ROWS, &self, Site::Growth)
+        crate::catalogue::check(Self::CHECKS, &self, Site::Growth)
     }
     pub(crate) fn fraction(self, slice: u64) -> f64 {
         let f = (1.0 - (-self.rate * slice as f64).exp_fixed()).powf_fixed(self.shape);

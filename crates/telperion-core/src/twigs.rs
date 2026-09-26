@@ -346,8 +346,8 @@ impl Default for TwigParams {
 }
 impl TwigParams {
     pub fn resolved(self) -> Result<Self> {
-        crate::catalogue::check(TwigAnatomy::ROWS, &self.twig, Site::Twig)?;
-        crate::catalogue::check(Self::ROWS, &self, Site::Twig)?;
+        crate::catalogue::check(TwigAnatomy::CHECKS, &self.twig, Site::Twig)?;
+        crate::catalogue::check(Self::CHECKS, &self, Site::Twig)?;
         Ok(self)
     }
     pub(crate) fn internodes(self, radius: f64, length: f64) -> usize {

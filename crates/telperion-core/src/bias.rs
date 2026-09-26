@@ -151,14 +151,14 @@ impl BiasParams {
     };
     pub fn validate(&self) -> Result<()> {
         let s = &self.supernatural;
-        crate::catalogue::check(SupernaturalParams::ROWS, s, Site::Writhe)?;
+        crate::catalogue::check(SupernaturalParams::CHECKS, s, Site::Writhe)?;
         if !(TAU * s.spiral_rate * s.writhe_amplitude).is_finite()
             || !(TAU * s.writhe_amplitude / s.writhe_wavelength).is_finite()
         {
             return Err(Error::InvalidInput("supernatural numeric range"));
         }
-        crate::catalogue::check(Self::ROWS, self, Site::Bias)?;
-        crate::catalogue::check(SupernaturalParams::ROWS, s, Site::Bias)
+        crate::catalogue::check(Self::CHECKS, self, Site::Bias)?;
+        crate::catalogue::check(SupernaturalParams::CHECKS, s, Site::Bias)
     }
 }
 #[derive(Clone)]

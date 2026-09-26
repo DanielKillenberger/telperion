@@ -101,11 +101,11 @@ impl Default for Envelope {
 }
 impl Envelope {
     pub fn validate(&self) -> Result<()> {
-        crate::catalogue::check(Self::ROWS, self, Site::Envelope)?;
+        crate::catalogue::check(Self::CHECKS, self, Site::Envelope)?;
         if !(self.height * self.spread).is_finite() {
             return Err(Error::InvalidInput("envelope"));
         }
-        crate::catalogue::check(Self::ROWS, self, Site::Outline)
+        crate::catalogue::check(Self::CHECKS, self, Site::Outline)
     }
     pub fn max_radius(&self) -> f64 {
         self.height * self.spread
