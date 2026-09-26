@@ -8,13 +8,75 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-167-a-motion-design-video-of-telperions",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-167-a-motion-design-video-of-telperions.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "f776da4341fa654f3cdbcfdf232c1b1ef9e7874b58017da8cc164de65e928c02",
+      "backend": "codex",
+      "base_sha": "b1d15d931b773bc59c9dd5fc914c8a9944aa7657",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8cb642214f1b61d6885c40d1941ee230",
+            "classification": "introduced",
+            "findingId": "finding-8cb642214f1b61d6885c40d1941ee230",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e3497694caccf1af2aac12bc1060a4f2",
+            "classification": "introduced",
+            "findingId": "finding-e3497694caccf1af2aac12bc1060a4f2",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "97284a1d63610022a2fbee3ebf054e2ecbcd38f6",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 2096,
+      "output_sha256": "3ee05154eb9bfaddea4f11b31c112ac23bb97c681a9db758d718642371b57cb8",
+      "reservation_id": "fe7516079b1c48a2866f29d285c5e133",
+      "round_consumed": true,
+      "scope": "impl:fn-167-a-motion-design-video-of-telperions.1",
+      "superseded_by": null,
+      "task": "fn-167-a-motion-design-video-of-telperions.1",
+      "timestamp": "2026-09-26T22:21:56.503840Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-167-a-motion-design-video-of-telperions.1": 0
+  },
   "spec_path": ".flow/specs/fn-167-a-motion-design-video-of-telperions.md",
   "status": "open",
   "title": "A motion design video of Telperion's generator",
@@ -29,5 +91,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-26T21:35:31.361081Z"
+  "updated_at": "2026-09-26T22:21:56.506521Z"
 }

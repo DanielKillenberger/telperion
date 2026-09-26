@@ -270,7 +270,10 @@ async function main(): Promise<void> {
       + '<WxH> <frames> <azimuth> <sweep> [first last]');
   }
   if (args.length === 10) return render(args);
-  const count = Number(args[5]), workers = Math.min(availableParallelism() - 2, count);
+  const count = Number(args[5]);
+  if (!Number.isInteger(count) || count < 1) throw new Error(`frames wants a whole number above zero, not ${args[5]}`);
+  // Two cores stay free for the machine; a small one still gets one worker.
+  const workers = Math.max(1, Math.min(availableParallelism() - 2, count));
   const jobs = Array.from({ length: workers }, (_, w) => {
     const first = Math.floor((w * count) / workers), last = Math.floor(((w + 1) * count) / workers) - 1;
     return new Promise<void>((done, fail) => {
