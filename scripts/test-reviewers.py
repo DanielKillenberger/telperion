@@ -407,6 +407,26 @@ class TapeAdapter(unittest.TestCase):
             self.assertTrue(moved.exists() and not stale.exists(), done.stdout)
             self.assertEqual(json.loads(moved.read_text())["key"], digest)
 
+    def test_rekey_keeps_the_newest_answer_when_two_become_one_question(self):
+        """fn-157: an answer recorded before a key change and one recorded
+        after it for the same question collide; the newer one is the run's."""
+        script = Path(__file__).resolve().parent / "tape-adapter.py"
+        with tempfile.TemporaryDirectory() as tmp:
+            argv = ["python3", "scripts/reference-first.py"]
+            asked = {"stage": "comparison", "request": {"joint": {"geometry_group": "old"}}}
+            again = {"stage": "comparison", "request": {"joint": {"geometry_group": "new"}}}
+            folder = Path(tmp) / "adapter"
+            folder.mkdir()
+            for name, stdin, said, when in [("a" * 32, asked, "old", 1000), ("b" * 32, again, "new", 2000)]:
+                entry = folder / f"{name}.json"
+                entry.write_text(json.dumps({"key": name, "argv": argv, "stdin": stdin,
+                                             "stdout": said, "stderr": "", "exit": 0}))
+                import os
+                os.utime(entry, (when, when))
+            subprocess.run([sys.executable, str(script), f"rekey:{tmp}"], check=True, capture_output=True)
+            left = [json.loads(p.read_text())["stdout"] for p in folder.glob("*.json")]
+            self.assertEqual(left, ["new"])
+
 
 if __name__ == "__main__":
     unittest.main()
