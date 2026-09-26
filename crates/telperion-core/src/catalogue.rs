@@ -4,17 +4,20 @@
 //! stages that read it, where the growth path and validation reach it, where
 //! it lies dormant, how a walk between two families moves it and how the
 //! tuning loop may step it. The wire, scalar validation, ordinary blending,
-//! the dial table and `docs/parameters.md` are generated from these entries.
+//! the dial table, `docs/parameters.md` and the browser's parameter metadata
+//! are generated from these entries.
 //!
 //! Dependencies between rows are written as prose on the entry (`applies`,
 //! `note`), never executed: derived values stay in the functions that compute
 //! them at the lifetime their inputs exist.
+mod browser;
 mod check;
 mod mount;
 mod reference;
 mod scalar;
 mod walk;
 
+pub use browser::browser;
 pub use check::check;
 pub use mount::{entries, entry, Entry};
 pub use reference::reference;
