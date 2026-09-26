@@ -16,7 +16,7 @@ Before staging evidence, follow [evidence-retention.md](evidence-retention.md): 
 
 ## Stacked mode
 
-A species run is one GitHub stack (`docs/species-onboarding.md`, "The stack"). When `gh stack view` run on the spec's branch lists a stack, the branch below it in that list is the base: pre-flight compares against `origin/<that branch>`, the export takes `--base origin/<that branch>`, and the PR is opened with `gh pr create --base <that branch>`, never against master. The body's first line under Change names the stack's place: `Stack: <species> <n> of <m>, above <branch below>`. Nothing in this procedure merges; the stack merges once, by the owner.
+A species run is one GitHub stack (`docs/species-onboarding.md`, "The stack"). When `gh stack view` run on the spec's branch lists a stack, the branch below it in that list is the base: pre-flight compares against `origin/<that branch>`, the export takes `--base origin/<that branch>`, and the PR is opened with `gh pr create --base <that branch>`, never against master. The body's first line under Change names the stack's place: `Stack: <species> <n> of <m>, above <branch below>`. Nothing in this procedure merges. Each PR merges as soon as it is ready, bottom first, and the rest of the stack is rebased onto master (owner, 2026-09-26).
 
 ## Body
 

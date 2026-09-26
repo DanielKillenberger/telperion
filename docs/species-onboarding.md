@@ -50,7 +50,7 @@ A species run's pull requests go in together as one GitHub stack (`gh stack`, ow
 - **A fix.** A gap spec is worked on its own branch as usual. When its task is done it goes in below the species: on a stack branch run `gh stack unstack --local`, then `gh stack init <fix 1> ... <new fix> <species branch>` bottom to top, then `gh stack rebase --no-trunk`. GitHub takes new PRs only on top of a stack, so once the stack's PRs exist the GitHub side is rebuilt too: `gh stack unstack <number>` removes it on GitHub and `gh stack link <PRs bottom to top>` links it again in the new order. Its PR follows `docs/pr-format.md`'s stacked mode.
 - **Landing.** The fix's commit on the stack changes the render tools the runner builds, so the next `species <id>` reruns Tune on the stack without a master merge.
 - **Linear.** Stack branches are rebased, never merged into. `gh stack rebase` brings master up the stack.
-- **Merge.** After the owner ticks the checklist, the owner merges the whole stack with `gh stack merge`, all or nothing. No stage and no driver runs it. A fix another species also needs lands alone first, by the owner's word, and leaves the stack.
+- **Merge.** Each PR merges as soon as it is ready, from the bottom of the stack up (owner, 2026-09-26): a gap PR keeps every other preset byte-identical, so it is safe on master alone. The species PR merges after the owner ticks the checklist. The rest of the stack is then rebased onto master.
 - **Admission.** The species spec is driven by `add-species` and the runner, not selected by `flow --auto`, so `flowctl spec chain`'s single-parent rule does not gate it; its dependencies stay for the record.
 
 ## One command per species
