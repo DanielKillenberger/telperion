@@ -89,7 +89,7 @@ earlier stage current; an edit between runs still reruns it.
 | Start | the profile's values mapped onto dials (`data/profile-to-preset.json`) | `runner/start.json` |
 | Tune | one tuning revision (`docs/tuning-loop.md`) | `runner/tuning/<n>/`, `runner/tuning/result.json` |
 | Gaps | every trait still failing and every unsourced field, classed | `runner/gaps.json`, `runner/gaps.md` |
-| Accept | the owner's look; with `--accept`, the tree into core as the species' preset and its pins | `crates/telperion-core/src/presets/species.rs` (and `presets.rs` for a new species), `pins.json`, `stills.json`, `runner/accepted.json` |
+| Accept | the owner's look; with `--accept`, the tree into core as the species' preset and its pins | `crates/telperion-core/presets/<id>.values` (and `presets.rs` for a new species), `pins.json`, `stills.json`, `runner/accepted.json` |
 
 Every stage's word goes to `runner/log.jsonl`, with each open decision the
 run logged and did not wait on.
@@ -135,10 +135,11 @@ A run stops for two things, and prints `STOPPED:` with the reason:
   `packet/capability.json`.
 - **The owner's look.** The owner looks at the tuned tree in the harness and
   runs `species <id> --accept`. Accepting refreshes the folder's pins and
-  stills, and writes the tree into `presets/species.rs` in the shipped
-  presets' style: a shipped species keeps its function and comments, with
-  each moved row's line set or added under the acceptance's note; a new
-  species gets a function of every row off the default family and its
+  stills, and writes the tree into its preset value file,
+  `crates/telperion-core/presets/<id>.values`, with core's writer: a shipped
+  species keeps its file's lines and comments, with each moved row's line set
+  or added under the acceptance's note; a new species gets a file of every
+  row off the default family and its
   registration in `presets.rs`. It is refused, with core untouched, while
   `scripts/catalogue-check.mjs` fails the folder or does not run. An
   acceptance names the tree's key, so a later revision waits for a look of

@@ -19,9 +19,9 @@ mod walk;
 
 pub use browser::browser;
 pub use check::check;
-pub use mount::{entries, entry, Entry};
+pub use mount::{entries, entry, locate, Entry};
 pub use reference::reference;
-pub use scalar::{Kind, Scalar};
+pub use scalar::{Kind, Scalar, Typed};
 pub use walk::{degrees, density, linear, walk, weighted};
 
 /// A stage of the one pipeline that reads a row on the direct build.
@@ -84,7 +84,7 @@ impl Bounds {
     pub const fn or_zero(self) -> Self {
         Self { zero: true, ..self }
     }
-    pub fn admits(self, v: f64) -> bool {
+    pub const fn admits(self, v: f64) -> bool {
         let low = if self.low_open {
             v > self.low
         } else {
@@ -302,6 +302,7 @@ impl Info {
 /// carries none of its prose.
 pub struct Row<S: 'static> {
     pub path: &'static str,
+    pub kind: Kind,
     /// The row's rank on the wire before the catalogue: decoding refuses the
     /// first malformed value in this order.
     pub wire: u16,
@@ -382,6 +383,7 @@ macro_rules! rows {
                     };
                     $crate::catalogue::Row {
                         path: concat!($prefix, "/", $key),
+                        kind: <$ty as $crate::catalogue::Typed>::KIND,
                         wire: DECLARED.wire,
                         get: $crate::catalogue::Getters::<$name>::$field,
                         set: {

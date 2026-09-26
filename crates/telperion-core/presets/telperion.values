@@ -1,0 +1,50 @@
+# Telperion, the silver tree.
+# Rows off the default family, checked against the catalogue as core compiles.
+
+/skeleton/seed = 1
+/skeleton/attractors = 1600
+
+# The Two Trees are an order of magnitude taller than a forest tree,
+# and every spacing here is a length in metres.
+/skeleton/habit/apicalDominance = 0.15
+/skeleton/habit/whorlStrength = 0.2
+/skeleton/habit/leaderInternode = 10.0
+/skeleton/habit/lateralsPerStation = 4
+/skeleton/habit/lateralSpacing = 10.0
+/skeleton/habit/lateralLengthRatio = 0.45
+/skeleton/envelope/height = 148.0
+/skeleton/envelope/crownBase = 0.38
+/skeleton/envelope/spread = 0.24
+/skeleton/envelope/fullness = 0.58
+/skeleton/envelope/shoulder = 1.5
+/skeleton/bias/gravitropism = 0.95
+/skeleton/bias/lean = 0.04
+/skeleton/bias/supernatural/enabled = true
+/skeleton/bias/supernatural/writheAmplitude = 0.11
+/skeleton/bias/supernatural/writheWavelength = 0.34
+/skeleton/bias/supernatural/spiralRate = 2.6
+/skeleton/twigs/twig/length = 0.5
+/skeleton/twigs/internodeFactor = 3.5
+/skeleton/twigs/laterals = 4
+/skeleton/growth/maxTurnPerStep = 26.0
+/radii/trunkRadius = 0.05
+/radii/forkExponent = 2.15
+/radii/lengthTaper = 0.75
+/surface/lobes = 7
+/surface/lobeDepth = 0.11
+/surface/twistRate = 2.4
+/surface/flareRadius = 2.0
+/canopy/spacing = 0.0045
+/canopy/clump = 6
+/canopy/clumpSpan = 0.28
+/canopy/outward = 0.42
+/canopy/upward = 0.55
+/canopy/scatter = 14.0
+/canopy/sizeVariation = 0.28
+/material/fissureStrength = 0.12
+/material/crestStrength = 0.1
+/material/barkMottleStrength = 0.05
+/material/cavityStrength = 0.2
+/material/bladeMottleStrength = 0.04
+/material/cuticleGloss = 0.25
+/material/skyOcclusionStrength = 0.2

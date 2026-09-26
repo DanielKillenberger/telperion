@@ -3,8 +3,8 @@
 use std::path::{Path, PathBuf};
 
 use serde_json::{json, Value};
-use telperion_core::presets::Preset;
-use telperion_jev::runner::preset::{self, Names};
+use telperion_core::presets::{values, Preset};
+use telperion_jev::runner::preset::Names;
 use telperion_jev::runner::{accept, pins, tune};
 
 fn scratch(name: &str) -> PathBuf {
@@ -21,19 +21,25 @@ fn repo() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
-/// A repository root holding copies of the two preset sources, a catalogue
-/// check that prints `stderr` and exits `code`, and a page renderer.
+const VALUES: &str = "crates/telperion-core/presets";
+
+/// A repository root holding copies of the preset registry and value files,
+/// a catalogue check that prints `stderr` and exits `code`, and a page
+/// renderer.
 fn root(dir: &Path, stderr: &str, code: i32) -> PathBuf {
     let root = dir.join("repo");
-    let presets = root.join("crates/telperion-core/src/presets");
-    std::fs::create_dir_all(&presets).unwrap();
+    std::fs::create_dir_all(root.join(VALUES)).unwrap();
+    std::fs::create_dir_all(root.join("crates/telperion-core/src")).unwrap();
     std::fs::create_dir_all(root.join("scripts")).unwrap();
-    for file in [
-        "crates/telperion-core/src/presets.rs",
-        "crates/telperion-core/src/presets/species.rs",
-        "crates/telperion-core/src/presets/originals.rs",
-    ] {
-        std::fs::copy(repo().join(file), root.join(file)).unwrap();
+    let registry = "crates/telperion-core/src/presets.rs";
+    std::fs::copy(repo().join(registry), root.join(registry)).unwrap();
+    for entry in std::fs::read_dir(repo().join(VALUES)).unwrap() {
+        let name = entry.unwrap().file_name();
+        std::fs::copy(
+            repo().join(VALUES).join(&name),
+            root.join(VALUES).join(&name),
+        )
+        .unwrap();
     }
     let script = format!(
         "process.stderr.write({});\nprocess.exit({code});\n",
@@ -88,7 +94,7 @@ fn the_palm_s_pins_are_the_ones_its_catalogue_records() {
 }
 
 #[test]
-fn an_accepted_palm_sets_the_moved_rows_of_its_function_and_its_pins() {
+fn an_accepted_palm_sets_the_moved_rows_of_its_value_file_and_its_pins() {
     let dir = scratch("palm");
     let root = root(&dir, "", 0);
     let folder = folder(&dir);
@@ -96,18 +102,25 @@ fn an_accepted_palm_sets_the_moved_rows_of_its_function_and_its_pins() {
     let moved = json!({"canopy": {"leafBases": 200, "skirtFronds": 16}, "shellDepth": 0.8});
     std::fs::write(&path, result("date-palm", "k1", moved).to_string()).unwrap();
     let word = accept::run(&root, &palm(), &folder, &path, &dir).unwrap();
-    assert!(word.contains("2 rows of fn date_palm set"), "{word}");
-    let species =
-        std::fs::read_to_string(root.join("crates/telperion-core/src/presets/species.rs")).unwrap();
-    assert!(species.contains("    p.canopy.leaf_bases = 200;\n"));
-    assert!(species.contains("    p.shell_depth = 0.8;\n"));
     assert!(
-        !species.contains("p.canopy.leaf_bases = 256;"),
+        word.contains("2 rows of crates/telperion-core/presets/date-palm.values set"),
+        "{word}"
+    );
+    let file = std::fs::read_to_string(root.join(VALUES).join("date-palm.values")).unwrap();
+    assert!(file.contains("\n/canopy/leafBases = 200\n"));
+    assert!(file.contains("\n/shellDepth = 0.8\n"));
+    assert!(
+        !file.contains("/canopy/leafBases = 256"),
         "the old line stayed"
     );
     // Its comments and every row it did not move stay as they were.
-    assert!(species.contains("// The trunk organs (fn-110)"));
-    assert!(species.contains("    p.canopy.skirt_fronds = 16;\n"));
+    assert!(file.contains("# The trunk organs (fn-110)"));
+    assert!(file.contains("\n/canopy/skirtFronds = 16\n"));
+    let accepted = accept::family(&path).unwrap();
+    assert_eq!(
+        format!("{:?}", values::read(&file).unwrap()),
+        format!("{accepted:?}")
+    );
     let pins: Value =
         serde_json::from_str(&std::fs::read_to_string(folder.join("pins.json")).unwrap()).unwrap();
     assert_eq!(pins["species"], "date-palm");
@@ -133,34 +146,26 @@ fn a_new_species_is_written_and_registered_from_its_template() {
         scientific: "Phoenix canariensis".into(),
     };
     let word = accept::run(&root, &names, &folder, &path, &dir).unwrap();
-    assert!(word.contains("fn canary_palm written"), "{word}");
+    assert!(word.contains("canary-palm.values written"), "{word}");
     let read = |p: &str| std::fs::read_to_string(root.join(p)).unwrap();
-    let species = read("crates/telperion-core/src/presets/species.rs");
-    assert!(species.contains("pub(super) fn canary_palm(p: &mut Family) {"));
-    assert!(species.contains("    p.canopy.leaf_bases = 64;\n"));
-    assert!(species.contains("    p.skeleton.envelope.height = 22.86;\n"));
+    let file = read("crates/telperion-core/presets/canary-palm.values");
+    assert!(file.starts_with("# Canary Island date palm, Phoenix canariensis.\n"));
+    assert!(file.contains("\n/canopy/leafBases = 64\n"));
+    assert!(file.contains("\n/skeleton/envelope/height = 22.86\n"));
+    let accepted = accept::family(&path).unwrap();
+    assert_eq!(
+        format!("{:?}", values::read(&file).unwrap()),
+        format!("{accepted:?}")
+    );
     let presets = read("crates/telperion-core/src/presets.rs");
     for line in [
         "    CanaryPalm,\n",
         "    (8, \"canary-palm\", \"Canary Island date palm\", \"Phoenix canariensis\"),\n",
         "            Self::CanaryPalm => Some(\"canary-palm\"),\n",
         "            \"canary-palm\" => Some(Self::CanaryPalm),\n",
-        "        if self == Self::CanaryPalm {\n            species::canary_palm(&mut p);",
     ] {
         assert!(presets.contains(line), "presets.rs lacks {line:?}");
     }
-}
-
-#[test]
-fn a_row_off_the_default_family_is_its_rust_literal() {
-    assert_eq!(
-        preset::field("/skeleton/habit/lateralPitch"),
-        "skeleton.habit.lateral_pitch"
-    );
-    assert_eq!(preset::literal(&json!(2.0), false).unwrap(), "2.0");
-    assert_eq!(preset::literal(&json!(256), false).unwrap(), "256");
-    assert_eq!(preset::literal(&json!(0.5), true).unwrap(), "Some(0.5)");
-    assert_eq!(preset::literal(&Value::Null, true).unwrap(), "None");
 }
 
 #[test]
@@ -178,11 +183,11 @@ fn an_acceptance_is_refused_while_the_catalogue_entry_fails_or_the_check_does_no
     let refused = root(&dir, failing, 1);
     let err = accept::run(&refused, &palm(), &folder, &path, &dir).unwrap_err();
     assert!(err.contains("schema is not"), "{err}");
-    let species = refused.join("crates/telperion-core/src/presets/species.rs");
+    let file = refused.join(VALUES).join("date-palm.values");
     assert!(
-        std::fs::read_to_string(&species)
+        std::fs::read_to_string(&file)
             .unwrap()
-            .contains("p.canopy.leaf_bases = 256;"),
+            .contains("\n/canopy/leafBases = 256\n"),
         "a refused acceptance wrote the preset"
     );
     let crashed = root(&dir, "TypeError: undefined\n", 1);
@@ -205,7 +210,7 @@ fn an_acceptance_is_refused_while_the_catalogue_entry_fails_or_the_check_does_no
 }
 
 #[test]
-fn an_accepted_oak_sets_its_function_where_it_lives() {
+fn an_accepted_oak_adds_a_row_its_file_left_at_the_default() {
     let dir = scratch("oak");
     let root = root(&dir, "", 0);
     let folder = folder(&dir);
@@ -218,15 +223,14 @@ fn an_accepted_oak_sets_its_function_where_it_lives() {
         scientific: "Quercus garryana".into(),
     };
     let word = accept::run(&root, &names, &folder, &path, &dir).unwrap();
-    assert!(word.contains("1 rows of fn oregon_white_oak set"), "{word}");
-    let originals =
-        std::fs::read_to_string(root.join("crates/telperion-core/src/presets/originals.rs"))
-            .unwrap();
-    // Its height sits in a struct literal, so the acceptance adds the row.
     assert!(
-        originals.contains("    p.skeleton.envelope.height = 25.0;\n"),
-        "{originals}"
+        word.contains("1 rows of crates/telperion-core/presets/oregon-white-oak.values set"),
+        "{word}"
     );
+    let file = std::fs::read_to_string(root.join(VALUES).join("oregon-white-oak.values")).unwrap();
+    // The oak's height is the default's, so the acceptance adds the row.
+    let added = "(species runner, fn-149).\n/skeleton/envelope/height = 25.0\n";
+    assert!(file.ends_with(added), "{file}");
 }
 
 /// fn-149: the run's own catalogue (`species --catalogue`), not the

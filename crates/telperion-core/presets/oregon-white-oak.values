@@ -1,0 +1,129 @@
+# Oregon white oak, Quercus garryana (fn19).
+# Rows off the default family, checked against the catalogue as core compiles.
+
+# Mature, open-grown Quercus garryana. Metre dimensions are
+# calibrated against the frozen profile, not inferred from seed.
+/skeleton/habit/apicalDominance = 0.1
+/skeleton/habit/whorlStrength = 0.1
+/skeleton/habit/leaderInternode = 2.0
+/skeleton/habit/lateralsPerStation = 5
+/skeleton/habit/lateralPitch = 55.0
+/skeleton/habit/pitchVariation = 20.0
+/skeleton/habit/risePrimary = 0.12
+/skeleton/habit/crookedness = 24.0
+/skeleton/habit/lateralSpacing = 1.6
+/skeleton/habit/lateralLengthRatio = 0.45
+/skeleton/habit/attractorWeight = 0.0
+/skeleton/habit/twigTipTaper = 0.25
+/skeleton/habit/sheddingThreshold = 0.0
+/skeleton/envelope/crownBase = 0.16
+/skeleton/envelope/spread = 0.55
+/skeleton/envelope/fullness = 0.55
+/skeleton/bias/gravitropism = 0.0
+/skeleton/bias/lean = 0.0
+/skeleton/twigs/laterals = 4
+/skeleton/twigs/lengthRatio = 0.45
+/skeleton/twigs/twig/bearingDiameter = 0.03
+/radii/trunkRadius = 0.018
+
+# Five lobes on an envelope whose crests sit where the retired
+# five-lobe table reached; the sinuses cut deeper than that table
+# did, which is the shape a Quercus garryana leaf actually holds.
+/element/length = 0.1
+/element/width = 0.075
+/element/connectorLength = 0.012
+/element/widestAt = 0.55
+/element/baseFullness = 0.6
+/element/tipSharpness = 0.6
+/element/lobeCount = 5
+/element/lobeDepth = 0.7
+
+# Four stations to a half-lobe, landing exactly on every crest
+# and every sinus: fewer and the margin is drawn as the zigzag
+# between them rather than as the curve through them.
+/element/axialSegments = 40
+
+# Retain interior leaf-bearing shoots in the healthy open-grown crown.
+/shellDepth = 1.0
+
+# Blades alternate along the shoot and lean a quarter of the
+# radial toward its tip; nothing pulls them outward or up.
+/canopy/forwardLean = 0.25
+/canopy/outward = 0.0
+/canopy/upward = 0.0
+/canopy/divergence = 180.0
+/canopy/sizeVariation = 0.2
+
+# Pale grey-brown furrowed bark; a dark glossy blade over a
+# markedly paler underside. Linear, from the frozen profile's
+# prose, and calibrated against the photographs in fn-14.6.
+/material/barkRed = 0.185
+/material/barkGreen = 0.175
+/material/barkBlue = 0.158
+/material/barkRoughness = 0.85
+/material/barkGrainScale = 0.0025
+/material/barkGrainStrength = 0.2
+
+# Neutral: no young wood until the oak's own table states it.
+/material/shootRed = 0.225
+/material/shootGreen = 0.218
+/material/shootBlue = 0.198
+/material/leafFrontRed = 0.028
+/material/leafFrontGreen = 0.102
+/material/leafFrontBlue = 0.016
+/material/leafBackRed = 0.153
+/material/leafBackGreen = 0.254
+/material/leafBackBlue = 0.112
+/material/brightnessRangeLow = -0.15
+/material/brightnessRangeHigh = 0.15
+/material/interiorDarkening = 0.55
+/material/ridgeScale = 0.032
+/material/plateScale = 0.055
+/material/furrowStrength = 0.55
+/material/roughnessDetail = 0.12
+/material/veinScale = 7.0
+/material/veinContrast = 0.45
+/material/transmissionStrength = 0.55
+/material/transmissionRed = 0.24
+/material/transmissionGreen = 0.52
+/material/transmissionBlue = 0.07
+/material/thickness = 0.65
+/material/fissureRed = -0.025
+/material/fissureGreen = -0.062
+/material/fissureBlue = -0.04
+/material/fissureStrength = 0.65
+/material/crestRed = 0.1
+/material/crestGreen = 0.085
+/material/crestBlue = 0.055
+/material/crestStrength = 0.5
+/material/barkMottleScale = 0.8
+/material/barkMottleStrength = 0.2
+/material/cavityStrength = 0.6
+/material/bladeMottleScale = 6.0
+/material/bladeMottleStrength = 0.15
+/material/marginWidth = 0.08
+/material/marginRed = 0.025
+/material/marginGreen = 0.035
+/material/marginBlue = 0.006
+/material/cuticleGloss = 0.35
+/material/skyOcclusionStrength = 0.5
+/material/plateCellScale = 0.055
+/material/plateElongation = 1.8
+/material/plateDome = 0.18
+/material/plateEdgeLift = 0.35
+/material/plateEdgeShape = 1.0
+/material/plateIdentity = 0.5
+/material/weatheringStrength = 0.425
+/material/weatheringRed = 0.0225
+/material/weatheringGreen = 0.035
+/material/weatheringBlue = 0.00575
+/material/orientationStrength = 0.40625
+/material/orientationRed = -0.062
+/material/orientationGreen = 0.009
+/material/orientationBlue = -0.1535
+/material/directionalOcclusion = 1.0
+/material/depthStrength = 0.5375
+
+# Left at the default family:
+# Neutral: a card lit alone, until this table states its canopy.
+# Plated bark: no lichen, lenticel or peel term of fn-40's.

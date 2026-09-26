@@ -1,0 +1,274 @@
+# European beech, Fagus sylvatica.
+# Rows off the default family, checked against the catalogue as core compiles.
+
+# Mature open-grown Fagus sylvatica. Envelope height is the 32 m
+# reference at 120 yr; oak growth traits, not a beech calibration.
+/age = 120.0
+
+# The winter photograph (B-BARE, fn-54): a straight trunk clear to about
+# a fifth of the height, a core that stays the thickest wood to about
+# half of it and runs on toward the top, and limbs that leave it 25 to
+# 40 degrees from vertical and rise straight alongside it before they
+# spread; their side branches rise with them, so the fine wood is an
+# upward broom and not a tangle. Stations 2.6 m apart from a crown base
+# of 1.9 m put the first limbs at 2.6 m, two a station at 28 degrees,
+# barely bending (0.1) and hardly crooked. The leader runs to four fifths of
+# the height; limbs this steep carry less of the crown's top than
+# round 11's level ones did, so the core holds its girth without them
+# leaving at 65 degrees. Side branches run two thirds of their limb and
+# leave it level with its own heading, which is what widens the lower
+# crown: the limbs themselves stay close to the core.
+/skeleton/habit/apicalDominance = 0.8
+/skeleton/habit/whorlStrength = 0.15
+/skeleton/habit/leaderInternode = 2.6
+/skeleton/habit/lateralsPerStation = 2
+/skeleton/habit/lateralPitch = 28.0
+/skeleton/habit/pitchVariation = 6.0
+/skeleton/habit/risePrimary = 0.1
+/skeleton/habit/crookedness = 3.0
+/skeleton/habit/lateralSpacing = 2.0
+/skeleton/habit/lateralLengthRatio = 0.65
+/skeleton/habit/attractorWeight = 0.0
+/skeleton/habit/twigTipTaper = 0.25
+/skeleton/habit/sheddingThreshold = 0.0
+
+# An upright oval, widest a little below the middle of the crown and
+# rounding to its top (B-BARE: width over height about 0.74). The shell
+# starts at 0.06 of the height, so no wood and no leaf stands under 1.9 m.
+/skeleton/envelope/height = 32.0
+/skeleton/envelope/crownBase = 0.06
+/skeleton/envelope/spread = 0.36
+/skeleton/envelope/fullness = 0.3
+/skeleton/envelope/shoulder = 1.8
+
+# A beech's crown is lumpy where its limbs end and hollow where they
+# do not. Four or five broad lobes around a wavelength most of the
+# tree's own height, at not quite a fifth of the radius.
+/skeleton/envelope/irregularity = 0.18
+/skeleton/envelope/lobeScale = 0.7
+/skeleton/bias/gravitropism = 0.0
+/skeleton/bias/lean = 0.0
+
+# The twig law is two generations deep and says so: a lateral born at
+# generation two is a twig whatever the pipe model left its radius.
+/skeleton/twigs/generations = 2
+/skeleton/twigs/laterals = 4
+
+# The twig layer starts on wood under 0.28 of the trunk's radius, so the
+# side branches of steep limbs carry shoots along most of their length
+# and the crown's inside is not bare wood under a shell of leaves.
+/skeleton/twigs/limbRadius = 0.28
+
+# Four twig laterals a station fill the crown; a twig a quarter of its
+# parent's length pays for them and for the wider twig layer, so the
+# heaviest protocol seed stays well under the node ceiling.
+/skeleton/twigs/lengthRatio = 0.23
+
+# Short shoots carry most of the leaves, so the long shoots only have
+# to spread the crown: each stands out at 40 degrees, rising with the
+# broom its limb makes, turned by the golden angle, with a leaf every
+# 5 cm. Two-ranked at 32 degrees with a leaf every 2 cm, every spray was
+# a flat frond and the crown read as a hemlock (owner and host, round 11).
+/skeleton/twigs/angle = 40.0
+/skeleton/twigs/divergence = 137.5
+/skeleton/twigs/twig/internodeLength = 0.05
+/skeleton/twigs/twig/bearingDiameter = 0.03
+
+# A trunk a little over a metre through at breast height, a third of
+# the default taper per metre, and a fork exponent of 2.9: a parent's
+# radius is the n-th root of the sum of its children's n-th powers, so a
+# higher n lets the core keep its girth ("much more thick core trunks
+# for almost the entire height", owner, round 5c). Round 6 found a cliff
+# at 2.8 under limbs at 48 degrees, where a few degrees of limb angle
+# collapsed the twig layer; under these steep limbs every protocol seed
+# grows its whole twig layer.
+/radii/trunkRadius = 0.016
+/radii/lengthTaper = 0.2
+/radii/forkExponent = 2.9
+
+# A beech stands on a modest flare, not the oak's buttress.
+/surface/flareRadius = 1.5
+/element/length = 0.08
+/element/width = 0.05
+/element/connectorLength = 0.008
+/element/widestAt = 0.45
+/element/baseFullness = 0.75
+/element/tipSharpness = 0.7
+/element/axialSegments = 8
+/shellDepth = 1.0
+
+# Most of a beech's leaves stand in clusters all along its limbs and
+# deep inside the crown, on any wood under 0.7 of the trunk's radius,
+# which twig wood alone left bare. A cluster of eight leaves fanned a
+# half circle every 3 cm, held 20 cm off the wood: longer than a spur,
+# it stands where a leafy side shoot holds its leaves, so each limb
+# wears a sleeve of rosettes. Five leaves every 2.5 cm, 5 cm off, lined
+# every shoot with a comb of level leaves, and the crown's edge read as
+# fern fronds against the sky (host, round 17). They stand where the
+# slender wood's own row of leaves stood, so that row is off.
+/canopy/shortShootSpacing = 0.03
+/canopy/shortShootRadius = 0.7
+/canopy/shortShootLength = 0.2
+/canopy/shortShootLeaves = 8
+/canopy/shortShootSpread = 90.0
+
+# Each limb system keeps a leaf mass of its own (fn-54): the leaves are
+# thinned within a quarter of the way from the wall between two
+# systems to their centres, so the crown breaks into rounded clumps
+# with gaps between them, as B-WHOLE's does; the spurs stand a
+# centimetre closer than round 18's to give back what the gaps take.
+/canopy/limbClumping = 0.25
+
+# A beech leaf is held flat and turned every way about its shoot;
+# leaning along it (0.45) laid the leaves down the twig like needles.
+# Scattered 80 degrees rather than 45, fewer lie edge-on to an eye
+# below the crown, where a level leaf reads as a needle.
+/canopy/forwardLean = 0.1
+/canopy/outward = 0.0
+/canopy/upward = 0.3
+
+# A tenth larger with less spread, so the largest leaf stays inside
+# the sourced 4 to 10 cm.
+/canopy/size = 1.1
+/canopy/divergence = 180.0
+/canopy/scatter = 80.0
+/canopy/sizeVariation = 0.12
+
+# fn-40: B-BASE's smooth grey reads 132/133/138 at the centre of its
+# close-up; the old 0.36/0.335/0.295 drew it at 96/101/106 under the
+# shot's sun and sky, and this row draws it at 127/133/138.
+/material/barkRed = 0.54
+/material/barkGreen = 0.5
+/material/barkBlue = 0.44
+
+# Rough, not glossy, in the oak's and the spruce's range after the
+# owner read the close-ups as plastic. At B-BASE's own light the old
+# 0.4 highlight was already all but unseen; 0.95 leaves a sheen of
+# three code values, where 0.9 left five.
+/material/barkRoughness = 0.95
+
+# Young shoots light olive- to grey-brown (VT Dendrology, Fagus
+# sylvatica: "slender, zigzag, light brown"; OSU: stems olive-brown),
+# grey by the second or third year. B-BARE's winter crown haze reads
+# linear 0.064/0.055/0.033 to 0.149/0.136/0.097 on its own exposure,
+# R:G:B 1:0.86:0.52 in its darker band. The birch's matched still
+# drew a row redder by 0.85 in green and 0.78 in blue, so the row is
+# set greener than the band; unrendered until the beech's table lands.
+# Smooth grey from about 1.6 cm across.
+/material/shootRed = 0.14
+/material/shootGreen = 0.13
+/material/shootBlue = 0.085
+/material/shootRadius = 0.004
+
+# B-WHOLE's own leaf pixels, its centre crop, read linear
+# 1:1.78:1.06, a grey green. The blade is set greyer than the old
+# 1:4.8:0.8 front and lighter on both faces: an olive front and a
+# pale grey-green back. The render lands greener than either face,
+# 1:2.17:1.04, because what passes through the leaf adds its own
+# green: with both faces black the centre still reads 38/57/40.
+/material/leafFrontRed = 0.08
+/material/leafFrontGreen = 0.15
+/material/leafFrontBlue = 0.05
+/material/leafBackRed = 0.21
+/material/leafBackGreen = 0.28
+/material/leafBackBlue = 0.15
+
+/material/hueRangeLow = -0.02
+/material/hueRangeHigh = 0.02
+/material/brightnessRangeLow = -0.1
+/material/brightnessRangeHigh = 0.1
+/material/interiorDarkening = 0.35
+
+# Smooth bark: the ridge field only as a 2 mm grain with no furrow and
+# no tint. At a centimetre and more it drew vertical wavy ridges with
+# bright rims on B-BASE; tinted at 2 mm, a crackle glaze.
+/material/ridgeScale = 0.002
+/material/plateScale = 0.04
+/material/furrowStrength = 0.0
+/material/roughnessDetail = 0.08
+/material/veinScale = 7.0
+/material/veinContrast = 0.4
+/material/transmissionStrength = 0.5
+/material/transmissionRed = 0.22
+/material/transmissionGreen = 0.5
+/material/transmissionBlue = 0.08
+/material/thickness = 0.6
+/material/fissureRed = -0.04
+/material/fissureGreen = -0.03
+/material/fissureBlue = -0.02
+/material/crestRed = 0.06
+/material/crestGreen = 0.055
+/material/crestBlue = 0.045
+/material/barkMottleScale = 0.12
+/material/barkMottleStrength = 0.1
+/material/cavityStrength = 0.35
+/material/bladeMottleScale = 5.0
+/material/bladeMottleStrength = 0.1
+/material/marginWidth = 0.04
+/material/marginRed = 0.02
+/material/marginGreen = 0.04
+/material/marginBlue = 0.008
+
+# A matte cuticle's glint: at 0.48, the glossiest leaf in the
+# catalogue, the sun's white highlight read as plastic (owner,
+# fn-54); the oak's is 0.35 and the birch's 0.28.
+/material/cuticleGloss = 0.18
+/material/skyOcclusionStrength = 0.35
+
+# A dense crown lit as one mass (fn-52): the lighting normal bends
+# most of the way to the crown's outward direction and the sun wraps
+# a little past the terminator, so the sky-lit top and the sunward
+# shell carry the crown. A thin blade transmits close to evenly
+# (Jacquemoud & Ustin 2019, Leaf Optical Properties), sky and sun
+# alike. The glossy cuticle's sheen sits above a smooth wax's 0.04:
+# B-WHOLE's brightest centre pixels are a pale, sky-lit green,
+# 149/180/152, not sky; at 0.1 the whole crown greyed. Set against
+# B-WHOLE's centre, sRGB 71/94/74 under overcast, where this row
+# drew 61/84/65 before the short shoots.
+/material/canopyNormal = 0.8
+/material/lightWrap = 0.4
+/material/diffuseTransmission = 1.0
+/material/leafSheen = 0.08
+
+# The crown over a leaf takes its sky, so the dome's underside falls
+# into its own shade: B-WHOLE's leaf mass falls from 125 at the top
+# sixth to 52 at the bottom, and 0.15 a radius drew 91 to 55, where
+# no shade drew the bottom brighter than the middle. Under the short
+# shoots' denser mass, 0.1 lifts the centre by two and a half points
+# over 0.15 and still falls from 126 at the top sixth to 76.
+/material/crownShade = 0.1
+
+# Each clump of leaves takes the sky from what hangs under it (fn-54):
+# B-WHOLE's crown reads as lit billows with shade pockets under and
+# between them, which one smooth ellipsoid cannot draw. The whole of
+# the row, so a leaf under a full clump sees none of the sky its
+# own mass holds off.
+/material/lobeShade = 0.7
+
+# B-BASE: lichen in few patches of widely varied size, the small ones
+# bright white and the broad ones thin grey-green, and a few faint
+# horizontal lines. No strip peels.
+/material/lichenScale = 0.04
+/material/lichenCoverage = 0.5
+/material/lichenRed = 0.8
+/material/lichenGreen = 0.82
+/material/lichenBlue = 0.76
+/material/lichenStrength = 1.0
+/material/lenticelDensity = 6.0
+/material/lenticelLength = 0.08
+/material/lenticelStrength = 0.25
+/material/lenticelTint = -0.3
+
+# fn-55: a dielectric's foot under the one highlight, and the blade's
+# cells between its veins at ninety a blade. fn-71 sets the bark's
+# grain at 2 mm cells, three pixels at B-BASE's 1440, where the
+# close-up reads 2.37 against the resolution contract's 3.0; 1 mm
+# cells sat on the half-size still's Nyquist edge and read 2.76.
+/material/barkGrainScale = 0.002
+/material/barkGrainStrength = 0.3
+/material/bladeGrainScale = 90.0
+/material/bladeGrainStrength = 0.3
+
+# Left at the default family:
+# The default dead colour: this table keeps no skirt to show it on.
+# No plate network: smooth bark has none to draw.

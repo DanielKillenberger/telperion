@@ -1,0 +1,51 @@
+# Laurelin, the golden tree.
+# Rows off the default family, checked against the catalogue as core compiles.
+
+/skeleton/seed = 2
+/skeleton/attractors = 1060
+
+# The Two Trees are an order of magnitude taller than a forest tree,
+# and every spacing here is a length in metres.
+/skeleton/habit/apicalDominance = 0.15
+/skeleton/habit/whorlStrength = 0.2
+/skeleton/habit/leaderInternode = 10.0
+/skeleton/habit/lateralsPerStation = 4
+/skeleton/habit/lateralSpacing = 10.0
+/skeleton/habit/lateralLengthRatio = 0.45
+/skeleton/envelope/height = 132.0
+/skeleton/envelope/crownBase = 0.24
+/skeleton/envelope/spread = 0.58
+/skeleton/envelope/fullness = 0.38
+/skeleton/envelope/shoulder = 3.2
+/skeleton/bias/gravitropism = 0.55
+/skeleton/bias/lean = 0.06
+/skeleton/bias/supernatural/enabled = true
+/skeleton/bias/supernatural/writheAmplitude = 0.05
+/skeleton/bias/supernatural/writheWavelength = 0.8
+/skeleton/bias/supernatural/spiralRate = 0.6
+/skeleton/twigs/twig/length = 0.5
+/skeleton/twigs/internodeFactor = 6.0
+/skeleton/growth/maxTurnPerStep = 46.0
+/radii/trunkRadius = 0.055
+/radii/forkExponent = 2.7
+/radii/lengthTaper = 0.35
+/surface/lobes = 4
+/surface/lobeDepth = 0.24
+/surface/twistRate = 0.8
+/surface/flareRadius = 3.1
+/canopy/spacing = 0.0065
+/canopy/divergence = 99.502
+/canopy/clump = 9
+/canopy/clumpSpan = 0.36
+/canopy/outward = 0.72
+/canopy/upward = 0.22
+/canopy/scatter = 22.0
+/canopy/size = 1.5
+/canopy/sizeVariation = 0.4
+/material/fissureStrength = 0.12
+/material/crestStrength = 0.1
+/material/barkMottleStrength = 0.05
+/material/cavityStrength = 0.2
+/material/bladeMottleStrength = 0.04
+/material/cuticleGloss = 0.3
+/material/skyOcclusionStrength = 0.2

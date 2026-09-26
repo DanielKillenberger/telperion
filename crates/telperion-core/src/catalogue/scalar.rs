@@ -25,6 +25,11 @@ impl Kind {
     }
 }
 
+/// A row type's kind, known where no value is at hand.
+pub trait Typed {
+    const KIND: Kind;
+}
+
 /// One row's value, whatever its type.
 pub trait Scalar {
     fn kind(&self) -> Kind;
@@ -39,6 +44,9 @@ pub trait Scalar {
 }
 macro_rules! scalar {
     ($($t:ty => $kind:ident, |$v:ident| $number:expr, |$p:ident| $put:expr;)+) => {$(
+        impl Typed for $t {
+            const KIND: Kind = Kind::$kind;
+        }
         impl Scalar for $t {
             fn kind(&self) -> Kind {
                 Kind::$kind
