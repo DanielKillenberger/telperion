@@ -15,7 +15,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-154-agentsmd-is-the-one-instruction-file.md",
-  "status": "open",
+  "status": "done",
   "title": "AGENTS.md is the one instruction file",
   "tracker": {
     "baseHashFlow": null,
@@ -28,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-25T14:39:42.743430Z"
+  "updated_at": "2026-09-26T13:49:26.948989Z"
 }

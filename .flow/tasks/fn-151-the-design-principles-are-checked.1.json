@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-151-the-design-principles-are-checked",
   "spec_path": ".flow/tasks/fn-151-the-design-principles-are-checked.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "The design principles are checked before a push",
   "updated_at": "2026-09-25T14:41:47.106874Z"
 }
