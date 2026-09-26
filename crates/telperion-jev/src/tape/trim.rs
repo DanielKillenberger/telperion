@@ -384,6 +384,19 @@ pub fn rekey(tape: &Path) -> Result<Vec<String>, String> {
                 continue;
             }
             let (from, to) = (dir.join(&old[..32]), dir.join(&new[..32]));
+            // An answer already filed under its right key is the run's; a
+            // stale one for the same question is dropped, not written over it.
+            let filed = read_json(&to.with_extension("json")).ok();
+            if filed.is_some_and(|f| f["key"] == new.as_str()) {
+                std::fs::remove_file(from.with_extension("json")).map_err(|e| e.to_string())?;
+                let _ = std::fs::remove_file(from.with_extension("bin"));
+                moved.push(format!(
+                    "{kind} {} dropped: answered under {}",
+                    &old[..12],
+                    &new[..12]
+                ));
+                continue;
+            }
             entry["key"] = new.clone().into();
             write_canonical(&to.with_extension("json"), &entry).map_err(|e| e.to_string())?;
             std::fs::remove_file(from.with_extension("json")).map_err(|e| e.to_string())?;

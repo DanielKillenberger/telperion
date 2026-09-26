@@ -138,7 +138,8 @@ fn rekey_never_overwrites_an_answer_already_under_its_key() {
     let current = serde_json::json!({"key": right, "request": request, "response": {"ok": "new"}});
     std::fs::write(at(&right), current.to_string()).unwrap();
     let stale_key = "e".repeat(64);
-    let stale = serde_json::json!({"key": stale_key, "request": request, "response": {"ok": "old"}});
+    let stale =
+        serde_json::json!({"key": stale_key, "request": request, "response": {"ok": "old"}});
     std::fs::write(at(&stale_key), stale.to_string()).unwrap();
     super::rekey(&tape).unwrap();
     let kept: serde_json::Value =
