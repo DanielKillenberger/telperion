@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-162-deprecated-parameter-rows-leave-the",
+  "created_at": "2026-09-26T12:15:42.546620Z",
+  "depends_on_epics": [],
+  "id": "fn-162-deprecated-parameter-rows-leave-the",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-162-deprecated-parameter-rows-leave-the.md",
+  "status": "open",
+  "title": "Deprecated parameter rows leave the package",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-26T12:15:42.552600Z"
+}
