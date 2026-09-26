@@ -449,12 +449,8 @@ fn the_sheet_never_says_which_render_the_loop_is_standing_on() {
         "the label code recorded is not where the current tree is"
     );
     // The order is decided by the whole set, so it is stable for that set.
-    let again = sheet::order(&plan.order);
-    assert_eq!(
-        sheet::order(&["current".into(), "half".into(), "one".into(), "two".into()]).len(),
-        4
-    );
-    assert_eq!(again.len(), 4);
+    let again = plan(&["current", "half", "one", "two"]);
+    assert_eq!(again.order, plan.order);
 }
 
 fn steps(ranking: &[&str], grades: &[Grade]) -> Vec<Step> {
@@ -927,7 +923,11 @@ fn a_track_judged_at_one_view_is_judged_on_that_view_alone() {
 #[test]
 fn the_sheet_orders_renders_by_what_they_show_not_the_run() {
     let shas = |plan: &sheet::Plan| -> Vec<String> {
-        plan.request.renders.iter().map(|r| r.sha256.clone()).collect()
+        plan.request
+            .renders
+            .iter()
+            .map(|r| r.sha256.clone())
+            .collect()
     };
     let here = plan(&["key-a0", "key-a1", "key-a2", "key-a3"]);
     let there = plan(&["key-b0", "key-b1", "key-b2", "key-b3"]);

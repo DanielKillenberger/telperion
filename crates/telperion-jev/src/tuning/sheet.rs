@@ -98,17 +98,22 @@ pub struct Plan {
     pub current: String,
 }
 
-/// The order the renders are shown in: decided by all the keys together, so
-/// it is stable for the same set and readable off none of them.
-pub fn order(keys: &[String]) -> Vec<String> {
-    let seed = sha256_hex(&serde_json::to_vec(keys).unwrap());
-    let mut rows = keys
+/// The trial keys in the order their renders are shown: decided by the
+/// renders' bytes together, never by a key, which hashes the run identity
+/// and so the run's paths (fn-157); the same stills lay out the same sheet
+/// in any directory. Identical renders keep the order they came in.
+fn by_image(stills: &[(String, Image)]) -> Vec<String> {
+    let shas: Vec<&str> = stills.iter().map(|(_, i)| i.sha256.as_str()).collect();
+    let seed = sha256_hex(&serde_json::to_vec(&shas).unwrap());
+    let mut rows: Vec<(String, usize)> = shas
         .iter()
-        .cloned()
-        .map(|key| (sha256_hex(format!("{seed}|{key}").as_bytes()), key))
-        .collect::<Vec<_>>();
+        .enumerate()
+        .map(|(at, sha)| (sha256_hex(format!("{seed}|{sha}").as_bytes()), at))
+        .collect();
     rows.sort();
-    rows.into_iter().map(|(_, key)| key).collect()
+    rows.into_iter()
+        .map(|(_, at)| stills[at].0.clone())
+        .collect()
 }
 
 /// The sheet for one round: the current tree and its variants, shuffled.
@@ -124,12 +129,7 @@ pub fn plan(
 ) -> Result<Plan, String> {
     let mut stills: Vec<(String, Image)> = vec![(current.0.to_owned(), current.1.clone())];
     stills.extend(variants.iter().cloned());
-    let shuffled = order(
-        &stills
-            .iter()
-            .map(|(key, _)| key.clone())
-            .collect::<Vec<_>>(),
-    );
+    let shuffled = by_image(&stills);
     let request = Request {
         schema: VERSION.into(),
         target_species: species.into(),
