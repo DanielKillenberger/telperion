@@ -2,8 +2,9 @@
 //! bytes under either schedule, and the earliest failing stage's error.
 use super::*;
 use crate::{
+    pipeline::surface,
     presets::{Preset, CATALOGUE, IN_WORK},
-    surface, Error,
+    Error,
 };
 use std::cell::Cell;
 

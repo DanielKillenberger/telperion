@@ -7,19 +7,19 @@ pub use super::input::LeafInput;
 use super::{GrowInput, Inputs, Request};
 use crate::{
     envelope::Envelope,
-    foliage::{
+    mesh::{self, TreeMesh},
+    pipeline::foliage::{
         self,
         prepared::{self, PreparedStations},
-        CanopyParams, Element, Instances, Leaf, Reference, TwigPlacement,
+        CanopyParams, Element, ElementParams, Instances, Leaf, Reference, TwigPlacement,
     },
-    mesh::{self, TreeMesh},
-    presets::Family,
-    surface::{
+    pipeline::surface::{
         self,
         compact::{CompactSurface, CompactWithContacts},
         prepared::{PreparedSurface, PreparedWithContacts},
         SurfaceMesh,
     },
+    presets::Family,
     tree::Tree,
     Error, Result,
 };
@@ -35,6 +35,19 @@ pub fn grow(family: &Family) -> Result<Grown> {
     let tree = super::skeleton(GrowInput::of(family))?.tree;
     let inputs = Inputs::of(family);
     Ok(Grown { tree, inputs })
+}
+
+/// A solved tree the caller already holds, read with this family's inputs:
+/// the same expansion `grow` leads to, for a tree the executor was handed
+/// (its tests' hand-built trees). Building a tree stays inside the pipeline.
+pub fn expand(tree: Tree, family: &Family) -> Result<Expansion> {
+    let inputs = Inputs::of(family);
+    Grown { tree, inputs }.expansion()
+}
+
+/// The leaf element built from its rows, as the plan stage builds it.
+pub fn element(params: ElementParams) -> Result<Element> {
+    foliage::build_element(params)
 }
 
 impl Grown {
@@ -208,3 +221,6 @@ pub(crate) fn present(
         bounds,
     })
 }
+
+#[cfg(test)]
+mod tests;

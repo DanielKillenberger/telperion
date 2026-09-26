@@ -1,7 +1,7 @@
 //! Native-only feasibility diagnostic; never selected by a generation request.
 use super::*;
 use std::time::Instant;
-use telperion_core::surface::compact::{self, CompactSurface};
+use telperion_core::surface::compact::CompactSurface;
 
 struct Candidate {
     positions: wgpu::Buffer,
@@ -295,10 +295,14 @@ fn compact_position_edge_cases() {
             flare_radius: 1.0,
             ..Default::default()
         };
-        let p = compact::prepare(&tree, 24.0, &params).unwrap();
+        let p = crate::generation::expanded(&tree, 24.0, &params)
+            .compact()
+            .unwrap();
         let candidate = execute(&g, &shader, &p);
         let xyz = read(&g, &candidate, p.vertices);
-        let cpu = surface::build(&tree, 24.0, &params).unwrap();
+        let cpu = crate::generation::expanded(&tree, 24.0, &params)
+            .wood()
+            .unwrap();
         let report = compare(label, &p, &candidate, &xyz, &cpu);
         println!("POSITION_EDGE {report}");
         assert_eq!(
@@ -316,19 +320,33 @@ fn compact_position_edge_cases() {
             ..Tree::default()
         },
     ] {
-        let p = compact::prepare(&tree, 1.0, &SurfaceParams::default()).unwrap();
+        let p = crate::generation::expanded(&tree, 1.0, &SurfaceParams::default())
+            .compact()
+            .unwrap();
         assert_eq!(p.vertices, 0);
         let c = execute(&g, &shader, &p);
         assert_eq!((c.status[3], c.status[7]), (0, 0));
     }
     let mut invalid = super::tree(2);
     invalid.nodes[0].position.x = 1e40;
-    assert!(compact::prepare(&invalid, 1.0, &SurfaceParams::default()).is_err());
-    assert!(compact::prepare(&super::tree(2), 0.0, &SurfaceParams::default()).is_err());
-    let mut p = compact::prepare(&super::tree(2), 1.0, &SurfaceParams::default()).unwrap();
+    assert!(
+        crate::generation::expanded(&invalid, 1.0, &SurfaceParams::default())
+            .compact()
+            .is_err()
+    );
+    assert!(
+        crate::generation::expanded(&super::tree(2), 0.0, &SurfaceParams::default())
+            .compact()
+            .is_err()
+    );
+    let mut p = crate::generation::expanded(&super::tree(2), 1.0, &SurfaceParams::default())
+        .compact()
+        .unwrap();
     p.rings[0][0] = f32::INFINITY.to_bits();
     assert!(execute(&g, &shader, &p).status[3] > 0);
-    let mut p = compact::prepare(&super::tree(2), 1.0, &SurfaceParams::default()).unwrap();
+    let mut p = crate::generation::expanded(&super::tree(2), 1.0, &SurfaceParams::default())
+        .compact()
+        .unwrap();
     for ring in &mut p.rings {
         ring[0] = 1e30_f32.to_bits();
         ring[1] = (f32::from_bits(ring[1]) * 1e30).to_bits();
@@ -362,8 +380,10 @@ fn compact_position_mature_measurement() {
                 .unwrap()
                 .parameters();
             f.skeleton.seed = seed;
-            let tree = branching::generate(&f.skeleton, f.radii).unwrap().tree;
-            let height = f.skeleton.envelope.height;
+            let x = telperion_core::pipeline::executor::grow(&f)
+                .unwrap()
+                .expansion()
+                .unwrap();
             let mut times = Vec::new();
             let mut reference_times = Vec::new();
             for sample in 0..if std::env::var_os("FN91_VALIDATION_ONLY").is_some() {
@@ -372,13 +392,11 @@ fn compact_position_mature_measurement() {
                 4
             } {
                 let start = Instant::now();
-                let canonical = surface::prepared::prepare(&tree, height, &f.surface)
-                    .unwrap()
-                    .unwrap();
+                let canonical = x.prepared_wood().unwrap().unwrap();
                 let canonical_ms = millis(start);
                 drop(canonical);
                 let start = Instant::now();
-                let p = compact::prepare(&tree, height, &f.surface).unwrap();
+                let p = x.compact().unwrap();
                 let prep_ms = millis(start);
                 let c = execute(&g, &shader, &p);
                 let total = prep_ms + c.upload_ms + c.completion_ms;
@@ -391,13 +409,13 @@ fn compact_position_mature_measurement() {
                     reference_times.push(canonical_ms);
                 }
             }
-            let p = compact::prepare(&tree, height, &f.surface).unwrap();
+            let p = x.compact().unwrap();
             let c = execute(&g, &shader, &p);
             let xyz = read(&g, &c, p.vertices);
             let again = execute(&g, &shader, &p);
             assert_eq!(xyz, read(&g, &again, p.vertices));
             assert_eq!(c.status, again.status);
-            let cpu = surface::build(&tree, height, &f.surface).unwrap();
+            let cpu = x.wood().unwrap();
             let mut report = compare(&format!("{species}-{seed}"), &p, &c, &xyz, &cpu);
             times.sort_by(f64::total_cmp);
             reference_times.sort_by(f64::total_cmp);

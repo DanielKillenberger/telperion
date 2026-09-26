@@ -113,7 +113,7 @@ tokens with wall time. No call cap is hardcoded.
 
 ## What the sweep left as code
 
-The hand-rolled JSON scan in `crates/telperion-core/tests/foliage_reference.rs`
+The hand-rolled JSON scan in `crates/telperion-core/src/suite/foliage_reference.rs`
 and the stdout regex in `tests/species.mjs` are code fixes, not Jev work.
 Jev judges text and structured state, never a still. The species QA runner
 keeps exiting non-zero while a visual inspection is unassessed.

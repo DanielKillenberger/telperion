@@ -7,13 +7,19 @@ fn production_contract(
     height: f64,
     label: &str,
 ) {
-    let p = compact::prepare(tree, height, params).unwrap();
+    let p = crate::generation::expanded(tree, height, params)
+        .compact()
+        .unwrap();
     assert!(p.qualified(), "{label} must qualify");
     let mut metrics = Metrics::default();
-    let uploaded = pollster::block_on(g.emit_positions(
-        compact::prepare(tree, height, params).unwrap(),
-        &mut metrics,
-    ))
+    let uploaded = pollster::block_on(
+        g.emit_positions(
+            crate::generation::expanded(tree, height, params)
+                .compact()
+                .unwrap(),
+            &mut metrics,
+        ),
+    )
     .unwrap()
     .unwrap();
     let bounds = uploaded.bounds;
@@ -23,17 +29,23 @@ fn production_contract(
         .unwrap();
     assert_eq!(wood.positions.buffer(), &position_buffer);
     let xyz = super::super::floats(g, &wood.positions);
-    let again = pollster::block_on(g.emit_positions(
-        compact::prepare(tree, height, params).unwrap(),
-        &mut metrics,
-    ))
+    let again = pollster::block_on(
+        g.emit_positions(
+            crate::generation::expanded(tree, height, params)
+                .compact()
+                .unwrap(),
+            &mut metrics,
+        ),
+    )
     .unwrap()
     .unwrap();
     assert_eq!(
         io::read(&g.gpu, &again.positions, p.vertices as u64 * 12).unwrap(),
         bytemuck::cast_slice::<f32, u8>(&xyz)
     );
-    let cpu = surface::build(tree, height, params).unwrap();
+    let cpu = crate::generation::expanded(tree, height, params)
+        .wood()
+        .unwrap();
     let mut status = [0u32; 8];
     if let Some(b) = bounds {
         for (i, v) in [b.min.x, b.min.y, b.min.z].into_iter().enumerate() {
@@ -133,14 +145,19 @@ fn production_positions_admit_geometry_and_reject_unsupported_inputs() {
             production_contract(&g, &tree, &params, 24.0, label);
         } else {
             let mut metrics = Metrics::default();
-            assert!(pollster::block_on(g.emit_positions(
-                compact::prepare(&tree, 24.0, &params).unwrap(),
-                &mut metrics
-            ))
+            assert!(pollster::block_on(
+                g.emit_positions(
+                    crate::generation::expanded(&tree, 24.0, &params)
+                        .compact()
+                        .unwrap(),
+                    &mut metrics
+                )
+            )
             .unwrap()
             .is_none());
             assert_eq!(metrics.position_fallback, Some("precision domain"));
-            assert!(surface::prepared::prepare(&tree, 24.0, &params)
+            assert!(crate::generation::expanded(&tree, 24.0, &params)
+                .prepared_wood()
                 .unwrap()
                 .is_some());
         }
@@ -152,15 +169,21 @@ fn production_positions_admit_geometry_and_reject_unsupported_inputs() {
             ..Default::default()
         },
     ] {
-        let w = pollster::block_on(g.emit_positions(
-            compact::prepare(&tree, 1.0, &params).unwrap(),
-            &mut Metrics::default(),
-        ))
+        let w = pollster::block_on(
+            g.emit_positions(
+                crate::generation::expanded(&tree, 1.0, &params)
+                    .compact()
+                    .unwrap(),
+                &mut Metrics::default(),
+            ),
+        )
         .unwrap()
         .unwrap();
         assert_eq!((w.vertices, w.index_count, w.bounds), (0, 0, None));
     }
-    let mut collapsed = compact::prepare(&super::super::tree(2), 1.0, &params).unwrap();
+    let mut collapsed = crate::generation::expanded(&super::super::tree(2), 1.0, &params)
+        .compact()
+        .unwrap();
     let centre = collapsed.rings[0][0..12].to_vec();
     for r in &mut collapsed.rings {
         r[0..12].copy_from_slice(&centre);
@@ -178,10 +201,14 @@ fn production_positions_admit_geometry_and_reject_unsupported_inputs() {
     pollster::block_on(io::errors(&g.gpu, scopes)).unwrap();
     g.gpu.device.destroy();
     let scopes = io::scope(&g.gpu);
-    let result = pollster::block_on(g.emit_positions(
-        compact::prepare(&super::super::tree(2), 1.0, &params).unwrap(),
-        &mut metrics,
-    ));
+    let result = pollster::block_on(
+        g.emit_positions(
+            crate::generation::expanded(&super::super::tree(2), 1.0, &params)
+                .compact()
+                .unwrap(),
+            &mut metrics,
+        ),
+    );
     let error = pollster::block_on(io::errors(&g.gpu, scopes));
     assert!(result.is_err() || error.is_err());
 }
@@ -201,7 +228,12 @@ fn production_position_mature_contracts() {
                 .unwrap()
                 .parameters();
             f.skeleton.seed = seed;
-            let tree = branching::generate(&f.skeleton, f.radii).unwrap().tree;
+            let tree = telperion_core::pipeline::executor::grow(&f)
+                .unwrap()
+                .expansion()
+                .unwrap()
+                .tree()
+                .clone();
             production_contract(
                 &g,
                 &tree,

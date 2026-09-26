@@ -1,6 +1,6 @@
 //! Native half of the native/wasm node-buffer parity test. Wire order is slots 6/7.
 use std::io::{self, Read, Write};
-use telperion_core::{branching, params};
+use telperion_core::{params, pipeline, specimen::SpecimenStore};
 
 fn main() {
     let id = std::env::args().nth(1).expect("family identity");
@@ -12,27 +12,34 @@ fn main() {
     let mut placements = Vec::new();
     let tree = if let Some(age) = age {
         f.age = age;
-        let mut specimen = if mode == "--import" {
+        // The growth path's own handle, at its default history.
+        let mut store = SpecimenStore::default();
+        let handle = if mode == "--import" {
             let mut bytes = Vec::new();
             io::stdin().read_to_end(&mut bytes).unwrap();
-            branching::Specimen::from_snapshot(&bytes).unwrap()
+            store.import(&bytes).unwrap()
         } else {
-            branching::Specimen::build(&f).unwrap()
+            store.build(&f, 10_000.0).unwrap()
         };
         if mode == "--export" {
             io::stdout()
-                .write_all(&specimen.snapshot().unwrap())
+                .write_all(&store.snapshot(handle).unwrap())
                 .unwrap();
             return;
         }
-        if age > specimen.age() {
-            specimen.advance(age - specimen.age()).unwrap();
+        let frontier = store.specimen(handle).unwrap().age();
+        if age > frontier {
+            store.advance(handle, age - frontier).unwrap();
         }
-        let read = specimen.read_at_age(age).unwrap();
+        let read = store.read(handle, Some(age)).unwrap();
         placements = read.placements;
         read.tree
     } else {
-        branching::generate(&f.skeleton, f.radii).unwrap().tree
+        // A request for no output runs the skeleton stage alone.
+        pipeline::build(&f, pipeline::Request::default())
+            .unwrap()
+            .skeleton
+            .tree
     };
     let mut out = io::BufWriter::new(io::stdout().lock());
     for n in &tree.nodes {

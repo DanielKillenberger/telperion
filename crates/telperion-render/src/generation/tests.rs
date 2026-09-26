@@ -2,10 +2,19 @@ use super::*;
 use telperion_core::{
     foliage::{Reference, TwigPlacement},
     math::Vec3,
-    pipeline::executor::LeafInput,
+    pipeline::executor::{self, Expansion, LeafInput},
     tree::{Node, NodeKind, Tree},
     Family,
 };
+
+/// A hand-built tree prepared through the interface, the family's twig rows
+/// set to `twig`.
+fn expansion(tree: &Tree, f: &Family, twig: TwigPlacement) -> Expansion {
+    let mut f = f.clone();
+    f.skeleton.twigs.twig.internode_length = twig.internode_length;
+    f.skeleton.twigs.twig.stations_per_internode = twig.stations_per_internode;
+    executor::expand(tree.clone(), &f).unwrap()
+}
 
 /// The rows the GPU packs, read off a test family.
 fn leaves(f: &Family) -> LeafInput {
@@ -63,28 +72,34 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
         internode_length: 0.07,
         stations_per_internode: 3,
     };
-    let reference = Reference::spanning(Vec3::new(-2.0, -1.0, -2.0), Vec3::new(2.0, 3.0, 2.0));
-    let element = foliage::build_element(f.element).unwrap();
+    let element = executor::element(f.element).unwrap();
     for (angle, shell) in [(0.0, 1.0), (0.73, 0.01)] {
         f.shell_depth = shell;
         let tree = fixture(angle);
-        let prepare = || {
-            foliage::prepared::prepare_stations(
-                &tree,
-                f.skeleton.envelope,
-                f.canopy,
-                Some(twig),
-                &f.surface,
-            )
-            .unwrap()
-            .unwrap()
-        };
+        let x = expansion(&tree, &f, twig);
+        // The GPU packs the box the CPU reference quantises against.
+        let reference = x.reference();
+        let prepare = || expansion(&tree, &f, twig).stations().unwrap().unwrap();
         let mut metrics = Metrics::default();
         let first = generator
-            .compute(prepare(), &leaves(&f), twig, &element, reference, &mut metrics)
+            .compute(
+                prepare(),
+                &leaves(&f),
+                twig,
+                &element,
+                reference,
+                &mut metrics,
+            )
             .unwrap();
         let second = generator
-            .compute(prepare(), &leaves(&f), twig, &element, reference, &mut metrics)
+            .compute(
+                prepare(),
+                &leaves(&f),
+                twig,
+                &element,
+                reference,
+                &mut metrics,
+            )
             .unwrap();
         let a = io::read(
             &generator.gpu,
@@ -99,18 +114,8 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
         )
         .unwrap();
         assert_eq!(a, b);
-        let shared =
-            surface::prepared::prepare_with_contacts(&tree, f.skeleton.envelope.height, &f.surface)
-                .unwrap()
-                .unwrap();
-        let p = foliage::prepared::prepare_shared_stations(
-            &shared,
-            f.skeleton.envelope,
-            f.canopy,
-            Some(twig),
-        )
-        .unwrap()
-        .unwrap();
+        let shared = x.prepared_with_contacts().unwrap().unwrap();
+        let p = x.shared_stations(&shared).unwrap().unwrap();
         let (segments, count, ring_size) = (p.segments, p.count, p.ring_size);
         let uploaded = generator
             .upload_wood(shared.into_surface(), &mut metrics)
@@ -146,18 +151,16 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
             .unwrap();
         assert_eq!(wood.positions.buffer(), &positions);
 
-        let placed = foliage::place_on_surface(
-            &tree,
-            f.skeleton.envelope,
-            f.skeleton.seed,
-            f.canopy,
-            Some(twig),
-            &f.surface,
-            reference,
-        )
-        .unwrap();
-        let cpu =
-            foliage::cull(placed.clone(), &element, f.skeleton.envelope, f.shell_depth).unwrap();
+        // The pipeline's CPU leaves on the same tree, and before the cull
+        // (a shell of one keeps every leaf).
+        let cpu = x.mesh().unwrap().foliage.instances;
+        let mut whole = f.clone();
+        whole.shell_depth = 1.0;
+        let placed = expansion(&tree, &whole, twig)
+            .mesh()
+            .unwrap()
+            .foliage
+            .instances;
         if shell < 1.0 {
             assert!(!cpu.is_empty() && cpu.len() < placed.len());
         }
@@ -233,47 +236,20 @@ fn preparation_capabilities_and_failures_are_explicit() {
     let mut f = Family::default();
     let twig = TwigPlacement::default();
     f.canopy.short_shoot_spacing = 0.1;
-    assert!(foliage::prepared::prepare_stations(
-        &tree,
-        f.skeleton.envelope,
-        f.canopy,
-        Some(twig),
-        &f.surface
-    )
-    .unwrap()
-    .is_none());
+    assert!(expansion(&tree, &f, twig).stations().unwrap().is_none());
     f.canopy.size = f64::NAN;
-    assert!(foliage::prepared::prepare_stations(
-        &tree,
-        f.skeleton.envelope,
-        f.canopy,
-        Some(twig),
-        &f.surface
-    )
-    .is_err());
+    assert!(expansion(&tree, &f, twig).stations().is_err());
     f.canopy.size = 1.0;
     f.canopy.short_shoot_spacing = 0.0;
     f.canopy.max_instances = 1;
-    assert!(foliage::prepared::prepare_stations(
-        &tree,
-        f.skeleton.envelope,
-        f.canopy,
-        Some(twig),
-        &f.surface
-    )
-    .is_err());
+    assert!(expansion(&tree, &f, twig).stations().is_err());
     f.canopy.size = 0.0;
     assert_eq!(
-        foliage::prepared::prepare_stations(
-            &tree,
-            f.skeleton.envelope,
-            f.canopy,
-            Some(twig),
-            &f.surface
-        )
-        .unwrap()
-        .unwrap()
-        .count,
+        expansion(&tree, &f, twig)
+            .stations()
+            .unwrap()
+            .unwrap()
+            .count,
         0
     );
 }
@@ -287,14 +263,13 @@ fn foreign_prepared_result_preserves_the_live_tree() {
     let mut destination = Renderer::new(gpu, crate::STILL_FORMAT);
     let f = Family::default();
     let tree = fixture(0.0);
-    let mesh = mesh::assemble(&tree, &f).unwrap();
+    let mesh = executor::expand(tree.clone(), &f).unwrap().mesh().unwrap();
     destination.submit(&mesh).unwrap();
     let previous = destination.bounds();
     let previous_region = destination.foliage_region();
     let generator = Generator::new(&source).unwrap();
-    let compact = surface::prepared::prepare(&tree, f.skeleton.envelope.height, &f.surface)
-        .unwrap()
-        .unwrap();
+    let x = executor::expand(tree.clone(), &f).unwrap();
+    let compact = x.prepared_wood().unwrap().unwrap();
     let wood = pollster::block_on(generator.expand_wood(compact, &mut Metrics::default())).unwrap();
     assert!(wood.is_some());
     let previous_wood = destination.wood.regions();
@@ -334,15 +309,7 @@ fn huge_phases_fall_back_but_supported_large_ordinals_keep_orientation() {
         internode_length: 1e-6,
         stations_per_internode: 1,
     };
-    assert!(foliage::prepared::prepare_stations(
-        &tree,
-        f.skeleton.envelope,
-        f.canopy,
-        Some(tiny),
-        &f.surface
-    )
-    .unwrap()
-    .is_none());
+    assert!(expansion(&tree, &f, tiny).stations().unwrap().is_none());
     f.canopy.divergence = 137.5;
     f.canopy.scatter = 0.0;
     f.canopy.outward = 0.0;
@@ -354,15 +321,7 @@ fn huge_phases_fall_back_but_supported_large_ordinals_keep_orientation() {
         internode_length: 0.07,
         stations_per_internode: 3,
     };
-    let mut p = foliage::prepared::prepare_stations(
-        &tree,
-        f.skeleton.envelope,
-        f.canopy,
-        Some(twig),
-        &f.surface,
-    )
-    .unwrap()
-    .unwrap();
+    let mut p = expansion(&tree, &f, twig).stations().unwrap().unwrap();
     p.segments.truncate(1);
     p.count = 256;
     let segment = &mut p.segments[0];
@@ -375,9 +334,16 @@ fn huge_phases_fall_back_but_supported_large_ordinals_keep_orientation() {
     segment.phase = [base.sin(), base.cos()];
     let frame = segment.frame;
     let reference = Reference::spanning(Vec3::new(-2.0, -1.0, -2.0), Vec3::new(2.0, 3.0, 2.0));
-    let element = foliage::build_element(f.element).unwrap();
+    let element = executor::element(f.element).unwrap();
     let output = generator
-        .compute(p, &leaves(&f), twig, &element, reference, &mut Metrics::default())
+        .compute(
+            p,
+            &leaves(&f),
+            twig,
+            &element,
+            reference,
+            &mut Metrics::default(),
+        )
         .unwrap();
     let bytes = io::read(
         &generator.gpu,
@@ -485,16 +451,10 @@ fn compact_positions_seat_contacts_on_the_rendered_surface() {
         stations_per_internode: 3,
     };
     let reference = Reference::spanning(Vec3::new(-2.0, -1.0, -2.0), Vec3::new(2.0, 3.0, 2.0));
-    let element = foliage::build_element(f.element).unwrap();
-    let shared = surface::compact::prepare_with_contacts(&tree, 2.0, &f.surface).unwrap();
-    let p = foliage::prepared::prepare_compact_stations(
-        &shared,
-        f.skeleton.envelope,
-        f.canopy,
-        Some(twig),
-    )
-    .unwrap()
-    .unwrap();
+    let element = executor::element(f.element).unwrap();
+    let x = expansion(&tree, &f, twig);
+    let shared = x.compact_with_contacts().unwrap();
+    let p = x.compact_stations(&shared).unwrap().unwrap();
     let mut metrics = Metrics::default();
     let wood = pollster::block_on(g.emit_positions(shared.into_surface(), &mut metrics))
         .unwrap()
@@ -506,9 +466,15 @@ fn compact_positions_seat_contacts_on_the_rendered_surface() {
         ring_size: p.ring_size,
         rings: std::borrow::Cow::Borrowed(&positions),
     };
-    let leaves =
-        pollster::block_on(g.compute_buffer_async(p, &leaves(&f), twig, &element, reference, &mut metrics))
-            .unwrap();
+    let leaves = pollster::block_on(g.compute_buffer_async(
+        p,
+        &leaves(&f),
+        twig,
+        &element,
+        reference,
+        &mut metrics,
+    ))
+    .unwrap();
     let mut actual = Instances::new(reference);
     actual.leaves = pollster::block_on(io::read_leaves_async(
         &g.gpu,
@@ -579,21 +545,20 @@ fn compact_position_candidate_does_not_override_station_capability() {
     f.canopy.short_shoot_spacing = 0.0;
     f.canopy.limb_clumping = 0.0;
     f.canopy.divergence = 1e9;
-    assert!(
-        surface::compact::prepare(&tree, f.skeleton.envelope.height, &f.surface)
-            .unwrap()
-            .qualified()
-    );
-    assert!(foliage::prepared::prepare_stations(
+    assert!(executor::expand(tree.clone(), &f)
+        .unwrap()
+        .compact()
+        .unwrap()
+        .qualified());
+    assert!(expansion(
         &tree,
-        f.skeleton.envelope,
-        f.canopy,
-        Some(TwigPlacement {
+        &f,
+        TwigPlacement {
             internode_length: 1e-6,
             stations_per_internode: 1
-        }),
-        &f.surface
+        }
     )
+    .stations()
     .unwrap()
     .is_none());
 }

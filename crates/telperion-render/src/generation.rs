@@ -14,8 +14,6 @@ use wood::ResidentWood;
 pub(crate) mod request;
 use crate::{buffer::Held, Gpu, Renderer, Result, Submitted};
 use std::sync::Arc;
-#[cfg(test)]
-use telperion_core::branching;
 use telperion_core::{
     foliage::{self, Instances},
     mesh::{self, TreeMesh},
@@ -305,6 +303,20 @@ mod readback_tests;
 
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod wood_tests;
+
+/// A hand-built tree prepared through the interface for its wood alone: a
+/// family whose envelope stands `height` tall and whose surface is `params`.
+#[cfg(test)]
+fn expanded(
+    tree: &telperion_core::tree::Tree,
+    height: f64,
+    params: &telperion_core::surface::SurfaceParams,
+) -> executor::Expansion {
+    let mut f = Family::default();
+    f.skeleton.envelope.height = height;
+    f.surface = *params;
+    executor::expand(tree.clone(), &f).unwrap()
+}
 
 /// Match the integration tests: unavailable hardware is explicit, while a
 /// device that exists but fails for another reason still fails the test.

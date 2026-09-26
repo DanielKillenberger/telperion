@@ -1,8 +1,8 @@
 //! The stages past the skeleton, each run only where the request asks.
 use super::{PlanInput, Request, Structure};
 use crate::{
-    field::Field,
-    foliage::{self, plan, Element, Reference},
+    pipeline::field::Field,
+    pipeline::foliage::{self, plan, Element, Reference},
     tree::{NodeKind, Tree},
     Error, Result,
 };

@@ -74,20 +74,21 @@ impl Family {
     /// reaches them. A scatter that falls short of its count is left to
     /// growth: that depends on the seed as much as on any row.
     pub fn validate(&self) -> Result<()> {
-        use crate::foliage::{self, Instances, Reference, TwigPlacement};
+        use crate::foliage::{Instances, Reference, TwigPlacement};
+        use crate::pipeline::{build_element, canopy_rows, height, validate_skeleton};
         self.material.validate()?;
         crate::growth::Age::from_years(self.age)?;
         self.growth.validate()?;
-        crate::branching::validate_skeleton(&self.skeleton, self.radii)?;
+        validate_skeleton(&self.skeleton, self.radii)?;
         // Growth keeps a zero ceiling as an empty seedling it can resume
         // from; the build has nothing to sweep, so a family refuses it here.
         if self.skeleton.growth.max_nodes == Some(0) {
             return Err(Error::InvalidInput("maxNodes"));
         }
         self.surface.validate()?;
-        crate::surface::height(self.skeleton.envelope.height)?;
-        foliage::build_element(self.element)?;
-        foliage::canopy_rows(self.canopy, Some(TwigPlacement::of(self)?))?;
+        height(self.skeleton.envelope.height)?;
+        build_element(self.element)?;
+        canopy_rows(self.canopy, Some(TwigPlacement::of(self)?))?;
         Instances::new(Reference::of(self)?).validate()?;
         crate::catalogue::check(Self::CHECKS, self, Site::Shell)
     }

@@ -4,6 +4,8 @@
 //! not the clear is exactly what the pass drew into it.
 mod common;
 
+use telperion_core::pipeline::executor;
+
 use telperion_core::{mesh, presets::Preset};
 use telperion_render::{hero_pose, render, Renderer, SceneRow, View, GROUND_REACH, STILL_FORMAT};
 
@@ -94,10 +96,10 @@ fn every_preset_has_default_casters_fixed_under_orbit_and_row_changes() {
 /// Keeping the first and doubling it cannot exceed the full set's area.
 #[test]
 fn full_casters_cover_at_least_the_default_on_separated_surfaces() {
-    use telperion_core::foliage::{build_element, ElementParams};
+    use telperion_core::foliage::ElementParams;
     let Some(gpu) = common::gpu() else { return };
     let mut tree = mesh::build(&Preset::Ordinary.parameters()).unwrap();
-    tree.foliage.element = build_element(ElementParams {
+    tree.foliage.element = executor::element(ElementParams {
         card: true,
         width: 1.0,
         length: 1.0,

@@ -35,3 +35,5 @@ web-sys = { version = "0.3", features = ["HtmlCanvasElement", "Window"] }
 # renderer library itself never sees a parameter name.
 telperion-core = { path = "../telperion-core", features = ["json"] }
 wgpu = "30"
+# The pipeline boundary's compile-fail test (tests/boundary.rs).
+trybuild = "1"

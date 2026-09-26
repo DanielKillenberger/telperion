@@ -4,13 +4,11 @@ mod metrics;
 #[allow(dead_code)]
 mod species_metrics;
 use serde_json::{json, Value};
-use std::{fs, process::Command, time::Instant};
+use std::{fs, process::Command};
 use telperion_core::{
-    branching, capability,
-    foliage::{self, TwigPlacement},
-    params,
+    capability, params,
+    pipeline::{self, Request},
     presets::Preset,
-    surface,
 };
 fn capabilities(preset: &str) -> Value {
     let Some(p) = Preset::from_id(preset) else {
@@ -23,37 +21,17 @@ fn capabilities(preset: &str) -> Value {
 }
 fn specimen(v: &Value) -> Result<Value, String> {
     let f = params::parse(v).map_err(|e| format!("invalid-parameters: {e:?}"))?;
-    let start = Instant::now();
-    let report =
-        branching::generate(&f.skeleton, f.radii).map_err(|e| format!("generation: {e:?}"))?;
+    // The tree the pipeline ships: its skeleton, wood and culled leaves.
+    let built = pipeline::build(&f, Request::mesh()).map_err(|e| format!("build: {e:?}"))?;
+    let (report, o) = (built.skeleton, built.outputs);
     if !report.tree.diagnostics.complete() {
         return Err("resource-cap: generation truncated".into());
     }
-    let generation_ms = start.elapsed().as_secs_f64() * 1000.;
-    let wood = surface::build(&report.tree, f.skeleton.envelope.height, &f.surface)
-        .map_err(|e| format!("surface: {e:?}"))?;
-    let element = foliage::build_element(f.element).map_err(|e| format!("element: {e:?}"))?;
-    let twigs = f
-        .skeleton
-        .twigs
-        .resolved()
-        .map_err(|e| format!("twigs: {e:?}"))?;
-    let placed = foliage::place_on_surface(
-        &report.tree,
-        f.skeleton.envelope,
-        f.skeleton.seed,
-        f.canopy,
-        Some(TwigPlacement {
-            internode_length: twigs.twig.internode_length,
-            stations_per_internode: twigs.twig.stations_per_internode,
-        }),
-        &f.surface,
-        foliage::Reference::of(&f).map_err(|e| format!("reference: {e:?}"))?,
-    )
-    .map_err(|e| format!("placement: {e:?}"))?;
-    let pre_cull_instances = placed.len();
-    let kept = foliage::cull(placed, &element, f.skeleton.envelope, f.shell_depth)
-        .map_err(|e| format!("cull: {e:?}"))?;
+    let generation_ms = o.stages.skeleton_ms;
+    let (Some(wood), Some(leaves), Some(element)) = (o.wood, o.leaves, o.element) else {
+        return Err("build: the mesh request left an output out".into());
+    };
+    let (pre_cull_instances, kept) = (leaves.placed, leaves.instances);
     let legacy = species_metrics::measure(
         &report.tree,
         &wood.positions,

@@ -4,8 +4,9 @@
 //! is lit again, because the gap ends the lobe over it. At zero the row draws
 //! the frame it always drew.
 mod common;
+use telperion_core::pipeline::executor;
 use telperion_core::{
-    foliage::{build_element, ElementParams, Instances},
+    foliage::{ElementParams, Instances},
     material::MaterialParams,
     math::Vec3,
     mesh::{Foliage, TreeMesh},
@@ -27,7 +28,7 @@ fn next(state: &mut u32) -> f64 {
 /// 2 m and the upper from 2.5 m to 3.5 m, every leaf upright and facing the
 /// eye, and no wood.
 fn lobes() -> TreeMesh {
-    let element = build_element(ElementParams {
+    let element = executor::element(ElementParams {
         cup: 0.0,
         curl: 0.0,
         ..Default::default()

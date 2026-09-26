@@ -39,8 +39,11 @@ fn resident_wood_matches_cpu_and_remains_writable_after_adoption() {
     for rings in [2, 4, 1025] {
         let params = SurfaceParams::default();
         let tree = tree(rings);
-        let cpu = surface::build(&tree, 400.0, &params).unwrap();
-        let p = surface::prepared::prepare(&tree, 400.0, &params)
+        let cpu = crate::generation::expanded(&tree, 400.0, &params)
+            .wood()
+            .unwrap();
+        let p = crate::generation::expanded(&tree, 400.0, &params)
+            .prepared_wood()
             .unwrap()
             .unwrap();
         let scopes = io::scope(&g.gpu);
@@ -80,7 +83,9 @@ fn resident_wood_matches_cpu_and_remains_writable_after_adoption() {
             w.runs,
         );
         renderer.wood.submit(&g.gpu, &cpu);
-        let larger = surface::build(&self::tree(rings + 1), 400.0, &params).unwrap();
+        let larger = crate::generation::expanded(&self::tree(rings + 1), 400.0, &params)
+            .wood()
+            .unwrap();
         renderer.wood.submit(&g.gpu, &larger);
         pollster::block_on(io::errors(&g.gpu, scopes)).unwrap();
     }
@@ -99,7 +104,8 @@ fn multirow_empty_and_unusable_normals_have_explicit_outcomes() {
         flare_depth: 0.0,
         ..SurfaceParams::default()
     };
-    let source = surface::prepared::prepare(&tree(2), 1.0, &params)
+    let source = crate::generation::expanded(&tree(2), 1.0, &params)
+        .prepared_wood()
         .unwrap()
         .unwrap();
     let mut p = surface::prepared::PreparedSurface::default();
@@ -132,7 +138,8 @@ fn multirow_empty_and_unusable_normals_have_explicit_outcomes() {
             .flat_map(|f| last.triangle(f, source.segments))
             .collect::<Vec<_>>()
     );
-    let empty = surface::prepared::prepare(&Tree::default(), 1.0, &params)
+    let empty = crate::generation::expanded(&Tree::default(), 1.0, &params)
+        .prepared_wood()
         .unwrap()
         .unwrap();
     let empty = pollster::block_on(g.expand_wood(empty, &mut Metrics::default()))
@@ -198,15 +205,12 @@ fn measured_specimens_keep_all_cpu_fields_and_gpu_surface_contracts() {
                 .unwrap()
                 .parameters();
             family.skeleton.seed = seed;
-            let tree = branching::generate(&family.skeleton, family.radii)
+            let x = telperion_core::pipeline::executor::grow(&family)
                 .unwrap()
-                .tree;
-            let cpu =
-                surface::build(&tree, family.skeleton.envelope.height, &family.surface).unwrap();
-            let p =
-                surface::prepared::prepare(&tree, family.skeleton.envelope.height, &family.surface)
-                    .unwrap()
-                    .unwrap();
+                .expansion()
+                .unwrap();
+            let cpu = x.wood().unwrap();
+            let p = x.prepared_wood().unwrap().unwrap();
             let scopes = io::scope(&g.gpu);
             let w = pollster::block_on(g.expand_wood(p, &mut Metrics::default()))
                 .unwrap()
@@ -255,7 +259,8 @@ fn compute_limits_and_device_failure_never_return_partial_wood() {
     };
     let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let g = Generator::new(&renderer).unwrap();
-    let p = surface::prepared::prepare(&tree(2), 1.0, &SurfaceParams::default())
+    let p = crate::generation::expanded(&tree(2), 1.0, &SurfaceParams::default())
+        .prepared_wood()
         .unwrap()
         .unwrap();
     g.gpu.device.destroy();

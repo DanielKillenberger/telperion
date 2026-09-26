@@ -5,15 +5,15 @@
 //! errors in stage order. Values that live at a branch or a surface sample
 //! stay derived inside their stage, where their inputs exist.
 #[cfg(feature = "geometry")]
-use crate::foliage::Reference;
+use crate::pipeline::foliage::Reference;
 use crate::{
-    branching::SkeletonParams,
     envelope::Envelope,
-    foliage::{CanopyParams, ElementParams, TwigPlacement},
+    pipeline::branching::SkeletonParams,
+    pipeline::foliage::{CanopyParams, ElementParams, TwigPlacement},
+    pipeline::radius::RadiusParams,
+    pipeline::surface::SurfaceParams,
+    pipeline::twigs::TwigParams,
     presets::Family,
-    radius::RadiusParams,
-    surface::SurfaceParams,
-    twigs::TwigParams,
     Result,
 };
 

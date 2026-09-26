@@ -21,16 +21,11 @@
 //! answer is the error the build met first run in turn - the wood's, then
 //! the Plan's, the leaves', the field's.
 //! The rings' error is the wood's where the wood is drawn, else the leaves'.
-use crate::{
-    branching,
-    field::Field,
-    foliage::{self, plan, Element, Instances},
-    presets::Family,
-    surface::SurfaceMesh,
-    tree::Tree,
-    Result,
-};
+use crate::{presets::Family, tree::Tree, Result};
+use field::Field;
+use foliage::{plan, Element, Instances};
 pub(crate) use input::{GrowInput, Inputs, PlanInput};
+use surface::SurfaceMesh;
 
 /// How stages independent of each other are run. `Concurrent` falls back to
 /// one stage at a time where the target has no threads.
@@ -203,6 +198,25 @@ pub(crate) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     #[cfg(not(feature = "geometry"))]
     planned::outputs(tree, inputs, request)
 }
+
+mod bias;
+mod branching;
+mod colonization;
+pub mod contract;
+mod field;
+mod foliage;
+// Reached only by the suite, which holds a prediction to the specimen.
+#[cfg(all(test, feature = "geometry"))]
+mod footprint;
+mod radius;
+mod surface;
+mod twigs;
+/// What the rest of the crate reads of the stages: the family's own checks.
+pub(crate) use {
+    branching::validate_skeleton,
+    foliage::{build_element, canopy_rows},
+    surface::height,
+};
 
 #[cfg(feature = "geometry")]
 mod drawn;

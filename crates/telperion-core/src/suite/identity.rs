@@ -1,0 +1,404 @@
+//! The tree the core generates, pinned. The scaffold literals were re-recorded
+//! when fn-24 rebuilt the scaffold from the habit trait table, and the element
+//! hashes and the oak's bounds again when fn-24 rebuilt the element from the
+//! outline traits; before that they were the tree as it stood before the
+//! foliage element gained its levels. The
+//! pins are a photograph, not a description: if a level ever moves a leaf,
+//! merges one or drops one, these numbers move too.
+//! fn-11 re-pins skeleton/placement bytes once for pure-Rust libm parity.
+//! Counts, bounds and element pins are unchanged.
+//! fn-27 permutes wood vertices and indices into descending run radius. These
+//! pins do not hash wood order: their existing counts, bounds, placement and
+//! element identities stay unchanged, so no literal needs re-pinning.
+//! fn-34 adds european-beech and silver-birch pins from the first seed-7
+//! photograph of those value tables; re-pinned once on 2026-09-14 after the
+//! round-3 tuning against the matched reference pairs (fn-36).
+//! fn-37 re-pins the silver birch once more, and only the silver birch: its
+//! table is the first to state the curtain as rows - a full hang, a three and
+//! a half metre pendulous run, nine degrees between neighbouring shoots - over
+//! an envelope with almost no bare trunk under it and a shell that keeps less
+//! than half its depth. The oak, the
+//! spruce, the beech and the Two Trees are byte-identical: the spruce states
+//! the values that reproduce the constants the curtain used to carry, and
+//! every other table leaves hang at zero, which reaches nothing.
+//! fn-39 re-pins the beech and the birch once more: their tables are the
+//! first to state the crown outline's amplitude and wavelength, and the
+//! beech's twig is a shade shorter so the lobes' per-seed noise stays under
+//! the node ceiling. Every other table leaves the amplitude at zero, which
+//! is the smooth shell to the byte; the element pins do not move.
+//! fn-38 re-pins the silver birch once more, and only the silver birch: its
+//! table is the first to declare a clump, two stems parting at the ground a
+//! hundred and ten degrees apart in bearing and twenty-two degrees out of
+//! vertical apiece, against the two stems of the S-WHOLE and S-BARE
+//! photographs. Every other table leaves the count at one stem, which is the
+//! single upright trunk to the byte, and the element pin does not move.
+//! fn-44 re-pins the silver birch alone: its table is the first to state a
+//! sag, so its hanging shoots turn toward straight down along their runs
+//! instead of holding the direction they departed with, run the pendulous
+//! length the table states rather than what their own wood would hold out,
+//! and fall past the limb above them to the crown's own base. Every other
+//! table leaves the sag at zero, which is the straight rod to the byte.
+//! Round 6c thins the same birch's crown to the photograph's own airiness -
+//! a leaf every 36 mm of shoot where it had one every 12 - which moves its
+//! placement and its instance count and leaves its skeleton hash alone.
+//! fn-34 round 5b re-pins the beech alone, on the owner's verdict that the
+//! round-5 beech "bends too much": its leader keeps its dominance, its limbs
+//! leave at 38 degrees and rise, and its axes are barely crooked. Round 5c
+//! re-pins it again on the owner's next note ("much more thick core trunks
+//! for almost the entire height"): half the taper per metre, a lower fork
+//! exponent, and the limbs at 42 degrees.
+//! fn-45 re-pins the beech alone, once, on the owner's round-5c note that
+//! the winter pair has "too many small branches ... Fewer larger branches
+//! compared to ours which has many more thinner ones directly attached to
+//! the trunk". Its fork exponent rises to 2.8, near Murray's law, so the core
+//! keeps its girth up through the crown; its scaffold throws two limbs a
+//! station instead of four, a station further apart and longer; and the twig
+//! layer states its own depth and drops from five laterals a station to
+//! three, which is where the nodes for the thicker core come from; and its
+//! leader keeps more of that girth past the first fork, at 0.57 apical
+//! dominance. Round 6b then reads the pair against the photograph again: the
+//! limbs leave at 32 degrees instead of 42 and every order of them rises, the
+//! local shoots follow their limb up at 32 degrees instead of standing off it
+//! at 45, the crown's widest point moves down its own depth, the per-metre
+//! taper halves again, and every shoot under a twentieth of the trunk's
+//! radius carries leaves, which doubles the leaf count without a node.
+//! Round 6c reads the leaf-on pair: the crown was a vase of co-dominant
+//! stems under a flat umbrella of leaves. The limbs leave at 58 degrees and
+//! their side branches are held level, the crown starts at a twentieth of the
+//! height and rounds at the top, the fork exponent comes down to 2.6 off the
+//! cliff 2.8 sat on, four twig laterals a station fill the crown and a twig a
+//! shade shorter pays for them, a local shoot's own shoots are two-ranked,
+//! and the leaves lean along their shoots, lie flat and are a tenth larger.
+//! The last round-6 re-pin lets the leader carry the crown to nine tenths of
+//! the height (apical dominance 0.9), so the limbs can leave at 48 degrees
+//! and rise over their run, and a twig length ratio of 0.30 pays for it. The oak, the
+//! spruce, the birch and the Two Trees are byte-identical: the generation row
+//! sits at the top of its rail on every other table, which reaches nothing.
+//! The merge of fn-38 and fn-44 on fn-34's integration branch re-pins the
+//! silver birch once more: its table now declares both the clump and the sag,
+//! so two stems carry a curtain that hangs, and neither branch's pin is that
+//! tree. The beech's pin is round 5b's, unmoved by the merge; the oak, the
+//! spruce and the Two Trees are byte-identical.
+//! Round 7's visual QA then moves the birch's own table twice: the crown
+//! base, which is the sagging curtain's floor, rises from 0.015 to 0.10 of
+//! the height so the two stems stand clear under it, and a leaf every 60 mm
+//! of shoot rather than 36 lets the sky back through two stems' crowns.
+//! The merge of fn-45 into fn-34's integration branch moves no pin: the
+//! beech is fn-45's final tree, standing on the one stem and the neutral sag
+//! every table but the birch's leaves, and the birch is round 7's, at the
+//! generation row's neutral.
+//! fn-47 re-pins the silver birch alone: its table is the first to state a
+//! pendulous variation, so each hanging shoot runs its own share of a
+//! pendulous length lengthened from 2.5 m to 3 m, anything from a twentieth
+//! of it to the whole, as the strands of S-WHOLE and S-BARE do. Every other
+//! table leaves the variation at zero, which is one length to the byte; the
+//! element pin does not move. The same round moves the birch's outline too:
+//! its curtain fills to the shell's lower surface, so that surface is the
+//! hem, and lumps a quarter of the height across and 35% deep leave it
+//! ragged rather than the round bottom a gently lumpy shell drew.
+//! fn-51 re-pins the silver birch alone: its table is the first to state a
+//! curtain drop, so its hanging shoots fall past the shell's lower surface
+//! down to a clearance at the crown's own base, where the shell had held
+//! them. Every other table leaves the drop at zero, which is the shell
+//! holding the curtain to the byte; the element pin does not move.
+//! fn-48 re-pins the silver birch alone, once: its table is the first to
+//! state a clump's lean spread, and states the whole of it, so its first
+//! stem stands upright and its second leans twenty-eight degrees out of the
+//! pair on the seed's own bearing, against the one near-vertical and one
+//! leaning stem of the S-WHOLE and S-BARE photographs, where the fn-38 clump
+//! parted in an even V. Every other table leaves the spread at zero, which is
+//! fn-38's lean to the bit, and the element pin does not move.
+//! Round 11 re-pins the beech alone, once: on the round-8c winter pair its
+//! trunk split at a quarter of the height into limbs that climbed beside it
+//! to the crown's top. Its limbs leave at 65 degrees instead of 48, their
+//! side branches run half their length instead of three fifths, so the low
+//! limbs meet the shell short and the leader keeps the girth of the crown
+//! it carries; and the twig layer starts on wood under 0.17 of the trunk's
+//! radius instead of a tenth, so the fewer, heavier scaffold tips keep their
+//! shoots. The oak, the spruce, the birch and the Two Trees are
+//! byte-identical.
+//! fn-50 re-pins the beech alone, once: on round 11's leaf-on pair the owner
+//! and the host read a hemlock, every twig a frond. Short shoots now carry
+//! most of its leaves, five to a spur every 2.5 cm of wood under a third of
+//! the trunk's radius, where the slender wood's own row of leaves stood; its
+//! twigs stand out at 50 degrees turned by the golden angle, with a leaf
+//! every 5 cm instead of two-ranked at 32 with one every 2; and its leaves
+//! lean less along their shoots and scatter wider. The twig rows move the
+//! skeleton, the rest only the placement. The habit, envelope and radius
+//! rows that hold round 11's leader are untouched, and the oak, the spruce,
+//! the birch and the Two Trees are byte-identical: every other table states
+//! no short shoot.
+//! The merge of fn-47, fn-51 and fn-48 on fn-34's integration branch re-pins
+//! the silver birch once: its table now states the varied strands, the drop
+//! below the crown and the unequal clump together, and none of the three
+//! branches' pins is that tree. The beech stays round 11's; the oak, the
+//! spruce and the Two Trees are byte-identical.
+//! The merges of fn-52 and fn-50 on the integration branch move no pin but
+//! fn-50's own: the beech is fn-50's tree and the birch round 13's, since
+//! canopy lighting is not geometry and no other table states a short shoot.
+//! Round 15 re-pins the silver birch alone, once, on the owner's round-13
+//! notes: its trunk radius rises from a hundredth of the height to 0.014, so
+//! each of the two stems that share the root reads as thick as the S-WHOLE
+//! photograph's, and its curtain falls six tenths of the drop instead of the
+//! whole, so its strands no longer stop on one floor all round and draw a
+//! straight hem. The beech stays round 11's; the oak, the spruce and the Two
+//! Trees are byte-identical, and the element pin does not move.
+//! fn-48.3 re-pins the silver birch alone, once: its table is the first to
+//! state a clump's fork height, half the bole, so its leaning stem leaves the
+//! upright one a metre up instead of at the ground, toward S-BARE's single
+//! trunk, and the fork is swept clean, the trunk carrying on into the upright
+//! stem; its twig layer measures the stems above the fork, as it measured
+//! them at the ground. Every other table leaves the row at zero, which is
+//! fn-38's clump to the bit, and the element pin does not move.
+//! The merge of round 15 and fn-48.3 on fn-34's integration branch re-pins
+//! the silver birch once: its table now states round 15's thicker stems and
+//! shorter drop with fn-48.3's fork half the bole up, and neither branch's
+//! pin is that tree. The beech stays fn-50's; the oak, the spruce and the Two
+//! Trees are byte-identical.
+//! fn-34 round 18 re-pins the beech's placement alone, once: on round 17's
+//! leaf-on pair the crown's edge read as fern fronds, every shoot lined with
+//! a comb of level leaves. Its clusters are now eight leaves fanned a half
+//! circle every 4 cm, held 20 cm off the wood, and its leaves scatter 80
+//! degrees instead of 45. Its skeleton and element hashes, and every other
+//! table, are byte-identical.
+//! fn-54 re-pins the beech alone, once: its architecture is read from B-BARE,
+//! its limb systems clump their leaves, and its leaf mass comes down to about
+//! two metres (crown base 0.06), so its skeleton, placement and counts move
+//! and its crown box narrows from about 15.6 m to 10.9 m across. The element
+//! pin does not move. Merged onto fn-34's integration branch, the beech keeps
+//! fn-54's pin and the birch keeps round 15 and fn-48.3's; the oak, the
+//! spruce and the Two Trees are byte-identical.
+//! fn-34 round 25 re-pins the silver birch's element and placement once: its
+//! blade is triangular with eight shallow notches a margin and thirty-two
+//! stations, against S-LEAF. The shell cull reads the blade, so nine more
+//! leaves stay; the skeleton and every other table are byte-identical.
+//! fn-34 round 26 re-pins the silver birch alone, once, on the owner's
+//! verdict in the live renderer: its leader bears two limbs at a station
+//! instead of four and they leave at 45 degrees from vertical instead of 62,
+//! so the lower crown is no longer rings of near-horizontal spokes; and its
+//! twig layer drops from eight laterals at 0.6 of the parent's length to
+//! seven at 0.55, so the interior is a crown and not a thicket. Its
+//! skeleton, placement, counts and bounds move; the element pin does not,
+//! and every other table is byte-identical.
+//! fn-86 re-pins the placement and the bounds of all four species once, and
+//! the instance count of two of them: a leaf is three words now, not sixteen
+//! floats, so the placement pin hashes the words the renderer receives and
+//! every leaf's position is read back off the reference box. Half a position
+//! code and a ten-bit rotation component move each crown box by about a tenth
+//! of a millimetre and carry two beech leaves out of the shell cull and one
+//! birch leaf into it; the oak's and the spruce's counts are unchanged. Every
+//! skeleton and every element pin is byte-identical.
+//! No device is needed; this is the core's own arithmetic.
+use super::specimens;
+use telperion_core::{branching, mesh, presets::Preset};
+
+use super::catalogue;
+
+/// FNV-1a over the bytes, the pattern the branching audit already pins with.
+fn fnv(bytes: impl IntoIterator<Item = u8>) -> u64 {
+    let mut hash = 14695981039346656037_u64;
+    for byte in bytes {
+        hash = (hash ^ byte as u64).wrapping_mul(1099511628211);
+    }
+    hash
+}
+
+struct Pin {
+    id: &'static str,
+    min: [f64; 3],
+    max: [f64; 3],
+    /// Node positions and parent links, base to tip.
+    skeleton: u64,
+    /// Every retained leaf's three words, as the renderer receives them.
+    placement: u64,
+    /// The element's positions and its whole index list.
+    element: u64,
+}
+
+const SEED: u32 = 7;
+const PINS: [Pin; 4] = [
+    Pin {
+        id: "oregon-white-oak",
+        min: [
+            -13.16296514872441,
+            -0.09600000083446503,
+            -13.242486306266482,
+        ],
+        max: [13.217955959615209, 23.557249956180836, 13.003125025750427],
+        skeleton: 6489830875491714767,
+        placement: 13467347624575045185,
+        element: 4207404028969543471,
+    },
+    Pin {
+        id: "norway-spruce",
+        min: [-3.895051643214036, -0.05999999865889549, -4.197446207068961],
+        max: [4.3374568072821, 15.0, 3.806220363273623],
+        skeleton: 12735573889651776723,
+        placement: 16009668874409195207,
+        element: 7287062639823569932,
+    },
+    Pin {
+        id: "european-beech",
+        min: [
+            -10.932704935504914,
+            -0.12800000607967377,
+            -10.620809443500821,
+        ],
+        max: [11.737918649722355, 32.1939185820563, 11.282388017302269],
+        skeleton: 7923866798333576555,
+        placement: 1267229261659347364,
+        element: 15097586524950800877,
+    },
+    Pin {
+        id: "silver-birch",
+        min: [-6.533560643164573, -0.07199999690055847, -7.5864978258172],
+        max: [7.448474471852913, 14.67010234624035, 5.884177207946777],
+        skeleton: 14293807423691432719,
+        placement: 959305916660181259,
+        element: 1566806128915370638,
+    },
+];
+
+#[test]
+fn shipped_species_meshes_are_the_tree_recorded_before_the_levels() {
+    for pin in &PINS {
+        let id = pin.id;
+        let mut family = Preset::from_id(id).expect("preset identity").parameters();
+        family.skeleton.seed = SEED;
+        let tree = branching::generate(&family.skeleton, family.radii)
+            .unwrap_or_else(|e| panic!("{id}: {e}"))
+            .tree;
+        assert_eq!(
+            fnv(tree.nodes.iter().skip(1).flat_map(|n| {
+                [n.position.x, n.position.y, n.position.z]
+                    .into_iter()
+                    .flat_map(f64::to_le_bytes)
+                    .chain(n.parent.expect("non-root parent").to_le_bytes())
+            })),
+            pin.skeleton,
+            "{id}: skeleton moved"
+        );
+
+        let m = specimens::mesh(&family);
+        assert_eq!(
+            (
+                [m.bounds.min.x, m.bounds.min.y, m.bounds.min.z],
+                [m.bounds.max.x, m.bounds.max.y, m.bounds.max.z]
+            ),
+            (pin.min, pin.max),
+            "{id}: mesh bounds moved"
+        );
+        assert_eq!(
+            fnv(m
+                .foliage
+                .instances
+                .leaves
+                .iter()
+                .flatten()
+                .flat_map(|w| w.to_le_bytes())),
+            pin.placement,
+            "{id}: leaf placement moved"
+        );
+        let e = &m.foliage.element;
+        assert_eq!(
+            fnv(e
+                .positions
+                .iter()
+                .flat_map(|p| [p.x, p.y, p.z])
+                .flat_map(f64::to_le_bytes)
+                .chain(e.indices.iter().flat_map(|i| i.to_le_bytes()))),
+            pin.element,
+            "{id}: the element itself moved"
+        );
+    }
+}
+
+/// Prints every pin field of every pinned species, to re-pin after a value
+/// change: `cargo test --release --test identity -- --ignored --nocapture print_pins`.
+#[test]
+#[ignore]
+fn print_pins() {
+    for pin in &PINS {
+        let id = pin.id;
+        let mut family = Preset::from_id(id).unwrap().parameters();
+        family.skeleton.seed = SEED;
+        let tree = branching::generate(&family.skeleton, family.radii)
+            .unwrap()
+            .tree;
+        let skeleton = fnv(tree.nodes.iter().skip(1).flat_map(|n| {
+            [n.position.x, n.position.y, n.position.z]
+                .into_iter()
+                .flat_map(f64::to_le_bytes)
+                .chain(n.parent.expect("non-root parent").to_le_bytes())
+        }));
+        let m = mesh::build(&family).unwrap();
+        let placement = fnv(m
+            .foliage
+            .instances
+            .leaves
+            .iter()
+            .flatten()
+            .flat_map(|w| w.to_le_bytes()));
+        let e = &m.foliage.element;
+        let element = fnv(e
+            .positions
+            .iter()
+            .flat_map(|p| [p.x, p.y, p.z])
+            .flat_map(f64::to_le_bytes)
+            .chain(e.indices.iter().flat_map(|i| i.to_le_bytes())));
+        println!(
+            "PIN {id} {} {} {} {:?} {:?} {skeleton} {placement} {element}",
+            m.wood_vertices(),
+            m.wood_triangles(),
+            m.foliage_instances(),
+            [m.bounds.min.x, m.bounds.min.y, m.bounds.min.z],
+            [m.bounds.max.x, m.bounds.max.y, m.bounds.max.z]
+        );
+    }
+}
+
+/// The catalogue is the species record, so its pins file carries the same
+/// numbers this file pins. A disagreement names the species and the pin.
+#[test]
+fn every_pin_matches_its_catalogue_record() {
+    for pin in &PINS {
+        let record = catalogue::pins(pin.id);
+        let recorded = &record["pins"];
+        assert_eq!(
+            record["seed"].as_u64(),
+            Some(SEED as u64),
+            "{}: pins.json seed",
+            pin.id
+        );
+        assert_eq!(
+            catalogue::triple(recorded, "min", pin.id),
+            pin.min,
+            "{}: min",
+            pin.id
+        );
+        assert_eq!(
+            catalogue::triple(recorded, "max", pin.id),
+            pin.max,
+            "{}: max",
+            pin.id
+        );
+        assert_eq!(
+            catalogue::hash(recorded, "skeleton", pin.id),
+            pin.skeleton,
+            "{}: skeleton",
+            pin.id
+        );
+        assert_eq!(
+            catalogue::hash(recorded, "placement", pin.id),
+            pin.placement,
+            "{}: placement",
+            pin.id
+        );
+        assert_eq!(
+            catalogue::hash(recorded, "element", pin.id),
+            pin.element,
+            "{}: element",
+            pin.id
+        );
+    }
+}

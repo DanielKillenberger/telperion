@@ -8,9 +8,9 @@ use super::{
     Inputs, Leaves, Outputs, Request, Schedule, Stages,
 };
 use crate::{
-    field::Field,
-    foliage::{self, plan, Element, Instances, TwigPlacement},
-    surface::{self, AttachmentSurface, Faces, Rings, Sweep},
+    pipeline::field::Field,
+    pipeline::foliage::{self, plan, Element, Instances, TwigPlacement},
+    pipeline::surface::{self, AttachmentSurface, Faces, Rings, Sweep},
     tree::Tree,
     Result,
 };

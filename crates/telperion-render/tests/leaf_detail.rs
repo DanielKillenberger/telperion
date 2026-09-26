@@ -1,11 +1,7 @@
 //! The blade's detail survives the level ladder and disappears on a round section.
 mod common;
-use telperion_core::{
-    foliage::{build_element, ElementParams},
-    material::MaterialParams,
-    mesh,
-    presets::Preset,
-};
+use telperion_core::pipeline::executor;
+use telperion_core::{foliage::ElementParams, material::MaterialParams, mesh, presets::Preset};
 use telperion_render::{hero_pose, render, Level, Renderer, View, GROUND_REACH, STILL_FORMAT};
 
 #[test]
@@ -17,7 +13,7 @@ fn veins_draw_at_every_blade_level_and_never_on_a_round_section() {
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.set_view(View::Leaf);
     for roundness in [0.0, 1.0] {
-        tree.foliage.element = build_element(ElementParams {
+        tree.foliage.element = executor::element(ElementParams {
             section_roundness: roundness,
             cross_segments: 8,
             axial_segments: 20,

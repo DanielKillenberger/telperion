@@ -1,0 +1,736 @@
+#[path = "species/budget.rs"]
+mod budget;
+#[path = "../../examples/species_metrics/mod.rs"]
+mod species_metrics;
+
+use std::{
+    any::Any,
+    panic::{catch_unwind, AssertUnwindSafe},
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        Mutex,
+    },
+};
+
+use budget::budget;
+use serde_json::Value;
+use telperion_core::{
+    branching,
+    foliage::{self, Instances, TwigPlacement},
+    footprint,
+    math::Vec3,
+    presets::Preset,
+    surface::{self, SurfaceMesh},
+    tree::Tree,
+};
+
+/// The digest of every fixed seed of every species, committed beside this
+/// file. A generator change that moves one updates the value in the same
+/// commit, with the reason in the message.
+fn digests() -> Value {
+    serde_json::from_str(include_str!("species/digests.json")).unwrap()
+}
+
+/// FNV-1a over the skeleton, the wood and the placed foliage: what two
+/// generations used to be compared on, as one number a run on another machine
+/// can be compared on too.
+fn digest(tree: &Tree, wood: &SurfaceMesh, placed: &Instances) -> u64 {
+    let mut hash = 14695981039346656037_u64;
+    let mut take = |bytes: &[u8]| {
+        for byte in bytes {
+            hash = (hash ^ u64::from(*byte)).wrapping_mul(1099511628211);
+        }
+    };
+    take(&bincode::serialize(tree).unwrap());
+    for floats in [&wood.positions, &wood.normals, &wood.coords] {
+        for v in floats {
+            take(&v.to_le_bytes());
+        }
+    }
+    for i in &wood.indices {
+        take(&i.to_le_bytes());
+    }
+    take(&bincode::serialize(&placed.reference).unwrap());
+    for leaf in &placed.leaves {
+        for word in leaf {
+            take(&word.to_le_bytes());
+        }
+    }
+    hash
+}
+
+/// A seed whose digest is not the committed one, named with both values.
+fn check(preset: Preset, seed: u32, expected: Option<&str>, actual: u64) -> Result<(), String> {
+    let id = preset.profile_id().unwrap();
+    let actual = format!("{actual:016x}");
+    match expected {
+        Some(expected) if expected == actual => Ok(()),
+        Some(expected) => Err(format!(
+            "{id} seed {seed}: digest {actual}, the committed digest is {expected}"
+        )),
+        None => Err(format!(
+            "{id} seed {seed}: digest {actual}, no committed digest"
+        )),
+    }
+}
+
+fn profiles() -> Value {
+    let mut root: Value =
+        serde_json::from_str(include_str!("../../../../.flow/evidence/fn9/profiles.json")).unwrap();
+    let extra: Value = serde_json::from_str(include_str!(
+        "../../../../.flow/evidence/fn34/profiles.json"
+    ))
+    .unwrap();
+    let profiles = root["profiles"].as_array_mut().unwrap();
+    for profile in extra["profiles"].as_array().unwrap() {
+        profiles.push(profile.clone());
+    }
+    root
+}
+
+#[test]
+fn oak_identity_resolves_to_frozen_profile_and_native_anatomy() {
+    let preset = Preset::from_id("oregon-white-oak").unwrap();
+    assert_eq!(preset, Preset::OregonWhiteOak);
+    let manifest = profiles();
+    let profile = manifest["profiles"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|p| p["id"] == preset.profile_id().unwrap())
+        .unwrap();
+    assert_eq!(profile["scientific_name"], "Quercus garryana");
+    assert_eq!(profile["readiness"], "ready");
+    let family = preset.parameters();
+    // The oak is a row in the trait table: a leader that yields early, crooked
+    // axes, no attractor pull.
+    let habit = family.skeleton.habit;
+    assert!(habit.apical_dominance < 0.25 && habit.crookedness > 12.0);
+    assert_eq!(habit.attractor_weight, 0.0);
+    assert!(!family.skeleton.bias.supernatural.enabled);
+    assert!(family.element.lobe_count == 5 && family.element.lobe_depth > 0.5);
+    assert_eq!(family.element.section_roundness, 0.0);
+    // Blades lean a quarter of the radial along the shoot and sit clear of
+    // the wood; nothing about them is a mode.
+    assert_eq!(family.canopy.forward_lean, 0.25);
+    assert_eq!(family.canopy.lean_rise, 0.0);
+    assert_eq!(family.canopy.surface_contact, 0.0);
+    assert_eq!(family.skeleton.twigs.twig.stations_per_internode, 1);
+    assert!(Preset::from_id("Quercus garryana").is_none());
+    assert!(Preset::from_id("unknown").is_none());
+    for (id, preset) in [
+        ("ordinary", Preset::Ordinary),
+        ("telperion", Preset::Telperion),
+        ("laurelin", Preset::Laurelin),
+    ] {
+        assert_eq!(Preset::from_id(id), Some(preset));
+        assert_eq!(preset.profile_id(), None);
+    }
+}
+
+#[test]
+fn fixed_oaks_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
+    fixed_species(Preset::OregonWhiteOak);
+}
+
+#[test]
+fn fixed_spruces_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
+    fixed_species(Preset::NorwaySpruce);
+}
+
+#[test]
+fn beech_identity_resolves_to_frozen_profile_and_native_anatomy() {
+    let preset = Preset::from_id("european-beech").unwrap();
+    assert_eq!(preset, Preset::EuropeanBeech);
+    assert_eq!(preset.profile_id(), Some("european-beech"));
+    let manifest = profiles();
+    let profile = manifest["profiles"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|p| p["id"] == preset.profile_id().unwrap())
+        .unwrap();
+    assert_eq!(profile["scientific_name"], "Fagus sylvatica");
+    assert_eq!(profile["readiness"], "ready");
+    let family = preset.parameters();
+    assert_eq!(family.age, 120.0);
+    assert!((family.skeleton.envelope.height - 32.0).abs() < 1e-9);
+    // Round 5b (owner, 2026-09-15): the reference beech "grows relatively
+    // straight up and out", its trunk running up through the crown. Round 6
+    // (fn-45) lets the leader carry the crown to nine tenths of the height,
+    // which is what the scaffold's apical dominance measures; the bound moves
+    // from 0.6 to 0.95, which still refuses the spruce's excurrent 1.0 - a
+    // leader that never yields to its limbs at all.
+    assert!(family.skeleton.habit.apical_dominance < 0.95);
+    assert!(family.skeleton.habit.crookedness < 16.0);
+    assert_eq!(family.skeleton.habit.attractor_weight, 0.0);
+    assert!(!family.skeleton.bias.supernatural.enabled);
+    assert_eq!(family.element.lobe_count, 0);
+    assert_eq!(family.element.section_roundness, 0.0);
+    assert_eq!(family.canopy.divergence, 180.0);
+    assert!(Preset::from_id("Fagus sylvatica").is_none());
+    assert!(Preset::from_id("european-ash").is_none());
+}
+
+#[test]
+fn birch_identity_resolves_to_frozen_profile_and_native_anatomy() {
+    let preset = Preset::from_id("silver-birch").unwrap();
+    assert_eq!(preset, Preset::SilverBirch);
+    assert_eq!(preset.profile_id(), Some("silver-birch"));
+    let manifest = profiles();
+    let profile = manifest["profiles"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|p| p["id"] == preset.profile_id().unwrap())
+        .unwrap();
+    assert_eq!(profile["scientific_name"], "Betula pendula");
+    assert_eq!(profile["readiness"], "ready");
+    let family = preset.parameters();
+    assert_eq!(family.age, 70.0);
+    assert!((family.skeleton.envelope.height - 18.0).abs() < 1e-9);
+    assert!(family.skeleton.habit.rise_secondary < 0.0);
+    assert_eq!(family.skeleton.habit.attractor_weight, 0.0);
+    assert!(!family.skeleton.bias.supernatural.enabled);
+    // A serrate margin, drawn as shallow notches, not lobes, under a pointed tip.
+    assert_eq!(family.element.lobe_count, 8);
+    assert!(family.element.lobe_depth > 0.0 && family.element.lobe_depth <= 0.15);
+    assert!(family.element.tip_sharpness > 1.0);
+    assert_eq!(family.canopy.divergence, 180.0);
+    assert!(Preset::from_id("Betula pendula").is_none());
+}
+
+#[test]
+fn fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
+    fixed_species(Preset::EuropeanBeech);
+}
+
+#[test]
+fn fixed_birches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
+    fixed_species(Preset::SilverBirch);
+}
+
+fn fixed_species(preset: Preset) {
+    let manifest = profiles();
+    let profile = manifest["profiles"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|p| p["id"] == preset.profile_id().unwrap())
+        .unwrap();
+    let mut heights = Vec::new();
+    let mut widths = Vec::new();
+    let mut leaf_counts = std::collections::BTreeSet::new();
+    let mut seeds: Vec<u32> = manifest["protocol"]["fixed_seeds"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|seed| seed.as_u64().unwrap() as u32)
+        .collect();
+    if preset == Preset::NorwaySpruce {
+        // Original retained crown-width failure; never replace with a showcase seed.
+        seeds.push(4_250_668_600);
+    }
+    let expected = digests();
+    // Every seed's checks run on a thread of their own, four at a time, and
+    // are read back in seed order: a failure is the first seed that failed,
+    // however the threads finished.
+    let grown = in_flight(&seeds, |seed| {
+        let committed = expected[preset.profile_id().unwrap()][seed.to_string()].as_str();
+        grow_and_check(preset, profile, seed, committed)
+    });
+    let mut moved = Vec::new();
+    for outcome in grown {
+        let grown = outcome.unwrap_or_else(|message| panic!("{message}"));
+        heights.push(grown.height);
+        widths.push(grown.width);
+        leaf_counts.insert(grown.leaves);
+        if let Err(report) = grown.digest {
+            moved.push(report);
+        }
+    }
+    // Engineering regression thresholds for specimen variation, not botanical ranges.
+    let dimensions = match preset {
+        Preset::NorwaySpruce => {
+            // A persistent leader reaches the authored height on every seed;
+            // azimuth, curtains and crown width are what vary.
+            vec![widths]
+        }
+        Preset::EuropeanBeech | Preset::SilverBirch => {
+            // A full crown fills its envelope on every seed, so neither
+            // dimension is pinned to vary; whichever of height or plan width
+            // the seeds move more is the one judged. fn-37 gave the birch the
+            // same property the beech already had: its curtain reaches the
+            // shell on every seed.
+            let range = |values: &Vec<f64>| {
+                values.iter().copied().fold(f64::NEG_INFINITY, f64::max)
+                    - values.iter().copied().fold(f64::INFINITY, f64::min)
+            };
+            if range(&heights) >= range(&widths) {
+                vec![heights]
+            } else {
+                vec![widths]
+            }
+        }
+        _ => vec![heights, widths],
+    };
+    // A specimen regression, not a botanical range, and scale-free like every
+    // other length the library states: the moving dimension has to move by
+    // more than a thirtieth of the tree's authored height. On the beech's 32 m
+    // envelope that is the metre this rule asked for before fn-37 stated it as
+    // a fraction; on the birch's 18 m one it is a little over half of it.
+    let apart = match preset {
+        Preset::NorwaySpruce => 0.1,
+        _ => preset.parameters().skeleton.envelope.height / 30.0,
+    };
+    for values in dimensions {
+        let min = values.iter().copied().fold(f64::INFINITY, f64::min);
+        let max = values.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+        assert!(
+            max - min > apart,
+            "crown dimensions should vary by more than {apart} m across specimens: {values:?}"
+        );
+    }
+    assert!(
+        leaf_counts.len() >= 6,
+        "seeds must change retained foliage abundance"
+    );
+    assert!(moved.is_empty(), "digests moved:\n{}", moved.join("\n"));
+    // What the binary actually reached, against the ceiling - a larger number
+    // than the charge limit admission spends, by the headroom between them.
+    budget().hold_to_the_ceiling();
+}
+
+/// What one fixed seed contributes to the specimen-variation checks.
+struct Grown {
+    height: f64,
+    width: f64,
+    leaves: usize,
+    digest: Result<(), String>,
+}
+
+/// Grows one fixed seed and holds it to every gate.
+fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<&str>) -> Grown {
+    let mut family = preset.parameters();
+    family.skeleton.seed = seed;
+    let a = branching::generate(&family.skeleton, family.radii).unwrap();
+    a.tree.validate_solved().unwrap();
+    // What this specimen will cost, computed from the tree just grown, and
+    // charged against what the whole binary may spend. The charge is released
+    // when `held` is dropped, which a panicking seed does on its way out.
+    let predicted =
+        footprint::predict(&a.tree, &telperion_core::pipeline::Inputs::of(&family)).unwrap();
+    let name = format!("{} seed {seed}", preset.profile_id().unwrap());
+    let held = budget().charge(&name, predicted.bytes() as u64);
+    if preset == Preset::NorwaySpruce {
+        let structural = &a.tree.nodes[..a.tree.crossover];
+        let axial = |p: Vec3| p.x.hypot(p.z) < 1e-10;
+        let mut tiers = std::collections::BTreeMap::<u32, usize>::new();
+        let mut hanging = 0;
+        let mut upturned = 0;
+        assert!(structural
+            .iter()
+            .any(|n| axial(n.position)
+                && (n.position.y - family.skeleton.envelope.height).abs() < 1e-9));
+        for n in structural.iter().skip(1) {
+            let parent_id = n.parent.unwrap();
+            let parent = &structural[parent_id as usize];
+            let delta = n.position - parent.position;
+            if axial(n.position) {
+                assert!(axial(parent.position) && delta.y > 0.0);
+            } else if axial(parent.position) {
+                *tiers.entry(parent_id).or_default() += 1;
+            }
+            hanging += usize::from(delta.y < -0.05 && -delta.y > delta.x.hypot(delta.z));
+            upturned += usize::from(delta.y > 0.01 && delta.x.hypot(delta.z) > delta.y);
+        }
+        // Structural engineering invariants, independent of foliage AABB gates.
+        assert!(
+            tiers.len() >= 12 && tiers.values().all(|n| *n >= 3),
+            "seed {seed}: tiers {tiers:?}"
+        );
+        assert!(tiers
+            .keys()
+            .any(|i| structural[*i as usize].position.y < 2.0));
+        assert!(
+            hanging > 50 && upturned > 20,
+            "seed {seed}: hanging {hanging}, upturned {upturned}"
+        );
+    }
+    assert!(a.tree.diagnostics.complete(), "seed {seed}: truncation");
+    assert!(a.tree.nodes.len() > a.tree.crossover);
+    // Inside the shell, or a hanging shoot in the band below it.
+    let (envelope, twigs) = (family.skeleton.envelope, family.skeleton.twigs);
+    for node in a.tree.nodes.iter().skip(a.tree.crossover) {
+        let p = node.position;
+        assert!(
+            envelope.contains(p, 1e-8, seed)
+                || branching::in_curtain_band(&envelope, &twigs, seed, p, 1e-8),
+            "seed {seed}: {p:?} is outside the shell and the curtain's band"
+        );
+    }
+    let wood = surface::build(&a.tree, family.skeleton.envelope.height, &family.surface).unwrap();
+    assert!(!wood.indices.is_empty());
+    assert!(wood
+        .positions
+        .iter()
+        .chain(&wood.normals)
+        .all(|v| v.is_finite()));
+    assert!(wood
+        .indices
+        .iter()
+        .all(|i| (*i as usize) < wood.positions.len() / 3));
+    let point = |i: u32| {
+        let p = &wood.positions[i as usize * 3..];
+        Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64)
+    };
+    for triangle in wood.indices.as_chunks::<3>().0.iter() {
+        let a = point(triangle[0]);
+        assert!(
+            (point(triangle[1]) - a)
+                .cross(point(triangle[2]) - a)
+                .length()
+                > 0.0,
+            "seed {seed}: degenerate wood triangle"
+        );
+    }
+    let element = foliage::build_element(family.element).unwrap();
+    element.validate().unwrap();
+    let placed = foliage::place(
+        &a.tree,
+        family.skeleton.envelope,
+        seed,
+        family.canopy,
+        // The same rows the prediction counted by: one constructor, so the
+        // harness and the prediction cannot clothe two different trees.
+        Some(TwigPlacement::of(&family).unwrap()),
+        foliage::Reference::of(&family).unwrap(),
+    )
+    .unwrap();
+    let digest = check(preset, seed, committed, digest(&a.tree, &wood, &placed));
+    let placed_count = placed.len();
+    // The walk's own output, read before the cull takes the crown by value.
+    let (walked, thinned) = (placed.placed(), placed.thinned);
+    let kept = foliage::cull(
+        placed,
+        &element,
+        family.skeleton.envelope,
+        family.shell_depth,
+    )
+    .unwrap();
+    assert!(!kept.is_empty());
+    // The prediction against the specimen it sized: the builders' own counts,
+    // from the same functions, so the two can only differ if one of them is
+    // wrong. The margin R3 allows is the contract; exactness is what the one
+    // implementation buys, so the equality is what is asserted.
+    let measured = footprint::measure(&a.tree, &wood, &kept);
+    assert_eq!(
+        predicted, measured,
+        "{name}: predicted {predicted:?}, measured {measured:?}"
+    );
+    // The capacity equality above is not enough on its own: the builders
+    // reserve from the prediction, so an overcount would make them reserve
+    // exactly that much and the equality would still hold. What cannot be
+    // circular is what they produced. The station walk's own output is the
+    // leaves that survived plus the ones the limb clumping dropped, and it is
+    // asserted equal for every family, clumping or not.
+    assert_eq!(
+        predicted.leaves,
+        walked,
+        "{name}: predicted {} leaves, the walk produced {walked} ({placed_count} kept, {thinned} thinned)",
+        predicted.leaves
+    );
+    // And the wood's, which nothing compared before: three floats a vertex in
+    // positions, two in coords, one index a corner.
+    assert_eq!(
+        predicted.wood.positions,
+        wood.positions.len(),
+        "{name}: predicted {} wood position floats, swept {}",
+        predicted.wood.positions,
+        wood.positions.len()
+    );
+    assert_eq!(
+        predicted.wood.coords,
+        wood.coords.len(),
+        "{name}: predicted {} wood coord floats, swept {}",
+        predicted.wood.coords,
+        wood.coords.len()
+    );
+    assert_eq!(
+        predicted.wood.indices,
+        wood.indices.len(),
+        "{name}: predicted {} wood indices, swept {}",
+        predicted.wood.indices,
+        wood.indices.len()
+    );
+    assert_eq!(
+        wood.normals.capacity(),
+        wood.positions.capacity(),
+        "{name}: the wood's two vertex buffers are read as one count"
+    );
+    let metrics =
+        species_metrics::measure(&a.tree, &wood.positions, &element, placed_count, &kept).unwrap();
+    let (pass, checks) = species_metrics::compare(profile, &metrics).unwrap();
+    assert!(pass, "seed {seed}: {checks:#}");
+    assert_eq!(metrics["units_per_instance"]["value"], 1);
+    if preset == Preset::NorwaySpruce {
+        assert_eq!(metrics["foliage_unit"], "needle");
+        assert_eq!(metrics["foliage_units"]["value"], kept.len());
+        assert!(metrics["needle_surface_area_m2"]["value"].as_f64().unwrap() > 0.0);
+        assert!(metrics["crown_base_m"]["value"].as_f64().unwrap() < 3.0);
+    }
+    let grown = Grown {
+        height: metrics["height_m"]["value"].as_f64().unwrap(),
+        width: metrics["crown_width_m"]["value"].as_f64().unwrap(),
+        leaves: kept.len(),
+        digest,
+    };
+    // The buffers the charge paid for go first, and the charge after them.
+    drop((a, wood, kept));
+    drop(held);
+    grown
+}
+
+/// Runs `check` on every seed and returns the outcomes in seed order; a seed
+/// whose checks panicked carries the message.
+///
+/// How many run at once is not a number written here. A thread takes a seat
+/// from the shared budget before it grows anything, so no more seeds are in
+/// hand across the whole binary than the machine has cores, and each grown
+/// seed then charges the budget its own predicted size, so no more stand
+/// together than the charge limit affords.
+fn in_flight<T: Send>(seeds: &[u32], check: impl Fn(u32) -> T + Sync) -> Vec<Result<T, String>> {
+    let next = AtomicUsize::new(0);
+    let done = Mutex::new(Vec::new());
+    std::thread::scope(|scope| {
+        for _ in 0..budget().cores().min(seeds.len()) {
+            scope.spawn(|| loop {
+                let i = next.fetch_add(1, Ordering::Relaxed);
+                let Some(&seed) = seeds.get(i) else { break };
+                let seat = budget().seat();
+                let outcome = catch_unwind(AssertUnwindSafe(|| check(seed))).map_err(message);
+                drop(seat);
+                done.lock().unwrap().push((i, outcome));
+            });
+        }
+    });
+    let mut done = done.into_inner().unwrap();
+    done.sort_by_key(|(i, _)| *i);
+    done.into_iter().map(|(_, outcome)| outcome).collect()
+}
+
+fn message(payload: Box<dyn Any + Send>) -> String {
+    payload
+        .downcast_ref::<String>()
+        .cloned()
+        .or_else(|| payload.downcast_ref::<&str>().map(|s| (*s).to_owned()))
+        .unwrap_or_else(|| "a seed's checks panicked".to_owned())
+}
+
+#[test]
+fn a_digest_that_moved_names_the_preset_the_seed_and_both_digests() {
+    assert_eq!(
+        check(Preset::SilverBirch, 3, Some("00000000000000ff"), 255),
+        Ok(())
+    );
+    assert_eq!(
+        check(Preset::SilverBirch, 3, Some("00000000000000fe"), 255),
+        Err("silver-birch seed 3: digest 00000000000000ff, the committed digest is 00000000000000fe".into())
+    );
+    assert_eq!(
+        check(Preset::NorwaySpruce, 4_250_668_600, None, 255),
+        Err("norway-spruce seed 4250668600: digest 00000000000000ff, no committed digest".into())
+    );
+}
+
+#[test]
+fn spruce_identity_resolves_to_frozen_profile_and_native_anatomy() {
+    let preset = Preset::from_id("norway-spruce").unwrap();
+    assert_eq!(preset, Preset::NorwaySpruce);
+    assert_eq!(preset.profile_id(), Some("norway-spruce"));
+    let manifest = profiles();
+    let profile = manifest["profiles"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|p| p["id"] == preset.profile_id().unwrap())
+        .unwrap();
+    assert_eq!(profile["scientific_name"], "Picea abies");
+    assert_eq!(profile["readiness"], "ready");
+    let family = preset.parameters();
+    // The spruce is the opposite row: one leader all the way up, whorled
+    // stations, hanging secondaries.
+    let habit = family.skeleton.habit;
+    assert_eq!(habit.apical_dominance, 1.0);
+    assert!(habit.whorl_strength > 0.8 && habit.rise_secondary < -0.5);
+    assert!(!family.skeleton.bias.supernatural.enabled);
+    assert_eq!(family.element.section_roundness, 1.0);
+    assert_eq!(family.element.lobe_count, 0);
+    assert!(family.element.connector_length > 0.0);
+    // Needles are seated on the wood itself and the upper ones lean hardest
+    // toward the tip.
+    assert_eq!(family.canopy.surface_contact, 1.0);
+    assert_eq!(family.canopy.lean_rise, 1.2);
+    assert!(family.canopy.forward_lean > 0.0 && family.canopy.shoot_radius > 0.0);
+    assert_eq!(family.skeleton.twigs.twig.stations_per_internode, 1);
+    assert!(Preset::from_id("Picea abies").is_none());
+}
+
+#[test]
+fn scaffold_reaches_and_hanging_secondaries_subdivide_before_their_tips() {
+    for preset in [
+        Preset::OregonWhiteOak,
+        Preset::NorwaySpruce,
+        Preset::EuropeanBeech,
+        Preset::SilverBirch,
+    ] {
+        let family = preset.parameters();
+        let report = branching::generate(&family.skeleton, family.radii).unwrap();
+        let twigs: Vec<_> = report
+            .tree
+            .nodes
+            .iter()
+            .filter(|n| n.kind == telperion_core::tree::NodeKind::Twig)
+            .collect();
+        assert!(!twigs.is_empty());
+        assert!(
+            twigs.iter().all(|n| n.radius < n.start_radius * 0.5),
+            "species twig ends must narrow"
+        );
+        if preset == Preset::NorwaySpruce {
+            let all = &report.tree.nodes;
+            let mut pendant = vec![false; all.len()];
+            let mut descendants = 0;
+            for (i, n) in all.iter().enumerate().skip(1) {
+                let parent = n.parent.unwrap() as usize;
+                let direction = (n.position - all[parent].position).normalized();
+                pendant[i] = if i < report.tree.crossover {
+                    direction.y < -0.5
+                } else {
+                    pendant[parent]
+                };
+                if i >= report.tree.crossover && pendant[i] {
+                    assert!(direction.y < 0.0, "pendant descendant {i} turned upward");
+                    descendants += 1;
+                }
+            }
+            assert!(descendants > 100);
+        }
+        let nodes = &report.tree.nodes[..report.tree.crossover];
+        let mut children = vec![Vec::new(); nodes.len()];
+        for (i, node) in nodes.iter().enumerate().skip(1) {
+            children[node.parent.unwrap() as usize].push(i);
+        }
+        let mut mid_axis_forks = 0;
+        for (i, node) in nodes.iter().enumerate().skip(1) {
+            if children[i].len() < 2 {
+                continue;
+            }
+            let from = (node.position - nodes[node.parent.unwrap() as usize].position).normalized();
+            if preset == Preset::NorwaySpruce && from.y > -0.8 {
+                continue;
+            }
+            let alignments: Vec<_> = children[i]
+                .iter()
+                .map(|&j| from.dot((nodes[j].position - node.position).normalized()))
+                .collect();
+            // A continuing axis plus a departing side axis, not a terminal fork
+            // or foliage merely placed directly on an exposed scaffold.
+            if alignments.iter().any(|&dot| dot > 0.95) && alignments.iter().any(|&dot| dot < 0.93)
+            {
+                mid_axis_forks += 1;
+            }
+        }
+        assert!(
+            mid_axis_forks > 30,
+            "{preset:?}: only {mid_axis_forks} intermediate forks"
+        );
+    }
+}
+
+/// One budget, driven concurrently with charges of mixed predicted cost, and
+/// a seed that fails while it holds one: the charges never outrun the limit,
+/// nothing is left charged behind a panic, and admission is never none.
+#[test]
+fn charges_never_outrun_the_limit_and_a_panicking_seed_releases_its_own() {
+    // Nothing is allocated here: this drives the accounting, not the machine.
+    let budget = budget::Budget::with(96 * (1 << 20), 6);
+    let limit = budget.charge_limit();
+    let shares = [2_u64, 3, 6, 4, 5];
+    let seeds = 60;
+    let next = AtomicUsize::new(0);
+    std::thread::scope(|scope| {
+        for _ in 0..6 {
+            scope.spawn(|| loop {
+                let k = next.fetch_add(1, Ordering::Relaxed);
+                if k >= seeds {
+                    break;
+                }
+                let failed = catch_unwind(AssertUnwindSafe(|| {
+                    let _charge = budget.charge(&format!("trial {k}"), limit / shares[k % 5]);
+                    let standing = budget.charged();
+                    assert!(
+                        standing <= limit,
+                        "charges stood at {standing} bytes over a limit of {limit} bytes"
+                    );
+                    // Every fifth seed fails while it still holds its charge.
+                    assert!(k % 5 != 4, "trial {k} fails on purpose");
+                }))
+                .is_err();
+                assert_eq!(failed, k % 5 == 4);
+            });
+        }
+    });
+    assert_eq!(
+        budget.charged(),
+        0,
+        "a charge outlived the seed that took it"
+    );
+    assert!(
+        budget.peak() <= limit,
+        "peak charge {} over {limit}",
+        budget.peak()
+    );
+    // A specimen larger than the whole limit is still admitted, alone.
+    for predicted in [0, 1, limit / 2, limit, limit * 2, u64::MAX] {
+        assert!(
+            budget.admission(predicted) > 0,
+            "admission was none at {predicted} bytes"
+        );
+    }
+    assert_eq!(budget.admission(limit / 4), 4);
+    assert_eq!(
+        budget.admission(limit / 100),
+        6,
+        "admission clamps to the cores"
+    );
+}
+
+/// The ceiling is a different and larger number than the charge limit
+/// admission spends. With the budget saturated - every charge standing at
+/// once, summing to the whole charge limit - and every admitted specimen
+/// holding memory it has really written to, the peak still sits under the
+/// ceiling. It runs in a process of its own, so the high-water mark it reads
+/// is its own and no heavy seed's.
+#[test]
+fn a_saturated_budget_still_stands_under_the_ceiling() {
+    const NAME: &str = "a_saturated_budget_still_stands_under_the_ceiling";
+    if std::env::var_os(budget::SATURATION).is_some() {
+        return budget::saturate();
+    }
+    let run = std::process::Command::new(std::env::current_exe().unwrap())
+        .args([NAME, "--exact", "--nocapture", "--test-threads=1"])
+        .env(budget::SATURATION, "1")
+        .output()
+        .unwrap();
+    let said =
+        String::from_utf8_lossy(&run.stdout).into_owned() + &String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "the saturation run failed:\n{said}");
+    // A run that selected no test would also have succeeded, so the child's
+    // own report of what it saturated is what says it ran.
+    assert!(
+        said.contains("saturated ") && said.contains("1 passed"),
+        "the saturation run selected nothing:\n{said}"
+    );
+    println!("{said}");
+}

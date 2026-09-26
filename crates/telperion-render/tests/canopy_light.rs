@@ -3,8 +3,9 @@
 //! one leaf facing and facing away from the sun under the other three, and
 //! the clay and bare views, which no canopy row may touch.
 mod common;
+use telperion_core::pipeline::executor;
 use telperion_core::{
-    foliage::{build_element, ElementParams, Instances},
+    foliage::{ElementParams, Instances},
     material::MaterialParams,
     math::Vec3,
     mesh::{self, Foliage, TreeMesh},
@@ -58,7 +59,7 @@ fn unit(state: &mut u32) -> Vec3 {
 /// A shell of leaves about one centre, each turned its own seeded way, and
 /// no wood: the crown the canopy normal is measured against is this sphere.
 fn shell() -> TreeMesh {
-    let element = build_element(ElementParams {
+    let element = executor::element(ElementParams {
         cup: 0.0,
         curl: 0.0,
         ..Default::default()
@@ -243,7 +244,7 @@ fn one_leaf(azimuth: f64) -> (Renderer, Camera) {
     let mut family = Preset::Ordinary.parameters();
     family.skeleton.growth.max_nodes = Some(20);
     let mut tree = mesh::build(&family).unwrap();
-    tree.foliage.element = build_element(ElementParams {
+    tree.foliage.element = executor::element(ElementParams {
         cup: 0.0,
         curl: 0.0,
         ..Default::default()
