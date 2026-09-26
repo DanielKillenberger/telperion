@@ -15,7 +15,7 @@ use std::path::Path;
 use serde_json::Value;
 
 use crate::extract::{candidate_sentences, collapse_ws};
-use crate::pipeline::adapter::is_pdf;
+use crate::pipeline::adapter::is_pdf_body;
 use crate::pipeline::canon::{read_json, write_atomic, write_canonical};
 use crate::pipeline::requirements::table;
 use crate::pipeline::rights::{host, licence_lines, licence_tags};
@@ -239,8 +239,9 @@ pub fn page(
     quotes: &BTreeSet<String>,
     fetched: bool,
 ) -> Result<(String, Vec<u8>), String> {
-    let pdf = is_pdf(content_type, url);
-    let lines = licence_lines(raw, markdown, content_type, url);
+    let pdf = is_pdf_body(content_type, url, raw);
+    let kind = if pdf { "application/pdf" } else { content_type };
+    let lines = licence_lines(raw, markdown, kind, url);
     let statements: Vec<String> = lines
         .iter()
         .filter(|l| !l.starts_with("metadata: "))
@@ -283,7 +284,7 @@ pub fn page(
             ));
         }
     }
-    if licence_lines(&bytes, &trimmed, content_type, url) != lines {
+    if licence_lines(&bytes, &trimmed, kind, url) != lines {
         return Err(format!(
             "{url}: the trimmed page yields other licence lines"
         ));
@@ -378,6 +379,11 @@ pub fn only_quoted(tape: &Path, extra_open: &[String]) -> Result<Vec<String>, St
         )))
         .unwrap_or_default();
         let ct = page["content_type"].as_str().unwrap_or_default();
+        let ct = if is_pdf_body(ct, url, &raw) {
+            "application/pdf"
+        } else {
+            ct
+        };
         let lines = licence_lines(&raw, markdown, ct, url);
         let mut kept = quotes.clone();
         kept.extend(lines.iter().cloned());

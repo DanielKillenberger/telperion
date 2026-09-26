@@ -147,6 +147,12 @@ pub fn checksums(scrape: &Scrape) -> FetchRecord {
 
 /// True when the response is a PDF. The content type decides; a URL path
 /// ending in `.pdf` decides when the content type is absent or generic.
+/// Whether a response is a PDF by its type, its address or its first
+/// bytes: web.archive.org serves an archived PDF as `text/html` (fn-157).
+pub fn is_pdf_body(content_type: &str, url: &str, raw: &[u8]) -> bool {
+    is_pdf(content_type, url) || raw.starts_with(b"%PDF-")
+}
+
 pub fn is_pdf(content_type: &str, url: &str) -> bool {
     let kind = content_type
         .split(';')

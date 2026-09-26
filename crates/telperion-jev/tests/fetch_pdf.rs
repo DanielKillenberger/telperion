@@ -36,6 +36,9 @@ fn a_pdf_served_as_html_is_parsed_as_a_pdf() {
     let body = &read_json(&dir.join("fetch.json")).unwrap()["body"];
     assert!(body["sources"].get("P1").is_some(), "{body}");
     let cached = fs::read_to_string(dir.join("cache/P1.md")).unwrap();
-    assert!(cached.contains("normally grows to 30–35 m tall"), "{cached}");
+    assert!(
+        cached.contains("normally grows to 30–35 m tall"),
+        "{cached}"
+    );
     assert!(dir.join("cache/P1.pdf").exists());
 }

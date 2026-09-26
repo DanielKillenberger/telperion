@@ -25,7 +25,7 @@ use serde_json::{json, Map, Value};
 
 use crate::pipeline::adapter::content::readable;
 use crate::pipeline::adapter::{
-    age_indexed_rows, block_rows, checksums, is_pdf, markdown_tables, FetchAdapter, Scrape,
+    age_indexed_rows, block_rows, checksums, is_pdf_body, markdown_tables, FetchAdapter, Scrape,
 };
 use crate::pipeline::canon::{canonical_sha256, write_atomic};
 use crate::pipeline::cost::Cost;
@@ -139,7 +139,7 @@ fn cache_source(
     source: &Source,
     mut scrape: Scrape,
 ) -> Result<Read, StageError> {
-    let pdf = is_pdf(&scrape.content_type, &scrape.final_url);
+    let pdf = is_pdf_body(&scrape.content_type, &scrape.final_url, &scrape.raw);
     let raw_path = cache.join(format!("{}.{}", source.id, if pdf { "pdf" } else { "raw" }));
     write_atomic(&raw_path, &scrape.raw)?;
     if pdf {
@@ -148,12 +148,12 @@ fn cache_source(
             Err(err) => return Ok(Err(format!("parse: {err}"))),
         }
     }
-    let licence = licence_lines(
-        &scrape.raw,
-        &scrape.markdown,
-        &scrape.content_type,
-        &scrape.final_url,
-    );
+    let kind = if pdf {
+        "application/pdf"
+    } else {
+        scrape.content_type.as_str()
+    };
+    let licence = licence_lines(&scrape.raw, &scrape.markdown, kind, &scrape.final_url);
     let readable = match readable(&scrape.markdown, &scrape.raw, pdf) {
         Ok(readable) => readable,
         Err(error) => return Ok(Err(error)),
