@@ -39,15 +39,12 @@ pub fn open(url: &str, extra: &[String]) -> bool {
         .any(|h| host == h || host.ends_with(&format!(".{h}")))
 }
 
-/// The pages the run fetched as sources: those whose sentences it screened
-/// (a screen request names its source's `url` and the `bytes` it read; a
-/// rights request names the `url` alone).
+/// The pages the run read as sources: read asks each one's kind, naming
+/// its `url` in the request's `source`.
 pub fn screened(tape: &Path) -> Result<BTreeSet<String>, String> {
     Ok(entries(&tape.join("jev"))?
         .iter()
-        .map(|e| &e["request"]["body"]["state"]["source"])
-        .filter(|source| !source["bytes"].is_null())
-        .filter_map(|source| source["url"].as_str())
+        .filter_map(|e| e["request"]["body"]["state"]["source"]["url"].as_str())
         .map(str::to_string)
         .collect())
 }
@@ -316,7 +313,12 @@ pub fn tape(tape: &Path, extra_open: &[String]) -> Result<Vec<String>, String> {
         let raw = std::fs::read(&blob).unwrap_or_default();
         let markdown = page["markdown"].as_str().unwrap_or_default();
         let ct = page["content_type"].as_str().unwrap_or_default();
-        let (trimmed, bytes) = self::page(url, ct, markdown, &raw, &quotes, fetched.contains(url))?;
+        // A page no stage read (fetch dropped it) keeps nothing: kept, its
+        // licence tags alone would read as a page on replay.
+        let (trimmed, bytes) = match fetched.contains(url) {
+            true => self::page(url, ct, markdown, &raw, &quotes, true)?,
+            false => (String::new(), Vec::new()),
+        };
         words.push(format!(
             "{url}: markdown {} -> {}, bytes {} -> {}",
             markdown.len(),
