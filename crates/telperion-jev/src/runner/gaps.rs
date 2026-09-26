@@ -10,7 +10,9 @@
 //! - **global**: a capability the assessment classes an improvement, or a
 //!   trait the tuning config lists unexpressed, with the specs that capture it.
 //! - **unsourced**: a profile field no source settled; the generator's
-//!   default stands and Tune sets it from the photographs.
+//!   default stands and Tune sets it from the photographs. A contextual
+//!   field, one no agreeing sources settled, is listed too: a person may
+//!   want it sourced.
 //! - **references**: no reference photograph was found and the tuning config
 //!   lists none. It stops nothing; Tune refuses until one is recorded.
 //!
@@ -253,21 +255,31 @@ pub fn note_references(template: &Path, out: &Path) -> Result<(), String> {
     write(out, &gaps)
 }
 
-/// The profile fields no source settled, which the profile marks unsourced.
+/// The profile fields no agreeing sources settled: those the profile marks
+/// unsourced, and the contextual ones a person may want sourced.
 pub fn unsourced(profile: &Value) -> Vec<Gap> {
     let metrics = profile["profiles"][0]["metrics"].as_object();
+    let evidence = |m: &Value| match m["classification"].as_str() {
+        Some("unsourced") => Some(format!(
+            "{}; the generator's default stands and Tune sets it from the photographs",
+            m["note"].as_str().unwrap_or("no source settled it")
+        )),
+        Some("contextual") => Some(format!(
+            "{}; Start derived from it and it never gates",
+            m["classified"].as_str().unwrap_or("contextual")
+        )),
+        _ => None,
+    };
     metrics
         .into_iter()
         .flatten()
-        .filter(|(_, m)| m["classification"] == "unsourced")
-        .map(|(field, m)| Gap {
-            trait_id: field.clone(),
-            kind: Kind::Unsourced,
-            evidence: vec![format!(
-                "{}; the generator's default stands and Tune sets it from the photographs",
-                m["note"].as_str().unwrap_or("no source settled it")
-            )],
-            specs: vec![],
+        .filter_map(|(field, m)| {
+            evidence(m).map(|line| Gap {
+                trait_id: field.clone(),
+                kind: Kind::Unsourced,
+                evidence: vec![line],
+                specs: vec![],
+            })
         })
         .collect()
 }
@@ -302,7 +314,7 @@ fn markdown(gaps: &[Gap]) -> String {
         (Kind::Identity, "Identity: the species waits on these"),
         (Kind::Global, "Global: backlog"),
         (Kind::Reachable, "Reachable: a live dial moves it"),
-        (Kind::Unsourced, "Unsourced: no source settled it"),
+        (Kind::Unsourced, "Unsourced: no agreeing sources settled it"),
         (
             Kind::References,
             "References: no photograph to compare against",

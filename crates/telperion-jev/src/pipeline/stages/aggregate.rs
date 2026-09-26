@@ -204,7 +204,8 @@ pub fn readings(
 pub fn metric(agg: &Aggregate, unit: &str) -> Value {
     let mut metric = match (agg.value, agg.range) {
         (Some(value), Some(range)) => json!({
-            "unit": unit, "range": range, "classification": "gating",
+            "unit": unit, "range": range, "classification": classification(agg),
+            "classified": classified(agg),
             "source": agg.sources, "confidence": agg.confidence, "value": value,
             "sources_agreeing": points(agg), "spread_ratio": agg.spread_ratio,
             "tier": agg.tier.map(|t| KINDS[t]),
@@ -237,6 +238,26 @@ pub fn metric(agg: &Aggregate, unit: &str) -> Value {
         metric["set_aside"] = json!(aside);
     }
     metric
+}
+
+/// A value gates only when its deciding tier agrees (host, 2026-09-26): one
+/// source, or sources that disagree, only inform, so Start derives from it,
+/// Tune may move it and it never makes a baseline infeasible.
+fn classification(agg: &Aggregate) -> &'static str {
+    match agg.confidence {
+        "agreed" => "gating",
+        _ => "contextual",
+    }
+}
+
+/// Why the value gates or informs, in words.
+fn classified(agg: &Aggregate) -> String {
+    let (n, kind) = (points(agg), agg.tier.map_or("", |t| KINDS[t]));
+    match (agg.confidence, n) {
+        ("agreed", _) => format!("gating: {n} independent {kind} sources agree"),
+        (_, 1) => format!("contextual: one {kind} source, nothing to agree with"),
+        _ => format!("contextual: {n} {kind} sources that do not agree"),
+    }
 }
 
 /// How the value was composed, in words.

@@ -218,8 +218,14 @@ fn a_value_gates_only_when_its_tier_agrees() {
     let dir = beech();
     let height = metric(&dir, "height_m");
     assert_eq!(height["classification"], "gating", "{height}");
-    assert!(height["classified"].as_str().unwrap().contains("agree"), "{height}");
+    assert!(
+        height["classified"].as_str().unwrap().contains("agree"),
+        "{height}"
+    );
     let crown = metric(&dir, "crown_width_m");
     assert_eq!(crown["classification"], "contextual", "{crown}");
-    assert!(crown["classified"].as_str().unwrap().contains("one"), "{crown}");
+    assert!(
+        crown["classified"].as_str().unwrap().contains("one"),
+        "{crown}"
+    );
 }

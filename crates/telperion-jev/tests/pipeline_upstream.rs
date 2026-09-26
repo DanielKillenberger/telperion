@@ -142,7 +142,7 @@ fn the_upstream_chain_runs_over_fixtures_and_fills_the_profile_with_provenance()
         (range[1].as_f64().unwrap() - 27.432).abs() < 1e-9,
         "{height}"
     );
-    assert_eq!(height["classification"], "gating");
+    assert_eq!(height["classification"], "contextual"); // one source: no agreement, no gate
     assert_eq!(height["source"], json!(["S1"]));
     assert_eq!(height["confidence"], "thin");
     assert_eq!(height["tier"], "forestry");
