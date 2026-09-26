@@ -91,7 +91,7 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/branching/local/advance.rs",
-    "site": ". min ( if can_sleep & & fixed { planner . clock . map_or ( immediate , | clock | { if s . curtain . below ( p . y ) { u64 : : MAX } else { clock . next ( p , config . trunk_height ) } } ) } else { immediate } )",
+    "site": ". min ( if can_sleep & & fixed { planner . clock . map_or ( immediate , | clock | { if s . curtain . below ( p . y ) { u64 : : MAX } else { clock . next ( s . bound . map ( p ) , config . trunk_height ) } } ) } else { immediate } )",
     "classification": "algorithm",
     "reason": "Sleeping shoot activation uses the growth clock's next reachable time; u64::MAX represents unreachable time, not a generation ceiling."
   },
