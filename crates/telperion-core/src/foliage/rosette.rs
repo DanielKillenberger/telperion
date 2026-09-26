@@ -25,17 +25,20 @@
 //! The rows, their rails and the apices are read with the placement compiled
 //! out, so the leaf plan can tell a frond crown from a clothed one; only the
 //! placing itself needs the `geometry` feature.
-use super::{range, CanopyParams};
+use super::CanopyParams;
 #[cfg(feature = "geometry")]
 use super::{
+    range,
     station::{matrix, reserve},
     Instances,
 };
 use crate::rng::Rng;
+#[cfg(feature = "geometry")]
+use crate::Error;
 use crate::{
     math::{Transcendental, Vec3},
     tree::Tree,
-    Error, Result,
+    Result,
 };
 
 /// The most fronds one rosette bears, and the most leaflets one rachis

@@ -14,10 +14,10 @@ crate::catalogue::rows! {
             growth: Growth::Differs("measured against the root node, and capped by \
                 `twig.bearingDiameter`"),
             note: "Above zero the leaf box uses the trunk radius.",
-            dial: tuned("canopy_shoot_radius", "the share of the root radius at or below which \
+            dial: bounded("canopy_shoot_radius", "the share of the root radius at or below which \
                 wood bears foliage of its own; at zero no wood beyond the twig layer bears \
                 foliage of its own, and any rise starts clothing it",
-                [0.0, 0.0375], [0.005, 0.01], "preset span"),
+                [0.005, 0.01]).span([0.0, 0.0375]),
         },
         /// Metres between leaves along a shoot, as a share of the tree's
         /// height. Raising it spreads the leaves further apart, so the crown
@@ -35,8 +35,8 @@ crate::catalogue::rows! {
             check: input(Site::Canopy, 2, "divergence"),
             note: "Past a phase-error bound, station preparation leaves the GPU for the CPU.",
             blend: Blend::Degrees,
-            dial: tuned("foliage_divergence", "the degrees each successive leaf is turned around \
-                its shoot", [116.262, 201.246], [15.0, 30.0], "preset span"),
+            dial: bounded("foliage_divergence", "the degrees each successive leaf is turned \
+                around its shoot", [15.0, 30.0]).span([116.262, 201.246]),
         },
         /// How many extra leaves are gathered at the end of a shoot that has
         /// no twig layer. Raising it packs a denser tuft at the tip.
@@ -100,7 +100,7 @@ crate::catalogue::rows! {
                 leaf on the stream.",
             blend: Blend::Degrees,
             dial: tuned("leaf_scatter", "the degrees a leaf may be turned at random from where \
-                it was placed", [0.0, 90.0], [15.0, 30.0], "preset span"),
+                it was placed", [0.0, 90.0], [15.0, 30.0], "validated bound").span([0.0, 90.0]),
         },
         /// The size every leaf is drawn at, as a multiple of the element's own
         /// dimensions. Raising it enlarges every leaf.
@@ -108,8 +108,8 @@ crate::catalogue::rows! {
             Bounds::closed(0.0, 1000.0) => [Plan, Expand] {
             check: input(Site::Canopy, 10, "foliage size"),
             note: "At zero no leaf is placed.",
-            dial: tuned("leaf_size", "the size every leaf is drawn at, as a multiple of the \
-                element's own", [0.525, 1.575], [0.15, 0.3], "preset span"),
+            dial: bounded("leaf_size", "the size every leaf is drawn at, as a multiple of the \
+                element's own", [0.15, 0.3]).span([0.525, 1.575]),
         },
         /// How far leaf size varies leaf to leaf, as a share of that size.
         /// Raising it mixes larger and smaller leaves more widely.
@@ -161,8 +161,8 @@ crate::catalogue::rows! {
             check: input(Site::ShortShoots, 4, "short shoot spread"),
             applies: "`shortShootSpacing` zero",
             blend: Blend::Degrees,
-            dial: tuned("short_shoot_spread", "the degrees either side of its bearing a \
-                cluster's leaves fan across", [22.5, 90.0], [10.0, 20.0], "preset span"),
+            dial: bounded("short_shoot_spread", "the degrees either side of its bearing a \
+                cluster's leaves fan across", [10.0, 20.0]).span([22.5, 90.0]),
         },
         /// How far into each limb system the gap between it and its neighbours
         /// reaches, as a share of the way from their shared boundary to the
@@ -184,7 +184,11 @@ crate::catalogue::rows! {
                 at `limbClumping` zero.",
             blend: Blend::Count,
             dial: tuned("clump_system_order", "how deep a lateral may be and still start a limb \
-                system of its own", [1.0, 5.0], [1.0, 2.0], "preset span"),
+                system of its own",
+                [1.0, 5.0], [1.0, 2.0], "capped").span([1.0, 5.0])
+                .cap("capped both ways: the generator validates no closed range here (an \
+                    unchecked whole number); the row stays at the preset span until the \
+                    generator authors one"),
         },
         /// Nearest neighbours and cell crossings in the clumping approximation.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_clump_neighbours"))]

@@ -54,7 +54,8 @@ crate::catalogue::rows! {
                 attractor count`); the scattered count sets the default `influenceRadius`.",
             blend: Blend::Many,
             dial: tuned("attractors", "pull points scattered through the crown for the branches \
-                to grow toward", [250.0, 750.0], [100.0, 200.0], "preset span"),
+                to grow toward",
+                [1.0, 1000000.0], [100.0, 200.0], "validated bound").span([250.0, 750.0]),
         },
         /// How many random tries the sampler may spend on each pull point
         /// before it gives up. Raising it lets a narrow or deeply lobed crown
@@ -81,7 +82,10 @@ crate::catalogue::rows! {
             note: "Sets the default step, kill and influence distances (`default_growth`); an \
                 overriding `stepDistance` leaves kill and influence on `height·step`.",
             dial: tuned("step", "how far the crown grows in one step, as a share of the height",
-                [0.011, 0.033], [0.0025, 0.005], "preset span"),
+                [0.011, 0.033], [0.0025, 0.005], "capped").span([0.011, 0.033])
+                .cap("capped both ways: the generator validates no closed range here (only \
+                    positive and finite); the row stays at the preset span until the generator \
+                    authors one"),
         },
         pub bias: BiasParams,
         pub twigs: TwigParams,

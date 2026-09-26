@@ -15,7 +15,11 @@ crate::catalogue::rows! {
                 finite (`envelope`). It scales trunk radius, length taper, surface twist and \
                 flare, canopy spacing and the writhe.",
             dial: tuned("envelope_height", "the tree's height in metres",
-                [6.5, 40.5], [5.0, 10.0], "preset span"),
+                [6.5, 40.5], [5.0, 10.0], "capped").span([6.5, 40.5])
+                .cap("capped both ways: the envelope validates only a floor of 0 \
+                    (envelope.rs:58) and no ceiling, and a clump refuses a crown that low (its \
+                    stems stand outside the envelope), so the row stays at the preset span until \
+                    the generator authors one"),
         },
         /// Where the crown starts, as a share of the height: below it the
         /// crown has no radius at all. Raising it lifts the crown and leaves a
@@ -35,7 +39,10 @@ crate::catalogue::rows! {
             note: "The cull shell is `shellDepth·height·spread` and the shed shell \
                 `sheddingThreshold·height·spread`.",
             dial: tuned("spread", "the crown's widest radius as a share of the height",
-                [0.175, 0.675], [0.1, 0.2], "preset span"),
+                [0.0, 0.675], [0.1, 0.2], "capped").span([0.175, 0.675])
+                .cap("ceiling capped: the generator validates only a floor here (0), so there is \
+                    no validated ceiling to widen to; the ceiling stays at the preset span until \
+                    the generator authors one"),
         },
         /// Where the crown is widest, as a share of the way from the crown
         /// base to the top. Raising it carries the widest part higher, so the
@@ -51,7 +58,11 @@ crate::catalogue::rows! {
         pub shoulder: f64 = "shoulder" "-" Bounds::above(0.0) => [Grow, Cull] {
             check: input(Site::Envelope, 4, "envelope"),
             dial: tuned("shoulder", "how square the crown's outline is; lower tapers it to a \
-                point", [0.4, 2.8], [0.5, 1.0], "preset span"),
+                point",
+                [0.4, 2.8], [0.5, 1.0], "capped").span([0.4, 2.8])
+                .cap("capped both ways: the generator validates no closed range here (only \
+                    positive and finite); the row stays at the preset span until the generator \
+                    authors one"),
         },
         /// How far the outline departs from the smooth shell, as a fraction of the
         /// radius there. 0 is the axisymmetric superellipse every tree was before,

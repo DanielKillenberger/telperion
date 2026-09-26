@@ -29,20 +29,24 @@ crate::catalogue::rows! {
             note: "At most `length` and at least 1e-6, refused by name (`foliage connector \
                 length`) in `build_element`; a card carries none.",
             dial: tuned("connector_length", "the metres of stalk below the blade",
-                [1e-06, 0.0325], [0.005, 0.01], "preset span"),
+                [1e-06, 0.0325], [0.005, 0.01], "capped").span([1e-06, 0.0325])
+                .cap("ceiling capped: the generator validates only a floor here (1e-6; its \
+                    ceiling is the leaf's own length, another row), so there is no validated \
+                    ceiling to widen to; the ceiling stays at the preset span until the \
+                    generator authors one"),
         },
         /// Blade/needle longitudinal extent, excluding connector, in metres.
         pub length: f64 = "length" "m" Bounds::closed(1e-4, 1e3) => [Plan] {
             check: input(Site::Leaf, 0, "leaf length"),
-            dial: tuned("leaf_length", "the blade's length in metres, excluding its stalk",
-                [0.0001, 0.171], [0.025, 0.05], "preset span"),
+            dial: bounded("leaf_length", "the blade's length in metres, excluding its stalk",
+                [0.025, 0.05]).span([0.0001, 0.171]),
         },
         /// The blade's greatest width in metres, across the midrib. Raising it
         /// makes every leaf broader.
         pub width: f64 = "width" "m" Bounds::closed(1e-4, 1e3) => [Plan] {
             check: input(Site::Leaf, 1, "leaf width"),
-            dial: tuned("leaf_width", "the blade's greatest width in metres",
-                [0.0001, 0.11175], [0.015, 0.03], "preset span"),
+            dial: bounded("leaf_width", "the blade's greatest width in metres",
+                [0.015, 0.03]).span([0.0001, 0.11175]),
         },
         /// Where the blade is widest, as a share of the way from its base to
         /// its tip. Raising it carries the widest point toward the tip.
@@ -57,8 +61,8 @@ crate::catalogue::rows! {
         pub base_fullness: f64 = "baseFullness" "-" Bounds::closed(0.2, 8.0) => [Plan] {
             check: input(Site::Leaf, 3, "leaf base fullness"),
             applies: "`card`",
-            dial: tuned("leaf_base_fullness", "how fast the blade fills out above its stalk; \
-                higher reads wedge-shaped", [0.2, 1.175], [0.15, 0.3], "preset span"),
+            dial: bounded("leaf_base_fullness", "how fast the blade fills out above its stalk; \
+                higher reads wedge-shaped", [0.15, 0.3]).span([0.2, 1.175]),
         },
         /// How fast the blade narrows toward its point. Raising it draws the
         /// tip out into a sharper point.
@@ -121,8 +125,8 @@ crate::catalogue::rows! {
             note: "A lobed margin needs `axialSegments + 1 >= 2·lobeCount + 2` (named check in \
                 `build_element`).",
             blend: Blend::Up,
-            dial: tuned("leaf_axial_segments", "sections the blade is built from along its \
-                length", [2.0, 58.0], [8.0, 16.0], "preset span"),
+            dial: bounded("leaf_axial_segments", "sections the blade is built from along its \
+                length", [8.0, 16.0]).span([2.0, 58.0]),
         },
         /// How many columns the blade is built from across its width. Raising
         /// it draws the section and the margins more smoothly, at more
@@ -132,8 +136,8 @@ crate::catalogue::rows! {
             applies: "`card`",
             note: "Rounded up to an even count.",
             blend: Blend::Count,
-            dial: tuned("leaf_cross_segments", "columns the blade is built from across its width",
-                [2.0, 5.0], [1.0, 2.0], "preset span"),
+            dial: bounded("leaf_cross_segments", "columns the blade is built from across its \
+                width", [1.0, 2.0]).span([2.0, 5.0]),
         },
         /// A flat two-triangle card in place of the modelled blade: no outline,
         /// no cup or curl, no sections and no connector.

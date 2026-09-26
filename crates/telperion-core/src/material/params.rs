@@ -59,8 +59,8 @@ crate::catalogue::rows! {
         /// channel. Raising a channel pushes the sunlit face toward it.
         pub leaf_front_red: f64 = "leafFrontRed" "reflectance" Bounds::closed(0.0, 1.0) => [Draw] {
             check: input(Site::Material, 81, "leaf front red"),
-            dial: tuned("material_leaf_front_red", "the red in the colour of a leaf's upper face",
-                [0.0, 0.141], [0.02, 0.04], "preset span"),
+            dial: bounded("material_leaf_front_red", "the red in the colour of a leaf's upper \
+                face", [0.02, 0.04]).span([0.0, 0.141]),
         },
         /// The green channel of `leaf_front_red`.
         pub leaf_front_green: f64 = "leafFrontGreen" "reflectance"
@@ -73,8 +73,8 @@ crate::catalogue::rows! {
         pub leaf_front_blue: f64 = "leafFrontBlue" "reflectance"
             Bounds::closed(0.0, 1.0) => [Draw] {
             check: input(Site::Material, 83, "leaf front blue"),
-            dial: tuned("material_leaf_front_blue", "the blue in the colour of a leaf's upper \
-                face", [0.0, 0.082], [0.015, 0.03], "preset span"),
+            dial: bounded("material_leaf_front_blue", "the blue in the colour of a leaf's upper \
+                face", [0.015, 0.03]).span([0.0, 0.082]),
         },
         /// The colour of a leaf's underside, shown wherever the eye sees the
         /// back of a blade. Raising a channel pushes that face toward it.
@@ -87,14 +87,14 @@ crate::catalogue::rows! {
         pub leaf_back_green: f64 = "leafBackGreen" "reflectance"
             Bounds::closed(0.0, 1.0) => [Draw] {
             check: input(Site::Material, 85, "leaf back green"),
-            dial: tuned("material_leaf_back_green", "the green in the colour of a leaf's \
-                underside", [0.1525, 0.3225], [0.025, 0.05], "preset span"),
+            dial: bounded("material_leaf_back_green", "the green in the colour of a leaf's \
+                underside", [0.025, 0.05]).span([0.1525, 0.3225]),
         },
         /// The blue channel of `leaf_back_red`.
         pub leaf_back_blue: f64 = "leafBackBlue" "reflectance" Bounds::closed(0.0, 1.0) => [Draw] {
             check: input(Site::Material, 86, "leaf back blue"),
-            dial: tuned("material_leaf_back_blue", "the blue in the colour of a leaf's underside",
-                [0.03, 0.19], [0.025, 0.05], "preset span"),
+            dial: bounded("material_leaf_back_blue", "the blue in the colour of a leaf's \
+                underside", [0.025, 0.05]).span([0.03, 0.19]),
         },
         /// The colour a dead frond has aged to, both faces alike, shown only on
         /// the fronds a rosette keeps below its living crown. Raising a channel
@@ -125,14 +125,16 @@ crate::catalogue::rows! {
             check: input(Site::Material, 90, "leaf hue range low"),
             note: "Refused above `hueRangeHigh` (`leaf hue range`).",
             dial: tuned("material_hue_range_low", "the lowest hue offset one leaf may take, as a \
-                share of the colour circle", [-0.035, -0.015], [0.0025, 0.005], "preset span"),
+                share of the colour circle",
+                [-0.5, 0.0], [0.0025, 0.005], "validated bound").span([-0.035, -0.015]),
         },
         /// The upper end of the hue offsets `hue_range_low` opens.
         pub hue_range_high: f64 = "hueRangeHigh" "-" Bounds::closed(-0.5, 0.5) => [Draw] {
             check: input(Site::Material, 91, "leaf hue range high"),
             note: "Refused below `hueRangeLow` (`leaf hue range`).",
             dial: tuned("material_hue_range_high", "the highest hue offset one leaf may take, as \
-                a share of the colour circle", [0.015, 0.035], [0.0025, 0.005], "preset span"),
+                a share of the colour circle",
+                [0.0, 0.5], [0.0025, 0.005], "validated bound").span([0.015, 0.035]),
         },
         /// The brightness offsets one leaf may take, about no change at all.
         pub brightness_range_low: f64 = "brightnessRangeLow" "-"
@@ -140,7 +142,7 @@ crate::catalogue::rows! {
             check: input(Site::Material, 92, "leaf brightness range low"),
             note: "Refused above `brightnessRangeHigh` (`leaf brightness range`).",
             dial: tuned("material_brightness_range_low", "the lowest brightness offset one leaf \
-                may take", [-0.175, -0.075], [0.015, 0.03], "preset span"),
+                may take", [-1.0, 0.0], [0.015, 0.03], "validated bound").span([-0.175, -0.075]),
         },
         /// The upper end of the brightness offsets `brightness_range_low` opens.
         pub brightness_range_high: f64 = "brightnessRangeHigh" "-"
@@ -148,7 +150,7 @@ crate::catalogue::rows! {
             check: input(Site::Material, 93, "leaf brightness range high"),
             note: "Refused below `brightnessRangeLow` (`leaf brightness range`).",
             dial: tuned("material_brightness_range_high", "the highest brightness offset one \
-                leaf may take", [0.075, 0.175], [0.015, 0.03], "preset span"),
+                leaf may take", [0.0, 1.0], [0.015, 0.03], "validated bound").span([0.075, 0.175]),
         },
         /// How far a leaf deep inside the crown is darkened towards a shaded mass.
         pub interior_darkening: f64 = "interiorDarkening" "-" Bounds::closed(0.0, 1.0) => [Draw] {
@@ -159,8 +161,8 @@ crate::catalogue::rows! {
         /// Circumferential ridge spacing in metres; zero disables relief.
         pub ridge_scale: f64 = "ridgeScale" "m" Bounds::closed(0.0, 1.0) => [Draw] {
             check: input(Site::Material, 62, "bark ridge scale"),
-            dial: tuned("material_ridge_scale", "the metres between the bark's circumferential \
-                ridges; zero leaves no relief", [0.0, 0.12], [0.02, 0.04], "preset span"),
+            dial: bounded("material_ridge_scale", "the metres between the bark's circumferential \
+                ridges; zero leaves no relief", [0.02, 0.04]).span([0.0, 0.12]),
         },
         /// Axial scale control in metres; spacing is bounded to 1.5–2 ridge widths.
         /// Larger ratios lengthen and deepen furrows; zero omits breaks.
@@ -186,8 +188,8 @@ crate::catalogue::rows! {
         /// Secondary vein pairs per blade, continuously interpolated.
         pub vein_scale: f64 = "veinScale" "-" Bounds::closed(0.0, 32.0) => [Draw] {
             check: input(Site::Material, 66, "leaf vein scale"),
-            dial: tuned("material_vein_scale", "secondary vein pairs per blade",
-                [5.0, 9.0], [0.5, 1.0], "preset span"),
+            dial: bounded("material_vein_scale", "secondary vein pairs per blade",
+                [0.5, 1.0]).span([5.0, 9.0]),
         },
         /// How far the veins are lightened and the blade between them
         /// darkened. Raising it makes the venation read more sharply.
@@ -225,8 +227,8 @@ crate::catalogue::rows! {
             Bounds::closed(0.0, 1.0) => [Draw] {
             check: input(Site::Material, 71, "leaf transmission blue"),
             applies: "`transmissionStrength` zero",
-            dial: tuned("material_transmission_blue", "the blue in the tint of the light that \
-                comes through a leaf", [0.055, 0.115], [0.01, 0.02], "preset span"),
+            dial: bounded("material_transmission_blue", "the blue in the tint of the light that \
+                comes through a leaf", [0.01, 0.02]).span([0.055, 0.115]),
         },
         /// Optical thickness: attenuation is exp(-thickness).
         pub thickness: f64 = "thickness" "-" Bounds::closed(0.0, 8.0) => [Draw] {
@@ -269,22 +271,22 @@ crate::catalogue::rows! {
         pub crest_red: f64 = "crestRed" "offset" Bounds::closed(-1.0, 1.0) => [Draw] {
             check: input(Site::Material, 4, "bark crest red"),
             applies: "`crestStrength` zero",
-            dial: tuned("material_crest_red", "the red in the tint carried by the crests of the \
-                bark's ridges", [-0.05, 0.15], [0.025, 0.05], "preset span"),
+            dial: bounded("material_crest_red", "the red in the tint carried by the crests of \
+                the bark's ridges", [0.025, 0.05]).span([-0.05, 0.15]),
         },
         /// The green channel of `crest_red`.
         pub crest_green: f64 = "crestGreen" "offset" Bounds::closed(-1.0, 1.0) => [Draw] {
             check: input(Site::Material, 5, "bark crest green"),
             applies: "`crestStrength` zero",
-            dial: tuned("material_crest_green", "the green in the tint carried by the crests of \
-                the bark's ridges", [-0.05, 0.15], [0.025, 0.05], "preset span"),
+            dial: bounded("material_crest_green", "the green in the tint carried by the crests \
+                of the bark's ridges", [0.025, 0.05]).span([-0.05, 0.15]),
         },
         /// The blue channel of `crest_red`.
         pub crest_blue: f64 = "crestBlue" "offset" Bounds::closed(-1.0, 1.0) => [Draw] {
             check: input(Site::Material, 6, "bark crest blue"),
             applies: "`crestStrength` zero",
-            dial: tuned("material_crest_blue", "the blue in the tint carried by the crests of \
-                the bark's ridges", [-0.05, 0.15], [0.025, 0.05], "preset span"),
+            dial: bounded("material_crest_blue", "the blue in the tint carried by the crests of \
+                the bark's ridges", [0.025, 0.05]).span([-0.05, 0.15]),
         },
         /// How far `crest_red`'s tint is laid over the bark colour on the crests.
         pub crest_strength: f64 = "crestStrength" "-" Bounds::closed(0.0, 1.0) => [Draw] {
@@ -321,8 +323,8 @@ crate::catalogue::rows! {
         pub blade_mottle_scale: f64 = "bladeMottleScale" "-" Bounds::closed(0.0, 32.0) => [Draw] {
             check: input(Site::Material, 11, "leaf blade mottle scale"),
             applies: "`bladeMottleStrength` zero",
-            dial: tuned("material_blade_mottle_scale", "the size of the blotches in a leaf's \
-                mottling; zero leaves none", [0.0, 12.0], [2.0, 4.0], "preset span"),
+            dial: bounded("material_blade_mottle_scale", "the size of the blotches in a leaf's \
+                mottling; zero leaves none", [2.0, 4.0]).span([0.0, 12.0]),
         },
         /// How far the blotches `blade_mottle_scale` sizes vary a leaf's colour.
         pub blade_mottle_strength: f64 = "bladeMottleStrength" "-"
@@ -344,22 +346,22 @@ crate::catalogue::rows! {
         pub margin_red: f64 = "marginRed" "offset" Bounds::closed(-1.0, 1.0) => [Draw] {
             check: input(Site::Material, 14, "leaf margin red"),
             applies: "`marginWidth` zero",
-            dial: tuned("material_margin_red", "the red in the tint along a leaf's edge",
-                [-0.015, 0.045], [0.01, 0.02], "preset span"),
+            dial: bounded("material_margin_red", "the red in the tint along a leaf's edge",
+                [0.01, 0.02]).span([-0.015, 0.045]),
         },
         /// The margin colour's green channel, as an offset; `margin_width` sets its band.
         pub margin_green: f64 = "marginGreen" "offset" Bounds::closed(-1.0, 1.0) => [Draw] {
             check: input(Site::Material, 15, "leaf margin green"),
             applies: "`marginWidth` zero",
-            dial: tuned("material_margin_green", "the green in the tint along a leaf's edge",
-                [-0.025, 0.075], [0.015, 0.03], "preset span"),
+            dial: bounded("material_margin_green", "the green in the tint along a leaf's edge",
+                [0.015, 0.03]).span([-0.025, 0.075]),
         },
         /// The margin colour's blue channel, as an offset; `margin_width` sets its band.
         pub margin_blue: f64 = "marginBlue" "offset" Bounds::closed(-1.0, 1.0) => [Draw] {
             check: input(Site::Material, 16, "leaf margin blue"),
             applies: "`marginWidth` zero",
-            dial: tuned("material_margin_blue", "the blue in the tint along a leaf's edge",
-                [-0.005, 0.015], [0.0025, 0.005], "preset span"),
+            dial: bounded("material_margin_blue", "the blue in the tint along a leaf's edge",
+                [0.0025, 0.005]).span([-0.005, 0.015]),
         },
         /// How tight the highlight on a leaf's upper face is. Raising it draws
         /// the glint into a smaller, glossier spot.
@@ -381,9 +383,9 @@ crate::catalogue::rows! {
         pub plate_cell_scale: f64 = "plateCellScale" "m" Bounds::closed(0.0, 1.0) => [Draw] {
             check: input(Site::Material, 19, "bark plate cell scale"),
             applies: "`ridgeScale` zero",
-            dial: tuned("material_plate_cell_scale", "the metres across one bark plate, before \
+            dial: bounded("material_plate_cell_scale", "the metres across one bark plate, before \
                 girth scales it; at zero the bark has no plates at all, and any rise switches \
-                plates on", [0.0, 0.126], [0.02, 0.04], "preset span"),
+                plates on", [0.02, 0.04]).span([0.0, 0.126]),
         },
         /// How much longer a plate runs than it is wide: nought is as long as it
         /// is wide, one is twice as long.
@@ -452,22 +454,22 @@ crate::catalogue::rows! {
         pub weathering_red: f64 = "weatheringRed" "offset" Bounds::closed(-1.0, 1.0) => [Draw] {
             check: input(Site::Material, 27, "bark weathering red"),
             applies: "`weatheringStrength` zero",
-            dial: tuned("material_weathering_red", "the red in the tint a weathered face takes",
-                [-0.01125, 0.03375], [0.005, 0.01], "preset span"),
+            dial: bounded("material_weathering_red", "the red in the tint a weathered face takes",
+                [0.005, 0.01]).span([-0.01125, 0.03375]),
         },
         /// The green channel of `weathering_red`.
         pub weathering_green: f64 = "weatheringGreen" "offset" Bounds::closed(-1.0, 1.0) => [Draw] {
             check: input(Site::Material, 28, "bark weathering green"),
             applies: "`weatheringStrength` zero",
-            dial: tuned("material_weathering_green", "the green in the tint a weathered face \
-                takes", [-0.0175, 0.0525], [0.01, 0.02], "preset span"),
+            dial: bounded("material_weathering_green", "the green in the tint a weathered face \
+                takes", [0.01, 0.02]).span([-0.0175, 0.0525]),
         },
         /// The blue channel of `weathering_red`.
         pub weathering_blue: f64 = "weatheringBlue" "offset" Bounds::closed(-1.0, 1.0) => [Draw] {
             check: input(Site::Material, 29, "bark weathering blue"),
             applies: "`weatheringStrength` zero",
-            dial: tuned("material_weathering_blue", "the blue in the tint a weathered face takes",
-                [-0.014875, 0.044625], [0.01, 0.02], "preset span"),
+            dial: bounded("material_weathering_blue", "the blue in the tint a weathered face \
+                takes", [0.01, 0.02]).span([-0.014875, 0.044625]),
         },
         /// How far the side away from the sun and the foot of the trunk take a
         /// colour of their own - what damp growth would look like, not what it is.
@@ -485,23 +487,23 @@ crate::catalogue::rows! {
         pub orientation_red: f64 = "orientationRed" "offset" Bounds::closed(-1.0, 1.0) => [Draw] {
             check: input(Site::Material, 31, "bark orientation red"),
             applies: "`orientationStrength` zero",
-            dial: tuned("material_orientation_red", "the red in the tint the shaded side and the \
-                foot of the trunk take", [-0.093, 0.031], [0.02, 0.04], "preset span"),
+            dial: bounded("material_orientation_red", "the red in the tint the shaded side and \
+                the foot of the trunk take", [0.02, 0.04]).span([-0.093, 0.031]),
         },
         /// The green channel of `orientation_red`.
         pub orientation_green: f64 = "orientationGreen" "offset"
             Bounds::closed(-1.0, 1.0) => [Draw] {
             check: input(Site::Material, 32, "bark orientation green"),
             applies: "`orientationStrength` zero",
-            dial: tuned("material_orientation_green", "the green in the tint the shaded side and \
-                the foot of the trunk take", [-0.013, 0.039], [0.01, 0.02], "preset span"),
+            dial: bounded("material_orientation_green", "the green in the tint the shaded side \
+                and the foot of the trunk take", [0.01, 0.02]).span([-0.013, 0.039]),
         },
         /// The blue channel of `orientation_red`.
         pub orientation_blue: f64 = "orientationBlue" "offset" Bounds::closed(-1.0, 1.0) => [Draw] {
             check: input(Site::Material, 33, "bark orientation blue"),
             applies: "`orientationStrength` zero",
-            dial: tuned("material_orientation_blue", "the blue in the tint the shaded side and \
-                the foot of the trunk take", [-0.23025, 0.07675], [0.05, 0.1], "preset span"),
+            dial: bounded("material_orientation_blue", "the blue in the tint the shaded side and \
+                the foot of the trunk take", [0.05, 0.1]).span([-0.23025, 0.07675]),
         },
         /// How far a furrow floor is darkened by its own crest standing between it
         /// and the sun. Zero leaves the sun on both sides of every furrow alike.
@@ -568,8 +570,8 @@ crate::catalogue::rows! {
         pub lichen_scale: f64 = "lichenScale" "m" Bounds::closed(0.0, 1.0) => [Draw] {
             check: input(Site::Material, 41, "bark lichen scale"),
             applies: "`lichenStrength` zero",
-            dial: tuned("material_lichen_scale", "the metres across the cells lichen patches are \
-                scattered over", [0.0, 0.06], [0.01, 0.02], "preset span"),
+            dial: bounded("material_lichen_scale", "the metres across the cells lichen patches \
+                are scattered over", [0.01, 0.02]).span([0.0, 0.06]),
         },
         /// The share of those cells that hold a patch.
         pub lichen_coverage: f64 = "lichenCoverage" "-" Bounds::closed(0.0, 1.0) => [Draw] {
@@ -612,8 +614,8 @@ crate::catalogue::rows! {
         pub lenticel_density: f64 = "lenticelDensity" "-" Bounds::closed(0.0, 400.0) => [Draw] {
             check: input(Site::Material, 47, "bark lenticel density"),
             applies: "`lenticelStrength` or `lenticelLength` zero",
-            dial: tuned("material_lenticel_density", "rows of lenticel dashes per metre along \
-                the wood", [0.0, 27.0], [5.0, 10.0], "preset span"),
+            dial: bounded("material_lenticel_density", "rows of lenticel dashes per metre along \
+                the wood", [5.0, 10.0]).span([0.0, 27.0]),
         },
         /// The longest dash across the wood, in metres; the shortest is under half.
         pub lenticel_length: f64 = "lenticelLength" "m" Bounds::closed(0.0, 0.5) => [Draw] {
@@ -701,8 +703,8 @@ crate::catalogue::rows! {
         pub bark_grain_scale: f64 = "barkGrainScale" "m" Bounds::closed(0.0, 0.05) => [Draw] {
             check: input(Site::Material, 58, "bark grain scale"),
             applies: "`barkGrainStrength` zero",
-            dial: tuned("material_bark_grain_scale", "the metres across the cells of the grain \
-                below the bark's relief", [0.0, 0.003], [0.0005, 0.001], "preset span"),
+            dial: bounded("material_bark_grain_scale", "the metres across the cells of the grain \
+                below the bark's relief", [0.0005, 0.001]).span([0.0, 0.003]),
         },
         /// How far the grain varies the bark's colour and tilts its normal.
         pub bark_grain_strength: f64 = "barkGrainStrength" "-" Bounds::closed(0.0, 1.0) => [Draw] {
@@ -715,8 +717,8 @@ crate::catalogue::rows! {
         pub blade_grain_scale: f64 = "bladeGrainScale" "-" Bounds::closed(0.0, 256.0) => [Draw] {
             check: input(Site::Material, 60, "leaf blade grain scale"),
             applies: "`bladeGrainStrength` zero",
-            dial: tuned("material_blade_grain_scale", "the blade's cell grain, in cells per \
-                blade length", [0.0, 135.0], [20.0, 40.0], "preset span"),
+            dial: bounded("material_blade_grain_scale", "the blade's cell grain, in cells per \
+                blade length", [20.0, 40.0]).span([0.0, 135.0]),
         },
         /// How far that grain varies the blade's colour and tilts its normal.
         pub blade_grain_strength: f64 = "bladeGrainStrength" "-"

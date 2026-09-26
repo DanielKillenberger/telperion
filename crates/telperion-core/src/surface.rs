@@ -30,7 +30,7 @@ mod rings;
 mod samples;
 #[cfg(feature = "geometry")]
 mod section;
-use crate::catalogue::{bounded, input, tuned, value, Blend, Bounds as Rail, Site};
+use crate::catalogue::{bounded, input, value, Blend, Bounds as Rail, Site};
 #[cfg(feature = "geometry")]
 pub(crate) use attachment::AttachmentSurface;
 #[cfg(feature = "geometry")]
@@ -103,8 +103,8 @@ crate::catalogue::rows! {
             check: input(Site::Surface, 1, "surface parameters"),
             note: "Wood is drawn with `max(radialSegments, 4·lobes)` sides.",
             blend: Blend::Count,
-            dial: tuned("radial_segments", "how many sides each piece of wood is drawn with",
-                [6.0, 18.0], [2.0, 4.0], "preset span"),
+            dial: bounded("radial_segments", "how many sides each piece of wood is drawn with",
+                [2.0, 4.0]).span([6.0, 18.0]),
         },
         /// How many ridges run up around the trunk. Raising it gives the
         /// bark more flutes; zero is a plain round bole.
@@ -135,8 +135,8 @@ crate::catalogue::rows! {
             Rail::closed(-64.0, 64.0) => [Expand] {
             check: input(Site::Surface, 4, "surface parameters"),
             applies: "unless `lobes` and `lobeDepth` are both above zero",
-            dial: tuned("twist_rate", "how many turns those ridges make over the tree's height",
-                [-1.2, 3.6], [1.0, 2.0], "preset span"),
+            dial: bounded("twist_rate", "how many turns those ridges make over the tree's height",
+                [1.0, 2.0]).span([-1.2, 3.6]),
         },
         /// How much wider the trunk is where it meets the ground, as a
         /// multiple of its own radius. Raising it gives a broader buttress.
@@ -145,8 +145,8 @@ crate::catalogue::rows! {
             check: input(Site::Surface, 5, "surface parameters"),
             note: "Applies by height, to branches near the ground too; seats leaves where \
                 surface contact is on.",
-            dial: tuned("flare_radius", "how much wider the trunk is at the ground, as a \
-                multiple of its radius", [1.2, 2.4], [0.2, 0.4], "preset span"),
+            dial: bounded("flare_radius", "how much wider the trunk is at the ground, as a \
+                multiple of its radius", [0.2, 0.4]).span([1.2, 2.4]),
         },
         /// How far up the trunk that flare reaches, as a share of the
         /// height. Raising it carries the swelling further up the bole.

@@ -167,9 +167,10 @@ the whole tree. The runner fills the rest per revision:
 - `initial_overrides` is the last kept tree's overlay, or `start.json`'s on
   the first revision. The config's own `initial_overrides` are the person's
   entries and win over a derived value in Start.
-- `dials` are the rows of `crates/telperion-jev/data/dials.json`, read when
-  the revision starts, that the config names, all of them when it names none. A row the table no longer
-  has is dropped and named in the log.
+- `dials` are the rows of the dial table the parameter catalogue generates
+  (`tuning::table`), that the config names, all of them when it names none. A row the table no longer
+  has is dropped and named in the log; a config that names its dials at a table revision is refused
+  once the table has moved.
 
 ## Reference photographs
 

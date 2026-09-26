@@ -1,6 +1,4 @@
-//! The parameter reference, rendered from the catalogue, and the catalogue's
-//! revision: a digest of that reference, so anything the catalogue states
-//! moves it.
+//! The parameter reference, rendered from the catalogue.
 use super::{entries, Blend, Bounds, Check, Dial, Entry, Growth, Refusal, Stage};
 use crate::Family;
 use std::fmt::Write;
@@ -20,14 +18,6 @@ pub fn reference() -> String {
         row(&mut out, entry, &defaults);
     }
     out
-}
-
-/// A digest of the reference, as sixteen hex digits.
-pub fn revision() -> String {
-    let digest = reference().bytes().fold(0xcbf2_9ce4_8422_2325_u64, |h, b| {
-        (h ^ u64::from(b)).wrapping_mul(0x0100_0000_01b3)
-    });
-    format!("{digest:016x}")
 }
 
 const HEADER: &str = "# Parameter reference
@@ -166,9 +156,17 @@ fn dial(d: Dial) -> String {
             let window = t
                 .window
                 .map_or("its bounds".into(), |[a, b]| format!("[{a}, {b}]"));
+            let span = t
+                .span
+                .map_or(String::new(), |[a, b]| format!(", presets span [{a}, {b}]"));
+            let cap = if t.cap.is_empty() {
+                String::new()
+            } else {
+                format!(": {}", t.cap)
+            };
             format!(
-                "`{}` ({}), window {window}, steps {} and {}",
-                t.id, t.ask, t.small, t.substantial
+                "`{}` ({}), window {window} ({}{cap}), steps {} and {}{span}",
+                t.id, t.ask, t.basis, t.small, t.substantial
             )
         }
     }

@@ -42,7 +42,10 @@ crate::catalogue::rows! {
             check: input(Site::Habit, 3, "leader internode"),
             note: "Also the unit stems are placed in.",
             dial: tuned("leader_internode", "metres between lateral stations on the leader",
-                [0.05, 3.45], [0.5, 1.0], "preset span"),
+                [0.05, 3.45], [0.5, 1.0], "capped").span([0.05, 3.45])
+                .cap("capped both ways: the generator validates no closed range here (only \
+                    positive and finite); the row stays at the preset span until the generator \
+                    authors one"),
         },
         /// Laterals borne by one station of the leader.
         pub laterals_per_station: u32 = "lateralsPerStation" "laterals"
@@ -58,24 +61,24 @@ crate::catalogue::rows! {
             check: input(Site::Habit, 5, "lateral pitch"),
             applies: "needs `lateralOrders` of one or more",
             blend: Blend::Degrees,
-            dial: tuned("lateral_pitch", "the degrees a lateral leaves its parent axis, from \
-                vertical on the leader", [0.0, 118.0], [20.0, 40.0], "preset span"),
+            dial: bounded("lateral_pitch", "the degrees a lateral leaves its parent axis, from \
+                vertical on the leader", [20.0, 40.0]).span([0.0, 118.0]),
         },
         /// Spread of the lateral pitch, in degrees.
         pub pitch_variation: f64 = "pitchVariation" "degrees" Bounds::closed(0.0, 90.0) => [Grow] {
             check: input(Site::Habit, 6, "lateral pitch variation"),
             applies: "needs `lateralOrders` of one or more",
             blend: Blend::Degrees,
-            dial: tuned("pitch_variation", "the degrees that departure angle varies lateral to \
-                lateral", [0.0, 28.0], [5.0, 10.0], "preset span"),
+            dial: bounded("pitch_variation", "the degrees that departure angle varies lateral to \
+                lateral", [5.0, 10.0]).span([0.0, 28.0]),
         },
         /// Signed bend over the length of a first-order axis; positive rises.
         pub rise_primary: f64 = "risePrimary" "-" Bounds::closed(-1.0, 1.0) => [Grow] {
             check: input(Site::Habit, 7, "primary rise per order"),
             note: "Acts at orders zero and one, so it bends leaning stems; an upright stem has \
                 no rise to take.",
-            dial: tuned("rise_primary", "the bend over a first-order limb's length; positive \
-                rises", [-0.03, 0.17], [0.025, 0.05], "preset span"),
+            dial: bounded("rise_primary", "the bend over a first-order limb's length; positive \
+                rises", [0.025, 0.05]).span([-0.03, 0.17]),
         },
         /// Signed bend over the length of a deeper axis; negative hangs.
         pub rise_secondary: f64 = "riseSecondary" "-" Bounds::closed(-1.0, 1.0) => [Grow] {
@@ -98,7 +101,10 @@ crate::catalogue::rows! {
             check: input(Site::Habit, 10, "lateral spacing"),
             applies: "needs `lateralOrders` of one or more",
             dial: tuned("lateral_spacing", "metres between lateral stations away from the leader",
-                [1e-06, 2.925], [0.5, 1.0], "preset span"),
+                [1e-06, 2.925], [0.5, 1.0], "capped").span([1e-06, 2.925])
+                .cap("capped both ways: the generator validates no closed range here (only \
+                    positive and finite); the row stays at the preset span until the generator \
+                    authors one"),
         },
         /// Length of a lateral against its supporting axis.
         pub lateral_length_ratio: f64 = "lateralLengthRatio" "share"
@@ -182,9 +188,9 @@ crate::catalogue::rows! {
             note: "With more than one stem, refused at zero (`stems_placed`); `risePrimary` \
                 bends the leaning stems.",
             blend: Blend::Degrees,
-            dial: tuned("stem_lean", "the degrees from vertical the outermost stems tilt away \
+            dial: bounded("stem_lean", "the degrees from vertical the outermost stems tilt away \
                 from the root; at zero every stem stands upright, and any rise starts the tilt",
-                [0.0, 42.0], [5.0, 10.0], "preset span"),
+                [5.0, 10.0]).span([0.0, 42.0]),
         },
         /// How unequally a clump's stems lean, 0 to 1. None of it is the lean
         /// above, shared about the clump's centre; all of it leans the stems in

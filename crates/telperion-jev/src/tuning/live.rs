@@ -48,7 +48,9 @@ pub struct Config {
     #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
     pub magnitudes: std::collections::BTreeMap<String, super::stride::Class>,
     pub initial_overrides: Value,
-    pub dials: Vec<Dial>,
+    /// The dials a revision steps: an embedded copy, or ids into the
+    /// generated table at a stated revision (`table::Dials`).
+    pub dials: super::table::Dials,
     pub owner_notes: String,
     pub measure_binary: PathBuf,
     pub profiles: PathBuf,
@@ -142,6 +144,11 @@ impl Config {
         }
         Ok(strengths)
     }
+    /// The dials this config names, resolved against the generated table
+    /// where it names them by id.
+    pub fn dial_table(&self) -> Result<Vec<Dial>, String> {
+        self.dials.resolve()
+    }
     pub fn split_reviews(&self) -> u64 {
         self.max_split_reviews.unwrap_or(6)
     }
@@ -154,7 +161,8 @@ impl Config {
         // A first revision from a name has no owner notes; what cannot run
         // is a revision with no dial, no fixed and fresh seed to look at, or
         // no photograph of the whole tree to compare against (fn-149).
-        if self.dials.is_empty() {
+        let dials = self.dial_table()?;
+        if dials.is_empty() {
             return Err("no live dial to tune".into());
         }
         if !self.required.iter().any(|c| c.seed == self.seed)
@@ -169,7 +177,7 @@ impl Config {
         {
             return Err("no reference photograph of the whole tree".into());
         }
-        for dial in &self.dials {
+        for dial in &dials {
             dial.validate()?;
         }
         self.preparation()?;

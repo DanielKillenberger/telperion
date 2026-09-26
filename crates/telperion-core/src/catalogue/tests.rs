@@ -134,3 +134,27 @@ fn the_three_rows_no_stage_reads_are_deprecated() {
         ["/canopy/spacing", "/canopy/clump", "/canopy/clumpSpan"]
     );
 }
+
+/// Deprecated rows stay on the wire: a family written with them reads, lays
+/// over and writes back exactly as before.
+#[cfg(feature = "json")]
+#[test]
+fn the_deprecated_rows_parse_overlay_and_serialise_as_before() {
+    use crate::params;
+    let over = serde_json::json!({"canopy": {"spacing": 0.02, "clump": 3, "clumpSpan": 0.4}});
+    let f = params::overlay(&Preset::OregonWhiteOak.parameters(), &over).unwrap();
+    assert_eq!(
+        (f.canopy.spacing, f.canopy.clump, f.canopy.clump_span),
+        (0.02, 3, 0.4)
+    );
+    let wire = params::metadata(&f);
+    for (key, value) in [("spacing", 0.02), ("clump", 3.0), ("clumpSpan", 0.4)] {
+        assert_eq!(wire["canopy"][key].as_f64(), Some(value), "{key}");
+    }
+    assert_eq!(params::parse(&wire).unwrap().canopy.clump, 3);
+    let off = serde_json::json!({"canopy": {"clump": 65}});
+    assert_eq!(
+        params::overlay(&f, &off).and_then(|f| f.validate()),
+        Err(crate::Error::InvalidInput("foliage clump"))
+    );
+}

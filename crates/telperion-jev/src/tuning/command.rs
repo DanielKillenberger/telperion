@@ -38,7 +38,7 @@ pub fn fresh(config: &Config, identity: &str) -> Result<Run, String> {
         seed: config.seed,
         effective: telperion_core::params::metadata(&family),
         overrides: config.initial_overrides.clone(),
-        dials: config.dials.clone(),
+        dials: config.dial_table()?,
         owner_notes: config.owner_notes.clone(),
         required: config.required.clone(),
         budget: config.budget.clone(),

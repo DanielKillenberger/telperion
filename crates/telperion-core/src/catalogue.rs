@@ -17,7 +17,7 @@ mod walk;
 
 pub use check::check;
 pub use mount::{entries, entry, Entry};
-pub use reference::{reference, revision};
+pub use reference::reference;
 pub use scalar::{Kind, Scalar};
 pub use walk::{degrees, density, linear, walk, weighted};
 
@@ -192,6 +192,10 @@ pub struct Tuning {
     pub small: f64,
     pub substantial: f64,
     pub basis: &'static str,
+    /// Where the shipped presets sit: a stride hint and a prior, never a wall.
+    pub span: Option<[f64; 2]>,
+    /// Why a "capped" window keeps a side at the preset span.
+    pub cap: &'static str,
 }
 /// A dial that steps across the row's own bounds.
 pub const fn bounded(id: &'static str, ask: &'static str, steps: [f64; 2]) -> Dial {
@@ -202,6 +206,8 @@ pub const fn bounded(id: &'static str, ask: &'static str, steps: [f64; 2]) -> Di
         small: steps[0],
         substantial: steps[1],
         basis: "validated bound",
+        span: None,
+        cap: "",
     })
 }
 /// A dial that steps within a window of its own.
@@ -219,7 +225,28 @@ pub const fn tuned(
         small: steps[0],
         substantial: steps[1],
         basis,
+        span: None,
+        cap: "",
     })
+}
+impl Dial {
+    /// The span the shipped presets occupy on this dial.
+    pub const fn span(self, span: [f64; 2]) -> Self {
+        match self {
+            Self::Tuned(t) => Self::Tuned(Tuning {
+                span: Some(span),
+                ..t
+            }),
+            other => other,
+        }
+    }
+    /// Why the window keeps a side at the preset span.
+    pub const fn cap(self, cap: &'static str) -> Self {
+        match self {
+            Self::Tuned(t) => Self::Tuned(Tuning { cap, ..t }),
+            other => other,
+        }
+    }
 }
 
 /// Everything a row's declaration states.

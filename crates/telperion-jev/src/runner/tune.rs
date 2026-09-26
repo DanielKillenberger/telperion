@@ -1,9 +1,10 @@
 //! The Tune stage: one tuning revision over the live dials.
 //!
 //! A revision starts from the last kept tree, or from the Start overlay on
-//! the first. Its dials are the rows of the dial table read from disk when it
-//! starts, never a copy frozen into the config, so a row the generator gained
-//! or lost is offered or dropped on the next revision. It draws and measures
+//! the first. Its dials are the rows of the dial table the parameter catalogue
+//! generates, never a copy frozen into the config, so a row the generator
+//! gained or lost is offered or dropped on the next revision; a catalogue
+//! change reaches this stage through the tools the runner rebuilds from it. It draws and measures
 //! with the tools the runner just built, against the reference inventory the
 //! Profile stage built. The revision ends when its rounds
 //! stop keeping anything, and its result becomes the stage's artifact. A
@@ -19,6 +20,7 @@ use super::{Done, Run, Stage, Stop};
 use crate::caller::{load_key, UreqTransport};
 use crate::pipeline::canon::read_json;
 use crate::tuning::actions::Dial;
+use crate::tuning::table::Dials;
 
 pub struct Tune;
 
@@ -29,7 +31,7 @@ impl Stage for Tune {
 
     fn inputs(&self, run: &Run) -> Result<Vec<PathBuf>, String> {
         let out = run.out();
-        let mut files = vec![super::start::file(&out), run.tuning.clone(), table()];
+        let mut files = vec![super::start::file(&out), run.tuning.clone()];
         files.extend(referenced(&run.tuning)?);
         files.extend(super::inventory::files(&run.tuning, &out)?);
         files.extend(run.tools()?.files());
@@ -47,11 +49,6 @@ impl Stage for Tune {
     fn stop(&self, _: &Run) -> Result<Option<Stop>, String> {
         Ok(None)
     }
-}
-
-/// The dial table, as a stage input and as the rows a revision offers.
-pub fn table() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("data/dials.json")
 }
 
 /// The files the tuning config names whose bytes a revision reads: the
@@ -72,12 +69,18 @@ pub fn result(out: &Path) -> PathBuf {
     out.join("tuning").join("result.json")
 }
 
-/// The live rows the config asks for: every row of the compiled table whose
+/// The live rows the config asks for: every row of the generated table whose
 /// id the config names, or every row when it names none. Returns the rows
-/// and the ids the table no longer has.
+/// and the ids the table no longer has. A config that names its dials at a
+/// table revision, with overrides, resolves as `table::Dials` does, and is
+/// refused when the table has moved since.
 pub fn live_dials(asked: &Value) -> Result<(Vec<Dial>, Vec<String>), String> {
-    let bytes = std::fs::read(table()).map_err(|e| format!("{}: {e}", table().display()))?;
-    let table: Vec<Dial> = serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+    if asked.is_object() {
+        let named: Dials = serde_json::from_value(asked.clone())
+            .map_err(|e| format!("tuning config dials: {e}"))?;
+        return Ok((named.resolve()?, vec![]));
+    }
+    let table = crate::tuning::table::authored();
     let ids: Vec<String> = asked
         .as_array()
         .into_iter()

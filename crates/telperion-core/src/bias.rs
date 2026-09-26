@@ -35,7 +35,10 @@ crate::catalogue::rows! {
             dial: tuned("writhe_amplitude", "how far a branch wanders from a straight course, as \
                 a share of the height; at zero the wood holds a straight course and the spiral \
                 rate does nothing, and any rise starts the wander",
-                [0.0, 0.165], [0.025, 0.05], "preset span"),
+                [0.0, 0.165], [0.025, 0.05], "capped").span([0.0, 0.165])
+                .cap("ceiling capped: the generator validates only a floor here (0), so there is \
+                    no validated ceiling to widen to; the ceiling stays at the preset span until \
+                    the generator authors one"),
         },
         /// How long each of those wanders runs, as a share of the height.
         /// Raising it gives fewer, lazier bends; lowering it gives tighter kinks.
@@ -46,7 +49,11 @@ crate::catalogue::rows! {
             note: "Checked while dormant too.",
             blend: Blend::Coupled,
             dial: tuned("writhe_wavelength", "how long one of those wanders runs, as a share of \
-                the height", [0.225, 0.675], [0.05, 0.1], "preset span"),
+                the height",
+                [0.225, 0.675], [0.05, 0.1], "capped").span([0.225, 0.675])
+                .cap("capped both ways: the generator validates no closed range here (only \
+                    positive and finite); the row stays at the preset span until the generator \
+                    authors one"),
         },
         /// How many full turns the wander winds around the trunk over the
         /// tree's height. Raising it tightens the spiral. At zero the wander
@@ -58,7 +65,11 @@ crate::catalogue::rows! {
             blend: Blend::Coupled,
             dial: tuned("spiral_rate", "how many turns the wander winds around the trunk over \
                 the height; at zero the wander winds around nothing, and any rise starts the \
-                spiral", [0.0, 3.9], [0.5, 1.0], "preset span"),
+                spiral",
+                [0.0, 3.9], [0.5, 1.0], "capped").span([0.0, 3.9])
+                .cap("ceiling capped: the generator validates only a floor here (0), so there is \
+                    no validated ceiling to widen to; the ceiling stays at the preset span until \
+                    the generator authors one"),
         },
         /// The ceiling on how hard the wander may pull in any one step, so
         /// the other writhe rows cannot bend the wood arbitrarily.
@@ -102,7 +113,10 @@ crate::catalogue::rows! {
             growth: Growth::Differs("also decides when growth-path shoots sleep"),
             dial: tuned("gravitropism", "how strongly growth is pulled upright, most near the \
                 ground; at zero nothing pulls growth upright, and any rise starts that pull",
-                [0.0, 1.05], [0.15, 0.3], "preset span"),
+                [0.0, 1.05], [0.15, 0.3], "capped").span([0.0, 1.05])
+                .cap("ceiling capped: the generator validates only a floor here (0), so there is \
+                    no validated ceiling to widen to; the ceiling stays at the preset span until \
+                    the generator authors one"),
         },
         /// How far the whole tree leans off vertical, increasing with
         /// height. Raising it tips the trunk further in one direction. At zero
@@ -112,7 +126,10 @@ crate::catalogue::rows! {
             note: "Capped together with the writhe by `maxWritheMagnitude`.",
             dial: tuned("lean", "how far the whole tree leans off vertical; at zero the tree \
                 stands plumb, and any rise starts the lean",
-                [0.0, 0.075], [0.01, 0.02], "preset span"),
+                [0.0, 0.075], [0.01, 0.02], "capped").span([0.0, 0.075])
+                .cap("ceiling capped: the generator validates only a floor here (0), so there is \
+                    no validated ceiling to widen to; the ceiling stays at the preset span until \
+                    the generator authors one"),
         },
         pub supernatural: SupernaturalParams,
     }

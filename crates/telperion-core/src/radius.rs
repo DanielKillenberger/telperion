@@ -17,7 +17,11 @@ crate::catalogue::rows! {
             note: "Also sizes the leaf box where `canopy.shootRadius` is above zero or short \
                 shoots grow.",
             dial: tuned("trunk_radius", "the trunk's radius at the ground as a share of the \
-                height", [0.011, 0.023], [0.002, 0.004], "preset span"),
+                height",
+                [4e-06, 0.023], [0.002, 0.004], "capped").span([0.011, 0.023])
+                .cap("ceiling capped: the generator validates only a floor here (4e-6), so there \
+                    is no validated ceiling to widen to; the ceiling stays at the preset span \
+                    until the generator authors one"),
         },
         /// How wood divides at a fork. The parent's area is the sum of the
         /// children's radii raised to this power, so raising it leaves the
@@ -32,7 +36,10 @@ crate::catalogue::rows! {
         pub length_taper: f64 = "lengthTaper" "per height" Bounds::closed(0.0, f64::MAX) => [Grow] {
             check: value(Site::Radius, 3, "lengthTaper"),
             dial: tuned("length_taper", "how fast wood thins along its own length",
-                [0.0, 0.8], [0.1, 0.2], "preset span"),
+                [0.0, 0.8], [0.1, 0.2], "capped").span([0.0, 0.8])
+                .cap("ceiling capped: the generator validates only a floor here (0), so there is \
+                    no validated ceiling to widen to; the ceiling stays at the preset span until \
+                    the generator authors one"),
         },
         /// The ceiling on accumulated taper, so no single long branch can
         /// thin away to nothing. Raising it lets long branches taper further.
@@ -40,8 +47,8 @@ crate::catalogue::rows! {
         pub max_taper_exponent: f64 = "maxTaperExponent" "-" Bounds::closed(0.0, 64.0) => [Grow] {
             check: value(Site::Radius, 0, "maxTaperExponent"),
             applies: "`lengthTaper` zero",
-            dial: tuned("max_taper_exponent", "the ceiling on accumulated taper along one long \
-                branch", [6.0, 18.0], [2.0, 4.0], "preset span"),
+            dial: bounded("max_taper_exponent", "the ceiling on accumulated taper along one long \
+                branch", [2.0, 4.0]).span([6.0, 18.0]),
         },
     }
 }

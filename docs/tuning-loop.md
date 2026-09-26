@@ -16,6 +16,15 @@ model, and the opening spend. Every image's bytes are hash-checked.
 `Config::verify` checks that the config is whole; it asks for no calibration
 and no authority.
 
+The dial rows come from the dial table the parameter catalogue generates
+(`tuning::table::authored`, `docs/parameters.md`): each catalogue row that
+declares a dial offers one, and every other numeric row is excluded for the
+reason its entry gives. A config names its dials as ids, as the runner writes
+them, or as `{"catalogue": <revision>, "ids": [...], "overrides": {<id>:
+{"min", "max", "small", "substantial"}}}`, where `tuning::table::revision()` is
+the SHA-256 of the generated table and a revision that no longer matches is
+refused. A config written with its own dial list replays on exactly that copy.
+
 A revision runs into its own directory and never twice into the same one:
 
 1. The baseline is evaluated and measured; numeric failure stops before any

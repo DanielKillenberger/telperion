@@ -23,6 +23,7 @@ pub mod runaway;
 pub mod sheet;
 pub mod state;
 pub mod stride;
+pub mod table;
 pub mod tidy;
 pub mod unexpressed;
 pub mod veto;

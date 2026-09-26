@@ -16,8 +16,8 @@ crate::catalogue::rows! {
             note: "Wood at or below half of it is a twig; it is also the twig radius, the cap on \
                 childless tips (with `twigTipTaper`), and the leaf box's size where \
                 `canopy.shootRadius` is zero.",
-            dial: tuned("twig_diameter", "the finished thickness of a twig, in metres",
-                [0.0005, 0.0065], [0.001, 0.002], "preset span"),
+            dial: bounded("twig_diameter", "the finished thickness of a twig, in metres",
+                [0.001, 0.002]).span([0.0005, 0.0065]),
         },
         /// The length in metres a twig shoot grows before it stops, and the
         /// whole of one internode on leaf-bearing wood. Raising it lengthens
@@ -27,8 +27,8 @@ crate::catalogue::rows! {
             growth: Growth::Differs("also sets how far a waiting shoot reaches"),
             note: "The internode floor on bearing wood; a structural run the shell stops is \
                 trimmed by it.",
-            dial: tuned("twig_length", "the metres a twig shoot grows before it stops",
-                [0.15, 0.55], [0.05, 0.1], "preset span"),
+            dial: bounded("twig_length", "the metres a twig shoot grows before it stops",
+                [0.05, 0.1]).span([0.15, 0.55]),
         },
         /// Metres between the joints on wood thicker than the bearing
         /// diameter, and the spacing of the stations a leaf sits on. Raising
@@ -38,8 +38,8 @@ crate::catalogue::rows! {
             check: value(Site::Twig, 2, "twig internodeLength"),
             note: "Also the spacing of leaf stations; the canopy check bounds it again at [1e-6, \
                 1e6] (`twig internode`).",
-            dial: tuned("twig_internode_length", "metres between the joints on wood thicker than \
-                the bearing diameter", [1e-06, 0.08875], [0.015, 0.03], "preset span"),
+            dial: bounded("twig_internode_length", "metres between the joints on wood thicker \
+                than the bearing diameter", [0.015, 0.03]).span([1e-06, 0.08875]),
         },
         /// How many leaf stations sit at each joint, each turned its own share
         /// of a full turn around the shoot. Raising it crowds more leaves onto
@@ -51,8 +51,8 @@ crate::catalogue::rows! {
                 this check's 1 to 32 answers first. The skeleton never reads it; with \
                 `canopy.divergence` it sets the phyllotaxis.",
             blend: Blend::Count,
-            dial: tuned("twig_stations_per_internode", "leaf stations at each joint, spread \
-                around the shoot", [1.0, 4.0], [1.0, 2.0], "preset span"),
+            dial: bounded("twig_stations_per_internode", "leaf stations at each joint, spread \
+                around the shoot", [1.0, 2.0]).span([1.0, 4.0]),
         },
         /// The thickness in metres at or below which a shoot bears leaves and
         /// side shoots of its own. Raising it lets thicker wood bear, so
@@ -62,8 +62,8 @@ crate::catalogue::rows! {
             growth: Growth::Differs("also marks leaf-bearing wood and caps `canopy.shootRadius`"),
             note: "Wood at or below half of it takes one lateral per internode, ignoring \
                 `laterals`, and `twig.length` as its internode floor.",
-            dial: tuned("twig_bearing_diameter", "the thickness in metres at or below which a \
-                shoot bears leaves and side shoots", [0.005, 0.065], [0.01, 0.02], "preset span"),
+            dial: bounded("twig_bearing_diameter", "the thickness in metres at or below which a \
+                shoot bears leaves and side shoots", [0.01, 0.02]).span([0.005, 0.065]),
         },
     }
 }
@@ -105,8 +105,8 @@ crate::catalogue::rows! {
         /// joints and the wood reads straighter.
         pub internode_factor: f64 = "internodeFactor" "-" Bounds::closed(0.05, 32.0) => [Grow] {
             check: value(Site::Twig, 2, "twig internodeFactor"),
-            dial: tuned("twig_internode_factor", "the fewest of its own diameters a segment of \
-                wood may span", [1.25, 3.75], [0.5, 1.0], "preset span"),
+            dial: bounded("twig_internode_factor", "the fewest of its own diameters a segment of \
+                wood may span", [0.5, 1.0]).span([1.25, 3.75]),
         },
         /// The ceiling on segments one length of wood may be cut into. It
         /// binds only where the two lengths above would cut more, and there it
@@ -170,8 +170,8 @@ crate::catalogue::rows! {
             note: "Also sets the laterals' separation, `min(angle, maxTurnPerStep)`; a varied \
                 draw is clamped.",
             blend: Blend::Degrees,
-            dial: tuned("twig_angle", "the degrees a side shoot leaves its parent",
-                [37.5, 47.5], [1.5, 3.0], "preset span"),
+            dial: bounded("twig_angle", "the degrees a side shoot leaves its parent",
+                [1.5, 3.0]).span([37.5, 47.5]),
         },
         /// How many degrees that departure angle varies shoot to shoot.
         /// Raising it makes the twig layer less uniform.
@@ -179,8 +179,8 @@ crate::catalogue::rows! {
             crate::ranges::ANGLE.bounds() => [Grow] {
             check: value(Site::Twig, 7, "twig angleVariation"),
             blend: Blend::Degrees,
-            dial: tuned("twig_angle_variation", "the degrees that departure angle varies shoot \
-                to shoot", [5.0, 15.0], [1.5, 3.0], "preset span"),
+            dial: bounded("twig_angle_variation", "the degrees that departure angle varies shoot \
+                to shoot", [1.5, 3.0]).span([5.0, 15.0]),
         },
         /// How much shoot length varies shoot to shoot. Raising it gives a
         /// more uneven, less combed twig layer.
@@ -196,7 +196,10 @@ crate::catalogue::rows! {
             check: input(Site::Twig, 12, "twig divergence"),
             blend: Blend::Degrees,
             dial: tuned("twig_divergence", "the degrees each successive shoot is turned around \
-                the wood that bears it", [68.752, 206.256], [20.0, 40.0], "preset span"),
+                the wood that bears it",
+                [68.752, 206.256], [20.0, 40.0], "capped").span([68.752, 206.256])
+                .cap("capped both ways: the generator validates no closed range here (only \
+                    finite); the row stays at the preset span until the generator authors one"),
         },
         /// How strongly a shoot hangs, 0 to 3. At 0 nothing hangs and the local
         /// law is the ordinary one; at 1 a curtain takes its full droop.
@@ -231,8 +234,8 @@ crate::catalogue::rows! {
             check: input(Site::Twig, 17, "curtain separation"),
             applies: "`hang` zero",
             blend: Blend::Degrees,
-            dial: tuned("twig_curtain_separation", "the degrees between neighbouring shoots in a \
-                curtain", [1.5, 11.5], [1.5, 3.0], "preset span"),
+            dial: bounded("twig_curtain_separation", "the degrees between neighbouring shoots in \
+                a curtain", [1.5, 3.0]).span([1.5, 11.5]),
         },
         /// How far toward straight down a hanging shoot's course has turned by the
         /// end of its pendulous length, 0 to 1: at 0 the shoot holds the direction
