@@ -53,11 +53,15 @@ pub fn screened(tape: &Path) -> Result<BTreeSet<String>, String> {
 }
 
 /// Every passage the run quoted to Jev: each string of each recorded request
-/// body, line by line, without a row label, whitespace collapsed.
+/// body, line by line, without a row label, whitespace collapsed, and each
+/// passage a document's kind was asked over whatever its length.
 pub fn quoted(tape: &Path) -> Result<BTreeSet<String>, String> {
     let mut out = BTreeSet::new();
     for entry in entries(&tape.join("jev"))? {
-        strings(&entry["request"]["body"], &mut out);
+        let body = &entry["request"]["body"];
+        strings(body, &mut out);
+        let passages = body["state"]["passages"].as_array().into_iter().flatten();
+        out.extend(passages.filter_map(Value::as_str).map(collapse_ws));
     }
     Ok(out)
 }
@@ -449,6 +453,9 @@ mod tests {
             "passages": ["org%2Fportal%2Ftaxa%2Findex."]}}}});
         std::fs::write(tape.join("jev/a.json"), entry.to_string()).unwrap();
         let quoted = super::quoted(&tape).unwrap();
-        assert!(quoted.contains("org%2Fportal%2Ftaxa%2Findex."), "{quoted:?}");
+        assert!(
+            quoted.contains("org%2Fportal%2Ftaxa%2Findex."),
+            "{quoted:?}"
+        );
     }
 }
