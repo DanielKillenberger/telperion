@@ -48,3 +48,10 @@
 - **Hindered:** trunk diameter rests on one nursery page (1.5 m, `thin`); its range is the point [1.5, 1.5] and it gates, so the baseline tree's 1.49 m fails the numeric gate and Tune stops "baseline infeasible" before any round.
 - **Cost:** one revision (1,579 Jev tokens, one visual pass); R8 stops here until the host decides.
 - **Would have removed it:** a rule for how a thin value gates (contextual, or a tolerance around a point). Left to the host: the spec does not say.
+
+## 2026-09-26, worker, fn-157.1: a photograph found from a name has no matched shot
+
+- **Doing:** the beech's Tune revision 1 after the agreement rule made its numeric gate pass (height 39.97 m and crown 13.4 m gating and passing; trunk diameter contextual).
+- **Hindered:** the baseline is still infeasible, now "no matched shots or height": `tuning/matched.rs` compares only against references that carry a `shot` (camera azimuth, elevation, field of view, crop), and the photograph the Profile stage keeps carries none. The tuning config's `numeric_references` and required cells name the shipped beech's hand-matched `B-WHOLE`, which a run from a name never has. No code derives a shot.
+- **Cost:** one more revision (one visual pass); R8 cannot reach a round from a name.
+- **Would have removed it:** a rule for who writes a found photograph's shot and which reference Tune's numeric comparison names on a run from a name. Left to the host: a system-design choice.
