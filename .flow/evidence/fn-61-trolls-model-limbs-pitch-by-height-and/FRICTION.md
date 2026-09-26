@@ -20,3 +20,10 @@
 - Hindered: I committed the fixes for the round's findings before running `impl-review-fanout-finalize`; the finalize refuses a head the draws did not see, so the round was refunded and the three-draw fan-out ran again.
 - Cost: about 2 minutes of wall time and a second three-draw review.
 - Remedy: my ordering error; the skill's order (merge, finalize, then fix) is stated. A finalize that named the order in its refusal earlier, before the fixes, would not have helped; none needed.
+
+## 2026-09-27, worker: two new rows break seven pins across three crates
+
+- Doing: the one workspace gate at the end of the task.
+- Hindered: adding two catalogue rows failed seven tests no focused command runs: four identity digests (`catalogue_identity.rs`), the sweep's held-row list, the generation-limit inventory, two dial counts in `telperion-jev`, and the beech replay tape, whose tune round now asks Jev about two more dials and so needs a live `--extend` re-record.
+- Cost: one full gate run (about 10 minutes) to discover them, then the repair and a second gate run; the tape re-record needs a live Jev call.
+- Remedy: a checklist in `docs/parameters.md` naming every pin a new row moves (or one cargo alias running those tests), so a row lands with them in one pass; and a replay whose tune round does not key its Jev request on the full dial table.

@@ -319,6 +319,18 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
+    "site": ". max ( 1e - 9 )",
+    "classification": "numeric",
+    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A station's height share of the crown lies between the crown's base and its top by definition."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
     "site": "if ! self . planning . contains ( next , 0 . 0 , self . config . seed ) | | next . y < self . config . trunk_height {",
     "classification": "algorithm",
     "reason": "Zero-length or outside-shell scaffold segments are omitted according to authored geometry."
