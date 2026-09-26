@@ -90,7 +90,7 @@ pub fn run(profile_path: &Path, tuning_path: &Path, out: &Path) -> Result<String
     let overrides = unflatten(&merged);
     params::overlay(&preset.parameters(), &overrides)
         .map_err(|e| format!("derived overrides: {e:?}"))?;
-    let contextual = reclassify(&tuning, &profile_id)?;
+    let contextual = reclassify(&tuning, &profile_id, &packet)?;
     let rows: Vec<Value> = derived
         .rows
         .iter()
@@ -120,13 +120,15 @@ pub fn run(profile_path: &Path, tuning_path: &Path, out: &Path) -> Result<String
 }
 
 /// Makes the tuning profile's gating metrics the measurer cannot read
-/// contextual, so the tree is never gated on a number nobody measures.
-fn reclassify(tuning: &Value, profile_id: &str) -> Result<Vec<String>, String> {
+/// contextual, so the tree is never gated on a number nobody measures. A
+/// run from a name has no profile manifest of its own: the measurer reads
+/// the profile the tree was derived from (fn-157).
+fn reclassify(tuning: &Value, profile_id: &str, packet: &Value) -> Result<Vec<String>, String> {
     let Some(path) = tuning["profiles"].as_str().map(Path::new) else {
         return Ok(Vec::new());
     };
     if !path.exists() {
-        return Ok(Vec::new());
+        write_canonical(path, packet).map_err(|e| format!("{}: {e}", path.display()))?;
     }
     let mut manifest = read_json(path).map_err(|e| e.to_string())?;
     let mut changed = Vec::new();

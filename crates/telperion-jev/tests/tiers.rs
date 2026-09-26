@@ -173,3 +173,27 @@ fn start_takes_the_median_never_the_midpoint_of_the_range() {
         .unwrap_or_else(|| panic!("no height row: {derived:?}"));
     assert!((height.value - 36.25).abs() < 1e-9, "{height:?}");
 }
+
+/// A run from a name has no profile manifest for the measurer: Start writes
+/// the profile the tree was derived from where the tuning config names it,
+/// so Tune gates on it (fn-157; the beech's first Tune revision found none).
+#[test]
+fn start_gives_the_measurer_the_profile_it_derived_from() {
+    let dir = beech();
+    let profiles = dir.join("profiles-european-beech.json");
+    let tuning = dir.join("tuning.json");
+    write_canonical(
+        &tuning,
+        &json!({"preset": "european-beech", "profile_id": "european-beech",
+                "profiles": profiles.display().to_string(), "initial_overrides": {}}),
+    )
+    .unwrap();
+    let packet = dir.join("packet/profile.json");
+    telperion_jev::runner::start::run(&packet, &tuning, &dir.join("out")).unwrap();
+    let written = read_json(&profiles).unwrap();
+    assert_eq!(written["profiles"][0]["id"], "european-beech");
+    assert_eq!(
+        written["profiles"][0]["metrics"]["height_m"]["value"],
+        read_json(&packet).unwrap()["profiles"][0]["metrics"]["height_m"]["value"]
+    );
+}
