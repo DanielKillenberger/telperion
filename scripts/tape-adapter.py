@@ -3,11 +3,15 @@
 
 The species runner wraps every adapter program in its configs as
 `python3 scripts/tape-adapter.py record:<dir>|replay:<dir>|extend:<dir> -- <program> <args...>`;
-`extend` replays what the recording holds and records what it lacks.
+`extend` replays what the recording holds and records what it lacks;
+`tape-adapter.py rekey:<dir>` refiles a recording's answers under the keys
+this script computes now.
 The call's stdin envelope and the adapter's argv are the key, without what
 names the run rather than the question: every `path`, the request hash the
 caller took over those paths, every `ledger` reference (a fresh entry id per
-call) and every run `identity` (a hash of a config that holds paths). Recording runs the adapter and stores its stdout, stderr
+call), every run `identity` (a hash of a config that holds paths), a render's
+`geometry_group` (that identity and a seed) and a `shot_source` (a hash of a
+references file holding the run's paths and dates). Recording runs the adapter and stores its stdout, stderr
 and exit status; replaying prints the stored stdout, bound to this call's
 own request hash, and exits with the stored status, and fails, naming the
 request, when the recording lacks it. Nothing here reaches a model.
@@ -22,7 +26,7 @@ import sys
 # What names the run rather than the question. Kept in step with
 # `crate::tape::UNSTABLE`.
 UNSTABLE = ("path", "request_sha256", "ledger", "identity", "run_identity",
-            "current_identity", "render_identity")
+            "current_identity", "render_identity", "geometry_group", "shot_source")
 
 
 def stable(value):
@@ -58,7 +62,27 @@ def bound(stdout, stdin):
     return stdout
 
 
+def rekey(directory):
+    """Files every recorded answer under the key this script computes for
+    it now, so a recording follows a change of what names the run."""
+    moved = 0
+    for entry in sorted((Path(directory) / "adapter").glob("*.json")):
+        recorded = json.loads(entry.read_text())
+        stdin = recorded["stdin"]
+        digest = key(recorded["argv"], stdin if isinstance(stdin, str) else json.dumps(stdin))
+        target = entry.with_name(f"{digest[:32]}.json")
+        if target != entry or recorded["key"] != digest:
+            recorded["key"] = digest
+            entry.unlink()
+            target.write_text(json.dumps(recorded, indent=1, sort_keys=True))
+            moved += 1
+    print(f"rekeyed {moved} adapter answers")
+    return 0
+
+
 def main(argv):
+    if argv and argv[0].startswith("rekey:") and len(argv) == 1:
+        return rekey(argv[0].split(":", 1)[1])
     mode, rest = argv[0], argv[1:]
     if not rest or rest[0] != "--" or ":" not in mode:
         raise SystemExit("usage: tape-adapter.py record:<dir>|replay:<dir>|extend:<dir> -- <program> <args...>")

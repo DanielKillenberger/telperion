@@ -111,9 +111,11 @@ impl Tape {
 
 /// What names the run rather than the question: a file's path, a caller's
 /// hash of a request that carries paths, a ledger reference (a fresh entry
-/// id per call) and a run identity (a hash of a config that holds paths).
+/// id per call), a run identity (a hash of a config that holds paths), a
+/// render's geometry group (that identity and a seed) and a shot source (a
+/// hash of a references file holding the run's paths and dates).
 /// Kept in step with `scripts/tape-adapter.py`.
-pub const UNSTABLE: [&str; 7] = [
+pub const UNSTABLE: [&str; 9] = [
     "path",
     "request_sha256",
     "ledger",
@@ -121,6 +123,8 @@ pub const UNSTABLE: [&str; 7] = [
     "run_identity",
     "current_identity",
     "render_identity",
+    "geometry_group",
+    "shot_source",
 ];
 
 /// A fetched page's own fingerprint beside its `url`: a recording trimmed
