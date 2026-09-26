@@ -436,4 +436,19 @@ mod tests {
         let err = page(URL, "text/markdown", text, &[], &bare, true).unwrap_err();
         assert!(err.contains("reads"), "{err}");
     }
+
+    /// fn-157, the oak's replay: a document's kind is asked over up to three
+    /// candidate sentences, and one may be a single word (an address cut at
+    /// its full stop). Each is quoted whatever its length, or the trimmed
+    /// page asks the kind question over other passages.
+    #[test]
+    fn a_kind_question_keeps_every_passage_it_asked_over() {
+        let tape = std::env::temp_dir().join(format!("trim-kind-{}", std::process::id()));
+        std::fs::create_dir_all(tape.join("jev")).unwrap();
+        let entry = serde_json::json!({"request": {"body": {"state": {
+            "passages": ["org%2Fportal%2Ftaxa%2Findex."]}}}});
+        std::fs::write(tape.join("jev/a.json"), entry.to_string()).unwrap();
+        let quoted = super::quoted(&tape).unwrap();
+        assert!(quoted.contains("org%2Fportal%2Ftaxa%2Findex."), "{quoted:?}");
+    }
 }
