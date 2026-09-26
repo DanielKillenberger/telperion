@@ -209,3 +209,17 @@ fn start_gives_the_measurer_the_profile_it_derived_from() {
         read_json(&packet).unwrap()["profiles"][0]["metrics"]["height_m"]["value"]
     );
 }
+
+/// Host decision of 2026-09-26: a value gates only when its deciding tier
+/// agrees. The height's two agreeing forestry sources gate; the crown width,
+/// one extension site alone, is contextual. Each says why.
+#[test]
+fn a_value_gates_only_when_its_tier_agrees() {
+    let dir = beech();
+    let height = metric(&dir, "height_m");
+    assert_eq!(height["classification"], "gating", "{height}");
+    assert!(height["classified"].as_str().unwrap().contains("agree"), "{height}");
+    let crown = metric(&dir, "crown_width_m");
+    assert_eq!(crown["classification"], "contextual", "{crown}");
+    assert!(crown["classified"].as_str().unwrap().contains("one"), "{crown}");
+}
