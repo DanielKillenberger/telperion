@@ -367,7 +367,13 @@ class TapeAdapter(unittest.TestCase):
         answer = "import sys; sys.stdin.read(); print('{\"status\": \"ok\"}')"
 
         def envelope(run):
-            request = {"comparison": {"identity": f"id-{run}", "images": [{"path": f"/{run}/r.png", "sha256": "r"}]},
+            # fn-157: a render's geometry group names the run identity it was
+            # drawn under, and the shot source hashes a references file that
+            # holds the run's paths and dates; neither is the question.
+            joint = {"inputs": [{"geometry_group": f"id-{run}:seed:1", "sha256": "r"}],
+                     "shot_source": {"path": f"/{run}/shots.json", "sha256": f"s-{run}"}}
+            request = {"comparison": {"identity": f"id-{run}", "images": [{"path": f"/{run}/r.png", "sha256": "r"}],
+                                      "joint": joint},
                        "inventory": {"ledger": f"/{run}/ledger/{run}.json#sha256:{run}", "traits": ["t"]}}
             return {"stage": "comparison", "request": request, "request_sha256": run}
 
