@@ -1,0 +1,132 @@
+# Norway spruce, Picea abies (fn19).
+# Rows off the default family, checked against the catalogue as core compiles.
+
+# Provisional needle retention; age calibration remains separate.
+/growth/leafLifetime = 6.0
+
+# Open-grown landscape Picea abies; one needle per local station.
+/skeleton/habit/apicalDominance = 1.0
+/skeleton/habit/whorlStrength = 1.0
+/skeleton/habit/leaderInternode = 0.9
+/skeleton/habit/lateralsPerStation = 5
+/skeleton/habit/lateralPitch = 88.0
+/skeleton/habit/pitchVariation = 4.0
+/skeleton/habit/risePrimary = 0.12
+/skeleton/habit/riseSecondary = -0.8
+/skeleton/habit/crookedness = 0.0
+/skeleton/habit/lateralSpacing = 0.15
+/skeleton/habit/lateralLengthRatio = 0.3
+/skeleton/habit/lateralOrders = 4
+/skeleton/habit/attractorWeight = 0.0
+/skeleton/habit/twigTipTaper = 0.25
+/skeleton/habit/sheddingThreshold = 0.0
+/skeleton/envelope/height = 15.0
+/skeleton/envelope/crownBase = 0.04
+/skeleton/envelope/spread = 0.31
+/skeleton/envelope/fullness = 0.15
+/skeleton/envelope/shoulder = 1.0
+/skeleton/bias/gravitropism = 0.0
+/skeleton/bias/lean = 0.0
+/skeleton/twigs/twig/diameter = 0.002
+/skeleton/twigs/twig/internodeLength = 0.0025
+/skeleton/twigs/twig/bearingDiameter = 0.02
+
+# The spruce's curtain, as rows. These four are the values the
+# twig layer used while the curtain was a hidden mode: full hang,
+# every shoot under a descending limb, the default twig length as
+# the pendulous run, four degrees between neighbours.
+/skeleton/twigs/hang = 1.0
+/radii/trunkRadius = 0.015
+
+# A shaft that holds its width to the distal point, rolled all
+# the way round: four sides, four cross segments, no seam vertex
+# spent on a seam that is not there.
+/element/length = 0.018
+/element/width = 0.0015
+/element/connectorLength = 0.001
+/element/widestAt = 0.2
+/element/baseFullness = 0.2
+/element/tipSharpness = 0.2
+/element/sectionRoundness = 1.0
+/element/crossSegments = 4
+/shellDepth = 1.0
+
+# Evergreen foliage also persists on slender supporting branchlets,
+# seated on the wood itself, upper needles leaning toward the tip.
+/canopy/shootRadius = 0.025
+/canopy/forwardLean = 0.05
+/canopy/leanRise = 1.2
+/canopy/surfaceContact = 1.0
+/canopy/outward = 0.0
+/canopy/upward = 0.0
+/canopy/sizeVariation = 0.2
+
+# Reddish-brown scaly bark; a needle darker and bluer than any
+# blade, its underside paler where the stomatal bands run.
+/material/barkRed = 0.2
+/material/barkGreen = 0.175
+/material/barkBlue = 0.148
+/material/barkRoughness = 0.9
+/material/barkGrainScale = 0.0018
+/material/barkGrainStrength = 0.15
+
+# Neutral: no young wood until the spruce's own table states it.
+/material/shootGreen = 0.078
+/material/shootBlue = 0.045
+/material/leafFrontRed = 0.018
+/material/leafFrontGreen = 0.056
+/material/leafFrontBlue = 0.028
+/material/leafBackRed = 0.109
+/material/leafBackGreen = 0.195
+/material/leafBackBlue = 0.138
+/material/hueRangeLow = -0.02
+/material/hueRangeHigh = 0.02
+/material/brightnessRangeLow = -0.1
+/material/brightnessRangeHigh = 0.1
+/material/interiorDarkening = 0.7
+/material/ridgeScale = 0.02
+/material/plateScale = 0.03
+/material/furrowStrength = 0.025
+/material/roughnessDetail = 0.16
+/material/transmissionStrength = 0.01
+/material/transmissionRed = 0.12
+/material/transmissionGreen = 0.24
+/material/transmissionBlue = 0.08
+/material/thickness = 3.5
+/material/fissureRed = 0.07
+/material/fissureGreen = -0.054
+/material/fissureBlue = -0.11
+/material/fissureStrength = 0.4
+/material/crestRed = 0.05
+/material/crestGreen = 0.025
+/material/crestBlue = 0.01
+/material/crestStrength = 0.3
+/material/barkMottleScale = 0.4
+/material/barkMottleStrength = 0.2
+/material/cavityStrength = 0.6
+/material/bladeMottleScale = 8.0
+/material/marginRed = 0.01
+/material/marginGreen = 0.015
+/material/marginBlue = 0.002
+/material/cuticleGloss = 0.05
+/material/skyOcclusionStrength = 0.6
+/material/plateCellScale = 0.021
+/material/plateElongation = 0.2
+/material/plateDome = 0.08
+/material/plateEdgeLift = 0.3
+/material/plateEdgeShape = 1.0
+/material/plateIdentity = 0.375
+/material/weatheringStrength = 0.6
+/material/weatheringRed = 0.015
+/material/weatheringGreen = 0.03
+/material/weatheringBlue = 0.02975
+/material/orientationStrength = 0.44375
+/material/orientationRed = -0.014
+/material/orientationGreen = 0.026
+/material/orientationBlue = -0.0155
+/material/directionalOcclusion = 0.45
+/material/depthStrength = 0.45625
+
+# Left at the default family:
+# Neutral: a card lit alone, until this table states its canopy.
+# Plated bark: no lichen, lenticel or peel term of fn-40's.

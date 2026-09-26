@@ -1,0 +1,304 @@
+# Silver birch, Betula pendula.
+# Rows off the default family, checked against the catalogue as core compiles.
+
+# Mature open-grown Betula pendula. Envelope height is the 18 m
+# reference at 70 yr; oak growth traits, pendulous laterals.
+/age = 70.0
+/skeleton/habit/apicalDominance = 0.45
+/skeleton/habit/whorlStrength = 0.2
+/skeleton/habit/leaderInternode = 1.6
+
+# From inside the lower crown the four limbs a station threw at 62
+# degrees read as rings of near-horizontal spokes, one ring every
+# internode from 2 m to 9 m (owner, round 26: "way too many branches
+# in the middle"). A pair a station, leaving at 45 degrees, climbs
+# beside the stem the way the photographs' limbs do, and the droop
+# the owner sees in them is `rise_secondary` on the shoots they
+# carry, not the angle they leave at. At seed 1 the lower crown's
+# primaries fall from 27 to 13 and the tree from 174 to 82.
+/skeleton/habit/lateralsPerStation = 2
+/skeleton/habit/lateralPitch = 45.0
+/skeleton/habit/pitchVariation = 14.0
+/skeleton/habit/risePrimary = 0.02
+/skeleton/habit/riseSecondary = -0.85
+/skeleton/habit/crookedness = 10.0
+/skeleton/habit/lateralSpacing = 1.2
+/skeleton/habit/attractorWeight = 0.0
+/skeleton/habit/twigTipTaper = 0.35
+/skeleton/habit/sheddingThreshold = 0.0
+
+# The photograph's birch stands on two stems that part at the ground:
+# one near vertical, the other leaning well out before it rises into
+# the crown. The whole spread stands the first upright and leans the
+# second by all of the lean, so the pair is that and not an even V.
+# An upright stem has no bearing to part from, so a divergence would
+# only turn the leaning one about the seed's own bearing; it is left
+# at none. Twenty-eight degrees is the lean the photographs' leaning
+# stem shows across the view; the curtain leaves only the first
+# couple of metres of stem bare, and less put the two of them still
+# inside one another's bark over that stretch.
+# Where they part is the two photographs' disagreement: S-WHOLE's
+# pair leaves the ground as two, and S-BARE's stands on one trunk
+# that forks at its lowest limbs, about a third of its visible
+# height up. Both part at or under the crown's base and never in
+# the crown, and the owner asked for the second stem to move up, so
+# the table states the row's top, half the bole, as far toward
+# S-BARE as it reaches: one trunk to a metre, then the pair, the
+# trunk carrying on into the upright stem and the leaning one
+# leaving from its side.
+/skeleton/habit/stems = 2
+/skeleton/habit/stemLean = 28.0
+/skeleton/habit/stemLeanSpread = 1.0
+/skeleton/habit/stemForkHeight = 0.5
+
+# A narrower crown carrying its mass up top, with squarer shoulders than
+# the round-3 oval. The crown's base is also the curtain's floor: a shoot
+# that hangs by its own weight falls to it, and in both photographs the
+# two stems stand clear under the curtain for their first two metres.
+/skeleton/envelope/height = 18.0
+/skeleton/envelope/crownBase = 0.1
+/skeleton/envelope/spread = 0.36
+/skeleton/envelope/fullness = 0.6
+/skeleton/envelope/shoulder = 1.6
+
+# The birch's own lumps are finer than the beech's: a narrow crown of
+# hanging shoots, with the shell they hang from ragged rather than
+# lobed, lumps a quarter of the height across and a third of the
+# radius deep. The curtain falls past the shell's lower surface
+# (the drop below), so the lumps shape the crown the strands hang
+# from rather than the hem they end in.
+/skeleton/envelope/irregularity = 0.35
+/skeleton/envelope/lobeScale = 0.25
+/skeleton/bias/gravitropism = 0.0
+/skeleton/bias/lean = 0.0
+
+# Eight laterals a station at 0.6 of the parent's length filled the
+# interior with twigs no view from outside showed: 54,500 branches at
+# seed 1, most of them at orders 4 and 5, and a leaf mass the S-WHOLE
+# pair reads 12 grey levels darker in the middle than the photograph.
+# Seven at 0.55 leave 33,500 and put that centre on the photograph's own
+# 83, which is where the leaf spacing below was re-read and left alone.
+/skeleton/twigs/laterals = 7
+/skeleton/twigs/lengthRatio = 0.55
+/skeleton/twigs/twig/diameter = 0.003
+/skeleton/twigs/twig/length = 0.45
+
+# A leaf every 60 mm of shoot: two stems carry two crowns' worth of
+# shoots inside one shell, and at the single stem's 36 mm the curtain
+# closed back into a mass with no sky through it.
+/skeleton/twigs/twig/internodeLength = 0.06
+/skeleton/twigs/twig/bearingDiameter = 0.02
+
+# The weeping birch's own curtain: a full hang, shoots running metres
+# unbranched instead of the twig's own quarter (their length is stated
+# with its variation below), every shoot under a descending limb hanging, and nine degrees between neighbours
+# where the spruce stands them four apart - a birch's curtain is long and
+# open, not the spruce's dense fringe.
+/skeleton/twigs/hang = 2.4
+/skeleton/twigs/curtainSeparation = 9.0
+
+# And the curtain hangs: in S-WHOLE and S-BARE the shoots arch out of the
+# crown and fall nearly vertical over most of their length, so the row
+# states the whole of the way there. A birch's shoot runs only a share of
+# its pendulous length before the branch law stops it, and a shoot that
+# runs less has turned less, so anything short of the row's own end
+# leaves the curtain standing out of the crown rather than falling from it.
+/skeleton/twigs/sag = 1.0
+
+# And no two strands alike: in S-WHOLE and S-BARE they run anything from
+# a hand's width to about three metres, so the curtain ends in a ragged
+# hem, lower under the heavier limbs, and not at one height all round.
+# Each shoot runs its own share of a three-metre pendulous length, down
+# to a twentieth of it.
+/skeleton/twigs/pendulousLength = 3.0
+/skeleton/twigs/pendulousVariation = 0.95
+
+# And the curtain hangs below the crown: in S-WHOLE and S-BARE the limbs
+# make the crown's shape and the strands fall past it, so the shell no
+# longer holds a hanging shoot. The clearance is the crown's own base: in
+# both photographs the two stems stand clear under the curtain for their
+# first two metres, and one floor lower than that curtains them where the
+# lowest limbs hang beside them. Six tenths of the drop toward it, not the
+# whole: at the whole drop the band's foot is that one height all round,
+# and every strand long enough stopped on it, 657 strand ends in its
+# lowest ten centimetres, so the hem was a straight line (owner, round
+# 13). Short of the whole, a column's foot is the shell's lower surface
+# lowered by the share, so the hem rises away from the stems with the
+# shell's lumps and the strands end at their own lengths.
+/skeleton/twigs/curtainDrop = 0.6
+/skeleton/twigs/curtainClearance = 1.8
+
+# Two stems share one root through the pipe model, so each is thinner than
+# a single birch's trunk (owner, round 13: "the trunk being too thin"). In
+# S-WHOLE the upright stem is 0.027 of the tree's height across at breast
+# height and the leaning one 0.017; at 0.01 the matched still's stems read
+# 0.018 and 0.017, and at 0.014 they read 0.024 and 0.023. The fork
+# exponent and the taper stay the family's: the stems already narrow to
+# about four fifths of their breast-height girth by a quarter of the
+# height, as S-BARE's stem does, and a lower exponent that thickens the
+# stems alone would put a parent thicker than its children's wood.
+/radii/trunkRadius = 0.014
+
+# S-LEAF: a triangular blade, widest a fifth of the way up over a broad,
+# nearly straight base, with a short pointed tip. Eight shallow notches along
+# each margin stand for its teeth: the lobe rows cut symmetric notches,
+# not the forward-leaning double teeth the photograph shows, which are
+# fn-60's. Thirty-two stations keep the outline from reading as facets.
+/element/length = 0.055
+/element/width = 0.045
+/element/connectorLength = 0.022
+/element/widestAt = 0.2
+/element/baseFullness = 0.3
+/element/tipSharpness = 1.1
+/element/lobeCount = 8
+/element/lobeDepth = 0.1
+/element/axialSegments = 32
+
+/canopy/forwardLean = 0.6
+/canopy/leanRise = 0.3
+/canopy/clump = 8
+/canopy/clumpSpan = 0.5
+/canopy/outward = 0.0
+
+# Leaves hang under the shoots they are strung along, which is the signed
+# half of the row a leaf could not reach before.
+/canopy/upward = -0.35
+/canopy/divergence = 180.0
+/canopy/sizeVariation = 0.2
+/material/barkRed = 0.78
+/material/barkGreen = 0.76
+/material/barkBlue = 0.7
+
+# Rough, not glossy, in the oak's and the spruce's range after the
+# owner read the close-ups as plastic.
+/material/barkRoughness = 0.95
+
+# Young shoots dark red-brown, glossy, with pale resin warts; the
+# bark whitens only once it has thickened (VT Dendrology, Betula
+# pendula: twigs "slender, reddish brown"; bark "reddish brown ...
+# when very young, later turning white"; Atkinson 1992). S-BARE's
+# winter crown haze reads linear 0.061/0.042/0.030 to 0.149/0.093/
+# 0.066 on the exposure its trunk reads 0.78/0.78/0.71 on, R:G:B
+# 1:0.69:0.49 in its darker band. The matched still reddens a row:
+# 0.10/0.06/0.045 drew that band at 1:0.51:0.35, so the row is the
+# greyer red-brown that draws it near the photograph's. White from
+# about 4 cm across.
+/material/shootRed = 0.095
+/material/shootGreen = 0.07
+/material/shootBlue = 0.055
+/material/shootRadius = 0.01
+
+# A light, yellow-green blade, paler beneath. S-WHOLE's crown reads
+# R:G:B 1:1.38:0.79 linear in its middle band (sRGB 92/108/82); the
+# older 0.055/0.165/0.035 drew that band at 1:1.93:0.79, a bluer and
+# darker green, and the rows below draw it at 83/105/73.
+/material/leafFrontRed = 0.1
+/material/leafFrontGreen = 0.19
+/material/leafFrontBlue = 0.06
+/material/leafBackRed = 0.2
+/material/leafBackGreen = 0.28
+/material/leafBackBlue = 0.14
+
+/material/hueRangeLow = -0.025
+/material/hueRangeHigh = 0.025
+/material/interiorDarkening = 0.15
+
+# fn-40: the old base is dark and fissured and the stem above it
+# smooth. Relief comes in with maturity, from a radius of one ridge
+# width to two and a half, so at 8 cm it holds the root flare (20 cm
+# at a quarter metre, 13 cm at one metre, 10 cm by four at seed 1)
+# and leaves the stem and every limb smooth. Long, deep furrows.
+/material/ridgeScale = 0.08
+/material/plateScale = 0.4
+/material/roughnessDetail = 0.1
+/material/veinScale = 6.0
+/material/veinContrast = 0.8
+/material/transmissionStrength = 0.6
+/material/transmissionRed = 0.28
+/material/transmissionGreen = 0.55
+/material/thickness = 0.45
+/material/fissureRed = -0.44
+/material/fissureGreen = -0.44
+/material/fissureBlue = -0.41
+/material/fissureStrength = 1.0
+/material/crestRed = 0.1
+/material/crestGreen = 0.1
+/material/crestBlue = 0.1
+/material/crestStrength = 0.4
+/material/barkMottleScale = 0.15
+/material/barkMottleStrength = 0.12
+/material/cavityStrength = 0.3
+/material/bladeMottleScale = 5.5
+/material/bladeMottleStrength = 0.2
+/material/marginWidth = 0.05
+/material/marginRed = 0.03
+/material/marginGreen = 0.05
+/material/marginBlue = 0.01
+/material/cuticleGloss = 0.28
+/material/skyOcclusionStrength = 0.4
+
+# The plate network as peeling strips: 1.5 cm plates at the base's
+# girth, stretched across by the curl into bands three times wider.
+/material/plateCellScale = 0.05
+/material/plateDome = 0.3
+/material/plateEdgeLift = 0.3
+/material/plateIdentity = 0.3
+/material/directionalOcclusion = 0.6
+/material/depthStrength = 0.4
+
+# S-BARK: a chalk-white stem with a fine grey grain, banded with dark
+# lenticel dashes and small, ragged grey marks over a darker base.
+# The marks are the strips that have peeled, grey inner bark: most at
+# the flare, fewer as the wood thins, each one whole, none where the
+# relief ends. The lichen is only the grain. The owner at round 22:
+# "too much contrast. The texture in the reference isn't black." At
+# 0.65 of the strips peeled and a near-black inner bark, 40% of the
+# stem's pixels read near-black against the photograph's 11%; a
+# third peeled, a grey inner bark and lighter dashes and fissures
+# read 6%, and the stem is mostly white as the photograph's is.
+/material/lichenScale = 0.01
+/material/lichenCoverage = 1.0
+/material/lichenRed = 0.5
+/material/lichenGreen = 0.5
+/material/lichenBlue = 0.48
+/material/lichenStrength = 0.45
+/material/lenticelDensity = 18.0
+/material/lenticelLength = 0.06
+/material/lenticelStrength = 0.72
+/material/lenticelTint = -0.62
+/material/peelCurl = 0.3
+/material/peelRed = 0.33
+/material/peelGreen = 0.315
+/material/peelBlue = 0.29
+
+# The same canopy as the beech's (fn-52), with a softer terminator
+# for the airy hanging crown and a less glossy cuticle. Set against
+# S-WHOLE, whose centre pixels sit above half brightness a fifth of
+# the time: this row puts 20% of the leaf pixels there, where the
+# card put 2%, and the centre's leaf pixels read 81 against the
+# photograph's 83.
+/material/canopyNormal = 0.8
+/material/lightWrap = 0.5
+/material/diffuseTransmission = 1.0
+/material/leafSheen = 0.06
+
+# S-WHOLE's crown falls from 153 at the top sixth to 38 at the
+# bottom; 0.2 a radius draws 156 to 45.
+/material/crownShade = 0.2
+
+# fn-55: as the beech's. S-BARK's chalk white is grained at the pixel
+# in the photograph: 2 mm cells, two and a bit pixels at S-BARK's
+# 1440, at 0.15 (fn-71). The close-up reads 2.90 against the
+# resolution contract's 3.0 with the grain box-averaged over the
+# pixel, 2.75 with none; 0.2 read 2.999 and 0.3 read 3.24, the
+# grain's tilt of the normal being what the reduction cannot match.
+/material/barkGrainScale = 0.002
+/material/barkGrainStrength = 0.15
+/material/bladeGrainScale = 90.0
+/material/bladeGrainStrength = 0.3
+
+# Left at the default family:
+# The shell depth. Sky through the crown: a curtain three and a half metres long fills the
+# shell twice over, and the photograph's birch is a light tree. Retaining
+# less than half the shell's depth is what lets the light back in.
+# The default dead colour: this table keeps no skirt to show it on.

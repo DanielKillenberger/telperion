@@ -1,0 +1,10 @@
+error[E0080]: evaluation panicked: presets/oak.values:7: /shellDepth is off its bounds
+ --> tests/preset_values/bounds.rs:2:1
+  |
+2 | / telperion_core::preset_values!(OAK, "oak.values", [
+3 | |     (3, "/skeleton/habit/apicalDominance", Real, 0.1),
+4 | |     (7, "/shellDepth", Real, 1.5),
+5 | | ]);
+  | |__^ evaluation of `OAK` failed here
+  |
+  = note: this error originates in the macro `$crate::panic::panic_2021` which comes from the expansion of the macro `telperion_core::preset_values` (in Nightly builds, run with -Z macro-backtrace for more info)

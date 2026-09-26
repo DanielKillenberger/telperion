@@ -1,0 +1,151 @@
+{
+  "branch_name": "fn-160-presets-are-value-files",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-26T12:14:58.917704Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-159-harness-browser-and-tuning-read-the"
+  ],
+  "id": "fn-160-presets-are-value-files",
+  "impl_review_rounds": {
+    "fn-160-presets-are-value-files.1": 0
+  },
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "5dae9bb3b87e1928c94e62aefc32cfc8fbe61cbc10d18428cf6f4a2b208b7710",
+      "backend": "codex",
+      "base_sha": "d9d57f67660c5f85df24d33354a83c19594b0604",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3e24079fceaf965acd6175cd04516616",
+            "classification": "introduced",
+            "findingId": "finding-3e24079fceaf965acd6175cd04516616",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ee072ec88f14fa32682d86882b9c5cde",
+            "classification": "introduced",
+            "findingId": "finding-ee072ec88f14fa32682d86882b9c5cde",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "327f5eee01c4706595e4842b001a6129b7da2531",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1598,
+      "output_sha256": "7d6812b834b2edcc98a81e93fe30ec673a20ed55cd0fd269411c1fa9b49d9987",
+      "reservation_id": "adc7e0863fdd4d7ea8c888cfe5735b2b",
+      "round_consumed": true,
+      "scope": "impl:fn-160-presets-are-value-files.1",
+      "superseded_by": null,
+      "task": "fn-160-presets-are-value-files.1",
+      "timestamp": "2026-09-26T17:58:16.739012Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ffdedbb7a2085865d6374bb1b2606b830b9fb7d85ea92324e48e34b1a3322703",
+      "backend": "codex",
+      "base_sha": "d9d57f67660c5f85df24d33354a83c19594b0604",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3e24079fceaf965acd6175cd04516616",
+            "classification": "introduced",
+            "findingId": "finding-3e24079fceaf965acd6175cd04516616",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ee072ec88f14fa32682d86882b9c5cde",
+            "classification": "introduced",
+            "findingId": "finding-ee072ec88f14fa32682d86882b9c5cde",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5596c2724f732fce86062a67cae8b81f5e215fff",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 908,
+      "output_sha256": "457983729b5b84d30203daff944d64b26271b83cf9f8ca339e5b2573b8a48bd4",
+      "reservation_id": "1a6e05c2d9574e67bb6dc8f2f484a5cd",
+      "round_consumed": true,
+      "scope": "impl:fn-160-presets-are-value-files.1",
+      "superseded_by": null,
+      "task": "fn-160-presets-are-value-files.1",
+      "timestamp": "2026-09-26T18:04:07.929478Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-160-presets-are-value-files.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-160-presets-are-value-files.1": 0
+  },
+  "spec_path": ".flow/specs/fn-160-presets-are-value-files.md",
+  "status": "open",
+  "title": "Presets are value files",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-26T18:04:07.931766Z"
+}

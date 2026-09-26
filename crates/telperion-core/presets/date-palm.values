@@ -1,0 +1,121 @@
+# Date palm, Phoenix dactylifera.
+# Rows off the default family, checked against the catalogue as core compiles.
+
+# Corner's unbranched, monopodial habit (fn-108): a single stem that
+# stations no laterals and whose leader persists. The values from here
+# down are tuning revision 3 of fn-80's live run unless a comment says
+# otherwise; the owner accepted the palm on them in the harness on
+# 2026-09-24 (fn-82).
+/skeleton/habit/lateralOrders = 0
+/skeleton/habit/apicalDominance = 0.85
+/skeleton/habit/lateralsPerStation = 1
+/skeleton/habit/riseSecondary = -1.0
+/skeleton/habit/crookedness = 1.5
+/skeleton/habit/attractorWeight = 0.625
+/skeleton/bias/gravitropism = 0.25
+/skeleton/bias/lean = 0.02
+/skeleton/bias/supernatural/writheWavelength = 0.35
+
+# A narrow envelope whose crown starts at 45 % of the height.
+/skeleton/envelope/height = 22.86
+/skeleton/envelope/crownBase = 0.45
+/skeleton/envelope/spread = 0.1
+/skeleton/envelope/shoulder = 0.45
+/skeleton/twigs/twig/diameter = 0.007
+/skeleton/twigs/hang = 2.75
+/skeleton/twigs/sag = 1.0
+/skeleton/twigs/maxDroop = 8.6
+/skeleton/twigs/pendulousLength = 2.75
+/skeleton/twigs/curtainDrop = 0.15
+/skeleton/twigs/curtainStepClearance = 0.725
+/radii/trunkRadius = 0.013
+/radii/lengthTaper = 0.25
+/surface/flareRadius = 2.0
+
+# The crown (fn-109): a rosette of pinnate fronds at the apex and
+# nothing borne below it.
+/canopy/rosetteFronds = 42
+/canopy/rosettePitch = 12.5
+/canopy/rosettePitchSpread = 105.0
+/canopy/rosetteDepth = 0.35
+/canopy/leafletCount = 113
+/canopy/rachisLength = 7.0
+/canopy/leafletPitch = 55.0
+/canopy/rachisArch = -0.6
+/canopy/terminalLeaflet = 1.0
+/canopy/size = 2.35
+/canopy/upward = 0.225
+
+# The leaflet: long, narrow and sharp-tipped, with enough axial
+# stations to bend smoothly along its length.
+/element/length = 0.6197
+/element/width = 0.0725
+/element/tipSharpness = 2.6
+/element/sectionRoundness = 0.15
+/element/axialSegments = 13
+
+# The trunk organs (fn-110): the boots of shed fronds clothing the bole
+# on the crown's own spiral, worn back toward the ground, and the eight
+# basal leaflets of a Phoenix frond borne as spines. Revision 3 packed
+# 256 boots (owner's call).
+/canopy/leafBases = 256
+/canopy/leafBaseLength = 0.255
+/canopy/leafBaseRadius = 0.25
+/canopy/leafBasePitch = 55.0
+/canopy/leafBaseWeathering = 0.75
+
+# The lattice (fn-144): the boots packed edge to edge as flat-faced
+# diamonds; a flat section crowded least at every width.
+/canopy/leafBaseWidth = 0.9
+/canopy/leafBaseFlatness = 1.0
+/canopy/acanthophylls = 8
+/canopy/acanthophyllLength = 0.3
+/canopy/acanthophyllPitch = 75.0
+
+# The skirt (fn-120): the oldest fronds kept after they die, collapsed
+# against the upper trunk below the living crown. Growers trim the lower
+# leaves (F1), so a partial ring rather than a full petticoat. Set before
+# tuning; revision 3 left them.
+/canopy/skirtFronds = 16
+/canopy/skirtPitch = 165.0
+/canopy/skirtLength = 0.85
+
+# The skirt hangs against the trunk, the deepest place inside the
+# crown's envelope, where the default shell cull drops most of it.
+/shellDepth = 0.85
+
+# Bark: a warm brown, with plate, fissure, crest and weathering relief.
+/material/barkRed = 0.325
+/material/barkGreen = 0.1975
+/material/barkBlue = 0.135
+/material/barkRoughness = 0.7775
+/material/furrowStrength = 0.85
+/material/plateScale = 0.1125
+/material/plateFurrowWidth = 0.0375
+/material/ridgeScale = 0.01
+/material/fissureRed = 0.4375
+/material/fissureStrength = 0.3
+/material/crestRed = 0.04375
+/material/crestStrength = 0.225
+/material/depthStrength = 0.075
+/material/orientationRed = 0.03
+/material/orientationStrength = 0.225
+/material/weatheringRed = 0.00875
+/material/weatheringStrength = 0.3
+
+# Leaflets: a dull grey-green, the same on both faces, varying little.
+/material/leafFrontRed = 0.12
+/material/leafFrontGreen = 0.16
+/material/leafFrontBlue = 0.1175
+/material/leafBackRed = 0.12
+/material/leafBackGreen = 0.15375
+/material/leafBackBlue = 0.11625
+/material/hueRangeLow = -0.0275
+/material/hueRangeHigh = 0.0275
+/material/brightnessRangeLow = -0.04
+/material/brightnessRangeHigh = 0.03625
+
+# Dead fronds of the skirt, brown to grey; set before tuning.
+/material/leafDeadRed = 0.34
+/material/leafDeadGreen = 0.29
+/material/leafDeadBlue = 0.22

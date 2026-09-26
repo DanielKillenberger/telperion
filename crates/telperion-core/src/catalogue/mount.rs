@@ -3,7 +3,7 @@
 //! What the build reads and what the rows document are held in two tables of
 //! the same shape, so a build that never documents a row never carries its
 //! prose.
-use super::{Blend, Bounds, Check, Checked, Info, Row, Scalar};
+use super::{Blend, Bounds, Check, Checked, Info, Kind, Row, Scalar};
 use crate::{
     bias::{BiasParams, SupernaturalParams},
     branching::{GrowthOverrides, HabitParams, SkeletonParams},
@@ -75,42 +75,89 @@ macro_rules! mount {
     };
 }
 
-/// The groups, in catalogue order. `DOCS` holds their `INFO` in the same order.
-static GROUPS: [&dyn Group; 15] = [
-    mount!(Family:),
-    mount!(GrowthTraits: growth),
-    mount!(SkeletonParams: skeleton),
-    mount!(HabitParams: skeleton.habit),
-    mount!(Envelope: skeleton.envelope),
-    mount!(BiasParams: skeleton.bias),
-    mount!(SupernaturalParams: skeleton.bias.supernatural),
-    mount!(TwigAnatomy: skeleton.twigs.twig),
-    mount!(TwigParams: skeleton.twigs),
-    mount!(GrowthOverrides: skeleton.growth),
-    mount!(RadiusParams: radii),
-    mount!(SurfaceParams: surface),
-    mount!(CanopyParams: canopy),
-    mount!(ElementParams: element),
-    mount!(MaterialParams: material),
-];
+/// The groups, in catalogue order: what the build reads of each, what each
+/// documents in the same order, and the compile-time lookup of a path.
+macro_rules! groups {
+    ($($group:ty: $($at:ident).*;)*) => {
+        const GROUP_COUNT: usize = [$(stringify!($group)),*].len();
+        static GROUPS: [&dyn Group; GROUP_COUNT] = [$(mount!($group: $($at).*)),*];
+        static DOCS: [&[Info]; GROUP_COUNT] = [$(<$group>::INFO),*];
 
-static DOCS: [&[Info]; 15] = [
-    Family::INFO,
-    GrowthTraits::INFO,
-    SkeletonParams::INFO,
-    HabitParams::INFO,
-    Envelope::INFO,
-    BiasParams::INFO,
-    SupernaturalParams::INFO,
-    TwigAnatomy::INFO,
-    TwigParams::INFO,
-    GrowthOverrides::INFO,
-    RadiusParams::INFO,
-    SurfaceParams::INFO,
-    CanopyParams::INFO,
-    ElementParams::INFO,
-    MaterialParams::INFO,
-];
+        /// The row at a wire path with its bounds and kind, in a const context:
+        /// a preset value file is checked against the catalogue as it compiles.
+        pub const fn locate(path: &str) -> Option<(Entry, Bounds, Kind)> {
+            let mut group = 0;
+            $(
+                if let Some(index) = find(<$group>::ROWS, path) {
+                    let bounds = <$group>::CHECKS[index].bounds;
+                    return Some((Entry { group, index }, bounds, <$group>::ROWS[index].kind));
+                }
+                group += 1;
+            )*
+            let _ = group;
+            None
+        }
+
+        impl Entry {
+            /// Stores a real in the row the way `Scalar::put` converts it,
+            /// through the group's setter alone, so a build that sets rows
+            /// without reading paths carries none.
+            pub fn put(self, f: &mut Family, value: f64) {
+                let mut group = 0;
+                $(
+                    if self.group == group {
+                        return (<$group>::SETTERS[self.index])(&mut (*f)$(.$at)*).put(value);
+                    }
+                    group += 1;
+                )*
+                let _ = group;
+                unreachable!("an entry names a group of the catalogue");
+            }
+        }
+    };
+}
+groups! {
+    Family:;
+    GrowthTraits: growth;
+    SkeletonParams: skeleton;
+    HabitParams: skeleton.habit;
+    Envelope: skeleton.envelope;
+    BiasParams: skeleton.bias;
+    SupernaturalParams: skeleton.bias.supernatural;
+    TwigAnatomy: skeleton.twigs.twig;
+    TwigParams: skeleton.twigs;
+    GrowthOverrides: skeleton.growth;
+    RadiusParams: radii;
+    SurfaceParams: surface;
+    CanopyParams: canopy;
+    ElementParams: element;
+    MaterialParams: material;
+}
+
+const fn find<S>(rows: &[Row<S>], path: &str) -> Option<usize> {
+    let mut i = 0;
+    while i < rows.len() {
+        if same(rows[i].path.as_bytes(), path.as_bytes()) {
+            return Some(i);
+        }
+        i += 1;
+    }
+    None
+}
+
+const fn same(a: &[u8], b: &[u8]) -> bool {
+    if a.len() != b.len() {
+        return false;
+    }
+    let mut i = 0;
+    while i < a.len() {
+        if a[i] != b[i] {
+            return false;
+        }
+        i += 1;
+    }
+    true
+}
 
 /// One row of a family.
 #[derive(Clone, Copy)]
@@ -170,6 +217,18 @@ mod tests {
                 assert_eq!(group.rule(index), (info.bounds, info.check, info.blend));
                 assert_eq!(group.wire(index), info.wire);
             }
+        }
+    }
+
+    /// A preset's setter is the row's own: a row put through `put` leaves the
+    /// family the wire's setter leaves it.
+    #[test]
+    fn every_row_is_put_where_the_wire_sets_it() {
+        for e in entries() {
+            let (mut put, mut set) = (Family::default(), Family::default());
+            e.put(&mut put, 3.0);
+            e.set(&mut set).put(3.0);
+            assert_eq!(format!("{put:?}"), format!("{set:?}"), "{}", e.path());
         }
     }
 }
