@@ -62,3 +62,10 @@
 - **Hindered:** `tape_trim --check` prints each page that keeps too much but exits 0, so a script chaining it with `&&` goes on; the replay test catches it later, after a full replay.
 - **Cost:** one replay (about two minutes) before the finding was noticed in the output.
 - **Would have removed it:** `--check` exiting nonzero when it lists anything.
+
+## 2026-09-26, worker, fn-157.1: Tune asked Jev about 227 dials in one call
+
+- **Doing:** the beech's live Tune revision 1, after its shot was chosen and the baseline judged.
+- **Hindered:** the tuning config names no dial, so a revision offers every row of the dial table (227, the palm's fronds and spines among them), and with no `max_questions_per_call` the first targeted proposal asked all 227 in one request (302 KB); the service refused it with a bare 400. The revision stopped after its paid baseline look.
+- **Cost:** one interrupted revision (the shot looks and the baseline visual pass, replayed on the rerun) and about 20 minutes.
+- **Would have removed it:** a config that names the dials a species tunes, or a default cap on questions per call; `--init-tuning` (fn-165) is where either belongs. This run sets `max_questions_per_call` 32 in the recorded configs.

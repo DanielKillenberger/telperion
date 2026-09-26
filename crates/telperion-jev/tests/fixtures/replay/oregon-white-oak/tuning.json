@@ -73,5 +73,6 @@
     "program": "python3",
     "timeout_seconds": 600
   },
-  "visual_bootstrap": true
+  "visual_bootstrap": true,
+  "max_questions_per_call": 32
 }
