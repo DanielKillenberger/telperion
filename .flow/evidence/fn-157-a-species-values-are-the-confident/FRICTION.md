@@ -97,3 +97,10 @@
 - **Hindered:** the same two costs the host asked to have proposed at close: every round again asked about all 227 dials (about 0.86 million Jev tokens for three rounds), and `gaps.md` grew to 1.3 MB, one render-link list per dial per gap.
 - **Cost:** 26 Jev calls, 7 visual passes, 17 evaluations; an unreadable gaps file.
 - **Would have removed it:** the fixes named in the two entries above.
+
+## 2026-09-26, worker, fn-157.1: the harness cannot show the tree the owner is asked to look at
+
+- **Doing:** telling the host how the owner looks at the beech's kept tree (the next stop).
+- **Hindered:** `docs/species-runner.md` and `runner/accept.rs` say the owner looks at the tuned tree in the harness, but the harness loads a species by `?species=<id>&seed=<n>` (the preset as shipped) and has no way to load the overlay in `runner/tuning/result.json`; the kept tree reaches a preset only with `--accept`, the decision the look is for. The only views are stills: the revision's matched renders under `run/matched/<key>-*/` and a headless still rendered with the overlay as `--family`.
+- **Cost:** about 15 minutes to establish that no URL exists.
+- **Would have removed it:** a harness parameter that loads a run's kept overlay (or a runner command that serves it). A harness change is the host's to spec.
