@@ -117,13 +117,18 @@ pub fn run(
     let native = native_queries(taxon);
     for query in &native {
         let found = adapter.search(query, HITS_PER_QUERY).map_err(failed)?;
-        let mut these = hits.clone();
+        let mut these = Vec::new();
         add(&mut these, leads::follow(adapter, found), "native", query);
-        let new = these.split_off(hits.len());
+        // Chosen against the sources, not every hit seen: a flora the broad
+        // search found past its cap is still read when the range asks for it.
         grown
             .sources
-            .extend(documents(&grown, &new, PER_NATIVE_QUERY));
-        hits.extend(new);
+            .extend(documents(&grown, &these, PER_NATIVE_QUERY));
+        for hit in these {
+            if !hits.iter().any(|h| h["url"] == hit["url"]) {
+                hits.push(hit);
+            }
+        }
     }
     let count = grown.sources.len() - manifest.sources.len();
     write_canonical(

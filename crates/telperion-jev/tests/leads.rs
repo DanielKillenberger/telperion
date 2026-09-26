@@ -148,3 +148,39 @@ fn a_lead_carries_its_citation_and_the_sentence_that_cites_it() {
     );
     assert!(!old.snippet.contains("sapling"), "{}", old.snippet);
 }
+
+/// fn-157 review: a native-range query that returns a page the broad search
+/// found past its cap still adds it; documents are chosen against the
+/// sources, never against every hit seen.
+#[test]
+fn a_native_query_reads_a_page_the_broad_search_left_past_its_cap() {
+    let full: Vec<Value> = (1..=15)
+        .map(|i| {
+            json!({"id": format!("S{i}"), "url": format!("https://example.test/s{i}"),
+                        "title": "s", "rights": "cited"})
+        })
+        .collect();
+    let mut seed = manifest(json!(full));
+    seed["taxon"]["native_range"] = json!({"region": "Europe"});
+    let (dir, _) = scratch("native", seed.clone());
+    let fixtures = dir.parent().unwrap().join("fixtures");
+    let mut index = read_json(&fixtures.join("index.json")).unwrap();
+    let taxon: telperion_jev::pipeline::manifest::Taxon =
+        serde_json::from_value(seed["taxon"].clone()).unwrap();
+    for query in gather::native_queries(&taxon) {
+        let hit = json!([{"url": PAPER, "title": "A paper", "snippet": "beech"}]);
+        index["search"][query] = hit;
+    }
+    write_canonical(&fixtures.join("index.json"), &index).unwrap();
+    gather::run(
+        &Paths::new(&dir),
+        &FixtureAdapter::new(fixtures),
+        &KnownSources::default(),
+    )
+    .unwrap();
+    let manifest = read_json(&dir.join("manifest.json")).unwrap();
+    let added = &urls(&manifest["sources"])[15..];
+    // The broad search had room for one of the lead's two references; the
+    // native query adds the other.
+    assert_eq!(added, [SILVICS, PAPER], "{manifest}");
+}

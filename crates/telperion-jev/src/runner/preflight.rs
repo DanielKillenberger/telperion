@@ -111,11 +111,21 @@ pub fn expected(run: &Run, stage: &str) -> String {
         .and_then(|t| t["required"].as_array().map(Vec::len))
         .unwrap_or(1)
         .max(1);
-    estimate(stage, fields, traits, sources, views)
+    let native = m.map_or(0, |m| gather::native_queries(&m.taxon).len());
+    estimate(stage, fields, traits, sources, views, native)
 }
 
-pub fn estimate(stage: &str, fields: usize, traits: usize, sources: usize, views: usize) -> String {
-    let (searches, documents) = (gather::queries("", "").0.len() + 1, gather::MAX_DOCUMENTS);
+/// `native` is the number of native-range queries the seed's range asks.
+pub fn estimate(
+    stage: &str,
+    fields: usize,
+    traits: usize,
+    sources: usize,
+    views: usize,
+    native: usize,
+) -> String {
+    let searches = gather::queries("", "").0.len() + 1 + native;
+    let documents = gather::MAX_DOCUMENTS + native * gather::PER_NATIVE_QUERY;
     match stage {
         "sources" => format!(
             "{searches} Firecrawl searches, up to {} scrapes (leads, then at most {documents} documents); no Jev call",
@@ -152,11 +162,18 @@ mod tests {
 
     #[test]
     fn only_the_paid_stages_expect_a_spend() {
-        assert!(estimate("sources", 6, 4, 1, 2).starts_with("6 Firecrawl searches"));
-        assert!(estimate("profile", 6, 4, 1, 2).starts_with("up to 640 Jev label calls"));
-        assert!(estimate("tune", 6, 4, 1, 2).starts_with("per round, 2 contact-sheet"));
+        assert!(estimate("sources", 6, 4, 1, 2, 0).starts_with("6 Firecrawl searches"));
+        assert!(estimate("profile", 6, 4, 1, 2, 0).starts_with("up to 640 Jev label calls"));
+        // A range with one name of its own: three more searches, six more documents.
+        let native = estimate("sources", 6, 4, 1, 2, 3);
+        assert!(
+            native.starts_with("9 Firecrawl searches, up to 30 scrapes"),
+            "{native}"
+        );
+        assert!(estimate("profile", 6, 4, 1, 2, 3).starts_with("up to 880 Jev label calls"));
+        assert!(estimate("tune", 6, 4, 1, 2, 0).starts_with("per round, 2 contact-sheet"));
         for free in ["capability", "start", "gaps", "accept"] {
-            assert_eq!(estimate(free, 6, 4, 1, 2), "no paid call");
+            assert_eq!(estimate(free, 6, 4, 1, 2, 0), "no paid call");
         }
     }
 }

@@ -115,6 +115,11 @@ fn a_single_specimen_is_the_fields_maximum_never_its_typical_value() {
     assert!(dbh["range"].is_null(), "{dbh}");
     assert!(near(&dbh["maximum"]["value"], 171.6 * 0.0254), "{dbh}");
     assert_eq!(dbh["maximum"]["source"], "P1");
+    // The record keeps its sentence and ledger, so the catalogue quotes it.
+    let provenance = read_json(&dir.join("provenance.json")).unwrap();
+    let entry = &provenance["entries"]["/profiles/0/metrics/dbh_m"];
+    assert_eq!(entry["maximum"]["span"], "171.6 inches", "{entry}");
+    assert!(entry["maximum"]["ledger"].is_string(), "{entry}");
     let crown = metric(&dir, "crown_width_m");
     assert_eq!(crown["classification"], "unsourced", "{crown}");
     assert!(near(&crown["maximum"]["value"], 85.0 * 0.3048), "{crown}");

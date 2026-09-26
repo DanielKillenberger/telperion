@@ -55,19 +55,26 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     let manifest = &ctx.admitted.manifest;
     let spans = read["spans"].as_array().cloned().unwrap_or_default();
     let kinds = kinds(&read);
+    let sites = sites(&ctx.admitted.manifest, &fetch);
     let (mut filled, mut sidecar, mut unsourced) = (Map::new(), Map::new(), Map::new());
     let mut metrics = Map::new();
     for field in &manifest.fields {
         let pointer = format!("/profiles/0/metrics/{}", field.field);
-        let (readings, beside_aside) = readings(manifest, field, &spans, &kinds);
+        let (readings, beside_aside) = readings(field, &spans, &kinds, &sites);
         let mut agg = aggregate(&readings);
         agg.set_aside.extend(beside_aside);
         let metric = metric(&agg, unit(manifest, field));
-        if agg.value.is_some() {
-            filled.insert(pointer.clone(), metric.clone());
-            sidecar.insert(pointer, provenance(&agg));
-        } else {
-            unsourced.insert(field.field.clone(), json!(NO_TYPICAL));
+        // A record-only field keeps its maximum's sentence and ledger too.
+        if agg.value.is_some() || agg.maximum.is_some() {
+            sidecar.insert(pointer.clone(), provenance(&agg));
+        }
+        match agg.value {
+            Some(_) => {
+                filled.insert(pointer, metric.clone());
+            }
+            None => {
+                unsourced.insert(field.field.clone(), json!(NO_TYPICAL));
+            }
         }
         metrics.insert(field.field.clone(), metric);
     }
@@ -124,14 +131,30 @@ pub fn kinds(read: &Value) -> BTreeMap<String, usize> {
         .collect()
 }
 
+/// Each source's site, from the address its fetch ended at (a DOI resolves
+/// to its publisher), else the manifest's.
+pub fn sites(manifest: &Manifest, fetch: &Value) -> BTreeMap<String, String> {
+    manifest
+        .sources
+        .iter()
+        .map(|s| {
+            let url = fetch["sources"][&s.id]["final_url"]
+                .as_str()
+                .filter(|u| !u.is_empty())
+                .unwrap_or(&s.url);
+            (s.id.clone(), site(url))
+        })
+        .collect()
+}
+
 /// The spans labelled `field`, of a grown tree, under its condition or an
 /// unstated one, parsed by code and ranked by their document's tier; and
 /// those whose neighbouring words name another dimension, set aside.
 pub fn readings(
-    manifest: &Manifest,
     field: &Field,
     spans: &[Value],
     kinds: &BTreeMap<String, usize>,
+    sites: &BTreeMap<String, String>,
 ) -> (Vec<Reading>, Vec<crate::pipeline::agree::SetAside>) {
     let (mut kept, mut aside) = (Vec::new(), Vec::new());
     for span in spans {
@@ -149,10 +172,9 @@ pub fn readings(
             continue;
         };
         let source = text("source");
-        let url = manifest.source(source).map_or("", |s| s.url.as_str());
         let reading = Reading {
             source: source.into(),
-            site: site(url),
+            site: sites.get(source).cloned().unwrap_or_default(),
             tier: kinds.get(source).copied().unwrap_or(KINDS.len() - 1),
             range,
             span: text("span").into(),
@@ -317,4 +339,36 @@ fn write_sources(ctx: &Context, manifest: &Manifest) -> Result<(), StageError> {
         &json!({"reference_version": "fn19-references-v1", "sources": sources, "references": references}),
     )?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::sites;
+    use serde_json::json;
+
+    /// A paper reached through doi.org counts as its publisher's site, so two
+    /// DOIs are two sources and a DOI and its publisher's page are one.
+    #[test]
+    fn a_source_is_the_site_its_fetch_ended_at() {
+        let manifest = serde_json::from_value(json!({
+            "schema": "manifest", "schema_version": 1, "species": "s",
+            "taxon": {"scientific_name": "T", "common_name": "t", "rank": "species"},
+            "context": "c", "growth_form": "broadleaf", "preset": "s", "profile_id": "s", "seed": 1,
+            "sources": [
+                {"id": "P1", "url": "https://doi.org/10.1/a", "title": "a", "rights": "r"},
+                {"id": "P2", "url": "https://doi.org/10.2/b", "title": "b", "rights": "r"},
+                {"id": "P3", "url": "https://example.org/x", "title": "x", "rights": "r"}
+            ],
+            "fields": [], "versions": {"question_sets": {}, "tools": {}}, "model": "m"
+        }))
+        .unwrap();
+        let fetch = json!({"sources": {
+            "P1": {"final_url": "https://www.tandfonline.com/doi/full/10.1/a"},
+            "P2": {"final_url": "https://link.springer.com/article/10.2/b"}
+        }});
+        let got = sites(&manifest, &fetch);
+        assert_eq!(got["P1"], "tandfonline.com");
+        assert_eq!(got["P2"], "springer.com");
+        assert_eq!(got["P3"], "example.org");
+    }
 }
