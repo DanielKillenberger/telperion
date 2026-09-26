@@ -64,9 +64,15 @@ def bound(stdout, stdin):
 
 def rekey(directory):
     """Files every recorded answer under the key this script computes for
-    it now, so a recording follows a change of what names the run."""
+    it now, so a recording follows a change of what names the run; of two
+    answers that become one question, the newer stays."""
     moved = 0
-    for entry in sorted((Path(directory) / "adapter").glob("*.json")):
+    # Oldest first: when two answers become one question, the newer is the
+    # run's and is written last.
+    entries = sorted((Path(directory) / "adapter").glob("*.json"), key=lambda p: (p.stat().st_mtime, p.name))
+    for entry in entries:
+        if not entry.exists():
+            continue
         recorded = json.loads(entry.read_text())
         stdin = recorded["stdin"]
         digest = key(recorded["argv"], stdin if isinstance(stdin, str) else json.dumps(stdin))

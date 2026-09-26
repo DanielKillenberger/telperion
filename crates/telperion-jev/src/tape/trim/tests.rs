@@ -124,3 +124,25 @@ fn a_pdf_keeps_its_magic_and_its_parse_only_the_quoted_passages() {
     assert!(!text.contains("not open"), "{text}");
     assert!(super::only_quoted(&tape, &[]).unwrap().is_empty());
 }
+
+/// fn-157: a stale answer that rekeys onto a question the recording already
+/// answers under its right key is dropped; the answer recorded under the
+/// right key is the run's.
+#[test]
+fn rekey_never_overwrites_an_answer_already_under_its_key() {
+    let tape = std::env::temp_dir().join(format!("trim-rekey-{}", std::process::id()));
+    std::fs::create_dir_all(tape.join("jev")).unwrap();
+    let request = serde_json::json!({"body": {"state": {"q": 1}}});
+    let right = crate::tape::entry_key("jev", &request);
+    let at = |key: &str| tape.join(format!("jev/{}.json", &key[..32]));
+    let current = serde_json::json!({"key": right, "request": request, "response": {"ok": "new"}});
+    std::fs::write(at(&right), current.to_string()).unwrap();
+    let stale_key = "e".repeat(64);
+    let stale = serde_json::json!({"key": stale_key, "request": request, "response": {"ok": "old"}});
+    std::fs::write(at(&stale_key), stale.to_string()).unwrap();
+    super::rekey(&tape).unwrap();
+    let kept: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(at(&right)).unwrap()).unwrap();
+    assert_eq!(kept["response"]["ok"], "new");
+    assert!(!at(&stale_key).exists());
+}
