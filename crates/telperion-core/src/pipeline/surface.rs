@@ -127,9 +127,10 @@ crate::catalogue::rows! {
             Rail::closed(0.0, 0.9) => [Plan, Expand] {
             wire: 87,
             check: input(Site::Surface, 3, "surface parameters"),
-            applies: "`lobes` zero",
-            note: "With `surfaceContact` above zero, leaf seating and the leaf box scale by `1 + \
-                lobeDepth`; the socket's inscribed radius shrinks by it.",
+            note: "Never dormant: at `lobes` zero the section is round, but a junction's \
+                contained ring still shrinks by `1 + lobeDepth` and the leaf box and plan scale \
+                by it. With `surfaceContact` above zero, leaf seating scales by it too; the \
+                socket's inscribed radius shrinks by it.",
             dial: bounded("surface_lobe_depth", "how deep the flutes between those ridges cut, \
                 as a share of the radius; at zero the bole is plainly round whatever the ridge \
                 count says, and any rise starts cutting the flutes", [0.15, 0.3]),
