@@ -435,6 +435,7 @@ fn plan(keys: &[&str]) -> sheet::Plan {
 
 #[test]
 fn the_sheet_never_says_which_render_the_loop_is_standing_on() {
+    let again = plan(&["current", "half", "one", "two"]);
     let plan = plan(&["current", "half", "one", "two"]);
     let wire = serde_json::to_string(&plan.request).unwrap();
     for word in ["current", "candidate", "baseline", "strength", "bundle"] {
@@ -449,7 +450,6 @@ fn the_sheet_never_says_which_render_the_loop_is_standing_on() {
         "the label code recorded is not where the current tree is"
     );
     // The order is decided by the whole set, so it is stable for that set.
-    let again = plan(&["current", "half", "one", "two"]);
     assert_eq!(again.order, plan.order);
 }
 
