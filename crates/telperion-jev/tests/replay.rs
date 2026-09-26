@@ -166,6 +166,13 @@ fn the_recorded_beech_replays_offline_through_start_and_a_second_run_reruns_noth
     assert_eq!(height["tier"], "forestry", "{height}");
     assert_eq!(height["sources_agreeing"], 3, "{height}");
     assert_eq!(height["classification"], "gating", "{height}");
+    // Host, 2026-09-26: only a flora, forestry or garden tier gates. The
+    // crown width's two agreeing extension pages decide it, contextual.
+    let crown = &metrics["crown_width_m"];
+    assert_eq!(crown["tier"], "extension", "{crown}");
+    assert_eq!(crown["confidence"], "agreed", "{crown}");
+    assert_eq!(crown["classification"], "contextual", "{crown}");
+    assert!(crown["classified"].as_str().unwrap().contains("extension"), "{crown}");
     let dbh = &metrics["dbh_m"];
     assert_eq!(dbh["range"], serde_json::json!([1.5, 1.5]), "{dbh}");
     assert_eq!(dbh["tier"], "nursery", "{dbh}");
