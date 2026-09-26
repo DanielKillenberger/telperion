@@ -1,0 +1,34 @@
+{
+ "scrape": {
+  "https://www.woodlandtrust.org.uk/trees-woods-and-wildlife/british-trees/a-z-of-british-trees/common-beech/": {
+   "final_url": "https://www.woodlandtrust.org.uk/trees-woods-and-wildlife/british-trees/a-z-of-british-trees/common-beech/",
+   "content_type": "text/html",
+   "raw": "wt.html",
+   "markdown": "wt.md"
+  },
+  "https://landscapeplants.oregonstate.edu/plants/fagus-sylvatica": {
+   "final_url": "https://landscapeplants.oregonstate.edu/plants/fagus-sylvatica",
+   "content_type": "text/html",
+   "raw": "osu.html",
+   "markdown": "osu.md"
+  },
+  "https://mortonarb.org/plant-and-protect/trees-and-plants/european-beech/": {
+   "final_url": "https://mortonarb.org/plant-and-protect/trees-and-plants/european-beech/",
+   "content_type": "text/html",
+   "raw": "morton.html",
+   "markdown": "morton.md"
+  },
+  "https://plants.ces.ncsu.edu/plants/fagus-sylvatica/": {
+   "final_url": "https://plants.ces.ncsu.edu/plants/fagus-sylvatica/",
+   "content_type": "text/html",
+   "raw": "ncsu.html",
+   "markdown": "ncsu.md"
+  },
+  "https://www.euforgen.org/uploads/tx_news/1322_European_beech__Fagus_sylvatica_.pdf": {
+   "final_url": "https://www.euforgen.org/uploads/tx_news/1322_European_beech__Fagus_sylvatica_.pdf",
+   "content_type": "text/html",
+   "raw": "euforgen.html",
+   "markdown": "euforgen.md"
+  }
+ }
+}
