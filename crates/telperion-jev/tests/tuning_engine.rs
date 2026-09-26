@@ -946,7 +946,10 @@ fn a_round_cap_ends_the_revision_after_its_rounds() {
     let (mut state, mut mock) = bundle_run();
     mock.max_rounds = Some(1);
     mock.cell_status = vec![CellStatus::Fail; 8];
-    mock.sheets = vec![vec![did(&key(2), Movement::Clear)], vec![did(&key(7), Movement::Clear)]];
+    mock.sheets = vec![
+        vec![did(&key(2), Movement::Clear)],
+        vec![did(&key(7), Movement::Clear)],
+    ];
     to_the_round(&mut state, &mut mock);
     assert_eq!(state.budget.rounds, 1);
     assert_eq!(mock.sheet_calls, 1, "no second round");

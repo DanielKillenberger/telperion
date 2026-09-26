@@ -155,7 +155,9 @@ The config at `--tuning` is authored once per species with the manifest: the
 preset, the profile manifest and id the measurer reads, the required cells,
 the reviewer adapters, the tracks and the dial ids the run tunes. Its
 `references` may be an empty list: the run then compares against the
-photographs the Profile stage found. A first revision from a name needs no
+photographs the Profile stage found. `max_rounds` caps the rounds a revision runs
+(absent, no cap); a recorded fixture replays the baseline and one round. A
+first revision from a name needs no
 `owner_notes`; a revision refuses only what cannot run: no live dial, no
 fixed and fresh seed among the required cells, or no reference photograph of
 the whole tree. The runner fills the rest per revision:

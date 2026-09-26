@@ -73,6 +73,10 @@ pub struct Config {
     /// A large table answered in one question set is a large question set.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_questions_per_call: Option<u64>,
+    /// Rounds a revision runs before it ends; absent, no cap (fn-157: a
+    /// recorded fixture replays the baseline and one round).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_rounds: Option<u64>,
     #[serde(default, skip_serializing_if = "is_false")]
     pub visual_bootstrap: bool,
     pub judgment_model: String,
@@ -546,6 +550,9 @@ impl Services for Live<'_> {
         self.config
             .runaway_rounds
             .map_or(super::runaway::ROUNDS, |n| n.get())
+    }
+    fn max_rounds(&self) -> Option<u64> {
+        self.config.max_rounds
     }
     fn evaluation_images(&self) -> u64 {
         (self.config.matched.numeric_references.len() * 2) as u64
