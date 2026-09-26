@@ -3,6 +3,7 @@
 > owner (2026-09-25): "How can it be so hard to gather some data on trees and determine average values"
 > owner (2026-09-25): "why are we not searching documentation regarding the species download it all that we can find and compose the highest confidence aggregate from those?"
 > owner (2026-09-25): "ok go.."
+> owner (2026-09-26), on the host's proposal that this spec also carries the beech's first live run through Tune, Gaps and the owner's look, and a photograph search that finds the whole tree: "yes"
 
 ## Goal & Context
 <!-- scope: business -->
@@ -25,6 +26,10 @@ A species' starting values should be what the literature agrees on, and a run sh
 
 **Replaced.** Per-field discovery and search-again rounds, source admission before reading, the quality bars, per-field selection, and the decision kinds built around them. **Kept.** The fetch retry and pacing, Wikipedia as a lead, record and replay, the preflight, the reference photograph search, and the profile's output shape, so Start, Tune and Gaps read it unchanged. [inferred]
 
+**Reference photographs of the whole tree.** On fn-149's recorded beech run (`crates/telperion-jev/tests/fixtures/replay/european-beech`) the photograph search (`pipeline/photos/`, first Commons query "<taxon> tree") kept one photograph, a bark close-up, and Tune refuses without one of the whole tree (`tuning/live.rs:170`, "no reference photograph of the whole tree"). The search keeps at least one mature, open-grown tree in leaf and, where one exists, the bare tree, so the reviewer compares crown and silhouette, not bark alone. [checked]
+
+**The second half of the runner, live.** fn-149's proof replays the beech through Start; Tune, Gaps and Accept have never run live on a new species under the runner. With this spec's values and photographs in place, the beech runs from its bare seed through Tune and Gaps to the owner's look, and that run is recorded and replayed the same way. [inferred]
+
 **Unknown.** [unknown]
 - The document count and the agreement threshold that make a value confident; measured on the beech and one shipped species.
 - Whether the aggregate needs per-source weighting (a flora above a nursery page) or the median over independent sources is enough.
@@ -38,11 +43,13 @@ A species' starting values should be what the literature agrees on, and a run sh
 - **R4:** Each field records its sources, its spread and its confidence, and Start derives the tree from the aggregate without code changes downstream. [inferred]
 - **R5:** The run is recorded and replayed offline in the workspace gate, and a shipped species (the oak or the ash) run the same way lands within its catalogue ranges. [inferred]
 - **R6:** The replaced stages and decision kinds are gone, not disabled; lines before and after are reported; the workspace gate and `npm test` are green. [inferred]
+- **R7:** The beech's reference photographs include at least one mature, open-grown tree in leaf, kept from open-licence sources; a test over the recorded search shows it. [inferred]
+- **R8:** The beech runs live from its bare seed through Tune and Gaps to the owner's look; that run is recorded, and the workspace gate replays it offline through Tune's first revision. `gaps.md` classes every failing trait, and the owner's look is the only stop left. [inferred]
 
 ## Boundaries
 <!-- scope: business -->
 
-- Not the species runner's structure (fn-149), tuning, or the generator. Not photo input (fn-147). One species' values and how they are composed.
+- Not the species runner's structure (fn-149), how tuning chooses its moves, or the generator. Not photo input (fn-147). One species' values and how they are composed.
 
 ## Strategy Alignment
 
