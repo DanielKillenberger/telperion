@@ -22,10 +22,10 @@ pub(super) struct Timeline {
 impl Specimen {
     /// Build from a seedling through the exact annual path used by `advance`.
     /// The legacy envelope builder remains available through `grow`.
-    pub fn build(family: &Family) -> Result<Self> {
+    pub(crate) fn build(family: &Family) -> Result<Self> {
         Self::build_with_history_cap(family, retention::DEFAULT_HISTORY_CAP)
     }
-    pub fn build_with_history_cap(family: &Family, cap: f64) -> Result<Self> {
+    pub(crate) fn build_with_history_cap(family: &Family, cap: f64) -> Result<Self> {
         let cap = retention::checked_cap(cap)?;
         Age::from_years(family.age)?;
         family.growth.validate()?;

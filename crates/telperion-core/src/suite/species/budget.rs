@@ -385,3 +385,36 @@ fn a_specimen_over_the_whole_limit_runs_alone_and_says_so() {
     assert!(budget.peak() > budget.ceiling());
     budget.hold_to_the_ceiling();
 }
+
+/// Set in a child test process that runs one budgeted test by itself.
+pub const ALONE: &str = "TELPERION_SPECIES_ALONE";
+
+/// Runs the test at `name` in a process of its own and holds it to passing,
+/// so the process ceiling reads that test's specimens alone: the crate's test
+/// binary also carries every other suite, whose allocations no budget
+/// charges. One child runs at a time, since each sizes its budget from the
+/// host's whole free memory. True in the child, which runs the test's body.
+pub fn alone(name: &str) -> bool {
+    if std::env::var_os(ALONE).is_some() {
+        return true;
+    }
+    static ONE: Mutex<()> = Mutex::new(());
+    let _turn = ONE.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+    let run = std::process::Command::new(std::env::current_exe().unwrap())
+        .args([name, "--exact", "--nocapture", "--test-threads=1"])
+        .env(ALONE, "1")
+        .output()
+        .unwrap();
+    let said =
+        String::from_utf8_lossy(&run.stdout).into_owned() + &String::from_utf8_lossy(&run.stderr);
+    assert!(
+        run.status.success(),
+        "{name} failed in its own process:\n{said}"
+    );
+    // A run that selected no test would also have succeeded.
+    assert!(
+        said.contains("1 passed"),
+        "{name} selected nothing:\n{said}"
+    );
+    false
+}

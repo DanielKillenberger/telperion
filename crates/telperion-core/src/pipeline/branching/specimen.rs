@@ -105,7 +105,7 @@ pub(crate) fn validate(params: &SkeletonParams, radii: RadiusParams) -> Result<(
 }
 
 impl Specimen {
-    pub fn new(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
+    pub(crate) fn new(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
         let twigs = rows(params, radii)?;
         let inner = inner_envelope(params.envelope, twigs.reach);
         let points = if params.habit.attractor_weight > 0.0 {
@@ -285,7 +285,7 @@ impl Specimen {
         Ok(())
     }
     /// Drain the same retained builders used by incremental growth.
-    pub fn grow(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
+    pub(crate) fn grow(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
         let mut s = Self::new(params, radii)?;
         s.step(usize::MAX, 0)?;
         s.step(0, usize::MAX)?;

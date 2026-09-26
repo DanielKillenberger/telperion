@@ -28,7 +28,7 @@ impl Specimen {
         bytes.extend(checksum(&bytes).to_le_bytes());
         Ok(bytes)
     }
-    pub fn from_snapshot(bytes: &[u8]) -> Result<Self> {
+    pub(crate) fn from_snapshot(bytes: &[u8]) -> Result<Self> {
         if bytes.len() < HEADER.len() + 8 || bytes.len() > 512 * 1024 * 1024 {
             return Err(Error::InvalidInput("specimen snapshot size"));
         }

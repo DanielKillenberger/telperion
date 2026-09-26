@@ -81,6 +81,5 @@ The slim field module shrinks: its build carries no surface, leaf or box input a
 
 ## Gate (R5)
 
-- `cargo test --profile ci --workspace --no-fail-fast` (at `19c3b5a0`; `4ee081b1` after it changes only a test-only recorder): 1,042 passed, 4 failed, 22 ignored. The four failures are the species suite's process ceiling (`suite::species::fixed_{oaks,spruces,beeches,birches}_...`): the whole core suite now shares one test process under `cargo test`, and the ceiling reads that process's high-water mark. CI runs each test in its own process under nextest.
-- `cargo test --profile ci -p telperion-core --lib suite::species` alone: 20 passed, 0 failed.
+- `cargo test --profile ci --workspace --no-fail-fast` at `19c3b5a0`: 1,042 passed, 4 failed, 22 ignored. The four were the species suite's process ceiling (`suite::species::fixed_{oaks,spruces,beeches,birches}_...`): the whole core suite shared one test process under `cargo test`, and the ceiling read that process's high-water mark. The review's fix runs each of those four tests in a child process of its own (one at a time), as the saturation test already did; the rerun of the gate is in the done summary.
 - `npm test`: 12 files, 130 tests passed.

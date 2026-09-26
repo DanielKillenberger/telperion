@@ -130,12 +130,12 @@ fn oak_identity_resolves_to_frozen_profile_and_native_anatomy() {
 
 #[test]
 fn fixed_oaks_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
-    fixed_species(Preset::OregonWhiteOak);
+    fixed_species("suite::species::fixed_oaks_pass_geometry_and_profile_gates_with_repeatable_varied_specimens", Preset::OregonWhiteOak);
 }
 
 #[test]
 fn fixed_spruces_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
-    fixed_species(Preset::NorwaySpruce);
+    fixed_species("suite::species::fixed_spruces_pass_geometry_and_profile_gates_with_repeatable_varied_specimens", Preset::NorwaySpruce);
 }
 
 #[test]
@@ -202,15 +202,20 @@ fn birch_identity_resolves_to_frozen_profile_and_native_anatomy() {
 
 #[test]
 fn fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
-    fixed_species(Preset::EuropeanBeech);
+    fixed_species("suite::species::fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens", Preset::EuropeanBeech);
 }
 
 #[test]
 fn fixed_birches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
-    fixed_species(Preset::SilverBirch);
+    fixed_species("suite::species::fixed_birches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens", Preset::SilverBirch);
 }
 
-fn fixed_species(preset: Preset) {
+/// `name` is the test's own path: it runs in a process of its own, so the
+/// ceiling reads its specimens and nothing the rest of the suite allocated.
+fn fixed_species(name: &str, preset: Preset) {
+    if !budget::alone(name) {
+        return;
+    }
     let manifest = profiles();
     let profile = manifest["profiles"]
         .as_array()
