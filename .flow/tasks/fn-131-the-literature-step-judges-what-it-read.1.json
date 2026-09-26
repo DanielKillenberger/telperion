@@ -1,0 +1,15 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-23T21:04:15.401609Z",
+  "depends_on": [],
+  "id": "fn-131-the-literature-step-judges-what-it-read.1",
+  "implicit_owner": true,
+  "priority": null,
+  "spec": "fn-131-the-literature-step-judges-what-it-read",
+  "spec_path": ".flow/tasks/fn-131-the-literature-step-judges-what-it-read.1.md",
+  "status": "done",
+  "title": "Implement fn-131-the-literature-step-judges-what-it-read",
+  "updated_at": "2026-09-23T21:04:15.401609Z"
+}

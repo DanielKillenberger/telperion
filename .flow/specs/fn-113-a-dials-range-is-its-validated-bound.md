@@ -40,3 +40,7 @@ This spec makes a dial's walls the generator's validated bounds, and keeps the p
 ## Open Questions
 
 - Unknown until the audit: how many of the 75 rows lack a generator bound.
+
+## Settled
+
+Closed as landed (2026-09-26, fn-149 R8): carried by the fn-149 runner rewrite, merged in #121 (c2ac430b).

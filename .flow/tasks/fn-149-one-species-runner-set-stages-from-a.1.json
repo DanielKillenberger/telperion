@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-149-one-species-runner-set-stages-from-a",
   "spec_path": ".flow/tasks/fn-149-one-species-runner-set-stages-from-a.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement One species runner: set stages from a name to an accepted tree",
   "updated_at": "2026-09-25T10:31:30.146369Z"
 }

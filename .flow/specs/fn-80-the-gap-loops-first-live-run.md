@@ -74,3 +74,7 @@ This spec is that run, riding the date palm of fn-82. It proves the loop when th
 ## Open Questions
 
 - None. The species question was answered by the owner on 2026-09-18: the date palm of fn-82.
+
+## Settled
+
+Closed as superseded (2026-09-26): the palm shipped in 0.1.3 (#115), and the runner this run exercised was rebuilt by fn-149 (#121). The branch fn-80-the-gap-loops-first-live-run stays on GitHub as the palm run's archive; its PR #61 closed unmerged.

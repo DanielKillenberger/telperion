@@ -41,3 +41,7 @@ This spec lets the size of the gap the reviewer or the owner names choose how fa
 ## Open Questions
 
 - Unknown: the calibration home and the labelled cases (see Architecture).
+
+## Settled
+
+Closed as landed (2026-09-26, fn-149 R8): carried by the fn-149 runner rewrite, merged in #121 (c2ac430b).

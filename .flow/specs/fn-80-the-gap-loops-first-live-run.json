@@ -19,7 +19,7 @@
   "plan_reviewed_at": null,
   "ready": false,
   "spec_path": ".flow/specs/fn-80-the-gap-loops-first-live-run.md",
-  "status": "open",
+  "status": "done",
   "title": "The gap loop's first live run",
   "tracker": {
     "baseHashFlow": null,
@@ -32,5 +32,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-19T18:38:32.307028Z"
+  "updated_at": "2026-09-26T14:16:28.382842Z"
 }
