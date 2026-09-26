@@ -25,6 +25,8 @@ The harness, the browser metadata and the tuning loop read parameters from fn-15
 - **R3:** The dial test's hand list is replaced by behavioural dormancy tests over representative rows, fields included. [paraphrase]
 - **R4:** The workspace gate and `npm test` are green, and the harness renders the date palm and the oak. [paraphrase]
 
+**Host decision (2026-09-26).** Tuning windows and steps stay on each catalogue row, beside but separate from the row's bounds, rather than in a separate authored file: one declaration per parameter is stage 1's design. [paraphrase]
+
 ## Boundaries
 <!-- scope: business -->
 
