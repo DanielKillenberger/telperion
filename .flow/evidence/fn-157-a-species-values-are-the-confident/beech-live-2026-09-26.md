@@ -185,3 +185,41 @@ passage a kind question was asked over, an appearance sentence of two
 words, a page no stage read keeping its licence tags (it then read as a
 page), and a PDF whose parse stayed whole (the forstpraxis yield table and
 the EUFORGEN guideline in full) and whose scrape lost the PDF magic.
+
+## The chosen shot and Tune through Gaps (R8), 2026-09-26
+
+- **Shot.** Six candidate cameras rendered from the Start tree; the look
+  chose camera-2 (eye 8 degrees below the aim, fill 0.8). The render's tree
+  box, measured once the horizon's one-row streak no longer widened it,
+  was half the photograph's crown width; of six boxes up to twice as wide
+  the look chose D (twice the width), crown-base line 5 (half the box
+  height) and a sun from the camera's left. Two looks, about 1,150 output
+  tokens.
+- **Tune revision 1** ran seven rounds. The tree it kept is round 2's
+  half-strength bundle (score 0.490 against the baseline's 0.622): envelope
+  spread 0.161 to 0.211 with crown base, fullness, shoulder and
+  irregularity rows, twig hang, droop and reach rows, bark roughness 0.775
+  to 0.70, leaf-front green 0.195 to 0.27, and crown, interior and sky
+  shading. It then stopped on the runaway rule: from
+  round 3 every bundle widened the crown past the gating crown width
+  (10.7-18.3 m, two American extension pages) toward the photograph's
+  broad crown, and every candidate failed that gate.
+- **Gaps** (`gaps.md`): 5 reachable (codominant V fork, broad domed crown,
+  ascending then arching limbs, fine layered twig sprays, light translucent
+  foliage; each named against the envelope spread dial), 0 identity,
+  0 global, 3 unsourced (crown base unsourced; trunk diameter and leaf
+  width contextual). The run stops at the owner's look.
+- **Spend.** No Firecrawl call. Jev: 63 calls and about 2.04 million
+  tokens in the revision (every round asked about all 227 dials, 32 a
+  call). Vision: the shot's two looks, one new inventory (the references
+  renamed by view), seven visual passes in the revision, and three looks
+  lost to failed attempts (a baseline pass before references were named by
+  view, a camera look before the box measurement was fixed, and the baseline
+  pass of the revision refused for its 227-dial Jev request).
+
+## Follow-up for non-European species
+
+The oak kept no photograph: geograph is a British archive and Commons files
+single trees in categories that are mostly European. A North American
+species needs another source of open-licence whole-tree photographs; not
+built here (host, 2026-09-26).

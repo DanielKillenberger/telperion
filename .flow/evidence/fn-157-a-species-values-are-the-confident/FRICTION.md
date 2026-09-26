@@ -83,3 +83,10 @@
 - **Hindered:** every reachable gap repeats the full list of render links for every dial it names; five gaps make a 306 KB file a person cannot read.
 - **Cost:** a few minutes and a truncated read.
 - **Would have removed it:** one link per render pair, or the links in `gaps.json` only.
+
+## 2026-09-26, worker, fn-157.1: a Tune recording does not replay from another directory
+
+- **Doing:** trimming and replaying the beech's recording through Tune's first revision for the gate (R8).
+- **Hindered:** four things in the requests named the run, not the question, so a replay from a scratch directory asked something the recording lacked: a render's geometry group (the run identity), the shot source's hash (a file holding the run's paths and dates), the inventory's full hash in the coverage finding and evidence Jev reads, and the sheet's render order (a hash of trial keys, which hash the run identity). Each was fixed with a test first; the recording's Jev requests were migrated for the inventory and refiled (`tape-adapter.py rekey:`, `tape_trim`), but the first round's sheet was recorded in the old order and its answer cannot be moved.
+- **Cost:** five replays of about two minutes each and about two hours; the gate's Tune replay stays red until the revision is recorded again.
+- **Would have removed it:** a replay of a fresh recording from a second directory as part of recording Tune, which would have named all four at once.
