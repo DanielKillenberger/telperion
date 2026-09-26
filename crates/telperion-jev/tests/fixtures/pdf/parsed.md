@@ -1,0 +1,1 @@
+## Biology and ecology European beech ( _Fagus sylvatica_ L.) normally grows to 30–35 m tall but in rare instances it may grow many cies, high unti t u The silver-gre highly cha beech. The leav to over 40 m.

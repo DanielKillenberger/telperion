@@ -1,0 +1,13 @@
+{
+ "scrape": {
+  "https://web.archive.org/web/20190819110558/http://www.euforgen.org/fileadmin/templates/euforgen.org/upload/Publications/Technical_guidelines/1322_European_beech__Fagus_sylvatica_.pdf": {
+   "final_url": "https://web.archive.org/web/20190819110558/http://www.euforgen.org/fileadmin/templates/euforgen.org/upload/Publications/Technical_guidelines/1322_European_beech__Fagus_sylvatica_.pdf",
+   "content_type": "text/html",
+   "raw": "archived.bin",
+   "markdown": "archived.md"
+  }
+ },
+ "parse": {
+  "P1.pdf": "parsed.md"
+ }
+}
