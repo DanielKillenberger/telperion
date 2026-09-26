@@ -281,6 +281,11 @@ def self_test() -> int:
     x, y, w, h = box
     assert abs(w - 121) <= 2 and abs(h - 221) <= 2, f"the mask box is {box}"
     assert abs(x - 60) <= 1 and abs(y - 40) <= 1, f"the shadow leaked into the box: {box}"
+    # fn-157: the horizon's one antialiased row stands out of its own row's
+    # background under both suns; a streak one row high is no tree.
+    streaked = mask.copy()
+    streaked[150, 5:195] = True
+    assert box_of(streaked) == box, f"the horizon widened the box: {box_of(streaked)}"
     stats = measure(still, box, mask, crown_base(mask, box))
     assert abs(stats["width_over_height"] - 121 / 221) < 0.02, stats
     assert 0.25 < stats["crown_base"] < 0.32, stats
