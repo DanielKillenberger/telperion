@@ -2,6 +2,7 @@
 
 > owner (2026-09-26), on the host's proposal to spec fn-149's obvious friction fixes: "ok go ahead"
 > owner (2026-09-26), on adding `species <id> --init-tuning`: "yes"
+> owner (2026-09-26), on adding three obvious fixes from fn-157's friction: "yes"
 
 ## Goal & Context
 <!-- scope: business -->
@@ -19,6 +20,9 @@ Checked 2026-09-26 on the fn-149 branch (`055a414e`) unless marked otherwise.
 4. **A replay lists what it served.** The tape (`crates/telperion-jev/src/tape/`) keeps no record of which entries a replay read, so pruning the beech fixture needed `inotifywait`. A replay writes the served keys, and `tape_trim --check` or a small command reports entries no replay reads. [checked]
 5. **One JSON form for catalogue records.** The catalogue's Node scripts write JSON in insertion order and the jev crate's `serde_json` sorts keys, so a record rewritten with the same values changed its bytes and staled a checksum; fn-149 worked around it by rewriting only on a value change. Both writers produce one canonical form. [inferred]
 6. **A run needs only its seed.** A run from a name also needs a hand-written tuning config (`.flow/evidence/<id>/tuning.json`: required views and seeds, reviewer adapters, protocols, ledger and scratch paths); the beech's was rebuilt from the palm's and `tuning::live::Config` in about 15 minutes (fn-149 FRICTION, 2026-09-25). `species <id> --init-tuning` writes the default config for the seed's growth form, so a new species needs only its seed and the host's capability assessment. [checked]
+7. **The preflight states the spend it can pay.** fn-157's live beech run lost 6 of 16 documents when Firecrawl refused at zero credits mid-run (fn-157 FRICTION). `species <id> --status` reports the Firecrawl balance beside the run's expected credits and warns before a run that will not fit. [checked]
+8. **A rerun resumes inside Profile.** A later inner stage of Profile that fails (an HTTP 520 on fn-157's beech) leaves no record, so the rerun repeats the paid earlier inner stages. Profile keeps a record per inner stage and a rerun resumes at the one that failed. [checked]
+9. **Tune's requests do not depend on the dial table's order.** The rebase onto fn-152's generated dial table reordered the rows, which re-batched Tune's proposal questions and invalidated fn-157's recorded round (8 Jev calls, about 254,000 tokens to re-record). Tune batches its questions in dial-id order. [checked]
 
 ## Acceptance Criteria
 <!-- scope: both -->
@@ -30,6 +34,9 @@ Checked 2026-09-26 on the fn-149 branch (`055a414e`) unless marked otherwise.
 - **R5:** A catalogue record written by the Rust runner and by the Node scripts from the same values is byte-identical. [inferred]
 - **R6:** The workspace gate and `npm test` are green. [inferred]
 - **R7:** `species <id> --init-tuning` on a bare broadleaf seed writes a config the runner accepts through Start, and it never overwrites an existing config. [inferred]
+- **R8:** `--status` prints the Firecrawl balance and the run's expected credits and warns when the balance is short. [inferred]
+- **R9:** A Profile rerun after a failed inner stage makes no paid call for the inner stages that finished. [inferred]
+- **R10:** Reordering the dial table leaves Tune's requests, and so a recording's keys, unchanged. [inferred]
 
 ## Boundaries
 <!-- scope: business -->
