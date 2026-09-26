@@ -40,7 +40,14 @@ impl Value {
         if !fits {
             return Err(Refused::Kind);
         }
-        if !bounds.admits(value) {
+        // A whole number also has to be one the row's type holds exactly,
+        // which `put`'s cast would otherwise saturate.
+        let held = match kind {
+            Kind::Count => value as u32 as f64 == value,
+            Kind::Size | Kind::OptionalSize => value as usize as f64 == value,
+            _ => true,
+        };
+        if !bounds.admits(value) || !held {
             return Err(Refused::Bounds);
         }
         Ok(Self { entry, value })

@@ -10,13 +10,75 @@
     "fn-159-harness-browser-and-tuning-read-the"
   ],
   "id": "fn-160-presets-are-value-files",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-160-presets-are-value-files.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "5dae9bb3b87e1928c94e62aefc32cfc8fbe61cbc10d18428cf6f4a2b208b7710",
+      "backend": "codex",
+      "base_sha": "d9d57f67660c5f85df24d33354a83c19594b0604",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3e24079fceaf965acd6175cd04516616",
+            "classification": "introduced",
+            "findingId": "finding-3e24079fceaf965acd6175cd04516616",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ee072ec88f14fa32682d86882b9c5cde",
+            "classification": "introduced",
+            "findingId": "finding-ee072ec88f14fa32682d86882b9c5cde",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "327f5eee01c4706595e4842b001a6129b7da2531",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1598,
+      "output_sha256": "7d6812b834b2edcc98a81e93fe30ec673a20ed55cd0fd269411c1fa9b49d9987",
+      "reservation_id": "adc7e0863fdd4d7ea8c888cfe5735b2b",
+      "round_consumed": true,
+      "scope": "impl:fn-160-presets-are-value-files.1",
+      "superseded_by": null,
+      "task": "fn-160-presets-are-value-files.1",
+      "timestamp": "2026-09-26T17:58:16.739012Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-160-presets-are-value-files.1": 0
+  },
   "spec_path": ".flow/specs/fn-160-presets-are-value-files.md",
   "status": "open",
   "title": "Presets are value files",
@@ -31,5 +93,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-26T17:10:09.381429Z"
+  "updated_at": "2026-09-26T17:58:16.741402Z"
 }

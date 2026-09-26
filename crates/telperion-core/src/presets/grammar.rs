@@ -53,6 +53,9 @@ pub fn parse(text: &str) -> Result<Vec<Line<'_>>, String> {
             return Err(format!("{at}: `{path}` is not a wire path"));
         }
         let form = form(text).ok_or(format!("{at}: `{text}` is not a value"))?;
+        if form != Form::Switch && !text.parse::<f64>().is_ok_and(f64::is_finite) {
+            return Err(format!("{at}: `{text}` is past the largest double"));
+        }
         if let Some(first) = rows.iter().find(|r| r.path == path) {
             return Err(format!("{at}: {path} is already set on line {}", first.at));
         }
@@ -126,6 +129,7 @@ mod tests {
             ("/age = 1.", "1: `1.` is not a value"),
             ("/age = 0x10", "1: `0x10` is not a value"),
             ("/age = none", "1: `none` is not a value"),
+            ("/age = 1e309", "1: `1e309` is past the largest double"),
             ("/age = 1\n\n/age = 2", "3: /age is already set on line 1"),
         ] {
             assert_eq!(parse(text).unwrap_err(), why, "{text}");

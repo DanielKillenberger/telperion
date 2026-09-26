@@ -89,6 +89,10 @@ fn a_row_the_catalogue_refuses_is_named_by_its_line() {
         ),
         ("/shellDepth = 1.5", "1: /shellDepth is off its bounds"),
         (
+            "/canopy/clumpSystemOrder = 4294967296",
+            "1: /canopy/clumpSystemOrder is off its bounds",
+        ),
+        (
             "/skeleton/habit/stems = 2.5",
             "1: /skeleton/habit/stems holds another kind of value",
         ),
