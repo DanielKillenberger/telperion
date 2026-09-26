@@ -147,6 +147,9 @@ pub fn find(
         .as_array_mut()
         .ok_or("references is no list")?;
     for (at, view) in &kept {
+        if list.iter().any(|r| r["asset_sha256"] == images[*at].sha256) {
+            continue;
+        }
         let record = record(m, list, &fetched[*at], &images[*at], view);
         list.push(record);
     }
