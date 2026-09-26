@@ -36,6 +36,8 @@ A short motion design piece that makes Telperion's vision felt. It is a runtime 
 - **R7:** The owner watches both cuts and approves them; the owner's eye is the acceptance. [inferred]
 - **R8:** The masters are kept under the repository's ignored demo-video directory, as the evidence-retention policy says. Each is delivered at a stated path, with its shot list and render records committed. [inferred]
 
+**Shelved (owner, 2026-09-27).** Telperion carries most shots and does not look right yet ("telperion the tree is currently super ugly"); the video is remade another time, after Telperion's look (fn-169-telperion-reads-as-the-silver-tree) and smooth blends (fn-148). The first cuts, the shot list and the render records stay on branch `fn-167-a-motion-design-video-of-telperions`. [user]
+
 ## Boundaries
 <!-- scope: business -->
 
