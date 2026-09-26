@@ -17,9 +17,11 @@ pub fn only_quoted(tape: &Path, extra_open: &[String]) -> Result<Vec<String>, St
         let page = &entry["response"]["ok"];
         let url = request["url"].as_str().unwrap_or_default();
         if let (Some("parse"), Some(parsed)) = (request["op"].as_str(), page.as_str()) {
-            let quoted: usize = covered(parsed, &quotes).iter().map(|(f, t)| t - f).sum();
+            let file = request["file"].as_str().unwrap_or_default();
+            let mut kept = quotes.clone();
+            kept.extend(licence_lines(&[], parsed, "application/pdf", file));
+            let quoted: usize = covered(parsed, &kept).iter().map(|(f, t)| t - f).sum();
             if quoted + parsed.matches(SEPARATOR).count() < parsed.len() {
-                let file = request["file"].as_str().unwrap_or_default();
                 over.push(format!(
                     "{file}: {quoted} of {} parsed bytes quoted",
                     parsed.len()
