@@ -48,6 +48,65 @@ pub fn image(path: PathBuf, view: String, seed: u32) -> Result<Image, String> {
     })
 }
 
+/// One still of the tree under a shot's camera and light, at `size`: the
+/// shot's own sun, or with `twin` the sun on the horizon behind the tree,
+/// so the tree stands in both and its shadow in one.
+#[allow(clippy::too_many_arguments)]
+pub fn still(
+    headless: &std::path::Path,
+    preset: &str,
+    seed: u32,
+    shot: &Value,
+    size: &str,
+    family: &std::path::Path,
+    out: &std::path::Path,
+    twin: bool,
+) -> Result<(), String> {
+    let number = |v: &Value| {
+        v.as_f64()
+            .filter(|v| v.is_finite())
+            .ok_or("invalid shot number")
+    };
+    let view = if shot["foliage"] == "hidden" {
+        "bare"
+    } else {
+        "whole"
+    };
+    let overcast = number(&shot["light"]["overcast"])?;
+    let dim = 1. - 0.8 * overcast;
+    let scene = json!({
+        "sunAzimuth":if twin {(number(&shot["camera"]["azimuth"])?+180.)%360.}
+            else {number(&shot["light"]["sunAzimuth"])?},
+        "sunElevation":if twin {5.} else {number(&shot["light"]["sunElevation"])?},
+        "sunRed":3.*dim,"sunGreen":2.85*dim,"sunBlue":2.6*dim,
+        "skyZenithRed":0.18+0.37*overcast,"skyZenithGreen":0.30+0.36*overcast,
+        "skyZenithBlue":0.62+0.18*overcast});
+    run(Command::new("timeout")
+        .arg("300")
+        .arg(headless)
+        .args([
+            "--preset",
+            preset,
+            "--seed",
+            &seed.to_string(),
+            "--view",
+            view,
+            "--size",
+            size,
+        ])
+        .arg("--out")
+        .arg(out)
+        .arg("--family")
+        .arg(family)
+        .args([
+            "--camera",
+            &shot["camera"].to_string(),
+            "--scene",
+            &scene.to_string(),
+            "--no-figure",
+        ]))
+}
+
 impl Matched {
     pub fn records(&self) -> Result<Vec<Value>, String> {
         let root = read(&self.references)?;
@@ -131,47 +190,19 @@ impl Matched {
                 (self.height as f64 * ratio).round() as u32,
                 self.height
             );
-            let view = if shot["foliage"] == "hidden" {
-                "bare"
-            } else {
-                "whole"
-            };
-            let overcast = number(&shot["light"]["overcast"])?;
-            let dim = 1. - 0.8 * overcast;
             let mut images = vec![];
             for twin in [false, true] {
                 let path = dir.join(format!("{key}-{id}{}.png", if twin { "-twin" } else { "" }));
-                let scene = json!({
-                    "sunAzimuth":if twin {(number(&shot["camera"]["azimuth"])?+180.)%360.}
-                        else {number(&shot["light"]["sunAzimuth"])?},
-                    "sunElevation":if twin {5.} else {number(&shot["light"]["sunElevation"])?},
-                    "sunRed":3.*dim,"sunGreen":2.85*dim,"sunBlue":2.6*dim,
-                    "skyZenithRed":0.18+0.37*overcast,"skyZenithGreen":0.30+0.36*overcast,
-                    "skyZenithBlue":0.62+0.18*overcast});
-                run(Command::new("timeout")
-                    .arg("300")
-                    .arg(&self.headless)
-                    .args([
-                        "--preset",
-                        preset,
-                        "--seed",
-                        &seed.to_string(),
-                        "--view",
-                        view,
-                        "--size",
-                        &size,
-                    ])
-                    .arg("--out")
-                    .arg(&path)
-                    .arg("--family")
-                    .arg(&family_path)
-                    .args([
-                        "--camera",
-                        &shot["camera"].to_string(),
-                        "--scene",
-                        &scene.to_string(),
-                        "--no-figure",
-                    ]))?;
+                still(
+                    &self.headless,
+                    preset,
+                    seed,
+                    shot,
+                    &size,
+                    &family_path,
+                    &path,
+                    twin,
+                )?;
                 images.push(image(path, id.into(), seed)?);
             }
             comparisons.push(Comparison {

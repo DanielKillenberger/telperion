@@ -270,6 +270,45 @@ class ReferenceFirstClaude(unittest.TestCase):
             with self.assertRaises(ValueError):
                 prepared.prepare(dict(envelope, request=dict(request, protocol="old")))
 
+    def test_a_shot_names_one_candidate_camera_or_none(self):
+        """fn-157: a found photograph's camera is chosen from code's renders."""
+        prepared = load_module("reference-first.py")
+        with tempfile.TemporaryDirectory() as tmp:
+            image = self.build_envelope(tmp)["request"]["references"][0]["image"]
+            request = {"protocol": prepared.SHOT_VERSION, "target_species": "european-beech", "view": "leaf-on",
+                       "photograph": image,
+                       "candidates": [{"id": "camera-0", "image": image}, {"id": "camera-1", "image": image}]}
+            prompt = "Shot instruction"
+            envelope = {"stage": "shot", "request": request, "request_sha256": "bound-by-rust",
+                        "prompt": prompt, "prompt_sha256": sha256(prompt.encode())}
+            paths, schema, _ = prepared.prepare(envelope)
+            self.assertEqual(len(paths), 3)
+            self.assertEqual(schema["properties"]["choice"]["enum"], ["camera-0", "camera-1", "none"])
+
+    def test_an_outline_names_a_box_a_line_and_a_light_or_none(self):
+        """fn-157: the photograph's tree box, crown base and light are chosen
+        from code's candidates; a label, never a number."""
+        prepared = load_module("reference-first.py")
+        with tempfile.TemporaryDirectory() as tmp:
+            image = self.build_envelope(tmp)["request"]["references"][0]["image"]
+            request = {"protocol": prepared.OUTLINE_VERSION, "view": "leaf-on", "photograph": image,
+                       "boxes": {"image": image, "labels": ["A", "B"]},
+                       "lines": {"image": image, "labels": ["1", "2", "3"]},
+                       "lights": [{"id": "overcast", "description": "flat"}, {"id": "sun-left", "description": "left"}]}
+            prompt = "Outline instruction"
+            envelope = {"stage": "outline", "request": request, "request_sha256": "bound-by-rust",
+                        "prompt": prompt, "prompt_sha256": sha256(prompt.encode())}
+            paths, schema, _ = prepared.prepare(envelope)
+            self.assertEqual(len(paths), 3)
+            props = schema["properties"]
+            self.assertEqual(props["box"]["enum"], ["A", "B", "none"])
+            self.assertEqual(props["crown_base"]["enum"], ["1", "2", "3", "none"])
+            self.assertEqual(props["light"]["enum"], ["overcast", "sun-left", "none"])
+            bark = dict(request, boxes=None, lines=None)
+            paths, schema, _ = prepared.prepare(dict(envelope, request=bark))
+            self.assertEqual(len(paths), 1)
+            self.assertEqual(schema["properties"]["box"]["enum"], ["none"])
+
 
 class TapeAdapter(unittest.TestCase):
     """fn-149: an adapter call recorded once replays with no adapter run, and

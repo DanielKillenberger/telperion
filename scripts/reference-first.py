@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The reference-first reviewer: one isolated Claude call per stage
-(inventory, comparison, repair), no retry and no scheduler. `prepare` holds the
+(inventory, comparison, repair, screen, shot, outline), no retry and no scheduler. `prepare` holds the
 allowlist, image checks and prompt and schema; `vision_claude.run` makes the
 call.
 """
@@ -29,6 +29,14 @@ COMPARISON_VERSION = "reference-first-comparison-v2"
 SCREEN_VERSION = "reference-screen-v1"
 # The preflight probe's version (fn-149, `species --status`).
 PROBE_VERSION = "reference-probe-v1"
+# A found photograph's shot (fn-157): the camera chosen from code's renders,
+# then its tree box, crown base and light chosen from code's candidates.
+SHOT_VERSION = "reference-shot-v1"
+OUTLINE_VERSION = "reference-outline-v1"
+
+
+def choice(labels):
+    return {"type": "string", "enum": list(labels) + ["none"]}
 
 
 def trait_id():
@@ -67,6 +75,19 @@ def prepare(envelope):
             "mature_open_grown": {"type": "boolean"}, "whole_tree": {"type": "boolean"},
             "view": {"type": "string", "enum": ["leaf-on", "bare", "bark", "other"]}})
         schema = object_schema({"candidates": {"type": "array", "minItems": len(images), "maxItems": len(images), "items": verdict}})
+    elif stage == "shot":
+        if request.get("protocol") != SHOT_VERSION:
+            raise ValueError("stale shot protocol")
+        images = [request["photograph"]] + [c["image"] for c in request["candidates"]]
+        schema = object_schema({"choice": choice(c["id"] for c in request["candidates"])})
+    elif stage == "outline":
+        if request.get("protocol") != OUTLINE_VERSION:
+            raise ValueError("stale outline protocol")
+        boxes, lines = request.get("boxes") or {}, request.get("lines") or {}
+        images = [request["photograph"]] + [d["image"] for d in (boxes, lines) if d]
+        schema = object_schema({"box": choice(boxes.get("labels", [])),
+                                "crown_base": choice(lines.get("labels", [])),
+                                "light": choice(l["id"] for l in request["lights"])})
     elif stage in ("comparison", "repair"):
         if request.get("protocol") != COMPARISON_VERSION:
             raise ValueError("stale comparison protocol")
