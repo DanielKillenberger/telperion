@@ -1,8 +1,7 @@
 //! fn-61 R2: a first-order axis `raggedReach` stops short keeps what it bears
 //! within its own share of the crown - its deeper axes and the twigs on them
 //! end inside the crown's shell scaled about its station by the share it kept,
-//! or, for a curtain that drops, in the band below that shell.
-use super::super::in_curtain_band;
+//! hanging or not.
 use super::*;
 use crate::presets::Preset;
 
@@ -16,12 +15,10 @@ fn grown(preset: Preset, ragged_reach: f64, tweak: impl Fn(&mut SkeletonParams))
     Specimen::grow(&p, family.radii).unwrap()
 }
 
-/// Every node of a shortened limb system lies in that system's shell or,
-/// hanging, in the band below it; the counts of structural and twig nodes
-/// judged.
+/// Every node of a shortened limb system lies in that system's shell; the
+/// counts of structural and twig nodes judged.
 fn within_share(s: &Specimen) -> (usize, usize) {
     let (tree, e, seed) = (&s.tree, s.params.envelope, s.params.seed);
-    let t = s.params.twigs.resolved().unwrap();
     let (mut structural, mut twigs) = (0, 0);
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
         let bound = s.scaffold.limbs().of(tree, i);
@@ -34,7 +31,7 @@ fn within_share(s: &Specimen) -> (usize, usize) {
             _ => twigs += 1,
         }
         assert!(
-            e.contains(p, 1e-6, seed) || in_curtain_band(&e, &t, seed, p, 1e-6),
+            e.contains(p, 1e-6, seed),
             "{:?} node {i} at {:?} left its limb's share",
             n.kind,
             n.position
@@ -54,7 +51,7 @@ fn a_shortened_limbs_descendants_end_within_its_share() {
 }
 
 #[test]
-fn a_shortened_limbs_curtain_falls_in_its_own_band() {
+fn a_shortened_limbs_curtain_stays_within_its_share() {
     let s = grown(Preset::SilverBirch, 0.6, |_| {});
     assert!(s.params.twigs.hang > 0.0 && s.params.twigs.curtain_drop > 0.0);
     let (_, twigs) = within_share(&s);

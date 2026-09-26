@@ -194,7 +194,8 @@ impl Frontier {
                         continue;
                     }
                     let p = position + heading * twig_length;
-                    if !s.curtain.admits(config, t, s.bound.map(p)) || s.curtain.below(p.y) {
+                    if !planner::admitted(s.curtain, config, t, s.bound, p) || s.curtain.below(p.y)
+                    {
                         #[cfg(test)]
                         {
                             self.retries[1] += 1;
@@ -249,7 +250,9 @@ impl Frontier {
                     };
                     internodes = r.positions.len();
                     let p = r.positions[completed];
-                    if planner.growing_envelope && !s.curtain.admits(config, t, s.bound.map(p)) {
+                    if planner.growing_envelope
+                        && !planner::admitted(s.curtain, config, t, s.bound, p)
+                    {
                         #[cfg(test)]
                         {
                             self.retries[3] += 1;

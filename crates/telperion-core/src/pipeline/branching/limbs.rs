@@ -2,8 +2,8 @@
 //! short of the crown's shell keeps everything it bears - its deeper axes and
 //! the twigs on them - inside the crown's shell scaled about the station it
 //! leaves by the share of its room it kept. An axis that kept all of it is
-//! bound by the crown's shell itself, to the byte. A curtain that drops falls
-//! in the band below the system's shell, as the crown's falls below its own.
+//! bound by the crown's shell itself, to the byte. A shortened system's curtain
+//! stays inside its shell too: it drops through no band below it.
 use super::*;
 
 /// The shell a limb system grows in: the crown's, scaled about `station`.
