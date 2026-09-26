@@ -1,69 +1,68 @@
-# One parameter table the generator flows through
-
 ## Conversation Evidence
 
-> owner (2026-09-25): "I think we might have to also have a streamlining of the generator on how it works with the params. I can imagine that now it might be quite messy on how the params are applied. If we could write it in a way that params define which others they depend on and then make the algorithm flow cleanly through param's dependency tree like the generator pipeline on a high level does that would be great."
-> owner (2026-09-25), on continuity: "I can imagine a multidimensional tree space where if you're on one part of the space some dimensions just don't change the output ... I think part of this might be a param description problem"
+> owner (2026-09-24): "I think we might have to also have a streamlining of the generator on how it works with the params ... params define which others they depend on and then make the algorithm flow cleanly through param's dependency tree like the generator pipeline on a high level does"
+> read map (`.flow/evidence/fn-152-one-parameter-table-the-generator-flows/READ-MAP.md`): one pass does not fit one task; 249 rows are defined across the `fields!` macro, doc comments, 15 validate functions, `blend.rs`, `dials.json` and the harness.
+> Astra review (`ASTRA-REVIEW.md` beside it): keep a catalogue and typed stage inputs, and drop the graph resolver; a four-stage split.
+> owner (2026-09-26): "ok that seems reasonable. /flow-next:flow this to its completion in one stack with pr's for each spec"
 
 ## Goal & Context
 <!-- scope: business -->
 
-fn-102 made the build one pipeline of named stages. This spec does the same for parameters: one table where every parameter states what it is and how it relates to the others. The generator resolves the family once, in that table's dependency order, and hands each stage only the parameters it reads. Dormancy, derivation, validation, the wire schema, the tuning dials and the harness sliders all come from the one table, so they can no longer drift apart. The date palm's tuning config went stale on a frozen copy of the dial table, and most sliders sat dead on the palm with no word of why. Output does not change: this is structure, measured as no slower. [paraphrase]
+Every generator parameter is declared once, and everything that describes it is generated from that declaration. Today its path, meaning, bounds, validation, blending, tuning dial and docs live in six hand-kept places that drift apart. The palm's tuning config went stale on one of those copies. This is the first of four stacked specs; it builds the catalogue and moves its first consumers onto it, with no change in output. [paraphrase]
 
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-**What exists, checked 2026-09-25 on master (39348def).** [checked]
-- `crates/telperion-core/src/params.rs` holds the wire table: a macro of 249 rows mapping a JSON path to a family field, which also emits the browser's preset metadata.
-- Meanings live in doc comments across modules. Ranges live in `ranges.rs` and 14 `validate` functions.
-- Derived values are computed ad hoc in `resolved()` functions (`branching.rs`, `radius.rs`, `twigs.rs`).
-- The tuning dials are a separate copy with meanings and ranges transcribed from those comments: `crates/telperion-jev/data/dials.json` (227 rows) and `dials.excluded.json`. The harness has its own `harness/dials.tsx`.
-- Stages read family fields directly, for example `pipeline/stage.rs` and `generation/preparation.rs`.
+**What exists, checked 2026-09-25 (`READ-MAP.md`).** [checked]
+- `params.rs`'s `fields!` macro maps 249 wire paths to fields.
+- Meanings live in doc comments. Bounds live in `ranges.rs` and 15 validate functions, with conflicts: `stations_per_internode` is 1..32 in one and 1..64 in another, and `shell_depth` is checked three times.
+- `blend.rs` interpolates 248 rows by hand.
+- Tuning dials are a 227-row copy in `crates/telperion-jev/data/dials.json`, which configs copy again (`tuning/live.rs:98`).
+- Three rows are never read in production: `canopy.spacing`, `clump` and `clumpSpan`.
 
-**The table.** One row per parameter, in the core, as data: [inferred]
-- its path and type, with its unit, range and default (whole numbers marked as counts);
-- its meaning;
-- the stage that reads it: grow, plan, expand, cull or draw;
-- its **gate**: the condition under which it is dormant, such as side-branch order at 0, stated as data and shown in its description;
-- its **derivation**, where its resolved value is computed from others.
+**The catalogue.** The `fields!` macro evolves into typed declarations, beside their domain docs, that emit both the family fields and one catalogue entry per row. Each entry holds: [paraphrase]
+- path and type, unit, bounds and default;
+- meaning;
+- **consumer set:** grow, plan, expand, cull or draw, with growth-path applicability and validation scope kept separate;
+- **applicability:** where the row is dormant, stated descriptively, with "depends on generated structure" allowed;
+- a **deprecated** flag.
 
-The table's edges form an acyclic dependency graph.
+No proc macro and no runtime graph.
 
-**Resolution.** [inferred]
-- `resolve(&Family) -> Resolved` walks the graph once, in dependency order. It computes every derived value, folding today's `resolved()` functions in, and marks every dormant parameter.
-- Each pipeline stage takes its own view of `Resolved` and never the raw family, so what a stage reads is in its signature.
-- A parameter no stage reads is a table error.
+**Generated from the catalogue:** [paraphrase]
+- scalar bounds validation, with validation scope and error order preserved;
+- ordinary per-row blending;
+- dial metadata;
+- a parameter reference in `docs/`.
 
-**Generated from the table, never copied.** [inferred]
-- the wire schema and browser metadata that `params.rs` emits today;
-- range validation;
-- the tuning dial table, which replaces `dials.json` (exclusions stay as data on the row);
-- the harness sliders, with dormant ones shown with their gate;
-- a generated parameter reference in `docs/`.
+Relational validation and coupled blending (card handling, disabled supernatural terms, optional overrides) stay as named Rust functions.
 
-**Presets as data (owner, 2026-09-25).** Each shipped preset moves from its Rust function in `presets/species.rs` to a value file checked against the table's rows, so the species runner's Accept stage (fn-149) writes values, never code. Until this lands, Accept writes the Rust function in today's style. [inferred]
+**Kept on purpose:** [paraphrase]
+- **Conflicting bounds** are listed in the reference and left as they are; resolving them is its own change.
+- **The three unread rows** are marked deprecated, excluded from controls, and serialised unchanged.
+- **The capability classifier** is corrected where it contradicts the leaf bases' shared use of the rosette's spiral rows (`capability.rs:244`).
 
-**Unknown.** [unknown]
-- Whether every stage can move to views in one pass or needs a staged migration. The implementer maps the reads first and reports.
-- Which of today's cross-parameter couplings are hidden, found only by the mapping.
-
-**Stages private to the pipeline (owner, 2026-09-25, moved from fn-151).** The build stages become `pub(crate)` in the core, so bindings, packages and the renderer reach generation only through `pipeline::build`, and a second chain does not compile. The sanctioned exceptions (the growth path and the GPU executor, STRATEGY.md "one algorithm with two executors") are deliberately exposed items. Tests that call a stage directly use a test-only feature. [user]
+**Tuning configs.** New configs reference dial ids plus explicit overrides and a catalogue revision. Existing snapshots stay replayable. [paraphrase]
 
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** Every parameter in the wire table has one row with its type, range, meaning, stage, gate and derivation. The graph is acyclic, and no row is unread. [inferred]
-- **R2:** Every stage reads only its view of `Resolved`: a stage's signature takes its view, never `&Family`, so reading the raw family does not compile, the same compile-time enforcement as R6 (fn-151's source guard was withdrawn for structure, owner 2026-09-25). [inferred]
-- **R3:** The wire schema, validation, tuning dial table, harness sliders and parameter reference are generated from the table. `dials.json` and the harness's hand-kept list are gone. Every shipped preset is a value file validated against the table, and fn-149's Accept writes that file. [inferred]
-- **R4:** Every shipped preset is byte-identical in mesh, field and metrics, and every artifact stays within CI's size budget (fn-151). Build time and peak memory are no worse: the implementer measures each shipped preset's build before and after on the owner's named machine (the RTX 3080 workstation, STRATEGY.md "Frame"), release profile, at least five runs each, and reports medians with spread. Errors: a regression beyond the runs' spread is reported with its cause, never absorbed. [inferred]
-- **R5:** The workspace gate and `npm test` are green. [inferred]
-- **R6:** No crate outside the core pipeline can call a build stage: a scratch caller in `telperion-wasm` fails to compile, and the growth path and GPU executor build through their deliberately exposed items. [user]
+- **R1:** Every wire row has one declaration and one catalogue entry with the fields above. The wire schema, JSON names and exported TypeScript types are unchanged. Errors: a row without a meaning, bounds or consumer set fails a build-time check. [paraphrase]
+- **R2:** Scalar validation, ordinary blending, dial metadata and the parameter reference are generated. Every shipped preset, a set of intermediate blends and `None`/`Some` override fixtures are byte-identical to master. Validation keeps its accepted inputs and error order. [paraphrase]
+- **R3:** New tuning configs reference dial ids with overrides and a catalogue revision, and an existing embedded-dial config still replays. [paraphrase]
+- **R4:** The three unread rows are deprecated and hidden from controls, and still parse, overlay and serialise as before. [paraphrase]
+- **R5:** The workspace gate and `npm test` are green. [paraphrase]
 
 ## Boundaries
 <!-- scope: business -->
 
-- Not the continuity measure or its fixes (fn-148), which then read gates from this table. Not variation ranges and locks (fn-146), which become fields on these rows. No output change.
+- Not stage signatures or visibility (fn-158), consumer migration (fn-159) or preset value files (fn-160). Not the `sheddingThreshold` split, the removal of deprecated rows, or behaviour defects. No output change.
+
+## Decision Context
+<!-- scope: both — conditionally substructured -->
+
+The first draft proposed one resolve over a dependency graph, plus per-stage views, in one task. The read map showed that would not fit one task. Astra showed that derived values live at four lifetimes a single up-front resolve cannot reach. Dependencies become documentation on each entry, not an execution engine. [paraphrase]
 
 ## Strategy Alignment
 
-- Serves "Our approach": one continuous tree space and one pipeline with explicit data flow and small interfaces. [strategy:Our approach]
+- Serves "Our approach": one continuous tree space and lean, explicit data flow. [strategy:Our approach]
