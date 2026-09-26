@@ -167,13 +167,13 @@ pub struct Built {
 /// Where the canopy keeps the bases of its shed fronds, they are hung on
 /// every stem as wood of their own, after the radius solve so no base
 /// thickens the trunk.
-pub(crate) fn skeleton(input: &GrowInput) -> Result<Skeleton> {
-    let report = branching::generate(&input.skeleton, input.radii)?;
+pub(crate) fn skeleton(input: GrowInput) -> Result<Skeleton> {
+    let report = branching::generate(input.skeleton, input.radii)?;
     let mut tree = report.tree;
     if input.canopy.rosette_fronds > 0 {
         branching::clear_apical_twigs(&mut tree)?;
     }
-    branching::clothe_leaf_bases(&mut tree, &input.canopy)?;
+    branching::clothe_leaf_bases(&mut tree, input.canopy)?;
     Ok(Skeleton {
         tree,
         shed: report.shed,
@@ -184,9 +184,9 @@ pub(crate) fn skeleton(input: &GrowInput) -> Result<Skeleton> {
 /// read once, into each stage's own input.
 pub fn build(family: &Family, request: Request) -> Result<Built> {
     let started = (request.clock)();
-    let inputs = Inputs::of(family);
-    let skeleton = skeleton(&inputs.grow)?;
+    let skeleton = skeleton(GrowInput::of(family))?;
     let grown = (request.clock)();
+    let inputs = Inputs::of(family);
     let mut outputs = outputs(&skeleton.tree, &inputs, request)?;
     outputs.stages.skeleton_ms = grown - started;
     outputs.stages.total_ms = (request.clock)() - started;
@@ -208,9 +208,9 @@ pub(crate) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
 mod drawn;
 #[cfg(feature = "geometry")]
 pub mod executor;
+mod input;
 #[cfg(not(feature = "geometry"))]
 mod planned;
-mod input;
 mod stage;
 #[cfg(test)]
 mod tests;

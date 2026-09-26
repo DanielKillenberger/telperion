@@ -19,11 +19,10 @@ use std::sync::OnceLock;
 /// Stages 3 and 4 with the wood and the leaves compiled in.
 pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<Outputs> {
     let (surface, leaf) = (&inputs.surface, &inputs.leaves);
-    let twig = inputs.plan.twig();
+    let twig = inputs.plan.twig.as_ref().ok().copied();
     // Leaves are placed for their own sake, or for a field the plan cannot
     // describe; placed with surface contact, they sit on the rings.
-    let places = request.leaves
-        || (request.field.is_some() && !plan::supports(leaf.canopy, twig.clone().ok()));
+    let places = request.leaves || (request.field.is_some() && !plan::supports(leaf.canopy, twig));
     let seats = places && leaf.canopy.surface_contact > 0.0;
     let rings = OnceLock::new();
     let sweep = || self::rings(tree, surface, request, seats);
@@ -35,13 +34,12 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
             request.wood.then(|| shared().and_then(wood)).transpose()
         },
         || {
-            let prepared = stage::prepare(tree, &inputs.plan, request, &twig, places)?;
+            let prepared = stage::prepare(tree, &inputs.plan, request, places)?;
             let seat = match (seats, request.wood) {
                 (false, _) => Ok(Seat::Free),
                 (true, false) => Ok(Seat::Own),
                 (true, true) => shared().map(|r| Seat::Shared(&r.0)),
             };
-            let twig = twig.clone().ok();
             let made = match seat {
                 Ok(seat) => leaves_and_field(tree, inputs, request, &prepared, twig, seat),
                 Err(error) => (Err(error), Ok(None)),

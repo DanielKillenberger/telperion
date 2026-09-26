@@ -64,7 +64,7 @@ pub(crate) fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
 
 /// Grows this family's skeleton, ready to draw: the pipeline's skeleton stage.
 pub fn grow(family: &Family) -> Result<Tree> {
-    Ok(pipeline::skeleton(&pipeline::Inputs::of(family).grow)?.tree)
+    Ok(pipeline::skeleton(pipeline::GrowInput::of(family))?.tree)
 }
 
 /// Grows the skeleton, plaits the wood surface and places the culled foliage.

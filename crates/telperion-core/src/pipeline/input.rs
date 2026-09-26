@@ -4,10 +4,12 @@
 //! result and answered by the stage that reads it, so a request meets its
 //! errors in stage order. Values that live at a branch or a surface sample
 //! stay derived inside their stage, where their inputs exist.
+#[cfg(feature = "geometry")]
+use crate::foliage::Reference;
 use crate::{
     branching::SkeletonParams,
     envelope::Envelope,
-    foliage::{CanopyParams, ElementParams, Reference, TwigPlacement},
+    foliage::{CanopyParams, ElementParams, TwigPlacement},
     presets::Family,
     radius::RadiusParams,
     surface::SurfaceParams,
@@ -15,21 +17,33 @@ use crate::{
     Result,
 };
 
-/// Every stage's input, read off one family.
+/// The input of every stage past the skeleton, read off one family.
 #[derive(Debug, Clone)]
 pub(crate) struct Inputs {
-    pub(crate) grow: GrowInput,
     pub(crate) plan: PlanInput,
+    #[cfg(feature = "geometry")]
     pub(crate) surface: SurfaceInput,
+    #[cfg(feature = "geometry")]
     pub(crate) leaves: LeafInput,
 }
 
 /// The skeleton: the solve, and the canopy's frond crown and shed bases.
-#[derive(Debug, Clone)]
-pub(crate) struct GrowInput {
-    pub(crate) skeleton: SkeletonParams,
+/// It lends the family's groups for the one stage that reads them.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct GrowInput<'f> {
+    pub(crate) skeleton: &'f SkeletonParams,
     pub(crate) radii: RadiusParams,
-    pub(crate) canopy: CanopyParams,
+    pub(crate) canopy: &'f CanopyParams,
+}
+
+impl<'f> GrowInput<'f> {
+    pub(crate) fn of(family: &'f Family) -> Self {
+        Self {
+            skeleton: &family.skeleton,
+            radii: family.radii,
+            canopy: &family.canopy,
+        }
+    }
 }
 
 /// The element, the leaf plan and the box leaves are quantised against.
@@ -39,10 +53,12 @@ pub(crate) struct PlanInput {
     pub(crate) envelope: Envelope,
     pub(crate) canopy: CanopyParams,
     pub(crate) surface: SurfaceParams,
-    pub(crate) radii: RadiusParams,
     pub(crate) seed: u32,
-    /// The twig rows resolved, once.
-    pub(crate) twigs: Result<TwigParams>,
+    /// Where the family's twig rows put a leaf's stations.
+    pub(crate) twig: Result<TwigPlacement>,
+    /// The box every leaf of this family is quantised against.
+    #[cfg(feature = "geometry")]
+    pub(crate) reference: Result<Reference>,
 }
 
 /// The rings and the wood swept on them.
@@ -65,25 +81,30 @@ impl Inputs {
     pub(crate) fn of(family: &Family) -> Self {
         let skeleton = &family.skeleton;
         let envelope = skeleton.envelope;
+        let twigs = skeleton.twigs.resolved();
         Self {
-            grow: GrowInput {
-                skeleton: skeleton.clone(),
-                radii: family.radii,
-                canopy: family.canopy,
-            },
             plan: PlanInput {
                 element: family.element,
                 envelope,
                 canopy: family.canopy,
                 surface: family.surface,
-                radii: family.radii,
                 seed: skeleton.seed,
-                twigs: skeleton.twigs.resolved(),
+                #[cfg(feature = "geometry")]
+                twig: twigs.as_ref().map(placement).map_err(Clone::clone),
+                #[cfg(not(feature = "geometry"))]
+                twig: twigs.map(|twigs| placement(&twigs)),
+                #[cfg(feature = "geometry")]
+                reference: twigs.map(|twigs| {
+                    let (radii, canopy) = (family.radii, family.canopy);
+                    Reference::from_params(envelope, &twigs, radii, &family.surface, canopy)
+                }),
             },
+            #[cfg(feature = "geometry")]
             surface: SurfaceInput {
                 height: envelope.height,
                 params: family.surface,
             },
+            #[cfg(feature = "geometry")]
             leaves: LeafInput {
                 envelope,
                 canopy: family.canopy,
@@ -94,25 +115,10 @@ impl Inputs {
     }
 }
 
-impl PlanInput {
-    /// Where the family's twig rows put a leaf's stations.
-    pub(crate) fn twig(&self) -> Result<TwigPlacement> {
-        let twig = self.twigs.clone()?.twig;
-        Ok(TwigPlacement {
-            internode_length: twig.internode_length,
-            stations_per_internode: twig.stations_per_internode,
-        })
-    }
-
-    /// The box every leaf of this family is quantised against.
-    pub(crate) fn reference(&self) -> Result<Reference> {
-        let twigs = self.twigs.clone()?;
-        Ok(Reference::from_params(
-            self.envelope,
-            &twigs,
-            self.radii,
-            &self.surface,
-            self.canopy,
-        ))
+/// The stations a family's resolved twig rows place.
+fn placement(twigs: &TwigParams) -> TwigPlacement {
+    TwigPlacement {
+        internode_length: twigs.twig.internode_length,
+        stations_per_internode: twigs.twig.stations_per_internode,
     }
 }

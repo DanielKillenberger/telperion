@@ -2,7 +2,7 @@
 use super::{PlanInput, Request, Structure};
 use crate::{
     field::Field,
-    foliage::{self, plan, Element, Reference, TwigPlacement},
+    foliage::{self, plan, Element, Reference},
     tree::{NodeKind, Tree},
     Error, Result,
 };
@@ -24,7 +24,6 @@ pub(super) fn prepare(
     tree: &Tree,
     input: &PlanInput,
     request: Request,
-    twig: &Result<TwigPlacement>,
     places: bool,
 ) -> Result<Prepared> {
     let element = if request.leaves || request.field.is_some() {
@@ -32,7 +31,7 @@ pub(super) fn prepare(
     } else {
         None
     };
-    let twig = twig.clone()?;
+    let twig = input.twig.clone()?;
     let (mut leaf_plan, mut ms) = (None, 0.0);
     if let (Some(limb_order), Some(element)) = (request.field, element.as_ref()) {
         let start = (request.clock)();
@@ -48,7 +47,11 @@ pub(super) fn prepare(
         )?;
         ms = (request.clock)() - start;
     }
-    let reference = places.then(|| input.reference()).transpose()?;
+    // Leaves are placed only where the geometry is compiled in.
+    #[cfg(feature = "geometry")]
+    let reference = places.then(|| input.reference.clone()).transpose()?;
+    #[cfg(not(feature = "geometry"))]
+    let reference = places.then_some(Reference::default());
     Ok(Prepared {
         element,
         leaf_plan,

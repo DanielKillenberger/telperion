@@ -10,8 +10,7 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
             "wood and leaves need the geometry feature",
         ));
     }
-    let twig = inputs.plan.twig();
-    let prepared = stage::prepare(tree, &inputs.plan, request, &twig, false)?;
+    let prepared = stage::prepare(tree, &inputs.plan, request, false)?;
     let field = stage::planned_field(tree, request, &prepared)?;
     if request.field.is_some() && field.is_none() {
         return Err(Error::InvalidInput(
