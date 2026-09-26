@@ -1,44 +1,47 @@
 //! Stages 3 and 4 with the geometry compiled in: the rings, the wood, the
 //! leaves placed and culled, and the field read from placed leaves where the
 //! leaf plan cannot describe a family.
-use super::{stage, stage::Prepared, Leaves, Outputs, Request, Schedule, Stages};
+use super::{
+    input::{LeafInput, SurfaceInput},
+    stage,
+    stage::Prepared,
+    Inputs, Leaves, Outputs, Request, Schedule, Stages,
+};
 use crate::{
-    field::Field,
-    foliage::{self, plan, Element, Instances, TwigPlacement},
-    presets::Family,
-    surface::{self, AttachmentSurface, Faces, Rings, Sweep},
+    pipeline::field::Field,
+    pipeline::foliage::{self, plan, Element, Instances, TwigPlacement},
+    pipeline::surface::{self, AttachmentSurface, Faces, Rings, Sweep},
     tree::Tree,
     Result,
 };
 use std::sync::OnceLock;
 
 /// Stages 3 and 4 with the wood and the leaves compiled in.
-pub(super) fn outputs(tree: &Tree, family: &Family, request: Request) -> Result<Outputs> {
-    let twig = stage::twig(family);
+pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<Outputs> {
+    let (surface, leaf) = (&inputs.surface, &inputs.leaves);
+    let twig = inputs.plan.twig.as_ref().ok().copied();
     // Leaves are placed for their own sake, or for a field the plan cannot
     // describe; placed with surface contact, they sit on the rings.
-    let places = request.leaves
-        || (request.field.is_some() && !plan::supports(family.canopy, twig.clone().ok()));
-    let seats = places && family.canopy.surface_contact > 0.0;
+    let places = request.leaves || (request.field.is_some() && !plan::supports(leaf.canopy, twig));
+    let seats = places && leaf.canopy.surface_contact > 0.0;
     let rings = OnceLock::new();
-    let sweep = || self::rings(tree, family, request, seats);
+    let sweep = || self::rings(tree, surface, request, seats);
     let shared = || rings.get_or_init(sweep).as_ref().map_err(Clone::clone);
     let (wood, planned) = both(
         request.schedule == Schedule::Concurrent && request.wood && places,
         || {
-            let wood = |r: &(_, _)| self::wood(tree, family, request, &r.0);
+            let wood = |r: &(_, _)| self::wood(tree, surface, request, &r.0);
             request.wood.then(|| shared().and_then(wood)).transpose()
         },
         || {
-            let prepared = stage::prepare(tree, family, request, &twig, places)?;
+            let prepared = stage::prepare(tree, &inputs.plan, request, places)?;
             let seat = match (seats, request.wood) {
                 (false, _) => Ok(Seat::Free),
                 (true, false) => Ok(Seat::Own),
                 (true, true) => shared().map(|r| Seat::Shared(&r.0)),
             };
-            let twig = twig.clone().ok();
             let made = match seat {
-                Ok(seat) => leaves_and_field(tree, family, request, &prepared, twig, seat),
+                Ok(seat) => leaves_and_field(tree, inputs, request, &prepared, twig, seat),
                 Err(error) => (Err(error), Ok(None)),
             };
             Ok((prepared, made))
@@ -143,12 +146,12 @@ const STACK: usize = 8 << 20;
 /// drawn, and their contacts where leaves are seated on them.
 pub(super) fn rings(
     tree: &Tree,
-    family: &Family,
+    input: &SurfaceInput,
     request: Request,
     seats: bool,
 ) -> Result<(Rings, f64)> {
     let start = (request.clock)();
-    let (height, params) = (family.skeleton.envelope.height, &family.surface);
+    let (height, params) = (input.height, &input.params);
     let sweep = Sweep {
         drawn: request.wood,
         edges: seats,
@@ -160,12 +163,12 @@ pub(super) fn rings(
 /// The wood's mesh step around its rings, and its time.
 pub(super) fn wood(
     tree: &Tree,
-    family: &Family,
+    input: &SurfaceInput,
     request: Request,
     rings: &Rings,
 ) -> Result<(Faces, f64)> {
     let start = (request.clock)();
-    let (height, params) = (family.skeleton.envelope.height, &family.surface);
+    let (height, params) = (input.height, &input.params);
     let faces = surface::faces(rings, tree, height, params)?;
     Ok((faces, (request.clock)() - start))
 }
@@ -186,7 +189,7 @@ pub(super) type TimedLeaves = Option<(Leaves, [f64; 3])>;
 /// schedule allows; neither reads the other.
 pub(super) fn leaves_and_field(
     tree: &Tree,
-    family: &Family,
+    inputs: &Inputs,
     request: Request,
     prepared: &Prepared,
     twig: Option<TwigPlacement>,
@@ -195,7 +198,7 @@ pub(super) fn leaves_and_field(
     let both_run = prepared.reference.is_some() && prepared.leaf_plan.is_some();
     both(
         request.schedule == Schedule::Concurrent && both_run,
-        || leaves(tree, family, request, prepared, twig, seat),
+        || leaves(tree, inputs, request, prepared, twig, seat),
         || stage::planned_field(tree, request, prepared),
     )
 }
@@ -205,7 +208,7 @@ pub(super) fn leaves_and_field(
 /// free what they own of them once placed.
 fn leaves(
     tree: &Tree,
-    family: &Family,
+    inputs: &Inputs,
     request: Request,
     prepared: &Prepared,
     twig: Option<TwigPlacement>,
@@ -215,10 +218,11 @@ fn leaves(
         return Ok(None);
     };
     let clock = request.clock;
-    let envelope = family.skeleton.envelope;
+    let input: &LeafInput = &inputs.leaves;
+    let envelope = input.envelope;
     let start = clock();
     let own = match seat {
-        Seat::Own => Some(rings(tree, family, request, true)?.0),
+        Seat::Own => Some(rings(tree, &inputs.surface, request, true)?.0),
         _ => None,
     };
     let rung = clock();
@@ -230,8 +234,8 @@ fn leaves(
     let placed = foliage::place_on(
         tree,
         envelope,
-        family.skeleton.seed,
-        family.canopy,
+        input.seed,
+        input.canopy,
         twig,
         contacts.as_ref(),
         reference,
@@ -240,7 +244,7 @@ fn leaves(
     drop(own);
     let placed_at = clock();
     let placed_count = placed.len();
-    let instances = foliage::cull(placed, element, envelope, family.shell_depth)?;
+    let instances = foliage::cull(placed, element, envelope, input.shell_depth)?;
     let bounds = if request.leaves {
         instances.bounds(element)?
     } else {

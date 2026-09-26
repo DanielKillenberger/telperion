@@ -9,11 +9,9 @@ use std::{
     time::{Instant, SystemTime, UNIX_EPOCH},
 };
 use telperion_core::{
-    branching,
-    foliage::{self, TwigPlacement},
-    params,
+    foliage, params,
+    pipeline::{self, Request},
     presets::Preset,
-    surface,
 };
 const HELP:&str="species_measure --case ID:PROFILE:PRESET:SEED [--case ...] --output FILE [--profiles FILE] [--family FILE]
 Profiles default to .flow/evidence/fn9/profiles.json relative to the repository.
@@ -50,38 +48,16 @@ fn specimen(preset: &str, seed: u32, family: &Value) -> Result<Value, String> {
         params::overlay(&preset.parameters(), family).map_err(|e| format!("family: {e:?}"))?;
     f.skeleton.seed = seed;
     let total = Instant::now();
-    let start = Instant::now();
-    let report =
-        branching::generate(&f.skeleton, f.radii).map_err(|e| format!("generation: {e:?}"))?;
-    let growth_ms = start.elapsed().as_secs_f64() * 1000.;
-    let start = Instant::now();
-    let wood = surface::build(&report.tree, f.skeleton.envelope.height, &f.surface)
-        .map_err(|e| format!("surface: {e:?}"))?;
-    let surface_ms = start.elapsed().as_secs_f64() * 1000.;
-    let start = Instant::now();
-    let element = foliage::build_element(f.element).map_err(|e| format!("element: {e:?}"))?;
-    let twigs = f
-        .skeleton
-        .twigs
-        .resolved()
-        .map_err(|e| format!("twigs: {e:?}"))?;
-    let placed = foliage::place_on_surface(
-        &report.tree,
-        f.skeleton.envelope,
-        seed,
-        f.canopy,
-        Some(TwigPlacement {
-            internode_length: twigs.twig.internode_length,
-            stations_per_internode: twigs.twig.stations_per_internode,
-        }),
-        &f.surface,
-        foliage::Reference::of(&f).map_err(|e| format!("reference: {e:?}"))?,
-    )
-    .map_err(|e| format!("placement: {e:?}"))?;
-    let pre_cull_instances = placed.len();
-    let kept = foliage::cull(placed, &element, f.skeleton.envelope, f.shell_depth)
-        .map_err(|e| format!("culling: {e:?}"))?;
-    let foliage_ms = start.elapsed().as_secs_f64() * 1000.;
+    // The tree the pipeline ships: its skeleton, wood and culled leaves.
+    let built = pipeline::build(&f, Request::mesh()).map_err(|e| format!("build: {e:?}"))?;
+    let (report, o) = (built.skeleton, built.outputs);
+    let (Some(wood), Some(leaves), Some(element)) = (o.wood, o.leaves, o.element) else {
+        return Err("build: the mesh request left an output out".into());
+    };
+    let s = o.stages;
+    let (growth_ms, surface_ms) = (s.skeleton_ms, s.rings_ms + s.wood_ms);
+    let foliage_ms = s.plan_ms + s.placement_ms + s.cull_ms;
+    let (pre_cull_instances, kept) = (leaves.placed, leaves.instances);
     let start = Instant::now();
     let metrics = species_metrics::measure(
         &report.tree,

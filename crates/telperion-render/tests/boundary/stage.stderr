@@ -1,0 +1,5 @@
+error[E0425]: cannot find function `build` in module `surface`
+ --> tests/boundary/stage.rs:7:22
+  |
+7 |     let _ = surface::build(&tree, family.skeleton.envelope.height, &family.surface);
+  |                      ^^^^^ not found in `surface`

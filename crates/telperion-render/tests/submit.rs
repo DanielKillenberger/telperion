@@ -1,8 +1,9 @@
 //! The submission contract. What the renderer reports is what the core built,
 //! a tree the device cannot hold is refused by name rather than truncated, and
 //! each view draws what its name promises.
+use telperion_core::pipeline::executor;
 use telperion_core::{
-    foliage::{build_element, Element, ElementParams, Instances, Level as Section, Reference},
+    foliage::{Element, ElementParams, Instances, Level as Section, Reference},
     math::Vec3,
     mesh::{self, Foliage, TreeMesh},
     params,
@@ -213,7 +214,8 @@ fn a_ladder_longer_than_selection_can_tally_is_refused_by_its_length() {
 fn a_crown_with_no_leaves_submits_draws_and_frames() {
     let Some(gpu) = gpu() else { return };
     let mut mesh = crown(0, 0, 0);
-    mesh.foliage.element = build_element(ElementParams::default()).expect("the core built a leaf");
+    mesh.foliage.element =
+        executor::element(ElementParams::default()).expect("the core built a leaf");
     mesh.wood = small().wood;
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let submitted = renderer

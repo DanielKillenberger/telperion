@@ -185,6 +185,8 @@ fn sources(root: &Path, at: &Path, out: &mut Vec<(String, String)>) {
         let path = entry.unwrap().path();
         let name = path.file_name().unwrap().to_str().unwrap();
         if name == "tests"
+            || name == "suite"
+            || name == "suite.rs"
             || name == "examples"
             || name.ends_with("_tests.rs")
             || name == "tests.rs"

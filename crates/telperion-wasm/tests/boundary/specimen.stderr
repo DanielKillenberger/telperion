@@ -1,0 +1,10 @@
+error[E0624]: associated function `grow` is private
+ --> tests/boundary/specimen.rs:6:23
+  |
+6 |     let _ = Specimen::grow(&family.skeleton, family.radii);
+  |                       ^^^^ private associated function
+  |
+ ::: $WORKSPACE/crates/telperion-core/src/pipeline/branching/specimen.rs
+  |
+  |     pub(crate) fn grow(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
+  |     -------------------------------------------------------------------------------- private associated function defined here

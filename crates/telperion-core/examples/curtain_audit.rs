@@ -1,12 +1,13 @@
 //! Branch-scale retained foliage-support audit; lengths are metres, bounds are centreline bounds.
 use serde_json::json;
-use telperion_core::{branching, presets::Preset, tree::NodeKind};
+use telperion_core::{pipeline, presets::Preset, tree::NodeKind};
 fn main() {
     for seed in [1, 2, 3, 1982700925, 281313742, 2271779095, 4250668600] {
         let mut f = Preset::NorwaySpruce.parameters();
         f.skeleton.seed = seed;
-        let report = branching::generate(&f.skeleton, f.radii).unwrap();
-        let tree = report.tree;
+        // A request for no output runs the skeleton stage alone.
+        let built = pipeline::build(&f, pipeline::Request::default()).unwrap();
+        let tree = built.skeleton.tree;
         let mut owners = vec![None; tree.nodes.len()];
         let mut systems = Vec::new();
         let mut lengths: Vec<[f64; 2]> = Vec::new();

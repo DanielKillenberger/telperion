@@ -2,8 +2,9 @@
 //! bytes under either schedule, and the earliest failing stage's error.
 use super::*;
 use crate::{
+    pipeline::surface,
     presets::{Preset, CATALOGUE, IN_WORK},
-    surface, Error,
+    Error,
 };
 use std::cell::Cell;
 
@@ -28,7 +29,7 @@ pub(super) fn count(f: impl FnOnce(&mut Tally)) {
 /// `outputs`, and what it tallied.
 fn tallied(tree: &Tree, family: &Family, request: Request) -> (Outputs, Tally) {
     TALLY.take();
-    let outputs = outputs(tree, family, request).unwrap();
+    let outputs = outputs(tree, &Inputs::of(family), request).unwrap();
     (outputs, TALLY.take())
 }
 
@@ -53,7 +54,7 @@ fn request(wood: bool, leaves: bool, field: bool) -> Request {
 fn one_sweep_and_one_element_serve_a_request() {
     let mut family = ordinary();
     family.canopy.surface_contact = 1.0;
-    let skeleton = skeleton(&family).unwrap();
+    let skeleton = skeleton(GrowInput::of(&family)).unwrap();
     let tree = &skeleton.tree;
     let own = surface::build(tree, family.skeleton.envelope.height, &family.surface).unwrap();
     for schedule in [Schedule::Serial, Schedule::Concurrent] {
@@ -87,7 +88,7 @@ fn every_family_builds_the_same_bytes_under_either_schedule() {
     for &(_, id, _, _) in CATALOGUE.iter().chain(IN_WORK) {
         let family = crate::presets::by_identity(id)
             .unwrap_or_else(|_| Preset::from_id(id).unwrap().parameters());
-        let tree = skeleton(&family).unwrap().tree;
+        let tree = skeleton(GrowInput::of(&family)).unwrap().tree;
         let run = |schedule| {
             let request = Request {
                 schedule,
@@ -117,16 +118,16 @@ fn the_earliest_failing_stage_answers() {
     let mut family = ordinary();
     family.surface.radial_segments = 0;
     family.shell_depth = 2.0;
-    let tree = skeleton(&family).unwrap().tree;
+    let tree = skeleton(GrowInput::of(&family)).unwrap().tree;
     for schedule in [Schedule::Serial, Schedule::Concurrent] {
         let request = Request {
             schedule,
             ..Request::mesh()
         };
-        let error = outputs(&tree, &family, request).err();
+        let error = outputs(&tree, &Inputs::of(&family), request).err();
         assert_eq!(error, Some(Error::InvalidInput("surface parameters")));
     }
-    let error = outputs(&tree, &family, request(false, true, false)).err();
+    let error = outputs(&tree, &Inputs::of(&family), request(false, true, false)).err();
     assert_eq!(error, Some(Error::InvalidInput("shell depth")));
 }
 
@@ -135,7 +136,7 @@ fn the_earliest_failing_stage_answers() {
 #[test]
 fn the_wood_fails_before_the_plan() {
     let mut family = ordinary();
-    let tree = skeleton(&family).unwrap().tree;
+    let tree = skeleton(GrowInput::of(&family)).unwrap().tree;
     family.skeleton.twigs.twig.diameter = -1.0;
     family.element.axial_segments = 0;
     family.surface.radial_segments = 0;
@@ -146,7 +147,7 @@ fn the_wood_fails_before_the_plan() {
                 schedule,
                 ..Request::mesh()
             };
-            let error = outputs(&tree, &family, request).err();
+            let error = outputs(&tree, &Inputs::of(&family), request).err();
             let surface = Some(Error::InvalidInput("surface parameters"));
             assert_eq!(error, surface, "{contact} {schedule:?}");
         }
@@ -157,10 +158,10 @@ fn the_wood_fails_before_the_plan() {
 #[test]
 fn the_element_fails_before_the_twig_rows() {
     let mut family = ordinary();
-    let tree = skeleton(&family).unwrap().tree;
+    let tree = skeleton(GrowInput::of(&family)).unwrap().tree;
     family.skeleton.twigs.twig.diameter = -1.0;
     family.element.axial_segments = 0;
-    let error = outputs(&tree, &family, request(false, true, false)).err();
+    let error = outputs(&tree, &Inputs::of(&family), request(false, true, false)).err();
     assert_eq!(error, Some(Error::InvalidInput("leaf segments")));
 }
 
@@ -169,15 +170,15 @@ fn the_element_fails_before_the_twig_rows() {
 #[test]
 fn the_leaves_own_rings_fail_after_the_plan() {
     let mut family = ordinary();
-    let tree = skeleton(&family).unwrap().tree;
+    let tree = skeleton(GrowInput::of(&family)).unwrap().tree;
     family.canopy.surface_contact = 1.0;
     family.surface.radial_segments = 0;
     let leaves = request(false, true, false);
     let surface = Some(Error::InvalidInput("surface parameters"));
-    assert_eq!(outputs(&tree, &family, leaves).err(), surface);
+    assert_eq!(outputs(&tree, &Inputs::of(&family), leaves).err(), surface);
     family.element.axial_segments = 0;
     let element = Some(Error::InvalidInput("leaf segments"));
-    assert_eq!(outputs(&tree, &family, leaves).err(), element);
+    assert_eq!(outputs(&tree, &Inputs::of(&family), leaves).err(), element);
 }
 
 /// Every shipped preset builds every artifact kind through the pipeline, one
@@ -188,18 +189,42 @@ fn the_leaves_own_rings_fail_after_the_plan() {
 fn every_shipped_preset_builds_every_artifact_through_the_pipeline() {
     for &(_, id, _, _) in CATALOGUE {
         let family = crate::presets::by_identity(id).unwrap();
-        let tree = skeleton(&family)
+        let tree = skeleton(GrowInput::of(&family))
             .unwrap_or_else(|e| panic!("preset {id}: skeleton: {e}"))
             .tree;
         assert!(tree.nodes.len() > 1, "preset {id}: skeleton: no wood");
         let kinds: [(&str, Request); 4] = [
-            ("surface", Request { wood: true, ..Request::default() }),
-            ("leaves", Request { leaves: true, ..Request::default() }),
-            ("field", Request { field: Some(None), ..Request::default() }),
-            ("structure", Request { structure: true, ..Request::default() }),
+            (
+                "surface",
+                Request {
+                    wood: true,
+                    ..Request::default()
+                },
+            ),
+            (
+                "leaves",
+                Request {
+                    leaves: true,
+                    ..Request::default()
+                },
+            ),
+            (
+                "field",
+                Request {
+                    field: Some(None),
+                    ..Request::default()
+                },
+            ),
+            (
+                "structure",
+                Request {
+                    structure: true,
+                    ..Request::default()
+                },
+            ),
         ];
         for (kind, request) in kinds {
-            let out = outputs(&tree, &family, request)
+            let out = outputs(&tree, &Inputs::of(&family), request)
                 .unwrap_or_else(|e| panic!("preset {id}: {kind}: {e}"));
             let built = match kind {
                 "surface" => out.wood.is_some_and(|w| !w.indices.is_empty()),
@@ -211,4 +236,3 @@ fn every_shipped_preset_builds_every_artifact_through_the_pipeline() {
         }
     }
 }
-

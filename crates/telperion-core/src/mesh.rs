@@ -5,7 +5,6 @@ use crate::{
     pipeline,
     presets::Family,
     surface::{Bounds, SurfaceMesh},
-    tree::Tree,
     Error, Result,
 };
 
@@ -62,9 +61,11 @@ pub(crate) fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
     }
 }
 
-/// Grows this family's skeleton, ready to draw: the pipeline's skeleton stage.
-pub fn grow(family: &Family) -> Result<Tree> {
-    Ok(pipeline::skeleton(family)?.tree)
+/// Grows this family's skeleton, ready to draw: the pipeline's skeleton
+/// stage, for the crate's own tests.
+#[cfg(test)]
+pub(crate) fn grow(family: &Family) -> Result<crate::tree::Tree> {
+    Ok(pipeline::skeleton(pipeline::GrowInput::of(family))?.tree)
 }
 
 /// Grows the skeleton, plaits the wood surface and places the culled foliage.
@@ -72,13 +73,16 @@ pub fn build(family: &Family) -> Result<TreeMesh> {
     assembled(pipeline::build(family, pipeline::Request::mesh())?.outputs)
 }
 
-/// Plaits the wood surface and places the culled foliage on a grown skeleton.
-pub fn assemble(tree: &Tree, family: &Family) -> Result<TreeMesh> {
-    assembled(pipeline::outputs(tree, family, pipeline::Request::mesh())?)
+/// Plaits the wood surface and places the culled foliage on a grown
+/// skeleton, for the crate's own tests.
+#[cfg(test)]
+pub(crate) fn assemble(tree: &crate::tree::Tree, family: &Family) -> Result<TreeMesh> {
+    let inputs = pipeline::Inputs::of(family);
+    assembled(pipeline::outputs(tree, &inputs, pipeline::Request::mesh())?)
 }
 
 /// The pipeline's last stage: wood and leaves under their union bounds.
-fn assembled(outputs: pipeline::Outputs) -> Result<TreeMesh> {
+pub(crate) fn assembled(outputs: pipeline::Outputs) -> Result<TreeMesh> {
     let missing = Error::InvalidInput("mesh needs wood and leaves");
     let (Some(wood), Some(leaves), Some(element)) = (outputs.wood, outputs.leaves, outputs.element)
     else {

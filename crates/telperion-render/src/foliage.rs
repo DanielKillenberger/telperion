@@ -347,13 +347,14 @@ impl Foliage {
 
 #[cfg(test)]
 mod tests {
-    use telperion_core::foliage::{build_element, ElementParams};
+    use telperion_core::foliage::ElementParams;
+    use telperion_core::pipeline::executor;
 
     use super::*;
 
     #[test]
     fn a_leaf_carries_a_normal_off_its_own_face() {
-        let element = build_element(ElementParams::default()).expect("the core built a leaf");
+        let element = executor::element(ElementParams::default()).expect("the core built a leaf");
         let normals = normals(&element);
         assert_eq!(normals.len(), element.positions.len() * 3);
         for normal in normals.as_chunks::<3>().0 {
@@ -376,7 +377,7 @@ mod tests {
 
     #[test]
     fn an_element_at_the_origin_bounds_itself() {
-        let element = build_element(ElementParams::default()).expect("the core built a leaf");
+        let element = executor::element(ElementParams::default()).expect("the core built a leaf");
         let bounds = element_bounds(&element.positions).expect("a leaf has vertices");
         assert!(bounds.max.y > bounds.min.y, "the leaf has no length");
         assert!(bounds.max.x > bounds.min.x, "the leaf has no width");

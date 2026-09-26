@@ -4,8 +4,8 @@ use crate::{buffer::Held, Gpu, Result};
 use telperion_core::{
     foliage::{prepared::PreparedStations, Element, Reference, TwigPlacement},
     math::Vec3,
+    pipeline::executor::LeafInput,
     surface::Bounds,
-    Family,
 };
 const STORAGE: wgpu::BufferUsages = wgpu::BufferUsages::STORAGE.union(wgpu::BufferUsages::COPY_SRC);
 fn upload<T: bytemuck::Pod>(
@@ -47,7 +47,7 @@ impl Generator {
     pub(super) async fn compute_async(
         &self,
         p: PreparedStations,
-        f: &Family,
+        l: &LeafInput,
         t: TwigPlacement,
         e: &Element,
         r: Reference,
@@ -72,7 +72,7 @@ impl Generator {
             rings: std::borrow::Cow::Owned(ring_buffer),
         };
         let upload_ms = started.elapsed_ms();
-        let result = self.compute_buffer_async(stations, f, t, e, r, m).await;
+        let result = self.compute_buffer_async(stations, l, t, e, r, m).await;
         m.upload_dispatch_ms += upload_ms;
         result
     }
@@ -80,7 +80,7 @@ impl Generator {
     pub(super) async fn compute_buffer_async(
         &self,
         p: PreparedStations<std::borrow::Cow<'_, wgpu::Buffer>>,
-        f: &Family,
+        l: &LeafInput,
         t: TwigPlacement,
         e: &Element,
         r: Reference,
@@ -95,7 +95,7 @@ impl Generator {
         {
             return Err(telperion_core::Error::ResourceLimit("GPU foliage dispatch").into());
         }
-        let config = data::config(f, t, &p, e, r);
+        let config = data::config(l, t, &p, e, r);
         let config = upload(
             gpu,
             "generation config",
@@ -117,8 +117,7 @@ impl Generator {
         drop((p.segments, segments));
         let mut geometry: Vec<_> = e.positions.iter().map(|&v| data::vector(v, 0.0)).collect();
         geometry.extend(
-            f.skeleton
-                .envelope
+            l.envelope
                 .profile()
                 .iter()
                 .map(|v| [v[0] as f32, v[1] as f32, 0.0, 0.0]),
@@ -300,12 +299,12 @@ impl Generator {
     pub(super) fn compute(
         &self,
         p: PreparedStations,
-        f: &Family,
+        l: &LeafInput,
         t: TwigPlacement,
         e: &Element,
         r: Reference,
         m: &mut Metrics,
     ) -> Result<Resident> {
-        pollster::block_on(self.compute_async(p, f, t, e, r, m))
+        pollster::block_on(self.compute_async(p, l, t, e, r, m))
     }
 }

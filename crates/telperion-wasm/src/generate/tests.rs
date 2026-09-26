@@ -165,6 +165,9 @@ fn every_shipped_preset_builds_through_the_main_entry() {
         let (_, meta) = generate(request)
             .unwrap_or_else(|e| panic!("entry telperion (main Wasm): preset {id}: {e}"));
         let leaves = meta["instances"].as_u64().unwrap_or(0);
-        assert!(leaves > 0, "entry telperion (main Wasm): preset {id}: no leaves");
+        assert!(
+            leaves > 0,
+            "entry telperion (main Wasm): preset {id}: no leaves"
+        );
     }
 }

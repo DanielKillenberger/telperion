@@ -15,7 +15,7 @@ STRATEGY.md's "Our approach" is enforced by structure, not policing (owner, 2026
 
 ## How they are held
 
-1. **Structure.** Every tree is built by `telperion_core::pipeline`. fn-152 makes the build stages private to it, so a second chain outside the pipeline does not compile. Until then, a new caller of a stage outside the pipeline is a review finding.
+1. **Structure.** Every tree is built by `telperion_core::pipeline`. Its stages are private to it (fn-158, `docs/pipeline.md`), so a second chain outside the pipeline does not compile; the compile-fail tests `crates/telperion-render/tests/boundary.rs` and `crates/telperion-wasm/tests/boundary.rs` hold that.
 2. **One test, every preset, every artifact.** `every_shipped_preset_builds_every_artifact_through_the_pipeline` (telperion-core) builds each catalogue preset's skeleton, surface, leaves, field and structure through the pipeline. The package entries have their own tests: `every_shipped_preset_builds_through_the_main_entry` (telperion-wasm) and `every_shipped_preset_answers_as_the_main_pipeline_does` (telperion-field, from fn-150). A preset that a shipped entry cannot build fails the suite, as the date palm did through the slim entry on `39348def`.
 3. **The size budget.** `scripts/artifact-budgets.json` holds every shipped Wasm module's and script's budget, with the measurement behind it. CI's package job runs `node scripts/artifact-budgets.mjs` on the package it built, and an artifact over its budget fails the job. A budget rises only when the same PR edits that file with the new measurement and a Decisions line. The rejected first slim build of fn-150 (526,965 bytes, +48%) fails; 0.1.4 passes.
 
@@ -23,7 +23,7 @@ Timing and memory are measured on named hardware by the spec that changes them, 
 
 ## Sanctioned exceptions
 
-Two sanctioned exceptions build outside the one-pipeline rule. fn-152 turns this list into code visibility: what the pipeline exposes is what may be called.
+Two sanctioned exceptions build outside the one-pipeline rule. Code visibility holds this list: the pipeline exposes `pipeline::build` and the executor interface, and nothing else may be called.
 
 - **The growth path** (`specimen::view::SpecimenView::mesh`). A hidden feature, kept buildable and pinned (AGENTS.md, Mature trees are the product; PR #17).
 - **The GPU executor** (`telperion_render::generation`). One algorithm with two executors: the GPU, and the CPU reference that defines correct (STRATEGY.md, Our approach; PR #50).

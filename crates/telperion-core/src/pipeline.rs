@@ -21,15 +21,11 @@
 //! answer is the error the build met first run in turn - the wood's, then
 //! the Plan's, the leaves', the field's.
 //! The rings' error is the wood's where the wood is drawn, else the leaves'.
-use crate::{
-    branching,
-    field::Field,
-    foliage::{self, plan, Element, Instances},
-    presets::Family,
-    surface::SurfaceMesh,
-    tree::Tree,
-    Result,
-};
+use crate::{presets::Family, tree::Tree, Result};
+use field::Field;
+use foliage::{plan, Element, Instances};
+pub(crate) use input::{GrowInput, Inputs, PlanInput};
+use surface::SurfaceMesh;
 
 /// How stages independent of each other are run. `Concurrent` falls back to
 /// one stage at a time where the target has no threads.
@@ -166,25 +162,27 @@ pub struct Built {
 /// Where the canopy keeps the bases of its shed fronds, they are hung on
 /// every stem as wood of their own, after the radius solve so no base
 /// thickens the trunk.
-pub fn skeleton(family: &Family) -> Result<Skeleton> {
-    let report = branching::generate(&family.skeleton, family.radii)?;
+pub(crate) fn skeleton(input: GrowInput) -> Result<Skeleton> {
+    let report = branching::generate(input.skeleton, input.radii)?;
     let mut tree = report.tree;
-    if family.canopy.rosette_fronds > 0 {
+    if input.canopy.rosette_fronds > 0 {
         branching::clear_apical_twigs(&mut tree)?;
     }
-    branching::clothe_leaf_bases(&mut tree, &family.canopy)?;
+    branching::clothe_leaf_bases(&mut tree, input.canopy)?;
     Ok(Skeleton {
         tree,
         shed: report.shed,
     })
 }
 
-/// Runs every stage the request needs, from the family on.
+/// Runs every stage the request needs, from the family on. The family is
+/// read once, into each stage's own input.
 pub fn build(family: &Family, request: Request) -> Result<Built> {
     let started = (request.clock)();
-    let skeleton = skeleton(family)?;
+    let skeleton = skeleton(GrowInput::of(family))?;
     let grown = (request.clock)();
-    let mut outputs = outputs(&skeleton.tree, family, request)?;
+    let inputs = Inputs::of(family);
+    let mut outputs = outputs(&skeleton.tree, &inputs, request)?;
     outputs.stages.skeleton_ms = grown - started;
     outputs.stages.total_ms = (request.clock)() - started;
     Ok(Built { skeleton, outputs })
@@ -194,15 +192,37 @@ pub fn build(family: &Family, request: Request) -> Result<Built> {
 /// feature only the plan's outputs are built: the field from the leaf plan
 /// and the structure. Wood, leaves and a field a family's plan cannot
 /// describe are refused there, since they need placement.
-pub fn outputs(tree: &Tree, family: &Family, request: Request) -> Result<Outputs> {
+pub(crate) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<Outputs> {
     #[cfg(feature = "geometry")]
-    return drawn::outputs(tree, family, request);
+    return drawn::outputs(tree, inputs, request);
     #[cfg(not(feature = "geometry"))]
-    planned::outputs(tree, family, request)
+    planned::outputs(tree, inputs, request)
 }
+
+mod bias;
+mod branching;
+mod colonization;
+pub mod contract;
+mod field;
+mod foliage;
+// Reached only by the suite, which holds a prediction to the specimen.
+#[cfg(all(test, feature = "geometry"))]
+mod footprint;
+mod radius;
+mod surface;
+mod twigs;
+/// What the rest of the crate reads of the stages: the family's own checks.
+pub(crate) use {
+    branching::validate_skeleton,
+    foliage::{build_element, canopy_rows},
+    surface::height,
+};
 
 #[cfg(feature = "geometry")]
 mod drawn;
+#[cfg(feature = "geometry")]
+pub mod executor;
+mod input;
 #[cfg(not(feature = "geometry"))]
 mod planned;
 mod stage;

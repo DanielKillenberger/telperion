@@ -1,16 +1,15 @@
 //! Local descendant diagnostics. No botanical thresholds or visual acceptance.
 use serde_json::json;
+use telperion_core::{math, tree, Error, Result};
 use telperion_core::{
-    branching,
-    foliage::{self, TwigPlacement},
     math::Vec3,
+    pipeline::{self, Request},
     presets::Preset,
     tree::NodeKind,
 };
-use telperion_core::{math, tree, Error, Result};
 // Recover path membership; mesh spans come from the radius-ordered run table.
 // The audit reads which nodes a run sweeps, not where its girth eases.
-#[path = "../src/surface/paths.rs"]
+#[path = "../src/pipeline/surface/paths.rs"]
 #[allow(dead_code)]
 mod wood_paths;
 fn reserved<T>(n: usize) -> telperion_core::Result<Vec<T>> {
@@ -43,7 +42,20 @@ fn main() {
         for seed in seeds {
             let mut f = preset.parameters();
             f.skeleton.seed = seed;
-            let tree = branching::generate(&f.skeleton, f.radii).unwrap().tree;
+            let spruce = preset == Preset::NorwaySpruce;
+            if spruce {
+                // One station an internode, and a shell that keeps every
+                // leaf: the spruce's placement as it stood before the cull.
+                f.skeleton.twigs.twig.stations_per_internode = 1;
+                f.shell_depth = 1.0;
+            }
+            let request = if spruce {
+                Request::mesh()
+            } else {
+                Request::default()
+            };
+            let built = pipeline::build(&f, request).unwrap();
+            let (tree, mut outputs) = (built.skeleton.tree, built.outputs);
             let mut owner = vec![0; tree.nodes.len()];
             let mut points = vec![Vec::new(); tree.crossover];
             for i in 0..tree.nodes.len() {
@@ -75,22 +87,9 @@ fn main() {
                     format!("{:?}", n.kind)
                 ]))
                 .collect::<Vec<_>>());
-            if preset == Preset::NorwaySpruce {
-                let t = f.skeleton.twigs.resolved().unwrap();
-                let placed = foliage::place_on_surface(
-                    &tree,
-                    f.skeleton.envelope,
-                    seed,
-                    f.canopy,
-                    Some(TwigPlacement {
-                        internode_length: t.twig.internode_length,
-                        stations_per_internode: 1,
-                    }),
-                    &f.surface,
-                    foliage::Reference::of(&f).unwrap(),
-                )
-                .unwrap();
-                let element = foliage::build_element(f.element).unwrap();
+            if spruce {
+                let placed = outputs.leaves.take().unwrap().instances;
+                let element = outputs.element.take().unwrap();
                 // Reconstruct placement run order to retain original instance IDs and matrices.
                 let bearing = |i: usize| {
                     let n = &tree.nodes[i];
@@ -149,9 +148,7 @@ fn main() {
                     }
                     directory
                 });
-                let mesh =
-                    telperion_core::surface::build(&tree, f.skeleton.envelope.height, &f.surface)
-                        .unwrap();
+                let mesh = outputs.wood.take().unwrap();
                 let paths = wood_paths::paths(&tree.nodes).unwrap();
                 let segments = f.surface.radial_segments.max(f.surface.lobes * 4) as usize;
                 let key = |p: Vec3| [p.x as f32, p.y as f32, p.z as f32].map(f32::to_bits);
@@ -237,7 +234,9 @@ fn main() {
                                 .distance(tree.nodes[w[1]].position)
                         })
                         .sum();
-                    let count = (length / t.twig.internode_length - 1e-9).ceil().max(1.0) as usize;
+                    let count = (length / f.skeleton.twigs.twig.internode_length - 1e-9)
+                        .ceil()
+                        .max(1.0) as usize;
                     if selected {
                         runs.push(json!({"nodes":run,"length_m":length,"first_instance":offset,"matrices":placed.matrices().skip(offset).take(count).collect::<Vec<_>>()}));
                     }

@@ -1,0 +1,5 @@
+error[E0425]: cannot find function `generate` in module `branching`
+ --> tests/boundary/stage.rs:6:24
+  |
+6 |     let _ = branching::generate(&family.skeleton, family.radii);
+  |                        ^^^^^^^^ not found in `branching`

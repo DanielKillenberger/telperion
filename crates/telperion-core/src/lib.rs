@@ -6,16 +6,9 @@ pub mod catalogue;
 mod family;
 pub use family::Family;
 
-pub mod bias;
 pub mod blend;
-pub mod branching;
 pub mod capability;
-pub mod colonization;
 pub mod envelope;
-pub mod field;
-pub mod foliage;
-#[cfg(feature = "geometry")]
-pub mod footprint;
 pub mod growth;
 pub mod material;
 pub mod math;
@@ -25,13 +18,19 @@ pub mod noise;
 #[cfg(feature = "json")]
 pub mod params;
 pub mod pipeline;
+// The stages' data contracts, at the paths consumers name them by.
+#[cfg(all(test, feature = "geometry"))]
+pub use pipeline::contract::footprint;
+pub use pipeline::contract::{
+    bias, branching, colonization, field, foliage, radius, surface, twigs,
+};
+// The crate's own tests name it as its consumers do.
+#[cfg(test)]
+extern crate self as telperion_core;
 pub mod presets;
-pub mod radius;
 pub mod ranges;
 pub mod rng;
-pub mod surface;
 pub mod tree;
-pub mod twigs;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
@@ -52,3 +51,5 @@ impl std::error::Error for Error {}
 pub type Result<T> = std::result::Result<T, Error>;
 
 pub mod specimen;
+#[cfg(all(test, feature = "geometry", feature = "json"))]
+mod suite;

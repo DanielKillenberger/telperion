@@ -51,7 +51,7 @@ STRATEGY.md's "Our approach" is enforced by structure, not policing; `docs/princ
 - Does every parameter change the tree by degree, dormant where its structure is absent, never a switch between ways of building?
 - Is each new output read by a consumer, each cost measured, and each new stop one that catches what its neighbours cannot?
 
-Three things hold them: the one pipeline, whose stages become private to it in fn-152 so a second chain does not compile; an ordinary test that builds every shipped preset's every artifact through the pipeline and through each package entry; and CI's size budget on every shipped artifact. A sanctioned trade-off names one of the exceptions `docs/principles.md` lists; a claim of approval without one is none.
+Three things hold them: the one pipeline, whose stages are private to it so a second chain does not compile (`docs/pipeline.md`); an ordinary test that builds every shipped preset's every artifact through the pipeline and through each package entry; and CI's size budget on every shipped artifact. A sanctioned trade-off names one of the exceptions `docs/principles.md` lists; a claim of approval without one is none.
 
 ## Pull requests (owner, 2026-09-20)
 

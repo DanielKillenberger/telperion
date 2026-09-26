@@ -100,7 +100,8 @@ pub fn planes(view_projection: &[f32; 16]) -> [[f32; 4]; 6] {
 
 #[cfg(test)]
 mod tests {
-    use telperion_core::foliage::{build_element, ElementParams};
+    use telperion_core::foliage::ElementParams;
+    use telperion_core::pipeline::executor;
     use telperion_core::surface::Bounds;
 
     use super::*;
@@ -175,7 +176,7 @@ mod tests {
 
     #[test]
     fn a_leaf_stands_in_a_sphere_that_holds_all_of_it() {
-        let element = build_element(ElementParams::default()).expect("the core built a leaf");
+        let element = executor::element(ElementParams::default()).expect("the core built a leaf");
         let bounding = sphere(&element);
         let centre = Vec3::new(
             f64::from(bounding[0]),

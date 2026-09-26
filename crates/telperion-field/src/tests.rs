@@ -147,7 +147,12 @@ fn every_shipped_preset_answers_as_the_main_pipeline_does() {
         for seed in [1, 4242] {
             write_species(id);
             let status = grow(seed, FAMILY_ORDER);
-            assert_eq!(status, 0, "entry telperion/field (slim): preset {id} seed {seed}: {}", error());
+            assert_eq!(
+                status,
+                0,
+                "entry telperion/field (slim): preset {id} seed {seed}: {}",
+                error()
+            );
             write_grid(10);
             assert_eq!(query(revision()), 0, "{id}: {}", error());
             let slim = answers();
