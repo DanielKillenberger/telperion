@@ -129,6 +129,9 @@ fn assessment(dir: &Path) -> PathBuf {
          "capability": "infructescence", "depends_on": null, "confidence": "high", "note": ""},
         {"trait": "leaf-sheen", "need": "a glossy leaf", "outcome": "reachable",
          "capability": null, "depends_on": "fn-999", "confidence": "high", "note": ""},
+        {"trait": "skeleton.habit.lateral_pitch (by height)", "need": "lower limbs spread wider",
+         "outcome": "unreachable-value", "capability": null, "depends_on": "fn-61",
+         "confidence": "medium", "note": "", "covers": ["limb-arch"]},
     ]);
     let classes = json!({"traits": traits, "classes": [
         class("infructescence", "improvement", json!(["fn-111"])),
@@ -196,6 +199,13 @@ fn every_failing_trait_is_classed_reachable_identity_or_global_with_its_evidence
             gap(
                 "fruit-look",
                 "failing on the current tree",
+                moved.clone(),
+                true,
+                true
+            ),
+            gap(
+                "limb-arch",
+                "failing on the current tree",
                 moved,
                 true,
                 true
@@ -245,6 +255,10 @@ fn every_failing_trait_is_classed_reachable_identity_or_global_with_its_evidence
     );
     assert_eq!(kind("trunk-texture"), Some(Kind::Identity));
     assert_eq!(specs("trunk-texture"), ["fn-144"]);
+    // An assessed entry names a failing trait by `trait` or in `covers`,
+    // nothing else (host decision A, 2026-09-26).
+    assert_eq!(kind("limb-arch"), Some(Kind::Identity));
+    assert_eq!(specs("limb-arch"), ["fn-61"]);
     assert_eq!(kind("fruit-look"), Some(Kind::Global));
     assert_eq!(specs("fruit-look"), ["fn-111"]);
     assert_eq!(kind("frond-count"), None, "a passing trait is no gap");
