@@ -196,9 +196,13 @@ def photograph(record: dict, args: argparse.Namespace) -> Path:
     An image the project may keep is an LFS object in the species' catalogue
     folder, under the path the record states; `git lfs pull` brings the bytes
     down. An image the project may not keep is recorded by url and hash only
-    and the fetch adapter caches it in the ignored cache directory. Either way
-    the bytes are checked against `asset_sha256` before anything is compared.
+    and the fetch adapter caches it in the ignored cache directory. A
+    photograph the Profile stage found names its run's copy (`photo_path`).
+    Either way the bytes are checked against `asset_sha256` before anything
+    is compared.
     """
+    if record.get("photo_path"):
+        return Path(record["photo_path"])
     if record.get("kept"):
         return Path(args.catalogue) / record["species_id"] / record["path"]
     return Path(args.refs) / record["url"].rsplit("/", 1)[-1]
@@ -300,6 +304,8 @@ def self_test() -> int:
     unkept = {"id": "S-WHOLE", "species_id": "silver-birch", "kept": False,
               "url": "https://example.invalid/plantimage/betu123B.jpg"}
     assert photograph(unkept, where) == Path(".refs/fn34/silver-birch/betu123B.jpg")
+    found = {"id": "photo-1", "photo_path": "run/cache/photos/abc.jpg", "url": "https://x/File:a.jpg"}
+    assert photograph(found, where) == Path("run/cache/photos/abc.jpg")
     print("self-test ok", json.dumps(result["still"]))
     return 0
 

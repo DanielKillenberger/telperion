@@ -150,16 +150,18 @@ pub fn run(template: &Path, tools: &Tools, out: &Path) -> Result<String, String>
     config["dials"] = json!(dials);
     config["initial_overrides"] = base(out)?;
     config["references"] = super::inventory::references(template, out)?;
-    super::cells::fill(&mut config)?;
     config["reference_first"] = super::inventory::pins(template, out)?;
     config["measure_binary"] = json!(tools.species_measure);
     config["matched"]["headless"] = json!(tools.headless);
+    crate::tape::adapters(&mut config);
+    let (shots, chosen) = super::shots::select(&config, &tools.headless, out)?;
+    config["matched"]["references"] = json!(shots);
+    super::cells::fill(&mut config)?;
     let revisions = out.join("tuning");
     let revision = next_revision(&revisions)?;
     let dir = revisions.join(revision.to_string());
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     let config_path = dir.join("config.json");
-    crate::tape::adapters(&mut config);
     let bytes = serde_json::to_vec_pretty(&config).map_err(|e| e.to_string())?;
     std::fs::write(&config_path, bytes).map_err(|e| e.to_string())?;
     let transport = crate::tape::Jev::new(&UreqTransport);
@@ -180,7 +182,7 @@ pub fn run(template: &Path, tools: &Tools, out: &Path) -> Result<String, String>
         return Err(format!("revision {revision} kept no tree: {stopped}"));
     }
     std::fs::copy(&written, result(out)).map_err(|e| e.to_string())?;
-    let mut word = format!("revision {revision}: {stopped}");
+    let mut word = format!("{chosen}; revision {revision}: {stopped}");
     if !gone.is_empty() {
         word.push_str(&format!(
             "; dials no longer in the table: {}",

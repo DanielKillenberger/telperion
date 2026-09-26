@@ -29,8 +29,10 @@ pub fn cameras(view: &str, height_m: f64) -> Vec<Value> {
     }
     for elevation in [-15.0, -8.0, 0.0] {
         for fill in [0.8, 0.93] {
-            out.push(json!({"azimuth": AZIMUTH, "elevation": elevation, "fill": fill,
-                "fov": FOV, "targetHeight": 0.5}));
+            out.push(
+                json!({"azimuth": AZIMUTH, "elevation": elevation, "fill": fill,
+                "fov": FOV, "targetHeight": 0.5}),
+            );
         }
     }
     out
@@ -63,7 +65,15 @@ pub fn boxes(render: [f64; 4]) -> Vec<(String, [f64; 4])> {
             let right = (centre + bw / 2.0).min(1.0);
             let top = (bottom - bh).max(0.0);
             let label = ((b'A' + i as u8) as char).to_string();
-            (label, [round(left), round(top), round(right - left), round(bottom - top)])
+            (
+                label,
+                [
+                    round(left),
+                    round(top),
+                    round(right - left),
+                    round(bottom - top),
+                ],
+            )
         })
         .collect()
 }
@@ -92,14 +102,28 @@ pub fn crown_base(tree: [f64; 4], line: f64) -> f64 {
 /// The light presets a photograph is matched to: overcast, and a low sun
 /// on the camera's left, right or behind the tree.
 pub fn lights(azimuth: f64) -> Vec<(&'static str, &'static str, Value)> {
-    let sun = |offset: f64| {
-        json!({"overcast": 0.2, "sunAzimuth": (azimuth + offset).rem_euclid(360.0), "sunElevation": 35.0})
-    };
+    let sun = |offset: f64| json!({"overcast": 0.2, "sunAzimuth": (azimuth + offset).rem_euclid(360.0), "sunElevation": 35.0});
     vec![
-        ("overcast", "a flat, overcast sky: soft light, no cast shadow", overcast()),
-        ("sun-left", "sunlight from the camera's left: the left side of the crown is lit", sun(90.0)),
-        ("sun-right", "sunlight from the camera's right: the right side of the crown is lit", sun(-90.0)),
-        ("sun-behind", "the sun behind the tree: a backlit, dark crown against a bright sky", sun(180.0)),
+        (
+            "overcast",
+            "a flat, overcast sky: soft light, no cast shadow",
+            overcast(),
+        ),
+        (
+            "sun-left",
+            "sunlight from the camera's left: the left side of the crown is lit",
+            sun(90.0),
+        ),
+        (
+            "sun-right",
+            "sunlight from the camera's right: the right side of the crown is lit",
+            sun(-90.0),
+        ),
+        (
+            "sun-behind",
+            "the sun behind the tree: a backlit, dark crown against a bright sky",
+            sun(180.0),
+        ),
     ]
 }
 
@@ -162,7 +186,10 @@ mod tests {
         assert_eq!(boxes[0], ("A".to_string(), render));
         for (_, b) in &boxes {
             assert!((b[1] + b[3] - 0.9).abs() < 1e-4, "{b:?}");
-            assert!((b[0] + b[2] / 2.0 - 0.5).abs() < 1e-4 || b[0] == 0.0, "{b:?}");
+            assert!(
+                (b[0] + b[2] / 2.0 - 0.5).abs() < 1e-4 || b[0] == 0.0,
+                "{b:?}"
+            );
         }
         assert!(boxes[1].1[2] < 0.4 && boxes[2].1[2] > 0.4);
         assert!(boxes[3].1[3] < 0.8 && boxes[4].1[3] > 0.8);

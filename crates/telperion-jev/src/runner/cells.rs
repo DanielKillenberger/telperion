@@ -31,14 +31,16 @@ pub fn derive(references: &Value, seed: u32) -> Result<(Vec<Value>, Vec<String>)
             Some("leaf-on") => {
                 cells.push(cell("crown-character", seed));
                 cells.push(cell("crown-character", fresh));
-                numeric.push(id.to_string());
             }
-            Some("bare") => {
-                cells.push(cell("branching-character", seed));
-                numeric.push(id.to_string());
-            }
+            Some("bare") => cells.push(cell("branching-character", seed)),
             Some("bark") => cells.push(cell("bark-base", seed)),
-            _ => {}
+            _ => continue,
+        }
+        // A photograph whose box or crown base matched no candidate is
+        // judged by eye but sets no numeric target.
+        let view = record["view"].as_str().unwrap_or_default();
+        if view != "bark" && record["shot"]["tree"].is_object() {
+            numeric.push(id.to_string());
         }
     }
     if !cells.iter().any(|c| c["item"] == "crown-character") {
@@ -68,15 +70,17 @@ mod tests {
     use super::*;
 
     /// The kept views become the required cells; a reference with no
-    /// selected shot, and one of another view, add none.
+    /// selected shot, and one of another view, add none; one whose box or
+    /// crown base matched nothing is judged but sets no numeric target.
     #[test]
     fn the_kept_views_are_the_required_cells() {
-        let shot = json!({"camera": {}});
+        let shot = json!({"camera": {}, "tree": {"box": [0, 0, 1, 1], "crownBase": 0.1}});
         let references = json!({"references": [
             {"id": "photo-1", "view": "leaf-on", "shot": shot},
             {"id": "photo-2", "view": "bark", "shot": shot},
             {"id": "photo-3", "view": "bare"},
             {"id": "photo-4", "view": "other", "shot": shot},
+            {"id": "photo-5", "view": "leaf-on", "shot": {"camera": {}, "tree": null}},
         ]});
         let (cells, numeric) = derive(&references, 1).unwrap();
         assert_eq!(
@@ -85,6 +89,8 @@ mod tests {
                 json!({"item": "crown-character", "view": "photo-1", "seed": 1}),
                 json!({"item": "crown-character", "view": "photo-1", "seed": 42}),
                 json!({"item": "bark-base", "view": "photo-2", "seed": 1}),
+                json!({"item": "crown-character", "view": "photo-5", "seed": 1}),
+                json!({"item": "crown-character", "view": "photo-5", "seed": 42}),
             ]
         );
         assert_eq!(numeric, ["photo-1"]);
