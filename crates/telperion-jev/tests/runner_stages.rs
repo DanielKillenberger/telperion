@@ -389,3 +389,26 @@ fn an_open_article_claim_stops_only_a_run_that_leaves_claims_to_a_person() {
         Some(telperion_jev::runner::Stop::Claims(ids))
     );
 }
+
+/// fn-157: gaps.md is read by a person. Each gap is a line with its first
+/// few pieces of evidence, each cut short; the rest stays in gaps.json. The
+/// beech's reached 1.3 MB.
+#[test]
+fn gaps_md_keeps_each_gap_to_a_readable_line() {
+    let dir = scratch("gaps-md");
+    let long = format!("spread 0.16 -> 0.21 ({})", "[photo seed 1](run/matched/a.png) ".repeat(40));
+    let gap = gaps::Gap {
+        trait_id: "broad-domed-crown".into(),
+        kind: Kind::Identity,
+        evidence: vec![long; 50],
+        specs: vec!["fn-61".into()],
+    };
+    gaps::write(&dir, &[gap]).unwrap();
+    let (json_path, md_path) = gaps::files(&dir);
+    let md = std::fs::read_to_string(md_path).unwrap();
+    assert!(md.len() < 3000, "{} bytes", md.len());
+    assert!(md.contains("**broad-domed-crown** (fn-61)"), "{md}");
+    assert!(md.contains("more in gaps.json"), "{md}");
+    let json: Value = serde_json::from_slice(&std::fs::read(json_path).unwrap()).unwrap();
+    assert_eq!(json["gaps"][0]["evidence"].as_array().unwrap().len(), 50);
+}
