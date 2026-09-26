@@ -920,3 +920,17 @@ fn a_track_judged_at_one_view_is_judged_on_that_view_alone() {
     assert_eq!(plan.request.renders.len(), 2);
     assert!(plan.request.references.iter().all(|i| i.view == "B-BASE"));
 }
+
+/// fn-157: a trial key hashes the run identity, which names the run's
+/// paths; the renders are ordered by what they show, so a replay from
+/// another directory lays out the same sheet.
+#[test]
+fn the_sheet_orders_renders_by_what_they_show_not_the_run() {
+    let shas = |plan: &sheet::Plan| -> Vec<String> {
+        plan.request.renders.iter().map(|r| r.sha256.clone()).collect()
+    };
+    let here = plan(&["key-a0", "key-a1", "key-a2", "key-a3"]);
+    let there = plan(&["key-b0", "key-b1", "key-b2", "key-b3"]);
+    assert_eq!(shas(&here), shas(&there));
+    assert_eq!(here.current, there.current);
+}
