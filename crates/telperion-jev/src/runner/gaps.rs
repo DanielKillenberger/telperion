@@ -1,14 +1,17 @@
 //! The Gaps stage: every trait still failing, classed by code from what the
 //! run recorded, one line each in `gaps.md` with its evidence.
 //!
-//! - **reachable**: a live dial moved it in a rendered attempt the reviewer
-//!   judged; the line names the dial, the two values it was drawn at and the
-//!   renders of both sides.
+//! - **reachable**: a live dial moved it to passing in a rendered attempt
+//!   the reviewer judged, a value the owner can keep; the line names the
+//!   dial, the two values it was drawn at and the renders of both sides.
 //! - **identity**: the species is not recognisable without it. No capability
 //!   assessment at all, a missing capability the assessment classes identity
-//!   or leaves unclassed, and a failing trait no dial moved.
+//!   or leaves unclassed, a failing trait the assessment names unreachable
+//!   or unsupported (with the spec it waits on), and any other failing trait
+//!   no dial brought to pass, for the host to assess (host, 2026-09-26).
 //! - **global**: a capability the assessment classes an improvement, or a
-//!   trait the tuning config lists unexpressed, with the specs that capture it.
+//!   failing trait an improvement covers, or a trait the tuning config lists
+//!   unexpressed, with the specs that capture it.
 //! - **unsourced**: a profile field no source settled; the generator's
 //!   default stands and Tune sets it from the photographs. A contextual
 //!   field, one no agreeing sources settled, is listed too: a person may
@@ -385,37 +388,5 @@ pub fn identity(out: &Path) -> Result<Vec<String>, String> {
         .collect())
 }
 
-fn markdown(gaps: &[Gap]) -> String {
-    let mut out = String::from(
-        "# Gaps\n\nEvery trait still failing after tuning, classed by the runner from what the run \
-         recorded. The host reviews each line and writes any spec; the runner mints none.\n",
-    );
-    for (kind, title) in [
-        (Kind::Identity, "Identity: the species waits on these"),
-        (Kind::Global, "Global: backlog"),
-        (Kind::Reachable, "Reachable: a live dial moves it"),
-        (Kind::Unsourced, "Unsourced: no agreeing sources settled it"),
-        (
-            Kind::References,
-            "References: no photograph to compare against",
-        ),
-    ] {
-        out.push_str(&format!("\n## {title}\n\n"));
-        let listed: Vec<&Gap> = gaps.iter().filter(|g| g.kind == kind).collect();
-        if listed.is_empty() {
-            out.push_str("None.\n");
-        }
-        for gap in listed {
-            let specs = match gap.specs.is_empty() {
-                true => String::new(),
-                false => format!(" ({})", gap.specs.join(", ")),
-            };
-            out.push_str(&format!(
-                "- **{}**{specs}: {}\n",
-                gap.trait_id,
-                gap.evidence.join("; ")
-            ));
-        }
-    }
-    out
-}
+mod markdown;
+use markdown::markdown;

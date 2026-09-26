@@ -243,14 +243,21 @@ a bare tree and a bark close-up when kept (`runner::cells`).
 
 Code classes each failing trait from what the run recorded:
 
-- **reachable**: a live dial moved it in a rendered attempt the reviewer
-  judged; the line names the dial, the two values it was drawn at and links
-  the renders of both sides.
+- **reachable**: a live dial moved it to passing in a rendered attempt the
+  reviewer judged, so the owner can keep that value; the line names the
+  dial, the two values it was drawn at and links the renders of both sides.
 - **identity**: no capability assessment at all, a missing capability the
-  assessment classes identity or leaves unclassed, or a failing trait no dial
-  moved.
-- **global**: a capability the assessment classes an improvement, or a trait
-  the config lists unexpressed, with the specs that capture it.
+  assessment classes identity or leaves unclassed, a failing trait an
+  assessed trait (`traits` in `packet/capability.json`, outcome
+  unreachable-value or unsupported-anatomy) names, with its `depends_on`
+  spec, or any other failing trait no dial brought to pass, for the host to
+  assess (host, 2026-09-26).
+- **global**: a capability the assessment classes an improvement, a failing
+  trait such an improvement covers, or a trait the config lists
+  unexpressed, with the specs that capture it.
+
+Each gap is one line in `gaps.md`, its first three pieces of evidence cut
+short; `gaps.json` keeps the whole.
 - **unsourced**: a profile field no document states typically (above, "Values"); the
   generator's default stands and Tune sets it from the photographs. A
   contextual field, one no agreeing sources settled, is listed here too.

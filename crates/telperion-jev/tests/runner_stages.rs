@@ -396,7 +396,10 @@ fn an_open_article_claim_stops_only_a_run_that_leaves_claims_to_a_person() {
 #[test]
 fn gaps_md_keeps_each_gap_to_a_readable_line() {
     let dir = scratch("gaps-md");
-    let long = format!("spread 0.16 -> 0.21 ({})", "[photo seed 1](run/matched/a.png) ".repeat(40));
+    let long = format!(
+        "spread 0.16 -> 0.21 ({})",
+        "[photo seed 1](run/matched/a.png) ".repeat(40)
+    );
     let gap = gaps::Gap {
         trait_id: "broad-domed-crown".into(),
         kind: Kind::Identity,
