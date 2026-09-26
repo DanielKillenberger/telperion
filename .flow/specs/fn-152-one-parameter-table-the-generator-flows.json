@@ -8,13 +8,91 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-152-one-parameter-table-the-generator-flows",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-152-one-parameter-table-the-generator-flows.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "cb6922557f4c34ec043a4b4bec3081dfdfcd113094c7df0d47f6e331fef2c7b6",
+      "backend": "codex",
+      "base_sha": "849fa4b1c7814ae147ea9666fe891a8ba050f5b9",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3d9b4dff3e62d860ecda9df66ef96691",
+            "classification": "introduced",
+            "findingId": "finding-3d9b4dff3e62d860ecda9df66ef96691",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-cd34f8e169cfd2d6d07899a95d8bfbd2",
+            "classification": "introduced",
+            "findingId": "finding-cd34f8e169cfd2d6d07899a95d8bfbd2",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c993d56ae6d6715eb36e8b505039bba3",
+            "classification": "introduced",
+            "findingId": "finding-c993d56ae6d6715eb36e8b505039bba3",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e3dcdefe07d4c4428ddf92718b61626f",
+            "classification": "introduced",
+            "findingId": "finding-e3dcdefe07d4c4428ddf92718b61626f",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "faee4647ec943a50b62a69e9c622b867c4a3d131",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 2651,
+      "output_sha256": "f790a5c8aa7c43a18ad97463cd88ca49e8acee0b50dcaa5541154dabf645edab",
+      "reservation_id": "4aa796b3d6424b059f9aa06f8d951f18",
+      "round_consumed": true,
+      "scope": "impl:fn-152-one-parameter-table-the-generator-flows.1",
+      "superseded_by": null,
+      "task": "fn-152-one-parameter-table-the-generator-flows.1",
+      "timestamp": "2026-09-26T14:56:01.267368Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-152-one-parameter-table-the-generator-flows.1": 0
+  },
   "spec_path": ".flow/specs/fn-152-one-parameter-table-the-generator-flows.md",
   "status": "open",
   "title": "One parameter table the generator flows through",
@@ -29,5 +107,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-26T12:15:17.448809Z"
+  "updated_at": "2026-09-26T14:56:01.269752Z"
 }

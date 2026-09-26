@@ -9,16 +9,15 @@ error[E0080]: evaluation panicked: forkExponent has no meaning
 --
 error: could not compile `telperion-core` (lib) due to 1 previous error
 
-## 2. A row that names no stage (radii.forkExponent => [])
-error: no rules expected `]`
-   --> crates/telperion-core/src/radius.rs:25:82
+## 2. A row that names no stage and is neither growth-path-only nor deprecated (radii.forkExponent => [])
+error[E0080]: evaluation panicked: forkExponent names no stage that reads it
+   --> crates/telperion-core/src/catalogue.rs:421:21
     |
- 25 |         pub fork_exponent: f64 = "forkExponent" "-" Bounds::closed(1.0, 8.0) => [] {
-    |                                                                                  ^ no rules expected this token in macro call
-    |
-   ::: crates/telperion-core/src/catalogue.rs:282:1
+421 | /                     assert!(
+422 | |                         !DECLARED.reads.is_empty()
+423 | |                             || DECLARED.deprecated
+424 | |                             || matches!(DECLARED.growth, $crate::catalogue::Growth::Only),
 --
-error: could not compile `telperion-core` (lib) due to 1 previous error
 
 ## 3. A row with no bounds (radii.forkExponent, bounds removed)
 error: no rules expected `=>`

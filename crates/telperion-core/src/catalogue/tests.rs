@@ -158,3 +158,21 @@ fn the_deprecated_rows_parse_overlay_and_serialise_as_before() {
         Err(crate::Error::InvalidInput("foliage clump"))
     );
 }
+
+#[test]
+fn every_row_has_its_own_rank_on_the_wire() {
+    let mut ranks: Vec<u16> = entries().map(|e| e.info().wire).collect();
+    ranks.sort_unstable();
+    assert_eq!(ranks, (0..249).collect::<Vec<u16>>());
+}
+
+/// A row no direct-build stage reads says so: the growth path's own rows
+/// and the deprecated ones name no stage, and every other row names one.
+#[test]
+fn every_row_names_the_stages_that_read_it() {
+    for e in entries() {
+        let info = e.info();
+        let unread = info.deprecated || info.growth == Growth::Only;
+        assert_eq!(info.reads.is_empty(), unread, "{}", e.path());
+    }
+}

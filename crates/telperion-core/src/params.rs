@@ -66,7 +66,11 @@ pub(crate) fn decode(v: &Value) -> Result<Family> {
         Ok(())
     }
     known(v, &schema, "unknown family parameter")?;
-    for entry in catalogue::entries() {
+    // Read in the wire's own order, so the first malformed value refused is
+    // the one the wire always refused first.
+    let mut rows: Vec<_> = catalogue::entries().collect();
+    rows.sort_unstable_by_key(|entry| entry.wire());
+    for entry in rows {
         if let Some(value) = v.pointer(entry.path()) {
             entry
                 .set(&mut f)

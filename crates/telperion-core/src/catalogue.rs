@@ -256,8 +256,11 @@ pub struct Info {
     pub meaning: &'static str,
     pub unit: &'static str,
     pub bounds: Bounds,
-    /// Stages that read the row on the direct build.
+    /// Stages that read the row on the direct build; none only for a row the
+    /// growth path alone reads or a deprecated one.
     pub reads: &'static [Stage],
+    /// The row's rank on the wire before the catalogue (`fields!` order).
+    pub wire: u16,
     pub growth: Growth,
     /// Where the generated scalar check refuses it; `None` where the row is
     /// judged by a named relational check or not at all (see `note`).
@@ -278,6 +281,7 @@ impl Info {
         unit: "",
         bounds: Bounds::FINITE,
         reads: &[],
+        wire: u16::MAX,
         growth: Growth::Same,
         check: None,
         applies: "",
@@ -295,6 +299,9 @@ impl Info {
 /// carries none of its prose.
 pub struct Row<S: 'static> {
     pub path: &'static str,
+    /// The row's rank on the wire before the catalogue: decoding refuses the
+    /// first malformed value in this order.
+    pub wire: u16,
     pub get: fn(&S) -> &dyn Scalar,
     pub set: fn(&mut S) -> &mut dyn Scalar,
     pub blend: Blend,
@@ -320,7 +327,8 @@ pub struct Getters<S>(std::marker::PhantomData<S>);
 /// serde attribute as written, and one catalogue row per field that names its
 /// wire key. A row states its key, unit, bounds and the stages that read it;
 /// the rest of `Info` follows in braces where it differs from the default. A
-/// row with no doc comment, and a row that names no stage, does not compile.
+/// row with no doc comment, and a row that names no stage without being
+/// growth-path-only or deprecated, does not compile.
 /// `ROWS` carries what the wire reads, `CHECKS` what the scalar check reads
 /// and `INFO` everything declared.
 macro_rules! rows {
@@ -331,7 +339,7 @@ macro_rules! rows {
                 $(#[doc = $doc:literal])*
                 $(#[cfg_attr(feature = "json", serde($($serde:tt)*))])?
                 pub $field:ident: $ty:ty
-                $(= $key:literal $unit:literal $bounds:expr => [$($stage:ident),+]
+                $(= $key:literal $unit:literal $bounds:expr => [$($stage:ident),*]
                     $({ $($k:ident: $v:expr),* $(,)? })?)?
             ),* $(,)?
         }
@@ -371,6 +379,7 @@ macro_rules! rows {
                     };
                     $crate::catalogue::Row {
                         path: concat!($prefix, "/", $key),
+                        wire: DECLARED.wire,
                         get: $crate::catalogue::Getters::<$name>::$field,
                         set: {
                             fn set(s: &mut $name) -> &mut dyn $crate::catalogue::Scalar {
@@ -399,17 +408,23 @@ macro_rules! rows {
             )?)*];
             /// Everything each row declares, at its index in `ROWS`.
             pub const INFO: &'static [$crate::catalogue::Info] = &[$($(
-                $crate::catalogue::Info {
-                    meaning: {
-                        let meaning = $crate::catalogue::Meanings::<$name>::$field;
-                        assert!(!meaning.is_empty(), concat!($key, " has no meaning"));
-                        meaning
-                    },
-                    unit: $unit,
-                    bounds: $bounds,
-                    reads: &[$($crate::catalogue::Stage::$stage),+],
-                    $($($k: $v,)*)?
-                    ..$crate::catalogue::Info::OPTIONAL
+                {
+                    const DECLARED: $crate::catalogue::Info = $crate::catalogue::Info {
+                        meaning: $crate::catalogue::Meanings::<$name>::$field,
+                        unit: $unit,
+                        bounds: $bounds,
+                        reads: &[$($crate::catalogue::Stage::$stage),*],
+                        $($($k: $v,)*)?
+                        ..$crate::catalogue::Info::OPTIONAL
+                    };
+                    assert!(!DECLARED.meaning.is_empty(), concat!($key, " has no meaning"));
+                    assert!(
+                        !DECLARED.reads.is_empty()
+                            || DECLARED.deprecated
+                            || matches!(DECLARED.growth, $crate::catalogue::Growth::Only),
+                        concat!($key, " names no stage that reads it")
+                    );
+                    DECLARED
                 },
             )?)*];
         }

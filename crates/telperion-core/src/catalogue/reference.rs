@@ -111,6 +111,9 @@ fn stages(reads: &[Stage]) -> String {
             Stage::Draw => "draw",
         })
         .collect();
+    if names.is_empty() {
+        return "no stage of the direct build".into();
+    }
     names.join(", ")
 }
 

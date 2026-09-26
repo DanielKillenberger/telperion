@@ -13,6 +13,7 @@ crate::catalogue::rows! {
         /// so raising it thickens every piece of wood in proportion.
         pub trunk_radius: f64 = "trunkRadius" "share of height"
             Bounds::closed(4e-6, f64::MAX) => [Grow, Plan] {
+            wire: 81,
             check: value(Site::Radius, 1, "trunkRadius"),
             note: "Also sizes the leaf box where `canopy.shootRadius` is above zero or short \
                 shoots grow.",
@@ -27,6 +28,7 @@ crate::catalogue::rows! {
         /// children's radii raised to this power, so raising it leaves the
         /// children thicker for the same parent.
         pub fork_exponent: f64 = "forkExponent" "-" Bounds::closed(1.0, 8.0) => [Grow] {
+            wire: 82,
             check: value(Site::Radius, 2, "forkExponent"),
             dial: bounded("fork_exponent", "how wood divides at a fork; higher leaves the \
                 children thicker", [1.0, 2.0]),
@@ -34,6 +36,7 @@ crate::catalogue::rows! {
         /// How fast wood thins along its own length. Raising it makes a
         /// branch narrow more sharply from its base to its tip.
         pub length_taper: f64 = "lengthTaper" "per height" Bounds::closed(0.0, f64::MAX) => [Grow] {
+            wire: 83,
             check: value(Site::Radius, 3, "lengthTaper"),
             dial: tuned("length_taper", "how fast wood thins along its own length",
                 [0.0, 0.8], [0.1, 0.2], "capped").span([0.0, 0.8])
@@ -45,6 +48,7 @@ crate::catalogue::rows! {
         /// thin away to nothing. Raising it lets long branches taper further.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_max_taper_exponent"))]
         pub max_taper_exponent: f64 = "maxTaperExponent" "-" Bounds::closed(0.0, 64.0) => [Grow] {
+            wire: 84,
             check: value(Site::Radius, 0, "maxTaperExponent"),
             applies: "`lengthTaper` zero",
             dial: bounded("max_taper_exponent", "the ceiling on accumulated taper along one long \

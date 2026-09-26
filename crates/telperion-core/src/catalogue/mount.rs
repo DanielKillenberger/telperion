@@ -20,6 +20,7 @@ use crate::{
 trait Group: Sync {
     fn len(&self) -> usize;
     fn path(&self, index: usize) -> &'static str;
+    fn wire(&self, index: usize) -> u16;
     fn rule(&self, index: usize) -> (Bounds, Option<Check>, Blend);
     fn get<'f>(&self, index: usize, f: &'f Family) -> &'f dyn Scalar;
     fn set<'f>(&self, index: usize, f: &'f mut Family) -> &'f mut dyn Scalar;
@@ -37,6 +38,9 @@ impl<S> Group for Mounted<S> {
     }
     fn path(&self, index: usize) -> &'static str {
         self.rows[index].path
+    }
+    fn wire(&self, index: usize) -> u16 {
+        self.rows[index].wire
     }
     fn rule(&self, index: usize) -> (Bounds, Option<Check>, Blend) {
         let checked = &self.checks[index];
@@ -119,6 +123,10 @@ impl Entry {
     pub fn path(self) -> &'static str {
         GROUPS[self.group].path(self.index)
     }
+    /// The row's rank on the wire before the catalogue.
+    pub fn wire(self) -> u16 {
+        GROUPS[self.group].wire(self.index)
+    }
     /// How a walk between two families moves the row.
     pub fn blend(self) -> Blend {
         GROUPS[self.group].rule(self.index).2
@@ -160,6 +168,7 @@ mod tests {
             assert_eq!(group.len(), docs.len());
             for (index, info) in docs.iter().enumerate() {
                 assert_eq!(group.rule(index), (info.bounds, info.check, info.blend));
+                assert_eq!(group.wire(index), info.wire);
             }
         }
     }

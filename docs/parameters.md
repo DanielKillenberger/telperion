@@ -19,7 +19,7 @@ no production stage and is kept on the wire for compatibility.
 The specimen's age in years. Only the growth path reads it: the direct build is the mature tree whatever the row says.
 
 - real, years, [0, 1000000], default 100
-- read by grow; growth path: only the growth path reads it
+- read by no stage of the direct build; growth path: only the growth path reads it
 - checked: by a named check or not at all (see note)
 - note: Refused by `Age::from_years` in `params::parse` and `Family::validate`, which also quantises it to the growth path's tick; the direct build is the mature tree whatever it says.
 - blend: linear, clamped to its ends; dial: none: Identity of a grown specimen, not a look: only the growth path reads it, and the direct build the tuner measures is the mature tree whatever it says (crates/telperion-core/src/branching/specimen/timeline.rs:30).
@@ -41,7 +41,7 @@ How deep into the crown leaves are kept, as a share of the crown's widest radius
 Geometric work quanta available over this specimen's life.
 
 - count (u32), work quanta, [1, 4294967295], default 250000
-- read by grow; growth path: only the growth path reads it
+- read by no stage of the direct build; growth path: only the growth path reads it
 - checked: Growth site, rank 0, as invalid value `growth.workBudget`
 - note: Also sets when growth snaps to maturity, so it moves the growth path's mature year.
 - blend: rounded to the nearest; dial: none: Growth-path only, and a work budget.
@@ -51,7 +51,7 @@ Geometric work quanta available over this specimen's life.
 Chapman–Richards rate, in inverse years.
 
 - real, per year, [0.001, 10], default 0.08
-- read by grow; growth path: only the growth path reads it
+- read by no stage of the direct build; growth path: only the growth path reads it
 - checked: Growth site, rank 1, as invalid value `growth.rate`
 - note: Also ages shoot vigour for survival and bud sampling.
 - blend: linear, clamped to its ends; dial: none: Growth-path only: `mesh::build` and `branching::generate` never read the growth traits (crates/telperion-core/src/mesh.rs:73).
@@ -61,7 +61,7 @@ Chapman–Richards rate, in inverse years.
 Chapman–Richards shape; values above one give a sigmoidal height curve.
 
 - real, -, [1, 8], default 2
-- read by grow; growth path: only the growth path reads it
+- read by no stage of the direct build; growth path: only the growth path reads it
 - checked: Growth site, rank 2, as invalid value `growth.shape`
 - blend: linear, clamped to its ends; dial: none: Growth-path only, as above.
 
@@ -70,7 +70,7 @@ Chapman–Richards shape; values above one give a sigmoidal height curve.
 Consecutive active slices below the habit shedding threshold, in years.
 
 - real, years, [0, 1000000], default 2
-- read by grow; growth path: only the growth path reads it
+- read by no stage of the direct build; growth path: only the growth path reads it
 - checked: Growth site, rank 5, as invalid value `growth.sheddingTolerance`
 - dormant: `sheddingThreshold` zero
 - blend: linear, clamped to its ends; dial: none: Growth-path only, as above.
@@ -80,7 +80,7 @@ Consecutive active slices below the habit shedding threshold, in years.
 Annual loss of the habit apical control (zero retains its authored value).
 
 - real, per year, [0, 10], default 0
-- read by grow; growth path: only the growth path reads it
+- read by no stage of the direct build; growth path: only the growth path reads it
 - checked: Growth site, rank 6, as invalid value `growth.apicalControlLoss`
 - note: Divides `apicalDominance` each year and adds the released share to `lateralLengthRatio`.
 - blend: linear, clamped to its ends; dial: none: Growth-path only, as above.
@@ -90,7 +90,7 @@ Annual loss of the habit apical control (zero retains its authored value).
 Years of annual foliage cohorts held by a living shoot; zero bears none.
 
 - real, years, [0, 1000000], default 1
-- read by grow; growth path: only the growth path reads it
+- read by no stage of the direct build; growth path: only the growth path reads it
 - checked: Growth site, rank 3, as invalid value `growth.leafLifetime`
 - dormant: zero bears no leaves on the growth path
 - blend: linear, clamped to its ends; dial: none: Growth-path only, as above.
@@ -100,7 +100,7 @@ Years of annual foliage cohorts held by a living shoot; zero bears none.
 Minimum thickening in metres before recording another annual radius frame.
 
 - real, m, [0, 1], default 0.0001
-- read by grow; growth path: only the growth path reads it
+- read by no stage of the direct build; growth path: only the growth path reads it
 - checked: Growth site, rank 4, as invalid value `growth.resizeTolerance`
 - blend: linear, clamped to its ends; dial: none: Growth-path only, and an internal recording tolerance rather than a look.
 
@@ -1001,7 +1001,7 @@ Wood at or below this fraction of the root radius bears foliage of its own, besi
 Metres between leaves along a shoot, as a share of the tree's height. Raising it spreads the leaves further apart, so the crown carries fewer of them.
 
 - real, share of height, [0.001, 1000000], default 0.006
-- read by expand; growth path: as the direct build
+- read by no stage of the direct build; growth path: as the direct build
 - checked: Canopy site, rank 1, as invalid input `foliage spacing`
 - dormant: only a placement with no twig table reads it, which no production caller passes
 - blend: linear; dial: none
@@ -1021,7 +1021,7 @@ The degrees each successive leaf is turned around its shoot. Raising it turns th
 How many extra leaves are gathered at the end of a shoot that has no twig layer. Raising it packs a denser tuft at the tip.
 
 - count (u32), leaves, [0, 64], default 5
-- read by expand; growth path: as the direct build
+- read by no stage of the direct build; growth path: as the direct build
 - checked: Canopy site, rank 14, as invalid input `foliage clump`
 - dormant: only a placement with no twig table reads it, which no production caller passes
 - blend: rounded to the nearest; dial: none
@@ -1031,7 +1031,7 @@ How many extra leaves are gathered at the end of a shoot that has no twig layer.
 How far back from the tip that tuft is scattered, as a share of the shoot's length. Raising it spreads the tuft further down the shoot.
 
 - real, share of the shoot, [0, 1], default 0.3
-- read by expand; growth path: as the direct build
+- read by no stage of the direct build; growth path: as the direct build
 - checked: Canopy site, rank 3, as invalid input `clump span`
 - dormant: only a placement with no twig table reads it, which no production caller passes
 - blend: linear; dial: none

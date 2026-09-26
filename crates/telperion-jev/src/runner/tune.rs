@@ -3,8 +3,10 @@
 //! A revision starts from the last kept tree, or from the Start overlay on
 //! the first. Its dials are the rows of the dial table the parameter catalogue
 //! generates, never a copy frozen into the config, so a row the generator
-//! gained or lost is offered or dropped on the next revision; a catalogue
-//! change reaches this stage through the tools the runner rebuilds from it. It draws and measures
+//! gained or lost is offered or dropped on the next revision. The table is
+//! compiled into the runner; the checkout's `docs/parameters.md` is that
+//! catalogue rendered, so it keys the stage, and a runner built from another
+//! catalogue than the checkout's is refused before it offers a dial. It draws and measures
 //! with the tools the runner just built, against the reference inventory the
 //! Profile stage built. The revision ends when its rounds
 //! stop keeping anything, and its result becomes the stage's artifact. A
@@ -31,7 +33,7 @@ impl Stage for Tune {
 
     fn inputs(&self, run: &Run) -> Result<Vec<PathBuf>, String> {
         let out = run.out();
-        let mut files = vec![super::start::file(&out), run.tuning.clone()];
+        let mut files = vec![super::start::file(&out), run.tuning.clone(), reference()];
         files.extend(referenced(&run.tuning)?);
         files.extend(super::inventory::files(&run.tuning, &out)?);
         files.extend(run.tools()?.files());
@@ -49,6 +51,26 @@ impl Stage for Tune {
     fn stop(&self, _: &Run) -> Result<Option<Stop>, String> {
         Ok(None)
     }
+}
+
+/// The checkout's parameter reference: the catalogue the dials must come from.
+pub fn reference() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/parameters.md")
+}
+
+/// Refuses a runner whose compiled catalogue is not the one `on_disk` renders.
+pub fn same_catalogue(on_disk: &str) -> Result<(), String> {
+    if on_disk == telperion_core::catalogue::reference() {
+        return Ok(());
+    }
+    Err(
+        "this species runner was built from another parameter catalogue than the \
+         checkout's docs/parameters.md: rebuild it (cargo build --release -p \
+         telperion-jev --bin species), and regenerate the reference if the catalogue \
+         changed (TELPERION_WRITE_REFERENCE=1 cargo test -p telperion-core --test \
+         parameter_reference)"
+            .into(),
+    )
 }
 
 /// The files the tuning config names whose bytes a revision reads: the
@@ -120,6 +142,9 @@ pub fn run(template: &Path, tools: &Tools, out: &Path) -> Result<String, String>
     if super::inventory::none(template, out)? {
         return Err("no reference photograph: the Profile stage found none and the tuning config lists none (gaps.md, references); add references to the tuning config or run the Profile stage again".into());
     }
+    let on_disk = std::fs::read_to_string(reference())
+        .map_err(|e| format!("{}: {e}", reference().display()))?;
+    same_catalogue(&on_disk)?;
     let mut config = read_json(template).map_err(|e| e.to_string())?;
     let (dials, gone) = live_dials(&config["dials"])?;
     config["dials"] = json!(dials);

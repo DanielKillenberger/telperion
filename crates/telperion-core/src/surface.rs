@@ -100,6 +100,7 @@ crate::catalogue::rows! {
         /// How many sides each piece of wood is drawn with. Raising it makes
         /// the wood rounder and smoother, and costs triangles.
         pub radial_segments: u32 = "radialSegments" "sides" Rail::closed(3.0, 64.0) => [Expand] {
+            wire: 85,
             check: input(Site::Surface, 1, "surface parameters"),
             note: "Wood is drawn with `max(radialSegments, 4·lobes)` sides.",
             blend: Blend::Count,
@@ -109,6 +110,7 @@ crate::catalogue::rows! {
         /// How many ridges run up around the trunk. Raising it gives the
         /// bark more flutes; zero is a plain round bole.
         pub lobes: u32 = "lobes" "lobes" Rail::closed(0.0, 16.0) => [Expand] {
+            wire: 86,
             check: input(Site::Surface, 2, "surface parameters"),
             note: "Raises the side count even at `lobeDepth` zero; the GPU executor draws only \
                 unlobed wood itself.",
@@ -121,6 +123,7 @@ crate::catalogue::rows! {
         /// rise starts cutting the flutes.
         pub lobe_depth: f64 = "lobeDepth" "share of radius"
             Rail::closed(0.0, 0.9) => [Plan, Expand] {
+            wire: 87,
             check: input(Site::Surface, 3, "surface parameters"),
             applies: "`lobes` zero",
             note: "With `surfaceContact` above zero, leaf seating and the leaf box scale by `1 + \
@@ -133,6 +136,7 @@ crate::catalogue::rows! {
         /// it winds them more tightly around the trunk.
         pub twist_rate: f64 = "twistRate" "turns over the height"
             Rail::closed(-64.0, 64.0) => [Expand] {
+            wire: 88,
             check: input(Site::Surface, 4, "surface parameters"),
             applies: "unless `lobes` and `lobeDepth` are both above zero",
             dial: bounded("twist_rate", "how many turns those ridges make over the tree's height",
@@ -142,6 +146,7 @@ crate::catalogue::rows! {
         /// multiple of its own radius. Raising it gives a broader buttress.
         pub flare_radius: f64 = "flareRadius" "multiple of radius"
             Rail::closed(1.0, 8.0) => [Plan, Expand] {
+            wire: 89,
             check: input(Site::Surface, 5, "surface parameters"),
             note: "Applies by height, to branches near the ground too; seats leaves where \
                 surface contact is on.",
@@ -152,6 +157,7 @@ crate::catalogue::rows! {
         /// height. Raising it carries the swelling further up the bole.
         pub flare_falloff: f64 = "flareFalloff" "share of height"
             Rail::closed(1e-4, 1.0) => [Expand] {
+            wire: 90,
             check: input(Site::Surface, 6, "surface parameters"),
             applies: "`flareRadius` one",
             dial: bounded("flare_falloff", "how far up the bole that flare reaches, as a share \
@@ -160,6 +166,7 @@ crate::catalogue::rows! {
         /// How deep the trunk's base is sunk below the ground, as a share
         /// of the height. Raising it buries more of the flare.
         pub flare_depth: f64 = "flareDepth" "share of height" Rail::closed(0.0, 1.0) => [Expand] {
+            wire: 91,
             check: input(Site::Surface, 7, "surface parameters"),
             note: "Buries one ring per trunk run even with no flare.",
             dial: bounded("flare_depth", "how deep the trunk's base is sunk below the ground, as \
@@ -169,6 +176,7 @@ crate::catalogue::rows! {
         /// Raising it sinks the junction further in, so the two read as one
         /// piece of wood rather than two tubes meeting.
         pub fork_socket: f64 = "forkSocket" "share" Rail::closed(0.0, 0.9) => [Expand] {
+            wire: 92,
             check: input(Site::Surface, 8, "surface parameters"),
             dial: bounded("fork_socket", "how deeply a child branch is set into its parent at a \
                 fork", [0.15, 0.3]),
@@ -177,6 +185,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_socket_containment"))]
         pub socket_containment: f64 = "socketContainment" "share"
             Rail::closed(0.0, 1.0) => [Expand] {
+            wire: 93,
             check: value(Site::Surface, 0, "socketContainment"),
             applies: "`forkSocket` zero",
             dial: bounded("socket_containment", "the share of the parent's inscribed radius a \
@@ -186,6 +195,7 @@ crate::catalogue::rows! {
         /// pronounced collar where a branch leaves its parent.
         pub fork_swell: f64 = "forkSwell" "multiple of radius"
             Rail::closed(1.0, 4.0) => [Plan, Expand] {
+            wire: 94,
             check: input(Site::Surface, 9, "surface parameters"),
             note: "Seats leaves and sizes the leaf box where surface contact is on.",
             dial: bounded("fork_swell", "how much wood thickens at a fork", [0.5, 1.0]),

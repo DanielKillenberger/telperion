@@ -34,6 +34,7 @@ crate::catalogue::rows! {
         /// The specimen: every stage keys its random stream by it, so another
         /// seed draws another tree of the same family.
         pub seed: u32 = "seed" "-" Bounds::closed(0.0, 4294967295.0) => [Grow, Plan, Expand] {
+            wire: 30,
             note: "It reshapes the crown outline only where `irregularity` is above zero. Any \
                 u32 is a seed; nothing checks it.",
             blend: Blend::Kept,
@@ -48,6 +49,7 @@ crate::catalogue::rows! {
         /// scattered and the row does nothing.
         pub attractors: usize = "attractors" "points"
             Bounds::closed(0.0, crate::ranges::MAX_ATTRACTORS as f64) => [Grow] {
+            wire: 31,
             check: input(Site::Sampling, 1, "attractors"),
             applies: "`attractorWeight` zero",
             note: "`attractorWeight` above zero with none is refused (`attractor weight and \
@@ -66,6 +68,7 @@ crate::catalogue::rows! {
         )]
         pub sampling_attempts_per_attractor: u32 = "samplingAttemptsPerAttractor" "tries"
             crate::ranges::POSITIVE_COUNT.bounds() => [Grow] {
+            wire: 32,
             check: value(Site::Sampling, 0, "samplingAttemptsPerAttractor"),
             applies: "`attractorWeight` zero",
             note: "Too few tries for the envelope's shape is a hard error at the scatter.",
@@ -78,6 +81,7 @@ crate::catalogue::rows! {
         /// height; the distance at which a pull point is used up is twice it.
         /// Raising it grows the crown in longer, coarser strides.
         pub step: f64 = "step" "share of height" Bounds::above(0.0) => [Grow] {
+            wire: 33,
             check: input(Site::Step, 0, "growth step"),
             note: "Sets the default step, kill and influence distances (`default_growth`); an \
                 overriding `stepDistance` leaves kill and influence on `height·step`.",
@@ -117,6 +121,7 @@ crate::catalogue::rows! {
         /// the crown's own volume and the point count decide it. Raising it
         /// lets distant points draw a branch across the crown.
         pub influence_radius: Option<f64> = "influenceRadius" "m" Bounds::at_least(0.0) => [Grow] {
+            wire: 75,
             applies: "`attractorWeight` zero",
             note: "Unset: `max(9·height·step, 2·cbrt(crown volume / points))`. Judged in the \
                 resolved configuration (`colonization configuration`).",
@@ -129,6 +134,7 @@ crate::catalogue::rows! {
         /// pulling; unset, twice the step distance. Raising it uses the points
         /// up sooner, so branches stop shorter and the crown fills coarsely.
         pub kill_distance: Option<f64> = "killDistance" "m" Bounds::at_least(0.0) => [Grow] {
+            wire: 76,
             applies: "`attractorWeight` zero",
             note: "Acts as `min(kill, growth unit)`, so above one unit it does nothing; unset, \
                 `2·height·step`. Judged in the resolved configuration (`colonization \
@@ -139,6 +145,7 @@ crate::catalogue::rows! {
         /// Metres of wood laid down in one growth step; unset, the tree's
         /// height times `step`. Raising it lays down longer, coarser segments.
         pub step_distance: Option<f64> = "stepDistance" "m" Bounds::above(0.0) => [Grow] {
+            wire: 77,
             note: "Unset: `height·step`; it does not move the default kill or influence \
                 distance. Judged in the resolved configuration (`colonization configuration`).",
             blend: Blend::Coupled,
@@ -148,6 +155,7 @@ crate::catalogue::rows! {
         /// envelope's own crown base. Raising it lifts the whole crown and
         /// leaves a longer clear bole.
         pub trunk_height: Option<f64> = "trunkHeight" "m" Bounds::above(0.0) => [Grow] {
+            wire: 78,
             note: "Refused at or below zero (`trunkHeight`) by `resolved_growth`, then judged in \
                 the resolved configuration. Unset: `height·crownBase`; below that the stems' \
                 bole, fork and top keep `height·crownBase`.",
@@ -159,6 +167,7 @@ crate::catalogue::rows! {
         /// that reached it.
         pub max_nodes: Option<usize> = "maxNodes" "nodes"
             crate::ranges::POSITIVE_COUNT.bounds() => [Grow] {
+            wire: 79,
             growth: Growth::Differs("zero builds an empty capped seedling"),
             note: "Unset: 250 000. Zero is refused by `Family::validate` (`maxNodes`) and above \
                 u32::MAX by `ranges::max_nodes`.",
@@ -169,6 +178,7 @@ crate::catalogue::rows! {
         /// At 180 or more nothing is limited.
         pub max_turn_per_step: Option<f64> = "maxTurnPerStep" "degrees"
             Bounds::at_least(0.0) => [Grow] {
+            wire: 80,
             note: "`presets::by_identity` sets 35 where a table leaves it unset, so a table and \
                 its identity differ here. Judged in the resolved configuration (`colonization \
                 configuration`).",

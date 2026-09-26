@@ -15,7 +15,8 @@ crate::catalogue::rows! {
     pub struct Family in "" {
         /// The specimen's age in years. Only the growth path reads it: the
         /// direct build is the mature tree whatever the row says.
-        pub age: f64 = "age" "years" Bounds::closed(0.0, 1_000_000.0) => [Grow] {
+        pub age: f64 = "age" "years" Bounds::closed(0.0, 1_000_000.0) => [] {
+            wire: 0,
             growth: Growth::Only,
             note: "Refused by `Age::from_years` in `params::parse` and `Family::validate`, which \
                 also quantises it to the growth path's tick; the direct build is the mature tree \
@@ -37,6 +38,7 @@ crate::catalogue::rows! {
         /// keeps more of the crown's interior foliage, and one keeps it all.
         pub shell_depth: f64 = "shellDepth" "share of the crown's widest radius"
             Bounds::closed(0.0, 1.0) => [Cull] {
+            wire: 248,
             check: input(Site::Shell, 0, "shell depth"),
             growth: Growth::Differs("measured against the envelope at the specimen's age"),
             note: "`foliage::cull` and the GPU executor's preparation check it again; the \
