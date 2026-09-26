@@ -1,0 +1,8 @@
+DROPPED deprecated dial "foliage_spacing" ("/canopy/spacing")
+DROPPED deprecated dial "tip_clump" ("/canopy/clump")
+DROPPED deprecated dial "tip_clump_span" ("/canopy/clumpSpan")
+EXCLUDED /canopy/clump: None vs Deprecated: no production stage reads it.
+EXCLUDED /canopy/clumpSpan: None vs Deprecated: no production stage reads it.
+EXCLUDED /canopy/spacing: None vs Deprecated: no production stage reads it.
+master dials.json at 849fa4b1: 224 dials compared on 12 fields, 0 differing; excluded 22 vs 25
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

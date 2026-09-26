@@ -203,7 +203,11 @@ pub fn vocabulary() -> serde_json::Value {
 /// values it ships. This is a check over a registered preset, never a reading
 /// of what the generator can express.
 pub fn derived(preset: Preset) -> Vec<&'static str> {
-    let f = preset.parameters();
+    produced(&preset.parameters())
+}
+
+/// The capabilities a family's rows produce.
+fn produced(f: &crate::Family) -> Vec<&'static str> {
     let mut produced = vec!["woody-axes"];
     // A lobed margin and a section rolled past halfway are what these two
     // names have always meant.
@@ -238,10 +242,11 @@ pub fn derived(preset: Preset) -> Vec<&'static str> {
     if pinnate && rosette {
         produced.push("pinnate-frond");
     }
-    // The trunk organs are the crown's own history and the frond's own
-    // leaflets: a base keeps the spiral the rosette turns in, and a spine is a
-    // leaflet hardened, so neither name is produced without the crown.
-    let bases = f.canopy.leaf_bases > 0 && f.canopy.leaf_base_length > 0.0 && rosette;
+    // A base is drawn on every stem that asks for one, on the spiral the
+    // rosette's rows describe whether or not fronds stand above it
+    // (`branching::clothe_leaf_bases`), so a crown is not required. A spine is
+    // a leaflet hardened, and needs the compound leaf it hardens.
+    let bases = f.canopy.leaf_bases > 0 && f.canopy.leaf_base_length > 0.0;
     if bases {
         produced.push("persistent-leaf-base");
     }
@@ -264,6 +269,17 @@ pub fn derived(preset: Preset) -> Vec<&'static str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn leaf_bases_are_produced_without_a_crown_as_they_are_drawn() {
+        let mut f = crate::Family::default();
+        (f.canopy.leaf_bases, f.canopy.leaf_base_length) = (12, 0.4);
+        f.canopy.leaf_base_width = 1.0;
+        assert_eq!(f.canopy.rosette_fronds, 0);
+        let names = produced(&f);
+        assert!(names.contains(&"persistent-leaf-base"), "{names:?}");
+        assert!(names.contains(&"leaf-base-lattice"), "{names:?}");
+    }
 
     const ONE: Capability = Capability {
         name: "woody-axes",

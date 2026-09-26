@@ -1,3 +1,4 @@
+use crate::catalogue::{bounded, input, tuned, value, Blend, Bounds, Dial, Growth, Site};
 use crate::math::Transcendental;
 use crate::{
     envelope::Envelope,
@@ -8,29 +9,88 @@ use crate::{
 };
 use std::f64::consts::TAU;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
-pub struct SupernaturalParams {
-    pub enabled: bool,
-    /// How far a branch may wander from a straight course, as a share of
-    /// the tree's height. Raising it makes the wood wind and stray more. At
-    /// zero the wood holds a straight course and the spiral rate does
-    /// nothing, and any rise starts the wander.
-    pub writhe_amplitude: f64,
-    /// How long each of those wanders runs, as a share of the height.
-    /// Raising it gives fewer, lazier bends; lowering it gives tighter kinks.
-    pub writhe_wavelength: f64,
-    /// How many full turns the wander winds around the trunk over the
-    /// tree's height. Raising it tightens the spiral. At zero the wander
-    /// winds around nothing, and any rise starts the spiral.
-    pub spiral_rate: f64,
-    /// The ceiling on how hard the wander may pull in any one step, so
-    /// the other writhe rows cannot bend the wood arbitrarily.
-    #[cfg_attr(
-        feature = "json",
-        serde(default = "crate::ranges::default_max_writhe_magnitude")
-    )]
-    pub max_writhe_magnitude: f64,
+crate::catalogue::rows! {
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
+    pub struct SupernaturalParams in "/skeleton/bias/supernatural" {
+        /// Whether the supernatural field bends the wood. Off, the bias reads
+        /// the amplitude, wavelength and spiral as zero.
+        pub enabled: bool = "enabled" "switch" Bounds::closed(0.0, 1.0) => [Grow] {
+            wire: 43,
+            note: "Does not gate `maxWritheMagnitude`. A walk interpolates what each side \
+                applies.",
+            blend: Blend::Coupled,
+            dial: Dial::Excluded("Boolean, not a numeric scalar."),
+        },
+        /// How far a branch may wander from a straight course, as a share of
+        /// the tree's height. Raising it makes the wood wind and stray more. At
+        /// zero the wood holds a straight course and the spiral rate does
+        /// nothing, and any rise starts the wander.
+        pub writhe_amplitude: f64 = "writheAmplitude" "share of height"
+            Bounds::at_least(0.0) => [Grow] {
+            wire: 44,
+            check: input(Site::Bias, 2, "growth bias"),
+            applies: "`enabled` off",
+            note: "`TAU·spiralRate·amplitude` and `TAU·amplitude/wavelength` must be finite \
+                (`supernatural numeric range`).",
+            blend: Blend::Coupled,
+            dial: tuned("writhe_amplitude", "how far a branch wanders from a straight course, as \
+                a share of the height; at zero the wood holds a straight course and the spiral \
+                rate does nothing, and any rise starts the wander",
+                [0.0, 0.165], [0.025, 0.05], "capped").span([0.0, 0.165])
+                .cap("ceiling capped: the generator validates only a floor here (0), so there is \
+                    no validated ceiling to widen to; the ceiling stays at the preset span until \
+                    the generator authors one"),
+        },
+        /// How long each of those wanders runs, as a share of the height.
+        /// Raising it gives fewer, lazier bends; lowering it gives tighter kinks.
+        pub writhe_wavelength: f64 = "writheWavelength" "share of height"
+            Bounds::above(0.0) => [Grow] {
+            wire: 45,
+            check: input(Site::Writhe, 1, "writheWavelength"),
+            applies: "`enabled` off, or `writheAmplitude` zero",
+            note: "Checked while dormant too.",
+            blend: Blend::Coupled,
+            dial: tuned("writhe_wavelength", "how long one of those wanders runs, as a share of \
+                the height",
+                [0.225, 0.675], [0.05, 0.1], "capped").span([0.225, 0.675])
+                .cap("capped both ways: the generator validates no closed range here (only \
+                    positive and finite); the row stays at the preset span until the generator \
+                    authors one"),
+        },
+        /// How many full turns the wander winds around the trunk over the
+        /// tree's height. Raising it tightens the spiral. At zero the wander
+        /// winds around nothing, and any rise starts the spiral.
+        pub spiral_rate: f64 = "spiralRate" "turns over the height"
+            Bounds::at_least(0.0) => [Grow] {
+            wire: 47,
+            check: input(Site::Bias, 3, "growth bias"),
+            applies: "`enabled` off, or `writheAmplitude` zero",
+            blend: Blend::Coupled,
+            dial: tuned("spiral_rate", "how many turns the wander winds around the trunk over \
+                the height; at zero the wander winds around nothing, and any rise starts the \
+                spiral",
+                [0.0, 3.9], [0.5, 1.0], "capped").span([0.0, 3.9])
+                .cap("ceiling capped: the generator validates only a floor here (0), so there is \
+                    no validated ceiling to widen to; the ceiling stays at the preset span until \
+                    the generator authors one"),
+        },
+        /// The ceiling on how hard the wander may pull in any one step, so
+        /// the other writhe rows cannot bend the wood arbitrarily.
+        #[cfg_attr(
+            feature = "json",
+            serde(default = "crate::ranges::default_max_writhe_magnitude")
+        )]
+        pub max_writhe_magnitude: f64 = "maxWritheMagnitude" "-"
+            Bounds::closed(0.0, 8.0) => [Grow] {
+            wire: 46,
+            check: value(Site::Writhe, 0, "maxWritheMagnitude"),
+            note: "Applies with `enabled` off, and caps the lean term with the writhe.",
+            blend: Blend::Coupled,
+            dial: bounded("max_writhe_magnitude", "the ceiling on how hard the wander may pull \
+                in one step", [1.0, 2.0]),
+        },
+    }
 }
 impl Default for SupernaturalParams {
     fn default() -> Self {
@@ -46,18 +106,40 @@ impl SupernaturalParams {
         max_writhe_magnitude: crate::ranges::default_max_writhe_magnitude(),
     };
 }
-#[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
-pub struct BiasParams {
-    /// How strongly growth is pulled upward, most near the ground.
-    /// Raising it makes the tree grow more erect. At zero nothing pulls
-    /// growth upright, and any rise starts that pull.
-    pub gravitropism: f64,
-    /// How far the whole tree leans off vertical, increasing with
-    /// height. Raising it tips the trunk further in one direction. At zero
-    /// the tree stands plumb, and any rise starts the lean.
-    pub lean: f64,
-    pub supernatural: SupernaturalParams,
+crate::catalogue::rows! {
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
+    pub struct BiasParams in "/skeleton/bias" {
+        /// How strongly growth is pulled upward, most near the ground.
+        /// Raising it makes the tree grow more erect. At zero nothing pulls
+        /// growth upright, and any rise starts that pull.
+        pub gravitropism: f64 = "gravitropism" "-" Bounds::at_least(0.0) => [Grow] {
+            wire: 41,
+            check: input(Site::Bias, 0, "growth bias"),
+            growth: Growth::Differs("also decides when growth-path shoots sleep"),
+            dial: tuned("gravitropism", "how strongly growth is pulled upright, most near the \
+                ground; at zero nothing pulls growth upright, and any rise starts that pull",
+                [0.0, 1.05], [0.15, 0.3], "capped").span([0.0, 1.05])
+                .cap("ceiling capped: the generator validates only a floor here (0), so there is \
+                    no validated ceiling to widen to; the ceiling stays at the preset span until \
+                    the generator authors one"),
+        },
+        /// How far the whole tree leans off vertical, increasing with
+        /// height. Raising it tips the trunk further in one direction. At zero
+        /// the tree stands plumb, and any rise starts the lean.
+        pub lean: f64 = "lean" "-" Bounds::at_least(0.0) => [Grow] {
+            wire: 42,
+            check: input(Site::Bias, 1, "growth bias"),
+            note: "Capped together with the writhe by `maxWritheMagnitude`.",
+            dial: tuned("lean", "how far the whole tree leans off vertical; at zero the tree \
+                stands plumb, and any rise starts the lean",
+                [0.0, 0.075], [0.01, 0.02], "capped").span([0.0, 0.075])
+                .cap("ceiling capped: the generator validates only a floor here (0), so there is \
+                    no validated ceiling to widen to; the ceiling stays at the preset span until \
+                    the generator authors one"),
+        },
+        pub supernatural: SupernaturalParams,
+    }
 }
 impl Default for BiasParams {
     fn default() -> Self {
@@ -75,32 +157,15 @@ impl BiasParams {
         supernatural: SupernaturalParams::NONE,
     };
     pub fn validate(&self) -> Result<()> {
-        crate::ranges::MAX_WRITHE
-            .check(self.supernatural.max_writhe_magnitude, "maxWritheMagnitude")?;
-        if !self.supernatural.writhe_wavelength.is_finite()
-            || self.supernatural.writhe_wavelength <= 0.0
-        {
-            return Err(Error::InvalidInput("writheWavelength"));
-        }
-        if !(TAU * self.supernatural.spiral_rate * self.supernatural.writhe_amplitude).is_finite()
-            || !(TAU * self.supernatural.writhe_amplitude / self.supernatural.writhe_wavelength)
-                .is_finite()
+        let s = &self.supernatural;
+        crate::catalogue::check(SupernaturalParams::CHECKS, s, Site::Writhe)?;
+        if !(TAU * s.spiral_rate * s.writhe_amplitude).is_finite()
+            || !(TAU * s.writhe_amplitude / s.writhe_wavelength).is_finite()
         {
             return Err(Error::InvalidInput("supernatural numeric range"));
         }
-        if ![
-            self.gravitropism,
-            self.lean,
-            self.supernatural.writhe_amplitude,
-            self.supernatural.writhe_wavelength,
-            self.supernatural.spiral_rate,
-        ]
-        .iter()
-        .all(|v| v.is_finite() && *v >= 0.0)
-        {
-            return Err(Error::InvalidInput("growth bias"));
-        }
-        Ok(())
+        crate::catalogue::check(Self::CHECKS, self, Site::Bias)?;
+        crate::catalogue::check(SupernaturalParams::CHECKS, s, Site::Bias)
     }
 }
 #[derive(Clone)]

@@ -257,7 +257,7 @@ fn a_split_cuts_by_the_table_s_groups_and_falls_back_to_the_order_jev_gave() {
 
 /// The real table, so the large-group rule is measured and not asserted.
 fn table() -> Vec<Dial> {
-    serde_json::from_slice(include_bytes!("../data/dials.json")).unwrap()
+    telperion_jev::tuning::table::authored()
 }
 
 #[test]

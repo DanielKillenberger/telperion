@@ -9,10 +9,8 @@ use telperion_core::presets::Preset;
 use telperion_core::Family;
 use telperion_jev::tuning::actions::{candidate, Action, Dial};
 
-const TABLE: &str = include_str!("../data/dials.json");
-
 fn table() -> Vec<Dial> {
-    serde_json::from_str(TABLE).expect("data/dials.json is a dial table")
+    telperion_jev::tuning::table::authored()
 }
 
 /// The rows that once took their range from the preset span.
@@ -63,9 +61,11 @@ fn accepts(family: &str, dial: &Dial, value: f64) -> Result<(), String> {
 #[test]
 fn no_row_takes_a_wall_from_the_preset_span() {
     let rows = audited();
+    // 75 former preset-span rows, less `foliage_spacing` and `tip_clump`,
+    // whose rows are deprecated and offer no dial (fn-152).
     assert_eq!(
         rows.len(),
-        75,
+        73,
         "the audit covers the former preset-span rows"
     );
     for dial in &rows {

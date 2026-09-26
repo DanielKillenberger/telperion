@@ -25,18 +25,20 @@
 //! The rows, their rails and the apices are read with the placement compiled
 //! out, so the leaf plan can tell a frond crown from a clothed one; only the
 //! placing itself needs the `geometry` feature.
-use super::{range, CanopyParams};
+use super::CanopyParams;
 #[cfg(feature = "geometry")]
 use super::{
+    range,
     station::{matrix, reserve},
     Instances,
 };
-use crate::branching::MAX_LEAF_BASES;
 use crate::rng::Rng;
+#[cfg(feature = "geometry")]
+use crate::Error;
 use crate::{
     math::{Transcendental, Vec3},
     tree::Tree,
-    Error, Result,
+    Result,
 };
 
 /// The most fronds one rosette bears, and the most leaflets one rachis
@@ -98,44 +100,7 @@ pub(super) fn leaflets(p: &CanopyParams) -> usize {
 
 /// Every row on its rail, each refused by its own name.
 pub(crate) fn validate(p: &CanopyParams) -> Result<()> {
-    for (v, l, h, n) in [
-        (p.rosette_divergence, -1e9, 1e9, "rosette divergence"),
-        (p.rosette_pitch, 0., 180., "rosette pitch"),
-        (p.rosette_pitch_spread, 0., 180., "rosette pitch spread"),
-        (p.rosette_depth, 0., 100., "rosette depth"),
-        (p.rachis_length, 0., 1e3, "rachis length"),
-        (p.leaflet_pitch, 0., 90., "leaflet pitch"),
-        (p.rachis_arch, -1., 1., "rachis arch"),
-        (p.terminal_leaflet, 0., 1., "terminal leaflet"),
-        (p.leaf_base_length, 0., 10., "leaf base length"),
-        (p.leaf_base_radius, 0., 1., "leaf base radius"),
-        (p.leaf_base_pitch, 0., 180., "leaf base pitch"),
-        (p.leaf_base_weathering, 0., 1., "leaf base weathering"),
-        (p.leaf_base_width, 0., 2., "leaf base width"),
-        (p.leaf_base_flatness, 0., 1., "leaf base flatness"),
-        (p.acanthophyll_length, 0., 1., "acanthophyll length"),
-        (p.acanthophyll_pitch, 0., 90., "acanthophyll pitch"),
-        (p.skirt_pitch, 0., 180., "skirt pitch"),
-        (p.skirt_length, 0., 1., "skirt length"),
-    ] {
-        range(v, l, h, n)?;
-    }
-    if p.rosette_fronds > MAX_FRONDS {
-        return Err(Error::InvalidInput("rosette fronds"));
-    }
-    if p.skirt_fronds > MAX_FRONDS {
-        return Err(Error::InvalidInput("skirt fronds"));
-    }
-    if !(1..=MAX_LEAFLETS).contains(&p.leaflet_count) {
-        return Err(Error::InvalidInput("leaflet count"));
-    }
-    if p.leaf_bases > MAX_LEAF_BASES {
-        return Err(Error::InvalidInput("leaf bases"));
-    }
-    if p.acanthophylls > MAX_LEAFLETS {
-        return Err(Error::InvalidInput("acanthophylls"));
-    }
-    Ok(())
+    crate::catalogue::check(CanopyParams::CHECKS, p, crate::catalogue::Site::Rosette)
 }
 
 /// Every stem apex this tree offers, in identity order. The apex is the last

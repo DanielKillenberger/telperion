@@ -338,3 +338,34 @@ fn an_overlay_moves_the_rows_it_names_and_nothing_else() {
         Some(Error::InvalidInput("bark red"))
     );
 }
+
+/// A wire with several values of the wrong type is refused by the one that
+/// came first on the wire before the catalogue, whatever order the catalogue
+/// declares its groups in.
+#[test]
+fn the_first_malformed_row_on_the_wire_names_the_refusal() {
+    for (wire, first) in [
+        (
+            json!({"growth": {"rate": "bad"}, "shellDepth": "bad"}),
+            "/growth/rate",
+        ),
+        (
+            json!({"growth": {"rate": "bad", "workBudget": "bad"}}),
+            "/growth/rate",
+        ),
+        (
+            json!({"material": {"barkRed": "bad"}, "shellDepth": "bad"}),
+            "/material/barkRed",
+        ),
+        (
+            json!({"element": {"connectorLength": "bad"}, "skeleton": {"seed": "bad"}}),
+            "/element/connectorLength",
+        ),
+    ] {
+        assert_eq!(
+            parse(&wire).unwrap_err(),
+            Error::InvalidInput(first),
+            "{wire}"
+        );
+    }
+}

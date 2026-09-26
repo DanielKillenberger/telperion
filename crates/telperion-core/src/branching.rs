@@ -6,6 +6,7 @@ mod local;
 mod scaffold;
 mod specimen;
 mod traits;
+use crate::catalogue::{input, tuned, value, Blend, Bounds, Dial, Growth, Site};
 use crate::ranges::DEFAULT_MAX_NODES;
 use crate::{
     bias::{BiasParams, GrowthBias},
@@ -26,32 +27,74 @@ pub use specimen::{
 };
 pub use traits::HabitParams;
 pub const DEFAULT_STEP: f64 = 0.022;
-#[derive(Debug, Clone)]
-#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
-pub struct SkeletonParams {
-    pub seed: u32,
-    pub habit: HabitParams,
-    pub envelope: Envelope,
-    /// How many pull points are scattered through the crown for the
-    /// branches to grow toward. Raising it fills the crown with more and
-    /// finer branching; at an `attractor_weight` of zero none are
-    /// scattered and the row does nothing.
-    pub attractors: usize,
-    /// How many random tries the sampler may spend on each pull point
-    /// before it gives up. Raising it lets a narrow or deeply lobed crown
-    /// reach its full count of points instead of settling for fewer.
-    #[cfg_attr(
-        feature = "json",
-        serde(default = "crate::ranges::default_sampling_attempts_per_attractor")
-    )]
-    pub sampling_attempts_per_attractor: u32,
-    /// How far the crown grows in one step, as a share of the tree's
-    /// height; the distance at which a pull point is used up is twice it.
-    /// Raising it grows the crown in longer, coarser strides.
-    pub step: f64,
-    pub bias: BiasParams,
-    pub twigs: TwigParams,
-    pub growth: GrowthOverrides,
+crate::catalogue::rows! {
+    #[derive(Debug, Clone)]
+    #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
+    pub struct SkeletonParams in "/skeleton" {
+        /// The specimen: every stage keys its random stream by it, so another
+        /// seed draws another tree of the same family.
+        pub seed: u32 = "seed" "-" Bounds::closed(0.0, 4294967295.0) => [Grow, Plan, Expand] {
+            wire: 30,
+            note: "It reshapes the crown outline only where `irregularity` is above zero. Any \
+                u32 is a seed; nothing checks it.",
+            blend: Blend::Kept,
+            dial: Dial::Excluded("Identity: the seed names which tree is drawn, and the protocol \
+                fixes it. Stepping it is not a tuning move."),
+        },
+        pub habit: HabitParams,
+        pub envelope: Envelope,
+        /// How many pull points are scattered through the crown for the
+        /// branches to grow toward. Raising it fills the crown with more and
+        /// finer branching; at an `attractor_weight` of zero none are
+        /// scattered and the row does nothing.
+        pub attractors: usize = "attractors" "points"
+            Bounds::closed(0.0, crate::ranges::MAX_ATTRACTORS as f64) => [Grow] {
+            wire: 31,
+            check: input(Site::Sampling, 1, "attractors"),
+            applies: "`attractorWeight` zero",
+            note: "`attractorWeight` above zero with none is refused (`attractor weight and \
+                attractor count`); the scattered count sets the default `influenceRadius`.",
+            blend: Blend::Many,
+            dial: tuned("attractors", "pull points scattered through the crown for the branches \
+                to grow toward",
+                [1.0, 1000000.0], [100.0, 200.0], "validated bound").span([250.0, 750.0]),
+        },
+        /// How many random tries the sampler may spend on each pull point
+        /// before it gives up. Raising it lets a narrow or deeply lobed crown
+        /// reach its full count of points instead of settling for fewer.
+        #[cfg_attr(
+            feature = "json",
+            serde(default = "crate::ranges::default_sampling_attempts_per_attractor")
+        )]
+        pub sampling_attempts_per_attractor: u32 = "samplingAttemptsPerAttractor" "tries"
+            crate::ranges::POSITIVE_COUNT.bounds() => [Grow] {
+            wire: 32,
+            check: value(Site::Sampling, 0, "samplingAttemptsPerAttractor"),
+            applies: "`attractorWeight` zero",
+            note: "Too few tries for the envelope's shape is a hard error at the scatter.",
+            blend: Blend::Count,
+            dial: Dial::Excluded("A sampling budget: it decides how hard the sampler looks for \
+                room for a pull point, not what the tree looks like \
+                (crates/telperion-core/src/envelope.rs:170)."),
+        },
+        /// How far the crown grows in one step, as a share of the tree's
+        /// height; the distance at which a pull point is used up is twice it.
+        /// Raising it grows the crown in longer, coarser strides.
+        pub step: f64 = "step" "share of height" Bounds::above(0.0) => [Grow] {
+            wire: 33,
+            check: input(Site::Step, 0, "growth step"),
+            note: "Sets the default step, kill and influence distances (`default_growth`); an \
+                overriding `stepDistance` leaves kill and influence on `height·step`.",
+            dial: tuned("step", "how far the crown grows in one step, as a share of the height",
+                [0.011, 0.033], [0.0025, 0.005], "capped").span([0.011, 0.033])
+                .cap("capped both ways: the generator validates no closed range here (only \
+                    positive and finite); the row stays at the preset span until the generator \
+                    authors one"),
+        },
+        pub bias: BiasParams,
+        pub twigs: TwigParams,
+        pub growth: GrowthOverrides,
+    }
 }
 impl Default for SkeletonParams {
     fn default() -> Self {
@@ -69,30 +112,82 @@ impl Default for SkeletonParams {
         }
     }
 }
-/// Metre-valued overrides applied after envelope-derived distances.
-#[derive(Debug, Clone, Copy, Default)]
-#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
-pub struct GrowthOverrides {
-    /// Metres a pull point may reach to steer the wood nearest it; unset,
-    /// the crown's own volume and the point count decide it. Raising it
-    /// lets distant points draw a branch across the crown.
-    pub influence_radius: Option<f64>,
-    /// Metres within which a pull point counts as reached and stops
-    /// pulling; unset, twice the step distance. Raising it uses the points
-    /// up sooner, so branches stop shorter and the crown fills coarsely.
-    pub kill_distance: Option<f64>,
-    /// Metres of wood laid down in one growth step; unset, the tree's
-    /// height times `step`. Raising it lays down longer, coarser segments.
-    pub step_distance: Option<f64>,
-    /// Metres of bare trunk before the crown may start; unset, the
-    /// envelope's own crown base. Raising it lifts the whole crown and
-    /// leaves a longer clear bole.
-    pub trunk_height: Option<f64>,
-    /// The ceiling on nodes the crown may grow; unset, the shipped
-    /// default. Growth stops at it, so raising it changes only a crown
-    /// that reached it.
-    pub max_nodes: Option<usize>,
-    pub max_turn_per_step: Option<f64>,
+crate::catalogue::rows! {
+    /// Metre-valued overrides applied after envelope-derived distances.
+    #[derive(Debug, Clone, Copy, Default)]
+    #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
+    pub struct GrowthOverrides in "/skeleton/growth" {
+        /// Metres a pull point may reach to steer the wood nearest it; unset,
+        /// the crown's own volume and the point count decide it. Raising it
+        /// lets distant points draw a branch across the crown.
+        pub influence_radius: Option<f64> = "influenceRadius" "m" Bounds::at_least(0.0) => [Grow] {
+            wire: 75,
+            applies: "`attractorWeight` zero",
+            note: "Unset: `max(9·height·step, 2·cbrt(crown volume / points))`. Judged in the \
+                resolved configuration (`colonization configuration`).",
+            blend: Blend::Coupled,
+            dial: Dial::Excluded("An unset `Option` in every shipped preset, so the wire row \
+                reads null and there is no current value to step \
+                (crates/telperion-core/src/branching.rs:72)."),
+        },
+        /// Metres within which a pull point counts as reached and stops
+        /// pulling; unset, twice the step distance. Raising it uses the points
+        /// up sooner, so branches stop shorter and the crown fills coarsely.
+        pub kill_distance: Option<f64> = "killDistance" "m" Bounds::at_least(0.0) => [Grow] {
+            wire: 76,
+            applies: "`attractorWeight` zero",
+            note: "Acts as `min(kill, growth unit)`, so above one unit it does nothing; unset, \
+                `2·height·step`. Judged in the resolved configuration (`colonization \
+                configuration`).",
+            blend: Blend::Coupled,
+            dial: Dial::Excluded("Null in every shipped preset, as above."),
+        },
+        /// Metres of wood laid down in one growth step; unset, the tree's
+        /// height times `step`. Raising it lays down longer, coarser segments.
+        pub step_distance: Option<f64> = "stepDistance" "m" Bounds::above(0.0) => [Grow] {
+            wire: 77,
+            note: "Unset: `height·step`; it does not move the default kill or influence \
+                distance. Judged in the resolved configuration (`colonization configuration`).",
+            blend: Blend::Coupled,
+            dial: Dial::Excluded("Null in every shipped preset, as above."),
+        },
+        /// Metres of bare trunk before the crown may start; unset, the
+        /// envelope's own crown base. Raising it lifts the whole crown and
+        /// leaves a longer clear bole.
+        pub trunk_height: Option<f64> = "trunkHeight" "m" Bounds::above(0.0) => [Grow] {
+            wire: 78,
+            note: "Refused at or below zero (`trunkHeight`) by `resolved_growth`, then judged in \
+                the resolved configuration. Unset: `height·crownBase`; below that the stems' \
+                bole, fork and top keep `height·crownBase`.",
+            blend: Blend::Coupled,
+            dial: Dial::Excluded("Null in every shipped preset, as above."),
+        },
+        /// The ceiling on nodes the crown may grow; unset, the shipped
+        /// default. Growth stops at it, so raising it changes only a crown
+        /// that reached it.
+        pub max_nodes: Option<usize> = "maxNodes" "nodes"
+            crate::ranges::POSITIVE_COUNT.bounds() => [Grow] {
+            wire: 79,
+            growth: Growth::Differs("zero builds an empty capped seedling"),
+            note: "Unset: 250 000. Zero is refused by `Family::validate` (`maxNodes`) and above \
+                u32::MAX by `ranges::max_nodes`.",
+            blend: Blend::Coupled,
+            dial: Dial::Excluded("Null in every shipped preset, and a resource cap besides."),
+        },
+        /// The most a growing shoot may turn in one step, in degrees; unset, 35.
+        /// At 180 or more nothing is limited.
+        pub max_turn_per_step: Option<f64> = "maxTurnPerStep" "degrees"
+            Bounds::at_least(0.0) => [Grow] {
+            wire: 80,
+            note: "`presets::by_identity` sets 35 where a table leaves it unset, so a table and \
+                its identity differ here. Judged in the resolved configuration (`colonization \
+                configuration`).",
+            blend: Blend::Coupled,
+            dial: Dial::Excluded("Null in five of the seven families, including the beech a run \
+                is pointed at. A proposal batch reads every dial's current value off the wire \
+                and refuses the whole batch when one is null (src/tuning/judgments.rs:137)."),
+        },
+    }
 }
 impl SkeletonParams {
     pub fn resolved_growth(&self, scattered: usize) -> Result<GrowthConfig> {

@@ -1,29 +1,60 @@
 //! Structural fork solve and the separate branch-local taper contract.
 mod history;
 mod incremental;
+use crate::catalogue::{bounded, tuned, value, Bounds, Site};
 use crate::math::Transcendental;
 use crate::{envelope::Envelope, tree::Tree, Error, Result};
 pub(crate) use incremental::Pipes;
-#[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
-pub struct RadiusParams {
-    /// The trunk's radius at the ground as a share of the tree's height,
-    /// so raising it thickens every piece of wood in proportion.
-    pub trunk_radius: f64,
-    /// How wood divides at a fork. The parent's area is the sum of the
-    /// children's radii raised to this power, so raising it leaves the
-    /// children thicker for the same parent.
-    pub fork_exponent: f64,
-    /// How fast wood thins along its own length. Raising it makes a
-    /// branch narrow more sharply from its base to its tip.
-    pub length_taper: f64,
-    /// The ceiling on accumulated taper, so no single long branch can
-    /// thin away to nothing. Raising it lets long branches taper further.
-    #[cfg_attr(
-        feature = "json",
-        serde(default = "crate::ranges::default_max_taper_exponent")
-    )]
-    pub max_taper_exponent: f64,
+crate::catalogue::rows! {
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
+    pub struct RadiusParams in "/radii" {
+        /// The trunk's radius at the ground as a share of the tree's height,
+        /// so raising it thickens every piece of wood in proportion.
+        pub trunk_radius: f64 = "trunkRadius" "share of height"
+            Bounds::closed(4e-6, f64::MAX) => [Grow, Plan] {
+            wire: 81,
+            check: value(Site::Radius, 1, "trunkRadius"),
+            note: "Also sizes the leaf box where `canopy.shootRadius` is above zero or short \
+                shoots grow.",
+            dial: tuned("trunk_radius", "the trunk's radius at the ground as a share of the \
+                height",
+                [4e-06, 0.023], [0.002, 0.004], "capped").span([0.011, 0.023])
+                .cap("ceiling capped: the generator validates only a floor here (4e-6), so there \
+                    is no validated ceiling to widen to; the ceiling stays at the preset span \
+                    until the generator authors one"),
+        },
+        /// How wood divides at a fork. The parent's area is the sum of the
+        /// children's radii raised to this power, so raising it leaves the
+        /// children thicker for the same parent.
+        pub fork_exponent: f64 = "forkExponent" "-" Bounds::closed(1.0, 8.0) => [Grow] {
+            wire: 82,
+            check: value(Site::Radius, 2, "forkExponent"),
+            dial: bounded("fork_exponent", "how wood divides at a fork; higher leaves the \
+                children thicker", [1.0, 2.0]),
+        },
+        /// How fast wood thins along its own length. Raising it makes a
+        /// branch narrow more sharply from its base to its tip.
+        pub length_taper: f64 = "lengthTaper" "per height" Bounds::closed(0.0, f64::MAX) => [Grow] {
+            wire: 83,
+            check: value(Site::Radius, 3, "lengthTaper"),
+            dial: tuned("length_taper", "how fast wood thins along its own length",
+                [0.0, 0.8], [0.1, 0.2], "capped").span([0.0, 0.8])
+                .cap("ceiling capped: the generator validates only a floor here (0), so there is \
+                    no validated ceiling to widen to; the ceiling stays at the preset span until \
+                    the generator authors one"),
+        },
+        /// The ceiling on accumulated taper, so no single long branch can
+        /// thin away to nothing. Raising it lets long branches taper further.
+        #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_max_taper_exponent"))]
+        pub max_taper_exponent: f64 = "maxTaperExponent" "-" Bounds::closed(0.0, 64.0) => [Grow] {
+            wire: 84,
+            check: value(Site::Radius, 0, "maxTaperExponent"),
+            applies: "`lengthTaper` zero",
+            dial: bounded("max_taper_exponent", "the ceiling on accumulated taper along one long \
+                branch", [2.0, 4.0]).span([6.0, 18.0]),
+        },
+    }
 }
 impl Default for RadiusParams {
     fn default() -> Self {
@@ -37,10 +68,7 @@ impl Default for RadiusParams {
 }
 impl RadiusParams {
     pub fn resolved(self) -> Result<Self> {
-        crate::ranges::MAX_TAPER.check(self.max_taper_exponent, "maxTaperExponent")?;
-        crate::ranges::TRUNK_RADIUS.check(self.trunk_radius, "trunkRadius")?;
-        crate::ranges::FORK_EXPONENT.check(self.fork_exponent, "forkExponent")?;
-        crate::ranges::LENGTH_TAPER.check(self.length_taper, "lengthTaper")?;
+        crate::catalogue::check(Self::CHECKS, &self, Site::Radius)?;
         Ok(self)
     }
 }

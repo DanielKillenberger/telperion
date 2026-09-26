@@ -2,7 +2,8 @@
 //! appearance and sizes become the wire values a species' first tuned tree
 //! starts from. `data/profile-to-preset.json` says which metric reaches which
 //! path and by which formula; code owns every calculation, clamps each value
-//! to its dial in `data/dials.json` and records where it came from. The table
+//! to its dial in the generated dial table (`tuning::table`) and records
+//! where it came from. The table
 //! names no species: a row's condition reads the family's own values.
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -10,7 +11,6 @@ use serde_json::Value;
 use crate::tuning::actions::Dial;
 
 pub const TABLE_JSON: &str = include_str!("../../data/profile-to-preset.json");
-const DIALS_JSON: &str = include_str!("../../data/dials.json");
 
 /// The metrics `species_measure` writes a reading a gate can pass on: a
 /// `measured` or `measured_proxy` status at least for some families. Its
@@ -223,7 +223,7 @@ impl Builder {
 pub fn derive(profile: &Value, family: &Value) -> Result<Derived, String> {
     let table: Table = parse(TABLE_JSON, "profile-to-preset table")?;
     let mut b = Builder {
-        dials: parse(DIALS_JSON, "dial table")?,
+        dials: crate::tuning::table::authored(),
         out: Derived::default(),
     };
     for (entry, a) in profile["appearance"].as_object().into_iter().flatten() {

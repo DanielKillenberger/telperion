@@ -1,4 +1,5 @@
-//! The authored dial table, checked against the generator's own wire schema.
+//! The dial table the catalogue generates, checked against the generator's
+//! own wire schema, and the two ways a tuning config names its dials.
 //!
 //! Offline: no model is called, nothing is rendered and nothing is captured.
 //! Every claim here is one the generator answers in process - which rows the
@@ -9,9 +10,7 @@ use telperion_core::params;
 use telperion_core::presets::Preset;
 use telperion_jev::sha256_hex;
 use telperion_jev::tuning::actions::{candidate, Action, Dial};
-
-const TABLE: &str = include_str!("../data/dials.json");
-const EXCLUDED: &str = include_str!("../data/dials.excluded.json");
+use telperion_jev::tuning::table::{self, Dials};
 
 /// The six rows the pilot qualified, exactly as the calibration manifests saw
 /// them. Their hash is pinned below: a change to `Dial`'s shape that moved a
@@ -72,11 +71,11 @@ const SWITCHES_AT_ZERO: [&str; 36] = [
 ];
 
 fn table() -> Vec<Dial> {
-    serde_json::from_str(TABLE).expect("data/dials.json is a dial table")
+    table::authored()
 }
 
 fn excluded() -> BTreeMap<String, String> {
-    serde_json::from_str(EXCLUDED).expect("data/dials.excluded.json is path -> reason")
+    table::excluded()
 }
 
 /// Every family the table has to answer for: the shipped catalogue and the
@@ -169,27 +168,12 @@ fn every_authored_row_is_a_dial_the_loop_can_ask_about() {
         assert!(dial.score_visible.is_some(), "{}", dial.id);
         assert!(
             matches!(
-                dial.meaning_basis.as_deref(),
-                Some("doc comment" | "use site" | "prototype")
-            ),
-            "{}: meaning basis {:?}",
-            dial.id,
-            dial.meaning_basis
-        );
-        assert!(
-            matches!(
                 dial.range_basis.as_deref(),
                 Some("validated bound" | "capped" | "authored")
             ),
             "{}: range basis {:?}",
             dial.id,
             dial.range_basis
-        );
-        assert!(
-            dial.source.as_deref().is_some_and(|s| s.contains(".rs:")),
-            "{}: source {:?}",
-            dial.id,
-            dial.source
         );
     }
 }
@@ -290,5 +274,80 @@ fn the_six_rows_the_pilot_qualified_still_hash_to_what_it_paid_for() {
             "the table restated the pilot row {}",
             dial.id
         );
+    }
+}
+
+/// A config written before the catalogue carries its own copy of the dials,
+/// and replays on exactly that copy: the same dials and the same table hash
+/// its calibrations were qualified against.
+#[test]
+fn an_embedded_dial_config_replays_on_its_own_copy() {
+    let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/pilot-config.json");
+    let config: Value = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+    let dials: Dials = serde_json::from_value(config["dials"].clone()).unwrap();
+    let embedded: Vec<Dial> = serde_json::from_value(config["dials"].clone()).unwrap();
+    let resolved = dials.resolve().unwrap();
+    assert_eq!(
+        sha256_hex(&serde_json::to_vec(&resolved).unwrap()),
+        sha256_hex(&serde_json::to_vec(&embedded).unwrap())
+    );
+    assert_eq!(
+        sha256_hex(&serde_json::to_vec(&resolved).unwrap()),
+        PILOT_TABLE_SHA256,
+        "the pilot config's dials are the calibrated pilot table"
+    );
+}
+
+/// A new config names dials by id at the table's revision, with explicit
+/// overrides; each is resolved from the generated table.
+#[test]
+fn a_named_dial_config_resolves_from_the_table() {
+    let named = |catalogue: &str, ids: &[&str], overrides: Value| -> Dials {
+        serde_json::from_value(serde_json::json!({
+            "catalogue": catalogue, "ids": ids, "overrides": overrides,
+        }))
+        .unwrap()
+    };
+    let now = table::revision();
+    let dials = named(
+        &now,
+        &["limbs", "crookedness"],
+        serde_json::json!({"crookedness": {"max": 12.0}}),
+    )
+    .resolve()
+    .unwrap();
+    let authored = table();
+    let limbs = authored.iter().find(|d| d.id == "limbs").unwrap();
+    assert_eq!(
+        serde_json::to_value(&dials[0]).unwrap(),
+        serde_json::to_value(limbs).unwrap()
+    );
+    assert_eq!(
+        (dials[1].id.as_str(), dials[1].min, dials[1].max),
+        ("crookedness", 0.0, 12.0)
+    );
+
+    let refusals = [
+        (
+            named("0000", &["limbs"], serde_json::json!({})),
+            "catalogue revision 0000",
+        ),
+        (
+            named(&now, &["no_such_dial"], serde_json::json!({})),
+            "unknown dial id no_such_dial",
+        ),
+        (
+            named(&now, &["limbs"], serde_json::json!({"taper": {"min": 0.1}})),
+            "override for dial taper",
+        ),
+        (
+            named(&now, &["limbs"], serde_json::json!({"limbs": {"min": 9.0}})),
+            "invalid authored dial limbs",
+        ),
+    ];
+    for (dials, expected) in refusals {
+        let error = dials.resolve().unwrap_err();
+        assert!(error.contains(expected), "{error}");
     }
 }

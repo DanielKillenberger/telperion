@@ -63,6 +63,25 @@ fn a_revision_offers_the_table_rows_it_names_and_reports_the_gone() {
     assert!(all.len() > 100 && gone.is_empty());
 }
 
+/// The dial table is compiled into the runner and keyed by the checkout's
+/// reference: the reference this runner renders is accepted, one that moved
+/// is refused, and a named-dial config resolves at the table's revision.
+#[test]
+fn a_revision_is_refused_by_a_runner_built_from_another_catalogue() {
+    let on_disk = std::fs::read_to_string(tune::reference()).unwrap();
+    assert_eq!(tune::same_catalogue(&on_disk), Ok(()));
+    let moved = on_disk.replacen("window", "range", 1);
+    let refused = tune::same_catalogue(&moved).unwrap_err();
+    assert!(refused.contains("rebuild it"), "{refused}");
+    let named =
+        json!({"catalogue": telperion_jev::tuning::table::revision(), "ids": ["leaf_bases"]});
+    let (rows, gone) = tune::live_dials(&named).unwrap();
+    assert_eq!(
+        (rows.len(), rows[0].id.as_str(), gone.len()),
+        (1, "leaf_bases", 0)
+    );
+}
+
 #[test]
 fn a_revision_starts_from_the_last_kept_tree() {
     let dir = scratch("base");

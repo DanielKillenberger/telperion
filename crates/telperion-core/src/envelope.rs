@@ -1,36 +1,97 @@
+use crate::catalogue::{bounded, input, tuned, Bounds, Site};
 use crate::math::Transcendental;
 use crate::{math::Vec3, noise, rng::Rng, Error, Result};
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
-pub struct Envelope {
-    /// The tree's height in metres. Everything else in the crown is
-    /// measured against it: the crown base sits at `crown_base` of it and
-    /// the widest radius is `spread` times it.
-    pub height: f64,
-    /// Where the crown starts, as a share of the height: below it the
-    /// crown has no radius at all. Raising it lifts the crown and leaves a
-    /// longer bare trunk.
-    pub crown_base: f64,
-    /// The crown's widest radius as a share of the height, so raising it
-    /// widens the crown without making the tree taller.
-    pub spread: f64,
-    /// Where the crown is widest, as a share of the way from the crown
-    /// base to the top. Raising it carries the widest part higher, so the
-    /// crown reads top-heavy.
-    pub fullness: f64,
-    /// How square the crown's outline is. Raising it holds the crown near
-    /// its full width further toward the top and the base, so the profile
-    /// reads boxier; lowering it tapers the outline to a point.
-    pub shoulder: f64,
-    /// How far the outline departs from the smooth shell, as a fraction of the
-    /// radius there. 0 is the axisymmetric superellipse every tree was before,
-    /// and every shipped table that leaves it there is untouched.
-    pub irregularity: f64,
-    /// The wavelength of that departure over the shell's own surface, as a
-    /// fraction of the tree's height: small is many small lumps, 1 is a lobe
-    /// as long as the tree is tall.
-    pub lobe_scale: f64,
+crate::catalogue::rows! {
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
+    pub struct Envelope in "/skeleton/envelope" {
+        /// The tree's height in metres. Everything else in the crown is
+        /// measured against it: the crown base sits at `crown_base` of it and
+        /// the widest radius is `spread` times it.
+        pub height: f64 = "height" "m" Bounds::at_least(0.0) => [Grow, Plan, Expand, Cull] {
+            wire: 34,
+            check: input(Site::Envelope, 0, "envelope"),
+            note: "The family also refuses zero (`surface height`), and `height·spread` must be \
+                finite (`envelope`). It scales trunk radius, length taper, surface twist and \
+                flare, canopy spacing and the writhe.",
+            dial: tuned("envelope_height", "the tree's height in metres",
+                [6.5, 40.5], [5.0, 10.0], "capped").span([6.5, 40.5])
+                .cap("capped both ways: the envelope validates only a floor of 0 \
+                    (envelope.rs:58) and no ceiling, and a clump refuses a crown that low (its \
+                    stems stand outside the envelope), so the row stays at the preset span until \
+                    the generator authors one"),
+        },
+        /// Where the crown starts, as a share of the height: below it the
+        /// crown has no radius at all. Raising it lifts the crown and leaves a
+        /// longer bare trunk.
+        pub crown_base: f64 = "crownBase" "share of height"
+            Bounds::closed(0.0, 1.0) => [Grow, Expand, Cull] {
+            wire: 35,
+            check: input(Site::Envelope, 1, "envelope"),
+            note: "`height·crownBase` is the default `trunkHeight`, the floor of the stems' bole \
+                and the lowest a short shoot grows.",
+            dial: bounded("crown_base", "where the crown starts, as a share of the height",
+                [0.15, 0.3]),
+        },
+        /// The crown's widest radius as a share of the height, so raising it
+        /// widens the crown without making the tree taller.
+        pub spread: f64 = "spread" "share of height" Bounds::at_least(0.0) => [Grow, Plan, Cull] {
+            wire: 36,
+            check: input(Site::Envelope, 2, "envelope"),
+            note: "The cull shell is `shellDepth·height·spread` and the shed shell \
+                `sheddingThreshold·height·spread`.",
+            dial: tuned("spread", "the crown's widest radius as a share of the height",
+                [0.0, 0.675], [0.1, 0.2], "capped").span([0.175, 0.675])
+                .cap("ceiling capped: the generator validates only a floor here (0), so there is \
+                    no validated ceiling to widen to; the ceiling stays at the preset span until \
+                    the generator authors one"),
+        },
+        /// Where the crown is widest, as a share of the way from the crown
+        /// base to the top. Raising it carries the widest part higher, so the
+        /// crown reads top-heavy.
+        pub fullness: f64 = "fullness" "share" Bounds::closed(0.0, 1.0) => [Grow, Cull] {
+            wire: 37,
+            check: input(Site::Envelope, 3, "envelope"),
+            dial: bounded("fullness", "where the crown is widest between its base and the top",
+                [0.15, 0.3]),
+        },
+        /// How square the crown's outline is. Raising it holds the crown near
+        /// its full width further toward the top and the base, so the profile
+        /// reads boxier; lowering it tapers the outline to a point.
+        pub shoulder: f64 = "shoulder" "-" Bounds::above(0.0) => [Grow, Cull] {
+            wire: 38,
+            check: input(Site::Envelope, 4, "envelope"),
+            dial: tuned("shoulder", "how square the crown's outline is; lower tapers it to a \
+                point",
+                [0.4, 2.8], [0.5, 1.0], "capped").span([0.4, 2.8])
+                .cap("capped both ways: the generator validates no closed range here (only \
+                    positive and finite); the row stays at the preset span until the generator \
+                    authors one"),
+        },
+        /// How far the outline departs from the smooth shell, as a fraction of the
+        /// radius there. 0 is the axisymmetric superellipse every tree was before,
+        /// and every shipped table that leaves it there is untouched.
+        pub irregularity: f64 = "irregularity" "share of radius"
+            Bounds::closed(0.0, 0.5) => [Grow, Plan] {
+            wire: 39,
+            check: input(Site::Outline, 0, "envelope irregularity"),
+            note: "Growth containment and the leaf box read it; the leaf cull, the shed and the \
+                GPU cull profile read the smooth outline.",
+            dial: tuned("irregularity", "crown envelope lobes and hollows",
+                [0.0, 0.5], [0.08, 0.16], "authored"),
+        },
+        /// The wavelength of that departure over the shell's own surface, as a
+        /// fraction of the tree's height: small is many small lumps, 1 is a lobe
+        /// as long as the tree is tall.
+        pub lobe_scale: f64 = "lobeScale" "share of height" Bounds::closed(0.05, 1.0) => [Grow] {
+            wire: 40,
+            check: input(Site::Outline, 1, "envelope lobe scale"),
+            applies: "`irregularity` zero, except that the curtain's drop search steps by it",
+            dial: bounded("lobe_scale", "how long one of those lobes runs, as a share of the \
+                height", [0.15, 0.3]),
+        },
+    }
 }
 impl Default for Envelope {
     fn default() -> Self {
@@ -47,35 +108,11 @@ impl Default for Envelope {
 }
 impl Envelope {
     pub fn validate(&self) -> Result<()> {
-        let values = [
-            self.height,
-            self.crown_base,
-            self.spread,
-            self.fullness,
-            self.shoulder,
-        ];
-        if !values.iter().all(|v| v.is_finite())
-            || self.height < 0.0
-            || self.spread < 0.0
-            || !(0.0..=1.0).contains(&self.crown_base)
-            || !(0.0..=1.0).contains(&self.fullness)
-            || self.shoulder <= 0.0
-            || !(self.height * self.spread).is_finite()
-        {
+        crate::catalogue::check(Self::CHECKS, self, Site::Envelope)?;
+        if !(self.height * self.spread).is_finite() {
             return Err(Error::InvalidInput("envelope"));
         }
-        // The outline's two rows are refused rather than clamped, and by name:
-        // a table that asks for an amplitude or a wavelength off its rail is a
-        // table with a mistake in it.
-        for (value, low, high, row) in [
-            (self.irregularity, 0.0, 0.5, "envelope irregularity"),
-            (self.lobe_scale, 0.05, 1.0, "envelope lobe scale"),
-        ] {
-            if !value.is_finite() || !(low..=high).contains(&value) {
-                return Err(Error::InvalidInput(row));
-            }
-        }
-        Ok(())
+        crate::catalogue::check(Self::CHECKS, self, Site::Outline)
     }
     pub fn max_radius(&self) -> f64 {
         self.height * self.spread
