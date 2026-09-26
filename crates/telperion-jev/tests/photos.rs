@@ -211,6 +211,10 @@ fn a_run_from_a_name_finds_checks_and_records_its_own_photographs() {
             ),
         ]
     );
+    // The id names the view: Tune's cells and the inventory name a
+    // reference by it, and a whole tree must read as one (fn-157).
+    let ids: Vec<&str> = list[1..].iter().map(|r| r["id"].as_str().unwrap()).collect();
+    assert_eq!(ids, ["photo-2-whole", "photo-3-bark"]);
     let bark = &list[2];
     assert_eq!(bark["attribution"], "Ann, Wikimedia Commons, CC0");
     let copy = photos::copy(&paths, bark["asset_sha256"].as_str().unwrap()).unwrap();
