@@ -1,8 +1,10 @@
 # The recorded beech run (fn-149 R6, fn-157 R1 and R5)
 
 `tests/replay.rs` replays this recording from the bare seed through Start
-with no network and no key. It is the runner's proof, recorded live on
-2026-09-26 from the beech's native range (fn-157).
+with no network and no key, and through Tune's first revision on a machine
+with a hardware GPU (`max_rounds` 1: the baseline and one round; host,
+2026-09-26). It is the runner's proof, recorded live on 2026-09-26 from the
+beech's native range (fn-157).
 
 - `seed/manifest.json`: the bare seed, no source; `taxon.native_range` is
   Europe, with the German and French names (host decision, 2026-09-26).
@@ -17,12 +19,11 @@ with no network and no key. It is the runner's proof, recorded live on
   Wikipedia lead, a scrape of each gathered document and the EUFORGEN
   guideline's PDF parse), 176 Jev calls, 19 Wikimedia Commons answers and
   images, and 6 vision adapter answers (the screen, the inventory, the
-  shot's two looks and the baseline's comparison). Tune's recorded Jev
-  requests were migrated to the content-named inventory (eef7af1e) and
-  every answer refiled under today's keys (`tape_trim`,
-  `tape-adapter.py rekey:`). A replay opens every file here; it stops at
-  the first round's sheet, recorded in an order the runner no longer lays
-  out (FRICTION.md).
+  shot's two looks, and the baseline's two comparisons, one per seed). Tune's
+  recorded requests were migrated to the content-named inventory and every
+  answer refiled under today's keys, the newest kept where two became one
+  question (`tape_trim`, `tape-adapter.py rekey:`). A replay opens every
+  file here.
 
 The repository is public, so a page that is not openly licensed keeps only
 what the run quoted from it (owner, 2026-09-25): the passages that reached a
