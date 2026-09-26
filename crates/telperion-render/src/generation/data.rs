@@ -2,7 +2,7 @@ use bytemuck::{Pod, Zeroable};
 use telperion_core::{
     foliage::{prepared::PreparedStations, Element, Reference, TwigPlacement},
     math::Vec3,
-    Family,
+    pipeline::executor::LeafInput,
 };
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
@@ -33,14 +33,14 @@ pub(super) fn vector(p: Vec3, w: f64) -> [f32; 4] {
     [p.x as f32, p.y as f32, p.z as f32, w as f32]
 }
 pub(super) fn config<R>(
-    f: &Family,
+    l: &LeafInput,
     t: TwigPlacement,
     p: &PreparedStations<R>,
     e: &Element,
     r: Reference,
 ) -> Config {
-    let c = f.canopy;
-    let env = f.skeleton.envelope;
+    let c = l.canopy;
+    let env = l.envelope;
     Config {
         counts: [
             p.count,
@@ -48,12 +48,7 @@ pub(super) fn config<R>(
             e.positions.len() as u32,
             p.ring_size,
         ],
-        random: [
-            f.skeleton.seed,
-            t.stations_per_internode,
-            p.count.div_ceil(256),
-            129,
-        ],
+        random: [l.seed, t.stations_per_internode, p.count.div_ceil(256), 129],
         box_min: vector(r.min, 0.0),
         box_extent: vector(r.extent, 0.0),
         shape: [
@@ -71,7 +66,7 @@ pub(super) fn config<R>(
         size: [
             c.size as f32,
             c.size_variation as f32,
-            (f.shell_depth * env.max_radius()) as f32,
+            (l.shell_depth * env.max_radius()) as f32,
             0.0,
         ],
         envelope: [

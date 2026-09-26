@@ -4,16 +4,17 @@
 use super::*;
 use crate::{
     branching::SpecimenBuffers,
-    foliage,
-    mesh::{self, TreeMesh},
-    surface,
+    material::MaterialParams,
+    mesh::TreeMesh,
+    pipeline::{executor, Inputs},
     tree::{Node, NodeKind, Tree},
 };
 use std::collections::BTreeMap;
 
 pub struct SpecimenView {
     specimen: Specimen,
-    family: Family,
+    inputs: Inputs,
+    material: MaterialParams,
     buffers: SpecimenBuffers,
     age: f64,
 }
@@ -24,7 +25,8 @@ impl SpecimenView {
         let age = specimen.age();
         Ok(Self {
             specimen,
-            family: family.clone(),
+            inputs: Inputs::of(family),
+            material: family.material,
             buffers,
             age,
         })
@@ -35,8 +37,8 @@ impl SpecimenView {
     pub fn frontier(&self) -> f64 {
         self.specimen.age()
     }
-    pub fn material(&self) -> crate::material::MaterialParams {
-        self.family.material
+    pub fn material(&self) -> MaterialParams {
+        self.material
     }
     pub fn seek(&mut self, age: f64) -> Result<()> {
         // Validate before any advance. Backward seeks use exactly the same
@@ -62,54 +64,26 @@ impl SpecimenView {
         self.age = age.min(self.frontier());
         Ok(())
     }
+    /// The age on screen, presented through the pipeline: the recorded
+    /// leaves are the record's; short shoots are the wood's, drawn from the
+    /// wood on screen by its identity, as a one-shot build of it would draw
+    /// them.
     pub fn mesh(&self) -> Result<TreeMesh> {
         let tree = self.tree()?;
-        let wood = surface::build(&tree, self.specimen.surface_height(), &self.family.surface)?;
-        let element = foliage::build_element(self.family.element)?;
         let placements = self.buffers.placements.values();
-        let mut instances = foliage::Instances {
-            leaves: placements.clone().map(|p| p.leaf).collect(),
-            reference: foliage::Reference::of(&self.family)?,
-            thinned: 0,
-            #[cfg(test)]
-            unquantised: Vec::new(),
-        };
-        let envelope = self.specimen.envelope_at_age(self.age)?;
-        // Short shoots are the wood's, not the record's: drawn from the wood
-        // on screen by its identity, as a one-shot build of it would draw them.
-        let f = &self.family;
-        let seed = f.skeleton.seed;
-        if f.canopy.limb_clumping > 0.0 {
-            // Each recorded leaf is borne by the shoot its identity names.
+        let leaves = placements.clone().map(|p| p.leaf).collect();
+        let envelope = || self.specimen.envelope_at_age(self.age);
+        // Each recorded leaf is borne by the shoot its identity names.
+        let owners = || {
             let index: BTreeMap<_, _> = (0..tree.nodes.len())
                 .map(|i| (tree.nodes[i].identity, i as u32))
                 .collect();
-            let owners = placements
+            placements
                 .map(|p| index.get(&p.identity.shoot).copied().unwrap_or(0))
-                .collect();
-            foliage::place_short_shoots_clumped(
-                &tree,
-                envelope,
-                seed,
-                f.canopy,
-                owners,
-                &mut instances,
-            )?;
-        } else {
-            foliage::place_short_shoots(&tree, envelope, seed, f.canopy, &mut instances)?;
-        }
-        foliage::place_rosette(&tree, seed, f.canopy, &mut instances)?;
-        let instances = foliage::cull(instances, &element, envelope, f.shell_depth)?;
-        let bounds = mesh::union(wood.bounds, instances.bounds(&element)?.map(Into::into))
-            .unwrap_or(surface::Bounds {
-                min: crate::math::Vec3::ZERO,
-                max: crate::math::Vec3::Y * 0.01,
-            });
-        Ok(TreeMesh {
-            wood,
-            foliage: mesh::Foliage { element, instances },
-            bounds,
-        })
+                .collect()
+        };
+        let height = self.specimen.surface_height();
+        executor::present(&tree, height, &self.inputs, leaves, envelope, owners)
     }
     fn tree(&self) -> Result<Tree> {
         let mut nodes: Vec<_> = self

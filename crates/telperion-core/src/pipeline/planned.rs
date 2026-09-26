@@ -1,17 +1,17 @@
 //! Stages 3 and 4 with the geometry compiled out: the leaf plan, the field
 //! read from it and the structure. Nothing is placed, so wood, leaves and a
 //! family the plan cannot describe are refused by name.
-use super::{stage, Outputs, Request, Stages};
-use crate::{presets::Family, tree::Tree, Error, Result};
+use super::{stage, Inputs, Outputs, Request, Stages};
+use crate::{tree::Tree, Error, Result};
 
-pub(super) fn outputs(tree: &Tree, family: &Family, request: Request) -> Result<Outputs> {
+pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<Outputs> {
     if request.wood || request.leaves {
         return Err(Error::InvalidInput(
             "wood and leaves need the geometry feature",
         ));
     }
-    let twig = stage::twig(family);
-    let prepared = stage::prepare(tree, family, request, &twig, false)?;
+    let twig = inputs.plan.twig();
+    let prepared = stage::prepare(tree, &inputs.plan, request, &twig, false)?;
     let field = stage::planned_field(tree, request, &prepared)?;
     if request.field.is_some() && field.is_none() {
         return Err(Error::InvalidInput(

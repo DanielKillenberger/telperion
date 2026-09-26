@@ -1,7 +1,6 @@
 //! Stage 2 alone: grows one preset's skeleton `GROWTH_SAMPLES` times (default
 //! 6, the first cold) and prints each build's milliseconds with a hash of
 //! every node's full debug record, so two builds compare byte for byte.
-use std::time::Instant;
 use telperion_core::{pipeline, presets::Preset};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -16,9 +15,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap_or_else(|_| "6".into())
         .parse()?;
     for sample in 0..samples {
-        let start = Instant::now();
-        let skeleton = pipeline::skeleton(&f)?;
-        let ms = start.elapsed().as_secs_f64() * 1000.0;
+        // A request for no output runs the skeleton stage alone.
+        let built = pipeline::build(&f, pipeline::Request::default())?;
+        let (skeleton, ms) = (built.skeleton, built.outputs.stages.skeleton_ms);
         let mut hash = 14695981039346656037_u64;
         for node in &skeleton.tree.nodes {
             for byte in format!("{node:?}").bytes() {

@@ -1,9 +1,21 @@
 use super::*;
 use telperion_core::{
+    foliage::{Reference, TwigPlacement},
     math::Vec3,
+    pipeline::executor::LeafInput,
     tree::{Node, NodeKind, Tree},
     Family,
 };
+
+/// The rows the GPU packs, read off a test family.
+fn leaves(f: &Family) -> LeafInput {
+    LeafInput {
+        envelope: f.skeleton.envelope,
+        canopy: f.canopy,
+        seed: f.skeleton.seed,
+        shell_depth: f.shell_depth,
+    }
+}
 fn fixture(angle: f64) -> Tree {
     let mut root = Node::root();
     root.radius = 0.03;
@@ -69,10 +81,10 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
         };
         let mut metrics = Metrics::default();
         let first = generator
-            .compute(prepare(), &f, twig, &element, reference, &mut metrics)
+            .compute(prepare(), &leaves(&f), twig, &element, reference, &mut metrics)
             .unwrap();
         let second = generator
-            .compute(prepare(), &f, twig, &element, reference, &mut metrics)
+            .compute(prepare(), &leaves(&f), twig, &element, reference, &mut metrics)
             .unwrap();
         let a = io::read(
             &generator.gpu,
@@ -113,7 +125,7 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
         };
         let shared_leaves = pollster::block_on(generator.compute_buffer_async(
             p,
-            &f,
+            &leaves(&f),
             twig,
             &element,
             reference,
@@ -365,7 +377,7 @@ fn huge_phases_fall_back_but_supported_large_ordinals_keep_orientation() {
     let reference = Reference::spanning(Vec3::new(-2.0, -1.0, -2.0), Vec3::new(2.0, 3.0, 2.0));
     let element = foliage::build_element(f.element).unwrap();
     let output = generator
-        .compute(p, &f, twig, &element, reference, &mut Metrics::default())
+        .compute(p, &leaves(&f), twig, &element, reference, &mut Metrics::default())
         .unwrap();
     let bytes = io::read(
         &generator.gpu,
@@ -495,7 +507,7 @@ fn compact_positions_seat_contacts_on_the_rendered_surface() {
         rings: std::borrow::Cow::Borrowed(&positions),
     };
     let leaves =
-        pollster::block_on(g.compute_buffer_async(p, &f, twig, &element, reference, &mut metrics))
+        pollster::block_on(g.compute_buffer_async(p, &leaves(&f), twig, &element, reference, &mut metrics))
             .unwrap();
     let mut actual = Instances::new(reference);
     actual.leaves = pollster::block_on(io::read_leaves_async(

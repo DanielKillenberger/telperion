@@ -100,7 +100,11 @@ fn metrics(m: &Metrics) -> String {
         (m.wood_metadata_cpu_bytes, m.wood_gpu_peak_bytes),
         (m.wood_backend, m.wood_fallback, m.base_cpu_bytes),
         (m.wood_cpu_bytes, m.retained_gpu_bytes, m.input_instances),
-        (m.instances, m.descriptor_cpu_bytes, m.shared_contact_cpu_bytes),
+        (
+            m.instances,
+            m.descriptor_cpu_bytes,
+            m.shared_contact_cpu_bytes,
+        ),
         (m.shared_prepare_cpu_bytes, m.shared_metadata_cpu_bytes),
         m.gpu_compute_peak_bytes,
     ))

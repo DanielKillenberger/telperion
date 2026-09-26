@@ -11,51 +11,29 @@ impl Generator {
         let total = Clock::now();
         let mut metrics = Metrics::default();
         let started = Clock::now();
-        let tree = mesh::grow(family)?;
+        let grown = executor::grow(family)?;
         metrics.skeleton_ms = started.elapsed_ms();
         let started = Clock::now();
-        let element = foliage::build_element(family.element)?;
-        element.validate()?;
-        let twig = family.skeleton.twigs.resolved()?.twig;
-        let twig = TwigPlacement {
-            internode_length: twig.internode_length,
-            stations_per_internode: twig.stations_per_internode,
-        };
-        if !family.shell_depth.is_finite() || !(0.0..=1.0).contains(&family.shell_depth) {
-            return Err(telperion_core::Error::InvalidInput("shell depth").into());
-        }
-        let reference = Reference::of(family)?;
+        let x = grown.expansion()?;
         let mut uploaded_wood = None;
         let mut shared_stations = None;
         let mut wood_attempted = false;
         let mut early_wood_ms = 0.0;
         let mut station_unsupported = false;
-        if delivery == Delivery::Resident
-            && foliage::prepared::supports_stations(family.canopy, Some(twig))
-            && (family.surface.lobes == 0 || family.surface.lobe_depth == 0.0)
-        {
+        if delivery == Delivery::Resident && x.supports_stations() && x.round_section() {
             let begin = Clock::now();
-            let needs_contacts = family.canopy.surface_contact > 0.0 && family.canopy.size != 0.0;
+            let needs_contacts = x.seats();
             let mut candidate_stations = None;
             let mut station_ms = 0.0;
             let mut station_bytes = 0;
             let compact = if needs_contacts {
-                surface::compact::prepare_with_contacts(
-                    &tree,
-                    family.skeleton.envelope.height,
-                    &family.surface,
-                )
-                .and_then(|shared| {
+                x.compact_with_contacts().and_then(|shared| {
                     metrics.shared_contact_cpu_bytes = shared.contact_bytes() as u64;
                     if shared.surface().qualified() {
                         let station_start = Clock::now();
-                        candidate_stations = foliage::prepared::prepare_compact_stations(
-                            &shared,
-                            family.skeleton.envelope,
-                            family.canopy,
-                            Some(twig),
-                        )?
-                        .map(|p| (p.segments, p.count, p.ring_size));
+                        candidate_stations = x
+                            .compact_stations(&shared)?
+                            .map(|p| (p.segments, p.count, p.ring_size));
                         station_ms = station_start.elapsed_ms();
                         station_bytes = candidate_stations.as_ref().map_or(0, |(s, _, _)| {
                             (s.capacity() * size_of::<foliage::prepared::StationSegment>()) as u64
@@ -67,7 +45,7 @@ impl Generator {
                     Ok(shared.into_surface())
                 })
             } else {
-                surface::compact::prepare(&tree, family.skeleton.envelope.height, &family.surface)
+                x.compact()
             };
             metrics.position_prepare_ms = begin.elapsed_ms() - station_ms;
             let compact = match compact {
@@ -86,13 +64,7 @@ impl Generator {
                     let scopes = io::scope(&self.gpu);
                     let pending = self.begin_positions(p, &mut metrics);
                     let station_start = Clock::now();
-                    let station_result = foliage::prepared::prepare_stations(
-                        &tree,
-                        family.skeleton.envelope,
-                        family.canopy,
-                        Some(twig),
-                        &family.surface,
-                    );
+                    let station_result = x.stations();
                     #[cfg(test)]
                     let station_result = super::tests::late_station_result(
                         station_result,
@@ -151,26 +123,16 @@ impl Generator {
         }
         if uploaded_wood.is_none()
             && delivery == Delivery::Resident
-            && family.canopy.surface_contact > 0.0
-            && family.canopy.size != 0.0
-            && foliage::prepared::supports_stations(family.canopy, Some(twig))
+            && x.seats()
+            && x.supports_stations()
         {
             let prepare_start = Clock::now();
-            let shared = surface::prepared::prepare_with_contacts(
-                &tree,
-                family.skeleton.envelope.height,
-                &family.surface,
-            )?;
+            let shared = x.prepared_with_contacts()?;
             metrics.wood_prepare_ms = prepare_start.elapsed_ms();
             early_wood_ms += metrics.wood_prepare_ms;
             if let Some(shared) = shared {
                 metrics.shared_contact_cpu_bytes = shared.contact_bytes() as u64;
-                if let Some(p) = foliage::prepared::prepare_shared_stations(
-                    &shared,
-                    family.skeleton.envelope,
-                    family.canopy,
-                    Some(twig),
-                )? {
+                if let Some(p) = x.shared_stations(&shared)? {
                     let station_cpu_bytes = (p.segments.capacity()
                         * size_of::<foliage::prepared::StationSegment>())
                         as u64;
@@ -206,19 +168,13 @@ impl Generator {
         let stations = if shared_stations.is_some() || station_unsupported {
             None
         } else {
-            foliage::prepared::prepare_stations(
-                &tree,
-                family.skeleton.envelope,
-                family.canopy,
-                Some(twig),
-                &family.surface,
-            )?
+            x.stations()?
         };
         if stations.is_none() && shared_stations.is_none() {
             drop(uploaded_wood);
             metrics.gpu_positions = false;
             metrics.position_retained_metadata_bytes = 0;
-            let mesh = mesh::assemble(&tree, family)?;
+            let mesh = x.mesh()?;
             metrics.wood_backend = Some(Backend::CpuFallback);
             metrics.wood_fallback = Some("CPU foliage preparation fallback");
             metrics.wood_cpu_bytes = wood::cpu_bytes(&mesh.wood);
@@ -233,14 +189,15 @@ impl Generator {
                 metrics,
             });
         };
-        metrics.base_cpu_bytes = (tree.nodes.capacity() * size_of::<telperion_core::tree::Node>()
-            + element.positions.capacity() * size_of::<telperion_core::math::Vec3>()
-            + (element.indices.capacity()
-                + element.level_indices.capacity()
-                + element.coords.capacity())
-                * 4
-            + element.levels.capacity() * size_of::<foliage::Level>())
-            as u64;
+        let element = x.element();
+        metrics.base_cpu_bytes =
+            (x.tree().nodes.capacity() * size_of::<telperion_core::tree::Node>()
+                + element.positions.capacity() * size_of::<telperion_core::math::Vec3>()
+                + (element.indices.capacity()
+                    + element.level_indices.capacity()
+                    + element.coords.capacity())
+                    * 4
+                + element.levels.capacity() * size_of::<foliage::Level>()) as u64;
         metrics.descriptors_ms = started.elapsed_ms() - early_wood_ms;
         let scopes = io::scope(&self.gpu);
         let shared_positions = shared_stations
@@ -256,7 +213,8 @@ impl Generator {
                     ring_size,
                     rings: std::borrow::Cow::Borrowed(&uploaded_wood.as_ref().unwrap().positions),
                 };
-                self.compute_buffer_async(p, family, twig, &element, reference, &mut metrics)
+                let (leaves, twig) = (x.leaves(), x.twig());
+                self.compute_buffer_async(p, &leaves, twig, element, x.reference(), &mut metrics)
                     .await
             }
         } else {
@@ -264,8 +222,16 @@ impl Generator {
             if stations.count == 0 {
                 self.empty()
             } else {
-                self.compute_async(stations, family, twig, &element, reference, &mut metrics)
-                    .await
+                let (leaves, twig) = (x.leaves(), x.twig());
+                self.compute_async(
+                    stations,
+                    &leaves,
+                    twig,
+                    element,
+                    x.reference(),
+                    &mut metrics,
+                )
+                .await
             }
         };
         let errors = io::errors(&self.gpu, scopes).await;
@@ -283,7 +249,7 @@ impl Generator {
         metrics.retained_gpu_bytes = resident.as_ref().map_or(0, |r| {
             r.leaves.region().capacity() + r.masses.region().capacity()
         });
-        let mut instances = Instances::new(reference);
+        let mut instances = Instances::new(x.reference());
         if delivery == Delivery::Cpu {
             let start = Clock::now();
             let output = resident.take().unwrap();
@@ -302,11 +268,7 @@ impl Generator {
             resident_wood = result?;
             errors?;
         } else if delivery == Delivery::Resident && !wood_attempted {
-            let compact = surface::prepared::prepare(
-                &tree,
-                family.skeleton.envelope.height,
-                &family.surface,
-            )?;
+            let compact = x.prepared_wood()?;
             metrics.wood_prepare_ms = started.elapsed_ms();
             if let Some(compact) = compact {
                 let scopes = io::scope(&self.gpu);
@@ -328,7 +290,7 @@ impl Generator {
         let wood = if resident_wood.is_some() {
             surface::SurfaceMesh::default()
         } else {
-            surface::build(&tree, family.skeleton.envelope.height, &family.surface)?
+            x.wood()?
         };
         metrics.wood_ms = started.elapsed_ms() + early_wood_ms;
         metrics.wood_cpu_bytes = wood::cpu_bytes(&wood);
@@ -342,7 +304,10 @@ impl Generator {
         .ok_or(telperion_core::Error::InvalidInput("mesh has no geometry"))?;
         let mesh = TreeMesh {
             wood,
-            foliage: mesh::Foliage { element, instances },
+            foliage: mesh::Foliage {
+                element: x.into_element(),
+                instances,
+            },
             bounds,
         };
         crate::submit::fits_wood_counts(

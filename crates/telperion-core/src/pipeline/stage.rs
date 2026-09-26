@@ -1,9 +1,8 @@
 //! The stages past the skeleton, each run only where the request asks.
-use super::{Request, Structure};
+use super::{PlanInput, Request, Structure};
 use crate::{
     field::Field,
     foliage::{self, plan, Element, Reference, TwigPlacement},
-    presets::Family,
     tree::{NodeKind, Tree},
     Error, Result,
 };
@@ -18,26 +17,18 @@ pub(super) struct Prepared {
     pub(super) ms: f64,
 }
 
-pub(super) fn twig(family: &Family) -> Result<TwigPlacement> {
-    let twig = family.skeleton.twigs.resolved()?.twig;
-    Ok(TwigPlacement {
-        internode_length: twig.internode_length,
-        stations_per_internode: twig.stations_per_internode,
-    })
-}
-
 /// The element and the leaf plan, each only where read, and the box where
 /// leaves are placed. The twig's error answers after the element's, as it
 /// always did.
 pub(super) fn prepare(
     tree: &Tree,
-    family: &Family,
+    input: &PlanInput,
     request: Request,
     twig: &Result<TwigPlacement>,
     places: bool,
 ) -> Result<Prepared> {
     let element = if request.leaves || request.field.is_some() {
-        Some(foliage::build_element(family.element)?)
+        Some(foliage::build_element(input.element)?)
     } else {
         None
     };
@@ -47,17 +38,17 @@ pub(super) fn prepare(
         let start = (request.clock)();
         leaf_plan = plan::plan(
             tree,
-            family.skeleton.envelope,
-            family.canopy,
+            input.envelope,
+            input.canopy,
             Some(twig),
-            &family.surface,
+            &input.surface,
             element,
             limb_order,
-            family.skeleton.seed,
+            input.seed,
         )?;
         ms = (request.clock)() - start;
     }
-    let reference = places.then(|| Reference::of(family)).transpose()?;
+    let reference = places.then(|| input.reference()).transpose()?;
     Ok(Prepared {
         element,
         leaf_plan,

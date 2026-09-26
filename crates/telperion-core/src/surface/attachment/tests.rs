@@ -14,7 +14,7 @@ fn contacts_read_from_the_wood_are_the_swept_ones() {
         let mut family =
             by_identity(id).unwrap_or_else(|_| Preset::from_id(id).unwrap().parameters());
         family.canopy.surface_contact = 1.0;
-        let tree = crate::pipeline::skeleton(&family).unwrap().tree;
+        let tree = crate::mesh::grow(&family).unwrap();
         let (height, params) = (family.skeleton.envelope.height, &family.surface);
         let swept = AttachmentSurface::new(&tree, height, params).unwrap();
         let plain = build(&tree, height, params).unwrap();

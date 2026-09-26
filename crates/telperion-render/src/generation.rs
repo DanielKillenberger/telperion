@@ -17,8 +17,9 @@ use std::sync::Arc;
 #[cfg(test)]
 use telperion_core::branching;
 use telperion_core::{
-    foliage::{self, Instances, Reference, TwigPlacement},
+    foliage::{self, Instances},
     mesh::{self, TreeMesh},
+    pipeline::executor,
     surface::{self, Bounds},
     Family,
 };
