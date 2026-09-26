@@ -458,4 +458,26 @@ mod tests {
             "{quoted:?}"
         );
     }
+
+    /// fn-157, the oak's replay: a page fetch dropped live was never read,
+    /// and keeps nothing, not even its licence tags; kept, the tags alone
+    /// read as a page and the replay asks its kind.
+    #[test]
+    fn a_page_the_run_never_read_keeps_nothing() {
+        let tape = std::env::temp_dir().join(format!("trim-unread-{}", std::process::id()));
+        std::fs::create_dir_all(tape.join("firecrawl")).unwrap();
+        let key = "a".repeat(64);
+        let entry = serde_json::json!({"key": key,
+            "request": {"op": "scrape", "url": "https://video.test/watch"},
+            "response": {"ok": {"content_type": "text/html", "markdown": "A video page of 3 m trees."}}});
+        let path = tape.join(format!("firecrawl/{}.json", &key[..32]));
+        std::fs::write(&path, entry.to_string()).unwrap();
+        let raw = r#"<html><link rel="license" href="https://creativecommons.org/licenses/by/3.0/"></html>"#;
+        std::fs::write(path.with_extension("bin"), raw).unwrap();
+        super::tape(&tape, &[]).unwrap();
+        let after: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+        assert_eq!(after["response"]["ok"]["markdown"], "");
+        assert!(!path.with_extension("bin").exists());
+    }
 }
