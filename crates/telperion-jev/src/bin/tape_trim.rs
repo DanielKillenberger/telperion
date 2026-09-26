@@ -1,7 +1,7 @@
 //! `tape_trim <tape> [--check] [--open HOST]...`: trims a recording's pages
 //! that are not openly licensed to the passages the run quoted
 //! (`telperion_jev::tape::trim`), or with `--check` lists any recorded page
-//! that keeps more. Run it over a `species --record` tape before committing
+//! that keeps more and fails when it lists one. Run it over a `species --record` tape before committing
 //! it as a fixture.
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -23,7 +23,8 @@ fn main() -> ExitCode {
         .filter(|pair| pair[0] == "--open")
         .map(|pair| pair[1].clone())
         .collect();
-    let result = match args.iter().any(|a| a == "--check") {
+    let check = args.iter().any(|a| a == "--check");
+    let result = match check {
         true => trim::only_quoted(&tape, &open),
         false => trim::tape(&tape, &open).and_then(|mut words| {
             words.extend(trim::rekey(&tape)?);
@@ -33,7 +34,11 @@ fn main() -> ExitCode {
     match result {
         Ok(words) => {
             words.iter().for_each(|w| println!("{w}"));
-            ExitCode::SUCCESS
+            // A check lists only what keeps too much.
+            match check && !words.is_empty() {
+                true => ExitCode::from(1),
+                false => ExitCode::SUCCESS,
+            }
         }
         Err(err) => {
             eprintln!("{err}");
