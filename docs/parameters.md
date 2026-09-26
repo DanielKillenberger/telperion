@@ -911,8 +911,7 @@ How deep the flutes between those ridges cut, as a share of the wood's own radiu
 - real, share of radius, [0, 0.9], default 0
 - read by plan, expand; growth path: as the direct build
 - checked: Surface site, rank 3, as invalid input `surface parameters`
-- dormant: `lobes` zero
-- note: With `surfaceContact` above zero, leaf seating and the leaf box scale by `1 + lobeDepth`; the socket's inscribed radius shrinks by it.
+- note: Never dormant: at `lobes` zero the section is round, but a junction's contained ring still shrinks by `1 + lobeDepth` and the leaf box and plan scale by it. With `surfaceContact` above zero, leaf seating scales by it too; the socket's inscribed radius shrinks by it.
 - blend: linear; dial: `surface_lobe_depth` (how deep the flutes between those ridges cut, as a share of the radius; at zero the bole is plainly round whatever the ridge count says, and any rise starts cutting the flutes), window its bounds (validated bound), steps 0.15 and 0.3
 
 ### `/surface/twistRate`

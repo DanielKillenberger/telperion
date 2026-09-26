@@ -1,13 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  DEFAULT_PARAMS,
-  SEED_MAX,
-  SLIDERS,
-  growthFromQuery,
-  normalizeSeed,
-  readSlider,
-} from "./params";
+import { DEFAULT_PARAMS, SEED_MAX, growthFromQuery, normalizeSeed } from "./params";
 
 describe("growthFromQuery", () => {
   it.each([
@@ -47,77 +40,9 @@ describe("normalizeSeed", () => {
   });
 });
 
-describe("readSlider", () => {
-  const height = SLIDERS.find((s) => s.key === "height")!;
-
-  it("passes an in-range value through", () => {
-    expect(readSlider(height, "18.5")).toBe(18.5);
-  });
-
-  it("clamps below the minimum", () => {
-    expect(readSlider(height, "-40")).toBe(height.min);
-  });
-
-  it("clamps above the maximum", () => {
-    expect(readSlider(height, "1000")).toBe(height.max);
-  });
-
-  it.each(["", "abc", "NaN", "Infinity"])(
-    "falls back to the default for %p",
-    (raw) => {
-      expect(readSlider(height, raw)).toBe(DEFAULT_PARAMS.height);
-    },
-  );
-
-  it("puts the growth step beside density, in the skeleton's stage", () => {
-    /* SLIDERS runs in pipeline order and a dial's place states where
-       it acts: the step answers the attractors density scatters, so it
-       follows density and stays inside the skeleton group rather than
-       opening one of its own. */
-    const keys = SLIDERS.map((spec) => spec.key);
-    const step = SLIDERS[keys.indexOf("step")];
-    expect(keys.indexOf("step")).toBe(keys.indexOf("density") + 1);
-    expect(step.group).toBeUndefined();
-    const groupBefore = SLIDERS.slice(0, keys.indexOf("step"))
-      .map((spec) => spec.group)
-      .filter((group) => group !== undefined)
-      .pop();
-    expect(groupBefore).toBe("skeleton");
-  });
-
-  it("every slider's default sits inside its own range", () => {
-    for (const spec of SLIDERS) {
-      const value = DEFAULT_PARAMS[spec.key];
-      expect(value).toBeGreaterThanOrEqual(spec.min);
-      expect(value).toBeLessThanOrEqual(spec.max);
-    }
-  });
-});
-
-
-describe("branch-law controls", () => {
-  it("offers the law rails and retires depth and fallback canopy controls", () => {
-    const branch = SLIDERS.filter((s) =>
-      ["lengthRatio", "ratioPower", "internodeFactor", "angleVariation", "vigourVariation", "laterals", "limbRadius"].includes(s.key));
-    expect(branch.map(({ key, min, max, step }) => ({ key, min, max, step }))).toEqual([
-      { key: "lengthRatio", min: 0.05, max: 1, step: 0.01 },
-      { key: "ratioPower", min: 0, max: 8, step: 0.05 },
-      { key: "internodeFactor", min: 0.05, max: 32, step: 0.05 },
-      { key: "angleVariation", min: 0, max: 90, step: 1 },
-      { key: "vigourVariation", min: 0, max: 0.95, step: 0.01 },
-      { key: "laterals", min: 0, max: 7, step: 1 },
-      { key: "limbRadius", min: 0, max: 1, step: 0.005 },
-    ]);
-    for (const key of ["twigLevels", "twigThinning", "shootRadius", "spacing", "clump", "clumpSpan"]) {
-      expect(SLIDERS.map((s) => s.key)).not.toContain(key);
-    }
-    expect(DEFAULT_PARAMS).not.toHaveProperty("twigLevels");
-  });
-});
-
 describe("carried native controls", () => {
   it("keeps the Ordinary baseline natural and every carried trait a number", () => {
-    expect(DEFAULT_PARAMS.supernaturalEnabled).toBe(false);
+    expect(DEFAULT_PARAMS.family.skeleton.bias.supernatural.enabled).toBe(false);
     /* The habit is the Ordinary row of the trait table, twenty numbers
        and no tag. Written out rather than compared to itself: the panel
        shows the owner these values, and a row the core moves under it is
@@ -158,7 +83,5 @@ describe("carried native controls", () => {
     expect(DEFAULT_PARAMS.family.canopy).toMatchObject({ limbClumping: 0 });
     expect(DEFAULT_PARAMS.family.element).not.toHaveProperty("anatomy");
     expect(DEFAULT_PARAMS.family.canopy).not.toHaveProperty("attachment");
-    expect(SLIDERS.map(s => s.key)).not.toContain("family");
-    expect(SLIDERS.map(s => s.key)).not.toContain("supernaturalEnabled");
   });
 });

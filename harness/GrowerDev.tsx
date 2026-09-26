@@ -361,7 +361,7 @@ export function GrowerDev() {
           <Traits prefix="scene" values={scene} onChange={(key, number) =>
             setScene(prev => (prev === null ? prev : { ...prev, [key]: number }))} />
         </fieldset>}
-        <Dials params={params} setParams={setParams} />
+        <Dials params={params} setParams={setParams} growth={growth} />
 
         <div className="gd-row">
           <button className="gd-button" type="button" onClick={() => stageRef.current?.frame()}>

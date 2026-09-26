@@ -116,52 +116,9 @@
   color: #f4f4f1;
 }
 
-.gd-slider {
-  display: grid;
-  grid-template-columns: 52px 1fr;
-  align-items: center;
-  column-gap: 6px;
-  margin-bottom: 6px;
-}
-
 .gd-value {
   text-align: right;
   color: #2a2a28;
-}
-
-.gd-slider input[type="range"] {
-  grid-column: 1 / -1;
-  width: 100%;
-  margin: 0;
-  accent-color: #6b6a66;
-}
-
-.gd-check {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: #6b6a66;
-  cursor: pointer;
-}
-
-/* Stage headings in the dial list. The list runs in pipeline order and
-   is long enough now that the order alone does not show where one
-   stage ends and the next starts. */
-.gd-group {
-  margin: 14px 0 6px;
-  padding-top: 8px;
-  border-top: 1px solid rgb(0 0 0 / 0.12);
-  color: #6b6a66;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.gd-group:first-of-type {
-  margin-top: 4px;
-  padding-top: 0;
-  border-top: 0;
 }
 
 .gd-panel fieldset {
@@ -177,3 +134,44 @@
 .gd-growth { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; border: 1px solid #555; }
 .gd-growth input { min-width: 0; color: inherit; background: transparent; border: 1px solid #555; }
 .gd-growth input[type="range"], .gd-growth p { grid-column: 1 / -1; margin: 0; }
+
+/* One group of catalogue rows, folded until opened: a family has some
+   two hundred and fifty, and a list that long is scrolled, not read. */
+.gd-dials {
+  margin: 6px 0;
+  border-top: 1px solid rgb(0 0 0 / 0.12);
+}
+
+.gd-dials summary {
+  padding: 4px 0;
+  color: #6b6a66;
+  cursor: pointer;
+}
+
+.gd-dial {
+  margin: 4px 0 10px;
+}
+
+.gd-dial .gd-label {
+  display: flex;
+  justify-content: space-between;
+}
+
+.gd-dial input[type="range"] {
+  width: 100%;
+  margin: 2px 0 0;
+  accent-color: #6b6a66;
+}
+
+.gd-meaning,
+.gd-dormant {
+  margin: 2px 0 0;
+  color: #6b6a66;
+  font-size: 10px;
+}
+
+/* Where the row does nothing: said beside it, so a still tree under a
+   moving dial reads as the row's condition and not as a fault. */
+.gd-dormant {
+  color: #8a5a2b;
+}

@@ -1,19 +1,17 @@
 import type { Family, TreePreset } from "../src/browser/core";
+import { PARAMETERS } from "../src/browser/parameters.generated";
 
 import type { GrowerParams } from "./params";
-
-type SkeletonParams = Family["skeleton"];
-type RadiusParams = Family["radii"];
-type SurfaceParams = Family["surface"];
-type CanopyParams = Family["canopy"];
+import { admit, readRow } from "./rows";
 
 /* ------------------------------------------------------------------ *
  * THE DIALS, AS THE GENERATOR'S OWN ARGUMENTS
  *
- * One translation, in one place: what the panel holds becomes what the
- * generator takes. Nothing here draws anything, and nothing here knows
- * what will - the same composition feeds the renderer in the browser
- * and would feed a native caller unchanged.
+ * What the panel holds becomes what the generator takes. Every catalogue
+ * row travels under its own name in `params.family`; two dials are not
+ * rows but named transforms over rows, and they are the only
+ * translation here. Nothing here draws anything, and nothing here knows
+ * what will.
  * ------------------------------------------------------------------ */
 
 /** What the density dial spans, in attractors. The floor is a tree
@@ -23,305 +21,79 @@ type CanopyParams = Family["canopy"];
 const ATTRACTORS_MIN = 250;
 const ATTRACTORS_MAX = 1600;
 
-/** The panel's dials, as the generator's arguments.
- *
- *  `height` and `spread` are the authored envelope and go straight
- *  through, and so do the five bias dials - they carry the library's
- *  own names and units, so there is nothing here to translate and
- *  nothing to drift. `torsion` is the one dial that is not a library
- *  term: it scales the supernatural bending terms, so one
- *  move takes the tree from straight to writhing without walking separate
- *  sliders. Lean and gravitropism are deliberately outside it - a tree that wants
- *  to grow up still wants to when it is not twisting.
- *  `density` is the attractor count, and `step` and the branch-law
- *  rules go through under the library's own names. Twig anatomy stays
- *  in metres. `taper` travels through `toRadiusParams`: the colonization
- *  radius solve uses it before branch growth, and the final solve
- *  preserves the appended branches' recorded local taper. */
-export function toSkeletonParams(params: GrowerParams): SkeletonParams {
-  return {
-    ...params.family.skeleton,
-    seed: params.seed,
-    samplingAttemptsPerAttractor: params.samplingAttemptsPerAttractor,
-    /* The five clump rows, onto the habit table the preset carried. The
-       rest of that table has no dial and travels through untouched, so
-       this is a named override and not an assembled row. */
-    habit: {
-      ...params.family.skeleton.habit,
-      reachProbeSteps: params.reachProbeSteps,
-      stems: params.stems,
-      stemDivergence: params.stemDivergence,
-      stemLean: params.stemLean,
-      stemLeanSpread: params.stemLeanSpread,
-      stemForkHeight: params.stemForkHeight,
-    },
-    /* Every member of `Envelope`, named. Spreading the default and
-       overriding three of them was fine while the other two were
-       constants nobody could reach; now that they are dials, an
-       envelope assembled by spread would silently drop whichever term
-       the panel forgot to list, which is exactly the drift the
-       preset round-trip test exists to catch. */
-    envelope: {
-      height: params.height,
-      spread: params.spread,
-      crownBase: params.crownBase,
-      fullness: params.fullness,
-      shoulder: params.shoulder,
-      irregularity: params.irregularity,
-      lobeScale: params.lobeScale,
-    },
-    attractors: Math.round(
-      ATTRACTORS_MIN + params.density * (ATTRACTORS_MAX - ATTRACTORS_MIN),
-    ),
-    step: params.step,
-    // Preserve every branch-law and anatomy field through preset round trips.
-    twigs: {
-      twig: { length: params.twigLength, diameter: params.twigDiameter, internodeLength: params.twigStationLength,
-        stationsPerInternode: params.twigStations, bearingDiameter: params.twigBearing },
-      ratioPower: params.ratioPower,
-      limbRadius: params.limbRadius,
-      reach: params.reach,
-      laterals: params.laterals,
-      generations: params.twigGenerations,
-      maxInternodes: params.maxInternodes,
-      maxDroop: params.maxDroop,
-      curtainStepClearance: params.curtainStepClearance,
-      angleVariation: params.angleVariation,
-      vigourVariation: params.vigourVariation,
-      angle: params.twigAngle,
-      divergence: params.twigDivergence,
-      internodeFactor: params.internodeFactor,
-      lengthRatio: params.lengthRatio,
-      hang: params.hang,
-      pendulousLength: params.pendulousLength,
-      pendulousRadius: params.pendulousRadius,
-      curtainSeparation: params.curtainSeparation,
-      sag: params.sag,
-      pendulousVariation: params.pendulousVariation,
-      curtainDrop: params.curtainDrop,
-      curtainClearance: params.curtainClearance,
-    },
-    bias: {
-      gravitropism: params.gravitropism,
-      lean: params.lean,
-      supernatural: {
-        enabled: params.supernaturalEnabled,
-        writheAmplitude: params.writheAmplitude * params.torsion,
-        writheWavelength: params.writheWavelength,
-        maxWritheMagnitude: params.maxWritheMagnitude,
-        spiralRate: params.spiralRate * params.torsion,
-      },
-    },
-    // Persistence is a growth distance's kind of parameter rather than
-    // a bias term - it is about the step, not about the field - so it
-    // travels in `growth`, which is where the library keeps the rest of
-    // them. Outside `torsion` on purpose: a stiff tree is stiff whether
-    // or not it is writhing.
-    growth: { ...params.family.skeleton.growth, maxTurnPerStep: params.maxTurnPerStep },
-  };
+/** A dial that is not a catalogue row: a named transform over rows. */
+export interface Adapter {
+  key: "density" | "torsion";
+  /** The group whose rows it moves. */
+  group: string;
+  meaning: string;
+  /** The row it stands in for, whose own control it replaces. */
+  owns?: string;
+  /** The rows it writes: their bounds hold it, their dormancy is its own. */
+  moves: readonly string[];
+  min: number;
+  max: number;
+  step: number;
 }
 
-/** The panel's three thickness dials, as the radius solve's arguments.
- *  All three carry the library's own names and units, so there is
- *  nothing here to translate and nothing to drift.
- *
- *  `trunkRadius` is the one that answers "is this a big tree": the
- *  library states it as a fraction of height and does not scale it
- *  with height, so a 60 m tree is exactly as slender in proportion as
- *  a 4 m one until somebody says otherwise. Saying otherwise is the
- *  dial, and later the preset. */
-export function toRadiusParams(params: GrowerParams): RadiusParams {
-  return {
-    forkExponent: params.taper,
-    trunkRadius: params.trunkRadius,
-    lengthTaper: params.lengthTaper,
-    maxTaperExponent: params.maxTaperExponent,
-  };
+export const ADAPTERS: readonly Adapter[] = [
+  {
+    key: "density", group: "/skeleton", owns: "/skeleton/attractors", moves: ["/skeleton/attractors"],
+    meaning: `The attractor count as a share of ${ATTRACTORS_MIN} to ${ATTRACTORS_MAX}: how thickly the envelope is populated, branch count and not leaves.`,
+    min: 0, max: 1, step: 0.01,
+  },
+  {
+    key: "torsion", group: "/skeleton/bias/supernatural",
+    moves: ["/skeleton/bias/supernatural/writheAmplitude", "/skeleton/bias/supernatural/spiralRate"],
+    meaning: "Master over writhe amplitude and spiral rate: 0 leaves the centreline straight whatever they say, 1 is the two as dialled. Lean, gravitropism and the surface twist are outside it.",
+    min: 0, max: 2, step: 0.01,
+  },
+];
+
+/** Whether the adapter may take `value`: every row it moves lands inside
+ *  that row's bounds, so a dial move never sends a family the wire refuses. */
+export function adapterAdmits(params: GrowerParams, adapter: Adapter, value: number): boolean {
+  if (!Number.isFinite(value)) return false;
+  const family = toFamily({ ...params, [adapter.key]: value });
+  return adapter.moves.every(path => {
+    const row = PARAMETERS.find(p => p.path === path);
+    const moved = readRow(family, path);
+    return row !== undefined && typeof moved === "number" && admit(row, moved) === moved;
+  });
 }
 
-
-/** The panel's four surface dials, as the sweep's arguments. The rest
- *  of `SurfaceParams` - how finely the section is sampled, how deep a
- *  child sockets into its parent and how much it swells leaving it,
- *  how far the flare decays and how far it sinks - keep the library's
- *  defaults, on the same footing as native growth distances:
- *  they are structure and cost rather than look, nothing has asked to
- *  turn them live, and each is one line in SLIDERS the day something
- *  does.
- *
- *  `twistRate` is the surface's rotation and it is deliberately not
- *  scaled by the panel's `torsion` master: `torsion` gathers the supernatural
- *  terms that bend the CENTRELINE, and the plait is a different
- *  mechanism that happens to the skin. Folding them together would
- *  make one dial mean two things, which is the thing the spec's
- *  parameter principle exists to stop. */
-export function toSurfaceParams(params: GrowerParams): SurfaceParams {
-  return {
-    ...params.family.surface,
-    socketContainment: params.socketContainment,
-    lobes: params.lobes,
-    lobeDepth: params.lobeDepth,
-    twistRate: params.twistRate,
-    flareRadius: params.flareRadius,
-  };
+/** The attractor count the density dial stands for. */
+export function attractors(density: number): number {
+  return Math.round(ATTRACTORS_MIN + density * (ATTRACTORS_MAX - ATTRACTORS_MIN));
 }
 
-/** The canopy terms the sliders own, in the order `toCanopyParams` states
- *  them. The panel renders every other numeric canopy term - the lean and
- *  contact traits - as a generic control, and needs to know which ones a
- *  slider would overwrite. Held to `toCanopyParams` by a test, so the two
- *  cannot drift apart. */
-export const CANOPY_FROM_SLIDERS: ReadonlySet<string> = new Set([
-  "clumpSystemOrder", "clumpNeighbours",
-  "shootRadius", "spacing", "divergence", "clump", "clumpSpan",
-  "outward", "upward", "scatter", "size", "sizeVariation",
-]);
-
-/** The panel's canopy values, as the placement stage's arguments.
- *
- *  A rename and nothing else: every term carries the library's own
- *  name and unit, so there is nothing here to translate and nothing to
- *  drift - the same footing the bias and surface dials are on. All ten
- *  are stated rather than spread over `DEFAULT_CANOPY`, for the reason
- *  the envelope in `toSkeletonParams` is: a set assembled by spread
- *  silently keeps a default for whichever term the panel forgot, and a
- *  preset loaded onto the dials would then be built from a canopy
- *  nobody authored. */
-export function toCanopyParams(params: GrowerParams): CanopyParams {
-  return {
-    ...params.family.canopy,
-    clumpSystemOrder: params.clumpSystemOrder,
-    clumpNeighbours: params.clumpNeighbours,
-    shootRadius: params.shootRadius,
-    spacing: params.spacing,
-    divergence: params.divergence,
-    clump: params.clump,
-    clumpSpan: params.clumpSpan,
-    outward: params.outward,
-    upward: params.upward,
-    scatter: params.scatter,
-    size: params.size,
-    sizeVariation: params.sizeVariation,
-  };
-}
-
-/** A preset's parameters, as the panel's dials.
- *
- *  The dials and a preset are two ways of writing down the same
- *  argument triple, so this is a rename and not a translation: every
- *  member of `GrowerParams` comes from the preset and nothing is
- *  invented here. `torsion` is the one term with no counterpart, and
- *  it is 1 by definition - a preset states the three bias terms it
- *  wants, and the master that scales them is a convenience for
- *  dragging, not part of the tree.
- *
- *  Exact in both directions: `toSkeletonParams`, `toRadiusParams`,
- *  `toSurfaceParams` and `toCanopyParams` applied to the result
- *  reproduce the preset member for member. That round trip is
- *  asserted, because a panel that silently dropped one of a preset's
- *  terms would show the owner a tree nobody authored - and the canopy
- *  is where that would bite hardest, since Laurelin's divergence is
- *  not the golden angle the default is. */
+/** A preset's parameters, as the panel's dials: the family as authored,
+ *  its seed on the seed box, its attractor count as a density, and
+ *  torsion at 1, the master that leaves the bending as the preset states
+ *  it. Exact: `toFamily` applied to the result is the preset's family. */
 export function presetToParams(preset: TreePreset): GrowerParams {
-  const { envelope, bias } = preset.skeleton;
-  const canopy = preset.canopy;
+  const { id: _id, name: _name, note: _note, ...family } = preset;
   return {
-    family: structuredClone((({ id: _id, name: _name, note: _note, ...family }) => family)(preset)),
-    supernaturalEnabled: bias.supernatural.enabled,
-    seed: preset.skeleton.seed,
-    height: envelope.height,
-    spread: envelope.spread,
-    stems: preset.skeleton.habit.stems,
-    stemDivergence: preset.skeleton.habit.stemDivergence,
-    stemLean: preset.skeleton.habit.stemLean,
-    stemLeanSpread: preset.skeleton.habit.stemLeanSpread,
-    stemForkHeight: preset.skeleton.habit.stemForkHeight,
-    crownBase: envelope.crownBase,
-    fullness: envelope.fullness,
-    shoulder: envelope.shoulder,
-    irregularity: envelope.irregularity,
-    lobeScale: envelope.lobeScale,
+    family: structuredClone(family),
+    seed: family.skeleton.seed,
+    density: (family.skeleton.attractors - ATTRACTORS_MIN) / (ATTRACTORS_MAX - ATTRACTORS_MIN),
     torsion: 1,
-    gravitropism: bias.gravitropism,
-    lean: bias.lean,
-    writheAmplitude: bias.supernatural.writheAmplitude,
-    writheWavelength: bias.supernatural.writheWavelength,
-    maxWritheMagnitude: bias.supernatural.maxWritheMagnitude,
-    spiralRate: bias.supernatural.spiralRate,
-    maxTurnPerStep: preset.skeleton.growth.maxTurnPerStep,
-    density: (preset.skeleton.attractors - ATTRACTORS_MIN) /
-      (ATTRACTORS_MAX - ATTRACTORS_MIN),
-    step: preset.skeleton.step,
-    twigLength: preset.skeleton.twigs.twig.length,
-    angleVariation: preset.skeleton.twigs.angleVariation,
-    vigourVariation: preset.skeleton.twigs.vigourVariation,
-    twigDiameter: preset.skeleton.twigs.twig.diameter,
-    twigStationLength: preset.skeleton.twigs.twig.internodeLength,
-    twigStations: preset.skeleton.twigs.twig.stationsPerInternode,
-    twigBearing: preset.skeleton.twigs.twig.bearingDiameter,
-    ratioPower: preset.skeleton.twigs.ratioPower,
-    limbRadius: preset.skeleton.twigs.limbRadius,
-    reach: preset.skeleton.twigs.reach,
-    laterals: preset.skeleton.twigs.laterals,
-    twigGenerations: preset.skeleton.twigs.generations,
-    maxInternodes: preset.skeleton.twigs.maxInternodes,
-    maxDroop: preset.skeleton.twigs.maxDroop,
-    curtainStepClearance: preset.skeleton.twigs.curtainStepClearance,
-    workBudget: preset.growth.workBudget,
-    reachProbeSteps: preset.skeleton.habit.reachProbeSteps,
-    samplingAttemptsPerAttractor: preset.skeleton.samplingAttemptsPerAttractor,
-    twigAngle: preset.skeleton.twigs.angle,
-    twigDivergence: preset.skeleton.twigs.divergence,
-    internodeFactor: preset.skeleton.twigs.internodeFactor,
-    lengthRatio: preset.skeleton.twigs.lengthRatio,
-    hang: preset.skeleton.twigs.hang,
-    pendulousLength: preset.skeleton.twigs.pendulousLength,
-    pendulousRadius: preset.skeleton.twigs.pendulousRadius,
-    curtainSeparation: preset.skeleton.twigs.curtainSeparation,
-    sag: preset.skeleton.twigs.sag,
-    pendulousVariation: preset.skeleton.twigs.pendulousVariation,
-    curtainDrop: preset.skeleton.twigs.curtainDrop,
-    curtainClearance: preset.skeleton.twigs.curtainClearance,
-    taper: preset.radii.forkExponent,
-    trunkRadius: preset.radii.trunkRadius,
-    lengthTaper: preset.radii.lengthTaper,
-    socketContainment: preset.surface.socketContainment,
-    maxTaperExponent: preset.radii.maxTaperExponent,
-    lobes: preset.surface.lobes,
-    lobeDepth: preset.surface.lobeDepth,
-    twistRate: preset.surface.twistRate,
-    flareRadius: preset.surface.flareRadius,
-    shootRadius: canopy.shootRadius,
-    clumpSystemOrder: canopy.clumpSystemOrder,
-    clumpNeighbours: canopy.clumpNeighbours,
-    spacing: canopy.spacing,
-    divergence: canopy.divergence,
-    clump: canopy.clump,
-    clumpSpan: canopy.clumpSpan,
-    outward: canopy.outward,
-    upward: canopy.upward,
-    scatter: canopy.scatter,
-    size: canopy.size,
-    sizeVariation: canopy.sizeVariation,
   };
 }
 
-/** The dials as the generator reads them: one family object, every term
- *  the panel can reach composed onto the family the preset carried.
+/** The dials as the generator reads them: the family with the seed, the
+ *  density and the torsion master applied to the rows they move.
  *
  *  The renderer parses this with the core's own schema, so the keys are
- *  the schema's keys and an unknown one is refused rather than ignored.
- *  Stringifying is deliberately not hidden inside it - a caller that
- *  wants to look at what it is about to send should be able to. */
+ *  the schema's keys and an unknown one is refused rather than ignored. */
 export function toFamily(params: GrowerParams): Family {
-  return {
-    ...params.family,
-    growth: { ...params.family.growth, workBudget: params.workBudget },
-    skeleton: toSkeletonParams(params),
-    radii: toRadiusParams(params),
-    surface: toSurfaceParams(params),
-    canopy: toCanopyParams(params),
-  };
+  const family = structuredClone(params.family);
+  family.skeleton.seed = params.seed;
+  family.skeleton.attractors = attractors(params.density);
+  const bending = family.skeleton.bias.supernatural;
+  bending.writheAmplitude *= params.torsion;
+  bending.spiralRate *= params.torsion;
+  return family;
 }
 
 /** The same family as the text the renderer is handed. A non-finite
