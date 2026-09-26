@@ -2,7 +2,8 @@
 //! short of the crown's shell keeps everything it bears - its deeper axes and
 //! the twigs on them - inside the crown's shell scaled about the station it
 //! leaves by the share of its room it kept. An axis that kept all of it is
-//! bound by the crown's shell itself, to the byte.
+//! bound by the crown's shell itself, to the byte. A curtain that drops falls
+//! in the band below the system's shell, as the crown's falls below its own.
 use super::*;
 
 /// The shell a limb system grows in: the crown's, scaled about `station`.
@@ -36,23 +37,25 @@ impl Bound {
     }
 }
 
-/// The bound of every first-order axis stopped short, named by the position of
-/// its first node, which no remap of the tree's storage moves.
+/// The bound of every first-order axis stopped short, by the index of its
+/// first node, remapped with the scaffold whenever the tree's storage moves.
 #[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
-pub(super) struct Limbs(Vec<([u64; 3], Bound)>);
+pub(super) struct Limbs(Vec<(u32, Bound)>);
 impl Limbs {
-    fn key(p: Vec3) -> [u64; 3] {
-        [p.x.to_bits(), p.y.to_bits(), p.z.to_bits()]
-    }
-    pub(super) fn record(&mut self, first: Vec3, bound: Bound) {
+    pub(super) fn record(&mut self, first: usize, bound: Bound) {
         if !bound.short() {
             return;
         }
-        let key = Self::key(first);
-        if let Err(at) = self.0.binary_search_by_key(&key, |e| e.0) {
-            self.0.insert(at, (key, bound));
+        let first = first as u32;
+        if let Err(at) = self.0.binary_search_by_key(&first, |e| e.0) {
+            self.0.insert(at, (first, bound));
         }
+    }
+    pub(super) fn remap(&mut self, map: &[Option<u32>]) {
+        self.0
+            .retain_mut(|(first, _)| map[*first as usize].map(|to| *first = to).is_some());
+        self.0.sort_unstable_by_key(|e| e.0);
     }
     /// The bound of the limb system node `i` belongs to: its first-order
     /// ancestor's, or the crown's for a stem and for a system kept whole.
@@ -62,10 +65,9 @@ impl Limbs {
         }
         while let Some(parent) = tree.nodes[i].parent.map(|p| p as usize) {
             if tree.nodes[parent].stem && !tree.nodes[i].stem {
-                let key = Self::key(tree.nodes[i].position);
                 return self
                     .0
-                    .binary_search_by_key(&key, |e| e.0)
+                    .binary_search_by_key(&(i as u32), |e| e.0)
                     .map_or(Bound::default(), |at| self.0[at].1);
             }
             i = parent;

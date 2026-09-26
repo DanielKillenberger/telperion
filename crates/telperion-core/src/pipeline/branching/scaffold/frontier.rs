@@ -47,6 +47,7 @@ impl Frontier {
             true
         }
         self.queue.retain_mut(|a| remap_axis(a, map));
+        self.limbs.remap(map);
     }
     pub(in crate::pipeline::branching) fn remove_dead(&mut self, tree: &Tree) {
         fn living(axis: &mut Axis, tree: &Tree) -> bool {

@@ -393,7 +393,7 @@ impl Builder<'_> {
             if k == 0 && axis.order > 0 {
                 self.tree.nodes[id].shoot.bud_fate = crate::tree::BudFate::Lateral;
                 if axis.order == 1 {
-                    self.limbs.record(self.tree.nodes[id].position, axis.bound);
+                    self.limbs.record(id, axis.bound);
                 }
             }
             heading = next;
