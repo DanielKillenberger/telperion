@@ -242,6 +242,7 @@ fn every_preset_placement_round_trips_inside_r2() {
         family.skeleton.seed = 1;
         let grown = branching::generate(&family.skeleton, family.radii).unwrap();
         let twig = family.skeleton.twigs.resolved().unwrap().twig;
+        super::super::RECORD_UNQUANTISED.with(|r| r.set(true));
         let placed = super::super::place(
             &grown.tree,
             family.skeleton.envelope,
@@ -254,6 +255,7 @@ fn every_preset_placement_round_trips_inside_r2() {
             Reference::of(&family).unwrap(),
         )
         .unwrap();
+        super::super::RECORD_UNQUANTISED.with(|r| r.set(false));
         assert_eq!(
             placed.unquantised.len(),
             placed.len(),

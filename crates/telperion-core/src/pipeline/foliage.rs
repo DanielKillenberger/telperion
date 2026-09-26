@@ -114,12 +114,17 @@ pub struct Instances {
     /// placed count plus this is what the station walk produced, which is the
     /// number a prediction is held to; the length alone is what survived.
     pub thinned: usize,
-    /// Every transform handed to `push`, kept only in test builds so a round
-    /// trip can be measured against what the constructor actually produced
-    /// rather than against a constructed case (R2).
+    /// Every transform handed to `push`, kept only in test builds and only
+    /// while a test records them, so a round trip can be measured against
+    /// what the constructor actually produced rather than against a
+    /// constructed case (R2). Unrecorded, a test crown costs what it ships.
     #[cfg(test)]
     pub(crate) unquantised: Vec<[f32; 16]>,
 }
+#[cfg(test)]
+thread_local!(pub(crate) static RECORD_UNQUANTISED: std::cell::Cell<bool> = const {
+    std::cell::Cell::new(false)
+});
 /// The point a column-major affine transform carries `p` to. Arithmetic in
 /// f64, as everything before storage is.
 pub fn transform_point(m: &[f32; 16], p: Vec3) -> Vec3 {
@@ -152,7 +157,9 @@ impl Instances {
         let leaf = self.reference.pack(m);
         self.leaves.push(leaf);
         #[cfg(test)]
-        self.unquantised.push(*m);
+        if RECORD_UNQUANTISED.with(std::cell::Cell::get) {
+            self.unquantised.push(*m);
+        }
     }
     /// Marks every leaf stored from `from` on as withered: the same transform,
     /// drawn in the dead colour.
