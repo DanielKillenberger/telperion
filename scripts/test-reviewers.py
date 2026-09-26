@@ -426,6 +426,18 @@ class TapeAdapter(unittest.TestCase):
             subprocess.run([sys.executable, str(script), f"rekey:{tmp}"], check=True, capture_output=True)
             left = [json.loads(p.read_text())["stdout"] for p in folder.glob("*.json")]
             self.assertEqual(left, ["new"])
+            # The newer answer already filed under its right key stays when an
+            # older one rekeys onto it.
+            tape = load_module("tape-adapter.py")
+            digest = tape.key(argv, json.dumps(again))
+            stale = folder / ("c" * 32 + ".json")
+            stale.write_text(json.dumps({"key": "c" * 64, "argv": argv, "stdin": asked,
+                                         "stdout": "older", "stderr": "", "exit": 0}))
+            os.utime(stale, (500, 500))
+            subprocess.run([sys.executable, str(script), f"rekey:{tmp}"], check=True, capture_output=True)
+            left = [json.loads(p.read_text())["stdout"] for p in folder.glob("*.json")]
+            self.assertEqual(left, ["new"])
+            self.assertTrue((folder / f"{digest[:32]}.json").exists())
 
 
 if __name__ == "__main__":
