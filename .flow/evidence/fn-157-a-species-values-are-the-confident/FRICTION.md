@@ -34,3 +34,17 @@
 - **Hindered:** the tuning config names a measurer profile manifest (`profiles`) that a run from a name never has; Tune failed at once with "No such file or directory", naming no file.
 - **Cost:** about ten minutes to find which of the config's paths was missing.
 - **Would have removed it:** Start writing the derived profile there when none exists (done in this task), and the revision's error naming the missing path.
+
+## 2026-09-26, worker, fn-157.1: the measurer refused Start's profile twice
+
+- **Doing:** the beech's live Tune revision 1 (R8) after Start wrote the profile manifest.
+- **Hindered:** species_measure takes only a frozen `ready` manifest with a `ready` profile, then only `gating` or `contextual` metrics; a derived profile is `draft` and its unsourced fields `unsourced`. Each refusal surfaced as Tune's "baseline infeasible" or a bare measurer error, one per revision.
+- **Cost:** two failed revisions (two visual passes, about 3,200 Jev tokens) and about 25 minutes.
+- **Would have removed it:** Start writing the measurer's copy frozen, ready and gating-or-contextual (done in this task, 87c38b48), and Tune naming the measurer's reason in its stop line.
+
+## 2026-09-26, worker, fn-157.1: a one-source value gates as a point
+
+- **Doing:** Tune revision 1 on the native-range beech.
+- **Hindered:** trunk diameter rests on one nursery page (1.5 m, `thin`); its range is the point [1.5, 1.5] and it gates, so the baseline tree's 1.49 m fails the numeric gate and Tune stops "baseline infeasible" before any round.
+- **Cost:** one revision (1,579 Jev tokens, one visual pass); R8 stops here until the host decides.
+- **Would have removed it:** a rule for how a thin value gates (contextual, or a tolerance around a point). Left to the host: the spec does not say.

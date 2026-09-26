@@ -109,3 +109,25 @@ answered live, Firecrawl not at all.
   tree in leaf. No bare tree was kept.
 - **Cost.** 128 Jev calls in all (9 kinds, 48 labels replayed, 71 levels),
   two vision calls (the look and the inventory), no Firecrawl credit.
+
+## The native-range live run and Tune (R8), 2026-09-26
+
+A bare seed with `native_range` Europe (`de` Rotbuche, `fr` hêtre commun),
+recorded in `raw/beech-live2`.
+
+- **Height** 40.0 m (range 30-40), forestry tier, agreed: waldwissen,
+  EUFORGEN and the Woodland Trust. Crown width 12.9 m and leaf length 8.5 cm,
+  extension, agreed. Trunk diameter 1.5 m, nursery, thin. Leaf width 11.4 cm,
+  extension, thin (NC State alone, outside the flora's 2.5-7 cm). Crown base
+  unsourced. Height and diameter sit inside the flora range, so the run went on.
+- **Photographs:** 12 candidates, 7 open-licence, one kept: the whole tree in
+  leaf.
+- **Start** derived 17 values; envelope height 40 m.
+- **Tune revision 1** measured the baseline at height 39.97 m and crown
+  13.4 m (both pass), trunk diameter 1.490 m against the point [1.5, 1.5]
+  (fail). The failed numeric gate makes the baseline infeasible, so Tune
+  stopped before its first round and Gaps never ran. How a one-source value
+  should gate is the host's call (FRICTION.md).
+- **Spend:** Firecrawl about 50 credits (gather and fetch); Jev 15 kind
+  calls, 51 labels, 103 appearance levels and 3 Tune preparations (1,579
+  tokens each); vision one look, one inventory and three Tune passes.
