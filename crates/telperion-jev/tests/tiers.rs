@@ -227,5 +227,13 @@ fn a_value_gates_only_when_its_tier_agrees() {
     assert!(
         crown["classified"].as_str().unwrap().contains("one"),
         "{crown}"
-    );
+    ); // gaps.md lists the contextual field for a person to source, never the
+       // gating one.
+    let profile = read_json(&dir.join("packet/profile.json")).unwrap();
+    let listed: Vec<String> = telperion_jev::runner::gaps::unsourced(&profile)
+        .into_iter()
+        .map(|g| g.trait_id)
+        .collect();
+    assert!(listed.contains(&"crown_width_m".to_string()), "{listed:?}");
+    assert!(!listed.contains(&"height_m".to_string()), "{listed:?}");
 }
