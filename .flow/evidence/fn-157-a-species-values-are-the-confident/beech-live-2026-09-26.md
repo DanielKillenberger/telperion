@@ -223,3 +223,32 @@ The oak kept no photograph: geograph is a British archive and Commons files
 single trees in categories that are mostly European. A North American
 species needs another source of open-licence whole-tree photographs; not
 built here (host, 2026-09-26).
+
+## After the tier gating rule: Tune capped at three rounds (host, 2026-09-26)
+
+Only a flora, forestry or garden tier gates now. The beech's crown width
+(two US extension pages) and leaf length (two extension pages) became
+contextual; height (three forestry sources) still gates. Tune reran one
+revision from the recording (`--extend`, no Firecrawl call), capped at
+three rounds (`max_rounds` 3).
+
+- **Round 1**: all four strengths failed generation ("stems pass through
+  each other": the bundle added a second stem).
+- **Round 2**: all four feasible, crown widths 17.7, 22.1, 31.3 and 17.9 m.
+  Before the rule, every candidate wider than 18.3 m failed the gate. The
+  sheet kept the half-strength bundle: crown 17.7 m against the
+  baseline's 13.4 m, envelope spread 0.161 to 0.211, habit, twig, bark and
+  shading rows.
+- **Round 3**: feasible crowns of 22.7, 27.2 and 33.5 m, with lower
+  numeric distances (0.25 to 0.37) than the kept tree (0.46). The sheet
+  judged none of them better, so the round kept nothing, and the cap ended
+  the revision. Wider crowns now reach the reviewer; the reviewer has not
+  yet kept one.
+- **Gaps**: 7 reachable (single clear bole, codominant V fork, broad domed
+  crown, ascending then arching limbs, fine layered twig sprays, light
+  translucent foliage, leaf shape unresolved), 0 identity, 0 global,
+  5 unsourced (crown base; crown width, trunk diameter, leaf length and
+  leaf width contextual).
+- **Spend**: no Firecrawl. Jev: 26 calls and about 0.84 million tokens
+  (the budget charged 0.86 million). Vision: 7 visual passes in the
+  revision (3 sheets).
