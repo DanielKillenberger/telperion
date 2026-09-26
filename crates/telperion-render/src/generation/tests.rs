@@ -72,13 +72,12 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
         internode_length: 0.07,
         stations_per_internode: 3,
     };
+    let reference = Reference::spanning(Vec3::new(-2.0, -1.0, -2.0), Vec3::new(2.0, 3.0, 2.0));
     let element = executor::element(f.element).unwrap();
     for (angle, shell) in [(0.0, 1.0), (0.73, 0.01)] {
         f.shell_depth = shell;
         let tree = fixture(angle);
         let x = expansion(&tree, &f, twig);
-        // The GPU packs the box the CPU reference quantises against.
-        let reference = x.reference();
         let prepare = || expansion(&tree, &f, twig).stations().unwrap().unwrap();
         let mut metrics = Metrics::default();
         let first = generator
@@ -177,9 +176,11 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
             .collect();
         actual.validate().unwrap();
         assert_eq!(actual.len(), cpu.len());
-        // Both positions quantize to a 16-bit reference. Two full code steps
-        // plus 32 f32 epsilons at fixture scale bound separate arithmetic.
-        let tolerance = reference.step().length() * 2.0 + 32.0 * f32::EPSILON as f64 * 4.0;
+        // Each position quantizes to its own 16-bit box: the GPU's to the
+        // fixture's, the CPU reference's to the family's. Two full code steps
+        // of each plus 32 f32 epsilons at fixture scale bound separate arithmetic.
+        let steps = reference.step().length() + cpu.reference.step().length();
+        let tolerance = steps * 2.0 + 32.0 * f32::EPSILON as f64 * 4.0;
         for i in 0..cpu.len() {
             let a = actual.matrix(i);
             let b = cpu.matrix(i);

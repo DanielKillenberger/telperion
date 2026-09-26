@@ -714,7 +714,7 @@ fn charges_never_outrun_the_limit_and_a_panicking_seed_releases_its_own() {
 /// is its own and no heavy seed's.
 #[test]
 fn a_saturated_budget_still_stands_under_the_ceiling() {
-    const NAME: &str = "a_saturated_budget_still_stands_under_the_ceiling";
+    const NAME: &str = "suite::species::a_saturated_budget_still_stands_under_the_ceiling";
     if std::env::var_os(budget::SATURATION).is_some() {
         return budget::saturate();
     }
