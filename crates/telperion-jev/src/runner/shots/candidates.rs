@@ -39,15 +39,16 @@ pub fn cameras(view: &str, height_m: f64) -> Vec<Value> {
 }
 
 /// Box scales around the render's tree box, (width, height): the render's
-/// own, clearly narrower and wider, shorter and taller, and wider and
-/// taller together, so the photograph's own shape can win.
+/// own, clearly narrower, wider and twice as wide, shorter and taller, so
+/// the photograph's own shape can win. The start tree can be far narrower
+/// than the photograph: the beech's first was half its width (2026-09-26).
 const SCALES: [(f64, f64); 6] = [
     (1.0, 1.0),
     (0.7, 1.0),
-    (1.4, 1.0),
+    (1.5, 1.0),
+    (2.0, 1.0),
     (1.0, 0.8),
     (1.0, 1.2),
-    (1.3, 1.15),
 ];
 
 /// The labelled candidate boxes, `[x, y, w, h]` as fractions of the
@@ -192,11 +193,12 @@ mod tests {
             );
         }
         assert!(boxes[1].1[2] < 0.4 && boxes[2].1[2] > 0.4);
-        assert!(boxes[3].1[3] < 0.8 && boxes[4].1[3] > 0.8);
+        assert!((boxes[3].1[2] - 0.8).abs() < 1e-4);
+        assert!(boxes[4].1[3] < 0.8 && boxes[5].1[3] > 0.8);
         let lines = lines(render);
         assert_eq!(lines[1], ("2".to_string(), 0.78));
         assert_eq!(crown_base(render, 0.78), 0.15);
-        assert_eq!(crown_base(boxes[3].1, 0.78), round(0.12 / 0.64));
+        assert_eq!(crown_base(boxes[4].1, 0.78), round(0.12 / 0.64));
     }
 
     #[test]

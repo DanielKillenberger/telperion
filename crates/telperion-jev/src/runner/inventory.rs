@@ -30,7 +30,9 @@ pub fn record(paths: &Paths, out: &Path) -> Result<(), String> {
         .filter_map(|r| {
             let sha256 = r["asset_sha256"].as_str()?;
             let path = photos::copy(paths, sha256)?;
-            let view = r["scale"][0].as_str().unwrap_or("whole");
+            // The reviewer's view is the reference's id, as Tune's required
+            // cells name it (`runner::cells`).
+            let view = r["id"].as_str().unwrap_or("whole");
             Some(json!({"path": path, "sha256": sha256, "view": view, "seed": 0}))
         })
         .collect();

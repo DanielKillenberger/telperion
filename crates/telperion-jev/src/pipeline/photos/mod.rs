@@ -284,7 +284,8 @@ fn record(m: &Manifest, list: &[Value], found: &Candidate, image: &Image, view: 
         false => found.statements.join("; "),
     };
     json!({
-        "id": format!("photo-{}", list.len() + 1), "species_id": m.species, "kind": "real",
+        "id": format!("photo-{}-{}", list.len() + 1, match view { "leaf-on" => "whole", v => v }),
+        "species_id": m.species, "kind": "real",
         "source_id": source_id, "url": found.page, "asset_sha256": image.sha256,
         "attribution": found.attribution, "kept": false, "matching": "qualitative",
         "accessed_at": &crate::pipeline::stage::now()[..10], "view": view,

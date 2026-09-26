@@ -62,9 +62,17 @@ def tree_mask(still: np.ndarray, twin: np.ndarray) -> np.ndarray:
     return foreground(still) & foreground(twin)
 
 
+# A column counts toward the tree when this many rows of it are tree: the
+# horizon's antialiased row can stand out of its own row under both suns,
+# and a streak one or two rows high is no tree (fn-157).
+LEAST_ROWS = 3
+
+
 def box_of(mask: np.ndarray) -> tuple[int, int, int, int] | None:
-    rows = np.flatnonzero(mask.any(axis=1))
-    columns = np.flatnonzero(mask.any(axis=0))
+    columns = np.flatnonzero(mask.sum(axis=0) >= LEAST_ROWS)
+    if columns.size == 0:
+        return None
+    rows = np.flatnonzero(mask[:, columns[0] : columns[-1] + 1].any(axis=1))
     if rows.size == 0 or columns.size == 0:
         return None
     return int(columns[0]), int(rows[0]), int(columns[-1] - columns[0] + 1), int(rows[-1] - rows[0] + 1)

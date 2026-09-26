@@ -217,6 +217,25 @@ Commons candidate without an open licence code (twelve at most) and one
 vision call. The counts and the
 look's token usage go to `<run-dir>/cache/photos/find.json`.
 
+A photograph found from a name carries no camera, so Tune chooses its shot
+before the first revision compares against it (host, 2026-09-26;
+`runner::shots`). Code renders the tree Tune starts from under six candidate
+cameras (a whole or bare tree framed full height at three elevations and two
+fills; bark aimed at breast height from three distances through two lenses),
+and the reviewer names the one whose framing matches the photograph (stage
+`shot`). Code measures that render's tree box (`scripts/shot-frames.py`),
+draws six candidate boxes about it, narrower, wider, shorter and taller, and
+five crown-base lines over the photograph, and the reviewer names a box, a
+line and one of four light presets (overcast; a low sun on the camera's left,
+right or behind the tree) (stage `outline`). Every number is code's; a look
+names labels or none. Two looks per reference. No camera leaves the reference
+unused; no box or no line keeps it out of the numeric targets; no light draws
+it under the overcast preset. The candidates, the selection and the shot go
+to `runner/shots.json`, which a rerun reuses, and which the revision compares
+against. When the tuning config names no required cell, the revision takes
+them from the kept views: a whole tree in leaf at the fixed seed and seed 42,
+a bare tree and a bark close-up when kept (`runner::cells`).
+
 ## Gaps
 
 Code classes each failing trait from what the run recorded:
