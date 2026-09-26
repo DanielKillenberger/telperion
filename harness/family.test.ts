@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { PRESETS } from "../src/browser/core";
 
-import { ADAPTERS, attractors, familyJson, presetToParams, toFamily } from "./family";
+import { ADAPTERS, adapterAdmits, attractors, familyJson, presetToParams, toFamily } from "./family";
 import { DEFAULT_PARAMS } from "./params";
 import { readRow, shownRows, writeRow } from "./rows";
 
@@ -50,6 +50,18 @@ describe("torsion", () => {
         supernatural: { ...family.skeleton.bias.supernatural, writheAmplitude: 0, spiralRate: 0 } } },
     });
     expect(untouched(doubled)).toEqual(untouched(toFamily(params)));
+  });
+});
+
+describe("an adapter's bounds", () => {
+  it("are the bounds of the rows it moves", () => {
+    const [density, torsion] = ["density", "torsion"].map(key => ADAPTERS.find(a => a.key === key)!);
+    expect(adapterAdmits(DEFAULT_PARAMS, density, 0.5)).toBe(true);
+    expect(adapterAdmits(DEFAULT_PARAMS, density, -1)).toBe(false);
+    expect(adapterAdmits(DEFAULT_PARAMS, density, Number.NaN)).toBe(false);
+    const bent = writeRow(DEFAULT_PARAMS.family, "/skeleton/bias/supernatural/writheAmplitude", 0.1);
+    expect(adapterAdmits({ ...DEFAULT_PARAMS, family: bent }, torsion, 2)).toBe(true);
+    expect(adapterAdmits({ ...DEFAULT_PARAMS, family: bent }, torsion, -1)).toBe(false);
   });
 });
 

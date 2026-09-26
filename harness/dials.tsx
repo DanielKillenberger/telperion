@@ -16,14 +16,16 @@
 
 import type { Dispatch, SetStateAction } from "react";
 
-import type { Parameter } from "../src/browser/parameters.generated";
-import { ADAPTERS, type Adapter } from "./family";
+import { PARAMETERS, type Parameter } from "../src/browser/parameters.generated";
+import { ADAPTERS, adapterAdmits, type Adapter } from "./family";
 import type { GrowerParams } from "./params";
-import { admit, groupOf, labelOf, notch, readRow, shownRows, span, writeRow, type Value } from "./rows";
+import { admit, groupOf, labelOf, readRow, shownRows, slider, writeRow, type Value } from "./rows";
 
-/** Rows another control owns: the seed box, and each adapter's row. */
+/** Rows another control owns: the seed box, the growth controls' age
+ *  (the specimen is built at their age, whatever the family says), and
+ *  each adapter's row. */
 const OWNED: ReadonlySet<string> = new Set([
-  "/skeleton/seed", ...ADAPTERS.flatMap(a => (a.owns === undefined ? [] : [a.owns])),
+  "/skeleton/seed", "/age", ...ADAPTERS.flatMap(a => (a.owns === undefined ? [] : [a.owns])),
 ]);
 
 /** A dial's value, at a precision that can tell its own steps apart -
@@ -56,21 +58,26 @@ export function Traits({ prefix, values, onChange }: {
   </>;
 }
 
-/** A slider over `[low, high]` and a box for the exact value. */
-function Numeric({ id, value, ends, step, onChange }: {
+/** An exact number box, and a slider where one resolves the value. */
+function Numeric({ id, value, whole, range, onChange }: {
   id: string;
   value: number | undefined;
-  ends: [number, number] | null;
-  step: number | "any";
+  whole: boolean;
+  range: { ends: [number, number]; notch: number } | null;
   onChange: (raw: number, text: string) => void;
 }) {
   return <>
-    <input id={id} type="number" value={value ?? ""} placeholder="unset" step={step}
+    <input id={id} type="number" value={value ?? ""} placeholder="unset" step={whole ? 1 : "any"}
       onChange={event => onChange(event.target.valueAsNumber, event.target.value)} />
-    {ends !== null && value !== undefined && <input type="range" aria-label={id}
-      min={ends[0]} max={ends[1]} step={step} value={value}
+    {range !== null && value !== undefined && <input type="range" aria-label={id}
+      min={range.ends[0]} max={range.ends[1]} step={range.notch} value={value}
       onChange={event => onChange(Number.parseFloat(event.target.value), event.target.value)} />}
   </>;
+}
+
+/** Where a row does nothing, said beside its control. */
+function Dormant({ applies }: { applies: readonly string[] }) {
+  return <>{applies.filter(a => a !== "").map(a => <p className="gd-dormant" key={a}>dormant: {a}</p>)}</>;
 }
 
 /** One catalogue row: its control, its meaning and its dormancy. */
@@ -80,43 +87,46 @@ function Row({ parameter: p, value, onChange }: {
   onChange: (value: Value) => void;
 }) {
   const id = `gd-${p.path}`;
-  const ends = typeof value === "number" ? span(p, value) : null;
-  const step = ends === null ? (p.kind === "count" ? 1 : "any") : notch(p, ends);
+  const range = typeof value === "number" ? slider(p, value) : null;
   return <div className="gd-dial">
     <label className="gd-label" htmlFor={id}>
       {labelOf(p.path)}
       {typeof value === "number" && <span className="gd-value">
-        {step === "any" ? value : format(value, step)} {p.unit}
+        {range === null ? value : format(value, range.notch)} {p.unit}
       </span>}
     </label>
     {p.kind === "switch"
       ? <input id={id} type="checkbox" checked={value === true} onChange={event => onChange(event.target.checked)} />
-      : <Numeric id={id} value={typeof value === "number" ? value : undefined} ends={ends} step={step}
+      : <Numeric id={id} value={typeof value === "number" ? value : undefined} whole={p.kind === "count"} range={range}
           onChange={(raw, text) => {
             if (p.optional && text === "") return onChange(undefined);
             const admitted = admit(p, raw);
             if (admitted !== null) onChange(admitted);
           }} />}
     <p className="gd-meaning">{p.meaning}</p>
-    {p.applies !== "" && <p className="gd-dormant">dormant: {p.applies}</p>}
+    <Dormant applies={[p.applies]} />
   </div>;
 }
 
-/** A named transform, drawn as a row is. */
-function AdapterDial({ adapter: a, value, onChange }: {
+/** A named transform, drawn as a row is, carrying the dormancy of the rows
+ *  it moves. */
+function AdapterDial({ adapter: a, params, onChange }: {
   adapter: Adapter;
-  value: number;
+  params: GrowerParams;
   onChange: (value: number) => void;
 }) {
   const id = `gd-${a.key}`;
+  const value = params[a.key];
+  const applies = [...new Set(PARAMETERS.filter(p => a.moves.includes(p.path)).map(p => p.applies))];
   return <div className="gd-dial">
     <label className="gd-label" htmlFor={id}>
       {a.key}<span className="gd-value">{format(value, a.step)}</span>
     </label>
-    <Numeric id={id} value={value} step={a.step}
-      ends={[Math.min(a.min, value), Math.max(a.max, value)]}
-      onChange={raw => { if (Number.isFinite(raw)) onChange(raw); }} />
+    <Numeric id={id} value={value} whole={false}
+      range={{ ends: [Math.min(a.min, value), Math.max(a.max, value)], notch: a.step }}
+      onChange={raw => { if (adapterAdmits(params, a, raw)) onChange(raw); }} />
     <p className="gd-meaning">{a.meaning}</p>
+    <Dormant applies={applies} />
   </div>;
 }
 
@@ -136,7 +146,7 @@ export function Dials({ params, setParams, growth }: {
       <details className="gd-dials" key={group}>
         <summary>{group}</summary>
         {ADAPTERS.filter(a => a.group === group).map(a => (
-          <AdapterDial key={a.key} adapter={a} value={params[a.key]}
+          <AdapterDial key={a.key} adapter={a} params={params}
             onChange={value => setParams(prev => ({ ...prev, [a.key]: value }))} />
         ))}
         {rows.map(p => (

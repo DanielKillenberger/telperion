@@ -56,20 +56,20 @@ export function labelOf(path: string): string {
   return path.slice(path.lastIndexOf("/") + 1).replace(/[A-Z]/g, c => ` ${c.toLowerCase()}`);
 }
 
-/** The slider's ends: the tuning window where the row offers a dial, its
- *  bounds otherwise, widened to take the value in, so a preset is never
- *  clamped on arrival. Null where either end is unbounded. */
-export function span(p: Parameter, value: number): [number, number] | null {
+/** The slider over a row: its ends and notch. The ends are the tuning
+ *  window where the row offers a dial, its bounds otherwise, widened to take
+ *  the value in so a preset is never clamped on arrival. The notch is one
+ *  for a count, a round two-hundredth of the span otherwise. None where an
+ *  end is unbounded, or where the notch is coarser than the value it would
+ *  move (a window as wide as the validation bounds): the number box alone
+ *  serves that row. */
+export function slider(p: Parameter, value: number): { ends: [number, number]; notch: number } | null {
   const [low, high] = p.dial?.window ?? [p.low, p.high];
   if (!Number.isFinite(low) || !Number.isFinite(high)) return null;
-  return [Math.min(low, value), Math.max(high, value)];
-}
-
-/** The slider's notch: one for a count, a round two-hundredth of the span
- *  otherwise. */
-export function notch(p: Parameter, [low, high]: [number, number]): number {
-  if (p.kind === "count") return 1;
-  return 10 ** Math.floor(Math.log10((high - low) / 200 || 1));
+  const ends: [number, number] = [Math.min(low, value), Math.max(high, value)];
+  const notch = p.kind === "count" ? 1 : 10 ** Math.floor(Math.log10((ends[1] - ends[0]) / 200 || 1));
+  const scale = Math.max(Math.abs(value), p.dial?.step ?? 0);
+  return notch > scale ? null : { ends, notch };
 }
 
 /** A typed or dragged number, as the row admits it: rounded where it

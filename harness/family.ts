@@ -1,6 +1,8 @@
 import type { Family, TreePreset } from "../src/browser/core";
+import { PARAMETERS } from "../src/browser/parameters.generated";
 
 import type { GrowerParams } from "./params";
+import { admit, readRow } from "./rows";
 
 /* ------------------------------------------------------------------ *
  * THE DIALS, AS THE GENERATOR'S OWN ARGUMENTS
@@ -27,6 +29,8 @@ export interface Adapter {
   meaning: string;
   /** The row it stands in for, whose own control it replaces. */
   owns?: string;
+  /** The rows it writes: their bounds hold it, their dormancy is its own. */
+  moves: readonly string[];
   min: number;
   max: number;
   step: number;
@@ -34,16 +38,29 @@ export interface Adapter {
 
 export const ADAPTERS: readonly Adapter[] = [
   {
-    key: "density", group: "/skeleton", owns: "/skeleton/attractors",
+    key: "density", group: "/skeleton", owns: "/skeleton/attractors", moves: ["/skeleton/attractors"],
     meaning: `The attractor count as a share of ${ATTRACTORS_MIN} to ${ATTRACTORS_MAX}: how thickly the envelope is populated, branch count and not leaves.`,
     min: 0, max: 1, step: 0.01,
   },
   {
     key: "torsion", group: "/skeleton/bias/supernatural",
+    moves: ["/skeleton/bias/supernatural/writheAmplitude", "/skeleton/bias/supernatural/spiralRate"],
     meaning: "Master over writhe amplitude and spiral rate: 0 leaves the centreline straight whatever they say, 1 is the two as dialled. Lean, gravitropism and the surface twist are outside it.",
     min: 0, max: 2, step: 0.01,
   },
 ];
+
+/** Whether the adapter may take `value`: every row it moves lands inside
+ *  that row's bounds, so a dial move never sends a family the wire refuses. */
+export function adapterAdmits(params: GrowerParams, adapter: Adapter, value: number): boolean {
+  if (!Number.isFinite(value)) return false;
+  const family = toFamily({ ...params, [adapter.key]: value });
+  return adapter.moves.every(path => {
+    const row = PARAMETERS.find(p => p.path === path);
+    const moved = readRow(family, path);
+    return row !== undefined && typeof moved === "number" && admit(row, moved) === moved;
+  });
+}
 
 /** The attractor count the density dial stands for. */
 export function attractors(density: number): number {

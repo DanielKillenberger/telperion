@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { PRESETS } from "../src/browser/core";
 import { PARAMETERS, type Parameter } from "../src/browser/parameters.generated";
 
-import { admit, groupOf, labelOf, notch, readRow, shownRows, span } from "./rows";
+import { admit, groupOf, labelOf, readRow, shownRows, slider } from "./rows";
 
 function leaves(value: unknown, at: string, out: Map<string, unknown>): Map<string, unknown> {
   if (typeof value === "object" && value !== null) {
@@ -54,15 +54,17 @@ describe("the control's arithmetic", () => {
     expect([groupOf(shell.path), labelOf(shell.path)]).toEqual(["/", "shell depth"]);
   });
 
-  it("spans the tuning window, widened to the value, and none where unbounded", () => {
-    expect(span(shell, 0.4)).toEqual([0, 1]);
-    const lateral = row("/skeleton/habit/lateralsPerStation");
-    expect(span(lateral, 6)).toEqual([1, 6]);
-    expect(span(row("/skeleton/envelope/height"), 20)).not.toBeNull();
+  it("slides over the tuning window, widened to the value, at a notch that resolves it", () => {
+    expect(slider(shell, 0.4)).toEqual({ ends: [0, 1], notch: 0.001 });
+    expect(slider(row("/skeleton/habit/lateralsPerStation"), 6)).toEqual({ ends: [1, 6], notch: 1 });
+    expect(slider(stems, 1)?.notch).toBe(1);
     const unbounded = PARAMETERS.find(p => !p.dial && p.high === Infinity);
-    expect(unbounded && span(unbounded, 1)).toBeNull();
-    expect(notch(stems, [1, 6])).toBe(1);
-    expect(notch(shell, [0, 1])).toBe(0.001);
+    expect(unbounded && slider(unbounded, 1)).toBeNull();
+    /* Windows as wide as the validation bounds: a notch of metres or of
+       millions of degrees cannot move a 5 mm twig or a 137.508 degree
+       divergence, so the exact number box serves them alone. */
+    expect(slider(row("/skeleton/twigs/twig/diameter"), 0.005)).toBeNull();
+    expect(slider(row("/canopy/divergence"), 137.508)).toBeNull();
   });
 
   it("admits a number as the row does", () => {
