@@ -514,4 +514,40 @@ mod tests {
         super::tape(&tape, &[]).unwrap();
         assert!(path.with_extension("bin").exists());
     }
+
+    /// fn-157: a PDF's text is the parse Firecrawl returned, recorded under
+    /// its own entry. A page not openly licensed keeps only the parse's
+    /// quoted passages, and its scrape only the PDF's magic, so a replay
+    /// still takes the body for a PDF and asks for the parse.
+    #[test]
+    fn a_pdf_keeps_its_magic_and_its_parse_only_the_quoted_passages() {
+        let tape = std::env::temp_dir().join(format!("trim-pdf-{}", std::process::id()));
+        std::fs::create_dir_all(tape.join("firecrawl")).unwrap();
+        std::fs::create_dir_all(tape.join("jev")).unwrap();
+        let url = "https://archive.test/guideline.pdf";
+        let (scrape, parse) = ("b".repeat(64), "c".repeat(64));
+        let at = |key: &str| tape.join(format!("firecrawl/{}.json", &key[..32]));
+        let entry = serde_json::json!({"key": scrape,
+            "request": {"op": "scrape", "url": url},
+            "response": {"ok": {"content_type": "text/html", "markdown": ""}}});
+        std::fs::write(at(&scrape), entry.to_string()).unwrap();
+        std::fs::write(at(&scrape).with_extension("bin"), b"%PDF-1.4 binary body").unwrap();
+        let parsed = "Beech grows to 30 m tall in its native woods. The guideline is not open.";
+        let entry = serde_json::json!({"key": parse,
+            "request": {"op": "parse", "file": "P6.pdf"}, "response": {"ok": parsed}});
+        std::fs::write(at(&parse), entry.to_string()).unwrap();
+        let kind = serde_json::json!({"request": {"body": {"state": {
+            "source": {"url": url},
+            "passages": ["Beech grows to 30 m tall in its native woods."]}}}});
+        std::fs::write(tape.join("jev/k.json"), kind.to_string()).unwrap();
+        super::tape(&tape, &[]).unwrap();
+        let bytes = std::fs::read(at(&scrape).with_extension("bin")).unwrap();
+        assert_eq!(bytes, b"%PDF-");
+        let after: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(at(&parse)).unwrap()).unwrap();
+        let text = after["response"]["ok"].as_str().unwrap();
+        assert!(text.contains("30 m tall"), "{text}");
+        assert!(!text.contains("not open"), "{text}");
+        assert!(super::only_quoted(&tape, &[]).unwrap().is_empty());
+    }
 }
