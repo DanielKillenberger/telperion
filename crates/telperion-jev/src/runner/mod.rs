@@ -23,6 +23,7 @@ pub mod preflight;
 pub mod preset;
 pub mod profile;
 pub mod record;
+pub mod shots;
 pub mod sources;
 pub mod start;
 pub mod tools;

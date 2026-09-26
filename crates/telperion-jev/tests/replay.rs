@@ -62,16 +62,32 @@ fn seeded(dir: &Path, species: &str) {
     tuning["ledger"] = at("run/ledger").into();
     tuning["vision"]["ledger"] = at("run/vision-ledger").into();
     tuning["sheet"]["adapter"]["ledger"] = at("run/vision-ledger").into();
+    let packet = format!("catalogue/{species}/packet/references.json");
+    tuning["matched"]["references"] = at(&packet).into();
+    tuning["matched"]["catalogue"] = at("catalogue").into();
+    tuning["matched"]["refs"] = at("refs").into();
+    tuning["matched"]["scratch"] = at("run/matched").into();
     std::fs::write(dir.join("tuning.json"), tuning.to_string()).unwrap();
 }
 
 /// One replayed run through Start, which must succeed: each stage's line.
 fn replay(dir: &Path, species: &str) -> Vec<String> {
-    let out = Command::new(env!("CARGO_BIN_EXE_species"))
+    let out = replay_until(dir, species, "start");
+    let printed = String::from_utf8_lossy(&out.stdout).into_owned();
+    assert!(
+        out.status.success(),
+        "{printed}{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    printed.lines().map(str::to_string).collect()
+}
+
+fn replay_until(dir: &Path, species: &str, until: &str) -> std::process::Output {
+    Command::new(env!("CARGO_BIN_EXE_species"))
         .current_dir(repo())
         .env_remove("TYPESAFE_API_KEY")
         .env_remove("FIRECRAWL_API_KEY")
-        .args([species, "--until", "start", "--replay"])
+        .args([species, "--until", until, "--replay"])
         .arg(fixture(species).join("tape"))
         .arg("--catalogue")
         .arg(dir.join("catalogue"))
@@ -82,14 +98,7 @@ fn replay(dir: &Path, species: &str) -> Vec<String> {
         .arg("--tools")
         .arg(tools())
         .output()
-        .unwrap();
-    let printed = String::from_utf8_lossy(&out.stdout).into_owned();
-    assert!(
-        out.status.success(),
-        "{printed}{}",
-        String::from_utf8_lossy(&out.stderr)
-    );
-    printed.lines().map(str::to_string).collect()
+        .unwrap()
 }
 
 /// A scratch directory seeded for `species`, replayed through Start; the
@@ -170,6 +179,53 @@ fn the_recorded_beech_replays_offline_through_start_and_a_second_run_reruns_noth
         .filter_map(|r| r["view"].as_str())
         .collect();
     assert!(views.contains(&"leaf-on"), "{views:?}");
+}
+
+/// R8: the beech replays through Tune's first revision. The photograph the
+/// Profile stage kept gets a shot chosen from code's candidates (host,
+/// 2026-09-26), recorded with its candidates and selection, and the
+/// revision reaches a round. Rendering needs a hardware GPU; a machine
+/// without one (CI) skips, as the render crate's tests do.
+#[test]
+fn the_recorded_beech_replays_through_tunes_first_revision() {
+    let dir = std::env::temp_dir().join(format!(
+        "jev-replay-tune-{}-{}",
+        std::process::id(),
+        telperion_jev::ledger::new_entry_id()
+    ));
+    seeded(&dir, BEECH);
+    let out = replay_until(&dir, BEECH, "tune");
+    let printed = String::from_utf8_lossy(&out.stdout).into_owned();
+    let stderr = String::from_utf8_lossy(&out.stderr).into_owned();
+    if stderr.contains("no hardware GPU adapter") || stderr.contains("WebGPU is unavailable") {
+        println!("skipped: no hardware GPU");
+        return;
+    }
+    assert!(out.status.success(), "{printed}{stderr}");
+    let shots = telperion_jev::runner::shots::file(&dir.join("run/runner"));
+    let shots: Value = serde_json::from_slice(&std::fs::read(shots).unwrap()).unwrap();
+    let reference = shots["references"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["view"] == "leaf-on")
+        .unwrap_or_else(|| panic!("{shots}"));
+    assert!(reference["shot"]["camera"].is_object(), "{reference}");
+    assert!(reference["shot"]["tree"]["box"].is_array(), "{reference}");
+    assert!(
+        reference["shot_selection"]["candidates"]["camera"]
+            .as_array()
+            .is_some_and(|c| c.len() >= 2),
+        "{reference}"
+    );
+    let run: Value =
+        serde_json::from_slice(&std::fs::read(dir.join("run/runner/tuning/1/run.json")).unwrap())
+            .unwrap();
+    assert!(
+        run["budget"]["rounds"].as_u64().unwrap() >= 1,
+        "{}",
+        run["stopped"]
+    );
 }
 
 /// R5: the Oregon white oak, a shipped species, run from its bare seed:
