@@ -388,6 +388,25 @@ class TapeAdapter(unittest.TestCase):
             changed["request"]["inventory"]["traits"] = ["u"]
             self.assertEqual(run(f"replay:{tmp}", changed).returncode, 3, "a different question is not served")
 
+    def test_rekey_files_each_answer_under_the_key_the_adapter_computes_now(self):
+        """fn-157: a change of what names the run moves every key; rekey
+        refiles a recording's answers so it still replays."""
+        script = Path(__file__).resolve().parent / "tape-adapter.py"
+        tape = load_module("tape-adapter.py")
+        with tempfile.TemporaryDirectory() as tmp:
+            asked = {"stage": "screen", "request": {"image": {"sha256": "s"}}}
+            argv = ["python3", "scripts/reference-first.py"]
+            stale = Path(tmp) / "adapter" / ("0" * 32 + ".json")
+            stale.parent.mkdir()
+            stale.write_text(json.dumps({"key": "0" * 64, "argv": argv, "stdin": asked,
+                                         "stdout": "{}", "stderr": "", "exit": 0}))
+            done = subprocess.run([sys.executable, str(script), f"rekey:{tmp}"], text=True, capture_output=True)
+            self.assertEqual(done.returncode, 0, done.stderr)
+            digest = tape.key(argv, json.dumps(asked))
+            moved = Path(tmp) / "adapter" / f"{digest[:32]}.json"
+            self.assertTrue(moved.exists() and not stale.exists(), done.stdout)
+            self.assertEqual(json.loads(moved.read_text())["key"], digest)
+
 
 if __name__ == "__main__":
     unittest.main()
