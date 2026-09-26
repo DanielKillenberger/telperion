@@ -51,14 +51,17 @@ pub fn screened(tape: &Path) -> Result<BTreeSet<String>, String> {
 
 /// Every passage the run quoted to Jev: each string of each recorded request
 /// body, line by line, without a row label, whitespace collapsed, and each
-/// passage a document's kind was asked over whatever its length.
+/// passage a document's kind or an appearance level was asked over
+/// whatever its length.
 pub fn quoted(tape: &Path) -> Result<BTreeSet<String>, String> {
     let mut out = BTreeSet::new();
     for entry in entries(&tape.join("jev"))? {
         let body = &entry["request"]["body"];
         strings(body, &mut out);
-        let passages = body["state"]["passages"].as_array().into_iter().flatten();
-        out.extend(passages.filter_map(Value::as_str).map(collapse_ws));
+        for list in ["passages", "sentences"] {
+            let whole = body["state"][list].as_array().into_iter().flatten();
+            out.extend(whole.filter_map(Value::as_str).map(collapse_ws));
+        }
         if let Some(context) = body["state"]["candidate"]["context"].as_str() {
             out.insert(collapse_ws(context));
         }
@@ -455,20 +458,25 @@ mod tests {
         assert!(!alone.contains("shaded"), "{alone}");
     }
 
-    /// fn-157, the oak's replay: a document's kind is asked over up to three
-    /// candidate sentences, and one may be a single word (an address cut at
+    /// fn-157, the oak's replay: a document's kind and an appearance level
+    /// are asked over sentences that may be a word or two (an address cut at
     /// its full stop). Each is quoted whatever its length, or the trimmed
-    /// page asks the kind question over other passages.
+    /// page asks over other sentences.
     #[test]
-    fn a_kind_question_keeps_every_passage_it_asked_over() {
+    fn a_short_sentence_a_request_asked_over_is_kept() {
         let tape = std::env::temp_dir().join(format!("trim-kind-{}", std::process::id()));
         std::fs::create_dir_all(tape.join("jev")).unwrap();
         let entry = serde_json::json!({"request": {"body": {"state": {
-            "passages": ["org%2Fportal%2Ftaxa%2Findex."]}}}});
+            "passages": ["org%2Fportal%2Ftaxa%2Findex."],
+            "sentences": ["cad=4) [bark](https://books."]}}}});
         std::fs::write(tape.join("jev/a.json"), entry.to_string()).unwrap();
         let quoted = super::quoted(&tape).unwrap();
         assert!(
             quoted.contains("org%2Fportal%2Ftaxa%2Findex."),
+            "{quoted:?}"
+        );
+        assert!(
+            quoted.contains("cad=4) [bark](https://books."),
             "{quoted:?}"
         );
     }
