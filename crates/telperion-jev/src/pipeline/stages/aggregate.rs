@@ -240,22 +240,31 @@ pub fn metric(agg: &Aggregate, unit: &str) -> Value {
     metric
 }
 
-/// A value gates only when its deciding tier agrees (host, 2026-09-26): one
-/// source, or sources that disagree, only inform, so Start derives from it,
-/// Tune may move it and it never makes a baseline infeasible.
+/// A value gates only when its deciding tier agrees and is a flora, forestry
+/// or garden tier (host, 2026-09-26): anything else only informs, so Start
+/// derives from it, Tune may move it and it never makes a baseline
+/// infeasible.
 fn classification(agg: &Aggregate) -> &'static str {
-    match agg.confidence {
-        "agreed" => "gating",
-        _ => "contextual",
+    match agg.confidence == "agreed" && agg.tier.is_some_and(|t| t < GATING_TIERS) {
+        true => "gating",
+        false => "contextual",
     }
 }
+
+/// The kinds whose agreement can gate a value: flora, forestry and garden
+/// (host, 2026-09-26). An extension, nursery or other page still decides a
+/// value no better tier states, but only informs.
+const GATING_TIERS: usize = 3;
 
 /// Why the value gates or informs, in words.
 fn classified(agg: &Aggregate) -> String {
     let (n, kind) = (points(agg), agg.tier.map_or("", |t| KINDS[t]));
-    match (agg.confidence, n) {
-        ("agreed", _) => format!("gating: {n} independent {kind} sources agree"),
-        (_, 1) => format!("contextual: one {kind} source, nothing to agree with"),
+    match (classification(agg), agg.confidence, n) {
+        ("gating", _, _) => format!("gating: {n} independent {kind} sources agree"),
+        (_, "agreed", _) => {
+            format!("contextual: {n} independent {kind} sources agree, but only a flora, forestry or garden tier gates")
+        }
+        (_, _, 1) => format!("contextual: one {kind} source, nothing to agree with"),
         _ => format!("contextual: {n} {kind} sources that do not agree"),
     }
 }

@@ -105,7 +105,8 @@ from its tier set aside and named. Jev classes each document and labels each
 span and never chooses between sources; code owns every number. Start takes the typical value, the median, never the middle of the range, and Tune narrows it. A
 field no document states typically is `unsourced`: `gaps.md` lists it, and
 the generator's default stands until Tune sets it from the photographs. Only
-a value whose tier agrees gates; a one-source value is contextual, and
+a value a flora, forestry or garden tier agrees on gates; any other is
+contextual, and
 `gaps.md` lists it beside the unsourced ones for a person to source.
 Nothing about a value waits on a person: no claim is filed, searched again
 or settled. The article's claims are the cite check's (below); with

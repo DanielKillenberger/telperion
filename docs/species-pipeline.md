@@ -285,10 +285,11 @@ the tier holds three. The bounds are named constants, and
 the median of the points left, the range their extent; a record or a single
 specimen is the field's `maximum`, never its value. A field no document states
 typically is `unsourced`: the generator's default stands and Tune sets it from
-the photographs. A value gates only when its deciding tier agrees (host,
-2026-09-26): an `agreed` value is `gating`; a `thin` one, one source or
-sources that do not agree, is `contextual`: Start derives from it, Tune may
-move it, and it never makes a baseline infeasible. `classified` says which
+the photographs. A value gates only when its deciding tier agrees and is a flora, forestry
+or garden tier (host, 2026-09-26): such a value is `gating`; any other, one
+source, sources that do not agree, or an extension, nursery or other tier,
+is `contextual`: Start derives from it, Tune may move it, and it never
+makes a baseline infeasible. `classified` says which
 and why. The metric keeps the profile's shape, so Tune and Gaps read
 it unchanged; it adds `value`, `tier`, `tiers` (the independent sources each
 tier held), `sources_agreeing`, `spread_ratio`, `maximum` and `set_aside`, and
