@@ -61,6 +61,7 @@ fn with_builder<T>(habit: HabitParams, heights: &[f64], probe: impl Fn(&mut Buil
         point_scale: 1.0,
         growing_envelope: false,
         paused: false,
+        limbs: &mut Limbs::default(),
     };
     probe(&mut builder)
 }

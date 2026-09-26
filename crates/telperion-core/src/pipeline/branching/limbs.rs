@@ -1,0 +1,75 @@
+//! A limb system's own shell. A first-order axis that `raggedReach` stops
+//! short of the crown's shell keeps everything it bears - its deeper axes and
+//! the twigs on them - inside the crown's shell scaled about the station it
+//! leaves by the share of its room it kept. An axis that kept all of it is
+//! bound by the crown's shell itself, to the byte.
+use super::*;
+
+/// The shell a limb system grows in: the crown's, scaled about `station`.
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
+pub(super) struct Bound {
+    station: Vec3,
+    scale: f64,
+}
+impl Default for Bound {
+    fn default() -> Self {
+        Self::around(Vec3::ZERO, 1.0)
+    }
+}
+impl Bound {
+    pub(super) fn around(station: Vec3, scale: f64) -> Self {
+        Self { station, scale }
+    }
+    /// Whether the system is bound more tightly than the crown.
+    pub(super) fn short(self) -> bool {
+        self.scale != 1.0
+    }
+    /// `p` where the crown's shell judges it: a point on the system's shell
+    /// maps onto the crown's.
+    pub(super) fn map(self, p: Vec3) -> Vec3 {
+        if self.short() {
+            self.station + (p - self.station) / self.scale
+        } else {
+            p
+        }
+    }
+}
+
+/// The bound of every first-order axis stopped short, named by the position of
+/// its first node, which no remap of the tree's storage moves.
+#[derive(Debug, Clone, Default)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
+pub(super) struct Limbs(Vec<([u64; 3], Bound)>);
+impl Limbs {
+    fn key(p: Vec3) -> [u64; 3] {
+        [p.x.to_bits(), p.y.to_bits(), p.z.to_bits()]
+    }
+    pub(super) fn record(&mut self, first: Vec3, bound: Bound) {
+        if !bound.short() {
+            return;
+        }
+        let key = Self::key(first);
+        if let Err(at) = self.0.binary_search_by_key(&key, |e| e.0) {
+            self.0.insert(at, (key, bound));
+        }
+    }
+    /// The bound of the limb system node `i` belongs to: its first-order
+    /// ancestor's, or the crown's for a stem and for a system kept whole.
+    pub(super) fn of(&self, tree: &Tree, mut i: usize) -> Bound {
+        if self.0.is_empty() {
+            return Bound::default();
+        }
+        while let Some(parent) = tree.nodes[i].parent.map(|p| p as usize) {
+            if tree.nodes[parent].stem && !tree.nodes[i].stem {
+                let key = Self::key(tree.nodes[i].position);
+                return self
+                    .0
+                    .binary_search_by_key(&key, |e| e.0)
+                    .map_or(Bound::default(), |at| self.0[at].1);
+            }
+            i = parent;
+        }
+        Bound::default()
+    }
+}

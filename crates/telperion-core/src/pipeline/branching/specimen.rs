@@ -262,6 +262,7 @@ impl Specimen {
             &self.config,
             self.params.twigs.resolved()?,
             None,
+            self.scaffold.limbs(),
         );
         if !self.tree.diagnostics.node_capped {
             self.local.advance(
@@ -319,3 +320,6 @@ mod chronicle_tests;
 
 #[cfg(test)]
 mod cohort_tests;
+
+#[cfg(test)]
+mod limb_tests;

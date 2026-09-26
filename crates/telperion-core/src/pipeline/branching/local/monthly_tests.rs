@@ -37,6 +37,7 @@ fn monthly_deferred_shoot_does_not_starve_a_younger_live_shoot() {
             key: at as u32,
             run: None,
             curtain: Curtain::default(),
+            bound: Bound::default(),
         });
     }
     let config = GrowthConfig {
@@ -106,18 +107,18 @@ fn monthly_local_station_is_reconsidered_when_it_becomes_eligible() {
         ..GrowthConfig::default()
     };
     let twigs = TwigParams::default();
-    frontier.seed(&tree, &config, twigs, None);
+    frontier.seed(&tree, &config, twigs, None, &Limbs::default());
     assert!(frontier.queue.iter().all(|s| s.at != 1));
     // The trunk thickens while this supporting branch keeps its radius: its
     // ratio now permits local laterals. An earlier refusal is not a bud birth.
     tree.nodes[0].radius = 10.0;
-    frontier.seed(&tree, &config, twigs, None);
+    frontier.seed(&tree, &config, twigs, None, &Limbs::default());
     assert_eq!(
         frontier.queue.iter().filter(|s| s.at == 1).count(),
         1,
         "a temporarily ineligible station must remain able to bud"
     );
-    frontier.seed(&tree, &config, twigs, None);
+    frontier.seed(&tree, &config, twigs, None, &Limbs::default());
     assert_eq!(
         frontier.queue.iter().filter(|s| s.at == 1).count(),
         1,
@@ -160,6 +161,7 @@ fn monthly_run_keeps_stations_waiting_beyond_the_current_envelope() {
             bearing: false,
             key: 11,
             curtain: Curtain::default(),
+            bound: Bound::default(),
         })
         .unwrap();
     assert_eq!(
@@ -200,10 +202,10 @@ fn monthly_terminal_birth_does_not_retire_unborn_lateral_buds() {
     };
     let twigs = TwigParams::default();
     let mut frontier = Frontier::default();
-    frontier.seed(&tree, &config, twigs, None);
+    frontier.seed(&tree, &config, twigs, None, &Limbs::default());
     assert_eq!(frontier.queue.len(), 1);
     tree.nodes[0].radius = 10.0;
-    frontier.seed(&tree, &config, twigs, None);
+    frontier.seed(&tree, &config, twigs, None, &Limbs::default());
     assert_eq!(
         frontier.queue.len(),
         2,
@@ -219,6 +221,6 @@ fn monthly_terminal_birth_does_not_retire_unborn_lateral_buds() {
         0,
         "the laterals have not flushed yet"
     );
-    frontier.seed(&tree, &config, twigs, None);
+    frontier.seed(&tree, &config, twigs, None, &Limbs::default());
     assert_eq!(frontier.queue.len(), 2, "each bud is allocated only once");
 }

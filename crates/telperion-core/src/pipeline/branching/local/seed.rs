@@ -125,6 +125,7 @@ impl Frontier {
         config: &GrowthConfig,
         t: TwigParams,
         widths: planner::WidthQuery<'_>,
+        limbs: &Limbs,
     ) {
         if tree.nodes.len() < 2 {
             return;
@@ -189,6 +190,7 @@ impl Frontier {
                 key: n.identity.birth_order() as u32,
                 run: None,
                 curtain: Curtain::new(t, n.position, tip, config.trunk_height),
+                bound: limbs.of(tree, i),
             });
         }
         for i in completed {

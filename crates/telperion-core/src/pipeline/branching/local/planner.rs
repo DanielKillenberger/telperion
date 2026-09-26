@@ -21,6 +21,7 @@ pub(super) struct Axis {
     pub bearing: bool,
     pub key: u32,
     pub curtain: Curtain,
+    pub bound: Bound,
 }
 pub(in crate::pipeline::branching) struct Planner<'a> {
     pub(in crate::pipeline::branching) clock: Option<super::waiting::Clock>,
@@ -63,6 +64,7 @@ impl Planner<'_> {
             bearing,
             key,
             curtain,
+            bound,
         } = axis;
         // Plan the axis against its authored room. The live boundary is checked
         // separately for every birth, so a juvenile crown pauses the cached run
@@ -114,12 +116,12 @@ impl Planner<'_> {
             course = self.heading(at, course, wanted, stride);
             let heading = curtain.sagged(course, travelled, self.twigs, key ^ self.seed);
             let end = at + heading * stride;
-            if !curtain.admits(&config, self.twigs, end) {
+            if !curtain.admits(&config, self.twigs, bound.map(end)) {
                 let mut low = 0.0;
                 let mut high = stride;
                 for _ in 0..40 {
                     let mid = (low + high) / 2.0;
-                    if !curtain.admits(&config, self.twigs, at + heading * mid) {
+                    if !curtain.admits(&config, self.twigs, bound.map(at + heading * mid)) {
                         high = mid
                     } else {
                         low = mid

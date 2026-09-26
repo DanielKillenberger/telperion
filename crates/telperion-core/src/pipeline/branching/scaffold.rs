@@ -2,6 +2,7 @@
 //! habit traits, and every unit of every axis, leader included, takes its
 //! heading from one sum of the rule heading, the attractor pull and the bias
 //! field.
+use super::limbs::{Bound, Limbs};
 use super::*;
 use crate::math::Transcendental;
 use std::{
@@ -43,6 +44,8 @@ struct Axis {
     /// they part at; none on every other axis.
     forks: Vec<Axis>,
     fork_height: f64,
+    /// The shell the axis and everything it bears grow in.
+    bound: Bound,
 }
 impl Axis {
     fn new(at: usize, heading: Vec3, length: f64, order: u32, key: u32) -> Self {
@@ -61,6 +64,7 @@ impl Axis {
             children: Vec::new(),
             forks: Vec::new(),
             fork_height: 0.0,
+            bound: Bound::default(),
         }
     }
 }
@@ -92,48 +96,9 @@ struct Builder<'a> {
     point_scale: f64,
     growing_envelope: bool,
     paused: bool,
+    limbs: &'a mut Limbs,
 }
 
-#[cfg(test)]
-mod limit_tests {
-    use super::*;
-    #[test]
-    fn reach_probe_budget_changes_room_in_a_wide_crown() {
-        let e = Envelope {
-            spread: 4.,
-            ..Default::default()
-        };
-        let config = default_growth(e, 0, DEFAULT_STEP);
-        let bias = GrowthBias::new(e, 1, BiasParams::NONE).unwrap();
-        let mut tree = Tree::default();
-        let mut builder = Builder {
-            tree: &mut tree,
-            envelope: e,
-            planning: e,
-            config: &config,
-            bias: &bias,
-            habit: HabitParams::default(),
-            points: &[],
-            consumed: &mut [],
-            year: 0,
-            influence_sq: 0.,
-            kill_sq: 0.,
-            point_scale: 1.,
-            growing_envelope: false,
-            paused: false,
-        };
-        let origin = Vec3::new(
-            0.,
-            e.height * (e.crown_base + (1. - e.crown_base) * e.fullness),
-            0.,
-        );
-        let first = builder.reach(origin, Vec3::X);
-        builder.habit.reach_probe_steps = 512;
-        let extended = builder.reach(origin, Vec3::X);
-        assert!(extended > first * 2.);
-        assert!(extended <= e.max_radius());
-    }
-}
 impl Builder<'_> {
     fn capped(&mut self) -> bool {
         if self.tree.nodes.len() >= self.config.max_nodes {
@@ -143,7 +108,13 @@ impl Builder<'_> {
             false
         }
     }
-    fn edge(&mut self, parent: usize, position: Vec3, crown: bool) -> Result<Option<usize>> {
+    fn edge(
+        &mut self,
+        parent: usize,
+        position: Vec3,
+        crown: bool,
+        bound: Bound,
+    ) -> Result<Option<usize>> {
         if !position.is_finite() {
             return Err(Error::ResourceLimit("scaffold position overflow"));
         }
@@ -159,14 +130,18 @@ impl Builder<'_> {
         // the shell has no width there at all. An upright first edge stands
         // on the axis, where the shell contains it at every height it reaches,
         // so no tree that grew one stem straight up moves by this.
-        let held = parent != 0 && self.envelope.contains(start, TOLERANCE, self.config.seed);
+        let inside = |p: Vec3| {
+            self.envelope
+                .contains(bound.map(p), TOLERANCE, self.config.seed)
+        };
+        let held = parent != 0 && inside(start);
         if (1..=8).any(|k| {
             let p = start.lerp(position, k as f64 / 8.0);
             let bole = p.y < self.config.trunk_height;
             p.y < -TOLERANCE
                 || p.y > self.envelope.height + TOLERANCE
                 || (crown && bole)
-                || (held && !bole && !self.envelope.contains(p, TOLERANCE, self.config.seed))
+                || (held && !bole && !inside(p))
         }) {
             self.paused = self.growing_envelope;
             return Ok(None);
@@ -310,16 +285,21 @@ impl Builder<'_> {
                 .to_radians()
                 .clamp(0.0, PI);
             let direction = (heading * pitch.cos_fixed() + across * pitch.sin_fixed()).normalized();
-            let length = if axis.order == 0 {
-                let short = Rng::new(key ^ 0x2c1b_3c6d).next_f64() * self.habit.ragged_reach;
-                self.reach(position, direction) * (1.0 - short)
+            let (length, bound) = if axis.order == 0 {
+                let kept = 1.0 - Rng::new(key ^ 0x2c1b_3c6d).next_f64() * self.habit.ragged_reach;
+                (
+                    self.reach(position, direction) * kept,
+                    Bound::around(position, kept),
+                )
             } else {
-                axis.length * self.habit.lateral_length_ratio
+                (axis.length * self.habit.lateral_length_ratio, axis.bound)
             };
             if length <= unit * 0.5 {
                 continue;
             }
-            out.push(Axis::new(at, direction, length, axis.order + 1, key));
+            let mut child = Axis::new(at, direction, length, axis.order + 1, key);
+            child.bound = bound;
+            out.push(child);
         }
         out
     }
@@ -395,7 +375,8 @@ impl Builder<'_> {
             }
             let next = self.heading(position, rule.normalized(), pull, heading);
             let stride = unit.min(axis.length - unit * k as f64).max(1e-9);
-            let Some(id) = self.edge(at, position + next * stride, axis.order > 0)? else {
+            let Some(id) = self.edge(at, position + next * stride, axis.order > 0, axis.bound)?
+            else {
                 if self.paused {
                     *budget += 1;
                     axis.completed = k;
@@ -411,6 +392,9 @@ impl Builder<'_> {
             };
             if k == 0 && axis.order > 0 {
                 self.tree.nodes[id].shoot.bud_fate = crate::tree::BudFate::Lateral;
+                if axis.order == 1 {
+                    self.limbs.record(self.tree.nodes[id].position, axis.bound);
+                }
             }
             heading = next;
             at = id;
@@ -437,6 +421,8 @@ impl Builder<'_> {
 }
 
 mod frontier;
+#[cfg(test)]
+mod limit_tests;
 mod stems;
 #[cfg(test)]
 mod troll_tests;

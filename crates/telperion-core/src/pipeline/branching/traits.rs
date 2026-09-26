@@ -97,8 +97,9 @@ crate::catalogue::rows! {
                 [5.0, 10.0]),
         },
         /// The most a first-order axis may stop short of the shell, as a share
-        /// of its room; each axis draws its own share from its own stream.
-        /// Zero reaches the shell.
+        /// of its room; each axis draws its own share from its own stream, and
+        /// what it bears grows within the shell scaled about its station by
+        /// the share it kept. Zero reaches the shell.
         #[cfg_attr(feature = "json", serde(default))]
         pub ragged_reach: f64 = "raggedReach" "share of the room"
             Bounds::closed(0.0, 1.0) => [Grow] {

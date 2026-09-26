@@ -8,6 +8,7 @@ pub(in crate::pipeline::branching) struct Frontier {
     consumed: Vec<Option<u64>>,
     pub(in crate::pipeline::branching) year: u64,
     visited: Vec<usize>,
+    limbs: Limbs,
 }
 impl Frontier {
     pub(in crate::pipeline::branching) fn visited(&self) -> impl Iterator<Item = usize> + '_ {
@@ -28,7 +29,12 @@ impl Frontier {
             year: 0,
             visited: Vec::new(),
             points,
+            limbs: Limbs::default(),
         }
+    }
+    /// The bound of every limb system stopped short so far.
+    pub(in crate::pipeline::branching) fn limbs(&self) -> &Limbs {
+        &self.limbs
     }
     pub(in crate::pipeline::branching) fn remap(&mut self, map: &[Option<u32>]) {
         fn remap_axis(a: &mut Axis, map: &[Option<u32>]) -> bool {
@@ -93,6 +99,7 @@ impl Frontier {
             point_scale: fraction,
             growing_envelope: true,
             paused: false,
+            limbs: &mut self.limbs,
         };
         self.queue
             .make_contiguous()
@@ -146,6 +153,7 @@ impl Frontier {
             point_scale: 1.0,
             growing_envelope: false,
             paused: false,
+            limbs: &mut self.limbs,
         };
         if b.tree.nodes.is_empty() && !b.capped() {
             b.tree.nodes.push(Node::root());
@@ -210,6 +218,7 @@ mod tests {
             point_scale: 1.0,
             growing_envelope: true,
             paused: false,
+            limbs: &mut Limbs::default(),
         };
         builder.consume(Vec3::ZERO, 1.0);
         builder.year = 8;

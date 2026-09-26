@@ -233,7 +233,7 @@ Degrees the lateral pitch moves from the crown's base to its top: a station's la
 
 ### `/skeleton/habit/raggedReach`
 
-The most a first-order axis may stop short of the shell, as a share of its room; each axis draws its own share from its own stream. Zero reaches the shell.
+The most a first-order axis may stop short of the shell, as a share of its room; each axis draws its own share from its own stream, and what it bears grows within the shell scaled about its station by the share it kept. Zero reaches the shell.
 
 - real, share of the room, [0, 1], default 0
 - read by grow; growth path: as the direct build
