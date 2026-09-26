@@ -167,8 +167,7 @@ pub fn metric(agg: &Aggregate, unit: &str) -> Value {
             "unit": unit, "range": range, "classification": "gating",
             "source": agg.sources, "confidence": agg.confidence, "value": value,
             "sources_agreeing": points(agg), "spread_ratio": agg.spread_ratio,
-            "note": format!("the median of {} independent sources; the range is their extent",
-                            points(agg)),
+            "note": note(points(agg)),
         }),
         _ => json!({
             "unit": unit, "range": null, "classification": "unsourced", "source": [],
@@ -189,6 +188,14 @@ pub fn metric(agg: &Aggregate, unit: &str) -> Value {
         metric["set_aside"] = json!(aside);
     }
     metric
+}
+
+/// How the value was composed, in words.
+fn note(sources: usize) -> String {
+    match sources {
+        1 => "one source's value; the range is its extent".into(),
+        n => format!("the median of {n} independent sources; the range is their extent"),
+    }
 }
 
 /// The independent sources behind a value: its sites.

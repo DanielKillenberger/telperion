@@ -107,8 +107,9 @@ fn described(manifest: &Manifest) -> Vec<(String, String)> {
         .collect()
 }
 
-/// Every length span of every sentence that names one of `fields`, each
-/// occurrence once, in text order, at most `SPANS_PER_DOCUMENT`.
+/// Every length span above zero of every sentence that names one of
+/// `fields`, each occurrence once, in text order, at most
+/// `SPANS_PER_DOCUMENT`.
 pub fn occurrences(markdown: &str, fields: &[String]) -> Vec<Occurrence> {
     let mut out = Vec::new();
     for candidate in candidate_sentences(markdown) {
@@ -117,7 +118,8 @@ pub fn occurrences(markdown: &str, fields: &[String]) -> Vec<Occurrence> {
             continue;
         }
         for found in unit_re().find_iter(&sentence) {
-            if first_length(found.as_str()).is_none() {
+            // A zero is no size: "Height: 50 ft. 0 in." states no height of 0.
+            if !first_length(found.as_str()).is_some_and(|(range, _)| range[1] > 0.0) {
                 continue;
             }
             out.push(Occurrence {
@@ -292,8 +294,8 @@ mod tests {
     }
 
     #[test]
-    fn a_sentence_naming_no_field_and_an_age_are_not_read() {
-        let text = "The nuts are 2 cm across. It lives 300 years. The tree grows 30 m tall.";
+    fn a_sentence_naming_no_field_an_age_and_a_zero_are_not_read() {
+        let text = "The nuts are 2 cm across. It lives 300 years. The tree grows 30 m tall. Height: 0 in. tall.";
         let found = occurrences(text, &["height_m".to_string()]);
         let spans: Vec<&str> = found.iter().map(|o| o.span.as_str()).collect();
         assert_eq!(spans, ["30 m"]);

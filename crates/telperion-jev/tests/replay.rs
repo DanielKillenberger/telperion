@@ -1,11 +1,11 @@
-//! fn-149 R6: the runner's proof is a recorded run replayed offline. The
-//! European beech was recorded live from a bare seed on 2026-09-25
-//! (`species european-beech --record`); this test replays it from the same
-//! bare seed through Start with no network and no key, and a second run
-//! reruns nothing. Every Firecrawl, Jev, Commons and vision answer comes from
+//! fn-149 R6, fn-157 R5: the runner's proof is a recorded run replayed
+//! offline. The European beech was recorded live from a bare seed on
+//! 2026-09-26 through gather, read and aggregate (`species european-beech
+//! --record`); this test replays it from the same bare seed through Start
+//! with no network and no key, and a second run reruns nothing. Every
+//! Firecrawl, Jev, Commons and vision answer comes from
 //! `tests/fixtures/replay/european-beech/tape`; a request the recording
-//! lacks fails the run, naming it. The beech's values are not the proof
-//! (fn-157 replaces the literature stages); the machinery is.
+//! lacks fails the run, naming it.
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -103,19 +103,23 @@ fn the_recorded_beech_replays_offline_through_start_and_a_second_run_reruns_noth
             .unwrap_or_default()
     };
     assert!(
-        word("sources").starts_with("sources: ran: discover ran"),
+        word("sources").starts_with("sources: ran: gather ran (16 documents), fetch ran"),
         "{lines:?}"
     );
     let profile = word("profile");
     assert!(
-        profile.starts_with("profile: ran: extract ran"),
+        profile.starts_with("profile: ran: read ran, aggregate ran"),
         "{profile}"
     );
     assert!(
-        profile.contains("reference photographs: 12 candidates, 11 open-licence, 1 kept"),
+        profile.contains("reference photographs: 12 candidates, 12 open-licence, 1 kept"),
         "{profile}"
     );
     assert!(profile.contains("reference inventory built"), "{profile}");
+    let path = dir.join("catalogue/european-beech/packet/profile.json");
+    let profile: Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+    let height = &profile["profiles"][0]["metrics"]["height_m"];
+    assert!(height["sources_agreeing"].as_u64() >= Some(3), "{height}");
     assert!(
         word("capability").starts_with("capability: ran: gate ran"),
         "{lines:?}"

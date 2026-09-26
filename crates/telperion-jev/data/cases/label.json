@@ -331,5 +331,51 @@
     "expect_condition": "unstated",
     "holdout": false,
     "negative": false
+  },
+  {
+    "id": "beech-morton-smaller-cultivar",
+    "species": "European beech (Fagus sylvatica)",
+    "url": "https://mortonarb.org/plant-and-protect/trees-and-plants/european-beech/",
+    "sentence": "It is smaller than the species growing 30 feet tall.",
+    "context": "e the foliage emerges deep purple in spring, it fades to purple-green in summer and finally turns copper in autumn. It grows 50 to 60 feet high and 45 feet wide. **Tricolor European beech (** **_Fagus sylvatica_** **‘Purpurea Tricolor’)** This cultivar has purple leaves with an irregular rose and pinkish white border. It is smaller than the species growing 30 feet tall. Light shade during the heat of the day is needed to keep the light colored leaf edges from burning. **Weeping European beech (** **_Fagus sylvatica_** **‘Pendula’)** This tree has a weeping form with variable shape reaching 40 feet high and 30 feet wide. There is also a weeping purple form. [![The Morton Arboretum](ht",
+    "span": "30 feet",
+    "occurrence": 0,
+    "fields": [
+      "height_m",
+      "dbh_m",
+      "crown_width_m",
+      "crown_base_m",
+      "leaf_length_m",
+      "leaf_width_m"
+    ],
+    "expect_field": "height_m",
+    "expect_basis": "cultivar",
+    "expect_age": "mature",
+    "expect_condition": "unstated",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "beech-woodland-trust-up-to",
+    "species": "European beech (Fagus sylvatica)",
+    "url": "https://www.woodlandtrust.org.uk/trees-woods-and-wildlife/british-trees/a-z-of-british-trees/common-beech/",
+    "sentence": "Mature beech trees can grow up to 40m in height.",
+    "context": "lie.jpeg?width=1110&height=624&v=1dc2bf4bd91b610) In autumn their leaves change to reveal stunning autumn colours. Credit: Ken Leslie / WTML - ![](https://www.woodlandtrust.org.uk/media/3957/beech-tree-old-beech-1223-laurie-campbell.jpg?rxy=0.544891640866873,0.44505494505494503&width=1110&height=624&v=1dc2bf4bf69d170) Mature beech trees can grow up to 40m in height. Credit: Laurie Campbell / WTML - ![](https://www.woodlandtrust.org.uk/media/3959/common-beech-boundary-row-alamy-hhyax4-floralimages.jpg?rxy=0.47678018575851394,0.4945054945054945&width=1110&height=624&v=1dc2bf4a7da04d0) It requires a humid atmosphere and well-drained soil. Credit: Floralimages / Alamy Stock Photo - !",
+    "span": "40m",
+    "occurrence": 0,
+    "fields": [
+      "height_m",
+      "dbh_m",
+      "crown_width_m",
+      "crown_base_m",
+      "leaf_length_m",
+      "leaf_width_m"
+    ],
+    "expect_field": "height_m",
+    "expect_basis": "typical",
+    "expect_age": "mature",
+    "expect_condition": "unstated",
+    "holdout": false,
+    "negative": false
   }
 ]

@@ -12,16 +12,17 @@ const API: &str = "https://commons.wikimedia.org/w/api.php";
 const WIDTH: u32 = 1280;
 
 /// The queries per taxon and the candidates each may add: the whole tree
-/// twice over, as a botanist files its habit and as a solitary tree (fn-157:
-/// "<taxon> tree" found the beech's leaves, buds, nuts and a copper
-/// cultivar, and the look kept only a bark close-up), its bark close up and
-/// its bare winter form.
-pub fn queries(taxon: &str) -> [(String, usize); 4] {
+/// three times over, as a botanist files its habit, as a solitary tree and
+/// as a veteran tree, then its bark close up and its bare winter form. The
+/// bare taxon found the beech's leaves, buds and nuts (fn-149), and a
+/// solitary tree is as often a copper cultivar the look refuses (fn-157).
+pub fn queries(taxon: &str) -> [(String, usize); 5] {
     [
-        (format!("{taxon} habitus"), 4),
-        (format!("{taxon} solitary tree"), 4),
+        (format!("{taxon} habitus"), 3),
+        (format!("{taxon} solitary tree"), 3),
+        (format!("{taxon} veteran tree"), 3),
         (format!("{taxon} bark"), 2),
-        (format!("{taxon} winter"), 2),
+        (format!("{taxon} winter"), 1),
     ]
 }
 
@@ -144,8 +145,8 @@ mod tests {
     use super::*;
     use serde_json::json;
 
-    /// fn-157 R7: two of the four queries ask for the whole tree, as a habit
-    /// and as a solitary tree, never the bare taxon.
+    /// fn-157 R7: three of the five queries ask for the whole tree, never
+    /// the bare taxon.
     #[test]
     fn the_queries_ask_for_the_whole_tree_first() {
         let asked: Vec<String> = super::queries("Fagus sylvatica")

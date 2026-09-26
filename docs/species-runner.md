@@ -176,8 +176,8 @@ No run from a name needs a person to supply photographs (owner,
 1. **Candidates**, at most twelve: up to two images from each open-licence
    source's page (four in all; a gathered document is open when its markup
    declares an open deed), then Wikimedia Commons, asked for the whole tree
-   as its habit (four) and as a solitary tree (four), its bark (two) and the
-   tree in winter (two). The bare taxon found the beech's leaves, buds, nuts
+   as its habit, as a solitary tree and as a veteran tree (three each), its
+   bark (two) and the tree in winter (one). The bare taxon found the beech's leaves, buds, nuts
    and a copper cultivar, and the look kept only a bark close-up (fn-157).
    Commons is a photograph host; the no-Wikipedia rule is about citing
    values.

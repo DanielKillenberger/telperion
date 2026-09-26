@@ -1,0 +1,1 @@
+{"key":"a64b3d520d4d1ccce4ed91f0d7d0279420a452eaedc2c970534d7950b1988e4b","kind":"web","request":{"url":"https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrlimit=3&gsrsearch=Fagus+sylvatica+solitary+tree+filetype%3Abitmap&prop=imageinfo&iiprop=url|mime|extmetadata&iiurlwidth=1280"},"response":{"ok":"application/json"}}

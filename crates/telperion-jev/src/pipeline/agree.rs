@@ -144,7 +144,7 @@ fn agreeing(points: Vec<Point>) -> (Vec<Point>, Vec<SetAside>) {
         .into_iter()
         .flat_map(|p| {
             let reason = format!(
-                "{} is {:.1} times the median {} of the other sources",
+                "{} is {:.1} times the median {} of every source's point",
                 p.site,
                 ratio(p.point, centre),
                 round(centre)
@@ -260,7 +260,9 @@ mod tests {
         assert_eq!(got.sources, ["P1", "P2"]);
         assert_eq!(got.set_aside.len(), 1);
         assert_eq!(got.set_aside[0].reading.source, "P3");
-        assert!(got.set_aside[0].reason.starts_with("c.org is 3.3 times"));
+        assert!(got.set_aside[0]
+            .reason
+            .starts_with("c.org is 3.3 times the median"));
         assert_eq!(got.confidence, "thin");
     }
 

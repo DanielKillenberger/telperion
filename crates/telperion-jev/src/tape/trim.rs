@@ -6,7 +6,7 @@
 //! each whole, in page order, and nothing else. Its bytes keep only the
 //! licence tags and statements the rights check reads. Every later request
 //! of a replay is then the recorded one, so every key still answers; the
-//! trim checks the candidate sentences and the licence lines itself and
+//! trim checks the sentences the run read and the licence lines itself and
 //! refuses a page it would change. `species` records with `--record`; this
 //! runs over the recording before it is committed (`tape_trim`).
 use std::collections::BTreeSet;
@@ -17,7 +17,9 @@ use serde_json::Value;
 use crate::extract::{candidate_sentences, collapse_ws};
 use crate::pipeline::adapter::is_pdf;
 use crate::pipeline::canon::{read_json, write_atomic, write_canonical};
+use crate::pipeline::requirements::table;
 use crate::pipeline::rights::{host, licence_lines, licence_tags};
+use crate::pipeline::stages::read::occurrences;
 
 /// Hosts whose pages are open (CC BY-SA encyclopedia leads, open-access
 /// records) and stay whole.
@@ -173,6 +175,40 @@ pub fn passages(text: &str, quotes: &BTreeSet<String>) -> String {
     parts.join(SEPARATOR)
 }
 
+/// The page text the licence statements were cut from, each run of
+/// overlapping statements as the one passage it is on the page: statements
+/// cut around neighbouring notices overlap, and set apart they would be cut
+/// otherwise when read again (the Morton Arboretum's photograph credits,
+/// fn-157). A statement not found on the page stands as it is.
+fn regions(raw: &[u8], statements: &[String]) -> Vec<String> {
+    let text = collapse_ws(&crate::html::source_text(raw));
+    let mut spans: Vec<(usize, usize)> = Vec::new();
+    let mut loose = Vec::new();
+    let mut from = 0;
+    for statement in statements {
+        match text[from..].find(statement.as_str()) {
+            Some(at) => {
+                spans.push((from + at, from + at + statement.len()));
+                from += at;
+            }
+            None => loose.push(statement.clone()),
+        }
+    }
+    let mut merged: Vec<(usize, usize)> = Vec::new();
+    for (start, end) in spans {
+        match merged.last_mut() {
+            Some(last) if start <= last.1 => last.1 = last.1.max(end),
+            _ => merged.push((start, end)),
+        }
+    }
+    let mut out: Vec<String> = merged
+        .iter()
+        .map(|&(a, b)| text[a..b].to_string())
+        .collect();
+    out.extend(loose);
+    out
+}
+
 /// Minimal markup the rights check reads as it read the page: the page's
 /// licence tags and its licence statements as paragraphs.
 fn markup(tags: &[String], statements: &[String]) -> Vec<u8> {
@@ -215,11 +251,12 @@ pub fn page(
     let trimmed = passages(markdown, &kept);
     let bytes = match pdf || raw.is_empty() {
         true => Vec::new(),
-        false => markup(&licence_tags(raw), &statements),
+        false => markup(&licence_tags(raw), &regions(raw, &statements)),
     };
-    // A page the run fetched as a source had every candidate sentence
-    // screened with its context: they read the same. A page it only checked
-    // for rights was read for its licence lines alone.
+    // A page the run fetched as a source had the candidate sentences that
+    // name a field read with their context (fn-157): each of those the run
+    // quoted reads the same in the trimmed page, and the trimmed page holds
+    // no candidate sentence the page did not.
     let sentences = |md: &str| -> Vec<(String, String)> {
         candidate_sentences(md)
             .into_iter()
@@ -228,12 +265,21 @@ pub fn page(
     };
     if fetched {
         let (after, before) = (sentences(&trimmed), sentences(markdown));
-        if after != before {
-            let apart = after.iter().zip(&before).find(|(a, b)| a != b);
+        let asked = before.iter().filter(|(s, _)| quotes.contains(s));
+        if let Some(lost) = asked.clone().find(|b| !after.contains(b)) {
             return Err(format!(
-                "{url}: {} candidate sentences for {}; first apart: {apart:?}",
-                after.len(),
-                before.len()
+                "{url}: the trimmed page reads {:?} otherwise",
+                lost.0
+            ));
+        }
+        // A passage cut mid-sentence starts a sentence the page never had;
+        // it is harmless unless the read stage would ask it.
+        let own: BTreeSet<&String> = before.iter().map(|(s, _)| s).collect();
+        let fields: Vec<String> = table().fields.keys().cloned().collect();
+        let asks = |sentence: &str| !occurrences(sentence, &fields).is_empty();
+        if let Some((extra, _)) = after.iter().find(|(s, _)| !own.contains(s) && asks(s)) {
+            return Err(format!(
+                "{url}: the trimmed page yields a new sentence {extra:?}"
             ));
         }
     }
@@ -331,7 +377,8 @@ pub fn only_quoted(tape: &Path, extra_open: &[String]) -> Result<Vec<String>, St
             &entry["key"].as_str().unwrap_or_default()[..32]
         )))
         .unwrap_or_default();
-        let lines = licence_lines(&raw, markdown, "", url);
+        let ct = page["content_type"].as_str().unwrap_or_default();
+        let lines = licence_lines(&raw, markdown, ct, url);
         let mut kept = quotes.clone();
         kept.extend(lines.iter().cloned());
         let quoted: usize = covered(markdown, &kept).iter().map(|(f, t)| t - f).sum();
@@ -349,4 +396,38 @@ pub fn only_quoted(tape: &Path, extra_open: &[String]) -> Result<Vec<String>, St
         }
     }
     Ok(over)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeSet;
+
+    use super::page;
+    use crate::extract::candidate_sentences;
+
+    const URL: &str = "https://example.test/beech";
+
+    /// fn-157: a fetched page keeps the sentences the read stage asked, each
+    /// with the context it was asked in, and drops the candidate sentences
+    /// it never asked; a sentence kept without its context is refused.
+    #[test]
+    fn a_page_keeps_the_sentences_read_asked_and_nothing_else() {
+        let filler = "Beech woods are shaded and quiet in every season. ".repeat(12);
+        let text = format!(
+            "The nuts are 2 cm across and fall in autumn. {filler}\
+             The tree reaches 30 m tall in parks and gardens across Europe."
+        );
+        let text = text.as_str();
+        let asked = candidate_sentences(text)
+            .into_iter()
+            .find(|c| c.sentence.contains("30 m"))
+            .unwrap();
+        let quotes: BTreeSet<String> = [asked.sentence.clone(), asked.context.clone()].into();
+        let (trimmed, _) = page(URL, "text/markdown", text, &[], &quotes, true).unwrap();
+        assert!(trimmed.contains("reaches 30 m tall"), "{trimmed}");
+        assert!(!trimmed.contains("nuts"), "{trimmed}");
+        let bare: BTreeSet<String> = [asked.sentence].into();
+        let err = page(URL, "text/markdown", text, &[], &bare, true).unwrap_err();
+        assert!(err.contains("reads"), "{err}");
+    }
 }

@@ -1,5 +1,5 @@
 //! fn-157: a species' values are the aggregate of what its documents say.
-//! The recorded beech pages (`fixtures/replay/european-beech/tape`, trimmed
+//! The beech pages recorded on 2026-09-25 (`fixtures/aggregate/tape`, trimmed
 //! to what the run quoted) are the regression cases: the heritage page's
 //! single giant beech (a 4.36 m trunk) is the field's maximum and never its
 //! typical value (R2), and the NC State page's leaf length, read as a width
@@ -82,7 +82,9 @@ fn recorded_beech() -> PathBuf {
     let paths = Paths::new(&dir);
     let recorded = tape::Fetch {
         inner: Box::new(FixtureAdapter::new(dir.join("no-fixture"))),
-        tape: Tape::Replay(fixture().join("tape")),
+        tape: Tape::Replay(
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/aggregate/tape"),
+        ),
     };
     fetch::run(&paths, &recorded).unwrap();
     let judge = Judge {
