@@ -417,7 +417,7 @@ class TapeAdapter(unittest.TestCase):
             again = {"stage": "comparison", "request": {"joint": {"geometry_group": "new"}}}
             folder = Path(tmp) / "adapter"
             folder.mkdir()
-            for name, stdin, said, when in [("a" * 32, asked, "old", 1000), ("b" * 32, again, "new", 2000)]:
+            for name, stdin, said, when in [("b" * 32, asked, "old", 1000), ("a" * 32, again, "new", 2000)]:
                 entry = folder / f"{name}.json"
                 entry.write_text(json.dumps({"key": name, "argv": argv, "stdin": stdin,
                                              "stdout": said, "stderr": "", "exit": 0}))
