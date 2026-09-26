@@ -262,15 +262,11 @@ impl Builder<'_> {
         length
     }
     /// A height's share of the crown, from `trunkHeight` at its base to the
-    /// envelope's top, held within the crown.
+    /// envelope's top, held within the crown. The growth path's planning
+    /// shell sits a twig's reach inside that top, so it is not the crown.
     fn height_share(&self, position: Vec3) -> f64 {
-        let top = if self.growing_envelope {
-            self.planning.height
-        } else {
-            self.envelope.height
-        };
         let base = self.config.trunk_height;
-        ((position.y - base) / (top - base).max(1e-9)).clamp(0.0, 1.0)
+        ((position.y - base) / (self.envelope.height - base).max(1e-9)).clamp(0.0, 1.0)
     }
     /// The growth unit divides the axis's own internode, so a station always
     /// lands on a node at exactly the spacing the trait asks for.

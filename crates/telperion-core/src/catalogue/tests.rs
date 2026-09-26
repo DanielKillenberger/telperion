@@ -163,7 +163,7 @@ fn the_deprecated_rows_parse_overlay_and_serialise_as_before() {
 fn every_row_has_its_own_rank_on_the_wire() {
     let mut ranks: Vec<u16> = entries().map(|e| e.info().wire).collect();
     ranks.sort_unstable();
-    assert_eq!(ranks, (0..249).collect::<Vec<u16>>());
+    assert_eq!(ranks, (0..251).collect::<Vec<u16>>());
 }
 
 /// A row no direct-build stage reads says so: the growth path's own rows

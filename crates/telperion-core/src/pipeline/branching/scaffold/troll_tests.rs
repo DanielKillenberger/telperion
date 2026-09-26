@@ -69,7 +69,17 @@ fn with_builder<T>(habit: HabitParams, heights: &[f64], probe: impl Fn(&mut Buil
 /// upright parent by; a second-order axis takes its length from its parent,
 /// so a station at the crown's very top still bears a lateral.
 fn pitches(y: f64) -> Vec<f64> {
+    pitches_while(y, false)
+}
+
+/// As `pitches`, on the growth path when `growing`: its planning shell sits
+/// a twig's reach inside the crown.
+fn pitches_while(y: f64, growing: bool) -> Vec<f64> {
     with_builder(habit(0.0), &[y], |b| {
+        if growing {
+            b.growing_envelope = true;
+            b.planning.height -= 0.5;
+        }
         let parent = Axis::new(1, Vec3::Y, 8.0, 1, 0x51ed_270b);
         let laterals = b.station(&parent, 1, Vec3::Y, 0);
         assert!(!laterals.is_empty(), "the station at {y} bore nothing");
@@ -104,6 +114,13 @@ fn the_stations_between_are_graded_by_height() {
             close(&found, PITCH + BY_HEIGHT * share),
             "{share}: {found:?}"
         );
+    }
+}
+
+#[test]
+fn the_growth_path_grades_the_pitch_over_the_same_crown() {
+    for y in [BASE, 10.0, TOP] {
+        assert_eq!(pitches_while(y, true), pitches(y), "at {y}");
     }
 }
 

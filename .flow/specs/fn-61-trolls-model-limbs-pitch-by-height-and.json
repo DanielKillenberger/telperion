@@ -8,13 +8,29 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-61-trolls-model-limbs-pitch-by-height-and",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-61-trolls-model-limbs-pitch-by-height-and.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_hash_epoch": {},
+  "review_pending_rounds": {
+    "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1": 1
+  },
+  "review_reservations": {
+    "0d7832dda9194fdf8046f9d02bae9eb4": {
+      "artifact_sha256": "48c6cc16cd033b331cb4219b59f66f769303432b064dbba7d2704c64b88ccaf8",
+      "counter_scope": "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "epoch": 0,
+      "exclusive": true,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "spec_path": ".flow/specs/fn-61-trolls-model-limbs-pitch-by-height-and.md",
   "status": "open",
   "title": "Troll's model limbs: pitch by height and a ragged reach",
@@ -29,5 +45,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-26T22:16:58.895868Z"
+  "updated_at": "2026-09-26T22:34:21.368281Z"
 }
