@@ -15,10 +15,11 @@ This spec adds the two scaffold rows the beech's bare photograph needs and nothi
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-- **Pitch by height.** A habit row for the lateral pitch at the crown's top, beside `lateral_pitch` at its base, interpolated over the station's height in the crown. Neutral is the base pitch everywhere, which is today's tree to the byte. `scaffold.rs:263` draws the pitch with no height term today. [inferred]
-- **A ragged reach.** A habit row for how far short of the shell a primary axis may stop, as a share of its room, drawn per axis from its own key. `reach` (`scaffold.rs:208`) measures the straight-line room to the shell; the row shortens it before the axis grows. Neutral 0 reaches the shell as now. [inferred]
+- **Pitch by height.** A habit row for the lateral pitch at the crown's top, beside `lateral_pitch` at its base, interpolated over the station's height in the crown. Neutral is the base pitch everywhere, which is today's tree to the byte. `pipeline/branching/scaffold.rs:300` draws the pitch with no height term today (checked 2026-09-27 on master `d7378c88`). [checked]
+- **A ragged reach.** A habit row for how far short of the shell a primary axis may stop, as a share of its room, drawn per axis from its own key. `reach` (`pipeline/branching/scaffold.rs:245`, checked 2026-09-27) measures the straight-line room to the shell; the row shortens it before the axis grows. Neutral 0 reaches the shell as now. [checked]
+- **Declared in the catalogue.** Since fn-152 a row is one declaration in the parameter catalogue (`pipeline/branching/traits.rs`, as `lateral_pitch` is: wire id, bounds, stage, `applies`, blend and dial), and the wire schema, validation, browser metadata, harness sliders and dial table are generated from it; the preset value files (`crates/telperion-core/presets/*.values`) state a row only when a species moves it. [checked]
 - **Rows, not species.** Both are general habit rows with validated rails that every table may state. No count or angle cap is hardcoded. [paraphrase]
-- **Relay, named not built.** Troll's model builds each axis by relay: a lateral bud takes over the extension, so the line zigzags. `crookedness` is a smooth wave about an axis's intent (`scaffold.rs:293`). If the beech's value round shows the wave cannot read as the photograph's zigzag, a relay spec follows. [inferred]
+- **Relay, named not built.** Troll's model builds each axis by relay: a lateral bud takes over the extension, so the line zigzags. `crookedness` is a smooth wave about an axis's intent (`pipeline/branching/scaffold.rs:337`). If the beech's value round shows the wave cannot read as the photograph's zigzag, a relay spec follows. [inferred]
 
 ## Acceptance Criteria
 <!-- scope: both -->
