@@ -43,7 +43,7 @@ describe("normalizeSeed", () => {
 describe("carried native controls", () => {
   it("keeps the Ordinary baseline natural and every carried trait a number", () => {
     expect(DEFAULT_PARAMS.family.skeleton.bias.supernatural.enabled).toBe(false);
-    /* The habit is the Ordinary row of the trait table, twenty numbers
+    /* The habit is the Ordinary row of the trait table, twenty-three numbers
        and no tag. Written out rather than compared to itself: the panel
        shows the owner these values, and a row the core moves under it is
        a different default tree than the one the harness was tuned on. */
@@ -55,6 +55,8 @@ describe("carried native controls", () => {
       lateralsPerStation: 3,
       lateralPitch: 60,
       pitchVariation: 15,
+      pitchByHeight: 0,
+      raggedReach: 0,
       risePrimary: 0.05,
       riseSecondary: 0,
       crookedness: 12,

@@ -261,6 +261,17 @@ impl Builder<'_> {
         }
         length
     }
+    /// A height's share of the crown, from `trunkHeight` at its base to the
+    /// envelope's top, held within the crown.
+    fn height_share(&self, position: Vec3) -> f64 {
+        let top = if self.growing_envelope {
+            self.planning.height
+        } else {
+            self.envelope.height
+        };
+        let base = self.config.trunk_height;
+        ((position.y - base) / (top - base).max(1e-9)).clamp(0.0, 1.0)
+    }
     /// The growth unit divides the axis's own internode, so a station always
     /// lands on a node at exactly the spacing the trait asks for.
     fn unit(&self, order: u32) -> f64 {
@@ -291,19 +302,21 @@ impl Builder<'_> {
         let normal = heading.cross(tangent);
         let phase = Rng::new(axis.key ^ 0x5f35_6495).range(0.0, TAU);
         let unit = self.unit(axis.order + 1);
+        let base_pitch =
+            self.habit.lateral_pitch + self.habit.pitch_by_height * self.height_share(position);
         let mut out = Vec::new();
         for member in 0..members {
             let key = axis_key(axis.key, index, member);
             let mut rng = Rng::new(key);
             let azimuth = phase + index as f64 * advance + member as f64 * TAU / members as f64;
             let across = tangent * azimuth.cos_fixed() + normal * azimuth.sin_fixed();
-            let pitch = (self.habit.lateral_pitch
-                + self.habit.pitch_variation * (2.0 * rng.next_f64() - 1.0))
+            let pitch = (base_pitch + self.habit.pitch_variation * (2.0 * rng.next_f64() - 1.0))
                 .to_radians()
                 .clamp(0.0, PI);
             let direction = (heading * pitch.cos_fixed() + across * pitch.sin_fixed()).normalized();
             let length = if axis.order == 0 {
-                self.reach(position, direction)
+                let short = Rng::new(key ^ 0x2c1b_3c6d).next_f64() * self.habit.ragged_reach;
+                self.reach(position, direction) * (1.0 - short)
             } else {
                 axis.length * self.habit.lateral_length_ratio
             };
@@ -429,6 +442,8 @@ impl Builder<'_> {
 
 mod frontier;
 mod stems;
+#[cfg(test)]
+mod troll_tests;
 #[cfg(test)]
 pub(super) use frontier::generate;
 pub(super) use frontier::Frontier;

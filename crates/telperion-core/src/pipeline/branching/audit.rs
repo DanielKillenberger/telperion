@@ -188,6 +188,20 @@ fn every_habit_trait_moves_every_shipped_preset() {
                 },
             ),
             (
+                "pitch by height",
+                HabitParams {
+                    pitch_by_height: h.pitch_by_height - 10.0,
+                    ..h
+                },
+            ),
+            (
+                "ragged reach",
+                HabitParams {
+                    ragged_reach: h.ragged_reach + 0.3,
+                    ..h
+                },
+            ),
+            (
                 "primary rise per order",
                 HabitParams {
                     rise_primary: h.rise_primary - 0.05,

@@ -16,7 +16,7 @@ const PRESETS: [Preset; 8] = [
 #[test]
 fn every_wire_row_has_one_entry() {
     let paths: Vec<_> = entries().map(|e| e.path()).collect();
-    assert_eq!(paths.len(), 249);
+    assert_eq!(paths.len(), 251);
     let mut seen = std::collections::BTreeSet::new();
     for path in &paths {
         assert!(seen.insert(*path), "{path} is declared twice");

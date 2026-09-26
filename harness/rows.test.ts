@@ -78,3 +78,17 @@ describe("the control's arithmetic", () => {
     expect(admit(zero, 0)).toBe(0);
   });
 });
+
+describe("Troll's rows", () => {
+  it.each([
+    ["/skeleton/habit/pitchByHeight", -180, 180],
+    ["/skeleton/habit/raggedReach", 0, 1],
+  ] as const)("%s slides over its rail and is held to it", (path, low, high) => {
+    const p = row(path);
+    expect([p.low, p.high]).toEqual([low, high]);
+    expect(slider(p, 0)?.ends).toEqual([low, high]);
+    expect(admit(p, high + 1)).toBe(high);
+    expect(admit(p, low - 1)).toBe(low);
+    expect(admit(p, Number.NaN)).toBeNull();
+  });
+});

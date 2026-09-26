@@ -90,5 +90,7 @@ mod surface_reference;
 mod sweep;
 #[path = "suite/terminal_taper.rs"]
 mod terminal_taper;
+#[path = "suite/troll_limbs.rs"]
+mod troll_limbs;
 #[path = "suite/twig_generations.rs"]
 mod twig_generations;
