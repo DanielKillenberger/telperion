@@ -59,6 +59,9 @@ pub fn quoted(tape: &Path) -> Result<BTreeSet<String>, String> {
         strings(body, &mut out);
         let passages = body["state"]["passages"].as_array().into_iter().flatten();
         out.extend(passages.filter_map(Value::as_str).map(collapse_ws));
+        if let Some(context) = body["state"]["candidate"]["context"].as_str() {
+            out.insert(collapse_ws(context));
+        }
     }
     Ok(out)
 }
@@ -268,7 +271,13 @@ pub fn page(
     if fetched {
         let (after, before) = (sentences(&trimmed), sentences(markdown));
         let asked = before.iter().filter(|(s, _)| quotes.contains(s));
-        if let Some(lost) = asked.clone().find(|b| !after.contains(b)) {
+        // A sentence asked with its context (a label) reads the same with
+        // it; one asked alone (a document's kind) is still there.
+        let lost = |b: &&(String, String)| match after.contains(b) {
+            true => false,
+            false => quotes.contains(&collapse_ws(&b.1)) || !after.iter().any(|a| a.0 == b.0),
+        };
+        if let Some(lost) = asked.clone().find(lost) {
             return Err(format!(
                 "{url}: the trimmed page reads {:?} otherwise",
                 lost.0
@@ -420,8 +429,9 @@ mod tests {
     const URL: &str = "https://example.test/beech";
 
     /// fn-157: a fetched page keeps the sentences the read stage asked, each
-    /// with the context it was asked in, and drops the candidate sentences
-    /// it never asked; a sentence kept without its context is refused.
+    /// with the context a label asked it in, and drops the candidate
+    /// sentences it never asked; a sentence only a document's kind was asked
+    /// over is kept alone.
     #[test]
     fn a_page_keeps_the_sentences_read_asked_and_nothing_else() {
         let filler = "Beech woods are shaded and quiet in every season. ".repeat(12);
@@ -439,8 +449,9 @@ mod tests {
         assert!(trimmed.contains("reaches 30 m tall"), "{trimmed}");
         assert!(!trimmed.contains("nuts"), "{trimmed}");
         let bare: BTreeSet<String> = [asked.sentence].into();
-        let err = page(URL, "text/markdown", text, &[], &bare, true).unwrap_err();
-        assert!(err.contains("reads"), "{err}");
+        let (alone, _) = page(URL, "text/markdown", text, &[], &bare, true).unwrap();
+        assert!(alone.contains("reaches 30 m tall"), "{alone}");
+        assert!(!alone.contains("shaded"), "{alone}");
     }
 
     /// fn-157, the oak's replay: a document's kind is asked over up to three
