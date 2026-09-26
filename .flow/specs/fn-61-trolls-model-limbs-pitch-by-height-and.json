@@ -17,19 +17,84 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
-  "review_hash_epoch": {},
-  "review_pending_rounds": {
-    "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1": 1
-  },
-  "review_reservations": {
-    "0d7832dda9194fdf8046f9d02bae9eb4": {
+  "review_attempts": [
+    {
       "artifact_sha256": "48c6cc16cd033b331cb4219b59f66f769303432b064dbba7d2704c64b88ccaf8",
-      "counter_scope": "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1",
-      "epoch": 0,
-      "exclusive": true,
+      "backend": "codex",
+      "base_sha": "c71ef3e11bfb0505b0cd88d9ca569558636f1730",
+      "counter_kind": "impl",
+      "failure_class": "head_moved",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
       "forced": false,
-      "review_type": "impl"
+      "hash_epoch": 0,
+      "head_sha": "bb100b5a2c751aa7edfa39da50b4b8ec2bafa5f4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 65,
+      "output_sha256": "2d548461b12cf9da35b40d199e5a52b748d0eb7dd46b116db33257470d4e78aa",
+      "reservation_id": "0d7832dda9194fdf8046f9d02bae9eb4",
+      "round_consumed": false,
+      "scope": "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "superseded_by": null,
+      "task": "fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "timestamp": "2026-09-26T22:37:37.723451Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "74b2f5ad3bd998c5d40f72d16d6a614d16b7891b7d20cded92e3f5e1e0578694",
+      "backend": "codex",
+      "base_sha": "c71ef3e11bfb0505b0cd88d9ca569558636f1730",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c3fcc8128288bdd5e5376994f590b250",
+            "classification": "introduced",
+            "findingId": "finding-c3fcc8128288bdd5e5376994f590b250",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "708464dc91f860ee40b521225352d5f3792265ed",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1303,
+      "output_sha256": "93467135f6ef7f02f3052095ced7ac661cd97747f78b909eeeb64e573264b5b6",
+      "reservation_id": "9c45f2ad6c9f45deb4943abf5d543325",
+      "round_consumed": true,
+      "scope": "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "superseded_by": null,
+      "task": "fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "timestamp": "2026-09-26T22:40:03.815677Z",
+      "verdict": "NEEDS_WORK"
     }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1": 0
   },
   "spec_path": ".flow/specs/fn-61-trolls-model-limbs-pitch-by-height-and.md",
   "status": "open",
@@ -45,5 +110,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-26T22:34:21.368281Z"
+  "updated_at": "2026-09-26T22:40:03.817771Z"
 }
