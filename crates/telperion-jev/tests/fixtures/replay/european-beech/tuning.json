@@ -10,24 +10,24 @@
   "dials": [],
   "initial_overrides": {},
   "judgment_model": "jev-1.13.0",
-  "ledger": ".flow/evidence/fn-149-one-species-runner-set-stages-from-a/raw/beech-record/run/ledger",
+  "ledger": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/run/ledger",
   "matched": {
-    "catalogue": ".flow/evidence/fn-149-one-species-runner-set-stages-from-a/raw/beech-record/catalogue",
+    "catalogue": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/catalogue",
     "compare_script": "scripts/compare-references.py",
     "headless": "target/release/examples/headless",
     "height": 1440,
     "numeric_references": [
       "B-WHOLE"
     ],
-    "references": ".flow/evidence/fn-149-one-species-runner-set-stages-from-a/raw/beech-record/catalogue/european-beech/packet/references.json",
-    "refs": ".flow/evidence/fn-149-one-species-runner-set-stages-from-a/raw/beech-record/refs",
-    "scratch": ".flow/evidence/fn-149-one-species-runner-set-stages-from-a/raw/beech-record/run/matched"
+    "references": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/catalogue/european-beech/packet/references.json",
+    "refs": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/refs",
+    "scratch": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/run/matched"
   },
   "measure_binary": "target/release/examples/species_measure",
   "owner_notes": "",
   "preset": "european-beech",
   "profile_id": "european-beech",
-  "profiles": ".flow/evidence/fn-149-one-species-runner-set-stages-from-a/raw/beech-record/profiles-european-beech.json",
+  "profiles": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/profiles-european-beech.json",
   "quality_anchors": [
     {
       "image": {
@@ -74,7 +74,7 @@
         "medium"
       ],
       "effort": "medium",
-      "ledger": ".flow/evidence/fn-149-one-species-runner-set-stages-from-a/raw/beech-record/run/vision-ledger",
+      "ledger": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/run/vision-ledger",
       "model": "opus",
       "program": "python3",
       "timeout_seconds": 600
@@ -91,7 +91,7 @@
       "medium"
     ],
     "effort": "medium",
-    "ledger": ".flow/evidence/fn-149-one-species-runner-set-stages-from-a/raw/beech-record/run/vision-ledger",
+    "ledger": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/run/vision-ledger",
     "model": "opus",
     "program": "python3",
     "timeout_seconds": 600

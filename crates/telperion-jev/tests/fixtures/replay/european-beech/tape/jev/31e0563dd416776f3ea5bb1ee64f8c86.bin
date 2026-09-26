@@ -1,1 +1,1 @@
-{"model":"jev-1.13.0","answers":{"document":{"type":"choice","choice":"forestry","confidence":0.96,"probabilities":{"unclear":0.0,"flora":0.0,"forestry":0.98,"garden":0.0,"extension":0.0,"nursery":0.0,"other":0.02}}},"usage":{"input_tokens":828,"output_tokens":72}}
+{"model":"jev-1.13.0","answers":{"document":{"type":"choice","choice":"forestry","confidence":0.97,"probabilities":{"other":0.02,"garden":0.0,"unclear":0.0,"nursery":0.0,"extension":0.0,"flora":0.0,"forestry":0.98}}},"usage":{"input_tokens":828,"output_tokens":72}}

@@ -1,0 +1,127 @@
+{
+  "appearance": [
+    {
+      "sources": [],
+      "trait_name": "bark_colour"
+    },
+    {
+      "sources": [],
+      "trait_name": "bark_roughness"
+    },
+    {
+      "sources": [],
+      "trait_name": "leaf_front_colour"
+    },
+    {
+      "sources": [],
+      "trait_name": "leaf_back_colour"
+    },
+    {
+      "sources": [],
+      "trait_name": "leaf_hue_range"
+    },
+    {
+      "sources": [],
+      "trait_name": "leaf_brightness_range"
+    }
+  ],
+  "context": "Mature open-grown Oregon white oak (Quercus garryana) in savanna, pasture or parkland; single-stemmed, healthy, leaf-on; not a shrubby variety (var. breweri, var. semota), not a forest-grown stand tree.",
+  "curves": null,
+  "described": [],
+  "engineering": {
+    "required_capabilities": {
+      "rationale": "Capability assessment 2026-09-26 (host). The oak needs wood on every axis, a lobed blade and an alternate petiole, all expressed in crates/telperion-core/src/capability.rs; no unreachable traits assessed. See packet/capability.json.",
+      "value": [
+        "woody-axes",
+        "lobed-blade",
+        "alternate-petiole"
+      ]
+    }
+  },
+  "fields": [
+    {
+      "bar": "proxy_only",
+      "condition": "open_grown",
+      "field": "height_m",
+      "proxy": null,
+      "question": "Which candidate span states the usual mature height of a Oregon white oak grown in the open?",
+      "required_ages_years": []
+    },
+    {
+      "bar": "proxy_only",
+      "condition": "open_grown",
+      "field": "dbh_m",
+      "proxy": null,
+      "question": "Which candidate span states the trunk diameter at breast height of a mature Oregon white oak grown in the open?",
+      "required_ages_years": []
+    },
+    {
+      "bar": "proxy_only",
+      "condition": "open_grown",
+      "field": "crown_width_m",
+      "proxy": null,
+      "question": "Which candidate span states the crown width or spread of a mature Oregon white oak grown in the open?",
+      "required_ages_years": []
+    },
+    {
+      "bar": "proxy_only",
+      "condition": "open_grown",
+      "field": "crown_base_m",
+      "proxy": null,
+      "question": "Which candidate span states the height of the crown base or clear bole (height to the lowest live branch) of a mature Oregon white oak grown in the open?",
+      "required_ages_years": []
+    },
+    {
+      "bar": "proxy_only",
+      "condition": "open_grown",
+      "field": "leaf_length_m",
+      "proxy": null,
+      "question": "Which candidate span states the length of a mature Oregon white oak leaf blade?",
+      "required_ages_years": []
+    },
+    {
+      "bar": "proxy_only",
+      "condition": "open_grown",
+      "field": "leaf_width_m",
+      "proxy": null,
+      "question": "Which candidate span states the width of a mature Oregon white oak leaf blade?",
+      "required_ages_years": []
+    }
+  ],
+  "growth_form": "broadleaf",
+  "model": "jev-latest",
+  "preset": "oregon-white-oak",
+  "profile_id": "oregon-white-oak",
+  "schema": "manifest",
+  "schema_version": 2,
+  "seed": 1,
+  "sources": [],
+  "species": "oregon-white-oak",
+  "taxon": {
+    "common_name": "Oregon white oak",
+    "cultivar": null,
+    "native_range": {
+      "region": "western North America, British Columbia to California",
+      "names": {
+        "en": "Garry oak"
+      }
+    },
+    "rank": "species",
+    "scientific_name": "Quercus garryana"
+  },
+  "transfers": [],
+  "versions": {
+    "question_sets": {
+      "citation": 1,
+      "described": 1,
+      "obligations": 1,
+      "ranking": 1,
+      "screen": 1,
+      "sufficiency": 1
+    },
+    "tools": {
+      "firecrawl": "1.23.3",
+      "species-pipeline": "0.1.0"
+    }
+  }
+}

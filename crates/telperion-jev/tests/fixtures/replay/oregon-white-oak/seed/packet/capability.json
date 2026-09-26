@@ -1,0 +1,44 @@
+{
+  "shape": "Each object in traits is one habit, element, attachment, radius or organ need. Fields: trait (parameter path, or 'organ:<name>' when no parameter exists), need (the value or structure the palm requires), outcome (reachable | unreachable-value | unsupported-anatomy), capability (the hyphenated gate name when this need is a named capability, else null), depends_on (an existing open spec id, or null), confidence (high | medium | unsure), note (the reading from the trait space). required_capabilities is the same list written on the manifest engineering row.",
+  "species": "oregon-white-oak",
+  "taxon": "Quercus garryana",
+  "assessed": "2026-09-26",
+  "assessed_by": "host",
+  "sources": [
+    "crates/telperion-core/src/capability.rs"
+  ],
+  "required_capabilities": [
+    "woody-axes",
+    "lobed-blade",
+    "alternate-petiole"
+  ],
+  "traits": [
+    {
+      "trait": "organ:wood",
+      "need": "a single trunk dividing into stout spreading limbs down to fine twigs",
+      "outcome": "reachable",
+      "capability": "woody-axes",
+      "depends_on": null,
+      "confidence": "high",
+      "note": "Expressed (capability.rs)."
+    },
+    {
+      "trait": "element.blade",
+      "need": "an obovate leaf with deep rounded lobes",
+      "outcome": "reachable",
+      "capability": "lobed-blade",
+      "depends_on": null,
+      "confidence": "high",
+      "note": "Expressed (capability.rs)."
+    },
+    {
+      "trait": "element.attachment",
+      "need": "leaves borne singly and alternately on short petioles",
+      "outcome": "reachable",
+      "capability": "alternate-petiole",
+      "depends_on": null,
+      "confidence": "high",
+      "note": "Expressed (capability.rs)."
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{"key":"08a898ab2567f7eae6661d9a46a238f67cc91fa8d913b9c5e0e987b3962d5186","kind":"web","request":{"url":"https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrlimit=3&gsrsearch=Oregon+white+oak+geograph+filetype%3Abitmap&prop=imageinfo&iiprop=url|mime|extmetadata&iiurlwidth=1280"},"response":{"ok":"application/json"}}

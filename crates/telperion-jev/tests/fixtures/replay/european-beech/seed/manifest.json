@@ -101,7 +101,14 @@
     "common_name": "European beech",
     "cultivar": null,
     "rank": "species",
-    "scientific_name": "Fagus sylvatica"
+    "scientific_name": "Fagus sylvatica",
+    "native_range": {
+      "names": {
+        "de": "Rotbuche",
+        "fr": "hêtre commun"
+      },
+      "region": "Europe"
+    }
   },
   "transfers": [],
   "versions": {

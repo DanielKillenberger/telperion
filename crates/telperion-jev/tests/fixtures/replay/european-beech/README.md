@@ -1,32 +1,33 @@
-# The recorded beech run (fn-149 R6, fn-157 R5)
+# The recorded beech run (fn-149 R6, fn-157 R1 and R5)
 
 `tests/replay.rs` replays this recording from the bare seed through Start
 with no network and no key. It is the runner's proof, recorded live on
-2026-09-26 through gather, read and aggregate (fn-157).
+2026-09-26 from the beech's native range (fn-157).
 
-- `seed/manifest.json`: the bare seed, no source.
+- `seed/manifest.json`: the bare seed, no source; `taxon.native_range` is
+  Europe, with the German and French names (host decision, 2026-09-26).
 - `seed/packet/capability.json`: the host's capability assessment.
 - `tuning.json`: the tuning config the recording ran with; the test points
   its run paths (`profiles`, the ledgers) at a scratch directory.
 - `tape/`: every external answer a replay asks for, keyed by a stable hash
   of its request (`crate::tape`, `scripts/tape-adapter.py`). Recorded live
   on 2026-09-26 (`species european-beech --record`) and extended the same
-  day for the document kinds, the tiered appearance reading and the
-  category photograph search (`--extend`, no Firecrawl call): 23 Firecrawl
-  answers (six searches, the Wikipedia lead and a scrape of each of the 16
-  gathered documents; two were refused for want of Firecrawl credits and
-  stay dropped), 128 Jev calls (9 document kinds, 48 span labels, 71
-  appearance levels), 19 Wikimedia Commons answers and images, 2 vision
-  adapter replies. Answers a replay never asks for were left out, so a
-  replay opens every file here.
+  day for the agreement rule (`--extend`, no Firecrawl call): 37 Firecrawl
+  answers (the searches, the Wikipedia lead, a scrape of each gathered
+  document and the EUFORGEN guideline's PDF parse), 168 Jev calls, 19
+  Wikimedia Commons answers and images. Tune's first revision is not in it:
+  on a run from a name it stops before a round (FRICTION.md, the matched
+  shot). Answers a replay never asks for were left out, so a replay opens
+  every file here.
 
 The repository is public, so a page that is not openly licensed keeps only
 what the run quoted from it (owner, 2026-09-25): the passages that reached a
 Jev request, joined by a lone full stop, and as bytes only its licence tags
 and statements (`tape_trim`, `telperion_jev::tape::trim`; the replay test
-`the_recording_keeps_only_the_passages_the_run_quoted` fails on anything
-more). A page nothing was quoted from keeps nothing, and a replay drops it as
-empty. Search results keep their title, address and snippet. The Wikipedia
+`the_recordings_keep_only_the_passages_the_runs_quoted` fails on anything
+more). A page no stage read keeps nothing, and a replay drops it as
+empty. A PDF keeps its magic bytes, and its parse only the quoted passages.
+Search results keep their title, address and snippet. The Wikipedia
 article "Fagus sylvatica" stays whole, as its licence allows (Wikipedia
 contributors, CC BY-SA 4.0, read as a lead for its references), and the
 Commons photographs keep their files (each under its own open licence; the
