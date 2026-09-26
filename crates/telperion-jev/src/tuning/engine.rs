@@ -163,6 +163,10 @@ pub trait Services {
     fn runaway_rounds(&self) -> u64 {
         super::runaway::ROUNDS
     }
+    /// The rounds a revision runs before it ends, when the config caps them.
+    fn max_rounds(&self) -> Option<u64> {
+        None
+    }
     fn evaluation_images(&self) -> u64;
     fn visual_images(&self, trial: &Trial) -> u64;
     fn visual_tokens(&self, _trial: &Trial) -> u64 {
