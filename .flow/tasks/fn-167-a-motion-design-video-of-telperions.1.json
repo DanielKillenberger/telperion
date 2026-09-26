@@ -1,0 +1,15 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-26T21:35:36.406899Z",
+  "depends_on": [],
+  "id": "fn-167-a-motion-design-video-of-telperions.1",
+  "implicit_owner": true,
+  "priority": null,
+  "spec": "fn-167-a-motion-design-video-of-telperions",
+  "spec_path": ".flow/tasks/fn-167-a-motion-design-video-of-telperions.1.md",
+  "status": "todo",
+  "title": "A motion design video of Telperion's generator",
+  "updated_at": "2026-09-26T21:35:36.406899Z"
+}
