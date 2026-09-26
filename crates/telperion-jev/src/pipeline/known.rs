@@ -109,7 +109,7 @@ fn load(path: &Path) -> Option<Manifest> {
 
 /// Every source the species' own catalogue bibliography holds. A folder
 /// without a readable `sources.json` yields nothing, so a catalogue that is
-/// absent or half-written never stops discovery.
+/// absent or half-written never stops gather.
 fn catalogue_sources(catalogue: &Path, species: &str) -> Vec<KnownSource> {
     let Ok(value) = read_json(&catalogue.join(species).join("sources.json")) else {
         return Vec::new();
@@ -164,13 +164,12 @@ fn collect_manifests(dir: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
-/// The sources one admitted manifest names, with the fetch errors the
-/// decisions beside it recorded.
+/// The sources one manifest names, with the fetch errors its run recorded:
+/// the documents its fetch dropped (fn-157), and for a run before fn-157
+/// the unavailable-source decisions still open beside it.
 fn manifest_sources(path: &Path, manifest: &Manifest) -> Vec<KnownSource> {
-    let errors: BTreeMap<String, String> = path
-        .parent()
-        .map(|dir| dir.join("decisions.json"))
-        .and_then(|decisions| read_decisions(&decisions).ok())
+    let dir = path.parent().unwrap_or(Path::new("."));
+    let mut errors: BTreeMap<String, String> = read_decisions(&dir.join("decisions.json"))
         .unwrap_or_default()
         .into_iter()
         // An error stands only while its decision is open: a source retried,
@@ -182,6 +181,12 @@ fn manifest_sources(path: &Path, manifest: &Manifest) -> Vec<KnownSource> {
             Some((source, error))
         })
         .collect();
+    let fetch = read_json(&dir.join("fetch.json")).unwrap_or_default();
+    for (id, dropped) in fetch["body"]["dropped"].as_object().into_iter().flatten() {
+        if let Some(error) = dropped["error"].as_str() {
+            errors.insert(id.clone(), error.to_string());
+        }
+    }
     manifest
         .sources
         .iter()

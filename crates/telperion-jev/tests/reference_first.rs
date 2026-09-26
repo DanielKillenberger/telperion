@@ -648,3 +648,23 @@ fn a_repeated_coverage_row_is_dropped_and_recorded_not_refused() {
         .iter()
         .any(|o| o.starts_with("dropped coverage row repeating its trait trait-1")));
 }
+
+/// fn-157: the coverage finding names the inventory by what it says and
+/// which photographs it read, never by where a run kept them or its ledger
+/// entry, so a replay from another directory asks Jev the same question.
+#[test]
+fn an_inventory_is_named_by_its_content_not_its_run() {
+    let r = request();
+    let a = inventory(&r);
+    let mut b = a.clone();
+    for reference in &mut b.request.references {
+        reference.image.path = "/another/run/photo.png".into();
+    }
+    b.request_sha256 = b.request.hash();
+    b.ledger = "another-ledger-entry".into();
+    assert_ne!(a.hash(), b.hash());
+    assert_eq!(a.content_hash(), b.content_hash());
+    let mut c = a.clone();
+    c.traits[0].observation = "Another trait".into();
+    assert_ne!(a.content_hash(), c.content_hash());
+}

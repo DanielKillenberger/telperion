@@ -1,8 +1,12 @@
 //! Candidate photographs from Wikimedia Commons, a photograph host (the
-//! no-Wikipedia rule is about citations of values, not photographs). One
-//! free API query per view the reviewer wants, parsed by code: the file
-//! page, a bounded-width copy, the author and the licence statements the
-//! rights question reads.
+//! no-Wikipedia rule is about citations of values, not photographs). Code
+//! walks the taxon's category: its subcategories that file single trees
+//! (standalone, solitary, famous, park or field trees) first, then Commons'
+//! copies of geograph.org.uk's photographs (CC BY-SA, often one named tree
+//! in a field) by search, then the bare tree in winter and the bark (host
+//! decision, fn-157). Each answer is parsed by code: the file page, a
+//! bounded-width copy, the author and the licence statements the rights
+//! question reads.
 use serde_json::Value;
 
 use super::{Candidate, Origin, Web};
@@ -11,15 +15,69 @@ const API: &str = "https://commons.wikimedia.org/w/api.php";
 /// The width of the copy downloaded, enough for a reviewer's look.
 const WIDTH: u32 = 1280;
 
-/// The queries per taxon and the candidates each may add: the whole tree
-/// (the bare taxon found leaves, buds and nuts for the beech), its bark
-/// close up and its bare winter form.
-pub fn queries(taxon: &str) -> [(String, usize); 3] {
+/// Words in a subcategory's name that file single trees, and the files
+/// each such category may add.
+const WHOLE: [&str; 6] = [
+    "standalone",
+    "solitary",
+    "single",
+    "famous",
+    "park",
+    "field",
+];
+const PER_WHOLE: usize = 3;
+
+/// The geograph searches: its photographs as Commons keeps them.
+pub fn searches(taxon: &str, common: &str) -> [(String, usize); 2] {
     [
-        (format!("{taxon} tree"), 6),
-        (format!("{taxon} bark"), 3),
-        (format!("{taxon} winter"), 3),
+        (format!("{taxon} geograph"), 3),
+        (format!("{common} geograph"), 3),
     ]
+}
+
+/// The request listing the taxon category's subcategories.
+pub fn subcategories_url(taxon: &str) -> String {
+    let title = encode(&format!("Category:{taxon}"));
+    format!("{API}?action=query&format=json&list=categorymembers&cmtitle={title}&cmtype=subcat&cmlimit=100")
+}
+
+/// The request for up to `limit` files of `category`, with their images.
+pub fn category_url(category: &str, limit: usize) -> String {
+    let title = encode(category);
+    format!(
+        "{API}?action=query&format=json&generator=categorymembers&gcmtitle={title}&gcmtype=file\
+         &gcmlimit={limit}&prop=imageinfo&iiprop=url|mime|extmetadata&iiurlwidth={WIDTH}"
+    )
+}
+
+/// Every request for candidates, whole trees first.
+fn requests(web: &dyn Web, taxon: &str, common: &str) -> Vec<String> {
+    let names: Vec<String> = answer(web, &subcategories_url(taxon))
+        .map(|body| {
+            body["query"]["categorymembers"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .filter_map(|m| m["title"].as_str().map(str::to_string))
+                .collect()
+        })
+        .unwrap_or_default();
+    let lower = |n: &String| n.to_lowercase();
+    let mut out: Vec<String> = names
+        .iter()
+        .filter(|n| WHOLE.iter().any(|w| lower(n).contains(w)))
+        .map(|n| category_url(n, PER_WHOLE))
+        .collect();
+    out.extend(searches(taxon, common).iter().map(|(q, l)| url(q, *l)));
+    let named = |suffix: &str| names.iter().find(|n| lower(n).ends_with(suffix));
+    out.extend(named("in winter").map(|n| category_url(n, 2)));
+    out.extend(named("(bark)").map(|n| category_url(n, 1)));
+    out
+}
+
+fn answer(web: &dyn Web, url: &str) -> Option<Value> {
+    let (bytes, _) = web.get(url).ok()?;
+    serde_json::from_slice(&bytes).ok()
 }
 
 pub fn url(query: &str, limit: usize) -> String {
@@ -42,14 +100,11 @@ fn encode(text: &str) -> String {
         .collect()
 }
 
-/// The Commons candidates for `taxon`, in search order, JPEG or PNG only.
-pub fn candidates(web: &dyn Web, taxon: &str) -> Vec<Candidate> {
+/// The Commons candidates for `taxon`, whole trees first, JPEG or PNG only.
+pub fn candidates(web: &dyn Web, taxon: &str, common: &str) -> Vec<Candidate> {
     let mut out: Vec<Candidate> = Vec::new();
-    for (query, limit) in queries(taxon) {
-        let Ok((bytes, _)) = web.get(&url(&query, limit)) else {
-            continue;
-        };
-        let Ok(body) = serde_json::from_slice::<Value>(&bytes) else {
+    for request in requests(web, taxon, common) {
+        let Some(body) = answer(web, &request) else {
             continue;
         };
         for found in parse(&body) {
@@ -61,7 +116,8 @@ pub fn candidates(web: &dyn Web, taxon: &str) -> Vec<Candidate> {
     out
 }
 
-/// The files of one API answer, ordered by their search rank.
+/// The files of one API answer, ordered by their search rank (a category
+/// listing has none, and keeps its own order).
 pub fn parse(body: &Value) -> Vec<Candidate> {
     let mut pages: Vec<&Value> = body["query"]["pages"]
         .as_object()
@@ -140,6 +196,52 @@ fn strip(html: &str) -> String {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    /// fn-157 R7: the single-tree categories come first, then geograph, then
+    /// the bare tree and the bark; a category of leaves or forests is never
+    /// asked.
+    #[test]
+    fn the_whole_tree_is_asked_for_first() {
+        struct Listing;
+        impl super::Web for Listing {
+            fn get(&self, url: &str) -> Result<(Vec<u8>, String), String> {
+                if url != super::subcategories_url("Fagus sylvatica") {
+                    return Err(url.into());
+                }
+                let names = [
+                    "Category:Fagus sylvatica (leaves)",
+                    "Category:Fagus sylvatica (forests)",
+                    "Category:Fagus sylvatica (standalone)",
+                    "Category:Famous Fagus sylvatica",
+                    "Category:Fagus sylvatica in winter",
+                    "Category:Fagus sylvatica (bark)",
+                ];
+                let members: Vec<_> = names
+                    .iter()
+                    .map(|t| serde_json::json!({"title": t}))
+                    .collect();
+                let body = serde_json::json!({"query": {"categorymembers": members}});
+                Ok((
+                    serde_json::to_vec(&body).unwrap(),
+                    "application/json".into(),
+                ))
+            }
+        }
+        let asked = super::requests(&Listing, "Fagus sylvatica", "European beech");
+        let cat = super::category_url;
+        let search = |q: &str| super::url(q, 3);
+        assert_eq!(
+            asked,
+            [
+                cat("Category:Fagus sylvatica (standalone)", 3),
+                cat("Category:Famous Fagus sylvatica", 3),
+                search("Fagus sylvatica geograph"),
+                search("European beech geograph"),
+                cat("Category:Fagus sylvatica in winter", 2),
+                cat("Category:Fagus sylvatica (bark)", 1),
+            ]
+        );
+    }
 
     #[test]
     fn an_answer_yields_its_bitmaps_in_rank_order_with_their_licence() {

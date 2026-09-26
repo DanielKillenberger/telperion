@@ -70,6 +70,8 @@ struct Mock {
     inventory: Option<telperion_jev::tuning::reference_first::Inventory>,
     /// Rounds in a row that keep nothing before the run pauses as a runaway.
     runaway: u64,
+    /// The config's round cap, absent for none.
+    max_rounds: Option<u64>,
 }
 
 fn mock() -> Mock {
@@ -110,11 +112,15 @@ fn mock() -> Mock {
         unexpressed: vec![],
         inventory: None,
         runaway: telperion_jev::tuning::runaway::ROUNDS,
+        max_rounds: None,
     }
 }
 impl Services for Mock {
     fn runaway_rounds(&self) -> u64 {
         self.runaway
+    }
+    fn max_rounds(&self) -> Option<u64> {
+        self.max_rounds
     }
     fn priority_references(&self) -> Vec<telperion_jev::tuning::evaluation::Image> {
         vec![priority_image("whole"), priority_image("bark")]
@@ -930,6 +936,25 @@ fn did(label: &str, movement: Movement) -> (String, Movement, Option<String>) {
 /// then one per variant the round drew.
 fn key(n: u64) -> String {
     format!("candidate{n}")
+}
+
+/// fn-157, host 2026-09-26: a config's round cap ends the revision once it
+/// has run that many rounds, keeping what they kept, so a recorded fixture
+/// replays the baseline and one round.
+#[test]
+fn a_round_cap_ends_the_revision_after_its_rounds() {
+    let (mut state, mut mock) = bundle_run();
+    mock.max_rounds = Some(1);
+    mock.cell_status = vec![CellStatus::Fail; 8];
+    mock.sheets = vec![
+        vec![did(&key(2), Movement::Clear)],
+        vec![did(&key(7), Movement::Clear)],
+    ];
+    to_the_round(&mut state, &mut mock);
+    assert_eq!(state.budget.rounds, 1);
+    assert_eq!(mock.sheet_calls, 1, "no second round");
+    assert_eq!(state.trials[state.current.unwrap()].label, "bundle@0.5");
+    assert_eq!(state.stopped.as_deref(), Some("round cap: 1 round run"));
 }
 
 #[test]

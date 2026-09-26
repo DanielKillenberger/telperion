@@ -1,5 +1,5 @@
 {
- "shape": "Each object in traits is one habit, element, attachment, radius or organ need. Fields: trait (parameter path, or 'organ:<name>' when no parameter exists), need (the value or structure the species requires), outcome (reachable | unreachable-value | unsupported-anatomy), capability (the hyphenated gate name when this need is a named capability, else null), depends_on (an existing open spec id, or null), confidence (high | medium | unsure), note (the reading from the trait space). required_capabilities is the same list written on the manifest engineering row.",
+ "shape": "Each object in traits is one habit, element, attachment, radius or organ need. Fields: trait (parameter path, or 'organ:<name>' when no parameter exists), need (the value or structure the species requires), outcome (reachable | unreachable-value | unsupported-anatomy), capability (the hyphenated gate name when this need is a named capability, else null), depends_on (an existing open spec id, or null), confidence (high | medium | unsure), note (the reading from the trait space). required_capabilities is the same list written on the manifest engineering row. covers (optional) lists the ids of the failing traits a run's Gaps stage reports that this need explains; Gaps matches a failing trait to an entry by trait or covers, nothing else.",
  "species": "european-beech",
  "taxon": "Fagus sylvatica",
  "assessed": "2026-09-25",
@@ -49,7 +49,11 @@
    "capability": null,
    "depends_on": "fn-61-trolls-model-limbs-pitch-by-height-and",
    "confidence": "medium",
-   "note": "scaffold.rs draws one pitch with no height term; fn-61 adds a top pitch row. Not a named capability, so it does not stop the Capability stage; if tuning cannot move the trait, Gaps classes it identity against fn-61."
+   "note": "scaffold.rs draws one pitch with no height term; fn-61 adds a top pitch row. Not a named capability, so it does not stop the Capability stage; if tuning cannot move the trait, Gaps classes it identity against fn-61.",
+   "covers": [
+    "codominant-v-fork",
+    "ascending-then-arching-limbs"
+   ]
   },
   {
    "trait": "skeleton.habit (ragged reach)",
@@ -58,7 +62,10 @@
    "capability": null,
    "depends_on": "fn-61-trolls-model-limbs-pitch-by-height-and",
    "confidence": "medium",
-   "note": "reach() grows each primary axis to the shell; fn-61 adds a per-axis shortfall row."
+   "note": "reach() grows each primary axis to the shell; fn-61 adds a per-axis shortfall row.",
+   "covers": [
+    "broad-domed-crown"
+   ]
   }
  ]
 }

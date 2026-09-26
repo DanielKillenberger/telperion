@@ -1,0 +1,1 @@
+{"key":"eca1f7d9cfd6a87c1217aca9e5cae927cb70b76445245639644dad67d7f884dd","kind":"web","request":{"url":"https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrlimit=3&gsrsearch=Quercus+garryana+geograph+filetype%3Abitmap&prop=imageinfo&iiprop=url|mime|extmetadata&iiurlwidth=1280"},"response":{"ok":"application/json"}}

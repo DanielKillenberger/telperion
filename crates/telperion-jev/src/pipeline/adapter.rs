@@ -1,6 +1,6 @@
 //! Fetch adapter contract (fn-58 R2).
 //!
-//! One contract for discovery and fetch. Every returned value is plain data:
+//! One contract for gather and fetch. Every returned value is plain data:
 //! a hit list, the bytes and the markdown of one response, or the markdown of
 //! one local file. No adapter option that asks a model to answer or extract is
 //! reachable from here, so no model writes a number into the pipeline.
@@ -25,7 +25,7 @@ pub use tables::{
     age_indexed_rows, block_rows, coverage, markdown_tables, table_rows_for, AgeRow, Coverage,
 };
 
-/// One candidate source from discovery.
+/// One hit from a search.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct SearchHit {
     pub url: String,
@@ -108,7 +108,7 @@ impl Spent {
     }
 }
 
-/// The one contract the discovery and fetch stages call.
+/// The one contract the gather and fetch stages call.
 pub trait FetchAdapter {
     fn search(&self, query: &str, limit: usize) -> Result<Vec<SearchHit>, AdapterError>;
     /// The research paper index, separate from web search.
@@ -147,6 +147,12 @@ pub fn checksums(scrape: &Scrape) -> FetchRecord {
 
 /// True when the response is a PDF. The content type decides; a URL path
 /// ending in `.pdf` decides when the content type is absent or generic.
+/// Whether a response is a PDF by its type, its address or its first
+/// bytes: web.archive.org serves an archived PDF as `text/html` (fn-157).
+pub fn is_pdf_body(content_type: &str, url: &str, raw: &[u8]) -> bool {
+    is_pdf(content_type, url) || raw.starts_with(b"%PDF-")
+}
+
 pub fn is_pdf(content_type: &str, url: &str) -> bool {
     let kind = content_type
         .split(';')

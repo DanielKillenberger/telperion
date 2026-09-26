@@ -40,16 +40,32 @@ fn web() -> FakeWeb {
             "thumburl": format!("https://upload.wikimedia.org/{name}.jpg"),
             "extmetadata": {"LicenseShortName": {"value": licence}, "Artist": {"value": "Ann"}}}]})
     };
-    let answers = [
-        vec![
-            ("whole", "CC BY-SA 4.0"),
-            ("stand", "CC BY 4.0"),
-            ("restricted", "All rights reserved"),
-        ],
-        vec![("bark", "CC0")],
-        vec![("winter", "CC BY-SA 4.0")],
+    let categories = [
+        (
+            "Category:Fagus sylvatica (standalone)",
+            3,
+            vec![
+                ("whole", "CC BY-SA 4.0"),
+                ("stand", "CC BY 4.0"),
+                ("restricted", "All rights reserved"),
+            ],
+        ),
+        ("Category:Fagus sylvatica (bark)", 1, vec![("bark", "CC0")]),
+        (
+            "Category:Fagus sylvatica in winter",
+            2,
+            vec![("winter", "CC BY-SA 4.0")],
+        ),
     ];
-    for ((query, limit), files) in commons::queries(TAXON).into_iter().zip(answers) {
+    let members: Vec<Value> = categories
+        .iter()
+        .map(|(title, _, _)| json!({"title": title}))
+        .collect();
+    pages.insert(
+        commons::subcategories_url(TAXON),
+        serde_json::to_vec(&json!({"query": {"categorymembers": members}})).unwrap(),
+    );
+    for (category, limit, files) in categories {
         let listed: serde_json::Map<String, Value> = files
             .iter()
             .enumerate()
@@ -57,7 +73,7 @@ fn web() -> FakeWeb {
             .collect();
         let body = json!({"query": {"pages": listed}});
         pages.insert(
-            commons::url(&query, limit),
+            commons::category_url(category, limit),
             serde_json::to_vec(&body).unwrap(),
         );
         for (name, _) in files {
@@ -195,6 +211,13 @@ fn a_run_from_a_name_finds_checks_and_records_its_own_photographs() {
             ),
         ]
     );
+    // The id names the view: Tune's cells and the inventory name a
+    // reference by it, and a whole tree must read as one (fn-157).
+    let ids: Vec<&str> = list[1..]
+        .iter()
+        .map(|r| r["id"].as_str().unwrap())
+        .collect();
+    assert_eq!(ids, ["photo-2-whole", "photo-3-bark"]);
     let bark = &list[2];
     assert_eq!(bark["attribution"], "Ann, Wikimedia Commons, CC0");
     let copy = photos::copy(&paths, bark["asset_sha256"].as_str().unwrap()).unwrap();
@@ -245,7 +268,7 @@ fn a_commons_file_under_cc_by_or_cc0_is_open_without_a_question() {
     .unwrap();
     let answer: Value = serde_json::from_slice(&recorded).unwrap();
     let mut pages = BTreeMap::new();
-    let (query, limit) = commons::queries(TAXON)[0].clone();
+    let (query, limit) = commons::searches(TAXON, "European beech")[0].clone();
     pages.insert(commons::url(&query, limit), recorded);
     for (i, page) in answer["query"]["pages"]
         .as_object()
@@ -275,5 +298,40 @@ fn a_commons_file_under_cc_by_or_cc0_is_open_without_a_question() {
         *transport.0.lock().unwrap(),
         1,
         "only the GFDL file is asked"
+    );
+}
+
+/// fn-157, the beech's live run: a rerun below two recorded photographs
+/// looks again, and the look keeps the photograph it kept before. It is
+/// recorded once: a second record doubled every later look and render.
+#[test]
+fn a_rerun_never_records_a_photograph_twice() {
+    let dir = scratch();
+    let mut whole = vec![0xFF, 0xD8, 0xFF, 0xE0];
+    whole.extend_from_slice(b"whole");
+    let recorded = json!({"reference_version": "fn19-references-v1", "sources": [],
+        "references": [{"id": "photo-1", "source_id": "R1", "kept": false,
+            "asset_sha256": telperion_jev::sha256_hex(&whole),
+            "url": "https://commons.wikimedia.org/wiki/File:whole.jpg"}]});
+    write_canonical(&dir.join("packet/references.json"), &recorded).unwrap();
+    let judge = Judge {
+        transport: &Rights,
+        key: "test-key",
+        ledger_dir: dir.join("ledger"),
+    };
+    photos::find(&Paths::new(&dir), &web(), &judge, &Look::default()).unwrap();
+    let doc = read_json(&dir.join("packet/references.json")).unwrap();
+    let urls: Vec<&str> = doc["references"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|r| r["url"].as_str().unwrap())
+        .collect();
+    assert_eq!(
+        urls,
+        [
+            "https://commons.wikimedia.org/wiki/File:whole.jpg",
+            "https://commons.wikimedia.org/wiki/File:bark.jpg"
+        ]
     );
 }

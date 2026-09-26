@@ -1,13 +1,12 @@
-//! The floors a pick must reach (fn-131), set from labelled live answers:
-//! a span pick below `selection_floor` fills nothing, and an appearance or
-//! described level below `level_floor` is the no-match level. Each case is
+//! The floor a level must reach (fn-131), set from labelled live answers:
+//! an appearance or described level below `level_floor` is the no-match
+//! level. Each case is
 //! one answer's probability and whether a person admits the pick; the floor
 //! is the one that answers the most cases right, the lowest such, so no
 //! labelled correct pick is dropped for nothing gained.
 
 use serde::Deserialize;
 
-pub const SELECTION_FLOOR_CASES: &str = include_str!("../../data/cases/selection_floor.json");
 pub const LEVEL_FLOOR_CASES: &str = include_str!("../../data/cases/level_floor.json");
 
 #[derive(Debug, Clone, Deserialize)]
@@ -30,28 +29,8 @@ fn parse(raw: &str) -> Vec<FloorCase> {
         .cases
 }
 
-pub fn selection_floor_cases() -> Vec<FloorCase> {
-    parse(SELECTION_FLOOR_CASES)
-}
-
 pub fn level_floor_cases() -> Vec<FloorCase> {
     parse(LEVEL_FLOOR_CASES)
-}
-
-/// The least labelled set a floor is trusted on (fn-133): enough cases, and
-/// enough wrong picks among them for the floor to weigh.
-pub const MIN_CASES: usize = 20;
-pub const MIN_WRONG: usize = 5;
-
-/// Whether `cases` are enough to calibrate a floor on.
-pub fn calibrated(cases: &[FloorCase]) -> bool {
-    cases.len() >= MIN_CASES && cases.iter().filter(|c| !c.correct).count() >= MIN_WRONG
-}
-
-/// The selection floor, once its labelled set is calibrated; until then a
-/// pick is the most probable span and verify's field-aware check guards it.
-pub fn selection_floor() -> Option<f64> {
-    calibrated(&selection_floor_cases()).then(|| crate::questions::thresholds().selection_floor)
 }
 
 /// How many cases a floor answers right: a correct pick at or above it, a
@@ -83,19 +62,14 @@ mod tests {
     use super::*;
     use crate::questions::thresholds;
 
-    /// R9: each floor is the one its labelled cases set, and each set holds
+    /// R9: the floor is the one its labelled cases set, and the set holds
     /// a wrong pick the floor must weigh, the no-match side.
     #[test]
-    fn each_floor_is_calibrated_on_its_labelled_cases() {
-        let t = thresholds();
-        for (cases, floor) in [
-            (selection_floor_cases(), t.selection_floor),
-            (level_floor_cases(), t.level_floor),
-        ] {
-            assert!(cases.iter().any(|c| !c.correct), "a set with no wrong pick");
-            assert!(cases.iter().any(|c| c.correct));
-            assert_eq!(calibrate(&cases), floor);
-        }
+    fn the_level_floor_is_calibrated_on_its_labelled_cases() {
+        let cases = level_floor_cases();
+        assert!(cases.iter().any(|c| !c.correct), "a set with no wrong pick");
+        assert!(cases.iter().any(|c| c.correct));
+        assert_eq!(calibrate(&cases), thresholds().level_floor);
     }
 
     #[test]

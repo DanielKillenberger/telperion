@@ -1,22 +1,22 @@
-//! Fetch and checksum every admitted source through the adapter.
+//! Fetch and checksum every source the manifest names.
 //!
 //! The stage records the final URL, the content type, the checksum of the raw
-//! response and the checksum of the markdown it judges, saves a PDF locally
-//! before parsing it, and yields the age-indexed rows of every admitted table
-//! against the row count the manifest states, cut to the table's block when
-//! the manifest names one. It consumes the resolutions of its own decisions:
-//! `retry` fetches again, `drop-source` skips the source and records it as
-//! dropped, `replace-source` fetches the resolution's url under the same
-//! source id and records both urls; `accept-rows` keeps a table's rows as
-//! parsed, `drop-table` records the table as dropped with no rows, and
-//! `fix-table` reads the table entry the manifest now admits. Source bytes
-//! stay in the cache directory, outside the repository.
+//! response and the checksum of the markdown it reads, the page's own licence
+//! statements (`rights::licence_lines`, which decide whether the catalogue
+//! may keep a copy, fn-157), saves a PDF locally before parsing it, and
+//! yields the age-indexed rows of every admitted table against the row count
+//! the manifest states, cut to the table's block when the manifest names
+//! one. It consumes the resolutions of its own decisions: `accept-rows`
+//! keeps a table's rows as parsed, `drop-table` records the table as dropped
+//! with no rows, and `fix-table` reads the table entry the manifest now
+//! admits. Source bytes stay in the cache directory, outside the repository.
 //!
 //! A scrape's markdown that is not the source (`adapter::content`) is
 //! replaced by the raw body's own conversion, recorded as `markdown_from:
 //! raw` with the reason it was refused. A source neither route can read, a
-//! PDF that does not parse, an adapter error or a checksum mismatch files
-//! unavailable-source for that source, and the rest are still fetched.
+//! PDF that does not parse, an adapter error or a checksum mismatch is
+//! recorded as dropped with its reason, and the rest are still fetched: a
+//! gathered document is one of many, never a stop.
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -25,7 +25,7 @@ use serde_json::{json, Map, Value};
 
 use crate::pipeline::adapter::content::readable;
 use crate::pipeline::adapter::{
-    age_indexed_rows, block_rows, checksums, is_pdf, markdown_tables, FetchAdapter, Scrape,
+    age_indexed_rows, block_rows, checksums, is_pdf_body, markdown_tables, FetchAdapter, Scrape,
 };
 use crate::pipeline::canon::{canonical_sha256, write_atomic};
 use crate::pipeline::cost::Cost;
@@ -34,9 +34,10 @@ use crate::pipeline::decision::{
 };
 use crate::pipeline::leads;
 use crate::pipeline::manifest::{AdmittedTable, Source};
+use crate::pipeline::rights::licence_lines;
 use crate::pipeline::stage::{Context, Paths, StageError};
 
-use super::{inputs, unavailable};
+use super::inputs;
 
 pub const STAGE: &str = "fetch";
 
@@ -60,7 +61,6 @@ pub fn run(paths: &Paths, adapter: &dyn FetchAdapter) -> Result<Outcome, StageEr
     }
     let before = adapter.spent();
     let manifest = &ctx.admitted.manifest;
-    let species = manifest.species.as_str();
     let mut sources = Map::new();
     let mut dropped = Map::new();
     let mut tables = Map::new();
@@ -74,32 +74,16 @@ pub fn run(paths: &Paths, adapter: &dyn FetchAdapter) -> Result<Outcome, StageEr
             );
             continue;
         }
-        let resolved = unavailable::bound(&ctx, species, source);
-        let option = resolved.map(|r| r.option.as_str());
-        if option == Some("drop-source") {
-            dropped.insert(
-                source.id.clone(),
-                json!({"url": source.url, "option": "drop-source"}),
-            );
-            continue;
-        }
-        let replacement = (option == Some("replace-source")).then(|| {
-            resolved
-                .and_then(|r| r.payload["url"].as_str())
-                .unwrap_or_default()
-                .to_string()
-        });
-        let (mut record, markdown) = match read_source(&ctx, adapter, source, &replacement)? {
+        let (record, markdown) = match read_source(&ctx, adapter, source)? {
             Ok(read) => read,
             Err(error) => {
-                decisions.push(unavailable::decision(&ctx, species, source, &error)?);
+                dropped.insert(
+                    source.id.clone(),
+                    json!({"url": source.url, "error": error}),
+                );
                 continue;
             }
         };
-        if let Some(replacement) = &replacement {
-            record["url"] = json!(replacement);
-            record["replaced_url"] = json!(source.url);
-        }
         for table in &source.tables {
             let (body, gap) = parse_table(&ctx, source, table, &markdown)?;
             tables.insert(table.id.clone(), body);
@@ -120,7 +104,7 @@ pub fn run(paths: &Paths, adapter: &dyn FetchAdapter) -> Result<Outcome, StageEr
 }
 
 /// What one source yields: its record and the text the stages read, or why
-/// it could not be read, which files unavailable-source.
+/// it could not be read.
 type Read = Result<(Value, String), String>;
 
 /// One source fetched, checked and cached. The outer error is a file the
@@ -129,14 +113,12 @@ fn read_source(
     ctx: &Context,
     adapter: &dyn FetchAdapter,
     source: &Source,
-    replacement: &Option<String>,
 ) -> Result<Read, StageError> {
-    let url = replacement.as_deref().unwrap_or(&source.url);
-    let scrape = match adapter.scrape(url) {
+    let scrape = match adapter.scrape(&source.url) {
         Ok(scrape) => scrape,
         Err(err) => return Ok(Err(err.to_string())),
     };
-    if let (None, Some(recorded)) = (replacement, &source.sha256) {
+    if let Some(recorded) = &source.sha256 {
         let fetched = crate::sha256_hex(&scrape.raw);
         if recorded != &fetched {
             return Ok(Err(format!(
@@ -157,7 +139,7 @@ fn cache_source(
     source: &Source,
     mut scrape: Scrape,
 ) -> Result<Read, StageError> {
-    let pdf = is_pdf(&scrape.content_type, &scrape.final_url);
+    let pdf = is_pdf_body(&scrape.content_type, &scrape.final_url, &scrape.raw);
     let raw_path = cache.join(format!("{}.{}", source.id, if pdf { "pdf" } else { "raw" }));
     write_atomic(&raw_path, &scrape.raw)?;
     if pdf {
@@ -166,6 +148,12 @@ fn cache_source(
             Err(err) => return Ok(Err(format!("parse: {err}"))),
         }
     }
+    let kind = if pdf {
+        "application/pdf"
+    } else {
+        scrape.content_type.as_str()
+    };
+    let licence = licence_lines(&scrape.raw, &scrape.markdown, kind, &scrape.final_url);
     let readable = match readable(&scrape.markdown, &scrape.raw, pdf) {
         Ok(readable) => readable,
         Err(error) => return Ok(Err(error)),
@@ -178,6 +166,7 @@ fn cache_source(
         "raw": raw_path.file_name().map(|n| n.to_string_lossy().into_owned()),
         "markdown": markdown_path.file_name().map(|n| n.to_string_lossy().into_owned()),
     });
+    record["licence"] = json!(licence);
     if let Some(refused) = readable.refused {
         record["markdown_from"] = json!("raw");
         record["refused"] = json!(refused);

@@ -1,11 +1,11 @@
-//! fn-149 R6: the runner's proof is a recorded run replayed offline. The
-//! European beech was recorded live from a bare seed on 2026-09-25
-//! (`species european-beech --record`); this test replays it from the same
-//! bare seed through Start with no network and no key, and a second run
-//! reruns nothing. Every Firecrawl, Jev, Commons and vision answer comes from
-//! `tests/fixtures/replay/european-beech/tape`; a request the recording
-//! lacks fails the run, naming it. The beech's values are not the proof
-//! (fn-157 replaces the literature stages); the machinery is.
+//! fn-149 R6, fn-157 R1 and R5: the runner's proof is a recorded run
+//! replayed offline. The European beech and the Oregon white oak were
+//! recorded live from bare seeds on 2026-09-26 (`species <id> --record`);
+//! these tests replay each from the same bare seed through Start with no
+//! network and no key, and a second run reruns nothing. Every Firecrawl,
+//! Jev, Commons and vision answer comes from
+//! `tests/fixtures/replay/<id>/tape`; a request the recording lacks fails
+//! the run, naming it.
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -15,8 +15,13 @@ fn repo() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
-fn fixture() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/replay/european-beech")
+const BEECH: &str = "european-beech";
+const OAK: &str = "oregon-white-oak";
+
+fn fixture(species: &str) -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/replay")
+        .join(species)
 }
 
 /// The render examples the workspace build made beside this binary.
@@ -35,13 +40,13 @@ fn tools() -> PathBuf {
 
 /// A run directory holding the bare seed, the host's capability assessment
 /// and the recorded tuning config pointed at it.
-fn seeded(dir: &Path) {
-    let folder = dir.join("catalogue/european-beech/packet");
+fn seeded(dir: &Path, species: &str) {
+    let folder = dir.join("catalogue").join(species).join("packet");
     std::fs::create_dir_all(&folder).unwrap();
-    let seed = fixture().join("seed");
+    let seed = fixture(species).join("seed");
     std::fs::copy(
         seed.join("manifest.json"),
-        dir.join("catalogue/european-beech/manifest.json"),
+        folder.parent().unwrap().join("manifest.json"),
     )
     .unwrap();
     std::fs::copy(
@@ -50,33 +55,24 @@ fn seeded(dir: &Path) {
     )
     .unwrap();
     let mut tuning: Value =
-        serde_json::from_slice(&std::fs::read(fixture().join("tuning.json")).unwrap()).unwrap();
+        serde_json::from_slice(&std::fs::read(fixture(species).join("tuning.json")).unwrap())
+            .unwrap();
     let at = |name: &str| dir.join(name).display().to_string();
-    tuning["profiles"] = at("profiles-european-beech.json").into();
+    tuning["profiles"] = at(&format!("profiles-{species}.json")).into();
     tuning["ledger"] = at("run/ledger").into();
     tuning["vision"]["ledger"] = at("run/vision-ledger").into();
     tuning["sheet"]["adapter"]["ledger"] = at("run/vision-ledger").into();
+    let packet = format!("catalogue/{species}/packet/references.json");
+    tuning["matched"]["references"] = at(&packet).into();
+    tuning["matched"]["catalogue"] = at("catalogue").into();
+    tuning["matched"]["refs"] = at("refs").into();
+    tuning["matched"]["scratch"] = at("run/matched").into();
     std::fs::write(dir.join("tuning.json"), tuning.to_string()).unwrap();
 }
 
 /// One replayed run through Start, which must succeed: each stage's line.
-fn replay(dir: &Path) -> Vec<String> {
-    let out = Command::new(env!("CARGO_BIN_EXE_species"))
-        .current_dir(repo())
-        .env_remove("TYPESAFE_API_KEY")
-        .env_remove("FIRECRAWL_API_KEY")
-        .args(["european-beech", "--until", "start", "--replay"])
-        .arg(fixture().join("tape"))
-        .arg("--catalogue")
-        .arg(dir.join("catalogue"))
-        .arg("--run-dir")
-        .arg(dir.join("run"))
-        .arg("--tuning")
-        .arg(dir.join("tuning.json"))
-        .arg("--tools")
-        .arg(tools())
-        .output()
-        .unwrap();
+fn replay(dir: &Path, species: &str) -> Vec<String> {
+    let out = replay_until(dir, species, "start");
     let printed = String::from_utf8_lossy(&out.stdout).into_owned();
     assert!(
         out.status.success(),
@@ -86,61 +82,206 @@ fn replay(dir: &Path) -> Vec<String> {
     printed.lines().map(str::to_string).collect()
 }
 
-#[test]
-fn the_recorded_beech_replays_offline_through_start_and_a_second_run_reruns_nothing() {
+fn replay_until(dir: &Path, species: &str, until: &str) -> std::process::Output {
+    Command::new(env!("CARGO_BIN_EXE_species"))
+        .current_dir(repo())
+        .env_remove("TYPESAFE_API_KEY")
+        .env_remove("FIRECRAWL_API_KEY")
+        .args([species, "--until", until, "--replay"])
+        .arg(fixture(species).join("tape"))
+        .arg("--catalogue")
+        .arg(dir.join("catalogue"))
+        .arg("--run-dir")
+        .arg(dir.join("run"))
+        .arg("--tuning")
+        .arg(dir.join("tuning.json"))
+        .arg("--tools")
+        .arg(tools())
+        .output()
+        .unwrap()
+}
+
+/// A scratch directory seeded for `species`, replayed through Start; the
+/// stage lines and the replayed profile's metrics. A second replay reruns
+/// nothing.
+fn replayed(species: &str) -> (PathBuf, Vec<String>, Value) {
     let dir = std::env::temp_dir().join(format!(
-        "jev-replay-beech-{}-{}",
+        "jev-replay-{species}-{}-{}",
         std::process::id(),
         telperion_jev::ledger::new_entry_id()
     ));
-    seeded(&dir);
-    let lines = replay(&dir);
-    let word = |stage: &str| {
-        lines
-            .iter()
-            .find(|l| l.starts_with(&format!("{stage}: ")))
-            .cloned()
-            .unwrap_or_default()
-    };
-    assert!(
-        word("sources").starts_with("sources: ran: discover ran"),
-        "{lines:?}"
-    );
-    let profile = word("profile");
-    assert!(
-        profile.starts_with("profile: ran: extract ran"),
-        "{profile}"
-    );
-    assert!(
-        profile.contains("reference photographs: 12 candidates, 11 open-licence, 1 kept"),
-        "{profile}"
-    );
-    assert!(profile.contains("reference inventory built"), "{profile}");
-    assert!(
-        word("capability").starts_with("capability: ran: gate ran"),
-        "{lines:?}"
-    );
-    assert!(
-        word("catalogue").starts_with("catalogue: ran: generate ran, gate ran, document ran"),
-        "{lines:?}"
-    );
-    assert!(
-        word("start").starts_with("start: ran: derived"),
-        "{lines:?}"
-    );
+    seeded(&dir, species);
+    let lines = replay(&dir, species);
+    for (stage, ran) in [
+        ("profile", "profile: ran: read ran, aggregate ran"),
+        ("capability", "capability: ran: gate ran"),
+        (
+            "catalogue",
+            "catalogue: ran: generate ran, gate ran, document ran",
+        ),
+        ("start", "start: ran: derived"),
+    ] {
+        assert!(word(&lines, stage).starts_with(ran), "{lines:?}");
+    }
     assert_eq!(lines.last().map(String::as_str), Some("reached start"));
-
-    let again = replay(&dir);
+    let again = replay(&dir, species);
     let stages = ["sources", "profile", "capability", "catalogue", "start"];
     let current: Vec<String> = stages.iter().map(|s| format!("{s}: current")).collect();
     assert_eq!(again[..stages.len()], current[..], "{again:?}");
+    let path = dir
+        .join("catalogue")
+        .join(species)
+        .join("packet/profile.json");
+    let profile: Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+    let metrics = profile["profiles"][0]["metrics"].clone();
+    (dir, lines, metrics)
+}
+
+fn word(lines: &[String], stage: &str) -> String {
+    let prefix = format!("{stage}: ");
+    lines
+        .iter()
+        .find(|l| l.starts_with(&prefix))
+        .cloned()
+        .unwrap_or_default()
+}
+
+/// R1 on the beech from its native range: the height is the forestry
+/// tier's, three agreeing sources, and gates; the trunk diameter rests on
+/// one nursery page and is contextual (host decision, 2026-09-26). R7: the
+/// photograph search kept a mature, open-grown tree in leaf.
+#[test]
+fn the_recorded_beech_replays_offline_through_start_and_a_second_run_reruns_nothing() {
+    let (dir, lines, metrics) = replayed(BEECH);
+    assert!(
+        word(&lines, "sources").starts_with("sources: ran: gather ran (24 documents), fetch ran"),
+        "{lines:?}"
+    );
+    let profile = word(&lines, "profile");
+    assert!(
+        profile.contains("reference photographs: 12 candidates, 7 open-licence, 1 kept"),
+        "{profile}"
+    );
+    let height = &metrics["height_m"];
+    assert_eq!(height["tier"], "forestry", "{height}");
+    assert_eq!(height["sources_agreeing"], 3, "{height}");
+    assert_eq!(height["classification"], "gating", "{height}");
+    // Host, 2026-09-26: only a flora, forestry or garden tier gates. The
+    // crown width's two agreeing extension pages decide it, contextual.
+    let crown = &metrics["crown_width_m"];
+    assert_eq!(crown["tier"], "extension", "{crown}");
+    assert_eq!(crown["confidence"], "agreed", "{crown}");
+    assert_eq!(crown["classification"], "contextual", "{crown}");
+    assert!(
+        crown["classified"].as_str().unwrap().contains("extension"),
+        "{crown}"
+    );
+    let dbh = &metrics["dbh_m"];
+    assert_eq!(dbh["range"], serde_json::json!([1.5, 1.5]), "{dbh}");
+    assert_eq!(dbh["tier"], "nursery", "{dbh}");
+    assert_eq!(dbh["classification"], "contextual", "{dbh}");
+    let path = dir.join("catalogue/european-beech/packet/references.json");
+    let references: Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+    let views: Vec<&str> = references["references"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|r| r["view"].as_str())
+        .collect();
+    assert!(views.contains(&"leaf-on"), "{views:?}");
+}
+
+/// R8: the beech replays through Tune's first revision. The photograph the
+/// Profile stage kept gets a shot chosen from code's candidates (host,
+/// 2026-09-26), recorded with its candidates and selection, and the
+/// revision reaches a round. Rendering needs a hardware GPU; a machine
+/// without one (CI) skips, as the render crate's tests do.
+#[test]
+fn the_recorded_beech_replays_through_tunes_first_revision() {
+    let dir = std::env::temp_dir().join(format!(
+        "jev-replay-tune-{}-{}",
+        std::process::id(),
+        telperion_jev::ledger::new_entry_id()
+    ));
+    seeded(&dir, BEECH);
+    let out = replay_until(&dir, BEECH, "tune");
+    let printed = String::from_utf8_lossy(&out.stdout).into_owned();
+    let stderr = String::from_utf8_lossy(&out.stderr).into_owned();
+    if stderr.contains("no hardware GPU adapter") || stderr.contains("WebGPU is unavailable") {
+        println!("skipped: no hardware GPU");
+        return;
+    }
+    assert!(out.status.success(), "{printed}{stderr}");
+    let shots = telperion_jev::runner::shots::file(&dir.join("run/runner"));
+    let shots: Value = serde_json::from_slice(&std::fs::read(shots).unwrap()).unwrap();
+    let reference = shots["references"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["view"] == "leaf-on")
+        .unwrap_or_else(|| panic!("{shots}"));
+    assert!(reference["shot"]["camera"].is_object(), "{reference}");
+    assert!(reference["shot"]["tree"]["box"].is_array(), "{reference}");
+    assert!(
+        reference["shot_selection"]["candidates"]["camera"]
+            .as_array()
+            .is_some_and(|c| c.len() >= 2),
+        "{reference}"
+    );
+    let run: Value =
+        serde_json::from_slice(&std::fs::read(dir.join("run/runner/tuning/1/run.json")).unwrap())
+            .unwrap();
+    assert!(
+        run["budget"]["rounds"].as_u64().unwrap() >= 1,
+        "{}",
+        run["stopped"]
+    );
+}
+
+/// R5: the Oregon white oak, a shipped species, run from its bare seed:
+/// every value the aggregate settled lands within the catalogue profile's
+/// range for that field.
+#[test]
+fn the_recorded_oak_replays_offline_and_lands_within_its_catalogue_ranges() {
+    let (_, lines, metrics) = replayed(OAK);
+    assert!(
+        word(&lines, "sources").starts_with("sources: ran: gather ran (22 documents), fetch ran"),
+        "{lines:?}"
+    );
+    let path = repo().join("catalogue/oregon-white-oak/packet/profile.json");
+    let catalogue: Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+    let shipped = &catalogue["profiles"][0]["metrics"];
+    let mut compared = 0;
+    for (field, shipped_as) in [
+        ("height_m", "height_m"),
+        ("dbh_m", "dbh_m"),
+        ("leaf_length_m", "foliage_length_m"),
+        ("leaf_width_m", "foliage_width_m"),
+    ] {
+        let (Some(value), Some(range)) = (
+            metrics[field]["value"].as_f64(),
+            shipped[shipped_as]["range"].as_array(),
+        ) else {
+            continue;
+        };
+        let (lo, hi) = (range[0].as_f64().unwrap(), range[1].as_f64().unwrap());
+        assert!(
+            (lo..=hi).contains(&value),
+            "{field} {value} outside {lo}..{hi}"
+        );
+        compared += 1;
+    }
+    assert_eq!(compared, 3, "{metrics}");
 }
 
 /// The repository is public: a committed recording republishes no page that
 /// is not openly licensed. Each such page keeps only the passages the run
 /// quoted to Jev (`tape::trim`), and its bytes only its licence statements.
 #[test]
-fn the_recording_keeps_only_the_passages_the_run_quoted() {
-    let over = telperion_jev::tape::trim::only_quoted(&fixture().join("tape"), &[]).unwrap();
-    assert!(over.is_empty(), "{over:#?}");
+fn the_recordings_keep_only_the_passages_the_runs_quoted() {
+    for species in [BEECH, OAK] {
+        let tape = fixture(species).join("tape");
+        let over = telperion_jev::tape::trim::only_quoted(&tape, &[]).unwrap();
+        assert!(over.is_empty(), "{species}: {over:#?}");
+    }
 }

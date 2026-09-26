@@ -90,7 +90,7 @@ pub fn run(profile_path: &Path, tuning_path: &Path, out: &Path) -> Result<String
     let overrides = unflatten(&merged);
     params::overlay(&preset.parameters(), &overrides)
         .map_err(|e| format!("derived overrides: {e:?}"))?;
-    let contextual = reclassify(&tuning, &profile_id)?;
+    let contextual = reclassify(&tuning, &profile_id, &packet)?;
     let rows: Vec<Value> = derived
         .rows
         .iter()
@@ -119,14 +119,43 @@ pub fn run(profile_path: &Path, tuning_path: &Path, out: &Path) -> Result<String
     ))
 }
 
+/// The packet's profile as the measurer takes it: a frozen, ready manifest
+/// whose `profile_id` entry is ready and whose every metric gates or is
+/// contextual. The packet's own profile stays draft;
+/// this copy exists only so a run from a name can measure its first tree.
+fn measurable_copy(packet: &Value, profile_id: &str) -> Value {
+    let mut frozen = packet.clone();
+    frozen["status"] = json!("ready");
+    frozen["frozen_at"] = json!(&crate::pipeline::stage::now()[..10]);
+    frozen["purpose"] = json!(
+        "The aggregate's profile, frozen by Start for the measurer on a run from a name (fn-157); the packet's own profile stays draft."
+    );
+    for profile in frozen["profiles"].as_array_mut().into_iter().flatten() {
+        if profile["id"] == profile_id {
+            profile["readiness"] = json!("ready");
+            // The measurer gates or reports; a field no source settled only
+            // reports.
+            for metric in profile["metrics"].as_object_mut().into_iter().flatten() {
+                if metric.1["classification"] != "gating" {
+                    metric.1["classification"] = json!("contextual");
+                }
+            }
+        }
+    }
+    frozen
+}
+
 /// Makes the tuning profile's gating metrics the measurer cannot read
-/// contextual, so the tree is never gated on a number nobody measures.
-fn reclassify(tuning: &Value, profile_id: &str) -> Result<Vec<String>, String> {
+/// contextual, so the tree is never gated on a number nobody measures. A
+/// run from a name has no profile manifest of its own: the measurer reads
+/// the profile the tree was derived from (fn-157).
+fn reclassify(tuning: &Value, profile_id: &str, packet: &Value) -> Result<Vec<String>, String> {
     let Some(path) = tuning["profiles"].as_str().map(Path::new) else {
         return Ok(Vec::new());
     };
     if !path.exists() {
-        return Ok(Vec::new());
+        let frozen = measurable_copy(packet, profile_id);
+        write_canonical(path, &frozen).map_err(|e| format!("{}: {e}", path.display()))?;
     }
     let mut manifest = read_json(path).map_err(|e| e.to_string())?;
     let mut changed = Vec::new();

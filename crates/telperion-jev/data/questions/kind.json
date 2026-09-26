@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "document": {
+    "type": "choice",
+    "instructions": "The state holds one document found about the tree species `species`: its address and title in `source`, and up to three sentences from it in `passages`. What kind of document is it?",
+    "criteria": {
+      "flora": "A flora or a monograph of the species or its genus: a botanical description of the plant as it grows wild",
+      "forestry": "A forestry or silvics manual, a yield table, or a forest or woodland body's account of the tree as it grows in its native woods",
+      "garden": "A botanical garden's or an arboretum's page about the species",
+      "extension": "A university extension or teaching page about growing or identifying the species",
+      "nursery": "A nursery's, a landscape designer's or a retailer's page about the plant it sells or plants",
+      "other": "Any other document: an encyclopedia, a news or forum post, a blog, a database record, a paper on another subject",
+      "unclear": "The address, title and passages do not say what the document is"
+    }
+  }
+}

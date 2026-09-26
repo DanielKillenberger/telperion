@@ -4,103 +4,29 @@ use serde_json::json;
 use telperion_jev::cases::{format_scores, CaseRow, SetScore};
 use telperion_jev::pipeline::sets::cases::run_pipeline_cases;
 use telperion_jev::pipeline::sets::{
-    chosen_level, described_cases, described_questions, level_from_score, mature_cases,
-    mature_questions, missed_ids, obligation_cases, obligation_questions, ranking_cases,
-    ranking_questions, rate_cases, set_version, sufficiency_cases, DescribedLevel,
-    DESCRIBED_UNSTATED, OBLIGATION_NAMES, RANKING_NONE, SUFFICIENCY_LEVELS,
+    chosen_level, described_cases, described_questions, kind_cases, kind_questions, label_cases,
+    label_questions, level_from_score, missed_ids, set_version, DescribedLevel, DESCRIBED_UNSTATED,
+    KINDS, KIND_UNCLEAR, LABEL_NONE, LABEL_QUESTIONS,
 };
 
 use common::{ledger_dir, CaseTransport};
 use telperion_jev::pipeline::requirements::table;
 
 /// Every base name the runner scores, labelled and held out.
-const SET_NAMES: [&str; 12] = [
-    "sufficiency level",
-    "sufficiency gap",
-    "mature size level",
-    "mature size gap",
-    "growth rate level",
-    "growth rate gap",
-    "ranking source",
+const SET_NAMES: [&str; 7] = [
     "described level",
-    "obligation inspected_image",
-    "obligation measurement_not_invention",
-    "obligation appearance_supported",
+    "label field",
+    "label basis",
+    "label age",
+    "label condition",
+    "document kind",
     "rights class",
 ];
 
 #[test]
 fn every_set_carries_its_version_and_its_cases_carry_the_fields_the_runner_reads() {
-    // fn-131 names the field in the measurement question: obligations v2.
-    for (name, version) in [
-        ("sufficiency", 1),
-        ("mature_size", 1),
-        ("growth_rate", 1),
-        ("ranking", 1),
-        ("described", 1),
-        ("obligations", 2),
-    ] {
+    for (name, version) in [("described", 1), ("label", 1), ("kind", 1)] {
         assert_eq!(set_version(name), version, "{name}");
-    }
-    let gaps = [
-        "no_age_indexed_points",
-        "wrong_condition",
-        "wrong_taxon",
-        "age_range_uncovered",
-        "none",
-    ];
-    let sufficiency = sufficiency_cases();
-    for case in &sufficiency {
-        assert!(
-            SUFFICIENCY_LEVELS.contains(&case.expect_level.as_str()),
-            "{}",
-            case.id
-        );
-        assert!(gaps.contains(&case.expect_gap.as_str()), "{}", case.id);
-        assert!(
-            case.requirement["required_ages_years"].is_array(),
-            "{}",
-            case.id
-        );
-        assert!(case.evidence.is_array(), "{}", case.id);
-        assert!(case.counts["measured_points"].is_number(), "{}", case.id);
-    }
-    // fn-127: the mature-size set asks no age and answers on the same levels.
-    let mature = mature_cases();
-    let mature_gaps = mature_questions()["mature_gap"]["criteria"]
-        .as_object()
-        .unwrap()
-        .keys()
-        .cloned()
-        .collect::<Vec<_>>();
-    assert!(mature_gaps.contains(&"none".to_string()), "a no-match gap");
-    for case in &mature {
-        assert!(
-            SUFFICIENCY_LEVELS.contains(&case.expect_level.as_str()),
-            "{}",
-            case.id
-        );
-        assert!(mature_gaps.contains(&case.expect_gap), "{}", case.id);
-        assert!(
-            case.requirement.get("required_ages_years").is_none(),
-            "{}",
-            case.id
-        );
-        assert!(case.counts["sentences"].is_number(), "{}", case.id);
-    }
-    for id in ["palm-leaflet-length-a1", "palm-crown-width-a1"] {
-        assert!(
-            mature.iter().any(|c| c.id == id),
-            "A1's sentences label {id}"
-        );
-    }
-    let rate = rate_cases();
-    let ranking = ranking_cases();
-    for case in &ranking {
-        assert!(!case.candidates.is_empty(), "{}", case.id);
-        let known = case.expect_source == RANKING_NONE
-            || case.candidates.iter().any(|c| c.id == case.expect_source);
-        assert!(known, "{} admits a source not in its candidates", case.id);
     }
     let described = described_cases();
     for case in &described {
@@ -109,45 +35,47 @@ fn every_set_carries_its_version_and_its_cases_carry_the_fields_the_runner_reads
             || case.levels.iter().any(|l| l.key == case.expect_level);
         assert!(known, "{} admits a level not in its table", case.id);
     }
-    let obligations = obligation_cases();
-    for case in &obligations.inspected_image {
-        assert!(!case.observation.is_empty(), "{}", case.id);
+    let labels = label_cases();
+    let questions = label_questions(&[]);
+    for case in &labels {
+        for field in &case.fields {
+            assert!(table().fields.contains_key(field), "{}: {field}", case.id);
+        }
+        let known = case.expect_field == LABEL_NONE || case.fields.contains(&case.expect_field);
+        assert!(known, "{} admits a field it does not offer", case.id);
+        for (name, want) in LABEL_QUESTIONS.iter().zip([
+            &case.expect_basis,
+            &case.expect_age,
+            &case.expect_condition,
+        ]) {
+            assert!(
+                questions[name]["criteria"].get(want.as_str()).is_some(),
+                "{}: {name} {want}",
+                case.id
+            );
+        }
+        assert_eq!(
+            case.negative,
+            case.expect_field == LABEL_NONE,
+            "{}",
+            case.id
+        );
     }
-    for case in &obligations.measurement_not_invention {
-        assert!(!case.value_statement.is_empty(), "{}", case.id);
-        assert!(!case.source_excerpt.is_empty(), "{}", case.id);
+    let kinds = kind_cases();
+    let offered = kind_questions()["document"]["criteria"].clone();
+    for case in &kinds {
+        assert!(offered.get(&case.expect_kind).is_some(), "{}", case.id);
+        assert_eq!(
+            case.negative,
+            case.expect_kind == KIND_UNCLEAR,
+            "{}",
+            case.id
+        );
     }
-    for case in &obligations.appearance_supported {
-        assert!(!case.sentence.is_empty(), "{}", case.id);
-        let level = table().level(&case.trait_name, &case.level);
-        assert!(level.is_some(), "{} names a level the table has", case.id);
+    for kind in KINDS {
+        assert!(offered.get(kind).is_some(), "{kind} is offered");
     }
-
-    let counts: [(&str, usize, usize, usize); 8] = [
-        (
-            "mature_size",
-            mature.len(),
-            mature.iter().filter(|c| c.holdout).count(),
-            mature.iter().filter(|c| c.negative).count(),
-        ),
-        (
-            "growth_rate",
-            rate.len(),
-            rate.iter().filter(|c| c.holdout).count(),
-            rate.iter().filter(|c| c.negative).count(),
-        ),
-        (
-            "sufficiency",
-            sufficiency.len(),
-            sufficiency.iter().filter(|c| c.holdout).count(),
-            sufficiency.iter().filter(|c| c.negative).count(),
-        ),
-        (
-            "ranking",
-            ranking.len(),
-            ranking.iter().filter(|c| c.holdout).count(),
-            ranking.iter().filter(|c| c.negative).count(),
-        ),
+    let counts = [
         (
             "described",
             described.len(),
@@ -155,46 +83,16 @@ fn every_set_carries_its_version_and_its_cases_carry_the_fields_the_runner_reads
             described.iter().filter(|c| c.negative).count(),
         ),
         (
-            "inspected_image",
-            obligations.inspected_image.len(),
-            obligations
-                .inspected_image
-                .iter()
-                .filter(|c| c.holdout)
-                .count(),
-            obligations
-                .inspected_image
-                .iter()
-                .filter(|c| c.negative)
-                .count(),
+            "kind",
+            kinds.len(),
+            kinds.iter().filter(|c| c.holdout).count(),
+            kinds.iter().filter(|c| c.negative).count(),
         ),
         (
-            "measurement_not_invention",
-            obligations.measurement_not_invention.len(),
-            obligations
-                .measurement_not_invention
-                .iter()
-                .filter(|c| c.holdout)
-                .count(),
-            obligations
-                .measurement_not_invention
-                .iter()
-                .filter(|c| c.negative)
-                .count(),
-        ),
-        (
-            "appearance_supported",
-            obligations.appearance_supported.len(),
-            obligations
-                .appearance_supported
-                .iter()
-                .filter(|c| c.holdout)
-                .count(),
-            obligations
-                .appearance_supported
-                .iter()
-                .filter(|c| c.negative)
-                .count(),
+            "label",
+            labels.len(),
+            labels.iter().filter(|c| c.holdout).count(),
+            labels.iter().filter(|c| c.negative).count(),
         ),
     ];
     for (name, total, holdout, negative) in counts {
@@ -221,19 +119,8 @@ fn the_runner_scores_every_set_labelled_and_held_out_against_its_bound() {
             assert!(set.meets_pilot(), "{full} is below its bound");
         }
     }
-    let ranking = sets
-        .iter()
-        .find(|set| set.name == "ranking source")
-        .unwrap();
-    assert_eq!(
-        ranking.required,
-        (0.8 * ranking.total as f64).ceil() as usize
-    );
-    let level = sets
-        .iter()
-        .find(|set| set.name == "sufficiency level")
-        .unwrap();
-    assert_eq!(level.required, (0.9 * level.total as f64).ceil() as usize);
+    let field = sets.iter().find(|set| set.name == "label field").unwrap();
+    assert_eq!(field.required, (0.9 * field.total as f64).ceil() as usize);
     assert!(format_scores(&sets).contains("conf min="));
 }
 
@@ -330,31 +217,33 @@ fn built_questions_keep_the_table_order_and_offer_a_no_match_answer() {
         .unwrap()
         .contains("not describe"));
 
-    let candidates = vec!["S1".to_string(), "G1".to_string()];
-    let ranking = ranking_questions(&candidates);
-    let criteria = ranking["source"]["criteria"]
+    // The label offers the manifest's fields and `none`, and a no-match
+    // answer to each of its other questions (fn-157).
+    let fields = [
+        (
+            "leaf_length_m".to_string(),
+            "The length of a leaf".to_string(),
+        ),
+        (
+            "height_m".to_string(),
+            "The height of the whole tree".to_string(),
+        ),
+    ];
+    let label = label_questions(&fields);
+    let criteria = label["field"]["criteria"]
         .as_object()
         .expect("criteria map");
-    for id in &candidates {
-        assert!(criteria.contains_key(id), "{id} is a candidate");
-    }
+    let mut keys: Vec<&str> = criteria.keys().map(String::as_str).collect();
+    keys.sort();
+    assert_eq!(keys, ["height_m", "leaf_length_m", LABEL_NONE]);
     assert!(
-        criteria[RANKING_NONE].is_string(),
+        criteria[LABEL_NONE].is_string(),
         "the no-match key carries its text"
     );
-    assert_eq!(
-        criteria.keys().next_back().map(String::as_str),
-        Some(RANKING_NONE)
-    );
-
-    for name in OBLIGATION_NAMES {
-        let noul = obligation_questions(name);
-        assert_eq!(noul.as_object().unwrap().len(), 1, "{name} is asked alone");
-        assert_eq!(noul[name]["type"], "noul");
-        assert!(
-            noul[name]["criteria"]["false"].is_string(),
-            "{name} has a false criterion"
-        );
+    assert!(label["basis"]["criteria"]["unclear"].is_string());
+    assert!(label["condition"]["criteria"]["unstated"].is_string());
+    for name in LABEL_QUESTIONS {
+        assert_eq!(label[name]["type"], "choice", "{name}");
     }
 }
 

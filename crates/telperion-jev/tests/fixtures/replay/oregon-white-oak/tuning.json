@@ -1,0 +1,78 @@
+{
+  "budget": {
+    "evaluations": 0,
+    "images": 0,
+    "rounds": 0,
+    "tokens": 0,
+    "visual_passes": 0
+  },
+  "checklist": "Recognizable mature open-grown Oregon white oak (Quercus garryana) at established catalogue rendering quality, not photorealism.",
+  "dials": [],
+  "initial_overrides": {},
+  "judgment_model": "jev-1.13.0",
+  "ledger": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/oak-live/run/ledger",
+  "matched": {
+    "catalogue": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/oak-live/catalogue",
+    "compare_script": "scripts/compare-references.py",
+    "headless": "target/release/examples/headless",
+    "height": 1440,
+    "numeric_references": [],
+    "references": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/oak-live/catalogue/oregon-white-oak/packet/references.json",
+    "refs": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/oak-live/refs",
+    "scratch": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/oak-live/run/matched"
+  },
+  "measure_binary": "target/release/examples/species_measure",
+  "owner_notes": "",
+  "preset": "oregon-white-oak",
+  "profile_id": "oregon-white-oak",
+  "profiles": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/oak-live/profiles-oregon-white-oak.json",
+  "quality_anchors": [
+    {
+      "image": {
+        "path": ".flow/evidence/fn9/final/preview/norway-spruce-1-whole.png",
+        "seed": 1,
+        "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+        "view": "whole"
+      },
+      "provenance": "Established shipped fn9 production preview (as the date palm's config uses it).",
+      "scope": "Stylistic/finish quality floor only, not species morphology."
+    }
+  ],
+  "references": [],
+  "required": [],
+  "seed": 1,
+  "sheet": {
+    "adapter": {
+      "args": [
+        "scripts/contact-sheet.py",
+        "--model",
+        "opus",
+        "--effort",
+        "medium"
+      ],
+      "effort": "medium",
+      "ledger": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/oak-live/run/vision-ledger",
+      "model": "opus",
+      "program": "python3",
+      "timeout_seconds": 600
+    },
+    "protocol": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/contact-sheet-protocol.md"
+  },
+  "tracks": [],
+  "vision": {
+    "args": [
+      "scripts/reference-first.py",
+      "--model",
+      "opus",
+      "--effort",
+      "medium"
+    ],
+    "effort": "medium",
+    "ledger": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/oak-live/run/vision-ledger",
+    "model": "opus",
+    "program": "python3",
+    "timeout_seconds": 600
+  },
+  "visual_bootstrap": true,
+  "max_questions_per_call": 32
+}

@@ -1,9 +1,9 @@
-//! fn-128 R2 and R3, from the palm's second pass on fn-127. Select read an
+//! fn-128 R2, from the palm's second pass on fn-127. Select read an
 //! appearance trait off a 600-character page chunk: `bark_roughness` cited
 //! A1's navigation links, and `bark_colour` came out unstated although A1
-//! says the trunk "is rough gray". Verify then asked those values whether
-//! they were measurements. A1's text here is the live extract's, in page
-//! order behind its navigation. No network.
+//! says the trunk "is rough gray". The aggregate stage reads it one sentence
+//! at a time (fn-157). A1's text here is the live extract's, in page order
+//! behind its navigation. No network.
 
 mod common;
 
@@ -16,13 +16,10 @@ use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::adapter::FixtureAdapter;
 use telperion_jev::pipeline::canon::{read_json, write_canonical};
-use telperion_jev::pipeline::decision::{
-    append_decisions, open_for_stage, Decision, DecisionParts,
-};
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::requirements::table;
 use telperion_jev::pipeline::stage::{Context, Paths};
-use telperion_jev::pipeline::stages::{fetch, inputs, select, verify};
+use telperion_jev::pipeline::stages::{aggregate, fetch, inputs};
 
 const A1_URL: &str = "https://example.test/a1";
 const A1_NAV: &str = "[Edible Landscapes Tour](https://arboretum.arizona.edu/tours/edible-landscapes-tour) [Trees Around the World Tour](https://arboretum.arizona.edu/tours/trees-around-world-tour) **Botanical Name:** Phoenix dactylifera **Sub Species:** **Variety:** **Forma:** **Cultivar:** **Characteristics:**";
@@ -39,8 +36,7 @@ const A1_FROND: &str = "Leaves resemble a \u{2018}feather-duster\u{2019} as fron
 /// Jev as the test reads A1: the trunk sentence states a grey, rough bark;
 /// the frond sentence is misread as a grey-green upper face, the kind of
 /// placement the live run made on F1's history. Every other sentence
-/// states no level. Verify's support question is answered from its
-/// labelled cases; a measurement question on an appearance value panics.
+/// states no level.
 #[derive(Default)]
 struct Reader {
     asked: Mutex<Vec<Value>>,
@@ -61,11 +57,6 @@ impl Transport for Reader {
     fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String> {
         let body: Value = serde_json::from_slice(request.body.as_deref().unwrap_or(b"{}")).unwrap();
         let questions = &body["questions"];
-        assert!(
-            questions.get("measurement_not_invention").is_none(),
-            "an appearance value is no measurement: {}",
-            body["state"]
-        );
         let answers = if questions.get("level").is_some() {
             self.asked.lock().unwrap().push(body["state"].clone());
             let name = body["state"]["trait"].as_str().unwrap();
@@ -79,8 +70,6 @@ impl Transport for Reader {
                 .unwrap_or(levels.len());
             let at = index.to_string();
             json!({"level": {"type": "score", "score": index as f64, "confidence": 0.9, "probabilities": {at: 0.9}}})
-        } else if questions.get("relation").is_some() {
-            json!({"relation": {"type": "choice", "choice": "supports", "confidence": 0.95, "probabilities": {"supports": 0.95}}})
         } else {
             return CaseTransport.send(request);
         };
@@ -91,8 +80,9 @@ impl Transport for Reader {
     }
 }
 
-/// The palm's manifest at version 2 with A1 its one source.
-fn manifest() -> Value {
+/// The palm's manifest at version 2 with A1 its one source; each appearance
+/// trait lists `listed` as its sources.
+fn manifest(listed: Value) -> Value {
     let form = &table().growth_forms["palm"];
     let fields: Vec<Value> = form
         .fields
@@ -102,7 +92,7 @@ fn manifest() -> Value {
     let appearance: Vec<Value> = form
         .appearance
         .iter()
-        .map(|name| json!({"trait_name": name, "sources": ["A1"]}))
+        .map(|name| json!({"trait_name": name, "sources": listed}))
         .collect();
     json!({
         "schema": "manifest", "schema_version": 2, "species": "date-palm",
@@ -111,14 +101,14 @@ fn manifest() -> Value {
         "preset": "date-palm", "profile_id": "date-palm", "seed": 7,
         "sources": [{"id": "A1", "url": A1_URL, "title": "UA Campus Arboretum", "rights": "cited"}],
         "fields": fields, "appearance": appearance,
-        "versions": {"question_sets": {"described": 1, "obligations": 1}, "tools": {}},
+        "versions": {"question_sets": {"described": 1, "label": 1}, "tools": {}},
         "model": "jev-latest"
     })
 }
 
-/// A1 fetched through the fixture adapter, and empty screen and quality
-/// artifacts: this select fills no measured field, only appearance.
-fn fetched() -> PathBuf {
+/// A1 fetched through the fixture adapter, and an empty read artifact:
+/// this aggregate fills no measured field, only appearance.
+fn fetched(listed: Value) -> PathBuf {
     let root = std::env::temp_dir().join(format!(
         "jev-appearance-{}-{}",
         std::process::id(),
@@ -139,17 +129,15 @@ fn fetched() -> PathBuf {
         &json!({"scrape": {A1_URL: {"final_url": A1_URL, "content_type": "text/html", "raw": "a1.html", "markdown": "a1.md"}}}),
     )
     .unwrap();
-    write_canonical(&dir.join("manifest.json"), &manifest()).unwrap();
+    write_canonical(&dir.join("manifest.json"), &manifest(listed)).unwrap();
     let paths = Paths::new(&dir);
     fetch::run(&paths, &FixtureAdapter::new(fixtures)).unwrap();
-    for (stage, body) in [
-        ("screen", json!({"rows": []})),
-        ("quality", json!({"fields": {}})),
-    ] {
-        let (ctx, _) = Context::open(&paths, stage).unwrap();
-        ctx.write(&ctx.header(stage, stage, inputs(&[]), vec![]), body)
-            .unwrap();
-    }
+    let (ctx, _) = Context::open(&paths, "read").unwrap();
+    ctx.write(
+        &ctx.header("read", "read", inputs(&[]), vec![]),
+        json!({"spans": []}),
+    )
+    .unwrap();
     dir
 }
 
@@ -162,14 +150,21 @@ fn judge(reader: &Reader) -> Judge<'_> {
 }
 
 /// R2: each sentence of A1 that names the bark is judged alone, and the
-/// bark's colour is read from "rough gray" and cites that sentence.
+/// bark's colour is read from "rough gray" and cites that sentence, whether
+/// the trait names A1 or names no source and so reads every document
+/// (fn-157).
 #[test]
 fn bark_colour_is_read_from_a1s_trunk_sentence_and_cites_it() {
-    let dir = fetched();
-    let reader = Reader::default();
-    select::run(&Paths::new(&dir), &judge(&reader)).unwrap();
+    for listed in [json!(["A1"]), json!([])] {
+        bark_from_a1(fetched(listed));
+    }
+}
 
-    let body = &read_json(&dir.join("select.json")).unwrap()["body"]["appearance"];
+fn bark_from_a1(dir: PathBuf) {
+    let reader = Reader::default();
+    aggregate::run(&Paths::new(&dir), &judge(&reader)).unwrap();
+
+    let body = &read_json(&dir.join("aggregate.json")).unwrap()["body"]["appearance"];
     for (name, level) in [("bark_colour", "grey"), ("bark_roughness", "rough")] {
         assert_eq!(body[name]["level"], level, "{name}");
         assert_eq!(body[name]["source"], "A1", "{name}");
@@ -188,120 +183,4 @@ fn bark_colour_is_read_from_a1s_trunk_sentence_and_cites_it() {
             "{state}"
         );
     }
-}
-
-/// R3: verify asks each appearance value whether its cited sentence
-/// describes its level, never whether it is a measurement. The trunk
-/// sentence holds; the frond sentence read as grey-green does not, and
-/// files a claim decision.
-#[test]
-fn verify_holds_a_supported_appearance_value_and_files_a_claim_on_one_that_is_not() {
-    let dir = fetched();
-    let reader = Reader::default();
-    let paths = Paths::new(&dir);
-    select::run(&paths, &judge(&reader)).unwrap();
-    let verify::Outcome::Ran { decisions } = verify::run(&paths, &judge(&reader)).unwrap() else {
-        panic!("verify ran")
-    };
-    let front = "/profiles/0/appearance/leaf_front_colour";
-    assert_eq!(
-        decisions,
-        [format!("date-palm/verify/claim-unsupported/{front}")]
-    );
-    let obligations = &read_json(&dir.join("verify.json")).unwrap()["body"]["obligations"];
-    let held = |pointer: &str| {
-        obligations
-            .as_array()
-            .unwrap()
-            .iter()
-            .find(|o| o["pointer"] == pointer)
-            .map(|o| (o["obligation"].clone(), o["held"].clone()))
-    };
-    for pointer in [
-        "/profiles/0/appearance/bark_colour",
-        "/profiles/0/appearance/bark_roughness",
-    ] {
-        assert_eq!(
-            held(pointer),
-            Some((json!("appearance_supported"), json!(true)))
-        );
-    }
-    assert_eq!(
-        held(front),
-        Some((json!("appearance_supported"), json!(false)))
-    );
-}
-
-/// fn-128 R5: after the palm's second pass, verify's `obligation-unmet`
-/// decisions on four appearance values and its `claim-unsupported` on A1
-/// and F1 stayed open and stopped `generate`. They are rebuilt here as the
-/// live `decisions.json` holds them, filed against the old `select.json`;
-/// a verify rerun that does not file them again supersedes them.
-#[test]
-fn a_verify_rerun_supersedes_the_live_decisions_it_no_longer_files() {
-    let dir = fetched();
-    let reader = Reader::default();
-    let paths = Paths::new(&dir);
-    let old_select = "d826f2c81983dc6d5062ce3da028deb01ee8e8f71766abb122afb1fa2d8af05e";
-    let live = |kind: &str, field: String| {
-        Decision::new(
-            DecisionParts {
-                species: "date-palm",
-                stage: "verify",
-                kind,
-                field: Some(&field),
-                age_years: None,
-            },
-            &["generate"],
-            inputs(&[("select.json", old_select)]),
-            vec![],
-            json!({}),
-            &["accept", "replace-source", "drop-value"],
-            "live",
-        )
-    };
-    let mut stale: Vec<Decision> = [
-        "bark_roughness",
-        "leaf_back_colour",
-        "leaf_front_colour",
-        "leaf_hue_range",
-    ]
-    .iter()
-    .map(|t| {
-        let field = format!("measurement_not_invention:/profiles/0/appearance/{t}");
-        live("obligation-unmet", field)
-    })
-    .collect();
-    stale.extend(["A1", "F1"].map(|s| live("claim-unsupported", s.into())));
-    let ids: Vec<String> = stale.iter().map(|d| d.id.clone()).collect();
-    append_decisions(&paths.decisions(), stale).unwrap();
-
-    select::run(&paths, &judge(&reader)).unwrap();
-    verify::run(&paths, &judge(&reader)).unwrap();
-
-    let list = read_json(&paths.decisions()).unwrap();
-    for id in &ids {
-        let d = list["decisions"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .find(|d| &d["id"] == id)
-            .unwrap();
-        assert_eq!(d["status"], "resolved", "{id}");
-        assert_eq!(d["resolution"]["option"], "superseded", "{id}");
-    }
-    // Only what this rerun filed still stops generate.
-    let decisions: Vec<Decision> = serde_json::from_value(list["decisions"].clone()).unwrap();
-    let (global, fields) = open_for_stage(&decisions, "generate");
-    assert!(global.is_empty(), "{global:?}");
-    let verify_open: Vec<_> = decisions
-        .iter()
-        .filter(|d| d.stage == "verify" && d.blocks_stage("generate"))
-        .map(|d| d.id.clone())
-        .collect();
-    assert_eq!(
-        verify_open,
-        ["date-palm/verify/claim-unsupported//profiles/0/appearance/leaf_front_colour"],
-        "{fields:?}"
-    );
 }

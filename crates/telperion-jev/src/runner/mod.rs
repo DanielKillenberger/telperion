@@ -12,6 +12,7 @@
 pub mod accept;
 pub mod capability;
 pub mod catalogue;
+pub mod cells;
 pub mod derive;
 pub mod folder;
 pub mod gaps;
@@ -22,6 +23,7 @@ pub mod preflight;
 pub mod preset;
 pub mod profile;
 pub mod record;
+pub mod shots;
 pub mod sources;
 pub mod start;
 pub mod tools;

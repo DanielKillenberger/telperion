@@ -10,28 +10,26 @@
   "dials": [],
   "initial_overrides": {},
   "judgment_model": "jev-1.13.0",
-  "ledger": ".flow/evidence/fn-149-one-species-runner-set-stages-from-a/raw/beech-record/run/ledger",
+  "ledger": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/run/ledger",
   "matched": {
-    "catalogue": ".flow/evidence/fn-149-one-species-runner-set-stages-from-a/raw/beech-record/catalogue",
+    "catalogue": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/catalogue",
     "compare_script": "scripts/compare-references.py",
     "headless": "target/release/examples/headless",
     "height": 1440,
-    "numeric_references": [
-      "B-WHOLE"
-    ],
-    "references": ".flow/evidence/fn-149-one-species-runner-set-stages-from-a/raw/beech-record/catalogue/european-beech/packet/references.json",
-    "refs": ".flow/evidence/fn-149-one-species-runner-set-stages-from-a/raw/beech-record/refs",
-    "scratch": ".flow/evidence/fn-149-one-species-runner-set-stages-from-a/raw/beech-record/run/matched"
+    "numeric_references": [],
+    "references": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/catalogue/european-beech/packet/references.json",
+    "refs": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/refs",
+    "scratch": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/run/matched"
   },
   "measure_binary": "target/release/examples/species_measure",
   "owner_notes": "",
   "preset": "european-beech",
   "profile_id": "european-beech",
-  "profiles": ".flow/evidence/fn-149-one-species-runner-set-stages-from-a/raw/beech-record/profiles-european-beech.json",
+  "profiles": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/profiles-european-beech.json",
   "quality_anchors": [
     {
       "image": {
-        "path": "/home/daniel/Projects/telperion/.flow/evidence/fn9/final/preview/norway-spruce-1-whole.png",
+        "path": ".flow/evidence/fn9/final/preview/norway-spruce-1-whole.png",
         "seed": 1,
         "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
         "view": "whole"
@@ -41,28 +39,7 @@
     }
   ],
   "references": [],
-  "required": [
-    {
-      "item": "crown-character",
-      "seed": 1,
-      "view": "B-WHOLE"
-    },
-    {
-      "item": "crown-character",
-      "seed": 42,
-      "view": "B-WHOLE"
-    },
-    {
-      "item": "branching-character",
-      "seed": 1,
-      "view": "B-BARE"
-    },
-    {
-      "item": "bark-base",
-      "seed": 1,
-      "view": "B-BASE"
-    }
-  ],
+  "required": [],
   "seed": 1,
   "sheet": {
     "adapter": {
@@ -74,7 +51,7 @@
         "medium"
       ],
       "effort": "medium",
-      "ledger": ".flow/evidence/fn-149-one-species-runner-set-stages-from-a/raw/beech-record/run/vision-ledger",
+      "ledger": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/run/vision-ledger",
       "model": "opus",
       "program": "python3",
       "timeout_seconds": 600
@@ -91,10 +68,12 @@
       "medium"
     ],
     "effort": "medium",
-    "ledger": ".flow/evidence/fn-149-one-species-runner-set-stages-from-a/raw/beech-record/run/vision-ledger",
+    "ledger": ".flow/evidence/fn-157-a-species-values-are-the-confident/raw/beech-live2/run/vision-ledger",
     "model": "opus",
     "program": "python3",
     "timeout_seconds": 600
   },
-  "visual_bootstrap": true
+  "visual_bootstrap": true,
+  "max_questions_per_call": 32,
+  "max_rounds": 1
 }

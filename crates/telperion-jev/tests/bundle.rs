@@ -435,6 +435,7 @@ fn plan(keys: &[&str]) -> sheet::Plan {
 
 #[test]
 fn the_sheet_never_says_which_render_the_loop_is_standing_on() {
+    let again = plan(&["current", "half", "one", "two"]);
     let plan = plan(&["current", "half", "one", "two"]);
     let wire = serde_json::to_string(&plan.request).unwrap();
     for word in ["current", "candidate", "baseline", "strength", "bundle"] {
@@ -449,12 +450,7 @@ fn the_sheet_never_says_which_render_the_loop_is_standing_on() {
         "the label code recorded is not where the current tree is"
     );
     // The order is decided by the whole set, so it is stable for that set.
-    let again = sheet::order(&plan.order);
-    assert_eq!(
-        sheet::order(&["current".into(), "half".into(), "one".into(), "two".into()]).len(),
-        4
-    );
-    assert_eq!(again.len(), 4);
+    assert_eq!(again.order, plan.order);
 }
 
 fn steps(ranking: &[&str], grades: &[Grade]) -> Vec<Step> {
@@ -919,4 +915,22 @@ fn a_track_judged_at_one_view_is_judged_on_that_view_alone() {
     assert_eq!(plan.request.view, "B-BASE");
     assert_eq!(plan.request.renders.len(), 2);
     assert!(plan.request.references.iter().all(|i| i.view == "B-BASE"));
+}
+
+/// fn-157: a trial key hashes the run identity, which names the run's
+/// paths; the renders are ordered by what they show, so a replay from
+/// another directory lays out the same sheet.
+#[test]
+fn the_sheet_orders_renders_by_what_they_show_not_the_run() {
+    let shas = |plan: &sheet::Plan| -> Vec<String> {
+        plan.request
+            .renders
+            .iter()
+            .map(|r| r.sha256.clone())
+            .collect()
+    };
+    let here = plan(&["key-a0", "key-a1", "key-a2", "key-a3"]);
+    let there = plan(&["key-b0", "key-b1", "key-b2", "key-b3"]);
+    assert_eq!(shas(&here), shas(&there));
+    assert_eq!(here.current, there.current);
 }

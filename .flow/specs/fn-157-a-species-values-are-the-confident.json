@@ -1,13 +1,374 @@
 {
   "branch_name": "fn-157-a-species-values-are-the-confident",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-25T20:54:35.319925Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-149-one-species-runner-set-stages-from-a"
   ],
   "id": "fn-157-a-species-values-are-the-confident",
+  "impl_review_rounds": {
+    "fn-157-a-species-values-are-the-confident.1": 0
+  },
   "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "1e3c3953385568d4b8148bd09fed5b30746aacb891afe4862cb99b820a069ddb",
+      "backend": "codex",
+      "base_sha": "b6125630e00fdc70f85b31b934b6af5eabea96fa",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-cf0e5080c3df06e41a46040a32376622",
+            "classification": "introduced",
+            "findingId": "finding-cf0e5080c3df06e41a46040a32376622",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-85283ae67ecc798ce636f75e7a5f2ed4",
+            "classification": "introduced",
+            "findingId": "finding-85283ae67ecc798ce636f75e7a5f2ed4",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0eb5294d3c08e537b44d0c2eb3da6b2d",
+            "classification": "introduced",
+            "findingId": "finding-0eb5294d3c08e537b44d0c2eb3da6b2d",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d1233612ac99f7c364aceb2d29709fda",
+            "classification": "introduced",
+            "findingId": "finding-d1233612ac99f7c364aceb2d29709fda",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "536050ef18700e3cd6295e3b6fd87f54e4835711",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 2553,
+      "output_sha256": "306917f7c8e7add9b3f2b34517b2da45335c7bc775a9b564c62acf0134bf4005",
+      "reservation_id": "97ddf76dc2284347923c5594173bcb01",
+      "round_consumed": true,
+      "scope": "impl:fn-157-a-species-values-are-the-confident.1",
+      "superseded_by": null,
+      "task": "fn-157-a-species-values-are-the-confident.1",
+      "timestamp": "2026-09-26T16:56:37.740855Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "7a8e1d418c2e3b38072f91b7ec030d40ecf4dcd8e55cc4b94effd111a152ae23",
+      "backend": "codex",
+      "base_sha": "b6125630e00fdc70f85b31b934b6af5eabea96fa",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-cf0e5080c3df06e41a46040a32376622",
+            "classification": "introduced",
+            "findingId": "finding-cf0e5080c3df06e41a46040a32376622",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-85283ae67ecc798ce636f75e7a5f2ed4",
+            "classification": "introduced",
+            "findingId": "finding-85283ae67ecc798ce636f75e7a5f2ed4",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-0eb5294d3c08e537b44d0c2eb3da6b2d",
+            "classification": "introduced",
+            "findingId": "finding-0eb5294d3c08e537b44d0c2eb3da6b2d",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d1233612ac99f7c364aceb2d29709fda",
+            "classification": "introduced",
+            "findingId": "finding-d1233612ac99f7c364aceb2d29709fda",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "73365986aab05103bc3666e12938f051b58055a8",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1846,
+      "output_sha256": "d21d01314fa7107b7f4873960c3f3d8ac7fd5b70f6b30186a55756e5896207cd",
+      "reservation_id": "a07ba2f9848d40e8bb4979256997a9ec",
+      "round_consumed": true,
+      "scope": "impl:fn-157-a-species-values-are-the-confident.1",
+      "superseded_by": null,
+      "task": "fn-157-a-species-values-are-the-confident.1",
+      "timestamp": "2026-09-26T16:58:58.664011Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4f1bce1f288b13a5b6e0f2ac4d23246c348888d79abb335b68ca210a5f4277c2",
+      "backend": "codex",
+      "base_sha": "73365986aab05103bc3666e12938f051b58055a8",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-cf0e5080c3df06e41a46040a32376622",
+            "classification": "introduced",
+            "findingId": "finding-cf0e5080c3df06e41a46040a32376622",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-85283ae67ecc798ce636f75e7a5f2ed4",
+            "classification": "introduced",
+            "findingId": "finding-85283ae67ecc798ce636f75e7a5f2ed4",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-0eb5294d3c08e537b44d0c2eb3da6b2d",
+            "classification": "introduced",
+            "findingId": "finding-0eb5294d3c08e537b44d0c2eb3da6b2d",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d1233612ac99f7c364aceb2d29709fda",
+            "classification": "introduced",
+            "findingId": "finding-d1233612ac99f7c364aceb2d29709fda",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "c27aae7ec40670a9ec0ec7d3140e9b4eee83ab54",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1400,
+      "output_sha256": "4f8b70128313bfa8b62972419328eb32dd12a6db5c391fad1e8c0c0b22deeb3f",
+      "reservation_id": "9f9e0e040c4149b8b1f84b9af327fe29",
+      "round_consumed": true,
+      "scope": "impl:fn-157-a-species-values-are-the-confident.1",
+      "superseded_by": null,
+      "task": "fn-157-a-species-values-are-the-confident.1",
+      "timestamp": "2026-09-26T18:03:13.517922Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "f02171508fb19a0551dbcc83c52335d84b024dfb3e4af6973b30b8056f4ba2a0",
+      "backend": "codex",
+      "base_sha": "5ad94c0ddb869e0f2481946a1cf54ba4dbedadcd",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-cf0e5080c3df06e41a46040a32376622",
+            "classification": "introduced",
+            "findingId": "finding-cf0e5080c3df06e41a46040a32376622",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-85283ae67ecc798ce636f75e7a5f2ed4",
+            "classification": "introduced",
+            "findingId": "finding-85283ae67ecc798ce636f75e7a5f2ed4",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-0eb5294d3c08e537b44d0c2eb3da6b2d",
+            "classification": "introduced",
+            "findingId": "finding-0eb5294d3c08e537b44d0c2eb3da6b2d",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d1233612ac99f7c364aceb2d29709fda",
+            "classification": "introduced",
+            "findingId": "finding-d1233612ac99f7c364aceb2d29709fda",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "3b78df601d59949379686861ace4aed23d6a8959",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1280,
+      "output_sha256": "eb1cb0d42e490810acfdf66188d21f1fd0eebf2f7dbe2f1fae99fe65ff6f7f41",
+      "reservation_id": "2c6dde54e5f84919af22314e34a804e3",
+      "round_consumed": true,
+      "scope": "impl:fn-157-a-species-values-are-the-confident.1",
+      "superseded_by": null,
+      "task": "fn-157-a-species-values-are-the-confident.1",
+      "timestamp": "2026-09-26T19:50:03.354713Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "622b650e439261392f56187a42603ffd82e4ea07d9cde87f1d6efda05e4bee30",
+      "backend": "codex",
+      "base_sha": "a044f6dacc14881d9504ecc4ad60d66ad3b5b9df",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-cf0e5080c3df06e41a46040a32376622",
+            "classification": "introduced",
+            "findingId": "finding-cf0e5080c3df06e41a46040a32376622",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-85283ae67ecc798ce636f75e7a5f2ed4",
+            "classification": "introduced",
+            "findingId": "finding-85283ae67ecc798ce636f75e7a5f2ed4",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-0eb5294d3c08e537b44d0c2eb3da6b2d",
+            "classification": "introduced",
+            "findingId": "finding-0eb5294d3c08e537b44d0c2eb3da6b2d",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d1233612ac99f7c364aceb2d29709fda",
+            "classification": "introduced",
+            "findingId": "finding-d1233612ac99f7c364aceb2d29709fda",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 3,
+      "head_sha": "57632c0d4c1ec893618ff945d568b113fa6afbb6",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1285,
+      "output_sha256": "644e97667e94e270777fb4ded90b201d06ceb3b476616ddb702222acdc9b07ce",
+      "reservation_id": "53e23f7b834f45eeab29b08e99194d36",
+      "round_consumed": true,
+      "scope": "impl:fn-157-a-species-values-are-the-confident.1",
+      "superseded_by": null,
+      "task": "fn-157-a-species-values-are-the-confident.1",
+      "timestamp": "2026-09-26T21:55:17.075401Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-157-a-species-values-are-the-confident.1": 4
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-157-a-species-values-are-the-confident.1": 0
+  },
   "spec_path": ".flow/specs/fn-157-a-species-values-are-the-confident.md",
   "status": "open",
   "title": "A species' values are the confident aggregate of everything written about it",
@@ -22,5 +383,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-26T14:16:35.418339Z"
+  "updated_at": "2026-09-26T21:55:17.079175Z"
 }

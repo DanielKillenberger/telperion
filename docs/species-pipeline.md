@@ -1,8 +1,8 @@
 # Species template pipeline: literature to preset
 
-The pipeline takes a taxon from admitted sources to a species packet, a
-provenance sidecar, fitted growth curves, a decision list and the species'
-documentation. The species runner (`docs/species-runner.md`) runs its stages
+The pipeline takes a taxon from everything written about it to a species
+packet, a provenance sidecar, fitted growth curves, a decision list and the
+species' documentation. The species runner (`docs/species-runner.md`) runs its stages
 in process, in the order below, and passes nothing but paths. Every
 reading step is a Jev question through `crates/telperion-jev`, every
 arithmetic step is code, and every choice that belongs to a person lives in
@@ -20,16 +20,16 @@ rendered stills.
 
 | Runner stage | Pipeline stages, in order |
 |---|---|
-| Sources | discover, fetch |
-| Profile | extract, screen, quality, select, verify, fit, and search-again while a requirement has a round left |
+| Sources | gather, fetch |
+| Profile | read, aggregate, fit |
 | Capability | gate |
 | Catalogue | generate, gate again over the specimens generate wrote, document |
 
 Every command reads the manifest and the earlier artifacts at fixed paths
-under `DIR` and writes one artifact atomically to `DIR/<stage>.json`. Discovery lists every source the
-repository already knows, the catalogue's bibliographies first, as a candidate
-before it searches the web, so a source the repository has already verified is
-never rediscovered; `--catalogue DIR` names the catalogue and defaults to
+under `DIR` and writes one artifact atomically to `DIR/<stage>.json`. Gather lists every source the
+repository already knows, the catalogue's bibliographies first, before it
+searches the web, so a source the repository has already verified is never
+rediscovered; `--catalogue DIR` names the catalogue and defaults to
 `catalogue`. A command whose idempotence key
 (input checksums, manifest checksum, question-set versions, model name, tool
 versions) matches the artifact on disk prints `current` and does nothing. The
@@ -172,74 +172,65 @@ stops while open. A person writes `DIR/resolutions.json`:
 ```
 
 A resolution binds only while its checksums match the decision's; a stale one
-is void and the decision reopens. The discover stage's `manifest-proposed`
-decision stops every later stage until a person writes the admitted manifest
-to `DIR/manifest.json` and resolves it. That decision binds to the seed
-(species, taxon, the fields with their conditions and required ages), and
-discover keys on the seed too: admitting sources, curves, proxies or
-engineering rows reruns nothing and keeps the admission, while a seed edit
-reruns discover, reissues the proposal and voids the old admission.
+is void and the decision reopens.
 
-Five kinds carry options a stage consumes. A resolution to one of them with
-an option outside its list is refused when the next stage reads it, naming
-the kind and the options that are consumed; the stage that acted on a
-resolution records itself as `consumed_by` on the decision.
+One kind carries options a stage consumes. A resolution to it with an option
+outside its list is refused when the next stage reads it, naming the kind and
+the options that are consumed; the stage that acted on a resolution records
+itself as `consumed_by` on the decision.
 
 | Kind | Options | Consumed by |
 |---|---|---|
-| `manifest-proposed` | `admit`, `reject`, `skip` | every stage after discover; a rejected proposal stops them until the seed is edited and discover runs again; `skip` (the runner's) goes on with the manifest as it stands |
-| `unavailable-source` | `retry`, `replace-source`, `drop-source` | fetch: `retry` fetches again, `replace-source` fetches the `url` in the resolution's `payload` under the same source id and records both urls, `drop-source` skips the source and records it under `dropped` |
 | `coverage-gap` | `accept-rows`, `fix-table`, `drop-table` | fetch: `accept-rows` keeps the rows as parsed, `fix-table` reads the table entry the manifest now admits (and stops if the count still differs), `drop-table` records the table with no rows |
-| `data-insufficient` | `admit-proxy`, `add-sources`, `lower-bar` | quality, by editing the manifest's fields only |
-| `claim-contradicted`, `claim-unsupported` | `accept`, `replace-source`, `drop-value`, `keep-range` | select: `replace-source` and `drop-value` take the value out and file its requirement again, `drop-value` marking the field `unsourced`; `keep-range` keeps the range from the lowest to the highest of each source's most probable span, every such source cited; the runner picks one once the field's search rounds are spent (`docs/species-runner.md`, "Claims") |
 
-```json
-{"id": "european-ash/fetch/unavailable-source/M1", "inputs_sha256": {"url": "..."},
- "option": "replace-source", "payload": {"url": "https://example.test/the-same-page"},
- "by": "owner", "at": "2026-09-18"}
-```
-
-Other kinds: `obligation-unmet`,
-`structural-unmet`, `missing-curve`, `tolerance-miss`, `onboarding-gate`,
-`level-miss`, `no-reference`, `visual-unassessed`.
+Other kinds: `missing-curve`, `tolerance-miss`, `onboarding-gate`,
+`level-miss`, `no-reference`, `visual-unassessed`, and the article's claims.
+Nothing before the values files a decision (fn-157): a document is gathered
+without admission, an unreadable one is dropped with its reason, and a value
+is composed from every document rather than chosen from one.
 
 ## Sources and tables
 
-Discovery lists what the repository already knows about this species before
-any search: the sources its own bibliography under
-`catalogue/<species>/sources.json` holds, and the sources every admitted
-manifest of the same species or taxon under `.flow/evidence` names, with the
-dimensions their tables cover and any fetch error their run recorded (`.flow`
-is the tree the run directory sits under, else the one under the working
-directory the runbook runs from). Another species' sources, the specs'
-method references and anything under a `raw/` directory are never known
-(owner, 2026-09-25): a run from a name sees nothing another species left.
-They enter Jev's ranking as candidates of kind `known` with their origin
-marked - `catalogue:<species>#<id>` or `manifest:<path>#<id>` - never
-admitted by being known, and a known candidate carrying a
-fetch error is listed and never proposed. The search query is the field in plain words (`Fraxinus excelsior
-height at age, open grown`), not the field id.
+Gather (fn-157) collects what the repository already knows about this
+species, then searches once for the species as a whole: the web search over a
+fixed set of plain-word queries that name where a tree's literature lives
+(floras, silvics and forestry manuals, arboreta, extension pages) and the
+research index. What the repository knows is the sources its own
+bibliography under `catalogue/<species>/sources.json` holds, and the sources
+every manifest of the same species or taxon under `.flow/evidence` names,
+with any fetch error their run recorded (`.flow` is the tree the run
+directory sits under, else the one under the working directory the runbook
+runs from). Another species' sources, the specs' method references and
+anything under a `raw/` directory are never known (owner, 2026-09-25). Every
+document found, one per address and at most sixteen, joins the manifest as a
+source `P<n>`; a known source carrying a fetch error is listed and never
+added. A seed that states the species' native range
+(`taxon.native_range`: `{"region": "Europe", "names": {"de": "Rotbuche"}}`)
+adds that region's floras and forestry literature and the species under its
+names in the range's own languages, two documents a query beyond the sixteen
+(host decision, 2026-09-26). Nothing is ranked, admitted or refused before it is read: reading a
+document for its facts needs no licence, only a copy does (below,
+"Documentation").
 
 Wikipedia is a lead, never a citation (owner, fn-82 and 2026-09-25). A
 tertiary encyclopedic page, known by its host (`wikipedia.org`,
 `wikiwand.com`, `britannica.com`, `encyclopedia.com`,
 `newworldencyclopedia.org`, `dbpedia.org`, subdomains included), is never
-proposed, admitted or fetched. Discovery and the search rounds read its
-reference section and offer up to eight of the primary sources it cites
-(silvics literature, forestry tables, floras, papers) as candidates in its
-place, and those pass the same ranking and rights checks as any other. A
-tertiary source already in a manifest is recorded under `dropped` in
-`fetch.json` and never read, so no profile value can cite one. The rule is
-code (`pipeline::leads`), never a judgment. Wikimedia Commons is a photograph
-host, not a citation, and the reference photographs may come from it
-(`docs/species-runner.md`, "Reference photographs").
+added or fetched. Gather reads its reference section and adds up to eight of
+the primary sources it cites (silvics literature, forestry tables, floras,
+papers) in its place. A tertiary source already in a manifest is recorded
+under `dropped` in `fetch.json` and never read, so no profile value can cite
+one. The rule is code (`pipeline::leads`), never a judgment. Wikimedia
+Commons is a photograph host, not a citation, and the reference photographs
+may come from it (`docs/species-runner.md`, "Reference photographs").
 
 A rate limit is not a missing source. Every call the runner makes goes
 through `adapter::Retrying`: a call refused by a rate limit waits the delay
 the error names (ten seconds when it names none, never more than a minute)
 and tries again, up to four tries, and once the provider has reported its
 per-minute limit the calls are paced to stay under it. Only a permanent
-failure, or a limit that outlasts every try, files `unavailable-source`.
+failure, or a limit that outlasts every try, drops the document, its error
+recorded under `dropped` in `fetch.json`.
 
 An admitted table names its markdown table by `table_index` and, when one
 markdown table packs several species under label rows (a name in the first
@@ -259,21 +250,69 @@ when the block label is not there, naming the labels the table carries.
 
 The plain request that records a source's raw bytes trusts the host's
 certificate store, so a page Firecrawl scraped is not refused over a chain
-the bundled roots lack; a page the host store also rejects files
-`unavailable-source` with the TLS error verbatim.
+the bundled roots lack; a page the host store also rejects is dropped with
+the TLS error verbatim.
+
+## Values
+
+A species' values are the confident aggregate of everything its documents
+say (fn-157). Read reads each fetched document once. Jev classes the
+document's kind from its address, title and a few of its sentences: a flora
+or monograph, a forestry or silvics manual or yield table (a woodland body's
+account of the tree in its native woods among them), a botanical garden's or
+arboretum's page, a university extension page, a nursery's, landscape
+designer's or retailer's page, or another kind, with `unclear` its no-match
+answer. Code finds every number-and-unit span above zero that states a length
+in a sentence naming one of the manifest's fields, each occurrence on its own
+(at most forty a document), and Jev labels each, marked in its sentence, with
+the field it states or `none`, its basis (typical, a record, one specimen, a
+cultivar, unclear), the age (mature, at a stated age, young) and the growing
+condition. Jev never chooses between sources and never supplies a number.
+
+Aggregate composes each field in code (`pipeline::agree`). A span counts when
+it is labelled the field, of a grown tree, under the field's condition or an
+unstated one; code parses its number and unit, and sets it aside when the
+words beside it name another dimension ("Leaf Length: 3-6 inches" labelled a
+width). Pages of one site are one source, and each source's typical spans
+are one point, the median of their midpoints. Sources rank by their
+document's kind, in the order above (host decision, 2026-09-26): the value
+comes from the best tier holding two independent points within a factor of
+1.5 of each other (`agreed`). A lower tier fills a field only when no tier
+agrees and no better tier holds a value (`thin`). Within the deciding tier a
+point beyond a factor of 2 of the tier's median is set aside and noted once
+the tier holds three. The bounds are named constants, and
+`data/cases/aggregate.json` is the labelled set they must answer. The value is
+the median of the points left, the range their extent; a record or a single
+specimen is the field's `maximum`, never its value. A field no document states
+typically is `unsourced`: the generator's default stands and Tune sets it from
+the photographs. A value gates only when its deciding tier agrees and is a flora, forestry
+or garden tier (host, 2026-09-26): such a value is `gating`; any other, one
+source, sources that do not agree, or an extension, nursery or other tier,
+is `contextual`: Start derives from it, Tune may move it, and it never
+makes a baseline infeasible. `classified` says which
+and why. The metric keeps the profile's shape, so Tune and Gaps read
+it unchanged; it adds `value`, `tier`, `tiers` (the independent sources each
+tier held), `sources_agreeing`, `spread_ratio`, `maximum` and `set_aside`, and
+the sidecar keeps every span behind a value with its sentence and ledger
+reference. Start takes `value`, the median, never the middle of the range.
+An appearance trait that names no source reads the documents of the best tier
+whose text carries the trait's words, and no other.
 
 ## Documentation
 
-`document` runs after the packet is verified, and it is
+`document` runs after the packet is written, and it is
 what leaves a species legible to a person and reachable by an agent without a
-second fetch. It writes one markdown copy per admitted source from the fetch
+second fetch. It writes one markdown copy per fetched source from the fetch
 cache, then the species article, then re-runs the citation check over the
 article's own sentences.
 
 The repository is public, so a source's rights decide the copy's shape. An
 explicit permitting statement - a named open licence or a public-domain
-statement - gets the full markdown. Everything else gets the passages the
-packet cites, each a verbatim run of the fetched text quoted under its
+statement - gets the full markdown. A gathered document has one only when
+its page declares an open Creative Commons deed in its markup (a
+`rel="license"` link or a rights meta tag); a licence named only in its text
+is as often a photograph's credit, and gets none (fn-157). Everything else
+gets the spans the profile cites, each a verbatim run of the fetched text quoted under its
 provenance pointer, which is quotation rather than republication. Silence and
 ambiguity are not permission: `scripts/catalogue-check.mjs` classifies
 conservatively and fails a full copy it cannot justify, naming the source.
@@ -302,15 +341,14 @@ call where it does not, with the method named.
 | Path | Schema | Written by |
 |---|---|---|
 | `manifest.json` | manifest v1 | a person |
-| `discover.json` | discover v1 | discover |
+| `gather.json` | gather v1 | gather, which also adds its documents to `manifest.json` |
 | `fetch.json` | sources v1 | fetch |
-| `extract.json` | candidates v1 | extract |
-| `screen.json`, `quality.json`, `select.json`, `verify.json`, `fit.json`, `gate.json`, `generate.json`, `document.json` | one schema each, v1 | the stage of that name |
+| `read.json`, `aggregate.json`, `fit.json`, `gate.json`, `generate.json`, `document.json` | one schema each, v1 | the stage of that name |
 | `sources/<source id>.md` | front matter `{source, url, title, attribution, rights, fetched, sha256, source_sha256, form}`; a full copy where the rights permit one, the cited passages where they do not | document |
 | `ARTICLE.md` | the sources distilled, a citation on every claim | document |
-| `packet/profile.json`, `packet/references.json` | fn19 closed records | select |
+| `packet/profile.json`, `packet/references.json` | fn19 closed records | aggregate |
 | `packet/species.json`, `packet/specimens.json` | fn19 closed records | generate |
-| `provenance.json` | provenance v1, keyed by JSON Pointer | select, generate |
+| `provenance.json` | provenance v1, keyed by JSON Pointer | aggregate, generate |
 | `decisions.json`, `resolutions.json` | decisions v1 | every stage; a person |
 | `RUN/command-log.json` | command-log v1 | document, for the catalogue scripts it runs |
 | `RUN/ledger/entries/`, `RUN/ledger/index.json` | fn-57 ledger entries; identity index | the caller |
@@ -324,11 +362,11 @@ identities, never probabilities; the probabilities live in the ledger entries.
 
 ## The question sets
 
-The versioned sets under `crates/telperion-jev/data/questions`: source
-ranking per field, data sufficiency per field with its dominant gap, described
-level scoring over levels a person wrote, and the semantic obligations
-(`inspected_image`, `measurement_not_invention`).
-Their labelled cases with negative and held-out entries live under
-`data/cases`; `jev cases` reruns them live and fails when a held-out accuracy
-is below 0.9 (0.8 top-one agreement for ranking), listing the missed case
-ids. `--only labelled|pipeline` runs one family alone, so a set being tuned costs one family's calls.
+The versioned sets under `crates/telperion-jev/data/questions`: the read
+stage's document kind and its label (field, basis, age, condition) over a
+marked span, described
+level scoring over levels a person wrote, and the rights class of a
+photograph's licence. Their labelled cases with negative and held-out entries
+live under `data/cases` (the label's are the recorded beech pages and the
+oak's silvics); `jev cases` reruns them live and fails when a held-out
+accuracy is below 0.9, listing the missed case ids. `--only labelled|pipeline` runs one family alone, so a set being tuned costs one family's calls.

@@ -85,7 +85,7 @@ impl GateChecks for ExampleChecks {
 
 pub fn run(paths: &Paths, checks: &dyn GateChecks) -> Result<Outcome, StageError> {
     let (ctx, _) = Context::open(paths, STAGE)?;
-    let (_, select_sha) = body(&ctx, STAGE, "select")?;
+    let (_, aggregate_sha) = body(&ctx, STAGE, "aggregate")?;
     // The assessment's classes decide what a missing capability blocks, so a
     // changed assessment reruns the gate.
     let assessment = ctx.paths.packet("capability");
@@ -100,7 +100,7 @@ pub fn run(paths: &Paths, checks: &dyn GateChecks) -> Result<Outcome, StageError
         true => file_sha256(&specimens)?,
         false => String::new(),
     };
-    let mut pairs = vec![("select.json", select_sha.as_str())];
+    let mut pairs = vec![("aggregate.json", aggregate_sha.as_str())];
     if !assessment_sha.is_empty() {
         pairs.push(("packet/capability.json", &assessment_sha));
     }
@@ -154,7 +154,7 @@ pub fn run(paths: &Paths, checks: &dyn GateChecks) -> Result<Outcome, StageError
 
     let decisions: Vec<Decision> = unresolved
         .iter()
-        .map(|detail| onboarding_gate(manifest, detail, &select_sha))
+        .map(|detail| onboarding_gate(manifest, detail, &aggregate_sha))
         .collect();
     let ids: Vec<String> = decisions.iter().map(|d| d.id.clone()).collect();
     if !decisions.is_empty() {
@@ -361,7 +361,7 @@ fn names(value: &Value) -> Vec<String> {
         .collect()
 }
 
-fn onboarding_gate(manifest: &Manifest, detail: &Value, select_sha: &str) -> Decision {
+fn onboarding_gate(manifest: &Manifest, detail: &Value, aggregate_sha: &str) -> Decision {
     let gate = detail["gate"].as_str().unwrap_or_default();
     let mut payload = Map::new();
     payload.insert("gate".into(), detail["gate"].clone());
@@ -375,7 +375,7 @@ fn onboarding_gate(manifest: &Manifest, detail: &Value, select_sha: &str) -> Dec
             age_years: None,
         },
         &["generate"],
-        [("select.json".to_string(), select_sha.to_string())]
+        [("aggregate.json".to_string(), aggregate_sha.to_string())]
             .into_iter()
             .collect(),
         vec![],

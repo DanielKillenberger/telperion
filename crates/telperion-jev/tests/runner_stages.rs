@@ -37,14 +37,31 @@ fn tree(key: &str) -> Value {
 /// A gap entry whose one attempt made `moves`, rendered or not, and judged
 /// by the reviewer or not.
 fn gap(id: &str, status: &str, moves: Value, feasible: bool, reviewed: bool) -> Value {
+    gap_passing(id, status, moves, feasible, reviewed, false)
+}
+
+/// As `gap`, with the attempt's own visual passing the trait when `passed`.
+fn gap_passing(
+    id: &str,
+    status: &str,
+    moves: Value,
+    feasible: bool,
+    reviewed: bool,
+    passed: bool,
+) -> Value {
     let review = match reviewed {
         true => json!({"per_priority": {id: "slight"}}),
+        false => Value::Null,
+    };
+    let visual = match passed {
+        true => json!([{"item": format!("owner-priority:{id}: the trait"), "view": "P-WHOLE",
+                        "seed": 1, "status": "pass"}]),
         false => Value::Null,
     };
     let attempts = match moves.as_array().is_some_and(|m| !m.is_empty()) {
         true => json!([{"dial": "bundle", "round": 1, "action_ledger": null,
             "score_before_round": null, "score_after": null, "feasible": feasible,
-            "reason": null, "visual_outcome": null, "moves": moves, "review": review,
+            "reason": null, "visual_outcome": visual, "moves": moves, "review": review,
             "before": [{"view": "P-WHOLE", "seed": 1, "sha256": "a", "path": "r/a.png"}],
             "after": [{"view": "P-WHOLE", "seed": 1, "sha256": "b", "path": "r/b.png"}]}]),
         false => json!([]),
@@ -102,7 +119,21 @@ fn assessment(dir: &Path) -> PathBuf {
         json!({"capability": name, "class": class, "reason": "read", "captured_by": specs,
                "decided_by": "host", "decided_on": "2026-09-25"})
     };
-    let classes = json!({"classes": [
+    // The traits the host assessed (fn-157): one the generator cannot draw,
+    // waiting on its spec, and one a missing capability classed an
+    // improvement covers.
+    let traits = json!([
+        {"trait": "trunk-texture", "need": "a lattice of leaf bases", "outcome": "unsupported-anatomy",
+         "capability": null, "depends_on": "fn-144", "confidence": "high", "note": ""},
+        {"trait": "fruit-look", "need": "hanging date clusters", "outcome": "unreachable-value",
+         "capability": "infructescence", "depends_on": null, "confidence": "high", "note": ""},
+        {"trait": "leaf-sheen", "need": "a glossy leaf", "outcome": "reachable",
+         "capability": null, "depends_on": "fn-999", "confidence": "high", "note": ""},
+        {"trait": "skeleton.habit.lateral_pitch (by height)", "need": "lower limbs spread wider",
+         "outcome": "unreachable-value", "capability": null, "depends_on": "fn-61",
+         "confidence": "medium", "note": "", "covers": ["limb-arch"]},
+    ]);
+    let classes = json!({"traits": traits, "classes": [
         class("infructescence", "improvement", json!(["fn-111"])),
         class("leaf-base-lattice", "identity", json!(["fn-144"])),
     ]});
@@ -153,9 +184,31 @@ fn every_failing_trait_is_classed_reachable_identity_or_global_with_its_evidence
             gap(
                 "crown-shape",
                 "failing on the current tree",
-                moved,
+                moved.clone(),
                 true,
                 false
+            ),
+            gap_passing(
+                "crown-openness",
+                "failing on the current tree",
+                moved.clone(),
+                true,
+                true,
+                true
+            ),
+            gap(
+                "fruit-look",
+                "failing on the current tree",
+                moved.clone(),
+                true,
+                true
+            ),
+            gap(
+                "limb-arch",
+                "failing on the current tree",
+                moved,
+                true,
+                true
             ),
         ]),
         json!([{"trait": "fruit-clusters-pendent", "spec": "fn-111"}]),
@@ -171,15 +224,52 @@ fn every_failing_trait_is_classed_reachable_identity_or_global_with_its_evidence
         "unclassed blocks"
     );
     assert_eq!(kind("fruit-clusters-pendent"), Some(Kind::Global));
-    assert_eq!(kind("crown-density"), Some(Kind::Reachable));
+    // Host, 2026-09-26: reachable is a dial that moved the trait to passing
+    // in a rendered attempt the reviewer judged. A trait moved but still
+    // failing is the assessment's: identity with the spec it waits on,
+    // global when a capability classed an improvement covers it, else
+    // identity for the host to assess.
+    assert_eq!(kind("crown-openness"), Some(Kind::Reachable));
+    assert_eq!(kind("crown-density"), Some(Kind::Identity));
+    let specs = |id: &str| {
+        classed
+            .iter()
+            .find(|g| g.trait_id == id)
+            .unwrap()
+            .specs
+            .clone()
+    };
+    let said = |id: &str| {
+        classed
+            .iter()
+            .find(|g| g.trait_id == id)
+            .unwrap()
+            .evidence
+            .join(" ")
+    };
+    assert!(specs("crown-density").is_empty());
+    assert!(
+        said("crown-density").contains("host to assess"),
+        "{}",
+        said("crown-density")
+    );
     assert_eq!(kind("trunk-texture"), Some(Kind::Identity));
+    assert_eq!(specs("trunk-texture"), ["fn-144"]);
+    // An assessed entry names a failing trait by `trait` or in `covers`,
+    // nothing else (host decision A, 2026-09-26).
+    assert_eq!(kind("limb-arch"), Some(Kind::Identity));
+    assert_eq!(specs("limb-arch"), ["fn-61"]);
+    assert_eq!(kind("fruit-look"), Some(Kind::Global));
+    assert_eq!(specs("fruit-look"), ["fn-111"]);
     assert_eq!(kind("frond-count"), None, "a passing trait is no gap");
-    // A move that never rendered, or that no reviewer judged, reaches nothing.
+    // A move that never rendered, or that no reviewer judged, reaches
+    // nothing; an assessment entry the host found reachable names no spec.
     assert_eq!(kind("leaf-sheen"), Some(Kind::Identity));
+    assert!(specs("leaf-sheen").is_empty());
     assert_eq!(kind("crown-shape"), Some(Kind::Identity));
     let reachable = classed
         .iter()
-        .find(|g| g.trait_id == "crown-density")
+        .find(|g| g.trait_id == "crown-openness")
         .unwrap();
     assert_eq!(
         reachable.evidence[0],
@@ -265,92 +355,77 @@ fn no_reference_photograph_skips_the_inventory_notes_a_gap_and_tune_refuses() {
     assert!(err.starts_with("no reference photograph"), "{err}");
 }
 
-/// Settles every decision the runner owns: a claim goes to the search
-/// while its field has a round left; after that a contradicted measurement
-/// keeps its sources' range and an unsupported one is dropped, unless the
-/// run leaves claims to a person (`--settle-claims`).
+/// An article claim the citation check left open is logged and never
+/// waited on, unless the run leaves claims to a person (`--settle-claims`),
+/// when it stops the run; no other decision is a claim (fn-157).
 #[test]
-fn the_runner_settles_claims_itself_unless_a_person_settles_them() {
-    use telperion_jev::pipeline::decision::{
-        append_decisions, read_resolutions, Decision, DecisionParts,
-    };
+fn an_open_article_claim_stops_only_a_run_that_leaves_claims_to_a_person() {
+    use telperion_jev::pipeline::decision::{append_decisions, Decision, DecisionParts};
     use telperion_jev::pipeline::stage::Paths;
     use telperion_jev::runner::{literature, Run};
-    let decision = |kind: &str, field: Option<&str>| {
+    let decision = |kind: &str, field: &str| {
         Decision::new(
             DecisionParts {
                 species: "s",
-                stage: "x",
+                stage: "document",
                 kind,
-                field,
+                field: Some(field),
                 age_years: None,
             },
-            &["extract"],
-            [("seed".to_string(), "a".to_string())]
+            &["accept"],
+            [("article".to_string(), "a".to_string())]
                 .into_iter()
                 .collect(),
             vec![],
             json!({}),
-            &[
-                "skip",
-                "drop-source",
-                "replace-source",
-                "keep-range",
-                "drop-value",
-            ],
+            &["accept", "rewrite"],
             "",
         )
     };
-    let settled = |tag: &str, person: bool| {
+    let stop = |tag: &str, person: bool| {
         let dir = scratch(tag);
         append_decisions(
             &dir.join("decisions.json"),
             vec![
-                decision("manifest-proposed", None),
-                decision("unavailable-source", Some("M1")),
-                decision("claim-unsupported", Some("/profiles/0/metrics/height_m")),
-                decision("claim-contradicted", Some("/profiles/0/metrics/dbh_m")),
-                decision("claim-unsupported", Some("/profiles/0/metrics/dbh_m/x")),
-                decision("level-miss", Some("crown")),
+                decision("article-claim-unsupported", "C1"),
+                decision("level-miss", "crown"),
             ],
-        )
-        .unwrap();
-        // The dbh field has spent both its search rounds.
-        let round = json!({"round": 1, "decision": "d", "gap": "g", "query": "q", "hits": [],
-            "tried": [], "admitted": [], "ledger": [], "at": "t"});
-        std::fs::write(
-            dir.join("search-rounds.json"),
-            json!({"fields": {"dbh_m": [round, round]}}).to_string(),
         )
         .unwrap();
         let mut run = Run::new("s", Paths::new(&dir), dir.join("c"), dir.join("t.json"));
         run.settle_claims = person;
-        let words = literature::settle(&run).unwrap();
-        let options: Vec<String> = read_resolutions(&dir.join("resolutions.json"))
-            .unwrap()
-            .into_iter()
-            .map(|r| r.option)
-            .collect();
-        assert_eq!(words.len(), options.len());
-        (words, literature::claims(&run).unwrap())
+        literature::claims(&run).unwrap()
     };
-    let (words, stop) = settled("settle", false);
+    assert_eq!(stop("claims-logged", false), None);
+    let ids = vec!["s/document/article-claim-unsupported/C1".to_string()];
     assert_eq!(
-        words,
-        [
-            "keep-range s/x/claim-contradicted//profiles/0/metrics/dbh_m",
-            "drop-value s/x/claim-unsupported//profiles/0/metrics/dbh_m/x",
-            "replace-source s/x/claim-unsupported//profiles/0/metrics/height_m",
-            "skip s/x/manifest-proposed",
-            "drop-source s/x/unavailable-source/M1",
-        ]
+        stop("claims-person", true),
+        Some(telperion_jev::runner::Stop::Claims(ids))
     );
-    assert_eq!(stop, None);
-    let (words, stop) = settled("settle-person", true);
-    assert_eq!(words.len(), 3, "{words:?}");
-    let ids = vec![
-        "s/x/claim-contradicted//profiles/0/metrics/dbh_m".to_string(),
-        "s/x/claim-unsupported//profiles/0/metrics/dbh_m/x".to_string(),
-    ];
-    assert_eq!(stop, Some(telperion_jev::runner::Stop::Claims(ids)));
+}
+
+/// fn-157: gaps.md is read by a person. Each gap is a line with its first
+/// few pieces of evidence, each cut short; the rest stays in gaps.json. The
+/// beech's reached 1.3 MB.
+#[test]
+fn gaps_md_keeps_each_gap_to_a_readable_line() {
+    let dir = scratch("gaps-md");
+    let long = format!(
+        "spread 0.16 -> 0.21 ({})",
+        "[photo seed 1](run/matched/a.png) ".repeat(40)
+    );
+    let gap = gaps::Gap {
+        trait_id: "broad-domed-crown".into(),
+        kind: Kind::Identity,
+        evidence: vec![long; 50],
+        specs: vec!["fn-61".into()],
+    };
+    gaps::write(&dir, &[gap]).unwrap();
+    let (json_path, md_path) = gaps::files(&dir);
+    let md = std::fs::read_to_string(md_path).unwrap();
+    assert!(md.len() < 3000, "{} bytes", md.len());
+    assert!(md.contains("**broad-domed-crown** (fn-61)"), "{md}");
+    assert!(md.contains("more in gaps.json"), "{md}");
+    let json: Value = serde_json::from_slice(&std::fs::read(json_path).unwrap()).unwrap();
+    assert_eq!(json["gaps"][0]["evidence"].as_array().unwrap().len(), 50);
 }

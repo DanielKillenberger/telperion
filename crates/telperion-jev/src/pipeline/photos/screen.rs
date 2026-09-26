@@ -15,7 +15,7 @@ use crate::tuning::evaluation::Image;
 use crate::tuning::vision::Adapter;
 
 pub const PROTOCOL: &str = "reference-screen-v1";
-pub const PROMPT: &str = "You are shown candidate photographs for one tree species, in the order the request lists them. For each, say whether it shows that species (yes, no or unsure), whether it shows a mature tree grown in the open rather than in a stand or a nursery, whether the whole tree is in frame from the ground to the top of the crown, and which view it is: leaf-on for a whole tree in leaf, bare for a whole tree without leaves, bark for a close view of the trunk's bark, or other for anything else. Judge only what the photograph shows; give no numbers.";
+pub const PROMPT: &str = "You are shown candidate photographs for one tree species, in the order the request lists them. For each, say whether it shows that species (yes, no or unsure), whether it shows a mature tree grown in the open rather than in a stand or a nursery, whether the whole tree is in frame from the ground to the top of the crown, and which view it is: leaf-on for a whole tree in leaf, bare for a whole tree without leaves, bark for a close view of the trunk's bark, or other for anything else. A cultivar whose leaf colour or form departs from the wild species, such as a copper, weeping or fastigiate (columnar) form, is not the species as it grows wild: answer no for it. Judge only what the photograph shows; give no numbers.";
 
 /// What the look said of one photograph.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -60,44 +60,61 @@ impl Screen for Vision {
             .collect();
         let request =
             json!({"protocol": PROTOCOL, "target_species": species, "candidates": candidates});
-        let hash = |v: &[u8]| sha256_hex(v);
-        let envelope = json!({"stage": "screen", "request": request,
-            "request_sha256": hash(&serde_json::to_vec(&request).unwrap()),
-            "prompt": PROMPT, "prompt_sha256": hash(PROMPT.as_bytes())});
-        let a = &self.adapter;
-        let mut child = Command::new("timeout")
-            .arg(a.timeout_seconds.to_string())
-            .arg(&a.program)
-            .args(&a.args)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .map_err(|e| format!("{}: {e}", a.program.display()))?;
-        child
-            .stdin
-            .take()
-            .ok_or("missing adapter stdin")?
-            .write_all(&serde_json::to_vec(&envelope).unwrap())
-            .map_err(|e| e.to_string())?;
-        let output = child.wait_with_output().map_err(|e| e.to_string())?;
-        ledger(&a.ledger, &request, &output)?;
-        let raw: Value = serde_json::from_slice(&output.stdout).unwrap_or(Value::Null);
-        if raw["status"] != "ok" {
-            let failed = "the photograph screen failed; the attempt is charged";
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(crate::tuning::vision::refused(failed, &raw, &stderr));
-        }
-        let verdicts = serde_json::from_value(raw["answer"]["candidates"].clone())
+        let failed = "the photograph screen failed; the attempt is charged";
+        let (answer, usage) = ask(&self.adapter, "screen", &request, PROMPT, failed)?;
+        let verdicts = serde_json::from_value(answer["candidates"].clone())
             .map_err(|e| format!("screen answer: {e}"))?;
-        Ok((verdicts, raw["usage"].clone()))
+        Ok((verdicts, usage))
     }
 }
 
-fn ledger(dir: &Path, request: &Value, output: &std::process::Output) -> Result<(), String> {
+/// One attempt of the reviewer's adapter at `stage`, recorded in its ledger:
+/// the answer and the call's usage, or `failed` with the adapter's words.
+pub fn ask(
+    a: &Adapter,
+    stage: &str,
+    request: &Value,
+    prompt: &str,
+    failed: &str,
+) -> Result<(Value, Value), String> {
+    let hash = |v: &[u8]| sha256_hex(v);
+    let envelope = json!({"stage": stage, "request": request,
+        "request_sha256": hash(&serde_json::to_vec(request).unwrap()),
+        "prompt": prompt, "prompt_sha256": hash(prompt.as_bytes())});
+    let mut child = Command::new("timeout")
+        .arg(a.timeout_seconds.to_string())
+        .arg(&a.program)
+        .args(&a.args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("{}: {e}", a.program.display()))?;
+    child
+        .stdin
+        .take()
+        .ok_or("missing adapter stdin")?
+        .write_all(&serde_json::to_vec(&envelope).unwrap())
+        .map_err(|e| e.to_string())?;
+    let output = child.wait_with_output().map_err(|e| e.to_string())?;
+    ledger(&a.ledger, stage, request, &output)?;
+    let raw: Value = serde_json::from_slice(&output.stdout).unwrap_or(Value::Null);
+    if raw["status"] != "ok" {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(crate::tuning::vision::refused(failed, &raw, &stderr));
+    }
+    Ok((raw["answer"].clone(), raw["usage"].clone()))
+}
+
+fn ledger(
+    dir: &Path,
+    stage: &str,
+    request: &Value,
+    output: &std::process::Output,
+) -> Result<(), String> {
     std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
     let path = dir.join(format!("{}.json", crate::ledger::new_entry_id()));
-    let record = json!({"stage": "screen", "request": request, "exit": output.status.code(),
+    let record = json!({"stage": stage, "request": request, "exit": output.status.code(),
         "stdout": String::from_utf8_lossy(&output.stdout),
         "stderr": String::from_utf8_lossy(&output.stderr)});
     std::fs::File::create(&path)

@@ -1,0 +1,1 @@
+{"key":"1bd5945340d3c905d584e7f34faaed9f41937a6a0e2eec656bacee423e315a7c","kind":"firecrawl","request":{"op":"scrape","url":"https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:77169712-1"},"response":{"err":{"Unauthenticated":"https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:77169712-1: HTTP 403"}}}

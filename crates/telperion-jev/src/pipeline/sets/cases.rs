@@ -1,22 +1,23 @@
-//! Scoring the four pipeline question sets against their labelled cases.
+//! Scoring the pipeline question sets against their labelled cases.
 //!
 //! Every judged question is scored twice: once over the labelled cases that
-//! tuned its wording, once over the held-out cases. R7's bound is 0.9 accuracy
-//! for the sufficiency level, the dominant gap, the mature size and its gap
-//! (fn-127), the growth rate and its gap (fn-132), the described level and each obligation (the appearance support
-//! among them, fn-128) and the rights class (fn-129), and 0.8 top-one agreement with the
-//! person's admitted source for ranking. `format_scores` prints the confidence spread of each.
+//! tuned its wording, once over the held-out cases. R7's bound is 0.9
+//! accuracy for the described level, each question of the read stage's
+//! label (fn-157) and the rights class (fn-129). `format_scores` prints the
+//! confidence spread of each.
 
 use std::path::Path;
 
+use serde_json::json;
+
 use super::{
-    appearance_state, chosen_level, described_questions, described_state, inspected_image_state,
-    mature_questions, mature_state, measurement_state, obligation_questions, ranking_questions,
-    ranking_state, rate_questions, sufficiency_questions, sufficiency_state, DESCRIBED_UNSTATED,
-    RANKING_NONE, SUFFICIENCY_LEVELS,
+    chosen_level, described_questions, described_state, kind_cases, kind_questions, kind_state,
+    label_cases, label_questions, LabelCase, DESCRIBED_UNSTATED, KIND_UNCLEAR, LABEL_QUESTIONS,
 };
 use crate::caller::{evaluate, CallerError, EvaluateRequest, Transport};
 use crate::cases::{CaseRow, SetScore};
+use crate::pipeline::requirements::table;
+use crate::pipeline::stages::read::{label_state, Occurrence};
 use crate::questions::thresholds;
 
 /// One row and whether its case is held out.
@@ -29,271 +30,22 @@ pub fn run_pipeline_cases(
     key: &str,
     ledger_dir: &Path,
 ) -> Result<Vec<SetScore>, CallerError> {
-    let (levels, gaps) = run_sufficiency(transport, key, ledger_dir)?;
-    let mut out = split("sufficiency level", levels, thresholds().accuracy_bar);
-    out.extend(split("sufficiency gap", gaps, thresholds().accuracy_bar));
-    let stated = [
-        (super::mature_cases(), mature_questions(), MATURE),
-        (super::rate_cases(), rate_questions(), RATE),
-    ];
-    for (cases, questions, names) in stated {
-        let (levels, gaps) = run_stated(transport, key, ledger_dir, cases, &questions, &names)?;
-        out.extend(split(names.level_set, levels, thresholds().accuracy_bar));
-        out.extend(split(names.gap_set, gaps, thresholds().accuracy_bar));
-    }
-    out.extend(split(
-        "ranking source",
-        run_ranking(transport, key, ledger_dir)?,
-        thresholds().ranking_bar,
-    ));
-    out.extend(split(
+    let mut out = split(
         "described level",
         run_described(transport, key, ledger_dir)?,
         thresholds().accuracy_bar,
-    ));
-    let o = super::obligation_cases();
-    let nouls: [(&str, Vec<Noul>); 3] = [
-        (
-            "inspected_image",
-            o.inspected_image
-                .into_iter()
-                .map(|c| {
-                    (
-                        c.id,
-                        inspected_image_state(&c.observation),
-                        c.expect,
-                        c.holdout,
-                    )
-                })
-                .collect(),
-        ),
-        (
-            "measurement_not_invention",
-            o.measurement_not_invention
-                .into_iter()
-                .map(|c| {
-                    (
-                        c.id,
-                        measurement_state(None, &c.value_statement, &c.source_excerpt),
-                        c.expect,
-                        c.holdout,
-                    )
-                })
-                .collect(),
-        ),
-        (
-            "appearance_supported",
-            o.appearance_supported
-                .into_iter()
-                .map(|c| {
-                    (
-                        c.id,
-                        appearance_state(&c.trait_name, &c.level, &c.sentence),
-                        c.expect,
-                        c.holdout,
-                    )
-                })
-                .collect(),
-        ),
-    ];
-    for (name, cases) in nouls {
-        out.extend(split(
-            &format!("obligation {name}"),
-            run_noul(transport, key, ledger_dir, name, cases)?,
-            thresholds().accuracy_bar,
-        ));
+    );
+    for (name, rows) in run_label(transport, key, ledger_dir)? {
+        out.extend(split(&name, rows, thresholds().accuracy_bar));
     }
+    out.extend(split(
+        "document kind",
+        run_kind(transport, key, ledger_dir)?,
+        thresholds().accuracy_bar,
+    ));
     let rights = crate::pipeline::rights::run_cases(transport, key, ledger_dir)?;
     out.extend(crate::pipeline::rights::scored(rights));
     Ok(out)
-}
-
-/// One levelled case: its id, the state asked, the admitted level and gap,
-/// and whether it is held out.
-struct Levelled {
-    id: String,
-    state: serde_json::Value,
-    level: String,
-    gap: String,
-    holdout: bool,
-}
-
-/// The names one levelled set is asked and scored under.
-struct LevelledSet {
-    tool: &'static str,
-    score: &'static str,
-    gap: &'static str,
-    level_set: &'static str,
-    gap_set: &'static str,
-}
-
-fn run_sufficiency(
-    transport: &dyn Transport,
-    key: &str,
-    ledger_dir: &Path,
-) -> Result<(Rows, Rows), CallerError> {
-    let cases = super::sufficiency_cases().into_iter().map(|case| Levelled {
-        state: sufficiency_state(&case),
-        id: case.id,
-        level: case.expect_level,
-        gap: case.expect_gap,
-        holdout: case.holdout,
-    });
-    let names = LevelledSet {
-        tool: "sufficiency",
-        score: "sufficiency",
-        gap: "dominant_gap",
-        level_set: "sufficiency level",
-        gap_set: "sufficiency gap",
-    };
-    run_levelled(
-        transport,
-        key,
-        ledger_dir,
-        &sufficiency_questions(),
-        &names,
-        cases,
-    )
-}
-
-/// A set judged on a stated value with no age: the mature size (fn-127)
-/// and the growth rate (fn-132) lay out the same state.
-fn run_stated(
-    transport: &dyn Transport,
-    key: &str,
-    ledger_dir: &Path,
-    cases: Vec<super::MatureCase>,
-    questions: &serde_json::Value,
-    names: &LevelledSet,
-) -> Result<(Rows, Rows), CallerError> {
-    let cases = cases.into_iter().map(|case| Levelled {
-        state: mature_state(&case),
-        id: case.id,
-        level: case.expect_level,
-        gap: case.expect_gap,
-        holdout: case.holdout,
-    });
-    run_levelled(transport, key, ledger_dir, questions, names, cases)
-}
-
-const MATURE: LevelledSet = LevelledSet {
-    tool: "mature_size",
-    score: "mature_size",
-    gap: "mature_gap",
-    level_set: "mature size level",
-    gap_set: "mature size gap",
-};
-
-const RATE: LevelledSet = LevelledSet {
-    tool: "growth_rate",
-    score: "growth_rate",
-    gap: "rate_gap",
-    level_set: "growth rate level",
-    gap_set: "growth rate gap",
-};
-
-/// Asks every case of a four-level Score with its gap Choice and scores the
-/// level and the gap as two sets.
-fn run_levelled(
-    transport: &dyn Transport,
-    key: &str,
-    ledger_dir: &Path,
-    questions: &serde_json::Value,
-    names: &LevelledSet,
-    cases: impl Iterator<Item = Levelled>,
-) -> Result<(Rows, Rows), CallerError> {
-    let mut levels = Rows::new();
-    let mut gaps = Rows::new();
-    for case in cases {
-        let entry = evaluate(
-            transport,
-            key,
-            EvaluateRequest {
-                tool: names.tool,
-                source: None,
-                state: &case.state,
-                questions,
-                ledger_dir,
-            },
-        )?;
-        // The most probable level, as the gate itself reads it.
-        let index = chosen_level(
-            entry.probabilities(names.score),
-            SUFFICIENCY_LEVELS.len(),
-            0,
-            0.0,
-        );
-        let level = SUFFICIENCY_LEVELS[index];
-        levels.push((
-            CaseRow {
-                set: names.level_set.into(),
-                id: case.id.clone(),
-                expected: case.level.clone(),
-                hit: level == case.level,
-                answered: level.into(),
-                top_probability: entry.top_probability(names.score),
-                confidence: entry.confidence(names.score).unwrap_or(0.0),
-                ledger: entry.reference(),
-            },
-            case.holdout,
-        ));
-        let gap = entry.choice(names.gap).unwrap_or_else(|| "none".into());
-        gaps.push((
-            CaseRow {
-                set: names.gap_set.into(),
-                id: case.id,
-                expected: case.gap.clone(),
-                hit: gap == case.gap,
-                answered: gap,
-                top_probability: entry.top_probability(names.gap),
-                confidence: entry.confidence(names.gap).unwrap_or(0.0),
-                ledger: entry.reference(),
-            },
-            case.holdout,
-        ));
-    }
-    Ok((levels, gaps))
-}
-
-fn run_ranking(
-    transport: &dyn Transport,
-    key: &str,
-    ledger_dir: &Path,
-) -> Result<Rows, CallerError> {
-    let mut rows = Rows::new();
-    for case in super::ranking_cases() {
-        let ids: Vec<String> = case.candidates.iter().map(|c| c.id.clone()).collect();
-        let questions = ranking_questions(&ids);
-        let state = ranking_state(&case);
-        let entry = evaluate(
-            transport,
-            key,
-            EvaluateRequest {
-                tool: "ranking",
-                source: None,
-                state: &state,
-                questions: &questions,
-                ledger_dir,
-            },
-        )?;
-        let answered = entry
-            .choice("source")
-            .unwrap_or_else(|| RANKING_NONE.into());
-        rows.push((
-            CaseRow {
-                set: "ranking source".into(),
-                id: case.id.clone(),
-                expected: case.expect_source.clone(),
-                hit: answered == case.expect_source,
-                answered,
-                top_probability: entry.top_probability("source"),
-                confidence: entry.confidence("source").unwrap_or(0.0),
-                ledger: entry.reference(),
-            },
-            case.holdout,
-        ));
-    }
-    Ok(rows)
 }
 
 fn run_described(
@@ -344,57 +96,130 @@ fn run_described(
     Ok(rows)
 }
 
-/// One obligation case: its id, the state asked, the side admitted, and
-/// whether it is held out.
-type Noul = (String, serde_json::Value, bool, bool);
+/// The occurrence a label case marks: the `occurrence`-th time its span
+/// stands in its sentence.
+pub fn marked(case: &LabelCase) -> Option<Occurrence> {
+    let at = case
+        .sentence
+        .match_indices(&case.span)
+        .nth(case.occurrence)?
+        .0;
+    Some(Occurrence {
+        sentence: case.sentence.clone(),
+        context: case.context.clone(),
+        at,
+        span: case.span.clone(),
+    })
+}
 
-fn run_noul(
+/// Asks every label case once, as the read stage lays it out, and scores
+/// each of its four questions as a set of its own.
+fn run_label(
     transport: &dyn Transport,
     key: &str,
     ledger_dir: &Path,
-    name: &str,
-    cases: Vec<Noul>,
-) -> Result<Rows, CallerError> {
-    let questions = obligation_questions(name);
-    let tool = format!("obligation:{name}");
-    let set = format!("obligation {name}");
-    let mut rows = Rows::new();
-    for (id, state, expect, holdout) in cases {
+) -> Result<Vec<(String, Rows)>, CallerError> {
+    let names: Vec<&str> = std::iter::once("field").chain(LABEL_QUESTIONS).collect();
+    let mut sets: Vec<(String, Rows)> = names
+        .iter()
+        .map(|n| (format!("label {n}"), Rows::new()))
+        .collect();
+    for case in label_cases() {
+        let Some(found) = marked(&case) else {
+            continue;
+        };
+        let fields: Vec<(String, String)> = case
+            .fields
+            .iter()
+            .map(|f| {
+                (
+                    f.clone(),
+                    table()
+                        .fields
+                        .get(f)
+                        .map_or_else(String::new, |t| t.what.clone()),
+                )
+            })
+            .collect();
+        let source = json!({"id": "case", "url": case.url});
+        let state = label_state(&case.species, source, &found);
         let entry = evaluate(
             transport,
             key,
             EvaluateRequest {
-                tool: &tool,
+                tool: "label",
                 source: None,
                 state: &state,
-                questions: &questions,
+                questions: &label_questions(&fields),
                 ledger_dir,
             },
         )?;
-        rows.push((noul_row(&set, &id, expect, &entry, name), holdout));
+        let expected = [
+            &case.expect_field,
+            &case.expect_basis,
+            &case.expect_age,
+            &case.expect_condition,
+        ];
+        for ((name, rows), (question, want)) in sets.iter_mut().zip(names.iter().zip(expected)) {
+            let answered = entry.choice(question).unwrap_or_default();
+            rows.push((
+                CaseRow {
+                    set: name.clone(),
+                    id: case.id.clone(),
+                    expected: want.clone(),
+                    hit: &answered == want,
+                    answered,
+                    top_probability: entry.top_probability(question),
+                    confidence: entry.confidence(question).unwrap_or(0.0),
+                    ledger: entry.reference(),
+                },
+                case.holdout,
+            ));
+        }
     }
-    Ok(rows)
+    Ok(sets)
 }
 
-fn noul_row(
-    set: &str,
-    id: &str,
-    expect: bool,
-    entry: &crate::ledger::LedgerEntry,
-    question: &str,
-) -> CaseRow {
-    let probability = entry.noul(question).unwrap_or(0.0);
-    let answered = probability >= 0.5;
-    CaseRow {
-        set: set.into(),
-        id: id.into(),
-        expected: expect.to_string(),
-        answered: answered.to_string(),
-        top_probability: entry.top_probability(question),
-        confidence: entry.top_probability(question),
-        ledger: entry.reference(),
-        hit: answered == expect,
+/// Asks every kind case once, as the read stage lays it out.
+fn run_kind(transport: &dyn Transport, key: &str, ledger_dir: &Path) -> Result<Rows, CallerError> {
+    let mut rows = Rows::new();
+    for case in kind_cases() {
+        let state = kind_state(
+            &case.species,
+            "case",
+            &case.url,
+            &case.title,
+            &case.passages,
+        );
+        let entry = evaluate(
+            transport,
+            key,
+            EvaluateRequest {
+                tool: "kind",
+                source: None,
+                state: &state,
+                questions: &kind_questions(),
+                ledger_dir,
+            },
+        )?;
+        let answered = entry
+            .choice("document")
+            .unwrap_or_else(|| KIND_UNCLEAR.into());
+        rows.push((
+            CaseRow {
+                set: "document kind".into(),
+                id: case.id.clone(),
+                expected: case.expect_kind.clone(),
+                hit: answered == case.expect_kind,
+                answered,
+                top_probability: entry.top_probability("document"),
+                confidence: entry.confidence("document").unwrap_or(0.0),
+                ledger: entry.reference(),
+            },
+            case.holdout,
+        ));
     }
+    Ok(rows)
 }
 
 /// One SetScore over the labelled cases and one over the held-out cases.
@@ -427,5 +252,28 @@ fn score(name: String, rows: Vec<CaseRow>, bar: f64) -> SetScore {
         ranking_ok: None,
         confidences,
         rows,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Candidate coverage before a label is trusted: every case's span is one
+    /// the read stage itself finds in its sentence, at the occurrence named.
+    #[test]
+    fn every_label_case_marks_a_span_the_read_stage_finds() {
+        for case in label_cases() {
+            let want = marked(&case).unwrap_or_else(|| panic!("{}: no such occurrence", case.id));
+            let found = crate::pipeline::stages::read::occurrences(&case.sentence, &case.fields);
+            assert!(
+                found.iter().any(|o| o.at == want.at && o.span == want.span),
+                "{}: the read stage never marks {:?} at {}",
+                case.id,
+                case.span,
+                want.at
+            );
+            assert!(case.fields.contains(&case.expect_field) || case.expect_field == "none");
+        }
     }
 }

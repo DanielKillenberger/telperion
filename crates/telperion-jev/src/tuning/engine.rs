@@ -163,6 +163,10 @@ pub trait Services {
     fn runaway_rounds(&self) -> u64 {
         super::runaway::ROUNDS
     }
+    /// The rounds a revision runs before it ends, when the config caps them.
+    fn max_rounds(&self) -> Option<u64> {
+        None
+    }
     fn evaluation_images(&self) -> u64;
     fn visual_images(&self, trial: &Trial) -> u64;
     fn visual_tokens(&self, _trial: &Trial) -> u64 {
@@ -424,6 +428,13 @@ impl Run {
             return Ok(());
         }
         while !self.machine_ready {
+            if let Some(cap) = services
+                .max_rounds()
+                .filter(|cap| self.budget.rounds >= *cap)
+            {
+                let plural = if cap == 1 { "" } else { "s" };
+                return Err(format!("round cap: {cap} round{plural} run"));
+            }
             self.priority_gate(services)?;
             if super::look::objectives(self).is_empty() {
                 return Err("no objective to tune toward".into());

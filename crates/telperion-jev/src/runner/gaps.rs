@@ -1,16 +1,21 @@
 //! The Gaps stage: every trait still failing, classed by code from what the
 //! run recorded, one line each in `gaps.md` with its evidence.
 //!
-//! - **reachable**: a live dial moved it in a rendered attempt the reviewer
-//!   judged; the line names the dial, the two values it was drawn at and the
-//!   renders of both sides.
+//! - **reachable**: a live dial moved it to passing in a rendered attempt
+//!   the reviewer judged, a value the owner can keep; the line names the
+//!   dial, the two values it was drawn at and the renders of both sides.
 //! - **identity**: the species is not recognisable without it. No capability
 //!   assessment at all, a missing capability the assessment classes identity
-//!   or leaves unclassed, and a failing trait no dial moved.
+//!   or leaves unclassed, a failing trait the assessment names unreachable
+//!   or unsupported (with the spec it waits on), and any other failing trait
+//!   no dial brought to pass, for the host to assess (host, 2026-09-26).
 //! - **global**: a capability the assessment classes an improvement, or a
-//!   trait the tuning config lists unexpressed, with the specs that capture it.
+//!   failing trait an improvement covers, or a trait the tuning config lists
+//!   unexpressed, with the specs that capture it.
 //! - **unsourced**: a profile field no source settled; the generator's
-//!   default stands and Tune sets it from the photographs.
+//!   default stands and Tune sets it from the photographs. A contextual
+//!   field, one no agreeing sources settled, is listed too: a person may
+//!   want it sourced.
 //! - **references**: no reference photograph was found and the tuning config
 //!   lists none. It stops nothing; Tune refuses until one is recorded.
 //!
@@ -24,7 +29,7 @@ use serde_json::Value;
 
 use super::{inventory, tune, Done, Run, Stage, Stop};
 use crate::pipeline::canon::{read_json, write_canonical};
-use crate::pipeline::stages::capability_class::{self, Class};
+use crate::pipeline::stages::capability_class::{self, Class, Classified};
 use crate::tuning::bundle::Move;
 use crate::tuning::result::{Attempt, EndResult, Still, PASSING};
 
@@ -56,8 +61,20 @@ pub fn files(out: &Path) -> (PathBuf, PathBuf) {
 /// assessment's classes and the tuning result.
 pub fn classify(gate: &Value, assessment: &Path, result: &EndResult) -> Result<Vec<Gap>, String> {
     let mut gaps = capability(gate, assessment)?;
-    gaps.extend(tuned(result));
+    let classes = capability_class::read(assessment)?;
+    gaps.extend(tuned(result, &assessed(assessment), &classes));
     Ok(gaps)
+}
+
+/// The host's assessed traits (`traits` in `packet/capability.json`, the
+/// latest round of a list), or none.
+fn assessed(path: &Path) -> Vec<Value> {
+    let raw = read_json(path).unwrap_or(Value::Null);
+    let latest = match raw {
+        Value::Array(rounds) => rounds.last().cloned().unwrap_or_default(),
+        record => record,
+    };
+    latest["traits"].as_array().cloned().unwrap_or_default()
 }
 
 /// The capabilities the species needs that the generator does not express,
@@ -114,7 +131,12 @@ pub fn capability(gate: &Value, assessment: &Path) -> Result<Vec<Gap>, String> {
 }
 
 /// The traits tuning left failing, and the ones the config lists unexpressed.
-fn tuned(result: &EndResult) -> Vec<Gap> {
+/// Reachable is a dial that moved the trait to passing in a rendered attempt
+/// the reviewer judged (host, 2026-09-26); a trait moved but still failing
+/// is the assessment's: identity with the spec it waits on, global when a
+/// capability classed an improvement covers it, else identity for the host
+/// to assess.
+fn tuned(result: &EndResult, assessed: &[Value], classes: &[Classified]) -> Vec<Gap> {
     let mut gaps = Vec::new();
     for known in &result.known_gaps {
         gaps.push(Gap {
@@ -125,13 +147,18 @@ fn tuned(result: &EndResult) -> Vec<Gap> {
         });
     }
     for entry in result.gaps.iter().filter(|g| g.status != PASSING) {
-        // Only a move that rendered and that the reviewer judged is evidence
-        // a live dial reaches the trait: its dial, both values and the
-        // renders of both sides.
+        let passed = |a: &&Attempt| {
+            let tag = format!("owner-priority:{}: ", entry.id);
+            a.feasible
+                && a.review.is_some()
+                && a.visual_outcome.iter().flatten().any(|c| {
+                    c.item.starts_with(&tag) && c.status == crate::tuning::state::CellStatus::Pass
+                })
+        };
         let moves: Vec<String> = entry
             .attempts
             .iter()
-            .filter(|a| a.feasible && a.review.is_some())
+            .filter(passed)
             .flat_map(|a| a.moves.iter().map(move |m| ab(m, a)))
             .collect();
         let mut evidence: Vec<String> = entry.reviewer_words.clone();
@@ -141,24 +168,90 @@ fn tuned(result: &EndResult) -> Vec<Gap> {
                 .iter()
                 .map(|s| format!("still {} ({} seed {})", s.path, s.view, s.seed)),
         );
-        let kind = match moves.is_empty() {
-            true => {
-                evidence.insert(0, format!("{}: no live dial moved it", entry.status));
-                Kind::Identity
-            }
-            false => {
-                evidence.splice(0..0, moves);
-                Kind::Reachable
-            }
+        let (kind, specs, said) = match moves.is_empty() {
+            false => (Kind::Reachable, vec![], moves),
+            true => assessed_class(&entry.id, entry, assessed, classes),
         };
+        evidence.splice(0..0, said);
         gaps.push(Gap {
             trait_id: entry.id.clone(),
             kind,
             evidence,
-            specs: vec![],
+            specs,
         });
     }
     gaps
+}
+
+/// A failing trait no dial brought to pass, as the host's assessment names
+/// it: its class, the specs it waits on, and why.
+fn assessed_class(
+    id: &str,
+    entry: &crate::tuning::result::GapEntry,
+    assessed: &[Value],
+    classes: &[Classified],
+) -> (Kind, Vec<String>, Vec<String>) {
+    let tried = match entry
+        .attempts
+        .iter()
+        .any(|a| a.feasible && a.review.is_some())
+    {
+        true => "a live dial moved it but never to passing",
+        false => "no live dial moved it",
+    };
+    // An assessed entry names a failing trait by `trait` or in `covers`,
+    // nothing else (host, 2026-09-26).
+    let names = |t: &Value| {
+        t["trait"] == id
+            || t["covers"]
+                .as_array()
+                .is_some_and(|c| c.iter().any(|v| v == id))
+    };
+    let named = assessed.iter().find(|t| {
+        names(t)
+            && ["unreachable-value", "unsupported-anatomy"]
+                .contains(&t["outcome"].as_str().unwrap_or(""))
+    });
+    let Some(t) = named else {
+        return (
+            Kind::Identity,
+            vec![],
+            vec![format!(
+                "{}: {tried}; no assessed trait names it: host to assess",
+                entry.status
+            )],
+        );
+    };
+    let need = t["need"].as_str().unwrap_or_default();
+    let improvement = t["capability"].as_str().and_then(|c| {
+        classes
+            .iter()
+            .find(|k| k.capability == c && k.class == Class::Improvement)
+    });
+    match improvement {
+        Some(k) => (
+            Kind::Global,
+            k.captured_by.clone(),
+            vec![format!(
+                "{}: {tried}; the assessment's need \"{need}\" is the improvement {}",
+                entry.status, k.capability
+            )],
+        ),
+        None => {
+            let spec = t["depends_on"].as_str().map(str::to_string);
+            let waits = spec
+                .clone()
+                .unwrap_or_else(|| "no spec named: host to assess".into());
+            (
+                Kind::Identity,
+                spec.into_iter().collect(),
+                vec![format!(
+                    "{}: {tried}; the assessment's need \"{need}\" waits on {waits}",
+                    entry.status
+                )],
+            )
+        }
+    }
 }
 
 /// One reachable move: the dial, its two values, and the renders at each.
@@ -253,21 +346,31 @@ pub fn note_references(template: &Path, out: &Path) -> Result<(), String> {
     write(out, &gaps)
 }
 
-/// The profile fields no source settled, which the profile marks unsourced.
+/// The profile fields no agreeing sources settled: those the profile marks
+/// unsourced, and the contextual ones a person may want sourced.
 pub fn unsourced(profile: &Value) -> Vec<Gap> {
     let metrics = profile["profiles"][0]["metrics"].as_object();
+    let evidence = |m: &Value| match m["classification"].as_str() {
+        Some("unsourced") => Some(format!(
+            "{}; the generator's default stands and Tune sets it from the photographs",
+            m["note"].as_str().unwrap_or("no source settled it")
+        )),
+        Some("contextual") => Some(format!(
+            "{}; Start derived from it and it never gates",
+            m["classified"].as_str().unwrap_or("contextual")
+        )),
+        _ => None,
+    };
     metrics
         .into_iter()
         .flatten()
-        .filter(|(_, m)| m["classification"] == "unsourced")
-        .map(|(field, m)| Gap {
-            trait_id: field.clone(),
-            kind: Kind::Unsourced,
-            evidence: vec![format!(
-                "{}; the generator's default stands and Tune sets it from the photographs",
-                m["note"].as_str().unwrap_or("no source settled it")
-            )],
-            specs: vec![],
+        .filter_map(|(field, m)| {
+            evidence(m).map(|line| Gap {
+                trait_id: field.clone(),
+                kind: Kind::Unsourced,
+                evidence: vec![line],
+                specs: vec![],
+            })
         })
         .collect()
 }
@@ -293,37 +396,5 @@ pub fn identity(out: &Path) -> Result<Vec<String>, String> {
         .collect())
 }
 
-fn markdown(gaps: &[Gap]) -> String {
-    let mut out = String::from(
-        "# Gaps\n\nEvery trait still failing after tuning, classed by the runner from what the run \
-         recorded. The host reviews each line and writes any spec; the runner mints none.\n",
-    );
-    for (kind, title) in [
-        (Kind::Identity, "Identity: the species waits on these"),
-        (Kind::Global, "Global: backlog"),
-        (Kind::Reachable, "Reachable: a live dial moves it"),
-        (Kind::Unsourced, "Unsourced: no source settled it"),
-        (
-            Kind::References,
-            "References: no photograph to compare against",
-        ),
-    ] {
-        out.push_str(&format!("\n## {title}\n\n"));
-        let listed: Vec<&Gap> = gaps.iter().filter(|g| g.kind == kind).collect();
-        if listed.is_empty() {
-            out.push_str("None.\n");
-        }
-        for gap in listed {
-            let specs = match gap.specs.is_empty() {
-                true => String::new(),
-                false => format!(" ({})", gap.specs.join(", ")),
-            };
-            out.push_str(&format!(
-                "- **{}**{specs}: {}\n",
-                gap.trait_id,
-                gap.evidence.join("; ")
-            ));
-        }
-    }
-    out
-}
+mod markdown;
+use markdown::markdown;

@@ -6,11 +6,11 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use serde_json::{json, Value};
+use serde_json::Value;
 use telperion_jev::pipeline::adapter::FixtureAdapter;
 use telperion_jev::pipeline::canon::read_json;
-use telperion_jev::pipeline::stage::{Context, Paths};
-use telperion_jev::pipeline::stages::{fetch, fit, inputs};
+use telperion_jev::pipeline::stage::Paths;
+use telperion_jev::pipeline::stages::{fetch, fit};
 
 fn validation_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.flow/evidence/fn58/validation")
@@ -32,13 +32,6 @@ fn prepare(species: &str) -> PathBuf {
         fetch::run(&Paths::new(&dir), &adapter).unwrap(),
         fetch::Outcome::Ran { decisions } if decisions.is_empty()
     ));
-    let (ctx, _) = Context::open(&Paths::new(&dir), "quality").unwrap();
-    let header = ctx.header("quality", "quality", inputs(&[]), vec![]);
-    ctx.write(
-        &header,
-        json!({"fields": {"height_m": {"passed": true, "level": "proxy_only"}}}),
-    )
-    .unwrap();
     dir
 }
 

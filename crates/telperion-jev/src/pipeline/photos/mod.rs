@@ -1,7 +1,7 @@
 //! Reference photographs, found by the Profile stage (owner, 2026-09-25,
 //! option A): no run from a name needs a person to supply photographs.
 //!
-//! Code collects candidates from the admitted open-licence sources' pages
+//! Code collects candidates from the open-licence sources' pages
 //! and from Wikimedia Commons, at most `MAX_CANDIDATES`. A Commons file whose
 //! machine-readable licence code is CC0, public domain, CC BY or CC BY-SA is
 //! open by that code; Jev classes any other file from its full licence
@@ -107,7 +107,11 @@ pub fn find(
     let admitted = manifest::load(&paths.manifest()).map_err(|e| e.to_string())?;
     let m = &admitted.manifest;
     let mut candidates = from_sources(paths, m);
-    candidates.extend(commons::candidates(web, &m.taxon.scientific_name));
+    candidates.extend(commons::candidates(
+        web,
+        &m.taxon.scientific_name,
+        &m.taxon.common_name,
+    ));
     candidates.truncate(MAX_CANDIDATES);
     let mut report = json!({"candidates": candidates.len(), "rights_calls": 0});
     let mut open = Vec::new();
@@ -143,6 +147,9 @@ pub fn find(
         .as_array_mut()
         .ok_or("references is no list")?;
     for (at, view) in &kept {
+        if list.iter().any(|r| r["asset_sha256"] == images[*at].sha256) {
+            continue;
+        }
         let record = record(m, list, &fetched[*at], &images[*at], view);
         list.push(record);
     }
@@ -170,19 +177,27 @@ pub fn copy(paths: &Paths, sha256: &str) -> Option<PathBuf> {
         .find(|p| p.exists())
 }
 
-/// Images on the pages of the admitted open-licence sources.
+/// Images on the pages of the open-licence sources: a person's source the
+/// pipeline classed open, or a gathered document whose page declares an
+/// open licence in its markup (fn-157).
 fn from_sources(paths: &Paths, m: &Manifest) -> Vec<Candidate> {
     static IMAGE: OnceLock<Regex> = OnceLock::new();
     let image = IMAGE.get_or_init(|| {
         Regex::new(r"(?i)!\[([^\]]*)\]\((https?://[^)\s]+\.(?:jpe?g|png))\)").expect("image regex")
     });
     let fetch = read_json(&paths.artifact("fetch")).unwrap_or_default();
+    let open = |source: &manifest::Source| {
+        let lines: Vec<String> = fetch["body"]["sources"][&source.id]["licence"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(|l| l.as_str().map(str::to_string))
+            .collect();
+        source.rights_class.as_deref() == Some(OPEN_LICENCE)
+            || rights::open_licence(&lines).is_some()
+    };
     let mut out = Vec::new();
-    for source in m
-        .sources
-        .iter()
-        .filter(|s| s.rights_class.as_deref() == Some(OPEN_LICENCE))
-    {
+    for source in m.sources.iter().filter(|s| open(s)) {
         let name = fetch["body"]["sources"][&source.id]["cached"]["markdown"].as_str();
         let Some(text) = name.and_then(|n| std::fs::read_to_string(paths.cache().join(n)).ok())
         else {
@@ -269,7 +284,8 @@ fn record(m: &Manifest, list: &[Value], found: &Candidate, image: &Image, view: 
         false => found.statements.join("; "),
     };
     json!({
-        "id": format!("photo-{}", list.len() + 1), "species_id": m.species, "kind": "real",
+        "id": format!("photo-{}-{}", list.len() + 1, match view { "leaf-on" => "whole", v => v }),
+        "species_id": m.species, "kind": "real",
         "source_id": source_id, "url": found.page, "asset_sha256": image.sha256,
         "attribution": found.attribution, "kept": false, "matching": "qualitative",
         "accessed_at": &crate::pipeline::stage::now()[..10], "view": view,

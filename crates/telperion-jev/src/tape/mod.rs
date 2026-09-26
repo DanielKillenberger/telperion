@@ -32,6 +32,9 @@ pub const ADAPTER: &str = "scripts/tape-adapter.py";
 pub enum Tape {
     Record(PathBuf),
     Replay(PathBuf),
+    /// Serves what the recording holds and records what it lacks: a stage
+    /// change asks only its new questions live (fn-157).
+    Extend(PathBuf),
 }
 
 impl Tape {
@@ -44,6 +47,7 @@ impl Tape {
         match value.split_once(':')? {
             ("record", dir) => Some(Self::Record(dir.into())),
             ("replay", dir) => Some(Self::Replay(dir.into())),
+            ("extend", dir) => Some(Self::Extend(dir.into())),
             _ => None,
         }
     }
@@ -52,12 +56,13 @@ impl Tape {
         match self {
             Self::Record(dir) => format!("record:{}", dir.display()),
             Self::Replay(dir) => format!("replay:{}", dir.display()),
+            Self::Extend(dir) => format!("extend:{}", dir.display()),
         }
     }
 
     fn dir(&self) -> &Path {
         match self {
-            Self::Record(dir) | Self::Replay(dir) => dir,
+            Self::Record(dir) | Self::Replay(dir) | Self::Extend(dir) => dir,
         }
     }
 
@@ -80,6 +85,10 @@ impl Tape {
     ) -> Result<(Value, Vec<u8>), String> {
         let (key, path) = self.entry(kind, request);
         let blob = path.with_extension("bin");
+        if let (Self::Extend(_), Ok(recorded)) = (self, read_json(&path)) {
+            let bytes = std::fs::read(&blob).unwrap_or_default();
+            return Ok((recorded["response"].clone(), bytes));
+        }
         if let Self::Replay(dir) = self {
             let recorded = read_json(&path).map_err(|_| {
                 format!(
@@ -102,9 +111,11 @@ impl Tape {
 
 /// What names the run rather than the question: a file's path, a caller's
 /// hash of a request that carries paths, a ledger reference (a fresh entry
-/// id per call) and a run identity (a hash of a config that holds paths).
+/// id per call), a run identity (a hash of a config that holds paths), a
+/// render's geometry group (that identity and a seed) and a shot source (a
+/// hash of a references file holding the run's paths and dates).
 /// Kept in step with `scripts/tape-adapter.py`.
-pub const UNSTABLE: [&str; 7] = [
+pub const UNSTABLE: [&str; 9] = [
     "path",
     "request_sha256",
     "ledger",
@@ -112,6 +123,8 @@ pub const UNSTABLE: [&str; 7] = [
     "run_identity",
     "current_identity",
     "render_identity",
+    "geometry_group",
+    "shot_source",
 ];
 
 /// A fetched page's own fingerprint beside its `url`: a recording trimmed
@@ -341,8 +354,33 @@ pub fn wrap(value: &mut Value, tape: &Tape) {
 
 #[cfg(test)]
 mod tests {
-    use super::stable;
+    use super::{stable, Tape};
     use serde_json::json;
+
+    /// fn-157: an extended recording answers what it holds without asking,
+    /// and asks and keeps what it lacks.
+    #[test]
+    fn an_extended_recording_asks_only_what_it_lacks() {
+        let dir = std::env::temp_dir().join(format!(
+            "jev-extend-{}-{}",
+            std::process::id(),
+            crate::ledger::new_entry_id()
+        ));
+        let old = json!({"q": "recorded"});
+        Tape::Record(dir.clone())
+            .serve("jev", &old, || Ok((json!("then"), vec![])))
+            .unwrap();
+        let tape = Tape::Extend(dir.clone());
+        let held = tape
+            .serve("jev", &old, || Err("asked again".into()))
+            .unwrap();
+        assert_eq!(held.0, json!("then"));
+        let new = json!({"q": "new"});
+        tape.serve("jev", &new, || Ok((json!("now"), vec![])))
+            .unwrap();
+        let replayed = Tape::Replay(dir).serve("jev", &new, || Err("live".into()));
+        assert_eq!(replayed.unwrap().0, json!("now"));
+    }
 
     #[test]
     fn a_key_ignores_what_names_the_run_and_keeps_the_question() {

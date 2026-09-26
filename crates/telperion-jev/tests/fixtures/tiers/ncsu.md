@@ -1,0 +1,183 @@
+astanea fagus_
+- _Fagus cuprea_
+
+Phonetic Spelling
+FAG-us sil-VAT-ee-kuh
+This plant has low severity poison characteristics.
+[See below](https://plants.ces.ncsu.edu/plants/fagus-sylvatica/#poison)Description
+
+The European beech is a large, graceful, deciduous tree with a short trunk and low branching habit. It grows 50 to 60 feet tall and has dense, erect, oval to rounded crowns. It is often found in parks and golf courses. The European beech is smaller than the American Beech, and it has darker gray bark, and shorter, elliptical leaves with undulated or wavy margins that are ciliate. Yellowish-green and reddish-brown flowers bloom from April 
+
+.
+
+ Many cultivars of this tree are available and have various forms, leaf colors, and leaf shapes.
+
+**Seasons of Interest:**
+
+**Bark:**  Winter   **Bloom:**  Spring          **Foliage:** Spring, Summer, and Fall       **Fruits:** Fall
+
+**Quick ID Hints:**
+
+- large deciduous tree with dense, upright, oval to rounded crown
+- dark gray, thin, smooth bark, older bark has the appearance of elephant hide
+- oval to elliptic, glossy dark green leaves with wavy margins and are ciliate
+- reddish-brown female flowers are short spikes, greenish-yellow male flowers are drooping, long-stemmed, globular clusters, occurring in the spring
+- fruits ripen in the fall and are triangular nuts with spiny bracts
+
+**Insects, Diseases, and Other Plant Problems:** This tree has no serious insect pests or diseases. 
+
+.
+
+AWSAccessKeyId=AKIAILRBSC3CQKL5NNSQ&Signature=u%2Bnvyg1cz%2F4D03hFQHtRRzN%2FMwk%3D&Expires=1790353105)\\
+\\
+Leaves have a fern-like appearance](https://plants.
+
+.
+
+edu/plants/fagus-sylvatica-asplenifolia/)- 'Atropunicea'
+
+purple leaf, original purple leaf beech
+- 'Atropunicea cuprea'
+
+- 'Cockelshell'
+
+slow-growing, columnar, glossy, round, green leaves
+- 'Dawyck Purple'
+
+purple leaf from
+['Pendula' (f. 
+
+.
+
+AWSAccessKeyId=AKIAILRBSC3CQKL5NNSQ&Signature=BNhUgTAmts2TJyC%2BlnIj1rymY%2B0%3D&Expires=1790353105)\\
+\\
+green leaves, pendulous branches](https://plants.
+
+.
+
+edu/plants/fagus-sylvatica-f-pendula/)- 'Purple Fountain'
+
+purple leaves, narrowly upright
+- 'Purpurea'
+
+leaves initially purple and become more green
+['Riversii' !
+
+.
+
+AWSAccessKeyId=AKIAILRBSC3CQKL5NNSQ&Signature=dBsGHyYaZeaT4GtY%2F9rR4OOokt0%3D&Expires=1790353105)\\
+\\
+purple leaves, copper fall color, common purple leaf selection](https://plants.
+
+.
+
+edu/plants/fagus-sylvatica-atropurpurea-group-riversii/)- 'Roseomarginata'
+
+purple leaves with light pink border, grown in shade to prevent leaf burn
+- 'Tortuosa'
+
+- 'Tricolor'
+
+purple leaf form with irregular pinkish boarders
+- 'Uniq'
+
+- 'Zlatia'
+
+leaves initially yellow and then turn green during the summer
+
+'Asplenifolia', 'Atropunicea', 'Atropunicea cuprea', 'Cockelshell', 'Dawyck Purple', 'Pendula' (f. 
+
+.
+
+tag=interesting-leaves) [#fall color bronze](https://plants.
+
+.
+
+AWSAccessKeyId=AKIAILRBSC3CQKL5NNSQ&Signature=yOm7fBN%2BWNz7Ax5WfFaFqvimc84%3D&Expires=1790353105)'Purpurea' Leaves close-up (Buncombe, NC)Randy Harter[CC BY 4.0](http://creativecommons.
+
+.
+
+AWSAccessKeyId=AKIAILRBSC3CQKL5NNSQ&Signature=bWDf9px9kY22qwZMPfeqKCFOJ3g%3D&Expires=1790353105)'Purpurea' Leaf veins (Buncombe, NC)Randy Harter[CC BY 4.0](http://creativecommons.
+
+.
+
+AWSAccessKeyId=AKIAILRBSC3CQKL5NNSQ&Signature=u%2Bnvyg1cz%2F4D03hFQHtRRzN%2FMwk%3D&Expires=1790353105)\\
+\\
+Leaves have a fern-like appearance](https://plants.
+
+.
+
+edu/plants/fagus-sylvatica-asplenifolia/)- 'Atropunicea'
+
+purple leaf, original purple leaf beech
+- 'Atropunicea cuprea'
+
+- 'Cockelshell'
+
+slow-growing, columnar, glossy, round, green leaves
+- 'Dawyck Purple'
+
+purple leaf from
+['Pendula' (f. 
+
+.
+
+AWSAccessKeyId=AKIAILRBSC3CQKL5NNSQ&Signature=BNhUgTAmts2TJyC%2BlnIj1rymY%2B0%3D&Expires=1790353105)\\
+\\
+green leaves, pendulous branches](https://plants.
+
+.
+
+edu/plants/fagus-sylvatica-f-pendula/)- 'Purple Fountain'
+
+purple leaves, narrowly upright
+- 'Purpurea'
+
+leaves initially purple and become more green
+['Riversii' !
+
+.
+
+AWSAccessKeyId=AKIAILRBSC3CQKL5NNSQ&Signature=dBsGHyYaZeaT4GtY%2F9rR4OOokt0%3D&Expires=1790353105)\\
+\\
+purple leaves, copper fall color, common purple leaf selection](https://plants.
+
+.
+
+edu/plants/fagus-sylvatica-atropurpurea-group-riversii/)- 'Roseomarginata'
+
+purple leaves with light pink border, grown in shade to prevent leaf burn
+- 'Tortuosa'
+
+- 'Tricolor'
+
+purple leaf form with irregular pinkish boarders
+- 'Uniq'
+
+- 'Zlatia'
+
+leaves initially yellow and then turn green during the summer
+
+'Asplenifolia', 'Atropunicea', 'Atropunicea cuprea', 'Cockelshell', 'Dawyck Purple', 'Pendula' (f. 
+
+.
+
+tag=interesting-leaves) [#fall color bronze](https://plants.
+
+.
+
+ks, squirrels, and other small mammals.Play Value:Edible fruit ScreeningShade Wildlife Food SourceEdibility:The beechnuts are edible if cooked properly. Raw or unripe nuts eaten in large quantities are toxic and can cause gastrointestinal distress. Young leaves can be cooked for greens in the spring.Dimensions:Height: 50 ft. 0 in. - 60 ft. 0 in.Width: 35 ft. 0 in. - 50 ft. 0 in.
+
+- Whole Plant Traits:Plant Type:PoisonousTreeWoody Plant Leaf Characteristics:DeciduousHabit/Form:DenseErectOvalRoundedSpreadingGrowth Rate:SlowMaintenance:LowTexture:Medium
+
+- Cultural Conditions:Light:Full sun (6 or more hours of direct sunlight a day)Partial Shade (Direct sunlight only part of the day, 2-6 hours)Soil Texture:High Organic MatterLoam (Silt)SandShallow RockySoil pH:Acid (<6.0)Alkaline (>8.0)Neutral (6.0-8.0)Soil Drainage:Good DrainageMoistAvailable Space To Plant:24-60 feetNC Region:MountainsPiedmontUSDA Plant Hardiness Zone:4a, 4b, 5a, 5b, 6a, 6b, 7a, 7b
+
+- Fruit:Fruit Color:Brown/CopperRed/BurgundyFruit Value To Gardener:EdibleShowyDisplay/Harvest Time:FallFruit Type:NutFruit Length:< 1 inchFruit Width:< 1 inchFruit Description:The fruit is light brown to reddish-brown, bristly husk, and measures about 3/4 inches long. 
+
+.
+
+ to 80 years old.
+
+- Leaves:Woody Plant Leaf Characteristics:DeciduousLeaf Color:Brown/CopperGold/YellowLeaf Feel:GlossyLeaf Value To Gardener:ShowyDeciduous Leaf Fall Color:Brown/CopperGold/YellowLeaf Type:SimpleLeaf Arrangement:AlternateLeaf Shape:EllipticalOvateLeaf Margin:EntireUndulateHairs Present:YesLeaf Length:3-6 inchesLeaf Width:3-6 inchesLeaf Description:The leaves are ovate to elliptic, glossy, dark green above, and light green on the undersides of the leaf. The margins are entire, undulated, and fringed with silky hairs when the leaves are young. The leaves measure 2 to 4 inches long and are alternate, simple, and pinnately veined with 7 to 9 pairs of veins. The leaves are ciliate when young, and appear smooth with age. The fall color is a golden bronze.
+
+- Bark:Bark Color:Dark GraySurface/Attachment:SmoothBark Description:The bark is thin, smooth, and dark gray. Older tree trunk bark has the 

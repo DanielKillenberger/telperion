@@ -21,15 +21,19 @@ species needs is its own spec, never a patch inside this run.
    "The stack").
 2. **Seed.** Write the seed manifest to `catalogue/<species>/manifest.json`
    and the tuning config to `.flow/evidence/<species>/tuning.json`
-   (`docs/species-runner.md`, "The tuning config").
+   (`docs/species-runner.md`, "The tuning config"). State the taxon's
+   native range and its names there (`taxon.native_range`), so the run reads
+   the range's own floras (`docs/species-pipeline.md`, "Sources and
+   tables").
 3. **Capability assessment.** `packet/capability.json` is the host's, not
    yours: reasoning and system design escalate to the host. Hand it up and
    wait for it before the Capability stage.
 4. **Run.** `bash -ic 'target/release/species <species>'` from the repository
    root. Run it again after anything changes; it reruns only what changed.
    `--status` says what each stage would do; `--until` and `--stage` run
-   part of it (`docs/species-runner.md`). The runner settles claims itself
-   once the search is spent (runbook, "Claims").
+   part of it (`docs/species-runner.md`). Each value is the aggregate of
+   every document the run gathered, and none waits on you (runbook,
+   "Values").
 5. **A stop.** The run prints `STOPPED:` with one of two reasons.
    - **Identity gaps.** Stop and hand `runner/gaps.md` to the host. The host
      writes the spec; the species spec depends on it; the run continues once

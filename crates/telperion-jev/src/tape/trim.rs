@@ -6,7 +6,7 @@
 //! each whole, in page order, and nothing else. Its bytes keep only the
 //! licence tags and statements the rights check reads. Every later request
 //! of a replay is then the recorded one, so every key still answers; the
-//! trim checks the candidate sentences and the licence lines itself and
+//! trim checks the sentences the run read and the licence lines itself and
 //! refuses a page it would change. `species` records with `--record`; this
 //! runs over the recording before it is committed (`tape_trim`).
 use std::collections::BTreeSet;
@@ -15,15 +15,18 @@ use std::path::Path;
 use serde_json::Value;
 
 use crate::extract::{candidate_sentences, collapse_ws};
-use crate::pipeline::adapter::is_pdf;
+use crate::pipeline::adapter::is_pdf_body;
 use crate::pipeline::canon::{read_json, write_atomic, write_canonical};
+use crate::pipeline::requirements::table;
 use crate::pipeline::rights::{host, licence_lines, licence_tags};
+use crate::pipeline::stages::read::occurrences;
 
 /// Hosts whose pages are open (CC BY-SA encyclopedia leads, open-access
 /// records) and stay whole.
 pub const OPEN: [&str; 2] = ["wikipedia.org", "doaj.org"];
 /// Kept passages are joined by a sentence end, so no sentence spans two.
 pub const SEPARATOR: &str = "\n\n.\n\n";
+const PDF_MAGIC: &[u8] = b"%PDF-";
 /// A quoted passage shorter than this is a label or a number, never text.
 const SHORTEST: usize = 24;
 const WORDS: usize = 4;
@@ -37,25 +40,32 @@ pub fn open(url: &str, extra: &[String]) -> bool {
         .any(|h| host == h || host.ends_with(&format!(".{h}")))
 }
 
-/// The pages the run fetched as sources: those whose sentences it screened
-/// (a screen request names its source's `url` and the `bytes` it read; a
-/// rights request names the `url` alone).
+/// The pages the run read as sources: read asks each one's kind, naming
+/// its `url` in the request's `source`.
 pub fn screened(tape: &Path) -> Result<BTreeSet<String>, String> {
     Ok(entries(&tape.join("jev"))?
         .iter()
-        .map(|e| &e["request"]["body"]["state"]["source"])
-        .filter(|source| !source["bytes"].is_null())
-        .filter_map(|source| source["url"].as_str())
+        .filter_map(|e| e["request"]["body"]["state"]["source"]["url"].as_str())
         .map(str::to_string)
         .collect())
 }
 
 /// Every passage the run quoted to Jev: each string of each recorded request
-/// body, line by line, without a row label, whitespace collapsed.
+/// body, line by line, without a row label, whitespace collapsed, and each
+/// passage a document's kind or an appearance level was asked over
+/// whatever its length.
 pub fn quoted(tape: &Path) -> Result<BTreeSet<String>, String> {
     let mut out = BTreeSet::new();
     for entry in entries(&tape.join("jev"))? {
-        strings(&entry["request"]["body"], &mut out);
+        let body = &entry["request"]["body"];
+        strings(body, &mut out);
+        for list in ["passages", "sentences"] {
+            let whole = body["state"][list].as_array().into_iter().flatten();
+            out.extend(whole.filter_map(Value::as_str).map(collapse_ws));
+        }
+        if let Some(context) = body["state"]["candidate"]["context"].as_str() {
+            out.insert(collapse_ws(context));
+        }
     }
     Ok(out)
 }
@@ -173,6 +183,40 @@ pub fn passages(text: &str, quotes: &BTreeSet<String>) -> String {
     parts.join(SEPARATOR)
 }
 
+/// The page text the licence statements were cut from, each run of
+/// overlapping statements as the one passage it is on the page: statements
+/// cut around neighbouring notices overlap, and set apart they would be cut
+/// otherwise when read again (the Morton Arboretum's photograph credits,
+/// fn-157). A statement not found on the page stands as it is.
+fn regions(raw: &[u8], statements: &[String]) -> Vec<String> {
+    let text = collapse_ws(&crate::html::source_text(raw));
+    let mut spans: Vec<(usize, usize)> = Vec::new();
+    let mut loose = Vec::new();
+    let mut from = 0;
+    for statement in statements {
+        match text[from..].find(statement.as_str()) {
+            Some(at) => {
+                spans.push((from + at, from + at + statement.len()));
+                from += at;
+            }
+            None => loose.push(statement.clone()),
+        }
+    }
+    let mut merged: Vec<(usize, usize)> = Vec::new();
+    for (start, end) in spans {
+        match merged.last_mut() {
+            Some(last) if start <= last.1 => last.1 = last.1.max(end),
+            _ => merged.push((start, end)),
+        }
+    }
+    let mut out: Vec<String> = merged
+        .iter()
+        .map(|&(a, b)| text[a..b].to_string())
+        .collect();
+    out.extend(loose);
+    out
+}
+
 /// Minimal markup the rights check reads as it read the page: the page's
 /// licence tags and its licence statements as paragraphs.
 fn markup(tags: &[String], statements: &[String]) -> Vec<u8> {
@@ -203,8 +247,9 @@ pub fn page(
     quotes: &BTreeSet<String>,
     fetched: bool,
 ) -> Result<(String, Vec<u8>), String> {
-    let pdf = is_pdf(content_type, url);
-    let lines = licence_lines(raw, markdown, content_type, url);
+    let pdf = is_pdf_body(content_type, url, raw);
+    let kind = if pdf { "application/pdf" } else { content_type };
+    let lines = licence_lines(raw, markdown, kind, url);
     let statements: Vec<String> = lines
         .iter()
         .filter(|l| !l.starts_with("metadata: "))
@@ -213,13 +258,16 @@ pub fn page(
     let mut kept: BTreeSet<String> = quotes.clone();
     kept.extend(statements.iter().cloned());
     let trimmed = passages(markdown, &kept);
-    let bytes = match pdf || raw.is_empty() {
-        true => Vec::new(),
-        false => markup(&licence_tags(raw), &statements),
+    // A PDF keeps its magic alone, so a replay still takes it for a PDF.
+    let bytes = match (pdf, raw.starts_with(PDF_MAGIC)) {
+        (true, true) => PDF_MAGIC.to_vec(),
+        _ if pdf || raw.is_empty() => Vec::new(),
+        _ => markup(&licence_tags(raw), &regions(raw, &statements)),
     };
-    // A page the run fetched as a source had every candidate sentence
-    // screened with its context: they read the same. A page it only checked
-    // for rights was read for its licence lines alone.
+    // A page the run fetched as a source had the candidate sentences that
+    // name a field read with their context (fn-157): each of those the run
+    // quoted reads the same in the trimmed page, and the trimmed page holds
+    // no candidate sentence the page did not.
     let sentences = |md: &str| -> Vec<(String, String)> {
         candidate_sentences(md)
             .into_iter()
@@ -228,16 +276,31 @@ pub fn page(
     };
     if fetched {
         let (after, before) = (sentences(&trimmed), sentences(markdown));
-        if after != before {
-            let apart = after.iter().zip(&before).find(|(a, b)| a != b);
+        let asked = before.iter().filter(|(s, _)| quotes.contains(s));
+        // A sentence asked with its context (a label) reads the same with
+        // it; one asked alone (a document's kind) is still there.
+        let lost = |b: &&(String, String)| match after.contains(b) {
+            true => false,
+            false => quotes.contains(&collapse_ws(&b.1)) || !after.iter().any(|a| a.0 == b.0),
+        };
+        if let Some(lost) = asked.clone().find(lost) {
             return Err(format!(
-                "{url}: {} candidate sentences for {}; first apart: {apart:?}",
-                after.len(),
-                before.len()
+                "{url}: the trimmed page reads {:?} otherwise",
+                lost.0
+            ));
+        }
+        // A passage cut mid-sentence starts a sentence the page never had;
+        // it is harmless unless the read stage would ask it.
+        let own: BTreeSet<&String> = before.iter().map(|(s, _)| s).collect();
+        let fields: Vec<String> = table().fields.keys().cloned().collect();
+        let asks = |sentence: &str| !occurrences(sentence, &fields).is_empty();
+        if let Some((extra, _)) = after.iter().find(|(s, _)| !own.contains(s) && asks(s)) {
+            return Err(format!(
+                "{url}: the trimmed page yields a new sentence {extra:?}"
             ));
         }
     }
-    if licence_lines(&bytes, &trimmed, content_type, url) != lines {
+    if licence_lines(&bytes, &trimmed, kind, url) != lines {
         return Err(format!(
             "{url}: the trimmed page yields other licence lines"
         ));
@@ -256,16 +319,37 @@ pub fn tape(tape: &Path, extra_open: &[String]) -> Result<Vec<String>, String> {
         let request = &entry["request"];
         let page = &entry["response"]["ok"];
         let url = request["url"].as_str().unwrap_or_default();
+        let key = entry["key"].as_str().unwrap_or_default();
+        let path = dir.join(format!("{}.json", &key[..32]));
+        // A PDF's parse names only its cached file, never its page, so it
+        // keeps the quoted passages whatever the page's licence.
+        if let (Some("parse"), Some(parsed)) = (request["op"].as_str(), page.as_str()) {
+            let file = request["file"].as_str().unwrap_or_default();
+            let (trimmed, _) = self::page(file, "application/pdf", parsed, &[], &quotes, true)?;
+            words.push(format!(
+                "{file}: parse {} -> {}",
+                parsed.len(),
+                trimmed.len()
+            ));
+            let mut entry = entry.clone();
+            entry["response"]["ok"] = trimmed.into();
+            write_canonical(&path, &entry).map_err(|e| e.to_string())?;
+            continue;
+        }
         if request["op"] != "scrape" || page.is_null() || open(url, extra_open) {
             continue;
         }
-        let key = entry["key"].as_str().unwrap_or_default();
-        let path = dir.join(format!("{}.json", &key[..32]));
         let blob = path.with_extension("bin");
         let raw = std::fs::read(&blob).unwrap_or_default();
         let markdown = page["markdown"].as_str().unwrap_or_default();
         let ct = page["content_type"].as_str().unwrap_or_default();
-        let (trimmed, bytes) = self::page(url, ct, markdown, &raw, &quotes, fetched.contains(url))?;
+        // A page no stage read (fetch dropped it) keeps nothing: kept, its
+        // licence tags alone would read as a page on replay.
+        let landed = page["final_url"].as_str().unwrap_or(url);
+        let (trimmed, bytes) = match fetched.contains(url) || fetched.contains(landed) {
+            true => self::page(url, ct, markdown, &raw, &quotes, true)?,
+            false => (String::new(), Vec::new()),
+        };
         words.push(format!(
             "{url}: markdown {} -> {}, bytes {} -> {}",
             markdown.len(),
@@ -300,6 +384,19 @@ pub fn rekey(tape: &Path) -> Result<Vec<String>, String> {
                 continue;
             }
             let (from, to) = (dir.join(&old[..32]), dir.join(&new[..32]));
+            // An answer already filed under its right key is the run's; a
+            // stale one for the same question is dropped, not written over it.
+            let filed = read_json(&to.with_extension("json")).ok();
+            if filed.is_some_and(|f| f["key"] == new.as_str()) {
+                std::fs::remove_file(from.with_extension("json")).map_err(|e| e.to_string())?;
+                let _ = std::fs::remove_file(from.with_extension("bin"));
+                moved.push(format!(
+                    "{kind} {} dropped: answered under {}",
+                    &old[..12],
+                    &new[..12]
+                ));
+                continue;
+            }
             entry["key"] = new.clone().into();
             write_canonical(&to.with_extension("json"), &entry).map_err(|e| e.to_string())?;
             std::fs::remove_file(from.with_extension("json")).map_err(|e| e.to_string())?;
@@ -313,40 +410,8 @@ pub fn rekey(tape: &Path) -> Result<Vec<String>, String> {
     Ok(moved)
 }
 
-/// Whether every passage a trimmed recorded page keeps is one the run
-/// quoted: the check a committed fixture must pass.
-pub fn only_quoted(tape: &Path, extra_open: &[String]) -> Result<Vec<String>, String> {
-    let quotes = quoted(tape)?;
-    let mut over = Vec::new();
-    for entry in entries(&tape.join("firecrawl"))? {
-        let request = &entry["request"];
-        let page = &entry["response"]["ok"];
-        let url = request["url"].as_str().unwrap_or_default();
-        if request["op"] != "scrape" || page.is_null() || open(url, extra_open) {
-            continue;
-        }
-        let markdown = page["markdown"].as_str().unwrap_or_default();
-        let raw = std::fs::read(tape.join("firecrawl").join(format!(
-            "{}.bin",
-            &entry["key"].as_str().unwrap_or_default()[..32]
-        )))
-        .unwrap_or_default();
-        let lines = licence_lines(&raw, markdown, "", url);
-        let mut kept = quotes.clone();
-        kept.extend(lines.iter().cloned());
-        let quoted: usize = covered(markdown, &kept).iter().map(|(f, t)| t - f).sum();
-        // Each separator's full stop is the one byte no passage covers.
-        if quoted + markdown.matches(SEPARATOR).count() < markdown.len() {
-            over.push(format!(
-                "{url}: {quoted} of {} bytes quoted",
-                markdown.len()
-            ));
-        }
-        let statements: usize = lines.iter().map(|l| l.len() + 1).sum();
-        let text = collapse_ws(&crate::html::source_text(&raw));
-        if text.len() > statements {
-            over.push(format!("{url}: {} bytes of page text kept", text.len()));
-        }
-    }
-    Ok(over)
-}
+mod check;
+pub use check::only_quoted;
+
+#[cfg(test)]
+mod tests;

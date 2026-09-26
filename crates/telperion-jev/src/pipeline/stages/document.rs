@@ -20,7 +20,7 @@ use crate::pipeline::decision::{append_decisions, retire_unfiled, Decision, Deci
 use crate::pipeline::judge::Judge;
 use crate::pipeline::stage::{log_command, Context, Paths, StageError};
 
-use super::extract::cached_markdown;
+use super::cached_markdown;
 use super::{body, inputs};
 
 pub const STAGE: &str = "document";
@@ -36,7 +36,7 @@ pub enum Outcome {
 pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     let (ctx, _) = Context::open(paths, STAGE)?;
     let (fetch, fetch_sha) = body(&ctx, STAGE, "fetch")?;
-    let (_, select_sha) = body(&ctx, STAGE, "select")?;
+    let (_, aggregate_sha) = body(&ctx, STAGE, "aggregate")?;
     let (_, generate_sha) = body(&ctx, STAGE, "generate")?;
     // The article is written by a person or the add-species agent after
     // the scaffold; its bytes key the cite check, so a written article is
@@ -46,7 +46,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     let article_sha = sha_of(&article);
     let pinned = inputs(&[
         ("fetch.json", &fetch_sha),
-        ("select.json", &select_sha),
+        ("aggregate.json", &aggregate_sha),
         ("generate.json", &generate_sha),
         ("ARTICLE.md", &article_sha),
     ]);
@@ -59,7 +59,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     let (validated, work) = write_article(&ctx, &species)?;
     // Every decision binds to the article as the scaffold left it, so one
     // filed on an earlier article is retired once it is no longer filed.
-    let bound = bound(&select_sha, &sha_of(&article));
+    let bound = bound(&aggregate_sha, &sha_of(&article));
     if !validated {
         let parts = DecisionParts {
             species: &species,
@@ -153,19 +153,30 @@ fn sha_of(path: &std::path::Path) -> String {
 }
 
 /// What the stage's decisions bind to: the selection and the article.
-fn bound(select_sha: &str, article_sha: &str) -> BTreeMap<String, String> {
-    [("select.json", select_sha), ("ARTICLE.md", article_sha)]
-        .into_iter()
-        .map(|(k, v)| (k.to_string(), v.to_string()))
-        .collect()
+fn bound(aggregate_sha: &str, article_sha: &str) -> BTreeMap<String, String> {
+    [
+        ("aggregate.json", aggregate_sha),
+        ("ARTICLE.md", article_sha),
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v.to_string()))
+    .collect()
 }
 
-/// One markdown copy per admitted source, written by the catalogue script from
+/// One markdown copy per fetched source, written by the catalogue script from
 /// the text the run already cached. A source whose cache entry is gone or has
-/// moved is copied as unavailable rather than fetched again.
+/// moved is copied as unavailable rather than fetched again; a document the
+/// fetch dropped has no record to copy.
 fn write_copies(ctx: &Context, fetch: &Value, species: &str) -> Result<Vec<Value>, StageError> {
     let mut written = Vec::new();
-    for source in &ctx.admitted.manifest.sources {
+    let fetched = |id: &str| fetch["sources"].get(id).is_some();
+    for source in ctx
+        .admitted
+        .manifest
+        .sources
+        .iter()
+        .filter(|s| fetched(&s.id))
+    {
         let cached = verified_cache(ctx, &source.id, &fetch["sources"][&source.id]);
         let mut argv = args(&[
             SOURCES_SCRIPT,
@@ -209,24 +220,27 @@ fn verified_cache(ctx: &Context, id: &str, record: &Value) -> Option<PathBuf> {
     )
 }
 
-/// The passages an extract keeps for one source: each provenance entry's JSON
-/// pointer as the location and the span it copied as the quote, which the
-/// script verifies is a literal run of the fetched text. None when provenance
-/// holds nothing for this source, which the script writes as an empty extract.
-/// Only a `copied` route is quotable; a described value's span is the judge's
-/// paraphrase and would fail that verification for the right reason.
+/// The passages an extract keeps for one source: each span an aggregated
+/// value read from it, located by the value's JSON pointer, which the
+/// script verifies is a literal run of the fetched text. None when
+/// provenance holds nothing for this source, which the script writes as an
+/// empty extract. An appearance level's sentence is the judge's reading and
+/// is not quoted.
 fn passages_file(ctx: &Context, id: &str) -> Result<Option<PathBuf>, StageError> {
     if !ctx.paths.sidecar().exists() {
         return Ok(None);
     }
     let provenance = read_json(&ctx.paths.sidecar())?;
-    let entries = provenance["entries"].as_object().into_iter().flatten();
-    let mine = entries.filter(|(_, entry)| {
-        entry["source"].as_str() == Some(id) && entry["route"].as_str() == Some("copied")
-    });
-    let passage =
-        |(pointer, entry): (&String, &Value)| json!({"location": pointer, "quote": entry["span"]});
-    let passages: Vec<Value> = mine.map(passage).collect();
+    let mut passages = Vec::new();
+    for (pointer, entry) in provenance["entries"].as_object().into_iter().flatten() {
+        let read = entry["contributions"].as_array().into_iter().flatten();
+        for reading in read.chain(entry.get("maximum")) {
+            let quote = json!({"location": pointer, "quote": reading["span"]});
+            if reading["source"].as_str() == Some(id) && !passages.contains(&quote) {
+                passages.push(quote);
+            }
+        }
+    }
     if passages.is_empty() {
         return Ok(None);
     }

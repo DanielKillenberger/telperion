@@ -104,13 +104,12 @@ fn a_rate_limited_source_waits_the_named_delay_and_is_fetched() {
 }
 
 #[test]
-fn a_limit_that_outlasts_every_attempt_files_unavailable_source() {
+fn a_limit_that_outlasts_every_attempt_drops_the_document() {
     let (dir, fixtures) = scratch("always");
     let adapter = Retrying::with_sleep(limited(&fixtures, u32::MAX), record);
     fetch::run(&Paths::new(&dir), &adapter).unwrap();
-    let list = read_json(&dir.join("decisions.json")).unwrap();
-    assert_eq!(
-        list["decisions"][0]["id"],
-        "european-beech/fetch/unavailable-source/P2"
-    );
+    let body = read_json(&dir.join("fetch.json")).unwrap()["body"].clone();
+    assert!(body["sources"].get("P2").is_none(), "{body}");
+    assert!(body["dropped"]["P2"]["error"].is_string(), "{body}");
+    assert!(!dir.join("decisions.json").exists());
 }

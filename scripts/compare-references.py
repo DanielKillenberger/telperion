@@ -62,9 +62,17 @@ def tree_mask(still: np.ndarray, twin: np.ndarray) -> np.ndarray:
     return foreground(still) & foreground(twin)
 
 
+# A column counts toward the tree when this many rows of it are tree: the
+# horizon's antialiased row can stand out of its own row under both suns,
+# and a streak one or two rows high is no tree (fn-157).
+LEAST_ROWS = 3
+
+
 def box_of(mask: np.ndarray) -> tuple[int, int, int, int] | None:
-    rows = np.flatnonzero(mask.any(axis=1))
-    columns = np.flatnonzero(mask.any(axis=0))
+    columns = np.flatnonzero(mask.sum(axis=0) >= LEAST_ROWS)
+    if columns.size == 0:
+        return None
+    rows = np.flatnonzero(mask[:, columns[0] : columns[-1] + 1].any(axis=1))
     if rows.size == 0 or columns.size == 0:
         return None
     return int(columns[0]), int(rows[0]), int(columns[-1] - columns[0] + 1), int(rows[-1] - rows[0] + 1)
@@ -196,9 +204,13 @@ def photograph(record: dict, args: argparse.Namespace) -> Path:
     An image the project may keep is an LFS object in the species' catalogue
     folder, under the path the record states; `git lfs pull` brings the bytes
     down. An image the project may not keep is recorded by url and hash only
-    and the fetch adapter caches it in the ignored cache directory. Either way
-    the bytes are checked against `asset_sha256` before anything is compared.
+    and the fetch adapter caches it in the ignored cache directory. A
+    photograph the Profile stage found names its run's copy (`photo_path`).
+    Either way the bytes are checked against `asset_sha256` before anything
+    is compared.
     """
+    if record.get("photo_path"):
+        return Path(record["photo_path"])
     if record.get("kept"):
         return Path(args.catalogue) / record["species_id"] / record["path"]
     return Path(args.refs) / record["url"].rsplit("/", 1)[-1]
@@ -277,6 +289,11 @@ def self_test() -> int:
     x, y, w, h = box
     assert abs(w - 121) <= 2 and abs(h - 221) <= 2, f"the mask box is {box}"
     assert abs(x - 60) <= 1 and abs(y - 40) <= 1, f"the shadow leaked into the box: {box}"
+    # fn-157: the horizon's one antialiased row stands out of its own row's
+    # background under both suns; a streak one row high is no tree.
+    streaked = mask.copy()
+    streaked[150, 5:195] = True
+    assert box_of(streaked) == box, f"the horizon widened the box: {box_of(streaked)}"
     stats = measure(still, box, mask, crown_base(mask, box))
     assert abs(stats["width_over_height"] - 121 / 221) < 0.02, stats
     assert 0.25 < stats["crown_base"] < 0.32, stats
@@ -300,6 +317,8 @@ def self_test() -> int:
     unkept = {"id": "S-WHOLE", "species_id": "silver-birch", "kept": False,
               "url": "https://example.invalid/plantimage/betu123B.jpg"}
     assert photograph(unkept, where) == Path(".refs/fn34/silver-birch/betu123B.jpg")
+    found = {"id": "photo-1", "photo_path": "run/cache/photos/abc.jpg", "url": "https://x/File:a.jpg"}
+    assert photograph(found, where) == Path("run/cache/photos/abc.jpg")
     print("self-test ok", json.dumps(result["still"]))
     return 0
 

@@ -1,49 +1,43 @@
-//! The upstream chain end to end over the fixture adapter and the mock
-//! transport: discover files the manifest-proposed decision and stops fetch;
-//! an admitting resolution lets fetch, extract, screen, quality, select and
-//! verify run; a rerun with unchanged inputs does nothing; a changed cache
-//! file stops extract by name. No network, no key, no binary.
-
-mod common;
+//! The upstream chain end to end over the fixture adapter and a mock
+//! transport (fn-157): gather adds what it finds, fetch reads it, read
+//! labels every span, aggregate composes the profile with its provenance; a
+//! rerun with unchanged inputs does nothing; a changed cache file stops read
+//! by name. No network, no key, no binary.
 
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use common::{ledger_dir, CaseTransport};
 use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::adapter::FixtureAdapter;
 use telperion_jev::pipeline::canon::{read_json, write_canonical};
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::known::KnownSources;
-use telperion_jev::pipeline::stage::{Context, Paths, StageError};
-use telperion_jev::pipeline::stages::{discover, extract, fetch, quality, screen, select, verify};
+use telperion_jev::pipeline::stage::{Paths, StageError};
+use telperion_jev::pipeline::stages::{aggregate, fetch, gather, read};
 
-/// The fn-57 mock for screen, select and cite; fixed answers for the
-/// pipeline's own sets, whose states this test does not enumerate.
-struct PipelineTransport(CaseTransport);
+/// Labels the oak's two height spans: the usual range typical, the maximum
+/// a record; every other span measures nothing asked.
+struct Labels;
 
-impl Transport for PipelineTransport {
+impl Transport for Labels {
     fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String> {
         let body: Value = serde_json::from_slice(request.body.as_deref().unwrap_or(b"{}")).unwrap();
-        let questions = &body["questions"];
-        let answers = if questions.get("sufficiency").is_some() {
-            json!({
-                "sufficiency": {"type": "score", "score": 3.0, "confidence": 0.9, "probabilities": {"3": 0.9}},
-                "dominant_gap": {"type": "choice", "choice": "none", "confidence": 0.9, "probabilities": {"none": 0.9}},
-            })
-        } else if questions.get("source").is_some() {
-            json!({"source": {"type": "choice", "choice": "h1", "confidence": 0.9, "probabilities": {"h1": 0.9}}})
-        } else if questions.get("level").is_some() {
+        let choice = |key: &str| json!({"type": "choice", "choice": key, "confidence": 0.9, "probabilities": {key: 0.9}});
+        let answers = if body["questions"].get("document").is_some() {
+            json!({"document": choice("forestry")})
+        } else if body["questions"].get("field").is_some() {
+            let (field, basis) = match body["state"]["candidate"]["span"].as_str() {
+                Some("50 to 90 ft") => ("height_m", "typical"),
+                Some("120 ft") => ("height_m", "record"),
+                _ => ("none", "unclear"),
+            };
+            json!({"field": choice(field), "basis": choice(basis), "age": choice("mature"),
+                   "condition": choice("unstated")})
+        } else if body["questions"].get("level").is_some() {
             json!({"level": {"type": "score", "score": 0.0, "confidence": 0.9, "probabilities": {"0": 0.9}}})
-        } else if questions.get("inspected_image").is_some() {
-            json!({"inspected_image": {"type": "noul", "noul": 0.9}})
-        } else if questions.get("measurement_not_invention").is_some() {
-            json!({"measurement_not_invention": {"type": "noul", "noul": 0.9}})
-        } else if questions.get("relation").is_some() {
-            json!({"relation": {"type": "choice", "choice": "supports", "confidence": 0.95, "probabilities": {"supports": 0.95}}})
         } else {
-            return self.0.send(request);
+            return Err(format!("unexpected question {}", body["questions"]));
         };
         Ok(HttpResponse {
             status: 200,
@@ -53,26 +47,26 @@ impl Transport for PipelineTransport {
 }
 
 const OWIC: &str = "https://research.fs.usda.gov/silvics/oregon-white-oak";
-const QUERY: &str = "Quercus garryana height at age, open grown";
+const TAXON: &str = "Quercus garryana";
 
 fn manifest() -> Value {
     json!({
         "schema": "manifest", "schema_version": 1,
         "species": "oregon-white-oak",
-        "taxon": {"scientific_name": "Quercus garryana", "common_name": "Oregon white oak", "rank": "species"},
+        "taxon": {"scientific_name": TAXON, "common_name": "Oregon white oak", "rank": "species"},
         "context": "mature open-grown", "growth_form": "broadleaf",
         "preset": "oregon-white-oak", "profile_id": "oregon-white-oak", "seed": 7,
         "sources": [{"id": "S1", "url": OWIC, "title": "Silvics", "rights": "public domain"}],
         "fields": [{"field": "height_m", "condition": "open_grown", "required_ages_years": [100],
                     "bar": "partial",
-                    "question": "Which candidate span states the height of a mature Oregon white oak under ordinary conditions (not the maximum)?"}],
-        "versions": {"question_sets": {"screen": 1, "sufficiency": 1}, "tools": {}},
+                    "question": "Which candidate span states the height of a mature Oregon white oak?"}],
+        "versions": {"question_sets": {"label": 1}, "tools": {}},
         "model": "jev-latest"
     })
 }
 
-/// A scratch pipeline directory beside a fixture directory that answers this
-/// test's discovery query and the OWIC page.
+/// A scratch pipeline directory beside a fixture directory that answers the
+/// gather queries (the first finds the OWIC page again) and the page.
 fn scratch() -> (PathBuf, FixtureAdapter) {
     let root = std::env::temp_dir().join(format!(
         "jev-pipeline-{}-{}",
@@ -83,7 +77,6 @@ fn scratch() -> (PathBuf, FixtureAdapter) {
     let fixtures = root.join("fixtures");
     fs::create_dir_all(&dir).unwrap();
     fs::create_dir_all(&fixtures).unwrap();
-    // The page carries the labelled sentences the fn-57 mock screens.
     let page = "# Oregon white oak\n\nMature Oregon white oaks are 50 to 90 ft tall (120 ft maximum) and 24 to 40 in. in DBH (97 in. maximum). Oregon white oaks may live 500 years.\n";
     fs::write(fixtures.join("owic.md"), page).unwrap();
     fs::write(
@@ -91,12 +84,19 @@ fn scratch() -> (PathBuf, FixtureAdapter) {
         format!("<html><body>{page}</body></html>"),
     )
     .unwrap();
+    let (web, research) = gather::queries(TAXON, "Oregon white oak");
+    let hit = json!([{"url": OWIC, "title": "Silvics", "snippet": "Mature Oregon white oaks are 50 to 90 ft tall."}]);
+    let search: serde_json::Map<String, Value> = web
+        .iter()
+        .enumerate()
+        .map(|(i, q)| (q.clone(), if i == 0 { hit.clone() } else { json!([]) }))
+        .collect();
     write_canonical(
         &fixtures.join("index.json"),
         &json!({
             "scrape": {OWIC: {"final_url": OWIC, "content_type": "text/html", "raw": "owic.html", "markdown": "owic.md"}},
-            "search": {QUERY: [{"url": OWIC, "title": "Silvics", "snippet": "Mature Oregon white oaks are 50 to 90 ft tall."}]},
-            "research": {QUERY: []},
+            "search": search,
+            "research": {research: []},
         }),
     )
     .unwrap();
@@ -108,241 +108,84 @@ fn scratch() -> (PathBuf, FixtureAdapter) {
     (dir, FixtureAdapter::new(fixtures))
 }
 
-fn judge<'a>(transport: &'a PipelineTransport, dir: &Path) -> Judge<'a> {
-    let _ = ledger_dir("pipeline");
+fn judge(dir: &Path) -> Judge<'static> {
     Judge {
-        transport,
+        transport: &Labels,
         key: "test-key",
         ledger_dir: dir.join("ledger").join("entries"),
     }
 }
 
 #[test]
-fn the_upstream_chain_runs_over_fixtures_and_fills_the_packet_with_provenance() {
+fn the_upstream_chain_runs_over_fixtures_and_fills_the_profile_with_provenance() {
     let (dir, adapter) = scratch();
-    let transport = PipelineTransport(CaseTransport);
-    let judge = judge(&transport, &dir);
-
-    // Discovery proposes; the decision stops fetch until a person admits.
+    let paths = Paths::new(&dir);
+    let judge = judge(&dir);
+    let known = KnownSources::default();
+    // The only hit is the page the manifest already names: nothing is added.
     assert!(matches!(
-        discover::run(
-            &Paths::new(&dir),
-            &adapter,
-            &judge,
-            &KnownSources::default()
-        )
-        .unwrap(),
-        discover::Outcome::Ran { .. }
+        gather::run(&paths, &adapter, &known).unwrap(),
+        gather::Outcome::Ran { documents: 0 }
     ));
-    let discover_body = read_json(&dir.join("discover.json")).unwrap();
-    assert_eq!(
-        discover_body["body"]["proposals"][0]["hits"][0]["ranked_first"],
-        json!(true)
-    );
-    let err = fetch::run(&Paths::new(&dir), &adapter).unwrap_err();
-    assert!(matches!(err, StageError::OpenDecision { .. }), "{err}");
-    let decisions = read_json(&dir.join("decisions.json")).unwrap();
-    let proposed = &decisions["decisions"][0];
-    assert_eq!(proposed["kind"], "manifest-proposed");
-    write_canonical(
-        &dir.join("resolutions.json"),
-        &json!({"resolutions": [{"id": proposed["id"], "inputs_sha256": proposed["inputs_sha256"], "option": "admit", "by": "test", "at": "2026-09-18"}]}),
-    )
-    .unwrap();
+    fetch::run(&paths, &adapter).unwrap();
+    read::run(&paths, &judge).unwrap();
+    aggregate::run(&paths, &judge).unwrap();
 
-    assert!(matches!(
-        fetch::run(&Paths::new(&dir), &adapter).unwrap(),
-        fetch::Outcome::Ran { .. }
-    ));
-    let fetch_body = read_json(&dir.join("fetch.json")).unwrap();
-    let record = &fetch_body["body"]["sources"]["S1"];
-    assert_eq!(record["final_url"], OWIC);
-    assert_ne!(record["raw_sha256"], record["markdown_sha256"]);
-    assert!(dir.join("cache").join("S1.md").exists());
-
+    let profile = read_json(&dir.join("packet/profile.json")).unwrap();
+    let height = &profile["profiles"][0]["metrics"]["height_m"];
+    let range = height["range"].as_array().unwrap();
     assert!(
-        matches!(extract::run(&Paths::new(&dir)).unwrap(), extract::Outcome::Ran { candidates } if candidates > 0)
+        (range[0].as_f64().unwrap() - 15.24).abs() < 1e-9,
+        "{height}"
     );
     assert!(
-        matches!(screen::run(&Paths::new(&dir), &judge).unwrap(), screen::Outcome::Ran { rows } if rows > 0)
+        (range[1].as_f64().unwrap() - 27.432).abs() < 1e-9,
+        "{height}"
     );
-    let screen_body = read_json(&dir.join("screen.json")).unwrap();
-    let mature = screen_body["body"]["rows"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .find(|r| r["sentence"].as_str().unwrap().contains("50 to 90 ft"))
-        .expect("the mature sentence is screened");
-    assert_eq!(mature["kind"], "mature_size_range");
-    assert_eq!(mature["ledger"].as_str().unwrap().len(), 24);
-
-    assert!(
-        matches!(quality::run(&Paths::new(&dir), &judge).unwrap(), quality::Outcome::Ran { decisions } if decisions.is_empty())
-    );
-    let quality_body = read_json(&dir.join("quality.json")).unwrap();
-    assert_eq!(
-        quality_body["body"]["fields"]["height_m"]["level"],
-        "sufficient"
-    );
-    assert_eq!(
-        quality_body["body"]["fields"]["height_m"]["passed"],
-        json!(true)
-    );
-
-    assert!(matches!(
-        select::run(&Paths::new(&dir), &judge).unwrap(),
-        select::Outcome::Ran {
-            filled: 1,
-            unavailable: 0
-        }
-    ));
-    let profile = read_json(&dir.join("packet").join("profile.json")).unwrap();
-    let metric = &profile["profiles"][0]["metrics"]["height_m"];
-    // 90 ft is 27.432000000000002 m as a double, and the artifact carries the
-    // product, not a rounding of it; serde_json's float_roundtrip parse reads
-    // back what was written, so the expectation is the product itself.
-    assert_eq!(metric["range"], json!([15.24, 27.432_000_000_000_002]));
-    assert_eq!(metric["source"], json!(["S1"]));
+    assert_eq!(height["classification"], "contextual"); // one source: no agreement, no gate
+    assert_eq!(height["source"], json!(["S1"]));
+    assert_eq!(height["confidence"], "thin");
+    assert_eq!(height["tier"], "forestry");
+    assert!((height["maximum"]["value"].as_f64().unwrap() - 36.576).abs() < 1e-9);
     let sidecar = read_json(&dir.join("provenance.json")).unwrap();
     let entry = &sidecar["entries"]["/profiles/0/metrics/height_m"];
-    assert_eq!(entry["span"], "50 to 90 ft");
-    assert_eq!(entry["route"], "copied");
-    assert!(!sidecar.to_string().contains("probabilit"));
+    assert_eq!(entry["route"], "aggregated");
+    assert_eq!(entry["contributions"][0]["span"], "50 to 90 ft");
+    assert!(entry["contributions"][0]["ledger"].is_string());
 
-    assert!(
-        matches!(verify::run(&Paths::new(&dir), &judge).unwrap(), verify::Outcome::Ran { decisions } if decisions.is_empty())
-    );
-    let verify_body = read_json(&dir.join("verify.json")).unwrap();
-    assert_eq!(verify_body["body"]["claims"][0]["relation"], "supports");
-    assert_eq!(verify_body["body"]["structural"], json!([]));
-
-    // A rerun with unchanged inputs does nothing on every stage.
-    let before = fs::read(dir.join("select.json")).unwrap();
+    // Unchanged inputs: every stage is current.
     assert!(matches!(
-        fetch::run(&Paths::new(&dir), &adapter).unwrap(),
+        gather::run(&paths, &adapter, &known).unwrap(),
+        gather::Outcome::Current
+    ));
+    assert!(matches!(
+        fetch::run(&paths, &adapter).unwrap(),
         fetch::Outcome::Current
     ));
     assert!(matches!(
-        extract::run(&Paths::new(&dir)).unwrap(),
-        extract::Outcome::Current
+        read::run(&paths, &judge).unwrap(),
+        read::Outcome::Current
     ));
     assert!(matches!(
-        screen::run(&Paths::new(&dir), &judge).unwrap(),
-        screen::Outcome::Current
+        aggregate::run(&paths, &judge).unwrap(),
+        aggregate::Outcome::Current
     ));
-    assert!(matches!(
-        quality::run(&Paths::new(&dir), &judge).unwrap(),
-        quality::Outcome::Current
-    ));
-    assert!(matches!(
-        select::run(&Paths::new(&dir), &judge).unwrap(),
-        select::Outcome::Current
-    ));
-    assert!(matches!(
-        verify::run(&Paths::new(&dir), &judge).unwrap(),
-        verify::Outcome::Current
-    ));
-    assert_eq!(fs::read(dir.join("select.json")).unwrap(), before);
 
-    // A changed cache file stops the stage that reads it, by name.
-    fs::write(dir.join("cache").join("S1.md"), "edited\n").unwrap();
-    fs::remove_file(dir.join("extract.json")).unwrap();
-    let err = extract::run(&Paths::new(&dir)).unwrap_err();
+    // A changed cache file stops the next reader by name.
+    fs::write(dir.join("cache/S1.md"), "tampered").unwrap();
+    fs::remove_file(dir.join("read.json")).unwrap();
+    let err = read::run(&paths, &judge).unwrap_err();
     assert!(matches!(err, StageError::ChecksumChanged { .. }), "{err}");
-    assert!(
-        err.to_string().starts_with("extract: input changed"),
-        "{err}"
-    );
+    assert!(err.to_string().starts_with("read: input changed"), "{err}");
 }
 
 #[test]
 fn a_missing_earlier_artifact_names_the_stage_and_the_path() {
     let (dir, _) = scratch();
-    let err = extract::run(&Paths::new(&dir)).unwrap_err();
+    let err = read::run(&Paths::new(&dir), &judge(&dir)).unwrap_err();
     assert_eq!(
         err.to_string(),
-        format!(
-            "extract: input missing: {}",
-            dir.join("fetch.json").display()
-        )
-    );
-    let (_, blocked) = Context::open(&Paths::new(&dir), "select").unwrap();
-    assert!(blocked.is_empty());
-}
-
-#[test]
-fn a_field_below_the_bar_files_data_insufficient_and_select_records_it_unavailable() {
-    struct Insufficient(PipelineTransport);
-    impl Transport for Insufficient {
-        fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String> {
-            let body: Value =
-                serde_json::from_slice(request.body.as_deref().unwrap_or(b"{}")).unwrap();
-            if body["questions"].get("sufficiency").is_none() {
-                return self.0.send(request);
-            }
-            Ok(HttpResponse {
-                status: 200,
-                body: serde_json::to_vec(&json!({"model": "jev-latest", "answers": {
-                    "sufficiency": {"type": "score", "score": 1.0, "confidence": 0.9, "probabilities": {"1": 0.9}},
-                    "dominant_gap": {"type": "choice", "choice": "wrong_condition", "confidence": 0.9, "probabilities": {"wrong_condition": 0.9}},
-                }})).unwrap(),
-            })
-        }
-    }
-    let (dir, adapter) = scratch();
-    let transport = Insufficient(PipelineTransport(CaseTransport));
-    let judge = Judge {
-        transport: &transport,
-        key: "test-key",
-        ledger_dir: dir.join("ledger").join("entries"),
-    };
-    discover::run(
-        &Paths::new(&dir),
-        &adapter,
-        &judge,
-        &KnownSources::default(),
-    )
-    .unwrap();
-    let decisions = read_json(&dir.join("decisions.json")).unwrap();
-    let proposed = &decisions["decisions"][0];
-    write_canonical(
-        &dir.join("resolutions.json"),
-        &json!({"resolutions": [{"id": proposed["id"], "inputs_sha256": proposed["inputs_sha256"], "option": "admit", "by": "test", "at": "2026-09-18"}]}),
-    )
-    .unwrap();
-    fetch::run(&Paths::new(&dir), &adapter).unwrap();
-    extract::run(&Paths::new(&dir)).unwrap();
-    screen::run(&Paths::new(&dir), &judge).unwrap();
-    let outcome = quality::run(&Paths::new(&dir), &judge).unwrap();
-    let quality::Outcome::Ran { decisions } = outcome else {
-        panic!("ran")
-    };
-    assert_eq!(
-        decisions,
-        vec!["oregon-white-oak/quality/data-insufficient/height_m"]
-    );
-    let list = read_json(&dir.join("decisions.json")).unwrap();
-    let insufficient = list["decisions"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .find(|d| d["kind"] == "data-insufficient")
-        .unwrap();
-    assert_eq!(insufficient["payload"]["level"], "proxy_only");
-    assert_eq!(insufficient["payload"]["dominant_gap"], "wrong_condition");
-    assert_eq!(insufficient["blocks"], json!(["select", "fit", "generate"]));
-    assert!(insufficient["payload"].get("probabilities").is_none());
-    assert!(matches!(
-        select::run(&Paths::new(&dir), &judge).unwrap(),
-        select::Outcome::Ran {
-            filled: 0,
-            unavailable: 1
-        }
-    ));
-    let sidecar = read_json(&dir.join("provenance.json")).unwrap();
-    assert_eq!(
-        sidecar["unavailable"]["height_m"],
-        "below the data-quality bar"
+        format!("read: input missing: {}", dir.join("fetch.json").display())
     );
 }
 
@@ -369,24 +212,17 @@ fn catalogue_with_one_source(dir: &Path) -> PathBuf {
     dir.join("catalogue")
 }
 
-/// Every source the catalogue already holds is a candidate, and it is listed
-/// before the adapter's first web hit. The first ash run spent six driver
-/// dispatches searching for a table the repository already named. Since the
-/// merge with master the catalogue reaches discovery as a known source, so the
-/// candidate's kind is `known` and its origin names the catalogue folder it
-/// came from.
+/// Every source the catalogue already holds is listed before the adapter's
+/// first web hit and joins the manifest. The first ash run spent six driver
+/// dispatches searching for a table the repository already named.
 #[test]
-fn discovery_lists_every_catalogued_source_before_it_searches_the_web() {
+fn gather_lists_every_catalogued_source_before_it_searches_the_web() {
     let (dir, adapter) = scratch();
-    let transport = PipelineTransport(CaseTransport);
-    let judge = judge(&transport, &dir);
     let catalogue = catalogue_with_one_source(&dir);
     // No evidence tree and no specs: the catalogue is the only thing known.
     let known = KnownSources::scan(&catalogue, &dir.join("no-flow"), &dir.join("manifest.json"));
-
-    discover::run(&Paths::new(&dir), &adapter, &judge, &known).unwrap();
-
-    let hits = read_json(&dir.join("discover.json")).unwrap()["body"]["proposals"][0]["hits"]
+    gather::run(&Paths::new(&dir), &adapter, &known).unwrap();
+    let hits = read_json(&dir.join("gather.json")).unwrap()["body"]["hits"]
         .as_array()
         .cloned()
         .unwrap();
@@ -395,14 +231,16 @@ fn discovery_lists_every_catalogued_source_before_it_searches_the_web() {
         hits[0]["origin"],
         json!("catalogue:oregon-white-oak#USFS-OAK")
     );
-    assert_eq!(
-        hits[0]["url"],
-        json!("https://research.fs.usda.gov/silvics/oregon-white-oak-catalogued")
-    );
     assert!(
         hits[1..].iter().all(|hit| hit["kind"] != json!("known")),
         "a web hit was listed among the catalogue's own: {hits:?}"
     );
+    let manifest = read_json(&dir.join("manifest.json")).unwrap();
+    assert_eq!(
+        manifest["sources"][1]["url"],
+        "https://research.fs.usda.gov/silvics/oregon-white-oak-catalogued"
+    );
+    assert_eq!(manifest["sources"][1]["id"], "P2");
 }
 
 /// With a run directory of its own, a stage leaves the species folder holding
@@ -414,18 +252,8 @@ fn a_run_directory_keeps_a_runs_scratch_out_of_the_species_folder() {
     let run = species.join("..").join("run-elsewhere");
     fs::create_dir_all(&run).unwrap();
     let paths = Paths::with_run(&species, &run);
-    let transport = PipelineTransport(CaseTransport);
-    let judge = judge(&transport, &run);
-
-    discover::run(&paths, &adapter, &judge, &KnownSources::default()).unwrap();
-    let proposed = read_json(&species.join("decisions.json")).unwrap()["decisions"][0].clone();
-    write_canonical(
-        &species.join("resolutions.json"),
-        &json!({"resolutions": [{"id": proposed["id"], "inputs_sha256": proposed["inputs_sha256"], "option": "admit", "by": "test", "at": "2026-09-18"}]}),
-    )
-    .unwrap();
+    gather::run(&paths, &adapter, &KnownSources::default()).unwrap();
     fetch::run(&paths, &adapter).unwrap();
-
     for scratch_name in ["cache", "ledger", "stills", "command-log.json"] {
         assert!(
             !species.join(scratch_name).exists(),

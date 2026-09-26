@@ -1,0 +1,64 @@
+{
+  "set_from": "fn-157 (2026-09-26): the beech's readings as the live run and the recorded pages hold them, with the document kinds data/cases/kind.json admits; each case is what a person admits the aggregate should decide. The agreement and outlier bounds (agree.rs) must answer every case.",
+  "cases": [
+    {
+      "id": "beech-height-forestry-tier",
+      "readings": [
+        {"site": "woodlandtrust.org.uk", "kind": "forestry", "range": [40, 40]},
+        {"site": "euforgen.org", "kind": "forestry", "range": [30, 35]},
+        {"site": "mortonarb.org", "kind": "garden", "range": [15.24, 18.288]},
+        {"site": "ncsu.edu", "kind": "extension", "range": [15.24, 18.288]},
+        {"site": "oregonstate.edu", "kind": "extension", "range": [15, 23]},
+        {"site": "wordpress.com", "kind": "nursery", "range": [35, 35]}
+      ],
+      "expect": {"kind": "forestry", "value": 36.25, "confidence": "agreed", "set_aside": []}
+    },
+    {
+      "id": "beech-leaf-length-extension-over-a-lone-garden",
+      "readings": [
+        {"site": "mortonarb.org", "kind": "garden", "range": [0.0508, 0.127]},
+        {"site": "oregonstate.edu", "kind": "extension", "range": [0.05, 0.1]},
+        {"site": "ncsu.edu", "kind": "extension", "range": [0.0508, 0.1016]},
+        {"site": "wordpress.com", "kind": "nursery", "range": [0.1, 0.1]}
+      ],
+      "expect": {"kind": "extension", "value": 0.0756, "confidence": "agreed", "set_aside": []}
+    },
+    {
+      "id": "beech-leaf-width-one-extension-page",
+      "readings": [
+        {"site": "ncsu.edu", "kind": "extension", "range": [0.0762, 0.1524]},
+        {"site": "wordpress.com", "kind": "nursery", "range": [0.07, 0.07]}
+      ],
+      "expect": {"kind": "extension", "value": 0.1143, "confidence": "thin", "set_aside": []}
+    },
+    {
+      "id": "beech-height-landscape-pages-with-one-far",
+      "readings": [
+        {"site": "mortonarb.org", "kind": "extension", "range": [15.24, 18.288]},
+        {"site": "ncsu.edu", "kind": "extension", "range": [15.24, 18.288]},
+        {"site": "oregonstate.edu", "kind": "extension", "range": [15, 23]},
+        {"site": "woodlandtrust.org.uk", "kind": "extension", "range": [40, 40]}
+      ],
+      "expect": {"kind": "extension", "value": 16.764, "confidence": "agreed", "set_aside": ["woodlandtrust.org.uk"]}
+    },
+    {
+      "id": "a-better-tier-that-disagrees-gives-way-to-one-that-agrees",
+      "readings": [
+        {"site": "a.org", "kind": "flora", "range": [10, 10]},
+        {"site": "b.org", "kind": "flora", "range": [40, 40]},
+        {"site": "c.org", "kind": "nursery", "range": [20, 20]},
+        {"site": "d.org", "kind": "nursery", "range": [22, 22]}
+      ],
+      "expect": {"kind": "nursery", "value": 21.0, "confidence": "agreed", "set_aside": []}
+    },
+    {
+      "id": "no-tier-agrees-the-best-holding-a-value-decides",
+      "readings": [
+        {"site": "a.org", "kind": "forestry", "range": [30, 30]},
+        {"site": "b.org", "kind": "nursery", "range": [10, 10]},
+        {"site": "c.org", "kind": "other", "range": [25, 25]}
+      ],
+      "expect": {"kind": "forestry", "value": 30.0, "confidence": "thin", "set_aside": []}
+    }
+  ]
+}

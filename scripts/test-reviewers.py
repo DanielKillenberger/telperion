@@ -270,6 +270,45 @@ class ReferenceFirstClaude(unittest.TestCase):
             with self.assertRaises(ValueError):
                 prepared.prepare(dict(envelope, request=dict(request, protocol="old")))
 
+    def test_a_shot_names_one_candidate_camera_or_none(self):
+        """fn-157: a found photograph's camera is chosen from code's renders."""
+        prepared = load_module("reference-first.py")
+        with tempfile.TemporaryDirectory() as tmp:
+            image = self.build_envelope(tmp)["request"]["references"][0]["image"]
+            request = {"protocol": prepared.SHOT_VERSION, "target_species": "european-beech", "view": "leaf-on",
+                       "photograph": image,
+                       "candidates": [{"id": "camera-0", "image": image}, {"id": "camera-1", "image": image}]}
+            prompt = "Shot instruction"
+            envelope = {"stage": "shot", "request": request, "request_sha256": "bound-by-rust",
+                        "prompt": prompt, "prompt_sha256": sha256(prompt.encode())}
+            paths, schema, _ = prepared.prepare(envelope)
+            self.assertEqual(len(paths), 3)
+            self.assertEqual(schema["properties"]["choice"]["enum"], ["camera-0", "camera-1", "none"])
+
+    def test_an_outline_names_a_box_a_line_and_a_light_or_none(self):
+        """fn-157: the photograph's tree box, crown base and light are chosen
+        from code's candidates; a label, never a number."""
+        prepared = load_module("reference-first.py")
+        with tempfile.TemporaryDirectory() as tmp:
+            image = self.build_envelope(tmp)["request"]["references"][0]["image"]
+            request = {"protocol": prepared.OUTLINE_VERSION, "view": "leaf-on", "photograph": image,
+                       "boxes": {"image": image, "labels": ["A", "B"]},
+                       "lines": {"image": image, "labels": ["1", "2", "3"]},
+                       "lights": [{"id": "overcast", "description": "flat"}, {"id": "sun-left", "description": "left"}]}
+            prompt = "Outline instruction"
+            envelope = {"stage": "outline", "request": request, "request_sha256": "bound-by-rust",
+                        "prompt": prompt, "prompt_sha256": sha256(prompt.encode())}
+            paths, schema, _ = prepared.prepare(envelope)
+            self.assertEqual(len(paths), 3)
+            props = schema["properties"]
+            self.assertEqual(props["box"]["enum"], ["A", "B", "none"])
+            self.assertEqual(props["crown_base"]["enum"], ["1", "2", "3", "none"])
+            self.assertEqual(props["light"]["enum"], ["overcast", "sun-left", "none"])
+            bark = dict(request, boxes=None, lines=None)
+            paths, schema, _ = prepared.prepare(dict(envelope, request=bark))
+            self.assertEqual(len(paths), 1)
+            self.assertEqual(schema["properties"]["box"]["enum"], ["none"])
+
 
 class TapeAdapter(unittest.TestCase):
     """fn-149: an adapter call recorded once replays with no adapter run, and
@@ -328,7 +367,13 @@ class TapeAdapter(unittest.TestCase):
         answer = "import sys; sys.stdin.read(); print('{\"status\": \"ok\"}')"
 
         def envelope(run):
-            request = {"comparison": {"identity": f"id-{run}", "images": [{"path": f"/{run}/r.png", "sha256": "r"}]},
+            # fn-157: a render's geometry group names the run identity it was
+            # drawn under, and the shot source hashes a references file that
+            # holds the run's paths and dates; neither is the question.
+            joint = {"inputs": [{"geometry_group": f"id-{run}:seed:1", "sha256": "r"}],
+                     "shot_source": {"path": f"/{run}/shots.json", "sha256": f"s-{run}"}}
+            request = {"comparison": {"identity": f"id-{run}", "images": [{"path": f"/{run}/r.png", "sha256": "r"}],
+                                      "joint": joint},
                        "inventory": {"ledger": f"/{run}/ledger/{run}.json#sha256:{run}", "traits": ["t"]}}
             return {"stage": "comparison", "request": request, "request_sha256": run}
 
@@ -342,6 +387,57 @@ class TapeAdapter(unittest.TestCase):
             changed = envelope("b")
             changed["request"]["inventory"]["traits"] = ["u"]
             self.assertEqual(run(f"replay:{tmp}", changed).returncode, 3, "a different question is not served")
+
+    def test_rekey_files_each_answer_under_the_key_the_adapter_computes_now(self):
+        """fn-157: a change of what names the run moves every key; rekey
+        refiles a recording's answers so it still replays."""
+        script = Path(__file__).resolve().parent / "tape-adapter.py"
+        tape = load_module("tape-adapter.py")
+        with tempfile.TemporaryDirectory() as tmp:
+            asked = {"stage": "screen", "request": {"image": {"sha256": "s"}}}
+            argv = ["python3", "scripts/reference-first.py"]
+            stale = Path(tmp) / "adapter" / ("0" * 32 + ".json")
+            stale.parent.mkdir()
+            stale.write_text(json.dumps({"key": "0" * 64, "argv": argv, "stdin": asked,
+                                         "stdout": "{}", "stderr": "", "exit": 0}))
+            done = subprocess.run([sys.executable, str(script), f"rekey:{tmp}"], text=True, capture_output=True)
+            self.assertEqual(done.returncode, 0, done.stderr)
+            digest = tape.key(argv, json.dumps(asked))
+            moved = Path(tmp) / "adapter" / f"{digest[:32]}.json"
+            self.assertTrue(moved.exists() and not stale.exists(), done.stdout)
+            self.assertEqual(json.loads(moved.read_text())["key"], digest)
+
+    def test_rekey_keeps_the_newest_answer_when_two_become_one_question(self):
+        """fn-157: an answer recorded before a key change and one recorded
+        after it for the same question collide; the newer one is the run's."""
+        script = Path(__file__).resolve().parent / "tape-adapter.py"
+        with tempfile.TemporaryDirectory() as tmp:
+            argv = ["python3", "scripts/reference-first.py"]
+            asked = {"stage": "comparison", "request": {"joint": {"geometry_group": "old"}}}
+            again = {"stage": "comparison", "request": {"joint": {"geometry_group": "new"}}}
+            folder = Path(tmp) / "adapter"
+            folder.mkdir()
+            for name, stdin, said, when in [("b" * 32, asked, "old", 1000), ("a" * 32, again, "new", 2000)]:
+                entry = folder / f"{name}.json"
+                entry.write_text(json.dumps({"key": name, "argv": argv, "stdin": stdin,
+                                             "stdout": said, "stderr": "", "exit": 0}))
+                import os
+                os.utime(entry, (when, when))
+            subprocess.run([sys.executable, str(script), f"rekey:{tmp}"], check=True, capture_output=True)
+            left = [json.loads(p.read_text())["stdout"] for p in folder.glob("*.json")]
+            self.assertEqual(left, ["new"])
+            # The newer answer already filed under its right key stays when an
+            # older one rekeys onto it.
+            tape = load_module("tape-adapter.py")
+            digest = tape.key(argv, json.dumps(again))
+            stale = folder / ("c" * 32 + ".json")
+            stale.write_text(json.dumps({"key": "c" * 64, "argv": argv, "stdin": asked,
+                                         "stdout": "older", "stderr": "", "exit": 0}))
+            os.utime(stale, (500, 500))
+            subprocess.run([sys.executable, str(script), f"rekey:{tmp}"], check=True, capture_output=True)
+            left = [json.loads(p.read_text())["stdout"] for p in folder.glob("*.json")]
+            self.assertEqual(left, ["new"])
+            self.assertTrue((folder / f"{digest[:32]}.json").exists())
 
 
 if __name__ == "__main__":

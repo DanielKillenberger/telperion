@@ -17,9 +17,7 @@ use telperion_jev::pipeline::adapter::{FetchAdapter, FirecrawlCli, FixtureAdapte
 use telperion_jev::pipeline::canon::{read_json, write_canonical};
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::stage::Paths;
-use telperion_jev::pipeline::stages::{extract, fetch, screen};
-
-const P8_ID: &str = "date-palm/fetch/unavailable-source/P8";
+use telperion_jev::pipeline::stages::{fetch, read};
 
 fn fixture(name: &str) -> String {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -95,7 +93,7 @@ fn palm(tag: &str, pages: &[Page]) -> (PathBuf, FixtureAdapter) {
         "sources": sources,
         "fields": [{"field": "height_m", "condition": "open_grown", "required_ages_years": [30],
                     "bar": "partial", "question": "Which span states the palm's height?"}],
-        "versions": {"question_sets": {"screen": 1, "sufficiency": 1}, "tools": {}},
+        "versions": {"question_sets": {"label": 1}, "tools": {}},
         "model": "jev-latest"
     });
     fs::write(
@@ -106,21 +104,18 @@ fn palm(tag: &str, pages: &[Page]) -> (PathBuf, FixtureAdapter) {
     (dir, FixtureAdapter::new(fixtures))
 }
 
-fn candidates(dir: &Path) -> Vec<Value> {
-    read_json(&dir.join("extract.json")).unwrap()["body"]["candidates"]
-        .as_array()
-        .unwrap()
-        .clone()
-}
-
-fn decision(dir: &Path, id: &str) -> Value {
-    read_json(&dir.join("decisions.json")).unwrap()["decisions"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .find(|d| d["id"] == id)
-        .unwrap_or_else(|| panic!("no decision {id}"))
-        .clone()
+/// Every candidate sentence of every source the fetch cached, by source.
+fn candidates(dir: &Path) -> Vec<(String, String)> {
+    let fetch = read_json(&dir.join("fetch.json")).unwrap()["body"]["sources"].clone();
+    let mut out = Vec::new();
+    for (id, record) in fetch.as_object().unwrap() {
+        let name = record["cached"]["markdown"].as_str().unwrap();
+        let text = fs::read_to_string(dir.join("cache").join(name)).unwrap();
+        for c in candidate_sentences(&text) {
+            out.push((id.clone(), c.sentence));
+        }
+    }
+    out
 }
 
 /// The cookie wall P8's scrape returned, served as its raw body too: a
@@ -136,7 +131,8 @@ fn cookie_wall() -> Page {
 }
 
 /// R1: the "<" of a p-value in M1 and P6 deletes nothing after it, so M1's
-/// leaflet sentence and P6's rainfall sentence reach extract.json.
+/// leaflet sentence and P6's rainfall sentence are candidates the read stage
+/// sees.
 #[test]
 fn a_p_value_deletes_nothing_and_m1s_leaflet_sentence_is_a_candidate() {
     let (dir, adapter) = palm(
@@ -144,12 +140,11 @@ fn a_p_value_deletes_nothing_and_m1s_leaflet_sentence_is_a_candidate() {
         &[page("M1", &fixture("m1.md")), page("P6", &fixture("p6.md"))],
     );
     fetch::run(&Paths::new(&dir), &adapter).unwrap();
-    extract::run(&Paths::new(&dir)).unwrap();
     let found = candidates(&dir);
     let has = |source: &str, needle: &str| {
         found
             .iter()
-            .any(|c| c["source"] == source && c["sentence"].as_str().unwrap().contains(needle))
+            .any(|(id, sentence)| id == source && sentence.contains(needle))
     };
     assert!(has("M1", "62.33 cm (Ajwah) to 34.5 cm"), "{found:#?}");
     assert!(has("M1", "4.9 cm (Safawi) to 2.87 cm"), "{found:#?}");
@@ -182,10 +177,11 @@ fn the_fronds_width_stays_in_the_fronds_sentence() {
 }
 
 /// R3: P7's cookie wall is refused and the raw body's conversion is cached
-/// in its place; P8, unusable on both routes, files unavailable-source while
-/// P5 is still fetched.
+/// in its place; P8, unusable on both routes, is dropped with its reason
+/// while P5 is still fetched (fn-157: a document is one of many, never a
+/// decision).
 #[test]
-fn a_cookie_wall_is_refused_and_a_source_with_no_usable_content_files_unavailable() {
+fn a_cookie_wall_is_refused_and_a_source_with_no_usable_content_is_dropped() {
     let p7 = Page {
         raw: Some(fixture("p7.html")),
         ..page("P7", &fixture("p7.md"))
@@ -193,7 +189,7 @@ fn a_cookie_wall_is_refused_and_a_source_with_no_usable_content_files_unavailabl
     let (dir, adapter) = palm("r3", &[p7, cookie_wall(), page("P5", &fixture("p5.md"))]);
     let outcome = fetch::run(&Paths::new(&dir), &adapter).unwrap();
     assert!(
-        matches!(&outcome, fetch::Outcome::Ran { decisions } if decisions == &[P8_ID]),
+        matches!(&outcome, fetch::Outcome::Ran { decisions } if decisions.is_empty()),
         "{outcome:?}"
     );
     let body = &read_json(&dir.join("fetch.json")).unwrap()["body"];
@@ -215,68 +211,37 @@ fn a_cookie_wall_is_refused_and_a_source_with_no_usable_content_files_unavailabl
     assert!(!cached.contains("citeCookieName"), "{cached}");
     assert!(body["sources"].get("P5").is_some());
     assert!(body["sources"].get("P8").is_none());
-    let p8 = decision(&dir, P8_ID);
-    assert_eq!(p8["status"], "open");
+    let p8 = &body["dropped"]["P8"];
     assert!(
-        p8["payload"]["error"]
+        p8["error"]
             .as_str()
             .unwrap()
             .contains("Cookies must be enabled"),
         "{p8}"
     );
-
-    extract::run(&Paths::new(&dir)).unwrap();
+    assert!(!dir.join("decisions.json").exists());
     assert!(candidates(&dir)
         .iter()
-        .any(|c| c["source"] == "P7" && c["sentence"].as_str().unwrap().contains("545.33 cm")));
+        .any(|(id, sentence)| id == "P7" && sentence.contains("545.33 cm")));
 }
 
-/// R3: a PDF the adapter cannot parse files unavailable-source for that
-/// source and the rest are still fetched.
+/// R3: a PDF the adapter cannot parse is dropped with its reason and the
+/// rest are still fetched.
 #[test]
-fn a_pdf_parse_failure_files_unavailable_source_and_the_rest_are_fetched() {
+fn a_pdf_parse_failure_is_dropped_and_the_rest_are_fetched() {
     let pdf = Page {
         content_type: "application/pdf",
         raw: Some("%PDF-1.4 not parseable".into()),
         ..page("X1", "")
     };
     let (dir, adapter) = palm("pdf", &[pdf, page("P5", &fixture("p5.md"))]);
-    let outcome = fetch::run(&Paths::new(&dir), &adapter).unwrap();
-    let id = "date-palm/fetch/unavailable-source/X1";
-    assert!(
-        matches!(&outcome, fetch::Outcome::Ran { decisions } if decisions == &[id]),
-        "{outcome:?}"
-    );
-    assert!(decision(&dir, id)["payload"]["error"]
+    fetch::run(&Paths::new(&dir), &adapter).unwrap();
+    let body = &read_json(&dir.join("fetch.json")).unwrap()["body"];
+    assert!(body["dropped"]["X1"]["error"]
         .as_str()
         .unwrap()
         .contains("parse"));
-    let body = &read_json(&dir.join("fetch.json")).unwrap()["body"];
     assert!(body["sources"].get("P5").is_some());
-}
-
-/// R3: a retry that fails again reopens the decision, and stays open.
-#[test]
-fn a_retry_that_fails_again_reopens_the_decision() {
-    let (dir, adapter) = palm("retry", &[cookie_wall()]);
-    fetch::run(&Paths::new(&dir), &adapter).unwrap();
-    let filed = decision(&dir, P8_ID);
-    write_canonical(
-        &dir.join("resolutions.json"),
-        &json!({"resolutions": [{"id": P8_ID, "inputs_sha256": filed["inputs_sha256"],
-                                 "option": "retry", "by": "owner", "at": "2026-09-23"}]}),
-    )
-    .unwrap();
-    fetch::run(&Paths::new(&dir), &adapter).unwrap();
-    let reopened = decision(&dir, P8_ID);
-    assert_eq!(reopened["status"], "open", "{reopened}");
-    assert_ne!(reopened["inputs_sha256"], filed["inputs_sha256"]);
-    fetch::run(&Paths::new(&dir), &adapter).unwrap();
-    assert_eq!(decision(&dir, P8_ID)["status"], "open");
-    assert_eq!(
-        decision(&dir, P8_ID)["inputs_sha256"],
-        reopened["inputs_sha256"]
-    );
 }
 
 /// R3: a scrape whose metadata carries no status is not a success.
@@ -292,23 +257,22 @@ fn a_scrape_with_no_status_is_not_a_success() {
     assert!(err.contains("no status"), "{err}");
 }
 
-/// Answers every screen question the same way and records each sentence.
+/// Labels every span `none` and records each marked sentence it is asked.
 struct Recording(RefCell<Vec<String>>);
 
 impl Transport for Recording {
     fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String> {
         let body: Value = serde_json::from_slice(request.body.as_deref().unwrap_or(b"{}")).unwrap();
-        let sentence = body["state"]["candidate"]["sentence"]
-            .as_str()
-            .unwrap_or_default();
-        self.0.borrow_mut().push(sentence.to_string());
-        let answers = json!({
-            "kind": {"type": "choice", "choice": "not_about_tree_size", "confidence": 0.9,
-                     "probabilities": {"not_about_tree_size": 0.9}},
-            "condition": {"type": "choice", "choice": "unstated", "confidence": 0.9,
-                          "probabilities": {"unstated": 0.9}},
-            "anchor_usable": {"type": "noul", "noul": 0.05},
-        });
+        if let Some(marked) = body["state"]["candidate"]["marked"].as_str() {
+            self.0.borrow_mut().push(marked.to_string());
+        }
+        let choice = |key: &str| {
+            json!({"type": "choice", "choice": key, "confidence": 0.9,
+                                        "probabilities": {key: 0.9}})
+        };
+        let answers = json!({"field": choice("none"), "basis": choice("unclear"),
+                             "age": choice("mature"), "condition": choice("unstated"),
+                             "document": choice("other")});
         Ok(HttpResponse {
             status: 200,
             body: serde_json::to_vec(&json!({"model": "jev-latest", "answers": answers})).unwrap(),
@@ -316,32 +280,40 @@ impl Transport for Recording {
     }
 }
 
-/// R4: screen judges exactly extract.json's candidates, not a re-extraction.
+/// fn-157: the read stage asks Jev once per span code found, the span
+/// marked in its sentence, and keeps one labelled row per question asked.
 #[test]
-fn screen_judges_exactly_the_candidates_extract_json_holds() {
-    let (dir, adapter) = palm("r4", &[page("P5", &fixture("p5.md"))]);
+fn read_labels_exactly_the_spans_code_finds_one_marked_at_a_time() {
+    let (dir, adapter) = palm("read", &[page("P5", &fixture("p5.md"))]);
+    let path = dir.join("manifest.json");
+    let mut manifest = read_json(&path).unwrap();
+    manifest["fields"][0]["field"] = json!("leaf_length_m");
+    write_canonical(&path, &manifest).unwrap();
     fetch::run(&Paths::new(&dir), &adapter).unwrap();
-    extract::run(&Paths::new(&dir)).unwrap();
-    let path = dir.join("extract.json");
-    let mut artifact = read_json(&path).unwrap();
-    let first = artifact["body"]["candidates"][0].clone();
-    let injected = json!({"source": "P5", "sentence": "An injected palm is 99 m tall.", "context": "An injected palm is 99 m tall."});
-    artifact["body"]["candidates"] = json!([first, injected]);
-    write_canonical(&path, &artifact).unwrap();
-
     let transport = Recording(RefCell::new(Vec::new()));
     let judge = Judge {
         transport: &transport,
         key: "test-key",
         ledger_dir: dir.join("ledger").join("entries"),
     };
-    screen::run(&Paths::new(&dir), &judge).unwrap();
-    let judged = transport.0.borrow().clone();
-    let expected = vec![
-        first["sentence"].as_str().unwrap().to_string(),
-        "An injected palm is 99 m tall.".to_string(),
-    ];
-    assert_eq!(judged, expected);
-    let rows = read_json(&dir.join("screen.json")).unwrap()["body"]["rows"].clone();
-    assert_eq!(rows.as_array().unwrap().len(), 2);
+    read::run(&Paths::new(&dir), &judge).unwrap();
+    // P5 names the leaves, the manifest's one field here being their length.
+    let expected: Vec<String> =
+        read::occurrences(&fixture("p5.md"), &["leaf_length_m".to_string()])
+            .iter()
+            .map(read::Occurrence::marked)
+            .collect();
+    let asked = transport.0.borrow().clone();
+    assert!(!asked.is_empty());
+    assert_eq!(asked, expected);
+    assert!(
+        asked.iter().all(|m| m.matches('⟦').count() == 1),
+        "{asked:?}"
+    );
+    let spans = read_json(&dir.join("read.json")).unwrap()["body"]["spans"].clone();
+    assert_eq!(spans.as_array().unwrap().len(), asked.len());
+    assert!(
+        spans[0]["field"] == "none" && spans[0]["ledger"].is_string(),
+        "{spans}"
+    );
 }

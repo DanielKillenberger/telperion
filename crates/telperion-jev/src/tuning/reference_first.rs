@@ -109,6 +109,18 @@ impl Inventory {
     pub fn hash(&self) -> String {
         sha256_hex(&serde_json::to_vec(self).unwrap())
     }
+    /// The inventory by what it says and the photographs it read: no path,
+    /// request hash or ledger entry, which name the run (fn-157).
+    pub fn content_hash(&self) -> String {
+        let read: Vec<&str> = self
+            .request
+            .references
+            .iter()
+            .map(|r| r.image.sha256.as_str())
+            .collect();
+        let named = serde_json::json!([read, self.traits, self.observations]);
+        sha256_hex(&serde_json::to_vec(&named).unwrap())
+    }
     pub fn verify(&self) -> Result<(), String> {
         self.request.verify()?;
         if self.request_sha256 != self.request.hash()
@@ -472,7 +484,7 @@ impl ComparisonResult {
         );
         if status != CellStatus::Pass {
             let finding = super::joint::Finding {
-                observation: format!("Code-derived reference-first coverage gate: core trait coverage is {status:?}; this is a joint readiness constraint, not a new per-view model verdict. Inventory {}", request.inventory.hash()),
+                observation: format!("Code-derived reference-first coverage gate: core trait coverage is {status:?}; this is a joint readiness constraint, not a new per-view model verdict. Inventory {}", request.inventory.content_hash()),
                 evidence_ids: packet.inputs.iter().filter(|i| i.role == "reference" || i.role == "render").map(|i| i.id.clone()).collect(),
                 impact: if status == CellStatus::Fail { super::joint::Impact::Blocker } else { super::joint::Impact::RequiredUnknown },
                 uncertain: status == CellStatus::Unknown,
@@ -501,7 +513,12 @@ impl ComparisonResult {
             }
             packet.verify_findings(&self.visual.assessment.findings)?;
         }
-        let evidence = serde_json::json!({"protocol":VERSION,"inventory_sha256":request.inventory.hash(),"inventory":request.inventory,"coverage":self.coverage});
+        // What the inventory says, never where a run kept its photographs:
+        // Jev reads this, and a replay elsewhere asks the same (fn-157).
+        let inventory = &request.inventory;
+        let said =
+            serde_json::json!({"traits": inventory.traits, "observations": inventory.observations});
+        let evidence = serde_json::json!({"protocol":VERSION,"inventory_sha256":inventory.content_hash(),"inventory":said,"coverage":self.coverage});
         let observation = format!("Attributed reference-first evidence: {evidence}");
         if !self.visual.observations.contains(&observation) {
             self.visual.observations.push(observation.clone());

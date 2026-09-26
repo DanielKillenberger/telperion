@@ -33,7 +33,7 @@ impl Stage for Catalogue {
     fn inputs(&self, run: &Run) -> Result<Vec<PathBuf>, String> {
         let p = &run.paths;
         let mut files = vec![p.manifest(), p.resolutions()];
-        files.extend(["select", "fit", "gate"].map(|n| p.artifact(n)));
+        files.extend(["aggregate", "fit", "gate"].map(|n| p.artifact(n)));
         // A written article reruns the cite check.
         files.push(run.folder().join("ARTICLE.md"));
         files.extend(run.tools()?.files());

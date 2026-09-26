@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "field": {
+    "type": "choice",
+    "instructions": "The state holds one sentence from a document about the tree species `species`: `candidate.marked` is the sentence with one number-and-unit span marked ⟦like this⟧, and `candidate.context` the text around it. Which measurement of the species does the marked span state, read in its sentence and context? Judge the marked span only, never another number in the sentence.",
+    "none": "The marked span measures something else: a fruit, flower, seed, bud, bark thickness, an elevation, a distance, a planting space, another species, or nothing about this tree"
+  },
+  "basis": {
+    "type": "choice",
+    "instructions": "Read in its sentence and context, what does the marked span ⟦like this⟧ give?",
+    "criteria": {
+      "typical": "What trees of the species usually reach: a range, a usual value, or the size a flora or manual gives for the species as a whole, an 'up to' figure included",
+      "record": "A record or an exceptional size: the tallest, largest or widest known, a champion, or a size the text calls rare or exceptional",
+      "specimen": "The measurement of one individual tree, named, located or described as a single tree",
+      "cultivar": "The size of a named cultivar, variety or form, not of the species as a whole",
+      "unclear": "The text does not say which"
+    }
+  },
+  "age": {
+    "type": "choice",
+    "instructions": "At what age does the marked span ⟦like this⟧ describe the tree, read in its sentence and context?",
+    "criteria": {
+      "mature": "A grown tree, or no age is given",
+      "at_age": "A stated age or age span, such as at 20 years",
+      "young": "A seedling, sapling, young tree or nursery stock"
+    }
+  },
+  "condition": {
+    "type": "choice",
+    "instructions": "Under what growing condition does the marked span ⟦like this⟧ describe the tree, read in its sentence and context?",
+    "criteria": {
+      "open_grown": "A tree in the open, a park, a landscape, a yard or a field with no neighbouring canopy competition",
+      "stand_grown": "A tree inside a forest stand or closed canopy, or a forestry site-index or stand context",
+      "plantation_or_nursery": "A planted crop, a nursery bed or a seedling lot",
+      "unstated": "The context does not say under what condition the tree grew"
+    }
+  }
+}
