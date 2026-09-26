@@ -4,7 +4,7 @@ A runtime tree generator: space colonization for the crown, botanical rules belo
 
 ## Dispatch and escalation (owner)
 
-One task per spec: the owner found that splitting a spec into several tasks lowers the outcome with a strong implementer, so a spec's plan lives in its body and work mints one implicit task. Generator parameters are primary; templates are reusable parameter presets, and supported parameter changes must require no renderer code changes.
+Generator parameters are primary; templates are reusable parameter presets, and supported parameter changes must require no renderer code changes.
 
 Reasoning and system design escalate to the host (owner, 2026-09-19). A dispatched agent executes; it does not reason about the system. Such an agent carries the mechanical work of a species run: the seed and manifest draft, the literature stages, the readings the pipeline's question sets judge, the packet and the report. Anything that takes reasoning or system design stops and goes up to the host session conducting the run: the capability assessment that decides what the generator cannot express, gap analysis and the candidate fixes written for a gap, the shape of any spec a gap mints, and any judgment about how a part of the system should work. The host has the context and the authority; a dispatched agent has neither, and its guess is indistinguishable from an answer once it is written into an artifact. The reason for the line sitting here: a wrong reading costs one source and the next stage catches it, while a wrong design judgment sends the swarm to build the wrong thing, or parks a species the generator could already draw. Escalation is not failure and costs nothing; a cheap driver that reaches such a step reports it and stops.
 
@@ -14,7 +14,7 @@ fn-13 task 5 consumed a full weekly quota on 22 full-forest GPU captures and ima
 
 - **Small before large.** Never start a 1,024-tree capture until the specific defect reproduces and is fixed on the 8-tree forest with a red/green test. At most one full-forest capture per commit.
 - **Read summaries, not receipts.** Agents read `OUTCOME.json`, `INSPECTION.md` and `metrics.json`. Never open `receipt.json`, videos or frame sequences; never view more than four images per capture. Raw receipts, videos and frame directories are gitignored and stay on disk.
-- **Review is lean.** `review.backend` is `none`; the host session checks diffs directly. Do not raise it without the owner. The QA pipeline stage is on `auto` (owner, 2026-09-19): `flow --auto` puts the spec's acceptance to Jev's `qa-gate` preset and drives the harness only when the answer is UI-observable and code resolves a startable target, so a generator, CLI or preset spec still skips it. A QA pass drives `npm run dev`, never a full-forest capture; the capture budget above is unchanged.
+- **Review.** `review.backend` is `codex` (owner, 2026-09-26). The QA pipeline stage is on `auto` (owner, 2026-09-19): `flow --auto` puts the spec's acceptance to Jev's `qa-gate` preset and drives the harness only when the answer is UI-observable and code resolves a startable target, so a generator, CLI or preset spec still skips it. A QA pass drives `npm run dev`, never a full-forest capture; the capture budget above is unchanged.
 
 ## Generator evolution (owner, 2026-09-20)
 
