@@ -513,7 +513,12 @@ impl ComparisonResult {
             }
             packet.verify_findings(&self.visual.assessment.findings)?;
         }
-        let evidence = serde_json::json!({"protocol":VERSION,"inventory_sha256":request.inventory.hash(),"inventory":request.inventory,"coverage":self.coverage});
+        // What the inventory says, never where a run kept its photographs:
+        // Jev reads this, and a replay elsewhere asks the same (fn-157).
+        let inventory = &request.inventory;
+        let said =
+            serde_json::json!({"traits": inventory.traits, "observations": inventory.observations});
+        let evidence = serde_json::json!({"protocol":VERSION,"inventory_sha256":inventory.content_hash(),"inventory":said,"coverage":self.coverage});
         let observation = format!("Attributed reference-first evidence: {evidence}");
         if !self.visual.observations.contains(&observation) {
             self.visual.observations.push(observation.clone());
