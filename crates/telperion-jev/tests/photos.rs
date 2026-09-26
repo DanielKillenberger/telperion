@@ -293,3 +293,38 @@ fn a_commons_file_under_cc_by_or_cc0_is_open_without_a_question() {
         "only the GFDL file is asked"
     );
 }
+
+/// fn-157, the beech's live run: a rerun below two recorded photographs
+/// looks again, and the look keeps the photograph it kept before. It is
+/// recorded once: a second record doubled every later look and render.
+#[test]
+fn a_rerun_never_records_a_photograph_twice() {
+    let dir = scratch();
+    let mut whole = vec![0xFF, 0xD8, 0xFF, 0xE0];
+    whole.extend_from_slice(b"whole");
+    let recorded = json!({"reference_version": "fn19-references-v1", "sources": [],
+        "references": [{"id": "photo-1", "source_id": "R1", "kept": false,
+            "asset_sha256": telperion_jev::sha256_hex(&whole),
+            "url": "https://commons.wikimedia.org/wiki/File:whole.jpg"}]});
+    write_canonical(&dir.join("packet/references.json"), &recorded).unwrap();
+    let judge = Judge {
+        transport: &Rights,
+        key: "test-key",
+        ledger_dir: dir.join("ledger"),
+    };
+    photos::find(&Paths::new(&dir), &web(), &judge, &Look::default()).unwrap();
+    let doc = read_json(&dir.join("packet/references.json")).unwrap();
+    let urls: Vec<&str> = doc["references"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|r| r["url"].as_str().unwrap())
+        .collect();
+    assert_eq!(
+        urls,
+        [
+            "https://commons.wikimedia.org/wiki/File:whole.jpg",
+            "https://commons.wikimedia.org/wiki/File:bark.jpg"
+        ]
+    );
+}
