@@ -192,6 +192,14 @@ fn start_gives_the_measurer_the_profile_it_derived_from() {
     telperion_jev::runner::start::run(&packet, &tuning, &dir.join("out")).unwrap();
     let written = read_json(&profiles).unwrap();
     assert_eq!(written["profiles"][0]["id"], "european-beech");
+    // Frozen and ready, as the measurer requires; the packet stays draft.
+    assert_eq!(written["status"], "ready");
+    assert!(written["frozen_at"].is_string());
+    assert_eq!(written["profiles"][0]["readiness"], "ready");
+    assert_eq!(
+        read_json(&packet).unwrap()["profiles"][0]["readiness"],
+        "draft"
+    );
     assert_eq!(
         written["profiles"][0]["metrics"]["height_m"]["value"],
         read_json(&packet).unwrap()["profiles"][0]["metrics"]["height_m"]["value"]

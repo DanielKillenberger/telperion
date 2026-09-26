@@ -119,6 +119,24 @@ pub fn run(profile_path: &Path, tuning_path: &Path, out: &Path) -> Result<String
     ))
 }
 
+/// The packet's profile as the measurer takes it: a frozen, ready manifest
+/// whose `profile_id` entry is ready. The packet's own profile stays draft;
+/// this copy exists only so a run from a name can measure its first tree.
+fn measurable_copy(packet: &Value, profile_id: &str) -> Value {
+    let mut frozen = packet.clone();
+    frozen["status"] = json!("ready");
+    frozen["frozen_at"] = json!(&crate::pipeline::stage::now()[..10]);
+    frozen["purpose"] = json!(
+        "The aggregate's profile, frozen by Start for the measurer on a run from a name (fn-157); the packet's own profile stays draft."
+    );
+    for profile in frozen["profiles"].as_array_mut().into_iter().flatten() {
+        if profile["id"] == profile_id {
+            profile["readiness"] = json!("ready");
+        }
+    }
+    frozen
+}
+
 /// Makes the tuning profile's gating metrics the measurer cannot read
 /// contextual, so the tree is never gated on a number nobody measures. A
 /// run from a name has no profile manifest of its own: the measurer reads
@@ -128,7 +146,8 @@ fn reclassify(tuning: &Value, profile_id: &str, packet: &Value) -> Result<Vec<St
         return Ok(Vec::new());
     };
     if !path.exists() {
-        write_canonical(path, packet).map_err(|e| format!("{}: {e}", path.display()))?;
+        let frozen = measurable_copy(packet, profile_id);
+        write_canonical(path, &frozen).map_err(|e| format!("{}: {e}", path.display()))?;
     }
     let mut manifest = read_json(path).map_err(|e| e.to_string())?;
     let mut changed = Vec::new();
