@@ -18,10 +18,12 @@ beech's native range (fn-157).
   shot and Tune's first revision: 37 Firecrawl answers (the searches, the
   Wikipedia lead, a scrape of each gathered document and the EUFORGEN
   guideline's PDF parse), 176 Jev calls, 19 Wikimedia Commons answers and
-  images, and 6 vision adapter answers (the screen, the inventory, the
-  shot's two looks, and the baseline's two comparisons, one per seed). Tune's
-  recorded requests were migrated to the content-named inventory and every
-  answer refiled under today's keys, the newest kept where two became one
+  images, and 8 vision adapter answers (the screen, the inventory, the
+  shot's two looks, the baseline's comparisons and round 1's comparison and
+  sheet). Tune's first round was extended again on the parameter catalogue's
+  dial table (fn-152), whose order batches the proposal questions
+  differently: 8 Jev calls and one sheet, recorded 2026-09-26. Every answer
+  is refiled under today's keys, the newest kept where two became one
   question (`tape_trim`, `tape-adapter.py rekey:`). A replay opens every
   file here.
 

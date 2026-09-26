@@ -104,3 +104,10 @@
 - **Hindered:** `docs/species-runner.md` and `runner/accept.rs` say the owner looks at the tuned tree in the harness, but the harness loads a species by `?species=<id>&seed=<n>` (the preset as shipped) and has no way to load the overlay in `runner/tuning/result.json`; the kept tree reaches a preset only with `--accept`, the decision the look is for. The only views are stills: the revision's matched renders under `run/matched/<key>-*/` and a headless still rendered with the overlay as `--family`.
 - **Cost:** about 15 minutes to establish that no URL exists.
 - **Would have removed it:** a harness parameter that loads a run's kept overlay (or a runner command that serves it). A harness change is the host's to spec.
+
+## 2026-09-26, worker, fn-157.1: the rebase onto fn-152 moved the recorded Tune requests
+
+- **Doing:** rebasing the branch onto origin/master (fn-152's parameter catalogue and value files) and replaying the beech fixture through Tune's first round.
+- **Hindered:** the rebase applied cleanly, but the generated dial table orders its rows differently from `data/dials.json`, so the 32-dial proposal batches held other dials and every proposal request missed the recording.
+- **Cost:** one re-extension of round 1: 8 Jev calls (about 254,000 tokens), one comparison and one sheet look, and about 20 minutes.
+- **Would have removed it:** proposal batches keyed by something stable under a table reorder (the dials' ids sorted, or one batch per dial group), so a recording survives a table change that adds no dial.
