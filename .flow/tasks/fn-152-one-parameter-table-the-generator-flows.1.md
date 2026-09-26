@@ -27,9 +27,9 @@ Stage 1 of 4 (the parameter catalogue). Every wire row is declared once, beside 
 
 Open:
 - The pilot `leaves` dial window [2, 12] exceeds its row's 1..8 and is hash-pinned; it is kept, named as an exception in the test.
-- A wire with two malformed-type values now names the first in catalogue order, not the old macro order.
+- Rebased onto #121: the runner and derivation read the generated table; Tune is keyed on `docs/parameters.md` and refuses a runner built from another catalogue.
 
-stage: impl-review - skipped(config: REVIEW_MODE=none)
+stage: impl-review - ran [codex, 2 rounds: NEEDS_WORK with 4 findings (decode order, consumer sets of unread rows, stale runner table, Tune cache key), fixed in 916474a6; SHIP 2026-09-26, receipt `.flow/evidence/fn-152-one-parameter-table-the-generator-flows/impl-review-receipt.json`]
 Tier: session model (claude-opus-5-5)
 ## Evidence
 - Commits: 39f6f4bebd1000411af8cf26e19107972b31f8bf, f82d8c4777dd9e578d0f27252a046acd43a6e88f, d6208293cbd74cdabb8c641fb62703fa1c7c16be, 7db21fa408c6c70d74b080a45dd09bbda2aea0a8, 684901e18d96c42299261c22af7b27347c82f345, ba6650c798b2b03615248e167a64cf66831ad388, 3171468dfc28fe630127fa2ff683658e0705d0ae

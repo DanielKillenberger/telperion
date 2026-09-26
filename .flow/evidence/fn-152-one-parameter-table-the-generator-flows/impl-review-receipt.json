@@ -1,0 +1,93 @@
+{
+  "base": "origin/master",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "849fa4b1c7814ae147ea9666fe891a8ba050f5b9",
+    "headSha": "916474a65829aa96a819820d2f7de8ba857eff2e",
+    "items": [
+      {
+        "body": "Decoding follows catalogue order, so a wire with several malformed-type values names a different first refusal than the base (for example `{\"growth\":{\"rate\":\"bad\"},\"shellDepth\":\"bad\"}` reports `/shellDepth` instead of `/growth/rate`).",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-4ee6974b70283b6cbb7c1d65bdca66439dccd0abc1bc90e4101234660f9a3563",
+        "id": "finding-3d9b4dff3e62d860ecda9df66ef96691",
+        "lastSeenReceiptId": "review-a77c8c3d5cd887b81b25175e201816f6d6e21a26ce74a97ac1723004a668f02d",
+        "ordinal": 1,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Keep the pre-catalogue decoding precedence as catalogue metadata and add a regression test with several malformed fields.",
+        "title": "Decoding follows catalogue order, so a wire with several malformed-type values names a different first refusal than the base (for example `{\"growth\":{\"rate\":\"bad\"},\"shellDepth\":\"bad\"}` reports `/shellDepth` instead of `/growth/rate`)"
+      },
+      {
+        "body": "The macro requires at least one stage, so the growth-only rows (`/age`, `/growth/*`) and the three deprecated canopy rows declare direct-build readers they do not have, and the reference contradicts itself.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-4ee6974b70283b6cbb7c1d65bdca66439dccd0abc1bc90e4101234660f9a3563",
+        "id": "finding-cd34f8e169cfd2d6d07899a95d8bfbd2",
+        "lastSeenReceiptId": "review-a77c8c3d5cd887b81b25175e201816f6d6e21a26ce74a97ac1723004a668f02d",
+        "ordinal": 2,
+        "rIds": [
+          "R1"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Allow an empty consumer set only for growth-only or deprecated rows, still refusing it otherwise, and test the reported consumers.",
+        "title": "The macro requires at least one stage, so the growth-only rows (`/age`, `/growth/*`) and the three deprecated canopy rows declare direct-build readers they do not have, and the reference contradicts itself"
+      },
+      {
+        "body": "The dial table is compiled into the species runner while its tools are rebuilt from the checkout, so a stale runner can tune with old dials against a new generator.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-4ee6974b70283b6cbb7c1d65bdca66439dccd0abc1bc90e4101234660f9a3563",
+        "id": "finding-c993d56ae6d6715eb36e8b505039bba3",
+        "lastSeenReceiptId": "review-a77c8c3d5cd887b81b25175e201816f6d6e21a26ce74a97ac1723004a668f02d",
+        "ordinal": 3,
+        "rIds": [
+          "R3"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Refuse a runner whose compiled catalogue is not the checkout's.",
+        "title": "The dial table is compiled into the species runner while its tools are rebuilt from the checkout, so a stale runner can tune with old dials against a new generator"
+      },
+      {
+        "body": "With `data/dials.json` gone from Tune's inputs, nothing fingerprints the dial table, so a dial-only change leaves the stage current.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-4ee6974b70283b6cbb7c1d65bdca66439dccd0abc1bc90e4101234660f9a3563",
+        "id": "finding-e3dcdefe07d4c4428ddf92718b61626f",
+        "lastSeenReceiptId": "review-a77c8c3d5cd887b81b25175e201816f6d6e21a26ce74a97ac1723004a668f02d",
+        "ordinal": 4,
+        "rIds": [
+          "R3"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Key Tune on the table's revision and test it.",
+        "title": "With `data/dials"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-a77c8c3d5cd887b81b25175e201816f6d6e21a26ce74a97ac1723004a668f02d",
+    "supersedesReceiptId": "review-4ee6974b70283b6cbb7c1d65bdca66439dccd0abc1bc90e4101234660f9a3563"
+  },
+  "id": "fn-152-one-parameter-table-the-generator-flows.1",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6-astra",
+  "pre_existing_count": 0,
+  "review": "Prior finding #1: fixed\nPrior finding #2: fixed\nPrior finding #3: fixed\nPrior finding #4: fixed\n\nWire decoding now follows explicit ranks; all 249 match the base ordering. Growth-only and deprecated rows correctly declare no direct-build readers. The runner rejects catalogue mismatches before tuning, and `Tune::inputs` includes the generated reference for cache invalidation.\n\nAll 18 focused tests passed using existing compiled binaries. No new blocking issue found.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | met | Catalogue completeness, reader declarations, and build-time checks. |\n| R2 | met | Exact wire-rank comparison, malformed-input regression, identity and reference tests. |\n| R3 | met | Named/embedded configuration support and runner catalogue-mismatch check. |\n| R4 | met | Deprecated rows retain wire compatibility and offer no dials. |\n| R5 | met | Recorded workspace and npm gates; focused re-review tests pass. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "022e77ed4aae4609af00005a3dadf925",
+  "session_id": "01a0de2e-ab13-70c3-a27e-bc29f0f8f72a",
+  "spec": "codex:gpt-6-astra:high",
+  "timestamp": "2026-09-26T14:57:32.508750Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
