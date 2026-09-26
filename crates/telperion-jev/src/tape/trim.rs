@@ -324,7 +324,8 @@ pub fn tape(tape: &Path, extra_open: &[String]) -> Result<Vec<String>, String> {
         let ct = page["content_type"].as_str().unwrap_or_default();
         // A page no stage read (fetch dropped it) keeps nothing: kept, its
         // licence tags alone would read as a page on replay.
-        let (trimmed, bytes) = match fetched.contains(url) {
+        let landed = page["final_url"].as_str().unwrap_or(url);
+        let (trimmed, bytes) = match fetched.contains(url) || fetched.contains(landed) {
             true => self::page(url, ct, markdown, &raw, &quotes, true)?,
             false => (String::new(), Vec::new()),
         };
@@ -474,7 +475,8 @@ mod tests {
 
     /// fn-157, the oak's replay: a page fetch dropped live was never read,
     /// and keeps nothing, not even its licence tags; kept, the tags alone
-    /// read as a page and the replay asks its kind.
+    /// read as a page and the replay asks its kind. A page read where it
+    /// landed after a redirect keeps its tags.
     #[test]
     fn a_page_the_run_never_read_keeps_nothing() {
         let tape = std::env::temp_dir().join(format!("trim-unread-{}", std::process::id()));
@@ -492,5 +494,16 @@ mod tests {
             serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
         assert_eq!(after["response"]["ok"]["markdown"], "");
         assert!(!path.with_extension("bin").exists());
+
+        let mut landed = entry.clone();
+        landed["response"]["ok"]["final_url"] = "https://video.test/landed".into();
+        std::fs::write(&path, landed.to_string()).unwrap();
+        std::fs::write(path.with_extension("bin"), raw).unwrap();
+        let kind = serde_json::json!({"request": {"body": {"state": {
+            "source": {"url": "https://video.test/landed"}, "passages": []}}}});
+        std::fs::create_dir_all(tape.join("jev")).unwrap();
+        std::fs::write(tape.join("jev/k.json"), kind.to_string()).unwrap();
+        super::tape(&tape, &[]).unwrap();
+        assert!(path.with_extension("bin").exists());
     }
 }
