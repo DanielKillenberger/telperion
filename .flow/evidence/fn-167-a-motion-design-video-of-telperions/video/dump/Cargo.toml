@@ -1,0 +1,17 @@
+# The video's reader of the pipeline: stage artifacts and blend metrics as
+# JSON for the composition scripts beside it. Its own workspace, so the
+# product workspace neither builds nor tests it.
+[package]
+name = "fn167-dump"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+telperion-core = { path = "../../../../../crates/telperion-core", features = ["json"] }
+serde_json = "1"
+
+[profile.release]
+debug = false
