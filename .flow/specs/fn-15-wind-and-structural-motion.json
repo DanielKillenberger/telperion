@@ -1,15 +1,23 @@
 {
   "branch_name": "fn-15-wind-and-structural-motion",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-05T22:06:51.234073Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-9-real-species-profiles-and-procedural",
     "fn-23-fast-hero-the-oak-inside-the-frame",
     "fn-125-the-generator-hands-engines-a-tree-they"
   ],
   "id": "fn-15-wind-and-structural-motion",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-15-wind-and-structural-motion.md",
   "status": "open",
   "title": "Wind and structural motion",
@@ -24,5 +32,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-24T15:44:32.116297Z"
+  "updated_at": "2026-09-24T16:19:05.785729Z"
 }
