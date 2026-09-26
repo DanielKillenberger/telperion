@@ -4,27 +4,28 @@ use serde_json::json;
 use telperion_jev::cases::{format_scores, CaseRow, SetScore};
 use telperion_jev::pipeline::sets::cases::run_pipeline_cases;
 use telperion_jev::pipeline::sets::{
-    chosen_level, described_cases, described_questions, label_cases, label_questions,
-    level_from_score, missed_ids, set_version, DescribedLevel, DESCRIBED_UNSTATED, LABEL_NONE,
-    LABEL_QUESTIONS,
+    chosen_level, described_cases, described_questions, kind_cases, kind_questions, label_cases,
+    label_questions, level_from_score, missed_ids, set_version, DescribedLevel, DESCRIBED_UNSTATED,
+    KINDS, KIND_UNCLEAR, LABEL_NONE, LABEL_QUESTIONS,
 };
 
 use common::{ledger_dir, CaseTransport};
 use telperion_jev::pipeline::requirements::table;
 
 /// Every base name the runner scores, labelled and held out.
-const SET_NAMES: [&str; 6] = [
+const SET_NAMES: [&str; 7] = [
     "described level",
     "label field",
     "label basis",
     "label age",
     "label condition",
+    "document kind",
     "rights class",
 ];
 
 #[test]
 fn every_set_carries_its_version_and_its_cases_carry_the_fields_the_runner_reads() {
-    for (name, version) in [("described", 1), ("label", 1)] {
+    for (name, version) in [("described", 1), ("label", 1), ("kind", 1)] {
         assert_eq!(set_version(name), version, "{name}");
     }
     let described = described_cases();
@@ -60,12 +61,32 @@ fn every_set_carries_its_version_and_its_cases_carry_the_fields_the_runner_reads
             case.id
         );
     }
+    let kinds = kind_cases();
+    let offered = kind_questions()["document"]["criteria"].clone();
+    for case in &kinds {
+        assert!(offered.get(&case.expect_kind).is_some(), "{}", case.id);
+        assert_eq!(
+            case.negative,
+            case.expect_kind == KIND_UNCLEAR,
+            "{}",
+            case.id
+        );
+    }
+    for kind in KINDS {
+        assert!(offered.get(kind).is_some(), "{kind} is offered");
+    }
     let counts = [
         (
             "described",
             described.len(),
             described.iter().filter(|c| c.holdout).count(),
             described.iter().filter(|c| c.negative).count(),
+        ),
+        (
+            "kind",
+            kinds.len(),
+            kinds.iter().filter(|c| c.holdout).count(),
+            kinds.iter().filter(|c| c.negative).count(),
         ),
         (
             "label",

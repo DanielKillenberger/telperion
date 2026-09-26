@@ -2,9 +2,9 @@
 //!
 //! Each set is versioned JSON under `data/questions`, its labelled cases are
 //! JSON under `data/cases`, and every question offers a no-match answer:
-//! the trailing `unstated` level for a described trait, and for the read
+//! the trailing `unstated` level for a described trait, for the read
 //! stage's label (fn-157) the `none` field, the `unclear` basis and the
-//! `unstated` condition. Code lays out the state and owns every count and
+//! `unstated` condition, and `unclear` for a document's kind. Code lays out the state and owns every count and
 //! every number; Jev only picks a level or a label.
 //!
 //! A case is `holdout` when it is held out of the labelled set that tuned the
@@ -19,13 +19,37 @@ use serde_json::{json, Map, Value};
 
 pub const DESCRIBED_JSON: &str = include_str!("../../data/questions/described.json");
 pub const LABEL_JSON: &str = include_str!("../../data/questions/label.json");
+pub const KIND_JSON: &str = include_str!("../../data/questions/kind.json");
 pub const DESCRIBED_CASES: &str = include_str!("../../data/cases/described.json");
 pub const LABEL_CASES: &str = include_str!("../../data/cases/label.json");
+pub const KIND_CASES: &str = include_str!("../../data/cases/kind.json");
 
 /// The no-match level appended to every described trait's table.
 pub const DESCRIBED_UNSTATED: &str = "unstated";
 /// The no-match answer of the label's field question.
 pub const LABEL_NONE: &str = "none";
+/// The kinds of document, best first: a value comes from the best kind that
+/// agrees (fn-157, host decision). `unclear` is the no-match answer and
+/// ranks with `other`.
+pub const KINDS: [&str; 6] = [
+    "flora",
+    "forestry",
+    "garden",
+    "extension",
+    "nursery",
+    "other",
+];
+pub const KIND_UNCLEAR: &str = "unclear";
+
+/// A kind's rank among `KINDS`, 0 best; `unclear` and anything unknown rank
+/// last.
+pub fn tier(kind: &str) -> usize {
+    KINDS
+        .iter()
+        .position(|k| *k == kind)
+        .unwrap_or(KINDS.len() - 1)
+}
+
 /// The label's questions besides the field, as the read stage keeps them.
 pub const LABEL_QUESTIONS: [&str; 3] = ["basis", "age", "condition"];
 
@@ -38,6 +62,7 @@ pub fn set_version(name: &str) -> u32 {
     let raw = match name {
         "described" => DESCRIBED_JSON,
         "label" => LABEL_JSON,
+        "kind" => KIND_JSON,
         _ => return 0,
     };
     parse(raw, name)["version"].as_u64().unwrap_or(0) as u32
@@ -62,6 +87,12 @@ pub fn label_questions(fields: &[(String, String)]) -> Value {
         questions[name] = raw[name].clone();
     }
     questions
+}
+
+/// The document kind Choice (fn-157), `unclear` its no-match answer.
+pub fn kind_questions() -> Value {
+    let raw = parse(KIND_JSON, "kind.json");
+    json!({"document": raw["document"]})
 }
 
 /// One described trait's level table, as a person wrote it in the manifest.
@@ -163,6 +194,30 @@ pub struct LabelCase {
     pub expect_condition: String,
     pub holdout: bool,
     pub negative: bool,
+}
+
+/// One gathered document and the kind a person admits for it.
+#[derive(Debug, Clone, Deserialize)]
+pub struct KindCase {
+    pub id: String,
+    pub species: String,
+    pub url: String,
+    pub title: String,
+    pub passages: Vec<String>,
+    pub expect_kind: String,
+    pub holdout: bool,
+    pub negative: bool,
+}
+
+pub fn kind_cases() -> Vec<KindCase> {
+    serde_json::from_str(KIND_CASES).expect("kind cases")
+}
+
+/// What Jev reads to class a document: the species, its address and title,
+/// and up to three of its sentences.
+pub fn kind_state(species: &str, id: &str, url: &str, title: &str, passages: &[String]) -> Value {
+    json!({"species": species, "source": {"id": id, "url": url, "title": title},
+           "passages": passages})
 }
 
 pub fn described_cases() -> Vec<DescribedCase> {

@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "meaning": "How a sourced profile becomes the tree a species' tuning starts from (fn-135). Each row maps one profile metric to one wire path through a code-owned formula: midpoint takes a range's middle, identity a single stated value, ratio a metric's middle times factor over another metric's middle or a value of the family's own. A row's condition reads the family's values only; no row names a species. Every appearance range keyed by a material field sets /material/<field> to its middle without a row. Code clamps each value to its dial's range in data/dials.json.",
+  "meaning": "How a sourced profile becomes the tree a species' tuning starts from (fn-135). Each row maps one profile metric to one wire path through a code-owned formula: typical takes the metric's typical value, the aggregate's median or else a range's middle (fn-157), identity a single stated value, ratio a metric's typical value times factor over another metric's or a value of the family's own. A row's condition reads the family's values only; no row names a species. Every appearance range keyed by a material field sets /material/<field> to its middle without a row. Code clamps each value to its dial's range in data/dials.json.",
   "rows": [
     {
       "metric": "height_m",
       "path": "/skeleton/envelope/height",
-      "formula": "midpoint",
+      "formula": "typical",
       "basis": "the envelope height is the tree's height in metres"
     },
     {
@@ -28,7 +28,7 @@
     {
       "metric": "frond_length_m",
       "path": "/canopy/rachisLength",
-      "formula": "midpoint",
+      "formula": "typical",
       "when": {"path": "/canopy/rosetteFronds", "above": 0},
       "basis": "the rachis is the metres of frond the leaflets are strung along"
     },

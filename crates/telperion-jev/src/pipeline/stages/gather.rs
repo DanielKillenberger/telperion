@@ -8,7 +8,10 @@
 //! extension pages and papers. A tertiary encyclopedic page is a lead: the
 //! primary sources it cites stand in its place (`pipeline::leads`). Every
 //! document found, one per address, up to `MAX_DOCUMENTS`, joins the
-//! manifest as a source; nothing is ranked, admitted or refused before it is
+//! manifest as a source. A seed that states the species' native range adds
+//! that range's floras and forestry literature, and the species under its
+//! names in the range's own languages, `PER_NATIVE_QUERY` documents a query
+//! beyond the rest (host decision, fn-157); nothing is ranked, admitted or refused before it is
 //! read. Reading a document for its facts needs no licence: only a copy
 //! kept in the catalogue does, and the copy is decided from the page's own
 //! licence statements once it is fetched (`fetch`, the document stage).
@@ -24,15 +27,16 @@ use crate::pipeline::canon::write_canonical;
 use crate::pipeline::cost::Cost;
 use crate::pipeline::known::KnownSources;
 use crate::pipeline::leads;
-use crate::pipeline::manifest::{seed_sha256, Manifest, Source};
+use crate::pipeline::manifest::{seed_sha256, Manifest, Source, Taxon};
 use crate::pipeline::stage::{Context, Paths, StageError};
 
 use super::inputs;
 
 pub const STAGE: &str = "gather";
-/// Documents read per species: with the searches, the Firecrawl spend of a
-/// run from a name (fn-157, a proposal the beech's live run measures).
+/// Documents the broad search adds per species (host decision, fn-157).
 pub const MAX_DOCUMENTS: usize = 16;
+/// Documents each native-range query adds beyond them.
+pub const PER_NATIVE_QUERY: usize = 2;
 const HITS_PER_QUERY: usize = 8;
 /// The rights line of a gathered document until its page is read.
 pub const GATHERED: &str =
@@ -42,6 +46,21 @@ pub const GATHERED: &str =
 pub enum Outcome {
     Current,
     Ran { documents: usize },
+}
+
+/// The native-range queries a seed's range asks for: the region's floras and
+/// forestry literature, and the species under each of its own names.
+pub fn native_queries(taxon: &Taxon) -> Vec<String> {
+    let Some(range) = &taxon.native_range else {
+        return Vec::new();
+    };
+    let sci = &taxon.scientific_name;
+    let mut out = vec![
+        format!("{sci} flora {}", range.region),
+        format!("{sci} forestry silviculture {}", range.region),
+    ];
+    out.extend(range.names.values().map(|name| format!("{name} {sci}")));
+    out
 }
 
 /// The web queries and the research query, in plain words.
@@ -89,10 +108,24 @@ pub fn run(
         "research",
         &research,
     );
-    let documents = documents(manifest, &hits);
-    let count = documents.len();
+    let room = MAX_DOCUMENTS.saturating_sub(manifest.sources.len());
     let mut grown = manifest.clone();
-    grown.sources.extend(documents);
+    grown.sources.extend(documents(&grown, &hits, room));
+    // The native-range literature is added beyond the broad search's
+    // documents, so a search that found only horticultural pages still
+    // reads the floras and manuals of the range.
+    let native = native_queries(taxon);
+    for query in &native {
+        let found = adapter.search(query, HITS_PER_QUERY).map_err(failed)?;
+        let mut these = hits.clone();
+        add(&mut these, leads::follow(adapter, found), "native", query);
+        let new = these.split_off(hits.len());
+        grown
+            .sources
+            .extend(documents(&grown, &new, PER_NATIVE_QUERY));
+        hits.extend(new);
+    }
+    let count = grown.sources.len() - manifest.sources.len();
     write_canonical(
         &ctx.paths.manifest(),
         &serde_json::to_value(&grown).expect("manifest serializes"),
@@ -100,6 +133,7 @@ pub fn run(
     header.cost = Cost::from_spent(&adapter.spent().since(&before));
     let mut all = web;
     all.push(research);
+    all.extend(native);
     ctx.write(&header, json!({"queries": all, "hits": hits}))?;
     Ok(Outcome::Ran { documents: count })
 }
@@ -137,11 +171,10 @@ fn add(out: &mut Vec<Value>, found: Vec<SearchHit>, kind: &str, query: &str) {
     }
 }
 
-/// The hits that become sources: new to the manifest, never a tertiary
-/// page or one whose earlier fetch failed, in the order found, at most
-/// `MAX_DOCUMENTS` in all.
-fn documents(manifest: &Manifest, hits: &[Value]) -> Vec<Source> {
-    let room = MAX_DOCUMENTS.saturating_sub(manifest.sources.len());
+/// At most `room` new sources from `hits`, in the order found, numbered
+/// after the manifest's: never an address the manifest holds, a tertiary
+/// page or one whose earlier fetch failed.
+fn documents(manifest: &Manifest, hits: &[Value], room: usize) -> Vec<Source> {
     let mut next = manifest.sources.len() + 1;
     let mut out = Vec::new();
     for hit in hits {
@@ -181,5 +214,26 @@ mod tests {
         assert!(web.iter().any(|q| q.contains("silvics")));
         assert!(web.iter().all(|q| !q.contains('_')));
         assert_eq!(research, "Fagus sylvatica tree height diameter crown");
+    }
+
+    #[test]
+    fn a_native_range_asks_its_floras_and_its_own_names() {
+        let mut taxon: Taxon = serde_json::from_value(serde_json::json!({
+            "scientific_name": "Fagus sylvatica", "common_name": "European beech", "rank": "species"
+        }))
+        .unwrap();
+        assert!(native_queries(&taxon).is_empty());
+        taxon.native_range = Some(crate::pipeline::manifest::NativeRange {
+            region: "Europe".into(),
+            names: [("de".to_string(), "Rotbuche".to_string())].into(),
+        });
+        assert_eq!(
+            native_queries(&taxon),
+            [
+                "Fagus sylvatica flora Europe",
+                "Fagus sylvatica forestry silviculture Europe",
+                "Rotbuche Fagus sylvatica"
+            ]
+        );
     }
 }

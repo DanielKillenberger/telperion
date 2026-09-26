@@ -2,23 +2,24 @@
 //!
 //! Every reading is a span code parsed from a document and Jev labelled
 //! with its field and its basis; Jev never chooses between sources. Pages of
-//! one site are one source. Each source's typical readings become one point,
-//! the median of their midpoints, and one range, their extent. A point far
-//! from the others' median is set aside and noted. The value is the median
-//! of the points left, the range their extent, and the confidence the count
-//! of sources behind it and how far their points spread. A record or a single
-//! specimen is kept as the field's maximum and never as its typical value.
-//!
-//! The three bounds below are the spec's open question (fn-157, Unknown): a
-//! proposal measured on the recorded beech pages, for the host to settle.
+//! one site are one source, and each source's typical readings are one
+//! point, the median of their midpoints. Sources are ranked by their
+//! document's kind (host decision, 2026-09-26): the value comes from the best
+//! tier that holds `AGREEING_SOURCES` points within `AGREEMENT_RATIO` of each
+//! other, and a lower tier fills a field only when no tier agrees and no
+//! better tier holds a value. Within the deciding tier a point beyond
+//! `OUTLIER_RATIO` of the tier's median is set aside and noted. The value is
+//! the median of the points left, the range their extent. A record or a
+//! single specimen is the field's maximum and never its typical value.
 
-/// A point more than this factor from the median of the points is set aside,
-/// once there are enough points to have a median worth the name.
-pub const OUTLIER_RATIO: f64 = 2.0;
-/// Independent sources a value needs, their points within
-/// `AGREEMENT_RATIO` of each other, to be `agreed` rather than `thin`.
-pub const AGREEING_SOURCES: usize = 3;
+use std::collections::BTreeMap;
+
+/// Points a tier needs, within `AGREEMENT_RATIO` of each other, to agree.
+pub const AGREEING_SOURCES: usize = 2;
 pub const AGREEMENT_RATIO: f64 = 1.5;
+/// A point beyond this factor of its tier's median is set aside, once the
+/// tier holds three: two points cannot outvote each other.
+pub const OUTLIER_RATIO: f64 = 2.0;
 
 /// What a reading says the number is.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -35,6 +36,8 @@ pub struct Reading {
     pub source: String,
     /// The site the source is on: pages of one site are one source.
     pub site: String,
+    /// The rank of the source's kind, 0 best (`sets::tier`).
+    pub tier: usize,
     /// `[low, high]` in the field's unit.
     pub range: [f64; 2],
     pub span: String,
@@ -50,12 +53,14 @@ pub struct SetAside {
     pub reason: String,
 }
 
-/// The field's aggregate. `value` and `range` are None when no source states
-/// a typical value; the maximum and the set-aside readings stand either way.
+/// The field's aggregate. `value`, `range` and `tier` are None when no
+/// source states a typical value; the maximum stands either way.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Aggregate {
     pub value: Option<f64>,
     pub range: Option<[f64; 2]>,
+    /// The tier that decided the value.
+    pub tier: Option<usize>,
     /// The sources behind the value, in first-read order.
     pub sources: Vec<String>,
     /// The readings behind the value.
@@ -65,6 +70,8 @@ pub struct Aggregate {
     pub confidence: &'static str,
     pub maximum: Option<Reading>,
     pub set_aside: Vec<SetAside>,
+    /// Each tier's independent sources with a typical value.
+    pub held: BTreeMap<usize, usize>,
 }
 
 /// One source's point: its readings and the median of their midpoints.
@@ -74,44 +81,94 @@ struct Point {
     readings: Vec<Reading>,
 }
 
+/// One tier's points after its outliers are set aside.
+struct Tier {
+    rank: usize,
+    points: Vec<Point>,
+    set_aside: Vec<SetAside>,
+    agreed: bool,
+}
+
 pub fn aggregate(readings: &[Reading]) -> Aggregate {
     let maximum = readings
         .iter()
         .filter(|r| r.basis == Basis::Record)
         .max_by(|a, b| a.range[1].total_cmp(&b.range[1]))
         .cloned();
-    let (points, set_aside) = agreeing(points(readings));
-    let value = median(points.iter().map(|p| p.point).collect());
-    let contributions: Vec<Reading> = points.iter().flat_map(|p| p.readings.clone()).collect();
-    let range = extent(&contributions);
-    let spread_ratio = spread(&points);
+    let tiers = tiers(readings);
+    let held = tiers.iter().map(|t| (t.rank, t.points.len())).collect();
+    let chosen = tiers
+        .iter()
+        .find(|t| t.agreed)
+        .or_else(|| tiers.iter().find(|t| !t.points.is_empty()));
+    let Some(tier) = chosen else {
+        return Aggregate {
+            value: None,
+            range: None,
+            tier: None,
+            sources: Vec::new(),
+            contributions: Vec::new(),
+            spread_ratio: None,
+            confidence: "unsourced",
+            maximum,
+            set_aside: Vec::new(),
+            held,
+        };
+    };
+    let contributions: Vec<Reading> = tier
+        .points
+        .iter()
+        .flat_map(|p| p.readings.clone())
+        .collect();
     let mut sources: Vec<String> = Vec::new();
     for reading in &contributions {
         if !sources.contains(&reading.source) {
             sources.push(reading.source.clone());
         }
     }
-    let confidence = match (points.len(), spread_ratio) {
-        (0, _) => "unsourced",
-        (n, Some(r)) if n >= AGREEING_SOURCES && r <= AGREEMENT_RATIO => "agreed",
-        _ => "thin",
-    };
     Aggregate {
-        value,
-        range,
+        value: median(tier.points.iter().map(|p| p.point).collect()),
+        range: extent(&contributions),
+        tier: Some(tier.rank),
         sources,
+        spread_ratio: spread(&tier.points),
+        confidence: if tier.agreed { "agreed" } else { "thin" },
         contributions,
-        spread_ratio,
-        confidence,
         maximum,
-        set_aside,
+        set_aside: tier.set_aside.clone(),
+        held,
     }
 }
 
-/// Each site's typical readings as one point, in first-read order.
+/// The typical readings of each tier as points, best tier first.
+fn tiers(readings: &[Reading]) -> Vec<Tier> {
+    let mut by_rank: BTreeMap<usize, Vec<Reading>> = BTreeMap::new();
+    for reading in readings.iter().filter(|r| r.basis == Basis::Typical) {
+        by_rank
+            .entry(reading.tier)
+            .or_default()
+            .push(reading.clone());
+    }
+    by_rank
+        .into_iter()
+        .map(|(rank, readings)| {
+            let (points, set_aside) = outliers(points(&readings));
+            let agreed = points.len() >= AGREEING_SOURCES
+                && spread(&points).is_some_and(|r| r <= AGREEMENT_RATIO);
+            Tier {
+                rank,
+                points,
+                set_aside,
+                agreed,
+            }
+        })
+        .collect()
+}
+
+/// Each site's readings as one point, in first-read order.
 fn points(readings: &[Reading]) -> Vec<Point> {
     let mut by_site: Vec<Point> = Vec::new();
-    for reading in readings.iter().filter(|r| r.basis == Basis::Typical) {
+    for reading in readings {
         match by_site.iter_mut().find(|p| p.site == reading.site) {
             Some(point) => point.readings.push(reading.clone()),
             None => by_site.push(Point {
@@ -128,9 +185,9 @@ fn points(readings: &[Reading]) -> Vec<Point> {
     by_site
 }
 
-/// The points within `OUTLIER_RATIO` of the median, and every reading of the
-/// ones beyond it. Below three points no median outvotes a source.
-fn agreeing(points: Vec<Point>) -> (Vec<Point>, Vec<SetAside>) {
+/// The points within `OUTLIER_RATIO` of the tier's median, and every reading
+/// of the ones beyond it.
+fn outliers(points: Vec<Point>) -> (Vec<Point>, Vec<SetAside>) {
     let Some(centre) = median(points.iter().map(|p| p.point).collect()) else {
         return (points, Vec::new());
     };
@@ -144,7 +201,7 @@ fn agreeing(points: Vec<Point>) -> (Vec<Point>, Vec<SetAside>) {
         .into_iter()
         .flat_map(|p| {
             let reason = format!(
-                "{} is {:.1} times the median {} of every source's point",
+                "{} is {:.1} times the median {} of its tier",
                 p.site,
                 ratio(p.point, centre),
                 round(centre)
@@ -216,104 +273,4 @@ pub fn site(url: &str) -> String {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn reading(source: &str, site: &str, range: [f64; 2], basis: Basis) -> Reading {
-        Reading {
-            source: source.into(),
-            site: site.into(),
-            range,
-            span: format!("{}-{} m", range[0], range[1]),
-            sentence: String::new(),
-            basis,
-            ledger: "l".into(),
-        }
-    }
-
-    #[test]
-    fn the_value_is_the_median_of_one_point_per_site() {
-        let readings = [
-            reading("P1", "a.org", [25.0, 35.0], Basis::Typical),
-            reading("P2", "b.org", [30.0, 30.0], Basis::Typical),
-            // A second page of b.org is the same source, not a vote.
-            reading("P3", "b.org", [40.0, 40.0], Basis::Typical),
-            reading("P4", "c.org", [40.0, 40.0], Basis::Typical),
-        ];
-        let got = aggregate(&readings);
-        // Points: a 30, b median(30, 40) = 35, c 40.
-        assert_eq!(got.value, Some(35.0));
-        assert_eq!(got.range, Some([25.0, 40.0]));
-        assert_eq!(got.sources, ["P1", "P2", "P3", "P4"]);
-        assert_eq!(got.confidence, "agreed");
-        assert!((got.spread_ratio.unwrap() - 40.0 / 30.0).abs() < 1e-9);
-    }
-
-    #[test]
-    fn a_point_far_from_the_median_is_set_aside_and_named() {
-        let readings = [
-            reading("P1", "a.org", [0.05, 0.1], Basis::Typical),
-            reading("P2", "b.org", [0.06, 0.09], Basis::Typical),
-            reading("P3", "c.org", [0.2, 0.3], Basis::Typical),
-        ];
-        let got = aggregate(&readings);
-        assert_eq!(got.sources, ["P1", "P2"]);
-        assert_eq!(got.set_aside.len(), 1);
-        assert_eq!(got.set_aside[0].reading.source, "P3");
-        assert!(got.set_aside[0]
-            .reason
-            .starts_with("c.org is 3.3 times the median"));
-        assert_eq!(got.confidence, "thin");
-    }
-
-    #[test]
-    fn a_record_is_the_maximum_and_never_the_typical_value() {
-        let readings = [
-            reading("P1", "a.org", [4.36, 4.36], Basis::Record),
-            reading("P2", "b.org", [1.0, 1.5], Basis::Typical),
-        ];
-        let got = aggregate(&readings);
-        assert_eq!(got.value, Some(1.25));
-        assert_eq!(got.maximum.unwrap().source, "P1");
-        assert_eq!(got.sources, ["P2"]);
-        let alone = aggregate(&readings[..1]);
-        assert_eq!((alone.value, alone.range), (None, None));
-        assert_eq!(alone.confidence, "unsourced");
-        assert!(alone.maximum.is_some());
-    }
-
-    #[test]
-    fn two_sources_are_never_outvoted_and_stay_thin() {
-        let readings = [
-            reading("P1", "a.org", [10.0, 10.0], Basis::Typical),
-            reading("P2", "b.org", [40.0, 40.0], Basis::Typical),
-        ];
-        let got = aggregate(&readings);
-        assert!(got.set_aside.is_empty());
-        assert_eq!(got.value, Some(25.0));
-        assert_eq!(got.confidence, "thin");
-    }
-
-    #[test]
-    fn a_site_is_the_registered_name_of_its_host() {
-        let cases = [
-            (
-                "https://plants.ces.ncsu.edu/plants/fagus-sylvatica/",
-                "ncsu.edu",
-            ),
-            (
-                "https://www.woodlandtrust.org.uk/trees/",
-                "woodlandtrust.org.uk",
-            ),
-            ("https://extension.wsu.edu/clark/heritage-tree/", "wsu.edu"),
-            ("http://bomeninfo.nl/tall%20trees.htm", "bomeninfo.nl"),
-            (
-                "https://www.vdberk.com/trees/fagus-sylvatica/",
-                "vdberk.com",
-            ),
-        ];
-        for (url, want) in cases {
-            assert_eq!(site(url), want, "{url}");
-        }
-    }
-}
+mod tests;

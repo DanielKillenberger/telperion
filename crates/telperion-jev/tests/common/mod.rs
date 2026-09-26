@@ -4,7 +4,7 @@ use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::rights::{rights_cases, rights_state};
 use telperion_jev::pipeline::sets::cases::marked;
-use telperion_jev::pipeline::sets::{described_cases, described_state, label_cases};
+use telperion_jev::pipeline::sets::{described_cases, described_state, kind_cases, label_cases};
 use telperion_jev::questions::{citation_cases, screen_cases, selection_cases, triage_cases};
 
 pub struct CaseTransport;
@@ -34,6 +34,15 @@ impl Transport for CaseTransport {
 
 fn answers_for(body: &Value) -> Value {
     let questions = &body["questions"];
+    if questions.get("document").is_some() {
+        // A labelled document answers with the kind a person admits.
+        let url = body["state"]["source"]["url"].as_str().unwrap_or("");
+        let kind = kind_cases()
+            .into_iter()
+            .find(|case| case.url == url)
+            .map_or_else(|| "unclear".to_string(), |case| case.expect_kind);
+        return json!({"document": choice_answer(&kind)});
+    }
     if questions.get("kind").is_some() {
         let sentence = body["state"]["candidate"]["sentence"]
             .as_str()

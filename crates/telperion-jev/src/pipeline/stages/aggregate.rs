@@ -4,11 +4,15 @@
 //! when Jev labelled it that field, of a grown tree, under the field's
 //! condition or an unstated one; typical spans make the value, and a record
 //! or a single specimen the field's maximum. A span whose neighbouring words
-//! name another dimension is set aside. A field no source states typically
-//! is `unsourced`: the generator's default stands and Tune sets it from the
-//! photographs. Appearance and described traits read every fetched document
-//! the trait does not narrow. The profile keeps its shape, so Start, Tune
+//! name another dimension is set aside. Each document ranks by its kind, and
+//! the best tier that agrees decides a value (`pipeline::agree`); the metric
+//! names that tier and what every tier held. A field no source states
+//! typically is `unsourced`: the generator's default stands and Tune sets it
+//! from the photographs. Appearance traits read the documents of the best
+//! tier that speaks of them. The profile keeps its shape, so Start, Tune
 //! and Gaps read it unchanged.
+
+use std::collections::BTreeMap;
 
 use serde_json::{json, Map, Value};
 
@@ -17,7 +21,7 @@ use crate::pipeline::canon::{read_json, write_canonical};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::{Described, Field, Manifest};
 use crate::pipeline::requirements::{asked, Asked};
-use crate::pipeline::sets::DescribedLevel;
+use crate::pipeline::sets::{tier, DescribedLevel, KINDS};
 use crate::pipeline::stage::{Context, Paths, StageError};
 use crate::quantity::first_length;
 
@@ -50,11 +54,12 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     }
     let manifest = &ctx.admitted.manifest;
     let spans = read["spans"].as_array().cloned().unwrap_or_default();
+    let kinds = kinds(&read);
     let (mut filled, mut sidecar, mut unsourced) = (Map::new(), Map::new(), Map::new());
     let mut metrics = Map::new();
     for field in &manifest.fields {
         let pointer = format!("/profiles/0/metrics/{}", field.field);
-        let (readings, beside_aside) = readings(manifest, field, &spans);
+        let (readings, beside_aside) = readings(manifest, field, &spans, &kinds);
         let mut agg = aggregate(&readings);
         agg.set_aside.extend(beside_aside);
         let metric = metric(&agg, unit(manifest, field));
@@ -77,7 +82,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
             json!({"level": level, "sentence": entry["sentence"], "ledger": entry["ledger"]}),
         );
     }
-    let copied = appearance::run(judge, &ctx, &fetch)?;
+    let copied = appearance::run(judge, &ctx, &fetch, &kinds)?;
     header.ledger.extend(copied.ledger.iter().cloned());
     sidecar.extend(copied.sidecar.clone());
     write_profile(&ctx, manifest, metrics, &copied.profile)?;
@@ -108,13 +113,25 @@ fn unit(manifest: &Manifest, field: &Field) -> &'static str {
     }
 }
 
+/// Each read document's tier, by its kind (`sets::tier`); a document read
+/// never classed ranks last.
+pub fn kinds(read: &Value) -> BTreeMap<String, usize> {
+    read["documents"]
+        .as_object()
+        .into_iter()
+        .flatten()
+        .map(|(id, doc)| (id.clone(), tier(doc["kind"].as_str().unwrap_or_default())))
+        .collect()
+}
+
 /// The spans labelled `field`, of a grown tree, under its condition or an
-/// unstated one, parsed by code; and those whose neighbouring words name
-/// another dimension, set aside.
+/// unstated one, parsed by code and ranked by their document's tier; and
+/// those whose neighbouring words name another dimension, set aside.
 pub fn readings(
     manifest: &Manifest,
     field: &Field,
     spans: &[Value],
+    kinds: &BTreeMap<String, usize>,
 ) -> (Vec<Reading>, Vec<crate::pipeline::agree::SetAside>) {
     let (mut kept, mut aside) = (Vec::new(), Vec::new());
     for span in spans {
@@ -136,6 +153,7 @@ pub fn readings(
         let reading = Reading {
             source: source.into(),
             site: site(url),
+            tier: kinds.get(source).copied().unwrap_or(KINDS.len() - 1),
             range,
             span: text("span").into(),
             sentence: text("sentence").into(),
@@ -167,13 +185,22 @@ pub fn metric(agg: &Aggregate, unit: &str) -> Value {
             "unit": unit, "range": range, "classification": "gating",
             "source": agg.sources, "confidence": agg.confidence, "value": value,
             "sources_agreeing": points(agg), "spread_ratio": agg.spread_ratio,
-            "note": note(points(agg)),
+            "tier": agg.tier.map(|t| KINDS[t]),
+            "note": note(points(agg), agg.tier.map_or("", |t| KINDS[t])),
         }),
         _ => json!({
             "unit": unit, "range": null, "classification": "unsourced", "source": [],
             "confidence": "unsourced", "note": NO_TYPICAL,
         }),
     };
+    if !agg.held.is_empty() {
+        let held: Map<String, Value> = agg
+            .held
+            .iter()
+            .map(|(t, n)| (KINDS[*t].to_string(), json!(n)))
+            .collect();
+        metric["tiers"] = json!(held);
+    }
     if let Some(max) = &agg.maximum {
         metric["maximum"] = json!({"value": max.range[1], "source": max.source, "span": max.span});
     }
@@ -191,10 +218,10 @@ pub fn metric(agg: &Aggregate, unit: &str) -> Value {
 }
 
 /// How the value was composed, in words.
-fn note(sources: usize) -> String {
+fn note(sources: usize, kind: &str) -> String {
     match sources {
-        1 => "one source's value; the range is its extent".into(),
-        n => format!("the median of {n} independent sources; the range is their extent"),
+        1 => format!("one {kind} source's value; the range is its extent"),
+        n => format!("the median of {n} independent {kind} sources; the range is their extent"),
     }
 }
 

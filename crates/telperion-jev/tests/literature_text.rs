@@ -263,16 +263,16 @@ struct Recording(RefCell<Vec<String>>);
 impl Transport for Recording {
     fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String> {
         let body: Value = serde_json::from_slice(request.body.as_deref().unwrap_or(b"{}")).unwrap();
-        let marked = body["state"]["candidate"]["marked"]
-            .as_str()
-            .unwrap_or_default();
-        self.0.borrow_mut().push(marked.to_string());
+        if let Some(marked) = body["state"]["candidate"]["marked"].as_str() {
+            self.0.borrow_mut().push(marked.to_string());
+        }
         let choice = |key: &str| {
             json!({"type": "choice", "choice": key, "confidence": 0.9,
                                         "probabilities": {key: 0.9}})
         };
         let answers = json!({"field": choice("none"), "basis": choice("unclear"),
-                             "age": choice("mature"), "condition": choice("unstated")});
+                             "age": choice("mature"), "condition": choice("unstated"),
+                             "document": choice("other")});
         Ok(HttpResponse {
             status: 200,
             body: serde_json::to_vec(&json!({"model": "jev-latest", "answers": answers})).unwrap(),

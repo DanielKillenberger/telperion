@@ -26,6 +26,20 @@ pub struct Taxon {
     pub rank: String,
     #[serde(default)]
     pub cultivar: Option<String>,
+    /// Where the species grows wild, as the seed states it: gather asks for
+    /// that region's floras and forestry literature (fn-157).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub native_range: Option<NativeRange>,
+}
+
+/// A species' native range: the region in plain words, and the species'
+/// names in the range's own languages (`de` -> `Rotbuche`), each searched
+/// with the scientific name.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct NativeRange {
+    pub region: String,
+    #[serde(default)]
+    pub names: BTreeMap<String, String>,
 }
 
 /// An admitted table inside a source: which markdown table, the label of the

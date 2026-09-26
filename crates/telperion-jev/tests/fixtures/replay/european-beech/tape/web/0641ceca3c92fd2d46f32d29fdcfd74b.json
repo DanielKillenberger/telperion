@@ -1,1 +1,0 @@
-{"key":"0641ceca3c92fd2d46f32d29fdcfd74b057f11f9476aee2304f152fa80bad962","kind":"web","request":{"url":"https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrlimit=3&gsrsearch=Fagus+sylvatica+veteran+tree+filetype%3Abitmap&prop=imageinfo&iiprop=url|mime|extmetadata&iiurlwidth=1280"},"response":{"ok":"application/json"}}

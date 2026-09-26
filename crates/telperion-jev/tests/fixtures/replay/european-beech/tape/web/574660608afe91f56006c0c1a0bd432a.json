@@ -1,1 +1,0 @@
-{"key":"574660608afe91f56006c0c1a0bd432a398112b0ae1edbcea2ef613223d804ca","kind":"web","request":{"url":"https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrlimit=2&gsrsearch=Fagus+sylvatica+bark+filetype%3Abitmap&prop=imageinfo&iiprop=url|mime|extmetadata&iiurlwidth=1280"},"response":{"ok":"application/json"}}

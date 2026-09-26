@@ -12,7 +12,7 @@ use telperion_jev::runner::record::State;
 use telperion_jev::runner::{self, folder, preflight, Run, Scope, STAGES};
 use telperion_jev::tape;
 
-const USAGE: &str = "usage: species <id> [--until STAGE | --stage STAGE | --status] [--record DIR | --replay DIR] [--tools DIR] [--accept] [--settle-claims] [--tuning FILE] [--dir DIR] [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR]";
+const USAGE: &str = "usage: species <id> [--until STAGE | --stage STAGE | --status] [--record DIR | --replay DIR | --extend DIR] [--tools DIR] [--accept] [--settle-claims] [--tuning FILE] [--dir DIR] [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR]";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -47,14 +47,17 @@ fn main() -> ExitCode {
     run.settle_claims = has("--settle-claims");
     run.tools_dir = path("--tools");
     // One tape for the process and every adapter program it starts.
-    match (value("--record"), value("--replay")) {
-        (Some(_), Some(_)) => {
-            eprintln!("--record and --replay are one or the other\n{USAGE}");
+    let modes: Vec<(&str, String)> = ["record", "replay", "extend"]
+        .into_iter()
+        .filter_map(|m| value(&format!("--{m}")).map(|dir| (m, dir)))
+        .collect();
+    match modes.as_slice() {
+        [] => env::remove_var(tape::VAR),
+        [(mode, dir)] => env::set_var(tape::VAR, format!("{mode}:{}", absolute(dir))),
+        _ => {
+            eprintln!("--record, --replay and --extend are one or the other\n{USAGE}");
             return ExitCode::from(2);
         }
-        (Some(dir), None) => env::set_var(tape::VAR, format!("record:{}", absolute(&dir))),
-        (None, Some(dir)) => env::set_var(tape::VAR, format!("replay:{}", absolute(&dir))),
-        (None, None) => env::remove_var(tape::VAR),
     }
     if has("--status") {
         run.build = false;

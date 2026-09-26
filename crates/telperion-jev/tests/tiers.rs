@@ -73,9 +73,9 @@ impl Transport for Reader {
         let (questions, state) = (&body["questions"], &body["state"]);
         let choice = |key: &str| json!({"type": "choice", "choice": key, "confidence": 0.9, "probabilities": {key: 0.9}});
         let url = state["source"]["url"].as_str().unwrap_or_default();
-        let answers = if questions.get("kind").is_some() {
+        let answers = if questions.get("document").is_some() {
             let kind = PAGES.iter().find(|p| p.1 == url).map_or("other", |p| p.2);
-            json!({"kind": choice(kind)})
+            json!({"document": choice(kind)})
         } else if questions.get("field").is_some() {
             let span = state["candidate"]["span"].as_str().unwrap_or_default();
             let (field, basis) = SPANS
@@ -113,7 +113,11 @@ fn beech() -> PathBuf {
     manifest["sources"] = json!(sources);
     write_canonical(&dir.join("manifest.json"), &manifest).unwrap();
     let paths = Paths::new(&dir);
-    fetch::run(&paths, &FixtureAdapter::new(root.join("tests/fixtures/tiers"))).unwrap();
+    fetch::run(
+        &paths,
+        &FixtureAdapter::new(root.join("tests/fixtures/tiers")),
+    )
+    .unwrap();
     let judge = Judge {
         transport: &Reader,
         key: "test-key",

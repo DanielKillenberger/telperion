@@ -24,7 +24,9 @@ impl Transport for Labels {
     fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String> {
         let body: Value = serde_json::from_slice(request.body.as_deref().unwrap_or(b"{}")).unwrap();
         let choice = |key: &str| json!({"type": "choice", "choice": key, "confidence": 0.9, "probabilities": {key: 0.9}});
-        let answers = if body["questions"].get("field").is_some() {
+        let answers = if body["questions"].get("document").is_some() {
+            json!({"document": choice("forestry")})
+        } else if body["questions"].get("field").is_some() {
             let (field, basis) = match body["state"]["candidate"]["span"].as_str() {
                 Some("50 to 90 ft") => ("height_m", "typical"),
                 Some("120 ft") => ("height_m", "record"),
@@ -143,6 +145,7 @@ fn the_upstream_chain_runs_over_fixtures_and_fills_the_profile_with_provenance()
     assert_eq!(height["classification"], "gating");
     assert_eq!(height["source"], json!(["S1"]));
     assert_eq!(height["confidence"], "thin");
+    assert_eq!(height["tier"], "forestry");
     assert!((height["maximum"]["value"].as_f64().unwrap() - 36.576).abs() < 1e-9);
     let sidecar = read_json(&dir.join("provenance.json")).unwrap();
     let entry = &sidecar["entries"]["/profiles/0/metrics/height_m"];

@@ -1,0 +1,1 @@
+{"key":"3ce2bac8294f751453a625e49db2665d311d26e02d31e4047d65193c4bbd4b65","kind":"web","request":{"url":"https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=categorymembers&gcmtitle=Category%3AFagus+sylvatica+%28standalone%29&gcmtype=file&gcmlimit=3&prop=imageinfo&iiprop=url|mime|extmetadata&iiurlwidth=1280"},"response":{"ok":"application/json"}}

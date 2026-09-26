@@ -1,0 +1,1 @@
+{"model":"jev-1.13.0","answers":{"document":{"type":"choice","choice":"nursery","confidence":0.85,"probabilities":{"other":0.12,"extension":0.0,"forestry":0.0,"garden":0.01,"nursery":0.87,"unclear":0.0,"flora":0.0}}},"usage":{"input_tokens":769,"output_tokens":72}}

@@ -21,7 +21,10 @@ species needs is its own spec, never a patch inside this run.
    "The stack").
 2. **Seed.** Write the seed manifest to `catalogue/<species>/manifest.json`
    and the tuning config to `.flow/evidence/<species>/tuning.json`
-   (`docs/species-runner.md`, "The tuning config").
+   (`docs/species-runner.md`, "The tuning config"). State the taxon's
+   native range and its names there (`taxon.native_range`), so the run reads
+   the range's own floras (`docs/species-pipeline.md`, "Sources and
+   tables").
 3. **Capability assessment.** `packet/capability.json` is the host's, not
    yours: reasoning and system design escalate to the host. Hand it up and
    wait for it before the Capability stage.

@@ -1,0 +1,1 @@
+{"key":"1461ab454a530641471fecbf85795d52caf28e7845864c70f3fec17f8ade7e32","kind":"web","request":{"url":"https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrlimit=3&gsrsearch=Fagus+sylvatica+geograph+filetype%3Abitmap&prop=imageinfo&iiprop=url|mime|extmetadata&iiurlwidth=1280"},"response":{"ok":"application/json"}}

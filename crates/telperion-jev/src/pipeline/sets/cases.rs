@@ -11,8 +11,8 @@ use std::path::Path;
 use serde_json::json;
 
 use super::{
-    chosen_level, described_questions, described_state, label_cases, label_questions, LabelCase,
-    DESCRIBED_UNSTATED, LABEL_QUESTIONS,
+    chosen_level, described_questions, described_state, kind_cases, kind_questions, kind_state,
+    label_cases, label_questions, LabelCase, DESCRIBED_UNSTATED, KIND_UNCLEAR, LABEL_QUESTIONS,
 };
 use crate::caller::{evaluate, CallerError, EvaluateRequest, Transport};
 use crate::cases::{CaseRow, SetScore};
@@ -38,6 +38,11 @@ pub fn run_pipeline_cases(
     for (name, rows) in run_label(transport, key, ledger_dir)? {
         out.extend(split(&name, rows, thresholds().accuracy_bar));
     }
+    out.extend(split(
+        "document kind",
+        run_kind(transport, key, ledger_dir)?,
+        thresholds().accuracy_bar,
+    ));
     let rights = crate::pipeline::rights::run_cases(transport, key, ledger_dir)?;
     out.extend(crate::pipeline::rights::scored(rights));
     Ok(out)
@@ -173,6 +178,48 @@ fn run_label(
         }
     }
     Ok(sets)
+}
+
+/// Asks every kind case once, as the read stage lays it out.
+fn run_kind(transport: &dyn Transport, key: &str, ledger_dir: &Path) -> Result<Rows, CallerError> {
+    let mut rows = Rows::new();
+    for case in kind_cases() {
+        let state = kind_state(
+            &case.species,
+            "case",
+            &case.url,
+            &case.title,
+            &case.passages,
+        );
+        let entry = evaluate(
+            transport,
+            key,
+            EvaluateRequest {
+                tool: "kind",
+                source: None,
+                state: &state,
+                questions: &kind_questions(),
+                ledger_dir,
+            },
+        )?;
+        let answered = entry
+            .choice("document")
+            .unwrap_or_else(|| KIND_UNCLEAR.into());
+        rows.push((
+            CaseRow {
+                set: "document kind".into(),
+                id: case.id.clone(),
+                expected: case.expect_kind.clone(),
+                hit: answered == case.expect_kind,
+                answered,
+                top_probability: entry.top_probability("document"),
+                confidence: entry.confidence("document").unwrap_or(0.0),
+                ledger: entry.reference(),
+            },
+            case.holdout,
+        ));
+    }
+    Ok(rows)
 }
 
 /// One SetScore over the labelled cases and one over the held-out cases.

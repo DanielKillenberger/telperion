@@ -44,6 +44,7 @@ before them never builds. The key must be visible to an interactive shell
 | `--record DIR` | keep every external answer in `DIR` (below, "Record and replay") |
 | `--tools DIR` | draw with render tools already built in `DIR`, never build them |
 | `--replay DIR` | serve every external answer from `DIR`, with no network and no key |
+| `--extend DIR` | serve what `DIR` holds and record what it lacks, so a stage change asks only its new questions live |
 | `--settle-claims` | an article claim the cite check flagged stops the run for a person instead of being logged |
 
 ## Record and replay
@@ -97,10 +98,11 @@ run logged and did not wait on.
 
 A value is the aggregate of every document that states it (fn-157,
 `docs/species-pipeline.md`, "Values"): the median of one point per
-independent source, its range their extent, with a record or a single tree
-kept as the field's maximum and a value far from the others set aside and
-named. Jev labels each span and never chooses between sources; code owns
-every number. Start takes the midpoint of the range, and Tune narrows it. A
+independent source of the best kind that agrees (a flora above a forestry
+manual, a garden, an extension page, a nursery), its range their extent,
+with a record or a single tree kept as the field's maximum and a value far
+from its tier set aside and named. Jev classes each document and labels each
+span and never chooses between sources; code owns every number. Start takes the typical value, the median, never the middle of the range, and Tune narrows it. A
 field no document states typically is `unsourced`: `gaps.md` lists it, and
 the generator's default stands until Tune sets it from the photographs.
 Nothing about a value waits on a person: no claim is filed, searched again
@@ -175,12 +177,13 @@ No run from a name needs a person to supply photographs (owner,
 
 1. **Candidates**, at most twelve: up to two images from each open-licence
    source's page (four in all; a gathered document is open when its markup
-   declares an open deed), then Wikimedia Commons, asked for the whole tree
-   as its habit, as a solitary tree and as a veteran tree (three each), its
-   bark (two) and the tree in winter (one). The bare taxon found the beech's leaves, buds, nuts
-   and a copper cultivar, and the look kept only a bark close-up (fn-157).
-   Commons is a photograph host; the no-Wikipedia rule is about citing
-   values.
+   declares an open deed), then Wikimedia Commons: the files of the taxon
+   category's subcategories that file single trees (standalone, solitary,
+   famous, park or field trees; three each), Commons' copies of geograph.org.uk
+   photographs under the scientific and the common name (three each), the
+   category of the tree in winter (two) and its bark (one) (host decision,
+   2026-09-26). The bare taxon found the beech's leaves, buds and nuts, and
+   solitary-tree searches mostly copper cultivars.
 2. **Rights.** A Commons file whose machine-readable licence code
    (`extmetadata.License`) is CC0, public domain, CC BY or CC BY-SA is open
    by that code. Any other file's full licence metadata (`License`,
@@ -194,7 +197,7 @@ No run from a name needs a person to supply photographs (owner,
 4. **One look.** The reviewer adapter in the tuning config (`vision`,
    `scripts/reference-first.py`, stage `screen`) looks at the whole batch
    once and says, per photograph, whether it shows the species (a copper,
-   weeping or columnar cultivar is not the species as it grows wild), a
+   weeping or fastigiate cultivar is not the species as it grows wild), a
    mature open-grown tree and the whole tree, and its view: leaf-on, bare,
    bark or other.
 5. **Kept**: up to two whole trees in leaf, one bare, one bark close-up,

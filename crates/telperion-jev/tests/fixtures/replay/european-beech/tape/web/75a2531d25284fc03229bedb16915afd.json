@@ -1,0 +1,1 @@
+{"key":"75a2531d25284fc03229bedb16915afd7f67043076cefd0a8fb9190895f30d7a","kind":"web","request":{"url":"https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrlimit=3&gsrsearch=European+beech+geograph+filetype%3Abitmap&prop=imageinfo&iiprop=url|mime|extmetadata&iiurlwidth=1280"},"response":{"ok":"application/json"}}

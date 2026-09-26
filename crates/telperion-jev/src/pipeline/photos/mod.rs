@@ -107,7 +107,11 @@ pub fn find(
     let admitted = manifest::load(&paths.manifest()).map_err(|e| e.to_string())?;
     let m = &admitted.manifest;
     let mut candidates = from_sources(paths, m);
-    candidates.extend(commons::candidates(web, &m.taxon.scientific_name));
+    candidates.extend(commons::candidates(
+        web,
+        &m.taxon.scientific_name,
+        &m.taxon.common_name,
+    ));
     candidates.truncate(MAX_CANDIDATES);
     let mut report = json!({"candidates": candidates.len(), "rights_calls": 0});
     let mut open = Vec::new();

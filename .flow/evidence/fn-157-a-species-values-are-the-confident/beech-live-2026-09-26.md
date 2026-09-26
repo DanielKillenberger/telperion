@@ -82,3 +82,30 @@ the account refused. Jev: 781 calls over three Profile runs (242 labels, 538
 appearance levels; the first run failed on an HTTP 520, the second repeated
 read). The appearance traits now read every document, about 180 level calls
 a run. Vision: two photograph looks, two inventories, one preflight probe.
+
+## After the host's decisions (same day, `--extend`, no Firecrawl call)
+
+The recording was extended for the document kinds, the tiered appearance
+reading and the category photograph search; Jev and the vision adapter
+answered live, Firecrawl not at all.
+
+- **Kinds.** Jev classed the Woodland Trust and the archived EUFORGEN
+  guideline `forestry`, Morton and Chicago Botanic `garden`, NC State and
+  Oregon State `extension`, the landscape designer's blog `nursery`, IUCN and
+  bomeninfo `other`. 9 calls.
+- **What the tiers held.** Height: forestry 1 (the Woodland Trust's 40 m),
+  garden 1, extension 2, nursery 1. Only one forestry source stated a height:
+  the EUFORGEN guideline was read as binary (FRICTION.md), so its 30-35 m
+  never reached the aggregate. The extension tier's two agreeing pages
+  decided: 17.5 m (15-23 m), `agreed`. With the guideline readable the forestry
+  tier agrees and decides 36.25 m (`tests/tiers.rs`). Crown width 12.9 m and
+  leaf length 8.5 cm (extension, agreed); leaf width 11.4 cm (NC State alone,
+  thin); trunk diameter 1.5 m (nursery, thin); crown base unsourced.
+- **Start** takes the median: envelope height 17.5 m.
+- **Appearance** read the best tier only: 71 level calls, against 184 when it
+  read every document (113 saved a run).
+- **Photographs (R7).** The single-tree category gave "Fagus sylvatica TK
+  2023-05-06 1" (CC BY-SA 4.0): the look kept it as a mature, open-grown whole
+  tree in leaf. No bare tree was kept.
+- **Cost.** 128 Jev calls in all (9 kinds, 48 labels replayed, 71 levels),
+  two vision calls (the look and the inventory), no Firecrawl credit.

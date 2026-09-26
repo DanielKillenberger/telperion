@@ -99,7 +99,7 @@ fn one() -> f64 {
 #[derive(Deserialize, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
 enum Formula {
-    Midpoint,
+    Typical,
     Identity,
     Ratio,
 }
@@ -107,7 +107,7 @@ enum Formula {
 impl Formula {
     fn name(self) -> &'static str {
         match self {
-            Self::Midpoint => "midpoint",
+            Self::Typical => "typical",
             Self::Identity => "identity",
             Self::Ratio => "ratio",
         }
@@ -270,17 +270,25 @@ pub fn derive(profile: &Value, family: &Value) -> Result<Derived, String> {
     Ok(b.out)
 }
 
+/// A metric's typical value: the aggregate's median (fn-157, host decision
+/// 4), else the middle of a range a person wrote.
+fn typical(metric: &Value) -> Option<f64> {
+    metric["value"]
+        .as_f64()
+        .or_else(|| midpoint(&metric["range"]))
+}
+
 fn value(row: &Row, metric: &Value, metrics: &Value, family: &Value) -> Result<f64, String> {
-    let middle = || midpoint(&metric["range"]).ok_or_else(|| "no range".to_string());
+    let middle = || typical(metric).ok_or_else(|| "no range".to_string());
     match row.formula {
-        Formula::Midpoint => middle(),
+        Formula::Typical => middle(),
         Formula::Identity => match range(&metric["range"]) {
             Some((lo, hi)) if lo == hi => Ok(lo),
             _ => Err("identity needs one stated value".into()),
         },
         Formula::Ratio => {
             let (over, denominator) = match &row.over {
-                Some(Over::Metric(key)) => (key, midpoint(&metrics[key]["range"])),
+                Some(Over::Metric(key)) => (key, typical(&metrics[key])),
                 Some(Over::Family(path)) => (path, family.pointer(path).and_then(Value::as_f64)),
                 None => return Err("a ratio row names nothing to divide by".into()),
             };

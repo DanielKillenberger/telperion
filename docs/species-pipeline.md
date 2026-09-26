@@ -204,7 +204,11 @@ runs from). Another species' sources, the specs' method references and
 anything under a `raw/` directory are never known (owner, 2026-09-25). Every
 document found, one per address and at most sixteen, joins the manifest as a
 source `P<n>`; a known source carrying a fetch error is listed and never
-added. Nothing is ranked, admitted or refused before it is read: reading a
+added. A seed that states the species' native range
+(`taxon.native_range`: `{"region": "Europe", "names": {"de": "Rotbuche"}}`)
+adds that region's floras and forestry literature and the species under its
+names in the range's own languages, two documents a query beyond the sixteen
+(host decision, 2026-09-26). Nothing is ranked, admitted or refused before it is read: reading a
 document for its facts needs no licence, only a copy does (below,
 "Documentation").
 
@@ -252,32 +256,42 @@ the TLS error verbatim.
 ## Values
 
 A species' values are the confident aggregate of everything its documents
-say (fn-157). Read reads each fetched document once: code finds every
-number-and-unit span that states a length in a sentence naming one of the
-manifest's fields, each occurrence on its own (at most forty a document), and
-Jev labels each, marked in its sentence, with the field it states or `none`,
-its basis (typical, a record, one specimen, a cultivar, unclear), the age
-(mature, at a stated age, young) and the growing condition. Jev never chooses
-between sources and never supplies a number.
+say (fn-157). Read reads each fetched document once. Jev classes the
+document's kind from its address, title and a few of its sentences: a flora
+or monograph, a forestry or silvics manual or yield table (a woodland body's
+account of the tree in its native woods among them), a botanical garden's or
+arboretum's page, a university extension page, a nursery's, landscape
+designer's or retailer's page, or another kind, with `unclear` its no-match
+answer. Code finds every number-and-unit span above zero that states a length
+in a sentence naming one of the manifest's fields, each occurrence on its own
+(at most forty a document), and Jev labels each, marked in its sentence, with
+the field it states or `none`, its basis (typical, a record, one specimen, a
+cultivar, unclear), the age (mature, at a stated age, young) and the growing
+condition. Jev never chooses between sources and never supplies a number.
 
 Aggregate composes each field in code (`pipeline::agree`). A span counts when
 it is labelled the field, of a grown tree, under the field's condition or an
 unstated one; code parses its number and unit, and sets it aside when the
 words beside it name another dimension ("Leaf Length: 3-6 inches" labelled a
 width). Pages of one site are one source, and each source's typical spans
-are one point, the median of their midpoints. A point more than twice the
-median of three or more is set aside and noted. The value is the median of
-the points left, the range their extent, and the confidence `agreed` when
-three or more sources stand within a factor of 1.5 of each other, else
-`thin`. A record or a single specimen is the field's `maximum`, never its
-value. A field no document states typically is `unsourced`: the generator's
-default stands and Tune sets it from the photographs. The three bounds and
-the document count are proposals the beech's live run measures (fn-157,
-"Unknown"). The metric keeps the profile's shape, so Start, Tune and Gaps
-read it unchanged; it adds `value`, `sources_agreeing`, `spread_ratio`,
-`maximum` and `set_aside`, and the sidecar keeps every span behind a value
-with its sentence and ledger reference. Appearance traits read every
-document a trait does not narrow.
+are one point, the median of their midpoints. Sources rank by their
+document's kind, in the order above (host decision, 2026-09-26): the value
+comes from the best tier holding two independent points within a factor of
+1.5 of each other (`agreed`). A lower tier fills a field only when no tier
+agrees and no better tier holds a value (`thin`). Within the deciding tier a
+point beyond a factor of 2 of the tier's median is set aside and noted once
+the tier holds three. The bounds are named constants, and
+`data/cases/aggregate.json` is the labelled set they must answer. The value is
+the median of the points left, the range their extent; a record or a single
+specimen is the field's `maximum`, never its value. A field no document states
+typically is `unsourced`: the generator's default stands and Tune sets it from
+the photographs. The metric keeps the profile's shape, so Tune and Gaps read
+it unchanged; it adds `value`, `tier`, `tiers` (the independent sources each
+tier held), `sources_agreeing`, `spread_ratio`, `maximum` and `set_aside`, and
+the sidecar keeps every span behind a value with its sentence and ledger
+reference. Start takes `value`, the median, never the middle of the range.
+An appearance trait that names no source reads the documents of the best tier
+whose text carries the trait's words, and no other.
 
 ## Documentation
 
@@ -344,7 +358,8 @@ identities, never probabilities; the probabilities live in the ledger entries.
 ## The question sets
 
 The versioned sets under `crates/telperion-jev/data/questions`: the read
-stage's label (field, basis, age, condition) over a marked span, described
+stage's document kind and its label (field, basis, age, condition) over a
+marked span, described
 level scoring over levels a person wrote, and the rights class of a
 photograph's licence. Their labelled cases with negative and held-out entries
 live under `data/cases` (the label's are the recorded beech pages and the

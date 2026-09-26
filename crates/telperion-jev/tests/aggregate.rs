@@ -14,8 +14,6 @@ use std::path::{Path, PathBuf};
 
 use common::CaseTransport;
 use serde_json::{json, Value};
-use telperion_core::params;
-use telperion_core::presets::Preset;
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::adapter::FixtureAdapter;
 use telperion_jev::pipeline::canon::{read_json, write_canonical};
@@ -24,7 +22,6 @@ use telperion_jev::pipeline::requirements::table;
 use telperion_jev::pipeline::stage::{Context, Paths};
 use telperion_jev::pipeline::stages::gather::GATHERED;
 use telperion_jev::pipeline::stages::{aggregate, fetch, inputs, read};
-use telperion_jev::runner::derive;
 use telperion_jev::tape::{self, Tape};
 
 const WSU: &str =
@@ -108,7 +105,8 @@ fn near(value: &Value, want: f64) -> bool {
 /// R2: the heritage beech's 171.6-inch trunk, its 125 ft and its 85 ft
 /// spread are one tree's: each is its field's maximum, and none is a typical
 /// value. The trunk and the crown have no typical value on these pages and
-/// stay unsourced; the height's typical value is the other two sources'.
+/// stay unsourced; the height's typical value is NC State's, an extension
+/// page that outranks the nursery's 35 m.
 #[test]
 fn a_single_specimen_is_the_fields_maximum_never_its_typical_value() {
     let dir = recorded_beech();
@@ -122,13 +120,15 @@ fn a_single_specimen_is_the_fields_maximum_never_its_typical_value() {
     assert!(near(&crown["maximum"]["value"], 85.0 * 0.3048), "{crown}");
 
     let height = metric(&dir, "height_m");
-    assert_eq!(height["source"], json!(["P2", "P3"]), "{height}");
-    assert!(near(&height["range"][0], 50.0 * 0.3048), "{height}");
-    assert!(near(&height["range"][1], 35.0), "{height}");
-    assert!(
-        near(&height["value"], (55.0 * 0.3048 + 35.0) / 2.0),
+    assert_eq!(height["source"], json!(["P2"]), "{height}");
+    assert_eq!(height["tier"], "extension", "{height}");
+    assert_eq!(
+        height["tiers"],
+        json!({"extension": 1, "nursery": 1}),
         "{height}"
     );
+    assert!(near(&height["range"][1], 60.0 * 0.3048), "{height}");
+    assert!(near(&height["value"], 55.0 * 0.3048), "{height}");
     assert!(
         near(&height["maximum"]["value"], 125.0 * 0.3048),
         "{height}"
@@ -158,28 +158,6 @@ fn a_length_labelled_as_a_width_is_set_aside_by_the_words_beside_it() {
     let provenance = read_json(&dir.join("provenance.json")).unwrap();
     let read = &provenance["entries"]["/profiles/0/metrics/leaf_length_m"]["contributions"];
     assert_eq!(read[0]["span"], "2 to 4 inches", "{read}");
-}
-
-/// R4: Start derives the tree from the aggregate with the table it always
-/// read: the height's range reaches the envelope and an unsourced field is
-/// left out.
-#[test]
-fn start_derives_the_tree_from_the_aggregate_unchanged() {
-    let dir = recorded_beech();
-    let profile = read_json(&dir.join("packet/profile.json")).unwrap();
-    let family = params::metadata(&Preset::from_id("european-beech").unwrap().parameters());
-    let derived = derive::derive(&profile["profiles"][0], &family).unwrap();
-    let height = derived
-        .rows
-        .iter()
-        .find(|r| r.path == "/skeleton/envelope/height")
-        .unwrap_or_else(|| panic!("no height row: {derived:?}"));
-    assert!(
-        (height.value - (50.0 * 0.3048 + 35.0) / 2.0).abs() < 1e-6,
-        "{height:?}"
-    );
-    assert_eq!(height.sources, ["P2", "P3"]);
-    assert!(derived.rows.iter().all(|r| !r.source.contains("dbh_m")));
 }
 
 /// A palm run whose read found nothing: only the appearance route speaks.

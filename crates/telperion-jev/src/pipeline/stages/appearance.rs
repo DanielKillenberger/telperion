@@ -1,6 +1,7 @@
 //! The aggregate stage's appearance route (fn-118). Code extracts, from
 //! each fetched document's cached text in the manifest's order (the trait's
-//! own list when it names one, fn-157), every sentence that carries the
+//! own list when it names one; else the documents of the best tier that
+//! carry the trait's words, fn-157), every sentence that carries the
 //! trait's words in the requirements table, and Jev scores each sentence
 //! alone over the table's levels (fn-128). The first sentence it places on a
 //! level is the chosen span; code copies that level's range for every
@@ -59,7 +60,12 @@ pub fn read_from(manifest: &Manifest, listed: &[String]) -> Vec<String> {
     }
 }
 
-pub fn run(judge: &Judge<'_>, ctx: &Context, fetch: &Value) -> Result<Copied, StageError> {
+pub fn run(
+    judge: &Judge<'_>,
+    ctx: &Context,
+    fetch: &Value,
+    tiers: &BTreeMap<String, usize>,
+) -> Result<Copied, StageError> {
     let manifest = &ctx.admitted.manifest;
     let mut copied = Copied::default();
     // Every trait's chosen sentence, gathered first so the back-colour
@@ -70,7 +76,8 @@ pub fn run(judge: &Judge<'_>, ctx: &Context, fetch: &Value) -> Result<Copied, St
         let name = trait_.trait_name.as_str();
         let levels = table().levels(name).unwrap_or_default();
         let sources = read_from(manifest, &trait_.sources);
-        let chosen = chosen_sentence(judge, ctx, name, &sources, &levels, fetch)?;
+        let ranked = trait_.sources.is_empty().then_some(tiers);
+        let chosen = chosen_sentence(judge, ctx, name, &sources, ranked, &levels, fetch)?;
         copied.ledger.extend(chosen.ledger.iter().cloned());
         copied.body.insert(
             name.into(),
@@ -203,35 +210,22 @@ fn chosen_sentence(
     ctx: &Context,
     trait_name: &str,
     sources: &[String],
+    tiers: Option<&BTreeMap<String, usize>>,
     levels: &[DescribedLevel],
     fetch: &Value,
 ) -> Result<Chosen, StageError> {
-    let terms = table()
-        .appearance
-        .get(trait_name)
-        .map(|t| t.terms.as_slice())
-        .unwrap_or_default();
     let mut ledger = Vec::new();
-    for id in sources {
-        if ctx.admitted.manifest.source(id).is_none() {
-            continue;
-        }
-        let Some(record) = fetch["sources"].get(id) else {
-            continue;
-        };
-        let text = cached_markdown(ctx, STAGE, id, record)?;
-        for sentence in sentences_with_terms(&text, terms) {
-            let one = std::slice::from_ref(&sentence);
-            let (level, entry) = ask_levels(judge, trait_name, one, levels)?;
-            ledger.push(entry["ledger"].as_str().unwrap_or_default().to_string());
-            if level != DESCRIBED_UNSTATED {
-                return Ok(Chosen {
-                    level,
-                    source: Some(id.clone()),
-                    span: sentence,
-                    ledger,
-                });
-            }
+    for (id, sentence) in speaking(ctx, trait_name, sources, tiers, fetch)? {
+        let one = std::slice::from_ref(&sentence);
+        let (level, entry) = ask_levels(judge, trait_name, one, levels)?;
+        ledger.push(entry["ledger"].as_str().unwrap_or_default().to_string());
+        if level != DESCRIBED_UNSTATED {
+            return Ok(Chosen {
+                level,
+                source: Some(id),
+                span: sentence,
+                ledger,
+            });
         }
     }
     Ok(Chosen {
@@ -240,6 +234,44 @@ fn chosen_sentence(
         span: String::new(),
         ledger,
     })
+}
+
+/// Each sentence of `sources` that carries the trait's words, by source in
+/// order. Ranked by `tiers`, only the best tier whose documents carry any is
+/// read (host decision, fn-157): a trait the best sources describe is not
+/// asked of every nursery page.
+fn speaking(
+    ctx: &Context,
+    trait_name: &str,
+    sources: &[String],
+    tiers: Option<&BTreeMap<String, usize>>,
+    fetch: &Value,
+) -> Result<Vec<(String, String)>, StageError> {
+    let terms = table()
+        .appearance
+        .get(trait_name)
+        .map(|t| t.terms.as_slice())
+        .unwrap_or_default();
+    let mut found: Vec<(usize, String, String)> = Vec::new();
+    for id in sources {
+        if ctx.admitted.manifest.source(id).is_none() {
+            continue;
+        }
+        let Some(record) = fetch["sources"].get(id) else {
+            continue;
+        };
+        let rank = tiers.map_or(0, |t| t.get(id).copied().unwrap_or(usize::MAX));
+        let text = cached_markdown(ctx, STAGE, id, record)?;
+        for sentence in sentences_with_terms(&text, terms) {
+            found.push((rank, id.clone(), sentence));
+        }
+    }
+    let best = found.iter().map(|f| f.0).min();
+    Ok(found
+        .into_iter()
+        .filter(|f| Some(f.0) == best)
+        .map(|(_, id, sentence)| (id, sentence))
+        .collect())
 }
 
 /// Jev scores a trait over `levels` on the sections of `sources` that carry

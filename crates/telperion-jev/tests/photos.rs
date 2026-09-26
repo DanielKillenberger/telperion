@@ -40,16 +40,32 @@ fn web() -> FakeWeb {
             "thumburl": format!("https://upload.wikimedia.org/{name}.jpg"),
             "extmetadata": {"LicenseShortName": {"value": licence}, "Artist": {"value": "Ann"}}}]})
     };
-    let answers = [
-        vec![
-            ("whole", "CC BY-SA 4.0"),
-            ("stand", "CC BY 4.0"),
-            ("restricted", "All rights reserved"),
-        ],
-        vec![("bark", "CC0")],
-        vec![("winter", "CC BY-SA 4.0")],
+    let categories = [
+        (
+            "Category:Fagus sylvatica (standalone)",
+            3,
+            vec![
+                ("whole", "CC BY-SA 4.0"),
+                ("stand", "CC BY 4.0"),
+                ("restricted", "All rights reserved"),
+            ],
+        ),
+        ("Category:Fagus sylvatica (bark)", 1, vec![("bark", "CC0")]),
+        (
+            "Category:Fagus sylvatica in winter",
+            2,
+            vec![("winter", "CC BY-SA 4.0")],
+        ),
     ];
-    for ((query, limit), files) in commons::queries(TAXON).into_iter().zip(answers) {
+    let members: Vec<Value> = categories
+        .iter()
+        .map(|(title, _, _)| json!({"title": title}))
+        .collect();
+    pages.insert(
+        commons::subcategories_url(TAXON),
+        serde_json::to_vec(&json!({"query": {"categorymembers": members}})).unwrap(),
+    );
+    for (category, limit, files) in categories {
         let listed: serde_json::Map<String, Value> = files
             .iter()
             .enumerate()
@@ -57,7 +73,7 @@ fn web() -> FakeWeb {
             .collect();
         let body = json!({"query": {"pages": listed}});
         pages.insert(
-            commons::url(&query, limit),
+            commons::category_url(category, limit),
             serde_json::to_vec(&body).unwrap(),
         );
         for (name, _) in files {
@@ -245,7 +261,7 @@ fn a_commons_file_under_cc_by_or_cc0_is_open_without_a_question() {
     .unwrap();
     let answer: Value = serde_json::from_slice(&recorded).unwrap();
     let mut pages = BTreeMap::new();
-    let (query, limit) = commons::queries(TAXON)[0].clone();
+    let (query, limit) = commons::searches(TAXON, "European beech")[0].clone();
     pages.insert(commons::url(&query, limit), recorded);
     for (i, page) in answer["query"]["pages"]
         .as_object()

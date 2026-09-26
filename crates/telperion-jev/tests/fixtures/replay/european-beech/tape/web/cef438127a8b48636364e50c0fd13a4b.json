@@ -1,0 +1,1 @@
+{"key":"cef438127a8b48636364e50c0fd13a4b3154b2ed211d25df20788bd1077b9deb","kind":"web","request":{"url":"https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=categorymembers&gcmtitle=Category%3AFamous+Fagus+sylvatica&gcmtype=file&gcmlimit=3&prop=imageinfo&iiprop=url|mime|extmetadata&iiurlwidth=1280"},"response":{"ok":"application/json"}}

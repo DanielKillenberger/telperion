@@ -112,14 +112,28 @@ fn the_recorded_beech_replays_offline_through_start_and_a_second_run_reruns_noth
         "{profile}"
     );
     assert!(
-        profile.contains("reference photographs: 12 candidates, 12 open-licence, 1 kept"),
+        profile.contains("reference photographs: 12 candidates, 7 open-licence, 1 kept"),
         "{profile}"
     );
     assert!(profile.contains("reference inventory built"), "{profile}");
     let path = dir.join("catalogue/european-beech/packet/profile.json");
     let profile: Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+    // The height is the extension tier's two agreeing pages: the Woodland
+    // Trust's 40 m is the forestry tier's only value (fn-157).
     let height = &profile["profiles"][0]["metrics"]["height_m"];
-    assert!(height["sources_agreeing"].as_u64() >= Some(3), "{height}");
+    assert_eq!(height["tier"], "extension", "{height}");
+    assert_eq!(height["confidence"], "agreed", "{height}");
+    assert_eq!(height["tiers"]["forestry"], 1, "{height}");
+    // R7: the photograph search kept a mature, open-grown tree in leaf.
+    let path = dir.join("catalogue/european-beech/packet/references.json");
+    let references: Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+    let views: Vec<&str> = references["references"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|r| r["view"].as_str())
+        .collect();
+    assert!(views.contains(&"leaf-on"), "{views:?}");
     assert!(
         word("capability").starts_with("capability: ran: gate ran"),
         "{lines:?}"

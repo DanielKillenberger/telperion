@@ -7,7 +7,9 @@
 //! the age and the growing condition; it never chooses between sources and
 //! never supplies a number. Code parses the number and checks it against
 //! the words beside the span: a span the text calls long, labelled a width,
-//! is set aside, never counted.
+//! is set aside, never counted. Jev also classes each document's kind (a
+//! flora, a forestry manual, a garden's, an extension's or a nursery's
+//! page), which ranks it for the aggregate (host decision, fn-157).
 
 use serde_json::{json, Value};
 
@@ -16,7 +18,7 @@ use crate::ledger::SourceRef;
 use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::Manifest;
 use crate::pipeline::requirements::{names_field, table};
-use crate::pipeline::sets::label_questions;
+use crate::pipeline::sets::{kind_questions, kind_state, label_questions, KIND_UNCLEAR};
 use crate::pipeline::stage::{Context, Paths, StageError};
 use crate::quantity::{first_length, unit_re};
 
@@ -68,6 +70,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     let fields: Vec<String> = manifest.fields.iter().map(|f| f.field.clone()).collect();
     let questions = label_questions(&described(manifest));
     let mut spans = Vec::new();
+    let mut documents = serde_json::Map::new();
     for (id, record) in fetch["sources"].as_object().into_iter().flatten() {
         let markdown = cached_markdown(&ctx, STAGE, id, record)?;
         let source = SourceRef {
@@ -79,7 +82,20 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
                 .into(),
             bytes: record["markdown_bytes"].as_u64().unwrap_or_default(),
         };
-        for found in occurrences(&markdown, &fields) {
+        let found = occurrences(&markdown, &fields);
+        let title = manifest.source(id).map_or("", |s| s.title.as_str());
+        let kind = kind(
+            judge,
+            manifest,
+            &source,
+            title,
+            &passages(&markdown, &found),
+        )?;
+        header
+            .ledger
+            .push(kind["ledger"].as_str().unwrap_or_default().into());
+        documents.insert(id.clone(), kind);
+        for found in found {
             let row = label(judge, manifest, &source, &found, &questions)?;
             header
                 .ledger
@@ -88,8 +104,51 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
         }
     }
     let count = spans.len();
-    ctx.write(&header, json!({"spans": spans}))?;
+    ctx.write(&header, json!({"documents": documents, "spans": spans}))?;
     Ok(Outcome::Ran { spans: count })
+}
+
+/// What a document's kind is read from: up to three of the sentences read
+/// asks about, else its first three candidate sentences.
+fn passages(markdown: &str, found: &[Occurrence]) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for o in found {
+        if !out.contains(&o.sentence) {
+            out.push(o.sentence.clone());
+        }
+    }
+    if out.is_empty() {
+        out = candidate_sentences(markdown)
+            .into_iter()
+            .map(|c| c.sentence)
+            .collect();
+    }
+    out.truncate(3);
+    out.iter().map(|p| bound_state_text(p)).collect()
+}
+
+/// A document's kind as Jev classes it, `unclear` when it cannot.
+fn kind(
+    judge: &Judge<'_>,
+    manifest: &Manifest,
+    source: &SourceRef,
+    title: &str,
+    passages: &[String],
+) -> Result<Value, StageError> {
+    let taxon = &manifest.taxon;
+    let species = format!("{} ({})", taxon.common_name, taxon.scientific_name);
+    let state = kind_state(&species, &source.id, &source.url, title, passages);
+    let judgment = judge
+        .ask("kind", Some(source), &state, &kind_questions())
+        .map_err(|err| StageError::Failed {
+            stage: STAGE.into(),
+            reason: err.to_string(),
+        })?;
+    let kind = judgment
+        .entry
+        .choice("document")
+        .unwrap_or_else(|| KIND_UNCLEAR.into());
+    Ok(json!({"kind": kind, "ledger": judgment.reference}))
 }
 
 /// Each manifest field with the words that say what it measures.

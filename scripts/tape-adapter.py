@@ -2,7 +2,8 @@
 """Record and replay one vision adapter call (fn-149, owner 2026-09-25).
 
 The species runner wraps every adapter program in its configs as
-`python3 scripts/tape-adapter.py record:<dir>|replay:<dir> -- <program> <args...>`.
+`python3 scripts/tape-adapter.py record:<dir>|replay:<dir>|extend:<dir> -- <program> <args...>`;
+`extend` replays what the recording holds and records what it lacks.
 The call's stdin envelope and the adapter's argv are the key, without what
 names the run rather than the question: every `path`, the request hash the
 caller took over those paths, every `ledger` reference (a fresh entry id per
@@ -60,12 +61,14 @@ def bound(stdout, stdin):
 def main(argv):
     mode, rest = argv[0], argv[1:]
     if not rest or rest[0] != "--" or ":" not in mode:
-        raise SystemExit("usage: tape-adapter.py record:<dir>|replay:<dir> -- <program> <args...>")
+        raise SystemExit("usage: tape-adapter.py record:<dir>|replay:<dir>|extend:<dir> -- <program> <args...>")
     kind, directory = mode.split(":", 1)
     program = rest[1:]
     stdin = sys.stdin.read()
     digest = key(program, stdin)
     entry = Path(directory) / "adapter" / f"{digest[:32]}.json"
+    if kind == "extend" and entry.exists():
+        kind = "replay"
     if kind == "replay":
         if not entry.exists():
             envelope = stdin[:300].replace("\n", " ")

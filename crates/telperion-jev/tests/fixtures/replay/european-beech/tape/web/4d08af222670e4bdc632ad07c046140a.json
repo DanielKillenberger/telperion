@@ -1,0 +1,1 @@
+{"key":"4d08af222670e4bdc632ad07c046140a6fd74b95d215bf94391bc9b292ef2b0b","kind":"web","request":{"url":"https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=categorymembers&gcmtitle=Category%3AFagus+sylvatica+in+winter&gcmtype=file&gcmlimit=2&prop=imageinfo&iiprop=url|mime|extmetadata&iiurlwidth=1280"},"response":{"ok":"application/json"}}
