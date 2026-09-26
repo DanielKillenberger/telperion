@@ -55,3 +55,10 @@
 - **Hindered:** the baseline is still infeasible, now "no matched shots or height": `tuning/matched.rs` compares only against references that carry a `shot` (camera azimuth, elevation, field of view, crop), and the photograph the Profile stage keeps carries none. The tuning config's `numeric_references` and required cells name the shipped beech's hand-matched `B-WHOLE`, which a run from a name never has. No code derives a shot.
 - **Cost:** one more revision (one visual pass); R8 cannot reach a round from a name.
 - **Would have removed it:** a rule for who writes a found photograph's shot and which reference Tune's numeric comparison names on a run from a name. Left to the host: a system-design choice.
+
+## 2026-09-26, worker, fn-157.1: tape_trim --check exits 0 on a finding
+
+- **Doing:** trimming the beech and oak recordings for the fixtures.
+- **Hindered:** `tape_trim --check` prints each page that keeps too much but exits 0, so a script chaining it with `&&` goes on; the replay test catches it later, after a full replay.
+- **Cost:** one replay (about two minutes) before the finding was noticed in the output.
+- **Would have removed it:** `--check` exiting nonzero when it lists anything.

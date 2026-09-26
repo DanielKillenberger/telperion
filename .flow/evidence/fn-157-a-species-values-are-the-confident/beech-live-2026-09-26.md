@@ -131,3 +131,57 @@ recorded in `raw/beech-live2`.
 - **Spend:** Firecrawl about 50 credits (gather and fetch); Jev 15 kind
   calls, 51 labels, 103 appearance levels and 3 Tune preparations (1,579
   tokens each); vision one look, one inventory and three Tune passes.
+
+## After the agreement rule (host decision, same day)
+
+A value gates only when its deciding tier agrees. The beech's height (three
+forestry sources), crown width (two extension sources) gate; trunk
+diameter, leaf length and leaf width are contextual, crown base unsourced.
+`gaps.md` lists the contextual fields for a person to source.
+
+- **Tune revision 1** passed the numeric gate (height 39.97 m, crown
+  13.4 m) and stopped again before a round: "no matched shots or height".
+  `tuning/matched.rs` compares only against references carrying a camera
+  `shot`, and the photograph the Profile stage keeps carries none; the
+  config's `numeric_references` name the shipped beech's hand-matched
+  `B-WHOLE`. No code derives a shot. Gaps never ran. This is the host's
+  call (FRICTION.md).
+- **Spend** after the rule: Jev 1 Tune preparation (about 1,600 tokens),
+  vision one Tune pass; aggregate reran from the recording.
+
+## The Oregon white oak (R5), live from a bare seed
+
+Seed: the beech's shape with the oak's names, `native_range` western North
+America, British Columbia to California, with the Canadian name Garry oak;
+the host's capability assessment (woody axes, lobed blade, alternate
+petiole). `species oregon-white-oak --until start --record`.
+
+| Field | Aggregate | Tier, confidence | Catalogue range | Difference |
+|---|---|---|---|---|
+| height_m | 21.3 m (15.2-27.4) | forestry, thin (USDA silvics) | 15-27 | inside; range 0.2 m wider each side |
+| dbh_m | 0.8 m (0.6-1.0) | forestry, thin | 0.6-1.0 | identical |
+| leaf_length_m | 0.10 m (0.05-0.15) | extension, thin | foliage_length 0.05-0.15 | identical |
+| leaf_width_m | unsourced | | foliage_width 0.051-0.127 | not settled |
+| crown_width_m | unsourced (maximum 38.4 m) | | unknown | both unsourced |
+| crown_base_m | unsourced | | unknown | both unsourced |
+
+Every value the aggregate settled lands within its catalogue range
+(`tests/replay.rs`). None has three agreeing sources: R1's bar is not met
+for the oak. Six of 22 documents were refused (four POWO pages and FEIS
+answered 403, CNPS failed TLS). No photograph: the Commons category files
+no single oak (its subcategories are range maps, historical images and one
+preserve) and geograph, a British archive, has none.
+
+- **Spend:** Firecrawl 10 searches and 22 scrapes plus one PDF parse;
+  Jev 14 kind calls, 21 labels, 60 appearance levels; vision none.
+
+## Fixtures
+
+Both recordings are trimmed, checked and pruned to what a replay opens:
+beech 425 files, 9.6 MB (the Commons photographs most of it); oak 244
+files, 1.4 MB. Trimming them found four ways a trimmed tape replayed
+differently or kept too much, each fixed with a test first: a one-word
+passage a kind question was asked over, an appearance sentence of two
+words, a page no stage read keeping its licence tags (it then read as a
+page), and a PDF whose parse stayed whole (the forstpraxis yield table and
+the EUFORGEN guideline in full) and whose scrape lost the PDF magic.
