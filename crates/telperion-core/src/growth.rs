@@ -1,32 +1,79 @@
 //! Annual age controls shared by every numeric family. No simulation rate lives here.
 mod clock;
+use crate::catalogue::{value, Blend, Bounds, Dial, Growth, Site};
 use crate::{math::Transcendental, Error, Result};
 pub(crate) use clock::Age;
 
 /// Ages in years, quantized to one twelve-billionth of a year at the API boundary.
 pub const MAX_AGE: f64 = 1_000_000.0;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
-pub struct GrowthTraits {
-    /// Geometric work quanta available over this specimen's life.
-    #[cfg_attr(
-        feature = "json",
-        serde(default = "crate::ranges::default_work_budget")
-    )]
-    pub work_budget: u32,
-    /// Chapman–Richards rate, in inverse years.
-    pub rate: f64,
-    /// Chapman–Richards shape; values above one give a sigmoidal height curve.
-    pub shape: f64,
-    /// Consecutive active slices below the habit shedding threshold, in years.
-    pub shedding_tolerance: f64,
-    /// Annual loss of the habit apical control (zero retains its authored value).
-    pub apical_control_loss: f64,
-    /// Years of annual foliage cohorts held by a living shoot; zero bears none.
-    pub leaf_lifetime: f64,
-    /// Minimum thickening in metres before recording another annual radius frame.
-    pub resize_tolerance: f64,
+crate::catalogue::rows! {
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
+    pub struct GrowthTraits in "/growth" {
+        /// Geometric work quanta available over this specimen's life.
+        #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_work_budget"))]
+        pub work_budget: u32 = "workBudget" "work quanta"
+            crate::ranges::POSITIVE_COUNT.bounds() => [Grow] {
+            check: value(Site::Growth, 0, "growth.workBudget"),
+            growth: Growth::Only,
+            note: "Also sets when growth snaps to maturity, so it moves the growth path's mature \
+                year.",
+            blend: Blend::Count,
+            dial: Dial::Excluded("Growth-path only, and a work budget."),
+        },
+        /// Chapman–Richards rate, in inverse years.
+        pub rate: f64 = "rate" "per year" Bounds::closed(0.001, 10.0) => [Grow] {
+            check: value(Site::Growth, 1, "growth.rate"),
+            growth: Growth::Only,
+            note: "Also ages shoot vigour for survival and bud sampling.",
+            blend: Blend::Weighted,
+            dial: Dial::Excluded("Growth-path only: `mesh::build` and `branching::generate` \
+                never read the growth traits (crates/telperion-core/src/mesh.rs:73)."),
+        },
+        /// Chapman–Richards shape; values above one give a sigmoidal height curve.
+        pub shape: f64 = "shape" "-" Bounds::closed(1.0, 8.0) => [Grow] {
+            check: value(Site::Growth, 2, "growth.shape"),
+            growth: Growth::Only,
+            blend: Blend::Weighted,
+            dial: Dial::Excluded("Growth-path only, as above."),
+        },
+        /// Consecutive active slices below the habit shedding threshold, in years.
+        pub shedding_tolerance: f64 = "sheddingTolerance" "years"
+            Bounds::closed(0.0, 1_000_000.0) => [Grow] {
+            check: value(Site::Growth, 5, "growth.sheddingTolerance"),
+            growth: Growth::Only,
+            applies: "`sheddingThreshold` zero",
+            blend: Blend::Weighted,
+            dial: Dial::Excluded("Growth-path only, as above."),
+        },
+        /// Annual loss of the habit apical control (zero retains its authored value).
+        pub apical_control_loss: f64 = "apicalControlLoss" "per year"
+            Bounds::closed(0.0, 10.0) => [Grow] {
+            check: value(Site::Growth, 6, "growth.apicalControlLoss"),
+            growth: Growth::Only,
+            note: "Divides `apicalDominance` each year and adds the released share to \
+                `lateralLengthRatio`.",
+            blend: Blend::Weighted,
+            dial: Dial::Excluded("Growth-path only, as above."),
+        },
+        /// Years of annual foliage cohorts held by a living shoot; zero bears none.
+        pub leaf_lifetime: f64 = "leafLifetime" "years" Bounds::closed(0.0, 1_000_000.0) => [Grow] {
+            check: value(Site::Growth, 3, "growth.leafLifetime"),
+            growth: Growth::Only,
+            applies: "zero bears no leaves on the growth path",
+            blend: Blend::Weighted,
+            dial: Dial::Excluded("Growth-path only, as above."),
+        },
+        /// Minimum thickening in metres before recording another annual radius frame.
+        pub resize_tolerance: f64 = "resizeTolerance" "m" Bounds::closed(0.0, 1.0) => [Grow] {
+            check: value(Site::Growth, 4, "growth.resizeTolerance"),
+            growth: Growth::Only,
+            blend: Blend::Weighted,
+            dial: Dial::Excluded("Growth-path only, and an internal recording tolerance rather \
+                than a look."),
+        },
+    }
 }
 
 #[cfg(test)]
@@ -62,33 +109,7 @@ impl Default for GrowthTraits {
 }
 impl GrowthTraits {
     pub fn validate(self) -> Result<()> {
-        crate::ranges::POSITIVE_COUNT.check(self.work_budget as f64, "growth.workBudget")?;
-        for (field, value, lo, hi) in [
-            ("growth.rate", self.rate, 0.001, 10.0),
-            ("growth.shape", self.shape, 1.0, 8.0),
-            ("growth.leafLifetime", self.leaf_lifetime, 0.0, MAX_AGE),
-            ("growth.resizeTolerance", self.resize_tolerance, 0.0, 1.0),
-            (
-                "growth.sheddingTolerance",
-                self.shedding_tolerance,
-                0.0,
-                MAX_AGE,
-            ),
-            (
-                "growth.apicalControlLoss",
-                self.apical_control_loss,
-                0.0,
-                10.0,
-            ),
-        ] {
-            if !value.is_finite() || !(lo..=hi).contains(&value) {
-                return Err(Error::InvalidValue {
-                    field,
-                    value: value.to_string(),
-                });
-            }
-        }
-        Ok(())
+        crate::catalogue::check(Self::ROWS, &self, Site::Growth)
     }
     pub(crate) fn fraction(self, slice: u64) -> f64 {
         let f = (1.0 - (-self.rate * slice as f64).exp_fixed()).powf_fixed(self.shape);

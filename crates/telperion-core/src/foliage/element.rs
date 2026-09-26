@@ -1,4 +1,5 @@
 use super::{levels, outline, range, Level};
+use crate::catalogue::{bounded, input, tuned, Blend, Bounds, Dial, Site};
 use crate::{math::Vec3, Error, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -18,50 +19,131 @@ pub struct AnatomyGeometry {
     pub sections: Vec<std::ops::Range<usize>>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct ElementParams {
-    /// Metres of petiole or woody peg below the blade, excluded from unit
-    /// dimensions. Every element carries one.
-    pub connector_length: f64,
-    /// Blade/needle longitudinal extent, excluding connector, in metres.
-    pub length: f64,
-    /// The blade's greatest width in metres, across the midrib. Raising it
-    /// makes every leaf broader.
-    pub width: f64,
-    /// Where the blade is widest, as a share of the way from its base to
-    /// its tip. Raising it carries the widest point toward the tip.
-    pub widest_at: f64,
-    /// How fast the blade fills out above its stalk. Raising it draws the
-    /// base in, so the leaf reads wedge-shaped rather than rounded.
-    pub base_fullness: f64,
-    /// How fast the blade narrows toward its point. Raising it draws the
-    /// tip out into a sharper point.
-    pub tip_sharpness: f64,
-    /// How far the blade's margins lift out of its own plane, as a share
-    /// of the half-width there. Raising it dishes the leaf more deeply
-    /// along the midrib.
-    pub cup: f64,
-    /// How far the blade bends along its length, as a share of its length
-    /// at the tip. Raising it curls the tip further out of the plane its
-    /// base stands in.
-    pub curl: f64,
-    /// Lobes along each margin; 0 is an entire margin.
-    pub lobe_count: u32,
-    /// How far each sinus cuts toward the midrib, 0 to 1. At zero the margin
-    /// is entire whatever the lobe count says, and any rise starts cutting
-    /// the sinuses.
-    pub lobe_depth: f64,
-    /// Flat blade at 0, four-sided shaft at 1.
-    pub section_roundness: f64,
-    /// How many sections the blade is built from along its length. Raising
-    /// it draws the outline and any lobes more smoothly, at more triangles
-    /// per leaf.
-    pub axial_segments: u32,
-    /// How many columns the blade is built from across its width. Raising
-    /// it draws the section and the margins more smoothly, at more
-    /// triangles per leaf.
-    pub cross_segments: u32,
-    pub card: bool,
+crate::catalogue::rows! {
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct ElementParams in "/element" {
+        /// Metres of petiole or woody peg below the blade, excluded from unit
+        /// dimensions. Every element carries one.
+        pub connector_length: f64 = "connectorLength" "m" Bounds::closed(1e-6, 1e3) => [Plan] {
+            applies: "`card`",
+            note: "At most `length` and at least 1e-6, refused by name (`foliage connector \
+                length`) in `build_element`; a card carries none.",
+            dial: tuned("connector_length", "the metres of stalk below the blade",
+                [1e-06, 0.0325], [0.005, 0.01], "preset span"),
+        },
+        /// Blade/needle longitudinal extent, excluding connector, in metres.
+        pub length: f64 = "length" "m" Bounds::closed(1e-4, 1e3) => [Plan] {
+            check: input(Site::Leaf, 0, "leaf length"),
+            dial: tuned("leaf_length", "the blade's length in metres, excluding its stalk",
+                [0.0001, 0.171], [0.025, 0.05], "preset span"),
+        },
+        /// The blade's greatest width in metres, across the midrib. Raising it
+        /// makes every leaf broader.
+        pub width: f64 = "width" "m" Bounds::closed(1e-4, 1e3) => [Plan] {
+            check: input(Site::Leaf, 1, "leaf width"),
+            dial: tuned("leaf_width", "the blade's greatest width in metres",
+                [0.0001, 0.11175], [0.015, 0.03], "preset span"),
+        },
+        /// Where the blade is widest, as a share of the way from its base to
+        /// its tip. Raising it carries the widest point toward the tip.
+        pub widest_at: f64 = "widestAt" "share of the blade" Bounds::closed(0.05, 0.95) => [Plan] {
+            check: input(Site::Leaf, 2, "leaf widest point"),
+            applies: "`card`",
+            dial: bounded("leaf_widest_at", "where the blade is widest, from its base at nought \
+                to its tip at one", [0.15, 0.3]),
+        },
+        /// How fast the blade fills out above its stalk. Raising it draws the
+        /// base in, so the leaf reads wedge-shaped rather than rounded.
+        pub base_fullness: f64 = "baseFullness" "-" Bounds::closed(0.2, 8.0) => [Plan] {
+            check: input(Site::Leaf, 3, "leaf base fullness"),
+            applies: "`card`",
+            dial: tuned("leaf_base_fullness", "how fast the blade fills out above its stalk; \
+                higher reads wedge-shaped", [0.2, 1.175], [0.15, 0.3], "preset span"),
+        },
+        /// How fast the blade narrows toward its point. Raising it draws the
+        /// tip out into a sharper point.
+        pub tip_sharpness: f64 = "tipSharpness" "-" Bounds::closed(0.2, 8.0) => [Plan] {
+            check: input(Site::Leaf, 4, "leaf tip sharpness"),
+            applies: "`card`",
+            dial: bounded("leaf_tip_sharpness", "how fast the blade narrows to its point",
+                [1.0, 2.0]),
+        },
+        /// How far the blade's margins lift out of its own plane, as a share
+        /// of the half-width there. Raising it dishes the leaf more deeply
+        /// along the midrib.
+        pub cup: f64 = "cup" "share of the half-width" Bounds::closed(-2.0, 2.0) => [Plan] {
+            check: input(Site::Leaf, 5, "leaf cup"),
+            applies: "`card`",
+            dial: bounded("leaf_cup", "how far the blade's margins lift out of its own plane",
+                [0.5, 1.0]),
+        },
+        /// How far the blade bends along its length, as a share of its length
+        /// at the tip. Raising it curls the tip further out of the plane its
+        /// base stands in.
+        pub curl: f64 = "curl" "share of the length" Bounds::closed(-2.0, 2.0) => [Plan] {
+            check: input(Site::Leaf, 6, "leaf curl"),
+            applies: "`card`",
+            dial: bounded("leaf_curl", "how far the blade bends along its length", [0.5, 1.0]),
+        },
+        /// Lobes along each margin; 0 is an entire margin.
+        pub lobe_count: u32 = "lobeCount" "lobes" Bounds::closed(0.0, 8.0) => [Plan] {
+            check: input(Site::LeafCounts, 0, "leaf lobe count"),
+            applies: "`lobeDepth` zero",
+            note: "Refused above zero on a card.",
+            blend: Blend::Down,
+            dial: bounded("leaf_lobe_count", "lobes along each margin; zero is an entire margin",
+                [1.0, 2.0]),
+        },
+        /// How far each sinus cuts toward the midrib, 0 to 1. At zero the margin
+        /// is entire whatever the lobe count says, and any rise starts cutting
+        /// the sinuses.
+        pub lobe_depth: f64 = "lobeDepth" "share" Bounds::closed(0.0, 1.0) => [Plan] {
+            check: input(Site::Leaf, 7, "leaf lobe depth"),
+            dial: bounded("leaf_lobe_depth", "how far each sinus cuts toward the midrib; at zero \
+                the margin is entire whatever the lobe count says, and any rise starts cutting \
+                the sinuses", [0.15, 0.3]),
+        },
+        /// Flat blade at 0, four-sided shaft at 1.
+        pub section_roundness: f64 = "sectionRoundness" "share"
+            Bounds::closed(0.0, 1.0) => [Plan, Draw] {
+            check: input(Site::Leaf, 8, "leaf section roundness"),
+            note: "Refused above zero on a card; 0.5 or more marks the unit a needle; the \
+                renderer shades by it.",
+            dial: bounded("leaf_section_roundness", "the blade's section, flat at nought and a \
+                four-sided needle at one", [0.15, 0.3]),
+        },
+        /// How many sections the blade is built from along its length. Raising
+        /// it draws the outline and any lobes more smoothly, at more triangles
+        /// per leaf.
+        pub axial_segments: u32 = "axialSegments" "sections" Bounds::closed(2.0, 64.0) => [Plan] {
+            check: input(Site::LeafCounts, 1, "leaf segments"),
+            applies: "`card`",
+            note: "A lobed margin needs `axialSegments + 1 >= 2·lobeCount + 2` (named check in \
+                `build_element`).",
+            blend: Blend::Up,
+            dial: tuned("leaf_axial_segments", "sections the blade is built from along its \
+                length", [2.0, 58.0], [8.0, 16.0], "preset span"),
+        },
+        /// How many columns the blade is built from across its width. Raising
+        /// it draws the section and the margins more smoothly, at more
+        /// triangles per leaf.
+        pub cross_segments: u32 = "crossSegments" "columns" Bounds::closed(2.0, 64.0) => [Plan] {
+            check: input(Site::LeafCounts, 2, "leaf segments"),
+            applies: "`card`",
+            note: "Rounded up to an even count.",
+            blend: Blend::Count,
+            dial: tuned("leaf_cross_segments", "columns the blade is built from across its width",
+                [2.0, 5.0], [1.0, 2.0], "preset span"),
+        },
+        /// A flat two-triangle card in place of the modelled blade: no outline,
+        /// no cup or curl, no sections and no connector.
+        pub card: bool = "card" "switch" Bounds::closed(0.0, 1.0) => [Plan] {
+            note: "Lobes and roundness are refused on a card. A walk from a card to a leaf is a \
+                leaf.",
+            blend: Blend::Coupled,
+            dial: Dial::Excluded("Boolean, not a numeric scalar."),
+        },
+    }
 }
 impl Default for ElementParams {
     fn default() -> Self {
@@ -153,31 +235,14 @@ impl Element {
 /// profile and its lobes, the transverse section from the roundness, and the
 /// axial ladder from the sections either way.
 pub fn build_element(p: ElementParams) -> Result<Element> {
-    for (v, l, h, n) in [
-        (p.length, 1e-4, 1e3, "leaf length"),
-        (p.width, 1e-4, 1e3, "leaf width"),
-        (p.widest_at, 0.05, 0.95, "leaf widest point"),
-        (p.base_fullness, 0.2, 8., "leaf base fullness"),
-        (p.tip_sharpness, 0.2, 8., "leaf tip sharpness"),
-        (p.cup, -2., 2., "leaf cup"),
-        (p.curl, -2., 2., "leaf curl"),
-        (p.lobe_depth, 0., 1., "leaf lobe depth"),
-        (p.section_roundness, 0., 1., "leaf section roundness"),
-    ] {
-        range(v, l, h, n)?;
-    }
+    crate::catalogue::check(ElementParams::ROWS, &p, Site::Leaf)?;
     range(
         p.connector_length,
         1e-6,
         p.length,
         "foliage connector length",
     )?;
-    if p.lobe_count > 8 {
-        return Err(Error::InvalidInput("leaf lobe count"));
-    }
-    if !(2..=64).contains(&p.axial_segments) || !(2..=64).contains(&p.cross_segments) {
-        return Err(Error::InvalidInput("leaf segments"));
-    }
+    crate::catalogue::check(ElementParams::ROWS, &p, Site::LeafCounts)?;
     // A lobed margin needs a section at every crest and every sinus, plus the
     // base and the tip. Both sides are linear in a blend, and the blend rounds
     // counts the way that keeps them so.

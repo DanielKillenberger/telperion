@@ -38,7 +38,12 @@ fn every_preset_is_the_family_it_was() {
     for (_, id, _, _) in params::CATALOGUE.iter().chain(params::IN_WORK) {
         text.push_str(&format!("{id}: {:?}\n", params::by_identity(id)));
     }
-    assert_eq!(digest(&text), 8_706_588_091_042_390_827, "{}", digest(&text));
+    assert_eq!(
+        digest(&text),
+        8_706_588_091_042_390_827,
+        "{}",
+        digest(&text)
+    );
 }
 
 /// Families with the growth overrides stated on neither side, one or both.
@@ -65,7 +70,12 @@ fn every_walk_is_the_walk_it_was() {
             }
         }
     }
-    assert_eq!(digest(&text), 6_751_395_173_143_375_865, "{}", digest(&text));
+    assert_eq!(
+        digest(&text),
+        6_751_395_173_143_375_865,
+        "{}",
+        digest(&text)
+    );
 }
 
 #[test]
@@ -76,11 +86,21 @@ fn every_override_reads_and_writes_as_it_did() {
         text.push_str(&format!("{wire}\n{:?}\n", params::parse(&wire)));
     }
     let mut none = params::metadata(&Preset::DatePalm.parameters());
-    for row in ["influenceRadius", "killDistance", "maxTurnPerStep", "maxNodes"] {
+    for row in [
+        "influenceRadius",
+        "killDistance",
+        "maxTurnPerStep",
+        "maxNodes",
+    ] {
         none["skeleton"]["growth"][row] = serde_json::Value::Null;
     }
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
-    assert_eq!(digest(&text), 2_343_201_054_118_623_675, "{}", digest(&text));
+    assert_eq!(
+        digest(&text),
+        2_343_201_054_118_623_675,
+        "{}",
+        digest(&text)
+    );
 }
 
 /// Every numeric leaf of the wire, as a JSON pointer.
@@ -125,12 +145,23 @@ fn every_refusal_is_the_refusal_it_was() {
     let mut text = String::new();
     for (i, row) in rows.iter().enumerate() {
         for value in &values {
-            text.push_str(&format!("{row}={value}: {}\n", answer(&base, &[(row, value.clone())])));
+            text.push_str(&format!(
+                "{row}={value}: {}\n",
+                answer(&base, &[(row, value.clone())])
+            ));
         }
         // A second row off its rail with it: the first refusal must stay first.
         let other = &rows[(i * 7 + 3) % rows.len()];
-        let pair = [(row.as_str(), values[5].clone()), (other.as_str(), values[0].clone())];
+        let pair = [
+            (row.as_str(), values[5].clone()),
+            (other.as_str(), values[0].clone()),
+        ];
         text.push_str(&format!("{row}+{other}: {}\n", answer(&base, &pair)));
     }
-    assert_eq!(digest(&text), 17_635_382_561_672_926_617, "{}", digest(&text));
+    assert_eq!(
+        digest(&text),
+        17_635_382_561_672_926_617,
+        "{}",
+        digest(&text)
+    );
 }

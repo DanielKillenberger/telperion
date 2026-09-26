@@ -2,6 +2,7 @@
 // Without the geometry feature the specimen keeps the growth path's aged-read
 // helpers, which only the placement-backed reads call.
 #![cfg_attr(not(feature = "geometry"), allow(dead_code))]
+pub mod catalogue;
 mod family;
 pub use family::Family;
 
