@@ -29,7 +29,7 @@
   "quality_anchors": [
     {
       "image": {
-        "path": "/home/daniel/Projects/telperion/.flow/evidence/fn9/final/preview/norway-spruce-1-whole.png",
+        "path": ".flow/evidence/fn9/final/preview/norway-spruce-1-whole.png",
         "seed": 1,
         "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
         "view": "whole"
