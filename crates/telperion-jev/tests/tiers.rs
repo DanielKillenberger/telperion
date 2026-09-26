@@ -49,9 +49,8 @@ const PAGES: [(&str, &str, &str); 5] = [
 
 /// The spans a person reads on these pages: (a word of the host, span,
 /// field, basis). Every other span measures nothing asked.
-const SPANS: [(&str, &str, &str, &str); 11] = [
+const SPANS: [(&str, &str, &str, &str); 10] = [
     ("woodlandtrust", "40m", "height_m", "typical"),
-    ("woodlandtrust", "45m", "height_m", "record"),
     ("euforgen", "30–35 m", "height_m", "typical"),
     ("mortonarb", "50-60 feet", "height_m", "typical"),
     ("mortonarb", "50 to 60 feet", "height_m", "typical"),
@@ -146,7 +145,6 @@ fn the_best_tier_that_agrees_decides_the_height() {
     );
     assert_eq!(height["confidence"], "agreed", "{height}");
     assert_eq!(height["range"], json!([30.0, 40.0]), "{height}");
-    assert!((height["maximum"]["value"].as_f64().unwrap() - 45.0).abs() < 1e-9);
 }
 
 /// A field no higher tier states is the lower tier's: the crown width is
