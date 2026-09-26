@@ -81,5 +81,6 @@ The slim field module shrinks: its build carries no surface, leaf or box input a
 
 ## Gate (R5)
 
-- `cargo test --profile ci --workspace --no-fail-fast` at `19c3b5a0`: 1,042 passed, 4 failed, 22 ignored. The four were the species suite's process ceiling (`suite::species::fixed_{oaks,spruces,beeches,birches}_...`): the whole core suite shared one test process under `cargo test`, and the ceiling read that process's high-water mark. The review's fix runs each of those four tests in a child process of its own (one at a time), as the saturation test already did; the rerun of the gate is in the done summary.
+- `cargo test --profile ci --workspace --no-fail-fast` at `19c3b5a0`: 1,042 passed, 4 failed, 22 ignored. The four were the species suite's process ceiling (`suite::species::fixed_{oaks,spruces,beeches,birches}_...`): the whole core suite shared one test process under `cargo test`, and the ceiling read that process's high-water mark. The review's fix runs each of those four tests in a child process of its own (one at a time), as the saturation test already did
+- `cargo test --profile ci --workspace --no-fail-fast` at `d1c52a3e`, after that fix: 1,046 passed, 0 failed, 22 ignored.
 - `npm test`: 12 files, 130 tests passed.
