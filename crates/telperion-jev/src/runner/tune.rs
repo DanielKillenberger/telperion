@@ -154,11 +154,12 @@ pub fn run(template: &Path, tools: &Tools, out: &Path) -> Result<String, String>
     config["measure_binary"] = json!(tools.species_measure);
     config["matched"]["headless"] = json!(tools.headless);
     crate::tape::adapters(&mut config);
-    let (shots, chosen) = super::shots::select(&config, &tools.headless, out)?;
-    config["matched"]["references"] = json!(shots);
-    super::cells::fill(&mut config)?;
     let revisions = out.join("tuning");
     let revision = next_revision(&revisions)?;
+    let failed = |e: String| format!("revision {revision} failed: {e}");
+    let (shots, chosen) = super::shots::select(&config, &tools.headless, out).map_err(failed)?;
+    config["matched"]["references"] = json!(shots);
+    super::cells::fill(&mut config).map_err(failed)?;
     let dir = revisions.join(revision.to_string());
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     let config_path = dir.join("config.json");
@@ -168,7 +169,7 @@ pub fn run(template: &Path, tools: &Tools, out: &Path) -> Result<String, String>
     let ended = crate::tuning::command::run_with(&config_path, &dir, &transport, &|| {
         crate::tape::key(|| load_key().map_err(|e| e.to_string()))
     });
-    ended.map_err(|e| format!("revision {revision} failed: {e}"))?;
+    ended.map_err(failed)?;
     let written = dir.join("result.json");
     let record = read_json(&dir.join("run.json")).map_err(|e| e.to_string())?;
     let outcome = read_json(&written).map_err(|e| e.to_string())?["outcome"].clone();

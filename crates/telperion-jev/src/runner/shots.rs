@@ -61,29 +61,12 @@ pub fn select(config: &Value, headless: &Path, out: &Path) -> Result<(PathBuf, S
             .find(|i| i["sha256"] == sha)
             .and_then(|i| i["path"].as_str().map(PathBuf::from))
     };
-    let adapter: Adapter = serde_json::from_value(config["vision"].clone())
-        .map_err(|e| format!("tuning config vision: {e}"))?;
-    let dir = out.join("shots");
-    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-    let family = dir.join("family.json");
     let overrides = &config["initial_overrides"];
-    std::fs::write(&family, overrides.to_string()).map_err(|e| e.to_string())?;
-    let compare = text(
-        &config["matched"]["compare_script"],
-        "matched.compare_script",
-    )?;
-    let drawing = Drawing {
-        headless,
-        frames: Path::new(&compare).with_file_name("shot-frames.py"),
-        preset: text(&config["preset"], "preset")?,
-        seed: config["seed"].as_u64().unwrap_or(1) as u32,
-        family,
-        dir,
-    };
     let height = overrides
         .pointer("/skeleton/envelope/height")
         .and_then(Value::as_f64);
     let (mut chosen, mut reused, mut calls, mut unused) = (0, 0, 0, 0);
+    let mut tools: Option<(Drawing, Adapter)> = None;
     for record in doc["references"].as_array_mut().into_iter().flatten() {
         let view = record["view"].as_str().unwrap_or_default().to_string();
         let hand_matched = record["shot"].is_object() && record["shot_selection"].is_null();
@@ -107,14 +90,11 @@ pub fn select(config: &Value, headless: &Path, out: &Path) -> Result<(PathBuf, S
             }
             None => {
                 let id = record["id"].as_str().unwrap_or("photo").to_string();
-                let made = choose(
-                    &drawing,
-                    &adapter,
-                    &id,
-                    &view,
-                    &path,
-                    height.unwrap_or(20.0),
-                )?;
+                if tools.is_none() {
+                    tools = Some(prepare(config, headless, out)?);
+                }
+                let (drawing, adapter) = tools.as_ref().unwrap();
+                let made = choose(drawing, adapter, &id, &view, &path, height.unwrap_or(20.0))?;
                 chosen += 1;
                 calls += made.1["calls"].as_u64().unwrap_or(0);
                 made
@@ -132,6 +112,34 @@ pub fn select(config: &Value, headless: &Path, out: &Path) -> Result<(PathBuf, S
         "shots: {chosen} chosen ({calls} looks), {reused} reused, {unused} matched no camera"
     );
     Ok((file(out), word))
+}
+
+/// What choosing a shot needs, read only when a reference needs one.
+fn prepare<'a>(
+    config: &Value,
+    headless: &'a Path,
+    out: &Path,
+) -> Result<(Drawing<'a>, Adapter), String> {
+    let text = |v: &Value, what: &str| v.as_str().map(str::to_string).ok_or(format!("{what}?"));
+    let adapter: Adapter = serde_json::from_value(config["vision"].clone())
+        .map_err(|e| format!("tuning config vision: {e}"))?;
+    let dir = out.join("shots");
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let family = dir.join("family.json");
+    std::fs::write(&family, config["initial_overrides"].to_string()).map_err(|e| e.to_string())?;
+    let compare = text(
+        &config["matched"]["compare_script"],
+        "matched.compare_script",
+    )?;
+    let drawing = Drawing {
+        headless,
+        frames: Path::new(&compare).with_file_name("shot-frames.py"),
+        preset: text(&config["preset"], "preset")?,
+        seed: config["seed"].as_u64().unwrap_or(1) as u32,
+        family,
+        dir,
+    };
+    Ok((drawing, adapter))
 }
 
 /// One reference's shot and the record of how it was chosen; a null shot
