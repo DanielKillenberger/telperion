@@ -1,29 +1,46 @@
 mod common;
 
+use serde_json::json;
 use telperion_jev::cases::{format_scores, CaseRow, SetScore};
 use telperion_jev::pipeline::sets::cases::run_pipeline_cases;
 use telperion_jev::pipeline::sets::{
-    described_cases, described_questions, level_from_score, missed_ids, obligation_cases,
-    obligation_questions, ranking_cases, ranking_questions, set_version, sufficiency_cases,
-    DescribedLevel, DESCRIBED_UNSTATED, OBLIGATION_NAMES, RANKING_NONE, SUFFICIENCY_LEVELS,
+    chosen_level, described_cases, described_questions, level_from_score, mature_cases,
+    mature_questions, missed_ids, obligation_cases, obligation_questions, ranking_cases,
+    ranking_questions, rate_cases, set_version, sufficiency_cases, DescribedLevel,
+    DESCRIBED_UNSTATED, OBLIGATION_NAMES, RANKING_NONE, SUFFICIENCY_LEVELS,
 };
 
 use common::{ledger_dir, CaseTransport};
+use telperion_jev::pipeline::requirements::table;
 
 /// Every base name the runner scores, labelled and held out.
-const SET_NAMES: [&str; 6] = [
+const SET_NAMES: [&str; 12] = [
     "sufficiency level",
     "sufficiency gap",
+    "mature size level",
+    "mature size gap",
+    "growth rate level",
+    "growth rate gap",
     "ranking source",
     "described level",
     "obligation inspected_image",
     "obligation measurement_not_invention",
+    "obligation appearance_supported",
+    "rights class",
 ];
 
 #[test]
-fn every_set_is_version_one_and_its_cases_carry_the_fields_the_runner_reads() {
-    for name in ["sufficiency", "ranking", "described", "obligations"] {
-        assert_eq!(set_version(name), 1, "{name}");
+fn every_set_carries_its_version_and_its_cases_carry_the_fields_the_runner_reads() {
+    // fn-131 names the field in the measurement question: obligations v2.
+    for (name, version) in [
+        ("sufficiency", 1),
+        ("mature_size", 1),
+        ("growth_rate", 1),
+        ("ranking", 1),
+        ("described", 1),
+        ("obligations", 2),
+    ] {
+        assert_eq!(set_version(name), version, "{name}");
     }
     let gaps = [
         "no_age_indexed_points",
@@ -48,6 +65,36 @@ fn every_set_is_version_one_and_its_cases_carry_the_fields_the_runner_reads() {
         assert!(case.evidence.is_array(), "{}", case.id);
         assert!(case.counts["measured_points"].is_number(), "{}", case.id);
     }
+    // fn-127: the mature-size set asks no age and answers on the same levels.
+    let mature = mature_cases();
+    let mature_gaps = mature_questions()["mature_gap"]["criteria"]
+        .as_object()
+        .unwrap()
+        .keys()
+        .cloned()
+        .collect::<Vec<_>>();
+    assert!(mature_gaps.contains(&"none".to_string()), "a no-match gap");
+    for case in &mature {
+        assert!(
+            SUFFICIENCY_LEVELS.contains(&case.expect_level.as_str()),
+            "{}",
+            case.id
+        );
+        assert!(mature_gaps.contains(&case.expect_gap), "{}", case.id);
+        assert!(
+            case.requirement.get("required_ages_years").is_none(),
+            "{}",
+            case.id
+        );
+        assert!(case.counts["sentences"].is_number(), "{}", case.id);
+    }
+    for id in ["palm-leaflet-length-a1", "palm-crown-width-a1"] {
+        assert!(
+            mature.iter().any(|c| c.id == id),
+            "A1's sentences label {id}"
+        );
+    }
+    let rate = rate_cases();
     let ranking = ranking_cases();
     for case in &ranking {
         assert!(!case.candidates.is_empty(), "{}", case.id);
@@ -70,8 +117,25 @@ fn every_set_is_version_one_and_its_cases_carry_the_fields_the_runner_reads() {
         assert!(!case.value_statement.is_empty(), "{}", case.id);
         assert!(!case.source_excerpt.is_empty(), "{}", case.id);
     }
+    for case in &obligations.appearance_supported {
+        assert!(!case.sentence.is_empty(), "{}", case.id);
+        let level = table().level(&case.trait_name, &case.level);
+        assert!(level.is_some(), "{} names a level the table has", case.id);
+    }
 
-    let counts: [(&str, usize, usize, usize); 5] = [
+    let counts: [(&str, usize, usize, usize); 8] = [
+        (
+            "mature_size",
+            mature.len(),
+            mature.iter().filter(|c| c.holdout).count(),
+            mature.iter().filter(|c| c.negative).count(),
+        ),
+        (
+            "growth_rate",
+            rate.len(),
+            rate.iter().filter(|c| c.holdout).count(),
+            rate.iter().filter(|c| c.negative).count(),
+        ),
         (
             "sufficiency",
             sufficiency.len(),
@@ -114,6 +178,20 @@ fn every_set_is_version_one_and_its_cases_carry_the_fields_the_runner_reads() {
                 .count(),
             obligations
                 .measurement_not_invention
+                .iter()
+                .filter(|c| c.negative)
+                .count(),
+        ),
+        (
+            "appearance_supported",
+            obligations.appearance_supported.len(),
+            obligations
+                .appearance_supported
+                .iter()
+                .filter(|c| c.holdout)
+                .count(),
+            obligations
+                .appearance_supported
                 .iter()
                 .filter(|c| c.negative)
                 .count(),
@@ -182,6 +260,48 @@ fn level_from_score_rounds_to_the_nearest_level_and_clamps() {
         );
     }
     assert_eq!(level_from_score(1.0, 0), None);
+}
+
+/// fn-131 R3 and R9: a level is the most probable one; a tie, no map or a
+/// most probable level below the floor is the no-match level.
+#[test]
+fn chosen_level_is_the_most_probable_or_the_no_match() {
+    let table = [
+        (
+            json!({"0": 0.0, "1": 0.0, "2": 0.46, "3": 0.0, "4": 0.54}),
+            5,
+            4,
+            0.0,
+            4,
+        ),
+        (
+            json!({"0": 0.17, "1": 0.09, "2": 0.0, "3": 0.74}),
+            4,
+            3,
+            0.0,
+            3,
+        ),
+        (
+            json!({"0": 0.6, "1": 0.0, "2": 0.0, "3": 0.4}),
+            4,
+            0,
+            0.0,
+            0,
+        ),
+        (json!({"0": 0.1, "1": 0.2, "2": 0.7}), 3, 0, 0.0, 2),
+        (json!({"0": 0.45, "1": 0.45, "2": 0.1}), 3, 0, 0.0, 0),
+        (json!({"0": 0.5, "1": 0.5}), 2, 1, 0.0, 1),
+        (json!({"0": 0.5, "1": 0.3, "2": 0.2}), 3, 2, 0.56, 2),
+        (json!({}), 3, 2, 0.0, 2),
+    ];
+    for (probabilities, count, no_match, floor, expected) in table {
+        assert_eq!(
+            chosen_level(Some(&probabilities), count, no_match, floor),
+            expected,
+            "{probabilities} floor {floor}"
+        );
+    }
+    assert_eq!(chosen_level(None, 3, 0, 0.0), 0);
 }
 
 #[test]
@@ -261,4 +381,45 @@ fn missed_ids_names_the_cases_a_set_missed() {
     };
     assert_eq!(missed_ids(&set), vec!["a".to_string(), "c".to_string()]);
     assert!(!set.meets_pilot());
+}
+
+/// fn-129 R4: the rights classes are labelled on the palm's own sources and
+/// the question offers a no-match answer that some cases need.
+#[test]
+fn the_rights_set_labels_the_palms_sources_and_offers_a_no_match_answer() {
+    use telperion_jev::pipeline::rights::{
+        rights_questions, set_version, OPEN_LICENCE, PUBLIC_CITE_ONLY, RESTRICTED, RIGHTS_NONE,
+    };
+    assert_eq!(set_version(), 1);
+    let criteria = rights_questions()["rights"]["criteria"]
+        .as_object()
+        .unwrap()
+        .clone();
+    let classes = [OPEN_LICENCE, PUBLIC_CITE_ONLY, RESTRICTED, RIGHTS_NONE];
+    assert_eq!(criteria.len(), classes.len());
+    for class in classes {
+        assert!(criteria[class].is_string(), "{class} is offered");
+    }
+    let cases = telperion_jev::pipeline::rights::rights_cases();
+    for class in classes {
+        assert!(
+            cases.iter().any(|c| c.expect_class == class),
+            "{class} has a labelled case"
+        );
+    }
+    for source in ["f1", "a1", "m1", "p4", "p5", "p6", "p7"] {
+        let prefix = format!("palm-{source}-");
+        assert!(
+            cases.iter().any(|c| c.id.starts_with(&prefix)),
+            "the palm's {source} is labelled"
+        );
+    }
+    let negatives = cases.iter().filter(|c| c.negative).count();
+    let rejects = cases
+        .iter()
+        .filter(|c| c.expect_class == RESTRICTED || c.expect_class == RIGHTS_NONE)
+        .count();
+    assert_eq!(negatives, rejects, "a negative case is one that rejects");
+    assert!(cases.len() >= 10 && negatives >= 3);
+    assert!(cases.iter().filter(|c| c.holdout).count() >= 3);
 }

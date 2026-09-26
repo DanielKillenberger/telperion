@@ -10,7 +10,7 @@
 //! the other dimension still fits and its missing reference values are
 //! recorded as unavailable. A field a `data-insufficient` decision blocks is
 //! skipped the same way. Every `ToleranceMiss` files `tolerance-miss`, which
-//! blocks generation and the report; the stage never accepts one.
+//! blocks generation; the stage never accepts one.
 
 use serde_json::{json, Map, Value};
 
@@ -30,7 +30,7 @@ const CM_PER_M: f64 = 100.0;
 #[derive(Debug)]
 pub enum Outcome {
     Current,
-    /// The manifest names no curve; the stage writes nothing.
+    /// The manifest names no curve; the stage writes its record and nothing else.
     Skipped,
     Ran {
         decisions: Vec<String>,
@@ -52,6 +52,9 @@ pub fn run(paths: &Paths) -> Result<Outcome, StageError> {
     }
     let manifest = &ctx.admitted.manifest;
     let Some(curves) = &manifest.curves else {
+        // The record still lands, so the stage is current on the next pass:
+        // the palm's conductor reran fit on every step until it did.
+        ctx.write(&header, json!({"skipped": "the manifest names no curve"}))?;
         return Ok(Outcome::Skipped);
     };
     let tables = &fetch["tables"];
@@ -306,7 +309,7 @@ fn tolerance_miss(
             field: Some(&miss.field),
             age_years: Some(miss.age_years),
         },
-        &["generate", "report"],
+        &["generate"],
         [("fetch.json".to_string(), fetch_sha.to_string())]
             .into_iter()
             .collect(),

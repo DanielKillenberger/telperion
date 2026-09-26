@@ -12,7 +12,7 @@
 //! `{"template", "shipped_value", "growth_form"}`, an ordinary engineering
 //! entry with its rationale that a person admits. Stills are never judged
 //! here: they file one `visual-unassessed` decision that blocks nothing, so
-//! the report may describe them and the owner's eye has the last word.
+//! the owner's eye has the last word.
 
 use serde_json::{json, Map, Value};
 
@@ -179,7 +179,7 @@ pub fn run(
     header.ledger.extend(shipped.ledger.iter().cloned());
 
     write_sidecar(&ctx, &shipped)?;
-    write_packet(&ctx, manifest, overlaid(parameters, &shipped))?;
+    write_packet(&ctx.paths, manifest, overlaid(parameters, &shipped))?;
     let stills = draw_stills(&ctx, manifest, example, &shipped);
     let drawn: Vec<&Value> = stills.iter().filter(|s| s.get("path").is_some()).collect();
     if !drawn.is_empty() {
@@ -187,10 +187,19 @@ pub fn run(
         shipped.file(manifest, UNSEEN, None, &[], payload, &sha);
     }
 
-    let out = json!({
+    let mut out = json!({
         "metrics": metrics, "described": described, "transfers": transfers,
         "unavailable": unavailable, "stills": stills, "note": note,
     });
+    if !manifest.appearance.is_empty() {
+        let skip = json!("copied by select into the profile; not rendered or measured");
+        let skipped: Map<String, Value> = manifest
+            .appearance
+            .iter()
+            .map(|a| (a.trait_name.clone(), skip.clone()))
+            .collect();
+        out["appearance"] = json!(skipped);
+    }
     let ids: Vec<String> = shipped.decisions.iter().map(|d| d.id.clone()).collect();
     if !shipped.decisions.is_empty() {
         append_decisions(&ctx.paths.decisions(), shipped.decisions)?;
@@ -240,7 +249,7 @@ fn run_described(
             DescribedOutcome::LevelMiss(miss) => {
                 let payload = serde_json::to_value(&miss).expect("a level miss serializes");
                 body.insert(name.into(), payload.clone());
-                shipped.file(manifest, MISS, Some(name), &["report"], payload, sha);
+                shipped.file(manifest, MISS, Some(name), &[], payload, sha);
             }
             DescribedOutcome::Unavailable { reason } => {
                 unavailable.insert(name.into(), json!(reason));
@@ -323,12 +332,12 @@ fn run_transfer(
         }
         TransferOutcome::NoReference { reason, .. } => {
             let payload = json!({"dial": spec.dial, "reason": reason});
-            shipped.file(manifest, NONE, dial, &["report"], payload.clone(), sha);
+            shipped.file(manifest, NONE, dial, &[], payload.clone(), sha);
             payload
         }
         TransferOutcome::Unavailable { reason } => {
             let payload = json!({"dial": spec.dial, "reason": reason});
-            shipped.file(manifest, MISS, dial, &["report"], payload.clone(), sha);
+            shipped.file(manifest, MISS, dial, &[], payload.clone(), sha);
             payload
         }
     })

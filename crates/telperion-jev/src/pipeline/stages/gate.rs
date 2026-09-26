@@ -20,11 +20,12 @@ use std::process::Command;
 use serde_json::{json, Map, Value};
 use telperion_core::capability::{self, Support, DERIVABLE};
 
-use crate::pipeline::canon::read_json;
-use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
+use crate::pipeline::canon::{file_sha256, read_json};
+use crate::pipeline::decision::{append_decisions, retire_unfiled, Decision, DecisionParts};
 use crate::pipeline::manifest::Manifest;
 use crate::pipeline::stage::{Context, Paths, StageError};
 
+use super::capability_class::{self, Classified};
 use super::{body, inputs};
 
 pub const STAGE: &str = "gate";
@@ -85,12 +86,28 @@ impl GateChecks for ExampleChecks {
 pub fn run(paths: &Paths, checks: &dyn GateChecks) -> Result<Outcome, StageError> {
     let (ctx, _) = Context::open(paths, STAGE)?;
     let (_, select_sha) = body(&ctx, STAGE, "select")?;
-    let header = ctx.header(
-        STAGE,
-        "gate",
-        inputs(&[("select.json", &select_sha)]),
-        vec![],
-    );
+    // The assessment's classes decide what a missing capability blocks, so a
+    // changed assessment reruns the gate.
+    let assessment = ctx.paths.packet("capability");
+    let assessment_sha = match assessment.exists() {
+        true => file_sha256(&assessment)?,
+        false => String::new(),
+    };
+    // The seeds audit reads the specimens generate writes after the gate, so
+    // new specimens rerun the gate on the next pass (fn-80, 2026-09-24).
+    let specimens = ctx.paths.packet("specimens");
+    let specimens_sha = match specimens.exists() {
+        true => file_sha256(&specimens)?,
+        false => String::new(),
+    };
+    let mut pairs = vec![("select.json", select_sha.as_str())];
+    if !assessment_sha.is_empty() {
+        pairs.push(("packet/capability.json", &assessment_sha));
+    }
+    if !specimens_sha.is_empty() {
+        pairs.push(("packet/specimens.json", &specimens_sha));
+    }
+    let header = ctx.header(STAGE, "gate", inputs(&pairs), vec![]);
     if ctx.is_current(STAGE, &header.idempotence_key) {
         return Ok(Outcome::Current);
     }
@@ -102,8 +119,14 @@ pub fn run(paths: &Paths, checks: &dyn GateChecks) -> Result<Outcome, StageError
     // own detail is still filed after the capability gate's.
     let registered = checks.registry(preset);
     let required = required_capabilities(&ctx, manifest);
-    let (capability, capability_details) =
-        capability_gate(&required, preset, matches!(registered, Ok(true)), checks);
+    let classes = capability_class::read(&assessment);
+    let (capability, capability_details) = capability_gate(
+        &required,
+        &classes,
+        preset,
+        matches!(registered, Ok(true)),
+        checks,
+    );
     unresolved.extend(capability_details);
 
     let registry = match registered {
@@ -137,6 +160,18 @@ pub fn run(paths: &Paths, checks: &dyn GateChecks) -> Result<Outcome, StageError
     if !decisions.is_empty() {
         append_decisions(&ctx.paths.decisions(), decisions)?;
     }
+    // A gate this rerun did not file again has passed: the registry gate
+    // stayed open after the palm's registration landed and sent the loop
+    // after it. Retired by this stage, never by a person.
+    if ctx.paths.decisions().exists() {
+        retire_unfiled(
+            &ctx.paths.decisions(),
+            STAGE,
+            &ids,
+            &inputs(&pairs),
+            &crate::pipeline::stage::now(),
+        )?;
+    }
     ctx.write(
         &header,
         json!({
@@ -156,9 +191,13 @@ pub fn run(paths: &Paths, checks: &dyn GateChecks) -> Result<Outcome, StageError
 /// unexpressed is missing; one it does not carry at all is unrecognised,
 /// which is a different report, because nobody has said what the name means.
 /// The gate fails closed: a species with no recorded requirement has had no
-/// capability assessment, and that is unresolved rather than met.
+/// capability assessment, and that is unresolved rather than met. A missing
+/// capability the assessment classes an improvement is a known gap with the
+/// specs that capture it, and blocks nothing (fn-136); one it classes
+/// identity, or leaves unclassed, blocks.
 fn capability_gate(
     required: &[String],
+    classes: &Result<Vec<Classified>, String>,
     preset: &str,
     registered: bool,
     checks: &dyn GateChecks,
@@ -179,10 +218,20 @@ fn capability_gate(
              nor the manifest's engineering row names a required capability",
         ));
     }
-    if !missing.is_empty() {
+    let (blocking, known_gaps) = match classes {
+        Ok(classes) => capability_class::split(&missing, classes),
+        Err(error) => {
+            details.push(gate_detail(
+                "capability",
+                &format!("the capability assessment's classes are refused: {error}"),
+            ));
+            (missing.clone(), Vec::new())
+        }
+    };
+    if !blocking.is_empty() {
         details.push(gate_detail(
             "capability",
-            &format!("the generator does not express {}", missing.join(", ")),
+            &format!("the generator does not express {}", blocking.join(", ")),
         ));
     }
     if !unrecognised.is_empty() {
@@ -198,8 +247,8 @@ fn capability_gate(
     details.extend(table_details);
     (
         json!({"vocabulary_version": capability::version(), "required": required,
-               "expressed": expressed, "missing": missing, "unrecognised": unrecognised,
-               "preset": table}),
+               "expressed": expressed, "missing": missing, "known_gaps": known_gaps,
+               "unrecognised": unrecognised, "preset": table}),
         details,
     )
 }

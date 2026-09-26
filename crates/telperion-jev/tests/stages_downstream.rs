@@ -8,19 +8,17 @@
 
 mod common;
 
-use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use common::{ledger_dir, CaseTransport};
 use serde_json::{json, Map, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::canon::{read_json, write_canonical};
-use telperion_jev::pipeline::gap::metrics;
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::render::{Measured, Measurer, RenderError};
 use telperion_jev::pipeline::stage::{Context, Paths};
 use telperion_jev::pipeline::stages::gate::GateChecks;
-use telperion_jev::pipeline::stages::{fit, gate, generate, inputs, report};
+use telperion_jev::pipeline::stages::{fit, gate, generate, inputs};
 
 /// The dial the described route lays its candidates on.
 const SPREAD: &str = "skeleton.envelope.spread";
@@ -366,7 +364,7 @@ fn the_fit_reproduces_fn30s_oak_and_files_a_tolerance_miss_per_age() {
     assert_eq!(misses.len(), 3, "{misses:?}");
     for miss in &misses {
         assert_eq!(miss["field"], "dbh_m");
-        assert_eq!(miss["blocks"], json!(["generate", "report"]));
+        assert_eq!(miss["blocks"], json!(["generate"]));
         assert_eq!(miss["payload"]["sources"], json!(["G1"]));
         assert_eq!(miss["payload"]["field"], "dbh_m");
         for key in ["age_years", "measured", "reference", "error_percent"] {
@@ -403,6 +401,25 @@ fn a_one_row_table_files_missing_curve_and_the_other_dimension_still_fits() {
         missing[0]["payload"],
         json!({"dimension": "dbh_m", "ages_with_no_point": [26.7, 56.1, 112.0]})
     );
+}
+
+#[test]
+fn a_fit_with_no_curve_is_skipped_once_and_current_after() {
+    let mut manifest = manifest();
+    manifest["curves"] = Value::Null;
+    let dir = scratch_with("no-curve", 2, manifest);
+    assert!(matches!(
+        fit::run(&Paths::new(&dir)).unwrap(),
+        fit::Outcome::Skipped
+    ));
+    assert_eq!(
+        body_of(&dir, "fit")["skipped"],
+        "the manifest names no curve"
+    );
+    assert!(matches!(
+        fit::run(&Paths::new(&dir)).unwrap(),
+        fit::Outcome::Current
+    ));
 }
 
 #[test]
@@ -502,6 +519,34 @@ fn the_date_palms_recorded_needs_are_one_missing_organ_and_no_false_positive() {
     assert_eq!(
         capability_gate["payload"]["detail"],
         "the generator does not express infructescence"
+    );
+}
+
+/// fn-136: with the date cluster classed an improvement on the palm's
+/// assessment, the gate files no capability decision and records the gap
+/// with the specs that capture it.
+#[test]
+fn a_missing_improvement_passes_the_gate_as_a_known_gap_with_its_specs() {
+    let dir = scratch_with("date-palm-classed", 2, requiring(&DATE_PALM));
+    std::fs::write(
+        dir.join("packet/capability.json"),
+        include_str!("fixtures/fn136-palm-capability.json"),
+    )
+    .unwrap();
+    gate::run(&Paths::new(&dir), &Checks::producing(&["woody-axes"])).unwrap();
+    let capability = body_of(&dir, "gate")["capability"].clone();
+    assert_eq!(capability["missing"], json!(["infructescence"]));
+    assert_eq!(
+        capability["known_gaps"],
+        json!([{"capability": "infructescence",
+                "captured_by": ["fn-33-flowers-cones-and-compound-leaves-as",
+                                "fn-111-the-palms-infructescence-a-hanging-date"],
+                "reason": "The date cluster adds realism; the palm is recognisable without it. The owner put the palm's date clusters in the backlog on 2026-09-24."}])
+    );
+    let filed = of_kind(&dir, "onboarding-gate");
+    assert!(
+        filed.iter().all(|d| d["field"] != "capability"),
+        "{filed:?}"
     );
 }
 
@@ -658,7 +703,7 @@ fn generate_files_level_miss_when_no_candidate_lands_in_range() {
     let filed = of_kind(&dir, "level-miss");
     assert_eq!(filed.len(), 1, "{filed:?}");
     assert_eq!(filed[0]["field"], "crown_spread");
-    assert_eq!(filed[0]["blocks"], json!(["report"]));
+    assert_eq!(filed[0]["blocks"], json!([]));
     assert_eq!(filed[0]["payload"]["target_range"], json!([0.9, 1.1]));
     assert_eq!(
         filed[0]["payload"]["candidates"].as_array().unwrap().len(),
@@ -677,7 +722,7 @@ fn generate_files_no_reference_when_the_nearest_answer_is_none() {
     let filed = of_kind(&dir, "no-reference");
     assert_eq!(filed.len(), 1, "{filed:?}");
     assert_eq!(filed[0]["field"], RISE);
-    assert_eq!(filed[0]["blocks"], json!(["report"]));
+    assert_eq!(filed[0]["blocks"], json!([]));
     assert_eq!(filed[0]["payload"]["dial"], RISE);
     assert!(filed[0]["payload"]["reason"].is_string());
     assert_eq!(body_of(&dir, "generate")["transfers"][RISE]["dial"], RISE);
@@ -714,101 +759,85 @@ fn the_packets_species_record_carries_exactly_the_closed_keys() {
         ]
     );
     assert_eq!(species["fixed_seeds"], json!([7, 8, 9]));
+    let holdout: Vec<u32> = species["holdout_seeds"]
+        .as_array()
+        .expect("holdout_seeds is an array")
+        .iter()
+        .map(|v| v.as_u64().expect("a seed is a number") as u32)
+        .collect();
+    assert_eq!(holdout.len(), 3, "three holdout seeds: {holdout:?}");
+    for seed in [7, 8, 9] {
+        assert!(
+            !holdout.contains(&seed),
+            "holdout seed collides with a fixed seed: {holdout:?}"
+        );
+    }
     assert_eq!(species["profile_path"], "packet/profile.json");
     assert_eq!(species["profile_sha256"].as_str().unwrap().len(), 64);
     let specimens = read_json(&dir.join("packet").join("specimens.json")).unwrap();
     assert_eq!(specimens["generation_status"], "measured-by-pipeline");
-    assert_eq!(specimens["cases"].as_array().unwrap().len(), 3);
+    let cases = specimens["cases"].as_array().unwrap();
+    assert_eq!(cases.len(), 6, "three fixed and three holdout cases");
+    let count = |role: &str| cases.iter().filter(|c| c["seed_role"] == role).count();
+    assert_eq!(count("regression"), 3);
+    assert_eq!(count("holdout"), 3);
 }
 
-// ----------------------------------------------------------------- the report
-
+/// fn-80, 2026-09-24: the gate audits the specimens generate writes after it,
+/// but its key left them out, so new holdout specimens left it `current` and
+/// the seeds decision open. New specimens rerun the gate.
 #[test]
-fn the_report_is_halted_with_an_open_decision_and_complete_once_it_is_resolved() {
-    let dir = scratch("report", 2);
-    fit::run(&Paths::new(&dir)).unwrap();
+fn new_specimens_rerun_the_gate() {
+    let dir = scratch("specimens-key", 2);
+    let checks = Checks {
+        registered: true,
+        derived: Ok(vec![]),
+    };
+    let paths = Paths::new(&dir);
+    gate::run(&paths, &checks).unwrap();
     assert!(matches!(
-        report::run(&Paths::new(&dir)).unwrap(),
-        report::Outcome::Ran { .. }
+        gate::run(&paths, &checks).unwrap(),
+        gate::Outcome::Current
     ));
-    let body = body_of(&dir, "report");
-    assert_eq!(body["status"], "halted");
-    assert_eq!(body["sources"][0]["raw_sha256"], "bb");
-    assert_eq!(body["fields"]["height_m"]["level"], "partial");
-    assert_eq!(body["curves"]["rate"], json!(0.032));
-    assert_eq!(body["decisions"].as_array().unwrap().len(), 3);
-    let page = std::fs::read_to_string(dir.join("report.md")).unwrap();
-    for heading in [
-        "## Sources",
-        "## Fields",
-        "## Curves",
-        "## Decisions",
-        "## Stills",
-    ] {
-        assert!(page.contains(heading), "{heading} is missing");
-    }
-    assert!(!page.contains('\u{2014}'), "the page has an em dash");
-    assert!(!page.to_lowercase().contains("probabilit"));
+    let specimens = paths.packet("specimens");
+    std::fs::create_dir_all(specimens.parent().unwrap()).unwrap();
+    std::fs::write(&specimens, br#"{"cases":[]}"#).unwrap();
+    assert!(!matches!(
+        gate::run(&paths, &checks).unwrap(),
+        gate::Outcome::Current
+    ));
+}
 
-    let resolutions: Vec<Value> = decisions(&dir)
+/// fn-80, 2026-09-24: the seeds gate passed once the holdout specimens were
+/// written, but its old decision stayed open because the retire check compared
+/// select.json alone. A gate that no longer files its decision retires it.
+#[test]
+fn a_seeds_gate_that_passes_on_new_specimens_retires_its_decision() {
+    let dir = scratch("seeds-retire", 2);
+    let checks = Checks {
+        registered: true,
+        derived: Ok(vec![]),
+    };
+    let paths = Paths::new(&dir);
+    gate::run(&paths, &checks).unwrap();
+    assert!(of_kind(&dir, "onboarding-gate")
         .iter()
-        .map(|d| {
-            json!({"id": d["id"], "inputs_sha256": d["inputs_sha256"],
-                   "option": "accept-composed-reference", "by": "test", "at": "2026-09-18"})
-        })
+        .any(|d| d["field"] == "seeds" && d["status"] == "open"));
+    let cases: Vec<Value> = [1, 2, 3, 101, 102, 103]
+        .iter()
+        .enumerate()
+        .map(|(i, seed)| json!({"seed": seed, "seed_role": if i < 3 {"regression"} else {"holdout"}}))
         .collect();
-    write_canonical(
-        &dir.join("resolutions.json"),
-        &json!({"schema": "resolutions", "schema_version": 1, "resolutions": resolutions}),
+    let specimens = paths.packet("specimens");
+    std::fs::create_dir_all(specimens.parent().unwrap()).unwrap();
+    std::fs::write(
+        &specimens,
+        serde_json::to_vec(&json!({"cases": cases})).unwrap(),
     )
     .unwrap();
-    assert!(matches!(
-        report::run(&Paths::new(&dir)).unwrap(),
-        report::Outcome::Ran { .. }
-    ));
-    // Every decision is resolved, but the run's three numbers are not written
-    // yet: the report names the missing record rather than calling it done.
-    let body = body_of(&dir, "report");
-    assert_eq!(body["status"], "incomplete");
-    assert!(body["metrics"]["missing"]
-        .as_str()
-        .is_some_and(|said| said.contains("metrics.json")));
-    let page = std::fs::read_to_string(dir.join("report.md")).unwrap();
-    assert!(page.contains("## The run's numbers"));
-    assert!(page.contains("Missing: metrics.json"), "{page}");
-
-    metrics::write(&Paths::new(&dir), "oregon-white-oak").unwrap();
-    assert!(matches!(
-        report::run(&Paths::new(&dir)).unwrap(),
-        report::Outcome::Ran { .. }
-    ));
-    let body = body_of(&dir, "report");
-    assert_eq!(body["status"], "complete");
-    assert_eq!(body["metrics"]["autonomy"]["gaps"], 0);
-    let page = std::fs::read_to_string(dir.join("report.md")).unwrap();
-    assert!(page.contains("0 gaps, 0 routed"), "{page}");
-}
-
-#[test]
-fn the_reports_inputs_name_every_artifact_it_read() {
-    let dir = scratch("report-inputs", 2);
-    fit::run(&Paths::new(&dir)).unwrap();
-    report::run(&Paths::new(&dir)).unwrap();
-    let header = read_json(&dir.join("report.json")).unwrap();
-    let recorded: BTreeMap<String, String> = serde_json::from_value(header["inputs"].clone())
-        .expect("the header records the inputs it read");
-    for name in [
-        "fetch.json",
-        "quality.json",
-        "select.json",
-        "fit.json",
-        "decisions.json",
-        "provenance.json",
-    ] {
-        assert!(recorded.contains_key(name), "{name} is not recorded");
-    }
-    assert!(
-        !recorded.contains_key("generate.json"),
-        "generate never ran"
-    );
+    gate::run(&paths, &checks).unwrap();
+    assert_eq!(body_of(&dir, "gate")["seeds"]["status"], "resolved");
+    assert!(!of_kind(&dir, "onboarding-gate")
+        .iter()
+        .any(|d| d["field"] == "seeds" && d["status"] == "open"));
 }

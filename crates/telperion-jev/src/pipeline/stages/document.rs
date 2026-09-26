@@ -4,8 +4,8 @@
 //! The copy's file format, the rights rule that shapes it and the article's
 //! structure belong to the catalogue scripts, which this stage runs and never
 //! restates. The stage owns what their output means for the run: a claim the
-//! check lists, and an article it leaves unfilled, each raise a decision that
-//! blocks the report, so an unsupported sentence cannot ship.
+//! check lists raises a decision the runner stops on, so an unsupported
+//! sentence cannot ship, and an article it leaves unfilled is logged.
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
@@ -16,7 +16,7 @@ use serde_json::{json, Value};
 
 use crate::cite::{cite, load_source, ResearchClaim, SourceLoad};
 use crate::pipeline::canon::{read_json, write_atomic};
-use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
+use crate::pipeline::decision::{append_decisions, retire_unfiled, Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::stage::{log_command, Context, Paths, StageError};
 
@@ -38,21 +38,28 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     let (fetch, fetch_sha) = body(&ctx, STAGE, "fetch")?;
     let (_, select_sha) = body(&ctx, STAGE, "select")?;
     let (_, generate_sha) = body(&ctx, STAGE, "generate")?;
+    // The article is written by a person or the add-species agent after
+    // the scaffold; its bytes key the cite check, so a written article is
+    // checked on the next run (fn-149).
+    let species = ctx.admitted.manifest.species.clone();
+    let article = catalogue().join(&species).join("ARTICLE.md");
+    let article_sha = sha_of(&article);
     let pinned = inputs(&[
         ("fetch.json", &fetch_sha),
         ("select.json", &select_sha),
         ("generate.json", &generate_sha),
+        ("ARTICLE.md", &article_sha),
     ]);
     let mut header = ctx.header(STAGE, "document", pinned, vec![]);
     if ctx.is_current(STAGE, &header.idempotence_key) {
         return Ok(Outcome::Current);
     }
-    let species = ctx.admitted.manifest.species.clone();
-    let bound: BTreeMap<String, String> =
-        [("select.json".into(), select_sha)].into_iter().collect();
     let mut decisions = Vec::new();
     let copies = write_copies(&ctx, &fetch, &species)?;
     let (validated, work) = write_article(&ctx, &species)?;
+    // Every decision binds to the article as the scaffold left it, so one
+    // filed on an earlier article is retired once it is no longer filed.
+    let bound = bound(&select_sha, &sha_of(&article));
     if !validated {
         let parts = DecisionParts {
             species: &species,
@@ -63,7 +70,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
         };
         decisions.push(Decision::new(
             parts,
-            &["report"],
+            &[],
             bound.clone(),
             vec![],
             json!({"work": work}),
@@ -71,9 +78,11 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
             "The article still has unfilled sections or uncited claims.",
         ));
     }
-    let article = ctx.paths.dir.join("ARTICLE.md");
+    // The catalogue script writes the article into the species' catalogue
+    // folder, read from the repository root as the script runs.
     let written = std::fs::read_to_string(&article).unwrap_or_default();
-    let (claims, loads) = claims_in(&ctx, judge, &written);
+    let folder = article.parent().unwrap_or(std::path::Path::new("."));
+    let (claims, loads) = claims_in(&ctx, judge, folder, &written);
     let failed = |err: crate::caller::CallerError| StageError::Failed {
         stage: STAGE.into(),
         reason: err.to_string(),
@@ -112,7 +121,7 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
             let payload = json!({"claim": row.claim, "section": row.section, "relation": row.relation, "reason": row.reason});
             decisions.push(Decision::new(
                 parts,
-                &["report"],
+                &[],
                 bound.clone(),
                 vec![row.identity.clone()],
                 payload,
@@ -125,6 +134,8 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     if !decisions.is_empty() {
         append_decisions(&ctx.paths.decisions(), decisions)?;
     }
+    let now = crate::pipeline::stage::now();
+    retire_unfiled(&ctx.paths.decisions(), STAGE, &ids, &bound, &now)?;
     ctx.write(
         &header,
         json!({
@@ -134,6 +145,19 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
         }),
     )?;
     Ok(Outcome::Ran { decisions: ids })
+}
+
+/// The bytes' checksum of a file, or `absent`.
+fn sha_of(path: &std::path::Path) -> String {
+    std::fs::read(path).map_or("absent".into(), |b| crate::sha256_hex(&b))
+}
+
+/// What the stage's decisions bind to: the selection and the article.
+fn bound(select_sha: &str, article_sha: &str) -> BTreeMap<String, String> {
+    [("select.json", select_sha), ("ARTICLE.md", article_sha)]
+        .into_iter()
+        .map(|(k, v)| (k.to_string(), v.to_string()))
+        .collect()
 }
 
 /// One markdown copy per admitted source, written by the catalogue script from
@@ -224,18 +248,19 @@ fn write_article(ctx: &Context, species: &str) -> Result<(bool, Vec<String>), St
 }
 
 /// Every claim the article makes, one per cited source. Each is checked
-/// against the copy in this folder, so the check reads the text a reader
+/// against the copy beside the article, so the check reads the text a reader
 /// following the link would.
 fn claims_in(
     ctx: &Context,
     judge: &Judge<'_>,
+    folder: &std::path::Path,
     article: &str,
 ) -> (Vec<ResearchClaim>, Vec<SourceLoad>) {
     let urls = source_urls(ctx);
     let mut claims = Vec::new();
     let mut loads = Vec::new();
     for (line, id) in cited(article) {
-        let copy = ctx.paths.dir.join("sources").join(format!("{id}.md"));
+        let copy = folder.join("sources").join(format!("{id}.md"));
         loads.push(load_source(judge.transport, &copy.display().to_string()));
         let url = urls.get(&id).cloned().unwrap_or_default();
         claims.push(ResearchClaim {
@@ -284,6 +309,14 @@ fn source_urls(ctx: &Context) -> BTreeMap<String, String> {
     sources.iter().filter_map(pair).collect()
 }
 
+/// The catalogue the scripts write the article and the source copies into:
+/// the one a species run names (`TELPERION_CATALOGUE`, fn-149), else
+/// `catalogue` under the working directory.
+fn catalogue() -> PathBuf {
+    std::env::var_os("TELPERION_CATALOGUE")
+        .map_or_else(|| PathBuf::from("catalogue"), PathBuf::from)
+}
+
 /// One catalogue script, run from the repository root and appended to the
 /// run's command log, with what it printed and whether it succeeded.
 fn node(paths: &Paths, argv: &[String]) -> Result<(bool, String, String), StageError> {
@@ -323,13 +356,45 @@ fn args(argv: &[&str]) -> Vec<String> {
 /// The date the copies record as their fetch date, pinnable like every other
 /// clock in the pipeline.
 fn today() -> String {
-    let now = crate::pipeline::gap::now();
+    let now = crate::pipeline::stage::now();
     now.get(..10).unwrap_or(&now).to_string()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// An `article-unfilled` filed on the scaffold is retired when the rerun
+    /// over the written article files nothing (fn-149).
+    #[test]
+    fn a_written_article_retires_the_scaffolds_decision() {
+        let dir = std::env::temp_dir().join(format!("jev-document-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("decisions.json");
+        let parts = DecisionParts {
+            species: "s",
+            stage: STAGE,
+            kind: "article-unfilled",
+            field: None,
+            age_years: None,
+        };
+        let options = ["accept", "write-article"];
+        let unfilled = Decision::new(
+            parts,
+            &[],
+            bound("a", "scaffold"),
+            vec![],
+            json!({}),
+            &options,
+            "",
+        );
+        append_decisions(&path, vec![unfilled]).unwrap();
+        let same = retire_unfiled(&path, STAGE, &[], &bound("a", "scaffold"), "t").unwrap();
+        assert!(same.is_empty(), "the unchanged article keeps its decision");
+        let retired = retire_unfiled(&path, STAGE, &[], &bound("a", "written"), "t").unwrap();
+        assert_eq!(retired, ["s/document/article-unfilled"]);
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
 
     #[test]
     fn a_claim_is_a_body_line_per_cited_source_and_never_a_generated_block() {

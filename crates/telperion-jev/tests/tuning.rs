@@ -13,23 +13,6 @@ fn weighted_score_penalizes_unreadable_measurements() {
 }
 
 #[test]
-fn continuation_policy_ignores_unused_confidence_but_never_uncertain_continuation() {
-    use telperion_jev::tuning::calibration::continues;
-    let mut answers = std::collections::BTreeMap::from([
-        ("tractability".into(), ("supported".into(), 0.9)),
-        ("progress".into(), ("supported".into(), 0.9)),
-        ("risk".into(), ("bounded".into(), 0.9)),
-    ]);
-    assert!(continues(&answers, 0.5));
-    answers.insert("risk".into(), ("bounded".into(), 0.36));
-    assert!(!continues(&answers, 0.5));
-    answers.insert("progress".into(), ("repeated_failure".into(), 1.));
-    assert!(!continues(&answers, 0.5));
-    answers.insert("risk".into(), ("bounded".into(), 1.));
-    assert!(!continues(&answers, 0.5));
-}
-
-#[test]
 fn readiness_requires_every_checklist_view_seed_and_no_defects() {
     let cells = vec![
         Cell {
@@ -53,6 +36,7 @@ fn readiness_requires_every_checklist_view_seed_and_no_defects() {
         observations: vec![],
         findings: vec![],
         joint: None,
+        known_gaps: vec![],
     };
     assert!(!ready(&cells, "v1", &assessment));
     assessment.cells.push((cells[1].clone(), CellStatus::Pass));
@@ -62,32 +46,24 @@ fn readiness_requires_every_checklist_view_seed_and_no_defects() {
     assert!(!ready(&cells, "v1", &assessment));
 }
 
+/// A budget counts every spend and refuses none: what ends a revision that
+/// keeps nothing is the no-progress stop, never a cap (fn-149).
 #[test]
-fn budgets_reserve_before_work_and_never_reset() {
-    let mut budget = Budget {
-        visual_passes: Some(0),
-        max_visual_passes: Some(2),
-        evaluations: 0,
-        images: 0,
-        tokens: 0,
-        rounds: 0,
-        max_evaluations: 2,
-        max_images: 4,
-        max_tokens: 100,
-        max_rounds: 1,
-    };
-    budget.reserve(1, 4, 30, 1).unwrap();
-    let saved = serde_json::to_string(&budget).unwrap();
-    let mut resumed: Budget = serde_json::from_str(&saved).unwrap();
-    assert!(resumed.reserve(1, 1, 1, 0).is_err());
-    assert_eq!(resumed.images, 4);
-    assert_eq!(resumed.tokens, 30);
-    resumed.reserve_visual().unwrap();
-    resumed.reserve_visual().unwrap();
-    assert!(resumed.reserve_visual().is_err());
-    assert_eq!(resumed.visual_passes, Some(2));
-    resumed.visual_passes = None;
-    assert!(resumed.reserve_visual().is_err());
+fn a_budget_counts_every_spend_and_refuses_none() {
+    let mut budget: Budget = serde_json::from_value(json!({})).unwrap();
+    budget.reserve(1_000, 4_000, u64::MAX / 2, 1_000);
+    budget.reserve(1, 0, u64::MAX, 0);
+    budget.reserve_visual();
+    assert_eq!(
+        serde_json::to_value(&budget).unwrap(),
+        json!({"evaluations": 1001, "images": 4000, "tokens": u64::MAX,
+               "rounds": 1000, "visual_passes": 1})
+    );
+    let caps = json!({"max_tokens": 10});
+    assert!(
+        serde_json::from_value::<Budget>(caps).is_err(),
+        "caps are gone"
+    );
 }
 
 #[test]
@@ -106,6 +82,8 @@ fn authored_actions_preserve_integer_bounds_and_abstention() {
         meaning_basis: None,
         range_basis: None,
         source: None,
+        preset_span: None,
+        cap: None,
     };
     assert_eq!(
         dial.value(2., Action::SmallDecrease).unwrap(),
@@ -115,53 +93,6 @@ fn authored_actions_preserve_integer_bounds_and_abstention() {
     assert_eq!(dial.value(2., Action::Hold).unwrap(), None);
     assert_eq!(dial.value(2., Action::InsufficientEvidence).unwrap(), None);
     assert!(dial.value(1.5, Action::SmallIncrease).is_err());
-}
-
-#[test]
-fn continuation_rejects_stale_unknown_or_unjustified_work() {
-    use telperion_jev::tuning::continuation::{assess, Assessment, Basis};
-    let budget = Budget {
-        visual_passes: Some(0),
-        max_visual_passes: Some(2),
-        evaluations: 0,
-        images: 0,
-        tokens: 20,
-        rounds: 0,
-        max_evaluations: 13,
-        max_images: 52,
-        max_tokens: 100,
-        max_rounds: 3,
-    };
-    let mut basis = Basis {
-        identity: "revision".into(),
-        proposed_action: "tune spread".into(),
-        evidence: vec!["measured defect".into()],
-        recent_outcomes: vec![],
-        next_tokens: Some(40),
-        estimate_basis: "bounded request".into(),
-        usage_known: true,
-    };
-    let mut assessment = Assessment {
-        identity: "revision".into(),
-        ledger: "jev:1".into(),
-        tractability: "supported".into(),
-        progress: "supported".into(),
-        risk: "bounded".into(),
-    };
-    assert!(assess(&basis, &budget, Some(&assessment), true).is_ok());
-    basis.usage_known = false;
-    assert!(assess(&basis, &budget, Some(&assessment), true).is_err());
-    basis.usage_known = true;
-    basis.next_tokens = None;
-    assert!(assess(&basis, &budget, Some(&assessment), true).is_err());
-    basis.next_tokens = Some(40);
-    assessment.identity = "stale".into();
-    assert!(assess(&basis, &budget, Some(&assessment), true).is_err());
-    assessment.identity = "revision".into();
-    assessment.progress = "repeated_failure".into();
-    assert!(assess(&basis, &budget, Some(&assessment), true).is_err());
-    assert!(assess(&basis, &budget, None, true).is_err());
-    assert!(assess(&basis, &budget, Some(&assessment), false).is_err());
 }
 
 #[test]
@@ -281,24 +212,4 @@ fn measurement_gates_accept_context_but_stop_failed_candidates_before_render() {
     assert!(!invalid.feasible);
     assert_eq!(renderer.0.get(), 1);
     fs::remove_file(path).unwrap();
-}
-
-#[test]
-fn interrupted_journal_retains_reservation_and_cannot_be_recreated() {
-    use telperion_jev::tuning::calibration::Journal;
-    let path = std::env::temp_dir().join(format!(
-        "tuning-journal-{}",
-        telperion_jev::ledger::new_entry_id()
-    ));
-    let mut journal = Journal::create(&path, 100).unwrap();
-    journal.reserve(40).unwrap();
-    assert!(journal.reserve(10).is_err());
-    assert!(Journal::create(&path, 100).is_err());
-    let saved: serde_json::Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-    assert_eq!(saved["spent"], 40);
-    assert_eq!(saved["pending"], 40);
-    assert!(journal.settle(120).is_err());
-    let saved: serde_json::Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-    assert_eq!(saved["spent"], 120);
-    std::fs::remove_file(path).unwrap();
 }

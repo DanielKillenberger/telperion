@@ -1,0 +1,415 @@
+[
+  {
+    "id": "palm-leaflet-length-a1",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "leaflet_length_m",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "A1",
+        "sentence": "The leaflets are ½ m (18 inches) long (1, 3, 5) and are induplicate, meaning they appear to have been folded in half lengthwise (5).",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "partial",
+    "expect_gap": "single_source",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-crown-width-a1",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "crown_width_m",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "A1",
+        "sentence": "* * * **Height:** 50 - 100 feet **Width:** 20 - 50 feet **Growth Rate:** Slow Growing **Grow Season:** Summer **Flower Season:** Summer **Color:** White **Function:** Accent **Spread:** Non-spreading **Allergen:** Non-allergenic **Invasive:** Benign **Toxicity:** Benign **Hardy:** Semi-hardy **Water Use:** Low water Use * * * **Citations:** 1.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "partial",
+    "expect_gap": "single_source",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-frond-length-a1",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "frond_length_m",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "A1",
+        "sentence": "Leaves resemble a ‘feather-duster’ as fronds are pinnately compound, 5-7 m (15 to 20 feet) long, with armed petioles and stout midribs that hold the slender pinnae (1, 5).",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "partial",
+    "expect_gap": "single_source",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-leaflet-width-a1-length-only",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "leaflet_width_m",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "A1",
+        "sentence": "The leaflets are ½ m (18 inches) long (1, 3, 5) and are induplicate, meaning they appear to have been folded in half lengthwise (5).",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "none",
+    "expect_gap": "no_mature_size",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "palm-leaflet-length-four-sources",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "leaflet_length_m",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "A1",
+        "sentence": "The leaflets are ½ m (18 inches) long (1, 3, 5) and are induplicate, meaning they appear to have been folded in half lengthwise (5).",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      },
+      {
+        "source": "F1",
+        "sentence": "The pinnately compound blue-green to gray-green leaves or fronds can grow to 20 feet in length; leaflets are 1 to 2 feet long and form a \"V\" shape down the rachis.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      },
+      {
+        "source": "P4",
+        "sentence": "The leaflets are 30 centimetres (12 inches) long and 2cm (1in) wide.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      },
+      {
+        "source": "P5",
+        "sentence": "Leaflets are 1-2 ft (0.3-0.6 m) long and arranged in V-shape ranks that run the length of the leaf stem.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 4,
+      "sources": 4
+    },
+    "expect_level": "sufficient",
+    "expect_gap": "none",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-frond-length-f1-bound",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "frond_length_m",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "F1",
+        "sentence": "The pinnately compound blue-green to gray-green leaves or fronds can grow to 20 feet in length; leaflets are 1 to 2 feet long and form a \"V\" shape down the rachis.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "proxy_only",
+    "expect_gap": "bound_only",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-frond-length-m1-cultivars",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "frond_length_m",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "M1",
+        "sentence": "the range of frond length was from 545.33 cm (Barni Al-Madinah) to 297 cm (Majdool) while the range of frond width was from 106.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "partial",
+    "expect_gap": "single_source",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-crown-width-no-evidence",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "crown_width_m",
+      "condition": "open_grown"
+    },
+    "evidence": [],
+    "counts": {
+      "sentences": 0,
+      "sources": 0
+    },
+    "expect_level": "none",
+    "expect_gap": "no_mature_size",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "oak-crown-width-description-only",
+    "requirement": {
+      "taxon": "Quercus garryana",
+      "field": "crown_width_m",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "OWIC",
+        "sentence": "Open-grown trees develop very broad, rounded crowns.",
+        "condition": "open_grown",
+        "taxon": "Quercus garryana"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "none",
+    "expect_gap": "no_mature_size",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "beech-crown-width-spread",
+    "requirement": {
+      "taxon": "Fagus sylvatica",
+      "field": "crown_width_m",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "landscape reference",
+        "sentence": "Landscape height 15-23 m, spread 12-18 m.",
+        "condition": "unstated",
+        "taxon": "Fagus sylvatica"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "partial",
+    "expect_gap": "single_source",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-leaflet-width-p4",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "leaflet_width_m",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "P4",
+        "sentence": "The leaflets are 30 centimetres (12 inches) long and 2cm (1in) wide.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "partial",
+    "expect_gap": "single_source",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "palm-crown-width-p4-p5",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "crown_width_m",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "P4",
+        "sentence": "The full span of the crown ranges from 6–10m (20–33ft).",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      },
+      {
+        "source": "P5",
+        "sentence": "htm#Bibliography) Width Up to 40 ft (12 m) [1](https://www.",
+        "condition": "open_grown",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 2,
+      "sources": 2
+    },
+    "expect_level": "partial",
+    "expect_gap": "single_source",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "palm-frond-length-a1-p4",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "frond_length_m",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "A1",
+        "sentence": "Leaves resemble a ‘feather-duster’ as fronds are pinnately compound, 5-7 m (15 to 20 feet) long, with armed petioles and stout midribs that hold the slender pinnae (1, 5).",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      },
+      {
+        "source": "P4",
+        "sentence": "org/wiki/Leaves \"Leaves\") are 4–6m (13–20ft) long, with spines on the [petiole](https://en.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 2,
+      "sources": 2
+    },
+    "expect_level": "sufficient",
+    "expect_gap": "none",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "palm-frond-length-spadix-only",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "frond_length_m",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "A1",
+        "sentence": "Both are borne on a spadix which is divided into 25 to 150 strands that are 30-75 cm (12-30 inches) long on female plants, and 15-22.5 cm (6-9 inches) long on male plants (5).",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "none",
+    "expect_gap": "no_mature_size",
+    "holdout": true,
+    "negative": true
+  },
+  {
+    "id": "palm-height-a1-listing",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "height_m",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "A1",
+        "sentence": "Date palms have a moderate growth rate of 30-45 cm (1 to 1.5 feet) a year, reaching 5 m (20 feet) in 15 to 20 years depending on the cultivar and soil and water conditions.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      },
+      {
+        "source": "A1",
+        "sentence": "* * * **Height:** 50 - 100 feet **Width:** 20 - 50 feet **Growth Rate:** Slow Growing **Grow Season:** Summer **Flower Season:** Summer **Color:** White **Function:** Accent **Spread:** Non-spreading **Allergen:** Non-allergenic **Invasive:** Benign **Toxicity:** Benign **Hardy:** Semi-hardy **Water Use:** Low water Use * * * **Citations:** 1.",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 2,
+      "sources": 1
+    },
+    "expect_level": "partial",
+    "expect_gap": "single_source",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "palm-dbh-a1-bound",
+    "requirement": {
+      "taxon": "Phoenix dactylifera",
+      "field": "dbh_m",
+      "condition": "open_grown"
+    },
+    "evidence": [
+      {
+        "source": "A1",
+        "sentence": "The trunk has a characteristic diamond pattern and is rough gray and up to ½ m (18 inches) in diameter (1, 3).",
+        "condition": "unstated",
+        "taxon": "Phoenix dactylifera"
+      }
+    ],
+    "counts": {
+      "sentences": 1,
+      "sources": 1
+    },
+    "expect_level": "proxy_only",
+    "expect_gap": "bound_only",
+    "holdout": false,
+    "negative": false
+  }
+]

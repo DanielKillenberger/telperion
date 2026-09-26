@@ -11,8 +11,9 @@ use super::{
 };
 use crate::tuning::{
     engine::{Proposal, Run, Services},
-    progress,
+    look,
     sheet::{self, Outcome},
+    stride,
 };
 use serde_json::Value;
 
@@ -86,7 +87,7 @@ pub(super) fn note_unshown(state: &mut Run, look: &sheet::Look) {
 /// nobody buys the same look again.
 pub(super) fn note_failure(state: &mut Run, look: &sheet::Look) {
     for index in &look.shown {
-        state.trials[*index].reason = Some(progress::REVIEW_FAILED.into());
+        state.trials[*index].reason = Some(look::REVIEW_FAILED.into());
     }
     state.routes.push(sheet::FAILED_NOTE.into());
 }
@@ -142,6 +143,7 @@ pub(super) fn keep(
     // Where to put the run back, taken before anything moves.
     let restore = crate::tuning::veto::restore_point(state);
     state.trials[index].adopted_over = others.to_vec();
+    state.trials[index].adopted = true;
     state.current = Some(index);
     let mut effective = state.effective.clone();
     merge(&mut effective, &overlay);
@@ -177,7 +179,7 @@ enum Turn {
 }
 
 /// What a track's stall is called. The implicit track has no name to give.
-pub(super) fn note(track: &Track, text: String) -> String {
+pub(in crate::tuning) fn note(track: &Track, text: String) -> String {
     if track.name.is_empty() {
         text
     } else {
@@ -208,15 +210,17 @@ fn one_track(
         return Ok(Turn::AllTried);
     };
     let wanted = &wanted[..];
+    // How far this round moves is the size of the gap the words name.
+    let stride = stride::decide(state, services, save, track, wanted)?;
     let mut planned = vec![];
     let mut refused = 0;
-    for strength in &strengths {
+    for strength in strengths.iter().map(|s| s * stride.multiplier) {
         match build(
             &state.preset,
             &state.effective,
             &state.dials,
             wanted,
-            *strength,
+            strength,
             &base,
             &track.name,
         ) {
@@ -263,14 +267,12 @@ fn one_track(
             variants.push(Variant { trial, overlay });
         }
     }
-    let priorities = progress::tuning_priorities(state);
+    let priorities = look::track_objectives(state, track);
     let drawn = variants.iter().map(|v| v.trial).collect::<Vec<_>>();
     let look = services.sheet_request(state, old, &drawn, &priorities, track.view.as_deref())?;
     note_unshown(state, &look);
     let Some(plan) = &look.plan else {
-        state
-            .routes
-            .push(note(track, progress::stall(services.selection())));
+        state.routes.push(note(track, look::STALL.into()));
         save(state)?;
         return Ok(Turn::Stalled);
     };
@@ -286,12 +288,8 @@ fn one_track(
     save(state)?;
     if let Some(key) = sheet::adopt(&verdict, &shown) {
         let others = passed_over(&verdict, &shown, &key);
-        return Ok(
-            match keep(state, services, save, &key, &others, &variants)? {
-                true => Turn::Kept,
-                false => Turn::Stalled,
-            },
-        );
+        let kept = keep(state, services, save, &key, &others, &variants)?;
+        return settled(state, save, track, &stride, kept);
     }
     // Better but breaking is halved until the breaking dials are isolated;
     // worse everywhere is cut once by family, to learn which part was good.
@@ -320,16 +318,25 @@ fn one_track(
         )?,
     };
     let Some(key) = clean else {
-        state
-            .routes
-            .push(note(track, progress::stall(services.selection())));
+        state.routes.push(note(track, look::STALL.into()));
         save(state)?;
         return Ok(Turn::Stalled);
     };
-    Ok(match keep(state, services, save, &key, &[], &variants)? {
-        true => Turn::Kept,
-        false => Turn::Stalled,
-    })
+    let kept = keep(state, services, save, &key, &[], &variants)?;
+    settled(state, save, track, &stride, kept)
+}
+
+/// The turn an adoption ends, with what it did to the track's stride.
+fn settled(
+    state: &mut Run,
+    save: &mut dyn FnMut(&Run) -> Result<(), String>,
+    track: &Track,
+    decision: &stride::Decision,
+    kept: bool,
+) -> Result<Turn, String> {
+    stride::settle(state, track, decision, kept);
+    save(state)?;
+    Ok(if kept { Turn::Kept } else { Turn::Stalled })
 }
 
 /// One bundle round: one bundle per track, in order. `true` when some track
@@ -349,6 +356,13 @@ pub(in crate::tuning) fn round(
     let shares = track::assign(&tracks, &state.dials, &wanted);
     let mut outcomes = vec![];
     for (track, moves) in tracks.iter().zip(shares) {
+        // No objective, no turn: a track nobody aims at draws nothing.
+        if look::track_objectives(state, track).is_empty() {
+            state
+                .routes
+                .push(note(track, "skipped: no objective names this track".into()));
+            continue;
+        }
         if moves.is_empty() {
             state
                 .routes

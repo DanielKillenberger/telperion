@@ -2,16 +2,18 @@
 //!
 //! Every judged question is scored twice: once over the labelled cases that
 //! tuned its wording, once over the held-out cases. R7's bound is 0.9 accuracy
-//! for the sufficiency level, the dominant gap, the described level and each
-//! obligation, and 0.8 top-one agreement with the person's admitted source for
-//! ranking. `format_scores` prints the confidence spread of each.
+//! for the sufficiency level, the dominant gap, the mature size and its gap
+//! (fn-127), the growth rate and its gap (fn-132), the described level and each obligation (the appearance support
+//! among them, fn-128) and the rights class (fn-129), and 0.8 top-one agreement with the
+//! person's admitted source for ranking. `format_scores` prints the confidence spread of each.
 
 use std::path::Path;
 
 use super::{
-    described_questions, described_state, inspected_image_state, level_from_score,
-    measurement_state, obligation_questions, ranking_questions, ranking_state,
-    sufficiency_questions, sufficiency_state, DESCRIBED_UNSTATED, RANKING_NONE, SUFFICIENCY_LEVELS,
+    appearance_state, chosen_level, described_questions, described_state, inspected_image_state,
+    mature_questions, mature_state, measurement_state, obligation_questions, ranking_questions,
+    ranking_state, rate_questions, sufficiency_questions, sufficiency_state, DESCRIBED_UNSTATED,
+    RANKING_NONE, SUFFICIENCY_LEVELS,
 };
 use crate::caller::{evaluate, CallerError, EvaluateRequest, Transport};
 use crate::cases::{CaseRow, SetScore};
@@ -30,6 +32,15 @@ pub fn run_pipeline_cases(
     let (levels, gaps) = run_sufficiency(transport, key, ledger_dir)?;
     let mut out = split("sufficiency level", levels, thresholds().accuracy_bar);
     out.extend(split("sufficiency gap", gaps, thresholds().accuracy_bar));
+    let stated = [
+        (super::mature_cases(), mature_questions(), MATURE),
+        (super::rate_cases(), rate_questions(), RATE),
+    ];
+    for (cases, questions, names) in stated {
+        let (levels, gaps) = run_stated(transport, key, ledger_dir, cases, &questions, &names)?;
+        out.extend(split(names.level_set, levels, thresholds().accuracy_bar));
+        out.extend(split(names.gap_set, gaps, thresholds().accuracy_bar));
+    }
     out.extend(split(
         "ranking source",
         run_ranking(transport, key, ledger_dir)?,
@@ -40,17 +51,80 @@ pub fn run_pipeline_cases(
         run_described(transport, key, ledger_dir)?,
         thresholds().accuracy_bar,
     ));
-    out.extend(split(
-        "obligation inspected_image",
-        run_inspected_image(transport, key, ledger_dir)?,
-        thresholds().accuracy_bar,
-    ));
-    out.extend(split(
-        "obligation measurement_not_invention",
-        run_measurement(transport, key, ledger_dir)?,
-        thresholds().accuracy_bar,
-    ));
+    let o = super::obligation_cases();
+    let nouls: [(&str, Vec<Noul>); 3] = [
+        (
+            "inspected_image",
+            o.inspected_image
+                .into_iter()
+                .map(|c| {
+                    (
+                        c.id,
+                        inspected_image_state(&c.observation),
+                        c.expect,
+                        c.holdout,
+                    )
+                })
+                .collect(),
+        ),
+        (
+            "measurement_not_invention",
+            o.measurement_not_invention
+                .into_iter()
+                .map(|c| {
+                    (
+                        c.id,
+                        measurement_state(None, &c.value_statement, &c.source_excerpt),
+                        c.expect,
+                        c.holdout,
+                    )
+                })
+                .collect(),
+        ),
+        (
+            "appearance_supported",
+            o.appearance_supported
+                .into_iter()
+                .map(|c| {
+                    (
+                        c.id,
+                        appearance_state(&c.trait_name, &c.level, &c.sentence),
+                        c.expect,
+                        c.holdout,
+                    )
+                })
+                .collect(),
+        ),
+    ];
+    for (name, cases) in nouls {
+        out.extend(split(
+            &format!("obligation {name}"),
+            run_noul(transport, key, ledger_dir, name, cases)?,
+            thresholds().accuracy_bar,
+        ));
+    }
+    let rights = crate::pipeline::rights::run_cases(transport, key, ledger_dir)?;
+    out.extend(crate::pipeline::rights::scored(rights));
     Ok(out)
+}
+
+/// One levelled case: its id, the state asked, the admitted level and gap,
+/// and whether it is held out.
+struct Levelled {
+    id: String,
+    state: serde_json::Value,
+    level: String,
+    gap: String,
+    holdout: bool,
+}
+
+/// The names one levelled set is asked and scored under.
+struct LevelledSet {
+    tool: &'static str,
+    score: &'static str,
+    gap: &'static str,
+    level_set: &'static str,
+    gap_set: &'static str,
 }
 
 fn run_sufficiency(
@@ -58,54 +132,121 @@ fn run_sufficiency(
     key: &str,
     ledger_dir: &Path,
 ) -> Result<(Rows, Rows), CallerError> {
-    let questions = sufficiency_questions();
+    let cases = super::sufficiency_cases().into_iter().map(|case| Levelled {
+        state: sufficiency_state(&case),
+        id: case.id,
+        level: case.expect_level,
+        gap: case.expect_gap,
+        holdout: case.holdout,
+    });
+    let names = LevelledSet {
+        tool: "sufficiency",
+        score: "sufficiency",
+        gap: "dominant_gap",
+        level_set: "sufficiency level",
+        gap_set: "sufficiency gap",
+    };
+    run_levelled(
+        transport,
+        key,
+        ledger_dir,
+        &sufficiency_questions(),
+        &names,
+        cases,
+    )
+}
+
+/// A set judged on a stated value with no age: the mature size (fn-127)
+/// and the growth rate (fn-132) lay out the same state.
+fn run_stated(
+    transport: &dyn Transport,
+    key: &str,
+    ledger_dir: &Path,
+    cases: Vec<super::MatureCase>,
+    questions: &serde_json::Value,
+    names: &LevelledSet,
+) -> Result<(Rows, Rows), CallerError> {
+    let cases = cases.into_iter().map(|case| Levelled {
+        state: mature_state(&case),
+        id: case.id,
+        level: case.expect_level,
+        gap: case.expect_gap,
+        holdout: case.holdout,
+    });
+    run_levelled(transport, key, ledger_dir, questions, names, cases)
+}
+
+const MATURE: LevelledSet = LevelledSet {
+    tool: "mature_size",
+    score: "mature_size",
+    gap: "mature_gap",
+    level_set: "mature size level",
+    gap_set: "mature size gap",
+};
+
+const RATE: LevelledSet = LevelledSet {
+    tool: "growth_rate",
+    score: "growth_rate",
+    gap: "rate_gap",
+    level_set: "growth rate level",
+    gap_set: "growth rate gap",
+};
+
+/// Asks every case of a four-level Score with its gap Choice and scores the
+/// level and the gap as two sets.
+fn run_levelled(
+    transport: &dyn Transport,
+    key: &str,
+    ledger_dir: &Path,
+    questions: &serde_json::Value,
+    names: &LevelledSet,
+    cases: impl Iterator<Item = Levelled>,
+) -> Result<(Rows, Rows), CallerError> {
     let mut levels = Rows::new();
     let mut gaps = Rows::new();
-    for case in super::sufficiency_cases() {
-        let state = sufficiency_state(&case);
+    for case in cases {
         let entry = evaluate(
             transport,
             key,
             EvaluateRequest {
-                tool: "sufficiency",
+                tool: names.tool,
                 source: None,
-                state: &state,
-                questions: &questions,
+                state: &case.state,
+                questions,
                 ledger_dir,
             },
         )?;
-        // A missing score is the lowest level, as the gate itself reads it.
-        let index = level_from_score(
-            entry.score("sufficiency").unwrap_or(f64::NAN),
+        // The most probable level, as the gate itself reads it.
+        let index = chosen_level(
+            entry.probabilities(names.score),
             SUFFICIENCY_LEVELS.len(),
-        )
-        .unwrap_or(0);
+            0,
+            0.0,
+        );
         let level = SUFFICIENCY_LEVELS[index];
         levels.push((
             CaseRow {
-                set: "sufficiency level".into(),
+                set: names.level_set.into(),
                 id: case.id.clone(),
-                expected: case.expect_level.clone(),
-                hit: level == case.expect_level,
+                expected: case.level.clone(),
+                hit: level == case.level,
                 answered: level.into(),
-                top_probability: entry.top_probability("sufficiency"),
-                confidence: entry.confidence("sufficiency").unwrap_or(0.0),
+                top_probability: entry.top_probability(names.score),
+                confidence: entry.confidence(names.score).unwrap_or(0.0),
                 ledger: entry.reference(),
             },
             case.holdout,
         ));
-        let gap = entry
-            .choice("dominant_gap")
-            .unwrap_or_else(|| "none".into());
+        let gap = entry.choice(names.gap).unwrap_or_else(|| "none".into());
         gaps.push((
             CaseRow {
-                set: "sufficiency gap".into(),
-                id: case.id.clone(),
-                expected: case.expect_gap.clone(),
-                hit: gap == case.expect_gap,
+                set: names.gap_set.into(),
+                id: case.id,
+                expected: case.gap.clone(),
+                hit: gap == case.gap,
                 answered: gap,
-                top_probability: entry.top_probability("dominant_gap"),
-                confidence: entry.confidence("dominant_gap").unwrap_or(0.0),
+                top_probability: entry.top_probability(names.gap),
+                confidence: entry.confidence(names.gap).unwrap_or(0.0),
                 ledger: entry.reference(),
             },
             case.holdout,
@@ -175,11 +316,12 @@ fn run_described(
                 ledger_dir,
             },
         )?;
-        let index = level_from_score(
-            entry.score("level").unwrap_or(f64::NAN),
+        let index = chosen_level(
+            entry.probabilities("level"),
             case.levels.len() + 1,
-        )
-        .unwrap_or(case.levels.len());
+            case.levels.len(),
+            thresholds().level_floor,
+        );
         let answered = case
             .levels
             .get(index)
@@ -202,70 +344,34 @@ fn run_described(
     Ok(rows)
 }
 
-fn run_inspected_image(
-    transport: &dyn Transport,
-    key: &str,
-    ledger_dir: &Path,
-) -> Result<Rows, CallerError> {
-    let questions = obligation_questions("inspected_image");
-    let mut rows = Rows::new();
-    for case in super::obligation_cases().inspected_image {
-        let state = inspected_image_state(&case.observation);
-        let entry = evaluate(
-            transport,
-            key,
-            EvaluateRequest {
-                tool: "obligation:inspected_image",
-                source: None,
-                state: &state,
-                questions: &questions,
-                ledger_dir,
-            },
-        )?;
-        rows.push((
-            noul_row(
-                "obligation inspected_image",
-                &case.id,
-                case.expect,
-                &entry,
-                "inspected_image",
-            ),
-            case.holdout,
-        ));
-    }
-    Ok(rows)
-}
+/// One obligation case: its id, the state asked, the side admitted, and
+/// whether it is held out.
+type Noul = (String, serde_json::Value, bool, bool);
 
-fn run_measurement(
+fn run_noul(
     transport: &dyn Transport,
     key: &str,
     ledger_dir: &Path,
+    name: &str,
+    cases: Vec<Noul>,
 ) -> Result<Rows, CallerError> {
-    let questions = obligation_questions("measurement_not_invention");
+    let questions = obligation_questions(name);
+    let tool = format!("obligation:{name}");
+    let set = format!("obligation {name}");
     let mut rows = Rows::new();
-    for case in super::obligation_cases().measurement_not_invention {
-        let state = measurement_state(&case.value_statement, &case.source_excerpt);
+    for (id, state, expect, holdout) in cases {
         let entry = evaluate(
             transport,
             key,
             EvaluateRequest {
-                tool: "obligation:measurement_not_invention",
+                tool: &tool,
                 source: None,
                 state: &state,
                 questions: &questions,
                 ledger_dir,
             },
         )?;
-        rows.push((
-            noul_row(
-                "obligation measurement_not_invention",
-                &case.id,
-                case.expect,
-                &entry,
-                "measurement_not_invention",
-            ),
-            case.holdout,
-        ));
+        rows.push((noul_row(&set, &id, expect, &entry, name), holdout));
     }
     Ok(rows)
 }

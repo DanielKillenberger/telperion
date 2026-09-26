@@ -1,16 +1,20 @@
-//! The end result of a run: the outcome and the gap list, assembled from the
-//! record by code so nothing the run learned stays buried in run.json. The
-//! invoker, the owner or the add-species agent, reads it and answers the
-//! check on each gap; this module decides nothing and dispatches nothing.
-use super::{engine::Run, evaluation::Image, handoff::Attempt, state::CellStatus};
+//! The end result of a revision: the outcome and the gap list, assembled from
+//! the record by code so nothing the run learned stays buried in run.json.
+//! The runner's Gaps stage classes each gap; this module decides nothing and
+//! dispatches nothing. It is the only result a revision writes.
+use super::{engine::Run, evaluation::Image, state::CellStatus};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-pub mod html;
+pub mod attempt;
+pub use attempt::{Attempt, CellOutcome};
 
 pub const CHECK_PENDING: &str =
-    "pending: the invoker answers reachable (dials not yet tried), covered (an open spec) or new";
-pub const NEW_GAP_NOTE: &str = "a new gap escalates: its cause in generator terms and the shape of its spec are the host's, never this run's";
+    "pending: the runner's Gaps stage classes it reachable, identity or global";
+pub const NEW_GAP_NOTE: &str =
+    "a gap the runner classes identity or global is the host's to spec, never this run's";
+/// The status of an objective the current tree passes: no gap.
+pub const PASSING: &str = "passing on the current tree";
 pub const MEANING: &str =
     "outcome plus gap list; a listed gap is never readiness and this file mints nothing";
 
@@ -59,8 +63,6 @@ pub struct GapEntry {
     pub rank: usize,
     pub priority: String,
     pub status: String,
-    pub latest_route: Option<String>,
-    pub existing_spec: Option<String>,
     pub attempts: Vec<Attempt>,
     pub reviewer_words: Vec<String>,
     pub stills: Vec<Still>,
@@ -74,9 +76,13 @@ pub struct EndResult {
     pub outcome: Outcome,
     pub gaps: Vec<GapEntry>,
     pub gaps_note: String,
+    /// The traits the generator cannot draw yet, each with the spec that
+    /// captures it: left out of readiness and never a gap of this run.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub known_gaps: Vec<super::unexpressed::Unexpressed>,
 }
 
-fn still(image: &Image) -> Still {
+pub(super) fn still(image: &Image) -> Still {
     Still {
         view: image.view.clone(),
         seed: image.seed,
@@ -103,19 +109,11 @@ impl Run {
     }
 
     fn stopped(&self) -> String {
-        match (&self.pause, &self.pending) {
-            (Some(p), _) => format!("paused: {}", p.reason),
+        match (&self.stopped, &self.pending) {
+            (Some(reason), _) => format!("stopped: {reason}"),
             (None, Some(step)) => format!("interrupted during {step}"),
             (None, None) => "ended".into(),
         }
-    }
-
-    fn latest_route(&self, gap_id: &str) -> Option<String> {
-        let tag = format!("{gap_id}=");
-        self.routes
-            .iter()
-            .rev()
-            .find_map(|r| r.strip_prefix(&tag).map(str::to_string))
     }
 
     fn owner_cell_passes(&self, gap_id: &str) -> Option<bool> {
@@ -129,10 +127,9 @@ impl Run {
         (!cells.is_empty()).then(|| cells.iter().all(|(_, s)| *s == CellStatus::Pass))
     }
 
-    /// Every approved priority, whatever became of it. A priority that kept
-    /// routing to tuning and stalled is a gap here, not a vanished stall.
+    /// Every tuning objective, whatever became of it. One the revision could
+    /// not bring to pass is a gap here, not a vanished stall.
     pub fn end_result(&self) -> EndResult {
-        let handoffs = self.current_handoffs();
         let current = self.current_tree();
         let gaps = self
             .approved_priorities()
@@ -141,19 +138,10 @@ impl Run {
             .iter()
             .enumerate()
             .map(|(i, gap)| {
-                let handoff = handoffs
-                    .iter()
-                    .find(|h| h.gap_id.as_deref() == Some(&gap.id));
-                let latest_route = handoff
-                    .map(|h| h.route.clone())
-                    .or_else(|| self.latest_route(&gap.id));
-                let passes = self.owner_cell_passes(&gap.id);
-                let status = match (handoff, passes, latest_route.as_deref()) {
-                    (Some(_), _, _) => "handed off",
-                    (None, Some(true), _) => "passing on the current tree",
-                    (None, _, Some("tuning")) => "stalled in tuning",
-                    (None, Some(false), _) => "open, not routed",
-                    (None, None, _) => "not assessed",
+                let status = match self.owner_cell_passes(&gap.id) {
+                    Some(true) => PASSING,
+                    Some(false) => "failing on the current tree",
+                    None => "not assessed",
                 }
                 .to_string();
                 let attempts = judged_on(self.attempts_for(gap), &gap.id);
@@ -162,8 +150,6 @@ impl Run {
                     rank: i + 1,
                     priority: gap.observation.clone(),
                     status,
-                    latest_route,
-                    existing_spec: handoff.and_then(|h| h.existing_spec.clone()),
                     reviewer_words: reviewer_words(&attempts),
                     attempts,
                     stills: current
@@ -201,6 +187,7 @@ impl Run {
             },
             gaps,
             gaps_note: NEW_GAP_NOTE.into(),
+            known_gaps: Vec::new(),
         }
     }
 }
@@ -260,121 +247,4 @@ fn reviewer_words(attempts: &[Attempt]) -> Vec<String> {
         }
     }
     out
-}
-
-/// The same result as a page a person reads first.
-pub fn markdown(r: &EndResult) -> String {
-    let o = &r.outcome;
-    let mut s = String::new();
-    s.push_str(&format!(
-        "# Run result: {} at seed {}\n\n",
-        o.preset, o.seed
-    ));
-    s.push_str(&format!("{}\n\n", r.meaning));
-    s.push_str("## Outcome\n\n| | |\n| --- | --- |\n");
-    s.push_str(&format!("| Stopped | {} |\n", o.stopped));
-    s.push_str(&format!("| Bootstrap | {} |\n", o.bootstrap));
-    s.push_str(&format!("| Machine ready | {} |\n", o.machine_ready));
-    s.push_str(&format!("| Owner acceptance | {} |\n", o.owner_acceptance));
-    s.push_str(&format!(
-        "| Adoptions kept / rolled back | {} / {} |\n",
-        o.adoptions_kept, o.adoptions_rolled_back
-    ));
-    if let Some(b) = o.budget.as_object() {
-        for key in ["rounds", "evaluations", "images", "visual_passes"] {
-            let cap = b
-                .get(&format!("max_{key}"))
-                .map(|v| v.to_string())
-                .unwrap_or_else(|| "?".into());
-            let used = b
-                .get(key)
-                .map(|v| v.to_string())
-                .unwrap_or_else(|| "?".into());
-            s.push_str(&format!(
-                "| {} | {} of {} |\n",
-                key.replace('_', " "),
-                used,
-                cap
-            ));
-        }
-    }
-    match &o.current {
-        Some(c) => {
-            s.push_str(&format!(
-                "\n## Current tree\n\nTrial `{}`, round {}, {}",
-                c.key, c.round, c.label
-            ));
-            if let Some(score) = c.score_telemetry {
-                s.push_str(&format!(", score telemetry {score:.4}"));
-            }
-            s.push_str(".\n\nStills:\n\n");
-            for st in &c.stills {
-                s.push_str(&format!(
-                    "- {} seed {}: `{}` ({})\n",
-                    st.view,
-                    st.seed,
-                    st.path,
-                    &st.sha256[..12.min(st.sha256.len())]
-                ));
-            }
-            s.push_str("\nOverlay:\n\n```json\n");
-            s.push_str(&serde_json::to_string_pretty(&c.overrides).unwrap_or_default());
-            s.push_str("\n```\n");
-        }
-        None => s.push_str("\n## Current tree\n\nNone: no candidate was ever current.\n"),
-    }
-    s.push_str(&format!(
-        "\n## Gaps ({})\n\n{}\n",
-        r.gaps.len(),
-        r.gaps_note
-    ));
-    if r.gaps.is_empty() {
-        s.push_str("\nNo approved priorities: nothing was asked of this run.\n");
-    }
-    for g in &r.gaps {
-        s.push_str(&format!(
-            "\n### {}. {} — {}\n\n{}\n\n",
-            g.rank, g.id, g.status, g.priority
-        ));
-        s.push_str(&format!(
-            "- Latest route: {}\n",
-            g.latest_route.as_deref().unwrap_or("none")
-        ));
-        if let Some(spec) = &g.existing_spec {
-            s.push_str(&format!("- Existing spec: {spec}\n"));
-        }
-        let feasible = g.attempts.iter().filter(|a| a.feasible).count();
-        s.push_str(&format!(
-            "- Attempts: {} evaluated, {} feasible\n",
-            g.attempts.len(),
-            feasible
-        ));
-        for a in g
-            .attempts
-            .iter()
-            .rev()
-            .take(6)
-            .collect::<Vec<_>>()
-            .into_iter()
-            .rev()
-        {
-            s.push_str(&format!(
-                "  - round {} {}{}\n",
-                a.round,
-                a.dial,
-                a.reason
-                    .as_ref()
-                    .map(|r| format!(": {r}"))
-                    .unwrap_or_default()
-            ));
-        }
-        if !g.reviewer_words.is_empty() {
-            s.push_str("- Reviewer's words:\n");
-            for w in &g.reviewer_words {
-                s.push_str(&format!("  - {w}\n"));
-            }
-        }
-        s.push_str(&format!("- Check: {}\n", g.check));
-    }
-    s
 }

@@ -7,19 +7,40 @@
 //! itself on the decision; a rejected manifest proposal stops every stage
 //! after discover.
 
-use super::canon::CanonError;
-use super::decision::{Decision, Resolution};
+use std::path::Path;
+
+use serde_json::Value;
+
+use super::canon::{canonical_sha256, read_json, CanonError};
+use super::decision::{Decision, Resolution, Status};
 use super::stage::STAGES;
+use super::stages::flagged::CLAIM_OPTIONS;
+
+/// A required field or appearance trait below the requirements table's bar,
+/// whose only option adds sources: the pipeline's for two search rounds on
+/// a field (`search`), the owner's after them and for a trait.
+pub const REQUIREMENTS_UNMET: &str = "requirements-unmet";
+
+/// The option `decision::retire_unfiled` writes on a stage's own open
+/// decision that its rerun did not file again. No person chose it and no
+/// stage consumes it; `hold_unmet` leaves it resolved.
+pub const SUPERSEDED: &str = "superseded";
 
 /// The decision kinds whose options a stage consumes: the kind, its options,
 /// and the stages that act on a resolution carrying one of them. A kind not
 /// listed here is resolved by a person and consumed by no stage.
 pub fn consumers(kind: &str) -> Option<(&'static [&'static str], &'static [&'static str])> {
     match kind {
-        "manifest-proposed" => Some((&["admit", "reject"], &STAGES[1..])),
+        // `skip` goes on with the manifest as it stands (fn-149).
+        "manifest-proposed" => Some((&["admit", "reject", "skip"], &STAGES[1..])),
         "unavailable-source" => Some((&["retry", "replace-source", "drop-source"], &["fetch"])),
         "coverage-gap" => Some((&["accept-rows", "fix-table", "drop-table"], &["fetch"])),
         "data-insufficient" => Some((&["admit-proxy", "add-sources", "lower-bar"], &["quality"])),
+        REQUIREMENTS_UNMET => Some((&["add-sources"], &["quality", "select"])),
+        // A flagged value (fn-131): select drops it on drop-value and on
+        // replace-source, and files its requirement for the search again;
+        // keep-range keeps the range its sources span (fn-149).
+        "claim-contradicted" | "claim-unsupported" => Some((&CLAIM_OPTIONS, &["select"])),
         _ => None,
     }
 }
@@ -47,7 +68,9 @@ impl From<CanonError> for ReconcileError {
 }
 
 /// Refuses a resolution whose option no stage consumes, naming the kind and
-/// the options a stage does consume, and a `replace-source` without a url.
+/// the options a stage does consume, and a `replace-source` of an
+/// unavailable source without a url; a claim's `replace-source` is the
+/// pipeline's own search and names none.
 pub fn check_resolutions(
     decisions: &[Decision],
     resolutions: &[Resolution],
@@ -71,7 +94,8 @@ pub fn check_resolutions(
             )));
         }
         let url = resolution.payload["url"].as_str().unwrap_or_default();
-        if resolution.option == "replace-source" && url.trim().is_empty() {
+        let fetched = stages.contains(&"fetch");
+        if resolution.option == "replace-source" && fetched && url.trim().is_empty() {
             return Err(ReconcileError::Refused(format!(
                 "{}: replace-source names no replacement url in its payload",
                 resolution.id
@@ -79,6 +103,77 @@ pub fn check_resolutions(
         }
     }
     Ok(())
+}
+
+/// The checksum of the manifest's `sources` as written on disk, so an
+/// `add-sources` resolution can tell whether a source was added.
+pub fn sources_sha256(manifest: &Path) -> Result<String, CanonError> {
+    Ok(canonical_sha256(&read_json(manifest)?["sources"]))
+}
+
+/// Reopens every resolved requirements-unmet decision whose manifest sources
+/// are still the ones it was filed against: a resolution that adds no source
+/// leaves the decision open. An appearance trait's decision (`select`) also
+/// counts a source id added to the trait's own list (`traits` is the
+/// manifest's `appearance`), which the pipeline may add (fn-129); a field
+/// select filed (fn-131) counts the manifest's sources, as quality's does. A decision
+/// its stage superseded is not held: the field passed with the sources it
+/// had. The note is set, never appended, so a rerun is byte-identical. True
+/// when the list changed.
+pub fn hold_unmet(decisions: &mut [Decision], sources: &str, traits: &Value) -> bool {
+    let mut changed = false;
+    for decision in decisions.iter_mut() {
+        let list = trait_list(traits, decision);
+        let unchanged = decision.payload["sources_sha256"].as_str() == Some(sources)
+            && (list.is_null() || list == decision.payload["sources_tried"]);
+        let superseded = decision
+            .resolution
+            .as_ref()
+            .is_some_and(|r| r.option == SUPERSEDED);
+        if decision.kind != REQUIREMENTS_UNMET
+            || decision.status != Status::Resolved
+            || !unchanged
+            || superseded
+        {
+            continue;
+        }
+        let Some(resolution) = decision.resolution.take() else {
+            continue;
+        };
+        decision.status = Status::Open;
+        let base = decision
+            .note
+            .split("[void resolution")
+            .next()
+            .unwrap_or_default()
+            .trim();
+        decision.note = format!(
+            "{base} [void resolution by {} at {}: no source was added]",
+            resolution.by, resolution.at
+        );
+        changed = true;
+    }
+    changed
+}
+
+/// The `sources` list of the trait a decision names, or null.
+fn trait_list(traits: &Value, decision: &Decision) -> Value {
+    traits
+        .as_array()
+        .into_iter()
+        .flatten()
+        .find(|t| t["trait_name"].as_str() == decision.field.as_deref())
+        .map_or(Value::Null, |t| t["sources"].clone())
+}
+
+/// The requirements still below their bar: logged by the runner and never
+/// waited on (fn-149).
+pub fn open_requirements(decisions: &[Decision]) -> Vec<String> {
+    decisions
+        .iter()
+        .filter(|d| d.kind == REQUIREMENTS_UNMET && d.status == Status::Open)
+        .map(|d| d.id.clone())
+        .collect()
 }
 
 /// Records `stage` on every resolved decision whose option it consumes and
@@ -226,5 +321,64 @@ mod tests {
             Some("european-ash/discover/manifest-proposed")
         );
         assert!(rejected_proposal(&list, "discover").is_none());
+    }
+
+    fn unmet(sources: &str) -> Decision {
+        Decision::new(
+            DecisionParts {
+                species: "date-palm",
+                stage: "quality",
+                kind: REQUIREMENTS_UNMET,
+                field: Some("frond_length_m"),
+                age_years: None,
+            },
+            &["select", "fit", "generate"],
+            sha(&[("fetch.json", "aaa")]),
+            vec![],
+            json!({"sources_sha256": sources}),
+            &["add-sources"],
+            "NEEDS_HUMAN",
+        )
+    }
+
+    fn resolve(decision: &Decision, option: &str) -> Resolution {
+        Resolution {
+            id: decision.id.clone(),
+            inputs_sha256: decision.inputs_sha256.clone(),
+            option: option.into(),
+            by: "cheap-driver".into(),
+            at: "2026-09-23".into(),
+            note: String::new(),
+            payload: Value::Null,
+        }
+    }
+
+    #[test]
+    fn a_required_field_cannot_be_lowered_and_an_add_that_adds_nothing_stays_open() {
+        let list = vec![unmet("before")];
+        let err = check_resolutions(&list, &[resolve(&list[0], "lower-bar")])
+            .unwrap_err()
+            .to_string();
+        assert!(
+            err.ends_with("option lower-bar of kind requirements-unmet is consumed by no stage; quality, select consume add-sources"),
+            "{err}"
+        );
+        let add = resolve(&list[0], "add-sources");
+        assert!(check_resolutions(&list, std::slice::from_ref(&add)).is_ok());
+        let mut held = list.clone();
+        apply_resolutions(&mut held, std::slice::from_ref(&add));
+        assert!(hold_unmet(&mut held, "before", &Value::Null));
+        assert_eq!(held[0].status, Status::Open);
+        assert_eq!(open_requirements(&held), vec![held[0].id.clone()]);
+        let once = held[0].note.clone();
+        apply_resolutions(&mut held, std::slice::from_ref(&add));
+        hold_unmet(&mut held, "before", &Value::Null);
+        assert_eq!(held[0].note, once);
+        assert!(once.ends_with("no source was added]"), "{once}");
+        let mut added = list;
+        apply_resolutions(&mut added, &[add]);
+        assert!(!hold_unmet(&mut added, "after", &Value::Null));
+        assert_eq!(added[0].status, Status::Resolved);
+        assert!(open_requirements(&added).is_empty());
     }
 }

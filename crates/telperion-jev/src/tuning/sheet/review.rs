@@ -12,10 +12,8 @@ pub(in crate::tuning) fn review(
     plan: &Plan,
 ) -> Result<Verdict, String> {
     let allowance = services.sheet_tokens(&plan.request);
-    let mut budget = state.budget.clone();
-    budget.reserve_visual()?;
-    budget.reserve(0, 0, allowance, 0)?;
-    state.budget = budget;
+    state.budget.reserve_visual();
+    state.budget.reserve(0, 0, allowance, 0);
     // The request only: the order and the current tree's label are code's, and
     // recorded with the verdict rather than with what was sent.
     state.push_judgment_input(INPUT_LABEL, serde_json::to_value(&plan.request).unwrap());

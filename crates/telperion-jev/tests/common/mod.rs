@@ -2,9 +2,11 @@ use std::sync::Mutex;
 
 use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
+use telperion_jev::pipeline::rights::{rights_cases, rights_state};
 use telperion_jev::pipeline::sets::{
-    described_cases, described_state, obligation_cases, ranking_cases, ranking_state,
-    sufficiency_cases, sufficiency_state, SUFFICIENCY_LEVELS,
+    appearance_state, described_cases, described_state, mature_cases, mature_state,
+    obligation_cases, ranking_cases, ranking_state, rate_cases, sufficiency_cases,
+    sufficiency_state, SUFFICIENCY_LEVELS,
 };
 use telperion_jev::questions::{citation_cases, screen_cases, selection_cases, triage_cases};
 
@@ -92,10 +94,21 @@ fn answers_for(body: &Value) -> Value {
     }
     if questions.get("span").is_some() {
         let question = body["state"]["question"].as_str().unwrap_or("");
+        // The pipeline keys a span to its row ("S1.1: 50 to 90 ft", fn-131):
+        // the labelled span is the candidate that carries it.
+        let candidates: Vec<String> =
+            serde_json::from_value(body["state"]["candidates"].clone()).unwrap_or_default();
         let chosen = selection_cases()
             .into_iter()
             .find(|case| case.question == question)
             .map(|case| case.expect_span)
+            .map(|span| {
+                candidates
+                    .iter()
+                    .find(|c| c.ends_with(&format!(": {span}")))
+                    .cloned()
+                    .unwrap_or(span)
+            })
             .unwrap_or_else(|| "none".into());
         return json!({
             "span": {
@@ -179,6 +192,34 @@ fn answers_for(body: &Value) -> Value {
             "dominant_gap": choice_answer(&case.expect_gap),
         });
     }
+    if questions.get("mature_size").is_some() {
+        let case = mature_cases()
+            .into_iter()
+            .find(|case| mature_state(case) == body["state"])
+            .expect("a mature size case for this state");
+        let index = SUFFICIENCY_LEVELS
+            .iter()
+            .position(|level| *level == case.expect_level)
+            .unwrap_or(0);
+        return json!({
+            "mature_size": score_answer(index, SUFFICIENCY_LEVELS.len()),
+            "mature_gap": choice_answer(&case.expect_gap),
+        });
+    }
+    if questions.get("growth_rate").is_some() {
+        let case = rate_cases()
+            .into_iter()
+            .find(|case| mature_state(case) == body["state"])
+            .expect("a growth rate case for this state");
+        let index = SUFFICIENCY_LEVELS
+            .iter()
+            .position(|level| *level == case.expect_level)
+            .unwrap_or(0);
+        return json!({
+            "growth_rate": score_answer(index, SUFFICIENCY_LEVELS.len()),
+            "rate_gap": choice_answer(&case.expect_gap),
+        });
+    }
     if questions.get("source").is_some() {
         let case = ranking_cases()
             .into_iter()
@@ -215,6 +256,21 @@ fn answers_for(body: &Value) -> Value {
             .find(|case| case.value_statement == statement)
             .expect("a measurement_not_invention case for this statement");
         return json!({ "measurement_not_invention": noul_answer(case.expect) });
+    }
+    if questions.get("rights").is_some() {
+        let case = rights_cases()
+            .into_iter()
+            .find(|case| rights_state(case) == body["state"])
+            .expect("a rights case for this state");
+        return json!({ "rights": choice_answer(&case.expect_class) });
+    }
+    if questions.get("appearance_supported").is_some() {
+        let case = obligation_cases()
+            .appearance_supported
+            .into_iter()
+            .find(|c| appearance_state(&c.trait_name, &c.level, &c.sentence) == body["state"])
+            .expect("an appearance_supported case for this state");
+        return json!({ "appearance_supported": noul_answer(case.expect) });
     }
     json!({})
 }

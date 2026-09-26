@@ -1,58 +1,30 @@
 use serde_json::json;
 use telperion_jev::tuning::{
     actions::{Action, Dial},
-    continuation::Basis,
     engine::{Answer, Proposal, Run, Services},
     evaluation::{Image, Trial},
-    handoff::PriorityRoute,
+    look,
     priority::Gap,
-    progress::{self, Choice, Selection},
     sheet::{self, Movement},
     state::{Budget, Cell, CellStatus, Visual},
 };
 
 struct Mock {
     evaluations: u64,
-    routes: u64,
     visuals: u64,
-    capability: bool,
-    /// Per approved priority, in order: the raw choice and its confidence.
-    route_plan: Vec<(String, f64)>,
-    /// Continuation verdict per call, consumed in order; empty means supported.
-    continuations: Vec<bool>,
     /// Owner-priority cells for these gap ids are reported as still failing.
     fail_owner_gaps: Vec<String>,
     /// Every candidate scores the same, so no round can improve on the baseline.
     stall: bool,
-    /// Continuation calls whose basis names an fn-89 handoff.
-    pre_dispatch_calls: u64,
-    /// Evidence-difference questions asked.
-    evidence_calls: u64,
-    evidence_answer: String,
     /// The adjustment the router proposes; a test changes it to offer a move
     /// the repeat filter has not already seen.
     proposal_action: Action,
     /// Overrides what `propose` returns; empty means the default single move.
     proposals: Vec<Proposal>,
-    /// The round's candidate bound, as a config would set it.
-    candidates: u64,
     /// Dials per proposal call; 0 means one call for all of them.
     batch: usize,
     /// The visual attempt fails, as an adapter that exits non-zero does.
     visual_error: bool,
-    /// What decides between the current tree and a candidate.
-    selection: Selection,
-    /// One reviewer answer per candidate, consumed in order, stated as what the
-    /// CANDIDATE did: `ABetter` means the candidate is the better render,
-    /// whichever side code showed it on.
-    reviews: Vec<Vec<Choice>>,
-    /// The progress review fails, as a refused answer does.
-    progress_error: bool,
-    /// Candidates whose render matches the current tree's, in review order.
-    inert: Vec<bool>,
-    /// How many of them have been answered, since no call is made for one.
-    inert_seen: std::cell::Cell<usize>,
-    progress_calls: u64,
     proposal_calls: u64,
     /// Bundle mode: the strengths one bundle is drawn at.
     strengths: Vec<f64>,
@@ -78,21 +50,34 @@ struct Mock {
     sheet_views: std::cell::RefCell<Vec<Option<String>>>,
     /// One entry per extra-view capture: the trial key and the views asked for.
     captures: Vec<(String, Vec<String>)>,
+    /// The gap class the owner's priority carries in the config.
+    owner_class: Option<telperion_jev::tuning::stride::Class>,
+    /// Per-priority owner classes; a priority named here overrides `owner_class`.
+    owner_classes: std::collections::BTreeMap<String, telperion_jev::tuning::stride::Class>,
+    /// The gap question's raw answer and confidence; `None` offers no
+    /// question.
+    gap_answer: Option<(String, f64)>,
+    gap_calls: u64,
+    /// One adjustment per proposal call, consumed in order; empty keeps
+    /// `proposal_action`.
+    proposal_actions: Vec<Action>,
+    /// The status each visual reports for the coverage trait `fruit`, in
+    /// order. Empty reports no coverage.
+    fruit: Vec<CellStatus>,
+    /// Traits the config lists as not yet drawable.
+    unexpressed: Vec<telperion_jev::tuning::unexpressed::Unexpressed>,
+    /// The reference-first inventory the pause proposes objectives from.
+    inventory: Option<telperion_jev::tuning::reference_first::Inventory>,
+    /// Rounds in a row that keep nothing before the run pauses as a runaway.
+    runaway: u64,
 }
 
 fn mock() -> Mock {
     Mock {
         evaluations: 0,
-        routes: 0,
         visuals: 0,
-        capability: false,
-        route_plan: vec![],
-        continuations: vec![],
         fail_owner_gaps: vec![],
         stall: false,
-        pre_dispatch_calls: 0,
-        evidence_calls: 0,
-        evidence_answer: "different".into(),
         proposal_action: Action::SmallIncrease,
         proposals: vec![Proposal {
             dial: "crookedness".into(),
@@ -101,15 +86,8 @@ fn mock() -> Mock {
             direction_mass: Some(0.9),
             rule: Some(telperion_jev::tuning::direction::RULE.into()),
         }],
-        candidates: 4,
         batch: 0,
         visual_error: false,
-        selection: Selection::Score,
-        reviews: vec![],
-        progress_error: false,
-        inert: vec![],
-        inert_seen: std::cell::Cell::new(0),
-        progress_calls: 0,
         proposal_calls: 0,
         strengths: vec![0.5, 1.0, 2.0, 4.0],
         splits: 6,
@@ -123,9 +101,21 @@ fn mock() -> Mock {
         tracks: vec![],
         sheet_views: std::cell::RefCell::new(vec![]),
         captures: vec![],
+        owner_class: None,
+        owner_classes: Default::default(),
+        gap_answer: None,
+        gap_calls: 0,
+        proposal_actions: vec![],
+        fruit: vec![],
+        unexpressed: vec![],
+        inventory: None,
+        runaway: telperion_jev::tuning::runaway::ROUNDS,
     }
 }
 impl Services for Mock {
+    fn runaway_rounds(&self) -> u64 {
+        self.runaway
+    }
     fn priority_references(&self) -> Vec<telperion_jev::tuning::evaluation::Image> {
         vec![priority_image("whole"), priority_image("bark")]
     }
@@ -166,93 +156,6 @@ impl Services for Mock {
             .collect();
         Ok(answer)
     }
-    fn selection(&self) -> Selection {
-        self.selection
-    }
-    fn progress_request(
-        &self,
-        state: &Run,
-        current: usize,
-        candidate: usize,
-        priorities: &[telperion_jev::tuning::priority::Gap],
-    ) -> Result<progress::Look, String> {
-        if priorities.is_empty() {
-            return Err("no tuning-routed priority to review".into());
-        }
-        if self
-            .inert
-            .get(self.progress_calls as usize + self.inert_seen.get())
-            .copied()
-            .unwrap_or(false)
-        {
-            self.inert_seen.set(self.inert_seen.get() + 1);
-            return Ok(progress::Look::Inert);
-        }
-        let side =
-            progress::candidate_side(&state.trials[current].key, &state.trials[candidate].key);
-        Ok(progress::Look::Ask(
-            progress::Request {
-                schema: progress::VERSION.into(),
-                target_species: "european-beech".into(),
-                view: "whole".into(),
-                seed: state.seed,
-                references: vec![still("reference")],
-                a: still("a"),
-                b: still("b"),
-                priorities: priorities
-                    .iter()
-                    .map(|g| progress::Priority {
-                        id: g.id.clone(),
-                        observation: g.observation.clone(),
-                    })
-                    .collect(),
-                owner_notes: state.owner_notes.clone(),
-            },
-            side,
-            true,
-        ))
-    }
-    fn progress_tokens(&self, _: &progress::Request) -> u64 {
-        1000
-    }
-    fn progress(
-        &mut self,
-        request: &progress::Request,
-        side: &str,
-    ) -> Result<Answer<progress::Verdict>, String> {
-        if self.progress_error {
-            return Err("progress adapter failed; reservation retained".into());
-        }
-        let plan = self
-            .reviews
-            .get(self.progress_calls as usize)
-            .cloned()
-            .unwrap_or_else(|| vec![Choice::Same; request.priorities.len()]);
-        self.progress_calls += 1;
-        let answer = progress::Answer {
-            verdicts: request
-                .priorities
-                .iter()
-                .zip(plan)
-                .map(|(p, verdict)| progress::Judgment {
-                    priority_id: p.id.clone(),
-                    verdict: match (verdict, side) {
-                        (Choice::ABetter, "b") => Choice::BBetter,
-                        (Choice::BBetter, "b") => Choice::ABetter,
-                        (other, _) => other,
-                    },
-                })
-                .collect(),
-            improved: "the outer foliage hangs further".into(),
-            missing: "the crown is still enclosed".into(),
-            regressions: vec![],
-        };
-        Ok(Answer {
-            value: progress::bind(request, &answer, side, "review:1".into(), "mock".into())?,
-            tokens: Some(10),
-            ledger: Some("review:1".into()),
-        })
-    }
     fn bundle_strengths(&self) -> Vec<f64> {
         self.strengths.clone()
     }
@@ -261,6 +164,39 @@ impl Services for Mock {
     }
     fn tracks(&self) -> Vec<telperion_jev::tuning::bundle::Track> {
         self.tracks.clone()
+    }
+    fn unexpressed(&self) -> Vec<telperion_jev::tuning::unexpressed::Unexpressed> {
+        self.unexpressed.clone()
+    }
+    fn inventory(
+        &self,
+    ) -> Result<Option<telperion_jev::tuning::reference_first::Inventory>, String> {
+        Ok(self.inventory.clone())
+    }
+    fn owner_magnitude(&self, priority: &str) -> Option<telperion_jev::tuning::stride::Class> {
+        self.owner_classes
+            .get(priority)
+            .copied()
+            .or(self.owner_class)
+    }
+    fn offers_gap_magnitude(&self) -> bool {
+        self.gap_answer.is_some()
+    }
+    fn gap_magnitude(
+        &mut self,
+        _: &serde_json::Value,
+    ) -> Result<Answer<telperion_jev::tuning::stride::Judged>, String> {
+        self.gap_calls += 1;
+        let (choice, confidence) = self.gap_answer.clone().unwrap();
+        Ok(Answer {
+            ledger: Some("jev:gap".into()),
+            tokens: Some(20),
+            value: telperion_jev::tuning::stride::Judged {
+                choice,
+                confidence: Some(confidence),
+                threshold: 0.5,
+            },
+        })
     }
     fn capture_views(
         &mut self,
@@ -290,7 +226,7 @@ impl Services for Mock {
     ) -> Result<sheet::Look, String> {
         self.sheet_views.borrow_mut().push(view.map(str::to_string));
         if priorities.is_empty() {
-            return Err("no tuning-routed priority to review".into());
+            return Err("no objective to review".into());
         }
         let (mut shown, mut not_shown, mut stills) = (vec![], vec![], vec![]);
         for index in variants {
@@ -324,7 +260,7 @@ impl Services for Mock {
             &stills,
             &priorities
                 .iter()
-                .map(|g| progress::Priority {
+                .map(|g| look::Priority {
                     id: g.id.clone(),
                     observation: g.observation.clone(),
                 })
@@ -372,12 +308,13 @@ impl Services for Mock {
     ) -> Trial {
         self.evaluations += 1;
         Trial {
-            progress: None,
             adopted_over: vec![],
             bundle: None,
             parent_bundle: None,
             sheet: None,
             vetoed: None,
+            adopted: false,
+            step: None,
             key: format!("candidate{}", self.evaluations),
             identity: "input1".into(),
             seed: 1,
@@ -414,7 +351,16 @@ impl Services for Mock {
                 observations: vec![],
                 findings: vec![],
                 joint: None,
-                coverage: vec![],
+                known_gaps: vec![],
+                coverage: self
+                    .fruit
+                    .get(self.visuals as usize - 1)
+                    .map(|status| telperion_jev::tuning::state::TraitStatus {
+                        trait_id: "fruit".into(),
+                        status: *status,
+                    })
+                    .into_iter()
+                    .collect(),
                 cells: vec![(
                     cell(),
                     match self.cell_status.get(self.visuals as usize - 1) {
@@ -428,28 +374,6 @@ impl Services for Mock {
                 } else {
                     vec![]
                 },
-            },
-        })
-    }
-    fn risk(&mut self, basis: &Basis) -> Result<Answer<String>, String> {
-        if basis
-            .proposed_action
-            .starts_with("fn-89 handoff for owner priority")
-        {
-            self.pre_dispatch_calls += 1;
-        }
-        let bounded = if self.continuations.is_empty() {
-            true
-        } else {
-            self.continuations.remove(0)
-        };
-        Ok(Answer {
-            ledger: Some("jev:risk".into()),
-            tokens: Some(20),
-            value: if bounded {
-                "bounded".into()
-            } else {
-                "insufficient_evidence".into()
             },
         })
     }
@@ -481,17 +405,6 @@ impl Services for Mock {
             },
         })
     }
-    fn evidence(&mut self, _: &serde_json::Value) -> Result<Answer<String>, String> {
-        self.evidence_calls += 1;
-        Ok(Answer {
-            ledger: Some("jev:evidence".into()),
-            tokens: Some(20),
-            value: self.evidence_answer.clone(),
-        })
-    }
-    fn max_candidates(&self) -> u64 {
-        self.candidates
-    }
     fn proposal_batches(&self, _: &Run) -> usize {
         if self.batch == 0 {
             1
@@ -501,6 +414,9 @@ impl Services for Mock {
     }
     fn propose(&mut self, _: &Run, batch: usize) -> Result<Answer<Vec<Proposal>>, String> {
         self.proposal_calls += 1;
+        if !self.proposal_actions.is_empty() {
+            self.proposal_action = self.proposal_actions.remove(0);
+        }
         let slice: Vec<Proposal> = if self.batch == 0 {
             self.proposals.clone()
         } else {
@@ -524,58 +440,6 @@ impl Services for Mock {
             ledger: Some(format!("jev:propose:{}", batch + 1)),
         })
     }
-    fn route(&mut self, state: &Run) -> Result<Answer<Vec<PriorityRoute>>, String> {
-        self.routes += 1;
-        let fallback = if self.capability {
-            "new_capability"
-        } else {
-            "tuning"
-        };
-        let ordered = state
-            .approved_priorities()
-            .map(|a| a.ordered.clone())
-            .filter(|o| !o.is_empty());
-        let value = match ordered {
-            None => vec![PriorityRoute {
-                gap_id: None,
-                rank: 1,
-                route: fallback.into(),
-                raw_choice: Some(fallback.into()),
-                confidence: Some(0.9),
-                threshold: 0.5,
-                ledger: "jev:route".into(),
-            }],
-            Some(ordered) => ordered
-                .iter()
-                .enumerate()
-                .map(|(i, gap)| {
-                    let (raw, confidence) = self
-                        .route_plan
-                        .get(i)
-                        .cloned()
-                        .unwrap_or_else(|| (fallback.to_string(), 0.9));
-                    PriorityRoute {
-                        gap_id: Some(gap.id.clone()),
-                        rank: i + 1,
-                        route: if confidence >= 0.5 {
-                            raw.clone()
-                        } else {
-                            "insufficient_evidence".into()
-                        },
-                        raw_choice: Some(raw),
-                        confidence: Some(confidence),
-                        threshold: 0.5,
-                        ledger: "jev:route".into(),
-                    }
-                })
-                .collect(),
-        };
-        Ok(Answer {
-            ledger: Some("jev:route".into()),
-            tokens: Some(20),
-            value,
-        })
-    }
 }
 
 fn priority_image(view: &str) -> telperion_jev::tuning::evaluation::Image {
@@ -592,16 +456,16 @@ fn priority_image(view: &str) -> telperion_jev::tuning::evaluation::Image {
         seed: 1,
     }
 }
-fn approve_priorities(state: &mut Run, mock: &Mock, ordered: serde_json::Value) {
+/// Replaces the objectives the checkpoint proposed with `ordered`, as a
+/// test's fixture objectives, and clears the stop the first pass ended on.
+fn approve_priorities(state: &mut Run, _mock: &Mock, ordered: serde_json::Value) {
     let checkpoint = state.priority_checkpoints.last().unwrap();
-    let pause = state.pause.as_ref().unwrap();
-    let decision:telperion_jev::tuning::continuation::HumanDecision=serde_json::from_value(json!({"pause_id":pause.id,"identity":state.identity,"action":pause.basis.proposed_action,"by":"explicit test owner","rationale":"reviewed ranking fixture","preserve_evidence":true,"priority_approval":{"checkpoint_sha256":checkpoint.hash(),"scope_sha256":checkpoint.scope_sha256,"ordered":ordered}})).unwrap();
-    pause.resume(&decision).unwrap();
-    state
-        .accept_priorities(&decision, &mock.priority_scope(state))
-        .unwrap();
-    state.authorizations.push(decision);
-    state.pause = None;
+    state.approval = Some(
+        serde_json::from_value(json!({"checkpoint_sha256":checkpoint.hash(),
+            "scope_sha256":checkpoint.scope_sha256,"ordered":ordered}))
+        .unwrap(),
+    );
+    state.stopped = None;
 }
 fn still(body: &str) -> Image {
     let path = std::env::temp_dir().join(format!(
@@ -649,36 +513,28 @@ fn run() -> Run {
             meaning_basis: None,
             range_basis: None,
             source: None,
+            preset_span: None,
+            cap: None,
         }],
         owner_notes: "irregular outline".into(),
         required: vec![cell()],
-        budget: Budget {
-            visual_passes: Some(0),
-            max_visual_passes: Some(5),
-            evaluations: 0,
-            images: 0,
-            tokens: 0,
-            rounds: 0,
-            max_evaluations: 13,
-            max_images: 52,
-            max_tokens: 150000,
-            max_rounds: 3,
-        },
+        budget: Budget::default(),
         usage_known: true,
         trials: vec![],
         current: None,
         visual: None,
-        pause: None,
+        stopped: None,
         machine_ready: false,
         pending: None,
         routes: vec![],
-        authorizations: vec![],
+        approval: None,
         preparation_charge: None,
         priority_checkpoints: vec![],
-        handoffs: vec![],
         judgment_inputs: vec![],
         visual_bootstrap: false,
         reviewer_passed_unqualified: false,
+        strides: Default::default(),
+        unkept: None,
     }
 }
 
@@ -697,719 +553,6 @@ fn joint_observations_and_findings_survive_state_and_judgment_projection() {
         summary["visual"]["findings"][0]["causal_hypothesis"],
         "unproven mechanism"
     );
-}
-
-#[test]
-fn initial_pass_still_pauses_and_owner_goals_require_scoped_fresh_coverage() {
-    let mut state = run();
-    state.required = vec![
-        cell(),
-        Cell {
-            item: "material".into(),
-            view: "bark".into(),
-            seed: 1,
-        },
-        Cell {
-            item: "character".into(),
-            view: "whole".into(),
-            seed: 42,
-        },
-        Cell {
-            item: "material".into(),
-            view: "bark".into(),
-            seed: 42,
-        },
-    ];
-    let mut mock = Mock {
-        visuals: 2,
-        ..mock()
-    };
-    let mut snapshots = vec![];
-    state
-        .execute(&mut mock, &mut |s| {
-            snapshots.push(s.machine_ready);
-            Ok(())
-        })
-        .unwrap();
-    assert!(snapshots.iter().all(|ready| !*ready));
-    assert_eq!(mock.routes, 0);
-    assert_eq!(mock.evaluations, 1);
-    assert_eq!(mock.visuals, 3);
-    assert!(state
-        .visual
-        .as_ref()
-        .unwrap()
-        .cells
-        .iter()
-        .all(|(_, s)| *s == CellStatus::Pass));
-    let spent = serde_json::to_value(&state.budget).unwrap();
-    assert!(state.execute(&mut mock, &mut |_| Ok(())).is_err());
-    assert_eq!(serde_json::to_value(&state.budget).unwrap(), spent);
-    approve_priorities(
-        &mut state,
-        &mock,
-        json!([
-            {"id":"owner-leafy","observation":"Defining leafy form","evidence_ids":["render-0","reference-0"],"views":["whole"]},
-            {"id":"owner-material","observation":"Defining material","evidence_ids":["render-1","reference-1"],"views":["bark"]}
-        ]),
-    );
-    assert_eq!(serde_json::to_value(&state.budget).unwrap(), spent);
-    assert!(!state.machine_ready);
-    let required = state.required_cells();
-    assert_eq!(required.len(), 8);
-    assert!(!required
-        .iter()
-        .any(|c| c.item.contains("owner-leafy") && c.view == "bark"));
-    assert!(state
-        .round_basis(&mock)
-        .unwrap()
-        .evidence
-        .join(" ")
-        .contains("owner-leafy"));
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    assert!(state.machine_ready);
-    assert_eq!(mock.visuals, 4);
-    assert_eq!(mock.evaluations, 1);
-    assert_eq!(mock.routes, 0);
-    let spent = state.budget.tokens;
-    state.owner_notes = "changed objectives".into();
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    assert!(!state.machine_ready);
-    assert!(state.pause.is_some());
-    assert_eq!(state.priority_checkpoints.len(), 2);
-    assert_eq!(state.budget.tokens, spent);
-}
-
-#[test]
-fn numeric_wins_keep_refining_until_visual_cells_pass() {
-    let mut state = run();
-    let mut mock = mock();
-    let mut checkpoints = vec![];
-    state
-        .execute(&mut mock, &mut |s| {
-            checkpoints.push(serde_json::to_string(s).unwrap());
-            Ok(())
-        })
-        .unwrap();
-    assert!(state.pause.as_ref().unwrap().reason.contains("priority"));
-    assert_eq!(mock.routes, 0);
-    approve_priorities(&mut state, &mock, json!([]));
-    state
-        .execute(&mut mock, &mut |s| {
-            checkpoints.push(serde_json::to_string(s).unwrap());
-            Ok(())
-        })
-        .unwrap();
-    assert!(state.machine_ready, "{:?}", state.pause);
-    assert_eq!(mock.evaluations, 3);
-    assert_eq!(mock.visuals, 3);
-    assert_eq!(mock.routes, 2);
-    assert_eq!(state.finalists().len(), 3);
-    assert!(checkpoints
-        .iter()
-        .any(|s| s.contains("candidate evaluation")));
-    assert!(state.pause.is_none());
-}
-
-#[test]
-fn baseline_capability_defect_routes_before_spending_tuning_evaluations() {
-    let mut state = run();
-    let mut mock = Mock {
-        capability: true,
-        ..mock()
-    };
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_priorities(&mut state, &mock, json!([]));
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    assert_eq!(mock.evaluations, 1);
-    assert!(state
-        .pause
-        .as_ref()
-        .unwrap()
-        .reason
-        .contains("fn-89 handoff"));
-    let before = state.budget.tokens;
-    assert!(state.execute(&mut mock, &mut |_| Ok(())).is_err());
-    assert_eq!(state.budget.tokens, before);
-}
-
-#[test]
-fn bounded_plan_and_round_limit_are_checked_before_paid_routing() {
-    let mut state = run();
-    let mut mock = mock();
-    state.budget.max_rounds = 0;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_priorities(&mut state, &mock, json!([]));
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    assert_eq!(mock.routes, 0);
-    assert!(state.pause.as_ref().unwrap().reason.contains("round limit"));
-    let basis = state.round_basis(&mock).unwrap();
-    assert!(basis.proposed_action.contains("max four single-dial"));
-    assert!(basis.proposed_action.contains("BEFORE render"));
-    assert!(basis.proposed_action.contains("current"));
-    assert_eq!(basis.next_tokens, Some(29000));
-    state.pause = None;
-    state.budget.max_rounds = 1;
-    state.budget.max_tokens = state.budget.tokens + 100;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    assert_eq!(mock.routes, 0);
-    assert!(state
-        .pause
-        .as_ref()
-        .unwrap()
-        .reason
-        .contains("preflight cannot fit"));
-}
-
-#[test]
-fn stale_finalists_are_excluded_and_resource_history_is_revision_tagged() {
-    let mut state = run();
-    let mut mock = mock();
-    let mut old = mock.evaluate(json!({}), 0, "old", None);
-    old.identity = "old-revision".into();
-    old.score = Some(0.001);
-    let mut current = mock.evaluate(json!({}), 0, "new", None);
-    current.measurement =
-        json!({"metrics":{"nodes":{"value":187968},"growth":{"node_capped":false}}});
-    state.trials = vec![old, current];
-    state.current = Some(1);
-    assert_eq!(state.finalists().len(), 1);
-    assert_eq!(state.finalists()[0].label, "new");
-    let summary = telperion_jev::tuning::judgments::summary(&state);
-    assert_eq!(summary["recent_attempts"][1]["current_revision"], false);
-    assert_eq!(summary["resource_limit"]["current_nodes"], 187968);
-    state.effective["skeleton"]["growth"]["maxNodes"] = json!(1000000);
-    let decision = serde_json::from_value(json!({
-        "identity":"old-revision", "pause_id":"paused", "action":"reassess",
-        "by":"owner", "rationale":"Prior pilot hit hidden node ceiling; explicit new caller limit",
-        "next_identity":"input1", "baseline_amendment":{"previous":{},"next":{"skeleton":{"growth":{"maxNodes":1000000}}}}
-    })).unwrap();
-    state.authorizations.push(decision);
-    let basis = state.round_basis(&mock).unwrap();
-    let evidence = basis.evidence.join(" ");
-    assert!(evidence.contains("812032"));
-    assert!(evidence.contains("1000000"));
-    assert!(evidence.contains("187968"));
-    assert!(evidence.contains("hidden node ceiling"));
-    assert!(evidence.contains("old-revision"));
-    assert!(basis.recent_outcomes[1].contains("\"current_revision\":false"));
-    assert!(state.pilot_authority().unwrap_err().contains("unvalidated"));
-    state.budget.visual_passes = Some(5);
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    assert_eq!(mock.visuals, 0);
-}
-
-#[test]
-fn attributed_diagnosis_projects_to_both_judgments_and_rechecks_sources() {
-    let source = std::env::temp_dir().join(format!(
-        "diagnosis-{}",
-        telperion_jev::ledger::new_entry_id()
-    ));
-    std::fs::write(&source, "source observation").unwrap();
-    let mut state = run();
-    let mut mock = mock();
-    state
-        .trials
-        .push(mock.evaluate(json!({}), 0, "baseline", None));
-    state.current = Some(0);
-    let legacy = json!({"pause_id":"pause","identity":"input1","action":"diagnose","by":"owner","rationale":"bounded inspection"});
-    let mut decision: telperion_jev::tuning::continuation::HumanDecision =
-        serde_json::from_value(legacy).unwrap();
-    assert!(decision.diagnosis.is_none());
-    decision.diagnosis=Some(serde_json::from_value(json!({"target_identity":"input1","author":"worker","model":"reasoner","findings":[{"claim":"Interpretation, not owner ruling","source":source,"sha256":telperion_jev::sha256_hex(b"source observation"),"excerpt":"observation"}]})).unwrap());
-    state.authorizations.push(decision);
-    state.verify_diagnoses().unwrap();
-    let summary = telperion_jev::tuning::judgments::summary(&state);
-    assert_eq!(
-        summary["agent_diagnoses"]["attachments"][0]["author"],
-        "worker"
-    );
-    assert!(state
-        .round_basis(&mock)
-        .unwrap()
-        .evidence
-        .join(" ")
-        .contains("Interpretation, not owner ruling"));
-    std::fs::write(&source, "changed source").unwrap();
-    assert!(state.verify_diagnoses().is_err());
-    let old_budget = serde_json::to_value(&state.budget).unwrap();
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    assert_eq!(serde_json::to_value(&state.budget).unwrap(), old_budget);
-    assert_eq!(mock.routes, 0);
-    assert_eq!(mock.visuals, 0);
-    assert!(state.pause.as_ref().unwrap().reason.contains("diagnosis"));
-    std::fs::write(&source, "source observation").unwrap();
-    state.pause = None;
-    state
-        .execute(&mut mock, &mut |s| {
-            if s.pending.is_some() {
-                std::fs::write(&source, "changed during checkpoint").unwrap();
-            }
-            Ok(())
-        })
-        .unwrap();
-    assert_eq!(mock.routes, 0);
-    assert_eq!(mock.visuals, 0);
-    assert!(state.pending.is_some());
-    assert!(state.budget.tokens > old_budget["tokens"].as_u64().unwrap());
-    state.identity = "new-identity".into();
-    state.verify_diagnoses().unwrap();
-    assert!(
-        telperion_jev::tuning::judgments::summary(&state)["agent_diagnoses"]["attachments"]
-            .as_array()
-            .unwrap()
-            .is_empty()
-    );
-    assert_eq!(state.authorizations.len(), 1);
-    std::fs::remove_file(source).unwrap();
-}
-
-#[test]
-fn mixed_routes_tune_and_hand_off_without_claiming_readiness() {
-    let mut state = run();
-    state.budget.max_rounds = 1;
-    let mut mock = Mock {
-        route_plan: vec![
-            ("tuning".into(), 0.9),
-            ("existing:fn-77".into(), 0.9),
-            ("appearance".into(), 0.31),
-        ],
-        fail_owner_gaps: vec!["owner-hanging".into(), "owner-materials".into()],
-        ..mock()
-    };
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_priorities(
-        &mut state,
-        &mock,
-        json!([
-            {"id":"owner-crown","observation":"Crown shape and foliage organization","evidence_ids":["render-0","reference-0"],"views":["whole"]},
-            {"id":"owner-hanging","observation":"Hanging outer foliage","evidence_ids":["render-0","reference-0"],"views":["whole"]},
-            {"id":"owner-materials","observation":"Materials, including bark and foliage","evidence_ids":["render-0","reference-0"],"views":["whole"]}
-        ]),
-    );
-    let spent_before = state.budget.tokens;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-
-    // One routing call covered all three priorities, and tuning still ran.
-    assert_eq!(mock.routes, 1);
-    assert!(mock.evaluations > 1, "the tuning round did not run");
-    assert_eq!(
-        state.handoffs.len(),
-        2,
-        "one handoff per non-tuning priority"
-    );
-
-    let grounded = state
-        .handoffs
-        .iter()
-        .find(|h| h.gap_id.as_deref() == Some("owner-hanging"))
-        .unwrap();
-    assert_eq!(grounded.route, "existing:fn-77");
-    assert_eq!(grounded.existing_spec.as_deref(), Some("fn-77"));
-    assert_eq!(grounded.rank, 2);
-    assert_eq!(grounded.priority, "Hanging outer foliage");
-    assert!(grounded.dispatch_authorized, "grounded route was assessed");
-    assert_eq!(grounded.raw_choice.as_deref(), Some("existing:fn-77"));
-    assert_eq!(grounded.proposed_spending, None);
-    assert!(grounded
-        .observed_defect
-        .evidence
-        .iter()
-        .any(|e| e.role == "render"));
-    assert!(grounded
-        .observed_defect
-        .evidence
-        .iter()
-        .any(|e| e.role == "reference"));
-
-    // The below-threshold priority is an uncertainty handoff, never a route.
-    let uncertain = state
-        .handoffs
-        .iter()
-        .find(|h| h.gap_id.as_deref() == Some("owner-materials"))
-        .unwrap();
-    assert_eq!(uncertain.route, "insufficient_evidence");
-    assert_eq!(uncertain.raw_choice.as_deref(), Some("appearance"));
-    assert_eq!(uncertain.confidence, Some(0.31));
-    assert!(!uncertain.dispatch_authorized);
-    assert_eq!(uncertain.existing_spec, None);
-    assert_eq!(
-        uncertain.proposed_investigation,
-        "uncertainty handoff: no supported diagnosis"
-    );
-
-    // Dials are reported as seen by the router, never as exhausted.
-    assert_eq!(
-        grounded.dials_in_router_state,
-        vec!["crookedness".to_string()]
-    );
-    assert!(grounded
-        .dials_note
-        .contains("Not evidence that any was tried"));
-    assert!(grounded
-        .attempts
-        .iter()
-        .all(|a| a.dial == "crookedness" && a.score_after.is_some()));
-
-    // Outstanding gaps are never machine readiness, and both stay unresolved.
-    assert!(!state.machine_ready);
-    let unresolved = state.unresolved_priorities();
-    assert!(unresolved.contains(&"owner-hanging".to_string()));
-    assert!(unresolved.contains(&"owner-materials".to_string()));
-
-    // Every judgment recorded the exact value it transmitted, before dispatch.
-    let labels = state
-        .judgment_inputs
-        .iter()
-        .map(|i| i.label.as_str())
-        .collect::<Vec<_>>();
-    assert!(labels.contains(&"defect routing"));
-    assert!(labels.contains(&"pre-dispatch risk"));
-    assert!(labels.iter().any(|l| l.starts_with("targeted proposals")));
-    for input in &state.judgment_inputs {
-        assert_eq!(
-            input.state_sha256,
-            telperion_jev::sha256_hex(&serde_json::to_vec(&input.state).unwrap())
-        );
-    }
-    assert!(state.budget.tokens > spent_before, "spend was not recorded");
-
-    // A repeated round replaces this revision's handoffs instead of piling up.
-    state.budget.max_rounds = 2;
-    state.pause = None;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    assert_eq!(state.handoffs.len(), 2);
-    assert!(!state.machine_ready);
-}
-
-#[test]
-fn a_handoffs_owner_cell_not_passing_keeps_the_run_unready() {
-    let mut state = run();
-    let handoff: telperion_jev::tuning::handoff::Handoff = serde_json::from_value(json!({
-        "run_identity":"input1","candidate_key":"candidate1","checkpoint_sha256":"c",
-        "gap_id":"owner-hanging","rank":1,"priority":"Hanging outer foliage",
-        "observed_defect":{"observation":"missing hanging foliage","reviewer_model":"mock",
-            "visual_ledger":"visual:1","evidence":[]},
-        "route":"new_capability","existing_spec":null,"judgment_ledger":"jev:route",
-        "raw_choice":"new_capability","confidence":0.9,"threshold":0.5,
-        "dispatch_authorized":true,"dials_in_router_state":["crookedness"],
-        "dials_note":"note","attempts":[],"observations":[],"hypotheses":[],
-        "hypotheses_note":"note","unknowns":[],"proposed_investigation":"investigate",
-        "proposed_spending":null,"proposed_spending_note":"host owns repair estimate"}))
-    .unwrap();
-    state.handoffs.push(handoff);
-
-    // The owner cell for a handed-off priority is part of required_cells, so the
-    // ordinary cell check already withholds readiness. No extra guard is needed.
-    let owner = Cell {
-        item: "owner-priority:owner-hanging: Hanging outer foliage".into(),
-        view: "whole".into(),
-        seed: 1,
-    };
-    let required = vec![cell(), owner.clone()];
-    let mut visual: Visual = serde_json::from_value(
-        json!({"identity":"candidate1","model":"mock","ledger":"visual:1","cells":[],"defects":[],"findings":[]}),
-    )
-    .unwrap();
-    visual.cells = vec![
-        (cell(), CellStatus::Pass),
-        (owner.clone(), CellStatus::Fail),
-    ];
-    assert!(!telperion_jev::tuning::state::ready(
-        &required,
-        "candidate1",
-        &visual
-    ));
-    assert!(state
-        .unresolved_priorities()
-        .contains(&"owner-hanging".to_string()));
-
-    // Resolving that cell clears both.
-    visual.cells = vec![(cell(), CellStatus::Pass), (owner, CellStatus::Pass)];
-    assert!(telperion_jev::tuning::state::ready(
-        &required,
-        "candidate1",
-        &visual
-    ));
-    state.handoffs.clear();
-    assert!(state.unresolved_priorities().is_empty());
-}
-
-#[test]
-fn re_routing_an_unchanged_candidate_reuses_its_pre_dispatch_judgment() {
-    let mut state = run();
-    state.budget.max_rounds = 2;
-    let mut mock = Mock {
-        route_plan: vec![
-            ("tuning".into(), 0.9),
-            ("existing:fn-77".into(), 0.9),
-            ("appearance".into(), 0.31),
-        ],
-        stall: true,
-        ..mock()
-    };
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_priorities(
-        &mut state,
-        &mock,
-        json!([
-            {"id":"owner-crown","observation":"Crown shape and foliage organization","evidence_ids":["render-0","reference-0"],"views":["whole"]},
-            {"id":"owner-hanging","observation":"Hanging outer foliage","evidence_ids":["render-0","reference-0"],"views":["whole"]},
-            {"id":"owner-materials","observation":"Materials, including bark and foliage","evidence_ids":["render-0","reference-0"],"views":["whole"]}
-        ]),
-    );
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-
-    // Every round stalls numerically, so the candidate never changes and the
-    // router runs again each time.
-    assert!(mock.routes >= 2, "expected a re-route, got {}", mock.routes);
-    assert_eq!(
-        mock.pre_dispatch_calls, 1,
-        "the grounded handoff was judged more than once"
-    );
-    assert_eq!(state.handoffs.len(), 2);
-
-    // The basis says what is proposed, not just the bare route name.
-    let grounded = state
-        .handoffs
-        .iter()
-        .find(|h| h.gap_id.as_deref() == Some("owner-hanging"))
-        .unwrap();
-    assert!(grounded.dispatch_authorized);
-    let basis = state
-        .judgment_inputs
-        .iter()
-        .find(|i| i.label == "pre-dispatch risk")
-        .unwrap();
-    let action = basis.state["proposed_action"].as_str().unwrap();
-    assert!(
-        action.contains("owner priority 2 (owner-hanging)"),
-        "{action}"
-    );
-    assert!(action.contains("Hanging outer foliage"), "{action}");
-    assert!(action.contains("Route: existing:fn-77"), "{action}");
-    assert!(
-        action.contains("No repair is dispatched by this run"),
-        "{action}"
-    );
-
-    // A changed candidate is a new question, so the judgment runs again.
-    state
-        .trials
-        .push(mock.evaluate(json!({}), 9, "crookedness", None));
-    state.current = Some(state.trials.len() - 1);
-    state.pause = None;
-    state.budget.max_rounds = 3;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    assert_eq!(mock.pre_dispatch_calls, 2);
-}
-
-/// Drives one approved-priority run to the point where rounds begin.
-fn ready_to_round(mock: &mut Mock) -> Run {
-    let mut state = run();
-    state.execute(mock, &mut |_| Ok(())).unwrap();
-    approve_priorities(&mut state, mock, json!([]));
-    state
-}
-
-#[test]
-fn a_first_round_against_a_candidate_buys_no_continuation_judgment() {
-    let mut mock = mock();
-    let mut state = ready_to_round(&mut mock);
-    assert_eq!(
-        state.round_decision(),
-        telperion_jev::tuning::round::Decision::Proceed
-    );
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    // The round ran, and nothing was asked to justify starting it.
-    assert!(mock.evaluations > 1, "the round did not run");
-    assert_eq!(mock.evidence_calls, 0, "a first attempt bought a judgment");
-    assert!(!state
-        .judgment_inputs
-        .iter()
-        .any(|i| i.label.contains("continuation")));
-}
-
-#[test]
-fn stalled_one_candidate_rounds_work_through_the_dials_before_stopping() {
-    let mut state = run();
-    // Three real dials the router can move, and room for four rounds.
-    state.dials = serde_json::from_value(json!([
-        {"id":"limbs","path":"/skeleton/habit/lateralsPerStation","meaning":"limbs",
-         "min":1,"max":4,"small":1,"substantial":2,"integer":true},
-        {"id":"leaves","path":"/canopy/shortShootLeaves","meaning":"leaves",
-         "min":2,"max":12,"small":2,"substantial":4,"integer":true},
-        {"id":"spacing","path":"/canopy/shortShootSpacing","meaning":"spacing",
-         "min":0.01,"max":0.08,"small":0.01,"substantial":0.02,"integer":false}
-    ]))
-    .unwrap();
-    state.budget.max_rounds = 5;
-    let proposal = |id: &str, mass: f64| Proposal {
-        dial: id.into(),
-        action: Action::SmallIncrease,
-        ledger: "jev:2".into(),
-        direction_mass: Some(mass),
-        rule: Some(telperion_jev::tuning::direction::RULE.into()),
-    };
-    let mut mock = Mock {
-        stall: true,
-        candidates: 1,
-        // Offered every round in direction-mass order; the filter thins them.
-        proposals: vec![
-            proposal("limbs", 0.95),
-            proposal("leaves", 0.85),
-            proposal("spacing", 0.75),
-        ],
-        ..mock()
-    };
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_priorities(&mut state, &mock, json!([]));
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-
-    // One candidate per round, a different dial each time, in mass order, and
-    // no judgment was bought to justify carrying on.
-    let tried = state
-        .trials
-        .iter()
-        .filter(|t| t.round > 0)
-        .map(|t| t.label.clone())
-        .collect::<Vec<_>>();
-    assert_eq!(
-        tried,
-        vec!["limbs", "leaves", "spacing"],
-        "the rounds did not work through the dials in order"
-    );
-    assert_eq!(
-        mock.evidence_calls, 0,
-        "a stall on old evidence bought a judgment"
-    );
-
-    // The fourth round has nothing untried left, and says so.
-    let reason = &state.pause.as_ref().unwrap().reason;
-    assert!(
-        reason.contains("every supported move was already tried on this candidate"),
-        "{reason}"
-    );
-    assert_eq!(
-        state
-            .routes
-            .iter()
-            .filter(|r| r.starts_with("repeat refused:"))
-            .count(),
-        6,
-        "{:?}",
-        state.routes
-    );
-}
-
-#[test]
-fn a_stall_with_new_evidence_asks_exactly_one_question_and_obeys_it() {
-    for (answer, proceeds) in [
-        ("different", true),
-        ("same", false),
-        ("insufficient_evidence", false),
-    ] {
-        let mut mock = Mock {
-            stall: true,
-            evidence_answer: answer.into(),
-            ..mock()
-        };
-        let mut state = ready_to_round(&mut mock);
-        state.budget.max_rounds = 3;
-        state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-        // New evidence arrives: a fresh assessment the last attempt never saw.
-        let mut fresh = state.visual.clone().unwrap();
-        fresh.ledger = "visual:fresh-evidence".into();
-        state.visual = Some(fresh);
-        state.pause = None;
-        // A genuinely different move, so the repeat filter is not what decides.
-        mock.proposal_action = Action::SubstantialIncrease;
-        let before = mock.evaluations;
-        state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-        assert_eq!(
-            mock.evidence_calls, 1,
-            "{answer}: expected exactly one question"
-        );
-        if proceeds {
-            assert!(mock.evaluations > before, "{answer}: the round did not run");
-        } else {
-            assert_eq!(
-                mock.evaluations, before,
-                "{answer}: a refused round still ran"
-            );
-            let reason = &state.pause.as_ref().unwrap().reason;
-            assert!(
-                reason.contains("repeat attempt unjustified"),
-                "{answer}: {reason}"
-            );
-            assert!(reason.contains("uncalibrated"), "{answer}: {reason}");
-        }
-        // The uncalibrated question is persisted like any other judgment.
-        let input = state
-            .judgment_inputs
-            .iter()
-            .find(|i| i.label.contains("uncalibrated"))
-            .unwrap();
-        assert_eq!(
-            input.state_sha256,
-            telperion_jev::sha256_hex(&serde_json::to_vec(&input.state).unwrap())
-        );
-    }
-}
-
-#[test]
-fn a_repeated_dial_and_action_is_refused_before_it_is_evaluated() {
-    let mut mock = Mock {
-        stall: true,
-        ..mock()
-    };
-    let mut state = ready_to_round(&mut mock);
-    state.budget.max_rounds = 3;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    let spent = mock.evaluations;
-
-    // Same candidate, new evidence: the mock proposes the same move again.
-    let mut fresh = state.visual.clone().unwrap();
-    fresh.ledger = "visual:fresh-evidence".into();
-    state.visual = Some(fresh);
-    state.pause = None;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-
-    assert_eq!(
-        mock.evaluations, spent,
-        "the same dial and action was evaluated twice"
-    );
-    assert!(
-        state
-            .routes
-            .iter()
-            .any(|r| r.starts_with("repeat refused: crookedness small_increase")),
-        "{:?}",
-        state.routes
-    );
-    let reason = &state.pause.as_ref().unwrap().reason;
-    assert!(reason.contains("no supported proposal"), "{reason}");
-}
-
-#[test]
-fn handoff_authorization_now_depends_only_on_risk() {
-    for (bounded, authorized) in [(true, true), (false, false)] {
-        let mut mock = Mock {
-            route_plan: vec![("new_capability".into(), 0.9)],
-            continuations: vec![bounded],
-            ..mock()
-        };
-        let mut state = run();
-        state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-        approve_priorities(
-            &mut state,
-            &mock,
-            json!([{"id":"owner-crown","observation":"Crown shape","evidence_ids":["render-0","reference-0"],"views":["whole"]}]),
-        );
-        state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-        let handoff = state.handoffs.first().unwrap();
-        assert_eq!(handoff.dispatch_authorized, authorized, "bounded={bounded}");
-    }
 }
 
 #[test]
@@ -1434,55 +577,22 @@ fn a_passing_visual_is_readiness_normally_and_an_owner_prompt_under_bootstrap() 
             "bootstrap={bootstrap}: reviewer_passed_unqualified"
         );
         if bootstrap {
-            let pause = state.pause.as_ref().expect("bootstrap must pause");
+            let stopped = state.stopped.as_ref().expect("bootstrap must stop");
+            assert!(stopped.contains("owner look required"), "{stopped}");
             assert!(
-                pause.reason.contains("owner look required"),
-                "{}",
-                pause.reason
-            );
-            assert!(
-                pause.reason.contains("reviewer unqualified for positives"),
-                "{}",
-                pause.reason
-            );
-            assert_eq!(
-                pause.basis.proposed_action,
-                "owner look at bootstrap finalist"
+                stopped.contains("reviewer unqualified for positives"),
+                "{stopped}"
             );
         } else {
-            assert!(state.pause.is_none(), "{:?}", state.pause);
+            assert!(state.stopped.is_none(), "{:?}", state.stopped);
         }
     }
 }
 
 #[test]
 fn every_judgment_input_records_the_ledger_of_the_call_it_made() {
-    // The live pilot left `ledger` null for the pre-dispatch risk call and for
-    // a proposal call that returned nothing, so a spent call had no receipt.
-    let mut m = Mock {
-        route_plan: vec![("new_capability".into(), 0.9)],
-        proposals: vec![],
-        ..mock()
-    };
-    let mut state = run();
-    state.execute(&mut m, &mut |_| Ok(())).unwrap();
-    approve_priorities(
-        &mut state,
-        &m,
-        json!([{"id":"owner-crown","observation":"Crown shape","evidence_ids":["render-0","reference-0"],"views":["whole"]}]),
-    );
-    state.execute(&mut m, &mut |_| Ok(())).unwrap();
-    let risk = state
-        .judgment_inputs
-        .iter()
-        .find(|i| i.label == "pre-dispatch risk")
-        .expect("the risk call was made");
-    assert_eq!(
-        risk.ledger.as_deref(),
-        Some("jev:risk"),
-        "the pre-dispatch risk call left no ledger"
-    );
-
+    // The live pilot left `ledger` null for a proposal call that returned
+    // nothing, so a spent call had no receipt.
     // A proposal call that yields nothing still spent a call.
     let mut m = Mock {
         proposals: vec![],
@@ -1490,7 +600,7 @@ fn every_judgment_input_records_the_ledger_of_the_call_it_made() {
     };
     let mut state = run();
     state.execute(&mut m, &mut |_| Ok(())).unwrap();
-    approve_priorities(&mut state, &m, json!([]));
+    approve_one(&mut state, &m);
     state.execute(&mut m, &mut |_| Ok(())).unwrap();
     let proposals = state
         .judgment_inputs
@@ -1506,22 +616,13 @@ fn every_judgment_input_records_the_ledger_of_the_call_it_made() {
 
 #[test]
 fn the_proposal_state_is_focused_and_carries_nothing_it_should_not() {
-    let mut mock = Mock {
-        route_plan: vec![("tuning".into(), 0.9)],
-        ..mock()
-    };
+    let mut mock = Mock { ..mock() };
     let mut state = run();
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     approve_priorities(
         &mut state,
         &mock,
         json!([{"id":"owner-crown","observation":"Crown shape and foliage organization","evidence_ids":["render-0","reference-0"],"views":["whole"]}]),
-    );
-    // Give the run the history a realistic proposal would be shown.
-    state.authorizations.push(
-        serde_json::from_value(json!({"pause_id":"p","identity":state.identity,
-            "action":"reassess","by":"owner","rationale":"scoped","preserve_evidence":true}))
-        .unwrap(),
     );
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
 
@@ -1559,10 +660,7 @@ fn the_proposal_state_is_focused_and_carries_nothing_it_should_not() {
     ] {
         assert!(focused.get(wanted).is_some(), "missing {wanted}");
     }
-    assert_eq!(
-        focused["owner_priorities_routed_to_tuning"][0]["gap_id"],
-        "owner-crown"
-    );
+    assert_eq!(focused["objectives"][0]["gap_id"], "owner-crown");
 
     // The hash persisted before dispatch is the hash of that exact value.
     let recorded = state
@@ -1577,164 +675,6 @@ fn the_proposal_state_is_focused_and_carries_nothing_it_should_not() {
     assert!(!serde_json::to_string(&recorded.state)
         .unwrap()
         .contains("max_tokens"));
-}
-
-/// An accepted cap-only resume that preserved evidence, from `a` to `b`.
-fn preserving(a: &str, b: &str, preserve: bool) -> serde_json::Value {
-    json!({"pause_id":"p","identity":a,"action":"reassess","by":"owner",
-        "rationale":"caps only","next_identity":b,"preserve_evidence":preserve})
-}
-
-#[test]
-fn evidence_measured_under_an_earlier_revision_survives_a_cap_only_resume() {
-    let mut mock = mock();
-    let mut state = run();
-    // A baseline and a candidate round, both measured under the old revision.
-    let mut baseline = mock.evaluate(json!({}), 0, "baseline", None);
-    baseline.identity = "old-revision".into();
-    baseline.key = "candidate-old".into();
-    baseline.score = Some(0.5);
-    let mut attempt = mock.evaluate(json!({}), 1, "crookedness", None);
-    attempt.identity = "old-revision".into();
-    attempt.base = Some("candidate-old".into());
-    attempt.action = Some(Action::SmallIncrease);
-    attempt.evidence = Some("visual:1".into());
-    attempt.score = Some(0.9);
-    state.trials = vec![baseline, attempt];
-    state.current = Some(0);
-    state.identity = "new-revision".into();
-    state
-        .authorizations
-        .push(serde_json::from_value(preserving("old-revision", "new-revision", true)).unwrap());
-
-    // The finalist list still sees the preserved candidate.
-    assert_eq!(
-        state.finalists().len(),
-        2,
-        "preserved trials dropped out of finalists"
-    );
-    // The round history still sees the attempt, so the repeat filter works.
-    let repeat = vec![Proposal {
-        dial: "crookedness".into(),
-        action: Action::SmallIncrease,
-        ledger: "jev:2".into(),
-        direction_mass: Some(0.9),
-        rule: Some(telperion_jev::tuning::direction::RULE.into()),
-    }];
-    assert!(
-        state.filter_repeats(repeat).0.is_empty(),
-        "a move already tried under the earlier revision was offered again"
-    );
-    assert!(state
-        .routes
-        .iter()
-        .any(|r| r.starts_with("repeat refused: crookedness")));
-
-    // A stall on the same evidence proceeds without buying a judgment; the
-    // repeat filter above is what stops a move already tried.
-    assert_eq!(
-        state.round_decision(),
-        telperion_jev::tuning::round::Decision::Proceed
-    );
-}
-
-#[test]
-fn a_resume_without_preservation_breaks_the_evidence_chain() {
-    let mut mock = mock();
-    let mut state = run();
-    let mut baseline = mock.evaluate(json!({}), 0, "baseline", None);
-    baseline.identity = "old-revision".into();
-    baseline.key = "candidate-old".into();
-    let mut attempt = mock.evaluate(json!({}), 1, "crookedness", None);
-    attempt.identity = "old-revision".into();
-    attempt.base = Some("candidate-old".into());
-    attempt.action = Some(Action::SmallIncrease);
-    state.trials = vec![baseline, attempt];
-    state.current = Some(0);
-    state.identity = "new-revision".into();
-    // The resume in between dropped its evidence, so nothing before it counts.
-    state
-        .authorizations
-        .push(serde_json::from_value(preserving("old-revision", "mid-revision", false)).unwrap());
-    state
-        .authorizations
-        .push(serde_json::from_value(preserving("mid-revision", "new-revision", true)).unwrap());
-
-    assert_eq!(
-        state.finalists().len(),
-        0,
-        "a broken chain still counted the older trials"
-    );
-    let offered = vec![Proposal {
-        dial: "crookedness".into(),
-        action: Action::SmallIncrease,
-        ledger: "jev:2".into(),
-        direction_mass: Some(0.9),
-        rule: Some(telperion_jev::tuning::direction::RULE.into()),
-    }];
-    assert_eq!(
-        state.filter_repeats(offered).0.len(),
-        1,
-        "an unreachable attempt was treated as already tried"
-    );
-}
-
-#[test]
-fn a_cap_only_resume_keeps_one_handoff_per_priority_and_rebuys_no_risk() {
-    let gap = json!([{"id":"owner-materials","observation":"Materials",
-        "evidence_ids":["render-0","reference-0"],"views":["whole"]}]);
-    let mut mock = Mock {
-        route_plan: vec![("appearance".into(), 0.9)],
-        stall: true,
-        ..mock()
-    };
-    let mut state = run();
-    state.budget.max_rounds = 4;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_priorities(&mut state, &mock, gap.clone());
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-
-    assert_eq!(
-        mock.pre_dispatch_calls, 1,
-        "the first handoff was judged once"
-    );
-    assert_eq!(state.current_handoffs().len(), 1);
-
-    // A cap-only resume that preserved its evidence: new identity, same run.
-    let previous = state.identity.clone();
-    state.identity = "raised-caps".into();
-    state.authorizations.push(
-        serde_json::from_value(
-            json!({"pause_id":"p","identity":previous,"action":"reassess","by":"owner",
-                "rationale":"caps only","next_identity":"raised-caps",
-                "preserve_evidence":true}),
-        )
-        .unwrap(),
-    );
-    state.pause = None;
-    state.budget.max_rounds = 6;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-
-    // The handoff carried across, so its judgment was not bought again and no
-    // second copy was written.
-    assert_eq!(
-        mock.pre_dispatch_calls, 1,
-        "the risk judgment was re-bought after a cap-only resume"
-    );
-    assert_eq!(
-        state.current_handoffs().len(),
-        1,
-        "a second copy of the same handoff was written"
-    );
-    assert_eq!(
-        state.handoffs.len(),
-        1,
-        "the stored journal grew a duplicate"
-    );
-    assert_eq!(
-        state.unresolved_priorities(),
-        vec!["owner-materials".to_string()]
-    );
 }
 
 #[test]
@@ -1760,11 +700,11 @@ fn a_large_dial_table_is_asked_in_batches_each_its_own_judgment() {
     };
     let mut state = run();
     state.dials = serde_json::from_value(dials).unwrap();
-    // One round at a time, so the call count is the batch count.
-    state.budget.max_rounds = 1;
+    // One round, ended by the no-progress stop, so the call count is the
+    // batch count.
     let mut mock = Mock {
         stall: true,
-        candidates: 1,
+        runaway: 1,
         batch: 2,
         // Ascending mass, so a correct merge must reorder across batches.
         proposals: vec![
@@ -1777,7 +717,7 @@ fn a_large_dial_table_is_asked_in_batches_each_its_own_judgment() {
         ..mock()
     };
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_priorities(&mut state, &mock, json!([]));
+    approve_one(&mut state, &mock);
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
 
     // Five dials at two per call is three calls, each its own judgment input
@@ -1802,29 +742,14 @@ fn a_large_dial_table_is_asked_in_batches_each_its_own_judgment() {
             telperion_jev::sha256_hex(&serde_json::to_vec(&input.state).unwrap())
         );
     }
-    // Merged across batches, the highest direction mass went first.
-    assert_eq!(state.trials.last().unwrap().label, "irregularity");
     // Only one round was charged for the three calls.
     assert_eq!(state.budget.rounds, 1);
-
-    // The next round re-asks, and the repeat refused does not eat the slot.
-    let spent = mock.evaluations;
-    state.budget.max_rounds = 2;
-    state.pause = None;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    assert_eq!(
-        mock.evaluations,
-        spent + 1,
-        "a refused repeat consumed the round's only candidate"
-    );
-    assert_eq!(state.trials.last().unwrap().label, "crookedness");
 }
 
-/// A visual that fails still spent its pass, so the reservation stays charged
-/// and the attempt stays recorded as pending. Recovery is the owner's scoped
-/// decision, never a silent retry.
+/// A visual that fails still spent its pass, so the spend stays charged, the
+/// attempt stays recorded as pending, and the revision ends on it.
 #[test]
-fn a_failed_visual_keeps_its_reservation_and_leaves_the_attempt_pending() {
+fn a_failed_visual_keeps_its_spend_and_ends_the_revision() {
     let mut state = run();
     let mut mock = Mock {
         visual_error: true,
@@ -1832,66 +757,12 @@ fn a_failed_visual_keeps_its_reservation_and_leaves_the_attempt_pending() {
     };
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     assert_eq!(state.pending.as_deref(), Some("visual assessment"));
-    assert_eq!(state.budget.visual_passes, Some(1));
+    assert_eq!(state.budget.visual_passes, 1);
     assert!(state
-        .pause
+        .stopped
         .as_ref()
         .unwrap()
-        .reason
         .contains("reservation retained"));
-    let charged = state.budget.clone();
-
-    // A second invocation cannot retry it: the spend is unsettled.
-    state.pause = None;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    assert_eq!(
-        state.pause.as_ref().unwrap().reason,
-        "interrupted attempt; reservation retained"
-    );
-    assert_eq!(state.pending.as_deref(), Some("visual assessment"));
-    assert_eq!(
-        serde_json::to_value(&state.budget).unwrap(),
-        serde_json::to_value(&charged).unwrap(),
-        "a refused retry charges nothing further"
-    );
-
-    // Cleared the way `recover_interrupted` clears it, the run goes on and the
-    // pass and the tokens it spent stay spent.
-    state.pause = None;
-    state.pending = None;
-    mock.visual_error = false;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    assert_eq!(state.budget.visual_passes, Some(2));
-    assert!(state.budget.tokens >= charged.tokens);
-    assert!(state.visual.is_some());
-}
-
-fn reviewed_run() -> (Run, Mock) {
-    let mut state = run();
-    state.budget.max_rounds = 2;
-    let mock = Mock {
-        selection: Selection::Visual,
-        route_plan: vec![("tuning".into(), 0.9)],
-        proposals: vec![
-            Proposal {
-                dial: "crookedness".into(),
-                action: Action::SmallIncrease,
-                ledger: "jev:2".into(),
-                direction_mass: Some(0.9),
-                rule: Some(telperion_jev::tuning::direction::RULE.into()),
-            },
-            Proposal {
-                dial: "crookedness".into(),
-                action: Action::SmallDecrease,
-                ledger: "jev:3".into(),
-                direction_mass: Some(0.7),
-                rule: Some(telperion_jev::tuning::direction::RULE.into()),
-            },
-        ],
-        candidates: 2,
-        ..mock()
-    };
-    (state, mock)
 }
 
 fn approve_one(state: &mut Run, mock: &Mock) {
@@ -1901,298 +772,6 @@ fn approve_one(state: &mut Run, mock: &Mock) {
         json!([{"id":"owner-crown","observation":"Crown shape and foliage organization",
             "evidence_ids":["render-0","reference-0"],"views":["whole"]}]),
     );
-}
-
-#[test]
-fn under_visual_selection_the_reviewer_adopts_the_candidate_it_judged_better() {
-    let (mut state, mut mock) = reviewed_run();
-    mock.reviews = vec![vec![Choice::Same], vec![Choice::ABetter]];
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_one(&mut state, &mock);
-    let passes_before = state.budget.visual_passes.unwrap();
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-
-    assert_eq!(
-        mock.progress_calls, 2,
-        "every feasible candidate is reviewed"
-    );
-    let reviewed: Vec<&Trial> = state
-        .trials
-        .iter()
-        .filter(|t| t.progress.is_some())
-        .collect();
-    assert_eq!(reviewed.len(), 2);
-    for trial in &reviewed {
-        let verdict = trial.progress.as_ref().unwrap();
-        assert!(verdict.uncalibrated.contains("uncalibrated"));
-        assert!(verdict.candidate_is == "a" || verdict.candidate_is == "b");
-    }
-    // The one the reviewer called better is the one the round kept, whatever
-    // the scores did, and each review spent a pass of its own.
-    let adopted = &state.trials[state.current.unwrap()];
-    assert_eq!(adopted.progress.as_ref().unwrap().better(), 1);
-    assert!(state.budget.visual_passes.unwrap() >= passes_before + 2);
-    // The reviewer's words reach whoever is asked next.
-    let projected = telperion_jev::tuning::judgments::summary(&state);
-    assert!(
-        serde_json::to_string(&projected["recent_attempts"])
-            .unwrap()
-            .contains("the outer foliage hangs further"),
-        "the routing state lost the reviewer's words"
-    );
-}
-
-#[test]
-fn a_round_whose_candidates_are_all_the_same_is_a_visual_stall() {
-    let (mut state, mut mock) = reviewed_run();
-    mock.reviews = vec![vec![Choice::Same], vec![Choice::Same]];
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_one(&mut state, &mock);
-    let before = state.current;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    assert_eq!(state.current, before, "nothing was adopted");
-    assert!(
-        state
-            .routes
-            .iter()
-            .any(|r| r == "visual stall; no candidate judged better"),
-        "{:?}",
-        state.routes
-    );
-    assert!(!state.routes.iter().any(|r| r.starts_with("numeric stall")));
-}
-
-#[test]
-fn a_refused_progress_answer_leaves_a_recoverable_attempt() {
-    let (mut state, mut mock) = reviewed_run();
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_one(&mut state, &mock);
-    mock.progress_error = true;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    assert_eq!(state.pending.as_deref(), Some("progress review"));
-    assert!(state
-        .pause
-        .as_ref()
-        .unwrap()
-        .reason
-        .contains("reservation retained"));
-    let charged = serde_json::to_value(&state.budget).unwrap();
-    state.pause = None;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    assert_eq!(
-        state.pause.as_ref().unwrap().reason,
-        "interrupted attempt; reservation retained"
-    );
-    assert_eq!(serde_json::to_value(&state.budget).unwrap(), charged);
-}
-
-#[test]
-fn a_reviewed_attempt_that_was_not_adopted_is_never_proposed_again() {
-    let (mut state, mut mock) = reviewed_run();
-    mock.reviews = vec![vec![Choice::Same], vec![Choice::Same]];
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_one(&mut state, &mock);
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    // The mock proposes both moves under one action, so both were tried here.
-    let tried: Vec<Proposal> = mock
-        .proposals
-        .iter()
-        .cloned()
-        .map(|mut p| {
-            p.action = mock.proposal_action;
-            p
-        })
-        .collect();
-    let (kept, refused) = state.filter_repeats(tried);
-    assert!(
-        kept.is_empty() && refused == 2,
-        "a reviewed attempt that was not adopted is still on offer: {kept:?}"
-    );
-}
-
-#[test]
-fn the_proposal_state_carries_the_reviewer_words_and_stays_small() {
-    let (mut state, mut mock) = reviewed_run();
-    // Neither is adopted, so both attempts stay under the current candidate,
-    // which is what the next proposal is shown.
-    mock.reviews = vec![vec![Choice::Same], vec![Choice::Same]];
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_one(&mut state, &mock);
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    let table: Vec<Dial> = serde_json::from_slice(include_bytes!("../data/dials.json")).unwrap();
-    state.dials = table
-        .into_iter()
-        .filter(|d| d.score_visible == Some(true))
-        .collect();
-    assert!(state.dials.len() > 100, "{}", state.dials.len());
-    let projected = telperion_jev::tuning::judgments::proposal_state(&state);
-    let bytes = serde_json::to_vec(&projected).unwrap();
-    assert!(
-        String::from_utf8_lossy(&bytes).contains("the crown is still enclosed"),
-        "the proposal state lost the reviewer's words"
-    );
-    // The cap itself, not the number it used to be: fn-109 raised it to
-    // 32 KiB and fn-110's eight trunk-organ dials spend some of that room.
-    assert!(
-        bytes.len() < telperion_jev::tuning::judgments::PROPOSAL_CAP,
-        "proposal state is {} bytes",
-        bytes.len()
-    );
-}
-
-fn three_proposals() -> Vec<Proposal> {
-    ["twig_hang", "irregularity", "rise_secondary"]
-        .iter()
-        .enumerate()
-        .map(|(i, dial)| Proposal {
-            dial: (*dial).into(),
-            action: Action::SmallIncrease,
-            ledger: format!("jev:{i}"),
-            direction_mass: Some(0.9 - i as f64 / 10.),
-            rule: Some(telperion_jev::tuning::direction::RULE.into()),
-        })
-        .collect()
-}
-
-fn reviewed_three(inert: Vec<bool>, reviews: Vec<Vec<Choice>>) -> (Run, Mock) {
-    let mut state = run();
-    state.budget.max_rounds = 2;
-    state.dials = ["twig_hang", "irregularity", "rise_secondary"]
-        .iter()
-        .map(|id| Dial {
-            id: (*id).into(),
-            path: "/skeleton/habit/crookedness".into(),
-            meaning: "turn variation".into(),
-            min: 0.,
-            max: 15.,
-            small: 1.,
-            substantial: 3.,
-            integer: false,
-            group: None,
-            score_visible: None,
-            meaning_basis: None,
-            range_basis: None,
-            source: None,
-        })
-        .collect();
-    let mock = Mock {
-        selection: Selection::Visual,
-        route_plan: vec![("tuning".into(), 0.9)],
-        proposals: three_proposals(),
-        candidates: 3,
-        inert,
-        reviews,
-        ..mock()
-    };
-    (state, mock)
-}
-
-#[test]
-fn an_inert_candidate_costs_no_review_and_does_not_end_the_round() {
-    let (mut state, mut mock) = reviewed_three(
-        vec![true, false, false],
-        vec![vec![Choice::Same], vec![Choice::ABetter]],
-    );
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_one(&mut state, &mock);
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-
-    assert_eq!(
-        mock.progress_calls, 2,
-        "the inert candidate was not sent to the reviewer"
-    );
-    let reviewed: Vec<&Trial> = state
-        .trials
-        .iter()
-        .filter(|t| t.progress.is_some())
-        .collect();
-    assert_eq!(reviewed.len(), 3, "every candidate was still evaluated");
-    let settled = reviewed[0].progress.as_ref().unwrap();
-    assert!(settled.inert && !settled.adoptable() && settled.model == "code");
-    assert!(state
-        .routes
-        .iter()
-        .any(|r| r.starts_with("inert: twig_hang")));
-    // The candidate the reviewer called better is the one the round kept.
-    let adopted = state.trials[state.current.unwrap()]
-        .progress
-        .as_ref()
-        .unwrap();
-    assert!(!adopted.inert && adopted.better() == 1);
-    assert!(state.pending.is_none() && state.pause.is_none());
-}
-
-#[test]
-fn a_round_of_inert_candidates_is_a_visual_stall_that_cost_no_reviewer() {
-    let (mut state, mut mock) = reviewed_three(vec![true, true, true], vec![]);
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_one(&mut state, &mock);
-    let before = state.current;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    assert_eq!(mock.progress_calls, 0, "nobody was paid to look");
-    assert_eq!(state.current, before);
-    assert_eq!(
-        state
-            .routes
-            .iter()
-            .filter(|r| r.starts_with("inert: "))
-            .count(),
-        3
-    );
-    assert!(state
-        .routes
-        .iter()
-        .any(|r| r == "visual stall; no candidate judged better"));
-}
-
-#[test]
-fn the_proposal_state_says_which_attempt_did_nothing_at_all() {
-    let (mut state, mut mock) = reviewed_three(
-        vec![true, false, false],
-        vec![vec![Choice::Same], vec![Choice::Same]],
-    );
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_one(&mut state, &mock);
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    let projected = telperion_jev::tuning::judgments::proposal_state(&state);
-    let attempts = serde_json::to_string(&projected["attempts_from_this_candidate"]).unwrap();
-    // The per-attempt list is a digest now: the last attempt in full, and the
-    // rest counted per dial family, where an inert attempt is its own outcome.
-    assert!(attempts.contains("\"inert\":1"), "{attempts}");
-    assert!(
-        projected["attempts_from_this_candidate"]["last_attempt"]["inert"] == json!(false),
-        "{attempts}"
-    );
-    let summary =
-        serde_json::to_string(&telperion_jev::tuning::judgments::summary(&state)).unwrap();
-    assert!(summary.contains("\"inert\":true"));
-}
-
-#[test]
-fn a_round_with_two_adoptable_moves_records_the_one_it_did_not_keep() {
-    let (mut state, mut mock) = reviewed_three(
-        vec![false, false, false],
-        vec![
-            vec![Choice::Same],
-            vec![Choice::ABetter],
-            vec![Choice::ABetter],
-        ],
-    );
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_one(&mut state, &mock);
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    let adopted = &state.trials[state.current.unwrap()];
-    assert_eq!(adopted.label, "irregularity", "the earlier tie wins");
-    assert_eq!(
-        adopted.adopted_over.len(),
-        1,
-        "the other eligible move is not recorded: {:?}",
-        adopted.adopted_over
-    );
-    assert!(state
-        .trials
-        .iter()
-        .any(|t| t.label == "rise_secondary" && t.key == adopted.adopted_over[0]));
 }
 
 /// A sheet answer that says exactly what each variant did, in the terms a test
@@ -2290,6 +869,8 @@ fn bundle_dial(id: &str, path: &str, min: f64, max: f64, small: f64, group: &str
         meaning_basis: None,
         range_basis: None,
         source: None,
+        preset_span: None,
+        cap: None,
     }
 }
 
@@ -2297,8 +878,6 @@ fn bundle_dial(id: &str, path: &str, min: f64, max: f64, small: f64, group: &str
 /// dials share a group, so a split cuts the pair against the single.
 fn bundle_run() -> (Run, Mock) {
     let mut state = run();
-    state.budget.max_rounds = 2;
-    state.budget.max_visual_passes = Some(8);
     state.dials = vec![
         bundle_dial("twig_hang", "/skeleton/twigs/hang", 0., 3., 0.5, "twigs"),
         bundle_dial(
@@ -2330,8 +909,6 @@ fn bundle_run() -> (Run, Mock) {
         })
         .collect();
     let mock = Mock {
-        selection: Selection::Bundle,
-        route_plan: vec![("tuning".into(), 0.9)],
         proposals,
         ..mock()
     };
@@ -2426,6 +1003,10 @@ fn a_variant_that_draws_the_current_tree_or_another_variant_is_never_shown() {
         2
     );
     assert_eq!(state.trials[state.current.unwrap()].label, "bundle@1");
+    assert!(
+        state.trials[state.current.unwrap()].adopted,
+        "the kept bundle records its adoption"
+    );
 }
 
 #[test]
@@ -2473,7 +1054,7 @@ fn a_break_halves_the_bundle_and_the_clean_half_is_the_one_kept() {
         adopted.label
     );
     assert_eq!(adopted.bundle.as_ref().unwrap().moves.len(), 2);
-    assert!(state.pause.is_none(), "{:?}", state.pause);
+    assert!(state.stopped.is_none(), "{:?}", state.stopped);
 }
 
 #[test]
@@ -2512,7 +1093,7 @@ fn a_round_nothing_improves_stalls_and_the_same_bundle_is_not_bought_twice() {
     assert_eq!(mock.sheet_calls, 2, "one sheet for the round, one to cut");
     // Both families lost, so the next round has no bundle left to build.
     assert_eq!(
-        state.pause.as_ref().unwrap().reason,
+        state.stopped.as_ref().unwrap(),
         "bundle already tried; no new direction"
     );
 }
@@ -2583,7 +1164,6 @@ fn a_worse_bundle_is_cut_by_family_and_a_good_family_is_the_one_kept() {
 /// next round has something different to build.
 fn three_family_run() -> (Run, Mock) {
     let (mut state, mut mock) = bundle_run();
-    state.budget.max_rounds = 2;
     state.dials.push(bundle_dial(
         "leaf_outward",
         "/canopy/outward",
@@ -2683,13 +1263,13 @@ fn a_bundle_whose_every_family_lost_has_nothing_left_to_build() {
         vec!["habit".to_string(), "twigs".to_string()]
     );
     assert_eq!(
-        state.pause.as_ref().unwrap().reason,
+        state.stopped.as_ref().unwrap(),
         "bundle already tried; no new direction"
     );
 }
 
 #[test]
-fn a_refused_sheet_answer_leaves_a_recoverable_attempt() {
+fn a_refused_sheet_answer_is_charged_and_never_bought_again() {
     let (mut state, mut mock) = bundle_run();
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     approve_one(&mut state, &mock);
@@ -2698,10 +1278,9 @@ fn a_refused_sheet_answer_leaves_a_recoverable_attempt() {
 
     assert_eq!(state.pending.as_deref(), Some("sheet review"));
     assert!(state
-        .pause
+        .stopped
         .as_ref()
         .unwrap()
-        .reason
         .contains("reservation retained"));
     // Nothing was judged, so the round is over and every variant that would
     // have been on the sheet says what it cost.
@@ -2721,85 +1300,17 @@ fn a_refused_sheet_answer_leaves_a_recoverable_attempt() {
         "a variant nobody judged was adopted"
     );
 
-    // The attempt is still pending, so the run refuses to go on without the
-    // owner's scoped recovery.
-    let charged = serde_json::to_value(&state.budget).unwrap();
-    state.pause = None;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    assert_eq!(
-        state.pause.as_ref().unwrap().reason,
-        "interrupted attempt; reservation retained"
-    );
-    assert_eq!(serde_json::to_value(&state.budget).unwrap(), charged);
-
-    // After that recovery the same bundle is not drawn again, at any strength.
-    state.pause = None;
+    // Driven again, the same bundle is not drawn again, at any strength.
+    state.stopped = None;
     state.pending = None;
     mock.sheet_error = false;
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     assert_eq!(mock.evaluations, 5, "the same bundle was drawn twice");
     assert_eq!(mock.sheet_calls, 0, "the same sheet was bought twice");
     assert_eq!(
-        state.pause.as_ref().unwrap().reason,
+        state.stopped.as_ref().unwrap(),
         "bundle already tried; no new direction"
     );
-}
-
-#[test]
-fn a_failed_progress_review_is_recorded_and_never_bought_again() {
-    let (mut state, mut mock) = reviewed_three(vec![false, false, false], vec![]);
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_one(&mut state, &mock);
-    mock.progress_error = true;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-
-    assert_eq!(state.pending.as_deref(), Some("progress review"));
-    assert_eq!(mock.evaluations, 2, "one candidate was drawn and reviewed");
-    let failed = state.trials.last().unwrap();
-    assert_eq!(failed.label, "twig_hang");
-    assert_eq!(
-        failed.reason.as_deref(),
-        Some("review failed; attempt charged")
-    );
-    assert!(failed.progress.is_none(), "nothing was bound");
-
-    // The owner's scoped recovery clears the attempt and refunds nothing.
-    let charged = serde_json::to_value(&state.budget).unwrap();
-    state.pause = None;
-    state.pending = None;
-    mock.progress_error = false;
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-
-    assert!(
-        serde_json::to_value(&state.budget).unwrap()["visual_passes"]
-            .as_u64()
-            .unwrap()
-            > charged["visual_passes"].as_u64().unwrap(),
-        "the failed pass was refunded"
-    );
-    assert!(
-        state
-            .routes
-            .iter()
-            .any(|r| r.starts_with("repeat refused: twig_hang")),
-        "the failed review was bought again: {:?}",
-        state.routes
-    );
-    assert_eq!(
-        state
-            .trials
-            .iter()
-            .filter(|t| t.label == "twig_hang")
-            .count(),
-        1,
-        "the same move was drawn a second time"
-    );
-    // The round ran to its normal end on the two moves that were left.
-    assert_eq!(mock.progress_calls, 2);
-    assert!(state
-        .routes
-        .iter()
-        .any(|r| r == "visual stall; no candidate judged better"));
 }
 
 /// The whole point of the veto: bundles 2 and 3 of the beech run were graded
@@ -2860,9 +1371,38 @@ fn a_required_cell_that_went_backwards_rolls_the_adoption_back_unasked() {
     // The move counts as tried, so the next round draws nothing.
     assert_eq!(mock.evaluations, 5);
     assert_eq!(
-        state.pause.as_ref().unwrap().reason,
+        state.stopped.as_ref().unwrap(),
         "bundle already tried; no new direction"
     );
+}
+
+/// The palm's second revision: every time the crown grew enough to be seen,
+/// the date clusters no organ can draw yet were judged absent.
+#[test]
+fn a_trait_the_generator_cannot_draw_yet_never_rolls_an_adoption_back() {
+    use CellStatus::{Fail, Unknown};
+    for listed in [true, false] {
+        let (mut state, mut mock) = adopting_run();
+        mock.fruit = vec![Unknown, Unknown, Fail];
+        if listed {
+            mock.unexpressed = vec![telperion_jev::tuning::unexpressed::Unexpressed {
+                trait_id: "fruit".into(),
+                spec: "fn-111".into(),
+            }];
+        }
+        to_the_round(&mut state, &mut mock);
+
+        let rolled_back = state.trials.iter().any(|t| t.vetoed.is_some());
+        assert_eq!(rolled_back, !listed, "listed={listed}: {:?}", state.routes);
+        let noted = state.routes.iter().any(|r| {
+            r == "trait fruit went from Unknown to Fail; not a veto: \
+                  the generator cannot draw it until fn-111 lands"
+        });
+        assert_eq!(noted, listed, "listed={listed}: {:?}", state.routes);
+        if listed {
+            assert_eq!(state.trials[state.current.unwrap()].label, "bundle@1");
+        }
+    }
 }
 
 #[test]
@@ -2920,7 +1460,7 @@ fn a_new_defect_below_the_threshold_keeps_the_adoption_and_records_what_was_said
 /// numbers all along; the router was only ever shown raw arrays.
 #[test]
 fn the_state_says_what_the_numbers_measure_in_words_and_stays_small() {
-    let (mut state, mut mock) = reviewed_run();
+    let (mut state, mut mock) = bundle_run();
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     approve_one(&mut state, &mock);
     let current = state.current.unwrap();
@@ -3139,58 +1679,6 @@ fn the_routing_state_names_the_kinds_of_dial_rather_than_every_row() {
     );
 }
 
-/// The owner's first priority, "the whole crown needs to be stretched
-/// vertically", was routed insufficient_evidence in every round of the run of
-/// 2026-09-21 while the state said the crown was 8% too wide for its height.
-/// The facts were there; nothing told the router they were evidence.
-#[test]
-fn the_route_question_says_a_measured_fact_is_evidence_for_a_proportion() {
-    let (mut state, mut mock) = bundle_run();
-    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
-    approve_one(&mut state, &mock);
-    let current = state.current.unwrap();
-    state.trials[current].comparisons = vec![telperion_jev::tuning::evaluation::Comparison {
-        reference: "B-WHOLE".into(),
-        reference_weight: 1.,
-        metric_weights: [1.; 5],
-        target: [0.6965, 0.28, 0.42, 0.11, 120.],
-        observed: [Some(0.7504), None, None, None, None],
-        images: vec![],
-    }];
-
-    // The route state carries the measured facts the router is asked about.
-    let route_state = telperion_jev::tuning::judgments::summary(&state);
-    let facts = serde_json::to_string(&route_state["measured_facts"]).unwrap();
-    assert!(facts.contains("8% too wide for its height"), "{facts}");
-
-    // And every per-priority route question now says they count.
-    let questions =
-        telperion_jev::tuning::judgments::routes(&Default::default(), state.approved_priorities());
-    let asked = questions["route:owner-crown"].clone();
-    let instructions = asked["instructions"].as_str().unwrap();
-    assert!(
-        instructions.contains("Measured facts in the state are evidence; a priority about size or proportion that a measured fact supports and an authored dial can change routes to tuning."),
-        "{instructions}"
-    );
-    assert!(
-        instructions.contains("Judge only owner priority 1 of 1"),
-        "the scoped priority was dropped: {instructions}"
-    );
-    // The criteria and the threshold they are read against are untouched.
-    let criteria = asked["criteria"].as_object().unwrap();
-    let mut names = criteria.keys().cloned().collect::<Vec<_>>();
-    names.sort();
-    assert_eq!(
-        names,
-        vec![
-            "appearance",
-            "insufficient_evidence",
-            "new_capability",
-            "tuning"
-        ]
-    );
-}
-
 /// The proposal state used to carry every bundle attempt in full, and five
 /// rounds of it earned `HTTP 400 max_tokens_exceeded`. Twelve rounds of a
 /// fifty-dial bundle now fold into one digest.
@@ -3290,4 +1778,334 @@ fn twelve_rounds_of_attempts_fold_into_a_digest_that_still_fits() {
         expected,
         "the state shipped the least-trimmed digest that fits ({sizes:?} beside {base} bytes)"
     );
+}
+
+/// The strengths each round drew, in round order, read off the variants.
+fn drawn_by_round(state: &Run) -> Vec<Vec<f64>> {
+    let mut rounds: Vec<(u64, Vec<f64>)> = vec![];
+    for t in state.trials.iter().filter(|t| t.parent_bundle.is_none()) {
+        let Some(b) = &t.bundle else { continue };
+        match rounds.iter_mut().find(|(r, _)| *r == t.round) {
+            Some((_, s)) => s.push(b.strength),
+            None => rounds.push((t.round, vec![b.strength])),
+        }
+    }
+    rounds.into_iter().map(|(_, s)| s).collect()
+}
+
+fn stride_notes(state: &Run) -> Vec<String> {
+    state
+        .routes
+        .iter()
+        .filter(|r| r.contains("stride"))
+        .cloned()
+        .collect()
+}
+
+/// R1: the owner's class draws the round at a multiple of the ladder code
+/// owns, and asks nobody.
+#[test]
+fn an_owner_class_scales_the_ladder_and_asks_nobody() {
+    use telperion_jev::tuning::stride::Class;
+    for (class, drawn, multiplier) in [
+        (None, vec![0.5, 1., 2., 4.], "multiplier 1"),
+        (Some(Class::Near), vec![0.5, 1., 2., 4.], "multiplier 1"),
+        (
+            Some(Class::ClearlyOff),
+            vec![1., 2., 4., 8.],
+            "multiplier 2",
+        ),
+        (Some(Class::FarOff), vec![2., 4., 8., 16.], "multiplier 4"),
+    ] {
+        let (mut state, mut mock) = adopting_run();
+        mock.owner_class = class;
+        mock.gap_answer = Some(("near".into(), 0.9));
+        to_the_round(&mut state, &mut mock);
+
+        assert_eq!(drawn_by_round(&state)[0], drawn, "{class:?}");
+        assert_eq!(
+            mock.gap_calls, 0,
+            "{class:?}: the owner's word costs nothing"
+        );
+        let note = &stride_notes(&state)[0];
+        assert!(note.contains(multiplier), "{note}");
+        if class.is_some() {
+            assert!(note.contains("from owner on owner-crown"), "{note}");
+        }
+    }
+}
+
+/// R1: with no owner class, the reviewer's latest words on the priority are
+/// put to Jev before the draw; anything short of a trusted class keeps the
+/// ladder as configured and the note says why.
+#[test]
+fn the_reviewer_s_words_choose_the_next_round_s_stride_or_the_ladder_stands() {
+    for (answer, drawn, says) in [
+        (
+            ("far_off", 0.9),
+            vec![2., 4., 8., 16.],
+            "stride class far_off from jev",
+        ),
+        (
+            ("near", 0.9),
+            vec![0.5, 1., 2., 4.],
+            "stride class near from jev",
+        ),
+        (
+            ("no_match", 0.9),
+            vec![0.5, 1., 2., 4.],
+            "default: jev no_match",
+        ),
+        (
+            ("far_off", 0.3),
+            vec![0.5, 1., 2., 4.],
+            "below the threshold",
+        ),
+    ] {
+        let (mut state, mut mock) = adopting_run();
+        mock.cell_status = vec![CellStatus::Fail; 8];
+        mock.gap_answer = Some((answer.0.into(), answer.1));
+        to_the_round(&mut state, &mut mock);
+
+        let rounds = drawn_by_round(&state);
+        assert_eq!(
+            rounds[0],
+            vec![0.5, 1., 2., 4.],
+            "{answer:?}: no finding yet"
+        );
+        assert_eq!(rounds[1], drawn, "{answer:?}");
+        assert_eq!(mock.gap_calls, 1, "{answer:?}: one question, in round two");
+        let notes = stride_notes(&state);
+        assert!(notes[0].contains("default: no finding yet"), "{notes:?}");
+        assert!(notes[1].contains(says), "{notes:?}");
+        let shown = state
+            .judgment_inputs
+            .iter()
+            .find(|i| i.label == telperion_jev::tuning::stride::LABEL)
+            .expect("the question's state is recorded");
+        let words = serde_json::to_string(&shown.state).unwrap();
+        assert!(words.contains("the crown is still enclosed"), "{words}");
+    }
+}
+
+/// R4: a raised stride the closing review takes back is capped a level lower
+/// for the next round, and again, so the ladder steps down instead of
+/// swinging back out.
+#[test]
+fn an_overshoot_rolled_back_steps_the_stride_down_rather_than_oscillating() {
+    let (mut state, mut mock) = bundle_run();
+    mock.owner_class = Some(telperion_jev::tuning::stride::Class::FarOff);
+    mock.side_effect_answer = Some(("new_defect".into(), 0.9));
+    mock.sheets = vec![
+        vec![did(&key(3), Movement::Clear)],
+        vec![did(&key(6), Movement::Clear)],
+    ];
+    to_the_round(&mut state, &mut mock);
+
+    let rounds = drawn_by_round(&state);
+    assert_eq!(rounds[0], vec![2., 4., 8., 16.]);
+    assert_eq!(rounds[1], vec![1.], "2, 4 and 8 were already tried here");
+    assert_eq!(rounds[2], vec![0.5]);
+    let top = rounds
+        .iter()
+        .map(|r| r.iter().copied().fold(0., f64::max))
+        .collect::<Vec<_>>();
+    assert!(top.windows(2).all(|w| w[1] < w[0]), "{top:?}");
+    let notes = stride_notes(&state);
+    for expected in [
+        "stride class far_off from owner",
+        "stride capped at clearly_off after the bundle at far_off was rolled back",
+        "stride class clearly_off from owner on owner-crown, multiplier 2; far_off capped at clearly_off",
+        "stride capped at near after the bundle at clearly_off was rolled back",
+        "stride class near from owner on owner-crown, multiplier 1; far_off capped at near",
+    ] {
+        assert!(notes.iter().any(|n| n.contains(expected)), "{expected}: {notes:?}");
+    }
+    assert_eq!(state.current, Some(0), "no raised bundle stood");
+}
+
+/// R4: after a raised bundle stands, a round that turns one of its dials back
+/// is an overshoot too, and draws a level lower.
+#[test]
+fn a_direction_that_turns_round_after_a_raised_bundle_caps_the_stride() {
+    let (mut state, mut mock) = adopting_run();
+    mock.cell_status = vec![CellStatus::Fail; 8];
+    mock.owner_class = Some(telperion_jev::tuning::stride::Class::FarOff);
+    mock.proposal_actions = vec![Action::SmallIncrease, Action::SmallDecrease];
+    to_the_round(&mut state, &mut mock);
+
+    let rounds = drawn_by_round(&state);
+    assert_eq!(rounds[0], vec![2., 4., 8., 16.]);
+    assert_eq!(rounds[1], vec![1., 2., 4., 8.]);
+    let notes = stride_notes(&state);
+    assert!(
+        notes[1].contains("far_off capped at clearly_off")
+            && notes[1].contains("turned round from the bundle at far_off"),
+        "{notes:?}"
+    );
+}
+
+/// fn-117: with no cap the loop runs round after round, and what stops a run
+/// that keeps nothing is the runaway count, naming the rounds and their spend.
+#[test]
+fn an_uncapped_run_pauses_as_a_runaway_after_rounds_that_keep_nothing() {
+    let mut state = run();
+    let mut mock = Mock {
+        stall: true,
+        runaway: 2,
+        proposal_actions: vec![Action::SmallIncrease, Action::SmallDecrease],
+        ..mock()
+    };
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_one(&mut state, &mock);
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    let reason = &state.stopped.as_ref().unwrap();
+    assert!(
+        reason.starts_with("runaway: 2 rounds in a row kept nothing (rounds 1, 2)"),
+        "{reason}"
+    );
+    assert!(reason.contains("8 evaluations, 32 images"), "{reason}");
+    let streak = state.unkept.clone().unwrap();
+    assert_eq!(streak.rounds, vec![1, 2]);
+    assert!(state.budget.tokens > streak.opening.tokens);
+}
+
+/// One objective per track, each named to its track by the approval.
+fn tracked(id: &str, track: &str) -> serde_json::Value {
+    json!({"id":id,"observation":format!("objective {id}"),
+        "evidence_ids":["render-0","reference-0"],"views":["whole"],"track":track})
+}
+
+/// fn-119 R2: each track's stride is judged on its own lead objective, so the
+/// material track no longer draws at the structure track's far off.
+#[test]
+fn each_track_s_stride_is_judged_on_its_own_lead_objective() {
+    use telperion_jev::tuning::stride::Class;
+    let (mut state, mut mock) = two_track_run();
+    mock.owner_classes = [
+        ("owner-crown".to_string(), Class::FarOff),
+        ("owner-bark".to_string(), Class::Near),
+    ]
+    .into();
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(
+        &mut state,
+        &mock,
+        json!([
+            tracked("owner-crown", "structure"),
+            tracked("owner-bark", "materials")
+        ]),
+    );
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    let notes = stride_notes(&state);
+    for expected in [
+        "track structure: stride class far_off from owner on owner-crown, multiplier 4",
+        "track materials: stride class near from owner on owner-bark, multiplier 1",
+    ] {
+        assert!(notes.iter().any(|n| n == expected), "{expected}: {notes:?}");
+    }
+    assert_eq!(drawn_by_round(&state)[0], vec![4., 1.]);
+}
+
+/// fn-119 R3: a track no objective is routed to is skipped with a route note
+/// and draws nothing; a track named nowhere in the run is refused.
+#[test]
+fn a_track_with_no_objective_is_skipped_and_an_undeclared_track_is_refused() {
+    let (mut state, mut mock) = two_track_run();
+    mock.sheets = vec![vec![did(&key(2), Movement::Clear)]];
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(
+        &mut state,
+        &mock,
+        json!([tracked("owner-crown", "structure")]),
+    );
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    assert_eq!(
+        mock.sheet_calls, 1,
+        "the objectiveless track bought a sheet"
+    );
+    assert_eq!(mock.evaluations, 2, "the baseline and the structure bundle");
+    assert!(
+        state
+            .routes
+            .iter()
+            .any(|r| r == "track materials: skipped: no objective names this track"),
+        "{:?}",
+        state.routes
+    );
+
+    let (mut state, mut mock) = two_track_run();
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(&mut state, &mock, json!([tracked("owner-crown", "leaves")]));
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    let refused = &state.stopped.as_ref().expect("the run pauses");
+    assert!(refused.contains("names track leaves"), "{refused}");
+    assert_eq!(
+        mock.evaluations, 1,
+        "nothing was drawn for an undeclared track"
+    );
+}
+
+/// fn-119 R1 through the engine: the priority pause proposes the drawable
+/// inventory traits and records the rest, and the proposal approves as offered.
+#[test]
+fn the_priority_pause_proposes_every_drawable_inventory_trait() {
+    let (mut state, mut mock) = bundle_run();
+    let shot =
+        |i: usize, view: &str| json!({"id":format!("reference-{i}"),"image":priority_image(view)});
+    let item = |id: &str, priority: &str, cited: &[&str]| {
+        json!({"id":id,"priority":priority,"observation":format!("{id} as photographed"),
+            "reference_ids":cited,"uncertain":false})
+    };
+    mock.inventory = Some(
+        serde_json::from_value(json!({"request":{"protocol":"reference-first-v1",
+            "target_species":"european-beech","specimen_relationship":"unknown",
+            "references":[shot(0, "whole"), shot(1, "bark")]},
+            "request_sha256":"r","prompt_sha256":"p","model":"m","effort":"e","ledger":"l",
+            "observations":[],"traits":[
+                item("crown", "core", &["reference-0"]),
+                item("fruit", "core", &["reference-0"]),
+                item("bark-colour", "secondary", &["reference-1"]),
+                item("lean", "variation", &["reference-0"])]}))
+        .unwrap(),
+    );
+    mock.unexpressed = vec![telperion_jev::tuning::unexpressed::Unexpressed {
+        trait_id: "fruit".into(),
+        spec: "fn-111".into(),
+    }];
+    mock.sheets = vec![vec![did(&key(2), Movement::Clear)]];
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+
+    let checkpoint = state.priority_checkpoints.last().unwrap().clone();
+    let proposed = checkpoint
+        .proposed
+        .iter()
+        .map(|g| g.id.as_str())
+        .collect::<Vec<_>>();
+    assert_eq!(proposed, vec!["crown"]);
+    let left = checkpoint
+        .left_out
+        .iter()
+        .map(|l| (l.trait_id.as_str(), l.reason.as_str()))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        left,
+        vec![
+            ("fruit", "unexpressed until fn-111 lands"),
+            (
+                "bark-colour",
+                "no assessed view renders it beside its references"
+            ),
+            ("lean", "variation: recorded, not an objective"),
+        ]
+    );
+    approve_priorities(
+        &mut state,
+        &mock,
+        serde_json::to_value(&checkpoint.proposed).unwrap(),
+    );
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert_eq!(mock.sheet_calls, 1);
 }

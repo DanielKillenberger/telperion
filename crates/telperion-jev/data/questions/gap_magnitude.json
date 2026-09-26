@@ -1,0 +1,13 @@
+{
+  "gap_magnitude": {
+    "type": "choice",
+    "version": "gap-magnitude-v1",
+    "instructions": "`priority` is what the owner asks of the tree, in the owner's words. `finding` is what the reviewer said most recently about the tree. Going by the words alone, how far is the tree from what the priority asks? Judge the size of the gap the words name, not its direction and not whether it can be fixed. Where the two disagree, the finding is the later word.",
+    "criteria": {
+      "near": "The words say the tree is close to what the priority asks: slightly off, a touch, a little, mild, residual, nearly there",
+      "clearly_off": "The words say the tree is plainly off what the priority asks but not by a multiple: too short, still lacks, noticeably, a clear kink, should be longer",
+      "far_off": "The words say the tree is far from what the priority asks: far too, much too, several times, two to three times, a small fraction of, nowhere near",
+      "no_match": "The words name no size of gap on this priority: they speak of another part of the tree, say the priority is met, or say nothing"
+    }
+  }
+}

@@ -3,11 +3,11 @@
 //! A stage reads the admitted manifest and earlier artifacts at fixed paths,
 //! computes its key over their checksums, the manifest checksum, the
 //! question-set versions, the model name and the tool versions, and does
-//! nothing when the artifact on disk already carries that key. Missing
-//! inputs, an open decision that stops the stage, or a changed checksum stop
-//! it by name. Opening a stage records it on the resolutions it consumes, and
-//! every artifact carries what its stage spent. Every run appends to the
-//! command log.
+//! nothing when the artifact on disk already carries that key. The key reads
+//! content, never the build: a changed binary with unchanged inputs reruns
+//! nothing (fn-149). Missing inputs, an open decision that stops the stage,
+//! or a changed checksum stop it by name. Opening a stage records it on the
+//! resolutions it consumes, and every artifact carries what its stage spent.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -27,9 +27,9 @@ pub const TOOL_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// The fixed sequence. Discovery proposes; every later stage reads the
 /// admitted manifest.
-pub static STAGES: [&str; 12] = [
+pub static STAGES: [&str; 11] = [
     "discover", "fetch", "extract", "screen", "quality", "select", "verify", "fit", "gate",
-    "generate", "document", "report",
+    "generate", "document",
 ];
 
 /// Fixed artifact paths. `dir` is the species folder in the catalogue and holds
@@ -37,7 +37,7 @@ pub static STAGES: [&str; 12] = [
 /// tree and holds the scratch a run leaves behind - the fetch cache, the
 /// ledger, the command log and rendered stills - so none of it enters the
 /// catalogue. A directory given without a run of its own is its own run
-/// directory, which is what a test and a swap trial use.
+/// directory, which is what a test uses.
 #[derive(Debug, Clone)]
 pub struct Paths {
     pub dir: PathBuf,
@@ -65,6 +65,11 @@ impl Paths {
     }
     pub fn resolutions(&self) -> PathBuf {
         self.dir.join("resolutions.json")
+    }
+    /// The pipeline's own searches for a requirement it could not meet
+    /// (fn-129): the rounds it ran per field and the sources it tried.
+    pub fn search_rounds(&self) -> PathBuf {
+        self.dir.join("search-rounds.json")
     }
     pub fn command_log(&self) -> PathBuf {
         self.run.join("command-log.json")
@@ -192,14 +197,13 @@ impl Context {
             });
         }
         let admitted = manifest::load(&manifest_path).map_err(StageError::Manifest)?;
-        let decisions =
-            reconcile(&paths.decisions(), &paths.resolutions()).map_err(|err| match err {
-                ReconcileError::File(err) => StageError::File(err),
-                refused @ ReconcileError::Refused(_) => StageError::Failed {
-                    stage: stage.into(),
-                    reason: refused.to_string(),
-                },
-            })?;
+        let decisions = reconcile(&paths).map_err(|err| match err {
+            ReconcileError::File(err) => StageError::File(err),
+            refused @ ReconcileError::Refused(_) => StageError::Failed {
+                stage: stage.into(),
+                reason: refused.to_string(),
+            },
+        })?;
         let (global, fields) = open_for_stage(&decisions, stage);
         if !global.is_empty() {
             return Err(StageError::OpenDecision {
@@ -287,10 +291,6 @@ impl Context {
         let m = &self.admitted.manifest;
         let mut tools = m.versions.tools.clone();
         tools.insert("species-pipeline".into(), TOOL_VERSION.into());
-        // A landed gap fix is a tool version: it expires the key of the stage
-        // that halted and of every stage after it, and leaves the earlier
-        // ones current, so the run resumes where it stopped (fn-63 R4).
-        tools.extend(super::gap::resume::landed_tools(&self.paths.dir, stage));
         let key = idempotence_key(
             &inputs,
             keyed_on,
@@ -326,19 +326,13 @@ impl Context {
     /// Writes the stage artifact: the header's fields at the top level and the
     /// body under `body`. The cost written is the sum over every run that
     /// wrote this artifact: the header carries this run's adapter spend, and
-    /// its ledger references count its Jev calls, except in the report,
-    /// whose ledger cites every earlier artifact's references and which asks
-    /// nothing itself.
+    /// its ledger references count its Jev calls.
     pub fn write(&self, header: &Header, body: Value) -> Result<PathBuf, StageError> {
         let path = self.paths.artifact(&header.stage);
         let mut cost = earlier_cost(&path);
         let mut this_run = header.cost.clone();
         this_run.runs = 1;
-        this_run.jev_calls = if header.stage == "report" {
-            0
-        } else {
-            header.ledger.len() as u32
-        };
+        this_run.jev_calls = header.ledger.len() as u32;
         cost.add(&this_run);
         let mut header = header.clone();
         header.cost = cost;
@@ -355,6 +349,12 @@ impl Context {
         }
         Ok(path)
     }
+}
+
+/// The clock every record is stamped with; `TELPERION_PIPELINE_CLOCK` pins
+/// it, so a test's rerun writes the same bytes.
+pub fn now() -> String {
+    std::env::var("TELPERION_PIPELINE_CLOCK").unwrap_or_else(|_| crate::caller::now_rfc3339())
 }
 
 pub fn idempotence_key(
@@ -387,23 +387,6 @@ pub fn log_command(paths: &Paths, argv: &[String], exit: i32) -> Result<(), Cano
         &json!({"schema": "command-log", "schema_version": 1, "commands": entries}),
     )?;
     Ok(())
-}
-
-/// Reads the stage names the command log ran, in order.
-pub fn logged_stages(paths: &Paths) -> Result<Vec<String>, CanonError> {
-    let path = paths.command_log();
-    if !path.exists() {
-        return Ok(Vec::new());
-    }
-    let value = read_json(&path)?;
-    Ok(value["commands"]
-        .as_array()
-        .map(|list| {
-            list.iter()
-                .filter_map(|c| c["argv"][0].as_str().map(str::to_string))
-                .collect()
-        })
-        .unwrap_or_default())
 }
 
 #[cfg(test)]
@@ -539,8 +522,8 @@ mod tests {
         let paths = Paths::new(&dir);
         log_command(&paths, &["discover".into(), "--dir".into(), "x".into()], 0).unwrap();
         log_command(&paths, &["fetch".into()], 1).unwrap();
-        assert_eq!(logged_stages(&paths).unwrap(), vec!["discover", "fetch"]);
         let log = read_json(&paths.command_log()).unwrap();
+        assert_eq!(log["commands"][0]["argv"][0], "discover");
         assert_eq!(log["commands"][1]["exit"], 1);
     }
 }

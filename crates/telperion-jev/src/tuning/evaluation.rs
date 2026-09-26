@@ -80,10 +80,6 @@ pub struct Trial {
     pub direction_mass: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rule: Option<String>,
-    /// The reviewer's comparative verdict on this attempt against the tree it
-    /// came from. Present only under visual selection.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub progress: Option<super::progress::Verdict>,
     /// Owner-facing telemetry: the other candidates of this round the reviewer
     /// also judged adoptable, when this one was the move that was kept.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -103,6 +99,14 @@ pub struct Trial {
     /// took it back. The attempt stands as tried; the tree does not.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vetoed: Option<super::veto::Veto>,
+    /// True once a round made this attempt the tree the loop stands on,
+    /// whether or not the closing review then let it stand.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub adopted: bool,
+    /// The one dial a single-dial attempt moved, from where to where. A bundle
+    /// attempt's moves live on its bundle.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub step: Option<super::bundle::Move>,
 }
 
 fn completed(receipt: &str) -> Result<Value, String> {
@@ -212,12 +216,13 @@ pub fn evaluate(
     let start = Instant::now();
     let key = sha256_hex(format!("{identity}:{seed}:{}", overrides).as_bytes());
     let mut trial = Trial {
-        progress: None,
         adopted_over: vec![],
         bundle: None,
         parent_bundle: None,
         sheet: None,
         vetoed: None,
+        adopted: false,
+        step: None,
         key,
         identity: identity.into(),
         seed,

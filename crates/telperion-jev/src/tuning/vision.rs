@@ -1,16 +1,12 @@
 //! A command adapter sees real images. Jev receives only its attributed observations.
 use super::{
     evaluation::Image,
-    state::{ready, Cell, Visual},
+    state::{Cell, Visual},
+    tidy::{self, Untidy},
 };
 use crate::{ledger::Usage, sha256_hex};
 use serde::{Deserialize, Serialize};
-use std::{
-    fs,
-    io::Write,
-    path::PathBuf,
-    process::{Command, Stdio},
-};
+use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -125,12 +121,22 @@ pub struct Result {
 
 impl Result {
     pub fn bind(&mut self, request: &Request) -> std::result::Result<(), String> {
+        self.bind_tidy(request).map(|_| ())
+    }
+    /// Binds the result to its request and returns the tidiness rules its
+    /// findings broke, each already trimmed or dropped and recorded; a trust
+    /// violation refuses it (`tidy.rs`).
+    pub fn bind_tidy(&mut self, request: &Request) -> std::result::Result<Vec<Untidy>, String> {
         if self.request_sha256 != request.hash() || self.assessment.identity != request.identity {
             return Err("stale joint result".into());
         }
         self.assessment.observations = self.observations.clone();
         self.assessment.joint = request.joint.clone();
+        let mut untidy = vec![];
         if let Some(packet) = &request.joint {
+            tidy::invented_findings(packet, &self.assessment.findings)?;
+            untidy = tidy::findings(&mut self.assessment.findings, tidy::MAX_FINDINGS, "");
+            tidy::record(self, untidy.iter().map(|u| &u.note));
             packet.verify_findings(&self.assessment.findings)?;
             for (cell, status) in &mut self.assessment.cells {
                 if packet.inputs.iter().any(|i| {
@@ -162,7 +168,26 @@ impl Result {
                 }
             }
         }
-        Ok(())
+        Ok(untidy)
+    }
+}
+
+/// Why an adapter's answer is refused, in the adapter's own words when it
+/// gave any (its `error`, else the tail of what it printed to stderr), so a
+/// spent quota or a replay without the call reads as that and not as a bare
+/// failure (fn-149).
+pub fn refused(fallback: &str, raw: &serde_json::Value, stderr: &str) -> String {
+    let said = raw["error"]
+        .as_str()
+        .map(str::to_string)
+        .filter(|e| !e.trim().is_empty())
+        .or_else(|| {
+            let tail: String = stderr.trim().chars().rev().take(400).collect();
+            (!tail.is_empty()).then(|| tail.chars().rev().collect())
+        });
+    match said {
+        Some(said) => format!("{fallback}: {said}"),
+        None => fallback.to_string(),
     }
 }
 
@@ -177,159 +202,29 @@ pub struct Adapter {
     pub ledger: PathBuf,
 }
 
-impl Adapter {
-    pub fn assess(&self, request: &Request) -> std::result::Result<Result, String> {
-        request.verify()?;
-        if self.timeout_seconds == 0
-            || self.timeout_seconds > 600
-            || self.model.is_empty()
-            || self.effort.is_empty()
-        {
-            return Err("invalid vision adapter".into());
-        }
-        let mut child = Command::new("timeout")
-            .arg(self.timeout_seconds.to_string())
-            .arg(&self.program)
-            .args(&self.args)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .map_err(|e| e.to_string())?;
-        let envelope = serde_json::json!({"request":request,"request_sha256":request.hash()});
-        child
-            .stdin
-            .take()
-            .ok_or("vision stdin unavailable")?
-            .write_all(&serde_json::to_vec(&envelope).unwrap())
-            .map_err(|e| e.to_string())?;
-        let output = child.wait_with_output().map_err(|e| e.to_string())?;
-        fs::create_dir_all(&self.ledger).map_err(|e| e.to_string())?;
-        let record = self
-            .ledger
-            .join(format!("{}.json", crate::ledger::new_entry_id()));
-        let receipt = serde_json::json!({"request":request,"model":self.model,"effort":self.effort,
-            "status":output.status.code(),"stdout":String::from_utf8_lossy(&output.stdout),
-            "stderr":String::from_utf8_lossy(&output.stderr)});
-        let mut file = fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(&record)
-            .map_err(|e| e.to_string())?;
-        file.write_all(&serde_json::to_vec_pretty(&receipt).unwrap())
-            .map_err(|e| e.to_string())?;
-        if !output.status.success() {
-            return Err(format!("vision failed; receipt {}", record.display()));
-        }
-        let mut result: Result =
-            serde_json::from_slice(&output.stdout).map_err(|e| e.to_string())?;
-        if result.request_sha256 != request.hash()
-            || result.assessment.identity != request.identity
-            || result.assessment.model != self.model
-            || result.effort != self.effort
-        {
-            return Err("stale or wrong-model visual assessment".into());
-        }
-        request.verify()?;
-        result.bind(request)?;
-        result.assessment.ledger = record.display().to_string();
-        Ok(result)
-    }
-}
+#[cfg(test)]
+mod refusal_tests {
+    use super::refused;
+    use serde_json::json;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct ReplayCase {
-    pub id: String,
-    pub provenance: String,
-    pub expected_ready: bool,
-    pub request: Request,
-}
-
-impl ReplayCase {
-    pub fn blind_request(&self) -> Request {
-        self.request.blind()
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Replay {
-    pub schema: String,
-    pub model: String,
-    pub effort: String,
-    pub protocol_sha256: String,
-    pub cases: Vec<ReplayCase>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct ReplayResult {
-    pub manifest_sha256: String,
-    pub results: Vec<Result>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReplayScore {
-    pub positives: usize,
-    pub negatives: usize,
-    pub false_ready: usize,
-    pub false_rejections: usize,
-    pub abstentions: usize,
-}
-
-pub fn replay_score(
-    manifest: &[u8],
-    result: &ReplayResult,
-) -> std::result::Result<ReplayScore, String> {
-    let replay: Replay = serde_json::from_slice(manifest).map_err(|e| e.to_string())?;
-    if result.manifest_sha256 != sha256_hex(manifest)
-        || result.results.len() != replay.cases.len()
-        || replay.schema != "tuning-visual-replay-v2"
-    {
-        return Err("changed or incomplete visual replay".into());
-    }
-    let mut score = ReplayScore {
-        positives: 0,
-        negatives: 0,
-        false_ready: 0,
-        false_rejections: 0,
-        abstentions: 0,
-    };
-    for (case, observed) in replay.cases.iter().zip(&result.results) {
-        case.request.verify()?;
-        if case.provenance.is_empty()
-            || observed.request_sha256 != case.request.hash()
-            || observed.assessment.identity != case.request.identity
-            || observed.assessment.model != replay.model
-            || observed.effort != replay.effort
-            || observed.usage.is_none()
-        {
-            return Err("unattributed or stale replay result".into());
-        }
-        let mut bound = observed.clone();
-        bound.bind(&case.request)?;
-        let got = ready(
-            &case.request.required,
-            &case.request.identity,
-            &bound.assessment,
+    #[test]
+    fn a_refusal_carries_the_adapters_own_words() {
+        let limit =
+            json!({"status": "failed", "error": "You've hit your weekly limit · resets 6pm"});
+        let said = refused("stale or failed Stage A response", &limit, "");
+        assert!(
+            said.ends_with("You've hit your weekly limit · resets 6pm"),
+            "{said}"
         );
-        if case.expected_ready {
-            score.positives += 1;
-            score.false_rejections += usize::from(!got);
-        } else {
-            score.negatives += 1;
-            score.false_ready += usize::from(got);
-        }
-        if observed.assessment.cells.len() != case.request.required.len()
-            || observed
-                .assessment
-                .cells
-                .iter()
-                .any(|(_, status)| *status == super::state::CellStatus::Unknown)
-        {
-            score.abstentions += 1;
-        }
+        let replay = refused(
+            "Stage A failed",
+            &serde_json::Value::Null,
+            "replay: /rec holds no adapter answer\n",
+        );
+        assert_eq!(
+            replay,
+            "Stage A failed: replay: /rec holds no adapter answer"
+        );
+        assert_eq!(refused("failed", &json!({"error": null}), " "), "failed");
     }
-    Ok(score)
 }

@@ -58,7 +58,7 @@ fn state_for(before: &Visual, after: &Visual, trial: &crate::tuning::evaluation:
                 .map(|m| json!({"dial":m.dial,"direction":m.direction}))
                 .collect::<Vec<_>>()),
             "dial":trial.label,"action":trial.action},
-        "targeted":crate::tuning::progress::words(trial),
+        "targeted":crate::tuning::look::words(trial),
         "meaning":"A move that fixed what it aimed at and broke something else is not an improvement."})
 }
 

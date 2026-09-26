@@ -3,7 +3,7 @@
 //! prompt it built, offline, with no model in the path.
 use serde_json::{json, Value};
 use std::{fs, path::PathBuf, process::Command};
-use telperion_jev::tuning::{evaluation::Image, progress, sheet};
+use telperion_jev::tuning::{evaluation::Image, look, sheet};
 
 /// A trial key, as the engine writes one into the file name of a render.
 const KEY: &str = "7c0ffeea1b2c3d4e5f60718293a4b5c6";
@@ -29,8 +29,8 @@ fn still(dir: &std::path::Path, body: &str) -> Image {
     }
 }
 
-fn priorities() -> Vec<progress::Priority> {
-    vec![progress::Priority {
+fn priorities() -> Vec<look::Priority> {
+    vec![look::Priority {
         id: "owner-crown".into(),
         observation: "Crown shape and foliage organization".into(),
     }]
@@ -112,24 +112,6 @@ fn assert_redacted(name: &str, envelope: &Value, images: usize) {
 }
 
 #[test]
-fn the_progress_prompt_carries_no_path_and_no_trial_key() {
-    let dir = scratch();
-    let request = progress::Request {
-        schema: progress::VERSION.into(),
-        target_species: "european-beech".into(),
-        view: "whole".into(),
-        seed: 1,
-        references: vec![still(&dir, "reference")],
-        a: still(&dir, "a"),
-        b: still(&dir, "b"),
-        priorities: priorities(),
-        owner_notes: "irregular outline".into(),
-    };
-    assert_redacted("progress-review-codex.py", &progress::envelope(&request), 3);
-    fs::remove_dir_all(dir).unwrap();
-}
-
-#[test]
 fn the_contact_sheet_prompt_carries_no_path_and_no_trial_key() {
     let dir = scratch();
     let current = still(&dir, "current");
@@ -148,7 +130,7 @@ fn the_contact_sheet_prompt_carries_no_path_and_no_trial_key() {
         "irregular outline",
     )
     .unwrap();
-    assert_redacted("contact-sheet-codex.py", &sheet::envelope(&plan.request), 4);
+    assert_redacted("contact-sheet.py", &sheet::envelope(&plan.request), 4);
     // The redacted renders are numbered, in the order the sheet shows them.
     let redacted = sheet::prompt_request(&plan.request);
     assert_eq!(redacted["renders"][0]["label"], json!("1"));

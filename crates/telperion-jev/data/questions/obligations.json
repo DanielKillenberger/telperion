@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "inspected_image": {
     "type": "noul",
     "instructions": "Does `observation` describe what someone saw in the image itself, rather than a page caption, a catalogue listing, or a description assembled from the literature?",
@@ -10,10 +10,18 @@
   },
   "measurement_not_invention": {
     "type": "noul",
-    "instructions": "Is `value_statement` a measurement a source reports, with `source_excerpt` as the source text behind it, rather than an estimate, a rounding, a composition or an author's guess?",
+    "instructions": "Is `value_statement` a measurement a source reports, of `field` when the state names one, with `source_excerpt` as the source text behind it, rather than an estimate, a rounding, a composition or an author's guess?",
     "criteria": {
       "true": "The source reports the value as observed or measured on real trees, and the statement repeats it",
-      "false": "The value is composed, extrapolated, interpolated, rounded, doubled, anchored, assumed or otherwise produced by the author rather than measured"
+      "false": "The value is composed, extrapolated, interpolated, rounded, doubled, anchored, assumed or otherwise produced by the author rather than measured, or it measures something other than `field`"
+    }
+  },
+  "appearance_supported": {
+    "type": "noul",
+    "instructions": "`sentence` is copied from a source about one species. Does it describe the plant's `trait` as `level`, whose meaning `summary` gives? Judge only what the sentence says.",
+    "criteria": {
+      "true": "The sentence states this trait of the plant, and what it states fits the level's summary",
+      "false": "The sentence does not state this trait, states a different level of it, or is page navigation, a listing or text about something else"
     }
   }
 }

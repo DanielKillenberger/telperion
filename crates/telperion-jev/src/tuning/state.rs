@@ -49,6 +49,10 @@ pub struct Visual {
     /// here. Empty under any other visual protocol.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub coverage: Vec<TraitStatus>,
+    /// The traits the generator cannot draw yet that the request named, with
+    /// the reviewer's defects against them; left out of readiness (fn-136).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub known_gaps: Vec<super::unexpressed::KnownGap>,
 }
 
 /// One reference-first trait and what the reviewer made of it.
@@ -67,6 +71,26 @@ pub enum CellStatus {
     Unknown,
 }
 
+/// The findings that keep a tree from ready: a blocker, a required unknown
+/// or an uncertain support, unless the reviewer tied it to a known gap.
+pub fn blocking_findings(assessment: &Visual) -> Vec<&super::joint::Finding> {
+    use super::joint::Impact;
+    let known = |f: &super::joint::Finding| {
+        f.trait_id
+            .as_ref()
+            .is_some_and(|id| assessment.known_gaps.iter().any(|g| &g.trait_id == id))
+    };
+    assessment
+        .findings
+        .iter()
+        .filter(|f| {
+            matches!(f.impact, Impact::Blocker | Impact::RequiredUnknown)
+                || (f.impact == Impact::Supported && f.uncertain)
+        })
+        .filter(|f| !known(f))
+        .collect()
+}
+
 pub fn ready(required: &[Cell], identity: &str, assessment: &Visual) -> bool {
     !required.is_empty()
         && !identity.is_empty()
@@ -74,12 +98,7 @@ pub fn ready(required: &[Cell], identity: &str, assessment: &Visual) -> bool {
         && !assessment.model.is_empty()
         && !assessment.ledger.is_empty()
         && assessment.defects.is_empty()
-        && !assessment.findings.iter().any(|f| {
-            matches!(
-                f.impact,
-                super::joint::Impact::Blocker | super::joint::Impact::RequiredUnknown
-            ) || (f.impact == super::joint::Impact::Supported && f.uncertain)
-        })
+        && blocking_findings(assessment).is_empty()
         && assessment.joint.as_ref().is_none_or(|p| {
             !p.inputs
                 .iter()
@@ -102,84 +121,32 @@ pub fn ready(required: &[Cell], identity: &str, assessment: &Visual) -> bool {
             == required.len()
 }
 
-/// Reservations are charged before dispatch and persisted, including interrupted work.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// What a revision spent. Spend is always counted and never capped: what
+/// ends a loop that keeps spending and keeps nothing is the no-progress stop
+/// (`runaway`), never a cap (fn-149).
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Budget {
+    #[serde(default)]
     pub evaluations: u64,
+    #[serde(default)]
     pub images: u64,
+    #[serde(default)]
     pub tokens: u64,
+    #[serde(default)]
     pub rounds: u64,
-    pub max_evaluations: u64,
-    pub max_images: u64,
-    pub max_tokens: u64,
-    pub max_rounds: u64,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub visual_passes: Option<u64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub max_visual_passes: Option<u64>,
+    #[serde(default)]
+    pub visual_passes: u64,
 }
 
 impl Budget {
-    /// An opening balance carried from audited prior spend must already fit its
-    /// own caps; otherwise the first reservation would fail with prior cost
-    /// silently blamed on this run.
-    pub fn validate(&self) -> Result<(), String> {
-        if self.evaluations > self.max_evaluations
-            || self.images > self.max_images
-            || self.tokens > self.max_tokens
-            || self.rounds > self.max_rounds
-            || self
-                .visual_passes
-                .zip(self.max_visual_passes)
-                .is_some_and(|(used, cap)| used > cap)
-        {
-            return Err("opening balance exceeds its own caps".into());
-        }
-        Ok(())
+    pub fn reserve_visual(&mut self) {
+        self.visual_passes = self.visual_passes.saturating_add(1);
     }
-    pub fn reserve_visual(&mut self) -> Result<(), String> {
-        let next = self
-            .visual_passes
-            .ok_or("visual usage requires reconciliation")?
-            .checked_add(1)
-            .ok_or("visual usage overflow")?;
-        if next > self.max_visual_passes.ok_or("missing visual ceiling")? {
-            return Err("visual pass limit exhausted".into());
-        }
-        self.visual_passes = Some(next);
-        Ok(())
-    }
-    pub fn reserve(
-        &mut self,
-        evaluations: u64,
-        images: u64,
-        tokens: u64,
-        rounds: u64,
-    ) -> Result<(), String> {
-        let next = [
-            self.evaluations.checked_add(evaluations),
-            self.images.checked_add(images),
-            self.tokens.checked_add(tokens),
-            self.rounds.checked_add(rounds),
-        ];
-        let limits = [
-            self.max_evaluations,
-            self.max_images,
-            self.max_tokens,
-            self.max_rounds,
-        ];
-        if next
-            .iter()
-            .zip(limits)
-            .any(|(v, limit)| v.is_none_or(|v| v > limit))
-        {
-            return Err("hard budget exhausted".into());
-        }
-        self.evaluations = next[0].unwrap();
-        self.images = next[1].unwrap();
-        self.tokens = next[2].unwrap();
-        self.rounds = next[3].unwrap();
-        Ok(())
+    pub fn reserve(&mut self, evaluations: u64, images: u64, tokens: u64, rounds: u64) {
+        self.evaluations = self.evaluations.saturating_add(evaluations);
+        self.images = self.images.saturating_add(images);
+        self.tokens = self.tokens.saturating_add(tokens);
+        self.rounds = self.rounds.saturating_add(rounds);
     }
 }

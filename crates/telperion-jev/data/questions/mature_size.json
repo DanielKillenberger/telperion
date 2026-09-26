@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "mature_size": {
+    "type": "score",
+    "instructions": "Given `requirement` and the `evidence` sentences from every admitted source that name its organ or dimension, with the tallies code laid out in `counts`, how well do the sources state the size `requirement.field` names for a mature plant of this taxon, using only the numbers the sentences state? No age is asked: a typical mature value or range is the evidence.",
+    "criteria": [
+      {
+        "summary": "None: no sentence states this dimension of a mature plant of this taxon as a number; the sentences name the organ but give another dimension or another organ, a size at an age, a growth rate, or no number",
+        "signals": [
+          "the length is stated where the width is asked",
+          "a description with no number"
+        ]
+      },
+      {
+        "summary": "Proxy only: this dimension is stated only as a maximum the plant can reach, such as up to or can grow to, or only for another taxon, a named cultivar, an offshoot or a young plant",
+        "signals": [
+          "up to or can grow to",
+          "cultivar or another species only"
+        ]
+      },
+      {
+        "summary": "Partial: one source states a typical mature value or range of this dimension for this taxon",
+        "signals": [
+          "one source states the size"
+        ]
+      },
+      {
+        "summary": "Sufficient: two or more sources each state a typical mature value or range of this dimension for this taxon",
+        "signals": [
+          "several sources state the size"
+        ]
+      }
+    ]
+  },
+  "mature_gap": {
+    "type": "choice",
+    "instructions": "What is the main reason the `evidence` falls short of stating `requirement.field` for a mature plant of `requirement.taxon`, if it does?",
+    "criteria": {
+      "no_mature_size": "No sentence states this dimension as a number for a mature plant",
+      "bound_only": "The dimension is stated only as a maximum the plant can reach",
+      "wrong_taxon": "The dimension is stated only for another taxon, a named cultivar, an offshoot or a young plant",
+      "single_source": "Only one source states a typical mature value or range",
+      "none": "The evidence meets the requirement"
+    }
+  }
+}

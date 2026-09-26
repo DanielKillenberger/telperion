@@ -17,7 +17,7 @@ use telperion_jev::pipeline::canon::{read_json, write_canonical};
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::known::KnownSources;
 use telperion_jev::pipeline::stage::{Context, Paths, StageError};
-use telperion_jev::pipeline::stages::{discover, fetch, report};
+use telperion_jev::pipeline::stages::{discover, fetch};
 
 const ERTRAGSTAFELN: &str = "https://www.forstpraxis.de/sites/forstpraxis.de/files/2023-07/AFZ_FHJ_Kalender_2024_306_318_Ertragstafeln_ste_OK.pdf";
 const OSU: &str = "https://landscapeplants.oregonstate.edu/plants/fraxinus-excelsior";
@@ -25,6 +25,8 @@ const MOBOT: &str = "https://plantfinder.mobot.org/PlantFinderDetails.aspx?taxon
 /// A source an earlier run failed on and then retried: known, without an error.
 const RETRIED: &str = "https://www.tree-guide.com/ash";
 const TLS_ERROR: &str = "fetch failed for https://plantfinder.mobot.org/PlantFinderDetails.aspx?taxonid=282928: Connection Failed: tls connection init failed: invalid peer certificate: UnknownIssuer";
+/// A source only a proof run's raw scratch names.
+const RAW_ONLY: &str = "https://example.test/raw-ash";
 const HEIGHT_QUERY: &str = "Fraxinus excelsior height at age, open grown";
 const DBH_QUERY: &str = "Fraxinus excelsior trunk diameter at breast height at age, open grown";
 
@@ -158,9 +160,11 @@ impl Run {
         }
     }
 
-    /// An evidence tree with the spruce manifest that admits the extract for
-    /// height and diameter, a manifest whose run recorded the MoBot page as
-    /// unavailable, and a spec citing a URL in its research section.
+    /// An evidence tree with an earlier ash manifest that admits the extract
+    /// for height and whose run recorded the MoBot page as unavailable, and
+    /// what the ash must never see (owner, 2026-09-25): the spruce manifest,
+    /// an ash manifest under a proof run's `raw/`, and a spec citing a method
+    /// paper in its research section.
     fn known_tree(flow: &Path) {
         let spruce = flow.join("evidence/fn58/validation/norway-spruce");
         fs::create_dir_all(&spruce).unwrap();
@@ -174,8 +178,16 @@ impl Run {
         fs::create_dir_all(&earlier).unwrap();
         let mut manifest = seed();
         manifest["species"] = json!("earlier-ash");
-        manifest["sources"] = json!([source("M1", MOBOT, vec![]), source("O1", RETRIED, vec![])]);
+        manifest["sources"] = json!([
+            source("E1", ERTRAGSTAFELN, vec![table(Some("Esche"))]),
+            source("M1", MOBOT, vec![]),
+            source("O1", RETRIED, vec![])
+        ]);
         write_manifest(&earlier, &manifest);
+        let raw = flow.join("evidence/beech-proof/raw/ash-proof");
+        fs::create_dir_all(&raw).unwrap();
+        manifest["sources"] = json!([source("R9", RAW_ONLY, vec![])]);
+        write_manifest(&raw, &manifest);
         write_canonical(
             &earlier.join("decisions.json"),
             &json!({"schema": "decisions", "schema_version": 1, "decisions": [{
@@ -347,21 +359,21 @@ fn admitting_the_manifest_does_not_rerun_discovery_and_a_seed_edit_does() {
 
 /// R2: each option on unavailable-source changes the next fetch as it says
 /// and records the consuming stage; an option no stage consumes and a
-/// replace-source without a url are refused by name.
+/// replace-source without a url are refused by name; a retry that fails
+/// again reopens the decision (fn-130).
 #[test]
 fn each_unavailable_source_option_changes_the_next_fetch_and_the_rest_are_refused() {
     let run = Run::new();
     run.discover().unwrap();
     let admission = run.admit(&admitted(Some("Esche"), vec![source("M1", MOBOT, vec![])]));
     run.resolve(vec![admission.clone()]);
-    let err = run.fetch().unwrap_err().to_string();
-    assert!(
-        err.starts_with(
-            "fetch: unavailable-source european-ash/fetch/unavailable-source/M1: fetch failed for"
-        ),
-        "{err}"
-    );
     let id = "european-ash/fetch/unavailable-source/M1";
+    assert!(matches!(run.fetch().unwrap(), fetch::Outcome::Ran { decisions } if decisions == [id]));
+    let error = run.decision(id)["payload"]["error"].clone();
+    assert!(
+        error.as_str().unwrap().starts_with("fetch failed for"),
+        "{error}"
+    );
 
     let refused = run.resolution(id, "ignore", Value::Null);
     run.resolve(vec![admission.clone(), refused]);
@@ -399,12 +411,9 @@ fn each_unavailable_source_option_changes_the_next_fetch_and_the_rest_are_refuse
 
     let retry = run.resolution(id, "retry", Value::Null);
     run.resolve(vec![admission, retry]);
-    let err = run.fetch().unwrap_err().to_string();
-    assert!(
-        err.contains("unavailable-source european-ash/fetch/unavailable-source/M1"),
-        "{err}"
-    );
-    assert_eq!(run.decision(id)["consumed_by"], "fetch");
+    assert!(matches!(run.fetch().unwrap(), fetch::Outcome::Ran { .. }));
+    assert!(run.fetch_body()["sources"].get("M1").is_none());
+    assert_eq!(run.decision(id)["status"], "open");
 }
 
 /// R3: the merged table files coverage-gap at 31 against 11, a missing block
@@ -503,10 +512,14 @@ fn discovery_lists_the_repository_sources_first_and_never_proposes_one_with_a_fe
     let urls: Vec<&str> = known.sources.iter().map(|s| s.url.as_str()).collect();
     assert!(urls.contains(&ERTRAGSTAFELN), "{urls:?}");
     assert!(urls.contains(&MOBOT), "{urls:?}");
-    assert!(
-        urls.contains(&"https://algorithmicbotany.org/papers/selforg.sig2009.html"),
-        "{urls:?}"
-    );
+    // Another species, a spec's method paper and raw evidence are never known.
+    for never in [
+        "https://hortnews.extension.iastate.edu/norway-spruce",
+        "https://algorithmicbotany.org/papers/selforg.sig2009.html",
+        RAW_ONLY,
+    ] {
+        assert!(!urls.contains(&never), "{never}: {urls:?}");
+    }
     let for_height: Vec<&str> = known
         .for_field("height_m")
         .iter()
@@ -578,7 +591,8 @@ fn discovery_lists_the_repository_sources_first_and_never_proposes_one_with_a_fe
 }
 
 /// R5's error case: a page the store rejects files unavailable-source with
-/// the adapter's error verbatim, and nothing is fetched in its place.
+/// the adapter's error verbatim, nothing is fetched in its place, and the
+/// other sources are still fetched (fn-130).
 #[test]
 fn a_page_the_store_rejects_files_unavailable_source_with_the_error_verbatim() {
     let run = Run::new();
@@ -586,22 +600,23 @@ fn a_page_the_store_rejects_files_unavailable_source_with_the_error_verbatim() {
     run.resolve(vec![
         run.admit(&admitted(Some("Esche"), vec![source("M1", MOBOT, vec![])]))
     ]);
-    let err = run.fetch().unwrap_err().to_string();
+    run.fetch().unwrap();
     let decision = run.decision("european-ash/fetch/unavailable-source/M1");
     assert_eq!(decision["status"], "open");
     let recorded = decision["payload"]["error"].as_str().unwrap();
-    assert!(err.ends_with(recorded), "{err}\n{recorded}");
     assert!(
         recorded.starts_with("fetch failed for https://plantfinder.mobot.org/"),
         "{recorded}"
     );
-    assert!(!run.dir.join("fetch.json").exists());
+    let sources = &run.fetch_body()["sources"];
+    assert!(sources.get("M1").is_none());
+    assert!(sources.get("E1").is_some() && sources.get("O1").is_some());
 }
 
-/// R6: the report lists Firecrawl credits and Jev calls per stage and in
-/// total, and a rerun from the recorded seed shows one discovery.
+/// R6: every artifact records what its stage spent, Firecrawl credits and
+/// Jev calls, and a rerun from the recorded seed shows one discovery.
 #[test]
-fn the_report_sums_cost_per_stage_and_a_rerun_shows_one_discovery() {
+fn every_artifact_records_its_cost_and_a_rerun_shows_one_discovery() {
     let run = Run::new();
     run.discover().unwrap();
     run.resolve(vec![run.admit(&admitted(Some("Esche"), vec![]))]);
@@ -611,10 +626,6 @@ fn the_report_sums_cost_per_stage_and_a_rerun_shows_one_discovery() {
         discover::Outcome::Current
     ));
     assert!(matches!(run.fetch().unwrap(), fetch::Outcome::Current));
-    assert!(matches!(
-        report::run(&run.paths()).unwrap(),
-        report::Outcome::Ran { .. }
-    ));
 
     let discover_cost = read_json(&run.dir.join("discover.json")).unwrap()["cost"].clone();
     assert_eq!(discover_cost["runs"], 1);
@@ -625,22 +636,13 @@ fn the_report_sums_cost_per_stage_and_a_rerun_shows_one_discovery() {
         .as_str()
         .unwrap()
         .starts_with("estimated"));
-
-    let costs = read_json(&run.dir.join("report.json")).unwrap()["body"]["costs"].clone();
-    assert_eq!(costs["stages"]["discover"], discover_cost);
+    let fetch_cost = read_json(&run.dir.join("fetch.json")).unwrap()["cost"].clone();
     // Two scrapes and one PDF parse.
-    assert_eq!(costs["stages"]["fetch"]["firecrawl_credits"], 3);
-    assert_eq!(costs["stages"]["fetch"]["jev_calls"], 0);
-    assert_eq!(costs["total"]["firecrawl_credits"], 7);
-    assert_eq!(costs["total"]["jev_calls"], 2);
-    assert_eq!(costs["total"]["runs"], 2);
-    let page = fs::read_to_string(run.dir.join("report.md")).unwrap();
-    assert!(page.contains("## Cost"), "{page}");
-    assert!(page.contains("| discover | 1 | 4 |"), "{page}");
-    assert!(page.contains("| total | 2 | 7 |"), "{page}");
+    assert_eq!(fetch_cost["firecrawl_credits"], 3);
+    assert_eq!(fetch_cost["jev_calls"], 0);
 
-    // The stage reports itself current and the rejected proposal stops fetch.
-    let (ctx, _) = Context::open(&run.paths(), "report").unwrap();
+    // The rejected proposal stops fetch.
+    let (ctx, _) = Context::open(&run.paths(), "fetch").unwrap();
     assert_eq!(ctx.decisions.len(), 1);
     run.resolve(vec![run.resolution(
         "european-ash/discover/manifest-proposed",

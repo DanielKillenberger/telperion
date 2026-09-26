@@ -12,9 +12,8 @@ use telperion_jev::sha256_hex;
 use common::{ledger_dir, CaseTransport};
 
 #[test]
-fn screen_scores_twelve_of_twelve_and_o1_is_a_site_criterion() {
+fn screen_scores_every_labelled_case_and_o1_is_a_site_criterion() {
     let cases = screen_cases();
-    assert_eq!(cases.len(), 12);
     let mut hits = 0;
     let mut o1_kind = None;
     for case in &cases {
@@ -46,8 +45,24 @@ fn screen_scores_twelve_of_twelve_and_o1_is_a_site_criterion() {
         }
         hits += 1;
     }
-    assert_eq!(hits, 12);
+    assert_eq!(hits, cases.len());
     assert_eq!(o1_kind.as_deref(), Some("site_quality_criterion"));
+}
+
+/// fn-131 R9: every class the screen offers, the organ sizes and the
+/// cultivar among them, has a labelled case, and the no-match class stays.
+#[test]
+fn every_screen_class_has_a_labelled_case_and_a_no_match_remains() {
+    let questions = telperion_jev::screen_questions();
+    let classes = questions["kind"]["criteria"].as_object().unwrap();
+    assert!(classes.contains_key("not_about_tree_size"));
+    let cases = screen_cases();
+    for class in classes.keys() {
+        assert!(
+            cases.iter().any(|c| &c.expect_kind == class),
+            "no labelled case for {class}"
+        );
+    }
 }
 
 #[test]

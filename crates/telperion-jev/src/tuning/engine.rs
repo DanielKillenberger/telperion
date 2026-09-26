@@ -1,8 +1,10 @@
-//! One bounded species run. Capability repair is returned to fn-89, never dispatched here.
+//! One tuning revision: rounds over the live dials until a round keeps
+//! nothing. Nothing here asks permission; a revision ends, and the runner's
+//! Gaps and Accept stages read what it left.
 use super::{
-    actions::{candidate, Action, Dial},
-    continuation::{self, Basis, Pause},
+    actions::{Action, Dial},
     evaluation::Trial,
+    priority::Approval,
     state::{ready, Budget, Cell, Visual},
 };
 use serde::{Deserialize, Serialize};
@@ -77,29 +79,6 @@ pub trait Services {
     fn proposal_tokens(&self, _state: &Run) -> u64 {
         4000
     }
-    /// What decides between the current tree and a candidate.
-    fn selection(&self) -> super::progress::Selection {
-        super::progress::Selection::Score
-    }
-    fn progress_request(
-        &self,
-        _state: &Run,
-        _current: usize,
-        _candidate: usize,
-        _priorities: &[super::priority::Gap],
-    ) -> Result<super::progress::Look, String> {
-        Err("progress review unavailable".into())
-    }
-    fn progress_tokens(&self, _request: &super::progress::Request) -> u64 {
-        0
-    }
-    fn progress(
-        &mut self,
-        _request: &super::progress::Request,
-        _side: &str,
-    ) -> Result<Answer<super::progress::Verdict>, String> {
-        Err("progress review unavailable".into())
-    }
     /// The strengths one bundle is drawn at, as multiples of each dial's own
     /// authored small step.
     fn bundle_strengths(&self) -> Vec<f64> {
@@ -112,6 +91,29 @@ pub trait Services {
     /// The tracks a round runs, in order. Empty is one track over every dial.
     fn tracks(&self) -> Vec<super::bundle::Track> {
         vec![]
+    }
+    /// The reference-first inventory, when the run carries one.
+    fn inventory(&self) -> Result<Option<super::reference_first::Inventory>, String> {
+        Ok(None)
+    }
+    /// Traits the generator cannot draw yet; one going backwards never vetoes.
+    fn unexpressed(&self) -> Vec<super::unexpressed::Unexpressed> {
+        vec![]
+    }
+    /// The gap class an owner priority carries in the config. Asks nobody.
+    fn owner_magnitude(&self, _priority: &str) -> Option<super::stride::Class> {
+        None
+    }
+    /// Whether the gap-magnitude question can be asked at all. Without it
+    /// every round draws the ladder as configured.
+    fn offers_gap_magnitude(&self) -> bool {
+        false
+    }
+    fn gap_magnitude_tokens(&self, _state: &Value) -> u64 {
+        2000
+    }
+    fn gap_magnitude(&mut self, _state: &Value) -> Result<Answer<super::stride::Judged>, String> {
+        Err("gap-magnitude question unavailable".into())
     }
     /// Two stills per view, as any matched capture costs.
     fn capture_images(&self, views: &[String]) -> u64 {
@@ -153,29 +155,13 @@ pub trait Services {
     fn side_effects(&mut self, _state: &Value) -> Result<Answer<super::veto::Judged>, String> {
         Err("side-effect question unavailable".into())
     }
-    fn continuation_tokens(&self, _basis: &Basis) -> u64 {
-        2000
-    }
-    fn evidence_tokens(&self, _state: &Value) -> u64 {
-        2000
-    }
-    fn route_tokens(&self, _state: &Run) -> u64 {
-        2000
-    }
-    /// The exact state value this service will transmit for each judgment.
-    fn route_state(&self, state: &Run) -> Value {
-        super::judgments::summary(state)
-    }
     fn proposal_state(&self, state: &Run) -> Value {
         super::judgments::proposal_state(state)
     }
     /// The question set the router was shown, used to quote the chosen criterion.
-    /// How many candidates one round may evaluate.
-    fn max_candidates(&self) -> u64 {
-        super::live::CANDIDATE_LIMIT
-    }
-    fn route_questions(&self, state: &Run) -> Value {
-        super::judgments::routes(&Default::default(), state.approved_priorities())
+    /// Consecutive rounds that keep nothing before the run pauses as a runaway.
+    fn runaway_rounds(&self) -> u64 {
+        super::runaway::ROUNDS
     }
     fn evaluation_images(&self) -> u64;
     fn visual_images(&self, trial: &Trial) -> u64;
@@ -190,17 +176,12 @@ pub trait Services {
         ledger: Option<String>,
     ) -> Trial;
     fn visual(&mut self, trial: &Trial) -> Result<Answer<Visual>, String>;
-    /// The pre-dispatch judgment, now the risk question alone.
-    fn risk(&mut self, basis: &Basis) -> Result<Answer<String>, String>;
-    /// The uncalibrated evidence-difference question, asked only after a stall.
-    fn evidence(&mut self, state: &Value) -> Result<Answer<String>, String>;
     /// How many calls the dial table is asked in. One unless the config caps
     /// the questions per call.
     fn proposal_batches(&self, _state: &Run) -> usize {
         1
     }
     fn propose(&mut self, state: &Run, batch: usize) -> Result<Answer<Vec<Proposal>>, String>;
-    fn route(&mut self, state: &Run) -> Result<Answer<Vec<super::handoff::PriorityRoute>>, String>;
 }
 
 pub use super::judgments::JudgmentInput;
@@ -220,18 +201,19 @@ pub struct Run {
     pub trials: Vec<Trial>,
     pub current: Option<usize>,
     pub visual: Option<Visual>,
-    pub pause: Option<Pause>,
+    /// Why the revision stopped before a round kept nothing, if it did.
+    pub stopped: Option<String>,
     pub machine_ready: bool,
     pub pending: Option<String>,
     pub routes: Vec<String>,
-    #[serde(default)]
-    pub authorizations: Vec<continuation::HumanDecision>,
+    /// The objectives the revision tunes toward: the latest checkpoint's
+    /// proposal, taken as it stands.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub approval: Option<Approval>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub preparation_charge: Option<super::reference_first::PreparationCharge>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub priority_checkpoints: Vec<super::priority::Checkpoint>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub handoffs: Vec<super::handoff::Handoff>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub judgment_inputs: Vec<JudgmentInput>,
     /// The reviewer has not been shown to pass an owner-accepted tree, so this
@@ -242,66 +224,35 @@ pub struct Run {
     /// prompt for an owner look, not readiness.
     #[serde(default)]
     pub reviewer_passed_unqualified: bool,
-}
-
-fn merge(target: &mut Value, patch: &Value) {
-    if let (Some(target), Some(patch)) = (target.as_object_mut(), patch.as_object()) {
-        for (key, value) in patch {
-            match target.get_mut(key) {
-                Some(old) if old.is_object() && value.is_object() => merge(old, value),
-                _ => {
-                    target.insert(key.clone(), value.clone());
-                }
-            }
-        }
-    }
+    /// Per track, the gap class its stride may not exceed and the class its
+    /// last adopted bundle was drawn at.
+    #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
+    pub strides: std::collections::BTreeMap<String, super::stride::Standing>,
+    /// The trailing rounds that kept nothing, and the spend they opened on.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub unkept: Option<super::runaway::Streak>,
 }
 
 impl Run {
     pub fn priority_scope(&self, references: &[super::evaluation::Image]) -> String {
         super::priority::scope(&self.preset, &self.owner_notes, &self.required, references)
     }
-    pub fn approved_priorities(&self) -> Option<&super::priority::Approval> {
+    pub fn approved_priorities(&self) -> Option<&Approval> {
         let checkpoint = self.priority_checkpoints.last()?;
-        self.authorizations
-            .iter()
-            .rev()
-            .filter_map(|d| d.priority_approval.as_ref())
-            .find(|a| a.checkpoint_sha256 == checkpoint.hash())
+        self.approval
+            .as_ref()
+            .filter(|a| a.checkpoint_sha256 == checkpoint.hash())
+    }
+    /// Evidence this revision measured, as opposed to a record it was handed.
+    pub fn measured_here(&self, identity: &str) -> bool {
+        identity == self.identity
     }
     pub fn required_cells(&self) -> Vec<Cell> {
         super::priority::requirements(&self.required, self.approved_priorities())
     }
-    pub fn accept_priorities(
-        &mut self,
-        decision: &continuation::HumanDecision,
-        scope: &str,
-    ) -> Result<(), String> {
-        if let Some(approval) = &decision.priority_approval {
-            if decision.by.trim().is_empty() || decision.rationale.trim().is_empty() {
-                return Err("missing owner priority attribution".into());
-            }
-            let checkpoint = self
-                .priority_checkpoints
-                .last()
-                .ok_or("no proposed priority checkpoint")?;
-            approval.verify(checkpoint, scope)?;
-            if approval.ordered.iter().any(|g| {
-                g.views
-                    .iter()
-                    .any(|v| !self.required.iter().any(|c| &c.view == v))
-            }) {
-                return Err("priority view outside configured scope".into());
-            }
-            self.machine_ready = false;
-        }
-        Ok(())
-    }
-    pub(super) fn priority_gate(
-        &mut self,
-        services: &dyn Services,
-        save: &mut dyn FnMut(&Self) -> Result<(), String>,
-    ) -> Result<bool, String> {
+    /// The objectives: a new checkpoint whenever the scope changed, and its
+    /// proposal taken as the revision's objectives.
+    pub(super) fn priority_gate(&mut self, services: &dyn Services) -> Result<(), String> {
         let references = services.priority_references();
         for image in &references {
             image.verify()?;
@@ -318,38 +269,23 @@ impl Run {
                 .ok_or("no current priority evidence")?;
             let visual = self.visual.clone().ok_or("missing initial visual review")?;
             let evidence = services.priority_evidence(trial, &visual)?;
-            self.priority_checkpoints
-                .push(super::priority::Checkpoint::new(
-                    &self.identity,
-                    &scope,
-                    visual,
-                    evidence,
-                )?);
+            let mut checkpoint =
+                super::priority::Checkpoint::new(&self.identity, &scope, visual, evidence)?;
+            super::objectives::offer(self, services, &mut checkpoint)?;
+            self.priority_checkpoints.push(checkpoint);
         }
-        if let Some(approval) = self.approved_priorities() {
-            approval.verify(self.priority_checkpoints.last().unwrap(), &scope)?;
-            return Ok(true);
+        let checkpoint = self.priority_checkpoints.last().unwrap();
+        if self.approved_priorities().is_none() {
+            self.approval = Some(Approval {
+                checkpoint_sha256: checkpoint.hash(),
+                scope_sha256: scope.clone(),
+                ordered: checkpoint.proposed.clone(),
+            });
         }
-        self.stop(
-            "Owner gap-priority review required; model readiness is not owner approval".into(),
-            "approve gap priorities",
-        );
-        self.pause.as_mut().unwrap().decision_requested="Review priority-review.json, confirm/reorder/add gaps in priority_approval, and submit a scoped --resume JSON. This chooses objectives, not mechanics or final acceptance.".into();
-        save(self)?;
-        Ok(false)
+        let approval = self.approved_priorities().unwrap();
+        approval.verify(checkpoint, &scope)?;
+        super::objectives::verify_tracks(&approval.ordered, &services.tracks())
     }
-    pub fn pilot_authority(&self) -> Result<(), String> {
-        let authority = self
-            .authorizations
-            .last()
-            .and_then(|d| d.experimental_pilot.as_ref())
-            .ok_or("magnitude live efficacy unvalidated")?;
-        if authority.visual_bootstrap != self.visual_bootstrap {
-            return Err("bootstrap run requires authority naming visual_bootstrap".into());
-        }
-        authority.verify(&self.identity, &self.budget)
-    }
-
     /// Under bootstrap a reviewer pass stops the loop for an owner look
     /// instead of finishing it.
     fn bootstrap_finalist(
@@ -361,71 +297,13 @@ impl Run {
         }
         self.stop(
             "reviewer passed all required cells; reviewer unqualified for positives (bootstrap); owner look required".into(),
-            "owner look at bootstrap finalist",
         );
         save(self)?;
         Ok(true)
     }
-    pub(super) fn stop(&mut self, reason: String, action: &str) {
+    pub(super) fn stop(&mut self, reason: String) {
         self.machine_ready = false;
-        self.pause = Some(Pause {
-            id: crate::ledger::new_entry_id(),
-            identity: self.identity.clone(),
-            reason,
-            basis: self.basis(action),
-            decision_requested: format!(
-                "Provide a scoped decision for {action}; changed evidence requires reassessment."
-            ),
-        });
-    }
-    pub(super) fn basis(&self, action: &str) -> Basis {
-        let projection = super::judgments::summary(self);
-        let mut evidence = self
-            .visual
-            .as_ref()
-            .map(|v| v.defects.clone())
-            .unwrap_or_default();
-        evidence.push(
-            serde_json::json!({
-                "current_identity":projection["current_identity"],
-                "owner_priorities":projection["owner_priorities"],
-                "visual_evidence":projection["visual"],
-                "resource_limit":projection["resource_limit"],
-            "resource_amendments":projection["resource_amendments"],
-            "agent_diagnoses":projection["agent_diagnoses"],
-            "verified_evidence_reuse":projection["verified_evidence_reuse"]
-            })
-            .to_string(),
-        );
-        Basis {
-            identity: self.identity.clone(),
-            proposed_action: action.into(),
-            evidence,
-            recent_outcomes: projection["recent_attempts"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .map(|t| t.to_string())
-                .collect(),
-            next_tokens: None,
-            estimate_basis: String::new(),
-            usage_known: self.usage_known,
-        }
-    }
-    pub fn round_basis(&self, services: &dyn Services) -> Result<Basis, String> {
-        let mut basis = self.basis("targeted tuning round");
-        basis.proposed_action = format!("One bounded round, max four single-dial candidates. Existing authored dials only: {}. Code enforces bounds/integer type, measures numeric gates/node cap BEFORE render, chooses only a lower feasible five-metric score, then separately verifies all required visual cells at fixed/fresh seeds. No generator/renderer source changes or shipped preset edits; candidate overlays only. No shipping or sweep. Stop or hand off if unsupported; at most {} remaining rounds.",
-            serde_json::to_string(&self.dials.iter().map(|d| serde_json::json!({"id":d.id,"meaning":d.meaning,"current":self.effective.pointer(&d.path),"min":d.min,"max":d.max,"integer":d.integer,"small":d.small,"substantial":d.substantial})).collect::<Vec<_>>()).unwrap(),
-            self.budget.max_rounds.saturating_sub(self.budget.rounds));
-        let mut finalist = self.trials[self.current.ok_or("no current trial")?].clone();
-        finalist.round = self.budget.rounds + 1;
-        let next = services
-            .proposal_tokens(self)
-            .checked_add(services.visual_tokens_for(&finalist, self.approved_priorities()))
-            .ok_or("reservation overflow")?;
-        basis.next_tokens = Some(next);
-        basis.estimate_basis = format!("proposal serialized-request bound {} + all-cell visual reservation {}; actual usage may exceed estimate and then pauses", services.proposal_tokens(self), services.visual_tokens_for(&finalist,self.approved_priorities()));
-        Ok(basis)
+        self.stopped = Some(reason);
     }
     pub(super) fn reserve(
         &mut self,
@@ -436,27 +314,9 @@ impl Run {
         label: &str,
         save: &mut dyn FnMut(&Self) -> Result<(), String>,
     ) -> Result<(), String> {
-        self.verify_diagnoses()?;
-        self.budget.reserve(evaluations, images, tokens, rounds)?;
+        self.budget.reserve(evaluations, images, tokens, rounds);
         self.pending = Some(label.into());
-        save(self)?;
-        self.verify_diagnoses()
-    }
-    pub fn verify_diagnoses(&self) -> Result<(), String> {
-        let mut count = 0;
-        for d in self
-            .authorizations
-            .iter()
-            .filter_map(|a| a.diagnosis.as_ref())
-            .filter(|d| d.target_identity == self.identity)
-        {
-            count += d.findings.len();
-            if count > 8 {
-                return Err("active diagnosis finding bound exceeded".into());
-            }
-            d.verify(&self.identity)?;
-        }
-        Ok(())
+        save(self)
     }
     pub(super) fn settle<T>(&mut self, answer: Answer<T>, reserved: u64) -> Result<T, String> {
         let Some(actual) = answer.tokens else {
@@ -471,7 +331,7 @@ impl Run {
             .ok_or("usage overflow")?;
         self.pending = None;
         self.record_ledger(answer.ledger);
-        if actual > reserved || self.budget.tokens > self.budget.max_tokens {
+        if actual > reserved {
             return Err("judgment exceeded reservation".into());
         }
         Ok(answer.value)
@@ -481,7 +341,6 @@ impl Run {
         services: &mut dyn Services,
         save: &mut dyn FnMut(&Self) -> Result<(), String>,
     ) -> Result<(), String> {
-        self.verify_diagnoses()?;
         let trial = self.trials[self.current.ok_or("no feasible current candidate")?].clone();
         let scope = services.priority_scope(self);
         let approval = self
@@ -493,18 +352,11 @@ impl Run {
         }
         let required = super::priority::requirements(&self.required, approval.as_ref());
         let allowance = services.visual_tokens_for(&trial, approval.as_ref());
-        let mut budget = self.budget.clone();
-        budget.reserve_visual()?;
-        budget.reserve(
-            0,
-            services.visual_images_for(&trial, &required, approval.as_ref()),
-            allowance,
-            0,
-        )?;
-        self.budget = budget;
+        self.budget.reserve_visual();
+        let images = services.visual_images_for(&trial, &required, approval.as_ref());
+        self.budget.reserve(0, images, allowance, 0);
         self.pending = Some("visual assessment".into());
         save(self)?;
-        self.verify_diagnoses()?;
         let answer = services.visual_for(&trial, &required, approval.as_ref())?;
         let visual = self.settle(answer, allowance)?;
         let passed = approval.is_some() && ready(&required, &trial.key, &visual);
@@ -520,19 +372,8 @@ impl Run {
         services: &mut dyn Services,
         save: &mut dyn FnMut(&Self) -> Result<(), String>,
     ) -> Result<(), String> {
-        if self.pause.is_some() {
-            return Err("run paused; scoped resume decision required".into());
-        }
-        if self.pending.is_some() {
-            self.stop(
-                "interrupted attempt; reservation retained".into(),
-                "reconcile interrupted attempt",
-            );
-            return save(self);
-        }
-        let result = self.execute_inner(services, save);
-        if let Err(reason) = result {
-            self.stop(reason, "reassess or diagnose");
+        if let Err(reason) = self.execute_inner(services, save) {
+            self.stop(reason);
             save(self)?;
         }
         Ok(())
@@ -542,7 +383,6 @@ impl Run {
         services: &mut dyn Services,
         save: &mut dyn FnMut(&Self) -> Result<(), String>,
     ) -> Result<(), String> {
-        self.verify_diagnoses()?;
         let expected = services.preparation()?;
         super::reference_first::verify_preparation(
             expected.as_ref(),
@@ -564,9 +404,7 @@ impl Run {
         if self.visual.is_none() {
             self.assess(services, save)?;
         }
-        if !self.priority_gate(services, save)? {
-            return Ok(());
-        }
+        self.priority_gate(services)?;
         let required = self.required_cells();
         if self.visual.as_ref().is_none_or(|v| {
             required
@@ -586,48 +424,12 @@ impl Run {
             return Ok(());
         }
         while !self.machine_ready {
-            if !self.priority_gate(services, save)? {
-                return Ok(());
+            self.priority_gate(services)?;
+            if super::look::objectives(self).is_empty() {
+                return Err("no objective to tune toward".into());
             }
-            if self
-                .budget
-                .visual_passes
-                .zip(self.budget.max_visual_passes)
-                .is_none_or(|(used, cap)| used >= cap)
-            {
-                return Err("visual pass limit exhausted before routing".into());
-            }
-            if self.budget.rounds >= self.budget.max_rounds {
-                return Err("hard round limit exhausted before routing".into());
-            }
-            let basis = self.round_basis(services)?;
-            let per_priority = self.approved_priorities().map_or(0, |a| a.ordered.len()) as u64;
-            let planned = basis
-                .next_tokens
-                .unwrap()
-                .checked_add(services.continuation_tokens(&basis))
-                .and_then(|n| n.checked_add(services.route_tokens(self)))
-                .and_then(|n| {
-                    n.checked_add(
-                        services
-                            .continuation_tokens(&basis)
-                            .checked_mul(per_priority)?,
-                    )
-                })
-                .ok_or("reservation overflow")?;
-            if self
-                .budget
-                .tokens
-                .checked_add(planned)
-                .is_none_or(|n| n > self.budget.max_tokens)
-            {
-                return Err(format!(
-                    "round preflight cannot fit: need {planned} tokens before any dispatch"
-                ));
-            }
-            self.route_remaining(services, save)?;
-            // Code owns the round boundary; only a repeat after a stall asks.
-            self.settle_round_boundary(services, save)?;
+            self.runaway(services.runaway_rounds())?;
+            let opening = super::runaway::Spend::of(&self.budget);
             // Each batch of dials is its own reserved, settled and persisted
             // judgment; the round is charged once.
             let mut proposals = vec![];
@@ -646,113 +448,10 @@ impl Run {
                     .total_cmp(&a.direction_mass.unwrap_or(0.))
             });
             // One bundle of every dial Jev supported, judged on one sheet.
-            if services.selection() == super::progress::Selection::Bundle {
-                let kept = super::bundle::round(self, proposals, services, save)?;
-                if kept && self.bootstrap_finalist(save)? {
-                    return Ok(());
-                }
-                if kept && self.machine_ready {
-                    break;
-                }
-                continue;
-            }
-            let (mut proposals, repeats) = self.filter_repeats(proposals);
-            if proposals.is_empty() {
-                return Err(if repeats > 0 {
-                    "no supported proposal: every supported move was already tried on this candidate"
-                        .into()
-                } else {
-                    "no supported proposal; bounded diagnosis required".to_string()
-                });
-            }
-            proposals.truncate(services.max_candidates() as usize);
-            if proposals.len() > 4 {
-                return Err("more than four proposals refused".into());
-            }
-            let old = self.current.unwrap();
-            let mut best = old;
-            let mut best_effective = self.effective.clone();
-            let mut reviewed = vec![];
-            for proposal in proposals {
-                let dial = self
-                    .dials
-                    .iter()
-                    .find(|d| d.id == proposal.dial)
-                    .ok_or("unsupported dial")?;
-                let patch = match candidate(&self.preset, &self.effective, dial, proposal.action) {
-                    Ok(p) => p,
-                    Err(reason) => {
-                        self.routes
-                            .push(format!("invalid proposal {}: {reason}", proposal.dial));
-                        continue;
-                    }
-                };
-                let mut overrides = self.overrides.clone();
-                merge(&mut overrides, &patch);
-                self.reserve(
-                    1,
-                    services.evaluation_images(),
-                    0,
-                    0,
-                    "candidate evaluation",
-                    save,
-                )?;
-                let mut trial = services.evaluate(
-                    overrides,
-                    self.budget.rounds,
-                    &proposal.dial,
-                    Some(proposal.ledger),
-                );
-                // What this attempt moved, from where, and on what evidence.
-                trial.base = Some(self.trials[old].key.clone());
-                trial.action = Some(proposal.action);
-                trial.direction_mass = proposal.direction_mass;
-                trial.rule = proposal.rule.clone();
-                trial.evidence = self.visual.as_ref().map(|v| v.ledger.clone());
-                self.pending = None;
-                if trial.feasible
-                    && trial
-                        .score
-                        .zip(self.trials[best].score)
-                        .is_some_and(|(s, b)| s < b)
-                {
-                    best = self.trials.len();
-                    best_effective = self.effective.clone();
-                    merge(&mut best_effective, &patch);
-                }
-                let index = self.trials.len();
-                self.trials.push(trial);
-                save(self)?;
-                if !services.selection().is_score() && self.trials[index].feasible {
-                    super::progress::review(self, services, save, old, index)?;
-                    let mut effective = self.effective.clone();
-                    merge(&mut effective, &patch);
-                    reviewed.push((index, effective));
-                }
-            }
-            let Some((best, best_effective)) = super::progress::chosen(
-                self,
-                services.selection(),
-                (old, best, best_effective),
-                reviewed,
-            ) else {
-                self.routes
-                    .push(super::progress::stall(services.selection()));
-                save(self)?;
-                continue;
-            };
-            let restore = super::veto::restore_point(self);
-            self.current = Some(best);
-            self.effective = best_effective;
-            self.overrides = self.trials[best].overrides.clone();
-            self.assess(services, save)?;
-            // The look that follows the move can take it back.
-            super::veto::settle(self, services, save, restore, best)?;
-            if self.bootstrap_finalist(save)? {
+            let kept = super::bundle::round(self, proposals, services, save)?;
+            self.close_round(kept, opening, save)?;
+            if kept && self.bootstrap_finalist(save)? {
                 return Ok(());
-            }
-            if self.machine_ready {
-                break;
             }
         }
         save(self)

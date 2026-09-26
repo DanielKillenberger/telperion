@@ -1,0 +1,96 @@
+{
+  "version": 2,
+  "set_from": "fn-118 host design of 2026-09-23: the fields a manifest at schema_version 2 must ask the literature for, per growth form, and the lowest sufficiency bar each must reach. The bar is this table's, not the manifest author's. Size fields at partial where the literature publishes sizes at age (height, trunk diameter); crown and organ sizes at proxy_only. Each appearance trait's levels are coarse named ranges of the MaterialParams fields it feeds, in linear reflectance for colours, BRDF roughness for bark roughness and offsets about no change for the hue and brightness ranges; the no-match level `unstated` is appended by code. fn-127 (2026-09-23): crown width and the organ sizes are `mature`, judged on a stated mature value or range with no required age; height and trunk diameter stay age-indexed. fn-128 (2026-09-23): each appearance trait carries the words a source sentence must hold to be judged for it; each such sentence is judged alone. fn-131 (2026-09-23): each field names the screen kinds a row must carry to count for it, an organ size by its organ class and a named cultivar's size toward the species; a term matches a whole word or its plural, and height counts a size a tree reaches. fn-132 (2026-09-23, the owner's choice for palms): a field is asked one of three ways, `age` (sizes at the required ages, the default), `mature` (a stated mature value or range) or `rate` (a stated growth rate, a size per year); a growth form may ask a field otherwise than the field's own way. The palm asks its height growth rate and its mature height and trunk diameter, since palm literature gives growth rates and mature ranges and a palm grows near-linearly; its trunk diameter bar is proxy_only, because the only trunk sentence the literature gives is a bound (A1: up to ½ m). Broadleaf and conifer keep height and trunk diameter at age. fn-133 (2026-09-24, the owner's choice of growth rate plus mature range for palms): a mature range is scored as a bound, so the palm asks its mature height at proxy_only like its trunk diameter; an appearance variation trait (a level whose every range holds zero width) that every source leaves unstated takes that zero-width level as a default, never a sourced value. fn-149 (2026-09-25, host): a first run asks what sources hold, so broadleaf and conifer ask height, trunk diameter and crown base `mature` too (mature trees are the product; age curves serve the hidden growth path), and height and trunk diameter at proxy_only, since a mature range scores as a bound (as fn-133 did for the palm).",
+  "fields": {
+    "height_m": {"terms": ["height", "tall", "high", "reaches", "reaching", "grows to"], "kinds": ["measured_size_at_age", "mature_size_range", "cultivar_size"]},
+    "dbh_m": {"terms": ["diameter", "dbh", "trunk", "girth", "dg"], "kinds": ["measured_size_at_age", "mature_size_range", "cultivar_size"]},
+    "crown_width_m": {"terms": ["crown", "spread", "width", "wide"], "asked": "mature", "kinds": ["measured_size_at_age", "mature_size_range", "cultivar_size"]},
+    "crown_base_m": {"terms": ["crown base", "clear bole", "lowest branch", "bole"], "kinds": ["measured_size_at_age", "mature_size_range", "cultivar_size"]},
+    "leaf_length_m": {"terms": ["leaf", "leaves", "blade"], "asked": "mature", "kinds": ["leaf_size", "cultivar_size"]},
+    "leaf_width_m": {"terms": ["leaf", "leaves", "blade"], "asked": "mature", "kinds": ["leaf_size", "cultivar_size"]},
+    "needle_length_m": {"terms": ["needle"], "asked": "mature", "kinds": ["needle_size", "cultivar_size"]},
+    "frond_length_m": {"terms": ["frond", "leaf", "leaves"], "asked": "mature", "kinds": ["frond_size", "cultivar_size"]},
+    "leaflet_length_m": {"terms": ["leaflet", "pinna", "pinnae"], "asked": "mature", "kinds": ["leaflet_size", "cultivar_size"]},
+    "leaflet_width_m": {"terms": ["leaflet", "pinna", "pinnae"], "asked": "mature", "kinds": ["leaflet_size", "cultivar_size"]},
+    "height_growth_m_per_year": {"terms": ["growth rate", "a year", "per year", "per annum", "annually", "each year", "yearly"], "asked": "rate", "kinds": ["typical_growth_rate"]}
+  },
+  "appearance": {
+    "bark_colour": {
+      "terms": ["bark", "trunk", "stem"],
+      "feeds": ["bark_red", "bark_green", "bark_blue"],
+      "levels": [
+        {"key": "white", "summary": "White, chalky or papery pale bark", "ranges": {"bark_red": [0.6, 0.85], "bark_green": [0.58, 0.83], "bark_blue": [0.52, 0.78]}},
+        {"key": "pale_grey", "summary": "Light, silvery or pale grey bark", "ranges": {"bark_red": [0.35, 0.6], "bark_green": [0.33, 0.58], "bark_blue": [0.3, 0.55]}},
+        {"key": "grey", "summary": "Mid grey bark", "ranges": {"bark_red": [0.15, 0.35], "bark_green": [0.14, 0.33], "bark_blue": [0.12, 0.3]}},
+        {"key": "grey_brown", "summary": "Greyish brown or brownish grey bark", "ranges": {"bark_red": [0.12, 0.25], "bark_green": [0.1, 0.2], "bark_blue": [0.07, 0.16]}},
+        {"key": "brown", "summary": "Brown, red-brown or orange-brown bark", "ranges": {"bark_red": [0.08, 0.2], "bark_green": [0.05, 0.13], "bark_blue": [0.03, 0.09]}},
+        {"key": "dark", "summary": "Very dark, blackish bark", "ranges": {"bark_red": [0.02, 0.08], "bark_green": [0.02, 0.08], "bark_blue": [0.02, 0.08]}}
+      ]
+    },
+    "bark_roughness": {
+      "terms": ["bark", "trunk", "stem"],
+      "feeds": ["bark_roughness"],
+      "levels": [
+        {"key": "smooth", "summary": "Smooth bark with a slight sheen", "ranges": {"bark_roughness": [0.7, 0.85]}},
+        {"key": "matte", "summary": "Dull, scaly or finely rough bark", "ranges": {"bark_roughness": [0.85, 0.93]}},
+        {"key": "rough", "summary": "Rough, fibrous, fissured or coarsely scaled bark", "ranges": {"bark_roughness": [0.93, 1.0]}}
+      ]
+    },
+    "leaf_front_colour": {
+      "terms": ["leaf", "leaves", "foliage", "frond", "needle", "pinna"],
+      "feeds": ["leaf_front_red", "leaf_front_green", "leaf_front_blue"],
+      "levels": [
+        {"key": "dark_green", "summary": "Dark or deep green upper face", "ranges": {"leaf_front_red": [0.01, 0.04], "leaf_front_green": [0.04, 0.08], "leaf_front_blue": [0.01, 0.04]}},
+        {"key": "mid_green", "summary": "Mid or plain green upper face", "ranges": {"leaf_front_red": [0.02, 0.06], "leaf_front_green": [0.08, 0.14], "leaf_front_blue": [0.01, 0.05]}},
+        {"key": "light_green", "summary": "Light or bright green upper face", "ranges": {"leaf_front_red": [0.06, 0.14], "leaf_front_green": [0.14, 0.25], "leaf_front_blue": [0.03, 0.08]}},
+        {"key": "grey_green", "summary": "Grey-green, blue-green or glaucous upper face", "ranges": {"leaf_front_red": [0.08, 0.16], "leaf_front_green": [0.12, 0.2], "leaf_front_blue": [0.08, 0.14]}},
+        {"key": "yellow_green", "summary": "Yellow-green upper face", "ranges": {"leaf_front_red": [0.1, 0.2], "leaf_front_green": [0.18, 0.3], "leaf_front_blue": [0.02, 0.06]}}
+      ]
+    },
+    "leaf_back_colour": {
+      "terms": ["leaf", "leaves", "foliage", "frond", "needle", "pinna", "underside", "beneath"],
+      "feeds": ["leaf_back_red", "leaf_back_green", "leaf_back_blue"],
+      "levels": [
+        {"key": "green", "summary": "Underside green, about as dark as the upper face", "ranges": {"leaf_back_red": [0.03, 0.1], "leaf_back_green": [0.08, 0.18], "leaf_back_blue": [0.02, 0.08]}},
+        {"key": "pale_green", "summary": "Underside a paler green than the upper face", "ranges": {"leaf_back_red": [0.1, 0.22], "leaf_back_green": [0.18, 0.3], "leaf_back_blue": [0.08, 0.16]}},
+        {"key": "grey_green", "summary": "Underside grey-green, blue-green or glaucous", "ranges": {"leaf_back_red": [0.12, 0.22], "leaf_back_green": [0.16, 0.26], "leaf_back_blue": [0.12, 0.2]}},
+        {"key": "silvery_white", "summary": "Underside silvery, white or felted pale", "ranges": {"leaf_back_red": [0.3, 0.5], "leaf_back_green": [0.32, 0.52], "leaf_back_blue": [0.3, 0.5]}}
+      ]
+    },
+    "leaf_hue_range": {
+      "terms": ["leaf", "leaves", "foliage", "frond", "needle", "pinna"],
+      "feeds": ["hue_range_low", "hue_range_high"],
+      "levels": [
+        {"key": "uniform", "summary": "Leaves of one even colour across the crown", "ranges": {"hue_range_low": [-0.015, 0.0], "hue_range_high": [0.0, 0.015]}},
+        {"key": "varied", "summary": "Leaves varying somewhat in colour across the crown", "ranges": {"hue_range_low": [-0.04, -0.015], "hue_range_high": [0.015, 0.04]}},
+        {"key": "strongly_varied", "summary": "Leaves of clearly different colours, mottled or yellowing among green", "ranges": {"hue_range_low": [-0.08, -0.04], "hue_range_high": [0.04, 0.08]}}
+      ]
+    },
+    "leaf_brightness_range": {
+      "terms": ["leaf", "leaves", "foliage", "frond", "needle", "pinna"],
+      "feeds": ["brightness_range_low", "brightness_range_high"],
+      "levels": [
+        {"key": "uniform", "summary": "Leaves of one even lightness across the crown", "ranges": {"brightness_range_low": [-0.08, 0.0], "brightness_range_high": [0.0, 0.08]}},
+        {"key": "varied", "summary": "Leaves somewhat lighter and darker across the crown", "ranges": {"brightness_range_low": [-0.16, -0.08], "brightness_range_high": [0.08, 0.16]}},
+        {"key": "strongly_varied", "summary": "Leaves clearly lighter and darker, sun and shade leaves contrasting", "ranges": {"brightness_range_low": [-0.3, -0.16], "brightness_range_high": [0.16, 0.3]}}
+      ]
+    }
+  },
+  "growth_forms": {
+    "broadleaf": {
+      "fields": {"height_m": "proxy_only", "dbh_m": "proxy_only", "crown_width_m": "proxy_only", "crown_base_m": "proxy_only", "leaf_length_m": "proxy_only", "leaf_width_m": "proxy_only"},
+      "asked": {"height_m": "mature", "dbh_m": "mature", "crown_base_m": "mature"},
+      "appearance": ["bark_colour", "bark_roughness", "leaf_front_colour", "leaf_back_colour", "leaf_hue_range", "leaf_brightness_range"]
+    },
+    "conifer": {
+      "fields": {"height_m": "proxy_only", "dbh_m": "proxy_only", "crown_width_m": "proxy_only", "crown_base_m": "proxy_only", "needle_length_m": "proxy_only"},
+      "asked": {"height_m": "mature", "dbh_m": "mature", "crown_base_m": "mature"},
+      "appearance": ["bark_colour", "bark_roughness", "leaf_front_colour", "leaf_back_colour", "leaf_hue_range", "leaf_brightness_range"]
+    },
+    "palm": {
+      "fields": {"height_m": "proxy_only", "height_growth_m_per_year": "partial", "dbh_m": "proxy_only", "crown_width_m": "proxy_only", "frond_length_m": "proxy_only", "leaflet_length_m": "proxy_only", "leaflet_width_m": "proxy_only"},
+      "asked": {"height_m": "mature", "dbh_m": "mature"},
+      "appearance": ["bark_colour", "bark_roughness", "leaf_front_colour", "leaf_back_colour", "leaf_hue_range", "leaf_brightness_range"]
+    }
+  }
+}

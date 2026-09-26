@@ -1,0 +1,216 @@
+{
+  "effort": "medium",
+  "ledger": ".flow/evidence/fn-80-the-gap-loops-first-live-run/vision-ledger/18d7ad33de82dcf3-171cdb-0.json#sha256:0e5a81f13de46db8e860caec8e577b4be8105f9498030649a726455f9da57cfc",
+  "model": "opus",
+  "observations": [
+    "Three references are treated as independent specimens; no assumption is made that any two show the same individual or a change over time.",
+    "reference-0 is a distant full-tree view at low sun with strong colour grading; fine trunk and leaflet detail is not resolvable there and is only inferred at silhouette level.",
+    "reference-1 and reference-2 are close views of the mid-trunk and lower crown; neither shows the tree base or the whole crown outline, and neither shows fruit.",
+    "No reference shows the ground-level root zone in detail, flowers/inflorescences at anthesis, offshoots or suckers, or the underside of a frond in detail; these remain unobserved rather than absent.",
+    "Fruit colour (orange to orange-red) is observed only in reference-0 and represents a single maturity state; other ripeness colours are not evidenced here.",
+    "The foliage colour difference between references (deep green vs. grey-glaucous) is recorded as an observation; lighting, processing, maturity, and taxon/cultivar identity are all candidate causes and none is established by the images.",
+    "Epiphytic ferns and vines on the trunk are observed features of the scene in reference-1/2, not necessarily characteristic of the species.",
+    "Background context differs (waterside rice fields and village in reference-0; mown turf and broadleaf trees in reference-1/2) and carries no weight for morphology.",
+    "Neighbouring palms are partly visible at the frame edges of reference-1 and reference-2; traits were read from the central subject only.",
+    "No photorealism or pixel-level correspondence is required or claimed; traits are described at the level of recognisable structure."
+  ],
+  "prompt_sha256": "b977396bce80653bb49b01ba0711ae5f59325eab09c2c5a681f87fff43ab3911",
+  "request": {
+    "protocol": "reference-first-v1",
+    "references": [
+      {
+        "id": "reference-0",
+        "image": {
+          "path": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.refs/fn80/date-palm/whole.jpg",
+          "seed": 1,
+          "sha256": "4c3ed7951624006bf924397f23506609936bb4653a6f7ff14437780eb8639e35",
+          "view": "P-WHOLE"
+        }
+      },
+      {
+        "id": "reference-1",
+        "image": {
+          "path": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.refs/fn80/date-palm/trunk.jpg",
+          "seed": 1,
+          "sha256": "80b187a41158be29fb690e1b05d110517e3a99f297c5581993e7d780636eaf51",
+          "view": "P-TRUNK"
+        }
+      },
+      {
+        "id": "reference-2",
+        "image": {
+          "path": "/home/daniel/Projects/telperion/.worktrees/fn-80-the-gap-loops-first-live-run/.refs/fn80/date-palm/base.jpg",
+          "seed": 1,
+          "sha256": "4476c0befef84cd1565f8fbcbb2a764287d03ab396cc70e46b749e0d3d3c33db",
+          "view": "P-BASE"
+        }
+      }
+    ],
+    "specimen_relationship": "unknown",
+    "target_species": "date-palm"
+  },
+  "request_sha256": "a6ed5b9682f2fb6a462786aae1dc6133b5352735e9a81fdeb4df2cca1f8a513b",
+  "traits": [
+    {
+      "id": "crown-pinnate-arching-fronds",
+      "observation": "Crown composed of many long once-pinnate (feather) fronds radiating from a single apical point, each frond arching outward and downward so the outline of the crown reads as a rounded hemisphere to shuttlecock shape; frond count per crown appears high (roughly 30-60 visible), with the newest fronds held stiffly upward near the center and older ones progressively more recurved.",
+      "priority": "core",
+      "reference_ids": [
+        "reference-0",
+        "reference-1"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "leaflet-arrangement-stiff-narrow",
+      "observation": "Leaflets are narrow, stiff, linear-lanceolate and taper to sharp points; they are inserted along the rachis in groups and at differing angles so the frond has a plumose/V-sectioned look rather than a flat plane. Leaflet tips appear rigid and spreading, giving the frond margin a bristly silhouette.",
+      "priority": "core",
+      "reference_ids": [
+        "reference-0",
+        "reference-1",
+        "reference-2"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "trunk-leaf-base-diamond-pattern",
+      "observation": "Trunk surface is covered in persistent cut or broken leaf-base stubs arranged in a spiral, tessellating into a diamond/rhomboid lattice; each stub is a blunt wedge projecting several centimetres from the trunk with a flat, angular outer face. The pattern is coarse and irregular in reference-1/2 and reads as a finer knobbly texture at distance in reference-0.",
+      "priority": "core",
+      "reference_ids": [
+        "reference-1",
+        "reference-2",
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "trunk-fibrous-matting",
+      "observation": "Between and behind the leaf-base stubs the trunk is packed with coarse reddish-brown fibre and shredded husk, forming a shaggy matted layer that fills the interstices of the diamond lattice.",
+      "priority": "core",
+      "reference_ids": [
+        "reference-1",
+        "reference-2"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "solitary-columnar-stem",
+      "observation": "A single unbranched columnar stem of roughly constant diameter carries the crown; no branching is visible anywhere along the stem in any reference.",
+      "priority": "core",
+      "reference_ids": [
+        "reference-0",
+        "reference-1",
+        "reference-2"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "fruit-clusters-pendent",
+      "observation": "Heavy pendent fruiting bunches hang from below the crown on thick stalks that emerge among the frond bases and bend downward; the fruit mass is dense, composed of many small ellipsoid fruits, and coloured saturated orange to orange-red. Two to three such bunches are visible on one crown.",
+      "priority": "core",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "dead-frond-skirt",
+      "observation": "Beneath the living crown hangs a collar of dead and dying fronds, brown to grey, collapsed downward against the upper trunk and partly obscuring it; the transition from green living fronds to brown dead fronds is abrupt in reference-0.",
+      "priority": "secondary",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "frond-colour-range",
+      "observation": "Foliage colour differs across the references: deep saturated green in reference-0 versus a pale grey-green to blue-glaucous cast in reference-1 and reference-2. Both appear as plausible foliage states; lighting (overcast sunset vs. direct midday sun) and possible cultivar or taxon difference are separate candidate causes and cannot be distinguished from the images.",
+      "priority": "variation",
+      "reference_ids": [
+        "reference-0",
+        "reference-1",
+        "reference-2"
+      ],
+      "uncertain": true
+    },
+    {
+      "id": "petiole-base-orange-sheath",
+      "observation": "At the crown apex the emerging leaf bases show pale green to yellow-green petioles with patches of rust-orange fibrous sheath material and reddish-brown tones where the bases are cut or broken.",
+      "priority": "secondary",
+      "reference_ids": [
+        "reference-1"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "trunk-lean-and-curve",
+      "observation": "Trunk posture varies: strongly leaning and S-curved, meeting the ground at a pronounced angle with a swollen curved basal region in reference-0, versus essentially vertical and straight in reference-1 and reference-2. Both are within the visible range for this form.",
+      "priority": "variation",
+      "reference_ids": [
+        "reference-0",
+        "reference-1",
+        "reference-2"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "epiphytes-on-trunk",
+      "observation": "Bright yellow-green ferns with narrow pinnate fronds grow out of the leaf-base pockets over a wide band of the trunk, rooted in the fibrous matting; also small vines/seedlings lower down. Present in reference-1 and reference-2 only, absent in reference-0.",
+      "priority": "variation",
+      "reference_ids": [
+        "reference-1",
+        "reference-2"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "trunk-colour-and-weathering",
+      "observation": "Trunk colour ranges from mid grey-brown to warm reddish-brown; stub faces are lighter and greyer than the surrounding fibre, some bleached to pale grey, consistent with weathered exposed surfaces. Lower trunk in reference-0 reads more uniformly grey-brown with a finer texture than the coarse stubs shown close up.",
+      "priority": "secondary",
+      "reference_ids": [
+        "reference-0",
+        "reference-1",
+        "reference-2"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "basal-flare",
+      "observation": "Where the trunk meets the ground in reference-0 it widens into a broad rooted base merging into the soil mound; no clear detail of root boss or offshoots is resolvable at this scale.",
+      "priority": "secondary",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": true
+    },
+    {
+      "id": "crown-shaft-absent",
+      "observation": "No smooth green crownshaft is visible; living frond bases sit directly on the stub-covered trunk with no clean columnar sheath between crown and trunk.",
+      "priority": "secondary",
+      "reference_ids": [
+        "reference-1"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "basal-leaflet-spines",
+      "observation": "Near the proximal end of the fronds the leaflets appear reduced to stiff, isolated, spine-like structures spaced along the petiole, though resolution limits confident separation of true spines from short rigid leaflets.",
+      "priority": "secondary",
+      "reference_ids": [
+        "reference-1",
+        "reference-2"
+      ],
+      "uncertain": true
+    },
+    {
+      "id": "crown-silhouette-proportions",
+      "observation": "Crown diameter is large relative to trunk diameter (crown spread appears several times the trunk width) and the frond length is a substantial fraction of the visible trunk length in reference-0; exact ratios vary with viewing distance and cannot be measured reliably.",
+      "priority": "variation",
+      "reference_ids": [
+        "reference-0",
+        "reference-1"
+      ],
+      "uncertain": true
+    }
+  ]
+}

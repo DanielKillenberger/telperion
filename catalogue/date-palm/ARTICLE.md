@@ -1,6 +1,6 @@
 ---
 species: date-palm
-written: 2026-09-24
+written: 2026-09-25
 sources: [F1, A1, M1, P4, P5, P6, P7, P8, R1, R2]
 inputs:
   packet/profile.json: 821be06554583cb69675849592e790221e3339f20423b2adc0c4a313cf006190
@@ -67,6 +67,25 @@ The record holds no qualitative description of the trunk surface itself, such as
 Leaves are pinnate, borne on an armed petiole carrying narrow spines, with the blade split into multiple, single-folded, induplicate leaflets. [M1](sources/M1.md)
 The source that measured this species' cultivars recorded each frond's color, length and width, the length of its pinnated and spined parts, the length, width and count of its pinnae, and the length and count of its spines. [M1](sources/M1.md)
 The record does not state how many fronds a mature crown carries or how long each is retained before shedding; the extension sheet that would give that practical detail has no passage captured here. [F1](sources/F1.md)
+
+<!-- generated: appearance -->
+| Trait | Level | Described as | Material field | Range | Sources |
+|---|---|---|---|---|---|
+| bark_colour | grey | Mid grey bark | bark_blue | 0.12 to 0.3 | A1 |
+| bark_colour | grey | Mid grey bark | bark_green | 0.14 to 0.33 | A1 |
+| bark_colour | grey | Mid grey bark | bark_red | 0.15 to 0.35 | A1 |
+| bark_roughness | rough | Rough, fibrous, fissured or coarsely scaled bark | bark_roughness | 0.93 to 1 | A1 |
+| leaf_back_colour | grey_green | Grey-green, blue-green or glaucous upper face | leaf_back_blue | 0.08 to 0.14 | F1 |
+| leaf_back_colour | grey_green | Grey-green, blue-green or glaucous upper face | leaf_back_green | 0.12 to 0.2 | F1 |
+| leaf_back_colour | grey_green | Grey-green, blue-green or glaucous upper face | leaf_back_red | 0.08 to 0.16 | F1 |
+| leaf_brightness_range | uniform | Leaves of one even lightness across the crown | brightness_range_high | 0 to 0.08 | none cited |
+| leaf_brightness_range | uniform | Leaves of one even lightness across the crown | brightness_range_low | -0.08 to 0 | none cited |
+| leaf_front_colour | grey_green | Grey-green, blue-green or glaucous upper face | leaf_front_blue | 0.08 to 0.14 | F1 |
+| leaf_front_colour | grey_green | Grey-green, blue-green or glaucous upper face | leaf_front_green | 0.12 to 0.2 | F1 |
+| leaf_front_colour | grey_green | Grey-green, blue-green or glaucous upper face | leaf_front_red | 0.08 to 0.16 | F1 |
+| leaf_hue_range | varied | Leaves varying somewhat in colour across the crown | hue_range_high | 0.015 to 0.04 | F1 |
+| leaf_hue_range | varied | Leaves varying somewhat in colour across the crown | hue_range_low | -0.04 to -0.015 | F1 |
+<!-- /generated -->
 
 ## What the record does not know
 

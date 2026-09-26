@@ -42,6 +42,13 @@ runs:
         for package in $PACKAGES; do
           packages+=(-p "$package")
         done
+        # jev's replay test draws with the render examples the workspace gate
+        # builds; a jev-only partition builds them first.
+        if [[ " $PACKAGES " == *" telperion-jev "* ]]; then
+          cargo build --profile ci -p telperion-core --example species_measure \
+            --example geometry_benchmark
+          cargo build --profile ci -p telperion-render --example headless
+        fi
         cargo nextest run --cargo-profile ci "${packages[@]}" --no-fail-fast \
           ${PARTITION:+--partition "$PARTITION"}
 

@@ -11,7 +11,6 @@ use telperion_jev::pipeline::adapter::FixtureAdapter;
 use telperion_jev::pipeline::canon::read_json;
 use telperion_jev::pipeline::stage::{Context, Paths};
 use telperion_jev::pipeline::stages::{fetch, fit, inputs};
-use telperion_jev::pipeline::swap;
 
 fn validation_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.flow/evidence/fn58/validation")
@@ -142,18 +141,15 @@ fn the_fit_over_the_fixtures_reproduces_fn30_for_the_oak_and_the_spruce() {
 }
 
 /// Two isolated directories over the same fixtures and manifest produce
-/// byte-identical decision lists, the comparison the swap test makes.
+/// byte-identical decision lists and fit records.
 #[test]
 fn two_isolated_runs_over_the_same_fixtures_compare_identical() {
     let left = prepare("oregon-white-oak");
     let right = prepare("oregon-white-oak");
     fit::run(&Paths::new(&left)).unwrap();
     fit::run(&Paths::new(&right)).unwrap();
-    let comparison = swap::compare(&left, &right);
-    assert!(
-        comparison.passed(),
-        "{}",
-        swap::format_comparison(&comparison)
-    );
-    assert!(comparison.identical.contains(&"decisions.json".to_string()));
+    for file in ["decisions.json", "fit.json"] {
+        let bytes = |dir: &std::path::Path| std::fs::read(dir.join(file)).unwrap();
+        assert_eq!(bytes(&left), bytes(&right), "{file}");
+    }
 }

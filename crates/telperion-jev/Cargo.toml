@@ -10,16 +10,12 @@ name = "jev"
 path = "src/bin/jev.rs"
 
 [[bin]]
-name = "species-pipeline"
-path = "src/bin/species_pipeline.rs"
+name = "species"
+path = "src/bin/species.rs"
 
-[[bin]]
-name = "tuning-loop"
-path = "src/bin/tuning_loop.rs"
-
-[[bin]]
-name = "species-conductor"
-path = "src/bin/species_conductor.rs"
+[build-dependencies]
+# The build identity digest (src/pipeline/tree_digest.rs).
+sha2 = "0.10"
 
 [dependencies]
 regex = "1"

@@ -1,0 +1,61 @@
+{
+  "authorizations": [],
+  "budget": {
+    "attempt_max_tokens": 200000,
+    "jev_calls": 0,
+    "max_dispatches": 6,
+    "max_tokens": 2000000,
+    "max_tuning_revisions": 2,
+    "tokens": 0,
+    "usage_known": true
+  },
+  "dependencies": [],
+  "dispatches": [
+    {
+      "dependency": null,
+      "design_revision": null,
+      "effort": "default",
+      "id": "dispatch-1",
+      "input_identity": "bc0b4894fd7af96fbe6d720d76e99bec14c06ac0a0c048b20da2482dd12948e0",
+      "judgments": [],
+      "opened_at": "2026-09-22T11:07:11Z",
+      "reserved_tokens": 200000,
+      "result": {
+        "actual_effort": "default",
+        "actual_model": "claude-sonnet-5",
+        "cost_usd": null,
+        "design_revision": null,
+        "failure": null,
+        "finished_at": "2026-09-22T11:10:25Z",
+        "handoff": null,
+        "input_identity": "bc0b4894fd7af96fbe6d720d76e99bec14c06ac0a0c048b20da2482dd12948e0",
+        "observed": "gap route returned proceed, choosing register-date-palm-reachable-values (row 10, table version 1); the loop resolved the gap-fix decision itself and filed date-palm/gap/gap-fix/gate-onboarding-gate-capability.",
+        "outcome": "verified",
+        "usage": {
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "verification": "verified",
+        "wall_ms": null
+      },
+      "role": "routine",
+      "route": "routine",
+      "scope": "gap-loop:date-palm/gate/onboarding-gate/capability: open, write the options, route; report the spec it minted in observed, or failure with the route",
+      "tier": "cheap"
+    }
+  ],
+  "gap_checks": {},
+  "pause": null,
+  "policy_version": 1,
+  "resumes": 0,
+  "routes": [],
+  "schema": "conductor-run",
+  "schema_version": 1,
+  "spec": "fn-82-date-palm-as-a-real-species",
+  "species": "date-palm",
+  "stage_fingerprint": null,
+  "started_at": "2026-09-22T11:06:36Z",
+  "tuning": [],
+  "updated_at": "2026-09-22T11:10:25Z",
+  "waits": []
+}

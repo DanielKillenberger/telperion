@@ -9,7 +9,7 @@ use telperion_jev::tuning::{
     bundle,
     engine::Proposal,
     evaluation::{Comparison, Image, Trial},
-    progress::Priority,
+    look::Priority,
     sheet::{self, Answer, Break, Grade, Movement, PriorityAnswer, Step},
 };
 
@@ -28,6 +28,8 @@ fn dial(id: &str, path: &str, min: f64, max: f64, small: f64, integer: bool) -> 
         meaning_basis: None,
         range_basis: None,
         source: None,
+        preset_span: None,
+        cap: None,
     }
 }
 
@@ -696,12 +698,13 @@ fn variant(key: &str, label: &str, strength: f64, images: Vec<Image>) -> Trial {
         evidence: None,
         direction_mass: None,
         rule: None,
-        progress: None,
         adopted_over: vec![],
         bundle: None,
         parent_bundle: None,
         sheet: None,
         vetoed: None,
+        adopted: false,
+        step: None,
     };
     trial.bundle = Some(bundle::Bundle {
         strength,
@@ -723,6 +726,7 @@ fn gap() -> telperion_jev::tuning::priority::Gap {
         observation: "Crown shape and foliage organization".into(),
         evidence_ids: vec!["render-0".into()],
         views: vec!["whole".into()],
+        track: None,
     }
 }
 

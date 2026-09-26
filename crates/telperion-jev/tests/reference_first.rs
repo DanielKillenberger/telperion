@@ -5,6 +5,8 @@ use telperion_jev::{
         joint::{Finding, Impact, Packet},
         reference_first::*,
         state::{ready, CellStatus},
+        unexpressed::Unexpressed,
+        veto::worsened,
         vision,
     },
 };
@@ -84,6 +86,7 @@ fn coverage_unknown_and_positive_finish_are_enforced() {
         impact: Impact::Supported,
         uncertain: false,
         causal_hypothesis: None,
+        trait_id: None,
     };
     let visual:vision::Result=serde_json::from_value(json!({"request_sha256":r.hash(),"assessment":{"identity":r.identity,"model":"mock","ledger":"receipt","cells":[[r.required[0],"pass"]],"defects":[],"findings":[finding]},"effort":"medium","usage":{"input_tokens":1,"output_tokens":1},"observations":[]})).unwrap();
     let base = ComparisonResult {
@@ -102,40 +105,6 @@ fn coverage_unknown_and_positive_finish_are_enforced() {
     good.bind(&request).unwrap();
     assert_eq!(first_bound, serde_json::to_value(&good).unwrap());
     assert!(ready(&r.required, &r.identity, &good.visual.assessment));
-    let replay = Replay {
-        schema: "reference-first-replay-v1".into(),
-        model: "mock".into(),
-        effort: "medium".into(),
-        protocol_sha256: sha256_hex(b"adapter"),
-        cases: vec![ReplayCase {
-            id: "positive".into(),
-            provenance: "authored positive control, not model calibration".into(),
-            expected_ready: true,
-            request: request.clone(),
-        }],
-    };
-    let bytes = serde_json::to_vec(&replay).unwrap();
-    let receipt = ReplayResult {
-        manifest_sha256: sha256_hex(&bytes),
-        results: vec![base.clone()],
-    };
-    assert_eq!(
-        replay_score(&bytes, &receipt).unwrap().1.false_rejections,
-        0
-    );
-    let mut wrong_role = replay.clone();
-    wrong_role.cases[0].request.inventory.model = "another-model".into();
-    let role_bytes = serde_json::to_vec(&wrong_role).unwrap();
-    let mut role_result = receipt.clone();
-    role_result.manifest_sha256 = sha256_hex(&role_bytes);
-    role_result.results[0].request_sha256 = wrong_role.cases[0].request.hash();
-    assert!(replay_score(&role_bytes, &role_result).is_err());
-    let mut legacy = serde_json::to_value(&replay).unwrap();
-    legacy["schema"] = json!("tuning-vision-v3");
-    let bytes = serde_json::to_vec(&legacy).unwrap();
-    let mut legacy_result = receipt.clone();
-    legacy_result.manifest_sha256 = sha256_hex(&bytes);
-    assert!(replay_score(&bytes, &legacy_result).is_err());
     assert!(good
         .visual
         .assessment
@@ -147,6 +116,20 @@ fn coverage_unknown_and_positive_finish_are_enforced() {
         bad.coverage[0].status = status;
         bad.bind(&request).unwrap();
         assert!(!ready(&r.required, &r.identity, &bad.visual.assessment));
+        // Listing the core trait as one the generator cannot draw yet keeps
+        // the adoption; the tree still does not read ready.
+        let listed = [Unexpressed {
+            trait_id: "trait-1".into(),
+            spec: "fn-111".into(),
+        }];
+        let kept = worsened(
+            &good.visual.assessment,
+            &bad.visual.assessment,
+            &r.required,
+            &listed,
+        );
+        assert!(kept.reasons.is_empty(), "{kept:?}");
+        assert_eq!(kept.notes.len(), usize::from(status == CellStatus::Fail));
         assert_eq!(
             bad.visual.assessment.cells, base.visual.assessment.cells,
             "global coverage does not rewrite per-view observations"
@@ -181,10 +164,26 @@ fn coverage_unknown_and_positive_finish_are_enforced() {
     wrong_source.request_sha256 = two.hash();
     wrong_source.visual.request_sha256 = two.comparison.hash();
     wrong_source.coverage[0].evidence_ids = vec!["render-0".into(), "reference-1".into()];
-    assert!(wrong_source.bind(&two).is_err());
+    // A pass citing none of the trait's own references is downgraded to
+    // unknown and recorded, not refused: the palm's fourth run lost a paid
+    // pass to one variation row that cited the whole-tree photograph.
+    wrong_source.bind(&two).unwrap();
+    assert_eq!(wrong_source.coverage[0].status, CellStatus::Unknown);
+    assert!(wrong_source
+        .visual
+        .observations
+        .iter()
+        .any(|o| o.starts_with("downgraded coverage row citing a different reference trait-1")));
+    assert!(!ready(
+        &r.required,
+        &r.identity,
+        &wrong_source.visual.assessment
+    ));
     let mut duplicate = base.clone();
     duplicate.coverage.push(duplicate.coverage[0].clone());
-    assert!(duplicate.bind(&request).is_err());
+    // A repeated trait row is dropped and recorded, not a refused pass (fn-80).
+    duplicate.bind(&request).unwrap();
+    assert_eq!(duplicate.coverage.len(), base.coverage.len());
     let mut uncertain_request = request.clone();
     uncertain_request.inventory.traits[0].uncertain = true;
     let mut uncertain = base.clone();
@@ -219,24 +218,21 @@ fn preparation_is_verified_charged_once_and_never_inferred_from_a_floor() {
         },
     };
     let (_, charge) = config.load("mock", "medium").unwrap();
-    let mut budget:telperion_jev::tuning::state::Budget=serde_json::from_value(json!({"evaluations":0,"images":0,"tokens":100,"rounds":0,"max_evaluations":2,"max_images":8,"max_tokens":120,"max_rounds":1,"visual_passes":0,"max_visual_passes":2})).unwrap();
+    let mut budget: telperion_jev::tuning::state::Budget = serde_json::from_value(
+        json!({"evaluations":0,"images":0,"tokens":100,"rounds":0,"visual_passes":0}),
+    )
+    .unwrap();
     let mut proof = None;
     assert!(verify_preparation(Some(&charge), proof.as_ref()).is_err());
     charge_preparation(&mut budget, &mut proof, &charge).unwrap();
     assert_eq!(budget.tokens, 110);
-    assert_eq!(budget.visual_passes, Some(1));
+    assert_eq!(budget.visual_passes, 1);
     charge_preparation(&mut budget, &mut proof, &charge).unwrap();
     assert_eq!(budget.tokens, 110);
     let mut changed = charge.clone();
     changed.preparation_sha256 = sha256_hex(b"different");
     assert!(charge_preparation(&mut budget, &mut proof, &changed).is_err());
     assert_eq!(budget.tokens, 110);
-    let mut low = budget.clone();
-    low.max_tokens = 115;
-    let mut empty = None;
-    assert!(charge_preparation(&mut low, &mut empty, &charge).is_err());
-    assert_eq!(low.tokens, 110);
-    assert!(empty.is_none());
     std::fs::write(&pp, b"changed").unwrap();
     assert!(config.load("mock", "medium").is_err());
     let mut unknown = receipt.clone();
@@ -290,29 +286,16 @@ print(json.dumps({'status':'ok','model':'mock','effort':'medium','request_sha256
     std::fs::write(&protocol, script).unwrap();
     let pin =
         |p: &std::path::Path| json!({"path":p,"sha256":sha256_hex(&std::fs::read(p).unwrap())});
-    let validation =
-        json!({"manifest":dir.join("not-qualified"),"result":dir.join("not-qualified")});
-    let mut config:Config=serde_json::from_value(json!({"preset":r.target_species,"seed":1,"initial_overrides":{},"dials":[],"owner_notes":"authoritative goal","measure_binary":protocol,"profiles":shots,"profile_id":"unused","matched":{"headless":protocol,"compare_script":protocol,"references":shots,"refs":dir,"catalogue":dir,"scratch":dir,"height":1440,"numeric_references":["whole"]},"vision":{"program":"python3","args":[protocol],"model":"mock","effort":"medium","timeout_seconds":10,"ledger":dir.join("ledger")},"references":r.references,"required":r.required,"checklist":r.checklist,"quality_anchors":r.quality_anchors,"adjustments":validation,"direction":validation,"continuation":validation,"visual_validation":validation,"vision_protocol":protocol,"reference_first":{"inventory":pin(&inv),"preparation":pin(&prep)},"convergence_run":null,"judgment_model":"mock","ledger":dir,"budget":{"evaluations":0,"images":0,"tokens":0,"rounds":0,"max_evaluations":13,"max_images":52,"max_tokens":100000,"max_rounds":3,"visual_passes":0,"max_visual_passes":5}})).unwrap();
-    std::fs::write(
-        &config.visual_validation.manifest,
-        serde_json::to_vec(&Replay {
-            schema: "reference-first-replay-v1".into(),
-            model: "mock".into(),
-            effort: "medium".into(),
-            protocol_sha256: sha256_hex(script.as_bytes()),
-            cases: vec![],
-        })
-        .unwrap(),
-    )
-    .unwrap();
+    let mut config:Config=serde_json::from_value(json!({"preset":r.target_species,"seed":1,"initial_overrides":{},"dials":[],"owner_notes":"authoritative goal","measure_binary":protocol,"profiles":shots,"profile_id":"unused","matched":{"headless":protocol,"compare_script":protocol,"references":shots,"refs":dir,"catalogue":dir,"scratch":dir,"height":1440,"numeric_references":["whole"]},"vision":{"program":"python3","args":[protocol],"model":"mock","effort":"medium","timeout_seconds":10,"ledger":dir.join("ledger")},"sheet":{"adapter":{"program":"python3","args":[protocol],"model":"mock","effort":"medium","timeout_seconds":10,"ledger":dir.join("ledger")},"protocol":protocol},"references":r.references,"required":r.required,"checklist":r.checklist,"quality_anchors":r.quality_anchors,"reference_first":{"inventory":pin(&inv),"preparation":pin(&prep)},"judgment_model":"mock","ledger":dir,"budget":{}})).unwrap();
     let identity = config.identity().unwrap();
     let trial = Trial {
-        progress: None,
         adopted_over: vec![],
         bundle: None,
         parent_bundle: None,
         sheet: None,
         vetoed: None,
+        adopted: false,
+        step: None,
         key: r.identity.clone(),
         identity: identity.clone(),
         seed: 1,
@@ -347,20 +330,6 @@ print(json.dumps({'status':'ok','model':'mock','effort':'medium','request_sha256
     let result = live.visual(&trial).unwrap();
     assert_eq!(result.tokens, Some(14));
     assert!(ready(&config.required, &trial.key, &result.value));
-    verify_convergence(
-        &config.vision,
-        config.reference_first.as_ref().unwrap(),
-        &result.value,
-    )
-    .unwrap();
-    let mut legacy = result.value.clone();
-    legacy.ledger = shots.to_string_lossy().into_owned();
-    assert!(verify_convergence(
-        &config.vision,
-        config.reference_first.as_ref().unwrap(),
-        &legacy
-    )
-    .is_err());
     assert!(result
         .value
         .observations
@@ -371,7 +340,7 @@ print(json.dumps({'status':'ok','model':'mock','effort':'medium','request_sha256
         .observations
         .iter()
         .any(|s| s.contains("literal joint observation")));
-    let mut state:telperion_jev::tuning::engine::Run=serde_json::from_value(json!({"identity":identity,"preset":"fixture","seed":1,"effective":{},"overrides":{},"dials":[],"owner_notes":"authoritative goal","required":config.required,"budget":config.budget,"usage_known":true,"trials":[],"current":null,"visual":result.value,"pause":null,"machine_ready":false,"pending":null,"routes":[]})).unwrap();
+    let mut state:telperion_jev::tuning::engine::Run=serde_json::from_value(json!({"identity":identity,"preset":"fixture","seed":1,"effective":{},"overrides":{},"dials":[],"owner_notes":"authoritative goal","required":config.required,"budget":config.budget,"usage_known":true,"trials":[],"current":null,"visual":result.value,"stopped":null,"machine_ready":false,"pending":null,"routes":[]})).unwrap();
     let projection = telperion_jev::tuning::judgments::summary(&state);
     assert!(projection["visual"]["observations"]
         .to_string()
@@ -380,68 +349,16 @@ print(json.dumps({'status':'ok','model':'mock','effort':'medium','request_sha256
     let before = state.budget.tokens;
     state.execute(&mut live, &mut |_| Ok(())).unwrap();
     assert!(state
-        .pause
+        .stopped
         .as_ref()
         .unwrap()
-        .reason
         .contains("preparation charge"));
     assert_eq!(state.budget.tokens, before);
     let mut ranked_config = config.clone();
-    ranked_config.reference_first = None;
-    let mut bark = r.images[0].clone();
-    bark.view = "bark".into();
-    ranked_config.references.push(bark.clone());
-    ranked_config
-        .required
-        .push(telperion_jev::tuning::state::Cell {
-            item: "material".into(),
-            view: "bark".into(),
-            seed: 1,
-        });
-    let ranked_script = dir.join("ranked.py");
-    std::fs::write(&ranked_script,r#"import json,sys
-e=json.load(sys.stdin);r=e['request']
-assert len(r['required'])==4 and {i['view'] for i in r['images']}=={'whole','bark'}
-assert all('leafy' not in c['item'] for c in r['required'] if c['view']=='bark')
-assert 'Owner-approved priorities' in r['checklist']
-findings=[{'observation':'Supported '+i['view'],'evidence_ids':['render-'+str(n),'reference-'+str(n)],'impact':'supported','uncertain':False,'causal_hypothesis':None} for n,i in enumerate(r['images'])]
-print(json.dumps({'request_sha256':e['request_sha256'],'assessment':{'identity':r['identity'],'model':'mock','ledger':'stub','cells':[[c,'pass'] for c in r['required']],'defects':[],'findings':findings},'effort':'medium','usage':{'input_tokens':10,'output_tokens':2},'observations':[]}))
-"#).unwrap();
-    ranked_config.vision.args = vec![ranked_script.to_string_lossy().into_owned()];
-    std::fs::write(&shots,b"{\"references\":[{\"id\":\"whole\",\"shot\":{\"foliage\":\"leaf-on\"}},{\"id\":\"bark\",\"shot\":{\"foliage\":\"hidden\"}}]}").unwrap();
-    let mut ranked_trial = trial.clone();
-    ranked_trial.round = 0;
-    let mut comparison = ranked_trial.comparisons[0].clone();
-    comparison.reference = "bark".into();
-    comparison.images = vec![bark];
-    ranked_trial.comparisons.push(comparison);
-    let approval:telperion_jev::tuning::priority::Approval=serde_json::from_value(json!({"checkpoint_sha256":"fixture","scope_sha256":"fixture","ordered":[{"id":"owner-leafy","observation":"leafy form","evidence_ids":["render-0","reference-0"],"views":["whole"]},{"id":"owner-bark","observation":"material","evidence_ids":["render-1","reference-1"],"views":["bark"]}]})).unwrap();
-    let required =
-        telperion_jev::tuning::priority::requirements(&ranked_config.required, Some(&approval));
-    let mut ranked_live = Live {
-        config: &ranked_config,
-        transport: &Never,
-        key: "never-used",
-    };
-    assert_eq!(
-        ranked_live.visual_images_for(&ranked_trial, &required, Some(&approval)),
-        0
-    );
-    assert_eq!(
-        ranked_live.visual_tokens_for(&ranked_trial, Some(&approval)),
-        40000
-            + serde_json::to_vec(&approval.ordered).unwrap().len() as u64
-            + serde_json::to_vec(&required).unwrap().len() as u64
-            + 256
-    );
-    let ranked = ranked_live
-        .visual_for(&ranked_trial, &required, Some(&approval))
-        .unwrap();
-    assert!(ready(&required, &ranked_trial.key, &ranked.value));
     let scope = ranked_config.priority_scope(&state);
     ranked_config.checklist.push_str(" changed objective");
     assert_ne!(scope, ranked_config.priority_scope(&state));
-    // Restore the original source fixture for the independent stale-adapter check.
+    // Restore the original source fixture for the identity check.
     std::fs::write(
         &shots,
         b"{\"references\":[{\"id\":\"whole\",\"shot\":{\"foliage\":\"leaf-on\"}}]}",
@@ -449,11 +366,6 @@ print(json.dumps({'request_sha256':e['request_sha256'],'assessment':{'identity':
     .unwrap();
     std::fs::write(&protocol, format!("{script}\n# changed")).unwrap();
     assert_ne!(identity, config.identity().unwrap());
-    assert!(live
-        .visual(&trial)
-        .err()
-        .unwrap()
-        .contains("protocol changed"));
     std::fs::write(&inv, b"changed").unwrap();
     assert!(config.identity().is_err());
     assert!(config.preparation().is_err());
@@ -467,6 +379,59 @@ print(json.dumps({'request_sha256':e['request_sha256'],'assessment':{'identity':
 /// whole paid pass today. It is dropped and recorded instead, and it can
 /// never stand in for a trait the inventory does state.
 #[test]
+fn a_coverage_row_without_render_evidence_is_dropped_and_recorded() {
+    let original = request();
+    let request = ComparisonRequest::new(&original, inventory(&original));
+    let r = request.comparison.clone();
+    let finding = Finding {
+        observation: "Supported match".into(),
+        evidence_ids: vec!["render-0".into(), "reference-0".into()],
+        impact: Impact::Supported,
+        uncertain: false,
+        causal_hypothesis: None,
+        trait_id: None,
+    };
+    let visual:vision::Result=serde_json::from_value(json!({"request_sha256":r.hash(),"assessment":{"identity":r.identity,"model":"mock","ledger":"receipt","cells":[[r.required[0],"pass"]],"defects":[],"findings":[finding]},"effort":"medium","usage":{"input_tokens":1,"output_tokens":1},"observations":[]})).unwrap();
+    let known = Coverage {
+        trait_id: "trait-1".into(),
+        status: CellStatus::Pass,
+        evidence_ids: vec!["render-0".into(), "reference-0".into()],
+        explanation: "Visible match; no defining mismatch".into(),
+    };
+    let references_only = Coverage {
+        trait_id: "trait-1".into(),
+        status: CellStatus::Unknown,
+        evidence_ids: vec!["reference-0".into()],
+        explanation: "the references show one specimen twice".into(),
+    };
+    let mut result = ComparisonResult {
+        request_sha256: request.hash(),
+        visual,
+        coverage: vec![references_only.clone(), known.clone()],
+    };
+    result.bind(&request).unwrap();
+    assert_eq!(
+        result
+            .coverage
+            .iter()
+            .map(|c| c.explanation.clone())
+            .collect::<Vec<_>>(),
+        vec![known.explanation.clone()],
+        "a row citing no render must leave the bound coverage"
+    );
+    let recorded = result
+        .visual
+        .observations
+        .iter()
+        .find(|o| o.starts_with("dropped coverage row without render and reference evidence"))
+        .expect("the dropped row is recorded verbatim");
+    assert!(
+        recorded.contains("trait-1") && recorded.contains("the references show one specimen twice"),
+        "{recorded}"
+    );
+}
+
+#[test]
 fn a_coverage_row_for_an_unknown_trait_is_dropped_and_recorded() {
     let original = request();
     let request = ComparisonRequest::new(&original, inventory(&original));
@@ -477,6 +442,7 @@ fn a_coverage_row_for_an_unknown_trait_is_dropped_and_recorded() {
         impact: Impact::Supported,
         uncertain: false,
         causal_hypothesis: None,
+        trait_id: None,
     };
     let visual:vision::Result=serde_json::from_value(json!({"request_sha256":r.hash(),"assessment":{"identity":r.identity,"model":"mock","ledger":"receipt","cells":[[r.required[0],"pass"]],"defects":[],"findings":[finding]},"effort":"medium","usage":{"input_tokens":1,"output_tokens":1},"observations":[]})).unwrap();
     let known = Coverage {
@@ -547,7 +513,16 @@ fn a_coverage_row_for_an_unknown_trait_is_dropped_and_recorded() {
     let mut duplicate = base.clone();
     duplicate.coverage.push(known.clone());
     duplicate.coverage.push(stray.clone());
-    assert!(duplicate.bind(&request).is_err());
+    // A repeated trait row is dropped and recorded, not a refused pass (fn-80).
+    duplicate.bind(&request).unwrap();
+    assert_eq!(
+        duplicate
+            .coverage
+            .iter()
+            .filter(|c| c.trait_id == known.trait_id)
+            .count(),
+        1
+    );
     let mut invalid = base.clone();
     invalid.coverage[0].evidence_ids = vec!["invented".into()];
     invalid.coverage.push(stray.clone());
@@ -559,5 +534,117 @@ fn a_coverage_row_for_an_unknown_trait_is_dropped_and_recorded() {
             ..stray.clone()
         })
         .collect();
-    assert!(too_many.bind(&request).is_err());
+    // Over the cap is a tidiness rule now (fn-80, 2026-09-24): every row is
+    // dropped as an unknown trait and recorded, never a refused pass.
+    too_many.bind(&request).unwrap();
+    assert!(too_many.coverage.is_empty());
+    assert!(!ready(
+        &r.required,
+        &r.identity,
+        &too_many.visual.assessment
+    ));
+}
+
+/// fn-136: the request names the traits the generator cannot draw yet as
+/// known gaps. The core-coverage gate leaves them out, and a blocker the
+/// reviewer ties to one by `trait_id` does not keep the tree from ready.
+#[test]
+fn a_known_gap_named_on_the_request_leaves_readiness() {
+    let original = request();
+    let mut request = ComparisonRequest::new(&original, inventory(&original));
+    let listed = vec![Unexpressed {
+        trait_id: "trait-1".into(),
+        spec: "fn-111".into(),
+    }];
+    request.known_gaps = listed.clone();
+    request.verify().unwrap();
+    assert_eq!(request.protocol, COMPARISON_VERSION);
+    assert!(COMPARISON_PROMPT.contains("trait_id"));
+    let r = request.comparison.clone();
+    let finding = |impact, trait_id: Option<&str>| Finding {
+        observation: "The trait is absent".into(),
+        evidence_ids: vec!["render-0".into(), "reference-0".into()],
+        impact,
+        uncertain: false,
+        causal_hypothesis: None,
+        trait_id: trait_id.map(str::to_string),
+    };
+    let visual:vision::Result=serde_json::from_value(json!({"request_sha256":r.hash(),"assessment":{"identity":r.identity,"model":"mock","ledger":"receipt","cells":[[r.required[0],"pass"]],"defects":[],"findings":[finding(Impact::Supported, None), finding(Impact::Blocker, Some("trait-1"))]},"effort":"medium","usage":{"input_tokens":1,"output_tokens":1},"observations":[]})).unwrap();
+    let mut result = ComparisonResult {
+        request_sha256: request.hash(),
+        visual,
+        coverage: vec![Coverage {
+            trait_id: "trait-1".into(),
+            status: CellStatus::Fail,
+            evidence_ids: vec!["render-0".into(), "reference-0".into()],
+            explanation: "No organ draws it".into(),
+        }],
+    };
+    let defects = vec![telperion_jev::tuning::unexpressed::Defect {
+        defect: "trait-1: absent".into(),
+        trait_id: Some("trait-1".into()),
+    }];
+    telperion_jev::tuning::unexpressed::set_aside(
+        &mut result.visual.assessment,
+        defects,
+        &request.known_gaps,
+    );
+    result.bind(&request).unwrap();
+    assert!(ready(&r.required, &r.identity, &result.visual.assessment));
+    assert_eq!(
+        result.visual.assessment.known_gaps[0].defects,
+        vec!["trait-1: absent"]
+    );
+    // Without the known gap the same answer blocks.
+    let mut plain = ComparisonRequest::new(&original, inventory(&original));
+    plain.verify().unwrap();
+    let mut blocked = result.clone();
+    blocked.visual.assessment.known_gaps.clear();
+    blocked.request_sha256 = plain.hash();
+    blocked.bind(&plain).unwrap();
+    assert!(!ready(&r.required, &r.identity, &blocked.visual.assessment));
+    plain.protocol = "reference-first-v1".into();
+    assert!(plain.verify().is_err());
+}
+
+/// fn-80, 2026-09-24: a repeated trait row refused a whole paid pass
+/// ("invalid trait coverage"). The first row per trait stands; the repeat is
+/// dropped and recorded.
+#[test]
+fn a_repeated_coverage_row_is_dropped_and_recorded_not_refused() {
+    let original = request();
+    let request = ComparisonRequest::new(&original, inventory(&original));
+    let r = request.comparison.clone();
+    let finding = Finding {
+        observation: "Supported match".into(),
+        evidence_ids: vec!["render-0".into(), "reference-0".into()],
+        impact: Impact::Supported,
+        uncertain: false,
+        causal_hypothesis: None,
+        trait_id: None,
+    };
+    let visual:vision::Result=serde_json::from_value(json!({"request_sha256":r.hash(),"assessment":{"identity":r.identity,"model":"mock","ledger":"receipt","cells":[[r.required[0],"pass"]],"defects":[],"findings":[finding]},"effort":"medium","usage":{"input_tokens":1,"output_tokens":1},"observations":[]})).unwrap();
+    let first = Coverage {
+        trait_id: "trait-1".into(),
+        status: CellStatus::Pass,
+        evidence_ids: vec!["render-0".into(), "reference-0".into()],
+        explanation: "Visible match; no defining mismatch".into(),
+    };
+    let repeat = Coverage {
+        explanation: "The same trait again".into(),
+        ..first.clone()
+    };
+    let mut result = ComparisonResult {
+        request_sha256: request.hash(),
+        visual,
+        coverage: vec![first.clone(), repeat],
+    };
+    result.bind(&request).unwrap();
+    assert_eq!(result.coverage.len(), 1);
+    assert_eq!(result.coverage[0].explanation, first.explanation);
+    assert!(result
+        .visual
+        .observations
+        .iter()
+        .any(|o| o.starts_with("dropped coverage row repeating its trait trait-1")));
 }

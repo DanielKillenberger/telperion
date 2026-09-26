@@ -38,13 +38,23 @@ pub struct Dial {
     /// Where the meaning came from: "doc comment", "use site" or "prototype".
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub meaning_basis: Option<String>,
-    /// Where the range came from: "validated bound", "preset span" - the span
-    /// the botanical presets occupy - or "authored" for a row a run qualified.
+    /// Where the range came from: "validated bound", the rail the generator
+    /// refuses a value off; "capped", a row the generator bounds on at most
+    /// one side, whose other side stays at the preset span, see `cap`; or
+    /// "authored" for a row a run qualified.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub range_basis: Option<String>,
     /// The file and line the two above were read off.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
+    /// The span the shipped presets occupy: where botanical values usually
+    /// sit, a stride hint and a prior. It never limits a move; `min` and
+    /// `max` do.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preset_span: Option<[f64; 2]>,
+    /// Why a "capped" row keeps a side at the preset span.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cap: Option<String>,
 }
 
 impl Dial {

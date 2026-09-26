@@ -6,18 +6,23 @@
 //! scores and nouls through the shared caller; code owns every number.
 
 pub mod adapter;
+pub mod admission;
 pub mod canon;
 pub mod consume;
 pub mod cost;
 pub mod curve;
 pub mod decision;
-pub mod gap;
+pub mod floors;
 pub mod judge;
 pub mod known;
+pub mod leads;
 pub mod manifest;
+pub mod photos;
 pub mod render;
+pub mod requirements;
+pub mod rights;
 pub mod routes;
+pub mod search;
 pub mod sets;
 pub mod stage;
 pub mod stages;
-pub mod swap;

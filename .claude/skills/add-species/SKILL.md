@@ -1,106 +1,58 @@
 ---
 name: add-species
-description: Onboard one real species end to end - draft its manifest, run the species pipeline, handle every gap through the gap loop, run species QA, and hand the owner a checklist with the run's three numbers. Use when asked to "add species A", onboard a taxon, or resume a halted species run. Triggers - "add <species>", "onboard <species>", "resume the <species> run", "what is blocking the <species> run".
+description: Onboard one real species end to end - seed its manifest and tuning config, run the species runner, write the article the acceptance names, hand identity gaps to the host, and hand the owner the tree to look at. Use when asked to "add species A", onboard a taxon, or resume a halted species run. Triggers - "add <species>", "onboard <species>", "resume the <species> run", "what is blocking the <species> run".
 ---
 
 # Add a species
 
-One instruction, "add species A", to a species the generator draws and the
-owner has ticked. This file is the conductor; it restates no method. The
-method lives in [`docs/species-onboarding.md`](../../../docs/species-onboarding.md)
-and the runbook in [`docs/species-pipeline.md`](../../../docs/species-pipeline.md),
-whose **The gap loop** section is the one every halt below goes through.
+One instruction, "add species A". This file restates no method: the runbook
+is [`docs/species-runner.md`](../../../docs/species-runner.md), and the
+literature stages it runs are in
+[`docs/species-pipeline.md`](../../../docs/species-pipeline.md).
 
 One species per spec (AGENTS.md, owner 2026-09-16). A generator gap the
-species needs is its own spec that the species spec depends on, never a patch
-inside this run.
+species needs is its own spec, never a patch inside this run.
 
 ## The loop
 
-`DIR` is the species' catalogue folder, `catalogue/<species>`, and `RUN` is
-`.flow/evidence/<species>/pipeline`, which takes the run's scratch: every
-command below carries `--dir DIR --run-dir RUN`. Build once, then walk the
-runbook's stages in order. Every command is a `species-pipeline` command from
-the repository root, with the key available to an interactive shell.
-
 1. **Spec.** `node scripts/new-species-spec.mjs --id <species> ...` mints the
-   species spec from `templates/species-spec.md`. Refine it, mark it ready.
-2. **Manifest.** Run `discover`, read its proposal, draft `DIR/manifest.json`,
-   and ask the owner to admit it. Nothing after discover runs until they do.
-   Start the run's stack from the species branch: `gh stack init <species
-   branch>` (`docs/species-onboarding.md`, "The stack").
-3. **Capability assessment.** The runbook's **The capability assessment**
-   section, before any later stage. It is the host's, not yours: reasoning and
-   system design escalate to the host. Stop and hand it up. It runs again after
-   every gap fix lands, under the runbook's convergence rule and its budget of
-   three rounds.
-4. **Stages.** Run the runbook's stages in order. A stage that prints
-   `current` did nothing and is right to skip.
-5. **A stage that stops.** Read the decision it names.
-   - An `onboarding-gate` or a `level-miss` is a **gap**: go to *At a gap*.
-   - Any other kind is a decision inside the run: resolve it the runbook's
-     way, or hand it to the owner when it is theirs.
-6. **Verdicts.** A verdict that is not accepting takes at most two value
-   rounds (`gap round`), then names a gap or goes to the owner. The third
-   round is refused by the tool, not by judgment.
-7. **Documentation.** `document` is a stage like any other and runs in its
-   place; it is named here only because a species that reaches the owner
-   undocumented is the failure it removes. An `article-claim-unsupported`
-   decision is a sentence to rewrite or recite, never one to accept blind.
-8. **QA and handoff.** Run the species QA pass, write `metrics.json`
-   (`gap metrics`) beside the report, and hand the owner the checklist. The
-   stills are theirs; no route here decides a visual verdict.
-
-## Under the conductor
-
-`species-conductor` (`docs/species-conductor.md`) walks this loop for you
-once a run has a config: `step` runs the stages, hands a halt to the gap
-loop as a routine dispatch you carry out, runs the tuning loop, checks
-every gap its result lists, and dispatches design and implementation for a
-gap spec on the tier `data/conductor-policy.json` names. You carry out the
-dispatch it opens, exactly as scoped, and record your result with
-`dispatch --id ID --result FILE`, naming the model and effort that actually
-ran. A pause is the host's or the owner's: read the handoff it wrote and
-stop. Never resume it yourself.
-
-## At a gap
-
-```sh
-P=target/release/species-pipeline
-$P gap open    --dir DIR --decision <halt id>
-$P gap options --dir DIR --decision <halt id> --author agent --model <you> --options options.json
-$P gap route   --dir DIR --decision <halt id> --verdicts verdicts.json
-```
-
-Write two to four candidate fixes in the fixed shape (the runbook's **The gap
-loop** section carries the fields and the option file's shape). Then read the
-route the table gave:
-
-| Route | What you do |
-|---|---|
-| `proceed` | Mint the fix as its own spec, make the species spec depend on it (`flowctl`), record it here (`gap spec`), work it under the repo's review on its own branch, record each verdict (`gap review`), insert it into the species stack below the species branch and open its PR in `docs/pr-format.md`'s stacked mode, and run `gap resume --commit <sha>` with its commit on the stack. Then rerun the stages it names and `gap metrics` before the report. |
-| `stronger` | Hand the same gap to the stronger reasoning model named in AGENTS.md's routing block. It writes the set; record it with `--author stronger`, and route again. |
-| `owner` | Stop. The decision the route filed is the owner's; say what it is and wait. Never resolve it yourself. |
-
-An empty set from you goes to the stronger model; an empty set from both is
-the owner's. A gap spec that comes back needs-work twice is the owner's. A fix
-that moves a pin lands only with a `--pin-note` under fn-53's rule.
+   species spec from `templates/species-spec.md`. Refine it, mark it ready,
+   and start the run's stack from its branch (`docs/species-onboarding.md`,
+   "The stack").
+2. **Seed.** Write the seed manifest to `catalogue/<species>/manifest.json`
+   and the tuning config to `.flow/evidence/<species>/tuning.json`
+   (`docs/species-runner.md`, "The tuning config").
+3. **Capability assessment.** `packet/capability.json` is the host's, not
+   yours: reasoning and system design escalate to the host. Hand it up and
+   wait for it before the Capability stage.
+4. **Run.** `bash -ic 'target/release/species <species>'` from the repository
+   root. Run it again after anything changes; it reruns only what changed.
+   `--status` says what each stage would do; `--until` and `--stage` run
+   part of it (`docs/species-runner.md`). The runner settles claims itself
+   once the search is spent (runbook, "Claims").
+5. **A stop.** The run prints `STOPPED:` with one of two reasons.
+   - **Identity gaps.** Stop and hand `runner/gaps.md` to the host. The host
+     writes the spec; the species spec depends on it; the run continues once
+     it lands on the stack.
+   - **The owner's look.** Hand the owner the tree and the checklist. Only
+     they run `species <species> --accept`.
+6. **The article.** When the acceptance is refused because the catalogue
+   check fails `ARTICLE.md`, the article is yours to write: fill each
+   section from the folder's source copies, cite each claim, run
+   `species <species> --stage catalogue` so the cite check verifies it, and
+   hand the owner the look again. A claim the check flags is rewritten or
+   cut, never argued.
 
 ## What is never yours
 
-- Jev writes no option, no fix and no number. It answers the questions the
-  tool asks over options you wrote.
-- No generator or renderer change inside a species run. Every fix is its own
-  reviewed spec, and the run resumes only once it lands.
-- No visual verdict. The owner ticks the checklist.
+- Jev writes no value and no fix. It answers the questions the tools ask.
+- No generator or renderer change inside a species run.
+- No visual verdict and no acceptance. The owner looks and accepts.
 - No merge. The stack merges once, by the owner, after the checklist.
-- No reasoning about the system. The capability assessment, gap analysis, the
-  candidate fixes for a gap and the shape of a spec it mints are the host's.
-  Report and stop; escalation is not failure and costs nothing.
-- No threshold edited to reach a route you wanted. `data/gap-routes.json` is
-  the owner's dial; a route you disagree with is reported, not routed around.
-- No full-forest capture, and no capture at all before the defect reproduces
-  small (AGENTS.md's token and evidence budget).
+- No reasoning about the system: the capability assessment, the class of a
+  gap and the shape of a spec are the host's. Report and stop; escalation is
+  not failure and costs nothing.
+- No full-forest capture (AGENTS.md's token and evidence budget).
 
 ## Friction
 

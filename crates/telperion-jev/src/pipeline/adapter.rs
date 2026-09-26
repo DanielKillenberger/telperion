@@ -14,10 +14,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::sha256_hex;
 
+pub mod content;
 pub mod firecrawl;
+pub mod retry;
 pub mod tables;
 
 pub use firecrawl::{fetch_raw, FirecrawlCli, RawSource};
+pub use retry::Retrying;
 pub use tables::{
     age_indexed_rows, block_rows, coverage, markdown_tables, table_rows_for, AgeRow, Coverage,
 };
@@ -42,7 +45,7 @@ pub struct Scrape {
 
 /// Every way a fetch fails. `Failed.url` carries the query for `search` and
 /// `research`, which have no URL of their own.
-#[derive(Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum AdapterError {
     Unauthenticated(String),
     Failed { url: String, error: String },

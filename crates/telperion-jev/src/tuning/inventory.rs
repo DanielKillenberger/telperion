@@ -127,9 +127,15 @@ pub fn run(config: &Config, out: &Path) -> Result<PathBuf, String> {
         Ok(raw) if output.status.success() => raw,
         _ => {
             settle(&journal_path, "failed", &Value::Null);
-            return Err(format!(
-                "reference-first Stage A failed; the attempt is charged. Ledger {}",
+            let failed = format!(
+                "reference-first Stage A failed; the attempt is charged (ledger {})",
                 ledger.display()
+            );
+            let raw = serde_json::from_slice(&output.stdout).unwrap_or(Value::Null);
+            return Err(super::vision::refused(
+                &failed,
+                &raw,
+                &String::from_utf8_lossy(&output.stderr),
             ));
         }
     };
@@ -141,7 +147,8 @@ pub fn run(config: &Config, out: &Path) -> Result<PathBuf, String> {
         || raw["model"] != adapter.model
         || raw["effort"] != adapter.effort
     {
-        return Err("stale or failed Stage A response; the attempt is charged".into());
+        let failed = "stale or failed Stage A response; the attempt is charged";
+        return Err(super::vision::refused(failed, &raw, ""));
     }
     let inventory = Inventory {
         request_sha256: request.hash(),

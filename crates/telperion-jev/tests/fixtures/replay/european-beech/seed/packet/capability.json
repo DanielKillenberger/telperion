@@ -1,0 +1,64 @@
+{
+ "shape": "Each object in traits is one habit, element, attachment, radius or organ need. Fields: trait (parameter path, or 'organ:<name>' when no parameter exists), need (the value or structure the species requires), outcome (reachable | unreachable-value | unsupported-anatomy), capability (the hyphenated gate name when this need is a named capability, else null), depends_on (an existing open spec id, or null), confidence (high | medium | unsure), note (the reading from the trait space). required_capabilities is the same list written on the manifest engineering row.",
+ "species": "european-beech",
+ "taxon": "Fagus sylvatica",
+ "assessed": "2026-09-25",
+ "sources": [
+  "crates/telperion-core/src/capability.rs",
+  "crates/telperion-core/src/branching/scaffold.rs",
+  ".flow/specs/fn-61-trolls-model-limbs-pitch-by-height-and.md",
+  ".flow/specs/fn-62-european-beech-as-a-real-species-judged.md"
+ ],
+ "required_capabilities": [
+  "woody-axes",
+  "entire-blade",
+  "alternate-petiole"
+ ],
+ "traits": [
+  {
+   "trait": "organ:wood",
+   "need": "a single trunk dividing into spreading limbs down to fine twigs",
+   "outcome": "reachable",
+   "capability": "woody-axes",
+   "depends_on": null,
+   "confidence": "high",
+   "note": "Expressed (capability.rs EXPRESSED)."
+  },
+  {
+   "trait": "element.blade",
+   "need": "an ovate leaf with an entire, slightly wavy margin",
+   "outcome": "reachable",
+   "capability": "entire-blade",
+   "depends_on": null,
+   "confidence": "high",
+   "note": "Expressed; capability.rs names it the beech's and the birch's leaf."
+  },
+  {
+   "trait": "element.attachment",
+   "need": "leaves borne singly and alternately on short petioles",
+   "outcome": "reachable",
+   "capability": "alternate-petiole",
+   "depends_on": null,
+   "confidence": "high",
+   "note": "Expressed."
+  },
+  {
+   "trait": "skeleton.habit.lateral_pitch (by height)",
+   "need": "lower limbs spread wider than upper ones (Troll's model)",
+   "outcome": "unreachable-value",
+   "capability": null,
+   "depends_on": "fn-61-trolls-model-limbs-pitch-by-height-and",
+   "confidence": "medium",
+   "note": "scaffold.rs draws one pitch with no height term; fn-61 adds a top pitch row. Not a named capability, so it does not stop the Capability stage; if tuning cannot move the trait, Gaps classes it identity against fn-61."
+  },
+  {
+   "trait": "skeleton.habit (ragged reach)",
+   "need": "a ragged crown edge where each limb system ends at its own reach",
+   "outcome": "unreachable-value",
+   "capability": null,
+   "depends_on": "fn-61-trolls-model-limbs-pitch-by-height-and",
+   "confidence": "medium",
+   "note": "reach() grows each primary axis to the shell; fn-61 adds a per-axis shortfall row."
+  }
+ ]
+}

@@ -74,6 +74,9 @@ pub struct Finding {
     pub impact: Impact,
     pub uncertain: bool,
     pub causal_hypothesis: Option<String>,
+    /// The inventory trait the finding concerns, or none (fn-136).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub trait_id: Option<String>,
 }
 
 impl Packet {
@@ -188,6 +191,9 @@ impl Packet {
         }
         Ok(())
     }
+    /// Every finding rule at once, as `ready()` rechecks a bound assessment.
+    /// A bound answer already meets it: its tidiness violations were trimmed
+    /// or dropped and recorded (`tidy.rs`), and an invented id refused it.
     pub fn verify_findings(&self, findings: &[Finding]) -> Result<(), String> {
         if findings.len() > 16 {
             return Err("too many joint findings".into());
