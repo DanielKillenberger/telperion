@@ -252,3 +252,16 @@ three rounds (`max_rounds` 3).
 - **Spend**: no Firecrawl. Jev: 26 calls and about 0.84 million tokens
   (the budget charged 0.86 million). Vision: 7 visual passes in the
   revision (3 sheets).
+
+## Gap classes under the host's rule (2026-09-26)
+
+Reachable now means a dial moved the trait to passing in a judged, rendered
+attempt; a trait still failing is the assessment's. The host's assessment
+of the beech (`packet/capability.json`) covers three failing traits with the
+two fn-61 needs: the Troll's-model pitch entry covers the codominant V fork
+and the ascending-then-arching limbs, the ragged-reach entry the broad domed
+crown. Gaps, rerun from the recording with no paid call: 0 reachable,
+7 identity (3 waiting on fn-61; the single clear bole, fine layered twig
+sprays, light translucent foliage and leaf shape for the host to assess
+under fn-62), 0 global, 5 unsourced. `gaps.md` is 3.7 KB. The owner does not
+accept this beech: it waits on fn-61.

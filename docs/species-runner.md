@@ -251,7 +251,8 @@ Code classes each failing trait from what the run recorded:
   assessed trait (`traits` in `packet/capability.json`, outcome
   unreachable-value or unsupported-anatomy) names, with its `depends_on`
   spec, or any other failing trait no dial brought to pass, for the host to
-  assess (host, 2026-09-26).
+  assess (host, 2026-09-26). An assessed entry names a failing trait by its
+  `trait` or by listing its id in `covers`, and by nothing else.
 - **global**: a capability the assessment classes an improvement, a failing
   trait such an improvement covers, or a trait the config lists
   unexpressed, with the specs that capture it.

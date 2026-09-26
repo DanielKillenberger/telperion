@@ -199,8 +199,16 @@ fn assessed_class(
         true => "a live dial moved it but never to passing",
         false => "no live dial moved it",
     };
-    let named = assessed.iter().find(|t| {
+    // An assessed entry names a failing trait by `trait` or in `covers`,
+    // nothing else (host, 2026-09-26).
+    let names = |t: &Value| {
         t["trait"] == id
+            || t["covers"]
+                .as_array()
+                .is_some_and(|c| c.iter().any(|v| v == id))
+    };
+    let named = assessed.iter().find(|t| {
+        names(t)
             && ["unreachable-value", "unsupported-anatomy"]
                 .contains(&t["outcome"].as_str().unwrap_or(""))
     });
