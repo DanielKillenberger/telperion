@@ -18,6 +18,7 @@ request, when the recording lacks it. Nothing here reaches a model.
 """
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -77,10 +78,18 @@ def rekey(directory):
         stdin = recorded["stdin"]
         digest = key(recorded["argv"], stdin if isinstance(stdin, str) else json.dumps(stdin))
         target = entry.with_name(f"{digest[:32]}.json")
+        filed = json.loads(target.read_text()) if target != entry and target.exists() else None
+        if filed is not None and filed.get("key") == digest and target.stat().st_mtime >= entry.stat().st_mtime:
+            # The answer already filed under its right key is the newer.
+            entry.unlink()
+            moved += 1
+            continue
         if target != entry or recorded["key"] != digest:
             recorded["key"] = digest
+            when = entry.stat().st_mtime
             entry.unlink()
             target.write_text(json.dumps(recorded, indent=1, sort_keys=True))
+            os.utime(target, (when, when))  # its age decides a later collision
             moved += 1
     print(f"rekeyed {moved} adapter answers")
     return 0
