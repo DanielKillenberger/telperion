@@ -104,7 +104,9 @@ with a record or a single tree kept as the field's maximum and a value far
 from its tier set aside and named. Jev classes each document and labels each
 span and never chooses between sources; code owns every number. Start takes the typical value, the median, never the middle of the range, and Tune narrows it. A
 field no document states typically is `unsourced`: `gaps.md` lists it, and
-the generator's default stands until Tune sets it from the photographs.
+the generator's default stands until Tune sets it from the photographs. Only
+a value whose tier agrees gates; a one-source value is contextual, and
+`gaps.md` lists it beside the unsourced ones for a person to source.
 Nothing about a value waits on a person: no claim is filed, searched again
 or settled. The article's claims are the cite check's (below); with
 `--settle-claims` an open one stops the run for a person, and without it it
@@ -228,7 +230,8 @@ Code classes each failing trait from what the run recorded:
 - **global**: a capability the assessment classes an improvement, or a trait
   the config lists unexpressed, with the specs that capture it.
 - **unsourced**: a profile field no document states typically (above, "Values"); the
-  generator's default stands and Tune sets it from the photographs.
+  generator's default stands and Tune sets it from the photographs. A
+  contextual field, one no agreeing sources settled, is listed here too.
 - **references**: no reference photograph to compare against (above,
   "Reference photographs"). It stops nothing; Tune refuses until one is
   recorded.
