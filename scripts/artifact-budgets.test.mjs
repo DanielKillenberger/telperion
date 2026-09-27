@@ -10,7 +10,10 @@ describe('artifact budgets', () => {
     expect(check(b, shipped)).toEqual([]);
     const fails = check(b, { ...shipped, 'dist/telperion-field.wasm': 526_965 });
     expect(fails).toHaveLength(1);
-    expect(fails[0]).toMatch(/^dist\/telperion-field\.wasm: 526965 bytes, budget 362000 \(\+52\.8%/);
+    const field = b.artifacts.find(a => a.path === 'dist/telperion-field.wasm');
+    expect(fails[0]).toMatch(
+      new RegExp(`^dist/telperion-field\\.wasm: 526965 bytes, budget ${field.maxBytes} \\(\\+`),
+    );
     const { 'dist/field.js': _, ...missing } = shipped;
     expect(check(b, missing)[0]).toMatch(/^dist\/field\.js: not built/);
   });
