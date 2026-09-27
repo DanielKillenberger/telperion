@@ -21,6 +21,14 @@ pub const fn default_reach_probe_steps() -> u32 {
 pub const fn default_work_budget() -> u32 {
     DEFAULT_WORK_BUDGET
 }
+/// Two parts: a fork's primary and one sibling.
+pub const fn default_fork_ways() -> f64 {
+    2.0
+}
+/// The neutral share: the pipe model's own division of wood.
+pub const fn default_share() -> f64 {
+    1.0
+}
 pub const fn default_max_taper_exponent() -> f64 {
     12.0
 }

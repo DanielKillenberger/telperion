@@ -41,7 +41,7 @@ fn an_overlay_written_as_a_value_file_builds_the_same_family() {
         "shellDepth": 0.3,
         "skeleton": {
             "attractors": 640,
-            "habit": {"lateralPitch": 47.25, "stems": 3},
+            "habit": {"lateralPitch": 47.25, "codominance": 1.0, "forkWays": 3.5, "forkLean": 20.0},
             "bias": {"supernatural": {"enabled": true, "writheAmplitude": 1e-5}},
             "growth": {"maxTurnPerStep": 35.0, "maxNodes": 90000},
         },
@@ -93,12 +93,12 @@ fn a_row_the_catalogue_refuses_is_named_by_its_line() {
             "1: /canopy/clumpSystemOrder is off its bounds",
         ),
         (
-            "/skeleton/habit/stems = 2.5",
-            "1: /skeleton/habit/stems holds another kind of value",
+            "/skeleton/habit/lateralOrders = 2.5",
+            "1: /skeleton/habit/lateralOrders holds another kind of value",
         ),
         (
-            "/skeleton/habit/stems = true",
-            "1: /skeleton/habit/stems holds another kind of value",
+            "/skeleton/habit/lateralOrders = true",
+            "1: /skeleton/habit/lateralOrders holds another kind of value",
         ),
         (
             "\n/shellDepth 1",

@@ -44,7 +44,6 @@ crate::catalogue::rows! {
         pub leader_internode: f64 = "leaderInternode" "m" Bounds::above(0.0) => [Grow] {
             wire: 11,
             check: input(Site::Habit, 3, "leader internode"),
-            note: "Also the unit stems are placed in.",
             dial: tuned("leader_internode", "metres between lateral stations on the leader",
                 [0.05, 3.45], [0.5, 1.0], "capped").span([0.05, 3.45])
                 .cap("capped both ways: the generator validates no closed range here (only \
@@ -203,67 +202,94 @@ crate::catalogue::rows! {
             dial: bounded("shedding_threshold", "the vigour below which a shoot is shed; zero \
                 sheds nothing", [0.15, 0.3]),
         },
-        /// Stems leaving the root. One is the single trunk every tree was, to the
-        /// byte; a birch, a hazel or a coppiced oak stands on more.
-        pub stems: u32 = "stems" "stems" Bounds::closed(1.0, 6.0) => [Grow] {
+        /// The chance, 0 to 1, that a structural axis forks codominantly:
+        /// each axis draws once from its own stream when it is born. At zero
+        /// no axis forks and the tree stands on one stem.
+        #[cfg_attr(feature = "json", serde(default))]
+        pub codominance: f64 = "codominance" "share" Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 24,
-            check: input(Site::Habit, 16, "stems"),
-            note: "At one the four stem rows lie dormant.",
-            blend: Blend::Count,
-            dial: bounded("stems", "stems leaving the root", [1.0, 2.0]),
+            check: input(Site::Habit, 16, "codominance"),
+            note: "At zero the six fork rows lie dormant. Replaces `stems`: a clump is a fork \
+                at height zero.",
+            dial: bounded("codominance", "how likely a trunk or limb is to fork into near-equal \
+                parts; at zero no fork", [0.1, 0.25]),
         },
-        /// Degrees of bearing between neighbouring stems, about a bearing the seed
-        /// alone decides. Inert at one stem, which has no neighbour. At zero every
-        /// stem leaves the root on one bearing, and any rise starts to fan them
-        /// apart.
-        pub stem_divergence: f64 = "stemDivergence" "degrees" Bounds::closed(0.0, 120.0) => [Grow] {
+        /// Where a codominant fork falls, as a share of the tree's height: the
+        /// centre of the bell each axis draws its fork height from. Zero is a
+        /// fork at the root, which is a clump.
+        #[cfg_attr(feature = "json", serde(default))]
+        pub fork_height: f64 = "forkHeight" "share of height" Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 25,
-            check: input(Site::Habit, 17, "stem divergence"),
-            applies: "one stem",
-            note: "With more than one stem, refused where it and `stemLean` are both zero \
-                (`stems_placed`).",
-            blend: Blend::Degrees,
-            dial: tuned("stem_divergence", "the degrees of bearing between neighbouring stems of \
-                a clump; at zero every stem leaves the root on one bearing, and any rise starts \
-                to fan them apart", [0.0, 15.0], [2.5, 5.0], "validated bound"),
+            check: input(Site::Habit, 17, "fork height"),
+            applies: "`codominance` zero",
+            note: "An axis forks where it reaches the drawn height; a height it never reaches, \
+                or one at or below its own base, is no fork, except at the root.",
+            dial: bounded("fork_height", "how far up the tree codominant forks fall",
+                [0.05, 0.1]),
         },
-        /// Degrees from vertical the outermost stems tilt away from the root; the
-        /// ones between tilt in proportion to how far out they stand. Inert at one
-        /// stem, which stands at the centre and so tilts by none of it. At zero
-        /// every stem stands upright, and any rise starts the tilt.
-        pub stem_lean: f64 = "stemLean" "degrees" Bounds::closed(0.0, 45.0) => [Grow] {
+        /// Width of the bell a fork height is drawn from, as a share of the
+        /// tree's height. Zero forks every axis that forks at exactly
+        /// `forkHeight`.
+        #[cfg_attr(feature = "json", serde(default))]
+        pub fork_height_spread: f64 = "forkHeightSpread" "share of height"
+            Bounds::closed(0.0, 1.0) => [Grow] {
             wire: 26,
-            check: input(Site::Habit, 18, "stem lean"),
-            applies: "one stem",
-            note: "With more than one stem, refused at zero (`stems_placed`); `risePrimary` \
-                bends the leaning stems.",
-            blend: Blend::Degrees,
-            dial: bounded("stem_lean", "the degrees from vertical the outermost stems tilt away \
-                from the root; at zero every stem stands upright, and any rise starts the tilt",
-                [5.0, 10.0]).span([0.0, 42.0]),
+            check: input(Site::Habit, 18, "fork height spread"),
+            applies: "`codominance` zero",
+            dial: bounded("fork_height_spread", "how widely codominant forks scatter about their \
+                height", [0.05, 0.1]),
         },
-        /// How unequally a clump's stems lean, 0 to 1. None of it is the lean
-        /// above, shared about the clump's centre; all of it leans the stems in
-        /// their order instead, the first upright and the last by all of
-        /// `stem_lean`. Inert at one stem, which has nothing to lean against.
-        pub stem_lean_spread: f64 = "stemLeanSpread" "share" Bounds::closed(0.0, 1.0) => [Grow] {
+        /// The parts a codominant fork divides into, 2 to 4. The whole part is
+        /// the full children; the fraction grows one more from the fork, its
+        /// length that share of theirs.
+        #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_fork_ways"))]
+        pub fork_ways: f64 = "forkWays" "parts" Bounds::closed(2.0, 4.0) => [Grow] {
             wire: 27,
-            check: input(Site::Habit, 19, "stem lean spread"),
-            applies: "one stem, or `stemLean` zero",
-            dial: bounded("stem_lean_spread", "how unequally a clump's stems lean", [0.15, 0.3]),
+            check: input(Site::Habit, 19, "fork ways"),
+            applies: "`codominance` zero",
+            note: "Replaces `stems`, less the primary.",
+            dial: bounded("fork_ways", "how many near-equal parts a codominant fork divides into",
+                [0.5, 1.0]),
         },
-        /// Where a clump's later stems leave the first, as a share of the bole's
-        /// height, 0 to 0.5. None of it parts them at the ground; half of it parts
-        /// them halfway up the bole, with one trunk below. Inert at one stem.
-        pub stem_fork_height: f64 = "stemForkHeight" "share of the bole"
-            Bounds::closed(0.0, 0.5) => [Grow] {
+        /// Degrees of bearing between neighbouring parts of a fork, about a
+        /// bearing the axis's own stream decides. At zero every part leaves on
+        /// one bearing.
+        #[cfg_attr(feature = "json", serde(default))]
+        pub fork_divergence: f64 = "forkDivergence" "degrees"
+            Bounds::closed(0.0, 120.0) => [Grow] {
             wire: 28,
-            check: input(Site::Habit, 20, "stem fork height"),
-            applies: "one stem",
-            note: "The bole is `max(trunkHeight, height·crownBase)`.",
-            dial: bounded("stem_fork_height", "how far up the bole a clump's later stems part \
-                from the first; at zero every stem leaves the root, and any rise starts the one \
-                trunk below the fork", [0.1, 0.2]),
+            check: input(Site::Habit, 20, "fork divergence"),
+            applies: "`codominance` zero",
+            note: "Refused where two parts of a fork leave on one heading (`forks_placed`). \
+                Replaces `stemDivergence`.",
+            blend: Blend::Degrees,
+            dial: bounded("fork_divergence", "the degrees of bearing between neighbouring parts \
+                of a codominant fork", [5.0, 10.0]),
+        },
+        /// Degrees the outermost parts of a fork tilt from the axis they leave;
+        /// the ones between tilt in proportion to how far out they stand.
+        #[cfg_attr(feature = "json", serde(default))]
+        pub fork_lean: f64 = "forkLean" "degrees" Bounds::closed(0.0, 45.0) => [Grow] {
+            wire: 251,
+            check: input(Site::Habit, 23, "fork lean"),
+            applies: "`codominance` zero",
+            note: "Measured from the heading of the axis at the fork. Replaces `stemLean`.",
+            blend: Blend::Degrees,
+            dial: bounded("fork_lean", "the degrees the outermost parts of a codominant fork \
+                tilt from the axis they leave", [5.0, 10.0]),
+        },
+        /// How unequally a fork's parts lean, 0 to 1. None of it shares the
+        /// lean about the fork's centre; all of it leans them in their order,
+        /// the primary along the axis and the last by all of `forkLean`.
+        #[cfg_attr(feature = "json", serde(default))]
+        pub fork_lean_spread: f64 = "forkLeanSpread" "share"
+            Bounds::closed(0.0, 1.0) => [Grow] {
+            wire: 252,
+            check: input(Site::Habit, 24, "fork lean spread"),
+            applies: "`codominance` zero, or `forkLean` zero",
+            note: "Replaces `stemLeanSpread`.",
+            dial: bounded("fork_lean_spread", "how unequally the parts of a codominant fork lean",
+                [0.15, 0.3]),
         },
     }
 }
@@ -288,11 +314,13 @@ impl Default for HabitParams {
             attractor_weight: 1.0,
             twig_tip_taper: 1.0,
             shedding_threshold: 0.45,
-            stems: 1,
-            stem_divergence: 0.0,
-            stem_lean: 0.0,
-            stem_lean_spread: 0.0,
-            stem_fork_height: 0.0,
+            codominance: 0.0,
+            fork_height: 0.0,
+            fork_height_spread: 0.0,
+            fork_ways: 2.0,
+            fork_divergence: 0.0,
+            fork_lean: 0.0,
+            fork_lean_spread: 0.0,
         }
     }
 }

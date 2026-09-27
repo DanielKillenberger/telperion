@@ -57,7 +57,8 @@ const NEUTRAL: [u64; 7] = [
     6489830875491714767,
     12735573889651776723,
     7923866798333576555,
-    5186628886684853116,
+    // fn-170: the birch pair restated as a fork at 0.9 m.
+    9558225475945487503,
     12471405148157309180,
     14199367530911903060,
 ];
@@ -119,7 +120,7 @@ struct Step {
 /// turn per metre still eases off the whole way down.
 fn hanging(sag: f64, pendulous: f64) -> Family {
     let mut f = preset("silver-birch");
-    f.skeleton.habit.stems = 1;
+    f.skeleton.habit.codominance = 0.0;
     f.skeleton.twigs.twig.internode_length = 0.036;
     f.skeleton.habit.crookedness = 0.0;
     f.skeleton.envelope.crown_base = 0.02;

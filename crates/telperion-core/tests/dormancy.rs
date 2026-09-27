@@ -20,13 +20,14 @@ struct Case {
 const CASES: &[Case] = &[
     Case {
         preset: Preset::Ordinary,
-        row: "/skeleton/habit/stemDivergence",
+        row: "/skeleton/habit/forkDivergence",
         to: 40.0,
-        asleep: &[("/skeleton/habit/stems", 1.0)],
+        asleep: &[("/skeleton/habit/codominance", 0.0)],
         awake: &[
-            ("/skeleton/habit/stems", 3.0),
-            ("/skeleton/habit/stemLean", 10.0),
-            ("/skeleton/habit/stemDivergence", 100.0),
+            ("/skeleton/habit/codominance", 1.0),
+            ("/skeleton/habit/forkWays", 3.0),
+            ("/skeleton/habit/forkLean", 10.0),
+            ("/skeleton/habit/forkDivergence", 100.0),
         ],
     },
     Case {

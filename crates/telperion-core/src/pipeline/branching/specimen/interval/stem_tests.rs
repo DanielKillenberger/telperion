@@ -12,17 +12,20 @@ use std::collections::BTreeMap;
 fn clump(age: f64) -> Family {
     let mut f = Preset::OregonWhiteOak.parameters();
     f.skeleton.seed = 7;
-    f.skeleton.habit.stems = 2;
-    f.skeleton.habit.stem_lean = 24.0;
-    f.skeleton.habit.stem_lean_spread = 1.0;
-    f.skeleton.habit.stem_fork_height = 0.4;
+    f.skeleton.habit.codominance = 1.0;
+    f.skeleton.habit.fork_height = 0.4 * f.skeleton.envelope.crown_base;
+    f.skeleton.habit.fork_lean = 24.0;
+    f.skeleton.habit.fork_lean_spread = 1.0;
     f.growth.leaf_lifetime = 6.0;
     f.age = age;
     f
 }
 
-fn stems(tree: &Tree) -> BTreeMap<NodeIdentity, bool> {
-    tree.nodes.iter().map(|n| (n.identity, n.stem)).collect()
+fn stems(tree: &Tree) -> BTreeMap<NodeIdentity, (bool, Option<u64>)> {
+    tree.nodes
+        .iter()
+        .map(|n| (n.identity, (n.stem, n.codominant.map(f64::to_bits))))
+        .collect()
 }
 
 /// Whether two stems leave any node above the root.

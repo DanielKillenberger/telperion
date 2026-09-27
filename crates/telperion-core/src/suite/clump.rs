@@ -1,39 +1,18 @@
-//! The clump: stems as order-zero axes born at the root. Neutral first — a
-//! table that leaves the count at one grows the tree it always grew, to the
-//! byte — then the rails, the stems inside the shell and apart from one
-//! another, the trunk run each of them is swept as, the base they share
-//! through the pipe model, the diameter proxy that names how many there were,
-//! the walk from one stem to two, and the stem root the chronicle never
-//! sheds.
+//! The clump and the fork above it, as the one fork rule builds them: a fork
+//! at the root is a clump whose parts are order-zero axes born there, and a
+//! fork higher on the trunk parts one trunk into several. The stems stand
+//! inside the shell and apart, are swept as trunk runs at the ground and from
+//! a socket above it, share the base through the pipe model, name how many
+//! there were at breast height, and are never shed.
 //! No device is needed; this is the core's own arithmetic.
 use super::specimens;
 use telperion_core::{
-    blend, branching, presets::Family, presets::Preset, surface, tree::NodeKind, Error,
+    branching, presets::Family, presets::Preset, surface, tree::NodeKind, tree::Tree, Error,
 };
 
-/// Every shipped table, so neutrality is asserted on all of them at once.
-const PRESETS: [Preset; 7] = [
-    Preset::Ordinary,
-    Preset::OregonWhiteOak,
-    Preset::NorwaySpruce,
-    Preset::EuropeanBeech,
-    Preset::SilverBirch,
-    Preset::Telperion,
-    Preset::Laurelin,
-];
 const SEED: u32 = 7;
-/// Every step of every walk is grown under one cap, the way the sweep does:
-/// what is being judged here is the shape of the walk, not its full size.
-const WALK_NODES: usize = 8_000;
-
-/// FNV-1a over the bytes, the pattern the identity pins already hash with.
-fn fnv(bytes: impl IntoIterator<Item = u8>) -> u64 {
-    let mut hash = 14695981039346656037_u64;
-    for byte in bytes {
-        hash = (hash ^ u64::from(byte)).wrapping_mul(1099511628211);
-    }
-    hash
-}
+/// Every tree is grown under one cap, the way the sweep does.
+const NODES: usize = 8_000;
 
 fn family(preset: Preset, row: impl Fn(&mut Family)) -> Family {
     let mut family = preset.parameters();
@@ -42,12 +21,12 @@ fn family(preset: Preset, row: impl Fn(&mut Family)) -> Family {
     family
 }
 
-fn grow(family: &Family) -> telperion_core::tree::Tree {
+fn grow(family: &Family) -> Tree {
     specimens::tree(family)
 }
 
 /// The structural nodes a tree's stems leave the root on.
-fn stem_roots(tree: &telperion_core::tree::Tree) -> Vec<usize> {
+fn stem_roots(tree: &Tree) -> Vec<usize> {
     tree.nodes
         .iter()
         .enumerate()
@@ -57,84 +36,47 @@ fn stem_roots(tree: &telperion_core::tree::Tree) -> Vec<usize> {
         .collect()
 }
 
-#[test]
-fn one_stem_is_every_shipped_tree_exactly_as_it_was() {
-    // The count's neutral value is inert, and so are the two rows that say
-    // how a clump stands: at one stem there is no neighbour to stand apart
-    // from, so neither reaches anything. Every table is read at the neutral
-    // count, the birch's own clump included, so the rule is asserted on all
-    // seven alike; what each table builds as it is shipped is pinned in the
-    // identity photograph beside this.
-    for preset in PRESETS {
-        let base = family(preset, |f| f.skeleton.habit.stems = 1);
-        let bytes = |f: &Family| {
-            let m = specimens::mesh(f);
-            (
-                fnv(m.wood.positions.iter().flat_map(|v| v.to_le_bytes())),
-                fnv(m
-                    .foliage
-                    .instances
-                    .leaves
-                    .iter()
-                    .flatten()
-                    .flat_map(|w| w.to_le_bytes())),
-            )
-        };
-        let was = bytes(&base);
-        let dialled = family(preset, |f| {
-            f.skeleton.habit.stems = 1;
-            f.skeleton.habit.stem_divergence = 90.0;
-            f.skeleton.habit.stem_lean = 30.0;
-        });
-        assert_eq!(bytes(&dialled), was, "{preset:?} moved at one stem");
-    }
-}
-
-#[test]
-fn each_rail_is_refused_by_the_name_of_the_row_that_is_wrong() {
-    for (row, apply) in [
-        (
-            "stems",
-            Box::new(|f: &mut Family| f.skeleton.habit.stems = 7) as Box<dyn Fn(&mut Family)>,
-        ),
-        (
-            "stems",
-            Box::new(|f: &mut Family| f.skeleton.habit.stems = 0),
-        ),
-        (
-            "stem divergence",
-            Box::new(|f: &mut Family| f.skeleton.habit.stem_divergence = 120.5),
-        ),
-        (
-            "stem divergence",
-            Box::new(|f: &mut Family| f.skeleton.habit.stem_divergence = -1.0),
-        ),
-        (
-            "stem lean",
-            Box::new(|f: &mut Family| f.skeleton.habit.stem_lean = 45.5),
-        ),
-        (
-            "stem lean",
-            Box::new(|f: &mut Family| f.skeleton.habit.stem_lean = f64::NAN),
-        ),
-    ] {
-        let f = family(Preset::SilverBirch, |f| apply(f));
-        assert_eq!(
-            branching::generate(&f.skeleton, f.radii).err(),
-            Some(Error::InvalidInput(row)),
-            "{row} off its rail was accepted"
-        );
-    }
-}
-
-/// A clump of two the ordinary table can stand on: wide apart in bearing and
-/// leaning far enough out to part at the base.
-fn clump(stems: u32) -> Family {
+/// A clump of `ways` parts the oak's table can stand on: every tree forks at
+/// the root, wide apart in bearing and leaning far enough out to part there.
+fn clump(ways: u32) -> Family {
     family(Preset::OregonWhiteOak, |f| {
-        f.skeleton.habit.stems = stems;
-        f.skeleton.habit.stem_divergence = 100.0;
-        f.skeleton.habit.stem_lean = 16.0;
+        f.skeleton.habit.codominance = f64::from(u32::from(ways > 1));
+        f.skeleton.habit.fork_ways = f64::from(ways.max(2));
+        f.skeleton.habit.fork_divergence = 100.0;
+        f.skeleton.habit.fork_lean = 16.0;
     })
+}
+
+/// The oak's bole: its crown base.
+fn bole(f: &Family) -> f64 {
+    f.skeleton.envelope.height * f.skeleton.envelope.crown_base
+}
+
+/// Two parts on the oak's table, one upright and one leaning out, forking at
+/// `share` of the bole.
+fn forked(share: f64) -> Family {
+    family(Preset::OregonWhiteOak, |f| {
+        f.skeleton.habit.codominance = 1.0;
+        f.skeleton.habit.fork_height = share * f.skeleton.envelope.crown_base;
+        f.skeleton.habit.fork_lean = 24.0;
+        f.skeleton.habit.fork_lean_spread = 1.0;
+        f.skeleton.growth.max_nodes = Some(NODES);
+    })
+}
+
+/// Every node more than one stem leaves, and the root if any does: the root
+/// of a clump, and the fork it parts at.
+fn forks(tree: &Tree) -> Vec<(usize, Vec<usize>)> {
+    let mut runs = vec![Vec::new(); tree.nodes.len()];
+    for (i, n) in tree.nodes.iter().enumerate().skip(1) {
+        if n.stem {
+            runs[n.parent.unwrap() as usize].push(i);
+        }
+    }
+    runs.into_iter()
+        .enumerate()
+        .filter(|(i, r)| r.len() > 1 || (*i == 0 && !r.is_empty()))
+        .collect()
 }
 
 #[test]
@@ -193,15 +135,15 @@ fn a_clump_that_cannot_be_placed_names_the_stem_that_is_wrong() {
     // between them, or no lean to carry them apart.
     for (divergence, lean) in [(0.0, 16.0), (100.0, 0.0)] {
         let f = family(Preset::OregonWhiteOak, |f| {
-            f.skeleton.habit.stems = 2;
-            f.skeleton.habit.stem_divergence = divergence;
-            f.skeleton.habit.stem_lean = lean;
+            f.skeleton.habit.codominance = 1.0;
+            f.skeleton.habit.fork_divergence = divergence;
+            f.skeleton.habit.fork_lean = lean;
         });
         assert_eq!(
             branching::generate(&f.skeleton, f.radii).err(),
             Some(Error::InvalidValue {
-                field: "stems pass through each other",
-                value: "stem 1".into(),
+                field: "fork parts pass through each other",
+                value: "part 1".into(),
             }),
             "{divergence} deg apart at {lean} deg of lean was accepted"
         );
@@ -307,66 +249,137 @@ fn the_diameter_proxy_reports_the_largest_stem_and_how_many_there_were() {
 }
 
 #[test]
-fn the_walk_from_one_stem_to_two_opens_the_clump_rather_than_switching_it() {
-    // The count is walked the way a leaf's lobes are, and the two rows that
-    // say how a clump stands walk up from nothing beside it. Every point of
-    // the walk is a family that grows a tree - no step is a frame where the
-    // tree changes kind or the build refuses - the count never goes back, and
-    // once the second stem is there it only ever stands further out: it parts
-    // from the first over the walk rather than arriving splayed.
-    let from = family(Preset::OregonWhiteOak, |_| {});
-    let to = clump(2);
-    const STEPS: usize = 11;
-    let (mut counts, mut apart, mut skeletons) = (Vec::new(), Vec::new(), Vec::new());
-    for step in 0..STEPS {
-        let t = step as f64 / (STEPS - 1) as f64;
-        let mut f = blend::families(&from, &to, t).expect("the walk is a family");
-        f.skeleton.growth.max_nodes = Some(WALK_NODES);
+fn the_later_stem_leaves_the_first_at_the_fork_height() {
+    // At no height both stems leave the root; at a height one stem leaves it,
+    // and the second leaves that stem on the first node at or above the height,
+    // within one growth step of it, on its own lean.
+    let ground = grow(&forked(0.0));
+    assert_eq!(forks(&ground), vec![(0, forks(&ground)[0].1.clone())]);
+    assert_eq!(
+        forks(&ground)[0].1.len(),
+        2,
+        "the clump did not part at the ground"
+    );
+    for share in [0.2, 0.35, 0.5] {
+        let f = forked(share);
         let tree = grow(&f);
-        let roots = stem_roots(&tree);
+        let found = forks(&tree);
         assert_eq!(
-            roots.len(),
-            f.skeleton.habit.stems as usize,
-            "step {step} grew {} stems for a row of {}",
-            roots.len(),
-            f.skeleton.habit.stems
+            found.len(),
+            2,
+            "at {share} the clump parted {} times",
+            found.len()
         );
-        counts.push(f.skeleton.habit.stems);
-        apart.push(match roots.as_slice() {
-            [a, b] => tree.nodes[*a].position.distance(tree.nodes[*b].position),
-            _ => 0.0,
-        });
-        skeletons.push(fnv(tree.nodes.iter().skip(1).flat_map(|n| {
-            [n.position.x, n.position.y, n.position.z]
-                .into_iter()
-                .flat_map(f64::to_le_bytes)
-        })));
-    }
-    assert_eq!(counts[0], 1, "the walk did not start on the oak's one stem");
-    assert_eq!(counts[STEPS - 1], 2, "the walk did not reach the clump");
-    for step in 1..STEPS {
+        assert_eq!(found[0].0, 0);
+        assert_eq!(found[0].1.len(), 1, "at {share} two stems left the root");
+        let (at, stems) = &found[1];
+        assert_eq!(stems.len(), 2, "at {share} the fork is not two stems");
+        let height = share * bole(&f);
+        let y = tree.nodes[*at].position.y;
+        let step = f.skeleton.resolved_growth(0).unwrap().step_distance;
         assert!(
-            counts[step] >= counts[step - 1],
-            "step {step} lost a stem the step before it had"
+            y >= height - 1e-9 && y < height + step,
+            "at {share} the stems part at {y} m for {height} m"
         );
+        let leans: Vec<f64> = stems
+            .iter()
+            .map(|&i| {
+                let d = tree.nodes[i].position - tree.nodes[*at].position;
+                (d.y / d.length()).acos().to_degrees()
+            })
+            .collect();
+        // The first edge is the heading bent by the axis's own rise, so the
+        // lean is read to a couple of degrees rather than to the bit.
+        assert!(leans[0] < 1.0 && (leans[1] - 24.0).abs() < 2.0, "{leans:?}");
+        // Below the fork the clump is one trunk: every node on the way down
+        // has the one structural child.
+        let mut k = *at;
+        while let Some(p) = tree.nodes[k].parent {
+            let below = tree.nodes.iter().filter(|n| n.parent == Some(p)).count();
+            assert_eq!(below, 1, "at {share} a node under the fork branches");
+            k = p as usize;
+        }
     }
-    let born = counts.iter().position(|&c| c > 1).expect("a second stem");
-    // Before the second stem the two clump rows reach nothing, so the tree is
-    // the oak itself; after it, every step opens the clump further.
-    for step in 0..born {
-        assert_eq!(skeletons[step], skeletons[0], "step {step} moved the oak");
-    }
-    for step in born + 1..STEPS {
-        assert!(
-            apart[step] > apart[step - 1],
-            "step {step} closed the clump instead of opening it"
-        );
-        assert_ne!(
-            skeletons[step - 1],
-            skeletons[step],
-            "step {step} grew the tree the step before it did"
-        );
-    }
+}
+
+#[test]
+fn the_girth_below_the_fork_is_the_pipe_models_sum() {
+    let f = forked(0.4);
+    let tree = grow(&f);
+    let (at, stems) = forks(&tree)[1].clone();
+    let e = f.radii.fork_exponent;
+    let carried: f64 = stems
+        .iter()
+        .map(|&i| tree.nodes[i].start_radius.powf(e))
+        .sum();
+    assert!(
+        (carried.powf(1.0 / e) - tree.nodes[at].radius).abs() < 1e-9,
+        "the stems do not add up to the trunk below them"
+    );
+    let root = tree.nodes[0].radius;
+    assert!(
+        (root - f.radii.trunk_radius * f.skeleton.envelope.height).abs() < 1e-9,
+        "the forked clump's root is not the authored trunk"
+    );
+}
+
+/// The lowest point of every swept run, in the order the mesh emits them.
+fn floors(mesh: &surface::SurfaceMesh) -> Vec<f64> {
+    mesh.run_table
+        .iter()
+        .map(|run| {
+            let span = run.first_index as usize..(run.first_index + run.index_count) as usize;
+            mesh.indices[span]
+                .iter()
+                .map(|&v| f64::from(mesh.positions[v as usize * 3 + 1]))
+                .fold(f64::INFINITY, f64::min)
+        })
+        .collect()
+}
+
+#[test]
+fn a_stem_born_on_a_stem_leaves_from_a_socket_not_the_ground() {
+    // At the ground both stems are trunk runs buried by the flare's depth. At
+    // a height only the run leaving the root is buried; the later stem starts
+    // sunk into the socket of the trunk it forks off, at the fork and not
+    // under the ground, and no other run starts in the bole.
+    let height = |f: &Family| f.skeleton.envelope.height;
+    let buried = |f: &Family, tree: &Tree| {
+        let mesh = surface::build(tree, height(f), &f.surface).expect("the clump sweeps");
+        floors(&mesh)
+    };
+    let f = forked(0.0);
+    let under = buried(&f, &grow(&f))
+        .into_iter()
+        .filter(|y| *y < 0.0)
+        .count();
+    assert_eq!(under, 2, "at the ground {under} runs were buried");
+    let f = forked(0.4);
+    let tree = grow(&f);
+    let (at, _) = forks(&tree)[1].clone();
+    let fork = &tree.nodes[at];
+    let floors = buried(&f, &tree);
+    assert_eq!(
+        floors.iter().filter(|y| **y < 0.0).count(),
+        1,
+        "the fork was buried"
+    );
+    let socketed: Vec<f64> = floors
+        .into_iter()
+        .filter(|y| *y >= 0.0 && *y < bole(&f) * 0.9)
+        .collect();
+    assert_eq!(
+        socketed.len(),
+        1,
+        "{} runs start in the bole",
+        socketed.len()
+    );
+    assert!(
+        socketed[0] < fork.position.y && socketed[0] > fork.position.y - 2.0 * fork.radius,
+        "the later stem starts at {} for a fork at {}",
+        socketed[0],
+        fork.position.y
+    );
 }
 
 #[test]
@@ -380,7 +393,7 @@ fn a_stems_own_root_is_never_shed() {
     // and not the other.
     let mut f = clump(2);
     f.age = 12.0;
-    f.skeleton.growth.max_nodes = Some(WALK_NODES);
+    f.skeleton.growth.max_nodes = Some(NODES);
     let mut specimen = branching::Specimen::build(&f).expect("the clump starts growing");
     specimen.advance(6.0).expect("the clump grows on");
     let tree = specimen.tree();

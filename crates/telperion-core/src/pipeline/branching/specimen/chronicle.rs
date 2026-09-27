@@ -43,9 +43,14 @@ impl Specimen {
             return;
         }
         self.read.take();
-        // A clump's stems are what the tree stands on: the chronicle sheds a
-        // shoot, never a stem's own root node.
-        let clump = self.params.habit.stems > 1;
+        // A clump's stems, a fork at height zero, are what the tree stands
+        // on: the chronicle sheds a shoot, never a stem's own root node.
+        let clump = self
+            .tree
+            .nodes
+            .iter()
+            .filter(|n| n.codominant.is_some())
+            .any(super::stem_root);
         let roots: BTreeSet<_> = roots.iter().copied().collect();
         let mut dead = Vec::new();
         let mut pending = roots;

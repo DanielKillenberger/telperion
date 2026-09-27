@@ -123,18 +123,28 @@ fn shedding_compacts_siblings_without_reusing_birth_identities() {
 
 #[test]
 fn scaffold_resume_preserves_each_axis_stream_and_spent_attractors() {
-    let f = Preset::Ordinary.parameters();
-    let a = Specimen::new(&f.skeleton, f.radii).unwrap();
-    let mut full = a.clone();
-    full.step(usize::MAX, 0).unwrap();
-    let mut sliced = a;
-    while !sliced.scaffold.finished() {
-        sliced.step(7, 0).unwrap();
+    // The ordinary table as shipped, and forking over its crown: codominant
+    // forks keep their streams and their pending parts across every slice.
+    let mut forking = Preset::Ordinary.parameters();
+    let h = &mut forking.skeleton.habit;
+    (h.codominance, h.fork_height, h.fork_height_spread) = (0.6, 0.35, 0.3);
+    (h.fork_ways, h.fork_lean, h.fork_divergence) = (3.5, 20.0, 90.0);
+    for f in [Preset::Ordinary.parameters(), forking] {
+        let a = Specimen::new(&f.skeleton, f.radii).unwrap();
+        let mut full = a.clone();
+        full.step(usize::MAX, 0).unwrap();
+        let mut again = a.clone();
+        again.step(usize::MAX, 0).unwrap();
+        let mut sliced = a;
+        while !sliced.scaffold.finished() {
+            sliced.step(7, 0).unwrap();
+        }
+        assert!(
+            bytes(sliced.tree()) == bytes(full.tree()),
+            "resumed scaffold differs byte-for-byte"
+        );
+        assert!(bytes(again.tree()) == bytes(full.tree()), "a repeat run differs");
     }
-    assert!(
-        bytes(sliced.tree()) == bytes(full.tree()),
-        "resumed scaffold differs byte-for-byte"
-    );
 }
 
 pub(super) fn bytes(tree: &Tree) -> Vec<u8> {
@@ -151,6 +161,7 @@ pub(super) fn bytes(tree: &Tree) -> Vec<u8> {
         out.extend(n.branch.to_le_bytes());
         out.push(n.kind as u8);
         out.push(n.shoot.bud_fate as u8);
+        out.extend(n.codominant.map_or(u64::MAX, f64::to_bits).to_le_bytes());
         out.extend(n.shoot.birth_year.to_le_bytes());
         out.extend(n.shoot.death_year.unwrap_or(u64::MAX).to_le_bytes());
         out.extend((n.shoot.vigour_events.len() as u64).to_le_bytes());

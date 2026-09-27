@@ -44,6 +44,13 @@ pub struct Node {
     /// limb, so it is carried through every read, the shoot-less ones too,
     /// where the bud's fate is not. The root is every stem's base and none.
     pub stem: bool,
+    /// On the first node of a codominant sibling, the wood a fork parts off
+    /// beside the primary that carries its axis on, the sibling's weight: how
+    /// far it has grown in, 0 to 1, from the rate that switched it on and the
+    /// ways' fraction. None on every other node. Carried through every read,
+    /// as `stem` is, so the radius solve and the surface read one recorded
+    /// fact.
+    pub codominant: Option<f64>,
 }
 impl Node {
     pub fn root() -> Self {
@@ -58,6 +65,7 @@ impl Node {
             branch: 0,
             kind: NodeKind::Structural,
             stem: false,
+            codominant: None,
         }
     }
 }

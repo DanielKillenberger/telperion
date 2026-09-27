@@ -100,8 +100,8 @@ pub(crate) fn validate(params: &SkeletonParams, radii: RadiusParams) -> Result<(
     } else {
         0
     };
-    let config = params.resolved_growth(scattered)?;
-    scaffold::stems_placed(params, &config)
+    params.resolved_growth(scattered)?;
+    scaffold::forks_placed(params)
 }
 
 impl Specimen {
@@ -120,7 +120,7 @@ impl Specimen {
         };
         let config = params.resolved_growth(points.len())?;
         let bias = GrowthBias::new(params.envelope, params.seed, params.bias)?;
-        scaffold::stems_placed(params, &config)?;
+        scaffold::forks_placed(params)?;
 
         let scaffold = scaffold::Frontier::new(params, &config, points);
         Ok(Self {

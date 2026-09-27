@@ -24,6 +24,42 @@ pub use reference::reference;
 pub use scalar::{Kind, Scalar, Typed};
 pub use walk::{degrees, density, linear, walk, weighted};
 
+/// Rows the catalogue no longer holds, each refused with what replaced it: a
+/// wire or value file that still names one is refused, never read silently.
+const RETIRED: [(&str, &str); 5] = [
+    (
+        "/skeleton/habit/stems",
+        "/skeleton/habit/stems is retired: a clump is a fork at the root, \
+         /skeleton/habit/codominance 1 with /skeleton/habit/forkWays stems and \
+         /skeleton/habit/forkHeight 0",
+    ),
+    (
+        "/skeleton/habit/stemDivergence",
+        "/skeleton/habit/stemDivergence is retired: use /skeleton/habit/forkDivergence",
+    ),
+    (
+        "/skeleton/habit/stemLean",
+        "/skeleton/habit/stemLean is retired: use /skeleton/habit/forkLean",
+    ),
+    (
+        "/skeleton/habit/stemLeanSpread",
+        "/skeleton/habit/stemLeanSpread is retired: use /skeleton/habit/forkLeanSpread",
+    ),
+    (
+        "/skeleton/habit/stemForkHeight",
+        "/skeleton/habit/stemForkHeight is retired: use /skeleton/habit/forkHeight, a share \
+         of the tree's height",
+    ),
+];
+
+/// Why the row at `path` is refused if the catalogue retired it.
+pub fn retired(path: &str) -> Option<&'static str> {
+    RETIRED
+        .iter()
+        .find(|(retired, _)| *retired == path)
+        .map(|(_, why)| *why)
+}
+
 /// A stage of the one pipeline that reads a row on the direct build.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Stage {

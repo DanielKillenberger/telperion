@@ -9,7 +9,9 @@ export interface Placement { identity: PlacementIdentity; leaf: LeafWords }
 export interface Run {
   identity: NodeIdentity;
   nodes: { identity: NodeIdentity; parent: NodeIdentity | null;
-    position: { x: number; y: number; z: number }; radii: number[]; kind: string; stem: boolean }[];
+    position: { x: number; y: number; z: number }; radii: number[]; kind: string; stem: boolean;
+    /** A codominant sibling's weight, 0 to 1; null on every other node. */
+    codominant: number | null }[];
 }
 export interface ChangeRecord {
   born_runs: Run[]; resized_runs: Run[]; shed_runs: NodeIdentity[];
@@ -24,9 +26,9 @@ export interface SpecimenRead {
    * against - one box for the family, so every age reads the same one. */
   leaves: Uint32Array; foliageReference: LeafReference;
 }
-/** Owned schema-5 little-endian chronicle and writer frontiers, without meshes.
+/** Owned schema-6 little-endian chronicle and writer frontiers, without meshes.
  * Caller mutation never reaches a retained specimen. */
-export interface SpecimenSnapshot { schema: 5; data: Uint8Array }
+export interface SpecimenSnapshot { schema: 6; data: Uint8Array }
 export interface SpecimenHandle {
   readonly frontier: number;
   readonly historyCap: number;
@@ -80,7 +82,7 @@ export function specimenBinding(get: () => SpecimenExports, check: (code: number
       const e = get();
       try {
         check(e.specimen_snapshot(handle));
-        return { schema: 5, data: new Uint8Array(e.memory.buffer, e.buffer_ptr(16), e.buffer_len(16)).slice() };
+        return { schema: 6, data: new Uint8Array(e.memory.buffer, e.buffer_ptr(16), e.buffer_len(16)).slice() };
       } finally { e.specimen_snapshot_release(); }
     },
     release() { check(get().specimen_release(handle)); },
@@ -99,7 +101,7 @@ export function specimenBinding(get: () => SpecimenExports, check: (code: number
       return wrap((metadata() as { handle: number }).handle);
     },
     import(snapshot: SpecimenSnapshot): SpecimenHandle {
-      if (snapshot.schema !== 5 || !(snapshot.data instanceof Uint8Array)) throw Error('Invalid specimen snapshot schema/data');
+      if (snapshot.schema !== 6 || !(snapshot.data instanceof Uint8Array)) throw Error('Invalid specimen snapshot schema/data');
       const e = get();
       try {
         check(e.specimen_snapshot_alloc(snapshot.data.length));

@@ -20,6 +20,7 @@ pub(in crate::pipeline::branching::specimen) fn buffers(s: &Specimen, age: f64) 
                 radii: [n.radius, n.start_radius, n.base_radius],
                 kind: n.kind,
                 stem: n.stem,
+                codominant: n.codominant,
             });
     }
     for run in out.runs.values_mut() {

@@ -43,7 +43,6 @@ use build::*;
 pub(crate) use build::{faces, Faces};
 #[cfg(feature = "geometry")]
 pub(crate) use dependencies::affected as affected_contacts;
-pub(crate) use paths::straightest;
 #[cfg(feature = "geometry")]
 pub(crate) use rings::{rings, Rings, Sweep};
 #[cfg(feature = "geometry")]

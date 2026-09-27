@@ -164,6 +164,7 @@ impl Specimen {
                     position: n.position,
                     kind: n.kind,
                     stem: n.stem,
+                    codominant: n.codominant,
                     shoot: if shoot_history {
                         n.shoot.clone()
                     } else {

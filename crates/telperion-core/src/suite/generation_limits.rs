@@ -157,8 +157,8 @@ fn old_snapshots_are_refused_and_missing_new_json_fields_get_defaults() {
     f.age = 0.;
     let s = branching::Specimen::build(&f).unwrap();
     let mut bytes = s.snapshot().unwrap();
-    assert_eq!(bytes[4], 5);
-    bytes[4] = 4;
+    assert_eq!(bytes[4], 6);
+    bytes[4] = 5;
     assert!(branching::Specimen::from_snapshot(&bytes).is_err());
     let mut wire = serde_json::to_value(f.skeleton.twigs).unwrap();
     for key in ["max_internodes", "max_droop", "curtain_step_clearance"] {

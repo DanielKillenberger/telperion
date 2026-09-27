@@ -50,6 +50,7 @@ fn with_builder<T>(habit: HabitParams, heights: &[f64], probe: impl Fn(&mut Buil
         tree: &mut tree,
         envelope: e,
         planning: e,
+        height: e.height,
         config: &config,
         bias: &bias,
         habit,

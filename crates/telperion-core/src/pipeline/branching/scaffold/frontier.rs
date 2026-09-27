@@ -24,7 +24,7 @@ impl Frontier {
         points: Vec<Vec3>,
     ) -> Self {
         Self {
-            queue: super::stems::axes(params, config),
+            queue: super::fork::axes(params, config),
             consumed: vec![None; points.len()],
             year: 0,
             visited: Vec::new(),
@@ -89,6 +89,7 @@ impl Frontier {
                 },
                 params.twigs.reach,
             ),
+            height: params.envelope.height,
             config,
             bias,
             habit: params.habit,
@@ -143,6 +144,7 @@ impl Frontier {
             tree,
             envelope: params.envelope,
             planning: inner_envelope(params.envelope, params.twigs.reach),
+            height: params.envelope.height,
             config,
             bias,
             habit: params.habit,
@@ -208,6 +210,7 @@ mod tests {
             tree: &mut tree,
             envelope: f.skeleton.envelope,
             planning: f.skeleton.envelope,
+            height: f.skeleton.envelope.height,
             config: &config,
             bias: &bias,
             habit: f.skeleton.habit,

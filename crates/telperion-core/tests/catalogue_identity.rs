@@ -7,7 +7,11 @@
 //! digest that moves means the catalogue changed a value, a walk or a refusal.
 //! fn-61 re-pinned all four for the habit rows `pitchByHeight` and
 //! `raggedReach`: with those two rows left out of the text, each digest was
-//! still the one recorded at d6a3405c.
+//! still the one recorded at d6a3405c. fn-170 re-pinned all four for the fork
+//! rows that retire the five stems rows (`codominance`, `forkHeight`,
+//! `forkHeightSpread`, `forkWays`, `forkDivergence`, `forkLean`,
+//! `forkLeanSpread`) and the radius shares `lateralShare` and `forkBalance`,
+//! and for the silver birch its fork rows restate.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -43,7 +47,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        2_660_877_973_252_725_101,
+        16_296_420_864_715_236_026,
         "{}",
         digest(&text)
     );
@@ -75,7 +79,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        1_008_978_051_789_951_081,
+        7_822_750_331_086_590_876,
         "{}",
         digest(&text)
     );
@@ -100,7 +104,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        4_731_154_020_153_466_187,
+        16_442_023_179_589_947_125,
         "{}",
         digest(&text)
     );
@@ -163,7 +167,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        5_352_633_743_146_656_636,
+        10_279_527_604_412_138_589,
         "{}",
         digest(&text)
     );

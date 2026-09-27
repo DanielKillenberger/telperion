@@ -145,28 +145,22 @@ impl Query<'_> {
     fn node(&self, id: NodeIdentity) -> &Node {
         &self.s.tree.nodes[self.s.identities[id.key]]
     }
-    /// The surface's own choice: the straighter stem where stems part above
-    /// the root, and the widest child everywhere else.
+    /// The surface's own choice: the widest child that is not a codominant
+    /// sibling, the fork's primary, and the widest of all where every child
+    /// is one.
     fn leader(&mut self, id: NodeIdentity) -> Option<NodeIdentity> {
         if let Some(&leader) = self.leaders.get(&id) {
             return leader;
         }
         let children = self.children(id);
-        let leader = self
-            .straightest(id, &children)
-            .or_else(|| self.widest(&children));
+        let primary: Vec<NodeIdentity> = children
+            .iter()
+            .copied()
+            .filter(|&child| self.node(child).codominant.is_none())
+            .collect();
+        let leader = self.widest(&primary).or_else(|| self.widest(&children));
         self.leaders.insert(id, leader);
         leader
-    }
-    fn straightest(&mut self, id: NodeIdentity, children: &[NodeIdentity]) -> Option<NodeIdentity> {
-        let parent = self.s.links[id.key].parent.filter(|_| self.node(id).stem)?;
-        let below = self.stand(parent);
-        let before = self.node(below).position;
-        let stems = children
-            .iter()
-            .filter(|&&child| self.node(child).stem)
-            .map(|&child| (child, self.node(child).position));
-        crate::pipeline::surface::straightest(before, self.node(id).position, stems)
     }
     fn widest(&self, children: &[NodeIdentity]) -> Option<NodeIdentity> {
         let mut leader = None;
@@ -203,14 +197,14 @@ mod tests {
     #[test]
     fn contacts_carry_on_into_the_stem_the_surface_does() {
         // Where a clump parts above the ground the query follows the
-        // straighter stem as the surface does, so every node's dependencies,
+        // fork's primary as the surface does, so every node's dependencies,
         // the fork's and its stems' among them, are the sweep's own.
         let mut f = crate::presets::Preset::OregonWhiteOak.parameters();
         f.skeleton.seed = 7;
-        f.skeleton.habit.stems = 2;
-        f.skeleton.habit.stem_lean = 24.0;
-        f.skeleton.habit.stem_lean_spread = 1.0;
-        f.skeleton.habit.stem_fork_height = 0.4;
+        f.skeleton.habit.codominance = 1.0;
+        f.skeleton.habit.fork_height = 0.4 * f.skeleton.envelope.crown_base;
+        f.skeleton.habit.fork_lean = 24.0;
+        f.skeleton.habit.fork_lean_spread = 1.0;
         f.age = 16.0;
         let s = Specimen::build(&f).unwrap();
         for year in [8, 12, 16] {

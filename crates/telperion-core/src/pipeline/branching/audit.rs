@@ -265,11 +265,11 @@ fn every_habit_trait_moves_every_shipped_preset() {
                 },
             ),
             (
-                "stems",
+                "codominance",
                 HabitParams {
-                    stems: h.stems + 1,
-                    stem_divergence: 70.0,
-                    stem_lean: 14.0,
+                    codominance: if h.codominance > 0.0 { 0.0 } else { 1.0 },
+                    fork_divergence: 70.0,
+                    fork_lean: 14.0,
                     ..h
                 },
             ),
@@ -283,13 +283,14 @@ fn every_habit_trait_moves_every_shipped_preset() {
                 "{preset:?}: {trait_name} left the skeleton unmoved"
             );
         }
-        // The four clump rows say how a second stem stands beside the first, so
-        // they are inert while the tree has one - read against a clump, the
-        // way the supernatural terms are read against a field that is on.
+        // The six fork rows say where and how a fork parts, so they are
+        // inert while the tree never forks - read against a tree that does,
+        // the way the supernatural terms are read against a field that is on.
         let clump = HabitParams {
-            stems: h.stems + 1,
-            stem_divergence: 70.0,
-            stem_lean: 14.0,
+            codominance: 1.0,
+            fork_height: 0.05,
+            fork_divergence: 70.0,
+            fork_lean: 14.0,
             ..h
         };
         let mut standing = family.clone();
@@ -297,30 +298,44 @@ fn every_habit_trait_moves_every_shipped_preset() {
         let on = hashed(&standing);
         for (trait_name, habit) in [
             (
-                "stem divergence",
+                "fork height",
                 HabitParams {
-                    stem_divergence: 100.0,
+                    fork_height: (h.fork_height - 0.3).abs(),
                     ..clump
                 },
             ),
             (
-                "stem lean",
+                "fork height spread",
                 HabitParams {
-                    stem_lean: 22.0,
+                    fork_height_spread: 0.1,
                     ..clump
                 },
             ),
             (
-                "stem lean spread",
+                "fork ways",
                 HabitParams {
-                    stem_lean_spread: (h.stem_lean_spread - 0.6).abs(),
+                    fork_ways: 3.0,
                     ..clump
                 },
             ),
             (
-                "stem fork height",
+                "fork divergence",
                 HabitParams {
-                    stem_fork_height: (h.stem_fork_height - 0.3).abs(),
+                    fork_divergence: 100.0,
+                    ..clump
+                },
+            ),
+            (
+                "fork lean",
+                HabitParams {
+                    fork_lean: 22.0,
+                    ..clump
+                },
+            ),
+            (
+                "fork lean spread",
+                HabitParams {
+                    fork_lean_spread: (h.fork_lean_spread - 0.6).abs(),
                     ..clump
                 },
             ),

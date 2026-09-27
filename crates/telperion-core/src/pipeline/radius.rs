@@ -3,7 +3,11 @@ mod history;
 mod incremental;
 use crate::catalogue::{bounded, tuned, value, Bounds, Site};
 use crate::math::Transcendental;
-use crate::{envelope::Envelope, tree::Tree, Error, Result};
+use crate::{
+    envelope::Envelope,
+    tree::{BudFate, Tree},
+    Error, Result,
+};
 pub(crate) use incremental::Pipes;
 crate::catalogue::rows! {
     #[derive(Debug, Clone, Copy, PartialEq)]
@@ -54,6 +58,33 @@ crate::catalogue::rows! {
             dial: bounded("max_taper_exponent", "the ceiling on accumulated taper along one long \
                 branch", [2.0, 4.0]).span([6.0, 18.0]),
         },
+        /// The wood a lateral takes at a fork against what its own subtree
+        /// asks, 0 to 1: the parent carries a lateral's pipe at this share and
+        /// the lateral's wood thins by its root. At one every fork divides by
+        /// the pipe model alone.
+        #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_share"))]
+        pub lateral_share: f64 = "lateralShare" "share" Bounds::closed(0.01, 1.0) => [Grow] {
+            wire: 253,
+            check: value(Site::Radius, 4, "lateralShare"),
+            note: "Below one a lateral leaves thinner than a continuation carrying as many \
+                tips. A lateral is the wood the scaffold marks `BudFate::Lateral`.",
+            dial: bounded("lateral_share", "how thin a limb leaves the axis it grows from, \
+                against its own reach; lower keeps the leaders' girth", [0.1, 0.2]),
+        },
+        /// The wood a codominant sibling takes at a fork against its own
+        /// subtree's, 0 to 1, beside the primary that carries the axis on. At
+        /// one the parts divide by the pipe model alone.
+        #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_share"))]
+        pub fork_balance: f64 = "forkBalance" "share" Bounds::closed(0.01, 1.0) => [Grow] {
+            wire: 254,
+            check: value(Site::Radius, 5, "forkBalance"),
+            applies: "`skeleton.habit.codominance` zero",
+            note: "A sibling is the wood the scaffold marks `codominant`; its share is this \
+                times the weight it has grown in by. At one a sibling takes its own pipe as \
+                the primary does.",
+            dial: bounded("fork_balance", "how much thinner the lesser parts of a codominant \
+                fork leave than the part carrying the axis on", [0.1, 0.2]),
+        },
     }
 }
 impl Default for RadiusParams {
@@ -63,6 +94,8 @@ impl Default for RadiusParams {
             fork_exponent: 2.0,
             length_taper: 0.6,
             max_taper_exponent: crate::ranges::default_max_taper_exponent(),
+            lateral_share: 1.0,
+            fork_balance: 1.0,
         }
     }
 }
@@ -70,6 +103,19 @@ impl RadiusParams {
     pub fn resolved(self) -> Result<Self> {
         crate::catalogue::check(Self::CHECKS, &self, Site::Radius)?;
         Ok(self)
+    }
+}
+/// The share of its own pipe node `j` takes at its fork, which its whole
+/// subtree thins by the root of: a lateral `lateralShare`, a codominant
+/// sibling `forkBalance` of its weight, and a primary all of it. The one
+/// allocation both solves read, so the parent's wood is always the sum of
+/// the wood its children leave with.
+pub(crate) fn share(tree: &Tree, j: usize, p: RadiusParams) -> f64 {
+    let n = &tree.nodes[j];
+    match (n.shoot.bud_fate, n.codominant) {
+        (BudFate::Lateral, _) => p.lateral_share,
+        (BudFate::Terminal, Some(weight)) => p.fork_balance * weight,
+        (BudFate::Terminal, None) => 1.0,
     }
 }
 pub fn solve(tree: &mut Tree, envelope: Envelope, params: RadiusParams) -> Result<()> {
@@ -86,7 +132,6 @@ pub fn solve(tree: &mut Tree, envelope: Envelope, params: RadiusParams) -> Resul
     let height = envelope.height.max(1e-6);
     let trunk = p.trunk_radius * height;
     let mut shed = vec![0.0; count];
-    let mut carried = vec![0.0_f64; count];
     for i in 1..count {
         let parent = tree.nodes[i].parent.unwrap() as usize;
         shed[i] = (shed[parent]
@@ -94,22 +139,47 @@ pub fn solve(tree: &mut Tree, envelope: Envelope, params: RadiusParams) -> Resul
                 / height)
             .min(p.max_taper_exponent);
     }
+    // Each node's children, latest first: the order the pipes were always
+    // summed in, so a neutral share divides the wood to the bit as it did.
+    let mut first = vec![usize::MAX; count];
+    let mut next = vec![usize::MAX; count];
+    for i in 1..count {
+        let parent = tree.nodes[i].parent.unwrap() as usize;
+        next[i] = first[parent];
+        first[parent] = i;
+    }
+    let children = |i: usize| {
+        std::iter::successors(Some(first[i]).filter(|&k| k != usize::MAX), |&k| {
+            Some(next[k]).filter(|&k| k != usize::MAX)
+        })
+    };
+    // Bottom up, each node's own pipe and the share of it its parent carries.
+    let mut own = vec![(1.0, 1.0); count];
     for i in (0..count).rev() {
-        let r = if carried[i] > 0.0 {
-            carried[i].powf_fixed(1.0 / p.fork_exponent)
+        let carried: f64 = children(i)
+            .map(|j| share(tree, j, p) * own[j].1.powf_fixed(p.fork_exponent))
+            .sum();
+        let r = if carried > 0.0 {
+            carried.powf_fixed(1.0 / p.fork_exponent)
         } else {
             1.0
         };
-        let start = if let Some(parent) = tree.nodes[i].parent {
-            let parent = parent as usize;
-            let start = r * (shed[i] - shed[parent]).exp_fixed();
-            carried[parent] += start.powf_fixed(p.fork_exponent);
-            start
-        } else {
-            r
+        let start = match tree.nodes[i].parent {
+            Some(parent) => r * (shed[i] - shed[parent as usize]).exp_fixed(),
+            None => r,
         };
-        tree.nodes[i].radius = r;
-        tree.nodes[i].start_radius = start;
+        own[i] = (r, start);
+    }
+    // Top down, a lateral's or a sibling's whole subtree thins by the root of
+    // the share its fork gave it.
+    let mut factor = vec![1.0; count];
+    for i in 0..count {
+        if let Some(parent) = tree.nodes[i].parent {
+            factor[i] =
+                factor[parent as usize] * share(tree, i, p).powf_fixed(1.0 / p.fork_exponent);
+        }
+        tree.nodes[i].radius = own[i].0 * factor[i];
+        tree.nodes[i].start_radius = own[i].1 * factor[i];
     }
     let scale = trunk / tree.nodes[0].radius;
     for n in &mut tree.nodes[..count] {
@@ -125,3 +195,5 @@ pub fn solve(tree: &mut Tree, envelope: Envelope, params: RadiusParams) -> Resul
     }
     tree.validate_solved()
 }
+#[cfg(test)]
+mod share_tests;

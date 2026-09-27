@@ -12,6 +12,7 @@ fn reach_probe_budget_changes_room_in_a_wide_crown() {
         tree: &mut tree,
         envelope: e,
         planning: e,
+        height: e.height,
         config: &config,
         bias: &bias,
         habit: HabitParams::default(),

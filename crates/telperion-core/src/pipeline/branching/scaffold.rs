@@ -40,10 +40,12 @@ struct Axis {
     station_index: usize,
     stationed: bool,
     children: Vec<Axis>,
-    /// A clump's later stems, held on its first until it stands at the height
-    /// they part at; none on every other axis.
-    forks: Vec<Axis>,
-    fork_height: f64,
+    /// The fork the axis decided as it was born; none on an axis that does
+    /// not fork.
+    fork: Option<fork::Fork>,
+    /// A codominant sibling's weight: how far it has grown in beside the
+    /// fork's primary. None on every other axis.
+    codominant: Option<f64>,
     /// The shell the axis and everything it bears grow in.
     bound: Bound,
 }
@@ -62,8 +64,8 @@ impl Axis {
             station_index: 0,
             stationed: false,
             children: Vec::new(),
-            forks: Vec::new(),
-            fork_height: 0.0,
+            fork: None,
+            codominant: None,
             bound: Bound::default(),
         }
     }
@@ -81,10 +83,21 @@ fn growth_unit(habit: HabitParams, config: &GrowthConfig, order: u32) -> f64 {
     let steps = (spacing / config.step_distance).ceil().max(1.0);
     (spacing / steps).max(1e-9)
 }
+/// The sideways, across and rising directions an axis heading `heading`
+/// wanders and rises in.
+fn frame(heading: Vec3) -> (Vec3, Vec3, Option<Vec3>) {
+    let side = heading.perpendicular();
+    let across = heading.cross(side);
+    let up = Vec3::Y - heading * heading.y;
+    (side, across, (up.length_squared() > 1e-12).then(|| up.normalized()))
+}
 struct Builder<'a> {
     tree: &'a mut Tree,
     envelope: Envelope,
     planning: Envelope,
+    /// The tree's own height, which a fork's height is a share of on every
+    /// slice of the growth path.
+    height: f64,
     config: &'a GrowthConfig,
     bias: &'a GrowthBias,
     habit: HabitParams,
@@ -273,6 +286,7 @@ impl Builder<'_> {
         let normal = heading.cross(tangent);
         let phase = Rng::new(axis.key ^ 0x5f35_6495).range(0.0, TAU);
         let unit = self.unit(axis.order + 1);
+        let spacing = self.spacing(axis.order + 1);
         let base_pitch =
             self.habit.lateral_pitch + self.habit.pitch_by_height * self.height_share(position);
         let mut out = Vec::new();
@@ -299,9 +313,54 @@ impl Builder<'_> {
             }
             let mut child = Axis::new(at, direction, length, axis.order + 1, key);
             child.bound = bound;
+            child.fork = fork::decide(&self.habit, key, self.height, position.y, Some(spacing));
             out.push(child);
         }
         out
+    }
+    /// Metres between an axis's stations at this order.
+    fn spacing(&self, order: u32) -> f64 {
+        if order == 0 {
+            self.habit.leader_internode
+        } else {
+            self.habit.lateral_spacing
+        }
+    }
+    /// Forks `axis` at node `at` as `fork` decided, where it heads along
+    /// `heading` with `remaining` of its length still to grow: it carries on
+    /// as the fork's primary, turned onto slot zero, and each sibling joins
+    /// `children` with its weight of the rest of the length. Every part
+    /// decides its own fork from there. Returns the primary's heading.
+    fn fork(
+        &mut self,
+        axis: &mut Axis,
+        at: usize,
+        (heading, remaining): (Vec3, f64),
+        fork: fork::Fork,
+        children: &mut Vec<Axis>,
+    ) -> Vec3 {
+        let base = self.tree.nodes[at].position.y;
+        let unit = self.unit(axis.order);
+        let least = Some(self.spacing(axis.order));
+        let decide = |key| fork::decide(&self.habit, key, self.height, base, least);
+        for (k, share) in fork::siblings(&self.habit) {
+            let weight = fork.weight * share;
+            let length = remaining * weight;
+            if length <= unit * 0.5 {
+                continue;
+            }
+            let direction = fork::about(fork::slot(&self.habit, axis.key, k, 1.0), heading);
+            let key = fork::part_key(axis.key, k);
+            let mut sibling = Axis::new(at, direction, length, axis.order, key);
+            sibling.bound = axis.bound;
+            sibling.codominant = Some(weight);
+            sibling.fork = decide(key);
+            children.push(sibling);
+        }
+        let primary = fork::slot(&self.habit, axis.key, 0, fork.weight);
+        axis.heading = fork::about(primary, heading);
+        axis.fork = decide(fork::part_key(axis.key, 0));
+        axis.heading
     }
     fn grow(&mut self, axis: &mut Axis, budget: &mut usize) -> Result<bool> {
         let unit = self.unit(axis.order);
@@ -310,11 +369,7 @@ impl Builder<'_> {
             return Err(Error::InvalidInput("scaffold step count"));
         }
         let units = units as usize;
-        let spacing = if axis.order == 0 {
-            self.habit.leader_internode
-        } else {
-            self.habit.lateral_spacing
-        };
+        let spacing = self.spacing(axis.order);
         let rise = if axis.order <= 1 {
             self.habit.rise_primary
         } else {
@@ -324,10 +379,7 @@ impl Builder<'_> {
         // walk: an axis wanders and still arrives where it set out for.
         let phase = Rng::new(axis.key ^ 0x1d8e_4fc3).range(0.0, TAU);
         let crookedness = self.habit.crookedness.to_radians();
-        let side = axis.heading.perpendicular();
-        let across = axis.heading.cross(side);
-        let up = Vec3::Y - axis.heading * axis.heading.y;
-        let up = (up.length_squared() > 1e-12).then(|| up.normalized());
+        let (mut side, mut across, mut up) = frame(axis.heading);
         let mut at = axis.tip;
         let mut heading = axis.current_heading;
         let mut children = std::mem::take(&mut axis.children);
@@ -335,6 +387,14 @@ impl Builder<'_> {
         let mut index = axis.station_index;
         let mut stationed = axis.stationed;
         for k in axis.completed..units {
+            if let Some(fork) = axis
+                .fork
+                .filter(|f| self.tree.nodes[at].position.y + TOLERANCE >= f.at)
+            {
+                let remaining = (axis.length - unit * k as f64).max(0.0);
+                heading = self.fork(axis, at, (heading, remaining), fork, &mut children);
+                (side, across, up) = frame(axis.heading);
+            }
             if *budget == 0 {
                 axis.tip = at;
                 axis.current_heading = heading;
@@ -390,7 +450,9 @@ impl Builder<'_> {
                 }
                 break;
             };
-            if k == 0 && axis.order > 0 {
+            if k == 0 && axis.codominant.is_some() {
+                self.tree.nodes[id].codominant = axis.codominant;
+            } else if k == 0 && axis.order > 0 {
                 self.tree.nodes[id].shoot.bud_fate = crate::tree::BudFate::Lateral;
                 if axis.order == 1 {
                     self.limbs.record(id, axis.bound);
@@ -398,7 +460,6 @@ impl Builder<'_> {
             }
             heading = next;
             at = id;
-            axis.part(at, self.tree.nodes[at].position.y, false, &mut children);
             since += stride;
             self.consume(self.tree.nodes[at].position, stride);
             stationed = false;
@@ -409,7 +470,6 @@ impl Builder<'_> {
                 stationed = true;
             }
         }
-        axis.part(at, self.tree.nodes[at].position.y, true, &mut children);
         // The apex bears its own station, so a leader that yields early still
         // hands the crown to its forks.
         if !stationed && at != axis.at && axis.order < self.habit.lateral_orders {
@@ -420,13 +480,13 @@ impl Builder<'_> {
     }
 }
 
+mod fork;
 mod frontier;
 #[cfg(test)]
 mod limit_tests;
-mod stems;
 #[cfg(test)]
 mod troll_tests;
 #[cfg(test)]
 pub(super) use frontier::generate;
 pub(super) use frontier::Frontier;
-pub(super) use stems::placed as stems_placed;
+pub(super) use fork::placed as forks_placed;

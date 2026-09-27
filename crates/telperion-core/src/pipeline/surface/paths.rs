@@ -1,5 +1,5 @@
 use super::{filled, reserved};
-use crate::{math::Vec3, tree::Node, Error, Result};
+use crate::{tree::Node, Error, Result};
 pub(super) struct Run {
     pub start: usize,
     pub end: usize,
@@ -8,8 +8,8 @@ pub(super) struct Run {
 pub(super) struct Paths {
     pub nodes: Vec<usize>,
     pub runs: Vec<Run>,
-    /// Every node where a clump's stems part above the ground, and the run
-    /// through it carries on into the straighter of them.
+    /// Every node above the root a codominant sibling leaves: the run through
+    /// it carries on into the widest wood that is not one, the fork's primary.
     pub forks: Vec<bool>,
 }
 pub(super) fn paths(nodes: &[Node]) -> Result<Paths> {
@@ -30,6 +30,7 @@ pub(super) fn paths(nodes: &[Node]) -> Result<Paths> {
     let mut last = filled(n, usize::MAX)?;
     let mut next = filled(n, usize::MAX)?;
     let mut leaders = filled(n, usize::MAX)?;
+    let mut widest = filled(n, usize::MAX)?;
     for i in 1..n {
         let at = stands[nodes[i].parent.unwrap() as usize];
         if nodes[i].position.distance(nodes[at].position) > 1e-9 {
@@ -40,23 +41,24 @@ pub(super) fn paths(nodes: &[Node]) -> Result<Paths> {
                 next[last[at]] = i;
             }
             last[at] = i;
-            if leaders[at] == usize::MAX || nodes[i].start_radius > nodes[leaders[at]].start_radius
-            {
+            let wider = |k: usize| k == usize::MAX || nodes[i].start_radius > nodes[k].start_radius;
+            if wider(widest[at]) {
+                widest[at] = i;
+            }
+            if nodes[i].codominant.is_some() {
+                result.forks[at] = at != 0;
+            } else if wider(leaders[at]) {
                 leaders[at] = i;
             }
         } else {
             stands[i] = at;
         }
     }
-    for at in (1..n).filter(|&at| stands[at] == at && nodes[at].stem) {
-        let before = nodes[stands[nodes[at].parent.unwrap() as usize]].position;
-        let child = |k: usize| Some(k).filter(|&k| k != usize::MAX);
-        let stems = std::iter::successors(child(first[at]), |&k| child(next[k]))
-            .filter(|&k| nodes[k].stem)
-            .map(|k| (k, nodes[k].position));
-        if let Some(leader) = straightest(before, nodes[at].position, stems) {
-            leaders[at] = leader;
-            result.forks[at] = true;
+    // A node every child of which is a codominant sibling carries on into
+    // the widest, as everywhere else.
+    for at in 0..n {
+        if leaders[at] == usize::MAX {
+            leaders[at] = widest[at];
         }
     }
     let mut seeds = reserved(n)?;
@@ -102,32 +104,4 @@ pub(super) fn paths(nodes: &[Node]) -> Result<Paths> {
         s += 1;
     }
     Ok(result)
-}
-
-/// Where two or more stems leave a node on a stem above the root, the run
-/// carries on into the one that turns least from the wood below it, the
-/// first of them on a tie, and every other leaves it as a socketed run. Any
-/// fewer stems and the run follows its widest child, as everywhere else.
-/// `before` is where the wood below the node starts, `at` the node, and
-/// `stems` its stem children in child order with their positions. The
-/// contact query asks the same of the same positions, so both choose one run.
-pub(crate) fn straightest<K>(
-    before: Vec3,
-    at: Vec3,
-    stems: impl IntoIterator<Item = (K, Vec3)>,
-) -> Option<K> {
-    let mut stems = stems.into_iter();
-    let below = (at - before).normalized();
-    let turn = |p: Vec3| below.dot((p - at).normalized());
-    let (mut best, p) = stems.next()?;
-    let mut most = turn(p);
-    let mut parted = false;
-    for (k, p) in stems {
-        parted = true;
-        let straightness = turn(p);
-        if straightness > most {
-            (best, most) = (k, straightness);
-        }
-    }
-    parted.then_some(best)
 }
