@@ -1,11 +1,20 @@
 {
   "branch_name": "fn-178-the-size-check-stops-what-the-owner",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-27T12:54:19.015397Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-178-the-size-check-stops-what-the-owner",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-178-the-size-check-stops-what-the-owner.md",
   "status": "open",
   "title": "The size check stops what the owner would refuse",
@@ -20,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T12:54:19.021455Z"
+  "updated_at": "2026-09-27T12:59:55.405554Z"
 }
