@@ -30,8 +30,8 @@
    1159132,
    1153321
   ],
-  "median_total_ms": 765.3743305,
-  "median_growth_ms": 167.9907025,
+  "median_total_ms": 769.499573,
+  "median_growth_ms": 170.1287555,
   "peak_mb": 618
  },
  "hold75": {
@@ -65,8 +65,8 @@
    1159132,
    1153321
   ],
-  "median_total_ms": 770.2082655,
-  "median_growth_ms": 172.63318399999997,
+  "median_total_ms": 771.4069549999999,
+  "median_growth_ms": 171.604512,
   "peak_mb": 619
  }
 }

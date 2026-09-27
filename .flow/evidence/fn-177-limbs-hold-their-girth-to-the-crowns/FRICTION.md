@@ -20,3 +20,10 @@
 - Slowed by: when L runs through a node's laterals, a trunk whose leader ends in a whorl keeps its full girth up to its tip, so the stub ends blunt at 0.47 m. Taking L along the axis's own continuation fixed it. A first build that restarted the hold at a fork's primary as well stopped the girth at every fork. Both showed up only in the candidate measurement, not in the synthetic limb.
 - Cost: about 15 minutes, two candidate measurements, and no images.
 - Would have removed it: a synthetic test tree with a lateral whorl at a leader's tip and a codominant fork. The test now has the whorl case; the fork case is covered by the candidate measurement.
+
+## 2026-09-27, worker, task .1 (the review cap reached before the fix was re-read)
+
+- Doing: the codex fix loop. Round 1 found two P2s (a jump at zero hold under a length taper, and leaves decided on the held radii). Round 2 confirmed that the leaf fix was right and that the jump survived at a fork's primary. The third fix (every part leaving the root starts an axis, and an axis is measured from where it leaves its parent) is committed and tested red-first.
+- Slowed by: the configured `MAX_REVIEW_ITERATIONS` is 2, so the re-review of the third fix was refused with `ESCALATE` before any reviewer read it. The first gate run also failed on a schema test and on species digests that an empty `Tree::pipe` had moved, which cost a second five-minute gate.
+- Cost: about 10 minutes, and the task cannot close without a host reset of the review rounds.
+- Would have removed it: a cap above 2 for a task that adds a pipeline stage, and a grep for `bytes[4]` next to `TLPS` (the bug memory already says so).
