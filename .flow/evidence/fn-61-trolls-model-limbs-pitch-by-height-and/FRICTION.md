@@ -27,3 +27,10 @@
 - Hindered: adding two catalogue rows failed seven tests no focused command runs: four identity digests (`catalogue_identity.rs`), the sweep's held-row list, the generation-limit inventory, two dial counts in `telperion-jev`, and the beech replay tape, whose tune round now asks Jev about two more dials and so needs a live `--extend` re-record.
 - Cost: one full gate run (about 10 minutes) to discover them, then the repair and a second gate run; the tape re-record needs a live Jev call.
 - Remedy: a checklist in `docs/parameters.md` naming every pin a new row moves (or one cargo alias running those tests), so a row lands with them in one pass; and a replay whose tune round does not key its Jev request on the full dial table.
+
+## 2026-09-27, worker (extension resume): the gate ran before the review, then again after it
+
+- Doing: resuming the limb-bound extension after the machine shutdown: gate, npm test, then codex review, as the dispatch ordered them.
+- Hindered: the review's one finding (the snapshot layout changed under schema 4) needed a code fix, so the workspace gate that had just passed ran a second time at the fix head. A focused `npx vitest run` of the two snapshot tests also failed on a stale wasm build, because only `npm test`'s pretest rebuilds it.
+- Cost: one extra gate run (about 5 minutes) and one wasted focused run.
+- Remedy: order a resumed task review first, gate last, so the one gate run sees the final head; and a `test:focused` script that runs the wasm pretest for a named file.
