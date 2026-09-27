@@ -66,11 +66,13 @@ describe("carried native controls", () => {
       attractorWeight: 1,
       twigTipTaper: 1,
       sheddingThreshold: 0.45,
-      stems: 1,
-      stemDivergence: 0,
-      stemLean: 0,
-      stemLeanSpread: 0,
-      stemForkHeight: 0,
+      codominance: 0,
+      forkHeight: 0,
+      forkHeightSpread: 0,
+      forkWays: 2,
+      forkDivergence: 0,
+      forkLean: 0,
+      forkLeanSpread: 0,
     });
     // The leaf and the way it sits on its shoot are rows as well.
     expect(DEFAULT_PARAMS.family.element).toMatchObject({ lobeCount: 0, lobeDepth: 0, sectionRoundness: 0 });

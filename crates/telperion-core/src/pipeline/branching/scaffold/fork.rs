@@ -25,7 +25,9 @@ use std::f64::consts::TAU;
 
 /// The stream the root's axis has always drawn from.
 const ROOT_STREAM: u32 = 0x742b_e831;
-/// The stream a fork's bearing is drawn from.
+/// The stream a fork's bearing is drawn from, laid over the axis's key with
+/// the root's own stream, so the root's fork faces the bearing the seed gave
+/// the retired stems rows.
 const BEARING_STREAM: u32 = 0x3f6a_88c5;
 /// The stream an axis decides its fork from.
 const FORK_STREAM: u32 = 0x6c07_8965;
@@ -107,7 +109,7 @@ pub(super) fn decide(
 /// along +Y: the primary, slot zero, leans by as much of its lean as the
 /// spread leaves it and the fork has grown in, every sibling by all of it.
 pub(super) fn slot(habit: &HabitParams, key: u32, k: usize, weight: f64) -> Vec3 {
-    let bearing = Rng::new(key ^ BEARING_STREAM).range(0.0, TAU);
+    let bearing = Rng::new(key ^ ROOT_STREAM ^ BEARING_STREAM).range(0.0, TAU);
     let azimuth = bearing + k as f64 * habit.fork_divergence.to_radians();
     let lean = habit.fork_lean.to_radians();
     let tilt = match k {

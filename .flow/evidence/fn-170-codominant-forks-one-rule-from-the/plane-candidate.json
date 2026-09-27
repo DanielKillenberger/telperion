@@ -1,0 +1,16 @@
+{
+  "skeleton": {
+    "envelope": {"height": 26.0, "crownBase": 0.12, "spread": 0.6, "fullness": 0.6},
+    "habit": {
+      "apicalDominance": 0.6,
+      "codominance": 0.85,
+      "forkHeight": 0.2,
+      "forkHeightSpread": 0.15,
+      "forkWays": 3.2,
+      "forkDivergence": 120.0,
+      "forkLean": 26.0,
+      "forkLeanSpread": 0.2
+    }
+  },
+  "radii": {"lengthTaper": 0.2, "lateralShare": 0.45, "forkBalance": 0.9}
+}

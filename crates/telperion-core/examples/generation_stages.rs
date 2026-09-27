@@ -1,7 +1,8 @@
 //! Direct mature-build stage measurements through the pipeline; JSONL, one
 //! process per preset/seed. Placement and the cull are timed apart, and the
 //! wood's rings apart from its mesh step; wood and leaves run side by side
-//! unless GENERATION_SERIAL is set.
+//! unless GENERATION_SERIAL is set. GENERATION_FAMILY names a partial wire
+//! laid over the preset, a candidate table that is no shipped preset.
 use serde_json::json;
 use telperion_core::{pipeline, presets::Preset};
 
@@ -12,6 +13,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut f = Preset::from_id(preset)
         .ok_or("unknown preset")?
         .parameters();
+    if let Some(path) = std::env::var_os("GENERATION_FAMILY") {
+        let rows: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(path)?)?;
+        f = telperion_core::params::overlay(&f, &rows).map_err(|e| format!("{e:?}"))?;
+    }
     f.skeleton.seed = seed;
     if std::env::var_os("GENERATION_NO_CONTACT").is_some() {
         f.canopy.surface_contact = 0.;
@@ -77,7 +82,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "{}",
             json!({"event":"sample","output_fnv1a64":format!("{hash:016x}"),"sample":sample,"cold_process_first_build":sample==0,
             "preset":preset,"seed":seed,"height_m":f.skeleton.envelope.height,
-            "complete":tree.diagnostics.complete(),"nodes":tree.nodes.len(),
+            "complete":tree.diagnostics.complete(),"nodes":tree.nodes.len(),"structural":tree.crossover,
+            "node_capped":tree.diagnostics.node_capped,
             "placed":leaves.placed,"retained":instances.len(),"wood_vertices":wood.positions.len()/3,
             "wood_triangles":wood.indices.len()/3,"wood_dropped":wood.dropped,"foliage_bounds_present":bounds.is_some(),
             "milliseconds":{"growth":t.skeleton_ms,"rings":t.rings_ms,"surface":t.wood_ms,

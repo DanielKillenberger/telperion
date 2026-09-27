@@ -46,18 +46,18 @@ describe("shownRows", () => {
 });
 
 describe("the control's arithmetic", () => {
-  const stems = row("/skeleton/habit/stems");
+  const orders = row("/skeleton/habit/lateralOrders");
   const shell = row("/shellDepth");
 
   it("groups and labels a row by its pointer", () => {
-    expect([groupOf(stems.path), labelOf(stems.path)]).toEqual(["/skeleton/habit", "stems"]);
+    expect([groupOf(orders.path), labelOf(orders.path)]).toEqual(["/skeleton/habit", "lateral orders"]);
     expect([groupOf(shell.path), labelOf(shell.path)]).toEqual(["/", "shell depth"]);
   });
 
   it("slides over the tuning window, widened to the value, at a notch that resolves it", () => {
     expect(slider(shell, 0.4)).toEqual({ ends: [0, 1], notch: 0.001 });
     expect(slider(row("/skeleton/habit/lateralsPerStation"), 6)).toEqual({ ends: [1, 6], notch: 1 });
-    expect(slider(stems, 1)?.notch).toBe(1);
+    expect(slider(orders, 1)?.notch).toBe(1);
     const unbounded = PARAMETERS.find(p => !p.dial && p.high === Infinity);
     expect(unbounded && slider(unbounded, 1)).toBeNull();
     /* Windows as wide as the validation bounds: a notch of metres or of
@@ -68,8 +68,8 @@ describe("the control's arithmetic", () => {
   });
 
   it("admits a number as the row does", () => {
-    expect(admit(stems, 2.6)).toBe(3);
-    expect(admit(stems, 99)).toBe(stems.high);
+    expect(admit(orders, 2.6)).toBe(3);
+    expect(admit(orders, 99)).toBe(orders.high);
     expect(admit(shell, -1)).toBe(0);
     expect(admit(shell, Number.NaN)).toBeNull();
     const open = PARAMETERS.find(p => p.lowOpen && !p.zero)!;
@@ -90,5 +90,31 @@ describe("Troll's rows", () => {
     expect(admit(p, high + 1)).toBe(high);
     expect(admit(p, low - 1)).toBe(low);
     expect(admit(p, Number.NaN)).toBeNull();
+  });
+});
+
+describe("the fork rows", () => {
+  it.each([
+    ["/skeleton/habit/codominance", 0, 1],
+    ["/skeleton/habit/forkHeight", 0, 1],
+    ["/skeleton/habit/forkHeightSpread", 0, 1],
+    ["/skeleton/habit/forkWays", 2, 4],
+    ["/skeleton/habit/forkDivergence", 0, 120],
+    ["/skeleton/habit/forkLean", 0, 45],
+    ["/skeleton/habit/forkLeanSpread", 0, 1],
+    ["/radii/lateralShare", 0.01, 1],
+    ["/radii/forkBalance", 0.01, 1],
+  ] as const)("%s slides over its rail and is held to it", (path, low, high) => {
+    const p = row(path);
+    expect([p.low, p.high]).toEqual([low, high]);
+    expect(admit(p, high + 1)).toBe(high);
+    expect(admit(p, low - 1)).toBe(low);
+    expect(admit(p, Number.NaN)).toBeNull();
+  });
+
+  it("carries no retired stems row", () => {
+    for (const retired of ["stems", "stemDivergence", "stemLean", "stemLeanSpread", "stemForkHeight"]) {
+      expect(PARAMETERS.find(p => p.path === `/skeleton/habit/${retired}`)).toBeUndefined();
+    }
   });
 });

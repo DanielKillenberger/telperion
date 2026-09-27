@@ -176,7 +176,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "weatheringStrength": 0
       },
       "radii": {
+        "forkBalance": 1,
         "forkExponent": 2,
+        "lateralShare": 1,
         "lengthTaper": 0.6,
         "maxTaperExponent": 12,
         "trunkRadius": 0.02
@@ -210,7 +212,14 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "habit": {
           "apicalDominance": 0.5,
           "attractorWeight": 1,
+          "codominance": 0,
           "crookedness": 12,
+          "forkDivergence": 0,
+          "forkHeight": 0,
+          "forkHeightSpread": 0,
+          "forkLean": 0,
+          "forkLeanSpread": 0,
+          "forkWays": 2,
           "lateralLengthRatio": 0.4,
           "lateralOrders": 3,
           "lateralPitch": 60,
@@ -224,11 +233,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "risePrimary": 0.05,
           "riseSecondary": 0,
           "sheddingThreshold": 0.45,
-          "stemDivergence": 0,
-          "stemForkHeight": 0,
-          "stemLean": 0,
-          "stemLeanSpread": 0,
-          "stems": 1,
           "twigTipTaper": 1,
           "whorlStrength": 0.3
         },
@@ -458,7 +462,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "weatheringStrength": 0.425
       },
       "radii": {
+        "forkBalance": 1,
         "forkExponent": 2,
+        "lateralShare": 1,
         "lengthTaper": 0.6,
         "maxTaperExponent": 12,
         "trunkRadius": 0.018
@@ -492,7 +498,14 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "habit": {
           "apicalDominance": 0.1,
           "attractorWeight": 0,
+          "codominance": 0,
           "crookedness": 24,
+          "forkDivergence": 0,
+          "forkHeight": 0,
+          "forkHeightSpread": 0,
+          "forkLean": 0,
+          "forkLeanSpread": 0,
+          "forkWays": 2,
           "lateralLengthRatio": 0.45,
           "lateralOrders": 3,
           "lateralPitch": 55,
@@ -506,11 +519,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "risePrimary": 0.12,
           "riseSecondary": 0,
           "sheddingThreshold": 0,
-          "stemDivergence": 0,
-          "stemForkHeight": 0,
-          "stemLean": 0,
-          "stemLeanSpread": 0,
-          "stems": 1,
           "twigTipTaper": 0.25,
           "whorlStrength": 0.1
         },
@@ -740,7 +748,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "weatheringStrength": 0.6
       },
       "radii": {
+        "forkBalance": 1,
         "forkExponent": 2,
+        "lateralShare": 1,
         "lengthTaper": 0.6,
         "maxTaperExponent": 12,
         "trunkRadius": 0.015
@@ -774,7 +784,14 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "habit": {
           "apicalDominance": 1,
           "attractorWeight": 0,
+          "codominance": 0,
           "crookedness": 0,
+          "forkDivergence": 0,
+          "forkHeight": 0,
+          "forkHeightSpread": 0,
+          "forkLean": 0,
+          "forkLeanSpread": 0,
+          "forkWays": 2,
           "lateralLengthRatio": 0.3,
           "lateralOrders": 4,
           "lateralPitch": 88,
@@ -788,11 +805,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "risePrimary": 0.12,
           "riseSecondary": -0.8,
           "sheddingThreshold": 0,
-          "stemDivergence": 0,
-          "stemForkHeight": 0,
-          "stemLean": 0,
-          "stemLeanSpread": 0,
-          "stems": 1,
           "twigTipTaper": 0.25,
           "whorlStrength": 1
         },
@@ -1022,7 +1034,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "weatheringStrength": 0
       },
       "radii": {
+        "forkBalance": 1,
         "forkExponent": 2,
+        "lateralShare": 1,
         "lengthTaper": 0.6,
         "maxTaperExponent": 12,
         "trunkRadius": 0.014
@@ -1056,7 +1070,14 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "habit": {
           "apicalDominance": 0.45,
           "attractorWeight": 0,
+          "codominance": 1,
           "crookedness": 10,
+          "forkDivergence": 0,
+          "forkHeight": 0.05,
+          "forkHeightSpread": 0,
+          "forkLean": 28,
+          "forkLeanSpread": 1,
+          "forkWays": 2,
           "lateralLengthRatio": 0.4,
           "lateralOrders": 3,
           "lateralPitch": 45,
@@ -1070,11 +1091,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "risePrimary": 0.02,
           "riseSecondary": -0.85,
           "sheddingThreshold": 0,
-          "stemDivergence": 0,
-          "stemForkHeight": 0.5,
-          "stemLean": 28,
-          "stemLeanSpread": 1,
-          "stems": 2,
           "twigTipTaper": 0.35,
           "whorlStrength": 0.2
         },
@@ -1304,7 +1320,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "weatheringStrength": 0.3
       },
       "radii": {
+        "forkBalance": 1,
         "forkExponent": 2,
+        "lateralShare": 1,
         "lengthTaper": 0.25,
         "maxTaperExponent": 12,
         "trunkRadius": 0.013
@@ -1338,7 +1356,14 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "habit": {
           "apicalDominance": 0.85,
           "attractorWeight": 0.625,
+          "codominance": 0,
           "crookedness": 1.5,
+          "forkDivergence": 0,
+          "forkHeight": 0,
+          "forkHeightSpread": 0,
+          "forkLean": 0,
+          "forkLeanSpread": 0,
+          "forkWays": 2,
           "lateralLengthRatio": 0.4,
           "lateralOrders": 0,
           "lateralPitch": 60,
@@ -1352,11 +1377,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "risePrimary": 0.05,
           "riseSecondary": -1,
           "sheddingThreshold": 0.45,
-          "stemDivergence": 0,
-          "stemForkHeight": 0,
-          "stemLean": 0,
-          "stemLeanSpread": 0,
-          "stems": 1,
           "twigTipTaper": 1,
           "whorlStrength": 0.3
         },
@@ -1586,7 +1606,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "weatheringStrength": 0
       },
       "radii": {
+        "forkBalance": 1,
         "forkExponent": 2.15,
+        "lateralShare": 1,
         "lengthTaper": 0.75,
         "maxTaperExponent": 12,
         "trunkRadius": 0.05
@@ -1620,7 +1642,14 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "habit": {
           "apicalDominance": 0.15,
           "attractorWeight": 1,
+          "codominance": 0,
           "crookedness": 12,
+          "forkDivergence": 0,
+          "forkHeight": 0,
+          "forkHeightSpread": 0,
+          "forkLean": 0,
+          "forkLeanSpread": 0,
+          "forkWays": 2,
           "lateralLengthRatio": 0.45,
           "lateralOrders": 3,
           "lateralPitch": 60,
@@ -1634,11 +1663,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "risePrimary": 0.05,
           "riseSecondary": 0,
           "sheddingThreshold": 0.45,
-          "stemDivergence": 0,
-          "stemForkHeight": 0,
-          "stemLean": 0,
-          "stemLeanSpread": 0,
-          "stems": 1,
           "twigTipTaper": 1,
           "whorlStrength": 0.2
         },
@@ -1868,7 +1892,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "weatheringStrength": 0
       },
       "radii": {
+        "forkBalance": 1,
         "forkExponent": 2.7,
+        "lateralShare": 1,
         "lengthTaper": 0.35,
         "maxTaperExponent": 12,
         "trunkRadius": 0.055
@@ -1902,7 +1928,14 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "habit": {
           "apicalDominance": 0.15,
           "attractorWeight": 1,
+          "codominance": 0,
           "crookedness": 12,
+          "forkDivergence": 0,
+          "forkHeight": 0,
+          "forkHeightSpread": 0,
+          "forkLean": 0,
+          "forkLeanSpread": 0,
+          "forkWays": 2,
           "lateralLengthRatio": 0.45,
           "lateralOrders": 3,
           "lateralPitch": 60,
@@ -1916,11 +1949,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "risePrimary": 0.05,
           "riseSecondary": 0,
           "sheddingThreshold": 0.45,
-          "stemDivergence": 0,
-          "stemForkHeight": 0,
-          "stemLean": 0,
-          "stemLeanSpread": 0,
-          "stems": 1,
           "twigTipTaper": 1,
           "whorlStrength": 0.2
         },

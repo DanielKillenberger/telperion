@@ -62,10 +62,11 @@ fn accepts(family: &str, dial: &Dial, value: f64) -> Result<(), String> {
 fn no_row_takes_a_wall_from_the_preset_span() {
     let rows = audited();
     // 75 former preset-span rows, less `foliage_spacing` and `tip_clump`,
-    // whose rows are deprecated and offer no dial (fn-152).
+    // whose rows are deprecated and offer no dial (fn-152), and less
+    // `stem_divergence`, whose row fn-170 retired.
     assert_eq!(
         rows.len(),
-        73,
+        72,
         "the audit covers the former preset-span rows"
     );
     for dial in &rows {

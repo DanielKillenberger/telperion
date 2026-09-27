@@ -1,0 +1,56 @@
+{
+  "plane": {
+    "structural": [
+      11238,
+      46609
+    ],
+    "twig": [
+      203391,
+      238762
+    ],
+    "node_capped": 8,
+    "leaves": [
+      1154855,
+      1787071
+    ],
+    "median_total_ms": 786,
+    "median_growth_ms": 178,
+    "peak_mb": 621
+  },
+  "nofork": {
+    "structural": [
+      10141,
+      11635
+    ],
+    "twig": [
+      238365,
+      239859
+    ],
+    "node_capped": 8,
+    "leaves": [
+      1250002,
+      1336816
+    ],
+    "median_total_ms": 716,
+    "median_growth_ms": 132,
+    "peak_mb": 536
+  },
+  "birch": {
+    "structural": [
+      1944,
+      2536
+    ],
+    "twig": [
+      69949,
+      85166
+    ],
+    "node_capped": 0,
+    "leaves": [
+      202954,
+      263949
+    ],
+    "median_total_ms": 2831,
+    "median_growth_ms": 207,
+    "peak_mb": 177
+  }
+}

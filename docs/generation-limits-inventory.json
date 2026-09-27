@@ -355,12 +355,6 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
-    "site": ". clamp ( 2 . 0 , 4 . 0 )",
-    "classification": "parameter",
-    "reason": "Derived lateral ratio/departure stays in its named validated authoring range; endpoint bounds come from ranges.rs."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
     "site": "if habit . codominance < = 0 . 0 {",
     "classification": "parameter",
     "reason": "At a codominance of zero no axis forks: the row's own dormant value, not a limit on the tree."
@@ -370,12 +364,6 @@
     "site": "if params . envelope . height < = 0 . 0 | | top < = 0 . 0 {",
     "classification": "algorithm",
     "reason": "Zero-length or outside-shell scaffold segments are omitted according to authored geometry."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
-    "site": "if params . habit . codominance < = 0 . 0 {",
-    "classification": "parameter",
-    "reason": "At a codominance of zero no axis forks: the row's own dormant value, not a limit on the tree."
   },
   {
     "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
@@ -1174,12 +1162,6 @@
     "site": ". max ( 1e - 6 )",
     "classification": "numeric",
     "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/radius.rs",
-    "site": ". max ( share [ j ] . powf_fixed ( 1 . 0 / p . fork_exponent ) * own [ j ] . 1 )",
-    "classification": "algorithm",
-    "reason": "Bounds, radius floors, or array-index containment computed from existing geometry; numeric tokens are component indices, not population limits."
   },
   {
     "path": "crates/telperion-core/src/pipeline/radius/incremental.rs",
