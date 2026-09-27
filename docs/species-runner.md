@@ -40,6 +40,7 @@ before them never builds. The key must be visible to an interactive shell
 | `--tuning FILE` | `.flow/evidence/<id>/tuning.json`: the tuning config (below) |
 | `--catalogue DIR` | `catalogue` |
 | `--adapter` | `firecrawl`; `fixture:DIR` for pinned sources |
+| `--look` | write the kept tree where the harness opens it and print the URL (below, "The look"); runs no stage |
 | `--accept` | the owner accepts the tree they looked at |
 | `--record DIR` | keep every external answer in `DIR` (below, "Record and replay") |
 | `--tools DIR` | draw with render tools already built in `DIR`, never build them |
@@ -132,8 +133,8 @@ A run stops for two things, and prints `STOPPED:` with the reason:
   `gate.json`); a trait tuning could not move stops it at Gaps (`gaps.md`). It waits until its spec lands, which rebuilds the
   tools and reruns Tune, or until the host reclasses it in
   `packet/capability.json`.
-- **The owner's look.** The owner looks at the tuned tree in the harness and
-  runs `species <id> --accept`. Accepting refreshes the folder's pins and
+- **The owner's look.** The owner looks at the tuned tree in the harness
+  (below, "The look") and runs `species <id> --accept`. Accepting refreshes the folder's pins and
   stills, and writes the tree into its preset value file,
   `crates/telperion-core/presets/<id>.values`, with core's writer: a shipped
   species keeps its file's lines and comments, with each moved row's line set
@@ -148,6 +149,31 @@ Every other condition is rerun or logged. A stage that fails names itself and
 leaves no record, so the next run tries it again. A vision adapter's failure
 carries the adapter's own words (a spent Claude quota reads as "You've hit
 your weekly limit", a replay's missing answer as `replay: ...`).
+
+## The look
+
+`species <id> --look` writes the tree Tune kept to `harness/looks/<id>.json`,
+an ignored path the dev server (`npm run dev`) serves, and prints the URL
+that opens it, `http://localhost:5173/?look=<id>&seed=<n>` at the
+revision's fixed seed. The file carries the overlay
+(`runner/tuning/result.json`, `outcome.current.overrides`), the run, the
+revision, the round and the rounds kept, and the two families core makes:
+the preset as `headless --preset` builds it and the preset with the
+overlay laid over it, as `headless --family` builds it. The harness lays
+the overlay over the preset on its own dials and refuses to draw a family
+that differs from core's by a single row, so the tree on screen is the
+tree `headless --family` draws at the same seed and view. The panel says
+where the look comes from and switches between the kept tree and the
+preset under it without reloading; the seed box and the views work on
+both. The look is read-only: accepting stays `--accept`.
+
+A run with no kept tree is refused naming its `result.json`; an overlay row
+the preset's family does not have is refused naming its path, with core's
+replacement where the catalogue retired it. A look is also a plain
+overlay, the JSON `headless --family` takes: a host drops one at
+`harness/looks/<name>.json` and opens `?species=<preset>&look=<name>`,
+and the harness lays it over that shipped preset, refusing a row the
+family lacks by its path.
 
 ## The tuning config
 

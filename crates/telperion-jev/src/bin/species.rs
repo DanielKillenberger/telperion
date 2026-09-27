@@ -2,9 +2,10 @@
 //! the seeded manifest to the owner's look, rerunning only what changed, and
 //! prints why it stopped. `--until <stage>` stops after a stage, `--stage
 //! <stage>` runs one alone, `--status` says what each would do and runs
-//! nothing. The runbook is `docs/species-runner.md`.
+//! nothing, `--look` writes the kept tree where the harness opens it and
+//! prints the URL. The runbook is `docs/species-runner.md`.
 use std::env;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use telperion_jev::pipeline::stage::Paths;
@@ -12,7 +13,7 @@ use telperion_jev::runner::record::State;
 use telperion_jev::runner::{self, folder, preflight, Run, Scope, STAGES};
 use telperion_jev::tape;
 
-const USAGE: &str = "usage: species <id> [--until STAGE | --stage STAGE | --status] [--record DIR | --replay DIR | --extend DIR] [--tools DIR] [--accept] [--settle-claims] [--tuning FILE] [--dir DIR] [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR]";
+const USAGE: &str = "usage: species <id> [--until STAGE | --stage STAGE | --status] [--record DIR | --replay DIR | --extend DIR] [--tools DIR] [--look | --accept] [--settle-claims] [--tuning FILE] [--dir DIR] [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR]";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -46,6 +47,9 @@ fn main() -> ExitCode {
     run.accept = has("--accept");
     run.settle_claims = has("--settle-claims");
     run.tools_dir = path("--tools");
+    if has("--look") {
+        return look(&run);
+    }
     // One tape for the process and every adapter program it starts.
     let modes: Vec<(&str, String)> = ["record", "replay", "extend"]
         .into_iter()
@@ -83,6 +87,23 @@ fn main() -> ExitCode {
         Ok(Some(stop)) => {
             println!("STOPPED: {stop}");
             ExitCode::from(3)
+        }
+        Err(err) => {
+            eprintln!("{err}");
+            ExitCode::from(1)
+        }
+    }
+}
+
+/// The kept tree, written where the harness's dev server serves it, and
+/// the URL that opens it. Runs no stage.
+fn look(run: &Run) -> ExitCode {
+    let result = runner::tune::result(&run.out());
+    match runner::look::write(&run.species, &result, Path::new(runner::look::DIR)) {
+        Ok(written) => {
+            println!("look: {}", written.path.display());
+            println!("{}", written.url);
+            ExitCode::SUCCESS
         }
         Err(err) => {
             eprintln!("{err}");

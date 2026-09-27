@@ -18,6 +18,7 @@ pub mod folder;
 pub mod gaps;
 pub mod inventory;
 pub mod literature;
+pub mod look;
 pub mod pins;
 pub mod preflight;
 pub mod preset;

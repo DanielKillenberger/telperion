@@ -21,6 +21,7 @@ import { PRESETS, presetById, type TreePreset } from "../src/browser/core";
 import type { FrameStats, SceneRow, Submitted, TimingReport, View } from "../src/browser/render";
 
 import { GrowthControls, type GrowthSubmitted } from "./GrowthControls";
+import { LookControls, useLook } from "./LookControls";
 import { Dials, Traits } from "./dials";
 import { familyJson, presetToParams } from "./family";
 import {
@@ -106,6 +107,8 @@ export function GrowerDev() {
     }
   });
   const [params, setParams] = useState<GrowerParams>(initialLink.params);
+  const frameNext = useCallback(() => { stageRef.current?.frameNext(); }, []);
+  const look = useLook(setParams, frameNext);
   /* Growth is hidden (owner, 2026-09-18). The mature tree is what the stills,
      the protocol and every verdict are taken on, so it is what the harness
      draws; `?growth=1` opens the specimen path exactly as before. */
@@ -305,6 +308,7 @@ export function GrowerDev() {
           {linkError}. Showing the default tree; choose a preset below.
           <button className="gd-button" onClick={() => setLinkError(null)}>dismiss link error</button>
         </div>}
+        <LookControls state={look} />
         {buildError && <div role="alert" className="gd-note gd-warn">
           {buildError}
           <button className="gd-button" onClick={() => setLoadAttempt(n => n + 1)}>retry build</button>

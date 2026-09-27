@@ -38,8 +38,11 @@ species needs is its own spec, never a patch inside this run.
    - **Identity gaps.** Stop and hand `runner/gaps.md` to the host. The host
      writes the spec; the species spec depends on it; the run continues once
      it lands on the stack.
-   - **The owner's look.** Hand the owner the tree and the checklist. Only
-     they run `species <species> --accept`.
+   - **The owner's look.** Run `target/release/species <species> --look`,
+     which writes the kept tree to `harness/looks/<species>.json` and prints
+     the harness URL that opens it (`npm run dev`). Hand the owner that URL
+     and the checklist. Only they run `species <species> --accept`. A
+     refused look names the file or the overlay row; hand it to the host.
 6. **The article.** When the acceptance is refused because the catalogue
    check fails `ARTICLE.md`, the article is yours to write: fill each
    section from the folder's source copies, cite each claim, run
