@@ -1,7 +1,23 @@
 //! The binding's tests: the diagnostics, the stages a field request runs,
 //! and the field request's limb order.
 use super::*;
-use telperion_core::tree::{Node, Tree};
+use telperion_core::tree::{Diagnostics, Node, Tree};
+
+#[test]
+fn a_reduced_tree_reports_the_detail_it_kept() {
+    let reduced = Diagnostics {
+        twig_detail: Some(14),
+        ..Default::default()
+    };
+    assert_eq!(twig_detail(reduced), Some(14));
+    // Incomplete is not reduced, and a full build kept everything.
+    let incomplete = Diagnostics {
+        node_capped: true,
+        ..reduced
+    };
+    assert_eq!(twig_detail(incomplete), None);
+    assert_eq!(twig_detail(Diagnostics::default()), None);
+}
 #[test]
 fn surviving_diagnostics_match_radius_law_and_empty_state() {
     let mut tree = Tree {

@@ -31,6 +31,7 @@ struct Shoot {
     bound: Bound,
 }
 mod advance;
+pub(super) mod detail;
 mod pendant;
 mod planner;
 mod seed;
@@ -49,6 +50,10 @@ pub(super) struct Frontier {
     stations: seed::Stations,
     visited: Vec<usize>,
     ordered: bool,
+    /// The detail a direct build at its node budget kept; none grows every
+    /// order the rows allow. Chosen per build and never stored.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub(super) detail: Option<detail::Detail>,
     #[cfg(test)]
     #[cfg_attr(feature = "json", serde(skip))]
     pub(super) retries: [usize; 4],

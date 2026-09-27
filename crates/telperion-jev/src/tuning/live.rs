@@ -640,11 +640,7 @@ impl Services for Live<'_> {
                     .iter()
                     .position(|d| d.id == dial.id)
                     .unwrap_or(usize::MAX);
-                let current = state
-                    .effective
-                    .pointer(&dial.path)
-                    .and_then(Value::as_f64)
-                    .ok_or("missing dial")?;
+                let current = dial.current(&state.effective).ok_or("missing dial")?;
                 let available = [
                     Action::SmallDecrease,
                     Action::SubstantialDecrease,

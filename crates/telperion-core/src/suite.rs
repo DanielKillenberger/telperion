@@ -46,6 +46,8 @@ mod leaf_bases;
 mod limb_clumping;
 #[path = "suite/mesh.rs"]
 mod mesh;
+#[path = "suite/node_budget.rs"]
+mod node_budget;
 #[path = "suite/outline.rs"]
 mod outline;
 #[path = "suite/packed_leaf.rs"]

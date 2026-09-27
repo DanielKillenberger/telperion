@@ -167,8 +167,11 @@ fn dial(d: Dial) -> String {
             } else {
                 format!(": {}", t.cap)
             };
+            let unset = t
+                .unset
+                .map_or(String::new(), |v| format!(", stepped from {v} where unset"));
             format!(
-                "`{}` ({}), window {window} ({}{cap}), steps {} and {}{span}",
+                "`{}` ({}), window {window} ({}{cap}), steps {} and {}{span}{unset}",
                 t.id, t.ask, t.basis, t.small, t.substantial
             )
         }

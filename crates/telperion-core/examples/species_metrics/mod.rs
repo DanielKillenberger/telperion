@@ -47,7 +47,25 @@ pub fn measure(
         return Err("invalid: wood positions or retained accounting".into());
     }
     let mut m = json!({});
-    m["growth"] = json!({"status":if tree.diagnostics.complete(){"complete"}else{"truncated"},"node_capped":tree.diagnostics.node_capped,"level_capped":tree.diagnostics.level_capped,"attraction_capped":tree.diagnostics.attraction_capped});
+    let d = tree.diagnostics;
+    // A tree that gave up twig detail to meet its node budget is whole and
+    // judged as drawn; only a tree a limit left unfinished is incomplete.
+    let status = if !d.complete() {
+        "incomplete"
+    } else if d.reduced() {
+        "reduced"
+    } else {
+        "complete"
+    };
+    m["growth"] = json!({"status":status,"node_capped":d.node_capped,"level_capped":d.level_capped,
+        "attraction_capped":d.attraction_capped,"reduced":d.reduced()});
+    // A null reads as an overflow below, so an absent reading is left out.
+    if let Some(detail) = d.twig_detail {
+        m["growth"]["twig_detail"] = json!(detail);
+    }
+    if let Some(why) = d.incomplete() {
+        m["growth"]["incomplete"] = json!(why);
+    }
     m["nodes"] = scalar(tree.nodes.len(), "measured");
     let ground = tree.nodes.first().map_or(0., |n| n.position.y);
     let wood_top = wood
@@ -379,7 +397,7 @@ pub fn compare(profile: &Value, metrics: &Value) -> Result<(bool, Value), String
         .as_object()
         .filter(|m| !m.is_empty())
         .ok_or("invalid profile metrics")?;
-    let mut pass = metrics["growth"]["status"] != "truncated";
+    let mut pass = metrics["growth"]["status"] != "incomplete";
     let mut checks = json!({});
     let mut gates = 0;
     for (key, target) in targets {

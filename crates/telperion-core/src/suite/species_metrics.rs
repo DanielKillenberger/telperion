@@ -87,7 +87,7 @@ fn analytic_units_dbh_axes_and_retained_area() {
     );
 }
 #[test]
-fn missing_multi_stemmed_truncated_and_nonfinite_are_distinct() {
+fn missing_multi_stemmed_reduced_incomplete_and_nonfinite_are_distinct() {
     let (mut t, e, i) = fixture();
     let m = measure(&t, &[], &e, 0, &Instances::default()).unwrap();
     assert_eq!(m["height_m"]["status"], "unavailable");
@@ -107,10 +107,20 @@ fn missing_multi_stemmed_truncated_and_nonfinite_are_distinct() {
             .map(|v| v.as_f64().unwrap())
             .fold(0., f64::max)
     );
-    t.diagnostics.node_capped = true;
+    // A tree the budget reduced is whole; one it left unfinished is not, and
+    // says why.
+    t.diagnostics.twig_detail = Some(20);
+    let reduced = &measure(&t, &[0., 4., 0.], &e, 1, &i).unwrap()["growth"];
     assert_eq!(
-        measure(&t, &[0., 4., 0.], &e, 1, &i).unwrap()["growth"]["status"],
-        "truncated"
+        (&reduced["status"], &reduced["reduced"]),
+        (&json!("reduced"), &json!(true))
+    );
+    t.diagnostics.node_capped = true;
+    let incomplete = &measure(&t, &[0., 4., 0.], &e, 1, &i).unwrap()["growth"];
+    assert_eq!(incomplete["status"], "incomplete");
+    assert_eq!(
+        incomplete["incomplete"],
+        "no twig detail fits the node budget"
     );
     t.nodes[1].position.x = f64::NAN;
     assert!(measure(&t, &[0., 4., 0.], &e, 1, &i)

@@ -72,7 +72,7 @@ pub fn single(dial: &Dial, effective: &Value, patch: &Value, action: Action) -> 
     Some(Move {
         dial: dial.id.clone(),
         direction: if direction(action)? > 0 { "up" } else { "down" }.into(),
-        from: effective.pointer(&dial.path)?.as_f64()?,
+        from: dial.current(effective)?,
         to: patch.pointer(&dial.path)?.as_f64()?,
     })
 }
@@ -157,7 +157,7 @@ pub fn build(
             });
             continue;
         };
-        let Some(current) = effective.pointer(&dial.path).and_then(Value::as_f64) else {
+        let Some(current) = dial.current(effective) else {
             dropped.push(Dropped {
                 dial: id.clone(),
                 reason: "no current value on the wire".into(),

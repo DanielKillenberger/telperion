@@ -189,6 +189,9 @@ fn the_beech_stays_at_its_stated_depth_whatever_its_radii() {
         "the beech stopped stating its depth"
     );
     let mut fine = shipped.clone();
+    // A 12 m tree: at full height the fine twigs outgrow the node budget,
+    // which gives up the deepest generations first and would hide them.
+    fine.skeleton.envelope.height = 12.0;
     fine.skeleton.twigs.twig.diameter = 1e-4;
     fine.skeleton.twigs.twig.bearing_diameter = 1e-4;
     for (label, f) in [("shipped", shipped), ("fine twigs", fine)] {

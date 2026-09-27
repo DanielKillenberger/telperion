@@ -1626,6 +1626,12 @@
     "reason": "The pinned libm's hypot shortcut: past 64 binary orders the smaller operand cannot change the rounded sum; it limits no generated population."
   },
   {
+    "path": "crates/telperion-core/src/pipeline/branching/specimen/budget.rs",
+    "site": "while high - low > 1 {",
+    "classification": "algorithm",
+    "reason": "Bisection over the twig detail levels ends when its bracket is one level wide; the levels come from the twig generations row and the bound from maxNodes, so it limits the search, not the tree (fn-180)."
+  },
+  {
     "path": "crates/telperion-core/src/pipeline/surface/rings.rs",
     "site": ". max ( 1e - 6 )",
     "classification": "numeric",

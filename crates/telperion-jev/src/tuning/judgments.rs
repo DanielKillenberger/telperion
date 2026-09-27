@@ -72,10 +72,11 @@ pub fn summary(state: &Run) -> Value {
         .current
         .and_then(|i| state.trials.get(i))
         .and_then(|t| t.measurement["metrics"]["nodes"]["value"].as_u64());
-    let cap = state
-        .effective
-        .pointer("/skeleton/growth/maxNodes")
-        .and_then(Value::as_u64);
+    // Unset, the budget is the generator's default.
+    let cap = match state.effective.pointer("/skeleton/growth/maxNodes") {
+        Some(Value::Null) => Some(telperion_core::ranges::DEFAULT_MAX_NODES as u64),
+        cap => cap.and_then(Value::as_u64),
+    };
     json!({"measured_facts":super::facts::measured(state),
         "current_tree_looks_wrong":looks_wrong(state),
         "owner_priorities":{"approval":state.approved_priorities(),"authority":"Explicit owner ranking outranks model severity. It selects objectives, not implementation or resolved status; all original findings remain below."},"current_identity":state.identity,"resource_limit":{"meaning":"computational feasibility, not botanical character","max_nodes":cap,"current_nodes":nodes,"remaining_nodes":cap.zip(nodes).map(|(c,n)|c.saturating_sub(n))},"owner_notes":state.owner_notes,"visual":state.visual,"recent_attempts":recent,
@@ -147,7 +148,7 @@ fn proposal_state_with(state: &Run, trim: super::digest::Trim) -> Value {
         "visual": {"defects": visual.map(|v| v.defects.clone()).unwrap_or_default(),
             "findings": findings},
         "dials": state.dials.iter().map(|d| json!({"id":d.id,"meaning":d.meaning,
-            "current":state.effective.pointer(&d.path),"min":d.min,"max":d.max,
+            "current":d.current(&state.effective),"min":d.min,"max":d.max,
             "integer":d.integer,"small":d.small,"substantial":d.substantial}))
             .collect::<Vec<_>>(),
         "measured_facts": super::facts::measured(state),
@@ -167,11 +168,7 @@ pub fn proposals(state: &Run) -> Result<Value, String> {
 pub fn proposal_batch(state: &Run, dials: &[super::actions::Dial]) -> Result<Value, String> {
     let mut questions = serde_json::Map::new();
     for dial in dials {
-        let current = state
-            .effective
-            .pointer(&dial.path)
-            .and_then(Value::as_f64)
-            .ok_or("missing dial")?;
+        let current = dial.current(&state.effective).ok_or("missing dial")?;
         questions.insert(dial.id.clone(), dial.question(current)?);
     }
     Ok(Value::Object(questions))

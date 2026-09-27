@@ -84,6 +84,7 @@ fn authored_actions_preserve_integer_bounds_and_abstention() {
         source: None,
         preset_span: None,
         cap: None,
+        unset: None,
     };
     assert_eq!(
         dial.value(2., Action::SmallDecrease).unwrap(),
@@ -93,6 +94,23 @@ fn authored_actions_preserve_integer_bounds_and_abstention() {
     assert_eq!(dial.value(2., Action::Hold).unwrap(), None);
     assert_eq!(dial.value(2., Action::InsufficientEvidence).unwrap(), None);
     assert!(dial.value(1.5, Action::SmallIncrease).is_err());
+}
+
+#[test]
+fn a_reduced_tree_passes_the_gates_and_an_incomplete_one_is_named() {
+    use telperion_jev::tuning::evaluation::gates;
+    let mut event = json!({"event":"completed","numeric_status":"pass",
+        "checks":{"height":{"status":"pass"}},
+        "metrics":{"growth":{"status":"reduced","node_capped":false,"level_capped":false,
+            "attraction_capped":false,"reduced":true,"twig_detail":22}}});
+    assert!(gates(&event.to_string()).is_ok());
+    event["metrics"]["growth"] = json!({"status":"incomplete","node_capped":true,
+        "level_capped":false,"attraction_capped":false,"reduced":false,
+        "incomplete":"the framework alone exceeds the node budget"});
+    assert_eq!(
+        gates(&event.to_string()).unwrap_err(),
+        "incomplete tree: the framework alone exceeds the node budget"
+    );
 }
 
 #[test]

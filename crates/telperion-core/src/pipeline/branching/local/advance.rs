@@ -147,8 +147,16 @@ impl Frontier {
                 let length = if lateral { s.length * ratio } else { s.length };
                 let length = s.curtain.length(length, t, key ^ seed);
                 let generation = s.generation + usize::from(lateral);
+                let fate = match self.detail {
+                    Some(d) if lateral => d.fate(generation, key, seed),
+                    _ => detail::Fate::Grown,
+                };
+                if fate == detail::Fate::Dropped {
+                    continue;
+                }
                 let terminal = !lateral && s.completed == s.internodes;
-                let is_twig = terminal
+                let is_twig = fate == detail::Fate::Twig
+                    || terminal
                     || (lateral && bearing)
                     || generation >= t.generations as usize
                     || radius <= twig_radius

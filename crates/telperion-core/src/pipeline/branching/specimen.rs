@@ -2,6 +2,7 @@
 use super::*;
 use crate::tree::{NodeIdentity, NodeKey};
 use slotmap::{DenseSlotMap, Key};
+mod budget;
 mod changes;
 mod chronicle;
 mod contacts;
@@ -289,7 +290,11 @@ impl Specimen {
     pub(crate) fn grow(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
         let mut s = Self::new(params, radii)?;
         s.step(usize::MAX, 0)?;
+        let scaffold_fits = !s.tree.diagnostics.node_capped;
         s.step(0, usize::MAX)?;
+        if scaffold_fits && s.tree.diagnostics.node_capped {
+            s = Self::within_budget(params, radii)?;
+        }
         debug_assert!(s.finished() || !s.tree.diagnostics.complete());
         s.shed = finish(&mut s.tree, params, radii)?;
         s.remap_after_shedding();

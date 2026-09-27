@@ -101,6 +101,25 @@ fn every_dial_steps_inside_its_row() {
             e.path()
         );
         assert!(0.0 < t.small && t.small < t.substantial && t.substantial <= high - low);
+        // An unset optional row has no number on the wire, so its dial steps
+        // from the value unset stands for, and that value is inside the window.
+        let optional = matches!(
+            e.get(&Family::default()).kind(),
+            Kind::OptionalReal | Kind::OptionalSize
+        );
+        assert_eq!(
+            t.unset.is_some(),
+            optional,
+            "{}: unset {:?}",
+            e.path(),
+            t.unset
+        );
+        assert!(
+            t.unset.is_none_or(|v| low <= v && v <= high),
+            "{}: unset {:?} outside [{low}, {high}]",
+            e.path(),
+            t.unset
+        );
     }
 }
 

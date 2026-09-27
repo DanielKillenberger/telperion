@@ -82,14 +82,16 @@ fn every_numeric_row_of_every_family_is_a_dial_or_an_excluded_row() {
                 );
             }
         }
-        for path in &paths {
+        for dial in &dials {
             // A proposal batch reads every dial's current value off the wire
-            // and refuses the whole batch when one of them is null, so a row
-            // the wire leaves unset is not a dial the loop can offer.
+            // and refuses the whole batch when one of them is missing, so a
+            // row the wire leaves unset is a dial only where it declares the
+            // value unset stands for.
             assert!(
-                family.pointer(path).is_some_and(Value::is_number),
-                "{id}: the table names {path}, which this family's wire leaves \
-                 without a number"
+                dial.current(&family).is_some(),
+                "{id}: the table names {}, which this family's wire leaves \
+                 without a number",
+                dial.path
             );
         }
     }
@@ -140,7 +142,7 @@ fn every_dial_steps_to_a_value_the_generator_accepts() {
     for id in families() {
         let family = wire(id);
         for dial in &dials {
-            let Some(current) = family.pointer(&dial.path).and_then(Value::as_f64) else {
+            let Some(current) = dial.current(&family) else {
                 stuck.push(format!("{id}: {} has no value on the wire", dial.id));
                 continue;
             };
@@ -288,4 +290,23 @@ fn a_named_dial_config_resolves_from_the_table() {
         let error = dials.resolve().unwrap_err();
         assert!(error.contains(expected), "{error}");
     }
+}
+
+#[test]
+fn an_unset_node_budget_steps_from_the_generators_default() {
+    let dials = table();
+    let dial = dials
+        .iter()
+        .find(|d| d.path == "/skeleton/growth/maxNodes")
+        .expect("the node budget is a dial");
+    let family = wire("european-beech");
+    assert!(family.pointer(&dial.path).is_some_and(Value::is_null));
+    let default = telperion_core::ranges::DEFAULT_MAX_NODES as f64;
+    assert_eq!(dial.current(&family), Some(default));
+    let raised = candidate("european-beech", &family, dial, Action::SmallIncrease)
+        .expect("the generator accepts a raised budget");
+    assert_eq!(
+        raised.pointer(&dial.path).and_then(Value::as_f64),
+        Some(default + dial.small)
+    );
 }

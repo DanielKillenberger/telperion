@@ -169,6 +169,12 @@ fn failing(checks: &Value) -> String {
 }
 
 fn validate_gates(completed: &Value) -> Result<(), String> {
+    // A tree the node budget reduced is whole and judged as drawn; one it
+    // left incomplete is refused by its reason.
+    let growth = &completed["metrics"]["growth"];
+    if let Some(why) = growth["incomplete"].as_str() {
+        return Err(format!("incomplete tree: {why}"));
+    }
     for flag in ["node_capped", "level_capped", "attraction_capped"] {
         if completed["metrics"]["growth"][flag].as_bool() != Some(false) {
             return Err(format!("truncated or unknown measurement: {flag}"));

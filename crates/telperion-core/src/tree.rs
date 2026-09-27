@@ -72,13 +72,41 @@ impl Node {
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Diagnostics {
+    /// The node budget left the tree incomplete: its framework alone exceeds
+    /// the budget, or not even the least twig detail fits (`incomplete`). A
+    /// tree that gave up detail to fit is whole and not capped (`reduced`).
     pub node_capped: bool,
     pub level_capped: bool,
     pub attraction_capped: bool,
+    /// The twig generations a direct build at its node budget kept, in
+    /// sixteenths of a generation: whole generations grown from the scaffold
+    /// outward, then the share of the next one's laterals still branching
+    /// rather than ending as twigs (below one generation, the share of the
+    /// first generation's twigs grown at all). None where the budget did not
+    /// bind the twigs. Chosen per build and never stored: a snapshot or a JSON
+    /// read of the diagnostics reads none; the browser gets it as `twigDetail`.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub twig_detail: Option<u16>,
 }
 impl Diagnostics {
+    /// Every axis the build grew reaches its tips. A tree that gave up
+    /// detail to meet its node budget is complete.
     pub fn complete(self) -> bool {
         !(self.node_capped || self.level_capped || self.attraction_capped)
+    }
+    /// The build gave up twig detail to finish inside its node budget, and is
+    /// whole: judged as drawn.
+    pub fn reduced(self) -> bool {
+        !self.node_capped && self.twig_detail.is_some()
+    }
+    /// Why the node budget left the tree incomplete, or none where it did not.
+    /// On the direct build only the framework can stop without twig detail.
+    pub fn incomplete(self) -> Option<&'static str> {
+        match (self.node_capped, self.twig_detail) {
+            (false, _) => None,
+            (true, None) => Some("the framework alone exceeds the node budget"),
+            (true, Some(_)) => Some("no twig detail fits the node budget"),
+        }
     }
 }
 #[derive(Debug, Default, Clone, PartialEq)]
