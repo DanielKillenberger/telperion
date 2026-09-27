@@ -1,0 +1,438 @@
+{
+ "dials": [
+  {
+   "cap": "ceiling capped: the generator validates only a floor here (0), so there is no validated ceiling to widen to; the ceiling stays at the preset span until the generator authors one",
+   "group": "skeleton",
+   "id": "spread",
+   "integer": false,
+   "max": 0.675,
+   "meaning": "the crown's widest radius as a share of the height",
+   "min": 0.0,
+   "path": "/skeleton/envelope/spread",
+   "preset_span": [
+    0.175,
+    0.675
+   ],
+   "range_basis": "capped",
+   "score_visible": true,
+   "small": 0.1,
+   "substantial": 0.2
+  },
+  {
+   "group": "skeleton",
+   "id": "apical_dominance",
+   "integer": false,
+   "max": 1.0,
+   "meaning": "how far the leader keeps going into the crown",
+   "min": 0.0,
+   "path": "/skeleton/habit/apicalDominance",
+   "range_basis": "validated bound",
+   "score_visible": true,
+   "small": 0.15,
+   "substantial": 0.3
+  },
+  {
+   "group": "skeleton",
+   "id": "rise_secondary",
+   "integer": false,
+   "max": 1.0,
+   "meaning": "the bend over a deeper axis's length; negative hangs",
+   "min": -1.0,
+   "path": "/skeleton/habit/riseSecondary",
+   "range_basis": "validated bound",
+   "score_visible": true,
+   "small": 0.25,
+   "substantial": 0.5
+  },
+  {
+   "group": "material",
+   "id": "material_bark_roughness",
+   "integer": false,
+   "max": 1.0,
+   "meaning": "how diffuse the bark is; nought is a mirror and one is chalk",
+   "min": 0.0,
+   "path": "/material/barkRoughness",
+   "range_basis": "validated bound",
+   "score_visible": false,
+   "small": 0.15,
+   "substantial": 0.3
+  },
+  {
+   "group": "skeleton",
+   "id": "codominance",
+   "integer": false,
+   "max": 1.0,
+   "meaning": "how likely a trunk or limb is to fork into near-equal parts; at zero no fork",
+   "min": 0.0,
+   "path": "/skeleton/habit/codominance",
+   "range_basis": "validated bound",
+   "score_visible": true,
+   "small": 0.1,
+   "substantial": 0.25
+  },
+  {
+   "group": "skeleton",
+   "id": "crown_base",
+   "integer": false,
+   "max": 1.0,
+   "meaning": "where the crown starts, as a share of the height",
+   "min": 0.0,
+   "path": "/skeleton/envelope/crownBase",
+   "range_basis": "validated bound",
+   "score_visible": true,
+   "small": 0.15,
+   "substantial": 0.3
+  },
+  {
+   "group": "surface",
+   "id": "surface_lobes",
+   "integer": true,
+   "max": 16.0,
+   "meaning": "how many ridges run up around the trunk",
+   "min": 0.0,
+   "path": "/surface/lobes",
+   "range_basis": "validated bound",
+   "score_visible": true,
+   "small": 2.0,
+   "substantial": 4.0
+  },
+  {
+   "group": "skeleton",
+   "id": "lateral_pitch",
+   "integer": false,
+   "max": 180.0,
+   "meaning": "the degrees a lateral leaves its parent axis, from vertical on the leader",
+   "min": 0.0,
+   "path": "/skeleton/habit/lateralPitch",
+   "preset_span": [
+    0.0,
+    118.0
+   ],
+   "range_basis": "validated bound",
+   "score_visible": true,
+   "small": 20.0,
+   "substantial": 40.0
+  },
+  {
+   "group": "skeleton",
+   "id": "twig_hang",
+   "integer": false,
+   "max": 3.0,
+   "meaning": "how strongly a shoot hangs; zero hangs nothing",
+   "min": 0.0,
+   "path": "/skeleton/twigs/hang",
+   "range_basis": "validated bound",
+   "score_visible": true,
+   "small": 0.5,
+   "substantial": 1.0
+  },
+  {
+   "cap": "capped both ways: the generator validates no closed range here (only positive and finite); the row stays at the preset span until the generator authors one",
+   "group": "skeleton",
+   "id": "shoulder",
+   "integer": false,
+   "max": 2.8,
+   "meaning": "how square the crown's outline is; lower tapers it to a point",
+   "min": 0.4,
+   "path": "/skeleton/envelope/shoulder",
+   "preset_span": [
+    0.4,
+    2.8
+   ],
+   "range_basis": "capped",
+   "score_visible": true,
+   "small": 0.5,
+   "substantial": 1.0
+  },
+  {
+   "group": "material",
+   "id": "material_bark_grain_strength",
+   "integer": false,
+   "max": 1.0,
+   "meaning": "how far that grain varies the bark's colour and tilts its normal",
+   "min": 0.0,
+   "path": "/material/barkGrainStrength",
+   "range_basis": "validated bound",
+   "score_visible": false,
+   "small": 0.15,
+   "substantial": 0.3
+  },
+  {
+   "group": "material",
+   "id": "material_lichen_strength",
+   "integer": false,
+   "max": 1.0,
+   "meaning": "how far a patch covers the bark with its colour",
+   "min": 0.0,
+   "path": "/material/lichenStrength",
+   "range_basis": "validated bound",
+   "score_visible": false,
+   "small": 0.15,
+   "substantial": 0.3
+  },
+  {
+   "group": "material",
+   "id": "material_bark_green",
+   "integer": false,
+   "max": 1.0,
+   "meaning": "the green in the bark's own colour",
+   "min": 0.0,
+   "path": "/material/barkGreen",
+   "range_basis": "validated bound",
+   "score_visible": false,
+   "small": 0.15,
+   "substantial": 0.3
+  },
+  {
+   "group": "material",
+   "id": "material_bark_red",
+   "integer": false,
+   "max": 1.0,
+   "meaning": "the red in the bark's own colour",
+   "min": 0.0,
+   "path": "/material/barkRed",
+   "range_basis": "validated bound",
+   "score_visible": false,
+   "small": 0.15,
+   "substantial": 0.3
+  },
+  {
+   "group": "material",
+   "id": "material_bark_mottle_strength",
+   "integer": false,
+   "max": 1.0,
+   "meaning": "how far that mottling lightens and darkens the bark",
+   "min": 0.0,
+   "path": "/material/barkMottleStrength",
+   "range_basis": "validated bound",
+   "score_visible": false,
+   "small": 0.15,
+   "substantial": 0.3
+  },
+  {
+   "group": "skeleton",
+   "id": "rise_primary",
+   "integer": false,
+   "max": 1.0,
+   "meaning": "the bend over a first-order limb's length; positive rises",
+   "min": -1.0,
+   "path": "/skeleton/habit/risePrimary",
+   "preset_span": [
+    -0.03,
+    0.17
+   ],
+   "range_basis": "validated bound",
+   "score_visible": true,
+   "small": 0.025,
+   "substantial": 0.05
+  },
+  {
+   "group": "material",
+   "id": "material_lichen_coverage",
+   "integer": false,
+   "max": 1.0,
+   "meaning": "the share of those cells that hold a patch",
+   "min": 0.0,
+   "path": "/material/lichenCoverage",
+   "range_basis": "validated bound",
+   "score_visible": false,
+   "small": 0.15,
+   "substantial": 0.3
+  },
+  {
+   "group": "material",
+   "id": "material_bark_mottle_scale",
+   "integer": false,
+   "max": 8.0,
+   "meaning": "the size of the blotches in the bark's mottling; zero leaves none",
+   "min": 0.0,
+   "path": "/material/barkMottleScale",
+   "range_basis": "validated bound",
+   "score_visible": false,
+   "small": 1.0,
+   "substantial": 2.0
+  },
+  {
+   "group": "skeleton",
+   "id": "fullness",
+   "integer": false,
+   "max": 1.0,
+   "meaning": "where the crown is widest between its base and the top",
+   "min": 0.0,
+   "path": "/skeleton/envelope/fullness",
+   "range_basis": "validated bound",
+   "score_visible": true,
+   "small": 0.15,
+   "substantial": 0.3
+  },
+  {
+   "group": "material",
+   "id": "material_bark_blue",
+   "integer": false,
+   "max": 1.0,
+   "meaning": "the blue in the bark's own colour",
+   "min": 0.0,
+   "path": "/material/barkBlue",
+   "range_basis": "validated bound",
+   "score_visible": false,
+   "small": 0.15,
+   "substantial": 0.3
+  },
+  {
+   "group": "skeleton",
+   "id": "lateral_length_ratio",
+   "integer": false,
+   "max": 1.0,
+   "meaning": "a lateral's length against the axis that bears it",
+   "min": 0.0,
+   "path": "/skeleton/habit/lateralLengthRatio",
+   "range_basis": "validated bound",
+   "score_visible": true,
+   "small": 0.15,
+   "substantial": 0.3
+  },
+  {
+   "group": "skeleton",
+   "id": "twig_generations",
+   "integer": true,
+   "max": 6.0,
+   "meaning": "generations of twig branching below the limbs",
+   "min": 1.0,
+   "path": "/skeleton/twigs/generations",
+   "range_basis": "validated bound",
+   "score_visible": true,
+   "small": 1.0,
+   "substantial": 2.0
+  },
+  {
+   "group": "material",
+   "id": "material_crown_shade",
+   "integer": false,
+   "max": 1.0,
+   "meaning": "how much of the sky one crown radius of leaves takes from a leaf",
+   "min": 0.0,
+   "path": "/material/crownShade",
+   "range_basis": "validated bound",
+   "score_visible": false,
+   "small": 0.15,
+   "substantial": 0.3
+  },
+  {
+   "group": "material",
+   "id": "material_lichen_scale",
+   "integer": false,
+   "max": 1.0,
+   "meaning": "the metres across the cells lichen patches are scattered over",
+   "min": 0.0,
+   "path": "/material/lichenScale",
+   "preset_span": [
+    0.0,
+    0.06
+   ],
+   "range_basis": "validated bound",
+   "score_visible": false,
+   "small": 0.01,
+   "substantial": 0.02
+  }
+ ],
+ "moves": [
+  {
+   "dial": "spread",
+   "direction": "up"
+  },
+  {
+   "dial": "apical_dominance",
+   "direction": "down"
+  },
+  {
+   "dial": "rise_secondary",
+   "direction": "down"
+  },
+  {
+   "dial": "material_bark_roughness",
+   "direction": "down"
+  },
+  {
+   "dial": "codominance",
+   "direction": "up"
+  },
+  {
+   "dial": "crown_base",
+   "direction": "up"
+  },
+  {
+   "dial": "surface_lobes",
+   "direction": "down"
+  },
+  {
+   "dial": "lateral_pitch",
+   "direction": "up"
+  },
+  {
+   "dial": "twig_hang",
+   "direction": "up"
+  },
+  {
+   "dial": "shoulder",
+   "direction": "up"
+  },
+  {
+   "dial": "material_bark_grain_strength",
+   "direction": "down"
+  },
+  {
+   "dial": "material_lichen_strength",
+   "direction": "down"
+  },
+  {
+   "dial": "material_bark_green",
+   "direction": "down"
+  },
+  {
+   "dial": "material_bark_red",
+   "direction": "down"
+  },
+  {
+   "dial": "material_bark_mottle_strength",
+   "direction": "up"
+  },
+  {
+   "dial": "rise_primary",
+   "direction": "down"
+  },
+  {
+   "dial": "material_lichen_coverage",
+   "direction": "up"
+  },
+  {
+   "dial": "material_bark_mottle_scale",
+   "direction": "up"
+  },
+  {
+   "dial": "fullness",
+   "direction": "up"
+  },
+  {
+   "dial": "material_bark_blue",
+   "direction": "down"
+  },
+  {
+   "dial": "lateral_length_ratio",
+   "direction": "up"
+  },
+  {
+   "dial": "twig_generations",
+   "direction": "up"
+  },
+  {
+   "dial": "material_crown_shade",
+   "direction": "up"
+  },
+  {
+   "dial": "material_lichen_scale",
+   "direction": "down"
+  }
+ ],
+ "reason": "measure: build: InvalidValue { field: \"fork parts pass through each other\", value: \"part 1\" }",
+ "source": "fn-62 revision 1, round 1, bundle@0.5 (run.json trial 1): every one of its strengths, and every bundle after it, failed to build with this reason"
+}

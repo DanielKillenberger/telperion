@@ -202,6 +202,18 @@ pub fn gates(receipt: &str) -> Result<Value, String> {
     Ok(value)
 }
 
+/// How a trial's reason begins when the generator refused its family.
+const REFUSED: &str = "generator refused: ";
+/// How it begins when the measurement's build failed: the species example
+/// reports `build: <error>` and the measurer prefixes `measure: `.
+const UNBUILT: &str = "measure: build: ";
+
+/// Whether a trial failed because the generator would not build its family,
+/// as opposed to a check, a render or a receipt that failed after a build.
+pub fn unbuilt(reason: &str) -> bool {
+    reason.starts_with(REFUSED) || reason.starts_with(UNBUILT)
+}
+
 pub fn evaluate(
     measurer: &dyn Measurer,
     renderer: &dyn MatchedRenderer,
@@ -245,7 +257,7 @@ pub fn evaluate(
     let result = (|| {
         let base = telperion_core::presets::Preset::from_id(preset).ok_or("unknown preset")?;
         telperion_core::params::overlay(&base.parameters(), &trial.overrides)
-            .map_err(|e| format!("generator refused: {e:?}"))?;
+            .map_err(|e| format!("{REFUSED}{e:?}"))?;
         let measured = measurer
             .measure(preset, seed, &trial.overrides)
             .map_err(|e| e.to_string())?;

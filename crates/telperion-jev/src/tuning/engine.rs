@@ -439,12 +439,20 @@ impl Run {
             if super::look::objectives(self).is_empty() {
                 return Err("no objective to tune toward".into());
             }
-            self.runaway(services.runaway_rounds())?;
+            // The halves of a bundle the generator refused need no new
+            // direction, so a round that draws them buys none; and each such
+            // round halves what is left, so it neither is nor feeds a runaway.
+            let halves = super::bundle::halves_pending(self, &services.tracks());
+            if halves {
+                self.reserve(0, 0, 0, 1, "refused bundle halves", save)?;
+            } else {
+                self.runaway(services.runaway_rounds())?;
+            }
             let opening = super::runaway::Spend::of(&self.budget);
             // Each batch of dials is its own reserved, settled and persisted
             // judgment; the round is charged once.
             let mut proposals = vec![];
-            for batch in 0..services.proposal_batches(self) {
+            for batch in (0..services.proposal_batches(self)).filter(|_| !halves) {
                 let allowance = services.proposal_tokens(self);
                 let label = format!("targeted proposals {}", batch + 1);
                 self.push_judgment_input(&label, services.proposal_state(self));
@@ -460,7 +468,9 @@ impl Run {
             });
             // One bundle of every dial Jev supported, judged on one sheet.
             let kept = super::bundle::round(self, proposals, services, save)?;
-            self.close_round(kept, opening, save)?;
+            if kept || !halves {
+                self.close_round(kept, opening, save)?;
+            }
             if kept && self.bootstrap_finalist(save)? {
                 return Ok(());
             }
