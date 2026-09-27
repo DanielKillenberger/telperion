@@ -31,7 +31,7 @@ Shedding is the largest cost on the ordinary preset and the second largest on Te
 ## Acceptance Criteria
 
 - **R1:** Shedding uses the one outline index and stops at the first segment within `shell`. No second outline index exists in the crate. Errors: none beyond today's `shed` validation. [inferred]
-- **R2:** Every catalogue and in-work preset at seeds 1 and 7 grows a tree whose `growth_profile` hash equals the base's. [inferred]
+- **R2:** Every catalogue and in-work preset at seeds 1 and 7 grows a tree whose `growth_profile` hash equals the base's. The existing crown index tests (`specimen/crown.rs` tests) pass. The pipeline build does not exercise crown exposure, and preset hashes miss the edge cases, so a differential test also holds the new keep decision to `distance_to_profile(..) <= shell`: at distances equal to `shell` and one ulp either side, for a subnormal squared distance, and for a zero-span outline. (plan review, 2026-09-27) [inferred]
 - **R3:** `examples/growth_profile.rs` medians (six samples, first dropped) on base and candidate, same machine, one session: ordinary seed 1 and 7 growth at least 30% lower; Telperion seeds 1 and 7 recorded; no preset at either seed more than 2% slower. A miss stops with `NEEDS_HUMAN` and the numbers. [inferred]
 
 ## Boundaries

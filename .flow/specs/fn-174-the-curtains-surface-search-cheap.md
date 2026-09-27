@@ -30,7 +30,7 @@ The silver birch grows in 136 ms at seed 1 and 267 ms at seed 7 (`growth_profile
 ## Acceptance Criteria
 
 - **R1:** On fn-173's merged code, birch growth at seeds 1 and 7 is at most half the base's `growth_profile` median. Every other preset is recorded, and none is more than 2% slower. A miss stops with `NEEDS_HUMAN` and the profile. [inferred]
-- **R2:** The suite's curtain checks (`suite/drop.rs`, `suite/outline.rs`, `suite/growth.rs`) pass for every preset. [checked]
+- **R2:** The suite's curtain checks (`suite/drop.rs`, `suite/outline.rs`, `suite/growth.rs`) pass for every preset. Those checks call `in_curtain_band`, the predicate this spec changes, so they cannot catch its errors. A test therefore holds the new `in_band` to an independent reference: a dense scan of fn-173's prepared shell down each column, written in the test and sharing no code with the search. It covers a column with no crossing below `limit`, the first crossing of a lobed column, surfaces just above and below `limit`, the band's top and foot, drop shares of 0, 1 and one between, and tolerances of 0 and above. A point within fn-173's bound of a band edge may fall on either side, and the test states this; every other point must agree. [inferred]
 - **R3:** The owner's visual verdict on the birch at seeds 1 and 7 is recorded, with at most four stills each. [user]
 
 ## Boundaries

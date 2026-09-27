@@ -1,11 +1,74 @@
 {
   "branch_name": "fn-172-shedding-asks-the-crowns-outline-index",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-27T11:26:44.090030Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-172-shedding-asks-the-crowns-outline-index",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-27T11:29:35.875919Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "d3a704a55d6c0775a9b54d2abf8d912c90c5835880f36c0ce9b9900b2819b884",
+      "backend": "codex",
+      "base_sha": "ccb2b13439243c442f4be9c1c149e9e96c38950b",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-96563e6c362220a168ff7358ce757a89",
+            "classification": "introduced",
+            "findingId": "finding-96563e6c362220a168ff7358ce757a89",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ccb2b13439243c442f4be9c1c149e9e96c38950b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 165071,
+      "output_sha256": "89faef99d0cd66b41cb9bb60ba730acb1cc906e60f51884336679ec514801b05",
+      "reservation_id": "ff525101c6b943c89e299f47e97fb0fb",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T11:29:35.871638Z",
+      "tool_calls": 13,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-172-shedding-asks-the-crowns-outline-index.md",
   "status": "open",
   "title": "Shedding asks the crown's outline index a yes-or-no question",
@@ -20,5 +83,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T11:26:44.095902Z"
+  "updated_at": "2026-09-27T11:34:34.381705Z"
 }

@@ -1,13 +1,120 @@
 {
   "branch_name": "fn-174-the-curtains-surface-search-cheap",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-27T11:26:45.186795Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-173-growth-reads-a-prepared-crown-shell"
   ],
   "id": "fn-174-the-curtains-surface-search-cheap",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-27T11:36:08.279335Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "37a8049c05349f1aed3bf51fbc8b3d29630e7e7df3a688d11ee65acf7b3b3662",
+      "backend": "codex",
+      "base_sha": "ccb2b13439243c442f4be9c1c149e9e96c38950b",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e0f6510d02eab4aa209b36b2515b8882",
+            "classification": "introduced",
+            "findingId": "finding-e0f6510d02eab4aa209b36b2515b8882",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ccb2b13439243c442f4be9c1c149e9e96c38950b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 108075,
+      "output_sha256": "1285673101f484e59112ea1980d1ae997f243d2dcade86a5a48e2982d573aff2",
+      "reservation_id": "4787eb1045d54944a44257541b680a1f",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T11:32:15.449153Z",
+      "tool_calls": 9,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "3c8c56fef4b4d92343d90069fd0476fe2c59779114d1f3235fc44b213fcda8e5",
+      "backend": "codex",
+      "base_sha": "ccb2b13439243c442f4be9c1c149e9e96c38950b",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e0f6510d02eab4aa209b36b2515b8882",
+            "classification": "introduced",
+            "findingId": "finding-e0f6510d02eab4aa209b36b2515b8882",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ccb2b13439243c442f4be9c1c149e9e96c38950b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 628,
+      "output_sha256": "049139772cf985e6e8c600062bcf1e1725959f37841ed45ce0de55a15994ff4b",
+      "reservation_id": "382f5fea84054c3e8432f4d1ee5fdeb5",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T11:36:08.277051Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-174-the-curtains-surface-search-cheap.md",
   "status": "open",
   "title": "The curtain's surface search, cheap",
@@ -22,5 +129,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T11:26:51.824244Z"
+  "updated_at": "2026-09-27T11:36:08.279996Z"
 }

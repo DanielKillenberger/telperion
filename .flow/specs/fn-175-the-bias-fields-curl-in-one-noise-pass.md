@@ -15,9 +15,8 @@ Telperion grows in 391 ms at seed 1 (`growth_profile` median, master f9487810). 
 <!-- scope: technical -->
 
 - **Today, checked 2026-09-27.** `Noise::curl` (`noise.rs:72`) takes six central differences at `±0.001`, and each difference evaluates the two-octave `fbm` twice. That is 24 Perlin evaluations per heading. `GrowthBias::apply` (`pipeline/bias.rs:200`) calls it when `writhe_amplitude / writhe_wavelength > 0`. [checked]
-- **Candidates, chosen by measurement.**
-  - Gradient noise that returns its analytic derivative. Three fields at two octaves need 6 evaluations.
-  - A curl field sampled once per tree on a grid over the crown and interpolated per heading, if its preparation costs less than it saves. [inferred]
+- **The change.** Gradient noise that returns its analytic derivative, so the curl takes three fields at two octaves: 6 evaluations in place of 24. The curl stays a pointwise function of position and wavelength, so every caller keeps its domain: `colonize` biases the trunk below the crown (`colonization.rs:203-215`), and the growth path builds a bias per slice with a scaled height and so a scaled wavelength (`specimen/timeline.rs:209-231`). [checked]
+- **Rejected: a prepared curl grid.** A grid over the crown would need an out-of-grid rule for the trunk and a rebuild or rescale per slice height. The analytic curl has neither problem. (plan review, 2026-09-27) [inferred]
 - **Identity is not required.** The writhe changes within the owner's visual verdict. [user]
 
 ## Edge Cases & Constraints
@@ -29,7 +28,7 @@ Telperion grows in 391 ms at seed 1 (`growth_profile` median, master f9487810). 
 ## Acceptance Criteria
 
 - **R1:** Telperion growth at seed 1 is at most 70% of the base's `growth_profile` median. Telperion seed 7 and Laurelin at seeds 1 and 7 are recorded. No preset at either seed is more than 2% slower. A miss stops with `NEEDS_HUMAN` and the profile. [inferred]
-- **R2:** A test holds the new curl to the finite-difference curl within a stated bound on sampled points. [inferred]
+- **R2:** A test holds the new curl to the finite-difference curl within a stated bound, on points below the crown, inside it and above it, and at two wavelengths. The existing bias tests pass unchanged. [inferred]
 - **R3:** The owner's visual verdict on Telperion and Laurelin at seeds 1 and 7 is recorded, with at most four stills each. [user]
 
 ## Boundaries

@@ -1,11 +1,118 @@
 {
   "branch_name": "fn-175-the-bias-fields-curl-in-one-noise-pass",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-27T11:26:45.756158Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-175-the-bias-fields-curl-in-one-noise-pass",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-27T11:36:27.451948Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "c90466f74eeaf9c7fd07b6a636f2f20f551a245479ff1420a62277e721364f32",
+      "backend": "codex",
+      "base_sha": "ccb2b13439243c442f4be9c1c149e9e96c38950b",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-69d408f51b43b5148d96fc4bbe1ec158",
+            "classification": "introduced",
+            "findingId": "finding-69d408f51b43b5148d96fc4bbe1ec158",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ccb2b13439243c442f4be9c1c149e9e96c38950b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 100392,
+      "output_sha256": "5038543d15f8e42283a05307ab22ef252d7136b58920e4e23f5a03a888cea91d",
+      "reservation_id": "a935f7789bf8432c8652cc74d6ab0bc9",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T11:33:35.460552Z",
+      "tool_calls": 10,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "81780dd9d3539276e26f4f80eb45dd54875d7c8fad5182e0b712ac6c7d87927e",
+      "backend": "codex",
+      "base_sha": "ccb2b13439243c442f4be9c1c149e9e96c38950b",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-69d408f51b43b5148d96fc4bbe1ec158",
+            "classification": "introduced",
+            "findingId": "finding-69d408f51b43b5148d96fc4bbe1ec158",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ccb2b13439243c442f4be9c1c149e9e96c38950b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 750,
+      "output_sha256": "fe6a0dd56c590af8f59d291a453dd357c91fd226497e0960c5c313d063d2a8d5",
+      "reservation_id": "557e6ab543174588b57d9b93288f13c6",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T11:36:27.449328Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-175-the-bias-fields-curl-in-one-noise-pass.md",
   "status": "open",
   "title": "The bias field's curl in one noise pass",
@@ -20,5 +127,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T11:26:45.767153Z"
+  "updated_at": "2026-09-27T11:36:27.452497Z"
 }
