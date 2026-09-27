@@ -1,0 +1,95 @@
+{
+  "branch_name": "fn-181-the-growth-path-is-removed-to-be",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-27T21:02:29.330508Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-181-the-growth-path-is-removed-to-be",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-27T21:04:37.982183Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "03b4edcc6bfb4a31b6571e7fd3f238be48f78cd5508e23b09d0abda05c3d424c",
+      "backend": "codex",
+      "base_sha": "e3a800362ad7f149ac9f7d891100ef4cb0be8889",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-753c8713ca59fb25cc034e2ab283d724",
+            "classification": "introduced",
+            "findingId": "finding-753c8713ca59fb25cc034e2ab283d724",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-89713097ff4db6eb73c868c70fd5e08f",
+            "classification": "introduced",
+            "findingId": "finding-89713097ff4db6eb73c868c70fd5e08f",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e3a800362ad7f149ac9f7d891100ef4cb0be8889",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 243027,
+      "output_sha256": "70105019a490fb20c183366bfab143e3e17d7bfe0cdc101b29eb5c9bd71754fa",
+      "reservation_id": "1b1fa32a7099499ea522ab341060f682",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T21:04:37.976005Z",
+      "tool_calls": 19,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-181-the-growth-path-is-removed-to-be.md",
+  "status": "open",
+  "title": "The growth path is removed, to be rewritten later",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-27T21:04:50.033886Z"
+}
