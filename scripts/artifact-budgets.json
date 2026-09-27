@@ -1,48 +1,50 @@
 {
   "recipe": "npm run build on the pinned toolchain: scripts/build-wasm.mjs (release, the slim module stripped), scripts/build-render.mjs, then vite build",
-  "note": "A budget rises only by editing this file in the same PR, with the new measurement and a Decisions line (docs/principles.md).",
+  "note": "Two limits (docs/principles.md). A ceiling is set by the owner from what the product's consumers need; crossing one is an owner decision, never a routine raise. The growth share limits how much one PR may grow an artifact over its base; a PR whose Decisions section names the artifact passes above it. baselineBytes is a recorded measurement, not a limit.",
+  "growthPercent": 5,
+  "growthReason": "An ordinary feature grows an artifact by a percent or two (fn-170's fork rule: +1.1 percent on the main module; fn-152, fn-61 and fn-170 together used 5 percent in one day), while the change the check exists to stop, fn-150's first slim build, grew the field module 48 percent in one PR. 5 percent per PR lets a feature through and stops a change of that kind unless the PR names it.",
   "artifacts": [
     {
       "path": "dist/telperion.wasm",
-      "maxBytes": 1481000,
-      "measuredBytes": 1410330,
-      "measuredOn": "fn-170 CI (PR #131)",
-      "decisions": "fn-170: the codominant fork rule and its node weight, measured plus 5 percent (master was 1395510 bytes)"
+      "ceilingBytes": 1600000,
+      "reason": "owner, 2026-09-27: headroom for the main module",
+      "baselineBytes": 1410330,
+      "baselineOn": "master ed23f773 CI package (PR #131)"
     },
     {
       "path": "dist/telperion-render.wasm",
-      "maxBytes": 1996000,
-      "measuredBytes": 1900399,
-      "measuredOn": "npm telperion@0.1.4",
-      "decisions": "fn-151: the shipped 0.1.4 size plus 5%"
+      "ceilingBytes": 2200000,
+      "reason": "owner, 2026-09-27: headroom for the render module",
+      "baselineBytes": 1985291,
+      "baselineOn": "master ed23f773 CI package (PR #131)"
     },
     {
       "path": "dist/telperion-field.wasm",
-      "maxBytes": 381000,
-      "measuredBytes": 363305,
-      "measuredOn": "fn-170 CI (PR #131)",
-      "decisions": "fn-170: the codominant fork rule and its node weight, measured plus 5 percent (master was 358698 bytes)"
+      "ceilingBytes": 400000,
+      "reason": "owner, 2026-09-27: kept small, the homepage loads only the slim field module",
+      "baselineBytes": 363305,
+      "baselineOn": "master ed23f773 CI package (PR #131)"
     },
     {
       "path": "dist/telperion.js",
-      "maxBytes": 124300,
-      "measuredBytes": 118387,
-      "measuredOn": "npm telperion@0.1.4",
-      "decisions": "fn-151: the shipped 0.1.4 size plus 5%"
+      "ceilingBytes": 150000,
+      "reason": "owner, 2026-09-27: headroom for the main entry script",
+      "baselineBytes": 119550,
+      "baselineOn": "master ed23f773 CI package (PR #131)"
     },
     {
       "path": "dist/field.js",
-      "maxBytes": 2860,
-      "measuredBytes": 2720,
-      "measuredOn": "npm telperion@0.1.4",
-      "decisions": "fn-151: the shipped 0.1.4 size plus 5%"
+      "ceilingBytes": 16000,
+      "reason": "owner, 2026-09-27: headroom for the field entry script",
+      "baselineBytes": 2720,
+      "baselineOn": "master ed23f773 CI package (PR #131)"
     },
     {
       "path": "dist/voxelize.js",
-      "maxBytes": 4760,
-      "measuredBytes": 4526,
-      "measuredOn": "npm telperion@0.1.4",
-      "decisions": "fn-151: the shipped 0.1.4 size plus 5%"
+      "ceilingBytes": 16000,
+      "reason": "owner, 2026-09-27: headroom for the voxelize entry script",
+      "baselineBytes": 4526,
+      "baselineOn": "master ed23f773 CI package (PR #131)"
     }
   ]
 }
