@@ -112,7 +112,7 @@ fn zero_hold_is_the_pipe_model_to_the_bit() {
 fn a_limb_holds_its_girth_then_falls_to_the_pipe_at_its_tip() {
     let (pipe, hold, fall) = (pipe(), 0.6, 2.0);
     let t = held(hold, fall);
-    let base = pipe.nodes[0].radius;
+    let base = pipe.nodes[1].start_radius;
     let tip = pipe.nodes[STATIONS - 1].radius;
     assert!(
         tip < 0.3 * base,
@@ -182,6 +182,46 @@ fn a_leader_ending_in_laterals_is_not_left_blunt() {
     let tip = STATIONS - 1;
     assert_eq!(t.nodes[tip].radius, pipe.nodes[tip].radius);
     assert!(t.nodes[tip].radius < 0.5 * t.nodes[0].radius);
+    junctions_hold(&t);
+}
+
+/// A fork at the root, a primary and a codominant sibling: the root is a
+/// point, so both parts start axes of their own, and a hold just above zero
+/// leaves every radius, start and distal, the pipe model's.
+#[test]
+fn a_fork_at_the_root_rises_from_zero_with_no_jump() {
+    let mut nodes = vec![Node::root()];
+    for side in [1.0, -1.0] {
+        for k in 1..=4 {
+            let parent = if k == 1 { 0 } else { nodes.len() - 1 };
+            nodes.push(Node {
+                position: Vec3::new(side * 0.3 * k as f64, k as f64, 0.0),
+                parent: Some(parent as u32),
+                codominant: (side < 0.0 && k == 1).then_some(1.0),
+                ..Node::root()
+            });
+        }
+    }
+    for (i, n) in nodes.iter_mut().enumerate() {
+        n.branch = i as u32;
+    }
+    let crossover = nodes.len();
+    let mut pipe = Tree {
+        nodes,
+        crossover,
+        ..Tree::default()
+    };
+    solve(&mut pipe, Envelope::default(), params(0.0, 2.0)).unwrap();
+    for hold_share in [1e-9, 1e-3] {
+        let mut t = pipe.clone();
+        hold(&mut t, params(hold_share, 2.0));
+        for (a, b) in t.nodes.iter().zip(&pipe.nodes) {
+            assert_eq!([a.start_radius, a.radius], [b.start_radius, b.radius]);
+        }
+    }
+    let mut t = pipe.clone();
+    hold(&mut t, params(0.5, 2.0));
+    assert_eq!(t.nodes[2].start_radius, pipe.nodes[1].start_radius);
     junctions_hold(&t);
 }
 

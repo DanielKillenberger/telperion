@@ -95,10 +95,11 @@ crate::catalogue::rows! {
             wire: 255,
             check: value(Site::Radius, 6, "girthHold"),
             growth: Growth::Ignored,
-            note: "An axis starts at the root, a lateral and a codominant sibling; a fork's \
-                primary carries its axis on. An axis holds the pipe model's radius at its \
-                first node. A node's share of its axis's reach is its path from the axis's first \
-                node against that plus its path on along the axis to the axis's tip. Its radius is the larger of the pipe model's \
+            note: "Every part leaving the root starts an axis, as do a lateral and a \
+                codominant sibling; a fork's primary above the root carries its axis on. An \
+                axis holds the pipe model's radius where it leaves its parent. A node's share \
+                of its axis's reach is its path from there against that plus its path on \
+                along the axis to the axis's tip. Its radius is the larger of the pipe model's \
                 and the held girth, so a held fork's parts carry more wood than their parent: \
                 conservation at forks is given up over the hold, and a part's start never \
                 exceeds its parent's radius. Read once the twigs have grown, and which wood \
