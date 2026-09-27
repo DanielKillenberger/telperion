@@ -1,11 +1,13 @@
-//! Schema 3: little-endian bincode with fixed-width integers, including usize
+//! Schema 5: little-endian bincode with fixed-width integers, including usize
 //! as u64. Only the chronicle and writer frontiers persist; derived reads,
 //! contacts, meshes and instrumentation never do. Schema changes are explicit:
-//! schema 3 adds authored generation budgets; older snapshots are refused.
+//! schema 3 added authored generation budgets and schema 4 the habit rows
+//! `pitchByHeight` and `raggedReach`, schema 5 each first-order limb's bound;
+//! older snapshots are refused.
 use super::*;
 use bincode::Options;
 
-const HEADER: &[u8; 8] = b"TLPS\x03\0\0\0";
+const HEADER: &[u8; 8] = b"TLPS\x05\0\0\0";
 fn codec() -> impl Options {
     bincode::DefaultOptions::new()
         .with_fixint_encoding()

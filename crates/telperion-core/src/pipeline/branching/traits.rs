@@ -79,6 +79,37 @@ crate::catalogue::rows! {
             dial: bounded("pitch_variation", "the degrees that departure angle varies lateral to \
                 lateral", [5.0, 10.0]).span([0.0, 28.0]),
         },
+        /// Degrees the lateral pitch moves from the crown's base to its top: a
+        /// station's laterals leave at `lateralPitch` plus as much of this as
+        /// the station stands up the crown, none at its base and all at its
+        /// top. Negative sets the upper limbs more upright than the lower;
+        /// zero is one pitch everywhere.
+        #[cfg_attr(feature = "json", serde(default))]
+        pub pitch_by_height: f64 = "pitchByHeight" "degrees"
+            Bounds::closed(-180.0, 180.0) => [Grow] {
+            wire: 249,
+            check: value(Site::Habit, 21, "pitchByHeight"),
+            applies: "needs `lateralOrders` of one or more",
+            note: "The crown runs from `trunkHeight` to the envelope's height; the pitch it adds \
+                to is clamped to 0 to 180 as `lateralPitch` is.",
+            dial: bounded("pitch_by_height", "the degrees the lateral pitch moves from the \
+                crown's base to its top; negative sets the upper limbs more upright",
+                [5.0, 10.0]),
+        },
+        /// The most a first-order axis may stop short of the shell, as a share
+        /// of its room; each axis draws its own share from its own stream, and
+        /// what it bears grows within the shell scaled about its station by
+        /// the share it kept. Zero reaches the shell.
+        #[cfg_attr(feature = "json", serde(default))]
+        pub ragged_reach: f64 = "raggedReach" "share of the room"
+            Bounds::closed(0.0, 1.0) => [Grow] {
+            wire: 250,
+            check: value(Site::Habit, 22, "raggedReach"),
+            applies: "needs `lateralOrders` of one or more: only first-order laterals probe \
+                their room",
+            dial: bounded("ragged_reach", "how far short of the crown's edge a limb may stop, \
+                each limb by its own share", [0.05, 0.1]),
+        },
         /// Signed bend over the length of a first-order axis; positive rises.
         pub rise_primary: f64 = "risePrimary" "-" Bounds::closed(-1.0, 1.0) => [Grow] {
             wire: 15,
@@ -246,6 +277,8 @@ impl Default for HabitParams {
             laterals_per_station: 3,
             lateral_pitch: 60.0,
             pitch_variation: 15.0,
+            pitch_by_height: 0.0,
+            ragged_reach: 0.0,
             rise_primary: 0.05,
             rise_secondary: 0.0,
             crookedness: 12.0,

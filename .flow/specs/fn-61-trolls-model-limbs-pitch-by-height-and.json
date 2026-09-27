@@ -8,13 +8,426 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-61-trolls-model-limbs-pitch-by-height-and",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-61-trolls-model-limbs-pitch-by-height-and.1": 0
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "48c6cc16cd033b331cb4219b59f66f769303432b064dbba7d2704c64b88ccaf8",
+      "backend": "codex",
+      "base_sha": "c71ef3e11bfb0505b0cd88d9ca569558636f1730",
+      "counter_kind": "impl",
+      "failure_class": "head_moved",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bb100b5a2c751aa7edfa39da50b4b8ec2bafa5f4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 65,
+      "output_sha256": "2d548461b12cf9da35b40d199e5a52b748d0eb7dd46b116db33257470d4e78aa",
+      "reservation_id": "0d7832dda9194fdf8046f9d02bae9eb4",
+      "round_consumed": false,
+      "scope": "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "superseded_by": null,
+      "task": "fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "timestamp": "2026-09-26T22:37:37.723451Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "74b2f5ad3bd998c5d40f72d16d6a614d16b7891b7d20cded92e3f5e1e0578694",
+      "backend": "codex",
+      "base_sha": "c71ef3e11bfb0505b0cd88d9ca569558636f1730",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c3fcc8128288bdd5e5376994f590b250",
+            "classification": "introduced",
+            "findingId": "finding-c3fcc8128288bdd5e5376994f590b250",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "708464dc91f860ee40b521225352d5f3792265ed",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1303,
+      "output_sha256": "93467135f6ef7f02f3052095ced7ac661cd97747f78b909eeeb64e573264b5b6",
+      "reservation_id": "9c45f2ad6c9f45deb4943abf5d543325",
+      "round_consumed": true,
+      "scope": "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "superseded_by": null,
+      "task": "fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "timestamp": "2026-09-26T22:40:03.815677Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "54daa2a0239eb48a0ab15c6deca88aca6b0f3a9269d923ada7dc1624abacffd7",
+      "backend": "codex",
+      "base_sha": "c71ef3e11bfb0505b0cd88d9ca569558636f1730",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c3fcc8128288bdd5e5376994f590b250",
+            "classification": "introduced",
+            "findingId": "finding-c3fcc8128288bdd5e5376994f590b250",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8e4e1cf8ca93dfbf808fa1063d37c6237f44919b",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 922,
+      "output_sha256": "952f552f80a5f4705d07a23fd98ce0f10ebf09726c812a336792f4c4faff8130",
+      "reservation_id": "b746877473af4f16a0edb45c85396777",
+      "round_consumed": true,
+      "scope": "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "superseded_by": null,
+      "task": "fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "timestamp": "2026-09-26T22:43:12.740269Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d1beb8507d7e8e139c87c7c91c72dd8e0c083ef5d1bb5698795233b934842b1e",
+      "backend": "codex",
+      "base_sha": "8e4e1cf8ca93dfbf808fa1063d37c6237f44919b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c3fcc8128288bdd5e5376994f590b250",
+            "classification": "introduced",
+            "findingId": "finding-c3fcc8128288bdd5e5376994f590b250",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d18bf4586d9c5f38d747f302405d3fe0",
+            "classification": "introduced",
+            "findingId": "finding-d18bf4586d9c5f38d747f302405d3fe0",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-160ef401eb9cbf60310fb1cb484360d4",
+            "classification": "introduced",
+            "findingId": "finding-160ef401eb9cbf60310fb1cb484360d4",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "257a6fc259d86ad3faac3aba246afc19ee0c94cd",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 2012,
+      "output_sha256": "cd190b92fd56e4d7e63f3c54485cb09a660436da6076a3f3e9c875188dae3134",
+      "reservation_id": "cc13d90cfac046a9bb28dd6e69e589c9",
+      "round_consumed": true,
+      "scope": "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "superseded_by": null,
+      "task": "fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "timestamp": "2026-09-26T23:25:55.591200Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "c02dbeb761616750dd2f2238e8e3602af0400193c170160e8c38ad06b928ade5",
+      "backend": "codex",
+      "base_sha": "8e4e1cf8ca93dfbf808fa1063d37c6237f44919b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c3fcc8128288bdd5e5376994f590b250",
+            "classification": "introduced",
+            "findingId": "finding-c3fcc8128288bdd5e5376994f590b250",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "withdrawn"
+          },
+          {
+            "chainRoot": "finding-d18bf4586d9c5f38d747f302405d3fe0",
+            "classification": "introduced",
+            "findingId": "finding-d18bf4586d9c5f38d747f302405d3fe0",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-160ef401eb9cbf60310fb1cb484360d4",
+            "classification": "introduced",
+            "findingId": "finding-160ef401eb9cbf60310fb1cb484360d4",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-fe9c6362896f7d935b003b47f2ba0157",
+            "classification": "introduced",
+            "findingId": "finding-fe9c6362896f7d935b003b47f2ba0157",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "624394817717bc541a5f94f6d3d24b04f5028458",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1817,
+      "output_sha256": "4e7ce65d50a0ee4fb4557a17ea0f9a2f7bceac064f9c5af51c2603e38ad3cddb",
+      "reservation_id": "f06107a443ba432abc84ee5c3e6a3d27",
+      "round_consumed": true,
+      "scope": "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "superseded_by": null,
+      "task": "fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "timestamp": "2026-09-26T23:27:00.761853Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d29e7ded0cbc822c5c1e3960bbe665f532e83a0fbffced2732dde80f0888de12",
+      "backend": "codex",
+      "base_sha": "8e4e1cf8ca93dfbf808fa1063d37c6237f44919b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c3fcc8128288bdd5e5376994f590b250",
+            "classification": "introduced",
+            "findingId": "finding-c3fcc8128288bdd5e5376994f590b250",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "withdrawn"
+          },
+          {
+            "chainRoot": "finding-d18bf4586d9c5f38d747f302405d3fe0",
+            "classification": "introduced",
+            "findingId": "finding-d18bf4586d9c5f38d747f302405d3fe0",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-160ef401eb9cbf60310fb1cb484360d4",
+            "classification": "introduced",
+            "findingId": "finding-160ef401eb9cbf60310fb1cb484360d4",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-fe9c6362896f7d935b003b47f2ba0157",
+            "classification": "introduced",
+            "findingId": "finding-fe9c6362896f7d935b003b47f2ba0157",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "ffd03108bcb1b19942896c2a53de8076ac618f62",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 891,
+      "output_sha256": "5199dbee309740b8c0855ba769de05b65cf4f7f22a793e630de3637887a63cd1",
+      "reservation_id": "43b7611abdcd4d4ca06ca510808b460d",
+      "round_consumed": true,
+      "scope": "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "superseded_by": null,
+      "task": "fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "timestamp": "2026-09-26T23:28:32.197241Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "09f6d2314e3a9126ee0368fffafca5df565a8baf7c8e0a2dcc2c06ce153c160b",
+      "backend": "codex",
+      "base_sha": "a1530c4d4cc83bba32711da7e9b9ab92294bc702",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-2ab2906f8e0f057b5365c55cb87a9c92",
+            "classification": "introduced",
+            "findingId": "finding-2ab2906f8e0f057b5365c55cb87a9c92",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 3,
+      "head_sha": "b49a494d10506c0e65f9dd4c21ed17919a6a0932",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1595,
+      "output_sha256": "5d5834c31082f5cd5a6a8b0fc3081dd1777938d8de0554c547f1f5338b70a2c9",
+      "reservation_id": "574317bda61548129770abda4f913d5d",
+      "round_consumed": true,
+      "scope": "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "superseded_by": null,
+      "task": "fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "timestamp": "2026-09-27T09:44:34.807570Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "12256e5ab452fa9e0b4c2afbe46d636f8b25a0aba69465b5e377c237306e6256",
+      "backend": "codex",
+      "base_sha": "a1530c4d4cc83bba32711da7e9b9ab92294bc702",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-2ab2906f8e0f057b5365c55cb87a9c92",
+            "classification": "introduced",
+            "findingId": "finding-2ab2906f8e0f057b5365c55cb87a9c92",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 3,
+      "head_sha": "857085fa41d83574f1776687acc9377d6548b592",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 774,
+      "output_sha256": "18440346418dfae5f6d489f8dbf792756ac8ecb9af60cf5ce940241b1d6cc797",
+      "reservation_id": "fcec0c7f2cee49e9b522ecbf6993c96d",
+      "round_consumed": true,
+      "scope": "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "superseded_by": null,
+      "task": "fn-61-trolls-model-limbs-pitch-by-height-and.1",
+      "timestamp": "2026-09-27T09:47:38.182764Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1": 4,
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1": 0
+  },
   "spec_path": ".flow/specs/fn-61-trolls-model-limbs-pitch-by-height-and.md",
   "status": "open",
   "title": "Troll's model limbs: pitch by height and a ragged reach",
@@ -29,5 +442,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-26T22:16:58.895868Z"
+  "updated_at": "2026-09-27T09:47:38.184909Z"
 }

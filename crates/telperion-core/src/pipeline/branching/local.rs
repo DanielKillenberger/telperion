@@ -1,3 +1,4 @@
+use super::limbs::{Bound, Limbs};
 use super::*;
 use crate::math::Transcendental;
 use std::{f64::consts::TAU, rc::Rc};
@@ -26,6 +27,8 @@ struct Shoot {
     key: u32,
     run: Option<Rc<Run>>,
     curtain: pendant::Curtain,
+    /// The shell of the limb system the shoot grows on.
+    bound: Bound,
 }
 mod advance;
 mod pendant;

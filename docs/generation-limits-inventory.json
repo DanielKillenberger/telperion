@@ -91,7 +91,7 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/branching/local/advance.rs",
-    "site": ". min ( if can_sleep & & fixed { planner . clock . map_or ( immediate , | clock | { if s . curtain . below ( p . y ) { u64 : : MAX } else { clock . next ( p , config . trunk_height ) } } ) } else { immediate } )",
+    "site": ". min ( if can_sleep & & fixed { planner . clock . map_or ( immediate , | clock | { if s . curtain . below ( p . y ) { u64 : : MAX } else { clock . next ( s . bound . map ( p ) , config . trunk_height ) } } ) } else { immediate } )",
     "classification": "algorithm",
     "reason": "Sleeping shoot activation uses the growth clock's next reachable time; u64::MAX represents unreachable time, not a generation ceiling."
   },
@@ -316,6 +316,18 @@
     "site": ". max ( 1e - 9 )",
     "classification": "numeric",
     "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
+    "site": ". max ( 1e - 9 )",
+    "classification": "numeric",
+    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A station's height share of the crown lies between the crown's base and its top by definition."
   },
   {
     "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",

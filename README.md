@@ -200,11 +200,11 @@ const restored = engine.importSpecimen(snapshot); // invalidates specimen
 restored.advance(1);
 ```
 
-The schema-1 specimen snapshot carries the chronicle, retained frontiers,
+The schema-5 specimen snapshot carries the chronicle, retained frontiers,
 integer clock, cap/floor, identity slots and writer state. It omits packed reads,
 foliage contact caches, crown caches and meshes. The owned `Uint8Array` is the
 same byte format as native `Specimen::snapshot()` / `from_snapshot(bytes)`:
-`TLPS`, a little-endian u32 schema (1), fixed-integer little-endian bincode 1.3.3
+`TLPS`, a little-endian u32 schema (5), fixed-integer little-endian bincode 1.3.3
 state in the declared `Specimen` field order, then an eight-byte FNV-1a checksum
 of the preceding bytes. Lengths and native indices encode as u64; unlimited
 canopy counts encode as UINT64_MAX, compacted identity indices as UINT32_MAX.

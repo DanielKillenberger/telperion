@@ -73,7 +73,7 @@ const SWEEP_NODES: usize = 8_000;
 // leaves them at their neutral, so they are held here.
 // fn-120's three skirt rows and its dead colour are the palm's too, held for
 // the same reason, and so are fn-144's two lattice rows.
-const HELD: [&str; 68] = [
+const HELD: [&str; 70] = [
     "/canopy/clumpSystemOrder",
     "/canopy/rosetteFronds",
     "/canopy/rosetteDivergence",
@@ -104,6 +104,8 @@ const HELD: [&str; 68] = [
     "/canopy/clumpNeighbours",
     "/surface/socketContainment",
     "/skeleton/habit/reachProbeSteps",
+    "/skeleton/habit/pitchByHeight",
+    "/skeleton/habit/raggedReach",
     "/skeleton/samplingAttemptsPerAttractor",
     "/growth/workBudget",
     "/radii/maxTaperExponent",

@@ -6,6 +6,22 @@ pub(super) fn rejected(config: &GrowthConfig, p: Vec3) -> bool {
             p.y > s.height || p.x.hypot_fixed(p.z) > s.radius_toward(p, config.seed)
         })
 }
+/// Whether a candidate at `p` may be born on a limb system bound by `bound`:
+/// a shortened system's shoots stay inside its own shell, curtain or not; a
+/// system kept whole is admitted as the curtain admits it.
+pub(super) fn admitted(
+    curtain: Curtain,
+    config: &GrowthConfig,
+    t: TwigParams,
+    bound: Bound,
+    p: Vec3,
+) -> bool {
+    if bound.short() {
+        !rejected(config, bound.map(p))
+    } else {
+        curtain.admits(config, t, p)
+    }
+}
 pub(in crate::pipeline::branching) type WidthQuery<'a> =
     Option<&'a dyn Fn(&Tree, usize) -> [f64; 3]>;
 /// What one axis asks the planner for: where it starts and the direction it
@@ -21,6 +37,7 @@ pub(super) struct Axis {
     pub bearing: bool,
     pub key: u32,
     pub curtain: Curtain,
+    pub bound: Bound,
 }
 pub(in crate::pipeline::branching) struct Planner<'a> {
     pub(in crate::pipeline::branching) clock: Option<super::waiting::Clock>,
@@ -63,6 +80,7 @@ impl Planner<'_> {
             bearing,
             key,
             curtain,
+            bound,
         } = axis;
         // Plan the axis against its authored room. The live boundary is checked
         // separately for every birth, so a juvenile crown pauses the cached run
@@ -114,12 +132,12 @@ impl Planner<'_> {
             course = self.heading(at, course, wanted, stride);
             let heading = curtain.sagged(course, travelled, self.twigs, key ^ self.seed);
             let end = at + heading * stride;
-            if !curtain.admits(&config, self.twigs, end) {
+            if !admitted(curtain, &config, self.twigs, bound, end) {
                 let mut low = 0.0;
                 let mut high = stride;
                 for _ in 0..40 {
                     let mid = (low + high) / 2.0;
-                    if !curtain.admits(&config, self.twigs, at + heading * mid) {
+                    if !admitted(curtain, &config, self.twigs, bound, at + heading * mid) {
                         high = mid
                     } else {
                         low = mid

@@ -20,7 +20,7 @@ pub fn append(
     for (i, n) in identified.nodes.iter_mut().enumerate() {
         n.identity.birth = i as u64;
     }
-    frontier.seed(&identified, config, t, None);
+    frontier.seed(&identified, config, t, None, &Limbs::default());
     frontier.advance(
         tree,
         Planner {

@@ -167,6 +167,7 @@ mod frontier_tests {
             key: 1,
             run: None,
             curtain: Curtain::default(),
+            bound: Bound::default(),
         });
         (tree, frontier)
     }

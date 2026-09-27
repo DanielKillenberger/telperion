@@ -5,6 +5,9 @@
 //! growth overrides are stated on one side, both or neither, and what the wire
 //! and the family's own check answer for a value off every row's rail. A
 //! digest that moves means the catalogue changed a value, a walk or a refusal.
+//! fn-61 re-pinned all four for the habit rows `pitchByHeight` and
+//! `raggedReach`: with those two rows left out of the text, each digest was
+//! still the one recorded at d6a3405c.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -40,7 +43,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        8_706_588_091_042_390_827,
+        2_660_877_973_252_725_101,
         "{}",
         digest(&text)
     );
@@ -72,7 +75,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        6_751_395_173_143_375_865,
+        1_008_978_051_789_951_081,
         "{}",
         digest(&text)
     );
@@ -97,7 +100,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        2_343_201_054_118_623_675,
+        4_731_154_020_153_466_187,
         "{}",
         digest(&text)
     );
@@ -160,7 +163,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        17_635_382_561_672_926_617,
+        5_352_633_743_146_656_636,
         "{}",
         digest(&text)
     );

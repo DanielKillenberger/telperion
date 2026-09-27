@@ -194,7 +194,8 @@ impl Frontier {
                         continue;
                     }
                     let p = position + heading * twig_length;
-                    if !s.curtain.admits(config, t, p) || s.curtain.below(p.y) {
+                    if !planner::admitted(s.curtain, config, t, s.bound, p) || s.curtain.below(p.y)
+                    {
                         #[cfg(test)]
                         {
                             self.retries[1] += 1;
@@ -209,7 +210,7 @@ impl Frontier {
                                     if s.curtain.below(p.y) {
                                         u64::MAX
                                     } else {
-                                        clock.next(p, config.trunk_height)
+                                        clock.next(s.bound.map(p), config.trunk_height)
                                     }
                                 })
                             } else {
@@ -232,6 +233,7 @@ impl Frontier {
                             bearing: radius <= t.twig.bearing_diameter / 2.0,
                             key,
                             curtain: s.curtain,
+                            bound: s.bound,
                         })
                     }
                     let Some(r) = &run else {
@@ -248,7 +250,9 @@ impl Frontier {
                     };
                     internodes = r.positions.len();
                     let p = r.positions[completed];
-                    if planner.growing_envelope && !s.curtain.admits(config, t, p) {
+                    if planner.growing_envelope
+                        && !planner::admitted(s.curtain, config, t, s.bound, p)
+                    {
                         #[cfg(test)]
                         {
                             self.retries[3] += 1;
@@ -256,9 +260,9 @@ impl Frontier {
                         s.flushed &= !mask;
                         deferred = true;
                         next_wake = next_wake.min(if can_sleep && !starts {
-                            planner
-                                .clock
-                                .map_or(immediate, |clock| clock.next(p, config.trunk_height))
+                            planner.clock.map_or(immediate, |clock| {
+                                clock.next(s.bound.map(p), config.trunk_height)
+                            })
                         } else {
                             immediate
                         });
@@ -347,6 +351,7 @@ impl Frontier {
                         key,
                         run,
                         curtain: s.curtain,
+                        bound: s.bound,
                     });
                 }
             }

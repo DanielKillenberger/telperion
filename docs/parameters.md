@@ -220,6 +220,27 @@ Spread of the lateral pitch, in degrees.
 - dormant: needs `lateralOrders` of one or more
 - blend: degrees along the shorter arc; dial: `pitch_variation` (the degrees that departure angle varies lateral to lateral), window its bounds (validated bound), steps 5 and 10, presets span [0, 28]
 
+### `/skeleton/habit/pitchByHeight`
+
+Degrees the lateral pitch moves from the crown's base to its top: a station's laterals leave at `lateralPitch` plus as much of this as the station stands up the crown, none at its base and all at its top. Negative sets the upper limbs more upright than the lower; zero is one pitch everywhere.
+
+- real, degrees, [-180, 180], default 0
+- read by grow; growth path: as the direct build
+- checked: Habit site, rank 21, as invalid value `pitchByHeight`
+- dormant: needs `lateralOrders` of one or more
+- note: The crown runs from `trunkHeight` to the envelope's height; the pitch it adds to is clamped to 0 to 180 as `lateralPitch` is.
+- blend: linear; dial: `pitch_by_height` (the degrees the lateral pitch moves from the crown's base to its top; negative sets the upper limbs more upright), window its bounds (validated bound), steps 5 and 10
+
+### `/skeleton/habit/raggedReach`
+
+The most a first-order axis may stop short of the shell, as a share of its room; each axis draws its own share from its own stream, and what it bears grows within the shell scaled about its station by the share it kept. Zero reaches the shell.
+
+- real, share of the room, [0, 1], default 0
+- read by grow; growth path: as the direct build
+- checked: Habit site, rank 22, as invalid value `raggedReach`
+- dormant: needs `lateralOrders` of one or more: only first-order laterals probe their room
+- blend: linear; dial: `ragged_reach` (how far short of the crown's edge a limb may stop, each limb by its own share), window its bounds (validated bound), steps 0.05 and 0.1
+
 ### `/skeleton/habit/risePrimary`
 
 Signed bend over the length of a first-order axis; positive rises.
