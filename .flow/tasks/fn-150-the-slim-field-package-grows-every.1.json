@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-150-the-slim-field-package-grows-every",
   "spec_path": ".flow/tasks/fn-150-the-slim-field-package-grows-every.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Slim field grows every preset through the core pipeline",
   "updated_at": "2026-09-25T08:10:38.622128Z"
 }

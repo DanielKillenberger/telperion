@@ -15,7 +15,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-150-the-slim-field-package-grows-every.md",
-  "status": "open",
+  "status": "done",
   "title": "The slim field package grows every preset through the one build pipeline",
   "tracker": {
     "baseHashFlow": null,
@@ -28,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-25T08:10:38.153227Z"
+  "updated_at": "2026-09-27T17:07:55.174769Z"
 }

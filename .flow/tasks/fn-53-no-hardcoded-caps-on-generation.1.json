@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-53-no-hardcoded-caps-on-generation",
   "spec_path": ".flow/tasks/fn-53-no-hardcoded-caps-on-generation.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement no hardcoded caps on generation",
   "updated_at": "2026-09-19T21:54:42.766393Z"
 }

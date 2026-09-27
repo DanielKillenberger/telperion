@@ -85,7 +85,7 @@
     "impl:fn-53-no-hardcoded-caps-on-generation.1": 0
   },
   "spec_path": ".flow/specs/fn-53-no-hardcoded-caps-on-generation.md",
-  "status": "open",
+  "status": "done",
   "title": "No hardcoded caps on generation",
   "tracker": {
     "baseHashFlow": null,
@@ -98,5 +98,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-19T23:00:17.551449Z"
+  "updated_at": "2026-09-27T17:07:53.693195Z"
 }
