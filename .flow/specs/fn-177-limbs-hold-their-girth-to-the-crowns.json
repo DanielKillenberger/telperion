@@ -202,7 +202,7 @@
     "impl:fn-177-limbs-hold-their-girth-to-the-crowns.1": 0
   },
   "spec_path": ".flow/specs/fn-177-limbs-hold-their-girth-to-the-crowns.md",
-  "status": "open",
+  "status": "done",
   "title": "Limbs hold their girth to the crown's edge",
   "tracker": {
     "baseHashFlow": null,
@@ -215,5 +215,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T14:23:17.579244Z"
+  "updated_at": "2026-09-27T15:46:47.268836Z"
 }
