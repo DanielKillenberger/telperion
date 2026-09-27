@@ -107,8 +107,6 @@ export function GrowerDev() {
     }
   });
   const [params, setParams] = useState<GrowerParams>(initialLink.params);
-  const frameNext = useCallback(() => { stageRef.current?.frameNext(); }, []);
-  const look = useLook(setParams, frameNext);
   /* Growth is hidden (owner, 2026-09-18). The mature tree is what the stills,
      the protocol and every verdict are taken on, so it is what the harness
      draws; `?growth=1` opens the specimen path exactly as before. */
@@ -123,6 +121,13 @@ export function GrowerDev() {
   // The seed box is free text so a half-typed number is not thrown
   // away mid-keystroke; `params.seed` only moves when it parses.
   const [seedText, setSeedText] = useState(String(params.seed));
+  /* A look's tree onto the dials, its seed into the seed box. */
+  const applyLook = useCallback((next: GrowerParams) => {
+    setParams(next);
+    setSeedText(String(next.seed));
+    stageRef.current?.frameNext();
+  }, []);
+  const look = useLook(applyLook);
   /* Which view of the same tree is drawn. A view is a way of looking at
      a tree rather than a parameter of it, so it lives beside the dials
      rather than among the ones a preset would have to state. */
@@ -308,7 +313,7 @@ export function GrowerDev() {
           {linkError}. Showing the default tree; choose a preset below.
           <button className="gd-button" onClick={() => setLinkError(null)}>dismiss link error</button>
         </div>}
-        <LookControls state={look} />
+        <LookControls state={look} params={params} apply={applyLook} />
         {buildError && <div role="alert" className="gd-note gd-warn">
           {buildError}
           <button className="gd-button" onClick={() => setLoadAttempt(n => n + 1)}>retry build</button>

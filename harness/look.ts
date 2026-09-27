@@ -113,11 +113,20 @@ export function open(name: string, body: unknown, species: string | null): Opene
     const look = onDials(overlay(shipped.family, body.overrides), named);
     const differs = difference(toFamily(look), body.family);
     if (differs !== null) refuse(`the harness's family differs from core's at ${differs}`);
-    return { name, preset, source: source(body.source), look, shipped };
+    /* The run's fixed seed, which its URL also carries. */
+    const seed = field(body.seed, isNumber) ?? look.seed;
+    return { name, preset, source: source(body.source), look: { ...look, seed }, shipped: { ...shipped, seed } };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw Error(message.startsWith(`look ${name}: `) ? message : `look ${name}: ${message}`);
   }
+}
+
+/** Which of the look's two trees the dials hold, whatever the seed; null
+ *  once a dial, a preset or reset has moved them off both. */
+export function showing(opened: Opened, params: GrowerParams): "look" | "shipped" | null {
+  const same = (tree: GrowerParams) => difference(toFamily({ ...tree, seed: params.seed }), toFamily(params)) === null;
+  return same(opened.look) ? "look" : same(opened.shipped) ? "shipped" : null;
 }
 
 /** Fetches and opens the named look from the dev server. */

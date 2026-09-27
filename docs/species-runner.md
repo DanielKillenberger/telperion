@@ -164,8 +164,10 @@ the overlay over the preset on its own dials and refuses to draw a family
 that differs from core's by a single row, so the tree on screen is the
 tree `headless --family` draws at the same seed and view. The panel says
 where the look comes from and switches between the kept tree and the
-preset under it without reloading; the seed box and the views work on
-both. The look is read-only: accepting stays `--accept`.
+preset under it without reloading, and says which of the two the dials
+hold, or that a dial, a preset or reset has moved them off both; the seed
+box (the run's seed unless the URL names another) and the views work on
+both. Accepting stays `--accept`.
 
 A run with no kept tree is refused naming its `result.json`; an overlay row
 the preset's family does not have is refused naming its path, with core's

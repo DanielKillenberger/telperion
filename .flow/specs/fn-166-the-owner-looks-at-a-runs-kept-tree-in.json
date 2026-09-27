@@ -10,13 +10,75 @@
     "fn-157-a-species-values-are-the-confident"
   ],
   "id": "fn-166-the-owner-looks-at-a-runs-kept-tree-in",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-166-the-owner-looks-at-a-runs-kept-tree-in.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "e2f1cf5343a65b5d823968d26e638edfdc79c8134c94fa9826f3fd0710a9945a",
+      "backend": "codex",
+      "base_sha": "c73aa46110f75eed7d6b64dc55e8ece5761d1dd8",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b11724688b5ab5b87e59df4accc29390",
+            "classification": "introduced",
+            "findingId": "finding-b11724688b5ab5b87e59df4accc29390",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-aad52b100dfe1a0592c350199229310f",
+            "classification": "introduced",
+            "findingId": "finding-aad52b100dfe1a0592c350199229310f",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fbc982d93559ce96ef839c85d5590a75aff408bf",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1768,
+      "output_sha256": "cfcdf80d499970aecc340f861cba31d88de4be9d600a084b39fe45ec4650ddec",
+      "reservation_id": "7a9459412e4e4e10988ec8de70a7eae3",
+      "round_consumed": true,
+      "scope": "impl:fn-166-the-owner-looks-at-a-runs-kept-tree-in.1",
+      "superseded_by": null,
+      "task": "fn-166-the-owner-looks-at-a-runs-kept-tree-in.1",
+      "timestamp": "2026-09-27T15:36:15.207828Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-166-the-owner-looks-at-a-runs-kept-tree-in.1": 0
+  },
   "spec_path": ".flow/specs/fn-166-the-owner-looks-at-a-runs-kept-tree-in.md",
   "status": "open",
   "title": "The owner looks at a run's kept tree in the harness",
@@ -31,5 +93,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T15:21:40.236205Z"
+  "updated_at": "2026-09-27T15:36:15.210132Z"
 }

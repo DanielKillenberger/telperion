@@ -4,10 +4,11 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { presetById } from "../src/browser/core";
+import { presetById, type Family } from "../src/browser/core";
 
 import { presetToParams, toFamily } from "./family";
-import { fetchLook, open } from "./look";
+import { fetchLook, open, showing } from "./look";
+import { writeRow } from "./rows";
 
 /* A look on the dials (fn-166). The runner's look is written by the
    runner itself, so the family the harness draws is compared with the
@@ -38,10 +39,23 @@ describe("a runner's look", () => {
     const { printed, body } = runnerLook();
     expect(printed).toContain("http://localhost:5173/?look=european-beech&seed=1");
     const opened = open("european-beech", body, null);
-    expect(toFamily(opened.look)).toEqual(body.family);
-    expect(toFamily(opened.shipped)).toEqual(body.preset_family);
+    // headless sets the seed it is given over the family, as the seed box does.
+    const atSeed = (family: unknown) => writeRow(family as Family, "/skeleton/seed", 1);
+    expect(toFamily(opened.look)).toEqual(atSeed(body.family));
+    expect(toFamily(opened.shipped)).toEqual(atSeed(body.preset_family));
     expect(opened.source).toMatchObject({ revision: 1, round: 2, label: "bundle@0.5", kept: 1 });
     expect(opened.source?.run).toMatch(/run$/);
+  }, 600_000);
+
+  it("takes the run's fixed seed, and says which tree the dials hold", () => {
+    const { body } = runnerLook();
+    const opened = open("beech", { ...body, seed: 17 }, null);
+    expect([opened.look.seed, opened.shipped.seed]).toEqual([17, 17]);
+    expect(showing(opened, { ...opened.look, seed: 3 })).toBe("look");
+    expect(showing(opened, { ...opened.shipped, seed: 3 })).toBe("shipped");
+    const moved = writeRow(opened.look.family, "/shellDepth", 0.2);
+    expect(showing(opened, { ...opened.look, family: moved })).toBeNull();
+    expect(showing(opened, presetToParams(presetById("norway-spruce")))).toBeNull();
   }, 600_000);
 
   it("is refused, by the path, where the harness's family would differ from core's", () => {
