@@ -270,6 +270,11 @@ jobs:
   # from the tarball, and the tarball is uploaded beside its sha256.
   package:
     runs-on: ubuntu-latest
+    # The size check reads the base's package artifact and the PR's Decisions.
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v7
 
@@ -292,7 +297,11 @@ jobs:
       - name: Build the package
         run: npm run build
 
-      - name: Hold every shipped artifact to its budget (docs/principles.md)
+      - name: Hold every shipped artifact to its ceiling and a PR's growth (docs/principles.md)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: node scripts/artifact-budgets.mjs
 
       - id: pack
