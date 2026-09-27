@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { presetById, type Family } from "../src/browser/core";
 
@@ -29,10 +29,6 @@ function runnerLook(): { printed: string; body: Record<string, unknown> } {
   const body = JSON.parse(readFileSync(join(dir, "harness/looks/european-beech.json"), "utf8"));
   return { printed, body };
 }
-
-beforeAll(() => {
-  execFileSync("cargo", ["build", "--release", "-p", "telperion-jev", "--bin", "species"], { timeout: 600_000 });
-}, 600_000);
 
 describe("a runner's look", () => {
   it("draws the family core builds for headless --family, and says where it comes from", () => {

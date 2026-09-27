@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     include: ["src/**/*.test.ts", "harness/**/*.test.ts", "scripts/**/*.test.mjs"],
     environment: "node",
+    globalSetup: ["harness/release-binaries.setup.ts"],
     /* A preset built in full is seconds of work now that the tree
        branches to the twig; the default 5 s was a timeout on the tree's
        size, not on a regression. */

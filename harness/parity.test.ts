@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { beforeAll, expect, test } from 'vitest';
+import { expect, test } from 'vitest';
 
 type Core = WebAssembly.Exports & {
   memory: WebAssembly.Memory;
@@ -11,11 +11,6 @@ type Core = WebAssembly.Exports & {
   buffer_ptr: (slot: number) => number;
   buffer_len: (slot: number) => number;
 };
-
-beforeAll(() => {
-  execFileSync('cargo', ['build', '--release', '-p', 'telperion-core', '--example', 'node_buffer'],
-    { timeout: 120_000 });
-}, 120_000);
 
 for (const id of ['ordinary', 'oregon-white-oak', 'norway-spruce', 'telperion', 'laurelin']) {
   test(`native/wasm node bytes: ${id}`, async () => {
