@@ -11,7 +11,7 @@
   ],
   "id": "fn-177-limbs-hold-their-girth-to-the-crowns",
   "impl_review_rounds": {
-    "fn-177-limbs-hold-their-girth-to-the-crowns.1": 2
+    "fn-177-limbs-hold-their-girth-to-the-crowns.1": 0
   },
   "next_task": 1,
   "no_plan": true,
@@ -131,9 +131,71 @@
       "task": "fn-177-limbs-hold-their-girth-to-the-crowns.1",
       "timestamp": "2026-09-27T14:01:06.990333Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "c03dfd54a03351964250d7a0f9a02f1b397309850b11c1725158f20441686b2b",
+      "backend": "codex",
+      "base_sha": "0bcf694ef7265356e3f945a3007156ca028533ec",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d804a2522afe09b125dfb1ccc191c3d9",
+            "classification": "introduced",
+            "findingId": "finding-d804a2522afe09b125dfb1ccc191c3d9",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d19bac40487692d9e12cae09c8add622",
+            "classification": "introduced",
+            "findingId": "finding-d19bac40487692d9e12cae09c8add622",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-101588ee2432eb536a3a686bb6fe04d2",
+            "classification": "introduced",
+            "findingId": "finding-101588ee2432eb536a3a686bb6fe04d2",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "d515486ea5244df9901de71329bed67a5b20e932",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1105,
+      "output_sha256": "b8f9cbf2b1dc90f457dd9e7021daa760880a5b5b958a403c3a911feb04a542b3",
+      "reservation_id": "162291aaa6e54847a2b6fa800a77585c",
+      "round_consumed": true,
+      "scope": "impl:fn-177-limbs-hold-their-girth-to-the-crowns.1",
+      "superseded_by": null,
+      "task": "fn-177-limbs-hold-their-girth-to-the-crowns.1",
+      "timestamp": "2026-09-27T14:23:17.577125Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-177-limbs-hold-their-girth-to-the-crowns.1": 2
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -153,5 +215,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T14:01:06.993096Z"
+  "updated_at": "2026-09-27T14:23:17.579244Z"
 }
