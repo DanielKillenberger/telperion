@@ -97,7 +97,9 @@ pub struct Tree {
     /// The pipe model's `[start, distal]` radii of each structural node,
     /// kept where `girthHold` drew the wood thicker: what decides which wood
     /// bears leaves, so a hold adds or loses none. Empty where nothing is held.
-    #[cfg_attr(feature = "json", serde(default))]
+    /// Drawn by the direct build's last radius pass and never stored, as
+    /// `sections` is: a specimen's bytes are the ones they always were.
+    #[cfg_attr(feature = "json", serde(skip))]
     pub pipe: Vec<[f64; 2]>,
 }
 impl Tree {

@@ -30,9 +30,9 @@
    1159132,
    1153321
   ],
-  "median_total_ms": 775.162669,
-  "median_growth_ms": 170.3379005,
-  "peak_mb": 619
+  "median_total_ms": 765.3743305,
+  "median_growth_ms": 167.9907025,
+  "peak_mb": 618
  },
  "hold75": {
   "nodes": [
@@ -65,8 +65,8 @@
    1159132,
    1153321
   ],
-  "median_total_ms": 769.5344574999999,
-  "median_growth_ms": 171.36049300000002,
-  "peak_mb": 617
+  "median_total_ms": 770.2082655,
+  "median_growth_ms": 172.63318399999997,
+  "peak_mb": 619
  }
 }
