@@ -87,6 +87,13 @@ const CASES: &[Case] = &[
         awake: &[("/element/card", 0.0)],
     },
     Case {
+        preset: Preset::Ordinary,
+        row: "/radii/girthFall",
+        to: 8.0,
+        asleep: &[("/radii/girthHold", 0.0)],
+        awake: &[("/radii/girthHold", 0.6)],
+    },
+    Case {
         preset: Preset::DatePalm,
         row: "/canopy/skirtLength",
         to: 0.5,
@@ -194,5 +201,36 @@ fn a_dormant_row_moves_no_artifact() {
             "{} moved nothing awake: the case proves nothing",
             case.row
         );
+    }
+}
+
+/// fn-177: at zero hold every shipped preset's tree is the pipe model's,
+/// whatever the fall, at seeds 1 and 7. The hold is the build's last step on
+/// the skeleton, so the tree carries every artifact made from it.
+#[test]
+fn zero_hold_leaves_every_preset_to_the_pipe_model() {
+    let presets = [
+        Preset::Ordinary,
+        Preset::OregonWhiteOak,
+        Preset::NorwaySpruce,
+        Preset::EuropeanBeech,
+        Preset::SilverBirch,
+        Preset::DatePalm,
+        Preset::Telperion,
+        Preset::Laurelin,
+    ];
+    let tree = |f: &Family| {
+        let built = pipeline::build(f, pipeline::Request::default()).expect("the family builds");
+        digest(&built.skeleton.tree)
+    };
+    for preset in presets {
+        for seed in [1, 7] {
+            let mut family = preset.parameters();
+            family.skeleton.seed = seed;
+            assert_eq!(family.radii.girth_hold, 0.0, "{preset:?} ships a hold");
+            let shipped = tree(&family);
+            family.radii.girth_fall = 8.0;
+            assert_eq!(tree(&family), shipped, "{preset:?} at seed {seed}");
+        }
     }
 }

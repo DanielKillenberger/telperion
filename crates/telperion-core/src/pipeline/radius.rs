@@ -1,13 +1,15 @@
 //! Structural fork solve and the separate branch-local taper contract.
 mod history;
+mod hold;
 mod incremental;
-use crate::catalogue::{bounded, tuned, value, Bounds, Site};
+use crate::catalogue::{bounded, tuned, value, Bounds, Growth, Site};
 use crate::math::Transcendental;
 use crate::{
     envelope::Envelope,
     tree::{BudFate, Tree},
     Error, Result,
 };
+pub(crate) use hold::hold;
 pub(crate) use incremental::Pipes;
 crate::catalogue::rows! {
     #[derive(Debug, Clone, Copy, PartialEq)]
@@ -85,6 +87,41 @@ crate::catalogue::rows! {
             dial: bounded("fork_balance", "how much thinner the lesser parts of a codominant \
                 fork leave than the part carrying the axis on", [0.1, 0.2]),
         },
+        /// The share of each structural axis's reach over which it holds the
+        /// girth it starts with, 0 to 0.9: past it the wood falls to the pipe
+        /// model's radius by the axis's tip. At zero wood is the pipe model's.
+        #[cfg_attr(feature = "json", serde(default))]
+        pub girth_hold: f64 = "girthHold" "share of reach" Bounds::closed(0.0, 0.9) => [Grow] {
+            wire: 255,
+            check: value(Site::Radius, 6, "girthHold"),
+            growth: Growth::Ignored,
+            note: "An axis starts at the root, a lateral and a codominant sibling; a fork's \
+                primary carries its axis on. An axis holds the pipe model's radius where it \
+                starts. A node's share of its axis's reach is its path from the axis's first \
+                node against that plus its path on along the axis to the axis's tip. Its radius is the larger of the pipe model's \
+                and the held girth, so a held fork's parts carry more wood than their parent: \
+                conservation at forks is given up over the hold, and a part's start never \
+                exceeds its parent's radius. Read once the twigs have grown, so no twig or \
+                leaf is added or lost; the ceiling leaves every axis a tenth of its reach to \
+                fall, so no tip ends blunt.",
+            dial: bounded("girth_hold", "how far along its reach a limb keeps the girth it \
+                starts with before it breaks into fine wood", [0.05, 0.15]),
+        },
+        /// How short the fall after `girthHold` is: the fall lasts the hold's
+        /// share divided by this, so raising it breaks the wood into twigs
+        /// over a shorter distance.
+        #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_girth_fall"))]
+        pub girth_fall: f64 = "girthFall" "-" Bounds::closed(0.5, 8.0) => [Grow] {
+            wire: 256,
+            check: value(Site::Radius, 7, "girthFall"),
+            growth: Growth::Ignored,
+            applies: "`girthHold` zero",
+            note: "Ends at the tip where the hold leaves too little reach. At 0.5 the fall is \
+                twice the hold, close to the pipe model's steady thinning; at 8 it is an eighth \
+                of it, a break over a few stations of a long limb.",
+            dial: bounded("girth_fall", "how abruptly a held limb breaks into fine wood after \
+                its hold", [0.5, 2.0]),
+        },
     }
 }
 impl Default for RadiusParams {
@@ -96,6 +133,8 @@ impl Default for RadiusParams {
             max_taper_exponent: crate::ranges::default_max_taper_exponent(),
             lateral_share: 1.0,
             fork_balance: 1.0,
+            girth_hold: 0.0,
+            girth_fall: crate::ranges::default_girth_fall(),
         }
     }
 }
@@ -195,5 +234,7 @@ pub fn solve(tree: &mut Tree, envelope: Envelope, params: RadiusParams) -> Resul
     }
     tree.validate_solved()
 }
+#[cfg(test)]
+mod hold_tests;
 #[cfg(test)]
 mod share_tests;

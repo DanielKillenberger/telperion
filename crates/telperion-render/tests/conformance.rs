@@ -50,6 +50,9 @@ fn compact(family: &mut Value) {
     family["skeleton"]["habit"]["forkWays"] = json!(2.5);
     family["radii"]["lateralShare"] = json!(0.8);
     family["radii"]["forkBalance"] = json!(0.8);
+    // fn-177's hold is zero, the bottom of its rail, on every shipped row;
+    // held here, the set draws its limbs' held girth.
+    family["radii"]["girthHold"] = json!(0.5);
 }
 
 /// Scales every number in the family by a factor near one. A whole number

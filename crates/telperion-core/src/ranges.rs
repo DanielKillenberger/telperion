@@ -29,6 +29,10 @@ pub const fn default_fork_ways() -> f64 {
 pub const fn default_share() -> f64 {
     1.0
 }
+/// A fall half as long as the hold.
+pub const fn default_girth_fall() -> f64 {
+    2.0
+}
 pub const fn default_max_taper_exponent() -> f64 {
     12.0
 }

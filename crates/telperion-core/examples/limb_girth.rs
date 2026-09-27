@@ -73,7 +73,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "base_radius_m": r0, "twig_radius_m": twig, "length_m": length,
                 "height_share": full.nodes[b].position.y / f.skeleton.envelope.height,
                 "nodes": axis.len(), "base_tips": t0, "role": role(&full, b),
-                "stem_end": stem_end(&full, axis, &path, r0), "profile": profile})
+                "stem_end": stem_end(&full, axis, &path, r0), "wood_m": wood(&full), "profile": profile})
         );
     }
     Ok(())
@@ -98,6 +98,20 @@ fn stem_end(tree: &Tree, axis: &[usize], path: &[f64], r0: f64) -> serde_json::V
         return serde_json::Value::Null;
     };
     json!({"s": path[k] / path.last().unwrap(), "radius": tree.nodes[axis[k]].radius / r0})
+}
+
+/// Metres of structural wood at least 2, 5 and 10 cm in radius.
+fn wood(tree: &Tree) -> [f64; 3] {
+    let mut metres = [0.0; 3];
+    for (i, n) in tree.nodes[..tree.crossover].iter().enumerate().skip(1) {
+        let parent = &tree.nodes[n.parent.unwrap() as usize];
+        for (m, least) in metres.iter_mut().zip([0.02, 0.05, 0.1]) {
+            if n.radius >= least {
+                *m += parent.position.distance(tree.nodes[i].position);
+            }
+        }
+    }
+    metres
 }
 
 fn skeleton(f: &Family) -> Result<Tree, Box<dyn std::error::Error>> {

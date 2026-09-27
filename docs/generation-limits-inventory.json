@@ -1170,6 +1170,12 @@
     "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
   },
   {
+    "path": "crates/telperion-core/src/pipeline/radius/hold.rs",
+    "site": ". min ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A share of an axis's reach ends at its tip: the girth's fall is cut at share one so every axis reaches the pipe radius there; it limits no generated population."
+  },
+  {
     "path": "crates/telperion-core/src/pipeline/radius/incremental.rs",
     "site": ". max ( 1e - 6 )",
     "classification": "numeric",

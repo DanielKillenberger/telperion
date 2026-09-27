@@ -178,6 +178,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       "radii": {
         "forkBalance": 1,
         "forkExponent": 2,
+        "girthFall": 2,
+        "girthHold": 0,
         "lateralShare": 1,
         "lengthTaper": 0.6,
         "maxTaperExponent": 12,
@@ -464,6 +466,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       "radii": {
         "forkBalance": 1,
         "forkExponent": 2,
+        "girthFall": 2,
+        "girthHold": 0,
         "lateralShare": 1,
         "lengthTaper": 0.6,
         "maxTaperExponent": 12,
@@ -750,6 +754,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       "radii": {
         "forkBalance": 1,
         "forkExponent": 2,
+        "girthFall": 2,
+        "girthHold": 0,
         "lateralShare": 1,
         "lengthTaper": 0.6,
         "maxTaperExponent": 12,
@@ -1036,6 +1042,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       "radii": {
         "forkBalance": 1,
         "forkExponent": 2,
+        "girthFall": 2,
+        "girthHold": 0,
         "lateralShare": 1,
         "lengthTaper": 0.6,
         "maxTaperExponent": 12,
@@ -1322,6 +1330,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       "radii": {
         "forkBalance": 1,
         "forkExponent": 2,
+        "girthFall": 2,
+        "girthHold": 0,
         "lateralShare": 1,
         "lengthTaper": 0.25,
         "maxTaperExponent": 12,
@@ -1608,6 +1618,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       "radii": {
         "forkBalance": 1,
         "forkExponent": 2.15,
+        "girthFall": 2,
+        "girthHold": 0,
         "lateralShare": 1,
         "lengthTaper": 0.75,
         "maxTaperExponent": 12,
@@ -1894,6 +1906,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       "radii": {
         "forkBalance": 1,
         "forkExponent": 2.7,
+        "girthFall": 2,
+        "girthHold": 0,
         "lateralShare": 1,
         "lengthTaper": 0.35,
         "maxTaperExponent": 12,

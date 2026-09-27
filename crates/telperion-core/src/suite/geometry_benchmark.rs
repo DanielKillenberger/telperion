@@ -333,6 +333,12 @@ fn frozen_parameters_resolve_without_default_substitution() {
             let radii = emitted["radii"].as_object_mut().unwrap();
             assert_eq!(radii.remove(key).unwrap().as_f64(), Some(1.0), "{key}");
         }
+        // fn-177 holds a limb's girth over its reach; at zero hold the wood
+        // is the pipe model's, whatever the fall.
+        for (key, value) in [("girthHold", 0.0), ("girthFall", 2.0)] {
+            let radii = emitted["radii"].as_object_mut().unwrap();
+            assert_eq!(radii.remove(key).unwrap().as_f64(), Some(value), "{key}");
+        }
         for key in ["element", "canopy", "radii", "surface"] {
             same_numbers(&emitted[key], &given[key]);
         }

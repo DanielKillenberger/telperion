@@ -112,6 +112,17 @@ describe("the fork rows", () => {
     expect(admit(p, Number.NaN)).toBeNull();
   });
 
+  it.each([
+    ["/radii/girthHold", 0, 0.9],
+    ["/radii/girthFall", 0.5, 8],
+  ] as const)("%s, fn-177's limb profile, slides over its rail and is held to it", (path, low, high) => {
+    const p = row(path);
+    expect([p.low, p.high]).toEqual([low, high]);
+    expect(admit(p, high + 1)).toBe(high);
+    expect(admit(p, low - 1)).toBe(low);
+    expect(admit(p, Number.NaN)).toBeNull();
+  });
+
   it("carries no retired stems row", () => {
     for (const retired of ["stems", "stemDivergence", "stemLean", "stemLeanSpread", "stemForkHeight"]) {
       expect(PARAMETERS.find(p => p.path === `/skeleton/habit/${retired}`)).toBeUndefined();
