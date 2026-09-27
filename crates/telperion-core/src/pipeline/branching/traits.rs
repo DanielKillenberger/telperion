@@ -239,21 +239,24 @@ crate::catalogue::rows! {
             dial: bounded("fork_height_spread", "how widely codominant forks scatter about their \
                 height", [0.05, 0.1]),
         },
-        /// The parts a codominant fork divides into, 2 to 4. The whole part is
-        /// the full children; the fraction grows one more from the fork, its
-        /// length that share of theirs.
+        /// The parts a codominant fork divides into, the primary among them, 2
+        /// to 4. The whole part is the full parts; the fraction grows one more
+        /// in from the fork, its length and its wood that share of a whole
+        /// part's.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_fork_ways"))]
         pub fork_ways: f64 = "forkWays" "parts" Bounds::closed(2.0, 4.0) => [Grow] {
             wire: 27,
             check: input(Site::Habit, 19, "fork ways"),
             applies: "`codominance` zero",
-            note: "Replaces `stems`, less the primary.",
+            note: "Replaces `stems`. The parts fill four fixed slots in order, so a part \
+                added never moves the others.",
             dial: bounded("fork_ways", "how many near-equal parts a codominant fork divides into",
                 [0.5, 1.0]),
         },
-        /// Degrees of bearing between neighbouring parts of a fork, about a
-        /// bearing the axis's own stream decides. At zero every part leaves on
-        /// one bearing.
+        /// Degrees of bearing between neighbouring slots of a fork, slot `k`
+        /// standing `k` times this round from the primary's, about a bearing
+        /// the axis's own stream decides. At zero every part leaves on one
+        /// bearing.
         #[cfg_attr(feature = "json", serde(default))]
         pub fork_divergence: f64 = "forkDivergence" "degrees"
             Bounds::closed(0.0, 120.0) => [Grow] {
@@ -266,8 +269,8 @@ crate::catalogue::rows! {
             dial: bounded("fork_divergence", "the degrees of bearing between neighbouring parts \
                 of a codominant fork", [5.0, 10.0]),
         },
-        /// Degrees the outermost parts of a fork tilt from the axis they leave;
-        /// the ones between tilt in proportion to how far out they stand.
+        /// Degrees every sibling of a fork leans from the axis it leaves; the
+        /// primary leans by what `forkLeanSpread` leaves it of this.
         #[cfg_attr(feature = "json", serde(default))]
         pub fork_lean: f64 = "forkLean" "degrees" Bounds::closed(0.0, 45.0) => [Grow] {
             wire: 251,
@@ -275,12 +278,12 @@ crate::catalogue::rows! {
             applies: "`codominance` zero",
             note: "Measured from the heading of the axis at the fork. Replaces `stemLean`.",
             blend: Blend::Degrees,
-            dial: bounded("fork_lean", "the degrees the outermost parts of a codominant fork \
-                tilt from the axis they leave", [5.0, 10.0]),
+            dial: bounded("fork_lean", "the degrees the parts of a codominant fork lean from \
+                the axis they leave", [5.0, 10.0]),
         },
-        /// How unequally a fork's parts lean, 0 to 1. None of it shares the
-        /// lean about the fork's centre; all of it leans them in their order,
-        /// the primary along the axis and the last by all of `forkLean`.
+        /// How far a fork's primary stands back along its axis, 0 to 1. None of
+        /// it leans the primary by all of `forkLean`, as every sibling leans;
+        /// all of it carries the axis straight on through the fork.
         #[cfg_attr(feature = "json", serde(default))]
         pub fork_lean_spread: f64 = "forkLeanSpread" "share"
             Bounds::closed(0.0, 1.0) => [Grow] {
@@ -288,8 +291,8 @@ crate::catalogue::rows! {
             check: input(Site::Habit, 24, "fork lean spread"),
             applies: "`codominance` zero, or `forkLean` zero",
             note: "Replaces `stemLeanSpread`.",
-            dial: bounded("fork_lean_spread", "how unequally the parts of a codominant fork lean",
-                [0.15, 0.3]),
+            dial: bounded("fork_lean_spread", "how far the part carrying the axis on stands \
+                straight while the others lean", [0.15, 0.3]),
         },
     }
 }

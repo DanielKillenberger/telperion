@@ -376,3 +376,80 @@ fn across_a_seeds_point_on_the_rate_the_fork_grows_in_from_the_root() {
     }
     assert_eq!(was.0, 1.0, "the fork never grew in whole");
 }
+
+#[test]
+fn a_primary_forks_again_and_again_up_its_line() {
+    // Every fork's primary draws its next fork from a key of that fork's, so
+    // a leader that runs to the top can fork three times and more.
+    let most = SEEDS
+        .map(|seed| {
+            let f = family(Preset::OregonWhiteOak, |f| {
+                f.skeleton.seed = seed;
+                f.skeleton.habit.apical_dominance = 1.0;
+                f.skeleton.habit.codominance = 1.0;
+                f.skeleton.habit.fork_height = 0.5;
+                f.skeleton.habit.fork_height_spread = 0.5;
+                f.skeleton.habit.fork_lean = 20.0;
+                f.skeleton.habit.fork_divergence = 90.0;
+                f.skeleton.growth.max_nodes = Some(NODES);
+            });
+            let tree = grow(&f);
+            // Walk the root's primary: the stem child that is no sibling.
+            let (mut at, mut forks) = (0, 0);
+            while let Some(next) = (at + 1..tree.nodes.len()).find(|&k| {
+                tree.nodes[k].parent == Some(at as u32)
+                    && tree.nodes[k].stem
+                    && tree.nodes[k].codominant.is_none()
+            }) {
+                let parted = (next..tree.nodes.len()).any(|k| {
+                    tree.nodes[k].parent == Some(at as u32) && tree.nodes[k].codominant.is_some()
+                });
+                forks += usize::from(parted);
+                at = next;
+            }
+            forks
+        })
+        .max()
+        .unwrap();
+    assert!(
+        most >= 3,
+        "no primary forked more than {most} times on 24 seeds"
+    );
+}
+
+#[test]
+fn a_fork_growing_in_on_a_bent_axis_moves_no_wood_already_there() {
+    // An axis the bias has bent: just past the first point on the rate that
+    // forks anything, the tree is the tree just short of it, to within a
+    // millimetre, because the fork's primary turns by as little as it grew in.
+    let at = |rate: f64| {
+        grow(&family(Preset::OregonWhiteOak, |f| {
+            f.skeleton.habit.codominance = rate;
+            f.skeleton.habit.fork_height = 0.3;
+            f.skeleton.habit.fork_height_spread = 0.2;
+            f.skeleton.habit.fork_lean = 30.0;
+            f.skeleton.habit.fork_divergence = 90.0;
+            f.skeleton.bias.lean = 0.3;
+            f.skeleton.growth.max_nodes = Some(NODES);
+        }))
+    };
+    let none = at(0.0);
+    let (mut lo, mut hi) = (0.0, 1.0);
+    assert!(at(hi) != none, "the family never forks");
+    for _ in 0..34 {
+        let mid = (lo + hi) / 2.0;
+        if at(mid) == none {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+    let (short, past) = (at(lo), at(hi));
+    let moved = short
+        .nodes
+        .iter()
+        .zip(&past.nodes)
+        .map(|(a, b)| a.position.distance(b.position))
+        .fold(0.0, f64::max);
+    assert!(moved < 1e-3, "crossing the point moved wood {moved} m");
+}

@@ -68,13 +68,15 @@ pub(in crate::pipeline::branching) fn axes(
 /// whose point on the rate the rate passes by this much forks whole.
 const GROW_IN: f64 = 0.05;
 
-/// An axis's fork: the height it forks at, and how far its siblings have
-/// grown in, 0 to 1.
+/// An axis's fork: the height it forks at, how far its siblings have grown
+/// in, 0 to 1, and the key it was drawn from, which its parts' keys and next
+/// decisions derive from.
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(super) struct Fork {
     pub at: f64,
     pub weight: f64,
+    pub key: u32,
 }
 
 /// The fork of an axis born at `base`, or none, from its own stream: its
@@ -102,7 +104,7 @@ pub(super) fn decide(
         None => at + TOLERANCE >= base,
         Some(rise) => at > base + rise + TOLERANCE,
     };
-    reached.then_some(Fork { at, weight })
+    reached.then_some(Fork { at, weight, key })
 }
 
 /// The heading of slot `k` of a fork on the axis keyed `key`, with the axis

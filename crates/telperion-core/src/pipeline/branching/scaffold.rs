@@ -331,10 +331,13 @@ impl Builder<'_> {
         }
     }
     /// Forks `axis` at node `at` as `fork` decided, where it heads along
-    /// `heading` with `remaining` of its length still to grow: it carries on
-    /// as the fork's primary, turned onto slot zero, and each sibling joins
-    /// `children` with its weight of the rest of the length. Every part
-    /// decides its own fork from there. Returns the primary's heading.
+    /// `heading` with `remaining` of its length still to grow. Each sibling
+    /// joins `children` on its slot about that heading, with its weight of the
+    /// rest of the length. The axis carries on as the fork's primary: its own
+    /// rule heading turns by as much of slot zero as the fork has grown in, and
+    /// its stations, wander and rise carry on where they were. Every part
+    /// decides its own next fork from a key of this fork's, so a line of forks
+    /// never draws the same one twice.
     fn fork(
         &mut self,
         axis: &mut Axis,
@@ -342,7 +345,7 @@ impl Builder<'_> {
         (heading, remaining): (Vec3, f64),
         fork: fork::Fork,
         children: &mut Vec<Axis>,
-    ) -> Vec3 {
+    ) {
         let base = self.tree.nodes[at].position.y;
         let unit = self.unit(axis.order);
         let least = Some(self.spacing(axis.order));
@@ -353,18 +356,17 @@ impl Builder<'_> {
             if length <= unit * 0.5 {
                 continue;
             }
-            let direction = fork::about(fork::slot(&self.habit, axis.key, k, 1.0), heading);
-            let key = fork::part_key(axis.key, k);
+            let direction = fork::about(fork::slot(&self.habit, fork.key, k, 1.0), heading);
+            let key = fork::part_key(fork.key, k);
             let mut sibling = Axis::new(at, direction, length, axis.order, key);
             sibling.bound = axis.bound;
             sibling.codominant = Some(weight);
             sibling.fork = decide(key);
             children.push(sibling);
         }
-        let primary = fork::slot(&self.habit, axis.key, 0, fork.weight);
-        axis.heading = fork::about(primary, heading);
-        axis.fork = decide(fork::part_key(axis.key, 0));
-        axis.heading
+        let primary = fork::slot(&self.habit, fork.key, 0, fork.weight);
+        axis.heading = fork::about(primary, axis.heading);
+        axis.fork = decide(fork::part_key(fork.key, 0));
     }
     fn grow(&mut self, axis: &mut Axis, budget: &mut usize) -> Result<bool> {
         let unit = self.unit(axis.order);
@@ -396,7 +398,7 @@ impl Builder<'_> {
                 .filter(|f| self.tree.nodes[at].position.y + TOLERANCE >= f.at)
             {
                 let remaining = (axis.length - unit * k as f64).max(0.0);
-                heading = self.fork(axis, at, (heading, remaining), fork, &mut children);
+                self.fork(axis, at, (heading, remaining), fork, &mut children);
                 (side, across, up) = frame(axis.heading);
             }
             if *budget == 0 {

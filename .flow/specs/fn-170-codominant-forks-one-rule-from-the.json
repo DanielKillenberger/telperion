@@ -8,13 +8,29 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-170-codominant-forks-one-rule-from-the",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-170-codominant-forks-one-rule-from-the.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_hash_epoch": {},
+  "review_pending_rounds": {
+    "impl:fn-170-codominant-forks-one-rule-from-the.1": 1
+  },
+  "review_reservations": {
+    "1b830ab480504e1cb4fda535c2b623f5": {
+      "artifact_sha256": "da5de8e779954edf0702034ddee88502f19a0d221c8e9f5fa44bcfd92318a553",
+      "counter_scope": "impl:fn-170-codominant-forks-one-rule-from-the.1",
+      "epoch": 0,
+      "exclusive": true,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "spec_path": ".flow/specs/fn-170-codominant-forks-one-rule-from-the.md",
   "status": "open",
   "title": "Codominant forks: one rule from the ground to the crown",
@@ -29,5 +45,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T10:03:42.824568Z"
+  "updated_at": "2026-09-27T11:16:44.285130Z"
 }

@@ -13,3 +13,10 @@
 - Slowed by: the Astra plan review and nine host decisions landed about two hours into the build. Four of them changed code already written and tested: the fan's slots (the count-dependent fan moved existing parts), grow-in activation (the Bernoulli fork popped), the radius law (the lateral cap was discontinuous at one), and the mark (a bool became a carried weight). The fork_tests and share_tests suites were written twice.
 - Cost: about 45 minutes of rework, and one more full core test run.
 - Would have removed it: running the plan review before dispatch, once the host's decisions were in. The review needed only the spec and the code at the base, both available before the build started.
+
+## 2026-09-27, worker, task .1 (a dial's wording re-records the tape)
+
+- Doing: fixing the review's P3, which found the fork rows' descriptions still describing the retired fan.
+- Slowed by: the dial's `ask` wording reaches the tune round's Jev request bodies. Correcting two sentences therefore broke the beech replay, and the tape had to be extended live a second time, eight Jev calls again, with the first extension's answers swapped out by hand.
+- Cost: about 10 minutes and 8 Jev calls.
+- Would have removed it: a tape key that hashes dial ids and values but not their prose. Failing that, a wording check before the first `--extend`.

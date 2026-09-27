@@ -364,18 +364,18 @@ Width of the bell a fork height is drawn from, as a share of the tree's height. 
 
 ### `/skeleton/habit/forkWays`
 
-The parts a codominant fork divides into, 2 to 4. The whole part is the full children; the fraction grows one more from the fork, its length that share of theirs.
+The parts a codominant fork divides into, the primary among them, 2 to 4. The whole part is the full parts; the fraction grows one more in from the fork, its length and its wood that share of a whole part's.
 
 - real, parts, [2, 4], default 2
 - read by grow; growth path: as the direct build
 - checked: Habit site, rank 19, as invalid input `fork ways`
 - dormant: `codominance` zero
-- note: Replaces `stems`, less the primary.
+- note: Replaces `stems`. The parts fill four fixed slots in order, so a part added never moves the others.
 - blend: linear; dial: `fork_ways` (how many near-equal parts a codominant fork divides into), window its bounds (validated bound), steps 0.5 and 1
 
 ### `/skeleton/habit/forkDivergence`
 
-Degrees of bearing between neighbouring parts of a fork, about a bearing the axis's own stream decides. At zero every part leaves on one bearing.
+Degrees of bearing between neighbouring slots of a fork, slot `k` standing `k` times this round from the primary's, about a bearing the axis's own stream decides. At zero every part leaves on one bearing.
 
 - real, degrees, [0, 120], default 0
 - read by grow; growth path: as the direct build
@@ -386,25 +386,25 @@ Degrees of bearing between neighbouring parts of a fork, about a bearing the axi
 
 ### `/skeleton/habit/forkLean`
 
-Degrees the outermost parts of a fork tilt from the axis they leave; the ones between tilt in proportion to how far out they stand.
+Degrees every sibling of a fork leans from the axis it leaves; the primary leans by what `forkLeanSpread` leaves it of this.
 
 - real, degrees, [0, 45], default 0
 - read by grow; growth path: as the direct build
 - checked: Habit site, rank 23, as invalid input `fork lean`
 - dormant: `codominance` zero
 - note: Measured from the heading of the axis at the fork. Replaces `stemLean`.
-- blend: degrees along the shorter arc; dial: `fork_lean` (the degrees the outermost parts of a codominant fork tilt from the axis they leave), window its bounds (validated bound), steps 5 and 10
+- blend: degrees along the shorter arc; dial: `fork_lean` (the degrees the parts of a codominant fork lean from the axis they leave), window its bounds (validated bound), steps 5 and 10
 
 ### `/skeleton/habit/forkLeanSpread`
 
-How unequally a fork's parts lean, 0 to 1. None of it shares the lean about the fork's centre; all of it leans them in their order, the primary along the axis and the last by all of `forkLean`.
+How far a fork's primary stands back along its axis, 0 to 1. None of it leans the primary by all of `forkLean`, as every sibling leans; all of it carries the axis straight on through the fork.
 
 - real, share, [0, 1], default 0
 - read by grow; growth path: as the direct build
 - checked: Habit site, rank 24, as invalid input `fork lean spread`
 - dormant: `codominance` zero, or `forkLean` zero
 - note: Replaces `stemLeanSpread`.
-- blend: linear; dial: `fork_lean_spread` (how unequally the parts of a codominant fork lean), window its bounds (validated bound), steps 0.15 and 0.3
+- blend: linear; dial: `fork_lean_spread` (how far the part carrying the axis on stands straight while the others lean), window its bounds (validated bound), steps 0.15 and 0.3
 
 ## `/skeleton/envelope`
 
