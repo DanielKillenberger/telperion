@@ -10,7 +10,7 @@ A species run stops for one person: the owner's look at the tree Tune kept, whic
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-**What exists, checked 2026-09-26 on master (`849fa4b1`) and the fn-157 branch (`a2f90467`).** [checked]
+**What exists, checked 2026-09-26 on master (`849fa4b1`) and the fn-157 branch (`a2f90467`); rechecked 2026-09-27 on master (`harness/GrowerDev.tsx:100-101`).** [checked]
 - The harness reads `?species=<id>` and `?seed=<n>` and loads the preset through `presetToParams(presetById(id))` (`harness/GrowerDev.tsx:97-107`); nothing else in the URL changes the family.
 - Tune's kept tree is an overlay of family overrides at `<run-dir>/runner/tuning/result.json`, `outcome.current.overrides`; `headless --family <file>` renders a preset with such an overlay applied, which is how the beech's stills were made.
 - `docs/species-runner.md` says the owner looks "in the harness".
