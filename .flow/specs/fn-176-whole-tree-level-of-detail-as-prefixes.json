@@ -1,0 +1,197 @@
+{
+  "branch_name": "fn-176-whole-tree-level-of-detail-as-prefixes",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-27T11:44:20.446637Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-15-wind-and-structural-motion"
+  ],
+  "id": "fn-176-whole-tree-level-of-detail-as-prefixes",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-27T11:47:52.669429Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "180d7169f73002c97892c861cde13fb4619162c2819d0aa53980d5f89b3ccf02",
+      "backend": "codex",
+      "base_sha": "a886bdb4e61543f7be21e9dd5ce2d5d4c11ef202",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9e3725d4f1bbcd40d92ac847f8d9530e",
+            "classification": "introduced",
+            "findingId": "finding-9e3725d4f1bbcd40d92ac847f8d9530e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-cb75757eb9965f37662d10ae55a0ef4e",
+            "classification": "introduced",
+            "findingId": "finding-cb75757eb9965f37662d10ae55a0ef4e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5c0105b0f1bb093e7d9d1705500b161e",
+            "classification": "introduced",
+            "findingId": "finding-5c0105b0f1bb093e7d9d1705500b161e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7ecc39d54820675a762a5612651fc475",
+            "classification": "introduced",
+            "findingId": "finding-7ecc39d54820675a762a5612651fc475",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6239e948e4b31e68e3ecb5593e462ca9",
+            "classification": "introduced",
+            "findingId": "finding-6239e948e4b31e68e3ecb5593e462ca9",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a886bdb4e61543f7be21e9dd5ce2d5d4c11ef202",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 213856,
+      "output_sha256": "49145399836a781af35b19bea9ec71ba3de1068a5fb43079b70408761b51b2f0",
+      "reservation_id": "49ab9b77b2e54aef86ed6419b3dfe6e0",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T11:46:29.524950Z",
+      "tool_calls": 15,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "1985e2531e9f1adaaf9e085729ef8ed27b012d5b550725f14526d218f4de25c3",
+      "backend": "codex",
+      "base_sha": "a886bdb4e61543f7be21e9dd5ce2d5d4c11ef202",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9e3725d4f1bbcd40d92ac847f8d9530e",
+            "classification": "introduced",
+            "findingId": "finding-9e3725d4f1bbcd40d92ac847f8d9530e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-cb75757eb9965f37662d10ae55a0ef4e",
+            "classification": "introduced",
+            "findingId": "finding-cb75757eb9965f37662d10ae55a0ef4e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-5c0105b0f1bb093e7d9d1705500b161e",
+            "classification": "introduced",
+            "findingId": "finding-5c0105b0f1bb093e7d9d1705500b161e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-7ecc39d54820675a762a5612651fc475",
+            "classification": "introduced",
+            "findingId": "finding-7ecc39d54820675a762a5612651fc475",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6239e948e4b31e68e3ecb5593e462ca9",
+            "classification": "introduced",
+            "findingId": "finding-6239e948e4b31e68e3ecb5593e462ca9",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a886bdb4e61543f7be21e9dd5ce2d5d4c11ef202",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1207,
+      "output_sha256": "d495716643515a31f0a6e3d0e6a56ce4d4ac5f117b7c5e6d88228b95ed55d8ca",
+      "reservation_id": "0f788331f74f4865ae0c65a0671baa54",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T11:47:52.666343Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-176-whole-tree-level-of-detail-as-prefixes.md",
+  "status": "open",
+  "title": "Whole-tree level of detail as prefixes of ordered data",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-27T11:47:52.670024Z"
+}
