@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-91-fast-tree-generation-as-a-core-engine",
   "spec_path": ".flow/tasks/fn-91-fast-tree-generation-as-a-core-engine.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "Attribute remaining shared CPU preparation costs",
   "updated_at": "2026-09-20T16:05:05.515171Z"
 }

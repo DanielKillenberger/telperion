@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-91-fast-tree-generation-as-a-core-engine",
   "spec_path": ".flow/tasks/fn-91-fast-tree-generation-as-a-core-engine.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Expand wood into resident GPU buffers from canonical positions",
   "updated_at": "2026-09-20T14:00:35.018548Z"
 }

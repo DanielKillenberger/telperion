@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-91-fast-tree-generation-as-a-core-engine",
   "spec_path": ".flow/tasks/fn-91-fast-tree-generation-as-a-core-engine.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Bound GPU leaf readback memory without changing output bytes",
   "updated_at": "2026-09-20T13:43:54.842695Z"
 }

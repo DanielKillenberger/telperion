@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-91-fast-tree-generation-as-a-core-engine",
   "spec_path": ".flow/tasks/fn-91-fast-tree-generation-as-a-core-engine.13.md",
-  "status": "todo",
+  "status": "done",
   "title": "Parallelize native CPU surface expansion within the memory budget",
   "updated_at": "2026-09-20T17:09:54.567112Z"
 }

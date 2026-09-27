@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-91-fast-tree-generation-as-a-core-engine",
   "spec_path": ".flow/tasks/fn-91-fast-tree-generation-as-a-core-engine.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Integrate qualified GPU positions into resident generation",
   "updated_at": "2026-09-20T15:58:52.912780Z"
 }

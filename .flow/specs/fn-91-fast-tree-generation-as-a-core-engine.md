@@ -82,3 +82,7 @@ The core and integration permits compact engine-independent descriptions expande
 Task .14 measures browser completed-frame medians of 158.1/180.8 ms for oak seeds 1/7 and 178.9/164.2 ms for spruce: 9.93/10.30/42.64/44.97× the original baseline. The immediate .8 browser pair is 178.1/198.2/194.2/186.5 ms. Oak seed 1 misses the strict 10× threshold by 1.1 ms; the host ends optimization at this approximately 10× milestone, without retiming to manufacture a crossing. This operational stop does not amend the original R-ID criteria or claim every criterion passed.
 
 All four station-record outputs are byte-identical in the mature matrix. The live joint-capacity envelope remains unchanged, while oak seed 7 Wasm linear-memory high-water rises 26,279,936 bytes; oak seed 1 falls 24,641,536 bytes, and spruce is unchanged. Native CPU output and cold/phone/full-memory qualification remain separate. Final validation and qualification assessment are recorded in `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/COMPLETION-ASSESSMENT.md`; `.1` retains the original outstanding qualifications.
+
+## Closed (owner, 2026-09-27)
+
+Closed at the reached milestone: browser oak 9.93× and 10.30×, spruce 42.64× and 44.97× (seeds 1 and 7). Oak seed 1's 1.1 ms short of a strict 10× is accepted. CPU-owned output speed moves to fn-126, and growth speed to fn-172 to fn-175. The memory non-increase claim and the cold, phone and full-memory qualification are dropped, not carried. Task .1 stays unsatisfied as recorded in `COMPLETION-ASSESSMENT.md`.

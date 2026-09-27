@@ -15,7 +15,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-91-fast-tree-generation-as-a-core-engine.md",
-  "status": "open",
+  "status": "done",
   "title": "Fast tree generation as a core engine capability",
   "tracker": {
     "baseHashFlow": null,
@@ -28,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-20T17:45:44.310739Z"
+  "updated_at": "2026-09-27T20:58:52.045911Z"
 }
