@@ -26,7 +26,10 @@ beech's native range (fn-157).
   differently: 8 Jev calls and one sheet, recorded 2026-09-26. fn-170's
   fork rows replaced the five stems rows on that table, and Tune's first
   round was extended again (`--extend`) for the questions they changed: 8 Jev
-  calls, recorded 2026-09-27; the beech's renders did not move. Every answer
+  calls, recorded 2026-09-27; the beech's renders did not move. fn-177's girth rows joined that table, and the round was
+  extended again for the 8 Jev calls they changed, recorded 2026-09-27; the
+  8 answers fn-170 recorded for that round, which no replay asks any more,
+  were removed. Every answer
   is refiled under today's keys, the newest kept where two became one
   question (`tape_trim`, `tape-adapter.py rekey:`). A replay opens every
   file here.

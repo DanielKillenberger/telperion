@@ -173,14 +173,14 @@ fn each(
     if spacing == 0. || p.size == 0. || tree.nodes.len() < 2 {
         return Ok(());
     }
-    let thickest = tree.stem_radius(|i| tree.nodes[i].radius) * p.short_shoot_radius;
+    let thickest = tree.stem_radius(|i| tree.pipe(i)[1]) * p.short_shoot_radius;
     let floor = envelope.crown_base * envelope.height;
     let mut wood: Vec<usize> = (1..tree.nodes.len())
         .filter(|&i| {
             let n = &tree.nodes[i];
             n.parent.is_some()
                 && n.kind != NodeKind::Twig
-                && n.radius.max(n.start_radius) <= thickest
+                && tree.pipe(i)[0].max(tree.pipe(i)[1]) <= thickest
         })
         .collect();
     wood.sort_by_key(|&i| tree.nodes[i].identity);

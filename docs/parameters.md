@@ -945,6 +945,27 @@ The wood a codominant sibling takes at a fork against its own subtree's, 0 to 1,
 - note: A sibling is the wood the scaffold marks `codominant`; its share is this times the weight it has grown in by. At one a sibling takes its own pipe as the primary does.
 - blend: linear; dial: `fork_balance` (how much thinner the lesser parts of a codominant fork leave than the part carrying the axis on), window its bounds (validated bound), steps 0.1 and 0.2
 
+### `/radii/girthHold`
+
+The share of each structural axis's reach over which it holds the girth it starts with, 0 to 0.9: past it the wood falls to the pipe model's radius by the axis's tip. At zero wood is the pipe model's.
+
+- real, share of reach, [0, 0.9], default 0
+- read by grow; growth path: not read
+- checked: Radius site, rank 6, as invalid value `girthHold`
+- note: Every part leaving the root starts an axis, as do a lateral and a codominant sibling; a fork's primary above the root carries its axis on. An axis holds the pipe model's radius where it leaves its parent. A node's share of its axis's reach is its path from there against that plus its path on along the axis to the axis's tip. Its radius is the larger of the pipe model's and the held girth, so a held fork's parts carry more wood than their parent: conservation at forks is given up over the hold, and a part's start never exceeds its parent's radius. Read once the twigs have grown, and which wood bears leaves is decided on the pipe model's radii, so no twig or leaf is added or lost; the ceiling leaves every axis a tenth of its reach to fall, so no tip ends blunt.
+- blend: linear; dial: `girth_hold` (how far along its reach a limb keeps the girth it starts with before it breaks into fine wood), window its bounds (validated bound), steps 0.05 and 0.15
+
+### `/radii/girthFall`
+
+How short the fall after `girthHold` is: the fall lasts the hold's share divided by this, so raising it breaks the wood into twigs over a shorter distance.
+
+- real, -, [0.5, 8], default 2
+- read by grow; growth path: not read
+- checked: Radius site, rank 7, as invalid value `girthFall`
+- dormant: `girthHold` zero
+- note: Ends at the tip where the hold leaves too little reach. At 0.5 the fall is twice the hold, close to the pipe model's steady thinning; at 8 it is an eighth of it, a break over a few stations of a long limb.
+- blend: linear; dial: `girth_fall` (how abruptly a held limb breaks into fine wood after its hold), window its bounds (validated bound), steps 0.5 and 2
+
 ## `/surface`
 
 ### `/surface/radialSegments`

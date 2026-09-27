@@ -54,6 +54,7 @@ impl Specimen {
                 crossover: structural,
                 diagnostics: self.tree.diagnostics,
                 sections: Vec::new(),
+                pipe: Vec::new(),
             };
             for structural in [true, false] {
                 tree.nodes.extend(

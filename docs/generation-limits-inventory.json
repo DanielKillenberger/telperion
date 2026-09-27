@@ -978,8 +978,20 @@
     "reason": "Disabled, empty, or geometrically separated foliage has no placements to emit."
   },
   {
+    "path": "crates/telperion-core/src/pipeline/foliage/plan.rs",
+    "site": ". max ( tree . pipe ( i ) [ 1 ] )",
+    "classification": "algorithm",
+    "reason": "The thicker of a segment's two pipe radii, which decides whether that wood bears leaves; it limits no generated population."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/foliage/short_shoots.rs",
+    "site": ". max ( tree . pipe ( i ) [ 1 ] )",
+    "classification": "algorithm",
+    "reason": "The thicker of a segment's two pipe radii, which decides whether that wood bears leaves; it limits no generated population."
+  },
+  {
     "path": "crates/telperion-core/src/pipeline/foliage/placement.rs",
-    "site": "while first > 0 & & tree . nodes [ run [ first - 1 ] ] . radius < = max_radius {",
+    "site": "while first > 0 & & tree . pipe ( run [ first - 1 ] ) [ 1 ] < = max_radius {",
     "classification": "algorithm",
     "reason": "Finds the authored run/station's containing segment; index zero is the natural start of the polyline."
   },
@@ -1168,6 +1180,12 @@
     "site": ". max ( 1e - 6 )",
     "classification": "numeric",
     "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/radius/hold.rs",
+    "site": ". min ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A share of an axis's reach ends at its tip: the girth's fall is cut at share one so every axis reaches the pipe radius there; it limits no generated population."
   },
   {
     "path": "crates/telperion-core/src/pipeline/radius/incremental.rs",

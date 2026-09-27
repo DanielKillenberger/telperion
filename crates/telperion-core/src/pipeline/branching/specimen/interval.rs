@@ -206,6 +206,7 @@ impl Specimen {
             crossover,
             diagnostics: self.tree.diagnostics,
             sections: Vec::new(),
+            pipe: Vec::new(),
         })
     }
 }

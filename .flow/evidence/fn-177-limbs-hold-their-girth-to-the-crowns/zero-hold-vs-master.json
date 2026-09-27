@@ -1,0 +1,242 @@
+[
+ {
+  "preset": "ordinary",
+  "seed": 1,
+  "master": [
+   "ce51c9da54d5d20c",
+   11567,
+   43537
+  ],
+  "fn-177": [
+   "ce51c9da54d5d20c",
+   11567,
+   43537
+  ],
+  "same": true
+ },
+ {
+  "preset": "ordinary",
+  "seed": 7,
+  "master": [
+   "8d84175bebc08437",
+   11927,
+   44772
+  ],
+  "fn-177": [
+   "8d84175bebc08437",
+   11927,
+   44772
+  ],
+  "same": true
+ },
+ {
+  "preset": "oregon-white-oak",
+  "seed": 1,
+  "master": [
+   "94abae63f92f82d3",
+   125087,
+   715065
+  ],
+  "fn-177": [
+   "94abae63f92f82d3",
+   125087,
+   715065
+  ],
+  "same": true
+ },
+ {
+  "preset": "oregon-white-oak",
+  "seed": 7,
+  "master": [
+   "08e12dde55361de5",
+   139040,
+   869310
+  ],
+  "fn-177": [
+   "08e12dde55361de5",
+   139040,
+   869310
+  ],
+  "same": true
+ },
+ {
+  "preset": "norway-spruce",
+  "seed": 1,
+  "master": [
+   "9de204f696703019",
+   95389,
+   7353754
+  ],
+  "fn-177": [
+   "9de204f696703019",
+   95389,
+   7353754
+  ],
+  "same": true
+ },
+ {
+  "preset": "norway-spruce",
+  "seed": 7,
+  "master": [
+   "ce62d7a2658b2d1b",
+   90439,
+   7012326
+  ],
+  "fn-177": [
+   "ce62d7a2658b2d1b",
+   90439,
+   7012326
+  ],
+  "same": true
+ },
+ {
+  "preset": "european-beech",
+  "seed": 1,
+  "master": [
+   "928156f4899496a7",
+   187968,
+   4928812
+  ],
+  "fn-177": [
+   "928156f4899496a7",
+   187968,
+   4928812
+  ],
+  "same": true
+ },
+ {
+  "preset": "european-beech",
+  "seed": 7,
+  "master": [
+   "25cf239c8aead21b",
+   190975,
+   4998806
+  ],
+  "fn-177": [
+   "25cf239c8aead21b",
+   190975,
+   4998806
+  ],
+  "same": true
+ },
+ {
+  "preset": "silver-birch",
+  "seed": 1,
+  "master": [
+   "3b51797211a3d32b",
+   79806,
+   280264
+  ],
+  "fn-177": [
+   "3b51797211a3d32b",
+   79806,
+   280264
+  ],
+  "same": true
+ },
+ {
+  "preset": "silver-birch",
+  "seed": 7,
+  "master": [
+   "5ad2d1622bf64a9f",
+   87361,
+   308878
+  ],
+  "fn-177": [
+   "5ad2d1622bf64a9f",
+   87361,
+   308878
+  ],
+  "same": true
+ },
+ {
+  "preset": "date-palm",
+  "seed": 1,
+  "master": [
+   "db70acad3eafdcf4",
+   552,
+   6554
+  ],
+  "fn-177": [
+   "db70acad3eafdcf4",
+   552,
+   6554
+  ],
+  "same": true
+ },
+ {
+  "preset": "date-palm",
+  "seed": 7,
+  "master": [
+   "8f7dbb0df2d97a80",
+   553,
+   6554
+  ],
+  "fn-177": [
+   "8f7dbb0df2d97a80",
+   553,
+   6554
+  ],
+  "same": true
+ },
+ {
+  "preset": "telperion",
+  "seed": 1,
+  "master": [
+   "a9ffb64c96403a90",
+   75697,
+   553950
+  ],
+  "fn-177": [
+   "a9ffb64c96403a90",
+   75697,
+   553950
+  ],
+  "same": true
+ },
+ {
+  "preset": "telperion",
+  "seed": 7,
+  "master": [
+   "9f0b607db1c59a81",
+   16993,
+   121375
+  ],
+  "fn-177": [
+   "9f0b607db1c59a81",
+   16993,
+   121375
+  ],
+  "same": true
+ },
+ {
+  "preset": "laurelin",
+  "seed": 1,
+  "master": [
+   "3912e2f8e8b3af31",
+   53155,
+   392200
+  ],
+  "fn-177": [
+   "3912e2f8e8b3af31",
+   53155,
+   392200
+  ],
+  "same": true
+ },
+ {
+  "preset": "laurelin",
+  "seed": 7,
+  "master": [
+   "67d366ddabe1faa8",
+   75090,
+   556500
+  ],
+  "fn-177": [
+   "67d366ddabe1faa8",
+   75090,
+   556500
+  ],
+  "same": true
+ }
+]

@@ -26,9 +26,9 @@ export interface SpecimenRead {
    * against - one box for the family, so every age reads the same one. */
   leaves: Uint32Array; foliageReference: LeafReference;
 }
-/** Owned schema-6 little-endian chronicle and writer frontiers, without meshes.
+/** Owned schema-7 little-endian chronicle and writer frontiers, without meshes.
  * Caller mutation never reaches a retained specimen. */
-export interface SpecimenSnapshot { schema: 6; data: Uint8Array }
+export interface SpecimenSnapshot { schema: 7; data: Uint8Array }
 export interface SpecimenHandle {
   readonly frontier: number;
   readonly historyCap: number;
@@ -82,7 +82,7 @@ export function specimenBinding(get: () => SpecimenExports, check: (code: number
       const e = get();
       try {
         check(e.specimen_snapshot(handle));
-        return { schema: 6, data: new Uint8Array(e.memory.buffer, e.buffer_ptr(16), e.buffer_len(16)).slice() };
+        return { schema: 7, data: new Uint8Array(e.memory.buffer, e.buffer_ptr(16), e.buffer_len(16)).slice() };
       } finally { e.specimen_snapshot_release(); }
     },
     release() { check(get().specimen_release(handle)); },
@@ -101,7 +101,7 @@ export function specimenBinding(get: () => SpecimenExports, check: (code: number
       return wrap((metadata() as { handle: number }).handle);
     },
     import(snapshot: SpecimenSnapshot): SpecimenHandle {
-      if (snapshot.schema !== 6 || !(snapshot.data instanceof Uint8Array)) throw Error('Invalid specimen snapshot schema/data');
+      if (snapshot.schema !== 7 || !(snapshot.data instanceof Uint8Array)) throw Error('Invalid specimen snapshot schema/data');
       const e = get();
       try {
         check(e.specimen_snapshot_alloc(snapshot.data.length));
