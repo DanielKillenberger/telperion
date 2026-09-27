@@ -24,3 +24,16 @@
 - Cost: about 15 minutes of reading, and the task returns to the host before building the dial.
 - Would have removed it: a spec that names how an unset `Option` becomes a dial, and whether a reduced tree is
   feasible for Tune.
+- Resolved by the host the same day: a dial declares the value its unset row stands for; a reduced tree is
+  whole and feasible, and only an incomplete one is refused, by name.
+
+## 2026-09-27, worker, task .1 (re-recording the beech tape)
+
+- Doing: extending the beech's Tune round for the new dial (`species --extend`, 9 Jev calls and two sheets), then
+  removing the superseded answers.
+- Slowed by: the command guard refused a recursive delete of a scratch directory, a shell redirect to a variable
+  path, and an inline script whose text mentioned a delete. The `inotifywait` watch had to be written as a script
+  with literal paths. The watch itself (fn-177's recipe) worked the first time, and `--extend` changed no
+  existing file.
+- Cost: about 10 minutes, 9 Jev calls.
+- Would have removed it: a `tape_trim --prune <replay>` that lists or removes the files a replay did not open.

@@ -235,6 +235,9 @@ pub struct Tuning {
     pub span: Option<[f64; 2]>,
     /// Why a "capped" window keeps a side at the preset span.
     pub cap: &'static str,
+    /// The value an unset optional row stands for, which the tuning loop
+    /// steps from; none on a row that always carries its value.
+    pub unset: Option<f64>,
 }
 /// A dial that steps across the row's own bounds.
 pub const fn bounded(id: &'static str, ask: &'static str, steps: [f64; 2]) -> Dial {
@@ -247,6 +250,7 @@ pub const fn bounded(id: &'static str, ask: &'static str, steps: [f64; 2]) -> Di
         basis: "validated bound",
         span: None,
         cap: "",
+        unset: None,
     })
 }
 /// A dial that steps within a window of its own.
@@ -266,6 +270,7 @@ pub const fn tuned(
         basis,
         span: None,
         cap: "",
+        unset: None,
     })
 }
 impl Dial {
@@ -283,6 +288,16 @@ impl Dial {
     pub const fn cap(self, cap: &'static str) -> Self {
         match self {
             Self::Tuned(t) => Self::Tuned(Tuning { cap, ..t }),
+            other => other,
+        }
+    }
+    /// The value an unset optional row stands for.
+    pub const fn unset(self, value: f64) -> Self {
+        match self {
+            Self::Tuned(t) => Self::Tuned(Tuning {
+                unset: Some(value),
+                ..t
+            }),
             other => other,
         }
     }

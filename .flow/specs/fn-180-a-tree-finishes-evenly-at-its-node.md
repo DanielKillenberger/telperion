@@ -33,6 +33,11 @@ fn-53 removed the hidden hardcoded caps and kept the node budget as a named row,
 
 - Not render level of detail (fn-176). Not removing the budget. Not the beech's values (fn-62).
 
+## Open
+
+- **The framework alone exceeds the budget** (host, 2026-09-27; follow-up, not built here). When the structural scaffold reaches `maxNodes` before any twig grows, the build stops where the count ran out and is flagged `incomplete` ("the framework alone exceeds the node budget"). Giving up structural detail evenly is its own spec.
+
 ## Strategy Alignment
 
 - Serves "Mature trees are the product": a compute bound never shows as a truncated tree. [strategy:Our approach]
+

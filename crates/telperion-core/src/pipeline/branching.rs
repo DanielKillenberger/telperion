@@ -166,17 +166,25 @@ crate::catalogue::rows! {
             blend: Blend::Coupled,
             dial: Dial::Excluded("Null in every shipped preset, as above."),
         },
-        /// The ceiling on nodes the crown may grow; unset, the shipped
-        /// default. Growth stops at it, so raising it changes only a crown
-        /// that reached it.
+        /// The nodes a tree may grow; unset, the shipped default. A tree that
+        /// would grow more gives up its finest twigs evenly and finishes every
+        /// branch, so raising it restores fine detail only to a tree that
+        /// reached it.
         pub max_nodes: Option<usize> = "maxNodes" "nodes"
             crate::ranges::POSITIVE_COUNT.bounds() => [Grow] {
             wire: 79,
             growth: Growth::Differs("zero builds an empty capped seedling"),
             note: "Unset: 250 000. Zero is refused by `Family::validate` (`maxNodes`) and above \
-                u32::MAX by `ranges::max_nodes`.",
+                u32::MAX by `ranges::max_nodes`. Measured on the plane and beech candidates \
+                (fn-180): each 50 000 nodes more costs about 0.2 to 0.5 s of build and 100 to \
+                150 MB of peak memory.",
             blend: Blend::Coupled,
-            dial: Dial::Excluded("Null in every shipped preset, and a resource cap besides."),
+            dial: tuned("max_nodes", "nodes the tree may grow before it thins its finest twigs \
+                evenly; each 50 000 more costs about 0.2 to 0.5 s of build and 100 to 150 MB of \
+                peak memory", [100000.0, 1000000.0], [50000.0, 150000.0], "capped")
+                .cap("capped above at a million nodes, about 1.5 GB of peak memory for one \
+                    build; the generator refuses only above u32::MAX")
+                .unset(DEFAULT_MAX_NODES as f64),
         },
         /// The most a growing shoot may turn in one step, in degrees; unset, 35.
         /// At 180 or more nothing is limited.

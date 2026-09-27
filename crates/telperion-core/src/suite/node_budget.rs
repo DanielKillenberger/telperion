@@ -48,7 +48,7 @@ fn a_tree_at_its_budget_finishes_every_axis() {
             tree.nodes.len()
         );
         assert!(
-            d.node_capped && d.twig_detail.is_some() && d.complete(),
+            d.reduced() && d.complete() && d.incomplete().is_none(),
             "{budget}: {d:?}"
         );
         assert!(
@@ -73,17 +73,20 @@ fn a_larger_budget_walks_toward_the_unbudgeted_tree() {
         last = next;
     }
     let whole = grow(&oak(None));
-    assert!(whole.diagnostics.twig_detail.is_none() && !whole.diagnostics.node_capped);
+    assert_eq!(whole.diagnostics, Default::default());
     assert!(whole.nodes.len() > last.1);
 }
 
 #[test]
-fn a_budget_no_detail_fits_is_still_reported_truncated() {
-    // Just above the oak's scaffold, even a tree with no lateral twig is over
-    // the budget: nothing is recorded as given up, and the tree is not whole.
-    let d = grow(&oak(Some(3_000))).diagnostics;
-    assert!(
-        d.node_capped && d.twig_detail.is_none() && !d.complete(),
-        "{d:?}"
-    );
+fn a_budget_the_tree_cannot_meet_leaves_it_incomplete_and_says_why() {
+    // Just above the oak's framework (2 750 nodes), even a tree with no
+    // lateral twig is over the budget; below it, the framework itself is.
+    for (budget, why) in [
+        (3_000, "no twig detail fits the node budget"),
+        (1_000, "the framework alone exceeds the node budget"),
+    ] {
+        let d = grow(&oak(Some(budget))).diagnostics;
+        assert!(d.node_capped && !d.reduced() && !d.complete(), "{d:?}");
+        assert_eq!(d.incomplete(), Some(why), "{budget}");
+    }
 }

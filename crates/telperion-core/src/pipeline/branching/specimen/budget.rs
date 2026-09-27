@@ -10,7 +10,7 @@ use super::*;
 impl Specimen {
     /// The scaffold, grown out at the most detail the budget holds. Where even
     /// no twig detail fits, the tree is the least-detailed one, stopped where
-    /// the count ran out, and no reduction is recorded.
+    /// the count ran out, and stays capped.
     pub(super) fn within_budget(self) -> Result<Self> {
         let top = u16::try_from(self.params.twigs.resolved()?.generations)
             .map_err(|_| Error::InvalidInput("twig generations"))?
@@ -44,9 +44,8 @@ impl Specimen {
             Some(s) => s,
             None => self.grown_at(Detail(low))?,
         };
-        let d = &mut s.tree.diagnostics;
-        d.twig_detail = (!d.node_capped).then_some(low);
-        d.node_capped = true;
+        // Grown at `low`, the tree is whole unless even that level ran out.
+        s.tree.diagnostics.twig_detail = Some(low);
         Ok(s)
     }
     fn grown_at(&self, detail: Detail) -> Result<Self> {

@@ -70,6 +70,19 @@ Every one of them is under its budget.
 
 Node counts and detail both rise monotonically, and they reach the unbudgeted tree once the budget holds it.
 
+### The dial's cost per step (whole mesh request, medians of 2, seed 1)
+
+| budget | plane nodes | plane ms | plane peak MB | beech nodes | beech ms | beech peak MB |
+|---|---|---|---|---|---|---|
+| 250k | 243,039 | 1,669 | 608 | 232,109 | 4,993 | 736 |
+| 300k | 288,342 | 2,112 | 761 | 284,776 | 5,591 | 879 |
+| 400k | 389,323 | 2,484 | 959 | 395,968 | 7,342 | 1,181 |
+| 500k | 490,987 | 2,891 | 1,141 | 479,057 | 8,704 | 1,379 |
+
+A 50,000-node step (the dial's small step) adds about 0.2 to 0.5 s to the build and 100 to 150 MB of peak memory.
+The dial's `ask` and the row's note say so. The dial window is 100,000 to 1,000,000 nodes, and an unset row
+steps from `ranges::DEFAULT_MAX_NODES`.
+
 ## R5: cost at the default budget (whole mesh request, medians of 3, seed 1)
 
 | case | master total ms | fn-180 total ms | master skeleton ms | fn-180 skeleton ms | master peak MB | fn-180 peak MB |

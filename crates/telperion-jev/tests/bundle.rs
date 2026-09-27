@@ -30,6 +30,7 @@ fn dial(id: &str, path: &str, min: f64, max: f64, small: f64, integer: bool) -> 
         source: None,
         preset_span: None,
         cap: None,
+        unset: None,
     }
 }
 

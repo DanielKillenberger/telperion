@@ -547,6 +547,7 @@ fn run() -> Run {
             source: None,
             preset_span: None,
             cap: None,
+            unset: None,
         }],
         owner_notes: "irregular outline".into(),
         required: vec![cell()],
@@ -903,6 +904,7 @@ fn bundle_dial(id: &str, path: &str, min: f64, max: f64, small: f64, group: &str
         source: None,
         preset_span: None,
         cap: None,
+        unset: None,
     }
 }
 

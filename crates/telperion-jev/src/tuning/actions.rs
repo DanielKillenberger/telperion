@@ -55,9 +55,21 @@ pub struct Dial {
     /// Why a "capped" row keeps a side at the preset span.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cap: Option<String>,
+    /// The value an unset optional row stands for, stepped from where the
+    /// wire leaves the row null.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub unset: Option<f64>,
 }
 
 impl Dial {
+    /// The dial's value on `wire`: its number, or the value unset stands for
+    /// where the row is null.
+    pub fn current(&self, wire: &Value) -> Option<f64> {
+        match wire.pointer(&self.path)? {
+            Value::Null => self.unset,
+            value => value.as_f64(),
+        }
+    }
     pub fn direction_question(&self, current: f64) -> Result<Value, String> {
         self.value(current, Action::Hold)?;
         let mut criteria = serde_json::Map::new();
@@ -195,9 +207,8 @@ pub fn candidate(
     dial: &Dial,
     action: Action,
 ) -> Result<Value, String> {
-    let current = effective
-        .pointer(&dial.path)
-        .and_then(Value::as_f64)
+    let current = dial
+        .current(effective)
         .ok_or_else(|| format!("unknown numeric row {}", dial.path))?;
     let value = dial
         .value(current, action)?
