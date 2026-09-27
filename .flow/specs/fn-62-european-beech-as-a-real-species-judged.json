@@ -12,7 +12,8 @@
     "fn-177-limbs-hold-their-girth-to-the-crowns",
     "fn-166-the-owner-looks-at-a-runs-kept-tree-in",
     "fn-179-codominance-builds-on-its-own-and-a",
-    "fn-180-a-tree-finishes-evenly-at-its-node"
+    "fn-180-a-tree-finishes-evenly-at-its-node",
+    "fn-182-branching-hierarchy-few-strong-limbs"
   ],
   "id": "fn-62-european-beech-as-a-real-species-judged",
   "impl_review_rounds": {},
@@ -36,5 +37,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T21:00:43.962394Z"
+  "updated_at": "2026-09-27T22:27:54.053981Z"
 }
