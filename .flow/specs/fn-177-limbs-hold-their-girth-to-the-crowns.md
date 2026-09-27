@@ -21,6 +21,8 @@ A London plane's limbs, and a beech's, stay thick almost to the edge of the crow
 
 **What is given up.** Where the held girth wins, a fork's parts carry more wood than their parent, so the pipe model's conservation at forks is given up over the hold. A solved tree's invariants hold: no node starts thinner than it ends, and a part's start is clamped to its parent's radius at the junction. The hold is applied once the twigs have grown, in the direct build's final radius pass, so the twig layer seeds on the pipe model's radii. The tree keeps the pipe radii of the wood it held (`Tree::pipe`), and every foliage decision about which wood bears leaves, and which child carries a run, reads them. As a result no twig or leaf borne is added or lost. A leaf still sits on the wood as drawn, so the envelope's interior cull, which reads where each leaf is, may keep a handful more or fewer: 3 of 83,000 on Ordinary at seed 1. [checked]
 
+**Accepted refinements (host, 2026-09-27).** The build refined the host's rule in four places, and the host accepted each one. The root is a point, and every part leaving it starts its own axis. An axis is measured from where it leaves its parent. Foliage decides which wood bears leaves on the radii from before the hold. The `girthHold` rail stops at 0.9. [checked]
+
 ## Acceptance Criteria
 <!-- scope: both -->
 
