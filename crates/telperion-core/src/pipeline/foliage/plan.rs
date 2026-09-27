@@ -272,12 +272,12 @@ pub(super) fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
     if rosette::bearing(&p) {
         return Vec::new();
     }
-    let slender = tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius;
+    let slender = tree.stem_radius(|i| tree.pipe(i)[1]) * p.shoot_radius;
     let bearing = |i: usize| {
         let n = &tree.nodes[i];
         n.parent.is_some()
             && (n.kind == NodeKind::Twig
-                || (slender > 0. && n.radius.max(n.start_radius) <= slender))
+                || (slender > 0. && tree.pipe(i)[0].max(tree.pipe(i)[1]) <= slender))
     };
     let mut children = vec![(0usize, 0usize); tree.nodes.len()];
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {

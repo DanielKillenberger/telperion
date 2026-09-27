@@ -29,6 +29,16 @@ fn limb(whorl: bool) -> Tree {
         nodes.push(first);
         nodes.push(at(Vec3::new(0.8, y + 0.2, 0.0), nodes.len() - 1));
     }
+    // A codominant sibling parting at station 5: an axis of its own.
+    let mut part = at(Vec3::new(-0.5, 5.8, 0.0), 5);
+    part.codominant = Some(0.8);
+    nodes.push(part);
+    for k in 2..=4 {
+        nodes.push(at(
+            Vec3::new(-0.5 * k as f64, 5.0 + 0.8 * k as f64, 0.0),
+            nodes.len() - 1,
+        ));
+    }
     if whorl {
         let tip = nodes[STATIONS - 1].position;
         for k in 1..=4 {
@@ -53,9 +63,10 @@ fn limb(whorl: bool) -> Tree {
     }
 }
 
+/// The default length taper, so an axis's first node ends thinner than it
+/// starts.
 fn params(girth_hold: f64, girth_fall: f64) -> RadiusParams {
     RadiusParams {
-        length_taper: 0.0,
         girth_hold,
         girth_fall,
         ..RadiusParams::default()
@@ -101,7 +112,7 @@ fn zero_hold_is_the_pipe_model_to_the_bit() {
 fn a_limb_holds_its_girth_then_falls_to_the_pipe_at_its_tip() {
     let (pipe, hold, fall) = (pipe(), 0.6, 2.0);
     let t = held(hold, fall);
-    let base = pipe.nodes[0].start_radius;
+    let base = pipe.nodes[0].radius;
     let tip = pipe.nodes[STATIONS - 1].radius;
     assert!(
         tip < 0.3 * base,
@@ -129,15 +140,17 @@ fn a_limb_holds_its_girth_then_falls_to_the_pipe_at_its_tip() {
     junctions_hold(&t);
 }
 
-/// Walking either row in small steps moves every radius by a small step,
-/// from the pipe model at zero hold onwards.
+/// Walking either row in small steps moves every radius, start and distal,
+/// by a small step, from the pipe model at zero hold onwards: on a tapering
+/// axis, at its laterals and at a codominant sibling.
 #[test]
 fn walking_the_rows_moves_the_profile_continuously() {
     let largest = |a: &Tree, b: &Tree| {
         a.nodes
             .iter()
             .zip(&b.nodes)
-            .map(|(a, b)| (a.radius / b.radius).ln().abs())
+            .flat_map(|(a, b)| [a.radius / b.radius, a.start_radius / b.start_radius])
+            .map(|ratio| ratio.ln().abs())
             .fold(0.0, f64::max)
     };
     let walk = |rows: &dyn Fn(f64) -> (f64, f64), steps: usize| {
@@ -151,6 +164,7 @@ fn walking_the_rows_moves_the_profile_continuously() {
             before = now;
         }
     };
+    walk(&|s| (1e-6 * s, 2.0), 10);
     walk(&|s| (0.9 * s, 2.0), 9000);
     walk(&|s| (0.9 * s, 8.0), 9000);
     walk(&|s| (0.6, 0.5 + 7.5 * s), 7500);
@@ -186,4 +200,25 @@ fn the_rows_are_refused_off_their_rails() {
             other => panic!("{field} gave {other:?}"),
         }
     }
+}
+
+/// fn-177's boundary: a hold adds or loses no twig or leaf. Wood bears leaves
+/// by the pipe model's radii, here where the canopy clothes slender
+/// structural wood and bears short shoots along it. A leaf still sits on the
+/// wood as drawn, so the envelope's interior cull, which reads where a leaf
+/// is, may keep a handful fewer or more.
+#[test]
+fn a_hold_adds_or_loses_no_leaf() {
+    let placed = |girth_hold: f64| {
+        let mut f = crate::presets::Preset::Ordinary.parameters();
+        f.skeleton.seed = 1;
+        f.canopy.shoot_radius = 0.2;
+        f.canopy.short_shoot_spacing = 0.5;
+        f.radii.girth_hold = girth_hold;
+        f.radii.girth_fall = 4.0;
+        let built = crate::pipeline::build(&f, crate::pipeline::Request::mesh()).unwrap();
+        let leaves = built.outputs.leaves.unwrap();
+        (built.skeleton.tree.nodes.len(), leaves.placed)
+    };
+    assert_eq!(placed(0.75), placed(0.0));
 }

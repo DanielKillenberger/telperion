@@ -10,13 +10,75 @@
     "fn-170-codominant-forks-one-rule-from-the"
   ],
   "id": "fn-177-limbs-hold-their-girth-to-the-crowns",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-177-limbs-hold-their-girth-to-the-crowns.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "90497875528e779a4430d0b9b35a352c8ad1ed4d8572b94b9e98d4a1091fea4f",
+      "backend": "codex",
+      "base_sha": "0bcf694ef7265356e3f945a3007156ca028533ec",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d804a2522afe09b125dfb1ccc191c3d9",
+            "classification": "introduced",
+            "findingId": "finding-d804a2522afe09b125dfb1ccc191c3d9",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-101588ee2432eb536a3a686bb6fe04d2",
+            "classification": "introduced",
+            "findingId": "finding-101588ee2432eb536a3a686bb6fe04d2",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4e938d65bb0d9ee6d760f922a6664983918d9500",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1867,
+      "output_sha256": "570ad14e2f65e7d0ba91d61637aa250e401db5f3f3aed159e5e3c03d3be60370",
+      "reservation_id": "95a0615de91b47788b5009949fe1628a",
+      "round_consumed": true,
+      "scope": "impl:fn-177-limbs-hold-their-girth-to-the-crowns.1",
+      "superseded_by": null,
+      "task": "fn-177-limbs-hold-their-girth-to-the-crowns.1",
+      "timestamp": "2026-09-27T13:52:27.337115Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-177-limbs-hold-their-girth-to-the-crowns.1": 0
+  },
   "spec_path": ".flow/specs/fn-177-limbs-hold-their-girth-to-the-crowns.md",
   "status": "open",
   "title": "Limbs hold their girth to the crown's edge",
@@ -31,5 +93,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T13:08:35.821271Z"
+  "updated_at": "2026-09-27T13:52:27.339514Z"
 }

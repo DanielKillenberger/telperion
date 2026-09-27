@@ -403,7 +403,7 @@ fn finish(tree: &mut Tree, params: &SkeletonParams, radii: RadiusParams) -> Resu
     };
     radius::solve(tree, params.envelope, radii)?;
     // Held once the twigs have grown, so the twig layer seeds on the pipe
-    // model's radii and a hold adds or loses no twig or leaf.
+    // model's radii; the tree keeps them for foliage's bearing decisions.
     radius::hold(tree, radii);
     // The distal end of a childless structural axis carries no wood the local
     // layer would have thinned; the taper trait says how far it narrows.

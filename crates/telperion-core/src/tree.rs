@@ -94,8 +94,22 @@ pub struct Tree {
     /// always were.
     #[cfg_attr(feature = "json", serde(skip))]
     pub sections: Vec<Section>,
+    /// The pipe model's `[start, distal]` radii of each structural node,
+    /// kept where `girthHold` drew the wood thicker: what decides which wood
+    /// bears leaves, so a hold adds or loses none. Empty where nothing is held.
+    #[cfg_attr(feature = "json", serde(default))]
+    pub pipe: Vec<[f64; 2]>,
 }
 impl Tree {
+    /// Node `i`'s radii as the pipe model solved them, `[start, distal]`,
+    /// whatever `girthHold` drew: the radii leaf-bearing decisions read.
+    pub(crate) fn pipe(&self, i: usize) -> [f64; 2] {
+        let n = &self.nodes[i];
+        self.pipe
+            .get(i)
+            .copied()
+            .unwrap_or([n.start_radius, n.radius])
+    }
     /// The wood a canopy or a twig layer measures itself against: the thickest
     /// stem leaving the root, read through whatever radius the caller trusts.
     /// The root carries every stem's pipe together, so a clump has to measure
@@ -169,6 +183,9 @@ impl Tree {
     pub fn validate(&self) -> Result<()> {
         if self.nodes.len() > u32::MAX as usize || self.crossover > self.nodes.len() {
             return Err(Error::InvalidInput("tree length"));
+        }
+        if !self.pipe.is_empty() && self.pipe.len() != self.crossover {
+            return Err(Error::InvalidInput("held pipe radii"));
         }
         self.validate_range(0..self.nodes.len(), false)
     }

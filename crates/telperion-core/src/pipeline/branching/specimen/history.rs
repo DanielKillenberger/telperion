@@ -199,6 +199,7 @@ impl Specimen {
             crossover,
             diagnostics,
             sections: Vec::new(),
+            pipe: Vec::new(),
         })
     }
 }

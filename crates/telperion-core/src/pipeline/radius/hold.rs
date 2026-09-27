@@ -34,13 +34,14 @@ pub(crate) fn hold(tree: &mut Tree, p: RadiusParams) {
         }
     }
     // Top down, each node's path from its axis's first node, and the girth
-    // the pipe model gave that axis where it starts.
+    // the pipe model gave that axis at its first node: its distal radius, so
+    // a hold rising from zero moves no radius by a jump.
     let mut along = vec![0.0; count];
     let mut base = vec![0.0; count];
     let mut share = vec![1.0; count];
     for i in 0..count {
         if begins(tree, i) {
-            base[i] = tree.nodes[i].start_radius;
+            base[i] = tree.nodes[i].radius;
         } else {
             let parent = tree.nodes[i].parent.unwrap() as usize;
             along[i] = along[parent] + step(tree, i);
@@ -49,6 +50,10 @@ pub(crate) fn hold(tree: &mut Tree, p: RadiusParams) {
         let whole = along[i] + reach[i];
         share[i] = if whole > 0.0 { along[i] / whole } else { 1.0 };
     }
+    tree.pipe = tree.nodes[..count]
+        .iter()
+        .map(|n| [n.start_radius, n.radius])
+        .collect();
     for i in 0..count {
         let n = &tree.nodes[i];
         let radius = n.radius.max(profile(p, base[i], n.radius, share[i]));

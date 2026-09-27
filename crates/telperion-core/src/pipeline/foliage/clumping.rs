@@ -33,7 +33,7 @@ pub(crate) fn systems(tree: &Tree, max_order: u32) -> Vec<u32> {
             continue;
         }
         let best = carrier[parent];
-        if best == u32::MAX || n.start_radius > tree.nodes[best as usize].start_radius {
+        if best == u32::MAX || tree.pipe(i)[0] > tree.pipe(best as usize)[0] {
             carrier[parent] = i as u32;
         }
     }
