@@ -39,10 +39,14 @@ The compare script's numbers are kept for every round as regression readings. Th
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-- **Order.** (1) A bare-only value round: the crown base back near B-BARE's reading (fn-54 lowered it to 0.06 for the leaf mass), more `crookedness`, round 23's twig taper, and the beech's lichen and lenticel rows toned toward B-BASE. (2) The Troll's-model generator spec (pitch by height, a ragged reach), then its rows stated. (3) The whole tree judged on the checklist. (4) fn-59's leaf-load bend only if the summer crown still sits high. [paraphrase]
-- **Two rounds per verdict.** A verdict that is not yet accepting allows at most two value rounds before the host names a generator gap or stops with `NEEDS_HUMAN`. A note that names something no row governs goes straight to a gap. [paraphrase]
-- **Jev.** Jev classifies each note as a value row, a generator gap or a tone issue, and picks the checklist lines a verdict touches, from options code gives it. It does not run trial loops over rows. [paraphrase]
-- **The judging page.** Each round is added to the owner's page with the checklist as the verdict form, saved where the host reads it back. [inferred]
+**Method (owner, 2026-09-27): the species runner, not hand-run value rounds.** The beech is run by `species european-beech` (fn-149, fn-157). The rounds, Jev routing and judging page this spec first described are superseded by the runner's stages; the owner's checklist below stays the acceptance. [user]
+
+- **Sources and profile, free.** fn-157's recorded live beech run (its tape, seeded from a bare seed with `taxon.native_range`: height 40 m from three agreeing forestry sources) is replayed with `--extend`, so Sources and Profile cost no Firecrawl and no Jev; only questions the rebuilt runner asks anew are recorded. [checked]
+- **References.** The run carries the beech's curated references with matched shots (`catalogue/european-beech/packet/references.json`: B-WHOLE, B-BARE and B-BASE with shots, B-LEAF and B-LEAVES without), so the Profile stage's photograph search does not run (it runs only below two references) and Tune compares against the views the owner already judged. [checked]
+- **Capability (host).** The host's assessment names `woody-axes`, `entire-blade` and `alternate-petiole` (expressed) and covers the traits the new rows serve: the codominant V fork (fn-170), the lower limbs spreading wider and the ragged crown edge (fn-61), limbs holding their girth far out (fn-177); every such need is now expressed. [inferred]
+- **Tune** moves every live dial, including fn-61's `pitchByHeight` and `raggedReach`, fn-170's fork rows and fn-177's `girthHold` and `girthFall`, from the shipped beech's rows. [inferred]
+- **Gaps decides branching hierarchy.** The owner's reading of the beech and the London plane (2026-09-27): a few strong scaffold limbs that stay thick far out, sparse branching in the middle orders, dense twigs at the crown's edge. If Tune cannot reach it with the live dials, Gaps classes it identity with the host to assess, and that finding becomes the hierarchy spec this spec then depends on. [inferred]
+- **The owner's look** is in the harness (fn-166, `species european-beech --look`). Accepting writes the beech's value file and its catalogue pins (fn-149, fn-152). [inferred]
 
 ## Acceptance Criteria
 <!-- scope: both -->
@@ -58,7 +62,7 @@ The compare script's numbers are kept for every round as regression readings. Th
 - The beech only. The birch and the ash are not touched. [paraphrase]
 - Materials beyond the beech's own rows wait for fn-55. [inferred]
 - Leaf form is fn-60's and runs in parallel. [inferred]
-- One round is run by the fn-68 tuning loop as its live pilot (owner, 2026-09-21), in visual bootstrap mode from the round-22 rows at seed 1. The loop's candidate and its gap handoffs are inputs to that round; they change no shipped row by themselves, and acceptance stays the owner's checklist. [user]
+- (Superseded 2026-09-27 by the runner.) One round is run by the fn-68 tuning loop as its live pilot (owner, 2026-09-21), in visual bootstrap mode from the round-22 rows at seed 1. The loop's candidate and its gap handoffs are inputs to that round; they change no shipped row by themselves, and acceptance stays the owner's checklist. [user]
 
 ## Resolved via Codebase
 
