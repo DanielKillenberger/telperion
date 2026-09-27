@@ -28,17 +28,18 @@ fn signature(wanted: &[(String, i8)]) -> Wanted {
     rows
 }
 
-/// One draw of this revision: its moves as first drawn, and the reason every
-/// strength of it failed to build, if every strength did.
+/// One draw of this revision: its moves as first drawn from one tree, and the
+/// reason every strength of it failed to build there, if every strength did.
 struct Draw {
     moves: Vec<Move>,
     refused: Option<String>,
 }
 
 /// Every bundle draw of this revision whose trial `here` admits, by index,
-/// one per signature.
+/// one per tree and signature: a draw that built from one tree says nothing
+/// of the same draw from another.
 fn draws(state: &Run, here: impl Fn(usize, &Trial) -> bool) -> Vec<Draw> {
-    let mut out: Vec<(Wanted, Draw)> = vec![];
+    let mut out: Vec<((Option<String>, Wanted), Draw)> = vec![];
     for (index, trial) in state.trials.iter().enumerate() {
         if !state.measured_here(&trial.identity) || !here(index, trial) {
             continue;
@@ -50,7 +51,7 @@ fn draws(state: &Run, here: impl Fn(usize, &Trial) -> bool) -> Vec<Draw> {
             .reason
             .clone()
             .filter(|r| !trial.feasible && unbuilt(r));
-        let key = signature(&wanted(&bundle.moves));
+        let key = (trial.base.clone(), signature(&wanted(&bundle.moves)));
         match out.iter_mut().find(|(k, _)| *k == key) {
             Some((_, draw)) => draw.refused = draw.refused.take().and(reason),
             None => out.push((
@@ -65,7 +66,8 @@ fn draws(state: &Run, here: impl Fn(usize, &Trial) -> bool) -> Vec<Draw> {
     out.into_iter().map(|(_, draw)| draw).collect()
 }
 
-/// The dials this revision drew alone and the generator refused.
+/// The dials this revision drew alone, from any tree, and the generator
+/// refused at every strength there.
 pub(super) fn dropped(state: &Run) -> Vec<String> {
     let mut out: Vec<String> = vec![];
     for draw in draws(state, |_, _| true) {
@@ -88,16 +90,18 @@ fn kept(state: &Run, wanted: &[(String, i8)]) -> Wanted {
         .collect()
 }
 
-/// The halves still to draw on this tree for this track: of every draw from
-/// it the generator refused at every strength, each half not drawn yet. A
-/// half holding a dial dropped for the revision is not drawn: the dial would
-/// refuse it again, and the rest come back with the next proposal.
-pub(super) fn halves(state: &Run, base: &str, track: &Track) -> Vec<Wanted> {
+/// The halves this track still owes: of every draw it made this revision
+/// that the generator refused at every strength, each half the track has not
+/// drawn yet, from whichever tree - an adoption between the refusal and its
+/// halves does not forget them. A half holding a dial dropped for the
+/// revision is not drawn: the dial would refuse it again, and the rest come
+/// back with the next proposal.
+pub(super) fn halves(state: &Run, track: &Track) -> Vec<Wanted> {
     let ours = |_, t: &Trial| {
-        t.base.as_deref() == Some(base)
-            && t.bundle
-                .as_ref()
-                .is_some_and(|b| b.id == id(&b.moves, b.strength, base, &track.name))
+        let (Some(base), Some(b)) = (t.base.as_deref(), t.bundle.as_ref()) else {
+            return false;
+        };
+        b.id == id(&b.moves, b.strength, base, &track.name)
     };
     let (drawn, dropped) = (draws(state, ours), dropped(state));
     let seen: Vec<Wanted> = drawn.iter().map(|d| signature(&wanted(&d.moves))).collect();
@@ -118,7 +122,7 @@ pub(super) fn halves(state: &Run, base: &str, track: &Track) -> Vec<Wanted> {
     out
 }
 
-/// What a track draws this turn: the halves still owed on this tree, else
+/// What a track draws this turn: the halves it still owes, else
 /// the dials Jev supported less the families an isolated part already lost
 /// here, so the next bundle is a different bundle rather than the same one
 /// again, and less the dials dropped for the revision. `None` when nothing is
@@ -129,7 +133,7 @@ pub(super) fn turn(
     track: &Track,
     wanted: &[(String, i8)],
 ) -> Option<Vec<Wanted>> {
-    let halves = halves(state, base, track);
+    let halves = halves(state, track);
     if !halves.is_empty() {
         return Some(halves);
     }
@@ -146,14 +150,11 @@ pub(super) fn turn(
     Some(vec![wanted])
 }
 
-/// Whether some track has halves to draw from the tree the loop stands on.
+/// Whether some track still owes halves.
 pub(in crate::tuning) fn pending(state: &Run, tracks: &[Track]) -> bool {
-    let Some(base) = state.current.map(|i| state.trials[i].key.clone()) else {
-        return false;
-    };
     super::track::all(tracks)
         .iter()
-        .any(|track| !halves(state, &base, track).is_empty())
+        .any(|track| !halves(state, track).is_empty())
 }
 
 /// Records every draw among `trials` that failed to build at every strength:

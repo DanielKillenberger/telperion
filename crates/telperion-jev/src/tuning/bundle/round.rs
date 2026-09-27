@@ -209,10 +209,12 @@ fn one_track(
     };
     // How far this round moves is the size of the gap the words name.
     let stride = stride::decide(state, services, save, track, &draws.concat())?;
-    let mut planned = vec![];
+    let mut planned: Vec<(usize, (Bundle, serde_json::Value))> = vec![];
     let mut refused = 0;
-    for (half, wanted) in draws.iter().enumerate() {
-        for strength in strengths.iter().map(|s| s * stride.multiplier) {
+    // Ascending strength, the halves side by side at each: the sheet keeps
+    // the first four renders, so every half reaches it at its smallest.
+    for strength in strengths.iter().map(|s| s * stride.multiplier) {
+        for (half, wanted) in draws.iter().enumerate() {
             match build(
                 &state.preset,
                 &state.effective,
@@ -226,7 +228,10 @@ fn one_track(
                     track,
                     format!("bundle at strength {strength} not drawn: {reason}"),
                 )),
-                Ok((bundle, _)) if tried(state, &bundle.id) => {
+                Ok((bundle, _))
+                    if tried(state, &bundle.id)
+                        || planned.iter().any(|(_, (b, _))| b.id == bundle.id) =>
+                {
                     refused += 1;
                     state.routes.push(note(
                         track,
