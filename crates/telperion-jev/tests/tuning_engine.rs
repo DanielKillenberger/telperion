@@ -1708,8 +1708,8 @@ fn the_routing_state_names_the_kinds_of_dial_rather_than_every_row() {
     state.dials = telperion_jev::tuning::table::authored();
     // 233 authored rows, less the three deprecated canopy rows (fn-152):
     // fn-170 retired five stems rows and added nine fork and share rows;
-    // fn-177 added the two girth rows.
-    assert_eq!(state.dials.len(), 232);
+    // fn-177 added the two girth rows; fn-180 the node budget.
+    assert_eq!(state.dials.len(), 233);
 
     let dials = telperion_jev::tuning::judgments::summary(&state)["dials"].clone();
     let bytes = serde_json::to_vec(&dials).unwrap().len();
@@ -1750,8 +1750,8 @@ fn twelve_rounds_of_attempts_fold_into_a_digest_that_still_fits() {
         .filter(|d| d.score_visible == Some(true))
         .collect();
     // 138 score-visible rows, less the three deprecated canopy rows (fn-152),
-    // and fn-177's two girth rows.
-    assert_eq!(state.dials.len(), 137);
+    // fn-177's two girth rows and fn-180's node budget.
+    assert_eq!(state.dials.len(), 138);
     let base = state.trials[state.current.unwrap()].key.clone();
     let mut history = vec![];
     for round in 1..=12u64 {
