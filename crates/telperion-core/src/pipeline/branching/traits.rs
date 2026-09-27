@@ -257,13 +257,16 @@ crate::catalogue::rows! {
         /// standing `k` times this round from the primary's, about a bearing
         /// the axis's own stream decides. At zero every part leaves on one
         /// bearing.
-        #[cfg_attr(feature = "json", serde(default))]
+        #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_fork_divergence"))]
         pub fork_divergence: f64 = "forkDivergence" "degrees"
             Bounds::closed(0.0, 120.0) => [Grow] {
             wire: 28,
             check: input(Site::Habit, 20, "fork divergence"),
             applies: "`codominance` zero",
-            note: "Refused where two parts of a fork leave on one heading (`forks_placed`). \
+            note: "Defaults to 90 so that `codominance` builds on its own: fn-170's plane \
+                candidate stands its parts 120 apart, but at 120 a fourth part returns onto the \
+                primary's bearing, and a quarter turn keeps all four apart at every `forkWays`. \
+                Refused where two parts of a fork leave on one heading (`forks_placed`). \
                 Replaces `stemDivergence`.",
             blend: Blend::Degrees,
             dial: bounded("fork_divergence", "the degrees of bearing between neighbouring parts \
@@ -271,12 +274,14 @@ crate::catalogue::rows! {
         },
         /// Degrees every sibling of a fork leans from the axis it leaves; the
         /// primary leans by what `forkLeanSpread` leaves it of this.
-        #[cfg_attr(feature = "json", serde(default))]
+        #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_fork_lean"))]
         pub fork_lean: f64 = "forkLean" "degrees" Bounds::closed(0.0, 45.0) => [Grow] {
             wire: 251,
             check: input(Site::Habit, 23, "fork lean"),
             applies: "`codominance` zero",
-            note: "Measured from the heading of the axis at the fork. Replaces `stemLean`.",
+            note: "Defaults to 26 so that `codominance` builds on its own: fn-170's plane \
+                candidate's lean, two degrees under the 28 the birch's photographs show. \
+                Measured from the heading of the axis at the fork. Replaces `stemLean`.",
             blend: Blend::Degrees,
             dial: bounded("fork_lean", "the degrees the parts of a codominant fork lean from \
                 the axis they leave", [5.0, 10.0]),
@@ -321,8 +326,8 @@ impl Default for HabitParams {
             fork_height: 0.0,
             fork_height_spread: 0.0,
             fork_ways: 2.0,
-            fork_divergence: 0.0,
-            fork_lean: 0.0,
+            fork_divergence: crate::ranges::default_fork_divergence(),
+            fork_lean: crate::ranges::default_fork_lean(),
             fork_lean_spread: 0.0,
         }
     }

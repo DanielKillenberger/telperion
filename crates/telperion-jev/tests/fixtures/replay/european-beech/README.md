@@ -29,7 +29,13 @@ beech's native range (fn-157).
   calls, recorded 2026-09-27; the beech's renders did not move. fn-177's girth rows joined that table, and the round was
   extended again for the 8 Jev calls they changed, recorded 2026-09-27; the
   8 answers fn-170 recorded for that round, which no replay asks any more,
-  were removed. Every answer
+  were removed. fn-179's fork defaults change the beech's effective wire in
+  every proposal request, and the round was extended again (`--extend`,
+  recorded 2026-09-27): 8 Jev calls and two sheets, the round's bundle now
+  judged worse and cut by family. The 27 answers no replay of the beech
+  opened any more (an `inotifywait` watch over both replays), the older
+  rounds' proposals, sheets and closing looks among them, were removed.
+  Every answer
   is refiled under today's keys, the newest kept where two became one
   question (`tape_trim`, `tape-adapter.py rekey:`). A replay opens every
   file here.

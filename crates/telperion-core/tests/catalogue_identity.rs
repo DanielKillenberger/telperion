@@ -15,7 +15,10 @@
 //! for the radius rows `girthHold` and `girthFall`: with those two rows left
 //! out of the text, the family, walk and override digests were still fn-170's;
 //! the refusal digest pairs each row with another by its index, so a new row
-//! moves the pairs.
+//! moves the pairs. fn-179 re-pinned all four for the fork rows' defaults,
+//! `forkDivergence` 90 and `forkLean` 26, the birch stating its divergence of
+//! none, and a fork refusal that names its rows: with those defaults at none
+//! and the refusal's old words, each digest was still fn-177's.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -51,7 +54,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        2_797_385_718_484_462_428,
+        3_287_400_823_085_211_963,
         "{}",
         digest(&text)
     );
@@ -83,7 +86,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        6_129_422_457_856_582_310,
+        14_970_677_737_524_383_343,
         "{}",
         digest(&text)
     );
@@ -108,7 +111,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        16_562_080_751_096_671_433,
+        2_904_423_829_418_876_043,
         "{}",
         digest(&text)
     );
@@ -171,7 +174,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        6_198_552_981_966_068_624,
+        11_511_942_864_132_992_072,
         "{}",
         digest(&text)
     );

@@ -32,8 +32,8 @@
 # the crown. The whole spread stands the first upright and leans the
 # second by all of the lean, so the pair is that and not an even V.
 # An upright stem has no bearing to part from, so a divergence would
-# only turn the leaning one about the seed's own bearing; it is left
-# at none. Twenty-eight degrees is the lean the photographs' leaning
+# only turn the leaning one about the seed's own bearing; the table
+# states none, below the fork rows' default. Twenty-eight degrees is the lean the photographs' leaning
 # stem shows across the view; the curtain leaves only the first
 # couple of metres of stem bare, and less put the two of them still
 # inside one another's bark over that stretch.
@@ -53,6 +53,7 @@
 # that height.
 /skeleton/habit/codominance = 1.0
 /skeleton/habit/forkHeight = 0.05
+/skeleton/habit/forkDivergence = 0.0
 /skeleton/habit/forkLean = 28.0
 /skeleton/habit/forkLeanSpread = 1.0
 

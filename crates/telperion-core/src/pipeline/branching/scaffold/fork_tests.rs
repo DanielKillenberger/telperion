@@ -160,7 +160,10 @@ fn parts_on_one_heading_are_refused_by_the_part_that_is_wrong() {
             placed(&p),
             Err(Error::InvalidValue {
                 field: "fork parts pass through each other",
-                value: "part 1".into(),
+                value: format!(
+                    "part 1 leaves on part 0's heading at forkDivergence {divergence}, \
+                     forkLean {lean} and forkLeanSpread {spread}"
+                ),
             }),
             "{divergence} deg apart at {lean} deg of lean was accepted"
         );

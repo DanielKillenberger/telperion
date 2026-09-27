@@ -72,6 +72,15 @@ struct Mock {
     runaway: u64,
     /// The config's round cap, absent for none.
     max_rounds: Option<u64>,
+    /// A row the generator will not build any family that moves it.
+    refuse: Option<String>,
+    /// Proposals keep the directions they were given, not `proposal_action`.
+    as_proposed: bool,
+    /// What each round's proposal call returns, consumed in order; empty
+    /// keeps `proposals`.
+    proposal_rounds: Vec<Vec<Proposal>>,
+    /// Refuse only a family that moves every one of these rows too.
+    refuse_with: Vec<String>,
 }
 
 fn mock() -> Mock {
@@ -113,6 +122,10 @@ fn mock() -> Mock {
         inventory: None,
         runaway: telperion_jev::tuning::runaway::ROUNDS,
         max_rounds: None,
+        refuse: None,
+        as_proposed: false,
+        proposal_rounds: vec![],
+        refuse_with: vec![],
     }
 }
 impl Services for Mock {
@@ -313,6 +326,14 @@ impl Services for Mock {
         ledger: Option<String>,
     ) -> Trial {
         self.evaluations += 1;
+        let refused = self
+            .refuse
+            .as_ref()
+            .is_some_and(|row| overrides.pointer(row).is_some())
+            && self
+                .refuse_with
+                .iter()
+                .all(|row| overrides.pointer(row).is_some());
         Trial {
             adopted_over: vec![],
             bundle: None,
@@ -328,8 +349,8 @@ impl Services for Mock {
             label: label.into(),
             overrides,
             ledger,
-            feasible: true,
-            reason: None,
+            feasible: !refused,
+            reason: refused.then(|| REFUSAL.to_string()),
             measurement: json!({}),
             comparisons: vec![],
             score: Some(if self.stall {
@@ -420,6 +441,9 @@ impl Services for Mock {
     }
     fn propose(&mut self, _: &Run, batch: usize) -> Result<Answer<Vec<Proposal>>, String> {
         self.proposal_calls += 1;
+        if batch == 0 && !self.proposal_rounds.is_empty() {
+            self.proposals = self.proposal_rounds.remove(0);
+        }
         if !self.proposal_actions.is_empty() {
             self.proposal_action = self.proposal_actions.remove(0);
         }
@@ -436,7 +460,9 @@ impl Services for Mock {
             .iter()
             .cloned()
             .map(|mut p| {
-                p.action = self.proposal_action;
+                if !self.as_proposed {
+                    p.action = self.proposal_action;
+                }
                 p
             })
             .collect();
@@ -2138,4 +2164,290 @@ fn the_priority_pause_proposes_every_drawable_inventory_trait() {
     );
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     assert_eq!(mock.sheet_calls, 1);
+}
+
+/// Why every bundle of the beech's first Tune after fn-170 failed to build
+/// (fn-62, 2026-09-27): `codominance` raised while the fork rows left every
+/// part on one heading.
+const REFUSAL: &str =
+    "measure: build: InvalidValue { field: \"fork parts pass through each other\", value: \"part 1\" }";
+
+/// No bundle identity appears twice among the trials a run drew.
+fn drawn_once(state: &Run) {
+    let mut ids: Vec<&str> = state
+        .trials
+        .iter()
+        .filter_map(|t| t.bundle.as_ref().map(|b| b.id.as_str()))
+        .collect();
+    let drawn = ids.len();
+    ids.sort_unstable();
+    ids.dedup();
+    assert_eq!(ids.len(), drawn, "a bundle was drawn twice");
+}
+
+/// The dials a trial's bundle moved, sorted.
+fn dials_of(trial: &Trial) -> Vec<String> {
+    let mut dials: Vec<String> = trial
+        .bundle
+        .iter()
+        .flat_map(|b| b.moves.iter().map(|m| m.dial.clone()))
+        .collect();
+    dials.sort();
+    dials
+}
+
+/// The bundle trials of one round.
+fn of_round(state: &Run, round: u64) -> Vec<&Trial> {
+    state
+        .trials
+        .iter()
+        .filter(|t| t.round == round && t.bundle.is_some())
+        .collect()
+}
+
+/// fn-179 R2: a bundle that fails to build at every strength is halved and
+/// its halves are drawn in the rounds that follow, one a round and without a
+/// new proposal; a dial that fails alone is dropped for the revision, logged,
+/// and never drawn again.
+#[test]
+fn a_bundle_that_fails_to_build_is_halved_and_a_dial_refused_alone_is_dropped() {
+    let (mut state, mut mock) = bundle_run();
+    mock.refuse = Some("/skeleton/twigs/hang".into());
+    mock.max_rounds = Some(4);
+    mock.cell_status = vec![CellStatus::Fail; 8];
+    // Round two's sheet: the half that builds is clearly better.
+    mock.sheets = vec![vec![did(&key(6), Movement::Clear)]];
+    to_the_round(&mut state, &mut mock);
+
+    let first = of_round(&state, 1);
+    assert_eq!(first.len(), 4, "the four strengths");
+    assert!(first
+        .iter()
+        .all(|t| !t.feasible && t.reason.as_deref() == Some(REFUSAL)));
+    let whole = format!(
+        "bundle of 3 dials failed to build at every strength: {REFUSAL}; its halves are drawn in the rounds that follow"
+    );
+    assert!(state.routes.contains(&whole), "{:#?}", state.routes);
+    let second = of_round(&state, 2);
+    assert_eq!(second.len(), 4);
+    assert!(second
+        .iter()
+        .all(|t| t.feasible && dials_of(t) == ["crookedness", "rise_secondary"]));
+    assert_eq!(state.trials[state.current.unwrap()].key, key(6));
+    let third = of_round(&state, 3);
+    assert_eq!(third.len(), 4);
+    assert!(third
+        .iter()
+        .all(|t| !t.feasible && dials_of(t) == ["twig_hang"]));
+    let dropped =
+        format!("twig_hang dropped for the revision: alone it failed to build: {REFUSAL}");
+    assert!(state.routes.contains(&dropped), "{:#?}", state.routes);
+    assert_eq!(
+        mock.proposal_calls, 2,
+        "the halves' rounds bought no proposal"
+    );
+    assert_eq!(state.budget.rounds, 4);
+    let fourth = of_round(&state, 4);
+    assert!(!fourth.is_empty(), "round four drew nothing");
+    assert!(fourth
+        .iter()
+        .all(|t| !dials_of(t).contains(&"twig_hang".into())));
+    drawn_once(&state);
+}
+
+/// fn-179 R2, the regression case: the beech's first refused bundle, 24 dials
+/// with `codominance` among them, recorded from fn-62's run. The rounds that
+/// follow draw the owed halves one a round, with no new proposal, until
+/// `codominance` stands alone and is dropped; the next proposal draws the
+/// other 23 dials, which build. No bundle is drawn twice.
+#[test]
+fn the_beech_s_refused_bundle_is_taken_apart_until_codominance_stands_alone() {
+    let recorded: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/fn62-refused-bundle.json")).unwrap();
+    assert_eq!(recorded["reason"], REFUSAL);
+    let mut state = run();
+    state.dials = serde_json::from_value(recorded["dials"].clone()).unwrap();
+    let moves = recorded["moves"].as_array().unwrap();
+    let proposals = moves
+        .iter()
+        .enumerate()
+        .map(|(i, m)| Proposal {
+            dial: m["dial"].as_str().unwrap().into(),
+            action: match m["direction"].as_str() {
+                Some("up") => Action::SmallIncrease,
+                _ => Action::SmallDecrease,
+            },
+            ledger: format!("jev:{i}"),
+            direction_mass: Some(0.9 - i as f64 / 100.),
+            rule: Some(telperion_jev::tuning::direction::RULE.into()),
+        })
+        .collect();
+    // No split review, so a built half judged on a sheet excludes nothing.
+    let mut mock = Mock {
+        proposals,
+        as_proposed: true,
+        refuse: Some("/skeleton/habit/codominance".into()),
+        max_rounds: Some(40),
+        splits: 0,
+        cell_status: vec![CellStatus::Fail; 32],
+        ..mock()
+    };
+    to_the_round(&mut state, &mut mock);
+
+    let rounds = state.budget.rounds;
+    let draws = |round: u64| -> Vec<Vec<String>> {
+        let mut drawn: Vec<Vec<String>> = of_round(&state, round)
+            .iter()
+            .map(|t| dials_of(t))
+            .collect();
+        drawn.sort();
+        drawn.dedup();
+        drawn
+    };
+    assert_eq!(draws(1), [dials_of(of_round(&state, 1)[0])]);
+    assert_eq!(draws(1)[0].len(), 24);
+    // Only a draw that moved `codominance` was refused.
+    assert!(state
+        .trials
+        .iter()
+        .filter(|t| !t.feasible)
+        .all(
+            |t| dials_of(t).contains(&"codominance".into()) && t.reason.as_deref() == Some(REFUSAL)
+        ));
+    let dropped =
+        format!("codominance dropped for the revision: alone it failed to build: {REFUSAL}");
+    assert!(state.routes.contains(&dropped), "{:#?}", state.routes);
+    // One half a round until the next proposal, each inside the bundle; that
+    // proposal draws the other 23 dials, which build.
+    let next = (2..=rounds)
+        .find(|r| draws(*r).first().is_some_and(|d| d.len() == 23))
+        .expect("no round drew the bundle without codominance");
+    for round in 2..next {
+        let drawn = draws(round);
+        assert_eq!(drawn.len(), 1, "round {round} drew {drawn:?}");
+        assert!(drawn[0].iter().all(|d| draws(1)[0].contains(d)));
+    }
+    assert!(of_round(&state, next).iter().all(|t| t.feasible));
+    // Nothing is judged better, so the proposal after it has nothing new.
+    assert_eq!(mock.proposal_calls, 3);
+    assert_eq!(
+        state.stopped.as_deref(),
+        Some("bundle already tried; no new direction")
+    );
+    drawn_once(&state);
+}
+
+fn up(dial: &str) -> Proposal {
+    Proposal {
+        dial: dial.into(),
+        action: Action::SmallIncrease,
+        ledger: format!("jev:{dial}"),
+        direction_mass: Some(0.9),
+        rule: Some(telperion_jev::tuning::direction::RULE.into()),
+    }
+}
+
+/// Review of fn-179: a refused half is still owed after the other half is
+/// adopted and the tree moves; the rounds after draw its halves, unasked.
+#[test]
+fn a_refused_half_is_still_split_after_its_sibling_is_adopted() {
+    let (mut state, mut mock) = bundle_run();
+    state.dials.push(bundle_dial(
+        "twig_sag",
+        "/skeleton/twigs/sag",
+        0.,
+        1.,
+        0.1,
+        "twigs",
+    ));
+    mock.proposals.push(up("twig_sag"));
+    mock.refuse = Some("/skeleton/twigs/hang".into());
+    mock.max_rounds = Some(5);
+    mock.cell_status = vec![CellStatus::Fail; 8];
+    // Round two: the habit half builds and is clearly better.
+    mock.sheets = vec![vec![did(&key(6), Movement::Clear)]];
+    to_the_round(&mut state, &mut mock);
+
+    let round = |r: u64| {
+        let drawn = of_round(&state, r);
+        assert!(drawn.windows(2).all(|w| dials_of(w[0]) == dials_of(w[1])));
+        drawn.first().map(|t| dials_of(t)).unwrap_or_default()
+    };
+    assert_eq!(round(2), ["crookedness", "rise_secondary"]);
+    assert_eq!(state.trials[state.current.unwrap()].key, key(6));
+    assert_eq!(round(3), ["twig_hang", "twig_sag"]);
+    assert!(of_round(&state, 3).iter().all(|t| !t.feasible));
+    let mut after = [round(4), round(5)];
+    after.sort();
+    assert_eq!(after, [vec!["twig_hang"], vec!["twig_sag"]]);
+    assert_eq!(
+        mock.proposal_calls, 1,
+        "the halves' rounds bought no proposal"
+    );
+    drawn_once(&state);
+}
+
+/// Review of fn-179: a dial that built alone from one tree and fails alone
+/// from a later one is dropped all the same, and never drawn again.
+#[test]
+fn a_dial_that_fails_alone_from_a_later_tree_is_dropped() {
+    let (mut state, mut mock) = bundle_run();
+    // Only a tree with its crookedness raised refuses a twig hang.
+    mock.refuse = Some("/skeleton/twigs/hang".into());
+    mock.refuse_with = vec!["/skeleton/habit/crookedness".into()];
+    mock.proposal_rounds = vec![
+        vec![up("twig_hang")],
+        vec![up("crookedness")],
+        vec![up("twig_hang")],
+        vec![up("twig_hang"), up("rise_secondary")],
+    ];
+    mock.max_rounds = Some(4);
+    mock.cell_status = vec![CellStatus::Fail; 8];
+    // Round one's hang builds and moves nothing; round two's crookedness is
+    // kept.
+    mock.sheets = vec![vec![], vec![did(&key(6), Movement::Clear)]];
+    to_the_round(&mut state, &mut mock);
+
+    assert!(of_round(&state, 1).iter().all(|t| t.feasible));
+    assert_eq!(state.trials[state.current.unwrap()].key, key(6));
+    assert!(of_round(&state, 3).iter().all(|t| !t.feasible));
+    let fourth = of_round(&state, 4);
+    assert!(!fourth.is_empty());
+    assert!(fourth.iter().all(|t| dials_of(t) == ["rise_secondary"]));
+}
+
+/// Review of fn-179: halves that draw the same bundle at one strength (an
+/// integer dial that rounds to no move there) draw it once.
+#[test]
+fn halves_that_draw_one_bundle_draw_it_once() {
+    let (mut state, mut mock) = bundle_run();
+    let mut laterals = bundle_dial(
+        "laterals_per_station",
+        "/skeleton/habit/lateralsPerStation",
+        1.,
+        8.,
+        1.,
+        "habit",
+    );
+    laterals.integer = true;
+    state.dials.push(laterals);
+    mock.proposals = vec![
+        up("rise_secondary"),
+        up("twig_hang"),
+        up("laterals_per_station"),
+    ];
+    mock.strengths = vec![0.25, 1.0];
+    mock.refuse = Some("/skeleton/twigs/hang".into());
+    mock.max_rounds = Some(5);
+    mock.cell_status = vec![CellStatus::Fail; 8];
+    to_the_round(&mut state, &mut mock);
+
+    // Round one refused two draws: the pair at 0.25, where the laterals
+    // round to no move, and all three at 1.
+    assert_eq!(of_round(&state, 1).len(), 2);
+    assert!(state
+        .trials
+        .iter()
+        .any(|t| dials_of(t) == ["laterals_per_station", "rise_secondary"]));
+    drawn_once(&state);
 }

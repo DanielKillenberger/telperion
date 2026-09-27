@@ -15,7 +15,7 @@
 //! rerun never erases a recorded reference (fn-142) and finds nothing once
 //! `ENOUGH` are recorded.
 use std::io::Read;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 use regex::Regex;
@@ -175,6 +175,46 @@ pub fn copy(paths: &Paths, sha256: &str) -> Option<PathBuf> {
         .into_iter()
         .map(|ext| dir(paths).join(format!("{sha256}.{ext}")))
         .find(|p| p.exists())
+}
+
+/// The run's copy of a recorded reference: the one it downloaded, else the
+/// photograph a curated record keeps outside the repository, under `refs` by
+/// the file name its address ends in (as `compare-references.py` finds it),
+/// copied into the run's cache by its hash. Bytes that are not the record's
+/// are an error; a photograph in neither place is none.
+pub fn stored(
+    paths: &Paths,
+    record: &Value,
+    refs: Option<&Path>,
+) -> Result<Option<PathBuf>, String> {
+    let Some(sha256) = record["asset_sha256"].as_str() else {
+        return Ok(None);
+    };
+    if let Some(path) = copy(paths, sha256) {
+        return Ok(Some(path));
+    }
+    let name = record["url"].as_str().and_then(|u| u.rsplit('/').next());
+    let (Some(refs), Some(name)) = (refs, name.filter(|n| !matches!(*n, "" | "." | ".."))) else {
+        return Ok(None);
+    };
+    let source = refs.join(name);
+    let Ok(bytes) = std::fs::read(&source) else {
+        return Ok(None);
+    };
+    if crate::sha256_hex(&bytes) != sha256 {
+        return Err(format!(
+            "{}: bytes are not asset_sha256 {sha256}",
+            source.display()
+        ));
+    }
+    let ext = match name.to_ascii_lowercase().ends_with(".png") {
+        true => "png",
+        false => "jpg",
+    };
+    let target = dir(paths).join(format!("{sha256}.{ext}"));
+    std::fs::create_dir_all(dir(paths)).map_err(|e| e.to_string())?;
+    std::fs::write(&target, bytes).map_err(|e| format!("{}: {e}", target.display()))?;
+    Ok(Some(target))
 }
 
 /// Images on the pages of the open-licence sources: a person's source the

@@ -6,8 +6,8 @@
 //! isolated. Single steps on single dials could not reach a look that needs
 //! several rows at once, which is why the round moves them together.
 use super::{
-    build, directions, isolate::isolate, merge, track, track::ensure_views, track::Track, worse,
-    Bundle,
+    build, directions, isolate::isolate, merge, refused, track, track::ensure_views, track::Track,
+    worse, Bundle,
 };
 use crate::tuning::{
     engine::{Proposal, Run, Services},
@@ -203,9 +203,7 @@ fn one_track(
     if strengths.is_empty() {
         return Err("no bundle strength configured".into());
     }
-    // A family an isolated part already lost on this tree is left out, so the
-    // next bundle is a different bundle rather than the same one again.
-    let Some(wanted) = worse::eligible(state, &base, track, wanted) else {
+    let Some((wanted, half)) = refused::turn(state, &base, track, wanted) else {
         save(state)?;
         return Ok(Turn::AllTried);
     };
@@ -248,9 +246,12 @@ fn one_track(
     }
     // The tree the variants are compared with needs the track's view too.
     ensure_views(state, services, save, old, &track.extra_views)?;
-    let mut variants = vec![];
+    let (mut variants, mut drawn) = (vec![], vec![]);
     for (bundle, overlay) in planned {
-        let label = format!("bundle@{}", bundle.strength);
+        let label = match half {
+            false => format!("bundle@{}", bundle.strength),
+            true => format!("bundle@{} refused half", bundle.strength),
+        };
         let trial = evaluate(
             state,
             services,
@@ -262,11 +263,13 @@ fn one_track(
             &label,
             ledger.clone(),
         )?;
+        drawn.push(trial);
         if state.trials[trial].feasible {
             ensure_views(state, services, save, trial, &track.extra_views)?;
             variants.push(Variant { trial, overlay });
         }
     }
+    refused::note(state, track, &drawn);
     let priorities = look::track_objectives(state, track);
     let drawn = variants.iter().map(|v| v.trial).collect::<Vec<_>>();
     let look = services.sheet_request(state, old, &drawn, &priorities, track.view.as_deref())?;
@@ -348,11 +351,11 @@ pub(in crate::tuning) fn round(
     save: &mut dyn FnMut(&Run) -> Result<(), String>,
 ) -> Result<bool, String> {
     let wanted = directions(&proposals);
-    if wanted.is_empty() {
+    let tracks = track::all(&services.tracks());
+    if wanted.is_empty() && !refused::pending(state, &tracks) {
         return Err("no supported proposal; bounded diagnosis required".into());
     }
     let ledger = proposals.first().map(|p| p.ledger.clone());
-    let tracks = track::all(&services.tracks());
     let shares = track::assign(&tracks, &state.dials, &wanted);
     let mut outcomes = vec![];
     for (track, moves) in tracks.iter().zip(shares) {
@@ -363,7 +366,7 @@ pub(in crate::tuning) fn round(
                 .push(note(track, "skipped: no objective names this track".into()));
             continue;
         }
-        if moves.is_empty() {
+        if moves.is_empty() && !refused::pending(state, std::slice::from_ref(track)) {
             state
                 .routes
                 .push(note(track, "no supported dial this round".into()));

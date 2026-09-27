@@ -20,22 +20,21 @@ pub fn found(out: &Path) -> PathBuf {
     out.join("references.json")
 }
 
-/// Writes the recorded references the run holds a copy of as images.
-pub fn record(paths: &Paths, out: &Path) -> Result<(), String> {
+/// Writes the recorded references the run holds a copy of as images, a
+/// curated record's taken from `refs` (`photos::stored`).
+pub fn record(paths: &Paths, out: &Path, refs: Option<&Path>) -> Result<(), String> {
     let doc = read_json(&paths.packet("references")).unwrap_or_default();
-    let images: Vec<Value> = doc["references"]
-        .as_array()
-        .into_iter()
-        .flatten()
-        .filter_map(|r| {
-            let sha256 = r["asset_sha256"].as_str()?;
-            let path = photos::copy(paths, sha256)?;
-            // The reviewer's view is the reference's id, as Tune's required
-            // cells name it (`runner::cells`).
-            let view = r["id"].as_str().unwrap_or("whole");
-            Some(json!({"path": path, "sha256": sha256, "view": view, "seed": 0}))
-        })
-        .collect();
+    let mut images: Vec<Value> = vec![];
+    for r in doc["references"].as_array().into_iter().flatten() {
+        let Some(path) = photos::stored(paths, r, refs)? else {
+            continue;
+        };
+        // The reviewer's view is the reference's id, as Tune's required
+        // cells name it (`runner::cells`).
+        let view = r["id"].as_str().unwrap_or("whole");
+        let sha256 = &r["asset_sha256"];
+        images.push(json!({"path": path, "sha256": sha256, "view": view, "seed": 0}));
+    }
     write_canonical(&found(out), &json!(images))
         .map(|_| ())
         .map_err(|e| e.to_string())

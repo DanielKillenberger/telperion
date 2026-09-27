@@ -6,10 +6,12 @@
 //! (`hanging-inert-on-beech-2026-09-21.md`). Jev still names directions only,
 //! and code computes every value here.
 mod isolate;
+mod refused;
 mod round;
 mod track;
 mod words;
 mod worse;
+pub(in crate::tuning) use refused::pending as halves_pending;
 pub(in crate::tuning) use round::{note as note_for, round};
 pub use track::{verify as verify_tracks, Track};
 pub(in crate::tuning) use words::words;

@@ -165,7 +165,8 @@ const SAME_HEADING: f64 = 1e-9;
 
 /// Refuses a fork whose parts leave on one heading - no divergence between
 /// them and no spread to stand the primary back, or no lean to carry them
-/// apart at all - by the part that is wrong. Headings apart are all it
+/// apart at all - by the part that is wrong and the rows that put it there.
+/// Headings apart are all it
 /// guarantees: whether wood grown from them meets is measured, not refused.
 /// A family that never forks has nothing to refuse, whatever its other fork
 /// rows say.
@@ -184,15 +185,20 @@ pub(in crate::pipeline::branching) fn placed(params: &SkeletonParams) -> Result<
         .map(|k| slot(habit, 0, k, 1.0))
         .collect();
     for (k, heading) in headings.iter().enumerate() {
-        if headings[..k]
+        let Some(j) = headings[..k]
             .iter()
-            .any(|other| (*heading - *other).length() <= SAME_HEADING)
-        {
-            return Err(Error::InvalidValue {
-                field: "fork parts pass through each other",
-                value: format!("part {k}"),
-            });
-        }
+            .position(|other| (*heading - *other).length() <= SAME_HEADING)
+        else {
+            continue;
+        };
+        return Err(Error::InvalidValue {
+            field: "fork parts pass through each other",
+            value: format!(
+                "part {k} leaves on part {j}'s heading at forkDivergence {}, forkLean {} and \
+                 forkLeanSpread {}",
+                habit.fork_divergence, habit.fork_lean, habit.fork_lean_spread
+            ),
+        });
     }
     Ok(())
 }

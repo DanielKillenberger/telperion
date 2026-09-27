@@ -25,6 +25,15 @@ pub const fn default_work_budget() -> u32 {
 pub const fn default_fork_ways() -> f64 {
     2.0
 }
+/// Degrees of bearing between a fork's neighbouring parts, so that the
+/// four slots stand a quarter turn apart and never share a bearing.
+pub const fn default_fork_divergence() -> f64 {
+    90.0
+}
+/// Degrees a fork's parts lean from the axis they leave.
+pub const fn default_fork_lean() -> f64 {
+    26.0
+}
 /// The neutral share: the pipe model's own division of wood.
 pub const fn default_share() -> f64 {
     1.0

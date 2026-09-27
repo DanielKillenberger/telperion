@@ -210,6 +210,15 @@ No run from a name needs a person to supply photographs (owner,
    Commons file), attribution, licence and sha256. A recorded reference is
    never removed or rewritten.
 
+A run seeded with a species' curated references (the catalogue's
+`packet/references.json`, as stored) needs no search and no hand patch
+(fn-179). A record with a shot and no `view` takes its view from its first
+scale that names one: `whole` in leaf is leaf-on, `bare` is bare, `base` is
+bark. A photograph the project may not keep is found under the tuning
+config's `matched.refs` by the file name its `url` ends in, checked against
+its `asset_sha256` (bytes that differ stop the stage) and copied into the
+run's cache under that hash; neither place is committed.
+
 When none is kept and the tuning config lists none, the Profile stage still
 completes: it skips the inventory and writes a `references` line to
 `gaps.md`, which stops nothing. Tune refuses, saying so, until a photograph
