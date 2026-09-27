@@ -33,12 +33,18 @@ describe('growth per PR', () => {
   it('fails fn-150s rejected slim build, naming the base and the growth', () => {
     const fails = check(b, fn150.head, { base: on(fn150.base) });
     expect(fails).toContain(
-      `${FIELD}: 526965 bytes, +48.4% over 355100 on the base abcd1234, above the 5.0% growth share per PR; name telperion-field.wasm in the PR's Decisions section, or shrink the artifact`,
+      `${FIELD}: 526965 bytes, +48.4% over 355100 on the base abcd1234, above the 5% growth share per PR; name telperion-field.wasm in the PR's Decisions section, or shrink the artifact`,
     );
   });
 
   it('passes fn-170s fork rule under the budget file as it stands', () => {
     expect(check(b, fn170.head, { base: on(fn170.base) })).toEqual([]);
+  });
+
+  it('passes exactly the share and fails one byte more', () => {
+    const base = on({ ...recorded, 'dist/field.js': 2_720 });
+    expect(check(b, { ...recorded, 'dist/field.js': 2_856 }, { base })).toEqual([]);
+    expect(check(b, { ...recorded, 'dist/field.js': 2_857 }, { base })).toHaveLength(1);
   });
 
   it('passes a growth the Decisions section names, and only that one', () => {
@@ -57,24 +63,23 @@ describe('growth per PR', () => {
 });
 
 describe('the base', () => {
-  const runs = [
-    { id: 3, sha: 'c'.repeat(40), url: 'run/3' },
-    { id: 2, sha: 'b'.repeat(40), url: 'run/2' },
-    { id: 1, sha: 'a'.repeat(40), url: 'run/1' },
-  ];
+  const run = (/** @type {number} */ id) => ({ id, sha: String(id).padStart(40, '0'), url: `run/${id}` });
+  // Newest first, two to a page: runs 5 and 4, then 3 and 2, then 1.
+  const pages = [[run(5), run(4)], [run(3), run(2)], [run(1)]];
   /** A reader over recorded runs: which are ancestors, which still hold a package. */
   const reader = (/** @type {Set<number>} */ ancestors, /** @type {Record<number, Record<string, number>>} */ packages) => ({
-    runs: async () => runs,
-    isAncestor: async (/** @type {string} */ sha) => ancestors.has(runs.find(r => r.sha === sha).id),
+    runs: async (/** @type {number} */ page) => pages[page - 1] ?? [],
+    isAncestor: async (/** @type {string} */ sha) => ancestors.has(Number(sha)),
     packageSizes: async (/** @type {number} */ id) => packages[id] ?? null,
   });
 
-  it('is the newest green master ancestor whose package still exists', async () => {
-    const base = await findBase(reader(new Set([2, 1]), { 1: fn170.base, 3: fn150.base }), 'head', []);
-    expect(base).toEqual({ label: 'aaaaaaaa (run/1)', sizes: fn170.base });
+  it('is the newest green master ancestor with its package, past the first page', async () => {
+    const base = await findBase(reader(new Set([3, 2, 1]), { 3: fn170.base, 2: fn150.base, 5: fn150.base }), 'head', []);
+    expect(base).toEqual({ label: `${'0'.repeat(8)} (run/3)`, sizes: fn170.base });
   });
 
-  it('is absent when no ancestor holds a package, so growth goes unchecked', async () => {
-    expect(await findBase(reader(new Set([2]), { 3: fn150.base }), 'head', [])).toBeNull();
+  it('is absent when the newest ancestor package expired or no run is an ancestor', async () => {
+    expect(await findBase(reader(new Set([2, 1]), { 1: fn170.base, 5: fn150.base }), 'head', [])).toBeNull();
+    expect(await findBase(reader(new Set(), { 5: fn150.base }), 'head', [])).toBeNull();
   });
 });

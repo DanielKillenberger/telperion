@@ -8,13 +8,83 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-178-the-size-check-stops-what-the-owner",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-178-the-size-check-stops-what-the-owner.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "8dbc1e740c3c4dd6f6a81271835f4a5abb05c4471c34c45ebd4da74139c8e0b4",
+      "backend": "codex",
+      "base_sha": "0bcf694ef7265356e3f945a3007156ca028533ec",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b980f3a339852fc3a4b77c98cb1dfc0b",
+            "classification": "introduced",
+            "findingId": "finding-b980f3a339852fc3a4b77c98cb1dfc0b",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-83cd7b15cb0ba20e79561117fe0b890e",
+            "classification": "introduced",
+            "findingId": "finding-83cd7b15cb0ba20e79561117fe0b890e",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3a61681caae21ea117f79c4f03c65a16",
+            "classification": "introduced",
+            "findingId": "finding-3a61681caae21ea117f79c4f03c65a16",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0e53eaa5cefa52655697e410441d2ca10d38fd7f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 2425,
+      "output_sha256": "ec830fb6f68e5812176264b76015d007a76c741fbb0874a07dbbdb0903515142",
+      "reservation_id": "275252fcc79a46aa80aaf870963aa1fa",
+      "round_consumed": true,
+      "scope": "impl:fn-178-the-size-check-stops-what-the-owner.1",
+      "superseded_by": null,
+      "task": "fn-178-the-size-check-stops-what-the-owner.1",
+      "timestamp": "2026-09-27T13:14:27.572575Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-178-the-size-check-stops-what-the-owner.1": 0
+  },
   "spec_path": ".flow/specs/fn-178-the-size-check-stops-what-the-owner.md",
   "status": "open",
   "title": "The size check stops what the owner would refuse",
@@ -29,5 +99,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T12:59:55.405554Z"
+  "updated_at": "2026-09-27T13:14:27.574789Z"
 }

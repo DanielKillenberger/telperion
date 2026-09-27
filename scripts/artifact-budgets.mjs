@@ -15,19 +15,19 @@ import { promisify } from 'node:util';
  * request: the base is the newest green master run of tests.yml whose
  * commit is an ancestor of the PR head and whose `package` artifact still
  * exists. With no such run the job warns that growth was not checked and
- * holds the ceilings alone.
+ * holds the ceilings alone; any other lookup failure fails the job.
  */
 const root = new URL('../', import.meta.url);
 const run = promisify(execFile);
 
 /**
  * @typedef {{ path: string, ceilingBytes: number, reason: string }} Artifact
- * @typedef {{ recipe: string, growthShare: number, artifacts: Artifact[] }} Budgets
+ * @typedef {{ recipe: string, growthPercent: number, artifacts: Artifact[] }} Budgets
  * @typedef {Record<string, number>} Sizes
  * @typedef {{ label: string, sizes: Sizes }} Base
  * @typedef {{ id: number, sha: string, url: string }} Run
  * @typedef {{
- *   runs(): Promise<Run[]>,
+ *   runs(page: number): Promise<Run[]>,
  *   isAncestor(sha: string, head: string): Promise<boolean>,
  *   packageSizes(runId: number, paths: string[]): Promise<Sizes | null>,
  * }} BaseReader
@@ -55,9 +55,9 @@ export function check(budgets, sizes, { base = null, declared = new Set() } = {}
     }
     const from = base?.sizes[path];
     if (from === undefined || declared.has(path)) continue;
-    const growth = size / from - 1;
-    if (growth > budgets.growthShare) {
-      fails.push(`${path}: ${size} bytes, +${percent(growth)} over ${from} on the base ${base?.label}, above the ${percent(budgets.growthShare)} growth share per PR; name ${basename(path)} in the PR's Decisions section, or shrink the artifact`);
+    // Integer bytes on both sides: exactly the share passes, one byte more fails.
+    if (100 * (size - from) > budgets.growthPercent * from) {
+      fails.push(`${path}: ${size} bytes, +${percent(size / from - 1)} over ${from} on the base ${base?.label}, above the ${budgets.growthPercent}% growth share per PR; name ${basename(path)} in the PR's Decisions section, or shrink the artifact`);
     }
   }
   return fails;
@@ -79,19 +79,24 @@ export function declaredGrowth(budgets, body) {
 
 /**
  * The newest green master run that is an ancestor of `head` and still holds
- * its package, measured; null when there is none.
+ * its package, measured; null when there is none. Runs come newest first, a
+ * page at a time. Artifacts expire by age, so the first ancestor whose
+ * package is gone ends the search: every older run's has expired too.
  * @param {BaseReader} reader
  * @param {string} head
  * @param {string[]} paths
  * @returns {Promise<Base | null>}
  */
 export async function findBase(reader, head, paths) {
-  for (const { id, sha, url } of await reader.runs()) {
-    if (!(await reader.isAncestor(sha, head))) continue;
-    const sizes = await reader.packageSizes(id, paths);
-    if (sizes) return { label: `${sha.slice(0, 8)} (${url})`, sizes };
+  for (let page = 1; ; page++) {
+    const runs = await reader.runs(page);
+    if (runs.length === 0) return null;
+    for (const { id, sha, url } of runs) {
+      if (!(await reader.isAncestor(sha, head))) continue;
+      const sizes = await reader.packageSizes(id, paths);
+      return sizes && { label: `${sha.slice(0, 8)} (${url})`, sizes };
+    }
   }
-  return null;
 }
 
 /**
@@ -102,8 +107,8 @@ export async function findBase(reader, head, paths) {
 export function githubReader(repo) {
   const gh = async (/** @type {string[]} */ ...args) => (await run('gh', args, { maxBuffer: 1 << 26 })).stdout.trim();
   return {
-    async runs() {
-      const rows = await gh('api', `repos/${repo}/actions/workflows/tests.yml/runs?branch=master&event=push&status=success&per_page=30`,
+    async runs(page) {
+      const rows = await gh('api', `repos/${repo}/actions/workflows/tests.yml/runs?branch=master&event=push&status=success&per_page=100&page=${page}`,
         '--jq', '.workflow_runs[] | [.id, .head_sha, .html_url] | @tsv');
       return rows.split('\n').filter(Boolean).map(row => {
         const [id, sha, url] = row.split('\t');
@@ -122,7 +127,7 @@ export function githubReader(repo) {
       try {
         await gh('run', 'download', String(runId), '-R', repo, '-n', 'package', '-D', dir);
         const tarball = (await readdir(dir)).find(f => f.endsWith('.tgz'));
-        if (!tarball) return null;
+        if (!tarball) throw new Error(`run ${runId}'s package artifact holds no tarball`);
         await run('tar', ['-xzf', join(dir, tarball), '-C', dir, 'package/dist']);
         return await measure(paths, join(dir, 'package'));
       } finally {
@@ -154,7 +159,8 @@ export async function budgets() {
 }
 
 /**
- * The PR's base and declarations, or null with the reason growth is not checked.
+ * The PR's base and declarations, or the reason growth is not checked. A
+ * failed lookup throws: only a base that does not exist skips the limit.
  * @param {Budgets} b
  */
 async function pullRequest(b) {
@@ -162,21 +168,19 @@ async function pullRequest(b) {
   if (GITHUB_EVENT_NAME !== 'pull_request' || !repo || !PR_NUMBER || !head) {
     return { skip: 'not a pull request run; the growth limit is checked on pull requests' };
   }
-  const reader = githubReader(repo);
-  try {
-    const base = await findBase(reader, head, b.artifacts.map(a => a.path));
-    if (!base) return { skip: `no green master run that is an ancestor of ${head} still holds its package artifact` };
-    const body = await run('gh', ['api', `repos/${repo}/pulls/${PR_NUMBER}`, '--jq', '.body // ""']);
-    return { base, declared: declaredGrowth(b, body.stdout) };
-  } catch (e) {
-    return { skip: `the base lookup failed: ${e instanceof Error ? e.message.split('\n')[0] : e}` };
-  }
+  const base = await findBase(githubReader(repo), head, b.artifacts.map(a => a.path));
+  if (!base) return { skip: `no green master run that is an ancestor of ${head} still holds its package artifact` };
+  const body = await run('gh', ['api', `repos/${repo}/pulls/${PR_NUMBER}`, '--jq', '.body // ""']);
+  return { base, declared: declaredGrowth(b, body.stdout) };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const b = await budgets();
   const sizes = await measure(b.artifacts.map(a => a.path), fileURLToPath(root));
-  const pr = await pullRequest(b);
+  const pr = await pullRequest(b).catch(e => {
+    console.error(`FAIL the base lookup failed, so the growth limit could not be checked; re-run the job: ${e instanceof Error ? e.message : e}`);
+    return process.exit(1);
+  });
   if ('skip' in pr) {
     console.log(`::warning title=Size growth not checked::${pr.skip}; the ceilings alone were enforced`);
   } else {
