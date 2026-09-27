@@ -61,3 +61,7 @@ The owner asked, before minting the other gaps, whether one thing fixes them mor
 ## Strategy Alignment
 
 - Serves "Growth and botanical fidelity": the reference's strong leaders and thin laterals become expressible by one parameter. [strategy:Growth and botanical fidelity]
+
+## Settled
+
+Closed as folded into fn-170 (2026-09-27, #131): its lateral share and the continuation roles it needed were built there as `lateralShare` and the codominant fork weight.

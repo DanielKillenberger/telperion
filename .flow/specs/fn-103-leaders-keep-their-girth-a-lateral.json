@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-103-leaders-keep-their-girth-a-lateral.md",
-  "status": "open",
+  "status": "done",
   "title": "Leaders keep their girth: a lateral share at forks",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-22T08:58:01.106463Z"
+  "updated_at": "2026-09-27T12:56:11.773803Z"
 }
