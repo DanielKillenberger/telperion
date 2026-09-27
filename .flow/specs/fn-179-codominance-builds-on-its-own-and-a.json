@@ -8,13 +8,245 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-179-codominance-builds-on-its-own-and-a",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-179-codominance-builds-on-its-own-and-a.1": 0
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "851e02fdcd503b6a22c5abcc7e8e6705d0d7af189116921153bf9c5dcaeafefe",
+      "backend": "codex",
+      "base_sha": "c990fc4566a5902f14bd191659c669961d2b82c4",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6c19bb3d882a9432b634909a16c99997",
+            "classification": "introduced",
+            "findingId": "finding-6c19bb3d882a9432b634909a16c99997",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c1f265de867b8bff437e718b0ad6e6f7",
+            "classification": "introduced",
+            "findingId": "finding-c1f265de867b8bff437e718b0ad6e6f7",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6bcdc32e1a3447fd348694d94beba2ef",
+            "classification": "introduced",
+            "findingId": "finding-6bcdc32e1a3447fd348694d94beba2ef",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d884d389cc6d227f7399fc0507938358",
+            "classification": "introduced",
+            "findingId": "finding-d884d389cc6d227f7399fc0507938358",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c37c70aaf2c5cd1ca145ffe627978ac5660b1af7",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 3760,
+      "output_sha256": "48e49c29223e0e45ff5da674b7ce2c19ed14f94ee969f027d3c8d0c65eb1a38e",
+      "reservation_id": "324ae4bbb75b45d9a93004fc8e317d1f",
+      "round_consumed": true,
+      "scope": "impl:fn-179-codominance-builds-on-its-own-and-a.1",
+      "superseded_by": null,
+      "task": "fn-179-codominance-builds-on-its-own-and-a.1",
+      "timestamp": "2026-09-27T16:42:05.169603Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "23b752d959ff141adaa8e92592cb14d09a475116cce9ef99d64b8b297d1bc80e",
+      "backend": "codex",
+      "base_sha": "c990fc4566a5902f14bd191659c669961d2b82c4",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6c19bb3d882a9432b634909a16c99997",
+            "classification": "introduced",
+            "findingId": "finding-6c19bb3d882a9432b634909a16c99997",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c1f265de867b8bff437e718b0ad6e6f7",
+            "classification": "introduced",
+            "findingId": "finding-c1f265de867b8bff437e718b0ad6e6f7",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6bcdc32e1a3447fd348694d94beba2ef",
+            "classification": "introduced",
+            "findingId": "finding-6bcdc32e1a3447fd348694d94beba2ef",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-d884d389cc6d227f7399fc0507938358",
+            "classification": "introduced",
+            "findingId": "finding-d884d389cc6d227f7399fc0507938358",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6ccd2867f9dd4c4e6720f27fcc5c1459",
+            "classification": "introduced",
+            "findingId": "finding-6ccd2867f9dd4c4e6720f27fcc5c1459",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e9e2db1334cc7923bad1e7f062daf2655b53a560",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1834,
+      "output_sha256": "a2290cb8630cb9846996b142817a5489f8169aa59b989577609218a6973e30cf",
+      "reservation_id": "88918b2c6b214912a5dad307763a5424",
+      "round_consumed": true,
+      "scope": "impl:fn-179-codominance-builds-on-its-own-and-a.1",
+      "superseded_by": null,
+      "task": "fn-179-codominance-builds-on-its-own-and-a.1",
+      "timestamp": "2026-09-27T16:43:39.718553Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "b2c989bddebe2d9df1449f208416592b29d03a66c34dafca9737286032a8beac",
+      "backend": "codex",
+      "base_sha": "c990fc4566a5902f14bd191659c669961d2b82c4",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6c19bb3d882a9432b634909a16c99997",
+            "classification": "introduced",
+            "findingId": "finding-6c19bb3d882a9432b634909a16c99997",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c1f265de867b8bff437e718b0ad6e6f7",
+            "classification": "introduced",
+            "findingId": "finding-c1f265de867b8bff437e718b0ad6e6f7",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6bcdc32e1a3447fd348694d94beba2ef",
+            "classification": "introduced",
+            "findingId": "finding-6bcdc32e1a3447fd348694d94beba2ef",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d884d389cc6d227f7399fc0507938358",
+            "classification": "introduced",
+            "findingId": "finding-d884d389cc6d227f7399fc0507938358",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6ccd2867f9dd4c4e6720f27fcc5c1459",
+            "classification": "introduced",
+            "findingId": "finding-6ccd2867f9dd4c4e6720f27fcc5c1459",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "43add1dbec4a68314ec4eb1df6947598f54eb74f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 951,
+      "output_sha256": "357dd0250c9e5eadcb7f9d1cfa5864d3ead7a35b9687491fce3155703d71462c",
+      "reservation_id": "3b3d8368711946f09c7ed03a92609349",
+      "round_consumed": true,
+      "scope": "impl:fn-179-codominance-builds-on-its-own-and-a.1",
+      "superseded_by": null,
+      "task": "fn-179-codominance-builds-on-its-own-and-a.1",
+      "timestamp": "2026-09-27T16:56:16.582701Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-179-codominance-builds-on-its-own-and-a.1": 2
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-179-codominance-builds-on-its-own-and-a.1": 0
+  },
   "spec_path": ".flow/specs/fn-179-codominance-builds-on-its-own-and-a.md",
   "status": "open",
   "title": "Codominance builds on its own and a refused bundle is split",
@@ -29,5 +261,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T16:02:14.065706Z"
+  "updated_at": "2026-09-27T16:56:16.585693Z"
 }
