@@ -14,9 +14,56 @@
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
-  "ready": false,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-27T10:43:08.182715Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "56e81c500336ccfba755efb8c946f61bc966df5c0c2c721bc9ee2a656e595eda",
+      "backend": "codex",
+      "base_sha": "00bdc474be6a5782e18e20bcbdd30b6a6641af63",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "00bdc474be6a5782e18e20bcbdd30b6a6641af63",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 126632,
+      "output_sha256": "5ff4ccd8f2cf1913e948f43124ab47f68f506b91b10b13f49d37c6d396e05bd0",
+      "reservation_id": "6b97dd147052415891eefa1927d12eb0",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T10:43:08.177727Z",
+      "tool_calls": 15,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-126-the-cpu-reference-cull-and-placement.md",
   "status": "open",
   "title": "The CPU reference cull and placement, fast",
@@ -31,5 +78,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T10:00:45.540056Z"
+  "updated_at": "2026-09-27T10:43:08.184741Z"
 }

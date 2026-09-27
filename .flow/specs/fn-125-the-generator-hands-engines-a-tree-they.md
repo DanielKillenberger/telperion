@@ -12,6 +12,7 @@
 > user (2026-09-24): "we need to ratify this in strategy [...] One streamlined pipeline that's efficient and clean." (STRATEGY.md amended the same day)
 > user (2026-09-27, on the palm leaf-base cell carried per shaped run and the reference executor grown out of `pipeline::executor`): "ok that seems good."
 > user (2026-09-27, on the master baseline, choosing option 1 for the speed target): "1 is good"
+> user (2026-09-27, on dropping R7's order-key pass clause after fn-91 task 10's reverted attempt): "Drop it"
 
 ## Goal & Context
 
@@ -111,7 +112,7 @@ On master these duplicates run only on the fallback branches. The oak's and spru
   - Each item-G overlap is measured on its own.
 - **R5:** The shaders live in the core's `gpu` module. The renderer consumes them with no copy of its own. A test translates them through naga to HLSL and SPIR-V without error. `telperion-core` and `telperion-field` gain no wgpu dependency. [inferred]
 - **R6:** The owner's visual verdict is recorded for the oak, spruce, birch and Telperion, and for the beech and date palm where their output changed. [user]
-- **R7:** Speed, measured by `BASELINE.md`'s method (native `generation_gpu`, `gpu-render`, warm medians at seeds 1 and 7) on the base and the candidate. The oak's and spruce's stage-3 CPU preparation (position prepare plus descriptors) is no slower than the base, and the redundant order-key sampling pass in wood compaction is gone. The beech, Telperion, Laurelin and date palm record base and candidate preparation totals with their stage split, since they leave the CPU fallback here. The harness's browser `setTreeGpu` completed-frame medians for the oak and spruce are recorded and no slower. Errors: a median regression above 5% on any fixture stops the build with `NEEDS_HUMAN` and the profile. [paraphrase]
+- **R7:** Speed, measured by `BASELINE.md`'s method (native `generation_gpu`, `gpu-render`, warm medians at seeds 1 and 7) on the base and the candidate. The oak's and spruce's stage-3 CPU preparation (position prepare plus descriptors) is no slower than the base. (The clause requiring the order-key sampling pass removed was dropped 2026-09-27: fn-91 task 10 measured that removal under 5% and reverted it, `radius-order/REPORT.md`.) The beech, Telperion, Laurelin and date palm record base and candidate preparation totals with their stage split, since they leave the CPU fallback here. The harness's browser `setTreeGpu` completed-frame medians for the oak and spruce are recorded and no slower. "No slower" means a median within 5% of the base, the measurement tolerance of five warm runs on one machine; a median 0 to 5% slower passes and is reported with its numbers. Errors: a median regression above 5% on any fixture stops the build with `NEEDS_HUMAN` and the profile. [paraphrase]
 - **R8:** The palm's shaped leaf-base runs build through the GPU ring pass from their per-run cell record, and the GPU and reference agree within the tolerance on the date palm at seeds 1 and 7; no `shaped` or lobe gate remains, and every round preset's wood bytes are unchanged. Errors: a cell record on a run with no section, or a malformed cell, is a named error with a red/green test. [paraphrase]
 - **R9:** `docs/pipeline.md` describes `pipeline::executor` as the reference executor and the GPU as the second executor with no fallback; the words "sanctioned exception" and "falls back" no longer describe the GPU executor. Errors: no error surface beyond R2. [inferred]
 
@@ -129,6 +130,7 @@ On master these duplicates run only on the fallback branches. The oak's and spru
 - fn-126 speeds up this spec's CPU reference executor once it lands, and depends on this spec. [user]
 - Depends on fn-102 and fn-134, both merged. [inferred]
 - Speed target rescoped 2026-09-27 (R7 over R4). The master baseline showed the oak's and spruce's stage-3 time is the compaction and station work itself, not duplication, so halving it would need ring sampling and frames on the GPU. That move is a separate performance spec, not this one; the large gains here are the trees that leave the CPU fallback. [user]
+- Maintainability (plan review): duplication - none identified beyond the explicitly accepted Rust/WGSL implementations; structure - none identified
 - The palm's leaf-base cell rides in the plan layout rather than as CPU-built vertices uploaded to the GPU; uploading ready vertices would be a second way to draw wood. [user]
 
 ## Resolved via Codebase
