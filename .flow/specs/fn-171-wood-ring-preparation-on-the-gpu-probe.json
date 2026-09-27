@@ -1,0 +1,133 @@
+{
+  "branch_name": "fn-171-wood-ring-preparation-on-the-gpu-probe",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-27T10:47:55.615504Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-125-the-generator-hands-engines-a-tree-they"
+  ],
+  "id": "fn-171-wood-ring-preparation-on-the-gpu-probe",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-27T10:50:40.538778Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "9061e03c0804a8eba9e402d26f3ac4b0dc0924767a159c71b7d37cf9ddf85c37",
+      "backend": "codex",
+      "base_sha": "9511a45af814452fe369ad53bed0a33eb80a2292",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-dbc72044ac06e86fc91f735b62523b65",
+            "classification": "introduced",
+            "findingId": "finding-dbc72044ac06e86fc91f735b62523b65",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9511a45af814452fe369ad53bed0a33eb80a2292",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 756480,
+      "output_sha256": "5a35b9f1624ec12ad8ce8674807da562742ab845b9cacb7f00b2b704c2992f62",
+      "reservation_id": "588f064ac40f4a3b8a9be5c408b93d9c",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T10:50:05.536162Z",
+      "tool_calls": 24,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "1b6300fa0bbdebb7be177c747d861974a69e0b4586427ba4fa427598659bfd61",
+      "backend": "codex",
+      "base_sha": "9511a45af814452fe369ad53bed0a33eb80a2292",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-dbc72044ac06e86fc91f735b62523b65",
+            "classification": "introduced",
+            "findingId": "finding-dbc72044ac06e86fc91f735b62523b65",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9511a45af814452fe369ad53bed0a33eb80a2292",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 718,
+      "output_sha256": "974436ef58a96b14838b330e5f2fd795842836c9b6886657ec345054d99a027f",
+      "reservation_id": "e5689d51c71240afb1fd3bf785810c4c",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T10:50:40.536605Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-171-wood-ring-preparation-on-the-gpu-probe.md",
+  "status": "open",
+  "title": "Wood ring preparation on the GPU, probe first",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-27T10:50:40.539434Z"
+}
