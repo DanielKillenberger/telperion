@@ -164,12 +164,16 @@ pub fn measure(
         // A codominant sibling carries its parent's order on as an axis of its
         // own; of the rest the thickest carries the parent's axis on.
         let sibling = |i: usize| tree.nodes[i].codominant.is_some();
-        let dominant = kids.iter().copied().filter(|&i| !sibling(i)).max_by(|a, b| {
-            tree.nodes[*a]
-                .start_radius
-                .total_cmp(&tree.nodes[*b].start_radius)
-                .then_with(|| b.cmp(a))
-        });
+        let dominant = kids
+            .iter()
+            .copied()
+            .filter(|&i| !sibling(i))
+            .max_by(|a, b| {
+                tree.nodes[*a]
+                    .start_radius
+                    .total_cmp(&tree.nodes[*b].start_radius)
+                    .then_with(|| b.cmp(a))
+            });
         for &i in kids {
             let lateral = Some(i) != dominant && !sibling(i);
             order[i] = order[p] + usize::from(lateral);

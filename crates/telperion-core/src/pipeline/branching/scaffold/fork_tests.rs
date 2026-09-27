@@ -63,7 +63,10 @@ fn the_rate_grows_each_fork_in_and_never_takes_one_away() {
             .collect()
     };
     assert!(weights(0.0).iter().all(|&w| w == 0.0));
-    assert!(weights(1.0).iter().all(|&w| w == 1.0), "a rate of one forks every tree whole");
+    assert!(
+        weights(1.0).iter().all(|&w| w == 1.0),
+        "a rate of one forks every tree whole"
+    );
     let mut was = weights(0.0);
     for step in 1..=400 {
         let now = weights(f64::from(step) / 400.0);
@@ -93,8 +96,8 @@ fn every_slot_stands_where_it_stood_whatever_the_ways() {
     assert!((turn - 70f64.to_radians()).abs() < 1e-12);
     // Every sibling leans by the whole lean, the primary by what the spread
     // leaves it of it.
-    for k in 1..4 {
-        assert!((tilt(two[k]) - 25.0).abs() < 1e-9);
+    for sibling in &two[1..] {
+        assert!((tilt(*sibling) - 25.0).abs() < 1e-9);
     }
     assert!((tilt(two[0]) - 25.0 * 0.6).abs() < 1e-9);
 }

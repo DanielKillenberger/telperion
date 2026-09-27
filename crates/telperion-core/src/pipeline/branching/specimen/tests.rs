@@ -143,7 +143,10 @@ fn scaffold_resume_preserves_each_axis_stream_and_spent_attractors() {
             bytes(sliced.tree()) == bytes(full.tree()),
             "resumed scaffold differs byte-for-byte"
         );
-        assert!(bytes(again.tree()) == bytes(full.tree()), "a repeat run differs");
+        assert!(
+            bytes(again.tree()) == bytes(full.tree()),
+            "a repeat run differs"
+        );
     }
 }
 

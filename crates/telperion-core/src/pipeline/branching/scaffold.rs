@@ -89,7 +89,11 @@ fn frame(heading: Vec3) -> (Vec3, Vec3, Option<Vec3>) {
     let side = heading.perpendicular();
     let across = heading.cross(side);
     let up = Vec3::Y - heading * heading.y;
-    (side, across, (up.length_squared() > 1e-12).then(|| up.normalized()))
+    (
+        side,
+        across,
+        (up.length_squared() > 1e-12).then(|| up.normalized()),
+    )
 }
 struct Builder<'a> {
     tree: &'a mut Tree,
@@ -486,7 +490,7 @@ mod frontier;
 mod limit_tests;
 #[cfg(test)]
 mod troll_tests;
+pub(super) use fork::placed as forks_placed;
 #[cfg(test)]
 pub(super) use frontier::generate;
 pub(super) use frontier::Frontier;
-pub(super) use fork::placed as forks_placed;

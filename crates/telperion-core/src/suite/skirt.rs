@@ -45,7 +45,10 @@ fn bare(f: &Family) -> Family {
 #[test]
 fn the_skirt_hangs_its_count_of_withered_fronds_after_the_living_crown() {
     let f = palm();
-    assert_eq!(f.skeleton.habit.codominance, 0.0, "one stem, one crown, one skirt");
+    assert_eq!(
+        f.skeleton.habit.codominance, 0.0,
+        "one stem, one crown, one skirt"
+    );
     let (_, living) = placed(&bare(&f));
     let (_, crown) = placed(&f);
     let per = f.canopy.leaflet_count as usize;

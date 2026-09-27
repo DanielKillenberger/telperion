@@ -49,9 +49,9 @@ pub(crate) fn decode(v: &Value) -> Result<Family> {
         let map = v.as_object().ok_or(Error::InvalidInput("family object"))?;
         for (k, value) in map {
             let path = format!("{at}/{k}");
-            let s = schema.get(k).ok_or_else(|| {
-                Error::InvalidInput(catalogue::retired(&path).unwrap_or(unknown))
-            })?;
+            let s = schema
+                .get(k)
+                .ok_or_else(|| Error::InvalidInput(catalogue::retired(&path).unwrap_or(unknown)))?;
             if s.is_object() {
                 known(
                     value,

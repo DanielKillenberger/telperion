@@ -82,10 +82,7 @@ fn the_bases_carry_the_crowns_own_spiral_down_the_trunk() {
     f.skeleton.bias = BiasParams::NONE;
     let tree = mesh::grow(&f).expect("the skeleton grows");
     let table: Vec<LeafBase> = branching::leaf_bases(&tree, &f.canopy);
-    assert_eq!(
-        table.len(),
-        stems(&f) * f.canopy.leaf_bases as usize
-    );
+    assert_eq!(table.len(), stems(&f) * f.canopy.leaf_bases as usize);
     let (_, axis) = apices(&tree)[0];
     let (normal, binormal) = foliage::frame(axis);
     for (k, base) in table.iter().enumerate() {

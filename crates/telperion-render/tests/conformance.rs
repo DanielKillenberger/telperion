@@ -45,6 +45,11 @@ fn compact(family: &mut Value) {
     // field alone and the sample this test draws is decided by it rather than
     // by the render path it means to exercise.
     family["material"]["furrowStrength"] = json!(0.5);
+    // fn-170's fork parts sit on the bottom of their rail and its two wood
+    // shares on the top of theirs, on every shipped row.
+    family["skeleton"]["habit"]["forkWays"] = json!(2.5);
+    family["radii"]["lateralShare"] = json!(0.8);
+    family["radii"]["forkBalance"] = json!(0.8);
 }
 
 /// Scales every number in the family by a factor near one. A whole number

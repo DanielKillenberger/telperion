@@ -143,9 +143,9 @@ pub fn solve(tree: &mut Tree, envelope: Envelope, params: RadiusParams) -> Resul
     // summed in, so a neutral share divides the wood to the bit as it did.
     let mut first = vec![usize::MAX; count];
     let mut next = vec![usize::MAX; count];
-    for i in 1..count {
+    for (i, later) in next.iter_mut().enumerate().skip(1) {
         let parent = tree.nodes[i].parent.unwrap() as usize;
-        next[i] = first[parent];
+        *later = first[parent];
         first[parent] = i;
     }
     let children = |i: usize| {

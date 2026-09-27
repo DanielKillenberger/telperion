@@ -248,7 +248,10 @@ fn siblings_part_from_their_forks(tree: &Tree) -> usize {
                 nodes.get(at + 2).copied()
             });
         if let Some(on) = through {
-            assert!(tree.nodes[on].codominant.is_none(), "fork {fork} runs on a sibling");
+            assert!(
+                tree.nodes[on].codominant.is_none(),
+                "fork {fork} runs on a sibling"
+            );
         }
         seen += 1;
     }
@@ -275,7 +278,10 @@ fn every_fork_parts_its_siblings_three_four_and_part_way_in_the_trunk_and_crown(
     // primary leaves the fork on its own run.
     for ways in [3.0, 4.0, 3.5] {
         let tree = grow(ways, 0.12, 0.0, 1.0);
-        assert_eq!(siblings_part_from_their_forks(&tree), ways.ceil() as usize - 1);
+        assert_eq!(
+            siblings_part_from_their_forks(&tree),
+            ways.ceil() as usize - 1
+        );
     }
     // Forks over the crown part the same way, limbs as well as the trunk.
     let tree = grow(2.5, 0.55, 0.25, 0.7);

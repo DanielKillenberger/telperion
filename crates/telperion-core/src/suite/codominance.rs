@@ -6,8 +6,8 @@
 //! No device is needed; this is the core's own arithmetic.
 use super::specimens;
 use telperion_core::{
-    blend, branching, params, presets::Family, presets::Preset, presets::values,
-    tree::NodeKind, tree::Tree, Error,
+    blend, branching, params, presets::values, presets::Family, presets::Preset, tree::NodeKind,
+    tree::Tree, Error,
 };
 
 /// Every shipped table, so neutrality is asserted on all of them at once.
@@ -65,8 +65,7 @@ fn grow(family: &Family) -> Tree {
 fn siblings(tree: &Tree) -> Vec<usize> {
     (1..tree.nodes.len())
         .filter(|&i| {
-            tree.nodes[i].kind == NodeKind::Structural
-                && tree.nodes[i].codominant.is_some()
+            tree.nodes[i].kind == NodeKind::Structural && tree.nodes[i].codominant.is_some()
         })
         .collect()
 }
@@ -98,7 +97,11 @@ fn at_rate_zero_no_table_forks_whatever_the_other_rows_say() {
             f.skeleton.habit.fork_lean_spread = 0.5;
             f.radii.fork_balance = 0.5;
         });
-        assert_eq!(bytes(&dialled), bytes(&still), "{preset:?} moved at rate zero");
+        assert_eq!(
+            bytes(&dialled),
+            bytes(&still),
+            "{preset:?} moved at rate zero"
+        );
         assert!(siblings(&grow(&dialled)).is_empty(), "{preset:?} forked");
     }
 }
@@ -107,13 +110,41 @@ fn at_rate_zero_no_table_forks_whatever_the_other_rows_say() {
 fn each_rail_is_refused_by_the_name_of_its_row() {
     type Set = fn(&mut Family, f64);
     let rows: [(&str, Set, [f64; 2]); 7] = [
-        ("codominance", |f, v| f.skeleton.habit.codominance = v, [-0.01, 1.01]),
-        ("fork height", |f, v| f.skeleton.habit.fork_height = v, [-0.01, 1.01]),
-        ("fork height spread", |f, v| f.skeleton.habit.fork_height_spread = v, [-0.01, 1.01]),
-        ("fork ways", |f, v| f.skeleton.habit.fork_ways = v, [1.99, 4.01]),
-        ("fork divergence", |f, v| f.skeleton.habit.fork_divergence = v, [-1.0, 120.5]),
-        ("fork lean", |f, v| f.skeleton.habit.fork_lean = v, [-1.0, 45.5]),
-        ("fork lean spread", |f, v| f.skeleton.habit.fork_lean_spread = v, [-0.01, 1.01]),
+        (
+            "codominance",
+            |f, v| f.skeleton.habit.codominance = v,
+            [-0.01, 1.01],
+        ),
+        (
+            "fork height",
+            |f, v| f.skeleton.habit.fork_height = v,
+            [-0.01, 1.01],
+        ),
+        (
+            "fork height spread",
+            |f, v| f.skeleton.habit.fork_height_spread = v,
+            [-0.01, 1.01],
+        ),
+        (
+            "fork ways",
+            |f, v| f.skeleton.habit.fork_ways = v,
+            [1.99, 4.01],
+        ),
+        (
+            "fork divergence",
+            |f, v| f.skeleton.habit.fork_divergence = v,
+            [-1.0, 120.5],
+        ),
+        (
+            "fork lean",
+            |f, v| f.skeleton.habit.fork_lean = v,
+            [-1.0, 45.5],
+        ),
+        (
+            "fork lean spread",
+            |f, v| f.skeleton.habit.fork_lean_spread = v,
+            [-0.01, 1.01],
+        ),
     ];
     for (row, set, off) in rows {
         for value in off.into_iter().chain([f64::NAN]) {
@@ -255,7 +286,10 @@ fn the_walk_from_no_fork_to_a_clump_opens_it_rather_than_switching_it() {
         assert_eq!(skeletons[step], skeletons[0], "step {step} moved the oak");
     }
     for step in born + 1..STEPS {
-        assert!(apart[step] > apart[step - 1], "step {step} closed the clump");
+        assert!(
+            apart[step] > apart[step - 1],
+            "step {step} closed the clump"
+        );
     }
 }
 
@@ -279,8 +313,8 @@ fn walking_the_ways_from_two_to_three_grows_the_third_part_from_nothing() {
             // The run a stem is: its first node and the stem nodes above it.
             let mut length = tree.nodes[first].position.length();
             let mut at = first;
-            while let Some(next) =
-                (at + 1..tree.nodes.len()).find(|&k| tree.nodes[k].parent == Some(at as u32) && tree.nodes[k].stem)
+            while let Some(next) = (at + 1..tree.nodes.len())
+                .find(|&k| tree.nodes[k].parent == Some(at as u32) && tree.nodes[k].stem)
             {
                 length += tree.nodes[next].position.distance(tree.nodes[at].position);
                 at = next;
@@ -294,7 +328,10 @@ fn walking_the_ways_from_two_to_three_grows_the_third_part_from_nothing() {
     for ways in [2.25, 2.5, 2.75, 3.0] {
         let (parts, third) = wood(ways);
         assert_eq!(parts, 3, "{ways}");
-        assert!(third > was, "at {ways} the third part is {third} after {was}");
+        assert!(
+            third > was,
+            "at {ways} the third part is {third} after {was}"
+        );
         was = third;
     }
 }
@@ -313,7 +350,12 @@ fn across_a_seeds_point_on_the_rate_the_fork_grows_in_from_the_root() {
         let tree = grow(&f);
         (1..tree.nodes.len())
             .find(|&i| tree.nodes[i].parent == Some(0) && tree.nodes[i].codominant.is_some())
-            .map_or((0.0, 0.0), |i| (tree.nodes[i].codominant.unwrap(), tree.nodes[i].start_radius))
+            .map_or((0.0, 0.0), |i| {
+                (
+                    tree.nodes[i].codominant.unwrap(),
+                    tree.nodes[i].start_radius,
+                )
+            })
     };
     let onset = (1..=20)
         .map(|k| f64::from(k) * 0.05)
@@ -322,8 +364,14 @@ fn across_a_seeds_point_on_the_rate_the_fork_grows_in_from_the_root() {
     let mut was = (0.0, 0.0);
     for k in 0..=24 {
         let now = sibling((onset - 0.06 + f64::from(k) * 0.005).clamp(0.0, 1.0));
-        assert!(now.0 >= was.0 && now.0 - was.0 < 0.25, "weight {was:?} to {now:?}");
-        assert!(now.1 >= was.1 - 1e-12, "the sibling's wood shrank: {was:?} to {now:?}");
+        assert!(
+            now.0 >= was.0 && now.0 - was.0 < 0.25,
+            "weight {was:?} to {now:?}"
+        );
+        assert!(
+            now.1 >= was.1 - 1e-12,
+            "the sibling's wood shrank: {was:?} to {now:?}"
+        );
         was = now;
     }
     assert_eq!(was.0, 1.0, "the fork never grew in whole");

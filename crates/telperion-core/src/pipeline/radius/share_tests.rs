@@ -64,8 +64,13 @@ fn neutral_shares_are_the_pipe_model_to_the_bit() {
         let bits = |n: &Node| [n.radius.to_bits(), n.start_radius.to_bits()];
         t.nodes.iter().map(bits).collect()
     };
-    for mark in [lateral as fn(&mut Node), |n: &mut Node| n.codominant = Some(1.0)] {
-        assert_eq!(radii(&solved(fork(b, false, mark), 1.0, 1.0)), radii(&plain));
+    for mark in [lateral as fn(&mut Node), |n: &mut Node| {
+        n.codominant = Some(1.0)
+    }] {
+        assert_eq!(
+            radii(&solved(fork(b, false, mark), 1.0, 1.0)),
+            radii(&plain)
+        );
     }
     pipes_hold(&plain);
 }
@@ -104,9 +109,16 @@ fn a_codominant_sibling_leaves_within_the_balance() {
     let b = Vec3::new(-0.3, 6.0, 0.0);
     for balance in [1.0, 0.7, 0.4] {
         for weight in [1.0, 0.5, 1e-9] {
-            let t = solved(fork(b, false, |n| n.codominant = Some(weight)), 1.0, balance);
+            let t = solved(
+                fork(b, false, |n| n.codominant = Some(weight)),
+                1.0,
+                balance,
+            );
             let areas = (t.nodes[3].start_radius / t.nodes[2].start_radius).powf(E);
-            assert!((areas - balance * weight).abs() < 1e-12, "{balance} {weight}: {areas}");
+            assert!(
+                (areas - balance * weight).abs() < 1e-12,
+                "{balance} {weight}: {areas}"
+            );
             pipes_hold(&t);
             // No child leaves thicker than the wood it leaves.
             assert!(t.nodes[3].start_radius <= t.nodes[1].radius);
@@ -117,10 +129,34 @@ fn a_codominant_sibling_leaves_within_the_balance() {
 #[test]
 fn a_share_off_its_rail_is_refused_by_name() {
     for (field, p) in [
-        ("lateralShare", RadiusParams { lateral_share: 0.0, ..RadiusParams::default() }),
-        ("lateralShare", RadiusParams { lateral_share: 0.009, ..RadiusParams::default() }),
-        ("lateralShare", RadiusParams { lateral_share: 1.01, ..RadiusParams::default() }),
-        ("forkBalance", RadiusParams { fork_balance: f64::NAN, ..RadiusParams::default() }),
+        (
+            "lateralShare",
+            RadiusParams {
+                lateral_share: 0.0,
+                ..RadiusParams::default()
+            },
+        ),
+        (
+            "lateralShare",
+            RadiusParams {
+                lateral_share: 0.009,
+                ..RadiusParams::default()
+            },
+        ),
+        (
+            "lateralShare",
+            RadiusParams {
+                lateral_share: 1.01,
+                ..RadiusParams::default()
+            },
+        ),
+        (
+            "forkBalance",
+            RadiusParams {
+                fork_balance: f64::NAN,
+                ..RadiusParams::default()
+            },
+        ),
     ] {
         match p.resolved() {
             Err(Error::InvalidValue { field: named, .. }) => assert_eq!(named, field),
