@@ -4,10 +4,10 @@
   "artifacts": [
     {
       "path": "dist/telperion.wasm",
-      "maxBytes": 1397000,
-      "measuredBytes": 1330623,
-      "measuredOn": "npm telperion@0.1.4",
-      "decisions": "fn-151: the shipped 0.1.4 size plus 5%"
+      "maxBytes": 1481000,
+      "measuredBytes": 1410330,
+      "measuredOn": "fn-170 CI (PR #131)",
+      "decisions": "fn-170: the codominant fork rule and its node weight, measured plus 5 percent (master was 1395510 bytes)"
     },
     {
       "path": "dist/telperion-render.wasm",
@@ -18,10 +18,10 @@
     },
     {
       "path": "dist/telperion-field.wasm",
-      "maxBytes": 362000,
-      "measuredBytes": 344798,
-      "measuredOn": "npm telperion@0.1.4",
-      "decisions": "fn-151: the shipped 0.1.4 size plus 5%"
+      "maxBytes": 381000,
+      "measuredBytes": 363305,
+      "measuredOn": "fn-170 CI (PR #131)",
+      "decisions": "fn-170: the codominant fork rule and its node weight, measured plus 5 percent (master was 358698 bytes)"
     },
     {
       "path": "dist/telperion.js",
