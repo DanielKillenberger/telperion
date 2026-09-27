@@ -134,7 +134,7 @@
     "impl:fn-166-the-owner-looks-at-a-runs-kept-tree-in.1": 0
   },
   "spec_path": ".flow/specs/fn-166-the-owner-looks-at-a-runs-kept-tree-in.md",
-  "status": "open",
+  "status": "done",
   "title": "The owner looks at a run's kept tree in the harness",
   "tracker": {
     "baseHashFlow": null,
@@ -147,5 +147,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T15:38:30.011079Z"
+  "updated_at": "2026-09-27T21:09:56.678301Z"
 }
