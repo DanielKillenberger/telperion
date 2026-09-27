@@ -1,0 +1,69 @@
+{
+  "outcome": {
+    "preset": "european-beech",
+    "seed": 1,
+    "adoptions_kept": 1,
+    "owner_acceptance": "pending",
+    "current": {
+      "key": "01dcecedea269ede25280f21ceb45134f5e57b1243546f14bceba7ffa5a2433b",
+      "round": 2,
+      "label": "bundle@0.5",
+      "overrides": {
+        "canopy": {
+          "shortShootSpacing": 0.034999999999999996
+        },
+        "material": {
+          "barkBlue": 0.42500000000000004,
+          "barkGrainStrength": 0.22499999999999998,
+          "barkGreen": 0.37999999999999995,
+          "barkRed": 0.39999999999999997,
+          "barkReflectance": 0.11499999999999999,
+          "barkRoughness": 0.7,
+          "brightnessRangeHigh": 0.04,
+          "brightnessRangeLow": -0.04,
+          "canopyNormal": 0.7250000000000001,
+          "crownShade": 0.175,
+          "hueRangeHigh": 0.0075,
+          "hueRangeLow": -0.0075,
+          "interiorDarkening": 0.27499999999999997,
+          "leafBackBlue": 0.055,
+          "leafBackGreen": 0.195,
+          "leafBackRed": 0.1,
+          "leafFrontBlue": 0.055,
+          "leafFrontGreen": 0.195,
+          "leafFrontRed": 0.1,
+          "orientationStrength": 0.075,
+          "skyOcclusionStrength": 0.27499999999999997
+        },
+        "radii": {
+          "trunkRadius": 0.01875
+        },
+        "shellDepth": 0.925,
+        "skeleton": {
+          "envelope": {
+            "crownBase": 0.135,
+            "height": 40.0,
+            "irregularity": 0.22,
+            "shoulder": 2.05,
+            "spread": 0.211175
+          },
+          "habit": {
+            "apicalDominance": 0.7250000000000001,
+            "crookedness": 4.5,
+            "lateralLengthRatio": 0.725,
+            "lateralPitch": 38.0,
+            "risePrimary": 0.08750000000000001,
+            "riseSecondary": -0.125
+          },
+          "twigs": {
+            "hang": 0.25,
+            "maxDroop": 1.1,
+            "pendulousLength": 0.75,
+            "reach": 0.275,
+            "sag": 0.075
+          }
+        }
+      }
+    }
+  }
+}

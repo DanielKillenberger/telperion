@@ -61,3 +61,6 @@ __pycache__/
 /.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/**/*.csv
 /.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/**/*.sha256
 experiments/voxel-field/out/
+
+# Looks `species <id> --look` writes for the dev server; a run's, not the repo's.
+/harness/looks/
