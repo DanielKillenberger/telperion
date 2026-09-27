@@ -1,5 +1,5 @@
-//! Where a clump's stems part above the ground. The run through the fork
-//! carries on into the straighter stem and eases the trunk's girth into it
+//! Where a codominant fork parts the trunk above the ground. The run through
+//! the fork carries on into its primary and eases the trunk's girth into it
 //! over the fork's diameter; the other stem leaves from a socket in its side.
 //! A clump that parts at the ground, and a limb anywhere, are left alone.
 use super::{paths::paths, samples::sample_path, Sample, SurfaceParams};
@@ -13,8 +13,8 @@ use crate::{
 const STEP: f64 = 0.05;
 
 /// A trunk of 0.3 m to a fork a metre up, an upright stem of 0.18 m and a
-/// wider stem of 0.22 m leaning 30 degrees out of it: stems if `stems`, a
-/// trunk and two limbs if not.
+/// wider stem of 0.22 m leaning 30 degrees out of it: stems, the leaning one
+/// the fork's codominant sibling, if `stems`, a trunk and two limbs if not.
 fn clump(stems: bool) -> (Tree, usize) {
     let mut nodes = vec![Node {
         radius: 0.3,
@@ -41,8 +41,9 @@ fn clump(stems: bool) -> (Tree, usize) {
     };
     let fork = grow(0, Vec3::Y, 20, 0.3);
     let lean = 30_f64.to_radians();
-    grow(fork, Vec3::Y, 24, 0.18);
+    let leaning = grow(fork, Vec3::Y, 24, 0.18) + 1;
     grow(fork, Vec3::new(lean.sin(), lean.cos(), 0.0), 24, 0.22);
+    nodes[leaning].codominant = stems.then_some(1.0);
     let tree = Tree {
         crossover: nodes.len(),
         nodes,
@@ -93,7 +94,7 @@ fn sweep(tree: &Tree, params: &SurfaceParams) -> Vec<(bool, Vec<usize>, Vec<Samp
 }
 
 #[test]
-fn the_trunk_carries_on_into_the_straighter_stem_not_the_wider() {
+fn the_trunk_carries_on_into_the_primary_not_the_wider_sibling() {
     let (tree, fork) = clump(true);
     let runs = sweep(&tree, &plain());
     let (_, trunk, _) = runs.iter().find(|(trunk, ..)| *trunk).unwrap();
@@ -151,10 +152,10 @@ fn the_trunks_girth_eases_into_the_stem_over_the_forks_diameter() {
 fn grown(fork: f64) -> (Family, Tree) {
     let mut f = Preset::OregonWhiteOak.parameters();
     f.skeleton.seed = 7;
-    f.skeleton.habit.stems = 2;
-    f.skeleton.habit.stem_lean = 24.0;
-    f.skeleton.habit.stem_lean_spread = 1.0;
-    f.skeleton.habit.stem_fork_height = fork;
+    f.skeleton.habit.codominance = 1.0;
+    f.skeleton.habit.fork_height = fork * f.skeleton.envelope.crown_base;
+    f.skeleton.habit.fork_lean = 24.0;
+    f.skeleton.habit.fork_lean_spread = 1.0;
     f.skeleton.growth.max_nodes = Some(8_000);
     let tree = crate::pipeline::branching::generate(&f.skeleton, f.radii)
         .unwrap()
@@ -217,4 +218,73 @@ fn a_clump_that_parts_at_the_ground_sweeps_as_it_did_without_the_flag() {
         super::build(&tree, height, &f.surface).unwrap(),
         super::build(&limbs, height, &f.surface).unwrap()
     );
+}
+
+/// Every codominant sibling of a grown tree leaves its fork as a run of its
+/// own, from a socket unless the fork is the root, and the run through the
+/// fork carries on into wood that is no sibling.
+fn siblings_part_from_their_forks(tree: &Tree) -> usize {
+    let paths = paths(&tree.nodes).unwrap();
+    let mut seen = 0;
+    for (i, n) in tree.nodes.iter().enumerate() {
+        if n.codominant.is_none() {
+            continue;
+        }
+        let fork = n.parent.unwrap() as usize;
+        let run = paths
+            .runs
+            .iter()
+            .find(|r| paths.nodes[r.start + 1] == i)
+            .unwrap_or_else(|| panic!("sibling {i} carries on another run"));
+        assert_eq!(paths.nodes[run.start], fork, "sibling {i} leaves elsewhere");
+        assert_eq!(run.trunk, fork == 0, "sibling {i} at {fork}");
+        assert_eq!(paths.forks[fork], fork != 0, "fork {fork} not recognised");
+        let through = paths
+            .runs
+            .iter()
+            .map(|r| &paths.nodes[r.start..r.end])
+            .find_map(|nodes| {
+                let at = nodes[1..].iter().position(|&k| k == fork)?;
+                nodes.get(at + 2).copied()
+            });
+        if let Some(on) = through {
+            assert!(
+                tree.nodes[on].codominant.is_none(),
+                "fork {fork} runs on a sibling"
+            );
+        }
+        seen += 1;
+    }
+    seen
+}
+
+#[test]
+fn every_fork_parts_its_siblings_three_four_and_part_way_in_the_trunk_and_crown() {
+    let grow = |ways: f64, height: f64, spread: f64, rate: f64| {
+        let mut f = Preset::OregonWhiteOak.parameters();
+        f.skeleton.seed = 7;
+        f.skeleton.habit.codominance = rate;
+        f.skeleton.habit.fork_height = height;
+        f.skeleton.habit.fork_height_spread = spread;
+        f.skeleton.habit.fork_ways = ways;
+        f.skeleton.habit.fork_divergence = 95.0;
+        f.skeleton.habit.fork_lean = 22.0;
+        f.skeleton.growth.max_nodes = Some(8_000);
+        crate::pipeline::branching::generate(&f.skeleton, f.radii)
+            .unwrap()
+            .tree
+    };
+    // Three, four and three and a half ways on the trunk: every part but the
+    // primary leaves the fork on its own run.
+    for ways in [3.0, 4.0, 3.5] {
+        let tree = grow(ways, 0.12, 0.0, 1.0);
+        assert_eq!(
+            siblings_part_from_their_forks(&tree),
+            ways.ceil() as usize - 1
+        );
+    }
+    // Forks over the crown part the same way, limbs as well as the trunk.
+    let tree = grow(2.5, 0.55, 0.25, 0.7);
+    assert!(siblings_part_from_their_forks(&tree) > 1);
+    assert!(tree.nodes.iter().any(|n| n.codominant.is_some() && !n.stem));
 }

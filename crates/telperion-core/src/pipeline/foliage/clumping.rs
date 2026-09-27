@@ -14,12 +14,14 @@ use crate::{
 };
 
 /// The system every node belongs to, named by the node its system starts at.
-/// At a scaffold fork the thickest child carries its parent's axis on and
-/// every other child opens a lateral one, an order deeper; a lateral of order
-/// at or below the authored maximum starts a system, as does a root stem. Every
-/// other node, and all the wood the local layer grew, is its parent's. The
-/// rule reads only the solved radii, so a tree rebuilt from its record for
-/// the growth view falls into the same systems as the one it was grown as.
+/// At a scaffold fork a codominant sibling, as the node records it, opens an
+/// axis of its parent's order; of the other children the thickest carries its
+/// parent's axis on and every other opens a lateral one, an order deeper. A
+/// lateral or a sibling of order at or below the authored maximum starts a
+/// system, as does a root stem. Every other node, and all the wood the local
+/// layer grew, is its parent's. The rule reads only the recorded mark and the
+/// solved radii, so a tree rebuilt from its record for the growth view falls
+/// into the same systems as the one it was grown as.
 pub(crate) fn systems(tree: &Tree, max_order: u32) -> Vec<u32> {
     let structural = |i: usize| tree.nodes[i].kind == NodeKind::Structural;
     let mut carrier = vec![u32::MAX; tree.nodes.len()];
@@ -27,7 +29,7 @@ pub(crate) fn systems(tree: &Tree, max_order: u32) -> Vec<u32> {
         let Some(parent) = n.parent.map(|p| p as usize) else {
             continue;
         };
-        if !structural(i) {
+        if !structural(i) || n.codominant.is_some() {
             continue;
         }
         let best = carrier[parent];
@@ -40,8 +42,9 @@ pub(crate) fn systems(tree: &Tree, max_order: u32) -> Vec<u32> {
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
         let parent = n.parent.map_or(0, |p| p as usize);
         let stem = parent == 0;
+        let sibling = n.codominant.is_some();
         let opens = structural(i) && (stem || carrier[parent] != i as u32);
-        order[i] = order[parent] + u32::from(opens && !stem);
+        order[i] = order[parent] + u32::from(opens && !stem && !sibling);
         system[i] = if opens && order[i] <= max_order {
             i as u32
         } else {
@@ -288,6 +291,43 @@ mod tests {
         assert_eq!(system[7], 5);
         assert_eq!(systems(&tree, 3)[7], 7);
         assert_eq!(systems(&tree, 0)[7], 1);
+    }
+
+    #[test]
+    fn a_codominant_sibling_opens_a_system_of_its_parents_order() {
+        use crate::tree::Node;
+        // A trunk forking into a primary and a thicker codominant sibling;
+        // each bears a limb. The sibling is read by its mark, not its girth:
+        // the primary still carries the trunk on, and the sibling's limb is
+        // order one like the primary's.
+        let node = |parent: u32, x: f64, y: f64, r: f64| Node {
+            parent: Some(parent),
+            position: Vec3::new(x, y, 0.0),
+            radius: r,
+            start_radius: r,
+            ..Node::root()
+        };
+        let mut nodes = vec![
+            Node::root(),
+            node(0, 0.0, 1.0, 1.0),
+            node(1, 0.0, 2.0, 0.5),
+            node(1, 1.0, 2.0, 0.8),
+            node(2, 0.0, 3.0, 0.45),
+            node(2, -1.0, 3.0, 0.2),
+            node(3, 1.0, 3.0, 0.7),
+            node(3, 2.0, 3.0, 0.2),
+        ];
+        nodes[3].codominant = Some(1.0);
+        let tree = Tree {
+            crossover: nodes.len(),
+            nodes,
+            ..Tree::default()
+        };
+        let system = systems(&tree, 1);
+        assert_eq!(system[2..], [1, 3, 1, 5, 3, 7], "{system:?}");
+        // The sibling's limb is order one, as the primary's is.
+        assert_eq!(systems(&tree, 0)[7], 3);
+        assert_eq!(systems(&tree, 0)[5], 1);
     }
 
     #[test]

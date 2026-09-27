@@ -342,34 +342,52 @@
     "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold/frontier.rs",
-    "site": "while budget > 0 & & ! b . tree . diagnostics . node_capped {",
+    "path": "crates/telperion-core/src/pipeline/branching/scaffold.rs",
+    "site": ". max ( 0 . 0 )",
+    "classification": "algorithm",
+    "reason": "Nonnegative length/radius/radicand domain; negative geometric magnitude has no physical representation."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A fork height is a share of the tree's height, between its root and its top by definition."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
+    "site": "if habit . codominance < = 0 . 0 {",
     "classification": "parameter",
-    "reason": "Progress is bounded by the caller's work budget, authored lifetime, or remaining work, not a hidden population limit."
+    "reason": "At a codominance of zero no axis forks: the row's own dormant value, not a limit on the tree."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold/stems.rs",
-    "site": ". max ( 1 )",
-    "classification": "algorithm",
-    "reason": "Nonempty discretization requires at least one interval or station; the upper size remains parameter-derived."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold/stems.rs",
-    "site": "if fork < = 0 . 0 {",
-    "classification": "algorithm",
-    "reason": "Zero-length or outside-shell scaffold segments are omitted according to authored geometry."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold/stems.rs",
+    "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
     "site": "if params . envelope . height < = 0 . 0 | | top < = 0 . 0 {",
     "classification": "algorithm",
     "reason": "Zero-length or outside-shell scaffold segments are omitted according to authored geometry."
   },
   {
-    "path": "crates/telperion-core/src/pipeline/branching/scaffold/stems.rs",
-    "site": "if stems . len ( ) < 2 {",
+    "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
+    "site": "if s < = 1e - 12 {",
+    "classification": "numeric",
+    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
     "classification": "algorithm",
-    "reason": "An edge or fork requires at least two endpoints/stems; empty/root-only topology has no segment to process."
+    "reason": "Unit progress or blend weight saturates at its endpoint; the authored length and population remain independent."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
+    "site": "if s < = 1e - 15 {",
+    "classification": "numeric",
+    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/branching/scaffold/frontier.rs",
+    "site": "while budget > 0 & & ! b . tree . diagnostics . node_capped {",
+    "classification": "parameter",
+    "reason": "Progress is bounded by the caller's work budget, authored lifetime, or remaining work, not a hidden population limit."
   },
   {
     "path": "crates/telperion-core/src/pipeline/branching/specimen.rs",

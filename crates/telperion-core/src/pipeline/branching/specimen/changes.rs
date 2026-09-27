@@ -14,6 +14,8 @@ pub struct RunNode {
     pub kind: NodeKind,
     /// Wood of a stem and not a limb, as the node carries it.
     pub stem: bool,
+    /// A codominant sibling's weight, as the node carries it.
+    pub codominant: Option<f64>,
 }
 
 impl PartialEq for RunNode {
@@ -23,6 +25,7 @@ impl PartialEq for RunNode {
             && self.parent == other.parent
             && self.kind == other.kind
             && self.stem == other.stem
+            && self.codominant.map(f64::to_bits) == other.codominant.map(f64::to_bits)
             && position(self.position) == position(other.position)
             && self.radii.map(f64::to_bits) == other.radii.map(f64::to_bits)
     }
@@ -88,6 +91,7 @@ pub(super) fn runs(
             radii: [n.radius, n.start_radius, n.base_radius],
             kind: n.kind,
             stem: n.stem,
+            codominant: n.codominant,
         });
     }
     for run in out.values_mut() {

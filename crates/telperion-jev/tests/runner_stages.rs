@@ -429,3 +429,41 @@ fn gaps_md_keeps_each_gap_to_a_readable_line() {
     let json: Value = serde_json::from_slice(&std::fs::read(json_path).unwrap()).unwrap();
     assert_eq!(json["gaps"][0]["evidence"].as_array().unwrap().len(), 50);
 }
+
+/// fn-170 R8: the recorded beech's assessment names fn-170 for its
+/// codominant V fork, and the gap classifier classes the fork identity
+/// against it while the limbs and the crown stay against fn-61.
+#[test]
+fn the_recorded_beech_classes_its_v_fork_against_fn_170() {
+    let assessment = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/replay/european-beech/seed/packet/capability.json");
+    let gate = json!({"body": {"capability": {
+        "required": ["woody-axes", "entire-blade", "alternate-petiole"],
+        "missing": [], "unrecognised": [],
+    }}});
+    let moved = json!([{"dial": "codominance", "direction": "up", "from": 0.0, "to": 0.4}]);
+    let failing = |id: &str| gap(id, "failing on the current tree", moved.clone(), true, true);
+    let tuned: EndResult = serde_json::from_value(result(
+        tree("k"),
+        json!([
+            failing("codominant-v-fork"),
+            failing("ascending-then-arching-limbs"),
+            failing("broad-domed-crown"),
+        ]),
+        json!([]),
+    ))
+    .unwrap();
+    let classed = gaps::classify(&gate, &assessment, &tuned).unwrap();
+    let class = |id: &str| {
+        let gap = classed.iter().find(|g| g.trait_id == id).unwrap();
+        (gap.kind, gap.specs.clone())
+    };
+    let against = |spec: &str| (Kind::Identity, vec![spec.to_string()]);
+    assert_eq!(
+        class("codominant-v-fork"),
+        against("fn-170-codominant-forks-one-rule-from-the")
+    );
+    let fn61 = against("fn-61-trolls-model-limbs-pitch-by-height-and");
+    assert_eq!(class("ascending-then-arching-limbs"), fn61);
+    assert_eq!(class("broad-domed-crown"), fn61);
+}

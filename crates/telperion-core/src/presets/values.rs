@@ -20,7 +20,10 @@ pub fn read(text: &str) -> Result<Family, String> {
                 value.apply(&mut f);
                 continue;
             }
-            Err(Refused::Unknown) => "is not a catalogue row",
+            Err(Refused::Unknown) => match catalogue::retired(path) {
+                Some(why) => return Err(format!("{at}: {why}")),
+                None => "is not a catalogue row",
+            },
             Err(Refused::Kind) => "holds another kind of value",
             Err(Refused::Bounds) => "is off its bounds",
         };

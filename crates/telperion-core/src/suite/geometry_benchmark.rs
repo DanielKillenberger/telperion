@@ -326,6 +326,13 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 "{path}/{key}"
             );
         }
+        // fn-170 divides wood at a fork by role. The frozen file predates the
+        // two shares and states neither; at one both are the pipe model the
+        // frozen protocol was measured on.
+        for key in ["lateralShare", "forkBalance"] {
+            let radii = emitted["radii"].as_object_mut().unwrap();
+            assert_eq!(radii.remove(key).unwrap().as_f64(), Some(1.0), "{key}");
+        }
         for key in ["element", "canopy", "radii", "surface"] {
             same_numbers(&emitted[key], &given[key]);
         }

@@ -3,7 +3,7 @@ use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
 use telperion_core::{
     foliage::{transform_point, Element, FoliageUnit, Instances},
-    tree::{NodeKind, Tree},
+    tree::{BudFate, NodeKind, Tree},
 };
 fn scalar(value: impl Into<Value>, status: &str) -> Value {
     json!({"status":status,"value":value.into()})
@@ -96,24 +96,26 @@ pub fn measure(
             m["crown_width_height_ratio"] = scalar(x.max(z) / h, "measured");
         }
     }
-    // Every node's own stem: the axis it traces back to leaving the root, or
-    // leaving the fork a clump's later stems part from its first at. A fork
-    // is a node two stems leave, which a limb never is, so below it the clump
-    // is one stem, and above it each run is its own. Parents always precede
-    // their children, so one forward pass names them.
-    let mut runs = vec![0usize; tree.nodes.len()];
-    for n in tree.nodes.iter().skip(1).filter(|n| n.stem) {
-        runs[n.parent.unwrap() as usize] += 1;
-    }
-    let mut stem = vec![0usize; tree.nodes.len()];
+    // Every node's continuation system, read from the roles the scaffold
+    // recorded: a stem leaving the root, or a codominant sibling leaving a
+    // fork on one, opens its own; a lateral opens none, and neither it nor
+    // anything it bears is read at breast height; every other node carries
+    // its parent's on. Parents always precede their children, so one forward
+    // pass names them.
+    let mut stem = vec![None; tree.nodes.len()];
     for i in 1..tree.nodes.len() {
-        let parent = tree.nodes[i].parent.unwrap() as usize;
-        let fork = runs[parent] > 1 && tree.nodes[i].stem;
-        stem[i] = if parent == 0 || fork { i } else { stem[parent] };
+        let n = &tree.nodes[i];
+        let parent = n.parent.unwrap() as usize;
+        stem[i] = if n.shoot.bud_fate == BudFate::Lateral {
+            None
+        } else if parent == 0 || (n.codominant.is_some() && stem[parent].is_some()) {
+            Some(i)
+        } else {
+            stem[parent]
+        };
     }
-    // The widest structural edge each stem crosses breast height on, keyed by
-    // that stem, so a lateral that happens to cross the plane beside its own
-    // trunk is that trunk's reading and not a stem of its own.
+    // The widest structural edge each system crosses breast height on, up or
+    // down, keyed by that system.
     let mut dbh = BTreeMap::<usize, f64>::new();
     for (i, n) in tree
         .nodes
@@ -127,8 +129,10 @@ pub fn measure(
         let b = n.position.y - ground;
         if (a <= 1.3 && b > 1.3) || (b <= 1.3 && a > 1.3) {
             let d = 2. * (n.start_radius + (n.radius - n.start_radius) * (1.3 - a) / (b - a));
-            let at = dbh.entry(stem[i]).or_default();
-            *at = at.max(d);
+            if let Some(system) = stem[i] {
+                let at = dbh.entry(system).or_default();
+                *at = at.max(d);
+            }
         }
     }
     // A multi-stemmed tree has no single diameter at breast height, and the
@@ -157,16 +161,26 @@ pub fn measure(
     let mut histogram = BTreeMap::<usize, usize>::new();
     let mut insertion = Vec::new();
     for (p, kids) in children.iter().enumerate() {
-        let dominant = kids.iter().copied().max_by(|a, b| {
-            tree.nodes[*a]
-                .start_radius
-                .total_cmp(&tree.nodes[*b].start_radius)
-                .then_with(|| b.cmp(a))
-        });
+        // A codominant sibling carries its parent's order on as an axis of its
+        // own; of the rest the thickest carries the parent's axis on.
+        let sibling = |i: usize| tree.nodes[i].codominant.is_some();
+        let dominant = kids
+            .iter()
+            .copied()
+            .filter(|&i| !sibling(i))
+            .max_by(|a, b| {
+                tree.nodes[*a]
+                    .start_radius
+                    .total_cmp(&tree.nodes[*b].start_radius)
+                    .then_with(|| b.cmp(a))
+            });
         for &i in kids {
-            let lateral = Some(i) != dominant;
+            let lateral = Some(i) != dominant && !sibling(i);
             order[i] = order[p] + usize::from(lateral);
-            axis[i] = if lateral {
+            axis[i] = if sibling(i) {
+                lengths.push(0.);
+                lengths.len() - 1
+            } else if lateral {
                 lengths.push(0.);
                 *histogram.entry(order[i]).or_default() += 1;
                 if order[i] == 1 {

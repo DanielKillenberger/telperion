@@ -7,7 +7,8 @@
   "crates/telperion-core/src/capability.rs",
   "crates/telperion-core/src/branching/scaffold.rs",
   ".flow/specs/fn-61-trolls-model-limbs-pitch-by-height-and.md",
-  ".flow/specs/fn-62-european-beech-as-a-real-species-judged.md"
+  ".flow/specs/fn-62-european-beech-as-a-real-species-judged.md",
+  ".flow/specs/fn-170-codominant-forks-one-rule-from-the.md"
  ],
  "required_capabilities": [
   "woody-axes",
@@ -51,7 +52,6 @@
    "confidence": "medium",
    "note": "scaffold.rs draws one pitch with no height term; fn-61 adds a top pitch row. Not a named capability, so it does not stop the Capability stage; if tuning cannot move the trait, Gaps classes it identity against fn-61.",
    "covers": [
-    "codominant-v-fork",
     "ascending-then-arching-limbs"
    ]
   },
@@ -65,6 +65,18 @@
    "note": "reach() grows each primary axis to the shell; fn-61 adds a per-axis shortfall row.",
    "covers": [
     "broad-domed-crown"
+   ]
+  },
+  {
+   "trait": "skeleton.habit.codominance",
+   "need": "a trunk that forks low into two ascending leaders of near-equal girth (the codominant V fork)",
+   "outcome": "unreachable-value",
+   "capability": null,
+   "depends_on": "fn-170-codominant-forks-one-rule-from-the",
+   "confidence": "medium",
+   "note": "fn-61 moves the limbs' pitch and reach and cannot make a fork; fn-170 adds the fork rule (codominance, forkHeight, forkWays and their fan). Not a named capability, so it does not stop the Capability stage; if tuning cannot move the trait, Gaps classes it identity against fn-170 (host, 2026-09-27).",
+   "covers": [
+    "codominant-v-fork"
    ]
   }
  ]

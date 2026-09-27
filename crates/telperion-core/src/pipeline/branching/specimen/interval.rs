@@ -49,6 +49,7 @@ impl Specimen {
                                 .ok_or(Error::InvalidInput("missing radius history"))?,
                             kind: n.kind,
                             stem: n.stem,
+                            codominant: n.codominant,
                         })
                     })
                     .collect::<Result<Vec<_>>>()?;
@@ -181,6 +182,7 @@ impl Specimen {
                     position: n.position,
                     kind: n.kind,
                     stem: n.stem,
+                    codominant: n.codominant,
                     radius: radii[0],
                     start_radius: radii[1],
                     base_radius: radii[2],

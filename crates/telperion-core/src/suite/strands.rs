@@ -49,7 +49,8 @@ const NEUTRAL: [u64; 7] = [
     6489830875491714767,
     12735573889651776723,
     7923866798333576555,
-    13503524390588381715,
+    // fn-170: the birch pair restated as a fork at 0.9 m.
+    11870655238709575061,
     12471405148157309180,
     14199367530911903060,
 ];
@@ -91,7 +92,7 @@ fn skeleton(tree: &Tree) -> u64 {
 /// the gentle lumps the counts were read on; a lumpier one cuts more runs short.
 fn curtain(variation: f64) -> Family {
     let mut f = preset("silver-birch");
-    f.skeleton.habit.stems = 1;
+    f.skeleton.habit.codominance = 0.0;
     f.skeleton.habit.crookedness = 0.0;
     f.skeleton.envelope.crown_base = 0.02;
     f.skeleton.envelope.irregularity = 0.15;

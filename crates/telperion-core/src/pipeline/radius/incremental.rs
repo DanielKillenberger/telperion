@@ -35,6 +35,10 @@ pub(crate) struct Pipes {
     distal: Vec<f64>,
     proximal: Vec<f64>,
     shed: Vec<f64>,
+    /// The share of its own pipe each node's fork gave it, and the root of
+    /// every such share down its ancestry, which thins its whole subtree.
+    share: Vec<f64>,
+    factor: Vec<f64>,
     history: super::history::History,
     epochs: Vec<usize>,
     floors: Vec<(f64, f64)>,
@@ -71,6 +75,8 @@ impl Pipes {
         self.distal.resize(count, 1.0);
         self.proximal.resize(count, 1.0);
         self.shed.resize(count, 0.0);
+        self.share.resize(count, 1.0);
+        self.factor.resize(count, 1.0);
         self.epochs.resize(count, self.history.len());
         self.floors.resize(count, (0.0, 0.0));
         self.thresholds.resize(count, Scale(0.0));
@@ -86,6 +92,12 @@ impl Pipes {
             if let Some(parent) = tree.nodes[i].parent {
                 let parent = parent as usize;
                 self.children[parent].push(i);
+                // The growth path gives each fork its share as the node is
+                // born: the direct build's cap against the widest
+                // continuation reads sizes that move every year.
+                self.share[i] = super::share(tree, i, p);
+                self.factor[i] =
+                    self.factor[parent] * self.share[i].powf_fixed(1.0 / p.fork_exponent);
                 self.shed[i] = (self.shed[parent]
                     + p.length_taper
                         * tree.nodes[parent].position.distance(tree.nodes[i].position)
@@ -110,7 +122,7 @@ impl Pipes {
         for &i in dirty.iter().rev() {
             let carried: f64 = self.children[i]
                 .iter()
-                .map(|&j| self.proximal[j].powf_fixed(p.fork_exponent))
+                .map(|&j| self.share[j] * self.proximal[j].powf_fixed(p.fork_exponent))
                 .sum();
             self.distal[i] = if carried > 0.0 {
                 carried.powf_fixed(1.0 / p.fork_exponent)
@@ -133,7 +145,7 @@ impl Pipes {
         i < self.floors.len()
     }
     pub fn width(&self, i: usize) -> (f64, f64) {
-        let scale = self.history.maximum(self.epochs[i]);
+        let scale = self.history.maximum(self.epochs[i]) * self.factor[i];
         let distal = (self.distal[i] * scale).max(self.floors[i].0);
         let proximal = (self.proximal[i] * scale).max(self.floors[i].1).max(distal);
         (distal, proximal)
@@ -167,7 +179,8 @@ impl Pipes {
             }
             let (distal, proximal) = self.width(i);
             changed.push(i);
-            self.thresholds[i] = Scale((distal / self.distal[i]).min(proximal / self.proximal[i]));
+            let (own, f) = (self.distal[i], self.factor[i]);
+            self.thresholds[i] = Scale((distal / (own * f)).min(proximal / (self.proximal[i] * f)));
             self.waiting.insert((self.thresholds[i], i));
         }
         changed
@@ -256,6 +269,9 @@ impl Pipes {
         remap_values(&mut self.floors, map, count, (0.0, 0.0));
         for values in [&mut self.distal, &mut self.proximal, &mut self.shed] {
             remap_values(values, map, count, 0.0);
+        }
+        for values in [&mut self.share, &mut self.factor] {
+            remap_values(values, map, count, 1.0);
         }
     }
 }

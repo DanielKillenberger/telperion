@@ -47,11 +47,11 @@ fn apices(tree: &Tree) -> Vec<Vec3> {
 fn the_palm_bears_a_frond_for_every_row_its_table_states() {
     let f = family("date-palm", 1);
     let (tree, crown) = placed(&f);
-    assert_eq!(apices(&tree).len(), f.skeleton.habit.stems as usize);
+    assert_eq!(apices(&tree).len(), stems(&f));
     // fn-120's skirt hangs its dead fronds under the same crown.
     assert_eq!(
         crown.placed(),
-        f.skeleton.habit.stems as usize
+        stems(&f)
             * (f.canopy.rosette_fronds + f.canopy.skirt_fronds) as usize
             * f.canopy.leaflet_count as usize,
         "a frond crown is stems x fronds x leaflets and nothing besides"
@@ -273,4 +273,10 @@ fn no_spine_is_borne_where_the_rows_state_none() {
         blades.leaves, none.leaves,
         "a spine of no length is no spine at all"
     );
+}
+
+/// The stems a table stands on: one unless every tree forks at the root.
+fn stems(f: &telperion_core::presets::Family) -> usize {
+    assert_eq!(f.skeleton.habit.codominance, 0.0, "the table forks");
+    1
 }

@@ -73,7 +73,7 @@ describe("every row the build reads", () => {
     const owned = new Set(["/skeleton/seed", ...ADAPTERS.map(a => a.owns)]);
     const rows = shownRows(false);
     expect(rows.map(p => p.path)).toEqual(expect.arrayContaining(
-      ["/skeleton/habit/stems", "/skeleton/habit/lateralOrders", "/skeleton/bias/supernatural/enabled"]));
+      ["/skeleton/habit/codominance", "/skeleton/habit/lateralOrders", "/skeleton/bias/supernatural/enabled"]));
     for (const p of rows.filter(p => !owned.has(p.path))) {
       const now = readRow(DEFAULT_PARAMS.family, p.path);
       const sentinel = p.kind === "switch" ? now !== true : (typeof now === "number" ? now : 0) + 1;

@@ -4,6 +4,10 @@
 //! Helpers the tests share are one module each.
 #[path = "suite/catalogue/pins.rs"]
 mod catalogue;
+#[path = "suite/clump.rs"]
+mod clump;
+#[path = "suite/codominance.rs"]
+mod codominance;
 #[path = "suite/colonization.rs"]
 mod colonization;
 #[path = "suite/crown_reference.rs"]
@@ -68,12 +72,6 @@ mod specimen_handle;
 mod specimen_view;
 #[path = "suite/specimens/mod.rs"]
 mod specimens;
-#[path = "suite/stem_fork_height.rs"]
-mod stem_fork_height;
-#[path = "suite/stem_lean_spread.rs"]
-mod stem_lean_spread;
-#[path = "suite/stems.rs"]
-mod stems;
 #[path = "suite/strands.rs"]
 mod strands;
 #[path = "suite/surface.rs"]

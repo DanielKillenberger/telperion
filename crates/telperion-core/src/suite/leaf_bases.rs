@@ -51,7 +51,7 @@ fn the_palm_hangs_a_retained_base_for_every_row_its_table_states() {
     let bases = hung(&tree);
     assert_eq!(
         bases.len(),
-        f.skeleton.habit.stems as usize * f.canopy.leaf_bases as usize,
+        stems(&f) * f.canopy.leaf_bases as usize,
         "a clothed trunk is stems x bases and nothing besides"
     );
     for &(attach, tip) in &bases {
@@ -82,10 +82,7 @@ fn the_bases_carry_the_crowns_own_spiral_down_the_trunk() {
     f.skeleton.bias = BiasParams::NONE;
     let tree = mesh::grow(&f).expect("the skeleton grows");
     let table: Vec<LeafBase> = branching::leaf_bases(&tree, &f.canopy);
-    assert_eq!(
-        table.len(),
-        f.skeleton.habit.stems as usize * f.canopy.leaf_bases as usize
-    );
+    assert_eq!(table.len(), stems(&f) * f.canopy.leaf_bases as usize);
     let (_, axis) = apices(&tree)[0];
     let (normal, binormal) = foliage::frame(axis);
     for (k, base) in table.iter().enumerate() {
@@ -235,4 +232,10 @@ fn a_base_never_thickens_the_trunk_it_hangs_on() {
     for (i, node) in without.nodes.iter().enumerate() {
         assert_eq!(node, &with.nodes[i], "the bases moved stem node {i}");
     }
+}
+
+/// The stems a table stands on: one unless every tree forks at the root.
+fn stems(f: &telperion_core::presets::Family) -> usize {
+    assert_eq!(f.skeleton.habit.codominance, 0.0, "the table forks");
+    1
 }

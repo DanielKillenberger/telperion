@@ -69,10 +69,10 @@ fn a_clump_that_parts_above_the_ground_is_viewed_as_it_is_read() {
     // stem from a limb by the flag each run node carries, and sweeps the fork
     // the way the full read does: on into the upright stem, the other socketed.
     let mut f = Preset::OregonWhiteOak.parameters();
-    f.skeleton.habit.stems = 2;
-    f.skeleton.habit.stem_lean = 24.0;
-    f.skeleton.habit.stem_lean_spread = 1.0;
-    f.skeleton.habit.stem_fork_height = 0.4;
+    f.skeleton.habit.codominance = 1.0;
+    f.skeleton.habit.fork_height = 0.4 * f.skeleton.envelope.crown_base;
+    f.skeleton.habit.fork_lean = 24.0;
+    f.skeleton.habit.fork_lean_spread = 1.0;
     f.age = 16.0;
     let mut view = SpecimenView::build(&f).unwrap();
     for age in [12.0, 16.0, 8.0, 17.0] {

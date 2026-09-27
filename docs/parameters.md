@@ -187,7 +187,6 @@ Spacing between lateral stations on the leader, in metres.
 - real, m, (0, ∞], default 1.5
 - read by grow; growth path: as the direct build
 - checked: Habit site, rank 3, as invalid input `leader internode`
-- note: Also the unit stems are placed in.
 - blend: linear; dial: `leader_internode` (metres between lateral stations on the leader), window [0.05, 3.45] (capped: capped both ways: the generator validates no closed range here (only positive and finite); the row stays at the preset span until the generator authors one), steps 0.5 and 1, presets span [0.05, 3.45]
 
 ### `/skeleton/habit/lateralsPerStation`
@@ -332,58 +331,80 @@ Monthly vigour threshold; zero disables shedding. The legacy envelope builder in
 - note: On the direct build it is the shed shell's depth, a share of `height·spread`, apart from `shellDepth`.
 - blend: linear; dial: `shedding_threshold` (the vigour below which a shoot is shed; zero sheds nothing), window its bounds (validated bound), steps 0.15 and 0.3
 
-### `/skeleton/habit/stems`
+### `/skeleton/habit/codominance`
 
-Stems leaving the root. One is the single trunk every tree was, to the byte; a birch, a hazel or a coppiced oak stands on more.
-
-- count (u32), stems, [1, 6], default 1
-- read by grow; growth path: as the direct build
-- checked: Habit site, rank 16, as invalid input `stems`
-- note: At one the four stem rows lie dormant.
-- blend: rounded to the nearest; dial: `stems` (stems leaving the root), window its bounds (validated bound), steps 1 and 2
-
-### `/skeleton/habit/stemDivergence`
-
-Degrees of bearing between neighbouring stems, about a bearing the seed alone decides. Inert at one stem, which has no neighbour. At zero every stem leaves the root on one bearing, and any rise starts to fan them apart.
-
-- real, degrees, [0, 120], default 0
-- read by grow; growth path: as the direct build
-- checked: Habit site, rank 17, as invalid input `stem divergence`
-- dormant: one stem
-- note: With more than one stem, refused where it and `stemLean` are both zero (`stems_placed`).
-- blend: degrees along the shorter arc; dial: `stem_divergence` (the degrees of bearing between neighbouring stems of a clump; at zero every stem leaves the root on one bearing, and any rise starts to fan them apart), window [0, 15] (validated bound), steps 2.5 and 5
-
-### `/skeleton/habit/stemLean`
-
-Degrees from vertical the outermost stems tilt away from the root; the ones between tilt in proportion to how far out they stand. Inert at one stem, which stands at the centre and so tilts by none of it. At zero every stem stands upright, and any rise starts the tilt.
-
-- real, degrees, [0, 45], default 0
-- read by grow; growth path: as the direct build
-- checked: Habit site, rank 18, as invalid input `stem lean`
-- dormant: one stem
-- note: With more than one stem, refused at zero (`stems_placed`); `risePrimary` bends the leaning stems.
-- blend: degrees along the shorter arc; dial: `stem_lean` (the degrees from vertical the outermost stems tilt away from the root; at zero every stem stands upright, and any rise starts the tilt), window its bounds (validated bound), steps 5 and 10, presets span [0, 42]
-
-### `/skeleton/habit/stemLeanSpread`
-
-How unequally a clump's stems lean, 0 to 1. None of it is the lean above, shared about the clump's centre; all of it leans the stems in their order instead, the first upright and the last by all of `stem_lean`. Inert at one stem, which has nothing to lean against.
+The chance, 0 to 1, that a structural axis forks codominantly: each axis draws once from its own stream when it is born. At zero no axis forks and the tree stands on one stem.
 
 - real, share, [0, 1], default 0
 - read by grow; growth path: as the direct build
-- checked: Habit site, rank 19, as invalid input `stem lean spread`
-- dormant: one stem, or `stemLean` zero
-- blend: linear; dial: `stem_lean_spread` (how unequally a clump's stems lean), window its bounds (validated bound), steps 0.15 and 0.3
+- checked: Habit site, rank 16, as invalid input `codominance`
+- note: At zero the six fork rows lie dormant. Replaces `stems`: a clump is a fork at height zero.
+- blend: linear; dial: `codominance` (how likely a trunk or limb is to fork into near-equal parts; at zero no fork), window its bounds (validated bound), steps 0.1 and 0.25
 
-### `/skeleton/habit/stemForkHeight`
+### `/skeleton/habit/forkHeight`
 
-Where a clump's later stems leave the first, as a share of the bole's height, 0 to 0.5. None of it parts them at the ground; half of it parts them halfway up the bole, with one trunk below. Inert at one stem.
+Where a codominant fork falls, as a share of the tree's height: the centre of the bell each axis draws its fork height from. Zero is a fork at the root, which is a clump.
 
-- real, share of the bole, [0, 0.5], default 0
+- real, share of height, [0, 1], default 0
 - read by grow; growth path: as the direct build
-- checked: Habit site, rank 20, as invalid input `stem fork height`
-- dormant: one stem
-- note: The bole is `max(trunkHeight, height·crownBase)`.
-- blend: linear; dial: `stem_fork_height` (how far up the bole a clump's later stems part from the first; at zero every stem leaves the root, and any rise starts the one trunk below the fork), window its bounds (validated bound), steps 0.1 and 0.2
+- checked: Habit site, rank 17, as invalid input `fork height`
+- dormant: `codominance` zero
+- note: An axis forks where it reaches the drawn height; a height it never reaches, or one at or below its own base, is no fork, except at the root.
+- blend: linear; dial: `fork_height` (how far up the tree codominant forks fall), window its bounds (validated bound), steps 0.05 and 0.1
+
+### `/skeleton/habit/forkHeightSpread`
+
+Width of the bell a fork height is drawn from, as a share of the tree's height. Zero forks every axis that forks at exactly `forkHeight`.
+
+- real, share of height, [0, 1], default 0
+- read by grow; growth path: as the direct build
+- checked: Habit site, rank 18, as invalid input `fork height spread`
+- dormant: `codominance` zero
+- blend: linear; dial: `fork_height_spread` (how widely codominant forks scatter about their height), window its bounds (validated bound), steps 0.05 and 0.1
+
+### `/skeleton/habit/forkWays`
+
+The parts a codominant fork divides into, the primary among them, 2 to 4. The whole part is the full parts; the fraction grows one more in from the fork, its length and its wood that share of a whole part's.
+
+- real, parts, [2, 4], default 2
+- read by grow; growth path: as the direct build
+- checked: Habit site, rank 19, as invalid input `fork ways`
+- dormant: `codominance` zero
+- note: Replaces `stems`. The parts fill four fixed slots in order, so a part added never moves the others.
+- blend: linear; dial: `fork_ways` (how many near-equal parts a codominant fork divides into), window its bounds (validated bound), steps 0.5 and 1
+
+### `/skeleton/habit/forkDivergence`
+
+Degrees of bearing between neighbouring slots of a fork, slot `k` standing `k` times this round from the primary's, about a bearing the axis's own stream decides. At zero every part leaves on one bearing.
+
+- real, degrees, [0, 120], default 0
+- read by grow; growth path: as the direct build
+- checked: Habit site, rank 20, as invalid input `fork divergence`
+- dormant: `codominance` zero
+- note: Refused where two parts of a fork leave on one heading (`forks_placed`). Replaces `stemDivergence`.
+- blend: degrees along the shorter arc; dial: `fork_divergence` (the degrees of bearing between neighbouring parts of a codominant fork), window its bounds (validated bound), steps 5 and 10
+
+### `/skeleton/habit/forkLean`
+
+Degrees every sibling of a fork leans from the axis it leaves; the primary leans by what `forkLeanSpread` leaves it of this.
+
+- real, degrees, [0, 45], default 0
+- read by grow; growth path: as the direct build
+- checked: Habit site, rank 23, as invalid input `fork lean`
+- dormant: `codominance` zero
+- note: Measured from the heading of the axis at the fork. Replaces `stemLean`.
+- blend: degrees along the shorter arc; dial: `fork_lean` (the degrees the parts of a codominant fork lean from the axis they leave), window its bounds (validated bound), steps 5 and 10
+
+### `/skeleton/habit/forkLeanSpread`
+
+How far a fork's primary stands back along its axis, 0 to 1. None of it leans the primary by all of `forkLean`, as every sibling leans; all of it carries the axis straight on through the fork.
+
+- real, share, [0, 1], default 0
+- read by grow; growth path: as the direct build
+- checked: Habit site, rank 24, as invalid input `fork lean spread`
+- dormant: `codominance` zero, or `forkLean` zero
+- note: Replaces `stemLeanSpread`.
+- blend: linear; dial: `fork_lean_spread` (how far the part carrying the axis on stands straight while the others lean), window its bounds (validated bound), steps 0.15 and 0.3
 
 ## `/skeleton/envelope`
 
@@ -902,6 +923,27 @@ The ceiling on accumulated taper, so no single long branch can thin away to noth
 - checked: Radius site, rank 0, as invalid value `maxTaperExponent`
 - dormant: `lengthTaper` zero
 - blend: linear; dial: `max_taper_exponent` (the ceiling on accumulated taper along one long branch), window its bounds (validated bound), steps 2 and 4, presets span [6, 18]
+
+### `/radii/lateralShare`
+
+The wood a lateral takes at a fork against what its own subtree asks, 0 to 1: the parent carries a lateral's pipe at this share and the lateral's wood thins by its root. At one every fork divides by the pipe model alone.
+
+- real, share, [0.01, 1], default 1
+- read by grow; growth path: as the direct build
+- checked: Radius site, rank 4, as invalid value `lateralShare`
+- note: Below one a lateral leaves thinner than a continuation carrying as many tips. A lateral is the wood the scaffold marks `BudFate::Lateral`.
+- blend: linear; dial: `lateral_share` (how thin a limb leaves the axis it grows from, against its own reach; lower keeps the leaders' girth), window its bounds (validated bound), steps 0.1 and 0.2
+
+### `/radii/forkBalance`
+
+The wood a codominant sibling takes at a fork against its own subtree's, 0 to 1, beside the primary that carries the axis on. At one the parts divide by the pipe model alone.
+
+- real, share, [0.01, 1], default 1
+- read by grow; growth path: as the direct build
+- checked: Radius site, rank 5, as invalid value `forkBalance`
+- dormant: `skeleton.habit.codominance` zero
+- note: A sibling is the wood the scaffold marks `codominant`; its share is this times the weight it has grown in by. At one a sibling takes its own pipe as the primary does.
+- blend: linear; dial: `fork_balance` (how much thinner the lesser parts of a codominant fork leave than the part carrying the axis on), window its bounds (validated bound), steps 0.1 and 0.2
 
 ## `/surface`
 

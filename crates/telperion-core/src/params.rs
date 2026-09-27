@@ -45,14 +45,18 @@ pub fn parse(v: &Value) -> Result<Family> {
 pub(crate) fn decode(v: &Value) -> Result<Family> {
     let mut f = preset(0)?;
     let schema = metadata(&f);
-    fn known(v: &Value, schema: &Value, unknown: &'static str) -> Result<()> {
+    fn known(v: &Value, schema: &Value, at: &str, unknown: &'static str) -> Result<()> {
         let map = v.as_object().ok_or(Error::InvalidInput("family object"))?;
         for (k, value) in map {
-            let s = schema.get(k).ok_or(Error::InvalidInput(unknown))?;
+            let path = format!("{at}/{k}");
+            let s = schema
+                .get(k)
+                .ok_or_else(|| Error::InvalidInput(catalogue::retired(&path).unwrap_or(unknown)))?;
             if s.is_object() {
                 known(
                     value,
                     s,
+                    &path,
                     match k.as_str() {
                         "habit" => "unknown habit trait",
                         "element" => "unknown element trait",
@@ -65,7 +69,7 @@ pub(crate) fn decode(v: &Value) -> Result<Family> {
         }
         Ok(())
     }
-    known(v, &schema, "unknown family parameter")?;
+    known(v, &schema, "", "unknown family parameter")?;
     // Read in the wire's own order, so the first malformed value refused is
     // the one the wire always refused first.
     let mut rows: Vec<_> = catalogue::entries().collect();
@@ -87,18 +91,24 @@ pub(crate) fn decode(v: &Value) -> Result<Family> {
 /// states only the rows it moves.
 pub fn overlay(f: &Family, overrides: &Value) -> Result<Family> {
     let mut wire = metadata(f);
-    lay(&mut wire, overrides)?;
+    lay(&mut wire, overrides, "")?;
     parse(&wire)
 }
-fn lay(wire: &mut Value, over: &Value) -> Result<()> {
+/// Lays `over` onto `wire` at the path `at`; a key the wire lacks is refused,
+/// by its replacement where the catalogue retired it.
+fn lay(wire: &mut Value, over: &Value, at: &str) -> Result<()> {
     let map = over
         .as_object()
         .ok_or(Error::InvalidInput("family object"))?;
     for (key, value) in map {
+        let path = format!("{at}/{key}");
         match (wire.get_mut(key), value.is_object()) {
-            (Some(slot), true) if slot.is_object() => lay(slot, value)?,
+            (Some(slot), true) if slot.is_object() => lay(slot, value, &path)?,
             (Some(slot), _) => *slot = value.clone(),
-            (None, _) => return Err(Error::InvalidInput("unknown family parameter")),
+            (None, _) => {
+                let why = catalogue::retired(&path).unwrap_or("unknown family parameter");
+                return Err(Error::InvalidInput(why));
+            }
         }
     }
     Ok(())

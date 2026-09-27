@@ -5,7 +5,7 @@ use species_metrics::{compare, measure};
 use telperion_core::{
     foliage::{Element, Instances, Reference},
     math::Vec3,
-    tree::{Node, NodeKind, Tree},
+    tree::{BudFate, Node, NodeKind, Tree},
 };
 fn fixture() -> (Tree, Element, Instances) {
     let node = |p, parent, radius, start_radius, branch, kind| Node {
@@ -215,9 +215,10 @@ fn measured_species_subsets_exclude_connectors_and_use_transformed_geometry() {
         }
     }
 }
-/// A trunk that parts into two runs at `fork` metres, the second of them a
-/// clump's later stem if `second` and a limb if not.
-fn forked(fork: f64, second: bool) -> Tree {
+/// A trunk that parts into two runs at `fork` metres, the second of them
+/// ending at `end` metres up: a codominant sibling if `second` and a limb if
+/// not.
+fn forked(fork: f64, end: f64, second: bool) -> Tree {
     let node = |x: f64, y: f64, parent: Option<u32>, radius: f64| Node {
         position: Vec3::new(x, y, 0.),
         parent,
@@ -232,9 +233,14 @@ fn forked(fork: f64, second: bool) -> Tree {
         node(0., 0., None, 0.3),
         node(0., fork, Some(0), 0.3),
         node(0., 4., Some(1), 0.2),
-        node(1., 4., Some(1), 0.15),
+        node(1., end, Some(1), 0.15),
     ];
-    nodes[3].stem = second;
+    if second {
+        nodes[3].codominant = Some(1.0);
+    } else {
+        nodes[3].stem = false;
+        nodes[3].shoot.bud_fate = BudFate::Lateral;
+    }
     Tree {
         crossover: nodes.len(),
         nodes,
@@ -242,14 +248,19 @@ fn forked(fork: f64, second: bool) -> Tree {
     }
 }
 #[test]
-fn a_fork_below_breast_height_is_two_stems_there_and_above_it_one() {
+fn breast_height_counts_every_continuation_system_crossing_it() {
     let (_, e, _) = fixture();
     let stems =
         |t: &Tree| measure(t, &[], &e, 0, &Instances::default()).unwrap()["dbh_m"]["stems"].clone();
-    // Parted under the plane, each stem crosses it on its own wood.
-    assert_eq!(stems(&forked(1.0, true)), 2);
+    // Parted under the plane, each part crosses it on its own wood, and
+    // parted on it too: the plane cuts both parts leaving the fork.
+    assert_eq!(stems(&forked(1.0, 4.0, true)), 2);
+    assert_eq!(stems(&forked(1.3, 4.0, true)), 2);
     // Parted over it, the plane cuts the one trunk below the fork.
-    assert_eq!(stems(&forked(2.0, true)), 1);
-    // And a limb leaving the trunk under the plane is that trunk's.
-    assert_eq!(stems(&forked(1.0, false)), 1);
+    assert_eq!(stems(&forked(2.0, 4.0, true)), 1);
+    // A sibling leaving over the plane and bending down through it crosses
+    // it too, on the way down.
+    assert_eq!(stems(&forked(2.0, 1.0, true)), 2);
+    // And a lateral crossing the plane is no system: it is read by none.
+    assert_eq!(stems(&forked(1.0, 4.0, false)), 1);
 }
