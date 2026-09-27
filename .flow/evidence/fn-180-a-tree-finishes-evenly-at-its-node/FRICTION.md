@@ -57,3 +57,5 @@
 - Cost: one CI round trip and about 15 minutes.
 - Would have removed it: the task's gate list naming `npm run build` and the budget check for any change under
   `crates/telperion-core`, which the slim module compiles.
+- Disposition (host, 2026-09-28): the proposal to run the size check in the local gate for core changes is the
+  host's to spec at close.
