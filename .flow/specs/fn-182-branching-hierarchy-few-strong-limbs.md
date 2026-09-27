@@ -19,7 +19,13 @@ Open-grown broadleaves read by their branching hierarchy: a few strong scaffold 
 
 **Measure first (R1).** On the shipped beech, fn-170's plane candidate and the oak at seeds 1 to 4, per branch order: laterals per metre of parent, lateral length against parent length, and girth at birth against the parent's; and, from the owner's two photographs and the beech's curated B-BARE, the host's read of the same three quantities per visible order (few / many, long / short, thick / thin). The report names which quantity differs and at which orders. [inferred]
 
-**Shape, decided by the host from the measurement.** Most likely a per-order profile on the rows that differ (density, length and birth girth falling or rising with order), each dormant at today's value and changing the tree by degree, declared once in the catalogue; or a vigour-weighted lateral allocation if density alone does not produce few strong limbs. The spec is updated with the decision before any code. [inferred]
+**Decision (host, 2026-09-28, from R1's measurement in `.flow/evidence/fn-182-branching-hierarchy-few-strong-limbs/R1-MEASUREMENT.md`).** [checked]
+- The scaffold is already sparse (4 to 8 laterals per parent; 0.5 to 0.7 per metre at orders 2 and 3, near the photographs). The difference is the twig layer: it bears shoots at 3.7 to 10.8 per metre along every scaffold limb, inner wood included, where the photographs show bare inner limbs and a twig shell 1 to 3 m deep at the crown's edge.
+- **The capability is a twig shell.** Two rows in the twig layer: `twigShell`, the depth from the crown's outer surface, as a share of the crown's radius, within which the twig law bears shoots on scaffold wood; and `twigShellSoftness`, the width of the fade at that depth. Unset `twigShell` is today's law (no shell), so every shipped preset is byte-identical; walking it moves the tree by degree. It reads the crown shell fn-173 prepares, and builds on fn-173.
+- **Not new rows:** the plane's thin first-order limbs (born at 0.18 of the parent against 0.5 to 0.7 in the photograph, because each stem carries about 22 first-order laterals where the photograph shows 3 to 4 leaders) are values: `lateralSpacing` and `lateralsPerStation` on the stems, and with twigs off the inner wood the pipe model leaves the remaining limbs thicker. The beech's 32 m single stem, where its reference dissolves into 4 to 6 limbs at 30 to 40 percent of the height, is `codominance` with a fork height near 0.3 (fn-170). Both are values the beech's Tune and the plane's candidate set.
+- Length ratios differ least and are left alone.
+
+**Shape (superseded by the decision above).** Most likely a per-order profile on the rows that differ (density, length and birth girth falling or rising with order), each dormant at today's value and changing the tree by degree, declared once in the catalogue; or a vigour-weighted lateral allocation if density alone does not produce few strong limbs. The spec is updated with the decision before any code. [inferred]
 
 ## Acceptance Criteria
 <!-- scope: both -->
@@ -27,7 +33,7 @@ Open-grown broadleaves read by their branching hierarchy: a few strong scaffold 
 - **R1:** The per-order measurement of the three trees and the photographs is reported, naming the quantities that differ and at which orders. [inferred]
 - **R2:** The host's design decision is recorded in this spec before code: the rows, their dormant values, and why they reach the photographs' hierarchy. [inferred]
 - **R3:** The new rows are dormant at their neutral values: every shipped preset is byte-identical to master at seeds 1 and 7; they are declared once in the catalogue, blended, on the dials, refused by name off their rails. [inferred]
-- **R4:** A synthetic family shows the profile: few, long, thick first-order limbs and many short twigs at the tips, continuous as the rows move. [inferred]
+- **R4:** On a synthetic family, scaffold wood deeper than `twigShell` from the crown's surface bears no twig-layer shoots, wood within it bears them as today, the fade is continuous over `twigShellSoftness`, and the tree moves continuously as the rows move. [inferred]
 - **R5:** Candidate values for the plane and the beech (host-chosen, not shipped presets) are rendered and opened in the harness (`species --look` / `harness/looks/`) beside the owner's photographs, with one question: does the structure now read like the photographs? [inferred]
 - **R6:** The workspace gate and `npm test` are green; build time, peak memory and every shipped artifact's size are reported (the size check's 5 percent per PR applies). [inferred]
 

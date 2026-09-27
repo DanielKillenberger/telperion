@@ -1,0 +1,15 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T22:34:53.980943Z",
+  "depends_on": [],
+  "id": "fn-182-branching-hierarchy-few-strong-limbs.1",
+  "implicit_owner": true,
+  "priority": null,
+  "spec": "fn-182-branching-hierarchy-few-strong-limbs",
+  "spec_path": ".flow/tasks/fn-182-branching-hierarchy-few-strong-limbs.1.md",
+  "status": "todo",
+  "title": "Implement the twig shell: branching hierarchy",
+  "updated_at": "2026-09-27T22:34:53.980943Z"
+}
