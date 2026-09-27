@@ -8,7 +8,8 @@ beech's native range (fn-157).
 
 - `seed/manifest.json`: the bare seed, no source; `taxon.native_range` is
   Europe, with the German and French names (host decision, 2026-09-26).
-- `seed/packet/capability.json`: the host's capability assessment.
+- `seed/packet/capability.json`: the host's capability assessment; the
+  codominant V fork names fn-170 since 2026-09-27.
 - `tuning.json`: the tuning config the recording ran with; the test points
   its run paths (`profiles`, the ledgers) at a scratch directory.
 - `tape/`: every external answer a replay asks for, keyed by a stable hash
@@ -22,7 +23,10 @@ beech's native range (fn-157).
   shot's two looks, the baseline's comparisons and round 1's comparison and
   sheet). Tune's first round was extended again on the parameter catalogue's
   dial table (fn-152), whose order batches the proposal questions
-  differently: 8 Jev calls and one sheet, recorded 2026-09-26. Every answer
+  differently: 8 Jev calls and one sheet, recorded 2026-09-26. fn-170's
+  fork rows replaced the five stems rows on that table, and Tune's first
+  round was extended again (`--extend`) for the questions they changed: 8 Jev
+  calls, recorded 2026-09-27; the beech's renders did not move. Every answer
   is refiled under today's keys, the newest kept where two became one
   question (`tape_trim`, `tape-adapter.py rekey:`). A replay opens every
   file here.
