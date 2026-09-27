@@ -1,0 +1,15 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:47:19.734443Z",
+  "depends_on": [],
+  "id": "fn-62-european-beech-as-a-real-species-judged.1",
+  "implicit_owner": true,
+  "priority": null,
+  "spec": "fn-62-european-beech-as-a-real-species-judged",
+  "spec_path": ".flow/tasks/fn-62-european-beech-as-a-real-species-judged.1.md",
+  "status": "todo",
+  "title": "Implement European beech as a real species through the runner",
+  "updated_at": "2026-09-27T15:47:19.734443Z"
+}

@@ -1,6 +1,11 @@
 {
   "branch_name": "fn-62-european-beech-as-a-real-species-judged",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-16T09:52:00.694942Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-61-trolls-model-limbs-pitch-by-height-and",
     "fn-170-codominant-forks-one-rule-from-the",
@@ -8,9 +13,13 @@
     "fn-166-the-owner-looks-at-a-runs-kept-tree-in"
   ],
   "id": "fn-62-european-beech-as-a-real-species-judged",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-62-european-beech-as-a-real-species-judged.md",
   "status": "open",
   "title": "European beech as a real species, judged by traits",
@@ -25,5 +34,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T15:22:27.454652Z"
+  "updated_at": "2026-09-27T15:47:19.273761Z"
 }
