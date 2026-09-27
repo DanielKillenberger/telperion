@@ -164,7 +164,7 @@
     "impl:fn-152-one-parameter-table-the-generator-flows.1": 0
   },
   "spec_path": ".flow/specs/fn-152-one-parameter-table-the-generator-flows.md",
-  "status": "open",
+  "status": "done",
   "title": "One parameter table the generator flows through",
   "tracker": {
     "baseHashFlow": null,
@@ -177,5 +177,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-26T14:57:32.511575Z"
+  "updated_at": "2026-09-27T09:57:22.932227Z"
 }

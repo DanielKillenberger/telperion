@@ -10,6 +10,8 @@
 > user (2026-09-24): "i mean i'm surprised that we have different paths for different trees. We want as little duplication/separation as possible. One pipeline cleanly defined and executed."
 > user (2026-09-24): "that makes more sense. [...] Can we do a feasibility check on 125 first maybe?"
 > user (2026-09-24): "we need to ratify this in strategy [...] One streamlined pipeline that's efficient and clean." (STRATEGY.md amended the same day)
+> user (2026-09-27, on the palm leaf-base cell carried per shaped run and the reference executor grown out of `pipeline::executor`): "ok that seems good."
+> user (2026-09-27, on the master baseline, choosing option 1 for the speed target): "1 is good"
 
 ## Goal & Context
 
@@ -31,44 +33,51 @@ The expansion is also written more than once. There is the CPU placed path (`pla
 ## Architecture & Data Models
 
 **Station sources.** A leaf is a pure function of (source, index, seed). The feasibility check of 2026-09-24 found every current feature expressible this way. [inferred]
-- **Twig runs:** today's stations, the segments of `plan::Run` (`prepared.rs`, `StationSegment`).
-- **Short-shoot wood:** each cluster is closed-form in (wood node, cluster index, seed). Its phase, bearing and fan come from `key(seed, birth_order, k)` (`short_shoots.rs:195-229, 244-250`). The cluster's leaves draw from a counter-based `Rng` (`rng.rs:11-17`), so leaf j's draws are indexable. The wood it clothes is selected by `short_shoot_radius` and is not the run plan's wood (`short_shoots.rs:175-183`), so it is its own source. A cluster below the crown floor becomes a culled station, not a skipped one (`:222`).
-- **Rosette apices:** frond k and leaflet j are closed-form in (apex, k, j, seed) (`rosette.rs:153-171, 198-245`), and their draws are indexable at offset `j*d` from the frond's key (`rosette.rs:159, 273-279`). Spacing is angular and by age, so this is its own source kind, not a synthetic run.
+- **Twig runs:** today's stations, the segments of `plan::Run` (`pipeline/foliage/prepared.rs`, `StationSegment`).
+- **Short-shoot wood:** each cluster is closed-form in (wood node, cluster index, seed). Its phase, bearing and fan come from `key(seed, birth_order, k)` (`pipeline/foliage/short_shoots.rs`, the key at `:245`). The cluster's leaves draw from a counter-based `Rng` (`rng.rs:11-17`), so leaf j's draws are indexable. The wood it clothes is selected by `short_shoot_radius` and is not the run plan's wood (`short_shoots.rs:176`), so it is its own source. A cluster below the crown floor becomes a culled station, not a skipped one (`:223`).
+- **Rosette apices:** frond k and leaflet j are closed-form in (apex, k, j, seed) (`pipeline/foliage/rosette.rs`, `fronds` `:163-201`, `fan` `:261-291` through `leaflet.rs`), and their draws are indexable from the frond's key (`stream`/`key` `:305-316`). Spacing is angular and by age, so this is its own source kind, not a synthetic run.
+- **The dead-frond skirt is the same source.** Fronds `k` from the living count up to living plus `skirt` continue the spiral down the stem at the skirt's pitch, and the source sets the withered bit (the top bit of packed word 2, `packed.rs`) on them. No new source kind and no new leaf word; the shaders already read the bit. (checked 2026-09-27)
 
-**Leaflets.** A station expands to its leaflets on the GPU. Today nothing in `telperion-render` handles leaflets, and `prepared.rs:225` counts stations, not `count*leaflets`, although the plan already counts leaflets (`plan.rs:90, 109, 225, 229`). This serves the rosette and every compound leaf (fn-33). [inferred]
+**Leaflets.** A station expands to its leaflets on the GPU. Today nothing in `telperion-render` handles leaflets, and `prepared.rs:226` counts stations, not `count*leaflets`, although the plan already counts leaflets (`pipeline/foliage/plan.rs:88, 107, 237, 242`). This serves the rosette and every compound leaf (fn-33). [inferred]
 
-**Limb clumping is one reduction pass.** Each limb system's centre is today the mean of that system's placed leaves before the cull (`clumping.rs:61-91`), and its walls are the planes to its nearest centres. After the reduction, a leaf's keep test is per leaf: its position, its system, the cell table and a keyed draw (`clumping.rs:98-125, 175-193`). The pipeline therefore becomes expand, sum per system, thin, cull and compact. The system map is `clumping::systems`, which the plan's `Descriptor.system` already uses (`plan.rs:209, 227`). A run leaf's owner is its run's first node, and a plan descriptor's owner is its segment's distal node. The worker checks whether these ever differ and, if they do, keys by the segment. [inferred]
+**Limb clumping is one reduction pass.** Each limb system's centre is today the mean of that system's placed leaves before the cull (`clumping.rs:61-91`), and its walls are the planes to its nearest centres. After the reduction, a leaf's keep test is per leaf: its position, its system, the cell table and a keyed draw (`clumping.rs:98-125, 175-193`). The pipeline therefore becomes expand, sum per system, thin, cull and compact. The system map is `clumping::systems`, which the plan's `Descriptor.system` already uses (`plan.rs:221, 238`). A run leaf's owner is its run's first node, and a plan descriptor's owner is its segment's distal node. The worker checks whether these ever differ and, if they do, keys by the segment. [inferred]
 
-**Wood is one ring formula.** The lobe term `1 + lobe_depth*cos(lobes*(angle + phase))` (`angular.rs:16-21`) is per vertex. The GPU ring descriptors already carry the phase (`compact.rs:194`), and `position_probe.wgsl:19-21` already implements it. `positions.wgsl` gains the term, and the lobe gate at `preparation.rs:35` goes. fn-91 left lobes out only as a first-scope choice (`.flow/tasks/fn-91-...8.md:11`). [inferred]
+**Wood is one ring formula.** The lobe term `1 + lobe_depth*cos(lobes*(angle + phase))` (`angular.rs:16-21`) is per vertex. The GPU ring descriptors already carry the phase (`pipeline/surface/compact.rs:197`), and `position_probe.wgsl:19-21` already implements it. `positions.wgsl` gains the term, and both lobe gates go: `Expansion::round_section` (`pipeline/executor.rs:118-121`, read at `preparation.rs:23`) and the lobe clause of `CompactSurface::qualified` (`compact.rs:37-38`). fn-91 left lobes out only as a first-scope choice (`.flow/tasks/fn-91-...8.md:11`). [inferred]
 
-**Draw keys.** GPU station draws are the n-th draw of the sequential stream (`place.wgsl:134-138`, `rng.rs:11-16`), so ordinary, oak, spruce and birch keep their leaves. Short-shoot and rosette draws are already keyed. Clumping's draw is keyed by placement index across runs and then short shoots (`clumping.rs:119, 186`), so the global station ordinal must reproduce that order, or the beech's thinning changes bytes. Either is allowed under the 2026-09-20 policy with the beech's visual check. [inferred]
+**Draw keys.** GPU station draws are the n-th draw of the sequential stream (`pack.wgsl:31-35`, `rng.rs:11-16`), so ordinary, oak, spruce and birch keep their leaves. Short-shoot and rosette draws are already keyed. Clumping's draw is keyed by placement index across runs and then short shoots (`clumping.rs:119, 186`), so the global station ordinal must reproduce that order, or the beech's thinning changes bytes. Either is allowed under the 2026-09-20 policy with the beech's visual check. [inferred]
 
 **What goes.**
-- The CPU placed path as a separate implementation: `place_on`, `place_run`'s back-scan, and the renderer's `Backend::CpuFallback` through `mesh::assemble`.
-- The no-twig-layer placement: reachable only through the public `foliage::place`/`place_on_surface` with `None` (`placement.rs:14, 27, 79-85`), used by tests and no family.
-- Every silent fallback in `preparation.rs` (the capability gate at `:33-35`, `Ok(None)` returns at `:115-126` and `:217`, and the "station capability" and "CPU triangle admission" paths at `:140, :201`).
+- The CPU placed path as a separate implementation: `place_on` (`pipeline/foliage/placement.rs:138`), `place_run`'s back-scan (`station.rs:45`), and the renderer's `Backend::CpuFallback` (`preparation.rs:178, 188, 288`) through `Expansion::mesh` (`executor.rs:179`).
+- The no-twig-layer placement: reachable only through `place`/`place_on_surface` with `None` (`placement.rs:17, 31`, the branch in `runs()` `:78-91`), used by tests and no family.
+- Every silent fallback in `preparation.rs` (the capability gate at `:23`, `Ok(None)` returns at `:76` and `:94-98`, and the "station capability" and "CPU triangle admission" paths at `:98, :112, :122` and `:165, :280`).
 
-The growth path (`timeline.rs:263-293`, `specimen/view.rs:90-102`) calls the same station functions, not its own copy, and stays buildable and hidden. [inferred]
+The growth path (`pipeline/foliage/timeline.rs:279`, `specimen/view.rs:71-87` through `executor::present`) calls the same station functions, not its own copy, and stays buildable and hidden. [inferred]
 
 **Numeric domain, stated.**
-- The phyllotaxis check (`prepared.rs:168-178`) becomes a parameter rule on `internodes * |divergence|`, refused by name. It trips above roughly 8e12 degrees; catalogue divergences are 99.5 to 180.
-- The float32 precision domain (`compact.rs:25-38`: ring centres within 64 m, radius at most 32 m and at least max(1, |centre|)/131072) becomes an explicit, named error. The reference executor does not silently widen it. [inferred]
+- The phyllotaxis check (`prepared.rs:170-180`) becomes a parameter rule on `internodes * |divergence|`, refused by name. It trips above roughly 8e12 degrees; catalogue divergences are 99.5 to 180.
+- The float32 precision domain (`compact.rs:28-33`: ring centres within 64 m, radius at most 32 m and at least max(1, |centre|)/131072) becomes an explicit, named error. The reference executor does not silently widen it. [inferred]
 
 **The contract.**
-1. **The plan layout.** Fn-102's stage 3 artifact, documented and versioned, in a binary layout an engine can upload as is: the station sources, the wood rings or their compact form, the element, the envelope and the cull configuration. Today `Prepared` holds the element and `Plan` the descriptors, rings are separate (`stage.rs:13-20, 70-75`), and the cull configuration sits in neither.
+1. **The plan layout.** Fn-102's stage 3 artifact, documented and versioned, in a binary layout an engine can upload as is: the station sources, the wood rings or their compact form, the element, the envelope and the cull configuration. Today `Prepared` holds the element and `Plan` the descriptors (`stage.rs:11-18`), rings are separate (`drawn.rs:147`), and the cull configuration sits in neither.
 2. **The CPU reference executor.** It runs the same steps serially (native may parallelise chunks joined in order), defines correct, and is what tests and GPU-less consumers use.
 3. **The shaders.** The WGSL the generator owns.
 
 GPU output matches the reference within the tolerance below. Stages 1 and 2 (growth, plan preparation) stay on the CPU. [user]
 
 **Renderer duplicate work** (fn-102 review, item G) goes as part of the same restructure:
-- up to four surface sweeps on the contact path (`preparation.rs:43, :159, :209, :331`);
-- stations prepared twice when position admission fails (`:89, :209`);
-- masses computed and dropped on CPU delivery (`compute.rs:217`, `preparation.rs:289`);
-- wood expansion waiting for foliage compute (`:300`);
+- up to four surface sweeps on the contact path (`preparation.rs:30, :130, :171, :293`);
+- stations prepared twice when position admission fails (`:67, :171`);
+- masses computed and dropped on CPU delivery (`compute.rs:217`, `preparation.rs:255-258`);
+- wood expansion waiting for foliage compute (`:264`);
 - rings and segments copied twice (`compute.rs:57`, `data.rs:86`).
 
 The separate ring sweep in `AttachmentSurface::new` goes too: station preparation reads the wood's rings. [inferred]
+
+On master these duplicates run only on the fallback branches. The oak's and spruce's successful GPU path compacts the wood once and prepares stations once (`.flow/evidence/fn-125-the-generator-hands-engines-a-tree-they/BASELINE.md`), so removing them speeds the trees that fall back today, not the oak or spruce. (checked 2026-09-27)
+
+**Shaped wood (the palm's leaf-base boots, #114) draws through the same ring pass.** A shaped run's rings are not circles: each vertex stands on the run's cell, blended by `flatness` from the ellipse through the cell's corners to the flat-faced cell (`tree::Section`), and its frame is fixed to the cell (`pipeline/surface/section.rs`). The ring words carry a round section only, which is why `CompactSurface::qualified` refuses any shaped surface today (`compact.rs:37`). The plan layout gains a per-shaped-run cell record (frame, corners, flatness and the three section rings); round runs carry none, and the ring pass evaluates the cell for a run that has one. Every round tree's rings, and its bytes, are unchanged. The `shaped` gate goes. (owner, 2026-09-27)
+
+**The reference executor grows out of `pipeline::executor`.** `Expansion` already owns the CPU build (`Expansion::mesh`); it becomes the reference executor, running the same stage steps as the shaders. The `gpu` module holds the plan layout and the WGSL only. `docs/pipeline.md` is rewritten to match: it now calls the GPU executor a "sanctioned exception" and `Expansion::mesh` "the reference the GPU falls back to" (lines 6 and 44). (owner, 2026-09-27)
 
 ## Host decisions (2026-09-24)
 
@@ -87,21 +96,24 @@ The separate ring sweep in `AttachmentSurface::new` goes too: station preparatio
 - **A consumer without a GPU** uses the reference executor and gets the same tree within the tolerance. [inferred]
 - **Device loss, allocation limits and unsupported adapters** fail explicitly and leave a usable lifecycle, as fn-91 requires. [inferred]
 - **Unchanged output where intended.** Ordinary, oak, spruce and birch are expected byte-identical in leaves and wood. A difference is investigated, not re-pinned. [inferred]
-- **Changed output needs visual evidence.** Beech, date palm, Telperion and Laurelin may change bytes. Each change carries the 2026-09-20 policy's visual and correctness evidence. [CLAUDE.md]
-- **No full-forest capture.** Captures follow the budget rules. [CLAUDE.md]
+- **Changed output needs visual evidence.** Beech, date palm, Telperion and Laurelin may change bytes. Each change carries the 2026-09-20 policy's visual and correctness evidence. [AGENTS.md]
+- **No full-forest capture.** Captures follow the budget rules. [AGENTS.md]
 
 ## Acceptance Criteria
 
 - **R1:** The plan layout, including every station source, is documented under `docs/` and versioned. A test round-trips it for every catalogue and in-work preset. [inferred]
 - **R2:** Every catalogue and in-work preset (ordinary, oak, spruce, birch, Telperion, Laurelin, beech, date palm) builds through the one pipeline at seeds 1 and 7, on both executors. No capability gate, `Ok(None)` fallback or `Backend::CpuFallback` remains. The no-twig-layer placement is deleted. An input outside the numeric domain fails with a named error, each with a red/green test. [user]
 - **R3:** For every preset in R2, the GPU and reference executors agree within the tolerance. For ordinary, oak, spruce and birch, the reference executor's output is byte-identical to today's direct build. Each preset whose bytes change states the change and carries its evidence. [inferred]
-- **R4:** An aggressive speed target, not "no slower" (owner, 2026-09-24). This is a feasibility gate: if the target is missed, the worker records the profile and stops with `NEEDS_HUMAN`. [user]
+- **R4:** *(Superseded by R7, owner 2026-09-27: the baseline showed the halving had no source on the oak's and spruce's GPU path.)* An aggressive speed target, not "no slower" (owner, 2026-09-24). This is a feasibility gate: if the target is missed, the worker records the profile and stops with `NEEDS_HUMAN`. [user]
   - Browser stage-3 preparation, the part this spec reshapes (36 to 44 ms on the oak and 20 to 25 ms on the spruce, fn-91 `cpu-profile/REPORT.md` as quoted in fn-124), is halved at seeds 1 and 7.
   - `setTreeGpu` completed-frame medians against fn-91's final 158.1/180.8 ms (oak) and 178.9/164.2 ms (spruce) fall by at least the time saved.
   - Beech and Telperion are measured on base and candidate, where they leave the CPU fallback.
   - Each item-G overlap is measured on its own.
 - **R5:** The shaders live in the core's `gpu` module. The renderer consumes them with no copy of its own. A test translates them through naga to HLSL and SPIR-V without error. `telperion-core` and `telperion-field` gain no wgpu dependency. [inferred]
 - **R6:** The owner's visual verdict is recorded for the oak, spruce, birch and Telperion, and for the beech and date palm where their output changed. [user]
+- **R7:** Speed, measured by `BASELINE.md`'s method (native `generation_gpu`, `gpu-render`, warm medians at seeds 1 and 7) on the base and the candidate. The oak's and spruce's stage-3 CPU preparation (position prepare plus descriptors) is no slower than the base, and the redundant order-key sampling pass in wood compaction is gone. The beech, Telperion, Laurelin and date palm record base and candidate preparation totals with their stage split, since they leave the CPU fallback here. The harness's browser `setTreeGpu` completed-frame medians for the oak and spruce are recorded and no slower. Errors: a median regression above 5% on any fixture stops the build with `NEEDS_HUMAN` and the profile. [paraphrase]
+- **R8:** The palm's shaped leaf-base runs build through the GPU ring pass from their per-run cell record, and the GPU and reference agree within the tolerance on the date palm at seeds 1 and 7; no `shaped` or lobe gate remains, and every round preset's wood bytes are unchanged. Errors: a cell record on a run with no section, or a malformed cell, is a named error with a red/green test. [paraphrase]
+- **R9:** `docs/pipeline.md` describes `pipeline::executor` as the reference executor and the GPU as the second executor with no fallback; the words "sanctioned exception" and "falls back" no longer describe the GPU executor. Errors: no error surface beyond R2. [inferred]
 
 ## Boundaries
 
@@ -116,3 +128,12 @@ The separate ring sweep in `AttachmentSurface::new` goes too: station preparatio
 - Rescoped 2026-09-24 from "contract for the families the station path supports, the rest in gap specs" to one pipeline for every tree, after the owner rejected per-family paths. The feasibility check read short shoots, limb clumping, rosettes, lobed wood, the numeric fallbacks and every current expansion implementation; no feature needs a second path. [user]
 - fn-126 speeds up this spec's CPU reference executor once it lands, and depends on this spec. [user]
 - Depends on fn-102 and fn-134, both merged. [inferred]
+- Speed target rescoped 2026-09-27 (R7 over R4). The master baseline showed the oak's and spruce's stage-3 time is the compaction and station work itself, not duplication, so halving it would need ring sampling and frames on the GPU. That move is a separate performance spec, not this one; the large gains here are the trees that leave the CPU fallback. [user]
+- The palm's leaf-base cell rides in the plan layout rather than as CPU-built vertices uploaded to the GPU; uploading ready vertices would be a second way to draw wood. [user]
+
+## Resolved via Codebase
+
+- Routes on master (checked 2026-09-27): ordinary, oak, spruce and birch run wood and leaves on the GPU (`BASELINE.md` for oak and spruce); the date palm is now a catalogue preset (`presets.rs:34`) and the beech is still in work (`presets.rs:43`). Goal & Context's route table is as of 2026-09-24.
+- Every file this spec cites moved under `crates/telperion-core/src/pipeline/` with fn-158 (#126); the references above are re-anchored to master c71ef3e1.
+- The dead-frond skirt (rosette `skirt`, packed withered bit) needs no new source kind (`rosette.rs:65-80, 220`; `packed.rs:24-28`).
+- The ring words already carry a per-ring frame (`compact.rs`, ring packing); what a shaped run lacks is the non-circular cell (`tree/section.rs:21-42`).

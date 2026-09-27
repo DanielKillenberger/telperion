@@ -17,7 +17,7 @@
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "ready": true,
+  "ready": false,
   "spec_path": ".flow/specs/fn-15-wind-and-structural-motion.md",
   "status": "open",
   "title": "Wind and structural motion",
@@ -32,5 +32,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-24T16:19:05.785729Z"
+  "updated_at": "2026-09-27T10:00:45.065066Z"
 }

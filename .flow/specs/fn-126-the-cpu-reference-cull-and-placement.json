@@ -16,7 +16,7 @@
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "ready": true,
+  "ready": false,
   "spec_path": ".flow/specs/fn-126-the-cpu-reference-cull-and-placement.md",
   "status": "open",
   "title": "The CPU reference cull and placement, fast",
@@ -31,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-24T16:19:06.277323Z"
+  "updated_at": "2026-09-27T10:00:45.540056Z"
 }

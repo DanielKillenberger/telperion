@@ -134,7 +134,7 @@
     "impl:fn-160-presets-are-value-files.1": 0
   },
   "spec_path": ".flow/specs/fn-160-presets-are-value-files.md",
-  "status": "open",
+  "status": "done",
   "title": "Presets are value files",
   "tracker": {
     "baseHashFlow": null,
@@ -147,5 +147,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-26T18:04:07.931766Z"
+  "updated_at": "2026-09-27T09:57:24.332404Z"
 }
