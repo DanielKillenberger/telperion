@@ -70,8 +70,8 @@ describe("carried native controls", () => {
       forkHeight: 0,
       forkHeightSpread: 0,
       forkWays: 2,
-      forkDivergence: 0,
-      forkLean: 0,
+      forkDivergence: 90,
+      forkLean: 26,
       forkLeanSpread: 0,
     });
     // The leaf and the way it sits on its shoot are rows as well.

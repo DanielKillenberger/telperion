@@ -377,22 +377,22 @@ The parts a codominant fork divides into, the primary among them, 2 to 4. The wh
 
 Degrees of bearing between neighbouring slots of a fork, slot `k` standing `k` times this round from the primary's, about a bearing the axis's own stream decides. At zero every part leaves on one bearing.
 
-- real, degrees, [0, 120], default 0
+- real, degrees, [0, 120], default 90
 - read by grow; growth path: as the direct build
 - checked: Habit site, rank 20, as invalid input `fork divergence`
 - dormant: `codominance` zero
-- note: Refused where two parts of a fork leave on one heading (`forks_placed`). Replaces `stemDivergence`.
+- note: Defaults to 90 so that `codominance` builds on its own: fn-170's plane candidate stands its parts 120 apart, but at 120 a fourth part returns onto the primary's bearing, and a quarter turn keeps all four apart at every `forkWays`. Refused where two parts of a fork leave on one heading (`forks_placed`). Replaces `stemDivergence`.
 - blend: degrees along the shorter arc; dial: `fork_divergence` (the degrees of bearing between neighbouring parts of a codominant fork), window its bounds (validated bound), steps 5 and 10
 
 ### `/skeleton/habit/forkLean`
 
 Degrees every sibling of a fork leans from the axis it leaves; the primary leans by what `forkLeanSpread` leaves it of this.
 
-- real, degrees, [0, 45], default 0
+- real, degrees, [0, 45], default 26
 - read by grow; growth path: as the direct build
 - checked: Habit site, rank 23, as invalid input `fork lean`
 - dormant: `codominance` zero
-- note: Measured from the heading of the axis at the fork. Replaces `stemLean`.
+- note: Defaults to 26 so that `codominance` builds on its own: fn-170's plane candidate's lean, two degrees under the 28 the birch's photographs show. Measured from the heading of the axis at the fork. Replaces `stemLean`.
 - blend: degrees along the shorter arc; dial: `fork_lean` (the degrees the parts of a codominant fork lean from the axis they leave), window its bounds (validated bound), steps 5 and 10
 
 ### `/skeleton/habit/forkLeanSpread`

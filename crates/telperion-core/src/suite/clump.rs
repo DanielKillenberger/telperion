@@ -143,7 +143,10 @@ fn a_clump_that_cannot_be_placed_names_the_stem_that_is_wrong() {
             branching::generate(&f.skeleton, f.radii).err(),
             Some(Error::InvalidValue {
                 field: "fork parts pass through each other",
-                value: "part 1".into(),
+                value: format!(
+                    "part 1 leaves on part 0's heading at forkDivergence {divergence}, \
+                     forkLean {lean} and forkLeanSpread 0"
+                ),
             }),
             "{divergence} deg apart at {lean} deg of lean was accepted"
         );

@@ -64,8 +64,9 @@ const SWEEP_NODES: usize = 8_000;
 // fn-48 adds the clump's lean spread, and the birch states the whole of it, so
 // the sweep walks it. At the whole spread the birch's first stem stands
 // upright and has no bearing to part from, so its divergence goes to none and
-// every table agrees on it: the divergence is held here, and the clump tests
-// walk it from nothing to a hundred degrees.
+// every table agreed on it. fn-179 gives the divergence a default of a
+// quarter turn, so `codominance` builds on its own, and the birch states its
+// none: the sweep walks it.
 // fn-48.2 adds the clump's fork height, and the birch states half the bole,
 // so the sweep walks it.
 // fn-109's ten rosette rows and fn-110's eight trunk-organ rows are the date
@@ -73,7 +74,7 @@ const SWEEP_NODES: usize = 8_000;
 // leaves them at their neutral, so they are held here.
 // fn-120's three skirt rows and its dead colour are the palm's too, held for
 // the same reason, and so are fn-144's two lattice rows.
-const HELD: [&str; 76] = [
+const HELD: [&str; 75] = [
     "/canopy/clumpSystemOrder",
     "/canopy/rosetteFronds",
     "/canopy/rosetteDivergence",
@@ -108,7 +109,6 @@ const HELD: [&str; 76] = [
     "/skeleton/habit/raggedReach",
     "/skeleton/habit/forkHeightSpread",
     "/skeleton/habit/forkWays",
-    "/skeleton/habit/forkDivergence",
     "/radii/lateralShare",
     "/radii/forkBalance",
     "/radii/girthHold",

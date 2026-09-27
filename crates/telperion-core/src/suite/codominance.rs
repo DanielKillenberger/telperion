@@ -106,6 +106,24 @@ fn at_rate_zero_no_table_forks_whatever_the_other_rows_say() {
     }
 }
 
+/// fn-179: the beech's Tune raised `codominance` from zero sixteen times and
+/// the generator refused every build, because the fork rows' defaults left
+/// every part on one heading. The rate alone now builds on every table.
+#[test]
+fn a_little_codominance_alone_builds_on_every_table() {
+    for preset in PRESETS.into_iter().chain([Preset::DatePalm]) {
+        for seed in [1, 7] {
+            let f = family(preset, |f| {
+                f.skeleton.seed = seed;
+                f.skeleton.habit.codominance = 0.05;
+            });
+            if let Err(e) = branching::generate(&f.skeleton, f.radii) {
+                panic!("{preset:?} at seed {seed} refused codominance 0.05: {e:?}");
+            }
+        }
+    }
+}
+
 #[test]
 fn each_rail_is_refused_by_the_name_of_its_row() {
     type Set = fn(&mut Family, f64);
@@ -255,7 +273,10 @@ fn forks_repeat_up_the_crown() {
 fn the_walk_from_no_fork_to_a_clump_opens_it_rather_than_switching_it() {
     // Every point of the walk grows a tree; the stems at the root never go
     // back, and once the second is there it only ever stands further out.
+    // The walk opens the lean from none as well, so it widens the clump.
     let from = family(Preset::OregonWhiteOak, |f| {
+        f.skeleton.habit.fork_divergence = 0.0;
+        f.skeleton.habit.fork_lean = 0.0;
         f.skeleton.growth.max_nodes = Some(NODES)
     });
     let to = family(Preset::OregonWhiteOak, |f| {
