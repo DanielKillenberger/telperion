@@ -248,7 +248,7 @@
     "impl:fn-179-codominance-builds-on-its-own-and-a.1": 0
   },
   "spec_path": ".flow/specs/fn-179-codominance-builds-on-its-own-and-a.md",
-  "status": "open",
+  "status": "done",
   "title": "Codominance builds on its own and a refused bundle is split",
   "tracker": {
     "baseHashFlow": null,
@@ -261,5 +261,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T16:56:16.585693Z"
+  "updated_at": "2026-09-27T21:05:09.963295Z"
 }
