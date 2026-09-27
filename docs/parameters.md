@@ -871,8 +871,8 @@ The nodes a tree may grow; unset, the shipped default. A tree that would grow mo
 - optional count (usize), nodes, [1, 4294967295], default unset
 - read by grow; growth path: zero builds an empty capped seedling
 - checked: by a named check or not at all (see note)
-- note: Unset: 250 000. Zero is refused by `Family::validate` (`maxNodes`) and above u32::MAX by `ranges::max_nodes`. Measured on the plane and beech candidates (fn-180): each 50 000 nodes more costs about 0.2 to 0.5 s of build and 100 to 150 MB of peak memory.
-- blend: with the rows it is coupled to; dial: `max_nodes` (nodes the tree may grow before it thins its finest twigs evenly; each 50 000 more costs about 0.2 to 0.5 s of build and 100 to 150 MB of peak memory), window [100000, 1000000] (capped: capped above at a million nodes, about 1.5 GB of peak memory for one build; the generator refuses only above u32::MAX), steps 50000 and 150000, stepped from 250000 where unset
+- note: Unset: 250 000. Zero is refused by `Family::validate` (`maxNodes`) and above u32::MAX by `ranges::max_nodes`. Measured on the plane and beech candidates (fn-180): each 50 000 nodes more costs about 0.2 to 0.9 s of build and 90 to 150 MB of peak memory.
+- blend: with the rows it is coupled to; dial: `max_nodes` (nodes the tree may grow before it thins its finest twigs evenly; each 50 000 more costs about 0.2 to 0.9 s of build and 90 to 150 MB of peak memory), window [100000, 1000000] (capped: capped above at a million nodes, about 1.5 GB of peak memory for one build; the generator refuses only above u32::MAX), steps 50000 and 150000, stepped from 250000 where unset
 
 ### `/skeleton/growth/maxTurnPerStep`
 

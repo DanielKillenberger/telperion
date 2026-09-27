@@ -56,6 +56,13 @@ fn branch_diagnostics(
 }
 /// The field selection: absent or `false` asks for no field, `true` for the
 /// field at the family's limb order, `{"limbOrder": n}` at order `n`.
+/// The twig detail a build at its node budget kept, in sixteenths of a
+/// generation; null where the budget took none, so a reduced tree reads apart
+/// from a full one.
+fn twig_detail(d: telperion_core::tree::Diagnostics) -> Option<u16> {
+    d.reduced().then_some(d.twig_detail).flatten()
+}
+
 fn field_request(v: Option<&Value>) -> Result<Option<Option<u32>>> {
     let Some(v) = v else { return Ok(None) };
     if let Some(flag) = v.as_bool() {
@@ -156,6 +163,7 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         "nodes":tree.nodes.len(),"crossover":tree.crossover,"shed":built.skeleton.shed,
         "capped":tree.diagnostics.node_capped,"levelCapped":tree.diagnostics.level_capped,
         "attractionCapped":tree.diagnostics.attraction_capped,"complete":tree.diagnostics.complete(),
+        "twigDetail":twig_detail(tree.diagnostics),
         "handoffs":handoffs,"generationCounts":counts,"levelCappedHandoffs":capped_handoffs,"twigs":twig_count,
         "leavesPlaced":placed_count,"instances":retained_count,
         // Stations the plan counts before any cull; zero without a plan.

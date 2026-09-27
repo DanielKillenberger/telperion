@@ -37,8 +37,9 @@ beech's native range (fn-157).
   rounds' proposals, sheets and closing looks among them, were removed.
   fn-180's node budget joined the table as a dial, stepped from its unset
   default, and the round was extended again (`--extend`, recorded
-  2026-09-27): 9 Jev calls and two sheets; the 8 Jev answers and two sheets
-  it superseded, which no replay of the beech opened any more, were removed.
+  2026-09-28, after its cost text was corrected): 9 Jev calls; the 8 Jev
+  answers and two sheets it superseded, which no replay of the beech opened
+  any more, were removed.
   Every answer
   is refiled under today's keys, the newest kept where two became one
   question (`tape_trim`, `tape-adapter.py rekey:`). A replay opens every

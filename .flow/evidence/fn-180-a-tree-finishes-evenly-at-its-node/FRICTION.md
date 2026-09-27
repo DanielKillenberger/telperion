@@ -37,3 +37,13 @@
   existing file.
 - Cost: about 10 minutes, 9 Jev calls.
 - Would have removed it: a `tape_trim --prune <replay>` that lists or removes the files a replay did not open.
+
+## 2026-09-28, worker, task .1 (a review fix re-recorded the tape)
+
+- Doing: correcting the dial's advertised cost (the review found the beech's measured 0.6 to 0.9 s per step above
+  the stated 0.2 to 0.5 s).
+- Slowed by: the cost sits in the dial's `ask`, which is inside every Tune proposal request, so a one-number text
+  fix re-recorded the beech round (`--extend`, 9 more Jev calls) and a second watched replay.
+- Cost: about 8 minutes and 9 Jev calls.
+- Would have removed it: a tape key that does not hash the dial wording (fn-177's entry asks the same), or
+  checking every number in a text against its measurement table before the first recording.

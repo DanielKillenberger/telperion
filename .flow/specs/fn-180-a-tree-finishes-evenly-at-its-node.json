@@ -8,13 +8,75 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-180-a-tree-finishes-evenly-at-its-node",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-180-a-tree-finishes-evenly-at-its-node.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "087ed93ba7d2f4ca409226177de3aa01a59fb00af33dd3f177ea6b846c22c3c4",
+      "backend": "codex",
+      "base_sha": "6da76318f187a8bd13b890bbf070882858cd9148",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6940c3415bd8ca69ba24bafad4167761",
+            "classification": "introduced",
+            "findingId": "finding-6940c3415bd8ca69ba24bafad4167761",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6fb6ec15c7a8b1d7e5dfe4c17355e5f0",
+            "classification": "introduced",
+            "findingId": "finding-6fb6ec15c7a8b1d7e5dfe4c17355e5f0",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4d38a292e184195da0a03d9b803fb7b750219618",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1746,
+      "output_sha256": "8d5e9ec1bcf9bf1f16e5eac34187431dab72f590cff071790b6cac9d7ac35499",
+      "reservation_id": "743bc7eb7bb54793b17c565f3289e96b",
+      "round_consumed": true,
+      "scope": "impl:fn-180-a-tree-finishes-evenly-at-its-node.1",
+      "superseded_by": null,
+      "task": "fn-180-a-tree-finishes-evenly-at-its-node.1",
+      "timestamp": "2026-09-27T21:57:00.767047Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-180-a-tree-finishes-evenly-at-its-node.1": 0
+  },
   "spec_path": ".flow/specs/fn-180-a-tree-finishes-evenly-at-its-node.md",
   "status": "open",
   "title": "A tree finishes evenly at its node budget",
@@ -29,5 +91,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T21:43:30.767621Z"
+  "updated_at": "2026-09-27T21:57:00.769296Z"
 }

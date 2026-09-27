@@ -79,7 +79,8 @@ Node counts and detail both rise monotonically, and they reach the unbudgeted tr
 | 400k | 389,323 | 2,484 | 959 | 395,968 | 7,342 | 1,181 |
 | 500k | 490,987 | 2,891 | 1,141 | 479,057 | 8,704 | 1,379 |
 
-A 50,000-node step (the dial's small step) adds about 0.2 to 0.5 s to the build and 100 to 150 MB of peak memory.
+A 50,000-node step (the dial's small step) adds 0.19 to 0.44 s on the plane and 0.60 to 0.88 s on the beech to the
+build, and 90 to 155 MB of peak memory: about 0.2 to 0.9 s and 90 to 150 MB.
 The dial's `ask` and the row's note say so. The dial window is 100,000 to 1,000,000 nodes, and an unset row
 steps from `ranges::DEFAULT_MAX_NODES`.
 

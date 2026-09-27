@@ -46,7 +46,10 @@ export interface FoliageAnatomy {
 export interface Diagnostics {
   biologicalUnits: number | null; foliageAnatomy: FoliageAnatomy | null;
   nodes: number; crossover: number; shed: number; capped: boolean; levelCapped: boolean;
-  attractionCapped: boolean; complete: boolean; handoffs: number; generationCounts: number[];
+  attractionCapped: boolean; complete: boolean;
+  /** Twig detail kept, in sixteenths of a generation, where the node budget reduced the tree. */
+  twigDetail: number | null;
+  handoffs: number; generationCounts: number[];
   levelCappedHandoffs: number; twigs: number; leavesPlaced: number; instances: number;
   /** Stations the leaf plan counts before any cull; zero without a plan. */
   leavesPlanned: number;

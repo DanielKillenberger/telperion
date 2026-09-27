@@ -83,7 +83,8 @@ pub struct Diagnostics {
     /// outward, then the share of the next one's laterals still branching
     /// rather than ending as twigs (below one generation, the share of the
     /// first generation's twigs grown at all). None where the budget did not
-    /// bind the twigs. Chosen per build and never stored.
+    /// bind the twigs. Chosen per build and never stored: a snapshot or a JSON
+    /// read of the diagnostics reads none; the browser gets it as `twigDetail`.
     #[cfg_attr(feature = "json", serde(skip))]
     pub twig_detail: Option<u16>,
 }
