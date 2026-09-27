@@ -21,9 +21,11 @@ When a tree would grow past `maxNodes`, it now gives up twig detail evenly. Deta
 - Tier: none given in the dispatch; ran on the session model (actual_model: claude-opus-5-5).
 
 stage: impl-review - ran [2026-09-27..2026-09-28] (codex fan-out NEEDS_WORK on 2 findings, fixed, re-review SHIP)
+- Size trim (host continuation, 2026-09-28): CI refused a +7.9% slim field module, almost all of it the derived `Specimen::clone`. Each detail level now regrows from its rows, and nothing is cloned. `telperion-field.wasm` is 369,691 bytes (+0.5% over base 367,819). The output is identical to the cloning version. Skeleton time at the budget: plane 862 ms, beech 1,016 ms.
+stage: impl-review - ran [2026-09-28] (codex fan-out over 1eb62455..e9f5b7e5: SHIP from all three draws)
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: bff4fa32c5f1933758ad4dde0b9cef843fe7873d, 6b5aacb557a0803ecee334c22b6c0e3ae52a68eb, 4d38a292e184195da0a03d9b803fb7b750219618, 8f80f1a22a76a3e1eb38b85a146ecf6243e8f17c
+- Commits: 11a3682917cb9e00e445d9b5a1f19cc414eb7a7a, d42bd8eee558782b94fb581e26674e4329e8d881, b7218ba804460e9a44c63eeb8519b91717bd92f3, eaaa796311ac4ef5613e4f706937aace9dd7ba19, 1eb62455fa4aeb96042a52a238f1139691cb10df, e9f5b7e5abaeb332cc02f95caabb000999435f6f, 4102e838e289cee7b6c4b3f979a023a97457cbb6
 - Tests: cargo test --profile ci --workspace --no-fail-fast, npm test
 - PRs:
