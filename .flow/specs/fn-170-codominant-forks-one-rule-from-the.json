@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-170-codominant-forks-one-rule-from-the",
   "impl_review_rounds": {
-    "fn-170-codominant-forks-one-rule-from-the.1": 1
+    "fn-170-codominant-forks-one-rule-from-the.1": 0
   },
   "next_task": 1,
   "no_plan": true,
@@ -104,9 +104,71 @@
       "task": "fn-170-codominant-forks-one-rule-from-the.1",
       "timestamp": "2026-09-27T11:33:38.617620Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "6d917d0293d9002d50323012be30eacbac994afff7a2c2008f4a093a9e199454",
+      "backend": "codex",
+      "base_sha": "fcf3ea101cbdbe39114b96532ee7a6d9c231bd21",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-93b986cd35dfbc7822790d2c55ef792a",
+            "classification": "introduced",
+            "findingId": "finding-93b986cd35dfbc7822790d2c55ef792a",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-46988d65110ddf2a7c5c9db798354f41",
+            "classification": "introduced",
+            "findingId": "finding-46988d65110ddf2a7c5c9db798354f41",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-7cf19dcfeeadc47920cef763d8929adf",
+            "classification": "introduced",
+            "findingId": "finding-7cf19dcfeeadc47920cef763d8929adf",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d9b5f97370bd091a5f0851b68770eb11cb506da6",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1256,
+      "output_sha256": "41956e2d0079f396aafe20899298ebef2b5e5b73253e281758436ba430cab27f",
+      "reservation_id": "6fd5895533194a7aa0da378b2b4e221d",
+      "round_consumed": true,
+      "scope": "impl:fn-170-codominant-forks-one-rule-from-the.1",
+      "superseded_by": null,
+      "task": "fn-170-codominant-forks-one-rule-from-the.1",
+      "timestamp": "2026-09-27T11:47:41.424066Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-170-codominant-forks-one-rule-from-the.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -126,5 +188,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T11:33:38.620030Z"
+  "updated_at": "2026-09-27T11:47:41.426468Z"
 }

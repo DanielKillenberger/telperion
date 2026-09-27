@@ -1,21 +1,21 @@
 {
   "plane": {
     "structural": [
-      11238,
-      46609
+      11231,
+      45531
     ],
     "twig": [
-      203391,
-      238762
+      204469,
+      238769
     ],
     "node_capped": 8,
     "leaves": [
-      1154855,
-      1787071
+      1153321,
+      1792284
     ],
-    "median_total_ms": 786,
-    "median_growth_ms": 178,
-    "peak_mb": 621
+    "median_total_ms": 769,
+    "median_growth_ms": 173,
+    "peak_mb": 619
   },
   "nofork": {
     "structural": [
@@ -31,26 +31,26 @@
       1250002,
       1336816
     ],
-    "median_total_ms": 716,
-    "median_growth_ms": 132,
+    "median_total_ms": 700,
+    "median_growth_ms": 133,
     "peak_mb": 536
   },
   "birch": {
     "structural": [
-      1944,
-      2536
+      2098,
+      2530
     ],
     "twig": [
-      69949,
-      85166
+      70294,
+      85092
     ],
     "node_capped": 0,
     "leaves": [
-      202954,
-      263949
+      221941,
+      260907
     ],
-    "median_total_ms": 2831,
-    "median_growth_ms": 207,
-    "peak_mb": 177
+    "median_total_ms": 2851,
+    "median_growth_ms": 173,
+    "peak_mb": 176
   }
 }
