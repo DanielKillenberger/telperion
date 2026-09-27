@@ -47,3 +47,13 @@
 - Cost: about 8 minutes and 9 Jev calls.
 - Would have removed it: a tape key that does not hash the dial wording (fn-177's entry asks the same), or
   checking every number in a text against its measurement table before the first recording.
+
+## 2026-09-28, worker, task .1 (the size check caught a clone after the PR opened)
+
+- Doing: trimming the slim field module after CI refused +7.9%.
+- Slowed by: the size check (`node scripts/artifact-budgets.mjs`) runs only after `npm run build`, which neither
+  the workspace gate nor `npm test` includes, so the growth showed up only in CI's package job after the push. `twiggy diff` on two unstripped builds named the cause
+  (`Specimen::clone`) at once.
+- Cost: one CI round trip and about 15 minutes.
+- Would have removed it: the task's gate list naming `npm run build` and the budget check for any change under
+  `crates/telperion-core`, which the slim module compiles.

@@ -88,10 +88,29 @@ steps from `ranges::DEFAULT_MAX_NODES`.
 
 | case | master total ms | fn-180 total ms | master skeleton ms | fn-180 skeleton ms | master peak MB | fn-180 peak MB |
 |---|---|---|---|---|---|---|
-| plane | 1,003 | 1,581 | 206 | 568 | 620 | 608 |
-| beech a49edc4aab1c | 5,127 | 4,501 | 212 | 809 | 851 | 736 |
-| beech f413972cefa0 | 5,620 | 5,174 | 285 | 1,227 | 902 | 763 |
+| plane | 1,003 | 1,887 | 206 | 862 | 620 | 590 |
+| beech a49edc4aab1c | 5,127 | 4,898 | 212 | 1,016 | 851 | 727 |
+| beech f413972cefa0 | 5,620 | 5,192 | 285 | 1,338 | 902 | 756 |
 
-The skeleton grows once for each level it tries, and every try stays under the budget. That makes the skeleton
-three to four times slower than on master: it tries 5 or 6 levels. The beech builds fewer leaves than the
-truncated master tree, so its whole request is faster and uses less memory.
+The skeleton is regrown from its rows for each level it tries (5 or 6), and every try stays under the budget, so
+at the budget it is four to five times slower than on master. The beech builds fewer leaves than the truncated
+master tree, so its whole request is faster and uses less memory.
+
+## Size: the slim field module
+
+CI's size check refused the first version: `dist/telperion-field.wasm` grew from 367,819 bytes (base `b6181634`) to
+396,792 (+28,973, +7.9%). The `twiggy diff` of the two builds with names kept put almost all of it in the specimen's
+clone. The first version saved the scaffold by cloning the whole `Specimen` and grew each level from that copy, and
+the derived `Clone` pulled the retained-growth state's clone code into the module:
+
+| cause | bytes (named build) |
+|---|---|
+| `Specimen::clone` | +14,121 |
+| clones of the frontiers, queues, maps and identity trees it reaches | about +10,800 |
+| `Tree::clone`, drop glue, the function-name table | about +6,300 |
+| the search itself (`within_budget`) | +1,958 |
+
+Each level now regrows the tree from its rows, which draw the same scaffold, and nothing is cloned. The module is
+369,691 bytes (+1,872, +0.5% over base). Every budget case and every preset's skeleton digest is identical to the
+first version (plane seeds 1 and 2, beech seeds 1 and 7, oak at 50,000 and 3,000, and ordinary at 6,000). Regrowing
+the scaffold costs time at the budget: plane skeleton 568 to 862 ms, beech 809 to 1,016 ms.

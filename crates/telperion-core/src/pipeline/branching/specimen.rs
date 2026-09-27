@@ -290,10 +290,10 @@ impl Specimen {
     pub(crate) fn grow(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
         let mut s = Self::new(params, radii)?;
         s.step(usize::MAX, 0)?;
-        let scaffold = (!s.tree.diagnostics.node_capped).then(|| s.clone());
+        let scaffold_fits = !s.tree.diagnostics.node_capped;
         s.step(0, usize::MAX)?;
-        if let Some(scaffold) = scaffold.filter(|_| s.tree.diagnostics.node_capped) {
-            s = scaffold.within_budget()?;
+        if scaffold_fits && s.tree.diagnostics.node_capped {
+            s = Self::within_budget(params, radii)?;
         }
         debug_assert!(s.finished() || !s.tree.diagnostics.complete());
         s.shed = finish(&mut s.tree, params, radii)?;
