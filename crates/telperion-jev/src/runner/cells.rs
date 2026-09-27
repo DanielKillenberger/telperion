@@ -8,6 +8,23 @@ use serde_json::{json, Value};
 /// The seed a required cell draws beside the config's fixed one.
 pub const FRESH_SEED: u32 = 42;
 
+/// A reference's view: its own `view`, or for a curated record that states
+/// none, the first of its scales that names one - a whole tree in leaf, a
+/// bare tree, or the bark at its base.
+pub fn view(record: &Value) -> Option<&str> {
+    if let Some(view) = record["view"].as_str() {
+        return Some(view);
+    }
+    let leaf = record["shot"]["foliage"] == "leaf-on";
+    let mut scales = record["scale"].as_array()?.iter().filter_map(Value::as_str);
+    scales.find_map(|scale| match scale {
+        "whole" if leaf => Some("leaf-on"),
+        "bare" => Some("bare"),
+        "base" => Some("bark"),
+        _ => None,
+    })
+}
+
 /// The required cells and the numeric references drawn from the recorded
 /// references, or an error naming what is missing.
 pub fn derive(references: &Value, seed: u32) -> Result<(Vec<Value>, Vec<String>), String> {
@@ -27,18 +44,18 @@ pub fn derive(references: &Value, seed: u32) -> Result<(Vec<Value>, Vec<String>)
             continue;
         };
         let cell = |item: &str, seed: u32| json!({"item": item, "view": id, "seed": seed});
-        match record["view"].as_str() {
-            Some("leaf-on") => {
+        let view = view(record).unwrap_or_default();
+        match view {
+            "leaf-on" => {
                 cells.push(cell("crown-character", seed));
                 cells.push(cell("crown-character", fresh));
             }
-            Some("bare") => cells.push(cell("branching-character", seed)),
-            Some("bark") => cells.push(cell("bark-base", seed)),
+            "bare" => cells.push(cell("branching-character", seed)),
+            "bark" => cells.push(cell("bark-base", seed)),
             _ => continue,
         }
         // A photograph whose box or crown base matched no candidate is
         // judged by eye but sets no numeric target.
-        let view = record["view"].as_str().unwrap_or_default();
         if view != "bark" && record["shot"]["tree"].is_object() {
             numeric.push(id.to_string());
         }
@@ -97,5 +114,27 @@ mod tests {
         let bare = json!({"references": [{"id": "photo-3", "view": "bare", "shot": shot}]});
         let err = derive(&bare, 1).unwrap_err();
         assert!(err.contains("whole tree in leaf"), "{err}");
+    }
+
+    /// fn-179: the beech's curated records carry their scale and no view.
+    /// Read as the catalogue stores them, they give the cells fn-62's run
+    /// had to patch in by hand: B-WHOLE in leaf, B-BARE bare, B-BASE bark.
+    #[test]
+    fn a_curated_record_takes_its_view_from_its_scale() {
+        let beech: Value = serde_json::from_str(include_str!(
+            "../../../../catalogue/european-beech/packet/references.json"
+        ))
+        .unwrap();
+        let (cells, numeric) = derive(&beech, 1).unwrap();
+        assert_eq!(
+            cells,
+            [
+                json!({"item": "crown-character", "view": "B-WHOLE", "seed": 1}),
+                json!({"item": "crown-character", "view": "B-WHOLE", "seed": 42}),
+                json!({"item": "branching-character", "view": "B-BARE", "seed": 1}),
+                json!({"item": "bark-base", "view": "B-BASE", "seed": 1}),
+            ]
+        );
+        assert_eq!(numeric, ["B-WHOLE", "B-BARE"]);
     }
 }

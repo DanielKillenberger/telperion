@@ -54,7 +54,10 @@ impl Stage for Profile {
         let ran = !matches!(fit::run(paths).map_err(e)?, fit::Outcome::Current);
         said(&mut words, "fit", ran);
         words.push(photographs(run, &judge)?);
-        inventory::record(paths, &run.out())?;
+        let tuning =
+            read_json(&run.tuning).map_err(|e| format!("{}: {e}", run.tuning.display()))?;
+        let refs = tuning["matched"]["refs"].as_str().map(PathBuf::from);
+        inventory::record(paths, &run.out(), refs.as_deref())?;
         words.push(inventory::build(&run.tuning, &run.out())?);
         gaps::note_references(&run.tuning, &run.out())?;
         lit::logged(run, words.join(", "))
