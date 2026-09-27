@@ -203,43 +203,37 @@ fn one_track(
     if strengths.is_empty() {
         return Err("no bundle strength configured".into());
     }
-    let Some(draws) = refused::turn(state, &base, track, wanted) else {
+    let Some((wanted, half)) = refused::turn(state, &base, track, wanted) else {
         save(state)?;
         return Ok(Turn::AllTried);
     };
+    let wanted = &wanted[..];
     // How far this round moves is the size of the gap the words name.
-    let stride = stride::decide(state, services, save, track, &draws.concat())?;
-    let mut planned: Vec<(usize, (Bundle, serde_json::Value))> = vec![];
+    let stride = stride::decide(state, services, save, track, wanted)?;
+    let mut planned = vec![];
     let mut refused = 0;
-    // Ascending strength, the halves side by side at each: the sheet keeps
-    // the first four renders, so every half reaches it at its smallest.
     for strength in strengths.iter().map(|s| s * stride.multiplier) {
-        for (half, wanted) in draws.iter().enumerate() {
-            match build(
-                &state.preset,
-                &state.effective,
-                &state.dials,
-                wanted,
-                strength,
-                &base,
-                &track.name,
-            ) {
-                Err(reason) => state.routes.push(note(
+        match build(
+            &state.preset,
+            &state.effective,
+            &state.dials,
+            wanted,
+            strength,
+            &base,
+            &track.name,
+        ) {
+            Err(reason) => state.routes.push(note(
+                track,
+                format!("bundle at strength {strength} not drawn: {reason}"),
+            )),
+            Ok((bundle, _)) if tried(state, &bundle.id) => {
+                refused += 1;
+                state.routes.push(note(
                     track,
-                    format!("bundle at strength {strength} not drawn: {reason}"),
-                )),
-                Ok((bundle, _))
-                    if tried(state, &bundle.id)
-                        || planned.iter().any(|(_, (b, _))| b.id == bundle.id) =>
-                {
-                    refused += 1;
-                    state.routes.push(note(
-                        track,
-                        format!("bundle repeat refused: strength {strength} was already tried from this tree"),
-                    ));
-                }
-                Ok(drawn) => planned.push((half, drawn)),
+                    format!("bundle repeat refused: strength {strength} was already tried from this tree"),
+                ));
             }
+            Ok(drawn) => planned.push(drawn),
         }
     }
     if planned.is_empty() {
@@ -253,10 +247,10 @@ fn one_track(
     // The tree the variants are compared with needs the track's view too.
     ensure_views(state, services, save, old, &track.extra_views)?;
     let (mut variants, mut drawn) = (vec![], vec![]);
-    for (half, (bundle, overlay)) in planned {
-        let label = match draws.len() {
-            1 => format!("bundle@{}", bundle.strength),
-            _ => format!("bundle@{} refused half {}", bundle.strength, half + 1),
+    for (bundle, overlay) in planned {
+        let label = match half {
+            false => format!("bundle@{}", bundle.strength),
+            true => format!("bundle@{} refused half", bundle.strength),
         };
         let trial = evaluate(
             state,

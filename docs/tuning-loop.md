@@ -40,8 +40,8 @@ A revision runs into its own directory and never twice into the same one:
    variant that breaks something is halved until the breaking dials are
    isolated; a worse bundle is cut by family. The kept variant takes a closing
    look, and the veto can take it back. A bundle the generator refuses to
-   build at every strength is halved, and the next round draws its halves
-   without asking Jev again; a dial refused alone is dropped for the rest of
+   build at every strength is halved, and the rounds that follow draw its
+   halves, one a round on a sheet of its own, without asking Jev again; a dial refused alone is dropped for the rest of
    the revision (fn-179).
 5. The revision ends when the reviewer passes every required cell (an owner
    look under bootstrap), when a round has nothing new to draw, or when

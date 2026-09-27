@@ -122,7 +122,8 @@ pub(super) fn halves(state: &Run, track: &Track) -> Vec<Wanted> {
     out
 }
 
-/// What a track draws this turn: the halves it still owes, else
+/// What a track draws this turn, and whether it is an owed half: the first
+/// half it still owes, one a turn so each half has a sheet of its own, else
 /// the dials Jev supported less the families an isolated part already lost
 /// here, so the next bundle is a different bundle rather than the same one
 /// again, and less the dials dropped for the revision. `None` when nothing is
@@ -132,10 +133,9 @@ pub(super) fn turn(
     base: &str,
     track: &Track,
     wanted: &[(String, i8)],
-) -> Option<Vec<Wanted>> {
-    let halves = halves(state, track);
-    if !halves.is_empty() {
-        return Some(halves);
+) -> Option<(Wanted, bool)> {
+    if let Some(half) = halves(state, track).into_iter().next() {
+        return Some((half, true));
     }
     let eligible = super::worse::eligible(state, base, track, wanted)?;
     let wanted = kept(state, &eligible);
@@ -147,7 +147,7 @@ pub(super) fn turn(
         state.routes.push(line);
         return None;
     }
-    Some(vec![wanted])
+    Some((wanted, false))
 }
 
 /// Whether some track still owes halves.
@@ -171,7 +171,7 @@ pub(super) fn note(state: &mut Run, track: &Track, trials: &[usize]) {
                 ),
                 moves => format!(
                     "bundle of {} dials failed to build at every strength: {reason}; \
-                     its halves are drawn next round",
+                     its halves are drawn in the rounds that follow",
                     moves.len()
                 ),
             })
