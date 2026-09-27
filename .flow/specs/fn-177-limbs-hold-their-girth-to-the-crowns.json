@@ -1,7 +1,9 @@
 {
   "branch_name": "fn-177-limbs-hold-their-girth-to-the-crowns",
   "created_at": "2026-09-27T12:39:17.883630Z",
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-170-codominant-forks-one-rule-from-the"
+  ],
   "id": "fn-177-limbs-hold-their-girth-to-the-crowns",
   "next_task": 1,
   "plan_review_status": "unknown",
@@ -20,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T12:39:17.889785Z"
+  "updated_at": "2026-09-27T12:39:26.023753Z"
 }
