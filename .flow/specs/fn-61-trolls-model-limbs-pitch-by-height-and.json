@@ -429,7 +429,7 @@
     "impl:fn-61-trolls-model-limbs-pitch-by-height-and.1": 0
   },
   "spec_path": ".flow/specs/fn-61-trolls-model-limbs-pitch-by-height-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Troll's model limbs: pitch by height and a ragged reach",
   "tracker": {
     "baseHashFlow": null,
@@ -442,5 +442,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T09:47:38.184909Z"
+  "updated_at": "2026-09-27T10:03:19.522150Z"
 }
