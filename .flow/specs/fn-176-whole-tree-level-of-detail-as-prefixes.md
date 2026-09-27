@@ -1,5 +1,7 @@
 # Whole-tree level of detail as prefixes of ordered data
 
+> HTML render lens: `.flow/artifacts/fn-176-whole-tree-level-of-detail-as-prefixes/spec.html` (gitignored — open locally; regenerable, markdown is the record). <!-- flow-next:artifact-link -->
+
 ## Conversation Evidence
 
 > user (2026-09-27): "yes but also we need to enable lod for this motion data. As we provide for rendering (do we do that as of now? or is the renderer choosing to simplify the full tree when rendered?). So simpler trees should also have simpler motion data. If we don't have lods in generator before rendering then i guess we can't really do that yet?"
