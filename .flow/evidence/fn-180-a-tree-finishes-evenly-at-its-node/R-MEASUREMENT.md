@@ -1,0 +1,83 @@
+# fn-180 measurements
+
+2026-09-27, worker, task .1. Tool: `crates/telperion-core/examples/node_budget.rs`
+(`BUDGET_FAMILY=<overlay> [BUDGET_MAX_NODES=n] [BUDGET_GENERATIONS=g] [BUDGET_MESH=1] node_budget <preset> <seed>`).
+Cases: `plane-candidate.json` (fn-170's plane with fn-177's `girthHold` 0.75 and `girthFall` 4) over the oak, and
+`beech-candidate.json` (fn-62 r3, round 1 `bundle@2`, case `candidate-a49edc4aab1c`) over the beech. The beech's
+nine other node-capped r3 candidates are also capped on this base. Raw lines are in `raw/` (ignored).
+A stub is a local branch node with no child: an axis that ends on its own wood.
+
+## The Unknown: a whole twig generation fewer, or thinning the finest order
+
+The trees without a budget, and at each stated `generations`:
+
+| case | no budget | generations 2 to 6 | generations 1 | default budget |
+|---|---|---|---|---|
+| plane, seed 1 | 594,144 | 594,144 | 267,322 | 250,000 |
+| plane, seed 2 | 580,353 | 580,353 | not run | 250,000 |
+| beech a49edc4aab1c | 526,267 | 506,431 at 2, 526,267 at 3 to 6 | 68,539 | 250,000 |
+| beech f413972cefa0 | 797,137 | 756,786 at 2 | 72,215 | 250,000 |
+
+- Removing a whole generation does not fit the plane. At one generation the plane still has 267k nodes, over
+  its 250k budget.
+- On the beech, removing a whole generation drops the tree from 526k to 68k nodes, 27% of the budget.
+- Neither tree's twig layer is as deep as its row allows. The generations the oak and the beech actually grow
+  (one or two) are set by radius and length, so the row's integer steps are few and very large.
+- **Chosen: uniform thinning of the finest order.** Its whole-generation points are the generation row, so it
+  includes the first option and fills the steps between them.
+
+## What was built
+
+Detail is counted in sixteenths of a twig generation. Whole generations are grown from the scaffold outward.
+Inside the next generation, a share of its laterals still branch and the rest end as twigs, drawn from each bud's
+own key. Below one generation, the share is of the first generation's twigs, and the rest are not grown. The
+direct build tries levels from the same scaffold: whole generations first, then a bisection inside the one that
+does not fit. It keeps the highest level that finishes inside the budget and records it as
+`diagnostics.twig_detail`.
+
+## R1: stubs at the default budget
+
+| case | master stubs | fn-180 stubs | no-budget stubs | fn-180 nodes | detail kept |
+|---|---|---|---|---|---|
+| plane, seed 1 | 55,626 | 178 | 417 | 243,039 | 14/16 of gen 1 twigs |
+| plane, seed 2 | 62,066 | 169 | 507 | 229,481 | all gen 1 twigs |
+| beech a49edc4aab1c | 34,087 | 585 | 1,446 | 232,109 | gen 1, 6/16 of gen 2 |
+| beech f413972cefa0 | 52,394 | 444 | 1,424 | 236,530 | gen 1, 4/16 of gen 2 |
+| beech cfa0b4339a9c | 12,367 | 271 | 556 | 228,518 | gen 1, 8/16 of gen 2 |
+
+In every case the reduced tree has fewer stubs than the tree with no budget. Structural tips with no child rise
+where detail falls below one generation: on the plane at seed 1, from 36 to 51. These are tips whose terminal twig
+was refused and whose lateral twigs were thinned. They end tapered, like any structural tip.
+
+## R2: under budget
+
+The skeleton digests of every shipped preset and the in-work beech, at seeds 1 and 7, are identical to master.
+Every one of them is under its budget.
+
+## R3: sweep of `maxNodes` (seed 1)
+
+| budget | plane nodes | plane detail | beech nodes | beech detail |
+|---|---|---|---|---|
+| 100k | 97,037 | 2 | 96,883 | 17 |
+| 150k | 145,750 | 6 | 149,271 | 19 |
+| 200k | 194,444 | 10 | 176,712 | 20 |
+| 250k | 243,039 | 14 | 232,109 | 22 |
+| 300k | 288,342 | 17 | 284,776 | 24 |
+| 400k | 389,323 | 22 | 395,968 | 28 |
+| 500k | 490,987 | 27 | 479,057 | 31 |
+| 550k | 532,716 | 29 | 526,267 | none (whole) |
+| 600k | 594,144 | none (whole) | 526,267 | none (whole) |
+
+Node counts and detail both rise monotonically, and they reach the unbudgeted tree once the budget holds it.
+
+## R5: cost at the default budget (whole mesh request, medians of 3, seed 1)
+
+| case | master total ms | fn-180 total ms | master skeleton ms | fn-180 skeleton ms | master peak MB | fn-180 peak MB |
+|---|---|---|---|---|---|---|
+| plane | 1,003 | 1,581 | 206 | 568 | 620 | 608 |
+| beech a49edc4aab1c | 5,127 | 4,501 | 212 | 809 | 851 | 736 |
+| beech f413972cefa0 | 5,620 | 5,174 | 285 | 1,227 | 902 | 763 |
+
+The skeleton grows once for each level it tries, and every try stays under the budget. That makes the skeleton
+three to four times slower than on master: it tries 5 or 6 levels. The beech builds fewer leaves than the
+truncated master tree, so its whole request is faster and uses less memory.

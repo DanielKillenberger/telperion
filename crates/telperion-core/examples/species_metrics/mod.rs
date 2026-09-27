@@ -47,7 +47,7 @@ pub fn measure(
         return Err("invalid: wood positions or retained accounting".into());
     }
     let mut m = json!({});
-    m["growth"] = json!({"status":if tree.diagnostics.complete(){"complete"}else{"truncated"},"node_capped":tree.diagnostics.node_capped,"level_capped":tree.diagnostics.level_capped,"attraction_capped":tree.diagnostics.attraction_capped});
+    m["growth"] = json!({"status":if tree.diagnostics.complete(){"complete"}else{"truncated"},"node_capped":tree.diagnostics.node_capped,"level_capped":tree.diagnostics.level_capped,"attraction_capped":tree.diagnostics.attraction_capped,"twig_detail":tree.diagnostics.twig_detail});
     m["nodes"] = scalar(tree.nodes.len(), "measured");
     let ground = tree.nodes.first().map_or(0., |n| n.position.y);
     let wood_top = wood
