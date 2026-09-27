@@ -378,6 +378,12 @@
     "reason": "Unit progress or blend weight saturates at its endpoint; the authored length and population remain independent."
   },
   {
+    "path": "crates/telperion-core/src/pipeline/branching/scaffold/fork.rs",
+    "site": "if s < = 1e - 15 {",
+    "classification": "numeric",
+    "reason": "Floating-point degeneracy/rounding tolerance for geometric arithmetic; it does not limit generated populations."
+  },
+  {
     "path": "crates/telperion-core/src/pipeline/branching/scaffold/frontier.rs",
     "site": "while budget > 0 & & ! b . tree . diagnostics . node_capped {",
     "classification": "parameter",

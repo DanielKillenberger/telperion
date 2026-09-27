@@ -144,6 +144,16 @@ pub(super) fn about(local: Vec3, axis: Vec3) -> Vec3 {
     local.rotate_sin_cos(turn / s, (s, c)).normalized()
 }
 
+/// `v` turned by the least rotation that carries `from` onto `to`.
+pub(super) fn turn(from: Vec3, to: Vec3, v: Vec3) -> Vec3 {
+    let axis = from.cross(to);
+    let (s, c) = (axis.length(), from.dot(to));
+    if s <= 1e-15 {
+        return v;
+    }
+    v.rotate_sin_cos(axis / s, (s, c))
+}
+
 /// The key of part `k` of a fork on the axis keyed `key`.
 pub(super) fn part_key(key: u32, k: usize) -> u32 {
     axis_key(key, FORK_STATION, k)

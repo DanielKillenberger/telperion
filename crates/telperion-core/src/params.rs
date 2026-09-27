@@ -91,18 +91,24 @@ pub(crate) fn decode(v: &Value) -> Result<Family> {
 /// states only the rows it moves.
 pub fn overlay(f: &Family, overrides: &Value) -> Result<Family> {
     let mut wire = metadata(f);
-    lay(&mut wire, overrides)?;
+    lay(&mut wire, overrides, "")?;
     parse(&wire)
 }
-fn lay(wire: &mut Value, over: &Value) -> Result<()> {
+/// Lays `over` onto `wire` at the path `at`; a key the wire lacks is refused,
+/// by its replacement where the catalogue retired it.
+fn lay(wire: &mut Value, over: &Value, at: &str) -> Result<()> {
     let map = over
         .as_object()
         .ok_or(Error::InvalidInput("family object"))?;
     for (key, value) in map {
+        let path = format!("{at}/{key}");
         match (wire.get_mut(key), value.is_object()) {
-            (Some(slot), true) if slot.is_object() => lay(slot, value)?,
+            (Some(slot), true) if slot.is_object() => lay(slot, value, &path)?,
             (Some(slot), _) => *slot = value.clone(),
-            (None, _) => return Err(Error::InvalidInput("unknown family parameter")),
+            (None, _) => {
+                let why = catalogue::retired(&path).unwrap_or("unknown family parameter");
+                return Err(Error::InvalidInput(why));
+            }
         }
     }
     Ok(())

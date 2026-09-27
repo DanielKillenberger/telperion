@@ -122,13 +122,23 @@ impl Tree {
         let Some(fork) = runs.iter().position(|&r| r > 1) else {
             return radius(0);
         };
-        self.nodes
-            .iter()
-            .enumerate()
-            .skip(1)
-            .filter(|(_, n)| n.parent == Some(fork as u32) && parts(fork, n))
-            .map(|(i, _)| radius(i))
-            .fold(0.0, f64::max)
+        let parted = || {
+            self.nodes
+                .iter()
+                .enumerate()
+                .skip(1)
+                .filter(move |(_, n)| n.parent == Some(fork as u32) && parts(fork, n))
+        };
+        let widest = parted().map(|(i, _)| radius(i)).fold(0.0, f64::max);
+        // A fork growing in moves the measure from the root to the fork by as
+        // much as its siblings have grown; stems no fork recorded part whole.
+        let grown = parted()
+            .filter_map(|(_, n)| n.codominant)
+            .fold(None, |most: Option<f64>, w| {
+                Some(most.map_or(w, |m| m.max(w)))
+            })
+            .unwrap_or(1.0);
+        widest - (widest - radius(0)) * (1.0 - grown)
     }
     /// The distal node of every order-zero axis, in birth order: where a stem
     /// stops carrying itself further. A stem apex may still bear laterals and
@@ -244,6 +254,21 @@ mod tests {
             nodes,
             ..Tree::default()
         }
+    }
+
+    #[test]
+    fn a_fork_growing_in_moves_the_measure_from_the_root_by_its_weight() {
+        let radius = |t: &Tree| t.stem_radius(|i| t.nodes[i].radius);
+        let grown = |weight: f64| {
+            let mut t = tree(1.0, true, false);
+            t.nodes[3].codominant = Some(weight);
+            radius(&t)
+        };
+        // A sibling of next to no weight leaves the root's measure, a whole
+        // one the fork's, and the ones between walk from one to the other.
+        assert!((grown(1e-9) - 0.3).abs() < 1e-9);
+        assert_eq!(grown(1.0), 0.2);
+        assert!((grown(0.5) - 0.25).abs() < 1e-12);
     }
 
     #[test]

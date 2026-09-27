@@ -17,19 +17,100 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
-  "review_hash_epoch": {},
-  "review_pending_rounds": {
-    "impl:fn-170-codominant-forks-one-rule-from-the.1": 1
-  },
-  "review_reservations": {
-    "1b830ab480504e1cb4fda535c2b623f5": {
+  "review_attempts": [
+    {
       "artifact_sha256": "da5de8e779954edf0702034ddee88502f19a0d221c8e9f5fa44bcfd92318a553",
-      "counter_scope": "impl:fn-170-codominant-forks-one-rule-from-the.1",
-      "epoch": 0,
-      "exclusive": true,
+      "backend": "codex",
+      "base_sha": "fcf3ea101cbdbe39114b96532ee7a6d9c231bd21",
+      "counter_kind": "impl",
+      "failure_class": "head_moved",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
       "forced": false,
-      "review_type": "impl"
+      "hash_epoch": 0,
+      "head_sha": "90e1bda28fd51e3db6cd136223f1c5818ff57233",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 65,
+      "output_sha256": "a8bdbee8c027a74304ba498f6c22fe93ad6a73674c4128e9501a270c4ad4b150",
+      "reservation_id": "1b830ab480504e1cb4fda535c2b623f5",
+      "round_consumed": false,
+      "scope": "impl:fn-170-codominant-forks-one-rule-from-the.1",
+      "superseded_by": null,
+      "task": "fn-170-codominant-forks-one-rule-from-the.1",
+      "timestamp": "2026-09-27T11:28:39.364532Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "93b17cd7fc91c0bfa84f14d78c9b2eb6feed11a6e6ae157d2aeacf2eacb16974",
+      "backend": "codex",
+      "base_sha": "fcf3ea101cbdbe39114b96532ee7a6d9c231bd21",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-93b986cd35dfbc7822790d2c55ef792a",
+            "classification": "introduced",
+            "findingId": "finding-93b986cd35dfbc7822790d2c55ef792a",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-46988d65110ddf2a7c5c9db798354f41",
+            "classification": "introduced",
+            "findingId": "finding-46988d65110ddf2a7c5c9db798354f41",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7cf19dcfeeadc47920cef763d8929adf",
+            "classification": "introduced",
+            "findingId": "finding-7cf19dcfeeadc47920cef763d8929adf",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7d7207ef10184d9248a9cf5b7c0934cb057b7984",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 3460,
+      "output_sha256": "35e2a1b7a95f64565286a9b0bec2ba3525c2c2ec864fb89d7250a3fbf2b36553",
+      "reservation_id": "b7ec7827ffad4ce79e457db036f8b69a",
+      "round_consumed": true,
+      "scope": "impl:fn-170-codominant-forks-one-rule-from-the.1",
+      "superseded_by": null,
+      "task": "fn-170-codominant-forks-one-rule-from-the.1",
+      "timestamp": "2026-09-27T11:33:38.617620Z",
+      "verdict": "NEEDS_WORK"
     }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-170-codominant-forks-one-rule-from-the.1": 0
   },
   "spec_path": ".flow/specs/fn-170-codominant-forks-one-rule-from-the.md",
   "status": "open",
@@ -45,5 +126,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T11:16:44.285130Z"
+  "updated_at": "2026-09-27T11:33:38.620030Z"
 }

@@ -181,6 +181,11 @@ fn a_retired_stems_row_is_refused_naming_its_replacement() {
             }
             other => panic!("{row} on the wire gave {other:?}"),
         }
+        let over = params::overlay(&Preset::OregonWhiteOak.parameters(), &wire);
+        match over {
+            Err(Error::InvalidInput(why)) => assert!(why.contains(replacement), "{why}"),
+            other => panic!("{row} in an overlay gave {other:?}"),
+        }
         let file = format!("/skeleton/habit/{row} = {key}\n");
         let why = values::read(&file).expect_err("a retired row was read");
         assert!(why.starts_with("1: ") && why.contains(replacement), "{why}");
@@ -418,38 +423,65 @@ fn a_primary_forks_again_and_again_up_its_line() {
 }
 
 #[test]
-fn a_fork_growing_in_on_a_bent_axis_moves_no_wood_already_there() {
-    // An axis the bias has bent: just past the first point on the rate that
-    // forks anything, the tree is the tree just short of it, to within a
-    // millimetre, because the fork's primary turns by as little as it grew in.
-    let at = |rate: f64| {
-        grow(&family(Preset::OregonWhiteOak, |f| {
-            f.skeleton.habit.codominance = rate;
-            f.skeleton.habit.fork_height = 0.3;
-            f.skeleton.habit.fork_height_spread = 0.2;
-            f.skeleton.habit.fork_lean = 30.0;
-            f.skeleton.habit.fork_divergence = 90.0;
-            f.skeleton.bias.lean = 0.3;
-            f.skeleton.growth.max_nodes = Some(NODES);
-        }))
+fn a_fork_growing_in_moves_no_wood_already_there() {
+    // An axis the bias has bent, and an upright one that rises: just past the
+    // first point on the rate that forks anything, the tree is the tree just
+    // short of it, to within a millimetre, because the fork's primary turns
+    // by as little as it grew in and keeps the frame it rises and wanders in.
+    type Set = fn(&mut Family);
+    let bent: Set = |f| f.skeleton.bias.lean = 0.3;
+    // Only the trunk forks here, its fork below every lateral. It rises and
+    // wanders a little: a trunk exactly plumb has no bearing for its stations
+    // to turn from, and any turn at all picks one.
+    let rising: Set = |f| {
+        f.skeleton.habit.rise_primary = 0.12;
+        f.skeleton.habit.crookedness = 2.0;
+        f.skeleton.habit.fork_height = 0.1;
+        f.skeleton.habit.fork_height_spread = 0.0;
     };
-    let none = at(0.0);
-    let (mut lo, mut hi) = (0.0, 1.0);
-    assert!(at(hi) != none, "the family never forks");
-    for _ in 0..34 {
-        let mid = (lo + hi) / 2.0;
-        if at(mid) == none {
-            lo = mid;
-        } else {
-            hi = mid;
+    for (name, setup) in [("bent", bent), ("rising", rising)] {
+        let at = |rate: f64| {
+            grow(&family(Preset::OregonWhiteOak, |f| {
+                f.skeleton.habit.codominance = rate;
+                f.skeleton.habit.fork_height = 0.3;
+                f.skeleton.habit.fork_height_spread = 0.2;
+                f.skeleton.habit.fork_lean = 30.0;
+                f.skeleton.habit.fork_divergence = 90.0;
+                f.skeleton.growth.max_nodes = Some(NODES);
+                setup(f);
+            }))
+        };
+        let none = at(0.0);
+        let (mut lo, mut hi) = (0.0, 1.0);
+        assert!(at(hi) != none, "{name}: the family never forks");
+        for _ in 0..34 {
+            let mid = (lo + hi) / 2.0;
+            if at(mid) == none {
+                lo = mid;
+            } else {
+                hi = mid;
+            }
         }
+        let moved = |a: &Tree, b: &Tree| {
+            a.nodes
+                .iter()
+                .zip(&b.nodes)
+                .map(|(a, b)| a.position.distance(b.position))
+                .fold(0.0, f64::max)
+        };
+        let (short, past) = (at(lo), at(hi));
+        let crossed = moved(&short, &past);
+        assert!(crossed < 1e-3, "{name}: crossing moved wood {crossed} m");
+        // A little further in - far enough that the primary has turned, not
+        // far enough for any sibling to grow - it has turned by a little and
+        // taken its stations and its rise with it, no more.
+        let further = at(hi + 1e-4);
+        assert_eq!(
+            further.nodes.len(),
+            past.nodes.len(),
+            "{name}: a sibling grew"
+        );
+        let turned = moved(&past, &further);
+        assert!(turned < 1e-2, "{name}: a little in moved wood {turned} m");
     }
-    let (short, past) = (at(lo), at(hi));
-    let moved = short
-        .nodes
-        .iter()
-        .zip(&past.nodes)
-        .map(|(a, b)| a.position.distance(b.position))
-        .fold(0.0, f64::max);
-    assert!(moved < 1e-3, "crossing the point moved wood {moved} m");
 }
