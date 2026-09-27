@@ -156,7 +156,7 @@
     "impl:fn-178-the-size-check-stops-what-the-owner.1": 0
   },
   "spec_path": ".flow/specs/fn-178-the-size-check-stops-what-the-owner.md",
-  "status": "open",
+  "status": "done",
   "title": "The size check stops what the owner would refuse",
   "tracker": {
     "baseHashFlow": null,
@@ -169,5 +169,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T13:17:15.008984Z"
+  "updated_at": "2026-09-27T13:52:56.302445Z"
 }
