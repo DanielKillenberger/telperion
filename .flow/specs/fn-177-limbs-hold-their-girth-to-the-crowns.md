@@ -11,7 +11,7 @@ A London plane's limbs, and a beech's, stay thick almost to the edge of the crow
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-**What exists, checked 2026-09-27 on the fn-170 branch (PR #131).** The radius solve (`crates/telperion-core/src/pipeline/radius.rs:121`) thins wood two ways: bottom up, each node's pipe is its children's pipes combined through `forkExponent`, so every lateral that leaves takes its share (scaled by fn-170's `lateralShare` and `forkBalance`); and `lengthTaper` adds an exponential thinning over the path length from the root. There is no row that makes a limb's girth depend on how far along its own reach a point is. [checked]
+**What exists, checked 2026-09-27 on the fn-170 branch (PR #131), merged to master as `ed23f773`.** The radius solve (`crates/telperion-core/src/pipeline/radius.rs:121`) thins wood two ways: bottom up, each node's pipe is its children's pipes combined through `forkExponent`, so every lateral that leaves takes its share (scaled by fn-170's `lateralShare` and `forkBalance`); and `lengthTaper` adds an exponential thinning over the path length from the root. There is no row that makes a limb's girth depend on how far along its own reach a point is. [checked]
 
 **Measure first.** Which of the two thins the plane's limbs by mid-crown is not known. The implementer measures radius against distance along the thickest limbs of fn-170's plane candidate (`.flow/evidence/fn-170-codominant-forks-one-rule-from-the/plane-candidate.json`), split into the tip-count part and the length-taper part, and reports it before building. [unknown]
 
