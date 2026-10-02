@@ -30,7 +30,7 @@
 | **leaf pipes, no floor** | 3.76 mm | 7.7 mm | **6.55 mm** | **26** | 0.520 / 0.366 / 0.482 | 0.544 / 0.87 | 0.100 |
 
 - **Grown tips land at 6.5 mm** (6.5 to 6.8 mm across the grid) with exponent 2.9: a 0.25 m terminal shoot carries about 5 leaf pipes.
-- **2 to 4 mm at exponent 2.9 needs millions of pipes:** (0.512 ÷ r)^2.9 gives about 1.3M at 4 mm, 3.0M at 3 mm and 8.8M at 2 mm. The pipeline places 1.1M leaves on this tree.
+- **2 to 4 mm at exponent 2.9 needs millions of pipes:** (0.512 ÷ r)^2.9 gives about 1.3M at 4 mm, 3.0M at 3 mm and 9.6M at 2 mm. The pipeline places 1.1M leaves on this tree.
 - **Removing the floor doubles the strong limbs** (14 → 26 to 28). First-order laterals go to 0.51 to 0.52 of their parent: the scaffold laterals keep the pipe's ratio instead of their own thinner radii.
 - **The scaffold limbs now taper into their fine wood.** The blunt stubs of round 4 are gone in the thumbnails.
 
