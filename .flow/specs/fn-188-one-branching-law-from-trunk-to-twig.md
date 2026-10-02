@@ -71,3 +71,23 @@ In a real tree one branching process runs from trunk to twig; strong limbs are s
 The owner: "i agree that the question about the fraction of the trunk is another arbitrary rule like the crown border checks. We should have a branching rule that makes them grow organically according to the params set." The twig gate (`limbRadius` × stem radius) and the tip shoot that bypassed it are the same arbitrary threshold (fn-189 `TRACE.md`: telperion at seed 7 has every scaffold node at or just above the gate, so its tip shoots carried 100% of its twigs). The probe (`R3-PROBE.md`) grew graded fine wood along thick limbs with no gate, by competition for light and space with vigour allocated down the hierarchy, but its limb count jumps from 2 or 3 to 33 or more between apical preference 0.48 and 0.5, its outline was the envelope wall, and it ran 4 to 6 times slower than the shipped skeleton. [user, checked]
 
 Next (R3, second round): one branching rule from the scaffold's strong limbs down, growing by competition with no thickness gate, no tip shoot and no crown wall; every parameter changes the tree by degree (no jump in limb count); on every catalogue preset at two seeds; timed, growing only what survives. [inferred]
+
+## Status after the overnight probe rounds (host, 2026-10-03)
+
+The owner asked the host to iterate overnight until the beech reads like its references and to stop if not converging. Rounds and evidence, all throwaway code committed and reverted on branch `fn-188-one-branching-law-from-trunk-to-twig`, reports on master in this spec's evidence folder: [checked]
+
+| Round | What changed | Result against B-BARE / B-WHOLE |
+|---|---|---|
+| R3-PROBE | one growth law from a bare trunk, light competition | graded fine wood along thick limbs for the first time; limbs 2-3 or 33+ (λ jump); 4-6x slower; envelope-wall outline |
+| R3-PROBE2 | grown from the scaffold, no gate, no tip shoot, no wall | strong limbs and progressive division; fine wood in tufts; wood escapes the crown; λ still jumps |
+| R3-PROBE3 | buds along every scaffold metamer; space markers as the resource | even fine mesh, ragged edge, growth stops by itself; λ continuous; 122-128 ms |
+| R3-SPEED | grid, flat markers, threads, early stop | same trees, beech 55 ms (16 threads), oak 3-5x shipped, telperion 15x faster |
+| R3-PROBE4 | straightness, real pipeline foliage, 3 mm tips | metrics met (coverage 0.877) but regressed: rod limbs, stubs, yew-like crown |
+| R3-PROBE5 | round 3 settings, moderate straightness, leaf-pipe radii without floor | best bare result: tapering limbs, visible twig mesh; 26 strong limbs; spiky in leaf |
+| R3-PROBE6 | scaffold = trunk + 4 leaders, competition grows all laterals | 4 dominant leaders as in B-BARE; side branches comb upward |
+| R3-PROBE7 | plagiotropy (one continuous parameter), 50 degree departure | angles move by degree; in-leaf look unchanged |
+| R3-ADAPTER | unique node identities and limb clumping 0 in the foliage adapter | repeated leaf pattern gone (20% to 0.5%), coverage 0.889 in B-WHOLE's range; cleft smaller; branches still sleeved |
+
+**Where it stands.** The direction holds as a hypothesis (`ASTRA-TEXTURE-REVIEW.md`): competition removes the thickness gate, the tip shoot and the girth patches, grows a graded mesh, and stops at the crown on its own. The beech does not yet read like B-WHOLE: the crown is a uniformly filled egg with sleeved branches, not broad layered masses on a taller bole. Astra's reading: beech fine structure needs differentiated short and long shoots, shoot-local two-ranked sprays and positional lateral development within a shoot; existing parameters cannot express these, so they are mechanisms, not values. The host stopped iterating here, as the stopping rule required, because the remaining gap is design for the owner.
+
+**Owner decisions proposed:** (1) whether to keep developing competitive growth toward production (the direction) or stop; (2) if yes, the next experiment: short/long shoot differentiation and shoot-local sprays on round 5's scaffold with the adapter fixes, measured on terminal-run length, laterals per metre and foliage by wood class; (3) separately, the foliage expansion cost (91% of probe-plus-mesh time on the beech; Laurelin 7 s), which Astra names as the larger speed opportunity. [inferred]
