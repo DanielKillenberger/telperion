@@ -65,3 +65,9 @@ In a real tree one branching process runs from trunk to twig; strong limbs are s
 - Questions STRATEGY.md's "Our approach" (space colonization for the crown, botanical rules below the crossover); any change to it is the owner's, at R4. [strategy:Our approach]
 
 **Speed is a product requirement (owner, 2026-10-02):** "in the long term it needs to be super fast". Look decides first, but every step reports its cost, and a candidate that cannot show a credible path to being faster than today is rejected, whatever it looks like. [user]
+
+## Direction after the probe and the tip trace (owner, 2026-10-02)
+
+The owner: "i agree that the question about the fraction of the trunk is another arbitrary rule like the crown border checks. We should have a branching rule that makes them grow organically according to the params set." The twig gate (`limbRadius` × stem radius) and the tip shoot that bypassed it are the same arbitrary threshold (fn-189 `TRACE.md`: telperion at seed 7 has every scaffold node at or just above the gate, so its tip shoots carried 100% of its twigs). The probe (`R3-PROBE.md`) grew graded fine wood along thick limbs with no gate, by competition for light and space with vigour allocated down the hierarchy, but its limb count jumps from 2 or 3 to 33 or more between apical preference 0.48 and 0.5, its outline was the envelope wall, and it ran 4 to 6 times slower than the shipped skeleton. [user, checked]
+
+Next (R3, second round): one branching rule from the scaffold's strong limbs down, growing by competition with no thickness gate, no tip shoot and no crown wall; every parameter changes the tree by degree (no jump in limb count); on every catalogue preset at two seeds; timed, growing only what survives. [inferred]
