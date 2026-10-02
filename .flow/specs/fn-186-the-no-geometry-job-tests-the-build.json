@@ -16,7 +16,7 @@
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "ready": false,
+  "ready": true,
   "spec_path": ".flow/specs/fn-186-the-no-geometry-job-tests-the-build.md",
   "status": "open",
   "title": "The no-geometry job tests the build without geometry",
@@ -31,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T15:28:58.817177Z"
+  "updated_at": "2026-10-02T15:30:20.873305Z"
 }
