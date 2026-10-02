@@ -63,3 +63,5 @@ In a real tree one branching process runs from trunk to twig; strong limbs are s
 ## Strategy Alignment
 
 - Questions STRATEGY.md's "Our approach" (space colonization for the crown, botanical rules below the crossover); any change to it is the owner's, at R4. [strategy:Our approach]
+
+**Speed is a product requirement (owner, 2026-10-02):** "in the long term it needs to be super fast". Look decides first, but every step reports its cost, and a candidate that cannot show a credible path to being faster than today is rejected, whatever it looks like. [user]
