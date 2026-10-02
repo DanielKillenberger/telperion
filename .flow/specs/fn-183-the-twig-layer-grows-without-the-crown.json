@@ -13,6 +13,7 @@
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-183-the-twig-layer-grows-without-the-crown.md",
   "status": "open",
   "title": "The twig layer grows without the crown as a wall",
@@ -27,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T11:53:12.524881Z"
+  "updated_at": "2026-10-02T11:55:35.403863Z"
 }

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T11:55:50.008686Z",
+  "depends_on": [
+    "fn-183-the-twig-layer-grows-without-the-crown.1"
+  ],
+  "id": "fn-183-the-twig-layer-grows-without-the-crown.2",
+  "priority": null,
+  "spec": "fn-183-the-twig-layer-grows-without-the-crown",
+  "spec_path": ".flow/tasks/fn-183-the-twig-layer-grows-without-the-crown.2.md",
+  "status": "todo",
+  "title": "Build the decided twig extent and remove the twig layer's wall",
+  "updated_at": "2026-10-02T11:56:03.478698Z"
+}
