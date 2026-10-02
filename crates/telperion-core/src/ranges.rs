@@ -133,3 +133,24 @@ pub fn max_nodes(value: usize) -> Result<()> {
     }
     Ok(())
 }
+/// A budget's `usize::MAX`, "no limit", is `u64::MAX` on the wire whatever
+/// the native address width.
+#[cfg(feature = "json")]
+pub(crate) mod portable_index {
+    use serde::{Deserialize, Deserializer, Serializer};
+    pub fn serialize<S: Serializer>(value: &usize, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_u64(if *value == usize::MAX {
+            u64::MAX
+        } else {
+            *value as u64
+        })
+    }
+    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<usize, D::Error> {
+        let value = u64::deserialize(deserializer)?;
+        if value == u64::MAX {
+            Ok(usize::MAX)
+        } else {
+            usize::try_from(value).map_err(serde::de::Error::custom)
+        }
+    }
+}

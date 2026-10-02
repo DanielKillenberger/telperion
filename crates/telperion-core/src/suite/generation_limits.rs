@@ -151,22 +151,6 @@ fn sampling_budget_is_explicit_and_exhaustion_is_named() {
     );
 }
 
-#[test]
-fn old_snapshots_are_refused_and_missing_new_json_fields_get_defaults() {
-    let mut f = Preset::Ordinary.parameters();
-    f.age = 0.;
-    let s = branching::Specimen::build(&f).unwrap();
-    let mut bytes = s.snapshot().unwrap();
-    assert_eq!(bytes[4], 7);
-    bytes[4] = 6;
-    assert!(branching::Specimen::from_snapshot(&bytes).is_err());
-    let mut wire = serde_json::to_value(f.skeleton.twigs).unwrap();
-    for key in ["max_internodes", "max_droop", "curtain_step_clearance"] {
-        wire.as_object_mut().unwrap().remove(key);
-    }
-    let decoded: telperion_core::twigs::TwigParams = serde_json::from_value(wire).unwrap();
-    assert_eq!(decoded, f.skeleton.twigs);
-}
 
 #[test]
 fn caller_budget_above_old_ceiling_grows_the_complete_beech() {

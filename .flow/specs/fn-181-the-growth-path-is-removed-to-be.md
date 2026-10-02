@@ -58,6 +58,8 @@ Removal over repair because the owner judged the design inadequate, and fn-173 s
 
 This overturns AGENTS.md's 2026-09-18 rule that the growth path is "kept buildable and pinned" (owner, 2026-09-27). [paraphrase]
 
+The parked lifecycle traits, resolved by the owner (2026-10-02): "i'd keep the documentation about it but remove the code other than the age. This way we can rebuild a growth path later". The growth traits (`/growth`) are retired wire rows; `Family.age` stays, as the age the species runner pins beside the height. The growth path's documentation is kept, not deleted: README's growth section moves into `docs/growth-path.md` under the lessons, and the catalogue keeps its `growth` column as the record of how the path read each row. R1's search of `docs/` therefore excepts `docs/growth-path.md` and the catalogue's column as well as the lessons note. [user]
+
 ## Strategy Alignment
 
 - **Growth and botanical fidelity:** STRATEGY.md names growth over a lifecycle as a direction; this removes a failed implementation, not the direction, and the lessons note carries it to the rewrite. [strategy:Growth and botanical fidelity]

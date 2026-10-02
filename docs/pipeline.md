@@ -3,7 +3,7 @@
 Every tree is built by `telperion_core::pipeline`. Its stages are private to it, so a second chain outside the pipeline does not compile (fn-158; `docs/principles.md`, How they are held). What the pipeline exposes is what may be called:
 
 - **`pipeline::build(&Family, Request)`**, the one build, with its request and outputs. `mesh::build` is the same build assembled into one mesh.
-- **`pipeline::executor`**, the interface a second executor builds through. Its callers are the two sanctioned exceptions, the GPU executor (`telperion_render::generation`) and the growth path (`specimen`), and the renderer's tests.
+- **`pipeline::executor`**, the interface a second executor builds through. Its callers are the sanctioned exception, the GPU executor (`telperion_render::generation`), and the renderer's tests.
 
 The stages live in private modules of the pipeline (`crates/telperion-core/src/pipeline/{branching,foliage,surface,...}`). Their data stays public as types, through `pipeline::contract`, at the paths consumers already name (`telperion_core::foliage::Element`, `telperion_core::surface::SurfaceMesh`): the parameter groups a family is made of and the artifacts a build returns. A type is a contract; a function that builds one is a stage and stays inside. The rest of the crate reaches only the family's own checks (`validate_skeleton`, `build_element`, `canopy_rows`, `height`), re-exported to it by name.
 
@@ -45,14 +45,14 @@ Each step is synchronous CPU work. The GPU executor keeps its own schedule: it c
 
 `expand` takes a tree the caller already holds, for the renderer's tests of the GPU kernels on hand-built trees. It builds no tree: growing one stays inside the pipeline, so `expand` opens no second chain.
 
-The growth path keeps its own timeline, the sanctioned exception, and presents a grown tree through one crate-internal step: `executor::present` sweeps the wood at the specimen's height, builds the element, adds to the recorded leaves the short shoots and rosette the wood on screen bears, culls against the envelope of its age and bounds the union, in the order it did. Its public handles are `specimen::SpecimenStore` and `specimen::SpecimenView`; `branching::Specimen` stays public as the type they hand out, and its constructors (the scaffold's own grower among them) are the crate's.
+The growth path, the second sanctioned exception, was removed on 2026-10-02 (fn-181, `docs/growth-path.md`); the scaffold's grower, `branching::Specimen`, is private to the crate.
 
 ## Why not a resolver
 
-fn-152's review (`.flow/evidence/fn-152-one-parameter-table-the-generator-flows/ASTRA-REVIEW.md`) rejected one `resolve(&Family)` for every derived value: values live at the family, the grown tree, a branch and a surface sample, and requests skip outputs nobody reads. Typed inputs at the family's lifetime and ordinary functions below it keep each derivation where its inputs exist, and the executor interface is the one door the two exceptions use.
+fn-152's review (`.flow/evidence/fn-152-one-parameter-table-the-generator-flows/ASTRA-REVIEW.md`) rejected one `resolve(&Family)` for every derived value: values live at the family, the grown tree, a branch and a surface sample, and requests skip outputs nobody reads. Typed inputs at the family's lifetime and ordinary functions below it keep each derivation where its inputs exist, and the executor interface is the one door the exception uses.
 
 ## Tests
 
 Tests of a stage's implementation are private test modules of the crate, `crates/telperion-core/src/suite/`, compiled only into its own test binary. They name the crate as its consumers do (`telperion_core::...`, through `extern crate self`), and under `cfg(test)`, which no other crate sees, each contract module carries its whole stage; no feature opens the stages to another crate. Tests that need only the public build stay in `crates/telperion-core/tests/`. Stage functions no production path calls any more are compiled for the suite alone.
 
-Two compile-fail tests hold the boundary, each beside a positive control that builds through the interface: `crates/telperion-render/tests/boundary.rs` (a surface sweep called from the renderer) and `crates/telperion-wasm/tests/boundary.rs` (the skeleton solve and the specimen's scaffold grower, called from the binding).
+Two compile-fail tests hold the boundary, each beside a positive control that builds through the interface: `crates/telperion-render/tests/boundary.rs` (a surface sweep called from the renderer) and `crates/telperion-wasm/tests/boundary.rs` (the skeleton solve and the scaffold's grower, called from the binding).

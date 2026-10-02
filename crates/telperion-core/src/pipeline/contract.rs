@@ -11,8 +11,7 @@ pub mod branching {
     #[cfg(test)]
     pub use crate::pipeline::branching::*;
     pub use crate::pipeline::branching::{
-        ChangeRecord, GrowthOverrides, GrowthReport, HabitParams, LeafBase, PackedNode, PackedRead,
-        Run, RunNode, SkeletonParams, Specimen, SpecimenBuffers, SpecimenRead, DEFAULT_STEP,
+        GrowthOverrides, GrowthReport, HabitParams, LeafBase, SkeletonParams, DEFAULT_STEP,
         MAX_LEAF_BASES,
     };
 }
@@ -34,7 +33,7 @@ pub mod foliage {
     pub use crate::pipeline::foliage::*;
     pub use crate::pipeline::foliage::{
         transform_point, withered, AnatomyGeometry, Bounds, CanopyParams, Element, ElementParams,
-        FoliageUnit, Instances, Leaf, Level, Placement, PlacementIdentity, Reference, Rosette,
+        FoliageUnit, Instances, Leaf, Level, Reference, Rosette,
         TwigPlacement, MAX_FRONDS, MAX_LEAFLETS, MAX_SHORT_SHOOT_LEAVES, SHORT_SHOOT_SPACING,
         WITHERED, WORDS,
     };

@@ -1,6 +1,6 @@
 //! The pipeline boundary, as the binding meets it: a build through the one
-//! pipeline compiles, and a stage called around it does not, nor the growth
-//! path's scaffold grower.
+//! pipeline compiles, and a stage called around it does not, nor the
+//! scaffold's grower.
 #[test]
 fn a_stage_outside_the_pipeline_does_not_compile() {
     let cases = trybuild::TestCases::new();

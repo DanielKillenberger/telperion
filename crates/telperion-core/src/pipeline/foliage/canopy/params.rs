@@ -508,7 +508,7 @@ crate::catalogue::rows! {
                 at zero no dead frond is drawn", [0.05, 0.15]),
         },
         /// Hard total budget. Exceeding it returns an error, never partial foliage.
-        #[cfg_attr(feature = "json", serde(with = "crate::specimen::portable::index"))]
+        #[cfg_attr(feature = "json", serde(with = "crate::ranges::portable_index"))]
         pub max_instances: usize = "maxInstances" "leaves"
             Bounds::closed(1.0, usize::MAX as f64) => [Plan, Expand] {
             wire: 139,

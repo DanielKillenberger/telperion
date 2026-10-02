@@ -20,14 +20,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PRESETS, presetById, type TreePreset } from "../src/browser/core";
 import type { FrameStats, SceneRow, Submitted, TimingReport, View } from "../src/browser/render";
 
-import { GrowthControls, type GrowthSubmitted } from "./GrowthControls";
 import { LookControls, useLook } from "./LookControls";
 import { Dials, Traits } from "./dials";
 import { familyJson, presetToParams } from "./family";
 import {
   DEFAULT_PARAMS,
   type GrowerParams,
-  growthFromQuery,
   normalizeSeed,
   randomSeed,
 } from "./params";
@@ -107,16 +105,6 @@ export function GrowerDev() {
     }
   });
   const [params, setParams] = useState<GrowerParams>(initialLink.params);
-  /* Growth is hidden (owner, 2026-09-18). The mature tree is what the stills,
-     the protocol and every verdict are taken on, so it is what the harness
-     draws; `?growth=1` opens the specimen path exactly as before. */
-  const [growth] = useState(() => {
-    try { return growthFromQuery(window.location.search); } catch { return false; }
-  });
-  const [age, setAge] = useState(initialLink.params.family.age);
-  const chosenAge = useRef(age);
-  const [frontier, setFrontier] = useState<number | null>(null);
-  const [rebuild, setRebuild] = useState(0);
   const [linkError, setLinkError] = useState(initialLink.error);
   // The seed box is free text so a half-typed number is not thrown
   // away mid-keystroke; `params.seed` only moves when it parses.
@@ -159,26 +147,12 @@ export function GrowerDev() {
     let cancelBuild: (() => void) | undefined;
     const build = (): void => {
       try {
-        const started = performance.now();
-        if (!growth) {
-          cancelBuild = builds?.submit(params, (submitted) => {
-            setBuildError(null);
-            setStats(submitted);
-            lastBuildMs.current = submitted.buildMs;
-            stage?.frameIfWaiting();
-          }, (error) => setBuildError(String(error)));
-          return;
-        }
-        const submitted = stageRef.current?.buildSpecimen(familyJson(params), chosenAge.current);
-        if (submitted === undefined) return;
-        const buildMs = performance.now() - started;
-        setBuildError(null);
-        setFrontier(submitted.frontier);
-        setAge(submitted.age);
-        chosenAge.current = submitted.age;
-        setStats({ ...submitted, buildMs });
-        lastBuildMs.current = buildMs;
-        stageRef.current?.frameIfWaiting();
+        cancelBuild = builds?.submit(params, (submitted) => {
+          setBuildError(null);
+          setStats(submitted);
+          lastBuildMs.current = submitted.buildMs;
+          stage?.frameIfWaiting();
+        }, (error) => setBuildError(String(error)));
       } catch (error) {
         /* The generator's or the renderer's own words. Nothing was
            replaced, so the tree already on the canvas stays where it is
@@ -205,7 +179,7 @@ export function GrowerDev() {
        it is being dragged, which reads as the room moving rather than
        the tree growing. "Once" belongs to the stage and is latched
        there: this component outlives its own stage. */
-  }, [params, ready, rebuild]);
+  }, [params, ready]);
 
   useEffect(() => {
     if (!ready) return;
@@ -287,18 +261,6 @@ export function GrowerDev() {
     }
   }, []);
 
-  const seekAge = (years: number): void => {
-    try {
-      const started = performance.now();
-      const submitted: GrowthSubmitted | undefined = stageRef.current?.seekSpecimen(years);
-      if (!submitted) return;
-      setStats({ ...submitted, buildMs: performance.now() - started });
-      setAge(submitted.age);
-      chosenAge.current = submitted.age;
-      setFrontier(submitted.frontier);
-      setBuildError(null);
-    } catch (error) { setBuildError(String(error)); }
-  };
   const seedValid = normalizeSeed(seedText) !== null;
 
   return (
@@ -307,8 +269,6 @@ export function GrowerDev() {
 
       <aside className="gd-panel">
         <h1 className="gd-title">grower</h1>
-        {growth && <GrowthControls age={age} frontier={frontier} disabled={!ready || measuring || frontier === null} failed={buildError !== null}
-          seek={seekAge} rebuild={() => setRebuild(n => n + 1)} />}
         {linkError && <div role="alert" className="gd-note gd-warn">
           {linkError}. Showing the default tree; choose a preset below.
           <button className="gd-button" onClick={() => setLinkError(null)}>dismiss link error</button>
@@ -370,7 +330,7 @@ export function GrowerDev() {
           <Traits prefix="scene" values={scene} onChange={(key, number) =>
             setScene(prev => (prev === null ? prev : { ...prev, [key]: number }))} />
         </fieldset>}
-        <Dials params={params} setParams={setParams} growth={growth} />
+        <Dials params={params} setParams={setParams} />
 
         <div className="gd-row">
           <button className="gd-button" type="button" onClick={() => stageRef.current?.frame()}>

@@ -26,7 +26,7 @@ A full ecosystem, climate model, root/soil simulation and every disease are outs
 
 ## Decision Context
 
-Depends on Growth over time. Wind animation and legendary templates are not prerequisites for applying explicit damage events. [paraphrase]
+Depends on growth over time, whose first implementation (fn-11) fn-181 removed on 2026-10-02; it now waits for the growth rewrite's own spec. Wind animation and legendary templates are not prerequisites for applying explicit damage events. [paraphrase]
 
 ## Requirement coverage
 

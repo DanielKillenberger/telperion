@@ -27,9 +27,7 @@ pub use leaf_bases::{clothe_leaf_bases, LeafBase, MAX_LEAF_BASES};
 #[cfg(test)]
 pub use local::{append, in_band as in_curtain_band};
 pub(crate) use specimen::validate as validate_skeleton;
-pub use specimen::{
-    ChangeRecord, PackedNode, PackedRead, Run, RunNode, Specimen, SpecimenBuffers, SpecimenRead,
-};
+use specimen::Specimen;
 pub use traits::HabitParams;
 pub const DEFAULT_STEP: f64 = 0.022;
 crate::catalogue::rows! {

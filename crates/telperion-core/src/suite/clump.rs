@@ -385,31 +385,3 @@ fn a_stem_born_on_a_stem_leaves_from_a_socket_not_the_ground() {
     );
 }
 
-#[test]
-fn a_stems_own_root_is_never_shed() {
-    // A stem's own root node is the base of a trunk rather than a shoot: the
-    // chronicle thins the crown around it and never takes it, or the tree
-    // would be standing on nothing. It is born in the slice it grew in, like
-    // every other node - a read of the tree at an age is the tree a fresh
-    // build of that age grows, and a fresh build at year zero has grown
-    // nothing, so a stem stamped with the root's own year would be in the one
-    // and not the other.
-    let mut f = clump(2);
-    f.age = 12.0;
-    f.skeleton.growth.max_nodes = Some(NODES);
-    let mut specimen = branching::Specimen::build(&f).expect("the clump starts growing");
-    specimen.advance(6.0).expect("the clump grows on");
-    let tree = specimen.tree();
-    let roots = stem_roots(tree);
-    assert_eq!(roots.len(), 2, "the clump lost a stem");
-    for &i in &roots {
-        assert_eq!(
-            tree.nodes[i].shoot.death_year, None,
-            "a stem's root was shed"
-        );
-        assert!(
-            tree.nodes[i].shoot.birth_year > 0.0,
-            "a stem's root claims the root's own year"
-        );
-    }
-}

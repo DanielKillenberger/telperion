@@ -62,3 +62,7 @@ It was split out of fn-11 on 2026-09-13 because it is a different activity from 
 | Requirement | Task |
 |---|---|
 | R1–R4 | the one task |
+
+## Closed (2026-10-02)
+
+It calibrates and routes production through the growth path fn-181 removes (owner, 2026-09-27). Calibrated growth over a lifecycle stays a direction in STRATEGY.md; a rewrite is its own spec and starts from `docs/growth-path.md`. [user]

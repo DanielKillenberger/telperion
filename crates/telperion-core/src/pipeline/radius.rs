@@ -1,7 +1,5 @@
 //! Structural fork solve and the separate branch-local taper contract.
-mod history;
 mod hold;
-mod incremental;
 use crate::catalogue::{bounded, tuned, value, Bounds, Growth, Site};
 use crate::math::Transcendental;
 use crate::{
@@ -10,7 +8,6 @@ use crate::{
     Error, Result,
 };
 pub(crate) use hold::hold;
-pub(crate) use incremental::Pipes;
 crate::catalogue::rows! {
     #[derive(Debug, Clone, Copy, PartialEq)]
     #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]

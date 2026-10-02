@@ -10,6 +10,7 @@
   "id": "fn-181-the-growth-path-is-removed-to-be",
   "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-09-27T21:04:37.982183Z",
@@ -91,5 +92,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T21:04:50.033886Z"
+  "updated_at": "2026-10-02T15:28:28.698442Z"
 }

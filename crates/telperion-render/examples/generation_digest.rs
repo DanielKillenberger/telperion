@@ -1,10 +1,10 @@
 //! Digests of what every shipped preset builds, one JSON line a preset and
 //! seed: the pipeline's artifacts for a full request and for the field alone,
-//! the mesh, the GPU executor's output at both deliveries with its metrics
-//! less their timings, and the growth path's mesh at a young age. Two runs of
-//! the same generator print the same lines; a refactor that keeps the bytes
-//! keeps every digest. `cargo run --release -p telperion-render --example
-//! generation_digest [preset ...]`; `DIGEST_SEEDS` overrides seeds 1 and 7.
+//! the mesh, and the GPU executor's output at both deliveries with its metrics
+//! less their timings. Two runs of the same generator print the same lines; a
+//! refactor that keeps the bytes keeps every digest. `cargo run --release -p
+//! telperion-render --example generation_digest [preset ...]`; `DIGEST_SEEDS`
+//! overrides seeds 1 and 7.
 use serde_json::{json, Value};
 use std::fmt::{Debug, Write};
 use telperion_core::{
@@ -12,7 +12,6 @@ use telperion_core::{
     mesh,
     pipeline::{self, Request},
     presets::Preset,
-    specimen::SpecimenView,
     Family,
 };
 use telperion_render::{
@@ -120,11 +119,6 @@ fn prepared(g: &Generator, p: &Prepared) -> Result<Value, Box<dyn std::error::Er
         "metrics": metrics(&p.metrics),
     }))
 }
-fn growth(f: &Family) -> Result<String, Box<dyn std::error::Error>> {
-    let mut f = f.clone();
-    f.age = 6.0;
-    Ok(digest(&SpecimenView::build(&f)?.mesh()?))
-}
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let named: Vec<String> = std::env::args().skip(1).collect();
     let presets: Vec<&str> = if named.is_empty() {
@@ -152,7 +146,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "mesh": digest(&mesh::build(&f)?),
                 "gpuCpu": prepared(&owned, &owned.prepare(&f, Delivery::Cpu)?)?,
                 "gpuResident": prepared(&resident, &resident.prepare(&f, Delivery::Resident)?)?,
-                "growth": growth(&f)?,
             });
             println!("{line}");
         }

@@ -60,50 +60,6 @@ fn the_same_wood_draws_the_same_short_shoots_in_any_storage_order() {
     }
 }
 
-#[test]
-fn a_monthly_replay_and_a_growth_view_draw_what_a_fresh_build_draws() {
-    let mut f = beech(1);
-    f.age = 14.0;
-    let fresh = branching::Specimen::build(&f).unwrap().read().unwrap();
-    let box_of = foliage::Reference::of(&f).unwrap();
-    let draw = |tree: &Tree, envelope| {
-        let mut out = Instances::new(box_of);
-        foliage::place_short_shoots(tree, envelope, 1, f.canopy, &mut out).unwrap();
-        bytes(&out)
-    };
-    let expected = draw(&fresh.tree, fresh.envelope);
-    assert!(!expected.is_empty(), "the test must grow short shoots");
-    // Month by month to the same age: the same wood, the same draws.
-    let mut monthly = f.clone();
-    monthly.age = 0.0;
-    let mut replay = branching::Specimen::build(&monthly).unwrap();
-    for _ in 0..14 * 12 {
-        replay.advance(1.0 / 12.0).unwrap();
-    }
-    let read = replay.read().unwrap();
-    assert_eq!(
-        draw(&read.tree, read.envelope),
-        expected,
-        "a monthly replay"
-    );
-    // The growth view rebuilds its tree in its own order and hangs the same
-    // clusters after the record's leaves.
-    let view = telperion_core::specimen::SpecimenView::build(&f).unwrap();
-    let element = foliage::build_element(f.element).unwrap();
-    let mut placements = Instances {
-        leaves: fresh.placements.iter().map(|p| p.leaf).collect(),
-        reference: box_of,
-        thinned: 0,
-        unquantised: Vec::new(),
-    };
-    foliage::place_short_shoots(&fresh.tree, fresh.envelope, 1, f.canopy, &mut placements).unwrap();
-    let culled = foliage::cull(placements, &element, fresh.envelope, f.shell_depth).unwrap();
-    assert_eq!(
-        view.mesh().unwrap().foliage.instances,
-        culled,
-        "the growth view"
-    );
-}
 
 #[test]
 fn a_walk_from_none_thins_in_and_closes_continuously() {

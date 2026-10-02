@@ -66,14 +66,6 @@ pub(super) struct Frontier {
     order_visits: usize,
 }
 impl Frontier {
-    pub(super) fn visited(&self) -> impl Iterator<Item = usize> + '_ {
-        self.visited.iter().copied()
-    }
-    #[cfg(test)]
-    pub(in crate::pipeline::branching) fn reverse_for_test(&mut self) {
-        self.queue.make_contiguous().reverse();
-        self.ordered = false;
-    }
     pub(super) fn identity_order(&mut self, tree: &Tree) {
         if self.ordered {
             return;
@@ -89,19 +81,6 @@ impl Frontier {
     }
     pub(super) fn finished(&self) -> bool {
         self.queue.is_empty() && self.sleeping.is_empty()
-    }
-    pub(super) fn remove_dead(&mut self, tree: &Tree, dead: &[usize]) {
-        self.stations.remove_dead(tree, dead);
-        let living = |s: &Shoot| {
-            tree.nodes[s.at].shoot.death_year.is_none()
-                && s.branch
-                    .is_none_or(|b| tree.nodes[b as usize].shoot.death_year.is_none())
-        };
-        self.queue.retain(living);
-        self.sleeping.retain(|_, shoots| {
-            shoots.retain(living);
-            !shoots.is_empty()
-        });
     }
     pub(super) fn remap(&mut self, index: &[Option<u32>]) {
         self.stations.remap(index);

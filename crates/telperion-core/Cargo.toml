@@ -6,20 +6,19 @@ license = "MIT"
 
 [features]
 default = ["geometry"]
-# The wood surface, leaf placement, the mesh and the retained specimen. Off,
+# The wood surface, leaf placement and the mesh. Off,
 # the crate is the solved tree, the leaf plan and the field: what a consumer
 # that draws its own geometry needs, and nothing it does not.
 geometry = []
 # Counts crown radius queries by purpose for `growth_profile`; off, every
 # count compiles to nothing.
 query-count = []
-json = ["dep:serde", "dep:serde_json", "dep:bincode", "slotmap/serde"]
+json = ["dep:serde", "dep:serde_json", "slotmap/serde"]
 
 [dependencies]
 libm = { version = "=0.2.16", default-features = false }
 serde = { version = "1", features = ["derive", "rc"], optional = true }
 serde_json = { version = "1", optional = true }
-bincode = { version = "=1.3.3", optional = true }
 slotmap = "=1.1.1"
 
 [[test]]

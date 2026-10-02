@@ -14,8 +14,6 @@ mod build;
 #[doc(hidden)]
 pub mod compact;
 #[cfg(feature = "geometry")]
-mod dependencies;
-#[cfg(feature = "geometry")]
 mod frames;
 #[cfg(feature = "geometry")]
 mod normals;
@@ -41,8 +39,6 @@ pub use build::extent;
 use build::*;
 #[cfg(feature = "geometry")]
 pub(crate) use build::{faces, Faces};
-#[cfg(feature = "geometry")]
-pub(crate) use dependencies::affected as affected_contacts;
 #[cfg(feature = "geometry")]
 pub(crate) use rings::{rings, Rings, Sweep};
 #[cfg(feature = "geometry")]

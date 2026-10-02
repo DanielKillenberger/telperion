@@ -9,7 +9,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-67-growth-parity-report-the-specimen-at.md",
-  "status": "open",
+  "status": "done",
   "title": "Growth parity report: the specimen at age against the mature build",
   "tracker": {
     "baseHashFlow": null,
@@ -22,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-17T22:42:44.668044Z"
+  "updated_at": "2026-10-02T15:53:40.171362Z"
 }

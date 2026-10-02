@@ -52,11 +52,6 @@ impl Limbs {
             self.0.insert(at, (first, bound));
         }
     }
-    pub(super) fn remap(&mut self, map: &[Option<u32>]) {
-        self.0
-            .retain_mut(|(first, _)| map[*first as usize].map(|to| *first = to).is_some());
-        self.0.sort_unstable_by_key(|e| e.0);
-    }
     /// The bound of the limb system node `i` belongs to: its first-order
     /// ancestor's, or the crown's for a stem and for a system kept whole.
     pub(super) fn of(&self, tree: &Tree, mut i: usize) -> Bound {

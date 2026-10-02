@@ -36,12 +36,11 @@ describe("the generated metadata", () => {
 });
 
 describe("shownRows", () => {
-  it("draws the mature build's rows, the growth path's only when it is open", () => {
-    const mature = shownRows(false).map(p => p.path);
-    expect(mature).not.toContain("/growth/workBudget");
-    expect(shownRows(true).map(p => p.path)).toContain("/growth/workBudget");
-    expect(mature).not.toContain("/canopy/spacing");
-    expect(shownRows(true).map(p => p.path)).not.toContain("/canopy/spacing");
+  it("draws only the rows the mature build reads", () => {
+    const shown = shownRows().map(p => p.path);
+    expect(shown).toContain("/shellDepth");
+    expect(shown).not.toContain("/age");
+    expect(shown).not.toContain("/canopy/spacing");
   });
 });
 

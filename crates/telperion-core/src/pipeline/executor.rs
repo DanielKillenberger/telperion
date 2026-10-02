@@ -11,7 +11,7 @@ use crate::{
     pipeline::foliage::{
         self,
         prepared::{self, PreparedStations},
-        CanopyParams, Element, ElementParams, Instances, Leaf, Reference, TwigPlacement,
+        CanopyParams, Element, ElementParams, Reference, TwigPlacement,
     },
     pipeline::surface::{
         self,
@@ -179,48 +179,6 @@ impl Expansion {
     pub fn mesh(&self) -> Result<TreeMesh> {
         mesh::assembled(super::outputs(&self.tree, &self.inputs, Request::mesh())?)
     }
-}
-
-/// The growth path's presentation of one age: the wood on screen swept at
-/// the specimen's height, the element, the leaves its record placed with the
-/// short shoots and rosette that wood bears, culled against the envelope of
-/// that age, under the union bounds. `envelope` and `owners` (each recorded
-/// leaf's shoot, read only where limbs clump) answer in the order they did.
-pub(crate) fn present(
-    tree: &Tree,
-    height: f64,
-    inputs: &Inputs,
-    leaves: Vec<Leaf>,
-    envelope: impl FnOnce() -> Result<Envelope>,
-    owners: impl FnOnce() -> Vec<u32>,
-) -> Result<TreeMesh> {
-    let wood = surface::build(tree, height, &inputs.surface.params)?;
-    let element = foliage::build_element(inputs.plan.element)?;
-    let reach = inputs.plan.reach.clone()?;
-    let mut instances = Instances::new(Reference::authored(inputs.plan.envelope, reach));
-    instances.leaves = leaves;
-    let envelope = envelope()?;
-    let (seed, canopy) = (inputs.leaves.seed, inputs.leaves.canopy);
-    if canopy.limb_clumping > 0.0 {
-        let owners = owners();
-        foliage::place_short_shoots_clumped(tree, envelope, seed, canopy, owners, &mut instances)?;
-    } else {
-        foliage::place_short_shoots(tree, envelope, seed, canopy, &mut instances)?;
-    }
-    foliage::place_rosette(tree, seed, canopy, &mut instances)?;
-    let shell = inputs.leaves.shell_depth;
-    let instances = foliage::cull(instances, &element, envelope, shell)?;
-    let bounds = mesh::union(wood.bounds, instances.bounds(&element)?.map(Into::into)).unwrap_or(
-        surface::Bounds {
-            min: crate::math::Vec3::ZERO,
-            max: crate::math::Vec3::Y * 0.01,
-        },
-    );
-    Ok(TreeMesh {
-        wood,
-        foliage: mesh::Foliage { element, instances },
-        bounds,
-    })
 }
 
 #[cfg(test)]

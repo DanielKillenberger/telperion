@@ -4,11 +4,10 @@
 //! no longer holds what the local law grows; the floor does.
 //! No device is needed; this is the core's own arithmetic.
 use super::specimens;
-use std::collections::BTreeMap;
 
 use telperion_core::{
     blend,
-    branching::{self, in_curtain_band, Specimen},
+    branching::{self, in_curtain_band},
     params,
     presets::{Family, Preset},
     tree::{NodeKind, Tree},
@@ -279,74 +278,6 @@ fn no_shoot_falls_below_the_clearance_nor_the_clearance_above_the_crown_base() {
     );
 }
 
-#[test]
-fn one_seed_is_one_band_however_it_grows() {
-    let f = curtain(1.0);
-    assert_eq!(
-        tree(&f),
-        tree(&f),
-        "seed {SEED}: one table grew two curtains"
-    );
-    // Built at an age in one call, month by month or in uneven pieces, the
-    // same nodes fall past the same shell to the same places.
-    const AGE: f64 = 25.0;
-    let seed = f.skeleton.seed;
-    let band = |s: &Specimen| -> BTreeMap<u64, [u64; 3]> {
-        let (envelope, tree) = (f.skeleton.envelope, s.tree());
-        tree.nodes[tree.crossover..]
-            .iter()
-            .filter(|n| !envelope.contains(n.position, TOLERANCE, seed))
-            .map(|n| {
-                let p = n.position;
-                let bits = [p.x.to_bits(), p.y.to_bits(), p.z.to_bits()];
-                (n.identity.birth_order(), bits)
-            })
-            .collect()
-    };
-    let mut aged = f.clone();
-    aged.age = AGE;
-    let built = band(&Specimen::build(&aged).expect("the curtain builds"));
-    assert!(
-        built.len() >= 100,
-        "seed {SEED}: at {AGE} years only {} nodes fell past the shell",
-        built.len()
-    );
-    let mut young = f.clone();
-    young.age = 0.0;
-    let mut monthly = Specimen::build(&young).expect("the seedling builds");
-    for _ in 0..(AGE as usize * 12) {
-        // Each month's births lie in the crown that month has, or its band.
-        let born = |n: &telperion_core::tree::Node| n.identity.birth_order();
-        let last = monthly.tree().nodes.iter().map(born).max();
-        monthly.advance(1.0 / 12.0).expect("a month grows");
-        let live = monthly.envelope();
-        let tree = monthly.tree();
-        let births = tree.nodes[tree.crossover..]
-            .iter()
-            .filter(|n| Some(born(n)) > last);
-        for n in births {
-            let p = n.position;
-            assert!(
-                live.contains(p, TOLERANCE, seed)
-                    || in_curtain_band(&live, &f.skeleton.twigs, seed, p, TOLERANCE),
-                "seed {SEED} at {:.2} years: {p:?} is outside the live shell and its band",
-                monthly.age()
-            );
-        }
-    }
-    let mut uneven = Specimen::build(&young).expect("the seedling builds");
-    for piece in [0.3, 4.7, 0.01, 7.99, 12.0] {
-        uneven.advance(piece).expect("a piece grows");
-    }
-    for (name, other) in [("monthly", band(&monthly)), ("uneven", band(&uneven))] {
-        assert!(
-            other == built,
-            "seed {SEED}: the {name} build dropped {} nodes where the one-call build dropped {}",
-            other.len(),
-            built.len()
-        );
-    }
-}
 
 #[test]
 fn a_walk_of_the_drop_row_lowers_the_curtain_continuously() {

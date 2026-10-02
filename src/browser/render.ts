@@ -160,14 +160,10 @@ let loading: Promise<void> | undefined;
 
 /** One canvas drawn by the Rust renderer, sized to the display and
  *  disposed with the page element it belongs to. */
-export interface GrowthSubmitted extends Submitted { age: number; frontier: number }
-
 export interface Renderer {
   setTree(family: string): Submitted;
   /** Experimental GPU foliage; unsupported inputs report CpuFallback. */
   setTreeGpu(family: string): Promise<GpuSubmitted>;
-  buildSpecimen(family: string, age: number): GrowthSubmitted;
-  seekSpecimen(age: number): GrowthSubmitted;
   setView(view: View): void;
   /** The sun, sky and ground the next frame is drawn under. */
   scene(): SceneRow;
@@ -222,8 +218,6 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
       if (disposed) throw new Error("the renderer is disposed");
       return JSON.parse(await renderer.setTreeGpu(family)) as GpuSubmitted;
     },
-    buildSpecimen: (family, age) => JSON.parse(renderer.buildSpecimen(family, age)) as GrowthSubmitted,
-    seekSpecimen: age => JSON.parse(renderer.seekSpecimen(age)) as GrowthSubmitted,
     setView: (view) => renderer.setView(view),
     scene: () => JSON.parse(renderer.scene()) as SceneRow,
     setScene: (row) => renderer.setScene(JSON.stringify(row)),

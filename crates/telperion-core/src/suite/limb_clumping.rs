@@ -6,7 +6,6 @@ use telperion_core::{
     branching,
     foliage::{self, CanopyParams, Instances, TwigPlacement},
     presets::{Family, Preset},
-    specimen::SpecimenView,
     tree::Tree,
     Error,
 };
@@ -81,19 +80,3 @@ fn a_value_off_the_rail_is_refused_by_name() {
     }
 }
 
-#[test]
-fn the_growth_view_clumps_its_crown_as_well() {
-    let mut f = family(3);
-    f.age = 14.0;
-    let whole = SpecimenView::build(&f).unwrap().mesh().unwrap();
-    f.canopy.limb_clumping = 0.5;
-    let clumped = SpecimenView::build(&f).unwrap().mesh().unwrap();
-    let (n, m) = (
-        whole.foliage.instances.len(),
-        clumped.foliage.instances.len(),
-    );
-    assert!(n > 0, "the view must carry leaves");
-    assert!(m < n, "the view kept all {n} leaves");
-    // The wood is the same wood: only leaves are thinned.
-    assert_eq!(whole.wood.positions, clumped.wood.positions);
-}
