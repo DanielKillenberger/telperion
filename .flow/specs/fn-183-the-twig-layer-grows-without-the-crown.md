@@ -47,6 +47,7 @@ The first rung that reads as the references do and keeps excursions within a sta
 - **The curtain floor holds by height, exactly.** Planned curtain axes sagged below the floor once the band search went (156 nodes below the crown base on the forced test curtain). Each stride is cut where it crosses the floor plane, in closed form: a height comparison and one interpolation, no outline query and no search. This changes rung 1's birch slightly; R5 judges it.
 - **The hang row fades in.** The birch dropped from 70,238 to 52,650 nodes at hang 0.1. Whatever term switches on with a curtain is made to scale with hang from zero, so "one continuous tree space" holds; the cause is named in the report.
 - **Containment assertions retire.** The containment parts of `species::fixed_*`, `growth` and `habit`, `drop`, and the shortened-limb `limb_tests` assert the wall the owner removed; they become excursion reports. Pins are re-recorded with the reason. `surface_collapse`'s reproducing beech is replaced by a tree that still reproduces the two-triangle drop; if none does within a bounded seed search, that is reported.
+- **Second stop (host, 2026-10-02).** The drop row now barely lowers the curtain's lowest tenth (3.647 to 3.564 m over its walk), because strands end by their own length before the floor; its strict "lower at every step" assertion takes a 1 cm tolerance, the half-to-whole drop test stays as it is, and why the dial is weak is fn-184's R1. The surface-collapse generator fixture is retired: the near-coincident stations came from the wall cutting a limb, no catalogue tree reproduces a drop in seeds 1 to 64, and the hand-built cases keep the coverage. The oak's crown width no longer varying by seed (0.04 m across 12 seeds against a 0.8 m gate) is traced before any decision.
 - **R4's base is f1ec68be:** master's generator plus the profiler, which compiles out for timing.
 
 **Room is not fn-182's depth.** fn-182's twig shell asks where on the scaffold twigs are borne (depth of the birth point below the outer surface); this spec asks how far a twig grows. They may share geometry, never one scalar. [Astra review]
@@ -59,7 +60,7 @@ The first rung that reads as the references do and keeps excursions within a sta
 - **No emptied crowns.** Query savings never come from fewer nodes or leaves: node and leaf density per crown volume are reported beside every count. [Astra review]
 - **A crisp outline stays reachable** where a species needs one, with "crisp" defined as a measured distance from the outline (R2). [inferred]
 - **Any new row** is one finite continuous law over its whole range, neutral value included; no value restores the stride-and-bisect algorithm; an input off its rails is refused by name. [principles]
-- **Identity is not required.** Every preset changes, under AGENTS.md "Generator evolution", with the owner's visual verdict. The hidden growth path stays buildable, follows the direct build's rule and is not tuned; fn-181 removes it. [AGENTS.md]
+- **Identity is not required.** Every preset changes, under AGENTS.md "Generator evolution", with the owner's visual verdict. The hidden growth path stays buildable and keeps its wall unchanged; it is not tuned, and fn-181 removes it. [AGENTS.md]
 - No full-forest capture. [AGENTS.md]
 
 ## Acceptance Criteria
