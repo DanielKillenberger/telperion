@@ -252,7 +252,7 @@ fn every_preset_placement_round_trips_inside_r2() {
                 internode_length: twig.internode_length,
                 stations_per_internode: twig.stations_per_internode,
             }),
-            Reference::of(&family).unwrap(),
+            Reference::grown(&grown.tree, super::super::Reach::of(&family).unwrap()),
         )
         .unwrap();
         super::super::RECORD_UNQUANTISED.with(|r| r.set(false));
@@ -307,11 +307,13 @@ fn every_preset_placement_round_trips_inside_r2() {
     );
     // The measured worst across the four shipped presets, for the record and
     // as a regression bound: the beech carries the widest box, so it sets it.
+    // Its box is its grown tree's since fn-183, wider than its shell where its
+    // twigs run past it, which moved the worst from 0.26 to 0.288 mm.
     assert!(
         worst_share <= 1.0,
         "a position moved {worst_share} of half a step"
     );
-    assert!(worst_pos <= 2.6e-4, "worst position error {worst_pos} m");
+    assert!(worst_pos <= 2.9e-4, "worst position error {worst_pos} m");
     // The bound here is the analytic worst, not a number raised to whatever
     // passed. A component half-step is `(2/sqrt 2)/1023/2 = 6.91e-4`; the
     // dropped component reconstructs with a sensitivity of one over itself,

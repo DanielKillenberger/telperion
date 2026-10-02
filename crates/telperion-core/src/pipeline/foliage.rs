@@ -37,6 +37,7 @@ pub(crate) use placement::place_on;
 #[cfg(feature = "geometry")]
 #[cfg(test)]
 pub use placement::{place, place_on_surface};
+pub(crate) use reference::Reach;
 #[cfg(feature = "geometry")]
 pub use rosette::place_rosette;
 /// The canopy's own rails, for a pass that reads the canopy rows without

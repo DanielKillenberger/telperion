@@ -57,7 +57,7 @@ fn retained(family: &Family, s: &Subject) -> Instances {
         family.canopy,
         Some(TwigPlacement::of(family).unwrap()),
         &family.surface,
-        foliage::Reference::of(family).unwrap(),
+        foliage::Reference::grown(&s.tree, foliage::Reach::of(family).unwrap()),
     )
     .unwrap();
     foliage::cull(

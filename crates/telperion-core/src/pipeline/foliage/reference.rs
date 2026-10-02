@@ -1,34 +1,27 @@
-//! The box a family's leaves are quantised against, read off its parameters.
+//! The box a family's leaves are quantised against.
 //!
-//! Not off the tree. `timeline::Placement` caches a shoot's leaves once and
-//! shows them again at every later age, while the tree's own bounds grow with
-//! it: words quantised against one age's box would decode against a different
-//! one at the next, and every cached leaf would need requantising whenever the
-//! box moved. A box the parameters alone decide is the same box at every age,
-//! so a leaf written at one age reads correctly at all of them.
+//! The direct build reads it off the grown tree: the twig layer asks the
+//! crown nothing, so the authored shell no longer bounds the wood, and the
+//! wood's own extent grown by the station reach does. The growth path keeps
+//! its wall and a box read off the parameters alone: `timeline::Placement`
+//! caches a shoot's leaves once and shows them again at every later age,
+//! while the tree's own bounds grow with it, so words quantised against one
+//! age's box would decode against a different one at the next. A box the
+//! parameters alone decide is the same box at every age.
 use super::packed::Reference;
 use crate::{
     envelope::Envelope, math::Vec3, pipeline::foliage::CanopyParams,
     pipeline::radius::RadiusParams, pipeline::surface::SurfaceParams, pipeline::twigs::TwigParams,
-    Result,
+    tree::Tree, Result,
 };
 
-impl Reference {
-    /// The box every station of this family stands in, at every age.
-    ///
-    /// The authored shell bounds the wood: no node stands above the height, no
-    /// node stands below the ground, and none stands further from the axis
-    /// than the widest lobe of the silhouette. A curtain hangs into the band
-    /// below the crown's base, whose own floor is a clearance above the
-    /// ground, so the ground is the floor the box has to hold - and it is the
-    /// floor at every age, where the authored crown base is not: a juvenile
-    /// crown takes its base from its own fraction of the height.
-    ///
-    /// A station then stands off the wood it sits on by that wood's radius,
-    /// carried out to the swept surface where the row seats it there and out
-    /// again along a short shoot where the row grows one. `reach` is the
-    /// furthest any of those three carries it, and the box is the shell grown
-    /// by it on every side.
+/// How far a station can stand from the wood axis it sits on, read off a
+/// family's rows.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) struct Reach(f64);
+
+impl Reach {
+    /// The reach of this family's resolved twig rows and its other tables.
     pub(crate) fn of(family: &crate::presets::Family) -> Result<Self> {
         let twigs = family.skeleton.twigs.resolved()?;
         Ok(Self::from_params(
@@ -49,12 +42,50 @@ impl Reference {
         surface: &SurfaceParams,
         canopy: CanopyParams,
     ) -> Self {
-        let reach = reach(envelope, twigs, radii, surface, canopy);
+        Self(reach(envelope, twigs, radii, surface, canopy))
+    }
+}
+
+impl Reference {
+    /// The box every station of this family stands in at every age of the
+    /// growth path, and the one a family is validated against before any
+    /// tree exists.
+    ///
+    /// On the growth path the authored shell bounds the wood: no node stands
+    /// above the height, no node stands below the ground, and none stands
+    /// further from the axis than the widest lobe of the silhouette. A curtain
+    /// hangs into the band below the crown's base, whose own floor is a
+    /// clearance above the ground, so the ground is the floor the box has to
+    /// hold - and it is the floor at every age, where the authored crown base
+    /// is not: a juvenile crown takes its base from its own fraction of the
+    /// height. The box is that shell grown by the reach on every side.
+    pub(crate) fn of(family: &crate::presets::Family) -> Result<Self> {
+        Ok(Self::authored(family.skeleton.envelope, Reach::of(family)?))
+    }
+
+    /// The authored box for an envelope and a reach.
+    pub(crate) fn authored(envelope: Envelope, reach: Reach) -> Self {
+        let reach = reach.0;
         let radius = envelope.max_radius() * (1.0 + envelope.irregularity) + reach;
         Self::spanning(
             Vec3::new(-radius, -reach, -radius),
             Vec3::new(radius, envelope.height + reach, radius),
         )
+    }
+
+    /// The box the direct build quantises against: the grown tree's wood
+    /// extent, every node's position, grown by the reach on every side.
+    pub(crate) fn grown(tree: &Tree, reach: Reach) -> Self {
+        let first = tree.nodes.first().map_or(Vec3::ZERO, |n| n.position);
+        let (lo, hi) = tree.nodes.iter().fold((first, first), |(lo, hi), n| {
+            let p = n.position;
+            (
+                Vec3::new(lo.x.min(p.x), lo.y.min(p.y), lo.z.min(p.z)),
+                Vec3::new(hi.x.max(p.x), hi.y.max(p.y), hi.z.max(p.z)),
+            )
+        });
+        let out = Vec3::new(reach.0, reach.0, reach.0);
+        Self::spanning(lo - out, hi + out)
     }
 }
 

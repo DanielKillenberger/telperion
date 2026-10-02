@@ -49,7 +49,14 @@ pub(super) fn prepare(
     }
     // Leaves are placed only where the geometry is compiled in.
     #[cfg(feature = "geometry")]
-    let reference = places.then(|| input.reference.clone()).transpose()?;
+    let reference = places
+        .then(|| {
+            input
+                .reach
+                .clone()
+                .map(|reach| Reference::grown(tree, reach))
+        })
+        .transpose()?;
     #[cfg(not(feature = "geometry"))]
     let reference = places.then_some(Reference::default());
     Ok(Prepared {

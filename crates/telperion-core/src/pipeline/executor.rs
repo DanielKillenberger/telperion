@@ -63,7 +63,7 @@ impl Grown {
         if !shell.is_finite() || !(0.0..=1.0).contains(&shell) {
             return Err(Error::InvalidInput("shell depth"));
         }
-        let reference = plan.reference.clone()?;
+        let reference = Reference::grown(&self.tree, plan.reach.clone()?);
         Ok(Expansion {
             tree: self.tree,
             inputs: self.inputs,
@@ -196,7 +196,8 @@ pub(crate) fn present(
 ) -> Result<TreeMesh> {
     let wood = surface::build(tree, height, &inputs.surface.params)?;
     let element = foliage::build_element(inputs.plan.element)?;
-    let mut instances = Instances::new(inputs.plan.reference.clone()?);
+    let reach = inputs.plan.reach.clone()?;
+    let mut instances = Instances::new(Reference::authored(inputs.plan.envelope, reach));
     instances.leaves = leaves;
     let envelope = envelope()?;
     let (seed, canopy) = (inputs.leaves.seed, inputs.leaves.canopy);

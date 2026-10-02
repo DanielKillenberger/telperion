@@ -5,7 +5,7 @@
 use std::collections::BTreeMap;
 use telperion_core::{
     branching::{Specimen, SpecimenRead},
-    foliage::{Instances, Leaf, PlacementIdentity, Reference},
+    foliage::{Instances, Leaf, PlacementIdentity, Reach, Reference},
     math::Vec3,
     mesh, params, presets,
     specimen::SpecimenView,
@@ -70,12 +70,13 @@ fn the_reference_box_does_not_move_with_age() {
 
 /// R3: a station outside the box cannot occur. The debug assertion inside
 /// `pack` says so while the tests run; this says so for the release build the
-/// gate uses, over every leaf of every shipped species.
+/// gate uses, over every leaf of every shipped species. The direct build's
+/// box is its grown tree's wood grown by the station reach (fn-183).
 #[test]
 fn no_station_of_any_shipped_species_falls_outside_its_box() {
     for id in shipped() {
         let f = family(id);
-        let reference = Reference::of(&f).unwrap();
+        let reference = Reference::grown(&mesh::grow(&f).unwrap(), Reach::of(&f).unwrap());
         let m = mesh::build(&f).unwrap();
         let instances = &m.foliage.instances;
         assert_eq!(instances.reference, reference, "{id}: box differs");
@@ -111,16 +112,22 @@ fn no_station_of_any_shipped_species_falls_outside_its_box() {
 /// on a silver tree taller than any that grows, which is the encoding
 /// behaving exactly as stated rather than a defect.
 ///
-/// The date palm is exempt for a different reason, and one that is a defect
-/// of the box, not of the encoding. Half its step measures 0.353 mm against
-/// the 0.25 mm held here, because `Reference::of` adds the generic reach
-/// below the ground and above the crown to every family, so a 22.86 m palm
-/// gets a box 46.2 m tall. Sizing the box to the family's own reach is the fix; until
-/// it lands the palm is measured and printed like the legendary two.
+/// The date palm is exempt for a different reason: its rachises carry their
+/// leaflets metres past the wood, and the reach that holds them grows its box
+/// to 42.8 m tall, so half its step measures 0.327 mm against the 0.25 mm
+/// held here. It is measured and printed like the legendary two.
+///
+/// The box is the one the direct build quantises against: the grown tree's
+/// wood grown by the station reach, since the twig layer asks the crown
+/// nothing and the authored shell no longer bounds the wood (fn-183).
 #[test]
 fn the_position_step_is_under_a_quarter_millimetre_for_every_species() {
     for id in shipped() {
-        let reference = Reference::of(&family(id)).unwrap();
+        let reference = mesh::build(&family(id))
+            .unwrap()
+            .foliage
+            .instances
+            .reference;
         let step = reference.step();
         let worst = step.x.max(step.y).max(step.z) / 2.0;
         println!(
