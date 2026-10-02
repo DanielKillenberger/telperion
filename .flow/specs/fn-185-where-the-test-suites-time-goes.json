@@ -1,13 +1,22 @@
 {
   "branch_name": "fn-185-where-the-test-suites-time-goes",
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-02T15:20:01.704933Z",
   "created_at": "2026-10-02T14:34:15.796259Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-185-where-the-test-suites-time-goes",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-185-where-the-test-suites-time-goes.md",
-  "status": "open",
+  "status": "done",
   "title": "Where the test suite's time goes",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T14:34:15.802593Z"
+  "updated_at": "2026-10-02T15:31:02.245827Z"
 }
