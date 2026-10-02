@@ -25,6 +25,12 @@ Open-grown broadleaves read by their branching hierarchy: a few strong scaffold 
 - **Not new rows:** the plane's thin first-order limbs (born at 0.18 of the parent against 0.5 to 0.7 in the photograph, because each stem carries about 22 first-order laterals where the photograph shows 3 to 4 leaders) are values: `lateralSpacing` and `lateralsPerStation` on the stems, and with twigs off the inner wood the pipe model leaves the remaining limbs thicker. The beech's 32 m single stem, where its reference dissolves into 4 to 6 limbs at 30 to 40 percent of the height, is `codominance` with a fork height near 0.3 (fn-170). Both are values the beech's Tune and the plane's candidate set.
 - Length ratios differ least and are left alone.
 
+**Build choices (host, 2026-10-02, from `R5-RESULT.md`).** [checked]
+- **Depth reads the smooth outline,** as shedding, the cull and the fill do: the smaller of the horizontal room and the distance to the smooth profile, read once per seeding pass. A lobed depth would move 0.7 to 2.4% of the beech's stations across shells 0.15 to 0.4.
+- **The fade runs past `twigShell`,** so a shell of 1 is a pure neutral at any softness; R4's "bears no shoots deeper than `twigShell`" holds past `twigShell + twigShellSoftness`, and exactly at softness 0.
+- **The neutral is a value, `twigShell` = 1** (the top of its rail), not an absent option.
+- **Laterals only:** a scaffold tip deep in the crown still grows its terminal twig. Wood below the crown base counts as outside the outline and bears. A deep station bears no hanging shoots either; no shipped hanging preset sets a shell. On the hidden growth path depth reads that year's outline.
+
 **Shape (superseded by the decision above).** Most likely a per-order profile on the rows that differ (density, length and birth girth falling or rising with order), each dormant at today's value and changing the tree by degree, declared once in the catalogue; or a vigour-weighted lateral allocation if density alone does not produce few strong limbs. The spec is updated with the decision before any code. [inferred]
 
 ## Acceptance Criteria
