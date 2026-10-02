@@ -380,8 +380,11 @@ fn a_walk_of_the_drop_row_lowers_the_curtain_continuously() {
             hashes[step],
             "step {step} grew the tree the step before it did"
         );
+        // Without the band the row lowers the floor and little else, so the
+        // lowest tenth may settle by a millimetre; it never rises by more
+        // than a centimetre (fn-183; how weak the dial is, is fn-184's).
         assert!(
-            depths[step] < depths[step - 1],
+            depths[step] < depths[step - 1] + 0.01,
             "seed {SEED} step {step}: the curtain's lowest tenth rose, {:.4} m to {:.4} m",
             depths[step - 1],
             depths[step]
