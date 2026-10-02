@@ -43,3 +43,7 @@ This spec deletes that special case on the direct build, for every preset. [infe
 ## Strategy Alignment
 
 - `docs/principles.md`, "Question, delete, then optimise": a special case deleted, every tree faster. [strategy:Our approach]
+
+## Held (owner, 2026-10-02)
+
+Deleting the tip shoot strips the twig layer from trees whose scaffold is everywhere thicker than the twig gate: telperion at seed 7 drops from 18,140 nodes and 128,852 leaves to 363 nodes and none; ordinary, laurelin and telperion at seed 1 lose 25 to 41% of their leaves (`RESULT.md` on branch `fn-189-a-limb-tip-grows-no-extra-shoot`). The claim that the deletion "helps every tree" rested on the beech alone and was wrong. The tip shoot compensates for the same thickness gate fn-188 is examining, so this spec waits on fn-188; the mechanism is traced before any choice (owner: "figure out what it was and make sure that we have the elegant right solution. Don't just accept looks good without understanding why"). [checked]
