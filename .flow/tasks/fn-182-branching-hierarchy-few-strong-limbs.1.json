@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-182-branching-hierarchy-few-strong-limbs",
   "spec_path": ".flow/tasks/fn-182-branching-hierarchy-few-strong-limbs.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement the twig shell: branching hierarchy",
   "updated_at": "2026-09-27T22:34:53.980943Z"
 }

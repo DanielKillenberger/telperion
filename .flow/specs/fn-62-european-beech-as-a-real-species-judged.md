@@ -12,6 +12,8 @@ The European beech moves out of fn-34, as the ash did, so fn-34 can close on the
 
 fn-34 ran 23 rounds against an acceptance that had no finish line. This spec closes on a short checklist the owner ticks, so each round knows what it is for and when to stop. [paraphrase]
 
+**Starting direction from fn-182 (owner, 2026-10-02).** fn-182's Candidate B on top of its Hierarchy 1 (`codominance` 0.3, `forkHeight` 0.35, `forkWays` 4): `lateralLengthRatio` 0.3, `crookedness` 10, `pitchVariation` 16, `shortShootRadius` 0.3, `shortShootSpacing` 0.08, and `sheddingThreshold` for the inner crown in place of a twig shell. It ends the long rods but is sparse, low and wide against the reference, and its limbs stay about 0.78 of their parent's thickness; thickness is the girth spec's. Values in `.flow/evidence/fn-182-branching-hierarchy-few-strong-limbs/R5-RESULT.md`, "Bounded comparison". [checked]
+
 ## Acceptance checklist
 <!-- scope: business -->
 

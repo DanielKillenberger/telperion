@@ -18,7 +18,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-182-branching-hierarchy-few-strong-limbs.md",
-  "status": "open",
+  "status": "done",
   "title": "Branching hierarchy: few strong limbs, twigs at the edge",
   "tracker": {
     "baseHashFlow": null,
@@ -31,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T11:53:36.902225Z"
+  "updated_at": "2026-10-02T18:51:15.804467Z"
 }

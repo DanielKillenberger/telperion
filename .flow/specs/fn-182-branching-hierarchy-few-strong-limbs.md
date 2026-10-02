@@ -53,3 +53,7 @@ Open-grown broadleaves read by their branching hierarchy: a few strong scaffold 
 ## Strategy Alignment
 
 - Serves "Mature trees are the product" and "Growth and botanical fidelity": the owner judges trees by their structure first. [strategy:Our approach]
+
+## Closed without merging the shell (owner, 2026-10-02)
+
+The bounded comparison (`R5-RESULT.md`) showed `sheddingThreshold` 0.25 clears the beech's inner crown as `twigShell` 0.25 does, and the stills show no visible difference between no shell, the shell and shedding at this scale. The owner agreed to delete the shell ("y"): its code stays on the unmerged branch `fn-182-branching-hierarchy-few-strong-limbs` (a046d8da, 3d8ac476, 768feab5) and is not merged. What the evidence established goes on: Candidate B's direction to fn-62 (`lateralLengthRatio` 0.3 from 0.65 ends the long rods: side branches 0.82 of the parent's remaining extent against 1.15, 6 of 293 longer than half their parent against 171 of 260; `crookedness` 10, `pitchVariation` 16, `shortShootRadius` 0.3, `shortShootSpacing` 0.08, shedding for the inner crown); and branch thickness, which no tested row moved (daughters stay about 0.78 of their parent), to its own spec. [checked]
