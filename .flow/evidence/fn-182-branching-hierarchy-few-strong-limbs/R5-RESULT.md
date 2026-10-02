@@ -104,3 +104,73 @@ Master `9cbca483` was built in its own detached worktree with its own `target/`.
 5. **Curtains.** A deep station bears no hanging shoots either. No shipped hanging table sets a shell.
 6. **Below the crown base,** wood is outside the outline, so it is at depth zero and bears.
 7. **On the growth path,** depth is measured against that year's outline.
+
+## R5 follow-up (host, 2026-10-02): values for the hierarchy
+
+Only existing rows were used. The overlays are under `raw/families/grid/`, and no production code or preset changed. Seed 1, at the default node budget. The scratch tool was never committed; its rows are in `raw/hier-grid.jsonl`.
+
+**How the generator maps to the photographs:**
+- The photographs' leaders are the generator's order-0 axes: the trunk plus its codominant parts.
+- The photographs' second order is the scaffold laterals on those stems.
+
+**The columns:**
+- **lead:** the number of order-0 axes.
+- **root forks:** forks at the ground, which make a clump rather than a trunk.
+- **fork h:** the median order-0 fork height, as a share of the tree's height.
+- **lead girth:** a codominant part's start radius ÷ its parent's radius, as a median.
+- **limbs/lead:** scaffold laterals per order-0 axis, with their girth as a share of the parent (median).
+- **o1 /m:** scaffold laterals per metre of stem.
+
+**The metric:** d is the sum, over the targets, of the distance outside each target range ÷ that range's midpoint. It is 0 when every target is met.
+- **Beech targets** (B-BARE): 4 to 6 leaders, fork height 0.3 to 0.4, leader girth 0.4 to 0.6, 5 to 10 limbs per leader.
+- **Plane targets** (photograph): 3 to 4 leaders, fork height 0.15 to 0.25, leader girth 0.5 to 0.7, 0.3 to 0.5 laterals per metre on the leaders, their girth 0.3 to 0.5.
+
+**Beech** (shipped table plus `codominance` c, `forkHeight` h, `forkWays` w; 27 sets):
+
+| Set | d | Lead | Fork h | Lead girth | Limbs/lead (girth) | Nodes | ms |
+|---|--:|--:|--:|--:|---|--:|--:|
+| today | 3.67 | 1 | – | – | 18.0 (0.57) | 213,044 | 79 |
+| h0.35 w4.0 | 0.02 | 4 | 0.37 | 0.61 | 10.0 (0.62) | 201–238k | 76–89 |
+| h0.35 w3.2 | 0.04 | 4 | 0.37 | 0.62 | 9.0 (0.62) | 204–225k | 77–87 |
+| h0.30 w3.2 | 0.06 | 4 | 0.30 | 0.63 | 9.2 (0.64) | 237–245k | 85–382 |
+| h0.30 w4.0 | 0.13 | 4 | 0.30 | 0.61 | 10.8 (0.64) | 238–245k | 90–372 |
+| h0.25 w3.2 / w4.0 | 0.23 / 0.33 | 4 | 0.26 | 0.66 / 0.61 | 10.0 / 11.5 | 243–249k | 91–400 |
+| w2.5, any h | 0.40–0.75 | 3 | 0.26–0.37 | 0.70–0.73 | 10–11.3 | 188–242k | 72–104 |
+
+- **Codominance** (0.3, 0.6 or 0.9) changes none of these numbers. It adds forks on the limbs (4 to 48), and those forks add nodes.
+- **ms:** the runs near 400 ms are fn-180's budget search, at 237k to 249k nodes.
+- **Out of reach:** five or six leaders. The stem forks once at seed 1, and `forkWays` stops at 4, so leaders are at most 4. That is the low end of B-BARE's 4 to 6.
+- **Leader girth** is 0.61 to 0.63 at best, just above 0.6.
+
+**Plane** (fn-180's candidate plus `lateralSpacing` s and `lateralsPerStation` l on a 4×4 grid, then a fork sub-grid at s 3, l 1 or 2, on `forkWays` w and `forkHeightSpread` sp):
+
+| Set | d | Lead | Root forks | Fork h | Lead girth | Limbs/lead (girth) | o1 /m | Nodes | ms |
+|---|--:|--:|--:|--:|--:|---|--:|--:|--:|
+| today (s1.6 l5) | 6.36 | 7 | 3 | 0.31 | 0.44 | 24.3 (0.19) | 2.43 | 247,571 | 717 |
+| l3, any s | 3.76–3.79 | 7 | 3 | 0.31 | 0.44–0.47 | 14.6 (0.24) | 1.46 | 176–245k | 73–679 |
+| l1, any s | 1.17–1.21 | 7 | 3 | 0.31 | 0.47–0.49 | 4.9 (0.42–0.47) | 0.49 | 12–245k | 6–465 |
+| l1 w2.2 sp0.05 | 0.15 | 3 | 0 | 0.13 | 0.63 | 5.7 (0.34) | 0.52 | 78,731 | 28 |
+| l1 w2.0 sp0.05 | 0.39 | 2 | 0 | 0.13 | 0.64 | 7.5 (0.32) | 0.50 | 65,670 | 22 |
+| l1 w2.35 sp0.05 | 0.45 | 4 | 0 | 0.13 | 0.35 | 4.8 (0.42) | 0.54 | 91,487 | 33 |
+| l1 w2.5 sp0.05 | 0.55 | 5 | 0 | 0.25 | 0.40 | 4.2 (0.50) | 0.54 | 101,902 | 40 |
+| l1 w2.5 sp0.15 | 0.75 | 3 | 2 | 0.00 | 0.66 | 6.7 (0.41) | 0.47 | 92,013 | 35 |
+| l2, any fork set | 1.76–2.43 | 2–7 | 0–3 | – | – | 8.4–16 | 0.95–1.10 | – | – |
+
+- **`lateralsPerStation`** sets the laterals on the stems: 2.43, 1.46, 0.97 and 0.49 per metre at 5, 3, 2 and 1. At 1 it reaches the photograph's 0.3 to 0.5 per metre and limb girth 0.42 to 0.47.
+- **`lateralSpacing`** moves only the second order on the limbs: 0.70, 0.40, 0.26 and 0.18 per metre at 1.6, 3, 5 and 8.
+- **Leaders are fork rows, not lateral rows.** The candidate's `forkHeightSpread` of 0.15 draws three forks at the root, which makes a clump of seven stems. A spread of 0.05 removes them.
+- **With one fork,** `forkWays` 2.2 gives 3 leaders and 2.35 gives 4. Above 2.2 the fractional part is thin: its girth is 0.35 to 0.40.
+- **Fork height:** the first fork falls at 0.13 against the photograph's roughly 0.2.
+
+**Picks (code-proposed by d; the host confirms):**
+- **Beech hier1:** `codominance` 0.3, `forkHeight` 0.35, `forkWays` 4.0 (d 0.02).
+- **Beech hier2:** `codominance` 0.3, `forkHeight` 0.35, `forkWays` 3.2 (d 0.04).
+- **Beech tie-break:** codominance ties on d, so the lowest, 0.3, is picked; it has the fewest forks on the limbs.
+- **Plane hier1:** fn-180's candidate with `lateralsPerStation` 1, `lateralSpacing` 3.0, `forkWays` 2.2, `forkHeightSpread` 0.05 (d 0.15).
+- **Plane hier2:** the same with `forkWays` 2.0 (d 0.39).
+
+**Stills.** 960x720, seed 1, under `raw/stills/`:
+- `beech-hier{1,2}-{today,shell0.4,shell0.25}-s1-{whole,bare}.png`
+- `plane-hier{1,2}-{today,shell0.4,shell0.25}-s1-{whole,bare}.png`
+- Shell softness is 0.1, and the overlays are `raw/families/<tree>-hier<N>-<shell>.json`.
+- All 24 are distinct by checksum. Two were opened to confirm they are not blank: beech hier1 shell 0.25 bare, and plane hier1 today whole.
