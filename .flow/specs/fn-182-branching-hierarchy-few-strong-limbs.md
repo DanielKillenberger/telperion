@@ -64,3 +64,7 @@ The goal is unchanged: a few thick limbs dividing into ever finer twigs. At subs
 
 - **R7:** On the beech at seed 1, from Candidate B, each of those rows walked one at a time across its window and measured on the same traced branch systems (thickness and length against the parent at substantial divisions, length between divisions, tortuosity, angle spread), with nodes, leaves and skeleton time, the workspace suite run on the exploratory build, and bare stills beside the reference for the best sets. [inferred]
 - **R8:** The host's decision is recorded before any code: existing rows reach the references (values to fn-62), or the missing capability is named with its measured shortfall, including whether Astra's two verified limits take part: forks placed by absolute tree height (`scaffold/fork.rs:87`), and laterals taking a fixed share of the parent's whole length wherever they depart (`scaffold.rs:317`). [inferred]
+
+## Paused (owner, 2026-10-02)
+
+The two code changes the evidence supports (a limb tip's continuation takes the ordinary shoot length; twig bearing stops depending on wood thickness) wait on fn-188, which questions the scaffold/twig split they both sit on. The evidence for them is on branch `fn-182-girth` (`R7-GIRTH.md`, `R8-HORNS.md`, `ASTRA-THICKNESS-REVIEW.md`). [user]

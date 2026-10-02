@@ -7,7 +7,8 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-183-the-twig-layer-grows-without-the-crown"
+    "fn-183-the-twig-layer-grows-without-the-crown",
+    "fn-188-one-branching-law-from-trunk-to-twig"
   ],
   "id": "fn-182-branching-hierarchy-few-strong-limbs",
   "impl_review_rounds": {},
@@ -31,5 +32,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T18:51:15.804467Z"
+  "updated_at": "2026-10-02T20:26:38.689510Z"
 }
