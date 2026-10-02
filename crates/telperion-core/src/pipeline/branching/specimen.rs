@@ -110,6 +110,7 @@ impl Specimen {
         let twigs = rows(params, radii)?;
         let inner = inner_envelope(params.envelope, twigs.reach);
         let points = if params.habit.attractor_weight > 0.0 {
+            let _asks = crate::envelope::queries::during(Purpose::ScaffoldContainment);
             inner.sample_with_attempts(
                 params.attractors,
                 &mut Rng::new(params.seed),

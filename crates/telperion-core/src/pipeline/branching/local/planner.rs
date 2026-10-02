@@ -1,4 +1,5 @@
 use super::*;
+use crate::envelope::queries::{self, Purpose};
 use crate::math::Transcendental;
 pub(super) fn rejected(config: &GrowthConfig, p: Vec3) -> bool {
     p.y < config.trunk_height
@@ -85,6 +86,7 @@ impl Planner<'_> {
         // Plan the axis against its authored room. The live boundary is checked
         // separately for every birth, so a juvenile crown pauses the cached run
         // rather than permanently truncating it and flushing a terminal early.
+        queries::planned_axis();
         let config = GrowthConfig {
             shell: self.planning.or(self.config.shell),
             ..*self.config
@@ -132,7 +134,12 @@ impl Planner<'_> {
             course = self.heading(at, course, wanted, stride);
             let heading = curtain.sagged(course, travelled, self.twigs, key ^ self.seed);
             let end = at + heading * stride;
-            if !admitted(curtain, &config, self.twigs, bound, end) {
+            let inside = {
+                let _asks = queries::during(Purpose::TwigStride);
+                admitted(curtain, &config, self.twigs, bound, end)
+            };
+            if !inside {
+                let _asks = queries::during(Purpose::TwigBisection);
                 let mut low = 0.0;
                 let mut high = stride;
                 for _ in 0..40 {

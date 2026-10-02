@@ -4,6 +4,7 @@
 //! field.
 use super::limbs::{Bound, Limbs};
 use super::*;
+use crate::envelope::queries::{self, Purpose};
 use crate::math::Transcendental;
 use std::{
     collections::VecDeque,
@@ -152,6 +153,7 @@ impl Builder<'_> {
         if !position.is_finite() {
             return Err(Error::ResourceLimit("scaffold position overflow"));
         }
+        let _asks = queries::during(Purpose::ScaffoldContainment);
         let start = self.tree.nodes[parent].position;
         if start.distance(position) <= 1e-9 {
             return Ok(None);
@@ -252,6 +254,7 @@ impl Builder<'_> {
     /// Straight-line room for a first-order axis, measured against the
     /// envelope the local layer is left to fill.
     fn reach(&self, position: Vec3, direction: Vec3) -> f64 {
+        let _asks = queries::during(Purpose::ScaffoldRoom);
         let probe = (if self.growing_envelope {
             self.planning.height
         } else {

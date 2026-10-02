@@ -1,6 +1,7 @@
 use crate::catalogue::{bounded, input, tuned, Bounds, Site};
 use crate::math::Transcendental;
 use crate::{math::Vec3, noise, rng::Rng, Error, Result};
+pub mod queries;
 
 crate::catalogue::rows! {
     #[derive(Debug, Clone, Copy, PartialEq)]
@@ -118,6 +119,7 @@ impl Envelope {
         self.height * self.spread
     }
     pub fn radius_at(&self, y: f64) -> f64 {
+        queries::radius();
         let base = self.height * self.crown_base;
         let span = self.height - base;
         if span <= 0.0 {

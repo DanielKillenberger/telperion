@@ -17,6 +17,7 @@
 //! the droop is the one the curtain had while it was a constant, so a table
 //! that states the rows reproduces the tree the constants grew.
 use super::*;
+use crate::envelope::queries::{self, Purpose};
 
 /// The droop one shoot may take at full hang, and the rate it reaches that cap
 /// at over its own pendulous length. The hang row scales both, so a walk of
@@ -224,6 +225,7 @@ impl Curtain {
 /// shell's own containment this is the invariant every node past the
 /// crossover keeps.
 pub fn in_band(shell: &Envelope, t: &TwigParams, seed: u32, p: Vec3, tolerance: f64) -> bool {
+    let _asks = queries::during(Purpose::CurtainBand);
     let share = dropped(*t);
     if share <= 0.0 || !p.is_finite() {
         return false;

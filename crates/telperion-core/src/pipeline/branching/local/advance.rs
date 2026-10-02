@@ -1,4 +1,5 @@
 use super::*;
+use crate::envelope::queries::{self, Purpose};
 impl Frontier {
     pub(in crate::pipeline::branching) fn advance(
         &mut self,
@@ -202,8 +203,11 @@ impl Frontier {
                         continue;
                     }
                     let p = position + heading * twig_length;
-                    if !planner::admitted(s.curtain, config, t, s.bound, p) || s.curtain.below(p.y)
-                    {
+                    let admitted = {
+                        let _asks = queries::during(Purpose::TerminalAdmission);
+                        planner::admitted(s.curtain, config, t, s.bound, p)
+                    };
+                    if !admitted || s.curtain.below(p.y) {
                         #[cfg(test)]
                         {
                             self.retries[1] += 1;

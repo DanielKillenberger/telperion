@@ -10,6 +10,7 @@ mod traits;
 use crate::catalogue::{input, tuned, value, Blend, Bounds, Dial, Growth, Site};
 use crate::ranges::DEFAULT_MAX_NODES;
 use crate::{
+    envelope::queries::{self, Purpose},
     envelope::{distance_to_profile, Envelope},
     math::Vec3,
     pipeline::bias::{BiasParams, GrowthBias},
@@ -292,6 +293,7 @@ pub fn shed(tree: &mut Tree, envelope: Envelope, shell_depth: f64) -> Result<usi
     if first == 0 {
         return Err(Error::InvalidInput("structural crossover"));
     }
+    let _asks = queries::during(Purpose::Shedding);
     let shell = shell_depth * envelope.max_radius();
     let profile = envelope.profile();
     let mut keep = vec![false; count];
