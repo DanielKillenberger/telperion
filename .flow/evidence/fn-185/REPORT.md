@@ -155,6 +155,8 @@ Savings are measured where stated, otherwise estimated (**est.**). "Obvious" mar
 7. **The slow suites build each tree once.** Route #2, #4, #5, #11, #17, #18 and #27 through the specimen cache, or shrink them as R2 says. Saving: **est.** 200 to 300 CPU-s, enough to drop the core lib's tail below the species tests.
 8. **The generation-limits inventory keyed on something that survives a rewrite**, or deleted. It has the most churn of any pin, 21 commits, and no recorded catch. Delete it or key it per function and kind. **Owner** call, because the guard is an owner-set principle check. Friction: (f) 31 min.
 9. **A gate policy that surfaces every failing assertion in one run.** `--no-fail-fast` already runs every test. What remains is tests that stop at their first assertion (fn-183 task 2, five runs). A collecting assertion helper in the slow suites would fix that. Friction: (b) 5 min plus fn-183's 8 min. **est.**, low.
+
+   It also weighs fn-183's friction: an exploratory measurement step never ran the suite on its experiment code, so four design questions surfaced only during the build. The proposed rule: such a step runs the workspace suite once with `--no-fail-fast` and reads every failing assertion. Under nextest that costs about 2 to 3 min (measured above, 193 s before fn-183), against about 8 min and five runs spent in fn-183's build. The rule is worth it when the experiment touches generator code that the pins or digests read; it is not worth it for a measurement-only probe. The **owner** decides, because it adds a step to the method.
 10. **The objectives race** (`objectives.rs:28`): already fixed on fn-183 (host, 2026-10-02). Nothing left.
 
 ## How this was measured
