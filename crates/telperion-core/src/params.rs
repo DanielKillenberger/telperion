@@ -36,8 +36,7 @@ pub fn parse(v: &Value) -> Result<Family> {
     // consumer, and the wire is where a value off its range or a range that
     // runs backwards is refused, by the name of the field that was wrong.
     f.material.validate()?;
-    crate::growth::Age::from_years(f.age)?;
-    f.growth.validate()?;
+    catalogue::check(Family::CHECKS, &f, catalogue::Site::Age)?;
     Ok(f)
 }
 /// The wire read into a family, every key known and every value its type,

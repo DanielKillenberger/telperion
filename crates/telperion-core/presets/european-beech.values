@@ -2,7 +2,7 @@
 # Rows off the default family, checked against the catalogue as core compiles.
 
 # Mature open-grown Fagus sylvatica. Envelope height is the 32 m
-# reference at 120 yr; oak growth traits, not a beech calibration.
+# reference at 120 yr.
 /age = 120.0
 
 # The winter photograph (B-BARE, fn-54): a straight trunk clear to about

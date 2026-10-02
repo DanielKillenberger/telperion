@@ -1,6 +1,5 @@
 //! One owned engine per Wasm instance. No caller pointers enter native code.
 mod generate;
-mod specimen;
 use generate::{generate, Output};
 use serde_json::{json, Value};
 use std::cell::RefCell;
@@ -23,10 +22,6 @@ pub(crate) fn clock() -> f64 {
 }
 #[derive(Default)]
 struct Engine {
-    specimen: telperion_core::specimen::SpecimenStore,
-    specimen_bytes: Vec<u8>,
-    specimen_record: Vec<u8>,
-    specimen_ids: Vec<u8>,
     input: Vec<u8>,
     output: Output,
     metadata: Vec<u8>,
@@ -126,10 +121,6 @@ pub extern "C" fn release() {
         let mut e = e.borrow_mut();
         e.output = Output::default();
         e.input.clear();
-        e.specimen.release();
-        e.specimen_bytes = Vec::new();
-        e.specimen_record = Vec::new();
-        e.specimen_ids = Vec::new();
         e.queries.clear();
         e.clear_answers();
         e.revision = e.revision.wrapping_add(1);
@@ -203,9 +194,7 @@ pub extern "C" fn buffer_ptr(slot: u32) -> *const u8 {
                 .as_ref()
                 .map_or(std::ptr::null(), |s| s.coords.as_ptr().cast()),
             15 => o.element_coords.as_ptr().cast(),
-            16 => e.specimen_bytes.as_ptr(),
-            17 => e.specimen_record.as_ptr(),
-            18 => e.specimen_ids.as_ptr(),
+            // Slots 16 to 18 held the removed growth path's buffers.
             // Beside the occupancy bits in slot 8: one f32 leaf-count
             // estimate and one u32 limb id (u32::MAX for none) per cell.
             19 => e.leaves.as_ptr().cast(),
@@ -267,9 +256,6 @@ pub extern "C" fn buffer_len(slot: u32) -> usize {
             13 => o.snapshot.as_ref().map_or(0, |s| s.leaves.topology.len()),
             14 => o.surface.as_ref().map_or(0, |s| s.coords.len()),
             15 => o.element_coords.len(),
-            16 => e.specimen_bytes.len(),
-            17 => e.specimen_record.len(),
-            18 => e.specimen_ids.len(),
             19 => e.leaves.len(),
             20 => e.limbs.len(),
             21 => o.snapshot.as_ref().map_or(0, |s| s.plan.len()),

@@ -7,13 +7,8 @@ use telperion_core::{
     params, pipeline,
 };
 
-/// The purposes only the twig layer asks the outline for.
-const TWIG_LAYER: [Purpose; 4] = [
-    Purpose::TwigStride,
-    Purpose::TwigBisection,
-    Purpose::TerminalAdmission,
-    Purpose::CurtainBand,
-];
+/// The purpose only the twig layer's curtain search asks the outline for.
+const TWIG_LAYER: [Purpose; 1] = [Purpose::CurtainBand];
 
 #[test]
 fn the_twig_layer_asks_the_crown_nothing_and_builds_one_tree() {

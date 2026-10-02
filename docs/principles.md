@@ -34,12 +34,11 @@ The reason: fn-173 spent two sessions and a design review making the crown's rad
 
 ## Sanctioned exceptions
 
-Two sanctioned exceptions build outside the one-pipeline rule. Code visibility holds this list: the pipeline exposes `pipeline::build` and the executor interface, and nothing else may be called.
+One sanctioned exception builds outside the one-pipeline rule. Code visibility holds this list: the pipeline exposes `pipeline::build` and the executor interface, and nothing else may be called. The growth path was the second until its removal on 2026-10-02 (fn-181, `docs/growth-path.md`).
 
-- **The growth path** (`specimen::view::SpecimenView::mesh`). A hidden feature, kept buildable and pinned (AGENTS.md, Mature trees are the product; PR #17).
 - **The GPU executor** (`telperion_render::generation`). One algorithm with two executors: the GPU, and the CPU reference that defines correct (STRATEGY.md, Our approach; PR #50).
 
-A trade-off names its principle and one of these in the PR's Decisions line. A claim of approval without one is none.
+A trade-off names its principle and this exception in the PR's Decisions line. A claim of approval without one is none.
 
 ## History
 

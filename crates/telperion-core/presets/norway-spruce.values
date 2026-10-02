@@ -1,9 +1,6 @@
 # Norway spruce, Picea abies (fn19).
 # Rows off the default family, checked against the catalogue as core compiles.
 
-# Provisional needle retention; age calibration remains separate.
-/growth/leafLifetime = 6.0
-
 # Open-grown landscape Picea abies; one needle per local station.
 /skeleton/habit/apicalDominance = 1.0
 /skeleton/habit/whorlStrength = 1.0

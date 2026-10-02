@@ -1,8 +1,8 @@
 /* The slim entry point: a species id and a seed in, the field's bounds and a
  * batch occupancy query out. It loads the slim Wasm (crates/telperion-field),
  * which carries the direct build's growth, the leaf plan and the field, and
- * none of the wood surface, the leaf placement, the materials, the specimen
- * API or the JSON request path. The same file runs in a browser worker and in
+ * none of the wood surface, the leaf placement, the materials or the JSON
+ * request path. The same file runs in a browser worker and in
  * Node: a caller passes the module's bytes, a Response or a compiled Module,
  * or leaves the source to `telperion-field.wasm` beside this file, fetched
  * in a browser and read from disk in Node. */

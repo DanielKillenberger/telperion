@@ -9,7 +9,6 @@ use crate::{
     branching::{GrowthOverrides, HabitParams, SkeletonParams},
     envelope::Envelope,
     foliage::{CanopyParams, ElementParams},
-    growth::GrowthTraits,
     material::MaterialParams,
     radius::RadiusParams,
     surface::SurfaceParams,
@@ -118,7 +117,6 @@ macro_rules! groups {
 }
 groups! {
     Family:;
-    GrowthTraits: growth;
     SkeletonParams: skeleton;
     HabitParams: skeleton.habit;
     Envelope: skeleton.envelope;

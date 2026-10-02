@@ -40,10 +40,9 @@ export function writeRow(family: Family, path: string, value: Value): Family {
   return copy;
 }
 
-/** The rows a mature build reads. Growth-path rows join them when the
- *  growth path is open; a deprecated row no build reads never does. */
-export function shownRows(growth: boolean): Parameter[] {
-  return PARAMETERS.filter(p => p.reach === "mature" || (growth && p.reach === "growth"));
+/** The rows a mature build reads; a row no build reads is never shown. */
+export function shownRows(): Parameter[] {
+  return PARAMETERS.filter(p => p.reach === "mature");
 }
 
 /** The group a row sits in: its pointer's parent, "/" for the family's own. */

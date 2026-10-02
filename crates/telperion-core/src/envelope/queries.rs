@@ -13,12 +13,6 @@ pub enum Purpose {
     ScaffoldRoom,
     /// The scaffold's edge containment and its attractor scatter.
     ScaffoldContainment,
-    /// The growth path's twig check at the end of each stride.
-    TwigStride,
-    /// The growth path's search for where a refused stride meets its room.
-    TwigBisection,
-    /// The growth path's admission of a terminal or leaf-bearing twig.
-    TerminalAdmission,
     /// A dropping curtain's search for the shell's lower surface.
     CurtainBand,
     /// Shedding's depth test of every node past the crossover.
@@ -26,13 +20,10 @@ pub enum Purpose {
 }
 
 impl Purpose {
-    pub const ALL: [Purpose; 8] = [
+    pub const ALL: [Purpose; 5] = [
         Purpose::Other,
         Purpose::ScaffoldRoom,
         Purpose::ScaffoldContainment,
-        Purpose::TwigStride,
-        Purpose::TwigBisection,
-        Purpose::TerminalAdmission,
         Purpose::CurtainBand,
         Purpose::Shedding,
     ];
@@ -41,9 +32,6 @@ impl Purpose {
             Purpose::Other => "other",
             Purpose::ScaffoldRoom => "scaffold_room",
             Purpose::ScaffoldContainment => "scaffold_containment",
-            Purpose::TwigStride => "twig_stride",
-            Purpose::TwigBisection => "twig_bisection",
-            Purpose::TerminalAdmission => "terminal_admission",
             Purpose::CurtainBand => "curtain_band",
             Purpose::Shedding => "shedding",
         }
@@ -54,7 +42,7 @@ impl Purpose {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct Counts {
     /// Radius queries, indexed as `Purpose::ALL`.
-    pub queries: [u64; 8],
+    pub queries: [u64; Purpose::ALL.len()],
     /// Axes the twig layer planned stride by stride.
     pub planned_axes: u64,
 }
@@ -144,7 +132,7 @@ mod tests {
     fn a_query_counts_against_the_innermost_purpose() {
         let mut t = Tally::default();
         t.radius();
-        let outer = t.open(Purpose::TwigStride);
+        let outer = t.open(Purpose::ScaffoldRoom);
         t.radius();
         let inner = t.open(Purpose::CurtainBand);
         t.radius();
@@ -155,7 +143,7 @@ mod tests {
         t.radius();
         let at = |p: Purpose| t.counts.queries[p as usize];
         assert_eq!(at(Purpose::Other), 2);
-        assert_eq!(at(Purpose::TwigStride), 2);
+        assert_eq!(at(Purpose::ScaffoldRoom), 2);
         assert_eq!(at(Purpose::CurtainBand), 2);
         assert_eq!(t.counts.queries.iter().sum::<u64>(), 6);
     }

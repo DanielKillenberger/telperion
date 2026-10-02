@@ -52,7 +52,7 @@ The expansion is also written more than once. There is the CPU placed path (`pla
 - The no-twig-layer placement: reachable only through `place`/`place_on_surface` with `None` (`placement.rs:17, 31`, the branch in `runs()` `:78-91`), used by tests and no family.
 - Every silent fallback in `preparation.rs` (the capability gate at `:23`, `Ok(None)` returns at `:76` and `:94-98`, and the "station capability" and "CPU triangle admission" paths at `:98, :112, :122` and `:165, :280`).
 
-The growth path (`pipeline/foliage/timeline.rs:279`, `specimen/view.rs:71-87` through `executor::present`) calls the same station functions, not its own copy, and stays buildable and hidden. [inferred]
+The growth path that also called these station functions was removed by fn-181 (2026-10-02). [checked]
 
 **Numeric domain, stated.**
 - The phyllotaxis check (`prepared.rs:170-180`) becomes a parameter rule on `internodes * |divergence|`, refused by name. It trips above roughly 8e12 degrees; catalogue divergences are 99.5 to 180.

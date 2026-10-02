@@ -69,15 +69,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.42,
         "width": 0.06
       },
-      "growth": {
-        "apicalControlLoss": 0,
-        "leafLifetime": 1,
-        "rate": 0.08,
-        "resizeTolerance": 0.0001,
-        "shape": 2,
-        "sheddingTolerance": 2,
-        "workBudget": 250000
-      },
       "material": {
         "barkBlue": 0.068,
         "barkGrainScale": 0,
@@ -356,15 +347,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "tipSharpness": 0.6,
         "widestAt": 0.55,
         "width": 0.075
-      },
-      "growth": {
-        "apicalControlLoss": 0,
-        "leafLifetime": 1,
-        "rate": 0.08,
-        "resizeTolerance": 0.0001,
-        "shape": 2,
-        "sheddingTolerance": 2,
-        "workBudget": 250000
       },
       "material": {
         "barkBlue": 0.158,
@@ -645,15 +627,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.2,
         "width": 0.0015
       },
-      "growth": {
-        "apicalControlLoss": 0,
-        "leafLifetime": 6,
-        "rate": 0.08,
-        "resizeTolerance": 0.0001,
-        "shape": 2,
-        "sheddingTolerance": 2,
-        "workBudget": 250000
-      },
       "material": {
         "barkBlue": 0.148,
         "barkGrainScale": 0.0018,
@@ -932,15 +905,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "tipSharpness": 1.1,
         "widestAt": 0.2,
         "width": 0.045
-      },
-      "growth": {
-        "apicalControlLoss": 0,
-        "leafLifetime": 1,
-        "rate": 0.08,
-        "resizeTolerance": 0.0001,
-        "shape": 2,
-        "sheddingTolerance": 2,
-        "workBudget": 250000
       },
       "material": {
         "barkBlue": 0.7,
@@ -1221,15 +1185,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.42,
         "width": 0.0725
       },
-      "growth": {
-        "apicalControlLoss": 0,
-        "leafLifetime": 1,
-        "rate": 0.08,
-        "resizeTolerance": 0.0001,
-        "shape": 2,
-        "sheddingTolerance": 2,
-        "workBudget": 250000
-      },
       "material": {
         "barkBlue": 0.135,
         "barkGrainScale": 0,
@@ -1509,15 +1464,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.42,
         "width": 0.06
       },
-      "growth": {
-        "apicalControlLoss": 0,
-        "leafLifetime": 1,
-        "rate": 0.08,
-        "resizeTolerance": 0.0001,
-        "shape": 2,
-        "sheddingTolerance": 2,
-        "workBudget": 250000
-      },
       "material": {
         "barkBlue": 0.068,
         "barkGrainScale": 0,
@@ -1796,15 +1742,6 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "tipSharpness": 1.6,
         "widestAt": 0.42,
         "width": 0.06
-      },
-      "growth": {
-        "apicalControlLoss": 0,
-        "leafLifetime": 1,
-        "rate": 0.08,
-        "resizeTolerance": 0.0001,
-        "shape": 2,
-        "sheddingTolerance": 2,
-        "workBudget": 250000
       },
       "material": {
         "barkBlue": 0.068,

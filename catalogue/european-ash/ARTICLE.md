@@ -5,7 +5,7 @@ sources: [BALTIC-ASH, E1, J1, KEW-ASH, O1, OSU-ASH, THOMAS-ASH]
 inputs:
   packet/profile.json: 4d2d814f4659f3aa2269a8d3692dd03c9719f7f4dbc76f00b2f542893ba01d19
   packet/references.json: 831504dfb0a2cfe97570d4d752a015634e74c06f2866ce9a8b4b3d907ebf6307
-  packet/species.json: 7f627976937fb131db5d90dbe57970e6e34e78007bfba4162c879c7e6cdbf7a9
+  packet/species.json: 8fe442ebacf97807348103333dd6fa288caabd31b97a2a46ea9064a1f15b24ed
   packet/specimens.json: b87a3abd25b42caeff153dfd774053f1c67746bf484b8ee7efeb3a41a60d8710
   sources.json: af4a8973d527539075aa920fb1c3edb32671b2129c7b695cbeecd6bed8c6c93f
   sources/BALTIC-ASH.md: 9777552d58c0a7dfca794ed285ca4f13b43e8524144b0654b04203515241dd76

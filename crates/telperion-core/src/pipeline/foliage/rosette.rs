@@ -28,7 +28,6 @@
 use super::CanopyParams;
 #[cfg(feature = "geometry")]
 use super::{
-    range,
     station::{matrix, reserve},
     Instances,
 };
@@ -244,15 +243,6 @@ pub(super) fn clothe(
     Ok(())
 }
 
-#[cfg(feature = "geometry")]
-/// `clothe` for the growth path, which places its own recorded leaves first
-/// and draws the rosette live from the wood on screen.
-pub fn place_rosette(tree: &Tree, seed: u32, p: CanopyParams, out: &mut Instances) -> Result<()> {
-    tree.validate_solved()?;
-    range(p.size, 0., 1000., "foliage size")?;
-    validate(&p)?;
-    clothe(tree, seed, &p, out, None)
-}
 
 #[cfg(feature = "geometry")]
 /// The matrices one placement stands for: one where the grouping is off, else

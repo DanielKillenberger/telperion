@@ -21,7 +21,7 @@ The fn-68 round-42 bundle moved all ten pendulous twig rows together; the review
 <!-- scope: both -->
 
 - **R1:** The measurement is run and recorded (stills, seed, overlay, grade) before any parameter is added.
-- **R2:** If a parameter is added: byte-identical default on every shipped preset, range-checked, a dial-table row, and the growth path unchanged at the default.
+- **R2:** If a parameter is added: byte-identical default on every shipped preset, range-checked, and a dial-table row. (The growth path clause was dropped when fn-181 removed it, 2026-10-02.)
 - **R3:** The owner's eye decides on the whole-crown still.
 
 ## Boundaries

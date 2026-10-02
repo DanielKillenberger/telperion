@@ -4,8 +4,7 @@
 //! generations and then by bisection inside the one that does not fit. Each
 //! level regrows the tree from its rows, which draw the same scaffold every
 //! time, so the level depends on the budget and the tree and never on the
-//! order the build grew in. Nothing is cloned: a specimen's clone would carry
-//! the whole retained-growth state into the slim field module.
+//! order the build grew in.
 use super::super::local::detail::{Detail, STEPS};
 use super::*;
 

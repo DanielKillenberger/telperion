@@ -300,11 +300,15 @@ pub fn reference_at(c: &Composition, age_years: f64) -> Result<f64, CurveError> 
     }
 }
 
-/// The generator's Chapman-Richards fraction at the default work budget.
-/// Curve fitting does not currently author a family's workBudget.
+/// The work quanta the removed growth path spent over a lifetime by default
+/// (fn-181): the curve keeps its saturation where the generator had it.
+const WORK_BUDGET: f64 = 250_000.0;
+
+/// The removed growth path's Chapman-Richards fraction at its default work
+/// budget. Curve fitting does not author a family's work budget.
 pub fn fraction(rate: f64, shape: f64, year: f64) -> f64 {
     let f = (1.0 - (-rate * year).exp()).powf(shape);
-    if f >= 1.0 - 0.5 / telperion_core::ranges::DEFAULT_WORK_BUDGET as f64 {
+    if f >= 1.0 - 0.5 / WORK_BUDGET {
         1.0
     } else {
         f

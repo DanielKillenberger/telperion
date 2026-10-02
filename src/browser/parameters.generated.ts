@@ -4,26 +4,10 @@
 
 /** A family: every wire row, under the meaning the catalogue gives it. */
 export interface Family {
-  /** The specimen's age in years. Only the growth path reads it: the direct build is the mature tree whatever the row says. */
+  /** The specimen's age in years: the age the species' literature dimensions refer to. No build reads it: the direct build is the mature tree whatever the row says. */
   age: number;
   /** How deep into the crown leaves are kept, as a share of the crown's widest radius; a leaf further in than that is dropped. Raising it keeps more of the crown's interior foliage, and one keeps it all. */
   shellDepth: number;
-  growth: {
-    /** Geometric work quanta available over this specimen's life. */
-    workBudget: number;
-    /** Chapman–Richards rate, in inverse years. */
-    rate: number;
-    /** Chapman–Richards shape; values above one give a sigmoidal height curve. */
-    shape: number;
-    /** Consecutive active slices below the habit shedding threshold, in years. */
-    sheddingTolerance: number;
-    /** Annual loss of the habit apical control (zero retains its authored value). */
-    apicalControlLoss: number;
-    /** Years of annual foliage cohorts held by a living shoot; zero bears none. */
-    leafLifetime: number;
-    /** Minimum thickening in metres before recording another annual radius frame. */
-    resizeTolerance: number;
-  };
   skeleton: {
     /** The specimen: every stage keys its random stream by it, so another seed draws another tree of the same family. */
     seed: number;
@@ -564,22 +548,15 @@ export interface Parameter {
   zero: boolean;
   /** Where the row lies dormant; empty where it always acts. */
   applies: string;
-  /** Who reads it: the direct build, only the growth path, or no production stage. */
+  /** Who reads it: the direct build, only the removed growth path, or no production stage. */
   reach: "mature" | "growth" | "deprecated";
   /** The tuning dial's window and small step, where the row offers one. */
   dial?: { window: [number, number]; step: number };
 }
 
 export const PARAMETERS: readonly Parameter[] = [
-  { path: "/age", kind: "real", optional: false, meaning: "The specimen's age in years. Only the growth path reads it: the direct build is the mature tree whatever the row says.", unit: "years", low: 0, high: 1000000, lowOpen: false, zero: false, applies: "", reach: "growth" },
+  { path: "/age", kind: "real", optional: false, meaning: "The specimen's age in years: the age the species' literature dimensions refer to. No build reads it: the direct build is the mature tree whatever the row says.", unit: "years", low: 0, high: 1000000, lowOpen: false, zero: false, applies: "", reach: "growth" },
   { path: "/shellDepth", kind: "real", optional: false, meaning: "How deep into the crown leaves are kept, as a share of the crown's widest radius; a leaf further in than that is dropped. Raising it keeps more of the crown's interior foliage, and one keeps it all.", unit: "share of the crown's widest radius", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
-  { path: "/growth/workBudget", kind: "count", optional: false, meaning: "Geometric work quanta available over this specimen's life.", unit: "work quanta", low: 1, high: 4294967295, lowOpen: false, zero: false, applies: "", reach: "growth" },
-  { path: "/growth/rate", kind: "real", optional: false, meaning: "Chapman–Richards rate, in inverse years.", unit: "per year", low: 0.001, high: 10, lowOpen: false, zero: false, applies: "", reach: "growth" },
-  { path: "/growth/shape", kind: "real", optional: false, meaning: "Chapman–Richards shape; values above one give a sigmoidal height curve.", unit: "-", low: 1, high: 8, lowOpen: false, zero: false, applies: "", reach: "growth" },
-  { path: "/growth/sheddingTolerance", kind: "real", optional: false, meaning: "Consecutive active slices below the habit shedding threshold, in years.", unit: "years", low: 0, high: 1000000, lowOpen: false, zero: false, applies: "`sheddingThreshold` zero", reach: "growth" },
-  { path: "/growth/apicalControlLoss", kind: "real", optional: false, meaning: "Annual loss of the habit apical control (zero retains its authored value).", unit: "per year", low: 0, high: 10, lowOpen: false, zero: false, applies: "", reach: "growth" },
-  { path: "/growth/leafLifetime", kind: "real", optional: false, meaning: "Years of annual foliage cohorts held by a living shoot; zero bears none.", unit: "years", low: 0, high: 1000000, lowOpen: false, zero: false, applies: "zero bears no leaves on the growth path", reach: "growth" },
-  { path: "/growth/resizeTolerance", kind: "real", optional: false, meaning: "Minimum thickening in metres before recording another annual radius frame.", unit: "m", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "growth" },
   { path: "/skeleton/seed", kind: "count", optional: false, meaning: "The specimen: every stage keys its random stream by it, so another seed draws another tree of the same family.", unit: "-", low: 0, high: 4294967295, lowOpen: false, zero: false, applies: "", reach: "mature" },
   { path: "/skeleton/attractors", kind: "count", optional: false, meaning: "How many pull points are scattered through the crown for the branches to grow toward. Raising it fills the crown with more and finer branching; at an `attractor_weight` of zero none are scattered and the row does nothing.", unit: "points", low: 0, high: 1000000, lowOpen: false, zero: false, applies: "`attractorWeight` zero", reach: "mature", dial: { window: [1, 1000000], step: 100 } },
   { path: "/skeleton/samplingAttemptsPerAttractor", kind: "count", optional: false, meaning: "How many random tries the sampler may spend on each pull point before it gives up. Raising it lets a narrow or deeply lobed crown reach its full count of points instead of settling for fewer.", unit: "tries", low: 1, high: 4294967295, lowOpen: false, zero: false, applies: "`attractorWeight` zero", reach: "mature" },

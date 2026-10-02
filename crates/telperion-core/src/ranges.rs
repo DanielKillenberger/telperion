@@ -4,7 +4,6 @@ use crate::{Error, Result};
 pub const DEFAULT_MAX_NODES: usize = 250_000;
 pub const MAX_NODES: usize = u32::MAX as usize;
 pub const DEFAULT_MAX_INTERNODES: u32 = 32;
-pub const DEFAULT_WORK_BUDGET: u32 = 250_000;
 pub const MAX_ATTRACTORS: usize = 1_000_000;
 pub const fn default_clump_system_order() -> u32 {
     2
@@ -17,9 +16,6 @@ pub const fn default_sampling_attempts_per_attractor() -> u32 {
 }
 pub const fn default_reach_probe_steps() -> u32 {
     96
-}
-pub const fn default_work_budget() -> u32 {
-    DEFAULT_WORK_BUDGET
 }
 /// Two parts: a fork's primary and one sibling.
 pub const fn default_fork_ways() -> f64 {
@@ -132,4 +128,25 @@ pub fn max_nodes(value: usize) -> Result<()> {
         });
     }
     Ok(())
+}
+/// A budget's `usize::MAX`, "no limit", is `u64::MAX` on the wire whatever
+/// the native address width.
+#[cfg(feature = "json")]
+pub(crate) mod portable_index {
+    use serde::{Deserialize, Deserializer, Serializer};
+    pub fn serialize<S: Serializer>(value: &usize, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_u64(if *value == usize::MAX {
+            u64::MAX
+        } else {
+            *value as u64
+        })
+    }
+    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<usize, D::Error> {
+        let value = u64::deserialize(deserializer)?;
+        if value == u64::MAX {
+            Ok(usize::MAX)
+        } else {
+            usize::try_from(value).map_err(serde::de::Error::custom)
+        }
+    }
 }

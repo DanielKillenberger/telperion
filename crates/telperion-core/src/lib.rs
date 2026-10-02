@@ -1,6 +1,6 @@
 //! Renderer-independent tree generation. Coordinates and lengths are metres, Y is up.
-// Without the geometry feature the specimen keeps the growth path's aged-read
-// helpers, which only the placement-backed reads call.
+// Without the geometry feature, helpers only leaf placement and the wood
+// sweep call still compile, unused.
 #![cfg_attr(not(feature = "geometry"), allow(dead_code))]
 pub mod catalogue;
 mod family;
@@ -9,7 +9,6 @@ pub use family::Family;
 pub mod blend;
 pub mod capability;
 pub mod envelope;
-pub mod growth;
 pub mod material;
 pub mod math;
 #[cfg(feature = "geometry")]
@@ -50,6 +49,5 @@ impl std::fmt::Display for Error {
 impl std::error::Error for Error {}
 pub type Result<T> = std::result::Result<T, Error>;
 
-pub mod specimen;
 #[cfg(all(test, feature = "geometry", feature = "json"))]
 mod suite;

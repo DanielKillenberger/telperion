@@ -18,7 +18,6 @@ mod rosette;
 mod short_shoots;
 #[cfg(feature = "geometry")]
 mod station;
-pub(crate) mod timeline;
 use crate::{
     envelope::{distance_to_profile, Envelope},
     math::Vec3,
@@ -37,18 +36,18 @@ pub(crate) use placement::place_on;
 #[cfg(feature = "geometry")]
 #[cfg(test)]
 pub use placement::{place, place_on_surface};
-pub(crate) use reference::Reach;
 #[cfg(feature = "geometry")]
-pub use rosette::place_rosette;
+pub(crate) use reference::Reach;
 /// The canopy's own rails, for a pass that reads the canopy rows without
 /// placing a leaf: a bad row is refused by the name `place` refuses it by.
 pub(crate) use rosette::validate as validate_canopy;
 pub use rosette::{frame, rosettes, Rosette, MAX_FRONDS, MAX_LEAFLETS};
 #[cfg(all(test, feature = "geometry"))]
 pub use short_shoots::short_shoots;
+#[cfg(all(test, feature = "geometry"))]
+pub use short_shoots::place_short_shoots;
 #[cfg(feature = "geometry")]
-pub use short_shoots::{place_short_shoots, place_short_shoots_clumped, ShortShoot};
-pub use timeline::{Placement, PlacementIdentity};
+pub use short_shoots::ShortShoot;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Bounds {

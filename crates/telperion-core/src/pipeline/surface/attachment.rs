@@ -165,17 +165,6 @@ impl AttachmentSurface<'_> {
         }
     }
 
-    /// Exact neighboring polygons on which a station contact can depend.
-    pub(crate) fn signature(&self, node: usize) -> Vec<Vec3> {
-        let Some([lo, hi, start, end]) = self.edges[node] else {
-            return Vec::new();
-        };
-        let first = if lo > start { lo - self.segments } else { lo };
-        let last = if hi < end { hi + self.segments } else { hi };
-        (first..last + self.segments)
-            .map(|i| at(&self.rings, i))
-            .collect()
-    }
     pub(crate) fn point(
         &self,
         node: usize,

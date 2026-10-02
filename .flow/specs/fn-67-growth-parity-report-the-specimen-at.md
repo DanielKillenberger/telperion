@@ -39,3 +39,7 @@ This spec adds the measurement and nothing else. Every species and seed the prot
 <!-- scope: both -->
 
 The owner chose to hide growth rather than fix it now, and asked whether that makes the fix harder later. It does only if growth becomes a second generator with its own tuning. Measuring the gap per species from now on keeps the fix one problem with many regression targets instead of a retune per tree. [paraphrase]
+
+## Closed (2026-10-02)
+
+The growth path it measures is removed by fn-181 (owner, 2026-09-27: "The implementation was never good enough anyway. We'll need some different approach"). Its premise, a grown specimen that must land on the direct build at the preset's age, is the first lesson in `docs/growth-path.md` and the rule a rewrite starts from. [user]

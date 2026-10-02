@@ -2,7 +2,7 @@
 # Rows off the default family, checked against the catalogue as core compiles.
 
 # Mature open-grown Betula pendula. Envelope height is the 18 m
-# reference at 70 yr; oak growth traits, pendulous laterals.
+# reference at 70 yr; pendulous laterals.
 /age = 70.0
 /skeleton/habit/apicalDominance = 0.45
 /skeleton/habit/whorlStrength = 0.2

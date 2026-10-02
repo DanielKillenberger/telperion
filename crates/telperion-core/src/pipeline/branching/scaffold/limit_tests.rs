@@ -12,18 +12,13 @@ fn reach_probe_budget_changes_room_in_a_wide_crown() {
         tree: &mut tree,
         envelope: e,
         planning: e,
-        height: e.height,
         config: &config,
         bias: &bias,
         habit: HabitParams::default(),
         points: &[],
         consumed: &mut [],
-        year: 0,
         influence_sq: 0.,
         kill_sq: 0.,
-        point_scale: 1.,
-        growing_envelope: false,
-        paused: false,
         limbs: &mut Limbs::default(),
     };
     let origin = Vec3::new(

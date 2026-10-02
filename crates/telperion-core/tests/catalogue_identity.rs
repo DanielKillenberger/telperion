@@ -18,7 +18,12 @@
 //! moves the pairs. fn-179 re-pinned all four for the fork rows' defaults,
 //! `forkDivergence` 90 and `forkLean` 26, the birch stating its divergence of
 //! none, and a fork refusal that names its rows: with those defaults at none
-//! and the refusal's old words, each digest was still fn-177's.
+//! and the refusal's old words, each digest was still fn-177's. fn-181
+//! re-pinned all four for the removed growth path's seven rows (`/growth`):
+//! with those rows stripped from fn-179's text, the family, walk and override
+//! texts were each the new one, and every single-row refusal of every row that
+//! remains read as it did, `age`'s included; only the refusal pairs, which pair
+//! rows by index, re-paired.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -54,7 +59,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        3_287_400_823_085_211_963,
+        5_714_644_199_331_972_623,
         "{}",
         digest(&text)
     );
@@ -86,7 +91,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        14_970_677_737_524_383_343,
+        808_718_128_371_201_502,
         "{}",
         digest(&text)
     );
@@ -111,7 +116,7 @@ fn every_override_reads_and_writes_as_it_did() {
     text.push_str(&format!("{none}\n{:?}\n", params::parse(&none)));
     assert_eq!(
         digest(&text),
-        2_904_423_829_418_876_043,
+        12_400_496_152_477_495_005,
         "{}",
         digest(&text)
     );
@@ -174,7 +179,7 @@ fn every_refusal_is_the_refusal_it_was() {
     }
     assert_eq!(
         digest(&text),
-        11_511_942_864_132_992_072,
+        13_927_056_433_570_196_194,
         "{}",
         digest(&text)
     );

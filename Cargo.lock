@@ -1385,7 +1385,6 @@ dependencies = [
 name = "telperion-wasm"
 version = "0.1.0"
 dependencies = [
- "bincode",
  "serde_json",
  "telperion-core",
  "trybuild",

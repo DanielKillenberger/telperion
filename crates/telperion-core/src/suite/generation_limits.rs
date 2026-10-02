@@ -24,7 +24,7 @@ fn new_limits_are_named_validated_and_walked() {
     use serde_json::json;
     use telperion_core::{blend, params};
     let a = Preset::Ordinary.parameters();
-    let overlay = json!({"canopy":{"clumpSystemOrder":4,"clumpNeighbours":24},"growth":{"workBudget":500000},"radii":{"maxTaperExponent":24},
+    let overlay = json!({"canopy":{"clumpSystemOrder":4,"clumpNeighbours":24},"radii":{"maxTaperExponent":24},
         "surface":{"socketContainment":0.5},"skeleton":{"samplingAttemptsPerAttractor":128,
         "habit":{"reachProbeSteps":192},"bias":{"supernatural":{"maxWritheMagnitude":2}},
         "twigs":{"maxInternodes":64,"maxDroop":0.7,"curtainStepClearance":0.4}}});
@@ -33,7 +33,6 @@ fn new_limits_are_named_validated_and_walked() {
     for (path, expected) in [
         ("/canopy/clumpSystemOrder", 3.),
         ("/canopy/clumpNeighbours", 18.),
-        ("/growth/workBudget", 375000.),
         ("/radii/maxTaperExponent", 18.),
         ("/surface/socketContainment", 0.7),
         ("/skeleton/samplingAttemptsPerAttractor", 96.),
@@ -74,13 +73,6 @@ fn new_limits_are_named_validated_and_walked() {
         .unwrap_err()
         .to_string()
         .contains("maxTaperExponent"));
-    f.growth.work_budget = 0;
-    assert!(f
-        .growth
-        .validate()
-        .unwrap_err()
-        .to_string()
-        .contains("workBudget"));
     f.skeleton.habit.reach_probe_steps = 0;
     assert!(f
         .skeleton
@@ -151,22 +143,6 @@ fn sampling_budget_is_explicit_and_exhaustion_is_named() {
     );
 }
 
-#[test]
-fn old_snapshots_are_refused_and_missing_new_json_fields_get_defaults() {
-    let mut f = Preset::Ordinary.parameters();
-    f.age = 0.;
-    let s = branching::Specimen::build(&f).unwrap();
-    let mut bytes = s.snapshot().unwrap();
-    assert_eq!(bytes[4], 7);
-    bytes[4] = 6;
-    assert!(branching::Specimen::from_snapshot(&bytes).is_err());
-    let mut wire = serde_json::to_value(f.skeleton.twigs).unwrap();
-    for key in ["max_internodes", "max_droop", "curtain_step_clearance"] {
-        wire.as_object_mut().unwrap().remove(key);
-    }
-    let decoded: telperion_core::twigs::TwigParams = serde_json::from_value(wire).unwrap();
-    assert_eq!(decoded, f.skeleton.twigs);
-}
 
 #[test]
 fn caller_budget_above_old_ceiling_grows_the_complete_beech() {

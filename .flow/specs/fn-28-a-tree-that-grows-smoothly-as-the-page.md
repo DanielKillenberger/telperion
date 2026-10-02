@@ -1,5 +1,7 @@
 # A tree that grows smoothly as the page scrolls
 
+> **Re-scoped 2026-10-02.** fn-181 removed the growth path this spec builds on (fn-11's chronicle, `SpecimenView`, the renderer's `buildSpecimen` and `seekSpecimen`). The goal stands; it waits for the growth rewrite, whose own spec it will depend on, and the design below is read as a record of what that machine offered (`docs/growth-path.md`).
+>
 > **Shelved 2026-09-18.** Growth over time is a hidden feature since fn-65: the mature tree is the product and the harness draws the direct build. This spec resumes only when the owner un-hides growth; until then it is not ready and not in progress. The reason is recorded in CLAUDE.md under "Mature trees are the product".
 
 ## Conversation Evidence

@@ -21,11 +21,9 @@ import { ADAPTERS, adapterAdmits, type Adapter } from "./family";
 import type { GrowerParams } from "./params";
 import { admit, groupOf, labelOf, readRow, shownRows, slider, writeRow, type Value } from "./rows";
 
-/** Rows another control owns: the seed box, the growth controls' age
- *  (the specimen is built at their age, whatever the family says), and
- *  each adapter's row. */
+/** Rows another control owns: the seed box and each adapter's row. */
 const OWNED: ReadonlySet<string> = new Set([
-  "/skeleton/seed", "/age", ...ADAPTERS.flatMap(a => (a.owns === undefined ? [] : [a.owns])),
+  "/skeleton/seed", ...ADAPTERS.flatMap(a => (a.owns === undefined ? [] : [a.owns])),
 ]);
 
 /** A dial's value, at a precision that can tell its own steps apart -
@@ -130,15 +128,13 @@ function AdapterDial({ adapter: a, params, onChange }: {
   </div>;
 }
 
-/** The rows the build reads, by group; growth-path rows too when the
- *  growth path is open. */
-export function Dials({ params, setParams, growth }: {
+/** The rows the build reads, by group. */
+export function Dials({ params, setParams }: {
   params: GrowerParams;
   setParams: Dispatch<SetStateAction<GrowerParams>>;
-  growth: boolean;
 }) {
   const groups = new Map<string, Parameter[]>();
-  for (const p of shownRows(growth)) {
+  for (const p of shownRows()) {
     if (!OWNED.has(p.path)) groups.set(groupOf(p.path), [...groups.get(groupOf(p.path)) ?? [], p]);
   }
   return <>

@@ -72,7 +72,6 @@ const GROW_IN: f64 = 0.05;
 /// in, 0 to 1, and the key it was drawn from, which its parts' keys and next
 /// decisions derive from.
 #[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(super) struct Fork {
     pub at: f64,
     pub weight: f64,

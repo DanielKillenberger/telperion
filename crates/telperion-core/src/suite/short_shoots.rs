@@ -5,7 +5,6 @@
 //! the wood's own identity whatever order the wood is stored or grown in.
 use super::specimens;
 use telperion_core::{
-    branching,
     foliage::{self, CanopyParams, Instances, TwigPlacement},
     presets::{Family, Preset},
     tree::{NodeKind, Tree},
@@ -335,11 +334,6 @@ fn short_shoots_add_no_node_to_the_skeleton() {
         };
         let (a, b) = (grown(&with), grown(&without));
         assert_eq!(a, b, "seed {seed}: a canopy row reached the skeleton");
-        let (a, b) = (
-            branching::Specimen::build(&with).unwrap(),
-            branching::Specimen::build(&without).unwrap(),
-        );
-        assert_eq!(a.tree().nodes.len(), b.tree().nodes.len(), "seed {seed}");
         let full = telperion_core::mesh::build(&with);
         let bare = telperion_core::mesh::build(&without);
         let (full, bare) = (full.unwrap(), bare.unwrap());

@@ -10,7 +10,7 @@ use std::f64::consts::FRAC_PI_2;
 
 use telperion_core::{
     blend,
-    branching::{self, Specimen},
+    branching,
     params,
     presets::{Family, Preset},
     tree::{NodeKind, Tree},
@@ -112,11 +112,9 @@ fn curtain(variation: f64) -> Family {
     f
 }
 
-/// One descending run, base to tip: the birth identity of its first node, its
-/// length, and each step's angle to straight down with the arc length run by
-/// the end of it.
+/// One descending run, base to tip: its length, and each step's angle to
+/// straight down with the arc length run by the end of it.
 struct Strand {
-    identity: u64,
     length: f64,
     steps: Vec<(f64, f64)>,
 }
@@ -142,7 +140,7 @@ fn strands(tree: &Tree) -> Vec<Strand> {
     chains
         .into_iter()
         .filter(|(_, nodes)| nodes.windows(2).all(linked))
-        .filter_map(|(branch, nodes)| {
+        .filter_map(|(_, nodes)| {
             let mut along = 0.0;
             let steps: Vec<(f64, f64)> = nodes
                 .iter()
@@ -156,7 +154,6 @@ fn strands(tree: &Tree) -> Vec<Strand> {
                 })
                 .collect();
             (steps[0].0 < FRAC_PI_2).then(|| Strand {
-                identity: tree.nodes[branch as usize].identity.birth_order(),
                 length: along,
                 steps,
             })
@@ -313,55 +310,6 @@ fn a_short_strand_under_a_full_sag_ends_hanging_straight_down() {
     }
 }
 
-#[test]
-fn one_seed_is_one_curtain_whatever_order_it_grows_in() {
-    // A strand's length is drawn from its own key and the seed, never from
-    // where it falls in the order the tree grows: built at an age in one call,
-    // month by month, or in uneven pieces, every strand is the same length.
-    const AGE: f64 = 25.0;
-    let runs = |s: &Specimen| -> BTreeMap<u64, u64> {
-        strands(s.tree())
-            .iter()
-            .map(|s| (s.identity, s.length.to_bits()))
-            .collect()
-    };
-    let mut f = curtain(0.8);
-    f.age = AGE;
-    let built = Specimen::build(&f).expect("the curtain builds");
-    let whole = strands(built.tree()).iter().filter(|s| s.whole()).count();
-    let built = runs(&built);
-    assert!(
-        whole >= 100,
-        "seed {SEED}: the curtain at {AGE} years hung {whole} whole strands"
-    );
-    f.age = 0.0;
-    let mut monthly = Specimen::build(&f).expect("the seedling builds");
-    for _ in 0..(AGE as usize * 12) {
-        monthly.advance(1.0 / 12.0).expect("a month grows");
-    }
-    let mut uneven = Specimen::build(&f).expect("the seedling builds");
-    for piece in [0.3, 4.7, 0.01, 7.99, 12.0] {
-        uneven.advance(piece).expect("a piece grows");
-    }
-    for (name, other) in [("monthly", runs(&monthly)), ("uneven", runs(&uneven))] {
-        let moved = built
-            .iter()
-            .find(|(identity, bits)| other.get(identity) != Some(bits));
-        assert!(
-            moved.is_none() && other.len() == built.len(),
-            "seed {SEED}: the {name} build grew strand {:?} to another length",
-            moved.map(|(identity, _)| identity)
-        );
-    }
-    let mut other = curtain(0.8);
-    other.skeleton.seed = SEED + 1;
-    assert_ne!(
-        whole_lengths(&curtain(0.8)),
-        whole_lengths(&other),
-        "seeds {SEED} and {}: two seeds hung one curtain",
-        SEED + 1
-    );
-}
 
 #[test]
 fn a_walk_of_the_variation_row_shortens_the_curtain_continuously() {

@@ -4,8 +4,9 @@
 //! no run, the node ceiling untouched - and every draw belongs to the wood
 //! that bears it, keyed by its identity and the seed, so no other wood and no
 //! storage or build order moves one.
+#[cfg(test)]
+use super::range;
 use super::{
-    range,
     station::{axis, reserve},
     CanopyParams, Instances,
 };
@@ -52,6 +53,7 @@ pub fn short_shoots(
 /// whichever side of the limb it stands on. Wood is visited in identity
 /// order, so a tree stored in any order gets the same matrices in the same
 /// order.
+#[cfg(test)]
 pub fn place_short_shoots(
     tree: &Tree,
     envelope: Envelope,
@@ -63,26 +65,9 @@ pub fn place_short_shoots(
     clothe(tree, envelope, seed, &p, out, None)
 }
 
-/// `place_short_shoots` for a crown whose limb systems clump: `owners` names
-/// the node that bears each placement already in `out`, and once the short
-/// shoots are hung the whole crown is thinned by the rule the one-shot build
-/// thins by.
-pub fn place_short_shoots_clumped(
-    tree: &Tree,
-    envelope: Envelope,
-    seed: u32,
-    p: CanopyParams,
-    mut owners: Vec<u32>,
-    out: &mut Instances,
-) -> Result<()> {
-    checked(tree, envelope, &p)?;
-    range(p.limb_clumping, 0., 1., "limb clumping")?;
-    clothe(tree, envelope, seed, &p, out, Some(&mut owners))?;
-    super::clumping::thin(tree, &owners, seed, p, out);
-    Ok(())
-}
 
-/// What the placement stage checks before either source places a leaf.
+/// What the placement stage checks before a test places short shoots alone.
+#[cfg(test)]
 fn checked(tree: &Tree, envelope: Envelope, p: &CanopyParams) -> Result<()> {
     tree.validate_solved()?;
     envelope.validate()?;

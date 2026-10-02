@@ -68,10 +68,6 @@ mod species;
 mod species_metrics;
 #[path = "suite/specimen_cache.rs"]
 mod specimen_cache;
-#[path = "suite/specimen_handle.rs"]
-mod specimen_handle;
-#[path = "suite/specimen_view.rs"]
-mod specimen_view;
 #[path = "suite/specimens/mod.rs"]
 mod specimens;
 #[path = "suite/strands.rs"]

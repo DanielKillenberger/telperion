@@ -2,12 +2,8 @@
 //!
 //! The direct build reads it off the grown tree: the twig layer asks the
 //! crown nothing, so the authored shell no longer bounds the wood, and the
-//! wood's own extent grown by the station reach does. The growth path keeps
-//! its wall and a box read off the parameters alone: `timeline::Placement`
-//! caches a shoot's leaves once and shows them again at every later age,
-//! while the tree's own bounds grow with it, so words quantised against one
-//! age's box would decode against a different one at the next. A box the
-//! parameters alone decide is the same box at every age.
+//! wood's own extent grown by the station reach does. Validation, which grows
+//! no tree, reads a box off the parameters alone.
 use super::packed::Reference;
 use crate::{
     envelope::Envelope, math::Vec3, pipeline::foliage::CanopyParams,
@@ -72,18 +68,9 @@ impl Reach {
 }
 
 impl Reference {
-    /// The box every station of this family stands in at every age of the
-    /// growth path, and the one a family is validated against before any
-    /// tree exists.
-    ///
-    /// On the growth path the authored shell bounds the wood: no node stands
-    /// above the height, no node stands below the ground, and none stands
-    /// further from the axis than the widest lobe of the silhouette. A curtain
-    /// hangs into the band below the crown's base, whose own floor is a
-    /// clearance above the ground, so the ground is the floor the box has to
-    /// hold - and it is the floor at every age, where the authored crown base
-    /// is not: a juvenile crown takes its base from its own fraction of the
-    /// height. The box is that shell grown by the reach on every side.
+    /// The box a family is validated against before any tree exists: the
+    /// authored shell, from the ground to the height and out to the widest
+    /// lobe of the silhouette, grown by the reach on every side.
     pub(crate) fn of(family: &crate::presets::Family) -> Result<Self> {
         Ok(Self::authored(family.skeleton.envelope, Reach::of(family)?))
     }

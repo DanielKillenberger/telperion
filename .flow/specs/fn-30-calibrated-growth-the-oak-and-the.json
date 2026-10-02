@@ -17,7 +17,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-30-calibrated-growth-the-oak-and-the.md",
-  "status": "open",
+  "status": "done",
   "title": "Calibrated growth: the oak and the spruce through time",
   "tracker": {
     "baseHashFlow": null,
@@ -30,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-13T17:25:25.063767Z"
+  "updated_at": "2026-10-02T15:53:40.677482Z"
 }

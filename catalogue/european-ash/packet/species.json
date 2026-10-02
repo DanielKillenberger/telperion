@@ -42,14 +42,6 @@
       "widestAt": 0.4,
       "width": 0.03
     },
-    "growth": {
-      "apicalControlLoss": 0.0,
-      "leafLifetime": 1.0,
-      "rate": 0.08,
-      "resizeTolerance": 0.0001,
-      "shape": 2.0,
-      "sheddingTolerance": 2.0
-    },
     "material": {
       "barkBlue": 0.3,
       "barkGreen": 0.32,

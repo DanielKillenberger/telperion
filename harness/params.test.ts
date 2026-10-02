@@ -1,19 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_PARAMS, SEED_MAX, growthFromQuery, normalizeSeed } from "./params";
-
-describe("growthFromQuery", () => {
-  it.each([
-    ["?growth=1", true],
-    ["?species=silver-birch&seed=1&growth=1", true],
-    ["", false],
-    ["?species=silver-birch&seed=1", false],
-    ["?growth=0", false],
-    ["?growth=true", false],
-  ])("reads %s as growth=%s", (search, expected) => {
-    expect(growthFromQuery(search)).toBe(expected);
-  });
-});
+import { DEFAULT_PARAMS, SEED_MAX, normalizeSeed } from "./params";
 
 describe("normalizeSeed", () => {
   it.each([

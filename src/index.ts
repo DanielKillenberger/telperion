@@ -4,5 +4,3 @@ export { LEAF_WORDS, leafWords, leafPosition, leafScale, leafRotation, leafTrans
 export type { LeafReference, LeafWords, Vector } from "./browser/leaf";
 export { createRenderer } from "./browser/render";
 export type { FrameStats, Point, Pose, Renderer, Submitted, TimingReport, View } from "./browser/render";
-
-export type { SpecimenHandle, SpecimenSnapshot, SpecimenRead, ChangeRecord, NodeIdentity, PlacementIdentity, Placement } from "./browser/specimen";

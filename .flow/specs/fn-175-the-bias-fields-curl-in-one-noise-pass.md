@@ -15,7 +15,7 @@ Telperion grows in 391 ms at seed 1 (`growth_profile` median, master f9487810). 
 <!-- scope: technical -->
 
 - **Today, checked 2026-09-27.** `Noise::curl` (`noise.rs:72`) takes six central differences at `±0.001`, and each difference evaluates the two-octave `fbm` twice. That is 24 Perlin evaluations per heading. `GrowthBias::apply` (`pipeline/bias.rs:200`) calls it when `writhe_amplitude / writhe_wavelength > 0`. [checked]
-- **The change.** Gradient noise that returns its analytic derivative, so the curl takes three fields at two octaves: 6 evaluations in place of 24. The curl stays a pointwise function of position and wavelength, so every caller keeps its domain: `colonize` biases the trunk below the crown (`colonization.rs:203-215`), and the growth path builds a bias per slice with a scaled height and so a scaled wavelength (`specimen/timeline.rs:209-231`). [checked]
+- **The change.** Gradient noise that returns its analytic derivative, so the curl takes three fields at two octaves: 6 evaluations in place of 24. The curl stays a pointwise function of position and wavelength, so every caller keeps its domain: `colonize` biases the trunk below the crown (`colonization.rs:203-215`). (The growth path's per-slice bias went with its removal in fn-181.) [checked]
 - **Rejected: a prepared curl grid.** A grid over the crown would need an out-of-grid rule for the trunk and a rebuild or rescale per slice height. The analytic curl has neither problem. (plan review, 2026-09-27) [inferred]
 - **Identity is not required.** The writhe changes within the owner's visual verdict. [user]
 
