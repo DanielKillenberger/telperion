@@ -26,13 +26,13 @@
 | Pin | Value |
 |---|---|
 | Seed | 7 |
-| Wood vertices | 2616088 |
-| Wood triangles | 5074200 |
-| Leaf instances | 260907 |
-| Bounds min | -6.380195448261383, -0.07199999690055847, -7.24057217209487 |
-| Bounds max | 7.174725706478319, 17.413499559771598, 5.077849460052068 |
-| Skeleton hash | 14817765597731781305 |
-| Placement hash | 7310281147953059577 |
+| Wood vertices | 2737674 |
+| Wood triangles | 5311200 |
+| Leaf instances | 279485 |
+| Bounds min | -7.390350341796875, -0.07199999690055847, -7.914402484893799 |
+| Bounds max | 8.12118688650846, 17.40048599243164, 6.267824172973633 |
+| Skeleton hash | 7062016405819824468 |
+| Placement hash | 8148347474598104036 |
 | Element hash | 1566806128915370638 |
 | Leaf band | 100000 to 10000000 |
 | Growth reference | 18 m at 70 years |
