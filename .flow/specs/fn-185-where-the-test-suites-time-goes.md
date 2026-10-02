@@ -52,7 +52,7 @@ Recon only. The measurements below are taken at one named master commit on the o
 ## Boundaries
 
 - Building any follow-up is out of scope; each is its own spec. [user]
-- The objectives race (`objectives.rs:28`) may be fixed by the host on its own as an obvious fix before this spec runs; if so, the report records it as done. [inferred]
+- The objectives race (`objectives.rs:28`) is fixed: each call gets its own directory (host, 2026-10-02, on the fn-183 branch). [checked]
 
 ## Decision Context
 
