@@ -23,9 +23,13 @@ const VIEWS: [&str; 3] = ["P-WHOLE", "P-TRUNK", "P-BASE"];
 
 /// A still at `view` with its own bytes, hash-checked like any image.
 fn image(tag: &str, view: &str) -> Image {
-    // One directory per test process: a fixed path collided with the same
-    // suite running in another checkout (fn-80 and fn-130 gates, 2026-09-23).
-    let dir = std::env::temp_dir().join(format!("fn119-objectives-{}", std::process::id()));
+    // One directory per call: a fixed path collided with the same suite in
+    // another checkout (fn-80 and fn-130 gates, 2026-09-23), and one per
+    // process let this file's tests, threads of one process, rewrite a still
+    // while another hashed it (fn-183 gate, 2026-10-02).
+    static CALLS: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let call = CALLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let dir = std::env::temp_dir().join(format!("fn119-objectives-{}-{call}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let path: PathBuf = dir.join(format!("{tag}.png"));
     std::fs::write(&path, tag.as_bytes()).unwrap();
