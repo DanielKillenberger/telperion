@@ -1,7 +1,7 @@
-//! fn-61 R2: a first-order axis `raggedReach` stops short keeps what it bears
-//! within its own share of the crown - its deeper axes and the twigs on them
-//! end inside the crown's shell scaled about its station by the share it kept,
-//! hanging or not.
+//! fn-61 R2: a first-order axis `raggedReach` stops short keeps its scaffold
+//! within its own share of the crown - the crown's shell scaled about its
+//! station by the share it kept. The twig layer it bears asks the crown
+//! nothing (fn-183), so its twigs are counted, not bound.
 use super::*;
 use crate::presets::Preset;
 
@@ -15,8 +15,8 @@ fn grown(preset: Preset, ragged_reach: f64, tweak: impl Fn(&mut SkeletonParams))
     Specimen::grow(&p, family.radii).unwrap()
 }
 
-/// Every node of a shortened limb system lies in that system's shell; the
-/// counts of structural and twig nodes judged.
+/// Every structural node of a shortened limb system lies in that system's
+/// shell; the counts of structural and twig-layer nodes it bears.
 fn within_share(s: &Specimen) -> (usize, usize) {
     let (tree, e, seed) = (&s.tree, s.params.envelope, s.params.seed);
     let (mut structural, mut twigs) = (0, 0);
@@ -25,15 +25,14 @@ fn within_share(s: &Specimen) -> (usize, usize) {
         if !bound.short() {
             continue;
         }
-        let p = bound.map(n.position);
-        match n.kind {
-            NodeKind::Structural => structural += 1,
-            _ => twigs += 1,
+        if n.kind != NodeKind::Structural {
+            twigs += 1;
+            continue;
         }
+        structural += 1;
         assert!(
-            e.contains(p, 1e-6, seed),
-            "{:?} node {i} at {:?} left its limb's share",
-            n.kind,
+            e.contains(bound.map(n.position), 1e-6, seed),
+            "structural node {i} at {:?} left its limb's share",
             n.position
         );
     }
@@ -41,7 +40,7 @@ fn within_share(s: &Specimen) -> (usize, usize) {
 }
 
 #[test]
-fn a_shortened_limbs_descendants_end_within_its_share() {
+fn a_shortened_limbs_scaffold_ends_within_its_share() {
     let s = grown(Preset::Ordinary, 0.6, |p| {
         p.habit.lateral_orders = 2;
         p.twigs.hang = 0.0;
@@ -51,7 +50,7 @@ fn a_shortened_limbs_descendants_end_within_its_share() {
 }
 
 #[test]
-fn a_shortened_limbs_curtain_stays_within_its_share() {
+fn a_shortened_limb_still_bears_its_curtain() {
     let s = grown(Preset::SilverBirch, 0.6, |_| {});
     assert!(s.params.twigs.hang > 0.0 && s.params.twigs.curtain_drop > 0.0);
     let (_, twigs) = within_share(&s);

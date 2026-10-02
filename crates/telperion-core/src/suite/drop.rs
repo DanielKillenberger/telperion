@@ -1,7 +1,7 @@
-//! The curtain hangs below the crown. A hanging shoot may fall past the
-//! shell's lower surface, the drop row's share of the way down to a clearance
-//! above the ground, and only under the crown's footprint; nothing else leaves
-//! the shell. Neutral is the shell holding the curtain, byte for byte.
+//! The curtain hangs below the crown. A hanging shoot falls past the shell's
+//! lower surface, the drop row's share of the way down to a clearance above
+//! the ground. The twig layer asks the crown nothing (fn-183), so the shell
+//! no longer holds what the local law grows; the floor does.
 //! No device is needed; this is the core's own arithmetic.
 use super::specimens;
 use std::collections::BTreeMap;
@@ -41,14 +41,14 @@ const IDS: [&str; 7] = [
 /// verdict on the live renderer halved its limbs at a station, stood them
 /// steeper and cut its twig laterals back: its own table moved, not the row.
 const NEUTRAL: [u64; 7] = [
-    17046456021212146411,
-    6489830875491714767,
-    12735573889651776723,
-    7923866798333576555,
-    // fn-170: the birch pair restated as a fork at 0.9 m.
-    15764278325398453045,
-    12471405148157309180,
-    14199367530911903060,
+    4821456166374828586,
+    8352873281510200700,
+    7924732143761663308,
+    3990564466537741671,
+    // fn-183: the twig layer asks the crown nothing; every table re-recorded.
+    2173454492294375348,
+    3336773378850484122,
+    343928035832033283,
 ];
 /// The cooked curtain's clearance, below its crown base of 2.16 m.
 const CLEARANCE: f64 = 1.0;
@@ -140,11 +140,6 @@ fn every_shipped_preset_at_neutral_drop_is_the_tree_the_row_never_reached() {
         f.skeleton.twigs.curtain_drop = 0.0;
         let grown = tree(&f);
         assert_eq!(skeleton(&grown), pin, "{id}: a neutral drop moved the tree");
-        // And at zero the old invariant holds exactly: nothing leaves the shell.
-        assert!(
-            fallen(&f, &grown).is_empty(),
-            "{id} seed {SEED}: a node left the shell at a neutral drop"
-        );
     }
 }
 
@@ -210,13 +205,6 @@ fn a_hanging_curtain_falls_into_its_band_at_half_and_whole_drop() {
         let f = curtain(drop);
         let grown = tree(&f);
         let twigs = f.skeleton.twigs;
-        for node in &grown.nodes[grown.crossover..] {
-            assert!(
-                held(&f, &twigs, node.position),
-                "seed {SEED} drop {drop}: {:?} is outside the shell and the band",
-                node.position
-            );
-        }
         let below = fallen(&f, &grown);
         assert!(
             below.len() * 20 >= grown.nodes.len() - grown.crossover,
@@ -247,36 +235,17 @@ fn a_hanging_curtain_falls_into_its_band_at_half_and_whole_drop() {
 }
 
 #[test]
-fn only_hanging_wood_falls_and_it_falls_from_the_shell() {
-    // What leaves the shell is the local law's own wood, and every node of it
-    // hangs from a node inside the shell or from one that fell before it: the
-    // band is entered from the crown above it and never from outside the band.
+fn only_the_twig_layer_falls_past_the_shell() {
+    // What leaves the shell is the local law's own wood: the scaffold stays
+    // inside it.
     let f = curtain(1.0);
     let grown = tree(&f);
-    let twigs = f.skeleton.twigs;
-    let (envelope, seed) = (f.skeleton.envelope, f.skeleton.seed);
     for node in fallen(&f, &grown) {
         assert!(
             node.kind != NodeKind::Structural,
             "seed {SEED}: a structural node fell past the shell"
         );
-        let parent =
-            grown.nodes[node.parent.expect("a fallen node has a parent") as usize].position;
-        assert!(
-            envelope.contains(parent, TOLERANCE, seed)
-                || in_curtain_band(&envelope, &twigs, seed, parent, TOLERANCE),
-            "seed {SEED}: {:?} fell from {parent:?}, outside the crown",
-            node.position
-        );
     }
-    // And a curtain that does not hang drops nothing, whatever the row says.
-    let mut dry = curtain(1.0);
-    dry.skeleton.twigs.hang = 0.0;
-    let still = tree(&dry);
-    assert!(
-        fallen(&dry, &still).is_empty(),
-        "seed {SEED}: a shoot that does not hang fell past the shell"
-    );
 }
 
 #[test]
@@ -296,13 +265,17 @@ fn no_shoot_falls_below_the_clearance_nor_the_clearance_above_the_crown_base() {
         "seed {SEED}: the curtain's lowest node stands at {low:.3} m over a clearance of \
          {CLEARANCE} m and a crown base of {base:.2} m"
     );
-    // A clearance above the crown's base is the crown's base.
+    // A clearance above the crown's base is the crown's base. Wood no curtain
+    // floors may dip under it (fn-183), so the trees are compared, not the
+    // lowest node.
     let mut high = curtain(1.0);
     high.skeleton.twigs.curtain_clearance = 5.0;
-    let low = lowest(&high);
-    assert!(
-        low >= base - 1e-9,
-        "seed {SEED}: a clearance above the crown base let a shoot to {low:.3} m under {base:.2} m"
+    let mut at_base = curtain(1.0);
+    at_base.skeleton.twigs.curtain_clearance = base;
+    assert_eq!(
+        skeleton(&tree(&high)),
+        skeleton(&tree(&at_base)),
+        "seed {SEED}: a clearance above the crown base is not the crown base"
     );
 }
 
@@ -390,14 +363,6 @@ fn a_walk_of_the_drop_row_lowers_the_curtain_continuously() {
             "step {step} walked the row to {row}, not {t}"
         );
         let grown = tree(&family);
-        let twigs = family.skeleton.twigs;
-        for node in &grown.nodes[grown.crossover..] {
-            assert!(
-                held(&family, &twigs, node.position),
-                "seed {SEED} step {step}: {:?} is outside the shell and the band",
-                node.position
-            );
-        }
         // How far below the crown base the curtain's lowest tenth reaches.
         let mut heights: Vec<f64> = grown.nodes[grown.crossover..]
             .iter()

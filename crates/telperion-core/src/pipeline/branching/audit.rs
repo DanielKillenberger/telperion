@@ -126,9 +126,11 @@ fn shipped_scaffolds_are_reproducible() {
     // Counts/topology are unchanged; maximum position drift is below 1e-11 m.
     // fn-143: one re-pin for the crown quadrant as log, expm1 and exp; counts
     // and topology unchanged, positions within 6e-10 m.
+    // fn-183: the oak and spruce re-pinned once; the twig layer asks the
+    // crown nothing, so their twigs run to their own length.
     for (preset, expected) in [
-        (Preset::OregonWhiteOak, 10950782810389339602_u64),
-        (Preset::NorwaySpruce, 17659250574543300401),
+        (Preset::OregonWhiteOak, 14905406466052800889_u64),
+        (Preset::NorwaySpruce, 2153671961453252143),
         (Preset::Ordinary, 9848876633805652422),
     ] {
         let family = preset.parameters();
