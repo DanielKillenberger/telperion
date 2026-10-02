@@ -63,7 +63,7 @@
     "impl:fn-183-the-twig-layer-grows-without-the-crown.2": 0
   },
   "spec_path": ".flow/specs/fn-183-the-twig-layer-grows-without-the-crown.md",
-  "status": "open",
+  "status": "done",
   "title": "The twig layer grows without the crown as a wall",
   "tracker": {
     "baseHashFlow": null,
@@ -76,5 +76,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T15:08:20.934117Z"
+  "updated_at": "2026-10-02T15:19:55.381094Z"
 }

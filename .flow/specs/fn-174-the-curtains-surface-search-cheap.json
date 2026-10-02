@@ -117,7 +117,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-174-the-curtains-surface-search-cheap.md",
-  "status": "open",
+  "status": "done",
   "title": "The curtain's surface search, cheap",
   "tracker": {
     "baseHashFlow": null,
@@ -130,5 +130,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T11:44:08.545267Z"
+  "updated_at": "2026-10-02T15:20:21.703604Z"
 }

@@ -63,3 +63,9 @@ The cost is the outline, not the lobes. Per query, the outline's `quadrant(p, s)
 - **Waits on fn-183 (2026-10-02).** A count by caller found 56 to 74% of the oak's, beech's and birch's crown queries come from the twig layer's per-stride outline check and its 40-step edge search (`.flow/evidence/fn-183-the-twig-layer-grows-without-the-crown/QUERY-COUNTS.md`). fn-183 removes the twig layer's wall. This spec's rework is re-scoped from the residual time fn-183's R4 measures, this table's preparation and upload and the GPU cull's time included, not from counts alone; it may not earn its complexity (Astra review of fn-183). [checked]
 - fn-125 depends on this spec (owner, 2026-09-27). [user]
 - Evidence: `PROFILE.md` and the first build's `REPORT.md` in this spec's evidence directory. [checked]
+
+## Re-scope after fn-183 (host, 2026-10-02)
+
+fn-183 removed the twig layer's crown queries. What remains, from `R4-RESULT.md` at seed 1: about 26k queries on the oak, 36k on the beech, 20k on the birch, 169k on the spruce (scaffold containment and attractor sampling, 65% of its original count) and 239k on Telperion (shedding, 228k). At the 40 to 55 ns this table would save per query, that is roughly 1 ms of the oak's 43 ms and 1 ms of the birch's 25 ms, about 7 ms of the spruce's 36 ms, and 10 ms of Telperion's 363 ms. [inferred from checked counts]
+
+Before any table, step 2 of "Question, delete, then optimise" applies to the two large callers: why the spruce's scaffold asks its outline 168k times (rejection sampling of attractors and edge containment), and whether Telperion's shedding (fn-172's) needs a query per node. This spec is not ready until that is answered; the outline table is built only for what survives it. [host]

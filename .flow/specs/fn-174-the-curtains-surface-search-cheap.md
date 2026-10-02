@@ -42,3 +42,7 @@ The silver birch grows in 136 ms at seed 1 and 267 ms at seed 7 (`growth_profile
 
 - Depends on fn-173 so its gain is measured on top of the cheaper shell. [user]
 - Evidence: `.flow/evidence/fn-173-growth-reads-a-prepared-crown-shell/PROFILE.md`. [checked]
+
+## Closed (2026-10-02)
+
+Superseded by fn-183 (#137): the direct build no longer admits curtain strides, so `in_band` and `lower_surface` run only on the hidden growth path, which fn-181 removes. The birch's skeleton time fell 87% (183 to about 25 ms at seed 1) by deleting the search, not by making it cheap (`docs/principles.md`, "Question, delete, then optimise"). [checked]
