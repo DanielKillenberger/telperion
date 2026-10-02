@@ -21,20 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for sample in 0..samples {
         let _ = queries::take();
         // A request for no output runs the skeleton stage alone.
-        let leaves = std::env::var_os("LADDER_STATS").is_some();
-        let built = pipeline::build(
-            &f,
-            pipeline::Request {
-                leaves,
-                ..pipeline::Request::default()
-            },
-        )?;
-        if let Some(l) = &built.outputs.leaves {
-            eprintln!(
-                "LADDER_LEAVES {{\"placed\":{},\"retained\":{}}}",
-                l.placed, l.retained
-            );
-        }
+        let built = pipeline::build(&f, pipeline::Request::default())?;
         let (skeleton, ms) = (built.skeleton, built.outputs.stages.skeleton_ms);
         let mut hash = 14695981039346656037_u64;
         for node in &skeleton.tree.nodes {

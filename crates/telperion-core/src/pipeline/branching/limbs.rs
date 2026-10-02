@@ -12,8 +12,6 @@ use super::*;
 pub(super) struct Bound {
     station: Vec3,
     scale: f64,
-    /// fn-183 exploration: the system's planned reach over the whole crown.
-    allowance: f64,
 }
 impl Default for Bound {
     fn default() -> Self {
@@ -22,21 +20,7 @@ impl Default for Bound {
 }
 impl Bound {
     pub(super) fn around(station: Vec3, scale: f64) -> Self {
-        Self {
-            station,
-            scale,
-            allowance: f64::INFINITY,
-        }
-    }
-    pub(super) fn allow(self, allowance: f64) -> Self {
-        Self { allowance, ..self }
-    }
-    /// What the allowance leaves a shoot starting at `p`.
-    pub(super) fn left(self, p: Vec3) -> f64 {
-        self.allowance - p.distance(self.station)
-    }
-    pub(super) fn scale(self) -> f64 {
-        self.scale
+        Self { station, scale }
     }
     /// Whether the system is bound more tightly than the crown.
     pub(super) fn short(self) -> bool {
@@ -60,7 +44,7 @@ impl Bound {
 pub(super) struct Limbs(Vec<(u32, Bound)>);
 impl Limbs {
     pub(super) fn record(&mut self, first: usize, bound: Bound) {
-        if !bound.short() && bound.allowance.is_infinite() {
+        if !bound.short() {
             return;
         }
         let first = first as u32;

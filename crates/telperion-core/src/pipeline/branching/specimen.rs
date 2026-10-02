@@ -12,7 +12,6 @@ mod history;
 #[cfg(feature = "geometry")]
 mod interval;
 mod keyframes;
-mod ladder_stats;
 mod retention;
 mod shared;
 #[cfg(feature = "json")]
@@ -300,9 +299,6 @@ impl Specimen {
         debug_assert!(s.finished() || !s.tree.diagnostics.complete());
         s.shed = finish(&mut s.tree, params, radii)?;
         s.remap_after_shedding();
-        if std::env::var_os("LADDER_STATS").is_some() {
-            eprintln!("LADDER_STATS {}", s.ladder_stats());
-        }
         Ok(s)
     }
 }

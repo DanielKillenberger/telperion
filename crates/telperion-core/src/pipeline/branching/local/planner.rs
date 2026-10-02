@@ -87,7 +87,6 @@ impl Planner<'_> {
         // separately for every birth, so a juvenile crown pauses the cached run
         // rather than permanently truncating it and flushing a terminal early.
         queries::planned_axis();
-        let free = !self.growing_envelope && super::ladder::rung() >= 1;
         let config = GrowthConfig {
             shell: self.planning.or(self.config.shell),
             ..*self.config
@@ -135,7 +134,7 @@ impl Planner<'_> {
             course = self.heading(at, course, wanted, stride);
             let heading = curtain.sagged(course, travelled, self.twigs, key ^ self.seed);
             let end = at + heading * stride;
-            let inside = free || {
+            let inside = {
                 let _asks = queries::during(Purpose::TwigStride);
                 admitted(curtain, &config, self.twigs, bound, end)
             };

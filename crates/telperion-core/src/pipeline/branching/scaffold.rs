@@ -328,15 +328,10 @@ impl Builder<'_> {
             let direction = (heading * pitch.cos_fixed() + across * pitch.sin_fixed()).normalized();
             let (length, bound) = if axis.order == 0 {
                 let kept = 1.0 - Rng::new(key ^ 0x2c1b_3c6d).next_f64() * self.habit.ragged_reach;
-                let reach = self.reach(position, direction) * kept;
-                let share = self.planning.max_radius() / self.envelope.max_radius();
-                let bound = Bound::around(position, kept);
-                let bound = if super::local::ladder::rung() == 2 && !self.growing_envelope {
-                    bound.allow(reach / share)
-                } else {
-                    bound
-                };
-                (reach, bound)
+                (
+                    self.reach(position, direction) * kept,
+                    Bound::around(position, kept),
+                )
             } else {
                 (axis.length * self.habit.lateral_length_ratio, axis.bound)
             };

@@ -32,10 +32,10 @@ struct Shoot {
 }
 mod advance;
 pub(super) mod detail;
-pub(super) mod ladder;
 mod pendant;
 mod planner;
 mod seed;
+#[cfg(test)]
 pub use pendant::in_band;
 use pendant::Curtain;
 pub(super) mod waiting;

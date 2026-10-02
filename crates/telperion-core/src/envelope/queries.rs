@@ -23,12 +23,10 @@ pub enum Purpose {
     CurtainBand,
     /// Shedding's depth test of every node past the crossover.
     Shedding,
-    /// fn-183 exploration: a rung's room for one axis.
-    TwigRoom,
 }
 
 impl Purpose {
-    pub const ALL: [Purpose; 9] = [
+    pub const ALL: [Purpose; 8] = [
         Purpose::Other,
         Purpose::ScaffoldRoom,
         Purpose::ScaffoldContainment,
@@ -37,7 +35,6 @@ impl Purpose {
         Purpose::TerminalAdmission,
         Purpose::CurtainBand,
         Purpose::Shedding,
-        Purpose::TwigRoom,
     ];
     pub fn name(self) -> &'static str {
         match self {
@@ -49,7 +46,6 @@ impl Purpose {
             Purpose::TerminalAdmission => "terminal_admission",
             Purpose::CurtainBand => "curtain_band",
             Purpose::Shedding => "shedding",
-            Purpose::TwigRoom => "twig_room",
         }
     }
 }
@@ -58,7 +54,7 @@ impl Purpose {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct Counts {
     /// Radius queries, indexed as `Purpose::ALL`.
-    pub queries: [u64; 9],
+    pub queries: [u64; 8],
     /// Axes the twig layer planned stride by stride.
     pub planned_axes: u64,
 }

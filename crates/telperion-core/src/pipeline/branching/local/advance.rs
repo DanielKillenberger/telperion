@@ -199,25 +199,11 @@ impl Frontier {
                         t.twig.length,
                     );
                     let twig_length = s.curtain.clear(position.y, -heading.y, t.twig.length, t);
-                    let free = !planner.growing_envelope && ladder::rung() >= 1;
-                    let twig_length = if free {
-                        ladder::cap(
-                            config,
-                            t,
-                            s.curtain,
-                            s.bound,
-                            position,
-                            heading,
-                            twig_length,
-                        )
-                    } else {
-                        twig_length
-                    };
                     if twig_length <= 1e-9 {
                         continue;
                     }
                     let p = position + heading * twig_length;
-                    let admitted = free || {
+                    let admitted = {
                         let _asks = queries::during(Purpose::TerminalAdmission);
                         planner::admitted(s.curtain, config, t, s.bound, p)
                     };
@@ -251,22 +237,10 @@ impl Frontier {
                         let length = s
                             .curtain
                             .clear(position.y, -wanted.normalized().y, length, t);
-                        let first = if lateral { wanted } else { from };
-                        let capped = if planner.growing_envelope {
-                            length
-                        } else {
-                            ladder::cap(config, t, s.curtain, s.bound, position, first, length)
-                        };
-                        let internodes = if capped < length {
-                            ((internodes as f64 * capped / length).ceil() as usize)
-                                .max(t.laterals as usize + 1)
-                        } else {
-                            internodes
-                        };
                         run = planner.run(Axis {
                             start: position,
-                            first,
-                            length: capped,
+                            first: if lateral { wanted } else { from },
+                            length,
                             internodes,
                             bearing: radius <= t.twig.bearing_diameter / 2.0,
                             key,
