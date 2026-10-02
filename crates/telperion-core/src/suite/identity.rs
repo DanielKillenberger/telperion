@@ -188,6 +188,11 @@
 //! of a millimetre and carry two beech leaves out of the shell cull and one
 //! birch leaf into it; the oak's and the spruce's counts are unchanged. Every
 //! skeleton and every element pin is byte-identical.
+//!
+//! fn-183 re-pins all four once: the twig layer asks the crown nothing, so
+//! twigs run to the length their own rules give them, and the leaf box is the
+//! grown tree's wood grown by the station reach. Skeletons, bounds and
+//! placements move; every element pin is byte-identical.
 //! No device is needed; this is the core's own arithmetic.
 use super::specimens;
 use telperion_core::{branching, mesh, presets::Preset};
@@ -220,41 +225,45 @@ const PINS: [Pin; 4] = [
     Pin {
         id: "oregon-white-oak",
         min: [
-            -13.16296514872441,
+            -14.621705672724243,
             -0.09600000083446503,
-            -13.242486306266482,
+            -15.279694412363863,
         ],
-        max: [13.217955959615209, 23.557249956180836, 13.003125025750427],
-        skeleton: 6489830875491714767,
-        placement: 13467347624575045185,
+        max: [14.654147472608283, 24.860410887757038, 15.298135150547388],
+        skeleton: 8352873281510200700,
+        placement: 9850640269237129093,
         element: 4207404028969543471,
     },
     Pin {
         id: "norway-spruce",
-        min: [-3.895051643214036, -0.05999999865889549, -4.197446207068961],
-        max: [4.3374568072821, 15.0, 3.806220363273623],
-        skeleton: 12735573889651776723,
-        placement: 16009668874409195207,
+        min: [
+            -3.8936605747753785,
+            -0.05999999865889549,
+            -4.310296271361681,
+        ],
+        max: [4.338591476475962, 15.89710892533615, 3.808999498256562],
+        skeleton: 7924732143761663308,
+        placement: 16150975196588227952,
         element: 7287062639823569932,
     },
     Pin {
         id: "european-beech",
         min: [
-            -10.932704935504914,
+            -16.170413119040337,
             -0.12800000607967377,
-            -10.620809443500821,
+            -14.835753010455457,
         ],
-        max: [11.737918649722355, 32.1939185820563, 11.282388017302269],
-        skeleton: 7923866798333576555,
-        placement: 1267229261659347364,
+        max: [17.55414991109312, 36.75549349364205, 15.875064849853516],
+        skeleton: 3990564466537741671,
+        placement: 1363546594266609607,
         element: 15097586524950800877,
     },
     Pin {
         id: "silver-birch",
-        min: [-6.380195448261383, -0.07199999690055847, -7.24057217209487],
-        max: [7.174725706478319, 17.413499559771598, 5.077849460052068],
-        skeleton: 14817765597731781305,
-        placement: 7310281147953059577,
+        min: [-7.390350341796875, -0.07199999690055847, -7.914402484893799],
+        max: [8.12118688650846, 17.40048599243164, 6.267824172973633],
+        skeleton: 7062016405819824468,
+        placement: 8148347474598104036,
         element: 1566806128915370638,
     },
 ];

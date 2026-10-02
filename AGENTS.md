@@ -44,12 +44,13 @@ Two checkouts of the same crate never share a `target/` directory. Test binary n
 
 ## Design principles (owner, 2026-09-25)
 
-STRATEGY.md's "Our approach" is enforced by structure, not policing; `docs/principles.md` is the guide, and Jev review of specs and designs is planned in fn-156. Four questions steer every decision:
+STRATEGY.md's "Our approach" is enforced by structure, not policing; `docs/principles.md` is the guide, and Jev review of specs and designs is planned in fn-156. Five questions steer every decision:
 
 - Does every tree still pass through the one pipeline, with no copy of a stage outside it?
 - Does an input the pipeline cannot draw fail with an error, never take a fallback path?
 - Does every parameter change the tree by degree, dormant where its structure is absent, never a switch between ways of building?
 - Is each new output read by a consumer, each cost measured, and each new stop one that catches what its neighbours cannot?
+- Does every requirement name who set it and why, and was deleting the work tried before making it cheaper (`docs/principles.md`, "Question, delete, then optimise"; owner, 2026-10-02)?
 
 Three things hold them: the one pipeline, whose stages are private to it so a second chain does not compile (`docs/pipeline.md`); an ordinary test that builds every shipped preset's every artifact through the pipeline and through each package entry; and CI's size budget on every shipped artifact. A sanctioned trade-off names one of the exceptions `docs/principles.md` lists; a claim of approval without one is none.
 

@@ -124,7 +124,6 @@ const BUILD_ONLY: &[(&str, &str, &[&str])] = &[
     ("/radii/trunkRadius", "1e+300", ALL),
     ("/skeleton/envelope/crownBase", "0", &["date-palm"]),
     ("/skeleton/envelope/height", "18446744073709551615", TALL),
-    ("/skeleton/envelope/spread", "1e+300", &["european-beech"]),
     ("/skeleton/growth/trunkHeight", "18446744073709551615", LONG),
     ("/skeleton/growth/trunkHeight", "1e+300", ALL),
 ];

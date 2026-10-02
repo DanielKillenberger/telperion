@@ -5,7 +5,7 @@
 //! errors in stage order. Values that live at a branch or a surface sample
 //! stay derived inside their stage, where their inputs exist.
 #[cfg(feature = "geometry")]
-use crate::pipeline::foliage::Reference;
+use crate::pipeline::foliage::Reach;
 use crate::{
     envelope::Envelope,
     pipeline::branching::SkeletonParams,
@@ -56,9 +56,10 @@ pub(crate) struct PlanInput {
     pub(crate) seed: u32,
     /// Where the family's twig rows put a leaf's stations.
     pub(crate) twig: Result<TwigPlacement>,
-    /// The box every leaf of this family is quantised against.
+    /// How far a station stands from its wood: what the box leaves are
+    /// quantised against grows the wood's extent by.
     #[cfg(feature = "geometry")]
-    pub(crate) reference: Result<Reference>,
+    pub(crate) reach: Result<Reach>,
 }
 
 /// The rings and the wood swept on them.
@@ -94,9 +95,9 @@ impl Inputs {
                 #[cfg(not(feature = "geometry"))]
                 twig: twigs.map(|twigs| placement(&twigs)),
                 #[cfg(feature = "geometry")]
-                reference: twigs.map(|twigs| {
+                reach: twigs.map(|twigs| {
                     let (radii, canopy) = (family.radii, family.canopy);
-                    Reference::from_params(envelope, &twigs, radii, &family.surface, canopy)
+                    Reach::from_params(envelope, &twigs, radii, &family.surface, canopy)
                 }),
             },
             #[cfg(feature = "geometry")]

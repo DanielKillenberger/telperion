@@ -6,7 +6,9 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-183-the-twig-layer-grows-without-the-crown"
+  ],
   "id": "fn-173-growth-reads-a-prepared-crown-shell",
   "impl_review_rounds": {},
   "next_task": 1,
@@ -252,5 +254,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T11:44:07.964230Z"
+  "updated_at": "2026-10-02T11:53:12.565218Z"
 }

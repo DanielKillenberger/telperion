@@ -51,7 +51,7 @@ fn monthly_cost_report() {
         let mature = family.growth.mature_slice();
         for sample in 0..3 {
             let clock = Instant::now();
-            let envelope = Specimen::grow(&family.skeleton, family.radii).unwrap();
+            let envelope = Specimen::grow(&family.skeleton, family.radii, false).unwrap();
             let ms = clock.elapsed().as_secs_f64() * 1000.0;
             println!("R10 preset={preset:?} sample={sample} kind=envelope ms={ms:.6} nodes={} crossover={} bounds={:?}",
                 envelope.tree().nodes.len(), envelope.tree().crossover, bounds(envelope.tree()));

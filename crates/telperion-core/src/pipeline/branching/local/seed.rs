@@ -142,9 +142,15 @@ impl Frontier {
         let divergence = t.divergence.to_radians();
         let mut frontier = Vec::new();
         let mut completed = Vec::new();
+        // An apex that bears a rosette bears no twig, so it allocates no bud.
+        let crowned = if self.crowned {
+            tree.stem_apices()
+        } else {
+            Vec::new()
+        };
         for &i in &self.stations.pending {
             let n = &tree.nodes[i];
-            if n.position.y < config.trunk_height {
+            if n.position.y < config.trunk_height || crowned.contains(&i) {
                 continue;
             }
             let terminal = u16::from(children[i] == 0);

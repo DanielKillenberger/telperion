@@ -157,17 +157,15 @@ pub struct Built {
 }
 
 /// Stage 2: grows the family's skeleton, ready to draw. An apex that bears a
-/// rosette bears no twig: where the canopy stands a frond crown, the twig
-/// wood above every stem apex is dropped, so the fronds stand on bare wood.
+/// rosette bears no twig: where the canopy stands a frond crown, no twig
+/// layer grows above any stem apex, so the fronds stand on bare wood.
 /// Where the canopy keeps the bases of its shed fronds, they are hung on
 /// every stem as wood of their own, after the radius solve so no base
 /// thickens the trunk.
 pub(crate) fn skeleton(input: GrowInput) -> Result<Skeleton> {
-    let report = branching::generate(input.skeleton, input.radii)?;
+    let crowned = input.canopy.rosette_fronds > 0;
+    let report = branching::crowned(input.skeleton, input.radii, crowned)?;
     let mut tree = report.tree;
-    if input.canopy.rosette_fronds > 0 {
-        branching::clear_apical_twigs(&mut tree)?;
-    }
     branching::clothe_leaf_bases(&mut tree, input.canopy)?;
     Ok(Skeleton {
         tree,

@@ -1,0 +1,80 @@
+{
+  "branch_name": "fn-183-the-twig-layer-grows-without-the-crown",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-02T10:13:37.955201Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-183-the-twig-layer-grows-without-the-crown",
+  "impl_review_rounds": {
+    "fn-183-the-twig-layer-grows-without-the-crown.2": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "838db6089d82ece61aaee1c53aa86776d2ffd8690a17e6ba0554417385d8468b",
+      "backend": "codex",
+      "base_sha": "e4a8ce7745db2a35dab624095c35a46868df3468",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "93f456d5f22af94c0488788551eecbfced2a0ac8",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 316566,
+      "output_sha256": "2a8984a341869d5d6056ebe9198ca83b11e4e551f93ba0cb206d30d8ce4aa67a",
+      "reservation_id": "ee6499f15d474ed4b5f6fbb499eb3881",
+      "round_consumed": true,
+      "scope": "impl:fn-183-the-twig-layer-grows-without-the-crown.2",
+      "superseded_by": null,
+      "task": "fn-183-the-twig-layer-grows-without-the-crown.2",
+      "timestamp": "2026-10-02T15:08:20.924014Z",
+      "tool_calls": 21,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-183-the-twig-layer-grows-without-the-crown.2": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-183-the-twig-layer-grows-without-the-crown.2": 0
+  },
+  "spec_path": ".flow/specs/fn-183-the-twig-layer-grows-without-the-crown.md",
+  "status": "open",
+  "title": "The twig layer grows without the crown as a wall",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-02T15:08:20.934117Z"
+}

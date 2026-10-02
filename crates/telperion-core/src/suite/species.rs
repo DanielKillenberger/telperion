@@ -364,16 +364,6 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
     }
     assert!(a.tree.diagnostics.complete(), "seed {seed}: truncation");
     assert!(a.tree.nodes.len() > a.tree.crossover);
-    // Inside the shell, or a hanging shoot in the band below it.
-    let (envelope, twigs) = (family.skeleton.envelope, family.skeleton.twigs);
-    for node in a.tree.nodes.iter().skip(a.tree.crossover) {
-        let p = node.position;
-        assert!(
-            envelope.contains(p, 1e-8, seed)
-                || branching::in_curtain_band(&envelope, &twigs, seed, p, 1e-8),
-            "seed {seed}: {p:?} is outside the shell and the curtain's band"
-        );
-    }
     let wood = surface::build(&a.tree, family.skeleton.envelope.height, &family.surface).unwrap();
     assert!(!wood.indices.is_empty());
     assert!(wood
@@ -409,7 +399,10 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
         // The same rows the prediction counted by: one constructor, so the
         // harness and the prediction cannot clothe two different trees.
         Some(TwigPlacement::of(&family).unwrap()),
-        foliage::Reference::of(&family).unwrap(),
+        // The box the direct build quantises against: the grown tree's, so
+        // a leaf past the authored shell is measured where it stands rather
+        // than clamped onto the parameter box's wall (fn-183).
+        foliage::Reference::grown(&a.tree, foliage::Reach::of(&family).unwrap()),
     )
     .unwrap();
     let digest = check(preset, seed, committed, digest(&a.tree, &wood, &placed));

@@ -92,5 +92,7 @@ mod sweep;
 mod terminal_taper;
 #[path = "suite/troll_limbs.rs"]
 mod troll_limbs;
+#[path = "suite/twig_extent.rs"]
+mod twig_extent;
 #[path = "suite/twig_generations.rs"]
 mod twig_generations;

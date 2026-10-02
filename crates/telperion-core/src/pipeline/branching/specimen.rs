@@ -110,6 +110,7 @@ impl Specimen {
         let twigs = rows(params, radii)?;
         let inner = inner_envelope(params.envelope, twigs.reach);
         let points = if params.habit.attractor_weight > 0.0 {
+            let _asks = crate::envelope::queries::during(Purpose::ScaffoldContainment);
             inner.sample_with_attempts(
                 params.attractors,
                 &mut Rng::new(params.seed),
@@ -287,16 +288,22 @@ impl Specimen {
         Ok(())
     }
     /// Drain the same retained builders used by incremental growth.
-    pub(crate) fn grow(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
+    /// `crowned` says every stem apex bears a rosette and so no twig layer.
+    pub(crate) fn grow(
+        params: &SkeletonParams,
+        radii: RadiusParams,
+        crowned: bool,
+    ) -> Result<Self> {
         let mut s = Self::new(params, radii)?;
+        s.local.crowned = crowned;
         s.step(usize::MAX, 0)?;
         let scaffold_fits = !s.tree.diagnostics.node_capped;
         s.step(0, usize::MAX)?;
         if scaffold_fits && s.tree.diagnostics.node_capped {
-            s = Self::within_budget(params, radii)?;
+            s = Self::within_budget(params, radii, crowned)?;
         }
         debug_assert!(s.finished() || !s.tree.diagnostics.complete());
-        s.shed = finish(&mut s.tree, params, radii)?;
+        s.shed = finish(&mut s.tree, params, radii, crowned)?;
         s.remap_after_shedding();
         Ok(s)
     }

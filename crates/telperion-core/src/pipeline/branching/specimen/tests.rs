@@ -60,8 +60,8 @@ fn retained_frontiers_grow_structure_after_twigs_without_changing_identities() {
 #[test]
 fn whole_build_replays_the_retained_frontiers_exactly() {
     let f = Preset::Ordinary.parameters();
-    let a = Specimen::grow(&f.skeleton, f.radii).unwrap();
-    let b = Specimen::grow(&f.skeleton, f.radii).unwrap();
+    let a = Specimen::grow(&f.skeleton, f.radii, false).unwrap();
+    let b = Specimen::grow(&f.skeleton, f.radii, false).unwrap();
     assert!(
         bytes(a.tree()) == bytes(b.tree()),
         "full builds differ byte-for-byte"

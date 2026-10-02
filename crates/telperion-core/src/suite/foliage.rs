@@ -167,7 +167,7 @@ fn placement_hash(f: &Family, tree: &Tree) -> u64 {
             stations_per_internode: twig.stations_per_internode,
         }),
         &f.surface,
-        Reference::of(f).unwrap(),
+        Reference::grown(tree, Reach::of(f).unwrap()),
     )
     .unwrap_or_else(|err| panic!("{:?}: {err}", f.canopy));
     let mut hash = 14695981039346656037_u64;

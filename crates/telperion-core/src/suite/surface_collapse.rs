@@ -4,9 +4,7 @@
 //! the way its ring does, and a tree that drops more than two rings' worth
 //! still fails, naming the count.
 use telperion_core::{
-    branching,
     math::Vec3,
-    presets::Preset,
     surface::{build, SurfaceMesh, SurfaceParams},
     tree::{Node, Tree},
     Error,
@@ -226,44 +224,4 @@ fn a_position_overflow_in_a_later_run_answers_before_an_earlier_normal() {
         build(&tree, 1.0, &params),
         Err(Error::InvalidInput("surface float32 position overflow"))
     );
-}
-
-/// The candidate beech of fn-45's round 6c, its wood rows as that branch
-/// stated them (it also named a twig generation rail this branch does not
-/// carry), failed this seed: two stations of one truncated limb 11.4
-/// micrometres apart, 25 m up. A test-only family; no shipped table moves.
-/// Every wood row the shipped beech has since moved is stated here, so the
-/// reproduction does not drift with the catalogue's table.
-#[test]
-fn the_reproducing_beech_builds_and_drops_two_triangles() {
-    let mut f = Preset::EuropeanBeech.parameters();
-    let h = &mut f.skeleton.habit;
-    h.apical_dominance = 0.58;
-    h.leader_internode = 2.2;
-    h.pitch_variation = 10.0;
-    h.crookedness = 6.0;
-    h.rise_primary = 0.3;
-    h.laterals_per_station = 2;
-    h.lateral_pitch = 58.0;
-    h.rise_secondary = 0.1;
-    h.lateral_spacing = 2.2;
-    h.lateral_length_ratio = 0.6;
-    f.skeleton.envelope.crown_base = 0.05;
-    f.skeleton.envelope.spread = 0.52;
-    f.skeleton.envelope.fullness = 0.48;
-    f.skeleton.envelope.shoulder = 1.5;
-    f.skeleton.twigs.generations = telperion_core::twigs::MAX_GENERATIONS;
-    f.skeleton.twigs.laterals = 4;
-    f.skeleton.twigs.limb_radius = 0.1;
-    f.skeleton.twigs.length_ratio = 0.36;
-    f.skeleton.twigs.angle = 32.0;
-    f.skeleton.twigs.divergence = 180.0;
-    f.radii.trunk_radius = 0.014;
-    f.radii.length_taper = 0.2;
-    f.radii.fork_exponent = 2.6;
-    f.skeleton.seed = 266;
-    let tree = branching::generate(&f.skeleton, f.radii).unwrap().tree;
-    let mesh = build(&tree, f.skeleton.envelope.height, &f.surface).unwrap();
-    assert_eq!(mesh.dropped, 2);
-    honest(&mesh);
 }

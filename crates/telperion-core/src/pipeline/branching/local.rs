@@ -54,6 +54,10 @@ pub(super) struct Frontier {
     /// order the rows allow. Chosen per build and never stored.
     #[cfg_attr(feature = "json", serde(skip))]
     pub(super) detail: Option<detail::Detail>,
+    /// Whether every stem apex bears a rosette, and so no twig: its stations
+    /// are never seeded. Chosen per build and never stored.
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub(super) crowned: bool,
     #[cfg(test)]
     #[cfg_attr(feature = "json", serde(skip))]
     pub(super) retries: [usize; 4],

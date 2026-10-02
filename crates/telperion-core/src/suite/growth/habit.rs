@@ -185,14 +185,6 @@ fn habit_topology_bounds_seeds_and_limits_are_explicit() {
         for n in a.tree.nodes.iter().skip(1) {
             let parent = &a.tree.nodes[n.parent.unwrap() as usize];
             assert!(n.position.distance(parent.position) > 1e-9);
-            for t in [0.0, 0.25, 0.5, 0.75, 1.0] {
-                assert!(
-                    p.envelope
-                        .contains(parent.position.lerp(n.position, t), 1e-8, p.seed),
-                    "seed {}: outside the perturbed shell",
-                    p.seed
-                );
-            }
         }
         p.seed += 1;
         assert_ne!(
@@ -334,10 +326,4 @@ fn clipped_local_axis_still_subdivides_before_its_terminal_twig() {
         origins >= 3,
         "clipped axis lost its lateral branches: {origins}"
     );
-    for n in tree.nodes.iter().skip(2) {
-        assert!(config
-            .shell
-            .unwrap()
-            .contains(n.position, 1e-9, config.seed));
-    }
 }

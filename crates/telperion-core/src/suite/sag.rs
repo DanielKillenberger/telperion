@@ -53,14 +53,14 @@ const IDS: [&str; 7] = [
 /// on the live renderer halves the limbs at a station, stands them steeper and
 /// cuts the twig laterals back: its own table moved, not the neutral law.
 const NEUTRAL: [u64; 7] = [
-    17046456021212146411,
-    6489830875491714767,
-    12735573889651776723,
-    7923866798333576555,
-    // fn-170: the birch pair restated as a fork at 0.9 m.
-    6111066893194109197,
-    12471405148157309180,
-    14199367530911903060,
+    4821456166374828586,
+    8352873281510200700,
+    7924732143761663308,
+    3990564466537741671,
+    // fn-183: the twig layer asks the crown nothing; every table re-recorded.
+    12327207086434691147,
+    3336773378850484122,
+    343928035832033283,
 ];
 
 /// The share of its angle to straight down a shoot still carries after

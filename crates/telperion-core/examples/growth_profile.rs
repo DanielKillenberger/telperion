@@ -1,6 +1,10 @@
 //! Stage 2 alone: grows one preset's skeleton `GROWTH_SAMPLES` times (default
 //! 6, the first cold) and prints each build's milliseconds with a hash of
 //! every node's full debug record, so two builds compare byte for byte.
+//! Built with `--features query-count` it also prints the crown radius
+//! queries each build made by purpose, and the axes the twig layer planned;
+//! time a build without it, since counting changes the cost it counts.
+use telperion_core::envelope::queries::{self, Purpose};
 use telperion_core::{pipeline, presets::Preset};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -15,6 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap_or_else(|_| "6".into())
         .parse()?;
     for sample in 0..samples {
+        let _ = queries::take();
         // A request for no output runs the skeleton stage alone.
         let built = pipeline::build(&f, pipeline::Request::default())?;
         let (skeleton, ms) = (built.skeleton, built.outputs.stages.skeleton_ms);
@@ -25,10 +30,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
         println!(
-            "{{\"preset\":\"{preset}\",\"seed\":{seed},\"sample\":{sample},\"ms\":{ms:.3},\"nodes\":{},\"shed\":{},\"tree_fnv1a64\":\"{hash:016x}\"}}",
+            "{{\"preset\":\"{preset}\",\"seed\":{seed},\"sample\":{sample},\"ms\":{ms:.3},\"nodes\":{},\"shed\":{},\"tree_fnv1a64\":\"{hash:016x}\"{}}}",
             skeleton.tree.nodes.len(),
-            skeleton.shed
+            skeleton.shed,
+            queries::take().map_or(String::new(), counted)
         );
     }
     Ok(())
+}
+
+/// The counts as JSON fields after the build's own.
+fn counted(c: queries::Counts) -> String {
+    let by: Vec<_> = Purpose::ALL
+        .iter()
+        .map(|p| format!("\"{}\":{}", p.name(), c.queries[*p as usize]))
+        .collect();
+    format!(
+        ",\"radius_queries\":{},\"by_purpose\":{{{}}},\"planned_axes\":{}",
+        c.queries.iter().sum::<u64>(),
+        by.join(","),
+        c.planned_axes
+    )
 }

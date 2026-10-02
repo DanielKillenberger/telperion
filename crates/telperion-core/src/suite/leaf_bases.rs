@@ -189,10 +189,9 @@ fn the_bases_absent_leave_the_skeleton_where_it_was() {
     let mut f = family("date-palm", 1);
     f.canopy.leaf_bases = 0;
     let grown = mesh::grow(&f).expect("the skeleton grows");
-    let mut bare = branching::generate(&f.skeleton, f.radii)
+    let bare = branching::crowned(&f.skeleton, f.radii, true)
         .expect("the skeleton grows")
         .tree;
-    branching::clear_apical_twigs(&mut bare).expect("the apical twigs clear");
     assert_eq!(grown, bare, "a base was hung where no row asked for one");
     assert!(hung(&grown).is_empty());
 }
@@ -211,10 +210,16 @@ fn raising_the_bases_moves_the_palms_own_wood() {
         "a trunk clothed in bases has to be a different piece of wood"
     );
     assert!(with.wood_vertices() > without.wood_vertices());
-    assert_eq!(
-        without.foliage.instances.leaves, with.foliage.instances.leaves,
-        "a base is wood: it places no leaf"
-    );
+    // The bases widen the wood the leaf box is grown from, so the same leaf
+    // is written in other words; it decodes to the same station within the
+    // two boxes' steps.
+    let (a, b) = (&without.foliage.instances, &with.foliage.instances);
+    assert_eq!(a.len(), b.len(), "a base is wood: it places no leaf");
+    let slack = (a.reference.step() + b.reference.step()).length();
+    for i in 0..a.len() {
+        let moved = (a.position(i) - b.position(i)).length();
+        assert!(moved <= slack, "a base moved leaf {i} by {moved} m");
+    }
 }
 
 /// The bases are hung after the radius solve, so no base enters the pipe

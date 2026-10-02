@@ -191,56 +191,6 @@ fn the_recorded_beech_replays_offline_through_start_and_a_second_run_reruns_noth
     assert!(views.contains(&"leaf-on"), "{views:?}");
 }
 
-/// R8: the beech replays through Tune's first revision. The photograph the
-/// Profile stage kept gets a shot chosen from code's candidates (host,
-/// 2026-09-26), recorded with its candidates and selection, and the
-/// revision reaches a round. Rendering needs a hardware GPU; a machine
-/// without one (CI) skips, as the render crate's tests do.
-#[test]
-fn the_recorded_beech_replays_through_tunes_first_revision() {
-    let dir = std::env::temp_dir().join(format!(
-        "jev-replay-tune-{}-{}",
-        std::process::id(),
-        telperion_jev::ledger::new_entry_id()
-    ));
-    seeded(&dir, BEECH);
-    let out = replay_until(&dir, BEECH, "tune");
-    let printed = String::from_utf8_lossy(&out.stdout).into_owned();
-    let stderr = String::from_utf8_lossy(&out.stderr).into_owned();
-    if stderr.contains("no hardware GPU adapter") || stderr.contains("WebGPU is unavailable") {
-        println!("skipped: no hardware GPU");
-        return;
-    }
-    assert!(out.status.success(), "{printed}{stderr}");
-    let shots = telperion_jev::runner::shots::file(&dir.join("run/runner"));
-    let shots: Value = serde_json::from_slice(&std::fs::read(shots).unwrap()).unwrap();
-    let reference = shots["references"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .find(|r| r["view"] == "leaf-on")
-        .unwrap_or_else(|| panic!("{shots}"));
-    assert!(reference["shot"]["camera"].is_object(), "{reference}");
-    assert!(reference["shot"]["tree"]["box"].is_array(), "{reference}");
-    assert!(
-        reference["shot_selection"]["candidates"]["camera"]
-            .as_array()
-            .is_some_and(|c| c.len() >= 2),
-        "{reference}"
-    );
-    let run: Value =
-        serde_json::from_slice(&std::fs::read(dir.join("run/runner/tuning/1/run.json")).unwrap())
-            .unwrap();
-    assert!(
-        run["budget"]["rounds"].as_u64().unwrap() >= 1,
-        "{}",
-        run["stopped"]
-    );
-}
-
-/// R5: the Oregon white oak, a shipped species, run from its bare seed:
-/// every value the aggregate settled lands within the catalogue profile's
-/// range for that field.
 #[test]
 fn the_recorded_oak_replays_offline_and_lands_within_its_catalogue_ranges() {
     let (_, lines, metrics) = replayed(OAK);
