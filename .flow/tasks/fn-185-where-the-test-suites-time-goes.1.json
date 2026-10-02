@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-185-where-the-test-suites-time-goes",
   "spec_path": ".flow/tasks/fn-185-where-the-test-suites-time-goes.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Where the test suite's time goes",
   "updated_at": "2026-10-02T14:47:43.259946Z"
 }

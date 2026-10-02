@@ -10,6 +10,6 @@
 ## 2026-10-02: no CI run at the measured commit
 
 - **Doing:** R1's same-commit CI run.
-- **Slowed by:** this branch changes only `.flow/`, so the PR run finds every Rust receipt and skips the Rust jobs. The CI numbers come from the last master runs, 11 commits back.
+- **Slowed by:** the `Tests` workflow's path filter excludes `.flow/**`, so a branch that changes only `.flow/` starts no CI run. The CI numbers come from the last master runs, 11 commits back.
 - **Cost:** none in time; R1 is partly met.
-- **Would have removed it:** a `workflow_dispatch` input that forces the Rust jobs past their receipts.
+- **Would have removed it:** a `workflow_dispatch` trigger that runs the suite at a named commit.

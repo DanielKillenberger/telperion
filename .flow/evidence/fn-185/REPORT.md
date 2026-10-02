@@ -82,7 +82,7 @@ CPU-s is each test's own wall. Together they are 1,339 of 2,894 CPU-s.
 
 The rust-cache restored with a full match on every job. A cold CI run was not observed in this window. fn-76's cold run was 6 min 23 s, against 2 min 55 s warm.
 
-**Same-commit CI run: not available.** This branch changes only `.flow/`, so its PR run will find every Rust receipt and skip the Rust jobs. The CI numbers above come from the last master runs. Between those and `ebd2e37b` are 11 commits.
+**Same-commit CI run: not available.** The `Tests` workflow's path filter excludes `.flow/**`, so this branch, which changes only `.flow/`, starts no CI run. The CI numbers above come from the last master runs. Between those and `ebd2e37b` are 11 commits.
 
 ## R3: from 2 min 55 s to 7 to 8.5 minutes
 

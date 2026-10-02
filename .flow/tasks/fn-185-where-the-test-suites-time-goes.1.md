@@ -16,7 +16,7 @@ Recon report at .flow/evidence/fn-185/REPORT.md.
 - R2: verdicts for the slowest 30 tests and the ten pin families.
 - R3: the CI rise is the no-geometry job rerunning the whole core suite since #126. The self dev-dependency unifies geometry back on.
 - R4: ten ranked follow-ups with savings, obvious fixes marked.
-- A CI run at the same commit was not available: receipts skip the Rust jobs on a branch that changes only `.flow/`.
+- A CI run at the same commit was not available: the `Tests` path filter excludes `.flow/**`, so a branch that changes only `.flow/` starts no CI run.
 
 stage: impl-review - skipped(policy: risk - report only, no code, test or workflow change)
 
