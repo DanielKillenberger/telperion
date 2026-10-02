@@ -12,7 +12,7 @@ fn grown(preset: Preset, ragged_reach: f64, tweak: impl Fn(&mut SkeletonParams))
     p.habit.attractor_weight = 0.0;
     p.habit.shedding_threshold = 0.0;
     tweak(&mut p);
-    Specimen::grow(&p, family.radii).unwrap()
+    Specimen::grow(&p, family.radii, false).unwrap()
 }
 
 /// Every structural node of a shortened limb system lies in that system's

@@ -13,7 +13,11 @@ impl Specimen {
     /// The scaffold, grown out at the most detail the budget holds. Where even
     /// no twig detail fits, the tree is the least-detailed one, stopped where
     /// the count ran out, and stays capped.
-    pub(super) fn within_budget(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
+    pub(super) fn within_budget(
+        params: &SkeletonParams,
+        radii: RadiusParams,
+        crowned: bool,
+    ) -> Result<Self> {
         let top = u16::try_from(params.twigs.resolved()?.generations)
             .map_err(|_| Error::InvalidInput("twig generations"))?
             * STEPS;
@@ -24,7 +28,7 @@ impl Specimen {
         // is rarely as deep as its row allows, and a level that fits is cheap
         // to grow where one that does not costs the whole budget.
         while low + STEPS < high {
-            let grown = Self::grown_at(params, radii, Detail(low + STEPS))?;
+            let grown = Self::grown_at(params, radii, crowned, Detail(low + STEPS))?;
             if grown.tree.diagnostics.node_capped {
                 high = low + STEPS;
                 break;
@@ -34,7 +38,7 @@ impl Specimen {
         }
         while high - low > 1 {
             let mid = low + (high - low) / 2;
-            let grown = Self::grown_at(params, radii, Detail(mid))?;
+            let grown = Self::grown_at(params, radii, crowned, Detail(mid))?;
             if grown.tree.diagnostics.node_capped {
                 high = mid;
             } else {
@@ -44,14 +48,20 @@ impl Specimen {
         }
         let mut s = match kept {
             Some(s) => s,
-            None => Self::grown_at(params, radii, Detail(low))?,
+            None => Self::grown_at(params, radii, crowned, Detail(low))?,
         };
         // Grown at `low`, the tree is whole unless even that level ran out.
         s.tree.diagnostics.twig_detail = Some(low);
         Ok(s)
     }
-    fn grown_at(params: &SkeletonParams, radii: RadiusParams, detail: Detail) -> Result<Self> {
+    fn grown_at(
+        params: &SkeletonParams,
+        radii: RadiusParams,
+        crowned: bool,
+        detail: Detail,
+    ) -> Result<Self> {
         let mut s = Self::new(params, radii)?;
+        s.local.crowned = crowned;
         s.step(usize::MAX, 0)?;
         s.local.detail = Some(detail);
         s.step(0, usize::MAX)?;

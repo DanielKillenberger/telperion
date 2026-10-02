@@ -189,10 +189,9 @@ fn the_bases_absent_leave_the_skeleton_where_it_was() {
     let mut f = family("date-palm", 1);
     f.canopy.leaf_bases = 0;
     let grown = mesh::grow(&f).expect("the skeleton grows");
-    let mut bare = branching::generate(&f.skeleton, f.radii)
+    let bare = branching::crowned(&f.skeleton, f.radii, true)
         .expect("the skeleton grows")
         .tree;
-    branching::clear_apical_twigs(&mut bare).expect("the apical twigs clear");
     assert_eq!(grown, bare, "a base was hung where no row asked for one");
     assert!(hung(&grown).is_empty());
 }

@@ -350,61 +350,32 @@ pub fn shed(tree: &mut Tree, envelope: Envelope, shell_depth: f64) -> Result<usi
     tree.validate()?;
     Ok(count - tree.nodes.len())
 }
-/// Drop the local layer standing above every stem apex: the twig wood a
-/// childless order-zero axis carries at its tip, and everything borne on it.
-///
-/// An apex that bears a rosette bears no twig. Suppressing only the foliage
-/// there would leave bare twig wood under the fronds, which no tree that
-/// carries a frond crown has. Only nodes past the crossover are dropped, so
-/// the structural scaffold and the crossover itself are untouched.
-pub fn clear_apical_twigs(tree: &mut Tree) -> Result<()> {
-    let count = tree.nodes.len();
-    let crossover = tree.crossover.min(count);
-    let mut apex = vec![false; count];
-    for i in tree.stem_apices() {
-        apex[i] = true;
-    }
-    // A parent is always stored before its child, so one forward pass carries
-    // the apex's whole local subtree.
-    let mut dropped = vec![false; count];
-    for i in crossover..count {
-        let parent = tree.nodes[i].parent.unwrap() as usize;
-        dropped[i] = dropped[parent] || apex[parent];
-    }
-    if !dropped.iter().any(|&d| d) {
-        return Ok(());
-    }
-    let mut index = vec![0_u32; count];
-    let mut next = 0_u32;
-    for (i, &drop) in dropped.iter().enumerate() {
-        if !drop {
-            index[i] = next;
-            next += 1;
-        }
-    }
-    let mut old = 0;
-    tree.nodes.retain_mut(|n| {
-        let i = old;
-        old += 1;
-        if dropped[i] {
-            return false;
-        }
-        n.parent = n.parent.map(|p| index[p as usize]);
-        n.branch = index[n.branch as usize];
-        true
-    });
-    tree.validate()
-}
-
-/// Generate solved structure only. Representations are independent borrowed-tree requests.
+/// Generate solved structure only, every stem apex free to bear twigs: the
+/// tests' entry. The pipeline grows through `crowned`, which reads its canopy.
+#[cfg(test)]
 pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthReport> {
-    let specimen = Specimen::grow(params, radii)?;
+    crowned(params, radii, false)
+}
+/// Generate solved structure only. Where `crowned`, every stem apex bears a
+/// rosette: it grows no twig layer and keeps its girth, since it is no tip.
+/// Representations are independent borrowed-tree requests.
+pub(crate) fn crowned(
+    params: &SkeletonParams,
+    radii: RadiusParams,
+    crowned: bool,
+) -> Result<GrowthReport> {
+    let specimen = Specimen::grow(params, radii, crowned)?;
     Ok(GrowthReport {
         tree: specimen.tree,
         shed: specimen.shed,
     })
 }
-fn finish(tree: &mut Tree, params: &SkeletonParams, radii: RadiusParams) -> Result<usize> {
+fn finish(
+    tree: &mut Tree,
+    params: &SkeletonParams,
+    radii: RadiusParams,
+    crowned: bool,
+) -> Result<usize> {
     let twigs = params.twigs.resolved()?;
     let removed = if params.habit.shedding_threshold > 0.0 {
         shed(tree, params.envelope, params.habit.shedding_threshold)?
@@ -416,11 +387,19 @@ fn finish(tree: &mut Tree, params: &SkeletonParams, radii: RadiusParams) -> Resu
     // model's radii; the tree keeps them for foliage's bearing decisions.
     radius::hold(tree, radii);
     // The distal end of a childless structural axis carries no wood the local
-    // layer would have thinned; the taper trait says how far it narrows.
+    // layer would have thinned; the taper trait says how far it narrows. An
+    // apex that bears a rosette is no tip: it keeps its girth.
     let mut has_children = vec![false; tree.crossover];
     for node in tree.nodes.iter().skip(1) {
         if let Some(parent) = has_children.get_mut(node.parent.unwrap() as usize) {
             *parent = true;
+        }
+    }
+    if crowned {
+        for apex in tree.stem_apices() {
+            if let Some(bearing) = has_children.get_mut(apex) {
+                *bearing = true;
+            }
         }
     }
     let tip_radius = twigs.twig.diameter / 2.0 * params.habit.twig_tip_taper;
