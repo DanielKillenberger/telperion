@@ -13,3 +13,10 @@
 - **Hindered by:** the dcg hook blocks a shell redirect to a variable path (`> $R/probe.jsonl`), and `/usr/bin/time` is not installed, so peak RSS went through a Python `getrusage` wrapper.
 - **Cost:** ~3 min, ~3k tokens.
 - **What would remove it:** a committed measuring driver that writes its own rows and reads its own RSS (local setup for the second part; reported, not specced).
+
+## 2026-10-02, task 3 round 2, restoring the probe
+
+- **Doing:** bringing round 1's reverted probe back into the working tree to build on.
+- **Hindered by:** the dcg hook blocks `git checkout <ref> -- <path>` and `git show ... > $path` in a loop; `git cherry-pick --no-commit` then `git reset` worked.
+- **Cost:** ~3 min, ~4k tokens.
+- **What would remove it:** a probe kept on its own scratch branch (or `git worktree add` at the probe commit) instead of commit-and-revert on the spec branch.
