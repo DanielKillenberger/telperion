@@ -10,7 +10,7 @@ TBD
 - [ ] TBD
 
 ## Done summary
-The twig shell (`twigShell`, `twigShellSoftness`) was built dormant and byte-identical on every preset, then not merged: `sheddingThreshold` 0.25 clears the beech's inner crown the same way, and the stills show no visible difference (owner, 2026-10-02). The hierarchy grid and the bounded comparison hand Candidate B's direction to fn-62 and branch thickness to fn-187. The shell's code stays on the unmerged branch.
+The twig shell (`twigShell`, `twigShellSoftness`) was built dormant and byte-identical on every preset, then not merged: `sheddingThreshold` 0.25 clears the beech's inner crown the same way, and the stills show no visible difference (owner, 2026-10-02). The hierarchy grid and the bounded comparison hand Candidate B's direction to fn-62 and branch thickness to this spec's next task. The shell's code stays on the unmerged branch.
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
