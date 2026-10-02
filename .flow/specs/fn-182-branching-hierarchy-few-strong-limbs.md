@@ -21,7 +21,7 @@ Open-grown broadleaves read by their branching hierarchy: a few strong scaffold 
 
 **Decision (host, 2026-09-28, from R1's measurement in `.flow/evidence/fn-182-branching-hierarchy-few-strong-limbs/R1-MEASUREMENT.md`).** [checked]
 - The scaffold is already sparse (4 to 8 laterals per parent; 0.5 to 0.7 per metre at orders 2 and 3, near the photographs). The difference is the twig layer: it bears shoots at 3.7 to 10.8 per metre along every scaffold limb, inner wood included, where the photographs show bare inner limbs and a twig shell 1 to 3 m deep at the crown's edge.
-- **The capability is a twig shell.** Two rows in the twig layer: `twigShell`, the depth from the crown's outer surface, as a share of the crown's radius, within which the twig law bears shoots on scaffold wood; and `twigShellSoftness`, the width of the fade at that depth. Unset `twigShell` is today's law (no shell), so every shipped preset is byte-identical; walking it moves the tree by degree. It reads the crown shell fn-173 prepares, and builds on fn-173.
+- **The capability is a twig shell.** Two rows in the twig layer: `twigShell`, the depth from the crown's outer surface, as a share of the crown's radius, within which the twig law bears shoots on scaffold wood; and `twigShellSoftness`, the width of the fade at that depth. Unset `twigShell` is today's law (no shell), so every shipped preset is byte-identical; walking it moves the tree by degree. It reads the crown's outline geometry for depth (not fn-173's table, Astra review 2026-10-02), and builds on fn-183's twig layer, which changes the same code.
 - **Not new rows:** the plane's thin first-order limbs (born at 0.18 of the parent against 0.5 to 0.7 in the photograph, because each stem carries about 22 first-order laterals where the photograph shows 3 to 4 leaders) are values: `lateralSpacing` and `lateralsPerStation` on the stems, and with twigs off the inner wood the pipe model leaves the remaining limbs thicker. The beech's 32 m single stem, where its reference dissolves into 4 to 6 limbs at 30 to 40 percent of the height, is `codominance` with a fork height near 0.3 (fn-170). Both are values the beech's Tune and the plane's candidate set.
 - Length ratios differ least and are left alone.
 
@@ -40,7 +40,7 @@ Open-grown broadleaves read by their branching hierarchy: a few strong scaffold 
 ## Boundaries
 <!-- scope: business -->
 
-- Not the beech's values (fn-62) or a London plane preset. Not girth (fn-177) or forks (fn-170). Builds after fn-173 (growth reads a prepared crown shell), which reworks the same growth code.
+- Not the beech's values (fn-62) or a London plane preset. Not girth (fn-177) or forks (fn-170). Builds after fn-183 (the twig layer grows without the crown as a wall), which reworks the same twig-layer code (host, 2026-10-02; was fn-173).
 
 ## Strategy Alignment
 
