@@ -4,7 +4,7 @@
 
 > user (2026-10-02): "one question i have is why do we even have to check this? couldn't we embed the growth rule differently without capping an exact crown width?"
 > user (2026-10-02, on twigs planned from their room instead of clipped at the crown's outline): "that sounds like it'd fit a tree crown better anyway?"
-> user (2026-10-02): "so this is what i'm talking about when i asked about a fundamentally more elegant solution. How could we have landed there quicker?", then "yes add it and then spec the new spec" (the two rules now under "Before work is made faster" in `docs/principles.md`).
+> user (2026-10-02): "so this is what i'm talking about when i asked about a fundamentally more elegant solution. How could we have landed there quicker?", then "yes add it and then spec the new spec" (now `docs/principles.md`, "Question, delete, then optimise").
 > user (2026-10-02, on the beech now waiting behind fn-182, fn-173 and this spec): "that's fine let's do this proper"
 
 ## Goal & Context
@@ -15,7 +15,7 @@ The twig layer treats the crown's outline as a wall. A planned axis is walked st
 
 The generator may not need the wall at all. The scaffold is planned inside an inner crown that leaves an outer skin of depth `twigReach` for twigs alone (`inner_envelope`, `scaffold/frontier.rs:146`, `specimen.rs:111`), and twigs already take their length from their own rules: a length from the shoot's radius (`local/seed.rs:176`), inherited lateral length ratios (`local/advance.rs:147`), the twig's own length for terminals. A crown's edge then comes from the architecture: how far the last limbs reach and how long their twigs are by order and vigour. The literature supports architecture over a light-starved edge: peripheral shoots on open-grown trees extend more with more light, and branching order and age drive peripheral shoot length (Sterck and Bongers 2001, J. Ecol.; Buck-Sorlin and Bell 2000, Forestry). [code checked; the two sources were cited by Astra's review and not read here]
 
-This spec makes the twig layer grow from its own rules and ask the crown's outline only where a measurement shows a question earns its place. The work is removed, not made cheaper (`docs/principles.md`, "Before work is made faster"). [inferred]
+This spec makes the twig layer grow from its own rules and ask the crown's outline only where a measurement shows a question earns its place. The work is removed, not made cheaper (`docs/principles.md`, "Question, delete, then optimise"). [inferred]
 
 ## Architecture & Data Models
 <!-- scope: technical -->
@@ -81,7 +81,7 @@ The first rung that reads as the references do and keeps excursions within a sta
 
 ## Decision Context
 
-- **Why this spec exists (owner, 2026-10-02).** fn-173 spent two sessions making each crown query cheaper; a count by caller showed most queries come from enforcing the crown as a wall on twig growth. `docs/principles.md`, "Before work is made faster", records the lesson. [checked]
+- **Why this spec exists (owner, 2026-10-02).** fn-173 spent two sessions making each crown query cheaper; a count by caller showed most queries come from enforcing the crown as a wall on twig growth. `docs/principles.md`, "Question, delete, then optimise", records the lesson. [checked]
 - **Astra review (2026-10-02, `ASTRA-REVIEW.md`).** It changed the framing from "plan each twig from its room" to "twig extent follows branch architecture; outline queries must earn their place", added the zero-query and inherited-allowance rungs, the terminal admission the first draft missed, whole-run excursion, the curtain's existing controls, density checks, and the budget per axis a replacement may spend (oak 2.5, beech 3.6, birch 14 queries per planned axis at the first draft's targets). The first draft's botanical claim, that a crown's edge is where shoots run out of light, is withdrawn. [checked]
 - **fn-173 waits on this spec,** re-scoped from the residual time R4 measures, including its preparation and the GPU cull's, not from counts alone. Scheduling is not a reason for it: the direct build does not schedule, and fn-173 keeps the tangent exact. [Astra review]
 - **fn-182 follows this spec, not fn-173.** Its twig-shell depth needs the outline's geometry, not fn-173's table, and both specs change the twig layer, so fn-182 builds on this spec's twig layer. [host, 2026-10-02]
