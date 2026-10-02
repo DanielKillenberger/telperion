@@ -174,3 +174,102 @@ Only existing rows were used. The overlays are under `raw/families/grid/`, and n
 - `plane-hier{1,2}-{today,shell0.4,shell0.25}-s1-{whole,bare}.png`
 - Shell softness is 0.1, and the overlays are `raw/families/<tree>-hier<N>-<shell>.json`.
 - All 24 are distinct by checksum. Two were opened to confirm they are not blank: beech hier1 shell 0.25 bare, and plane hier1 today whole.
+
+## Bounded comparison (host, owner-approved, 2026-10-02)
+
+**Setup:**
+- European beech, seed 1, with the shell neutral (`twigShell` 1), and existing rows only.
+- **Base** is hier1: `codominance` 0.3, `forkHeight` 0.35, `forkWays` 4, which gives 4 leaders.
+- Each variant changes one row from the base.
+- The overlays are in `raw/families/cmp/` and the rows in `raw/cmp.jsonl`. The scratch tracer was never committed.
+
+**How the six systems are chosen:**
+- A candidate system is any axis that leaves an order-0 axis: a stem lateral, or a codominant part.
+- The six thickest by birth radius are taken.
+- A candidate that lies inside an already chosen system is not counted again.
+- Each system is traced axis by axis through its continuation, and codominant parts count as divisions.
+
+**The columns:**
+- **thick:** daughter start radius ÷ parent radius, the median over substantial divisions (ratio ≥ 0.3).
+- **len/rest:** daughter axis length ÷ the parent's path length left past the division. It is the median over the divisions that have some parent left; the count of divisions at an axis's end is in brackets in the divisions column.
+- **gap:** the median uninterrupted length, in metres, between substantial divisions along an axis, its start and tip included.
+- **tort:** path ÷ chord per axis of 1 m or more, as median / p90.
+- **angle:** departure angle from the parent's direction, as median ± SD.
+- **long:** daughter axes longer than half their parent axis, out of all daughter axes.
+- **twig/m:** twig-law laterals per metre of the six systems' scaffold.
+
+| Set | thick | len/rest | gap m | tort med / p90 | angle ° | long | divisions (at end) | twig/m | nodes | leaves | ms |
+|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| today (shipped) | 0.68 | 1.15 | 2.00 | 1.001 / 1.001 | 28 ± 3.8 | 171 / 260 | 260 (36) | 5.99 | 213,044 | 5,828,744 | 75 |
+| base (hier1) | 0.78 | 1.16 | 2.00 | 1.001 / 1.002 | 27 ± 3.9 | 342 / 457 | 454 (119) | 4.99 | 201,283 | 6,100,807 | 88 |
+| lateralLengthRatio 0.45 | 0.78 | 1.00 | 1.83 | 1.001 / 1.002 | 27 ± 4.0 | 13 / 365 | 362 (118) | 4.00 | 112,985 | 3,494,880 | 41 |
+| lateralLengthRatio 0.3 | 0.79 | 0.90 | 1.05 | 1.001 / 1.002 | 27 ± 4.0 | 8 / 301 | 298 (109) | 3.71 | 68,767 | 2,191,206 | 25 |
+| raggedReach 0.3 | 0.78 | 1.22 | 2.00 | 1.001 / 1.002 | 28 ± 3.9 | 266 / 373 | 373 (99) | 4.27 | 135,287 | 4,103,917 | 57 |
+| crookedness 10 | 0.78 | 1.19 | 2.00 | 1.015 / 1.016 | 28 ± 7.6 | 334 / 437 | 437 (109) | 4.90 | 198,504 | 6,067,642 | 78 |
+| pitchVariation 16 | 0.78 | 1.19 | 2.00 | 1.001 / 1.002 | 26 ± 9.3 | 336 / 451 | 448 (115) | 4.93 | 193,426 | 5,915,712 | 73 |
+| codominance 0.6, forkWays 2 | 0.69 | 1.16 | 2.00 | 1.001 / 1.002 | 28 ± 3.8 | 244 / 350 | 350 (69) | 4.88 | 171,642 | 5,152,187 | 68 |
+| shortShoot 0.3 / 0.08 | 0.78 | 1.16 | 2.00 | 1.001 / 1.002 | 27 ± 3.9 | 342 / 457 | 454 (119) | 4.99 | 201,283 | 2,463,067 | 74 |
+| limbRadius 0.14 | 0.78 | 1.16 | 2.00 | 1.001 / 1.002 | 27 ± 3.9 | 342 / 457 | 454 (119) | 0.01 | 40,381 | 1,817,642 | 26 |
+| **cmpA** | 0.79 | 1.05 | 2.00 | 1.015 / 1.019 | 27 ± 11.1 | 11 / 369 | 366 (116) | 4.90 | 129,139 | 1,572,753 | 44 |
+| **cmpB** | 0.79 | 0.82 | 1.15 | 1.014 / 1.020 | 26 ± 10.8 | 6 / 293 | 293 (108) | 3.54 | 64,761 | 817,358 | 25 |
+| cmpA + codom 0.6 w2 | 0.78 | 1.06 | 2.00 | 1.015 / 1.019 | 29 ± 11.4 | 7 / 291 | 291 (77) | 4.64 | 105,696 | 1,324,554 | 39 |
+| cmpB + codom 0.6 w2 | 0.79 | 0.76 | 1.26 | 1.013 / 1.019 | 28 ± 11.1 | 2 / 231 | 231 (77) | 3.44 | 53,837 | 697,458 | 24 |
+| cmpB, twigShell 0.25 | 0.79 | 0.82 | 1.15 | 1.014 / 1.020 | 26 ± 10.8 | 6 / 293 | 293 (108) | 1.02 | 35,877 | 480,851 | 15 |
+| cmpB, sheddingThreshold 0.25 | 0.79 | 0.82 | 1.15 | 1.014 / 1.020 | 26 ± 10.8 | 6 / 293 | 293 (108) | 1.26 | 32,458 | 452,699 | 44 |
+
+**What each row moved.** Every row moved at least one measurement.
+- **`lateralLengthRatio`:**
+  - Daughter length against the rest of the parent fell from 1.16 to 1.00 at 0.45, and to 0.90 at 0.3.
+  - Long daughters fell from 342 to 13 at 0.45, and to 8 at 0.3.
+  - This is the only row that makes divisions shorter than the parent they leave.
+- **`raggedReach` 0.3:** fewer long daughters (266), but relatively longer ones (1.22). The result is mixed, so it was left out of the combinations.
+- **`crookedness` 10:** tortuosity rose from 1.001 to 1.015, and the angle SD from 3.9° to 7.6°.
+- **`pitchVariation` 16:** the angle SD rose to 9.3°.
+- **`codominance` 0.6 with `forkWays` 2:**
+  - This is the only row that lowered daughter thickness, from 0.78 to 0.69.
+  - It cut the leaders from 4 to 2 (leader girth 0.75), which moves away from B-BARE's 4 to 6.
+  - In the combinations it no longer moved thickness (0.78 and 0.79).
+  - So it is shown beside the candidates rather than in them.
+- **Short shoots 0.3 / 0.08:** structure unchanged; leaves fell from 6.10M to 2.46M.
+- **`limbRadius` halved (0.14):**
+  - The twig layer on the systems fell from 4.99 to 0.01 laterals per metre, and nodes fell from 201k to 40k.
+  - That removes the peripheral twig haze along with the inner clutter, so it overshoots and was left out.
+
+**What no row moved:**
+- **Daughter thickness** stays at 0.78 to 0.79. Every scaffold lateral is a substantial division, at about 0.8 of its parent. The exception is codominance, at the cost of leaders.
+- **Tortuosity** stays near straight: 1.015 at crookedness 10.
+
+**The two combined candidates.** The values are applied on the base:
+- **cmpA:** `lateralLengthRatio` 0.45, `crookedness` 10, `pitchVariation` 16, `shortShootRadius` 0.3, `shortShootSpacing` 0.08.
+- **cmpB:** the same with `lateralLengthRatio` 0.3.
+- Both keep 4 leaders.
+
+**The best candidate is cmpB.**
+- It is the only one whose divisions are shorter than the parent past them (0.82). The photograph reads as progressively shorter, finer divisions.
+- It has the fewest long daughters (6 of 293), with cmpA's gains in curvature and angle spread.
+- Its cost is the smallest tree: 64,761 nodes and 817k leaves.
+
+**Shell ablation on cmpB.**
+- Twig-law laterals per metre are given by depth under the outline (outer ≤ 0.15 / mid / inner > 0.4).
+
+| | Order-1 limbs | Order 2 | Order 3 |
+|---|---|---|---|
+| cmpB | 0 / 3.38 / 0.25 | 8.11 / 4.38 / 2.72 | 21.7 / 22.7 / 21.5 |
+| twigShell 0.25 | 0 / 0.42 / 0 | 8.11 / 2.36 / 0 | 21.7 / 12.4 / 0 |
+| sheddingThreshold 0.25 | 0 / 1.59 / 0 | 8.11 / 2.97 / 0 | 21.7 / 14.9 / 0 |
+
+- **Both clear the inner crown and leave the outer twigs as they were.** On the six systems, twig laterals fell from 3.54 to 1.02 per metre with the shell, and to 1.26 with shedding.
+- **Shedding keeps a little more mid-depth wood,** because it keeps the paths to surviving shoots.
+- **Size:** the shell gives 35,877 nodes and 481k leaves; shedding gives 32,458 nodes and 453k leaves.
+- **Cost:** the shell builds faster, 15 ms against 44 ms, because shedding grows the twigs first and then removes them.
+- **Structure:** both leave the scaffold measurements unchanged.
+- **On these numbers the existing `sheddingThreshold` reaches nearly the same inner clearing as the shell.** Whether the shell adds a distinct look is for the bare stills below.
+
+**Stills.** 960x720, seed 1, under `raw/stills/`.
+- **The camera:** each still uses the hero pose solved from its own tree's bounds, as every earlier beech still does. The renderer has no fixed absolute camera.
+- **The files:**
+  - Bare: `beech-cmp-{today,hier1,cmpA,cmpB}-s1-bare.png`
+  - Whole: `beech-cmp-{cmpA,cmpB}-s1-whole.png`
+  - Shell ablation: `beech-cmp-cmpB-shell0.25-s1-{bare,whole}.png`
+  - Shedding: `beech-cmp-cmpB-shed0.25-s1-bare.png`
+- **Checked:** two were opened to confirm they are not blank: cmpB bare, and cmpB with the shell, whole.
