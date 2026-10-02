@@ -199,7 +199,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-181-the-growth-path-is-removed-to-be.md",
-  "status": "open",
+  "status": "done",
   "title": "The growth path is removed, to be rewritten later",
   "tracker": {
     "baseHashFlow": null,
@@ -212,5 +212,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T18:37:29.612957Z"
+  "updated_at": "2026-10-02T18:43:53.639883Z"
 }
