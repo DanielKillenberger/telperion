@@ -15,9 +15,10 @@ Report: `.flow/evidence/fn-183-the-twig-layer-grows-without-the-crown/R1-LADDER.
 - [ ] Stills for the owner listed by path (at most four per preset), bare and leafy.
 - [ ] Exploratory variants are not on the branch's final diff except the profiler.
 ## Done summary
-TBD
+`growth_profile` counts crown queries by purpose behind the `query-count` feature (bd7a2c7d). The ladder was measured on five presets at seeds 1 and 7 (c4950378, reverted in f68203c3); the report and friction are in 170b5981 (`R1-LADDER.md`). The host decided R2 in 42f42e72: rung 3b, the directional probe.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: bd7a2c7d, c4950378, f68203c3, 170b5981
+- Tests: cargo test --profile ci --workspace --no-fail-fast
 - PRs:
