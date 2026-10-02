@@ -21,6 +21,15 @@ STRATEGY.md's "Our approach" is enforced by structure, not policing (owner, 2026
 
 Timing and memory are measured on named hardware by the spec that changes them, never per push.
 
+## Before work is made faster
+
+Two rules come before any design that makes generation faster (owner, 2026-10-02).
+
+1. **Count who asks before making the answer cheap.** A profile ranks functions by time; it does not say which code calls them or what for. Before a spec designs a faster hot function, it counts that function's calls by caller and by what each caller needs the answer for, and reports the counts.
+2. **First ask whether the work is needed at all.** A performance spec opens by answering, with a measurement, whether the work can be removed rather than made cheaper, including whether the real tree has a botanical cause that makes the constraint unnecessary. The spec is named for that purpose, not for a mechanism, and its boundaries do not hand that question to a neighbouring spec.
+
+The reason: fn-173 spent two sessions and a design review making the crown's radius cheaper to compute, and every candidate was judged on its cost per query. A ten-minute count on 2026-10-02 showed that 56 to 74 percent of the queries on the oak, beech and birch came from enforcing the crown as an exact wall on twig growth, 49 percent of the birch's from a 40-step search for where a twig meets it. A real crown has no such wall.
+
 ## Sanctioned exceptions
 
 Two sanctioned exceptions build outside the one-pipeline rule. Code visibility holds this list: the pipeline exposes `pipeline::build` and the executor interface, and nothing else may be called.

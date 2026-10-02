@@ -1,0 +1,112 @@
+diff --git i/crates/telperion-core/examples/growth_profile.rs w/crates/telperion-core/examples/growth_profile.rs
+index 6b84edb5..39cfcdd4 100644
+--- i/crates/telperion-core/examples/growth_profile.rs
++++ w/crates/telperion-core/examples/growth_profile.rs
+@@ -15,6 +15,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
+         .unwrap_or_else(|_| "6".into())
+         .parse()?;
+     for sample in 0..samples {
++        use std::sync::atomic::Ordering::Relaxed;
++        use telperion_core::envelope as e;
++        for c in [&e::RADIUS, &e::STEP, &e::BISECT, &e::CLIPPED, &e::STEPS, &e::PROFILE, &e::AXES, &e::REACH] { c.store(0, Relaxed); }
+         // A request for no output runs the skeleton stage alone.
+         let built = pipeline::build(&f, pipeline::Request::default())?;
+         let (skeleton, ms) = (built.skeleton, built.outputs.stages.skeleton_ms);
+@@ -29,6 +32,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
+             skeleton.tree.nodes.len(),
+             skeleton.shed
+         );
++        println!("radius_at total {} | step checks {} radius in {} | clipped steps {} | bisection radius {} | profile() calls {} | local axes {} | scaffold reach radius {}",
++            e::RADIUS.load(Relaxed), e::STEPS.load(Relaxed), e::STEP.load(Relaxed), e::CLIPPED.load(Relaxed), e::BISECT.load(Relaxed), e::PROFILE.load(Relaxed), e::AXES.load(Relaxed), e::REACH.load(Relaxed));
+     }
+     Ok(())
+ }
+diff --git i/crates/telperion-core/src/envelope.rs w/crates/telperion-core/src/envelope.rs
+index 6eeb1418..de978974 100644
+--- i/crates/telperion-core/src/envelope.rs
++++ w/crates/telperion-core/src/envelope.rs
+@@ -106,6 +106,15 @@ impl Default for Envelope {
+         }
+     }
+ }
++pub static RADIUS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
++pub static STEP: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
++pub static BISECT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
++pub static CLIPPED: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
++pub static STEPS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
++pub static PROFILE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
++pub static AXES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
++pub static REACH: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
++pub fn count() -> u64 { RADIUS.load(std::sync::atomic::Ordering::Relaxed) }
+ impl Envelope {
+     pub fn validate(&self) -> Result<()> {
+         crate::catalogue::check(Self::CHECKS, self, Site::Envelope)?;
+@@ -118,6 +127,7 @@ impl Envelope {
+         self.height * self.spread
+     }
+     pub fn radius_at(&self, y: f64) -> f64 {
++        RADIUS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+         let base = self.height * self.crown_base;
+         let span = self.height - base;
+         if span <= 0.0 {
+@@ -244,6 +254,7 @@ impl Envelope {
+     /// irregularity says where growth may go, not how retention is judged. A
+     /// bearing-aware retention is a spec of its own if the pairs ask for one.
+     pub fn profile(&self) -> Vec<[f64; 2]> {
++        PROFILE.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+         let base = self.height * self.crown_base;
+         (0..=128)
+             .map(|i| {
+diff --git i/crates/telperion-core/src/pipeline/branching/local/planner.rs w/crates/telperion-core/src/pipeline/branching/local/planner.rs
+index d1f7d6a2..1bf5fded 100644
+--- i/crates/telperion-core/src/pipeline/branching/local/planner.rs
++++ w/crates/telperion-core/src/pipeline/branching/local/planner.rs
+@@ -85,6 +85,7 @@ impl Planner<'_> {
+         // Plan the axis against its authored room. The live boundary is checked
+         // separately for every birth, so a juvenile crown pauses the cached run
+         // rather than permanently truncating it and flushing a terminal early.
++        crate::envelope::AXES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+         let config = GrowthConfig {
+             shell: self.planning.or(self.config.shell),
+             ..*self.config
+@@ -132,7 +133,14 @@ impl Planner<'_> {
+             course = self.heading(at, course, wanted, stride);
+             let heading = curtain.sagged(course, travelled, self.twigs, key ^ self.seed);
+             let end = at + heading * stride;
+-            if !admitted(curtain, &config, self.twigs, bound, end) {
++            use std::sync::atomic::Ordering::Relaxed;
++            let r0 = crate::envelope::count();
++            let ok = admitted(curtain, &config, self.twigs, bound, end);
++            crate::envelope::STEP.fetch_add(crate::envelope::count() - r0, Relaxed);
++            crate::envelope::STEPS.fetch_add(1, Relaxed);
++            if !ok {
++                crate::envelope::CLIPPED.fetch_add(1, Relaxed);
++                let r1 = crate::envelope::count();
+                 let mut low = 0.0;
+                 let mut high = stride;
+                 for _ in 0..40 {
+@@ -143,6 +151,7 @@ impl Planner<'_> {
+                         low = mid
+                     }
+                 }
++                crate::envelope::BISECT.fetch_add(crate::envelope::count() - r1, Relaxed);
+                 if low > 1e-9 {
+                     points.push(at + heading * low);
+                     along.push(along.last().unwrap() + low)
+diff --git i/crates/telperion-core/src/pipeline/branching/scaffold.rs w/crates/telperion-core/src/pipeline/branching/scaffold.rs
+index 0e545796..68a053c8 100644
+--- i/crates/telperion-core/src/pipeline/branching/scaffold.rs
++++ w/crates/telperion-core/src/pipeline/branching/scaffold.rs
+@@ -252,6 +252,12 @@ impl Builder<'_> {
+     /// Straight-line room for a first-order axis, measured against the
+     /// envelope the local layer is left to fill.
+     fn reach(&self, position: Vec3, direction: Vec3) -> f64 {
++        let r0 = crate::envelope::count();
++        let out = self.reach_inner(position, direction);
++        crate::envelope::REACH.fetch_add(crate::envelope::count() - r0, std::sync::atomic::Ordering::Relaxed);
++        out
++    }
++    fn reach_inner(&self, position: Vec3, direction: Vec3) -> f64 {
+         let probe = (if self.growing_envelope {
+             self.planning.height
+         } else {
