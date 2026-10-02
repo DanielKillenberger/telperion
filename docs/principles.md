@@ -21,14 +21,16 @@ STRATEGY.md's "Our approach" is enforced by structure, not policing (owner, 2026
 
 Timing and memory are measured on named hardware by the spec that changes them, never per push.
 
-## Before work is made faster
+## Question, delete, then optimise
 
-Two rules come before any design that makes generation faster (owner, 2026-10-02).
+Every design takes these steps in order, and a later step never starts on something an earlier one would remove (owner, 2026-10-02, after Musk's five-step algorithm).
 
-1. **Count who asks before making the answer cheap.** A profile ranks functions by time; it does not say which code calls them or what for. Before a spec designs a faster hot function, it counts that function's calls by caller and by what each caller needs the answer for, and reports the counts.
-2. **First ask whether the work is needed at all.** A performance spec opens by answering, with a measurement, whether the work can be removed rather than made cheaper, including whether the real tree has a botanical cause that makes the constraint unnecessary. The spec is named for that purpose, not for a mechanism, and its boundaries do not hand that question to a neighbouring spec.
+1. **Every requirement has a name.** A constraint in a spec or in the generator states who set it and why: the owner with a date, a measurement, a cited source, or a principle above. A spec's `[inferred]` requirement is a hypothesis to question before it is built, not a settled one. A constraint in code that no one can name is a candidate for deletion, not a fact to work around.
+2. **Delete before simplifying.** Before a design makes something cheaper, simpler or more general, it answers, with a measurement, whether the thing can be removed instead, including whether the real tree has a botanical cause that makes the constraint unnecessary. Some deletions come back, as fn-183's curtain floor did for the clearance dial; a design that never restores anything has not deleted enough.
+3. **Then simplify and optimise.** Count who asks before making the answer cheap: a profile ranks functions by time, not by which code calls them or what for, so a speed spec counts a hot function's calls by caller and purpose before designing a faster one. A spec is named for its purpose, not a mechanism, and its boundaries do not hand the deletion question to a neighbouring spec.
+4. **Then shorten the loop, then automate.** Faster iteration and automation come last, on what survived the first three.
 
-The reason: fn-173 spent two sessions and a design review making the crown's radius cheaper to compute, and every candidate was judged on its cost per query. A ten-minute count on 2026-10-02 showed that 56 to 74 percent of the queries on the oak, beech and birch came from enforcing the crown as an exact wall on twig growth, 49 percent of the birch's from a 40-step search for where a twig meets it. A real crown has no such wall.
+The reason: fn-173 spent two sessions and a design review making the crown's radius cheaper to compute. A count by caller on 2026-10-02 showed that 86 to 88 percent of the oak's and beech's crown queries, and the birch's curtain search on top, came from enforcing the crown as a wall on twig growth (`.flow/evidence/fn-183-the-twig-layer-grows-without-the-crown/R1-LADDER.md`). The wall had no owner and no reason; a real crown has none. fn-183 deleted it, and the trees read less regular and grow faster. The host then added an unnamed limit on twigs leaving the outline and picked a rung by it; the owner deleted that too.
 
 ## Sanctioned exceptions
 

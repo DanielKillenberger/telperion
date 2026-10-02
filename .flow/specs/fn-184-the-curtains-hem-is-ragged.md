@@ -23,7 +23,7 @@ A weeping crown's lower edge is ragged: its strands end at many heights, and onl
 - Why the drop row barely moves the curtain's lowest tenth once fn-183 removes the band (3.647 to 3.564 m over its whole walk on the birch): the same question as the hem, from the other side.
 - Whether existing rows (`pendulousLength`, the curtain's variation row, `sag`, `drop`) already vary strand ends enough when set differently, so no new row is needed.
 
-**Direction (host, 2026-10-02; settled by R2 after R1).** Before adding anything, ask whether the cut can be the rare case: if each strand's planned length ends it short of the floor by its own amount, most strands stop on their own and only the longest reach the clearance, and the hem is ragged with no new border (`docs/principles.md`, "Before work is made faster": remove before adding). A new row, if R1 shows one is needed, is one continuous law, dormant at today's look, refused by name off its rails. [inferred]
+**Direction (host, 2026-10-02; settled by R2 after R1).** Before adding anything, ask whether the cut can be the rare case: if each strand's planned length ends it short of the floor by its own amount, most strands stop on their own and only the longest reach the clearance, and the hem is ragged with no new border (`docs/principles.md`, "Question, delete, then optimise"). A new row, if R1 shows one is needed, is one continuous law, dormant at today's look, refused by name off its rails. [inferred]
 
 ## Edge Cases & Constraints
 
