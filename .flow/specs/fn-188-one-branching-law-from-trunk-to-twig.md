@@ -26,11 +26,17 @@ In a real tree one branching process runs from trunk to twig; strong limbs are s
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-**Step 1: the judging lens.** The 960x720 hero stills draw 86% of the beech's twig segments under one pixel wide (fn-182 `R8-HORNS.md`); a 10 m close-up shows twigs the full view drops. The reference photographs show those twigs as a visible haze. Until a judging render shows sub-pixel twig mass as tone, a comparison with the photographs cannot separate a growth defect from a drawing one. How the renderer handles segments under a pixel is unknown. [checked: pixel counts; unknown: the renderer's handling]
+**Revised after Astra's challenge (2026-10-02, `ASTRA-REVIEW.md` in this spec's evidence).** [checked]
+- **The beech uses no attractor competition:** its `attractorWeight` is 0 (`european-beech.values:31`), so its structure is rule-generated, not space-colonized. The scaffold's own rules (one lateral per deeper station, lengths from the whole parent axis, forks at absolute heights; `scaffold.rs:280`, `scaffold.rs:318`, `scaffold/fork.rs:101`) would survive a shared branching function unless changed deliberately.
+- **The seam explains part of it, not all:** the horns are mostly the hand-off (`local/seed.rs:158`), the bare thick wood is an explicit eligibility rule (`local/seed.rs:132`), and thickness has two causes, the pipe solve excluding twig-layer wood (`radius.rs:166`) and near-equal downstream demand giving near-equal daughters under any pipe solver.
+- **The 86% under a pixel** was P1's twig segments along thick limbs, a projected width, not proven lost coverage. Wood draws its full index range with no camera-based rejection; captures use 4x MSAA where supported (`wood.rs:277`, `wood.wgsl:25`, `pass.rs:14`, `headless.rs:54`); the capture's actual sample count is unchecked.
 
-**Step 2: a throwaway probe.** One beech grown by a single branching law over all orders, with no crossover: every axis bears laterals by one rule whose vigour, length and thickness are continuous functions of what the axis carries and where it is; thickness from the pipe model over the whole tree. Published self-organizing tree models (bud competition for space and light with vigour allocated down the hierarchy) are the reference point; the probe takes the smallest form that can show whether the hierarchy emerges. It lives outside the pipeline (a scratch example or crate), is never merged, and is measured on the same traced branch systems as fn-182 (thickness and length against the parent, length between divisions, tortuosity, angle spread, twig wood per metre of limb), with nodes and build time against today's beech. [inferred]
+**Steps, smallest first.** [inferred]
+1. **The judging lens.** A fixed-camera full-tree beech render at higher resolution downsampled in linear light, beside native resolution with the same geometry and lighting, plus one resolved branch crop; the same framing for every candidate. Only demonstrated coverage loss justifies coverage-preserving thin-wood drawing; opaque minimum-width inflation would exaggerate wood.
+2. **Small ablations inside today's pipeline.** (a) On frozen topology and positions, solve radii from fine-branch demand over the whole tree, root diameter fixed, without feeding radii back into growth. (b) Delete the unconditional terminal extension (R8's shortening, taken to removal). (c) If thick scaffold poles remain, axis-relative subdivision. Each measured on the traced branch systems through the step-1 lens.
+3. **Only if a topology defect remains:** a competitive-growth probe in the Pałubicki et al. 2009 extended Borchert-Honda family (terminal and axillary buds, one coarse light field, accumulated exposure, resource allocation with apical preference, resource-dependent extension, a whole-tree pipe pass), outside the pipeline, compared with neutral allocation. Rejected if the poles persist, if it needs the discarded rules back, or if acceptable detail exceeds the agreed cost.
 
-**Unknown until measured.** Whether one law produces few strong limbs and a fine periphery on the beech; whether it fits the runtime budget (today's beech skeleton is about 75 ms); what of today's pipeline it would replace. [unknown]
+**Runtime is measured, not assumed.** Same machine, profile, height, terminal detail and outputs; cold and repeated latency, median and p95, peak memory, cumulative nodes visited, generated against retained nodes, time by stage, budget retries included; against the shipped beech and fn-182's shortened candidate (22 to 26 ms). [inferred]
 
 ## Edge Cases & Constraints
 
@@ -39,10 +45,10 @@ In a real tree one branching process runs from trunk to twig; strong limbs are s
 
 ## Acceptance Criteria
 
-- **R1:** A judging render for the beech in which sub-pixel twig mass reads as tone, or a framing that resolves it, shown beside the reference with today's beech; the report states how the renderer draws sub-pixel segments today. [inferred]
-- **R2:** The probe beech, its measurements on the traced systems against today's beech and the photograph's reading (fn-182 `R1-MEASUREMENT.md`), its build time, and bare and whole stills through the R1 lens. [inferred]
-- **R3:** A written comparison: what the single law produced, what it did not, what of today's pipeline it would delete (crossover hand-off, twig-layer laws, girth patches, the twig gate, structural clean-ups), its cost, and the risks. [inferred]
-- **R4:** The owner's decision: rebuild growth around one law (a strategy change, then specced on its own), or return to fn-182's two targeted fixes. [user]
+- **R1:** The judging lens above, with the capture's sample count stated and coverage loss shown or ruled out. [inferred]
+- **R2:** Ablations (a), (b) and (c) as needed, measured on the traced systems through the R1 lens, with runtime as above. [inferred]
+- **R3:** The probe of step 3, only if R2 leaves a topology defect. [inferred]
+- **R4:** The owner decides in order: the visible structure that is sufficient, on resolved branch evidence; the latency and detail trade-off; whether R2 leaves a defect worth R3; and whether R3 justifies targeted integration, more investigation or a broader replacement. [user, Astra review]
 
 ## Boundaries
 
