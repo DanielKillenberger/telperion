@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-181-the-growth-path-is-removed-to-be",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-02T18:37:29.612947Z",
   "created_at": "2026-09-27T21:02:29.330508Z",
   "default_impl": null,
   "default_review": null,
@@ -212,5 +212,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T18:36:47.851008Z"
+  "updated_at": "2026-10-02T18:37:29.612957Z"
 }
