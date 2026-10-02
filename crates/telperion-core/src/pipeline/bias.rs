@@ -16,7 +16,7 @@ crate::catalogue::rows! {
         /// Whether the supernatural field bends the wood. Off, the bias reads
         /// the amplitude, wavelength and spiral as zero.
         pub enabled: bool = "enabled" "switch" Bounds::closed(0.0, 1.0) => [Grow] {
-            wire: 43,
+            wire: 36,
             note: "Does not gate `maxWritheMagnitude`. A walk interpolates what each side \
                 applies.",
             blend: Blend::Coupled,
@@ -28,7 +28,7 @@ crate::catalogue::rows! {
         /// nothing, and any rise starts the wander.
         pub writhe_amplitude: f64 = "writheAmplitude" "share of height"
             Bounds::at_least(0.0) => [Grow] {
-            wire: 44,
+            wire: 37,
             check: input(Site::Bias, 2, "growth bias"),
             applies: "`enabled` off",
             note: "`TAU·spiralRate·amplitude` and `TAU·amplitude/wavelength` must be finite \
@@ -46,7 +46,7 @@ crate::catalogue::rows! {
         /// Raising it gives fewer, lazier bends; lowering it gives tighter kinks.
         pub writhe_wavelength: f64 = "writheWavelength" "share of height"
             Bounds::above(0.0) => [Grow] {
-            wire: 45,
+            wire: 38,
             check: input(Site::Writhe, 1, "writheWavelength"),
             applies: "`enabled` off, or `writheAmplitude` zero",
             note: "Checked while dormant too.",
@@ -63,7 +63,7 @@ crate::catalogue::rows! {
         /// winds around nothing, and any rise starts the spiral.
         pub spiral_rate: f64 = "spiralRate" "turns over the height"
             Bounds::at_least(0.0) => [Grow] {
-            wire: 47,
+            wire: 40,
             check: input(Site::Bias, 3, "growth bias"),
             applies: "`enabled` off, or `writheAmplitude` zero",
             blend: Blend::Coupled,
@@ -83,7 +83,7 @@ crate::catalogue::rows! {
         )]
         pub max_writhe_magnitude: f64 = "maxWritheMagnitude" "-"
             Bounds::closed(0.0, 8.0) => [Grow] {
-            wire: 46,
+            wire: 39,
             check: value(Site::Writhe, 0, "maxWritheMagnitude"),
             note: "Applies with `enabled` off, and caps the lean term with the writhe.",
             blend: Blend::Coupled,
@@ -114,7 +114,7 @@ crate::catalogue::rows! {
         /// Raising it makes the tree grow more erect. At zero nothing pulls
         /// growth upright, and any rise starts that pull.
         pub gravitropism: f64 = "gravitropism" "-" Bounds::at_least(0.0) => [Grow] {
-            wire: 41,
+            wire: 34,
             check: input(Site::Bias, 0, "growth bias"),
             growth: Growth::Differs("also decides when growth-path shoots sleep"),
             dial: tuned("gravitropism", "how strongly growth is pulled upright, most near the \
@@ -128,7 +128,7 @@ crate::catalogue::rows! {
         /// height. Raising it tips the trunk further in one direction. At zero
         /// the tree stands plumb, and any rise starts the lean.
         pub lean: f64 = "lean" "-" Bounds::at_least(0.0) => [Grow] {
-            wire: 42,
+            wire: 35,
             check: input(Site::Bias, 1, "growth bias"),
             note: "Capped together with the writhe by `maxWritheMagnitude`.",
             dial: tuned("lean", "how far the whole tree leans off vertical; at zero the tree \
@@ -189,12 +189,6 @@ impl GrowthBias {
             phase: rng.next_f64() * TAU,
             noise: Noise::new(seed ^ 0x1f83d9ab),
         })
-    }
-    /// Whether changing crown height can change a planned direction.
-    pub(crate) fn height_independent(&self) -> bool {
-        self.params.gravitropism == 0.0
-            && (!self.params.supernatural.enabled
-                || self.params.supernatural.writhe_amplitude == 0.0)
     }
     /// Inputs are finite; direction is unit length (validated by growth).
     pub fn apply(&self, position: Vec3, direction: Vec3) -> Vec3 {

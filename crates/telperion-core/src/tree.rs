@@ -10,7 +10,6 @@ use crate::{math::Vec3, Error, Result};
 pub use identity::NodeIdentity;
 pub(crate) use identity::NodeKey;
 pub use section::{Section, SectionRing};
-pub(crate) use shoot::LocalWidth;
 pub use shoot::{BudFate, ShootState};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]

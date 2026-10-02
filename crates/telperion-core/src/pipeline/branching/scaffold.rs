@@ -27,7 +27,6 @@ fn axis_key(parent: u32, station: usize, member: usize) -> u32 {
 }
 
 #[derive(Clone)]
-#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 struct Axis {
     at: usize,
     heading: Vec3,
@@ -117,20 +116,13 @@ struct Builder<'a> {
     tree: &'a mut Tree,
     envelope: Envelope,
     planning: Envelope,
-    /// The tree's own height, which a fork's height is a share of on every
-    /// slice of the growth path.
-    height: f64,
     config: &'a GrowthConfig,
     bias: &'a GrowthBias,
     habit: HabitParams,
     points: &'a [Vec3],
-    consumed: &'a mut [Option<u64>],
-    year: u64,
+    consumed: &'a mut [bool],
     influence_sq: f64,
     kill_sq: f64,
-    point_scale: f64,
-    growing_envelope: bool,
-    paused: bool,
     limbs: &'a mut Limbs,
 }
 
@@ -179,7 +171,6 @@ impl Builder<'_> {
                 || (crown && bole)
                 || (held && !bole && !inside(p))
         }) {
-            self.paused = self.growing_envelope;
             return Ok(None);
         }
         if self.capped() {
@@ -206,11 +197,10 @@ impl Builder<'_> {
         let mut sum = Vec3::ZERO;
         let mut found = false;
         for (a, point) in self.points.iter().enumerate() {
-            let point = *point * self.point_scale;
-            if self.consumed[a].is_some() || position.distance_squared(point) > self.influence_sq {
+            if self.consumed[a] || position.distance_squared(*point) > self.influence_sq {
                 continue;
             }
-            let delta = point - position;
+            let delta = *point - position;
             if delta.length_squared() > 0.0 {
                 sum += delta.normalized();
                 found = true;
@@ -224,9 +214,8 @@ impl Builder<'_> {
     fn consume(&mut self, position: Vec3, unit: f64) {
         let reached = self.kill_sq.min(unit * unit);
         for (a, point) in self.points.iter().enumerate() {
-            let point = *point * self.point_scale;
-            if self.consumed[a].is_none() && position.distance_squared(point) <= reached {
-                self.consumed[a] = Some(self.year);
+            if !self.consumed[a] && position.distance_squared(*point) <= reached {
+                self.consumed[a] = true;
             }
         }
     }
@@ -255,12 +244,7 @@ impl Builder<'_> {
     /// envelope the local layer is left to fill.
     fn reach(&self, position: Vec3, direction: Vec3) -> f64 {
         let _asks = queries::during(Purpose::ScaffoldRoom);
-        let probe = (if self.growing_envelope {
-            self.planning.height
-        } else {
-            self.envelope.height
-        } / 64.0)
-            .max(1e-9);
+        let probe = (self.envelope.height / 64.0).max(1e-9);
         let mut length = 0.0;
         for _ in 0..self.habit.reach_probe_steps {
             let next = position + direction * (length + probe);
@@ -274,8 +258,7 @@ impl Builder<'_> {
         length
     }
     /// A height's share of the crown, from `trunkHeight` at its base to the
-    /// envelope's top, held within the crown. The growth path's planning
-    /// shell sits a twig's reach inside that top, so it is not the crown.
+    /// envelope's top, held within the crown.
     fn height_share(&self, position: Vec3) -> f64 {
         let base = self.config.trunk_height;
         ((position.y - base) / (self.envelope.height - base).max(1e-9)).clamp(0.0, 1.0)
@@ -340,7 +323,7 @@ impl Builder<'_> {
             }
             let mut child = Axis::new(at, direction, length, axis.order + 1, key);
             child.bound = bound;
-            child.fork = fork::decide(&self.habit, key, self.height, position.y, Some(spacing));
+            child.fork = fork::decide(&self.habit, key, self.envelope.height, position.y, Some(spacing));
             out.push(child);
         }
         out
@@ -375,7 +358,7 @@ impl Builder<'_> {
         let least = Some(self.spacing(axis.order));
         // A part's own fork grows in no further than the part it forks from.
         let decide = |key, grown: f64| {
-            fork::decide(&self.habit, key, self.height, base, least).map(|f| fork::Fork {
+            fork::decide(&self.habit, key, self.envelope.height, base, least).map(|f| fork::Fork {
                 weight: f.weight * grown,
                 ..f
             })
@@ -444,17 +427,6 @@ impl Builder<'_> {
             let position = self.tree.nodes[at].position;
             let pull = self.pull(position);
             if !self.points.is_empty() && pull.is_none() && position.y >= self.config.trunk_height {
-                if self.growing_envelope {
-                    *budget += 1;
-                    axis.completed = k;
-                    axis.tip = at;
-                    axis.current_heading = heading;
-                    axis.since = since;
-                    axis.station_index = index;
-                    axis.stationed = stationed;
-                    axis.children = children;
-                    return Ok(false);
-                }
                 break;
             }
             let t = (k + 1) as f64 / units as f64;
@@ -472,17 +444,6 @@ impl Builder<'_> {
             let stride = unit.min(axis.length - unit * k as f64).max(1e-9);
             let Some(id) = self.edge(at, position + next * stride, axis.order > 0, axis.bound)?
             else {
-                if self.paused {
-                    *budget += 1;
-                    axis.completed = k;
-                    axis.tip = at;
-                    axis.current_heading = heading;
-                    axis.since = since;
-                    axis.station_index = index;
-                    axis.stationed = stationed;
-                    axis.children = children;
-                    return Ok(false);
-                }
                 break;
             };
             if k == 0 && axis.codominant.is_some() {

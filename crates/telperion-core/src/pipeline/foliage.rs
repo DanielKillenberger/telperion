@@ -36,6 +36,7 @@ pub(crate) use placement::place_on;
 #[cfg(feature = "geometry")]
 #[cfg(test)]
 pub use placement::{place, place_on_surface};
+#[cfg(feature = "geometry")]
 pub(crate) use reference::Reach;
 /// The canopy's own rails, for a pass that reads the canopy rows without
 /// placing a leaf: a bad row is refused by the name `place` refuses it by.

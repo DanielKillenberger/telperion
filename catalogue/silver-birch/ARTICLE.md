@@ -5,7 +5,7 @@ sources: [ATKINSON-BIRCH, FNA-BIRCH, JRC-BIRCH, OSU-BIRCH, TSO-BIRCH]
 inputs:
   packet/profile.json: dc439e6adbfa8d3dda89e86b6cb743e0bcfe0a59dcb9f13bfd72e7e392ff1d8f
   packet/references.json: bc5dc2ffb502e22ffd7f104c629c2654bd25372971c4b567c668d2cccee67290
-  packet/species.json: f87681b6a25aa926f74ce78b84998e72f0b468f7cb1a78808d9967ce20365a40
+  packet/species.json: db6ed25a710f37bc5b95fc214ba2cae586cdd237163ee21aabf7061898054358
   packet/specimens.json: c7170f6d38c56f9213938991d0c4f5ca1dd7e6e6b26a13b0c66e787f9bc1eda3
   sources.json: c3c536afe464bc7a62fc5b5741a1efc8b828b0283e9b3b8ad6176513b8b0e48e
   sources/ATKINSON-BIRCH.md: 26601523211f081ef1c3466a094969aa7e7eb80ad8976f5225cb632b52146c34

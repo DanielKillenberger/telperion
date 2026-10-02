@@ -1,11 +1,11 @@
 //! The parameter catalogue: every wire row declared once, beside the domain
 //! that reads it. One `rows!` declaration emits the family field and the row's
 //! entry: its path, type, unit, bounds, meaning (the field's doc comment), the
-//! stages that read it, where the growth path and validation reach it, where
-//! it lies dormant, how a walk between two families moves it and how the
-//! tuning loop may step it. The wire, scalar validation, ordinary blending,
-//! the dial table, `docs/parameters.md` and the browser's parameter metadata
-//! are generated from these entries.
+//! stages that read it, where validation reaches it and how the removed
+//! growth path read it, where it lies dormant, how a walk between two families
+//! moves it and how the tuning loop may step it. The wire, scalar validation,
+//! ordinary blending, the dial table, `docs/parameters.md` and the browser's
+//! parameter metadata are generated from these entries.
 //!
 //! Dependencies between rows are written as prose on the entry (`applies`,
 //! `note`), never executed: derived values stay in the functions that compute
@@ -26,7 +26,12 @@ pub use walk::{degrees, density, linear, walk, weighted};
 
 /// Rows the catalogue no longer holds, each refused with what replaced it: a
 /// wire or value file that still names one is refused, never read silently.
-const RETIRED: [(&str, &str); 5] = [
+const RETIRED: [(&str, &str); 6] = [
+    (
+        "/growth",
+        "/growth is retired: the growth path its rows tuned was removed (fn-181), \
+         to be rewritten",
+    ),
     (
         "/skeleton/habit/stems",
         "/skeleton/habit/stems is retired: a clump is a fork at the root, \
@@ -70,14 +75,16 @@ pub enum Stage {
     Draw,
 }
 
-/// How the hidden growth path reads a row, beside the direct build.
+/// How the growth path read a row, beside the direct build. The path was
+/// removed on 2026-10-02 (fn-181); the column stays as the record its rewrite
+/// starts from (`docs/growth-path.md`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Growth {
     /// Read as the direct build reads it.
     Same,
-    /// Only the growth path reads it; the direct build validates it at most.
+    /// Only the growth path read it; the direct build validates it at most.
     Only,
-    /// The growth path never reads it.
+    /// The growth path never read it.
     Ignored,
     /// Read differently on the growth path, as stated.
     Differs(&'static str),
@@ -144,7 +151,7 @@ pub enum Refusal {
 /// site answers with is the one it always answered with.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Site {
-    Growth,
+    Age,
     Habit,
     Sampling,
     Step,
@@ -311,7 +318,7 @@ pub struct Info {
     pub unit: &'static str,
     pub bounds: Bounds,
     /// Stages that read the row on the direct build; none only for a row the
-    /// growth path alone reads or a deprecated one.
+    /// growth path alone read or a deprecated one.
     pub reads: &'static [Stage],
     /// The row's rank on the wire before the catalogue (`fields!` order).
     pub wire: u16,

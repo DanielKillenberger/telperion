@@ -29,7 +29,8 @@ is declared once, beside the code that reads it; edit the declaration, never thi
 
 Each row lists its type, unit, bounds and the ordinary family's default; the
 stages that read it on the direct build (grow, plan, expand, cull, draw) and
-how the growth path reads it; where it is refused and by what name; where it
+how the growth path read it before its removal (fn-181,
+`docs/growth-path.md`); where it is refused and by what name; where it
 lies dormant; its couplings and conflicting bounds; how a walk between two
 families moves it; and the tuning dial it offers. A deprecated row is read by
 no production stage and is kept on the wire for compatibility.
@@ -55,7 +56,7 @@ fn row(out: &mut String, entry: Entry, defaults: &Family) {
     );
     let _ = writeln!(
         out,
-        "- read by {}; growth path: {}",
+        "- read by {}; removed growth path: {}",
         stages(info.reads),
         growth(info.growth)
     );
@@ -120,7 +121,7 @@ fn stages(reads: &[Stage]) -> String {
 fn growth(g: Growth) -> String {
     match g {
         Growth::Same => "as the direct build".into(),
-        Growth::Only => "only the growth path reads it".into(),
+        Growth::Only => "only the growth path read it".into(),
         Growth::Ignored => "not read".into(),
         Growth::Differs(how) => how.into(),
     }

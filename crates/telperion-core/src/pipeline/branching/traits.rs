@@ -13,7 +13,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_reach_probe_steps"))]
         pub reach_probe_steps: u32 = "reachProbeSteps" "samples"
             crate::ranges::POSITIVE_COUNT.bounds() => [Grow] {
-            wire: 9,
+            wire: 2,
             check: value(Site::Habit, 0, "reachProbeSteps"),
             applies: "needs `lateralOrders` of one or more: only first-order laterals probe \
                 their room",
@@ -23,7 +23,7 @@ crate::catalogue::rows! {
         },
         /// How far the leader persists into the crown, 0 to 1.
         pub apical_dominance: f64 = "apicalDominance" "share" Bounds::closed(0.0, 1.0) => [Grow] {
-            wire: 8,
+            wire: 1,
             check: input(Site::Habit, 1, "apical dominance"),
             growth: Growth::Differs("also splits the structural and local budget, and \
                 `apicalControlLoss` divides it each year"),
@@ -34,7 +34,7 @@ crate::catalogue::rows! {
         },
         /// Clustering of laterals at a station against scattering along the axis.
         pub whorl_strength: f64 = "whorlStrength" "share" Bounds::closed(0.0, 1.0) => [Grow] {
-            wire: 10,
+            wire: 3,
             check: input(Site::Habit, 2, "whorl strength"),
             applies: "needs `lateralOrders` of one or more",
             dial: bounded("whorl_strength", "how tightly laterals cluster at one station rather \
@@ -42,7 +42,7 @@ crate::catalogue::rows! {
         },
         /// Spacing between lateral stations on the leader, in metres.
         pub leader_internode: f64 = "leaderInternode" "m" Bounds::above(0.0) => [Grow] {
-            wire: 11,
+            wire: 4,
             check: input(Site::Habit, 3, "leader internode"),
             dial: tuned("leader_internode", "metres between lateral stations on the leader",
                 [0.05, 3.45], [0.5, 1.0], "capped").span([0.05, 3.45])
@@ -53,7 +53,7 @@ crate::catalogue::rows! {
         /// Laterals borne by one station of the leader.
         pub laterals_per_station: u32 = "lateralsPerStation" "laterals"
             Bounds::closed(1.0, 12.0) => [Grow] {
-            wire: 12,
+            wire: 5,
             check: input(Site::Habit, 4, "laterals per station"),
             applies: "needs `lateralOrders` of one or more; leader stations only",
             blend: Blend::Count,
@@ -62,7 +62,7 @@ crate::catalogue::rows! {
         /// Initial angle of a lateral from its parent axis, in degrees; on the
         /// upright leader this is degrees from vertical.
         pub lateral_pitch: f64 = "lateralPitch" "degrees" Bounds::closed(0.0, 180.0) => [Grow] {
-            wire: 13,
+            wire: 6,
             check: input(Site::Habit, 5, "lateral pitch"),
             applies: "needs `lateralOrders` of one or more",
             blend: Blend::Degrees,
@@ -71,7 +71,7 @@ crate::catalogue::rows! {
         },
         /// Spread of the lateral pitch, in degrees.
         pub pitch_variation: f64 = "pitchVariation" "degrees" Bounds::closed(0.0, 90.0) => [Grow] {
-            wire: 14,
+            wire: 7,
             check: input(Site::Habit, 6, "lateral pitch variation"),
             applies: "needs `lateralOrders` of one or more",
             blend: Blend::Degrees,
@@ -86,7 +86,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default))]
         pub pitch_by_height: f64 = "pitchByHeight" "degrees"
             Bounds::closed(-180.0, 180.0) => [Grow] {
-            wire: 249,
+            wire: 242,
             check: value(Site::Habit, 21, "pitchByHeight"),
             applies: "needs `lateralOrders` of one or more",
             note: "The crown runs from `trunkHeight` to the envelope's height; the pitch it adds \
@@ -102,7 +102,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default))]
         pub ragged_reach: f64 = "raggedReach" "share of the room"
             Bounds::closed(0.0, 1.0) => [Grow] {
-            wire: 250,
+            wire: 243,
             check: value(Site::Habit, 22, "raggedReach"),
             applies: "needs `lateralOrders` of one or more: only first-order laterals probe \
                 their room",
@@ -111,7 +111,7 @@ crate::catalogue::rows! {
         },
         /// Signed bend over the length of a first-order axis; positive rises.
         pub rise_primary: f64 = "risePrimary" "-" Bounds::closed(-1.0, 1.0) => [Grow] {
-            wire: 15,
+            wire: 8,
             check: input(Site::Habit, 7, "primary rise per order"),
             note: "Acts at orders zero and one, so it bends leaning stems; an upright stem has \
                 no rise to take.",
@@ -120,7 +120,7 @@ crate::catalogue::rows! {
         },
         /// Signed bend over the length of a deeper axis; negative hangs.
         pub rise_secondary: f64 = "riseSecondary" "-" Bounds::closed(-1.0, 1.0) => [Grow] {
-            wire: 16,
+            wire: 9,
             check: input(Site::Habit, 8, "secondary rise per order"),
             applies: "needs `lateralOrders` of two or more",
             dial: bounded("rise_secondary", "the bend over a deeper axis's length; negative \
@@ -128,7 +128,7 @@ crate::catalogue::rows! {
         },
         /// Heading change between successive growth units, in degrees.
         pub crookedness: f64 = "crookedness" "degrees" Bounds::closed(0.0, 60.0) => [Grow] {
-            wire: 17,
+            wire: 10,
             check: input(Site::Habit, 9, "crookedness"),
             note: "Starts above `trunkHeight` in the scaffold, and also makes the local twig \
                 layer wander.",
@@ -138,7 +138,7 @@ crate::catalogue::rows! {
         },
         /// Spacing between lateral stations away from the leader, in metres.
         pub lateral_spacing: f64 = "lateralSpacing" "m" Bounds::above(0.0) => [Grow] {
-            wire: 18,
+            wire: 11,
             check: input(Site::Habit, 10, "lateral spacing"),
             applies: "needs `lateralOrders` of one or more",
             dial: tuned("lateral_spacing", "metres between lateral stations away from the leader",
@@ -150,7 +150,7 @@ crate::catalogue::rows! {
         /// Length of a lateral against its supporting axis.
         pub lateral_length_ratio: f64 = "lateralLengthRatio" "share"
             Bounds::closed(0.0, 1.0) => [Grow] {
-            wire: 19,
+            wire: 12,
             check: input(Site::Habit, 11, "lateral length ratio"),
             growth: Growth::Differs("`apicalControlLoss` adds the dominance it releases to it"),
             applies: "needs `lateralOrders` of two or more: first-order laterals take their \
@@ -160,7 +160,7 @@ crate::catalogue::rows! {
         },
         /// Depth of rule-built orders below the leader.
         pub lateral_orders: u32 = "lateralOrders" "orders" Bounds::closed(0.0, 8.0) => [Grow] {
-            wire: 20,
+            wire: 13,
             check: input(Site::Habit, 12, "lateral orders"),
             note: "At zero every other lateral row lies dormant.",
             blend: Blend::Count,
@@ -171,7 +171,7 @@ crate::catalogue::rows! {
         /// zero no pull points are scattered and every axis holds its own rule
         /// heading, and any rise switches the pull on.
         pub attractor_weight: f64 = "attractorWeight" "share" Bounds::closed(0.0, 1.0) => [Grow] {
-            wire: 21,
+            wire: 14,
             check: input(Site::Habit, 13, "attractor weight"),
             note: "At zero no pull point is scattered, so `attractors`, \
                 `samplingAttemptsPerAttractor`, `influenceRadius` and `killDistance` lie \
@@ -182,7 +182,7 @@ crate::catalogue::rows! {
         },
         /// Distal twig radius against the nominal twig radius.
         pub twig_tip_taper: f64 = "twigTipTaper" "share" Bounds::closed(0.0, 1.0).open() => [Grow] {
-            wire: 22,
+            wire: 15,
             check: input(Site::Habit, 14, "twig tip taper"),
             note: "Scales half the twig diameter at every childless tip, structural or twig.",
             dial: tuned("taper", "remaining wood thickness toward the crown edge; lower means \
@@ -192,7 +192,7 @@ crate::catalogue::rows! {
         /// builder interprets it as shell depth.
         pub shedding_threshold: f64 = "sheddingThreshold" "share of height·spread"
             Bounds::closed(0.0, 1.0) => [Grow] {
-            wire: 23,
+            wire: 16,
             check: input(Site::Habit, 15, "shedding threshold"),
             growth: Growth::Differs("an annual vigour threshold, not a shell depth (fn-161 \
                 splits the two)"),
@@ -207,7 +207,7 @@ crate::catalogue::rows! {
         /// no axis forks and the tree stands on one stem.
         #[cfg_attr(feature = "json", serde(default))]
         pub codominance: f64 = "codominance" "share" Bounds::closed(0.0, 1.0) => [Grow] {
-            wire: 24,
+            wire: 17,
             check: input(Site::Habit, 16, "codominance"),
             note: "At zero the six fork rows lie dormant. Replaces `stems`: a clump is a fork \
                 at height zero.",
@@ -219,7 +219,7 @@ crate::catalogue::rows! {
         /// fork at the root, which is a clump.
         #[cfg_attr(feature = "json", serde(default))]
         pub fork_height: f64 = "forkHeight" "share of height" Bounds::closed(0.0, 1.0) => [Grow] {
-            wire: 25,
+            wire: 18,
             check: input(Site::Habit, 17, "fork height"),
             applies: "`codominance` zero",
             note: "An axis forks where it reaches the drawn height; a height it never reaches, \
@@ -233,7 +233,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default))]
         pub fork_height_spread: f64 = "forkHeightSpread" "share of height"
             Bounds::closed(0.0, 1.0) => [Grow] {
-            wire: 26,
+            wire: 19,
             check: input(Site::Habit, 18, "fork height spread"),
             applies: "`codominance` zero",
             dial: bounded("fork_height_spread", "how widely codominant forks scatter about their \
@@ -245,7 +245,7 @@ crate::catalogue::rows! {
         /// part's.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_fork_ways"))]
         pub fork_ways: f64 = "forkWays" "parts" Bounds::closed(2.0, 4.0) => [Grow] {
-            wire: 27,
+            wire: 20,
             check: input(Site::Habit, 19, "fork ways"),
             applies: "`codominance` zero",
             note: "Replaces `stems`. The parts fill four fixed slots in order, so a part \
@@ -260,7 +260,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_fork_divergence"))]
         pub fork_divergence: f64 = "forkDivergence" "degrees"
             Bounds::closed(0.0, 120.0) => [Grow] {
-            wire: 28,
+            wire: 21,
             check: input(Site::Habit, 20, "fork divergence"),
             applies: "`codominance` zero",
             note: "Defaults to 90 so that `codominance` builds on its own: fn-170's plane \
@@ -276,7 +276,7 @@ crate::catalogue::rows! {
         /// primary leans by what `forkLeanSpread` leaves it of this.
         #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_fork_lean"))]
         pub fork_lean: f64 = "forkLean" "degrees" Bounds::closed(0.0, 45.0) => [Grow] {
-            wire: 251,
+            wire: 244,
             check: input(Site::Habit, 23, "fork lean"),
             applies: "`codominance` zero",
             note: "Defaults to 26 so that `codominance` builds on its own: fn-170's plane \
@@ -292,7 +292,7 @@ crate::catalogue::rows! {
         #[cfg_attr(feature = "json", serde(default))]
         pub fork_lean_spread: f64 = "forkLeanSpread" "share"
             Bounds::closed(0.0, 1.0) => [Grow] {
-            wire: 252,
+            wire: 245,
             check: input(Site::Habit, 24, "fork lean spread"),
             applies: "`codominance` zero, or `forkLean` zero",
             note: "Replaces `stemLeanSpread`.",

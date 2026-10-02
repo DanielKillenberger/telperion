@@ -33,14 +33,7 @@ const SWEEP_NODES: usize = 8_000;
 /// the sweep cannot prove the walk carries them. Every other path in the wire is
 /// moved by some pair below and proved to walk; a parameter added to the wire is
 /// either moved by a preset or named here.
-// fn-11 publishes the timeline before species calibration: rate, shape and
-// shedding traits are still shared. Age now differs on the new species so the
-// sweep walks it. Annual and thickening tests independently walk the rest.
-// Leaf lifetime varies between oak and spruce, so the sweep itself checks
-// that dimension among the moved paths.
-// The chronicle adds resizeTolerance at the same 1e-9 metre default in every
-// preset. params::tests::resize_tolerance_is_a_validated_blended_wire_trait
-// checks its non-default walk; no preset geometry or identity pin changes.
+// Age differs on the new species, so the sweep walks it.
 // fn-37 turns the curtain into four twig rows. Hang, the pendulous length and
 // the curtain's shoot separation differ between the oak, the spruce and the
 // birch, so the sweep walks all three. The radius threshold is 1 on every
@@ -74,7 +67,7 @@ const SWEEP_NODES: usize = 8_000;
 // leaves them at their neutral, so they are held here.
 // fn-120's three skirt rows and its dead colour are the palm's too, held for
 // the same reason, and so are fn-144's two lattice rows.
-const HELD: [&str; 75] = [
+const HELD: [&str; 69] = [
     "/canopy/clumpSystemOrder",
     "/canopy/rosetteFronds",
     "/canopy/rosetteDivergence",
@@ -114,7 +107,6 @@ const HELD: [&str; 75] = [
     "/radii/girthHold",
     "/radii/girthFall",
     "/skeleton/samplingAttemptsPerAttractor",
-    "/growth/workBudget",
     "/radii/maxTaperExponent",
     "/skeleton/bias/supernatural/maxWritheMagnitude",
     "/skeleton/twigs/maxInternodes",
@@ -127,11 +119,6 @@ const HELD: [&str; 75] = [
     "/element/card",
     "/element/cup",
     "/element/curl",
-    "/growth/apicalControlLoss",
-    "/growth/sheddingTolerance",
-    "/growth/rate",
-    "/growth/resizeTolerance",
-    "/growth/shape",
     "/skeleton/growth/influenceRadius",
     "/skeleton/growth/killDistance",
     "/skeleton/growth/maxNodes",

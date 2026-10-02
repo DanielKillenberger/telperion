@@ -1,4 +1,7 @@
 //! Renderer-independent tree generation. Coordinates and lengths are metres, Y is up.
+// Without the geometry feature, helpers only leaf placement and the wood
+// sweep call still compile, unused.
+#![cfg_attr(not(feature = "geometry"), allow(dead_code))]
 pub mod catalogue;
 mod family;
 pub use family::Family;
@@ -6,7 +9,6 @@ pub use family::Family;
 pub mod blend;
 pub mod capability;
 pub mod envelope;
-pub mod growth;
 pub mod material;
 pub mod math;
 #[cfg(feature = "geometry")]

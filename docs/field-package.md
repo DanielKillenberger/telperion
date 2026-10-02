@@ -4,7 +4,7 @@ A page that draws its own tree needs three things from Telperion: grow a
 tree, prepare its leaf plan, and answer occupancy queries over it. The slim
 package is that and nothing else: the direct build's skeleton, the leaf plan
 and the field, compiled without the wood surface, the leaf placement, the
-materials, the specimen API and the JSON request path. It is
+materials and the JSON request path. It is
 `crates/telperion-field` (the Wasm) and `src/field/index.ts` (the typed entry
 point), published as the package's `./field` export beside the main entry.
 

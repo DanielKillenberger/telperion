@@ -45,7 +45,7 @@ export interface Parameter {
   zero: boolean;
   /** Where the row lies dormant; empty where it always acts. */
   applies: string;
-  /** Who reads it: the direct build, only the growth path, or no production stage. */
+  /** Who reads it: the direct build, only the removed growth path, or no production stage. */
   reach: \"mature\" | \"growth\" | \"deprecated\";
   /** The tuning dial's window and small step, where the row offers one. */
   dial?: { window: [number, number]; step: number };

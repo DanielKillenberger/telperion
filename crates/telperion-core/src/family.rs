@@ -1,6 +1,6 @@
 //! Engine-neutral generator parameters. Named preset tables construct this
 //! value; generators and accelerated consumers operate on the value itself.
-use crate::catalogue::{bounded, input, Blend, Bounds, Dial, Growth, Site};
+use crate::catalogue::{bounded, input, value, Blend, Bounds, Dial, Growth, Site};
 use crate::{
     branching::SkeletonParams,
     foliage::{CanopyParams, ElementParams},
@@ -13,20 +13,20 @@ use crate::{
 crate::catalogue::rows! {
     #[derive(Debug, Clone)]
     pub struct Family in "" {
-        /// The specimen's age in years. Only the growth path reads it: the
-        /// direct build is the mature tree whatever the row says.
+        /// The specimen's age in years: the age the species' literature
+        /// dimensions refer to. No build reads it: the direct build is the
+        /// mature tree whatever the row says.
         pub age: f64 = "age" "years" Bounds::closed(0.0, 1_000_000.0) => [] {
             wire: 0,
+            check: value(Site::Age, 0, "age"),
             growth: Growth::Only,
-            note: "Refused by `Age::from_years` in `params::parse` and `Family::validate`, which \
-                also quantises it to the growth path's tick; the direct build is the mature tree \
-                whatever it says.",
+            note: "Refused off its range in `params::parse` and `Family::validate`; the species \
+                runner pins it beside the height as the growth reference. The growth path that \
+                read it was removed (fn-181).",
             blend: Blend::Weighted,
-            dial: Dial::Excluded("Identity of a grown specimen, not a look: only the growth path \
-                reads it, and the direct build the tuner measures is the mature tree whatever it \
-                says (crates/telperion-core/src/branching/specimen/timeline.rs:30)."),
+            dial: Dial::Excluded("Identity of a specimen, not a look: no build reads it, and the \
+                direct build the tuner measures is the mature tree whatever it says."),
         },
-        pub growth: crate::growth::GrowthTraits,
         pub skeleton: SkeletonParams,
         pub radii: RadiusParams,
         pub surface: SurfaceParams,
@@ -38,7 +38,7 @@ crate::catalogue::rows! {
         /// keeps more of the crown's interior foliage, and one keeps it all.
         pub shell_depth: f64 = "shellDepth" "share of the crown's widest radius"
             Bounds::closed(0.0, 1.0) => [Cull] {
-            wire: 248,
+            wire: 241,
             check: input(Site::Shell, 0, "shell depth"),
             growth: Growth::Differs("measured against the envelope at the specimen's age"),
             note: "`foliage::cull` and the GPU executor's preparation check it again; the \
@@ -52,7 +52,6 @@ impl Default for Family {
     fn default() -> Self {
         Self {
             age: 100.0,
-            growth: crate::growth::GrowthTraits::default(),
             skeleton: SkeletonParams::default(),
             radii: RadiusParams::default(),
             surface: SurfaceParams {
@@ -68,20 +67,19 @@ impl Default for Family {
     }
 }
 impl Family {
-    /// Every row judged as the build and the growth path judge it, each
-    /// refused by the name they refuse it by, with no attractor scattered, no
-    /// node grown and no leaf placed. The checks run in the order the build
-    /// reaches them. A scatter that falls short of its count is left to
-    /// growth: that depends on the seed as much as on any row.
+    /// Every row judged as the build judges it, each refused by the name it
+    /// refuses it by, with no attractor scattered, no node grown and no leaf
+    /// placed. The checks run in the order the build reaches them. A scatter
+    /// that falls short of its count is left to growth: that depends on the
+    /// seed as much as on any row.
     pub fn validate(&self) -> Result<()> {
         use crate::foliage::{Instances, Reference, TwigPlacement};
         use crate::pipeline::{build_element, canopy_rows, height, validate_skeleton};
         self.material.validate()?;
-        crate::growth::Age::from_years(self.age)?;
-        self.growth.validate()?;
+        crate::catalogue::check(Self::CHECKS, self, Site::Age)?;
         validate_skeleton(&self.skeleton, self.radii)?;
-        // Growth keeps a zero ceiling as an empty seedling it can resume
-        // from; the build has nothing to sweep, so a family refuses it here.
+        // A zero ceiling grows nothing; the build has nothing to sweep, so a
+        // family refuses it here.
         if self.skeleton.growth.max_nodes == Some(0) {
             return Err(Error::InvalidInput("maxNodes"));
         }

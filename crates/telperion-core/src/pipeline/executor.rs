@@ -1,5 +1,5 @@
 //! The interface a second executor builds through: the GPU executor in
-//! telperion-render, and the growth path. It hands out prepared artifacts
+//! telperion-render. It hands out prepared artifacts
 //! and the CPU steps that make them, never a stage to chain; each step is
 //! synchronous, so the executor keeps its own schedule and overlap around
 //! them. `docs/pipeline.md` has the rationale.

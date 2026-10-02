@@ -24,7 +24,7 @@ fn new_limits_are_named_validated_and_walked() {
     use serde_json::json;
     use telperion_core::{blend, params};
     let a = Preset::Ordinary.parameters();
-    let overlay = json!({"canopy":{"clumpSystemOrder":4,"clumpNeighbours":24},"growth":{"workBudget":500000},"radii":{"maxTaperExponent":24},
+    let overlay = json!({"canopy":{"clumpSystemOrder":4,"clumpNeighbours":24},"radii":{"maxTaperExponent":24},
         "surface":{"socketContainment":0.5},"skeleton":{"samplingAttemptsPerAttractor":128,
         "habit":{"reachProbeSteps":192},"bias":{"supernatural":{"maxWritheMagnitude":2}},
         "twigs":{"maxInternodes":64,"maxDroop":0.7,"curtainStepClearance":0.4}}});
@@ -33,7 +33,6 @@ fn new_limits_are_named_validated_and_walked() {
     for (path, expected) in [
         ("/canopy/clumpSystemOrder", 3.),
         ("/canopy/clumpNeighbours", 18.),
-        ("/growth/workBudget", 375000.),
         ("/radii/maxTaperExponent", 18.),
         ("/surface/socketContainment", 0.7),
         ("/skeleton/samplingAttemptsPerAttractor", 96.),
@@ -74,13 +73,6 @@ fn new_limits_are_named_validated_and_walked() {
         .unwrap_err()
         .to_string()
         .contains("maxTaperExponent"));
-    f.growth.work_budget = 0;
-    assert!(f
-        .growth
-        .validate()
-        .unwrap_err()
-        .to_string()
-        .contains("workBudget"));
     f.skeleton.habit.reach_probe_steps = 0;
     assert!(f
         .skeleton

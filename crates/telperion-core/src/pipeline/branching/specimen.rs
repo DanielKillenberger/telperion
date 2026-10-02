@@ -155,17 +155,11 @@ impl Specimen {
             &self.tree,
             &self.config,
             self.params.twigs.resolved()?,
-            None,
-            self.scaffold.limbs(),
         );
         if !self.tree.diagnostics.node_capped {
             self.local.advance(
                 &mut self.tree,
                 local::Planner {
-                    clock: None,
-                    widths: None,
-                    growing_envelope: false,
-                    planning: None,
                     config: &self.config,
                     bias: Some(&self.bias),
                     twigs: self.params.twigs.resolved()?,

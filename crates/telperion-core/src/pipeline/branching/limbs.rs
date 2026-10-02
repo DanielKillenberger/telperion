@@ -8,7 +8,6 @@ use super::*;
 
 /// The shell a limb system grows in: the crown's, scaled about `station`.
 #[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(super) struct Bound {
     station: Vec3,
     scale: f64,
@@ -40,7 +39,6 @@ impl Bound {
 /// The bound of every first-order axis stopped short, by the index of its
 /// first node, remapped with the scaffold whenever the tree's storage moves.
 #[derive(Debug, Clone, Default)]
-#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(super) struct Limbs(Vec<(u32, Bound)>);
 impl Limbs {
     pub(super) fn record(&mut self, first: usize, bound: Bound) {
@@ -54,6 +52,7 @@ impl Limbs {
     }
     /// The bound of the limb system node `i` belongs to: its first-order
     /// ancestor's, or the crown's for a stem and for a system kept whole.
+    #[cfg(test)]
     pub(super) fn of(&self, tree: &Tree, mut i: usize) -> Bound {
         if self.0.is_empty() {
             return Bound::default();

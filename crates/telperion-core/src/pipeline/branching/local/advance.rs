@@ -1,5 +1,4 @@
 use super::*;
-use crate::envelope::queries::{self, Purpose};
 impl Frontier {
     pub(in crate::pipeline::branching) fn advance(
         &mut self,
@@ -8,8 +7,6 @@ impl Frontier {
         habit: HabitParams,
         budget: usize,
     ) -> Result<()> {
-        self.visited.clear();
-        self.wake(&planner, tree);
         #[cfg(test)]
         {
             self.retries = [0; 4];
@@ -34,53 +31,21 @@ impl Frontier {
             .max(1e-6)
             .cos_fixed();
         let twig_radius = t.twig.diameter / 2.0;
-        let visits = if planner.growing_envelope {
-            self.queue.len()
-        } else {
-            budget
-        };
-        let mut remaining = budget;
-        for _ in 0..visits {
-            if remaining == 0 {
-                break;
-            }
+        for _ in 0..budget {
             let Some(mut s) = self.queue.pop_front() else {
                 break;
             };
-            if planner.clock.is_some() && waiting::below_reach(&s, tree, &planner) {
-                self.sleeping.entry(u64::MAX).or_default().push(s);
-                continue;
-            }
-            if planner.growing_envelope {
-                self.visited.push(s.at);
-                if tree.nodes[s.at].shoot.vigour() < habit.shedding_threshold {
-                    self.queue.push_back(s);
-                    continue;
-                }
-                s.radius = s.branch.map_or_else(
-                    || planner.width(tree, s.at)[0],
-                    |b| planner.width(tree, b as usize)[2],
-                );
-            }
             #[cfg(test)]
             {
                 self.retries[0] += 1;
             }
-            let before = tree.nodes.len();
             let from = s.direction;
             let position = tree.nodes[s.at].position;
             let phase = s.phase + divergence;
             let binormal = from.cross(s.normal);
             let mut accepted = std::mem::take(&mut s.accepted);
-            let mut deferred = false;
-            let mut next_wake = u64::MAX;
             let origin = tree.nodes[s.at].kind == NodeKind::Structural;
             let bearing = !origin && s.radius <= t.twig.bearing_diameter / 2.0;
-            // A switch out of leaf-bearing wood can release different laterals.
-            // Such shoots remain awake until a radius wake condition is available.
-            // A curtain that drops is admitted by a band the clock cannot see.
-            let can_sleep = !origin && (t.laterals == 0 || !bearing) && !s.curtain.drops(t);
-            let immediate = planner.clock.map_or(0, |clock| clock.slice + 1);
             let mut laterals = 0;
             let mut first_lateral = 0;
             if origin {
@@ -203,33 +168,10 @@ impl Frontier {
                         continue;
                     }
                     let p = position + heading * twig_length;
-                    // Only the growth path holds a twig inside the room it
-                    // has grown so far; the direct build admits it as it is.
-                    let admitted = !planner.growing_envelope || {
-                        let _asks = queries::during(Purpose::TerminalAdmission);
-                        planner::admitted(s.curtain, config, t, s.bound, p)
-                    };
-                    if !admitted || s.curtain.below(p.y) {
+                    if s.curtain.below(p.y) {
                         #[cfg(test)]
                         {
                             self.retries[1] += 1;
-                        }
-                        if planner.growing_envelope {
-                            s.flushed &= !mask;
-                            deferred = true;
-                            let fixed = (terminal || length < t.twig.internode_length)
-                                && planner.bias.is_none_or(GrowthBias::height_independent);
-                            next_wake = next_wake.min(if can_sleep && fixed {
-                                planner.clock.map_or(immediate, |clock| {
-                                    if s.curtain.below(p.y) {
-                                        u64::MAX
-                                    } else {
-                                        clock.next(s.bound.map(p), config.trunk_height)
-                                    }
-                                })
-                            } else {
-                                immediate
-                            });
                         }
                         continue;
                     }
@@ -247,41 +189,17 @@ impl Frontier {
                             bearing: radius <= t.twig.bearing_diameter / 2.0,
                             key,
                             curtain: s.curtain,
-                            bound: s.bound,
                         })
                     }
                     let Some(r) = &run else {
-                        next_wake = immediate;
                         #[cfg(test)]
                         {
                             self.retries[2] += 1;
-                        }
-                        if planner.growing_envelope {
-                            s.flushed &= !mask;
-                            deferred = true;
                         }
                         continue;
                     };
                     internodes = r.positions.len();
                     let p = r.positions[completed];
-                    if planner.growing_envelope
-                        && !planner::admitted(s.curtain, config, t, s.bound, p)
-                    {
-                        #[cfg(test)]
-                        {
-                            self.retries[3] += 1;
-                        }
-                        s.flushed &= !mask;
-                        deferred = true;
-                        next_wake = next_wake.min(if can_sleep && !starts {
-                            planner.clock.map_or(immediate, |clock| {
-                                clock.next(s.bound.map(p), config.trunk_height)
-                            })
-                        } else {
-                            immediate
-                        });
-                        continue;
-                    }
                     (p, (p - position).normalized())
                 };
                 if !candidate.is_finite() {
@@ -316,9 +234,6 @@ impl Frontier {
                 tree.nodes
                     .try_reserve(1)
                     .map_err(|_| Error::ResourceLimit("branch allocation"))?;
-                // Births can stop a visit early or append younger shoots. A
-                // full visit without births preserves the existing identity order.
-                self.ordered = false;
                 tree.nodes.push(Node {
                     position: candidate,
                     parent: Some(s.at as u32),
@@ -365,21 +280,8 @@ impl Frontier {
                         key,
                         run,
                         curtain: s.curtain,
-                        bound: s.bound,
                     });
                 }
-            }
-            if deferred {
-                s.accepted = accepted;
-                if planner.clock.is_some() && next_wake > immediate {
-                    self.sleeping.entry(next_wake).or_default().push(s);
-                } else {
-                    self.queue.push_back(s);
-                }
-            }
-            // Waiting consumes no growth unit; younger eligible shoots can use it.
-            if !planner.growing_envelope || tree.nodes.len() > before {
-                remaining -= 1;
             }
         }
         tree.validate_range(first..tree.nodes.len(), true)

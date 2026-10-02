@@ -2,7 +2,6 @@ use super::*;
 use std::collections::BTreeSet;
 
 #[derive(Clone, Default)]
-#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(super) struct Stations {
     parents: Vec<Option<usize>>,
     pub children: Vec<usize>,
@@ -20,9 +19,7 @@ impl Stations {
             .into_iter()
             .chain(first..tree.nodes.len())
         {
-            if tree.nodes[i].kind != NodeKind::Structural
-                || tree.nodes[i].shoot.death_year.is_some()
-            {
+            if tree.nodes[i].kind != NodeKind::Structural {
                 continue;
             }
             let parent = tree.nodes[i].parent.map(|p| p as usize);
@@ -105,13 +102,11 @@ impl Frontier {
         tree: &Tree,
         config: &GrowthConfig,
         t: TwigParams,
-        widths: planner::WidthQuery<'_>,
-        limbs: &Limbs,
     ) {
         if tree.nodes.len() < 2 {
             return;
         }
-        let radius = |i: usize| widths.map_or(tree.nodes[i].radius, |sample| sample(tree, i)[0]);
+        let radius = |i: usize| tree.nodes[i].radius;
         self.stations.sync(tree);
         let children = &self.stations.children;
         if self.stations.pending.is_empty() {
@@ -177,15 +172,11 @@ impl Frontier {
                 key: n.identity.birth_order() as u32,
                 run: None,
                 curtain: Curtain::new(t, n.position, tip, config.trunk_height),
-                bound: limbs.of(tree, i),
             });
         }
         for i in completed {
             self.stations.pending.remove(&i);
         }
-        if !frontier.is_empty() {
-            self.ordered = false;
-            self.queue.extend(frontier);
-        }
+        self.queue.extend(frontier);
     }
 }

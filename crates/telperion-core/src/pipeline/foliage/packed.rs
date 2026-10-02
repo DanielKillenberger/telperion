@@ -35,10 +35,7 @@ const RANGE: f64 = std::f64::consts::FRAC_1_SQRT_2;
 const CODES: f64 = 1023.0;
 
 /// The box a crown's leaf positions are quantised against: per axis a minimum
-/// and an extent. It is derived from a family's parameters rather than from
-/// the tree it grew, because `timeline::Placement` caches leaves per shoot
-/// while the tree's own bounds grow: words quantised against one age's box
-/// would decode against a different one at the next.
+/// and an extent.
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Reference {
