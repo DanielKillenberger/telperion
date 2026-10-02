@@ -203,7 +203,9 @@ impl Frontier {
                         continue;
                     }
                     let p = position + heading * twig_length;
-                    let admitted = {
+                    // Only the growth path holds a twig inside the room it
+                    // has grown so far; the direct build admits it as it is.
+                    let admitted = !planner.growing_envelope || {
                         let _asks = queries::during(Purpose::TerminalAdmission);
                         planner::admitted(s.curtain, config, t, s.bound, p)
                     };

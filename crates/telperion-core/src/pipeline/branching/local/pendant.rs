@@ -85,14 +85,17 @@ impl Curtain {
     /// where a shoot held out by its own wood comes to rest. A shoot that
     /// gives in to its weight falls past it, so the sag row carries the floor
     /// down from that tip to `base`, the height the crown's own room stops at,
-    /// and the drop row carries that on down toward the clearance.
+    /// and the drop row carries that on down toward the clearance. The hang
+    /// row raises that floor from the ground, so a curtain that barely hangs
+    /// is barely floored: the twig layer has no other floor to hand over from.
     pub fn new(t: TwigParams, at: Vec3, tip: Option<f64>, base: f64) -> Self {
         let hang = if tip.is_some() { t.hang } else { 0.0 };
         let bottom = walk(base, t.curtain_clearance.min(base), dropped(t));
+        let held = hang.min(1.0);
         Self {
             hang,
             across: Vec3::new(-at.z, 0.0, at.x).normalized(),
-            floor: tip.map(|tip| walk(tip, bottom, t.sag * hang.min(1.0))),
+            floor: tip.map(|tip| walk(0.0, walk(tip, bottom, t.sag * held), held)),
         }
     }
 
@@ -121,6 +124,15 @@ impl Curtain {
     /// cross.
     pub fn below(self, y: f64) -> bool {
         self.floor.is_some_and(|floor| y < floor)
+    }
+
+    /// The share of a step from height `from` down to `to` that stays above
+    /// the floor, where the step crosses it: one comparison and one
+    /// interpolation, no search.
+    pub fn crossing(self, from: f64, to: f64) -> Option<f64> {
+        self.floor
+            .filter(|&floor| to < floor)
+            .map(|floor| ((from - floor) / (from - to)).clamp(0.0, 1.0))
     }
 
     /// The most of `length` a step descending at `descent` may take without
@@ -193,14 +205,16 @@ impl Curtain {
     /// a turn the tip steers, so the law's own turn limit does not bound it;
     /// a course this does not bend is returned as it came. The arc is spent
     /// over the shoot's own pendulous length, so a short strand ends as near
-    /// vertical as a long one.
+    /// vertical as a long one. The hang row walks the turn in from none, as
+    /// it walks the curtain's other magnitudes.
     pub fn sagged(self, course: Vec3, travelled: f64, t: TwigParams, shoot: u32) -> Vec3 {
         if !self.sags(t) {
             return course;
         }
         let unit = course.normalized();
         let cosine = (-unit.y).clamp(-1.0, 1.0);
-        let turn = cosine.acos_fixed() * (1.0 - remaining(t, travelled, pendulous(t, shoot)));
+        let spent = 1.0 - remaining(t, travelled, pendulous(t, shoot));
+        let turn = cosine.acos_fixed() * spent * self.hang.min(1.0);
         if turn <= 1e-12 {
             return course;
         }

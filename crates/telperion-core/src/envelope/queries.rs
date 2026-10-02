@@ -1,8 +1,8 @@
 //! Who asks the crown for its radius, and what for. With the `query-count`
-//! feature every `Envelope::radius_at` counts against the purpose of the
-//! innermost scope open on its thread, so each query has one caller. Without
-//! it a scope is an empty value and the count an empty call, so a timing run
-//! carries no counter at all.
+//! feature, and in this crate's own tests, every `Envelope::radius_at` counts
+//! against the purpose of the innermost scope open on its thread, so each
+//! query has one caller. Without it a scope is an empty value and the count
+//! an empty call, so a timing run carries no counter at all.
 
 /// What a crown radius query is asked for.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -13,11 +13,11 @@ pub enum Purpose {
     ScaffoldRoom,
     /// The scaffold's edge containment and its attractor scatter.
     ScaffoldContainment,
-    /// The twig layer's check at the end of each stride.
+    /// The growth path's twig check at the end of each stride.
     TwigStride,
-    /// The twig layer's search for where a refused stride meets the outline.
+    /// The growth path's search for where a refused stride meets its room.
     TwigBisection,
-    /// The admission of a terminal or leaf-bearing twig.
+    /// The growth path's admission of a terminal or leaf-bearing twig.
     TerminalAdmission,
     /// A dropping curtain's search for the shell's lower surface.
     CurtainBand,
@@ -62,7 +62,7 @@ pub struct Counts {
 /// An open purpose; dropping it restores the one it replaced.
 #[must_use]
 pub struct Scope {
-    #[cfg(feature = "query-count")]
+    #[cfg(any(test, feature = "query-count"))]
     previous: Purpose,
 }
 
@@ -87,7 +87,7 @@ impl Tally {
     }
 }
 
-#[cfg(feature = "query-count")]
+#[cfg(any(test, feature = "query-count"))]
 thread_local! {
     static TALLY: std::cell::RefCell<Tally> = std::cell::RefCell::default();
 }
@@ -95,18 +95,18 @@ thread_local! {
 /// Opens `purpose` until the returned scope drops.
 #[inline(always)]
 pub fn during(purpose: Purpose) -> Scope {
-    #[cfg(feature = "query-count")]
+    #[cfg(any(test, feature = "query-count"))]
     return Scope {
         previous: TALLY.with_borrow_mut(|t| t.open(purpose)),
     };
-    #[cfg(not(feature = "query-count"))]
+    #[cfg(not(any(test, feature = "query-count")))]
     {
         let _ = purpose;
         Scope {}
     }
 }
 
-#[cfg(feature = "query-count")]
+#[cfg(any(test, feature = "query-count"))]
 impl Drop for Scope {
     fn drop(&mut self) {
         TALLY.with_borrow_mut(|t| t.close(self.previous));
@@ -115,22 +115,22 @@ impl Drop for Scope {
 
 #[inline(always)]
 pub(crate) fn radius() {
-    #[cfg(feature = "query-count")]
+    #[cfg(any(test, feature = "query-count"))]
     TALLY.with_borrow_mut(Tally::radius);
 }
 
 #[inline(always)]
 pub(crate) fn planned_axis() {
-    #[cfg(feature = "query-count")]
+    #[cfg(any(test, feature = "query-count"))]
     TALLY.with_borrow_mut(|t| t.counts.planned_axes += 1);
 }
 
 /// This thread's counts since the last take, reset to zero; none when the
-/// crate was built without `query-count`.
+/// crate was built without `query-count` outside its own tests.
 pub fn take() -> Option<Counts> {
-    #[cfg(feature = "query-count")]
+    #[cfg(any(test, feature = "query-count"))]
     return Some(TALLY.with_borrow_mut(|t| std::mem::take(&mut t.counts)));
-    #[cfg(not(feature = "query-count"))]
+    #[cfg(not(any(test, feature = "query-count")))]
     None
 }
 

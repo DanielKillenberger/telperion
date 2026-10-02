@@ -83,9 +83,12 @@ impl Planner<'_> {
             curtain,
             bound,
         } = axis;
-        // Plan the axis against its authored room. The live boundary is checked
-        // separately for every birth, so a juvenile crown pauses the cached run
-        // rather than permanently truncating it and flushing a terminal early.
+        // The direct build runs an axis to the length its own rules give it,
+        // or to its curtain's floor: the crown's outline is no wall to the
+        // twig layer. The growth path
+        // still plans against its authored room and checks the live boundary
+        // separately for every birth, so a juvenile crown pauses the cached
+        // run rather than permanently truncating it and flushing a terminal.
         queries::planned_axis();
         let config = GrowthConfig {
             shell: self.planning.or(self.config.shell),
@@ -105,8 +108,8 @@ impl Planner<'_> {
                 stations[station - 1] = (j + 1) as f64 / (self.twigs.laterals + 1) as f64;
             }
         }
-        // A run's full length is only a hint: most stop early at the shell, so
-        // a reservation the allocator refuses is skipped, never a failure.
+        // A run's full length is only a hint: on the growth path a run may stop
+        // at its room, so a reservation the allocator refuses is skipped.
         let (mut points, mut along) = (Vec::new(), Vec::new());
         let _ = points.try_reserve(count.saturating_add(1));
         let _ = along.try_reserve(count.saturating_add(1));
@@ -133,29 +136,14 @@ impl Planner<'_> {
             };
             course = self.heading(at, course, wanted, stride);
             let heading = curtain.sagged(course, travelled, self.twigs, key ^ self.seed);
-            let end = at + heading * stride;
-            let inside = {
-                let _asks = queries::during(Purpose::TwigStride);
-                admitted(curtain, &config, self.twigs, bound, end)
-            };
-            if !inside {
-                let _asks = queries::during(Purpose::TwigBisection);
-                let mut low = 0.0;
-                let mut high = stride;
-                for _ in 0..40 {
-                    let mid = (low + high) / 2.0;
-                    if !admitted(curtain, &config, self.twigs, bound, at + heading * mid) {
-                        high = mid
-                    } else {
-                        low = mid
-                    }
-                }
-                if low > 1e-9 {
-                    points.push(at + heading * low);
-                    along.push(along.last().unwrap() + low)
+            if let Some(kept) = self.cut(curtain, &config, bound, at, heading, stride) {
+                if kept > 1e-9 {
+                    points.push(at + heading * kept);
+                    along.push(along.last().unwrap() + kept)
                 }
                 break;
             }
+            let end = at + heading * stride;
             points.push(end);
             along.push(along.last().unwrap() + stride);
         }
@@ -203,5 +191,42 @@ impl Planner<'_> {
             fractions: along.into_iter().skip(1).map(|d| d / actual).collect(),
             length: actual,
         }))
+    }
+    /// How much of a stride from `at` an axis keeps where it stops short. The
+    /// direct build stops it only where it crosses its curtain's floor, found
+    /// in closed form: the crown's outline is no wall to the twig layer. The
+    /// growth path stops it where it leaves the room it was planned in, found
+    /// by bisection.
+    fn cut(
+        &self,
+        curtain: Curtain,
+        config: &GrowthConfig,
+        bound: Bound,
+        at: Vec3,
+        heading: Vec3,
+        stride: f64,
+    ) -> Option<f64> {
+        let end = at + heading * stride;
+        if !self.growing_envelope {
+            return curtain.crossing(at.y, end.y).map(|share| share * stride);
+        }
+        let inside = {
+            let _asks = queries::during(Purpose::TwigStride);
+            admitted(curtain, config, self.twigs, bound, end)
+        };
+        if inside {
+            return None;
+        }
+        let _asks = queries::during(Purpose::TwigBisection);
+        let (mut low, mut high) = (0.0, stride);
+        for _ in 0..40 {
+            let mid = (low + high) / 2.0;
+            if admitted(curtain, config, self.twigs, bound, at + heading * mid) {
+                low = mid
+            } else {
+                high = mid
+            }
+        }
+        Some(low)
     }
 }
