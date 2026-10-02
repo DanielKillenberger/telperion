@@ -82,3 +82,7 @@ Two were opened to check they are not blank: the birch at seed 1 whole, and Telp
   | `telperion.js`, `field.js`, `voxelize.js` | 119,870 / 2,720 / 4,526 | unchanged | 0 | 150,000 / 16,000 / 16,000 |
 
 Raw output is under `raw/` and in the session scratchpad. Neither is committed.
+
+## R5, the owner's verdict (2026-10-02)
+
+On the final stills (oak, beech and birch at seeds 1 and 7, the spruce and Telperion at seed 1, the date palm at seeds 1 and 7, beside today): "i'd say most look better. beech still not good but that's not part of this spec". The beech's structure is fn-182's (few strong limbs, twigs at the edge), which follows this spec.
