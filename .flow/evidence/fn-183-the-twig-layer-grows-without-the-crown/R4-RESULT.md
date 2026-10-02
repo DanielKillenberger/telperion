@@ -8,10 +8,12 @@ Branch `fn-183-the-twig-layer-grows-without-the-crown`, measured at `3b798e95` (
 - **The curtain floor is exact** (`Curtain::crossing`, `Planner::cut`). A curtain stride that crosses the floor plane is cut there in closed form: one height compare and one interpolation. The forced test curtain's lowest node is back above its 1 m clearance; under rung 1 it reached 0.961 m.
 - **The hang row fades in** (`pendant.rs`). Two terms switched on in full at any hang above zero. The sag's turn ignored hang, which cost about 21k of the birch's nodes at hang 0.01. The floor jumped from none to near the ancestor's tip, about 7k more. Both now scale with `hang.min(1)`, and the floor rises from the ground. Birch node counts across hang 0, 0.01, 0.1 and 0.2 are 70,238, 70,434, 71,960 and 71,902. Every shipped table hangs at 1 or more, so no shipped tree moves by this.
 - **Leaves are boxed by the grown tree** (`foliage/reference.rs`, `stage.rs`, `executor.rs`). On the direct build, both the CPU stage and the GPU expansion size the quantisation box from the grown tree. Each node is grown by the reach of a station seated on that node's own widest radius, and never less than the authored reach. The parameter box stays for family validation and the growth path. No direct-build consumer reads the box before the tree exists: `input.rs:99` only computed it early, and its readers hold the tree.
+- **A crowned apex grows no twig** (`pipeline::skeleton`, `local/seed.rs`, `finish`). Under the canopy's one existing check, `rosette_fronds > 0`, read once, the stem-apex stations are not seeded, and `finish` treats a crowned apex as bearing, so it keeps its 0.24 m girth. Before this, the pipeline grew the palm's apical twig layer (up to 34.9 m over a 22.86 m crown) and then cleared it. `clear_apical_twigs` has no caller left and is removed. Every catalogue preset's tree hash is unchanged.
 - **The species gate reads the tree.** The oak's width was stuck at 26.64 to 26.67 m on all 12 seeds. The cause was that the gate placed leaves against the authored box (`suite/species.rs:402`), and the width metric is the retained leaves' bounds (`examples/species_metrics/mod.rs:106`). Oak leaves clamped onto the box wall at ±13.2 m. On the grown box the oak's width varies from 27.6 to 31.1 m, and every profile check passes.
 
 ## Tests
 
+- **New:** `suite::twig_extent::an_apex_that_bears_a_rosette_grows_no_twig_and_keeps_its_girth`.
 - **New:** `suite::twig_extent::the_twig_layer_asks_the_crown_nothing_and_builds_one_tree`. On every catalogue preset it checks zero `twig_stride`, `twig_bisection`, `terminal_admission` and `curtain_band` queries, and that two builds give one tree. To make this possible, the query counters now compile into the crate's own tests.
 - **Curtain floor:** `drop::no_shoot_falls_below_the_clearance…` holds the floor. Its second half now compares the tree built with a clearance above the base against the tree built at the base: wood that no curtain floors may dip under the base.
 - **Deleted, owner (2026-10-02):** the containment parts of `species::fixed_*`, `growth`, `habit`, `drop` and the shortened-limb `limb_tests`. The scaffold-in-share check stays.
@@ -31,10 +33,10 @@ Noise policy: 3 interleaved rounds per preset and seed, 5 samples each, cold fir
 | Telperion | 1 / 7 | 467k → 239k / 73k → 41k | −49% / −44% | 383 [379–420] / 54 [51–58] | 364 [360–415] / 52 [49–55] | −5% / −4% | 76k→77k / 17k→18k | 535k→550k / 118k→129k |
 | Ordinary | 1 / 7 | 116k → 69k / 118k → 71k | −40% / −40% | 45 [44–49] / 45 [44–49] | 40 [39–48] / 45 [44–47] | −11% / +1% | 12k / 12k | 41k / 42k |
 | Laurelin | 1 / 7 | 152k → 87k / 245k → 134k | −43% / −46% | 102 [99–111] / 184 [180–196] | 98 [94–102] / 172 [168–182] | −4% / −6% | 53k→54k / 75k | 387k→393k / 542k→544k |
-| Date palm | 1 / 7 | 14.9k → 15.1k / 15.4k → 15.4k | +2% / +0% | 1.585 [1.567–1.656] / 1.710 [1.619–1.815] | 1.679 [1.622–2.009] / 1.642 [1.624–1.933] | +6% / −4% | 552 / 553 | 6.6k / 6.6k |
+| Date palm | 1 / 7 | 14.9k → 14.8k / 15.4k → 15.2k | −0.3% / −1.3% | 1.652 [1.585–1.935] / 1.708 [1.641–1.799] | 1.644 [1.590–1.811] / 1.641 [1.602–1.668] | −0.5% / −3.9% | 552 / 553 | 6.6k / 6.6k |
 
 - **Targets met:** queries are 83 to 86% lower on the oak (target 80), 87 to 88% on the beech (85), 98% on the birch (95), 35% on the spruce (30) and 44 to 49% on Telperion (40). Growth time is 28 to 29% lower on the beech (target 20) and 87% on the birch (80).
-- **Miss: "no preset slower" fails on the date palm at seed 1.** The branch's warm median is 1.679 ms, outside the base range of 1.567 to 1.656 ms: 0.09 ms, or 6%, on a 552-node build whose twig layer made only 41 queries. Its tree hash moved, and shedding queries rose from 0 to 272. Seed 7 keeps its tree hash and is not slower.
+- **No preset is slower.** The palm's row is a re-run at `218df967`, after its apex stopped growing a twig layer the pipeline cleared: 3 interleaved rounds against the same base binary. At `3b798e95` it had missed at seed 1 (1.679 ms against a base range of 1.567 to 1.656 ms), from the cleared twig layer it grew. Its drawn tree hash is `1454dfe1057fb89f` / `c57c5f4dc90d2bf2`, the same as before the change. At seed 1 that differs from the base's, because the base's wall let no twig grow there and so its apex tapered.
 - **Remaining queries:** with the twig layer at zero, what is left is the scaffold's containment and sampling plus shedding. Shedding is 230k of Telperion's 239k at seed 1 and 46k of the ordinary's 69k.
 - **Nodes and leaves rise on every preset,** by 7 to 18% on the oak, beech and birch, so no crown was emptied.
 
@@ -49,9 +51,9 @@ Noise policy: 3 interleaved rounds per preset and seed, 5 samples each, cold fir
 | Telperion | 1 / 7 | 3.62% / 8.49% | 0.132 / 0.089 | 0.482 / 0.356 | 0.757 / 0.456 | 47-0-777 / 0-0-448 | 0 |
 | Ordinary | 1 / 7 | 0.03% / 0.12% | 0.007 / 0.106 | 0.007 / 0.209 | 0.007 / 0.209 | 0-0-1 / 0-0-4 | 0 |
 | Laurelin | 1 / 7 | 1.91% / 0.17% | 0.126 / 0.316 | 0.890 / 0.356 | 1.005 / 0.425 | 82-0-222 / 23-2-14 | 0 |
-| Date palm | 1 / 7 | 100% of 42 / 37 | 3.68 / 2.85 | 4.78 / 4.75 | 5.20 / 5.38 | all above the top | 0 |
+| Date palm | 1 / 7 | none grown | – | – | – | – | 0 |
 
-The method is R1's `ladder_stats`, run from a scratch copy that was never committed. The oak, spruce, beech and Telperion rows equal rung 1's. The birch moved slightly from the floor cut: 86,326 nodes against 86,549 at seed 1. The palm's few twig-layer axes sit above its thin smooth outline, which is why every one of them counts as outside.
+The method is R1's `ladder_stats`, run from a scratch copy that was never committed. The oak, spruce, beech and Telperion rows equal rung 1's. The birch moved slightly from the floor cut: 86,326 nodes against 86,549 at seed 1. At `3b798e95` the palm grew 42 / 37 apical axes, all above its crown and cleared before drawing. It now grows none.
 
 ## R5: stills
 
@@ -66,10 +68,8 @@ Two were opened to check they are not blank: the birch at seed 1 whole, and Telp
 
 ## R6: gates and costs
 
-- **`cargo test --profile ci --workspace --no-fail-fast`:** 1,103 passed, 2 failed, 22 ignored, in 307 s.
-  - `telperion-jev` `replay::the_recorded_beech_replays_through_tunes_first_revision` fails because its tape lacks the shot-look request (key `4ff9e13b…`). The beech's candidate renders changed, and re-recording needs a live Jev and network run (`species european-beech --record`). The test is GPU-only and skips in CI.
-  - `objectives::the_palm_s_materials_track_leads_with_its_own_objective` is a pre-existing race: both tests in the file share `fn119-objectives-<pid>` (`objectives.rs:28`). It passes 3 of 3 runs alone.
-- **`npm test`:** green, 14 files and 141 tests, in 136 s, after `npm ci` in the worktree.
+- **`cargo test --profile ci --workspace --no-fail-fast`:** at `9229650b`, 1,105 passed, 0 failed, 22 ignored, in 236 s. The run before it, at `218df967`, found one failure: the wasm crate's specimen boundary fixture, whose expected error names `Specimen::grow`'s signature. That fixture was fixed and re-recorded in `9229650b`. Earlier failures were resolved by the host: the beech replay through Tune was dropped in `129ac0d3`, and the objectives race was fixed in `5e16254d`.
+- **`npm test`:** at `218df967`, 14 files and 141 tests passed, 0 failed, in 166 s. `9229650b` touches only a Rust compile-fail fixture.
 - **Build time:** release `growth_profile` rebuilds in 19 to 22 s on both base and branch. `npm run build` on the base took 55 s.
 - **Peak RSS of one growth run (base → branch):** oak 44.7 → 46.3 MB, beech 67.2 → 73.4 MB, birch 31.9 → 34.2 MB, Telperion 66.8 → 68.9 MB.
 - **Artifacts** (`node scripts/artifact-budgets.mjs` after `npm run build`; ceilings only, since this is not a PR run):
