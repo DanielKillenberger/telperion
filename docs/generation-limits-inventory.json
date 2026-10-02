@@ -109,6 +109,12 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/branching/local/pendant.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "The share of a stride kept above the curtain's floor is an interpolation coordinate within the stride (fn-183)."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/branching/local/pendant.rs",
     "site": ". clamp ( 0 . 0 , t . max_droop )",
     "classification": "parameter",
     "reason": "Droop is limited by the caller's validated maxDroop field."
@@ -148,6 +154,12 @@
     "site": ". min ( 1 . 0 )",
     "classification": "algorithm",
     "reason": "Unit progress or blend weight saturates at its endpoint; the authored length and population remain independent."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/branching/local/pendant.rs",
+    "site": ". min ( 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "The hang row's weight on the sag's turn saturates at full hang (fn-183); the authored length and population remain independent."
   },
   {
     "path": "crates/telperion-core/src/pipeline/branching/local/pendant.rs",
