@@ -27,7 +27,6 @@ struct Node {
     /// Birth key: stable through compaction, seeds every keyed draw.
     key: u64,
     born: u32,
-    phi: f32,
     /// The axis's horizontal outward direction (zero on the stem).
     out: Vec3,
     /// Pipes of shed wood (Pałubicki 4.5) and remembered resource per tip.
@@ -60,8 +59,6 @@ pub struct Grown {
     pub parent: Vec<Option<usize>>,
     pub lateral: Vec<bool>,
     pub radius: Vec<f64>,
-    pub demand: Vec<f64>,
-    pub phi: Vec<f64>,
     pub stats: Stats,
 }
 
@@ -118,7 +115,6 @@ pub fn grow(p: &Params, w: World) -> Grown {
         alive: true,
         key: g.w.seed.wrapping_mul(1_000_003),
         born: 0,
-        phi: 0.0,
         out: Vec3::ZERO,
         memory: 0.0,
         qmem: 1.0,
@@ -339,7 +335,6 @@ impl Grower<'_> {
                 alive: true,
                 key: key ^ self.w.seed.rotate_left(17),
                 born: t as u32,
-                phi: phi as f32,
                 out,
                 memory: 0.0,
                 qmem: 1.0,
@@ -467,8 +462,6 @@ impl Grower<'_> {
             parent: self.nodes.iter().map(|x| (x.parent != NONE).then_some(x.parent as usize)).collect(),
             lateral: self.nodes.iter().map(|x| x.lateral).collect(),
             radius: d.iter().map(|x| k * x.max(1.0).powf(1.0 / e)).collect(),
-            phi: self.nodes.iter().map(|x| f64::from(x.phi)).collect(),
-            demand: d,
             stats,
         }
     }
