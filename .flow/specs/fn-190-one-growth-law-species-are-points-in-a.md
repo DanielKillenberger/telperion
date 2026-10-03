@@ -148,6 +148,20 @@ Round 2 (`R1A-ROUND2.md`) grew limbs (beech 6 majors) within time and fine wood,
 
 This is R1a's third and last round.
 
+## Second rescope: reproduce each model before building the space (owner, 2026-10-03)
+
+After R1a round 3 the owner judged the stills "clearly not even close... a huge regression". The host's diagnosis, accepted by the owner: the probe never built the beech's architectural model. LITERATURE.md ("Troll's model in *Fagus*", [M98]) describes the trunk as a sympodial stack of modules, each with an erect base and a plagiotropic tip, the next module arising from a bud in the curvature zone (the relay) and taking apical dominance, a fork near 20 m that stops height growth, and a crown of reiterates, the outermost shortest. The probe's beech had a persistent orthotropic leader (`organ.rs:183–218`: persistence by φ, relay only on abortion from the distal laterals, lean per axis by φ), which is Massart's trunk, so it drew a fir. Today's beech is not Troll either (owner: it "looks like ass", which is why this spec exists). Continuity between models is a property of working points; no point worked.
+
+**R1 is replaced by staged reproduction, each stage judged by the owner on stills before the next starts** (memory: judge each generator round by its stills). The engine is R1a's single-pass organogenesis (`growth_law/organ.rs`), which met time and fine wood; its axis rule is replaced.
+
+1. **Beech, Troll, per [M98] piece by piece:** seedling an orthotropic monopodium whose tip tilts, first laterals plagiotropic; modules of several growth units with an erect base and a plagiotropic tip; the relay from a bud in the curvature zone on the upper side (epitony), taking dominance; branch axes plagiotropic monopodia, distichous, in flat systems; the fork near maturity that stops height growth; the crown as a succession of reiterates, the outermost shortest. Stills at several ages beside the beech photographs.
+2. **Oak, Rauh:** rhythmic growth, orthotropic branches like the trunk, acrotonic clusters at the top of each annual shoot, forks from the terminal bud cluster.
+3. **Spruce, Massart:** orthotropic monopodial trunk, rhythmic tiers of plagiotropic, bilaterally organised branches.
+4. **The space:** each model's features as continuous settings (the module angle profile from base to tip, relay readiness and position, rhythm strength, flowering position), walks beech to spruce to oak judged on stills.
+5. **Light and the carbon balance** (round 4's bole by shading and self-limiting size) on top, judged the same way.
+
+Time and fine wood are measured at every stage and reported; the bar applies from stage 4 on. No round bound; the owner's verdict on each stage's stills gates the next, and a stage the owner rejects twice stops for a decision.
+
 ## Boundaries
 
 - Not the species runner or its score (owner, 2026-10-03: "let's not start writing specs on how to fix the runner with a proper score now"). [user]
