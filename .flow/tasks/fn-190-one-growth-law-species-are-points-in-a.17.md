@@ -11,6 +11,7 @@ R9 to R11.
 **Touches:** [.flow/evidence/fn-190-one-growth-law-species-are-points-in-a/SPEED.md]
 
 ### Approach
+- Compare against the pinned baseline (.18, `BASELINE.md`), never a fresh `today` run on the changed pipeline.
 - Growth time per preset (warm median, seeds 1 and 7) against 1.5x today's skeleton at equal fine wood; full build at equal leaf count; peak memory; CI size budgets.
 - `cargo test --profile ci --workspace --no-fail-fast` and `npm test` once; Codex review; PR per `docs/pr-format.md` for the owner's verdict.
 

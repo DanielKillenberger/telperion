@@ -11,7 +11,7 @@ Stage E: the continuity test.
 **Touches:** [.flow/evidence/fn-190-one-growth-law-species-are-points-in-a/WALKS.md, .flow/evidence/fn-190-one-growth-law-species-are-points-in-a/raw/walks/**]
 
 ### Approach
-- `growth_law walk` (`main.rs`) beech to spruce, spruce to oak, oak to palm, at least 9 steps, seeds 1 and 7; a still strip per walk, viewed; the no-jump measure reported.
+- `growth_law walk` with the step stills the tooling task (.19) adds: beech to spruce, spruce to oak, oak to palm, at least 9 steps, seeds 1 and 7; a still strip per walk, viewed; the no-jump measure reported.
 - Growth time and fine wood per step against the bar.
 
 ### Investigation targets

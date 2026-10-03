@@ -4,7 +4,8 @@
   "claimed_at": null,
   "created_at": "2026-10-03T15:47:07.703943Z",
   "depends_on": [
-    "fn-190-one-growth-law-species-are-points-in-a.15"
+    "fn-190-one-growth-law-species-are-points-in-a.15",
+    "fn-190-one-growth-law-species-are-points-in-a.18"
   ],
   "id": "fn-190-one-growth-law-species-are-points-in-a.16",
   "priority": null,
@@ -12,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-190-one-growth-law-species-are-points-in-a.16.md",
   "status": "todo",
   "title": "Every preset on the rule, owner-approved",
-  "updated_at": "2026-10-03T15:47:07.703943Z"
+  "updated_at": "2026-10-03T15:54:51.742424Z"
 }

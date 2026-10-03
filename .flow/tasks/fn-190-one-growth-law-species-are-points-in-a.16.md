@@ -11,6 +11,7 @@ R8: every catalogue preset as coordinates in production.
 **Touches:** [crates/telperion-core/presets/**, catalogue/**]
 
 ### Approach
+- Compare against the pinned baseline (.18, `BASELINE.md`), never a fresh `today` run on the changed pipeline.
 - Beech, oak, spruce, palm from their approved points; birch, ash, plane from R12; Telperion and Laurelin on their bases plus authored character; ordinary at neutral.
 - Stills of every preset beside today's and the references, viewed; owner approval.
 

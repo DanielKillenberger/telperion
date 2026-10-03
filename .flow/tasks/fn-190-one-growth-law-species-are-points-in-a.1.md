@@ -24,7 +24,8 @@ The beech's part of stage A, plus the first engine feature, because Troll's modu
 ## Acceptance
 - [ ] `MODEL-BEECH.md` lists every Troll rule for the beech with its quote, its proposed settings and the engine features it needs
 - [ ] The engine draws modules, relays from the curvature zone and flat distichous branch systems; the stills show it at each age
-- [ ] The host has viewed every still and the owner has seen the sheet beside the beech photographs
+- [ ] The host has viewed every still, and the owner has given a recorded positive verdict on the mature sheet beside the beech photographs
+- [ ] Until that verdict exists, or the owner authorises a revised approach, the vocabulary task (.5) does not start
 
 ## Done summary
 TBD

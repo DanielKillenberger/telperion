@@ -7,7 +7,7 @@ satisfies: [R5]
 Stage F: round 4's mechanics on the reproduced models.
 
 **Size:** M
-**Files:** `crates/telperion-render/examples/growth_law/organ.rs`, a light module restored from history (`shadow.rs` at fbd82732), `params.rs`
+**Files:** `crates/telperion-render/examples/growth_law/organ.rs`, a light module restored from history (`light.rs` at fbd82732), `params.rs`
 **Touches:** [crates/telperion-render/examples/growth_law/**]
 
 ### Approach

@@ -4,7 +4,9 @@
   "claimed_at": null,
   "created_at": "2026-10-03T15:47:07.703632Z",
   "depends_on": [
-    "fn-190-one-growth-law-species-are-points-in-a.6"
+    "fn-190-one-growth-law-species-are-points-in-a.6",
+    "fn-190-one-growth-law-species-are-points-in-a.19",
+    "fn-190-one-growth-law-species-are-points-in-a.18"
   ],
   "id": "fn-190-one-growth-law-species-are-points-in-a.7",
   "priority": null,
@@ -12,5 +14,5 @@
   "spec_path": ".flow/tasks/fn-190-one-growth-law-species-are-points-in-a.7.md",
   "status": "todo",
   "title": "Beech point: values and mature sheet for the owner",
-  "updated_at": "2026-10-03T15:47:07.703632Z"
+  "updated_at": "2026-10-03T15:54:26.634398Z"
 }

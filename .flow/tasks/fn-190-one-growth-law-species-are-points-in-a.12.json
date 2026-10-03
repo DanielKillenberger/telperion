@@ -7,7 +7,9 @@
     "fn-190-one-growth-law-species-are-points-in-a.7",
     "fn-190-one-growth-law-species-are-points-in-a.8",
     "fn-190-one-growth-law-species-are-points-in-a.9",
-    "fn-190-one-growth-law-species-are-points-in-a.10"
+    "fn-190-one-growth-law-species-are-points-in-a.10",
+    "fn-190-one-growth-law-species-are-points-in-a.19",
+    "fn-190-one-growth-law-species-are-points-in-a.18"
   ],
   "id": "fn-190-one-growth-law-species-are-points-in-a.12",
   "priority": null,
@@ -15,5 +17,5 @@
   "spec_path": ".flow/tasks/fn-190-one-growth-law-species-are-points-in-a.12.md",
   "status": "todo",
   "title": "Walks between the points",
-  "updated_at": "2026-10-03T15:47:07.703805Z"
+  "updated_at": "2026-10-03T15:54:50.748531Z"
 }

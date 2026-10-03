@@ -11,10 +11,95 @@
   "impl_review_rounds": {},
   "next_task": 1,
   "no_plan": false,
-  "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-03T15:53:48.481053Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "3f99748ebd9f545abb632f9da1f599e78a142e82dd7d54cbbf4e1843c1ef3a53",
+      "backend": "codex",
+      "base_sha": "8e0141dc1ed6fd309da4712a2dfcbc7dfc7b72d1",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3efd5d82740fad9a6ae9827b3d9ed7df",
+            "classification": "introduced",
+            "findingId": "finding-3efd5d82740fad9a6ae9827b3d9ed7df",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9a59ee39e3ecdf9d462a08b94bebea70",
+            "classification": "introduced",
+            "findingId": "finding-9a59ee39e3ecdf9d462a08b94bebea70",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6b47c218e7a846a0340035dd3214e564",
+            "classification": "introduced",
+            "findingId": "finding-6b47c218e7a846a0340035dd3214e564",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-59dcb17c6e2895b4134fc0153a4d4d49",
+            "classification": "introduced",
+            "findingId": "finding-59dcb17c6e2895b4134fc0153a4d4d49",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-dd1e7350339710258366f1f88eb395a1",
+            "classification": "introduced",
+            "findingId": "finding-dd1e7350339710258366f1f88eb395a1",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5f8559c65702809f5596dbfb1020d0064e538841",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 364646,
+      "output_sha256": "d171a2bfd68dd1394be118380cfd37fc6f3e32d93b87cdb10baa087fd8b846ed",
+      "reservation_id": "5c7993fa1062493a81d5e82b2b5832f7",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-03T15:53:48.473300Z",
+      "tool_calls": 26,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-190-one-growth-law-species-are-points-in-a.md",
   "status": "open",
   "title": "One growth law: species are points in a continuous architecture space",
@@ -29,5 +114,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T15:44:25.936931Z"
+  "updated_at": "2026-10-03T15:55:05.212608Z"
 }
