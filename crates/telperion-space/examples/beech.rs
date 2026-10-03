@@ -6,7 +6,7 @@ use std::fmt::Write;
 use std::time::Instant;
 use telperion_space::{beech, expected_counts, grow, Request, Structure};
 
-const BUDGET: u32 = 5_000_000;
+const BUDGET: u32 = 20_000_000;
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -66,11 +66,32 @@ fn measures(tree: &Structure) -> String {
             .iter()
             .find(|p| p.tip.z >= 1.3)
             .map_or(0.0, |p| p.radius);
+    // The mean drawn length of an axis that never branches: a short shoot.
+    let mut bears = vec![false; tree.axes.len()];
+    for axis in &tree.axes {
+        if let Some(parent) = axis.origin.parent() {
+            bears[parent] = true;
+        }
+    }
+    let shoots: Vec<f64> = tree
+        .axes
+        .iter()
+        .zip(&bears)
+        .filter(|(a, &b)| !b && a.pa + 1 == tree.pas)
+        .map(|(a, _)| {
+            a.phytomers
+                .iter()
+                .fold((a.base, 0.0), |(f, l), p| (p.tip, l + (p.tip - f).length()))
+                .1
+        })
+        .collect();
+    let short = shoots.iter().sum::<f64>() / shoots.len().max(1) as f64;
     format!(
-        "{} phytomers, {} axes, height {top:.1} m, width {:.1} m, dbh {dbh:.2} m",
+        "{} phytomers, {} axes, height {top:.1} m, width {:.1} m, dbh {dbh:.2} m, short shoot {:.1} mm",
         tree.phytomer_count(),
         tree.axes.len(),
-        high - low
+        high - low,
+        short * 1e3
     )
 }
 

@@ -89,6 +89,15 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
     Ok(structure)
 }
 
+/// The share of an apex's expected wood a stop decides: a stop with no
+/// relay ends it all, and a stop that relays decides only the difference
+/// between stopping and relaying and carrying on. A relay carries on the
+/// axis's PA and growth units, so it is expected to grow what the apex
+/// would have, and the difference is the share that does not relay.
+fn stop_stake(relay: f64) -> f64 {
+    1.0 - relay
+}
+
 fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
     Axis {
         lineage: key.0,
@@ -142,7 +151,8 @@ impl Grower<'_> {
                 continue;
             }
             let survive = below(u, state.viability);
-            let survive = self.windows.presence(survive, self.windows.wood(pa, cycle));
+            let stake = self.windows.wood(pa, cycle) * stop_stake(state.relay);
+            let survive = self.windows.presence(survive, stake);
             self.draws[apex.axis].units.push([survive, 1.0]);
             self.grow_unit(apex, pa, unit, cycle)?;
             apex.units += 1;
@@ -155,8 +165,8 @@ impl Grower<'_> {
                     self.stop(apex, cycle, below(u, state.abortion));
                     continue;
                 }
-                let wood = self.windows.wood(pa, cycle + 1);
-                let persist = self.windows.presence(above(u, state.abortion), wood);
+                let stake = self.windows.wood(pa, cycle + 1) * stop_stake(state.relay);
+                let persist = self.windows.presence(above(u, state.abortion), stake);
                 let units = &mut self.draws[apex.axis].units;
                 units.last_mut().unwrap()[1] = persist;
             }
@@ -219,7 +229,7 @@ impl Grower<'_> {
             let pa = axis.pa;
             let wood = self.windows.wood(pa, cycle + 1);
             let made = [
-                self.windows.presence(stopped, wood),
+                self.windows.presence(stopped, wood * stop_stake(relay)),
                 self.windows.presence(below(u, relay), wood),
             ];
             self.sprout(key.child(RELAY_BUD), pa, cycle, origin, made);

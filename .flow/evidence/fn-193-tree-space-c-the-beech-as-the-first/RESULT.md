@@ -139,3 +139,31 @@ The committed beech is round 2's, unchanged: its relays are off, so the engine c
 ## Host decision 3, the last attempt for C (2026-10-04, overnight run)
 
 The young-tree change collapsed the tree before its look could be judged (relays born partly grown, sizes multiplying up the stem: the 12th module at 1.2e-4 of full size; `raw/v3b/chain.log`), so the trait was not judged on its merits; this is counted as an engine interaction with phase B, not the second rejection. One attempt, then C stops for the owner with no further exceptions: (1) a relay's draw decides the difference between the two continuations (stop and relay against continue), not the crown, so a near-certain relay is drawn whole; B's walks and A's oracle stay green; (2) leaves: foliage spacing set per short-shoot length so a short shoot carries 3 to 5 leaves in expectation; exact per-node leaves are a phase F contract. If the young beech then fails, or the tree collapses, C stops.
+
+## Round 4, the host's last attempt: BLOCKED (the young beech still fails)
+
+**Built (committed; all ten crate test binaries green, `raw/space-tests-r4.log`):**
+- A stop's grow-in window is now scaled by what it decides: `stop_stake = 1 - relay` of the apex's expected wood. A relay carries on its axis's PA and growth units, so stopping and relaying is expected to grow what carrying on would. A near-certain relay is drawn whole.
+- With no relay the stake is the whole wood, so every earlier tree is unchanged (the round-2 beech measures the same).
+- A's oracle passes, and so do B's walks. The `relay` setting is walked on every PA up to 0.995, which covers the near-certain case.
+
+**The module beech re-applied** (`raw/final3/module-beech-r4.patch`; reversed after the sheet, so the committed beech is round 2's):
+- Short shoots of 3 to 5 nodes.
+- Leaves only on the grown short shoots, spaced 6 mm, by the measured mean short-shoot length (19 to 33 mm, so 3 to 5 leaves a shoot in expectation).
+- The tree no longer collapses: 9.3 to 9.6 m at 40 cycles, 17.9 to 19.0 m at 80.
+
+**Sheet:** `raw/final3/sheet-beech.png`, in the same layout. I viewed every still.
+
+| Trait | Reading |
+|---|---|
+| 10 years | Seed 1: a slightly crooked stem, with branches spreading from a few modules. Seed 7: a straight pole with rods. **Fails at seed 7.** |
+| 20 years | Both seeds: a straight pole with near-horizontal rods, no visible module stacking and no horizontal spray. **Fails: the same trait as rounds 1 to 3.** |
+| 40 and 80 years, bole | The bole is a stack of ring-shaped bulges, one per trunk module. Each relay is drawn as a codominant lateral beside its stopped head. **Regressed against round 2.** |
+| 80 years, fork and limbs | No clear division at about 0.25 H any more. The crown is a broad, leaning fan of limbs 22 m wide. **Regressed against round 2.** |
+| In leaf | 125k to 157k leaves on the short shoots alone: an open, sparse crown, not a dense mass. **Fails.** The sourced 3 to 5 leaves per short shoot give too few leaves for the shoots the engine keeps. |
+
+**Measured costs:**
+- At 80 cycles the module beech grows more than 5M phytomers and keeps 1.10M to 1.28M, against round 2's 0.61M to 0.90M.
+- Growth takes 1.7 to 2.6 s.
+
+By the host's rule this ends C for the night.

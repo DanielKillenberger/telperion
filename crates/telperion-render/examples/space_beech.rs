@@ -14,7 +14,7 @@ use telperion_render::{
 };
 use telperion_space::{beech, grow, Request};
 
-const BUDGET: u32 = 10_000_000;
+const BUDGET: u32 = 20_000_000;
 const SIZE: (u32, u32) = (960, 720);
 /// The preset's rows restated for a tree that grows its own short shoots:
 /// the clusters the preset seats along slender wood stood in for them.
