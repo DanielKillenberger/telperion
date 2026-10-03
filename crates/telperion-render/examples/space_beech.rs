@@ -8,7 +8,7 @@
 mod tree;
 
 use std::time::Instant;
-use telperion_core::{math::Vec3, pipeline::executor, presets::Preset, surface::Bounds};
+use telperion_core::{math::Vec3, params, pipeline::executor, presets::Preset, surface::Bounds};
 use telperion_render::{
     hero_pose, render, write_png, Gpu, Level, Renderer, View, GROUND_REACH, STILL_FORMAT,
 };
@@ -16,6 +16,9 @@ use telperion_space::{beech, grow, Request};
 
 const BUDGET: u32 = 10_000_000;
 const SIZE: (u32, u32) = (960, 720);
+/// The preset's rows restated for a tree that grows its own short shoots:
+/// the clusters the preset seats along slender wood stood in for them.
+const ROWS: &str = r#"{"canopy": {"shortShootSpacing": 0, "shootRadius": 0.012, "limbClumping": 0}, "skeleton": {"twigs": {"twig": {"internodeLength": 0.006}}}}"#;
 
 fn main() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -38,9 +41,11 @@ fn main() -> Result<(), String> {
             );
         }
     }
-    let family = Preset::from_id("european-beech")
+    let preset = Preset::from_id("european-beech")
         .ok_or("no beech preset")?
         .parameters();
+    let rows: serde_json::Value = serde_json::from_str(ROWS).map_err(|e| e.to_string())?;
+    let family = params::overlay(&preset, &rows).map_err(|e| format!("{e:?}"))?;
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     for &age in &ages {

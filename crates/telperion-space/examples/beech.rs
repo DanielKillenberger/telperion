@@ -59,9 +59,15 @@ fn measures(tree: &Structure) -> String {
         high = high.max(p.tip.x.max(p.tip.y));
         top = top.max(p.tip.z);
     }
-    let base = tree.axes[0].phytomers.first().map_or(0.0, |p| p.radius);
+    // The diameter at breast height, 1.3 m.
+    let dbh = 2.0
+        * tree.axes[0]
+            .phytomers
+            .iter()
+            .find(|p| p.tip.z >= 1.3)
+            .map_or(0.0, |p| p.radius);
     format!(
-        "{} phytomers, {} axes, height {top:.1} m, width {:.1} m, base radius {base:.3} m",
+        "{} phytomers, {} axes, height {top:.1} m, width {:.1} m, dbh {dbh:.2} m",
         tree.phytomer_count(),
         tree.axes.len(),
         high - low

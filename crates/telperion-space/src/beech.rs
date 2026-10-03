@@ -65,7 +65,7 @@ pub fn beech() -> Species {
             elevation: FRAC_PI_2,
             wander: 0.2,
             plane: FRAC_PI_2,
-            pipe: 0.0008,
+            pipe: 0.00057,
         },
         ..state(
             12,
@@ -99,7 +99,7 @@ pub fn beech() -> Species {
             elevation,
             wander: 1.2,
             plane: 0.0,
-            pipe: 0.0008,
+            pipe: 0.00057,
         },
         ..state(
             lifespan,
@@ -113,9 +113,9 @@ pub fn beech() -> Species {
     };
     // The stem's own relay at the fork, one of its equals but the most erect.
     let leader = reiterate(70, Some((LIMB, 0.1)), 1.25);
-    let limb = reiterate(70, Some((BOUGH, 0.12)), 1.0);
-    let bough = reiterate(30, Some((SPUR, 0.1)), 0.8);
-    let spur = reiterate(15, None, 0.6);
+    let limb = reiterate(70, Some((BOUGH, 0.12)), 1.1);
+    let bough = reiterate(30, Some((SPUR, 0.1)), 0.95);
+    let spur = reiterate(15, None, 0.75);
     // GreenLab's PA 2, the long ramified shoot: Z20 bare, Z24 short
     // shoots, Z23 long shoots bearing short shoots, Z22 partial
     // reiteration, base to tip (acrotony).
@@ -129,7 +129,7 @@ pub fn beech() -> Species {
             elevation: 0.25,
             wander: 1.2,
             plane: 0.0,
-            pipe: 0.0008,
+            pipe: 0.00057,
         },
         ..state(
             10,
@@ -153,7 +153,7 @@ pub fn beech() -> Species {
             elevation: 0.15,
             wander: 2.0,
             plane: 0.0,
-            pipe: 0.0008,
+            pipe: 0.00057,
         },
         ..state(5, None, vec![zone(1, 1, &[]), zone(2, 3, &[(SHORT, 0.6)])])
     };
@@ -168,7 +168,7 @@ pub fn beech() -> Species {
             elevation: 0.0,
             wander: 0.0,
             plane: 0.0,
-            pipe: 0.0015,
+            pipe: 0.00107,
         },
         ..state(3, None, vec![zone(3, 3, &[])])
     };
