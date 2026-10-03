@@ -1,6 +1,6 @@
 # Telperion
 
-A runtime tree generator: space colonization for the crown, botanical rules below the crossover, one bias field for everything supernatural. Strategy lives in `STRATEGY.md`; specs and tasks in `.flow/` via `flowctl`.
+A runtime tree generator built toward one continuous botanical tree space, every species a point in it (STRATEGY.md, "The tree space"); today's generator uses space colonization for the crown and botanical rules below the crossover, with one bias field for everything supernatural. Strategy lives in `STRATEGY.md`; specs and tasks in `.flow/` via `flowctl`.
 
 ## Dispatch and escalation (owner)
 
