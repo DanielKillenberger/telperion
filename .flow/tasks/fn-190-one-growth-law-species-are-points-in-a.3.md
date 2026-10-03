@@ -28,9 +28,10 @@ Stage A for the spruce, reading only, in parallel with the other model specifica
 - [ ] No code changed
 
 ## Done summary
-TBD
+MODEL-SPRUCE.md written: 14 Massart rules (12 quoted, 2 unsourced), settings proposed from R1a round 3, five traits, engine gaps F1-F6 and the comb/brush habit choice for the vocabulary task.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
+- Commits: 8fa5d9a15b0cad62b8049ab3263951a4ea7f1343
 - Tests:
 - PRs:
