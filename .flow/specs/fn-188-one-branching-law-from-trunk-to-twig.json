@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-188-one-branching-law-from-trunk-to-twig.md",
-  "status": "open",
+  "status": "done",
   "title": "One branching law from trunk to twig",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T20:26:30.543147Z"
+  "updated_at": "2026-10-03T08:21:00.827087Z"
 }

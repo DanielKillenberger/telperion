@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T20:42:20.182334Z",
+  "depends_on": [
+    "fn-188-one-branching-law-from-trunk-to-twig.1"
+  ],
+  "id": "fn-188-one-branching-law-from-trunk-to-twig.2",
+  "priority": null,
+  "spec": "fn-188-one-branching-law-from-trunk-to-twig",
+  "spec_path": ".flow/tasks/fn-188-one-branching-law-from-trunk-to-twig.2.md",
+  "status": "done",
+  "title": "Small ablations: whole-tree girth, no terminal extension, axis-relative subdivision",
+  "updated_at": "2026-10-02T20:42:20.182334Z"
+}

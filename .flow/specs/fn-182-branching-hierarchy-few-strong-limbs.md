@@ -68,3 +68,7 @@ The goal is unchanged: a few thick limbs dividing into ever finer twigs. At subs
 ## Paused (owner, 2026-10-02)
 
 The two code changes the evidence supports (a limb tip's continuation takes the ordinary shoot length; twig bearing stops depending on wood thickness) wait on fn-188, which questions the scaffold/twig split they both sit on. The evidence for them is on branch `fn-182-girth` (`R7-GIRTH.md`, `R8-HORNS.md`, `ASTRA-THICKNESS-REVIEW.md`). [user]
+
+## Superseded by fn-190-one-growth-law-species-are-points-in-a (owner, 2026-10-03)
+
+The branching hierarchy is the new growth law's to deliver, by axis differentiation and competition rather than a twig shell or girth patches. This spec's evidence (on branch `fn-182-girth` and in `.flow/evidence/fn-182-branching-hierarchy-few-strong-limbs/`) carries over. [user]

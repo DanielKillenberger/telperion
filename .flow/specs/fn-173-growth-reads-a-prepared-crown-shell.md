@@ -69,3 +69,7 @@ The cost is the outline, not the lobes. Per query, the outline's `quadrant(p, s)
 fn-183 removed the twig layer's crown queries. What remains, from `R4-RESULT.md` at seed 1: about 26k queries on the oak, 36k on the beech, 20k on the birch, 169k on the spruce (scaffold containment and attractor sampling, 65% of its original count) and 239k on Telperion (shedding, 228k). At the 40 to 55 ns this table would save per query, that is roughly 1 ms of the oak's 43 ms and 1 ms of the birch's 25 ms, about 7 ms of the spruce's 36 ms, and 10 ms of Telperion's 363 ms. [inferred from checked counts]
 
 Before any table, step 2 of "Question, delete, then optimise" applies to the two large callers: why the spruce's scaffold asks its outline 168k times (rejection sampling of attractors and edge containment), and whether Telperion's shedding (fn-172's) needs a query per node. This spec is not ready until that is answered; the outline table is built only for what survives it. [host]
+
+## Superseded pending fn-190-one-growth-law-species-are-points-in-a (owner, 2026-10-03)
+
+The new growth law replaces the growth-side work this spec speeds up (outline queries and shedding by outline distance). Not ready; to be closed or re-scoped once fn-190-one-growth-law-species-are-points-in-a's R2 design is recorded. [user]

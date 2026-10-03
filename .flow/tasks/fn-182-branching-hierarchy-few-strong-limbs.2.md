@@ -10,8 +10,9 @@ TBD
 - [ ] TBD
 
 ## Done summary
-TBD
+Superseded by fn-190: the girth rows, horn trace and twig-bearing findings (R7-GIRTH.md, R8-HORNS.md on branch fn-182-girth) carry over as its evidence.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

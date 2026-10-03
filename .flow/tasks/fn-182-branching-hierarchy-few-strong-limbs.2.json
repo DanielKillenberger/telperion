@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-182-branching-hierarchy-few-strong-limbs",
   "spec_path": ".flow/tasks/fn-182-branching-hierarchy-few-strong-limbs.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Measure the girth rows on Candidate B",
   "updated_at": "2026-10-02T19:39:41.742529Z"
 }

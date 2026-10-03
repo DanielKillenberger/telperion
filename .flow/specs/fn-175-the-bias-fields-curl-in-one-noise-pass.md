@@ -39,3 +39,7 @@ Telperion grows in 391 ms at seed 1 (`growth_profile` median, master f9487810). 
 
 - Independent of fn-172, fn-173 and fn-174, and can run beside them. [user]
 - Evidence: `.flow/evidence/fn-173-growth-reads-a-prepared-crown-shell/PROFILE.md`. [checked]
+
+## Note (2026-10-03)
+
+The bias field's curl carries over into fn-190-one-growth-law-species-are-points-in-a as a term in the growth law's direction; this spec's speed work stays valid for it. [user]

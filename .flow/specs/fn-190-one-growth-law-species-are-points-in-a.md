@@ -1,0 +1,66 @@
+# One growth law: species are points in a continuous architecture space
+
+## Conversation Evidence
+
+> owner (2026-10-02): "We should have a branching rule that makes them grow organically according to the params set."
+> owner (2026-10-03): "how do we hill climb towards the reference image ... Problem here is that we seemingly have a fundamental flaw with the growth algo that's holding back most species."
+> owner (2026-10-03): "all with the aim to fix fundamental growth algo that is better at supporting wide array of trees"
+> owner (2026-10-03): "can we have a new model that is able to smoothly transition between those models to get the continuous tree space we want?"
+> owner (2026-10-03): "yes and let's make sure the new spec has a well defined achievable goal so i can then run /flow --auto"
+
+## Goal & Context
+<!-- scope: business -->
+<!-- Goal & Context: 25% [user], 55% [checked], 20% [inferred] -->
+
+Replace the generator's growth stage with one growth law that runs from trunk to twig, in which every catalogue species is a point in a continuous space of architectural settings, so a parameter change moves the tree by degree and a new species is new coordinates. The law must make the beech, an oak and the spruce read closer to their reference photographs than today, measured, and stay fast. [user, inferred]
+
+**Why (checked, fn-188).** Today's growth is two systems joined at a crossover (a rule-built scaffold and a separate twig layer) held together by thresholds and patches: the twig layer's thickness gate (`local/seed.rs:133`), the tip shoot that bypassed it and carried whole twig layers (fn-189 `TRACE.md`: 100% of telperion's twigs at seed 7), girth patches, the crown wall (removed in fn-183). Thresholds make the parameter space jumpy, which is why value tuning kept nothing. fn-188's probe (`.flow/evidence/fn-188-one-branching-law-from-trunk-to-twig/`, R3-PROBE.md to R3-PROBE9.md, R3-SPEED.md, R3-ADAPTER.md) showed competition growth (Pałubicki et al. 2009, space colonization with vigour allocation) removes the patches and keeps every walked parameter continuous, but with every axis following one rule the beech reads as a ball or a comb, not its photograph. The literature (`LITERATURE.md` in the same folder) names the missing piece: axis differentiation by physiological age (Barthélémy & Caraglio 2007), and that Pałubicki 2009 itself omits branch reorientation, "essential" for Troll's model. [checked]
+
+**The architecture space (from LITERATURE.md and the host, 2026-10-03).** What separates the Hallé–Oldeman models becomes continuous settings on one law: apical persistence (monopodial to sympodial), lean by physiological age with a straightening rate (orthotropic to plagiotropic, Troll's model), the lateral position profile along a shoot (acrotony to basitony), rhythm strength (continuous to tiered), shoot form by vigour (short non-branching shoots to long branching shoots), reiteration readiness, and branching probability (down to unbranched, Corner's model). Catalogue models: beech and birch Troll, oak and ash Rauh, spruce Massart, date palm Corner. [checked: literature; inferred: the mapping]
+
+## Architecture & Data Models
+<!-- scope: technical -->
+
+- **Base:** the fn-188 probe's competition law as of round 9 (history: `01ba06a6` on branch `fn-188-one-branching-law-from-trunk-to-twig`, report R3-PROBE9.md): space markers in the crown, buds with perception cones, Borchert-Honda vigour allocation, pipe-model radii over the whole tree with leaf demand, the pipeline's own foliage. Known gaps it carries: every bud follows one rule; space-only resource gives every bud equal vigour at λ 0.5; shedding cannot be tuned in space mode (R3-PROBE9). [checked]
+- **To add (R1):** a continuous physiological age per bud; smooth curves of it set shoot length and internodes, lateral development and its position profile, lean and its change over time (straightening), and bud fate (short shoot, long shoot); a graded light or resource signal so vigour differs and drives age; shedding by remembered resource or light, not by space alone. Every setting is one continuous parameter; integer outcomes (branch counts) are taken in expectation with keyed randomness so small changes give small changes. [inferred]
+- **The scorecard:** `.flow/evidence/fn-188-one-branching-law-from-trunk-to-twig/ASTRA-BARE-TARGETS.md` and R3-PROBE9.md's implementation (`raw/probe9/score.py` on that branch's disk; re-implement in typed code): clear bole and division height, major axes, W(h) profile, secondaries per major and length ÷ remaining parent, fine wood in the outer shell vs interior and upper vs lower, junction thickness ratios, fine-wood local straightness, fine-wood length, laterals per metre, generations, terminal run lengths. [checked]
+- **References:** `.flow/references/<species>/` real photographs at five scales (whole bare, whole in leaf, mid-crown limbs, bare twig spray, leafy spray) with provenance and licences (fn-188 research, 2026-10-03), plus the beech's B-BARE and B-WHOLE (`.worktrees/fn-62/.refs/fn34/european-beech/fasy896.jpg`, `fasy951.jpg`; copy into `.flow/references/european-beech/` if not already there). [checked]
+- **What the production law deletes:** the twig layer as a separate system, its thickness gate and tip shoot, the girth patches (`girthHold`, `girthFall`, `lateralShare` as patches), shedding as structural cleanup, and remaining crown-wall checks in growth. Code that becomes dead is removed; rows that lose meaning are retired by name with a migration note. [inferred]
+- **Contract with fn-125 (expansion):** whether short shoots are grown wood carrying leaves or foliage stations on existing wood is decided in R2 and written into this spec and fn-125's, so fn-125 optimizes the station types growth produces. [inferred]
+- **Unchanged:** the pipeline's other stages and their contracts; the bias field (fn-175's curl becomes a term in the law's direction); the scaffold envelope rows as authored crown volume where they still apply. [inferred]
+
+## Edge Cases & Constraints
+
+- **No switches.** Every new parameter changes the tree by degree; no value selects a different way of building (`docs/principles.md`). A parameter's neutral value is stated; byte identity with today is not required (AGENTS.md "Generator evolution"). [principles]
+- **No new thresholds or walls** where a continuous law can do the job; any remaining limit names its owner and reason (`docs/principles.md` step 1). [principles]
+- **Speed is a product requirement** (owner, 2026-10-02: "in the long term it needs to be super fast"); comparisons are at equal or greater detail, never by drawing less. [user]
+- Telperion, Laurelin, ordinary and the date palm have no photographs: they keep their character, measured against today's renders (silhouette, size, node and leaf counts), and the palm stays unbranched (Corner). [inferred]
+- No full-forest capture; at most four images viewed per capture by any agent. [AGENTS.md]
+
+## Acceptance Criteria
+
+- **R1 (proof in the probe, before production code):** In the probe, the law with physiological age grows the European beech, an oak (Oregon white oak preset; Quercus robur photographs where Q. garryana ones are lacking) and the Norway spruce. Pass bands are written into this spec BEFORE tuning and reviewed by Astra: for the beech the ASTRA-BARE-TARGETS bands (clear bole 0.18–0.28 of height; division band 0.30–0.40; 4–6 major axes; 5–10 substantial secondaries per major with length ÷ remaining parent 0.3–0.8; outer-shell ÷ interior fine wood > 1.3 and upper ÷ lower > 1.1; first-order junction ratio 0.4–0.6; laterals per metre of fine wood ≥ 1.3 with generations p50 ≤ 3), and for the oak and spruce bands derived the same way from their reference photographs and architectural models (Rauh, Massart). Each species meets at least 80% of its bands at seeds 1 and 7, with bare and in-leaf stills beside the references; and walks between the species' points (beech to oak, oak to spruce, at least 9 steps each) show no jump: no measure changes by more than three times its median step in one step. Probe growth time per species is at most 1.5 times today's skeleton time (warm median, same machine) at equal or greater fine-wood length. Bounded effort: if R1 is not met after the documented attempts (each a recorded probe round), the run stops with `NEEDS_HUMAN` and the report. [inferred]
+- **R2:** The production design is recorded in this spec before production code: where the law lives in `pipeline` (stage 2), the parameter set with neutral values and windows, the deletion list, the fn-125 leaf-station contract, and how each catalogue preset is expressed as coordinates. Astra reviews it against `docs/principles.md` and the evidence; findings are folded in or answered. [inferred]
+- **R3:** The law replaces the growth stage for every preset; the deletions are made; no direct-build code path still runs the twig layer, its gate, the tip shoot or the girth patches. A test walks every new parameter and shows the tree changes by degree; off-rail values are refused by name; rows are declared once in the catalogue, blended and on the dials. [inferred]
+- **R4:** Every catalogue preset is expressed in the new space: the beech, oak and spruce at least as close to their references as today on the scorecard at seeds 1 and 7 (and meeting R1's bands); birch and ash measured against their references and no worse than today; Telperion, Laurelin, ordinary and the palm keep their character per the constraint above. Bare and whole stills of every preset beside today's and the references are in the evidence. [inferred]
+- **R5:** Speed and size: growth time per preset at most 1.5 times today's skeleton time (warm median, seeds 1 and 7), full build at equal or greater leaf count no slower than today, peak memory reported, every shipped artifact within its CI size budget. [user, inferred]
+- **R6:** `cargo test --profile ci --workspace --no-fail-fast` and `npm test` are green; the Codex implementation review passes. [AGENTS.md]
+- **R7:** The PR is opened for the owner's visual verdict on the R4 stills and is not merged without it. [user]
+
+## Boundaries
+
+- Not the species runner or its score (owner, 2026-10-03: "let's not start writing specs on how to fix the runner with a proper score now"). [user]
+- Not the cost of leaf placement in expansion: that is fn-125's (and fn-126's); this spec only agrees the leaf-station contract with it. [inferred]
+- Not the species values beyond expressing the catalogue presets: fn-62 tunes the beech through the runner afterwards. [inferred]
+- Not the hidden growth path (fn-181 removes it); a later rewrite of growth over time may build on this law. [inferred]
+
+## Decision Context
+
+- **Supersedes:** fn-182 (branching hierarchy; its shell dropped, its question answered here), fn-189 (deleting the tip shoot; done as part of R3 together with the gate it compensated for), and the growth-side speed specs fn-172 (shedding by outline distance) and fn-173 (the crown-shape table), whose targets the new law replaces. fn-188 closes into this spec with its evidence. [user, 2026-10-03]
+- **Carries over:** fn-175 (the bias field's curl) as a term in the law's direction. [inferred]
+- **fn-125 proceeds in parallel** on expansion, with the leaf-station contract from R2. [user, 2026-10-03]
+- **fn-62 (the beech)** depends on this spec. [inferred]
+
+## Strategy Alignment
+
+- Changes STRATEGY.md's "Our approach" line "space colonization for the crown, botanical rules below the crossover" to one growth law from trunk to twig with species as coordinates in an architecture space; R7's merge carries that wording change with the owner's verdict. [strategy:Our approach]

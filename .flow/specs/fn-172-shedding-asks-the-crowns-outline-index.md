@@ -43,3 +43,7 @@ Shedding is the largest cost on the ordinary preset and the second largest on Te
 
 - Separate from B because it is independent of the shell table, small, and lands first. [user]
 - Evidence: `.flow/evidence/fn-173-growth-reads-a-prepared-crown-shell/PROFILE.md`, the 2026-09-27 growth profile all four specs cite. [checked]
+
+## Superseded pending fn-190-one-growth-law-species-are-points-in-a (owner, 2026-10-03)
+
+The new growth law replaces the growth-side work this spec speeds up (outline queries and shedding by outline distance). Not ready; to be closed or re-scoped once fn-190-one-growth-law-species-are-points-in-a's R2 design is recorded. [user]

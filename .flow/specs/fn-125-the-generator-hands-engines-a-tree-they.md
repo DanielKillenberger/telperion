@@ -140,3 +140,7 @@ On master these duplicates run only on the fallback branches. The oak's and spru
 - Every file this spec cites moved under `crates/telperion-core/src/pipeline/` with fn-158 (#126); the references above are re-anchored to master c71ef3e1.
 - The dead-frond skirt (rosette `skirt`, packed withered bit) needs no new source kind (`rosette.rs:65-80, 220`; `packed.rs:24-28`).
 - The ring words already carry a per-ring frame (`compact.rs`, ring packing); what a shaped run lacks is the non-circular cell (`tree/section.rs:21-42`).
+
+## Leaf-station contract with fn-190-one-growth-law-species-are-points-in-a (owner, 2026-10-03)
+
+fn-190-one-growth-law-species-are-points-in-a replaces the growth stage. Whether the beech's short shoots are grown wood carrying leaves or foliage stations on existing wood is decided in fn-190-one-growth-law-species-are-points-in-a's R2 and written into both specs; this spec optimizes the station types growth produces and otherwise proceeds in parallel. [user]

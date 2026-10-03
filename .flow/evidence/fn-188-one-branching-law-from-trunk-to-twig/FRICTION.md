@@ -20,3 +20,17 @@
 - **Hindered by:** the dcg hook blocks `git checkout <ref> -- <path>` and `git show ... > $path` in a loop; `git cherry-pick --no-commit` then `git reset` worked.
 - **Cost:** ~3 min, ~4k tokens.
 - **What would remove it:** a probe kept on its own scratch branch (or `git worktree add` at the probe commit) instead of commit-and-revert on the spec branch.
+
+## 2026-10-03, R3 round 9, restoring and running the probe
+
+- **Doing:** restoring round 8's probe and writing each run's rows to `raw/probe9/`.
+- **Hindered by:** no record of round 8's run settings (the rows carry no environment), so bases A, B and the chosen tree were rebuilt from the reports' prose and matched by node and leaf counts; and the dcg hook again blocked `> $R/...` redirects, so a Python driver writes the rows.
+- **Cost:** ~8 min, ~10k tokens.
+- **What would remove it:** each probe row carrying its `P_*` environment (the round 9 driver now writes it), and the probe writing its own rows to a literal path.
+
+## 2026-10-03, R3 round 9, the photograph's image measures
+
+- **Doing:** a wood mask of B-BARE's left half for W(h), patch density and fine-line straightness, the same code as on the renders.
+- **Hindered by:** at 534 × 400 the crown's twig haze is solid (the mask covers 76% of the crown rows), a neighbouring tree joins the right edge, the ground behind the bole is dark below y 290, and the crown is clipped at top and left. Only Astra's hand bands are usable on the photo; one image view (`raw/probe9/mask-check.png`) spent on learning it.
+- **Cost:** ~10 min, ~8k tokens, one of four image views.
+- **What would remove it:** a higher-resolution, uncropped bare beech photograph against open sky as the reference.
