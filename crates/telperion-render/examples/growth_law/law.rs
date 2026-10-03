@@ -1,5 +1,5 @@
 //! One growth law from trunk to twig (fn-190 R1 probe, round 2). Every bud
-//! reads its light from the shadow-propagation grid and the tree shares it by
+//! reads its light from above (Beer–Lambert over the full height) and the tree shares it by
 //! Borchert-Honda allocation (Pałubicki et al. 2009); every bud carries a continuous
 //! physiological age phi (Barthélémy & Caraglio 2007) that sets its shoot's
 //! length, its laterals and their place along it, its lean, and its fate.
@@ -9,7 +9,7 @@
 //! are shed. Integer outcomes are taken in expectation with keyed
 //! randomness, so a small change of any setting is a small change of the tree.
 use crate::params::Params;
-use crate::shadow::Shadow;
+use crate::light::Light;
 use std::time::Instant;
 use telperion_core::envelope::Envelope;
 use telperion_core::math::Vec3;
@@ -53,11 +53,12 @@ pub struct Stats {
     pub buds_max: usize,
     pub capped: bool,
     pub ms: [f64; 5],
-    /// Of extend: the time spent casting shadows, and the voxels updated.
+    /// The light field's downward passes: time and cells visited.
     pub cast_ms: f64,
     pub updates: u64,
     /// The tree's net balance each cycle.
     pub net: Vec<f64>,
+    pub reserve_end: f64,
 }
 pub const STAGES: [&str; 5] = ["light", "allocate", "shed", "extend", "straighten"];
 
@@ -88,7 +89,7 @@ fn keyed_round(x: f64, key: u64, salt: u64) -> usize {
 }
 
 pub struct World {
-    pub shadow: Shadow,
+    pub light: Light,
     /// The authored crown, pulled toward with weight `envelope` (0 neutral).
     pub envelope: Envelope,
     pub height: f64,
@@ -105,11 +106,13 @@ struct Grower {
     next_key: u64,
     unit: f64,
     cast_ms: f64,
+    /// The stored resource: the seed reserve, topped up from surplus.
+    reserve: f64,
 }
 
 pub fn grow(p: &Params, w: World) -> Grown {
     let unit = p.unit * w.height;
-    let mut g = Grower { p: *p, nodes: vec![], buds: vec![], next_key: 1, unit, cast_ms: 0.0, w };
+    let mut g = Grower { p: *p, nodes: vec![], buds: vec![], next_key: 1, unit, cast_ms: 0.0, reserve: p.reserve, w };
     g.nodes.push(Node {
         parent: NONE,
         pos: Vec3::ZERO,
@@ -128,17 +131,27 @@ pub fn grow(p: &Params, w: World) -> Grown {
     let mut st = Stats::default();
     for t in 0..p.cycles.round() as usize {
         st.cycles += 1;
+        let tc = Instant::now();
+        g.relight();
+        g.cast_ms += ms(tc);
         let t0 = Instant::now();
         let (q, guide) = g.perceive();
         st.ms[0] += ms(t0);
         let t0 = Instant::now();
         let n = g.nodes.len();
         let (qm, ql, cnt, lit, upk) = g.basipetal(&q);
-        let v = g.allocate(&q, &qm, &ql, lit[0] - upk[0]);
-        st.net.push(lit[0] - upk[0]);
+        // The reserve: this year's net plus the stock is what the tree has;
+        // it covers upkeep first (the share `cover` of every branch's
+        // upkeep it pays), a share is stored again, the rest is spent.
+        let net = lit[0] - upk[0];
+        let cover = (g.reserve / upk[0].max(1e-12)).min(1.0);
+        let have = (net + g.reserve).max(0.0);
+        g.reserve = p.store * have;
+        let v = g.allocate(&q, &qm, &ql, (1.0 - p.store) * have);
+        st.net.push(net);
         st.ms[1] += ms(t0);
         let t0 = Instant::now();
-        st.shed += g.shed(t, &lit, &upk, &cnt);
+        st.shed += g.shed(t, &lit, &upk, &cnt, cover);
         st.ms[2] += ms(t0);
         let t0 = Instant::now();
         let buds = std::mem::take(&mut g.buds);
@@ -180,7 +193,8 @@ pub fn grow(p: &Params, w: World) -> Grown {
     }
     g.compact();
     st.cast_ms = g.cast_ms;
-    st.updates = g.w.shadow.updates;
+    st.updates = g.w.light.updates;
+    st.reserve_end = g.reserve;
     g.finish(st)
 }
 
@@ -191,18 +205,28 @@ fn ms(t: Instant) -> f64 {
 impl Grower {
     /// Each bud's light (one grid lookup) and the direction toward light.
     fn perceive(&self) -> (Vec<f64>, Vec<Vec3>) {
-        let sh = &self.w.shadow;
+        let lt = &self.w.light;
         self.buds
             .iter()
             .map(|b| {
                 let at = self.nodes[b.node as usize].pos;
-                ((1.0 - sh.at(at) + self.p.shade).clamp(0.0, 1.0), sh.descent(at))
+                (lt.light(at), lt.toward(at))
             })
             .unzip()
     }
 
-    /// Resource gathered along the main line (qm) and the laterals (ql) of
-    /// every node, and its tips (with the pipes of shed wood).
+    /// The light field from this cycle's leaves: every living tip.
+    fn relight(&mut self) {
+        let mut kids = vec![false; self.nodes.len()];
+        for nd in &self.nodes[1..] {
+            if nd.alive {
+                kids[nd.parent as usize] = true;
+            }
+        }
+        let tips: Vec<Vec3> = self.nodes.iter().zip(&kids).filter(|(nd, k)| nd.alive && !**k).map(|(nd, _)| nd.pos).collect();
+        self.w.light.rebuild(&tips);
+    }
+
     /// Per node: the demand-weighted light of the main line (qm) and the
     /// laterals (ql) for allocation, the tips with shed pipes (cnt), and the
     /// subtree's light gathered (lit) and wood upkeep (upk): its net is
@@ -216,10 +240,6 @@ impl Grower {
         for (b, &x) in self.buds.iter().zip(q) {
             let w = x * self.shoot_len(b.phi);
             if b.terminal { qm[b.node as usize] += w } else { ql[b.node as usize] += w }
-            // Leaves are on the shoots that grew: a dormant bud gathers nothing.
-            if b.dormant == 0 {
-                lit[b.node as usize] += x;
-            }
         }
         let e = if self.w.exponent > 0.0 { self.w.exponent } else { 2.5 };
         let mut kids = vec![false; n];
@@ -232,6 +252,10 @@ impl Grower {
             let sub = qm[i] + ql[i];
             if self.nodes[i].lateral { ql[p] += sub } else { qm[p] += sub }
             cnt[i] += self.nodes[i].memory + if kids[i] { 0.0 } else { 1.0 };
+            // Leaves are on the living tips; a bud gathers nothing itself.
+            if !kids[i] {
+                lit[i] += self.w.light.light(self.nodes[i].pos);
+            }
             cnt[p] += cnt[i];
             upk[i] += self.p.upkeep * self.nodes[i].len / self.unit * cnt[i].powf(2.0 / e);
             upk[p] += upk[i];
@@ -283,7 +307,7 @@ impl Grower {
     /// 0 as the remembered balance falls past -tolerance to -(tolerance +
     /// shedWidth), times the shed rate; its pipes stay in the parent. No
     /// branch is spared: the main line's balance is the crown's.
-    fn shed(&mut self, t: usize, lit: &[f64], upk: &[f64], cnt: &[f64]) -> usize {
+    fn shed(&mut self, t: usize, lit: &[f64], upk: &[f64], cnt: &[f64], cover: f64) -> usize {
         let p = self.p;
         let mut count = 0;
         for i in 1..self.nodes.len() {
@@ -295,7 +319,8 @@ impl Grower {
                 self.nodes[i].alive = false;
                 continue;
             }
-            let bal = (lit[i] - upk[i]) / (lit[i] + upk[i]).max(1e-12);
+            // The reserve pays its share of the branch's upkeep first.
+            let bal = (lit[i] - (1.0 - cover) * upk[i]) / (lit[i] + upk[i]).max(1e-12);
             let nd = &mut self.nodes[i];
             nd.qmem = (1.0 - p.memory) * nd.qmem + p.memory * bal;
             if p.shed <= 0.0 || (t as f64 - f64::from(nd.born)) < p.shed_age {
@@ -372,9 +397,6 @@ impl Grower {
                 qmem: 0.0,
                 elev0: if !b.terminal && k == 0 { d.y.clamp(-1.0, 1.0).asin().to_degrees() as f32 } else { f32::NAN },
             });
-            let tc = Instant::now();
-            self.w.shadow.cast(pos, 1.0);
-            self.cast_ms += ms(tc);
             let wk = (1.0 - p.rhythm) * prof[k] / mean + p.rhythm * if k + 1 == n { n as f64 } else { 0.0 };
             let nk = self.nodes[idx as usize].key;
             let laterals = keyed_round(dev * wk, nk, 3);

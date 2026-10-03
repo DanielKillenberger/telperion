@@ -8,7 +8,7 @@ mod bands;
 mod law;
 mod params;
 mod score;
-mod shadow;
+mod light;
 mod tree;
 
 use params::Params;
@@ -67,8 +67,8 @@ fn grow(p: &Params, s: Site) -> law::Grown {
     let e = s.env;
     let unit = p.unit * e.height;
     let r = e.max_radius() + 0.3 * e.height;
-    let shadow = shadow::Shadow::new(Vec3::new(-r, 0.0, -r), Vec3::new(r, 1.3 * e.height, r), 2.0 * unit, p.shade, p.falloff, p.depth as usize);
-    law::grow(p, law::World { shadow, envelope: e, height: e.height, root_radius: s.root, exponent: s.exponent, seed: u64::from(s.seed) })
+    let light = light::Light::new(Vec3::new(-r, 0.0, -r), Vec3::new(r, 1.3 * e.height, r), p.voxel * unit, p.density);
+    law::grow(p, law::World { light, envelope: e, height: e.height, root_radius: s.root, exponent: s.exponent, seed: u64::from(s.seed) })
 }
 
 /// Troll against Rauh: first-order axes off the stem (axis >= 0.05 H), their
@@ -183,8 +183,8 @@ fn main() {
             out["trace"] = trace(&g, &t);
             let time = median(warm);
             out["time_ms"] = serde_json::json!({"cold": cold, "warm_median": time, "stages_cold": stages,
-                "extend_cast_ms_cold": st.cast_ms, "shadow_updates": st.updates});
-            out["law"] = serde_json::json!({"cycles": st.cycles, "shed": st.shed, "buds_max": st.buds_max, "capped": st.capped,
+                "light_pass_ms_cold": st.cast_ms, "light_cells": st.updates});
+            out["law"] = serde_json::json!({"cycles": st.cycles, "shed": st.shed, "buds_max": st.buds_max, "capped": st.capped, "reserve_end": st.reserve_end,
                 "net_first_mid_last": [st.net.first(), st.net.get(st.net.len() / 2), st.net.last()]});
             out["votes"] = bands::judge(id, &out, &today(id, seed), time);
             write(&a[5], &out);

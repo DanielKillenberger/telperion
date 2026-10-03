@@ -11,10 +11,14 @@ pub struct Params {
     /// Borchert-Honda apical control and the base resource factor.
     pub lambda: f64,
     pub alpha: f64,
-    /// Shadow grid: a bud's shade a b^-q on the q-th layer below, `depth` layers.
-    pub shade: f64,
-    pub falloff: f64,
-    pub depth: f64,
+    /// Light from above: crown density k (light = exp(-k x leaf area
+    /// above)) and the light voxel, in units.
+    pub density: f64,
+    pub voxel: f64,
+    /// The reserve: the seed's stock, and the share of what the tree has
+    /// that it stores again each year.
+    pub reserve: f64,
+    pub store: f64,
     /// Pull toward the authored crown from outside it (0 neutral).
     pub envelope: f64,
     /// Direction weights: the environment's pull and the tropism.
@@ -85,9 +89,10 @@ impl Default for Params {
             cycles: 40.0,
             lambda: 0.52,
             alpha: 2.0,
-            shade: 0.03,
-            falloff: 1.8,
-            depth: 6.0,
+            density: 0.1,
+            voxel: 4.0,
+            reserve: 2.0,
+            store: 0.2,
             envelope: 0.0,
             xi: 0.1,
             eta: 0.05,
@@ -154,7 +159,7 @@ macro_rules! fields {
 
 fields! {
     unit = "unit", cycles = "cycles", lambda = "lambda", alpha = "alpha",
-    shade = "shade", falloff = "falloff", depth = "depth", envelope = "envelope", xi = "xi", eta = "eta",
+    density = "density", voxel = "voxel", reserve = "reserve", store = "store", envelope = "envelope", xi = "xi", eta = "eta",
     persistence = "persistence", lean0 = "lean0", lean1 = "lean1", straighten = "straighten",
     acrotony = "acrotony", rhythm = "rhythm", branching = "branching", fate = "fate", vigour_fate = "vigourFate", short = "short",
     phi_step = "phiStep", drift = "drift", reiteration = "reiteration", v_ref = "vRef",

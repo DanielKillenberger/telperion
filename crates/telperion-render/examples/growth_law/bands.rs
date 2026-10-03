@@ -31,7 +31,7 @@ pub fn judge(id: &str, row: &Value, today: &Value, ms: f64) -> Value {
     let s = &row["score"];
     let fine = &row["fine"];
     let tr = &row["trace"];
-    let bole = f(s, &["t1_bole", "lowest_substantial"]);
+    let bole = f(fine, &["crown_base_p5"]);
     let div = f(s, &["t1_bole", "leaders2"]);
     let sec = f(s, &["t4_secondaries", "per_major_median"]);
     let rest = f(s, &["t4_secondaries", "len_over_rest_p25_p50_p75", "1"]);
