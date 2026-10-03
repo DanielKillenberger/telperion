@@ -101,6 +101,15 @@ Round 3 (`R1-ROUND3.md`) bounded size but grew no bole, kept a seedling cliff, a
 3. **Short shoots persist and add a little each year.** A short shoot lives many years and extends by a few short internodes a year, their length following vigour; its upkeep is in proportion to its tiny volume, so fine wood accumulates as on a real beech. The fine-wood bar is unchanged: it is the owner's equal-detail rule for the speed comparison (owner, 2026-10-02).
 4. **The bole is measured smoothly:** crown base is the 5th percentile height of fine-wood length ÷ H, reported beside the old lowest-substantial-lateral reading. The bole band applies to the new measure.
 
+## Host decisions after R1 round 4 (host, 2026-10-03)
+
+Round 4 (`R1-ROUND4.md`) formed the bole on the beech and oak and made size and both walks move by degree; every crown is columnar, every tree is 1.8–3.5× over its time bar at a tenth to a third of today's fine wood, and height swings with apical control.
+
+1. **Crowns spread toward the open sky.** Light is gathered from a few sky directions down to a low elevation (neutral: five directions, the zenith and four at 30°), not a single 45° cone, so an open-grown crown's sides are bright and its interior dark. Every bud's direction gains a term along the horizontal part of the light gradient (phototropism, weight per species). The beech's Troll lean and straightening are switched on at its point. The envelope's pull stays at 0; the spread must come from light.
+2. **Height by hydraulics, not by apical control.** A shoot's growth efficiency falls smoothly with its path length from the root, reaching zero near the species' authored height (the hydraulic limitation, Ryan & Yoder 1997). Height then settles near the authored row whatever λ is, and λ shapes the crown rather than its height.
+3. **Speed: the same law, aggregated below a shoot.** A long shoot reads light once, and its short shoots are one record per shoot (count, internodes, leaf area, volume) whose balance and growth the law computes from that shoot's light and allocation, with geometry emitted only at the end. The whole-tree passes become incremental: only shoots whose subtree changed are recomputed. Same law, same fates, fewer evaluations. If round 6 meets everything except the time bar, the run stops with `NEEDS_HUMAN` and the measured gap, for the owner to decide; the bar is not lowered by an agent.
+4. **Check the spruce's division reading** against the flared base before it votes; fix the measure if it is the flare.
+
 ## Boundaries
 
 - Not the species runner or its score (owner, 2026-10-03: "let's not start writing specs on how to fix the runner with a proper score now"). [user]
