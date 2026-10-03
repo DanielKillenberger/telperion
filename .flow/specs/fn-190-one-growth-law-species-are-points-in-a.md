@@ -92,6 +92,15 @@ Round 2 (`R1-ROUND2.md`) showed one cause behind its four questions: the law has
 3. **Allocation follows demand.** A shoot draws resource in proportion to what it builds: a short shoot of a few internodes draws little, so making more of them no longer starves the long shoots, and they pay for themselves in light. Fine wood is then what the balance affords.
 4. **The probe definitions are confirmed:** Troll means first-order axes are born at 45° elevation or less and their bases rise by 10° or more over the run; Rauh means they are born at 45° or more and fall by no more than 5°; the spruce's lowest lateral is an axis of at least 0.05 H that starts no higher than 0.10 H. A tree of fewer than 1,000 nodes is an error in the probe driver, never a scored tree.
 
+## Host decisions after R1 round 3 (host, 2026-10-03)
+
+Round 3 (`R1-ROUND3.md`) bounded size but grew no bole, kept a seedling cliff, and showed the upkeep dial jumping. Two causes: the shadow is local (6 layers), so nothing above darkens the seedling-era limbs; and light does not saturate with leaf area, so the balance is bistable (grow or collapse) instead of settling.
+
+1. **Light is intercepted from above over the full height (Beer–Lambert).** A cell's light is exp(−k · leaf area above it within a sky cone), accumulated down each column once per cycle, replacing the per-bud shadow pyramids. k is the species' crown density (a shade-casting beech high, an open birch low). The lower crown darkens as the crown above fills, so seedling-era limbs fall into balance deficit and are shed, and the bole forms; light per leaf saturates as the crown thickens, so the balance has one stable size and the upkeep dial moves it smoothly. Expected to be cheaper too: one pass over the grid per cycle instead of a pyramid per bud.
+2. **A reserve, not an age gate.** The tree carries a stored resource, starting at a seed reserve and topped up from surplus; a negative net draws on it before any balance counts as negative. It is a stock with a continuous size (neutral: the seed reserve), so the seedling no longer stands on a cliff, and no rule names an age.
+3. **Short shoots persist and add a little each year.** A short shoot lives many years and extends by a few short internodes a year, their length following vigour; its upkeep is in proportion to its tiny volume, so fine wood accumulates as on a real beech. The fine-wood bar is unchanged: it is the owner's equal-detail rule for the speed comparison (owner, 2026-10-02).
+4. **The bole is measured smoothly:** crown base is the 5th percentile height of fine-wood length ÷ H, reported beside the old lowest-substantial-lateral reading. The bole band applies to the new measure.
+
 ## Boundaries
 
 - Not the species runner or its score (owner, 2026-10-03: "let's not start writing specs on how to fix the runner with a proper score now"). [user]
