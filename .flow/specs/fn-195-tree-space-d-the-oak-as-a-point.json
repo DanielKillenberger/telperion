@@ -1,13 +1,21 @@
 {
   "branch_name": "fn-195-tree-space-d-the-oak-as-a-point",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-03T19:30:57.045160Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-194-tree-space-d-the-norway-spruce-as-a"
   ],
   "id": "fn-195-tree-space-d-the-oak-as-a-point",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-195-tree-space-d-the-oak-as-a-point.md",
   "status": "open",
   "title": "Tree space D: the oak as a point",
@@ -22,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T19:30:57.599247Z"
+  "updated_at": "2026-10-03T19:33:34.757583Z"
 }
