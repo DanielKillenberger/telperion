@@ -144,3 +144,5 @@ On master these duplicates run only on the fallback branches. The oak's and spru
 ## Leaf-station contract with fn-190-one-growth-law-species-are-points-in-a (owner, 2026-10-03)
 
 fn-190-one-growth-law-species-are-points-in-a replaces the growth stage. Whether the beech's short shoots are grown wood carrying leaves or foliage stations on existing wood is decided in fn-190-one-growth-law-species-are-points-in-a's R2 and written into both specs; this spec optimizes the station types growth produces and otherwise proceeds in parallel. [user]
+
+The contract also removes the outline-based leaf cull (`foliage.rs:255`, `place.wgsl`) and limb clumping as thinning: growth decides where leaves are, so expansion places them without culling (owner, 2026-10-03). Until fn-190's R2 lands, this spec does not invest in optimizing the cull. [user]
