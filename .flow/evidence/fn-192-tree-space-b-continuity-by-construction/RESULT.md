@@ -166,3 +166,10 @@ This is the shipped mechanism (`src/presence.rs`).
 Stills are in `raw/strips/` (ignored).
 
 **Tests.** All ten of the crate's test binaries are green: oracle (worst 2.64 standard errors), lineage, closed form (plus a unit test of `expected_lengths` against the expected counts), settings, death, refusals and walks. The walk bound of 30 holds; the per-setting worst slopes are in `raw/walks.log`.
+
+**Review of decision 3 (the reset cycle):**
+- **Round 1:** NEEDS_WORK on one finding: over 1,500 cycles of supercritical branching the expected wood overflowed, and a window went NaN. Fixed in `d94becd6` by keeping the table in logs; the regression was red, then green.
+- **Round 2:** NEEDS_WORK on one finding: an unreachable PA's share overflowed, and zero times infinity gave NaN. Fixed in `43efd4b7` by leaving zero-probability PAs out of a node's window; the regression was red, then green.
+- **Round 3:** refused by the round cap (2 of 2). The last fix is unreviewed.
+
+Both findings were found by tracing the code, not by running it, and both are extreme inputs (well over 1,000 cycles). Ordinary trees are unchanged: the eight strips are byte-identical to the ones viewed, and length lost stays at 17.0%. All ten of the crate's test binaries are green after each fix.
