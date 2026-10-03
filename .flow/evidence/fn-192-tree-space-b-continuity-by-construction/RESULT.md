@@ -140,3 +140,7 @@ The fine walk is continuous (at most 2.4% of the tree per 1/160 of rhythm), and 
 The decision is the host's. The worker has not tested either option:
 - Exclude a node's laterals from the wood its draw decides, so a node's size never depends on its limbs. A Poisson node would then grow in narrowly and carry its limb with it.
 - Fix each draw's window from the wood it decides at full presence, from topology alone. That would not be continuous where topology changes inside the decided wood.
+
+## Host decision 3, the last attempt (2026-10-03, overnight run)
+
+The wood-scaled window hit the stated stop: at RATE 6 seven walks change by degree and the walk bound holds, but rhythm (seed 1) jumps because each window scales with the wood the draw actually decides, so a basal limb growing in widens its node's window and slides the tree down. This is a coupling in the mechanism, not in the approach. One last attempt, then B stops for the owner: each window scales with the **expected** wood under the node's physiological age from A's closed form (a smooth function of the settings), never the realised wood, so no realised birth can move another draw's window. Same gate and the same stop (a visible pop, or more than 25% of length lost); no further attempt overnight.
