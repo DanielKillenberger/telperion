@@ -123,3 +123,19 @@ fn wood_below_the_ground_is_an_error() {
     s.states[1].insertion = PI;
     assert!(matches!(grow(&s, REQUEST), Err(Error::BelowGround { .. })));
 }
+
+/// A tree whose only wood stands exactly at its draw has no size: it is a
+/// collapsed tree, not a tree of zero length.
+#[test]
+fn a_tree_of_no_size_is_a_collapsed_tree() {
+    let mut s = species();
+    s.states.truncate(1);
+    s.states[0].zones[0].lateral = vec![0.0];
+    s.states[0].zones[0].nodes = NodeLaw::Poisson {
+        mean: 0.8128122270262701,
+    };
+    assert_eq!(
+        grow(&s, Request { age: 1, ..REQUEST }),
+        Err(Error::Collapsed)
+    );
+}

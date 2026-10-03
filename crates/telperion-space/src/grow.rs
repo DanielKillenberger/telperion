@@ -69,6 +69,15 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
         return Err(Error::Collapsed);
     }
     place(&mut structure, species)?;
+    // Wood that stands exactly at its draw has no size.
+    if structure
+        .axes
+        .iter()
+        .flat_map(|a| &a.phytomers)
+        .all(|p| p.scale == 0.0)
+    {
+        return Err(Error::Collapsed);
+    }
     Ok(structure)
 }
 

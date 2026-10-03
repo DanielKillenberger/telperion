@@ -9,7 +9,8 @@ pub enum Error {
     Refused { input: String, reason: &'static str },
     /// The tree outgrew the request's phytomer budget.
     Budget { limit: u32 },
-    /// The tree holds no phytomer: its seed bud died before it grew.
+    /// The tree holds no phytomer of any size: its seed bud died before it
+    /// grew, or all it grew stands exactly at its draws.
     Collapsed,
     /// A phytomer's tip lies below the ground plane.
     BelowGround { axis: usize, height: f64 },

@@ -134,3 +134,27 @@ fn a_seed_grows_the_same_tree_every_time() {
     assert_eq!(tree(&species, 8, 42), tree(&species, 8, 42));
     assert_ne!(tree(&species, 8, 42), tree(&species, 8, 43));
 }
+
+/// A relay that lives keeps the lateral it relays: a parent whose apex
+/// died is not shed while its relay grows.
+#[test]
+fn a_living_relay_keeps_its_parent() {
+    let mut relaying = state(4, 0.5, FIXED_ONE, &[0.0, 0.0], Some(0));
+    relaying.relay = 1.0;
+    relaying.insertion = 0.0;
+    let species = Species {
+        states: vec![state(8, 1.0, FIXED_ONE, &[0.0, 1.0], None), relaying],
+    };
+    for seed in 0..64 {
+        let grown = tree(&species, 4, seed);
+        for axis in grown.axes.iter().filter(|a| a.apex_end.is_none()) {
+            for phytomer in &axis.phytomers {
+                assert!(
+                    phytomer.scale > 0.0,
+                    "seed {seed}: a living {:?} drawn at no size",
+                    axis.origin
+                );
+            }
+        }
+    }
+}
