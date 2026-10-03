@@ -158,3 +158,34 @@ fn a_living_relay_keeps_its_parent() {
         }
     }
 }
+
+/// The fade floor follows a living apex's presence, so an abortion decided
+/// in the last cycle unmakes its branch by degree (the review's crossing).
+#[test]
+fn an_abortion_in_the_last_cycle_fades_by_degree() {
+    let one = |lifespan, lateral: &[f64], shedding| {
+        let mut s = state(lifespan, 1.0, FIXED_ONE, lateral, shedding);
+        s.insertion = 0.0;
+        s
+    };
+    let at = |abortion| {
+        let mut twig = one(4, &[0.0, 0.0, 0.0], None);
+        twig.abortion = abortion;
+        let species = Species {
+            states: vec![
+                one(1, &[0.0, 1.0, 0.0], None),
+                one(1, &[0.0, 0.0, 0.07884088684532432], Some(0)),
+                twig,
+            ],
+        };
+        let grown = tree(&species, 4, 24);
+        grown
+            .axes
+            .iter()
+            .flat_map(|a| &a.phytomers)
+            .map(|p| p.scale)
+            .sum::<f64>()
+    };
+    let (before, after) = (at(0.5866100885647014), at(0.5866100887647014));
+    assert!((before - after).abs() < 1e-6, "{before} -> {after}");
+}

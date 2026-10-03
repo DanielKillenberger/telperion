@@ -60,6 +60,9 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
     for cycle in 1..=request.age {
         grower.step(cycle)?;
     }
+    for apex in &grower.live {
+        grower.axes[apex.axis].alive = apex.presence;
+    }
     let mut structure = Structure {
         age: request.age,
         pas: species.states.len(),
@@ -94,6 +97,7 @@ fn bud(key: Key, pa: usize, birth: u32, origin: Origin, vigour: f64) -> Axis {
         side: Vec3::default(),
         phytomers: Vec::new(),
         units: Vec::new(),
+        alive: 0.0,
         rank: 0.0,
     }
 }

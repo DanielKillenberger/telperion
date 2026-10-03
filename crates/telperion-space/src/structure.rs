@@ -101,6 +101,9 @@ pub struct Axis {
     pub phytomers: Vec<Phytomer>,
     /// The presence of each growth unit its apex grew, base to tip.
     pub(crate) units: Vec<f64>,
+    /// Its apex's presence at the tree's age: every survival it passed,
+    /// barely or not; 0 for a stopped apex.
+    pub(crate) alive: f64,
     /// Its nodes counted by their presence: the phyllotactic rank of the next.
     pub(crate) rank: f64,
 }

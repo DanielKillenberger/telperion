@@ -79,10 +79,7 @@ fn fades(axes: &[Axis], species: &Species, age: u32) -> Vec<f64> {
     let mut alive = vec![0.0f64; axes.len()];
     for (i, axis) in axes.iter().enumerate() {
         let mut lived = grown[i][axis.units.len()];
-        let mut apex = match axis.apex_end {
-            None => axis.units.last().copied().unwrap_or(1.0),
-            Some(_) => 0.0,
-        };
+        let mut apex = axis.alive;
         let mut at = i;
         loop {
             let link = &axes[at];
