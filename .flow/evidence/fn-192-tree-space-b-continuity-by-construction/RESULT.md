@@ -104,3 +104,7 @@ The stills are in `raw/strips-w0.25/`, `raw/strips-w0.5/` and `raw/strips-w1.0/`
 **Candidate for the host: a window that scales with what the draw decides.** Topology never depends on presence, so presences can be computed in a pass after growth, leaves first. Each draw would grow in over a log-odds window proportional to the presence-weighted length of the wood it decides, with a floor. That length is continuous in the settings, so presence stays continuous. A crown would then grow in over a wide window and a twig over a narrow one, and no crossing could change the tree faster than about (tree length) / (largest window) per log-odds unit. Expected length lost would be dominated by the few large draws near their bounds, rather than by every draw.
 
 This is a design change to R2's mechanism, and it is untested. It is the host's call.
+
+## Host decision 2 (2026-10-03, overnight run)
+
+The fixed log-odds window is rejected on the worker's measurements (35% to 75.6% of length lost before the crown stops popping). Built instead: each draw grows in over a log-odds window proportional to the presence-weighted wood it decides, with a floor, presences computed in a pass after growth (topology never depends on presence). A crown grows in slowly and a twig quickly, so a crossing changes the tree at a bounded rate per log-odds unit. Gate: all eight strips by degree on the host's view, A's oracle green, length lost reported. Wrong-path stop for B: a visible pop remains, or more than 25% of length is lost across seeds 0 to 49.
