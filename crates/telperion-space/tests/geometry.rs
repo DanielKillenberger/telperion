@@ -113,3 +113,39 @@ fn phyllotaxis_runs_on_across_a_continuation() {
     }
     assert_eq!(sides, vec![0, 90, 180, 270]);
 }
+
+/// A species whose expected wood overflows a double still draws the tree
+/// it grew in finite numbers: one phytomer whose six buds stayed bare.
+#[test]
+fn an_overflowing_expectation_draws_finite_wood() {
+    let species = Species {
+        states: vec![PaState {
+            lifespan: 1,
+            next: None,
+            viability: 0.9,
+            zones: vec![Zone {
+                nodes: NodeLaw::Uniform { min: 1, max: 1 },
+                buds: 6,
+                lateral: vec![0.3],
+            }],
+            shedding: None,
+            internode: 1.0,
+            insertion: 0.5,
+            divergence: PI / 2.0,
+            abortion: 0.0,
+            relay: 0.0,
+            readiness: 1.0,
+            rhythm: 1.0,
+            straightening: 0.0,
+        }],
+    };
+    let request = Request {
+        age: 1500,
+        seed: 18,
+        budget: 1,
+    };
+    let tree = grow(&species, request).unwrap();
+    for p in tree.axes.iter().flat_map(|a| &a.phytomers) {
+        assert!(p.scale.is_finite() && p.tip.z.is_finite(), "{p:?}");
+    }
+}

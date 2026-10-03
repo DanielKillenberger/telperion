@@ -69,46 +69,75 @@ fn substructure(species: &Species, k: usize, m: usize, done: &[Vec<CountTable>])
     table
 }
 
-/// The expected length in metres of the wood a bud of each PA grows in 0 to
-/// `age` cycles, `[m][pa]`: the same recursion over each phytomer's
-/// internode, as one sum per PA and age. The species is valid.
-pub(crate) fn expected_lengths(species: &Species, age: u32) -> Vec<Vec<f64>> {
+/// The natural log of the expected length in metres of the wood a bud of
+/// each PA grows in 0 to `age` cycles, `[m][pa]`: the same recursion over
+/// each phytomer's internode, as one sum per PA and age. In logs, so a
+/// branching that multiplies without bound over many cycles stays finite;
+/// no wood is negative infinity. The species is valid.
+pub(crate) fn expected_log_lengths(species: &Species, age: u32) -> Vec<Vec<f64>> {
     let pas = species.states.len();
     let laterals: Vec<Vec<Vec<f64>>> = species.states.iter().map(|s| s.laterals()).collect();
     // done[m][k]: a bud of PA k, m cycles after it was made.
-    let mut done: Vec<Vec<f64>> = vec![vec![0.0; pas]];
+    let mut done: Vec<Vec<f64>> = vec![vec![f64::NEG_INFINITY; pas]];
     for m in 1..=age as usize {
         let row = (0..pas)
             .map(|k| {
                 let state = &species.states[k];
                 let lifespan = state.lifespan as usize;
-                let mut length = 0.0;
+                let mut length = LogSum::default();
                 let mut survival = 1.0;
                 for i in 1..=m.min(lifespan) {
-                    length += survival * (1.0 - state.viability) * state.relay * done[m - i][k];
+                    let relayed = survival * (1.0 - state.viability) * state.relay;
+                    length.add(relayed, done[m - i][k]);
                     survival *= state.viability;
                     for (zone, lateral) in state.zones.iter().zip(&laterals[k]) {
                         let nodes = survival * zone.nodes.mean();
-                        length += nodes * state.internode;
+                        length.add(nodes * state.internode, 0.0);
                         for (j, &p) in lateral.iter().enumerate() {
-                            length += nodes * f64::from(zone.buds) * p * done[m - i][j];
+                            length.add(nodes * f64::from(zone.buds) * p, done[m - i][j]);
                         }
                     }
-                    length += survival * state.abortion * state.relay * done[m - i][k];
+                    length.add(survival * state.abortion * state.relay, done[m - i][k]);
                     survival *= 1.0 - state.abortion;
                 }
                 match state.next {
-                    Some(next) if m > lifespan => length + survival * done[m - lifespan][next],
+                    Some(next) if m > lifespan => length.add(survival, done[m - lifespan][next]),
                     None if m >= lifespan => {
-                        length + survival * state.relay * done[m - lifespan][k]
+                        length.add(survival * state.relay, done[m - lifespan][k])
                     }
-                    _ => length,
+                    _ => {}
                 }
+                length.0
             })
             .collect();
         done.push(row);
     }
     done
+}
+
+/// A sum of positive terms kept as its natural log.
+struct LogSum(f64);
+
+impl Default for LogSum {
+    fn default() -> Self {
+        Self(f64::NEG_INFINITY)
+    }
+}
+
+impl LogSum {
+    /// Adds `weight` times the value whose log is `log`.
+    fn add(&mut self, weight: f64, log: f64) {
+        if weight <= 0.0 || log == f64::NEG_INFINITY {
+            return;
+        }
+        let term = weight.ln() + log;
+        let (high, low) = if term > self.0 {
+            (term, self.0)
+        } else {
+            (self.0, term)
+        };
+        self.0 = high + (low - high).exp().ln_1p();
+    }
 }
 
 /// Adds `weight` copies of `sub`, born in cycle `born`, to `table`.
@@ -122,7 +151,7 @@ fn add_shifted(table: &mut CountTable, sub: &CountTable, born: usize, weight: f6
 
 #[cfg(test)]
 mod tests {
-    use super::{expected_counts, expected_lengths};
+    use super::{expected_counts, expected_log_lengths};
     use crate::species::{NodeLaw, PaState, Species, Zone};
 
     /// The expected length is the expected counts weighted by internode,
@@ -163,7 +192,7 @@ mod tests {
         };
         let counts = expected_counts(&species, 7).unwrap();
         let weighed = counts.total(0) * 0.7 + counts.total(1) * 0.3;
-        let length = expected_lengths(&species, 7)[7][0];
+        let length = expected_log_lengths(&species, 7)[7][0].exp();
         assert!(
             (length - weighed).abs() < 1e-9 * weighed,
             "{length} vs {weighed}"

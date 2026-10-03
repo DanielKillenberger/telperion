@@ -222,7 +222,7 @@ impl Grower<'_> {
                 .enumerate()
                 .map(|(j, p)| p * self.windows.wood(j, cycle + 1))
                 .sum();
-            let node_wood = state.internode + f64::from(zone.buds) * expected;
+            let node_wood = self.windows.share(state.internode) + f64::from(zone.buds) * expected;
             nodes.clear();
             for (i, &node_lead) in leads.iter().enumerate() {
                 let node_key = zone_key.child(i as u64);

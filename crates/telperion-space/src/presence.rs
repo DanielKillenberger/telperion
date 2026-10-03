@@ -6,7 +6,7 @@
 //! in over a long stretch of a walk and a twig over a short one, and since
 //! the expectation is a smooth function of the settings, never of the wood
 //! that grew, a branch made anywhere moves no other draw's window.
-use crate::closed_form::expected_lengths;
+use crate::closed_form::expected_log_lengths;
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
 
@@ -18,18 +18,19 @@ pub const SPAN: f64 = 2.0;
 /// The narrowest window, in log-odds: a twig's.
 pub const FLOOR: f64 = 0.05;
 
-/// The expected wood each draw decides.
+/// The expected wood each draw decides, as a share of the whole tree's.
 pub(crate) struct Windows {
-    /// expected[m][k]: metres a bud of PA k grows in m cycles.
+    /// expected[m][k]: the log of the metres a bud of PA k grows in m cycles.
     expected: Vec<Vec<f64>>,
+    /// The log of the whole tree's expected metres.
     whole: f64,
     age: u32,
 }
 
 impl Windows {
     pub fn new(species: &Species, age: u32) -> Self {
-        let expected = expected_lengths(species, age);
-        let whole = expected[age as usize][0].max(f64::MIN_POSITIVE);
+        let expected = expected_log_lengths(species, age);
+        let whole = expected[age as usize][0];
         Self {
             expected,
             whole,
@@ -37,19 +38,28 @@ impl Windows {
         }
     }
 
-    /// The metres a bud of `pa` is expected to grow from `cycle` on, the
-    /// cycle itself included.
+    /// The wood a bud of `pa` is expected to grow from `cycle` on, the cycle
+    /// itself included, as a share of the whole tree's.
     pub fn wood(&self, pa: usize, cycle: u32) -> f64 {
-        self.expected[(self.age + 1).saturating_sub(cycle) as usize][pa]
+        let log = self.expected[(self.age + 1).saturating_sub(cycle) as usize][pa];
+        if log == f64::NEG_INFINITY {
+            return 0.0;
+        }
+        (log - self.whole).exp()
+    }
+
+    /// `metres` as a share of the whole tree's expected wood.
+    pub fn share(&self, metres: f64) -> f64 {
+        metres * (-self.whole).exp()
     }
 
     /// The presence of a draw `lead` log-odds past its bound that decides
-    /// `wood` metres.
-    pub fn presence(&self, lead: f64, wood: f64) -> f64 {
+    /// `share` of the tree's expected wood.
+    pub fn presence(&self, lead: f64, share: f64) -> f64 {
         if lead == f64::INFINITY {
             return 1.0;
         }
-        let window = (RATE * wood / self.whole).clamp(FLOOR, SPAN);
+        let window = (RATE * share).clamp(FLOOR, SPAN);
         (lead / window).clamp(0.0, 1.0)
     }
 }
