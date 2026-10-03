@@ -76,3 +76,10 @@
 - **Hindered by:** the dcg hook blocked a shell redirect, and `/usr/bin/time` is not installed.
 - **Cost:** about 3 minutes.
 - **What would remove it:** a local setup note (install `time`); reported, not specced, as a local machine matter.
+
+## 2026-10-03, stage 1 (beech, Troll), a debug probe inflated four rounds of timings
+
+- **Doing:** finding why the mature crown collapsed between ages 55 and 75.
+- **Hindered by:** a temporary `GL_DEBUG` check in the prune loop read the environment once per pruned node; with about a million pruned nodes it cost ~190 ms, so the prune pass read 212 ms instead of 19 and every timing from v8 to the first final run was about 2.5 times too slow. Separately, the renderer refused a 2.1M-node tree (a dispatch group of 87,078 against a limit of 65,535), so that point could not be drawn at all (already logged in R1 round 2).
+- **Cost:** ~3 min to see and remove; the misleading timings were never reported.
+- **What would remove it:** diagnostics kept out of timed passes (a diag run, as `diag` already is for the factorisation probe); the renderer splitting large dispatches.

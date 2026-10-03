@@ -1,9 +1,10 @@
 //! Scratch (fn-190 R1a, never merged): one organogenesis rule from trunk to
 //! twig by continuous physiological age, species as points in its space.
 //!
-//! growth_law grow  PRESET SEED SETTINGS.json OUT.json [STILLS_PREFIX]
+//! growth_law grow  PRESET SEED SETTINGS.json[@AGE] OUT.json [STILLS_PREFIX]
 //! growth_law today PRESET SEED OUT.json [STILLS_PREFIX]
 //! growth_law walk  PRESET_A A.json PRESET_B B.json SEED STEPS OUT.jsonl
+#![recursion_limit = "256"]
 mod bands;
 mod params;
 mod score;
@@ -29,10 +30,15 @@ fn family(id: &str, seed: u32) -> Family {
     f
 }
 
+/// A settings file; `path@AGE` grows the same point to AGE years.
 fn settings(path: &str) -> Params {
+    let (file, age) = path.split_once('@').map_or((path, None), |(f, a)| (f, Some(a.parse::<f64>().unwrap())));
     let mut p = Params::default();
-    let v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(file).unwrap()).unwrap();
     p.apply(&v).unwrap();
+    if let Some(a) = age {
+        p.cycles = a;
+    }
     p
 }
 
@@ -147,8 +153,10 @@ fn measure(id: &str, t: &Tree) -> serde_json::Value {
     serde_json::json!({"score": sc, "fine": fine})
 }
 
-fn stills(id: &str, f: &Family, t: Tree, prefix: &str) {
-    let cam = camera(id, &t);
+/// Bare and whole stills, the camera fitted to the tree (every age and
+/// size framed alike).
+fn stills(f: &Family, t: Tree, prefix: &str) {
+    let cam = camera("fit", &t);
     let m = executor::expand(t, f).and_then(|x| x.mesh()).unwrap();
     let gpu = pollster::block_on(Gpu::request(None)).unwrap();
     let mut rd = Renderer::new(gpu, STILL_FORMAT);
@@ -179,7 +187,7 @@ fn main() {
             let (cold, g) = timed(|| grow(&p, s, false));
             let g = g.unwrap_or_else(|e| fail(e));
             let warm: Vec<f64> = (0..3).map(|_| timed(|| grow(&p, s, false)).0).collect();
-            if g.pos.len() < 1000 {
+            if g.pos.len() < 1000 && !a[4].contains('@') {
                 fail(format!("grew {} nodes, under 1,000; not a scored tree", g.pos.len()));
             }
             let under = g.pos.iter().filter(|q| q.y < 0.0).count();
@@ -201,13 +209,13 @@ fn main() {
             out["time_ms"] = serde_json::json!({"cold": cold, "warm_median": time, "passes_cold": stages});
             let mut kids = vec![false; g.pos.len()];
             g.parent.iter().flatten().for_each(|&q| kids[q] = true);
-            out["law"] = serde_json::json!({"cycles": st.cycles, "buds_max": st.buds_max, "tips": kids.iter().filter(|k| !**k).count(), "exponent": s.exponent, "pruned": diag.pruned, "straighten_yearly_gap_deg": diag.yearly_gap_deg,
+            out["law"] = serde_json::json!({"cycles": st.cycles, "buds_max": st.buds_max, "tips": kids.iter().filter(|k| !**k).count(), "exponent": s.exponent, "pruned": diag.pruned, "relays": st.relays, "forks": st.forks,
                 "factorisation": {"laterals": diag.laterals, "distinct_phi_birth": diag.distinct, "distinct_phi": diag.distinct_phi,
                     "laterals_per_key": diag.laterals as f64 / diag.distinct.max(1) as f64}});
             out["votes"] = bands::judge(id, &out, &today(id, seed), time);
             write(&a[5], &out);
             if let Some(prefix) = a.get(6) {
-                stills(id, &f, t, prefix);
+                stills(&f, t, prefix);
             }
         }
         "today" => {

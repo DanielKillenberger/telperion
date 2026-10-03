@@ -1,45 +1,59 @@
-//! R1a (fn-190 probe, scratch): one organogenesis rule from trunk to twig,
-//! driven by a continuous physiological age phi (Barthélémy & Caraglio
-//! 2007's axis categories as one variable; GreenLab-style organogenesis).
-//! Every bud grows one unit a year whose metamers, internodes, laterals,
-//! their phi and place along it, lean and fate follow from phi alone; short
-//! shoots are the same rule at phi near 1. No light, no allocation, no
-//! shedding, no envelope: three passes in all (the yearly bud sweep, one
-//! pipe count, one straightening). Integer outcomes are taken in expectation
-//! with keyed randomness, so a small change is a small change of the tree.
+//! fn-190 probe (scratch): one organogenesis rule from trunk to twig, driven
+//! by a continuous physiological age phi (Barthélémy & Caraglio 2007), with
+//! stage 1's axis rule: Troll's model as Millet et al. 1998 describe it in
+//! *Fagus*. Every axis is a module whose tip tilts toward its plagiotropic
+//! heading as it ages; the wood before its curvature zone is its erect base
+//! and straightens; a bud in the curvature zone, on the upper side, relays
+//! the module and takes its dominance, and the head becomes a branch; near
+//! maturity a relay event forks. No light, no allocation, no envelope: the
+//! yearly bud sweep, one pipe count, one straightening, one prune. Integer
+//! outcomes are taken in expectation with keyed randomness.
 use crate::params::Params;
 use std::collections::HashSet;
 use std::time::Instant;
 use telperion_core::math::Vec3;
 
+mod module;
+
+const NONE: u32 = u32::MAX;
+
 #[derive(Clone, Copy)]
 struct Bud {
     node: u32,
     dir: Vec3,
-    /// The axis's horizontal outward direction (zero on the stem).
+    /// The axis's horizontal heading: where its plagiotropic tip leans.
     out: Vec3,
+    /// The axis's phi at birth (drift adds its years).
     phi: f64,
-    /// Years this axis has grown (drift).
+    /// Years this axis (this module) has grown: drift and tilt.
     years: u16,
-    terminal: bool,
-    /// The year this axis (or an axis carrying it) reaches its lifespan.
-    dies: f64,
+    /// The next node starts a new axis; `cont` keeps it on the parent's
+    /// line (the relay that continues the stem).
+    fresh: bool,
+    cont: bool,
+    /// The axis's death record (the head's is replaced at its relay).
+    axis: u32,
+    /// The curvature zone: the module's last erect node and the next one.
+    bend: u32,
+    bend_next: u32,
+    relayed: bool,
 }
 
 #[derive(Default, Debug, Clone)]
 pub struct Stats {
     pub cycles: usize,
     pub buds_max: usize,
-    /// Cold-run ms of the three passes.
+    /// Cold-run ms of the passes.
     pub ms: [f64; 4],
     pub laterals: usize,
     /// Distinct (phi, birth year) keys among laterals (factorisation probe).
     pub distinct: usize,
     pub distinct_phi: usize,
-    /// Nodes pruned by lifespan, and the end-pass straightening against
-    /// the yearly one (degrees; diagnostic runs only).
+    /// Nodes pruned by lifespan.
     pub pruned: usize,
-    pub yearly_gap_deg: f64,
+    /// Relay events, and those that forked.
+    pub relays: usize,
+    pub forks: usize,
 }
 pub const STAGES: [&str; 4] = ["sweep", "pipe", "straighten", "prune"];
 
@@ -79,6 +93,19 @@ fn lerp(a: f64, b: f64, t: f64) -> f64 {
     a + (b - a) * t
 }
 
+fn elev(d: Vec3) -> f64 {
+    d.y.clamp(-1.0, 1.0).asin().to_degrees()
+}
+
+fn horizontal(d: Vec3) -> Vec3 {
+    let f = Vec3::new(d.x, 0.0, d.z);
+    if f.length() > 1e-9 { f.normalized() } else { Vec3::ZERO }
+}
+
+fn ms(t: Instant) -> f64 {
+    t.elapsed().as_secs_f64() * 1e3
+}
+
 struct Grower {
     p: Params,
     w: World,
@@ -90,11 +117,19 @@ struct Grower {
     lateral: Vec<bool>,
     born: Vec<u16>,
     elev0: Vec<f32>,
-    /// The axis's phi at birth (its straightening rate) and death year.
+    /// The axis's phi at birth (its straightening rate), whether the node
+    /// is a module's erect base (only that straightens), its death record.
     phi: Vec<f32>,
-    dies: Vec<f32>,
+    base: Vec<bool>,
+    axis: Vec<u32>,
+    /// The year each death record falls due (a head's is set at its relay).
+    die: Vec<f32>,
+    /// The node each record's axis was born on (it dies with that node).
+    up: Vec<u32>,
     buds: Vec<Bud>,
     keys: Option<Vec<(u64, u16)>>,
+    relays: usize,
+    forks: usize,
 }
 
 /// Grows the tree; `diag` also records the factorisation probe (untimed
@@ -102,6 +137,9 @@ struct Grower {
 pub fn grow(p: &Params, w: World, diag: bool) -> Result<Grown, String> {
     let unit = p.unit * w.height;
     let cap = p.max_nodes as usize;
+    let a = hash(w.seed, 77) * std::f64::consts::TAU;
+    let out = Vec3::new(a.cos(), 0.0, a.sin());
+    let seed = Bud { node: 0, dir: Vec3::Y, out, phi: 0.0, years: 0, fresh: false, cont: false, axis: 0, bend: NONE, bend_next: NONE, relayed: false };
     let mut g = Grower {
         p: *p,
         w,
@@ -114,16 +152,23 @@ pub fn grow(p: &Params, w: World, diag: bool) -> Result<Grown, String> {
         born: vec![0],
         elev0: vec![f32::NAN],
         phi: vec![0.0],
-        dies: vec![f32::INFINITY],
-        buds: vec![Bud { node: 0, dir: Vec3::Y, out: Vec3::ZERO, phi: 0.0, years: 0, terminal: true, dies: f64::INFINITY }],
+        base: vec![true],
+        axis: vec![0],
+        die: vec![f32::INFINITY],
+        up: vec![NONE],
+        buds: vec![seed],
         keys: diag.then(Vec::new),
+        relays: 0,
+        forks: 0,
     };
     let mut st = Stats::default();
     let t0 = Instant::now();
     for t in 0..p.cycles.round() as usize {
         st.cycles += 1;
+        let mut memo = vec![0u8; g.die.len()];
+        let mut chain = vec![];
         for b in std::mem::take(&mut g.buds) {
-            if (t as f64) < b.dies {
+            if !g.dead(b.axis, t as f32, &mut memo, &mut chain) {
                 g.unit_of(b, t as u16);
             }
         }
@@ -138,11 +183,9 @@ pub fn grow(p: &Params, w: World, diag: bool) -> Result<Grown, String> {
         st.distinct = k.iter().copied().collect::<HashSet<_>>().len();
         st.distinct_phi = k.iter().map(|x| x.0).collect::<HashSet<_>>().len();
     }
+    st.relays = g.relays;
+    st.forks = g.forks;
     Ok(g.finish(st))
-}
-
-fn ms(t: Instant) -> f64 {
-    t.elapsed().as_secs_f64() * 1e3
 }
 
 impl Grower {
@@ -150,7 +193,7 @@ impl Grower {
         (i as u64).wrapping_mul(0x2545_F491_4F6C_DD1D) ^ self.w.seed.rotate_left(17)
     }
 
-    fn push(&mut self, at: u32, d: Vec3, len: f64, lateral: bool, t: u16, b: &Bud) -> u32 {
+    fn push(&mut self, at: u32, d: Vec3, len: f64, t: u16, b: &Bud, lateral: bool) -> u32 {
         let idx = self.pos.len() as u32;
         self.pos.push(self.pos[at as usize] + d * len);
         self.dir.push(d);
@@ -158,37 +201,39 @@ impl Grower {
         self.parent.push(at);
         self.lateral.push(lateral);
         self.born.push(t);
-        self.elev0.push(if lateral { d.y.clamp(-1.0, 1.0).asin().to_degrees() as f32 } else { f32::NAN });
+        self.elev0.push(if lateral { elev(d) as f32 } else { f32::NAN });
         self.phi.push(b.phi as f32);
-        self.dies.push(b.dies as f32);
+        self.base.push(b.bend == NONE && elev(d) >= self.p.bend_elev);
+        self.axis.push(b.axis);
         idx
     }
 
     /// One bud's yearly growth unit.
-    fn unit_of(&mut self, b: Bud, t: u16) {
+    fn unit_of(&mut self, mut b: Bud, t: u16) {
         let p = self.p;
-        let base = b.node as usize;
-        let bkey = self.key(base) ^ if b.terminal { 0 } else { b.dir.x.to_bits() };
+        let bkey = self.key(b.node as usize) ^ if b.fresh { b.dir.x.to_bits() } else { 0 };
+        if b.bend != NONE && !b.relayed && hash(bkey, 41 + u64::from(t)) < p.relay * (1.0 - b.phi).powf(p.relay_shape) {
+            self.relay(&mut b, bkey, t);
+        }
         // phi moves the fraction `drift` of the way to 1 each year it grows.
         let phi = 1.0 - (1.0 - b.phi) * (1.0 - p.drift).powi(i32::from(b.years));
         // Vigour: the axis's own (falling with phi) times the tree's
         // establishment curve; it sets the unit's metamers.
-        let vigour = lerp(1.0, p.n1 / p.n0, phi) * self.establishment(t);
+        let aged = phi.powf(p.vigour_shape);
+        let vigour = lerp(1.0, p.n1 / p.n0, aged) * self.establishment(t);
         let n = keyed_round(p.n0 * vigour, bkey, 11 + u64::from(t));
         if n == 0 {
             self.buds.push(Bud { years: b.years + 1, ..b });
             return;
         }
-        let len = self.unit * lerp(1.0, p.short, phi);
-        let persists = hash(bkey, 5 + u64::from(t)) < lerp(p.persist0, p.persist1, phi.powf(p.persist_shape));
-        let out = if b.terminal {
-            b.out
-        } else {
-            let f = Vec3::new(b.dir.x, 0.0, b.dir.z);
-            if f.length() > 1e-9 { f.normalized() } else { Vec3::ZERO }
-        };
-        let lean = (p.lean0 + p.lean1 * phi).clamp(0.0, 1.0);
-        let trop = if out.length() > 0.0 { (Vec3::Y * (1.0 - lean) + out * lean).normalized() } else { Vec3::Y };
+        let len = self.unit * lerp(1.0, p.short, aged);
+        if b.out.length() == 0.0 {
+            b.out = horizontal(b.dir);
+        }
+        // Lean by phi, plus the module's tilt as it ages (Troll's tip).
+        let tilt = p.tilt * (1.0 - (-f64::from(b.years) / p.tilt_years.max(1e-9)).exp());
+        let lean = (p.lean0 + p.lean1 * phi + tilt).clamp(0.0, p.plagio);
+        let trop = if b.out.length() > 0.0 { (Vec3::Y * (1.0 - lean) + b.out * lean).normalized() } else { Vec3::Y };
         let dev = p.branching * (1.0 - phi).powf(p.fate);
         let mean = (0..n).map(|k| self.profile(k, n)).sum::<f64>() / n as f64;
         let mut d = b.dir;
@@ -199,40 +244,54 @@ impl Grower {
             let y = self.pos[at as usize].y;
             let lift = if p.ground > 0.0 { (-y.max(0.0) / (p.ground * len)).exp() } else { 0.0 };
             d = (d + trop * p.eta + Vec3::Y * lift).normalized();
-            at = self.push(at, d, len, !b.terminal && k == 0, t, &b);
-            let wk = (1.0 - p.rhythm) * self.profile(k, n) / mean + p.rhythm * if k + 1 == n { n as f64 } else { 0.0 };
-            let nk = self.key(at as usize);
-            let count = keyed_round(dev * wk, nk, 3);
-            if count == 0 {
-                continue;
+            let prev = at;
+            at = self.push(at, d, len, t, &b, b.fresh && !b.cont);
+            // The curvature zone: the last erect node of a module that had
+            // an erect base (a branch born plagiotropic has none).
+            if b.bend == NONE && !b.fresh && elev(d) < p.bend_elev {
+                b.bend = prev;
+                b.bend_next = at;
             }
-            let u = (k + 1) as f64 / n as f64;
-            // The birth jump, by place along the unit and the shoot's lack
-            // of vigour, moves phi toward 1 by the fraction 1 - exp(-jump).
-            let jump = p.phi_step + p.zone * (1.0 - u) + p.vigour_jump * (1.0 - vigour).max(0.0);
-            let mut phi_l = 1.0 - (1.0 - phi) * (-jump).exp();
-            if !persists && k + 1 == n {
-                // The terminal aborts: the distal laterals relay it, as
-                // reiterates of the axis (toward its phi at birth), as
-                // readily as the axis is young: (1 - phi at birth)^reiterShape.
-                phi_l = lerp(phi_l, b.phi, p.reiteration * (1.0 - b.phi).powf(p.reiter_shape));
-            }
-            let angle = lerp(p.angle0, p.angle1, phi_l).to_radians();
-            // Lifespan falls with phi; an axis dies with the one carrying it.
-            let life = lerp(p.life0, p.life1, 1.0 - (1.0 - phi_l).powf(p.life_shape));
-            for j in 0..count {
-                let dir = self.bud_dir(d, nk, j, count, k, angle);
-                let dies = b.dies.min(f64::from(t) + 1.0 + keyed_round(life, nk ^ j as u64, 29) as f64);
-                self.buds.push(Bud { node: at, dir, out: Vec3::ZERO, phi: phi_l, years: 0, terminal: false, dies });
-                if let Some(keys) = &mut self.keys {
-                    keys.push((phi_l.to_bits(), t));
-                }
-            }
+            b.fresh = false;
+            self.laterals(at, d, k, n, phi, vigour, mean, dev, t);
         }
-        if persists {
-            self.buds.push(Bud { node: at, dir: d, out, phi: b.phi, years: b.years + 1, terminal: true, dies: b.dies });
+        self.buds.push(Bud { node: at, dir: d, years: b.years + 1, ..b });
+    }
+
+    /// The laterals of metamer `k` of `n`: how many by the position profile
+    /// and phi, their birth phi by place and vigour, angle, lifespan.
+    #[allow(clippy::too_many_arguments)]
+    fn laterals(&mut self, at: u32, d: Vec3, k: usize, n: usize, phi: f64, vigour: f64, mean: f64, dev: f64, t: u16) {
+        let p = self.p;
+        let wk = (1.0 - p.rhythm) * self.profile(k, n) / mean + p.rhythm * if k + 1 == n { n as f64 } else { 0.0 };
+        let nk = self.key(at as usize);
+        let count = keyed_round(dev * wk, nk, 3);
+        if count == 0 {
+            return;
+        }
+        let u = (k + 1) as f64 / n as f64;
+        // The birth jump, by place along the unit and the shoot's lack of
+        // vigour, moves phi toward 1 by the fraction 1 - exp(-jump).
+        let jump = p.phi_step + p.zone * (1.0 - u) + p.vigour_jump * (1.0 - vigour).max(0.0);
+        let phi_l = 1.0 - (1.0 - phi) * (-jump).exp();
+        // Near maturity the distal laterals of a vigorous axis reiterate it
+        // ([M98]: the upper branches "reproduce the structure of the young
+        // tree"): their phi falls back toward the carrier's.
+        let phi_l = lerp(phi_l, phi, p.reiterate * self.maturity(t) * u * vigour.min(1.0));
+        let angle = lerp(p.angle0, p.angle1, phi_l).to_radians();
+        // Lifespan falls with phi; an axis dies with the one carrying it.
+        let life = self.life(phi_l);
+        for j in 0..count {
+            let dir = self.bud_dir(d, nk, j, count, k, angle);
+            let dies = f64::from(t) + 1.0 + keyed_round(life, nk ^ j as u64, 29) as f64;
+            let axis = self.record(dies, at);
+            self.buds.push(Bud { node: at, dir, out: Vec3::ZERO, phi: phi_l, years: 0, fresh: true, cont: false, axis, bend: NONE, bend_next: NONE, relayed: false });
+            if let Some(keys) = &mut self.keys {
+                keys.push((phi_l.to_bits(), t));
+            }
         }
     }
+
 
     /// The tree's establishment curve: vigour est0 at age 0, rising
     /// smoothly toward 1 with time constant estYears (est0 1 is flat).
@@ -256,7 +315,7 @@ impl Grower {
         let b0 = d.cross(a0);
         let golden = (key % 4096) as f64 * 137.5_f64.to_radians() + j as f64 * std::f64::consts::TAU / of as f64;
         // Two ranks: the rotation axis is the shoot's own up, so laterals
-        // swing to its horizontal sides (round 1 swung them up and down).
+        // swing to its horizontal sides.
         let side = d.cross(Vec3::Y);
         let two = if side.length() > 1e-9 {
             let s = side.cross(d).normalized();
@@ -273,34 +332,19 @@ impl Grower {
         d.rotate(axis, angle).normalized()
     }
 
-    /// One segment's turn toward up after `years` at the axis's rate,
-    /// straighten x (1 - phi at birth) a year, stopping at vertical.
+    /// A segment's direction after `years` of straightening: an erect base
+    /// turns toward up at straighten x (1 - phi at birth) a year, stopping
+    /// at vertical; other wood keeps its direction.
     fn turned(&self, i: usize, years: f64) -> Vec3 {
         let w = self.dir[i];
+        if !self.base[i] {
+            return w;
+        }
         let axis = w.cross(Vec3::Y);
         let gap = w.dot(Vec3::Y).clamp(-1.0, 1.0).acos();
-        let a = (self.p.straighten * (1.0 - f64::from(self.phi[i])) * years).min(gap);
+        let young = 1.0 - f64::from(self.phi[i]);
+        let a = (self.p.straighten * young * years).min(gap * young.powf(self.p.straighten_shape));
         if axis.length() > 1e-9 && a > 0.0 { Quat::axis_angle(axis.normalized(), a).apply(w) } else { w }
-    }
-
-    /// The end pass against the same turn taken year by year: the largest
-    /// angle between them, degrees (diagnostic runs only).
-    fn yearly_gap(&self, end: f64) -> f64 {
-        let mut worst = 0.0f64;
-        for i in 1..self.pos.len() {
-            let mut d = self.dir[i];
-            let rate = self.p.straighten * (1.0 - f64::from(self.phi[i]));
-            for _ in 0..(end - f64::from(self.born[i])) as usize {
-                let axis = d.cross(Vec3::Y);
-                let a = rate.min(d.dot(Vec3::Y).clamp(-1.0, 1.0).acos());
-                if axis.length() > 1e-9 && a > 0.0 {
-                    d = Quat::axis_angle(axis.normalized(), a).apply(d);
-                }
-            }
-            let once = self.turned(i, end - f64::from(self.born[i]));
-            worst = worst.max(d.dot(once).clamp(-1.0, 1.0).acos().to_degrees());
-        }
-        worst
     }
 
     /// Pipe counts over all wood, the pruned included (their pipes stay),
@@ -318,13 +362,10 @@ impl Grower {
             tips[p] += tips[i];
         }
         let e = if self.p.exponent > 0.0 { self.p.exponent } else { self.w.exponent };
-        let k = self.w.root_radius / tips[0].max(1.0).powf(1.0 / e);
+        let k = if self.p.tip_radius > 0.0 { self.p.tip_radius } else { self.w.root_radius / tips[0].max(1.0).powf(1.0 / e) };
         st.ms[1] = ms(t0);
         let t0 = Instant::now();
         if self.p.straighten > 0.0 {
-            if self.keys.is_some() {
-                st.yearly_gap_deg = self.yearly_gap(end);
-            }
             for i in 1..n {
                 let p = self.parent[i] as usize;
                 let d = self.turned(i, end - f64::from(self.born[i]));
@@ -333,10 +374,14 @@ impl Grower {
         }
         st.ms[2] = ms(t0);
         let t0 = Instant::now();
+        // A node lives while its own record and every carrier's live.
+        let mut eff = vec![f32::INFINITY; n];
         let mut map = vec![u32::MAX; n];
         let mut g = Grown { pos: vec![], parent: vec![], lateral: vec![], radius: vec![], elev0: vec![], stats: Stats::default() };
         for i in 0..n {
-            if f64::from(self.dies[i]) <= end {
+            let own = self.die[self.axis[i] as usize];
+            eff[i] = if i == 0 { own } else { own.min(eff[self.parent[i] as usize]) };
+            if f64::from(eff[i]) <= end {
                 st.pruned += 1;
                 continue;
             }

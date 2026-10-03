@@ -1,4 +1,4 @@
-//! R1a's settings: every one continuous, each with a neutral value. A
+//! The probe's settings (R1a, stage 1's Troll module rule): every one continuous, each with a neutral value. A
 //! species is a JSON object of the settings it moves off neutral. Every
 //! curve of physiological age phi is a blend between its phi = 0 (trunk-like,
 //! young) and phi = 1 (short-shoot, old) values.
@@ -14,24 +14,50 @@ pub struct Params {
     pub n1: f64,
     /// Internode length at phi 1 as a share of phi 0's.
     pub short: f64,
+    /// Metamers and internode length blend by phi^vigourShape (1 linear;
+    /// lower makes a lateral weaker than its carrier sooner).
+    pub vigour_shape: f64,
     /// The share of the way to phi 1 an axis moves per year it grows.
     pub drift: f64,
     /// Establishment: the tree's vigour at age 0 (1 flat) and the years
     /// over which it rises toward 1.
     pub est0: f64,
     pub est_years: f64,
-    /// Apical persistence: the yearly chance the terminal bud survives, at
-    /// phi 0 and phi 1 (1 monopodial; lower is sympodial or short-lived).
-    pub persist0: f64,
-    pub persist1: f64,
-    /// Persistence blends by phi^persistShape (1 linear; higher keeps it
-    /// near persist0 until phi is old).
-    pub persist_shape: f64,
-    /// When the terminal aborts, the share by which the distal laterals'
-    /// phi falls toward the axis's phi at birth (1: they reiterate the axis),
-    /// times (1 - the axis's phi at birth)^reiterShape.
-    pub reiteration: f64,
-    pub reiter_shape: f64,
+    /// Troll's module (stage 1, [M98]): a module's tip tilts toward its
+    /// plagiotropic heading as the module ages, by tilt x (1 - exp(-years /
+    /// tiltYears)) added to the lean (0: the tip stays as phi sets it).
+    pub tilt: f64,
+    pub tilt_years: f64,
+    /// The curvature zone: the first node whose direction falls below this
+    /// elevation, degrees. Wood before it is the module's erect base.
+    pub bend_elev: f64,
+    /// The relay: the yearly chance, once a module has its curvature zone,
+    /// that a bud there on the upper side takes over (0: monopodial), times
+    /// (1 - the module's phi at birth)^relayShape.
+    pub relay: f64,
+    pub relay_shape: f64,
+    /// The relay's elevation above the curvature zone's, degrees, and the
+    /// share of a random turn of its heading about the vertical.
+    pub relay_up: f64,
+    pub relay_turn: f64,
+    /// The relayed head becomes a branch: its phi jumps by headJump (as a
+    /// lateral's birth jump) and it lives headLife x the establishment
+    /// curve more years (short early, longer as the tree establishes).
+    pub head_jump: f64,
+    pub head_life: f64,
+    /// The fork near maturity: relays per relay event are 1 + fork x a
+    /// logistic of the tree's age about forkAge (width forkWidth years);
+    /// forked relays leave at forkAngle off the vertical, spread evenly,
+    /// and age by reiterStep x (relays - 1) as a birth jump in phi.
+    pub fork: f64,
+    pub fork_age: f64,
+    pub fork_width: f64,
+    pub fork_angle: f64,
+    pub reiter_step: f64,
+    /// Sequential reiteration: near maturity a lateral's phi falls back
+    /// toward its carrier's by reiterate x maturity x its place along the
+    /// unit x the shoot's vigour (0: laterals keep their birth jump).
+    pub reiterate: f64,
     /// Laterals per metamer at phi 0, falling as (1 - phi)^fate.
     pub branching: f64,
     pub fate: f64,
@@ -56,12 +82,19 @@ pub struct Params {
     pub lean0: f64,
     pub lean1: f64,
     pub eta: f64,
+    /// The most an axis leans (1: horizontal; lower keeps plagiotropic
+    /// axes oblique, at atan((1 - plagio) / plagio) above horizontal).
+    pub plagio: f64,
     /// Gravitropism near the base: the reach, in internodes, of a pull up
     /// that is 1 at the ground (0 off).
     pub ground: f64,
-    /// Straightening: radians per year that wood turns toward up, times
-    /// (1 - its axis's phi at birth); the end pass is the yearly turn's sum.
+    /// Straightening: radians per year that a module's erect base (wood
+    /// before its curvature zone) turns toward up, times (1 - its axis's phi
+    /// at birth); the end pass is the yearly turn's sum.
     pub straighten: f64,
+    /// How far an erect base straightens: the share (1 - phi)^shape of its
+    /// gap to vertical (0: all the way; higher leaves older axes oblique).
+    pub straighten_shape: f64,
     /// Branch angle at departure, degrees, at the lateral's phi 0 and 1.
     pub angle0: f64,
     pub angle1: f64,
@@ -69,13 +102,17 @@ pub struct Params {
     pub distich: f64,
     /// Pipe exponent (0: the preset's).
     pub exponent: f64,
+    /// A tip's radius, metres, so a young tree is drawn at its own girth
+    /// (0: the root takes the preset's radius whatever the age).
+    pub tip_radius: f64,
     /// A tree past this many nodes is an error, never a capped tree.
     pub max_nodes: f64,
 }
 
 impl Default for Params {
-    /// The neutral point: a monopodial tree whose laterals age by a quarter
-    /// a generation, even along the unit, upright, unstraightened.
+    /// The neutral point: a monopodial tree (no tilt, no relay, no fork)
+    /// whose laterals age by a quarter a generation, even along the unit,
+    /// upright, unstraightened.
     fn default() -> Self {
         Self {
             unit: 1.0 / 128.0,
@@ -83,14 +120,25 @@ impl Default for Params {
             n0: 3.0,
             n1: 2.0,
             short: 1.0,
+            vigour_shape: 1.0,
             drift: 0.02,
             est0: 1.0,
             est_years: 10.0,
-            persist0: 1.0,
-            persist1: 0.7,
-            persist_shape: 1.0,
-            reiteration: 0.0,
-            reiter_shape: 1.0,
+            tilt: 0.0,
+            tilt_years: 3.0,
+            bend_elev: 45.0,
+            relay: 0.0,
+            relay_shape: 4.0,
+            relay_up: 30.0,
+            relay_turn: 0.0,
+            head_jump: 0.0,
+            head_life: 1000.0,
+            fork: 0.0,
+            fork_age: 40.0,
+            fork_width: 4.0,
+            fork_angle: 35.0,
+            reiter_step: 0.0,
+            reiterate: 0.0,
             branching: 1.0,
             fate: 1.0,
             phi_step: 0.25,
@@ -104,12 +152,15 @@ impl Default for Params {
             lean0: 0.0,
             lean1: 0.0,
             eta: 0.05,
+            plagio: 1.0,
             ground: 0.0,
             straighten: 0.0,
+            straighten_shape: 0.0,
             angle0: 40.0,
             angle1: 40.0,
             distich: 0.0,
             exponent: 0.0,
+            tip_radius: 0.0,
             max_nodes: 600_000.0,
         }
     }
@@ -146,9 +197,11 @@ macro_rules! fields {
 }
 
 fields! {
-    unit = "unit", cycles = "cycles", n0 = "n0", n1 = "n1", short = "short", drift = "drift", est0 = "est0", est_years = "estYears",
-    persist0 = "persist0", persist1 = "persist1", persist_shape = "persistShape", reiteration = "reiteration", reiter_shape = "reiterShape",
+    unit = "unit", cycles = "cycles", n0 = "n0", n1 = "n1", short = "short", vigour_shape = "vigourShape", drift = "drift", est0 = "est0", est_years = "estYears",
+    tilt = "tilt", tilt_years = "tiltYears", bend_elev = "bendElev", relay = "relay", relay_shape = "relayShape", relay_up = "relayUp",
+    relay_turn = "relayTurn", head_jump = "headJump", head_life = "headLife", fork = "fork", fork_age = "forkAge", fork_width = "forkWidth",
+    fork_angle = "forkAngle", reiter_step = "reiterStep", reiterate = "reiterate",
     branching = "branching", fate = "fate", phi_step = "phiStep", zone = "zone", vigour_jump = "vigourJump", life0 = "life0", life1 = "life1", life_shape = "lifeShape", acrotony = "acrotony", rhythm = "rhythm",
-    lean0 = "lean0", lean1 = "lean1", eta = "eta", ground = "ground", straighten = "straighten",
-    angle0 = "angle0", angle1 = "angle1", distich = "distich", exponent = "exponent", max_nodes = "maxNodes",
+    lean0 = "lean0", lean1 = "lean1", eta = "eta", plagio = "plagio", ground = "ground", straighten = "straighten", straighten_shape = "straightenShape",
+    angle0 = "angle0", angle1 = "angle1", distich = "distich", exponent = "exponent", tip_radius = "tipRadius", max_nodes = "maxNodes",
 }
