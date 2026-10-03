@@ -36,6 +36,15 @@ pub struct Params {
     /// the base (positive: proximal laterals older, acrotony in phi).
     pub phi_step: f64,
     pub zone: f64,
+    /// Extra birth phi by the parent shoot's lack of vigour: vigourJump x
+    /// (1 - its metamers / n0).
+    pub vigour_jump: f64,
+    /// Axis lifespan in years at phi 0 and phi 1, blended by
+    /// 1 - (1 - phi)^lifeShape (higher falls sooner); an axis past it is
+    /// pruned with what it carries.
+    pub life0: f64,
+    pub life1: f64,
+    pub life_shape: f64,
     /// Lateral count profile along the unit: weight exp(acrotony x 3 x (u - 0.5)).
     pub acrotony: f64,
     /// Rhythm: the share of a unit's laterals set at its distal node (tiers).
@@ -45,8 +54,11 @@ pub struct Params {
     pub lean0: f64,
     pub lean1: f64,
     pub eta: f64,
-    /// Straightening: radians per year that wood turns toward up, scaled by
-    /// its share of the root's cross-section; one pass at the end.
+    /// Gravitropism near the base: the reach, in internodes, of a pull up
+    /// that is 1 at the ground (0 off).
+    pub ground: f64,
+    /// Straightening: radians per year that wood turns toward up, times
+    /// (1 - its axis's phi at birth); the end pass is the yearly turn's sum.
     pub straighten: f64,
     /// Branch angle at departure, degrees, at the lateral's phi 0 and 1.
     pub angle0: f64,
@@ -79,11 +91,16 @@ impl Default for Params {
             fate: 1.0,
             phi_step: 0.25,
             zone: 0.0,
+            vigour_jump: 0.0,
+            life0: 1000.0,
+            life1: 1000.0,
+            life_shape: 1.0,
             acrotony: 0.0,
             rhythm: 0.0,
             lean0: 0.0,
             lean1: 0.0,
             eta: 0.05,
+            ground: 0.0,
             straighten: 0.0,
             angle0: 40.0,
             angle1: 40.0,
@@ -127,7 +144,7 @@ macro_rules! fields {
 fields! {
     unit = "unit", cycles = "cycles", n0 = "n0", n1 = "n1", short = "short", drift = "drift",
     persist0 = "persist0", persist1 = "persist1", persist_shape = "persistShape", reiteration = "reiteration", reiter_shape = "reiterShape",
-    branching = "branching", fate = "fate", phi_step = "phiStep", zone = "zone", acrotony = "acrotony", rhythm = "rhythm",
-    lean0 = "lean0", lean1 = "lean1", eta = "eta", straighten = "straighten",
+    branching = "branching", fate = "fate", phi_step = "phiStep", zone = "zone", vigour_jump = "vigourJump", life0 = "life0", life1 = "life1", life_shape = "lifeShape", acrotony = "acrotony", rhythm = "rhythm",
+    lean0 = "lean0", lean1 = "lean1", eta = "eta", ground = "ground", straighten = "straighten",
     angle0 = "angle0", angle1 = "angle1", distich = "distich", exponent = "exponent", max_nodes = "maxNodes",
 }

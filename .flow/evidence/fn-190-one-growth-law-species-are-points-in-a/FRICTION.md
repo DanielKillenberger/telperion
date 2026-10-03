@@ -41,3 +41,10 @@
 - **Hindered by:** without feedback the rule is a branching process: when a long shoot leaves on average more than one long shoot that keeps growing, the tree explodes past 600k nodes; below one it stays at 5–15k nodes. At one point the seeds grew 160k and 42k nodes, and branching 2.4 against 2.6 gave 160k and 115k, so each sweep step costs a run that tells little about the architecture.
 - **Cost:** ~15 min and ~30 runs on the beech alone.
 - **What would remove it:** a size that limits itself (R1b's balance, or GreenLab's supply-demand ratio scaling the counts), or a driver that solves for the branching that hits a target node count before the architecture settings are judged.
+
+## 2026-10-03, R1a round 2, a defect inherited across six rounds
+
+- **Doing:** making wood below the ground a driver error, as the host decided after R1a round 1.
+- **Hindered by:** the spruce's below-ground wood was not a gravitropism gap. The two-ranked lateral rule rotated laterals about the shoot's horizontal side, so "two ranks" pointed up and down. The rule had been in the probe since round 1 and no check looked at where two-ranked laterals point.
+- **Cost:** ~5 min to find; unknown cost to earlier rounds' spruce and beech readings.
+- **What would remove it:** a unit check on the lateral-direction rule (a horizontal shoot at distich 1 gives laterals at elevation 0), written when the rule is written.

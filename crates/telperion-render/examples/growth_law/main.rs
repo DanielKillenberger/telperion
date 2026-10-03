@@ -182,6 +182,10 @@ fn main() {
             if g.pos.len() < 1000 {
                 fail(format!("grew {} nodes, under 1,000; not a scored tree", g.pos.len()));
             }
+            let under = g.pos.iter().filter(|q| q.y < 0.0).count();
+            if under > 0 {
+                fail(format!("{under} nodes below the ground; not a scored tree"));
+            }
             let diag = grow(&p, s, true).unwrap_or_else(|e| fail(e)).stats;
             let t = tree::to_tree(&g);
             t.validate().unwrap();
@@ -197,7 +201,7 @@ fn main() {
             out["time_ms"] = serde_json::json!({"cold": cold, "warm_median": time, "passes_cold": stages});
             let mut kids = vec![false; g.pos.len()];
             g.parent.iter().flatten().for_each(|&q| kids[q] = true);
-            out["law"] = serde_json::json!({"cycles": st.cycles, "buds_max": st.buds_max, "tips": kids.iter().filter(|k| !**k).count(), "exponent": s.exponent,
+            out["law"] = serde_json::json!({"cycles": st.cycles, "buds_max": st.buds_max, "tips": kids.iter().filter(|k| !**k).count(), "exponent": s.exponent, "pruned": diag.pruned, "straighten_yearly_gap_deg": diag.yearly_gap_deg,
                 "factorisation": {"laterals": diag.laterals, "distinct_phi_birth": diag.distinct, "distinct_phi": diag.distinct_phi,
                     "laterals_per_key": diag.laterals as f64 / diag.distinct.max(1) as f64}});
             out["votes"] = bands::judge(id, &out, &today(id, seed), time);

@@ -22,6 +22,8 @@ struct Bud {
     /// Years this axis has grown (drift).
     years: u16,
     terminal: bool,
+    /// The year this axis (or an axis carrying it) reaches its lifespan.
+    dies: f64,
 }
 
 #[derive(Default, Debug, Clone)]
@@ -29,13 +31,17 @@ pub struct Stats {
     pub cycles: usize,
     pub buds_max: usize,
     /// Cold-run ms of the three passes.
-    pub ms: [f64; 3],
+    pub ms: [f64; 4],
     pub laterals: usize,
     /// Distinct (phi, birth year) keys among laterals (factorisation probe).
     pub distinct: usize,
     pub distinct_phi: usize,
+    /// Nodes pruned by lifespan, and the end-pass straightening against
+    /// the yearly one (degrees; diagnostic runs only).
+    pub pruned: usize,
+    pub yearly_gap_deg: f64,
 }
-pub const STAGES: [&str; 3] = ["sweep", "pipe", "straighten"];
+pub const STAGES: [&str; 4] = ["sweep", "pipe", "straighten", "prune"];
 
 /// The grown tree, parent before child.
 pub struct Grown {
@@ -84,6 +90,9 @@ struct Grower {
     lateral: Vec<bool>,
     born: Vec<u16>,
     elev0: Vec<f32>,
+    /// The axis's phi at birth (its straightening rate) and death year.
+    phi: Vec<f32>,
+    dies: Vec<f32>,
     buds: Vec<Bud>,
     keys: Option<Vec<(u64, u16)>>,
 }
@@ -104,7 +113,9 @@ pub fn grow(p: &Params, w: World, diag: bool) -> Result<Grown, String> {
         lateral: vec![false],
         born: vec![0],
         elev0: vec![f32::NAN],
-        buds: vec![Bud { node: 0, dir: Vec3::Y, out: Vec3::ZERO, phi: 0.0, years: 0, terminal: true }],
+        phi: vec![0.0],
+        dies: vec![f32::INFINITY],
+        buds: vec![Bud { node: 0, dir: Vec3::Y, out: Vec3::ZERO, phi: 0.0, years: 0, terminal: true, dies: f64::INFINITY }],
         keys: diag.then(Vec::new),
     };
     let mut st = Stats::default();
@@ -112,7 +123,9 @@ pub fn grow(p: &Params, w: World, diag: bool) -> Result<Grown, String> {
     for t in 0..p.cycles.round() as usize {
         st.cycles += 1;
         for b in std::mem::take(&mut g.buds) {
-            g.unit_of(b, t as u16);
+            if (t as f64) < b.dies {
+                g.unit_of(b, t as u16);
+            }
         }
         st.buds_max = st.buds_max.max(g.buds.len());
         if g.pos.len() > cap {
@@ -137,7 +150,7 @@ impl Grower {
         (i as u64).wrapping_mul(0x2545_F491_4F6C_DD1D) ^ self.w.seed.rotate_left(17)
     }
 
-    fn push(&mut self, at: u32, d: Vec3, len: f64, lateral: bool, t: u16) -> u32 {
+    fn push(&mut self, at: u32, d: Vec3, len: f64, lateral: bool, t: u16, b: &Bud) -> u32 {
         let idx = self.pos.len() as u32;
         self.pos.push(self.pos[at as usize] + d * len);
         self.dir.push(d);
@@ -146,6 +159,8 @@ impl Grower {
         self.lateral.push(lateral);
         self.born.push(t);
         self.elev0.push(if lateral { d.y.clamp(-1.0, 1.0).asin().to_degrees() as f32 } else { f32::NAN });
+        self.phi.push(b.phi as f32);
+        self.dies.push(b.dies as f32);
         idx
     }
 
@@ -175,8 +190,12 @@ impl Grower {
         let mut d = b.dir;
         let mut at = b.node;
         for k in 0..n {
-            d = (d + trop * p.eta).normalized();
-            at = self.push(at, d, len, !b.terminal && k == 0, t);
+            // Gravitropism near the base: a pull up that is 1 at the ground
+            // and falls as exp(-height / (ground x internode)); 0 is off.
+            let y = self.pos[at as usize].y;
+            let lift = if p.ground > 0.0 { (-y.max(0.0) / (p.ground * len)).exp() } else { 0.0 };
+            d = (d + trop * p.eta + Vec3::Y * lift).normalized();
+            at = self.push(at, d, len, !b.terminal && k == 0, t, &b);
             let wk = (1.0 - p.rhythm) * self.profile(k, n) / mean + p.rhythm * if k + 1 == n { n as f64 } else { 0.0 };
             let nk = self.key(at as usize);
             let count = keyed_round(dev * wk, nk, 3);
@@ -184,7 +203,10 @@ impl Grower {
                 continue;
             }
             let u = (k + 1) as f64 / n as f64;
-            let mut phi_l = phi + p.phi_step + p.zone * (1.0 - u);
+            // The birth jump: by place along the unit and by the shoot's
+            // vigour (its metamers against a young shoot's).
+            let vigour = lerp(p.n0, p.n1, phi) / p.n0;
+            let mut phi_l = phi + p.phi_step + p.zone * (1.0 - u) + p.vigour_jump * (1.0 - vigour);
             if !persists && k + 1 == n {
                 // The terminal aborts: the distal laterals relay it, as
                 // reiterates of the axis (toward its phi at birth), as
@@ -193,16 +215,19 @@ impl Grower {
             }
             let phi_l = phi_l.clamp(0.0, 1.0);
             let angle = lerp(p.angle0, p.angle1, phi_l).to_radians();
+            // Lifespan falls with phi; an axis dies with the one carrying it.
+            let life = lerp(p.life0, p.life1, 1.0 - (1.0 - phi_l).powf(p.life_shape));
             for j in 0..count {
                 let dir = self.bud_dir(d, nk, j, count, k, angle);
-                self.buds.push(Bud { node: at, dir, out: Vec3::ZERO, phi: phi_l, years: 0, terminal: false });
+                let dies = b.dies.min(f64::from(t) + 1.0 + keyed_round(life, nk ^ j as u64, 29) as f64);
+                self.buds.push(Bud { node: at, dir, out: Vec3::ZERO, phi: phi_l, years: 0, terminal: false, dies });
                 if let Some(keys) = &mut self.keys {
                     keys.push((phi_l.to_bits(), t));
                 }
             }
         }
         if persists {
-            self.buds.push(Bud { node: at, dir: d, out, phi: b.phi, years: b.years + 1, terminal: true });
+            self.buds.push(Bud { node: at, dir: d, out, phi: b.phi, years: b.years + 1, terminal: true, dies: b.dies });
         }
     }
 
@@ -217,9 +242,11 @@ impl Grower {
         let a0 = d.perpendicular().normalized();
         let b0 = d.cross(a0);
         let golden = (key % 4096) as f64 * 137.5_f64.to_radians() + j as f64 * std::f64::consts::TAU / of as f64;
+        // Two ranks: the rotation axis is the shoot's own up, so laterals
+        // swing to its horizontal sides (round 1 swung them up and down).
         let side = d.cross(Vec3::Y);
         let two = if side.length() > 1e-9 {
-            let s = side.normalized();
+            let s = side.cross(d).normalized();
             s.dot(b0).atan2(s.dot(a0)) + (k + j) as f64 % 2.0 * std::f64::consts::PI
         } else {
             golden
@@ -233,11 +260,41 @@ impl Grower {
         d.rotate(axis, angle).normalized()
     }
 
-    /// Pipe counts and radii, then straightening: each segment turns toward
-    /// up by straighten x its share of the root's cross-section x its years,
-    /// its own turn only (the base erects, the distal part keeps its lean).
+    /// One segment's turn toward up after `years` at the axis's rate,
+    /// straighten x (1 - phi at birth) a year, stopping at vertical.
+    fn turned(&self, i: usize, years: f64) -> Vec3 {
+        let w = self.dir[i];
+        let axis = w.cross(Vec3::Y);
+        let gap = w.dot(Vec3::Y).clamp(-1.0, 1.0).acos();
+        let a = (self.p.straighten * (1.0 - f64::from(self.phi[i])) * years).min(gap);
+        if axis.length() > 1e-9 && a > 0.0 { Quat::axis_angle(axis.normalized(), a).apply(w) } else { w }
+    }
+
+    /// The end pass against the same turn taken year by year: the largest
+    /// angle between them, degrees (diagnostic runs only).
+    fn yearly_gap(&self, end: f64) -> f64 {
+        let mut worst = 0.0f64;
+        for i in 1..self.pos.len() {
+            let mut d = self.dir[i];
+            let rate = self.p.straighten * (1.0 - f64::from(self.phi[i]));
+            for _ in 0..(end - f64::from(self.born[i])) as usize {
+                let axis = d.cross(Vec3::Y);
+                let a = rate.min(d.dot(Vec3::Y).clamp(-1.0, 1.0).acos());
+                if axis.length() > 1e-9 && a > 0.0 {
+                    d = Quat::axis_angle(axis.normalized(), a).apply(d);
+                }
+            }
+            let once = self.turned(i, end - f64::from(self.born[i]));
+            worst = worst.max(d.dot(once).clamp(-1.0, 1.0).acos().to_degrees());
+        }
+        worst
+    }
+
+    /// Pipe counts over all wood, the pruned included (their pipes stay),
+    /// radii, straightening, then the pruned axes dropped.
     fn finish(mut self, mut st: Stats) -> Grown {
         let n = self.pos.len();
+        let end = self.p.cycles.round();
         let t0 = Instant::now();
         let mut tips = vec![0.0f64; n];
         let mut kids = vec![false; n];
@@ -249,31 +306,37 @@ impl Grower {
         }
         let e = if self.p.exponent > 0.0 { self.p.exponent } else { self.w.exponent };
         let k = self.w.root_radius / tips[0].max(1.0).powf(1.0 / e);
-        let radius: Vec<f64> = tips.iter().map(|x| k * x.max(1.0).powf(1.0 / e)).collect();
         st.ms[1] = ms(t0);
         let t0 = Instant::now();
         if self.p.straighten > 0.0 {
-            let end = self.p.cycles.round();
+            if self.keys.is_some() {
+                st.yearly_gap_deg = self.yearly_gap(end);
+            }
             for i in 1..n {
                 let p = self.parent[i] as usize;
-                let share = (radius[i] / radius[0]).powi(2);
-                let w = self.dir[i];
-                let axis = w.cross(Vec3::Y);
-                let gap = w.dot(Vec3::Y).clamp(-1.0, 1.0).acos();
-                let a = (self.p.straighten * share * (end - f64::from(self.born[i]))).min(gap);
-                let d = if axis.length() > 1e-9 && a > 0.0 { Quat::axis_angle(axis.normalized(), a).apply(w) } else { w };
+                let d = self.turned(i, end - f64::from(self.born[i]));
                 self.pos[i] = self.pos[p] + d * self.len[i];
             }
         }
         st.ms[2] = ms(t0);
-        Grown {
-            parent: self.parent.iter().map(|&x| (x != u32::MAX).then_some(x as usize)).collect(),
-            lateral: self.lateral,
-            radius,
-            elev0: self.elev0.iter().map(|&x| f64::from(x)).collect(),
-            pos: self.pos,
-            stats: st,
+        let t0 = Instant::now();
+        let mut map = vec![u32::MAX; n];
+        let mut g = Grown { pos: vec![], parent: vec![], lateral: vec![], radius: vec![], elev0: vec![], stats: Stats::default() };
+        for i in 0..n {
+            if f64::from(self.dies[i]) <= end {
+                st.pruned += 1;
+                continue;
+            }
+            map[i] = g.pos.len() as u32;
+            g.pos.push(self.pos[i]);
+            g.parent.push((i > 0).then(|| map[self.parent[i] as usize] as usize));
+            g.lateral.push(self.lateral[i]);
+            g.radius.push(k * tips[i].max(1.0).powf(1.0 / e));
+            g.elev0.push(f64::from(self.elev0[i]));
         }
+        st.ms[3] = ms(t0);
+        g.stats = st;
+        g
     }
 }
 
