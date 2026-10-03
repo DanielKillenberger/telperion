@@ -1,0 +1,91 @@
+# fn-190 friction
+
+## 2026-10-03, R1, the probe's first tree
+
+- **Doing:** growing the first tree from the root with the law, no scaffold.
+- **Hindered by:** with markers drawn evenly in the envelope, the seedling's crown (the envelope scaled to an eighth) held almost no markers within a bud's perception radius of the root, so nothing grew and the run returned a one-node tree without an error. Each marker now carries the crown scale at which it joins.
+- **Cost:** ~10 min, ~6k tokens.
+- **What would remove it:** a grown tree of one node is an error in the probe driver, not a row.
+
+## 2026-10-03, R1, Astra's review of the bands
+
+- **Doing:** fixing the R1 pass bands before tuning, with Astra's review.
+- **Hindered by:** Astra rejected the bands' role, not only their values: it would take most bands out of the acceptance count and add a visual and a developmental check. That changes the criterion's shape, which a dispatched agent may not decide, so the bands stand as diagnostics with Astra's checks added as gates, and the choice goes to the host.
+- **Cost:** ~5 min; an open decision for the host.
+- **What would remove it:** a spec that names which bands vote and which are diagnostics before Astra reads them.
+
+## 2026-10-03, R1 round 1, stopping for design decisions
+
+- **Doing:** the first probe round of the growth law on the beech, oak and spruce.
+- **Hindered by:** the round's open questions (short shoots as wood or stations, the fine-wood comparison, the crown's ontogeny) are design judgments AGENTS.md reserves for the host, and the spec places the short-shoot one in R2, after R1 needs it. The task was dispatched as the whole spec (R1 to R7) to one worker.
+- **Cost:** about 2 h of the 10 h timebox; five rounds remain.
+- **What would remove it:** an R1 that names the short-shoot representation and the ontogeny model up front, or a probe task the host steers round by round, as fn-188's rounds were.
+
+## 2026-10-03, R1 round 2, a runaway tree crashed the still
+
+- **Doing:** rendering round 2's stills at seeds 1 and 7.
+- **Hindered by:** the spruce at seed 7 grew to 597k nodes, and the headless renderer panicked: a compute dispatch of 100,753 groups exceeds wgpu's 65,535 limit. That still is missing, and the run lost a minute.
+- **Cost:** ~2 min.
+- **What would remove it:** the renderer splitting large dispatches, or the probe refusing to render a tree past a node count with an error naming it.
+
+## 2026-10-03, R1 round 3, the shell guard on probe drivers
+
+- **Doing:** editing the law and driving the walks from the shell.
+- **Hindered by:** the dcg hook blocked an inline Python heredoc (an unverifiable embedded launcher) and a shell redirect to a variable path, so each had to be rewritten as a script file that writes its own rows.
+- **Cost:** ~4 min, ~6k tokens.
+- **What would remove it:** a committed probe driver that takes the round's points and walks as arguments and writes literal paths (local setup for the hook itself; reported, not specced).
+
+## 2026-10-03, R1a round 1, open-loop organogenesis is a knife-edge in size
+
+- **Doing:** tuning the beech's point for R1a (organogenesis by continuous phi, no light).
+- **Hindered by:** without feedback the rule is a branching process: when a long shoot leaves on average more than one long shoot that keeps growing, the tree explodes past 600k nodes; below one it stays at 5–15k nodes. At one point the seeds grew 160k and 42k nodes, and branching 2.4 against 2.6 gave 160k and 115k, so each sweep step costs a run that tells little about the architecture.
+- **Cost:** ~15 min and ~30 runs on the beech alone.
+- **What would remove it:** a size that limits itself (R1b's balance, or GreenLab's supply-demand ratio scaling the counts), or a driver that solves for the branching that hits a target node count before the architecture settings are judged.
+
+## 2026-10-03, R1a round 2, a defect inherited across six rounds
+
+- **Doing:** making wood below the ground a driver error, as the host decided after R1a round 1.
+- **Hindered by:** the spruce's below-ground wood was not a gravitropism gap. The two-ranked lateral rule rotated laterals about the shoot's horizontal side, so "two ranks" pointed up and down. The rule had been in the probe since round 1 and no check looked at where two-ranked laterals point.
+- **Cost:** ~5 min to find; unknown cost to earlier rounds' spruce and beech readings.
+- **What would remove it:** a unit check on the lateral-direction rule (a horizontal shoot at distich 1 gives laterals at elevation 0), written when the rule is written.
+
+## 2026-10-03, R1a round 3, every law change resets the tuning
+
+- **Doing:** retuning the three species after smooth phi, the establishment curve and vigour by phi.
+- **Hindered by:** round 2's points exploded past 1.2M grown nodes on the new law, because phi no longer reaches 1, so short shoots keep a small branching chance. On the beech, drift 0.03 against 0.015 swung the tree from 4k kept nodes to over 1.2M grown. Each law change throws away the previous round's points, and finding a size the rule does not explode or starve at takes most of the round.
+- **Cost:** ~15 min and ~25 runs before any architecture could be judged.
+- **What would remove it:** R1b's size bound, or a driver that solves `branching` for a target grown-node count before the architecture settings are judged (named in round 1's entry).
+
+## 2026-10-03, stage 1 (beech, Troll), the shell guard and the size knife-edge again
+
+- **Doing:** building the module rule and growing the beech at several ages.
+- **Hindered by:** (1) the dcg hook blocked a Python heredoc edit and a `printf > $VAR/path` redirect, so every settings file and driver had to go through the editor tool; (2) the open-loop rule explodes past 1.2M grown nodes between age 20 and 34 as soon as branching is raised to give the beech its twig density, the same knife-edge as R1a rounds 1 and 3: long-lived plagiotropic branches keep branching yearly and nothing bounds them without light.
+- **Cost:** ~5 min for the hook; ~10 min and four runs on size before the architecture could be judged at maturity.
+- **What would remove it:** for (1), a committed probe driver taking the point and ages as arguments (local hook setup, reported not specced); for (2), stage 5's light and carbon balance, or a driver that solves `branching` for a target node count at the mature age.
+
+## 2026-10-03, fn-190.2 (oak model specification)
+
+- **Doing:** finding the quote behind LITERATURE.md's source tag for Rauh in *Q. rubra*.
+- **Hindered by:** the tag points at `hot_ch3.md`, which is only a landing page and abstract; the quote is in `miami.md` (Tomlinson 1983).
+- **Cost:** about 5 minutes.
+- **What would remove it:** LITERATURE.md naming the file behind each source tag.
+
+## 2026-10-03, fn-190.4 (palm model specification)
+
+- **Doing:** timing today's palm renders.
+- **Hindered by:** the dcg hook blocked a shell redirect, and `/usr/bin/time` is not installed.
+- **Cost:** about 3 minutes.
+- **What would remove it:** a local setup note (install `time`); reported, not specced, as a local machine matter.
+
+## 2026-10-03, stage 1 (beech, Troll), a debug probe inflated four rounds of timings
+
+- **Doing:** finding why the mature crown collapsed between ages 55 and 75.
+- **Hindered by:** a temporary `GL_DEBUG` check in the prune loop read the environment once per pruned node; with about a million pruned nodes it cost ~190 ms, so the prune pass read 212 ms instead of 19 and every timing from v8 to the first final run was about 2.5 times too slow. Separately, the renderer refused a 2.1M-node tree (a dispatch group of 87,078 against a limit of 65,535), so that point could not be drawn at all (already logged in R1 round 2).
+- **Cost:** ~3 min to see and remove; the misleading timings were never reported.
+- **What would remove it:** diagnostics kept out of timed passes (a diag run, as `diag` already is for the factorisation probe); the renderer splitting large dispatches.
+
+## 2026-10-03, fn-190.18 (baseline), moved from BASELINE.md
+
+- **2026-10-03, task .18, measuring today's full build.** `growth_law today` has no seed-aware full-build timing, leaf count or peak-memory output, and `examples/measure.rs` has no seed argument. Writing and building a scratch crate cost about 10 minutes. A `today --cost` mode in the probe, or a seed argument on `measure`, would remove it.
+- **2026-10-03, task .18, the `today` skeleton figure.** Its warm median comes from 3 runs and is noisy under shared load (beech seed 1: 80.5 ms against 57.3 ms over 21 runs). Spotting and re-measuring it cost about 3 minutes. Taking the median of at least 11 runs in `today` would remove it.
+- **2026-10-03, task .18, shell guard.** The dcg hook blocks `>` redirects to paths held in shell variables, so two commands were rewritten with literal paths. This cost about 2 minutes.

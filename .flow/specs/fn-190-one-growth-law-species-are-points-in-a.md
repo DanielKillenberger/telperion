@@ -67,3 +67,8 @@ Replace the generator's growth stage with one growth law that runs from trunk to
 ## Strategy Alignment
 
 - Changes STRATEGY.md's "Our approach" line "space colonization for the crown, botanical rules below the crossover" to one growth law from trunk to twig with species as coordinates in an architecture space; R7's merge carries that wording change with the owner's verdict. [strategy:Our approach]
+
+## Superseded by the tree-space programme (owner, 2026-10-03)
+
+fn-190 ends as research. Its probe rounds, model specifications and pinned baseline (this spec's evidence folder; the probe and task history on branch `fn-190-one-growth-law-species-are-points-in-a`) feed the programme in `docs/tree-space.md`, specs fn-191 to fn-198 (A to F). The species that depended on fn-190 now depend on fn-198, the production phase. [user]
+

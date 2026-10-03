@@ -1,0 +1,26 @@
+{
+  "branch_name": "fn-196-tree-space-d-the-date-palm-as-a-point",
+  "created_at": "2026-10-03T19:30:58.240922Z",
+  "depends_on_epics": [
+    "fn-195-tree-space-d-the-oak-as-a-point"
+  ],
+  "id": "fn-196-tree-space-d-the-date-palm-as-a-point",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-196-tree-space-d-the-date-palm-as-a-point.md",
+  "status": "open",
+  "title": "Tree space D: the date palm as a point",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-03T19:30:58.802127Z"
+}

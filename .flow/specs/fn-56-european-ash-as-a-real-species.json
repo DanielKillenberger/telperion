@@ -2,7 +2,8 @@
   "branch_name": "fn-56-european-ash-as-a-real-species",
   "created_at": "2026-09-15T20:51:42.527995Z",
   "depends_on_epics": [
-    "fn-33-flowers-cones-and-compound-leaves-as"
+    "fn-33-flowers-cones-and-compound-leaves-as",
+    "fn-198-tree-space-f-the-engine-in-production"
   ],
   "id": "fn-56-european-ash-as-a-real-species",
   "next_task": 1,
@@ -22,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-15T20:51:43.409990Z"
+  "updated_at": "2026-10-03T19:31:16.766147Z"
 }

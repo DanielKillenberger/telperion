@@ -13,7 +13,7 @@
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "ready": true,
+  "ready": false,
   "spec_path": ".flow/specs/fn-190-one-growth-law-species-are-points-in-a.md",
   "status": "open",
   "title": "One growth law: species are points in a continuous architecture space",
@@ -28,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T08:55:08.824285Z"
+  "updated_at": "2026-10-03T19:31:18.973704Z"
 }

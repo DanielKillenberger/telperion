@@ -6,7 +6,9 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-198-tree-space-f-the-engine-in-production"
+  ],
   "id": "fn-144-retained-leaf-bases-pack-into-a-lattice",
   "impl_review_rounds": {},
   "next_task": 1,
@@ -29,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-24T18:05:46.693877Z"
+  "updated_at": "2026-10-03T19:31:18.409582Z"
 }
