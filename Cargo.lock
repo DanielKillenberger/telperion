@@ -1382,6 +1382,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "telperion-space"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "telperion-wasm"
 version = "0.1.0"
 dependencies = [

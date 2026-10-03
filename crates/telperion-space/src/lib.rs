@@ -1,0 +1,22 @@
+//! The tree space's growth engine core (docs/tree-space.md, phase A).
+//!
+//! Buds carry a physiological age (PA), a state on the species' reference
+//! axis that sets how they grow, branch, live and age. A tree grows one
+//! growth unit of phytomers per living apex per cycle; each lateral bud's PA
+//! is drawn by its zone of the growth unit; dead laterals are shed. The
+//! structures are tested against GreenLab's closed-form counts and against
+//! Letort's GreenLab simulator, run unchanged in a browser
+//! (`scripts/greenlab-oracle.mjs`). Nothing here is wired into the pipeline.
+mod closed_form;
+mod error;
+mod geometry;
+mod grow;
+mod rng;
+mod species;
+mod structure;
+
+pub use closed_form::expected_counts;
+pub use error::{Error, Result};
+pub use grow::{grow, Request};
+pub use species::{NodeLaw, PaState, Species, Zone, MAX_BUDS};
+pub use structure::{Axis, CountTable, Origin, Phytomer, Structure, Vec3};

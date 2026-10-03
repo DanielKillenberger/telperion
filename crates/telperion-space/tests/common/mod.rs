@@ -1,0 +1,183 @@
+//! Shared by the oracle and closed-form tests: the oracle fixture, its
+//! parameter sets read as species, a tree's canonical signature and the
+//! moments of a sample.
+#![allow(dead_code)]
+use serde_json::Value;
+use std::f64::consts::PI;
+use telperion_space::{grow, NodeLaw, Origin, PaState, Request, Species, Structure, Zone};
+
+pub const BUDGET: u32 = 1_000_000;
+
+pub fn sets() -> Vec<Value> {
+    let path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/fixtures/greenlab-oracle.json"
+    );
+    let fixture: Value = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+    fixture["sets"].as_array().unwrap().clone()
+}
+
+/// A simulator parameter set as a species: one zone per growth unit, one
+/// bud per node (alternate) or two (opposite), every apex immortal and
+/// nothing shed. The geometry is ours: distichous, so the tree is planar.
+pub fn species(set: &Value) -> Species {
+    let pas = set["pa"].as_array().unwrap();
+    let buds = if set["variant"] == "opposite" { 2 } else { 1 };
+    let poisson = set["poisson"].as_bool().unwrap();
+    let states = pas
+        .iter()
+        .enumerate()
+        .map(|(i, p)| {
+            let int = |key: &str| p[key].as_u64().unwrap() as u32;
+            let nodes = if poisson {
+                NodeLaw::Poisson {
+                    mean: p["lambda"].as_f64().unwrap(),
+                }
+            } else {
+                NodeLaw::Uniform {
+                    min: int("nmin"),
+                    max: int("nmax"),
+                }
+            };
+            let mut lateral = vec![0.0; pas.len()];
+            for (j, prob) in p["p"].as_object().unwrap() {
+                lateral[j.parse::<usize>().unwrap() - 1] = prob.as_f64().unwrap();
+            }
+            PaState {
+                lifespan: int("macro"),
+                next: (int("terminal") as usize).checked_sub(1),
+                viability: 1.0,
+                zones: vec![Zone {
+                    nodes,
+                    buds,
+                    lateral,
+                }],
+                shedding: None,
+                internode: 1.0 / (1.0 + 0.45 * i as f64),
+                insertion: (50.0 - 6.0 * i as f64).to_radians(),
+                divergence: PI,
+            }
+        })
+        .collect();
+    Species { states }
+}
+
+pub fn age(set: &Value) -> u32 {
+    set["maxCA"].as_u64().unwrap() as u32
+}
+
+pub fn tree(species: &Species, age: u32, seed: u64) -> Structure {
+    grow(
+        species,
+        Request {
+            age,
+            seed,
+            budget: BUDGET,
+        },
+    )
+    .unwrap()
+}
+
+/// The canonical string the oracle script writes for the simulator's trees:
+/// an axis is its PA (from 1), its growth units in order, each the sorted
+/// strings of its phytomers' laterals, then its continuation; an axis that
+/// grew nothing is empty.
+pub fn signature(tree: &Structure) -> String {
+    let mut laterals = vec![Vec::new(); tree.axes.len()];
+    let mut continuation = vec![None; tree.axes.len()];
+    for (i, axis) in tree.axes.iter().enumerate() {
+        match axis.origin {
+            Origin::Seed => {}
+            Origin::Lateral { parent, node, .. } => laterals[parent].push((node, i)),
+            Origin::Continuation { parent } => continuation[parent] = Some(i),
+        }
+    }
+    word(tree, 0, &laterals, &continuation)
+}
+
+fn word(tree: &Structure, i: usize, lat: &[Vec<(usize, usize)>], next: &[Option<usize>]) -> String {
+    let axis = &tree.axes[i];
+    let tail = next[i]
+        .map(|c| word(tree, c, lat, next))
+        .unwrap_or_default();
+    if axis.phytomers.is_empty() && tail.is_empty() {
+        return String::new();
+    }
+    let mut units: Vec<(u32, Vec<String>)> = Vec::new();
+    for (n, phytomer) in axis.phytomers.iter().enumerate() {
+        let mut kids: Vec<String> = lat[i]
+            .iter()
+            .filter(|(node, _)| *node == n)
+            .map(|&(_, k)| word(tree, k, lat, next))
+            .filter(|s| !s.is_empty())
+            .collect();
+        kids.sort();
+        let entry = format!("p[{}]", kids.join(";"));
+        match units.last_mut() {
+            Some((cycle, words)) if *cycle == phytomer.cycle => words.push(entry),
+            _ => units.push((phytomer.cycle, vec![entry])),
+        }
+    }
+    let body: String = units
+        .iter_mut()
+        .map(|(_, words)| {
+            words.sort();
+            format!("({})", words.join(","))
+        })
+        .collect();
+    let tail = if tail.is_empty() {
+        tail
+    } else {
+        format!(">{tail}")
+    };
+    format!("A{}{body}{tail}", axis.pa + 1)
+}
+
+pub fn fnv1a(text: &str) -> String {
+    let hash = text.bytes().fold(0xcbf2_9ce4_8422_2325u64, |h, b| {
+        (h ^ u64::from(b)).wrapping_mul(0x0000_0100_0000_01b3)
+    });
+    format!("{hash:016x}")
+}
+
+/// Mean, variance and fourth central moment, as the oracle script records them.
+#[derive(Debug, Clone, Copy)]
+pub struct Moments {
+    pub n: f64,
+    pub mean: f64,
+    pub var: f64,
+    pub m4: f64,
+}
+
+impl Moments {
+    pub fn of(values: &[f64]) -> Self {
+        let n = values.len() as f64;
+        let mean = values.iter().sum::<f64>() / n;
+        let central = |k: i32| values.iter().map(|v| (v - mean).powi(k)).sum::<f64>() / n;
+        Self {
+            n,
+            mean,
+            var: central(2),
+            m4: central(4),
+        }
+    }
+
+    pub fn read(value: &Value, n: f64) -> Self {
+        let get = |key: &str| value[key].as_f64().unwrap();
+        Self {
+            n,
+            mean: get("mean"),
+            var: get("var"),
+            m4: get("m4"),
+        }
+    }
+
+    /// Standard errors of the mean and of the variance; the variance's is
+    /// (m4 - var^2 (n-3)/(n-1)) / n, which a two-point count does not zero.
+    pub fn errors(&self) -> (f64, f64) {
+        let n = self.n;
+        let var_error =
+            ((self.m4 - self.var * self.var * (n - 3.0) / (n - 1.0)).max(0.0) / n).sqrt();
+        ((self.var / n).sqrt(), var_error)
+    }
+}
