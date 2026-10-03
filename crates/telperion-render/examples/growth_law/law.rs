@@ -34,6 +34,14 @@ struct Node {
     qmem: f64,
     /// A lateral's elevation at birth, degrees (NaN elsewhere).
     elev0: f32,
+    /// Path length from the root (hydraulic limit).
+    path: f64,
+    /// The short shoots this long shoot carries, as one record: their
+    /// count, total length, and remembered balance. Geometry is emitted at
+    /// the end.
+    rec_n: f64,
+    rec_len: f64,
+    rec_mem: f64,
 }
 
 #[derive(Clone, Copy)]
@@ -59,6 +67,8 @@ pub struct Stats {
     /// The tree's net balance each cycle.
     pub net: Vec<f64>,
     pub reserve_end: f64,
+    pub records: usize,
+    pub short_shoots: f64,
 }
 pub const STAGES: [&str; 5] = ["light", "allocate", "shed", "extend", "straighten"];
 
@@ -126,6 +136,10 @@ pub fn grow(p: &Params, w: World) -> Grown {
         memory: 0.0,
         qmem: 0.0,
         elev0: f32::NAN,
+        path: 0.0,
+        rec_n: 0.0,
+        rec_len: 0.0,
+        rec_mem: 0.0,
     });
     g.buds.push(Bud { node: 0, dormant: 0, dir: Vec3::Y, phi: 0.0, terminal: true });
     let mut st = Stats::default();
@@ -139,7 +153,7 @@ pub fn grow(p: &Params, w: World) -> Grown {
         st.ms[0] += ms(t0);
         let t0 = Instant::now();
         let n = g.nodes.len();
-        let (qm, ql, cnt, lit, upk) = g.basipetal(&q);
+        let (qm, ql, cnt, lit, upk, wr) = g.basipetal(&q);
         // The reserve: this year's net plus the stock is what the tree has;
         // it covers upkeep first (the share `cover` of every branch's
         // upkeep it pays), a share is stored again, the rest is spent.
@@ -147,11 +161,13 @@ pub fn grow(p: &Params, w: World) -> Grown {
         let cover = (g.reserve / upk[0].max(1e-12)).min(1.0);
         let have = (net + g.reserve).max(0.0);
         g.reserve = p.store * have;
-        let v = g.allocate(&q, &qm, &ql, (1.0 - p.store) * have);
+        let (v, vr) = g.allocate(&q, &qm, &ql, &wr, (1.0 - p.store) * have);
+        g.grow_records(&vr);
         st.net.push(net);
         st.ms[1] += ms(t0);
         let t0 = Instant::now();
         st.shed += g.shed(t, &lit, &upk, &cnt, cover);
+        g.shed_records(t, cover);
         st.ms[2] += ms(t0);
         let t0 = Instant::now();
         let buds = std::mem::take(&mut g.buds);
@@ -192,6 +208,9 @@ pub fn grow(p: &Params, w: World) -> Grown {
         }
     }
     g.compact();
+    st.records = g.nodes.iter().filter(|n| n.rec_n > 0.0).count();
+    st.short_shoots = g.nodes.iter().map(|n| n.rec_n).sum();
+    g.emit_records();
     st.cast_ms = g.cast_ms;
     st.updates = g.w.light.updates;
     st.reserve_end = g.reserve;
@@ -223,8 +242,15 @@ impl Grower {
                 kids[nd.parent as usize] = true;
             }
         }
-        let tips: Vec<Vec3> = self.nodes.iter().zip(&kids).filter(|(nd, k)| nd.alive && !**k).map(|(nd, _)| nd.pos).collect();
-        self.w.light.rebuild(&tips);
+        let leaves: Vec<(Vec3, f64)> = self
+            .nodes
+            .iter()
+            .zip(&kids)
+            .filter(|(nd, _)| nd.alive)
+            .map(|(nd, k)| (nd.pos, if *k { 0.0 } else { 1.0 } + nd.rec_n))
+            .filter(|x| x.1 > 0.0)
+            .collect();
+        self.w.light.rebuild(&leaves);
     }
 
     /// Per node: the demand-weighted light of the main line (qm) and the
@@ -233,10 +259,23 @@ impl Grower {
     /// lit - upk. A metamer one unit long carrying one tip's pipe costs
     /// the upkeep setting; cost grows with its volume.
     #[allow(clippy::type_complexity)]
-    fn basipetal(&self, q: &[f64]) -> (Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>) {
+    fn basipetal(&self, q: &[f64]) -> (Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>) {
         let n = self.nodes.len();
         let z = || vec![0.0; n];
-        let (mut qm, mut ql, mut cnt, mut lit, mut upk) = (z(), z(), z(), z(), z());
+        let (mut qm, mut ql, mut cnt, mut lit, mut upk, mut wr) = (z(), z(), z(), z(), z(), z());
+        // Each record reads its long shoot's light once: its short shoots'
+        // leaves gather it, their wood costs its upkeep, and it draws on the
+        // laterals' side by what its short internodes build.
+        for (i, nd) in self.nodes.iter().enumerate() {
+            if nd.alive && nd.rec_n > 0.0 {
+                let x = self.w.light.light(nd.pos);
+                lit[i] += nd.rec_n * x;
+                upk[i] += self.p.upkeep * nd.rec_len / self.unit;
+                cnt[i] += nd.rec_n;
+                wr[i] = x * nd.rec_n * self.p.short;
+                ql[i] += wr[i];
+            }
+        }
         for (b, &x) in self.buds.iter().zip(q) {
             let w = x * self.shoot_len(b.phi);
             if b.terminal { qm[b.node as usize] += w } else { ql[b.node as usize] += w }
@@ -262,7 +301,7 @@ impl Grower {
             lit[p] += lit[i];
         }
         cnt[0] += if kids[0] { 0.0 } else { 1.0 };
-        (qm, ql, cnt, lit, upk)
+        (qm, ql, cnt, lit, upk, wr)
     }
 
     /// A shoot's internode as a share of a young shoot's, by age.
@@ -273,7 +312,7 @@ impl Grower {
     /// Borchert-Honda: the resource enters at the base and splits at every
     /// node, lambda to the main line and 1 - lambda to the laterals, each
     /// in proportion to what it gathered. Returns each bud's vigour.
-    fn allocate(&self, q: &[f64], qm: &[f64], ql: &[f64], net: f64) -> Vec<f64> {
+    fn allocate(&self, q: &[f64], qm: &[f64], ql: &[f64], wr: &[f64], net: f64) -> (Vec<f64>, Vec<f64>) {
         let (l, n) = (self.p.lambda, self.nodes.len());
         let den = |i: usize| l * qm[i] + (1.0 - l) * ql[i];
         let mut vin = vec![0.0; n];
@@ -290,7 +329,8 @@ impl Grower {
                 vin[i] = vin[p] * wt * (qm[i] + ql[i]) / d;
             }
         }
-        self.buds
+        let vb = self
+            .buds
             .iter()
             .zip(q)
             .map(|(b, &x)| {
@@ -299,7 +339,9 @@ impl Grower {
                 let wt = if b.terminal { l } else { 1.0 - l };
                 if d > 0.0 { vin[i] * wt * x * self.shoot_len(b.phi) / d } else { 0.0 }
             })
-            .collect()
+            .collect();
+        let vr = (0..n).map(|i| if wr[i] > 0.0 && den(i) > 0.0 { vin[i] * (1.0 - l) * wr[i] / den(i) } else { 0.0 }).collect();
+        (vb, vr)
     }
 
     /// Remembers every branch's relative net balance, (light - upkeep) /
@@ -349,6 +391,7 @@ impl Grower {
         let p = self.p;
         let base = &self.nodes[b.node as usize];
         let (bkey, bphi) = (base.key ^ if b.terminal { 0 } else { hash(b.dir.x.to_bits(), 7).to_bits() }, b.phi);
+        let v = v * self.efficiency(base.path);
         let ratio = v / p.v_ref;
         let phi = (bphi + p.drift * (1.0 - ratio.min(1.0)) - p.reiteration * (ratio - 1.0).max(0.0)).clamp(0.0, 1.0);
         // v buys v units of wood, in internodes as long as the age allows.
@@ -376,9 +419,11 @@ impl Grower {
         let angle = (p.angle0 + (p.angle1 - p.angle0) * phi_l).to_radians();
         let mut d = b.dir;
         let mut at = b.node;
+        let mut shorts = 0.0;
         for k in 0..n {
             let here = self.nodes[at as usize].pos;
-            d = (d + guide * p.xi + trop * p.eta + self.inward(here) * p.envelope).normalized();
+            let photo = Vec3::new(guide.x, 0.0, guide.z) * p.photo;
+            d = (d + guide * p.xi + photo + trop * p.eta + self.inward(here) * p.envelope).normalized();
             let pos = self.nodes[at as usize].pos + d * len;
             let key = self.next_key;
             self.next_key += 1;
@@ -396,18 +441,115 @@ impl Grower {
                 memory: 0.0,
                 qmem: 0.0,
                 elev0: if !b.terminal && k == 0 { d.y.clamp(-1.0, 1.0).asin().to_degrees() as f32 } else { f32::NAN },
+                path: self.nodes[at as usize].path + len,
+                rec_n: 0.0,
+                rec_len: 0.0,
+                rec_mem: 0.0,
             });
             let wk = (1.0 - p.rhythm) * prof[k] / mean + p.rhythm * if k + 1 == n { n as f64 } else { 0.0 };
             let nk = self.nodes[idx as usize].key;
             let laterals = keyed_round(dev * wk, nk, 3);
+            // The buds that do not become long shoots are short shoots.
+            shorts += (p.branching * wk - dev * wk).max(0.0);
             for j in 0..laterals {
                 let dir = self.bud_dir(d, nk, j, laterals, k, angle);
                 self.buds.push(Bud { node: idx, dormant: 0, dir, phi: phi_l, terminal: false });
             }
             at = idx;
         }
+        let end = &mut self.nodes[at as usize];
+        end.rec_n += shorts;
+        end.rec_len += shorts * self.unit * p.short;
         let tk = self.nodes[at as usize].key;
         (hash(tk, 5) < p.persistence).then_some(Bud { node: at, dormant: 0, dir: d, phi, terminal: true })
+    }
+
+    /// Growth efficiency by path length from the root (hydraulic limit,
+    /// Ryan & Yoder 1997): 1 - (path / (hydraulic x H))^2, 1 when off.
+    fn efficiency(&self, path: f64) -> f64 {
+        if self.p.hydraulic <= 0.0 {
+            return 1.0;
+        }
+        (1.0 - (path / (self.p.hydraulic * self.w.height)).powi(2)).clamp(0.0, 1.0)
+    }
+
+    /// Short shoots extend by what their record drew: v units of wood.
+    fn grow_records(&mut self, vr: &[f64]) {
+        for (i, &v) in vr.iter().enumerate() {
+            if v > 0.0 {
+                let e = self.efficiency(self.nodes[i].path);
+                self.nodes[i].rec_len += v * e * self.unit;
+            }
+        }
+    }
+
+    /// Short shoots in deficit die in proportion: the record's remembered
+    /// balance sheds the same smooth share a branch's would; their pipes stay.
+    fn shed_records(&mut self, t: usize, cover: f64) {
+        let p = self.p;
+        for i in 0..self.nodes.len() {
+            let nd = &self.nodes[i];
+            if !nd.alive || nd.rec_n <= 0.0 {
+                continue;
+            }
+            let lit = nd.rec_n * self.w.light.light(nd.pos);
+            let upk = p.upkeep * nd.rec_len / self.unit;
+            let bal = (lit - (1.0 - cover) * upk) / (lit + upk).max(1e-12);
+            let nd = &mut self.nodes[i];
+            nd.rec_mem = (1.0 - p.memory) * nd.rec_mem + p.memory * bal;
+            if p.shed <= 0.0 || (t as f64 - f64::from(nd.born)) < p.shed_age {
+                continue;
+            }
+            let x = ((-nd.rec_mem - p.tolerance) / p.shed_width.max(1e-9)).clamp(0.0, 1.0);
+            let share = p.shed * x * x * (3.0 - 2.0 * x);
+            nd.memory += nd.rec_n * share;
+            nd.rec_len *= 1.0 - share;
+            nd.rec_n *= 1.0 - share;
+        }
+    }
+
+    /// The records' short shoots as wood: keyed-round(count) straight shoots
+    /// of their mean length, in internodes of a short shoot's length.
+    fn emit_records(&mut self) {
+        let angle = self.p.angle1.to_radians();
+        for i in 0..self.nodes.len() {
+            let nd = self.nodes[i].clone();
+            let m = keyed_round(nd.rec_n, nd.key, 23);
+            if m == 0 {
+                continue;
+            }
+            let each = nd.rec_len / nd.rec_n.max(1e-9);
+            let step = self.unit * self.p.short;
+            let k = ((each / step).round() as usize).max(1);
+            for j in 0..m {
+                let d = self.bud_dir(nd.dir, nd.key, j, m, j, angle);
+                let mut at = i as u32;
+                for s in 0..k {
+                    let pos = self.nodes[at as usize].pos + d * (each / k as f64);
+                    let key = self.next_key;
+                    self.next_key += 1;
+                    self.nodes.push(Node {
+                        parent: at,
+                        pos,
+                        dir: d,
+                        len: each / k as f64,
+                        lateral: s == 0,
+                        alive: true,
+                        key,
+                        born: nd.born,
+                        out: Vec3::ZERO,
+                        memory: 0.0,
+                        qmem: 0.0,
+                        elev0: f32::NAN,
+                        path: 0.0,
+                        rec_n: 0.0,
+                        rec_len: 0.0,
+                        rec_mem: 0.0,
+                    });
+                    at = (self.nodes.len() - 1) as u32;
+                }
+            }
+        }
     }
 
     /// Toward the authored crown from outside it: inward and down, growing

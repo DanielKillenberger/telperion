@@ -21,6 +21,12 @@ pub struct Params {
     pub store: f64,
     /// Pull toward the authored crown from outside it (0 neutral).
     pub envelope: f64,
+    /// Sky light's low elevation, degrees; phototropism along the light's
+    /// horizontal gradient; hydraulic limit as a multiple of the authored
+    /// height (0 = none).
+    pub elevation: f64,
+    pub photo: f64,
+    pub hydraulic: f64,
     /// Direction weights: the environment's pull and the tropism.
     pub xi: f64,
     pub eta: f64,
@@ -94,6 +100,9 @@ impl Default for Params {
             reserve: 2.0,
             store: 0.2,
             envelope: 0.0,
+            elevation: 30.0,
+            photo: 0.0,
+            hydraulic: 0.0,
             xi: 0.1,
             eta: 0.05,
             persistence: 1.0,
@@ -159,7 +168,7 @@ macro_rules! fields {
 
 fields! {
     unit = "unit", cycles = "cycles", lambda = "lambda", alpha = "alpha",
-    density = "density", voxel = "voxel", reserve = "reserve", store = "store", envelope = "envelope", xi = "xi", eta = "eta",
+    density = "density", voxel = "voxel", reserve = "reserve", store = "store", envelope = "envelope", elevation = "elevation", photo = "photo", hydraulic = "hydraulic", xi = "xi", eta = "eta",
     persistence = "persistence", lean0 = "lean0", lean1 = "lean1", straighten = "straighten",
     acrotony = "acrotony", rhythm = "rhythm", branching = "branching", fate = "fate", vigour_fate = "vigourFate", short = "short",
     phi_step = "phiStep", drift = "drift", reiteration = "reiteration", v_ref = "vRef",

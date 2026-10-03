@@ -112,7 +112,7 @@ pub fn score(t: &Tree, cam: &Camera) -> serde_json::Value {
         let (lo, hi) = (a.min(b), a.max(b));
         let (k0, k1) = (((lo / h) * bins as f64).ceil() as usize, ((hi / h) * bins as f64).floor() as usize);
         for k in k0..=k1.min(bins - 1) {
-            if (k as f64 / bins as f64) * h > lo && (k as f64 / bins as f64) * h <= hi {
+            if (k as f64 / bins as f64) * h >= lo && (k as f64 / bins as f64) * h <= hi {
                 crossing[k].push(s.r(i));
                 cross_max[k] = cross_max[k].max(s.r(i));
             }

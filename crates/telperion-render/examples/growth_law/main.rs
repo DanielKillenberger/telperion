@@ -67,7 +67,7 @@ fn grow(p: &Params, s: Site) -> law::Grown {
     let e = s.env;
     let unit = p.unit * e.height;
     let r = e.max_radius() + 0.3 * e.height;
-    let light = light::Light::new(Vec3::new(-r, 0.0, -r), Vec3::new(r, 1.3 * e.height, r), p.voxel * unit, p.density);
+    let light = light::Light::new(Vec3::new(-r, 0.0, -r), Vec3::new(r, 1.3 * e.height, r), p.voxel * unit, p.density, p.elevation);
     law::grow(p, law::World { light, envelope: e, height: e.height, root_radius: s.root, exponent: s.exponent, seed: u64::from(s.seed) })
 }
 
@@ -184,7 +184,7 @@ fn main() {
             let time = median(warm);
             out["time_ms"] = serde_json::json!({"cold": cold, "warm_median": time, "stages_cold": stages,
                 "light_pass_ms_cold": st.cast_ms, "light_cells": st.updates});
-            out["law"] = serde_json::json!({"cycles": st.cycles, "shed": st.shed, "buds_max": st.buds_max, "capped": st.capped, "reserve_end": st.reserve_end,
+            out["law"] = serde_json::json!({"cycles": st.cycles, "shed": st.shed, "buds_max": st.buds_max, "capped": st.capped, "reserve_end": st.reserve_end, "records": st.records, "short_shoots": st.short_shoots,
                 "net_first_mid_last": [st.net.first(), st.net.get(st.net.len() / 2), st.net.last()]});
             out["votes"] = bands::judge(id, &out, &today(id, seed), time);
             write(&a[5], &out);
