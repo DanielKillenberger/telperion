@@ -63,3 +63,8 @@ That is about 50 ns per phytomer. These trees are small, and a mature tree's tim
 - **Acrotony within a zone is fixed.** It is the simulators' order. Basitony is expressed by the order of zones; a continuous tonality setting is left to the species phases.
 - **Shedding is decided at the tree's age.** A shed subtree has no living apex, so nothing on it could have grown later, and deciding at the end is exact.
 - **The crate rides in CI's small-crate job** (`rust-wasm` suite key and packages) rather than as a suite of its own.
+
+## Host verdicts (2026-10-03, overnight run)
+
+- **R5:** the host viewed `raw/sheet/sheet.png`. Deterministic rows match the oracle exactly in phytomers per physiological age and in topology; stochastic means agree within noise; only lengths and angles differ, which are ours by design. Passed.
+- **R4:** accepted: L-Py's shipped models as the runnable 3D reference (small, no physiological age, licence file empty: run only), Pałubicki 2009's figures as the mature-tree target for phase E.
