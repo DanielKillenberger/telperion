@@ -126,6 +126,16 @@ The owner asked the host to apply the design principles and choose among the opt
 
 The host decisions after rounds 1 to 4 stand as history. Their light and carbon-balance mechanics return in R1b; markers, perception cones and per-bud allocation do not return.
 
+## Host decisions after R1a round 1 (host, 2026-10-03)
+
+R1a round 1 (`R1A-ROUND1.md`) met time (0.27–0.51 of the bar) and fine wood (1.07–1.34× today's) on all three species, the first round to do so; the beech and oak are bushes with no limbs (no lateral reaches 0.4 of the root radius; today's beech has 5).
+
+1. **Limbs come from the spread of birth ages.** A limb is a lateral born young (low φ) that lives long and carries a large subtree; a bush is every lateral born alike. A lateral's birth φ is its parent's φ plus a jump that depends continuously on its position on the parent's annual shoot (acrotony) and on the parent's vigour: the few distal laterals of a vigorous shoot jump little and become limbs, the rest jump far and stay short. Each axis has a lifespan that falls with φ, so high-φ laterals on the trunk die young (natural pruning by age, not by light), and the trunk's apical persistence decays with age so limbs take over the crown (Troll's sympodial build). All continuous; no count of limbs is authored.
+2. **Size stays R1b's.** No supply ÷ demand cap in R1a; keep partial reiteration so sizes agree across seeds. The carbon balance in R1b owns size.
+3. **One straightening pass at the end is accepted** when it is the integral of a per-year reorientation rate over each axis's age, so it equals the yearly result in a run without feedback. It is not a free shape correction. R1b re-checks it once light feeds φ.
+4. **Division, the developmental traces and the oak's "division − clear bole ≤ 0.10" clause are reported in R1a and vote in R1b.** R1a's vote stays: the visual gate, supplementary bands, fine wood and time.
+5. **Wood below the ground is an error** in the probe driver, so the law is fixed (gravitropism near the base, branch angles), never clamped.
+
 ## Boundaries
 
 - Not the species runner or its score (owner, 2026-10-03: "let's not start writing specs on how to fix the runner with a proper score now"). [user]
