@@ -136,6 +136,18 @@ R1a round 1 (`R1A-ROUND1.md`) met time (0.27–0.51 of the bar) and fine wood (1
 4. **Division, the developmental traces and the oak's "division − clear bole ≤ 0.10" clause are reported in R1a and vote in R1b.** R1a's vote stays: the visual gate, supplementary bands, fine wood and time.
 5. **Wood below the ground is an error** in the probe driver, so the law is fixed (gravitropism near the base, branch angles), never clamped.
 
+## Host decisions after R1a round 2 (host, 2026-10-03)
+
+Round 2 (`R1A-ROUND2.md`) grew limbs (beech 6 majors) within time and fine wood, but every limb comes from the seedling's first years, low on the trunk, and each major carries 18–68 secondaries against a band of 4–10. Both have one cause: a shoot's vigour does not yet follow the age of the tree or of its own axis, so the seedling's laterals are born as vigorous as any later ones, and a major's late shoots branch as freely as its early ones.
+
+1. **The tree has an establishment curve.** Every shoot's vigour is scaled by a smooth curve of the tree's age that rises from the seedling to the tree's prime (neutral: flat). Laterals born in the weak seedling years then jump far in φ, live short and are pruned by age, so the bole forms and limbs are born at the height the trunk had in its vigorous years. Division and limb height come from this, with no authored height.
+2. **An axis's vigour falls with its own φ, which rises with its age.** A major's later annual shoots are weaker, so their laterals jump further and stay short; secondaries per major fall to what the axis's vigour affords. The same vigour(φ) curve applies to every axis; there is no per-order rule.
+3. **φ approaches 1 smoothly** (each year φ moves a fraction of the way to 1), never clamped, so lifespans and fates spread instead of piling up at 1.
+4. **The major-axis count stays a diagnostic** (host decisions round 1 item 5); no setting is tuned to `root04`, and the visual gate decides.
+5. **R2's production design spells out the corrected two-ranked lateral rule** (laterals beside the shoot, not above and below it).
+
+This is R1a's third and last round.
+
 ## Boundaries
 
 - Not the species runner or its score (owner, 2026-10-03: "let's not start writing specs on how to fix the runner with a proper score now"). [user]
