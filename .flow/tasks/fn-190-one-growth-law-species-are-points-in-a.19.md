@@ -8,7 +8,7 @@ Tooling the point and walk tasks need and may not edit themselves: stills at a c
 
 **Size:** M
 **Files:** `crates/telperion-render/examples/growth_law/main.rs`, `tree.rs`, `raw/run.sh`, `raw/sheet*.sh`; the smallest exposure in `crates/telperion-core` that lets the probe clothe leaf bases
-**Touches:** [crates/telperion-render/examples/growth_law/main.rs, crates/telperion-render/examples/growth_law/tree.rs, .flow/evidence/fn-190-one-growth-law-species-are-points-in-a/raw/*.sh, crates/telperion-core/src/pipeline/branching/leaf_bases.rs, crates/telperion-core/src/pipeline/mod.rs]
+**Touches:** [crates/telperion-render/examples/growth_law/main.rs, crates/telperion-render/examples/growth_law/tree.rs, .flow/evidence/fn-190-one-growth-law-species-are-points-in-a/raw/*.sh, crates/telperion-core/src/pipeline/branching/leaf_bases.rs, crates/telperion-core/src/pipeline.rs, crates/telperion-core/src/pipeline/contract.rs, crates/telperion-core/src/pipeline/executor.rs]
 
 ### Approach
 - Age: a grow argument that stops at a given year, so sheets show 5, 10, 20 years and mature.

@@ -11,9 +11,9 @@
   "impl_review_rounds": {},
   "next_task": 1,
   "no_plan": false,
-  "plan_review_rounds": 1,
-  "plan_review_status": "needs_work",
-  "plan_reviewed_at": "2026-10-03T15:53:48.481053Z",
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-03T15:57:59.237822Z",
   "ready": true,
   "review_attempts": [
     {
@@ -92,9 +92,104 @@
       "timestamp": "2026-10-03T15:53:48.473300Z",
       "tool_calls": 26,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "9ee8d807e47ef82667befdf190c8165c2acb150ce6dcd66c586b7af1ad19e119",
+      "backend": "codex",
+      "base_sha": "8e0141dc1ed6fd309da4712a2dfcbc7dfc7b72d1",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3efd5d82740fad9a6ae9827b3d9ed7df",
+            "classification": "introduced",
+            "findingId": "finding-3efd5d82740fad9a6ae9827b3d9ed7df",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-9a59ee39e3ecdf9d462a08b94bebea70",
+            "classification": "introduced",
+            "findingId": "finding-9a59ee39e3ecdf9d462a08b94bebea70",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6b47c218e7a846a0340035dd3214e564",
+            "classification": "introduced",
+            "findingId": "finding-6b47c218e7a846a0340035dd3214e564",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-59dcb17c6e2895b4134fc0153a4d4d49",
+            "classification": "introduced",
+            "findingId": "finding-59dcb17c6e2895b4134fc0153a4d4d49",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-dd1e7350339710258366f1f88eb395a1",
+            "classification": "introduced",
+            "findingId": "finding-dd1e7350339710258366f1f88eb395a1",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-f36740ced4b5bd894e87656610b2c8d5",
+            "classification": "introduced",
+            "findingId": "finding-f36740ced4b5bd894e87656610b2c8d5",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-df93645db0efc937010c10e35cab0780",
+            "classification": "introduced",
+            "findingId": "finding-df93645db0efc937010c10e35cab0780",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4bd3e4941635273a8e1a5eb012d88d4e61131585",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1608,
+      "output_sha256": "131ec57d1350a452fcb1582393e5290d789332951a681164be797363fadfe15d",
+      "reservation_id": "72a4770dfaff473fb533090e97c5a50c",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-03T15:57:59.234996Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -114,5 +209,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T15:55:05.212608Z"
+  "updated_at": "2026-10-03T15:57:59.238471Z"
 }
