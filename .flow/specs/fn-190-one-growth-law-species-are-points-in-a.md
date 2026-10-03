@@ -50,6 +50,29 @@ Replace the generator's growth stage with one growth law that runs from trunk to
 - **R6:** `cargo test --profile ci --workspace --no-fail-fast` and `npm test` are green; the Codex implementation review passes. [AGENTS.md]
 - **R7:** The PR is opened for the owner's visual verdict on the R4 stills and is not merged without it. [user]
 
+## R1 pass bands (fixed 2026-10-03, before tuning)
+
+Read from the committed S1/S2 photographs and the architectural models; every band's source, pixel reading and confidence is in `.flow/evidence/fn-190-one-growth-law-species-are-points-in-a/R1-BANDS.md`. The beech's ASTRA-BARE-TARGETS bands were re-checked against `S1-entzia-open-winter` and `S1-rostock-copper-winter`, and four were widened where the two photographs disagree. Astra's review (`R1-BANDS-ASTRA.md`, REJECT) is folded in below where it corrects a reading or a measure; its proposal to take most bands out of the acceptance count would change this criterion's shape and is put to the host, so until the host decides the bands stand as diagnostics **and** the checks Astra asked for are added as mandatory gates (a stricter bar, not a weaker one).
+
+**Scorecard rules, the same for every tree measured (today's and the probe's):** the measures are fn-188's `score.rs` (R3-PROBE9). Wood is **structural** where its radius is at least 0.05 of the root's; laterals per metre and generations count from that boundary. **Major axes** are the laterals born at 0.4 of the root radius or more whose axis reaches 0.2 H (`root04`); the union with `local04` is reported, not scored. A species passes when it meets at least 80% of its scored bands at seed 1 and at seed 7 separately.
+
+| measure | beech (Troll) | oak (Rauh) | spruce (Massart) |
+|---|---|---|---|
+| clear bole (lowest substantial trunk lateral ÷ H) | 0.18–0.30 | 0.14–0.32 | not scored |
+| lowest lateral with an axis ≥ 0.05 H, ÷ H | – | – | ≤ 0.10 |
+| division (`leaders2` ÷ H, projected envelope) | 0.24–0.56 | 0.15–0.35, and division − clear bole ≤ 0.10 | none below 0.85 |
+| major axes (`root04`) | 4–7 | 4–7 | 0–1 |
+| substantial secondaries per major (median) | 4–10 | 3–10 | not scored |
+| secondary length ÷ parent remaining (p50) | 0.3–0.8 | 0.4–1.0 | not scored |
+| shell ÷ interior fine wood | ≥ 1.3 | ≥ 1.1 | ≥ 1.2 |
+| upper ÷ lower fine wood | ≥ 1.1 | 0.9–1.5 | 0.7–1.6 |
+| first-order junction ratio (median) | 0.35–0.60 | 0.40–0.70 | 0.08–0.25 |
+| laterals per metre of fine wood | ≥ 1.3 | ≥ 1.3 | ≥ 1.3 |
+| generations p50 | ≤ 3 | ≤ 3 | ≤ 3 |
+| first-order branch elevation (median; the share above 45° reported, unscored) | – | – | −5° to +30° |
+
+Beech 10 bands, oak 10, spruce 9; a compound row counts once and needs every clause; a missing measurement fails. Generations are taken once per terminal. The 0.05 boundary is a measurement convention, never a generator cutoff; final rows also report it at 0.04 and 0.06. **Mandatory beside the count (Astra, findings 1 and 2):** at both seeds, (a) the bare and whole stills at matched scale beside the references show differentiated limbs reaching the outer crown, substantial secondary subdivisions and no repeated paired uprights (beech, oak), and a persistent leader with tiers of predominantly horizontal branch systems (spruce); (b) a probe trace shows the developmental model: the beech's first-order axes lean at birth and their bases turn up over the run (Troll), the oak's stay orthotropic from birth (Rauh). **Attempt bound:** six recorded probe rounds; R1 unmet after the sixth stops the run with `NEEDS_HUMAN`.
+
 ## Boundaries
 
 - Not the species runner or its score (owner, 2026-10-03: "let's not start writing specs on how to fix the runner with a proper score now"). [user]
