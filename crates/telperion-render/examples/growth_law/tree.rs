@@ -1,7 +1,7 @@
 //! The probe's tree as a pipeline tree, and the scorecard's own wood classes:
 //! wood at 0.05 of the root's radius or more is structural, on every tree
 //! measured, so today's tree and the law's are classed by one rule.
-use crate::law::Grown;
+use crate::organ::Grown;
 use telperion_core::math::Vec3;
 use telperion_core::tree::{BudFate, Node, NodeKind, ShootState, Tree};
 

@@ -1,14 +1,13 @@
-//! Scratch (fn-190 R1, never merged): one growth law from trunk to twig,
-//! species as points in a continuous architecture space.
+//! Scratch (fn-190 R1a, never merged): one organogenesis rule from trunk to
+//! twig by continuous physiological age, species as points in its space.
 //!
 //! growth_law grow  PRESET SEED SETTINGS.json OUT.json [STILLS_PREFIX]
 //! growth_law today PRESET SEED OUT.json [STILLS_PREFIX]
 //! growth_law walk  PRESET_A A.json PRESET_B B.json SEED STEPS OUT.jsonl
 mod bands;
-mod law;
 mod params;
 mod score;
-mod light;
+mod organ;
 mod tree;
 
 use params::Params;
@@ -63,17 +62,24 @@ fn site(f: &Family) -> Site {
     Site { env: f.skeleton.envelope, root: t.nodes[0].radius, exponent: f.radii.fork_exponent, seed: f.skeleton.seed }
 }
 
-fn grow(p: &Params, s: Site) -> law::Grown {
-    let e = s.env;
-    let unit = p.unit * e.height;
-    let r = e.max_radius() + 0.3 * e.height;
-    let light = light::Light::new(Vec3::new(-r, 0.0, -r), Vec3::new(r, 1.3 * e.height, r), p.voxel * unit, p.density, p.elevation);
-    law::grow(p, law::World { light, envelope: e, height: e.height, root_radius: s.root, exponent: s.exponent, seed: u64::from(s.seed) })
+fn grow(p: &Params, s: Site, diag: bool) -> Result<organ::Grown, String> {
+    organ::grow(p, organ::World { height: s.env.height, root_radius: s.root, exponent: s.exponent, seed: u64::from(s.seed) }, diag)
+}
+
+/// Crown shape against the authored envelope: height, and the p95
+/// horizontal reach of fine wood over the envelope's widest radius.
+fn shape(t: &Tree, env: &Envelope) -> serde_json::Value {
+    let mut r: Vec<f64> = t.nodes.iter().filter(|n| n.kind != telperion_core::tree::NodeKind::Structural).map(|n| n.position.x.hypot(n.position.z)).collect();
+    r.sort_by(|a, b| a.total_cmp(b));
+    let p95 = r.get(r.len() * 95 / 100).copied().unwrap_or(f64::NAN);
+    let h = t.nodes.iter().map(|n| n.position.y).fold(0.0, f64::max);
+    serde_json::json!({"height_m": h, "height_over_authored": h / env.height, "reach_p95_over_spread": p95 / env.max_radius(),
+        "width_over_height": 2.0 * p95 / h.max(1e-9), "authored_width_over_height": 2.0 * env.max_radius() / env.height})
 }
 
 /// Troll against Rauh: first-order axes off the stem (axis >= 0.05 H), their
 /// elevation at birth and their base segment's elevation now, degrees.
-fn trace(g: &law::Grown, t: &Tree) -> serde_json::Value {
+fn trace(g: &organ::Grown, t: &Tree) -> serde_json::Value {
     let n = g.pos.len();
     let h = g.pos.iter().map(|q| q.y).fold(0.0, f64::max);
     let mut stem = vec![false; n];
@@ -166,26 +172,34 @@ fn main() {
             let p = settings(&a[4]);
             let f = family(id, seed);
             let s = site(&f);
-            let (cold, g) = timed(|| grow(&p, s));
-            let warm: Vec<f64> = (0..3).map(|_| timed(|| grow(&p, s)).0).collect();
+            let fail = |e: String| -> ! {
+                eprintln!("error: {id} seed {seed}: {e}");
+                std::process::exit(2)
+            };
+            let (cold, g) = timed(|| grow(&p, s, false));
+            let g = g.unwrap_or_else(|e| fail(e));
+            let warm: Vec<f64> = (0..3).map(|_| timed(|| grow(&p, s, false)).0).collect();
             if g.pos.len() < 1000 {
-                eprintln!("error: {id} seed {seed} grew {} nodes, under 1,000; not a scored tree", g.pos.len());
-                std::process::exit(2);
+                fail(format!("grew {} nodes, under 1,000; not a scored tree", g.pos.len()));
             }
+            let diag = grow(&p, s, true).unwrap_or_else(|e| fail(e)).stats;
             let t = tree::to_tree(&g);
             t.validate().unwrap();
             let st = &g.stats;
-            let stages: serde_json::Map<_, _> = law::STAGES.iter().zip(st.ms).map(|(k, v)| ((*k).to_string(), serde_json::json!((v * 10.0).round() / 10.0))).collect();
+            let stages: serde_json::Map<_, _> = organ::STAGES.iter().zip(st.ms).map(|(k, v)| ((*k).to_string(), serde_json::json!((v * 100.0).round() / 100.0))).collect();
             let mut out = measure(id, &t);
             out["preset"] = serde_json::json!(id);
             out["seed"] = serde_json::json!(seed);
             out["settings"] = p.to_json();
             out["trace"] = trace(&g, &t);
+            out["shape"] = shape(&t, &s.env);
             let time = median(warm);
-            out["time_ms"] = serde_json::json!({"cold": cold, "warm_median": time, "stages_cold": stages,
-                "light_pass_ms_cold": st.cast_ms, "light_cells": st.updates});
-            out["law"] = serde_json::json!({"cycles": st.cycles, "shed": st.shed, "buds_max": st.buds_max, "capped": st.capped, "reserve_end": st.reserve_end, "records": st.records, "short_shoots": st.short_shoots,
-                "net_first_mid_last": [st.net.first(), st.net.get(st.net.len() / 2), st.net.last()]});
+            out["time_ms"] = serde_json::json!({"cold": cold, "warm_median": time, "passes_cold": stages});
+            let mut kids = vec![false; g.pos.len()];
+            g.parent.iter().flatten().for_each(|&q| kids[q] = true);
+            out["law"] = serde_json::json!({"cycles": st.cycles, "buds_max": st.buds_max, "tips": kids.iter().filter(|k| !**k).count(), "exponent": s.exponent,
+                "factorisation": {"laterals": diag.laterals, "distinct_phi_birth": diag.distinct, "distinct_phi": diag.distinct_phi,
+                    "laterals_per_key": diag.laterals as f64 / diag.distinct.max(1) as f64}});
             out["votes"] = bands::judge(id, &out, &today(id, seed), time);
             write(&a[5], &out);
             if let Some(prefix) = a.get(6) {
@@ -248,7 +262,8 @@ fn walk(ida: &str, pa: &str, idb: &str, pb: &str, seed: u32, steps: usize, out: 
         env.irregularity = lerp(ea.irregularity, eb.irregularity);
         env.lobe_scale = lerp(ea.lobe_scale, eb.lobe_scale);
         let s = Site { env, root: lerp(sa.root, sb.root), exponent: lerp(sa.exponent, sb.exponent), seed };
-        let (ms, g) = timed(|| grow(&p, s));
+        let (ms, g) = timed(|| grow(&p, s, false));
+        let Ok(g) = g else { eprintln!("error at w {w}"); std::process::exit(2) };
         let t = tree::to_tree(&g);
         // Walk rows are judged on numbers, with one camera rule for all.
         let mut row = measure("walk", &t);

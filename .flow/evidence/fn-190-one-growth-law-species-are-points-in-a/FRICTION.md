@@ -34,3 +34,10 @@
 - **Hindered by:** the dcg hook blocked an inline Python heredoc (an unverifiable embedded launcher) and a shell redirect to a variable path, so each had to be rewritten as a script file that writes its own rows.
 - **Cost:** ~4 min, ~6k tokens.
 - **What would remove it:** a committed probe driver that takes the round's points and walks as arguments and writes literal paths (local setup for the hook itself; reported, not specced).
+
+## 2026-10-03, R1a round 1, open-loop organogenesis is a knife-edge in size
+
+- **Doing:** tuning the beech's point for R1a (organogenesis by continuous phi, no light).
+- **Hindered by:** without feedback the rule is a branching process: when a long shoot leaves on average more than one long shoot that keeps growing, the tree explodes past 600k nodes; below one it stays at 5–15k nodes. At one point the seeds grew 160k and 42k nodes, and branching 2.4 against 2.6 gave 160k and 115k, so each sweep step costs a run that tells little about the architecture.
+- **Cost:** ~15 min and ~30 runs on the beech alone.
+- **What would remove it:** a size that limits itself (R1b's balance, or GreenLab's supply-demand ratio scaling the counts), or a driver that solves for the branching that hits a target node count before the architecture settings are judged.
