@@ -14,6 +14,8 @@ The engine core in `crates/telperion-space` is now continuous in every setting. 
 - **Presence.** Every element a draw makes carries a presence from 0 to 1, which scales its length and girth (`Phytomer::scale`, `Axis::vigour`). The presence is 0 where a setting crosses the draw. It grows to 1 once the setting is `GROW_IN` (0.1) of the draw's room past it.
 - **Room.** The room is the narrower of two widths: the run of draws that makes the element, and the distance from the draw to certainty on the side the setting comes from. A certain element is therefore always whole. At most 2 × `GROW_IN` of the elements a setting makes are growing in at any setting.
 - **What carries a presence.** Lateral buds, from either bound of their PA's run. Poisson nodes. Apex survival and abortion, which carry into every later unit and into the continuation. Relay buds. Shedding, which fades with the subtree's living time weighted by presence: a branch fades away before it is shed.
+- **Shedding floor.** A shed fade never draws a living subtree smaller than its most present living apex, read from the apex's running presence at the tree's age. A relay counts the cycle between its parent's death and its own birth.
+- **No size.** A tree whose every phytomer stands exactly at its draw, at no size, is `Error::Collapsed`.
 - **Phyllotaxis.** It counts nodes by their presence, so a node growing in turns the nodes above it by degree.
 - **Test.** `tests/walks.rs`, `branches_are_made_and_unmade_at_vanishing_size`. In every walk, the branch made or unmade with the most wood is bisected 48 times to its crossing, where its wood is below 1e-6 of the tree.
 
@@ -53,6 +55,12 @@ The jump check found three real discontinuities, all fixed:
 `cargo run --release -p telperion-space --example strips -- <dir>` draws eight walks, nine frames each, side view, with each internode as wide as its scale. The walks are readiness (towards Corner), a trunk lateral probability, limb abortion, limb straightening, trunk rhythm, a Poisson mean, twig viability and trunk viability. The stills are in `raw/strips/` (ignored).
 
 The worker viewed six strips: readiness, lateral, abortion, straightening, Poisson mean and trunk viability. Rhythm and twig viability were not viewed. The six change by degree, with one exception. On trunk viability at seed 2, the whole crown grows in between the frames at 0.951 and 0.966. That is one draw crossed over about 0.004 of viability, continuous at the test's resolution but a jump at nine frames. **The host has not yet viewed the strips.**
+
+## Review (Codex)
+
+- **Round 1** (three reviewers): integration and contracts returned SHIP. Correctness returned NEEDS_WORK on two findings, both fixed with regressions in `b258cabf`: a living relay's parent faded to nothing, and a tree of no size passed the collapse check.
+- **Round 2** returned NEEDS_WORK on one finding: the new fade floor jumped when an abortion was decided in the tree's last cycle. It is fixed in `6bda9e02`; its regression was red on the previous floor (1.375 to 1) and is green now.
+- **Round 3** was refused by flowctl's round cap (2 of 2), so the last fix is unreviewed.
 
 ## Decisions for the host
 
