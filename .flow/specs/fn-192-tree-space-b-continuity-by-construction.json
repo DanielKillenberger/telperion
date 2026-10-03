@@ -10,9 +10,7 @@
     "fn-191-tree-space-a-the-engine-core-reproduces"
   ],
   "id": "fn-192-tree-space-b-continuity-by-construction",
-  "impl_review_rounds": {
-    "fn-192-tree-space-b-continuity-by-construction.1": 2
-  },
+  "impl_review_rounds": {},
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
@@ -134,6 +132,7 @@
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-192-tree-space-b-continuity-by-construction.1": 1,
     "plan": 1,
     "plan#completion": 1
   },
@@ -156,5 +155,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T20:49:49.497854Z"
+  "updated_at": "2026-10-03T20:49:59.880808Z"
 }
