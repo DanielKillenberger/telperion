@@ -27,3 +27,10 @@
 - **Hindered by:** the spruce at seed 7 grew to 597k nodes, and the headless renderer panicked: a compute dispatch of 100,753 groups exceeds wgpu's 65,535 limit. That still is missing, and the run lost a minute.
 - **Cost:** ~2 min.
 - **What would remove it:** the renderer splitting large dispatches, or the probe refusing to render a tree past a node count with an error naming it.
+
+## 2026-10-03, R1 round 3, the shell guard on probe drivers
+
+- **Doing:** editing the law and driving the walks from the shell.
+- **Hindered by:** the dcg hook blocked an inline Python heredoc (an unverifiable embedded launcher) and a shell redirect to a variable path, so each had to be rewritten as a script file that writes its own rows.
+- **Cost:** ~4 min, ~6k tokens.
+- **What would remove it:** a committed probe driver that takes the round's points and walks as arguments and writes literal paths (local setup for the hook itself; reported, not specced).

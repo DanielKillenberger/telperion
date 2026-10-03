@@ -168,6 +168,10 @@ fn main() {
             let s = site(&f);
             let (cold, g) = timed(|| grow(&p, s));
             let warm: Vec<f64> = (0..3).map(|_| timed(|| grow(&p, s)).0).collect();
+            if g.pos.len() < 1000 {
+                eprintln!("error: {id} seed {seed} grew {} nodes, under 1,000; not a scored tree", g.pos.len());
+                std::process::exit(2);
+            }
             let t = tree::to_tree(&g);
             t.validate().unwrap();
             let st = &g.stats;
@@ -180,7 +184,8 @@ fn main() {
             let time = median(warm);
             out["time_ms"] = serde_json::json!({"cold": cold, "warm_median": time, "stages_cold": stages,
                 "extend_cast_ms_cold": st.cast_ms, "shadow_updates": st.updates});
-            out["law"] = serde_json::json!({"cycles": st.cycles, "shed": st.shed, "buds_max": st.buds_max, "capped": st.capped});
+            out["law"] = serde_json::json!({"cycles": st.cycles, "shed": st.shed, "buds_max": st.buds_max, "capped": st.capped,
+                "net_first_mid_last": [st.net.first(), st.net.get(st.net.len() / 2), st.net.last()]});
             out["votes"] = bands::judge(id, &out, &today(id, seed), time);
             write(&a[5], &out);
             if let Some(prefix) = a.get(6) {

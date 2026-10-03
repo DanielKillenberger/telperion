@@ -39,6 +39,8 @@ struct Node {
 #[derive(Clone, Copy)]
 struct Bud {
     node: u32,
+    /// Cycles since the bud last grew (the bud bank's age).
+    dormant: u16,
     dir: Vec3,
     phi: f64,
     terminal: bool,
@@ -54,6 +56,8 @@ pub struct Stats {
     /// Of extend: the time spent casting shadows, and the voxels updated.
     pub cast_ms: f64,
     pub updates: u64,
+    /// The tree's net balance each cycle.
+    pub net: Vec<f64>,
 }
 pub const STAGES: [&str; 5] = ["light", "allocate", "shed", "extend", "straighten"];
 
@@ -117,10 +121,10 @@ pub fn grow(p: &Params, w: World) -> Grown {
         born: 0,
         out: Vec3::ZERO,
         memory: 0.0,
-        qmem: 1.0,
+        qmem: 0.0,
         elev0: f32::NAN,
     });
-    g.buds.push(Bud { node: 0, dir: Vec3::Y, phi: 0.0, terminal: true });
+    g.buds.push(Bud { node: 0, dormant: 0, dir: Vec3::Y, phi: 0.0, terminal: true });
     let mut st = Stats::default();
     for t in 0..p.cycles.round() as usize {
         st.cycles += 1;
@@ -129,11 +133,12 @@ pub fn grow(p: &Params, w: World) -> Grown {
         st.ms[0] += ms(t0);
         let t0 = Instant::now();
         let n = g.nodes.len();
-        let (qm, ql, cnt) = g.basipetal(&q);
-        let v = g.allocate(&q, &qm, &ql);
+        let (qm, ql, cnt, lit, upk) = g.basipetal(&q);
+        let v = g.allocate(&q, &qm, &ql, lit[0] - upk[0]);
+        st.net.push(lit[0] - upk[0]);
         st.ms[1] += ms(t0);
         let t0 = Instant::now();
-        st.shed += g.shed(t, &qm, &ql, &cnt);
+        st.shed += g.shed(t, &lit, &upk, &cnt);
         st.ms[2] += ms(t0);
         let t0 = Instant::now();
         let buds = std::mem::take(&mut g.buds);
@@ -147,9 +152,17 @@ pub fn grow(p: &Params, w: World) -> Grown {
                 kept.push(b);
                 continue;
             }
-            match g.extend(b, vb, gd, t) {
-                Some(rest) => kept.push(rest),
-                None => {}
+            let before = g.nodes.len();
+            if let Some(mut rest) = g.extend(b, vb, gd, t) {
+                if g.nodes.len() == before {
+                    // Dormant: the bud bank decays, a little more each year.
+                    rest.dormant = rest.dormant.saturating_add(1);
+                    let die = p.bud_death * f64::from(rest.dormant);
+                    if hash(g.nodes[rest.node as usize].key ^ u64::from(rest.dormant), 13 + t as u64) < die {
+                        continue;
+                    }
+                }
+                kept.push(rest);
             }
         }
         kept.append(&mut g.buds);
@@ -190,12 +203,25 @@ impl Grower {
 
     /// Resource gathered along the main line (qm) and the laterals (ql) of
     /// every node, and its tips (with the pipes of shed wood).
-    fn basipetal(&self, q: &[f64]) -> (Vec<f64>, Vec<f64>, Vec<f64>) {
+    /// Per node: the demand-weighted light of the main line (qm) and the
+    /// laterals (ql) for allocation, the tips with shed pipes (cnt), and the
+    /// subtree's light gathered (lit) and wood upkeep (upk): its net is
+    /// lit - upk. A metamer one unit long carrying one tip's pipe costs
+    /// the upkeep setting; cost grows with its volume.
+    #[allow(clippy::type_complexity)]
+    fn basipetal(&self, q: &[f64]) -> (Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>) {
         let n = self.nodes.len();
-        let (mut qm, mut ql, mut cnt) = (vec![0.0; n], vec![0.0; n], vec![0.0; n]);
+        let z = || vec![0.0; n];
+        let (mut qm, mut ql, mut cnt, mut lit, mut upk) = (z(), z(), z(), z(), z());
         for (b, &x) in self.buds.iter().zip(q) {
-            if b.terminal { qm[b.node as usize] += x } else { ql[b.node as usize] += x }
+            let w = x * self.shoot_len(b.phi);
+            if b.terminal { qm[b.node as usize] += w } else { ql[b.node as usize] += w }
+            // Leaves are on the shoots that grew: a dormant bud gathers nothing.
+            if b.dormant == 0 {
+                lit[b.node as usize] += x;
+            }
         }
+        let e = if self.w.exponent > 0.0 { self.w.exponent } else { 2.5 };
         let mut kids = vec![false; n];
         for i in (1..n).rev() {
             if !self.nodes[i].alive {
@@ -207,19 +233,27 @@ impl Grower {
             if self.nodes[i].lateral { ql[p] += sub } else { qm[p] += sub }
             cnt[i] += self.nodes[i].memory + if kids[i] { 0.0 } else { 1.0 };
             cnt[p] += cnt[i];
+            upk[i] += self.p.upkeep * self.nodes[i].len / self.unit * cnt[i].powf(2.0 / e);
+            upk[p] += upk[i];
+            lit[p] += lit[i];
         }
         cnt[0] += if kids[0] { 0.0 } else { 1.0 };
-        (qm, ql, cnt)
+        (qm, ql, cnt, lit, upk)
+    }
+
+    /// A shoot's internode as a share of a young shoot's, by age.
+    fn shoot_len(&self, phi: f64) -> f64 {
+        1.0 - (1.0 - self.p.short) * phi
     }
 
     /// Borchert-Honda: the resource enters at the base and splits at every
     /// node, lambda to the main line and 1 - lambda to the laterals, each
     /// in proportion to what it gathered. Returns each bud's vigour.
-    fn allocate(&self, q: &[f64], qm: &[f64], ql: &[f64]) -> Vec<f64> {
+    fn allocate(&self, q: &[f64], qm: &[f64], ql: &[f64], net: f64) -> Vec<f64> {
         let (l, n) = (self.p.lambda, self.nodes.len());
         let den = |i: usize| l * qm[i] + (1.0 - l) * ql[i];
         let mut vin = vec![0.0; n];
-        vin[0] = self.p.alpha * (qm[0] + ql[0]);
+        vin[0] = self.p.alpha * net.max(0.0);
         for i in 1..n {
             let nd = &self.nodes[i];
             if !nd.alive {
@@ -239,31 +273,39 @@ impl Grower {
                 let i = b.node as usize;
                 let d = den(i);
                 let wt = if b.terminal { l } else { 1.0 - l };
-                if d > 0.0 { vin[i] * wt * x / d } else { 0.0 }
+                if d > 0.0 { vin[i] * wt * x * self.shoot_len(b.phi) / d } else { 0.0 }
             })
             .collect()
     }
 
-    /// Remembers each lateral branch's resource per tip and sheds the
-    /// starved ones; their pipes stay in the parent (memory).
-    fn shed(&mut self, t: usize, qm: &[f64], ql: &[f64], cnt: &[f64]) -> usize {
-        let (mu, theta) = (self.p.memory, self.p.shed);
+    /// Remembers every branch's relative net balance, (light - upkeep) /
+    /// (light + upkeep), and sheds it with a chance that rises smoothly from
+    /// 0 as the remembered balance falls past -tolerance to -(tolerance +
+    /// shedWidth), times the shed rate; its pipes stay in the parent. No
+    /// branch is spared: the main line's balance is the crown's.
+    fn shed(&mut self, t: usize, lit: &[f64], upk: &[f64], cnt: &[f64]) -> usize {
+        let p = self.p;
         let mut count = 0;
         for i in 1..self.nodes.len() {
-            let p = self.nodes[i].parent as usize;
+            let par = self.nodes[i].parent as usize;
             if !self.nodes[i].alive {
                 continue;
             }
-            if !self.nodes[p].alive {
+            if !self.nodes[par].alive {
                 self.nodes[i].alive = false;
                 continue;
             }
-            let per = (qm[i] + ql[i]) / cnt[i].max(1.0);
+            let bal = (lit[i] - upk[i]) / (lit[i] + upk[i]).max(1e-12);
             let nd = &mut self.nodes[i];
-            nd.qmem = (1.0 - mu) * nd.qmem + mu * per;
-            if theta > 0.0 && nd.lateral && (t as f64 - f64::from(nd.born)) >= self.p.shed_age && nd.qmem < theta {
+            nd.qmem = (1.0 - p.memory) * nd.qmem + p.memory * bal;
+            if p.shed <= 0.0 || (t as f64 - f64::from(nd.born)) < p.shed_age {
+                continue;
+            }
+            let x = ((-nd.qmem - p.tolerance) / p.shed_width.max(1e-9)).clamp(0.0, 1.0);
+            let prob = p.shed * x * x * (3.0 - 2.0 * x);
+            if hash(nd.key, 17 + t as u64) < prob {
                 nd.alive = false;
-                self.nodes[p].memory += cnt[i];
+                self.nodes[par].memory += cnt[i];
                 count += 1;
             }
         }
@@ -282,13 +324,14 @@ impl Grower {
         let p = self.p;
         let base = &self.nodes[b.node as usize];
         let (bkey, bphi) = (base.key ^ if b.terminal { 0 } else { hash(b.dir.x.to_bits(), 7).to_bits() }, b.phi);
-        let n = keyed_round(v, bkey, 11 + t as u64);
+        let ratio = v / p.v_ref;
+        let phi = (bphi + p.drift * (1.0 - ratio.min(1.0)) - p.reiteration * (ratio - 1.0).max(0.0)).clamp(0.0, 1.0);
+        // v buys v units of wood, in internodes as long as the age allows.
+        let n = keyed_round(v / self.shoot_len(phi), bkey, 11 + t as u64);
         if n == 0 {
             return Some(b);
         }
-        let ratio = v / p.v_ref;
-        let phi = (bphi + p.drift * (1.0 - ratio.min(1.0)) - p.reiteration * (ratio - 1.0).max(0.0)).clamp(0.0, 1.0);
-        let len = self.unit * (1.0 - (1.0 - p.short) * phi) * v / n as f64;
+        let len = self.unit * v / n as f64;
         let out = if b.terminal {
             base.out
         } else {
@@ -326,7 +369,7 @@ impl Grower {
                 born: t as u32,
                 out,
                 memory: 0.0,
-                qmem: 1.0,
+                qmem: 0.0,
                 elev0: if !b.terminal && k == 0 { d.y.clamp(-1.0, 1.0).asin().to_degrees() as f32 } else { f32::NAN },
             });
             let tc = Instant::now();
@@ -337,12 +380,12 @@ impl Grower {
             let laterals = keyed_round(dev * wk, nk, 3);
             for j in 0..laterals {
                 let dir = self.bud_dir(d, nk, j, laterals, k, angle);
-                self.buds.push(Bud { node: idx, dir, phi: phi_l, terminal: false });
+                self.buds.push(Bud { node: idx, dormant: 0, dir, phi: phi_l, terminal: false });
             }
             at = idx;
         }
         let tk = self.nodes[at as usize].key;
-        (hash(tk, 5) < p.persistence).then_some(Bud { node: at, dir: d, phi, terminal: true })
+        (hash(tk, 5) < p.persistence).then_some(Bud { node: at, dormant: 0, dir: d, phi, terminal: true })
     }
 
     /// Toward the authored crown from outside it: inward and down, growing

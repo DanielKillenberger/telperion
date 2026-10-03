@@ -57,10 +57,17 @@ pub struct Params {
     pub angle1: f64,
     /// Two-ranked bud bearing blend (0 spiral, 1 distichous).
     pub distich: f64,
-    /// Shedding: a lateral branch whose remembered resource per tip falls
-    /// under `shed` is cast off; `memory` is the remembering rate.
+    /// Carbon balance: upkeep per unit of wood volume against light (0 = free wood).
+    pub upkeep: f64,
+    /// Shedding: the yearly chance, at most shed, that a branch whose
+    /// remembered relative balance is past -tolerance is cast off, rising
+    /// smoothly over shedWidth; memory is the remembering rate.
     pub shed: f64,
+    pub tolerance: f64,
+    pub shed_width: f64,
     pub memory: f64,
+    /// A dormant bud dies each year with chance budDeath x its dormant years.
+    pub bud_death: f64,
     /// Smallest age (cycles) at which a branch can be shed.
     pub shed_age: f64,
     /// Pipe exponent (None: the preset's).
@@ -101,7 +108,11 @@ impl Default for Params {
             angle0: 40.0,
             angle1: 40.0,
             distich: 0.0,
+            upkeep: 0.0,
             shed: 0.0,
+            tolerance: 0.0,
+            shed_width: 0.3,
+            bud_death: 0.0,
             memory: 0.3,
             shed_age: 3.0,
             exponent: 0.0,
@@ -147,6 +158,6 @@ fields! {
     persistence = "persistence", lean0 = "lean0", lean1 = "lean1", straighten = "straighten",
     acrotony = "acrotony", rhythm = "rhythm", branching = "branching", fate = "fate", vigour_fate = "vigourFate", short = "short",
     phi_step = "phiStep", drift = "drift", reiteration = "reiteration", v_ref = "vRef",
-    angle0 = "angle0", angle1 = "angle1", distich = "distich", shed = "shed", memory = "memory",
+    angle0 = "angle0", angle1 = "angle1", distich = "distich", upkeep = "upkeep", shed = "shed", tolerance = "tolerance", shed_width = "shedWidth", bud_death = "budDeath", memory = "memory",
     shed_age = "shedAge", exponent = "exponent", threads = "threads", max_nodes = "maxNodes",
 }
