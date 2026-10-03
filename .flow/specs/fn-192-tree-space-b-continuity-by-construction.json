@@ -133,7 +133,10 @@
       "verdict": "NEEDS_WORK"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -153,5 +156,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T20:47:19.828727Z"
+  "updated_at": "2026-10-03T20:49:49.497854Z"
 }
