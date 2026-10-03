@@ -166,7 +166,7 @@ pub fn settings() -> Vec<Setting> {
         let at = |field: &str| format!("states[{pa}].{field}");
         let low_viability = [0.9, 0.6, 0.6][pa];
         // Long twigs on the lowest limbs reach the ground.
-        let (low_internode, high_internode) = [(0.5, 1.2), (0.1, 1.2), (0.1, 0.45)][pa];
+        let (low_internode, high_internode) = [(0.5, 1.2), (0.1, 1.2), (0.1, 0.4)][pa];
         let table: [(&str, f64, f64, bool, Set); 9] = [
             ("viability", low_viability, 1.0 - EDGE, true, |s, pa, v| {
                 s.states[pa].viability = v
@@ -212,9 +212,13 @@ pub fn settings() -> Vec<Setting> {
         for (z, zone) in state.zones.iter().enumerate() {
             let zat = |field: &str| format!("states[{pa}].zones[{z}].{field}");
             if let NodeLaw::Poisson { .. } = zone.nodes {
-                all.push(setting(zat("nodes.mean"), 0.5, 3.5, false, move |s, v| {
-                    s.states[pa].zones[z].nodes = NodeLaw::Poisson { mean: v }
-                }));
+                all.push(setting(
+                    zat("nodes.mean"),
+                    0.5,
+                    [3.5, 2.5, 3.5][pa],
+                    false,
+                    move |s, v| s.states[pa].zones[z].nodes = NodeLaw::Poisson { mean: v },
+                ));
             }
             for j in pa..zone.lateral.len() {
                 let others: f64 = zone

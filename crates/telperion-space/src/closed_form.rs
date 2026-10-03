@@ -69,11 +69,104 @@ fn substructure(species: &Species, k: usize, m: usize, done: &[Vec<CountTable>])
     table
 }
 
+/// The expected length in metres of the wood a bud of each PA grows in 0 to
+/// `age` cycles, `[m][pa]`: the same recursion over each phytomer's
+/// internode, as one sum per PA and age. The species is valid.
+pub(crate) fn expected_lengths(species: &Species, age: u32) -> Vec<Vec<f64>> {
+    let pas = species.states.len();
+    let laterals: Vec<Vec<Vec<f64>>> = species.states.iter().map(|s| s.laterals()).collect();
+    // done[m][k]: a bud of PA k, m cycles after it was made.
+    let mut done: Vec<Vec<f64>> = vec![vec![0.0; pas]];
+    for m in 1..=age as usize {
+        let row = (0..pas)
+            .map(|k| {
+                let state = &species.states[k];
+                let lifespan = state.lifespan as usize;
+                let mut length = 0.0;
+                let mut survival = 1.0;
+                for i in 1..=m.min(lifespan) {
+                    length += survival * (1.0 - state.viability) * state.relay * done[m - i][k];
+                    survival *= state.viability;
+                    for (zone, lateral) in state.zones.iter().zip(&laterals[k]) {
+                        let nodes = survival * zone.nodes.mean();
+                        length += nodes * state.internode;
+                        for (j, &p) in lateral.iter().enumerate() {
+                            length += nodes * f64::from(zone.buds) * p * done[m - i][j];
+                        }
+                    }
+                    length += survival * state.abortion * state.relay * done[m - i][k];
+                    survival *= 1.0 - state.abortion;
+                }
+                match state.next {
+                    Some(next) if m > lifespan => length + survival * done[m - lifespan][next],
+                    None if m >= lifespan => {
+                        length + survival * state.relay * done[m - lifespan][k]
+                    }
+                    _ => length,
+                }
+            })
+            .collect();
+        done.push(row);
+    }
+    done
+}
+
 /// Adds `weight` copies of `sub`, born in cycle `born`, to `table`.
 fn add_shifted(table: &mut CountTable, sub: &CountTable, born: usize, weight: f64) {
     for pa in 0..sub.pas {
         for cycle in 1..=sub.cycles {
             table.add(pa, cycle + born, weight * sub.get(pa, cycle));
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{expected_counts, expected_lengths};
+    use crate::species::{NodeLaw, PaState, Species, Zone};
+
+    /// The expected length is the expected counts weighted by internode,
+    /// with every setting away from neutral.
+    #[test]
+    fn the_expected_length_weighs_the_expected_counts() {
+        let state = |next, internode, lateral: [f64; 2]| PaState {
+            lifespan: 3,
+            next,
+            viability: 0.9,
+            zones: vec![
+                Zone {
+                    nodes: NodeLaw::Poisson { mean: 1.5 },
+                    buds: 2,
+                    lateral: lateral.to_vec(),
+                },
+                Zone {
+                    nodes: NodeLaw::Uniform { min: 1, max: 2 },
+                    buds: 1,
+                    lateral: vec![0.0, 0.2],
+                },
+            ],
+            shedding: None,
+            internode,
+            insertion: 0.5,
+            divergence: 2.4,
+            abortion: 0.2,
+            relay: 0.4,
+            readiness: 0.8,
+            rhythm: 0.6,
+            straightening: 0.0,
+        };
+        let species = Species {
+            states: vec![
+                state(Some(1), 0.7, [0.1, 0.5]),
+                state(None, 0.3, [0.0, 0.3]),
+            ],
+        };
+        let counts = expected_counts(&species, 7).unwrap();
+        let weighed = counts.total(0) * 0.7 + counts.total(1) * 0.3;
+        let length = expected_lengths(&species, 7)[7][0];
+        assert!(
+            (length - weighed).abs() < 1e-9 * weighed,
+            "{length} vs {weighed}"
+        );
     }
 }

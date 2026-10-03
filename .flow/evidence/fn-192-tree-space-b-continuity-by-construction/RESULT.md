@@ -144,3 +144,25 @@ The decision is the host's. The worker has not tested either option:
 ## Host decision 3, the last attempt (2026-10-03, overnight run)
 
 The wood-scaled window hit the stated stop: at RATE 6 seven walks change by degree and the walk bound holds, but rhythm (seed 1) jumps because each window scales with the wood the draw actually decides, so a basal limb growing in widens its node's window and slides the tree down. This is a coupling in the mechanism, not in the approach. One last attempt, then B stops for the owner: each window scales with the **expected** wood under the node's physiological age from A's closed form (a smooth function of the settings), never the realised wood, so no realised birth can move another draw's window. Same gate and the same stop (a visible pop, or more than 25% of length lost); no further attempt overnight.
+
+## Decision 3 built: windows from the closed form's expected wood (worker)
+
+This is the shipped mechanism (`src/presence.rs`).
+- **Window.** Each draw's log-odds window is `RATE × E / whole`, clamped to `FLOOR` = 0.05 and `SPAN` = 2. `whole` is the tree's expected length. `E` is the closed form's expected wood under the draw's PA over the cycles left (`expected_lengths`).
+  - For a survival, persistence, lateral or relay draw, `E` is the expected wood of a bud of that PA from that cycle on.
+  - For a node draw, `E` is its internode plus its buds' expected laterals.
+- **No realised wood.** Because `E` is a smooth function of the settings, no realised birth moves another draw's window.
+- **Presence at growth.** Each presence is computed as its draw is made; the pass after growth only multiplies presences along each axis.
+- **RATE.** RATE = 6 was picked by the same measurement as before.
+
+| RATE | Length lost | Axes born partly grown | Strips |
+|---|---|---|---|
+| 6 | 17.0% | 5.1% | all eight by degree, viewed by the worker |
+
+- **Trunk viability, seed 2:** the crown grows in over the whole walk, from 0.930 to 0.995.
+- **Rhythm, seed 1:** the basal limb enters small at 0.375 and is whole by 0.125, and the trunk base no longer moves.
+- **Readiness:** thins most between 0.500 and 0.210, through partly grown branches.
+
+Stills are in `raw/strips/` (ignored).
+
+**Tests.** All ten of the crate's test binaries are green: oracle (worst 2.64 standard errors), lineage, closed form (plus a unit test of `expected_lengths` against the expected counts), settings, death, refusals and walks. The walk bound of 30 holds; the per-setting worst slopes are in `raw/walks.log`.

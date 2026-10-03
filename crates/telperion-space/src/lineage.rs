@@ -1,16 +1,9 @@
 //! Lineage-keyed randomness (fn-192 R1, R2). Every draw is a hash of the
 //! bud's path from the root and of what it decides, never a position in a
-//! stream, so adding a branch anywhere moves no other draw. A draw that a
-//! setting crosses makes or unmakes an element at vanishing size: its
-//! presence grows in from zero as the setting moves on past the draw.
+//! stream, so adding a branch anywhere moves no other draw. Each draw's lead
+//! past the bound it was tested against, in log-odds, is what `presence.rs`
+//! grows its element in by.
 use crate::species::NodeLaw;
-
-/// How far past a draw a setting must move before the element it made is
-/// fully grown, as a share of the draw's room: the narrower of the run of
-/// draws that make the element and the distance to certainty on the side
-/// the setting comes from. At most twice this share of the elements a
-/// setting makes are growing in, and none of a certain one.
-pub const GROW_IN: f64 = 0.1;
 
 /// The draws of one growth unit, under its unit key.
 pub(crate) const VIABILITY: u64 = 0;
@@ -50,29 +43,36 @@ impl Key {
     }
 }
 
-/// The presence of an element a setting has passed by `lead`: zero at the
-/// crossing, whole once the setting is `GROW_IN` of the room past it. The
-/// room is the narrower of the element's run of draws, `width`, and the
-/// distance from the draw to certainty, `reach`. A draw with no room is
-/// never crossed.
-pub(crate) fn grow_in(lead: f64, reach: f64, width: f64) -> f64 {
-    let room = reach.min(width);
-    if room <= 0.0 {
-        return 1.0;
-    }
-    (lead / (GROW_IN * room)).clamp(0.0, 1.0)
+fn logit(p: f64) -> f64 {
+    (p / (1.0 - p)).ln()
 }
 
-/// A bud's PA under `lateral` for the draw `u`, with its presence; none
-/// for a bare bud. Each PA holds a run of `u` between its cumulative
-/// bounds, and the bud grows in from whichever bound is nearer.
+/// How far, in log-odds, a draw `u` lies below the `bound` it must stay
+/// under to make its element: none at the crossing, unbounded when the
+/// element is certain.
+pub(crate) fn below(u: f64, bound: f64) -> f64 {
+    if bound >= 1.0 || u <= 0.0 {
+        return f64::INFINITY;
+    }
+    logit(bound) - logit(u)
+}
+
+/// How far, in log-odds, a draw `u` lies above the `bound` it must reach.
+pub(crate) fn above(u: f64, bound: f64) -> f64 {
+    if bound <= 0.0 {
+        return f64::INFINITY;
+    }
+    logit(u) - logit(bound)
+}
+
+/// A bud's PA under `lateral` for the draw `u`, with its lead past the
+/// nearer bound of the PA's run of draws; none for a bare bud.
 pub(crate) fn bud(lateral: &[f64], u: f64) -> Option<(usize, f64)> {
     let mut low = 0.0;
     for (pa, &p) in lateral.iter().enumerate() {
         let high = low + p;
         if p > 0.0 && u < high {
-            let presence = grow_in(u - low, u, p).min(grow_in(high - u, 1.0 - u, p));
-            return Some((pa, presence));
+            return Some((pa, above(u, low).min(below(u, high))));
         }
         low = high;
     }
@@ -80,27 +80,25 @@ pub(crate) fn bud(lateral: &[f64], u: f64) -> Option<(usize, f64)> {
 }
 
 /// A zone's node count under `law` for the draw `u`, by the inverse of the
-/// law's distribution, and each node's presence into `presence`. A node of
-/// the Poisson law grows in as the mean passes its draw.
-pub(crate) fn nodes(law: NodeLaw, u: f64, cap: u32, presence: &mut Vec<f64>) {
-    presence.clear();
+/// law's distribution, and each node's lead into `leads`: a node of the
+/// Poisson law is made as the mean passes its draw.
+pub(crate) fn nodes(law: NodeLaw, u: f64, cap: u32, leads: &mut Vec<f64>) {
+    leads.clear();
     match law {
         NodeLaw::Uniform { min, max } => {
             let count = min + (u * f64::from(max - min + 1)) as u32;
-            presence.resize(count.min(max) as usize, 1.0);
+            leads.resize(count.min(max) as usize, f64::INFINITY);
         }
         NodeLaw::Poisson { mean } => {
-            // Node k stands while u lies above P(count <= k). That bound
-            // falls by P(count = k) per unit of mean, so a node grows in
-            // over the same share of the mean whatever its rank.
+            // Node k stands while u lies above P(count <= k).
             let mut mass = (-mean).exp();
-            let mut below = mass;
+            let mut cumulative = mass;
             let mut k = 0u32;
-            while below <= u && k < cap {
-                presence.push(grow_in(u - below, u, mass));
+            while cumulative <= u && k < cap {
+                leads.push(above(u, cumulative));
                 k += 1;
                 mass *= mean / f64::from(k);
-                below += mass;
+                cumulative += mass;
             }
         }
     }

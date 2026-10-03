@@ -3,16 +3,15 @@
 //! all is walked over its range in `STEPS` steps at three seeds, on its own
 //! scale: log-odds for a probability, its unit otherwise.
 mod walk;
-use telperion_space::GROW_IN;
 use walk::{crossing, made, refine, settings, Setting, Step, STEPS};
 
 /// The stated multiple: no step moves the total length, height, spread,
 /// any branch's base or tip, or the wood made or unmade, by more than this
-/// share of the tree per unit of the setting's scale. A draw that decides
-/// the whole crown grows it in over `GROW_IN` of a unit; a whole tree over
-/// that is 1 / GROW_IN, and the measures of a branch on the crown's top
-/// move with it, so three times that.
-const MULTIPLE: f64 = 3.0 / GROW_IN;
+/// share of the tree per unit of the setting's scale. A draw grows in over
+/// a log-odds window in proportion to the wood it decides, so no crossing
+/// moves the tree faster than about its length per `SPAN` log-odds; linear
+/// settings move it in proportion. The bound stands at the first round's 30.
+const MULTIPLE: f64 = 30.0;
 const SEEDS: [u64; 3] = [1, 2, 3];
 
 /// Every walk's steps at every seed, the walks in parallel.

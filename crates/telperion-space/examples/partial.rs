@@ -20,8 +20,10 @@ fn main() {
         }
     }
     println!(
-        "GROW_IN {}: length lost {:.1}%, axes born partly grown {:.1}%",
-        telperion_space::GROW_IN,
+        "RATE {} SPAN {} FLOOR {}: length lost {:.1}%, axes born partly grown {:.1}%",
+        telperion_space::RATE,
+        telperion_space::SPAN,
+        telperion_space::FLOOR,
         100.0 * (1.0 - drawn / full),
         100.0 * born as f64 / axes as f64
     );
