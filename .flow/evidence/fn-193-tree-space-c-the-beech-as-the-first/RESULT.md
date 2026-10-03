@@ -135,3 +135,7 @@ This is a conflict between phase B's continuity mechanism and Troll's module sta
 **Leaves (item B): not finished.** The three to five leaves a short shoot carries and their 77% share were wired into the attempt, but the collapse made the in-leaf stills meaningless, and the change was reversed with the beech values. The pipeline places leaves along bearing wood at a fixed spacing, not one per node. A sourced 77% share on short shoots therefore needs the leaves placed by the engine's own nodes, or a bearing rule per node. That is a design question beside the collapse.
 
 The committed beech is round 2's, unchanged: its relays are off, so the engine changes leave it as it was.
+
+## Host decision 3, the last attempt for C (2026-10-04, overnight run)
+
+The young-tree change collapsed the tree before its look could be judged (relays born partly grown, sizes multiplying up the stem: the 12th module at 1.2e-4 of full size; `raw/v3b/chain.log`), so the trait was not judged on its merits; this is counted as an engine interaction with phase B, not the second rejection. One attempt, then C stops for the owner with no further exceptions: (1) a relay's draw decides the difference between the two continuations (stop and relay against continue), not the crown, so a near-certain relay is drawn whole; B's walks and A's oracle stay green; (2) leaves: foliage spacing set per short-shoot length so a short shoot carries 3 to 5 leaves in expectation; exact per-node leaves are a phase F contract. If the young beech then fails, or the tree collapses, C stops.
