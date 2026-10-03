@@ -72,3 +72,9 @@ The worker viewed six strips: readiness, lateral, abortion, straightening, Poiss
 ## Cost
 
 The sheet example's time per structure is 20 to 51 µs, about 85 ns per phytomer, against fn-191's 50 ns. The extra comes from the keyed hashes, the presences and the shedding fades. The workspace gate's new walk tests take about 15 s.
+
+## Host verdict and decisions (2026-10-03, overnight run)
+
+- **R5 strips, host view:** abortion and states[2].viability walk by degree. Two pops remain: states[0].rhythm (seed 1) adds a full-length basal branch between 0.500 and 0.375, and states[0].viability (seed 2) adds the whole upper crown between 0.951 and 0.966. R4/R5 are not met on the stills.
+- **Decision:** the grow-in window becomes a fixed width in log-odds instead of probability, so near-certain structure (a trunk apex carrying the crown) grows in over a visible range; every birth, including the rhythm case, gets the same gradual entry. `GROW_IN` is set from that window, and the length lost to partly grown branches is reported.
+- **Review cap:** rounds 1 and 2 each found and fixed real defects; the cap stopped round 3 on unreviewed fixes. The host resets the round counter once (`flowctl spec reset-review-rounds`), recorded for the owner's morning review: the overnight run was authorised to stop only on a genuine wrong path, and a converging review is not one. One reset per spec, never more.
