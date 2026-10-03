@@ -15,7 +15,9 @@ Tooling the point and walk tasks need and may not edit themselves: stills at a c
 - Walk: render each step's tree with the same interpolated settings and site as its metric row; apply the collapsed-tree and below-ground errors to each step.
 - Palm organs: production adds retained leaf bases in `pipeline::skeleton` through `clothe_leaf_bases` before expansion; `tree::to_tree` produces none. Expose that step to the example with the narrowest visibility and verify an organ-bearing tree reaches expansion without the old stem generator.
 
-### Investigation targets
+#- Framing: the `today` and grow stills frame the camera on the stem's bounds, which crops the palm's frond crown (fn-190.4, Q4); frame every still on the whole tree including foliage, and re-render the palm bar (`raw/palm-today/`).
+
+## Investigation targets
 **Required:**
 - `crates/telperion-render/examples/growth_law/main.rs:150-281`
 - `crates/telperion-core/src/pipeline/branching/leaf_bases.rs`

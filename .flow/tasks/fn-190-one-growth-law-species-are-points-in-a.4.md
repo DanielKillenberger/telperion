@@ -28,9 +28,10 @@ Stage A for the palm, reading only plus one render of today's palm as the bar.
 - [ ] Three to five reference-visible traits are listed
 
 ## Done summary
-TBD
+MODEL-PALM.md written; today palm stills at seeds 1 and 7 kept as the bar (raw/palm-today, cropped crown: framing moved to .19). Host questions Q1-Q4: Corner vs Tomlinson model, stem girth without secondary thickening, inflorescence scope, crop.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 609c45fd83256bcae3d53fa89849c19597c0e13f
+- Tests: cargo build --profile ci -p telperion-render --example growth_law
 - PRs:

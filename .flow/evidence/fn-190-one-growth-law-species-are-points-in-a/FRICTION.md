@@ -69,3 +69,10 @@
 - **Hindered by:** the tag points at `hot_ch3.md`, which is only a landing page and abstract; the quote is in `miami.md` (Tomlinson 1983).
 - **Cost:** about 5 minutes.
 - **What would remove it:** LITERATURE.md naming the file behind each source tag.
+
+## 2026-10-03, fn-190.4 (palm model specification)
+
+- **Doing:** timing today's palm renders.
+- **Hindered by:** the dcg hook blocked a shell redirect, and `/usr/bin/time` is not installed.
+- **Cost:** about 3 minutes.
+- **What would remove it:** a local setup note (install `time`); reported, not specced, as a local machine matter.
