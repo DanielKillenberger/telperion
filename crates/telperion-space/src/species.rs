@@ -5,13 +5,15 @@
 //! along the reference axis towards older PAs (AmapSim's oriented automaton;
 //! GreenLab's dual-scale automaton, de Reffye et al. 2021).
 use crate::error::{refuse, Result};
-use std::f64::consts::PI;
+use std::f64::consts::{PI, TAU};
 
 /// The most buds one node carries: a whorl of six.
 pub const MAX_BUDS: u8 = 6;
 const MAX_NODES_PER_ZONE: u32 = 1_000;
 const MAX_MEAN_NODES: f64 = 500.0;
 const MAX_STATES: usize = 64;
+/// The longest internode, in metres: a budget of phytomers this long stays finite.
+const MAX_INTERNODE: f64 = 100.0;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Species {
@@ -120,10 +122,10 @@ impl PaState {
         for (z, zone) in self.zones.iter().enumerate() {
             zone.validate(&format!("{at}.zones[{z}]"), pa, count)?;
         }
-        if !(self.internode.is_finite() && self.internode > 0.0) {
+        if !(self.internode > 0.0 && self.internode <= MAX_INTERNODE) {
             return refuse(
                 format!("{at}.internode"),
-                "an internode has a positive length",
+                "an internode is longer than 0 and at most 100 m",
             );
         }
         if !(0.0..=PI).contains(&self.insertion) {
@@ -132,8 +134,11 @@ impl PaState {
                 "an insertion angle lies in 0 to pi",
             );
         }
-        if !self.divergence.is_finite() {
-            return refuse(format!("{at}.divergence"), "a divergence angle is finite");
+        if !(-TAU..=TAU).contains(&self.divergence) {
+            return refuse(
+                format!("{at}.divergence"),
+                "a divergence angle lies in -2 pi to 2 pi",
+            );
         }
         Ok(())
     }

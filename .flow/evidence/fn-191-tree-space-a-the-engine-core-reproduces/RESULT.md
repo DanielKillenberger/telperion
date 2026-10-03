@@ -42,7 +42,7 @@ The oracle ran on the first attempt. None of the three recorded attempts the wro
 
 On the deterministic rows the worker read the trees as the same: the same axes, the same PA transitions (green PA 2 turning red PA 3 at the same rank) and the same branching per growth unit. Our internodes and angles are our own, so the lengths differ. The simulator also fades axes that have stopped growing and we do not, which is a drawing choice. The host has not yet viewed the sheet.
 
-Time per structure: the engine's is topology, shedding and geometry, on the release build, as a mean over 2,000 seeds. The simulator's is its `buildAxis` in Chromium's V8, as a mean over the seeds it ran.
+Time per structure, as a mean over the seeds each side ran. Ours is the release build over 2,000 seeds: growth, shedding and geometry, plus the count table, its totals and dropping the tree. The simulator's is its `makeRNG` and `buildAxis` in Chromium's V8, plus our walk of its tree into a count table.
 
 | set | mean phytomers | ours (µs) | simulator (µs) |
 |---|---|---|---|

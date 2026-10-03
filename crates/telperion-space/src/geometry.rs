@@ -45,7 +45,10 @@ fn frame(structure: &Structure, species: &Species, i: usize) -> (Vec3, Vec3, Vec
         Origin::Continuation { parent } => {
             let p = &structure.axes[parent];
             let base = p.phytomers.last().map_or(p.base, |last| last.tip);
-            (base, p.heading, p.side)
+            // The phyllotaxis runs on across the change of PA.
+            let turn = species.states[p.pa].divergence * p.phytomers.len() as f64;
+            let side = p.side * turn.cos() + p.heading.cross(p.side) * turn.sin();
+            (base, p.heading, side)
         }
         Origin::Lateral {
             parent,

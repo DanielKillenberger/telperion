@@ -64,3 +64,42 @@ fn axes_take_their_lengths_and_angles_from_their_pa() {
         "opposite pairs turned a quarter each node"
     );
 }
+
+/// A PA that renews itself every growth unit keeps turning its nodes: the
+/// phyllotaxis runs on across each continuation.
+#[test]
+fn phyllotaxis_runs_on_across_a_continuation() {
+    let state = |next, lateral: &[f64]| PaState {
+        lifespan: 1,
+        next,
+        viability: 1.0,
+        zones: vec![Zone {
+            nodes: NodeLaw::Uniform { min: 1, max: 1 },
+            buds: 1,
+            lateral: lateral.to_vec(),
+        }],
+        shedding: None,
+        internode: 1.0,
+        insertion: 0.6,
+        divergence: PI / 2.0,
+    };
+    let species = Species {
+        states: vec![state(Some(0), &[0.0, 1.0]), state(None, &[0.0, 0.0])],
+    };
+    let request = Request {
+        age: 5,
+        seed: 1,
+        budget: 100,
+    };
+    let tree = grow(&species, request).unwrap();
+    let mut sides: Vec<i64> = Vec::new();
+    for axis in tree
+        .axes
+        .iter()
+        .filter(|a| a.pa == 1 && !a.phytomers.is_empty())
+    {
+        let run = axis.phytomers[0].tip - axis.base;
+        sides.push(((run.y.atan2(run.x).to_degrees().round() as i64) + 360) % 360);
+    }
+    assert_eq!(sides, vec![0, 90, 180, 270]);
+}
