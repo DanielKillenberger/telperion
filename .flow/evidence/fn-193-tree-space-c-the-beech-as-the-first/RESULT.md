@@ -69,3 +69,7 @@ The camera is fitted to each tree. The figure is 1.8 m tall.
 3. Reiterates are four PAs (leader, limb, bough, spur) rather than one PA whose physiological age drifts.
 4. The codominant-fork weight and the drawing floors live in the rendering example, not the engine.
 5. Wood below the ground forced the branches' elevation above level (0.25 rad), where [M98] has the low A2 drooping.
+
+## Host verdict 1 (2026-10-04, overnight run): not confident; not sent to Astra
+
+Viewed `raw/final/sheet-beech.png`. Better than every earlier probe: the 80-year tree at seed 1 bare has a clear bole, a fork near a quarter of the height into ascending limbs and a fine twig crown. Rejected on: (1) in-leaf crown, leaves drawn as pale stretched streaks in sheets, not a dense dark mass (Nettleden); (2) appearance, white bark and pale leaves, so the conversion to the pipeline tree evidently drops the preset's appearance rows; (3) girth about 1.4 to 1.7 m at the base against the sourced 1.3 m maximum; (4) young trees (10 and 20 years) a pole with rods, because Troll's module stacking with relays from the curvature zone is not modelled; (5) seed 7 a flat-topped umbrella, not a dome. Rejection count per trait: one each. Speed for F: about 85% of grown wood is shed, growth 19 to 33 times today's skeleton.
