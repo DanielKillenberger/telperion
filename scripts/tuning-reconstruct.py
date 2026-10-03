@@ -12,8 +12,6 @@ p.add_argument("--preset", required=True)
 p.add_argument("--views", nargs="+", required=True)
 p.add_argument("--out", type=Path, required=True)
 a = p.parse_args()
-if len(a.views) > 4:
-    p.error("at most four images per invocation")
 records = json.loads((a.source / ".flow/evidence/fn34" / a.preset / "references.json").read_text())["references"]
 a.out.mkdir(parents=True, exist_ok=True)
 for view in a.views:

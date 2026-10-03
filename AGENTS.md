@@ -13,7 +13,7 @@ Reasoning and system design escalate to the host (owner, 2026-09-19). A dispatch
 fn-13 task 5 consumed a full weekly quota on 22 full-forest GPU captures and image inspection. These rules bind every agent and the pilot loop:
 
 - **Small before large.** Never start a 1,024-tree capture until the specific defect reproduces and is fixed on the 8-tree forest with a red/green test. At most one full-forest capture per commit.
-- **Read summaries, not receipts.** Agents read `OUTCOME.json`, `INSPECTION.md` and `metrics.json`. Never open `receipt.json`, videos or frame sequences; never view more than four images per capture. Raw receipts, videos and frame directories are gitignored and stay on disk.
+- **Read summaries, not receipts.** Agents read `OUTCOME.json`, `INSPECTION.md` and `metrics.json`. Never open `receipt.json`, videos or frame sequences. View every image a verdict rests on (owner, 2026-10-03, which removed the earlier cap of four per capture after fn-190 judged eight rounds without looking at their stills). Raw receipts, videos and frame directories are gitignored and stay on disk.
 - **Review.** `review.backend` is `codex` (owner, 2026-09-26). The QA pipeline stage is on `auto` (owner, 2026-09-19): `flow --auto` puts the spec's acceptance to Jev's `qa-gate` preset and drives the harness only when the answer is UI-observable and code resolves a startable target, so a generator, CLI or preset spec still skips it. A QA pass drives `npm run dev`, never a full-forest capture; the capture budget above is unchanged.
 
 ## Generator evolution (owner, 2026-09-20)
