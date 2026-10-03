@@ -108,3 +108,35 @@ This is a design change to R2's mechanism, and it is untested. It is the host's 
 ## Host decision 2 (2026-10-03, overnight run)
 
 The fixed log-odds window is rejected on the worker's measurements (35% to 75.6% of length lost before the crown stops popping). Built instead: each draw grows in over a log-odds window proportional to the presence-weighted wood it decides, with a floor, presences computed in a pass after growth (topology never depends on presence). A crown grows in slowly and a twig quickly, so a crossing changes the tree at a bounded rate per log-odds unit. Gate: all eight strips by degree on the host's view, A's oracle green, length lost reported. Wrong-path stop for B: a visible pop remains, or more than 25% of length is lost across seeds 0 to 49.
+
+## The wood-scaled window, measured (worker, after the host decision in bb480697)
+
+Built as decided. `presence-pass.patch`, against `bb480697`, applies cleanly and is not applied.
+- **Growth records leads.** Growth records each draw's lead past its bound in log-odds, and a pass after growth computes every presence, leaves first.
+- **Window.** Each draw's window is `RATE × (presence-weighted wood it decides) / (the tree's expected length)`, clamped to `FLOOR` = 0.05 and `SPAN` = 2 log-odds.
+- **Expected length.** It comes from the closed form (`expected_length`). A unit test checks it against the expected counts weighted by internode.
+- **Tests at RATE 6.** All ten of the crate's test binaries are green: the oracle, lineage, closed form, settings, death and refusals tests and the walk bound of 30.
+
+Length lost to partly grown branches on the walk tree, seeds 0 to 49 (`examples/partial.rs`). The rhythm and trunk-viability strips were viewed at every rate drawn; all eight were viewed at RATE 6.
+
+| RATE | Length lost | Axes born partly grown | Trunk viability, seed 2 | Rhythm, seed 1 |
+|---|---|---|---|---|
+| 2 | 12.5% | 4.5% | crown grows in from 0.951 to 0.989 | a basal limb appears whole between 0.500 and 0.375: pop |
+| 6 | 22.3% | 5.2% | by degree | the mid crown shifts and re-forms between 0.375 and 0.250: pop |
+| 10 | 30.4% | 6.1% | not drawn | not drawn; over the 25% stop |
+| 20 | 43.9% | 8.1% | not drawn | still re-forms between 0.375 and 0.250; over the 25% stop |
+
+At RATE 6, the other six strips change by degree: lateral, abortion, straightening, twig viability and the Poisson mean, plus readiness, which thins strongly but through partly grown branches.
+
+**Why the rhythm walk still jumps.** It is a mechanism of the design, not a crossing. A draw's window scales with the wood it decides, so a draw that is not crossed still changes size whenever that wood changes:
+- On seed 1, the trunk's first node is a Poisson node, 0.73 log-odds past its bound, carrying a basal limb.
+- As rhythm falls from 0.375 to 0.3, that limb grows in (vigour 0.58 to 0.92), so the node's window widens.
+- The node's presence falls with it: the trunk's first internode shrinks from 1.00 m to 0.65 m, and the whole tree above slides down by it within one frame.
+
+The fine walk is continuous (at most 2.4% of the tree per 1/160 of rhythm), and the walk test's bound holds. On the strip it reads as a jump.
+
+**Wrong-path stop reached:** a visible pop remains at every RATE that loses under 25%.
+
+The decision is the host's. The worker has not tested either option:
+- Exclude a node's laterals from the wood its draw decides, so a node's size never depends on its limbs. A Poisson node would then grow in narrowly and carry its limb with it.
+- Fix each draw's window from the wood it decides at full presence, from topology alone. That would not be continuous where topology changes inside the decided wood.
