@@ -216,10 +216,12 @@ impl Grower<'_> {
             let zone_key = unit.child(ZONE + z as u64);
             lineage::nodes(zone.nodes, zone_key.unit(), MAX_NODES_PER_ZONE, &mut leads);
             let lateral = &self.laterals[pa][z];
-            // A node decides its internode and the buds it is expected to bear.
+            // A node decides its internode and the buds it is expected to bear;
+            // a PA its buds cannot carry takes no part.
             let expected: f64 = lateral
                 .iter()
                 .enumerate()
+                .filter(|&(_, &p)| p > 0.0)
                 .map(|(j, p)| p * self.windows.wood(j, cycle + 1))
                 .sum();
             let node_wood = self.windows.share(state.internode) + f64::from(zone.buds) * expected;
