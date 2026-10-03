@@ -17,6 +17,11 @@ fn state(lifespan: u32, viability: f64, nodes: NodeLaw, lateral: &[f64]) -> PaSt
         internode: 0.5,
         insertion: 0.7,
         divergence: 2.4,
+        abortion: 0.0,
+        relay: 0.0,
+        readiness: 1.0,
+        rhythm: 1.0,
+        straightening: 0.0,
     }
 }
 
@@ -25,7 +30,12 @@ fn species(p: f64) -> Species {
     Species {
         states: vec![
             state(8, 1.0, NodeLaw::Poisson { mean: 2.5 }, &[0.0, p, 0.0]),
-            state(5, 0.85, NodeLaw::Uniform { min: 1, max: 3 }, &[0.0, 0.0, 0.5]),
+            state(
+                5,
+                0.85,
+                NodeLaw::Uniform { min: 1, max: 3 },
+                &[0.0, 0.0, 0.5],
+            ),
             state(3, 0.9, NodeLaw::Poisson { mean: 1.5 }, &[0.0, 0.0, 0.0]),
         ],
     }
@@ -42,6 +52,7 @@ fn by_path(tree: &Structure) -> HashMap<String, usize> {
                 parent, node, slot, ..
             } => format!("{}/{node}.{slot}", paths[parent]),
             Origin::Continuation { parent } => format!("{}/c", paths[parent]),
+            Origin::Relay { parent } => format!("{}/r", paths[parent]),
         };
         paths.push(path);
     }

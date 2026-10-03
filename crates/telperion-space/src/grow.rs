@@ -1,14 +1,20 @@
 //! The engine: a tree grows one growth unit per living apex per cycle, from
 //! one seed bud of the youngest PA. A lateral bud made in a cycle grows its
 //! first growth unit in the next; an apex that has spent its PA's lifespan
-//! moves to its next PA, as a new development axis, or stops.
+//! moves to its next PA, as a new development axis, or stops. Every draw is
+//! keyed to the lineage it decides (`lineage.rs`), and every element a draw
+//! makes carries its presence, so a setting that crosses a draw grows the
+//! element in from nothing.
 use crate::error::{refuse, Error, Result};
 use crate::geometry::place;
-use crate::rng::Rng;
-use crate::species::{PaState, Species, MAX_BUDS};
+use crate::lineage::{
+    self, grow_in, Key, ABORTION, CONTINUATION, RELAY, RELAY_BUD, VIABILITY, ZONE,
+};
+use crate::shed::shed;
+use crate::species::{PaState, Species, MAX_BUDS, MAX_NODES_PER_ZONE};
 use crate::structure::{Axis, Origin, Phytomer, Structure, Vec3};
 
-/// What to grow: cycles, the random stream and the phytomer budget.
+/// What to grow: cycles, the seed and the phytomer budget.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Request {
     pub age: u32,
@@ -17,14 +23,16 @@ pub struct Request {
     pub budget: u32,
 }
 
-const BARE: u8 = u8::MAX;
-type Buds = [u8; MAX_BUDS as usize];
+/// A bud of a node: its PA and presence, or none for a bare bud.
+type Bud = Option<(usize, f64)>;
 
-/// A living apex and the growth units it has grown in its current PA.
+/// A living apex: the growth units it has grown in its current PA and its
+/// presence, the product of every survival it barely passed.
 #[derive(Debug, Clone, Copy)]
 struct Apex {
     axis: usize,
     units: u32,
+    presence: f64,
 }
 
 /// Grows, sheds and places the tree.
@@ -33,13 +41,19 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
     if request.age == 0 {
         return refuse("age", "a tree grows at least one cycle");
     }
+    let root = Key::root(request.seed);
     let mut grower = Grower {
         species,
-        rng: Rng::new(request.seed),
-        axes: vec![bud(0, 0, Origin::Seed)],
-        live: vec![Apex { axis: 0, units: 0 }],
+        laterals: species.states.iter().map(PaState::laterals).collect(),
+        axes: vec![bud(root, 0, 0, Origin::Seed, 1.0)],
+        live: vec![Apex {
+            axis: 0,
+            units: 0,
+            presence: 1.0,
+        }],
         next: Vec::new(),
-        nodes: Vec::new(),
+        presence: Vec::new(),
+        node_buds: Vec::new(),
         grown: 0,
         budget: request.budget,
     };
@@ -58,27 +72,34 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
     Ok(structure)
 }
 
-fn bud(pa: usize, birth: u32, origin: Origin) -> Axis {
+fn bud(key: Key, pa: usize, birth: u32, origin: Origin, vigour: f64) -> Axis {
     Axis {
+        lineage: key.0,
         pa,
         birth,
         origin,
+        vigour,
         apex_end: None,
         base: Vec3::default(),
         heading: Vec3::default(),
         side: Vec3::default(),
         phytomers: Vec::new(),
+        units: Vec::new(),
+        rank: 0.0,
     }
 }
 
 struct Grower<'a> {
     species: &'a Species,
-    rng: Rng,
+    /// Each PA's zones' lateral probabilities as drawn (`PaState::laterals`).
+    laterals: Vec<Vec<Vec<f64>>>,
     axes: Vec<Axis>,
     live: Vec<Apex>,
     next: Vec<Apex>,
-    /// One zone's drawn nodes, reused.
-    nodes: Vec<(u8, Buds)>,
+    /// One zone's node presences and its nodes (order draw, draw index,
+    /// presence, buds), reused.
+    presence: Vec<f64>,
+    node_buds: Vec<(f64, u64, f64, [Bud; MAX_BUDS as usize])>,
     grown: u32,
     budget: u32,
 }
@@ -89,24 +110,46 @@ impl Grower<'_> {
         for mut apex in live.iter().copied() {
             let pa = self.axes[apex.axis].pa;
             let state = &self.species.states[pa];
-            if !self.rng.chance(state.viability) {
+            let unit = Key(self.axes[apex.axis].lineage).child(u64::from(apex.units) + 1);
+            let u = unit.child(VIABILITY).unit();
+            if u >= state.viability {
                 self.axes[apex.axis].apex_end = Some(cycle - 1);
+                self.stop(
+                    apex,
+                    cycle,
+                    grow_in(u - state.viability, u, 1.0 - state.viability),
+                );
                 continue;
             }
-            self.grow_unit(apex.axis, state, cycle)?;
+            apex.presence *= grow_in(state.viability - u, 1.0 - u, state.viability);
+            self.grow_unit(apex, pa, unit, cycle)?;
+            self.axes[apex.axis].units.push(apex.presence);
             apex.units += 1;
+            if state.abortion > 0.0 {
+                let u = unit.child(ABORTION).unit();
+                if u < state.abortion {
+                    self.axes[apex.axis].apex_end = Some(cycle);
+                    self.stop(
+                        apex,
+                        cycle,
+                        grow_in(state.abortion - u, 1.0 - u, state.abortion),
+                    );
+                    continue;
+                }
+                apex.presence *= grow_in(u - state.abortion, u, 1.0 - state.abortion);
+            }
             if apex.units < state.lifespan {
                 self.next.push(apex);
                 continue;
             }
             self.axes[apex.axis].apex_end = Some(cycle);
-            if let Some(next) = state.next {
-                let origin = Origin::Continuation { parent: apex.axis };
-                self.next.push(Apex {
-                    axis: self.axes.len(),
-                    units: 0,
-                });
-                self.axes.push(bud(next, cycle, origin));
+            match state.next {
+                Some(next) => {
+                    let key = Key(self.axes[apex.axis].lineage).child(CONTINUATION);
+                    let origin = Origin::Continuation { parent: apex.axis };
+                    self.sprout(key, next, cycle, origin, apex.presence);
+                }
+                None => self.stop(apex, cycle, 1.0),
             }
         }
         self.live = std::mem::replace(&mut self.next, live);
@@ -114,97 +157,93 @@ impl Grower<'_> {
         Ok(())
     }
 
-    fn grow_unit(&mut self, axis: usize, state: &PaState, cycle: u32) -> Result<()> {
-        let mut nodes = std::mem::take(&mut self.nodes);
-        for zone in &state.zones {
+    /// A new bud that grows from the next cycle.
+    fn sprout(&mut self, key: Key, pa: usize, cycle: u32, origin: Origin, vigour: f64) {
+        self.next.push(Apex {
+            axis: self.axes.len(),
+            units: 0,
+            presence: 1.0,
+        });
+        self.axes.push(bud(key, pa, cycle, origin, vigour));
+    }
+
+    /// The apex has stopped, `stopped` past its last draw; a relay bud of
+    /// its PA may take over at its last node, or at its base if it grew none.
+    fn stop(&mut self, apex: Apex, cycle: u32, stopped: f64) {
+        let axis = &self.axes[apex.axis];
+        let relay = self.species.states[axis.pa].relay;
+        if relay <= 0.0 {
+            return;
+        }
+        let key = Key(axis.lineage);
+        let u = key.child(RELAY).unit();
+        if u < relay {
+            let vigour = apex.presence * stopped * grow_in(relay - u, 1.0 - u, relay);
+            let origin = Origin::Relay { parent: apex.axis };
+            self.sprout(key.child(RELAY_BUD), axis.pa, cycle, origin, vigour);
+        }
+    }
+
+    fn grow_unit(&mut self, apex: Apex, pa: usize, unit: Key, cycle: u32) -> Result<()> {
+        let state = &self.species.states[pa];
+        let mut nodes = std::mem::take(&mut self.node_buds);
+        let mut presence = std::mem::take(&mut self.presence);
+        for (z, zone) in state.zones.iter().enumerate() {
+            let zone_key = unit.child(ZONE + z as u64);
+            lineage::nodes(
+                zone.nodes,
+                zone_key.unit(),
+                MAX_NODES_PER_ZONE,
+                &mut presence,
+            );
+            let lateral = &self.laterals[pa][z];
             nodes.clear();
-            for _ in 0..self.rng.nodes(zone.nodes) {
-                let mut buds = [BARE; MAX_BUDS as usize];
-                for slot in &mut buds[..zone.buds as usize] {
-                    *slot = self.rng.bud(&zone.lateral).map_or(BARE, |pa| pa as u8);
+            for (i, &node_presence) in presence.iter().enumerate() {
+                let node_key = zone_key.child(i as u64);
+                let mut buds = [None; MAX_BUDS as usize];
+                let mut order = 1.0f64;
+                for (slot, bud) in buds[..zone.buds as usize].iter_mut().enumerate() {
+                    let u = node_key.child(slot as u64).unit();
+                    order = order.min(u);
+                    *bud = lineage::bud(lateral, u);
                 }
-                let youngest = buds.iter().copied().min().unwrap_or(BARE);
-                nodes.push((youngest, buds));
+                nodes.push((order, i as u64, node_presence, buds));
             }
-            // Acrotony: bare nodes at the base, the youngest lateral PA on top.
-            nodes.sort_by_key(|node| std::cmp::Reverse(node.0));
-            for &(_, buds) in &nodes {
+            // Acrotony: the nodes stand in order of their draws, so the
+            // youngest lateral PA is on top, bare nodes at the base, and a
+            // bud a setting makes or unmakes moves no node.
+            nodes.sort_by(|a, b| b.0.total_cmp(&a.0));
+            for &(_, drawn, node_presence, buds) in &nodes {
                 self.grown += 1;
                 if self.grown > self.budget {
                     return Err(Error::Budget { limit: self.budget });
                 }
-                let node = self.axes[axis].phytomers.len();
-                self.axes[axis].phytomers.push(Phytomer {
+                let axis = &mut self.axes[apex.axis];
+                let node = axis.phytomers.len();
+                axis.phytomers.push(Phytomer {
                     cycle,
                     tip: Vec3::default(),
+                    scale: apex.presence * node_presence,
+                    rank: axis.rank,
                 });
-                for (slot, &pa) in buds[..zone.buds as usize].iter().enumerate() {
-                    if pa == BARE {
+                axis.rank += node_presence;
+                for (slot, bud) in buds[..zone.buds as usize].iter().enumerate() {
+                    let Some((lateral_pa, vigour)) = *bud else {
                         continue;
-                    }
-                    let whorl = zone.buds;
+                    };
                     let origin = Origin::Lateral {
-                        parent: axis,
+                        parent: apex.axis,
                         node,
                         slot: slot as u8,
-                        whorl,
+                        whorl: zone.buds,
                     };
-                    self.next.push(Apex {
-                        axis: self.axes.len(),
-                        units: 0,
-                    });
-                    self.axes.push(bud(pa as usize, cycle, origin));
+                    let key = zone_key.child(drawn).child(slot as u64);
+                    self.sprout(key, lateral_pa, cycle, origin, vigour);
                 }
             }
         }
-        self.nodes = nodes;
+        self.node_buds = nodes;
+        self.presence = presence;
         Ok(())
-    }
-}
-
-/// Drops every lateral axis, with all it bears, that has held no living apex
-/// for more than its PA's shedding delay.
-fn shed(axes: Vec<Axis>, species: &Species, age: u32) -> Vec<Axis> {
-    // Parents precede children, so one backward pass carries each subtree's
-    // last living cycle up to its root.
-    let mut live_until: Vec<u32> = axes
-        .iter()
-        .map(|a| a.apex_end.unwrap_or(u32::MAX))
-        .collect();
-    for i in (1..axes.len()).rev() {
-        let parent = parent(&axes[i]);
-        live_until[parent] = live_until[parent].max(live_until[i]);
-    }
-    let mut index = vec![usize::MAX; axes.len()];
-    let mut kept = Vec::with_capacity(axes.len());
-    for (i, mut axis) in axes.into_iter().enumerate() {
-        let lost = match axis.origin {
-            Origin::Seed => false,
-            Origin::Continuation { parent } => index[parent] == usize::MAX,
-            Origin::Lateral { parent, .. } => {
-                let delay = species.states[axis.pa].shedding;
-                let idle = age.saturating_sub(live_until[i]);
-                index[parent] == usize::MAX || delay.is_some_and(|d| idle > d)
-            }
-        };
-        if lost {
-            continue;
-        }
-        match &mut axis.origin {
-            Origin::Seed => {}
-            Origin::Continuation { parent } | Origin::Lateral { parent, .. } => {
-                *parent = index[*parent]
-            }
-        }
-        index[i] = kept.len();
-        kept.push(axis);
-    }
-    kept
-}
-
-fn parent(axis: &Axis) -> usize {
-    match axis.origin {
-        Origin::Seed => 0,
-        Origin::Continuation { parent } | Origin::Lateral { parent, .. } => parent,
     }
 }

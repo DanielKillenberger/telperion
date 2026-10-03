@@ -9,7 +9,7 @@ use std::f64::consts::{PI, TAU};
 
 /// The most buds one node carries: a whorl of six.
 pub const MAX_BUDS: u8 = 6;
-const MAX_NODES_PER_ZONE: u32 = 1_000;
+pub(crate) const MAX_NODES_PER_ZONE: u32 = 1_000;
 const MAX_MEAN_NODES: f64 = 500.0;
 const MAX_STATES: usize = 64;
 /// The longest internode, in metres: a budget of phytomers this long stays finite.
@@ -41,6 +41,23 @@ pub struct PaState {
     pub insertion: f64,
     /// The angle in radians between successive nodes of this PA (phyllotaxis).
     pub divergence: f64,
+    /// The probability that the apex aborts after each growth unit, so its
+    /// laterals carry the axis on: sympodial growth. Neutral 0.
+    pub abortion: f64,
+    /// The probability that a stopped apex is replaced by a relay bud of its
+    /// own PA at its last node, as Troll's relays are. Neutral 0; dormant
+    /// where no apex stops.
+    pub relay: f64,
+    /// How ready the axis is to branch: its lateral probabilities scaled.
+    /// Zero is Corner's unbranched stem. Neutral 1; dormant without laterals.
+    pub readiness: f64,
+    /// The strength of rhythmic growth: 1 keeps each zone's laterals, 0
+    /// spreads the growth unit's laterals evenly over its nodes, continuous
+    /// growth. Neutral 1; dormant in a growth unit of one zone.
+    pub rhythm: f64,
+    /// How far the base of a lateral axis of this PA straightens towards
+    /// the vertical, as Troll's plagiotropic axes do. Neutral 0.
+    pub straightening: f64,
 }
 
 /// A zone of a growth unit: its node count and the PA of each node's buds.
@@ -134,6 +151,18 @@ impl PaState {
                 "an insertion angle lies in 0 to pi",
             );
         }
+        let shares = [
+            ("abortion", self.abortion),
+            ("relay", self.relay),
+            ("readiness", self.readiness),
+            ("rhythm", self.rhythm),
+            ("straightening", self.straightening),
+        ];
+        for (name, value) in shares {
+            if !(0.0..=1.0).contains(&value) {
+                return refuse(format!("{at}.{name}"), "a share lies in 0 to 1");
+            }
+        }
         if !(-TAU..=TAU).contains(&self.divergence) {
             return refuse(
                 format!("{at}.divergence"),
@@ -141,6 +170,47 @@ impl PaState {
             );
         }
         Ok(())
+    }
+}
+
+impl PaState {
+    /// Each zone's lateral probabilities as the axis draws them: spread
+    /// towards the growth unit's mean by the rhythm, scaled by readiness.
+    pub(crate) fn laterals(&self) -> Vec<Vec<f64>> {
+        let weights: Vec<f64> = self.zones.iter().map(|z| z.nodes.mean()).collect();
+        let total: f64 = weights.iter().sum();
+        let width = self.zones[0].lateral.len();
+        let mean: Vec<f64> = (0..width)
+            .map(|j| {
+                let sum: f64 = self
+                    .zones
+                    .iter()
+                    .zip(&weights)
+                    .map(|(z, w)| w * z.lateral[j])
+                    .sum();
+                if total > 0.0 {
+                    sum / total
+                } else {
+                    0.0
+                }
+            })
+            .collect();
+        // Dormant, exactly, in a growth unit of one zone or of no nodes.
+        let rhythm = if total > 0.0 && self.zones.len() > 1 {
+            self.rhythm
+        } else {
+            1.0
+        };
+        self.zones
+            .iter()
+            .map(|zone| {
+                zone.lateral
+                    .iter()
+                    .zip(&mean)
+                    .map(|(&p, &m)| self.readiness * (rhythm * p + (1.0 - rhythm) * m))
+                    .collect()
+            })
+            .collect()
     }
 }
 

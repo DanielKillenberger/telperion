@@ -16,6 +16,11 @@ fn state(lifespan: u32, next: Option<usize>, zones: Vec<Zone>) -> PaState {
         // Shallow enough that nine nested reiterations still rise.
         insertion: 0.1,
         divergence: PI / 2.0,
+        abortion: 0.0,
+        relay: 0.0,
+        readiness: 1.0,
+        rhythm: 1.0,
+        straightening: 0.0,
     }
 }
 

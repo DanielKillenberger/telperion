@@ -25,6 +25,11 @@ fn state(
         internode: 1.0,
         insertion: PI / 4.0,
         divergence: PI,
+        abortion: 0.0,
+        relay: 0.0,
+        readiness: 1.0,
+        rhythm: 1.0,
+        straightening: 0.0,
     }
 }
 

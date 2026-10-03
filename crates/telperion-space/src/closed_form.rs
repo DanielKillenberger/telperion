@@ -5,7 +5,9 @@
 //! substructure depends only on its PA and age, so it is computed once. Under
 //! the stochastic laws the same recursion gives the expected counts (the
 //! potential structure's existence rates), the counts themselves when every
-//! law is deterministic. Shedding is outside the formula.
+//! law is deterministic. Abortion after a growth unit is a second survival
+//! factor; a stopped apex's relay bud is one more substructure of its PA.
+//! Shedding is outside the formula.
 use crate::error::{refuse, Result};
 use crate::species::Species;
 use crate::structure::CountTable;
@@ -31,24 +33,38 @@ pub fn expected_counts(species: &Species, age: u32) -> Result<CountTable> {
 
 fn substructure(species: &Species, k: usize, m: usize, done: &[Vec<CountTable>]) -> CountTable {
     let state = &species.states[k];
+    let laterals = state.laterals();
     let lifespan = state.lifespan as usize;
     let mut table = CountTable::new(species.states.len(), m);
+    // A relay bud of PA k, made in cycle `born` with probability `weight`.
+    let relay = |table: &mut CountTable, born: usize, weight: f64| {
+        if weight * state.relay > 0.0 {
+            add_shifted(table, &done[m - born][k], born, weight * state.relay);
+        }
+    };
     let mut survival = 1.0;
     for i in 1..=m.min(lifespan) {
+        relay(&mut table, i, survival * (1.0 - state.viability));
         survival *= state.viability;
-        for zone in &state.zones {
+        for (zone, lateral) in state.zones.iter().zip(&laterals) {
             let nodes = survival * zone.nodes.mean();
             table.add(k, i, nodes);
-            for (j, &p) in zone.lateral.iter().enumerate() {
+            for (j, &p) in lateral.iter().enumerate() {
                 let buds = nodes * f64::from(zone.buds) * p;
                 if buds > 0.0 {
                     add_shifted(&mut table, &done[m - i][j], i, buds);
                 }
             }
         }
+        relay(&mut table, i, survival * state.abortion);
+        survival *= 1.0 - state.abortion;
     }
-    if let (true, Some(next)) = (m > lifespan, state.next) {
-        add_shifted(&mut table, &done[m - lifespan][next], lifespan, survival);
+    match state.next {
+        Some(next) if m > lifespan => {
+            add_shifted(&mut table, &done[m - lifespan][next], lifespan, survival)
+        }
+        None if m >= lifespan => relay(&mut table, lifespan, survival),
+        _ => {}
     }
     table
 }

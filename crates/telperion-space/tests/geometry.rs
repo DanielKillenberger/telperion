@@ -23,6 +23,11 @@ fn axes_take_their_lengths_and_angles_from_their_pa() {
         internode,
         insertion,
         divergence: PI / 2.0,
+        abortion: 0.0,
+        relay: 0.0,
+        readiness: 1.0,
+        rhythm: 1.0,
+        straightening: 0.0,
     };
     let species = Species {
         states: vec![state(0.5, 0.0, &[0.0, 1.0]), state(0.3, 0.6, &[0.0, 0.0])],
@@ -82,6 +87,11 @@ fn phyllotaxis_runs_on_across_a_continuation() {
         internode: 1.0,
         insertion: 0.6,
         divergence: PI / 2.0,
+        abortion: 0.0,
+        relay: 0.0,
+        readiness: 1.0,
+        rhythm: 1.0,
+        straightening: 0.0,
     };
     let species = Species {
         states: vec![state(Some(0), &[0.0, 1.0]), state(None, &[0.0, 0.0])],
