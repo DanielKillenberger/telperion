@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-191-tree-space-a-the-engine-core-reproduces",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-03T20:01:58.110658Z",
   "created_at": "2026-10-03T19:30:52.769862Z",
   "default_impl": null,
   "default_review": null,
@@ -101,5 +101,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T19:54:57.925501Z"
+  "updated_at": "2026-10-03T20:01:58.110668Z"
 }
