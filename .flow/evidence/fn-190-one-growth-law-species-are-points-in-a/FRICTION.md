@@ -20,3 +20,10 @@
 - **Hindered by:** the round's open questions (short shoots as wood or stations, the fine-wood comparison, the crown's ontogeny) are design judgments AGENTS.md reserves for the host, and the spec places the short-shoot one in R2, after R1 needs it. The task was dispatched as the whole spec (R1 to R7) to one worker.
 - **Cost:** about 2 h of the 10 h timebox; five rounds remain.
 - **What would remove it:** an R1 that names the short-shoot representation and the ontogeny model up front, or a probe task the host steers round by round, as fn-188's rounds were.
+
+## 2026-10-03, R1 round 2, a runaway tree crashed the still
+
+- **Doing:** rendering round 2's stills at seeds 1 and 7.
+- **Hindered by:** the spruce at seed 7 grew to 597k nodes, and the headless renderer panicked: a compute dispatch of 100,753 groups exceeds wgpu's 65,535 limit. That still is missing, and the run lost a minute.
+- **Cost:** ~2 min.
+- **What would remove it:** the renderer splitting large dispatches, or the probe refusing to render a tree past a node count with an error naming it.

@@ -9,7 +9,6 @@ mod law;
 mod params;
 mod score;
 mod shadow;
-mod space;
 mod tree;
 
 use params::Params;
@@ -67,32 +66,56 @@ fn site(f: &Family) -> Site {
 fn grow(p: &Params, s: Site) -> law::Grown {
     let e = s.env;
     let unit = p.unit * e.height;
-    let r = e.max_radius() * 1.3;
-    let (lo, hi) = (Vec3::new(-r, 0.0, -r), Vec3::new(r, e.height * 1.05, r));
-    let size = hi - lo;
-    let count = (p.density * size.x * size.y * size.z / unit.powi(3)) as usize;
-    let seedling = p.seedling;
-    // Each marker is a point of the mature crown scaled to the crown of the
-    // age it joins at: scale seedling + (1 - seedling) u^(1/young), so
-    // young = 3 spreads markers evenly over the grown volume and a smaller
-    // value gives the young crowns more.
-    let place = |q: Vec3, m: u64| {
-        if !e.contains(q, 0.0, s.seed) {
-            return None;
+    let r = e.max_radius() + 0.3 * e.height;
+    let shadow = shadow::Shadow::new(Vec3::new(-r, 0.0, -r), Vec3::new(r, 1.3 * e.height, r), 2.0 * unit, p.shade, p.falloff, p.depth as usize);
+    law::grow(p, law::World { shadow, envelope: e, height: e.height, root_radius: s.root, exponent: s.exponent, seed: u64::from(s.seed) })
+}
+
+/// Troll against Rauh: first-order axes off the stem (axis >= 0.05 H), their
+/// elevation at birth and their base segment's elevation now, degrees.
+fn trace(g: &law::Grown, t: &Tree) -> serde_json::Value {
+    let n = g.pos.len();
+    let h = g.pos.iter().map(|q| q.y).fold(0.0, f64::max);
+    let mut stem = vec![false; n];
+    stem[0] = true;
+    let mut cont = vec![usize::MAX; n];
+    for i in 1..n {
+        let p = g.parent[i].unwrap();
+        stem[i] = !g.lateral[i] && stem[p];
+        if !g.lateral[i] && cont[p] == usize::MAX {
+            cont[p] = i;
         }
-        let u = law::unit_hash(u64::from(s.seed) ^ 0xA5A5, m);
-        let sc = seedling + (1.0 - seedling) * u.powf(1.0 / p.young);
-        Some((q * sc, sc))
-    };
-    let threads = p.threads as usize;
-    let space = space::Space::fill(lo, hi, count, p.perception * unit, p.occupancy * unit, u64::from(s.seed), threads, &place);
-    let shadow = (p.light > 0.0).then(|| {
-        let m = e.max_radius() + 0.3 * e.height;
-        shadow::Shadow::new(Vec3::new(-m, 0.0, -m), Vec3::new(m, 1.3 * e.height, m), 2.0 * unit, p.shade, p.falloff, 6)
-    });
-    let ramp = (p.ontogeny * p.cycles).max(1.0);
-    let scale = move |t: usize| seedling + (1.0 - seedling) * (t as f64 / ramp).min(1.0);
-    law::grow(p, law::World { space, shadow, scale: &scale, height: e.height, root_radius: s.root, exponent: s.exponent, seed: u64::from(s.seed) })
+    }
+    let (mut born, mut now) = (vec![], vec![]);
+    for i in 1..n {
+        let p = g.parent[i].unwrap();
+        if !(g.lateral[i] && stem[p]) || g.elev0[i].is_nan() {
+            continue;
+        }
+        let (mut e, mut l) = (i, (g.pos[i] - g.pos[p]).length());
+        while cont[e] != usize::MAX {
+            let c = cont[e];
+            l += (g.pos[c] - g.pos[e]).length();
+            e = c;
+        }
+        if l < 0.05 * h {
+            continue;
+        }
+        let d = g.pos[i] - g.pos[p];
+        born.push(g.elev0[i]);
+        now.push(d.y.atan2(d.x.hypot(d.z)).to_degrees());
+    }
+    let rise: Vec<f64> = now.iter().zip(&born).map(|(a, b)| a - b).collect();
+    let top = (0..n).filter(|&i| stem[i]).map(|i| g.pos[i].y).fold(0.0, f64::max);
+    let _ = t;
+    let md = |v: &[f64]| if v.is_empty() { f64::NAN } else { median(v.to_vec()) };
+    serde_json::json!({"axes": born.len(), "birth_elev_median": md(&born), "now_elev_median": md(&now), "rise_median": md(&rise),
+        "stem_top_share": top / h.max(1e-9)})
+}
+
+fn today(id: &str, seed: u32) -> serde_json::Value {
+    let p = format!(".flow/evidence/fn-190-one-growth-law-species-are-points-in-a/raw/today/{id}-{seed}.json");
+    std::fs::read_to_string(p).map_or(serde_json::Value::Null, |s| serde_json::from_str(&s).unwrap())
 }
 
 fn camera(id: &str, t: &Tree) -> Camera {
@@ -115,8 +138,7 @@ fn measure(id: &str, t: &Tree) -> serde_json::Value {
     let cam = camera(id, t);
     let sc = score::score(t, &cam);
     let fine = tree::fine(t);
-    let b = bands::judge(id, &sc, &fine);
-    serde_json::json!({"score": sc, "fine": fine, "bands": b})
+    serde_json::json!({"score": sc, "fine": fine})
 }
 
 fn stills(id: &str, f: &Family, t: Tree, prefix: &str) {
@@ -154,8 +176,12 @@ fn main() {
             out["preset"] = serde_json::json!(id);
             out["seed"] = serde_json::json!(seed);
             out["settings"] = p.to_json();
-            out["time_ms"] = serde_json::json!({"cold": cold, "warm_median": median(warm), "stages_cold": stages});
-            out["law"] = serde_json::json!({"cycles": st.cycles, "shed": st.shed, "buds_max": st.buds_max, "capped": st.capped, "markers": st.markers});
+            out["trace"] = trace(&g, &t);
+            let time = median(warm);
+            out["time_ms"] = serde_json::json!({"cold": cold, "warm_median": time, "stages_cold": stages,
+                "extend_cast_ms_cold": st.cast_ms, "shadow_updates": st.updates});
+            out["law"] = serde_json::json!({"cycles": st.cycles, "shed": st.shed, "buds_max": st.buds_max, "capped": st.capped});
+            out["votes"] = bands::judge(id, &out, &today(id, seed), time);
             write(&a[5], &out);
             if let Some(prefix) = a.get(6) {
                 stills(id, &f, t, prefix);
@@ -221,6 +247,7 @@ fn walk(ida: &str, pa: &str, idb: &str, pb: &str, seed: u32, steps: usize, out: 
         let t = tree::to_tree(&g);
         // Walk rows are judged on numbers, with one camera rule for all.
         let mut row = measure("walk", &t);
+        row["trace"] = trace(&g, &t);
         row["w"] = serde_json::json!(w);
         row["ms"] = serde_json::json!(ms);
         rows.push_str(&serde_json::to_string(&row).unwrap());

@@ -1,6 +1,6 @@
-//! One growth law from trunk to twig (fn-190 R1 probe). Buds compete for
-//! space (and, weighted, light) and share the resource by Borchert-Honda
-//! allocation (Pałubicki et al. 2009); every bud carries a continuous
+//! One growth law from trunk to twig (fn-190 R1 probe, round 2). Every bud
+//! reads its light from the shadow-propagation grid and the tree shares it by
+//! Borchert-Honda allocation (Pałubicki et al. 2009); every bud carries a continuous
 //! physiological age phi (Barthélémy & Caraglio 2007) that sets its shoot's
 //! length, its laterals and their place along it, its lean, and its fate.
 //! Vigour moves phi: a starved axis ages, a vigorous one stays young or
@@ -10,8 +10,8 @@
 //! randomness, so a small change of any setting is a small change of the tree.
 use crate::params::Params;
 use crate::shadow::Shadow;
-use crate::space::Space;
 use std::time::Instant;
+use telperion_core::envelope::Envelope;
 use telperion_core::math::Vec3;
 
 const NONE: u32 = u32::MAX;
@@ -32,6 +32,8 @@ struct Node {
     /// Pipes of shed wood (Pałubicki 4.5) and remembered resource per tip.
     memory: f64,
     qmem: f64,
+    /// A lateral's elevation at birth, degrees (NaN elsewhere).
+    elev0: f32,
 }
 
 #[derive(Clone, Copy)]
@@ -49,9 +51,11 @@ pub struct Stats {
     pub buds_max: usize,
     pub capped: bool,
     pub ms: [f64; 5],
-    pub markers: usize,
+    /// Of extend: the time spent casting shadows, and the voxels updated.
+    pub cast_ms: f64,
+    pub updates: u64,
 }
-pub const STAGES: [&str; 5] = ["perceive", "allocate", "shed", "extend", "straighten"];
+pub const STAGES: [&str; 5] = ["light", "allocate", "shed", "extend", "straighten"];
 
 /// The grown tree, parent before child.
 pub struct Grown {
@@ -59,14 +63,11 @@ pub struct Grown {
     pub parent: Vec<Option<usize>>,
     pub lateral: Vec<bool>,
     pub radius: Vec<f64>,
+    pub elev0: Vec<f64>,
     pub stats: Stats,
 }
 
 /// A uniform number in [0, 1) from a key and a salt.
-pub fn unit_hash(key: u64, salt: u64) -> f64 {
-    hash(key, salt)
-}
-
 fn hash(key: u64, salt: u64) -> f64 {
     let mut z = key.wrapping_mul(0x9E37_79B9_7F4A_7C15) ^ salt.wrapping_mul(0xD1B5_4A32_D192_ED03);
     z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
@@ -82,30 +83,29 @@ fn keyed_round(x: f64, key: u64, salt: u64) -> usize {
     f.floor() as usize + usize::from(hash(key, salt) < f.fract())
 }
 
-pub struct World<'a> {
-    pub space: Space,
-    pub shadow: Option<Shadow>,
-    /// Crown scale at cycle t (ontogeny).
-    pub scale: &'a dyn Fn(usize) -> f64,
+pub struct World {
+    pub shadow: Shadow,
+    /// The authored crown, pulled toward with weight `envelope` (0 neutral).
+    pub envelope: Envelope,
     pub height: f64,
     pub root_radius: f64,
     pub exponent: f64,
     pub seed: u64,
 }
 
-struct Grower<'a> {
+struct Grower {
     p: Params,
-    w: World<'a>,
+    w: World,
     nodes: Vec<Node>,
     buds: Vec<Bud>,
     next_key: u64,
     unit: f64,
-    cos: f64,
+    cast_ms: f64,
 }
 
 pub fn grow(p: &Params, w: World) -> Grown {
     let unit = p.unit * w.height;
-    let mut g = Grower { p: *p, nodes: vec![], buds: vec![], next_key: 1, unit, cos: p.cone.to_radians().cos(), w };
+    let mut g = Grower { p: *p, nodes: vec![], buds: vec![], next_key: 1, unit, cast_ms: 0.0, w };
     g.nodes.push(Node {
         parent: NONE,
         pos: Vec3::ZERO,
@@ -118,15 +118,14 @@ pub fn grow(p: &Params, w: World) -> Grown {
         out: Vec3::ZERO,
         memory: 0.0,
         qmem: 1.0,
+        elev0: f32::NAN,
     });
     g.buds.push(Bud { node: 0, dir: Vec3::Y, phi: 0.0, terminal: true });
     let mut st = Stats::default();
     for t in 0..p.cycles.round() as usize {
         st.cycles += 1;
-        let s = (g.w.scale)(t);
-        g.w.space.grow_to(s);
         let t0 = Instant::now();
-        let (q, guide) = g.perceive(t);
+        let (q, guide) = g.perceive();
         st.ms[0] += ms(t0);
         let t0 = Instant::now();
         let n = g.nodes.len();
@@ -167,7 +166,8 @@ pub fn grow(p: &Params, w: World) -> Grown {
         }
     }
     g.compact();
-    st.markers = g.w.space.placed;
+    st.cast_ms = g.cast_ms;
+    st.updates = g.w.shadow.updates;
     g.finish(st)
 }
 
@@ -175,31 +175,17 @@ fn ms(t: Instant) -> f64 {
     t.elapsed().as_secs_f64() * 1e3
 }
 
-impl Grower<'_> {
-    /// Each bud's resource and the direction to its free space. A bud that
-    /// sees nothing once the crown is grown never will again and is dropped.
-    fn perceive(&mut self, t: usize) -> (Vec<f64>, Vec<Vec3>) {
-        let grown = (self.w.scale)(t) >= 1.0;
-        let pts: Vec<(Vec3, Vec3)> = self.buds.iter().map(|b| (self.nodes[b.node as usize].pos, b.dir)).collect();
-        let seen = self.w.space.perceive(&pts, self.p.perception * self.unit, self.cos);
-        let mut q = Vec::with_capacity(self.buds.len());
-        let mut guide = Vec::with_capacity(self.buds.len());
-        let mut keep = Vec::with_capacity(self.buds.len());
-        for (b, (won, d, sees)) in self.buds.iter().zip(seen) {
-            if grown && !sees {
-                continue;
-            }
-            let mut x = if won > 0 { 1.0 } else { 0.0 };
-            if let Some(sh) = &self.w.shadow {
-                let e = (1.0 - sh.at(self.nodes[b.node as usize].pos) + self.p.shade).clamp(0.0, 1.0);
-                x *= 1.0 - self.p.light + self.p.light * e;
-            }
-            keep.push(*b);
-            q.push(x);
-            guide.push(d);
-        }
-        self.buds = keep;
-        (q, guide)
+impl Grower {
+    /// Each bud's light (one grid lookup) and the direction toward light.
+    fn perceive(&self) -> (Vec<f64>, Vec<Vec3>) {
+        let sh = &self.w.shadow;
+        self.buds
+            .iter()
+            .map(|b| {
+                let at = self.nodes[b.node as usize].pos;
+                ((1.0 - sh.at(at) + self.p.shade).clamp(0.0, 1.0), sh.descent(at))
+            })
+            .unzip()
     }
 
     /// Resource gathered along the main line (qm) and the laterals (ql) of
@@ -315,13 +301,16 @@ impl Grower<'_> {
         // rhythm's share set at the distal node; mean 1 over the shoot.
         let prof: Vec<f64> = (0..n).map(|k| (p.acrotony * 3.0 * ((k as f64 + 1.0) / n as f64 - 0.5)).exp()).collect();
         let mean = prof.iter().sum::<f64>() / n as f64;
-        let dev = p.branching * (1.0 - phi).powf(p.fate);
+        // Fate follows vigour and age: a weak or old shoot is short and bears
+        // few laterals (a short shoot), a vigorous young one is long and branches.
+        let dev = p.branching * (1.0 - phi).powf(p.fate) * (v / p.v_ref).min(1.0).powf(p.vigour_fate);
         let phi_l = (phi + p.phi_step).clamp(0.0, 1.0);
         let angle = (p.angle0 + (p.angle1 - p.angle0) * phi_l).to_radians();
         let mut d = b.dir;
         let mut at = b.node;
         for k in 0..n {
-            d = (d + guide * p.xi + trop * p.eta).normalized();
+            let here = self.nodes[at as usize].pos;
+            d = (d + guide * p.xi + trop * p.eta + self.inward(here) * p.envelope).normalized();
             let pos = self.nodes[at as usize].pos + d * len;
             let key = self.next_key;
             self.next_key += 1;
@@ -338,11 +327,11 @@ impl Grower<'_> {
                 out,
                 memory: 0.0,
                 qmem: 1.0,
+                elev0: if !b.terminal && k == 0 { d.y.clamp(-1.0, 1.0).asin().to_degrees() as f32 } else { f32::NAN },
             });
-            self.w.space.occupy(pos, p.occupancy * self.unit);
-            if let Some(sh) = &mut self.w.shadow {
-                sh.cast(pos, 1.0);
-            }
+            let tc = Instant::now();
+            self.w.shadow.cast(pos, 1.0);
+            self.cast_ms += ms(tc);
             let wk = (1.0 - p.rhythm) * prof[k] / mean + p.rhythm * if k + 1 == n { n as f64 } else { 0.0 };
             let nk = self.nodes[idx as usize].key;
             let laterals = keyed_round(dev * wk, nk, 3);
@@ -351,12 +340,25 @@ impl Grower<'_> {
                 self.buds.push(Bud { node: idx, dir, phi: phi_l, terminal: false });
             }
             at = idx;
-            if k + 1 < n && !self.w.space.sees(pos, d, p.perception * self.unit, self.cos) {
-                break;
-            }
         }
         let tk = self.nodes[at as usize].key;
         (hash(tk, 5) < p.persistence).then_some(Bud { node: at, dir: d, phi, terminal: true })
+    }
+
+    /// Toward the authored crown from outside it: inward and down, growing
+    /// with the distance outside; zero inside.
+    fn inward(&self, q: Vec3) -> Vec3 {
+        if self.p.envelope == 0.0 {
+            return Vec3::ZERO;
+        }
+        let e = &self.w.envelope;
+        let r = q.x.hypot(q.z);
+        let out = (r - e.radius_toward(q, self.w.seed as u32)).max(0.0) + (q.y - e.height).max(0.0);
+        if out <= 0.0 || r < 1e-9 {
+            return Vec3::ZERO;
+        }
+        let toward = Vec3::new(-q.x / r, if q.y > e.height { -1.0 } else { 0.0 }, -q.z / r).normalized();
+        toward * (out / self.unit).min(1.0)
     }
 
     /// A lateral bud's direction: `angle` off the shoot, its bearing the
@@ -462,6 +464,7 @@ impl Grower<'_> {
             parent: self.nodes.iter().map(|x| (x.parent != NONE).then_some(x.parent as usize)).collect(),
             lateral: self.nodes.iter().map(|x| x.lateral).collect(),
             radius: d.iter().map(|x| k * x.max(1.0).powf(1.0 / e)).collect(),
+            elev0: self.nodes.iter().map(|x| f64::from(x.elev0)).collect(),
             stats,
         }
     }

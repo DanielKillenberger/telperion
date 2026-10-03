@@ -137,9 +137,11 @@ pub fn fine(t: &Tree) -> serde_json::Value {
     }
     let steep = elev.iter().filter(|&&a| a > 45.0).count() as f64 / elev.len().max(1) as f64;
     let wood: f64 = (1..len).map(seg).sum();
+    let root = n[0].radius;
+    let under = |k: f64| (1..len).filter(|&i| n[i].radius < k * root).map(seg).sum::<f64>();
     let r3 = |x: f64| (x * 1000.0).round() / 1000.0;
     serde_json::json!({
-        "nodes": len, "wood_m": r3(wood), "fine_m": r3(local_m),
+        "nodes": len, "wood_m": r3(wood), "fine_m": r3(local_m), "fine_m_004": r3(under(0.04)), "fine_m_006": r3(under(0.06)),
         "laterals_per_m": r3(lats as f64 / local_m.max(1e-9)),
         "generations_p50_p90_max": [pct(&gens, 0.5), pct(&gens, 0.9), pct(&gens, 1.0)],
         "lowest_lateral_axis": r3(lowest / h.max(1e-9)), "elevation_median": r3(pct(&elev, 0.5)), "elevation_steep_share": r3(steep), "elevation_n": elev.len(),

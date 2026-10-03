@@ -65,4 +65,14 @@ impl Shadow {
     pub fn at(&self, p: Vec3) -> f64 {
         self.cell(p).map_or(0.0, |[i, j, k]| f64::from(self.s[self.idx(i, j, k)]))
     }
+
+    /// The normalised negative gradient of the shadow: towards light.
+    pub fn descent(&self, p: Vec3) -> Vec3 {
+        let Some([i, j, k]) = self.cell(p) else { return Vec3::ZERO };
+        let at = |a: usize, b: usize, c: usize| f64::from(self.s[self.idx(a, b, c)]);
+        let d = |v: usize, n: usize| (v.saturating_sub(1), (v + 1).min(n - 1));
+        let ((i0, i1), (j0, j1), (k0, k1)) = (d(i, self.n[0]), d(j, self.n[1]), d(k, self.n[2]));
+        let g = Vec3::new(at(i0, j, k) - at(i1, j, k), at(i, j0, k) - at(i, j1, k), at(i, j, k0) - at(i, j, k1));
+        if g.length() > 1e-9 { g.normalized() } else { Vec3::ZERO }
+    }
 }
