@@ -28,9 +28,10 @@ Stage A for the oak, reading only, in parallel with the beech (.1), spruce and p
 - [ ] No code changed
 
 ## Done summary
-TBD
+MODEL-OAK.md written: ten Rauh rules quoted and mapped to settings, unsourced items listed (clustering at shoot tops, forks from the terminal bud cluster), four missing engine features (polycyclism, apical control by age, reiteration without tip death, shade death), five traits, four design questions for the host (chiefly the low fork).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
+- Commits: a71017012dd06eba8a703ecd3d1a9d3bfa4ae0ba
 - Tests:
 - PRs:

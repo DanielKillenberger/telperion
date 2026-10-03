@@ -55,3 +55,17 @@
 - **Hindered by:** round 2's points exploded past 1.2M grown nodes on the new law, because phi no longer reaches 1, so short shoots keep a small branching chance. On the beech, drift 0.03 against 0.015 swung the tree from 4k kept nodes to over 1.2M grown. Each law change throws away the previous round's points, and finding a size the rule does not explode or starve at takes most of the round.
 - **Cost:** ~15 min and ~25 runs before any architecture could be judged.
 - **What would remove it:** R1b's size bound, or a driver that solves `branching` for a target grown-node count before the architecture settings are judged (named in round 1's entry).
+
+## 2026-10-03, stage 1 (beech, Troll), the shell guard and the size knife-edge again
+
+- **Doing:** building the module rule and growing the beech at several ages.
+- **Hindered by:** (1) the dcg hook blocked a Python heredoc edit and a `printf > $VAR/path` redirect, so every settings file and driver had to go through the editor tool; (2) the open-loop rule explodes past 1.2M grown nodes between age 20 and 34 as soon as branching is raised to give the beech its twig density, the same knife-edge as R1a rounds 1 and 3: long-lived plagiotropic branches keep branching yearly and nothing bounds them without light.
+- **Cost:** ~5 min for the hook; ~10 min and four runs on size before the architecture could be judged at maturity.
+- **What would remove it:** for (1), a committed probe driver taking the point and ages as arguments (local hook setup, reported not specced); for (2), stage 5's light and carbon balance, or a driver that solves `branching` for a target node count at the mature age.
+
+## 2026-10-03, fn-190.2 (oak model specification)
+
+- **Doing:** finding the quote behind LITERATURE.md's source tag for Rauh in *Q. rubra*.
+- **Hindered by:** the tag points at `hot_ch3.md`, which is only a landing page and abstract; the quote is in `miami.md` (Tomlinson 1983).
+- **Cost:** about 5 minutes.
+- **What would remove it:** LITERATURE.md naming the file behind each source tag.
