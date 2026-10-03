@@ -83,3 +83,9 @@
 - **Hindered by:** a temporary `GL_DEBUG` check in the prune loop read the environment once per pruned node; with about a million pruned nodes it cost ~190 ms, so the prune pass read 212 ms instead of 19 and every timing from v8 to the first final run was about 2.5 times too slow. Separately, the renderer refused a 2.1M-node tree (a dispatch group of 87,078 against a limit of 65,535), so that point could not be drawn at all (already logged in R1 round 2).
 - **Cost:** ~3 min to see and remove; the misleading timings were never reported.
 - **What would remove it:** diagnostics kept out of timed passes (a diag run, as `diag` already is for the factorisation probe); the renderer splitting large dispatches.
+
+## 2026-10-03, fn-190.18 (baseline), moved from BASELINE.md
+
+- **2026-10-03, task .18, measuring today's full build.** `growth_law today` has no seed-aware full-build timing, leaf count or peak-memory output, and `examples/measure.rs` has no seed argument. Writing and building a scratch crate cost about 10 minutes. A `today --cost` mode in the probe, or a seed argument on `measure`, would remove it.
+- **2026-10-03, task .18, the `today` skeleton figure.** Its warm median comes from 3 runs and is noisy under shared load (beech seed 1: 80.5 ms against 57.3 ms over 21 runs). Spotting and re-measuring it cost about 3 minutes. Taking the median of at least 11 runs in `today` would remove it.
+- **2026-10-03, task .18, shell guard.** The dcg hook blocks `>` redirects to paths held in shell variables, so two commands were rewritten with literal paths. This cost about 2 minutes.

@@ -26,9 +26,10 @@ Captures today's trees once, at a pinned revision, before anything replaces them
 - [ ] The host has viewed the stills
 
 ## Done summary
-TBD
+BASELINE.md pins eight presets at 8e0141dc (release, 21-run skeleton medians, full build, leaf count, peak memory via a scratch measuring crate); ash and plane have no preset there. Host viewed all eight sheets; the palm whole stills crop the crown (fixed in .19). Friction moved to FRICTION.md; cost mode and 11-run medians added to .19.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
+- Commits: 551391c78e1eed09da5e9084784b326977274abe
 - Tests:
 - PRs:

@@ -17,6 +17,8 @@ Tooling the point and walk tasks need and may not edit themselves: stills at a c
 
 #- Framing: the `today` and grow stills frame the camera on the stem's bounds, which crops the palm's frond crown (fn-190.4, Q4); frame every still on the whole tree including foliage, and re-render the palm bar (`raw/palm-today/`).
 
+- Cost (friction from .18): `today` and `grow` report full-build time, leaf count and peak memory per seed, and take the median of at least 11 warm runs.
+
 ## Investigation targets
 **Required:**
 - `crates/telperion-render/examples/growth_law/main.rs:150-281`
