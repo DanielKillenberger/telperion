@@ -10,7 +10,7 @@
   "id": "fn-190-one-growth-law-species-are-points-in-a",
   "impl_review_rounds": {},
   "next_task": 1,
-  "no_plan": true,
+  "no_plan": false,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T11:28:14.336150Z"
+  "updated_at": "2026-10-03T15:44:25.936931Z"
 }

@@ -1,0 +1,19 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T15:47:07.703555Z",
+  "depends_on": [
+    "fn-190-one-growth-law-species-are-points-in-a.1",
+    "fn-190-one-growth-law-species-are-points-in-a.2",
+    "fn-190-one-growth-law-species-are-points-in-a.3",
+    "fn-190-one-growth-law-species-are-points-in-a.4"
+  ],
+  "id": "fn-190-one-growth-law-species-are-points-in-a.5",
+  "priority": null,
+  "spec": "fn-190-one-growth-law-species-are-points-in-a",
+  "spec_path": ".flow/tasks/fn-190-one-growth-law-species-are-points-in-a.5.md",
+  "status": "todo",
+  "title": "The settings vocabulary (host, Astra review, owner sees it)",
+  "updated_at": "2026-10-03T15:47:07.703555Z"
+}

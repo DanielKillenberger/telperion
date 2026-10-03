@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T15:47:07.703768Z",
+  "depends_on": [
+    "fn-190-one-growth-law-species-are-points-in-a.5"
+  ],
+  "id": "fn-190-one-growth-law-species-are-points-in-a.11",
+  "priority": null,
+  "spec": "fn-190-one-growth-law-species-are-points-in-a",
+  "spec_path": ".flow/tasks/fn-190-one-growth-law-species-are-points-in-a.11.md",
+  "status": "todo",
+  "title": "Remaining models: birch, ash, plane specifications and the Two Trees' character",
+  "updated_at": "2026-10-03T15:47:07.703768Z"
+}

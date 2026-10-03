@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T15:47:07.703876Z",
+  "depends_on": [
+    "fn-190-one-growth-law-species-are-points-in-a.11",
+    "fn-190-one-growth-law-species-are-points-in-a.13"
+  ],
+  "id": "fn-190-one-growth-law-species-are-points-in-a.14",
+  "priority": null,
+  "spec": "fn-190-one-growth-law-species-are-points-in-a",
+  "spec_path": ".flow/tasks/fn-190-one-growth-law-species-are-points-in-a.14.md",
+  "status": "todo",
+  "title": "Production design (host, Astra review)",
+  "updated_at": "2026-10-03T15:47:07.703876Z"
+}
