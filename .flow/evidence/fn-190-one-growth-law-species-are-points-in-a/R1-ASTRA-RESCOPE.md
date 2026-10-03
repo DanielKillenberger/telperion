@@ -1,0 +1,19 @@
+**AGREE WITH CHANGES on option 1.** Stop the current approach and retain the probe’s speed gate. The proposed replacement deserves a bounded experiment, but its claimed mechanism and inherited successes remain unproven. Option 3 postpones proof of speed; it does not itself lower the production bar.
+
+The strongest objection is that **the rescope has not identified which expensive work actually disappears**. Round 4 already computed Beer–Lambert light once per cycle. Its field pass cost 24.8 ms on beech, while allocation cost 70.7 ms and extension 60.0 ms. Carbon balance, shedding and straightening still require work outside that pass. Calling architecture “organogenesis” does not demonstrate that those costs disappear while preserving their benefits. See [R1-ROUND4.md, “Setup” and “Where time goes”](/home/daniel/Projects/telperion/.worktrees/fn-190/.flow/evidence/fn-190-one-growth-law-species-are-points-in-a/R1-ROUND4.md:81).
+
+Nor does the literature establish the replacement’s spread mechanism. [LITERATURE.md §4.2](/home/daniel/Projects/telperion/.worktrees/fn-190/.flow/evidence/fn-188-one-branching-law-from-trunk-to-twig/LITERATURE.md:166) explicitly labels continuous architectural regions as the researcher’s reading, “not shown in any source.” Section 3 describes GreenLab’s discrete categories and factorization, with no measured runtime read. Continuous φ plus spatially varying light may undermine that factorization. Most decisively, round 5 passed the Troll trace at beech seed 1 while producing an even narrower column. Angle and straightening evidence therefore cannot substitute for mature crown architecture. See [R1-ROUND5.md, “Results”](/home/daniel/Projects/telperion/.worktrees/fn-190/.flow/evidence/fn-190-one-growth-law-species-are-points-in-a/R1-ROUND5.md:38).
+
+Against the five principle questions:
+
+1. **One pipeline:** conditionally satisfied. One organogenesis rule must replace stage 2 for every preset, including short-shoot wood. Separate organogenesis for major axes and fine wood would recreate the seam.
+2. **Explicit errors:** incomplete. Define unsupported inputs and exhausted resource limits as errors. Returning a collapsed tree cannot silently count as successful generation.
+3. **Changes by degree:** unproven. Continuous curves do not guarantee continuous outcomes after branching and shedding. Round 4’s walk table still flags jumps under the existing criterion, despite its prose claiming movement by degree. That success cannot be inherited unchanged.
+4. **Consumers, costs and useful stops:** partially satisfied. Grown wood has consumers and retaining R1’s timing gate is justified. Every retained light, balance and reorientation pass needs measured cost; “cheap light” is insufficient.
+5. **Named requirements and deletion first:** correctly questions seedling competition, but fails to complete the deletion test. [“Question, delete, then optimise”](/home/daniel/Projects/telperion/.worktrees/fn-190/docs/principles.md:24) requires a measurement showing removal works. Treat the replacement and preservation of round 4’s benefits as hypotheses.
+
+Change R1 to name the deleted computations and the retained state, traversals and feedback. First prove **spread and cost together**: differentiated, reiterated broadleaf limbs reaching the reference crown, with envelope attraction neutral, actual grown short shoots, equal fine-wood length and the existing timing bar. Then prove that adding light and carbon feedback preserves that architecture while recovering bole, stable size and the unchanged walk criterion. Keep the existing species, seeds and voting rules.
+
+Use the existing **six-round total bound**: round 6 is the remaining attempt, ending in `NEEDS_HUMAN` if unmet. A new budget needs an explicit decision.
+
+The checked spec contains host-decision sections through round 4 only; I assessed the proposed rescope from your message.
