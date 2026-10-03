@@ -8,13 +8,85 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-191-tree-space-a-the-engine-core-reproduces",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-191-tree-space-a-the-engine-core-reproduces.1": 0
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "a6621d51f843daeaa354c19929f6a6b0422b3a29e181d696867a52ec583f0d12",
+      "backend": "codex",
+      "base_sha": "e2602444d83076b7923e1b784ec4566135026a8b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-411a838037f82f8e2605517e4973d1cf",
+            "classification": "introduced",
+            "findingId": "finding-411a838037f82f8e2605517e4973d1cf",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9930a0954208f70c99e15fd525ddc676",
+            "classification": "introduced",
+            "findingId": "finding-9930a0954208f70c99e15fd525ddc676",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e646577a16464430c7e25fc51e7219d1",
+            "classification": "introduced",
+            "findingId": "finding-e646577a16464430c7e25fc51e7219d1",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1865557e808e0a4da18e83decd209ebdab68f122",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 2346,
+      "output_sha256": "9ed10d86a398ed8869f9d02b09d019bce4fa6ed761c5390bb19c3eccf06c8179",
+      "reservation_id": "dd56361832ab4fa0b5a6b65cb55ee790",
+      "round_consumed": true,
+      "scope": "impl:fn-191-tree-space-a-the-engine-core-reproduces.1",
+      "superseded_by": null,
+      "task": "fn-191-tree-space-a-the-engine-core-reproduces.1",
+      "timestamp": "2026-10-03T19:54:57.922813Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-191-tree-space-a-the-engine-core-reproduces.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-191-tree-space-a-the-engine-core-reproduces.1": 0
+  },
   "spec_path": ".flow/specs/fn-191-tree-space-a-the-engine-core-reproduces.md",
   "status": "open",
   "title": "Tree space A: the engine core reproduces GreenLab",
@@ -29,5 +101,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T19:34:20.217358Z"
+  "updated_at": "2026-10-03T19:54:57.925501Z"
 }
