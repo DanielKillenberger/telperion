@@ -1,11 +1,14 @@
-//! Minimal geometry: axes of internodes of their PA's length times their
-//! scale, each lateral turned from its parent by its PA's insertion angle,
-//! around the parent at the azimuth its node's phyllotactic rank and its
-//! slot in the whorl give. A lateral's base straightens towards the vertical by its
-//! PA's straightening. The seed stands at the origin, growing up (+z); no
-//! wood goes below z = 0.
+//! Geometry: axes of internodes of their PA's length times their scale,
+//! each lateral turned from its parent's direction at its node by its PA's
+//! insertion angle, around the parent at the azimuth its node's
+//! phyllotactic rank and its slot in the whorl give, in a plane turned by
+//! the parent's `plane`. Along an axis the direction bends towards its
+//! PA's elevation (tropism) and wanders by keyed turns; a lateral's base
+//! straightens towards the vertical by its PA's straightening. The seed
+//! stands at the origin, growing up (+z); no wood goes below z = 0.
 use crate::error::{Error, Result};
-use crate::species::Species;
+use crate::lineage::Key;
+use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
 use std::f64::consts::TAU;
 
@@ -33,53 +36,115 @@ pub(crate) fn place(structure: &mut Structure, species: &Species) -> Result<()> 
             Origin::Lateral { .. } | Origin::Relay { .. } => state.straightening,
             _ => 0.0,
         };
-        lay(axis, base, heading, side, state.internode, bend)
+        lay(axis, (base, heading, side), state, bend)
             .map_err(|height| Error::BelowGround { axis: i, height })?;
     }
     Ok(())
 }
 
-/// Lays the axis's internodes from `base`. Each phytomer's direction is
-/// its heading pulled towards the vertical by `bend` at the base, fading to
-/// none at the tip along the axis's scaled length; the pull weakens as the
-/// heading turns down and vanishes for a branch hanging straight down,
-/// which has no side to curl up on.
+/// Lays the axis's internodes from its base frame. A running direction
+/// starts on the heading, bends towards the PA's elevation and wanders by
+/// each node's keyed turn, both in proportion to the internode's length;
+/// each phytomer's direction is that running direction pulled towards the
+/// vertical by `bend` at the base, fading to none at the tip along the
+/// axis's scaled length. The pull weakens as the heading turns down and
+/// vanishes for a branch hanging straight down, which has no side to curl
+/// up on.
 fn lay(
     axis: &mut Axis,
-    base: Vec3,
-    heading: Vec3,
-    side: Vec3,
-    internode: f64,
+    (base, heading, side): (Vec3, Vec3, Vec3),
+    state: &PaState,
     bend: f64,
 ) -> std::result::Result<(), f64> {
+    let form = state.form;
     let total: f64 = axis.phytomers.iter().map(|p| p.scale).sum();
     let pull = (1.0 + heading.z) / 2.0;
+    let (mut running, mut across) = (heading, side);
     let mut tip = base;
     let mut run = 0.0;
     for phytomer in &mut axis.phytomers {
+        let length = state.internode * phytomer.scale;
+        let share = 1.0 - (-form.tropism * length).exp();
+        let bent = toward_elevation(running, across, form.elevation, share);
+        across = carried(across, running, bent);
+        running = bent;
+        if form.wander > 0.0 {
+            let key = Key(phytomer.key).child(WANDER);
+            let angle = form.wander * length * (2.0 * key.child(0).unit() - 1.0);
+            let azimuth = TAU * key.child(1).unit();
+            let pivot = across * azimuth.cos() + running.cross(across) * azimuth.sin();
+            running = rotated(running, pivot, angle);
+            across = rotated(across, pivot, angle);
+        }
         let along = if total > 0.0 {
             (run + phytomer.scale / 2.0) / total
         } else {
             1.0
         };
         run += phytomer.scale;
-        let share = bend * (1.0 - along);
-        let blend = heading * (1.0 - share) + UP * (share * pull);
-        let direction = if bend > 0.0 && blend.length() > 1e-12 {
-            blend * (1.0 / blend.length())
-        } else {
-            heading
+        let lift = bend * (1.0 - along);
+        let blend = running * (1.0 - lift) + UP * (lift * pull);
+        let direction = match blend.unit() {
+            Some(unit) if bend > 0.0 => unit,
+            _ => running,
         };
-        tip = tip + direction * (internode * phytomer.scale);
+        tip = tip + direction * length;
         if tip.z < -GROUND_TOLERANCE {
             return Err(-tip.z);
         }
         phytomer.tip = tip;
+        phytomer.heading = direction;
+        phytomer.side = (across - direction * across.dot(direction))
+            .unit()
+            .unwrap_or(across);
     }
     axis.base = base;
     axis.heading = heading;
     axis.side = side;
     Ok(())
+}
+
+/// The key step of a node's wander draws.
+const WANDER: u64 = 1;
+
+/// `direction` turned in its vertical plane by `share` of its gap to
+/// `elevation`. A vertical direction turns towards its side.
+fn toward_elevation(direction: Vec3, side: Vec3, elevation: f64, share: f64) -> Vec3 {
+    if share <= 0.0 {
+        return direction;
+    }
+    let level = |v: Vec3| Vec3::new(v.x, v.y, 0.0).unit();
+    let Some(out) = level(direction).or_else(|| level(side)) else {
+        return direction;
+    };
+    let now = direction.z.clamp(-1.0, 1.0).asin();
+    let to = now + (elevation - now) * share;
+    out * to.cos() + UP * to.sin()
+}
+
+/// `v` carried by the least rotation that takes unit `from` to unit `to`.
+fn carried(v: Vec3, from: Vec3, to: Vec3) -> Vec3 {
+    let axis = from.cross(to);
+    let sin = axis.length();
+    match axis.unit() {
+        Some(pivot) => rotated(v, pivot, sin.atan2(from.dot(to))),
+        None => v,
+    }
+}
+
+/// `v` rotated by `angle` about the unit `pivot` (Rodrigues).
+fn rotated(v: Vec3, pivot: Vec3, angle: f64) -> Vec3 {
+    let (sin, cos) = angle.sin_cos();
+    v * cos + pivot.cross(v) * sin + pivot * (pivot.dot(v) * (1.0 - cos))
+}
+
+/// Where axis `p` ends: its last node and the frame there, or its base.
+fn end(p: &Axis) -> (Vec3, Vec3, Vec3) {
+    p.phytomers
+        .last()
+        .map_or((p.base, p.heading, p.side), |last| {
+            (last.tip, last.heading, last.side)
+        })
 }
 
 /// The base, heading and side of axis `i`, from its already placed parent.
@@ -89,11 +154,11 @@ fn frame(structure: &Structure, species: &Species, i: usize) -> (Vec3, Vec3, Vec
         Origin::Seed => (Vec3::default(), UP, Vec3::new(1.0, 0.0, 0.0)),
         Origin::Continuation { parent } => {
             let p = &structure.axes[parent];
-            let base = p.phytomers.last().map_or(p.base, |last| last.tip);
+            let (base, heading, side) = end(p);
             // The phyllotaxis runs on across the change of PA.
             let turn = species.states[p.pa].divergence * p.rank;
-            let side = p.side * turn.cos() + p.heading.cross(p.side) * turn.sin();
-            (base, p.heading, side)
+            let side = side * turn.cos() + heading.cross(side) * turn.sin();
+            (base, heading, side)
         }
         Origin::Lateral {
             parent,
@@ -102,26 +167,41 @@ fn frame(structure: &Structure, species: &Species, i: usize) -> (Vec3, Vec3, Vec
             whorl,
         } => {
             let p = &structure.axes[parent];
-            let azimuth = species.states[p.pa].divergence * p.phytomers[node].rank
-                + TAU * f64::from(slot) / f64::from(whorl);
-            let (heading, side) = turned(p, azimuth, species.states[axis.pa].insertion);
-            (p.phytomers[node].tip, heading, side)
+            let at = &p.phytomers[node];
+            let parent_state = &species.states[p.pa];
+            let azimuth =
+                parent_state.divergence * at.rank + TAU * f64::from(slot) / f64::from(whorl);
+            let (heading, side) = turned(
+                (at.heading, at.side),
+                azimuth,
+                species.states[axis.pa].insertion,
+                parent_state.form.plane,
+            );
+            (at.tip, heading, side)
         }
         Origin::Relay { parent } => {
             // At the last node, facing where the next node's bud would.
             let p = &structure.axes[parent];
-            let azimuth = species.states[p.pa].divergence * p.rank;
-            let (heading, side) = turned(p, azimuth, species.states[axis.pa].insertion);
-            let base = p.phytomers.last().map_or(p.base, |last| last.tip);
+            let (base, along, side) = end(p);
+            let parent_state = &species.states[p.pa];
+            let azimuth = parent_state.divergence * p.rank;
+            let (heading, side) = turned(
+                (along, side),
+                azimuth,
+                species.states[axis.pa].insertion,
+                parent_state.form.plane,
+            );
             (base, heading, side)
         }
     }
 }
 
-/// The heading and side of a bud at `azimuth` around parent `p`, inserted at `angle`.
-fn turned(p: &Axis, azimuth: f64, angle: f64) -> (Vec3, Vec3) {
-    let toward = p.side * azimuth.cos() + p.heading.cross(p.side) * azimuth.sin();
-    let heading = p.heading * angle.cos() + toward * angle.sin();
-    let side = toward * angle.cos() - p.heading * angle.sin();
+/// The heading and side of a bud at `azimuth` around a parent going
+/// `along` with `side`, inserted at `angle`, its plane turned by `plane`.
+fn turned((along, side): (Vec3, Vec3), azimuth: f64, angle: f64, plane: f64) -> (Vec3, Vec3) {
+    let toward = side * azimuth.cos() + along.cross(side) * azimuth.sin();
+    let heading = along * angle.cos() + toward * angle.sin();
+    let side = toward * angle.cos() - along * angle.sin();
+    let side = side * plane.cos() + heading.cross(side) * plane.sin();
     (heading, side)
 }

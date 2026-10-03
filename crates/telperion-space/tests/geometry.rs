@@ -2,7 +2,7 @@
 //! its PA's insertion angle to its parent, successive nodes turned by the
 //! divergence.
 use std::f64::consts::PI;
-use telperion_space::{grow, NodeLaw, Origin, PaState, Request, Species, Vec3, Zone};
+use telperion_space::{grow, Form, NodeLaw, Origin, PaState, Request, Species, Vec3, Zone};
 
 fn length(v: Vec3) -> f64 {
     (v.x * v.x + v.y * v.y + v.z * v.z).sqrt()
@@ -28,6 +28,7 @@ fn axes_take_their_lengths_and_angles_from_their_pa() {
         readiness: 1.0,
         rhythm: 1.0,
         straightening: 0.0,
+        form: Form::default(),
     };
     let species = Species {
         states: vec![state(0.5, 0.0, &[0.0, 1.0]), state(0.3, 0.6, &[0.0, 0.0])],
@@ -92,6 +93,7 @@ fn phyllotaxis_runs_on_across_a_continuation() {
         readiness: 1.0,
         rhythm: 1.0,
         straightening: 0.0,
+        form: Form::default(),
     };
     let species = Species {
         states: vec![state(Some(0), &[0.0, 1.0]), state(None, &[0.0, 0.0])],
@@ -137,6 +139,7 @@ fn an_overflowing_expectation_draws_finite_wood() {
             readiness: 1.0,
             rhythm: 1.0,
             straightening: 0.0,
+            form: Form::default(),
         }],
     };
     let request = Request {
@@ -172,6 +175,7 @@ fn an_unreachable_pa_takes_no_part_in_a_window() {
         readiness: 1.0,
         rhythm: 1.0,
         straightening: 0.0,
+        form: Form::default(),
     };
     let species = Species {
         states: vec![

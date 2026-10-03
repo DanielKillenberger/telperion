@@ -4,7 +4,7 @@
 #![allow(dead_code)]
 use serde_json::Value;
 use std::f64::consts::PI;
-use telperion_space::{grow, NodeLaw, Origin, PaState, Request, Species, Structure, Zone};
+use telperion_space::{grow, Form, NodeLaw, Origin, PaState, Request, Species, Structure, Zone};
 
 pub const BUDGET: u32 = 1_000_000;
 
@@ -61,6 +61,7 @@ pub fn species(set: &Value) -> Species {
                 readiness: 1.0,
                 rhythm: 1.0,
                 straightening: 0.0,
+                form: Form::default(),
             }
         })
         .collect();

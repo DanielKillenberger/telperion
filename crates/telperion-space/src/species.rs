@@ -5,7 +5,7 @@
 //! along the reference axis towards older PAs (AmapSim's oriented automaton;
 //! GreenLab's dual-scale automaton, de Reffye et al. 2021).
 use crate::error::{refuse, Result};
-use std::f64::consts::{PI, TAU};
+use std::f64::consts::{FRAC_PI_2, PI, TAU};
 
 /// The most buds one node carries: a whorl of six.
 pub const MAX_BUDS: u8 = 6;
@@ -14,6 +14,10 @@ const MAX_MEAN_NODES: f64 = 500.0;
 const MAX_STATES: usize = 64;
 /// The longest internode, in metres: a budget of phytomers this long stays finite.
 const MAX_INTERNODE: f64 = 100.0;
+/// The fastest bend or wander, in radians (or shares) per metre.
+const MAX_RATE: f64 = 100.0;
+/// The widest pipe one phytomer adds, in metres.
+const MAX_PIPE: f64 = 1.0;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Species {
@@ -58,6 +62,43 @@ pub struct PaState {
     /// How far the base of a lateral axis of this PA straightens towards
     /// the vertical, as Troll's plagiotropic axes do. Neutral 0.
     pub straightening: f64,
+    /// How an axis of this PA bends, wanders, turns its laterals' plane and
+    /// thickens.
+    pub form: Form,
+}
+
+/// The shape an axis takes as it is laid, beyond its angles: each a
+/// continuous setting, neutral where it changes nothing.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Form {
+    /// How fast the axis bends towards `elevation`: the share of the gap
+    /// closed is 1 - exp(-tropism × metres grown). Neutral 0.
+    pub tropism: f64,
+    /// The elevation the axis bends towards, in radians above the
+    /// horizontal: plagiotropic near 0, orthotropic at pi / 2.
+    pub elevation: f64,
+    /// Sinuosity: each node turns the axis by up to this many radians per
+    /// metre of its internode, in a direction its draw keys. Neutral 0.
+    pub wander: f64,
+    /// The turn, in radians about its heading, of the plane a lateral of
+    /// this axis branches in. Neutral 0: the plane holds its parent.
+    pub plane: f64,
+    /// The pipe each phytomer of this PA adds below it, as a radius in
+    /// metres (the pipe model: a section is the sum of the sections it bears).
+    pub pipe: f64,
+}
+
+impl Default for Form {
+    /// Straight axes in their parent's plane, each phytomer a 5 mm pipe.
+    fn default() -> Self {
+        Self {
+            tropism: 0.0,
+            elevation: 0.0,
+            wander: 0.0,
+            plane: 0.0,
+            pipe: 0.005,
+        }
+    }
 }
 
 /// A zone of a growth unit: its node count and the PA of each node's buds.
@@ -167,6 +208,34 @@ impl PaState {
             return refuse(
                 format!("{at}.divergence"),
                 "a divergence angle lies in -2 pi to 2 pi",
+            );
+        }
+        self.form.validate(&format!("{at}.form"))
+    }
+}
+
+impl Form {
+    fn validate(&self, at: &str) -> Result<()> {
+        let rates = [
+            ("tropism", self.tropism, MAX_RATE),
+            ("wander", self.wander, MAX_RATE),
+            ("pipe", self.pipe, MAX_PIPE),
+        ];
+        for (name, value, most) in rates {
+            if !(0.0..=most).contains(&value) {
+                return refuse(format!("{at}.{name}"), "a rate lies in its bounded range");
+            }
+        }
+        if !(-FRAC_PI_2..=FRAC_PI_2).contains(&self.elevation) {
+            return refuse(
+                format!("{at}.elevation"),
+                "an elevation lies in -pi / 2 to pi / 2",
+            );
+        }
+        if !(-TAU..=TAU).contains(&self.plane) {
+            return refuse(
+                format!("{at}.plane"),
+                "a plane's turn lies in -2 pi to 2 pi",
             );
         }
         Ok(())

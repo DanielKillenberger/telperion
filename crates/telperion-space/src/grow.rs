@@ -8,6 +8,7 @@
 //! element in from nothing.
 use crate::error::{refuse, Error, Result};
 use crate::geometry::place;
+use crate::girth::thicken;
 use crate::lineage::{
     self, above, below, Key, ABORTION, CONTINUATION, RELAY, RELAY_BUD, VIABILITY, ZONE,
 };
@@ -74,6 +75,7 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
         return Err(Error::Collapsed);
     }
     place(&mut structure, species)?;
+    thicken(&mut structure, species);
     // Wood that stands exactly at its draw has no size.
     if structure
         .axes
@@ -251,7 +253,11 @@ impl Grower<'_> {
                 axis.phytomers.push(Phytomer {
                     cycle,
                     tip: Vec3::default(),
+                    heading: Vec3::default(),
+                    side: Vec3::default(),
+                    radius: 0.0,
                     scale: 1.0,
+                    key: zone_key.child(drawn).0,
                     rank: 0.0,
                 });
                 let node_presence = self.windows.presence(node_lead, node_wood);

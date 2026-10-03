@@ -2,7 +2,7 @@
 //! tree that collapses, outgrows its budget or puts wood below the ground
 //! is an error, never a substitute.
 use std::f64::consts::PI;
-use telperion_space::{grow, Error, NodeLaw, PaState, Request, Species, Zone};
+use telperion_space::{grow, Error, Form, NodeLaw, PaState, Request, Species, Zone};
 
 fn species() -> Species {
     let state = |lifespan, next, lateral: &[f64]| PaState {
@@ -23,6 +23,7 @@ fn species() -> Species {
         readiness: 1.0,
         rhythm: 1.0,
         straightening: 0.0,
+        form: Form::default(),
     };
     Species {
         states: vec![state(6, None, &[0.0, 0.5]), state(2, Some(1), &[0.0, 0.0])],
@@ -38,7 +39,7 @@ const REQUEST: Request = Request {
 #[test]
 fn every_input_the_engine_cannot_draw_is_refused_by_name() {
     type Edit = fn(&mut Species);
-    let cases: [(Edit, &str); 22] = [
+    let cases: [(Edit, &str); 27] = [
         (|s| s.states.clear(), "states"),
         (|s| s.states[0].lifespan = 0, "states[0].lifespan"),
         (|s| s.states[1].next = Some(0), "states[1].next"),
@@ -82,6 +83,20 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
             |s| s.states[0].straightening = -1.0,
             "states[0].straightening",
         ),
+        (
+            |s| s.states[0].form.tropism = -0.1,
+            "states[0].form.tropism",
+        ),
+        (
+            |s| s.states[1].form.wander = f64::NAN,
+            "states[1].form.wander",
+        ),
+        (|s| s.states[0].form.pipe = 2.0, "states[0].form.pipe"),
+        (
+            |s| s.states[1].form.elevation = 2.0,
+            "states[1].form.elevation",
+        ),
+        (|s| s.states[0].form.plane = 1e9, "states[0].form.plane"),
     ];
     for (edit, input) in cases {
         let mut s = species();

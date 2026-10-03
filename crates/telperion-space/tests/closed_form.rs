@@ -3,7 +3,7 @@
 mod common;
 use common::{age, sets, species, tree};
 use std::f64::consts::PI;
-use telperion_space::{expected_counts, CountTable, NodeLaw, PaState, Species, Zone};
+use telperion_space::{expected_counts, CountTable, Form, NodeLaw, PaState, Species, Zone};
 
 fn state(lifespan: u32, next: Option<usize>, zones: Vec<Zone>) -> PaState {
     PaState {
@@ -21,6 +21,7 @@ fn state(lifespan: u32, next: Option<usize>, zones: Vec<Zone>) -> PaState {
         readiness: 1.0,
         rhythm: 1.0,
         straightening: 0.0,
+        form: Form::default(),
     }
 }
 

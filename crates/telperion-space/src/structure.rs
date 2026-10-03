@@ -15,7 +15,15 @@ impl Vec3 {
         Self { x, y, z }
     }
     pub fn length(self) -> f64 {
-        (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
+        self.dot(self).sqrt()
+    }
+    pub fn dot(self, o: Self) -> f64 {
+        self.x * o.x + self.y * o.y + self.z * o.z
+    }
+    /// The unit vector along this one; none for a vector of no length.
+    pub fn unit(self) -> Option<Self> {
+        let length = self.length();
+        (length > 1e-12).then(|| self * (1.0 / length))
     }
     pub fn cross(self, o: Self) -> Self {
         Self::new(
@@ -114,9 +122,17 @@ pub struct Phytomer {
     pub cycle: u32,
     /// Its node, the internode's upper end.
     pub tip: Vec3,
+    /// The unit direction its internode grew in, and the unit side its
+    /// node's first bud faces, carried along the axis as it bends.
+    pub heading: Vec3,
+    pub side: Vec3,
+    /// Its internode's radius in metres, by the pipe model.
+    pub radius: f64,
     /// Its length and girth relative to a fully grown phytomer, 0 to 1:
     /// every presence on its lineage multiplied.
     pub scale: f64,
+    /// The key of its node's draw: the same node under any settings.
+    pub(crate) key: u64,
     /// Its place in the phyllotaxis: the nodes below it counted by their
     /// presence, so a node growing in turns the ones above it by degree.
     pub(crate) rank: f64,

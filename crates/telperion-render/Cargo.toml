@@ -31,6 +31,9 @@ js-sys = "0.3"
 web-sys = { version = "0.3", features = ["HtmlCanvasElement", "Window"] }
 
 [dev-dependencies]
+# The tree space's stills (examples/space_beech.rs) dress its structure in the
+# pipeline's wood and leaves; the renderer library never sees it.
+telperion-space = { path = "../telperion-space" }
 # The conformance sweep reads the shipped families as JSON and walks them; the
 # renderer library itself never sees a parameter name.
 telperion-core = { path = "../telperion-core", features = ["json"] }

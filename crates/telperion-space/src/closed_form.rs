@@ -152,7 +152,7 @@ fn add_shifted(table: &mut CountTable, sub: &CountTable, born: usize, weight: f6
 #[cfg(test)]
 mod tests {
     use super::{expected_counts, expected_log_lengths};
-    use crate::species::{NodeLaw, PaState, Species, Zone};
+    use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 
     /// The expected length is the expected counts weighted by internode,
     /// with every setting away from neutral.
@@ -183,6 +183,7 @@ mod tests {
             readiness: 0.8,
             rhythm: 0.6,
             straightening: 0.0,
+            form: Form::default(),
         };
         let species = Species {
             states: vec![
