@@ -48,3 +48,10 @@
 - **Hindered by:** the spruce's below-ground wood was not a gravitropism gap. The two-ranked lateral rule rotated laterals about the shoot's horizontal side, so "two ranks" pointed up and down. The rule had been in the probe since round 1 and no check looked at where two-ranked laterals point.
 - **Cost:** ~5 min to find; unknown cost to earlier rounds' spruce and beech readings.
 - **What would remove it:** a unit check on the lateral-direction rule (a horizontal shoot at distich 1 gives laterals at elevation 0), written when the rule is written.
+
+## 2026-10-03, R1a round 3, every law change resets the tuning
+
+- **Doing:** retuning the three species after smooth phi, the establishment curve and vigour by phi.
+- **Hindered by:** round 2's points exploded past 1.2M grown nodes on the new law, because phi no longer reaches 1, so short shoots keep a small branching chance. On the beech, drift 0.03 against 0.015 swung the tree from 4k kept nodes to over 1.2M grown. Each law change throws away the previous round's points, and finding a size the rule does not explode or starve at takes most of the round.
+- **Cost:** ~15 min and ~25 runs before any architecture could be judged.
+- **What would remove it:** R1b's size bound, or a driver that solves `branching` for a target grown-node count before the architecture settings are judged (named in round 1's entry).

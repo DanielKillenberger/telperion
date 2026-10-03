@@ -169,8 +169,12 @@ impl Grower {
         let p = self.p;
         let base = b.node as usize;
         let bkey = self.key(base) ^ if b.terminal { 0 } else { b.dir.x.to_bits() };
-        let phi = (b.phi + p.drift * f64::from(b.years)).clamp(0.0, 1.0);
-        let n = keyed_round(lerp(p.n0, p.n1, phi), bkey, 11 + u64::from(t));
+        // phi moves the fraction `drift` of the way to 1 each year it grows.
+        let phi = 1.0 - (1.0 - b.phi) * (1.0 - p.drift).powi(i32::from(b.years));
+        // Vigour: the axis's own (falling with phi) times the tree's
+        // establishment curve; it sets the unit's metamers.
+        let vigour = lerp(1.0, p.n1 / p.n0, phi) * self.establishment(t);
+        let n = keyed_round(p.n0 * vigour, bkey, 11 + u64::from(t));
         if n == 0 {
             self.buds.push(Bud { years: b.years + 1, ..b });
             return;
@@ -203,17 +207,16 @@ impl Grower {
                 continue;
             }
             let u = (k + 1) as f64 / n as f64;
-            // The birth jump: by place along the unit and by the shoot's
-            // vigour (its metamers against a young shoot's).
-            let vigour = lerp(p.n0, p.n1, phi) / p.n0;
-            let mut phi_l = phi + p.phi_step + p.zone * (1.0 - u) + p.vigour_jump * (1.0 - vigour);
+            // The birth jump, by place along the unit and the shoot's lack
+            // of vigour, moves phi toward 1 by the fraction 1 - exp(-jump).
+            let jump = p.phi_step + p.zone * (1.0 - u) + p.vigour_jump * (1.0 - vigour).max(0.0);
+            let mut phi_l = 1.0 - (1.0 - phi) * (-jump).exp();
             if !persists && k + 1 == n {
                 // The terminal aborts: the distal laterals relay it, as
                 // reiterates of the axis (toward its phi at birth), as
                 // readily as the axis is young: (1 - phi at birth)^reiterShape.
                 phi_l = lerp(phi_l, b.phi, p.reiteration * (1.0 - b.phi).powf(p.reiter_shape));
             }
-            let phi_l = phi_l.clamp(0.0, 1.0);
             let angle = lerp(p.angle0, p.angle1, phi_l).to_radians();
             // Lifespan falls with phi; an axis dies with the one carrying it.
             let life = lerp(p.life0, p.life1, 1.0 - (1.0 - phi_l).powf(p.life_shape));
@@ -229,6 +232,16 @@ impl Grower {
         if persists {
             self.buds.push(Bud { node: at, dir: d, out, phi: b.phi, years: b.years + 1, terminal: true, dies: b.dies });
         }
+    }
+
+    /// The tree's establishment curve: vigour est0 at age 0, rising
+    /// smoothly toward 1 with time constant estYears (est0 1 is flat).
+    fn establishment(&self, t: u16) -> f64 {
+        let p = self.p;
+        if p.est_years <= 0.0 {
+            return 1.0;
+        }
+        1.0 - (1.0 - p.est0) * (-f64::from(t) / p.est_years).exp()
     }
 
     fn profile(&self, k: usize, n: usize) -> f64 {

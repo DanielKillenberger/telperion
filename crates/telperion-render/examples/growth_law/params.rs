@@ -14,8 +14,12 @@ pub struct Params {
     pub n1: f64,
     /// Internode length at phi 1 as a share of phi 0's.
     pub short: f64,
-    /// Phi gained per year an axis grows (axes age).
+    /// The share of the way to phi 1 an axis moves per year it grows.
     pub drift: f64,
+    /// Establishment: the tree's vigour at age 0 (1 flat) and the years
+    /// over which it rises toward 1.
+    pub est0: f64,
+    pub est_years: f64,
     /// Apical persistence: the yearly chance the terminal bud survives, at
     /// phi 0 and phi 1 (1 monopodial; lower is sympodial or short-lived).
     pub persist0: f64,
@@ -31,13 +35,11 @@ pub struct Params {
     /// Laterals per metamer at phi 0, falling as (1 - phi)^fate.
     pub branching: f64,
     pub fate: f64,
-    /// Phi a lateral starts above its parent's, and the extra phi a lateral
-    /// takes by its place along the unit: zone x (1 - u), u the share from
-    /// the base (positive: proximal laterals older, acrotony in phi).
+    /// A lateral's birth jump: phiStep + zone x (1 - u) + vigourJump x
+    /// (1 - the shoot's vigour), u its place from the unit's base; its phi
+    /// moves toward 1 by the fraction 1 - exp(-jump), never past it.
     pub phi_step: f64,
     pub zone: f64,
-    /// Extra birth phi by the parent shoot's lack of vigour: vigourJump x
-    /// (1 - its metamers / n0).
     pub vigour_jump: f64,
     /// Axis lifespan in years at phi 0 and phi 1, blended by
     /// 1 - (1 - phi)^lifeShape (higher falls sooner); an axis past it is
@@ -82,6 +84,8 @@ impl Default for Params {
             n1: 2.0,
             short: 1.0,
             drift: 0.02,
+            est0: 1.0,
+            est_years: 10.0,
             persist0: 1.0,
             persist1: 0.7,
             persist_shape: 1.0,
@@ -142,7 +146,7 @@ macro_rules! fields {
 }
 
 fields! {
-    unit = "unit", cycles = "cycles", n0 = "n0", n1 = "n1", short = "short", drift = "drift",
+    unit = "unit", cycles = "cycles", n0 = "n0", n1 = "n1", short = "short", drift = "drift", est0 = "est0", est_years = "estYears",
     persist0 = "persist0", persist1 = "persist1", persist_shape = "persistShape", reiteration = "reiteration", reiter_shape = "reiterShape",
     branching = "branching", fate = "fate", phi_step = "phiStep", zone = "zone", vigour_jump = "vigourJump", life0 = "life0", life1 = "life1", life_shape = "lifeShape", acrotony = "acrotony", rhythm = "rhythm",
     lean0 = "lean0", lean1 = "lean1", eta = "eta", ground = "ground", straighten = "straighten",
