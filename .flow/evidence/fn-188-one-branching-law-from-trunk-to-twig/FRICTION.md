@@ -34,3 +34,9 @@
 - **Hindered by:** at 534 × 400 the crown's twig haze is solid (the mask covers 76% of the crown rows), a neighbouring tree joins the right edge, the ground behind the bole is dark below y 290, and the crown is clipped at top and left. Only Astra's hand bands are usable on the photo; one image view (`raw/probe9/mask-check.png`) spent on learning it.
 - **Cost:** ~10 min, ~8k tokens, one of four image views.
 - **What would remove it:** a higher-resolution, uncropped bare beech photograph against open sky as the reference.
+
+## 2026-10-03, research agents (literature brief, reference photographs)
+
+- **The reference agent stalled waiting for a background job that had already died.** No download process was alive, so it waited for a notification that never came. Cost: about an hour of wall clock until the host checked. What would remove it: foreground downloads with timeouts (used after the nudge), and agents that do not wait on background jobs they cannot see.
+- **A shared scratchpad let two agents overwrite each other's `sheet.py`.** Cost: a few minutes and a rerun. What would remove it: one scratch subfolder per agent.
+- **Commons rate-limited parallel original downloads (HTTP 429),** so later species use Commons' 1920 or 1280 px versions; a bad file-extension parse cost retries. Cost: about 25 minutes. What would remove it: sequential downloads with backoff.
