@@ -78,3 +78,29 @@ The sheet example's time per structure is 20 to 51 µs, about 85 ns per phytomer
 - **R5 strips, host view:** abortion and states[2].viability walk by degree. Two pops remain: states[0].rhythm (seed 1) adds a full-length basal branch between 0.500 and 0.375, and states[0].viability (seed 2) adds the whole upper crown between 0.951 and 0.966. R4/R5 are not met on the stills.
 - **Decision:** the grow-in window becomes a fixed width in log-odds instead of probability, so near-certain structure (a trunk apex carrying the crown) grows in over a visible range; every birth, including the rhythm case, gets the same gradual entry. `GROW_IN` is set from that window, and the length lost to partly grown branches is reported.
 - **Review cap:** rounds 1 and 2 each found and fixed real defects; the cap stopped round 3 on unreviewed fixes. The host resets the round counter once (`flowctl spec reset-review-rounds`), recorded for the owner's morning review: the overnight run was authorised to stop only on a genuine wrong path, and a converging review is not one. One reset per spec, never more.
+
+## The log-odds window, measured (worker, after the host decision)
+
+I built the host's fix as asked: every presence grows in over a fixed width in log-odds, with no cap from the run width. Certain structure stays whole. The oracle, lineage and closed-form tests pass with it, because presence never changes topology. The patch is `logodds-window.patch`, against `d47c8897`; it is not applied.
+
+Length lost to partly grown branches on the walk tree, seeds 0 to 49 (`cargo run -p telperion-space --example partial`):
+
+| `GROW_IN` (log-odds) | Length lost | Axes born partly grown | Trunk viability, seed 2 | Rhythm, seed 1 |
+|---|---|---|---|---|
+| reviewed code (0.1 of room) | 20.9% | 12.4% | crown pops between 0.951 and 0.966 | basal branch pops |
+| 0.1 | 16.4% | 8.9% | not drawn | not drawn |
+| 0.25 | 35.0% | 20.8% | crown ¾ grown by 0.966, whole by 0.977: near pop | by degree |
+| 0.5 | 55.5% | 38.3% | crown half grown at 0.966, whole at 0.977 | not drawn |
+| 1.0 | 75.6% | 66.4% | crown grows from 0.951 to 0.989 | by degree |
+
+The stills are in `raw/strips-w0.25/`, `raw/strips-w0.5/` and `raw/strips-w1.0/` (ignored). The worker viewed every one listed.
+
+**Why no width works.** A fixed window cannot remove the visible pop and keep the tree:
+- The strips step about 0.39 log-odds per frame.
+- An element that carries the crown needs a window of about 1 log-odds to grow in over more than one frame.
+- A fixed window applies to every draw, so at that width two-thirds of all branches are born partly grown and three-quarters of the length is lost.
+- Whether a fixed width pops also depends on the strip's frame count, not on the tree.
+
+**Candidate for the host: a window that scales with what the draw decides.** Topology never depends on presence, so presences can be computed in a pass after growth, leaves first. Each draw would grow in over a log-odds window proportional to the presence-weighted length of the wood it decides, with a floor. That length is continuous in the settings, so presence stays continuous. A crown would then grow in over a wide window and a twig over a narrow one, and no crossing could change the tree faster than about (tree length) / (largest window) per log-odds unit. Expected length lost would be dominated by the few large draws near their bounds, rather than by every draw.
+
+This is a design change to R2's mechanism, and it is untested. It is the host's call.
