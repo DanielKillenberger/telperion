@@ -53,6 +53,7 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
             ..Draws::default()
         }],
         live: vec![Apex { axis: 0, units: 0 }],
+        units: vec![0],
         next: Vec::new(),
         leads: Vec::new(),
         node_buds: Vec::new(),
@@ -116,6 +117,9 @@ struct Grower<'a> {
     draws: Vec<Draws>,
     live: Vec<Apex>,
     next: Vec<Apex>,
+    /// Each axis's growth units in its PA when its apex stopped, or at its
+    /// birth while it lives: what a relay of it carries on.
+    units: Vec<u32>,
     /// One zone's node leads and its nodes (order draw, draw index, lead,
     /// buds), reused.
     leads: Vec<f64>,
@@ -142,7 +146,9 @@ impl Grower<'_> {
             self.draws[apex.axis].units.push([survive, 1.0]);
             self.grow_unit(apex, pa, unit, cycle)?;
             apex.units += 1;
-            if state.abortion > 0.0 {
+            // An apex that has spent its PA's lifespan moves on; it does not
+            // also abort.
+            if state.abortion > 0.0 && apex.units < state.lifespan {
                 let u = unit.child(ABORTION).unit();
                 if u < state.abortion {
                     self.axes[apex.axis].apex_end = Some(cycle);
@@ -175,10 +181,16 @@ impl Grower<'_> {
 
     /// A new bud that grows from the next cycle, made by draws with these
     /// presences.
+    /// A relay carries on its axis's growth units in its PA.
     fn sprout(&mut self, key: Key, pa: usize, cycle: u32, origin: Origin, made: [f64; 2]) {
+        let units = match origin {
+            Origin::Relay { parent, .. } => self.units[parent],
+            _ => 0,
+        };
+        self.units.push(units);
         self.next.push(Apex {
             axis: self.axes.len(),
-            units: 0,
+            units,
         });
         self.axes.push(bud(key, pa, cycle, origin));
         self.draws.push(Draws {
@@ -188,9 +200,10 @@ impl Grower<'_> {
     }
 
     /// The apex has stopped, `stopped` log-odds past its last draw; a relay
-    /// bud of its PA may take over at its last node, or at its base if it
-    /// grew none.
+    /// bud of its PA may take over, at its PA's `relay_at` along the axis
+    /// (`geometry.rs`), carrying on the growth units the axis has spent.
     fn stop(&mut self, apex: Apex, cycle: u32, stopped: f64) {
+        self.units[apex.axis] = apex.units;
         let axis = &self.axes[apex.axis];
         let relay = self.species.states[axis.pa].relay;
         if relay <= 0.0 {
@@ -199,7 +212,10 @@ impl Grower<'_> {
         let key = Key(axis.lineage);
         let u = key.child(RELAY).unit();
         if u < relay {
-            let origin = Origin::Relay { parent: apex.axis };
+            let origin = Origin::Relay {
+                parent: apex.axis,
+                node: 0,
+            };
             let pa = axis.pa;
             let wood = self.windows.wood(pa, cycle + 1);
             let made = [

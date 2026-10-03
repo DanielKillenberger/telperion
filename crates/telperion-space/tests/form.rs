@@ -28,7 +28,9 @@ fn tropism_bends_an_axis_towards_its_elevation() {
     species.states[1].form.elevation = 0.0;
     let tree = grown(&species, 1);
     let mut bent = 0;
-    for limb in limbs(&tree) {
+    // A limb near level has no gap for the bend to close beside its base's
+    // straightening.
+    for limb in limbs(&tree).filter(|l| l.heading.z.abs() > 0.2) {
         let n = limb.phytomers.len();
         let tip = rise(limb.phytomers[n - 2].tip, limb.phytomers[n - 1].tip);
         let gap = limb.heading.z.asin();
@@ -130,8 +132,14 @@ fn girth_is_the_sum_of_the_sections_carried() {
             .first()
             .map_or(tip[i], |p| p.radius * p.radius);
         match axis.origin {
-            Origin::Lateral { parent, node, .. } => carried[parent][node] += base,
-            Origin::Continuation { parent } | Origin::Relay { parent } => tip[parent] += base,
+            Origin::Lateral { parent, node, .. } | Origin::Relay { parent, node }
+                if node < carried[parent].len() =>
+            {
+                carried[parent][node] += base
+            }
+            Origin::Lateral { parent, .. }
+            | Origin::Relay { parent, .. }
+            | Origin::Continuation { parent } => tip[parent] += base,
             Origin::Seed => {}
         }
     }
@@ -167,4 +175,62 @@ fn the_beech_grows_at_every_age_of_its_sheet() {
             assert!(tree.axes[0].phytomers[0].radius > 0.0);
         }
     }
+}
+
+/// Troll's modules: a relay carries on its axis's growth units, so a
+/// trunk that relays every unit still reaches its next PA when an
+/// unbroken one would.
+#[test]
+fn a_relay_carries_on_its_axis_growth_units() {
+    let mut species = walk::species();
+    let trunk = &mut species.states[0];
+    trunk.lifespan = 4;
+    trunk.next = Some(1);
+    trunk.abortion = 1.0 - 1e-12;
+    trunk.relay = 1.0;
+    let tree = grown(&species, 1);
+    let continued = tree
+        .axes
+        .iter()
+        .find(|a| matches!(a.origin, Origin::Continuation { .. }))
+        .expect("the stem reaches its next PA");
+    assert_eq!(
+        continued.birth, 4,
+        "after four growth units across its relays"
+    );
+}
+
+/// A relay stands at its PA's `relay_at` along the stopped axis, and
+/// epitony turns it to the parent's upper side.
+#[test]
+fn a_relay_stands_in_the_curvature_zone_on_the_upper_side() {
+    let relays = |at: f64, epitony: f64| {
+        let mut species = walk::species();
+        let limb = &mut species.states[1];
+        limb.relay = 1.0;
+        limb.relay_at = at;
+        limb.epitony = epitony;
+        limb.insertion = 0.6;
+        let tree = grown(&species, 1);
+        tree.axes
+            .iter()
+            .filter_map(|a| match a.origin {
+                Origin::Relay { parent, node } if tree.axes[parent].phytomers.len() > 3 => {
+                    Some((tree.axes[parent].phytomers.len(), node, a.heading.z, a.base))
+                }
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+    };
+    let half = relays(0.5, 0.0);
+    assert!(!half.is_empty());
+    for &(n, node, ..) in &half {
+        assert_eq!(node, (n + 1) / 2 - 1, "the middle of {n} nodes");
+    }
+    let rise =
+        |v: &[(usize, usize, f64, Vec3)]| v.iter().map(|r| r.2).sum::<f64>() / v.len() as f64;
+    assert!(
+        rise(&relays(0.5, 1.0)) > rise(&half) + 0.05,
+        "epitony turns relays up"
+    );
 }

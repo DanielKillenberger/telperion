@@ -52,6 +52,14 @@ pub struct PaState {
     /// own PA at its last node, as Troll's relays are. Neutral 0; dormant
     /// where no apex stops.
     pub relay: f64,
+    /// Where along its stopped axis a relay bud stands, as a share of the
+    /// axis's nodes from its base: Troll's relay "in the curvature zone"
+    /// of the module it takes over from. Neutral 1, the last node; dormant
+    /// without relays.
+    pub relay_at: f64,
+    /// How far a relay bud turns from its phyllotactic side to the upper
+    /// side of its parent (epitony). Neutral 0; dormant without relays.
+    pub epitony: f64,
     /// How ready the axis is to branch: its lateral probabilities scaled.
     /// Zero is Corner's unbranched stem. Neutral 1; dormant without laterals.
     pub readiness: f64,
@@ -195,6 +203,8 @@ impl PaState {
         let shares = [
             ("abortion", self.abortion),
             ("relay", self.relay),
+            ("relay_at", self.relay_at),
+            ("epitony", self.epitony),
             ("readiness", self.readiness),
             ("rhythm", self.rhythm),
             ("straightening", self.straightening),

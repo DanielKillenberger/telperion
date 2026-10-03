@@ -58,6 +58,8 @@ pub fn species(set: &Value) -> Species {
                 divergence: PI,
                 abortion: 0.0,
                 relay: 0.0,
+                relay_at: 1.0,
+                epitony: 0.0,
                 readiness: 1.0,
                 rhythm: 1.0,
                 straightening: 0.0,

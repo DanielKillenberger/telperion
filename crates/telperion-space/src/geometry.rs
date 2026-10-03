@@ -21,10 +21,15 @@ pub(crate) fn place(structure: &mut Structure, species: &Species) -> Result<()> 
     let mut base_scale = vec![1.0; structure.axes.len()];
     for i in 0..structure.axes.len() {
         let (base, heading, side) = frame(structure, species, i);
+        if let Origin::Relay { parent, .. } = structure.axes[i].origin {
+            let share = species.states[structure.axes[parent].pa].relay_at;
+            let node = relay_point(&structure.axes[parent], share).node;
+            structure.axes[i].origin = Origin::Relay { parent, node };
+        }
         let inherited = match structure.axes[i].origin {
             Origin::Seed => 1.0,
             Origin::Lateral { parent, node, .. } => structure.axes[parent].phytomers[node].scale,
-            Origin::Continuation { parent } | Origin::Relay { parent } => base_scale[parent],
+            Origin::Continuation { parent } | Origin::Relay { parent, .. } => base_scale[parent],
         };
         let axis = &mut structure.axes[i];
         base_scale[i] = inherited * axis.vigour;
@@ -176,30 +181,89 @@ fn frame(structure: &Structure, species: &Species, i: usize) -> (Vec3, Vec3, Vec
                 azimuth,
                 species.states[axis.pa].insertion,
                 parent_state.form.plane,
+                0.0,
             );
             (at.tip, heading, side)
         }
-        Origin::Relay { parent } => {
-            // At the last node, facing where the next node's bud would.
+        Origin::Relay { parent, .. } => {
+            // In its parent's span at the parent PA's `relay_at`, facing
+            // where a bud there would, turned up by the PA's epitony.
             let p = &structure.axes[parent];
-            let (base, along, side) = end(p);
-            let parent_state = &species.states[p.pa];
-            let azimuth = parent_state.divergence * p.rank;
+            let state = &species.states[p.pa];
+            let at = relay_point(p, state.relay_at);
+            let azimuth = state.divergence * at.rank;
             let (heading, side) = turned(
-                (along, side),
+                (at.along, at.side),
                 azimuth,
                 species.states[axis.pa].insertion,
-                parent_state.form.plane,
+                state.form.plane,
+                state.epitony,
             );
-            (base, heading, side)
+            (at.base, heading, side)
         }
     }
 }
 
+/// A point along an axis and the frame there.
+struct Point {
+    /// The phytomer whose span holds it.
+    node: usize,
+    base: Vec3,
+    along: Vec3,
+    side: Vec3,
+    rank: f64,
+}
+
+/// The point `share` of the way along axis `p`'s nodes from its base. The
+/// frame turns from one phytomer's direction to the next's along each span,
+/// so the point's frame moves by degree as `share` does; at 1 it is the
+/// last node and the frame of its phytomer, at 0 the base.
+fn relay_point(p: &Axis, share: f64) -> Point {
+    let n = p.phytomers.len();
+    if n == 0 {
+        return Point {
+            node: 0,
+            base: p.base,
+            along: p.heading,
+            side: p.side,
+            rank: p.rank,
+        };
+    }
+    let f = share * n as f64;
+    let k = (f.ceil() as usize).clamp(1, n) - 1;
+    let t = (f - k as f64).clamp(0.0, 1.0);
+    let at = &p.phytomers[k];
+    let start = if k == 0 {
+        p.base
+    } else {
+        p.phytomers[k - 1].tip
+    };
+    let next = p.phytomers.get(k + 1);
+    let blend = |a: Vec3, b: Vec3| (a * (1.0 - t) + b * t).unit().unwrap_or(a);
+    Point {
+        node: k,
+        base: start + (at.tip - start) * t,
+        along: blend(at.heading, next.map_or(at.heading, |q| q.heading)),
+        side: blend(at.side, next.map_or(at.side, |q| q.side)),
+        rank: at.rank + t * (next.map_or(p.rank, |q| q.rank) - at.rank),
+    }
+}
+
 /// The heading and side of a bud at `azimuth` around a parent going
-/// `along` with `side`, inserted at `angle`, its plane turned by `plane`.
-fn turned((along, side): (Vec3, Vec3), azimuth: f64, angle: f64, plane: f64) -> (Vec3, Vec3) {
-    let toward = side * azimuth.cos() + along.cross(side) * azimuth.sin();
+/// `along` with `side`, turned `epitony` of the way round to the parent's
+/// upper side, inserted at `angle`, its plane turned by `plane`.
+fn turned(
+    (along, side): (Vec3, Vec3),
+    azimuth: f64,
+    angle: f64,
+    plane: f64,
+    epitony: f64,
+) -> (Vec3, Vec3) {
+    let mut toward = side * azimuth.cos() + along.cross(side) * azimuth.sin();
+    if let Some(upper) = (UP - along * UP.dot(along)).unit() {
+        let turn = along.dot(toward.cross(upper)).atan2(toward.dot(upper));
+        toward = rotated(toward, along, epitony * turn);
+    }
     let heading = along * angle.cos() + toward * angle.sin();
     let side = toward * angle.cos() - along * angle.sin();
     let side = side * plane.cos() + heading.cross(side) * plane.sin();

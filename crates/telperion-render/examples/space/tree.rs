@@ -41,7 +41,13 @@ pub fn convert(structure: &Structure) -> Tree {
             Origin::Lateral { parent, node, .. } => {
                 drawn[parent].get(node).map(|&n| (n, true, false))
             }
-            Origin::Continuation { parent } | Origin::Relay { parent } => {
+            // A relay leaves its parent as a lateral does, at its node's span.
+            Origin::Relay { parent, node } if node + 1 < structure.axes[parent].phytomers.len() => {
+                drawn[parent]
+                    .get(node)
+                    .map(|&n| (n, true, nodes[n as usize].stem))
+            }
+            Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
                 ends[parent].map(|end| (end, false, nodes[end as usize].stem))
             }
         };

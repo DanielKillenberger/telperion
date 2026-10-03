@@ -20,3 +20,10 @@
 - **Hindered by:** building `space_beech` (telperion-render) does not rebuild `telperion-space`'s own example. The first timing ran the old values: 171k nodes instead of 605k.
 - **Cost:** about 2 minutes; caught because the node counts disagreed with the stills run.
 - **What would remove it:** one example for both stills and measures, or rebuilding both in one command.
+
+## 2026-10-04, task 1, reverting an attempt
+
+- **Doing:** reverting the beech values after the module attempt collapsed the tree.
+- **Hindered by:** the `dcg` guard blocks `git checkout -- <path>` and `git show HEAD:<path> > <path>`.
+- **Cost:** about 3 minutes. The attempt was saved as a patch and reversed with `git apply -R`.
+- **What would remove it:** nothing in the repository; this is the owner's local setup.

@@ -19,6 +19,8 @@ fn state(lifespan: u32, viability: f64, nodes: NodeLaw, lateral: &[f64]) -> PaSt
         divergence: 2.4,
         abortion: 0.0,
         relay: 0.0,
+        relay_at: 1.0,
+        epitony: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         straightening: 0.0,
@@ -53,7 +55,7 @@ fn by_path(tree: &Structure) -> HashMap<String, usize> {
                 parent, node, slot, ..
             } => format!("{}/{node}.{slot}", paths[parent]),
             Origin::Continuation { parent } => format!("{}/c", paths[parent]),
-            Origin::Relay { parent } => format!("{}/r", paths[parent]),
+            Origin::Relay { parent, .. } => format!("{}/r", paths[parent]),
         };
         paths.push(path);
     }

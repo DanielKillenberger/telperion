@@ -100,3 +100,38 @@ The sheet is `raw/final2/sheet-beech.png` (ignored, on disk). It keeps the same 
 ## Host verdict 2 (2026-10-04, overnight run): not yet confident; not sent to Astra
 
 Viewed `raw/final2/sheet-beech.png`. At 80 years both seeds read as mature broadleaf trees: bole, fork, ascending limbs to a rounded crown, girth within the sourced 1.3 m; structurally nearer Rostock and Entzia than today's beech. Colour is the preset's (row 6 draws today's beech the same way), not this spec's to change. Still short: the in-leaf crown is airy rather than a dense mass (the streaks are fixed by the change aimed at them; density has had no change aimed at it yet, so this is not counted as a second rejection: a host judgement, recorded), and the young trees still read as conifer saplings (no change aimed at them this round). Decisions: build Troll's module mechanism (the trunk's growth age carried across relays; relays from a bud on the upper side of the curvature zone; walk-tested); leaf density from the sources (short shoots of 3 to 5 leaves carrying about 77% of the leaf area); preset colours unchanged, the owner's call.
+
+## Round 3, after host verdict 2: BLOCKED (wrong-path stop on the young-tree trait)
+
+**Built (engine, committed, all crate tests green including the walks):**
+- **Growth units carry across relays.** A relay continues the units its axis has spent in its PA, so a stem of relays reaches its next PA when an unbroken stem would (`a_relay_carries_on_its_axis_growth_units`).
+- **Lifespan before abortion.** An apex that has spent its lifespan moves on and does not also abort. The closed form counts relays by the units they carry: it is a memoised recursion over (age, PA, units spent). Two tests pass unchanged: the oracle (A) and the engine mean against the closed form with abortion and relays (B, `tests/settings.rs`).
+- **`relay_at`** (neutral 1, the last node): where along the stopped axis the relay bud stands, interpolated within a span so that it moves by degree.
+- **`epitony`** (neutral 0): how far the relay bud turns toward the parent's upper side.
+- Both are refused by name outside 0 to 1, and both are walked. Neutral values leave every earlier structure unchanged.
+
+**Tried on the beech** (`raw/v3b/module-beech.patch`; not committed, reversed):
+- The trunk as Troll modules: abortion 0.4 and then 0.9 per growth unit, relay 1, `relay_at` 0.5, epitony 1, insertion 0.3, straightening 1, tropism toward 0.35 and then 0.6 rad.
+- Short shoots of 3 to 5 nodes, and leaves only on the grown short shoots, one every 6 mm.
+
+**Result: the tree collapses.**
+- At 40 cycles, seed 1 grows 284,642 phytomers and draws them 0.4 m tall. Seed 7 is 1.4 m.
+- At 20 cycles both draw under 3 m, as crooked horizontal arms with almost no spray (`raw/v3a`, `raw/v3b`; I viewed every still).
+
+**Cause, measured** (`raw/v3b/chain.log`). Each relay's size is the presence of the stop draw that made it, and fn-192's presence window widens with the wood a draw decides. A trunk relay decides the whole crown above it, so its window is the widest there is (2 log-odds). Under a module-ending probability, most relays are therefore born partly grown, and the sizes multiply up the stem:
+
+| Seed | Trunk-module vigours (first modules, then 1.0 mostly) | Base scale of the 12th module |
+|---|---|---|
+| 1 | 0.026, 0.171, 0.120, …, 0.244, … | 1.2e-4 |
+| 7 | 0.442, 0.788, 0.281, …, 0.883, …, 0.252 | 2.2e-2 |
+
+The crown above the fork is drawn at that scale.
+
+This is a conflict between phase B's continuity mechanism and Troll's module stacking. A stem built from a chain of drawn stops cannot keep its size while every stop grows in by degree over a crown-sized window. It is a design decision for the host, and the wrong-path stop: the young-tree trait failed again after a change aimed at it. Possible directions (not tried; host's call):
+1. **A relay of a stop that is near certain to relay is whole.** Its existence follows the stop, and since the relay replaces what stopped, the wood decided is the difference between the two continuations, not the crown.
+2. **Module ends by a deterministic count of units within the PA**, with no draw, so nothing grows in.
+3. **Keep modules for the young tree only**, as their own PA before the trunk's, with a short chain.
+
+**Leaves (item B): not finished.** The three to five leaves a short shoot carries and their 77% share were wired into the attempt, but the collapse made the in-leaf stills meaningless, and the change was reversed with the beech values. The pipeline places leaves along bearing wood at a fixed spacing, not one per node. A sourced 77% share on short shoots therefore needs the leaves placed by the engine's own nodes, or a bearing rule per node. That is a design question beside the collapse.
+
+The committed beech is round 2's, unchanged: its relays are off, so the engine changes leave it as it was.

@@ -108,7 +108,7 @@ pub(crate) fn assign(axes: &mut [Axis], draws: &[Draws]) {
         let made = draws[i].birth[0] * draws[i].birth[1];
         axis.vigour = match axis.origin {
             Origin::Seed | Origin::Lateral { .. } => made,
-            Origin::Continuation { parent } | Origin::Relay { parent } => end[parent] * made,
+            Origin::Continuation { parent } | Origin::Relay { parent, .. } => end[parent] * made,
         };
     }
 }

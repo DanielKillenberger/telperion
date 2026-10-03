@@ -24,8 +24,13 @@ pub(crate) fn thicken(structure: &mut Structure, species: &Species) {
         }
         match axes[i].origin {
             Origin::Seed => {}
-            Origin::Lateral { parent, node, .. } => at_node[parent][node] += section,
-            Origin::Continuation { parent } | Origin::Relay { parent } => at_tip[parent] += section,
+            Origin::Lateral { parent, node, .. } | Origin::Relay { parent, node } => {
+                match at_node[parent].get_mut(node) {
+                    Some(at) => *at += section,
+                    None => at_tip[parent] += section,
+                }
+            }
+            Origin::Continuation { parent } => at_tip[parent] += section,
         }
     }
 }

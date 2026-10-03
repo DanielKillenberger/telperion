@@ -69,9 +69,10 @@ pub enum Origin {
     },
     /// The parent's apex, changed to this axis's PA.
     Continuation { parent: usize },
-    /// A relay bud of the parent's PA at its last node (its base if it grew
-    /// none), made when its apex stopped.
-    Relay { parent: usize },
+    /// A relay bud of the parent's PA, made when its apex stopped, standing
+    /// at the parent PA's `relay_at` along it: at phytomer `node`'s span
+    /// (set when the tree is placed).
+    Relay { parent: usize, node: usize },
 }
 
 impl Origin {
@@ -81,7 +82,7 @@ impl Origin {
             Origin::Seed => None,
             Origin::Lateral { parent, .. }
             | Origin::Continuation { parent }
-            | Origin::Relay { parent } => Some(parent),
+            | Origin::Relay { parent, .. } => Some(parent),
         }
     }
 }
