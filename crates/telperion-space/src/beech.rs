@@ -9,8 +9,8 @@ use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use std::f64::consts::{FRAC_PI_2, PI};
 
 /// The reference axis, youngest first.
-const FORK: usize = 1;
-const LEADER: usize = 2;
+const LEADER: usize = 1;
+const FORK: usize = 2;
 const LIMB: usize = 3;
 const BOUGH: usize = 4;
 const SPUR: usize = 5;
@@ -94,7 +94,7 @@ pub fn beech() -> Species {
         },
         ..state(
             12,
-            Some(FORK),
+            Some(LEADER),
             vec![
                 zone(3, 4, &[]),
                 zone(2, 3, &[(BRANCH, 0.35)]),
@@ -113,7 +113,7 @@ pub fn beech() -> Species {
         },
         ..state(
             2,
-            Some(LEADER),
+            None,
             vec![
                 zone(2, 3, &[]),
                 zone(2, 2, &[(LIMB, 0.3), (BOUGH, 0.5)]),
@@ -165,15 +165,16 @@ pub fn beech() -> Species {
         },
         ..reiterate
     };
-    // The stem's own relay at the fork, one of its equals but the most
-    // erect; after the fork one or two limbs dominate, and what the leader
-    // and the limbs bear is weaker and shorter, the most peripheral the
-    // shortest.
+    // The trunk persists through the crown as the leader, a stack of
+    // erect modules bearing limbs at many heights, and forks late, near
+    // the top, at maturity.
     let leader = PaState {
         viability: 1.0,
+        straightening: 1.0,
+        next: Some(FORK),
         ..module(
-            reiterate(45, &[(LIMB, 0.06), (BOUGH, 0.2)], (0.0, 0.0)),
-            (0.3, 0.8),
+            reiterate(40, &[(LIMB, 0.3), (BOUGH, 0.2)], (0.0, 0.0)),
+            (0.3, 1.35),
         )
     };
     let limb = module(reiterate(70, &[(BOUGH, 0.16)], (0.0, 0.0)), (0.3, 0.3));
@@ -246,6 +247,6 @@ pub fn beech() -> Species {
         ..state(3, None, vec![zone(3, 5, &[])])
     };
     Species {
-        states: vec![trunk, fork, leader, limb, bough, spur, branch, shoot, short],
+        states: vec![trunk, leader, fork, limb, bough, spur, branch, shoot, short],
     }
 }

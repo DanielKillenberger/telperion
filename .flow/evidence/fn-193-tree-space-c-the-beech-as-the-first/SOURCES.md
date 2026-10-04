@@ -15,7 +15,8 @@ The beech is `crates/telperion-space/src/beech.rs`, one growth cycle a year. Sou
 |---|---|---|
 | trunk | A1, the young stem: orthotropic, bearing A2 systems | [M98] "orthotropic along almost all its length". A stack of Troll modules since round 5 (next row). |
 | trunk modules (round 11) | abortion 0.5 a growth unit, relay 1, `relay_at` 0.15 of the last growth unit, epitony 0.6, insertion 0.3, module tips toward elevation 1.4 rad | [M98] the relay bud stands in the curvature zone, on the upper side; the numbers are **estimated** from the stills |
-| fork | the stem's top over 2 cycles: one limb at its top node, boughs or a second limb below it (round 12) | [M98] "a fork is created from subterminal buds"; "the relays do not differentiate themselves from one another" |
+| leader (round 20) | after the 12-cycle clear bole the stem carries on as an erect module stack for 40 cycles (abortion 0.3, relay 1, tips toward 1.35 rad, straightening 1), bearing a limb (0.3) or bough (0.2) at each module top | [M98] the trunk persists through the crown and forks late; host decision 18 (Millet, Rostock); probabilities **estimated** |
+| fork | the stem's top over 2 cycles, after the leader (round 20): one limb at its top node, boughs or a second limb below it | [M98] "a fork is created from subterminal buds"; "the relays do not differentiate themselves from one another" |
 | leader, limb, bough, spur | total reiterates, each forking into the next, each shorter-lived | [M98] "Each reiterate forks and reiterates in its turn, producing reiterates that are increasingly smaller and less branched"; "the most peripheral being the shortest". Four levels: estimated. |
 | branch | GreenLab PA 2, long ramified shoot | [LET] Fig. 2: Z20 bare, Z24 short shoots, Z23 PA 3, Z22 partial reiteration, base to tip |
 | shoot | GreenLab PA 3, long shoot bearing short shoots | [LET] Fig. 2 |
@@ -40,7 +41,7 @@ The beech is `crates/telperion-space/src/beech.rs`, one growth cycle a year. Sou
 | insertion 0.7 rad (reiterates), 1.0 (branch, shoot), 0.9 (short) | | **estimated**; [RAIS21] 30.7° branch angle (abstract, reference axis unknown) not used |
 | fork after 12 cycles at about 5 m (about 0.25 H) | | **estimated** to the photographs S1 (about 0.2 H to 0.33 H); [M98] forks at about 20 m in forest |
 | internodes: trunk 7 cm, reiterates 4 cm, branch 3 cm, shoot 2.5 cm, short 6 mm (round 12) | | **estimated**: LITERATURE.md "internode lengths were not found in readable sources" |
-| lifespans and viabilities (round 16: leader 45 at viability 1; limb 70 and bough 30 as module stacks, spur 25 at 0.995; branch 10, shoot 5; short 3 at 0.9; shedding after 1 idle cycle) | | **estimated**; [KINT10] beech branches "die late but shed fast" (abstract) |
+| lifespans and viabilities (round 20: leader 40 at viability 1, then the fork; limb 70 and bough 30 as module stacks, spur 25 at 0.995; branch 10, shoot 5; short 3 at 0.9; shedding after 1 idle cycle) | | **estimated**; [KINT10] beech branches "die late but shed fast" (abstract) |
 | sinuosity (`wander`) and bending (`tropism`) rates (round 17: branch 0.5, shoot 1.0) | | **estimated** |
 | girth (round 18): pipe exponent 2.6 on trunk and reiterates, 2 on finer wood; pipe 8 mm a phytomer on trunk and reiterates, ripened over 15 years on reiterates (round 19), 0.9 mm on branch and shoot, 0.95 mm on short shoots; branch-system viability 0.95 | | **estimated**: exponents above 2 are reported for tree branching (da Vinci rule deviations), the value chosen from the stills; dbh 1.01 m at seed 1 within TSO's 1.3 m |
 | pipe model | each phytomer's section added below it | the pipe model as [PAL09] uses it (LITERATURE.md); pipe radii **estimated** |

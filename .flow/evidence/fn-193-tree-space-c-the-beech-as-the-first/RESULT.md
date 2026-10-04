@@ -817,3 +817,44 @@ Host: five rounded, continuous domes; confident. Astra, three independent sample
 ## Gate, round 19, and host decision 18 (2026-10-04)
 
 Host: fine tips now, limbs heavy inside; sent to Astra. Three samples: FAIL in all, the same fault: "the trees repeatedly compress their main limbs into an abrupt, shallow fan above the clear bole, instead of developing substantial rising and spreading limbs throughout a deep, rounded crown" (`ASTRA-VERDICT-R19-{1,2,3}.md`). Cause: the trunk forks at about 4.5 m (0.23 H) and every limb radiates from that point. Millet (LITERATURE.md, "Troll's model in *Fagus*") and Rostock show the trunk continuing through the crown, bearing limbs at many heights, and forking late near the top at maturity (about 20 m), where height growth stops; the clear bole is where the lowest limbs start, not where the trunk ends. Host decision 18: the trunk persists through the crown as the leader, bearing limbs at heights distributed from the clear bole up, and forks late, near the top, at maturity.
+
+## Round 20: the trunk persists through the crown and forks late (worker)
+
+**Engine:** unchanged.
+
+**Beech values** (`beech.rs`):
+- **The reference axis reorders to trunk → leader → fork.** The fork now comes after the leader, where it came before it.
+- **The leader is the trunk carried on through the crown.**
+  - A 40-unit stack of erect Troll modules: abortion 0.3, relay 1, the relay from the upper side of the curvature zone, tips toward 1.35 rad, straightening 1, viability 1.
+  - It bears a limb (0.3) or a bough (0.2) at each module top, so limbs leave the stem at many heights from the clear bole up.
+- **The fork comes late, at the top, at maturity.** After the leader's 40 units, at about 52 years, the fork is a 2-unit PA bearing limbs at its top nodes. It has no `next`, so height growth ends there.
+- **Kept from round 19:**
+  - The 12-unit clear bole, about 4.5 m, about 0.24 H.
+  - The module limbs and boughs, fine tips and ripening.
+  - The colours and the bark plates.
+
+**Heights and widths at 80 years** (`raw/final19/run.log`), and per-seed reading against Astra's "abrupt, shallow fan above the clear bole". Full-size bare stills of all five are in `raw/final19/bare-large.png`. I viewed every still.
+
+| Seed | Height | Width (x × z) | Reading | Beech? |
+|---|--:|--:|---|---|
+| 1 | 18.8 m | 20.8 × 20.5 | A deep, rounded crown from about 5 m to the top. The limbs still leave from a short stretch just above the bole, so the fan is shorter but not gone | **Borderline** |
+| 7 | 18.4 m | 18.4 × 15.0 | The stem runs on into the crown, with limbs at several heights; a deep, rounded dome in leaf | **Yes** |
+| 2 | 19.1 m | 17.1 × 20.9 | The stem continues through the lower crown, bearing spreading limbs at several levels; a deep dome | **Yes** |
+| 3 | 18.5 m | 17.9 × 18.9 | A deep, round crown on a continuing stem; limbs at several heights | **Yes** |
+| 4 | 18.7 m | 15.6 × 17.7 | The stem is clearly visible through the crown, bearing limbs from about 6 m up: Rostock's build. The crown is narrower and lighter than the others, and one low branch loops near the bole | **Yes / borderline** (narrow) |
+
+**The crowns are now deep and rounded**, about as tall as wide or taller, against round 19's shallow, wide fans. In leaf they are the closest yet to Nettleden's mass.
+- At four of five seeds the limbs leave the stem at several heights.
+- Seed 1 still bunches its limbs low.
+
+**Other observations:**
+- Young ages: at 40 years the trees now carry a crown on a continuing stem; 10 and 20 years are unchanged.
+- Trunk bases: smooth, with faint module seams at seeds 7, 3 and 4.
+- Limb close-ups: heavy limbs with fine tips.
+
+**Girth and costs:**
+- dbh 1.08 m at seed 1.
+- At 80 years: growth 1.4 to 5.0 s, 1.05M to 2.93M nodes. Seed 3 is the heaviest, at 2.93M nodes and 4.3M leaves.
+- The beech test's seeds 1 and 7 stay within its 10M budget (expected 9.9M grown including shed wood).
+
+**Tests:** all crate tests are green (`raw/space-tests-r20.log`): the oracle, every walk, and the beech at every age. Clippy is clean.
