@@ -902,3 +902,7 @@ Host: deep rounded crowns on a continuing trunk; confident. Astra, three samples
 **Girth and costs:**
 - dbh 0.91 m at seed 1.
 - At 80 years: growth 1.5 to 4.5 s, 1.01M to 2.86M nodes.
+
+## Gate, round 21 (2026-10-04)
+
+Astra, three samples: FAIL in all, no yes; "branches form upward-flaring fans with angular tops rather than spreading into broad, rounded domes" (`ASTRA-VERDICT-R21-{1,2,3}.md`). The dominance setting made crowns lopsided; round 20 (one yes, seed 2 the strongest candidate) stays the best on Astra's scale. Rounds 13 to 21 oscillate between fans and domes. The host pauses new rounds pending the owner's call on the gate (owner judges vs host and Astra).
