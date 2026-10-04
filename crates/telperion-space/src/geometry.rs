@@ -16,11 +16,20 @@ use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
 use std::f64::consts::TAU;
 
+/// The height, in the wood's own radii, below which it eases onto the
+/// ground.
+const CONTACT: f64 = 4.0;
+/// How far short of straight down sag leaves an axis, in radians.
+const HANG: f64 = 0.15;
+/// The internodes the landing turn is spread over: at most a sixth of the
+/// slope is eased in one step.
+const LANDING: f64 = 6.0;
 /// Wood this far below the ground plane is rounding, not wood below it.
 const GROUND_TOLERANCE: f64 = 1e-9;
 const UP: Vec3 = Vec3::new(0.0, 0.0, 1.0);
 
-/// Sizes every phytomer by its axis's vigour and its parent's scale.
+/// Sizes every phytomer by its axis's vigour and its parent's scale, and
+/// sets each relay's node.
 pub(crate) fn scale(structure: &mut Structure, species: &Species) {
     // Each axis's scale at its base, from its already scaled parent.
     let mut base_scale = vec![1.0; structure.axes.len()];
@@ -41,6 +50,13 @@ pub(crate) fn scale(structure: &mut Structure, species: &Species) {
         for phytomer in &mut axis.phytomers {
             phytomer.scale *= base_scale[i];
         }
+        // A relay's node: where along its parent's last growth unit it
+        // stands, which girth and placement both read.
+        if let Origin::Relay { parent, .. } = structure.axes[i].origin {
+            let share = species.states[structure.axes[parent].pa].relay_at;
+            let node = relay_point(&structure.axes[parent], share).node;
+            structure.axes[i].origin = Origin::Relay { parent, node };
+        }
     }
 }
 
@@ -57,11 +73,6 @@ pub(crate) fn place(
     let reaches = reaches(&structure.axes);
     for (i, &reach) in reaches.iter().enumerate() {
         let (base, heading, side) = frame(structure, species, i);
-        if let Origin::Relay { parent, .. } = structure.axes[i].origin {
-            let share = species.states[structure.axes[parent].pa].relay_at;
-            let node = relay_point(&structure.axes[parent], share).node;
-            structure.axes[i].origin = Origin::Relay { parent, node };
-        }
         let axis = &mut structure.axes[i];
         let state = &species.states[axis.pa];
         // A relay straightens as far as it has left the continuation it
@@ -166,18 +177,20 @@ fn lay(
         // Sag: the beam's curvature, its moment over its stiffness, turns
         // the axis down about the torque's axis.
         if let (Some(load), true) = (load, form.sag > 0.0 && phytomer.radius > 0.0) {
-            // The torque was taken on the tree before it bent: carried
-            // with the phytomer from its direction then to its direction
-            // now, which its bearers' sag has turned, and levelled, as
-            // gravity's torque is. Normalised with no cutoff: a vanishing
-            // moment bends by nothing, never by a jump.
-            let carried = carried(load[k], phytomer.heading, running);
-            let torque = Vec3::new(carried.x, carried.y, 0.0);
-            let moment = torque.length();
-            if moment > 0.0 {
-                let pivot = torque * (1.0 / moment);
+            // The bending moment, taken on the tree before it bent, bends
+            // the axis down in its own vertical plane however its bearers'
+            // sag has turned it, and never lifts it. Normalised with no
+            // cutoff: a vanishing moment bends by nothing, never by a jump.
+            let moment = load[k].length();
+            let across_plane = running.cross(Vec3::new(0.0, 0.0, -1.0));
+            let width = across_plane.length();
+            if width > 0.0 {
+                let pivot = across_plane * (1.0 / width);
                 let curvature = form.sag * moment / phytomer.radius.powi(4);
-                let down = (-running.z).clamp(-1.0, 1.0).acos();
+                // Short of straight down by `HANG`: a hanging axis keeps
+                // the side it hangs to, so tropism never meets a vertical
+                // it cannot place.
+                let down = ((-running.z).clamp(-1.0, 1.0).acos() - HANG).max(0.0);
                 let angle = turn(curvature, length, down);
                 running = rotated(running, pivot, angle);
                 across = rotated(across, pivot, angle);
@@ -195,6 +208,23 @@ fn lay(
             Some(unit) if bend > 0.0 => unit,
             _ => running,
         };
+        // Landing: within a few radii of the ground, and `LANDING`
+        // internodes so the turn is spread over steps, wood's downward
+        // slope eases with its height, so it comes down tangent to the
+        // ground and runs along it.
+        if !trunk && direction.z < 0.0 {
+            let zone = CONTACT * phytomer.radius + LANDING * length;
+            if tip.z < zone {
+                let level = |v: Vec3| Vec3::new(v.x, v.y, 0.0).unit();
+                if let Some(flat) = level(direction).or_else(|| level(across)) {
+                    // As the square root of the height: the slope vanishes
+                    // at the ground, which is reached in a finite run.
+                    let ease = (tip.z.max(0.0) / zone).sqrt();
+                    let pitch = direction.z.max(-1.0).asin() * ease;
+                    direction = flat * pitch.cos() + UP * pitch.sin();
+                }
+            }
+        }
         let mut next = tip + direction * length;
         if next.z < -GROUND_TOLERANCE && trunk {
             return Err(-next.z);

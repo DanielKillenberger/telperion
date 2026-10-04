@@ -109,7 +109,7 @@ fn sagging_wood_rests_on_the_ground() {
         .collect();
     let lowest = tips.iter().copied().fold(f64::MAX, f64::min);
     assert!(lowest >= 0.0, "a vertex {lowest} m below the ground");
-    let resting = tips.iter().filter(|&&z| z == 0.0).count();
+    let resting = tips.iter().filter(|&&z| z < 0.01).count();
     assert!(resting > 0, "no wood rests on the ground");
 }
 
@@ -165,7 +165,8 @@ fn an_unloaded_tip_keeps_its_tropism() {
             rise(p[n - 3].tip, p[n - 2].tip),
             rise(p[n - 2].tip, p[n - 1].tip),
         );
-        if before < 0.4 {
+        // A limb lying on the ground has no rise to turn.
+        if before < 0.4 && p[n - 1].tip.z > 0.05 {
             assert!(
                 last > before,
                 "the last internode turns down: {before} to {last}"
@@ -196,4 +197,62 @@ fn a_vanishing_moment_bends_by_degree() {
         .map(|(p, q)| (*p - *q).length())
         .fold(0.0, f64::max);
     assert!(moved < 1e-3, "{moved} m");
+}
+
+/// Wood lands on the ground tangent, not at a corner: along a branch that
+/// comes down to rest, no joint near the ground turns it sharply.
+#[test]
+fn wood_lands_on_the_ground_without_a_corner() {
+    let tree = walk::tree(&level_limbs(5.0), 1).unwrap();
+    let (mut sharpest, mut landed) = (0.0f64, 0);
+    for axis in tree.axes.iter().filter(|a| a.pa > 0) {
+        let r = rises(axis);
+        let lowest = axis
+            .phytomers
+            .iter()
+            .map(|p| p.tip.z)
+            .fold(f64::MAX, f64::min);
+        if lowest > 0.01 {
+            continue;
+        }
+        landed += 1;
+        // Joints in the lowest half metre, where a landing turns.
+        for j in 1..r.len() {
+            if axis.phytomers[j - 1].tip.z < 0.5 && r[j - 1] < 0.0 {
+                sharpest = sharpest.max(r[j] - r[j - 1]);
+            }
+        }
+    }
+    assert!(landed > 3, "{landed} branches reach the ground");
+    assert!(sharpest < 0.35, "a corner of {sharpest} rad at the ground");
+}
+
+/// The sag walk over limbs that come down onto the ground changes the
+/// tree by degree: landing is a slope, not a jump.
+#[test]
+fn landing_on_the_ground_walks_by_degree() {
+    // Limbs bear twigs, not limbs: a limb inserted square off a level one
+    // can stand straight down, where tropism's choice of side is a jump
+    // of its own, before any sag (geometry.rs, `toward_elevation`).
+    fn landing(sag: f64) -> Species {
+        let mut s = level_limbs(sag);
+        s.states[1].zones[0].lateral[1] = 0.0;
+        s
+    }
+    let mut setting = walk::setting(
+        "limb sag onto the ground".into(),
+        0.0,
+        3e-4,
+        false,
+        |s, v| *s = landing(v),
+    );
+    setting.stretch = walk::sag_bend(&walk::tree(&landing(0.0), 1).unwrap(), 1);
+    let steps = walk::walk(&setting, 1);
+    let worst = steps
+        .iter()
+        .max_by(|a, b| a.slope.total_cmp(&b.slope))
+        .unwrap();
+    assert!(worst.slope < 30.0, "{} in {}", worst.slope, worst.what);
+    let changes = walk::refine(&setting, 1, worst.from, worst.to, 3, 8);
+    assert!(changes[3] < changes[0] / 20.0, "a jump: {changes:?}");
 }

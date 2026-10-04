@@ -75,8 +75,10 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
         return Err(Error::Collapsed);
     }
     scale(&mut structure, species);
-    place(&mut structure, species, None)?;
+    // Girth needs no geometry; placing reads it where wood meets the
+    // ground.
     thicken(&mut structure, species);
+    place(&mut structure, species, None)?;
     // Sag bends the tree as it stands under the load it carries, and
     // leaves its girth as it was.
     if sag::any(species) {
