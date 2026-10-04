@@ -21,6 +21,24 @@ fn up(v: telperion_space::Vec3) -> Vec3 {
     Vec3::new(v.x, v.z, -v.y)
 }
 
+/// Turns the head of a stopped module, the nodes after `from[0]`, into a
+/// lateral run of its own: off the stem, starting at its own girth.
+fn aside(nodes: &mut [Node], from: &[u32]) {
+    let Some(&first) = from.iter().find(|&&n| n != from[0]) else {
+        return;
+    };
+    for &n in from.iter().filter(|&&n| n >= first) {
+        let node = &mut nodes[n as usize];
+        node.branch = first;
+        node.stem = false;
+    }
+    let head = &mut nodes[first as usize];
+    head.shoot = ShootState {
+        bud_fate: BudFate::Lateral,
+    };
+    head.start_radius = head.radius;
+}
+
 /// A lateral nearly as thick as the wood it leaves parts from it as a fork
 /// does: its weight rises from none at `FORK_FROM` of the parent's radius to
 /// whole at `FORK_AT`.
@@ -41,11 +59,17 @@ pub fn convert(structure: &Structure) -> Tree {
             Origin::Lateral { parent, node, .. } => {
                 drawn[parent].get(node).map(|&n| (n, true, false))
             }
-            // A relay leaves its parent as a lateral does, at its node's span.
+            // A relay from inside its parent takes the parent's run on from
+            // its node, and the stopped module's head beyond turns aside as
+            // a lateral of its own.
             Origin::Relay { parent, node } if node + 1 < structure.axes[parent].phytomers.len() => {
-                drawn[parent]
-                    .get(node)
-                    .map(|&n| (n, true, nodes[n as usize].stem))
+                match drawn[parent].get(node..) {
+                    Some(from) if !from.is_empty() => {
+                        aside(&mut nodes, from);
+                        Some((from[0], false, nodes[from[0] as usize].stem))
+                    }
+                    _ => None,
+                }
             }
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
                 ends[parent].map(|end| (end, false, nodes[end as usize].stem))

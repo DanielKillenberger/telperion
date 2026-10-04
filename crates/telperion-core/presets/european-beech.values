@@ -134,12 +134,13 @@
 /canopy/scatter = 80.0
 /canopy/sizeVariation = 0.12
 
-# fn-40: B-BASE's smooth grey reads 132/133/138 at the centre of its
-# close-up; the old 0.36/0.335/0.295 drew it at 96/101/106 under the
-# shot's sun and sky, and this row draws it at 127/133/138.
-/material/barkRed = 0.54
-/material/barkGreen = 0.5
-/material/barkBlue = 0.44
+# Darker, owner (fn-193, 2026-10-04: "it should be darker; we have
+# previously made grey darker materials that are way closer"): the
+# smooth grey of fn-62's round-3 candidate (fn-180's
+# beech-candidate.json, bundle@2), judged against S1's bark.
+/material/barkRed = 0.175
+/material/barkGreen = 0.155
+/material/barkBlue = 0.125
 
 # Rough, not glossy, in the oak's and the spruce's range after the
 # owner read the close-ups as plastic. At B-BASE's own light the old
@@ -160,18 +161,15 @@
 /material/shootBlue = 0.085
 /material/shootRadius = 0.004
 
-# B-WHOLE's own leaf pixels, its centre crop, read linear
-# 1:1.78:1.06, a grey green. The blade is set greyer than the old
-# 1:4.8:0.8 front and lighter on both faces: an olive front and a
-# pale grey-green back. The render lands greener than either face,
-# 1:2.17:1.04, because what passes through the leaf adds its own
-# green: with both faces black the centre still reads 38/57/40.
-/material/leafFrontRed = 0.08
-/material/leafFrontGreen = 0.15
-/material/leafFrontBlue = 0.05
-/material/leafBackRed = 0.21
-/material/leafBackGreen = 0.28
-/material/leafBackBlue = 0.15
+# Darker, owner (fn-193): the back face from fn-62's round-3 candidate
+# and a front a third darker than the old row, judged against S2
+# Nettleden's dark summer mass.
+/material/leafFrontRed = 0.055
+/material/leafFrontGreen = 0.1
+/material/leafFrontBlue = 0.033
+/material/leafBackRed = 0.1
+/material/leafBackGreen = 0.195
+/material/leafBackBlue = 0.055
 
 /material/hueRangeLow = -0.02
 /material/hueRangeHigh = 0.02

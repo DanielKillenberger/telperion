@@ -59,12 +59,23 @@ fn state(lifespan: u32, next: Option<usize>, zones: Vec<Zone>) -> PaState {
 pub fn beech() -> Species {
     // A1, the young stem: orthotropic, monopodial in this engine, bearing
     // plagiotropic A2 systems acrotonically, until the fork.
+    // Troll's modules: each grows erect and bends plagiotropic at its tip,
+    // and ends after a few growth units; a relay from a bud on the upper
+    // side of its curvature zone straightens and carries the stem on,
+    // counting the stem's growth units, while the module's head stays a
+    // branch.
     let trunk = PaState {
         divergence: 2.4,
-        internode: 0.06,
+        internode: 0.07,
+        insertion: 0.3,
+        abortion: 0.35,
+        relay: 1.0,
+        relay_at: 0.5,
+        epitony: 0.6,
+        straightening: 1.0,
         form: Form {
-            tropism: 0.3,
-            elevation: FRAC_PI_2,
+            tropism: 0.6,
+            elevation: 0.45,
             wander: 0.2,
             plane: FRAC_PI_2,
             pipe: 0.00057,
@@ -83,7 +94,11 @@ pub fn beech() -> Species {
     // fork is created from subterminal buds".
     let fork = PaState {
         divergence: 2.4,
-        form: trunk.form,
+        form: Form {
+            tropism: 0.3,
+            elevation: FRAC_PI_2,
+            ..trunk.form
+        },
         ..state(
             2,
             Some(LEADER),
@@ -128,8 +143,8 @@ pub fn beech() -> Species {
         internode: 0.04,
         form: Form {
             tropism: 0.8,
-            elevation: 0.25,
-            wander: 1.2,
+            elevation: 0.35,
+            wander: 0.8,
             plane: 0.0,
             pipe: 0.00057,
         },
@@ -139,7 +154,7 @@ pub fn beech() -> Species {
             vec![
                 zone(1, 2, &[]),
                 zone(2, 3, &[(SHORT, 0.6)]),
-                zone(1, 2, &[(SHOOT, 0.5)]),
+                zone(1, 2, &[(SHOOT, 0.8)]),
                 zone(1, 1, &[(BRANCH, 0.08)]),
             ],
         )
@@ -159,7 +174,8 @@ pub fn beech() -> Species {
         },
         ..state(5, None, vec![zone(1, 1, &[]), zone(2, 3, &[(SHORT, 0.6)])])
     };
-    // GreenLab's PA 4: a short shoot of three metamers that never branches.
+    // GreenLab's PA 4: a short shoot of three to five metamers that never
+    // branches.
     let short = PaState {
         insertion: 0.9,
         viability: 0.9,
@@ -172,7 +188,7 @@ pub fn beech() -> Species {
             plane: 0.0,
             pipe: 0.00107,
         },
-        ..state(3, None, vec![zone(3, 3, &[])])
+        ..state(3, None, vec![zone(3, 5, &[])])
     };
     Species {
         states: vec![trunk, fork, leader, limb, bough, spur, branch, shoot, short],

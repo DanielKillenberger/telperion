@@ -167,3 +167,45 @@ The young-tree change collapsed the tree before its look could be judged (relays
 - Growth takes 1.7 to 2.6 s.
 
 By the host's rule this ends C for the night.
+
+## Round 5, after the owner's review and host decisions (worker)
+
+Starting point: round 2's beech, plus the relay-difference engine change (`57ab643f`).
+
+**Changes, one per item:**
+
+1. **A relay continues the axis** (`examples/space/tree.rs`). A relay from inside its parent now takes the parent's run on from its node: same girth path, stem role and terminal fate. The stopped module's head beyond the node turns aside as a lateral run of its own, so there is no codominant fork beside the tip. The engine is unchanged in this round, so its walks are as before: `relay`, `relay_at` and `epitony` are walked on every PA, and all crate tests are green (`raw/space-tests-r5.log`).
+   - **The module beech is re-applied and tuned:** abortion 0.35, relay 1, `relay_at` 0.5, epitony 0.6, straightening 1, module tropism 0.6 toward 0.45 rad.
+   - **Branch systems:** long shoots 0.8 on Z23. Z22 stays at 0.08, because 0.15 is supercritical and overran a 20M budget at 80 cycles.
+   - **Branch rise:** branches rise to 0.35 rad and their wander is 0.8, because low branches otherwise reached the ground.
+2. **Darker materials** (`presets/european-beech.values`, owner-approved).
+   - **Bark:** 0.175/0.155/0.125, from fn-62's round-3 candidate (`.flow/evidence/fn-180-…/beech-candidate.json` on the fn-180 branch; the darker grey the owner remembered).
+   - **Leaves:** back 0.1/0.195/0.055 from the same candidate, front 0.055/0.1/0.033.
+   - Roughness stays 0.95 (owner, against plastic).
+   - The preset identity pins in `tests/catalogue_identity.rs` are re-pinned for the changed rows.
+3. **Leaf density.** Leaves stand on all wood under 0.012 of the root radius, every 6 mm, the short-shoot internode. The mean grown short shoot is 19 to 29 mm, so 3 to 5 leaves a short shoot (Dupré: 3 to 5 internodes; Letort: 3). Limb clumping and the preset's synthetic clusters are off. Result: 1.8M to 2.6M leaves at 80 cycles.
+
+**Sheets:** `raw/final4/sheet-beech.png`, in the same layout; row 6 is today's beech with the darker preset. Close-ups are in `raw/final4/close-ups.png`: the trunk base and one limb at 80 cycles, beside S1 and S3. I viewed every still.
+
+| Trait | Seed 1 | Seed 7 | Reading |
+|---|---|---|---|
+| 10 years | Crooked stacked stems, leaning and arching | Crooked, with layered laterals | **Reads as a young broadleaf** with Troll's crooked stem; seed 1 leans too far |
+| 20 years | One bowed, arching stem with spray along it | A straight pole with tiers of rods | **Mixed**: seed 1 crooked but over-leaning; seed 7 still fails |
+| 40 years | A low, leaning bole with a sprawling crown | Erect, forking, an open crown | Seed 7 reads; seed 1 does not |
+| 80 years: fork, limbs, outline | The bole leans and kinks at a module junction; a broad two-lobed crown | An erect, stout bole dividing at about 0.3 H into ascending limbs; a domed crown | **Seed 7 keeps round 2's reading. Seed 1 lost it:** its young lean persists into the mature bole |
+| In leaf (80) | Dense, darker green, two lobes | Dense, darker, domed | **Much closer to a mass**, but lighter and more textured than Nettleden's opaque dark crown |
+| Bark (close-up) | Grey-brown, with white flecks and a dark seam where a module joins | Grey-brown, white flecks, faint horizontal banding at the base | **Darker, but not S3's smooth grey-green.** The flecks are the preset's mottle and lichen rows, and the seam is the module junction in the conversion. |
+| Today's beech, darker preset | Leaves darker | | At whole-tree distance the bark still reads pale |
+
+**Costs at 80 cycles:**
+- Kept: 0.85M to 1.18M phytomers.
+- Growth: 1.9 to 2.9 s.
+- Dressing (wood and leaves): 1.0 to 1.3 s.
+
+**Core tests:** `cargo test -p telperion-core` (`raw/core-tests-r5.log`) failed on three tests:
+- **Two identity digests**, from the preset change. They are re-pinned and pass.
+- **`fixed_beeches_pass_…`:** peak RSS of 4.38 GB against a 4.31 GB ceiling during the parallel run. Re-run alone, it passes in 14.7 s. I read it as load-dependent, not caused by the colour rows (a guess).
+
+**For the host:**
+- Seed 1's persistent lean, from the first module's tilt, is the remaining structural fault.
+- The seam at module joins and the bark flecks are what the close-ups show.

@@ -10,7 +10,7 @@ mod tree;
 use std::time::Instant;
 use telperion_core::{math::Vec3, params, pipeline::executor, presets::Preset, surface::Bounds};
 use telperion_render::{
-    hero_pose, render, write_png, Gpu, Level, Renderer, View, GROUND_REACH, STILL_FORMAT,
+    hero_pose, render, write_png, Camera, Gpu, Level, Renderer, View, GROUND_REACH, STILL_FORMAT,
 };
 use telperion_space::{beech, grow, Request};
 
@@ -72,14 +72,21 @@ fn main() -> Result<(), String> {
             let dress = dressed.elapsed().as_secs_f64() * 1e3;
             let aspect = f64::from(SIZE.0) / f64::from(SIZE.1);
             let camera = hero_pose(bounds, aspect, GROUND_REACH);
-            for (view, name) in [(View::Bare, "bare"), (View::Whole, "whole")] {
+            let (base, limb) = close_ups(&bounds, &camera);
+            let shots = [
+                (View::Bare, "bare", &camera),
+                (View::Whole, "whole", &camera),
+                (View::Bare, "base", &base),
+                (View::Bare, "limb", &limb),
+            ];
+            for (view, name, camera) in shots {
                 renderer
                     .submit_at(&mesh, Level::Chosen)
                     .map_err(|e| e.to_string())?;
                 renderer.set_material(family.material);
                 renderer.set_view(view);
                 let still =
-                    render(&mut renderer, &camera, SIZE.0, SIZE.1).map_err(|e| e.to_string())?;
+                    render(&mut renderer, camera, SIZE.0, SIZE.1).map_err(|e| e.to_string())?;
                 let path = format!("{out}/beech-{age}-{seed}-{name}.png");
                 write_png(std::path::Path::new(&path), &still).map_err(|e| e.to_string())?;
             }
@@ -119,4 +126,23 @@ fn wood_km(tree: &telperion_core::tree::Tree) -> (f64, f64) {
         }
     }
     (fine / 1e3, all / 1e3)
+}
+
+/// Close-ups from the hero camera's side: the trunk base from 6 m, and the
+/// crown a third of its width off the stem at half its height from 9 m.
+fn close_ups(bounds: &Bounds, hero: &Camera) -> (Camera, Camera) {
+    let toward = Vec3::new(hero.position.x, 0.0, hero.position.z);
+    let toward = toward * (1.0 / toward.length().max(1e-9));
+    let shot = |target: Vec3, distance: f64| Camera {
+        position: target + toward * distance + Vec3::new(0.0, 0.5, 0.0),
+        target,
+        field_of_view: 38.0,
+        near: 0.05,
+        far: 500.0,
+    };
+    let height = bounds.max.y - bounds.min.y;
+    let width = bounds.max.x - bounds.min.x;
+    let side = Vec3::new(toward.z, 0.0, -toward.x);
+    let limb = Vec3::new(0.0, 0.5 * height, 0.0) + side * (width / 3.0);
+    (shot(Vec3::new(0.0, 1.2, 0.0), 6.0), shot(limb, 9.0))
 }
