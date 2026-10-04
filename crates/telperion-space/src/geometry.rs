@@ -32,8 +32,8 @@ pub(crate) fn place(structure: &mut Structure, species: &Species) -> Result<()> 
             phytomer.scale *= base_scale[i];
         }
     }
-    let reach = reaches(&structure.axes);
-    for i in 0..structure.axes.len() {
+    let reaches = reaches(&structure.axes);
+    for (i, &reach) in reaches.iter().enumerate() {
         let (base, heading, side) = frame(structure, species, i);
         if let Origin::Relay { parent, .. } = structure.axes[i].origin {
             let share = species.states[structure.axes[parent].pa].relay_at;
@@ -58,7 +58,7 @@ pub(crate) fn place(structure: &mut Structure, species: &Species) -> Result<()> 
             _ => 1.0 - (-state.erection * years).exp(),
         };
         let bend = 1.0 - (1.0 - straightening) * (1.0 - erected);
-        lay(axis, (base, heading, side), state, (bend, reach[i]))
+        lay(axis, (base, heading, side), state, (bend, reach))
             .map_err(|height| Error::BelowGround { axis: i, height })?;
     }
     Ok(())

@@ -444,3 +444,52 @@ The engine is continuous across relays (round 10; worst relay walk slope 2.82 ag
 ## Gate, round 11 (2026-10-04)
 
 Host: four of five seeds read as a beech (2, 3, 4 strongly; 1 narrower; 7 borderline). Astra, independently on the same sheet: FAIL (1 and 2 borderline, 7, 3, 4 no): "crowded ascending limbs produce fans and vases instead of a broad dome supported by substantial, outward-spreading branches" (`ASTRA-VERDICT-R11.md`). The host agrees on re-reading Rostock and Entzia: the host was too lenient. Host decision 11: fewer, stronger limbs (after the fork one to three reiterates dominate; Millet: the crown is a succession of reiterates, the most peripheral the shortest), limbs that run outward then up (elevation by physiological age, low near the limb base and rising toward its tip), and less fine brush so the large limbs show.
+
+## Round 12: fewer, stronger limbs that run out then up, less brush (worker)
+
+**Engine:** no new mechanism was needed. Each of the host's three items is expressible in the beech's values: physiological ages (PAs), their zones and `next`. The one engine edit is the clippy fix at `geometry.rs:36`: the placement loop now iterates the reaches. `cargo clippy -p telperion-space --all-targets -- -D warnings` is clean.
+
+**Beech values** (`beech.rs`, `SOURCES.md` rows updated):
+1. **Fewer, stronger limbs.**
+   - The fork's top node bears a limb (0.9). The two nodes below bear a limb at 0.3 or a weaker, shorter bough at 0.5.
+   - The leader bears limbs at only 0.06 a growth unit and boughs at 0.2. Round 11's leader bore 0.1 full limbs a unit, about seven 70-year limbs, which drew the crowded fan.
+   - Limbs bear boughs (0.15), boughs bear spurs (0.15), and spurs bear none: the most peripheral the shortest.
+2. **Limbs run out, then up**, by physiological age. A limb is two PAs:
+   - **Out:** 15 growth units bending toward 0.55 rad (tropism 0.6, straightening 0.1).
+   - **Up:** 55 units bending toward 1.15 rad.
+   - A bough is likewise 8 units toward 0.5 rad, then 22 toward 1.0. A spur keeps one PA, toward 0.75.
+   - That is two PAs more on the reference axis (11 in all).
+3. **Less fine brush.**
+   - Branch-system laterals on reiterates: 0.6 → 0.45.
+   - Long shoots on a branch system: 0.8 → 0.65.
+   - Branch internodes 4 → 3 cm; long-shoot internodes 3.5 → 2.5 cm.
+   - A first, larger cut (also short shoots 0.6 → 0.5) left the crown near empty, and was undone.
+
+**Tried and reverted:**
+- Limb and leader lifespans of 40 and 55 changed nothing visible.
+- Lower out-phase elevations (0.45 and 0.35) gave flat umbrellas.
+
+**Five seeds at 80 years** (`raw/final11/five-seeds.png`; limbs and trunk bases in `raw/final11/limbs.png` and `raw/final11/bases.png`). I viewed every still. Each reading is against Astra's critique:
+
+| Seed | Reading | Beech? |
+|---|---|---|
+| 1 | Erect bole, fork at about 0.3 H into a few substantial limbs that leave outward and rise; rounded crown, 19.5 × 13.4 m. In leaf, a rounded but open mass. Astra's "crown undersized above the long trunk" still holds | **Borderline** |
+| 7 | Two or three heavy limbs run outward, then up, under a broad crown 20 m wide. The fan of crowded upright stems is gone, but one upright, flag-like limb top left and streaky foliage tiers remain | **Borderline**, much nearer than round 11 |
+| 2 | Substantial spreading limbs carry a broad, rounded dome; the brush no longer hides the limbs | **Yes** |
+| 3 | Two limbs in a V, with a thin leader between them and a long bare limb running out low to the left. The central hollow remains: the leader of this seed is weak and one limb dominates | **No** |
+| 4 | A low fork into several substantial limbs that spread outward under a broad dome, close to Entzia. One comb-like flag of brush stands at the right | **Yes** |
+
+**Two clear (2, 4), two borderline (1, 7), one no (3).** The large limbs read at every seed. Astra's "fans and vases" reading is gone at 2, 4 and 7, and persists at 3.
+
+**The sheet** `raw/final11/sheet-beech.png` keeps the same layout; row 6 is today's beech from `raw/final9/today`. Trunk bases are smooth, with faint seams. The boles are slimmer than round 11's, because less wood is kept; breast-height diameter was not measured this round. The young ages are diagnostic only: 10 and 20 years are still poles with rods.
+
+**Costs at 80 years:**
+- Growth: 0.4 to 1.4 s.
+- Dressing: 0.3 to 0.6 s.
+- 0.34M to 0.66M nodes and 0.52M to 1.09M leaves, about 40% less than round 11.
+
+**Tests:** all crate tests are green (`raw/space-tests-r12.log`): the oracle, every walk including the relay walk, and the beech at every sheet age.
+
+**For the host:**
+- Seed 3's hollow comes from a weak leader. Its continuation from the fork is drawn at 1 mm, a near-bound draw at its birth, so one limb dominates. A share of vigour among the fork's sibling reiterates, the engine setting the host named, would govern this directly. It was not built, because the values reached the other seeds.
+- The comb-like flags at seeds 4 and 7 are branch systems on one plane along a steep limb tip.

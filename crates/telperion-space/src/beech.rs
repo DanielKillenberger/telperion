@@ -12,12 +12,14 @@ use std::f64::consts::{FRAC_PI_2, PI};
 const FORK: usize = 1;
 const LEADER: usize = 2;
 const LIMB: usize = 3;
-const BOUGH: usize = 4;
-const SPUR: usize = 5;
-const BRANCH: usize = 6;
-const SHOOT: usize = 7;
-const SHORT: usize = 8;
-const PAS: usize = 9;
+const LIMB_UP: usize = 4;
+const BOUGH: usize = 5;
+const BOUGH_UP: usize = 6;
+const SPUR: usize = 7;
+const BRANCH: usize = 8;
+const SHOOT: usize = 9;
+const SHORT: usize = 10;
+const PAS: usize = 11;
 
 /// One zone: nodes from `min` to `max`, one bud each, bearing `pa` with
 /// probability `p` (bare where `p` is 0).
@@ -111,17 +113,23 @@ pub fn beech() -> Species {
         ..state(
             2,
             Some(LEADER),
-            vec![zone(2, 3, &[]), zone(3, 3, &[(LIMB, 0.9)])],
+            vec![
+                zone(2, 3, &[]),
+                zone(2, 2, &[(LIMB, 0.3), (BOUGH, 0.5)]),
+                zone(1, 1, &[(LIMB, 0.9)]),
+            ],
         )
     };
     // Total reiterates: oblique, thick, forking in turn into reiterates
-    // "increasingly smaller and less branched".
-    let reiterate = |lifespan, child: Option<(usize, f64)>, elevation: f64| PaState {
+    // "increasingly smaller and less branched". A limb or bough runs out
+    // first and rises as it ages: its first physiological age bends
+    // towards a low elevation, the next towards a steep one.
+    let reiterate = |lifespan, next, top: &[(usize, f64)], (elevation, tropism)| PaState {
         insertion: 0.7,
         straightening: 0.25,
         viability: 0.995,
         form: Form {
-            tropism: 0.25,
+            tropism,
             elevation,
             wander: 1.2,
             plane: 0.0,
@@ -129,19 +137,30 @@ pub fn beech() -> Species {
         },
         ..state(
             lifespan,
-            None,
+            next,
             vec![
                 zone(2, 3, &[]),
-                zone(2, 3, &[(SHORT, 0.3), (BRANCH, 0.6)]),
-                zone(1, 1, &child.map_or(vec![(BRANCH, 0.6)], |c| vec![c])),
+                zone(2, 3, &[(SHORT, 0.3), (BRANCH, 0.45)]),
+                zone(1, 1, top),
             ],
         )
     };
-    // The stem's own relay at the fork, one of its equals but the most erect.
-    let leader = reiterate(70, Some((LIMB, 0.1)), 1.25);
-    let limb = reiterate(70, Some((BOUGH, 0.12)), 1.1);
-    let bough = reiterate(30, Some((SPUR, 0.1)), 0.95);
-    let spur = reiterate(15, None, 0.75);
+    // The stem's own relay at the fork, one of its equals but the most
+    // erect; after the fork one or two limbs dominate, and what the leader
+    // and the limbs bear is weaker and shorter, the most peripheral the
+    // shortest.
+    let leader = reiterate(70, None, &[(LIMB, 0.06), (BOUGH, 0.2)], (1.25, 0.25));
+    let limb = PaState {
+        straightening: 0.1,
+        ..reiterate(15, Some(LIMB_UP), &[(BRANCH, 0.45)], (0.55, 0.6))
+    };
+    let limb_up = reiterate(55, None, &[(BOUGH, 0.15)], (1.15, 0.25));
+    let bough = PaState {
+        straightening: 0.1,
+        ..reiterate(8, Some(BOUGH_UP), &[(BRANCH, 0.45)], (0.5, 0.6))
+    };
+    let bough_up = reiterate(22, None, &[(SPUR, 0.15)], (1.0, 0.25));
+    let spur = reiterate(15, None, &[(BRANCH, 0.45)], (0.75, 0.25));
     // GreenLab's PA 2, the long ramified shoot: Z20 bare, Z24 short
     // shoots, Z23 long shoots bearing short shoots, Z22 partial
     // reiteration, base to tip (acrotony).
@@ -149,7 +168,7 @@ pub fn beech() -> Species {
         insertion: 1.0,
         viability: 0.97,
         shedding: Some(1),
-        internode: 0.04,
+        internode: 0.03,
         form: Form {
             tropism: 0.8,
             elevation: 0.35,
@@ -163,7 +182,7 @@ pub fn beech() -> Species {
             vec![
                 zone(1, 2, &[]),
                 zone(2, 3, &[(SHORT, 0.6)]),
-                zone(1, 2, &[(SHOOT, 0.8)]),
+                zone(1, 2, &[(SHOOT, 0.65)]),
                 zone(1, 1, &[(BRANCH, 0.08)]),
             ],
         )
@@ -173,7 +192,7 @@ pub fn beech() -> Species {
         insertion: 1.0,
         viability: 0.95,
         shedding: Some(1),
-        internode: 0.035,
+        internode: 0.025,
         form: Form {
             tropism: 1.0,
             elevation: 0.15,
@@ -200,6 +219,8 @@ pub fn beech() -> Species {
         ..state(3, None, vec![zone(3, 5, &[])])
     };
     Species {
-        states: vec![trunk, fork, leader, limb, bough, spur, branch, shoot, short],
+        states: vec![
+            trunk, fork, leader, limb, limb_up, bough, bough_up, spur, branch, shoot, short,
+        ],
     }
 }
