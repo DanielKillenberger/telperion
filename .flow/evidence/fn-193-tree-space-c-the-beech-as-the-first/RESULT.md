@@ -543,3 +543,9 @@ Host: four of five seeds read as a beech (2, 3, 4 strongly; 1 narrower; 7 border
 ## Gate, round 13 (2026-10-04)
 
 Host: 2, 3, 4 read as a beech, 1 shallower, 7 borderline (spire); sent to Astra. Astra: FAIL (2 yes, 1 and 4 borderline, 7 and 3 no): "crown integration: too many seeds terminate their main limbs in visibly separate fans or tufts, rather than building the broad, connected dome" (`ASTRA-VERDICT-R13.md`). Progress from round 11 (no yes). Host decision 13: first, branch systems along each limb's whole length (less acrotony on limbs) with more mid-crown fill and even lateral spread; if the crown still does not integrate, the next round brings phase E's light pass forward so shoots fill gaps toward light.
+
+## Owner on round 13 seed 2 (2026-10-04)
+
+> "structure looks really good. BUt the texture of the branches looks very tube like to regular. But that should be out of scope for the growing part. So judgement seems good."
+
+Recorded: the structure direction holds; the tube-like, regular branch surface is a rendering follow-up outside phase C (a candidate spec on irregular branch cross-sections and surface for the tree space, to be raised in the report).
