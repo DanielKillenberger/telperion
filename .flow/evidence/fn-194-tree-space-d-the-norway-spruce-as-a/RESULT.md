@@ -448,3 +448,7 @@ The host found round 6 clearly better than round 5, with sprays that read like S
   - At whole-tree distance the boughs still read mostly as layered shelves with a darker underside, not as S1's deep hanging curtains.
   - The trunk-base close-ups show the lowest boughs swept down steeply to the ground and bare inside: a skirt of rods, the draperies gap.
 - **Young trees:** the 40-year sprays are still flat shelves, as in round 6.
+
+## Gate, round 7, and host decision (2026-10-04)
+
+Host: shadow-free staging; conic spruces with dense tip sprays; confident in the frame, not the mass. Astra, three samples: FAIL in all, but mostly BORDERLINE (round 6 mostly NO): "the boughs read as thin, flat shelves rather than substantial, drooping sprays with hanging comb branchlets" (`ASTRA-VERDICT-R7-{1,2,3}.md`). Values were pushed three rounds (retention, spur sprays, hang). Host decision: build dormant-bud release (draperies, MODEL-SPRUCE.md F4, M10) as its own engine spec, fn-202, which this spec now depends on.
