@@ -142,7 +142,7 @@ pub fn beech() -> Species {
             next,
             vec![
                 zone(2, 3, &[]),
-                zone(2, 3, &[(SHORT, 0.5), (BRANCH, 0.45)]),
+                zone(2, 3, &[(SHORT, 0.3), (BRANCH, 0.4)]),
                 zone(1, 1, top),
             ],
         )
@@ -153,19 +153,22 @@ pub fn beech() -> Species {
     // shortest.
     let leader = PaState {
         viability: 1.0,
-        ..reiterate(45, None, &[(LIMB, 0.06), (BOUGH, 0.2)], (1.1, 0.25))
+        ..reiterate(55, None, &[(LIMB, 0.06), (BOUGH, 0.2)], (1.2, 0.4))
     };
     let limb = PaState {
         straightening: 0.1,
-        ..reiterate(15, Some(LIMB_UP), &[(BRANCH, 0.45)], (0.55, 0.6))
+        ..reiterate(8, Some(LIMB_UP), &[(BOUGH, 0.2)], (0.55, 0.6))
     };
-    let limb_up = reiterate(55, None, &[(BOUGH, 0.2)], (1.15, 0.25));
+    let limb_up = PaState {
+        internode: 0.05,
+        ..reiterate(62, None, &[(BOUGH, 0.2)], (1.25, 0.4))
+    };
     let bough = PaState {
         straightening: 0.1,
         ..reiterate(8, Some(BOUGH_UP), &[(BRANCH, 0.45)], (0.5, 0.6))
     };
-    let bough_up = reiterate(30, None, &[(SPUR, 0.2)], (1.0, 0.25));
-    let spur = reiterate(25, None, &[(BRANCH, 0.45)], (0.6, 0.25));
+    let bough_up = reiterate(32, None, &[(SPUR, 0.2)], (1.15, 0.4));
+    let spur = reiterate(25, None, &[(BRANCH, 0.45)], (0.8, 0.25));
     // GreenLab's PA 2, the long ramified shoot: Z20 bare, Z24 short
     // shoots, Z23 long shoots bearing short shoots, Z22 partial
     // reiteration, base to tip (acrotony).

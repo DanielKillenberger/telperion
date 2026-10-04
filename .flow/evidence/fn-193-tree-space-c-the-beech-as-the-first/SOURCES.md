@@ -39,7 +39,7 @@ The beech is `crates/telperion-space/src/beech.rs`, one growth cycle a year. Sou
 | insertion 0.7 rad (reiterates), 1.0 (branch, shoot), 0.9 (short) | | **estimated**; [RAIS21] 30.7° branch angle (abstract, reference axis unknown) not used |
 | fork after 12 cycles at about 5 m (about 0.25 H) | | **estimated** to the photographs S1 (about 0.2 H to 0.33 H); [M98] forks at about 20 m in forest |
 | internodes: trunk 7 cm, reiterates 4 cm, branch 3 cm, shoot 2.5 cm, short 6 mm (round 12) | | **estimated**: LITERATURE.md "internode lengths were not found in readable sources" |
-| lifespans and viabilities (round 14: leader 45 at viability 1; limb 15 + 55, bough 8 + 30, spur 25 at 0.995; branch 10, shoot 5; short 3 at 0.9; shedding after 1 idle cycle) | | **estimated**; [KINT10] beech branches "die late but shed fast" (abstract) |
+| lifespans and viabilities (round 15: leader 55 at viability 1; limb 8 + 62 (upper internode 5 cm), bough 8 + 32, spur 25 at 0.995; branch 10, shoot 5; short 3 at 0.9; shedding after 1 idle cycle) | | **estimated**; [KINT10] beech branches "die late but shed fast" (abstract) |
 | sinuosity (`wander`) and bending (`tropism`) rates | | **estimated** |
 | pipe model | each phytomer's section added below it | the pipe model as [PAL09] uses it (LITERATURE.md); pipe radii **estimated** |
 | height about 20 m and width 16 to 22 m at 80 cycles | | result, against [OSU] 15–23 m tall, 12–18 m spread (landscape) |

@@ -591,3 +591,57 @@ Recorded: the structure direction holds; the tube-like, regular branch surface i
 ## Gate, round 14 (2026-10-04)
 
 Host: all five connected domes, confident; sent to Astra. Astra: FAIL (4 yes; 1, 7, 2 borderline; 3 no): "the consistently shallow, top-heavy crown: branches and foliage spread into upper fans without enough intermediate and lower volume to form the photographs' deep, broad dome" (`ASTRA-VERDICT-R14.md`). The fans and tufts are gone; the fault moved to depth (crowns about 19 m tall and 21 to 24 m wide). Host decision 14: a deeper dome: crown height at least its width, lower limbs and boughs living longer and carrying more so the crown reaches down from the fork, and mid-crown fill.
+
+## Round 15: a deeper dome, values only (worker)
+
+**Engine:** unchanged.
+
+**Beech values** (each step viewed on the five-seed sheet):
+1. **Taller.**
+   - A limb's rising phase has 5 cm internodes (4 before) and bends toward 1.25 rad with tropism 0.4 (1.15, 0.25).
+   - The leader lives 55 units (45) toward 1.2 rad with tropism 0.4.
+   - Boughs rise toward 1.15 rad (1.0) and live 8 + 32 (8 + 30).
+   - Spurs stand at 0.8 rad (0.6).
+2. **The crown reaches down from the fork.** A limb's outward phase is 8 units (15), and its top node bears a bough (0.2) where it bore a branch system. So the lower limbs carry boughs from near the fork.
+3. **Budget.** The extra reiterates took the beech test's 80-year grow past its 10M phytomer budget. Fewer fine laterals on reiterates bring it back inside: short shoots 0.3 (0.5) and branch systems 0.4 (0.45). The test's budget is unchanged.
+
+**Tried and reverted:**
+- Leader at 1.35 rad and limb tips at 1.3 rad with 5.5 cm internodes reached 23 to 25 m, but drew spires above the dome.
+- Outward phases of 5 units barely narrowed the crown.
+
+**Heights and widths at 80 years** (`raw/final14/run.log`):
+- The bole is clear to the fork at about 4.5 to 5 m, about 0.2 to 0.22 H (read off the stills, not measured).
+- So crown height is the tree's height less about 4.7 m.
+
+| Seed | Height | Width (x × z) | Crown height ≈ | Crown height ≥ width? |
+|---|--:|--:|--:|---|
+| 1 | 22.8 m | 21.2 × 21.6 | 18 m | no (0.84) |
+| 7 | 21.8 m | 19.5 × 21.6 | 17 m | no (0.80) |
+| 2 | 22.6 m | 20.6 × 20.6 | 18 m | no (0.87) |
+| 3 | 21.3 m | 18.3 × 23.0 | 16.5 m | no (0.72 on the wide axis) |
+| 4 | 21.5 m | 20.6 × 20.8 | 17 m | no (0.82) |
+
+**Against round 14:** the trees are 2.5 to 4 m taller and 1 to 3 m narrower. Crown depth over width rose from about 0.6 to 0.72–0.87. **The target, crown height at least its width, is not met.**
+- Every further step tried toward it either drew spires above the dome or did not narrow the crown.
+- The width is set by the boughs' and spurs' spread more than by the limbs. Narrowing it further without thinning the crown again is a design question for the host.
+
+**Per-seed reading, against Astra's "shallow, top-heavy crown"** (`raw/final14/five-seeds.png`). I viewed every still.
+
+| Seed | Reading | Beech? |
+|---|---|---|
+| 1 | A deeper, rounded crown reaching down to the fork; one tall lobe at the top right | **Yes / borderline** (the lobe) |
+| 7 | A deep, broad, connected dome reaching low; the most Nettleden-like so far | **Yes** |
+| 2 | A deep, rounded dome with a full lower crown; a small tuft at the top left | **Yes** |
+| 3 | A broad crown, deeper than round 14, with the lower crown filled; two upper shoulders with a shallow dip between them | **Borderline** |
+| 4 | A deep crown with fill low down; two pointed tips stand above the top | **Borderline** (the tips) |
+
+- The lower and middle crown is fuller at every seed. The "upper fans" are gone.
+- What remains are a few pointed tips at the top (seeds 1, 3, 4).
+- Trunk bases are smooth, with faint seams; limbs read in the close-ups.
+- Young ages are unchanged: a pole with rods at 10 and 20; at 40 a pole under a spreading crown.
+
+**Girth and costs:**
+- dbh 1.18 m at seed 1 (`examples/beech`), within 1.3 m.
+- At 80 years: growth 2.2 to 3.5 s, dressing 1.5 to 2.2 s, 1.2M to 1.9M nodes, 2.6M to 3.7M leaves.
+
+**Tests:** all crate tests are green (`raw/space-tests-r15.log`): the oracle, every walk, and the beech at every sheet age within its unchanged 10M budget. Clippy is clean.
