@@ -244,7 +244,7 @@
     "impl:fn-193-tree-space-c-the-beech-as-the-first.1": 0
   },
   "spec_path": ".flow/specs/fn-193-tree-space-c-the-beech-as-the-first.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space C: the beech as the first point",
   "tracker": {
     "baseHashFlow": null,
@@ -257,5 +257,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T14:57:22.699089Z"
+  "updated_at": "2026-10-04T15:06:47.497655Z"
 }
