@@ -440,3 +440,7 @@ The engine is continuous across relays (round 10; worst relay walk slope 2.82 ag
 - The module tips now barely bend (elevation 1.4), so Troll's module curvature shows little. That is the price of an erect stem while a relay of small `blend` keeps the tip's tilt. A relay whose straightening does not scale with its blend would let the tips bend again, but that is an engine design question.
 - Seed 7's upright broom is a long, steep limb with dense shoots at its top. Of the two limb-elevation steps tried, neither removed it without flattening other seeds.
 - `cargo clippy -p telperion-space -- -D warnings` fails on `geometry.rs:36` (`needless_range_loop`). It came in with round 10's engine change, and the engine is outside this round's scope.
+
+## Gate, round 11 (2026-10-04)
+
+Host: four of five seeds read as a beech (2, 3, 4 strongly; 1 narrower; 7 borderline). Astra, independently on the same sheet: FAIL (1 and 2 borderline, 7, 3, 4 no): "crowded ascending limbs produce fans and vases instead of a broad dome supported by substantial, outward-spreading branches" (`ASTRA-VERDICT-R11.md`). The host agrees on re-reading Rostock and Entzia: the host was too lenient. Host decision 11: fewer, stronger limbs (after the fork one to three reiterates dominate; Millet: the crown is a succession of reiterates, the most peripheral the shortest), limbs that run outward then up (elevation by physiological age, low near the limb base and rising toward its tip), and less fine brush so the large limbs show.
