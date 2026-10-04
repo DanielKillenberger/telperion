@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-202-tree-space-dormant-buds-wake-along-old",
   "impl_review_rounds": {
-    "fn-202-tree-space-dormant-buds-wake-along-old.1": 1
+    "fn-202-tree-space-dormant-buds-wake-along-old.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -69,9 +69,63 @@
       "timestamp": "2026-10-04T21:00:32.079459Z",
       "tool_calls": 17,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d2006e17587deb62ea73b5549e495ed3364e37ebfa01cc3dd97f71f1d110b7b6",
+      "backend": "codex",
+      "base_sha": "01214ad5df662dcb0ec4a1747b8f348ff38a0665",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a0b5e45087795e88676f67bb075aed25",
+            "classification": "introduced",
+            "findingId": "finding-a0b5e45087795e88676f67bb075aed25",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-8219ed1f60ef341dde020657b1d23ecf",
+            "classification": "introduced",
+            "findingId": "finding-8219ed1f60ef341dde020657b1d23ecf",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "316e515fdee0fd6ff9548377813d3d467e385604",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1268,
+      "output_sha256": "01f6d2fe6f5443b15dba591b7b8b6a3cc8508035f4a94cc6bd457026c096c8e6",
+      "reservation_id": "228526fd3cca4cfe813b71412dcc78b9",
+      "round_consumed": true,
+      "scope": "impl:fn-202-tree-space-dormant-buds-wake-along-old.1",
+      "superseded_by": null,
+      "task": "fn-202-tree-space-dormant-buds-wake-along-old.1",
+      "timestamp": "2026-10-04T21:06:51.041554Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-202-tree-space-dormant-buds-wake-along-old.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -91,5 +145,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T21:00:32.086860Z"
+  "updated_at": "2026-10-04T21:06:51.043883Z"
 }

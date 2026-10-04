@@ -13,3 +13,10 @@
 - **What slowed it:** Claude Code stopped the background render because the machine ran critically low on memory; no still was written. The reaper's note forbids restarting it unasked.
 - **Cost:** about 5 minutes; R5 has no strip yet.
 - **What would have removed it:** fewer concurrent worktree builds and renders on the machine, or one tree per process run. This is a local setup issue, reported rather than specced.
+
+## 2026-10-04: the workspace gate ran twice
+
+- **Doing:** finishing R6.
+- **What slowed it:** the host's order put the gate before the Codex review. The review's fixes changed engine code, so the gate ran again on the final commit.
+- **Cost:** about 5 minutes.
+- **What would have removed it:** gate after the review's last fix, as AGENTS.md's "once, at the end of a task" reads.

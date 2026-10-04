@@ -139,3 +139,7 @@ Does the same treatment answer the relay at probability 1 crossing survival? In 
 - Green with them: all six release-law walks pass, worst slopes 1.2 to 2.9.
 
 R4 now gives woken twigs a rising hazard and still passes. The beech stills are byte-identical (`raw/beech-rev1`).
+
+## Codex review round 2: SHIP
+
+Both findings are fixed, with no new ones. The final workspace gate on `316e515f`: 1,034 passed, 0 failed, 21 ignored, in 5 min 2 s (`raw/workspace-gate-final.log`).
