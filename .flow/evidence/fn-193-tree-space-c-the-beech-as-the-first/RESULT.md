@@ -906,3 +906,9 @@ Host: deep rounded crowns on a continuing trunk; confident. Astra, three samples
 ## Gate, round 21 (2026-10-04)
 
 Astra, three samples: FAIL in all, no yes; "branches form upward-flaring fans with angular tops rather than spreading into broad, rounded domes" (`ASTRA-VERDICT-R21-{1,2,3}.md`). The dominance setting made crowns lopsided; round 20 (one yes, seed 2 the strongest candidate) stays the best on Astra's scale. Rounds 13 to 21 oscillate between fans and domes. The host pauses new rounds pending the owner's call on the gate (owner judges vs host and Astra).
+
+## Owner verdict: the beech passes (2026-10-04)
+
+> owner: "i mean to me they look really good structurally."
+
+The beech passes phase C on the owner's verdict, with round 20's values (raw/final19: continuing trunk, late fork, limbs at several heights, deep domes, fine tips, matched colours). Round 21's `form.dominance` engine setting stays at its neutral 0 for the beech. Known gaps, recorded for later work, not this phase: Astra's branch-hierarchy critique (fewer, heavier limbs dividing progressively; `ASTRA-VERDICT-R19/R20`), the tube-like regular branch surface (owner, round 13), and the young ages (10 and 20 years) still reading as a pole with rods.
