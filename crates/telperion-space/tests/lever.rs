@@ -1,13 +1,12 @@
-//! fn-203: sag measures its lever on the bent branch. A branch's load
-//! turns with the bends above it, so its lever shrinks as it droops: a
-//! heavy branch hangs and stops, and a light one bends as the small
-//! deflection theory says.
+//! fn-203: sag measures its lever on the bent branch. The load beyond a
+//! phytomer turns with the bends before it, so a heavy branch hangs and
+//! stops, and the ground carries what rests on it.
 use telperion_space::{grow, Form, NodeLaw, PaState, Request, Species, Structure, Vec3, Zone};
 
-fn zone(lateral: Vec<f64>) -> Zone {
+fn zone(lateral: Vec<f64>, buds: u8) -> Zone {
     Zone {
         nodes: NodeLaw::Uniform { min: 1, max: 1 },
-        buds: 1,
+        buds,
         dormant: vec![0.0; lateral.len()],
         delay: 0.0,
         rate: 0.0,
@@ -15,17 +14,25 @@ fn zone(lateral: Vec<f64>) -> Zone {
     }
 }
 
-/// A 10 m pole bearing one long branch, leaving level, wandering, with
-/// twigs on both sides, its tip turning up towards a shallow elevation, as
-/// the spruce's boughs do, under `sag`.
-pub fn bough(sag: f64, seed: u64, one_sided: bool) -> Structure {
+/// A branch's own form: its tip's turn towards its elevation, and how it
+/// wanders.
+#[derive(Clone, Copy)]
+struct Bough {
+    tropism: f64,
+    elevation: f64,
+    wander: f64,
+}
+
+/// A pole `height` m tall bearing one long branch that leaves it near
+/// level, with twigs on both sides, under `sag`.
+fn tree(height: f64, sag: f64, seed: u64, bough: Bough) -> Structure {
     let pole = PaState {
         lifespan: 1,
         next: None,
         viability: 1.0,
-        zones: vec![zone(vec![0.0, 1.0, 0.0])],
+        zones: vec![zone(vec![0.0, 1.0, 0.0], 1)],
         shedding: None,
-        internode: 10.0,
+        internode: height,
         insertion: 0.0,
         divergence: 0.0,
         abortion: 0.0,
@@ -44,18 +51,18 @@ pub fn bough(sag: f64, seed: u64, one_sided: bool) -> Structure {
     };
     let branch = PaState {
         lifespan: 1_000,
-        zones: vec![Zone {
-            buds: if one_sided { 1 } else { 2 },
-            ..zone(vec![0.0, 0.0, 0.8])
-        }],
-        internode: 0.1,
+        zones: vec![zone(vec![0.0, 0.0, 0.8], 2)],
+        internode: 0.05,
         insertion: 1.5,
-        divergence: if one_sided { 0.0 } else { std::f64::consts::PI },
+        divergence: std::f64::consts::PI,
         form: Form {
-            tropism: 0.8,
-            elevation: 0.7,
-            wander: if one_sided { 0.0 } else { 1.0 },
-            pipe: 0.002,
+            tropism: bough.tropism,
+            elevation: bough.elevation,
+            wander: bough.wander,
+            pipe: 0.0008,
+            exponent: 2.2,
+            ripening: 10.0,
+            roll: 0.8,
             sag,
             ..Form::default()
         },
@@ -63,11 +70,13 @@ pub fn bough(sag: f64, seed: u64, one_sided: bool) -> Structure {
     };
     let twig = PaState {
         lifespan: 6,
-        zones: vec![zone(vec![0.0, 0.0, 0.0])],
-        internode: 0.1,
-        insertion: 1.0,
+        zones: vec![zone(vec![0.0, 0.0, 0.0], 1)],
+        internode: 0.05,
+        insertion: 0.9,
         form: Form {
-            pipe: 0.001,
+            pipe: 0.0005,
+            tropism: 2.0,
+            elevation: -1.0,
             ..Form::default()
         },
         ..pole.clone()
@@ -75,69 +84,131 @@ pub fn bough(sag: f64, seed: u64, one_sided: bool) -> Structure {
     let species = Species {
         states: vec![pole, branch, twig],
     };
-    grow(
-        &species,
-        Request {
-            age: 32,
-            seed,
-            budget: 100_000,
-        },
-    )
-    .unwrap()
+    let request = Request {
+        age: 70,
+        seed,
+        budget: 1_000_000,
+    };
+    grow(&species, request).unwrap()
 }
 
-/// Each internode's direction along the branch, base first, and how far
-/// it leans away from the pole: its run's share along the horizontal from
-/// the pole to its base.
-fn leans(tree: &Structure) -> Vec<(Vec3, f64)> {
+/// The branch's internode directions, base first.
+fn directions(tree: &Structure) -> Vec<Vec3> {
     let branch = &tree.axes[1];
     let mut from = branch.base;
-    branch
-        .phytomers
-        .iter()
-        .map(|p| {
-            let d = (p.tip - from).unit().unwrap();
-            let away = Vec3::new(from.x, from.y, 0.0)
-                .unit()
-                .map_or(0.0, |r| d.dot(r));
-            from = p.tip;
-            (d, away)
-        })
-        .collect()
+    let mut out = Vec::new();
+    for p in &branch.phytomers {
+        if let Some(d) = (p.tip - from).unit() {
+            out.push(d);
+        }
+        from = p.tip;
+    }
+    out
 }
 
-/// R1: a long, heavily loaded branch hangs and never bends past the
-/// vertical along its length: no internode leans back towards the pole.
+/// R1 (i): in free air, a long, heavily loaded branch converges towards
+/// hanging: where it hangs within 0.3 rad of straight down, each
+/// phytomer turns it by almost nothing more.
 #[test]
-fn a_heavy_branch_hangs_and_never_passes_the_vertical() {
-    for one_sided in [true, false] {
-    for sag in [1e-4, 1e-3, 1e-2] {
-        for seed in 1..=2 {
-            let l = leans(&bough(sag, seed, one_sided));
-            let back = l[1..].iter().map(|(_, a)| *a).fold(f64::INFINITY, f64::min);
-            let hangs = l
-                .iter()
-                .map(|(d, _)| -d.z)
-                .fold(f64::NEG_INFINITY, f64::max);
-            let out = Vec3::new(l[1].0.x, l[1].0.y, 0.0).unit().unwrap();
-            let side = l
-                .iter()
-                .filter(|(d, _)| d.x.hypot(d.y) > 0.1)
-                .map(|(d, _)| {
-                    let h = Vec3::new(d.x, d.y, 0.0).unit().unwrap();
-                    h.cross(out).z.atan2(h.dot(out)).abs()
-                })
-                .fold(0.0f64, f64::max);
-            let tree = bough(sag, seed, one_sided);
-            let branch = &tree.axes[1];
-            let radial = |v: Vec3| v.x.hypot(v.y);
-            let (mut far, mut retreat) = (0.0f64, 0.0f64);
-            for p in &branch.phytomers {
-                far = far.max(radial(p.tip));
-                retreat = retreat.max(far - radial(p.tip));
-            }
-            println!("one-sided {one_sided} sag {sag} seed {seed}: least lean away {back:.4}, steepest fall {hangs:.4}, widest swing {side:.2}, retreat {retreat:.3} of {far:.3}");
-        }
+fn a_heavy_branch_converges_towards_hanging() {
+    let still = Bough {
+        tropism: 0.0,
+        elevation: 0.0,
+        wander: 0.0,
+    };
+    for seed in 1..=3 {
+        let d = directions(&tree(10.0, 2e-3, seed, still));
+        let hanging: Vec<f64> = d
+            .windows(2)
+            .filter(|w| -w[0].z > 0.3f64.cos())
+            .map(|w| w[0].dot(w[1]).clamp(-1.0, 1.0).acos())
+            .collect();
+        let fall = d.iter().map(|v| -v.z).fold(f64::MIN, f64::max);
+        let last = hanging.last().copied().unwrap_or(f64::NAN);
+        println!(
+            "seed {seed}: steepest {fall:.4}, {} hanging, last turn {last:.5}",
+            hanging.len()
+        );
+        assert!(hanging.len() > 10, "seed {seed}: the branch hangs");
+        assert!(last < 1e-3, "seed {seed}: still turning by {last} rad");
     }
+}
+
+/// The azimuth a branch's level-going internodes wind through: a branch
+/// that swings round its base or coils winds by a large angle.
+fn winding(d: &[Vec3]) -> f64 {
+    let level: Vec<f64> = d
+        .iter()
+        .filter(|v| v.x.hypot(v.y) > 0.3)
+        .map(|v| v.y.atan2(v.x))
+        .collect();
+    let tau = std::f64::consts::TAU;
+    level
+        .windows(2)
+        .map(|w| (w[1] - w[0] + 3.0 * std::f64::consts::PI).rem_euclid(tau) - std::f64::consts::PI)
+        .sum::<f64>()
+        .abs()
+}
+
+/// R1 (ii), round 9's fault: a heavy, low bough, upturned and wandering
+/// as the spruce's are, that comes down to the ground does not swing
+/// round its base. On the small-deflection sag it reached the ground and
+/// wound 1.5 to 1.6 rad at every seed.
+#[test]
+fn a_heavy_low_bough_on_the_ground_does_not_swing_round() {
+    let spruce = Bough {
+        tropism: 0.8,
+        elevation: 0.7,
+        wander: 1.0,
+    };
+    for seed in 1..=4 {
+        let tree = tree(0.4, 6e-4, seed, spruce);
+        let low = tree.axes[1]
+            .phytomers
+            .iter()
+            .map(|p| p.tip.z)
+            .fold(f64::MAX, f64::min);
+        let wound = winding(&directions(&tree));
+        println!("seed {seed}: winds {wound:.2} rad, comes within {low:.3} m of the ground");
+        assert!(
+            low < 0.1,
+            "seed {seed}: the bough comes down to the ground ({low})"
+        );
+        assert!(wound < 1.2, "seed {seed}: the bough winds {wound} rad");
     }
+}
+
+/// R2: a lightly loaded branch bends as the small-deflection beam says,
+/// in proportion to its load: doubling a light sag doubles every
+/// internode's bend to within a few percent (the correction is first
+/// order in the bend).
+#[test]
+fn a_light_branch_bends_as_the_small_deflection_beam_does() {
+    let still = Bough {
+        tropism: 0.0,
+        elevation: 0.0,
+        wander: 0.0,
+    };
+    let plain = directions(&tree(10.0, 0.0, 1, still));
+    let bends = |sag: f64| -> Vec<f64> {
+        let bent = directions(&tree(10.0, sag, 1, still));
+        plain
+            .iter()
+            .zip(&bent)
+            .map(|(u, v)| u.dot(*v).clamp(-1.0, 1.0).acos())
+            .collect()
+    };
+    let (one, two) = (bends(1e-6), bends(2e-6));
+    let most = one.iter().fold(0.0f64, |m, &b| m.max(b));
+    let off = one
+        .iter()
+        .zip(&two)
+        .map(|(a, b)| (b - 2.0 * a).abs())
+        .fold(0.0f64, f64::max);
+    println!("a light load bends up to {most:.4} rad; doubled, off by {off:.5}");
+    assert!(most > 0.01, "the load bends the branch ({most})");
+    assert!(
+        off < 0.05 * 2.0 * most,
+        "doubling bends {off} rad off double"
+    );
 }

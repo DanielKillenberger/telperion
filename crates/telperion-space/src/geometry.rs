@@ -11,7 +11,7 @@
 //! or an axis whose base is below it, is an error.
 use crate::error::{Error, Result};
 use crate::lineage::{Key, DOMINANCE, ROLL};
-use crate::sag::{torque, turn};
+use crate::sag::{held, torque, turn, Lever};
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
 use std::f64::consts::{FRAC_PI_2, PI, TAU};
@@ -69,7 +69,7 @@ pub(crate) fn scale(structure: &mut Structure, species: &Species) {
 pub(crate) fn place(
     structure: &mut Structure,
     species: &Species,
-    levers: Option<&[Vec<Vec3>]>,
+    levers: Option<&[Vec<Lever>]>,
 ) -> Result<()> {
     let age = structure.age;
     // The trunk: the seed axis and what carries it on.
@@ -156,7 +156,7 @@ fn lay(
     (base, heading, side): (Vec3, Vec3, Vec3),
     state: &PaState,
     (bend, total): (f64, f64),
-    load: Option<&[Vec3]>,
+    load: Option<&[Lever]>,
     trunk: bool,
 ) -> std::result::Result<(), f64> {
     let form = state.form;
@@ -190,15 +190,20 @@ fn lay(
             // vertical and its torque shrinks, so a heavy branch hangs and
             // stops (fn-203). Normalised with no cutoff: a vanishing
             // moment bends by nothing, never by a jump.
-            let now = framed(
-                load[k],
-                (phytomer.heading, phytomer.side),
-                (running, across),
-            );
-            let torque = torque(now);
-            let moment = torque.length();
+            let frames = ((phytomer.heading, phytomer.side), (running, across));
+            let now = framed(load[k].moment, frames.0, frames.1);
+            // The ground carries what of the wood beyond would rest on it.
+            let carried = if trunk {
+                1.0
+            } else {
+                let end = tip.z + running.z * length;
+                held(end, framed(load[k].chord, frames.0, frames.1))
+            };
+            let now = now * carried;
+            let turning = torque(now);
+            let moment = turning.length();
             if moment > 0.0 {
-                let pivot = torque * (1.0 / moment);
+                let pivot = turning * (1.0 / moment);
                 // The backstop: the room left to turn, the signed angle
                 // about the pivot from the direction to straight down,
                 // short of it by `HANG`. Wood already past straight down, curled under,
@@ -215,8 +220,17 @@ fn lay(
                 } else {
                     room
                 };
+                // The unbent lever's moment caps the turned one's.
+                let cap = torque(load[k].moment).length() * carried;
                 let angle =
-                    turn(now, form.sag, phytomer.radius, length).min((room - HANG).max(0.0));
+                    turn(now, cap, form.sag, phytomer.radius, length).min((room - HANG).max(0.0));
+                // Wood resting on the ground is carried by it and keeps
+                // its direction there.
+                let angle = if trunk {
+                    angle
+                } else {
+                    angle * support(tip.z, phytomer.radius, length)
+                };
                 running = rotated(running, pivot, angle);
                 across = rotated(across, pivot, angle);
             }
@@ -240,9 +254,8 @@ fn lay(
         // normalised on its own, so a step near straight down stays near
         // straight down.
         if !trunk && direction.z < 0.0 {
-            let zone = CONTACT * phytomer.radius + LANDING * length;
-            if tip.z < zone {
-                let ease = (tip.z.max(0.0) / zone).sqrt();
+            let ease = support(tip.z, phytomer.radius, length);
+            if ease < 1.0 {
                 if let Some(unit) = Vec3::new(direction.x, direction.y, direction.z * ease).unit() {
                     direction = unit;
                 }
@@ -270,6 +283,19 @@ fn lay(
     axis.heading = heading;
     axis.side = side;
     Ok(())
+}
+
+/// How far wood at height `z`, `radius` thick and `length` long, stands
+/// free of the ground: 1 above its landing zone (a few radii and
+/// `LANDING` internodes), easing with the square root of its height to
+/// none on the ground.
+pub(crate) fn support(z: f64, radius: f64, length: f64) -> f64 {
+    let zone = CONTACT * radius + LANDING * length;
+    if z >= zone {
+        1.0
+    } else {
+        (z.max(0.0) / zone).sqrt()
+    }
 }
 
 /// A lateral's share of its vigour among its siblings: by `dominance`,
