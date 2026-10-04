@@ -695,3 +695,37 @@ Astra: FAIL (1, 7, 2, 3 borderline; 4 no): "the rising limbs consistently produc
 ## Gate, round 16, and host decision 16 (2026-10-04)
 
 Host: five integrated domes, the best sheet; sent to Astra. Astra: FAIL (3 yes; 1, 7, 4 borderline; 2 no): "most seeds form angular, tiered masses with pointed tops instead of the photographs' broad domes" (`ASTRA-VERDICT-R16.md`). Single Astra samples are noisy (seed 2 went from its yes in round 13 to no, seed 3 from no to yes, with modest changes), so the gate now takes three independent Astra judgements per sheet and a seed counts as yes on a majority. Host decision 16: round 17 softens the horizontal foliage shelves (layered sprays stay, but the crown outline must be continuous, not stepped) and rounds the top (the leader's and the top limbs' last modules arch over instead of pointing up).
+
+## Round 17: round tops, a continuous outline, calmer twigs (worker)
+
+**Engine:** unchanged. Round 16's architecture is kept, with values only (`beech.rs`):
+- **(b) Rounded top.**
+  - The leader is now a module stack too: abortion 0.3, relay from the upper side of the bend, tip arching toward 0.8 rad.
+  - Limb and bough tips arch toward 0.3 and 0.2 rad (0.2 and 0.1 before).
+  - An arching leader toward 0.5 rad was tried first. It gave the same rounded top on a slightly lower tree, so 0.8 was kept.
+- **(a) A continuous outline.**
+  - Branch systems roll about their bearer by up to 1.2 rad (0.7) and wander 0.5 (0.8). The sprays stop stacking into level shelves.
+  - Module timing already differs per limb, since each module's end is its own draw.
+- **(c) Fewer tangled twigs.** Long shoots wander 1.0 (2.0) and branch systems 0.5. The bare fine crown is calmer, with fewer looping shoots.
+
+**Heights and widths at 80 years** (`raw/final16/run.log`):
+
+| Seed | Height | Width (x × z) | Reading against Astra's "angular, tiered masses with pointed tops" | Beech? |
+|---|--:|--:|---|---|
+| 1 | 18.1 m | 19.5 × 21.1 | A broad, rounded dome, no pointed top; the outline continuous, with layered texture inside it | **Yes** |
+| 7 | 17.5 m | 19.9 × 18.9 | A rounded dome with a soft, continuous outline; no shelves at the edge | **Yes** |
+| 2 | 16.9 m | 17.9 × 19.4 | A rounded crown, full to the top; a few sprays stand out at the lower right | **Yes** |
+| 3 | 17.6 m | 19.4 × 20.6 | A broad dome, rounded top; the lower left edge is still layered | **Yes / borderline** |
+| 4 | 17.1 m | 20.5 × 21.9 | A broad, rounded dome, flatter on top than the others | **Yes / borderline** |
+
+**No seed has a pointed top any more, and the outlines are continuous.**
+- The crowns are broader than tall, 1 to 2 m lower than round 16: Entzia's proportions rather than Nettleden's.
+- **Bare:** a fine, even crown; the twigs are less tangled than round 16's.
+- **Trunk bark:** the horizontal bands Astra flagged remain. They are the bark texture's rings plus faint module seams (`raw/final16/bases.png`). That is the preset's bark rows and the conversion, outside this round's values; not changed.
+- Young ages are unchanged.
+
+**Tests:** all crate tests are green (`raw/space-tests-r17.log`): the oracle, every walk, and the beech at every age within its unchanged budget. Clippy is clean.
+
+**Girth and costs:**
+- dbh 1.17 m at seed 1.
+- At 80 years: growth 2.2 to 3.3 s, dressing 1.5 to 2.0 s, 1.39M to 1.62M nodes.

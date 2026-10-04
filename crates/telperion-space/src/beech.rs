@@ -167,10 +167,13 @@ pub fn beech() -> Species {
     // shortest.
     let leader = PaState {
         viability: 1.0,
-        ..reiterate(45, &[(LIMB, 0.06), (BOUGH, 0.2)], (1.1, 0.25))
+        ..module(
+            reiterate(45, &[(LIMB, 0.06), (BOUGH, 0.2)], (0.0, 0.0)),
+            (0.3, 0.8),
+        )
     };
-    let limb = module(reiterate(70, &[(BOUGH, 0.16)], (0.0, 0.0)), (0.3, 0.2));
-    let bough = module(reiterate(30, &[(SPUR, 0.14)], (0.0, 0.0)), (0.35, 0.1));
+    let limb = module(reiterate(70, &[(BOUGH, 0.16)], (0.0, 0.0)), (0.3, 0.3));
+    let bough = module(reiterate(30, &[(SPUR, 0.14)], (0.0, 0.0)), (0.35, 0.2));
     let spur = reiterate(25, &[(BRANCH, 0.45)], (0.6, 0.25));
     // GreenLab's PA 2, the long ramified shoot: Z20 bare, Z24 short
     // shoots, Z23 long shoots bearing short shoots, Z22 partial
@@ -183,10 +186,10 @@ pub fn beech() -> Species {
         form: Form {
             tropism: 0.8,
             elevation: 0.35,
-            wander: 0.8,
+            wander: 0.5,
             plane: 0.0,
             pipe: 0.0005,
-            roll: 0.7,
+            roll: 1.2,
         },
         ..state(
             10,
@@ -208,7 +211,7 @@ pub fn beech() -> Species {
         form: Form {
             tropism: 1.0,
             elevation: 0.15,
-            wander: 2.0,
+            wander: 1.0,
             plane: 0.0,
             pipe: 0.0005,
             roll: 0.0,
