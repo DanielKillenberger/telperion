@@ -1,0 +1,32 @@
+{
+  "branch_name": "fn-201-foliage-selection-dispatches-past-65535",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-04T17:47:17.094845Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-201-foliage-selection-dispatches-past-65535",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-201-foliage-selection-dispatches-past-65535.md",
+  "status": "open",
+  "title": "Foliage selection dispatches past 65,535 workgroups",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-04T17:47:27.207684Z"
+}
