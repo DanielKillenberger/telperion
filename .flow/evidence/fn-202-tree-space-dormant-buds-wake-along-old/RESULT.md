@@ -44,22 +44,31 @@ Waking is now gated on the bearer living **through** the waking cycle, not just 
 
 **After A:** worst slopes 1.2, 0.5, 2.5 and 0.9 on the four release-law walks. Three pass the jump check. One step still fails: limb rate at seed 2, about 1 percent of the tree.
 
-## The remaining jump: a design question for the host
+## The remaining jump, and host decision 2 (2026-10-04): a shoot woken near its bearer's end is small
 
-Probed by bisection. A twig woken just before the end of cycle c, whose bearer then dies in cycle c + 1:
+**The jump, found by bisection.** A twig wakes just before the end of cycle c, and its bearer then stops in cycle c + 1.
 
-- Woken at c − ε, it wakes, grows a vanishing partial unit, then one full unit in c + 1.
-- Woken at c + ε, it never wakes, because its bearer is dead by then.
+- Woken at c − ε, the twig wakes, grows a vanishing partial unit, then a full unit in c + 1.
+- Woken at c + ε, it never wakes, because its bearer is gone.
 
-The rule "wakes only while its bearer lives" is a hard gate in time. Nothing makes a shoot that woke just before its bearer's end small.
+**Built (decision 2).** A woken shoot keeps share + (1 − share) × p of its size (`Woken::kept`).
 
-Candidate (not built): a woken shoot's size times share + (1 − share) × p. Here share is the part of its waking cycle it grew, and p is the presence of its bearer carrying on through the next cycle.
+- share is the part of its waking cycle it grew.
+- p is its bearer's presence carrying on through the next cycle:
+  - the next unit's survival times its persistence;
+  - times the presence of the continuation or relay that took over, where the bearer stopped after that unit (or died before it);
+  - 0 where nothing carried it on.
+- A bearer that died in the cycle after its next unit is told apart from one that stopped right after that unit by a `failed` flag. Without the flag a jump stayed: a probe found one at delay 0.45 on seed 1.
+- Expected counts are unchanged, because presences are not counts. R4 is unchanged and green.
 
-- A bearer that dies next cycle gives a shoot that vanishes as share goes to 0.
-- A bearer that barely survives its next draw has p ≈ 0, which matches the side where it dies.
-- The closed form is unaffected, because presences are not counts.
+**Result.** `the_release_law_changes_the_tree_by_degree` is un-ignored and passes all four release-law walks. Worst slopes are 1.2, 0.5, 2.5 and 0.9, and every step passes the jump check. Red first: on `dcf6add1` (first growth unit scaled by its share alone) the same walks fail the jump check, with worst slope 6.3.
 
-The alternative is to accept the remaining jump. `the_release_law_changes_the_tree_by_degree` stays ignored, with this reason, until the host decides.
+## Host decision 3 (2026-10-04): where a woken bud stands
+
+- A woken bud takes its slot's azimuth in the parent's plane, as ordinary laterals do.
+- It stands half an internode below its node, so it does not stack on the bud that grew at once.
+- Girth and sag still take its load at the node.
+- Re-checked on the spruce's limb close-up: see R5 below.
 
 ## fn-199's first finding
 
@@ -86,24 +95,28 @@ Does the same treatment answer the relay at probability 1 crossing survival? In 
   - Breaking the bearer's living term makes it fail (checked).
 - **Cost:** the beech grew in 3.5 s before and 3.6 s after at seed 1. That is one sample each, and the neutral path adds only empty loops.
 
-## R5: the spruce walking a dormant probability (`raw/r5/strip.png`, viewed)
+## R5: the spruce walking a dormant probability (`raw/r5b/strip.png`, viewed)
 
-- **Setup:**
-  - Seed 1 at 80 years, on `r5-spruce-tmp` (fn-194 rebased onto fn-202, plus a `--dormant` walk in the still runner).
-  - Branchlets sleep on both main-branch stages (the young sprig and the branch).
-  - Delay 3 and rate 0.15 are strip-only values.
-  - Columns are dormant 0, 0.05, 0.1, 0.15, 0.2 and 0.3. Rows are in leaf, bare, the limb close-up, and the limb in leaf.
-  - Each tree was rendered in its own process.
-- **Rendering limits:** 0.4 and 0.45 ran the GPU out of memory (over 23 million needles). 0.8 passed the 20-million-phytomer budget.
-- **Measures:** wood rose by degree, from 46.5 to 48.2, 49.8, 51.4, 53.1 and 56.3 km. Height stayed at 21.9 m and width at 17.1 to 17.2 m.
+**Setup.**
 
-**Reading.**
+- Seed 1 at 80 years, on `r5-spruce-tmp` (fn-194 rebased onto fn-202, plus a `--dormant` walk in the still runner).
+- Branchlets sleep on both main-branch stages (the young sprig and the branch).
+- Release law: delay 1, rate 0.3.
+- One tree per process.
+- Columns are dormant 0, 0.05, 0.1, 0.15 and 0.2. Rows are in leaf, bare, the limb close-up, and the limb in leaf.
 
-- **By degree: yes.** The whole tree's outline and tiers do not move. Each step adds a little more fine wood along the boughs.
-- **Curtains: no.**
-  - At 0.3 the limb close-ups show boughs somewhat denser along their length, with short tufts standing up out of the bough's plane.
-  - They do not show hanging draperies filling the curtain.
-  - Two causes are visible or follow from the values:
-    - The half-slot place puts a woken branchlet above or below the flat bough, and the ones above read as tufts.
-    - Most buds wake after the branchlet stage's 10 years, so they wake as short spurs, not long comb branchlets.
-- **Starting point for round 8:** this is not a confirmed starting point. A spruce round would want waking earlier (a shorter delay, a higher rate) so they wake as branchlets, and hang (fn-194's values).
+**Release law picked from one limb close-up** (`raw/r5b/pick.png`: dormant 0, then rate 0.3 and rate 0.5 at dormant 0.1). The two rates read alike. Rate 0.3 grows fewer needles, so it renders one step further up the walk.
+
+**Limits.** At delay 1 the woken buds wake as branchlets with spurs, so needles climb faster than in the first strip. Dormant 0.3 at rate 0.3, and 0.2 at rate 0.5, ran the GPU out of memory. The strip stops at 0.2.
+
+**Measures.** Wood rose by degree: 46.5, 48.9, 51.3, 53.7 and 56.1 km. Height stayed at 21.9 m and width at 17.1 to 17.3 m.
+
+**Reading** (`raw/r5b/limb-0-vs-0.2.png`, with the first strip's dormant-0 limb).
+
+- **By degree: yes.** The outline and tiers hold, and each step adds a little more to the boughs.
+- **The tufts are gone.** Woken branchlets lie in the bough's spray plane, as decision 3 meant.
+- **The combs fill in.** At 0.2 the lower boughs' combs are visibly denser, with more hanging branchlet threads under the inner bough.
+- **Not yet heavy draperies.** The effect is moderate at what the GPU can render.
+- **Values for round 8:** delay 1 and rate 0.3 are a reasonable starting point.
+
+**The first strip** (`raw/r5/strip.png`, delay 3, rate 0.15, half-slot angular place) is kept for comparison. It showed upward tufts and short spurs.
