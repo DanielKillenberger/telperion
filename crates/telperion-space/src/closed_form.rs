@@ -94,8 +94,9 @@ fn events(species: &Species, laterals: &[Vec<f64>], k: usize, m: usize, spent: u
             }
         }
         if i < n {
-            relay(&mut out, i, survival * state.abortion, i);
-            survival *= 1.0 - state.abortion;
+            let abortion = state.abortion_at(i);
+            relay(&mut out, i, survival * abortion, i);
+            survival *= 1.0 - abortion;
         }
     }
     match state.next {
@@ -261,9 +262,11 @@ mod tests {
             insertion: 0.5,
             divergence: 2.4,
             abortion: 0.2,
+            abortion_rise: 0.0,
             relay: 0.4,
             relay_at: 1.0,
             epitony: 0.0,
+            erection: 0.0,
             readiness: 0.8,
             rhythm: 0.6,
             straightening: 0.0,

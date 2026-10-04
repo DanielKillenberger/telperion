@@ -158,15 +158,16 @@ impl Grower<'_> {
             apex.units += 1;
             // An apex that has spent its PA's lifespan moves on; it does not
             // also abort.
-            if state.abortion > 0.0 && apex.units < state.lifespan {
+            let abortion = state.abortion_at(self.draws[apex.axis].units.len());
+            if abortion > 0.0 && apex.units < state.lifespan {
                 let u = unit.child(ABORTION).unit();
-                if u < state.abortion {
+                if u < abortion {
                     self.axes[apex.axis].apex_end = Some(cycle);
-                    self.stop(apex, cycle, below(u, state.abortion));
+                    self.stop(apex, cycle, below(u, abortion));
                     continue;
                 }
                 let stake = self.windows.wood(pa, cycle + 1) * stop_stake(state.relay);
-                let persist = self.windows.presence(above(u, state.abortion), stake);
+                let persist = self.windows.presence(above(u, abortion), stake);
                 let units = &mut self.draws[apex.axis].units;
                 units.last_mut().unwrap()[1] = persist;
             }

@@ -34,9 +34,11 @@ pub fn species() -> Species {
         insertion: 0.0,
         divergence: 2.4,
         abortion: 0.0,
+        abortion_rise: 0.0,
         relay: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         straightening: 0.0,
@@ -52,9 +54,11 @@ pub fn species() -> Species {
         insertion: 0.7,
         divergence: 2.4,
         abortion: 0.1,
+        abortion_rise: 0.0,
         relay: 0.3,
         relay_at: 1.0,
         epitony: 0.0,
+        erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         straightening: 0.3,
@@ -74,9 +78,11 @@ pub fn species() -> Species {
         insertion: 0.6,
         divergence: 2.4,
         abortion: 0.0,
+        abortion_rise: 0.0,
         relay: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
+        erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         straightening: 0.0,
@@ -221,7 +227,13 @@ pub fn settings() -> Vec<Setting> {
         let (bend, wander) = [(0.03, 0.1), (1.0, 1.0), (1.0, 1.0)][pa];
         // About the metres an axis of each PA grows in the walk tree.
         let metres = [54.0, 5.0, 1.0][pa];
-        let form: [(&str, f64, f64, bool, Set); 6] = [
+        let form: [(&str, f64, f64, bool, Set); 8] = [
+            ("abortion_rise", 0.0, 3.0, false, |s, pa, v| {
+                s.states[pa].abortion_rise = v
+            }),
+            ("erection", 0.0, 0.5, false, |s, pa, v| {
+                s.states[pa].erection = v
+            }),
             ("relay_at", 0.0, 1.0, false, |s, pa, v| {
                 s.states[pa].relay_at = v
             }),

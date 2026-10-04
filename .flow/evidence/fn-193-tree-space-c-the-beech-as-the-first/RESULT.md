@@ -209,3 +209,41 @@ Starting point: round 2's beech, plus the relay-difference engine change (`57ab6
 **For the host:**
 - Seed 1's persistent lean, from the first module's tilt, is the remaining structural fault.
 - The seam at module joins and the bark flecks are what the close-ups show.
+
+## Round 6, after the host verdict on final4 (worker)
+
+**Changes, one per fault:**
+
+1. **Secondary erection** (engine). The new per-PA setting `erection` (neutral 0) straightens an axis's base towards the vertical by `1 - exp(-erection × the axis's age)`, on top of its straightening. It applies to the seed too, which limits the seedling's tilt. Beech trunk: 0.1 per cycle.
+2. **Module hazard** (engine). The new per-PA setting `abortion_rise` (neutral 0) makes the abortion probability after an axis's kth unit `1 - (1 - abortion)^(k^rise)`, so modules end at a regular length. The closed form counts it. Beech trunk: abortion 0.1, rise 2, which gives 0.10, 0.34, 0.61 and 0.81 after units 1 to 4.
+   - Both settings are refused by name and walked on every PA.
+   - The closed-form mean test now runs with a rising hazard.
+   - New tests: `erection_lifts_an_axis_base_with_its_years` and `the_abortion_hazard_rises_with_an_axis_units`.
+   - All crate tests are green (`raw/space-tests-r6.log`).
+3. **Seam at module joins** (conversion). A relay now leaves from the node below its span, so the stem runs through the relay's base without folding back from the span's top. The module head beyond becomes the lateral.
+4. **Colours from the photographs** (preset; identity re-pinned):
+   - **Bark:** S3's mean linear colour over every pixel greener than blue, 0.091/0.086/0.034.
+   - **Leaves:** both faces at Nettleden's mean linear colour over a 500 px crop inside the crown, 0.062/0.069/0.032.
+   - **Flecks turned down:** lichen coverage 0.5 to 0.1, lichen strength 1.0 to 0.3, lenticel strength 0.25 to 0.1, bark mottle 0.1 to 0.04.
+
+**Sheets:** `raw/final5/sheet-beech.png` (same layout; row 6 is today's beech in the sampled colours) and `raw/final5/close-ups.png` (S1 and S3 beside the trunk base and a limb at 80 cycles). I viewed every still.
+
+| Trait | Seed 1 | Seed 7 | Reading |
+|---|---|---|---|
+| Lean (fault 1) | **Fixed**: the trunk stands erect at 40 and 80 | Erect | Erection does what it should |
+| 20 years (fault 2) | A young tree with a crooked crown on a short stem | **Still a straight pole with long rods** | The hazard regularised the modules, but seed 7's stem still reads as one pole |
+| 80 years: fork, limbs, dome | A short bole, then a broad, rounded crown of many limbs | **Regressed**: a broad, flat-topped umbrella, not final4's erect fork under a dome | The hazard changed every draw's topology; seed 7's final4 tree is not kept |
+| Seam (fault 3) | **Worse**: the trunk base carries stacked collar flanges, one per module join | Worse, the same | Each module head now leaves as a lateral nearly as thick as the stem, and the surface draws it as a flared socket. The fix made it worse. |
+| Bark colour (fault 4) | Olive yellow-green under the renderer's sun | The same | The sampled photo colour is S3's bark lit by shade and sky; under the renderer's sun it reads olive, not S3's grey-green |
+| Leaf colour | Bluish grey-green, a lighter mass than Nettleden | The same | Albedos this dark leave the sheen and sky term dominant. The colour sampled from the photograph is not the albedo the renderer needs. |
+| Smooth limbs (close-up) | Smooth, sparse flecks | Smooth | The flecks are gone; the limbs are smooth, but olive |
+
+**Costs at 80 cycles:**
+- Kept: 0.74M phytomers (seed 1) and 1.83M (seed 7).
+- Growth: 2.1 s and 4.1 s.
+- Leaves: 1.3M and 4.2M.
+
+**For the host:**
+- The collar flanges come from the conversion's module heads. Final4's attachment had a seam; this one has flanges. A head as thick as the stem would want the codominant fork treatment, or to be drawn thinner than the pipe model gives it.
+- A photo colour includes the photo's light. Setting albedo from it needs the renderer's own light divided out, or a still matched against the photo, which is what fn-40 did for the earlier rows.
+- Seed 7's mature reading moved with the hazard: the topology changed, not just the geometry. The host decides whether to keep the hazard and retune, or to keep final4's flat abortion.

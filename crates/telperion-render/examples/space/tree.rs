@@ -53,6 +53,8 @@ pub fn convert(structure: &Structure) -> Tree {
     let mut ends: Vec<Option<u32>> = vec![None; structure.axes.len()];
     // Each axis's drawn nodes, base first.
     let mut drawn: Vec<Vec<u32>> = vec![Vec::new(); structure.axes.len()];
+    // The node each axis leaves from.
+    let mut ends_base = vec![0u32; structure.axes.len()];
     for (i, axis) in structure.axes.iter().enumerate() {
         let start = match axis.origin {
             Origin::Seed => Some((0, false, true)),
@@ -62,10 +64,20 @@ pub fn convert(structure: &Structure) -> Tree {
             // A relay from inside its parent takes the parent's run on from
             // its node, and the stopped module's head beyond turns aside as
             // a lateral of its own.
+            // It leaves from the node below its span, so the stem runs on
+            // through the relay's base without folding back from the
+            // span's top.
             Origin::Relay { parent, node } if node + 1 < structure.axes[parent].phytomers.len() => {
-                match drawn[parent].get(node..) {
+                let below = drawn[parent]
+                    .get(node.wrapping_sub(1))
+                    .copied()
+                    .unwrap_or(ends_base[parent]);
+                match drawn[parent]
+                    .get(node..)
+                    .map(|rest| [&[below][..], rest].concat())
+                {
                     Some(from) if !from.is_empty() => {
-                        aside(&mut nodes, from);
+                        aside(&mut nodes, &from);
                         Some((from[0], false, nodes[from[0] as usize].stem))
                     }
                     _ => None,
@@ -78,6 +90,7 @@ pub fn convert(structure: &Structure) -> Tree {
         let Some((mut parent, lateral, stem)) = start else {
             continue;
         };
+        ends_base[i] = parent;
         let run = if lateral || parent == 0 {
             nodes.len() as u32
         } else {

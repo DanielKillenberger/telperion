@@ -17,6 +17,7 @@ const GROUND_TOLERANCE: f64 = 1e-9;
 const UP: Vec3 = Vec3::new(0.0, 0.0, 1.0);
 
 pub(crate) fn place(structure: &mut Structure, species: &Species) -> Result<()> {
+    let age = structure.age;
     // Each axis's scale at its base, from its already scaled parent.
     let mut base_scale = vec![1.0; structure.axes.len()];
     for i in 0..structure.axes.len() {
@@ -37,10 +38,17 @@ pub(crate) fn place(structure: &mut Structure, species: &Species) -> Result<()> 
             phytomer.scale *= base_scale[i];
         }
         let state = &species.states[axis.pa];
-        let bend = match axis.origin {
+        let straightening = match axis.origin {
             Origin::Lateral { .. } | Origin::Relay { .. } => state.straightening,
-            _ => 0.0,
+            Origin::Seed | Origin::Continuation { .. } => 0.0,
         };
+        // Secondary erection over the axis's years; never a continuation,
+        // whose base is its parent's tip.
+        let erected = match axis.origin {
+            Origin::Continuation { .. } => 0.0,
+            _ => 1.0 - (-state.erection * f64::from(age.saturating_sub(axis.birth))).exp(),
+        };
+        let bend = 1.0 - (1.0 - straightening) * (1.0 - erected);
         lay(axis, (base, heading, side), state, bend)
             .map_err(|height| Error::BelowGround { axis: i, height })?;
     }

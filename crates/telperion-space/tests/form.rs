@@ -234,3 +234,37 @@ fn a_relay_stands_in_the_curvature_zone_on_the_upper_side() {
         "epitony turns relays up"
     );
 }
+
+/// Troll's secondary erection: an old module's base stands nearer the
+/// vertical the longer it has grown, the seed's included.
+#[test]
+fn erection_lifts_an_axis_base_with_its_years() {
+    let rise = |erection: f64| {
+        let mut species = walk::species();
+        species.states[1].erection = erection;
+        let tree = grown(&species, 1);
+        let mut sum = 0.0;
+        for limb in tree
+            .axes
+            .iter()
+            .filter(|a| a.pa == 1 && !a.phytomers.is_empty())
+        {
+            sum += (limb.phytomers[0].tip - limb.base).z
+                / (limb.phytomers[0].tip - limb.base).length();
+        }
+        sum
+    };
+    assert!(rise(0.3) > rise(0.0) + 0.5, "bases rise");
+}
+
+/// A rising hazard ends long modules more often than short ones.
+#[test]
+fn the_abortion_hazard_rises_with_an_axis_units() {
+    let mut state = walk::species().states[1].clone();
+    state.abortion = 0.2;
+    state.abortion_rise = 1.0;
+    assert!((state.abortion_at(1) - 0.2).abs() < 1e-12);
+    assert!(state.abortion_at(3) > state.abortion_at(2));
+    state.abortion_rise = 0.0;
+    assert_eq!(state.abortion_at(5), 0.2);
+}

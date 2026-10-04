@@ -18,6 +18,8 @@ const MAX_INTERNODE: f64 = 100.0;
 const MAX_RATE: f64 = 100.0;
 /// The widest pipe one phytomer adds, in metres.
 const MAX_PIPE: f64 = 1.0;
+/// The steepest rise of the abortion hazard.
+const MAX_RISE: f64 = 8.0;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Species {
@@ -48,6 +50,11 @@ pub struct PaState {
     /// The probability that the apex aborts after each growth unit, so its
     /// laterals carry the axis on: sympodial growth. Neutral 0.
     pub abortion: f64,
+    /// How the abortion probability rises with the growth units an axis
+    /// has grown, k: 1 - (1 - abortion)^(k^rise), a hazard that gives
+    /// modules a regular length. Neutral 0, a flat rate; dormant without
+    /// abortion.
+    pub abortion_rise: f64,
     /// The probability that a stopped apex is replaced by a relay bud of its
     /// own PA at its last node, as Troll's relays are. Neutral 0; dormant
     /// where no apex stops.
@@ -60,6 +67,10 @@ pub struct PaState {
     /// How far a relay bud turns from its phyllotactic side to the upper
     /// side of its parent (epitony). Neutral 0; dormant without relays.
     pub epitony: f64,
+    /// Troll's secondary erection: how fast, per cycle of the axis's age,
+    /// its base straightens further towards the vertical, on top of its
+    /// straightening (and on the seed, which has none). Neutral 0.
+    pub erection: f64,
     /// How ready the axis is to branch: its lateral probabilities scaled.
     /// Zero is Corner's unbranched stem. Neutral 1; dormant without laterals.
     pub readiness: f64,
@@ -200,6 +211,15 @@ impl PaState {
                 "an insertion angle lies in 0 to pi",
             );
         }
+        let rates = [
+            ("abortion_rise", self.abortion_rise, MAX_RISE),
+            ("erection", self.erection, MAX_RATE),
+        ];
+        for (name, value, most) in rates {
+            if !(0.0..=most).contains(&value) {
+                return refuse(format!("{at}.{name}"), "a rate lies in its bounded range");
+            }
+        }
         let shares = [
             ("abortion", self.abortion),
             ("relay", self.relay),
@@ -253,6 +273,14 @@ impl Form {
 }
 
 impl PaState {
+    /// The probability the apex aborts after an axis's `k`th growth unit.
+    pub fn abortion_at(&self, k: usize) -> f64 {
+        if self.abortion_rise == 0.0 || self.abortion <= 0.0 {
+            return self.abortion;
+        }
+        1.0 - (1.0 - self.abortion).powf((k as f64).powf(self.abortion_rise))
+    }
+
     /// Each zone's lateral probabilities as the axis draws them: spread
     /// towards the growth unit's mean by the rhythm, scaled by readiness.
     pub(crate) fn laterals(&self) -> Vec<Vec<f64>> {

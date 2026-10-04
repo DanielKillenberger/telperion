@@ -134,13 +134,13 @@
 /canopy/scatter = 80.0
 /canopy/sizeVariation = 0.12
 
-# Darker, owner (fn-193, 2026-10-04: "it should be darker; we have
-# previously made grey darker materials that are way closer"): the
-# smooth grey of fn-62's round-3 candidate (fn-180's
-# beech-candidate.json, bundle@2), judged against S1's bark.
-/material/barkRed = 0.175
-/material/barkGreen = 0.155
-/material/barkBlue = 0.125
+# Darker, owner (fn-193, 2026-10-04: "it should be darker"): the mean
+# linear colour of S3's limb bark (.flow/references/european-beech,
+# S3-branching-limbs.jpg, every pixel greener than blue), a smooth
+# grey-green under open sky.
+/material/barkRed = 0.091
+/material/barkGreen = 0.086
+/material/barkBlue = 0.034
 
 # Rough, not glossy, in the oak's and the spruce's range after the
 # owner read the close-ups as plastic. At B-BASE's own light the old
@@ -161,15 +161,14 @@
 /material/shootBlue = 0.085
 /material/shootRadius = 0.004
 
-# Darker, owner (fn-193): the back face from fn-62's round-3 candidate
-# and a front a third darker than the old row, judged against S2
-# Nettleden's dark summer mass.
-/material/leafFrontRed = 0.055
-/material/leafFrontGreen = 0.1
-/material/leafFrontBlue = 0.033
-/material/leafBackRed = 0.1
-/material/leafBackGreen = 0.195
-/material/leafBackBlue = 0.055
+# Darker, owner (fn-193): both faces the mean linear colour of S2
+# Nettleden's summer crown (a 500 px crop inside the crown at 700,250).
+/material/leafFrontRed = 0.062
+/material/leafFrontGreen = 0.069
+/material/leafFrontBlue = 0.032
+/material/leafBackRed = 0.062
+/material/leafBackGreen = 0.069
+/material/leafBackBlue = 0.032
 
 /material/hueRangeLow = -0.02
 /material/hueRangeHigh = 0.02
@@ -198,7 +197,7 @@
 /material/crestGreen = 0.055
 /material/crestBlue = 0.045
 /material/barkMottleScale = 0.12
-/material/barkMottleStrength = 0.1
+/material/barkMottleStrength = 0.04
 /material/cavityStrength = 0.35
 /material/bladeMottleScale = 5.0
 /material/bladeMottleStrength = 0.1
@@ -243,18 +242,18 @@
 # own mass holds off.
 /material/lobeShade = 0.7
 
-# B-BASE: lichen in few patches of widely varied size, the small ones
-# bright white and the broad ones thin grey-green, and a few faint
-# horizontal lines. No strip peels.
+# Lichen and lenticels turned down so limbs read smooth, as S3's do
+# (owner, fn-193: the white flecks read as a speckled bark). No strip
+# peels.
 /material/lichenScale = 0.04
-/material/lichenCoverage = 0.5
+/material/lichenCoverage = 0.1
 /material/lichenRed = 0.8
 /material/lichenGreen = 0.82
 /material/lichenBlue = 0.76
-/material/lichenStrength = 1.0
+/material/lichenStrength = 0.3
 /material/lenticelDensity = 6.0
 /material/lenticelLength = 0.08
-/material/lenticelStrength = 0.25
+/material/lenticelStrength = 0.1
 /material/lenticelTint = -0.3
 
 # fn-55: a dielectric's foot under the one highlight, and the blade's

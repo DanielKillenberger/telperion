@@ -54,8 +54,9 @@ fn no_readiness_is_an_unbranched_stem() {
     );
 }
 
-/// Abortion, relays, readiness and rhythm away from neutral: the engine's
-/// mean over many seeds is the closed form's expectation.
+/// Abortion with a rising hazard, relays, readiness and rhythm away from
+/// neutral: the engine's mean over many seeds is the closed form's
+/// expectation.
 #[test]
 fn the_settings_grow_the_expected_counts() {
     let mut species = walk::species();
@@ -63,6 +64,7 @@ fn the_settings_grow_the_expected_counts() {
     species.states[0].readiness = 0.7;
     species.states[1].abortion = 0.3;
     species.states[1].relay = 0.6;
+    species.states[1].abortion_rise = 1.5;
     species.states[2].abortion = 0.2;
     species.states[2].relay = 0.5;
     species.states[2].shedding = None;
