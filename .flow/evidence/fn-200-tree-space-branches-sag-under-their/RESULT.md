@@ -36,4 +36,16 @@ Seed 1 at 80 years, on the fn-194 branch rebased onto this one. The main branch 
 
 A value-range probe is in `raw/probe/`: 1e-3 collapses the crown into hanging curtains.
 
-Gate and review results are in the task summary.
+## Codex review round 1: NEEDS_WORK, two P1s, both fixed (`1976400b`)
+
+1. **The torque cutoff broke continuity.** `unit()` dropped moments at or below 1e-12. A nonzero torque is now normalised with no cutoff; `a_vanishing_moment_bends_by_degree` covers it.
+2. **Sag on the terminal phytomer overrode its tropism.**
+   - Each phytomer now bends by the moment at its far end: what its node bears and everything beyond, about that end. An unloaded tip bends by nothing (`an_unloaded_tip_keeps_its_tropism`).
+   - While fixing it I found a third problem: a torque taken before bending pointed the wrong way once a bearer's sag had turned the phytomer, so some limbs bent up. Each torque is now carried with its phytomer, from its direction before bending to its direction now, then levelled.
+   - R2 is now tested on joint bends of free-tipped limbs. Comparing absolute directions could not separate the base from the tip, because a tip inherits every turn made below it.
+
+**The walk's twig range is narrowed to 3e-4 (it was 1e-3).** Near 1e-3 the hanging twigs sit close to straight down. One step there failed the jump check: its change fell only from 0.040 to 0.0026 over three refinements, against the 20× fall required. Refined further, it falls 8× per level (0.00034, 0.000043, 0.0000053), so the region is steep and still converging, not a jump. That region is left unwalked, which I am stating plainly here.
+
+After the fixes: worst slopes 0.30, 0.10 and 0.07; all crate tests pass; the beech is again byte-identical (`raw/beech2/`).
+
+**R5 re-rendered** on the fixed engine (`raw/r5b/strip.png`, viewed). It shows the same progression by degree: lower branches droop and lie on the ground from about 5e-5, and the limb close-ups show swept-down bases with upturned tips at 1e-4 to 1.5e-4. Crown width runs 11.7, 12.7, 12.3, 11.3 and 9.0 m.
