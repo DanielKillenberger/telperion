@@ -139,20 +139,20 @@ pub fn spruce() -> Species {
     // unequal (dominance), so no two crowns are alike.
     let branch = PaState {
         insertion: 1.5,
-        internode: 0.032,
+        internode: 0.036,
         viability: 0.998,
         shedding: Some(3),
         form: Form {
-            tropism: 0.4,
-            elevation: 0.15,
-            wander: 0.8,
+            tropism: 0.8,
+            elevation: 0.7,
+            wander: 1.0,
             plane: 0.0,
             pipe: 0.0008,
             exponent: 2.2,
             ripening: 10.0,
-            dominance: 0.25,
-            roll: 0.5,
-            sag: 7e-5,
+            dominance: 0.35,
+            roll: 0.8,
+            sag: 6e-4,
         },
         ..state(
             1_000,
@@ -174,7 +174,9 @@ pub fn spruce() -> Species {
         internode: 0.05,
         shedding: None,
         form: Form {
+            tropism: 0.4,
             elevation: 0.35,
+            sag: 1e-4,
             ..branch.form
         },
         ..branch.clone()

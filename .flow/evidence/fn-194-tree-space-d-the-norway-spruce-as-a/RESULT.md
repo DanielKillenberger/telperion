@@ -519,3 +519,62 @@ Host: shadow-free staging; conic spruces with dense tip sprays; confident in the
 ## Gate, round 8 (2026-10-04)
 
 Host: denser at every seed, 7 and 3 near-continuous cones; confident in the frame and much of the mass. Astra, three samples: FAIL, mostly BORDERLINE (as round 7): "flattened horizontal sprays dominate instead of sweeping lower boughs carrying long, hanging comb branchlets" (`ASTRA-VERDICT-R8-{1,2,3}.md`). Host decision: round 9 targets the bough curve, downward sweep from the trunk with tips recovering upward (named in rounds 6 to 8), by values on sag and tip tropism.
+
+## Round 9 (worker): the bough curve
+
+**Probes** (one limb close-up and whole tree of seed 1 at 80 years each):
+
+| Probe | Variants (tropism / elevation / sag) | Reading |
+|---|---|---|
+| `raw/probe9/probe9.png` | a: round 8's 0.4 / 0.15 / 7e-5; b to e: 0.8 / 0.6 / 1.2e-4 up to 2.2 / 1.0 / 2.5e-4 | b to e upswept, upward fans, worse than round 8: low sag with high tropism only lifts the boughs |
+| `raw/probe9b/probe9b.png` | g: 0.8 / 0.7 / 8e-4; h: 0.5 / 0.5 / 1.5e-3; i: 1.0 / 0.9 / 1.5e-3 | g and i show the down-then-up hook, with the inner bough drooping and the tip recovering. h droops too far. f (0.6 / 0.6 / 4e-4) never rendered: GPU out of memory three times |
+| `raw/probe9c/`, `probe9e/` | g with the young six-year stage held at tropism 0.4, elevation 0.35, sag 1e-4 (8e-4 and 6e-4 on older wood) | Picked 6e-4: the clearest hook, with the upper crown level to ascending |
+
+**Values** (`spruce.rs`):
+- **Older branch wood:** tropism 0.8, elevation 0.7, sag 6e-4, internode 0.036 to hold the width.
+- **Young six-year stage:** tropism 0.4, elevation 0.35, sag 1e-4.
+- **Irregularity:** wander 1.0 (was 0.8), roll 0.8 (was 0.5), dominance 0.35 (was 0.25).
+- **Kept from round 8:** sleeping buds, needle spacing 3.2 mm, staging and colours.
+
+**Stills runner:** it now prints each tree's mesh size (wood vertices, triangles, needles) before the GPU sees it, so a refused allocation says what it was asked to hold.
+- At 80 years the wood is 99M to 107M vertices and 196M to 211M triangles. That is likely the memory pressure, more than the needles.
+- Renders retry a tree up to four times after 30 s; none needed it this round (FRICTION.md).
+
+**Sheets** (`raw/round9/`, on disk; I viewed every still):
+
+| Sheet | What it holds |
+|---|---|
+| `five-seeds.png` | The references, round 8's seed 1 and its limb, then the 80-year trees in leaf, as bare limb close-ups, as in-leaf sprays, and bare |
+| `young.png` | 10, 20 and 40 years at seeds 1 and 7 |
+| `close-ups.png` | Trunk bases, and the young trees' bases and sprays |
+
+**Measures at 80 years** (`run.log`):
+
+| Seed | Needles | Grown in | Width |
+|--:|--:|--:|--:|
+| 1 | 15.5M | 9.8 s | 15.7 × 14.9 m |
+| 7 | 16.5M | 10.3 s | 14.8 × 14.2 m |
+| 2 | 16.4M | 10.6 s | 15.1 × 14.7 m |
+| 3 | 16.0M | 10.4 s | 14.2 × 15.7 m |
+| 4 | 15.3M | 9.8 s | 12.9 × 16.7 m |
+
+w/h is about 0.6 to 0.76.
+
+### Reading against "flat shelves, no tip recovery"
+
+| Seed | Limb close-up | Whole tree |
+|---|---|---|
+| 1 | Every middle and lower bough sweeps down from the trunk and its outer third curls back up: the hook S1 shows | A conical crown with drooping lower boughs whose tips rise. The silhouette is narrower at the base and more "weeping" than S1 |
+| 7 | As seed 1, the clearest hooks | Full lower crown, the skirt spreading on the ground |
+| 2 | As seed 1 | Heavy lower crown, irregular tiers |
+| 3 | As seed 1 | As seed 2 |
+| 4 | Hooks, with a few long lower boughs | Narrow and irregular, one long bough to the right |
+
+**Overall:**
+- **"Flat shelves, no tip recovery" is answered** in the limb close-ups at every seed. The tiers are less mechanical: bough lengths and angles vary between neighbours.
+- **New fault, plainly: loops at the base.**
+  - In the trunk-base close-ups, the lowest boughs droop so steeply that their recovering tips curl back up past the trunk, drawing loops and coils of bare wood around the base. This shows at every seed and is clearly wrong.
+  - It comes from strong sag on long, old lower boughs combined with tip tropism: the drooping part reaches near straight down, and the tip still turns up.
+  - Whether the lowest boughs should take less sag, or sag should scale differently with length, is a host design question. I stopped here.
+- **The whole-tree look also changed:** the crown narrows at the base, with drooping lower boughs and upturned tips, closer to a weeping form than S1's broad base.
+- **Young trees:** 20 and 40 years keep level tiers. The young stage barely sags, so the hooks appear only on older wood.

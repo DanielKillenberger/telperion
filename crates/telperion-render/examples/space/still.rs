@@ -136,6 +136,14 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
                     .and_then(|x| x.mesh())
                     .map_err(|e| e.to_string())?;
                 let dress = dressed.elapsed().as_secs_f64() * 1e3;
+                // Before the GPU sees it, so a refused allocation still
+                // says what it was asked to hold.
+                eprintln!(
+                    "age {age} seed {seed}{variant}: mesh {} wood vertices, {} wood triangles, {} needles",
+                    mesh.wood_vertices(),
+                    mesh.wood_triangles(),
+                    mesh.foliage_instances()
+                );
                 let aspect = f64::from(SIZE.0) / f64::from(SIZE.1);
                 let camera = hero_pose(bounds, aspect, GROUND_REACH);
                 let (base, limb) = close_ups(&bounds, &camera);

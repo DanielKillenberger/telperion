@@ -21,3 +21,10 @@
 - **Hindered by:** "wgpu error: Out of Memory" on trees that had rendered before or rendered again moments later with the same binary and values (seeds 1 and 7 at 3.2 mm needles; seed 2 at 3.0 mm). The limit sits near 19M to 20M needles plus about 55 km of wood. Whether a tree fits seems to depend on what the GPU still holds from the previous process. Other desktop apps hold about 1.4 GB of the 10 GB card.
 - **Cost:** about 15 minutes: two full re-renders and a retry.
 - **What would remove it:** the renderer refusing by name with its memory estimate before it allocates (as fn-201 did for the dispatch limit), and a short wait or a GPU-idle check between processes in the stills runner.
+
+## 2026-10-05, task 1, round 9 probes
+
+- **Doing:** probing the bough curve, one 80-year tree per process.
+- **Hindered by:** GPU out of memory again, now on most attempts. Other desktop apps hold 1.4 to 2.6 GB of the 10 GB card, varying from minute to minute, and round 8's trees (17M to 18M needles, about 50 km of wood) sit at the edge. Probe 9b's first variant failed three times with 20 s pauses, and probe 9d failed twice.
+- **Cost:** about 25 minutes of failed renders.
+- **What would remove it:** a renderer memory estimate that refuses by name before allocating; rendering the stills' needles in batches; or the owner closing GPU-heavy apps during render runs (local setup).
