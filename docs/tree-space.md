@@ -40,6 +40,8 @@ Specs: A fn-191, B fn-192, C fn-193 (beech), D fn-194 (spruce), fn-195 (oak), fn
 
 ## How a species is judged
 
+**The owner's verdict passes a species (owner, 2026-10-04).** When host and Astra have iterated without agreeing, the host puts its strongest sheet to the owner, and the owner's look decides; Astra's remaining critiques are recorded as known gaps for later work.
+
 The host views every still first and fails the obvious ones itself. A species passes a phase when the host is confident it reads as itself beside its reference photographs and Astra, reading the same sheet independently, agrees. Numbers explain a look and never decide it. The owner judges every passed species in the morning review; a rejection sends that species back without undoing the others, because every phase lives on its own chained branch.
 
 ## Running unattended (owner, 2026-10-03)
