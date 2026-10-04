@@ -14,6 +14,7 @@
 //! fixed seed changes the tree by degree.
 mod beech;
 mod closed_form;
+mod dormant;
 mod error;
 mod geometry;
 mod girth;

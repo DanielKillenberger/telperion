@@ -60,12 +60,15 @@ impl Mul<f64> for Vec3 {
 pub enum Origin {
     /// The seed bud, at the ground.
     Seed,
-    /// A lateral bud: `slot` of the `whorl` buds at phytomer `node` of axis `parent`.
+    /// A lateral bud: `slot` of the `whorl` buds at phytomer `node` of axis
+    /// `parent`. A bud that slept and woke (`woken`) stands half a slot past
+    /// it, between the buds that grew at once.
     Lateral {
         parent: usize,
         node: usize,
         slot: u8,
         whorl: u8,
+        woken: bool,
     },
     /// The parent's apex, changed to this axis's PA.
     Continuation { parent: usize },

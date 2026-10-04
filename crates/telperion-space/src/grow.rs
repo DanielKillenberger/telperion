@@ -6,6 +6,7 @@
 //! bound is recorded; once the tree has grown, `presence.rs` sizes every
 //! element from those leads, so a setting that crosses a draw grows the
 //! element in from nothing.
+use crate::dormant::{self, Sleeper};
 use crate::error::{refuse, Error, Result};
 use crate::geometry::{place, scale};
 use crate::girth::thicken;
@@ -13,7 +14,7 @@ use crate::lineage::{self, above, below, Key, ABORTION, CONTINUATION, RELAY, VIA
 use crate::presence::{assign, Draws, Windows, SPAN};
 use crate::sag;
 use crate::shed::shed;
-use crate::species::{PaState, Species, MAX_BUDS, MAX_NODES_PER_ZONE};
+use crate::species::{PaState, Species, Zone, MAX_BUDS, MAX_NODES_PER_ZONE};
 use crate::structure::{Axis, Origin, Phytomer, Structure, Vec3};
 
 /// What to grow: cycles, the seed and the phytomer budget.
@@ -33,6 +34,9 @@ type Bud = Option<(usize, f64)>;
 struct Apex {
     axis: usize,
     units: u32,
+    /// The whole years a bud that woke slept: its growth units are keyed
+    /// by the years since its node grew.
+    skew: u32,
 }
 
 /// Grows, sheds and places the tree.
@@ -51,11 +55,19 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
             birth: [1.0; 2],
             ..Draws::default()
         }],
-        live: vec![Apex { axis: 0, units: 0 }],
+        live: vec![Apex {
+            axis: 0,
+            units: 0,
+            skew: 0,
+        }],
         units: vec![0],
+        successor: vec![None],
+        asleep: vec![Vec::new(); request.age as usize + 2],
+        age: request.age,
         next: Vec::new(),
         leads: Vec::new(),
         node_buds: Vec::new(),
+        sleeping: Vec::new(),
         grown: 0,
         budget: request.budget,
     };
@@ -138,10 +150,17 @@ struct Grower<'a> {
     /// Each axis's growth units in its PA when its apex stopped, or at its
     /// birth while it lives: what a relay of it carries on.
     units: Vec<u32>,
+    /// Each axis's continuation or relay: what carries it on.
+    successor: Vec<Option<usize>>,
+    /// The sleeping buds that wake in each cycle.
+    asleep: Vec<Vec<Sleeper>>,
+    age: u32,
     /// One zone's node leads and its nodes (order draw, draw index, lead,
     /// buds), reused.
     leads: Vec<f64>,
     node_buds: Vec<(f64, u64, f64, [Bud; MAX_BUDS as usize])>,
+    /// One zone's sleeping buds' expected wood per PA, reused.
+    sleeping: Vec<f64>,
     grown: u32,
     budget: u32,
 }
@@ -152,7 +171,8 @@ impl Grower<'_> {
         for mut apex in live.iter().copied() {
             let pa = self.axes[apex.axis].pa;
             let state = &self.species.states[pa];
-            let unit = Key(self.axes[apex.axis].lineage).child(u64::from(apex.units) + 1);
+            let unit =
+                Key(self.axes[apex.axis].lineage).child(u64::from(apex.units + apex.skew) + 1);
             let u = unit.child(VIABILITY).unit();
             if u >= state.viability {
                 self.axes[apex.axis].apex_end = Some(cycle - 1);
@@ -193,14 +213,43 @@ impl Grower<'_> {
                 Some(next) => {
                     let key = Key(self.axes[apex.axis].lineage).child(CONTINUATION);
                     let origin = Origin::Continuation { parent: apex.axis };
+                    self.successor[apex.axis] = Some(self.axes.len());
                     self.sprout(key, next, cycle, origin, [1.0; 2]);
                 }
                 None => self.stop(apex, cycle, f64::INFINITY, unit, apex.units),
             }
         }
+        self.wake(cycle);
         self.live = std::mem::replace(&mut self.next, live);
         self.next.clear();
         Ok(())
+    }
+
+    /// The sleeping buds that wake in the next cycle sprout, each on an
+    /// axis something still carries on, by the presence of every draw
+    /// that kept it alive.
+    fn wake(&mut self, cycle: u32) {
+        let Some(asleep) = self.asleep.get_mut(cycle as usize + 1) else {
+            return;
+        };
+        for sleeper in std::mem::take(asleep) {
+            let Some(carried) =
+                dormant::carried(&self.axes, &self.draws, &self.successor, &sleeper)
+            else {
+                continue;
+            };
+            let origin = Origin::Lateral {
+                parent: sleeper.parent,
+                node: sleeper.node,
+                slot: sleeper.slot,
+                whorl: sleeper.whorl,
+                woken: true,
+            };
+            let made = [self.windows.presence(sleeper.lead, sleeper.wood), carried];
+            self.sprout(Key(sleeper.key), sleeper.pa, cycle, origin, made);
+            self.draws.last_mut().unwrap().sleep = sleeper.sleep;
+            self.next.last_mut().unwrap().skew = sleeper.slept;
+        }
     }
 
     /// A new bud that grows from the next cycle, made by draws with these
@@ -212,9 +261,11 @@ impl Grower<'_> {
             _ => 0,
         };
         self.units.push(units);
+        self.successor.push(None);
         self.next.push(Apex {
             axis: self.axes.len(),
             units,
+            skew: 0,
         });
         self.axes.push(bud(key, pa, cycle, origin));
         self.draws.push(Draws {
@@ -253,8 +304,28 @@ impl Grower<'_> {
             // The relay moves over the widest window: its move is a growth
             // unit's length whatever wood it carries.
             let blend = (stopped / SPAN).clamp(0.0, 1.0);
+            self.successor[apex.axis] = Some(self.axes.len());
             self.sprout(key, pa, cycle, origin, made);
             self.axes.last_mut().unwrap().blend = blend;
+        }
+    }
+
+    /// The sleeping buds of the node keyed `node_key`, at `at` (its axis,
+    /// node and growth unit), that wake within the tree's age.
+    fn sleep(
+        &mut self,
+        zone: &Zone,
+        woods: &[f64],
+        node_key: Key,
+        at: (usize, usize, usize),
+        cycle: u32,
+    ) {
+        for slot in 0..zone.buds {
+            let place = node_key.child(u64::from(slot));
+            let drawn = dormant::draw(zone, place, (at, slot), woods, (cycle, self.age));
+            if let Some((wakes, sleeper)) = drawn {
+                self.asleep[wakes].push(sleeper);
+            }
         }
     }
 
@@ -274,6 +345,9 @@ impl Grower<'_> {
                 .filter(|&(_, &p)| p > 0.0)
                 .map(|(j, p)| p * self.windows.wood(j, cycle + 1))
                 .sum();
+            // And the sleeping buds it is expected to bear.
+            let mut sleeping = std::mem::take(&mut self.sleeping);
+            let expected = expected + self.windows.sleeping(zone, cycle, &mut sleeping);
             let node_wood = self.windows.share(state.internode) + f64::from(zone.buds) * expected;
             nodes.clear();
             for (i, &node_lead) in leads.iter().enumerate() {
@@ -319,13 +393,20 @@ impl Grower<'_> {
                         node,
                         slot: slot as u8,
                         whorl: zone.buds,
+                        woken: false,
                     };
                     let key = zone_key.child(drawn).child(slot as u64);
                     let wood = self.windows.wood(lateral_pa, cycle + 1);
                     let made = [self.windows.presence(lead, wood), 1.0];
                     self.sprout(key, lateral_pa, cycle, origin, made);
                 }
+                if sleeping.iter().any(|&wood| wood > 0.0) {
+                    let at = (apex.axis, node, self.draws[apex.axis].units.len() - 1);
+                    let node_key = zone_key.child(drawn);
+                    self.sleep(zone, &sleeping, node_key, at, cycle);
+                }
             }
+            self.sleeping = sleeping;
         }
         self.node_buds = nodes;
         self.leads = leads;

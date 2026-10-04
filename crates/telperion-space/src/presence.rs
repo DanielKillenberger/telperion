@@ -7,7 +7,8 @@
 //! the expectation is a smooth function of the settings, never of the wood
 //! that grew, a branch made anywhere moves no other draw's window.
 use crate::closed_form::expected_log_lengths;
-use crate::species::Species;
+use crate::dormant::wakes_in;
+use crate::species::{Species, Zone};
 use crate::structure::{Axis, Origin};
 
 /// The window, in log-odds, per share of the tree's expected length that a
@@ -48,6 +49,32 @@ impl Windows {
         (log - self.whole).exp()
     }
 
+    /// The wood a sleeping bud of `pa` on a node grown in `cycle` is
+    /// expected to grow, over the years it may wake in.
+    fn dormant(&self, zone: &Zone, pa: usize, cycle: u32) -> f64 {
+        (0..self.age.saturating_sub(cycle))
+            .map(|s| wakes_in(zone, s) * self.wood(pa, cycle + 1 + s))
+            .sum()
+    }
+
+    /// The wood each PA's sleeping bud on a node of `zone` grown in `cycle`
+    /// is expected to grow, into `woods` (none where the zone bears none),
+    /// and the wood the sleeping buds of one bud place are expected to.
+    pub fn sleeping(&self, zone: &Zone, cycle: u32, woods: &mut Vec<f64>) -> f64 {
+        woods.clear();
+        let mut expected = 0.0;
+        for (pa, &p) in zone.dormant.iter().enumerate() {
+            let wood = if p > 0.0 {
+                self.dormant(zone, pa, cycle)
+            } else {
+                0.0
+            };
+            expected += p * wood;
+            woods.push(wood);
+        }
+        expected
+    }
+
     /// `metres` as a share of the whole tree's expected wood.
     pub fn share(&self, metres: f64) -> f64 {
         metres * (-self.whole).exp()
@@ -85,6 +112,9 @@ pub(crate) struct Draws {
     pub nodes: Vec<f64>,
     /// The apex still lives at the tree's age.
     pub alive: bool,
+    /// The share of its first cycle a bud that woke still slept, which
+    /// its first growth unit lacks.
+    pub sleep: f64,
 }
 
 /// Sets every axis's vigour, growth-unit presences, phytomer scales (each
@@ -101,10 +131,11 @@ pub(crate) fn assign(axes: &mut [Axis], draws: &[Draws]) {
         for (k, &[survive, persist]) in draws[i].units.iter().enumerate() {
             running *= survive;
             presences.push(running);
+            let grown = if k == 0 { 1.0 - draws[i].sleep } else { 1.0 };
             while j < axis.phytomers.len() && (axis.phytomers[j].cycle - birth - 1) as usize == k {
-                axis.phytomers[j].scale = running * draws[i].nodes[j];
+                axis.phytomers[j].scale = running * draws[i].nodes[j] * grown;
                 axis.phytomers[j].rank = rank;
-                rank += draws[i].nodes[j];
+                rank += draws[i].nodes[j] * grown;
                 j += 1;
             }
             running *= persist;

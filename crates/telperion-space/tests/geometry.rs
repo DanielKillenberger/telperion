@@ -17,6 +17,9 @@ fn axes_take_their_lengths_and_angles_from_their_pa() {
         zones: vec![Zone {
             nodes: NodeLaw::Uniform { min: 2, max: 2 },
             buds: 2,
+            dormant: vec![0.0; lateral.len()],
+            delay: 0.0,
+            rate: 0.0,
             lateral: lateral.to_vec(),
         }],
         shedding: None,
@@ -86,6 +89,9 @@ fn phyllotaxis_runs_on_across_a_continuation() {
         zones: vec![Zone {
             nodes: NodeLaw::Uniform { min: 1, max: 1 },
             buds: 1,
+            dormant: vec![0.0; lateral.len()],
+            delay: 0.0,
+            rate: 0.0,
             lateral: lateral.to_vec(),
         }],
         shedding: None,
@@ -136,6 +142,9 @@ fn an_overflowing_expectation_draws_finite_wood() {
             zones: vec![Zone {
                 nodes: NodeLaw::Uniform { min: 1, max: 1 },
                 buds: 6,
+                dormant: vec![0.0; 1],
+                delay: 0.0,
+                rate: 0.0,
                 lateral: vec![0.3],
             }],
             shedding: None,
@@ -176,6 +185,9 @@ fn an_unreachable_pa_takes_no_part_in_a_window() {
         zones: vec![Zone {
             nodes,
             buds,
+            dormant: vec![0.0; lateral.len()],
+            delay: 0.0,
+            rate: 0.0,
             lateral: lateral.to_vec(),
         }],
         shedding: None,

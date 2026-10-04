@@ -17,6 +17,9 @@ pub(crate) const RELAY: u64 = u64::MAX - 2;
 pub(crate) const ROLL: u64 = u64::MAX - 4;
 /// A lateral's share of vigour among its siblings, under its lineage.
 pub(crate) const DOMINANCE: u64 = u64::MAX - 5;
+/// A bud place's sleeping bud, under the place's key, and its waking
+/// time, under the sleeping bud's.
+pub(crate) const DORMANT: u64 = u64::MAX - 6;
 pub(crate) const CONTINUATION: u64 = u64::MAX;
 
 /// A hashed path from the root.

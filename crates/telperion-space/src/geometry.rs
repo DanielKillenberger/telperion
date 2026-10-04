@@ -369,6 +369,7 @@ fn frame(structure: &Structure, species: &Species, i: usize) -> (Vec3, Vec3, Vec
             node,
             slot,
             whorl,
+            woken,
         } => {
             let p = &structure.axes[parent];
             let at = &p.phytomers[node];
@@ -376,8 +377,8 @@ fn frame(structure: &Structure, species: &Species, i: usize) -> (Vec3, Vec3, Vec
             // Turned about its parent by its PA's roll, as its lineage keys.
             let roll = species.states[axis.pa].form.roll
                 * (2.0 * Key(axis.lineage).child(ROLL).unit() - 1.0);
-            let azimuth =
-                parent_state.divergence * at.rank + TAU * f64::from(slot) / f64::from(whorl) + roll;
+            let place = f64::from(slot) + if woken { 0.5 } else { 0.0 };
+            let azimuth = parent_state.divergence * at.rank + TAU * place / f64::from(whorl) + roll;
             let (heading, side) = turned(
                 (at.heading, at.side),
                 azimuth,

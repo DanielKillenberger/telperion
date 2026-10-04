@@ -28,6 +28,8 @@ const MAX_EXPONENT: f64 = 4.0;
 const MAX_SAG: f64 = 1_000.0;
 /// The steepest rise of the abortion hazard.
 const MAX_RISE: f64 = 8.0;
+/// The longest a bud sleeps before it can wake, in years.
+const MAX_DELAY: f64 = 1_000.0;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Species {
@@ -167,6 +169,15 @@ pub struct Zone {
     pub buds: u8,
     /// The probability that a bud carries each PA; the remainder is bare.
     pub lateral: Vec<f64>,
+    /// The probability that each bud's place also holds a sleeping bud of
+    /// each PA, which wakes years later (`dormant.rs`). Neutral all 0.
+    pub dormant: Vec<f64>,
+    /// The years before a sleeping bud can wake. Dormant without sleeping
+    /// buds.
+    pub delay: f64,
+    /// A sleeping bud's yearly waking hazard after the delay; 0, it never
+    /// wakes. Dormant without sleeping buds.
+    pub rate: f64,
 }
 
 /// The law of a zone's node count per growth unit.
@@ -392,29 +403,36 @@ impl Zone {
         if self.buds == 0 || self.buds > MAX_BUDS {
             return refuse(format!("{at}.buds"), "a node carries 1 to 6 buds");
         }
-        if self.lateral.len() != count {
-            return refuse(
-                format!("{at}.lateral"),
-                "one probability per physiological age",
-            );
+        table(&format!("{at}.lateral"), &self.lateral, pa, count)?;
+        table(&format!("{at}.dormant"), &self.dormant, pa, count)?;
+        if !(0.0..=MAX_DELAY).contains(&self.delay) {
+            return refuse(format!("{at}.delay"), "a delay lies in 0 to 1000 years");
         }
-        for (j, &p) in self.lateral.iter().enumerate() {
-            if !(0.0..=1.0).contains(&p) {
-                return refuse(format!("{at}.lateral[{j}]"), "a probability lies in 0 to 1");
-            }
-            if j < pa && p > 0.0 {
-                return refuse(
-                    format!("{at}.lateral[{j}]"),
-                    "a lateral bud is never younger than its parent",
-                );
-            }
-        }
-        if self.lateral.iter().sum::<f64>() > 1.0 + 1e-12 {
-            return refuse(
-                format!("{at}.lateral"),
-                "the lateral probabilities sum above one",
-            );
+        if !(0.0..=MAX_RATE).contains(&self.rate) {
+            return refuse(format!("{at}.rate"), "a rate lies in its bounded range");
         }
         Ok(())
     }
+}
+
+/// Refuses a table of bud probabilities, one per PA, that is not one.
+fn table(at: &str, table: &[f64], pa: usize, count: usize) -> Result<()> {
+    if table.len() != count {
+        return refuse(at, "one probability per physiological age");
+    }
+    for (j, &p) in table.iter().enumerate() {
+        if !(0.0..=1.0).contains(&p) {
+            return refuse(format!("{at}[{j}]"), "a probability lies in 0 to 1");
+        }
+        if j < pa && p > 0.0 {
+            return refuse(
+                format!("{at}[{j}]"),
+                "a lateral bud is never younger than its parent",
+            );
+        }
+    }
+    if table.iter().sum::<f64>() > 1.0 + 1e-12 {
+        return refuse(at, "the bud probabilities sum above one");
+    }
+    Ok(())
 }

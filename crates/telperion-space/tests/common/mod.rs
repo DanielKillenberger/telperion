@@ -50,6 +50,9 @@ pub fn species(set: &Value) -> Species {
                 zones: vec![Zone {
                     nodes,
                     buds,
+                    dormant: vec![0.0; lateral.len()],
+                    delay: 0.0,
+                    rate: 0.0,
                     lateral,
                 }],
                 shedding: None,

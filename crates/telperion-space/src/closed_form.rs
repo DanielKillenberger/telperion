@@ -7,8 +7,11 @@
 //! potential structure's existence rates), the counts themselves when every
 //! law is deterministic. Abortion after a growth unit is a second survival
 //! factor; a stopped apex's relay bud is one more substructure of its PA,
-//! one that carries on the growth units its axis spent.
+//! one that carries on the growth units its axis spent. A sleeping bud is
+//! a lateral that grows from the cycle it wakes in, weighted by the chance
+//! it wakes then and that its bearer is still carried on (`Living`).
 //! Shedding is outside the formula.
+use crate::dormant::{wakes_in, Living};
 use crate::error::{refuse, Result};
 use crate::species::Species;
 use crate::structure::CountTable;
@@ -26,18 +29,19 @@ pub fn expected_counts(species: &Species, age: u32) -> Result<CountTable> {
         species,
         laterals: &laterals,
         memo: &mut memo,
+        living: Living::new(species),
     };
     Ok(walk.counts(0, age as usize, 0))
 }
 
 /// A bud's growth units in its PA before it transitions, having spent
 /// `spent` already: every bud grows at least one.
-fn units_left(lifespan: u32, spent: u32) -> usize {
+pub(crate) fn units_left(lifespan: u32, spent: u32) -> usize {
     lifespan.saturating_sub(spent).max(1) as usize
 }
 
 /// A carried count of spent units past the last that changes anything.
-fn spent_key(lifespan: u32, spent: u32) -> u32 {
+pub(crate) fn spent_key(lifespan: u32, spent: u32) -> u32 {
     spent.min(lifespan.saturating_sub(1))
 }
 
@@ -57,7 +61,12 @@ enum Event {
 /// Every event of a bud of PA `k` with `spent` units, `m` cycles after it
 /// was made: its growth units, laterals, relays and continuation, each
 /// weighted by its expectation. A relay carries on the units spent.
-fn events(species: &Species, laterals: &[Vec<f64>], k: usize, m: usize, spent: u32) -> Vec<Event> {
+fn events(
+    species: &Species,
+    laterals: &[Vec<f64>],
+    living: &mut Living,
+    (k, m, spent): (usize, usize, u32),
+) -> Vec<Event> {
     let state = &species.states[k];
     let n = units_left(state.lifespan, spent);
     let mut out = Vec::new();
@@ -93,6 +102,25 @@ fn events(species: &Species, laterals: &[Vec<f64>], k: usize, m: usize, spent: u
                     });
                 }
             }
+            for (j, &p) in zone.dormant.iter().enumerate() {
+                let buds = nodes * f64::from(zone.buds) * p;
+                if buds <= 0.0 {
+                    continue;
+                }
+                // Woken `s` years on, it grows from cycle i + 1 + s.
+                for s in 0..(m - i) as u32 {
+                    let wakes = wakes_in(zone, s);
+                    if wakes > 0.0 {
+                        let carried = living.after(k, spent, i, i + 1 + s as usize);
+                        out.push(Event::Bud {
+                            at: i + s as usize,
+                            pa: j,
+                            spent: 0,
+                            weight: buds * wakes * carried,
+                        });
+                    }
+                }
+            }
         }
         if i < n {
             let abortion = state.abortion_at(i);
@@ -117,6 +145,7 @@ struct Walk<'a, T> {
     species: &'a Species,
     laterals: &'a [Vec<Vec<f64>>],
     memo: &'a mut HashMap<(usize, usize, u32), T>,
+    living: Living<'a>,
 }
 
 impl Walk<'_, CountTable> {
@@ -126,7 +155,12 @@ impl Walk<'_, CountTable> {
             return table.clone();
         }
         let mut table = CountTable::new(self.species.states.len(), m);
-        for event in events(self.species, &self.laterals[k], k, m, spent) {
+        for event in events(
+            self.species,
+            &self.laterals[k],
+            &mut self.living,
+            (k, m, spent),
+        ) {
             match event {
                 Event::Nodes { at, count } => table.add(k, at, count),
                 Event::Bud {
@@ -158,7 +192,12 @@ impl Walk<'_, f64> {
         }
         let internode = self.species.states[k].internode;
         let mut length = LogSum::default();
-        for event in events(self.species, &self.laterals[k], k, m, spent) {
+        for event in events(
+            self.species,
+            &self.laterals[k],
+            &mut self.living,
+            (k, m, spent),
+        ) {
             match event {
                 Event::Nodes { count, .. } => length.add(count * internode, 0.0),
                 Event::Bud {
@@ -189,6 +228,7 @@ pub(crate) fn expected_log_lengths(species: &Species, age: u32) -> Vec<Vec<f64>>
         species,
         laterals: &laterals,
         memo: &mut memo,
+        living: Living::new(species),
     };
     (0..=age as usize)
         .map(|m| {
@@ -250,11 +290,17 @@ mod tests {
                 Zone {
                     nodes: NodeLaw::Poisson { mean: 1.5 },
                     buds: 2,
+                    dormant: vec![0.0; lateral.len()],
+                    delay: 0.0,
+                    rate: 0.0,
                     lateral: lateral.to_vec(),
                 },
                 Zone {
                     nodes: NodeLaw::Uniform { min: 1, max: 2 },
                     buds: 1,
+                    dormant: vec![0.0; 2],
+                    delay: 0.0,
+                    rate: 0.0,
                     lateral: vec![0.0, 0.2],
                 },
             ],

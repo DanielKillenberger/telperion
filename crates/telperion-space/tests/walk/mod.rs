@@ -15,6 +15,9 @@ fn zone(nodes: NodeLaw, buds: u8, lateral: [f64; 3]) -> Zone {
     Zone {
         nodes,
         buds,
+        dormant: vec![0.0; lateral.len()],
+        delay: 0.0,
+        rate: 0.0,
         lateral: lateral.to_vec(),
     }
 }
@@ -336,7 +339,65 @@ pub fn settings() -> Vec<Setting> {
             trunk.abortion = v;
         },
     ));
+    all.extend(sleeping_settings());
     all
+}
+
+/// Sleeping buds on the walk tree (fn-202): twigs along the limbs, as a
+/// spruce bough's draperies, and limbs along the trunk, as an oak's
+/// epicormic shoots, waking after a delay at a yearly rate.
+pub fn sleeping(s: &mut Species) {
+    let limb = &mut s.states[1].zones[0];
+    limb.dormant[2] = 0.3;
+    (limb.delay, limb.rate) = (1.5, 0.4);
+    let trunk = &mut s.states[0].zones[1];
+    trunk.dormant[1] = 0.15;
+    (trunk.delay, trunk.rate) = (3.0, 0.3);
+}
+
+fn asleep(name: &str, low: f64, high: f64, odds: bool, edit: fn(&mut Species, f64)) -> Setting {
+    setting(format!("sleeping: {name}"), low, high, odds, move |s, v| {
+        sleeping(s);
+        edit(s, v)
+    })
+}
+
+/// The sleeping probability walked, and the limbs' survival and abortion
+/// walked with buds asleep on them, which decide whether their bearer
+/// still lives when the buds wake.
+fn sleeping_settings() -> Vec<Setting> {
+    vec![
+        asleep("states[1].zones[0].dormant[2]", EDGE, 0.6, true, |s, v| {
+            s.states[1].zones[0].dormant[2] = v
+        }),
+        asleep("states[0].zones[1].dormant[1]", EDGE, 0.4, true, |s, v| {
+            s.states[0].zones[1].dormant[1] = v
+        }),
+        asleep("states[1].viability", 0.6, 1.0 - EDGE, true, |s, v| {
+            s.states[1].viability = v
+        }),
+        asleep("states[1].abortion", EDGE, 0.5, true, |s, v| {
+            s.states[1].abortion = v
+        }),
+    ]
+}
+
+/// The release law walked: each zone's rate and delay.
+pub fn release_settings() -> Vec<Setting> {
+    vec![
+        asleep("states[1].zones[0].rate", 0.05, 2.0, false, |s, v| {
+            s.states[1].zones[0].rate = v
+        }),
+        asleep("states[1].zones[0].delay", 0.0, 8.0, false, |s, v| {
+            s.states[1].zones[0].delay = v
+        }),
+        asleep("states[0].zones[1].rate", 0.05, 2.0, false, |s, v| {
+            s.states[0].zones[1].rate = v
+        }),
+        asleep("states[0].zones[1].delay", 0.0, 8.0, false, |s, v| {
+            s.states[0].zones[1].delay = v
+        }),
+    ]
 }
 
 pub fn tree(species: &Species, seed: u64) -> telperion_space::Result<Structure> {
