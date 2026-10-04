@@ -37,6 +37,17 @@ fn zone(min: u32, max: u32, buds: u8, laterals: &[(usize, f64)]) -> Zone {
     }
 }
 
+/// A main branch's zone with a sleeping branchlet bud at every bud place,
+/// waking from a year on at a yearly hazard of 0.3 (fn-202's release law):
+/// the draperies, new branchlets released along old branches as the old
+/// ones die (M10). The share asleep is tuned to S1's dark lower curtains.
+fn sleeping(mut zone: Zone) -> Zone {
+    zone.dormant[BRANCHLET] = 0.45;
+    zone.delay = 1.0;
+    zone.rate = 0.3;
+    zone
+}
+
 /// The neutral state every row below starts from.
 fn state(lifespan: u32, next: Option<usize>, zones: Vec<Zone>) -> PaState {
     PaState {
@@ -147,9 +158,9 @@ pub fn spruce() -> Species {
             1_000,
             None,
             vec![
-                zone(1, 1, 1, &[]),
-                zone(2, 2, 2, &[(BRANCHLET, 0.7)]),
-                zone(1, 1, 2, &[(BRANCHLET, 0.95)]),
+                sleeping(zone(1, 1, 1, &[])),
+                sleeping(zone(2, 2, 2, &[(BRANCHLET, 0.7)])),
+                sleeping(zone(1, 1, 2, &[(BRANCHLET, 0.95)])),
             ],
         )
     };
@@ -207,7 +218,7 @@ pub fn spruce() -> Species {
         // Each year a pair of shoots, the pairs turning by the golden angle,
         // so an old branchlet hangs as a needled mass all round, not a
         // flat shelf; the young branchlet keeps its flat spray.
-        zones: vec![zone(1, 1, 2, &[(SHOOT, 0.9)])],
+        zones: vec![zone(1, 1, 2, &[(SHOOT, 0.6)])],
         divergence: 2.4,
         form: Form {
             tropism: 3.0,
@@ -218,13 +229,13 @@ pub fn spruce() -> Species {
     };
     // Third-order shoots: short, unbranched, two or three a node, hanging
     // so each curtain is a needled spray with width. A shoot grows two
-    // years and keeps its needles four more: half a cohort's needles are
-    // shed at 5.5 years (Muukkonen and Lehtonen 2004).
+    // years and keeps its needles three more, about five in all: half a
+    // cohort's needles are shed at 5.5 years (Muukkonen and Lehtonen 2004).
     let shoot = PaState {
         insertion: 1.1,
         internode: 0.02,
         viability: 0.9,
-        shedding: Some(4),
+        shedding: Some(3),
         form: Form {
             tropism: 1.0,
             elevation: -0.5,

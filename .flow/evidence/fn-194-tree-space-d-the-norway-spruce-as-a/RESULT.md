@@ -452,3 +452,66 @@ The host found round 6 clearly better than round 5, with sprays that read like S
 ## Gate, round 7, and host decision (2026-10-04)
 
 Host: shadow-free staging; conic spruces with dense tip sprays; confident in the frame, not the mass. Astra, three samples: FAIL in all, but mostly BORDERLINE (round 6 mostly NO): "the boughs read as thin, flat shelves rather than substantial, drooping sprays with hanging comb branchlets" (`ASTRA-VERDICT-R7-{1,2,3}.md`). Values were pushed three rounds (retention, spur sprays, hang). Host decision: build dormant-bud release (draperies, MODEL-SPRUCE.md F4, M10) as its own engine spec, fn-202, which this spec now depends on.
+
+## Round 8 (worker): sleeping buds on the main branches (fn-202)
+
+**Values** (`spruce.rs`):
+- **Sleeping buds:** every zone of both main-branch stages (the young six-year branch stage and the branch) carries a sleeping branchlet bud: probability 0.45 per bud place, delay 1 year, yearly waking rate 0.3. These are fn-202's release law from its R5 strip; the strength is tuned here.
+- **Needle mass, moved not added:**
+  - Spur shoots p 0.6 (0.9 before).
+  - Shoots keep their needles 3 years after they stop growing (4 before): about 5 years in all, near Muukkonen and Lehtonen's half-life of 5.5.
+  - Needle spacing 3.2 mm (2.5 before).
+
+**Strength probe** (seed 1 at 80 years, `raw/probe8/`, one tree per process):
+
+| Sleeping probability | Needles | Result |
+|--:|--:|---|
+| 0 | 15.0M | No change |
+| 0.3 | 19.6M | Visibly denser lower and middle crown |
+| 0.5 | | GPU out of memory |
+| 0.45, at 3 mm needles | 18.5M | Denser again |
+
+**Sheets** (`raw/round8/`, on disk; I viewed every still):
+
+| Sheet | What it holds |
+|---|---|
+| `five-seeds.png` | The references, round 7's seed 1 and its spray, then the 80-year trees in leaf, as in-leaf sprays, and bare |
+| `young.png` | 10, 20 and 40 years at seeds 1 and 7 |
+| `close-ups.png` | Trunk bases, bare limbs, and the young trees' bases and sprays |
+
+**Needles per tree at 80 years** (`run.log`):
+
+| Seed | Needles | Grown in |
+|--:|--:|--:|
+| 1 | 17.1M | 9.8 s |
+| 7 | 18.1M | 10.4 s |
+| 2 | 18.1M | 10.3 s |
+| 3 | 17.5M | 10.1 s |
+| 4 | 16.9M | 9.8 s |
+
+- Dressing takes about 15 to 16 s, and wood is 54 to 58 km.
+- Seeds 1 and 7 first failed with GPU out of memory and rendered on a retry with the same binary and values (FRICTION.md).
+
+**Measures:** height 21.9 to 22.2 m, width 14.6 to 17.2 m (w/h 0.67 to 0.79). Staging, width and colours are as in round 7.
+
+### Reading against Astra's round-7 fault (inner curtains, not flat shelves with gaps)
+
+| Seed | Whole tree | Spray close-up |
+|---|---|---|
+| 1 | Middle and lower crown darker and more continuous than round 7; the gaps between lower boughs are narrower but still show ground | Boughs carry dense dark masses beneath their flat tips, reaching further in towards the trunk |
+| 7 | The fullest of the five: a dark cone almost to the ground, with only slivers of light between the lowest boughs | Heavy hanging masses under every bough, the nearest yet to S1 and S3 |
+| 2 | Full and dark through the middle; the lower crown has a few light gaps | Dense masses under the middle boughs |
+| 3 | As seed 7 | As seed 7 |
+| 4 | Narrow; still the most see-through low on both sides | Masses present but thinner |
+
+**Overall:**
+- **Sleeping buds move the tree towards S1's curtain.**
+  - The middle and lower crown no longer read as separate shelves over light at seeds 7, 3 and 2.
+  - At seeds 1 and 4 light still shows between the lowest boughs.
+  - The bough tips stay flat sprays.
+- **The trunk-base close-ups still show the lowest, oldest boughs bare near the trunk.** They are fewer, and more hanging branchlets show among them.
+- **Limits:**
+  - The GPU's memory stops the sleeping probability near 0.45.
+  - Growth takes about 10 s, within the 12 s accepted.
+  - Denser curtains would need needle mass moved again, or more memory.
+- **Young trees:** much as in round 7; the sleeping buds barely show at 20 and 40 years.
