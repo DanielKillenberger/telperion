@@ -151,8 +151,8 @@ impl Grower<'_> {
                 continue;
             }
             let survive = below(u, state.viability);
-            let stake = self.windows.wood(pa, cycle) * stop_stake(state.relay);
-            let survive = self.windows.presence(survive, stake);
+            let wood = self.windows.wood(pa, cycle);
+            let survive = self.windows.decided(survive, wood, stop_stake(state.relay));
             self.draws[apex.axis].units.push([survive, 1.0]);
             self.grow_unit(apex, pa, unit, cycle)?;
             apex.units += 1;
@@ -166,8 +166,10 @@ impl Grower<'_> {
                     self.stop(apex, cycle, below(u, abortion));
                     continue;
                 }
-                let stake = self.windows.wood(pa, cycle + 1) * stop_stake(state.relay);
-                let persist = self.windows.presence(above(u, abortion), stake);
+                let wood = self.windows.wood(pa, cycle + 1);
+                let persist =
+                    self.windows
+                        .decided(above(u, abortion), wood, stop_stake(state.relay));
                 let units = &mut self.draws[apex.axis].units;
                 units.last_mut().unwrap()[1] = persist;
             }
@@ -230,7 +232,7 @@ impl Grower<'_> {
             let pa = axis.pa;
             let wood = self.windows.wood(pa, cycle + 1);
             let made = [
-                self.windows.presence(stopped, wood * stop_stake(relay)),
+                self.windows.decided(stopped, wood, stop_stake(relay)),
                 self.windows.presence(below(u, relay), wood),
             ];
             self.sprout(key.child(RELAY_BUD), pa, cycle, origin, made);

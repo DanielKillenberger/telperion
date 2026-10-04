@@ -322,3 +322,33 @@ Starting point: round 2's beech, plus the relay-difference engine change (`57ab6
 - The young ages are diagnostic only: seed 7 at 20 cycles is a pole with tiers, while seed 1 at 10 and 20 cycles is crooked, with layered spray.
 
 **Tests:** all crate tests are green (`raw/space-tests-r8.log`).
+
+## Round 9: the grow-in floor scales with the wood decided (worker)
+
+**Engine change** (`presence.rs`, `grow.rs`).
+- A stop's presence now takes the share of the apex's expected wood it decides (`1 - relay`). The window and its floor both scale with that share: `window = clamp(RATE × wood × decided, FLOOR × decided, SPAN)`, and a draw whose window is zero is whole.
+- A stop that is always relayed therefore has no grow-in. With no relay (`decided` 1) every window is as before.
+- All crate tests are green (`raw/space-tests-r9.log`): A's oracle, B's walks, and the closed-form and settings checks.
+
+**The relay = 1 crossing, walked** (`raw/relay1-walk.log`; trunk abortion walked over 0.005 to 0.5 with relay 1, at seeds 1 to 3):
+- **The walk shows a jump.** Seed 2 reaches slope 37 and seed 3 reaches 33, against the bound of 30.
+- The steepest step does not shrink when split finer. At seed 2 it swaps 0.98 of the tree's wood, made or unmade, unchanged over three levels of refinement. At seed 3 it swaps 0.87; at seed 1 it is a 0.067 move.
+- **The geometry it switches is not identical.** A relay is a new lineage, so its draws, and the crown it grows, differ from those of the apex it replaces. Its base also stands at `relay_at` with its own insertion, not at the tip on the parent's line.
+- By the host's rule this jump is therefore not acceptable as it stands. I did not add the walk as a passing test.
+- **Making it identical (host's call):** a relay that inherits its parent's lineage key, stands at the tip and has the parent's heading would switch nothing. The beech's relays (`relay_at` 0.5, insertion 0.3) are different trees by design.
+
+**Five seeds at 80 cycles** (`raw/final8/five-seeds.png`). I viewed every still. Seeds 1, 7, 2 and 4 are byte-identical in structure to final7 (same node counts); only seed 3 changed.
+
+| Seed | Reading |
+|---|---|
+| 1 | Erect trunk with a slight lean, fork, rising limbs, broad crown with a tuft: **a beech** |
+| 7 | Leaning trunk, fork, dome: **a beech** |
+| 2 | Fork, two-lobed crown: **a beech, borderline** |
+| 3 | **Now full size**: 20.4 m, 23 × 25 m wide, a stout erect bole forking into rising limbs, a rounded crown with a few long low stragglers on one side. **A beech**, the bole thicker and the crown sparser at the sides than the photographs |
+| 4 | Erect trunk, low fork into many limbs, broad dome: **a beech**, closest to Entzia |
+
+**Five of five seeds read as an open-grown beech at 80 cycles; seed 2 is borderline.**
+
+**Final8 sheet and close-ups** (`raw/final8/sheet-beech.png`, `raw/final8/close-ups.png`) are unchanged from final7 for seeds 1 and 7: smooth trunk bases, one faint band at seed 7's flare, and smooth olive grey-green limbs.
+
+**Cost.** Seed 3 grows in 15.7 s at 80 cycles, and draws 1.89M nodes and 4.9M leaves, against 1.6 to 2.9 s for the others. It is the heaviest tree, because its whole crown now grows at full presence.
