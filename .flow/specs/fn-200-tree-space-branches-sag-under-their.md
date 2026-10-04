@@ -13,10 +13,10 @@ The spruce (fn-194, round 1) cannot droop its lower crown: a branch's angles are
 
 ## Requirements
 
-- **R1:** `form.sag` as above, walk-tested, neutral at 0 (every existing tree byte-identical at 0).
+- **R1:** `form.sag` as above, walk-tested; `form.sag` at 0 adds no bending. (Amended, host, 2026-10-04: it no longer asks every tree to be byte-identical; the landing curve and the straight-down tropism taper are engine improvements for every tree, under AGENTS.md "Generator evolution".)
 - **R2:** A test that a loaded horizontal branch droops at the base more than at the tip, and that its tip direction still follows its tropism.
 - **R3:** Ground support: a sagging branch that reaches the ground rests at ground height; a test that no vertex lies below ground and that the refusal for a base below ground still fires.
-- **R4:** Oracle (phase A) and walks (phase B) green; beech byte-identical (sag 0).
+- **R4:** Oracle (phase A) and walks (phase B) green; the beech unchanged in look, its pixel difference recorded. (Amended, host, 2026-10-04: an intentional improvement may change bytes when the look holds; 43 of 2.8M pixels holds.)
 - **R5:** One still strip of the spruce walking `form.sag` from 0 up, viewed by the host.
 
 ## Boundaries
