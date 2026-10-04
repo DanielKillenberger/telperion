@@ -30,8 +30,8 @@ pub(crate) fn any(species: &Species) -> bool {
     species.states.iter().any(|s| s.form.sag > 0.0)
 }
 
-/// Each phytomer's gravity torque about its base, horizontal: the axis it
-/// turns down about, its length the bending moment.
+/// Each phytomer's gravity torque about its far end, horizontal: the axis
+/// it turns down about, its length the bending moment.
 pub(crate) fn torques(structure: &Structure, species: &Species) -> Vec<Vec<Vec3>> {
     let age = structure.age;
     let axes = &structure.axes;
@@ -62,6 +62,14 @@ pub(crate) fn torques(structure: &Structure, species: &Species) -> Vec<Vec<Vec3>
             let leaves = state.form.pipe * p.scale * ripe(years, state.form.ripening);
             let mass = length * (p.radius * p.radius + leaves * leaves);
             let middle = (base + p.tip) * 0.5;
+            // The moment at the phytomer's far end: what its node bears
+            // and all beyond it, about that end. An unloaded tip bends
+            // by nothing and keeps its tropism.
+            load.add(at_node[i][k], 1.0);
+            // (S - W e) x (-z): the lever of the load about the end,
+            // crossed with gravity.
+            let lever = load.moment - p.tip * load.mass;
+            torques[i][k] = Vec3::new(-lever.y, lever.x, 0.0);
             load.add(
                 Load {
                     mass,
@@ -69,11 +77,6 @@ pub(crate) fn torques(structure: &Structure, species: &Species) -> Vec<Vec<Vec3>
                 },
                 1.0,
             );
-            load.add(at_node[i][k], 1.0);
-            // (S - W b) x (-z): the lever of the load about the base,
-            // crossed with gravity.
-            let lever = load.moment - base * load.mass;
-            torques[i][k] = Vec3::new(-lever.y, lever.x, 0.0);
         }
         match axis.origin {
             Origin::Seed => {}

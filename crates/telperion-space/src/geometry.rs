@@ -166,8 +166,17 @@ fn lay(
         // Sag: the beam's curvature, its moment over its stiffness, turns
         // the axis down about the torque's axis.
         if let (Some(load), true) = (load, form.sag > 0.0 && phytomer.radius > 0.0) {
-            if let Some(pivot) = load[k].unit() {
-                let curvature = form.sag * load[k].length() / phytomer.radius.powi(4);
+            // The torque was taken on the tree before it bent: carried
+            // with the phytomer from its direction then to its direction
+            // now, which its bearers' sag has turned, and levelled, as
+            // gravity's torque is. Normalised with no cutoff: a vanishing
+            // moment bends by nothing, never by a jump.
+            let carried = carried(load[k], phytomer.heading, running);
+            let torque = Vec3::new(carried.x, carried.y, 0.0);
+            let moment = torque.length();
+            if moment > 0.0 {
+                let pivot = torque * (1.0 / moment);
+                let curvature = form.sag * moment / phytomer.radius.powi(4);
                 let down = (-running.z).clamp(-1.0, 1.0).acos();
                 let angle = turn(curvature, length, down);
                 running = rotated(running, pivot, angle);
