@@ -18,7 +18,7 @@ const BUDGET: u32 = 20_000_000;
 const SIZE: (u32, u32) = (960, 720);
 /// The preset's rows restated for a tree that grows its own short shoots:
 /// the clusters the preset seats along slender wood stood in for them.
-const ROWS: &str = r#"{"canopy": {"shortShootSpacing": 0, "shootRadius": 0.012, "limbClumping": 0}, "skeleton": {"twigs": {"twig": {"internodeLength": 0.006}}}}"#;
+const ROWS: &str = r#"{"canopy": {"shortShootSpacing": 0, "shootRadius": 0.018, "limbClumping": 0}, "skeleton": {"twigs": {"twig": {"internodeLength": 0.006}}}}"#;
 
 fn main() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();

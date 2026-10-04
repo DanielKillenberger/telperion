@@ -13,6 +13,8 @@ pub(crate) const ZONE: u64 = 16;
 /// The draws of one axis, under its lineage, and its relay draw, under
 /// the growth unit it stopped in.
 pub(crate) const RELAY: u64 = u64::MAX - 2;
+/// A lateral's roll about its parent, under its lineage.
+pub(crate) const ROLL: u64 = u64::MAX - 4;
 pub(crate) const CONTINUATION: u64 = u64::MAX;
 
 /// A hashed path from the root.

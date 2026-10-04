@@ -493,3 +493,49 @@ Host: four of five seeds read as a beech (2, 3, 4 strongly; 1 narrower; 7 border
 **For the host:**
 - Seed 3's hollow comes from a weak leader. Its continuation from the fork is drawn at 1 mm, a near-bound draw at its birth, so one limb dominates. A share of vigour among the fork's sibling reiterates, the engine setting the host named, would govern this directly. It was not built, because the values reached the other seeds.
 - The comb-like flags at seeds 4 and 7 are branch systems on one plane along a steep limb tip.
+
+## Round 13: roll, the leader's survival, a denser leaf mass (worker)
+
+**1. The fork's sibling vigour share: not built. The cause it was aimed at is not the one measured.**
+- A temporary dump of the draws behind seed 3's leader shows a whole first growth unit (presence 1, birth 1). The apex then failed its viability draw (0.995 a unit) at the second unit, well past the bound. So the leader is a 6-node stub because its apex died in its second year. It is not a near-bound birth draw drawn small, so a share of vigour among the fork's siblings would not reach it.
+- **Values fix, applied:** the leader's viability is 1, so the stem's own relay at the fork does not die. Seed 3 now carries a leader in the middle of its crown, and its hollow is gone. The other seeds' leaders were alive, so they move only through the other changes this round.
+- **For the host:** whether the vigour-share setting is still wanted, for a different case, is the host's call.
+
+**2. `form.roll` (engine; neutral 0, walked, refused by name).**
+- Each lateral of a PA turns about its parent by up to `roll` radians either way, by a draw its lineage keys (`lineage::ROLL`).
+- **Tests:**
+  - `roll_turns_each_lateral_about_its_parent`: most limbs turn, the same draws give the same tree, and no other tree grows.
+  - The walk test walks `form.roll` over 0 to π on every PA.
+  - Refusal: `states[1].form.roll`.
+- **Beech:** branch systems roll by up to 0.7 rad. The comb-like flags of seeds 4 and 7 are broken up.
+
+**3. A denser leaf mass.**
+- **Short shoots live 6 growth units at viability 0.95**, against 3 at 0.9 before (estimated: [DTT86] gives short shoots that persist; no lifespan is sourced). This doubled the leaves while the bare tree kept its limbs.
+- **Short-shoot sections:** each phytomer's pipe is 0.6 mm, against 1.07 mm before, so the extra short-shoot wood does not swell the bole: the dbh is 1.09 m at seed 1. With the old pipe, a trial drew a bole well over 1.3 m.
+- **Short-shoot probability:** 0.7 on branch systems (the top of [LET]'s A24 range) and 0.6 on shoots, as sourced. Short shoots on reiterates: 0.3 → 0.5 (estimated). A trial at 0.85, above the sourced range, was undone: it added only 15% of the leaves.
+- **The stills' leaf-bearing radius** (`ROWS` in `space_beech.rs`) is 0.018 of the root radius, against 0.012 before. Round 12's slimmer root had cut the bearing wood.
+- **Leaves at 80 years:** 1.6M to 2.2M, against 0.5M to 1.1M in round 12.
+- **Not sourced:** the mean grown short shoot is now 55 to 60 mm, so about 9 leaves a shoot over its life, against the sourced 3 to 5 a year. The pipeline places leaves along all bearing wood, not on the youngest growth unit only.
+
+**Five seeds at 80 years** (`raw/final12/five-seeds.png`; `bases.png`, `limbs.png`, `sheet-beech.png` beside it). I viewed every still.
+
+| Seed | Reading | Beech? |
+|---|---|---|
+| 1 | Erect bole, a fork into a few spreading limbs, a rounded crown that is narrow in depth (20 × 14 m). In leaf a rounded, darker mass, dappled at the edge | **Borderline / yes** |
+| 7 | Heavy limbs spreading broad and low. In leaf a broad mass, but the leader rises as a narrow dark spire at the top left | **Borderline**: the spire |
+| 2 | Substantial limbs under a broad, rounded dome. In leaf the nearest yet to Nettleden's mass | **Yes** |
+| 3 | The leader now fills the middle: three limb systems under a broad crown with a lobe to the right. The hollow is gone | **Yes** |
+| 4 | A low fork into spreading limbs under a broad dome; the flag at the right is much reduced | **Yes**, near Entzia |
+
+**Three clear (2, 3, 4), two borderline (1, 7).**
+- The bare trees keep their visible limbs.
+- In leaf, the crowns are a darker, denser mass than round 12's. They are still more textured and see-through at the edge than Nettleden's solid crown.
+- The trunk bases are smooth, with faint seams. The young ages are unchanged, a pole with rods.
+
+**Tests:** all crate tests are green (`raw/space-tests-r13.log`), the oracle and every walk among them. `cargo clippy -p telperion-space --all-targets -- -D warnings` is clean.
+
+**Costs at 80 years:**
+- Growth: 1.4 to 2.6 s.
+- Dressing: 0.9 to 1.2 s.
+- 1.05M to 1.41M nodes.
+- `examples/beech` measures seed 7's dbh as 0.00 m. It finds no stem segment across 1.3 m at that seed. That is a measuring gap in the example, not looked into this round.

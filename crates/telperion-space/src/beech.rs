@@ -90,6 +90,7 @@ pub fn beech() -> Species {
             wander: 0.2,
             plane: FRAC_PI_2,
             pipe: 0.00057,
+            roll: 0.0,
         },
         ..state(
             12,
@@ -134,13 +135,14 @@ pub fn beech() -> Species {
             wander: 1.2,
             plane: 0.0,
             pipe: 0.00057,
+            roll: 0.0,
         },
         ..state(
             lifespan,
             next,
             vec![
                 zone(2, 3, &[]),
-                zone(2, 3, &[(SHORT, 0.3), (BRANCH, 0.45)]),
+                zone(2, 3, &[(SHORT, 0.5), (BRANCH, 0.45)]),
                 zone(1, 1, top),
             ],
         )
@@ -149,7 +151,10 @@ pub fn beech() -> Species {
     // erect; after the fork one or two limbs dominate, and what the leader
     // and the limbs bear is weaker and shorter, the most peripheral the
     // shortest.
-    let leader = reiterate(70, None, &[(LIMB, 0.06), (BOUGH, 0.2)], (1.25, 0.25));
+    let leader = PaState {
+        viability: 1.0,
+        ..reiterate(70, None, &[(LIMB, 0.06), (BOUGH, 0.2)], (1.25, 0.25))
+    };
     let limb = PaState {
         straightening: 0.1,
         ..reiterate(15, Some(LIMB_UP), &[(BRANCH, 0.45)], (0.55, 0.6))
@@ -175,13 +180,14 @@ pub fn beech() -> Species {
             wander: 0.8,
             plane: 0.0,
             pipe: 0.00057,
+            roll: 0.7,
         },
         ..state(
             10,
             Some(SHOOT),
             vec![
                 zone(1, 2, &[]),
-                zone(2, 3, &[(SHORT, 0.6)]),
+                zone(2, 3, &[(SHORT, 0.7)]),
                 zone(1, 2, &[(SHOOT, 0.65)]),
                 zone(1, 1, &[(BRANCH, 0.08)]),
             ],
@@ -199,6 +205,7 @@ pub fn beech() -> Species {
             wander: 2.0,
             plane: 0.0,
             pipe: 0.00057,
+            roll: 0.0,
         },
         ..state(5, None, vec![zone(1, 1, &[]), zone(2, 3, &[(SHORT, 0.6)])])
     };
@@ -206,7 +213,7 @@ pub fn beech() -> Species {
     // branches.
     let short = PaState {
         insertion: 0.9,
-        viability: 0.9,
+        viability: 0.95,
         shedding: Some(1),
         internode: 0.006,
         form: Form {
@@ -214,9 +221,10 @@ pub fn beech() -> Species {
             elevation: 0.0,
             wander: 0.0,
             plane: 0.0,
-            pipe: 0.00107,
+            pipe: 0.0006,
+            roll: 0.0,
         },
-        ..state(3, None, vec![zone(3, 5, &[])])
+        ..state(6, None, vec![zone(3, 5, &[])])
     };
     Species {
         states: vec![

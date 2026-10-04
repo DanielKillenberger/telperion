@@ -105,6 +105,10 @@ pub struct Form {
     /// The pipe each phytomer of this PA adds below it, as a radius in
     /// metres (the pipe model: a section is the sum of the sections it bears).
     pub pipe: f64,
+    /// How far a lateral of this PA turns about its parent, by up to this
+    /// many radians either way as its lineage keys, so laterals of one
+    /// parent do not stack in one plane. Neutral 0.
+    pub roll: f64,
 }
 
 impl Default for Form {
@@ -116,6 +120,7 @@ impl Default for Form {
             wander: 0.0,
             plane: 0.0,
             pipe: 0.005,
+            roll: 0.0,
         }
     }
 }
@@ -261,6 +266,9 @@ impl Form {
                 format!("{at}.elevation"),
                 "an elevation lies in -pi / 2 to pi / 2",
             );
+        }
+        if !(0.0..=PI).contains(&self.roll) {
+            return refuse(format!("{at}.roll"), "a roll lies in 0 to pi");
         }
         if !(-TAU..=TAU).contains(&self.plane) {
             return refuse(

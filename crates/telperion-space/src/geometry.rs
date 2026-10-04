@@ -7,7 +7,7 @@
 //! straightens towards the vertical by its PA's straightening. The seed
 //! stands at the origin, growing up (+z); no wood goes below z = 0.
 use crate::error::{Error, Result};
-use crate::lineage::Key;
+use crate::lineage::{Key, ROLL};
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
 use std::f64::consts::TAU;
@@ -208,8 +208,11 @@ fn frame(structure: &Structure, species: &Species, i: usize) -> (Vec3, Vec3, Vec
             let p = &structure.axes[parent];
             let at = &p.phytomers[node];
             let parent_state = &species.states[p.pa];
+            // Turned about its parent by its PA's roll, as its lineage keys.
+            let roll = species.states[axis.pa].form.roll
+                * (2.0 * Key(axis.lineage).child(ROLL).unit() - 1.0);
             let azimuth =
-                parent_state.divergence * at.rank + TAU * f64::from(slot) / f64::from(whorl);
+                parent_state.divergence * at.rank + TAU * f64::from(slot) / f64::from(whorl) + roll;
             let (heading, side) = turned(
                 (at.heading, at.side),
                 azimuth,

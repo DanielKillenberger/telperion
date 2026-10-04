@@ -63,6 +63,35 @@ fn wander_turns_each_node_by_its_own_draw() {
     );
 }
 
+/// Roll turns each lateral about its parent by its own keyed draw, and
+/// grows no other tree.
+#[test]
+fn roll_turns_each_lateral_about_its_parent() {
+    let mut species = walk::species();
+    species.states[1].form.roll = 1.0;
+    let rolled = grown(&species, 1);
+    let plain = grown(&walk::species(), 1);
+    assert!(rolled == grown(&species, 1), "the same draws");
+    let limbs = |t: &Structure| {
+        t.axes
+            .iter()
+            .filter(|a| a.pa == 1 && matches!(a.origin, Origin::Lateral { .. }))
+            .map(|a| (a.lineage, a.phytomers.len(), a.heading))
+            .collect::<Vec<_>>()
+    };
+    let (rolled, plain) = (limbs(&rolled), limbs(&plain));
+    assert_eq!(rolled.len(), plain.len(), "the same limbs");
+    let mut turned = 0;
+    for (r, p) in rolled.iter().zip(&plain) {
+        assert_eq!((r.0, r.1), (p.0, p.1), "and grows no other tree");
+        turned += usize::from(r.2.dot(p.2) < 1.0 - 1e-9);
+    }
+    assert!(
+        turned * 2 > rolled.len(),
+        "most limbs turn about their parent"
+    );
+}
+
 /// A parent's plane turns its laterals about their headings; with a
 /// quarter turn a distichous lateral's own laterals leave square to where
 /// they left without it.

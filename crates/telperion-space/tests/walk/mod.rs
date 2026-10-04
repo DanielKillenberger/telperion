@@ -227,7 +227,7 @@ pub fn settings() -> Vec<Setting> {
         let (bend, wander) = [(0.03, 0.1), (1.0, 1.0), (1.0, 1.0)][pa];
         // About the metres an axis of each PA grows in the walk tree.
         let metres = [54.0, 5.0, 1.0][pa];
-        let form: [(&str, f64, f64, bool, Set); 8] = [
+        let form: [(&str, f64, f64, bool, Set); 9] = [
             ("abortion_rise", 0.0, 3.0, false, |s, pa, v| {
                 s.states[pa].abortion_rise = v
             }),
@@ -256,6 +256,9 @@ pub fn settings() -> Vec<Setting> {
                 false,
                 |s, pa, v| s.states[pa].form.plane = v,
             ),
+            ("form.roll", 0.0, std::f64::consts::PI, false, |s, pa, v| {
+                s.states[pa].form.roll = v
+            }),
         ];
         for (field, low, high, odds, set) in table.into_iter().chain(form) {
             let mut walked = setting(at(field), low, high, odds, move |s, v| set(s, pa, v));
