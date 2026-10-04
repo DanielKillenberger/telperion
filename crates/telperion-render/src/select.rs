@@ -355,14 +355,12 @@ impl Select {
         });
         if let Some((compute, _, _)) = ready {
             pass.set_bind_group(0, compute, &[]);
-            let groups = self.instances.div_ceil(WORKGROUP);
-            for (pipeline, count) in
-                self.pipelines
-                    .iter()
-                    .zip([groups, self.levels.len() as u32 + 1, groups])
-            {
+            let maximum = gpu.device.limits().max_compute_workgroups_per_dimension;
+            let leaves = grid(self.instances.div_ceil(WORKGROUP), maximum);
+            let levels = (self.levels.len() as u32 + 1, 1);
+            for (pipeline, (x, y)) in self.pipelines.iter().zip([leaves, levels, leaves]) {
                 pass.set_pipeline(pipeline);
-                pass.dispatch_workgroups(count, 1, 1);
+                pass.dispatch_workgroups(x, y, 1);
             }
         }
     }
@@ -446,6 +444,14 @@ impl Select {
                 .collect(),
         )
     }
+}
+
+/// The groups a per-leaf pass dispatches, folded into a second dimension once
+/// the first runs out, as generation does: a crown of more than 65,535 groups
+/// of 256 leaves would otherwise be refused (fn-194). The shader rebuilds the
+/// flat index and the last row's overhang returns past the last leaf.
+fn grid(groups: u32, maximum: u32) -> (u32, u32) {
+    (groups.min(maximum), groups.div_ceil(maximum).max(1))
 }
 
 #[cfg(test)]
