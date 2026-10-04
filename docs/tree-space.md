@@ -48,5 +48,6 @@ The phases are captured up front as chained specs (A to F), each depending on th
 
 - **Gates are evidence, not sign-off:** oracle and walk tests (A, B), the host-and-Astra visual pass (C to E), the workspace gate, speed and the Codex review (F).
 - **The owner's verdict comes in the morning,** on every passed species and on F's PR; nothing merges to master without it.
-- **The run stops** only on a phase's wrong-path condition, a backend outage, or `NO_WORK`; a stop writes what was tried, what failed and the decision needed.
-- **Never:** merge to master, copy external code or data, change the strategy, or pass a sheet the host would not stand behind.
+- **The run stops** only on a backend outage, `NO_WORK`, or a genuine wrong path: the host can name no next design step the evidence supports, or the engine cannot express the botany. A trait that fails after a change aimed at it is not a stop by itself (owner, 2026-10-04): the host decides the design question the failure raises, records it, and continues. A stop writes what was tried, what failed and the decision needed.
+- **Merging (owner, 2026-10-04):** a phase's PR whose checks pass and whose review passed (a host-reset review counter counts) may be merged by the run.
+- **Never:** merge a PR with failing checks, copy external code or data, change the strategy, or pass a sheet the host would not stand behind.
