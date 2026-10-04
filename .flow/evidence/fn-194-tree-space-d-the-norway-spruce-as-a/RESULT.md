@@ -629,3 +629,7 @@ w/h is 0.6 to 0.8.
 - **Upper crown:** level to ascending, as in S1.
 - **Young trees:** 20 and 40 years keep level tiers, with the 40-year boughs drooping slightly. 10 years is unchanged.
 - **Still open:** light between the lowest boughs at seeds 1 and 4, as in round 8.
+
+## Gate, round 10, and host decision (2026-10-05)
+
+Host: the best spruce so far: hooked boughs, broad-based cones, clean trunk bases; confident. Astra, three samples: FAIL, mostly BORDERLINE: the tips are now "exaggerated upward" (round 8 was flat shelves), and "insufficient foliage mass on the hanging branchlets" (every gate since round 4) (`ASTRA-VERDICT-R10-{1,2,3}.md`). Foliage mass is bounded by GPU memory (about 16M needles per tree). Host and Astra have iterated over seven gates without agreeing, so the spruce goes to the owner's verdict (docs/tree-space.md); round 11 softens the tip recovery between rounds 8 and 10 meanwhile, and the oak (fn-195) starts in parallel.
