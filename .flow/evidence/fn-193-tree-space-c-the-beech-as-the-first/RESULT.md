@@ -729,3 +729,7 @@ Host: five integrated domes, the best sheet; sent to Astra. Astra: FAIL (3 yes; 
 **Girth and costs:**
 - dbh 1.17 m at seed 1.
 - At 80 years: growth 2.2 to 3.3 s, dressing 1.5 to 2.0 s, 1.39M to 1.62M nodes.
+
+## Gate, round 17, and host decision 17 (2026-10-04)
+
+Host: five rounded, continuous domes; confident. Astra, three independent samples: FAIL in all three (majority yes on at most one seed). All three name the same fault: "the branch hierarchy: all five transition too abruptly from trunk and fork into fine, crowded branches, missing the long, substantial rising and spreading limbs" (`ASTRA-VERDICT-R17-{1,2,3}.md`), and all three flag the banded bole. Host decision 17: limbs keep their girth across relays as the trunk does, so a limb reads as one long tapering limb; fine laterals start further out along each limb; progressive taper along the hierarchy; the bark preset's ring banding down.
