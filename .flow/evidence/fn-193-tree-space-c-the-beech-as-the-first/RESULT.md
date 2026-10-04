@@ -691,3 +691,7 @@ Astra: FAIL (1, 7, 2, 3 borderline; 4 no): "the rising limbs consistently produc
 - Growth: 2.3 to 3.9 s.
 - Dressing: 1.6 to 2.0 s.
 - 1.37M to 1.60M nodes and 2.6M to 3.4M leaves.
+
+## Gate, round 16, and host decision 16 (2026-10-04)
+
+Host: five integrated domes, the best sheet; sent to Astra. Astra: FAIL (3 yes; 1, 7, 4 borderline; 2 no): "most seeds form angular, tiered masses with pointed tops instead of the photographs' broad domes" (`ASTRA-VERDICT-R16.md`). Single Astra samples are noisy (seed 2 went from its yes in round 13 to no, seed 3 from no to yes, with modest changes), so the gate now takes three independent Astra judgements per sheet and a seed counts as yes on a majority. Host decision 16: round 17 softens the horizontal foliage shelves (layered sprays stay, but the crown outline must be continuous, not stepped) and rounds the top (the leader's and the top limbs' last modules arch over instead of pointing up).
