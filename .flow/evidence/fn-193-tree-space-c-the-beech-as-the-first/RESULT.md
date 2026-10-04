@@ -284,3 +284,41 @@ Starting point: round 2's beech, plus the relay-difference engine change (`57ab6
 | Bark colour | Dark olive grey-green, smooth, sparse flecks | The same | **Met against S3's mean**. It reads browner-olive than S3 reads to the eye, because S3's own mean is olive. |
 | Leaf colour | Dark green mass, close to Nettleden in tone | Dark green dome | **Met**. Seed 7 in leaf is the closest yet to Nettleden. |
 | 20 cycles, seed 7 (diagnostic) | — | A straight pole with tiers, recorded and not chased | — |
+
+## Round 8: an erect trunk at every seed, judged over five seeds (worker)
+
+**1. Limited tilt and erection.**
+- The trunk's module tip now bends towards 0.9 rad rather than 0.45, so each module tilts only part way to level.
+- `erection` is 0.1 per cycle on the trunk, which straightens the seedling's base and each module's base over the years.
+- Seed 7's topology is unchanged (1,182,568 nodes); its geometry changes.
+
+**2. Seed 1's dark slit: found and fixed.**
+- **Where:** a dump of the lower stem's segments (a temporary debug pass, since removed) located it at node 70, 2.09 m up. There the relay's first segment left the joint at 77° to the parent module's last segment (cos 0.224). The segment was 5 cm long on a trunk of 0.70 m radius, so the swept rings intersected and drew a dark fold.
+- **Not the cause:** there was no zero-length segment and no radius jump; the start radius equalled the parent's 0.7035 m.
+- **Fix:** with the module tips held steeper, no stem segment below 8 m turns more than 37° (cos < 0.8) at any of the five seeds.
+- **Result:** seed 1's trunk base is smooth in the close-up.
+
+**3. Five seeds at 80 cycles** (`raw/final7/five-seeds.png`, bare and in leaf, beside S1, S2 and S3). The extra seeds are 2, 3 and 4: the next ones in order, not chosen by look. I viewed every still.
+
+| Seed | Bare | In leaf | Reads as an open-grown beech? |
+|---|---|---|---|
+| 1 | Erect trunk with a slight lean, forking at about 0.3 H into rising limbs; broad crown with one tall tuft | Dark green broad crown | **Yes** |
+| 7 | Trunk leaning about 15°, forking; domed crown | Dark green dome | **Yes**. It leans more than in final6; it still reads as a beech. |
+| 2 | Forked trunk with two rising limb systems; two-lobed crown | Two-lobed dark green crown | **Yes**, borderline: the two lobes are less domed than the photographs |
+| 3 | A 6.5 m bare pole carrying a narrow broom | A narrow column | **No**. The crown above the fork is drawn at 0.231 of its size (the trunk's continuation, `raw/r8a`) |
+| 4 | Erect trunk forking low into many rising limbs; broad dome | Broad dark green dome | **Yes**, the closest to S1 Entzia |
+
+**Four of five seeds read as an open-grown beech.**
+
+**Seed 3's failure is in the continuity mechanism, not the values:**
+- Its first relay grew one long module of 11 units. One of that module's abortion draws fell within the 0.05 log-odds floor of its bound.
+- So the module's persistence presence, and with it the fork and the whole crown carried on it, stands at 0.231.
+- A stop that relays decides no wood (its stake is zero), yet the window floor still grows it in.
+- Whether a zero stake should mean no grow-in (presence 1) is the host's design call. It would make a walk of abortion at relay 1 step, not slide.
+
+**Sheet** `raw/final7/sheet-beech.png` (seeds 1 and 7, same layout) and `raw/final7/close-ups.png`:
+- The trunk bases are smooth; seed 7 shows one faint horizontal band at the flare.
+- The limbs are smooth olive grey-green with sparse flecks.
+- The young ages are diagnostic only: seed 7 at 20 cycles is a pole with tiers, while seed 1 at 10 and 20 cycles is crooked, with layered spray.
+
+**Tests:** all crate tests are green (`raw/space-tests-r8.log`).
