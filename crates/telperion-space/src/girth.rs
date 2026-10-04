@@ -2,12 +2,14 @@
 //! the sum of the sections it carries, a section being the radius to its
 //! PA's exponent (2, the area, by default; a larger one keeps what it
 //! carries thicker beside it). Each phytomer adds its PA's pipe, scaled by
-//! its presence, so a branch growing in thickens what bears it by degree.
+//! its presence and ripened over its PA's `ripening` years, so a branch
+//! growing in thickens what bears it by degree and a young tip stays fine.
 use crate::species::Species;
 use crate::structure::{Origin, Structure};
 
 /// Sets every phytomer's radius from the pipes it carries.
 pub(crate) fn thicken(structure: &mut Structure, species: &Species) {
+    let age = structure.age;
     let axes = &mut structure.axes;
     // Section carried into each axis's phytomers by its laterals, and into
     // its tip by its continuation or relay.
@@ -21,7 +23,8 @@ pub(crate) fn thicken(structure: &mut Structure, species: &Species) {
         let e = form.exponent;
         let mut section = at_tip[i];
         for (k, phytomer) in axes[i].phytomers.iter_mut().enumerate().rev() {
-            let own = form.pipe * phytomer.scale;
+            let years = f64::from(age.saturating_sub(phytomer.cycle)) + 1.0;
+            let own = form.pipe * phytomer.scale * ripe(years, form.ripening);
             section += own.powf(e) + at_node[i][k];
             phytomer.radius = section.powf(1.0 / e);
         }
@@ -51,5 +54,15 @@ pub(crate) fn thicken(structure: &mut Structure, species: &Species) {
             }
             Origin::Continuation { parent } => at_tip[parent] += carried(parent),
         }
+    }
+}
+
+/// How far a phytomer `years` old has laid down its own wood, ripening
+/// over `ripening` years: whole at once where `ripening` is 0.
+fn ripe(years: f64, ripening: f64) -> f64 {
+    if ripening <= 0.0 {
+        1.0
+    } else {
+        (years / ripening).min(1.0)
     }
 }

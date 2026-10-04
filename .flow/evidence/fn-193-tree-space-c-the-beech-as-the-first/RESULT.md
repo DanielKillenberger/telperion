@@ -777,3 +777,39 @@ Host: five rounded, continuous domes; confident. Astra, three independent sample
 **Costs at 80 years:**
 - Growth: 2.0 to 2.9 s.
 - 1.11M to 1.32M nodes and 1.8M to 2.2M leaves.
+
+## Round 19: limb tips ripen into a fine haze (worker)
+
+**Engine: one new setting, `form.ripening`** (per PA, neutral 0). It is the number of years over which a phytomer lays down its own pipe: a phytomer `y` years old (its first year counted as 1) adds `min(y / ripening, 1)` of its own section.
+- The setting is continuous: as `ripening` falls to 0 every share tends to 1.
+- At 0 it is exactly the old behaviour: the oracle, every walk and every earlier test pass unchanged.
+- It is walked over 0 to 20 on every PA, and refused by name below 0.
+- Test: `ripening_leaves_young_tips_fine`.
+- The tree's topology does not change; only girth does.
+
+**Beech:**
+- The reiterates (leader, limb, bough, spur) ripen over 15 years.
+- Their pipe is 8 mm (7.5 before), so the old, inner limb keeps its weight and dbh stays near round 18's: 0.97 m at seed 1.
+- Everything else is round 18's.
+
+**Effect** (`raw/final18/seed4-final17-vs-final18.png`, seed 4 bare, round 18 beside round 19):
+- The spiky, blunt limb ends are gone. Each limb tapers into fine young tips, and the crown edge reads as a fine haze of twigs, closer to Entzia's.
+- At the five-seed thumbnail scale the difference is slight. It is plain at full size.
+
+**Heights and widths at 80 years** (`raw/final18/run.log`; unchanged from round 18, since only girth moved), and per-seed reading:
+
+| Seed | Height | Width (x × z) | Reading | Beech? |
+|---|--:|--:|---|---|
+| 1 | 18.1 m | 19.5 × 21.0 | Heavy limbs from the fork, fine tips, a hazy crown edge; a rounded dome in leaf | **Yes** |
+| 7 | 17.5 m | 19.9 × 17.7 | Thick rising limbs ending in fine tips; dome | **Yes** |
+| 2 | 16.9 m | 17.8 × 19.4 | Spreading limbs, a fine edge; broad dome | **Yes** |
+| 3 | 17.6 m | 19.4 × 20.6 | Limbs spread from a low fork, fine tips; rounded dome | **Yes** |
+| 4 | 17.1 m | 20.1 × 21.9 | Long spreading limbs into a fine twig haze (the side-by-side); broad dome | **Yes** |
+
+- The limb close-ups (`raw/final18/limbs.png`) show thinner terminal shoots than round 18.
+- Trunk bases are as in round 18: smooth, with one faint seam at seeds 4 and 7.
+- Young ages are unchanged.
+
+**Tests:** all crate tests are green (`raw/space-tests-r19.log`), including the oracle, every walk and the beech within its budget. Clippy is clean.
+
+**Costs at 80 years:** unchanged from round 18: 1.11M to 1.32M nodes, growth 2.0 to 2.9 s.

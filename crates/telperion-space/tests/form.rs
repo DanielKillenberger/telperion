@@ -213,6 +213,32 @@ fn a_larger_pipe_exponent_keeps_limbs_thicker_beside_their_bearer() {
     assert!(wider > area, "limbs {wider} against {area} of the trunk");
 }
 
+/// Ripening thins an axis's young tip against its old base, and grows no
+/// other tree.
+#[test]
+fn ripening_leaves_young_tips_fine() {
+    let tip_over_base = |ripening: f64| {
+        let mut species = walk::species();
+        species.states[1].form.ripening = ripening;
+        let tree = grown(&species, 1);
+        let limb = tree
+            .axes
+            .iter()
+            .filter(|a| a.pa == 1 && a.phytomers.len() > 4)
+            .max_by_key(|a| a.phytomers.len())
+            .unwrap();
+        let (base, tip) = (
+            limb.phytomers[0].radius,
+            limb.phytomers.last().unwrap().radius,
+        );
+        (tip / base, tree.axes.len())
+    };
+    let (whole, axes) = tip_over_base(0.0);
+    let (ripened, same) = tip_over_base(10.0);
+    assert_eq!(axes, same, "the same tree");
+    assert!(ripened < whole, "tip over base {ripened} against {whole}");
+}
+
 /// The beech grows at every age its sheet draws, at both seeds, standing
 /// and above the ground.
 #[test]

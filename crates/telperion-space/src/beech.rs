@@ -87,8 +87,9 @@ pub fn beech() -> Species {
             elevation: 1.4,
             wander: 0.2,
             plane: FRAC_PI_2,
-            pipe: 0.0075,
+            pipe: 0.008,
             exponent: 2.6,
+            ripening: 0.0,
             roll: 0.0,
         },
         ..state(
@@ -131,8 +132,9 @@ pub fn beech() -> Species {
             elevation,
             wander: 1.2,
             plane: 0.0,
-            pipe: 0.0075,
+            pipe: 0.008,
             exponent: 2.6,
+            ripening: 15.0,
             roll: 1.2,
         },
         ..state(
@@ -192,6 +194,7 @@ pub fn beech() -> Species {
             plane: 0.0,
             pipe: 0.0009,
             exponent: 2.0,
+            ripening: 0.0,
             roll: 1.2,
         },
         ..state(
@@ -218,6 +221,7 @@ pub fn beech() -> Species {
             plane: 0.0,
             pipe: 0.0009,
             exponent: 2.0,
+            ripening: 0.0,
             roll: 0.0,
         },
         ..state(5, None, vec![zone(1, 1, &[]), zone(2, 3, &[(SHORT, 0.6)])])
@@ -236,6 +240,7 @@ pub fn beech() -> Species {
             plane: 0.0,
             pipe: 0.00095,
             exponent: 2.0,
+            ripening: 0.0,
             roll: 0.0,
         },
         ..state(3, None, vec![zone(3, 5, &[])])

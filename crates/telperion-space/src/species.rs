@@ -18,6 +18,8 @@ const MAX_INTERNODE: f64 = 100.0;
 const MAX_RATE: f64 = 100.0;
 /// The widest pipe one phytomer adds, in metres.
 const MAX_PIPE: f64 = 1.0;
+/// The longest ripening of a phytomer's own wood, in years.
+const MAX_RIPENING: f64 = 1_000.0;
 /// The pipe model's exponents: below 1.5 a fork outgrows what bears it.
 const MIN_EXPONENT: f64 = 1.5;
 const MAX_EXPONENT: f64 = 4.0;
@@ -113,6 +115,10 @@ pub struct Form {
     /// areas; a larger one keeps what it carries thicker beside it, so
     /// its limbs taper less abruptly from it. Neutral 2.
     pub exponent: f64,
+    /// The years over which a phytomer lays down its own pipe, from a
+    /// share at its first year to all of it: a limb stays heavy where it
+    /// is old and ends in fine young tips. Neutral 0, at once.
+    pub ripening: f64,
     /// How far a lateral of this PA turns about its parent, by up to this
     /// many radians either way as its lineage keys, so laterals of one
     /// parent do not stack in one plane. Neutral 0.
@@ -129,6 +135,7 @@ impl Default for Form {
             plane: 0.0,
             pipe: 0.005,
             exponent: 2.0,
+            ripening: 0.0,
             roll: 0.0,
         }
     }
@@ -264,6 +271,7 @@ impl Form {
             ("tropism", self.tropism, MAX_RATE),
             ("wander", self.wander, MAX_RATE),
             ("pipe", self.pipe, MAX_PIPE),
+            ("ripening", self.ripening, MAX_RIPENING),
         ];
         for (name, value, most) in rates {
             if !(0.0..=most).contains(&value) {
