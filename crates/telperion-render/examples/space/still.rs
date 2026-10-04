@@ -6,12 +6,18 @@ use crate::tree;
 use std::time::Instant;
 use telperion_core::{math::Vec3, params, pipeline::executor, presets::Preset, surface::Bounds};
 use telperion_render::{
-    hero_pose, render, write_png, Camera, Gpu, Level, Renderer, View, GROUND_REACH, STILL_FORMAT,
+    hero_pose, render, write_png, Camera, Gpu, Level, Renderer, SceneRow, View, GROUND_REACH,
+    STILL_FORMAT,
 };
 use telperion_space::{grow, Request, Species};
 
 const BUDGET: u32 = 20_000_000;
 const SIZE: (u32, u32) = (960, 720);
+/// The sun behind the camera and high, as the reference photographs are
+/// lit: the hero shot looks from azimuth 115 degrees, so the tree's shadow
+/// falls behind it, away from the camera, instead of across the ground
+/// beside it, where it read as a lower limb (host, 2026-10-04).
+const SUN: (f64, f64) = (115.0, 60.0);
 
 /// Grows `species` at every age and seed the arguments name
 /// (`<out dir> <age>... [--seeds 1,7] [--sag <pa>:<value>,...]`), dresses
@@ -108,6 +114,11 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
                         .map_err(|e| e.to_string())?;
                     renderer.set_material(family.material);
                     renderer.set_view(view);
+                    renderer.set_scene(SceneRow {
+                        sun_azimuth: SUN.0,
+                        sun_elevation: SUN.1,
+                        ..SceneRow::default()
+                    });
                     let still =
                         render(&mut renderer, camera, SIZE.0, SIZE.1).map_err(|e| e.to_string())?;
                     let path = format!("{out}/{name}-{age}-{seed}{variant}-{shot}.png");

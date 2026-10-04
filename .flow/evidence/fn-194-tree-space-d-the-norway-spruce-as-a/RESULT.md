@@ -391,3 +391,60 @@ Measures are in `run.log`:
 - **The boughs themselves are now right:** dense, flat, dark needled sprays, as in S3. The in-leaf trees no longer track their bare silhouette in the upper and middle crown.
 - **The inner and lower crown is still see-through, plainly.** The space between the boughs is empty, where S1 hangs dark curtains, and the bare base close-ups still show bare inner bough wood. Sourced needle retention and spur sprays fill each bough but not the space between boughs. That fits the missing mechanism: draperies (M10), the waves of new branchlets released along old branches.
 - **Young trees:** they look as in round 5 but fuller in the 20- and 40-year sprays. 10 years is still a sparse sapling.
+
+## Gate, round 6 (2026-10-04)
+
+The host found round 6 clearly better than round 5, with sprays that read like S3. Astra failed all three samples, mostly NO (`ASTRA-VERDICT-R6-{1,2,3}.md`). Two faults:
+
+1. **Branchlet habit:** "foliage spreads into thin horizontal shelves instead of hanging beneath the boughs in substantial comb-like curtains" (R6-3). The lower boughs read as "flat fans rather than descending with upturned tips".
+2. **Staging:** the tree's ground shadow, the dark diagonal left of every tree, read as "a conspicuous upward lower limb" and a "lower-left bulge". The photographs have no such shadow.
+
+## Round 7 (worker)
+
+### Staging (`crates/telperion-render/examples/space/still.rs`)
+- **The change:** the stills runner now sets the sun to azimuth 115°, elevation 60° for every shot. The renderer's default was 135° and 30°.
+- **Why 115°:** the hero camera looks from azimuth 115°, so the sun now stands behind the camera and high. The shadow falls behind the tree, away from the camera, and short.
+- **Scope:** this applies to every species' stills, the beech's included; the beech has not been re-rendered under it.
+- **Side effect:** the ground and the sunlit sides read brighter, so the colours, matched by render under the old sun, are not re-matched.
+
+### Branchlet habit (`spruce.rs`)
+
+| Part | Round 6 | Round 7 |
+|---|---|---|
+| Branchlets (first ten years) | elevation −0.7, tropism 1.5, sag 2e-4 | elevation −1.0, tropism 2.0, sag 5e-4. They keep their flat spray, since the bough tips are right |
+| Spurs (a branchlet's later decades, the curtain) | as branchlets, pairs in one plane | divergence 2.4, so each year's pair of shoots turns by the golden angle and the shoots stand all round, not in one plane; elevation −1.35, tropism 3.0, so they hang near straight down |
+| Shoots | roll 0 | roll 1.2, so siblings turn about their bearer |
+| Main branches | sag 5e-5 | sag 7e-5 |
+
+**How plane and roll act:**
+- A lateral's side is its bearer's side turned by the bearer's `plane`.
+- Its azimuth about the bearer is the bearer's divergence times the node's rank, plus its slot's share of the whorl, plus its own `roll`, drawn either way by its lineage.
+- So the branchlets' 0 plane kept every pair of shoots in one plane. The spur's golden divergence and the shoots' roll take the spray out of it.
+
+**Sheets** (`raw/round7/`, on disk; I viewed every still):
+
+| Sheet | What it holds |
+|---|---|
+| `five-seeds.png` | The references, round 6's seed 1 and its spray, then the 80-year trees in leaf, as in-leaf sprays, and bare |
+| `young.png` | 10, 20 and 40 years at seeds 1 and 7 |
+| `close-ups.png` | Trunk bases, bare limbs, and the young trees' bases and sprays |
+
+**Measures** (`run.log`) at 80 years: grown in 5.9 to 7.1 s and dressed in about 15.5 s. Height 21.9 to 22.2 m, width 14.3 to 17.3 m (w/h 0.65 to 0.79), 18.3M to 19.8M needles.
+
+### Reading per seed (80 years)
+
+| Seed | Staging | Branchlet habit (spray close-up and whole tree) |
+|---|---|---|
+| 1 | **Fixed.** No shadow beside the tree; the ground is clear to its left | Boughs carry darker hanging masses below their flat tips. From the whole-tree view the crown reads as a continuous cone with darker underlayers; the lower third is less see-through than round 6 but still shows light between boughs |
+| 7 | **Fixed** | Curtains under the middle boughs read as dark hanging masses, the closest to S3 yet; flat shelves only at the tips |
+| 2 | **Fixed** | Heavy lower boughs with masses beneath; the lower crown is fuller |
+| 3 | **Fixed** | As seed 7 |
+| 4 | **Fixed** | Narrower; the masses are fewer and the lower crown is the most see-through of the five |
+
+**Overall:**
+- **Staging is fixed at every seed.** Round 6's lower-left "bulge" and "upward limb" were the shadow, and they are gone.
+- **Branchlet habit is better but not fully S1.**
+  - The old branchlets now hang as masses all round, and the tips stay flat sprays, as asked.
+  - At whole-tree distance the boughs still read mostly as layered shelves with a darker underside, not as S1's deep hanging curtains.
+  - The trunk-base close-ups show the lowest boughs swept down steeply to the ground and bare inside: a skirt of rods, the draperies gap.
+- **Young trees:** the 40-year sprays are still flat shelves, as in round 6.

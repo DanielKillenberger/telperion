@@ -138,7 +138,7 @@ pub fn spruce() -> Species {
             ripening: 10.0,
             dominance: 0.25,
             roll: 0.5,
-            sag: 5e-5,
+            sag: 7e-5,
         },
         ..state(
             1_000,
@@ -176,8 +176,8 @@ pub fn spruce() -> Species {
         next: Some(SPUR),
         shedding: Some(1),
         form: Form {
-            tropism: 1.5,
-            elevation: -0.7,
+            tropism: 2.0,
+            elevation: -1.0,
             wander: 0.6,
             plane: 0.0,
             pipe: 0.0005,
@@ -185,7 +185,7 @@ pub fn spruce() -> Species {
             ripening: 0.0,
             dominance: 0.0,
             roll: 0.2,
-            sag: 2e-4,
+            sag: 5e-4,
         },
         ..state(
             10,
@@ -201,9 +201,16 @@ pub fn spruce() -> Species {
         viability: 0.99,
         next: None,
         internode: 0.006,
-        // Each year a pair of shoots in the spur's own plane, so an old
-        // branchlet hangs as a needled spray, not a strand.
+        // Each year a pair of shoots, the pairs turning by the golden angle,
+        // so an old branchlet hangs as a needled mass all round, not a
+        // flat shelf; the young branchlet keeps its flat spray.
         zones: vec![zone(1, 1, 2, &[(SHOOT, 0.9)])],
+        divergence: 2.4,
+        form: Form {
+            tropism: 3.0,
+            elevation: -1.35,
+            ..branchlet.form
+        },
         ..branchlet.clone()
     };
     // Third-order shoots: short, unbranched, two or three a node, hanging
@@ -220,6 +227,7 @@ pub fn spruce() -> Species {
             elevation: -0.5,
             wander: 1.0,
             pipe: 0.0004,
+            roll: 1.2,
             ..Form::default()
         },
         ..state(2, None, vec![zone(2, 2, 1, &[])])
