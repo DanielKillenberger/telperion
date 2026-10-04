@@ -80,6 +80,7 @@ pub fn spruce() -> Species {
         ripening: 0.0,
         dominance: 0.0,
         roll: 0.0,
+        sag: 0.0,
     };
     // The seedling (M4): short units, its laterals spread along them
     // (rhythm low) before the whorls establish.
@@ -121,6 +122,7 @@ pub fn spruce() -> Species {
             ripening: 10.0,
             dominance: 0.0,
             roll: 0.3,
+            sag: 0.0,
         },
         ..state(
             1_000,
@@ -150,6 +152,7 @@ pub fn spruce() -> Species {
             ripening: 0.0,
             dominance: 0.0,
             roll: 0.2,
+            sag: 0.0,
         },
         ..state(
             25,

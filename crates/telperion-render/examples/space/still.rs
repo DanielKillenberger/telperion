@@ -14,14 +14,17 @@ const BUDGET: u32 = 20_000_000;
 const SIZE: (u32, u32) = (960, 720);
 
 /// Grows `species` at every age and seed the arguments name
-/// (`<out dir> <age>... [--seeds 1,7]`), dresses it in the `preset`'s rows
-/// overlaid by `rows`, and writes `<name>-<age>-<seed>-<view>.png`.
+/// (`<out dir> <age>... [--seeds 1,7] [--sag <pa>:<value>,...]`), dresses
+/// it in the `preset`'s rows overlaid by `rows`, and writes
+/// `<name>-<age>-<seed>-<view>.png`. With `--sag`, a walk of that PA's
+/// `form.sag`: one tree per value, named `<name>-<age>-<seed>-sag<value>`.
 pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let (out, rest) = args.split_first().ok_or(format!(
-        "usage: space_{name} <out dir> <age>... [--seeds 1,7]"
+        "usage: space_{name} <out dir> <age>... [--seeds 1,7] [--sag <pa>:<value>,...]"
     ))?;
     let (mut ages, mut seeds) = (Vec::new(), vec![1u64, 7]);
+    let mut sag: Option<(usize, Vec<f64>)> = None;
     let mut words = rest.iter();
     while let Some(word) = words.next() {
         if word == "--seeds" {
@@ -30,6 +33,15 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
                 .split(',')
                 .map(|s| s.parse().map_err(|e| format!("{e}")))
                 .collect::<Result<_, _>>()?;
+        } else if word == "--sag" {
+            let walk = words.next().ok_or("--sag needs <pa>:<values>")?;
+            let (pa, values) = walk.split_once(':').ok_or("--sag needs <pa>:<values>")?;
+            let pa = pa.parse().map_err(|e| format!("--sag pa: {e}"))?;
+            let values = values
+                .split(',')
+                .map(|v| v.parse().map_err(|e| format!("--sag {v}: {e}")))
+                .collect::<Result<_, String>>()?;
+            sag = Some((pa, values));
         } else {
             ages.push(
                 word.parse::<u32>()
@@ -44,54 +56,67 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
     let family = params::overlay(&preset, &rows).map_err(|e| format!("{e:?}"))?;
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    let species = species();
-    for &age in &ages {
-        for &seed in &seeds {
-            let started = Instant::now();
-            let structure = grow(
-                &species,
-                Request {
-                    age,
-                    seed,
-                    budget: BUDGET,
-                },
-            )
-            .map_err(|e| format!("age {age} seed {seed}: {e:?}"))?;
-            let grown = started.elapsed().as_secs_f64() * 1e3;
-            let pipeline_tree = tree::convert(&structure);
-            let nodes = pipeline_tree.nodes.len();
-            let (fine, wood) = wood_km(&pipeline_tree);
-            let bounds = bounds(&pipeline_tree);
-            let dressed = Instant::now();
-            let mesh = executor::expand(pipeline_tree, &family)
-                .and_then(|x| x.mesh())
-                .map_err(|e| e.to_string())?;
-            let dress = dressed.elapsed().as_secs_f64() * 1e3;
-            let aspect = f64::from(SIZE.0) / f64::from(SIZE.1);
-            let camera = hero_pose(bounds, aspect, GROUND_REACH);
-            let (base, limb) = close_ups(&bounds, &camera);
-            let shots = [
-                (View::Bare, "bare", &camera),
-                (View::Whole, "whole", &camera),
-                (View::Bare, "base", &base),
-                (View::Bare, "limb", &limb),
-            ];
-            for (view, shot, camera) in shots {
-                renderer
-                    .submit_at(&mesh, Level::Chosen)
+    let base = species();
+    let variants: Vec<(String, Species)> = match sag {
+        None => vec![(String::new(), base)],
+        Some((pa, values)) => values
+            .into_iter()
+            .map(|v| {
+                let mut walked = base.clone();
+                walked.states[pa].form.sag = v;
+                (format!("-sag{v}"), walked)
+            })
+            .collect(),
+    };
+    for (variant, species) in &variants {
+        for &age in &ages {
+            for &seed in &seeds {
+                let started = Instant::now();
+                let structure = grow(
+                    species,
+                    Request {
+                        age,
+                        seed,
+                        budget: BUDGET,
+                    },
+                )
+                .map_err(|e| format!("age {age} seed {seed}: {e:?}"))?;
+                let grown = started.elapsed().as_secs_f64() * 1e3;
+                let pipeline_tree = tree::convert(&structure);
+                let nodes = pipeline_tree.nodes.len();
+                let (fine, wood) = wood_km(&pipeline_tree);
+                let bounds = bounds(&pipeline_tree);
+                let dressed = Instant::now();
+                let mesh = executor::expand(pipeline_tree, &family)
+                    .and_then(|x| x.mesh())
                     .map_err(|e| e.to_string())?;
-                renderer.set_material(family.material);
-                renderer.set_view(view);
-                let still =
-                    render(&mut renderer, camera, SIZE.0, SIZE.1).map_err(|e| e.to_string())?;
-                let path = format!("{out}/{name}-{age}-{seed}-{shot}.png");
-                write_png(std::path::Path::new(&path), &still).map_err(|e| e.to_string())?;
-            }
-            let (b, l) = (bounds.max - bounds.min, mesh.foliage.instances.len());
-            println!(
-                "age {age} seed {seed}: grown in {grown:.1} ms, dressed in {dress:.0} ms; {nodes} nodes, {l} leaves; {:.1} m tall, {:.1} x {:.1} m; wood {wood:.2} km, fine {fine:.2} km",
+                let dress = dressed.elapsed().as_secs_f64() * 1e3;
+                let aspect = f64::from(SIZE.0) / f64::from(SIZE.1);
+                let camera = hero_pose(bounds, aspect, GROUND_REACH);
+                let (base, limb) = close_ups(&bounds, &camera);
+                let shots = [
+                    (View::Bare, "bare", &camera),
+                    (View::Whole, "whole", &camera),
+                    (View::Bare, "base", &base),
+                    (View::Bare, "limb", &limb),
+                ];
+                for (view, shot, camera) in shots {
+                    renderer
+                        .submit_at(&mesh, Level::Chosen)
+                        .map_err(|e| e.to_string())?;
+                    renderer.set_material(family.material);
+                    renderer.set_view(view);
+                    let still =
+                        render(&mut renderer, camera, SIZE.0, SIZE.1).map_err(|e| e.to_string())?;
+                    let path = format!("{out}/{name}-{age}-{seed}{variant}-{shot}.png");
+                    write_png(std::path::Path::new(&path), &still).map_err(|e| e.to_string())?;
+                }
+                let (b, l) = (bounds.max - bounds.min, mesh.foliage.instances.len());
+                println!(
+                "age {age} seed {seed}{variant}: grown in {grown:.1} ms, dressed in {dress:.0} ms; {nodes} nodes, {l} leaves; {:.1} m tall, {:.1} x {:.1} m; wood {wood:.2} km, fine {fine:.2} km",
                 b.y, b.x, b.z
             );
+            }
         }
     }
     Ok(())
