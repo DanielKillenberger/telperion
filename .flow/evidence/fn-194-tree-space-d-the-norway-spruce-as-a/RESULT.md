@@ -254,3 +254,60 @@ Younger ages are as in round 2.
 - At 80 years, seed 4 has no wood thicker than 1 cm below 4 m steeper than heading z −0.85.
 - No main-branch wood thicker than 1.5 cm comes within 0.6 m of the trunk's axis below 3 m, except the trunk itself.
 - It is most likely a low limb running toward the close-up camera, which stands 6 m from the trunk. Seen nearly end-on from below, its shaded underside reads as a dark band over the trunk. It is the same in round 3 and round 4. I did not chase it further.
+
+## Gate, round 4 (2026-10-04)
+
+**The host is confident in the frame.** Astra failed all three samples (`ASTRA-VERDICT-R4-{1,2,3}.md`); every seed was BORDERLINE or NO. The common fault:
+
+> "the missing curtain of densely needled, pendulous branchlets: across all five seeds, foliage exposes the branch scaffolding instead of forming the hanging masses visible in the references" (R4-1); "the foliated crowns remain too close to their bare-wood silhouettes" (R4-2); "insufficient hanging, needle-bearing branchlet mass" (R4-3).
+
+Their second complaint: branches that look upswept and stiff, "stiff, ascending fans", "rigid, upward-pointing branch sprays".
+
+## Round 5 (worker)
+
+**Host decision for round 5:** hanging curtains and less upswept boughs, by values. fn-201 is merged into this branch, so the renderer's dispatch limit is gone and needle spacing is back to 2.5 mm. Up to about 10 s per 80-year tree is accepted.
+
+**Values** (`spruce.rs`):
+
+| Part | Round 4 | Round 5 |
+|---|---|---|
+| Main branches, older wood | elevation 0.55, tropism 0.6, insertion 1.45 | elevation 0.15, tropism 0.4, insertion 1.5 |
+| A branch's first six years (the young upper crown) | elevation 0.55 | elevation 0.35 |
+| Branchlets | sag 0; elevation −0.85, tropism 3.0 | sag 2e-4; elevation −0.7, tropism 1.5 |
+| Shoots per node on branchlets | up to 2 | 2 at the medial nodes, 3 at the top (p 0.55, 0.8) |
+| Shoots per node on spurs | 2 | 3 (p 0.35) |
+| Shoots | insertion 0.8, elevation −0.6, tropism 0.5, lifespan 4 | insertion 1.1, elevation −0.5, tropism 1.0, lifespan 3 |
+| Spurs | 45 years | 40 years |
+
+- **Why the lower lifespans:** cost. With lifespan 4 and 45-year spurs, seed 7 grew past the 20M phytomer budget.
+- **Needle spacing:** I also tried 1.5 mm at seed 1: 23.6M needles and 18.7 s of dressing, only slightly denser from the whole-tree view. The sheet uses 2.5 mm.
+
+**Sheets** (`raw/round5/`, on disk; I viewed every still):
+
+| Sheet | What it holds |
+|---|---|
+| `five-seeds.png` | The references, round 4's seed 1 and its limb close-up, above the five 80-year trees in leaf and bare |
+| `young.png` | 10, 20 and 40 years at seeds 1 and 7 |
+| `close-ups.png` | Trunk bases and limbs, every age and seed |
+
+Measures are in `run.log`:
+
+| Age | Height | Width | Grown in | Dressed in | Needles |
+|--:|--:|--:|--:|--:|--:|
+| 80 | 21.9 to 22.2 m | 13.8 to 16.3 m | 7.1 to 8.9 s | about 12 s | 14.0M to 15.1M (round 4: 12.3M to 13.2M at 3.5 mm) |
+
+### Reading against Astra's fault, per seed (80 years)
+
+| Seed | Upswept, stiff boughs | Hanging needled curtains; whole tree vs its bare silhouette |
+|---|---|---|
+| 1 | **Fixed.** Boughs leave level and the lower ones arch to the ground; tips turn up slightly | Fringes hang under each bough in the limb close-up. From the whole-tree view the lower crown is still see-through: the in-leaf tree tracks its bare silhouette |
+| 7 | **Fixed.** Level boughs, a lower skirt, no ascending fans | Fuller middle crown than round 4, but the lower crown is still lines over a light underlayer |
+| 2 | **Fixed** | The densest of the five, a fuller lower-left mass; still not S1's dark curtain |
+| 3 | **Fixed** | As seed 2, slightly sparser |
+| 4 | **Fixed.** Narrow, with level boughs | See-through lower crown; the base close-up no longer shows round 4's dark band |
+
+**Overall:**
+- **Astra's second complaint is answered** at every seed: no upswept fans remain, and the upper crown stays level to ascending as in S1.
+- **The main fault is not answered.** The needled trees are a little fuller than round 4, but still close to their bare-wood silhouettes. In the limb close-ups, the curtains are fringes of thin hanging shoots, not dense sprays with width.
+- **Values reach their limits here:** cost (more shoots overran the phytomer budget), and needle density (1.5 mm needles barely changed the look). What remains looks like draperies (M10, the recorded gap) and possibly needle size and placement in the dressing.
+- **Young trees:** they keep round 4's look with level tiers. 10 years reads as a sapling; 20 and 40 years read as young spruces.
