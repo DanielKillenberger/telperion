@@ -231,12 +231,13 @@ fn wood_lands_on_the_ground_without_a_corner() {
 /// tree by degree: landing is a slope, not a jump.
 #[test]
 fn landing_on_the_ground_walks_by_degree() {
-    // Limbs bear twigs, not limbs: a limb inserted square off a level one
-    // can stand straight down, where tropism's choice of side is a jump
-    // of its own, before any sag (geometry.rs, `toward_elevation`).
+    // Limbs bear limbs too, so some stand near straight down, where
+    // tropism weakens with their lean. A little wander keeps any limb
+    // from standing exactly on the vertical, an unstable balance from
+    // which an axis escapes at a rate no walk can resolve.
     fn landing(sag: f64) -> Species {
         let mut s = level_limbs(sag);
-        s.states[1].zones[0].lateral[1] = 0.0;
+        s.states[1].form.wander = 0.2;
         s
     }
     let mut setting = walk::setting(

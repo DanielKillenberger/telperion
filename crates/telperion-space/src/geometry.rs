@@ -19,6 +19,9 @@ use std::f64::consts::TAU;
 /// The height, in the wood's own radii, below which it eases onto the
 /// ground.
 const CONTACT: f64 = 4.0;
+/// The cone about straight down, in radians, within which tropism weakens
+/// with an axis's lean.
+const DOWNWARD: f64 = 0.05;
 /// How far short of straight down sag leaves an axis, in radians.
 const HANG: f64 = 0.15;
 /// The internodes the landing turn is spread over: at most a sixth of the
@@ -272,12 +275,25 @@ fn dominance(dominance: f64, lineage: u64) -> f64 {
 const WANDER: u64 = 1;
 
 /// `direction` turned in its vertical plane by `share` of its gap to
-/// `elevation`. A vertical direction turns towards its side.
+/// `elevation`. A vertical direction turns towards its side. Within
+/// `DOWNWARD` of straight down the turn weakens with the direction's lean,
+/// to nothing at straight down, as gravitropism's sine law has it: no
+/// side can be chosen continuously for every lean in a cone (a lean's
+/// direction cannot be blended into one carried side without a point
+/// where they cancel), so a direction swept through straight down turns
+/// by degree only if the turn vanishes there.
 fn toward_elevation(direction: Vec3, side: Vec3, elevation: f64, share: f64) -> Vec3 {
     if share <= 0.0 {
         return direction;
     }
     let level = |v: Vec3| Vec3::new(v.x, v.y, 0.0).unit();
+    let lean = Vec3::new(direction.x, direction.y, 0.0).length();
+    let cone = DOWNWARD.sin();
+    let share = if direction.z < 0.0 && lean < cone {
+        share * lean / cone
+    } else {
+        share
+    };
     let Some(out) = level(direction).or_else(|| level(side)) else {
         return direction;
     };
@@ -454,3 +470,6 @@ fn turned(
     let side = side * plane.cos() + heading.cross(side) * plane.sin();
     (heading, side)
 }
+
+#[cfg(test)]
+mod tests;
