@@ -813,3 +813,7 @@ Host: five rounded, continuous domes; confident. Astra, three independent sample
 **Tests:** all crate tests are green (`raw/space-tests-r19.log`), including the oracle, every walk and the beech within its budget. Clippy is clean.
 
 **Costs at 80 years:** unchanged from round 18: 1.11M to 1.32M nodes, growth 2.0 to 2.9 s.
+
+## Gate, round 19, and host decision 18 (2026-10-04)
+
+Host: fine tips now, limbs heavy inside; sent to Astra. Three samples: FAIL in all, the same fault: "the trees repeatedly compress their main limbs into an abrupt, shallow fan above the clear bole, instead of developing substantial rising and spreading limbs throughout a deep, rounded crown" (`ASTRA-VERDICT-R19-{1,2,3}.md`). Cause: the trunk forks at about 4.5 m (0.23 H) and every limb radiates from that point. Millet (LITERATURE.md, "Troll's model in *Fagus*") and Rostock show the trunk continuing through the crown, bearing limbs at many heights, and forking late near the top at maturity (about 20 m), where height growth stops; the clear bole is where the lowest limbs start, not where the trunk ends. Host decision 18: the trunk persists through the crown as the leader, bearing limbs at heights distributed from the clear bole up, and forks late, near the top, at maturity.
