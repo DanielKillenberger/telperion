@@ -88,7 +88,7 @@ pub(crate) fn place(
         };
         // Secondary erection over the axis's years; never a continuation,
         // whose base is its parent's tip, and a relay as far as it is one.
-        let years = f64::from(age.saturating_sub(axis.birth));
+        let years = f64::from(age.saturating_sub(axis.birth)) - axis.sleep;
         let erected = match axis.origin {
             Origin::Continuation { .. } => 0.0,
             Origin::Relay { .. } => axis.blend * (1.0 - (-state.erection * years).exp()),

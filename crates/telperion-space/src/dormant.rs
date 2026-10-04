@@ -155,7 +155,9 @@ impl First {
         let state = &species.states[pa];
         let survive = shared(zone, s, state.viability);
         let persist = if units_left(state.lifespan, spent) > 1 {
-            shared(zone, s, state.viability * (1.0 - state.abortion_at(1)))
+            // Its hazard counts the units it slept.
+            let abortion = state.abortion_at(1 + spent as usize);
+            shared(zone, s, state.viability * (1.0 - abortion))
         } else {
             survive
         };
@@ -241,8 +243,12 @@ impl Woken {
 /// unit growing in cycle 1, as the closed form's do.
 pub(crate) struct Living<'a> {
     species: &'a Species,
-    memo: HashMap<(usize, u32, usize, usize, Option<u64>), f64>,
+    memo: HashMap<Asked, f64>,
 }
+
+/// A chance `Living` was asked: the bud (PA, units carried, units slept),
+/// the unit, the cycle, and the abortion after the unit when it is given.
+type Asked = (usize, u32, u32, usize, usize, Option<u64>);
 
 impl<'a> Living<'a> {
     pub fn new(species: &'a Species) -> Self {
@@ -252,28 +258,35 @@ impl<'a> Living<'a> {
         }
     }
 
-    /// The chance for a bud of PA `k` carrying `spent` units, given its
-    /// apex grew its unit `i` and then aborts with chance `abortion`, that
-    /// its axis is carried on at the start of cycle `y` (after `i`).
-    pub fn after(&mut self, k: usize, spent: u32, i: usize, y: usize, abortion: f64) -> f64 {
+    /// The chance for a bud of PA `k` carrying `spent` units, `aged` of
+    /// them asleep, given its apex grew its unit `i` and then aborts with
+    /// chance `abortion`, that its axis is carried on at the start of
+    /// cycle `y` (after `i`).
+    pub fn after(
+        &mut self,
+        (k, spent, aged): (usize, u32, u32),
+        i: usize,
+        y: usize,
+        abortion: f64,
+    ) -> f64 {
         let state = &self.species.states[k];
         let spent = spent_key(state.lifespan, spent);
-        let key = (k, spent, i, y, Some(abortion.to_bits()));
+        let key = (k, spent, aged, i, y, Some(abortion.to_bits()));
         if let Some(&p) = self.memo.get(&key) {
             return p;
         }
         let n = units_left(state.lifespan, spent);
         let relay = state.relay;
         let p = if i < n {
-            let mut p = (1.0 - abortion) * self.from(k, spent, i + 1, y);
+            let mut p = (1.0 - abortion) * self.from((k, spent, aged), i + 1, y);
             if abortion * relay > 0.0 {
-                p += abortion * relay * self.from(k, spent + i as u32, 1, y - i);
+                p += abortion * relay * self.from((k, spent + i as u32, 0), 1, y - i);
             }
             p
         } else {
             match state.next {
-                Some(next) => self.from(next, 0, 1, y - n),
-                None if relay > 0.0 => relay * self.from(k, spent + n as u32, 1, y - n),
+                Some(next) => self.from((next, 0, 0), 1, y - n),
+                None if relay > 0.0 => relay * self.from((k, spent + n as u32, 0), 1, y - n),
                 None => 0.0,
             }
         };
@@ -281,28 +294,30 @@ impl<'a> Living<'a> {
         p
     }
 
-    /// The same chance given its apex is about to grow its unit `u`.
-    fn from(&mut self, k: usize, spent: u32, u: usize, y: usize) -> f64 {
+    /// The same chance given its apex is about to grow its unit `u`. A
+    /// woken bud's abortion hazard counts the units it slept (`aged`); a
+    /// relay's restarts.
+    fn from(&mut self, (k, spent, aged): (usize, u32, u32), u: usize, y: usize) -> f64 {
         if y == u {
             return 1.0;
         }
         let state = &self.species.states[k];
         let spent = spent_key(state.lifespan, spent);
-        if let Some(&p) = self.memo.get(&(k, spent, u, y, None)) {
+        if let Some(&p) = self.memo.get(&(k, spent, aged, u, y, None)) {
             return p;
         }
         let (viability, relay) = (state.viability, state.relay);
         let abortion = if u < units_left(state.lifespan, spent) {
-            state.abortion_at(u)
+            state.abortion_at(u + aged as usize)
         } else {
             0.0
         };
-        let mut p = viability * self.after(k, spent, u, y, abortion);
+        let mut p = viability * self.after((k, spent, aged), u, y, abortion);
         // A unit that failed is spent; its relay grows from the next cycle.
         if (1.0 - viability) * relay > 0.0 {
-            p += (1.0 - viability) * relay * self.from(k, spent + u as u32, 1, y - u);
+            p += (1.0 - viability) * relay * self.from((k, spent + u as u32, 0), 1, y - u);
         }
-        self.memo.insert((k, spent, u, y, None), p);
+        self.memo.insert((k, spent, aged, u, y, None), p);
         p
     }
 }

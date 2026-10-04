@@ -72,6 +72,8 @@ fn events(
 ) -> Vec<Event> {
     let state = &species.states[k];
     let n = units_left(state.lifespan, spent);
+    // A woken bud's abortion hazard counts the units it slept.
+    let aged = if first.is_some() { spent } else { 0 };
     let mut out = Vec::new();
     let relay = |out: &mut Vec<Event>, at: usize, weight: f64, carried: usize| {
         if weight * state.relay > 0.0 {
@@ -98,7 +100,7 @@ fn events(
         let abortion = match partial {
             Some(f) if i < n && f.survive > 0.0 => 1.0 - f.persist / f.survive,
             Some(_) => 0.0,
-            None if i < n => state.abortion_at(i),
+            None if i < n => state.abortion_at(i + aged as usize),
             None => 0.0,
         };
         for (zone, lateral) in state.zones.iter().zip(laterals) {
@@ -119,7 +121,7 @@ fn events(
                     });
                 }
             }
-            let bearer = (k, spent, i, abortion);
+            let bearer = ((k, spent, aged), i, abortion);
             sleeping(species, living, zone, nodes, bearer, m, &mut out);
         }
         if i < n {
@@ -158,7 +160,7 @@ fn sleeping(
     living: &mut Living,
     zone: &Zone,
     nodes: f64,
-    (k, spent, i, abortion): (usize, u32, usize, f64),
+    (bearer, i, abortion): ((usize, u32, u32), usize, f64),
     m: usize,
     out: &mut Vec<Event>,
 ) {
@@ -173,7 +175,7 @@ fn sleeping(
                 continue;
             };
             // Its bearer carried on through the cycle it wakes in.
-            let carried = living.after(k, spent, i, i + 2 + s as usize, abortion);
+            let carried = living.after(bearer, i, i + 2 + s as usize, abortion);
             out.push(Event::Bud {
                 at: i + s as usize,
                 pa,

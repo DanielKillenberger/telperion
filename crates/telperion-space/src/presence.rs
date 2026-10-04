@@ -114,6 +114,9 @@ pub(crate) struct Draws {
     pub alive: bool,
     /// The apex stopped by failing to survive a growth unit.
     pub failed: bool,
+    /// The units a woken bud slept in its stage, which its abortion hazard
+    /// counts.
+    pub aged: u32,
     /// The share of its first cycle a bud that woke still slept, which
     /// its first growth unit lacks.
     pub sleep: f64,
@@ -144,6 +147,7 @@ pub(crate) fn assign(axes: &mut [Axis], draws: &[Draws]) {
         }
         end[i] = running;
         axis.units = presences;
+        axis.sleep = draws[i].sleep;
         axis.rank = rank;
         axis.alive = if draws[i].alive { running } else { 0.0 };
         let made = draws[i].birth[0] * draws[i].birth[1];

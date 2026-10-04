@@ -397,6 +397,31 @@ pub fn release_settings() -> Vec<Setting> {
         asleep("states[0].zones[1].delay", 0.0, 8.0, false, |s, v| {
             s.states[0].zones[1].delay = v
         }),
+        // The woken axes' rising abortion hazard and secondary erection
+        // count the time they slept.
+        asleep(
+            "states[0].zones[1].delay, limbs rise and erect",
+            0.0,
+            8.0,
+            false,
+            |s, v| {
+                s.states[0].zones[1].delay = v;
+                s.states[1].abortion_rise = 1.0;
+                s.states[1].erection = 0.5;
+            },
+        ),
+        asleep(
+            "states[1].zones[0].rate, twigs rise and erect",
+            0.05,
+            2.0,
+            false,
+            |s, v| {
+                s.states[1].zones[0].rate = v;
+                s.states[2].abortion = 0.2;
+                s.states[2].abortion_rise = 1.0;
+                s.states[2].erection = 0.5;
+            },
+        ),
     ]
 }
 

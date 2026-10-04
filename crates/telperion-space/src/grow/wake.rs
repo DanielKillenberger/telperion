@@ -56,7 +56,8 @@ impl Grower<'_> {
                 self.successor[at] = Some(at + 1);
             }
             self.sprout(key, pa, cycle - 1, origin, made);
-            self.draws.last_mut().unwrap().sleep = sleeper.sleep;
+            let draws = self.draws.last_mut().unwrap();
+            (draws.sleep, draws.aged) = (sleeper.sleep, spent);
             *self.units.last_mut().unwrap() = spent;
             let apex = self.next.pop().expect("sprouted");
             self.advance(

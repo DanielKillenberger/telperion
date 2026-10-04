@@ -122,6 +122,9 @@ pub struct Axis {
     pub(crate) alive: f64,
     /// Its nodes counted by their presence: the phyllotactic rank of the next.
     pub(crate) rank: f64,
+    /// The share of its first cycle a bud that woke still slept: its age
+    /// is that much less than its birth gives.
+    pub(crate) sleep: f64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

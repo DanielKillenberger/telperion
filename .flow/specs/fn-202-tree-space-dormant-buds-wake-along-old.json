@@ -8,12 +8,75 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-202-tree-space-dormant-buds-wake-along-old",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-202-tree-space-dormant-buds-wake-along-old.1": 1
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "16db8aadd5c496e02a86bec3dc3a7a847206866b391439c236dac5695ebd4b29",
+      "backend": "codex",
+      "base_sha": "01214ad5df662dcb0ec4a1747b8f348ff38a0665",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a0b5e45087795e88676f67bb075aed25",
+            "classification": "introduced",
+            "findingId": "finding-a0b5e45087795e88676f67bb075aed25",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-8219ed1f60ef341dde020657b1d23ecf",
+            "classification": "introduced",
+            "findingId": "finding-8219ed1f60ef341dde020657b1d23ecf",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b684315e5a27b75689ab3e3259a01e42720b1fb8",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 260347,
+      "output_sha256": "53cc59c979f5a7362b652afd573d5a74e7ab41ad9eaed5880e5c081dcf3d36f1",
+      "reservation_id": "369b3c658d8c4099a2f7eb8b5feaf286",
+      "round_consumed": true,
+      "scope": "impl:fn-202-tree-space-dormant-buds-wake-along-old.1",
+      "superseded_by": null,
+      "task": "fn-202-tree-space-dormant-buds-wake-along-old.1",
+      "timestamp": "2026-10-04T21:00:32.079459Z",
+      "tool_calls": 17,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-202-tree-space-dormant-buds-wake-along-old.1": 0
+  },
   "spec_path": ".flow/specs/fn-202-tree-space-dormant-buds-wake-along-old.md",
   "status": "open",
   "title": "Tree space: dormant buds wake along old branches",
@@ -28,5 +91,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T20:29:31.666864Z"
+  "updated_at": "2026-10-04T21:00:32.086860Z"
 }

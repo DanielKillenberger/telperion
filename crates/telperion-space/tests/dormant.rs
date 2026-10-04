@@ -114,6 +114,8 @@ fn sleeping_buds_grow_the_expected_counts() {
     species.states[1].abortion = 0.3;
     species.states[1].relay = 0.6;
     species.states[2].abortion = 0.2;
+    // A woken twig's rising hazard counts the years it slept.
+    species.states[2].abortion_rise = 1.0;
     species.states[2].relay = 0.5;
     species.states[2].shedding = None;
     // Woken twigs along the twigs too, so a bearer that relays carries them.

@@ -143,6 +143,7 @@ fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
         units: Vec::new(),
         alive: 0.0,
         rank: 0.0,
+        sleep: 0.0,
     }
 }
 
@@ -219,7 +220,8 @@ impl Grower<'_> {
         apex.units += 1;
         // An apex that has spent its PA's lifespan moves on; it does not
         // also abort.
-        let abortion = state.abortion_at(self.draws[apex.axis].units.len());
+        let draws = &self.draws[apex.axis];
+        let abortion = state.abortion_at(draws.units.len() + draws.aged as usize);
         let abortion = if share < 1.0 {
             1.0 - (1.0 - abortion).powf(share)
         } else {

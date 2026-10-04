@@ -120,3 +120,22 @@ Does the same treatment answer the relay at probability 1 crossing survival? In 
 - **Values for round 8:** delay 1 and rate 0.3 are a reasonable starting point.
 
 **The first strip** (`raw/r5/strip.png`, delay 3, rate 0.15, half-slot angular place) is kept for comparison. It showed upward tufts and short spurs.
+
+## Workspace gate
+
+`cargo test --profile ci --workspace --no-fail-fast` on `b684315e`: 1,034 passed, 0 failed, 21 ignored, in 5 min 42 s (`raw/workspace-gate.log`).
+
+## Codex review round 1 (base `01214ad5`): NEEDS_WORK, two P1 findings, both fixed
+
+1. **A woken axis's rising abortion hazard counted the units it grew since waking, not the units it slept.**
+   - Crossing a waking boundary changed the threshold for the same keyed unit.
+   - Fixed: the hazard counts the units slept in the stage (`Draws::aged`), in the engine, in `First` and in the closed form (`Living` carries it). A relay's hazard still restarts.
+2. **Secondary erection read a woken axis's integer birth, so it jumped a year at a waking boundary.**
+   - Fixed: the axis's age is less by the share of its first cycle it slept (`Axis::sleep`).
+
+**Tests.** Two release-law walks were added, with the woken limbs' or twigs' abortion rise 1 and erection 0.5.
+
+- Red first: with the two fixes reverted, the limbs walk fails the jump check (seed 1, delay 0.56, change 0.037 not shrinking).
+- Green with them: all six release-law walks pass, worst slopes 1.2 to 2.9.
+
+R4 now gives woken twigs a rising hazard and still passes. The beech stills are byte-identical (`raw/beech-rev1`).
