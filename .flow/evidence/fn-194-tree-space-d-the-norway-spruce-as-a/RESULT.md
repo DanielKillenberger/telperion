@@ -515,3 +515,7 @@ Host: shadow-free staging; conic spruces with dense tip sprays; confident in the
   - Growth takes about 10 s, within the 12 s accepted.
   - Denser curtains would need needle mass moved again, or more memory.
 - **Young trees:** much as in round 7; the sleeping buds barely show at 20 and 40 years.
+
+## Gate, round 8 (2026-10-04)
+
+Host: denser at every seed, 7 and 3 near-continuous cones; confident in the frame and much of the mass. Astra, three samples: FAIL, mostly BORDERLINE (as round 7): "flattened horizontal sprays dominate instead of sweeping lower boughs carrying long, hanging comb branchlets" (`ASTRA-VERDICT-R8-{1,2,3}.md`). Host decision: round 9 targets the bough curve, downward sweep from the trunk with tips recovering upward (named in rounds 6 to 8), by values on sag and tip tropism.
