@@ -38,3 +38,24 @@
 ## Open: `wood_lands_on_the_ground_without_a_corner` (see the report)
 
 The corner where heavy-sag wood meets the ground is 0.52 rad, against the test's 0.35 bound. It was 1.10 with the turned lever alone, and 0.66 before the chord look-ahead.
+
+## Host decision 4 (2026-10-05): a bounded bend where heavy wood meets the ground
+
+- **The decision.** Option (d): a branch hanging near vertical bends sharply where it meets the ground, as a heavy rope reaching a floor does. The light-sag case keeps the 0.35 rad bound. The heavy case (sag 5.0) is bounded at 0.6, from the 0.52 measured.
+- **Built.** `heavy_wood_meets_the_ground_with_a_bounded_bend`: 18 limbs land, sharpest 0.517 rad. It passes.
+- **Finding: light sag does not land gently either.** Under the large-deflection sag, every sag that brings the walk tree's limbs to the ground brings them steeply.
+
+  | Sag | New: limbs landing | New: sharpest | Old (fn-200): limbs landing | Old: sharpest |
+  |---|---|---|---|---|
+  | 6e-4 | 4 | 0.72 | 0 | — |
+  | 1e-3 | 4 | 0.43 | 4 | 0.18 |
+  | 2e-3 | 14 | 0.49 | 1 | 0.40 |
+  | 1e-2 | 19 | 0.56 | 0 | — |
+  | 5.0 | 18 | 0.52 | 6 | 0.13 |
+
+- **So the light-sag case cannot hold 0.35.** `wood_lands_on_the_ground_without_a_corner` is ignored with that reason, pending the host.
+
+**The spruce's base close-ups** (`raw/r4b/spruce-80-1-base.png`, `spruce-80-4-base.png`, viewed full size):
+
+- **On the ground:** no visible kinks. Boughs come down in smooth arcs and run out along the ground.
+- **At the trunk:** a few of the lowest boughs on seed 1 make a rounded knee just out from the trunk, where they drop. That is the drop under load, not a corner.
