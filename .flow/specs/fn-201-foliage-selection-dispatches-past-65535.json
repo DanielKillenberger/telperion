@@ -8,12 +8,69 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-201-foliage-selection-dispatches-past-65535",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-201-foliage-selection-dispatches-past-65535.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "d4ff6f1d73d3fdd1355dae6ca619c3f329e4253da51985ddb831dfd20a728eb6",
+      "backend": "codex",
+      "base_sha": "abd7909a5db5695ccd973c45ceb00f54a867c112",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f10d73dd5fee5573787735e8edf86275",
+            "classification": "introduced",
+            "findingId": "finding-f10d73dd5fee5573787735e8edf86275",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0c34e200b36225ef76152b91ea06d91c0d339d1c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 176403,
+      "output_sha256": "668a023324ad1581cd190b899e5c5b341b551a7f3aa05305e7e144d8a6ebb035",
+      "reservation_id": "49d31b74fd1d4794b3b1f07424bf6ba0",
+      "round_consumed": true,
+      "scope": "impl:fn-201-foliage-selection-dispatches-past-65535.1",
+      "superseded_by": null,
+      "task": "fn-201-foliage-selection-dispatches-past-65535.1",
+      "timestamp": "2026-10-04T18:02:55.354733Z",
+      "tool_calls": 22,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-201-foliage-selection-dispatches-past-65535.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-201-foliage-selection-dispatches-past-65535.1": 0
+  },
   "spec_path": ".flow/specs/fn-201-foliage-selection-dispatches-past-65535.md",
   "status": "open",
   "title": "Foliage selection dispatches past 65,535 workgroups",
@@ -28,5 +85,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T17:47:27.207684Z"
+  "updated_at": "2026-10-04T18:02:55.360676Z"
 }
