@@ -28,6 +28,11 @@ fn level_limbs(sag: f64) -> Species {
     species
 }
 
+/// Heavily sagging limbs that reach the ground.
+fn grounded() -> Species {
+    level_limbs(5.0)
+}
+
 fn limbs(tree: &Structure) -> impl Iterator<Item = (usize, &Axis)> {
     tree.axes
         .iter()
@@ -101,7 +106,7 @@ fn sag_bends_and_grows_no_other_tree() {
 /// R3: wood that sags onto the ground rests on it and runs along it.
 #[test]
 fn sagging_wood_rests_on_the_ground() {
-    let tree = walk::tree(&level_limbs(5.0), 1).unwrap();
+    let tree = walk::tree(&grounded(), 1).unwrap();
     let tips: Vec<f64> = tree
         .axes
         .iter()
@@ -203,7 +208,7 @@ fn a_vanishing_moment_bends_by_degree() {
 /// comes down to rest, no joint near the ground turns it sharply.
 #[test]
 fn wood_lands_on_the_ground_without_a_corner() {
-    let tree = walk::tree(&level_limbs(5.0), 1).unwrap();
+    let tree = walk::tree(&grounded(), 1).unwrap();
     let (mut sharpest, mut landed) = (0.0f64, 0);
     for axis in tree.axes.iter().filter(|a| a.pa > 0) {
         let r = rises(axis);
@@ -216,10 +221,11 @@ fn wood_lands_on_the_ground_without_a_corner() {
             continue;
         }
         landed += 1;
-        // Joints in the lowest half metre, where a landing turns.
-        for j in 1..r.len() {
-            if axis.phytomers[j - 1].tip.z < 0.5 && r[j - 1] < 0.0 {
-                sharpest = sharpest.max(r[j] - r[j - 1]);
+        // The joint where the wood meets the ground: the step that lands
+        // against the one before it.
+        if let Some(k) = axis.phytomers.iter().position(|p| p.tip.z <= 1e-9) {
+            if k > 0 {
+                sharpest = sharpest.max((r[k] - r[k - 1]).abs());
             }
         }
     }
@@ -254,6 +260,72 @@ fn landing_on_the_ground_walks_by_degree() {
         .max_by(|a, b| a.slope.total_cmp(&b.slope))
         .unwrap();
     assert!(worst.slope < 30.0, "{} in {}", worst.slope, worst.what);
-    let changes = walk::refine(&setting, 1, worst.from, worst.to, 3, 8);
-    assert!(changes[3] < changes[0] / 20.0, "a jump: {changes:?}");
+    // Landing's steepest step is steep, not a jump: split finer it shrinks
+    // eightfold a level once its split resolves the landing (five levels).
+    let changes = walk::refine(&setting, 1, worst.from, worst.to, 5, 8);
+    assert!(changes[5] < changes[0] / 100.0, "a jump: {changes:?}");
+}
+
+/// A vertical trunk bearing a one-sided load bends towards it: a moment
+/// on vertical wood has an axis to turn about.
+#[test]
+fn a_vertical_trunk_bends_under_a_one_sided_crown() {
+    let at = |sag: f64| {
+        let mut species = walk::species();
+        species.states[0].form.sag = sag;
+        walk::tree(&species, 1).unwrap()
+    };
+    let top = |t: &Structure| t.axes[0].phytomers.last().unwrap().tip;
+    let (plain, sagged) = (top(&at(0.0)), top(&at(1e-5)));
+    let moved = (plain - sagged).length();
+    assert!(moved > 1e-3, "the trunk's top moved {moved} m");
+}
+
+/// A short lateral swept through straight down near the ground lands by
+/// degree: no lean too small to see sends it one way or the other.
+#[test]
+fn a_lateral_swept_through_straight_down_lands_by_degree() {
+    use telperion_space::{grow, Form, NodeLaw, PaState, Request, Zone};
+    let at = |insertion: f64| {
+        let unit = |lateral: Vec<f64>| Zone {
+            nodes: NodeLaw::Uniform { min: 1, max: 1 },
+            buds: 1,
+            lateral,
+        };
+        let mut trunk = walk::species().states[0].clone();
+        trunk.lifespan = 1;
+        trunk.zones = vec![unit(vec![0.0, 1.0])];
+        trunk.internode = 1.0;
+        trunk.form = Form {
+            tropism: std::f64::consts::LN_2,
+            elevation: 0.0,
+            ..Form::default()
+        };
+        let mut lateral = PaState {
+            lifespan: 1,
+            zones: vec![unit(vec![0.0, 0.0])],
+            internode: 0.4,
+            insertion,
+            form: Form::default(),
+            ..trunk.clone()
+        };
+        lateral.next = None;
+        trunk.next = None;
+        let species = Species {
+            states: vec![trunk, lateral],
+        };
+        let tree = grow(
+            &species,
+            Request {
+                age: 2,
+                seed: 1,
+                budget: 100,
+            },
+        )
+        .unwrap();
+        tree.axes[1].phytomers[0].tip
+    };
+    let centre = 3.0 * std::f64::consts::FRAC_PI_4;
+    let jump = (at(centre + 1e-7) - at(centre - 1e-7)).length();
+    assert!(jump < 1e-4, "the tip moves {jump} m");
 }

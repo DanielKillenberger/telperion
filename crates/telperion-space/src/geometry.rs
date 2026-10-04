@@ -14,7 +14,7 @@ use crate::lineage::{Key, DOMINANCE, ROLL};
 use crate::sag::turn;
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
-use std::f64::consts::TAU;
+use std::f64::consts::{FRAC_PI_2, PI, TAU};
 
 /// The height, in the wood's own radii, below which it eases onto the
 /// ground.
@@ -30,6 +30,7 @@ const LANDING: f64 = 6.0;
 /// Wood this far below the ground plane is rounding, not wood below it.
 const GROUND_TOLERANCE: f64 = 1e-9;
 const UP: Vec3 = Vec3::new(0.0, 0.0, 1.0);
+const DOWN: Vec3 = Vec3::new(0.0, 0.0, -1.0);
 
 /// Sizes every phytomer by its axis's vigour and its parent's scale, and
 /// sets each relay's node.
@@ -180,21 +181,42 @@ fn lay(
         // Sag: the beam's curvature, its moment over its stiffness, turns
         // the axis down about the torque's axis.
         if let (Some(load), true) = (load, form.sag > 0.0 && phytomer.radius > 0.0) {
-            // The bending moment, taken on the tree before it bent, bends
-            // the axis down in its own vertical plane however its bearers'
-            // sag has turned it, and never lifts it. Normalised with no
-            // cutoff: a vanishing moment bends by nothing, never by a jump.
-            let moment = load[k].length();
-            let across_plane = running.cross(Vec3::new(0.0, 0.0, -1.0));
-            let width = across_plane.length();
-            if width > 0.0 {
-                let pivot = across_plane * (1.0 / width);
+            // The torque was taken on the tree before it bent. It is
+            // carried by the rotation that takes the phytomer's frame then
+            // (its heading and side, still the first lay's) to its frame
+            // now, which its bearers' sag and its own have turned: a whole
+            // frame, so no direction is ambiguous. Levelled, as gravity's
+            // torque is, its axis is the pivot the wood turns down about,
+            // a vertical axis towards its load as much as any other.
+            // Normalised with no cutoff: a vanishing moment bends by
+            // nothing, never by a jump.
+            let now = framed(
+                load[k],
+                (phytomer.heading, phytomer.side),
+                (running, across),
+            );
+            let torque = Vec3::new(now.x, now.y, 0.0);
+            let moment = torque.length();
+            if moment > 0.0 {
+                let pivot = torque * (1.0 / moment);
                 let curvature = form.sag * moment / phytomer.radius.powi(4);
-                // Short of straight down by `HANG`: a hanging axis keeps
-                // the side it hangs to, so tropism never meets a vertical
-                // it cannot place.
-                let down = ((-running.z).clamp(-1.0, 1.0).acos() - HANG).max(0.0);
-                let angle = turn(curvature, length, down);
+                // The room left to turn: the signed angle about the pivot
+                // from the direction to straight down, short of it by
+                // `HANG`. Wood already past straight down, curled under,
+                // is not lifted: it has no room, and turns by nothing.
+                // Measured from -pi / 2 to 3 pi / 2, so wood near straight
+                // up has the room over the top to its load's side; past
+                // straight up the room shrinks again, to none at the
+                // angle's cut, so no side of the cut turns it.
+                let square = running - pivot * running.dot(pivot);
+                let room = square.cross(DOWN).dot(pivot).atan2(square.dot(DOWN));
+                let room = if room < -FRAC_PI_2 { room + TAU } else { room };
+                let room = if room > PI {
+                    2.0 * (1.5 * PI - room)
+                } else {
+                    room
+                };
+                let angle = turn(curvature, length, (room - HANG).max(0.0));
                 running = rotated(running, pivot, angle);
                 across = rotated(across, pivot, angle);
             }
@@ -212,19 +234,17 @@ fn lay(
             _ => running,
         };
         // Landing: within a few radii of the ground, and `LANDING`
-        // internodes so the turn is spread over steps, wood's downward
-        // slope eases with its height, so it comes down tangent to the
-        // ground and runs along it.
+        // internodes so the turn is spread over steps, wood's descent
+        // eases with the square root of its height, to none at the ground,
+        // which is reached in a finite run; its lean is kept, never
+        // normalised on its own, so a step near straight down stays near
+        // straight down.
         if !trunk && direction.z < 0.0 {
             let zone = CONTACT * phytomer.radius + LANDING * length;
             if tip.z < zone {
-                let level = |v: Vec3| Vec3::new(v.x, v.y, 0.0).unit();
-                if let Some(flat) = level(direction).or_else(|| level(across)) {
-                    // As the square root of the height: the slope vanishes
-                    // at the ground, which is reached in a finite run.
-                    let ease = (tip.z.max(0.0) / zone).sqrt();
-                    let pitch = direction.z.max(-1.0).asin() * ease;
-                    direction = flat * pitch.cos() + UP * pitch.sin();
+                let ease = (tip.z.max(0.0) / zone).sqrt();
+                if let Some(unit) = Vec3::new(direction.x, direction.y, direction.z * ease).unit() {
+                    direction = unit;
                 }
             }
         }
@@ -232,16 +252,8 @@ fn lay(
         if next.z < -GROUND_TOLERANCE && trunk {
             return Err(-next.z);
         }
-        if next.z < 0.0 {
-            // Resting: down to the ground and along it, the internode's
-            // length kept, towards where the wood was heading.
-            let level = |v: Vec3| Vec3::new(v.x, v.y, 0.0).unit();
-            let flat = level(direction)
-                .or_else(|| level(across))
-                .unwrap_or(Vec3::new(1.0, 0.0, 0.0));
-            let drop = tip.z;
-            let reach = (length * length - drop * drop).max(0.0).sqrt();
-            next = tip + flat * reach;
+        // Resting: wood a step would take below the ground stays on it.
+        if !trunk && next.z < 0.0 {
             next.z = 0.0;
             if let Some(unit) = (next - tip).unit() {
                 direction = unit;
@@ -300,6 +312,18 @@ fn toward_elevation(direction: Vec3, side: Vec3, elevation: f64, share: f64) -> 
     let now = direction.z.clamp(-1.0, 1.0).asin();
     let to = now + (elevation - now) * share;
     out * to.cos() + UP * to.sin()
+}
+
+/// `v` carried by the rotation that takes the frame of unit `heading` and
+/// `side` to the frame of `heading2` and `side2` (each side made square to
+/// its heading).
+fn framed(v: Vec3, (heading, side): (Vec3, Vec3), (heading2, side2): (Vec3, Vec3)) -> Vec3 {
+    let square = |h: Vec3, s: Vec3| (s - h * s.dot(h)).unit();
+    let (Some(side), Some(side2)) = (square(heading, side), square(heading2, side2)) else {
+        return v;
+    };
+    let (normal, normal2) = (heading.cross(side), heading2.cross(side2));
+    heading2 * v.dot(heading) + side2 * v.dot(side) + normal2 * v.dot(normal)
 }
 
 /// `v` carried by the least rotation that takes unit `from` to unit `to`.
