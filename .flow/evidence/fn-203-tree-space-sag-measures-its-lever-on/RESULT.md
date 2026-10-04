@@ -73,3 +73,23 @@
    - With the longer chord the heavy landing measures 0.66 rad. It is now held to decision 4's one bound of 0.8 rather than 0.6.
 2. **P2: R2 checked only proportionality.**
    - Fixed: every tenth internode's bend is compared with fn-200's small-deflection bend, recorded from commit `0706c79c`. The corrected bends lie within 1 percent (the largest gap is 6e-6 rad on 0.033).
+
+## Codex review round 2: SHIP
+
+Both findings are fixed, and there are no new ones.
+
+## R4 on the final engine (`raw/r4c/sheet.png`, viewed)
+
+- Seeds 1 and 4, one tree per process.
+- Same as `r4b`: no loops; nothing toppled (21.9 m; 17.2 x 19.1 m and 16.7 x 14.3 m).
+- Boughs land in smooth arcs and run out radially along the ground.
+- The beech stills are byte-identical (`raw/beech-final`).
+
+## Workspace gate
+
+`cargo test --profile ci --workspace --no-fail-fast` on `affb8d4f`: 1,038 passed, 21 ignored, in 5 min 45 s (`raw/workspace-gate.log`).
+
+- One test failed: telperion-core's `fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens`. It counts twice in the totals, once in its own process and once in the runner that launched it.
+- The failure was its memory ceiling: peak resident 4.41 GB against 4.25 GB.
+- fn-203 changes nothing in telperion-core, which does not depend on telperion-space. Run alone, the test passes in 12 s.
+- Recorded as friction.

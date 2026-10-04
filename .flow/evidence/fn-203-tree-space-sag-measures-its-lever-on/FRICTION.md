@@ -17,3 +17,17 @@
   - the chord look-ahead (built) brought the corner from 1.10 to 0.52 rad.
 - **Cost:** about 40 minutes. Stopped for the host.
 - **What would have removed it:** the landing behaviour under large-deflection sag being part of the spec's design.
+
+## 2026-10-05: a memory-ceiling test failed under the full gate
+
+- **Doing:** the workspace gate.
+- **What slowed it:** telperion-core's fixed-beech test exceeded its per-process memory ceiling (4.41 GB against 4.25 GB) during the full parallel run. fn-203 does not touch that crate, and the test passes alone.
+- **Cost:** about 2 minutes to check.
+- **What would have removed it:** a ceiling that holds under the gate's parallel load, or the test run serially. Possibly local memory pressure on this machine.
+
+## 2026-10-05: one render batch failed six times with no output
+
+- **Doing:** R4 on the final engine.
+- **What slowed it:** the first run of the render script, right after a rebase and build, failed every attempt with a panic and no message kept. Run again a minute later, it rendered both seeds.
+- **Cost:** about 3 minutes.
+- **What would have removed it:** the script keeping the panic text in its log.
