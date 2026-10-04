@@ -89,7 +89,7 @@ pub fn beech() -> Species {
             elevation: 1.4,
             wander: 0.2,
             plane: FRAC_PI_2,
-            pipe: 0.00057,
+            pipe: 0.0005,
             roll: 0.0,
         },
         ..state(
@@ -134,8 +134,8 @@ pub fn beech() -> Species {
             elevation,
             wander: 1.2,
             plane: 0.0,
-            pipe: 0.00057,
-            roll: 0.0,
+            pipe: 0.0005,
+            roll: 1.2,
         },
         ..state(
             lifespan,
@@ -153,19 +153,19 @@ pub fn beech() -> Species {
     // shortest.
     let leader = PaState {
         viability: 1.0,
-        ..reiterate(70, None, &[(LIMB, 0.06), (BOUGH, 0.2)], (1.25, 0.25))
+        ..reiterate(45, None, &[(LIMB, 0.06), (BOUGH, 0.2)], (1.1, 0.25))
     };
     let limb = PaState {
         straightening: 0.1,
         ..reiterate(15, Some(LIMB_UP), &[(BRANCH, 0.45)], (0.55, 0.6))
     };
-    let limb_up = reiterate(55, None, &[(BOUGH, 0.15)], (1.15, 0.25));
+    let limb_up = reiterate(55, None, &[(BOUGH, 0.2)], (1.15, 0.25));
     let bough = PaState {
         straightening: 0.1,
         ..reiterate(8, Some(BOUGH_UP), &[(BRANCH, 0.45)], (0.5, 0.6))
     };
-    let bough_up = reiterate(22, None, &[(SPUR, 0.15)], (1.0, 0.25));
-    let spur = reiterate(15, None, &[(BRANCH, 0.45)], (0.75, 0.25));
+    let bough_up = reiterate(30, None, &[(SPUR, 0.2)], (1.0, 0.25));
+    let spur = reiterate(25, None, &[(BRANCH, 0.45)], (0.6, 0.25));
     // GreenLab's PA 2, the long ramified shoot: Z20 bare, Z24 short
     // shoots, Z23 long shoots bearing short shoots, Z22 partial
     // reiteration, base to tip (acrotony).
@@ -179,7 +179,7 @@ pub fn beech() -> Species {
             elevation: 0.35,
             wander: 0.8,
             plane: 0.0,
-            pipe: 0.00057,
+            pipe: 0.0005,
             roll: 0.7,
         },
         ..state(
@@ -204,7 +204,7 @@ pub fn beech() -> Species {
             elevation: 0.15,
             wander: 2.0,
             plane: 0.0,
-            pipe: 0.00057,
+            pipe: 0.0005,
             roll: 0.0,
         },
         ..state(5, None, vec![zone(1, 1, &[]), zone(2, 3, &[(SHORT, 0.6)])])
@@ -213,7 +213,7 @@ pub fn beech() -> Species {
     // branches.
     let short = PaState {
         insertion: 0.9,
-        viability: 0.95,
+        viability: 0.9,
         shedding: Some(1),
         internode: 0.006,
         form: Form {
@@ -221,10 +221,10 @@ pub fn beech() -> Species {
             elevation: 0.0,
             wander: 0.0,
             plane: 0.0,
-            pipe: 0.0006,
+            pipe: 0.00053,
             roll: 0.0,
         },
-        ..state(6, None, vec![zone(3, 5, &[])])
+        ..state(3, None, vec![zone(3, 5, &[])])
     };
     Species {
         states: vec![

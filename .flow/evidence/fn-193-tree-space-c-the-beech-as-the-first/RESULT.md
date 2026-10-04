@@ -549,3 +549,41 @@ Host: 2, 3, 4 read as a beech, 1 shallower, 7 borderline (spire); sent to Astra.
 > "structure looks really good. BUt the texture of the branches looks very tube like to regular. But that should be out of scope for the growing part. So judgement seems good."
 
 Recorded: the structure direction holds; the tube-like, regular branch surface is a rendering follow-up outside phase C (a candidate spec on irregular branch cross-sections and surface for the tree space, to be raised in the report).
+
+## Round 14: crown integration, values only (worker)
+
+**Engine:** unchanged. Every change is a beech value, and `form.roll` (round 13) was the one setting needed beyond them.
+
+**Changes, each viewed on the five-seed sheet before the next:**
+1. **Wood along each limb's whole length, and mid-crown fill.**
+   - Limbs bear boughs at 0.2 a growth unit (0.15 before), and boughs bear spurs at 0.2 (0.15).
+   - Boughs live 8 + 30 units (8 + 22) and spurs 25 (15), so the peripheral reiterates fill the crown between the limbs rather than ending as tufts at their tips.
+   - Spurs bend toward 0.6 rad (0.75), so they fill sideways.
+2. **Even lateral spread.** Reiterates roll about their bearer by up to 1.2 rad, so boughs and spurs stand all round a limb, not in its plane.
+3. **The leader no longer rises above the dome.** It lives 45 units (70) and bends toward 1.1 rad (1.25). This removed seed 7's spire.
+4. **Girth held.** Every pipe is about 12% thinner (0.5 mm, short shoots 0.53 mm). The extra wood had drawn a dbh of 1.74 m; it is now 1.01 m at seed 1.
+5. **Short shoots back to their sourced life:** 3 units at viability 0.9. Round 13's 6 units, with the extra wood of this round, overran the beech test's 10M phytomer budget. The crown's density now comes from the added reiterates.
+
+**Tried and reverted:** limb tips toward 1.25 rad and spurs toward 0.7 changed nothing visible.
+
+**Five seeds at 80 years** (`raw/final13/five-seeds.png`; `sheet-beech.png`, `bases.png`, `limbs.png` beside it). I viewed every still. Each reading is against Astra's "separate fans or tufts":
+
+| Seed | Bare | In leaf | Beech? |
+|---|---|---|---|
+| 1 | Erect bole, a fork into rising limbs, one broad spreading crown, 23 m wide | One broad, connected dome; dappled at the edge, two shallow lobes at the top | **Yes** |
+| 7 | Limbs spread to a broad, even crown; the spire is gone | A broad dome with a shallow notch right of centre | **Yes** |
+| 2 | Spreading limbs under a full, rounded crown | A connected, rounded dome | **Yes** |
+| 3 | Three limb systems spreading under one crown, 22 m wide | A broad mass; a shallow notch between two lobes remains, much less deep than round 13's gap | **Yes / borderline** |
+| 4 | A low fork into spreading limbs under a broad dome | A broad dome; a slight tuft at the top right | **Yes** |
+
+**Four to five of five read as an open-grown beech. No seed ends its limbs in a separate fan.**
+- The crowns are now broader than they are tall (about 19 m tall, 21 to 24 m wide): Entzia's shape rather than Nettleden's taller dome.
+- In leaf they are a connected mass, still more textured at the edge than Nettleden.
+- Trunk bases are smooth with faint seams. Young ages are unchanged: a pole with rods at 10 and 20 years; at 40, a pole under a spreading crown.
+
+**Tests:** all crate tests are green (`raw/space-tests-r14.log`): the oracle, every walk, and the beech at every sheet age within the test's budget. Clippy is clean.
+
+**Costs at 80 years:**
+- Growth: 1.5 to 2.4 s.
+- Dressing: 1.2 to 1.5 s.
+- 1.05M to 1.27M nodes and 2.2M to 2.7M leaves.
