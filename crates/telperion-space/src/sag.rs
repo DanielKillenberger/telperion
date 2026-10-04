@@ -4,9 +4,13 @@
 //! weighs as its volume, its length times its radius squared; its
 //! foliage as its own pipe's section times its length (the pipe model: a
 //! pipe serves the leaves it bears). Both are sized by presence, so a
-//! branch growing in loads its bearer by degree. The moment is taken on
-//! the tree as it stands before it bends, as small-deflection beam theory
-//! does, and growth never reads it back.
+//! branch growing in loads its bearer by degree. The load is gathered on
+//! the tree as it stands before it bends; the moment is taken when the
+//! tree is laid again, base to tip, with the load beyond each phytomer
+//! turned rigidly by the bends already made before it, so its lever
+//! shrinks as the branch droops and a heavy branch hangs and stops (fn-203,
+//! the first-order large-deflection correction). Growth never reads it
+//! back.
 use crate::girth::ripe;
 use crate::species::Species;
 use crate::structure::{Origin, Structure, Vec3};
@@ -30,9 +34,10 @@ pub(crate) fn any(species: &Species) -> bool {
     species.states.iter().any(|s| s.form.sag > 0.0)
 }
 
-/// Each phytomer's gravity torque about its far end, horizontal: the axis
-/// it turns down about, its length the bending moment.
-pub(crate) fn torques(structure: &Structure, species: &Species) -> Vec<Vec<Vec3>> {
+/// Each phytomer's lever about its far end on the unbent tree: the mass
+/// it carries times the offset of that mass's centre from the end. Turned
+/// as the phytomer has turned, crossed with gravity, it is the torque.
+pub(crate) fn levers(structure: &Structure, species: &Species) -> Vec<Vec<Vec3>> {
     let age = structure.age;
     let axes = &structure.axes;
     let mut at_node: Vec<Vec<Load>> = axes
@@ -40,7 +45,7 @@ pub(crate) fn torques(structure: &Structure, species: &Species) -> Vec<Vec<Vec3>
         .map(|a| vec![Load::default(); a.phytomers.len()])
         .collect();
     let mut at_tip = vec![Load::default(); axes.len()];
-    let mut torques: Vec<Vec<Vec3>> = axes
+    let mut levers: Vec<Vec<Vec3>> = axes
         .iter()
         .map(|a| vec![Vec3::default(); a.phytomers.len()])
         .collect();
@@ -66,10 +71,8 @@ pub(crate) fn torques(structure: &Structure, species: &Species) -> Vec<Vec<Vec3>
             // and all beyond it, about that end. An unloaded tip bends
             // by nothing and keeps its tropism.
             load.add(at_node[i][k], 1.0);
-            // (S - W e) x (-z): the lever of the load about the end,
-            // crossed with gravity.
-            let lever = load.moment - p.tip * load.mass;
-            torques[i][k] = Vec3::new(-lever.y, lever.x, 0.0);
+            // S - W e: the lever of the load about the end.
+            levers[i][k] = load.moment - p.tip * load.mass;
             load.add(
                 Load {
                     mass,
@@ -99,15 +102,30 @@ pub(crate) fn torques(structure: &Structure, species: &Species) -> Vec<Vec<Vec3>
             Origin::Continuation { parent } => at_tip[parent].add(load, 1.0),
         }
     }
-    torques
+    levers
 }
 
-/// The turn, in radians, of a direction `down` radians from straight down
-/// under a curvature `curvature` over `length`: the beam's turn, eased so
-/// it never passes straight down.
-pub(crate) fn turn(curvature: f64, length: f64, down: f64) -> f64 {
-    if down <= 0.0 {
+/// The torque gravity puts on a `lever`: (S - W e) x (-z), horizontal,
+/// the axis the wood turns down about, its length the moment.
+pub(crate) fn torque(lever: Vec3) -> Vec3 {
+    Vec3::new(-lever.y, lever.x, 0.0)
+}
+
+/// The turn, in radians, of a phytomer `length` metres long and `radius`
+/// thick under `lever` (turned into its frame now) and its PA's `sag`.
+/// The beam's curvature is sag times the moment over the radius to the
+/// fourth, and the moment is the lever's reach times the sine of its fall,
+/// the angle from hanging straight below the phytomer's end; carried
+/// rigidly, the load's fall closes as dfall/ds = -k sin(fall), whose exact
+/// solution over the phytomer is tan(fall / 2) e^(-k length). A light load
+/// turns as the small-deflection beam does; a heavy one turns at most
+/// until it hangs, and never past.
+pub(crate) fn turn(lever: Vec3, sag: f64, radius: f64, length: f64) -> f64 {
+    let reach = lever.length();
+    if reach <= 0.0 {
         return 0.0;
     }
-    down * (1.0 - (-curvature * length / down).exp())
+    let fall = (-lever.z / reach).clamp(-1.0, 1.0).acos();
+    let k = sag * reach / radius.powi(4) * length;
+    fall - 2.0 * ((fall / 2.0).tan() * (-k).exp()).atan()
 }

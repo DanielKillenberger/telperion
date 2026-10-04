@@ -11,7 +11,7 @@
 //! or an axis whose base is below it, is an error.
 use crate::error::{Error, Result};
 use crate::lineage::{Key, DOMINANCE, ROLL};
-use crate::sag::turn;
+use crate::sag::{torque, turn};
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
 use std::f64::consts::{FRAC_PI_2, PI, TAU};
@@ -64,12 +64,12 @@ pub(crate) fn scale(structure: &mut Structure, species: &Species) {
     }
 }
 
-/// Lays every axis from its parent's frame; with `torques` (`sag.rs`),
+/// Lays every axis from its parent's frame; with `levers` (`sag.rs`),
 /// each phytomer also turns down under the load it carries.
 pub(crate) fn place(
     structure: &mut Structure,
     species: &Species,
-    torques: Option<&[Vec<Vec3>]>,
+    levers: Option<&[Vec<Vec3>]>,
 ) -> Result<()> {
     let age = structure.age;
     // The trunk: the seed axis and what carries it on.
@@ -100,7 +100,7 @@ pub(crate) fn place(
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => trunk[parent],
             Origin::Lateral { .. } => false,
         };
-        let load = torques.map(|t| t[i].as_slice());
+        let load = levers.map(|t| t[i].as_slice());
         let (pa, birth) = (axis.pa, axis.birth);
         let below = move |height: f64| Error::BelowGround {
             axis: i,
@@ -181,28 +181,27 @@ fn lay(
         // Sag: the beam's curvature, its moment over its stiffness, turns
         // the axis down about the torque's axis.
         if let (Some(load), true) = (load, form.sag > 0.0 && phytomer.radius > 0.0) {
-            // The torque was taken on the tree before it bent. It is
-            // carried by the rotation that takes the phytomer's frame then
-            // (its heading and side, still the first lay's) to its frame
-            // now, which its bearers' sag and its own have turned: a whole
-            // frame, so no direction is ambiguous. Levelled, as gravity's
-            // torque is, its axis is the pivot the wood turns down about,
-            // a vertical axis towards its load as much as any other.
-            // Normalised with no cutoff: a vanishing moment bends by
-            // nothing, never by a jump.
+            // The lever was taken on the tree before it bent. The load
+            // beyond is turned rigidly by the rotation that takes the
+            // phytomer's frame then (its heading and side, still the
+            // first lay's) to its frame now, which its bearers' sag and
+            // its own have turned: a whole frame, so no direction is
+            // ambiguous. As the branch droops its lever turns towards the
+            // vertical and its torque shrinks, so a heavy branch hangs and
+            // stops (fn-203). Normalised with no cutoff: a vanishing
+            // moment bends by nothing, never by a jump.
             let now = framed(
                 load[k],
                 (phytomer.heading, phytomer.side),
                 (running, across),
             );
-            let torque = Vec3::new(now.x, now.y, 0.0);
+            let torque = torque(now);
             let moment = torque.length();
             if moment > 0.0 {
                 let pivot = torque * (1.0 / moment);
-                let curvature = form.sag * moment / phytomer.radius.powi(4);
-                // The room left to turn: the signed angle about the pivot
-                // from the direction to straight down, short of it by
-                // `HANG`. Wood already past straight down, curled under,
+                // The backstop: the room left to turn, the signed angle
+                // about the pivot from the direction to straight down,
+                // short of it by `HANG`. Wood already past straight down, curled under,
                 // is not lifted: it has no room, and turns by nothing.
                 // Measured from -pi / 2 to 3 pi / 2, so wood near straight
                 // up has the room over the top to its load's side; past
@@ -216,7 +215,8 @@ fn lay(
                 } else {
                     room
                 };
-                let angle = turn(curvature, length, (room - HANG).max(0.0));
+                let angle =
+                    turn(now, form.sag, phytomer.radius, length).min((room - HANG).max(0.0));
                 running = rotated(running, pivot, angle);
                 across = rotated(across, pivot, angle);
             }

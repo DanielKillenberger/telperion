@@ -94,8 +94,8 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
     // Sag bends the tree as it stands under the load it carries, and
     // leaves its girth as it was.
     if sag::any(species) {
-        let torques = sag::torques(&structure, species);
-        place(&mut structure, species, Some(&torques))?;
+        let levers = sag::levers(&structure, species);
+        place(&mut structure, species, Some(&levers))?;
     }
     // Wood that stands exactly at its draw has no size.
     if structure
