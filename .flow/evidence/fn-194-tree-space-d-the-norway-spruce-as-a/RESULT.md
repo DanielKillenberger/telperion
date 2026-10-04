@@ -578,3 +578,54 @@ w/h is about 0.6 to 0.76.
   - Whether the lowest boughs should take less sag, or sag should scale differently with length, is a host design question. I stopped here.
 - **The whole-tree look also changed:** the crown narrows at the base, with drooping lower boughs and upturned tips, closer to a weeping form than S1's broad base.
 - **Young trees:** 20 and 40 years keep level tiers. The young stage barely sags, so the hooks appear only on older wood.
+
+## Round 10 (worker): the hook on fn-203's bent-lever sag
+
+**Probes** (seed 1 at 80 years; limb, whole tree and trunk base per variant; tropism / elevation / sag on the older branch wood):
+
+| Probe | Variants | Reading |
+|---|---|---|
+| `raw/probe10/probe10.png` | 1.2–2.0 / 0.9–1.1 / 2e-4 to 4.5e-4 | Upswept: tropism wins and the boughs rise as fans |
+| `raw/probe10b/probe10b.png` | 0.6–1.0 / 0.6–0.9 / 1.2e-3 to 4e-3 | The boughs hang near straight down and spread on the ground: a column-shaped tree with a skirt |
+| `raw/probe10c/probe10c.png` | i 1.0 / 0.8 / 6e-4; j 1.4 / 1.0 / 9e-4; k 1.2 / 0.9 / 7e-4; l 1.8 / 1.1 / 1.2e-3 | **j and k show the hook:** down from the trunk, outer third recovering. i is nearly level; l recovers too early, near the trunk |
+
+**Values** (`spruce.rs`, older branch wood only):
+- **Picked j:** tropism 1.4, elevation 1.0, sag 9e-4, internode 0.034 (was 0.036, to bring the width towards 0.7).
+- **Unchanged:** the young six-year stage, the dormant curtains, the irregularity, needle spacing 3.2 mm, staging and colours.
+
+**Sheets** (`raw/round10/`, on disk, one tree per process with retries; none were needed). I viewed every still.
+
+| Sheet | What it holds |
+|---|---|
+| `five-seeds.png` | The references, round 9's seed 1 and its limb, then the 80-year trees in leaf, as limb close-ups, as in-leaf sprays, and bare |
+| `young.png` | 10, 20 and 40 years at seeds 1 and 7 |
+| `close-ups.png` | Trunk bases, and the young trees' bases and sprays |
+
+**Measures at 80 years** (`run.log`):
+
+| Seed | Needles | Grown in | Width |
+|--:|--:|--:|--:|
+| 1 | 15.5M | 10.0 s | 15.4 × 17.5 m |
+| 7 | 16.5M | 10.3 s | 13.5 × 15.3 m |
+| 2 | 16.4M | 10.9 s | 16.6 × 16.0 m |
+| 3 | 16.0M | 10.3 s | 15.7 × 17.1 m |
+| 4 | 15.3M | 10.2 s | 15.1 × 13.1 m |
+
+w/h is 0.6 to 0.8.
+
+### Reading against "flat shelves, no tip recovery"
+
+| Seed | Limb close-up and spray | Whole tree | Trunk base |
+|---|---|---|---|
+| 1 | Every middle and lower bough sweeps down and its outer third turns up: the S1 hook | A broad-based cone, lower boughs drooping with upturned tips | Smooth arcs out to the ground; no loops |
+| 7 | Clear hooks, dense sprays | Broad base, full lower crown | Smooth; the boughs run out along the ground with no kinks |
+| 2 | As seed 1 | Broad, irregular tiers | Smooth; one bough crosses near the trunk |
+| 3 | Clear hooks, long recovering tips | Broad base, the widest skirt | Smooth |
+| 4 | Hooks, slightly steeper | The narrowest of the five, but not weeping | Smooth |
+
+**Overall:**
+- **The hook is back at every seed** without round 9's loops: the bent lever lets heavy wood hang instead of coiling. From the whole-tree view the boughs read as descending sweeps with upturned ends, not flat shelves, and the base is broad again.
+- **Trunk bases:** no loops and no visible kinks where wood meets the ground. Some of the lowest boughs make a rounded knee just out from the trunk, as fn-203 recorded.
+- **Upper crown:** level to ascending, as in S1.
+- **Young trees:** 20 and 40 years keep level tiers, with the 40-year boughs drooping slightly. 10 years is unchanged.
+- **Still open:** light between the lowest boughs at seeds 1 and 4, as in round 8.
