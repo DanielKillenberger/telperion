@@ -862,3 +862,43 @@ Host: fine tips now, limbs heavy inside; sent to Astra. Three samples: FAIL in a
 ## Gate, round 20, and host decision 19 (2026-10-04)
 
 Host: deep rounded crowns on a continuing trunk; confident. Astra, three samples: FAIL in all (one yes for seed 7 in one sample; seed 2 "the strongest beech candidate"); all name the branch hierarchy: "trunks resolve too abruptly into crowded slender limbs, without enough substantial, tapering main branches" (`ASTRA-VERDICT-R20-{1,2,3}.md`). The leader puts out a limb at every module top, so the crown has many similar slender limbs. Host decision 19: a vigour hierarchy among sibling limbs (one continuous engine setting, neutral today's behaviour): a few major limbs take most of the vigour, grow thick and divide progressively; the rest stay boughs and self-prune; fewer limb-bearing modules on the leader.
+
+## Round 21: a vigour hierarchy among limbs (worker)
+
+**Engine: one new setting, `form.dominance`** (per PA, neutral 0).
+- A lateral of the PA keeps `1 - dominance × (1 - u⁴)` of its size, where `u` is a draw its lineage keys (`lineage::DOMINANCE`). So a few laterals hold nearly all their vigour and most are made smaller.
+- It scales the lateral's base size in placement, so everything it bears shrinks with it, and its pipe girth follows.
+- It is continuous in the setting, and topology does not change.
+- At 0 it is exactly the old behaviour: the oracle, every walk and every earlier test pass unchanged.
+- It is walked over 0 to 1 on every PA, and refused by name outside 0 to 1.
+- Test: `dominance_leaves_a_few_laterals_whole`.
+
+**Beech values:**
+- **Limbs:** dominance 0.3 and an internode of 6 cm (4 cm before), so the dominant limbs run long. Boughs keep dominance 0.
+- **Tried:**
+  - Limb dominance 0.7 with bough dominance 0.5 shrank the crowns to 7 to 10 m wide and the dbh to 0.56 m: too few limbs held their size.
+  - Limb dominance 0.5 drew lopsided, narrow crowns.
+  - 0.3 keeps the crown full while a few limbs dominate.
+- **Fewer limb-bearing modules on the leader: tried and reverted.** Limb 0.2 with bough 0.3 a module top, with dominance on, emptied the crown at three seeds (one-sided at seeds 1 and 4). The leader keeps round 20's limb 0.3, bough 0.2; dominance alone makes the hierarchy.
+- **Kept from round 20:** the continuing trunk and late fork, the module limbs, fine tips and ripening, the colours.
+
+**Heights, widths and major limbs at 80 years** (`raw/final20/run.log`; major limbs counted by eye on `raw/final20/bare-large.png` as limbs visibly thicker than the rest and running to the crown edge). Per-seed reading against Astra's "trunks resolve too abruptly into crowded slender limbs". I viewed every still.
+
+| Seed | Height | Width (x × z) | Major limbs | Reading | Beech? |
+|---|--:|--:|--:|---|---|
+| 1 | 20.2 m | 21.3 × 18.3 | 3 | One long limb rises left, two spread right, dividing outward. The crown is tall, rounded and lopsided to the left | **Yes / borderline** (lopsided) |
+| 7 | 18.5 m | 19.7 × 16.0 | 4 | A long, heavy limb runs out far to the left and divides into spray; three more rise right. Entzia's spread | **Yes** |
+| 2 | 20.1 m | 16.6 × 19.5 | 4 | Several thick limbs rise through a deep, rounded crown, dividing progressively | **Yes** |
+| 3 | 18.5 m | 15.5 × 17.7 | 3 | Three heavy limbs from the trunk; a deep crown with a dense mass on the left and an open limb on the right | **Borderline** (dense mass) |
+| 4 | 18.6 m | 15.6 × 18.1 | 4 | The trunk continues; limbs at several heights, two long ones spreading right; a narrower crown | **Yes / borderline** (narrow) |
+
+**Three to four major limbs at every seed, within the target of 3 to 6.** The limbs visibly divide outward at seeds 7, 2 and 1.
+- In leaf the crowns are more irregular than round 20's: seed 7 is a wide, flat-topped spread like Entzia; seeds 1 and 4 are lopsided.
+- Trunk bases are smooth, with faint seams at seeds 3 and 4. The limb close-ups show heavier limbs dividing into fine tips.
+- Young ages: 40 years shows a dominant limb at the top. 10 and 20 years are unchanged.
+
+**Tests:** all crate tests are green (`raw/space-tests-r21.log`): the oracle, every walk, and the beech within its budget. Clippy is clean.
+
+**Girth and costs:**
+- dbh 0.91 m at seed 1.
+- At 80 years: growth 1.5 to 4.5 s, 1.01M to 2.86M nodes.

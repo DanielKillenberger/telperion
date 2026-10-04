@@ -239,6 +239,38 @@ fn ripening_leaves_young_tips_fine() {
     assert!(ripened < whole, "tip over base {ripened} against {whole}");
 }
 
+/// Dominance leaves a few laterals whole and the rest smaller, and grows
+/// no other tree.
+#[test]
+fn dominance_leaves_a_few_laterals_whole() {
+    let sizes = |dominance: f64| {
+        let mut species = walk::species();
+        species.states[1].form.dominance = dominance;
+        let tree = grown(&species, 1);
+        let limbs: Vec<f64> = tree
+            .axes
+            .iter()
+            .filter(|a| a.pa == 1 && matches!(a.origin, Origin::Lateral { .. }))
+            .filter_map(|a| a.phytomers.first().map(|p| p.scale))
+            .collect();
+        (limbs, tree.axes.len())
+    };
+    let (even, axes) = sizes(0.0);
+    let (ranked, same) = sizes(0.8);
+    assert_eq!(axes, same, "the same tree");
+    let shrunk = ranked.iter().zip(&even).filter(|(r, e)| *r < *e).count();
+    let kept = ranked
+        .iter()
+        .zip(&even)
+        .filter(|(r, e)| **r > 0.5 * **e)
+        .count();
+    assert!(shrunk * 2 > ranked.len(), "most laterals shrink");
+    assert!(
+        kept > 0 && kept < ranked.len(),
+        "a few keep most of their size"
+    );
+}
+
 /// The beech grows at every age its sheet draws, at both seeds, standing
 /// and above the ground.
 #[test]

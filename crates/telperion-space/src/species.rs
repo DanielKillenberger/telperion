@@ -119,6 +119,11 @@ pub struct Form {
     /// share at its first year to all of it: a limb stays heavy where it
     /// is old and ends in fine young tips. Neutral 0, at once.
     pub ripening: f64,
+    /// How unequal laterals of this PA are among their siblings: each
+    /// keeps a share of its size, from all of it (0) towards a keyed share
+    /// few hold whole (1), so a few dominate and the rest stay small.
+    /// Neutral 0.
+    pub dominance: f64,
     /// How far a lateral of this PA turns about its parent, by up to this
     /// many radians either way as its lineage keys, so laterals of one
     /// parent do not stack in one plane. Neutral 0.
@@ -136,6 +141,7 @@ impl Default for Form {
             pipe: 0.005,
             exponent: 2.0,
             ripening: 0.0,
+            dominance: 0.0,
             roll: 0.0,
         }
     }
@@ -286,6 +292,9 @@ impl Form {
         }
         if !(MIN_EXPONENT..=MAX_EXPONENT).contains(&self.exponent) {
             return refuse(format!("{at}.exponent"), "a pipe exponent lies in 1.5 to 4");
+        }
+        if !(0.0..=1.0).contains(&self.dominance) {
+            return refuse(format!("{at}.dominance"), "a share lies in 0 to 1");
         }
         if !(0.0..=PI).contains(&self.roll) {
             return refuse(format!("{at}.roll"), "a roll lies in 0 to pi");

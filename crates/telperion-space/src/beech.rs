@@ -90,6 +90,7 @@ pub fn beech() -> Species {
             pipe: 0.008,
             exponent: 2.6,
             ripening: 0.0,
+            dominance: 0.0,
             roll: 0.0,
         },
         ..state(
@@ -135,6 +136,7 @@ pub fn beech() -> Species {
             pipe: 0.008,
             exponent: 2.6,
             ripening: 15.0,
+            dominance: 0.0,
             roll: 1.2,
         },
         ..state(
@@ -177,8 +179,26 @@ pub fn beech() -> Species {
             (0.3, 1.35),
         )
     };
-    let limb = module(reiterate(70, &[(BOUGH, 0.16)], (0.0, 0.0)), (0.3, 0.3));
-    let bough = module(reiterate(30, &[(SPUR, 0.14)], (0.0, 0.0)), (0.35, 0.2));
+    // A few limbs take most of the vigour and grow long and thick; the
+    // rest stay small, as do most boughs.
+    let ranked = |state: PaState, dominance| PaState {
+        form: Form {
+            dominance,
+            ..state.form
+        },
+        ..state
+    };
+    let limb = ranked(
+        PaState {
+            internode: 0.06,
+            ..module(reiterate(70, &[(BOUGH, 0.16)], (0.0, 0.0)), (0.3, 0.3))
+        },
+        0.3,
+    );
+    let bough = ranked(
+        module(reiterate(30, &[(SPUR, 0.14)], (0.0, 0.0)), (0.35, 0.2)),
+        0.0,
+    );
     let spur = reiterate(25, &[(BRANCH, 0.45)], (0.6, 0.25));
     // GreenLab's PA 2, the long ramified shoot: Z20 bare, Z24 short
     // shoots, Z23 long shoots bearing short shoots, Z22 partial
@@ -196,6 +216,7 @@ pub fn beech() -> Species {
             pipe: 0.0009,
             exponent: 2.0,
             ripening: 0.0,
+            dominance: 0.0,
             roll: 1.2,
         },
         ..state(
@@ -223,6 +244,7 @@ pub fn beech() -> Species {
             pipe: 0.0009,
             exponent: 2.0,
             ripening: 0.0,
+            dominance: 0.0,
             roll: 0.0,
         },
         ..state(5, None, vec![zone(1, 1, &[]), zone(2, 3, &[(SHORT, 0.6)])])
@@ -242,6 +264,7 @@ pub fn beech() -> Species {
             pipe: 0.00095,
             exponent: 2.0,
             ripening: 0.0,
+            dominance: 0.0,
             roll: 0.0,
         },
         ..state(3, None, vec![zone(3, 5, &[])])

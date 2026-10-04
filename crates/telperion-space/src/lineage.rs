@@ -15,6 +15,8 @@ pub(crate) const ZONE: u64 = 16;
 pub(crate) const RELAY: u64 = u64::MAX - 2;
 /// A lateral's roll about its parent, under its lineage.
 pub(crate) const ROLL: u64 = u64::MAX - 4;
+/// A lateral's share of vigour among its siblings, under its lineage.
+pub(crate) const DOMINANCE: u64 = u64::MAX - 5;
 pub(crate) const CONTINUATION: u64 = u64::MAX;
 
 /// A hashed path from the root.

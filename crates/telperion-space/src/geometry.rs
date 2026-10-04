@@ -7,7 +7,7 @@
 //! straightens towards the vertical by its PA's straightening. The seed
 //! stands at the origin, growing up (+z); no wood goes below z = 0.
 use crate::error::{Error, Result};
-use crate::lineage::{Key, ROLL};
+use crate::lineage::{Key, DOMINANCE, ROLL};
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
 use std::f64::consts::TAU;
@@ -27,7 +27,13 @@ pub(crate) fn place(structure: &mut Structure, species: &Species) -> Result<()> 
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => base_scale[parent],
         };
         let axis = &mut structure.axes[i];
-        base_scale[i] = inherited * axis.vigour;
+        let share = match axis.origin {
+            Origin::Lateral { .. } => {
+                dominance(species.states[axis.pa].form.dominance, axis.lineage)
+            }
+            _ => 1.0,
+        };
+        base_scale[i] = inherited * axis.vigour * share;
         for phytomer in &mut axis.phytomers {
             phytomer.scale *= base_scale[i];
         }
@@ -141,6 +147,17 @@ fn lay(
     axis.heading = heading;
     axis.side = side;
     Ok(())
+}
+
+/// A lateral's share of its vigour among its siblings: by `dominance`,
+/// from all of it (0) towards a keyed share that few laterals hold whole,
+/// the fourth power of a draw its lineage keys.
+fn dominance(dominance: f64, lineage: u64) -> f64 {
+    if dominance <= 0.0 {
+        return 1.0;
+    }
+    let held = Key(lineage).child(DOMINANCE).unit().powi(4);
+    1.0 - dominance * (1.0 - held)
 }
 
 /// The key step of a node's wander draws.

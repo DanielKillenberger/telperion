@@ -31,6 +31,7 @@ The beech is `crates/telperion-space/src/beech.rs`, one growth cycle a year. Sou
 | branch growth unit, 5–8 nodes | | [DTT86] long shoots "6 à 10 entre-nœuds" (seedlings) |
 | shoot zones | Z30 1; Z34 2–3, short 0.6 | [LET] Table 2: M30 ≈ 1, A34 ∈ [0.55, 0.6] |
 | short shoot, 3 nodes, never branches | | [LET], [DTT86] |
+| limb dominance 0.3 (`form.dominance`, round 21), limb internode 6 cm | | **estimated** from the stills: a few limbs take most of the vigour (Millet: the crown is a succession of reiterates, a few dominant) |
 | branch systems rolled about their parent by up to 0.7 rad, reiterates and branch systems by up to 1.2 rad (`form.roll`, rounds 13, 14 and 17) | | **estimated**, from the stills: breaks the one plane the systems of a steep limb stacked in |
 | phyllotaxis of branch, shoot, short | distichous (π) | [M98] "plagiotropic monopodia with distichous phyllotaxy" |
 | branch systems in one plane | trunk `plane` π/2, others 0 | [M98] "arranged in a single horizontal plane" |
