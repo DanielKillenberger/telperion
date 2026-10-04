@@ -61,10 +61,54 @@
       "timestamp": "2026-10-04T18:02:55.354733Z",
       "tool_calls": 22,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3e0bd7336b908877e9482ccd4a5d2af37bbdd20bb85cf9a385436fbf11727c32",
+      "backend": "codex",
+      "base_sha": "abd7909a5db5695ccd973c45ceb00f54a867c112",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f10d73dd5fee5573787735e8edf86275",
+            "classification": "introduced",
+            "findingId": "finding-f10d73dd5fee5573787735e8edf86275",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "247e09e595dfe816d6400791169b6b41a9e7b769",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 848,
+      "output_sha256": "6ec1b40236469d10a5f8a225b113c57846472a06fe91ead8380f78234140f702",
+      "reservation_id": "55f316b5f2b64606971097d4b0123b5a",
+      "round_consumed": true,
+      "scope": "impl:fn-201-foliage-selection-dispatches-past-65535.1",
+      "superseded_by": null,
+      "task": "fn-201-foliage-selection-dispatches-past-65535.1",
+      "timestamp": "2026-10-04T18:04:42.480812Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-201-foliage-selection-dispatches-past-65535.1": 1
+    "impl:fn-201-foliage-selection-dispatches-past-65535.1": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -85,5 +129,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T18:02:55.360676Z"
+  "updated_at": "2026-10-04T18:04:42.483037Z"
 }
