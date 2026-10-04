@@ -11,7 +11,7 @@ mod tree;
 
 /// The preset's rows restated for a tree that grows its own shoots: no
 /// clusters seated along slender wood, needles along the grown shoots.
-const ROWS: &str = r#"{"canopy": {"shortShootSpacing": 0, "limbClumping": 0}, "skeleton": {"twigs": {"twig": {"internodeLength": 0.0025}}}}"#;
+const ROWS: &str = r#"{"canopy": {"shortShootSpacing": 0, "limbClumping": 0}, "skeleton": {"twigs": {"twig": {"internodeLength": 0.0035}}}}"#;
 
 fn main() -> Result<(), String> {
     still::run("spruce", telperion_space::spruce, "norway-spruce", ROWS)

@@ -16,8 +16,9 @@ const CROWN: usize = 3;
 const SPRIG: usize = 4;
 const BRANCH: usize = 5;
 const BRANCHLET: usize = 6;
-const SHOOT: usize = 7;
-const PAS: usize = 8;
+const SPUR: usize = 7;
+const SHOOT: usize = 8;
+const PAS: usize = 9;
 
 /// One zone: nodes from `min` to `max`, `buds` each, bearing `pa` with
 /// probability `p` (bare where `p` is 0).
@@ -137,21 +138,18 @@ pub fn spruce() -> Species {
             ripening: 10.0,
             dominance: 0.25,
             roll: 0.5,
-            sag: 7.5e-5,
+            sag: 5e-5,
         },
         ..state(
             1_000,
             None,
             vec![
                 zone(1, 1, 1, &[]),
-                zone(2, 2, 1, &[(BRANCHLET, 0.8)]),
+                zone(2, 2, 2, &[(BRANCHLET, 0.7)]),
                 zone(1, 1, 2, &[(BRANCHLET, 0.95)]),
             ],
         )
     };
-    // Second-order branchlets: in the branch's plane, hanging as the
-    // comb's curtains (M12, reference-visible only), shed when they die
-    // (M11).
     // A branch's first years: longer yearly shoots, so a young tree's
     // tiers spread wide and the crown's top is a cone, not a spire.
     let sprig = PaState {
@@ -161,10 +159,15 @@ pub fn spruce() -> Species {
         shedding: None,
         ..branch.clone()
     };
+    // Second-order branchlets: in the branch's plane, hanging as the
+    // comb's curtains (M12, reference-visible only), shed when they die
+    // (M11). After ten years a branchlet barely lengthens and keeps
+    // making shoots for decades, so a branch stays green far inside.
     let branchlet = PaState {
         insertion: 0.9,
         internode: 0.016,
-        viability: 0.98,
+        viability: 0.99,
+        next: Some(SPUR),
         shedding: Some(1),
         form: Form {
             tropism: 3.0,
@@ -179,13 +182,21 @@ pub fn spruce() -> Species {
             sag: 0.0,
         },
         ..state(
-            25,
+            10,
             None,
             vec![
                 zone(2, 2, 1, &[(SHOOT, 0.6)]),
                 zone(1, 1, 2, &[(SHOOT, 0.9)]),
             ],
         )
+    };
+    let spur = PaState {
+        lifespan: 45,
+        viability: 0.99,
+        next: None,
+        internode: 0.006,
+        zones: vec![zone(1, 1, 2, &[(SHOOT, 0.5)])],
+        ..branchlet.clone()
     };
     // Third-order shoots: short, unbranched, living a few years.
     let shoot = PaState {
@@ -204,7 +215,7 @@ pub fn spruce() -> Species {
     };
     Species {
         states: vec![
-            seedling, sapling, trunk, crown, sprig, branch, branchlet, shoot,
+            seedling, sapling, trunk, crown, sprig, branch, branchlet, spur, shoot,
         ],
     }
 }

@@ -145,3 +145,75 @@ Measures are in `run.log`:
 - **The airy lower crown**, against S1's dark curtains. This is likely the same missing draperies; denser or longer-lived branchlets are a values option.
 
 Known gap: draperies, the delayed release of dormant buds (F4; host, 2026-10-04).
+
+## Host round 3 directions (2026-10-04)
+
+The main defect at 80 years: the base reads as bare tentacles on the ground, and the lower crown is see-through where S1's is a dark curtain.
+
+- **Ground contact (host design):** a curve, not a corner, built in fn-200's geometry as a follow-up commit on this branch.
+- **Density (host decision):** values first. If they cannot fill the inner lengths, stop and report; draperies then become their own gap spec.
+
+## Round 3 (worker)
+
+### Ground contact (`b3ef700c`, `crates/telperion-space/src/geometry.rs`)
+
+**The contact zone:** four of the wood's radii plus six internodes above the ground.
+- Within it, non-trunk wood's downward pitch eases with the square root of its height, so the wood lands tangent and runs along the ground. The hard rest stays as a backstop.
+- Outside the zone nothing changes; the beech's stills are byte-identical (`raw/beech-r3/`).
+- **Why the six internodes:** a zone of radii alone is thinner than one internode on coarse wood, so a step jumped across it and the corner came back (1.49 rad, then 0.81 at two internodes). The landing turn has to be spread over several steps.
+
+**Two changes to fn-200's sag were needed on the way:**
+1. **Sag bends an axis down in its own vertical plane**, by the magnitude of its moment. Before, it turned about the carried torque's axis. That axis is ill-defined when an axis has turned almost opposite to its pre-sag direction, and the landing walk showed it as a jump.
+2. **Sag stops 0.15 rad short of straight down.** Otherwise an axis bent exactly vertical leaves tropism no side to turn to, and the side flips. That vertical-direction singularity is pre-existing, in `toward_elevation`.
+
+**Girth before placement:** girth is now computed before placement, so the contact zone knows each radius on the first lay. A relay's node is now set with the scales, because girth reads it.
+
+**Tests (`tests/sag.rs`):**
+- `wood_lands_on_the_ground_without_a_corner`: was red on the corner version (1.49 rad), now green; its threshold is 0.35 rad.
+- `landing_on_the_ground_walks_by_degree`: walks limb sag onto the ground and checks slope and refinement.
+- The walk's limbs bear twigs, not limbs. A limb inserted square off a level limb can stand exactly straight down at sag 0, where the same pre-existing tropism singularity is a jump of its own (recorded for the host).
+- All crate tests pass; the walk's worst sag slopes are 0.00, 3.47 and 0.07.
+
+### Density by values (`spruce.rs`)
+
+- **Long-lived spurs:** a branchlet now grows 10 years, then becomes a new SPUR PA. A spur barely lengthens (6 mm a year), lives 45 years at viability 0.99, and makes short shoots every year. Branchlets therefore stand along about 55 years of each main branch instead of 25.
+- **More branchlets:** branches carry paired branchlets at their two medial nodes (one each before).
+- **Sag 5e-5** (7.5e-5 before), so fewer of the lowest branches lie flat.
+- **Needle spacing:** the stills' needle spacing is 3.5 mm (2.5 before), to stay under the renderer's dispatch limit (FRICTION.md).
+
+**Spur lifespans tried at seed 1:**
+
+| Spur lifespan | Grown in | Kept nodes | Result |
+|--:|--:|--:|---|
+| 30 years | 8.6 s | 2.9M | Inner lengths still bare |
+| 70 years | 9.5 s | 3.8M | Inner lengths filled with hanging branchlets, but the crown no denser from the whole-tree view; first crashed the renderer at 2.5 mm spacing |
+| 45 years (kept) | | | |
+
+### Sheets (`raw/round3/`, on disk; I viewed every still)
+
+| Sheet | What it holds |
+|---|---|
+| `five-seeds.png` | S1, S2, S3, round 2's seed 1 and round 2's seed 1 base above the five 80-year trees in leaf and bare |
+| `young.png` | 10, 20 and 40 years at seeds 1 and 7 |
+| `close-ups.png` | Trunk bases and limbs, every age and seed |
+
+Measures are in `run.log`:
+
+| Age | Height | Width | Grown in | Kept nodes |
+|--:|--:|--:|--:|--:|
+| 80 | 21.9 to 22.2 m | 13.7 to 15.9 m (w/h 0.63 to 0.73) | 7.5 to 9.1 s (three seeds over 8 s) | 3.3M to 3.6M |
+
+Younger ages are as in round 2.
+
+### Reading
+
+| Trait | Round 3 | Met? |
+|---|---|---|
+| Ground contact | The lower branches now arch down and land in smooth curves with no corner. The tentacle ring is gone: inner lengths near the trunk carry hanging branchlets, and fewer branches lie flat | **Yes** |
+| Seed 4's base | A dark vertical band runs down the trunk (a branch hanging against it, or a shading artefact; not chased) | Note |
+| Lower crown density, whole-tree view | Somewhat fuller than round 2, but still see-through: thin hanging lines over a light underlayer, never S1's dark curtain. The bare-wood view shows the reason: the comb's curtains are long thin branchlets with sparse foliage, not dense hanging sprays | **No** |
+| Width, droop, seed variety, 10 to 40 years | As in round 2; the young trees are unchanged in look | Kept |
+| Cost | 7.5 to 9.1 s at 80 years, against round 2's 5.6 to 7.6 s, past the 8 s guide at three seeds | Over |
+
+**Values do not reach S1's dark lower curtain.** Longer-lived branchlets fill the inner lengths but read as strings: each old branchlet adds only a few short shoots a year. Going further (70-year spurs) costs 9.5 s and over the renderer's instance limit without darkening the whole-tree view. As the host directed, I stop here. Dense lower curtains look like draperies: a branchlet's dormant buds releasing new sprays along its length (M10, F4). That is a gap spec for the host to design.
+
