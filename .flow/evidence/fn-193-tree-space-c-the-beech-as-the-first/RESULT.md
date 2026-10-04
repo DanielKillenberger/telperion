@@ -390,3 +390,7 @@ Starting point: round 2's beech, plus the relay-difference engine change (`57ab6
 - The collar rings are the conversion drawing a module head that turns aside next to a relay standing near the tip.
 
 **Sheets:** `raw/final9/sheet-beech.png` (seeds 1 and 7, same layout) and `raw/final9/close-ups.png`. Seed 1's limb close-up frames sky, because its crown is narrow. The young trees are diagnostic only: seed 7 at 20 cycles is still a pole.
+
+## Host decision 10 (2026-10-04)
+
+The engine is continuous across relays (round 10; worst relay walk slope 2.82 against 30). The beech look regressed because relay_at now measures within the last growth unit. Round 11 is values only on this engine: shorter trunk modules, relays low in the curvature zone, limb spread retuned, collars at module joints blended by the conversion. Target: four of five seeds (1, 7, 2, 3, 4) read as an open-grown beech at 80 years, as in round 9; then Astra judges the same sheet.
