@@ -125,7 +125,7 @@ pub fn spruce() -> Species {
     // unequal (dominance), so no two crowns are alike.
     let branch = PaState {
         insertion: 1.5,
-        internode: 0.03,
+        internode: 0.032,
         viability: 0.998,
         shedding: Some(3),
         form: Form {
@@ -201,16 +201,20 @@ pub fn spruce() -> Species {
         viability: 0.99,
         next: None,
         internode: 0.006,
-        zones: vec![zone(1, 1, 3, &[(SHOOT, 0.35)])],
+        // Each year a pair of shoots in the spur's own plane, so an old
+        // branchlet hangs as a needled spray, not a strand.
+        zones: vec![zone(1, 1, 2, &[(SHOOT, 0.9)])],
         ..branchlet.clone()
     };
-    // Third-order shoots: short, unbranched, living a few years, two or
-    // three a node, hanging so each curtain is a needled spray with width.
+    // Third-order shoots: short, unbranched, two or three a node, hanging
+    // so each curtain is a needled spray with width. A shoot grows two
+    // years and keeps its needles four more: half a cohort's needles are
+    // shed at 5.5 years (Muukkonen and Lehtonen 2004).
     let shoot = PaState {
         insertion: 1.1,
         internode: 0.02,
         viability: 0.9,
-        shedding: Some(1),
+        shedding: Some(4),
         form: Form {
             tropism: 1.0,
             elevation: -0.5,
@@ -218,7 +222,7 @@ pub fn spruce() -> Species {
             pipe: 0.0004,
             ..Form::default()
         },
-        ..state(3, None, vec![zone(2, 2, 1, &[])])
+        ..state(2, None, vec![zone(2, 2, 1, &[])])
     };
     Species {
         states: vec![

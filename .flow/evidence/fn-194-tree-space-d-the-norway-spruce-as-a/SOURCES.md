@@ -1,4 +1,4 @@
-# Sources of the spruce's values (round 2)
+# Sources of the spruce's values (round 6)
 
 The rules M1 to M14, with their quotes and tags, are in MODEL-SPRUCE.md (`/home/daniel/Projects/telperion/.worktrees/fn-190/.flow/evidence/fn-190-one-growth-law-species-are-points-in-a/MODEL-SPRUCE.md`). The source texts are in the fn-188 research worktree's `.firecrawl/lit/`.
 
@@ -19,3 +19,5 @@ The rules M1 to M14, with their quotes and tags, are in MODEL-SPRUCE.md (`/home/
 | Branchlets live up to 25 years, viability 0.98, then are shed | M11 (CIR [secondary]) | lifespan estimated |
 | Pipes, exponents, internodes, wander, roll | none | estimated from the stills |
 | Bark and needle colours (preset) | none | matched by render to S1 |
+| Shoots grow 2 years and keep their needles 4 more (about 6 in all) | Muukkonen and Lehtonen 2004, *Can. J. For. Res.* 34: 2517–2527, abstract: "At the age of 5.5 years, 50% of the needles in the needle cohort have been shed"; all are shed by 12 years | sourced (abstract; full text not reached) |
+| Spurs: a pair of shoots a year in their own plane | none | estimated, for spray width |

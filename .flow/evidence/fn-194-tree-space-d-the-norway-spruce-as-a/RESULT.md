@@ -343,3 +343,51 @@ Measures are in `run.log`:
 - **What a spray needs:** a branchlet of many lateral shoots alive at once, which S3 shows.
 
 **What decides this:** the structure, not the dressing. It is the live shoot count along old branchlets in `crates/telperion-space/src/spruce.rs` (the spur and shoot rows): values limited by the phytomer budget, or the draperies gap (M10). I did not apply a variant and did not render round 6.
+
+## Round 6 (worker)
+
+**Host decisions for round 6:** sourced live shoots on old branchlets, spurs bearing sprays, a budget raise if needed, and boughs widened toward 0.7 of the height.
+
+**Values** (`spruce.rs`):
+
+| Part | Round 5 | Round 6 |
+|---|---|---|
+| Shoots | grow 3 years, shed 1 year after their apex stops | grow 2 years, kept 4 more |
+| Spurs | 3 buds a year at p 0.35, often one shoot | a pair a year in the spur's own plane, at p 0.9 |
+| Main branches' internode | 0.03 | 0.032 |
+
+- **Source for shoot life:** Muukkonen, P. and Lehtonen, A. (2004), "Needle and branch biomass turnover rates of Norway spruce (*Picea abies*)", *Canadian Journal of Forest Research* 34: 2517–2527.
+  - From its abstract: "At the age of 5.5 years, 50% of the needles in the needle cohort have been shed", and all are shed at 12 years. The mean annual needle turnover is 0.10.
+  - The numbers are read from the published abstract (via its search snippets); the full text was not reachable (HTTP 403).
+- **Why a pair on each spur:** an old branchlet then hangs as a small needled spray, not a strand.
+- **Width:** 0.035 gave w/h 0.85 at seed 1, too wide, so the internode is 0.032.
+- **Budget:** no seed came near the 20M phytomer budget. Growth fell: shorter-growing shoots grow fewer phytomers, while the longer-kept ones add kept nodes. **No raise was needed.**
+
+**Sheets** (`raw/round6/`, on disk; I viewed every still):
+
+| Sheet | What it holds |
+|---|---|
+| `five-seeds.png` | The references, round 5's seed 1 and its in-leaf spray, then the five 80-year trees in leaf, as in-leaf sprays, and bare |
+| `young.png` | 10, 20 and 40 years at seeds 1 and 7 |
+| `close-ups.png` | Trunk bases, bare limbs, and the young trees' bases and sprays |
+
+**Measures** (`run.log`) at 80 years:
+
+| Height | Width | w/h | Grown in | Dressed in | Kept nodes | Needles |
+|--:|--:|--:|--:|--:|--:|--:|
+| 21.9 to 22.2 m | 14.6 to 17.2 m | 0.67 to 0.79 | 5.9 to 6.9 s | about 15.5 s | 3.4M to 3.7M | 18.3M to 19.8M (round 5: 14.0M to 15.1M) |
+
+### Reading against Astra's fault, per seed (80 years)
+
+| Seed | In-leaf spray close-up | Whole tree against its bare silhouette |
+|---|---|---|
+| 1 | Boughs are dense flat needled sprays to the tip. Under them the curtains are now short sprays, not dotted strands | The upper and middle crown is a dark mass. The lower third is still see-through, with boughs as stripes over light |
+| 7 | The densest sprays of the five: thick, dark boughs, close to S3 | A fuller middle crown. The lower left still shows separate boughs with gaps |
+| 2 | Dense sprays and heavy lower boughs | Fuller than round 5 throughout. The lower crown is still see-through between the boughs |
+| 3 | As seed 7 | As seed 2 |
+| 4 | Dense sprays on a narrow tree | See-through lower crown on both sides |
+
+**Overall:**
+- **The boughs themselves are now right:** dense, flat, dark needled sprays, as in S3. The in-leaf trees no longer track their bare silhouette in the upper and middle crown.
+- **The inner and lower crown is still see-through, plainly.** The space between the boughs is empty, where S1 hangs dark curtains, and the bare base close-ups still show bare inner bough wood. Sourced needle retention and spur sprays fill each bough but not the space between boughs. That fits the missing mechanism: draperies (M10), the waves of new branchlets released along old branches.
+- **Young trees:** they look as in round 5 but fuller in the 20- and 40-year sprays. 10 years is still a sparse sapling.
