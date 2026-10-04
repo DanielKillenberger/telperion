@@ -377,8 +377,8 @@ fn frame(structure: &Structure, species: &Species, i: usize) -> (Vec3, Vec3, Vec
             // Turned about its parent by its PA's roll, as its lineage keys.
             let roll = species.states[axis.pa].form.roll
                 * (2.0 * Key(axis.lineage).child(ROLL).unit() - 1.0);
-            let place = f64::from(slot) + if woken { 0.5 } else { 0.0 };
-            let azimuth = parent_state.divergence * at.rank + TAU * place / f64::from(whorl) + roll;
+            let azimuth =
+                parent_state.divergence * at.rank + TAU * f64::from(slot) / f64::from(whorl) + roll;
             let (heading, side) = turned(
                 (at.heading, at.side),
                 azimuth,
@@ -386,7 +386,15 @@ fn frame(structure: &Structure, species: &Species, i: usize) -> (Vec3, Vec3, Vec
                 parent_state.form.plane,
                 0.0,
             );
-            (at.tip, heading, side)
+            // A bud that slept stands on its slot's side half an internode
+            // below the node, apart from the bud that grew at once.
+            let base = if woken {
+                let below = node.checked_sub(1).map_or(p.base, |n| p.phytomers[n].tip);
+                (below + at.tip) * 0.5
+            } else {
+                at.tip
+            };
+            (base, heading, side)
         }
         Origin::Relay { parent, .. } => {
             // Between the continuation it replaces, at the tip on the

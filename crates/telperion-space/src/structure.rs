@@ -61,8 +61,8 @@ pub enum Origin {
     /// The seed bud, at the ground.
     Seed,
     /// A lateral bud: `slot` of the `whorl` buds at phytomer `node` of axis
-    /// `parent`. A bud that slept and woke (`woken`) stands half a slot past
-    /// it, between the buds that grew at once.
+    /// `parent`. A bud that slept and woke (`woken`) stands on its slot's
+    /// side half an internode below the node.
     Lateral {
         parent: usize,
         node: usize,

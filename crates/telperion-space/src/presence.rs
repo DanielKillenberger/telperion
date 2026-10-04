@@ -112,6 +112,8 @@ pub(crate) struct Draws {
     pub nodes: Vec<f64>,
     /// The apex still lives at the tree's age.
     pub alive: bool,
+    /// The apex stopped by failing to survive a growth unit.
+    pub failed: bool,
     /// The share of its first cycle a bud that woke still slept, which
     /// its first growth unit lacks.
     pub sleep: f64,

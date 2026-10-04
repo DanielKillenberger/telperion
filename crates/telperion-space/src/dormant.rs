@@ -95,13 +95,14 @@ pub(crate) fn draw(
 /// The presence of the draws that kept the bud's bearer alive from its
 /// node's growth unit to now: the apex persisting past that unit, each
 /// later unit's survival and persistence, and each continuation or relay
-/// that carried the axis on. None when nothing carries it on any more.
+/// that carried the axis on; and the axis that carries it on now. None
+/// when nothing carries it on any more.
 pub(crate) fn carried(
     axes: &[Axis],
     draws: &[Draws],
     successor: &[Option<usize>],
     sleeper: &Sleeper,
-) -> Option<f64> {
+) -> Option<(f64, usize)> {
     let mut axis = sleeper.parent;
     let units = &draws[axis].units;
     let mut presence = units[sleeper.unit][1];
@@ -117,7 +118,7 @@ pub(crate) fn carried(
                 axis = next;
                 from = 0;
             }
-            None => return axes[axis].apex_end.is_none().then_some(presence),
+            None => return axes[axis].apex_end.is_none().then_some((presence, axis)),
         }
     }
 }
@@ -183,6 +184,55 @@ fn shared(zone: &Zone, s: u32, c: f64) -> f64 {
         }
     };
     r * c.powf(d) * spread(lambda) / spread(r) / r
+}
+
+/// A bud that woke in `cycle`, on a bearer carried on by axis `bearer`,
+/// whose next growth unit is `next`; `share` is the part of the cycle it
+/// grew in.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Woken {
+    pub axis: usize,
+    pub bearer: usize,
+    pub next: usize,
+    pub cycle: u32,
+    pub share: f64,
+}
+
+impl Woken {
+    /// How much of its size a bud that woke keeps: all of it as far as
+    /// its bearer then carries on through the next cycle (`p`), and the
+    /// part of its waking cycle it grew otherwise, share + (1 - share) p,
+    /// so a bud that woke just before its bearer's end is small (host,
+    /// 2026-10-04).
+    pub fn kept(
+        &self,
+        axes: &[Axis],
+        draws: &[Draws],
+        successor: &[Option<usize>],
+        age: u32,
+    ) -> f64 {
+        if self.cycle >= age {
+            return 1.0;
+        }
+        let bearer = &draws[self.bearer];
+        let on = |next: Option<usize>| next.map_or(0.0, |n| draws[n].birth[0] * draws[n].birth[1]);
+        let p = match bearer.units.get(self.next) {
+            // It died before its next unit: as far as a relay took over.
+            None => on(successor[self.bearer]),
+            // It grew it, and stopped after it, or carried on.
+            Some([survive, persist]) => {
+                let stopped = axes[self.bearer].apex_end == Some(self.cycle + 1) && !bearer.failed;
+                survive
+                    * persist
+                    * if stopped {
+                        on(successor[self.bearer])
+                    } else {
+                        1.0
+                    }
+            }
+        };
+        self.share + (1.0 - self.share) * p
+    }
 }
 
 /// The closed form of `carried`: the chance that the axis a bud grows is
