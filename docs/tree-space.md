@@ -40,6 +40,8 @@ Specs: A fn-191, B fn-192, C fn-193 (beech), D fn-194 (spruce), fn-195 (oak), fn
 
 ## How a species is judged
 
+**The owner's verdict passes a species (owner, 2026-10-04).** When host and Astra have iterated without agreeing, the host puts its strongest sheet to the owner, and the owner's look decides; Astra's remaining critiques are recorded as known gaps for later work.
+
 The host views every still first and fails the obvious ones itself. A species passes a phase when the host is confident it reads as itself beside its reference photographs and Astra, reading the same sheet independently, agrees. Numbers explain a look and never decide it. The owner judges every passed species in the morning review; a rejection sends that species back without undoing the others, because every phase lives on its own chained branch.
 
 ## Running unattended (owner, 2026-10-03)
@@ -48,5 +50,6 @@ The phases are captured up front as chained specs (A to F), each depending on th
 
 - **Gates are evidence, not sign-off:** oracle and walk tests (A, B), the host-and-Astra visual pass (C to E), the workspace gate, speed and the Codex review (F).
 - **The owner's verdict comes in the morning,** on every passed species and on F's PR; nothing merges to master without it.
-- **The run stops** only on a phase's wrong-path condition, a backend outage, or `NO_WORK`; a stop writes what was tried, what failed and the decision needed.
-- **Never:** merge to master, copy external code or data, change the strategy, or pass a sheet the host would not stand behind.
+- **The run stops** only on a backend outage, `NO_WORK`, or a genuine wrong path: the host can name no next design step the evidence supports, or the engine cannot express the botany. A trait that fails after a change aimed at it is not a stop by itself (owner, 2026-10-04): the host decides the design question the failure raises, records it, and continues. A stop writes what was tried, what failed and the decision needed.
+- **Merging (owner, 2026-10-04):** a phase's PR whose checks pass and whose review passed (a host-reset review counter counts) may be merged by the run.
+- **Never:** merge a PR with failing checks, copy external code or data, change the strategy, or pass a sheet the host would not stand behind.
