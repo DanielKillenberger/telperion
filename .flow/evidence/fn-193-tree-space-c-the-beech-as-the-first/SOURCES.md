@@ -15,7 +15,7 @@ The beech is `crates/telperion-space/src/beech.rs`, one growth cycle a year. Sou
 |---|---|---|
 | trunk | A1, the young stem: orthotropic, bearing A2 systems | [M98] "orthotropic along almost all its length". A stack of Troll modules since round 5 (next row). |
 | trunk modules (round 11) | abortion 0.5 a growth unit, relay 1, `relay_at` 0.15 of the last growth unit, epitony 0.6, insertion 0.3, module tips toward elevation 1.4 rad | [M98] the relay bud stands in the curvature zone, on the upper side; the numbers are **estimated** from the stills |
-| leader (round 20) | after the 12-cycle clear bole the stem carries on as an erect module stack for 40 cycles (abortion 0.3, relay 1, tips toward 1.35 rad, straightening 1), bearing a limb (0.3) or bough (0.2) at each module top | [M98] the trunk persists through the crown and forks late; host decision 18 (Millet, Rostock); probabilities **estimated** |
+| leader (rounds 20, 22) | after the 9-cycle clear bole the stem carries on as an erect module stack for 40 cycles (abortion 0.3, relay 1, tips toward 1.35 rad, straightening 1), bearing a limb (0.3) or bough (0.2) at each module top | [M98] the trunk persists through the crown and forks late; host decision 18 (Millet, Rostock); probabilities **estimated** |
 | fork | the stem's top over 2 cycles, after the leader (round 20): one limb at its top node, boughs or a second limb below it | [M98] "a fork is created from subterminal buds"; "the relays do not differentiate themselves from one another" |
 | leader, limb, bough, spur | total reiterates, each forking into the next, each shorter-lived | [M98] "Each reiterate forks and reiterates in its turn, producing reiterates that are increasingly smaller and less branched"; "the most peripheral being the shortest". Four levels: estimated. |
 | branch | GreenLab PA 2, long ramified shoot | [LET] Fig. 2: Z20 bare, Z24 short shoots, Z23 PA 3, Z22 partial reiteration, base to tip |
@@ -24,6 +24,8 @@ The beech is `crates/telperion-space/src/beech.rs`, one growth cycle a year. Sou
 
 ## Values
 
+Every row states the value in the final `beech.rs` (round 22, `a8daf966`); earlier rounds' values are named only as history.
+
 | Value | Beech | Source or status |
 |---|---|---|
 | Zone order in every growth unit: bare base, laterals toward the top | all PAs | [LET] acrotony "as described by Rauh for beech" (Nicolini 1998) |
@@ -31,19 +33,19 @@ The beech is `crates/telperion-space/src/beech.rs`, one growth cycle a year. Sou
 | branch growth unit, 5–8 nodes | | [DTT86] long shoots "6 à 10 entre-nœuds" (seedlings) |
 | shoot zones | Z30 1; Z34 2–3, short 0.6 | [LET] Table 2: M30 ≈ 1, A34 ∈ [0.55, 0.6] |
 | short shoot, 3 nodes, never branches | | [LET], [DTT86] |
-| limb dominance 0.3 (`form.dominance`, round 21), limb internode 6 cm | | **estimated** from the stills: a few limbs take most of the vigour (Millet: the crown is a succession of reiterates, a few dominant) |
-| branch systems rolled about their parent by up to 0.7 rad, reiterates and branch systems by up to 1.2 rad (`form.roll`, rounds 13, 14 and 17) | | **estimated**, from the stills: breaks the one plane the systems of a steep limb stacked in |
+| `form.dominance` 0 (neutral) on every PA | | round 21 tried limb dominance 0.3 on 6 cm internodes; the owner passed round 20's look, so the final beech leaves it neutral |
+| reiterates and branch systems rolled about their parent by up to 1.2 rad; trunk, shoot and short shoot 0 (`form.roll`, rounds 13, 14 and 17) | | **estimated**, from the stills: breaks the one plane the systems of a steep limb stacked in |
 | phyllotaxis of branch, shoot, short | distichous (π) | [M98] "plagiotropic monopodia with distichous phyllotaxy" |
 | branch systems in one plane | trunk `plane` π/2, others 0 | [M98] "arranged in a single horizontal plane" |
 | trunk divergence 2.4 rad | | **estimated**: stands in for [M98] "the orientation of the branching plane may change from one module to the other" |
-| branch and shoot plagiotropic (elevation 0.25 and 0.15 rad) | | [M98] plagiotropic; the slight rise is **estimated** (lower values put low branches into the ground) |
-| reiterates oblique (round 12): the leader toward 1.25 rad; a limb toward 0.55 rad for 15 cycles, then 1.15; a bough toward 0.5 for 8, then 1.0; a spur toward 0.75. The leader and limbs bear boughs, boughs bear spurs | | [M98] "oblique, have a large diameter"; the crown is a succession of reiterates "increasingly smaller and less branched", the most peripheral the shortest. Angles, phase lengths and rates **estimated** |
-| limbs and boughs as Troll module stacks (round 16): abortion 0.3 (limb) and 0.35 (bough) a growth unit, relay 1, `relay_at` 0.15, epitony 0.6, insertion 0.7, straightening 0.6, tips toward 0.3 and 0.2 rad at tropism 0.6 (round 17; the leader a module stack too, tips toward 0.8); limb 70 units bearing boughs 0.16, bough 30 bearing spurs 0.14; reiterates bear short shoots 0.3 and branch systems 0.35 | | [M98] trunk and limbs are stacks of plagiotropic modules straightening at the base, the relay in the curvature zone; numbers **estimated** from the stills |
+| branch and shoot plagiotropic (elevation 0.35 and 0.15 rad) | | [M98] plagiotropic; the slight rise is **estimated** (lower values put low branches into the ground) |
+| reiterates oblique: the leader a module stack toward 1.35 rad; limbs and boughs module stacks (next row); a spur toward 0.6 rad at tropism 0.25. The leader bears limbs and boughs, limbs bear boughs, boughs bear spurs (round 12's two-phase limb, out then up, was replaced in round 16) | | [M98] "oblique, have a large diameter"; the crown is a succession of reiterates "increasingly smaller and less branched", the most peripheral the shortest. Angles, phase lengths and rates **estimated** |
+| limbs and boughs as Troll module stacks (round 16): abortion 0.3 (limb) and 0.35 (bough) a growth unit, relay 1, `relay_at` 0.15, epitony 0.6, insertion 0.7, straightening 0.6, tips toward 0.3 and 0.2 rad at tropism 0.6 (round 17; the leader a module stack too, tips toward 0.8); limb 70 units bearing boughs 0.16, bough 30 bearing spurs 0.14; reiterates bear short shoots 0.3 and branch systems 0.27 (round 22), spurs branch systems 0.45 at their top node | | [M98] trunk and limbs are stacks of plagiotropic modules straightening at the base, the relay in the curvature zone; numbers **estimated** from the stills |
 | insertion 0.7 rad (reiterates), 1.0 (branch, shoot), 0.9 (short) | | **estimated**; [RAIS21] 30.7° branch angle (abstract, reference axis unknown) not used |
-| fork after 12 cycles at about 5 m (about 0.25 H) | | **estimated** to the photographs S1 (about 0.2 H to 0.33 H); [M98] forks at about 20 m in forest |
+| clear bole 9 cycles, about 3.4 m (0.18 H, round 22); the fork after the leader's 40 cycles, near the top | | **estimated** to the photographs S1 and S2 and the owner's note on lower foliage; [M98] forks at about 20 m in forest |
 | internodes: trunk 7 cm, reiterates 4 cm, branch 3 cm, shoot 2.5 cm, short 6 mm (round 12) | | **estimated**: LITERATURE.md "internode lengths were not found in readable sources" |
 | lifespans and viabilities (round 20: leader 40 at viability 1, then the fork; limb 70 and bough 30 as module stacks, spur 25 at 0.995; branch 10, shoot 5; short 3 at 0.9; shedding after 1 idle cycle) | | **estimated**; [KINT10] beech branches "die late but shed fast" (abstract) |
-| sinuosity (`wander`) and bending (`tropism`) rates (round 17: branch 0.5, shoot 1.0) | | **estimated** |
+| sinuosity (`wander`): trunk 0.2, reiterates 1.2, branch 0.5, shoot 1.0; bending (`tropism`): trunk and module stacks 0.6, spur 0.25, branch 0.8, shoot 1.0 | | **estimated** |
 | girth (round 18): pipe exponent 2.6 on trunk and reiterates, 2 on finer wood; pipe 8 mm a phytomer on trunk and reiterates, ripened over 15 years on reiterates (round 19), 0.9 mm on branch and shoot, 0.95 mm on short shoots; branch-system viability 0.95 | | **estimated**: exponents above 2 are reported for tree branching (da Vinci rule deviations), the value chosen from the stills; dbh 1.01 m at seed 1 within TSO's 1.3 m |
 | pipe model | each phytomer's section added below it | the pipe model as [PAL09] uses it (LITERATURE.md); pipe radii **estimated** |
 | height about 20 m and width 16 to 22 m at 80 cycles | | result, against [OSU] 15–23 m tall, 12–18 m spread (landscape) |

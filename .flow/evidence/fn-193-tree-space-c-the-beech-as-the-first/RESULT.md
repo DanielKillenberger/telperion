@@ -945,3 +945,15 @@ The beech passes phase C on the owner's verdict, with round 20's values (raw/fin
 - Bare, the limbs and the continuing trunk read as in round 20.
 - The bases are smooth, with faint module seams at seeds 7 and 3.
 - dbh is 1.09 m at seed 1.
+
+## R4 for the final beech (round 22) against the pinned baseline
+
+Measured on 2026-10-04 on the same desk, release profile (`raw/final21/r4-final.log`). Peak RSS is the whole `space_beech` process at 80 cycles: growth, conversion, dressing and the GPU renderer with four stills. The baseline's RSS is mesh builds only, so RSS is not like for like.
+
+| Seed | Kept nodes (baseline) | Growth ms (baseline skeleton ms) | Dress ms (baseline full build ms) | Fine wood km (baseline) | Peak RSS MiB (baseline) | dbh |
+|---|--:|--:|--:|--:|--:|--:|
+| 1 | 1,936,193 (213,044) | 3,687 (57.3) | 1,835 (3,471) | 23.75 (46.66) | 6,627 (727) | 1.09 m |
+| 7 | 1,619,028 (215,470) | 2,816 (57.8) | 1,645 (3,474) | 21.29 (47.15) | 5,251 (733) | 0.68 m |
+
+- Growth is 49 to 64 times today's skeleton; dressing is about half of today's full build. Fine wood is about half of today's. Phase F owns speed and memory.
+- dbh now follows the trunk through its relay modules (`examples/beech.rs`). It measured 0.00 m at seed 7 before, because only the first trunk module was searched.

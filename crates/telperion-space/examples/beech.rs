@@ -4,7 +4,7 @@
 //!   cargo run --release -p telperion-space --example beech -- <out dir> [ages...]
 use std::fmt::Write;
 use std::time::Instant;
-use telperion_space::{beech, expected_counts, grow, Request, Structure};
+use telperion_space::{beech, expected_counts, grow, Origin, Request, Structure};
 
 const BUDGET: u32 = 20_000_000;
 
@@ -59,12 +59,25 @@ fn measures(tree: &Structure) -> String {
         high = high.max(p.tip.x.max(p.tip.y));
         top = top.max(p.tip.z);
     }
-    // The diameter at breast height, 1.3 m.
+    // The diameter at breast height, 1.3 m, on the stem: the seed axis and
+    // the relays and continuations that carry it on.
+    let mut stem = vec![false; tree.axes.len()];
+    stem[0] = true;
+    for (i, axis) in tree.axes.iter().enumerate().skip(1) {
+        stem[i] = match axis.origin {
+            Origin::Relay { parent, .. } | Origin::Continuation { parent } => stem[parent],
+            _ => false,
+        };
+    }
     let dbh = 2.0
-        * tree.axes[0]
-            .phytomers
+        * tree
+            .axes
             .iter()
-            .find(|p| p.tip.z >= 1.3)
+            .zip(&stem)
+            .filter(|(_, &s)| s)
+            .flat_map(|(a, _)| &a.phytomers)
+            .filter(|p| p.tip.z >= 1.3)
+            .min_by(|a, b| a.tip.z.total_cmp(&b.tip.z))
             .map_or(0.0, |p| p.radius);
     // The mean drawn length of an axis that never branches: a short shoot.
     let mut bears = vec![false; tree.axes.len()];
