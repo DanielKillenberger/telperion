@@ -1,4 +1,4 @@
-# fn-203 result (in progress, stopped for a host decision)
+# fn-203 result
 
 ## What is built
 
@@ -35,27 +35,31 @@
 - **The hook is lost,** as expected (host decision 4). Round 10 retunes.
 - `raw/r4/sheet.png` is the earlier render, with the turned lever only: boughs hung steeply beside the trunk.
 
-## Open: `wood_lands_on_the_ground_without_a_corner` (see the report)
+## Host decision 4, revised (2026-10-05): one landing bound, 0.8 rad, for every sag
 
-The corner where heavy-sag wood meets the ground is 0.52 rad, against the test's 0.35 bound. It was 1.10 with the turned lever alone, and 0.66 before the chord look-ahead.
+**Why one bound.** Under the bent-lever sag, any wood that reaches the ground arrives near vertical and bends where it lands, as a heavy rope reaching a floor does. A light-sag bound of 0.35 measured a regime that no longer exists. The numeric bound guards against regressions; the stills judge the look. Measured on the walk tree's limbs:
 
-## Host decision 4 (2026-10-05): a bounded bend where heavy wood meets the ground
+| Sag | New: limbs landing | New: sharpest | Old (fn-200): limbs landing | Old: sharpest |
+|---|---|---|---|---|
+| 3e-4 | 1 | 0.21 | 0 | — |
+| 6e-4 (the spruce's) | 4 | 0.72 | 0 | — |
+| 1e-3 | 4 | 0.43 | 4 | 0.18 |
+| 2e-3 | 14 | 0.49 | 1 | 0.40 |
+| 1e-2 | 19 | 0.56 | 0 | — |
+| 5.0 | 18 | 0.52 | 6 | 0.13 |
 
-- **The decision.** Option (d): a branch hanging near vertical bends sharply where it meets the ground, as a heavy rope reaching a floor does. The light-sag case keeps the 0.35 rad bound. The heavy case (sag 5.0) is bounded at 0.6, from the 0.52 measured.
-- **Built.** `heavy_wood_meets_the_ground_with_a_bounded_bend`: 18 limbs land, sharpest 0.517 rad. It passes.
-- **Finding: light sag does not land gently either.** Under the large-deflection sag, every sag that brings the walk tree's limbs to the ground brings them steeply.
+**Built.**
 
-  | Sag | New: limbs landing | New: sharpest | Old (fn-200): limbs landing | Old: sharpest |
-  |---|---|---|---|---|
-  | 6e-4 | 4 | 0.72 | 0 | — |
-  | 1e-3 | 4 | 0.43 | 4 | 0.18 |
-  | 2e-3 | 14 | 0.49 | 1 | 0.40 |
-  | 1e-2 | 19 | 0.56 | 0 | — |
-  | 5.0 | 18 | 0.52 | 6 | 0.13 |
-
-- **So the light-sag case cannot hold 0.35.** `wood_lands_on_the_ground_without_a_corner` is ignored with that reason, pending the host.
+- `wood_lands_on_the_ground_without_a_corner`: at sag 6e-4, 1e-3 and 2e-3, at least 4 limbs land and every bend is under 0.8 rad. The worst is 0.717 at 6e-4.
+- `heavy_wood_meets_the_ground_with_a_bounded_bend`: at sag 5.0, 18 limbs land, sharpest 0.517 rad, under its 0.6 bound.
 
 **The spruce's base close-ups** (`raw/r4b/spruce-80-1-base.png`, `spruce-80-4-base.png`, viewed full size):
 
 - **On the ground:** no visible kinks. Boughs come down in smooth arcs and run out along the ground.
 - **At the trunk:** a few of the lowest boughs on seed 1 make a rounded knee just out from the trunk, where they drop. That is the drop under load, not a corner.
+
+## R3
+
+- The landing walk now runs limb sag up to 6e-4, the spruce's heaviest value (it was 3e-4). It holds the bound of 30 and its jump check.
+- All 63 crate tests pass.
+- The beech stills are byte-identical (`raw/beech`).

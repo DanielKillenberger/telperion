@@ -231,18 +231,21 @@ fn landing(species: &Species) -> (f64, usize) {
     (sharpest, landed)
 }
 
-/// Wood lands on the ground tangent, not at a corner: along a branch that
-/// comes down to rest under a sag like the spruce's, no joint near the
-/// ground turns it sharply.
+/// Wood lands on the ground without a kink: along a branch that comes
+/// down to rest under sags from the spruce's up, no joint near the ground
+/// turns it by more than 0.8 rad. Under the bent-lever sag any wood that
+/// reaches the ground arrives near vertical and bends where it lands, as
+/// a heavy rope does (0.43 to 0.72 rad measured); the bound guards against
+/// regressions, and the stills judge the look (host, 2026-10-05, fn-203
+/// decision 4).
 #[test]
-#[ignore = "fn-203: under the large-deflection sag light-sag wood also lands steeply (0.43 to 0.72 rad); host decision pending"]
 fn wood_lands_on_the_ground_without_a_corner() {
     for sag in [6e-4, 1e-3, 2e-3] {
         let (sharpest, landed) = landing(&level_limbs(sag));
         println!("sag {sag}: {landed} land, sharpest {sharpest:.3} rad");
         assert!(landed > 3, "sag {sag}: {landed} branches reach the ground");
         assert!(
-            sharpest < 0.35,
+            sharpest < 0.8,
             "sag {sag}: a corner of {sharpest} rad at the ground"
         );
     }
@@ -276,7 +279,8 @@ fn landing_on_the_ground_walks_by_degree() {
     let mut setting = walk::setting(
         "limb sag onto the ground".into(),
         0.0,
-        3e-4,
+        // Up to the spruce's heaviest (fn-203 R3).
+        6e-4,
         false,
         |s, v| *s = landing(v),
     );
