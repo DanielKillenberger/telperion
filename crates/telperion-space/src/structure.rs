@@ -15,7 +15,15 @@ impl Vec3 {
         Self { x, y, z }
     }
     pub fn length(self) -> f64 {
-        (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
+        self.dot(self).sqrt()
+    }
+    pub fn dot(self, o: Self) -> f64 {
+        self.x * o.x + self.y * o.y + self.z * o.z
+    }
+    /// The unit vector along this one; none for a vector of no length.
+    pub fn unit(self) -> Option<Self> {
+        let length = self.length();
+        (length > 1e-12).then(|| self * (1.0 / length))
     }
     pub fn cross(self, o: Self) -> Self {
         Self::new(
@@ -61,9 +69,10 @@ pub enum Origin {
     },
     /// The parent's apex, changed to this axis's PA.
     Continuation { parent: usize },
-    /// A relay bud of the parent's PA at its last node (its base if it grew
-    /// none), made when its apex stopped.
-    Relay { parent: usize },
+    /// A relay bud of the parent's PA, made when its apex stopped, standing
+    /// at the parent PA's `relay_at` along it: at phytomer `node`'s span
+    /// (set when the tree is placed).
+    Relay { parent: usize, node: usize },
 }
 
 impl Origin {
@@ -73,7 +82,7 @@ impl Origin {
             Origin::Seed => None,
             Origin::Lateral { parent, .. }
             | Origin::Continuation { parent }
-            | Origin::Relay { parent } => Some(parent),
+            | Origin::Relay { parent, .. } => Some(parent),
         }
     }
 }
@@ -91,6 +100,10 @@ pub struct Axis {
     /// The axis's size at birth relative to what bears it, 0 to 1: a branch
     /// a setting has just made, or is about to unmake or shed, is small.
     pub vigour: f64,
+    /// A relay's place between the continuation it replaces (0) and its
+    /// own bud's place and heading (1): the presence of the stop that made
+    /// it. 1 for every other axis.
+    pub(crate) blend: f64,
     /// The cycle the apex stopped (died, ended, or changed PA); none, it lives.
     pub apex_end: Option<u32>,
     pub base: Vec3,
@@ -114,9 +127,17 @@ pub struct Phytomer {
     pub cycle: u32,
     /// Its node, the internode's upper end.
     pub tip: Vec3,
+    /// The unit direction its internode grew in, and the unit side its
+    /// node's first bud faces, carried along the axis as it bends.
+    pub heading: Vec3,
+    pub side: Vec3,
+    /// Its internode's radius in metres, by the pipe model.
+    pub radius: f64,
     /// Its length and girth relative to a fully grown phytomer, 0 to 1:
     /// every presence on its lineage multiplied.
     pub scale: f64,
+    /// The key of its node's draw: the same node under any settings.
+    pub(crate) key: u64,
     /// Its place in the phyllotaxis: the nodes below it counted by their
     /// presence, so a node growing in turns the ones above it by degree.
     pub(crate) rank: f64,

@@ -4,7 +4,7 @@
 #![allow(dead_code)]
 mod measure;
 pub use measure::*;
-use telperion_space::{grow, NodeLaw, PaState, Request, Species, Structure, Zone};
+use telperion_space::{grow, Form, NodeLaw, PaState, Request, Species, Structure, Zone};
 
 pub const STEPS: u32 = 200;
 pub const AGE: u32 = 12;
@@ -34,10 +34,15 @@ pub fn species() -> Species {
         insertion: 0.0,
         divergence: 2.4,
         abortion: 0.0,
+        abortion_rise: 0.0,
         relay: 0.0,
+        relay_at: 1.0,
+        epitony: 0.0,
+        erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         straightening: 0.0,
+        form: Form::default(),
     };
     let limb = PaState {
         lifespan: 6,
@@ -49,10 +54,15 @@ pub fn species() -> Species {
         insertion: 0.7,
         divergence: 2.4,
         abortion: 0.1,
+        abortion_rise: 0.0,
         relay: 0.3,
+        relay_at: 1.0,
+        epitony: 0.0,
+        erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         straightening: 0.3,
+        form: Form::default(),
     };
     let twig = PaState {
         lifespan: 3,
@@ -68,10 +78,15 @@ pub fn species() -> Species {
         insertion: 0.6,
         divergence: 2.4,
         abortion: 0.0,
+        abortion_rise: 0.0,
         relay: 0.0,
+        relay_at: 1.0,
+        epitony: 0.0,
+        erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         straightening: 0.0,
+        form: Form::default(),
     };
     Species {
         states: vec![trunk, limb, twig],
@@ -87,6 +102,9 @@ pub struct Setting {
     pub low: f64,
     pub high: f64,
     pub odds: bool,
+    /// Walk units per unit of the setting: a rate per metre is walked in
+    /// radians over the metres its axis grows.
+    pub stretch: f64,
     set: Box<SetValue>,
 }
 
@@ -111,7 +129,7 @@ impl Setting {
         if self.odds {
             logit(value)
         } else {
-            value
+            value * self.stretch
         }
     }
 
@@ -120,7 +138,7 @@ impl Setting {
         if self.odds {
             1.0 / (1.0 + (-x).exp())
         } else {
-            x
+            x / self.stretch
         }
     }
 
@@ -153,6 +171,7 @@ pub fn setting(
         low,
         high,
         odds,
+        stretch: 1.0,
         set: Box::new(set),
     }
 }
@@ -204,10 +223,58 @@ pub fn settings() -> Vec<Setting> {
                 |s, pa, v| s.states[pa].divergence = v,
             ),
         ];
-        for (field, low, high, odds, set) in table {
-            all.push(setting(at(field), low, high, odds, move |s, v| {
-                set(s, pa, v)
-            }));
+        // A trunk bent or wandering far enough leans its crown into the ground.
+        let (bend, wander) = [(0.03, 0.1), (1.0, 1.0), (1.0, 1.0)][pa];
+        // About the metres an axis of each PA grows in the walk tree.
+        let metres = [54.0, 5.0, 1.0][pa];
+        let form: [(&str, f64, f64, bool, Set); 12] = [
+            ("abortion_rise", 0.0, 3.0, false, |s, pa, v| {
+                s.states[pa].abortion_rise = v
+            }),
+            ("erection", 0.0, 0.5, false, |s, pa, v| {
+                s.states[pa].erection = v
+            }),
+            ("relay_at", 0.0, 1.0, false, |s, pa, v| {
+                s.states[pa].relay_at = v
+            }),
+            ("epitony", 0.0, 1.0, false, |s, pa, v| {
+                s.states[pa].epitony = v
+            }),
+            ("form.tropism", 0.0, bend, false, |s, pa, v| {
+                s.states[pa].form.tropism = v
+            }),
+            ("form.elevation", 0.0, 1.5, false, |s, pa, v| {
+                s.states[pa].form.elevation = v
+            }),
+            ("form.wander", 0.0, wander, false, |s, pa, v| {
+                s.states[pa].form.wander = v
+            }),
+            (
+                "form.plane",
+                0.0,
+                std::f64::consts::PI,
+                false,
+                |s, pa, v| s.states[pa].form.plane = v,
+            ),
+            ("form.dominance", 0.0, 1.0, false, |s, pa, v| {
+                s.states[pa].form.dominance = v
+            }),
+            ("form.ripening", 0.0, 20.0, false, |s, pa, v| {
+                s.states[pa].form.ripening = v
+            }),
+            ("form.exponent", 2.0, 3.0, false, |s, pa, v| {
+                s.states[pa].form.exponent = v
+            }),
+            ("form.roll", 0.0, std::f64::consts::PI, false, |s, pa, v| {
+                s.states[pa].form.roll = v
+            }),
+        ];
+        for (field, low, high, odds, set) in table.into_iter().chain(form) {
+            let mut walked = setting(at(field), low, high, odds, move |s, v| set(s, pa, v));
+            if matches!(field, "form.tropism" | "form.wander") {
+                walked.stretch = metres;
+            }
+            all.push(walked);
         }
         for (z, zone) in state.zones.iter().enumerate() {
             let zat = |field: &str| format!("states[{pa}].zones[{z}].{field}");
@@ -239,6 +306,24 @@ pub fn settings() -> Vec<Setting> {
             }
         }
     }
+    // A stop that is always relayed, as Troll's modules are: the
+    // module-ending chance crossing a draw moves the crown by degree from
+    // the continuation to a relay in the module's curvature zone.
+    all.push(setting(
+        "states[0].abortion, relay 1".into(),
+        EDGE,
+        0.5,
+        true,
+        |s, v| {
+            let trunk = &mut s.states[0];
+            trunk.relay = 1.0;
+            trunk.relay_at = 0.5;
+            trunk.epitony = 0.6;
+            trunk.insertion = 0.3;
+            trunk.straightening = 1.0;
+            trunk.abortion = v;
+        },
+    ));
     all
 }
 

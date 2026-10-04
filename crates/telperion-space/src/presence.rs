@@ -56,10 +56,18 @@ impl Windows {
     /// The presence of a draw `lead` log-odds past its bound that decides
     /// `share` of the tree's expected wood.
     pub fn presence(&self, lead: f64, share: f64) -> f64 {
-        if lead == f64::INFINITY {
+        self.decided(lead, share, 1.0)
+    }
+
+    /// The presence of a draw `lead` log-odds past its bound that decides
+    /// `decided` of the `wood` share it would carry: its window is that
+    /// share of the whole window, floor included, so a draw that decides
+    /// no wood (a stop that is always relayed) has none.
+    pub fn decided(&self, lead: f64, wood: f64, decided: f64) -> f64 {
+        let window = (RATE * wood * decided).clamp(FLOOR * decided, SPAN);
+        if lead == f64::INFINITY || window <= 0.0 {
             return 1.0;
         }
-        let window = (RATE * share).clamp(FLOOR, SPAN);
         (lead / window).clamp(0.0, 1.0)
     }
 }
@@ -108,7 +116,7 @@ pub(crate) fn assign(axes: &mut [Axis], draws: &[Draws]) {
         let made = draws[i].birth[0] * draws[i].birth[1];
         axis.vigour = match axis.origin {
             Origin::Seed | Origin::Lateral { .. } => made,
-            Origin::Continuation { parent } | Origin::Relay { parent } => end[parent] * made,
+            Origin::Continuation { parent } | Origin::Relay { parent, .. } => end[parent] * made,
         };
     }
 }

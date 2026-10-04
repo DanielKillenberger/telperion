@@ -1,7 +1,7 @@
 //! fn-192 R1: every draw is keyed to the bud's lineage, its path from the
 //! root, so adding a branch anywhere reshuffles nothing else.
 use std::collections::HashMap;
-use telperion_space::{grow, NodeLaw, Origin, PaState, Request, Species, Structure, Zone};
+use telperion_space::{grow, Form, NodeLaw, Origin, PaState, Request, Species, Structure, Zone};
 
 fn state(lifespan: u32, viability: f64, nodes: NodeLaw, lateral: &[f64]) -> PaState {
     PaState {
@@ -18,10 +18,15 @@ fn state(lifespan: u32, viability: f64, nodes: NodeLaw, lateral: &[f64]) -> PaSt
         insertion: 0.7,
         divergence: 2.4,
         abortion: 0.0,
+        abortion_rise: 0.0,
         relay: 0.0,
+        relay_at: 1.0,
+        epitony: 0.0,
+        erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         straightening: 0.0,
+        form: Form::default(),
     }
 }
 
@@ -52,7 +57,7 @@ fn by_path(tree: &Structure) -> HashMap<String, usize> {
                 parent, node, slot, ..
             } => format!("{}/{node}.{slot}", paths[parent]),
             Origin::Continuation { parent } => format!("{}/c", paths[parent]),
-            Origin::Relay { parent } => format!("{}/r", paths[parent]),
+            Origin::Relay { parent, .. } => format!("{}/r", paths[parent]),
         };
         paths.push(path);
     }

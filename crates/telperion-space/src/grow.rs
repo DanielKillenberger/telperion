@@ -8,10 +8,9 @@
 //! element in from nothing.
 use crate::error::{refuse, Error, Result};
 use crate::geometry::place;
-use crate::lineage::{
-    self, above, below, Key, ABORTION, CONTINUATION, RELAY, RELAY_BUD, VIABILITY, ZONE,
-};
-use crate::presence::{assign, Draws, Windows};
+use crate::girth::thicken;
+use crate::lineage::{self, above, below, Key, ABORTION, CONTINUATION, RELAY, VIABILITY, ZONE};
+use crate::presence::{assign, Draws, Windows, SPAN};
 use crate::shed::shed;
 use crate::species::{PaState, Species, MAX_BUDS, MAX_NODES_PER_ZONE};
 use crate::structure::{Axis, Origin, Phytomer, Structure, Vec3};
@@ -52,6 +51,7 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
             ..Draws::default()
         }],
         live: vec![Apex { axis: 0, units: 0 }],
+        units: vec![0],
         next: Vec::new(),
         leads: Vec::new(),
         node_buds: Vec::new(),
@@ -74,6 +74,7 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
         return Err(Error::Collapsed);
     }
     place(&mut structure, species)?;
+    thicken(&mut structure, species);
     // Wood that stands exactly at its draw has no size.
     if structure
         .axes
@@ -86,6 +87,15 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
     Ok(structure)
 }
 
+/// The share of an apex's expected wood a stop decides: a stop with no
+/// relay ends it all, and a stop that relays decides only the difference
+/// between stopping and relaying and carrying on. A relay carries on the
+/// axis's PA and growth units, so it is expected to grow what the apex
+/// would have, and the difference is the share that does not relay.
+fn stop_stake(relay: f64) -> f64 {
+    1.0 - relay
+}
+
 fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
     Axis {
         lineage: key.0,
@@ -93,6 +103,7 @@ fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
         birth,
         origin,
         vigour: 1.0,
+        blend: 1.0,
         apex_end: None,
         base: Vec3::default(),
         heading: Vec3::default(),
@@ -114,6 +125,9 @@ struct Grower<'a> {
     draws: Vec<Draws>,
     live: Vec<Apex>,
     next: Vec<Apex>,
+    /// Each axis's growth units in its PA when its apex stopped, or at its
+    /// birth while it lives: what a relay of it carries on.
+    units: Vec<u32>,
     /// One zone's node leads and its nodes (order draw, draw index, lead,
     /// buds), reused.
     leads: Vec<f64>,
@@ -132,23 +146,31 @@ impl Grower<'_> {
             let u = unit.child(VIABILITY).unit();
             if u >= state.viability {
                 self.axes[apex.axis].apex_end = Some(cycle - 1);
-                self.stop(apex, cycle, above(u, state.viability));
+                // The unit that failed is spent: a relay's first unit draws
+                // anew.
+                self.stop(apex, cycle, above(u, state.viability), unit, apex.units + 1);
                 continue;
             }
             let survive = below(u, state.viability);
-            let survive = self.windows.presence(survive, self.windows.wood(pa, cycle));
+            let wood = self.windows.wood(pa, cycle);
+            let survive = self.windows.decided(survive, wood, stop_stake(state.relay));
             self.draws[apex.axis].units.push([survive, 1.0]);
             self.grow_unit(apex, pa, unit, cycle)?;
             apex.units += 1;
-            if state.abortion > 0.0 {
+            // An apex that has spent its PA's lifespan moves on; it does not
+            // also abort.
+            let abortion = state.abortion_at(self.draws[apex.axis].units.len());
+            if abortion > 0.0 && apex.units < state.lifespan {
                 let u = unit.child(ABORTION).unit();
-                if u < state.abortion {
+                if u < abortion {
                     self.axes[apex.axis].apex_end = Some(cycle);
-                    self.stop(apex, cycle, below(u, state.abortion));
+                    self.stop(apex, cycle, below(u, abortion), unit, apex.units);
                     continue;
                 }
                 let wood = self.windows.wood(pa, cycle + 1);
-                let persist = self.windows.presence(above(u, state.abortion), wood);
+                let persist =
+                    self.windows
+                        .decided(above(u, abortion), wood, stop_stake(state.relay));
                 let units = &mut self.draws[apex.axis].units;
                 units.last_mut().unwrap()[1] = persist;
             }
@@ -163,7 +185,7 @@ impl Grower<'_> {
                     let origin = Origin::Continuation { parent: apex.axis };
                     self.sprout(key, next, cycle, origin, [1.0; 2]);
                 }
-                None => self.stop(apex, cycle, f64::INFINITY),
+                None => self.stop(apex, cycle, f64::INFINITY, unit, apex.units),
             }
         }
         self.live = std::mem::replace(&mut self.next, live);
@@ -173,10 +195,16 @@ impl Grower<'_> {
 
     /// A new bud that grows from the next cycle, made by draws with these
     /// presences.
+    /// A relay carries on its axis's growth units in its PA.
     fn sprout(&mut self, key: Key, pa: usize, cycle: u32, origin: Origin, made: [f64; 2]) {
+        let units = match origin {
+            Origin::Relay { parent, .. } => self.units[parent],
+            _ => 0,
+        };
+        self.units.push(units);
         self.next.push(Apex {
             axis: self.axes.len(),
-            units: 0,
+            units,
         });
         self.axes.push(bud(key, pa, cycle, origin));
         self.draws.push(Draws {
@@ -185,26 +213,38 @@ impl Grower<'_> {
         });
     }
 
-    /// The apex has stopped, `stopped` log-odds past its last draw; a relay
-    /// bud of its PA may take over at its last node, or at its base if it
-    /// grew none.
-    fn stop(&mut self, apex: Apex, cycle: u32, stopped: f64) {
+    /// The apex has stopped in the growth unit keyed `unit`, `stopped`
+    /// log-odds past its last draw, having spent `spent` units; a relay bud
+    /// of its PA may take over. The relay is the axis's continuation: it
+    /// carries its lineage and the units spent, so its growth units draw
+    /// what the apex's would have, and it stands between the axis's tip
+    /// and its PA's `relay_at` along it by the stop's presence
+    /// (`geometry.rs`).
+    fn stop(&mut self, apex: Apex, cycle: u32, stopped: f64, unit: Key, spent: u32) {
+        self.units[apex.axis] = spent;
         let axis = &self.axes[apex.axis];
         let relay = self.species.states[axis.pa].relay;
         if relay <= 0.0 {
             return;
         }
         let key = Key(axis.lineage);
-        let u = key.child(RELAY).unit();
+        let u = unit.child(RELAY).unit();
         if u < relay {
-            let origin = Origin::Relay { parent: apex.axis };
+            let origin = Origin::Relay {
+                parent: apex.axis,
+                node: 0,
+            };
             let pa = axis.pa;
             let wood = self.windows.wood(pa, cycle + 1);
             let made = [
-                self.windows.presence(stopped, wood),
+                self.windows.decided(stopped, wood, stop_stake(relay)),
                 self.windows.presence(below(u, relay), wood),
             ];
-            self.sprout(key.child(RELAY_BUD), pa, cycle, origin, made);
+            // The relay moves over the widest window: its move is a growth
+            // unit's length whatever wood it carries.
+            let blend = (stopped / SPAN).clamp(0.0, 1.0);
+            self.sprout(key, pa, cycle, origin, made);
+            self.axes.last_mut().unwrap().blend = blend;
         }
     }
 
@@ -251,7 +291,11 @@ impl Grower<'_> {
                 axis.phytomers.push(Phytomer {
                     cycle,
                     tip: Vec3::default(),
+                    heading: Vec3::default(),
+                    side: Vec3::default(),
+                    radius: 0.0,
                     scale: 1.0,
+                    key: zone_key.child(drawn).0,
                     rank: 0.0,
                 });
                 let node_presence = self.windows.presence(node_lead, node_wood);

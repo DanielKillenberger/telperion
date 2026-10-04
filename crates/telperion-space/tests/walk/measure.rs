@@ -1,5 +1,6 @@
 //! The shape measures a walk compares: total length, height, spread, and
-//! each branch's base, tip and own length by lineage.
+//! each branch's base, tip and own length by lineage, a relay counted with
+//! the axis it continues.
 use super::Setting;
 use std::collections::HashMap;
 use telperion_space::{Structure, Vec3};
@@ -29,7 +30,16 @@ impl Shape {
                 from = p.tip;
             }
             shape.length += own;
-            shape.branches.insert(axis.lineage, (axis.base, from, own));
+            // A relay carries its axis's lineage on: the branch runs from
+            // the axis's base to the relay's tip.
+            shape
+                .branches
+                .entry(axis.lineage)
+                .and_modify(|(_, tip, length)| {
+                    *tip = from;
+                    *length += own;
+                })
+                .or_insert((axis.base, from, own));
         }
         shape
     }

@@ -10,9 +10,13 @@ pub(crate) const VIABILITY: u64 = 0;
 pub(crate) const ABORTION: u64 = 1;
 /// Zone `z` of a growth unit is keyed `ZONE + z`.
 pub(crate) const ZONE: u64 = 16;
-/// The draws of one axis, under its lineage.
+/// The draws of one axis, under its lineage, and its relay draw, under
+/// the growth unit it stopped in.
 pub(crate) const RELAY: u64 = u64::MAX - 2;
-pub(crate) const RELAY_BUD: u64 = u64::MAX - 1;
+/// A lateral's roll about its parent, under its lineage.
+pub(crate) const ROLL: u64 = u64::MAX - 4;
+/// A lateral's share of vigour among its siblings, under its lineage.
+pub(crate) const DOMINANCE: u64 = u64::MAX - 5;
 pub(crate) const CONTINUATION: u64 = u64::MAX;
 
 /// A hashed path from the root.

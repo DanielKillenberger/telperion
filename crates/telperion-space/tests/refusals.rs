@@ -2,7 +2,7 @@
 //! tree that collapses, outgrows its budget or puts wood below the ground
 //! is an error, never a substitute.
 use std::f64::consts::PI;
-use telperion_space::{grow, Error, NodeLaw, PaState, Request, Species, Zone};
+use telperion_space::{grow, Error, Form, NodeLaw, PaState, Request, Species, Zone};
 
 fn species() -> Species {
     let state = |lifespan, next, lateral: &[f64]| PaState {
@@ -19,10 +19,15 @@ fn species() -> Species {
         insertion: PI / 4.0,
         divergence: PI,
         abortion: 0.0,
+        abortion_rise: 0.0,
         relay: 0.0,
+        relay_at: 1.0,
+        epitony: 0.0,
+        erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         straightening: 0.0,
+        form: Form::default(),
     };
     Species {
         states: vec![state(6, None, &[0.0, 0.5]), state(2, Some(1), &[0.0, 0.0])],
@@ -38,7 +43,7 @@ const REQUEST: Request = Request {
 #[test]
 fn every_input_the_engine_cannot_draw_is_refused_by_name() {
     type Edit = fn(&mut Species);
-    let cases: [(Edit, &str); 22] = [
+    let cases: [(Edit, &str); 35] = [
         (|s| s.states.clear(), "states"),
         (|s| s.states[0].lifespan = 0, "states[0].lifespan"),
         (|s| s.states[1].next = Some(0), "states[1].next"),
@@ -82,6 +87,40 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
             |s| s.states[0].straightening = -1.0,
             "states[0].straightening",
         ),
+        (
+            |s| s.states[0].form.tropism = -0.1,
+            "states[0].form.tropism",
+        ),
+        (
+            |s| s.states[1].form.wander = f64::NAN,
+            "states[1].form.wander",
+        ),
+        (|s| s.states[0].form.pipe = 2.0, "states[0].form.pipe"),
+        (
+            |s| s.states[1].form.elevation = 2.0,
+            "states[1].form.elevation",
+        ),
+        (|s| s.states[0].form.plane = 1e9, "states[0].form.plane"),
+        (|s| s.states[1].form.roll = -0.1, "states[1].form.roll"),
+        (
+            |s| s.states[0].form.exponent = 1.0,
+            "states[0].form.exponent",
+        ),
+        (
+            |s| s.states[1].form.ripening = -1.0,
+            "states[1].form.ripening",
+        ),
+        (
+            |s| s.states[1].form.dominance = 1.5,
+            "states[1].form.dominance",
+        ),
+        (|s| s.states[1].relay_at = 1.5, "states[1].relay_at"),
+        (|s| s.states[0].epitony = -0.5, "states[0].epitony"),
+        (
+            |s| s.states[1].abortion_rise = 9.0,
+            "states[1].abortion_rise",
+        ),
+        (|s| s.states[0].erection = -1.0, "states[0].erection"),
     ];
     for (edit, input) in cases {
         let mut s = species();

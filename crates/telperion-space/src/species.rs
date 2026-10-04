@@ -5,7 +5,7 @@
 //! along the reference axis towards older PAs (AmapSim's oriented automaton;
 //! GreenLab's dual-scale automaton, de Reffye et al. 2021).
 use crate::error::{refuse, Result};
-use std::f64::consts::{PI, TAU};
+use std::f64::consts::{FRAC_PI_2, PI, TAU};
 
 /// The most buds one node carries: a whorl of six.
 pub const MAX_BUDS: u8 = 6;
@@ -14,6 +14,17 @@ const MAX_MEAN_NODES: f64 = 500.0;
 const MAX_STATES: usize = 64;
 /// The longest internode, in metres: a budget of phytomers this long stays finite.
 const MAX_INTERNODE: f64 = 100.0;
+/// The fastest bend or wander, in radians (or shares) per metre.
+const MAX_RATE: f64 = 100.0;
+/// The widest pipe one phytomer adds, in metres.
+const MAX_PIPE: f64 = 1.0;
+/// The longest ripening of a phytomer's own wood, in years.
+const MAX_RIPENING: f64 = 1_000.0;
+/// The pipe model's exponents: below 1.5 a fork outgrows what bears it.
+const MIN_EXPONENT: f64 = 1.5;
+const MAX_EXPONENT: f64 = 4.0;
+/// The steepest rise of the abortion hazard.
+const MAX_RISE: f64 = 8.0;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Species {
@@ -44,10 +55,27 @@ pub struct PaState {
     /// The probability that the apex aborts after each growth unit, so its
     /// laterals carry the axis on: sympodial growth. Neutral 0.
     pub abortion: f64,
+    /// How the abortion probability rises with the growth units an axis
+    /// has grown, k: 1 - (1 - abortion)^(k^rise), a hazard that gives
+    /// modules a regular length. Neutral 0, a flat rate; dormant without
+    /// abortion.
+    pub abortion_rise: f64,
     /// The probability that a stopped apex is replaced by a relay bud of its
     /// own PA at its last node, as Troll's relays are. Neutral 0; dormant
     /// where no apex stops.
     pub relay: f64,
+    /// Where along its stopped axis a relay bud stands, as a share of the
+    /// nodes of the axis's last growth unit from their base: Troll's relay
+    /// "in the curvature zone" of the module it takes over from. Neutral 1, the last node; dormant
+    /// without relays.
+    pub relay_at: f64,
+    /// How far a relay bud turns from its phyllotactic side to the upper
+    /// side of its parent (epitony). Neutral 0; dormant without relays.
+    pub epitony: f64,
+    /// Troll's secondary erection: how fast, per cycle of the axis's age,
+    /// its base straightens further towards the vertical, on top of its
+    /// straightening (and on the seed, which has none). Neutral 0.
+    pub erection: f64,
     /// How ready the axis is to branch: its lateral probabilities scaled.
     /// Zero is Corner's unbranched stem. Neutral 1; dormant without laterals.
     pub readiness: f64,
@@ -58,6 +86,65 @@ pub struct PaState {
     /// How far the base of a lateral axis of this PA straightens towards
     /// the vertical, as Troll's plagiotropic axes do. Neutral 0.
     pub straightening: f64,
+    /// How an axis of this PA bends, wanders, turns its laterals' plane and
+    /// thickens.
+    pub form: Form,
+}
+
+/// The shape an axis takes as it is laid, beyond its angles: each a
+/// continuous setting, neutral where it changes nothing.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Form {
+    /// How fast the axis bends towards `elevation`: the share of the gap
+    /// closed is 1 - exp(-tropism × metres grown). Neutral 0.
+    pub tropism: f64,
+    /// The elevation the axis bends towards, in radians above the
+    /// horizontal: plagiotropic near 0, orthotropic at pi / 2.
+    pub elevation: f64,
+    /// Sinuosity: each node turns the axis by up to this many radians per
+    /// metre of its internode, in a direction its draw keys. Neutral 0.
+    pub wander: f64,
+    /// The turn, in radians about its heading, of the plane a lateral of
+    /// this axis branches in. Neutral 0: the plane holds its parent.
+    pub plane: f64,
+    /// The pipe each phytomer of this PA adds below it, as a radius in
+    /// metres (the pipe model: a section is the sum of the sections it bears).
+    pub pipe: f64,
+    /// The pipe model's exponent at this PA's wood: its radius to this
+    /// power is the sum of the radii it carries to this power. 2 sums
+    /// areas; a larger one keeps what it carries thicker beside it, so
+    /// its limbs taper less abruptly from it. Neutral 2.
+    pub exponent: f64,
+    /// The years over which a phytomer lays down its own pipe, from a
+    /// share at its first year to all of it: a limb stays heavy where it
+    /// is old and ends in fine young tips. Neutral 0, at once.
+    pub ripening: f64,
+    /// How unequal laterals of this PA are among their siblings: each
+    /// keeps a share of its size, from all of it (0) towards a keyed share
+    /// few hold whole (1), so a few dominate and the rest stay small.
+    /// Neutral 0.
+    pub dominance: f64,
+    /// How far a lateral of this PA turns about its parent, by up to this
+    /// many radians either way as its lineage keys, so laterals of one
+    /// parent do not stack in one plane. Neutral 0.
+    pub roll: f64,
+}
+
+impl Default for Form {
+    /// Straight axes in their parent's plane, each phytomer a 5 mm pipe.
+    fn default() -> Self {
+        Self {
+            tropism: 0.0,
+            elevation: 0.0,
+            wander: 0.0,
+            plane: 0.0,
+            pipe: 0.005,
+            exponent: 2.0,
+            ripening: 0.0,
+            dominance: 0.0,
+            roll: 0.0,
+        }
+    }
 }
 
 /// A zone of a growth unit: its node count and the PA of each node's buds.
@@ -151,9 +238,20 @@ impl PaState {
                 "an insertion angle lies in 0 to pi",
             );
         }
+        let rates = [
+            ("abortion_rise", self.abortion_rise, MAX_RISE),
+            ("erection", self.erection, MAX_RATE),
+        ];
+        for (name, value, most) in rates {
+            if !(0.0..=most).contains(&value) {
+                return refuse(format!("{at}.{name}"), "a rate lies in its bounded range");
+            }
+        }
         let shares = [
             ("abortion", self.abortion),
             ("relay", self.relay),
+            ("relay_at", self.relay_at),
+            ("epitony", self.epitony),
             ("readiness", self.readiness),
             ("rhythm", self.rhythm),
             ("straightening", self.straightening),
@@ -169,11 +267,57 @@ impl PaState {
                 "a divergence angle lies in -2 pi to 2 pi",
             );
         }
+        self.form.validate(&format!("{at}.form"))
+    }
+}
+
+impl Form {
+    fn validate(&self, at: &str) -> Result<()> {
+        let rates = [
+            ("tropism", self.tropism, MAX_RATE),
+            ("wander", self.wander, MAX_RATE),
+            ("pipe", self.pipe, MAX_PIPE),
+            ("ripening", self.ripening, MAX_RIPENING),
+        ];
+        for (name, value, most) in rates {
+            if !(0.0..=most).contains(&value) {
+                return refuse(format!("{at}.{name}"), "a rate lies in its bounded range");
+            }
+        }
+        if !(-FRAC_PI_2..=FRAC_PI_2).contains(&self.elevation) {
+            return refuse(
+                format!("{at}.elevation"),
+                "an elevation lies in -pi / 2 to pi / 2",
+            );
+        }
+        if !(MIN_EXPONENT..=MAX_EXPONENT).contains(&self.exponent) {
+            return refuse(format!("{at}.exponent"), "a pipe exponent lies in 1.5 to 4");
+        }
+        if !(0.0..=1.0).contains(&self.dominance) {
+            return refuse(format!("{at}.dominance"), "a share lies in 0 to 1");
+        }
+        if !(0.0..=PI).contains(&self.roll) {
+            return refuse(format!("{at}.roll"), "a roll lies in 0 to pi");
+        }
+        if !(-TAU..=TAU).contains(&self.plane) {
+            return refuse(
+                format!("{at}.plane"),
+                "a plane's turn lies in -2 pi to 2 pi",
+            );
+        }
         Ok(())
     }
 }
 
 impl PaState {
+    /// The probability the apex aborts after an axis's `k`th growth unit.
+    pub fn abortion_at(&self, k: usize) -> f64 {
+        if self.abortion_rise == 0.0 || self.abortion <= 0.0 {
+            return self.abortion;
+        }
+        1.0 - (1.0 - self.abortion).powf((k as f64).powf(self.abortion_rise))
+    }
+
     /// Each zone's lateral probabilities as the axis draws them: spread
     /// towards the growth unit's mean by the rhythm, scaled by readiness.
     pub(crate) fn laterals(&self) -> Vec<Vec<f64>> {

@@ -24,7 +24,7 @@ pub(crate) fn shed(mut axes: Vec<Axis>, species: &Species, age: u32) -> Vec<Axis
         let lost = match axis.origin {
             Origin::Seed => false,
             Origin::Continuation { parent } => index[parent] == usize::MAX,
-            Origin::Lateral { parent, .. } | Origin::Relay { parent } => {
+            Origin::Lateral { parent, .. } | Origin::Relay { parent, .. } => {
                 let delay = species.states[axis.pa].shedding;
                 let idle = age.saturating_sub(live_until[i]);
                 index[parent] == usize::MAX || delay.is_some_and(|d| idle > d)
@@ -38,7 +38,7 @@ pub(crate) fn shed(mut axes: Vec<Axis>, species: &Species, age: u32) -> Vec<Axis
             Origin::Seed => {}
             Origin::Continuation { parent }
             | Origin::Lateral { parent, .. }
-            | Origin::Relay { parent } => *parent = index[*parent],
+            | Origin::Relay { parent, .. } => *parent = index[*parent],
         }
         index[i] = kept.len();
         kept.push(axis);

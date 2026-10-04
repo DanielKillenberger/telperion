@@ -59,7 +59,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        5_714_644_199_331_972_623,
+        1_335_077_269_767_447_527,
         "{}",
         digest(&text)
     );
@@ -91,7 +91,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        808_718_128_371_201_502,
+        12_408_993_297_817_090_718,
         "{}",
         digest(&text)
     );

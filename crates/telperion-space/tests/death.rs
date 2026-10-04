@@ -3,7 +3,7 @@
 mod common;
 use common::{tree, Moments};
 use std::f64::consts::PI;
-use telperion_space::{expected_counts, NodeLaw, PaState, Species, Zone};
+use telperion_space::{expected_counts, Form, NodeLaw, PaState, Species, Zone};
 
 fn state(
     lifespan: u32,
@@ -26,10 +26,15 @@ fn state(
         insertion: PI / 4.0,
         divergence: PI,
         abortion: 0.0,
+        abortion_rise: 0.0,
         relay: 0.0,
+        relay_at: 1.0,
+        epitony: 0.0,
+        erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
         straightening: 0.0,
+        form: Form::default(),
     }
 }
 
