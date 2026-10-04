@@ -1,26 +1,22 @@
 {
-  "branch_name": "fn-194-tree-space-d-the-norway-spruce-as-a",
+  "branch_name": "fn-202-tree-space-dormant-buds-wake-along-old",
   "completion_review_status": "unknown",
   "completion_reviewed_at": null,
-  "created_at": "2026-10-03T19:30:55.790265Z",
+  "created_at": "2026-10-04T19:43:31.816469Z",
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [
-    "fn-193-tree-space-c-the-beech-as-the-first",
-    "fn-200-tree-space-branches-sag-under-their",
-    "fn-202-tree-space-dormant-buds-wake-along-old"
-  ],
-  "id": "fn-194-tree-space-d-the-norway-spruce-as-a",
+  "depends_on_epics": [],
+  "id": "fn-202-tree-space-dormant-buds-wake-along-old",
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
-  "spec_path": ".flow/specs/fn-194-tree-space-d-the-norway-spruce-as-a.md",
+  "spec_path": ".flow/specs/fn-202-tree-space-dormant-buds-wake-along-old.md",
   "status": "open",
-  "title": "Tree space D: the Norway spruce as a point",
+  "title": "Tree space: dormant buds wake along old branches",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -32,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T19:43:39.417971Z"
+  "updated_at": "2026-10-04T19:43:38.949342Z"
 }
