@@ -82,3 +82,66 @@ Overall, from 20 years up it reads as a conifer of the spruce/fir kind: a single
 - **Not yet expressed:** seed-to-seed irregularity (a values question, such as `dominance` or more wander and roll on branches), and girth on young trunks (the trunk's pipe is 0.006).
 
 Not run, as directed: R3 (the beech-to-spruce walk), R4 (the beech's sheet re-rendered), Astra, review, the workspace gate.
+
+## Host answers to round 1 (2026-10-04)
+
+| Question | Answer |
+|---|---|
+| Ground and droop (Q1, Q2) | Built as fn-200 (`form.sag` and ground support); this branch is rebased onto it |
+| Dormant buds (Q3) | Not now; recorded as a known gap |
+| Habit (Q4) | Comb, as S1 shows |
+| Colours (Q5) | Moved into the norway-spruce preset |
+| Variety, girth, sapling, width (Q6) | Go ahead: more unevenness between seeds and branches, a thinner young trunk, sapling branches from year 2 or 3, a crown widened toward S1's 0.75 |
+
+## Round 2 (worker)
+
+**Values only** (`crates/telperion-space/src/spruce.rs`):
+
+- **Colours:** in `crates/telperion-core/presets/norway-spruce.values` with their matching notes. They are gone from the example's rows. `catalogue_identity`'s three digests are re-pinned; this changes today's spruce colours.
+- **Sapling:**
+  - a two-year unbranched seedling, then a new sapling PA: 8 years, shoots of about 0.2 m a year, whorls from year 3, rhythm 0.7 while it establishes (M4);
+  - the trunk PA follows for 35 years, then the crown leader.
+  - The ground now supports the curtains, so they no longer need lifting.
+- **Thinner trunk:** the trunk's pipe is 0.0025 (it was 0.006) and its wander 0.1.
+- **Young branches:** a new PA for a branch's first six years, with longer yearly shoots (internode 0.05), so young tiers spread and the crown widens.
+- **Main branches:**
+  - Sag 7.5e-5 (fn-200), taken from the R5 strip where width peaks.
+  - Insertion 1.45, wander 0.8, roll 0.5, dominance 0.25.
+  - Viability 0.998 with shedding after 3 years, so a few branches die and leave gaps.
+  - Two branchlets between the whorl pairs (one before).
+- **Interwhorl branches:** probability 0.3 (0.2 before).
+
+**Sheets** (`raw/round2/`, on disk). I viewed every still. The layout is as in round 1; the reference row holds round 1's seed 1 in place of today's seed 7.
+
+| Sheet | What it holds |
+|---|---|
+| `five-seeds.png` | The references, then the 80-year trees in leaf and bare at seeds 1, 7, 2, 3, 4 |
+| `young.png` | 10, 20 and 40 years at seeds 1 and 7 |
+| `close-ups.png` | Trunk bases and limbs, every age and seed |
+
+Measures are in `run.log`:
+
+| Age | Height | Width | w/h | Grown in | Kept nodes |
+|--:|--:|--:|--:|--:|--:|
+| 80 | 21.9 to 22.2 m | 12.9 to 16.1 m | 0.59 to 0.73 (S1 about 0.75; round 1 0.52) | 5.6 to 7.6 s | 2.16M to 2.31M |
+| 40 | 11.8 to 11.9 m | 6.5 to 8.0 m | | | |
+| 20 | 5.2 m | 3.2 to 4.1 m | | | |
+| 10 | 1.7 to 1.9 m | 1.2 to 1.5 m | | | |
+
+### Reading against round 1's short list
+
+| Trait | Round 2 | Better? |
+|---|---|---|
+| Width | A broader cone at every seed: 0.59 to 0.73 of height. Seed 4 is the narrowest | **Yes**, near S1 at seeds 1, 2, 3 |
+| Lower crown droop | Lower branches sweep down from the trunk and their outer parts lie on the ground as a skirt. Tips still rise (limb close-ups). The upper crown stays near horizontal and ascending, as in S1 | **Yes** |
+| Seeds alike | The crowns now differ: seed 1 lopsided, seed 4 narrow and tall-shouldered, seeds 2 and 3 broad, with gaps and uneven tiers. Still one family, more alike than S1 and S2 are | **Partly** |
+| 10 years | A sapling with spreading, uneven tiers, no longer a pole. Needles are sparse, and the last two yearly shoots stand bare above the top whorl | **Yes, borderline** |
+| 20 and 40 years | Young spruces with clear tiers and a full lower crown | Yes |
+| Mass | The upper crown is dense and dark. The lower crown is airy: a see-through skirt, where S1's lower crown is a dark curtain | No change |
+
+### Open, for the host
+
+- **Bare inner lower branches.** In the trunk-base close-ups, the lowest branches' inner lengths are bare wood: their branchlets have died and been shed. They sweep down and lie on the ground, and where the rest begins each one bends at an angle, so the base reads as a ring of bare tentacles. Two things cause it: no draperies (F4, recorded as a known gap), and the ground support's rest. A rest is a corner, not a curve, at the internode where wood meets the ground.
+- **The airy lower crown**, against S1's dark curtains. This is likely the same missing draperies; denser or longer-lived branchlets are a values option.
+
+Known gap: draperies, the delayed release of dormant buds (F4; host, 2026-10-04).

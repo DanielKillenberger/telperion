@@ -60,9 +60,14 @@
 
 # Reddish-brown scaly bark; a needle darker and bluer than any
 # blade, its underside paler where the stomatal bands run.
-/material/barkRed = 0.2
-/material/barkGreen = 0.175
-/material/barkBlue = 0.148
+# Darker, host (fn-194, 2026-10-04): matched by render, as fn-40 and
+# fn-193 did. The 80-cycle space spruce's trunk base, rendered under the
+# stills' sun and sky, reads the mean linear colour of S1's trunk base
+# (.flow/references/norway-spruce/S1-lawn-solitary-comb.jpg, its
+# non-green pixels: 0.070/0.065/0.042); the render reads 0.071/0.066/0.042.
+/material/barkRed = 0.0395
+/material/barkGreen = 0.0385
+/material/barkBlue = 0.028
 /material/barkRoughness = 0.9
 /material/barkGrainScale = 0.0018
 /material/barkGrainStrength = 0.15
@@ -70,12 +75,15 @@
 # Neutral: no young wood until the spruce's own table states it.
 /material/shootGreen = 0.078
 /material/shootBlue = 0.045
-/material/leafFrontRed = 0.018
-/material/leafFrontGreen = 0.056
-/material/leafFrontBlue = 0.028
-/material/leafBackRed = 0.109
-/material/leafBackGreen = 0.195
-/material/leafBackBlue = 0.138
+# Matched by render to S1's lower crown (a block inside it, its pixels
+# greener than blue: 0.053/0.073/0.051); the needle pixels of the
+# 80-cycle space spruce read 0.049/0.067/0.043 (fn-194).
+/material/leafFrontRed = 0.0128
+/material/leafFrontGreen = 0.054
+/material/leafFrontBlue = 0.040
+/material/leafBackRed = 0.077
+/material/leafBackGreen = 0.188
+/material/leafBackBlue = 0.150
 /material/hueRangeLow = -0.02
 /material/hueRangeHigh = 0.02
 /material/brightnessRangeLow = -0.1

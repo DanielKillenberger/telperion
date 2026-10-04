@@ -10,12 +10,14 @@ use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use std::f64::consts::{FRAC_PI_2, PI};
 
 /// The reference axis, youngest first.
-const TRUNK: usize = 1;
-const CROWN: usize = 2;
-const BRANCH: usize = 3;
-const BRANCHLET: usize = 4;
-const SHOOT: usize = 5;
-const PAS: usize = 6;
+const SAPLING: usize = 1;
+const TRUNK: usize = 2;
+const CROWN: usize = 3;
+const SPRIG: usize = 4;
+const BRANCH: usize = 5;
+const BRANCHLET: usize = 6;
+const SHOOT: usize = 7;
+const PAS: usize = 8;
 
 /// One zone: nodes from `min` to `max`, `buds` each, bearing `pa` with
 /// probability `p` (bare where `p` is 0).
@@ -60,8 +62,8 @@ fn state(lifespan: u32, next: Option<usize>, zones: Vec<Zone>) -> PaState {
 fn trunk_unit(bare: (u32, u32), medial: f64, whorl: f64) -> Vec<Zone> {
     vec![
         zone(bare.0, bare.1, 1, &[]),
-        zone(1, 2, 1, &[(BRANCH, medial)]),
-        zone(1, 1, 5, &[(BRANCH, whorl)]),
+        zone(1, 2, 1, &[(SPRIG, medial)]),
+        zone(1, 1, 5, &[(SPRIG, whorl)]),
     ]
 }
 
@@ -73,30 +75,38 @@ pub fn spruce() -> Species {
     let stem = Form {
         tropism: 2.0,
         elevation: FRAC_PI_2,
-        wander: 0.05,
+        wander: 0.1,
         plane: FRAC_PI_2,
-        pipe: 0.006,
+        pipe: 0.0025,
         exponent: 2.4,
         ripening: 0.0,
         dominance: 0.0,
         roll: 0.0,
         sag: 0.0,
     };
-    // The seedling (M4): short units, its laterals spread along them
-    // (rhythm low) before the whorls establish.
+    // The seedling (M4): two short, unbranched years.
     let seedling = PaState {
         divergence: 2.4,
         internode: 0.02,
         rhythm: 0.3,
         form: stem,
-        ..state(5, Some(TRUNK), trunk_unit((2, 3), 0.0, 0.0))
+        ..state(2, Some(SAPLING), trunk_unit((2, 3), 0.0, 0.0))
+    };
+    // The sapling: whorls from its third year, on yearly shoots of about
+    // 0.2 m, its rhythm still establishing (M4).
+    let sapling = PaState {
+        divergence: 2.4,
+        internode: 0.028,
+        rhythm: 0.7,
+        form: stem,
+        ..state(8, Some(TRUNK), trunk_unit((4, 5), 0.25, 0.85))
     };
     // The trunk in its vigorous years: a yearly shoot of about 0.35 m.
     let trunk = PaState {
         divergence: 2.4,
         internode: 0.042,
         form: stem,
-        ..state(40, Some(CROWN), trunk_unit((5, 6), 0.2, 0.85))
+        ..state(35, Some(CROWN), trunk_unit((5, 6), 0.3, 0.85))
     };
     // The leader in the mature crown: shorter yearly shoots.
     let crown = PaState {
@@ -109,27 +119,32 @@ pub fn spruce() -> Species {
     // horizontal from the whorl and turning up towards the tip; each
     // growth unit bears branchlets left and right in its plane, two at
     // its top and one between.
+    // They bend under their load (sag), the lower and longer the more,
+    // their tips still rising; a few die and are shed, and siblings are
+    // unequal (dominance), so no two crowns are alike.
     let branch = PaState {
-        insertion: 1.5,
+        insertion: 1.45,
         internode: 0.03,
+        viability: 0.998,
+        shedding: Some(3),
         form: Form {
             tropism: 0.6,
             elevation: 0.55,
-            wander: 0.5,
+            wander: 0.8,
             plane: 0.0,
             pipe: 0.0008,
             exponent: 2.2,
             ripening: 10.0,
-            dominance: 0.0,
-            roll: 0.3,
-            sag: 0.0,
+            dominance: 0.25,
+            roll: 0.5,
+            sag: 7.5e-5,
         },
         ..state(
             1_000,
             None,
             vec![
                 zone(1, 1, 1, &[]),
-                zone(1, 1, 1, &[(BRANCHLET, 0.8)]),
+                zone(2, 2, 1, &[(BRANCHLET, 0.8)]),
                 zone(1, 1, 2, &[(BRANCHLET, 0.95)]),
             ],
         )
@@ -137,6 +152,15 @@ pub fn spruce() -> Species {
     // Second-order branchlets: in the branch's plane, hanging as the
     // comb's curtains (M12, reference-visible only), shed when they die
     // (M11).
+    // A branch's first years: longer yearly shoots, so a young tree's
+    // tiers spread wide and the crown's top is a cone, not a spire.
+    let sprig = PaState {
+        lifespan: 6,
+        next: Some(BRANCH),
+        internode: 0.05,
+        shedding: None,
+        ..branch.clone()
+    };
     let branchlet = PaState {
         insertion: 0.9,
         internode: 0.016,
@@ -179,6 +203,8 @@ pub fn spruce() -> Species {
         ..state(4, None, vec![zone(2, 3, 1, &[])])
     };
     Species {
-        states: vec![seedling, trunk, crown, branch, branchlet, shoot],
+        states: vec![
+            seedling, sapling, trunk, crown, sprig, branch, branchlet, shoot,
+        ],
     }
 }
