@@ -94,7 +94,7 @@ pub fn beech() -> Species {
             roll: 0.0,
         },
         ..state(
-            12,
+            9,
             Some(LEADER),
             vec![
                 zone(3, 4, &[]),
@@ -144,7 +144,7 @@ pub fn beech() -> Species {
             None,
             vec![
                 zone(2, 3, &[]),
-                zone(2, 3, &[(SHORT, 0.3), (BRANCH, 0.35)]),
+                zone(2, 3, &[(SHORT, 0.3), (BRANCH, 0.27)]),
                 zone(1, 1, top),
             ],
         )

@@ -912,3 +912,36 @@ Astra, three samples: FAIL in all, no yes; "branches form upward-flaring fans wi
 > owner: "i mean to me they look really good structurally."
 
 The beech passes phase C on the owner's verdict, with round 20's values (raw/final19: continuing trunk, late fork, limbs at several heights, deep domes, fine tips, matched colours). Round 21's `form.dominance` engine setting stays at its neutral 0 for the beech. Known gaps, recorded for later work, not this phase: Astra's branch-hierarchy critique (fewer, heavier limbs dividing progressively; `ASTRA-VERDICT-R19/R20`), the tube-like regular branch surface (owner, round 13), and the young ages (10 and 20 years) still reading as a pole with rods.
+
+## Round 22: round 20's beech, with foliage lower on the tree (worker)
+
+**Restore.** The beech's values are back to round 20's (`903ade4f`), and `form.dominance` stays in the engine at its neutral 0 on every beech PA. The five 80-year renders reproduce `raw/final19` exactly. Node counts are in `raw/final21/restore-r20.log`:
+
+| Seed | Nodes, round 20 | Nodes, restored |
+|---|--:|--:|
+| 1 | 2,024,933 | 2,024,933 |
+| 7 | 1,708,438 | 1,708,438 |
+| 2 | 1,526,680 | 1,526,680 |
+| 3 | 2,925,135 | 2,925,135 |
+| 4 | 1,046,764 | 1,046,764 |
+
+**One change, aimed at the owner's note** ("they still lack some foliage lower on the tree"):
+- **The clear bole is 9 growth units** (12 before), about 3.4 m, 0.18 H. So the leader, with its limbs and boughs, starts three years earlier and lower, and those lower limbs have three more years of leafy growth.
+- **Budget:** the extra wood took the beech test past its 10M budget. Branch systems on reiterates are 0.27 (0.35), which brings it back inside: 9.6M expected.
+- **Tried and reverted:** branch-system viability 0.97 (0.95), for longer-lived lower sprays, grew 14M and overran the budget.
+- **Kept from round 20:** the continuing trunk, the late fork, the module limbs, fine tips and ripening, the colours.
+
+**Sheet for the owner: `raw/final21/five-seeds.png`.** Also `raw/final21/leaf-large.png` (full-size in leaf), `sheet-beech.png`, `bases.png` and `limbs.png`. I viewed every still.
+
+| Seed | Height | Width (x × z) | In leaf |
+|---|--:|--:|---|
+| 1 | 18.6 m | 22.5 × 21.2 | A deep, rounded crown with foliage down to about 3.5 m; a few loose sprays at the lower left |
+| 7 | 17.7 m | 18.3 × 19.1 | A full dome reaching down toward the bole, the nearest to Nettleden |
+| 2 | 18.4 m | 18.1 × 21.1 | A broad dome with leafy lower limbs spreading low on both sides |
+| 3 | 18.1 m | 20.9 × 19.6 | A dense, round crown down to the bole on the left |
+| 4 | 18.2 m | 18.9 × 16.8 | A dome with leafy limbs low left and right; more open in the middle |
+
+- In leaf, every tree carries foliage well down toward the bole, against round 20's crown base at about 4.5 m.
+- Bare, the limbs and the continuing trunk read as in round 20.
+- The bases are smooth, with faint module seams at seeds 7 and 3.
+- dbh is 1.09 m at seed 1.
