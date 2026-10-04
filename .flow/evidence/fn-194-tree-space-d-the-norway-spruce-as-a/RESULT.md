@@ -217,3 +217,40 @@ Younger ages are as in round 2.
 
 **Values do not reach S1's dark lower curtain.** Longer-lived branchlets fill the inner lengths but read as strings: each old branchlet adds only a few short shoots a year. Going further (70-year spurs) costs 9.5 s and over the renderer's instance limit without darkening the whole-tree view. As the host directed, I stop here. Dense lower curtains look like draperies: a branchlet's dormant buds releasing new sprays along its length (M10, F4). That is a gap spec for the host to design.
 
+
+## Host decisions after round 3 (2026-10-04)
+
+- **Round 3's density values are kept.** Up to about 9 s for an 80-year tree is accepted; phase F owns cost.
+- **Known gap: the airy lower crown.** Dormant-bud draperies (M10, F4) become a later species-fidelity gap spec, by the host.
+- **Known gap: needle spacing.** The renderer's dispatch limit forced 3.5 mm needle spacing (FRICTION.md), which may be part of the see-through look.
+- **The straight-down tropism jump** is fixed in fn-200, and every engine change moved onto the fn-200 branch. This branch now carries only values and stills.
+
+## Round 4 (worker)
+
+**Same values as round 3, on fn-200's current engine** (`1f491cfb`, `dd5cc47d`): the tropism taper near straight down, sag about the frame-carried torque, and a landing that keeps its lean.
+
+**Sheets** (`raw/round4/`, on disk; I viewed every still):
+
+| Sheet | What it holds |
+|---|---|
+| `five-seeds.png` | The references, round 3's seed 1 and round 3's seed 4 base, above the five 80-year trees in leaf and bare |
+| `young.png` | 10, 20 and 40 years at seeds 1 and 7 |
+| `close-ups.png` | Trunk bases and limbs, every age and seed |
+| `seed4-r3-vs-r4.png` | Seed 4's base and whole tree, round 3 beside round 4 |
+
+**Measures** (`run.log`) are identical to round 3: the same node counts, heights and widths, and growth in 7.4 to 9.1 s at 80 years. The engine changes move wood but grow none.
+
+**Reading:** round 4 reads as round 3.
+- The stills differ in pixels (the trunk-base close-ups most), but by eye the trees are the same: smooth landings, the skirt, width 0.63 to 0.73, seed variety, and the same airy lower crown.
+- No still shows a new artefact.
+
+**What the straight-down taper changes:** nothing visible in the spruce.
+- I rebuilt once with the taper's cone at 1e-12 (effectively off), rendered 20 and 80 years at seeds 1 and 4 into `raw/round4-notaper/`, then restored the code.
+- Every still is identical to round 4 to within 30 levels of colour per pixel.
+- Sag stops 0.15 rad short of straight down, three times the 0.05 rad cone, so sagging wood never enters it.
+- In the beech, 43 of 2.8M pixels differ, which is a few twigs.
+
+**Seed 4's dark band at the trunk base:** not a limb hanging straight down, and the fix did not remove it.
+- At 80 years, seed 4 has no wood thicker than 1 cm below 4 m steeper than heading z −0.85.
+- No main-branch wood thicker than 1.5 cm comes within 0.6 m of the trunk's axis below 3 m, except the trunk itself.
+- It is most likely a low limb running toward the close-up camera, which stands 6 m from the trunk. Seen nearly end-on from below, its shaded underside reads as a dark band over the trunk. It is the same in round 3 and round 4. I did not chase it further.
