@@ -5,6 +5,7 @@ members = [
     "crates/telperion-wasm",
     "crates/telperion-field",
     "crates/telperion-jev",
+    "crates/telperion-space",
 ]
 resolver = "2"
 

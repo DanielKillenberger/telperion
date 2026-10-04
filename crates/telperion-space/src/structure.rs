@@ -1,0 +1,142 @@
+//! The grown tree: axes of phytomers, each axis one development axis (a run
+//! of one PA). A leafy axis whose apex changed PA is a chain of development
+//! axes joined by `Origin::Continuation`. Parents precede their children.
+use std::ops::{Add, Mul, Sub};
+
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct Vec3 {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+}
+
+impl Vec3 {
+    pub const fn new(x: f64, y: f64, z: f64) -> Self {
+        Self { x, y, z }
+    }
+    pub fn cross(self, o: Self) -> Self {
+        Self::new(
+            self.y * o.z - self.z * o.y,
+            self.z * o.x - self.x * o.z,
+            self.x * o.y - self.y * o.x,
+        )
+    }
+}
+
+impl Add for Vec3 {
+    type Output = Self;
+    fn add(self, o: Self) -> Self {
+        Self::new(self.x + o.x, self.y + o.y, self.z + o.z)
+    }
+}
+
+impl Sub for Vec3 {
+    type Output = Self;
+    fn sub(self, o: Self) -> Self {
+        Self::new(self.x - o.x, self.y - o.y, self.z - o.z)
+    }
+}
+
+impl Mul<f64> for Vec3 {
+    type Output = Self;
+    fn mul(self, s: f64) -> Self {
+        Self::new(self.x * s, self.y * s, self.z * s)
+    }
+}
+
+/// Where an axis starts.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Origin {
+    /// The seed bud, at the ground.
+    Seed,
+    /// A lateral bud: `slot` of the `whorl` buds at phytomer `node` of axis `parent`.
+    Lateral {
+        parent: usize,
+        node: usize,
+        slot: u8,
+        whorl: u8,
+    },
+    /// The parent's apex, changed to this axis's PA.
+    Continuation { parent: usize },
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Axis {
+    /// The physiological age, an index into the species' reference axis.
+    pub pa: usize,
+    /// The cycle the bud was made; its first growth unit grows the next cycle.
+    pub birth: u32,
+    pub origin: Origin,
+    /// The cycle the apex stopped (died, ended, or changed PA); none, it lives.
+    pub apex_end: Option<u32>,
+    pub base: Vec3,
+    /// The unit growth direction and the unit side its first lateral faces.
+    pub heading: Vec3,
+    pub side: Vec3,
+    /// Base to tip.
+    pub phytomers: Vec<Phytomer>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Phytomer {
+    /// The cycle the phytomer grew in, from 1.
+    pub cycle: u32,
+    /// Its node, the internode's upper end.
+    pub tip: Vec3,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Structure {
+    /// Cycles grown.
+    pub age: u32,
+    /// Physiological ages on the species' reference axis.
+    pub pas: usize,
+    pub axes: Vec<Axis>,
+}
+
+/// A count of phytomers per PA and per cycle of growth (1..=cycles).
+#[derive(Debug, Clone, PartialEq)]
+pub struct CountTable {
+    pub pas: usize,
+    pub cycles: usize,
+    cells: Vec<f64>,
+}
+
+impl CountTable {
+    pub fn new(pas: usize, cycles: usize) -> Self {
+        Self {
+            pas,
+            cycles,
+            cells: vec![0.0; pas * cycles],
+        }
+    }
+    /// The count of PA `pa` grown in `cycle` (from 1).
+    pub fn get(&self, pa: usize, cycle: usize) -> f64 {
+        self.cells[pa * self.cycles + cycle - 1]
+    }
+    pub fn add(&mut self, pa: usize, cycle: usize, count: f64) {
+        self.cells[pa * self.cycles + cycle - 1] += count;
+    }
+    /// All phytomers of `pa`.
+    pub fn total(&self, pa: usize) -> f64 {
+        self.cells[pa * self.cycles..(pa + 1) * self.cycles]
+            .iter()
+            .sum()
+    }
+}
+
+impl Structure {
+    pub fn phytomer_count(&self) -> usize {
+        self.axes.iter().map(|axis| axis.phytomers.len()).sum()
+    }
+
+    pub fn counts(&self) -> CountTable {
+        let mut table = CountTable::new(self.pas, self.age as usize);
+        for axis in &self.axes {
+            for phytomer in &axis.phytomers {
+                table.add(axis.pa, phytomer.cycle as usize, 1.0);
+            }
+        }
+        table
+    }
+}

@@ -126,7 +126,8 @@ jobs:
   # Each Rust crate without a receipt runs under cargo-nextest on standard
   # runners (.github/actions/nextest): the core crate as four count partitions
   # of its tests, chosen from the runner's per-test times, the render crate
-  # whole, and the two small crates together. A crate's receipt is saved in
+  # whole, and the small crates (wasm, field, the tree space's engine, jev)
+  # together. A crate's receipt is saved in
   # rust-receipts when every job of that crate is green.
   core:
     name: core ${{ matrix.partition }}/4
@@ -184,7 +185,7 @@ jobs:
       - uses: ./.github/actions/nextest
         with:
           packages: >-
-            ${{ needs.receipts.outputs.rust-wasm != 'true' && 'telperion-wasm telperion-field' || '' }}
+            ${{ needs.receipts.outputs.rust-wasm != 'true' && 'telperion-wasm telperion-field telperion-space' || '' }}
             ${{ needs.receipts.outputs.rust-jev != 'true' && 'telperion-jev' || '' }}
 
   # Reached whatever the crate jobs did; a crate's receipt is written only

@@ -21,6 +21,9 @@ const CORE = 'crates/telperion-core';
 const RENDER = 'crates/telperion-render';
 const WASM = 'crates/telperion-wasm';
 const FIELD = 'crates/telperion-field';
+// The tree space's engine, outside the pipeline until phase F; it rides
+// with the small crates and reads only itself.
+const SPACE = 'crates/telperion-space';
 // What the core crate's tests read beyond the crate: the migration fixtures
 // and the species profiles and benchmark protocol under the evidence tree.
 const CORE_TESTS = [
@@ -34,7 +37,7 @@ const CORE_TESTS = [
 const SUITES = {
   'rust-core': { profile: 'ci', inputs: [CORE, ...CORE_TESTS] },
   'rust-render': { profile: 'ci', inputs: [CORE, RENDER] },
-  'rust-wasm': { profile: 'ci', inputs: [CORE, WASM, FIELD] },
+  'rust-wasm': { profile: 'ci', inputs: [CORE, WASM, FIELD, SPACE] },
   // The isolation test walks the generation crates and the browser source,
   // and the citation parser is tested on the fn-11 research section.
   'rust-jev': {
