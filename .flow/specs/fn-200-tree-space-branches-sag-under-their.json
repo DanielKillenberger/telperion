@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-200-tree-space-branches-sag-under-their",
   "impl_review_rounds": {
-    "fn-200-tree-space-branches-sag-under-their.1": 1
+    "fn-200-tree-space-branches-sag-under-their.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -69,9 +69,63 @@
       "timestamp": "2026-10-04T15:59:28.443509Z",
       "tool_calls": 32,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "547d191622b2dda59ce396fe7baccbc38b30c64fc54243eee04035e4a29e3263",
+      "backend": "codex",
+      "base_sha": "abd7909a5db5695ccd973c45ceb00f54a867c112",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-39ac554e7337c62eaf15122292396b43",
+            "classification": "introduced",
+            "findingId": "finding-39ac554e7337c62eaf15122292396b43",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b96d6882b04be140a7ebae3c174193dc",
+            "classification": "introduced",
+            "findingId": "finding-b96d6882b04be140a7ebae3c174193dc",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "309e0b8015b872023292261b256c549bced41c34",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1272,
+      "output_sha256": "39bb4570a257789e8f317974d0a3c06a09385460ca91ba67224139a9499c6021",
+      "reservation_id": "c6294f9d5a044e77b7a886feb35cf33d",
+      "round_consumed": true,
+      "scope": "impl:fn-200-tree-space-branches-sag-under-their.1",
+      "superseded_by": null,
+      "task": "fn-200-tree-space-branches-sag-under-their.1",
+      "timestamp": "2026-10-04T16:16:46.381495Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-200-tree-space-branches-sag-under-their.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -91,5 +145,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T15:59:28.450690Z"
+  "updated_at": "2026-10-04T16:16:46.383829Z"
 }
