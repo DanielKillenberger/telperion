@@ -645,3 +645,7 @@ Host: all five connected domes, confident; sent to Astra. Astra: FAIL (4 yes; 1,
 - At 80 years: growth 2.2 to 3.5 s, dressing 1.5 to 2.2 s, 1.2M to 1.9M nodes, 2.6M to 3.7M leaves.
 
 **Tests:** all crate tests are green (`raw/space-tests-r15.log`): the oracle, every walk, and the beech at every sheet age within its unchanged 10M budget. Clippy is clean.
+
+## Gate, round 15, and host decision 15 (2026-10-04)
+
+Astra: FAIL (1, 7, 2, 3 borderline; 4 no): "the rising limbs consistently produce an upright fan with separate peaks instead of the broad, integrated dome" (`ASTRA-VERDICT-R15.md`). Rounds 13 to 15 swung between flat fans and upright fans, so the limb design is wrong, not its values. The source says how: in *Fagus* "trunk and limbs are stacks of plagiotropic modules that straighten at the base" (LITERATURE.md catalogue table; Millet; CIRAD). Each limb rises at its base and arches over at its tip, relaying from the bend, and the arching tips make the integrated dome. Host decision 15: Troll's module mechanism (built for the trunk) applies to limbs and boughs, replacing the out-then-up two-phase limb: erect base, arching plagiotropic tip, relay from the upper side of the bend.
