@@ -59,7 +59,7 @@ pub(crate) fn thicken(structure: &mut Structure, species: &Species) {
 
 /// How far a phytomer `years` old has laid down its own wood, ripening
 /// over `ripening` years: whole at once where `ripening` is 0.
-fn ripe(years: f64, ripening: f64) -> f64 {
+pub(crate) fn ripe(years: f64, ripening: f64) -> f64 {
     if ripening <= 0.0 {
         1.0
     } else {

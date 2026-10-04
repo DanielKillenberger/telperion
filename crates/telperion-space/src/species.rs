@@ -23,6 +23,9 @@ const MAX_RIPENING: f64 = 1_000.0;
 /// The pipe model's exponents: below 1.5 a fork outgrows what bears it.
 const MIN_EXPONENT: f64 = 1.5;
 const MAX_EXPONENT: f64 = 4.0;
+/// The most an axis bends per unit of its moment over its section's
+/// stiffness.
+const MAX_SAG: f64 = 1_000.0;
 /// The steepest rise of the abortion hazard.
 const MAX_RISE: f64 = 8.0;
 
@@ -128,6 +131,12 @@ pub struct Form {
     /// many radians either way as its lineage keys, so laterals of one
     /// parent do not stack in one plane. Neutral 0.
     pub roll: f64,
+    /// How far the axis bends under the load it carries, as a beam does:
+    /// each phytomer turns down by `sag` times the bending moment of the
+    /// wood and foliage beyond it over its radius to the fourth, per metre
+    /// of its length (`sag.rs`). Its tip carries nothing and keeps its
+    /// tropism. Neutral 0.
+    pub sag: f64,
 }
 
 impl Default for Form {
@@ -143,6 +152,7 @@ impl Default for Form {
             ripening: 0.0,
             dominance: 0.0,
             roll: 0.0,
+            sag: 0.0,
         }
     }
 }
@@ -278,6 +288,7 @@ impl Form {
             ("wander", self.wander, MAX_RATE),
             ("pipe", self.pipe, MAX_PIPE),
             ("ripening", self.ripening, MAX_RIPENING),
+            ("sag", self.sag, MAX_SAG),
         ];
         for (name, value, most) in rates {
             if !(0.0..=most).contains(&value) {

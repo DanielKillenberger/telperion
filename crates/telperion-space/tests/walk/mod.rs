@@ -2,7 +2,9 @@
 //! uses every setting, and each continuous setting with its range and the
 //! scale it is walked on. The shape measures are in `measure.rs`.
 #![allow(dead_code)]
+mod bend;
 mod measure;
+pub use bend::sag_bend;
 pub use measure::*;
 use telperion_space::{grow, Form, NodeLaw, PaState, Request, Species, Structure, Zone};
 
@@ -227,7 +229,10 @@ pub fn settings() -> Vec<Setting> {
         let (bend, wander) = [(0.03, 0.1), (1.0, 1.0), (1.0, 1.0)][pa];
         // About the metres an axis of each PA grows in the walk tree.
         let metres = [54.0, 5.0, 1.0][pa];
-        let form: [(&str, f64, f64, bool, Set); 12] = [
+        // Sag over a range from none to limbs bowed to the ground; the
+        // trunk only leans under its crown.
+        let sag = [2e-4, 1e-4, 1e-3][pa];
+        let form: [(&str, f64, f64, bool, Set); 13] = [
             ("abortion_rise", 0.0, 3.0, false, |s, pa, v| {
                 s.states[pa].abortion_rise = v
             }),
@@ -268,11 +273,18 @@ pub fn settings() -> Vec<Setting> {
             ("form.roll", 0.0, std::f64::consts::PI, false, |s, pa, v| {
                 s.states[pa].form.roll = v
             }),
+            ("form.sag", 0.0, sag, false, |s, pa, v| {
+                s.states[pa].form.sag = v
+            }),
         ];
         for (field, low, high, odds, set) in table.into_iter().chain(form) {
             let mut walked = setting(at(field), low, high, odds, move |s, v| set(s, pa, v));
             if matches!(field, "form.tropism" | "form.wander") {
                 walked.stretch = metres;
+            }
+            // Sag is walked in the radians it bends its most loaded axis.
+            if field == "form.sag" {
+                walked.stretch = sag_bend(&tree(&base, 1).unwrap(), pa);
             }
             all.push(walked);
         }

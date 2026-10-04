@@ -4,10 +4,14 @@
 //! phyllotactic rank and its slot in the whorl give, in a plane turned by
 //! the parent's `plane`. Along an axis the direction bends towards its
 //! PA's elevation (tropism) and wanders by keyed turns; a lateral's base
-//! straightens towards the vertical by its PA's straightening. The seed
-//! stands at the origin, growing up (+z); no wood goes below z = 0.
+//! straightens towards the vertical by its PA's straightening, and each
+//! phytomer turns down by its sag under the load it carries (`sag.rs`).
+//! The seed stands at the origin, growing up (+z). Wood that reaches the
+//! ground rests on it and runs along it; the trunk reaching the ground,
+//! or an axis whose base is below it, is an error.
 use crate::error::{Error, Result};
 use crate::lineage::{Key, DOMINANCE, ROLL};
+use crate::sag::turn;
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
 use std::f64::consts::TAU;
@@ -16,8 +20,8 @@ use std::f64::consts::TAU;
 const GROUND_TOLERANCE: f64 = 1e-9;
 const UP: Vec3 = Vec3::new(0.0, 0.0, 1.0);
 
-pub(crate) fn place(structure: &mut Structure, species: &Species) -> Result<()> {
-    let age = structure.age;
+/// Sizes every phytomer by its axis's vigour and its parent's scale.
+pub(crate) fn scale(structure: &mut Structure, species: &Species) {
     // Each axis's scale at its base, from its already scaled parent.
     let mut base_scale = vec![1.0; structure.axes.len()];
     for i in 0..structure.axes.len() {
@@ -38,6 +42,18 @@ pub(crate) fn place(structure: &mut Structure, species: &Species) -> Result<()> 
             phytomer.scale *= base_scale[i];
         }
     }
+}
+
+/// Lays every axis from its parent's frame; with `torques` (`sag.rs`),
+/// each phytomer also turns down under the load it carries.
+pub(crate) fn place(
+    structure: &mut Structure,
+    species: &Species,
+    torques: Option<&[Vec<Vec3>]>,
+) -> Result<()> {
+    let age = structure.age;
+    // The trunk: the seed axis and what carries it on.
+    let mut trunk = vec![false; structure.axes.len()];
     let reaches = reaches(&structure.axes);
     for (i, &reach) in reaches.iter().enumerate() {
         let (base, heading, side) = frame(structure, species, i);
@@ -64,8 +80,32 @@ pub(crate) fn place(structure: &mut Structure, species: &Species) -> Result<()> 
             _ => 1.0 - (-state.erection * years).exp(),
         };
         let bend = 1.0 - (1.0 - straightening) * (1.0 - erected);
-        lay(axis, (base, heading, side), state, (bend, reach))
-            .map_err(|height| Error::BelowGround { axis: i, height })?;
+        trunk[i] = match axis.origin {
+            Origin::Seed => true,
+            Origin::Continuation { parent } | Origin::Relay { parent, .. } => trunk[parent],
+            Origin::Lateral { .. } => false,
+        };
+        let load = torques.map(|t| t[i].as_slice());
+        let (pa, birth) = (axis.pa, axis.birth);
+        let below = move |height: f64| Error::BelowGround {
+            axis: i,
+            pa,
+            birth,
+            base: base.z,
+            height,
+        };
+        if base.z < -GROUND_TOLERANCE {
+            return Err(below(-base.z));
+        }
+        lay(
+            axis,
+            (base, heading, side),
+            state,
+            (bend, reach),
+            load,
+            trunk[i],
+        )
+        .map_err(below)?;
     }
     Ok(())
 }
@@ -101,13 +141,15 @@ fn lay(
     (base, heading, side): (Vec3, Vec3, Vec3),
     state: &PaState,
     (bend, total): (f64, f64),
+    load: Option<&[Vec3]>,
+    trunk: bool,
 ) -> std::result::Result<(), f64> {
     let form = state.form;
     let pull = (1.0 + heading.z) / 2.0;
     let (mut running, mut across) = (heading, side);
     let mut tip = base;
     let mut run = 0.0;
-    for phytomer in &mut axis.phytomers {
+    for (k, phytomer) in axis.phytomers.iter_mut().enumerate() {
         let length = state.internode * phytomer.scale;
         let share = 1.0 - (-form.tropism * length).exp();
         let bent = toward_elevation(running, across, form.elevation, share);
@@ -121,6 +163,17 @@ fn lay(
             running = rotated(running, pivot, angle);
             across = rotated(across, pivot, angle);
         }
+        // Sag: the beam's curvature, its moment over its stiffness, turns
+        // the axis down about the torque's axis.
+        if let (Some(load), true) = (load, form.sag > 0.0 && phytomer.radius > 0.0) {
+            if let Some(pivot) = load[k].unit() {
+                let curvature = form.sag * load[k].length() / phytomer.radius.powi(4);
+                let down = (-running.z).clamp(-1.0, 1.0).acos();
+                let angle = turn(curvature, length, down);
+                running = rotated(running, pivot, angle);
+                across = rotated(across, pivot, angle);
+            }
+        }
         let along = if total > 0.0 {
             (run + phytomer.scale / 2.0) / total
         } else {
@@ -129,14 +182,30 @@ fn lay(
         run += phytomer.scale;
         let lift = bend * (1.0 - along);
         let blend = running * (1.0 - lift) + UP * (lift * pull);
-        let direction = match blend.unit() {
+        let mut direction = match blend.unit() {
             Some(unit) if bend > 0.0 => unit,
             _ => running,
         };
-        tip = tip + direction * length;
-        if tip.z < -GROUND_TOLERANCE {
-            return Err(-tip.z);
+        let mut next = tip + direction * length;
+        if next.z < -GROUND_TOLERANCE && trunk {
+            return Err(-next.z);
         }
+        if next.z < 0.0 {
+            // Resting: down to the ground and along it, the internode's
+            // length kept, towards where the wood was heading.
+            let level = |v: Vec3| Vec3::new(v.x, v.y, 0.0).unit();
+            let flat = level(direction)
+                .or_else(|| level(across))
+                .unwrap_or(Vec3::new(1.0, 0.0, 0.0));
+            let drop = tip.z;
+            let reach = (length * length - drop * drop).max(0.0).sqrt();
+            next = tip + flat * reach;
+            next.z = 0.0;
+            if let Some(unit) = (next - tip).unit() {
+                direction = unit;
+            }
+        }
+        tip = next;
         phytomer.tip = tip;
         phytomer.heading = direction;
         phytomer.side = (across - direction * across.dot(direction))

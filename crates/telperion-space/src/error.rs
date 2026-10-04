@@ -12,8 +12,16 @@ pub enum Error {
     /// The tree holds no phytomer of any size: its seed bud died before it
     /// grew, or all it grew stands exactly at its draws.
     Collapsed,
-    /// A phytomer's tip lies below the ground plane.
-    BelowGround { axis: usize, height: f64 },
+    /// A phytomer of the trunk, or of an axis whose base is below the
+    /// ground plane, lies below it: `height` metres under it. Named by the
+    /// axis's index, its PA, its birth cycle and its base's height.
+    BelowGround {
+        axis: usize,
+        pa: usize,
+        birth: u32,
+        base: f64,
+        height: f64,
+    },
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -33,9 +41,17 @@ impl fmt::Display for Error {
                 write!(f, "the tree outgrew its budget of {limit} phytomers")
             }
             Error::Collapsed => write!(f, "the tree collapsed: its seed bud died before it grew"),
-            Error::BelowGround { axis, height } => {
-                write!(f, "axis {axis} reaches {height:.3} m below the ground")
-            }
+            Error::BelowGround {
+                axis,
+                pa,
+                birth,
+                base,
+                height,
+            } => write!(
+                f,
+                "axis {axis} (PA {pa}, born in cycle {birth}, base at {base:.3} m) \
+                 reaches {height:.3} m below the ground"
+            ),
         }
     }
 }

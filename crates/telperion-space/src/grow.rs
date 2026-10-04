@@ -7,10 +7,11 @@
 //! element from those leads, so a setting that crosses a draw grows the
 //! element in from nothing.
 use crate::error::{refuse, Error, Result};
-use crate::geometry::place;
+use crate::geometry::{place, scale};
 use crate::girth::thicken;
 use crate::lineage::{self, above, below, Key, ABORTION, CONTINUATION, RELAY, VIABILITY, ZONE};
 use crate::presence::{assign, Draws, Windows, SPAN};
+use crate::sag;
 use crate::shed::shed;
 use crate::species::{PaState, Species, MAX_BUDS, MAX_NODES_PER_ZONE};
 use crate::structure::{Axis, Origin, Phytomer, Structure, Vec3};
@@ -73,8 +74,15 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
     if structure.phytomer_count() == 0 {
         return Err(Error::Collapsed);
     }
-    place(&mut structure, species)?;
+    scale(&mut structure, species);
+    place(&mut structure, species, None)?;
     thicken(&mut structure, species);
+    // Sag bends the tree as it stands under the load it carries, and
+    // leaves its girth as it was.
+    if sag::any(species) {
+        let torques = sag::torques(&structure, species);
+        place(&mut structure, species, Some(&torques))?;
+    }
     // Wood that stands exactly at its draw has no size.
     if structure
         .axes
