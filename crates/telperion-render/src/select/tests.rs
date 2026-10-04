@@ -43,14 +43,26 @@ fn compaction_preserves_placement_order_at_every_level() {
 }
 
 /// A crown past 65,535 workgroups in one dimension, the size fn-194 ran into:
-/// the per-leaf passes fold their groups into a second dimension and every leaf is still compacted in placement order.
+/// the per-leaf passes fold their groups into a second dimension and every
+/// leaf is still compacted in placement order. A device that cannot bind a
+/// crown this size skips, by name, as one without an adapter does.
 #[test]
 fn a_crown_past_one_dispatch_dimension_is_selected_in_order() {
     let Some(gpu) = device() else { return };
-    let maximum = gpu.device.limits().max_compute_workgroups_per_dimension;
-    let instances = (maximum as usize + 1) * WORKGROUP as usize + 3;
+    let limits = gpu.device.limits();
+    let instances =
+        (limits.max_compute_workgroups_per_dimension as usize + 1) * WORKGROUP as usize + 3;
+    let foliage = interleaved(instances, 2);
+    let placements = Region::capacity_for(size_of_val(&foliage.instances.leaves[..]) as u64);
+    if placements > limits.max_storage_buffer_binding_size {
+        eprintln!(
+            "skipped: {placements} bytes of placements, {} bindable",
+            limits.max_storage_buffer_binding_size
+        );
+        return;
+    }
     let mut selection = Select::new(&gpu);
-    selection.submit(&gpu, &interleaved(instances, 2), Level::Chosen);
+    selection.submit(&gpu, &foliage, Level::Chosen);
     check_compaction(&gpu, &selection, instances, 2, Level::Chosen);
 }
 
