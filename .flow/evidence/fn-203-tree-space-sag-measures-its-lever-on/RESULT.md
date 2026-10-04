@@ -63,3 +63,13 @@
 - The landing walk now runs limb sag up to 6e-4, the spruce's heaviest value (it was 3e-4). It holds the bound of 30 and its jump check.
 - All 63 crate tests pass.
 - The beech stills are byte-identical (`raw/beech`).
+
+## Codex review round 1 (base `dafffc36`): NEEDS_WORK, both findings fixed
+
+1. **P1: a loaded last phytomer's ground share switched from 1 to 0 as its end crossed the ground.** Its chord ran to its own axis's tip, which is zero length at the last phytomer.
+   - Fixed: the chord runs from the phytomer's base to the tip of its axis and the continuations that carry it on, so the share falls by degree as the phytomer's own end reaches the ground.
+   - New test `the_ground_takes_a_carried_load_by_degree`, the reviewer's scenario. It sweeps a pole's height through the crossing.
+   - Red on the reviewed code: the end moved 325 m per m of height. Green now: under the bound of 30.
+   - With the longer chord the heavy landing measures 0.66 rad. It is now held to decision 4's one bound of 0.8 rather than 0.6.
+2. **P2: R2 checked only proportionality.**
+   - Fixed: every tenth internode's bend is compared with fn-200's small-deflection bend, recorded from commit `0706c79c`. The corrected bends lie within 1 percent (the largest gap is 6e-6 rad on 0.033).

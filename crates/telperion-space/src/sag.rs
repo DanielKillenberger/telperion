@@ -43,8 +43,9 @@ pub(crate) struct Lever {
     /// the end. Turned as the phytomer has turned, crossed with gravity,
     /// it is the torque.
     pub moment: Vec3,
-    /// From the end to its axis's tip: turned likewise, where the wood
-    /// beyond would meet the ground.
+    /// From the phytomer's base to the tip of its axis and the axes that
+    /// carry it on: turned likewise, where the wood beyond would meet the
+    /// ground.
     pub chord: Vec3,
 }
 
@@ -71,6 +72,18 @@ pub(crate) fn levers(structure: &Structure, species: &Species) -> Vec<Vec<Lever>
             Origin::Lateral { .. } => false,
         };
     }
+    // Each axis's far tip: its own, or that of the axis that carries it
+    // on. Continuations follow their parents, so a backward pass meets
+    // each before its parent.
+    let mut far: Vec<Vec3> = axes
+        .iter()
+        .map(|a| a.phytomers.last().map_or(a.base, |p| p.tip))
+        .collect();
+    for i in (0..axes.len()).rev() {
+        if let Origin::Continuation { parent } = axes[i].origin {
+            far[parent] = far[i];
+        }
+    }
     // Children follow their parents, so a backward pass meets every load
     // before the wood that carries it.
     for i in (0..axes.len()).rev() {
@@ -94,10 +107,9 @@ pub(crate) fn levers(structure: &Structure, species: &Species) -> Vec<Vec<Lever>
             // by nothing and keeps its tropism.
             load.add(at_node[i][k], 1.0);
             // S - W e: the lever of the load about the end.
-            let last = axis.phytomers[axis.phytomers.len() - 1].tip;
             levers[i][k] = Lever {
                 moment: load.moment - p.tip * load.mass,
-                chord: last - p.tip,
+                chord: far[i] - base,
             };
             load.add(
                 Load {
@@ -147,10 +159,11 @@ pub(crate) fn torque(lever: Vec3) -> Vec3 {
 }
 
 /// The share of a lever the ground leaves to the wood before it: where
-/// the wood beyond, turned rigidly to its pose now along `chord` from an
-/// end `height` above the ground, would go below it, the ground carries
-/// that share of it, and the rest, nearer, bears on the end with a lever
-/// as much shorter (host, 2026-10-05).
+/// the wood from a phytomer's base `height` above the ground, turned
+/// rigidly to its pose now along `chord`, would go below it, the ground
+/// carries that share, and the rest, nearer, bears with a lever as much
+/// shorter (host, 2026-10-05). Measured from the base, so it falls by
+/// degree as the phytomer's own end reaches the ground.
 pub(crate) fn held(height: f64, chord: Vec3) -> f64 {
     let low = height + chord.z;
     if low >= 0.0 {

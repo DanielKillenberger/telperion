@@ -178,10 +178,10 @@ fn a_heavy_low_bough_on_the_ground_does_not_swing_round() {
     }
 }
 
-/// R2: a lightly loaded branch bends as the small-deflection beam says,
-/// in proportion to its load: doubling a light sag doubles every
-/// internode's bend to within a few percent (the correction is first
-/// order in the bend).
+/// R2: a lightly loaded branch bends as the small-deflection beam says:
+/// within one percent of fn-200's bends, and in proportion to its load,
+/// doubling a light sag doubling every bend to within a few percent (the
+/// correction is first order in the bend).
 #[test]
 fn a_light_branch_bends_as_the_small_deflection_beam_does() {
     let still = Bough {
@@ -199,6 +199,19 @@ fn a_light_branch_bends_as_the_small_deflection_beam_does() {
             .collect()
     };
     let (one, two) = (bends(1e-6), bends(2e-6));
+    // Every tenth internode's bend under fn-200's small-deflection sag
+    // (commit 0706c79c), the reference: the corrected bend stays within
+    // one percent of it.
+    let reference = [
+        0.000924, 0.009364, 0.016523, 0.022312, 0.027202, 0.030718, 0.033358,
+    ];
+    for (k, (&ours, small)) in one.iter().step_by(10).zip(reference).enumerate() {
+        assert!(
+            (ours - small).abs() <= 0.01 * small + 1e-6,
+            "internode {}: {ours} rad against the small-deflection {small}",
+            10 * k
+        );
+    }
     let most = one.iter().fold(0.0f64, |m, &b| m.max(b));
     let off = one
         .iter()

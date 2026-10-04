@@ -8,12 +8,75 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-203-tree-space-sag-measures-its-lever-on",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-203-tree-space-sag-measures-its-lever-on.1": 1
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "440e65a41892817e7794df436968fa29be4f926f8861657da2768263122521ee",
+      "backend": "codex",
+      "base_sha": "dafffc3686fbc5e733e973c6fd39816055783233",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-cd7e72859dfca10d6e099dd00ada99c4",
+            "classification": "introduced",
+            "findingId": "finding-cd7e72859dfca10d6e099dd00ada99c4",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6a0db94f256164a9e20f8d9d0e450ca1",
+            "classification": "introduced",
+            "findingId": "finding-6a0db94f256164a9e20f8d9d0e450ca1",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "31ec36382fec5cf7083f3f50a7ef803fbb863e76",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 220562,
+      "output_sha256": "fb85b652edad4e846a920bf617c87115b0333092a4c452d453040dfc7da4c9ae",
+      "reservation_id": "4649ac0cf4f1402d8efff097c9516f1d",
+      "round_consumed": true,
+      "scope": "impl:fn-203-tree-space-sag-measures-its-lever-on.1",
+      "superseded_by": null,
+      "task": "fn-203-tree-space-sag-measures-its-lever-on.1",
+      "timestamp": "2026-10-04T22:57:15.054604Z",
+      "tool_calls": 28,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-203-tree-space-sag-measures-its-lever-on.1": 0
+  },
   "spec_path": ".flow/specs/fn-203-tree-space-sag-measures-its-lever-on.md",
   "status": "open",
   "title": "Tree space: sag measures its lever on the bent branch",
@@ -28,5 +91,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T22:49:08.828646Z"
+  "updated_at": "2026-10-04T22:57:15.061234Z"
 }

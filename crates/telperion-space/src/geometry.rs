@@ -196,8 +196,7 @@ fn lay(
             let carried = if trunk {
                 1.0
             } else {
-                let end = tip.z + running.z * length;
-                held(end, framed(load[k].chord, frames.0, frames.1))
+                held(tip.z, framed(load[k].chord, frames.0, frames.1))
             };
             let now = now * carried;
             let turning = torque(now);
