@@ -683,3 +683,13 @@ Host: the best spruce so far: hooked boughs, broad-based cones, clean trunk base
 - **The cost of that:** with less recovery the sagging boughs end lower, so the standing crown reads narrower and more pendulous than round 10's broad cone. That is nearer a drooping-branched spruce than S1's level-to-swept form. Round 10's hook with round 11's tip strength is not reachable by tip tropism alone. A lower sag (7e-4 to 8e-4) with a = 1.1 / 0.75 would sit between them, and was not tried because of memory and time.
 - **"Insufficient foliage mass" is unchanged:** bounded by GPU memory, now set by wood triangles.
 - **Young trees:** unchanged; level tiers at 20 and 40 years.
+
+## Round 11, host reading (2026-10-05)
+
+The tips are softer, but the trees are narrower and more pendulous, with the skirt splayed on the ground. Round 10's broad cone reads more like S1. **Round 10 is kept** as the candidate for the owner's verdict, and `spruce.rs` is restored to round 10's values (older branch wood at tropism 1.4, elevation 1.0, sag 9e-4).
+
+**Noted:** the foliage-mass limit is wood triangles, about 210M per 80-year tree, not needles.
+
+**Next steps hang on the owner's verdict:**
+- If it passes, the R3 walk (beech to spruce), the R4 beech regression, the gate, the review and done follow.
+- If not, the owner's notes become round 12.
