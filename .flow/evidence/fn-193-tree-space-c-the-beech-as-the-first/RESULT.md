@@ -247,3 +247,40 @@ Starting point: round 2's beech, plus the relay-difference engine change (`57ab6
 - The collar flanges come from the conversion's module heads. Final4's attachment had a seam; this one has flanges. A head as thick as the stem would want the codominant fork treatment, or to be drawn thinner than the pipe model gives it.
 - A photo colour includes the photo's light. Setting albedo from it needs the renderer's own light divided out, or a still matched against the photo, which is what fn-40 did for the earlier rows.
 - Seed 7's mature reading moved with the hazard: the topology changed, not just the geometry. The host decides whether to keep the hazard and retune, or to keep final4's flat abortion.
+
+## Round 7: back to final4, with render-matched colours (worker)
+
+**Base:** final4's values and relay attachment. `abortion_rise` is back to 0, and the setting stays in the engine at neutral. The conversion's relay-from-the-node-below is reverted. Seed 7 at 80 cycles has final4's exact topology (1,182,568 nodes).
+
+**1. Erection on the beech: tried, set to 0.**
+- `erection` 0.1 makes seed 1's 80-cycle trunk erect (`raw/match-m4`).
+- But it also bends seed 7's trunk into a lean, and 0.03 does too (`raw/match-m5`). On the beech it acts only on the seed axis (the relays already straighten fully), and moving the seedling's direction moves every relay frame above it.
+- Seed 7's final4 reading was the acceptance priority, so the beech ships with `erection` 0. The setting stays in the engine.
+- **Seed 1's lean is not fixed this round.** Whether to apply erection only to some modules, or to limit the seedling's tilt another way, is the host's call.
+
+**2. Seam at module joints** (`examples/space/tree.rs`; no branch moves):
+- A module head that turns aside now parts as a codominant fork when it is nearly as thick as the stem, so it draws no socket flange.
+- A relay's first internodes that still lie behind its joint along the stem merge into the joint, so the stem cannot fold back.
+- **Result:** seed 7's trunk base is smooth. **Seed 1 still shows one dark slit** at a module joint on its leaning lower trunk. The fold there is not behind the joint, and the cause is not found.
+- A span split at the relay's true base was also tried (`raw/match-m0` and `raw/match-m2`). It put a collar and then a flange on seed 7's base, so it was reverted.
+
+**3. Colours by render matching** (fn-40's method), on the 80-cycle seed-7 stills under the stills' sun and sky:
+
+| Target | Photograph's mean linear colour | Rendered, final rows | Preset rows |
+|---|---|---|---|
+| Bark: trunk base crop vs. S3's limb bark (pixels greener than blue) | 0.091 / 0.086 / 0.034 | 0.089 / 0.086 / 0.035 | 0.040 / 0.040 / 0.0165 |
+| Leaves: crown crop vs. a crop inside Nettleden's crown | 0.062 / 0.069 / 0.032 | 0.064 / 0.075 / 0.042 | front 0.021 / 0.0158 / 0.0067, back 0.037 / 0.0307 / 0.0114 |
+
+- Three rounds of per-channel scaling got there (`raw/match-m6` to `raw/match-m8`).
+- The flecks stay turned down as in round 6.
+- The preset identity is re-pinned, and all crate tests are green (`raw/space-tests-r7.log`).
+
+**Sheet:** `raw/final6/sheet-beech.png` is in the same layout; row 6 is today's beech in the matched colours. `raw/final6/close-ups.png` holds the close-ups. I viewed every still.
+
+| Trait | Seed 1 | Seed 7 | Acceptance |
+|---|---|---|---|
+| 80 cycles: fork, limbs, dome | Leaning, kinked lower trunk, two-lobed crown (final4's seed 1) | Erect stout trunk, division at about 0.3 H, rising limbs, dome (final4's seed 7) | Seed 7 **met**; seed 1 **not met** (erect) |
+| Seams and collars | One dark slit at a module joint on the lower trunk | Smooth; faint horizontal bands only | Seed 7 **met**; seed 1 **not met** |
+| Bark colour | Dark olive grey-green, smooth, sparse flecks | The same | **Met against S3's mean**. It reads browner-olive than S3 reads to the eye, because S3's own mean is olive. |
+| Leaf colour | Dark green mass, close to Nettleden in tone | Dark green dome | **Met**. Seed 7 in leaf is the closest yet to Nettleden. |
+| 20 cycles, seed 7 (diagnostic) | — | A straight pole with tiers, recorded and not chased | — |

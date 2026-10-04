@@ -62,8 +62,7 @@ pub fn beech() -> Species {
     // A1, the young stem: orthotropic, monopodial in this engine, bearing
     // plagiotropic A2 systems acrotonically, until the fork.
     // Troll's modules: each grows erect and bends plagiotropic at its tip,
-    // and ends after two or three growth units, its hazard rising with
-    // its length; a relay from a bud on the upper side of its curvature
+    // and ends after a few growth units; a relay from a bud on the upper side of its curvature
     // zone straightens and carries the stem on, counting the stem's
     // growth units, while the module's head stays a branch. Each
     // module's base straightens further over the years (Millet's
@@ -72,12 +71,12 @@ pub fn beech() -> Species {
         divergence: 2.4,
         internode: 0.07,
         insertion: 0.3,
-        abortion: 0.1,
-        abortion_rise: 2.0,
+        abortion: 0.35,
+        abortion_rise: 0.0,
         relay: 1.0,
         relay_at: 0.5,
         epitony: 0.6,
-        erection: 0.1,
+        erection: 0.0,
         straightening: 1.0,
         form: Form {
             tropism: 0.6,

@@ -134,13 +134,14 @@
 /canopy/scatter = 80.0
 /canopy/sizeVariation = 0.12
 
-# Darker, owner (fn-193, 2026-10-04: "it should be darker"): the mean
-# linear colour of S3's limb bark (.flow/references/european-beech,
-# S3-branching-limbs.jpg, every pixel greener than blue), a smooth
-# grey-green under open sky.
-/material/barkRed = 0.091
-/material/barkGreen = 0.086
-/material/barkBlue = 0.034
+# Darker, owner (fn-193, 2026-10-04): matched by render, as fn-40 did.
+# The 80-cycle space beech's trunk base, rendered under the stills' sun
+# and sky, reads the mean linear colour of S3's limb bark
+# (.flow/references/european-beech/S3-branching-limbs.jpg, every pixel
+# greener than blue: 0.091/0.086/0.034); the render reads 0.089/0.086/0.035.
+/material/barkRed = 0.04
+/material/barkGreen = 0.04
+/material/barkBlue = 0.0165
 
 # Rough, not glossy, in the oak's and the spruce's range after the
 # owner read the close-ups as plastic. At B-BASE's own light the old
@@ -161,14 +162,17 @@
 /material/shootBlue = 0.085
 /material/shootRadius = 0.004
 
-# Darker, owner (fn-193): both faces the mean linear colour of S2
-# Nettleden's summer crown (a 500 px crop inside the crown at 700,250).
-/material/leafFrontRed = 0.062
-/material/leafFrontGreen = 0.069
-/material/leafFrontBlue = 0.032
-/material/leafBackRed = 0.062
-/material/leafBackGreen = 0.069
-/material/leafBackBlue = 0.032
+# Darker, owner (fn-193): matched by render to S2 Nettleden's summer
+# crown (mean linear colour of a 500 px crop inside it at 700,250:
+# 0.062/0.069/0.032), read from the rendered crown of the 80-cycle space
+# beech under the stills' light, which reads 0.064/0.075/0.042; the back
+# face keeps its earlier ratio to the front.
+/material/leafFrontRed = 0.021
+/material/leafFrontGreen = 0.0158
+/material/leafFrontBlue = 0.0067
+/material/leafBackRed = 0.037
+/material/leafBackGreen = 0.0307
+/material/leafBackBlue = 0.0114
 
 /material/hueRangeLow = -0.02
 /material/hueRangeHigh = 0.02
