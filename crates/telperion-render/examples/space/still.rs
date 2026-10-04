@@ -24,6 +24,9 @@ const SUN: (f64, f64) = (115.0, 60.0);
 /// it in the `preset`'s rows overlaid by `rows`, and writes
 /// `<name>-<age>-<seed>-<view>.png`. With `--sag`, a walk of that PA's
 /// `form.sag`: one tree per value, named `<name>-<age>-<seed>-sag<value>`.
+/// With `--dormant <pas>:<pa>:<delay>:<rate>:<values>`, a walk of the
+/// probability that every zone of those PAs holds a sleeping bud of `pa`,
+/// under that release law (fn-202): `<name>-<age>-<seed>-dormant<value>`.
 pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let (out, rest) = args.split_first().ok_or(format!(
@@ -31,6 +34,7 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
     ))?;
     let (mut ages, mut seeds) = (Vec::new(), vec![1u64, 7]);
     let mut sag: Option<(usize, Vec<f64>)> = None;
+    let mut dormant: Option<(Vec<usize>, usize, f64, f64, Vec<f64>)> = None;
     let mut words = rest.iter();
     while let Some(word) = words.next() {
         if word == "--seeds" {
@@ -39,6 +43,27 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
                 .split(',')
                 .map(|s| s.parse().map_err(|e| format!("{e}")))
                 .collect::<Result<_, _>>()?;
+        } else if word == "--dormant" {
+            // <pa>,<pa>:<sleeping pa>:<delay>:<rate>:<values>
+            let walk = words.next().ok_or("--dormant needs a walk")?;
+            let parts: Vec<&str> = walk.split(':').collect();
+            let [pas, j, delay, rate, values] = parts[..] else {
+                return Err("--dormant <pas>:<pa>:<delay>:<rate>:<values>".into());
+            };
+            let list = |t: &str| -> Result<Vec<f64>, String> {
+                t.split(',')
+                    .map(|v| v.parse().map_err(|e| format!("{v}: {e}")))
+                    .collect()
+            };
+            let pas = list(pas)?.into_iter().map(|p| p as usize).collect();
+            let num = |t: &str| t.parse::<f64>().map_err(|e| format!("{t}: {e}"));
+            dormant = Some((
+                pas,
+                num(j)? as usize,
+                num(delay)?,
+                num(rate)?,
+                list(values)?,
+            ));
         } else if word == "--sag" {
             let walk = words.next().ok_or("--sag needs <pa>:<values>")?;
             let (pa, values) = walk.split_once(':').ok_or("--sag needs <pa>:<values>")?;
@@ -63,9 +88,23 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let base = species();
-    let variants: Vec<(String, Species)> = match sag {
-        None => vec![(String::new(), base)],
-        Some((pa, values)) => values
+    let variants: Vec<(String, Species)> = match (sag, dormant) {
+        (None, Some((pas, j, delay, rate, values))) => values
+            .into_iter()
+            .map(|v| {
+                let mut walked = base.clone();
+                for &pa in &pas {
+                    for zone in &mut walked.states[pa].zones {
+                        zone.dormant[j] = v;
+                        (zone.delay, zone.rate) = (delay, rate);
+                    }
+                }
+                (format!("-dormant{v}"), walked)
+            })
+            .collect(),
+        (None, None) => vec![(String::new(), base)],
+        (Some(_), Some(_)) => return Err("walk --sag or --dormant, not both".into()),
+        (Some((pa, values)), None) => values
             .into_iter()
             .map(|v| {
                 let mut walked = base.clone();
