@@ -633,3 +633,53 @@ w/h is 0.6 to 0.8.
 ## Gate, round 10, and host decision (2026-10-05)
 
 Host: the best spruce so far: hooked boughs, broad-based cones, clean trunk bases; confident. Astra, three samples: FAIL, mostly BORDERLINE: the tips are now "exaggerated upward" (round 8 was flat shelves), and "insufficient foliage mass on the hanging branchlets" (every gate since round 4) (`ASTRA-VERDICT-R10-{1,2,3}.md`). Foliage mass is bounded by GPU memory (about 16M needles per tree). Host and Astra have iterated over seven gates without agreeing, so the spruce goes to the owner's verdict (docs/tree-space.md); round 11 softens the tip recovery between rounds 8 and 10 meanwhile, and the oak (fn-195) starts in parallel.
+
+## Round 11 (worker): a gentler tip recovery
+
+**Probe** (`raw/probe11/probe11.png`: round 10 and four variants, seed 1 at 80 years, sag held at fn-203's round-10 value of 9e-4 except where stated; tropism / elevation on the older branch wood):
+
+| Variant | Tropism / elevation | Reading |
+|---|---|---|
+| a | 1.1 / 0.75 | Inner sweep down, a gentle upturn at the tip: between round 8's flat and round 10's upswing. **Picked** |
+| b | 1.0 / 0.6 | Tips barely recover |
+| c | 0.9 / 0.5, sag 8e-4 | The same |
+| d | 1.2 / 0.6 | Close to a, flatter |
+
+**Foliage mass under the same budget: not reached.**
+- Spur shoots at p 0.75 put seed 7 at 17.5M needles and 217M wood triangles.
+- p 0.7 with needles at 3.4 mm put it at 16.2M needles and 214M triangles.
+- **Both ran the GPU out of memory.** The limit is set by the wood (round 10's seed 7 was 207M triangles), not the needles: every extra spur shoot is wood too. So no mass moved; spurs stay at p 0.6 and needles at 3.2 mm.
+- Moving mass into the hanging branchlets needs memory headroom: fewer wood triangles per metre in the dressing, or shedding before growth (phase F).
+
+**Values** (`spruce.rs`): older branch wood at tropism 1.1, elevation 0.75. Everything else is as in round 10.
+
+**Renders:** every GPU run now sits under the shared lock (`flock gpu.lock`), one tree per process.
+
+**Sheets** (`raw/round11/`, on disk; I viewed every still):
+
+| Sheet | What it holds |
+|---|---|
+| `five-seeds.png` | The references, round 10's seed 1 and its limb, then the 80-year trees in leaf, as limb close-ups, as in-leaf sprays, and bare |
+| `young.png` | 10, 20 and 40 years at seeds 1 and 7 |
+| `close-ups.png` | Trunk bases, and the young trees' bases and sprays |
+
+**Measures at 80 years** (`run.log`):
+- 15.3M to 16.5M needles and 196M to 211M wood triangles.
+- Grown in 10.2 to 10.8 s.
+- Bounds 13.5 to 18.1 m: these include wood lying on the ground.
+
+### Reading against round 10's faults
+
+| Seed | Tips | Whole tree | Trunk base |
+|---|---|---|---|
+| 1 | A gentle upturn after the inner sweep, no longer sharply rising | A cone whose lower boughs droop further; the standing crown looks narrower than round 10's, with the skirt on the ground beyond it | Steep arcs to the ground; no loops or kinks |
+| 7 | As seed 1 | The fullest; a drooping lower crown | As seed 1 |
+| 2 | As seed 1 | Broad skirt | As seed 1 |
+| 3 | As seed 1 | As seed 2 | As seed 1 |
+| 4 | Slightly flatter | The narrowest | As seed 1 |
+
+**Overall:**
+- **"Tips exaggerated upward" is answered.** The outer thirds lift gently, between round 8 and round 10.
+- **The cost of that:** with less recovery the sagging boughs end lower, so the standing crown reads narrower and more pendulous than round 10's broad cone. That is nearer a drooping-branched spruce than S1's level-to-swept form. Round 10's hook with round 11's tip strength is not reachable by tip tropism alone. A lower sag (7e-4 to 8e-4) with a = 1.1 / 0.75 would sit between them, and was not tried because of memory and time.
+- **"Insufficient foliage mass" is unchanged:** bounded by GPU memory, now set by wood triangles.
+- **Young trees:** unchanged; level tiers at 20 and 40 years.

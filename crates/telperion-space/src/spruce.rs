@@ -143,8 +143,8 @@ pub fn spruce() -> Species {
         viability: 0.998,
         shedding: Some(3),
         form: Form {
-            tropism: 1.4,
-            elevation: 1.0,
+            tropism: 1.1,
+            elevation: 0.75,
             wander: 1.0,
             plane: 0.0,
             pipe: 0.0008,

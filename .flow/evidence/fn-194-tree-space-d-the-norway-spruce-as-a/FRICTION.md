@@ -28,3 +28,10 @@
 - **Hindered by:** GPU out of memory again, now on most attempts. Other desktop apps hold 1.4 to 2.6 GB of the 10 GB card, varying from minute to minute, and round 8's trees (17M to 18M needles, about 50 km of wood) sit at the edge. Probe 9b's first variant failed three times with 20 s pauses, and probe 9d failed twice.
 - **Cost:** about 25 minutes of failed renders.
 - **What would remove it:** a renderer memory estimate that refuses by name before allocating; rendering the stills' needles in batches; or the owner closing GPU-heavy apps during render runs (local setup).
+
+## 2026-10-05, task 1, round 11
+
+- **Doing:** moving foliage mass into hanging branchlets under the needle budget.
+- **Hindered by:** the GPU's limit is set by wood triangles (about 210M per tree at 80 years), not needles. The still runner's mesh print showed it. More spur shoots add wood, so they ran out of memory twice even with fewer needles.
+- **Cost:** about 10 minutes and two failed renders.
+- **What would remove it:** fewer cross-section segments on fine wood in the dressing (a level of detail for twigs under a millimetre), which would free the memory for foliage.
