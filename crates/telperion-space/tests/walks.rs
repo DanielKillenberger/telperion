@@ -41,7 +41,7 @@ fn every_setting_changes_the_tree_by_degree() {
 /// fn-202 R3: a sleeping bud's release law walked moves its waking, and
 /// with it the tree, by degree.
 #[test]
-#[ignore = "fn-202: a waking that crosses a cycle boundary still jumps; design question to the host"]
+#[ignore = "fn-202: a bud that wakes just before its bearer stops still jumps; design question to the host"]
 fn the_release_law_changes_the_tree_by_degree() {
     let failed = by_degree(&release_settings());
     assert!(failed.is_empty(), "{failed:#?}");

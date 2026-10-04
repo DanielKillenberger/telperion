@@ -34,9 +34,6 @@ type Bud = Option<(usize, f64)>;
 struct Apex {
     axis: usize,
     units: u32,
-    /// The whole years a bud that woke slept: its growth units are keyed
-    /// by the years since its node grew.
-    skew: u32,
 }
 
 /// Grows, sheds and places the tree.
@@ -55,11 +52,7 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
             birth: [1.0; 2],
             ..Draws::default()
         }],
-        live: vec![Apex {
-            axis: 0,
-            units: 0,
-            skew: 0,
-        }],
+        live: vec![Apex { axis: 0, units: 0 }],
         units: vec![0],
         successor: vec![None],
         asleep: vec![Vec::new(); request.age as usize + 2],
@@ -118,6 +111,15 @@ fn stop_stake(relay: f64) -> f64 {
     1.0 - relay
 }
 
+/// A survival over a share of the year: to the share, itself whole.
+fn shared(p: f64, share: f64) -> f64 {
+    if share < 1.0 {
+        p.powf(share)
+    } else {
+        p
+    }
+}
+
 fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
     Axis {
         lineage: key.0,
@@ -168,88 +170,148 @@ struct Grower<'a> {
 impl Grower<'_> {
     fn step(&mut self, cycle: u32) -> Result<()> {
         let live = std::mem::take(&mut self.live);
-        for mut apex in live.iter().copied() {
-            let pa = self.axes[apex.axis].pa;
-            let state = &self.species.states[pa];
-            let unit =
-                Key(self.axes[apex.axis].lineage).child(u64::from(apex.units + apex.skew) + 1);
-            let u = unit.child(VIABILITY).unit();
-            if u >= state.viability {
-                self.axes[apex.axis].apex_end = Some(cycle - 1);
-                // The unit that failed is spent: a relay's first unit draws
-                // anew.
-                self.stop(apex, cycle, above(u, state.viability), unit, apex.units + 1);
-                continue;
-            }
-            let survive = below(u, state.viability);
-            let wood = self.windows.wood(pa, cycle);
-            let survive = self.windows.decided(survive, wood, stop_stake(state.relay));
-            self.draws[apex.axis].units.push([survive, 1.0]);
-            self.grow_unit(apex, pa, unit, cycle)?;
-            apex.units += 1;
-            // An apex that has spent its PA's lifespan moves on; it does not
-            // also abort.
-            let abortion = state.abortion_at(self.draws[apex.axis].units.len());
-            if abortion > 0.0 && apex.units < state.lifespan {
-                let u = unit.child(ABORTION).unit();
-                if u < abortion {
-                    self.axes[apex.axis].apex_end = Some(cycle);
-                    self.stop(apex, cycle, below(u, abortion), unit, apex.units);
-                    continue;
-                }
-                let wood = self.windows.wood(pa, cycle + 1);
-                let persist =
-                    self.windows
-                        .decided(above(u, abortion), wood, stop_stake(state.relay));
-                let units = &mut self.draws[apex.axis].units;
-                units.last_mut().unwrap()[1] = persist;
-            }
-            if apex.units < state.lifespan {
-                self.next.push(apex);
-                continue;
-            }
-            self.axes[apex.axis].apex_end = Some(cycle);
-            match state.next {
-                Some(next) => {
-                    let key = Key(self.axes[apex.axis].lineage).child(CONTINUATION);
-                    let origin = Origin::Continuation { parent: apex.axis };
-                    self.successor[apex.axis] = Some(self.axes.len());
-                    self.sprout(key, next, cycle, origin, [1.0; 2]);
-                }
-                None => self.stop(apex, cycle, f64::INFINITY, unit, apex.units),
-            }
+        for apex in live.iter().copied() {
+            self.advance(apex, cycle)?;
         }
-        self.wake(cycle);
+        self.wake(cycle)?;
         self.live = std::mem::replace(&mut self.next, live);
         self.next.clear();
         Ok(())
     }
 
-    /// The sleeping buds that wake in the next cycle sprout, each on an
-    /// axis something still carries on, by the presence of every draw
-    /// that kept it alive.
-    fn wake(&mut self, cycle: u32) {
-        let Some(asleep) = self.asleep.get_mut(cycle as usize + 1) else {
-            return;
+    /// One living apex's growth unit in `cycle`: its survival, the unit,
+    /// then its abortion or its move to its next PA.
+    fn advance(&mut self, mut apex: Apex, cycle: u32) -> Result<()> {
+        let pa = self.axes[apex.axis].pa;
+        let state = &self.species.states[pa];
+        let unit = Key(self.axes[apex.axis].lineage).child(u64::from(apex.units) + 1);
+        // A woken bud's first unit runs only its share of the year's
+        // risks (`dormant.rs`).
+        let draws = &self.draws[apex.axis];
+        let share = if draws.units.is_empty() && draws.sleep > 0.0 {
+            1.0 - draws.sleep
+        } else {
+            1.0
+        };
+        let viability = shared(state.viability, share);
+        let u = unit.child(VIABILITY).unit();
+        if u >= viability {
+            self.axes[apex.axis].apex_end = Some(cycle - 1);
+            // The unit that failed is spent: a relay's first unit draws
+            // anew.
+            self.stop(apex, cycle, above(u, viability), unit, apex.units + 1);
+            return Ok(());
+        }
+        let survive = below(u, viability);
+        let wood = self.windows.wood(pa, cycle);
+        let survive = self.windows.decided(survive, wood, stop_stake(state.relay));
+        self.draws[apex.axis].units.push([survive, 1.0]);
+        self.grow_unit(apex, pa, unit, cycle)?;
+        apex.units += 1;
+        // An apex that has spent its PA's lifespan moves on; it does not
+        // also abort.
+        let abortion = state.abortion_at(self.draws[apex.axis].units.len());
+        let abortion = if share < 1.0 {
+            1.0 - (1.0 - abortion).powf(share)
+        } else {
+            abortion
+        };
+        if abortion > 0.0 && apex.units < state.lifespan {
+            let u = unit.child(ABORTION).unit();
+            if u < abortion {
+                self.axes[apex.axis].apex_end = Some(cycle);
+                self.stop(apex, cycle, below(u, abortion), unit, apex.units);
+                return Ok(());
+            }
+            let wood = self.windows.wood(pa, cycle + 1);
+            let persist = self
+                .windows
+                .decided(above(u, abortion), wood, stop_stake(state.relay));
+            let units = &mut self.draws[apex.axis].units;
+            units.last_mut().unwrap()[1] = persist;
+        }
+        if apex.units < state.lifespan {
+            self.next.push(apex);
+            return Ok(());
+        }
+        self.axes[apex.axis].apex_end = Some(cycle);
+        match state.next {
+            Some(next) => {
+                let key = Key(self.axes[apex.axis].lineage).child(CONTINUATION);
+                let origin = Origin::Continuation { parent: apex.axis };
+                self.successor[apex.axis] = Some(self.axes.len());
+                self.sprout(key, next, cycle, origin, [1.0; 2]);
+            }
+            None => self.stop(apex, cycle, f64::INFINITY, unit, apex.units),
+        }
+        Ok(())
+    }
+
+    /// The sleeping buds that wake in `cycle` sprout and grow their
+    /// partial first unit, each on an axis something still carries on
+    /// past the cycle, by the presence of every draw that kept it alive. A bud that slept through a stage wakes in the
+    /// next, carried there by axes of no length, as its continuations; one
+    /// that slept past its last stage never wakes.
+    fn wake(&mut self, cycle: u32) -> Result<()> {
+        let Some(asleep) = self.asleep.get_mut(cycle as usize) else {
+            return Ok(());
         };
         for sleeper in std::mem::take(asleep) {
+            let Some((pa, spent)) = dormant::aged(self.species, sleeper.pa, sleeper.slept) else {
+                continue;
+            };
             let Some(carried) =
                 dormant::carried(&self.axes, &self.draws, &self.successor, &sleeper)
             else {
                 continue;
             };
-            let origin = Origin::Lateral {
+            let mut origin = Origin::Lateral {
                 parent: sleeper.parent,
                 node: sleeper.node,
                 slot: sleeper.slot,
                 whorl: sleeper.whorl,
                 woken: true,
             };
-            let made = [self.windows.presence(sleeper.lead, sleeper.wood), carried];
-            self.sprout(Key(sleeper.key), sleeper.pa, cycle, origin, made);
+            let mut key = Key(sleeper.key);
+            let mut made = [self.windows.presence(sleeper.lead, sleeper.wood), carried];
+            let mut stage = sleeper.pa;
+            while stage != pa {
+                let at = self.axes.len();
+                self.slept(key, stage, cycle - 1, origin, made);
+                stage = self.species.states[stage].next.expect("aged along next");
+                (origin, key, made) = (
+                    Origin::Continuation { parent: at },
+                    key.child(CONTINUATION),
+                    [1.0; 2],
+                );
+                self.successor[at] = Some(at + 1);
+            }
+            self.sprout(key, pa, cycle - 1, origin, made);
             self.draws.last_mut().unwrap().sleep = sleeper.sleep;
-            self.next.last_mut().unwrap().skew = sleeper.slept;
+            *self.units.last_mut().unwrap() = spent;
+            let apex = self.next.pop().expect("sprouted");
+            self.advance(
+                Apex {
+                    units: spent,
+                    ..apex
+                },
+                cycle,
+            )?;
         }
+        Ok(())
+    }
+
+    /// A stage a sleeping bud slept through: an axis of no length.
+    fn slept(&mut self, key: Key, pa: usize, cycle: u32, origin: Origin, made: [f64; 2]) {
+        self.units.push(self.species.states[pa].lifespan);
+        self.successor.push(None);
+        let mut axis = bud(key, pa, cycle, origin);
+        axis.apex_end = Some(cycle);
+        self.axes.push(axis);
+        self.draws.push(Draws {
+            birth: made,
+            ..Draws::default()
+        });
     }
 
     /// A new bud that grows from the next cycle, made by draws with these
@@ -265,7 +327,6 @@ impl Grower<'_> {
         self.next.push(Apex {
             axis: self.axes.len(),
             units,
-            skew: 0,
         });
         self.axes.push(bud(key, pa, cycle, origin));
         self.draws.push(Draws {

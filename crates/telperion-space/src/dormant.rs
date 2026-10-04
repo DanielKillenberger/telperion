@@ -53,7 +53,7 @@ pub(crate) struct Sleeper {
     /// The expected wood it decides, as a share of the tree's.
     pub wood: f64,
     /// The share of its first cycle it still slept, and the whole years
-    /// before it.
+    /// before it, which it aged through.
     pub sleep: f64,
     pub slept: u32,
 }
@@ -122,13 +122,76 @@ pub(crate) fn carried(
     }
 }
 
+/// The stage a bud of PA `pa` that slept `slept` years wakes in, and the
+/// units it carries into it: a dormant bud ages in the bark as its axis
+/// does (host, 2026-10-04), passing each stage whose lifespan it slept
+/// through. None when it slept past its last.
+pub(crate) fn aged(species: &Species, mut pa: usize, mut slept: u32) -> Option<(usize, u32)> {
+    loop {
+        let state = &species.states[pa];
+        if slept < state.lifespan {
+            return Some((pa, slept));
+        }
+        slept -= state.lifespan;
+        pa = state.next?;
+    }
+}
+
+/// The law of a woken bud's partial first unit, which runs only its share
+/// of the year's risks: the chance it survives (viability to the share),
+/// and that it survives and does not then abort, each averaged over where
+/// in its year it woke.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) struct First {
+    pub survive: f64,
+    pub persist: f64,
+}
+
+impl First {
+    /// For a bud woken in the `s`th year after its node grew, into `pa`
+    /// carrying `spent` units.
+    pub fn of(species: &Species, zone: &Zone, s: u32, (pa, spent): (usize, u32)) -> Self {
+        let state = &species.states[pa];
+        let survive = shared(zone, s, state.viability);
+        let persist = if units_left(state.lifespan, spent) > 1 {
+            shared(zone, s, state.viability * (1.0 - state.abortion_at(1)))
+        } else {
+            survive
+        };
+        Self { survive, persist }
+    }
+}
+
+/// The mean of `c` to the share of the year a bud woken in its `s`th year
+/// still grows, its waking time past `s` distributed as the release law
+/// gives it there.
+fn shared(zone: &Zone, s: u32, c: f64) -> f64 {
+    if c <= 0.0 {
+        return 0.0;
+    }
+    let r = zone.rate;
+    // Its waking time past s lies in [x0, 1), with density in
+    // proportion to exp(-r x); its share is 1 - x.
+    let x0 = (zone.delay - f64::from(s)).max(0.0);
+    let d = 1.0 - x0;
+    let lambda = c.ln() + r;
+    let spread = |rate: f64| {
+        if rate.abs() < 1e-12 {
+            d
+        } else {
+            -(-rate * d).exp_m1() / rate
+        }
+    };
+    r * c.powf(d) * spread(lambda) / spread(r) / r
+}
+
 /// The closed form of `carried`: the chance that the axis a bud grows is
 /// still carried on, by its apex or a continuation or relay of it, at the
 /// start of a cycle. Cycles count from the bud's birth, its first growth
 /// unit growing in cycle 1, as the closed form's do.
 pub(crate) struct Living<'a> {
     species: &'a Species,
-    memo: HashMap<(usize, u32, usize, usize, bool), f64>,
+    memo: HashMap<(usize, u32, usize, usize, Option<u64>), f64>,
 }
 
 impl<'a> Living<'a> {
@@ -140,18 +203,18 @@ impl<'a> Living<'a> {
     }
 
     /// The chance for a bud of PA `k` carrying `spent` units, given its
-    /// apex grew its unit `i`, that its axis is carried on at the start of
-    /// cycle `y` (after `i`).
-    pub fn after(&mut self, k: usize, spent: u32, i: usize, y: usize) -> f64 {
+    /// apex grew its unit `i` and then aborts with chance `abortion`, that
+    /// its axis is carried on at the start of cycle `y` (after `i`).
+    pub fn after(&mut self, k: usize, spent: u32, i: usize, y: usize, abortion: f64) -> f64 {
         let state = &self.species.states[k];
         let spent = spent_key(state.lifespan, spent);
-        if let Some(&p) = self.memo.get(&(k, spent, i, y, true)) {
+        let key = (k, spent, i, y, Some(abortion.to_bits()));
+        if let Some(&p) = self.memo.get(&key) {
             return p;
         }
         let n = units_left(state.lifespan, spent);
         let relay = state.relay;
         let p = if i < n {
-            let abortion = state.abortion_at(i);
             let mut p = (1.0 - abortion) * self.from(k, spent, i + 1, y);
             if abortion * relay > 0.0 {
                 p += abortion * relay * self.from(k, spent + i as u32, 1, y - i);
@@ -164,7 +227,7 @@ impl<'a> Living<'a> {
                 None => 0.0,
             }
         };
-        self.memo.insert((k, spent, i, y, true), p);
+        self.memo.insert(key, p);
         p
     }
 
@@ -175,16 +238,21 @@ impl<'a> Living<'a> {
         }
         let state = &self.species.states[k];
         let spent = spent_key(state.lifespan, spent);
-        if let Some(&p) = self.memo.get(&(k, spent, u, y, false)) {
+        if let Some(&p) = self.memo.get(&(k, spent, u, y, None)) {
             return p;
         }
         let (viability, relay) = (state.viability, state.relay);
-        let mut p = viability * self.after(k, spent, u, y);
+        let abortion = if u < units_left(state.lifespan, spent) {
+            state.abortion_at(u)
+        } else {
+            0.0
+        };
+        let mut p = viability * self.after(k, spent, u, y, abortion);
         // A unit that failed is spent; its relay grows from the next cycle.
         if (1.0 - viability) * relay > 0.0 {
             p += (1.0 - viability) * relay * self.from(k, spent + u as u32, 1, y - u);
         }
-        self.memo.insert((k, spent, u, y, false), p);
+        self.memo.insert((k, spent, u, y, None), p);
         p
     }
 }
