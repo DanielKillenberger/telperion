@@ -10,13 +10,239 @@
     "fn-192-tree-space-b-continuity-by-construction"
   ],
   "id": "fn-193-tree-space-c-the-beech-as-the-first",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-193-tree-space-c-the-beech-as-the-first.1": 2
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "5ec4e745499dc5d2501bf7d512706091e4ae986c4d1f6a998b9b1f685a5f2181",
+      "backend": "codex",
+      "base_sha": "a84289dfeb5db9cc715e5b4e24669de1f027ed59",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6d6e2ed89aaa8ab732330f1f351cf7e3",
+            "classification": "introduced",
+            "findingId": "finding-6d6e2ed89aaa8ab732330f1f351cf7e3",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-37eece5f0fb29e7636c16a57d16e94cf",
+            "classification": "introduced",
+            "findingId": "finding-37eece5f0fb29e7636c16a57d16e94cf",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-eb15c3fd2ad27c4c57c27225c0edc718",
+            "classification": "introduced",
+            "findingId": "finding-eb15c3fd2ad27c4c57c27225c0edc718",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a49d4f43e96252d5699d9bd994d5404d",
+            "classification": "introduced",
+            "findingId": "finding-a49d4f43e96252d5699d9bd994d5404d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-04f598b1a6854fc69681ef194644207b",
+            "classification": "introduced",
+            "findingId": "finding-04f598b1a6854fc69681ef194644207b",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b138b4ecd92ecfd5ee164508657e7452",
+            "classification": "introduced",
+            "findingId": "finding-b138b4ecd92ecfd5ee164508657e7452",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a6e6e65d2decd79671ae9c5609a87f7c",
+            "classification": "introduced",
+            "findingId": "finding-a6e6e65d2decd79671ae9c5609a87f7c",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a8daf966be7107e33f728288d9eed1435c0d5d91",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 6364,
+      "output_sha256": "7bbd224b23118785dedc53ee0c9e2ad88159191a4bdc6410612faf5f6032e239",
+      "reservation_id": "33e47f112c61497c9b41dddd668e36c5",
+      "round_consumed": true,
+      "scope": "impl:fn-193-tree-space-c-the-beech-as-the-first.1",
+      "superseded_by": null,
+      "task": "fn-193-tree-space-c-the-beech-as-the-first.1",
+      "timestamp": "2026-10-04T14:51:52.125446Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "62ae4d735a9f28a55c1ef7d55c6b3ab0b88b33772a086adfd7e6eefb6aa2adf2",
+      "backend": "codex",
+      "base_sha": "a84289dfeb5db9cc715e5b4e24669de1f027ed59",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6d6e2ed89aaa8ab732330f1f351cf7e3",
+            "classification": "introduced",
+            "findingId": "finding-6d6e2ed89aaa8ab732330f1f351cf7e3",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-37eece5f0fb29e7636c16a57d16e94cf",
+            "classification": "introduced",
+            "findingId": "finding-37eece5f0fb29e7636c16a57d16e94cf",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-eb15c3fd2ad27c4c57c27225c0edc718",
+            "classification": "introduced",
+            "findingId": "finding-eb15c3fd2ad27c4c57c27225c0edc718",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-a49d4f43e96252d5699d9bd994d5404d",
+            "classification": "introduced",
+            "findingId": "finding-a49d4f43e96252d5699d9bd994d5404d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-a7f4d1bfae4218423d322868e30041a2",
+            "classification": "introduced",
+            "findingId": "finding-a7f4d1bfae4218423d322868e30041a2",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-caa4ccff16a574ca7e10382e244833b6",
+            "classification": "introduced",
+            "findingId": "finding-caa4ccff16a574ca7e10382e244833b6",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-62d63926efd2be1d13b45f77a6724c45",
+            "classification": "introduced",
+            "findingId": "finding-62d63926efd2be1d13b45f77a6724c45",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b0ba04982585729611f64bef61a4d2ce",
+            "classification": "introduced",
+            "findingId": "finding-b0ba04982585729611f64bef61a4d2ce",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-04f598b1a6854fc69681ef194644207b",
+            "classification": "introduced",
+            "findingId": "finding-04f598b1a6854fc69681ef194644207b",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b138b4ecd92ecfd5ee164508657e7452",
+            "classification": "introduced",
+            "findingId": "finding-b138b4ecd92ecfd5ee164508657e7452",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-a6e6e65d2decd79671ae9c5609a87f7c",
+            "classification": "introduced",
+            "findingId": "finding-a6e6e65d2decd79671ae9c5609a87f7c",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3bd91bc7060327d9da14d56e9badc4d9ed41b384",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 4449,
+      "output_sha256": "f87ae25e04f3d8f79122e9abc42ccbca789d1b3560b4b4ca9bc01b23e2a389c7",
+      "reservation_id": "4e9813c6724e4ba1938e8f3c47ef7aca",
+      "round_consumed": true,
+      "scope": "impl:fn-193-tree-space-c-the-beech-as-the-first.1",
+      "superseded_by": null,
+      "task": "fn-193-tree-space-c-the-beech-as-the-first.1",
+      "timestamp": "2026-10-04T14:56:13.647696Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-193-tree-space-c-the-beech-as-the-first.1": 0
+  },
   "spec_path": ".flow/specs/fn-193-tree-space-c-the-beech-as-the-first.md",
   "status": "open",
   "title": "Tree space C: the beech as the first point",
@@ -31,5 +257,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T21:28:56.251322Z"
+  "updated_at": "2026-10-04T14:56:13.650810Z"
 }
