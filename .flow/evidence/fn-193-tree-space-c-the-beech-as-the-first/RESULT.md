@@ -587,3 +587,7 @@ Recorded: the structure direction holds; the tube-like, regular branch surface i
 - Growth: 1.5 to 2.4 s.
 - Dressing: 1.2 to 1.5 s.
 - 1.05M to 1.27M nodes and 2.2M to 2.7M leaves.
+
+## Gate, round 14 (2026-10-04)
+
+Host: all five connected domes, confident; sent to Astra. Astra: FAIL (4 yes; 1, 7, 2 borderline; 3 no): "the consistently shallow, top-heavy crown: branches and foliage spread into upper fans without enough intermediate and lower volume to form the photographs' deep, broad dome" (`ASTRA-VERDICT-R14.md`). The fans and tufts are gone; the fault moved to depth (crowns about 19 m tall and 21 to 24 m wide). Host decision 14: a deeper dome: crown height at least its width, lower limbs and boughs living longer and carrying more so the crown reaches down from the fork, and mid-crown fill.
