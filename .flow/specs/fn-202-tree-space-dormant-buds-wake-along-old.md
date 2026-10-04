@@ -16,7 +16,7 @@ The spruce (fn-194) has the frame of a Norway spruce, but seven rounds and three
 
 - **R1:** `dormant`, `delay` and `rate` as above, neutral at 0 with every existing tree byte-identical (beech stills, A's oracle, B's walks).
 - **R2:** Lineage-keyed draws: a test that adding a sleeping bud elsewhere moves no other draw.
-- **R3:** Walk tests on `rate`, `delay` and a `dormant` probability, within the bound of 30, with a test that is red first on a naive integer-cycle waking.
+- **R3:** Walk tests on `rate`, `delay` and a `dormant` probability, within the bound of 30 and the jump check. The release-law walk is red first on partial growth alone (the first unit scaled by its share, `dcf6add1`) and green on host decision 1: the partial unit runs its share of the year's risks, and a sleeping bud ages through its stages (host, 2026-10-04).
 - **R4:** The closed form matches the simulation in distribution for a species with dormant buds (seeds 0 to 3,999, as phase A did).
 - **R5:** One still strip of the spruce walking a dormant probability from 0 up on its main branches, viewed by the host.
 - **R6:** Crate tests and the workspace gate green; Codex review.
