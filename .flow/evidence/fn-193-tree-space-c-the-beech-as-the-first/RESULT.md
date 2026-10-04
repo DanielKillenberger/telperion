@@ -858,3 +858,7 @@ Host: fine tips now, limbs heavy inside; sent to Astra. Three samples: FAIL in a
 - The beech test's seeds 1 and 7 stay within its 10M budget (expected 9.9M grown including shed wood).
 
 **Tests:** all crate tests are green (`raw/space-tests-r20.log`): the oracle, every walk, and the beech at every age. Clippy is clean.
+
+## Gate, round 20, and host decision 19 (2026-10-04)
+
+Host: deep rounded crowns on a continuing trunk; confident. Astra, three samples: FAIL in all (one yes for seed 7 in one sample; seed 2 "the strongest beech candidate"); all name the branch hierarchy: "trunks resolve too abruptly into crowded slender limbs, without enough substantial, tapering main branches" (`ASTRA-VERDICT-R20-{1,2,3}.md`). The leader puts out a limb at every module top, so the crown has many similar slender limbs. Host decision 19: a vigour hierarchy among sibling limbs (one continuous engine setting, neutral today's behaviour): a few major limbs take most of the vigour, grow thick and divide progressively; the rest stay boughs and self-prune; fewer limb-bearing modules on the leader.
