@@ -311,3 +311,35 @@ Measures are in `run.log`:
 - **The main fault is not answered.** The needled trees are a little fuller than round 4, but still close to their bare-wood silhouettes. In the limb close-ups, the curtains are fringes of thin hanging shoots, not dense sprays with width.
 - **Values reach their limits here:** cost (more shoots overran the phytomer budget), and needle density (1.5 mm needles barely changed the look). What remains looks like draperies (M10, the recorded gap) and possibly needle size and placement in the dressing.
 - **Young trees:** they keep round 4's look with level tiers. 10 years reads as a sapling; 20 and 40 years read as young spruces.
+
+## Probe 6: needle stance (worker, 2026-10-04)
+
+**The host's reading of round 5:** each shoot dresses as a thin string because its needles hug the wood. The host asked for a probe of the dressing rows that set the needle's angle.
+
+**What the code does** (`crates/telperion-core/src/pipeline/foliage/station.rs`, `axis` and the station loop):
+- Each needle's axis is the radial off the wood, plus the tangent times (`forwardLean` + `leanRise` × the radial's upward part), plus `outward` from the trunk, plus `upward`.
+- With the preset's `forwardLean` 0.05, needles already stand at about 90° all round the shoot. Only the upper ones lean forward, by `leanRise` 1.2.
+- `surfaceContact` moves only the needle's seat, from the shoot's axis (0) to its surface (1), not its angle.
+- `shootRadius` sets which wood is clothed: wood thinner than that share of the trunk's radius.
+
+**A finding about the stills:** the "limb" close-up in every round so far was rendered **bare** (`View::Bare`). It shows no needles at all, so the strings in the earlier limb close-ups were wood. The stills runner now adds a `spray` shot: the same camera, in leaf.
+
+**Probe sheet:** `raw/probe6/probe6.png` holds S3 and six in-leaf limb close-ups of seed 1 at 80 years. `raw/probe6/crop.png` holds full-size crops of the lower crown for four of them.
+
+| Variant | Rows changed |
+|---|---|
+| a | the preset |
+| b | `leanRise` 0, `forwardLean` 0.3 |
+| c | `leanRise` 0, `forwardLean` 0.7 |
+| d | b with `surfaceContact` 0 |
+| e | b with `shootRadius` 0.06 |
+| f | b with `upward` −0.4 |
+
+**Reading:**
+- **The variants are indistinguishable.** Stance is not the lever.
+- **The bough tips are needled sprays:** dense, flat, dark green, close to S3.
+- **The inner curtains are long hanging strands with sparse dots of needles.** They are the old branchlets and spurs. A spur makes about one short shoot a year (3 buds at p 0.35), and each shoot lives 3 years, so a spur carries only about three live shoots at a time. Its own wood is a single strand, and at 9 m a needled strand is a dotted line.
+- **`shootRadius` 0.06 changes nothing,** so the strands are already clothed.
+- **What a spray needs:** a branchlet of many lateral shoots alive at once, which S3 shows.
+
+**What decides this:** the structure, not the dressing. It is the live shoot count along old branchlets in `crates/telperion-space/src/spruce.rs` (the spur and shoot rows): values limited by the phytomer budget, or the draperies gap (M10). I did not apply a variant and did not render round 6.

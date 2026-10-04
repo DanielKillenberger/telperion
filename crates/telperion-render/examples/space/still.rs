@@ -99,6 +99,8 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
                     (View::Whole, "whole", &camera),
                     (View::Bare, "base", &base),
                     (View::Bare, "limb", &limb),
+                    // The limb close-up in leaf: how the needles dress a spray.
+                    (View::Whole, "spray", &limb),
                 ];
                 for (view, shot, camera) in shots {
                     renderer
