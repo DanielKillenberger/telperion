@@ -649,3 +649,45 @@ Host: all five connected domes, confident; sent to Astra. Astra: FAIL (4 yes; 1,
 ## Gate, round 15, and host decision 15 (2026-10-04)
 
 Astra: FAIL (1, 7, 2, 3 borderline; 4 no): "the rising limbs consistently produce an upright fan with separate peaks instead of the broad, integrated dome" (`ASTRA-VERDICT-R15.md`). Rounds 13 to 15 swung between flat fans and upright fans, so the limb design is wrong, not its values. The source says how: in *Fagus* "trunk and limbs are stacks of plagiotropic modules that straighten at the base" (LITERATURE.md catalogue table; Millet; CIRAD). Each limb rises at its base and arches over at its tip, relaying from the bend, and the arching tips make the integrated dome. Host decision 15: Troll's module mechanism (built for the trunk) applies to limbs and boughs, replacing the out-then-up two-phase limb: erect base, arching plagiotropic tip, relay from the upper side of the bend.
+
+## Round 16: limbs and boughs as Troll module stacks (worker)
+
+**Engine:** unchanged. The trunk's module mechanism (abortion with relay, `relay_at`, epitony, straightening) applies to any physiological age (PA), so the change is in the beech's values only.
+
+**Beech** (`beech.rs`, starting from round 14):
+- **The two-phase limb (out, then up) is gone.** `LIMB_UP` and `BOUGH_UP` are removed, so the reference axis is back to 9 PAs.
+- **A limb and a bough are each one PA of plagiotropic modules:**
+  - abortion 0.3 (limb) and 0.35 (bough) a growth unit, relay 1;
+  - the relay at 0.15 of the last growth unit, turned 0.6 to the upper side;
+  - the base straightening 0.6;
+  - the tip bending toward 0.2 rad (limb) and 0.1 rad (bough), tropism 0.6.
+- **Each module rises at its base and arches over at its tip.** The next relays from the upper side of the bend, so the arching tips form the crown's surface.
+- **Lifespans:** limb 70 units, bearing boughs at 0.16 at the module top; bough 30, bearing spurs at 0.14. The leader and spurs are as in round 14.
+- **Budget and girth:**
+  - Module stacks multiply boughs and spurs. A first try grew 19M phytomers in the beech test, against its 10M budget, with a dbh of 1.58 m.
+  - Fewer laterals bring it inside: boughs and spurs as above, and short shoots 0.3 and branch systems 0.35 on reiterates. The beech test passes with its budget unchanged; the expected growth is 10.5M including shed wood.
+  - dbh is 1.16 m at seed 1.
+
+**Heights and widths at 80 years** (`raw/final15/run.log`; the bole is clear to about 4.5 m, 0.23 H, read off the stills):
+
+| Seed | Height | Width (x × z) | Reading against Astra's "upright fan with separate peaks" | Beech? |
+|---|--:|--:|---|---|
+| 1 | 19.3 m | 20.7 × 21.6 | One rounded, integrated dome, reaching down near the fork; no separate peaks | **Yes** |
+| 7 | 19.1 m | 21.0 × 18.5 | A rounded dome on an erect bole, the outline continuous; a few thin shoots at the lower right | **Yes** |
+| 2 | 20.2 m | 18.7 × 19.1 | A rounded, slightly ovoid dome, deeper than wide on one axis | **Yes** |
+| 3 | 19.0 m | 20.7 × 21.1 | A broad, rounded dome with a continuous outline; a few shoots stand out at the right edge | **Yes** |
+| 4 | 18.0 m | 20.5 × 22.5 | A broad dome, slightly flat-topped, filled to the lower crown | **Yes / borderline** (flat top) |
+
+**Five of five read as one integrated dome, with no upright fan and no separate peaks.**
+- The limbs are no longer separately visible in the bare tree: they arch and branch into a fine, even crown. Bare, it reads closer to Rostock's dense crown than to Entzia's open scaffold.
+- In leaf, each crown is a connected dark mass, the nearest yet to Nettleden.
+- The crowns are still about as wide as they are tall: depth (height less the bole) over width is about 0.7 to 0.85.
+- Trunk bases are smooth, with faint seams.
+- Young ages are unchanged: a pole with rods at 10 and 20; at 40 a narrow, rounded crown on a tall bole.
+
+**Tests:** all crate tests are green (`raw/space-tests-r16.log`): the oracle, every walk, and the beech at every age within its unchanged budget. Clippy is clean.
+
+**Costs at 80 years:**
+- Growth: 2.3 to 3.9 s.
+- Dressing: 1.6 to 2.0 s.
+- 1.37M to 1.60M nodes and 2.6M to 3.4M leaves.

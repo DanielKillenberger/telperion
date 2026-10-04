@@ -12,14 +12,12 @@ use std::f64::consts::{FRAC_PI_2, PI};
 const FORK: usize = 1;
 const LEADER: usize = 2;
 const LIMB: usize = 3;
-const LIMB_UP: usize = 4;
-const BOUGH: usize = 5;
-const BOUGH_UP: usize = 6;
-const SPUR: usize = 7;
-const BRANCH: usize = 8;
-const SHOOT: usize = 9;
-const SHORT: usize = 10;
-const PAS: usize = 11;
+const BOUGH: usize = 4;
+const SPUR: usize = 5;
+const BRANCH: usize = 6;
+const SHOOT: usize = 7;
+const SHORT: usize = 8;
+const PAS: usize = 9;
 
 /// One zone: nodes from `min` to `max`, one bud each, bearing `pa` with
 /// probability `p` (bare where `p` is 0).
@@ -122,10 +120,8 @@ pub fn beech() -> Species {
         )
     };
     // Total reiterates: oblique, thick, forking in turn into reiterates
-    // "increasingly smaller and less branched". A limb or bough runs out
-    // first and rises as it ages: its first physiological age bends
-    // towards a low elevation, the next towards a steep one.
-    let reiterate = |lifespan, next, top: &[(usize, f64)], (elevation, tropism)| PaState {
+    // "increasingly smaller and less branched".
+    let reiterate = |lifespan, top: &[(usize, f64)], (elevation, tropism)| PaState {
         insertion: 0.7,
         straightening: 0.25,
         viability: 0.995,
@@ -139,13 +135,31 @@ pub fn beech() -> Species {
         },
         ..state(
             lifespan,
-            next,
+            None,
             vec![
                 zone(2, 3, &[]),
-                zone(2, 3, &[(SHORT, 0.3), (BRANCH, 0.4)]),
+                zone(2, 3, &[(SHORT, 0.3), (BRANCH, 0.35)]),
                 zone(1, 1, top),
             ],
         )
+    };
+    // Limbs and boughs, like the trunk, are stacks of plagiotropic Troll
+    // modules: each rises at its base and arches over at its tip, ends
+    // after a few growth units, and a relay from the upper side of its
+    // bend carries the limb on, so the arching tips make the crown's
+    // surface.
+    let module = |reiterate: PaState, (abortion, elevation)| PaState {
+        abortion,
+        relay: 1.0,
+        relay_at: 0.15,
+        epitony: 0.6,
+        straightening: 0.6,
+        form: Form {
+            tropism: 0.6,
+            elevation,
+            ..reiterate.form
+        },
+        ..reiterate
     };
     // The stem's own relay at the fork, one of its equals but the most
     // erect; after the fork one or two limbs dominate, and what the leader
@@ -153,22 +167,11 @@ pub fn beech() -> Species {
     // shortest.
     let leader = PaState {
         viability: 1.0,
-        ..reiterate(55, None, &[(LIMB, 0.06), (BOUGH, 0.2)], (1.2, 0.4))
+        ..reiterate(45, &[(LIMB, 0.06), (BOUGH, 0.2)], (1.1, 0.25))
     };
-    let limb = PaState {
-        straightening: 0.1,
-        ..reiterate(8, Some(LIMB_UP), &[(BOUGH, 0.2)], (0.55, 0.6))
-    };
-    let limb_up = PaState {
-        internode: 0.05,
-        ..reiterate(62, None, &[(BOUGH, 0.2)], (1.25, 0.4))
-    };
-    let bough = PaState {
-        straightening: 0.1,
-        ..reiterate(8, Some(BOUGH_UP), &[(BRANCH, 0.45)], (0.5, 0.6))
-    };
-    let bough_up = reiterate(32, None, &[(SPUR, 0.2)], (1.15, 0.4));
-    let spur = reiterate(25, None, &[(BRANCH, 0.45)], (0.8, 0.25));
+    let limb = module(reiterate(70, &[(BOUGH, 0.16)], (0.0, 0.0)), (0.3, 0.2));
+    let bough = module(reiterate(30, &[(SPUR, 0.14)], (0.0, 0.0)), (0.35, 0.1));
+    let spur = reiterate(25, &[(BRANCH, 0.45)], (0.6, 0.25));
     // GreenLab's PA 2, the long ramified shoot: Z20 bare, Z24 short
     // shoots, Z23 long shoots bearing short shoots, Z22 partial
     // reiteration, base to tip (acrotony).
@@ -230,8 +233,6 @@ pub fn beech() -> Species {
         ..state(3, None, vec![zone(3, 5, &[])])
     };
     Species {
-        states: vec![
-            trunk, fork, leader, limb, limb_up, bough, bough_up, spur, branch, shoot, short,
-        ],
+        states: vec![trunk, fork, leader, limb, bough, spur, branch, shoot, short],
     }
 }
