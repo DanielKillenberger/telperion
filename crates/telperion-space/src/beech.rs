@@ -62,26 +62,29 @@ pub fn beech() -> Species {
     // A1, the young stem: orthotropic, monopodial in this engine, bearing
     // plagiotropic A2 systems acrotonically, until the fork.
     // Troll's modules: each grows erect and bends plagiotropic at its tip,
-    // and ends after a few growth units; its tip tilts only part way to
-    // level (elevation 0.9 rad), and a relay from a bud on the upper side of its curvature
-    // zone straightens and carries the stem on, counting the stem's
-    // growth units, while the module's head stays a branch. Each
+    // and ends after one or two growth units; a relay from a bud low in
+    // the curvature zone (the last growth unit), on its upper side,
+    // straightens and carries the stem on, counting the stem's growth
+    // units, while the module's head stays a branch. A relay that has
+    // barely left the module's line keeps its tip's tilt, so the tip
+    // tilts only a little (elevation 1.4 rad) and the stem stays erect
+    // over its chain of modules (estimated, from the stills). Each
     // module's base straightens further over the years (Millet's
     // secondary straightening), the seedling's included.
     let trunk = PaState {
         divergence: 2.4,
         internode: 0.07,
         insertion: 0.3,
-        abortion: 0.35,
+        abortion: 0.5,
         abortion_rise: 0.0,
         relay: 1.0,
-        relay_at: 0.5,
+        relay_at: 0.15,
         epitony: 0.6,
         erection: 0.1,
         straightening: 1.0,
         form: Form {
             tropism: 0.6,
-            elevation: 0.9,
+            elevation: 1.4,
             wander: 0.2,
             plane: FRAC_PI_2,
             pipe: 0.00057,

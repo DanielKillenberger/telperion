@@ -13,7 +13,8 @@ The beech is `crates/telperion-space/src/beech.rs`, one growth cycle a year. Sou
 
 | PA | Role | Source |
 |---|---|---|
-| trunk | A1, the young stem: orthotropic, bearing A2 systems | [M98] "orthotropic along almost all its length". **Monopodial here, not a stack of Troll modules**: estimated simplification. |
+| trunk | A1, the young stem: orthotropic, bearing A2 systems | [M98] "orthotropic along almost all its length". A stack of Troll modules since round 5 (next row). |
+| trunk modules (round 11) | abortion 0.5 a growth unit, relay 1, `relay_at` 0.15 of the last growth unit, epitony 0.6, insertion 0.3, module tips toward elevation 1.4 rad | [M98] the relay bud stands in the curvature zone, on the upper side; the numbers are **estimated** from the stills |
 | fork | the stem's top over 2 cycles, bearing limbs | [M98] "a fork is created from subterminal buds"; "the relays do not differentiate themselves from one another" |
 | leader, limb, bough, spur | total reiterates, each forking into the next, each shorter-lived | [M98] "Each reiterate forks and reiterates in its turn, producing reiterates that are increasingly smaller and less branched"; "the most peripheral being the shortest". Four levels: estimated. |
 | branch | GreenLab PA 2, long ramified shoot | [LET] Fig. 2: Z20 bare, Z24 short shoots, Z23 PA 3, Z22 partial reiteration, base to tip |

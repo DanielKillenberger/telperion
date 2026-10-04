@@ -394,3 +394,49 @@ Starting point: round 2's beech, plus the relay-difference engine change (`57ab6
 ## Host decision 10 (2026-10-04)
 
 The engine is continuous across relays (round 10; worst relay walk slope 2.82 against 30). The beech look regressed because relay_at now measures within the last growth unit. Round 11 is values only on this engine: shorter trunk modules, relays low in the curvature zone, limb spread retuned, collars at module joints blended by the conversion. Target: four of five seeds (1, 7, 2, 3, 4) read as an open-grown beech at 80 years, as in round 9; then Astra judges the same sheet.
+
+## Round 11: values only on the continuous engine (worker)
+
+**Beech values** (`beech.rs`; the engine is untouched):
+
+| Trunk setting | Round 10 | Round 11 | Why |
+|---|--:|--:|---|
+| `relay_at` | 0.5 | 0.15 | The relay bud stands low in the curvature zone, the module's last growth unit ([M98]) |
+| `abortion` | 0.35 | 0.5 | Shorter modules. A larger lead past the bound also moves each relay further from the line it continues (a larger `blend`) |
+| module tip `elevation` | 0.9 rad | 1.4 rad | Seed 1's lean. A relay with a small `blend` keeps the tilted tip's heading and straightens only by its blend, so each module added tilt and the stem leaned. At 1.4 every seed stands erect |
+
+- **Topology did not move.** At relay 1 a module's end only moves geometry, so the node counts match round 10 to within a few nodes merged by the conversion.
+- **Limb spread** was tried in two steps and reverted:
+  - Every reiterate elevation 0.1 rad lower changed almost nothing.
+  - Lower again (leader 1.05, limb 0.85, bough 0.75, spur 0.6) flattened seeds 3 and 4 into umbrellas.
+  - So the reiterates keep round 10's elevations.
+
+**Collars at module joints** (conversion, `examples/space/tree.rs`). A dump of the lower stem found three causes, fixed one by one, each viewed at the trunk base of every seed:
+1. **A relay's run starts at the parent node nearest the relay's own base**, not always at its bud's node. With a small `blend` the relay stands near the module tip, so the stem used to run up from the bud's node beside a co-linear head of 0.6 to 0.9 of its radius, drawn as a codominant fork. That drew the flanges.
+2. **The stem from the bud's node to that joint is drawn as thick as the bud's node.** Those nodes' pipe radius leaves out the relay (0.70 m against 0.78 m at seed 2), which drew a neck and a step at every joint.
+3. **The relay's first internodes still inside the wood of the joint merge into it**, and a head that lies wholly inside that wood is drawn at no more than `FORK_FROM` of the stem's radius. A 1.7 cm, 37° first segment on a 0.79 m trunk had folded into a ring at seed 7 (0.7 m up).
+
+**Result:** no collar, flange or step at any of the five trunk bases (`raw/final10/bases.png`). A faint dark seam line remains at some joints (seeds 7, 2, 3, 4), and seed 3 shows a slight kink at one joint.
+
+**Five seeds at 80 years** (`raw/final10/five-seeds.png`, bare and in leaf beside S1, S2 and S3). I viewed every still.
+
+| Seed | Bare | In leaf | Reads as an open-grown beech? |
+|---|---|---|---|
+| 1 | Erect trunk, forking at about 0.35 H into two rising limb systems; a rounded crown set to one side, 17 m wide | Dark, rounded dome, lopsided | **Yes**. It is narrower and more one-sided than the photographs |
+| 7 | Erect stout trunk; an irregular crown with a narrow, upright, broom-like limb top left and thin, zigzag laterals low at the sides | Ragged, with tufts at the top | **Borderline / no**. It reads as a broadleaf, not clearly a beech |
+| 2 | Erect trunk, a fan of rising limbs, a broad dome | Dense, dark dome | **Yes**, the closest to Nettleden |
+| 3 | Erect trunk, rising limbs, a broad dome with a lobe to the left; slightly flat-topped | Broad dark dome | **Yes** |
+| 4 | Erect trunk, a low fork into many limbs; the bare crown has a shallow notch at the top | Broad dome | **Yes**. The bare notch is the weak point |
+
+**Four of five read as an open-grown beech (1, 2, 3, 4); seed 7 is borderline.** Against round 10, the leans and the collar rings are gone at every seed.
+
+**Sheet** `raw/final10/sheet-beech.png` (same layout; row 6 is today's beech from `raw/final9/today`, whose preset is unchanged) and `raw/final10/close-ups.png` (all five trunk bases and limbs). The young ages are diagnostic only. Seed 1 and seed 7 at 10 and 20 years are still straight poles with near-horizontal rods, and at 40 years a pole under a small crown.
+
+**Tests and costs:**
+- All crate tests are green (`raw/space-tests-r11.log`): the oracle, every walk including the relay walk, and the beech at every sheet age.
+- At 80 years: growth takes 1.5 to 3.3 s and dressing 0.9 to 1.5 s, with 0.81M to 1.30M nodes, the same as round 10.
+
+**For the host:**
+- The module tips now barely bend (elevation 1.4), so Troll's module curvature shows little. That is the price of an erect stem while a relay of small `blend` keeps the tip's tilt. A relay whose straightening does not scale with its blend would let the tips bend again, but that is an engine design question.
+- Seed 7's upright broom is a long, steep limb with dense shoots at its top. Of the two limb-elevation steps tried, neither removed it without flattening other seeds.
+- `cargo clippy -p telperion-space -- -D warnings` fails on `geometry.rs:36` (`needless_range_loop`). It came in with round 10's engine change, and the engine is outside this round's scope.

@@ -34,6 +34,20 @@ fn aside(nodes: &mut [Node], from: &[u32]) {
         node.stem = false;
     }
     let carrier = nodes[from[0] as usize].radius;
+    // A head that lies wholly inside the wood of its joint is hidden by the
+    // stem: drawn thinner than a fork parts, it neither flares a socket
+    // nor forks through the stem's surface.
+    let joint = nodes[from[0] as usize].position;
+    let inside = from[1..]
+        .iter()
+        .all(|&n| (nodes[n as usize].position - joint).length() < carrier);
+    let thickest = nodes[first as usize].radius;
+    if inside && thickest > FORK_FROM * carrier {
+        let scale = FORK_FROM * carrier / thickest;
+        for &n in from.iter().filter(|&&n| n >= first) {
+            nodes[n as usize].radius *= scale;
+        }
+    }
     let head = &mut nodes[first as usize];
     head.shoot = ShootState {
         bud_fate: BudFate::Lateral,
@@ -52,6 +66,22 @@ fn codominance(radius: f64, parent: f64) -> Option<f64> {
     (weight > 0.0).then_some(weight)
 }
 
+/// The node of `parent` nearest a relay's base, from its bud's node on: it
+/// moves from the bud's node to the tip as the relay blends into the
+/// continuation it replaces.
+fn joint(
+    structure: &Structure,
+    relay: &telperion_space::Axis,
+    parent: usize,
+    node: usize,
+) -> usize {
+    let phytomers = &structure.axes[parent].phytomers;
+    let d = |i: usize| (phytomers[i].tip - relay.base).length();
+    (node..phytomers.len())
+        .min_by(|&a, &b| d(a).total_cmp(&d(b)))
+        .unwrap_or(node)
+}
+
 pub fn convert(structure: &Structure) -> Tree {
     let mut nodes = vec![Node::root()];
     // The node each axis ends on, for what continues it.
@@ -65,11 +95,26 @@ pub fn convert(structure: &Structure) -> Tree {
                 drawn[parent].get(node).map(|&n| (n, true, false))
             }
             // A relay from inside its parent takes the parent's run on from
-            // its node, and the stopped module's head beyond turns aside as
+            // the node nearest its base, which moves from its bud's node to
+            // the tip as the relay blends into the continuation it
+            // replaces, and the stopped module's head beyond turns aside as
             // a lateral of its own.
-            Origin::Relay { parent, node } if node + 1 < structure.axes[parent].phytomers.len() => {
+            Origin::Relay { parent, node }
+                if joint(structure, axis, parent, node) + 1
+                    < structure.axes[parent].phytomers.len() =>
+            {
+                let bud = node;
+                let node = joint(structure, axis, parent, node);
                 match drawn[parent].get(node..) {
                     Some(from) if !from.is_empty() => {
+                        // The stem between the bud's node and the joint
+                        // carries the relay too: as thick as the bud's node.
+                        let girth = nodes[drawn[parent][bud] as usize].radius;
+                        for &n in &drawn[parent][bud + 1..=node] {
+                            let n = &mut nodes[n as usize];
+                            n.radius = n.radius.max(girth);
+                            n.start_radius = n.start_radius.max(girth);
+                        }
                         aside(&mut nodes, from);
                         Some((from[0], false, nodes[from[0] as usize].stem))
                     }
@@ -102,7 +147,11 @@ pub fn convert(structure: &Structure) -> Tree {
         let mut made = false;
         for p in axis.phytomers.iter().take_while(|p| p.radius >= FINEST) {
             let from = nodes[parent as usize].position;
-            let behind = !made && (up(p.tip) - from).dot(along) < 0.0;
+            // ... and those still inside the wood of the joint, where a
+            // turn over less than the stem's radius would fold its surface.
+            let inside =
+                along != Vec3::ZERO && (up(p.tip) - from).length() < nodes[parent as usize].radius;
+            let behind = !made && ((up(p.tip) - from).dot(along) < 0.0 || inside);
             if behind || (up(p.tip) - from).length() < SHORTEST {
                 drawn[i].push(parent);
                 continue;
