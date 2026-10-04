@@ -7,16 +7,24 @@
 //! structures are tested against GreenLab's closed-form counts and against
 //! Letort's GreenLab simulator, run unchanged in a browser
 //! (`scripts/greenlab-oracle.mjs`). Nothing here is wired into the pipeline.
+//!
+//! Phase B makes the space continuous (`lineage.rs`): every draw is keyed to
+//! the bud's path from the root, and every element a draw makes grows in
+//! from nothing as a setting passes the draw, so a walk of any setting at a
+//! fixed seed changes the tree by degree.
 mod closed_form;
 mod error;
 mod geometry;
 mod grow;
-mod rng;
+mod lineage;
+mod presence;
+mod shed;
 mod species;
 mod structure;
 
 pub use closed_form::expected_counts;
 pub use error::{Error, Result};
 pub use grow::{grow, Request};
+pub use presence::{FLOOR, RATE, SPAN};
 pub use species::{NodeLaw, PaState, Species, Zone, MAX_BUDS};
 pub use structure::{Axis, CountTable, Origin, Phytomer, Structure, Vec3};

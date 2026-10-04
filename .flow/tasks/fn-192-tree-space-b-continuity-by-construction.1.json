@@ -1,0 +1,15 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T20:02:55.359401Z",
+  "depends_on": [],
+  "id": "fn-192-tree-space-b-continuity-by-construction.1",
+  "implicit_owner": true,
+  "priority": null,
+  "spec": "fn-192-tree-space-b-continuity-by-construction",
+  "spec_path": ".flow/tasks/fn-192-tree-space-b-continuity-by-construction.1.md",
+  "status": "todo",
+  "title": "Implement Tree space B: continuity by construction",
+  "updated_at": "2026-10-03T20:02:55.359401Z"
+}

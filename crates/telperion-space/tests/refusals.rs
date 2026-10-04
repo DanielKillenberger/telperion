@@ -18,6 +18,11 @@ fn species() -> Species {
         internode: 1.0,
         insertion: PI / 4.0,
         divergence: PI,
+        abortion: 0.0,
+        relay: 0.0,
+        readiness: 1.0,
+        rhythm: 1.0,
+        straightening: 0.0,
     };
     Species {
         states: vec![state(6, None, &[0.0, 0.5]), state(2, Some(1), &[0.0, 0.0])],
@@ -33,7 +38,7 @@ const REQUEST: Request = Request {
 #[test]
 fn every_input_the_engine_cannot_draw_is_refused_by_name() {
     type Edit = fn(&mut Species);
-    let cases: [(Edit, &str); 17] = [
+    let cases: [(Edit, &str); 22] = [
         (|s| s.states.clear(), "states"),
         (|s| s.states[0].lifespan = 0, "states[0].lifespan"),
         (|s| s.states[1].next = Some(0), "states[1].next"),
@@ -69,6 +74,14 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
         (|s| s.states[0].internode = 1e308, "states[0].internode"),
         (|s| s.states[1].divergence = 1e300, "states[1].divergence"),
         (|s| s.states[1].insertion = 4.0, "states[1].insertion"),
+        (|s| s.states[0].abortion = 1.5, "states[0].abortion"),
+        (|s| s.states[1].relay = -0.1, "states[1].relay"),
+        (|s| s.states[0].readiness = f64::NAN, "states[0].readiness"),
+        (|s| s.states[1].rhythm = 2.0, "states[1].rhythm"),
+        (
+            |s| s.states[0].straightening = -1.0,
+            "states[0].straightening",
+        ),
     ];
     for (edit, input) in cases {
         let mut s = species();
@@ -109,4 +122,20 @@ fn wood_below_the_ground_is_an_error() {
     s.states[0].zones[0].lateral = vec![0.0, 1.0];
     s.states[1].insertion = PI;
     assert!(matches!(grow(&s, REQUEST), Err(Error::BelowGround { .. })));
+}
+
+/// A tree whose only wood stands exactly at its draw has no size: it is a
+/// collapsed tree, not a tree of zero length.
+#[test]
+fn a_tree_of_no_size_is_a_collapsed_tree() {
+    let mut s = species();
+    s.states.truncate(1);
+    s.states[0].zones[0].lateral = vec![0.0];
+    s.states[0].zones[0].nodes = NodeLaw::Poisson {
+        mean: 0.8128122270262701,
+    };
+    assert_eq!(
+        grow(&s, Request { age: 1, ..REQUEST }),
+        Err(Error::Collapsed)
+    );
 }

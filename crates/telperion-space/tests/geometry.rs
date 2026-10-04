@@ -23,6 +23,11 @@ fn axes_take_their_lengths_and_angles_from_their_pa() {
         internode,
         insertion,
         divergence: PI / 2.0,
+        abortion: 0.0,
+        relay: 0.0,
+        readiness: 1.0,
+        rhythm: 1.0,
+        straightening: 0.0,
     };
     let species = Species {
         states: vec![state(0.5, 0.0, &[0.0, 1.0]), state(0.3, 0.6, &[0.0, 0.0])],
@@ -82,6 +87,11 @@ fn phyllotaxis_runs_on_across_a_continuation() {
         internode: 1.0,
         insertion: 0.6,
         divergence: PI / 2.0,
+        abortion: 0.0,
+        relay: 0.0,
+        readiness: 1.0,
+        rhythm: 1.0,
+        straightening: 0.0,
     };
     let species = Species {
         states: vec![state(Some(0), &[0.0, 1.0]), state(None, &[0.0, 0.0])],
@@ -102,4 +112,80 @@ fn phyllotaxis_runs_on_across_a_continuation() {
         sides.push(((run.y.atan2(run.x).to_degrees().round() as i64) + 360) % 360);
     }
     assert_eq!(sides, vec![0, 90, 180, 270]);
+}
+
+/// A species whose expected wood overflows a double still draws the tree
+/// it grew in finite numbers: one phytomer whose six buds stayed bare.
+#[test]
+fn an_overflowing_expectation_draws_finite_wood() {
+    let species = Species {
+        states: vec![PaState {
+            lifespan: 1,
+            next: None,
+            viability: 0.9,
+            zones: vec![Zone {
+                nodes: NodeLaw::Uniform { min: 1, max: 1 },
+                buds: 6,
+                lateral: vec![0.3],
+            }],
+            shedding: None,
+            internode: 1.0,
+            insertion: 0.5,
+            divergence: PI / 2.0,
+            abortion: 0.0,
+            relay: 0.0,
+            readiness: 1.0,
+            rhythm: 1.0,
+            straightening: 0.0,
+        }],
+    };
+    let request = Request {
+        age: 1500,
+        seed: 18,
+        budget: 1,
+    };
+    let tree = grow(&species, request).unwrap();
+    for p in tree.axes.iter().flat_map(|a| &a.phytomers) {
+        assert!(p.scale.is_finite() && p.tip.z.is_finite(), "{p:?}");
+    }
+}
+
+/// An unreachable PA whose expected wood dwarfs the tree's draws no NaN:
+/// a probability of zero takes no part in a window.
+#[test]
+fn an_unreachable_pa_takes_no_part_in_a_window() {
+    let state = |viability, internode, nodes, buds, lateral: [f64; 2]| PaState {
+        lifespan: 1,
+        next: None,
+        viability,
+        zones: vec![Zone {
+            nodes,
+            buds,
+            lateral: lateral.to_vec(),
+        }],
+        shedding: None,
+        internode,
+        insertion: 0.5,
+        divergence: PI / 2.0,
+        abortion: 0.0,
+        relay: 0.0,
+        readiness: 1.0,
+        rhythm: 1.0,
+        straightening: 0.0,
+    };
+    let species = Species {
+        states: vec![
+            state(1.0, 0.1, NodeLaw::Poisson { mean: 1.0 }, 1, [0.0, 0.0]),
+            state(0.9, 1.0, NodeLaw::Uniform { min: 1, max: 1 }, 6, [0.0, 0.3]),
+        ],
+    };
+    let request = Request {
+        age: 1470,
+        seed: 1,
+        budget: 1,
+    };
+    let tree = grow(&species, request).unwrap();
+    for p in tree.axes.iter().flat_map(|a| &a.phytomers) {
+        assert!(p.scale.is_finite() && p.tip.z.is_finite(), "{p:?}");
+    }
 }

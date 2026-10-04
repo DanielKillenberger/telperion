@@ -3,7 +3,7 @@ name = "telperion-space"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-description = "The tree space's growth engine core: buds with a physiological age, growth units of phytomers, death and shedding. Outside the pipeline until phase F (docs/tree-space.md)."
+description = "The tree space's growth engine core: buds with a physiological age, growth units of phytomers, death and shedding, continuous in every setting. Outside the pipeline until phase F (docs/tree-space.md)."
 
 [dependencies]
 

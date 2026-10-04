@@ -56,6 +56,11 @@ pub fn species(set: &Value) -> Species {
                 internode: 1.0 / (1.0 + 0.45 * i as f64),
                 insertion: (50.0 - 6.0 * i as f64).to_radians(),
                 divergence: PI,
+                abortion: 0.0,
+                relay: 0.0,
+                readiness: 1.0,
+                rhythm: 1.0,
+                straightening: 0.0,
             }
         })
         .collect();
@@ -90,6 +95,7 @@ pub fn signature(tree: &Structure) -> String {
             Origin::Seed => {}
             Origin::Lateral { parent, node, .. } => laterals[parent].push((node, i)),
             Origin::Continuation { parent } => continuation[parent] = Some(i),
+            Origin::Relay { .. } => panic!("the simulators make no relays"),
         }
     }
     word(tree, 0, &laterals, &continuation)

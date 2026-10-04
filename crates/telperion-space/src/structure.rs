@@ -14,6 +14,9 @@ impl Vec3 {
     pub const fn new(x: f64, y: f64, z: f64) -> Self {
         Self { x, y, z }
     }
+    pub fn length(self) -> f64 {
+        (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
+    }
     pub fn cross(self, o: Self) -> Self {
         Self::new(
             self.y * o.z - self.z * o.y,
@@ -58,15 +61,36 @@ pub enum Origin {
     },
     /// The parent's apex, changed to this axis's PA.
     Continuation { parent: usize },
+    /// A relay bud of the parent's PA at its last node (its base if it grew
+    /// none), made when its apex stopped.
+    Relay { parent: usize },
+}
+
+impl Origin {
+    /// The axis this one grows from; none for the seed.
+    pub fn parent(self) -> Option<usize> {
+        match self {
+            Origin::Seed => None,
+            Origin::Lateral { parent, .. }
+            | Origin::Continuation { parent }
+            | Origin::Relay { parent } => Some(parent),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Axis {
+    /// The hash of the bud's path from the root: the same bud under any
+    /// settings at the same seed.
+    pub lineage: u64,
     /// The physiological age, an index into the species' reference axis.
     pub pa: usize,
     /// The cycle the bud was made; its first growth unit grows the next cycle.
     pub birth: u32,
     pub origin: Origin,
+    /// The axis's size at birth relative to what bears it, 0 to 1: a branch
+    /// a setting has just made, or is about to unmake or shed, is small.
+    pub vigour: f64,
     /// The cycle the apex stopped (died, ended, or changed PA); none, it lives.
     pub apex_end: Option<u32>,
     pub base: Vec3,
@@ -75,6 +99,13 @@ pub struct Axis {
     pub side: Vec3,
     /// Base to tip.
     pub phytomers: Vec<Phytomer>,
+    /// The presence of each growth unit its apex grew, base to tip.
+    pub(crate) units: Vec<f64>,
+    /// Its apex's presence at the tree's age: every survival it passed,
+    /// barely or not; 0 for a stopped apex.
+    pub(crate) alive: f64,
+    /// Its nodes counted by their presence: the phyllotactic rank of the next.
+    pub(crate) rank: f64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -83,6 +114,12 @@ pub struct Phytomer {
     pub cycle: u32,
     /// Its node, the internode's upper end.
     pub tip: Vec3,
+    /// Its length and girth relative to a fully grown phytomer, 0 to 1:
+    /// every presence on its lineage multiplied.
+    pub scale: f64,
+    /// Its place in the phyllotaxis: the nodes below it counted by their
+    /// presence, so a node growing in turns the ones above it by degree.
+    pub(crate) rank: f64,
 }
 
 #[derive(Debug, Clone, PartialEq)]
