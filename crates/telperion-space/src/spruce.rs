@@ -124,13 +124,13 @@ pub fn spruce() -> Species {
     // their tips still rising; a few die and are shed, and siblings are
     // unequal (dominance), so no two crowns are alike.
     let branch = PaState {
-        insertion: 1.45,
+        insertion: 1.5,
         internode: 0.03,
         viability: 0.998,
         shedding: Some(3),
         form: Form {
-            tropism: 0.6,
-            elevation: 0.55,
+            tropism: 0.4,
+            elevation: 0.15,
             wander: 0.8,
             plane: 0.0,
             pipe: 0.0008,
@@ -152,11 +152,17 @@ pub fn spruce() -> Species {
     };
     // A branch's first years: longer yearly shoots, so a young tree's
     // tiers spread wide and the crown's top is a cone, not a spire.
+    // They rise a little more than the older wood beyond them, so the
+    // upper crown, all young branches, stays level to ascending.
     let sprig = PaState {
         lifespan: 6,
         next: Some(BRANCH),
         internode: 0.05,
         shedding: None,
+        form: Form {
+            elevation: 0.35,
+            ..branch.form
+        },
         ..branch.clone()
     };
     // Second-order branchlets: in the branch's plane, hanging as the
@@ -170,8 +176,8 @@ pub fn spruce() -> Species {
         next: Some(SPUR),
         shedding: Some(1),
         form: Form {
-            tropism: 3.0,
-            elevation: -0.85,
+            tropism: 1.5,
+            elevation: -0.7,
             wander: 0.6,
             plane: 0.0,
             pipe: 0.0005,
@@ -179,39 +185,40 @@ pub fn spruce() -> Species {
             ripening: 0.0,
             dominance: 0.0,
             roll: 0.2,
-            sag: 0.0,
+            sag: 2e-4,
         },
         ..state(
             10,
             None,
             vec![
-                zone(2, 2, 1, &[(SHOOT, 0.6)]),
-                zone(1, 1, 2, &[(SHOOT, 0.9)]),
+                zone(2, 2, 2, &[(SHOOT, 0.55)]),
+                zone(1, 1, 3, &[(SHOOT, 0.8)]),
             ],
         )
     };
     let spur = PaState {
-        lifespan: 45,
+        lifespan: 40,
         viability: 0.99,
         next: None,
         internode: 0.006,
-        zones: vec![zone(1, 1, 2, &[(SHOOT, 0.5)])],
+        zones: vec![zone(1, 1, 3, &[(SHOOT, 0.35)])],
         ..branchlet.clone()
     };
-    // Third-order shoots: short, unbranched, living a few years.
+    // Third-order shoots: short, unbranched, living a few years, two or
+    // three a node, hanging so each curtain is a needled spray with width.
     let shoot = PaState {
-        insertion: 0.8,
+        insertion: 1.1,
         internode: 0.02,
         viability: 0.9,
         shedding: Some(1),
         form: Form {
-            tropism: 0.5,
-            elevation: -0.6,
+            tropism: 1.0,
+            elevation: -0.5,
             wander: 1.0,
             pipe: 0.0004,
             ..Form::default()
         },
-        ..state(4, None, vec![zone(2, 3, 1, &[])])
+        ..state(3, None, vec![zone(2, 2, 1, &[])])
     };
     Species {
         states: vec![
