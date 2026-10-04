@@ -182,9 +182,11 @@
 
 # Smooth bark: the ridge field only as a 2 mm grain with no furrow and
 # no tint. At a centimetre and more it drew vertical wavy ridges with
-# bright rims on B-BASE; tinted at 2 mm, a crackle glaze.
+# bright rims on B-BASE; tinted at 2 mm, a crackle glaze. Plates a metre
+# long: at 4 cm they drew the bole as stacked horizontal bands (fn-193,
+# round 18; owner-approved for materials).
 /material/ridgeScale = 0.002
-/material/plateScale = 0.04
+/material/plateScale = 1.0
 /material/furrowStrength = 0.0
 /material/roughnessDetail = 0.08
 /material/veinScale = 7.0

@@ -42,5 +42,6 @@ The beech is `crates/telperion-space/src/beech.rs`, one growth cycle a year. Sou
 | internodes: trunk 7 cm, reiterates 4 cm, branch 3 cm, shoot 2.5 cm, short 6 mm (round 12) | | **estimated**: LITERATURE.md "internode lengths were not found in readable sources" |
 | lifespans and viabilities (round 16: leader 45 at viability 1; limb 70 and bough 30 as module stacks, spur 25 at 0.995; branch 10, shoot 5; short 3 at 0.9; shedding after 1 idle cycle) | | **estimated**; [KINT10] beech branches "die late but shed fast" (abstract) |
 | sinuosity (`wander`) and bending (`tropism`) rates (round 17: branch 0.5, shoot 1.0) | | **estimated** |
+| girth (round 18): pipe exponent 2.6 on trunk and reiterates, 2 on finer wood; pipe 7.5 mm a phytomer on trunk and reiterates, 0.9 mm on branch and shoot, 0.95 mm on short shoots; branch-system viability 0.95 | | **estimated**: exponents above 2 are reported for tree branching (da Vinci rule deviations), the value chosen from the stills; dbh 1.01 m at seed 1 within TSO's 1.3 m |
 | pipe model | each phytomer's section added below it | the pipe model as [PAL09] uses it (LITERATURE.md); pipe radii **estimated** |
 | height about 20 m and width 16 to 22 m at 80 cycles | | result, against [OSU] 15–23 m tall, 12–18 m spread (landscape) |

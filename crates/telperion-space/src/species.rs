@@ -18,6 +18,9 @@ const MAX_INTERNODE: f64 = 100.0;
 const MAX_RATE: f64 = 100.0;
 /// The widest pipe one phytomer adds, in metres.
 const MAX_PIPE: f64 = 1.0;
+/// The pipe model's exponents: below 1.5 a fork outgrows what bears it.
+const MIN_EXPONENT: f64 = 1.5;
+const MAX_EXPONENT: f64 = 4.0;
 /// The steepest rise of the abortion hazard.
 const MAX_RISE: f64 = 8.0;
 
@@ -105,6 +108,11 @@ pub struct Form {
     /// The pipe each phytomer of this PA adds below it, as a radius in
     /// metres (the pipe model: a section is the sum of the sections it bears).
     pub pipe: f64,
+    /// The pipe model's exponent at this PA's wood: its radius to this
+    /// power is the sum of the radii it carries to this power. 2 sums
+    /// areas; a larger one keeps what it carries thicker beside it, so
+    /// its limbs taper less abruptly from it. Neutral 2.
+    pub exponent: f64,
     /// How far a lateral of this PA turns about its parent, by up to this
     /// many radians either way as its lineage keys, so laterals of one
     /// parent do not stack in one plane. Neutral 0.
@@ -120,6 +128,7 @@ impl Default for Form {
             wander: 0.0,
             plane: 0.0,
             pipe: 0.005,
+            exponent: 2.0,
             roll: 0.0,
         }
     }
@@ -266,6 +275,9 @@ impl Form {
                 format!("{at}.elevation"),
                 "an elevation lies in -pi / 2 to pi / 2",
             );
+        }
+        if !(MIN_EXPONENT..=MAX_EXPONENT).contains(&self.exponent) {
+            return refuse(format!("{at}.exponent"), "a pipe exponent lies in 1.5 to 4");
         }
         if !(0.0..=PI).contains(&self.roll) {
             return refuse(format!("{at}.roll"), "a roll lies in 0 to pi");

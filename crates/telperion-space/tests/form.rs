@@ -189,6 +189,30 @@ fn girth_is_the_sum_of_the_sections_carried() {
     }
 }
 
+/// A larger pipe exponent on the trunk keeps its limbs thicker beside
+/// it, and grows no other tree.
+#[test]
+fn a_larger_pipe_exponent_keeps_limbs_thicker_beside_their_bearer() {
+    let ratio = |exponent: f64| {
+        let mut species = walk::species();
+        species.states[0].form.exponent = exponent;
+        let tree = grown(&species, 1);
+        let trunk = tree.axes[0].phytomers[0].radius;
+        let limb = tree
+            .axes
+            .iter()
+            .filter(|a| a.pa == 1 && matches!(a.origin, Origin::Lateral { .. }))
+            .filter_map(|a| a.phytomers.first())
+            .map(|p| p.radius)
+            .fold(0.0, f64::max);
+        (limb / trunk, tree.axes.len())
+    };
+    let (area, axes) = ratio(2.0);
+    let (wider, same) = ratio(3.0);
+    assert_eq!(axes, same, "the same tree");
+    assert!(wider > area, "limbs {wider} against {area} of the trunk");
+}
+
 /// The beech grows at every age its sheet draws, at both seeds, standing
 /// and above the ground.
 #[test]

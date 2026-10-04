@@ -733,3 +733,47 @@ Host: five integrated domes, the best sheet; sent to Astra. Astra: FAIL (3 yes; 
 ## Gate, round 17, and host decision 17 (2026-10-04)
 
 Host: five rounded, continuous domes; confident. Astra, three independent samples: FAIL in all three (majority yes on at most one seed). All three name the same fault: "the branch hierarchy: all five transition too abruptly from trunk and fork into fine, crowded branches, missing the long, substantial rising and spreading limbs" (`ASTRA-VERDICT-R17-{1,2,3}.md`), and all three flag the banded bole. Host decision 17: limbs keep their girth across relays as the trunk does, so a limb reads as one long tapering limb; fine laterals start further out along each limb; progressive taper along the hierarchy; the bark preset's ring banding down.
+
+## Round 18: a branch hierarchy that tapers, a smooth bole (worker)
+
+**Measured first** (a temporary dump along one limb of seed 1, since removed):
+- **(a) is already the case.** A limb's relays keep its girth: the conversion's relay rule applies to every physiological age (PA), and the pipe model gives a relay the section of all it carries. Along that limb, radius runs 0.33, 0.33, 0.31, 0.29, 0.26, 0.20, …, 0.05 m over 25 modules, with no step between modules.
+- **What drew the "abrupt transition":** with an area-preserving pipe (exponent 2), each fork divides the section, so a limb's thickness fell into its many laterals within a few modules. By mid-crown every axis was centimetres thick.
+
+**Engine: one new setting, `form.exponent`** (per PA, neutral 2). It is the pipe model's exponent: a section is the sum of the radii it carries raised to the bearer's exponent. Above 2, a bearer stays thicker beside what it carries, so the taper is progressive along the hierarchy.
+- Neutral 2 leaves every structure as it was: the oracle, every walk and every earlier test pass unchanged.
+- It is walked over 2 to 3 on every PA, and refused by name outside 1.5 to 4.
+- Test: `a_larger_pipe_exponent_keeps_limbs_thicker_beside_their_bearer`.
+
+**Beech values:**
+- **(c) Progressive taper.**
+  - Exponent 2.6 on the trunk and the reiterates (leader, limb, bough, spur); 2 on branch systems, shoots and short shoots.
+  - Pipe per phytomer: 7.5 mm on the trunk and reiterates, so a limb keeps its own wood; 0.9 mm on branch and shoot, 0.95 mm on short shoots.
+  - dbh 1.01 m at seed 1.
+  - Tried: exponent 2.6 with the same pipe everywhere drew a 0.49 m dbh, and pipes scaled up to match drew a bare crown of dark, crowded fine wood. Reiterate pipes of 11 to 12 mm drew blunt, thick limb ends.
+- **(b) Fine laterals further out.** Branch systems survive at 0.95 a year (0.97), so the inner, older sections of each limb carry fewer of them, and the limbs show inside the crown.
+  - At 0.93 the crown thinned visibly in leaf, so 0.95 was kept.
+- **(d) Bark banding.**
+  - The horizontal bands are the bark's plates at a 4 cm axial scale. `material/plateScale` is now 1.0 in `presets/european-beech.values` (owner-approved for materials).
+  - The preset identity digests in `crates/telperion-core/tests/catalogue_identity.rs` are re-pinned. All `telperion-core` tests are green (`raw/core-tests-r18.log`).
+
+**Heights and widths at 80 years** (`raw/final17/run.log`), and the per-seed reading against Astra's "abrupt transition into fine, crowded branches":
+
+| Seed | Height | Width (x × z) | Reading | Beech? |
+|---|--:|--:|---|---|
+| 1 | 18.1 m | 19.5 × 21.0 | Substantial limbs rise and spread from the fork and taper into the crown; a rounded dome in leaf | **Yes** |
+| 7 | 17.5 m | 19.9 × 17.7 | Several thick limbs rise from the fork and run out into the dome | **Yes** |
+| 2 | 16.9 m | 17.8 × 19.4 | Spreading limbs visible well into the crown; a broad dome | **Yes** |
+| 3 | 17.6 m | 19.4 × 20.6 | Thick limbs from a low fork spread out; a rounded dome | **Yes** |
+| 4 | 17.1 m | 20.1 × 21.9 | Long spreading limbs under a broad dome | **Yes** |
+
+**Five of five show long, substantial limbs that rise and spread and taper into the crown, under a rounded dome.**
+- **Remaining fault:** the outermost reiterate tips end bluntly. With 7.5 mm a phytomer, a limb's or bough's last nodes are about 8 mm thick, and the bare outline reads slightly spiky at the edge.
+- **Bole** (`raw/final17/bases.png`): smoother; the fine horizontal lines are mostly gone. One faint seam per module join remains at seeds 4 and 7, and seed 4 shows a limb's shadow arc.
+- **Young trees:** still a pole at 10 and 20 years, now with a slightly thicker leader.
+
+**Tests:** all crate tests are green (`raw/space-tests-r18.log`), including the oracle, every walk and the beech within its unchanged budget. Clippy is clean.
+
+**Costs at 80 years:**
+- Growth: 2.0 to 2.9 s.
+- 1.11M to 1.32M nodes and 1.8M to 2.2M leaves.

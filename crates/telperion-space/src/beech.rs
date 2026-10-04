@@ -87,7 +87,8 @@ pub fn beech() -> Species {
             elevation: 1.4,
             wander: 0.2,
             plane: FRAC_PI_2,
-            pipe: 0.0005,
+            pipe: 0.0075,
+            exponent: 2.6,
             roll: 0.0,
         },
         ..state(
@@ -130,7 +131,8 @@ pub fn beech() -> Species {
             elevation,
             wander: 1.2,
             plane: 0.0,
-            pipe: 0.0005,
+            pipe: 0.0075,
+            exponent: 2.6,
             roll: 1.2,
         },
         ..state(
@@ -180,7 +182,7 @@ pub fn beech() -> Species {
     // reiteration, base to tip (acrotony).
     let branch = PaState {
         insertion: 1.0,
-        viability: 0.97,
+        viability: 0.95,
         shedding: Some(1),
         internode: 0.03,
         form: Form {
@@ -188,7 +190,8 @@ pub fn beech() -> Species {
             elevation: 0.35,
             wander: 0.5,
             plane: 0.0,
-            pipe: 0.0005,
+            pipe: 0.0009,
+            exponent: 2.0,
             roll: 1.2,
         },
         ..state(
@@ -213,7 +216,8 @@ pub fn beech() -> Species {
             elevation: 0.15,
             wander: 1.0,
             plane: 0.0,
-            pipe: 0.0005,
+            pipe: 0.0009,
+            exponent: 2.0,
             roll: 0.0,
         },
         ..state(5, None, vec![zone(1, 1, &[]), zone(2, 3, &[(SHORT, 0.6)])])
@@ -230,7 +234,8 @@ pub fn beech() -> Species {
             elevation: 0.0,
             wander: 0.0,
             plane: 0.0,
-            pipe: 0.00053,
+            pipe: 0.00095,
+            exponent: 2.0,
             roll: 0.0,
         },
         ..state(3, None, vec![zone(3, 5, &[])])
