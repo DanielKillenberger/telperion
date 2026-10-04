@@ -294,6 +294,24 @@ pub fn settings() -> Vec<Setting> {
             }
         }
     }
+    // A stop that is always relayed, as Troll's modules are: the
+    // module-ending chance crossing a draw moves the crown by degree from
+    // the continuation to a relay in the module's curvature zone.
+    all.push(setting(
+        "states[0].abortion, relay 1".into(),
+        EDGE,
+        0.5,
+        true,
+        |s, v| {
+            let trunk = &mut s.states[0];
+            trunk.relay = 1.0;
+            trunk.relay_at = 0.5;
+            trunk.epitony = 0.6;
+            trunk.insertion = 0.3;
+            trunk.straightening = 1.0;
+            trunk.abortion = v;
+        },
+    ));
     all
 }
 

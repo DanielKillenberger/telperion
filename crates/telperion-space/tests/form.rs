@@ -200,8 +200,8 @@ fn a_relay_carries_on_its_axis_growth_units() {
     );
 }
 
-/// A relay stands at its PA's `relay_at` along the stopped axis, and
-/// epitony turns it to the parent's upper side.
+/// A relay stands at its PA's `relay_at` along the stopped axis's last
+/// growth unit, and epitony turns it to the parent's upper side.
 #[test]
 fn a_relay_stands_in_the_curvature_zone_on_the_upper_side() {
     let relays = |at: f64, epitony: f64| {
@@ -216,7 +216,10 @@ fn a_relay_stands_in_the_curvature_zone_on_the_upper_side() {
             .iter()
             .filter_map(|a| match a.origin {
                 Origin::Relay { parent, node } if tree.axes[parent].phytomers.len() > 3 => {
-                    Some((tree.axes[parent].phytomers.len(), node, a.heading.z, a.base))
+                    let p = &tree.axes[parent].phytomers;
+                    let last = p[p.len() - 1].cycle;
+                    let first = p.iter().position(|q| q.cycle == last).unwrap();
+                    Some((first, p.len(), node, a.heading.z))
                 }
                 _ => None,
             })
@@ -224,11 +227,12 @@ fn a_relay_stands_in_the_curvature_zone_on_the_upper_side() {
     };
     let half = relays(0.5, 0.0);
     assert!(!half.is_empty());
-    for &(n, node, ..) in &half {
-        assert_eq!(node, (n + 1) / 2 - 1, "the middle of {n} nodes");
+    for &(first, n, node, _) in &half {
+        let middle = first + (n - first).div_ceil(2) - 1;
+        assert_eq!(node, middle, "the middle of nodes {first} to {n}");
     }
     let rise =
-        |v: &[(usize, usize, f64, Vec3)]| v.iter().map(|r| r.2).sum::<f64>() / v.len() as f64;
+        |v: &[(usize, usize, usize, f64)]| v.iter().map(|r| r.3).sum::<f64>() / v.len() as f64;
     assert!(
         rise(&relays(0.5, 1.0)) > rise(&half) + 0.05,
         "epitony turns relays up"

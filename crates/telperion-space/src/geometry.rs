@@ -21,12 +21,6 @@ pub(crate) fn place(structure: &mut Structure, species: &Species) -> Result<()> 
     // Each axis's scale at its base, from its already scaled parent.
     let mut base_scale = vec![1.0; structure.axes.len()];
     for i in 0..structure.axes.len() {
-        let (base, heading, side) = frame(structure, species, i);
-        if let Origin::Relay { parent, .. } = structure.axes[i].origin {
-            let share = species.states[structure.axes[parent].pa].relay_at;
-            let node = relay_point(&structure.axes[parent], share).node;
-            structure.axes[i].origin = Origin::Relay { parent, node };
-        }
         let inherited = match structure.axes[i].origin {
             Origin::Seed => 1.0,
             Origin::Lateral { parent, node, .. } => structure.axes[parent].phytomers[node].scale,
@@ -37,40 +31,72 @@ pub(crate) fn place(structure: &mut Structure, species: &Species) -> Result<()> 
         for phytomer in &mut axis.phytomers {
             phytomer.scale *= base_scale[i];
         }
+    }
+    let reach = reaches(&structure.axes);
+    for i in 0..structure.axes.len() {
+        let (base, heading, side) = frame(structure, species, i);
+        if let Origin::Relay { parent, .. } = structure.axes[i].origin {
+            let share = species.states[structure.axes[parent].pa].relay_at;
+            let node = relay_point(&structure.axes[parent], share).node;
+            structure.axes[i].origin = Origin::Relay { parent, node };
+        }
+        let axis = &mut structure.axes[i];
         let state = &species.states[axis.pa];
+        // A relay straightens as far as it has left the continuation it
+        // replaces (`blend`).
         let straightening = match axis.origin {
-            Origin::Lateral { .. } | Origin::Relay { .. } => state.straightening,
+            Origin::Lateral { .. } => state.straightening,
+            Origin::Relay { .. } => state.straightening * axis.blend,
             Origin::Seed | Origin::Continuation { .. } => 0.0,
         };
         // Secondary erection over the axis's years; never a continuation,
-        // whose base is its parent's tip.
+        // whose base is its parent's tip, and a relay as far as it is one.
+        let years = f64::from(age.saturating_sub(axis.birth));
         let erected = match axis.origin {
             Origin::Continuation { .. } => 0.0,
-            _ => 1.0 - (-state.erection * f64::from(age.saturating_sub(axis.birth))).exp(),
+            Origin::Relay { .. } => axis.blend * (1.0 - (-state.erection * years).exp()),
+            _ => 1.0 - (-state.erection * years).exp(),
         };
         let bend = 1.0 - (1.0 - straightening) * (1.0 - erected);
-        lay(axis, (base, heading, side), state, bend)
+        lay(axis, (base, heading, side), state, (bend, reach[i]))
             .map_err(|height| Error::BelowGround { axis: i, height })?;
     }
     Ok(())
+}
+
+/// The scaled length each axis's straightening fades over: its own, and
+/// its relays' as far as each is still the continuation it replaces, so a
+/// relay that has barely left the axis's line leaves the axis as it was.
+fn reaches(axes: &[Axis]) -> Vec<f64> {
+    let mut reach: Vec<f64> = axes
+        .iter()
+        .map(|a| a.phytomers.iter().map(|p| p.scale).sum())
+        .collect();
+    // Relays follow their parents, so a backward pass meets each one's
+    // reach before its parent's.
+    for i in (0..axes.len()).rev() {
+        if let Origin::Relay { parent, .. } = axes[i].origin {
+            reach[parent] += (1.0 - axes[i].blend) * reach[i];
+        }
+    }
+    reach
 }
 
 /// Lays the axis's internodes from its base frame. A running direction
 /// starts on the heading, bends towards the PA's elevation and wanders by
 /// each node's keyed turn, both in proportion to the internode's length;
 /// each phytomer's direction is that running direction pulled towards the
-/// vertical by `bend` at the base, fading to none at the tip along the
-/// axis's scaled length. The pull weakens as the heading turns down and
+/// vertical by `bend` at the base, fading to none at the end of the
+/// axis's scaled reach (`reaches`). The pull weakens as the heading turns down and
 /// vanishes for a branch hanging straight down, which has no side to curl
 /// up on.
 fn lay(
     axis: &mut Axis,
     (base, heading, side): (Vec3, Vec3, Vec3),
     state: &PaState,
-    bend: f64,
+    (bend, total): (f64, f64),
 ) -> std::result::Result<(), f64> {
     let form = state.form;
-    let total: f64 = axis.phytomers.iter().map(|p| p.scale).sum();
     let pull = (1.0 + heading.z) / 2.0;
     let (mut running, mut across) = (heading, side);
     let mut tip = base;
@@ -194,20 +220,30 @@ fn frame(structure: &Structure, species: &Species, i: usize) -> (Vec3, Vec3, Vec
             (at.tip, heading, side)
         }
         Origin::Relay { parent, .. } => {
-            // In its parent's span at the parent PA's `relay_at`, facing
-            // where a bud there would, turned up by the PA's epitony.
+            // Between the continuation it replaces, at the tip on the
+            // axis's line, and its own bud in the axis's span at the PA's
+            // `relay_at`, facing where a bud there would, turned up by the
+            // PA's epitony: by the presence of the stop that made it.
             let p = &structure.axes[parent];
             let state = &species.states[p.pa];
             let at = relay_point(p, state.relay_at);
-            let azimuth = state.divergence * at.rank;
             let (heading, side) = turned(
                 (at.along, at.side),
-                azimuth,
+                state.divergence * at.rank,
                 species.states[axis.pa].insertion,
                 state.form.plane,
                 state.epitony,
             );
-            (at.base, heading, side)
+            let (tip, along, across) = end(p);
+            let turn = state.divergence * p.rank;
+            let carried = across * turn.cos() + along.cross(across) * turn.sin();
+            let b = axis.blend;
+            let heading = (along * (1.0 - b) + heading * b).unit().unwrap_or(heading);
+            let side = carried * (1.0 - b) + side * b;
+            let side = (side - heading * side.dot(heading))
+                .unit()
+                .unwrap_or(carried);
+            (tip + (at.base - tip) * b, heading, side)
         }
     }
 }
@@ -222,10 +258,11 @@ struct Point {
     rank: f64,
 }
 
-/// The point `share` of the way along axis `p`'s nodes from its base. The
-/// frame turns from one phytomer's direction to the next's along each span,
-/// so the point's frame moves by degree as `share` does; at 1 it is the
-/// last node and the frame of its phytomer, at 0 the base.
+/// The point `share` of the way along the nodes of axis `p`'s last growth
+/// unit. The frame turns from one phytomer's direction to the next's along
+/// each span, so the point's frame moves by degree as `share` does; at 1
+/// it is the last node and the frame of its phytomer, at 0 the base of the
+/// unit's first internode.
 fn relay_point(p: &Axis, share: f64) -> Point {
     let n = p.phytomers.len();
     if n == 0 {
@@ -237,8 +274,16 @@ fn relay_point(p: &Axis, share: f64) -> Point {
             rank: p.rank,
         };
     }
-    let f = share * n as f64;
-    let k = (f.ceil() as usize).clamp(1, n) - 1;
+    // The last growth unit's nodes: the module's curvature zone, wherever
+    // relays of it before have split the axis.
+    let last = p.phytomers[n - 1].cycle;
+    let first = p
+        .phytomers
+        .iter()
+        .position(|q| q.cycle == last)
+        .unwrap_or(0);
+    let f = first as f64 + share * (n - first) as f64;
+    let k = (f.ceil() as usize).clamp(first + 1, n) - 1;
     let t = (f - k as f64).clamp(0.0, 1.0);
     let at = &p.phytomers[k];
     let start = if k == 0 {
@@ -268,9 +313,13 @@ fn turned(
     epitony: f64,
 ) -> (Vec3, Vec3) {
     let mut toward = side * azimuth.cos() + along.cross(side) * azimuth.sin();
+    // Turned towards the upper side through the smaller angle; the turn
+    // fades as the bud faces straight down, where no side is nearer, so
+    // no bud flips from one side to the other.
     if let Some(upper) = (UP - along * UP.dot(along)).unit() {
-        let turn = along.dot(toward.cross(upper)).atan2(toward.dot(upper));
-        toward = rotated(toward, along, epitony * turn);
+        let facing = toward.dot(upper);
+        let turn = along.dot(toward.cross(upper)).atan2(facing);
+        toward = rotated(toward, along, epitony * turn * (1.0 + facing) / 2.0);
     }
     let heading = along * angle.cos() + toward * angle.sin();
     let side = toward * angle.cos() - along * angle.sin();

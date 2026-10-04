@@ -9,10 +9,8 @@
 use crate::error::{refuse, Error, Result};
 use crate::geometry::place;
 use crate::girth::thicken;
-use crate::lineage::{
-    self, above, below, Key, ABORTION, CONTINUATION, RELAY, RELAY_BUD, VIABILITY, ZONE,
-};
-use crate::presence::{assign, Draws, Windows};
+use crate::lineage::{self, above, below, Key, ABORTION, CONTINUATION, RELAY, VIABILITY, ZONE};
+use crate::presence::{assign, Draws, Windows, SPAN};
 use crate::shed::shed;
 use crate::species::{PaState, Species, MAX_BUDS, MAX_NODES_PER_ZONE};
 use crate::structure::{Axis, Origin, Phytomer, Structure, Vec3};
@@ -105,6 +103,7 @@ fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
         birth,
         origin,
         vigour: 1.0,
+        blend: 1.0,
         apex_end: None,
         base: Vec3::default(),
         heading: Vec3::default(),
@@ -147,7 +146,9 @@ impl Grower<'_> {
             let u = unit.child(VIABILITY).unit();
             if u >= state.viability {
                 self.axes[apex.axis].apex_end = Some(cycle - 1);
-                self.stop(apex, cycle, above(u, state.viability));
+                // The unit that failed is spent: a relay's first unit draws
+                // anew.
+                self.stop(apex, cycle, above(u, state.viability), unit, apex.units + 1);
                 continue;
             }
             let survive = below(u, state.viability);
@@ -163,7 +164,7 @@ impl Grower<'_> {
                 let u = unit.child(ABORTION).unit();
                 if u < abortion {
                     self.axes[apex.axis].apex_end = Some(cycle);
-                    self.stop(apex, cycle, below(u, abortion));
+                    self.stop(apex, cycle, below(u, abortion), unit, apex.units);
                     continue;
                 }
                 let wood = self.windows.wood(pa, cycle + 1);
@@ -184,7 +185,7 @@ impl Grower<'_> {
                     let origin = Origin::Continuation { parent: apex.axis };
                     self.sprout(key, next, cycle, origin, [1.0; 2]);
                 }
-                None => self.stop(apex, cycle, f64::INFINITY),
+                None => self.stop(apex, cycle, f64::INFINITY, unit, apex.units),
             }
         }
         self.live = std::mem::replace(&mut self.next, live);
@@ -212,18 +213,22 @@ impl Grower<'_> {
         });
     }
 
-    /// The apex has stopped, `stopped` log-odds past its last draw; a relay
-    /// bud of its PA may take over, at its PA's `relay_at` along the axis
-    /// (`geometry.rs`), carrying on the growth units the axis has spent.
-    fn stop(&mut self, apex: Apex, cycle: u32, stopped: f64) {
-        self.units[apex.axis] = apex.units;
+    /// The apex has stopped in the growth unit keyed `unit`, `stopped`
+    /// log-odds past its last draw, having spent `spent` units; a relay bud
+    /// of its PA may take over. The relay is the axis's continuation: it
+    /// carries its lineage and the units spent, so its growth units draw
+    /// what the apex's would have, and it stands between the axis's tip
+    /// and its PA's `relay_at` along it by the stop's presence
+    /// (`geometry.rs`).
+    fn stop(&mut self, apex: Apex, cycle: u32, stopped: f64, unit: Key, spent: u32) {
+        self.units[apex.axis] = spent;
         let axis = &self.axes[apex.axis];
         let relay = self.species.states[axis.pa].relay;
         if relay <= 0.0 {
             return;
         }
         let key = Key(axis.lineage);
-        let u = key.child(RELAY).unit();
+        let u = unit.child(RELAY).unit();
         if u < relay {
             let origin = Origin::Relay {
                 parent: apex.axis,
@@ -235,7 +240,11 @@ impl Grower<'_> {
                 self.windows.decided(stopped, wood, stop_stake(relay)),
                 self.windows.presence(below(u, relay), wood),
             ];
-            self.sprout(key.child(RELAY_BUD), pa, cycle, origin, made);
+            // The relay moves over the widest window: its move is a growth
+            // unit's length whatever wood it carries.
+            let blend = (stopped / SPAN).clamp(0.0, 1.0);
+            self.sprout(key, pa, cycle, origin, made);
+            self.axes.last_mut().unwrap().blend = blend;
         }
     }
 

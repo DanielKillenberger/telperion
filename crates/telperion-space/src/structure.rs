@@ -100,6 +100,10 @@ pub struct Axis {
     /// The axis's size at birth relative to what bears it, 0 to 1: a branch
     /// a setting has just made, or is about to unmake or shed, is small.
     pub vigour: f64,
+    /// A relay's place between the continuation it replaces (0) and its
+    /// own bud's place and heading (1): the presence of the stop that made
+    /// it. 1 for every other axis.
+    pub(crate) blend: f64,
     /// The cycle the apex stopped (died, ended, or changed PA); none, it lives.
     pub apex_end: Option<u32>,
     pub base: Vec3,

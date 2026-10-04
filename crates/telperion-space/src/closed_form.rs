@@ -73,7 +73,8 @@ fn events(species: &Species, laterals: &[Vec<f64>], k: usize, m: usize, spent: u
     };
     let mut survival = 1.0;
     for i in 1..=m.min(n) {
-        relay(&mut out, i, survival * (1.0 - state.viability), i - 1);
+        // A unit that failed is spent.
+        relay(&mut out, i, survival * (1.0 - state.viability), i);
         survival *= state.viability;
         for (zone, lateral) in state.zones.iter().zip(laterals) {
             let nodes = survival * zone.nodes.mean();

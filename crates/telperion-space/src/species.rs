@@ -60,8 +60,8 @@ pub struct PaState {
     /// where no apex stops.
     pub relay: f64,
     /// Where along its stopped axis a relay bud stands, as a share of the
-    /// axis's nodes from its base: Troll's relay "in the curvature zone"
-    /// of the module it takes over from. Neutral 1, the last node; dormant
+    /// nodes of the axis's last growth unit from their base: Troll's relay
+    /// "in the curvature zone" of the module it takes over from. Neutral 1, the last node; dormant
     /// without relays.
     pub relay_at: f64,
     /// How far a relay bud turns from its phyllotactic side to the upper

@@ -24,9 +24,19 @@ pub(crate) fn thicken(structure: &mut Structure, species: &Species) {
         }
         match axes[i].origin {
             Origin::Seed => {}
-            Origin::Lateral { parent, node, .. } | Origin::Relay { parent, node } => {
+            Origin::Lateral { parent, node, .. } => match at_node[parent].get_mut(node) {
+                Some(at) => *at += section,
+                None => at_tip[parent] += section,
+            },
+            // A relay's section enters at its node as far as it stands
+            // there, at the tip as far as it is still the continuation.
+            Origin::Relay { parent, node } => {
+                let b = axes[i].blend;
                 match at_node[parent].get_mut(node) {
-                    Some(at) => *at += section,
+                    Some(at) => {
+                        *at += section * b;
+                        at_tip[parent] += section * (1.0 - b);
+                    }
                     None => at_tip[parent] += section,
                 }
             }

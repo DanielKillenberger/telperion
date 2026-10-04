@@ -352,3 +352,41 @@ Starting point: round 2's beech, plus the relay-difference engine change (`57ab6
 **Final8 sheet and close-ups** (`raw/final8/sheet-beech.png`, `raw/final8/close-ups.png`) are unchanged from final7 for seeds 1 and 7: smooth trunk bases, one faint band at seed 7's flare, and smooth olive grey-green limbs.
 
 **Cost.** Seed 3 grows in 15.7 s at 80 cycles, and draws 1.89M nodes and 4.9M leaves, against 1.6 to 2.9 s for the others. It is the heaviest tree, because its whole crown now grows at full presence.
+
+## Round 10: relays continue their axis, and the relay = 1 crossing walks by degree (worker)
+
+**Engine changes:**
+- **A relay inherits its parent axis's lineage** and the growth units it spent. Its growth units therefore draw what the apex's would have, and the crown above keeps its identities across a crossing.
+  - The relay draw is keyed to the growth unit the stop happened in, not to the lineage, so successive relays of one axis draw independently.
+  - A unit that failed its viability draw counts as spent (in the closed form too), so the relay's first unit draws anew.
+- **A relay moves; it does not grow in.** Its `blend` (0 to 1, the stop's lead over the widest window, `SPAN`) places it between the continuation it replaces and its own bud:
+  - position, heading and side are interpolated;
+  - straightening and erection are scaled by the blend;
+  - its section enters the parent at its node by the blend and at the tip by the rest.
+- **The straightening fade runs over an axis's reach:** its own scaled length plus each relay's reach weighted by `1 - blend`. A relay that has barely left the line therefore leaves the axis's straightening as it was.
+- **`relay_at` is now a share of the stopped axis's last growth unit**, the module's curvature zone. As a share of the whole axis, the next relay jumped whenever an earlier near-zero relay split the axis.
+- **Epitony turns the bud through the smaller angle,** with the turn fading as the bud faces straight down, the case where the sign of the angle flips. This removes a jump the walk found at `states[1].epitony` = 1.
+- **The walk measure** counts a relay with the axis it continues: one branch from the axis's base to the relay's tip.
+
+**Walk test.** It adds "states[0].abortion, relay 1": the trunk's module-ending chance walked from 0.005 to 0.5 at seeds 1 to 3, with Troll's relay settings (`relay_at` 0.5, epitony 0.6, insertion 0.3, straightening 1).
+- **It passes: worst slope 2.82** against the bound of 30, and every steep step shrinks when split.
+- Before the blend window was set to `SPAN`, one step was steep but continuous: bisected to 5e-14 it still changed linearly. It came from the floor window on late stops.
+- All crate tests are green (`raw/space-tests-r10.log`), the oracle among them. The relay-position test now checks the middle of the last growth unit.
+
+**Five seeds at 80 cycles** (`raw/final9/five-seeds.png`). Every seed changed, because the relays' draws now continue their axis's. I viewed every still.
+
+| Seed | Reading |
+|---|---|
+| 1 | A narrow tree (16.8 m wide, 21 m tall) on a leaning trunk; a small ovoid crown. **Not a beech**: it reads as a narrow broadleaf. |
+| 7 | Erect stout trunk, fork, broad crown 18 to 21 m: **a beech**. A collar ring has come back at the trunk base (close-up). |
+| 2 | Erect trunk, a fan of upright limbs, a two-lobed crown: **borderline**. It reads vase-shaped, with rings at the base. |
+| 3 | Erect trunk under a broad spreading dome, 22 m: **a beech** |
+| 4 | Erect trunk, a two-lobed V-shaped crown with a ring at the trunk: **borderline** |
+
+**Two of five seeds read as an open-grown beech, two are borderline and one fails.** The continuity fix moved every tree, and the mature reading is worse than round 9's five of five.
+- **Relays near the tip:** with `relay_at` now inside the last growth unit, the beech's relays stand near the module tip rather than halfway down the module.
+- **Narrow crowns:** relays that continue their axis's draws make long modules, and long modules make narrow, upright crowns.
+- The beech's values were not retuned this round.
+- The collar rings are the conversion drawing a module head that turns aside next to a relay standing near the tip.
+
+**Sheets:** `raw/final9/sheet-beech.png` (seeds 1 and 7, same layout) and `raw/final9/close-ups.png`. Seed 1's limb close-up frames sky, because its crown is narrow. The young trees are diagnostic only: seed 7 at 20 cycles is still a pole.
