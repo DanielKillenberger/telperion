@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-193-tree-space-c-the-beech-as-the-first",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-04T14:57:22.699081Z",
   "created_at": "2026-10-03T19:30:54.584200Z",
   "default_impl": null,
   "default_review": null,
@@ -257,5 +257,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T14:56:13.650810Z"
+  "updated_at": "2026-10-04T14:57:22.699089Z"
 }
