@@ -539,3 +539,7 @@ Host: four of five seeds read as a beech (2, 3, 4 strongly; 1 narrower; 7 border
 - Dressing: 0.9 to 1.2 s.
 - 1.05M to 1.41M nodes.
 - `examples/beech` measures seed 7's dbh as 0.00 m. It finds no stem segment across 1.3 m at that seed. That is a measuring gap in the example, not looked into this round.
+
+## Gate, round 13 (2026-10-04)
+
+Host: 2, 3, 4 read as a beech, 1 shallower, 7 borderline (spire); sent to Astra. Astra: FAIL (2 yes, 1 and 4 borderline, 7 and 3 no): "crown integration: too many seeds terminate their main limbs in visibly separate fans or tufts, rather than building the broad, connected dome" (`ASTRA-VERDICT-R13.md`). Progress from round 11 (no yes). Host decision 13: first, branch systems along each limb's whole length (less acrotony on limbs) with more mid-crown fill and even lateral spread; if the crown still does not integrate, the next round brings phase E's light pass forward so shoots fill gaps toward light.
