@@ -17,7 +17,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-197-tree-space-e-light-and-the-carbon.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space E: light and the carbon balance",
   "tracker": {
     "baseHashFlow": null,
@@ -30,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T06:51:20.137290Z"
+  "updated_at": "2026-10-05T11:08:06.215814Z"
 }
