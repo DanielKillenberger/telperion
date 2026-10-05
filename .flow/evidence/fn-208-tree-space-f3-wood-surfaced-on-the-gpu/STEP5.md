@@ -81,3 +81,14 @@ Per view at 960 × 720 the camera holds about 0.6 GB and the sun's map about 0.7
 ## Browser (decision 21)
 
 `npm run dev`, Chrome with WebGPU: the harness draws the ordinary tree and the Norway spruce through the curve path, no console errors (`browser-ordinary.jpg`, `raw/browser/`). Wasm sizes (`npm run build`, `node scripts/artifact-budgets.mjs`): `telperion-render.wasm` 1,498,275 bytes against its 2,200,000 ceiling and its 1,985,291 baseline; the others are under their ceilings. The growth check runs on the PR.
+
+## Gate, review
+
+- **Workspace gate** (`cargo test --profile ci --workspace --no-fail-fast` on `54c3a637`, `raw/gate5.log`): 125 binaries green, 3 red.
+  - `bark_detail`'s radius-storage refusal and `submit`'s allocation test still tested the retired mesh buffers; both now test the curve's buffers (`061f36c3`), green on a focused rerun.
+  - **`bark_resolution::grazing_trunks_agree_with_a_box_reduction_at_half_resolution` is red and waits on the host.** It compares a 1600 × 1000 render with a box-reduced 800 × 500 one on grazing wood. The mesh path drew the same triangles at both sizes (fn71's record: oak mean 2.54, spruce 1.98, bound 3). The curve draws each size at its own half pixel, so the silhouette and the facets move between them: oak mean 3.86, p95 12.75; spruce 0.94, p95 2.50. With the ridges off the oak reads 1.01, so most of the gap is the ridged bark over geometry that moved. A bound for view-dependent geometry, or another fixture, is the host's call.
+- **`npm test`:** 129 tests green (`raw/npm-test.log`); `npm run typecheck` green.
+- **Codex** (`raw/review1.json`, gpt-6.1-sol, high):
+  - Round 1, NEEDS_WORK: lobed sides, twist in the ladder and the pieces, parallel tangents on a bent Hermite stretch, browser overruns silent, the red fit test, still triangles of 0, a pass-through fragment. All fixed in `061f36c3`. The lobe and twist bounds change only Telperion and Laurelin, the two lobed presets. The Hermite bound adds 1 to 3% to the engine trees' hero demand, and doubles the along-the-twig views.
+  - Round 2, **SHIP**. Its one P2, the browser's live triangle count, is answered in `691253d4`: `woodCounted: false`, with the count from `wood()`.
+  - **Exact boundary, deferred:** the new control-point bound is a small difference in float32, so `ordinary`'s close view cuts one stretch once more on the device (77,792 against 77,789 vertices). The GPU test now allows counts within a thousandth, matching every other vertex front and back.

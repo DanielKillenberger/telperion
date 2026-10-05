@@ -65,3 +65,10 @@
 - **Slowed by:** the mesh wood was the contract of every hand-built fixture. Tests built a `SurfaceMesh` by hand: the fit tests, the shoot ramp, the caster tests and the calibration patch. So did the generator's resident expansion and its tests. Each needed rewriting onto a curve, and the calibration's flat patch cannot be one.
 - **Cost:** about 40 minutes of edits before the first GPU run.
 - **Would remove it:** fixtures that build through `Curve::of_runs` (added here) rather than through an output layout, so the next change of layout touches one constructor.
+
+## 2026-10-05, the gate found what the one-path rewrite missed
+
+- **Doing:** running the workspace gate after decisions 16 to 21.
+- **Slowed by:** three render tests outside the files I had touched still assumed the mesh path: two fit tests and the grazing bark test. Nothing cheaper than the 20-minute gate runs them, and the GPU binaries cannot run without the lock.
+- **Cost:** one gate run, and a host decision (grazing) found at the end rather than the start.
+- **Would remove it:** `cargo test -p telperion-render` as the step's own check before the gate, or a list of the tests that read a renderer path.

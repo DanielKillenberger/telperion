@@ -10,6 +10,8 @@ The renderer's wood is the curve, surfaced on the GPU each frame at half a pixel
 
 ## Open items for the host
 
+- **The grazing bark test is red** (STEP5.md, "Gate, review"). It assumed both resolutions draw the same triangles, and the curve draws each at its own half pixel: oak mean 3.86 against the bound of 3. Set a bound for view-dependent geometry, change the fixture, or something else? I left the test as it is and did not run `flowctl done` with the gate red.
+
 - **`casterTexels` is dormant.** The sun's wood is surfaced at its own texel error, so the scene row no longer selects wood. It still shows in the panel and the README now says so. Delete the row, or give it a meaning?
 - **Surfacing costs 2 to 10.5 ms** on the engine trees: each cluster is walked six times a view. Measuring the four scales in one walk, or reusing last frame's choice, would cut it.
 - **Screen budgets hold 1.3 to 1.6 GB on every tree**, the palm included, against 0.5 to 0.7 GB fixed. A budget could also be capped by the tree's own finest-scale demand.
