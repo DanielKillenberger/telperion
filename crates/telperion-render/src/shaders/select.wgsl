@@ -98,19 +98,32 @@ fn level_of(instance: u32) -> u32 {
     return u.levels - 1u;
 }
 
+/// The leaf a thread of a per-leaf pass stands for. A crown past one
+/// dimension of groups is dispatched in rows, `grid.x` groups wide.
+fn leaf_index(global: vec3<u32>, grid: vec3<u32>) -> u32 {
+    return global.x + global.y * grid.x * WORKGROUP;
+}
+
 @compute @workgroup_size(256)
 fn select(
     @builtin(global_invocation_id) global: vec3<u32>,
     @builtin(local_invocation_index) local: u32,
-    @builtin(workgroup_id) group: vec3<u32>,
+    @builtin(workgroup_id) id: vec3<u32>,
+    @builtin(num_workgroups) grid: vec3<u32>,
 ) {
+    // The last row's overhang has no leaves and no slot of its own; the whole
+    // group returns together, so every barrier below is still uniform.
+    let group = id.x + id.y * grid.x;
+    if group >= group_count() {
+        return;
+    }
     for (var word = local; word < (u.levels + 1u) * WORDS; word += WORKGROUP) {
         atomicStore(&members[word], 0u);
     }
     workgroupBarrier();
 
     // Tail threads participate in every barrier but claim no membership.
-    let instance = global.x;
+    let instance = leaf_index(global, grid);
     var chosen = u.levels;
     if instance < u.instances {
         chosen = level_of(instance);
@@ -132,7 +145,7 @@ fn select(
         for (var word = 0u; word < WORDS; word += 1u) {
             count += countOneBits(atomicLoad(&members[local * WORDS + word]));
         }
-        scratch[group_slot(local, group.x)] = count;
+        scratch[group_slot(local, group)] = count;
     }
 }
 
@@ -179,8 +192,11 @@ fn prefix(
 }
 
 @compute @workgroup_size(256)
-fn scatter(@builtin(global_invocation_id) global: vec3<u32>) {
-    let instance = global.x;
+fn scatter(
+    @builtin(global_invocation_id) global: vec3<u32>,
+    @builtin(num_workgroups) grid: vec3<u32>,
+) {
+    let instance = leaf_index(global, grid);
     if instance >= u.instances {
         return;
     }
