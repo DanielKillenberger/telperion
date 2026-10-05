@@ -125,3 +125,10 @@ The curve's memory is mostly the fixed budgets, the same for every tree, which i
 - **Budgets sized from the screen,** not fixed constants: 0.5 GB on a palm.
 - **Browser limits:** the camera's vertex buffer is 240 MB, against WebGPU's default 128 MB storage binding. Untested in a browser.
 - **The shader text** grows the render Wasm. CI's size budget is not checked here.
+
+## Gate
+
+`cargo test --profile ci --workspace --no-fail-fast` on `4f5c220a` (`raw/gate3.log`):
+- 127 test binaries are green.
+- **One failure:** `generation_limit_guard` named the coverage ribbon's removed `max` as a stale inventory entry. It is removed in the next commit, and the guard is green.
+- The beech's memory-ceiling flake did not fire this time.
