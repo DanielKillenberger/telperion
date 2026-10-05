@@ -1363,12 +1363,6 @@
   },
   {
     "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate.rs",
-    "site": ". max ( 0 . 5 / viewer . pixels_at ( p . centre ) )",
-    "classification": "algorithm",
-    "reason": "A ribbon is at least a pixel wide, carrying the wood's true width as its coverage (host decision 4): sub-pixel wood is drawn by its coverage, never dropped. A drawing rule, not a limit on the tree."
-  },
-  {
-    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate.rs",
     "site": "const SCALES : [ f64 ;",
     "classification": "algorithm",
     "reason": "The error scales a budget may draw at (host decision 2): a frame over budget coarsens evenly and names its scale; past the last it is refused by name. It limits drawing, never the tree."
