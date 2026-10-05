@@ -7,45 +7,13 @@
 use super::shoot::{Home, Line, Reads, Shoot};
 use super::sketch::Sketch;
 use super::{Apex, Grower};
+use crate::cores::{picked, spread};
 use crate::dormant::{Sleeper, Woken};
 use crate::error::{Error, Result};
 use crate::presence::Draws;
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
-
-/// The helper threads growing trees in this process, across every tree.
-static HELPERS: AtomicUsize = AtomicUsize::new(0);
-
-/// Helper threads held for one cycle's shares, given back when dropped.
-struct Helpers(usize);
-
-impl Helpers {
-    /// Up to `wanted` helpers, as far as the process holds fewer than
-    /// `cores` in all.
-    fn reserve(wanted: usize, cores: usize) -> Self {
-        let mut held = HELPERS.load(Ordering::Relaxed);
-        loop {
-            let take = wanted.min(cores.saturating_sub(held));
-            match HELPERS.compare_exchange_weak(
-                held,
-                held + take,
-                Ordering::Relaxed,
-                Ordering::Relaxed,
-            ) {
-                Ok(_) => return Self(take),
-                Err(now) => held = now,
-            }
-        }
-    }
-}
-
-impl Drop for Helpers {
-    fn drop(&mut self) {
-        HELPERS.fetch_sub(self.0, Ordering::Relaxed);
-    }
-}
 
 /// The living apexes in a share: enough work to pay for its merge.
 pub(super) const SHARE: usize = 1024;
@@ -197,36 +165,21 @@ fn homes<'g>(
     let mut order: Vec<(usize, usize)> =
         live.iter().enumerate().map(|(k, a)| (a.axis, k)).collect();
     order.sort_unstable();
-    let mut picked: Vec<Option<Home<'g>>> = (0..live.len()).map(|_| None).collect();
-    let (mut axes, mut draws, mut units, mut successor) = (axes, draws, units, successor);
-    let mut at = 0;
-    for &(i, k) in &order {
-        let skip = i - at;
-        let (axis, rest) = std::mem::take(&mut axes)[skip..]
-            .split_first_mut()
-            .expect("living");
-        axes = rest;
-        let (draw, rest) = std::mem::take(&mut draws)[skip..]
-            .split_first_mut()
-            .expect("living");
-        draws = rest;
-        let (unit, rest) = std::mem::take(&mut units)[skip..]
-            .split_first_mut()
-            .expect("living");
-        units = rest;
-        let (next, rest) = std::mem::take(&mut successor)[skip..]
-            .split_first_mut()
-            .expect("living");
-        successor = rest;
-        picked[k] = Some(Home {
+    let at = || order.iter().map(|&(i, _)| i);
+    let parts = picked(axes, at())
+        .into_iter()
+        .zip(picked(draws, at()))
+        .zip(picked(units, at()).into_iter().zip(picked(successor, at())));
+    let mut homes: Vec<Option<Home<'g>>> = (0..live.len()).map(|_| None).collect();
+    for (&(_, k), ((axis, draws), (units, successor))) in order.iter().zip(parts) {
+        homes[k] = Some(Home {
             axis,
-            draws: draw,
-            units: unit,
-            successor: next,
+            draws,
+            units,
+            successor,
         });
-        at = i + 1;
     }
-    picked
+    homes
         .into_iter()
         .map(|h| h.expect("every apex its own axis"))
         .collect()
@@ -254,23 +207,9 @@ fn grow_shares<'g, 'a: 'g>(
         })
         .collect();
     let done: Vec<Mutex<Option<Result<Share>>>> = (0..count).map(|_| Mutex::new(None)).collect();
-    let ticket = AtomicUsize::new(0);
-    let work_on = || loop {
-        let k = ticket.fetch_add(1, Ordering::Relaxed);
-        if k >= count {
-            break;
-        }
+    spread(count, threads, &|k| {
         let (apexes, at) = work[k].lock().unwrap().take().expect("a share once");
         *done[k].lock().unwrap() = Some(shoot(at).grow(apexes, cycle));
-    };
-    // This thread works too; the helpers are drawn from what the process
-    // has spare, so trees grown at once do not each take every core.
-    let helpers = Helpers::reserve(threads.min(count) - 1, threads);
-    std::thread::scope(|scope| {
-        for _ in 0..helpers.0 {
-            scope.spawn(work_on);
-        }
-        work_on();
     });
     done.into_iter()
         .map(|d| d.into_inner().unwrap().expect("every share grown"))

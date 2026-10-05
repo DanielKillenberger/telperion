@@ -176,9 +176,7 @@ pub(crate) fn run(
     } else {
         vec![None; species.states.len()]
     };
-    let threads = options.threads.unwrap_or_else(|| {
-        std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get)
-    });
+    let threads = options.threads.unwrap_or_else(crate::cores::available);
     let mut grower = Grower {
         rules: Rules {
             species,
@@ -270,12 +268,12 @@ pub(crate) fn run(
     if !lay {
         return Ok(done(structure));
     }
-    place(&mut structure, species, None)?;
+    place(&mut structure, species, None, threads)?;
     // Sag bends the tree as it stands under the load it carries, and
     // leaves its girth as it was.
     if sag::any(species) {
         let levers = sag::levers(&structure, species);
-        place(&mut structure, species, Some(&levers))?;
+        place(&mut structure, species, Some(&levers), threads)?;
     }
     // Wood that stands exactly at its draw has no size.
     if structure
