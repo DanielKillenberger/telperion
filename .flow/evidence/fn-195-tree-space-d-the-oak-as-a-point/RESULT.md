@@ -828,3 +828,61 @@ The limb and leader bends stay at 3 m and the bough bends at 1.5 m.
 - Seeds 3 and 4 have a tuft or bough sticking above the outline.
 
 **Still lobed:** the foliage is clumped into lobes, though calmer than round 8.
+
+## Round 11: from vase toward dome, and finer outer wood (host, 2026-10-05)
+
+### Values against round 10
+
+| Value | Round 10 | Round 11 | What it does |
+|---|---|---|---|
+| Limb lifespan | 1,000 | 20 | Then the limb carries on as **ARCH** (below) |
+| ARCH (new PA) | none | the limb's values, elevation 0.6 | Older limbs bend their new wood towards a lower elevation, so the crown's outer wood arches over (the host's "lower elevation target on the older limb ages") |
+| Limb branch-system laterals | 0.45 | 0.55 | More division along limbs |
+| Bough branch-system laterals | 0.3 | 0.4 | More division along boughs |
+| Bough lifespan | 60 | 45 | A younger outer crown |
+| Branch-system lifespan | 12 | 10 | A younger outer crown |
+
+- ARCH sits between LIMB and BOUGH in PA order, because the engine refuses a lateral younger than its bearer. Its own limb laterals are ARCH. Every later PA's index moves up by one.
+- Sag and dominance are as in round 10.
+
+### Probes on seeds 1 and 2 (`raw/round11/probe1.png` to `probe7.png`)
+
+1. **Probe 1, all the host's levers at once:**
+   - Changes: limb sag 0.0008, bough sag 0.0002, dominance 0.3, more laterals, bough lifespan 35, branch lifespan 8.
+   - Result: narrow, 18 to 19 m wide (0.85 to 1.0 times the height). Leaves fell from 1.74M to 1.30M. Seed 1 was still a V.
+2. **Probe 2, lifespans restored, limb sag 0.0015:** seed 2 narrowed to a 20 m cup, and seed 1 grew a hooked limb.
+3. **Probe 3, sag and dominance only:** lost vigour (1.15M leaves; seed 1 at 17 m). Dominance shrinks most sibling limbs.
+4. **Probe 4, sag 0.0015 alone:** whole limbs hinge down from the base, where the moment is largest. The crowns slump to 34 to 36 m wide, seed 2 into a bush, and the clear trunk is lost. **Sag does not arch the tips.**
+5. **Probe 5, older limb from age 12 at elevation 0.3, sag 0.0005:** seed 1's V is gone and its top rounds, but the crown is low (19 m) and the limbs hang to the ground.
+6. **Probe 6, older limb from age 20 at elevation 0.6, round 10's sag:** close to a dome on seed 2.
+7. **Probe 7, probe 6 plus the moderate fine-wood steps:** kept.
+
+### Five seeds (`raw/round11/sheet.png`)
+
+The sheet shows the references, round 10 in leaf, round 11 in leaf and round 11 bare. I viewed every still.
+
+| Seed | Height | Width | Leaves |
+|--:|--:|--:|--:|
+| 1 | 24.0 m | 27.8 × 27.6 m | 1.58M |
+| 7 | 21.3 m | 24.9 × 25.4 m | 1.78M |
+| 2 | 21.5 m | 27.0 × 29.0 m | 2.77M |
+| 3 | 21.8 m | 34.8 × 29.7 m | 2.71M |
+| 4 | 20.1 m | 24.2 × 26.8 m | 1.27M |
+
+### Reading
+
+**The tops now arch over instead of rising into a vase.** Seed 2 is the nearest to a dome.
+
+**The arch overshoots on several seeds:**
+- Seeds 3 and 4 are an umbrella: a spreading cap over a bare lower crown.
+- Seed 7 leans into a broad, flat-topped spread.
+- The trees are about 1 to 3 m lower than round 10, and seed 3 is 1.6 times as wide as it is tall.
+
+**Seed 1's lone rising limb remains.** It ends in a hook, probably the leader carrying on as a limb and then as an old limb. This is not checked.
+
+**Item 2 (finer outer wood) is not visibly achieved:** heavy wood still reaches the outline and ends in tufts. Pushing the laterals or shorter lifespans further narrowed the crown and cost leaves (probes 1 and 2). This is likely the light sharing among more siblings, not checked.
+
+### Open for the host
+
+- **ARCH's age and elevation** are the levers for item 1. Probes 5 and 6 bracket them; a value between, such as age 20 at elevation 0.7 to 0.8, may give a dome without the umbrella.
+- **Item 2 may need the dividing to come with less taper of vigour per lateral.** That is a question about how sizes share among siblings, which I leave to the host.
