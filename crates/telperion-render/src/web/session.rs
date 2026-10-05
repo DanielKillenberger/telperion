@@ -52,12 +52,15 @@ async fn collect(
     // What the page drew at qualifies every number below, so it is read once
     // and put on the record whether the session could be timed or not.
     let multisample = borrow(live)?.renderer.samples();
-    let triangles = borrow(live)?.renderer.caster_triangles();
     let instances = borrow(live)?.renderer.caster_instances();
     let session = Session::new(borrow(live)?.renderer.gpu());
     for _ in 0..CONDITIONING {
         draw(live, pose(0.0))?;
     }
+    // The wood the sun was given is surfaced by a frame, so it is counted
+    // after one.
+    let counted = borrow(live)?.renderer.caster_triangles_async();
+    let triangles = counted.await;
 
     let report = match session {
         Ok(session) => sampled(live, &pose, hardware, &session).await?,
@@ -90,6 +93,7 @@ async fn sampled(
     let mut vegetation = Vec::with_capacity(MEASURED);
     let mut selection = Vec::with_capacity(MEASURED);
     let mut shadow = Vec::with_capacity(MEASURED);
+    let mut surfacing = Vec::with_capacity(MEASURED);
     for index in 0..WARMUP + MEASURED {
         // The borrow is put down before the await, so nothing holds the canvas
         // while the browser is carrying the readback.
@@ -99,14 +103,20 @@ async fn sampled(
             canvas.draw(Some(session.timed())).map_err(js_error)?;
             session.resolve(canvas.renderer.gpu());
         }
-        let (pass, select, sun) = session.sample_ms().await.map_err(js_error)?;
+        let [pass, select, sun, surfaced] = session.sample_ms().await.map_err(js_error)?;
         if index >= WARMUP {
             vegetation.push(pass);
             selection.push(select);
             shadow.push(sun);
+            surfacing.push(surfaced);
         }
     }
-    Ok(Report::measured(hardware, &vegetation).with_passes(&vegetation, &selection, &shadow))
+    Ok(Report::measured(hardware, &vegetation).with_passes(
+        &vegetation,
+        &selection,
+        &shadow,
+        &surfacing,
+    ))
 }
 
 /// The wall-clock half: frames drawn the way the page draws them, for the

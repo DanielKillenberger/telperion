@@ -74,9 +74,18 @@ impl Wood {
         camera: &crate::Camera,
         viewport: (u32, u32),
         light: &crate::shadow::Light,
+        timestamps: Option<wgpu::ComputePassTimestampWrites<'_>>,
     ) {
-        if let Some(curve) = &mut self.curve {
-            curve.record(gpu, encoder, camera, viewport, light, None);
+        match &mut self.curve {
+            Some(curve) => curve.record(gpu, encoder, camera, viewport, light, timestamps),
+            // A timed frame writes its pair whether or not there is wood.
+            None if timestamps.is_some() => {
+                drop(encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
+                    label: Some("curve"),
+                    timestamp_writes: timestamps,
+                }))
+            }
+            None => {}
         }
     }
 

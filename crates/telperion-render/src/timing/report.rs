@@ -60,6 +60,8 @@ pub struct Report {
     selection: Option<[f64; 2]>,
     /// The sun's depth pass, median and tail.
     shadow: Option<[f64; 2]>,
+    /// The wood's surfacing compute pass, median and tail (fn-208).
+    surfacing: Option<[f64; 2]>,
     /// The three passes the tree costs together, per frame and then ranked:
     /// the pair of numbers the frame budget is spent on.
     total: Option<[f64; 2]>,
@@ -103,12 +105,19 @@ impl Report {
         self
     }
 
-    /// Adds what the other two passes of a frame cost - the selection pass and
-    /// the sun's depth pass - and what all three came to together. Each pass
+    /// Adds what the other passes of a frame cost - the selection pass, the
+    /// sun's depth pass and the wood's surfacing - and what all four came to
+    /// together. Each pass
     /// stands on its own account: a pair no pass wrote reads as a zero rather
     /// than a duration and is refused, and a refused pass takes only itself and
     /// the total with it. The frame's own verdict judges the frame.
-    pub fn with_passes(mut self, vegetation: &[f64], selection: &[f64], shadow: &[f64]) -> Self {
+    pub fn with_passes(
+        mut self,
+        vegetation: &[f64],
+        selection: &[f64],
+        shadow: &[f64],
+        surfacing: &[f64],
+    ) -> Self {
         if !self.verdict.is_valid() {
             return self;
         }
@@ -118,11 +127,12 @@ impl Report {
         };
         self.selection = measured(selection);
         self.shadow = measured(shadow);
-        if self.selection.is_none() || self.shadow.is_none() {
+        self.surfacing = measured(surfacing);
+        if self.selection.is_none() || self.shadow.is_none() || self.surfacing.is_none() {
             return self;
         }
         let total: Vec<f64> = (0..vegetation.len())
-            .map(|frame| vegetation[frame] + selection[frame] + shadow[frame])
+            .map(|frame| vegetation[frame] + selection[frame] + shadow[frame] + surfacing[frame])
             .collect();
         self.total = Some(ranked(&total, [0.5, 0.95]));
         self
@@ -192,6 +202,7 @@ impl Report {
             p95_ms: None,
             selection: None,
             shadow: None,
+            surfacing: None,
             total: None,
             levels: Vec::new(),
             wall: None,
@@ -217,6 +228,11 @@ impl Report {
     /// The p95 measured vegetation pass, milliseconds, on a valid session only.
     pub fn p95_ms(&self) -> Option<f64> {
         self.p95_ms
+    }
+
+    /// The median surfacing pass, milliseconds.
+    pub fn surfacing_p50_ms(&self) -> Option<f64> {
+        self.surfacing.map(|pair| pair[0])
     }
 
     /// The median selection pass, milliseconds.
@@ -286,6 +302,10 @@ impl Report {
         if let Some([median, tail]) = self.shadow {
             fields.push(format!("\"shadow_p50_ms\": {median:.4}"));
             fields.push(format!("\"shadow_p95_ms\": {tail:.4}"));
+        }
+        if let Some([median, tail]) = self.surfacing {
+            fields.push(format!("\"surfacing_p50_ms\": {median:.4}"));
+            fields.push(format!("\"surfacing_p95_ms\": {tail:.4}"));
         }
         if let Some([median, tail]) = self.total {
             fields.push(format!("\"total_p50_ms\": {median:.4}"));

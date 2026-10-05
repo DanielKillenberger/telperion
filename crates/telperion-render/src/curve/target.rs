@@ -215,10 +215,50 @@ impl Target {
             .map(|b| b.size())
             .sum()
     }
+}
 
-    /// Where the ribbons' indices start in the index buffer.
-    pub(crate) fn ribbon_base(&self) -> u32 {
-        self.budget.tube_indices
+/// The report a view's totals words make under its budget.
+fn reported(b: Budget, words: &[u32]) -> CurveReport {
+    CurveReport {
+        scale: f64::from(1u32 << words[16].min(3)),
+        overrun: words[17],
+        vertices: words[24],
+        tube_triangles: words[25] / 3,
+        ribbon_triangles: words[26] / 3,
+        demand: [words[0], words[1], words[2], words[3]],
+        budget: [b.rings, b.vertices, b.tube_indices, b.ribbon_indices],
+    }
+}
+
+impl Target {
+    /// What the last frame's passes wrote, awaited: the browser's readback.
+    /// The copy is queued now and the future owns everything it reads, so
+    /// no borrow of the renderer is held across the wait.
+    #[cfg(target_arch = "wasm32")]
+    pub(crate) fn report_async(
+        &self,
+        gpu: &Gpu,
+    ) -> impl std::future::Future<Output = Option<CurveReport>> + 'static {
+        let staging = gpu.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("curve readback"),
+            size: 192,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        });
+        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        encoder.copy_buffer_to_buffer(&self.totals, 0, &staging, 0, 192);
+        gpu.queue.submit([encoder.finish()]);
+        let (sender, receiver) = futures_channel::oneshot::channel();
+        staging.slice(..).map_async(wgpu::MapMode::Read, move |r| {
+            let _ = sender.send(r);
+        });
+        let budget = self.budget;
+        async move {
+            receiver.await.ok()?.ok()?;
+            let words: Vec<u32> =
+                bytemuck::cast_slice(&staging.slice(..).get_mapped_range().ok()?).to_vec();
+            Some(reported(budget, &words))
+        }
     }
 }
 
@@ -227,16 +267,7 @@ impl Target {
     /// What the last frame's passes wrote, read back.
     pub(crate) fn report(&self, gpu: &Gpu) -> CurveReport {
         let words: Vec<u32> = bytemuck::cast_slice(&read(gpu, &self.totals, 192)).to_vec();
-        let b = self.budget;
-        CurveReport {
-            scale: f64::from(1u32 << words[16].min(3)),
-            overrun: words[17],
-            vertices: words[24],
-            tube_triangles: words[25] / 3,
-            ribbon_triangles: words[26] / 3,
-            demand: [words[0], words[1], words[2], words[3]],
-            budget: [b.rings, b.vertices, b.tube_indices, b.ribbon_indices],
-        }
+        reported(self.budget, &words)
     }
 
     /// The last frame's vertices (nine floats each), tube and ribbon indices.
@@ -247,7 +278,7 @@ impl Target {
         let all: Vec<u32> =
             bytemuck::cast_slice(&read(gpu, &self.indices, self.indices.size())).to_vec();
         let tube = all[..(r.tube_triangles * 3) as usize].to_vec();
-        let base = self.ribbon_base() as usize;
+        let base = self.budget.tube_indices as usize;
         let ribbon = all[base..base + (r.ribbon_triangles * 3) as usize].to_vec();
         (vertices, tube, ribbon)
     }

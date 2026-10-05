@@ -82,14 +82,16 @@ impl std::ops::Add for FrameStats {
     }
 }
 
-/// The three timestamp pairs a timed frame writes: the vegetation render pass,
-/// the selection compute pass that decides what it draws, and the sun's own
-/// depth pass. Every pair is written on every timed frame, whatever the view is
+/// The four timestamp pairs a timed frame writes: the vegetation render pass,
+/// the selection compute pass that decides what it draws, the sun's own
+/// depth pass, and the compute pass that surfaces the wood for the camera and
+/// the sun (fn-208). Every pair is written on every timed frame, whatever the view is
 /// showing, so a session never resolves a query no pass wrote.
 pub struct Timed<'a> {
     pub vegetation: wgpu::RenderPassTimestampWrites<'a>,
     pub selection: wgpu::ComputePassTimestampWrites<'a>,
     pub shadow: wgpu::RenderPassTimestampWrites<'a>,
+    pub surfacing: wgpu::ComputePassTimestampWrites<'a>,
 }
 
 /// A device with the room built on it, holding at most one tree.
@@ -277,6 +279,23 @@ impl Renderer {
         }
     }
 
+    /// The browser's count of the wood the last frame drew into the sun's
+    /// map, awaited rather than polled.
+    #[cfg(target_arch = "wasm32")]
+    pub fn caster_triangles_async(&self) -> impl std::future::Future<Output = u32> + 'static {
+        let sun = self.wood.curve().and_then(|c| c.sun.as_ref());
+        let pending = match (self.view, sun) {
+            (View::Leaf, _) | (_, None) => None,
+            (_, Some(t)) => Some(t.report_async(&self.gpu)),
+        };
+        async move {
+            match pending {
+                Some(p) => p.await.map_or(0, |r| r.tube_triangles + r.ribbon_triangles),
+                None => 0,
+            }
+        }
+    }
+
     /// Placements submitted to the sun's pass, outside the frame statistics.
     pub fn caster_instances(&self) -> u32 {
         if self.view.selects() {
@@ -379,13 +398,14 @@ impl Renderer {
             self.foliage.caster_shape,
             self.scene.leaf_reference(),
         );
-        let (vegetation_writes, selection_writes, shadow_writes) = match timed {
+        let (vegetation_writes, selection_writes, shadow_writes, surfacing_writes) = match timed {
             Some(timed) => (
                 Some(timed.vegetation),
                 Some(timed.selection),
                 Some(timed.shadow),
+                Some(timed.surfacing),
             ),
-            None => (None, None, None),
+            None => (None, None, None, None),
         };
         let mut encoder = self
             .gpu
@@ -394,7 +414,7 @@ impl Renderer {
                 label: Some("frame"),
             });
         self.wood
-            .tessellate(&self.gpu, &mut encoder, camera, viewport, &light);
+            .tessellate(&self.gpu, &mut encoder, camera, viewport, &light, surfacing_writes);
         self.foliage.dispatch(
             &self.gpu,
             &mut encoder,
