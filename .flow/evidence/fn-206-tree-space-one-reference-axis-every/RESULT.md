@@ -584,3 +584,8 @@ Viewed; no pops in any of the three.
 
     At 80 years it reads as the same rounded beech dome. The beech's pass stands; this is a candidate for the beech's calibration later.
 21. The scratch worktree `.worktrees/palm-master` is removed once done.
+
+### Port close
+
+- **Codex: SHIP** on the port against origin/master (`raw/review-port3.json`). The two boundary findings stay deferred under decision 17.
+- **Workspace gate** at `bc832d12`: 1095 passed, 0 failed (`raw/gate5.txt`).
