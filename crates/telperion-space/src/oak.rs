@@ -127,7 +127,7 @@ pub fn oak() -> Species {
         internode: 0.045,
         form: stem,
         ..state(
-            11,
+            10,
             Some(FORK),
             unit((4, 5), &[(SPRIG, 0.4)], (3, &[(SPRIG, 0.6)])),
         )
@@ -158,7 +158,7 @@ pub fn oak() -> Species {
             ..stem
         },
         ..state(
-            20,
+            14,
             Some(LIMB),
             unit(
                 (3, 4),
@@ -179,16 +179,16 @@ pub fn oak() -> Species {
         // estimated, an arborists' account, no measured persistence
         // found). An E-side value, reconciled with the oak's branch.
         shedding: Some(5),
-        insertion: 0.45,
+        insertion: 0.65,
         internode: 0.045,
-        straightening: 0.2,
-        abortion: 0.25,
+        straightening: 0.15,
+        abortion: 0.3,
         relay: 1.0,
-        epitony: 0.3,
+        epitony: 0.2,
         form: Form {
             tropism: 0.5,
-            elevation: 0.95,
-            wander: 1.0,
+            elevation: 0.75,
+            wander: 1.25,
             plane: 0.0,
             pipe: 0.009,
             exponent: 2.8,
@@ -225,13 +225,13 @@ pub fn oak() -> Species {
         internode: 0.03,
         viability: 0.999,
         shedding: Some(4),
-        abortion: 0.25,
+        abortion: 0.3,
         relay: 1.0,
-        epitony: 0.3,
+        epitony: 0.2,
         form: Form {
             tropism: 0.6,
-            elevation: 0.75,
-            wander: 0.8,
+            elevation: 0.6,
+            wander: 1.0,
             pipe: 0.004,
             exponent: 2.6,
             sag: 0.00005,
