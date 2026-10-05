@@ -17,9 +17,15 @@ The pedunculate oak (*Quercus robur*, Rauh's model) as a point in the tree space
 Every R-ID in the parent spec's Acceptance Criteria is satisfied (R1 to R4); judge against the spec directly. R1 is this task's first deliverable; R2 to R4 run after the host passes the look.
 
 ## Done summary
-TBD
+The oak passes at round 10 on the owner's verdict (2026-10-05). Its known gaps are in RESULT.md, the fine twig web's density first.
 
+- **R1:** met.
+- **R2:** the gate passed with 1,063 tests and 0 failures, and Codex returned SHIP.
+- **R4:** met by the beech and spruce neutral hashes and the pixel-identical renders across the stem fix.
+- **R3:** split into task .2, blocked by fn-206.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 54b9dff8, f3384827, 670dacda
+- Tests: cargo test --profile ci --workspace --no-fail-fast, cargo test --profile ci -p telperion-space, cargo test --profile ci -p telperion-render --test space_stems, cargo check -p telperion-render --examples
 - PRs:
