@@ -57,9 +57,17 @@
 # Pale grey-brown furrowed bark; a dark glossy blade over a
 # markedly paler underside. Linear, from the frozen profile's
 # prose, and calibrated against the photographs in fn-14.6.
-/material/barkRed = 0.185
-/material/barkGreen = 0.175
-/material/barkBlue = 0.158
+# Matched by render, host rule (fn-195, 2026-10-05), as fn-193 and
+# fn-194 did. The 80-cycle space oak's trunk base, under the stills'
+# sun and sky, reads the mean linear colour of S3's bark
+# (.flow/references/oak-quercus-robur/S3-robur-limbs-from-trunk.jpg,
+# a 500 px crop of the trunk: 0.116/0.086/0.053); the render reads
+# 0.118/0.084/0.054. The blade is darkened towards the green pixels of
+# S2's crown (S2-garryana-wheatfield-leaf.jpg: 0.083/0.101/0.064),
+# its underside a grey green rather than the paler table's.
+/material/barkRed = 0.215
+/material/barkGreen = 0.154
+/material/barkBlue = 0.112
 /material/barkRoughness = 0.85
 /material/barkGrainScale = 0.0025
 /material/barkGrainStrength = 0.2
@@ -68,12 +76,12 @@
 /material/shootRed = 0.225
 /material/shootGreen = 0.218
 /material/shootBlue = 0.198
-/material/leafFrontRed = 0.028
-/material/leafFrontGreen = 0.102
-/material/leafFrontBlue = 0.016
-/material/leafBackRed = 0.153
-/material/leafBackGreen = 0.254
-/material/leafBackBlue = 0.112
+/material/leafFrontRed = 0.021
+/material/leafFrontGreen = 0.048
+/material/leafFrontBlue = 0.021
+/material/leafBackRed = 0.100
+/material/leafBackGreen = 0.130
+/material/leafBackBlue = 0.080
 /material/brightnessRangeLow = -0.15
 /material/brightnessRangeHigh = 0.15
 /material/interiorDarkening = 0.55
