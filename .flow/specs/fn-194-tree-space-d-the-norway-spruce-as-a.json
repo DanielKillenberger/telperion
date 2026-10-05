@@ -13,12 +13,77 @@
     "fn-203-tree-space-sag-measures-its-lever-on"
   ],
   "id": "fn-194-tree-space-d-the-norway-spruce-as-a",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-194-tree-space-d-the-norway-spruce-as-a.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "80c88610ba023337663f08394638e466633a5acfc18b24cee22d08ed399867d7",
+      "backend": "codex",
+      "base_sha": "28921d10fab2ef19ac41e0bca461341b4b1d9da5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-38a591323be991cbc782b2f1b8e825dd",
+            "classification": "introduced",
+            "findingId": "finding-38a591323be991cbc782b2f1b8e825dd",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-275ead64a73b5bccf987aaa8f0f3a872",
+            "classification": "introduced",
+            "findingId": "finding-275ead64a73b5bccf987aaa8f0f3a872",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e6f378857459340a38455cbb840fa15f8e1fd439",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 348340,
+      "output_sha256": "55ebbd49de01c4cdc034cb3e668643e507def3c14595b4380fd68565778d8fc5",
+      "reservation_id": "4f258d40e23b4d02ad01096563eb9b72",
+      "round_consumed": true,
+      "scope": "impl:fn-194-tree-space-d-the-norway-spruce-as-a.1",
+      "superseded_by": null,
+      "task": "fn-194-tree-space-d-the-norway-spruce-as-a.1",
+      "timestamp": "2026-10-05T09:06:52.368242Z",
+      "tool_calls": 19,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-194-tree-space-d-the-norway-spruce-as-a.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-194-tree-space-d-the-norway-spruce-as-a.1": 0
+  },
   "spec_path": ".flow/specs/fn-194-tree-space-d-the-norway-spruce-as-a.md",
   "status": "open",
   "title": "Tree space D: the Norway spruce as a point",
@@ -33,5 +98,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T22:18:58.204438Z"
+  "updated_at": "2026-10-05T09:06:52.382646Z"
 }

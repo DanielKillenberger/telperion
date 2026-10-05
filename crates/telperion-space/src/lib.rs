@@ -24,6 +24,7 @@ mod presence;
 mod sag;
 mod shed;
 mod species;
+mod spruce;
 mod structure;
 
 pub use beech::beech;
@@ -32,4 +33,5 @@ pub use error::{Error, Result};
 pub use grow::{grow, Request};
 pub use presence::{FLOOR, RATE, SPAN};
 pub use species::{Form, NodeLaw, PaState, Species, Zone, MAX_BUDS};
+pub use spruce::spruce;
 pub use structure::{Axis, CountTable, Origin, Phytomer, Structure, Vec3};
