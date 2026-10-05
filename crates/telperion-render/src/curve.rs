@@ -28,16 +28,26 @@ pub struct Budget {
 
 /// The camera's budget, sized from the screen rather than the tree.
 pub const CAMERA: Budget = Budget {
-    vertices: 3_000_000,
+    vertices: 6_000_000,
     tube_indices: 12_000_000,
-    ribbon_indices: 6_000_000,
+    ribbon_indices: 18_000_000,
 };
-/// The sun's: tubes alone, no ribbons.
+/// The sun's: tubes, and ribbons at the wood's true width, so thin wood
+/// casts as much shadow as it covers.
 pub const SUN: Budget = Budget {
-    vertices: 1_000_000,
+    vertices: 3_000_000,
     tube_indices: 4_000_000,
-    ribbon_indices: 0,
+    ribbon_indices: 9_000_000,
 };
+
+/// How a view draws wood under `RIBBON` pixels in radius: at its true width
+/// (the shader's 2), which the multisampled rasteriser covers by its share.
+/// Mode 1, a pixel-wide ribbon with its share as alpha-to-coverage, read pale
+/// beside today's crown (fn-208 step 5) and waits on the host's decision.
+#[derive(Debug, Clone, Copy)]
+enum Ribbons {
+    TrueWidth = 2,
+}
 
 /// What one view's passes wrote, read back from the device.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -173,7 +183,13 @@ impl CurveGpu {
         viewport: (u32, u32),
         light: &crate::shadow::Light,
     ) {
-        self.pass(gpu, encoder, &self.camera, &viewer(camera, viewport), true);
+        self.pass(
+            gpu,
+            encoder,
+            &self.camera,
+            &viewer(camera, viewport),
+            Ribbons::TrueWidth,
+        );
         let d = light.direction;
         let sun = Viewer {
             eye: Vec3::ZERO,
@@ -183,7 +199,7 @@ impl CurveGpu {
             orthographic: true,
             planes: Some(wide(crate::select::frame::planes(&light.view_projection))),
         };
-        self.pass(gpu, encoder, &self.sun, &sun, false);
+        self.pass(gpu, encoder, &self.sun, &sun, Ribbons::TrueWidth);
     }
 
     fn pass(
@@ -192,7 +208,7 @@ impl CurveGpu {
         encoder: &mut wgpu::CommandEncoder,
         t: &Target,
         view: &Viewer,
-        ribbons: bool,
+        ribbons: Ribbons,
     ) {
         let groups = self.clusters.div_ceil(256).max(1);
         let maximum = gpu.device.limits().max_compute_workgroups_per_dimension;
@@ -215,7 +231,7 @@ impl CurveGpu {
         }
     }
 
-    fn config(&self, t: &Target, v: &Viewer, ribbons: bool, row: u32, blocks: u32) -> [u32; 48] {
+    fn config(&self, t: &Target, v: &Viewer, ribbons: Ribbons, row: u32, blocks: u32) -> [u32; 48] {
         let f = |x: f64| (x as f32).to_bits();
         let mut c = [0u32; 48];
         c[..4].copy_from_slice(&[f(v.eye.x), f(v.eye.y), f(v.eye.z), f(v.near)]);
@@ -237,7 +253,7 @@ impl CurveGpu {
         ]);
         let b = t.budget;
         c[40..44].copy_from_slice(&[b.vertices, b.tube_indices, b.ribbon_indices, row]);
-        c[44..48].copy_from_slice(&[u32::from(ribbons), blocks, f(RIBBON), 0]);
+        c[44..48].copy_from_slice(&[ribbons as u32, blocks, f(RIBBON), 0]);
         c
     }
 }

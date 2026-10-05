@@ -196,8 +196,7 @@ impl Curve {
     /// A ribbon ring's three vertices, across the wood as the eye sees it:
     /// its two silhouette edges and its middle, each with the normal the
     /// tube has there and the bark's angle round it, so a ribbon shades as
-    /// the half of the tube facing the eye does. As wide as the wood or,
-    /// under a pixel, a pixel wide with the wood's true share as coverage.
+    /// the half of the tube facing the eye does, as wide as the wood.
     fn across(&self, p: &CurvePoint, viewer: &Viewer, out: &mut Tessellation) {
         let view = viewer.towards(p.centre);
         let t = tangent(p);
@@ -213,8 +212,11 @@ impl Curve {
         } else {
             p.normal
         };
-        let half = p.radius.max(0.5 / viewer.pixels_at(p.centre));
-        let coverage = p.radius / half;
+        // At the wood's true width (fn-208 step 5: a pixel-wide ribbon with
+        // its share as alpha-to-coverage read pale beside today's crown; the
+        // multisampled rasteriser's own coverage of the true width does not).
+        let half = p.radius;
+        let coverage = 1.0;
         for (offset, normal) in [(-1.0, -side), (0.0, facing), (1.0, side)] {
             let angle = normal.dot(p.binormal).atan2_fixed(normal.dot(p.normal));
             let at = p.centre + side * (half * offset);

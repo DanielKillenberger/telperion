@@ -137,12 +137,13 @@ impl CurveDraw {
         }
     }
 
-    /// The tubes into the sun's map.
+    /// The tubes and ribbons into the sun's map.
     pub(crate) fn draw_shadow(&self, pass: &mut wgpu::RenderPass<'_>, curve: &CurveGpu) {
         let t = &curve.sun;
         pass.set_pipeline(&self.shadow);
         pass.set_vertex_buffer(0, t.vertices.slice(..));
         pass.set_index_buffer(t.indices.slice(..), wgpu::IndexFormat::Uint32);
         pass.draw_indexed_indirect(&t.args, 0);
+        pass.draw_indexed_indirect(&t.args, 20);
     }
 }

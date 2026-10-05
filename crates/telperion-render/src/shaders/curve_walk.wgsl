@@ -323,7 +323,8 @@ fn settle(w: ptr<function, Walk>, after: bool, has_next: bool, write: bool, base
         if (dot(across, across) > 1e-12) { side = normalize(across); }
         var facing = -view - t * dot(-view, t);
         if (dot(facing, facing) > 1e-12) { facing = normalize(facing); } else { facing = p.normal; }
-        let half = max(p.radius, 0.5 / pixels_at(p.centre));
+        var half = max(p.radius, 0.5 / pixels_at(p.centre));
+        if (cfg.ribbons == 2u) { half = p.radius; }
         let coverage = p.radius / half;
         if (write) {
             let normals = array<vec3<f32>, 3>(-side, facing, side);

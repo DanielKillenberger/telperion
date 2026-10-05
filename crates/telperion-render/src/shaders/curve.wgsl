@@ -21,7 +21,7 @@ struct Config {
     tube_budget: u32,
     ribbon_budget: u32,
     row: u32,              // per-cluster workgroups a dispatch row
-    ribbons: u32,          // 0 draws no ribbon (the sun's map)
+    ribbons: u32,          // 1 coverage ribbons (the camera), 2 at true width (the sun)
     blocks: u32,           // scan blocks of 256 clusters
     ribbon: f32,           // below this radius in pixels a ring is a ribbon's
     pad1: u32,
