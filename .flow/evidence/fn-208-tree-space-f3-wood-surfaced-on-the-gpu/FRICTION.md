@@ -44,3 +44,10 @@
 - **Would remove it:**
   - The quota is local (see the entry above).
   - `supports_samples` should check what the device was given, not the adapter; a small fix to `device.rs`.
+
+## 2026-10-05, the `supports_samples` fix had no red test
+
+- **Doing:** fixing `Gpu::supports_samples` (host decision 12).
+- **Slowed by:** the defect lived inside a method that needs a device, so nothing could test it before the fix. The test came with the extracted function (`sample_count_granted`), so it was never shown red against the old code.
+- **Cost:** none in time; one red-first proof missing.
+- **Would remove it:** extracting the decision from the device first, then writing the test red against the old rule, then fixing it.

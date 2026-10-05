@@ -54,6 +54,21 @@ Order (host, 2026-10-05):
    - `Gpu::supports_samples` claiming 8 is fixed with a test.
    - Stop after (iii) with a report and the filtered-edge stills.
 
+### Host decisions 13 to 15 (2026-10-05, after STEP-11.md and STEP3.md)
+
+13. **The shading rate is dropped.**
+   - `one-cell-trial.patch` stays as evidence.
+   - The bark's edges were already box-filtered.
+   - The remaining per-pixel cost is the bark's quadrature over furrows narrower than a pixel. Analytic lighting of a furrow's V is its own spec, a candidate after F3 (RESULT.md, open items).
+14. **The error is split between the polygon and the sag.** Half of the error in pixels goes to a ring's polygon (`sides = ceil(π / acos(1 − (e/2)/ρ))`, rounded up to 3·2^k). The other half goes to the sag between rings (cluster ring levels and Hermite pieces), so the two together stand within `e`.
+15. **`supports_samples`** reads the device's granted format features: accepted.
+
+Then (iv), the GPU passes:
+- the cluster pass with the frustum and projected size, the prefix, tessellation into the fixed budgets, the indirect draw, and shadows;
+- step 5's ribbons and coverage ribbons, bringing the hero view to the design's 0.02 to 0.2M triangles (measured).
+
+Tests: the GPU against the CPU reference at the same view and error; R3 stills; R4 frame times and wood GPU memory.
+
 ## Requirements
 
 - **R1:** The curve data the generator hands over, defined and documented in `docs/pipeline.md`; today's trees produce it too (the renderer has one wood path).
