@@ -160,3 +160,37 @@ fn a_retained_pipe_thickens_its_bearer_by_degree() {
         last = now;
     }
 }
+
+/// Host review: the leaf term's mean is one population, the tree as grown,
+/// at every retained share, so the kept wood's girth meets the same value
+/// as the retained share runs to 0.
+#[test]
+fn the_leaf_mean_is_the_grown_trees_at_every_retained_share() {
+    use crate::shed::Shed;
+    let mut species = Species {
+        states: vec![state(1.0)],
+    };
+    let grown = tree();
+    let shed = Shed {
+        axes: vec![grown.axes[0].clone(), grown.axes[1].clone()],
+        index: vec![0, 1, usize::MAX],
+        fade: vec![1.0; 3],
+    };
+    let radius = |retained: f64, species: &mut Species| {
+        species.states[0].retained = retained;
+        let g = attachments(&grown.axes, species, grown.age);
+        let girth = disused(&g, &shed, species);
+        let mut kept = Structure {
+            age: grown.age,
+            pas: 1,
+            axes: shed.axes.clone(),
+        };
+        thicken(&mut kept, species, &girth);
+        kept.axes[1].phytomers[0].radius
+    };
+    let (at_zero, near_zero) = (radius(0.0, &mut species), radius(1e-9, &mut species));
+    assert!(
+        (at_zero - near_zero).abs() < 1e-9,
+        "{at_zero} against {near_zero}"
+    );
+}

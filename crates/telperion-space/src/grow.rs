@@ -148,11 +148,13 @@ fn run(
         grower.draws[woken.axis].birth[1] *= kept;
     }
     assign(&mut grower.axes, &grower.draws);
-    // What each shed branch had laid down, where any PA keeps it.
+    // The tree as grown, where any PA keeps shed pipes or thickens by its
+    // leaves: what each shed branch had laid down, and the one population
+    // the leaf term's mean is taken over at any retained share.
     let grown = species
         .states
         .iter()
-        .any(|s| s.retained > 0.0)
+        .any(|s| s.retained > 0.0 || s.leaf_girth > 0.0)
         .then(|| attachments(&grower.axes, species, request.age));
     let shed = shed(grower.axes, species, request.age);
     let girth = grown.map_or_else(Girth::default, |g| disused(&g, &shed, species));

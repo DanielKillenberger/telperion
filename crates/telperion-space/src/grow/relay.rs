@@ -41,6 +41,12 @@ impl Grower<'_> {
             draws.push(self.draws[i].clone());
             from.push(i);
         }
+        // The apexes living now, as the grown tree marks its own at the end.
+        for apex in &self.live {
+            if index[apex.axis] != usize::MAX {
+                draws[index[apex.axis]].alive = true;
+            }
+        }
         assign(&mut axes, &draws);
         let shed = shed(axes, self.species, cycle);
         let from: Vec<usize> = (0..from.len())
