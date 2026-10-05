@@ -57,3 +57,11 @@
 - **Doing:** measuring the GPU passes' frame cost.
 - **Slowed by:** the vegetation pass's GPU timer does not cover the new compute passes, so their cost showed only in wall time. Bisecting it took environment switches in a scratch build: about 20 minutes and four runs.
 - **Would remove it:** a fourth timestamp pair around the curve's compute passes in `timing.rs`.
+  - **Closed** (host decision 18): `timing.rs` writes a fourth pair around the surfacing pass, and the record carries `surfacing_p50_ms` and `surfacing_p95_ms`.
+
+## 2026-10-05, decision 20: one wood path reached 33 files
+
+- **Doing:** retiring the mesh wood upload from the renderer.
+- **Slowed by:** the mesh wood was the contract of every hand-built fixture. Tests built a `SurfaceMesh` by hand: the fit tests, the shoot ramp, the caster tests and the calibration patch. So did the generator's resident expansion and its tests. Each needed rewriting onto a curve, and the calibration's flat patch cannot be one.
+- **Cost:** about 40 minutes of edits before the first GPU run.
+- **Would remove it:** fixtures that build through `Curve::of_runs` (added here) rather than through an output layout, so the next change of layout touches one constructor.

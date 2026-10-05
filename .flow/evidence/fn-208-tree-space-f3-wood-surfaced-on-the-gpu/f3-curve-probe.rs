@@ -1,9 +1,11 @@
-//! Scratch (fn-208 R3/R4, not committed): an engine species' wood through
-//! today's mesh path or the curve path, at the hero view, the limb close-up
-//! and a 5 cm twig: stills (bare and whole), the vegetation pass's GPU time,
-//! the frame's wall time (the curve's compute passes included), triangles
-//! and the wood's bytes on the device.
-//!   f3_curve <beech|spruce|oak|palm> <mesh|curve> <out dir> [seed]
+//! Scratch (fn-208 R3/R4, copied into examples/ to run, not committed): an
+//! engine species' wood through the renderer's one wood path, the curve, at
+//! the hero view, the limb close-up, 5 cm off a twig and 5 cm behind a twig
+//! looking along it: stills (bare and whole), the vegetation and surfacing
+//! passes' GPU time, the frame's wall time, triangles, the demand a pixel at
+//! the finest scale and the wood's bytes on the device. Today's mesh path is
+//! gone from the renderer (host decision 20); its numbers are STEP4.md's.
+//!   f3_curve <beech|spruce|oak|palm> curve <out dir> [seed]
 #[path = "space/tree.rs"]
 mod tree;
 use std::time::Instant;
@@ -11,7 +13,7 @@ use telperion_core::{
     math::Vec3, mesh::TreeMesh, params, pipeline::executor, presets::Preset, tree::NodeKind,
 };
 use telperion_render::{
-    hero_pose, measure, render, write_png, Camera, Frame, Gpu, Level, Region, Renderer, SceneRow,
+    hero_pose, measure, render, write_png, Camera, Frame, Gpu, Level, Renderer, SceneRow,
     View, GROUND_REACH, STILL_FORMAT,
 };
 use telperion_space::{Light, Request};
@@ -40,41 +42,26 @@ fn main() {
     let x = executor::expand(tree::convert(&s, trunk), &family).unwrap();
     let t = x.tree();
     let top = t.nodes.iter().map(|n| n.position.y).fold(0.0, f64::max);
-    let twig = t
+    let outermost = |n: &&telperion_core::tree::Node| {
+        n.kind == NodeKind::Twig && n.parent.is_some() && (n.position.y - 0.5 * top).abs() < 1.0
+    };
+    let chosen = t
         .nodes
         .iter()
-        .filter(|n| n.kind == NodeKind::Twig && (n.position.y - 0.5 * top).abs() < 1.0)
+        .filter(outermost)
         .max_by(|p, q| p.position.x.hypot(p.position.z).total_cmp(&q.position.x.hypot(q.position.z)))
         .or_else(|| t.nodes.last())
-        .map(|n| (n.position, n.radius))
         .unwrap();
-    let (twig, twig_radius) = twig;
-    let mut mesh: TreeMesh = x.mesh().unwrap();
-    let curve = x.curve().unwrap();
+    let (twig, twig_radius) = (chosen.position, chosen.radius);
+    // The chosen twig's base and its direction, for the shot along it.
+    let base = chosen.parent.map_or(twig, |p| t.nodes[p as usize].position);
+    let along = (twig - base) * (1.0 / (twig - base).length().max(1e-9));
+    assert_eq!(path, "curve", "the renderer has one wood path");
+    let mesh: TreeMesh = x.mesh().unwrap();
     drop(x);
-    let wood_bytes = {
-        let w = &mesh.wood;
-        let vertices = (w.positions.len() / 3) as u64;
-        [w.positions.len() as u64 * 4, w.normals.len() as u64 * 4, w.coords.len() as u64 * 4,
-            w.indices.len() as u64 * 4, vertices * 4]
-            .iter()
-            .map(|&b| Region::capacity_for(b))
-            .sum::<u64>()
-    };
-    let mesh_triangles = mesh.wood_triangles();
-    if path == "curve" {
-        // The wood comes from the curve: the mesh brings only leaves and bounds.
-        mesh.wood = telperion_core::surface::SurfaceMesh {
-            bounds: mesh.wood.bounds,
-            ..Default::default()
-        };
-    }
     let gpu = pollster::block_on(Gpu::request(None)).unwrap();
     let mut r = Renderer::new(gpu, STILL_FORMAT);
     r.submit_at(&mesh, Level::Chosen).unwrap();
-    if path == "curve" {
-        r.submit_curve(&curve);
-    }
     r.set_material(family.material);
     r.set_scene(SceneRow { sun_azimuth: 115.0, sun_elevation: 60.0, ..SceneRow::default() });
     let aspect = f64::from(SIZE.0) / f64::from(SIZE.1);
@@ -92,11 +79,29 @@ fn main() {
         ("limb", shot(limb_at, limb_at + toward * 9.0 + Vec3::new(0.0, 0.5, 0.0), 0.05)),
         // 5 cm off the wood's surface.
         ("twig", shot(twig, twig + outward * (twig_radius + 0.05) + Vec3::new(0.0, 0.01, 0.0), 0.005)),
+        // 5 cm behind the twig's base on its own axis, looking along it.
+        ("along", shot(twig + along * 0.1, base - along * 0.05 + Vec3::new(0.0, 0.004, 0.0), 0.002)),
     ];
     let frame = Frame::new(&r, "f3", SIZE);
-    let memory = if path == "curve" { r.curve_bytes().unwrap() } else { wood_bytes };
+
+    let demand_only = std::env::var_os("F3_DEMAND").is_some();
     for (label, camera) in views {
         let mut line = format!("{name} {path} {label}:");
+        if demand_only {
+            r.set_view(View::Bare);
+            render(&mut r, &camera, SIZE.0, SIZE.1).unwrap();
+            let c = r.curve_report().unwrap();
+            let per = c.demand.map(|d| format!("{:.2}", f64::from(d) / f64::from(SIZE.0 * SIZE.1)));
+            let sun = r.curve_sun_report().unwrap();
+            let texels = f64::from(1024u32 * 1024);
+            let sun_per = sun.demand.map(|d| format!("{:.2}", f64::from(d) / texels));
+            println!(
+                "{line} demand a pixel {per:?}, budget {:?}, scale {}; sun demand a texel \
+                 {sun_per:?}, scale {}",
+                c.budget, c.scale, sun.scale
+            );
+            continue;
+        }
         let modes: Vec<(View, &str)> = if std::env::var_os("F3_CLAY").is_some() {
             vec![(View::Clay, "clay")]
         } else {
@@ -119,15 +124,19 @@ fn main() {
             }
             walls.sort_by(f64::total_cmp);
             line += &format!(
-                " {view_name}: vegetation {} ms ({}), frame {:.2} ms;",
-                j["p50_ms"], j["verdict"].as_str().unwrap_or("?"), walls[walls.len() / 2]
+                " {view_name}: vegetation {} ms, surfacing {} ms ({}), frame {:.2} ms;",
+                j["p50_ms"], j["surfacing_p50_ms"], j["verdict"].as_str().unwrap_or("?"),
+                walls[walls.len() / 2]
             );
         }
-        let triangles = match r.curve_report() {
-            Some(c) => format!("{} tube + {} ribbon triangles at scale {} (overrun {})",
-                c.tube_triangles, c.ribbon_triangles, c.scale, c.overrun),
-            None => format!("{mesh_triangles} triangles"),
-        };
-        println!("{line} {triangles}; wood on the device {:.1} MB", memory as f64 / 1e6);
+        let c = r.curve_report().unwrap();
+        let pixels = f64::from(SIZE.0 * SIZE.1);
+        let per = c.demand.map(|d| format!("{:.2}", f64::from(d) / pixels));
+        let memory = r.curve_bytes().unwrap();
+        println!(
+            "{line} {} tube + {} ribbon triangles at scale {} (overrun {}); demand a pixel \
+             (rings, vertices, tube, ribbon indices) {per:?}; wood on the device {:.1} MB",
+            c.tube_triangles, c.ribbon_triangles, c.scale, c.overrun, memory as f64 / 1e6
+        );
     }
 }

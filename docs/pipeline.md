@@ -80,6 +80,18 @@ It is camera-dependent by definition, and reads only the curve.
 
 The sweep's rings drawn from the curve alone are the sweep's own, to the bit, for every values preset, the palm's shaped cells included: that is what shows the curve carries the whole wood.
 
+### The renderer's one wood path
+
+The curve is the renderer's only wood (host decision 20). `TreeMesh` carries it beside the reference build's `SurfaceMesh`, `Renderer::submit` uploads it, and nothing else of the wood reaches the device; the CPU mesh stays for tests and for consumers without a GPU. Each frame the renderer surfaces it twice, for the camera and for the sun's map, in one compute pass that the timer's fourth pair stands around (`surfacing_p50_ms`):
+
+1. `measure` counts each cluster at the four error scales, and `choose` takes the finest that fits the view's budget.
+2. `count` and a three-pass scan give every cluster its offsets.
+3. `rings` walks each cluster into ring records: a ring's point, sides and form, and where its vertices and indices go.
+4. `emit` writes every ring's vertices and indices, one thread a ring, by an indirect dispatch.
+5. `draws` writes the two indirect draws, tubes and ribbons.
+
+A view's budget is its pixels times a bound a pixel on rings, vertices, tube indices and ribbon indices (host decision 19, `curve/target.rs`). A view past its budget is drawn at a coarser scale and reports it. Points, records, vertices and indices are each bound in two slices of at most WebGPU's default 128 MB, so the same passes bind in a browser (host decision 21).
+
 ## Why not a resolver
 
 fn-152's review (`.flow/evidence/fn-152-one-parameter-table-the-generator-flows/ASTRA-REVIEW.md`) rejected one `resolve(&Family)` for every derived value: values live at the family, the grown tree, a branch and a surface sample, and requests skip outputs nobody reads. Typed inputs at the family's lifetime and ordinary functions below it keep each derivation where its inputs exist, and the executor interface is the one door the exception uses.
