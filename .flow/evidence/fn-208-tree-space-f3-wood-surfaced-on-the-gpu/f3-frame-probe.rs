@@ -51,7 +51,9 @@ fn main() {
         .max_by(|p, q| p.position.x.hypot(p.position.z).total_cmp(&q.position.x.hypot(q.position.z)))
         .map(|n| (n.position, n.radius))
         .unwrap();
-    let mesh: TreeMesh = x.mesh().unwrap();
+    let mut mesh: TreeMesh = x.mesh().unwrap();
+    // Step 2 times wood alone: the leaves go, so the clay view draws wood only.
+    mesh.foliage.instances.leaves.clear();
     let aspect = f64::from(SIZE.0) / f64::from(SIZE.1);
     let hero = hero_pose(mesh.bounds, aspect, GROUND_REACH);
     let toward = Vec3::new(hero.position.x, 0.0, hero.position.z);
@@ -85,14 +87,22 @@ fn main() {
             renderer.submit_at(&mesh, Level::Chosen).unwrap();
             renderer.set_material(family.material);
             renderer.set_scene(SceneRow { sun_azimuth: 115.0, sun_elevation: 60.0, ..SceneRow::default() });
-            let frame = Frame::new(&renderer, "f3", SIZE);
-            gpu_state = Some((renderer, frame));
+            gpu_state = Some(renderer);
         }
-        let (renderer, frame) = gpu_state.as_mut().unwrap();
-        for (view, label) in [(View::Bare, "bare"), (View::Whole, "whole")] {
-            renderer.set_view(view);
-            let report = measure(renderer, &camera, SIZE, frame.target()).unwrap();
-            println!("{source} {name} {seed} {v} {label}: {}", report.to_json());
+        let renderer = gpu_state.as_mut().unwrap();
+        // Shading scales with pixels and triangles do not: the same view at
+        // four sizes of one aspect, the bark (bare) and flat (clay).
+        for size in [(64u32, 48u32), (480, 360), (960, 720), (1920, 1440)] {
+            let frame = Frame::new(renderer, "f3", size);
+            for (view, label) in [(View::Bare, "bark"), (View::Clay, "flat")] {
+                renderer.set_view(view);
+                let report = measure(renderer, &camera, size, frame.target()).unwrap();
+                let j: serde_json::Value = serde_json::from_str(&report.to_json()).unwrap();
+                println!(
+                    "{source} {name} {seed} {v} {}x{} {label}: p50 {} ms p95 {} ms verdict {}",
+                    size.0, size.1, j["p50_ms"], j["p95_ms"], j["verdict"]
+                );
+            }
         }
     }
 }
