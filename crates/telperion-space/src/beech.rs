@@ -96,6 +96,7 @@ pub fn beech() -> Species {
             dominance: 0.0,
             roll: 0.0,
             sag: 0.0,
+            secondary: 1.0,
         },
         ..state(
             9,
@@ -143,6 +144,7 @@ pub fn beech() -> Species {
             dominance: 0.0,
             roll: 1.2,
             sag: 0.0,
+            secondary: 1.0,
         },
         ..state(
             lifespan,
@@ -206,6 +208,7 @@ pub fn beech() -> Species {
             dominance: 0.0,
             roll: 1.2,
             sag: 0.0,
+            secondary: 1.0,
         },
         ..state(
             10,
@@ -235,6 +238,7 @@ pub fn beech() -> Species {
             dominance: 0.0,
             roll: 0.0,
             sag: 0.0,
+            secondary: 1.0,
         },
         ..state(5, None, vec![zone(1, 1, &[]), zone(2, 3, &[(SHORT, 0.6)])])
     };
@@ -256,6 +260,7 @@ pub fn beech() -> Species {
             dominance: 0.0,
             roll: 0.0,
             sag: 0.0,
+            secondary: 1.0,
         },
         ..state(3, None, vec![zone(3, 5, &[])])
     };

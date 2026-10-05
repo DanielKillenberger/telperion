@@ -4,6 +4,9 @@
 //! carries thicker beside it). Each phytomer adds its PA's pipe, scaled by
 //! its presence and ripened over its PA's `ripening` years, so a branch
 //! growing in thickens what bears it by degree and a young tip stays fine.
+//! Secondary growth, a share, weighs that radius against the one the
+//! phytomer was established with (`Form::secondary`): the load is carried
+//! on as the pipe model's sections whatever the share.
 use crate::species::Species;
 use crate::structure::{Origin, Structure};
 
@@ -21,12 +24,15 @@ pub(crate) fn thicken(structure: &mut Structure, species: &Species) {
     for i in (0..axes.len()).rev() {
         let form = species.states[axes[i].pa].form;
         let e = form.exponent;
+        let s = form.secondary;
         let mut section = at_tip[i];
         for (k, phytomer) in axes[i].phytomers.iter_mut().enumerate().rev() {
             let years = f64::from(age.saturating_sub(phytomer.cycle)) + 1.0;
             let own = form.pipe * phytomer.scale * ripe(years, form.ripening);
             section += own.powf(e) + at_node[i][k];
-            phytomer.radius = section.powf(1.0 / e);
+            // Laid down at the apex, the phytomer carried nothing but itself.
+            let established = form.pipe * phytomer.scale * ripe(1.0, form.ripening);
+            phytomer.radius = s * section.powf(1.0 / e) + (1.0 - s) * established;
         }
         let radius = section.powf(1.0 / e);
         let carried = |parent: usize| radius.powf(species.states[axes[parent].pa].form.exponent);

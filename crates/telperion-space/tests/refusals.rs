@@ -46,7 +46,7 @@ const REQUEST: Request = Request {
 #[test]
 fn every_input_the_engine_cannot_draw_is_refused_by_name() {
     type Edit = fn(&mut Species);
-    let cases: [(Edit, &str); 37] = [
+    let cases: [(Edit, &str); 39] = [
         (|s| s.states.clear(), "states"),
         (|s| s.states[0].lifespan = 0, "states[0].lifespan"),
         (|s| s.states[1].next = Some(0), "states[1].next"),
@@ -126,6 +126,14 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
         (|s| s.states[0].erection = -1.0, "states[0].erection"),
         (|s| s.states[1].form.sag = -0.1, "states[1].form.sag"),
         (|s| s.states[0].form.sag = f64::NAN, "states[0].form.sag"),
+        (
+            |s| s.states[0].form.secondary = -0.1,
+            "states[0].form.secondary",
+        ),
+        (
+            |s| s.states[1].form.secondary = f64::NAN,
+            "states[1].form.secondary",
+        ),
     ];
     for (edit, input) in cases {
         let mut s = species();
