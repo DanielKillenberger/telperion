@@ -43,6 +43,17 @@ Order (host, 2026-10-05):
 - (iii) step 3, the CPU reference tessellator with the silhouette test red first;
 - (iv) the GPU passes.
 
+### Host decisions 10 to 12 (2026-10-05, after STEP-I.md)
+
+10. **The depth prepass runs everywhere,** with no per-view switch. The spruce's +0.6 ms at the hero view is accepted: the tessellator shrinks the geometry the prepass draws twice.
+11. **Shading detail through analytic edge coverage.**
+   - Every hard step in the bark shader (the plate walls and chip edges in `bark_plate_profile`, and any other) becomes a filtered step. Its width is its screen-space footprint, so an edge covers each pixel by its true fraction.
+   - Then retry one shading cell where the narrowest feature spans at least 4 px.
+   - **Bar:** the close-up trunk sheet shows no hairlines (RMSE against full detail under 0.3%, and viewed). If the filtered edges alone visibly change the standard views, that is reported and judged on stills.
+12. **Then (ii), (iii) and (iv):** the 32-byte point; the CPU reference tessellator with the silhouette test red first; the GPU passes.
+   - `Gpu::supports_samples` claiming 8 is fixed with a test.
+   - Stop after (iii) with a report and the filtered-edge stills.
+
 ## Requirements
 
 - **R1:** The curve data the generator hands over, defined and documented in `docs/pipeline.md`; today's trees produce it too (the renderer has one wood path).
