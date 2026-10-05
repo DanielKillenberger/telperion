@@ -769,11 +769,13 @@ Everything else is round 8's: the colours, the fine twigs, ψ 1.5 and the light 
 
 | Seed | Height | Width | Leaves |
 |--:|--:|--:|--:|
-| 1 | 19.9 m | 27.8 × 36.7 m | 1.92M |
-| 7 | 19.1 m | 26.6 × 27.5 m | 1.90M |
-| 2 | 19.5 m | 30.7 × 32.7 m | 2.62M |
-| 3 | 19.4 m | 32.6 × 25.0 m | 2.11M |
-| 4 | 19.5 m | 27.0 × 26.8 m | 1.26M |
+| 1 | 19.7 m | 27.8 × 37.0 m | 1.92M |
+| 7 | 18.8 m | 27.0 × 29.1 m | 1.97M |
+| 2 | 19.4 m | 31.0 × 31.7 m | 2.60M |
+| 3 | 20.0 m | 32.5 × 24.0 m | 2.07M |
+| 4 | 19.4 m | 26.8 × 26.5 m | 1.27M |
+
+The sheet and this table were rendered again on the final engine, after Codex review 1's fix: the fork, at bend length 0, now hands its last turn on to the leader. I viewed it again: the same reading, with differences only within a seed.
 
 ### Reading
 
