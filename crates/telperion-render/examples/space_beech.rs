@@ -14,5 +14,11 @@ mod tree;
 const ROWS: &str = r#"{"canopy": {"shortShootSpacing": 0, "shootRadius": 0.018, "limbClumping": 0}, "skeleton": {"twigs": {"twig": {"internodeLength": 0.006}}}}"#;
 
 fn main() -> Result<(), String> {
-    still::run("beech", telperion_space::beech, "european-beech", ROWS)
+    still::run(
+        "beech",
+        telperion_space::beech,
+        &tree::BEECH_TRUNK,
+        "european-beech",
+        ROWS,
+    )
 }

@@ -132,7 +132,7 @@
     "impl:fn-207-tree-space-wander-bends-over-a-length.1": 0
   },
   "spec_path": ".flow/specs/fn-207-tree-space-wander-bends-over-a-length.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space: wander bends over a length",
   "tracker": {
     "baseHashFlow": null,
@@ -145,5 +145,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T09:30:17.235028Z"
+  "updated_at": "2026-10-05T11:22:26.898436Z"
 }

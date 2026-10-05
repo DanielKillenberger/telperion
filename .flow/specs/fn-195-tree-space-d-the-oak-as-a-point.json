@@ -12,12 +12,60 @@
     "fn-207-tree-space-wander-bends-over-a-length"
   ],
   "id": "fn-195-tree-space-d-the-oak-as-a-point",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-195-tree-space-d-the-oak-as-a-point.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "e0ab8979af613e7c51bc470478fd5b7b1eccf5f54868895d9599cdd3ca418376",
+      "backend": "codex",
+      "base_sha": "2270b95538c959ddafeea5f4ef0e4c8f7be45c8b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7ed1d57ddbc172fba9ecc964acb6d131ba64be61",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 270668,
+      "output_sha256": "e0bfbece0644708bbfca05fc076461cd03a604cad096f2f55f17358cc467b871",
+      "reservation_id": "c55b4a0534484d888caea228c3ec3623",
+      "round_consumed": true,
+      "scope": "impl:fn-195-tree-space-d-the-oak-as-a-point.1",
+      "superseded_by": null,
+      "task": "fn-195-tree-space-d-the-oak-as-a-point.1",
+      "timestamp": "2026-10-05T10:48:54.354247Z",
+      "tool_calls": 37,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-195-tree-space-d-the-oak-as-a-point.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-195-tree-space-d-the-oak-as-a-point.1": 0
+  },
   "spec_path": ".flow/specs/fn-195-tree-space-d-the-oak-as-a-point.md",
   "status": "open",
   "title": "Tree space D: the oak as a point",
@@ -32,5 +80,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T08:55:59.942348Z"
+  "updated_at": "2026-10-05T10:48:54.362661Z"
 }

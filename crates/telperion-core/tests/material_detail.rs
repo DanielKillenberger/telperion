@@ -231,7 +231,8 @@ fn every_shipped_young_wood_row_crosses_the_wire_the_page_sends_unchanged() {
             "{id}"
         );
     }
-    // Only the two species whose tables state young wood have any.
+    // Only the species whose tables state young wood have any: the oak's
+    // since its round 4 (fn-195).
     let young: Vec<_> = params::CATALOGUE
         .iter()
         .chain(params::IN_WORK)
@@ -245,7 +246,7 @@ fn every_shipped_young_wood_row_crosses_the_wire_the_page_sends_unchanged() {
         })
         .map(|entry| entry.1)
         .collect();
-    assert_eq!(young, ["silver-birch", "european-beech"]);
+    assert_eq!(young, ["oregon-white-oak", "silver-birch", "european-beech"]);
 }
 
 /// The canopy rows cross the page's wire as the native still reads them, so

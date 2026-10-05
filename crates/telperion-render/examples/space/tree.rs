@@ -82,7 +82,28 @@ fn joint(
         .unwrap_or(node)
 }
 
-pub fn convert(structure: &Structure) -> Tree {
+/// Each species' trunk-level physiological ages, the trunk of its chain:
+/// only an axis of one of these, carried on from the trunk, is stem
+/// (fn-195 round 6, host decision 31). The oak's young stem, fork and
+/// leader (`oak.rs`); the beech's seedling stem, leader and fork
+/// (`beech.rs`); the spruce's seedling, sapling, trunk and crown leader
+/// (`spruce.rs`); the palm's one stem (`palm.rs`).
+#[allow(dead_code)] // each still example reads its own species's
+pub const OAK_TRUNK: [usize; 3] = [0, 1, 2];
+#[allow(dead_code)] // each still example reads its own species's
+pub const BEECH_TRUNK: [usize; 3] = [0, 1, 2];
+#[allow(dead_code)] // each still example reads its own species's
+pub const SPRUCE_TRUNK: [usize; 4] = [0, 1, 2, 3];
+#[allow(dead_code)] // each still example reads its own species's
+pub const PALM_TRUNK: [usize; 1] = [0];
+
+/// The pipeline tree of `structure`. An axis is stem where it carries the
+/// trunk on at one of the species' `trunk` ages: a leader that turns into
+/// a limb stops being stem there, and a limb's relays never are, so the
+/// canopy measures its slender wood against the trunk, not a fork of
+/// limbs deep in the crown. Two trunk-level axes leaving one node, a
+/// codominant fork of the trunk, are both stem.
+pub fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
     let mut nodes = vec![Node::root()];
     // The node each axis ends on, for what continues it.
     let mut ends: Vec<Option<u32>> = vec![None; structure.axes.len()];
@@ -128,6 +149,7 @@ pub fn convert(structure: &Structure) -> Tree {
         let Some((mut parent, lateral, stem)) = start else {
             continue;
         };
+        let stem = stem && trunk.contains(&axis.pa);
         let run = if lateral || parent == 0 {
             nodes.len() as u32
         } else {

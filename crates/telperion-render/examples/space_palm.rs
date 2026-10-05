@@ -11,5 +11,11 @@ mod still;
 mod tree;
 
 fn main() -> Result<(), String> {
-    still::run("palm", telperion_space::palm, "date-palm", "{}")
+    still::run(
+        "palm",
+        telperion_space::palm,
+        &tree::PALM_TRUNK,
+        "date-palm",
+        "{}",
+    )
 }
