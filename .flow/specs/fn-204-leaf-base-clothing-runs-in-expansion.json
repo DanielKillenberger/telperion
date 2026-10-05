@@ -116,7 +116,7 @@
     "impl:fn-204-leaf-base-clothing-runs-in-expansion.1": 0
   },
   "spec_path": ".flow/specs/fn-204-leaf-base-clothing-runs-in-expansion.md",
-  "status": "open",
+  "status": "done",
   "title": "Leaf-base clothing runs in expansion",
   "tracker": {
     "baseHashFlow": null,
@@ -129,5 +129,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T04:02:56.477794Z"
+  "updated_at": "2026-10-05T08:22:13.754000Z"
 }

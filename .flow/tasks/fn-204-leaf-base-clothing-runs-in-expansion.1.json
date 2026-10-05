@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-204-leaf-base-clothing-runs-in-expansion",
   "spec_path": ".flow/tasks/fn-204-leaf-base-clothing-runs-in-expansion.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Leaf-base clothing moves to the start of expansion",
   "updated_at": "2026-10-05T03:24:37.086799Z"
 }

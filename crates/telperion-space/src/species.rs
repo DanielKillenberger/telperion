@@ -139,6 +139,13 @@ pub struct Form {
     /// of its length (`sag.rs`). Its tip carries nothing and keeps its
     /// tropism. Neutral 0.
     pub sag: f64,
+    /// Secondary growth: how far the girth follows the load the wood
+    /// carries. The radius is `secondary` times the pipe model's radius
+    /// plus the rest times the radius the phytomer was established with,
+    /// its own pipe as its apex laid it down. Neutral 1, the pipe model;
+    /// at 0 the axis keeps its established width for life, as a palm's
+    /// stem does.
+    pub secondary: f64,
 }
 
 impl Default for Form {
@@ -155,6 +162,7 @@ impl Default for Form {
             dominance: 0.0,
             roll: 0.0,
             sag: 0.0,
+            secondary: 1.0,
         }
     }
 }
@@ -315,8 +323,10 @@ impl Form {
         if !(MIN_EXPONENT..=MAX_EXPONENT).contains(&self.exponent) {
             return refuse(format!("{at}.exponent"), "a pipe exponent lies in 1.5 to 4");
         }
-        if !(0.0..=1.0).contains(&self.dominance) {
-            return refuse(format!("{at}.dominance"), "a share lies in 0 to 1");
+        for (name, value) in [("dominance", self.dominance), ("secondary", self.secondary)] {
+            if !(0.0..=1.0).contains(&value) {
+                return refuse(format!("{at}.{name}"), "a share lies in 0 to 1");
+            }
         }
         if !(0.0..=PI).contains(&self.roll) {
             return refuse(format!("{at}.roll"), "a roll lies in 0 to pi");

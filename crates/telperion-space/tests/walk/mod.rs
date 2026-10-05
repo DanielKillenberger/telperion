@@ -235,7 +235,7 @@ pub fn settings() -> Vec<Setting> {
         // Sag over a range from none to limbs bowed to the ground; the
         // trunk only leans under its crown.
         let sag = [2e-4, 1e-4, 3e-4][pa];
-        let form: [(&str, f64, f64, bool, Set); 13] = [
+        let form: [(&str, f64, f64, bool, Set); 14] = [
             ("abortion_rise", 0.0, 3.0, false, |s, pa, v| {
                 s.states[pa].abortion_rise = v
             }),
@@ -278,6 +278,9 @@ pub fn settings() -> Vec<Setting> {
             }),
             ("form.sag", 0.0, sag, false, |s, pa, v| {
                 s.states[pa].form.sag = v
+            }),
+            ("form.secondary", 0.0, 1.0, false, |s, pa, v| {
+                s.states[pa].form.secondary = v
             }),
         ];
         for (field, low, high, odds, set) in table.into_iter().chain(form) {
@@ -337,6 +340,19 @@ pub fn settings() -> Vec<Setting> {
             trunk.insertion = 0.3;
             trunk.straightening = 1.0;
             trunk.abortion = v;
+        },
+    ));
+    // Girth moves the shape only where wood bends under its load: secondary
+    // growth walked on sagging limbs, from wood that keeps its established
+    // width to the pipe model's (fn-205 R3).
+    all.push(setting(
+        "states[1].form.secondary, sag 1e-4".into(),
+        0.0,
+        1.0,
+        false,
+        |s, v| {
+            s.states[1].form.sag = 1e-4;
+            s.states[1].form.secondary = v;
         },
     ));
     all.extend(sleeping_settings());
