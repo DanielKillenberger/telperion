@@ -95,6 +95,25 @@ Then (iv), the GPU passes:
 
 Tests: the GPU against the CPU reference at the same view and error; R3 stills; R4 frame times and wood GPU memory.
 
+## Host decisions 16 to 21 (2026-10-05, after STEP4.md)
+
+The oak and the beech read as the same trees at every view. The palm's cells shade more coherently than today's facets, and that is accepted.
+
+16. **Coverage ribbons are dropped.** True-width ribbons match today's crown and draw faster. Their leftovers are deleted: the coverage attribute, the alpha-to-coverage pipelines, the shader mode and their inventory entries (RESULT.md, following "question, delete, then optimise").
+17. **Hero triangle counts above the 0.02 to 0.2M estimate are accepted.** The target is frame time and memory; the cost is shading, not triangles. R4 is frame time and GPU memory per view.
+18. **A per-ring compute pass:** one thread a ring, so a close view does not pay the longest cluster walk. The GPU timer covers the compute passes.
+19. **Budgets from the screen:** the output budgets are sized from the viewport, pixels times a bound on triangles a pixel, not fixed constants. Coarsening still reports its scale.
+20. **One wood path, in F3** (the owner's one-pipeline decision).
+   - The curve path is the renderer's only wood path for every tree, today's presets included.
+   - The mesh wood upload is retired from the renderer.
+   - The CPU mesh stays as the pipeline's reference build (`Expansion::mesh`) for tests and consumers without a GPU.
+21. **The browser.**
+   - Curve and output buffers are split to stay within WebGPU's default 128 MB binding.
+   - The Wasm size budget is checked.
+   - One still is taken in the browser where the web harness can draw the curve; where it cannot, what is missing is recorded.
+
+R3 gains a true 5 cm twig shot, aimed along a chosen twig. Then the workspace gate and `npm test`, Codex until SHIP (exact-boundary findings deferred as fn-206 did), and `flowctl done`.
+
 ## 1. R1: the curve data
 
 ### What the generator hands over
