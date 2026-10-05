@@ -116,10 +116,16 @@ fn measures(tree: &Structure) -> String {
         })
         .collect();
     let short = shoots.iter().sum::<f64>() / shoots.len().max(1) as f64;
+    let mut kept = vec![0usize; tree.pas];
+    for axis in &tree.axes {
+        kept[axis.pa] += 1;
+    }
+    let kept: Vec<String> = kept.iter().map(|k| k.to_string()).collect();
     format!(
-        "{} phytomers, {} axes, height {top:.1} m, width {:.1} m, dbh {dbh:.2} m, short shoot {:.1} mm",
+        "{} phytomers, {} axes (per PA {}), height {top:.1} m, width {:.1} m, dbh {dbh:.2} m, short shoot {:.1} mm",
         tree.phytomer_count(),
         tree.axes.len(),
+        kept.join(" "),
         high - low,
         short * 1e3
     )
