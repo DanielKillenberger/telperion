@@ -32,3 +32,7 @@ telperion cc9b0ea305d3f6a9
 ```
 
 Identical for all eight shipped presets, the date palm (`8d7a61d2bdc8c9d2`, 4,398,506 bytes of text) among them. Repeat runs give the same digest.
+
+## After the P2 fix (host, 2026-10-05)
+
+`clothe_leaf_bases` leaves a tree that already ends in exactly the bases its table hangs as it is, so a clothed tree handed back to `expand` is not clothed twice (`a_clothed_tree_is_not_clothed_again`, red first: 1,064 nodes against 552). All eight digests are again identical to the base's.

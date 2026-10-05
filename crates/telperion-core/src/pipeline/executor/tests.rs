@@ -121,3 +121,17 @@ fn a_handed_tree_is_clothed_in_its_leaf_bases() {
     let leaves = built.outputs.leaves.unwrap().instances;
     assert_eq!(x.mesh().unwrap().foliage.instances, leaves, "leaves");
 }
+
+/// A tree that already carries its leaf bases, handed back to the
+/// expansion, is not clothed a second time (fn-204, Codex P2): the date
+/// palm's own skeleton expands to itself.
+#[test]
+fn a_clothed_tree_is_not_clothed_again() {
+    let f = Preset::from_id("date-palm").unwrap().parameters();
+    let built = build(&f, Request::mesh()).unwrap();
+    let clothed = &built.skeleton.tree;
+    let x = expand(clothed.clone(), &f).unwrap();
+    let nodes = x.tree().nodes.len();
+    assert_eq!(nodes, clothed.nodes.len(), "no second set of bases");
+    assert!(x.tree() == clothed, "the tree as it was handed in");
+}
