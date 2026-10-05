@@ -44,6 +44,20 @@ impl Budget {
     }
 }
 
+impl Budget {
+    /// This budget, no larger than what the tree could ask of the view
+    /// (`Demand::at`; host decision 23): a palm holds a palm's.
+    pub fn within(self, finest: [u64; 4]) -> Self {
+        let cap = |b: u32, k: usize| b.min(finest[k].min(u64::from(u32::MAX)) as u32);
+        Self {
+            rings: cap(self.rings, 0),
+            vertices: cap(self.vertices, 1),
+            tube_indices: cap(self.tube_indices, 2),
+            ribbon_indices: cap(self.ribbon_indices, 3),
+        }
+    }
+}
+
 /// What one view's passes wrote, read back from the device.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct CurveReport {

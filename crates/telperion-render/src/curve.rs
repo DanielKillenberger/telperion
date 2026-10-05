@@ -7,7 +7,7 @@
 use crate::{device::Gpu, Camera};
 use telperion_core::{
     math::Vec3,
-    surface::{Curve, Viewer, CLUSTER_WORDS, POINT_WORDS, RIBBON, SECTION_FLOATS},
+    surface::{Curve, Demand, Viewer, CLUSTER_WORDS, POINT_WORDS, RIBBON, SECTION_FLOATS},
 };
 
 mod draw;
@@ -52,6 +52,8 @@ pub(crate) struct CurveGpu {
     clusters: wgpu::Buffer,
     sections: wgpu::Buffer,
     count: u32,
+    /// What the most any view could ask of this tree rests on.
+    demand: Demand,
     shape: [f32; 4],
     lobes: u32,
     pub(crate) camera: Option<Target>,
@@ -112,6 +114,7 @@ impl CurveGpu {
             clusters: filled(gpu, "curve clusters", bytemuck::cast_slice(&clusters)),
             sections: filled(gpu, "curve sections", bytemuck::cast_slice(&sections)),
             count: clusters.len() as u32,
+            demand: curve.demand(),
             shape: [
                 curve.lobe_depth as f32,
                 curve.twist_rate as f32,
@@ -150,16 +153,23 @@ impl CurveGpu {
         // texels: the spruce asks 2.23 rings, 6.71 vertices and 18.94 ribbon
         // indices a texel of the whole map (STEP5.md).
         let texels = u64::from(crate::shadow::RESOLUTION).pow(2);
-        let budget = |p| Budget::for_pixels(p, &gpu.device.limits());
-        if self
-            .camera
-            .as_ref()
-            .is_none_or(|t| t.budget != budget(pixels))
-        {
-            self.camera = Some(Target::new(gpu, "curve camera", budget(pixels), self));
+        // Each view's budget is the lesser of its screen's and the most the
+        // tree could ask of a view that sees none of it nearer than its own
+        // nearest pixels a metre (host decision 23).
+        let camera_view = viewer(camera, viewport);
+        let nearest = [
+            camera_view.pixels_per_metre / camera_view.near.max(1e-6),
+            1.0 / light.texel_size,
+        ];
+        let (demand, limits) = (self.demand, gpu.device.limits());
+        let budget =
+            |p: u64, near: f64| Budget::for_pixels(p, &limits).within(demand.at(near, ERROR));
+        let wanted = [budget(pixels, nearest[0]), budget(texels, nearest[1])];
+        if self.camera.as_ref().is_none_or(|t| t.budget != wanted[0]) {
+            self.camera = Some(Target::new(gpu, "curve camera", wanted[0], self));
         }
-        if self.sun.is_none() {
-            self.sun = Some(Target::new(gpu, "curve sun", budget(texels), self));
+        if self.sun.as_ref().is_none_or(|t| t.budget != wanted[1]) {
+            self.sun = Some(Target::new(gpu, "curve sun", wanted[1], self));
         }
         let d = light.direction;
         let sun = Viewer {
@@ -171,7 +181,7 @@ impl CurveGpu {
             planes: Some(wide(crate::select::frame::planes(&light.view_projection))),
         };
         let views = [
-            (self.camera.as_ref().unwrap(), viewer(camera, viewport)),
+            (self.camera.as_ref().unwrap(), camera_view),
             (self.sun.as_ref().unwrap(), sun),
         ];
         for (t, view) in &views {

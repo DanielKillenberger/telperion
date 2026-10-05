@@ -91,6 +91,25 @@ impl Curve {
         Some(Plan { rings })
     }
 
+    /// What the most any view could ask of this curve rests on, computed
+    /// once a tree (fn-208, host decision 23): see `Demand::at`.
+    pub fn demand(&self) -> Demand {
+        let mut d = Demand::default();
+        for c in &self.clusters {
+            d.clusters += 1;
+            if self.runs[c.run as usize].section.is_some() {
+                d.shaped += u64::from(c.count);
+                continue;
+            }
+            let span = &self.points[c.first as usize..(c.first + c.count) as usize];
+            for w in span.windows(2) {
+                d.stretches += 1;
+                d.root_sag += sag(&w[0], &w[1], self.phase(&w[0], &w[1])).sqrt();
+            }
+        }
+        d
+    }
+
     /// How much more a lobed ring's outline bends than its circle's: a
     /// polygon's sag over `Δθ` is at most `Δθ²/8` of its outline's second
     /// derivative, `R(1 + |d|(n + 1)²)` for `R(1 + d·cos(nθ))`, against the
@@ -202,10 +221,16 @@ pub(super) fn sides(rho: f64, error: f64, bend: f64) -> u32 {
 /// - twisting lobes, `phase` lobe radians a metre of radius apart at its
 ///   ends, stand `R·|d|·(nΔφ)²/8` off their interpolated outline.
 fn pieces(a: &CurvePoint, b: &CurvePoint, viewer: &Viewer, error: f64, phase: f64) -> usize {
+    let pixels = viewer.pixels_at(a.centre).max(viewer.pixels_at(b.centre));
+    let m = (sag(a, b, phase) * pixels / (8.0 * error)).sqrt().ceil();
+    (m as usize).clamp(1, MOST_PIECES)
+}
+
+/// What `pieces` cuts against, in metres: the stretch's sag uncut, times 8.
+fn sag(a: &CurvePoint, b: &CurvePoint, phase: f64) -> f64 {
     let (ta, tb) = (tangent(a), tangent(b));
     let turn = ta.dot(tb).clamp(-1.0, 1.0).acos_fixed();
     let length = b.centre.distance(a.centre);
-    let pixels = viewer.pixels_at(a.centre).max(viewer.pixels_at(b.centre));
     // The control points' second differences, from the chord so that a
     // straight stretch reads zero without cancelling world coordinates.
     let chord = b.centre - a.centre;
@@ -213,9 +238,39 @@ fn pieces(a: &CurvePoint, b: &CurvePoint, viewer: &Viewer, error: f64, phase: f6
         .length()
         .max((chord - (ta + tb * 2.0) * (length / 3.0)).length());
     let radius = a.radius.max(b.radius);
-    let sag = (length * turn).max(6.0 * bent) + radius * phase * phase;
-    let m = (sag * pixels / (8.0 * error)).sqrt().ceil();
-    (m as usize).clamp(1, MOST_PIECES)
+    (length * turn).max(6.0 * bent) + radius * phase * phase
+}
+
+/// The sums a curve's most demanding view is bounded by (`Curve::demand`).
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct Demand {
+    pub clusters: u64,
+    /// Rings of shaped runs, which are never cut.
+    pub shaped: u64,
+    /// Stretches between neighbouring points of round runs, and the sum of
+    /// the roots of their sags.
+    pub stretches: u64,
+    pub root_sag: f64,
+}
+
+impl Demand {
+    /// The most a view could ask that sees none of the curve nearer than
+    /// `pixels` a metre, within `error` pixels: rings, vertices, tube
+    /// indices and ribbon indices. Every point kept, every stretch cut as
+    /// `pieces` would at `pixels` (`ceil(√x) ≤ √x + 1`, so the roots' sum
+    /// bounds them all), every ring a tube of `MOST_SIDES` capped at both
+    /// ends.
+    pub fn at(&self, pixels: f64, error: f64) -> [u64; 4] {
+        let k = (pixels.max(0.0) / (8.0 * 0.5 * error)).sqrt();
+        let cut = (self.root_sag * k).ceil() as u64 + self.stretches;
+        let cut = cut.min(self.stretches * MOST_PIECES as u64);
+        let rings = self.shaped + cut + self.clusters;
+        let sides = u64::from(MOST_SIDES);
+        // A ring writes its polygon, three ribbon vertices and two cap
+        // centres; a strip to the last ring and two cap fans, 12 sides of
+        // tube indices; a ribbon quad, 12.
+        [rings, rings * (sides + 5), rings * 12 * sides, rings * 12]
+    }
 }
 
 pub(super) fn tangent(p: &CurvePoint) -> Vec3 {

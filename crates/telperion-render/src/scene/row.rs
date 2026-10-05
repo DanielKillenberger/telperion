@@ -33,7 +33,6 @@ macro_rules! fields {
             ("groundRed", ground_red, 0.0, 1.0, 0.11, "ground red"),
             ("groundGreen", ground_green, 0.0, 1.0, 0.12, "ground green"),
             ("groundBlue", ground_blue, 0.0, 1.0, 0.07, "ground blue"),
-            ("casterTexels", caster_texels, 0.0, 8.0, 1.0, "casterTexels"),
             ("casterStride", caster_stride, 1.0, 64.0, 4.0, "casterStride"),
             ("shadowFilterTexels", shadow_filter_texels, 0.0, 3.0, 1.0, "shadowFilterTexels"),
             ("shadowNormalOffset", shadow_normal_offset, 0.0, 4.0, 1.0, "shadowNormalOffset"),
@@ -147,7 +146,6 @@ mod tests {
         assert_eq!(SceneRow::parse(&row.to_json()).unwrap(), row);
         let unknown = SceneRow::parse(r#"{"unknown":0}"#).unwrap_err().to_string();
         for name in [
-            "casterTexels",
             "casterStride",
             "shadowFilterTexels",
             "shadowNormalOffset",
@@ -167,7 +165,6 @@ mod tests {
         for (text, expected) in [
             (r#"{"sunElevation":120.0}"#, "sun elevation"),
             (r#"{"groundRed":4.0}"#, "ground red"),
-            (r#"{"casterTexels":8.1}"#, "casterTexels"),
             (r#"{"casterStride":0}"#, "casterStride"),
             (r#"{"shadowFilterTexels":3.1}"#, "shadowFilterTexels"),
             (r#"{"shadowNormalOffset":-0.1}"#, "shadowNormalOffset"),

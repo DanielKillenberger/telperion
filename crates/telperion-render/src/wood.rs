@@ -20,6 +20,9 @@ pub fn smooth_bark(m: &MaterialParams) -> bool {
 /// it is drawn through, with smooth bark's terms and without them.
 pub struct Wood {
     smooth_on: bool,
+    /// A measurement's override: the viewport the wood is surfaced for, in
+    /// place of the frame's, so two frames share one tessellation.
+    pinned: Option<(u32, u32)>,
     curve: Option<crate::curve::CurveGpu>,
     draw: crate::curve::CurveDraw,
 }
@@ -51,6 +54,7 @@ impl Wood {
         let smooth = crate::pass::lit_shader(gpu, "smooth wood", &stages);
         Self {
             smooth_on: false,
+            pinned: None,
             curve: None,
             draw: crate::curve::CurveDraw::new(gpu, layout, shadow, surface, [&shader, &smooth]),
         }
@@ -59,6 +63,13 @@ impl Wood {
     /// Uploads a tree's wood as its curve; no wood leaves nothing drawn.
     pub fn submit(&mut self, gpu: &Gpu, curve: &Curve) {
         self.curve = (!curve.clusters.is_empty()).then(|| crate::curve::CurveGpu::new(gpu, curve));
+    }
+
+    /// Surfaces the wood for `viewport` whatever the frame's size, or for the
+    /// frame again with `None`: a measurement override, never a production
+    /// path.
+    pub fn pin_viewport(&mut self, viewport: Option<(u32, u32)>) {
+        self.pinned = viewport;
     }
 
     /// Which of the two lit pipelines the material draws through.
@@ -76,6 +87,7 @@ impl Wood {
         light: &crate::shadow::Light,
         timestamps: Option<wgpu::ComputePassTimestampWrites<'_>>,
     ) {
+        let viewport = self.pinned.unwrap_or(viewport);
         match &mut self.curve {
             Some(curve) => curve.record(gpu, encoder, camera, viewport, light, timestamps),
             // A timed frame writes its pair whether or not there is wood.

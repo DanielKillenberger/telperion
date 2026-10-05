@@ -199,6 +199,27 @@ fn every_presets_wood_surfaces_at_a_hero_view() {
         };
         let t = curve.tessellate(&viewer, 0.5, None).unwrap();
         let vertices = (t.positions.len() / 3) as u32;
+        // No view asks more than the tree's demand at its nearest pixels a
+        // metre (host decision 23), close in as at the hero distance.
+        let demand = curve.demand();
+        let close = Viewer {
+            eye: middle + (viewer.eye - middle) * 0.1,
+            ..viewer
+        };
+        for v in [viewer, close] {
+            let t = curve.tessellate(&v, 0.5, None).unwrap();
+            let most = demand.at(v.pixels_per_metre / v.near, 0.5);
+            let asked = [
+                t.rings as u64,
+                (t.positions.len() / 3) as u64,
+                t.indices.len() as u64,
+                t.ribbons.len() as u64,
+            ];
+            assert!(
+                asked.iter().zip(most).all(|(&a, m)| a <= m),
+                "{id}: {asked:?} past {most:?}"
+            );
+        }
         assert!(
             t.indices.iter().all(|&i| i < vertices),
             "{id}: an index past the vertices"

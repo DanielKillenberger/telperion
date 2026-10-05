@@ -99,6 +99,10 @@ fn grazing_trunks_agree_with_a_box_reduction_at_half_resolution() {
         renderer.submit(&tree).unwrap();
         renderer.set_material(family.material);
         renderer.set_view(View::Bare);
+        // The wood is surfaced for the full-resolution view at both sizes,
+        // so the shading is compared over the same triangles (host decision
+        // 22): this is a test of the bark under a box reduction.
+        renderer.pin_curve_viewport(Some((1600, 1000)));
         let high = render(&mut renderer, &camera, 1600, 1000).unwrap();
         let low = render(&mut renderer, &camera, 800, 500).unwrap();
         let again = render(&mut renderer, &camera, 800, 500).unwrap();
@@ -120,6 +124,7 @@ fn grazing_trunks_agree_with_a_box_reduction_at_half_resolution() {
             "{preset:?} plain grazing: {:?}",
             masked_agreement(&plain_high, &plain_low, &mask)
         );
+        renderer.pin_curve_viewport(None);
         measurements.push((format!("{preset:?} grazing"), mean, p95, 3.0));
     }
     resolution::record("bark_resolution_grazing", &measurements);

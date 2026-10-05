@@ -211,6 +211,14 @@ impl Renderer {
         })
     }
 
+    /// Surfaces the wood as if every frame were `viewport` in size, so
+    /// frames of different sizes draw the same triangles; `None` ends it. A
+    /// measurement's override (fn-208, host decision 22), not a production
+    /// path: a test of shading under a box reduction holds the geometry.
+    pub fn pin_curve_viewport(&mut self, viewport: Option<(u32, u32)>) {
+        self.wood.pin_viewport(viewport);
+    }
+
     /// What the last frame's passes wrote for the sun's map, read back.
     #[cfg(not(target_arch = "wasm32"))]
     pub fn curve_sun_report(&self) -> Option<CurveReport> {

@@ -10,7 +10,7 @@ use crate::{
 use plan::tangent;
 
 mod plan;
-pub use plan::RIBBON;
+pub use plan::{Demand, RIBBON};
 
 /// Where the wood is seen from: the eye, the unit direction it looks along,
 /// the pixels a metre spans at one metre's depth (half the viewport's height
