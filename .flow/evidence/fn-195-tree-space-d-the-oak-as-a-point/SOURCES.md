@@ -34,5 +34,8 @@ Tags: **sourced** means the passage gives the rule or the number. **Rule sourced
 | Short shoots: 3 to 5 crowded nodes, unbranched | none for the oak | Estimated; as the beech's GreenLab PA 4 |
 | Pipes, exponents, internodes, ripening | none | Estimated from the stills; dbh 0.6 to 1.0 m at 80 years |
 | Bark and leaf colours (preset) | none | Bark matched by render to S3; leaves darkened towards S2's crown (garryana) |
+| Leaf area 18.1 cm² a node, one leaf a node (round 5) | Visakorpi et al. 2020, PLoS ONE 15: e0228157, Table 1: mean original area of 616 *Q. robur* leaves on ten Oxfordshire oaks, five of them 150 to 200 years old [read]; Go Botany, one leaf per node | Sourced |
+| Light values (round 5): φ 1, ψ 1, λ 0.45, upkeep 0.35, balance hazard 2, tolerance 0, retained 0.5, leaf girth 1; site sky 0.5, k 0.5 | fn-197 host decisions 22, 23, 26 and 29; k 0.5 the spherical leaf-angle value (Ross 1981, Campbell & Norman 1998, cited from memory) | Host values from fn-197's renders, not sourced |
+| Dead limbs dropped 5 years after they die (limb `shedding`, E-side) | An arborists' account only; no measured persistence found (fn-197 FRICTION.md) | Estimated |
 | Young wood dark grey-brown (0.08 / 0.066 / 0.05) under 30 mm, blending to the bark by 60 mm (preset) | none | Estimated, host round 2: fine twigs read dark, as in S1 |
 | Stills rows: `shootRadius` 0.06, twig internode 8 mm | none | Estimated; see FRICTION.md for why `shootRadius` rose |

@@ -71,18 +71,24 @@ fn state(lifespan: u32, next: Option<usize>, zones: Vec<Zone>) -> PaState {
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
-        // One leaf a node, about 10 cm long (Woodland Trust) and half as
-        // wide, lobed to about 0.6 of its rectangle: 30 cm2, estimated
-        // (fn-197 step 3; no measured leaf area found).
-        leaf_area: 0.003,
-        shade_hazard: 0.0,
-        shade_size: 0.0,
-        apical_control: 0.5,
-        upkeep: 0.0,
-        balance_hazard: 0.0,
+        // One leaf a node (Go Botany) of 18.1 cm2, the mean original area
+        // of 616 Q. robur leaves on ten Oxfordshire oaks, five of them 150
+        // to 200 years old (Visakorpi et al. 2020, PLoS ONE 15: e0228157,
+        // Table 1).
+        leaf_area: 0.00181,
+        // Light as the oak's own values (fn-195 round 5, on fn-197's
+        // engine; host decision 29): shade raises its shoots' death hazard
+        // and shares its growth by light within each order (Borchert-Honda,
+        // λ 0.45), its carbon balance sheds its starved laterals, its shed
+        // branches leave a share of their pipe, and lit limbs thicken.
+        shade_hazard: 1.0,
+        shade_size: 1.0,
+        apical_control: 0.45,
+        upkeep: 0.35,
+        balance_hazard: 2.0,
         tolerance: 0.0,
-        retained: 0.0,
-        leaf_girth: 0.0,
+        retained: 0.5,
+        leaf_girth: 1.0,
         straightening: 0.0,
         form: Form::default(),
     }

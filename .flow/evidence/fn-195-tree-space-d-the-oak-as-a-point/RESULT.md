@@ -321,3 +321,81 @@ Expected grown phytomers are 14.3M against the 20M budget.
 - bark plates;
 - close-up staging inside broad crowns;
 - the phase F leaf-bearing marking, which seed 4's sparse foliage shows again.
+
+## Round 5: the oak with light as its own values (fn-197's engine; host decision 29), 2026-10-05
+
+**Changes** (`oak.rs`, the shared `state()` every PA starts from; nothing else in the oak changes):
+
+| Value | Round 5 | Source |
+|---|---|---|
+| Leaf area a node | 18.1 cm² (was an estimated 30) | Visakorpi et al. 2020, Table 1; SOURCES.md |
+| φ (shade hazard), ψ (shade size), λ (apical control) | 1, 1, 0.45 | fn-197 host values |
+| Upkeep, balance hazard, tolerance | 0.35, 2, 0 | fn-197 host values |
+| Retained, leaf girth | 0.5, 1 | fn-197; retained tried at 0.4, 0.6 and 0.8 (`raw/round5/explore.png`) |
+| Limbs' dead-branch persistence | 5 years | fn-197 (E-side), estimated |
+
+- **The site's light is the request's,** not the species': the renders take `space_oak --light 0.5,0.5` (k 0.5, standard overcast sky).
+- **At neutral light the oak's girth now carries the retained pipes,** so its 80-year hash differs from round 4's.
+- **`material_detail` fixed:** the expected young-wood list now includes `oregon-white-oak`. Round 4 gave the oak a young-wood row and left the list behind.
+- **`tests/light.rs`'s neutral test** sets each species' light-reading values to 0 before comparing, since the oak now reads light by its own values.
+- **Tests:** `cargo test --profile ci -p telperion-space` is green, and `material_detail` passes.
+
+**Retained, seed 1** (`raw/round5/explore.png`): every step thickens and flares the trunk's base, from 0.4 to 0.8. The crown and the limbs barely change. Retained pipe accumulates down the stem to the base, and the limbs gain little. **0.5 is kept,** the top of the host's range. S3's massive limbs need a heavier limb exponent or a different term; not tried this round.
+
+**Sheets** (`raw/round5/`, ignored, on disk; I viewed every still):
+
+| Sheet | What it holds |
+|---|---|
+| `sheet-bare.png` | S1 ×2, S4, S3; round 4 and round 5 at seeds 1, 7, 2, 3 and 4 |
+| `sheet-whole.png` | S2 robur and garryana, S5; round 4 and round 5 in leaf |
+| `young.png` | 10, 20 and 40 years, seeds 1 and 7, bare and in leaf |
+| `close-ups.png` | Trunk bases, limbs and sprays at five seeds, beside S3, S4 and S5 |
+
+**Measures at 80 years** (`run80.log`, `run-young.log`):
+
+| Seed | Height | Width (x × z) | Leaves | Fine wood | Grown in |
+|--:|--:|--:|--:|--:|--:|
+| 1 | 22.3 m | 26.4 × 22.4 m | 1.51M | 11.2 km | 9.4 s |
+| 7 | 22.5 m | 20.8 × 21.4 m | 1.56M | 11.5 km | 11.5 s |
+| 2 | 21.4 m | 20.5 × 23.8 m | 2.34M | 17.4 km | 25.0 s |
+| 3 | 23.8 m | 21.2 × 19.8 m | 1.95M | 14.4 km | 14.1 s |
+| 4 | 22.0 m | 21.3 × 22.8 m | 0.44M | 8.3 km | 7.9 s |
+
+| Age | Height | Width |
+|--:|--:|--:|
+| 40 | 13.0 m | 9.4 to 10.6 m |
+| 20 | 7.0 m | 6.4 to 7.0 m |
+| 10 | 3.6 m | 2.5 to 4.4 m |
+
+**About the grow times:** the machine was loaded by other sessions, so they are high and noisy. Seed 2 took 25 s.
+
+### Reading against the references
+
+- **Bare, beside S1:**
+  - Seeds 1, 7 and 2 have rounded, closed outlines over a dense web, on a short trunk that divides low into several heavier limbs: nearer S1 than any round before.
+  - Seed 3 is vase-shaped, two main arms in a V under a broad top.
+  - Seed 4 has two leaning stems.
+  - Every trunk is heavier, with a flared base.
+- **In leaf, beside S2:**
+  - Seeds 1, 7 and 2 are rounded, closed domes.
+  - Seed 3 is broad and flat-topped on a long bare trunk, nearer S2 garryana's habit.
+  - Seed 4 is still sparse and lopsided: the phase F leaf-marking item.
+- **The crowns are narrower than fn-197's step 4c** (20 to 26 m against 21 to 31 m) and 1 to 4 m taller. Heavier wood sags less.
+- **Young trees:**
+  - At 10 years, a thin sapling with a spire leader and rods (seed 1), or a spreading bush (seed 7).
+  - At 20, bushy and ascending.
+  - At 40, a dense ovoid.
+  - Little changed from round 4: light only acts where a crown shades itself.
+- **Close-ups:**
+  - The trunk bases are flared cones with the collar band, round 4's known gap. They are not S3's buttressed, furrowed trunk.
+  - The limbs are smooth tubes, heavier than round 4's.
+  - The sprays carry the preset's feathery leaves along the shoots, not S5's lobed rosettes: a leaf-model item, outside this spec.
+
+**Known gaps:**
+
+- S3's massive limbs: retained thickens the base, not the limbs.
+- The collar ring.
+- Bark plates.
+- The 10-year sapling's spire.
+- Seed 4's leaf marking (phase F).
+- The leaf form in close-ups.
