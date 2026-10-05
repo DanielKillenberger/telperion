@@ -1,6 +1,7 @@
 //! The tropism's turn near straight down: a direction swept through the
 //! vertical turns by degree, never flipping from one side to the other.
-use super::*;
+use super::lay::toward_elevation;
+use crate::structure::Vec3;
 
 #[test]
 fn a_direction_swept_through_straight_down_turns_by_degree() {

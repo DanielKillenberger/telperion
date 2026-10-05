@@ -6,6 +6,8 @@
 //! bound is recorded; once the tree has grown, `presence.rs` sizes every
 //! element from those leads, so a setting that crosses a draw grows the
 //! element in from nothing.
+mod sketch;
+mod unit;
 mod wake;
 
 use crate::dormant::{Sleeper, Woken};
@@ -13,12 +15,13 @@ use crate::error::{refuse, Error, Result};
 use crate::geometry::{place, scale};
 use crate::girth::thicken;
 use crate::light::Light;
-use crate::lineage::{self, above, below, Key, ABORTION, CONTINUATION, RELAY, VIABILITY, ZONE};
+use crate::lineage::{above, below, Key, ABORTION, CONTINUATION, RELAY, VIABILITY};
 use crate::presence::{assign, Draws, Windows, SPAN};
 use crate::sag;
 use crate::shed::shed;
-use crate::species::{PaState, Species, MAX_BUDS, MAX_NODES_PER_ZONE};
-use crate::structure::{Axis, Origin, Phytomer, Structure, Vec3};
+use crate::species::{PaState, Species, MAX_BUDS};
+use crate::structure::{Axis, Origin, Structure, Vec3};
+use sketch::Sketch;
 
 /// What to grow: cycles, the seed, the phytomer budget and the site's light.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -40,8 +43,51 @@ struct Apex {
     units: u32,
 }
 
+/// The stages a tree passes through, reported as each ends: per cycle its
+/// growth, its rough layout and the sweep of its light (where light
+/// shades), then once its sizes, shedding and girth, and its final lay.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Stage {
+    Grown,
+    Sketched,
+    Lit,
+    Settled,
+    Laid,
+}
+
 /// Grows, sheds and places the tree.
 pub fn grow(species: &Species, request: Request) -> Result<Structure> {
+    grow_staged(species, request, &mut |_| {})
+}
+
+/// `grow`, reporting each stage as it ends.
+pub fn grow_staged(
+    species: &Species,
+    request: Request,
+    stage: &mut dyn FnMut(Stage),
+) -> Result<Structure> {
+    run(species, request, stage, true)
+}
+
+/// The tree as `grow` grows it, with every phytomer where the rough
+/// layout grown with it put it, before the final lay: what light read as
+/// the tree grew. Without shade it has no layout and is refused.
+pub fn sketch(species: &Species, request: Request) -> Result<Structure> {
+    if !request.light.shades() {
+        return refuse(
+            "light.extinction",
+            "a rough layout is grown only where light shades",
+        );
+    }
+    run(species, request, &mut |_| {}, false)
+}
+
+fn run(
+    species: &Species,
+    request: Request,
+    stage: &mut dyn FnMut(Stage),
+    lay: bool,
+) -> Result<Structure> {
     species.validate()?;
     request.light.validate()?;
     if request.age == 0 {
@@ -69,9 +115,21 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
         sleeping: Vec::new(),
         grown: 0,
         budget: request.budget,
+        sketch: request.light.shades().then(|| Sketch::new(request.light)),
+        leaves: Vec::new(),
     };
+    let mut advanced = Vec::new();
     for cycle in 1..=request.age {
+        advanced.clear();
+        advanced.extend(grower.live.iter().map(|a| a.axis));
         grower.step(cycle)?;
+        stage(Stage::Grown);
+        if grower.sketch.is_some() {
+            grower.sketch(cycle, &advanced)?;
+            stage(Stage::Sketched);
+            grower.shade();
+            stage(Stage::Lit);
+        }
     }
     for apex in &grower.live {
         grower.draws[apex.axis].alive = true;
@@ -93,6 +151,10 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
     // Girth needs no geometry; placing reads it where wood meets the
     // ground.
     thicken(&mut structure, species);
+    stage(Stage::Settled);
+    if !lay {
+        return Ok(structure);
+    }
     place(&mut structure, species, None)?;
     // Sag bends the tree as it stands under the load it carries, and
     // leaves its girth as it was.
@@ -109,6 +171,7 @@ pub fn grow(species: &Species, request: Request) -> Result<Structure> {
     {
         return Err(Error::Collapsed);
     }
+    stage(Stage::Laid);
     Ok(structure)
 }
 
@@ -177,6 +240,9 @@ struct Grower<'a> {
     sleeping: Vec<f64>,
     grown: u32,
     budget: u32,
+    /// The rough layout, where light shades, and the leaves of the cycle.
+    sketch: Option<Sketch>,
+    leaves: Vec<(Vec3, f64)>,
 }
 
 impl Grower<'_> {
@@ -316,89 +382,5 @@ impl Grower<'_> {
             self.sprout(key, pa, cycle, origin, made);
             self.axes.last_mut().unwrap().blend = blend;
         }
-    }
-
-    fn grow_unit(&mut self, apex: Apex, pa: usize, unit: Key, cycle: u32) -> Result<()> {
-        let state = &self.species.states[pa];
-        let mut nodes = std::mem::take(&mut self.node_buds);
-        let mut leads = std::mem::take(&mut self.leads);
-        for (z, zone) in state.zones.iter().enumerate() {
-            let zone_key = unit.child(ZONE + z as u64);
-            lineage::nodes(zone.nodes, zone_key.unit(), MAX_NODES_PER_ZONE, &mut leads);
-            let lateral = &self.laterals[pa][z];
-            // A node decides its internode and the buds it is expected to bear;
-            // a PA its buds cannot carry takes no part.
-            let expected: f64 = lateral
-                .iter()
-                .enumerate()
-                .filter(|&(_, &p)| p > 0.0)
-                .map(|(j, p)| p * self.windows.wood(j, cycle + 1))
-                .sum();
-            // And the sleeping buds it is expected to bear.
-            let mut sleeping = std::mem::take(&mut self.sleeping);
-            let expected = expected + self.windows.sleeping(zone, cycle, &mut sleeping);
-            let node_wood = self.windows.share(state.internode) + f64::from(zone.buds) * expected;
-            nodes.clear();
-            for (i, &node_lead) in leads.iter().enumerate() {
-                let node_key = zone_key.child(i as u64);
-                let mut buds = [None; MAX_BUDS as usize];
-                let mut order = 1.0f64;
-                for (slot, bud) in buds[..zone.buds as usize].iter_mut().enumerate() {
-                    let u = node_key.child(slot as u64).unit();
-                    order = order.min(u);
-                    *bud = lineage::bud(lateral, u);
-                }
-                nodes.push((order, i as u64, node_lead, buds));
-            }
-            // Acrotony: the nodes stand in order of their draws, so the
-            // youngest lateral PA is on top, bare nodes at the base, and a
-            // bud a setting makes or unmakes moves no node.
-            nodes.sort_by(|a, b| b.0.total_cmp(&a.0));
-            for &(_, drawn, node_lead, buds) in &nodes {
-                self.grown += 1;
-                if self.grown > self.budget {
-                    return Err(Error::Budget { limit: self.budget });
-                }
-                let axis = &mut self.axes[apex.axis];
-                let node = axis.phytomers.len();
-                axis.phytomers.push(Phytomer {
-                    cycle,
-                    tip: Vec3::default(),
-                    heading: Vec3::default(),
-                    side: Vec3::default(),
-                    radius: 0.0,
-                    scale: 1.0,
-                    key: zone_key.child(drawn).0,
-                    rank: 0.0,
-                });
-                let node_presence = self.windows.presence(node_lead, node_wood);
-                self.draws[apex.axis].nodes.push(node_presence);
-                for (slot, bud) in buds[..zone.buds as usize].iter().enumerate() {
-                    let Some((lateral_pa, lead)) = *bud else {
-                        continue;
-                    };
-                    let origin = Origin::Lateral {
-                        parent: apex.axis,
-                        node,
-                        slot: slot as u8,
-                        whorl: zone.buds,
-                        woken: false,
-                    };
-                    let key = zone_key.child(drawn).child(slot as u64);
-                    let wood = self.windows.wood(lateral_pa, cycle + 1);
-                    let made = [self.windows.presence(lead, wood), 1.0];
-                    self.sprout(key, lateral_pa, cycle, origin, made);
-                }
-                if sleeping.iter().any(|&wood| wood > 0.0) {
-                    let at = (apex.axis, node, self.draws[apex.axis].units.len() - 1);
-                    let node_key = zone_key.child(drawn);
-                    self.sleep(zone, &sleeping, node_key, at, cycle);
-                }
-            }
-            self.sleeping = sleeping;
-        }
-        self.node_buds = nodes;
-        self.leads = leads;
-        Ok(())
     }
 }
