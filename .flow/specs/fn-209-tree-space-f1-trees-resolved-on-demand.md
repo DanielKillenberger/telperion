@@ -37,7 +37,7 @@ The worker stops after step 2 with a report, and at any design question.
 
 ## Design: host decisions 8 to 11 (2026-10-05, after STEP1.md)
 
-8. **A: option (1), gated by the error budget at the level of the tree.** A tree has two states.
+8. **(Withdrawn 2026-10-05, see decision 12.) A: option (1), gated by the error budget at the level of the tree.** A tree has two states.
    - **Far:** all closed form. The tree is drawn as stand-ins (envelope, expected section and mass, the extinction curve for its foliage); no topology is grown.
    - **Near:** exact topology, grown up front once by today's grower with F2's levers (shed-skip, cores). Girth, retained pipe, shedding and sag stay exact; only the final lay and the surfacing are lazy, per chain, by the half-pixel rule. Beech, spruce and palm are bit-identical in the near state.
    - **The switch:** far to near when the stand-in's worst deviation (girth or extent at its junctions) could exceed half a pixel at the tree's distance. That is the same error rule, applied to topology at the tree's level, so the deviation is invisible at the switch by construction.
@@ -58,6 +58,29 @@ The worker stops after step 2 with a report, and at any design question.
 5. R2 (fly-in, first view, memory) and R3.
 
 The worker stops after step 2 with stills.
+
+## Design: decision 8 withdrawn; host decisions 12 to 14 (2026-10-05)
+
+**Decision 8's near state is withdrawn** (owner, 2026-10-05: "we can't have growing take 0.5-1.5s in realtime production systems"). Growing a tree's whole topology up front is a stall that a realtime system cannot take.
+
+12. **Every coupling to descendants is an expectation, at every level, the drawn chain included.**
+    - A chain's girth (the pipe model), its mass for sag, its leaf area for light and the balance, and its retained pipe are each its own realized chain (its own phytomers, exact and cheap) plus the closed form's expectation for everything it bears, given each borne bud's state (PA, birth, lineage, light input).
+    - Its parent reads the child through the same function. Junctions need no realized subtree (this answers A).
+    - Topology grows lazily, chain by chain, from lineage keys. A chain's shedding is its own keyed draws plus expected values. Nothing reads realized descendants.
+    - The one-pass build uses the same definition, so streamed equals one-pass exactly; that is step 4's test.
+    - Every species' girth changes slightly; its topology does not. The change is measured, and the four species are rendered before and after at the standard views for the host and the owner.
+    - Shedding in the closed form (B) is still needed: the expectation must count kept wood. It is built with its oracle.
+13. **Far and near are one rule.** A tree is a root chain plus stand-ins, refined chain by chain by the half-pixel rule from frame 1, with prefetch following the camera.
+    - **The first-view bar** is no stall: frame 1 draws stand-ins, and detail streams in within the per-frame budget.
+    - **Measured:** the cost per chain, the frames to full detail at 40 m, and the fly-in.
+14. **Option (2), the coupling tree with its smooth weight,** stays as the design for the oak if coarse light proves too coarse.
+
+**Build order (replaces the one under decisions 8 to 11):**
+1. The closed form's additions plus B, with oracles.
+2. Expectation coupling in the grower and the lay. The four species before and after, on stills; the worker stops there for the host and the owner.
+3. Lazy growth chain by chain, streamed equal to one-pass.
+4. The refinement rule and prefetch.
+5. R2 and R3.
 
 ## Requirements
 
