@@ -79,3 +79,10 @@
 - **Slowed by:** nothing. I used `git add -A -- crates/` to stage the deletions with the edits, against the brief's "never -A". It was scoped to `crates/` and picked up only my own changes, which I checked in `git show --stat`, but a stray file of another session's would have gone in.
 - **Cost:** none this time; a risk.
 - **Would remove it:** staging deletions by name (`git rm`, or `git add -- <paths>`), which every later commit here did.
+
+## 2026-10-05, the push over SSH failed
+
+- **Doing:** pushing the branch for the host's PR.
+- **Slowed by:** `git push origin` failed: the SSH agent could not sign ("communication with agent failed"). The push went over HTTPS with the gh CLI's stored credentials instead.
+- **Cost:** two minutes.
+- **Would remove it:** a local setup matter for the owner (the SSH agent), not a spec.
