@@ -86,3 +86,70 @@ No engine capability was missing for round 1. Each item below is a values next s
 5. **Bark relief and the collar ring.** These belong to the renderer and preset, not to the tree space. Whether the oak's bark plates are in scope for this spec is the host's call.
 
 Not run, as directed: Astra, the review, the gate, the R3 walk, the R4 regression. The task is not marked done.
+
+## Host decisions after round 1 (2026-10-05)
+
+- Leaf clothing: (a), a per-species stills row for now.
+- Round 2 values as proposed, plus: a rounded dome at about 1.0 to 1.2 wide for its height; height about 20 to 25 m at 80 years where sources support it; fine twigs dark, not a tan haze; at 40 years a lower crown base, not a lollipop.
+- Bark plates and the collar ring are out of scope (known gaps). The collar ring is to be fixed only if it is the beech's conversion-joint mechanism.
+
+**Phase F item (fn-198's station contract):** the conversion should mark the short-shoot PA's axes as leaf-bearing, so leaves follow the botany. Today the renderer clothes shoots by `shootRadius` times the stem's radius, which moves with where the stem first parts.
+
+## Round 2 (worker)
+
+**Staging, checked:** `space_oak.rs` already uses the shared `examples/space/still.rs`, which sets the sun at azimuth 115°, elevation 60°. The camera's `hero_pose` looks from the same azimuth (`Shot::default`, 115°), and the shadow fit uses the same azimuth convention. So the sun is behind the camera. The shadow reaches in front of the trunk because the crown is broad: a crown 20 m across, lit from 60°, throws its shadow back by only 3 to 10 m, so its front edge lies ahead of the trunk. The narrow spruce hides its shadow behind itself. `raw/today/` is drawn by fn-190's runner, which has no sun row.
+
+**Values** (`oak.rs`; SOURCES.md is updated):
+
+| Change | Why |
+|---|---|
+| Fork over 2 years, 3 buds a year at p 0.55: limbs at two heights | Seeds 2 and 7's one-sided splay; K19's unequal insertion heights |
+| A leader for 20 years above the fork, shoots of 0.4 m, bearing limbs and boughs, then a limb | A stronger central stem; the top fills and rounds; the height |
+| One limb PA, elevation 0.95 (was 0.85), wander 1.0 (was 1.5), pipe 0.009 at exponent 2.8 (was 0.006 at 2.6), forks 0.007, boughs 0.08 (was 0.15), sag 2.5e-4 | More ascending and fewer, heavier limbs. The leader's limbs are younger and shorter than the fork's, so the crown rounds |
+| Trunk laterals are long shoots (`SPRIG`, 0.2 m a year for 8 years); trunk 11 years (was 13) | Longer laterals on young trunks; a lower crown base |
+| Young wood dark grey-brown under 12 mm (preset; identity re-pinned) | Fine twigs read dark |
+
+**Tried and dropped** (`raw/q1` to `raw/q5`):
+- A 30-year leader made a conifer-like spire at 40 years.
+- Separate steep upper limbs on the leader (elevation 1.2), with the fork's limbs at 0.7, made a tall column, and the fork's long limbs lay on the ground.
+- Limb sag of 6e-4 and above drops limbs to the ground. At 1e-3, seed 7 errors `BelowGround`.
+- The sag walk at 1e-4, 2e-4 and 3e-4 put the round dome between 2e-4 and 3e-4.
+
+**Sheets** (`raw/round2/`, ignored, on disk; I viewed every still). The layout is round 1's; the reference row shows round 1's seed 1 in place of today's seed 7.
+
+**Measures** (`run.log`; heights and widths from the stills runner, x by z):
+
+| Seed (80 years) | Height | Width | w/h | Leaves | Wood triangles | Grown in |
+|--:|--:|--:|--:|--:|--:|--:|
+| 1 | 21.7 m | 23.8 × 18.5 m | 0.85 to 1.10 | 2.08M | 60M | 3.1 s |
+| 7 | 19.8 m | 19.5 × 21.6 m | 0.98 to 1.09 | 2.17M | 67M | 4.1 s |
+| 2 | 20.4 m | 19.4 × 25.5 m | 0.95 to 1.25 | 3.37M | 95M | 4.9 s |
+| 3 | 20.6 m | 22.7 × 22.4 m | 1.09 to 1.10 | 3.03M | 103M | 5.9 s |
+| 4 | 19.2 m | 24.9 × 21.9 m | 1.14 to 1.30 | 0.77M | 45M | 2.5 s |
+
+At 40 years the trees are 13.0 to 13.3 m tall and 7 to 8 m wide, against Jüttner's 12.0 to 15.6 m. At 20 years they are 7.0 m; at 10 years, 3.6 m.
+
+### Reading, per seed (80 years)
+
+| Seed | In leaf | Bare | Limb close-up and spray |
+|---|---|---|---|
+| 1 | **Not a dome**: a narrow, ragged ovoid, taller than wide, with a side lobe | A central stem with short limbs; reads as a generic broadleaf | Fine, dark-tipped branches |
+| 7 | **The best**: a broad, rounded crown on a short bole, limbs spreading from a low division, one low limb reaching out. Reads as an open-grown oak at whole-tree distance | Spreading, kinked limbs from a low fork; a central stem | The camera sits inside the crown, so the spray is a wall of leaves |
+| 2 | Broad and irregular; a long low limb on the left; the top rounded but lumpy | Spreading limbs and a strong centre. A heavy low limb crosses in front of the trunk at about 2 m (base close-up) | Inside the crown, as seed 7 |
+| 3 | **Good**: a rounded dome, close to S1-november's outline, a little denser | A broad dome of ascending limbs on a short bole | Spreading branches, dark tips |
+| 4 | Sparse and open: thin foliage (0.77M leaves, 73 a metre of fine wood against about 130 at the other seeds), the limbs visible through it | An open crown of a few long limbs | A long limb with a light spray |
+
+**Overall:**
+- **Dome (trait 2):** seeds 7 and 3 now read as rounded, broad oak crowns. Seed 2 is broad but lumpy. Seed 1 is too narrow, and seed 4 too sparse. Round 1's flat fans and seed 2's butterfly are gone.
+- **Limbs (trait 3):** fewer and heavier than round 1, and kinked, but still not S3's few massive, angular limbs.
+- **Twigs:** the fine ends now read dark. The middle branches (12 to 25 mm) still read pinkish tan in sun, so the bare crowns are less hazy but not yet S1's dark mesh.
+- **Height:** 19.2 to 21.7 m, at the lower end of the 20 to 25 m asked for.
+- **Young trees:**
+  - 40 years: no longer a lollipop. An ovoid crown from about 4 m, though still a young-tree spire at the top.
+  - 10 and 20 years: still conifer-like, a straight pole with whorl-like long shoots. Better clothed than round 1, but not an oak sapling.
+
+### Known gaps and checks
+
+- **Collar ring:** a faint horizontal band about 0.3 m up the trunk at seeds 1, 7, 2 and 3. It is **not** the beech's mechanism. That came from relays at module joints (`aside` in `space/tree.rs`), and the oak's trunk never aborts, so it has no relays and `aside` never runs on it. Not fixed, as directed; a known gap with the bark plates.
+- **Leaf density varies by seed** with the fixed `shootRadius` row (seed 4: 73 leaves a metre against about 130), the phase F item above.
+- **Spray close-ups:** for a broad crown the close-up camera stands inside the foliage (seeds 7 and 2). The staging is shared with the beech and spruce, so it is left unchanged and noted.
