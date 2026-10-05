@@ -15,6 +15,38 @@ use crate::structure::{Axis, Origin};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
 
+/// The helper threads growing trees in this process, across every tree.
+static HELPERS: AtomicUsize = AtomicUsize::new(0);
+
+/// Helper threads held for one cycle's shares, given back when dropped.
+struct Helpers(usize);
+
+impl Helpers {
+    /// Up to `wanted` helpers, as far as the process holds fewer than
+    /// `cores` in all.
+    fn reserve(wanted: usize, cores: usize) -> Self {
+        let mut held = HELPERS.load(Ordering::Relaxed);
+        loop {
+            let take = wanted.min(cores.saturating_sub(held));
+            match HELPERS.compare_exchange_weak(
+                held,
+                held + take,
+                Ordering::Relaxed,
+                Ordering::Relaxed,
+            ) {
+                Ok(_) => return Self(take),
+                Err(now) => held = now,
+            }
+        }
+    }
+}
+
+impl Drop for Helpers {
+    fn drop(&mut self) {
+        HELPERS.fetch_sub(self.0, Ordering::Relaxed);
+    }
+}
+
 /// The living apexes in a share: enough work to pay for its merge.
 pub(super) const SHARE: usize = 1024;
 
@@ -223,17 +255,22 @@ fn grow_shares<'g, 'a: 'g>(
         .collect();
     let done: Vec<Mutex<Option<Result<Share>>>> = (0..count).map(|_| Mutex::new(None)).collect();
     let ticket = AtomicUsize::new(0);
-    std::thread::scope(|scope| {
-        for _ in 0..threads.min(count) {
-            scope.spawn(|| loop {
-                let k = ticket.fetch_add(1, Ordering::Relaxed);
-                if k >= count {
-                    break;
-                }
-                let (apexes, at) = work[k].lock().unwrap().take().expect("a share once");
-                *done[k].lock().unwrap() = Some(shoot(at).grow(apexes, cycle));
-            });
+    let work_on = || loop {
+        let k = ticket.fetch_add(1, Ordering::Relaxed);
+        if k >= count {
+            break;
         }
+        let (apexes, at) = work[k].lock().unwrap().take().expect("a share once");
+        *done[k].lock().unwrap() = Some(shoot(at).grow(apexes, cycle));
+    };
+    // This thread works too; the helpers are drawn from what the process
+    // has spare, so trees grown at once do not each take every core.
+    let helpers = Helpers::reserve(threads.min(count) - 1, threads);
+    std::thread::scope(|scope| {
+        for _ in 0..helpers.0 {
+            scope.spawn(work_on);
+        }
+        work_on();
     });
     done.into_iter()
         .map(|d| d.into_inner().unwrap().expect("every share grown"))
