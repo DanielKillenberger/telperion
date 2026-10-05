@@ -43,7 +43,7 @@ const REQUEST: Request = Request {
 #[test]
 fn every_input_the_engine_cannot_draw_is_refused_by_name() {
     type Edit = fn(&mut Species);
-    let cases: [(Edit, &str); 35] = [
+    let cases: [(Edit, &str); 37] = [
         (|s| s.states.clear(), "states"),
         (|s| s.states[0].lifespan = 0, "states[0].lifespan"),
         (|s| s.states[1].next = Some(0), "states[1].next"),
@@ -121,6 +121,8 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
             "states[1].abortion_rise",
         ),
         (|s| s.states[0].erection = -1.0, "states[0].erection"),
+        (|s| s.states[1].form.sag = -0.1, "states[1].form.sag"),
+        (|s| s.states[0].form.sag = f64::NAN, "states[0].form.sag"),
     ];
     for (edit, input) in cases {
         let mut s = species();
@@ -156,10 +158,10 @@ fn a_tree_past_its_budget_is_refused() {
 }
 
 #[test]
-fn wood_below_the_ground_is_an_error() {
+fn a_trunk_below_the_ground_is_an_error() {
     let mut s = species();
-    s.states[0].zones[0].lateral = vec![0.0, 1.0];
-    s.states[1].insertion = PI;
+    s.states[0].form.tropism = 1.0;
+    s.states[0].form.elevation = -std::f64::consts::FRAC_PI_2;
     assert!(matches!(grow(&s, REQUEST), Err(Error::BelowGround { .. })));
 }
 
