@@ -73,6 +73,7 @@ fn adding_a_branch_reshuffles_nothing_else() {
         age: 8,
         seed,
         budget: 1_000_000,
+        light: telperion_space::Light::NEUTRAL,
     };
     let mut added = 0;
     for seed in 1..=8 {

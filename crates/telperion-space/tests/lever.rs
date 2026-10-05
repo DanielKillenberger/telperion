@@ -88,6 +88,7 @@ fn tree(height: f64, sag: f64, seed: u64, bough: Bough) -> Structure {
         age: 70,
         seed,
         budget: 1_000_000,
+        light: telperion_space::Light::NEUTRAL,
     };
     grow(&species, request).unwrap()
 }

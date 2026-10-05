@@ -46,6 +46,7 @@ fn axes_take_their_lengths_and_angles_from_their_pa() {
             age: 5,
             seed: 3,
             budget: 1_000,
+            light: telperion_space::Light::NEUTRAL,
         },
     )
     .unwrap();
@@ -116,6 +117,7 @@ fn phyllotaxis_runs_on_across_a_continuation() {
         age: 5,
         seed: 1,
         budget: 100,
+        light: telperion_space::Light::NEUTRAL,
     };
     let tree = grow(&species, request).unwrap();
     let mut sides: Vec<i64> = Vec::new();
@@ -167,6 +169,7 @@ fn an_overflowing_expectation_draws_finite_wood() {
         age: 1500,
         seed: 18,
         budget: 1,
+        light: telperion_space::Light::NEUTRAL,
     };
     let tree = grow(&species, request).unwrap();
     for p in tree.axes.iter().flat_map(|a| &a.phytomers) {
@@ -215,6 +218,7 @@ fn an_unreachable_pa_takes_no_part_in_a_window() {
         age: 1470,
         seed: 1,
         budget: 1,
+        light: telperion_space::Light::NEUTRAL,
     };
     let tree = grow(&species, request).unwrap();
     for p in tree.axes.iter().flat_map(|a| &a.phytomers) {

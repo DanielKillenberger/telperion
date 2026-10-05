@@ -31,6 +31,7 @@ fn main() {
                     age,
                     seed,
                     budget: BUDGET,
+                    light: telperion_space::Light::NEUTRAL,
                 },
             ) {
                 Ok(tree) => tree,

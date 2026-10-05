@@ -41,6 +41,7 @@ const REQUEST: Request = Request {
     age: 6,
     seed: 1,
     budget: 10_000,
+    light: telperion_space::Light::NEUTRAL,
 };
 
 #[test]
@@ -145,6 +146,20 @@ fn every_input_the_engine_cannot_draw_is_refused_by_name() {
     }
     let refused = grow(&species(), Request { age: 0, ..REQUEST });
     assert!(matches!(refused, Err(Error::Refused { input, .. }) if input == "age"));
+    let lights = [
+        (f64::NAN, 0.5, "light.extinction"),
+        (-0.1, 0.5, "light.extinction"),
+        (11.0, 0.5, "light.extinction"),
+        (0.5, 1.5, "light.sky"),
+        (0.5, f64::NAN, "light.sky"),
+    ];
+    for (extinction, sky, input) in lights {
+        let light = telperion_space::Light { extinction, sky };
+        match grow(&species(), Request { light, ..REQUEST }) {
+            Err(Error::Refused { input: named, .. }) => assert_eq!(named, input),
+            other => panic!("{input}: {other:?}"),
+        }
+    }
 }
 
 #[test]
@@ -161,6 +176,7 @@ fn a_tree_past_its_budget_is_refused() {
             &species(),
             Request {
                 budget: 5,
+                light: telperion_space::Light::NEUTRAL,
                 ..REQUEST
             }
         ),

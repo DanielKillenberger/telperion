@@ -12,6 +12,7 @@ use crate::dormant::{Sleeper, Woken};
 use crate::error::{refuse, Error, Result};
 use crate::geometry::{place, scale};
 use crate::girth::thicken;
+use crate::light::Light;
 use crate::lineage::{self, above, below, Key, ABORTION, CONTINUATION, RELAY, VIABILITY, ZONE};
 use crate::presence::{assign, Draws, Windows, SPAN};
 use crate::sag;
@@ -19,13 +20,14 @@ use crate::shed::shed;
 use crate::species::{PaState, Species, MAX_BUDS, MAX_NODES_PER_ZONE};
 use crate::structure::{Axis, Origin, Phytomer, Structure, Vec3};
 
-/// What to grow: cycles, the seed and the phytomer budget.
+/// What to grow: cycles, the seed, the phytomer budget and the site's light.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Request {
     pub age: u32,
     pub seed: u64,
     /// The most phytomers the tree may grow, the shed ones included.
     pub budget: u32,
+    pub light: Light,
 }
 
 /// A bud of a node: its PA and lead, or none for a bare bud.
@@ -41,6 +43,7 @@ struct Apex {
 /// Grows, sheds and places the tree.
 pub fn grow(species: &Species, request: Request) -> Result<Structure> {
     species.validate()?;
+    request.light.validate()?;
     if request.age == 0 {
         return refuse("age", "a tree grows at least one cycle");
     }

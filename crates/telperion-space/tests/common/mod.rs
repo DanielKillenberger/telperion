@@ -86,6 +86,7 @@ pub fn tree(species: &Species, age: u32, seed: u64) -> Structure {
             age,
             seed,
             budget: BUDGET,
+            light: telperion_space::Light::NEUTRAL,
         },
     )
     .unwrap()

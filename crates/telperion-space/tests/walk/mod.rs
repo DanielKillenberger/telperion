@@ -448,6 +448,7 @@ pub fn tree(species: &Species, seed: u64) -> telperion_space::Result<Structure> 
             age: AGE,
             seed,
             budget: 2_000_000,
+            light: telperion_space::Light::NEUTRAL,
         },
     )
 }

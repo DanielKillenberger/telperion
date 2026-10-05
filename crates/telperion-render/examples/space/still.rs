@@ -168,6 +168,7 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
                         age,
                         seed,
                         budget: BUDGET,
+                        light: telperion_space::Light::NEUTRAL,
                     },
                 )
                 .map_err(|e| format!("age {age} seed {seed}: {e:?}"))?;
