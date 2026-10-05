@@ -20,9 +20,26 @@ The Norway spruce (*Picea abies*, Massart's model) as a point in the tree space,
 - R3 is task 2, blocked by fn-206.
 
 ## Done summary
-TBD
+The Norway spruce (Picea abies, Massart's model) is a point in the tree space: values only, in crates/telperion-space/src/spruce.rs. It is drawn by crates/telperion-render/examples/space_spruce.rs through the shared still runner (examples/space/still.rs).
 
+- R1: values from MODEL-SPRUCE.md and their sources (SOURCES.md; needle retention from Muukkonen and Lehtonen 2004). Rounds 1 to 11 are in RESULT.md, each sheet beside the references and today's spruce. The engine work the spruce needed went into its own specs: fn-200 (sag and ground support), fn-201 (foliage dispatch), fn-202 (dormant buds), fn-203 (the bent-lever sag), fn-205 (secondary girth).
+- R2: passed on the owner's verdict (2026-10-05), with round 10's values: "spruce looks good but not as lush and big as the reference. but definitely acceptable. Still much to be improved but i think it's structurally sound."
+- R4: the beech is unchanged in look, shown on fn-196's branch (38c2de33).
+- R3 is task 2, blocked by fn-206.
+
+Known gaps:
+- The hanging curtains' volume, bounded by about 210M wood triangles and 16M needles per tree. Phase F's levers are cheap fine-twig drawing and shedding before growth.
+- The draperies are values-limited.
+- The 10-year sapling reads sparse.
+
+Gate: cargo test --profile ci --workspace --no-fail-fast, 1044 passed, 0 failed, 21 ignored (under the GPU lock).
+
+stage: impl-review - ran (codex, base origin/master): SHIP, with two P2s.
+- Fixed in 838b6e50: the stills' walks now refuse a PA index the species lacks, by name.
+- Not fixed, recorded: the spruce stills report height and width but not dbh. R1 does not ask for dbh, and the beech's measures example is left as it is.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
-- PRs:
+- Commits: e6f37885, 838b6e50, 1c3f4f67, 8daeef40
+- Tests: cargo test --profile ci --workspace --no-fail-fast
+- PRs: #149
