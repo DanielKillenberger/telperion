@@ -9,7 +9,8 @@
   "depends_on_epics": [
     "fn-195-tree-space-d-the-oak-as-a-point",
     "fn-204-leaf-base-clothing-runs-in-expansion",
-    "fn-205-tree-space-girth-from-secondary-growth"
+    "fn-205-tree-space-girth-from-secondary-growth",
+    "fn-206-tree-space-one-reference-axis-every"
   ],
   "id": "fn-196-tree-space-d-the-date-palm-as-a-point",
   "impl_review_rounds": {},
@@ -32,5 +33,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T03:21:37.806522Z"
+  "updated_at": "2026-10-05T04:24:22.959099Z"
 }
