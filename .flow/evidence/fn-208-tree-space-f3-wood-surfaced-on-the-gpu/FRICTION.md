@@ -51,3 +51,9 @@
 - **Slowed by:** the defect lived inside a method that needs a device, so nothing could test it before the fix. The test came with the extracted function (`sample_count_granted`), so it was never shown red against the old code.
 - **Cost:** none in time; one red-first proof missing.
 - **Would remove it:** extracting the decision from the device first, then writing the test red against the old rule, then fixing it.
+
+## 2026-10-05, (iv): the curve compute costs latency, not work
+
+- **Doing:** measuring the GPU passes' frame cost.
+- **Slowed by:** the vegetation pass's GPU timer does not cover the new compute passes, so their cost showed only in wall time. Bisecting it took environment switches in a scratch build: about 20 minutes and four runs.
+- **Would remove it:** a fourth timestamp pair around the curve's compute passes in `timing.rs`.
