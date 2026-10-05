@@ -56,3 +56,9 @@
   - `today-spruce-trunk-diag64.png`;
   - the standard views, `*-hero|limb|twig-reuse64.png`, unchanged to 1e-5.
 - **The rate is reverted,** because it costs more than it saves (STEP-11.md).
+
+## Gate
+
+`cargo test --profile ci --workspace --no-fail-fast` on `8ffaa867` (`raw/gate2.log`):
+- 126 test binaries are green.
+- The one failure is the same beech memory-ceiling flake as before. `fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens` is over its process ceiling under the parallel gate, and green rerun alone (32 s).
