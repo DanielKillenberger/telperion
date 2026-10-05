@@ -33,8 +33,8 @@ Light reads `leaf_area` × scale on the cycle's nodes. Sag's foliage term (own p
 
 | Walk | Steepest slope |
 |---|--:|
-| φ limbs | — |
-| φ twigs | — |
+| φ limbs | 0.76 |
+| φ twigs | 0.95 |
 | ψ limbs | 1.30 |
 | ψ twigs | 1.67 |
 | leaf area | 6.48 |
