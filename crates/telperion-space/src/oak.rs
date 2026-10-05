@@ -82,7 +82,7 @@ fn state(lifespan: u32, next: Option<usize>, zones: Vec<Zone>) -> PaState {
         // λ 0.45), its carbon balance sheds its starved laterals, its shed
         // branches leave a share of their pipe, and lit limbs thicken.
         shade_hazard: 1.0,
-        shade_size: 1.0,
+        shade_size: 1.5,
         apical_control: 0.45,
         upkeep: 0.35,
         balance_hazard: 2.0,
@@ -225,13 +225,13 @@ pub fn oak() -> Species {
         internode: 0.03,
         viability: 0.999,
         shedding: Some(4),
-        abortion: 0.3,
+        abortion: 0.4,
         relay: 1.0,
         epitony: 0.2,
         form: Form {
-            tropism: 0.6,
-            elevation: 0.6,
-            wander: 1.0,
+            tropism: 0.35,
+            elevation: 0.45,
+            wander: 1.3,
             pipe: 0.004,
             exponent: 2.6,
             sag: 0.00005,
@@ -285,13 +285,16 @@ pub fn oak() -> Species {
     // and twigs and, clustered at its top, twigs.
     let branch = PaState {
         insertion: 0.8,
-        internode: 0.02,
+        internode: 0.017,
         viability: 0.98,
         shedding: Some(3),
+        abortion: 0.2,
+        relay: 1.0,
+        epitony: 0.2,
         form: Form {
-            tropism: 0.4,
+            tropism: 0.25,
             elevation: 0.2,
-            wander: 0.8,
+            wander: 1.1,
             plane: 0.0,
             pipe: 0.0009,
             exponent: 2.0,
@@ -307,7 +310,7 @@ pub fn oak() -> Species {
             Some(SHOOT),
             unit(
                 (1, 2),
-                &[(SHORT, 0.3), (TWIG, 0.15)],
+                &[(SHORT, 0.3), (TWIG, 0.18)],
                 (3, &[(TWIG, 0.25), (BRANCH, 0.02)]),
             ),
         )
@@ -317,7 +320,7 @@ pub fn oak() -> Species {
     // twigs rather than a few long shoots.
     let twig = PaState {
         insertion: 0.8,
-        internode: 0.015,
+        internode: 0.012,
         viability: 0.95,
         shedding: Some(2),
         form: Form {
@@ -328,7 +331,11 @@ pub fn oak() -> Species {
             roll: 1.2,
             ..Form::default()
         },
-        ..state(3, None, unit((1, 1), &[(SHORT, 0.4)], (3, &[(SHORT, 0.3)])))
+        ..state(
+            3,
+            None,
+            unit((1, 1), &[(SHORT, 0.4)], (3, &[(TWIG, 0.0), (SHORT, 0.3)])),
+        )
     };
     // Long shoots bearing short shoots only.
     let shoot = PaState {
