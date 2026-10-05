@@ -12,6 +12,7 @@
 //! the bud's path from the root, and every element a draw makes grows in
 //! from nothing as a setting passes the draw, so a walk of any setting at a
 //! fixed seed changes the tree by degree.
+mod allocation;
 mod beech;
 mod closed_form;
 mod dormant;

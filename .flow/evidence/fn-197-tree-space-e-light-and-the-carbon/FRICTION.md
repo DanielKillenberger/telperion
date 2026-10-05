@@ -36,3 +36,15 @@
   - The paper index had two Q. robur leaf-trait papers with no full text.
 - **Cost:** about 10 minutes and five searches. The value stays estimated: 30 cm² a node.
 - **Would remove it:** a species' literature stage that collects leaf size with its source, as the add-species pipeline does for the old generator.
+
+## 2026-10-05, step 3b: the walk suite outgrew a 30-minute run
+
+- **Doing:** running every walk after decision 9 (refine depth 6) and decision 8's in-leaf walk of every setting.
+- **Slowed by:** the whole `walks` test binary did not finish within the 30-minute background limit and was stopped. Before these changes the same binary took about 95 s.
+  - Depth 6 refines each walk's three steepest steps through six levels of nine trees, against three.
+  - The in-leaf walk repeats every setting's 600 trees with light, the rough layout and the full lay.
+- **Cost:** 30 minutes of wall time with no result, then a rerun of each walk alone to time it.
+- **Would remove it:** refining only the steps the 3-level check flags; or running the in-leaf walk of every setting on a sample of settings, or as a separate, slower suite. The host's call: the gate runs this binary.
+- **Update, same day:** run alone, the light walks took 88 s, every setting's walks 91 s and the release law 2 s, all green at depth 6. The in-leaf walk of every setting hit its 3,000 s timeout without finishing.
+  - Leafy walk trees with relative allocation can outgrow a shoot's whole size along a lineage, so some settings grow far larger trees (see STEP3B.md).
+  - The test is committed as `#[ignore]`, and decision 8's "a walk of any setting stays within the bound" is unchecked: `NEEDS_HUMAN` on its scope.

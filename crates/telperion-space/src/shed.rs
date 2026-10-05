@@ -102,11 +102,12 @@ fn fades(axes: &[Axis], species: &Species, age: u32) -> Vec<f64> {
             at = parent;
         }
     }
-    // A living subtree is never drawn smaller than its living apex.
+    // A living subtree is never drawn smaller than its living apex; an apex
+    // that light grew past whole (`allocation.rs`) keeps it whole.
     axes.iter()
         .zip(living.iter().zip(&alive))
         .map(|(axis, (&until, &apex))| match delay(axis) {
-            Some(d) => (f64::from(d) + 1.0 - (f64::from(age) - until)).clamp(apex, 1.0),
+            Some(d) => (f64::from(d) + 1.0 - (f64::from(age) - until)).clamp(apex.min(1.0), 1.0),
             None => 1.0,
         })
         .collect()

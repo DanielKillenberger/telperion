@@ -101,8 +101,11 @@ pub struct PaState {
     /// ln viability times light^-φ (host, 2026-10-05). Neutral 0; dormant
     /// where the apex never dies (viability 1) or no leaf shades it.
     pub shade_hazard: f64,
-    /// How shade shortens a growth unit: its phytomers' scale times
-    /// light^shade_size. Neutral 0; dormant where no leaf shades it.
+    /// How a growth unit's size follows its light relative to its
+    /// siblings' on the same bearer: its phytomers' scale times light^ψ
+    /// over the bearer's presence-weighted mean of light^ψ, so the
+    /// bearer's growth is shared, not lost (`allocation.rs`; host decision
+    /// 7). Neutral 0; dormant where no leaf shades it.
     pub shade_size: f64,
     /// How far the base of a lateral axis of this PA straightens towards
     /// the vertical, as Troll's plagiotropic axes do. Neutral 0.

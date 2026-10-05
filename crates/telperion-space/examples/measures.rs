@@ -95,11 +95,12 @@ fn stages(name: &str, species: &Species, request: Request) {
     let order = [
         Stage::Grown,
         Stage::Sketched,
+        Stage::Relaid,
         Stage::Lit,
         Stage::Settled,
         Stage::Laid,
     ];
-    let mut spent = [0.0; 5];
+    let mut spent = [0.0; 6];
     let mut last = Instant::now();
     let started = last;
     grow_staged(species, request, &mut |stage| {
@@ -111,9 +112,9 @@ fn stages(name: &str, species: &Species, request: Request) {
     .expect("grows");
     let total = started.elapsed().as_secs_f64();
     println!(
-        "{name} age {} seed {} extinction {} sky {}: total {total:.2} s; growth {:.2}, rough layout {:.2}, light {:.2}, settle {:.2}, final lay {:.2}; peak memory so far {}",
+        "{name} age {} seed {} extinction {} sky {}: total {total:.2} s; growth {:.2}, rough layout {:.2}, full re-lays {:.2}, light {:.2}, settle {:.2}, final lay {:.2}; peak memory so far {}",
         request.age, request.seed, request.light.extinction, request.light.sky,
-        spent[0], spent[1], spent[2], spent[3], spent[4], peak()
+        spent[0], spent[1], spent[2], spent[3], spent[4], spent[5], peak()
     );
 }
 

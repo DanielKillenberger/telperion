@@ -6,6 +6,7 @@
 //! bound is recorded; once the tree has grown, `presence.rs` sizes every
 //! element from those leads, so a setting that crosses a draw grows the
 //! element in from nothing.
+mod relay;
 mod sketch;
 mod unit;
 mod wake;
@@ -44,12 +45,15 @@ struct Apex {
 }
 
 /// The stages a tree passes through, reported as each ends: per cycle its
-/// growth, its rough layout and the sweep of its light (where light
-/// shades), then once its sizes, shedding and girth, and its final lay.
+/// growth, its rough layout, its full lay every few cycles and the sweep
+/// of its light (where light shades), then once its sizes, shedding and
+/// girth, and its final lay.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Stage {
     Grown,
     Sketched,
+    /// The full lay of the living tree, every `RELAY_EVERY` cycles.
+    Relaid,
     Lit,
     Settled,
     Laid,
@@ -127,6 +131,10 @@ fn run(
         if grower.sketch.is_some() {
             grower.sketch(cycle, &advanced)?;
             stage(Stage::Sketched);
+            if cycle % relay::RELAY_EVERY == 0 {
+                grower.relay(cycle)?;
+                stage(Stage::Relaid);
+            }
             grower.shade();
             stage(Stage::Lit);
         }
@@ -247,6 +255,7 @@ struct Grower<'a> {
 
 impl Grower<'_> {
     fn step(&mut self, cycle: u32) -> Result<()> {
+        self.allot();
         let live = std::mem::take(&mut self.live);
         for apex in live.iter().copied() {
             self.advance(apex, cycle)?;
@@ -295,7 +304,7 @@ impl Grower<'_> {
         let survive = self.windows.decided(survive, wood, stop_stake(state.relay));
         self.draws[apex.axis].units.push([survive, 1.0]);
         if self.sketch.is_some() {
-            let size = light.powf(state.shade_size);
+            let size = self.size(apex.axis);
             self.draws[apex.axis].sizes.push(size);
         }
         self.grow_unit(apex, pa, unit, cycle)?;

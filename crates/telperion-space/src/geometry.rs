@@ -53,12 +53,14 @@ pub(crate) fn scale(structure: &mut Structure, species: &Species) {
 }
 
 /// Lays every axis from its parent's frame; with `levers` (`sag.rs`),
-/// each phytomer also turns down under the load it carries.
+/// each phytomer also turns down under the load it carries. Where each
+/// axis's walk ended, by index.
 pub(crate) fn place(
     structure: &mut Structure,
     species: &Species,
     levers: Option<&[Vec<Lever>]>,
-) -> Result<()> {
+) -> Result<Vec<Layer>> {
+    let mut layers = Vec::with_capacity(structure.axes.len());
     let age = structure.age;
     // The trunk: the seed axis and what carries it on.
     let mut trunk = vec![false; structure.axes.len()];
@@ -86,7 +88,7 @@ pub(crate) fn place(
         if base.z < -GROUND_TOLERANCE {
             return Err(below(-base.z));
         }
-        lay(
+        let layer = lay(
             axis,
             (base, heading, side),
             state,
@@ -95,8 +97,9 @@ pub(crate) fn place(
             trunk[i],
         )
         .map_err(below)?;
+        layers.push(layer);
     }
-    Ok(())
+    Ok(layers)
 }
 
 /// How far an axis `years` old is pulled towards the vertical at its

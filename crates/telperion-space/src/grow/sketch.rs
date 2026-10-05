@@ -10,21 +10,23 @@
 //! in the next. What it writes into the phytomers and axes (their tip,
 //! frame, scale and rank) is all written again once the tree has grown.
 use super::Grower;
+use crate::allocation::{sizes, Bud};
 use crate::error::{Error, Result};
 use crate::geometry::{bend, dominance, frame, Layer};
 use crate::light::{Field, Light};
 use crate::structure::{Origin, Vec3};
+use std::collections::HashMap;
 
 /// The rough layout and the light it casts.
 pub(super) struct Sketch {
     light: Light,
-    pencils: Vec<Pencil>,
+    pub(super) pencils: Vec<Pencil>,
 }
 
 /// Where an axis's rough layout stands.
 #[derive(Debug, Clone, Copy)]
-struct Pencil {
-    layer: Layer,
+pub(super) struct Pencil {
+    pub(super) layer: Layer,
     /// Its scale at its base, and its draws' presence over the growth
     /// units laid.
     base_scale: f64,
@@ -34,8 +36,13 @@ struct Pencil {
     units: usize,
     laid: usize,
     trunk: bool,
-    /// The light at its tip, from the last cycle's leaves.
+    /// The light at its tip, from the last cycle's leaves, and its
+    /// growth unit's size among its siblings this cycle.
     light: f64,
+    size: f64,
+    /// The axis that bears it and its siblings: a lateral's parent, and
+    /// for an axis carried on, its first link's (none for the seed).
+    bearer: usize,
 }
 
 impl Sketch {
@@ -90,6 +97,41 @@ impl Grower<'_> {
             .map_or(1.0, |p| p.light)
     }
 
+    /// Axis `i`'s growth unit's size this cycle (`allocation.rs`); whole
+    /// where nothing shades.
+    pub(super) fn size(&self, i: usize) -> f64 {
+        self.sketch
+            .as_ref()
+            .and_then(|s| s.pencils.get(i))
+            .map_or(1.0, |p| p.size)
+    }
+
+    /// Shares this cycle's growth among the living apexes on each bearer
+    /// by their light, before any of them grows.
+    pub(super) fn allot(&mut self) {
+        let Some(sketch) = self.sketch.as_mut() else {
+            return;
+        };
+        let mut groups: HashMap<usize, Vec<(usize, Bud)>> = HashMap::new();
+        for apex in &self.live {
+            let Some(p) = sketch.pencils.get(apex.axis) else {
+                continue;
+            };
+            let bud = Bud {
+                weight: p.base_scale * p.running,
+                light: p.light,
+                psi: self.species.states[self.axes[apex.axis].pa].shade_size,
+            };
+            groups.entry(p.bearer).or_default().push((apex.axis, bud));
+        }
+        for members in groups.values() {
+            let buds: Vec<Bud> = members.iter().map(|m| m.1).collect();
+            for (&(axis, _), size) in members.iter().zip(sizes(&buds)) {
+                sketch.pencils[axis].size = size;
+            }
+        }
+    }
+
     fn tip(&self, i: usize) -> Vec3 {
         let axis = &self.axes[i];
         axis.phytomers.last().map_or(axis.base, |p| p.tip)
@@ -101,14 +143,14 @@ impl Grower<'_> {
         let framed = frame(&self.axes, self.species, i);
         let axis = &self.axes[i];
         let made = self.draws[i].birth[0] * self.draws[i].birth[1];
-        let (inherited, vigour, trunk) = match axis.origin {
-            Origin::Seed => (1.0, made, true),
+        let (inherited, vigour, trunk, bearer) = match axis.origin {
+            Origin::Seed => (1.0, made, true, usize::MAX),
             Origin::Lateral { parent, node, .. } => {
-                (self.axes[parent].phytomers[node].scale, made, false)
+                (self.axes[parent].phytomers[node].scale, made, false, parent)
             }
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
                 let p = &sketch.pencils[parent];
-                (p.base_scale, p.running * made, p.trunk)
+                (p.base_scale, p.running * made, p.trunk, p.bearer)
             }
         };
         let share = match axis.origin {
@@ -128,6 +170,8 @@ impl Grower<'_> {
             laid: 0,
             trunk,
             light: 1.0,
+            size: 1.0,
+            bearer,
         }
     }
 

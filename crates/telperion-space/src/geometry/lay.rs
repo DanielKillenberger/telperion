@@ -199,7 +199,8 @@ impl Layer {
 }
 
 /// Lays the axis's internodes from its base frame, phytomer by
-/// phytomer (`Layer::step`), with `load` (`sag.rs`) each one's lever.
+/// phytomer (`Layer::step`), with `load` (`sag.rs`) each one's lever;
+/// where the walk ends.
 pub(crate) fn lay(
     axis: &mut Axis,
     frame: (Vec3, Vec3, Vec3),
@@ -207,13 +208,13 @@ pub(crate) fn lay(
     bend: (f64, f64),
     load: Option<&[Lever]>,
     trunk: bool,
-) -> std::result::Result<(), f64> {
+) -> std::result::Result<Layer, f64> {
     let mut layer = Layer::new(frame);
     for (k, phytomer) in axis.phytomers.iter_mut().enumerate() {
         layer.step(phytomer, state, bend, load.map(|l| &l[k]), trunk)?;
     }
     (axis.base, axis.heading, axis.side) = frame;
-    Ok(())
+    Ok(layer)
 }
 
 /// How far wood at height `z`, `radius` thick and `length` long, stands
