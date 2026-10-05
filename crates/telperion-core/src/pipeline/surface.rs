@@ -45,7 +45,8 @@ pub(crate) use build::{faces, Faces};
 pub(crate) use curve::curve;
 #[cfg(feature = "geometry")]
 pub use curve::{
-    Curve, CurveCluster, CurvePoint, CurveRun, PackedPoint, CLUSTER, LEVELS, POINT_WORDS,
+    Curve, CurveCluster, CurvePoint, CurveRun, PackedPoint, Tessellation, Viewer, CLUSTER, LEVELS,
+    POINT_WORDS,
 };
 #[cfg(feature = "geometry")]
 pub(crate) use rings::{rings, Rings, Sweep};

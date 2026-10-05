@@ -69,7 +69,8 @@ pub mod surface {
     };
     #[cfg(feature = "geometry")]
     pub use crate::pipeline::surface::{
-        Curve, CurveCluster, CurvePoint, CurveRun, PackedPoint, CLUSTER, LEVELS, POINT_WORDS,
+        Curve, CurveCluster, CurvePoint, CurveRun, PackedPoint, Tessellation, Viewer, CLUSTER,
+        LEVELS, POINT_WORDS,
     };
     #[cfg(feature = "geometry")]
     pub mod compact {
