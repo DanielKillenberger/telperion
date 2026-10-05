@@ -196,6 +196,15 @@ impl Swept<'_> {
             .ok_or(Error::ResourceLimit("surface samples"))
     }
 
+    /// What every ring of this sweep is drawn with.
+    pub(super) fn ring(&self) -> Ring<'_> {
+        Ring {
+            params: self.params,
+            height: self.height,
+            angular: self.angular,
+        }
+    }
+
     /// The rings a path's run is swept in: one a node, and a buried foot.
     pub(super) fn rings(&self, path_id: usize) -> usize {
         let path = &self.paths.runs[path_id];
@@ -247,12 +256,19 @@ fn in_turn(
         let (samples, frame) = scratch.sweep(at, path_id);
         let (positions, coords) = (&mut out.positions, &mut out.coords);
         let shape = at.section(path_id);
-        emit_run(samples, frame, at, shape, sweep.drawn, |xyz, coord| {
-            positions.extend(xyz);
-            if sweep.drawn {
-                coords.extend(coord);
-            }
-        })?;
+        emit_run(
+            samples,
+            frame,
+            at.ring(),
+            shape,
+            sweep.drawn,
+            |xyz, coord| {
+                positions.extend(xyz);
+                if sweep.drawn {
+                    coords.extend(coord);
+                }
+            },
+        )?;
     }
     Ok(out)
 }

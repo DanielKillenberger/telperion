@@ -134,7 +134,7 @@ fn frames() -> Vec<Vec<u32>> {
 #[test]
 fn a_valid_record_carries_every_pass_the_levels_and_the_orbit() {
     let json = Report::measured(hardware(), &steady())
-        .with_passes(&steady(), &quick(), &quick())
+        .with_passes(&steady(), &quick(), &quick(), &quick())
         .with_levels(&[0.004, 0.001], &frames())
         .with_casters(123, 456)
         .with_wall(&steady())
@@ -147,6 +147,8 @@ fn a_valid_record_carries_every_pass_the_levels_and_the_orbit() {
         "\"selection_p95_ms\"",
         "\"shadow_p50_ms\"",
         "\"shadow_p95_ms\"",
+        "\"surfacing_p50_ms\"",
+        "\"surfacing_p95_ms\"",
         "\"total_p50_ms\"",
         "\"total_p95_ms\"",
         "\"wall_p50_ms\"",
@@ -161,20 +163,26 @@ fn a_valid_record_carries_every_pass_the_levels_and_the_orbit() {
         assert!(json.contains(field), "a full record lacks {field}:\n{json}");
     }
 
-    // The three passes are added frame by frame and then ranked, so the total
-    // is the frame's own cost and not the sum of three separately ranked tails.
-    let report = Report::measured(hardware(), &steady()).with_passes(&steady(), &quick(), &quick());
-    let (Some(pass), Some(select), Some(sun), Some(total)) = (
+    // The four passes are added frame by frame and then ranked, so the total
+    // is the frame's own cost and not the sum of four separately ranked tails.
+    let report = Report::measured(hardware(), &steady()).with_passes(
+        &steady(),
+        &quick(),
+        &quick(),
+        &quick(),
+    );
+    let (Some(pass), Some(select), Some(sun), Some(surfaced), Some(total)) = (
         report.p50_ms(),
         report.selection_p50_ms(),
         report.shadow_p50_ms(),
+        report.surfacing_p50_ms(),
         report.total_p50_ms(),
     ) else {
         panic!("a valid session reported no numbers");
     };
     assert!(
-        (total - (pass + select + sun)).abs() < 1e-9,
-        "{pass} ms, {select} ms and {sun} ms were reported together as {total} ms"
+        (total - (pass + select + sun + surfaced)).abs() < 1e-9,
+        "{pass}, {select}, {sun} and {surfaced} ms were reported together as {total} ms"
     );
     assert!(report.shadow_p95_ms().unwrap() >= sun);
 }
@@ -191,7 +199,7 @@ fn nothing_a_session_did_not_earn_reaches_a_record() {
     ] {
         let name = invalid.verdict().name().to_owned();
         let json = invalid
-            .with_passes(&steady(), &quick(), &quick())
+            .with_passes(&steady(), &quick(), &quick(), &quick())
             .with_levels(&[0.004, 0.001], &frames())
             .with_casters(123, 456)
             .to_json();
@@ -208,15 +216,23 @@ fn nothing_a_session_did_not_earn_reaches_a_record() {
     // A pass that never ran resolves to a pair of zeroes, and a zero is not a
     // duration: a valid frame does not lend it its verdict, and a pass that did
     // run keeps the number it earned.
-    let unrun =
-        Report::measured(hardware(), &steady()).with_passes(&steady(), &vec![0.0; 120], &quick());
+    let unrun = Report::measured(hardware(), &steady()).with_passes(
+        &steady(),
+        &vec![0.0; 120],
+        &quick(),
+        &quick(),
+    );
     assert_eq!(unrun.selection_p50_ms(), None);
     assert_eq!(unrun.total_p50_ms(), None);
     assert!(unrun.shadow_p50_ms().is_some(), "the sun's pass was timed");
     assert!(unrun.verdict().is_valid(), "the frame itself was measured");
 
-    let unlit =
-        Report::measured(hardware(), &steady()).with_passes(&steady(), &quick(), &vec![0.0; 120]);
+    let unlit = Report::measured(hardware(), &steady()).with_passes(
+        &steady(),
+        &quick(),
+        &vec![0.0; 120],
+        &quick(),
+    );
     assert_eq!(unlit.shadow_p50_ms(), None);
     assert_eq!(unlit.total_p50_ms(), None);
     assert!(unlit.selection_p50_ms().is_some(), "selection was timed");

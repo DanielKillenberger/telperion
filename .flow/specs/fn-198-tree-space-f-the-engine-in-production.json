@@ -8,7 +8,10 @@
   "default_sync": null,
   "depends_on_epics": [
     "fn-197-tree-space-e-light-and-the-carbon",
-    "fn-199-tree-space-relays-change-the-tree-by"
+    "fn-199-tree-space-relays-change-the-tree-by",
+    "fn-208-tree-space-f3-wood-surfaced-on-the-gpu",
+    "fn-209-tree-space-f1-trees-resolved-on-demand",
+    "fn-210-tree-space-f2-the-exact-speed-levers"
   ],
   "id": "fn-198-tree-space-f-the-engine-in-production",
   "impl_review_rounds": {},
@@ -31,5 +34,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T14:57:21.263770Z"
+  "updated_at": "2026-10-05T13:06:51.888561Z"
 }

@@ -1,0 +1,75 @@
+diff --git i/crates/telperion-render/src/shaders/wood.wgsl w/crates/telperion-render/src/shaders/wood.wgsl
+index db3fe3ee..edacad2c 100644
+--- i/crates/telperion-render/src/shaders/wood.wgsl
++++ w/crates/telperion-render/src/shaders/wood.wgsl
+@@ -218,6 +218,12 @@ fn bark_light(n: vec3<f32>, height: f32, spread: f32, world: vec3<f32>, shadow:
+         + sun * mirrored.x * mirrored.y * cavity_weight) * contact;
+ }
+ 
++// How flat the box-filtered relief must lie across a pixel, as a share of its
++// amplitude, for one shading cell to stand for the pixel's quadrature: a
++// smooth feature spanning four pixels bends by about a sixteenth of its
++// height across one, and half that is kept as the margin (fn-208).
++const FLAT: f32 = 1.0 / 64.0;
++
+ @fragment
+ fn fragment(in: Varying) -> @location(0) vec4<f32> {
+     let base_normal = normalize(in.normal);
+@@ -379,6 +385,41 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
+             variance, appearance, colour_range, vec3<f32>(orientation, own, 1.0),
+             surface_colour)), 1.0);
+     }
++    // One cell where the pixel itself resolves the relief (fn-208, host
++    // decision 11). The quadrature below integrates lighting across relief
++    // the pixel cannot resolve; where the box-filtered field is nearly flat
++    // across the pixel - its centre within FLAT of the relief's amplitude of
++    // its corners' mean, as a feature spanning four pixels or more is -
++    // lighting is nearly linear across it and one normal shades it. A
++    // sub-pixel furrow's V is curved across the pixel and keeps its cells.
++    // Read at the cells' own footprint, so these five are lattice points the
++    // quadrature below reuses when the test fails.
++    let one = cell_footprint;
++    var corner = vec4(0.0);
++    for (var k = 0; k < 4; k++) {
++        let offset = vec2(f32(k % 2), f32(k / 2)) - 0.5;
++        let coord = surface + offset.x * sx + offset.y * sy;
++        let circle_there = normalize(coord.yz);
++        var groove_there = groove;
++        if (own_groove) {
++            groove_there = bark_groove(circle_there, coord.x, in.radius, one);
++        }
++        corner[k] = bark_height(circle_there, coord.x, in.radius, one, groove_there);
++    }
++    let middle = bark_height(seen, surface.x, in.radius, one, groove);
++    // Both diagonals' second differences, so a crease along either one is seen.
++    let bend = max(abs(2.0 * middle - corner.x - corner.w), abs(2.0 * middle - corner.y - corner.z));
++    if (bend <= FLAT * colour_range.y) {
++        let step = 0.5 * vec2(corner.y + corner.w - corner.x - corner.z,
++            corner.z + corner.w - corner.x - corner.y);
++        let n = relief_normal(base_normal, in.world, dx, dy, step.x + grain.y, step.y + grain.z);
++        let spread = 0.5 * length(step) / max(colour_range.y, 1e-10);
++        let direct = bark_shade(surface, sx, sy, base_normal, dx, dy, in.radius, one, middle,
++            colour_range.y, groove);
++        return vec4<f32>(tone(bark_light(n, dot(corner, vec4(0.25)), spread, in.world, shadow,
++            variance, appearance, colour_range, vec3<f32>(orientation, own, direct),
++            surface_colour)), 1.0);
++    }
+     // The cells share a lattice of heights, each read at the cell's footprint.
+     let side = cells + vec2(1);
+     var heights: array<f32, 25>;
+@@ -386,6 +427,15 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
+         for (var x = 0; x < side.x; x++) {
+             let coord = surface + (f32(x) / f32(cells.x) - 0.5) * sx
+                 + (f32(y) / f32(cells.y) - 0.5) * sy;
++            let edge = vec2(x == 0 || x == cells.x, y == 0 || y == cells.y);
++            if (all(edge)) {
++                heights[y * side.x + x] = corner[u32(x / cells.x) + 2u * u32(y / cells.y)];
++                continue;
++            }
++            if (x * 2 == cells.x && y * 2 == cells.y) {
++                heights[y * side.x + x] = middle;
++                continue;
++            }
+             let circle_there = normalize(coord.yz);
+             var groove_there = groove;
+             if (own_groove) {

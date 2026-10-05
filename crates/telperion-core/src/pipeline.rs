@@ -42,6 +42,8 @@ pub enum Schedule {
 #[derive(Debug, Clone, Copy)]
 pub struct Request {
     pub wood: bool,
+    /// The wood as curves, which the renderer surfaces (fn-208).
+    pub curve: bool,
     pub leaves: bool,
     /// A field at the family's limb order (`Some(None)`) or at a stated one.
     pub field: Option<Option<u32>>,
@@ -54,6 +56,7 @@ impl Default for Request {
     fn default() -> Self {
         Self {
             wood: false,
+            curve: false,
             leaves: false,
             field: None,
             structure: false,
@@ -63,10 +66,11 @@ impl Default for Request {
     }
 }
 impl Request {
-    /// Wood and leaves: what a tree mesh is made of.
+    /// Wood, its curve and leaves: what a tree mesh is made of.
     pub fn mesh() -> Self {
         Self {
             wood: true,
+            curve: true,
             leaves: true,
             ..Self::default()
         }
@@ -146,6 +150,8 @@ pub struct Outputs {
     pub element: Option<Element>,
     pub plan: Option<plan::Plan>,
     pub wood: Option<SurfaceMesh>,
+    #[cfg(feature = "geometry")]
+    pub curve: Option<surface::Curve>,
     pub leaves: Option<Leaves>,
     pub field: Option<Field>,
     pub structure: Option<Structure>,

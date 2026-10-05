@@ -16,12 +16,12 @@ const CANOPY: &str = include_str!("shaders/canopy.wgsl");
 /// offers, and the count the edges were judged at.
 pub const MULTISAMPLE: u32 = 4;
 
-/// How many samples a frame is actually drawn at: the multisample count where
+/// How many samples a frame is actually drawn at: the count asked for where
 /// the colour target and the depth beside it both take it, and one sample where
 /// either does not. Both have to agree, because a pass draws into the pair.
-pub fn samples(colour: bool, depth: bool) -> u32 {
+pub fn samples(colour: bool, depth: bool, count: u32) -> u32 {
     if colour && depth {
-        MULTISAMPLE
+        count
     } else {
         1
     }
@@ -108,6 +108,9 @@ pub fn lit_shader(gpu: &Gpu, label: &str, stages: &str) -> wgpu::ShaderModule {
 pub enum Depth {
     Surface,
     Behind,
+    /// A surface whose depth a prepass already wrote: it shades only where it
+    /// is the nearest, and writes nothing (fn-208, host decision 7).
+    Prepassed,
 }
 
 /// The frame's aspect, from the pixels it is drawn into. A viewport with no
@@ -167,6 +170,44 @@ pub fn pipeline(
     depth: Depth,
     label: &'static str,
 ) -> wgpu::RenderPipeline {
+    lit_pipeline(
+        gpu,
+        bind_group_layouts,
+        shader,
+        surface,
+        buffers,
+        depth,
+        Stage::LIT,
+        label,
+    )
+}
+
+/// The entry points a pipeline draws through.
+#[derive(Debug, Clone, Copy)]
+pub struct Stage {
+    pub vertex: &'static str,
+    pub fragment: &'static str,
+}
+
+impl Stage {
+    pub const LIT: Self = Self {
+        vertex: "vertex",
+        fragment: "fragment",
+    };
+}
+
+/// The lit pipeline shape through the given entry points.
+#[allow(clippy::too_many_arguments)]
+pub fn lit_pipeline(
+    gpu: &Gpu,
+    bind_group_layouts: &[Option<&wgpu::BindGroupLayout>],
+    shader: &wgpu::ShaderModule,
+    surface: Surface,
+    buffers: &[Option<wgpu::VertexBufferLayout<'_>>],
+    depth: Depth,
+    stage: Stage,
+    label: &'static str,
+) -> wgpu::RenderPipeline {
     let layout = gpu
         .device
         .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -180,13 +221,13 @@ pub fn pipeline(
             layout: Some(&layout),
             vertex: wgpu::VertexState {
                 module: shader,
-                entry_point: Some("vertex"),
+                entry_point: Some(stage.vertex),
                 compilation_options: Default::default(),
                 buffers,
             },
             fragment: Some(wgpu::FragmentState {
                 module: shader,
-                entry_point: Some("fragment"),
+                entry_point: Some(stage.fragment),
                 compilation_options: Default::default(),
                 targets: &[Some(surface.format.into())],
             }),
@@ -200,12 +241,74 @@ pub fn pipeline(
                 depth_compare: Some(match depth {
                     Depth::Surface => wgpu::CompareFunction::Less,
                     Depth::Behind => wgpu::CompareFunction::Always,
+                    Depth::Prepassed => wgpu::CompareFunction::LessEqual,
                 }),
                 stencil: Default::default(),
                 bias: Default::default(),
             }),
             multisample: wgpu::MultisampleState {
                 count: surface.samples,
+                alpha_to_coverage_enabled: false,
+                ..Default::default()
+            },
+            multiview_mask: None,
+            cache: None,
+        })
+}
+
+/// The depth prepass: a lit shader's own vertex stage and its empty
+/// `depth_only` fragment, writing depth and no colour, at the frame's sample
+/// count, so the lit pass after it shades each pixel once (fn-208).
+pub fn prepass_pipeline(
+    gpu: &Gpu,
+    bind_group_layouts: &[Option<&wgpu::BindGroupLayout>],
+    shader: &wgpu::ShaderModule,
+    surface: Surface,
+    buffers: &[Option<wgpu::VertexBufferLayout<'_>>],
+    stage: Stage,
+    label: &'static str,
+) -> wgpu::RenderPipeline {
+    let layout = gpu
+        .device
+        .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some(label),
+            bind_group_layouts,
+            immediate_size: 0,
+        });
+    gpu.device
+        .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some(label),
+            layout: Some(&layout),
+            vertex: wgpu::VertexState {
+                module: shader,
+                entry_point: Some(stage.vertex),
+                compilation_options: Default::default(),
+                buffers,
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: shader,
+                entry_point: Some(stage.fragment),
+                compilation_options: Default::default(),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: surface.format,
+                    blend: None,
+                    write_mask: wgpu::ColorWrites::empty(),
+                })],
+            }),
+            primitive: wgpu::PrimitiveState {
+                cull_mode: None,
+                ..Default::default()
+            },
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: DEPTH_FORMAT,
+                depth_write_enabled: Some(true),
+                depth_compare: Some(wgpu::CompareFunction::Less),
+                stencil: Default::default(),
+                bias: Default::default(),
+            }),
+            multisample: wgpu::MultisampleState {
+                count: surface.samples,
+                alpha_to_coverage_enabled: false,
                 ..Default::default()
             },
             multiview_mask: None,
@@ -279,9 +382,9 @@ mod tests {
 
     #[test]
     fn a_target_that_will_not_multisample_takes_the_whole_frame_down_to_one_sample() {
-        assert_eq!(samples(true, true), MULTISAMPLE);
-        assert_eq!(samples(false, true), 1);
-        assert_eq!(samples(true, false), 1);
-        assert_eq!(samples(false, false), 1);
+        assert_eq!(samples(true, true, MULTISAMPLE), MULTISAMPLE);
+        assert_eq!(samples(false, true, MULTISAMPLE), 1);
+        assert_eq!(samples(true, false, MULTISAMPLE), 1);
+        assert_eq!(samples(false, false, MULTISAMPLE), 1);
     }
 }

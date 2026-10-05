@@ -14,6 +14,8 @@ mod build;
 #[doc(hidden)]
 pub mod compact;
 #[cfg(feature = "geometry")]
+mod curve;
+#[cfg(feature = "geometry")]
 mod frames;
 #[cfg(feature = "geometry")]
 mod normals;
@@ -40,9 +42,18 @@ use build::*;
 #[cfg(feature = "geometry")]
 pub(crate) use build::{faces, Faces};
 #[cfg(feature = "geometry")]
+pub(crate) use curve::curve;
+#[cfg(feature = "geometry")]
+pub use curve::{
+    Curve, CurveCluster, CurvePoint, CurveRun, Demand, PackedPoint, Tessellation, CLUSTER_WORDS, SECTION_FLOATS, Viewer, Budget, RIBBON, SCALES, CLUSTER, LEVELS,
+    POINT_WORDS,
+};
+#[cfg(feature = "geometry")]
 pub(crate) use rings::{rings, Rings, Sweep};
 #[cfg(feature = "geometry")]
-use rings::{Resweep, Swept};
+use rings::Resweep;
+#[cfg(all(feature = "geometry", target_os = "linux", target_arch = "x86_64"))]
+use rings::Swept;
 #[cfg(feature = "geometry")]
 use {
     crate::{math::Transcendental, tree::Tree},

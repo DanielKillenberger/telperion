@@ -145,10 +145,7 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
             )
             .unwrap()
         );
-        let wood = pollster::block_on(generator.expand_uploaded_wood(uploaded, &mut metrics))
-            .unwrap()
-            .unwrap();
-        assert_eq!(wood.positions.buffer(), &positions);
+        assert_eq!(&uploaded.positions, &positions);
 
         // The pipeline's CPU leaves on the same tree, and before the cull
         // (a shell of one keeps every leaf).
@@ -268,14 +265,8 @@ fn foreign_prepared_result_preserves_the_live_tree() {
     destination.submit(&mesh).unwrap();
     let previous = destination.bounds();
     let previous_region = destination.foliage_region();
-    let generator = Generator::new(&source).unwrap();
-    let x = executor::expand(tree.clone(), &f).unwrap();
-    let compact = x.prepared_wood().unwrap().unwrap();
-    let wood = pollster::block_on(generator.expand_wood(compact, &mut Metrics::default())).unwrap();
-    assert!(wood.is_some());
-    let previous_wood = destination.wood.regions();
+    let previous_wood = destination.wood.allocated_bytes();
     let prepared = Prepared {
-        wood,
         identity: source.identity.clone(),
         mesh,
         resident: None,
@@ -288,7 +279,7 @@ fn foreign_prepared_result_preserves_the_live_tree() {
             telperion_core::Error::InvalidInput("generation renderer mismatch")
         ))
     ));
-    assert_eq!(destination.wood.regions(), previous_wood);
+    assert_eq!(destination.wood.allocated_bytes(), previous_wood);
     assert_eq!(destination.bounds(), previous);
     assert_eq!(destination.foliage_region(), previous_region);
 }
@@ -485,20 +476,20 @@ fn compact_positions_seat_contacts_on_the_rendered_surface() {
     .unwrap();
     actual.validate().unwrap();
     assert!(!actual.is_empty());
-    let wood = pollster::block_on(g.expand_uploaded_wood(wood, &mut metrics))
-        .unwrap()
-        .unwrap();
-    assert_eq!(wood.positions.buffer(), &positions);
-    let xyz: Vec<f32> = io::read(&g.gpu, &positions, wood.vertices as u64 * 12)
-        .unwrap()
-        .chunks_exact(4)
-        .map(|b| f32::from_le_bytes(b.try_into().unwrap()))
-        .collect();
-    let indices: Vec<u32> = io::read(&g.gpu, wood.indices.buffer(), wood.index_count as u64 * 4)
-        .unwrap()
-        .chunks_exact(4)
-        .map(|b| u32::from_le_bytes(b.try_into().unwrap()))
-        .collect();
+    assert_eq!(&wood.positions, &positions);
+    // The contacts against the reference build's surface: the GPU's ring
+    // positions read back, under the CPU's triangles.
+    let reference_wood = x.wood().unwrap();
+    let xyz: Vec<f32> = io::read(
+        &g.gpu,
+        &positions,
+        reference_wood.positions.len() as u64 * 4,
+    )
+    .unwrap()
+    .chunks_exact(4)
+    .map(|b| f32::from_le_bytes(b.try_into().unwrap()))
+    .collect();
+    let indices = reference_wood.indices;
     let point = |i: u32| {
         Vec3::new(
             xyz[i as usize * 3] as f64,
@@ -621,7 +612,7 @@ fn late_station_capability_and_error_join_positions_before_reusing_generator() {
             assert!(!p.metrics.gpu_positions);
             assert_eq!(p.metrics.position_retained_metadata_bytes, 0);
             assert!(p.metrics.position_gpu_peak_bytes > 0);
-            assert!(p.resident.is_none() && p.wood.is_none());
+            assert!(p.resident.is_none());
         }
         let p = g.prepare(&f, Delivery::Resident).unwrap();
         assert!(p.metrics.gpu_positions);

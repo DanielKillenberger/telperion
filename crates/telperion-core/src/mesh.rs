@@ -15,11 +15,16 @@ pub struct Foliage {
     pub instances: foliage::Instances,
 }
 
-/// Everything a renderer needs for one tree: wood as an indexed surface,
-/// foliage as one element plus its instances, and the union bounds.
+/// Everything a renderer needs for one tree: the wood as curves, which the
+/// renderer surfaces at the screen's error (fn-208), foliage as one element
+/// plus its instances, and the union bounds. `wood` is the same wood as the
+/// pipeline's CPU reference build, an indexed surface, for consumers without
+/// a GPU.
 #[derive(Debug)]
 pub struct TreeMesh {
     pub wood: SurfaceMesh,
+    #[cfg(feature = "geometry")]
+    pub curve: crate::surface::Curve,
     pub foliage: Foliage,
     pub bounds: Bounds,
 }
@@ -90,10 +95,16 @@ pub(crate) fn assembled(outputs: pipeline::Outputs) -> Result<TreeMesh> {
     else {
         return Err(missing);
     };
+    #[cfg(feature = "geometry")]
+    let curve = outputs
+        .curve
+        .ok_or(Error::InvalidInput("mesh needs the wood's curve"))?;
     let bounds = union(wood.bounds, leaves.bounds.map(Bounds::from))
         .ok_or(Error::InvalidInput("mesh has no geometry"))?;
     Ok(TreeMesh {
         wood,
+        #[cfg(feature = "geometry")]
+        curve,
         foliage: Foliage {
             element,
             instances: leaves.instances,

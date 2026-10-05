@@ -7,11 +7,10 @@ mod data;
 mod io;
 mod positions;
 mod preparation;
-mod submit;
-mod wood;
-use wood::ResidentWood;
 #[cfg(any(target_arch = "wasm32", test))]
 pub(crate) mod request;
+mod submit;
+mod wood;
 use crate::{buffer::Held, Gpu, Renderer, Result, Submitted};
 use std::sync::Arc;
 use telperion_core::{
@@ -108,7 +107,6 @@ pub struct Prepared {
     identity: Arc<()>,
     mesh: TreeMesh,
     resident: Option<Resident>,
-    wood: Option<ResidentWood>,
     pub backend: Backend,
     pub metrics: Metrics,
 }
@@ -118,18 +116,12 @@ impl Prepared {
             .as_ref()
             .map_or(self.mesh.foliage_instances(), |r| r.count as usize)
     }
-    pub fn wood_vertices(&self) -> usize {
-        self.wood
-            .as_ref()
-            .map_or(self.mesh.wood_vertices(), |w| w.vertices)
-    }
-    pub fn wood_triangles(&self) -> usize {
-        self.wood
-            .as_ref()
-            .map_or(self.mesh.wood_triangles(), |w| w.index_count as usize / 3)
-    }
     pub fn bounds(&self) -> Bounds {
         self.mesh.bounds
+    }
+    /// The wood's curve, which the renderer surfaces.
+    pub fn curve(&self) -> &telperion_core::surface::Curve {
+        &self.mesh.curve
     }
     pub fn cpu_mesh(&self) -> Option<&TreeMesh> {
         self.resident.is_none().then_some(&self.mesh)
@@ -144,7 +136,6 @@ pub struct Generator {
     place: io::Pass,
     compact: io::Pass,
     mass: io::Pass,
-    wood: Option<io::Pass>,
     positions: Option<io::Pass>,
 }
 impl Generator {
@@ -199,18 +190,6 @@ impl Generator {
             &[true, false, false],
             &["occupancy", "depth"],
         );
-        let wood = resident_allowed.then(|| {
-            io::Pass::new(
-                &gpu,
-                format!(
-                    "{}\n{}",
-                    include_str!("generation/wood.wgsl"),
-                    include_str!("generation/wood_geometry.wgsl")
-                ),
-                &[true, true, false, false, false, false, false],
-                &["expand"],
-            )
-        });
         let positions = resident_allowed.then(|| {
             io::Pass::new(
                 &gpu,
@@ -231,7 +210,6 @@ impl Generator {
             place,
             compact,
             mass,
-            wood,
             positions,
         })
     }
@@ -300,23 +278,6 @@ mod tests;
 
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod readback_tests;
-
-#[cfg(all(test, not(target_arch = "wasm32")))]
-mod wood_tests;
-
-/// A hand-built tree prepared through the interface for its wood alone: a
-/// family whose envelope stands `height` tall and whose surface is `params`.
-#[cfg(test)]
-fn expanded(
-    tree: &telperion_core::tree::Tree,
-    height: f64,
-    params: &telperion_core::surface::SurfaceParams,
-) -> executor::Expansion {
-    let mut f = Family::default();
-    f.skeleton.envelope.height = height;
-    f.surface = *params;
-    executor::expand(tree.clone(), &f).unwrap()
-}
 
 /// Match the integration tests: unavailable hardware is explicit, while a
 /// device that exists but fails for another reason still fails the test.

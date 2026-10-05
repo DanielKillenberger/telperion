@@ -4,7 +4,7 @@ use telperion_core::{
     foliage::Leaf,
     math::Vec3,
     mesh::{Foliage, TreeMesh},
-    surface::Bounds,
+    surface::{Bounds, CLUSTER_WORDS, POINT_WORDS, SECTION_FLOATS},
 };
 
 use crate::{
@@ -51,19 +51,6 @@ pub fn fits(limits: &wgpu::Limits, mesh: &TreeMesh) -> Result<()> {
 }
 
 pub(crate) fn fits_count(limits: &wgpu::Limits, mesh: &TreeMesh, instances: usize) -> Result<()> {
-    fits_wood_counts(limits, mesh, instances, None)
-}
-pub(crate) fn fits_wood_counts(
-    limits: &wgpu::Limits,
-    mesh: &TreeMesh,
-    instances: usize,
-    resident: Option<(usize, u32, &[telperion_core::surface::SurfaceRun])>,
-) -> Result<()> {
-    let (vertices, index_count, runs) = resident.map(|(v, i, r)| (v, i as usize, r)).unwrap_or((
-        mesh.wood.positions.len() / 3,
-        mesh.wood.indices.len(),
-        &mesh.wood.run_table,
-    ));
     let bytes = |count: usize, width: usize| (count * width) as u64;
     let element = &mesh.foliage.element;
     // Selection reads the placements and writes the lists through storage
@@ -76,36 +63,25 @@ pub(crate) fn fits_wood_counts(
         element.levels.len(),
         u64::from(limits.min_storage_buffer_offset_alignment),
     );
+    // The curve's points are bound in two slices of at most WebGPU's default
+    // binding, its clusters and cells in one (fn-208, host decision 21).
+    let curve = &mesh.curve;
+    let binding = crate::curve::BINDING.min(stored);
     let payloads = [
         (
-            "wood positions",
-            bytes(
-                resident.map_or(mesh.wood.positions.len(), |_| vertices * 3),
-                4,
-            ),
-            limits.max_buffer_size,
+            "wood points",
+            bytes(curve.points.len(), 4 * POINT_WORDS),
+            2 * binding,
         ),
         (
-            "wood normals",
-            bytes(
-                resident.map_or(mesh.wood.normals.len(), |_| vertices * 3),
-                4,
-            ),
-            limits.max_buffer_size,
+            "wood clusters",
+            bytes(curve.clusters.len(), 4 * CLUSTER_WORDS),
+            binding,
         ),
         (
-            "wood coordinates",
-            bytes(resident.map_or(mesh.wood.coords.len(), |_| vertices * 2), 4),
-            limits.max_buffer_size,
-        ),
-        ("wood radii", bytes(vertices, 4), stored),
-        (
-            "wood indices",
-            bytes(
-                resident.map_or(mesh.wood.indices.len(), |_| index_count as usize),
-                4,
-            ),
-            limits.max_buffer_size,
+            "wood cells",
+            bytes(curve.sections.len(), 4 * SECTION_FLOATS),
+            binding,
         ),
         (
             "foliage level indices",
@@ -125,8 +101,8 @@ pub(crate) fn fits_wood_counts(
     for (buffer, payload, limit) in payloads {
         // The allocation is judged, not the payload: buffers are taken with
         // headroom, and the headroom is what the device has to grant.
-        let wanted = if resident.is_some() && buffer.starts_with("wood ") {
-            payload.max(16)
+        let wanted = if buffer.starts_with("wood ") {
+            payload
         } else {
             Region::capacity_for(payload)
         };
@@ -146,37 +122,6 @@ pub(crate) fn fits_wood_counts(
             levels: element.levels.len(),
             limit: MAX_LEVELS,
         });
-    }
-    // Runs remain host-side. Reject malformed spans before any GPU upload.
-    let mut end = 0u32;
-    let mut radius = f64::INFINITY;
-    for run in runs {
-        if run.first_index != end
-            || run.index_count == 0
-            || run.index_count % 3 != 0
-            || !run.largest_radius.is_finite()
-            || run.largest_radius < 0.0
-            || run.largest_radius > radius
-        {
-            return Err(telperion_core::Error::InvalidInput(
-                "wood run: non-contiguous span or unordered radius",
-            )
-            .into());
-        }
-        end = end
-            .checked_add(run.index_count)
-            .ok_or(telperion_core::Error::InvalidInput(
-                "wood run: index span overflow",
-            ))?;
-        radius = run.largest_radius;
-    }
-    if end as usize != index_count
-        || (resident.is_none() && mesh.wood.run_table.len() != mesh.wood.runs)
-    {
-        return Err(telperion_core::Error::InvalidInput(
-            "wood run: spans must cover the index buffer exactly",
-        )
-        .into());
     }
     Ok(())
 }

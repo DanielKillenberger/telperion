@@ -61,6 +61,7 @@ fn lobes() -> TreeMesh {
     }
     TreeMesh {
         wood: SurfaceMesh::default(),
+        curve: Default::default(),
         foliage: Foliage { element, instances },
         bounds: Bounds {
             min: Vec3::new(-1.2, 0.8, -1.2),

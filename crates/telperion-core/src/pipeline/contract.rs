@@ -68,6 +68,11 @@ pub mod surface {
         Bounds, SurfaceMesh, SurfaceParams, SurfaceRun, WoodExtent,
     };
     #[cfg(feature = "geometry")]
+    pub use crate::pipeline::surface::{
+        Curve, CurveCluster, CurvePoint, CurveRun, Demand, PackedPoint, Tessellation, CLUSTER_WORDS, SECTION_FLOATS, Viewer, Budget, RIBBON, SCALES, CLUSTER,
+        LEVELS, POINT_WORDS,
+    };
+    #[cfg(feature = "geometry")]
     pub mod compact {
         #[cfg(test)]
         pub use crate::pipeline::surface::compact::*;

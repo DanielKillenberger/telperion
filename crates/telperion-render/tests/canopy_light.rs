@@ -93,6 +93,7 @@ fn shell() -> TreeMesh {
     let reach = RADIUS + 0.2;
     TreeMesh {
         wood: SurfaceMesh::default(),
+        curve: Default::default(),
         foliage: Foliage { element, instances },
         bounds: Bounds {
             min: CENTRE - Vec3::new(reach, reach, reach),

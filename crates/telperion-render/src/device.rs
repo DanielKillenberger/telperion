@@ -234,10 +234,8 @@ impl Gpu {
     /// optional per format, and a device without it draws the same picture
     /// with harder edges.
     pub fn supports_samples(&self, format: wgpu::TextureFormat, samples: u32) -> bool {
-        self.source
-            .get_texture_format_features(format)
-            .flags
-            .sample_count_supported(samples)
+        let adapter = self.source.get_texture_format_features(format).flags;
+        sample_count_granted(adapter, self.device.features(), format, samples)
     }
 
     pub(crate) fn shadow_filter(&self) -> wgpu::FilterMode {
@@ -321,5 +319,39 @@ mod tests {
         let error = RenderError::from(telperion_core::Error::InvalidInput("surface parameters"));
         assert!(error.to_string().contains("surface parameters"));
         assert!(std::error::Error::source(&error).is_some());
+    }
+}
+
+/// Whether a device with these features may draw `format` at `samples`: the
+/// adapter's own counts only where the device was granted the adapter's
+/// format features, and WebGPU's guaranteed ones otherwise (fn-208: the
+/// adapter offered 8 and the device refused it).
+fn sample_count_granted(
+    adapter: wgpu::TextureFormatFeatureFlags,
+    device: wgpu::Features,
+    format: wgpu::TextureFormat,
+    samples: u32,
+) -> bool {
+    let flags = if device.contains(wgpu::Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES) {
+        adapter
+    } else {
+        format.guaranteed_format_features(device).flags
+    };
+    flags.sample_count_supported(samples)
+}
+
+#[cfg(test)]
+mod sample_tests {
+    use super::sample_count_granted;
+    use wgpu::{Features, TextureFormat, TextureFormatFeatureFlags as Flags};
+
+    #[test]
+    fn an_adapters_eight_samples_are_not_the_devices_without_its_format_features() {
+        let adapter = Flags::MULTISAMPLE_X2 | Flags::MULTISAMPLE_X4 | Flags::MULTISAMPLE_X8;
+        let format = TextureFormat::Rgba8UnormSrgb;
+        assert!(!sample_count_granted(adapter, Features::empty(), format, 8));
+        assert!(sample_count_granted(adapter, Features::empty(), format, 4));
+        let granted = Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES;
+        assert!(sample_count_granted(adapter, granted, format, 8));
     }
 }

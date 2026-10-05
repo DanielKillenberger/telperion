@@ -60,10 +60,14 @@ fn every_preset_has_default_casters_fixed_under_orbit_and_row_changes() {
         let tree = mesh::build(&preset.parameters()).unwrap();
         renderer.set_scene(SceneRow::default());
         renderer.submit(&tree).unwrap();
+        let camera = hero_pose(renderer.bounds().unwrap(), 1.0, GROUND_REACH);
+        // The sun's wood is surfaced each frame at its own texels' error
+        // (fn-208), so it is counted after a frame, and the camera's orbit
+        // does not move it.
+        render(&mut renderer, &camera, 32, 32).unwrap();
         let counts = (renderer.caster_triangles(), renderer.caster_instances());
         assert!(counts.0 > 0 && counts.1 > 0, "{preset:?}: {counts:?}");
         assert_eq!(counts.1, (tree.foliage_instances() as u32).div_ceil(4));
-        let camera = hero_pose(renderer.bounds().unwrap(), 1.0, GROUND_REACH);
         for turn in [0.0, 0.25] {
             let camera = telperion_render::orbit_pose(&camera, turn);
             render(&mut renderer, &camera, 32, 32).unwrap();
@@ -73,16 +77,14 @@ fn every_preset_has_default_casters_fixed_under_orbit_and_row_changes() {
             );
         }
         renderer.set_scene(SceneRow {
-            caster_texels: 0.0,
             caster_stride: 1.0,
             ..Default::default()
         });
-        assert_eq!(
-            renderer.caster_triangles(),
-            tree.wood.indices.len() as u32 / 3
-        );
+        render(&mut renderer, &camera, 32, 32).unwrap();
+        assert_eq!(renderer.caster_triangles(), counts.0);
         assert_eq!(renderer.caster_instances(), tree.foliage_instances() as u32);
         renderer.set_scene(SceneRow::default());
+        render(&mut renderer, &camera, 32, 32).unwrap();
         assert_eq!(
             (renderer.caster_triangles(), renderer.caster_instances()),
             counts
@@ -150,13 +152,6 @@ fn full_casters_cover_at_least_the_default_on_separated_surfaces() {
         covered(&renderer.shadow_depths().unwrap())
     };
     let whole = share(View::Whole, SceneRow::default());
-    let all_wood = share(
-        View::Whole,
-        SceneRow {
-            caster_texels: 0.0,
-            ..Default::default()
-        },
-    );
     let all_foliage = share(
         View::Whole,
         SceneRow {
@@ -164,7 +159,6 @@ fn full_casters_cover_at_least_the_default_on_separated_surfaces() {
             ..Default::default()
         },
     );
-    assert!(all_wood >= whole, "full wood {all_wood} < default {whole}");
     assert!(
         all_foliage >= whole,
         "full foliage {all_foliage} < default {whole}"
@@ -182,26 +176,16 @@ fn full_casters_cover_at_least_the_default_on_separated_surfaces() {
     });
     assert_eq!(renderer.caster_instances(), 4);
 
-    // A real, uniformly shrunken wood surface under this wide fit has no run
-    // above an in-range threshold. Empty draws must leave a clear map.
-    for radius in &mut tree.wood.run_table {
-        radius.largest_radius *= 1e-4;
-    }
-    for coordinate in &mut tree.wood.positions {
-        *coordinate *= 1e-4;
-    }
-    if let Some(bounds) = &mut tree.wood.bounds {
-        bounds.min = bounds.min * 1e-4;
-        bounds.max = bounds.max * 1e-4;
-    }
+    // No wood and no leaves the stride keeps: empty draws must leave a
+    // clear map.
+    tree.curve = Default::default();
     renderer.set_scene(SceneRow {
-        caster_texels: 8.0,
         caster_stride: 64.0,
         ..Default::default()
     });
     renderer.submit(&tree).unwrap();
+    render(&mut renderer, &camera, 32, 32).unwrap();
     assert_eq!(renderer.caster_triangles(), 0);
     assert_eq!(renderer.caster_instances(), 0);
-    render(&mut renderer, &camera, 32, 32).unwrap();
     assert_eq!(covered(&renderer.shadow_depths().unwrap()), 0.0);
 }

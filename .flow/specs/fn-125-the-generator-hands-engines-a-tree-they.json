@@ -8,7 +8,8 @@
   "default_sync": null,
   "depends_on_epics": [
     "fn-102-one-build-pipeline-in-place-of-the",
-    "fn-134-the-bark-rings-are-a-plan-artifact"
+    "fn-134-the-bark-rings-are-a-plan-artifact",
+    "fn-198-tree-space-f-the-engine-in-production"
   ],
   "id": "fn-125-the-generator-hands-engines-a-tree-they",
   "impl_review_rounds": {},
@@ -87,5 +88,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T15:24:04.593149Z"
+  "updated_at": "2026-10-05T13:06:52.470591Z"
 }

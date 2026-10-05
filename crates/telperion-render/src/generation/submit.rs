@@ -8,36 +8,12 @@ impl Renderer {
             return Err(error);
         }
         let count = prepared.count();
-        crate::submit::fits_wood_counts(
-            &self.gpu.device.limits(),
-            &prepared.mesh,
-            count,
-            prepared
-                .wood
-                .as_ref()
-                .map(|w| (w.vertices, w.index_count, w.runs.as_slice())),
-        )?;
+        crate::submit::fits_count(&self.gpu.device.limits(), &prepared.mesh, count)?;
         let Some(resident) = prepared.resident else {
             return self.submit(&prepared.mesh);
         };
         let mesh = prepared.mesh;
-        let (wood_vertices, wood_triangles) = if let Some(wood) = prepared.wood {
-            let counts = (wood.vertices, wood.index_count as usize / 3);
-            self.wood.submit_resident(
-                &self.gpu,
-                wood.positions,
-                wood.normals,
-                wood.coords,
-                wood.indices,
-                wood.radii,
-                wood.index_count,
-                wood.runs,
-            );
-            counts
-        } else {
-            self.wood.submit(&self.gpu, &mesh.wood);
-            (mesh.wood_vertices(), mesh.wood_triangles())
-        };
+        self.wood.submit(&self.gpu, &mesh.curve);
         self.foliage.submit_resident(
             &self.gpu,
             &mesh.foliage.element,
@@ -53,7 +29,6 @@ impl Renderer {
             .set_leaf_reference(mesh.foliage.instances.reference);
         self.scene.section_roundness = mesh.foliage.element.section_roundness;
         self.bounds = Some(mesh.bounds);
-        self.set_casters();
         self.level_deviations = mesh
             .foliage
             .element
@@ -62,8 +37,8 @@ impl Renderer {
             .map(|l| l.deviation)
             .collect();
         Ok(Submitted {
-            wood_vertices,
-            wood_triangles,
+            wood_vertices: mesh.wood_vertices(),
+            wood_triangles: mesh.wood_triangles(),
             foliage_instances: count,
             bounds: mesh.bounds,
         })

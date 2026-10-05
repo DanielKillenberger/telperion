@@ -80,7 +80,14 @@ impl Frame {
 /// Renders one frame at this size and brings it back to the host.
 pub fn render(renderer: &mut Renderer, camera: &Camera, width: u32, height: u32) -> Result<Still> {
     let frame = Frame::new(renderer, "still", (width, height));
-    let stats = renderer.draw(camera, (width, height), frame.target());
+    let mut stats = renderer.draw(camera, (width, height), frame.target());
+    // The wood's triangles are the device's own count: a still reads them
+    // back, where a frame never waits for them (fn-208).
+    if renderer.view() != crate::View::Leaf {
+        if let Some(wood) = renderer.curve_report() {
+            stats.triangles += wood.tube_triangles + wood.ribbon_triangles;
+        }
+    }
 
     // Rows land in the readback buffer padded to the copy alignment; the
     // padding is stripped on the way into the still.

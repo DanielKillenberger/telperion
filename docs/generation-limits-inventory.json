@@ -1306,5 +1306,119 @@
     "site": ". max ( 1 . )",
     "classification": "algorithm",
     "reason": "The living crown's frond spacing divides its depth by the oldest frond's place on the spiral; a crown of one frond has no spacing of its own, so the skirt below it steps one full depth a frond. It does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A left-out ring is measured at its share of the distance between the rings its level keeps, which lies within that interval."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": ". max ( 1e - 12 )",
+    "classification": "numeric",
+    "reason": "Floating-point degeneracy tolerance: two kept rings at one distance along divide by no length. It does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": ". max ( 1e - 6 )",
+    "classification": "numeric",
+    "reason": "The surface step's own floor on the tree height the twist runs over, kept by the curve so its rings are the sweep's to the bit. It does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": ". max ( errors [ k - 1 ] )",
+    "classification": "algorithm",
+    "reason": "A cluster's ring-level errors are made monotone: a coarser level never claims less error than a finer one. It limits no tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": ". min ( points . len ( ) - 1 )",
+    "classification": "algorithm",
+    "reason": "A cluster ends at its run's last point; the run's points are all kept."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": "const LEVELS : usize = 6 ;",
+    "classification": "algorithm",
+    "reason": "Ring levels a cluster keeps an error for: level 5 keeps only a 32-point cluster's ends, so six levels span a whole cluster. A drawing resolution of the curve, never a limit on the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": "for k in 1 . . LEVELS {",
+    "classification": "algorithm",
+    "reason": "Fills each ring level's error; bounded by the ladder's length, not by the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": "if end + 1 > = points . len ( ) {",
+    "classification": "algorithm",
+    "reason": "Clusters tile a run to its last point and stop there; every point is in a cluster."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/pack.rs",
+    "site": ". clamp ( - 1 . 0 , 1 . 0 )",
+    "classification": "numeric",
+    "reason": "An octahedral component of a unit vector lies in [-1, 1]; the clamp only guards rounding before it is quantised to 16 bits. It does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate.rs",
+    "site": "const SCALES : [ f64 ;",
+    "classification": "algorithm",
+    "reason": "The error scales a budget may draw at (host decision 2): a frame over budget coarsens evenly and names its scale; past the last it is refused by name. It limits drawing, never the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate/plan.rs",
+    "site": ". clamp ( - 1 . 0 , 1 . 0 )",
+    "classification": "numeric",
+    "reason": "The cosine between two unit tangents is held in [-1, 1] against rounding before its arc cosine. It does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate/plan.rs",
+    "site": ". clamp ( 1 , MOST_PIECES )",
+    "classification": "algorithm",
+    "reason": "A stretch between kept rings is cut into at least one piece and at most MOST_PIECES: a drawing resolution, reached only by a stretch filling thousands of pixels; it never limits the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate/plan.rs",
+    "site": "const MOST_SIDES : u32 = 384 ;",
+    "classification": "algorithm",
+    "reason": "The most sides a ring is drawn with (3 x 2^7): at half a pixel it serves a ring over 3,500 px in radius, larger than any frame. A drawing resolution, never a limit on the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": ". min ( 2 . 0 )",
+    "classification": "algorithm",
+    "reason": "A lobed outline interpolated between two phases stands at most its full depth either side, twice the depth, off the twisted one: the ring ladder's error for twisting lobes saturates there (fn-208). It does not limit the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate/plan.rs",
+    "site": ". max ( ( chord - ( ta + tb * 2 . 0 ) * ( length / 3 . 0 ) ) . length ( ) )",
+    "classification": "algorithm",
+    "reason": "A Hermite stretch's bend is the larger of its control points' two second differences, the bound on its sag (fn-208 review). A drawing resolution, not a limit on the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate/plan.rs",
+    "site": ". max ( 0 . 0 )",
+    "classification": "numeric",
+    "reason": "A view's pixels a metre are held non-negative before their root in the demand bound. It does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate/plan.rs",
+    "site": ". max ( 6 . 0 * bent )",
+    "classification": "algorithm",
+    "reason": "A stretch is cut against the larger of its turn's sag and its cubic's control bound, so parallel end tangents on a bent stretch are still cut (fn-208 review). A drawing resolution, not a limit on the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate/plan.rs",
+    "site": ". max ( std : : f64 : : consts : : TAU * ( rho * bend / ( 8 . 0 * error ) ) . sqrt ( ) )",
+    "classification": "algorithm",
+    "reason": "A lobed ring takes the larger of its circle's sides and the sides its lobed outline's bend needs within the error (fn-208 review). A drawing resolution, not a limit on the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate/plan.rs",
+    "site": ". min ( self . stretches * MOST_PIECES as u64 )",
+    "classification": "algorithm",
+    "reason": "The demand bound never counts more pieces a stretch than the planner cuts, MOST_PIECES (fn-208, host decision 23). It sizes a view's budget; it does not limit the tree."
   }
 ]
