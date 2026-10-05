@@ -151,6 +151,8 @@ pub struct Phytomer {
     /// (`allocation.rs`): in its scale, never in what it bears. 1 where
     /// nothing shades.
     pub(crate) size: f64,
+    /// The light its bud grew in (`light.rs`): 1 where nothing shades.
+    pub(crate) light: f64,
 }
 
 #[derive(Debug, Clone, PartialEq)]

@@ -15,7 +15,7 @@ mod wake;
 use crate::dormant::{Sleeper, Woken};
 use crate::error::{refuse, Error, Result};
 use crate::geometry::{place, scale};
-use crate::girth::thicken;
+use crate::girth::{attachments, disused, thicken};
 use crate::light::Light;
 use crate::lineage::{above, below, Key, ABORTION, CONTINUATION, RELAY, VIABILITY};
 use crate::presence::{assign, Draws, Windows, SPAN};
@@ -148,18 +148,26 @@ fn run(
         grower.draws[woken.axis].birth[1] *= kept;
     }
     assign(&mut grower.axes, &grower.draws);
+    // What each shed branch had laid down, where any PA keeps it.
+    let grown = species
+        .states
+        .iter()
+        .any(|s| s.retained > 0.0)
+        .then(|| attachments(&grower.axes, species, request.age));
+    let (axes, index) = shed(grower.axes, species, request.age);
     let mut structure = Structure {
         age: request.age,
         pas: species.states.len(),
-        axes: shed(grower.axes, species, request.age),
+        axes,
     };
     if structure.phytomer_count() == 0 {
         return Err(Error::Collapsed);
     }
+    let disused = grown.map_or_else(Vec::new, |g| disused(&g, &index, species));
     scale(&mut structure, species);
     // Girth needs no geometry; placing reads it where wood meets the
     // ground.
-    thicken(&mut structure, species);
+    thicken(&mut structure, species, &disused);
     stage(Stage::Settled);
     if !lay {
         return Ok(structure);
@@ -310,6 +318,9 @@ impl Grower<'_> {
         if self.sketch.is_some() {
             let size = self.size(apex.axis);
             self.draws[apex.axis].sizes.push(size);
+            if self.species.states.iter().any(|s| s.leaf_girth > 0.0) {
+                self.draws[apex.axis].lights.push(light);
+            }
         }
         self.grow_unit(apex, pa, unit, cycle)?;
         apex.units += 1;

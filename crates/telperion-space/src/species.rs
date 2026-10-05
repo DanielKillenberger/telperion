@@ -128,6 +128,15 @@ pub struct PaState {
     /// this PA starts to be shed: its shade tolerance. Dormant without
     /// `balance_hazard`.
     pub tolerance: f64,
+    /// The share of a shed branch of this PA's pipe that stays in its
+    /// bearer's girth: Shinozaki's disused pipes, which Pałubicki (2009)
+    /// keeps whole. Neutral 0, today's.
+    pub retained: f64,
+    /// How a phytomer of this PA's own pipe follows its leaves' light:
+    /// (light / the tree's pipe-weighted mean)^χ, so limbs whose leaves
+    /// catch more light thicken and the tree's own pipe is conserved.
+    /// Neutral 0; dormant where no leaf shades.
+    pub leaf_girth: f64,
     /// How far the base of a lateral axis of this PA straightens towards
     /// the vertical, as Troll's plagiotropic axes do. Neutral 0.
     pub straightening: f64,
@@ -315,6 +324,7 @@ impl PaState {
             ("shade_size", self.shade_size, MAX_SHADE),
             ("upkeep", self.upkeep, MAX_SHADE),
             ("balance_hazard", self.balance_hazard, MAX_SHADE),
+            ("leaf_girth", self.leaf_girth, MAX_SHADE),
         ];
         for (name, value, most) in rates {
             if !(0.0..=most).contains(&value) {
@@ -330,6 +340,7 @@ impl PaState {
             ("rhythm", self.rhythm),
             ("straightening", self.straightening),
             ("apical_control", self.apical_control),
+            ("retained", self.retained),
         ];
         for (name, value) in shares {
             if !(0.0..=1.0).contains(&value) {

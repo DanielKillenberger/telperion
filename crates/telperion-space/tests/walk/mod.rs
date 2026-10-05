@@ -53,6 +53,8 @@ pub fn species() -> Species {
         upkeep: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
+        retained: 0.0,
+        leaf_girth: 0.0,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -80,6 +82,8 @@ pub fn species() -> Species {
         upkeep: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
+        retained: 0.0,
+        leaf_girth: 0.0,
         straightening: 0.3,
         form: Form::default(),
     };
@@ -111,6 +115,8 @@ pub fn species() -> Species {
         upkeep: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
+        retained: 0.0,
+        leaf_girth: 0.0,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -573,6 +579,16 @@ pub fn light_settings() -> Vec<Setting> {
         }),
         shaded("states[2].tolerance", -0.5, 0.5, |s, v| {
             s.states[2].tolerance = v
+        }),
+        // Girth moves the tree's shape only through sag, so these two are
+        // walked with the limbs sagging.
+        shaded("states[2].retained, limbs sag", 0.0, 1.0, |s, v| {
+            s.states[1].form.sag = 1e-4;
+            s.states[2].retained = v
+        }),
+        shaded("states[1].leaf_girth, limbs sag", 0.0, 2.0, |s, v| {
+            s.states[1].form.sag = 1e-4;
+            s.states[1].leaf_girth = v
         }),
         shaded("leaf_area", 0.0, 0.6, |s, v| {
             s.states.iter_mut().for_each(|st| st.leaf_area = v)

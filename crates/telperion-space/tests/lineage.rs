@@ -35,6 +35,8 @@ fn state(lifespan: u32, viability: f64, nodes: NodeLaw, lateral: &[f64]) -> PaSt
         upkeep: 0.0,
         balance_hazard: 0.0,
         tolerance: 0.0,
+        retained: 0.0,
+        leaf_girth: 0.0,
         straightening: 0.0,
         form: Form::default(),
     }

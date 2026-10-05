@@ -56,7 +56,7 @@ impl Grower<'_> {
             axes,
         };
         scale(&mut tree, self.species);
-        thicken(&mut tree, self.species);
+        thicken(&mut tree, self.species, &[]);
         let mut layers = place(&mut tree, self.species, None)?;
         if sag::any(self.species) {
             let levers = sag::levers(&tree, self.species);

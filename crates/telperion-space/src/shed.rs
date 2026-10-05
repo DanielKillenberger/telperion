@@ -6,7 +6,9 @@
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
 
-pub(crate) fn shed(mut axes: Vec<Axis>, species: &Species, age: u32) -> Vec<Axis> {
+/// The kept axes, and each grown axis's index among them (`usize::MAX`
+/// where it was shed).
+pub(crate) fn shed(mut axes: Vec<Axis>, species: &Species, age: u32) -> (Vec<Axis>, Vec<usize>) {
     let fade = fades(&axes, species, age);
     let mut live_until: Vec<u32> = axes
         .iter()
@@ -43,7 +45,7 @@ pub(crate) fn shed(mut axes: Vec<Axis>, species: &Species, age: u32) -> Vec<Axis
         index[i] = kept.len();
         kept.push(axis);
     }
-    kept
+    (kept, index)
 }
 
 /// Each axis's size factor from shedding: 1 for a living subtree, falling
