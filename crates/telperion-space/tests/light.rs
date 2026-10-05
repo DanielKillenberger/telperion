@@ -33,7 +33,15 @@ const SHADING: [Light; 3] = [
 fn light_no_bud_reads_leaves_every_passed_species_to_the_bit() {
     let all: [(&str, fn() -> Species); 3] = [("beech", beech), ("spruce", spruce), ("oak", oak)];
     for (name, make) in all {
-        let species = make();
+        // The species as no bud reading light would grow it: the oak reads
+        // light by its own values since its round 5.
+        let mut species = make();
+        for state in &mut species.states {
+            state.shade_hazard = 0.0;
+            state.shade_size = 0.0;
+            state.balance_hazard = 0.0;
+            state.leaf_girth = 0.0;
+        }
         for seed in [1, 7] {
             let today = grow(&species, request(30, seed, Light::NEUTRAL)).unwrap();
             let sky = Light {
