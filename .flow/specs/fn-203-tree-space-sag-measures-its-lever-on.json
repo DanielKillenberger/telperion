@@ -132,7 +132,7 @@
     "impl:fn-203-tree-space-sag-measures-its-lever-on.1": 0
   },
   "spec_path": ".flow/specs/fn-203-tree-space-sag-measures-its-lever-on.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space: sag measures its lever on the bent branch",
   "tracker": {
     "baseHashFlow": null,
@@ -145,5 +145,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T23:02:08.573080Z"
+  "updated_at": "2026-10-05T08:14:02.048908Z"
 }

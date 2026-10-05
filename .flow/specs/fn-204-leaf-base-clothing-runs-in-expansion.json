@@ -1,0 +1,133 @@
+{
+  "branch_name": "fn-204-leaf-base-clothing-runs-in-expansion",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-05T03:21:35.281021Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-204-leaf-base-clothing-runs-in-expansion",
+  "impl_review_rounds": {
+    "fn-204-leaf-base-clothing-runs-in-expansion.1": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "395c2e42b0f935e0ea709393e438d7eb7b9e4624fdd3071221492a7c7839c1ba",
+      "backend": "codex",
+      "base_sha": "140ffc61bd718b16d0a05e198db9ef13dd804c05",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-71ffe56474192d73a31b24736a56bb9d",
+            "classification": "introduced",
+            "findingId": "finding-71ffe56474192d73a31b24736a56bb9d",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d71a07217820b5abc7ef1d5af17a5f68b74f950d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 131305,
+      "output_sha256": "5f2b96e14bd35258ba78ece6cfedee21b10b49025b77061c6ecde67a1470fc9d",
+      "reservation_id": "156a89476ff547838583c5a288f92c57",
+      "round_consumed": true,
+      "scope": "impl:fn-204-leaf-base-clothing-runs-in-expansion.1",
+      "superseded_by": null,
+      "task": "fn-204-leaf-base-clothing-runs-in-expansion.1",
+      "timestamp": "2026-10-05T03:33:02.822722Z",
+      "tool_calls": 19,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "f59f4c94fbaebe223190c36b137eab3708aa735ff57ce4f3e437c909d490cae0",
+      "backend": "codex",
+      "base_sha": "140ffc61bd718b16d0a05e198db9ef13dd804c05",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-71ffe56474192d73a31b24736a56bb9d",
+            "classification": "introduced",
+            "findingId": "finding-71ffe56474192d73a31b24736a56bb9d",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "6c10da28478b8cf1336abcb8a25155bc839b7ed0",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 919,
+      "output_sha256": "9bbda8889564cfdf6a0fe6b3b478f137f90343163d770295a03fcaa538622a32",
+      "reservation_id": "626d826976b8488ba674d3a67fe2be71",
+      "round_consumed": true,
+      "scope": "impl:fn-204-leaf-base-clothing-runs-in-expansion.1",
+      "superseded_by": null,
+      "task": "fn-204-leaf-base-clothing-runs-in-expansion.1",
+      "timestamp": "2026-10-05T04:02:56.475134Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-204-leaf-base-clothing-runs-in-expansion.1": 2
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-204-leaf-base-clothing-runs-in-expansion.1": 0
+  },
+  "spec_path": ".flow/specs/fn-204-leaf-base-clothing-runs-in-expansion.md",
+  "status": "open",
+  "title": "Leaf-base clothing runs in expansion",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-05T04:02:56.477794Z"
+}
