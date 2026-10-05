@@ -736,3 +736,53 @@ Round 8's colours, fine twigs and ψ 1.5 are kept.
 
 - **The bell:** most likely the pipeline surface stage's basal flare (`flareRadius` 2.1 × radius over `flareFalloff` 0.022 of the height, defaults in `telperion-core/src/pipeline/surface.rs:145-212`; the oak's preset sets no flare row). It is applied to a trunk that the retained pipes have already thickened.
 - **The collar bands:** probably the bark's plate texture (`plateScale` 0.055) seen across the flare. Not checked.
+
+## Owner's verdict on round 8 (2026-10-05)
+
+> "structurally ok but very blob like and unnatural in subtle ways. Branches are a bit chaotic ... the reference looks calmer and more natural."
+
+**Not a pass.**
+
+**Host diagnosis, checked:** `form.wander` draws an independent turn at every node (`geometry/lay.rs:83-90`), so a branch's direction is a memoryless random walk. Wander can only jitter, never make a slow bend. The rounds that raised it to make limbs "tortuous" made every order chaotic instead.
+
+The fix is its own spec, fn-207 (wander bends over a length), with this oak as its R4 trial.
+
+## fn-207 R4 trial: slow bends on the limbs, calm fine wood (on fn-207's engine), 2026-10-05
+
+**Values against round 8** (`oak.rs`):
+
+| Value | Round 8 | Trial |
+|---|---|---|
+| Leader wander | 0.6 | 0.5 |
+| Limb wander | 1.25 | 0.5 |
+| Leader and limb bend length | 0 | 3 m |
+| Limb abortion (each relayed) | 0.3 | 0.15: the big sympodial turns only |
+| Bough wander | 1.15 | 0.35 |
+| Bough bend length | 0 | 1.5 m |
+| Bough abortion (each relayed) | 0.35 | 0.1 |
+| Branch-system abortion | 0.1 | 0 |
+| Wander of branch systems, sprigs, twigs and shoots | 0.95 / 1.0 / 1.2 / 1.5 | 0.4 each |
+
+Everything else is round 8's: the colours, the fine twigs, ψ 1.5 and the light values.
+
+**Sheet:** `raw/fn207/sheet.png` (references, round 8 in leaf, the trial in leaf, the trial bare); probe on seeds 1 and 7 in `raw/fn207/probe.png`. I viewed every still.
+
+| Seed | Height | Width | Leaves |
+|--:|--:|--:|--:|
+| 1 | 19.9 m | 27.8 × 36.7 m | 1.92M |
+| 7 | 19.1 m | 26.6 × 27.5 m | 1.90M |
+| 2 | 19.5 m | 30.7 × 32.7 m | 2.62M |
+| 3 | 19.4 m | 32.6 × 25.0 m | 2.11M |
+| 4 | 19.5 m | 27.0 × 26.8 m | 1.26M |
+
+### Reading
+
+- **Bare: calmer.**
+  - The limbs leave low and make a few long, smooth arcs instead of round 8's repeated kinks.
+  - The boughs and the fine wood are even, a regular web with no coiling.
+  - The chaos the owner named is much reduced.
+- **The crowns are broader and flatter than round 8's:** 1 to 2 m lower and wider. Seed 7 is an umbrella with a flat top. Seed 3 spreads wide on long limbs that show through the foliage.
+- **In leaf:**
+  - Seed 2 is a rounded dome; seeds 7 and 1 broad, flat-topped domes; seeds 3 and 4 open spreads with their limbs visible.
+  - The foliage reads as less chaotic but still lobed.
+- **The flatter tops are likely the calmer limbs not rising after leaving low** (round 8's elevation 0.75 now acts on straighter limbs). Not checked: a value for the oak's next round.

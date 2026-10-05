@@ -154,7 +154,8 @@ pub fn oak() -> Species {
         internode: 0.05,
         form: Form {
             tropism: 0.6,
-            wander: 0.6,
+            wander: 0.5,
+            bend_length: 3.0,
             ..stem
         },
         ..state(
@@ -182,13 +183,13 @@ pub fn oak() -> Species {
         insertion: 0.65,
         internode: 0.045,
         straightening: 0.15,
-        abortion: 0.3,
+        abortion: 0.15,
         relay: 1.0,
         epitony: 0.2,
         form: Form {
             tropism: 0.5,
             elevation: 0.75,
-            wander: 1.25,
+            wander: 0.5,
             plane: 0.0,
             pipe: 0.009,
             exponent: 2.8,
@@ -197,7 +198,7 @@ pub fn oak() -> Species {
             roll: 0.8,
             sag: 0.0003,
             secondary: 1.0,
-            bend_length: 0.0,
+            bend_length: 3.0,
         },
         ..state(
             1_000,
@@ -225,18 +226,18 @@ pub fn oak() -> Species {
         internode: 0.03,
         viability: 0.999,
         shedding: Some(4),
-        abortion: 0.35,
+        abortion: 0.1,
         relay: 1.0,
         epitony: 0.2,
         form: Form {
             tropism: 0.48,
             elevation: 0.45,
-            wander: 1.15,
+            wander: 0.35,
             pipe: 0.004,
             exponent: 2.6,
             sag: 0.00005,
             secondary: 1.0,
-            bend_length: 0.0,
+            bend_length: 1.5,
             ..limb.form
         },
         ..state(
@@ -260,7 +261,7 @@ pub fn oak() -> Species {
         form: Form {
             tropism: 0.5,
             elevation: 0.7,
-            wander: 1.0,
+            wander: 0.4,
             plane: 0.0,
             pipe: 0.0012,
             exponent: 2.0,
@@ -288,13 +289,13 @@ pub fn oak() -> Species {
         internode: 0.017,
         viability: 0.98,
         shedding: Some(3),
-        abortion: 0.1,
+        abortion: 0.0,
         relay: 1.0,
         epitony: 0.2,
         form: Form {
             tropism: 0.33,
             elevation: 0.2,
-            wander: 0.95,
+            wander: 0.4,
             plane: 0.0,
             pipe: 0.0009,
             exponent: 2.0,
@@ -326,7 +327,7 @@ pub fn oak() -> Species {
         form: Form {
             tropism: 0.4,
             elevation: 0.2,
-            wander: 1.2,
+            wander: 0.4,
             pipe: 0.0008,
             roll: 1.2,
             ..Form::default()
@@ -346,7 +347,7 @@ pub fn oak() -> Species {
         form: Form {
             tropism: 0.8,
             elevation: 0.2,
-            wander: 1.5,
+            wander: 0.4,
             pipe: 0.0009,
             roll: 1.2,
             ..Form::default()
