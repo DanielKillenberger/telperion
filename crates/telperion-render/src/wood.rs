@@ -39,6 +39,10 @@ pub fn smooth_bark(m: &MaterialParams) -> bool {
 pub struct Wood {
     pipeline: wgpu::RenderPipeline,
     smooth: wgpu::RenderPipeline,
+    /// Each lit pipeline's depth prepass, from the same shader module, so the
+    /// lit pass shades only the nearest surface (fn-208, host decision 7).
+    prepass: wgpu::RenderPipeline,
+    smooth_prepass: wgpu::RenderPipeline,
     smooth_on: bool,
     shadow: wgpu::RenderPipeline,
     positions: Option<Held>,
@@ -110,20 +114,27 @@ impl Wood {
                 attributes,
             })
         };
+        let groups = [Some(layout), Some(&radius_layout), Some(shadow.layout())];
+        let buffers = [vertex(&POSITION, 3), vertex(&NORMAL, 3), vertex(&COORD, 2)];
         let lit = |module, label| {
             crate::pipeline(
                 gpu,
-                &[Some(layout), Some(&radius_layout), Some(shadow.layout())],
+                &groups,
                 module,
                 surface,
-                &[vertex(&POSITION, 3), vertex(&NORMAL, 3), vertex(&COORD, 2)],
-                crate::pass::Depth::Surface,
+                &buffers,
+                crate::pass::Depth::Prepassed,
                 label,
             )
+        };
+        let prepass = |module, label| {
+            crate::pass::prepass_pipeline(gpu, &groups, module, surface, &buffers, label)
         };
         Self {
             pipeline: lit(&shader, "wood"),
             smooth: lit(&smooth, "smooth wood"),
+            prepass: prepass(&shader, "wood depth"),
+            smooth_prepass: prepass(&smooth, "smooth wood depth"),
             smooth_on: false,
             // The sun sees a position and nothing else, so the normals and the
             // coordinates are not bound for it at all.
@@ -264,19 +275,23 @@ impl Wood {
         else {
             return FrameStats::default();
         };
-        pass.set_pipeline(if self.smooth_on {
-            &self.smooth
+        let (prepass, lit) = if self.smooth_on {
+            (&self.smooth_prepass, &self.smooth)
         } else {
-            &self.pipeline
-        });
+            (&self.prepass, &self.pipeline)
+        };
         pass.set_bind_group(1, self.radius_group.as_ref().expect("submitted radii"), &[]);
         pass.set_vertex_buffer(0, positions.live());
         pass.set_vertex_buffer(1, normals.live());
         pass.set_vertex_buffer(2, coords.live());
         pass.set_index_buffer(indices.live(), wgpu::IndexFormat::Uint32);
-        pass.draw_indexed(0..self.index_count, 0, 0..1);
+        // Depth first, then the bark over the nearest surface alone.
+        for pipeline in [prepass, lit] {
+            pass.set_pipeline(pipeline);
+            pass.draw_indexed(0..self.index_count, 0, 0..1);
+        }
         FrameStats {
-            draw_calls: 1,
+            draw_calls: 2,
             triangles: self.index_count / 3,
             instances: 0,
         }

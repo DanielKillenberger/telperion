@@ -116,14 +116,22 @@ impl Renderer {
     /// Builds the room on an existing device. The colour format is the target's:
     /// an offscreen texture natively, the configured surface in a browser.
     pub fn new(gpu: Gpu, colour_format: wgpu::TextureFormat) -> Self {
+        Self::with_samples(gpu, colour_format, MULTISAMPLE)
+    }
+
+    /// The same renderer drawing at another multisample count, which is how a
+    /// measurement compares counts (fn-208); one where the device does not
+    /// offer it.
+    pub fn with_samples(gpu: Gpu, colour_format: wgpu::TextureFormat, samples: u32) -> Self {
         // Asked of the device once, here, because every pipeline below has to
         // be built at the count the frame will be drawn at, and the frame's
         // targets made at the same one.
         let surface = Surface {
             format: colour_format,
             samples: pass::samples(
-                gpu.supports_samples(colour_format, MULTISAMPLE),
-                gpu.supports_samples(DEPTH_FORMAT, MULTISAMPLE),
+                gpu.supports_samples(colour_format, samples),
+                gpu.supports_samples(DEPTH_FORMAT, samples),
+                samples,
             ),
         };
         let shadow = shadow::Shadow::new(&gpu);

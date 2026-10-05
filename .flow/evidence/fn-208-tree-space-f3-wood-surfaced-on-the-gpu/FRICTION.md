@@ -33,3 +33,14 @@
   - `generation_limit_guard` flagged the curve's nine `min`, `max`, `clamp` and constant sites, which were added to `docs/generation-limits-inventory.json` with reasons. That one was mine and expected, but nothing ahead of the 8-minute gate would have told me.
 - **Cost:** about 10 minutes: one gate run and two reruns.
 - **Would remove it:** run `generation_limit_guard` from the crate's own test command, cheap and early. Make the beech's ceiling test refuse to run beside other heavy tests (a nextest test group), rather than fail under load.
+
+## 2026-10-05, step (i): the temp quota comes and goes; eight samples refused late
+
+- **Doing:** measuring the shading changes before and after.
+- **Slowed by:**
+  - The temp directory's quota filled again and again during the step. Every command's output went to files under `raw/` and was read back. Background jobs that wrote their log into the worktree ran fine.
+  - The 8-sample runs panicked at pipeline creation. `Gpu::supports_samples` reported 8 as offered, but wgpu needs `TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES` for it. That cost one wasted run of three trees.
+- **Cost:** about 15 minutes in all.
+- **Would remove it:**
+  - The quota is local (see the entry above).
+  - `supports_samples` should check what the device was given, not the adapter; a small fix to `device.rs`.
