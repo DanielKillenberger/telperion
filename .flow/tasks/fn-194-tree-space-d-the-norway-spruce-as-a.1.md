@@ -1,5 +1,5 @@
 ---
-satisfies: [R1, R2, R3, R4]
+satisfies: [R1, R2, R4]
 ---
 # fn-194-tree-space-d-the-norway-spruce-as-a.1 The Norway spruce as a point: values, stills, walk and the beech unchanged
 
@@ -14,7 +14,10 @@ The Norway spruce (*Picea abies*, Massart's model) as a point in the tree space,
 - **Gate:** the host views the sheet first, then Astra; the owner's verdict passes it (docs/tree-space.md).
 
 ## Acceptance
-Every R-ID in the parent spec's Acceptance Criteria is satisfied (R1 to R4); judge against the spec directly.
+- R1: the spruce's values from MODEL-SPRUCE.md and its sources (SOURCES.md), at several ages and mature, seeds 1 and 7, beside the references and today's spruce.
+- R2: the gate; passed on the owner's verdict (2026-10-05) with round 10's values.
+- R4: the beech unchanged in look, shown on fn-196's branch (38c2de33).
+- R3 is task 2, blocked by fn-206.
 
 ## Done summary
 TBD

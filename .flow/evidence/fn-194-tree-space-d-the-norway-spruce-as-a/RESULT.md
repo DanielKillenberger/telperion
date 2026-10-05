@@ -693,3 +693,29 @@ The tips are softer, but the trees are narrower and more pendulous, with the ski
 **Next steps hang on the owner's verdict:**
 - If it passes, the R3 walk (beech to spruce), the R4 beech regression, the gate, the review and done follow.
 - If not, the owner's notes become round 12.
+
+## Owner's verdict: the spruce passes (2026-10-05)
+
+> owner: "spruce looks good but not as lush and big as the reference. but definitely acceptable. Still much to be improved but i think it's structurally sound."
+
+**The spruce passes R2 on the owner's verdict**, with round 10's values: the bough hook on fn-203's bent-lever sag, sleeping-bud curtains, the dense sprays and the broad base. The host merged master into the branch and set the spruce to `secondary: 1.0` (fn-205, girth from secondary growth).
+
+**Known gaps, recorded for later work, not this phase:**
+- **The hanging curtains' volume (main gap).** The lower crown is not as lush as S1. It is bounded by the render and growth budget: about 210M wood triangles and 16M needles per 80-year tree, where the GPU runs out of memory. Phase F holds the levers:
+  - cheap drawing of fine twigs (fewer triangles per metre of sub-millimetre wood);
+  - shedding before growth.
+- **Dormant-bud draperies:** built (fn-202), but values-limited by the same budget. The sleeping probability stops near 0.45.
+- **Sapling density:** at 10 years the sapling reads sparse.
+- **Astra's critiques:** recorded in `ASTRA-VERDICT-R{4,6,8,10}-*.md`; mainly foliage mass on the hanging branchlets.
+
+## R4: the beech unchanged in look
+
+R4 was shown on fn-196's branch (commit `38c2de33`, `.flow/evidence/fn-196-tree-space-d-the-date-palm-as-a-point/RESULT.md`, "R4: the passed beech and spruce sheets, re-rendered"). The beech at 80 years, seeds 1 and 7, was re-rendered against fn-193's passed `raw/final21`.
+- **Structure:** unchanged; the same trunk, fork, limb layout, crown outline and base girth.
+- **Two differences, neither in the tree:**
+  - the lighting, from this spec's round-7 staging (the sun behind the camera);
+  - the leaf positions, from the seed keying.
+
+## R3: split off
+
+The beech-to-spruce walk is task 2, blocked by fn-206 (one reference axis, every setting by degree), as fn-196 did. The beech's nine physiological ages and the spruce's nine are different chains: there is no per-setting midpoint until both species are written on one shared reference axis.
