@@ -59,6 +59,7 @@ impl Grower<'_> {
                     scale: 1.0,
                     key: zone_key.child(drawn).0,
                     rank: 0.0,
+                    size: 1.0,
                 });
                 let node_presence = self.windows.presence(node_lead, node_wood);
                 self.draws[apex.axis].nodes.push(node_presence);

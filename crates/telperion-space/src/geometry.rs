@@ -20,8 +20,8 @@ use lay::{lay, rotated, UP};
 pub(crate) use lay::{support, Layer, GROUND_TOLERANCE};
 use std::f64::consts::TAU;
 
-/// Sizes every phytomer by its axis's vigour and its parent's scale, and
-/// sets each relay's node.
+/// Sizes every phytomer by its axis's vigour, its parent's scale and its
+/// unit's own size, and sets each relay's node.
 pub(crate) fn scale(structure: &mut Structure, species: &Species) {
     // Each axis's scale at its base, from its already scaled parent.
     let mut base_scale = vec![1.0; structure.axes.len()];
@@ -49,6 +49,11 @@ pub(crate) fn scale(structure: &mut Structure, species: &Species) {
             let node = relay_point(&structure.axes[parent], share).node;
             structure.axes[i].origin = Origin::Relay { parent, node };
         }
+    }
+    // A unit's size is its own: applied once every axis has inherited its
+    // bearer's scale without it.
+    for phytomer in structure.axes.iter_mut().flat_map(|a| &mut a.phytomers) {
+        phytomer.scale *= phytomer.size;
     }
 }
 

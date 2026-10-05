@@ -332,3 +332,18 @@ Step 3 found that light only subtracts, and that the rough layout without sag mi
    - The walk test's refine depth becomes 6 for every walk: a jump does not shrink under refinement, a steep crossing does.
    - Neither the window nor the bound is widened.
 10. **Sag's foliage term and light's `leaf_area` stay separate:** neutrality wins. They are two estimates of one thing, to be unified when E re-judges each species (R3).
+
+## 10. Host decisions after step 3b (host, 2026-10-05)
+
+Step 3b found that sibling-level allocation compounds down lineages (STEP3B.md).
+
+11. **Whole-tree Borchert–Honda, as Pałubicki 2009 describes it.** It replaces the sibling-relative ψ.
+    - Each cycle, on the latest light (full lay plus rough layout):
+      - a basipetal pass sums the light Q the buds collect;
+      - an acropetal pass splits the base's vigour α·Q_total at every branching point between the continuing axis and the lateral: v_main = v·λQ_m / (λQ_m + (1−λ)Q_l).
+    - A bud's size is (v_bud / v_expected)^ψ, where v_expected is its vigour in a uniformly lit tree of the same topology. ψ = 0 is neutral.
+    - The size scales only the bud's own growth that cycle (its internodes and its girth), never its laterals'. The whole tree's resource is conserved, which bounds size.
+    - λ is per species, with a neutral value found and proved.
+    - Oracle: the split at one branching point, conservation, and a shaded limb receiving less. Q and the split are smooth, presence-weighted and threshold-free, and ψ, λ and α are walked.
+12. **Walk scope:** the gate runs the light settings plus three structural ones (sag, a lifespan, a dormant probability) with the full lay on. The every-setting in-leaf walk is a slow suite run outside the gate, documented in the test file.
+13. **The step-3b oak is not a pass.** Recorded.

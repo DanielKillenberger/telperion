@@ -46,6 +46,7 @@ fn tree(height: f64, sag: f64, seed: u64, bough: Bough) -> Structure {
         leaf_area: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
+        apical_control: 0.5,
         straightening: 0.0,
         form: Form {
             pipe: 0.05,

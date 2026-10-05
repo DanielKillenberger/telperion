@@ -10,12 +10,11 @@
 //! in the next. What it writes into the phytomers and axes (their tip,
 //! frame, scale and rank) is all written again once the tree has grown.
 use super::Grower;
-use crate::allocation::{sizes, Bud};
+use crate::allocation::{vigours, Link, TIP};
 use crate::error::{Error, Result};
 use crate::geometry::{bend, dominance, frame, Layer};
 use crate::light::{Field, Light};
 use crate::structure::{Origin, Vec3};
-use std::collections::HashMap;
 
 /// The rough layout and the light it casts.
 pub(super) struct Sketch {
@@ -40,9 +39,6 @@ pub(super) struct Pencil {
     /// growth unit's size among its siblings this cycle.
     light: f64,
     size: f64,
-    /// The axis that bears it and its siblings: a lateral's parent, and
-    /// for an axis carried on, its first link's (none for the seed).
-    bearer: usize,
 }
 
 impl Sketch {
@@ -106,29 +102,57 @@ impl Grower<'_> {
             .map_or(1.0, |p| p.size)
     }
 
-    /// Shares this cycle's growth among the living apexes on each bearer
-    /// by their light, before any of them grows.
+    /// Gives each living apex its unit's size this cycle from the vigour
+    /// the tree's light allots it (`allocation.rs`), against the vigour a
+    /// uniformly lit tree of the same form would: before any apex grows.
     pub(super) fn allot(&mut self) {
+        let species = self.species;
         let Some(sketch) = self.sketch.as_mut() else {
             return;
         };
-        let mut groups: HashMap<usize, Vec<(usize, Bud)>> = HashMap::new();
-        for apex in &self.live {
-            let Some(p) = sketch.pencils.get(apex.axis) else {
-                continue;
-            };
-            let bud = Bud {
-                weight: p.base_scale * p.running,
-                light: p.light,
-                psi: self.species.states[self.axes[apex.axis].pa].shade_size,
-            };
-            groups.entry(p.bearer).or_default().push((apex.axis, bud));
+        if species.states.iter().all(|s| s.shade_size == 0.0) {
+            return;
         }
-        for members in groups.values() {
-            let buds: Vec<Bud> = members.iter().map(|m| m.1).collect();
-            for (&(axis, _), size) in members.iter().zip(sizes(&buds)) {
-                sketch.pencils[axis].size = size;
-            }
+        let n = sketch.pencils.len();
+        let links: Vec<Link> = self.axes[..n]
+            .iter()
+            .map(|a| match a.origin {
+                Origin::Seed => Link {
+                    parent: None,
+                    node: 0,
+                },
+                Origin::Lateral { parent, node, .. } => Link {
+                    parent: Some(parent),
+                    node,
+                },
+                Origin::Continuation { parent } | Origin::Relay { parent, .. } => Link {
+                    parent: Some(parent),
+                    node: TIP,
+                },
+            })
+            .collect();
+        let lambda: Vec<f64> = self.axes[..n]
+            .iter()
+            .map(|a| species.states[a.pa].apical_control)
+            .collect();
+        let (mut lit, mut even) = (vec![0.0; n], vec![0.0; n]);
+        for apex in self.live.iter().filter(|a| a.axis < n) {
+            let p = &sketch.pencils[apex.axis];
+            even[apex.axis] = p.base_scale * p.running;
+            lit[apex.axis] = even[apex.axis] * p.light;
+        }
+        let (got, expected) = (
+            vigours(&links, &lit, &lambda),
+            vigours(&links, &even, &lambda),
+        );
+        for apex in self.live.iter().filter(|a| a.axis < n) {
+            let psi = species.states[self.axes[apex.axis].pa].shade_size;
+            let e = expected[apex.axis];
+            sketch.pencils[apex.axis].size = if e > 0.0 {
+                (got[apex.axis] / e).powf(psi)
+            } else {
+                1.0
+            };
         }
     }
 
@@ -143,14 +167,14 @@ impl Grower<'_> {
         let framed = frame(&self.axes, self.species, i);
         let axis = &self.axes[i];
         let made = self.draws[i].birth[0] * self.draws[i].birth[1];
-        let (inherited, vigour, trunk, bearer) = match axis.origin {
-            Origin::Seed => (1.0, made, true, usize::MAX),
+        let (inherited, vigour, trunk) = match axis.origin {
+            Origin::Seed => (1.0, made, true),
             Origin::Lateral { parent, node, .. } => {
-                (self.axes[parent].phytomers[node].scale, made, false, parent)
+                (self.axes[parent].phytomers[node].scale, made, false)
             }
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
                 let p = &sketch.pencils[parent];
-                (p.base_scale, p.running * made, p.trunk, p.bearer)
+                (p.base_scale, p.running * made, p.trunk)
             }
         };
         let share = match axis.origin {
@@ -171,7 +195,6 @@ impl Grower<'_> {
             trunk,
             light: 1.0,
             size: 1.0,
-            bearer,
         }
     }
 
@@ -204,17 +227,22 @@ impl Grower<'_> {
                     .count();
             for j in pencil.laid..end {
                 let p = &mut axis.phytomers[j];
-                p.scale = pencil.base_scale * present * draws.nodes[j] * grown * size;
+                // Unsized: what it bears inherits its scale without its size.
+                p.scale = pencil.base_scale * present * draws.nodes[j] * grown;
+                p.size = size;
                 p.rank = pencil.rank;
                 pencil.rank += draws.nodes[j] * grown;
             }
             let total = pencil.layer.run()
                 + axis.phytomers[pencil.laid..end]
                     .iter()
-                    .map(|p| p.scale)
+                    .map(|p| p.scale * p.size)
                     .sum::<f64>();
             for j in pencil.laid..end {
                 let p = &mut axis.phytomers[j];
+                // Laid at its size, then left unsized for what it bears.
+                let bare = p.scale;
+                p.scale = bare * p.size;
                 pencil
                     .layer
                     .step(p, state, (bent, total), None, pencil.trunk)
@@ -226,6 +254,7 @@ impl Grower<'_> {
                         height,
                     })?;
                 leaves.push((p.tip, p.scale * state.leaf_area));
+                p.scale = bare;
             }
             pencil.laid = end;
             pencil.running = present * persist;

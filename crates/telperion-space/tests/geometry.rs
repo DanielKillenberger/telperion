@@ -37,6 +37,7 @@ fn axes_take_their_lengths_and_angles_from_their_pa() {
         leaf_area: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
+        apical_control: 0.5,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -113,6 +114,7 @@ fn phyllotaxis_runs_on_across_a_continuation() {
         leaf_area: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
+        apical_control: 0.5,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -170,6 +172,7 @@ fn an_overflowing_expectation_draws_finite_wood() {
             leaf_area: 0.0,
             shade_hazard: 0.0,
             shade_size: 0.0,
+            apical_control: 0.5,
             straightening: 0.0,
             form: Form::default(),
         }],
@@ -217,6 +220,7 @@ fn an_unreachable_pa_takes_no_part_in_a_window() {
         leaf_area: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
+        apical_control: 0.5,
         straightening: 0.0,
         form: Form::default(),
     };

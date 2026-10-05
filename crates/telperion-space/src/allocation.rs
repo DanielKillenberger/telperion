@@ -1,88 +1,90 @@
-//! Relative allocation (fn-197, host decision 7): the buds growing on one
-//! bearer in a cycle share its growth by their light, as the extended
-//! Borchert–Honda model shares a resource between the branches at a node
-//! (Pałubicki et al. 2009, 4.2). A bud's size is its light to its PA's
-//! `shade_size` (ψ) over the bearer's presence-weighted mean of the same,
-//! so the bearer's presence-weighted total is conserved: a bud lit beside
-//! shaded siblings outgrows them, and with every ψ at 0 every bud is
-//! whole. The mean is smooth in every bud's weight, so a bud made or
-//! lost at vanishing presence moves its siblings by nothing.
+//! Whole-tree allocation (fn-197, host decision 11): the extended
+//! Borchert–Honda model as Pałubicki et al. (2009, 4.2) describe it. A
+//! basipetal pass sums the light each axis's subtree collects; an acropetal
+//! pass splits the base's vigour at every branching point between the
+//! continuing axis and its laterals, v_main = v λ Q_m / (λ Q_m + (1 - λ)
+//! Q_l), each lateral the rest by its Q, and gives each bud its share. The
+//! whole tree's vigour is conserved. At λ = 0.5 every split is in
+//! proportion to light, so each bud's vigour is its own light's share of
+//! the tree's: the split is unbiased. Every sum is of presence-weighted
+//! light, and no bud is excluded by a threshold.
 
-/// One growing bud: its presence (its weight among its siblings), its
-/// light and its PA's ψ.
+/// Where an axis stands on its bearer: its parent's index and the node it
+/// grows from, `TIP` where it carries the parent on (none for the root).
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Bud {
-    pub weight: f64,
-    pub light: f64,
-    pub psi: f64,
+pub(crate) struct Link {
+    pub parent: Option<usize>,
+    pub node: usize,
 }
 
-/// Each bud's size among its siblings: light^ψ over the siblings' weighted
-/// mean of light^ψ. The weighted sizes sum to the weights' sum; with no
-/// weight, every bud is whole.
-pub(crate) fn sizes(buds: &[Bud]) -> impl Iterator<Item = f64> + '_ {
-    let drawn = |b: &Bud| b.light.powf(b.psi);
-    let total: f64 = buds.iter().map(|b| b.weight).sum();
-    let mean = buds.iter().map(|b| b.weight * drawn(b)).sum::<f64>() / total;
-    buds.iter().map(move |b| {
-        if total > 0.0 && mean > 0.0 {
-            drawn(b) / mean
-        } else {
-            1.0
+/// A link's node where it carries its parent on: after every node.
+pub(crate) const TIP: usize = usize::MAX;
+
+/// Each axis's bud's vigour, from the base's vigour, the light its own bud
+/// collects (`own`, 0 where it has none) and its apical control λ at its
+/// branching points. Parents precede children. The base's vigour is the
+/// tree's light, α = 1: a bud's size reads its vigour against a uniformly
+/// lit tree's, in which α cancels (STEP3C.md).
+pub(crate) fn vigours(links: &[Link], own: &[f64], lambda: &[f64]) -> Vec<f64> {
+    let n = links.len();
+    let mut sub = own.to_vec();
+    for i in (0..n).rev() {
+        if let Some(p) = links[i].parent {
+            sub[p] += sub[i];
         }
-    })
+    }
+    // Each axis's children with light, in the order they stand on it.
+    let mut kids: Vec<(usize, usize, usize)> = (0..n)
+        .filter(|&i| sub[i] > 0.0)
+        .filter_map(|i| links[i].parent.map(|p| (p, links[i].node, i)))
+        .collect();
+    kids.sort_unstable();
+    let mut start = vec![kids.len(); n + 1];
+    for (k, &(p, _, _)) in kids.iter().enumerate().rev() {
+        start[p] = k;
+    }
+    for p in (0..n).rev() {
+        start[p] = start[p].min(start[p + 1]);
+    }
+    let mut incoming = vec![0.0; n];
+    let mut bud = vec![0.0; n];
+    for i in 0..n {
+        if links[i].parent.is_none() {
+            incoming[i] = sub[i];
+        }
+        let (mut v, mut above) = (incoming[i], sub[i]);
+        if v <= 0.0 || above <= 0.0 {
+            continue;
+        }
+        let mine = &kids[start[i]..start[i + 1]];
+        let mut k = 0;
+        while k < mine.len() && mine[k].1 != TIP {
+            let node = mine[k].1;
+            let end = k + mine[k..].iter().take_while(|c| c.1 == node).count();
+            let lateral: f64 = mine[k..end].iter().map(|c| sub[c.2]).sum();
+            let main = (above - lateral).max(0.0);
+            let l = lambda[i];
+            let split = l * main + (1.0 - l) * lateral;
+            if split > 0.0 {
+                for c in &mine[k..end] {
+                    incoming[c.2] = v * (1.0 - l) * sub[c.2] / split;
+                }
+                v *= l * main / split;
+            }
+            above = main;
+            k = end;
+        }
+        // At the tip the axis's own bud and what carries it on share what
+        // is left by their light.
+        if above > 0.0 {
+            bud[i] = v * own[i] / above;
+            for c in &mine[k..] {
+                incoming[c.2] = v * sub[c.2] / above;
+            }
+        }
+    }
+    bud
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn bud(weight: f64, light: f64, psi: f64) -> Bud {
-        Bud { weight, light, psi }
-    }
-
-    /// Pałubicki's Borchert–Honda split at λ = 0.5 shares a resource v
-    /// between two branches in proportion to their light, v Q_i / (Q_m +
-    /// Q_l). With ψ = 1 the two buds' sizes over their sum are exactly
-    /// those shares; as ψ rises the lit bud's share rises towards all of
-    /// it, and the sum is the same at every ψ.
-    #[test]
-    fn two_siblings_one_shaded_share_as_borchert_honda_and_keep_their_sum() {
-        let (lit, shaded) = (0.9, 0.3);
-        let at = |psi: f64| sizes(&[bud(1.0, lit, psi), bud(1.0, shaded, psi)]).collect::<Vec<_>>();
-        let one = at(1.0);
-        let share = one[0] / (one[0] + one[1]);
-        assert!(
-            (share - lit / (lit + shaded)).abs() < 1e-12,
-            "share {share}"
-        );
-        let mut last = 0.5;
-        for psi in [0.0, 0.5, 1.0, 2.0, 4.0] {
-            let s = at(psi);
-            assert!(
-                (s[0] + s[1] - 2.0).abs() < 1e-12,
-                "psi {psi}: sum {}",
-                s[0] + s[1]
-            );
-            let share = s[0] / (s[0] + s[1]);
-            assert!(share >= last, "psi {psi}: the lit share fell to {share}");
-            last = share;
-        }
-        assert!(last > 0.98, "at psi 4 the lit share is only {last}");
-    }
-
-    /// With every ψ at 0 every bud is whole, to the bit; a bud of no
-    /// weight moves its siblings by nothing; and the weighted total is
-    /// conserved for unequal weights.
-    #[test]
-    fn neutral_whole_vanishing_buds_inert_and_totals_conserved() {
-        let neutral = [bud(0.3, 0.2, 0.0), bud(0.7, 0.9, 0.0), bud(0.1, 0.5, 0.0)];
-        assert!(sizes(&neutral).all(|s| s == 1.0));
-        let two = [bud(0.4, 0.8, 1.5), bud(0.6, 0.3, 1.5)];
-        let three = [two[0], two[1], bud(0.0, 0.05, 1.5)];
-        let (a, b): (Vec<f64>, Vec<f64>) = (sizes(&two).collect(), sizes(&three).collect());
-        assert!((a[0] - b[0]).abs() < 1e-15 && (a[1] - b[1]).abs() < 1e-15);
-        let total: f64 = two.iter().zip(&a).map(|(x, s)| x.weight * s).sum();
-        assert!((total - 1.0).abs() < 1e-12, "total {total}");
-    }
-}
+mod tests;

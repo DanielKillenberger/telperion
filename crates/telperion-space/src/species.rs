@@ -101,12 +101,18 @@ pub struct PaState {
     /// ln viability times light^-φ (host, 2026-10-05). Neutral 0; dormant
     /// where the apex never dies (viability 1) or no leaf shades it.
     pub shade_hazard: f64,
-    /// How a growth unit's size follows its light relative to its
-    /// siblings' on the same bearer: its phytomers' scale times light^ψ
-    /// over the bearer's presence-weighted mean of light^ψ, so the
-    /// bearer's growth is shared, not lost (`allocation.rs`; host decision
-    /// 7). Neutral 0; dormant where no leaf shades it.
+    /// How a bud's growth unit follows the vigour the tree's light gives
+    /// it (`allocation.rs`; host decision 11): its own internodes and
+    /// girth scale by (vigour / the vigour a uniformly lit tree gives it)^ψ,
+    /// and what it bears does not inherit that. Neutral 0; dormant where no
+    /// leaf shades it.
     pub shade_size: f64,
+    /// Apical control λ at this PA's branching points: the share of its
+    /// vigour the continuing axis keeps against its laterals, weighted by
+    /// their light (Borchert–Honda, Pałubicki 2009). 0.5, the unbiased
+    /// split, gives every bud its own light's share; dormant while
+    /// `shade_size` is 0 or no leaf shades.
+    pub apical_control: f64,
     /// How far the base of a lateral axis of this PA straightens towards
     /// the vertical, as Troll's plagiotropic axes do. Neutral 0.
     pub straightening: f64,
@@ -306,6 +312,7 @@ impl PaState {
             ("readiness", self.readiness),
             ("rhythm", self.rhythm),
             ("straightening", self.straightening),
+            ("apical_control", self.apical_control),
         ];
         for (name, value) in shares {
             if !(0.0..=1.0).contains(&value) {

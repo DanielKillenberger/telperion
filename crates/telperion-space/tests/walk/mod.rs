@@ -49,6 +49,7 @@ pub fn species() -> Species {
         leaf_area: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
+        apical_control: 0.5,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -72,6 +73,7 @@ pub fn species() -> Species {
         leaf_area: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
+        apical_control: 0.5,
         straightening: 0.3,
         form: Form::default(),
     };
@@ -99,6 +101,7 @@ pub fn species() -> Species {
         leaf_area: 0.0,
         shade_hazard: 0.0,
         shade_size: 0.0,
+        apical_control: 0.5,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -538,6 +541,12 @@ pub fn light_settings() -> Vec<Setting> {
         }),
         shaded("states[2].shade_size", 0.0, 2.0, |s, v| {
             s.states[2].shade_size = v
+        }),
+        shaded("states[0].apical_control", 0.2, 0.8, |s, v| {
+            s.states[0].apical_control = v
+        }),
+        shaded("states[1].apical_control", 0.2, 0.8, |s, v| {
+            s.states[1].apical_control = v
         }),
         shaded("leaf_area", 0.0, 0.6, |s, v| {
             s.states.iter_mut().for_each(|st| st.leaf_area = v)

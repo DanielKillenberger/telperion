@@ -60,12 +60,33 @@ fn light_changes_the_tree_by_degree() {
     assert!(failed.is_empty(), "{failed:#?}");
 }
 
-/// fn-197 decision 8: every setting walked in leaf, with light shading
-/// and the full lay grown with the tree, changes the tree by degree.
-/// Ignored: it did not finish in 50 minutes on 2026-10-05 (FRICTION.md);
-/// the host decides its scope before it joins the gate.
+/// fn-197 decision 12: a sample of structural settings walked in leaf,
+/// with light shading and the full lay grown with the tree, changes the
+/// tree by degree: a limb's sag, a limb's yearly survival (a lifespan is
+/// a whole number of units, never walked) and a sleeping-bud probability.
 #[test]
-#[ignore = "runs past 50 minutes; scope pending the host (fn-197 FRICTION.md)"]
+fn a_sample_of_settings_in_leaf_changes_the_tree_by_degree() {
+    let names = [
+        "states[1].form.sag",
+        "states[1].viability",
+        "sleeping: states[1].zones[0].dormant[2]",
+    ];
+    let sample: Vec<Setting> = settings()
+        .into_iter()
+        .filter(|s| names.contains(&s.name.as_str()))
+        .collect();
+    assert_eq!(sample.len(), names.len());
+    let failed = by_degree(&in_leaf(sample));
+    assert!(failed.is_empty(), "{failed:#?}");
+}
+
+/// fn-197 decision 8: every setting walked in leaf, with light shading
+/// and the full lay grown with the tree, changes the tree by degree. A
+/// slow suite outside the gate (host decision 12): it ran past 50 minutes
+/// on 2026-10-05. Run it with
+/// `cargo test --profile ci -p telperion-space --test walks -- --ignored every_setting_in_leaf`.
+#[test]
+#[ignore = "slow suite, outside the gate: see its doc comment"]
 fn every_setting_in_leaf_changes_the_tree_by_degree() {
     let failed = by_degree(&in_leaf(settings()));
     assert!(failed.is_empty(), "{failed:#?}");

@@ -76,7 +76,7 @@ impl Grower<'_> {
         for axis in &self.axes {
             let area = self.species.states[axis.pa].leaf_area;
             for p in axis.phytomers.iter().rev().take_while(|p| p.cycle == cycle) {
-                self.leaves.push((p.tip, p.scale * area));
+                self.leaves.push((p.tip, p.scale * p.size * area));
             }
         }
         Ok(())
