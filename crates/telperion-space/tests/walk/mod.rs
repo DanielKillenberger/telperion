@@ -425,6 +425,37 @@ fn bend_settings() -> Vec<Setting> {
         walked.stretch = metres;
         all.push(walked);
     }
+    // Across a continuation (PA 1 carries on as PA 2): the bearer's bend
+    // length through 0 under a bending successor, and the successor's
+    // wander through 0 under a bending bearer (Codex, fn-207 review 1).
+    let mut bearer = setting(
+        "states[1].form.bend_length, continued bending".into(),
+        0.0,
+        3.0,
+        false,
+        |s, v| {
+            s.states[1].form.wander = 0.5;
+            s.states[1].form.bend_length = v;
+            s.states[2].form.wander = 0.5;
+            s.states[2].form.bend_length = 2.0;
+        },
+    );
+    bearer.stretch = 1.0;
+    all.push(bearer);
+    let mut successor = setting(
+        "states[2].form.wander, bearer bending".into(),
+        0.0,
+        0.5,
+        false,
+        |s, v| {
+            s.states[1].form.wander = 0.5;
+            s.states[1].form.bend_length = 2.0;
+            s.states[2].form.bend_length = 2.0;
+            s.states[2].form.wander = v;
+        },
+    );
+    successor.stretch = 1.0;
+    all.push(successor);
     all
 }
 
