@@ -94,3 +94,39 @@ Beech and spruce at 80 years, seed 7, were rendered before (the preset's seed) a
 - **Heights:** the new palm is 25.3 to 25.7 m to the frond tips, against today's 25.9 to 27.2 m.
 
 No visible regression against today's palm at maturity.
+
+## Gate (R2): passed (host, 2026-10-05)
+
+The host viewed `SHEET-round1b.png` and is confident it reads as a date palm with no visible regression against today's palm. Astra read the same sheet three times independently (`ASTRA-VERDICT-R1b-1.md` to `-3.md`) and gave PASS in all three. By per-seed majority, seeds 1, 2, 3 and 4 are YES; seed 7 is BORDERLINE for a gap in its upper fronds.
+
+The host and Astra name one fault, which the new palm and today's palm share: the fronds are stiff, spiky and straight where the references' are soft and arching. It is a known gap of the dressing (the frond rows), not a regression.
+
+## R4: the passed beech and spruce sheets, re-rendered
+
+The beech at 80 years, seeds 1 and 7, against fn-193's passed `raw/final21` (in the tree-space worktree); the spruce at 80 years, seeds 1 and 7, against fn-194's `raw/round10`. The comparisons are in `raw/r4/{beech,spruce}-{1,7}-r4.png`, each whole, bare and base, with the passed still on the left. Every still was viewed.
+
+- **Spruce:** unchanged in look at both seeds. The same tiers, boughs, hook and taper in the whole and bare shots; the base close-ups match bough for bough. Only the needle placement differs, from the seed keying.
+- **Beech:** the structure is unchanged at both seeds: the same trunk, the same fork and limb layout, the same crown outline. The base close-up shows the same girth and flare. Two differences are visible:
+  - **Lighting:** the ground is lighter, the shadow falls under and behind the tree instead of to the left, and the bark reads darker on its shaded side. That comes from fn-194's change to light the stills from behind the camera (`824dd403`, spruce round 7, 2026-10-04), which `final21` (rendered at 16:32 that day) predates; it is not fn-196's. This branch's own before-and-after, pre-framing binary against now, showed no change in the beech (`raw/framing/beech-compare.png`).
+  - **Leaves:** the leaves sit in other places, from the seed keying (decision 2).
+
+Neither sheet is changed in look by fn-196's work.
+
+## R3: the walk from the oak to the palm stopped at a design question
+
+No species-to-species walk exists in the stills runner. B's walks (`crates/telperion-space/tests/walk/`) move one setting of one tree. The smallest walk the host described, "interpolate every setting between the two species", cannot be written without a mapping, because the two points do not have the same settings:
+
+- **Reference axis:** the oak (`fn-195-tree-space-d-the-oak-as-a-point:crates/telperion-space/src/oak.rs`) has 10 physiological ages: trunk, fork, leader, limb, bough, sprig, branch, twig, shoot, short. The palm has one. `Species.states` is a list whose length and order the engine reads (`next`, the lateral tables of one probability per PA), so there is no per-setting midpoint between a 10-state and a 1-state species.
+- **Discrete settings inside a state:**
+  - `lifespan` (the oak's trunk 11, its fork 2; the palm's 1000) and `next` (the oak's trunk moves to the fork; the palm's stem never moves on). `the_jump_check_sees_a_switch` treats a lifespan step as a jump.
+  - The zones: their number (three in the oak's growth unit, one in the palm's), their `NodeLaw` bounds and `buds` (integers).
+  - `shedding`, an option of an integer.
+- **The dressing:** the oak is dressed by the oregon-white-oak preset with its own overlay, the palm by date-palm. Their rows differ in kind as well as value: the palm has 42 rosette fronds, 256 leaf bases and 113 leaflets a frond, where the oak has 0, 0 and 1. These are integer counts. The materials, element and canopy rows differ too. A walk of the whole tree walks the dressing too, or it holds one preset and its far end is not the palm.
+
+Options I can see, for the host, not chosen:
+
+1. **The palm written on the oak's reference axis.** The palm's stem is the oak's trunk PA. The oak's other nine PAs stay in the list, unreachable at readiness 0, so every continuous setting has a midpoint. The integer settings still need a rule: hold the oak's where they are dormant at readiness 0, or step them where readiness crosses zero. B's walks show readiness walks by degree.
+2. **Walk only what the two share.** The trunk PA's continuous settings and the readiness, the topology and integers held at one end. This is continuous, but it is not a walk between the two species.
+3. **One preset at both ends for the dressing**, or interpolating the continuous rows and stepping the counts. This needs a ruling on how frond and leaf-base counts change by degree, which is the station contract the host placed in fn-198 (decision 1).
+
+The gate, the Codex review of fn-196 and `flowctl done` wait on R3.
