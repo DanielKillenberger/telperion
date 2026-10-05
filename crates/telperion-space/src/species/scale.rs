@@ -4,7 +4,9 @@
 //! a floor (the least magnitude that matters), so a midpoint of a twig's
 //! internode and a trunk's is a geometric one and 0 stays reachable;
 //! angles, probabilities, shares and counts mix by value; a delay that may
-//! be infinite by the share of a cycle it keeps. `settings` lists every
+//! be infinite by the share of a cycle it keeps. A response's exponent (as
+//! light^-phi) mixes by value too: it acts as a power, so its effect is
+//! already geometric (host decision 19). `settings` lists every
 //! setting of an age by name, its fields named one by one, so a setting
 //! added to `PaState`, `Form` or `Zone` does not compile until it is listed
 //! there, and one listed with no scale here is refused.

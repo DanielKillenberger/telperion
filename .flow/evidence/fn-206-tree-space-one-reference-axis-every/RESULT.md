@@ -572,3 +572,15 @@ Viewed; no pops in any of the three.
   - Red first: `a_branch_of_ages_within_one_cycle_is_shed_on_time`.
   - The four species are unchanged.
   - The round cap (2) is reached.
+
+### Host decisions 19 to 21 (2026-10-05)
+
+19. **Response exponents and shares mix linearly** (`shade_hazard`, `shade_size`, `leaf_girth`, `apical_control`, `retained`). An exponent acts as a power, so its effect is already geometric. This is recorded in the scale table's doc comment.
+20. **The beech's extra wood at 60 years is accepted as fn-206's change of law.** Over 8 seeds against master:
+    - length 434k to 575k (+32 %)
+    - axes 77.9k to 96.7k (+24 %)
+    - base radius 0.310 to 0.353 m (+14 %)
+    - each about 2 standard errors; height unchanged (14.27 to 14.08 m)
+
+    At 80 years it reads as the same rounded beech dome. The beech's pass stands; this is a candidate for the beech's calibration later.
+21. The scratch worktree `.worktrees/palm-master` is removed once done.
