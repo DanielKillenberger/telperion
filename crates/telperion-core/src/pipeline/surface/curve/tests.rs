@@ -66,8 +66,8 @@ fn clusters_bound_every_ring_and_their_ladder_rises() {
     }
 }
 
-/// The 28-byte point: rings drawn from the packed curve stand within the
-/// error the packing states: the octahedral frame's 1e-4 radians on the
+/// The 32-byte point: rings drawn from the packed curve stand within the
+/// error the packing states: the octahedral frame's 1e-6 radians on the
 /// run's radius, plus float32's rounding of a position (2 units in the last
 /// place, 2.4e-7 of its distance from the origin).
 #[test]
@@ -90,7 +90,7 @@ fn packed_points_stand_within_their_stated_error() {
                     .sum::<f64>()
                     .sqrt();
                 let far = (0..3).map(|k| e(k) * e(k)).sum::<f64>().sqrt();
-                let stated = 1e-4 * largest * lobe + 2.4e-7 * far.max(1.0);
+                let stated = 1e-6 * largest * lobe + 2.4e-7 * far.max(1.0);
                 worst = worst.max(d);
                 share = share.max(d / stated);
             }

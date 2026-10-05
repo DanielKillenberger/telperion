@@ -54,3 +54,12 @@ The `surface` tests (43) are green after the `emit_run` change.
 - **`fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens`:** a peak resident of 5.91 GB against its 5.76 GB ceiling under the parallel gate. It is green rerun alone (FRICTION.md). The test is unchanged by this work.
 
 Everything else passed.
+
+## The 32-byte point (host decision 8, step (ii))
+
+- **Encoding:** the frame's two vectors are octahedral at 24 bits a component, in the last three words (`curve/pack.rs`, `POINT_WORDS` 8).
+- **Measured worst vertex against the exact curve:**
+  - 1.0e-6 m on the spruce to 4.0e-6 m on the beech;
+  - 1.6e-5 m on Telperion and Laurelin, where float32's rounding of a position 150 m from the origin is now the larger term.
+- **The bound:** 1e-6 of the run's radius plus 2.4e-7 of the distance from the origin; the worst share of it is 0.50.
+- **Laurelin at 5 cm:** 16 µm is 0.33 px, so its trunk is within half a pixel there.

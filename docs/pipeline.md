@@ -62,11 +62,11 @@ The wood is handed over as curves, not triangles (`telperion_core::surface::Curv
 
 Its tree-wide rows are the section's `lobes`, `lobeDepth` and `twistRate`, and the tree's height. A ring point `p` at angle `θ` stands at `centre + (normal cos θ + binormal sin θ) · radius · (1 + lobeDepth cos(lobes (θ + phase)))`, where `phase = 2π · twistRate · along / height`. A shaped run's ring is the cell's own (`Section::vertex`). The bark's coordinates are `(along, θ)`.
 
-On the GPU a point is 28 bytes (`CurvePoint::pack`, `POINT_WORDS`):
+On the GPU a point is 32 bytes (`CurvePoint::pack`, `POINT_WORDS`; host decision 8):
 - float32 centre, radius and distance along;
-- the frame's two vectors, octahedral at 16 bits a component.
+- the frame's two vectors, octahedral at 24 bits a component.
 
-A ring drawn from a packed point stands within 1e-4 of its run's radius and two float32 units of its position from the exact one. A test measures this for every preset (`curve/tests.rs`).
+A ring drawn from a packed point stands within 1e-6 of its run's radius and two float32 units of its position from the exact one. A test measures this for every preset (`curve/tests.rs`).
 
 The sweep's rings drawn from the curve alone are the sweep's own, to the bit, for every values preset, the palm's shaped cells included: that is what shows the curve carries the whole wood.
 
