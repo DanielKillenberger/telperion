@@ -499,3 +499,48 @@ Young trees and close-ups were not re-rendered this round; the host's sheet hold
   - The conversion (`examples/space/tree.rs`) hands the `stem` flag on to a continuation or relay from its parent's end (`tree.rs:124-126`).
   - **Not checked:** two of them can therefore start at one node, likely a relay whose parent drew no phytomers and so ends where its own parent ended.
 - **Status:** the stills have not been changed. The host said to stop if the hypothesis was not confirmed. An absolute radius (decision 30) would also remove this coupling, but it was decided on the other cause.
+
+## Round 6b: round 6's values on the fixed conversion (host decision 31), 2026-10-05
+
+**The fix** (`670dacda`, `examples/space/tree.rs`): the conversion marks an axis as stem only where it carries the trunk on at one of its species' trunk-level ages.
+
+- The trunk-level ages: the oak's young stem, fork and leader; the beech's seedling stem, leader and fork; the spruce's seedling, sapling, trunk and crown leader.
+- A leader turned limb is no longer stem, and a limb's relays never are.
+- Two trunk-level axes leaving one node, a codominant fork of the trunk, are both stem.
+
+**Where the pipeline reads `stem`:** `Tree::stem_radius` (the canopy's slender-wood measure, short shoots, the local branching seed) and `Tree::stem_apices` (the palm's rosette, branching, the twig-extent suite). The other uses are in the scaffold and leaf-base builders, which tree-space trees do not pass through, and in tests.
+
+**Checks:**
+
+- **Red first:** `tests/space_stems.rs` (render crate) failed on the old conversion, with stems parting at nodes 37,916 and 105,644 of the oak at seed 1 (round 6, light 0.5/0.5). It passes on the new one.
+- **The beech and the spruce at 80 years, seed 1, bare and in leaf, are pixel-identical before and after** (ImageMagick absolute-error count 0).
+- **The palm is not checked:** its conversion lives on its own branch, which needs its own trunk-level list when the two meet.
+
+**Sheet:** `raw/round6b/sheet.png`, the host's layout: references, round 5 in leaf, round 6b in leaf, round 6b bare. I viewed every still.
+
+| Seed | Height | Width | Leaves | Leaves a metre of fine wood (round 6) |
+|--:|--:|--:|--:|--:|
+| 1 | 20.5 m | 23.1 × 29.4 m | 1.51M | 135 (30) |
+| 7 | 20.8 m | 25.7 × 21.4 m | 1.60M | 136 (69) |
+| 2 | 17.2 m | 23.8 × 28.3 m | 2.07M | 135 (60) |
+| 3 | 19.4 m | 24.1 × 18.5 m | 1.80M | 136 (136) |
+| 4 | 18.8 m | 22.2 × 23.1 m | 1.04M | 136 (49) |
+
+### Reading
+
+- **Every crown is full again.** That includes seed 4, whose sparseness since round 3 had the same cause, not phase F's marking. It now carries 136 leaves a metre, like every other seed.
+- **In leaf:**
+  - Seed 3 is a full, closed dome, and seed 7 a rounded one.
+  - Seeds 1, 2 and 4 are broad, spreading domes, wider than tall, with their heavy limbs showing below the foliage.
+  - All five are nearer S2 garryana's spread than any earlier round.
+- **Bare:** as round 6. A short, heavy trunk divides low into thick limbs that leave near horizontal, rise and change direction several times, under a broad, rounded outline.
+- **Grow times (8.6 to 42 s):** the machine was heavily loaded by other sessions.
+
+**Known gaps:**
+
+- the collar ring;
+- bark plates;
+- the 10-year sapling's spire (young trees not re-rendered this round);
+- the leaf form in close-ups.
+
+**Phase F's note on seed 4's leaf marking (fn-197 decision 26) was this stem-fork measure.** It is fixed here in the conversion, not in the pipeline's marking.
