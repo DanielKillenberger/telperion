@@ -385,6 +385,9 @@ mod tests {
             shade_hazard: 0.0,
             shade_size: 0.0,
             apical_control: 0.5,
+            upkeep: 0.0,
+            balance_hazard: 0.0,
+            tolerance: 0.0,
             straightening: 0.0,
             form: Form::default(),
         };

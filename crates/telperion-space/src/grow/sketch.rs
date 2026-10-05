@@ -28,8 +28,8 @@ pub(super) struct Pencil {
     pub(super) layer: Layer,
     /// Its scale at its base, and its draws' presence over the growth
     /// units laid.
-    base_scale: f64,
-    running: f64,
+    pub(super) base_scale: f64,
+    pub(super) running: f64,
     /// Its nodes counted by their presence, the units and phytomers laid.
     rank: f64,
     units: usize,
@@ -37,8 +37,14 @@ pub(super) struct Pencil {
     trunk: bool,
     /// The light at its tip, from the last cycle's leaves, and its
     /// growth unit's size among its siblings this cycle.
-    light: f64,
+    pub(super) light: f64,
     size: f64,
+    /// Its own present wood in metres, its remembered carbon balance and
+    /// what its subtrees' survival of shedding makes of its unit this
+    /// cycle (`balance.rs`).
+    pub(super) wood: f64,
+    pub(super) memory: f64,
+    pub(super) kept: f64,
 }
 
 impl Sketch {
@@ -188,6 +194,9 @@ impl Grower<'_> {
             trunk,
             light: 1.0,
             size: 1.0,
+            wood: 0.0,
+            memory: 1.0,
+            kept: 1.0,
         }
     }
 
@@ -247,6 +256,7 @@ impl Grower<'_> {
                         height,
                     })?;
                 leaves.push((p.tip, p.scale * state.leaf_area));
+                pencil.wood += state.internode * p.scale;
                 p.scale = bare;
             }
             pencil.laid = end;

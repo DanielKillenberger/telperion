@@ -114,6 +114,19 @@ pub struct PaState {
     /// split, gives every bud its own light's share; dormant while
     /// `shade_size` is 0 or no leaf shades.
     pub apical_control: f64,
+    /// The carbon balance's upkeep (fn-197 step 4): what a metre of this
+    /// PA's present wood costs, in the units of the light a bud of whole
+    /// presence collects in full light. Neutral 0, free.
+    pub upkeep: f64,
+    /// How fast a lateral of this PA is shed as its remembered balance,
+    /// (light - upkeep) / (light + upkeep) over its subtree, falls below
+    /// `tolerance`: a yearly hazard of balance_hazard x (tolerance -
+    /// balance) where the balance lies below it. Neutral 0, never.
+    pub balance_hazard: f64,
+    /// The remembered balance, from -1 to 1, below which a lateral of
+    /// this PA starts to be shed: its shade tolerance. Dormant without
+    /// `balance_hazard`.
+    pub tolerance: f64,
     /// How far the base of a lateral axis of this PA straightens towards
     /// the vertical, as Troll's plagiotropic axes do. Neutral 0.
     pub straightening: f64,
@@ -299,6 +312,8 @@ impl PaState {
             ("leaf_area", self.leaf_area, MAX_LEAF_AREA),
             ("shade_hazard", self.shade_hazard, MAX_SHADE),
             ("shade_size", self.shade_size, MAX_SHADE),
+            ("upkeep", self.upkeep, MAX_SHADE),
+            ("balance_hazard", self.balance_hazard, MAX_SHADE),
         ];
         for (name, value, most) in rates {
             if !(0.0..=most).contains(&value) {
@@ -319,6 +334,9 @@ impl PaState {
             if !(0.0..=1.0).contains(&value) {
                 return refuse(format!("{at}.{name}"), "a share lies in 0 to 1");
             }
+        }
+        if !(-1.0..=1.0).contains(&self.tolerance) {
+            return refuse(format!("{at}.tolerance"), "a balance lies in -1 to 1");
         }
         if !(-TAU..=TAU).contains(&self.divergence) {
             return refuse(

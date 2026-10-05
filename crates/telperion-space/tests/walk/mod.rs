@@ -50,6 +50,9 @@ pub fn species() -> Species {
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
+        upkeep: 0.0,
+        balance_hazard: 0.0,
+        tolerance: 0.0,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -74,6 +77,9 @@ pub fn species() -> Species {
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
+        upkeep: 0.0,
+        balance_hazard: 0.0,
+        tolerance: 0.0,
         straightening: 0.3,
         form: Form::default(),
     };
@@ -102,6 +108,9 @@ pub fn species() -> Species {
         shade_hazard: 0.0,
         shade_size: 0.0,
         apical_control: 0.5,
+        upkeep: 0.0,
+        balance_hazard: 0.0,
+        tolerance: 0.0,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -483,7 +492,7 @@ pub const SITE: Light = Light {
 
 /// The walk tree in leaf, its limbs and twigs as near certain to live as
 /// an oak's boughs and twigs, shade raising their death hazard and
-/// shortening their growth units.
+/// sizing their growth units, and their carbon balance shedding them.
 pub fn leafy(s: &mut Species) {
     for state in &mut s.states {
         state.leaf_area = 0.3;
@@ -493,6 +502,8 @@ pub fn leafy(s: &mut Species) {
     for pa in [1, 2] {
         s.states[pa].shade_hazard = 1.0;
         s.states[pa].shade_size = 0.5;
+        s.states[pa].upkeep = 0.3;
+        s.states[pa].balance_hazard = 1.0;
     }
 }
 
@@ -551,6 +562,14 @@ pub fn light_settings() -> Vec<Setting> {
         }),
         shaded("states[1].apical_control", 0.4, 0.6, |s, v| {
             s.states[1].apical_control = v
+        }),
+        shaded("states[1].upkeep", 0.0, 0.6, |s, v| s.states[1].upkeep = v),
+        shaded("states[2].upkeep", 0.0, 0.6, |s, v| s.states[2].upkeep = v),
+        shaded("states[1].balance_hazard", 0.0, 3.0, |s, v| {
+            s.states[1].balance_hazard = v
+        }),
+        shaded("states[2].tolerance", -0.5, 0.5, |s, v| {
+            s.states[2].tolerance = v
         }),
         shaded("leaf_area", 0.0, 0.6, |s, v| {
             s.states.iter_mut().for_each(|st| st.leaf_area = v)

@@ -6,6 +6,7 @@
 //! bound is recorded; once the tree has grown, `presence.rs` sizes every
 //! element from those leads, so a setting that crosses a draw grows the
 //! element in from nothing.
+mod balance;
 mod relay;
 mod sketch;
 mod unit;
@@ -255,6 +256,7 @@ struct Grower<'a> {
 
 impl Grower<'_> {
     fn step(&mut self, cycle: u32) -> Result<()> {
+        self.balance(cycle);
         self.allot();
         let live = std::mem::take(&mut self.live);
         for apex in live.iter().copied() {
@@ -302,6 +304,8 @@ impl Grower<'_> {
         let survive = below(u, viability);
         let wood = self.windows.wood(pa, cycle);
         let survive = self.windows.decided(survive, wood, stop_stake(state.relay));
+        // And its subtrees' survival of shedding on their balance.
+        let survive = survive * self.kept(apex.axis);
         self.draws[apex.axis].units.push([survive, 1.0]);
         if self.sketch.is_some() {
             let size = self.size(apex.axis);
