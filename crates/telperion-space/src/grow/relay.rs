@@ -1,17 +1,18 @@
 //! The full lay grown with the tree (fn-197, host decision 8): every
-//! `RELAY_EVERY` cycles the living part of the tree, every axis with a
-//! living apex and all that bears it, is sized, thickened and laid with
-//! sag as the final lay lays it, at the tree's age then. Its positions
-//! replace the rough layout's, and each axis's rough walk carries on from
-//! where the full lay ended it, so light reads sagged boughs where they
-//! hang. Wood with nothing living in it casts no leaves and is left where
-//! the rough layout put it; it lends no load or girth to the lay.
+//! `RELAY_EVERY` cycles the tree as shedding would leave it then, living
+//! wood and dead wood within its PA's delay, each sized by its fade, is
+//! sized, thickened and laid with sag as the final lay lays it, at the
+//! tree's age then. Its positions replace the rough layout's, and each
+//! axis's rough walk carries on from where the full lay ended it, so
+//! light reads sagged boughs where they hang. Wood shedding has dropped
+//! is left where the rough layout put it.
 use super::Grower;
 use crate::error::Result;
 use crate::geometry::{place, scale};
-use crate::girth::thicken;
+use crate::girth::{thicken, Girth};
 use crate::presence::assign;
 use crate::sag;
+use crate::shed::{shed, standing};
 use crate::structure::{Origin, Structure};
 
 /// The cycles between full lays: an engine constant, never a setting, so
@@ -21,22 +22,13 @@ pub(crate) const RELAY_EVERY: u32 = 10;
 impl Grower<'_> {
     /// Lays the living tree in full at `cycle`.
     pub(super) fn relay(&mut self, cycle: u32) -> Result<()> {
-        let count = self.axes.len();
-        let mut kept = vec![false; count];
-        for apex in &self.live {
-            kept[apex.axis] = true;
-        }
-        // Parents precede children: one backward pass keeps every bearer.
-        for i in (1..count).rev() {
-            if kept[i] {
-                if let Some(parent) = self.axes[i].origin.parent() {
-                    kept[parent] = true;
-                }
-            }
-        }
-        let mut index = vec![usize::MAX; count];
+        // The tree as shedding would leave it at `cycle`: living wood and
+        // dead wood still within its PA's delay, each sized by its fade, so
+        // a branch that dies changes the lay by degree.
+        let standing = standing(&self.axes, self.species, cycle);
+        let mut index = vec![usize::MAX; self.axes.len()];
         let (mut axes, mut draws, mut from) = (Vec::new(), Vec::new(), Vec::new());
-        for i in (0..count).filter(|&i| kept[i]) {
+        for i in (0..self.axes.len()).filter(|&i| standing[i]) {
             let mut axis = self.axes[i].clone();
             match &mut axis.origin {
                 Origin::Seed => {}
@@ -50,13 +42,18 @@ impl Grower<'_> {
             from.push(i);
         }
         assign(&mut axes, &draws);
+        let shed = shed(axes, self.species, cycle);
+        let from: Vec<usize> = (0..from.len())
+            .filter(|&j| shed.index[j] != usize::MAX)
+            .map(|j| from[j])
+            .collect();
         let mut tree = Structure {
             age: cycle,
             pas: self.species.states.len(),
-            axes,
+            axes: shed.axes,
         };
         scale(&mut tree, self.species);
-        thicken(&mut tree, self.species, &[]);
+        thicken(&mut tree, self.species, &Girth::default());
         let mut layers = place(&mut tree, self.species, None)?;
         if sag::any(self.species) {
             let levers = sag::levers(&tree, self.species);

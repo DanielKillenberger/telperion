@@ -144,7 +144,10 @@ impl Grower<'_> {
         let (mut lit, mut presence, mut psi) = (vec![0.0; n], vec![0.0; n], vec![0.0; n]);
         for apex in self.live.iter().filter(|a| a.axis < n) {
             let p = &sketch.pencils[apex.axis];
-            presence[apex.axis] = p.base_scale * p.running;
+            // Its presence this cycle includes its subtrees' survival of
+            // shedding (`balance.rs`), so a bud about to be shed weighs
+            // nothing as it goes.
+            presence[apex.axis] = p.base_scale * p.running * p.kept;
             lit[apex.axis] = presence[apex.axis] * p.light;
             psi[apex.axis] = species.states[self.axes[apex.axis].pa].shade_size;
         }

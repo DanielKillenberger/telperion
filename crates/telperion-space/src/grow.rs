@@ -15,7 +15,7 @@ mod wake;
 use crate::dormant::{Sleeper, Woken};
 use crate::error::{refuse, Error, Result};
 use crate::geometry::{place, scale};
-use crate::girth::{attachments, disused, thicken};
+use crate::girth::{attachments, disused, thicken, Girth};
 use crate::light::Light;
 use crate::lineage::{above, below, Key, ABORTION, CONTINUATION, RELAY, VIABILITY};
 use crate::presence::{assign, Draws, Windows, SPAN};
@@ -154,20 +154,20 @@ fn run(
         .iter()
         .any(|s| s.retained > 0.0)
         .then(|| attachments(&grower.axes, species, request.age));
-    let (axes, index) = shed(grower.axes, species, request.age);
+    let shed = shed(grower.axes, species, request.age);
+    let girth = grown.map_or_else(Girth::default, |g| disused(&g, &shed, species));
     let mut structure = Structure {
         age: request.age,
         pas: species.states.len(),
-        axes,
+        axes: shed.axes,
     };
     if structure.phytomer_count() == 0 {
         return Err(Error::Collapsed);
     }
-    let disused = grown.map_or_else(Vec::new, |g| disused(&g, &index, species));
     scale(&mut structure, species);
     // Girth needs no geometry; placing reads it where wood meets the
     // ground.
-    thicken(&mut structure, species, &disused);
+    thicken(&mut structure, species, &girth);
     stage(Stage::Settled);
     if !lay {
         return Ok(structure);

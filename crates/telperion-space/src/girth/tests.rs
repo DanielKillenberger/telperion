@@ -3,7 +3,7 @@
 //! bearer by degree.
 use super::*;
 use crate::species::{NodeLaw, PaState, Zone};
-use crate::structure::Vec3;
+use crate::structure::{Axis, Vec3};
 
 fn state(leaf_girth: f64) -> PaState {
     PaState {
@@ -121,8 +121,8 @@ fn the_leaf_term_keeps_the_trees_pipe_and_thickens_the_lit_limb() {
         states: vec![state(1.0)],
     };
     let (mut a, mut b) = (tree(), tree());
-    thicken(&mut a, &neutral, &[]);
-    thicken(&mut b, &leafy, &[]);
+    thicken(&mut a, &neutral, &Girth::default());
+    thicken(&mut b, &leafy, &Girth::default());
     let (ta, tb) = (own_total(&a, &neutral), own_total(&b, &leafy));
     assert!((ta - tb).abs() < 1e-12 * ta, "own pipe {ta} against {tb}");
     assert_eq!(a.axes[1].phytomers[0].radius, a.axes[2].phytomers[0].radius);
@@ -143,7 +143,11 @@ fn a_retained_pipe_thickens_its_bearer_by_degree() {
             radius: 0.02,
             share,
         }];
-        thicken(&mut t, &species, &disused);
+        let girth = Girth {
+            disused: disused.to_vec(),
+            leaf_mean: None,
+        };
+        thicken(&mut t, &species, &girth);
         t.axes[0].phytomers[0].radius
     };
     let mut last = base(0.0);
