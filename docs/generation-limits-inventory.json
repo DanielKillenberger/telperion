@@ -1384,5 +1384,41 @@
     "site": "const MOST_SIDES : u32 = 384 ;",
     "classification": "algorithm",
     "reason": "The most sides a ring is drawn with (3 x 2^7): at half a pixel it serves a ring over 3,500 px in radius, larger than any frame. A drawing resolution, never a limit on the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": ". min ( 2 . 0 )",
+    "classification": "algorithm",
+    "reason": "A lobed outline interpolated between two phases stands at most its full depth either side, twice the depth, off the twisted one: the ring ladder's error for twisting lobes saturates there (fn-208). It does not limit the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate/plan.rs",
+    "site": ". max ( ( chord - ( ta + tb * 2 . 0 ) * ( length / 3 . 0 ) ) . length ( ) )",
+    "classification": "algorithm",
+    "reason": "A Hermite stretch's bend is the larger of its control points' two second differences, the bound on its sag (fn-208 review). A drawing resolution, not a limit on the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate/plan.rs",
+    "site": ". max ( 0 . 0 )",
+    "classification": "numeric",
+    "reason": "A view's pixels a metre are held non-negative before their root in the demand bound. It does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate/plan.rs",
+    "site": ". max ( 6 . 0 * bent )",
+    "classification": "algorithm",
+    "reason": "A stretch is cut against the larger of its turn's sag and its cubic's control bound, so parallel end tangents on a bent stretch are still cut (fn-208 review). A drawing resolution, not a limit on the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate/plan.rs",
+    "site": ". max ( std : : f64 : : consts : : TAU * ( rho * bend / ( 8 . 0 * error ) ) . sqrt ( ) )",
+    "classification": "algorithm",
+    "reason": "A lobed ring takes the larger of its circle's sides and the sides its lobed outline's bend needs within the error (fn-208 review). A drawing resolution, not a limit on the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate/plan.rs",
+    "site": ". min ( self . stretches * MOST_PIECES as u64 )",
+    "classification": "algorithm",
+    "reason": "The demand bound never counts more pieces a stretch than the planner cuts, MOST_PIECES (fn-208, host decision 23). It sizes a view's budget; it does not limit the tree."
   }
 ]

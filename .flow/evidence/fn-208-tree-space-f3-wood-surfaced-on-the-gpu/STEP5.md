@@ -92,3 +92,30 @@ Per view at 960 × 720 the camera holds about 0.6 GB and the sun's map about 0.7
   - Round 1, NEEDS_WORK: lobed sides, twist in the ladder and the pieces, parallel tangents on a bent Hermite stretch, browser overruns silent, the red fit test, still triangles of 0, a pass-through fragment. All fixed in `061f36c3`. The lobe and twist bounds change only Telperion and Laurelin, the two lobed presets. The Hermite bound adds 1 to 3% to the engine trees' hero demand, and doubles the along-the-twig views.
   - Round 2, **SHIP**. Its one P2, the browser's live triangle count, is answered in `691253d4`: `woodCounted: false`, with the count from `wood()`.
   - **Exact boundary, deferred:** the new control-point bound is a small difference in float32, so `ordinary`'s close view cuts one stretch once more on the device (77,792 against 77,789 vertices). The GPU test now allows counts within a thousandth, matching every other vertex front and back.
+
+## Host decisions 22 to 25 (`18f24074`)
+
+- **22, the grazing test holds its geometry.** `Renderer::pin_curve_viewport` is a measurement override that surfaces the wood for a given viewport whatever the frame's size. The grazing test pins both resolutions to 1600 × 1000 (`raw/d22-grazing.log`):
+  - oak mean 1.93, p95 6.00 (bound 3; the mesh path's record was 2.54, p95 7.75);
+  - spruce mean 0.89, p95 2.25.
+  
+  The ridged bark did not regress.
+- **23, budgets within the tree's demand.** `Curve::demand` is computed once a tree: the shaped rings, the round stretches and the sum of the roots of their sags. `Demand::at(pixels, error)` bounds any view that sees none of the tree nearer than `pixels` a metre: every point kept, every stretch cut as `pieces` would there, every ring a capped tube of 384 sides. A view's budget is the lesser of that and its screen's; the camera reads its own `pixels_per_metre / near`, the sun `1 / texel`. A CPU test holds every preset's hero and close views under it. Wood on the device (`raw/d23-memory2.log`):
+
+  | Species | Screen budgets | Within demand |
+  |---|--:|--:|
+  | Palm | 1.34 GB | 0.13 to 0.18 GB |
+  | Oak | 1.40 GB | 1.15 to 1.20 GB |
+  | Beech | 1.43 GB | 1.33 GB |
+  | Spruce | 1.59 GB | 1.59 GB |
+
+  The demand bound is per view's nearest pixels, so a change of the camera's near plane or the sun's texel rebuilds that view's budget.
+- **24, `casterTexels` deleted** from the scene row, its tests and the README. The catalogue's `stills.json` files keep it in their scene records: those record the scene each still was taken under, and nothing parses them back.
+
+### Final gate and review (`18f24074`, fixes in the next commit)
+
+- **Workspace gate** (`raw/gate6.log`): 126 binaries green, 2 red, both from this round and fixed in the next commit:
+  - `generation_limit_guard` named six new `min`/`max` sites of the demand bound and the review's error rules; they are classified in `docs/generation-limits-inventory.json`, and the guard is green.
+  - `shot.rs` held "the pose changes no geometry" on the still's triangles, which now count the wood, surfaced for each pose at its own error; it compares them less the wood's, green on a focused rerun.
+- **`npm test`:** 129 tests green (`raw/npm-test6.log`).
+- **Codex round 3: SHIP.** Its one P2: an ignored evidence replay (`bark_evidence`) read a recorded scene row naming `casterTexels`. The replay now drops the retired field before parsing; the parser still refuses it.

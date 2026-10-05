@@ -97,8 +97,8 @@ fn main() {
             let sun_per = sun.demand.map(|d| format!("{:.2}", f64::from(d) / texels));
             println!(
                 "{line} demand a pixel {per:?}, budget {:?}, scale {}; sun demand a texel \
-                 {sun_per:?}, scale {}",
-                c.budget, c.scale, sun.scale
+                 {sun_per:?}, scale {}; wood on the device {:.1} MB",
+                c.budget, c.scale, sun.scale, r.curve_bytes().unwrap() as f64 / 1e6
             );
             continue;
         }
