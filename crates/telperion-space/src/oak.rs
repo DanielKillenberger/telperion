@@ -112,6 +112,7 @@ pub fn oak() -> Species {
         roll: 0.0,
         sag: 0.0,
         secondary: 1.0,
+        bend_length: 0.0,
     };
     // The young stem: erect and monopodial, a yearly shoot of about
     // 0.36 m, its laterals temporary long shoots that die within three
@@ -190,6 +191,7 @@ pub fn oak() -> Species {
             roll: 0.8,
             sag: 0.0003,
             secondary: 1.0,
+            bend_length: 0.0,
         },
         ..state(
             1_000,
@@ -228,6 +230,7 @@ pub fn oak() -> Species {
             exponent: 2.6,
             sag: 0.00005,
             secondary: 1.0,
+            bend_length: 0.0,
             ..limb.form
         },
         ..state(
@@ -260,6 +263,7 @@ pub fn oak() -> Species {
             roll: 1.2,
             sag: 0.0,
             secondary: 1.0,
+            bend_length: 0.0,
         },
         ..state(
             10,
@@ -290,6 +294,7 @@ pub fn oak() -> Species {
             roll: 1.2,
             sag: 0.0,
             secondary: 1.0,
+            bend_length: 0.0,
         },
         ..state(
             12,

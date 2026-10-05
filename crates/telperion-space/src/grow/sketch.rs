@@ -170,6 +170,12 @@ impl Grower<'_> {
         let framed = frame(&self.axes, self.species, i);
         let axis = &self.axes[i];
         let made = self.draws[i].birth[0] * self.draws[i].birth[1];
+        let curve = match axis.origin {
+            Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
+                sketch.pencils[parent].layer.curve()
+            }
+            _ => Vec3::default(),
+        };
         let (inherited, vigour, trunk) = match axis.origin {
             Origin::Seed => (1.0, made, true),
             Origin::Lateral { parent, node, .. } => {
@@ -189,7 +195,7 @@ impl Grower<'_> {
         let axis = &mut self.axes[i];
         (axis.base, axis.heading, axis.side) = framed;
         Pencil {
-            layer: Layer::new(framed),
+            layer: Layer::bent(framed, curve),
             base_scale: inherited * vigour * share,
             running: 1.0,
             rank: 0.0,

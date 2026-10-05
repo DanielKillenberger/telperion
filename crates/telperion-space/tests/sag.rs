@@ -396,6 +396,7 @@ fn the_ground_takes_a_carried_load_by_degree() {
             insertion: 3.0 * std::f64::consts::FRAC_PI_4,
             form: Form {
                 sag: 0.02,
+                bend_length: 0.0,
                 ..Form::default()
             },
             ..pole.clone()
