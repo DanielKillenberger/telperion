@@ -39,7 +39,13 @@ const SUN: (f64, f64) = (115.0, 60.0);
 /// The light and carbon flags (`tuning.rs`, fn-197) set the site's light
 /// and values on every PA; `--tag <t>` names the stills
 /// `<name>-<age>-<seed>-<t>-<shot>`, `--shots <shot>,...` renders only those.
-pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Result<(), String> {
+pub fn run(
+    name: &str,
+    species: fn() -> Species,
+    trunk: &[usize],
+    preset: &str,
+    rows: &str,
+) -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let (out, rest) = args.split_first().ok_or(format!(
         "usage: space_{name} <out dir> <age>... [--seeds 1,7] [--sag <pa>:<value>,...] {}",
@@ -186,7 +192,7 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
                 )
                 .map_err(|e| format!("age {age} seed {seed}: {e:?}"))?;
                 let grown = started.elapsed().as_secs_f64() * 1e3;
-                let pipeline_tree = tree::convert(&structure);
+                let pipeline_tree = tree::convert(&structure, trunk);
                 let nodes = pipeline_tree.nodes.len();
                 let (fine, wood) = wood_km(&pipeline_tree);
                 // The dressing's own draws (leaf and frond placement) are

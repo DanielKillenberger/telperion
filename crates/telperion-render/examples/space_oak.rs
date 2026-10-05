@@ -14,5 +14,11 @@ mod tree;
 const ROWS: &str = r#"{"canopy": {"shortShootSpacing": 0, "shootRadius": 0.06, "limbClumping": 0}, "skeleton": {"twigs": {"twig": {"internodeLength": 0.008}}}}"#;
 
 fn main() -> Result<(), String> {
-    still::run("oak", telperion_space::oak, "oregon-white-oak", ROWS)
+    still::run(
+        "oak",
+        telperion_space::oak,
+        &tree::OAK_TRUNK,
+        "oregon-white-oak",
+        ROWS,
+    )
 }
