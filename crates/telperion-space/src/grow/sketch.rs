@@ -10,7 +10,7 @@
 //! in the next. What it writes into the phytomers and axes (their tip,
 //! frame, scale and rank) is all written again once the tree has grown.
 use super::Grower;
-use crate::allocation::{vigours, Link, TIP};
+use crate::allocation::{sizes, vigours, Link, TIP};
 use crate::error::{Error, Result};
 use crate::geometry::{bend, dominance, frame, Layer};
 use crate::light::{Field, Light};
@@ -103,8 +103,8 @@ impl Grower<'_> {
     }
 
     /// Gives each living apex its unit's size this cycle from the vigour
-    /// the tree's light allots it (`allocation.rs`), against the vigour a
-    /// uniformly lit tree of the same form would: before any apex grows.
+    /// the tree's light allots it per presence, against the tree's mean
+    /// (`allocation.rs`): before any apex grows.
     pub(super) fn allot(&mut self) {
         let species = self.species;
         let Some(sketch) = self.sketch.as_mut() else {
@@ -135,24 +135,17 @@ impl Grower<'_> {
             .iter()
             .map(|a| species.states[a.pa].apical_control)
             .collect();
-        let (mut lit, mut even) = (vec![0.0; n], vec![0.0; n]);
+        let (mut lit, mut presence, mut psi) = (vec![0.0; n], vec![0.0; n], vec![0.0; n]);
         for apex in self.live.iter().filter(|a| a.axis < n) {
             let p = &sketch.pencils[apex.axis];
-            even[apex.axis] = p.base_scale * p.running;
-            lit[apex.axis] = even[apex.axis] * p.light;
+            presence[apex.axis] = p.base_scale * p.running;
+            lit[apex.axis] = presence[apex.axis] * p.light;
+            psi[apex.axis] = species.states[self.axes[apex.axis].pa].shade_size;
         }
-        let (got, expected) = (
-            vigours(&links, &lit, &lambda),
-            vigours(&links, &even, &lambda),
-        );
+        let got = vigours(&links, &lit, &lambda);
+        let sized = sizes(&got, &presence, &psi);
         for apex in self.live.iter().filter(|a| a.axis < n) {
-            let psi = species.states[self.axes[apex.axis].pa].shade_size;
-            let e = expected[apex.axis];
-            sketch.pencils[apex.axis].size = if e > 0.0 {
-                (got[apex.axis] / e).powf(psi)
-            } else {
-                1.0
-            };
+            sketch.pencils[apex.axis].size = sized[apex.axis];
         }
     }
 

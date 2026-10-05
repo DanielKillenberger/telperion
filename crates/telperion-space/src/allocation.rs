@@ -23,8 +23,9 @@ pub(crate) const TIP: usize = usize::MAX;
 /// Each axis's bud's vigour, from the base's vigour, the light its own bud
 /// collects (`own`, 0 where it has none) and its apical control λ at its
 /// branching points. Parents precede children. The base's vigour is the
-/// tree's light, α = 1: a bud's size reads its vigour against a uniformly
-/// lit tree's, in which α cancels (STEP3C.md).
+/// tree's light, α = 1: a bud's size reads its vigour per presence against
+/// the tree's mean (`sizes`), in which any α cancels, so α is no setting
+/// (host decision 15).
 pub(crate) fn vigours(links: &[Link], own: &[f64], lambda: &[f64]) -> Vec<f64> {
     let n = links.len();
     let mut sub = own.to_vec();
@@ -84,6 +85,32 @@ pub(crate) fn vigours(links: &[Link], own: &[f64], lambda: &[f64]) -> Vec<f64> {
         }
     }
     bud
+}
+
+/// Each bud's size from its vigour per presence against the tree's
+/// (host decision 14): (r / r̄)^ψ, r = vigour / presence, normalised
+/// exactly so the presence-weighted mean size is 1 at every ψ. Light
+/// moves growth towards the lit buds and never adds or takes away
+/// growth: bounding the tree is the carbon balance's. Buds of no
+/// presence are whole and weigh nothing in the mean, so the mean is a
+/// smooth function of every bud's presence, light and ψ.
+pub(crate) fn sizes(vigour: &[f64], presence: &[f64], psi: &[f64]) -> Vec<f64> {
+    let drawn: Vec<f64> = (0..vigour.len())
+        .map(|i| {
+            if presence[i] > 0.0 {
+                (vigour[i] / presence[i]).powf(psi[i])
+            } else {
+                1.0
+            }
+        })
+        .collect();
+    let total: f64 = presence.iter().sum();
+    let mean = drawn.iter().zip(presence).map(|(d, w)| d * w).sum::<f64>() / total;
+    drawn
+        .iter()
+        .zip(presence)
+        .map(|(&d, &w)| if w > 0.0 && mean > 0.0 { d / mean } else { 1.0 })
+        .collect()
 }
 
 #[cfg(test)]

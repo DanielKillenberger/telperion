@@ -29,7 +29,12 @@ The options and the reasons are in `.flow/evidence/fn-197-tree-space-e-light-and
 - **Stop:** ln(survival) = ln(viability) · I^(−φ), neutral φ = 0. The shed hazard rises continuously as the remembered balance falls.
   - Both are walk-tested.
   - A red-first test pits the multiplicative form viability · I^φ against the walk bound. [host]
-- **Slow and fill:** shoot size × (I / Ī)^ψ, Ī the presence-weighted power mean of light over the buds growing on the same bearer that cycle. The bearer's total is conserved, as Borchert–Honda allocation (Pałubicki 2009) does, so lit buds outgrow shaded ones into gaps. ψ = 0 is neutral, with no phototropism. The balance acts only through shedding. [host, decisions 7 and 4]
+- **Fill by light (Borchert–Honda):**
+  - Each cycle a basipetal pass sums the light each subtree collects. An acropetal pass splits the base's vigour at every branching point by per-PA apical control λ (Pałubicki 2009; 0.5 is the unbiased split that gives each bud its own light).
+  - A bud's unit is sized by its vigour per presence against the tree's presence-weighted mean, to ψ, normalised exactly so the mean unit is whole. The size is the unit's own (internodes and girth) and never passes to what it bears.
+  - ψ = 0 is neutral. α cancels and is deleted. The balance bounds size and acts only through shedding; there is no phototropism. [host, decisions 4, 11, 14, 15]
+- **Walk scope:** the gate walks the light settings and a sample of structural ones in leaf with the full lay; every setting in leaf is a slow suite outside the gate. [host, decision 12]
+- **Calibration:** leaf area and k stay plausible on this branch; the oak's leaf area is sourced on its own branch. [host, decision 16]
 - **Girth:** `retained`, the share of a shed branch's pipe kept in its bearer (Shinozaki's disused pipes), neutral 0, built in step 5 beside thickening from leaves. [host]
 - **Walks:** refine depth 6 for every walk; a jump does not shrink under refinement, a steep crossing does. [host, decision 9]
 - **Foliage:** sag's foliage term and light's `leaf_area` are two estimates of one thing, kept apart for neutrality and unified per species at R3. [host, decision 10]

@@ -102,9 +102,10 @@ pub struct PaState {
     /// where the apex never dies (viability 1) or no leaf shades it.
     pub shade_hazard: f64,
     /// How a bud's growth unit follows the vigour the tree's light gives
-    /// it (`allocation.rs`; host decision 11): its own internodes and
-    /// girth scale by (vigour / the vigour a uniformly lit tree gives it)^ψ,
-    /// and what it bears does not inherit that. Neutral 0; dormant where no
+    /// it (`allocation.rs`; host decisions 11 and 14): its own internodes
+    /// and girth scale by its vigour per presence against the tree's mean,
+    /// to ψ, normalised so the mean unit stays whole; what it bears does
+    /// not inherit that. Neutral 0; dormant where no
     /// leaf shades it.
     pub shade_size: f64,
     /// Apical control λ at this PA's branching points: the share of its

@@ -347,3 +347,11 @@ Step 3b found that sibling-level allocation compounds down lineages (STEP3B.md).
     - Oracle: the split at one branching point, conservation, and a shaded limb receiving less. Q and the split are smooth, presence-weighted and threshold-free, and ψ, λ and α are walked.
 12. **Walk scope:** the gate runs the light settings plus three structural ones (sag, a lifespan, a dormant probability) with the full lay on. The every-setting in-leaf walk is a slow suite run outside the gate, documented in the test file.
 13. **The step-3b oak is not a pass.** Recorded.
+
+## 11. Host decisions after step 3c (host, 2026-10-05)
+
+14. **The reference vigour is the tree's own presence-weighted mean.**
+    - A unit's size is (r / r̄)^ψ, with r = vigour / presence, normalised exactly so the presence-weighted mean size is 1 at every ψ.
+    - Light only moves growth toward lit parts; bounding size is the carbon balance's (step 4): one lever each. ψ = 0 is neutral.
+15. **α stays deleted.** Under the ratio it cancels from every size, and a setting that changes nothing is deleted rather than kept (docs/principles.md, "Question, delete, then optimise").
+16. **Calibration:** with mean normalisation only relative light matters. Leaf area and k stay; the oak's leaf area is sourced when the oak resumes on its own branch, and on this branch it need only be plausible.

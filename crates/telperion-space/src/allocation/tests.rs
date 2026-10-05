@@ -124,3 +124,56 @@ fn vigour_moves_by_degree_as_light_does() {
         last = v;
     }
 }
+
+/// Host decision 14: the presence-weighted mean size is exactly 1 at every
+/// ψ, every bud is whole at ψ 0, and a lit bud outgrows a shaded one.
+#[test]
+fn sizes_keep_the_mean_whole_and_favour_light() {
+    let (links, own) = tree();
+    let presence = [0.0, 0.5, 0.9, 0.0, 1.2, 0.4, 0.3, 1.0, 0.6];
+    let lit: Vec<f64> = own.iter().zip(&presence).map(|(q, w)| q * w).collect();
+    let v = vigours(&links, &lit, &vec![0.45; links.len()]);
+    for psi in [0.0, 0.5, 1.0, 2.0, 4.0] {
+        let s = sizes(&v, &presence, &vec![psi; links.len()]);
+        let mean =
+            s.iter().zip(&presence).map(|(a, w)| a * w).sum::<f64>() / presence.iter().sum::<f64>();
+        assert!((mean - 1.0).abs() < 1e-12, "ψ {psi}: mean {mean}");
+        if psi == 0.0 {
+            assert!(s.iter().all(|&x| x == 1.0));
+        }
+    }
+    // Buds 4 (light 1.1) and 6 (0.2) at λ 0.5: the lit one outgrows.
+    let even = vigours(&links, &lit, &vec![0.5; links.len()]);
+    let s = sizes(&even, &presence, &vec![1.0; links.len()]);
+    assert!(s[4] > 1.0 && s[6] < 1.0 && s[4] > s[6], "{s:?}");
+}
+
+/// The sizes move by degree as one bud's presence falls to nothing.
+#[test]
+fn sizes_move_by_degree_as_a_bud_vanishes() {
+    let (links, own) = tree();
+    let mut presence = vec![0.0, 0.5, 0.9, 0.0, 1.2, 0.4, 0.3, 1.0, 0.6];
+    let psi = vec![1.0; links.len()];
+    let at = |presence: &[f64]| {
+        let lit: Vec<f64> = own.iter().zip(presence).map(|(q, w)| q * w).collect();
+        sizes(
+            &vigours(&links, &lit, &vec![0.45; links.len()]),
+            presence,
+            &psi,
+        )
+    };
+    let mut last = at(&presence);
+    for step in 1..=1000 {
+        presence[2] = 0.9 * (1.0 - f64::from(step) / 1000.0);
+        let s = at(&presence);
+        let worst = s
+            .iter()
+            .zip(&last)
+            .enumerate()
+            .filter(|(i, _)| *i != 2)
+            .map(|(_, (a, b))| (a - b).abs())
+            .fold(0.0, f64::max);
+        assert!(worst < 0.01, "step {step}: {worst}");
+        last = s;
+    }
+}
