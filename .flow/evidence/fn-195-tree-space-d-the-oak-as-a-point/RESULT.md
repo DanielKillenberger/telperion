@@ -665,3 +665,63 @@ The aim is limbs in sun toward S3's grey-brown, not pale pink-tan.
   - The limbs that show through the foliage are dark now, so they read as shadowed wood rather than pale streaks.
   - Some gaps between foliage lobes remain at seeds 1 and 4.
 - **The trunk base keeps the flared cone with its collar band,** the known rendering gap, left as directed.
+
+## Gate, round 8 (host and Astra, 2026-10-05)
+
+**Host:** the colour is better and the edge finer.
+
+**Astra: FAIL in all three samples** (`ASTRA-VERDICT-R8-1.md` to `-3.md`):
+
+| Seed | Majority verdict |
+|--:|---|
+| 1 | YES |
+| 2 | YES |
+| 7 | BORDERLINE |
+| 4 | BORDERLINE |
+| 3 | NO |
+
+All three name the same fault: "too many prominent ascending tips ... angular, upswept fans and flat-topped bowls instead of a broad, rounded envelope". Seed 3 stays narrow and upright.
+
+**Host and Astra have now iterated three gates (rounds 5, 6b and 8) without agreeing.** Under the owner's rule (docs/tree-space.md, "How a species is judged"), the oak goes to the owner's verdict alongside the spruce. Round 9 continues in the meantime.
+
+## Round 9: tips that settle outward (values only), 2026-10-05
+
+**Probes on seeds 3 and 7** (`raw/round9/probe.png`, `probeB.png`):
+
+- **Probe A** (limbs 0.75 / 0.65; bough tropism 0.35, elevation 0.25; branch-system tropism 0.25, elevation 0.05) changed little.
+- **Probe B**, the stronger one, is kept.
+
+**Kept values** (`oak.rs`):
+
+| Value | Round 8 | Round 9 |
+|---|---|---|
+| Limb insertion | 0.65 | 0.8 |
+| Limb elevation | 0.75 | 0.6 |
+| Bough tropism | 0.48 | 0.25 |
+| Bough elevation | 0.45 | 0.1 |
+| Branch-system tropism | 0.33 | 0.15 |
+| Branch-system elevation | 0.2 | 0 |
+
+Round 8's colours, fine twigs and ψ 1.5 are kept.
+
+**Sheet:** `raw/round9/sheet.png`: references, round 8 in leaf, round 9 in leaf, round 9 bare. I viewed every still.
+
+| Seed | Height | Width | Leaves | Fine wood |
+|--:|--:|--:|--:|--:|
+| 1 | 20.0 m | 27.5 × 36.1 m | 1.87M | 13.8 km |
+| 7 | 20.3 m | 30.6 × 27.4 m | 1.93M | 14.3 km |
+| 2 | 18.5 m | 30.5 × 29.1 m | 2.60M | 19.3 km |
+| 3 | 21.4 m | 31.6 × 24.9 m | 2.10M | 15.5 km |
+| 4 | 19.9 m | 23.6 × 25.4 m | 1.28M | 9.4 km |
+
+### Reading
+
+**Not clearly better than round 8.**
+
+- **What the tips did:** the boughs' tips settle outward and the crowns are lower and broader, 1 to 1.5 m lower and up to 6 m wider than round 8. Seed 3 is 31.6 m across against 30.2.
+  - The outlines spread flatter rather than rounding over: seed 1 is a wide, star-shaped spread, and seed 7 a broad, flat-topped mass.
+  - The lowest boughs now sweep down toward the ground at seeds 1 and 2.
+- **Spikes remain:** a few ascending tips still stand out of the crown at seeds 3 and 4.
+  - These are the long shoots' and twigs' own pull (their tropism toward 0.2), which this round did not change.
+- **Bare:** the scaffold is lower and more spreading, the web as fine as round 8's, the colour unchanged.
+- **For the owner's look, round 8 is the stronger sheet:** its crowns are rounder and fuller. Round 9's are broader and flatter, with lower-hanging boughs.
