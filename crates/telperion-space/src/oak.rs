@@ -15,13 +15,14 @@ use std::f64::consts::FRAC_PI_2;
 const FORK: usize = 1;
 const LEADER: usize = 2;
 const LIMB: usize = 3;
-const BOUGH: usize = 4;
-const SPRIG: usize = 5;
-const BRANCH: usize = 6;
-const TWIG: usize = 7;
-const SHOOT: usize = 8;
-const SHORT: usize = 9;
-const PAS: usize = 10;
+const ARCH: usize = 4;
+const BOUGH: usize = 5;
+const SPRIG: usize = 6;
+const BRANCH: usize = 7;
+const TWIG: usize = 8;
+const SHOOT: usize = 9;
+const SHORT: usize = 10;
+const PAS: usize = 11;
 
 /// The 2/5 spiral of the oak's leaves and buds.
 const SPIRAL: f64 = 2.513;
@@ -201,11 +202,11 @@ pub fn oak() -> Species {
             bend_length: 3.0,
         },
         ..state(
-            1_000,
-            None,
+            20,
+            Some(ARCH),
             unit(
                 (2, 3),
-                &[(SHORT, 0.25), (BRANCH, 0.45)],
+                &[(SHORT, 0.25), (BRANCH, 0.55)],
                 (3, &[(LIMB, 0.007), (BOUGH, 0.08)]),
             ),
         )
@@ -218,6 +219,29 @@ pub fn oak() -> Species {
             .map(|z| sleeping(z, 0.1))
             .collect(),
         ..limb
+    };
+    // The older limb: past its first years a limb carries on bending
+    // towards a lower elevation, so its outer wood arches outward and over
+    // and the crown rounds into a dome (host, round 11).
+    let arch = PaState {
+        lifespan: 1_000,
+        next: None,
+        form: Form {
+            elevation: 0.6,
+            ..limb.form
+        },
+        // A limb forking from an old limb is old itself.
+        zones: limb
+            .zones
+            .iter()
+            .cloned()
+            .map(|mut z| {
+                z.lateral[ARCH] = z.lateral[LIMB];
+                z.lateral[LIMB] = 0.0;
+                z
+            })
+            .collect(),
+        ..limb.clone()
     };
     // Boughs: the limbs' smaller repetitions, living some decades,
     // kinked by relays as the limbs are and bending a little under load.
@@ -241,12 +265,12 @@ pub fn oak() -> Species {
             ..limb.form
         },
         ..state(
-            60,
+            45,
             None,
             unit(
                 (2, 3),
-                &[(SHORT, 0.3), (BRANCH, 0.3)],
-                (3, &[(BRANCH, 0.3)]),
+                &[(SHORT, 0.3), (BRANCH, 0.4)],
+                (3, &[(BRANCH, 0.4)]),
             ),
         )
     };
@@ -307,7 +331,7 @@ pub fn oak() -> Species {
             bend_length: 0.0,
         },
         ..state(
-            12,
+            10,
             Some(SHOOT),
             unit(
                 (1, 2),
@@ -372,7 +396,7 @@ pub fn oak() -> Species {
     };
     Species {
         states: vec![
-            trunk, fork, leader, limb, bough, sprig, branch, twig, shoot, short,
+            trunk, fork, leader, limb, arch, bough, sprig, branch, twig, shoot, short,
         ],
     }
 }
