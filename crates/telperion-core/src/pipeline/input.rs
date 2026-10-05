@@ -27,7 +27,7 @@ pub(crate) struct Inputs {
     pub(crate) leaves: LeafInput,
 }
 
-/// The skeleton: the solve, and the canopy's frond crown and shed bases.
+/// The skeleton: the solve, and the canopy's frond crown.
 /// It lends the family's groups for the one stage that reads them.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GrowInput<'f> {

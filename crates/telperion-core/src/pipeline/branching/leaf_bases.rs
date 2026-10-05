@@ -171,7 +171,9 @@ pub fn leaf_bases(tree: &Tree, p: &CanopyParams) -> Vec<LeafBase> {
 
 /// Hang this table's retained bases on every stem as wood, appended after the
 /// radius solve so no base enters the pipe model. A table that clothes no
-/// trunk leaves the tree exactly as it found it.
+/// trunk leaves the tree exactly as it found it, and so does a tree that
+/// already carries these bases: expansion clothes whatever it is handed,
+/// and a tree handed back keeps the one set it has.
 pub fn clothe_leaf_bases(tree: &mut Tree, p: &CanopyParams) -> Result<()> {
     if !bearing(p) {
         return Ok(());
@@ -179,23 +181,53 @@ pub fn clothe_leaf_bases(tree: &mut Tree, p: &CanopyParams) -> Result<()> {
     foliage::validate_canopy(p)?;
     tree.validate_solved()?;
     let table = leaf_bases(tree, p);
+    if clothed(tree, &table, p) {
+        return Ok(());
+    }
     let room = table
         .len()
         .checked_mul(2)
         .and_then(|nodes| tree.nodes.len().checked_add(nodes))
         .filter(|total| *total <= u32::MAX as usize)
         .ok_or(Error::ResourceLimit("leaf base nodes"))?;
+    let (nodes, sections) = hung(&table, p, tree.nodes.len());
     tree.nodes.reserve(room - tree.nodes.len());
-    for base in &table {
+    tree.nodes.extend(nodes);
+    tree.sections.extend(sections);
+    tree.validate_solved()
+}
+
+/// Whether the tree ends in exactly the bases this table hangs, as a tree
+/// the expansion clothed once does.
+fn clothed(tree: &Tree, table: &[LeafBase], p: &CanopyParams) -> bool {
+    let Some(start) = tree.nodes.len().checked_sub(2 * table.len()) else {
+        return false;
+    };
+    let (Some(first), Some(node)) = (table.first(), tree.nodes.get(start)) else {
+        return false;
+    };
+    if node.stem || node.parent != Some(first.at as u32) {
+        return false;
+    }
+    let (nodes, sections) = hung(table, p, start);
+    tree.nodes[start..] == nodes[..] && tree.sections.ends_with(&sections)
+}
+
+/// The two nodes of every base in the table, the first standing at node
+/// `start`, and the cells the packed ones are drawn as.
+fn hung(table: &[LeafBase], p: &CanopyParams, start: usize) -> (Vec<Node>, Vec<Section>) {
+    let mut nodes = Vec::with_capacity(2 * table.len());
+    let mut sections = Vec::new();
+    for base in table {
         // One row wears the foot of the trunk away: the lowest and oldest base
         // is worn back in its reach out of the bark and in its girth alike.
         let wear = (1. - p.leaf_base_weathering * base.age).max(WORN);
         let thick = (base.girth * p.leaf_base_radius).max(1e-6);
-        let leaves = tree.nodes.len() as u32;
+        let leaves = (start + nodes.len()) as u32;
         // The point it leaves the axis: a run of its own, so no stem run is
         // ever continued into a base, and wood rather than twig, so no base is
         // clothed with foliage.
-        tree.nodes.push(Node {
+        nodes.push(Node {
             position: base.from,
             parent: Some(base.at as u32),
             radius: thick,
@@ -218,9 +250,9 @@ pub fn clothe_leaf_bases(tree: &mut Tree, p: &CanopyParams) -> Result<()> {
         if packed(p) {
             let drawn = section(base, p, leaves + 1, emerges, reach, wear);
             tip = drawn.centre(&drawn.rings[2]);
-            tree.sections.push(drawn);
+            sections.push(drawn);
         }
-        tree.nodes.push(Node {
+        nodes.push(Node {
             position: tip,
             parent: Some(leaves),
             radius: thick * wear,
@@ -232,7 +264,7 @@ pub fn clothe_leaf_bases(tree: &mut Tree, p: &CanopyParams) -> Result<()> {
             ..Node::root()
         });
     }
-    tree.validate_solved()
+    (nodes, sections)
 }
 
 /// The cell a packed base is drawn as: its stem's cell at the row's width,

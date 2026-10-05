@@ -315,8 +315,10 @@ impl Form {
         if !(MIN_EXPONENT..=MAX_EXPONENT).contains(&self.exponent) {
             return refuse(format!("{at}.exponent"), "a pipe exponent lies in 1.5 to 4");
         }
-        if !(0.0..=1.0).contains(&self.dominance) {
-            return refuse(format!("{at}.dominance"), "a share lies in 0 to 1");
+        for (name, value) in [("dominance", self.dominance), ("secondary", self.secondary)] {
+            if !(0.0..=1.0).contains(&value) {
+                return refuse(format!("{at}.{name}"), "a share lies in 0 to 1");
+            }
         }
         if !(0.0..=PI).contains(&self.roll) {
             return refuse(format!("{at}.roll"), "a roll lies in 0 to pi");

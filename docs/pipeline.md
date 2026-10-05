@@ -13,7 +13,7 @@ The stages live in private modules of the pipeline (`crates/telperion-core/src/p
 
 | input | stage | rows |
 |---|---|---|
-| `GrowInput` | the skeleton | skeleton, radii, canopy (a frond crown clears apical twigs; shed leaf bases) |
+| `GrowInput` | the skeleton | skeleton, radii, canopy (a frond crown clears apical twigs) |
 | `PlanInput` | the element, the leaf plan, the leaf box | element, envelope, canopy, surface, seed, the twig placement, the leaf box |
 | `SurfaceInput` | the rings and the wood | the envelope's height, surface |
 | `LeafInput` | placement and the cull | envelope, canopy, seed, shell depth |
@@ -29,7 +29,8 @@ executor::grow(&Family) -> Grown             the skeleton stage, and the inputs
 executor::expand(Tree, &Family) -> Expansion  a solved tree the caller supplies, prepared
                                              as `grow` would prepare its own
 executor::element(ElementParams) -> Element  the leaf element, built from its rows
-Grown::expansion(self) -> Expansion          the element (validated), the twig placement,
+Grown::expansion(self) -> Expansion          the shed leaf bases hung on the stems (fn-204),
+                                             the element (validated), the twig placement,
                                              the shell depth checked, the leaf box
 Expansion
   tree, element, twig, reference, leaves     the prepared artifacts and the rows the GPU packs
@@ -43,7 +44,7 @@ Expansion
 
 Each step is synchronous CPU work. The GPU executor keeps its own schedule: it calls the steps between its GPU submissions exactly where it called the stage functions, so the position upload still runs while the CPU prepares stations (`preparation.rs`, the overlap after `begin_positions`), and every timing it reports covers the same work. `Expansion::mesh` is the pipeline's own CPU build of the prepared tree, the reference the GPU falls back to.
 
-`expand` takes a tree the caller already holds, for the renderer's tests of the GPU kernels on hand-built trees. It builds no tree: growing one stays inside the pipeline, so `expand` opens no second chain.
+`expand` takes a tree the caller already holds, for the renderer's tests of the GPU kernels on hand-built trees. It builds no tree: growing one stays inside the pipeline, so `expand` opens no second chain. Expansion opens by hanging the shed leaf bases on the stems (fn-204), so a handed-in tree is clothed exactly as a grown one; a tree that already carries its bases is clothed again.
 
 The growth path, the second sanctioned exception, was removed on 2026-10-02 (fn-181, `docs/growth-path.md`); the scaffold's grower, `branching::Specimen`, is private to the crate.
 

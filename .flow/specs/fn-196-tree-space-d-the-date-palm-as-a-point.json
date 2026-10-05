@@ -7,7 +7,9 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-195-tree-space-d-the-oak-as-a-point"
+    "fn-195-tree-space-d-the-oak-as-a-point",
+    "fn-204-leaf-base-clothing-runs-in-expansion",
+    "fn-205-tree-space-girth-from-secondary-growth"
   ],
   "id": "fn-196-tree-space-d-the-date-palm-as-a-point",
   "impl_review_rounds": {},
@@ -30,5 +32,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T19:33:35.240504Z"
+  "updated_at": "2026-10-05T03:21:37.806522Z"
 }
