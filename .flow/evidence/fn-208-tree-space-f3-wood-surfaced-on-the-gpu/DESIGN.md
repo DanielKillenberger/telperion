@@ -38,6 +38,19 @@ Paths:
   - The camera there is inside the crown's reach, so the cost is pixels shaded behind the twig (4x multisampling, the bark shader), not triangles.
   - How much of it fewer micro-triangles remove is **unknown** until step 2 measures it.
 
+## Host decisions 1 to 6 (2026-10-05)
+
+The design is approved, in the order of section 6.
+
+1. **Curve data:** 28 B a point, a run table and clusters of up to 32 points with bounds; every tree produces it, with no second path. Accepted.
+2. **Tessellation:** sides by `ceil(π / acos(1 − 0.5/ρ))`, rounded up to 3·2^k; rings by curvature on a nested ladder; fixed output budgets that coarsen evenly and report their error scale. Accepted. An overrun is named in the frame report, never silent.
+3. **Normals:** analytic tube normals, with the CPU reference following. Accepted under AGENTS.md, "Generator evolution": every tree changes slightly. The change is measured and judged on stills.
+4. **Fine shoots:** tube, then ribbon, then a one-pixel coverage ribbon with alpha equal to the true width. Placed as shoot clusters in the wood path, with no `select.rs` change for now. Accepted. Sub-pixel wood is never dropped. When step 5 lands, a hero comparison against today's goes to the owner, who judges whether the haze is kept.
+5. **The CPU reference:** the same tessellation function, evaluated at a given view and error. It is camera-dependent by definition, and camera-independent only in the curve data it reads. Tests compare the GPU and CPU at the same view.
+6. **The palm's leaf-base cells:** checked in step 1. If the curve data cannot carry their cross-section, it is reported before step 3.
+
+Build steps 1 to 3 now. At step 2, stop and report if shading dominates up close.
+
 ## 1. R1: the curve data
 
 ### What the generator hands over

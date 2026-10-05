@@ -12,6 +12,20 @@ The owner wants realtime generation with full fidelity near the camera and a fas
 - **Continuity across detail.** Level changes stay below half a pixel by construction (as for leaves); bark texture coordinates are continuous along the curve and around it, so detail changes do not slide the bark.
 - **Fine shoots with their leaves.** Leaf-bearing shoots below a projected size may be drawn as part of the foliage instance, so they share the leaves' selection; the threshold is the same error, not a radius.
 
+### Host decisions on the design note (2026-10-05; `.flow/evidence/fn-208-tree-space-f3-wood-surfaced-on-the-gpu/DESIGN.md`)
+
+1. **Curve data:** 28 B a point, a run table and clusters of up to 32 points with bounds; every tree produces it, with no second path.
+2. **Tessellation:**
+   - sides by `ceil(π / acos(1 − 0.5/ρ))`, rounded up to 3·2^k;
+   - rings by curvature on a nested ladder;
+   - fixed output budgets that coarsen evenly and report their error scale. An overrun is named in the frame report, never silent.
+3. **Normals:** analytic tube normals, with the CPU reference following. Every tree changes slightly (AGENTS.md, "Generator evolution"); the change is measured and judged on stills.
+4. **Fine shoots:** tube, then ribbon, then a one-pixel coverage ribbon with alpha equal to the true width. Placed as shoot clusters in the wood path, with no `select.rs` change for now. Sub-pixel wood is never dropped. When step 5 lands, a hero comparison against today's goes to the owner, who judges whether the haze is kept.
+5. **The CPU reference:** the same tessellation function, evaluated at a given view and error. It is camera-dependent by definition, and camera-independent only in the curve data it reads. Tests compare the GPU and CPU at the same view.
+6. **The palm's leaf-base cells:** checked in step 1. If the curve data cannot carry their cross-section, it is reported before step 3.
+
+Order (host): steps 1 to 3 first, stopping at step 2 if shading dominates up close.
+
 ## Requirements
 
 - **R1:** The curve data the generator hands over, defined and documented in `docs/pipeline.md`; today's trees produce it too (the renderer has one wood path).
