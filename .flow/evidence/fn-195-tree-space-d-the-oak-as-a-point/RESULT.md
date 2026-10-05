@@ -399,3 +399,81 @@ Expected grown phytomers are 14.3M against the 20M budget.
 - The 10-year sapling's spire.
 - Seed 4's leaf marking (phase F).
 - The leaf form in close-ups.
+
+## Gate, round 5 (host and Astra, 2026-10-05)
+
+**Host:** seeds 1, 7 and 2 read as rounded oaks; seed 3 is a vase on a straight trunk; seed 4 is sparse.
+
+**Astra: FAIL in all three samples** (`ASTRA-VERDICT-R5-1.md` to `-3.md`):
+
+| Seed | Verdicts |
+|--:|---|
+| 2 | YES in all three |
+| 7 | YES in one |
+| 1 | BORDERLINE in all three |
+| 3 | NO in two |
+| 4 | Mostly BORDERLINE |
+
+The fault all three name: "predominantly ascending main limbs: they need more outward reach and irregular changes of direction to produce heavy, tortuous oak architecture."
+
+**Host decisions for round 6:**
+
+1. Limbs leave nearer horizontal.
+2. More wander and relay kinks on limbs and boughs.
+3. Divide lower and earlier, with a shorter leader.
+4. Seed 4's sparseness is phase F's.
+
+## Round 6: outward, tortuous limbs, a lower division (values only), 2026-10-05
+
+**Probes on seeds 3 and 1** (`raw/round6/probeA.png`, `probeB.png`):
+
+- **Probe A** (limb insertion 0.8, elevation 0.55, wander 1.4; bough elevation 0.5; leader 10 years; trunk 9) spread too far. The trees stood 15 to 17.5 m tall and up to 33 m wide, and seed 1's crown went sparse and shrubby.
+- **Probe B** sits between round 5 and A, and is kept.
+
+**Kept values** (`oak.rs`):
+
+| Value | Round 5 | Round 6 |
+|---|---|---|
+| Limb insertion | 0.45 | 0.65 |
+| Limb elevation | 0.95 | 0.75 |
+| Limb straightening | 0.2 | 0.15 |
+| Limb abortion (each relayed) | 0.25 | 0.3 |
+| Limb wander | 1.0 | 1.25 |
+| Limb and bough epitony | 0.3 | 0.2 |
+| Bough elevation | 0.75 | 0.6 |
+| Bough wander | 0.8 | 1.0 |
+| Bough abortion | 0.25 | 0.3 |
+| Leader lifespan | 20 | 14 years |
+| Trunk lifespan | 11 | 10 years |
+
+**Sheet:** `raw/round6/sheet.png`, the host's layout: references (S1 ×2, S2 ×2, S3), round 5 in leaf, round 6 in leaf, round 6 bare. I viewed every still.
+
+| Seed | Height | Width | Leaves | Fine wood | Leaves a metre (round 5) |
+|--:|--:|--:|--:|--:|--:|
+| 1 | 20.5 m | 23.1 × 29.4 m | 0.34M | 11.2 km | 30 (135) |
+| 7 | 20.8 m | 25.7 × 21.4 m | 0.81M | 11.8 km | 69 (135) |
+| 2 | 17.2 m | 23.8 × 28.3 m | 0.91M | 15.3 km | 60 (135) |
+| 3 | 19.4 m | 24.1 × 18.5 m | 1.80M | 13.2 km | 136 (136) |
+| 4 | 18.8 m | 22.2 × 23.1 m | 0.38M | 7.7 km | 49 (53) |
+
+### Reading
+
+- **Bare: the limbs now reach out and kink.** At all five seeds a short, heavy trunk divides low into thick limbs that leave near horizontal, then rise and change direction several times under a broad, rounded outline. This is the nearest the round has come to S1's and S3's heavy, tortuous architecture.
+  - Seed 3's straight stem is gone; it divides low into spreading limbs.
+  - Seed 2 is broad and low.
+- **In leaf:** seed 3 is a full, closed dome and seed 7 a rounded one. Seeds 2, 1 and 4 show their limbs through a thinner crown.
+- **A new regression: the leaves.**
+  - Seeds 1, 7 and 2 carry 30 to 69 leaves a metre of fine wood, against 135 in round 5. Their fine wood is unchanged (11.2 to 15.3 km).
+  - The crowns are sparse in leaf for that reason: seed 1 most of all, which now looks like seed 4.
+  - Only seed 3 keeps 136.
+  - **Not checked:** this is the pipeline's leaf-bearing marking (phase F), which reads twig radius against the trunk's, so the heavier, outward limbs change which twigs it marks. Fine wood is not the cause.
+- **Seed 4** is sparse as before (phase F).
+
+**Known gaps:**
+
+- the leaf marking now reaches seeds 1, 7 and 2 (phase F's contract);
+- the collar ring;
+- bark plates;
+- the leaf form in close-ups.
+
+Young trees and close-ups were not re-rendered this round; the host's sheet holds the 80-year trees only.
