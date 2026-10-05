@@ -271,10 +271,12 @@ impl Grower<'_> {
         } else {
             1.0
         };
-        // Shade raises the apex's death hazard (host, 2026-10-05).
+        // Shade raises the apex's death hazard, ln survival = ln
+        // viability x light^-phi (host, 2026-10-05): near-certain survival
+        // moves gently as light does, and certain survival not at all.
         let light = self.light(apex.axis);
         let viability = if state.shade_hazard > 0.0 && light < 1.0 {
-            state.viability * light.powf(state.shade_hazard)
+            state.viability.powf(light.powf(-state.shade_hazard))
         } else {
             state.viability
         };
