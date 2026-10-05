@@ -27,3 +27,10 @@
 - **Slowed by:** no species-to-species walk exists, and the two species' settings do not line up (10 PAs against 1, integer settings, different presets); stopped at a design question (RESULT.md, R3).
 - **Cost:** about 10 minutes of reading; R3, the gate, the review and `done` wait.
 - **Would remove it:** the host's mapping between reference axes of different lengths.
+
+## 2026-10-05, worker, task 1
+
+- **Doing:** the workspace gate for fn-196.
+- **Slowed by:** `suite::species::fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens` failed on its peak-resident ceiling (2.75 GB against 2.57 GB) with the machine at a load of 20 from other workers. Run alone twice on the same binary right after: it passed, then failed (8.85 GB against 8.69 GB). The ceiling is derived from the machine's free memory, so it moves with other workers' builds. The beech preset has no leaf-base rows, so fn-204's clothing returns before it does any work for it (`clothe_leaf_bases`, `bearing`).
+- **Cost:** two reruns, about 1 minute; the gate's record carries one flaky failure.
+- **Would remove it:** a ceiling that does not move with other processes' memory, or the test kept off a shared machine's gate.
