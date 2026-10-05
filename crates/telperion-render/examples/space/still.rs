@@ -197,10 +197,12 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
     Ok(())
 }
 
-/// The family with its seed set to the engine's (host, 2026-10-05).
+/// The family with its seed set to the engine's (host, 2026-10-05): the
+/// engine's seed itself where it fits the family's 32 bits, its two halves
+/// folded together where it does not.
 fn seeded(family: &Family, seed: u64) -> Result<Family, String> {
     let mut seeded = family.clone();
-    seeded.skeleton.seed = u32::try_from(seed).map_err(|e| e.to_string())?;
+    seeded.skeleton.seed = (seed ^ (seed >> 32)) as u32;
     Ok(seeded)
 }
 
