@@ -15,3 +15,13 @@
 - **Slowed by:** the first run had a load average of 9 from other sessions. The spruce under light then read 40 s, of which 17 s was settle, against 16 s and 2.4 s in a quiet run.
 - **Cost:** one repeated run, about 5 minutes.
 - **Would remove it:** checking the load average before timing, as the runs here did afterwards; or a dedicated timing machine.
+
+## 2026-10-05, step 2 gate: one failure inherited from the oak branch
+
+- **Doing:** the workspace gate (`cargo test --profile ci --workspace --no-fail-fast`) at the end of step 2.
+- **Slowed by:** 1,048 tests passed and one failed: `telperion-core --test material_detail`, `every_shipped_young_wood_row_crosses_the_wire_the_page_sends_unchanged`.
+  - It lists `oregon-white-oak` among the presets with a young-wood row.
+  - The oak's round 4 commit (`e1b6e1ea`, fn-195) added that row without updating the test.
+  - fn-197 changes nothing in telperion-core.
+- **Cost:** one gate run (about 20 minutes) to establish that.
+- **Would remove it:** fn-195 updates the test's expected list. It belongs to the oak's branch, not here.
