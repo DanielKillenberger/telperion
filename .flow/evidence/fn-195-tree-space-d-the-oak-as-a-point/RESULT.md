@@ -886,3 +886,28 @@ The sheet shows the references, round 10 in leaf, round 11 in leaf and round 11 
 
 - **ARCH's age and elevation** are the levers for item 1. Probes 5 and 6 bracket them; a value between, such as age 20 at elevation 0.7 to 0.8, may give a dome without the umbrella.
 - **Item 2 may need the dividing to come with less taper of vigour per lateral.** That is a question about how sizes share among siblings, which I leave to the host.
+
+## Round 11 reverted; round 10 restored (host reading, 2026-10-05)
+
+The host's reading: the arching tops overshoot into umbrellas, the outer wood still ends in tufts, and **round 10 remains the best oak**. The values in `oak.rs` are round 10's again (`54b9dff8`), and the ARCH PA has been removed.
+
+### Round 11, kept on record as tried
+
+| Probe | Values | Result |
+|---|---|---|
+| ARCH (the older limb) | After 20 years limbs carried on as a PA with elevation 0.6 | Tops arched over, but overshot to umbrellas |
+| 1 | Limb sag 0.0008, bough sag 0.0002, dominance 0.3, more laterals, bough lifespan 35, branch lifespan 8 | Crown narrowed and lost leaves |
+| 2 | Probe 1's laterals, lifespans restored, limb sag 0.0015 | Narrow cup on seed 2; a hooked limb on seed 1 |
+| 3 | Sag and dominance only | Dominance cost vigour |
+| 4 | Sag 0.0015 alone | Whole limbs hinged down from the base |
+| 5 | ARCH from age 12, elevation 0.3 | Low crown; limbs hung to the ground |
+| 6 | ARCH from age 20, elevation 0.6 | Near-dome on seed 2 |
+| 7 | Probe 6 plus moderate division and lifespans | Kept as round 11 |
+
+Values and sheets are in "Round 11" above and in `raw/round11/`.
+
+### Host diagnosis
+
+The remaining gap to S1 is the **density of the fine twig web**. It is bounded by the growth and geometry budget: the same wall as the spruce's curtains.
+
+Round 11's probes showed that more division within that budget narrows the crown or loses leaves. The owner is asked whether to accept round 10 structurally, with the fine-web density as its main gap for phase F.
