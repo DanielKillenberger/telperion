@@ -372,3 +372,11 @@ Step 3d is the breakthrough: in leaf, seeds 7, 3 and 1 are rounded oak domes on 
 23. **Sizes are normalised per physiological age:** (v / v̄_pa)^ψ, v̄_pa the presence-weighted mean vigour per presence among that cycle's growing buds of the same PA. No order gains on another; light redistributes within each. This is not a cap. A PA with one growing bud is whole. Every λ goes back to 0.45.
 24. **The limbs' λ walk is re-run under decision 23,** with the shape of the jump reported if it still fails.
 25. **The leaf spread is re-measured under decision 23,** with seed 4's structure described if it is still the outlier.
+
+## 14. Host decision after step 4c (host, 2026-10-05)
+
+26. **R2 measures the engine's own output: fine wood length, not leaf count.**
+    - Leaf count passes through the pipeline's leaf-bearing marking (`shootRadius`), which is phase F's station contract.
+    - By fine wood, light narrows the seed-to-seed spread (2.1× against round 4's 2.5×), so R2 holds.
+    - Seed 4's 39 leaves a metre of fine wood (83 in round 4, 136 to 138 at every other seed) is recorded for phase F.
+    - Step 4c's per-PA normalisation is the design for E going forward.

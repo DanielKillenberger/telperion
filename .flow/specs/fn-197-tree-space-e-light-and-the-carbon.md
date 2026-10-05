@@ -29,6 +29,7 @@ The options and the reasons are in `.flow/evidence/fn-197-tree-space-e-light-and
 - **Stop:** ln(survival) = ln(viability) · I^(−φ), neutral φ = 0. The shed hazard rises continuously as the remembered balance falls.
   - Both are walk-tested.
   - A red-first test pits the multiplicative form viability · I^φ against the walk bound. [host]
+- **Normalisation per order:** a bud's size is read against the mean of the growing buds of its own physiological age, so no order gains on another; a lone bud is whole. [host, decision 23]
 - **Fill by light (Borchert–Honda):**
   - Each cycle a basipetal pass sums the light each subtree collects. An acropetal pass splits the base's vigour at every branching point by per-PA apical control λ (Pałubicki 2009; 0.5 is the unbiased split that gives each bud its own light).
   - A bud's unit is sized by its vigour per presence against the tree's presence-weighted mean, to ψ, normalised exactly so the mean unit is whole. The size is the unit's own (internodes and girth) and never passes to what it bears.
@@ -52,7 +53,7 @@ The options and the reasons are in `.flow/evidence/fn-197-tree-space-e-light-and
 ## Acceptance Criteria
 
 - **R1:** A light pass (Beer-Lambert from above, or Pałubicki 2009's shadow propagation, chosen with reasons) reproduced against its published description, then added as a setting whose neutral value leaves every passed species unchanged. [user]
-- **R2:** Shedding on each branch's remembered balance, and growth bounded by it. Light must not widen the seed-to-seed spread, in leaf count, compared with the same species at neutral light. [host, decision 19, 2026-10-05: the earlier "seeds within 1.5x in node count" was inferred, and round 4 itself spreads about 4x in leaves]
+- **R2:** Shedding on each branch's remembered balance, and growth bounded by it. Light must not widen the seed-to-seed spread in fine wood length, the engine's own output, compared with the same species at neutral light. [host, decisions 19 and 26, 2026-10-05: the earlier "seeds within 1.5x in node count" was inferred; leaf count passes through the pipeline's leaf-bearing marking, phase F's contract]
 - **R3:** The gate: every passed species re-rendered and judged as in phase C, none looks worse; walks stay continuous. [user]
 - **Wrong-path stop:** a passed species regresses and cannot be restored. [user]
 

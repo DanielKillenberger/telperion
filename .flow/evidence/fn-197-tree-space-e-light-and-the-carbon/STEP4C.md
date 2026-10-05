@@ -55,3 +55,12 @@ Host decisions 23 to 25 (DESIGN-OPTIONS.md, section 13).
 ## Not closed
 
 The walks hold. R2, read as written (leaf count), does not: 7.3× against 4.0×. The host decides whether seed 4's leaf marking is R2's concern or phase F's. Step 5 was not started.
+
+## Host decision 26: R2 holds by fine wood; seed 4's leaves go to phase F
+
+R2 now reads in fine wood length, the engine's own output, and holds: 2.1× against round 4's 2.5×.
+
+**Recorded for phase F (the pipeline's leaf-bearing marking, `shootRadius`):**
+- Oak seed 4 at 80 years carries 39 leaves a metre of fine wood under light (step 4c settings), and 83 at neutral light (round 4).
+- Seeds 1, 7, 2 and 3 carry 134 to 138 in both.
+- In leaves, that takes the spread from 4.0× to 7.3×.
