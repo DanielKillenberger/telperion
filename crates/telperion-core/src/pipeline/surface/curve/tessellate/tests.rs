@@ -59,7 +59,8 @@ fn twig() -> (Curve, impl Fn(Vec3) -> Option<f64>) {
 
 /// A viewer `distance` from the twig's middle, looking straight at it.
 fn viewer(distance: f64) -> Viewer {
-    let middle = Vec3::new(0.2 * 0.5236f64.cos(), 0.2 * 0.5236f64.sin(), 0.0);
+    let (sin, cos) = std::f64::consts::FRAC_PI_6.sin_cos();
+    let middle = Vec3::new(0.2 * cos, 0.2 * sin, 0.0);
     Viewer {
         eye: middle + Vec3::new(0.0, 0.0, distance),
         forward: Vec3::new(0.0, 0.0, -1.0),
@@ -134,4 +135,45 @@ fn a_budget_coarsens_the_error_and_names_it_or_refuses() {
         curve.tessellate(&near, 0.5, Some(1)),
         Err(Error::ResourceLimit(_))
     ));
+}
+
+/// Every values preset's wood surfaces whole at its hero distance, every
+/// index in range and every vertex finite, its shaped cells included.
+#[test]
+fn every_presets_wood_surfaces_at_a_hero_view() {
+    use crate::pipeline::{clothe, skeleton, GrowInput, Inputs};
+    use crate::presets::{Preset, CATALOGUE, IN_WORK};
+    for &(_, id, _, _) in CATALOGUE.iter().chain(IN_WORK) {
+        let family = Preset::from_id(id).unwrap().parameters();
+        let mut tree = skeleton(GrowInput::of(&family)).unwrap().tree;
+        let inputs = Inputs::of(&family);
+        clothe(&mut tree, &inputs).unwrap();
+        let s = inputs.surface;
+        let curve = crate::pipeline::surface::curve(&tree, s.height, &s.params).unwrap();
+        let top = curve.points.iter().map(|p| p.centre.y).fold(0.0, f64::max);
+        let middle = Vec3::new(0.0, 0.5 * top, 0.0);
+        // The whole height in 720 rows with the stills' margin of 1.15.
+        let away = 1.15 * top * PIXELS / 720.0;
+        let viewer = Viewer {
+            eye: middle + Vec3::new(away * 0.906, 0.0, away * -0.423),
+            forward: Vec3::new(-0.906, 0.0, 0.423),
+            pixels_per_metre: PIXELS,
+            near: 0.1,
+        };
+        let t = curve.tessellate(&viewer, 0.5, None).unwrap();
+        let vertices = (t.positions.len() / 3) as u32;
+        assert!(
+            t.indices.iter().all(|&i| i < vertices),
+            "{id}: an index past the vertices"
+        );
+        assert!(
+            t.positions.iter().chain(&t.normals).all(|v| v.is_finite()),
+            "{id}"
+        );
+        eprintln!(
+            "{id}: {} triangles, {} rings at the hero distance",
+            t.indices.len() / 3,
+            t.rings
+        );
+    }
 }

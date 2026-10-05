@@ -41,11 +41,15 @@ pub struct Tessellation {
     pub scale: f64,
 }
 
-/// One ring the surface passes through.
+mod plan;
+
+/// One ring the surface passes through, and for a shaped run its cell's
+/// ring: the section, the point's index in its run and the run's count.
 #[derive(Debug, Clone, Copy)]
 struct Ring {
     point: CurvePoint,
     sides: u32,
+    shape: Option<(u32, usize, usize)>,
 }
 
 impl Curve {
@@ -59,7 +63,8 @@ impl Curve {
         error: f64,
         budget: Option<usize>,
     ) -> Result<Tessellation> {
-        if !(error > 0.0) || !(viewer.pixels_per_metre > 0.0) || !(viewer.near > 0.0) {
+        let positive = |v: f64| v.is_finite() && v > 0.0;
+        if !positive(error) || !positive(viewer.pixels_per_metre) || !positive(viewer.near) {
             return Err(Error::InvalidInput("tessellation view or error"));
         }
         for scale in [1.0, 2.0, 4.0, 8.0] {
@@ -81,15 +86,6 @@ impl Curve {
         Err(Error::ResourceLimit("wood tessellation budget"))
     }
 
-    /// The rings one run is drawn through: today's sweep, one ring a point
-    /// at twelve sides.
-    fn plan(&self, run: usize, _viewer: &Viewer, _error: f64) -> Vec<Ring> {
-        self.run_points(&self.runs[run])
-            .iter()
-            .map(|&point| Ring { point, sides: 12 })
-            .collect()
-    }
-
     /// One run's vertices and triangles: its rings, the strips between them
     /// and a cap at each end.
     fn emit(&self, rings: &[Ring], out: &mut Tessellation) {
@@ -99,7 +95,10 @@ impl Curve {
             let slope = slope(rings, i);
             for k in 0..ring.sides {
                 let angle = std::f64::consts::TAU * f64::from(k) / f64::from(ring.sides);
-                let (position, normal) = self.vertex(&ring.point, angle, slope);
+                let (position, normal) = match ring.shape {
+                    Some(shape) => self.cell_vertex(shape, angle),
+                    None => self.vertex(&ring.point, angle, slope),
+                };
                 push(
                     out,
                     position,
@@ -135,6 +134,20 @@ impl Curve {
             }
         }
         out.rings += rings.len();
+    }
+
+    /// A shaped run's ring point at `angle`: the cell's own, facing out from
+    /// the ring's centre.
+    fn cell_vertex(
+        &self,
+        (section, index, count): (u32, usize, usize),
+        angle: f64,
+    ) -> (Vec3, Vec3) {
+        let cell = &self.sections[section as usize];
+        let ring = cell.ring(index, count);
+        let (sin, cos) = angle.sin_cos_fixed();
+        let p = cell.vertex(ring, cos, sin);
+        (p, (p - cell.centre(ring)).normalized())
     }
 
     /// A ring's point at `angle`, with the tube's own normal there: the

@@ -1360,5 +1360,35 @@
     "site": ". clamp ( - 1 . 0 , 1 . 0 )",
     "classification": "numeric",
     "reason": "An octahedral component of a unit vector lies in [-1, 1]; the clamp only guards rounding before it is quantised to 16 bits. It does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate.rs",
+    "site": ". min ( rings . len ( ) - 1 )",
+    "classification": "algorithm",
+    "reason": "The radius slope at a ring reads its neighbours; the last ring reads itself as its next. It limits no tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate/plan.rs",
+    "site": ". clamp ( - 1 . 0 , 1 . 0 )",
+    "classification": "numeric",
+    "reason": "The cosine between two unit tangents is held in [-1, 1] against rounding before its arc cosine. It does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate/plan.rs",
+    "site": ". clamp ( 1 , MOST_PIECES )",
+    "classification": "algorithm",
+    "reason": "A stretch between kept rings is cut into at least one piece and at most MOST_PIECES: a drawing resolution, reached only by a stretch filling thousands of pixels; it never limits the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate/plan.rs",
+    "site": "const MOST_SIDES : u32 = 384 ;",
+    "classification": "algorithm",
+    "reason": "The most sides a ring is drawn with (3 x 2^7): at half a pixel it serves a ring over 3,500 px in radius, larger than any frame. A drawing resolution, never a limit on the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/tessellate/plan.rs",
+    "site": "for i in ( first . . last ) . step_by ( 1 < < level ) . chain ( [ last ] ) {",
+    "classification": "algorithm",
+    "reason": "A cluster keeps every 2^level-th point and its last, the nested ring ladder of host decision 2; every point stays in the curve."
   }
 ]

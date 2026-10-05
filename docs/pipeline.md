@@ -68,6 +68,16 @@ On the GPU a point is 32 bytes (`CurvePoint::pack`, `POINT_WORDS`; host decision
 
 A ring drawn from a packed point stands within 1e-6 of its run's radius and two float32 units of its position from the exact one. A test measures this for every preset (`curve/tests.rs`).
 
+`Curve::tessellate(&Viewer, error, budget)` is the CPU reference of the surface at the screen's error (fn-208, host decisions 2, 3 and 5). It surfaces the curve for one view within `error` pixels:
+- **Ring level:** each cluster keeps the coarsest ring level whose error stands under half the budget at its nearest depth.
+- **Pieces:** a curved stretch between kept rings is cut along its Hermite curve until its chords sag under that half (`Lθ/(8m²)`).
+- **Sides:** each ring takes the fewest sides, `3·2^k`, whose polygon stands within the other half (`ceil(π / acos(1 − e/ρ))`).
+- **Normals:** analytic, from the tube's radial direction, the lobes' turn and the radius's slope along the curve.
+- **Bark coordinates:** `(along, angle)`, as the sweep's.
+- **Budget:** a budget of triangles coarsens the error by 2, 4 or 8 and reports the scale; past that it refuses by name.
+
+It is camera-dependent by definition, and reads only the curve.
+
 The sweep's rings drawn from the curve alone are the sweep's own, to the bit, for every values preset, the palm's shaped cells included: that is what shows the curve carries the whole wood.
 
 ## Why not a resolver
