@@ -1,15 +1,15 @@
 {
-  "branch_name": "fn-202-tree-space-dormant-buds-wake-along-old",
+  "branch_name": "fn-203-tree-space-sag-measures-its-lever-on",
   "completion_review_status": "unknown",
   "completion_reviewed_at": null,
-  "created_at": "2026-10-04T19:43:31.816469Z",
+  "created_at": "2026-10-04T22:18:50.782389Z",
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [],
-  "id": "fn-202-tree-space-dormant-buds-wake-along-old",
+  "id": "fn-203-tree-space-sag-measures-its-lever-on",
   "impl_review_rounds": {
-    "fn-202-tree-space-dormant-buds-wake-along-old.1": 0
+    "fn-203-tree-space-sag-measures-its-lever-on.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -18,9 +18,9 @@
   "ready": true,
   "review_attempts": [
     {
-      "artifact_sha256": "16db8aadd5c496e02a86bec3dc3a7a847206866b391439c236dac5695ebd4b29",
+      "artifact_sha256": "440e65a41892817e7794df436968fa29be4f926f8861657da2768263122521ee",
       "backend": "codex",
-      "base_sha": "01214ad5df662dcb0ec4a1747b8f348ff38a0665",
+      "base_sha": "dafffc3686fbc5e733e973c6fd39816055783233",
       "counter_kind": "impl",
       "effort": "high",
       "failure_class": null,
@@ -34,19 +34,19 @@
         "digest_truncated": false,
         "items": [
           {
-            "chainRoot": "finding-a0b5e45087795e88676f67bb075aed25",
+            "chainRoot": "finding-cd7e72859dfca10d6e099dd00ada99c4",
             "classification": "introduced",
-            "findingId": "finding-a0b5e45087795e88676f67bb075aed25",
+            "findingId": "finding-cd7e72859dfca10d6e099dd00ada99c4",
             "firstSeenThisRound": true,
             "severity": "P1",
             "status": "open"
           },
           {
-            "chainRoot": "finding-8219ed1f60ef341dde020657b1d23ecf",
+            "chainRoot": "finding-6a0db94f256164a9e20f8d9d0e450ca1",
             "classification": "introduced",
-            "findingId": "finding-8219ed1f60ef341dde020657b1d23ecf",
+            "findingId": "finding-6a0db94f256164a9e20f8d9d0e450ca1",
             "firstSeenThisRound": true,
-            "severity": "P1",
+            "severity": "P2",
             "status": "open"
           }
         ],
@@ -54,26 +54,26 @@
       },
       "forced": false,
       "hash_epoch": 0,
-      "head_sha": "b684315e5a27b75689ab3e3259a01e42720b1fb8",
+      "head_sha": "31ec36382fec5cf7083f3f50a7ef803fbb863e76",
       "head_sha_observed": true,
       "kind": "impl",
       "model": "gpt-6.1-sol",
       "outcome": "verdict",
-      "output_bytes": 260347,
-      "output_sha256": "53cc59c979f5a7362b652afd573d5a74e7ab41ad9eaed5880e5c081dcf3d36f1",
-      "reservation_id": "369b3c658d8c4099a2f7eb8b5feaf286",
+      "output_bytes": 220562,
+      "output_sha256": "fb85b652edad4e846a920bf617c87115b0333092a4c452d453040dfc7da4c9ae",
+      "reservation_id": "4649ac0cf4f1402d8efff097c9516f1d",
       "round_consumed": true,
-      "scope": "impl:fn-202-tree-space-dormant-buds-wake-along-old.1",
+      "scope": "impl:fn-203-tree-space-sag-measures-its-lever-on.1",
       "superseded_by": null,
-      "task": "fn-202-tree-space-dormant-buds-wake-along-old.1",
-      "timestamp": "2026-10-04T21:00:32.079459Z",
-      "tool_calls": 17,
+      "task": "fn-203-tree-space-sag-measures-its-lever-on.1",
+      "timestamp": "2026-10-04T22:57:15.054604Z",
+      "tool_calls": 28,
       "verdict": "NEEDS_WORK"
     },
     {
-      "artifact_sha256": "d2006e17587deb62ea73b5549e495ed3364e37ebfa01cc3dd97f71f1d110b7b6",
+      "artifact_sha256": "976865d686bc8843d9420076f2ca7d9094e05d30d6f07c4145865157434e3eba",
       "backend": "codex",
-      "base_sha": "01214ad5df662dcb0ec4a1747b8f348ff38a0665",
+      "base_sha": "dafffc3686fbc5e733e973c6fd39816055783233",
       "counter_kind": "impl",
       "effort": "high",
       "failure_class": null,
@@ -87,19 +87,19 @@
         "digest_truncated": false,
         "items": [
           {
-            "chainRoot": "finding-a0b5e45087795e88676f67bb075aed25",
+            "chainRoot": "finding-cd7e72859dfca10d6e099dd00ada99c4",
             "classification": "introduced",
-            "findingId": "finding-a0b5e45087795e88676f67bb075aed25",
+            "findingId": "finding-cd7e72859dfca10d6e099dd00ada99c4",
             "firstSeenThisRound": false,
             "severity": "P1",
             "status": "fixed"
           },
           {
-            "chainRoot": "finding-8219ed1f60ef341dde020657b1d23ecf",
+            "chainRoot": "finding-6a0db94f256164a9e20f8d9d0e450ca1",
             "classification": "introduced",
-            "findingId": "finding-8219ed1f60ef341dde020657b1d23ecf",
+            "findingId": "finding-6a0db94f256164a9e20f8d9d0e450ca1",
             "firstSeenThisRound": false,
-            "severity": "P1",
+            "severity": "P2",
             "status": "fixed"
           }
         ],
@@ -107,33 +107,33 @@
       },
       "forced": false,
       "hash_epoch": 0,
-      "head_sha": "316e515fdee0fd6ff9548377813d3d467e385604",
+      "head_sha": "affb8d4f08ff27370d3ab4ea6ee0f930ceafb5f0",
       "head_sha_observed": true,
       "kind": "impl",
       "model": "gpt-6.1-sol",
       "outcome": "verdict",
-      "output_bytes": 1268,
-      "output_sha256": "01f6d2fe6f5443b15dba591b7b8b6a3cc8508035f4a94cc6bd457026c096c8e6",
-      "reservation_id": "228526fd3cca4cfe813b71412dcc78b9",
+      "output_bytes": 1038,
+      "output_sha256": "dc52f96fc8d30d4eed7919f6b7d208e3a5b54bb956a4d6f857d05db5905b6d57",
+      "reservation_id": "b518f537be1a41e08420ac0cee1b08a9",
       "round_consumed": true,
-      "scope": "impl:fn-202-tree-space-dormant-buds-wake-along-old.1",
+      "scope": "impl:fn-203-tree-space-sag-measures-its-lever-on.1",
       "superseded_by": null,
-      "task": "fn-202-tree-space-dormant-buds-wake-along-old.1",
-      "timestamp": "2026-10-04T21:06:51.041554Z",
+      "task": "fn-203-tree-space-sag-measures-its-lever-on.1",
+      "timestamp": "2026-10-04T23:02:08.570323Z",
       "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-202-tree-space-dormant-buds-wake-along-old.1": 1
+    "impl:fn-203-tree-space-sag-measures-its-lever-on.1": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
-    "impl:fn-202-tree-space-dormant-buds-wake-along-old.1": 0
+    "impl:fn-203-tree-space-sag-measures-its-lever-on.1": 0
   },
-  "spec_path": ".flow/specs/fn-202-tree-space-dormant-buds-wake-along-old.md",
-  "status": "done",
-  "title": "Tree space: dormant buds wake along old branches",
+  "spec_path": ".flow/specs/fn-203-tree-space-sag-measures-its-lever-on.md",
+  "status": "open",
+  "title": "Tree space: sag measures its lever on the bent branch",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -145,5 +145,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T08:05:48.959901Z"
+  "updated_at": "2026-10-04T23:02:08.573080Z"
 }

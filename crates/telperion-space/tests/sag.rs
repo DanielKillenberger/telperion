@@ -204,11 +204,10 @@ fn a_vanishing_moment_bends_by_degree() {
     assert!(moved < 1e-3, "{moved} m");
 }
 
-/// Wood lands on the ground tangent, not at a corner: along a branch that
-/// comes down to rest, no joint near the ground turns it sharply.
-#[test]
-fn wood_lands_on_the_ground_without_a_corner() {
-    let tree = walk::tree(&grounded(), 1).unwrap();
+/// The sharpest joint where a limb meets the ground, and how many limbs
+/// reach it.
+fn landing(species: &Species) -> (f64, usize) {
+    let tree = walk::tree(species, 1).unwrap();
     let (mut sharpest, mut landed) = (0.0f64, 0);
     for axis in tree.axes.iter().filter(|a| a.pa > 0) {
         let r = rises(axis);
@@ -229,8 +228,39 @@ fn wood_lands_on_the_ground_without_a_corner() {
             }
         }
     }
+    (sharpest, landed)
+}
+
+/// Wood lands on the ground without a kink: along a branch that comes
+/// down to rest under sags from the spruce's up, no joint near the ground
+/// turns it by more than 0.8 rad. Under the bent-lever sag any wood that
+/// reaches the ground arrives near vertical and bends where it lands, as
+/// a heavy rope does (0.43 to 0.72 rad measured); the bound guards against
+/// regressions, and the stills judge the look (host, 2026-10-05, fn-203
+/// decision 4).
+#[test]
+fn wood_lands_on_the_ground_without_a_corner() {
+    for sag in [6e-4, 1e-3, 2e-3] {
+        let (sharpest, landed) = landing(&level_limbs(sag));
+        println!("sag {sag}: {landed} land, sharpest {sharpest:.3} rad");
+        assert!(landed > 3, "sag {sag}: {landed} branches reach the ground");
+        assert!(
+            sharpest < 0.8,
+            "sag {sag}: a corner of {sharpest} rad at the ground"
+        );
+    }
+}
+
+/// Under an extreme sag a branch hangs near vertical where it meets the
+/// ground and bends sharply there, as a heavy rope reaching a floor does,
+/// within decision 4's one bound of 0.8 rad (host, 2026-10-05, fn-203;
+/// measured 0.66).
+#[test]
+fn heavy_wood_meets_the_ground_with_a_bounded_bend() {
+    let (sharpest, landed) = landing(&grounded());
+    println!("sag 5: {landed} land, sharpest {sharpest:.3} rad");
     assert!(landed > 3, "{landed} branches reach the ground");
-    assert!(sharpest < 0.35, "a corner of {sharpest} rad at the ground");
+    assert!(sharpest < 0.8, "a bend of {sharpest} rad at the ground");
 }
 
 /// The sag walk over limbs that come down onto the ground changes the
@@ -249,7 +279,8 @@ fn landing_on_the_ground_walks_by_degree() {
     let mut setting = walk::setting(
         "limb sag onto the ground".into(),
         0.0,
-        3e-4,
+        // Up to the spruce's heaviest (fn-203 R3).
+        6e-4,
         false,
         |s, v| *s = landing(v),
     );
@@ -331,4 +362,75 @@ fn a_lateral_swept_through_straight_down_lands_by_degree() {
     let centre = 3.0 * std::f64::consts::FRAC_PI_4;
     let jump = (at(centre + 1e-7) - at(centre - 1e-7)).length();
     assert!(jump < 1e-4, "the tip moves {jump} m");
+}
+
+/// fn-203 review: the ground takes over a loaded phytomer's load by
+/// degree as its end comes down to the ground, though what it carries is
+/// a further axis. A lateral leaning down from a pole, carried on by a
+/// continuation, is swept through the height at which its end reaches the
+/// ground: its end moves in proportion.
+#[test]
+fn the_ground_takes_a_carried_load_by_degree() {
+    use telperion_space::{grow, Form, NodeLaw, PaState, Request, Zone};
+    let unit = |lateral: Vec<f64>| Zone {
+        nodes: NodeLaw::Uniform { min: 1, max: 1 },
+        buds: 1,
+        dormant: vec![0.0; lateral.len()],
+        delay: 0.0,
+        rate: 0.0,
+        lateral,
+    };
+    let at = |height: f64| {
+        let mut pole = walk::species().states[0].clone();
+        pole.lifespan = 1;
+        pole.next = None;
+        pole.zones = vec![unit(vec![0.0, 1.0, 0.0])];
+        pole.internode = height;
+        pole.form = Form::default();
+        let lateral = PaState {
+            lifespan: 1,
+            next: Some(2),
+            zones: vec![unit(vec![0.0, 0.0, 0.0])],
+            internode: 1.0,
+            insertion: 3.0 * std::f64::consts::FRAC_PI_4,
+            form: Form {
+                sag: 0.02,
+                ..Form::default()
+            },
+            ..pole.clone()
+        };
+        let on = PaState {
+            next: None,
+            form: Form::default(),
+            ..lateral.clone()
+        };
+        let species = Species {
+            states: vec![pole, lateral, on],
+        };
+        let request = Request {
+            age: 3,
+            seed: 1,
+            budget: 100,
+        };
+        let tree = grow(&species, request).unwrap();
+        tree.axes[1].phytomers[0].tip
+    };
+    let _ = Request {
+        age: 1,
+        seed: 1,
+        budget: 1,
+    };
+    let (low, high, steps) = (0.6, 0.8, 400);
+    let step = (high - low) / f64::from(steps);
+    let mut steepest = 0.0f64;
+    let mut previous = at(low);
+    for i in 1..=steps {
+        let next = at(low + step * f64::from(i));
+        steepest = steepest.max((next - previous).length() / step);
+        previous = next;
+    }
+    assert!(
+        steepest < 30.0,
+        "the end moves {steepest} m per m of height"
+    );
 }

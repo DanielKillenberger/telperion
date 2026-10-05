@@ -269,7 +269,7 @@
     "impl:fn-200-tree-space-branches-sag-under-their.1": 0
   },
   "spec_path": ".flow/specs/fn-200-tree-space-branches-sag-under-their.md",
-  "status": "done",
+  "status": "open",
   "title": "Tree space: branches sag under their load and rest on the ground",
   "tracker": {
     "baseHashFlow": null,
@@ -282,5 +282,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T07:58:35.023229Z"
+  "updated_at": "2026-10-04T17:46:09.293004Z"
 }

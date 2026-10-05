@@ -4,12 +4,18 @@
 //! weighs as its volume, its length times its radius squared; its
 //! foliage as its own pipe's section times its length (the pipe model: a
 //! pipe serves the leaves it bears). Both are sized by presence, so a
-//! branch growing in loads its bearer by degree. The moment is taken on
-//! the tree as it stands before it bends, as small-deflection beam theory
-//! does, and growth never reads it back.
+//! branch growing in loads its bearer by degree. The load is gathered on
+//! the tree as it stands before it bends; the moment is taken when the
+//! tree is laid again, base to tip, with the load beyond each phytomer
+//! turned rigidly by the bends already made before it, so its lever
+//! shrinks as the branch droops and a heavy branch hangs and stops (fn-203,
+//! the first-order large-deflection correction). Growth never reads it
+//! back.
+use crate::geometry::support;
 use crate::girth::ripe;
 use crate::species::Species;
 use crate::structure::{Origin, Structure, Vec3};
+use std::f64::consts::PI;
 
 /// Load carried: its mass and its first moment (mass times position).
 #[derive(Clone, Copy, Default)]
@@ -30,9 +36,21 @@ pub(crate) fn any(species: &Species) -> bool {
     species.states.iter().any(|s| s.form.sag > 0.0)
 }
 
-/// Each phytomer's gravity torque about its far end, horizontal: the axis
-/// it turns down about, its length the bending moment.
-pub(crate) fn torques(structure: &Structure, species: &Species) -> Vec<Vec<Vec3>> {
+/// What a phytomer carries on the unbent tree, about its far end.
+#[derive(Debug, Clone, Copy, Default)]
+pub(crate) struct Lever {
+    /// The mass it carries times the offset of that mass's centre from
+    /// the end. Turned as the phytomer has turned, crossed with gravity,
+    /// it is the torque.
+    pub moment: Vec3,
+    /// From the phytomer's base to the tip of its axis and the axes that
+    /// carry it on: turned likewise, where the wood beyond would meet the
+    /// ground.
+    pub chord: Vec3,
+}
+
+/// Each phytomer's lever about its far end on the unbent tree.
+pub(crate) fn levers(structure: &Structure, species: &Species) -> Vec<Vec<Lever>> {
     let age = structure.age;
     let axes = &structure.axes;
     let mut at_node: Vec<Vec<Load>> = axes
@@ -40,10 +58,32 @@ pub(crate) fn torques(structure: &Structure, species: &Species) -> Vec<Vec<Vec3>
         .map(|a| vec![Load::default(); a.phytomers.len()])
         .collect();
     let mut at_tip = vec![Load::default(); axes.len()];
-    let mut torques: Vec<Vec<Vec3>> = axes
+    let mut levers: Vec<Vec<Lever>> = axes
         .iter()
-        .map(|a| vec![Vec3::default(); a.phytomers.len()])
+        .map(|a| vec![Lever::default(); a.phytomers.len()])
         .collect();
+    // The trunk: the seed axis and what carries it on, which the ground
+    // never carries.
+    let mut trunk = vec![false; axes.len()];
+    for (i, axis) in axes.iter().enumerate() {
+        trunk[i] = match axis.origin {
+            Origin::Seed => true,
+            Origin::Continuation { parent } | Origin::Relay { parent, .. } => trunk[parent],
+            Origin::Lateral { .. } => false,
+        };
+    }
+    // Each axis's far tip: its own, or that of the axis that carries it
+    // on. Continuations follow their parents, so a backward pass meets
+    // each before its parent.
+    let mut far: Vec<Vec3> = axes
+        .iter()
+        .map(|a| a.phytomers.last().map_or(a.base, |p| p.tip))
+        .collect();
+    for i in (0..axes.len()).rev() {
+        if let Origin::Continuation { parent } = axes[i].origin {
+            far[parent] = far[i];
+        }
+    }
     // Children follow their parents, so a backward pass meets every load
     // before the wood that carries it.
     for i in (0..axes.len()).rev() {
@@ -66,10 +106,11 @@ pub(crate) fn torques(structure: &Structure, species: &Species) -> Vec<Vec<Vec3>
             // and all beyond it, about that end. An unloaded tip bends
             // by nothing and keeps its tropism.
             load.add(at_node[i][k], 1.0);
-            // (S - W e) x (-z): the lever of the load about the end,
-            // crossed with gravity.
-            let lever = load.moment - p.tip * load.mass;
-            torques[i][k] = Vec3::new(-lever.y, lever.x, 0.0);
+            // S - W e: the lever of the load about the end.
+            levers[i][k] = Lever {
+                moment: load.moment - p.tip * load.mass,
+                chord: far[i] - base,
+            };
             load.add(
                 Load {
                     mass,
@@ -77,6 +118,15 @@ pub(crate) fn torques(structure: &Structure, species: &Species) -> Vec<Vec<Vec3>
                 },
                 1.0,
             );
+            // Wood resting on the ground is carried by it: it adds no
+            // lever to the wood before it (host, 2026-10-05).
+            if !trunk[i] {
+                let held = support(base.z.min(p.tip.z), p.radius, length);
+                load = Load {
+                    mass: load.mass * held,
+                    moment: load.moment * held,
+                };
+            }
         }
         match axis.origin {
             Origin::Seed => {}
@@ -99,15 +149,73 @@ pub(crate) fn torques(structure: &Structure, species: &Species) -> Vec<Vec<Vec3>
             Origin::Continuation { parent } => at_tip[parent].add(load, 1.0),
         }
     }
-    torques
+    levers
 }
 
-/// The turn, in radians, of a direction `down` radians from straight down
-/// under a curvature `curvature` over `length`: the beam's turn, eased so
-/// it never passes straight down.
-pub(crate) fn turn(curvature: f64, length: f64, down: f64) -> f64 {
-    if down <= 0.0 {
+/// The torque gravity puts on a `lever`: (S - W e) x (-z), horizontal,
+/// the axis the wood turns down about, its length the moment.
+pub(crate) fn torque(lever: Vec3) -> Vec3 {
+    Vec3::new(-lever.y, lever.x, 0.0)
+}
+
+/// The share of a lever the ground leaves to the wood before it: where
+/// the wood from a phytomer's base `height` above the ground, turned
+/// rigidly to its pose now along `chord`, would go below it, the ground
+/// carries that share, and the rest, nearer, bears with a lever as much
+/// shorter (host, 2026-10-05). Measured from the base, so it falls by
+/// degree as the phytomer's own end reaches the ground.
+pub(crate) fn held(height: f64, chord: Vec3) -> f64 {
+    let low = height + chord.z;
+    if low >= 0.0 {
+        return 1.0;
+    }
+    if height <= 0.0 {
         return 0.0;
     }
-    down * (1.0 - (-curvature * length / down).exp())
+    let free = height / (height - low);
+    free * free
+}
+
+/// The turn, in radians, of a phytomer `length` metres long and `radius`
+/// thick under `lever` (turned into its frame now) and its PA's `sag`,
+/// its moment never more than `cap`, the moment its unbent lever puts on
+/// it (host, 2026-10-05: the correction only ever shrinks the lever).
+/// The beam's curvature is sag times the moment over the radius to the
+/// fourth. The load, carried rigidly, falls `fall` from hanging straight
+/// below the phytomer's end, and its moment is its reach times sin(fall),
+/// so dfall/ds = -c min(reach sin(fall), cap). Where the cap holds, the
+/// fall closes at a constant rate; elsewhere tan(fall / 2) shrinks by
+/// e^(-c reach s). Integrated exactly over the phytomer: a light load
+/// turns as the small-deflection beam does, a heavy one turns until it
+/// hangs and never past, and upright wood never buckles.
+pub(crate) fn turn(lever: Vec3, cap: f64, sag: f64, radius: f64, length: f64) -> f64 {
+    let reach = lever.length();
+    if reach <= 0.0 || cap <= 0.0 {
+        return 0.0;
+    }
+    let c = sag / radius.powi(4);
+    let start = (-lever.z / reach).clamp(-1.0, 1.0).acos();
+    let low = (cap / reach).min(1.0).asin();
+    let high = PI - low;
+    let settle = |fall: f64, s: f64| 2.0 * ((fall / 2.0).tan() * (-c * reach * s).exp()).atan();
+    let (mut fall, mut left) = (start, length);
+    // Near upright the turned lever is the smaller, until its moment
+    // reaches the cap.
+    if fall > high {
+        let s = ((fall / 2.0).tan() / (high / 2.0).tan()).ln() / (c * reach);
+        if s >= left {
+            return start - settle(fall, left);
+        }
+        (fall, left) = (high, left - s);
+    }
+    // Where the cap holds, the moment is the unbent one.
+    if fall > low {
+        let rate = c * cap;
+        let s = (fall - low) / rate;
+        if s >= left {
+            return start - (fall - rate * left);
+        }
+        (fall, left) = (low, left - s);
+    }
+    start - settle(fall, left)
 }
