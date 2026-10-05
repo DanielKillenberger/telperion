@@ -497,3 +497,66 @@ Viewed; no pops in any of the three.
 On walk6's oak-to-palm strip the stem swells into a tapered cone thicker than the palm's column at t = 0.75 to 0.875, then narrows at t = 1. The change is continuous but steep: it comes from mixing pipe-model girth with secondary 0.
 
 Recorded beside decision 15's crown as calibration for later, once more species exist. Not a defect in continuity.
+
+## The port onto master (2026-10-05)
+
+fn-206 brought onto master after phase E (#151), bend_length (#152) and the oak at round 10 (#153), on branch `fn-206-tree-space-one-reference-axis-every-pr`, as one port of the reviewed work (`a003d8fe`). The palm's earlier commits are already on master and are left out.
+
+### What the port added for E
+
+- **The scale table** declares phase E's settings and bend_length.
+  - A magnitude on a log above a floor: `leaf_area` (floor 1e-4 m²), `upkeep` (1e-3), `balance_hazard` (0.01) and `form.bend_length` (0.1 m).
+  - By value: a response's exponent (`shade_hazard`, `shade_size`, `leaf_girth`), a share (`apical_control`, `retained`) and a balance (`tolerance`).
+  - The canonical form copies them with the rest.
+- **Allocation (decision 23)** groups each bud by its PA, which is now its age on the chain. Each species age is still one group, so each order keeps its own mean. The groups an unused age would form stay empty.
+- **The rough layout** reads each unit's share of its cycle as the final sizes do. It frames relays and continuations from its bearer's running frame and pulls through geometry's `Layer` (`Lift`, `ends`, `handed`), as the final lay does. The full re-lay marks its living apexes as living whole.
+- **The dressing's trunk-level ages are renumbered onto the chain:**
+  - beech 2, 4, 5
+  - spruce 0, 1, 2, 4
+  - oak 2, 3, 4
+  - palm 2
+- **A walk's stem** is the union of either end's trunk-level ages.
+- **The oak is master's round 10, light values kept, on the chain.** Its limb's 1000 is the decision-9 500.
+- **Master-only tests** (girth, light, bend) are written in the chain's real-valued forms.
+
+### Species against master: seeds 1 and 7, stills (`raw/port-cmp.png`)
+
+| Still, whole | RMSE, seed 1 | RMSE, seed 7 |
+|---|---|---|
+| beech, 80 | 0.129 | 0.120 |
+| spruce, 80 | 0.092 | 0.108 |
+| oak, 80 | 0.156 | 0.172 |
+| palm, 50 | 0.100 | 0.106 |
+
+Viewed: each species reads as itself, a new individual of the same law as decision 6 allows. The beech is the same spreading dome, the spruce the same narrow cone, the oak the same open, forking crown and the palm the same crown on its stem. The palm moves because its stem is re-keyed by its age on the chain: identical length and height, with the stem's wander drawing a different path.
+
+### The law, 8 seeds at age 60 (`raw/stats-*.txt`)
+
+The port's beech, spruce and palm are identical to fn-206's own branch (every statistic to the digit). The port changes nothing of them; what follows is fn-206's own difference from master.
+
+| Species | Measure | Master, mean (se) | Port, mean (se) | Difference |
+|---|---|---|---|---|
+| Oak, neutral | axes | 173,123 (20,602) | 171,661 (21,353) | within 0.1 se |
+| Oak, neutral | length | 1,033k (126k) | 974k (111k) | 0.4 se |
+| Oak, neutral | height | 16.76 (0.22) m | 16.38 (0.39) m | 0.8 se |
+| Oak, lit (extinction 0.5) | axes | 129,208 | 129,063 | within 0.1 se |
+| Oak, lit | height | 18.32 (0.76) m | 18.12 (0.46) m | 0.2 se |
+| Spruce | axes | 591k (5.6k) | 606k (5.1k) | 2.0 se |
+| Spruce | height | 17.19 (0.04) m | 16.96 (0.06) m | 3.3 se |
+| Beech | axes | 77.9k (9.2k) | 96.7k (6.1k) | 1.7 se |
+| Beech | length | 434k (56k) | 575k (49k) | 1.9 se |
+| Beech | base radius | 0.310 (0.015) | 0.353 (0.014) | 2.1 se |
+| Beech | height | 14.27 (0.15) m | 14.08 (0.25) m | 0.7 se |
+| Palm | height, length | 18.60 m, 600 | 18.60 m, 600 | identical |
+| Palm | stem spread | 0.041 (0.006) | 0.031 (0.004) | 1.4 se |
+
+- **The spruce's height** is decision 10's accepted change (0.14 m at age 40, 0.23 m at age 60).
+- **The beech at age 60** carries about a third more wood than master's, at about 2 se. At age 40 its law was unchanged (R1). This difference was already fn-206's and is reported here for the host.
+
+### Strips on the port (`raw/walk7/strips.png`), seed 1
+
+Viewed; no pops in any of the three.
+
+- **Beech to spruce, age 40:** identical in height to walk6 (10.1 to 12.7 to 11.8 m), the leader kept.
+- **Spruce to oak, age 60:** 16.9, 16.9, 17.3, 17.9, 18.5, 18.6, 19.0, 17.8, 15.8 m. The spruce's cone opens by degree into the round-10 oak's leaning, forked crown.
+- **Oak to palm, age 60:** 15.8, 17.5, 20.0, 21.0, 22.2, 22.6, 22.6, 22.6, 22.4 m. The oak's crown goes early and steeply (decision 15), the stem runs on as a leader, and it thickens into the palm's column (decision 18).
