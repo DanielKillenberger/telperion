@@ -11,24 +11,30 @@ use common::gpu;
 
 const SIZE: (u32, u32) = (480, 360);
 
-/// A preset's mesh (for the leaves and the bounds) and its wood's curve.
+/// A preset's mesh, which carries its wood's curve.
 fn tree(id: &str) -> (telperion_core::mesh::TreeMesh, Curve) {
     let family = Preset::from_id(id).unwrap().parameters();
-    let x = executor::grow(&family).unwrap().expansion().unwrap();
-    (x.mesh().unwrap(), x.curve().unwrap())
+    let mesh = executor::grow(&family)
+        .unwrap()
+        .expansion()
+        .unwrap()
+        .mesh()
+        .unwrap();
+    let curve = mesh.curve.clone();
+    (mesh, curve)
 }
 
 /// How far the device's wood stands from the reference's: the counts, the
-/// largest position gap in metres, the smallest normals' cosine and the
-/// largest coverage gap.
-fn compare(renderer: &Renderer, curve: &Curve, camera: &Camera) -> String {
+/// largest position gap in metres and the smallest normals' cosine, at the
+/// error scale the device's budget chose.
+fn compare(renderer: &Renderer, curve: &Curve, camera: &Camera, scale: f64) -> String {
     let (vertices, tubes, ribbons) = renderer.curve_mesh().unwrap();
     let cpu = curve
-        .tessellate(&curve_viewer(camera, SIZE), 0.5, None)
+        .tessellate(&curve_viewer(camera, SIZE), 0.5 * scale, None)
         .unwrap();
     let counts =
         |v: usize, t: usize, r: usize| format!("{v} vertices, {} + {} triangles", t / 3, r / 3);
-    let gpu = counts(vertices.len() / 10, tubes.len(), ribbons.len());
+    let gpu = counts(vertices.len() / 9, tubes.len(), ribbons.len());
     let reference = counts(cpu.radii.len(), cpu.indices.len(), cpu.ribbons.len());
     assert_eq!(
         gpu, reference,
@@ -38,22 +44,20 @@ fn compare(renderer: &Renderer, curve: &Curve, camera: &Camera) -> String {
         tubes == cpu.indices && ribbons == cpu.ribbons,
         "the triangles differ"
     );
-    let (mut gap, mut cosine, mut coverage) = (0.0f32, 1.0f32, 0.0f32);
+    let (mut gap, mut cosine) = (0.0f32, 1.0f32);
     for i in 0..cpu.radii.len() {
-        let v = &vertices[i * 10..i * 10 + 10];
+        let v = &vertices[i * 9..i * 9 + 9];
         let p = &cpu.positions[i * 3..i * 3 + 3];
         let n = &cpu.normals[i * 3..i * 3 + 3];
         gap = gap.max((0..3).map(|k| (v[k] - p[k]).abs()).fold(0.0, f32::max));
         cosine = cosine.min(v[3] * n[0] + v[4] * n[1] + v[5] * n[2]);
-        coverage = coverage.max((v[9] - cpu.coverage[i]).abs());
     }
     assert!(gap < 1e-3, "a vertex stands {gap} m from the reference's");
     assert!(
         cosine > 0.999,
         "a normal turns {cosine} from the reference's"
     );
-    assert!(coverage < 1e-3, "a coverage differs by {coverage}");
-    format!("{gpu}; gap {gap:.2e} m, cosine {cosine:.6}, coverage {coverage:.1e}")
+    format!("{gpu}; gap {gap:.2e} m, cosine {cosine:.6}")
 }
 
 /// The device's wood is the reference's at the hero view and close in, for
@@ -65,7 +69,6 @@ fn the_device_surfaces_the_wood_the_cpu_reference_does() {
     for id in ["ordinary", "date-palm"] {
         let (mesh, curve) = tree(id);
         renderer.submit(&mesh).unwrap();
-        renderer.submit_curve(&curve);
         let aspect = f64::from(SIZE.0) / f64::from(SIZE.1);
         let hero = hero_pose(mesh.bounds, aspect, GROUND_REACH);
         let close = Camera {
@@ -76,7 +79,11 @@ fn the_device_surfaces_the_wood_the_cpu_reference_does() {
             render(&mut renderer, &camera, SIZE.0, SIZE.1).unwrap();
             let report = renderer.curve_report().unwrap();
             assert_eq!(report.overrun, 0, "{id} {name}: over budget");
-            println!("{id} {name}: {}", compare(&renderer, &curve, &camera));
+            let found = compare(&renderer, &curve, &camera, report.scale);
+            println!(
+                "{id} {name}: scale {}, demand {:?}: {found}",
+                report.scale, report.demand
+            );
         }
     }
 }

@@ -170,21 +170,30 @@ pub fn pipeline(
     depth: Depth,
     label: &'static str,
 ) -> wgpu::RenderPipeline {
-    lit_pipeline(gpu, bind_group_layouts, shader, surface, buffers, depth, Stage::LIT, label)
+    lit_pipeline(
+        gpu,
+        bind_group_layouts,
+        shader,
+        surface,
+        buffers,
+        depth,
+        Stage::LIT,
+        label,
+    )
 }
 
-/// The entry points a pipeline draws through, and whether its fragment's
-/// alpha is the share of each pixel's samples it covers (fn-208's ribbons).
+/// The entry points a pipeline draws through.
 #[derive(Debug, Clone, Copy)]
 pub struct Stage {
     pub vertex: &'static str,
     pub fragment: &'static str,
-    pub coverage: bool,
 }
 
 impl Stage {
-    pub const LIT: Self = Self { vertex: "vertex", fragment: "fragment", coverage: false };
-    pub const DEPTH: Self = Self { vertex: "vertex", fragment: "depth_only", coverage: false };
+    pub const LIT: Self = Self {
+        vertex: "vertex",
+        fragment: "fragment",
+    };
 }
 
 /// The lit pipeline shape through the given entry points.
@@ -239,7 +248,7 @@ pub fn lit_pipeline(
             }),
             multisample: wgpu::MultisampleState {
                 count: surface.samples,
-                alpha_to_coverage_enabled: stage.coverage && surface.samples > 1,
+                alpha_to_coverage_enabled: false,
                 ..Default::default()
             },
             multiview_mask: None,
@@ -299,7 +308,7 @@ pub fn prepass_pipeline(
             }),
             multisample: wgpu::MultisampleState {
                 count: surface.samples,
-                alpha_to_coverage_enabled: stage.coverage && surface.samples > 1,
+                alpha_to_coverage_enabled: false,
                 ..Default::default()
             },
             multiview_mask: None,

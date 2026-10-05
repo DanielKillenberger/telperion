@@ -59,9 +59,8 @@ pub struct Budget {
 }
 
 /// The wood for one view, in the renderer's layout: three floats a position
-/// and a normal, the bark's (along, angle), the radius and the coverage a
-/// vertex (1 on a tube, a coverage ribbon's true share of its pixel width),
-/// the tubes' triangles and the ribbons'. `scale` is the error the budget let
+/// and a normal, the bark's (along, angle) and the radius a vertex, the
+/// tubes' triangles and the ribbons'. `scale` is the error the budget let
 /// it be drawn at, in multiples of the error asked for.
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Tessellation {
@@ -69,7 +68,6 @@ pub struct Tessellation {
     pub normals: Vec<f32>,
     pub coords: Vec<f32>,
     pub radii: Vec<f32>,
-    pub coverage: Vec<f32>,
     pub indices: Vec<u32>,
     pub ribbons: Vec<u32>,
     pub rings: usize,
@@ -188,7 +186,6 @@ impl Curve {
                 normal,
                 [ring.point.along, angle],
                 ring.point.radius,
-                1.0,
             );
         }
     }
@@ -212,15 +209,13 @@ impl Curve {
         } else {
             p.normal
         };
-        // At the wood's true width (fn-208 step 5: a pixel-wide ribbon with
-        // its share as alpha-to-coverage read pale beside today's crown; the
-        // multisampled rasteriser's own coverage of the true width does not).
+        // At the wood's true width, which the multisampled rasteriser covers
+        // by its share (host decision 16).
         let half = p.radius;
-        let coverage = 1.0;
         for (offset, normal) in [(-1.0, -side), (0.0, facing), (1.0, side)] {
             let angle = normal.dot(p.binormal).atan2_fixed(normal.dot(p.normal));
             let at = p.centre + side * (half * offset);
-            push(out, at, normal, [p.along, angle], p.radius, coverage);
+            push(out, at, normal, [p.along, angle], p.radius);
         }
     }
 
@@ -265,14 +260,7 @@ impl Curve {
 /// A tube's end closed by a fan about its centre, facing `away` along it.
 fn cap(out: &mut Tessellation, p: &CurvePoint, start: u32, sides: u32, away: f64) {
     let centre = vertices(out);
-    push(
-        out,
-        p.centre,
-        tangent(p) * away,
-        [p.along, 0.0],
-        p.radius,
-        1.0,
-    );
+    push(out, p.centre, tangent(p) * away, [p.along, 0.0], p.radius);
     for k in 0..sides {
         out.indices
             .extend([centre, start + k, start + (k + 1) % sides]);
@@ -283,12 +271,11 @@ fn vertices(out: &Tessellation) -> u32 {
     (out.positions.len() / 3) as u32
 }
 
-fn push(out: &mut Tessellation, p: Vec3, n: Vec3, coord: [f64; 2], radius: f64, coverage: f64) {
+fn push(out: &mut Tessellation, p: Vec3, n: Vec3, coord: [f64; 2], radius: f64) {
     out.positions.extend([p.x as f32, p.y as f32, p.z as f32]);
     out.normals.extend([n.x as f32, n.y as f32, n.z as f32]);
     out.coords.extend([coord[0] as f32, coord[1] as f32]);
     out.radii.push(radius as f32);
-    out.coverage.push(coverage as f32);
 }
 
 /// The triangles between two rings of any side counts, walked by angle so

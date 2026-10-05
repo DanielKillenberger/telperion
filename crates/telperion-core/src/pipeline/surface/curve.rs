@@ -220,6 +220,41 @@ fn ladder(span: &[CurvePoint]) -> [f32; LEVELS] {
 }
 
 impl Curve {
+    /// A round, unlobed curve of these points and runs, its clusters made
+    /// from them: what a hand-built wood is drawn from. Each run is a chain
+    /// of its points, widest run first.
+    pub fn of_runs(points: Vec<CurvePoint>, runs: Vec<CurveRun>) -> Self {
+        let mut out = Curve {
+            points,
+            height: 1.0,
+            ..Curve::default()
+        };
+        for (i, run) in runs.iter().enumerate() {
+            let mut made = std::mem::take(&mut out.clusters);
+            clusters(&out, i as u32, run, &mut made);
+            out.clusters = made;
+        }
+        out.runs = runs;
+        out
+    }
+
+    /// The box round every ring, lobes included.
+    pub fn bounds(&self) -> Option<Bounds> {
+        let mut bounds: Option<Bounds> = None;
+        for c in &self.clusters {
+            let r = Vec3::new(c.reach, c.reach, c.reach);
+            let (min, max) = (c.centre - r, c.centre + r);
+            bounds = Some(match bounds {
+                None => Bounds { min, max },
+                Some(b) => Bounds {
+                    min: Vec3::new(b.min.x.min(min.x), b.min.y.min(min.y), b.min.z.min(min.z)),
+                    max: Vec3::new(b.max.x.max(max.x), b.max.y.max(max.y), b.max.z.max(max.z)),
+                },
+            });
+        }
+        bounds
+    }
+
     /// The section's rows a ring reads, with every other row at its default.
     pub fn surface_params(&self) -> SurfaceParams {
         SurfaceParams {

@@ -101,13 +101,11 @@ fn worst(t: &Tessellation, viewer: &Viewer, off: &impl Fn(Vec3) -> Option<f64>) 
 }
 
 /// The most, in pixels, a ribbon's edge stands off the exact tube's
-/// silhouette: its half-width against the radius, where it is not a
-/// coverage ribbon a pixel wide.
+/// silhouette: its half-width against the radius.
 fn ribbon_worst(t: &Tessellation, viewer: &Viewer, off: &impl Fn(Vec3) -> Option<f64>) -> f64 {
     let mut worst = 0.0f64;
-    for i in 0..t.coverage.len() {
-        let in_ribbon = t.ribbons.contains(&(i as u32));
-        if !in_ribbon || t.coverage[i] < 1.0 {
+    for i in 0..t.radii.len() {
+        if !t.ribbons.contains(&(i as u32)) {
             continue;
         }
         let p = Vec3::new(

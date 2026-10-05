@@ -7,7 +7,7 @@ use telperion_core::{
     math::Vec3,
     mesh::{self, Foliage, TreeMesh},
     params,
-    surface::{Bounds, SurfaceMesh, SurfaceRun},
+    surface::{Bounds, Curve, CurvePoint, CurveRun, SurfaceMesh},
 };
 use telperion_render::{
     fits, hero_pose, render, Level, Region, Renderer, View, GROUND_REACH, MAX_LEVELS, STILL_FORMAT,
@@ -26,24 +26,38 @@ fn leaves(count: usize) -> Instances {
 mod common;
 use common::gpu;
 
+/// `runs` straight runs of `points` rings each, side by side: a curve of a
+/// chosen number of points and clusters.
+fn wood(runs: u32, points: u32) -> Curve {
+    let mut all = Vec::new();
+    let mut table = Vec::new();
+    for r in 0..runs {
+        table.push(CurveRun {
+            first: r * points,
+            count: points,
+            trunk: r == 0,
+            section: None,
+            largest_radius: 0.1,
+        });
+        for k in 0..points {
+            all.push(CurvePoint {
+                centre: Vec3::new(f64::from(r), f64::from(k), 0.0),
+                radius: 0.1,
+                along: f64::from(k),
+                normal: Vec3::new(1.0, 0.0, 0.0),
+                binormal: Vec3::new(0.0, 0.0, -1.0),
+            });
+        }
+    }
+    Curve::of_runs(all, table)
+}
+
 /// A mesh with no geometry to speak of, so a test can make one buffer of it
 /// large and leave the others out of the way.
 fn small() -> TreeMesh {
     TreeMesh {
-        wood: SurfaceMesh {
-            positions: vec![0.0; 12],
-            normals: vec![0.0; 12],
-            coords: vec![0.0; 8],
-            indices: vec![0; 6],
-            bounds: None,
-            runs: 1,
-            run_table: vec![SurfaceRun {
-                first_index: 0,
-                index_count: 6,
-                largest_radius: 1.0,
-            }],
-            dropped: 0,
-        },
+        wood: SurfaceMesh::default(),
+        curve: wood(1, 2),
         foliage: Foliage {
             element: Element::default(),
             instances: leaves(2),
@@ -60,16 +74,7 @@ fn small() -> TreeMesh {
 /// else in the way of judging them.
 fn crown(levels: usize, indices: usize, instances: usize) -> TreeMesh {
     let mut mesh = small();
-    mesh.wood = SurfaceMesh {
-        positions: Vec::new(),
-        normals: Vec::new(),
-        coords: Vec::new(),
-        indices: Vec::new(),
-        bounds: None,
-        runs: 0,
-        run_table: Vec::new(),
-        dropped: 0,
-    };
+    mesh.curve = Curve::default();
     mesh.foliage.element = Element {
         level_indices: vec![0; indices],
         levels: (0..levels)
@@ -97,44 +102,34 @@ fn a_tree_is_judged_on_the_allocation_it_needs_not_the_bytes_it_holds() {
     let mesh = small();
     fits(&limit(4_096), &mesh).expect("a mesh of a few hundred bytes fits four kilobytes");
 
-    // The buffers are taken with headroom, and the headroom is what the device
-    // has to grant: a payload that exactly fills the limit does not fit.
-    let payload = (mesh.wood.positions.len() * size_of::<f32>()) as u64;
+    // The placements are taken with headroom, and the headroom is what the
+    // device has to grant: a payload that exactly fills the limit does not fit.
+    let payload = (mesh.foliage_instances() * size_of::<telperion_core::foliage::Leaf>()) as u64;
     assert!(
         Region::capacity_for(payload) > payload,
         "no headroom to judge"
     );
     let error = fits(&limit(payload), &mesh)
         .expect_err("a payload that fills the limit leaves nothing for its headroom");
-    assert!(error.to_string().contains("wood positions"), "{error}");
+    assert!(error.to_string().contains("foliage instances"), "{error}");
 }
 
 #[test]
 fn every_buffer_that_will_not_fit_is_refused_by_name_and_by_size() {
     let granted = 4_096;
-    let over = (granted / size_of::<f32>() as u64) as usize;
-    let cases: [(&str, TreeMesh); 5] = [
-        ("wood positions", {
+    // The points are bound in two slices, the clusters in one (fn-208).
+    let cases: [(&str, u64, TreeMesh); 3] = [
+        ("wood points", 2 * granted, {
             let mut mesh = small();
-            mesh.wood.positions = vec![0.0; over];
+            mesh.curve = wood(1, 300);
             mesh
         }),
-        ("wood coordinates", {
+        ("wood clusters", granted, {
             let mut mesh = small();
-            mesh.wood.coords = vec![0.0; over];
+            mesh.curve = wood(65, 2);
             mesh
         }),
-        ("wood normals", {
-            let mut mesh = small();
-            mesh.wood.normals = vec![0.0; over];
-            mesh
-        }),
-        ("wood indices", {
-            let mut mesh = small();
-            mesh.wood.indices = vec![0; over];
-            mesh
-        }),
-        ("foliage instances", {
+        ("foliage instances", granted, {
             let mut mesh = small();
             // Twelve bytes a leaf, so it takes a third as many leaves to
             // outgrow the grant as it did at sixty-four - which is the whole
@@ -145,7 +140,7 @@ fn every_buffer_that_will_not_fit_is_refused_by_name_and_by_size() {
             mesh
         }),
     ];
-    for (buffer, mesh) in cases {
+    for (buffer, limit_named, mesh) in cases {
         let message = fits(&limit(granted), &mesh)
             .expect_err("a buffer over the limit went through")
             .to_string();
@@ -154,15 +149,15 @@ fn every_buffer_that_will_not_fit_is_refused_by_name_and_by_size() {
             "the buffer is not named: {message}"
         );
         assert!(
-            message.contains(&granted.to_string()),
-            "the granted limit is not in the message: {message}"
+            message.contains(&limit_named.to_string()),
+            "the limit is not in the message: {message}"
         );
         let wanted = message
             .split_whitespace()
             .find_map(|word| word.parse::<u64>().ok())
             .expect("the message carries the size that was wanted");
         assert!(
-            wanted > granted,
+            wanted > limit_named,
             "the size named is not the one that overflowed: {message}"
         );
     }
@@ -216,7 +211,7 @@ fn a_crown_with_no_leaves_submits_draws_and_frames() {
     let mut mesh = crown(0, 0, 0);
     mesh.foliage.element =
         executor::element(ElementParams::default()).expect("the core built a leaf");
-    mesh.wood = small().wood;
+    mesh.curve = small().curve;
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let submitted = renderer
         .submit(&mesh)
@@ -396,32 +391,4 @@ fn each_view_draws_what_its_name_promises() {
         leaf.max.y - leaf.min.y < (tree.bounds.max.y - tree.bounds.min.y) / 10.0,
         "the leaf view frames the whole tree"
     );
-}
-
-#[test]
-fn wood_runs_must_tile_the_index_buffer_in_radius_order() {
-    fits(&limit(4096), &small()).unwrap();
-    for mutation in 0..6 {
-        let mut mesh = small();
-        match mutation {
-            0 => mesh.wood.run_table[0].first_index = 3,
-            1 => mesh.wood.run_table[0].index_count = 3,
-            2 => mesh.wood.run_table[0].index_count = 9,
-            3 => mesh.wood.run_table[0].largest_radius = f64::NAN,
-            4 => mesh.wood.run_table.clear(),
-            _ => {
-                mesh.wood.run_table[0].index_count = 3;
-                mesh.wood.run_table.push(SurfaceRun {
-                    first_index: 3,
-                    index_count: 3,
-                    largest_radius: 2.0,
-                });
-                mesh.wood.runs = 2;
-            }
-        }
-        assert!(fits(&limit(4096), &mesh)
-            .unwrap_err()
-            .to_string()
-            .contains("wood run"));
-    }
 }

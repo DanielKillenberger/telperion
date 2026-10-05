@@ -3,8 +3,6 @@
 // is the one flat value it has always been, so form can still be judged with no
 // material over it.
 
-@group(1) @binding(0) var<storage, read> radii: array<f32>;
-
 struct Varying {
     // Invariant: the depth prepass and the lit pass compute the same position
     // in two pipelines, and the lit pass tests against the prepass's depth.
@@ -14,35 +12,15 @@ struct Varying {
     // A circle survives the shared wrap triangle; a scalar angle does not.
     @location(2) surface: vec3<f32>,
     @location(3) radius: f32,
-    // The share of each pixel a ribbon's wood covers (fn-208); 1 elsewhere.
-    @location(4) coverage: f32,
 };
-
-@vertex
-fn vertex(
-    @builtin(vertex_index) index: u32,
-    @location(0) position: vec3<f32>,
-    @location(1) normal: vec3<f32>,
-    @location(2) coord: vec2<f32>,
-) -> Varying {
-    var out: Varying;
-    out.clip = u.view_projection * vec4<f32>(position, 1.0);
-    out.normal = normal;
-    out.world = position;
-    out.radius = radii[index];
-    out.surface = vec3<f32>(coord.x, cos(coord.y), sin(coord.y));
-    out.coverage = 1.0;
-    return out;
-}
 
 // The wood the curve's passes surfaced (fn-208): every attribute a vertex.
 @vertex
-fn curve_vertex(
+fn vertex(
     @location(0) position: vec3<f32>,
     @location(1) normal: vec3<f32>,
     @location(2) coord: vec2<f32>,
     @location(3) radius: f32,
-    @location(4) coverage: f32,
 ) -> Varying {
     var out: Varying;
     out.clip = u.view_projection * vec4<f32>(position, 1.0);
@@ -50,7 +28,6 @@ fn curve_vertex(
     out.world = position;
     out.radius = radius;
     out.surface = vec3<f32>(coord.x, cos(coord.y), sin(coord.y));
-    out.coverage = coverage;
     return out;
 }
 
@@ -59,11 +36,6 @@ fn curve_vertex(
 @fragment
 fn depth_only() {}
 
-// A ribbon's depth, written to the samples its coverage covers.
-@fragment
-fn ribbon_depth(in: Varying) -> @location(0) vec4<f32> {
-    return vec4<f32>(0.0, 0.0, 0.0, in.coverage);
-}
 
 // Filter the physical footprint, not atan2's discontinuous derivative. Both
 // grain directions resolve at the same surface scale on a trunk and a limb.
@@ -251,11 +223,6 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     return shade(in);
 }
 
-// A ribbon shaded as the wood is, over the share of the pixel it covers.
-@fragment
-fn ribbon_fragment(in: Varying) -> @location(0) vec4<f32> {
-    return vec4<f32>(shade(in).rgb, in.coverage);
-}
 
 fn shade(in: Varying) -> vec4<f32> {
     let base_normal = normalize(in.normal);

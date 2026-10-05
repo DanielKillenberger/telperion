@@ -28,10 +28,10 @@ mod web;
 mod wood;
 
 pub use buffer::Region;
-pub use curve::{viewer as curve_viewer, CurveReport};
 pub use camera::{
     hero_pose, orbit_pose, shot_pose, walk_pose, Camera, FIELD_OF_VIEW, FRAME_MARGIN,
 };
+pub use curve::{viewer as curve_viewer, CurveReport};
 pub use device::{Gpu, RenderError, Result};
 pub use scene::{SceneRow, DEPTH_FORMAT, GROUND_REACH};
 pub use select::{Level, MAX_LEVELS};
@@ -183,7 +183,7 @@ impl Renderer {
     /// rather than sitting on the renderer, so no later frame inherits it.
     pub fn submit_at(&mut self, mesh: &TreeMesh, level: Level) -> Result<Submitted> {
         fits(&self.gpu.device.limits(), mesh)?;
-        self.wood.submit(&self.gpu, &mesh.wood);
+        self.wood.submit(&self.gpu, &mesh.curve);
         self.foliage.submit(&self.gpu, &mesh.foliage, level);
         self.scene
             .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
@@ -192,7 +192,6 @@ impl Renderer {
             .set_leaf_reference(mesh.foliage.instances.reference);
         self.scene.section_roundness = mesh.foliage.element.section_roundness;
         self.bounds = Some(mesh.bounds);
-        self.set_casters();
         self.level_deviations = mesh
             .foliage
             .element
@@ -208,26 +207,24 @@ impl Renderer {
         })
     }
 
-    /// Selects what the next frame draws of the submitted tree.
-    /// Draws the wood from its curve from now on, surfaced on the device each
-    /// frame at the screen's error (fn-208), in place of the submitted mesh's
-    /// wood. The mesh still brings the leaves and the bounds.
-    pub fn submit_curve(&mut self, curve: &telperion_core::surface::Curve) {
-        self.wood.submit_curve(&self.gpu, curve);
-    }
-
     /// What the last frame's passes wrote for the camera, read back.
     #[cfg(not(target_arch = "wasm32"))]
     pub fn curve_report(&self) -> Option<CurveReport> {
-        self.wood.curve().map(|c| c.camera.report(&self.gpu))
+        self.wood
+            .curve()
+            .and_then(|c| c.camera.as_ref())
+            .map(|t| t.report(&self.gpu))
     }
 
-    /// The last frame's surfaced wood for the camera: ten floats a vertex
-    /// (position, normal, along, angle, radius, coverage), tube and ribbon
+    /// The last frame's surfaced wood for the camera: nine floats a vertex
+    /// (position, normal, along, angle, radius), tube and ribbon
     /// indices. What a test holds against the CPU reference.
     #[cfg(not(target_arch = "wasm32"))]
     pub fn curve_mesh(&self) -> Option<(Vec<f32>, Vec<u32>, Vec<u32>)> {
-        self.wood.curve().map(|c| c.camera.mesh(&self.gpu))
+        self.wood
+            .curve()
+            .and_then(|c| c.camera.as_ref())
+            .map(|t| t.mesh(&self.gpu))
     }
 
     /// Bytes the curve's wood holds on the device: its points, clusters and
@@ -263,20 +260,20 @@ impl Renderer {
     /// and no blend between two families touches it.
     pub fn set_scene(&mut self, row: SceneRow) {
         self.scene.set_row(row);
-        self.set_casters();
     }
 
-    fn set_casters(&mut self) {
-        let light = shadow::light(self.scene.row(), self.bounds);
-        self.wood
-            .set_casters(self.scene.row().caster_texels * light.texel_size);
-    }
-
-    /// Wood triangles submitted to the sun's pass, outside the frame statistics.
+    /// Wood triangles the last frame drew into the sun's map, outside the
+    /// frame statistics: the curve's sun view, read back from the device, so
+    /// a record reads it and a frame never does.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn caster_triangles(&self) -> u32 {
-        match self.view {
-            View::Leaf => 0,
-            _ => self.wood.caster_index_count / 3,
+        let sun = self.wood.curve().and_then(|c| c.sun.as_ref());
+        match (self.view, sun) {
+            (View::Leaf, _) | (_, None) => 0,
+            (_, Some(t)) => {
+                let r = t.report(&self.gpu);
+                r.tube_triangles + r.ribbon_triangles
+            }
         }
     }
 
@@ -302,11 +299,6 @@ impl Renderer {
             View::Leaf => self.foliage.bounds(),
             _ => self.bounds,
         }
-    }
-
-    /// The live wood ranges: what is used of what was allocated.
-    pub fn wood_regions(&self) -> Option<(Region, Region, Region)> {
-        self.wood.regions()
     }
 
     /// The live foliage instance range.
