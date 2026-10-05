@@ -143,8 +143,8 @@ fn gap(name: &str, species: &Species, request: Request) {
         .collect();
     moved.sort_by(f64::total_cmp);
     let q = |f: f64| moved[((moved.len() - 1) as f64 * f) as usize];
-    let final_light = bud_light(&laid, &request.light);
-    let rough_light = bud_light(&rough, &request.light);
+    let final_light = bud_light(&laid, species, &request.light);
+    let rough_light = bud_light(&rough, species, &request.light);
     let n = final_light.len() as f64;
     let mean = |v: &[(usize, f64)]| v.iter().map(|x| x.1).sum::<f64>() / n;
     let (mf, mr) = (mean(&final_light), mean(&rough_light));

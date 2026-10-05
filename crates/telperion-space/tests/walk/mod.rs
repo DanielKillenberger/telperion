@@ -6,7 +6,7 @@ mod bend;
 mod measure;
 pub use bend::sag_bend;
 pub use measure::*;
-use telperion_space::{grow, Form, NodeLaw, PaState, Request, Species, Structure, Zone};
+use telperion_space::{grow, Form, Light, NodeLaw, PaState, Request, Species, Structure, Zone};
 
 pub const STEPS: u32 = 200;
 pub const AGE: u32 = 12;
@@ -46,6 +46,9 @@ pub fn species() -> Species {
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
+        leaf_area: 0.0,
+        shade_hazard: 0.0,
+        shade_size: 0.0,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -66,6 +69,9 @@ pub fn species() -> Species {
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
+        leaf_area: 0.0,
+        shade_hazard: 0.0,
+        shade_size: 0.0,
         straightening: 0.3,
         form: Form::default(),
     };
@@ -90,6 +96,9 @@ pub fn species() -> Species {
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
+        leaf_area: 0.0,
+        shade_hazard: 0.0,
+        shade_size: 0.0,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -111,7 +120,11 @@ pub struct Setting {
     /// radians over the metres its axis grows.
     pub stretch: f64,
     set: Box<SetValue>,
+    /// The site's light at a value (fn-197): none shades but in a light walk.
+    light: Box<LightAt>,
 }
+
+type LightAt = dyn Fn(f64) -> Light + Send + Sync;
 
 type SetValue = dyn Fn(&mut Species, f64) + Send + Sync;
 
@@ -156,7 +169,7 @@ impl Setting {
     /// The tree's shape at walk coordinate `x`.
     pub fn shape(&self, x: f64, seed: u64) -> Shape {
         let value = self.value(x);
-        let tree = tree(&self.at(value), seed)
+        let tree = lit(&self.at(value), (self.light)(value), seed)
             .unwrap_or_else(|e| panic!("{} at {value}, seed {seed}: {e}", self.name));
         Shape::of(&tree)
     }
@@ -178,6 +191,7 @@ pub fn setting(
         odds,
         stretch: 1.0,
         set: Box::new(set),
+        light: Box::new(|_| Light::NEUTRAL),
     }
 }
 
@@ -442,13 +456,80 @@ pub fn release_settings() -> Vec<Setting> {
 }
 
 pub fn tree(species: &Species, seed: u64) -> telperion_space::Result<Structure> {
+    lit(species, Light::NEUTRAL, seed)
+}
+
+pub fn lit(species: &Species, light: Light, seed: u64) -> telperion_space::Result<Structure> {
     grow(
         species,
         Request {
             age: AGE,
             seed,
             budget: 2_000_000,
-            light: telperion_space::Light::NEUTRAL,
+            light,
         },
     )
+}
+
+/// The light every light walk stands in but the one it walks: leaves at
+/// every angle under the standard overcast sky.
+pub const SITE: Light = Light {
+    extinction: 0.5,
+    sky: 0.5,
+};
+
+/// The walk tree in leaf, its limbs and twigs as near certain to live as
+/// an oak's boughs and twigs, shade raising their death hazard and
+/// shortening their growth units.
+pub fn leafy(s: &mut Species) {
+    for state in &mut s.states {
+        state.leaf_area = 0.3;
+    }
+    s.states[1].viability = 0.995;
+    s.states[2].viability = 0.99;
+    for pa in [1, 2] {
+        s.states[pa].shade_hazard = 1.0;
+        s.states[pa].shade_size = 0.5;
+    }
+}
+
+fn shaded(name: &str, low: f64, high: f64, edit: fn(&mut Species, f64)) -> Setting {
+    let mut walked = setting(format!("light: {name}"), low, high, false, move |s, v| {
+        leafy(s);
+        edit(s, v)
+    });
+    walked.light = Box::new(|_| SITE);
+    walked
+}
+
+/// fn-197 step 3: light's settings walked on the leafy walk tree: each
+/// PA's shade hazard (φ) and shade size (ψ), its leaf area, and the
+/// site's extinction and sky.
+pub fn light_settings() -> Vec<Setting> {
+    let mut all = vec![
+        shaded("states[1].shade_hazard", 0.0, 3.0, |s, v| {
+            s.states[1].shade_hazard = v
+        }),
+        shaded("states[2].shade_hazard", 0.0, 3.0, |s, v| {
+            s.states[2].shade_hazard = v
+        }),
+        shaded("states[1].shade_size", 0.0, 2.0, |s, v| {
+            s.states[1].shade_size = v
+        }),
+        shaded("states[2].shade_size", 0.0, 2.0, |s, v| {
+            s.states[2].shade_size = v
+        }),
+        shaded("leaf_area", 0.0, 0.6, |s, v| {
+            s.states.iter_mut().for_each(|st| st.leaf_area = v)
+        }),
+    ];
+    let mut sky = shaded("sky", 0.0, 1.0, |_, _| {});
+    sky.light = Box::new(|v| Light { sky: v, ..SITE });
+    let mut extinction = shaded("extinction", 0.0, 1.0, |_, _| {});
+    extinction.light = Box::new(|v| Light {
+        extinction: v,
+        ..SITE
+    });
+    all.extend([sky, extinction]);
+    all
 }

@@ -28,6 +28,10 @@ const MAX_EXPONENT: f64 = 4.0;
 const MAX_SAG: f64 = 1_000.0;
 /// The steepest rise of the abortion hazard.
 const MAX_RISE: f64 = 8.0;
+/// The largest leaf area one node bears, in square metres.
+const MAX_LEAF_AREA: f64 = 1.0;
+/// The steepest response of a hazard or a size to shade.
+const MAX_SHADE: f64 = 10.0;
 /// The longest a bud sleeps before it can wake, in years.
 const MAX_DELAY: f64 = 1_000.0;
 
@@ -88,6 +92,18 @@ pub struct PaState {
     /// spreads the growth unit's laterals evenly over its nodes, continuous
     /// growth. Neutral 1; dormant in a growth unit of one zone.
     pub rhythm: f64,
+    /// The leaf area a node of this PA bears in its year, in square
+    /// metres: what its leaves lend the light's lattice (`light.rs`).
+    /// Neutral 0, leafless; dormant without extinction.
+    pub leaf_area: f64,
+    /// How shade raises an apex's yearly death hazard: its survival is
+    /// its viability to the power light^-shade_hazard, so ln survival =
+    /// ln viability times light^-φ (host, 2026-10-05). Neutral 0; dormant
+    /// where the apex never dies (viability 1) or no leaf shades it.
+    pub shade_hazard: f64,
+    /// How shade shortens a growth unit: its phytomers' scale times
+    /// light^shade_size. Neutral 0; dormant where no leaf shades it.
+    pub shade_size: f64,
     /// How far the base of a lateral axis of this PA straightens towards
     /// the vertical, as Troll's plagiotropic axes do. Neutral 0.
     pub straightening: f64,
@@ -270,6 +286,9 @@ impl PaState {
         let rates = [
             ("abortion_rise", self.abortion_rise, MAX_RISE),
             ("erection", self.erection, MAX_RATE),
+            ("leaf_area", self.leaf_area, MAX_LEAF_AREA),
+            ("shade_hazard", self.shade_hazard, MAX_SHADE),
+            ("shade_size", self.shade_size, MAX_SHADE),
         ];
         for (name, value, most) in rates {
             if !(0.0..=most).contains(&value) {

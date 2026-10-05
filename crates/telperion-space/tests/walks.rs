@@ -3,7 +3,9 @@
 //! all is walked over its range in `STEPS` steps at three seeds, on its own
 //! scale: log-odds for a probability, its unit otherwise.
 mod walk;
-use walk::{crossing, made, refine, release_settings, settings, Setting, Step, STEPS};
+use walk::{
+    crossing, light_settings, made, refine, release_settings, settings, Setting, Step, STEPS,
+};
 
 /// The stated multiple: no step moves the total length, height, spread,
 /// any branch's base or tip, or the wood made or unmade, by more than this
@@ -43,6 +45,15 @@ fn every_setting_changes_the_tree_by_degree() {
 #[test]
 fn the_release_law_changes_the_tree_by_degree() {
     let failed = by_degree(&release_settings());
+    assert!(failed.is_empty(), "{failed:#?}");
+}
+
+/// fn-197 step 3: light's settings walked change the tree by degree: shade
+/// raising an apex's death hazard and shortening its units, its leaf area,
+/// and the site's extinction and sky.
+#[test]
+fn light_changes_the_tree_by_degree() {
+    let failed = by_degree(&light_settings());
     assert!(failed.is_empty(), "{failed:#?}");
 }
 

@@ -28,6 +28,9 @@ fn state(lifespan: u32, viability: f64, nodes: NodeLaw, lateral: &[f64]) -> PaSt
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
+        leaf_area: 0.0,
+        shade_hazard: 0.0,
+        shade_size: 0.0,
         straightening: 0.0,
         form: Form::default(),
     }

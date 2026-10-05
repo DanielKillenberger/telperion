@@ -381,6 +381,9 @@ mod tests {
             erection: 0.0,
             readiness: 0.8,
             rhythm: 0.6,
+            leaf_area: 0.0,
+            shade_hazard: 0.0,
+            shade_size: 0.0,
             straightening: 0.0,
             form: Form::default(),
         };

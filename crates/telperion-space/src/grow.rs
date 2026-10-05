@@ -271,7 +271,14 @@ impl Grower<'_> {
         } else {
             1.0
         };
-        let viability = shared(state.viability, share);
+        // Shade raises the apex's death hazard (host, 2026-10-05).
+        let light = self.light(apex.axis);
+        let viability = if state.shade_hazard > 0.0 && light < 1.0 {
+            state.viability * light.powf(state.shade_hazard)
+        } else {
+            state.viability
+        };
+        let viability = shared(viability, share);
         let u = unit.child(VIABILITY).unit();
         if u >= viability {
             self.axes[apex.axis].apex_end = Some(cycle - 1);
@@ -285,6 +292,10 @@ impl Grower<'_> {
         let wood = self.windows.wood(pa, cycle);
         let survive = self.windows.decided(survive, wood, stop_stake(state.relay));
         self.draws[apex.axis].units.push([survive, 1.0]);
+        if self.sketch.is_some() {
+            let size = light.powf(state.shade_size);
+            self.draws[apex.axis].sizes.push(size);
+        }
         self.grow_unit(apex, pa, unit, cycle)?;
         apex.units += 1;
         // An apex that has spent its PA's lifespan moves on; it does not

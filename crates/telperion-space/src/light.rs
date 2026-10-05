@@ -12,11 +12,9 @@
 //! along any ray, and GreenLab's production Sp (1 - exp(-k S / Sp)) on an
 //! even crown under light from overhead (Letort et al., eq. 1).
 use crate::error::{refuse, Result};
+use crate::species::Species;
 use crate::structure::{Structure, Vec3};
 
-/// The leaf area a node bears in square metres: one leaf of an oak's or a
-/// beech's size. A stand-in until the species name theirs (fn-197 step 3).
-pub(crate) const NODE_LEAF: f64 = 0.005;
 /// The lattice's spacing in metres.
 pub(crate) const CELL: f64 = 0.5;
 /// The largest extinction coefficient the engine draws.
@@ -97,16 +95,19 @@ impl Light {
 }
 
 /// The light at each living apex's tip of `structure`, by its axis's
-/// index, from the leaves its last cycle grew, one leaf a node sized by
-/// its phytomer's scale: what a bud there would read before the next
-/// cycle. The measure of a rough layout against the final one.
-pub fn bud_light(structure: &Structure, light: &Light) -> Vec<(usize, f64)> {
+/// index, from the leaves its last cycle grew, each node's PA's leaf area
+/// sized by its phytomer's scale: what a bud there would read before the
+/// next cycle. The measure of a rough layout against the final one.
+pub fn bud_light(structure: &Structure, species: &Species, light: &Light) -> Vec<(usize, f64)> {
     let leaves: Vec<(Vec3, f64)> = structure
         .axes
         .iter()
-        .flat_map(|a| &a.phytomers)
-        .filter(|p| p.cycle == structure.age)
-        .map(|p| (p.tip, p.scale * NODE_LEAF))
+        .flat_map(|a| {
+            let area = species.states[a.pa].leaf_area;
+            a.phytomers.iter().map(move |p| (p, area))
+        })
+        .filter(|(p, _)| p.cycle == structure.age)
+        .map(|(p, area)| (p.tip, p.scale * area))
         .collect();
     let tips: Vec<(usize, Vec3)> = structure
         .axes

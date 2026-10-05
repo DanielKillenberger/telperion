@@ -67,6 +67,9 @@ pub fn species(set: &Value) -> Species {
                 erection: 0.0,
                 readiness: 1.0,
                 rhythm: 1.0,
+                leaf_area: 0.0,
+                shade_hazard: 0.0,
+                shade_size: 0.0,
                 straightening: 0.0,
                 form: Form::default(),
             }

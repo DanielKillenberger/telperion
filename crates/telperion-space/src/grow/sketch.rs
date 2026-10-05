@@ -12,7 +12,7 @@
 use super::Grower;
 use crate::error::{Error, Result};
 use crate::geometry::{bend, dominance, frame, Layer};
-use crate::light::{Field, Light, NODE_LEAF};
+use crate::light::{Field, Light};
 use crate::structure::{Origin, Vec3};
 
 /// The rough layout and the light it casts.
@@ -34,8 +34,7 @@ struct Pencil {
     units: usize,
     laid: usize,
     trunk: bool,
-    /// The light at its tip, from the last cycle's leaves (read by step 3).
-    #[allow(dead_code)]
+    /// The light at its tip, from the last cycle's leaves.
     light: f64,
 }
 
@@ -80,6 +79,15 @@ impl Grower<'_> {
             sketch.pencils[apex.axis].light = field.at(tip);
         }
         self.sketch = Some(sketch);
+    }
+
+    /// The light axis `i`'s apex grows in: from the leaves of the cycle
+    /// before, or whole where nothing shades.
+    pub(super) fn light(&self, i: usize) -> f64 {
+        self.sketch
+            .as_ref()
+            .and_then(|s| s.pencils.get(i))
+            .map_or(1.0, |p| p.light)
     }
 
     fn tip(&self, i: usize) -> Vec3 {
@@ -143,6 +151,7 @@ impl Grower<'_> {
             let [survive, persist] = draws.units[k];
             let grown = if k == 0 { 1.0 - draws.sleep } else { 1.0 };
             let present = pencil.running * survive;
+            let size = draws.sizes.get(k).copied().unwrap_or(1.0);
             let unit = |p: &crate::structure::Phytomer| (p.cycle - axis.birth - 1) as usize == k;
             let end = pencil.laid
                 + axis.phytomers[pencil.laid..]
@@ -151,7 +160,7 @@ impl Grower<'_> {
                     .count();
             for j in pencil.laid..end {
                 let p = &mut axis.phytomers[j];
-                p.scale = pencil.base_scale * present * draws.nodes[j] * grown;
+                p.scale = pencil.base_scale * present * draws.nodes[j] * grown * size;
                 p.rank = pencil.rank;
                 pencil.rank += draws.nodes[j] * grown;
             }
@@ -172,7 +181,7 @@ impl Grower<'_> {
                         base: axis.base.z,
                         height,
                     })?;
-                leaves.push((p.tip, p.scale * NODE_LEAF));
+                leaves.push((p.tip, p.scale * state.leaf_area));
             }
             pencil.laid = end;
             pencil.running = present * persist;

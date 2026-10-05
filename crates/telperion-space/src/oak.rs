@@ -71,6 +71,12 @@ fn state(lifespan: u32, next: Option<usize>, zones: Vec<Zone>) -> PaState {
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
+        // One leaf a node, about 10 cm long (Woodland Trust) and half as
+        // wide, lobed to about 0.6 of its rectangle: 30 cm2, estimated
+        // (fn-197 step 3; no measured leaf area found).
+        leaf_area: 0.003,
+        shade_hazard: 0.0,
+        shade_size: 0.0,
         straightening: 0.0,
         form: Form::default(),
     }
