@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-207-tree-space-wander-bends-over-a-length",
   "spec_path": ".flow/tasks/fn-207-tree-space-wander-bends-over-a-length.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Wander bends over a length: curvature that persists, the oak's trial",
   "updated_at": "2026-10-05T08:56:56.248079Z"
 }
