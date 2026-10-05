@@ -3,7 +3,10 @@
 //! all is walked over its range in `STEPS` steps at three seeds, on its own
 //! scale: log-odds for a probability, its unit otherwise.
 mod walk;
-use walk::{crossing, made, refine, release_settings, settings, Setting, Step, STEPS};
+use walk::{
+    crossing, in_leaf, light_settings, made, refine, release_settings, settings, Setting, Step,
+    STEPS,
+};
 
 /// The stated multiple: no step moves the total length, height, spread,
 /// any branch's base or tip, or the wood made or unmade, by more than this
@@ -13,6 +16,8 @@ use walk::{crossing, made, refine, release_settings, settings, Setting, Step, ST
 /// settings move it in proportion. The bound stands at the first round's 30.
 const MULTIPLE: f64 = 30.0;
 const SEEDS: [u64; 3] = [1, 2, 3];
+/// The levels a walk's steepest steps are split into eighths.
+const REFINE: u32 = 6;
 
 /// Every walk's steps at every seed, the walks in parallel.
 fn walks(all: &[Setting]) -> Vec<Vec<(u64, Vec<Step>)>> {
@@ -46,6 +51,47 @@ fn the_release_law_changes_the_tree_by_degree() {
     assert!(failed.is_empty(), "{failed:#?}");
 }
 
+/// fn-197 step 3: light's settings walked change the tree by degree: shade
+/// raising an apex's death hazard and shortening its units, its leaf area,
+/// and the site's extinction and sky.
+#[test]
+fn light_changes_the_tree_by_degree() {
+    let failed = by_degree(&light_settings());
+    assert!(failed.is_empty(), "{failed:#?}");
+}
+
+/// fn-197 decision 12: a sample of structural settings walked in leaf,
+/// with light shading and the full lay grown with the tree, changes the
+/// tree by degree: a limb's sag, a limb's yearly survival (a lifespan is
+/// a whole number of units, never walked) and a sleeping-bud probability.
+#[test]
+fn a_sample_of_settings_in_leaf_changes_the_tree_by_degree() {
+    let names = [
+        "states[1].form.sag",
+        "states[1].viability",
+        "sleeping: states[1].zones[0].dormant[2]",
+    ];
+    let sample: Vec<Setting> = settings()
+        .into_iter()
+        .filter(|s| names.contains(&s.name.as_str()))
+        .collect();
+    assert_eq!(sample.len(), names.len());
+    let failed = by_degree(&in_leaf(sample));
+    assert!(failed.is_empty(), "{failed:#?}");
+}
+
+/// fn-197 decision 8: every setting walked in leaf, with light shading
+/// and the full lay grown with the tree, changes the tree by degree. A
+/// slow suite outside the gate (host decision 12): it ran past 50 minutes
+/// on 2026-10-05. Run it with
+/// `cargo test --profile ci -p telperion-space --test walks -- --ignored every_setting_in_leaf`.
+#[test]
+#[ignore = "slow suite, outside the gate: see its doc comment"]
+fn every_setting_in_leaf_changes_the_tree_by_degree() {
+    let failed = by_degree(&in_leaf(settings()));
+    assert!(failed.is_empty(), "{failed:#?}");
+}
+
 /// Each walk's steepest step against the bound, and its three steepest
 /// split finer: what fails.
 fn by_degree(all: &[Setting]) -> Vec<String> {
@@ -67,14 +113,18 @@ fn by_degree(all: &[Setting]) -> Vec<String> {
             ));
         }
         // The steepest steps are slopes, not jumps: split finer they shrink.
+        // Six levels of eight (host, 2026-10-05, decision 9): a jump does
+        // not shrink under refinement, while a steep crossing does, but
+        // three levels left fn-197's sky walk short of its 20-fold shrink
+        // at a crossing that went on shrinking to 2e-5.
         let mut steps: Vec<(u64, &Step)> = seeds
             .iter()
             .flat_map(|(seed, steps)| steps.iter().map(move |s| (*seed, s)))
             .collect();
         steps.sort_by(|a, b| b.1.slope.total_cmp(&a.1.slope));
         for (seed, step) in steps.iter().take(3).filter(|(_, s)| s.slope > 0.0) {
-            let changes = refine(setting, *seed, step.from, step.to, 3, 8);
-            let (first, last) = (changes[0], changes[3]);
+            let changes = refine(setting, *seed, step.from, step.to, REFINE, 8);
+            let (first, last) = (changes[0], changes[REFINE as usize]);
             if last > first / 20.0 {
                 failed.push(format!(
                     "{} seed {seed} at {:.4}: a jump ({changes:?})",

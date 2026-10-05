@@ -281,6 +281,7 @@ fn the_beech_grows_at_every_age_of_its_sheet() {
                 age,
                 seed,
                 budget: 10_000_000,
+                light: telperion_space::Light::NEUTRAL,
             };
             let tree = grow(&beech(), request).unwrap_or_else(|e| panic!("{age}, {seed}: {e:?}"));
             assert!(tree.axes[0].phytomers[0].radius > 0.0);

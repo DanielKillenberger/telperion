@@ -4,6 +4,10 @@
 //! `telperion-space`; the wood, leaves and material from a preset's rows.
 use crate::tree;
 use std::time::Instant;
+use tuning::Tuning;
+
+#[path = "tuning.rs"]
+mod tuning;
 use telperion_core::{
     math::Vec3, mesh::TreeMesh, params, pipeline::executor, presets::Preset, surface::Bounds,
     Family,
@@ -32,18 +36,25 @@ const SUN: (f64, f64) = (115.0, 60.0);
 /// under that release law (fn-202): `<name>-<age>-<seed>-dormant<value>`.
 /// With `--today`, the preset's own build at each seed instead, the bar the
 /// engine's tree is judged beside: `today-<seed>-<shot>.png`, ages unread.
+/// The light and carbon flags (`tuning.rs`, fn-197) set the site's light
+/// and values on every PA; `--tag <t>` names the stills
+/// `<name>-<age>-<seed>-<t>-<shot>`, `--shots <shot>,...` renders only those.
 pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let (out, rest) = args.split_first().ok_or(format!(
-        "usage: space_{name} <out dir> <age>... [--seeds 1,7] [--sag <pa>:<value>,...]"
+        "usage: space_{name} <out dir> <age>... [--seeds 1,7] [--sag <pa>:<value>,...] {}",
+        tuning::USAGE
     ))?;
     let (mut ages, mut seeds) = (Vec::new(), vec![1u64, 7]);
     let mut sag: Option<(usize, Vec<f64>)> = None;
     let mut dormant: Option<(Vec<usize>, usize, f64, f64, Vec<f64>)> = None;
     let mut today = false;
+    let mut tuning = Tuning::default();
     let mut words = rest.iter();
     while let Some(word) = words.next() {
-        if word == "--seeds" {
+        if tuning.take(word, &mut words)? {
+            continue;
+        } else if word == "--seeds" {
             let list = words.next().ok_or("--seeds needs a list")?;
             seeds = list
                 .split(',')
@@ -104,6 +115,7 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
                 &mesh,
                 &seeded,
                 &format!("{out}/today-{seed}"),
+                &tuning,
             )?;
             let b = mesh.bounds.max - mesh.bounds.min;
             println!(
@@ -113,7 +125,8 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
         }
         return Ok(());
     }
-    let base = species();
+    let mut base = species();
+    tuning.apply(&mut base)?;
     // A walk names PAs by index: refused by name past the species' table.
     let known = |pa: usize, flag: &str| {
         if pa < base.states.len() {
@@ -168,6 +181,7 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
                         age,
                         seed,
                         budget: BUDGET,
+                        light: tuning.light(),
                     },
                 )
                 .map_err(|e| format!("age {age} seed {seed}: {e:?}"))?;
@@ -183,8 +197,12 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
                     .and_then(|x| x.mesh())
                     .map_err(|e| e.to_string())?;
                 let dress = dressed.elapsed().as_secs_f64() * 1e3;
-                let path = format!("{out}/{name}-{age}-{seed}{variant}");
-                stills(&mut renderer, &mesh, &family, &path)?;
+                let tag = tuning
+                    .tag
+                    .as_ref()
+                    .map_or(String::new(), |t| format!("-{t}"));
+                let path = format!("{out}/{name}-{age}-{seed}{variant}{tag}");
+                stills(&mut renderer, &mesh, &family, &path, &tuning)?;
                 let bounds = mesh.bounds;
                 let (b, l) = (bounds.max - bounds.min, mesh.foliage.instances.len());
                 println!(
@@ -214,6 +232,7 @@ fn stills(
     mesh: &TreeMesh,
     family: &Family,
     path: &str,
+    tuning: &Tuning,
 ) -> Result<(), String> {
     // Before the GPU sees it, so a refused allocation still says what it
     // was asked to hold.
@@ -235,7 +254,7 @@ fn stills(
         (View::Whole, "spray", &limb),
         (View::Whole, "crown", &crown),
     ];
-    for (view, shot, camera) in shots {
+    for (view, shot, camera) in shots.into_iter().filter(|s| tuning.shoots(s.1)) {
         renderer
             .submit_at(mesh, Level::Chosen)
             .map_err(|e| e.to_string())?;

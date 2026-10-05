@@ -6,8 +6,10 @@
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
 
-pub(crate) fn shed(mut axes: Vec<Axis>, species: &Species, age: u32) -> Vec<Axis> {
-    let fade = fades(&axes, species, age);
+/// Which axes the shedding rule keeps at `age`: a lateral or relay whose
+/// subtree has held no living apex for more than its PA's delay goes,
+/// with all it bears.
+pub(crate) fn standing(axes: &[Axis], species: &Species, age: u32) -> Vec<bool> {
     let mut live_until: Vec<u32> = axes
         .iter()
         .map(|a| a.apex_end.unwrap_or(u32::MAX))
@@ -18,19 +20,36 @@ pub(crate) fn shed(mut axes: Vec<Axis>, species: &Species, age: u32) -> Vec<Axis
         let parent = axes[i].origin.parent().unwrap_or(0);
         live_until[parent] = live_until[parent].max(live_until[i]);
     }
-    let mut index = vec![usize::MAX; axes.len()];
-    let mut kept = Vec::with_capacity(axes.len());
-    for (i, mut axis) in axes.drain(..).enumerate() {
-        let lost = match axis.origin {
-            Origin::Seed => false,
-            Origin::Continuation { parent } => index[parent] == usize::MAX,
+    let mut kept = vec![false; axes.len()];
+    for (i, axis) in axes.iter().enumerate() {
+        kept[i] = match axis.origin {
+            Origin::Seed => true,
+            Origin::Continuation { parent } => kept[parent],
             Origin::Lateral { parent, .. } | Origin::Relay { parent, .. } => {
                 let delay = species.states[axis.pa].shedding;
                 let idle = age.saturating_sub(live_until[i]);
-                index[parent] == usize::MAX || delay.is_some_and(|d| idle > d)
+                kept[parent] && !delay.is_some_and(|d| idle > d)
             }
         };
-        if lost {
+    }
+    kept
+}
+
+/// What shedding leaves: the kept axes, each grown axis's index among
+/// them (`usize::MAX` where it was shed) and each grown axis's fade.
+pub(crate) struct Shed {
+    pub axes: Vec<Axis>,
+    pub index: Vec<usize>,
+    pub fade: Vec<f64>,
+}
+
+pub(crate) fn shed(mut axes: Vec<Axis>, species: &Species, age: u32) -> Shed {
+    let fade = fades(&axes, species, age);
+    let standing = standing(&axes, species, age);
+    let mut index = vec![usize::MAX; axes.len()];
+    let mut kept = Vec::with_capacity(axes.len());
+    for (i, mut axis) in axes.drain(..).enumerate() {
+        if !standing[i] {
             continue;
         }
         axis.vigour *= fade[i];
@@ -43,7 +62,11 @@ pub(crate) fn shed(mut axes: Vec<Axis>, species: &Species, age: u32) -> Vec<Axis
         index[i] = kept.len();
         kept.push(axis);
     }
-    kept
+    Shed {
+        axes: kept,
+        index,
+        fade,
+    }
 }
 
 /// Each axis's size factor from shedding: 1 for a living subtree, falling
@@ -102,11 +125,12 @@ fn fades(axes: &[Axis], species: &Species, age: u32) -> Vec<f64> {
             at = parent;
         }
     }
-    // A living subtree is never drawn smaller than its living apex.
+    // A living subtree is never drawn smaller than its living apex; an apex
+    // that light grew past whole (`allocation.rs`) keeps it whole.
     axes.iter()
         .zip(living.iter().zip(&alive))
         .map(|(axis, (&until, &apex))| match delay(axis) {
-            Some(d) => (f64::from(d) + 1.0 - (f64::from(age) - until)).clamp(apex, 1.0),
+            Some(d) => (f64::from(d) + 1.0 - (f64::from(age) - until)).clamp(apex.min(1.0), 1.0),
             None => 1.0,
         })
         .collect()

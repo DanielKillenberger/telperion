@@ -12,6 +12,7 @@
 //! the bud's path from the root, and every element a draw makes grows in
 //! from nothing as a setting passes the draw, so a walk of any setting at a
 //! fixed seed changes the tree by degree.
+mod allocation;
 mod beech;
 mod closed_form;
 mod dormant;
@@ -19,7 +20,9 @@ mod error;
 mod geometry;
 mod girth;
 mod grow;
+mod light;
 mod lineage;
+mod oak;
 mod palm;
 mod presence;
 mod sag;
@@ -31,7 +34,9 @@ mod structure;
 pub use beech::beech;
 pub use closed_form::expected_counts;
 pub use error::{Error, Result};
-pub use grow::{grow, Request};
+pub use grow::{grow, grow_staged, sketch, Request, Stage};
+pub use light::{bud_light, Light};
+pub use oak::oak;
 pub use palm::palm;
 pub use presence::{FLOOR, RATE, SPAN};
 pub use species::{Form, NodeLaw, PaState, Species, Zone, MAX_BUDS};

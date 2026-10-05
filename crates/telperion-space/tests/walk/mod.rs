@@ -6,7 +6,7 @@ mod bend;
 mod measure;
 pub use bend::sag_bend;
 pub use measure::*;
-use telperion_space::{grow, Form, NodeLaw, PaState, Request, Species, Structure, Zone};
+use telperion_space::{grow, Form, Light, NodeLaw, PaState, Request, Species, Structure, Zone};
 
 pub const STEPS: u32 = 200;
 pub const AGE: u32 = 12;
@@ -46,6 +46,15 @@ pub fn species() -> Species {
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
+        leaf_area: 0.0,
+        shade_hazard: 0.0,
+        shade_size: 0.0,
+        apical_control: 0.5,
+        upkeep: 0.0,
+        balance_hazard: 0.0,
+        tolerance: 0.0,
+        retained: 0.0,
+        leaf_girth: 0.0,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -66,6 +75,15 @@ pub fn species() -> Species {
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
+        leaf_area: 0.0,
+        shade_hazard: 0.0,
+        shade_size: 0.0,
+        apical_control: 0.5,
+        upkeep: 0.0,
+        balance_hazard: 0.0,
+        tolerance: 0.0,
+        retained: 0.0,
+        leaf_girth: 0.0,
         straightening: 0.3,
         form: Form::default(),
     };
@@ -90,6 +108,15 @@ pub fn species() -> Species {
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
+        leaf_area: 0.0,
+        shade_hazard: 0.0,
+        shade_size: 0.0,
+        apical_control: 0.5,
+        upkeep: 0.0,
+        balance_hazard: 0.0,
+        tolerance: 0.0,
+        retained: 0.0,
+        leaf_girth: 0.0,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -111,7 +138,11 @@ pub struct Setting {
     /// radians over the metres its axis grows.
     pub stretch: f64,
     set: Box<SetValue>,
+    /// The site's light at a value (fn-197): none shades but in a light walk.
+    light: Box<LightAt>,
 }
+
+type LightAt = dyn Fn(f64) -> Light + Send + Sync;
 
 type SetValue = dyn Fn(&mut Species, f64) + Send + Sync;
 
@@ -156,7 +187,7 @@ impl Setting {
     /// The tree's shape at walk coordinate `x`.
     pub fn shape(&self, x: f64, seed: u64) -> Shape {
         let value = self.value(x);
-        let tree = tree(&self.at(value), seed)
+        let tree = lit(&self.at(value), (self.light)(value), seed)
             .unwrap_or_else(|e| panic!("{} at {value}, seed {seed}: {e}", self.name));
         Shape::of(&tree)
     }
@@ -178,6 +209,7 @@ pub fn setting(
         odds,
         stretch: 1.0,
         set: Box::new(set),
+        light: Box::new(|_| Light::NEUTRAL),
     }
 }
 
@@ -442,12 +474,133 @@ pub fn release_settings() -> Vec<Setting> {
 }
 
 pub fn tree(species: &Species, seed: u64) -> telperion_space::Result<Structure> {
+    lit(species, Light::NEUTRAL, seed)
+}
+
+pub fn lit(species: &Species, light: Light, seed: u64) -> telperion_space::Result<Structure> {
     grow(
         species,
         Request {
             age: AGE,
             seed,
             budget: 2_000_000,
+            light,
         },
     )
+}
+
+/// The light every light walk stands in but the one it walks: leaves at
+/// every angle under the standard overcast sky.
+pub const SITE: Light = Light {
+    extinction: 0.5,
+    sky: 0.5,
+};
+
+/// The walk tree in leaf, its limbs and twigs as near certain to live as
+/// an oak's boughs and twigs, shade raising their death hazard and
+/// sizing their growth units, and their carbon balance shedding them.
+pub fn leafy(s: &mut Species) {
+    for state in &mut s.states {
+        state.leaf_area = 0.3;
+    }
+    s.states[1].viability = 0.995;
+    s.states[2].viability = 0.99;
+    for pa in [1, 2] {
+        s.states[pa].shade_hazard = 1.0;
+        s.states[pa].shade_size = 0.5;
+        s.states[pa].upkeep = 0.3;
+        s.states[pa].balance_hazard = 1.0;
+    }
+}
+
+fn shaded(name: &str, low: f64, high: f64, edit: fn(&mut Species, f64)) -> Setting {
+    let mut walked = setting(format!("light: {name}"), low, high, false, move |s, v| {
+        leafy(s);
+        edit(s, v)
+    });
+    walked.light = Box::new(|_| SITE);
+    walked
+}
+
+/// Every setting walked in leaf under the site's light, the full lay
+/// grown with the tree included (host decision 8): `leafy` first, then
+/// the setting.
+pub fn in_leaf(all: Vec<Setting>) -> Vec<Setting> {
+    all.into_iter()
+        .map(|walked| {
+            let set = walked.set;
+            Setting {
+                name: format!("in leaf: {}", walked.name),
+                set: Box::new(move |s: &mut Species, v: f64| {
+                    leafy(s);
+                    set(s, v)
+                }),
+                light: Box::new(|_| SITE),
+                ..walked
+            }
+        })
+        .collect()
+}
+
+/// fn-197 step 3: light's settings walked on the leafy walk tree: each
+/// PA's shade hazard (φ) and shade size (ψ), its leaf area, and the
+/// site's extinction and sky.
+pub fn light_settings() -> Vec<Setting> {
+    let mut all = vec![
+        shaded("states[1].shade_hazard", 0.0, 3.0, |s, v| {
+            s.states[1].shade_hazard = v
+        }),
+        shaded("states[2].shade_hazard", 0.0, 3.0, |s, v| {
+            s.states[2].shade_hazard = v
+        }),
+        shaded("states[1].shade_size", 0.0, 2.0, |s, v| {
+            s.states[1].shade_size = v
+        }),
+        shaded("states[2].shade_size", 0.0, 2.0, |s, v| {
+            s.states[2].shade_size = v
+        }),
+        // Apical control within Pałubicki's published range of forms, 0.45
+        // to 0.55 (2009, Fig. 7; host decision 17): far from 0.5 its bias
+        // compounds along an axis's branching points, and sizes against the
+        // tree's mean grow steep (fn-197 STEP3D.md).
+        shaded("states[0].apical_control", 0.45, 0.55, |s, v| {
+            s.states[0].apical_control = v
+        }),
+        shaded("states[1].apical_control", 0.45, 0.55, |s, v| {
+            s.states[1].apical_control = v
+        }),
+        shaded("states[2].apical_control", 0.45, 0.55, |s, v| {
+            s.states[2].apical_control = v
+        }),
+        shaded("states[1].upkeep", 0.0, 0.6, |s, v| s.states[1].upkeep = v),
+        shaded("states[2].upkeep", 0.0, 0.6, |s, v| s.states[2].upkeep = v),
+        shaded("states[1].balance_hazard", 0.0, 3.0, |s, v| {
+            s.states[1].balance_hazard = v
+        }),
+        shaded("states[2].tolerance", -0.5, 0.5, |s, v| {
+            s.states[2].tolerance = v
+        }),
+        // Girth moves the tree's shape only through sag, so these two are
+        // walked with the limbs sagging.
+        shaded("states[2].retained, limbs sag", 0.0, 1.0, |s, v| {
+            s.states[1].form.sag = 1e-4;
+            s.states[2].retained = v
+        }),
+        shaded("states[1].leaf_girth, limbs sag", 0.0, 2.0, |s, v| {
+            s.states[1].form.sag = 1e-4;
+            s.states[1].leaf_girth = v
+        }),
+        shaded("leaf_area", 0.0, 0.6, |s, v| {
+            s.states.iter_mut().for_each(|st| st.leaf_area = v)
+        }),
+    ];
+    let mut sky = shaded("sky", 0.0, 1.0, |_, _| {});
+    sky.light = Box::new(|v| Light { sky: v, ..SITE });
+    let mut extinction = shaded("extinction", 0.0, 1.0, |_, _| {});
+    extinction.light = Box::new(|v| Light {
+        extinction: v,
+        ..SITE
+    });
+    all.extend([sky, extinction]);
+    all
 }

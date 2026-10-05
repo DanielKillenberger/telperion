@@ -1,0 +1,18 @@
+fn-197 step 3, red first (host decision 5): the shade hazard in the multiplicative form,
+survival = viability * light^phi, walked on the leafy walk tree (limb viability 0.995,
+twig 0.99, phi 1, psi 0.5, leaf area 0.3 m2 a node, extinction 0.5, sky 0.5).
+cargo test --profile ci -p telperion-space --test walks light_changes -- --nocapture
+
+light: states[1].shade_hazard           6.50  seed 1 at 0.2850: branch ae69ae14ef30758a
+light: states[2].shade_hazard           2.21  seed 2 at 1.8300: branch 6a4420b446864e71
+light: states[1].shade_size             4.98  seed 3 at 0.0300: branch 9a0caac7804e56d2
+light: states[2].shade_size             3.33  seed 1 at 0.2200: branch d43132e54f4b68e6
+light: leaf_area                       39.24  seed 1 at 0.0150: branch dcf7a9246b9498ec
+light: sky                             12.17  seed 1 at 0.0900: branch 3ba996dd5bf107bb
+light: extinction                      23.54  seed 1 at 0.0250: branch dcf7a9246b9498ec
+FAILED:
+    "light: states[1].shade_size seed 3 at 0.4000: a jump ([0.0409, 0.0355, 0.0097, 0.0063])",
+    "light: states[1].shade_size seed 1 at 1.1100: a jump ([0.0343, 0.0109, 0.0072, 0.0100])",
+    "light: leaf_area: 39.2 per unit in branch dcf7a9246b9498ec",
+    "light: leaf_area seed 1 at 0.0150: a jump ([0.1177, 0.0382, 0.0228, 0.0081])",
+    "light: extinction seed 1 at 0.0250: a jump ([0.1177, 0.0382, 0.0228, 0.0081])",

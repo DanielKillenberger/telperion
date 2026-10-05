@@ -354,6 +354,7 @@ fn a_lateral_swept_through_straight_down_lands_by_degree() {
                 age: 2,
                 seed: 1,
                 budget: 100,
+                light: telperion_space::Light::NEUTRAL,
             },
         )
         .unwrap();
@@ -411,6 +412,7 @@ fn the_ground_takes_a_carried_load_by_degree() {
             age: 3,
             seed: 1,
             budget: 100,
+            light: telperion_space::Light::NEUTRAL,
         };
         let tree = grow(&species, request).unwrap();
         tree.axes[1].phytomers[0].tip
@@ -419,6 +421,7 @@ fn the_ground_takes_a_carried_load_by_degree() {
         age: 1,
         seed: 1,
         budget: 1,
+        light: telperion_space::Light::NEUTRAL,
     };
     let (low, high, steps) = (0.6, 0.8, 400);
     let step = (high - low) / f64::from(steps);

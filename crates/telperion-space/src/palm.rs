@@ -53,6 +53,16 @@ pub fn palm() -> Species {
         erection: 0.0,
         readiness: 0.0,
         rhythm: 0.0,
+        // Light and the carbon balance (fn-197), neutral.
+        leaf_area: 0.0,
+        shade_hazard: 0.0,
+        shade_size: 0.0,
+        apical_control: 0.5,
+        upkeep: 0.0,
+        balance_hazard: 0.0,
+        tolerance: 0.0,
+        retained: 0.0,
+        leaf_girth: 0.0,
         straightening: 0.0,
         form: Form {
             tropism: 0.5,
@@ -69,7 +79,7 @@ pub fn palm() -> Species {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{grow, Request};
+    use crate::{grow, Light, Request};
 
     /// Corner: one axis and no laterals (C1), and a stem of one width from
     /// its foot to its crown (C8).
@@ -80,6 +90,7 @@ mod tests {
                 age: 50,
                 seed,
                 budget: 1_000_000,
+                light: Light::NEUTRAL,
             };
             let s = grow(&palm(), request).unwrap();
             assert_eq!(s.axes.len(), 1, "seed {seed}");

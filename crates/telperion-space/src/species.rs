@@ -28,6 +28,10 @@ const MAX_EXPONENT: f64 = 4.0;
 const MAX_SAG: f64 = 1_000.0;
 /// The steepest rise of the abortion hazard.
 const MAX_RISE: f64 = 8.0;
+/// The largest leaf area one node bears, in square metres.
+const MAX_LEAF_AREA: f64 = 1.0;
+/// The steepest response of a hazard or a size to shade.
+const MAX_SHADE: f64 = 10.0;
 /// The longest a bud sleeps before it can wake, in years.
 const MAX_DELAY: f64 = 1_000.0;
 
@@ -88,6 +92,51 @@ pub struct PaState {
     /// spreads the growth unit's laterals evenly over its nodes, continuous
     /// growth. Neutral 1; dormant in a growth unit of one zone.
     pub rhythm: f64,
+    /// The leaf area a node of this PA bears in its year, in square
+    /// metres: what its leaves lend the light's lattice (`light.rs`).
+    /// Neutral 0, leafless; dormant without extinction.
+    pub leaf_area: f64,
+    /// How shade raises an apex's yearly death hazard: its survival is
+    /// its viability to the power light^-shade_hazard, so ln survival =
+    /// ln viability times light^-φ (host, 2026-10-05). Neutral 0; dormant
+    /// where the apex never dies (viability 1) or no leaf shades it.
+    pub shade_hazard: f64,
+    /// How a bud's growth unit follows the vigour the tree's light gives
+    /// it (`allocation.rs`; host decisions 11 and 14): its own internodes
+    /// and girth scale by its vigour per presence against the mean of the
+    /// growing buds of its PA, to ψ, normalised so each PA's mean unit
+    /// stays whole (host decision 23); what it bears does not inherit
+    /// that. Neutral 0; dormant where no
+    /// leaf shades it.
+    pub shade_size: f64,
+    /// Apical control λ at this PA's branching points: the share of its
+    /// vigour the continuing axis keeps against its laterals, weighted by
+    /// their light (Borchert–Honda, Pałubicki 2009). 0.5, the unbiased
+    /// split, gives every bud its own light's share; dormant while
+    /// `shade_size` is 0 or no leaf shades.
+    pub apical_control: f64,
+    /// The carbon balance's upkeep (fn-197 step 4): what a metre of this
+    /// PA's present wood costs, in the units of the light a bud of whole
+    /// presence collects in full light. Neutral 0, free.
+    pub upkeep: f64,
+    /// How fast a lateral of this PA is shed as its remembered balance,
+    /// (light - upkeep) / (light + upkeep) over its subtree, falls below
+    /// `tolerance`: a yearly hazard of balance_hazard x (tolerance -
+    /// balance) where the balance lies below it. Neutral 0, never.
+    pub balance_hazard: f64,
+    /// The remembered balance, from -1 to 1, below which a lateral of
+    /// this PA starts to be shed: its shade tolerance. Dormant without
+    /// `balance_hazard`.
+    pub tolerance: f64,
+    /// The share of a shed branch of this PA's pipe that stays in its
+    /// bearer's girth: Shinozaki's disused pipes, which Pałubicki (2009)
+    /// keeps whole. Neutral 0, today's.
+    pub retained: f64,
+    /// How a phytomer of this PA's own pipe follows its leaves' light:
+    /// (light / the tree's pipe-weighted mean)^χ, so limbs whose leaves
+    /// catch more light thicken and the tree's own pipe is conserved.
+    /// Neutral 0; dormant where no leaf shades.
+    pub leaf_girth: f64,
     /// How far the base of a lateral axis of this PA straightens towards
     /// the vertical, as Troll's plagiotropic axes do. Neutral 0.
     pub straightening: f64,
@@ -270,6 +319,12 @@ impl PaState {
         let rates = [
             ("abortion_rise", self.abortion_rise, MAX_RISE),
             ("erection", self.erection, MAX_RATE),
+            ("leaf_area", self.leaf_area, MAX_LEAF_AREA),
+            ("shade_hazard", self.shade_hazard, MAX_SHADE),
+            ("shade_size", self.shade_size, MAX_SHADE),
+            ("upkeep", self.upkeep, MAX_SHADE),
+            ("balance_hazard", self.balance_hazard, MAX_SHADE),
+            ("leaf_girth", self.leaf_girth, MAX_SHADE),
         ];
         for (name, value, most) in rates {
             if !(0.0..=most).contains(&value) {
@@ -284,11 +339,16 @@ impl PaState {
             ("readiness", self.readiness),
             ("rhythm", self.rhythm),
             ("straightening", self.straightening),
+            ("apical_control", self.apical_control),
+            ("retained", self.retained),
         ];
         for (name, value) in shares {
             if !(0.0..=1.0).contains(&value) {
                 return refuse(format!("{at}.{name}"), "a share lies in 0 to 1");
             }
+        }
+        if !(-1.0..=1.0).contains(&self.tolerance) {
+            return refuse(format!("{at}.tolerance"), "a balance lies in -1 to 1");
         }
         if !(-TAU..=TAU).contains(&self.divergence) {
             return refuse(

@@ -28,6 +28,15 @@ fn state(lifespan: u32, viability: f64, nodes: NodeLaw, lateral: &[f64]) -> PaSt
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
+        leaf_area: 0.0,
+        shade_hazard: 0.0,
+        shade_size: 0.0,
+        apical_control: 0.5,
+        upkeep: 0.0,
+        balance_hazard: 0.0,
+        tolerance: 0.0,
+        retained: 0.0,
+        leaf_girth: 0.0,
         straightening: 0.0,
         form: Form::default(),
     }
@@ -73,6 +82,7 @@ fn adding_a_branch_reshuffles_nothing_else() {
         age: 8,
         seed,
         budget: 1_000_000,
+        light: telperion_space::Light::NEUTRAL,
     };
     let mut added = 0;
     for seed in 1..=8 {

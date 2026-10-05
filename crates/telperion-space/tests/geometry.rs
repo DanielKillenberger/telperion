@@ -34,6 +34,15 @@ fn axes_take_their_lengths_and_angles_from_their_pa() {
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
+        leaf_area: 0.0,
+        shade_hazard: 0.0,
+        shade_size: 0.0,
+        apical_control: 0.5,
+        upkeep: 0.0,
+        balance_hazard: 0.0,
+        tolerance: 0.0,
+        retained: 0.0,
+        leaf_girth: 0.0,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -46,6 +55,7 @@ fn axes_take_their_lengths_and_angles_from_their_pa() {
             age: 5,
             seed: 3,
             budget: 1_000,
+            light: telperion_space::Light::NEUTRAL,
         },
     )
     .unwrap();
@@ -106,6 +116,15 @@ fn phyllotaxis_runs_on_across_a_continuation() {
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
+        leaf_area: 0.0,
+        shade_hazard: 0.0,
+        shade_size: 0.0,
+        apical_control: 0.5,
+        upkeep: 0.0,
+        balance_hazard: 0.0,
+        tolerance: 0.0,
+        retained: 0.0,
+        leaf_girth: 0.0,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -116,6 +135,7 @@ fn phyllotaxis_runs_on_across_a_continuation() {
         age: 5,
         seed: 1,
         budget: 100,
+        light: telperion_space::Light::NEUTRAL,
     };
     let tree = grow(&species, request).unwrap();
     let mut sides: Vec<i64> = Vec::new();
@@ -159,6 +179,15 @@ fn an_overflowing_expectation_draws_finite_wood() {
             erection: 0.0,
             readiness: 1.0,
             rhythm: 1.0,
+            leaf_area: 0.0,
+            shade_hazard: 0.0,
+            shade_size: 0.0,
+            apical_control: 0.5,
+            upkeep: 0.0,
+            balance_hazard: 0.0,
+            tolerance: 0.0,
+            retained: 0.0,
+            leaf_girth: 0.0,
             straightening: 0.0,
             form: Form::default(),
         }],
@@ -167,6 +196,7 @@ fn an_overflowing_expectation_draws_finite_wood() {
         age: 1500,
         seed: 18,
         budget: 1,
+        light: telperion_space::Light::NEUTRAL,
     };
     let tree = grow(&species, request).unwrap();
     for p in tree.axes.iter().flat_map(|a| &a.phytomers) {
@@ -202,6 +232,15 @@ fn an_unreachable_pa_takes_no_part_in_a_window() {
         erection: 0.0,
         readiness: 1.0,
         rhythm: 1.0,
+        leaf_area: 0.0,
+        shade_hazard: 0.0,
+        shade_size: 0.0,
+        apical_control: 0.5,
+        upkeep: 0.0,
+        balance_hazard: 0.0,
+        tolerance: 0.0,
+        retained: 0.0,
+        leaf_girth: 0.0,
         straightening: 0.0,
         form: Form::default(),
     };
@@ -215,6 +254,7 @@ fn an_unreachable_pa_takes_no_part_in_a_window() {
         age: 1470,
         seed: 1,
         budget: 1,
+        light: telperion_space::Light::NEUTRAL,
     };
     let tree = grow(&species, request).unwrap();
     for p in tree.axes.iter().flat_map(|a| &a.phytomers) {

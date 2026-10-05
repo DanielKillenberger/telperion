@@ -108,6 +108,11 @@ pub(crate) struct Draws {
     /// Per growth unit: its survival, then the apex's persistence past it
     /// (not aborting).
     pub units: Vec<[f64; 2]>,
+    /// Per growth unit, where light shades: its phytomers' size from its
+    /// bud's vigour (`allocation.rs`); empty where nothing shades.
+    pub sizes: Vec<f64>,
+    /// Per growth unit, where light shades: the light its bud grew in.
+    pub lights: Vec<f64>,
     /// Per phytomer: its node's draw.
     pub nodes: Vec<f64>,
     /// The apex still lives at the tree's age.
@@ -139,6 +144,8 @@ pub(crate) fn assign(axes: &mut [Axis], draws: &[Draws]) {
             let grown = if k == 0 { 1.0 - draws[i].sleep } else { 1.0 };
             while j < axis.phytomers.len() && (axis.phytomers[j].cycle - birth - 1) as usize == k {
                 axis.phytomers[j].scale = running * draws[i].nodes[j] * grown;
+                axis.phytomers[j].size = draws[i].sizes.get(k).copied().unwrap_or(1.0);
+                axis.phytomers[j].light = draws[i].lights.get(k).copied().unwrap_or(1.0);
                 axis.phytomers[j].rank = rank;
                 rank += draws[i].nodes[j] * grown;
                 j += 1;

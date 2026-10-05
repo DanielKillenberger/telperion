@@ -13,6 +13,9 @@ pub(crate) const ZONE: u64 = 16;
 /// The draws of one axis, under its lineage, and its relay draw, under
 /// the growth unit it stopped in.
 pub(crate) const RELAY: u64 = u64::MAX - 2;
+/// A lateral's yearly shedding on its carbon balance, under its lineage
+/// and then the cycle.
+pub(crate) const SHED: u64 = u64::MAX - 1;
 /// A lateral's roll about its parent, under its lineage.
 pub(crate) const ROLL: u64 = u64::MAX - 4;
 /// A lateral's share of vigour among its siblings, under its lineage.

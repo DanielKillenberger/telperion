@@ -147,6 +147,12 @@ pub struct Phytomer {
     /// Its place in the phyllotaxis: the nodes below it counted by their
     /// presence, so a node growing in turns the ones above it by degree.
     pub(crate) rank: f64,
+    /// Its growth unit's size from the vigour light gave its bud
+    /// (`allocation.rs`): in its scale, never in what it bears. 1 where
+    /// nothing shades.
+    pub(crate) size: f64,
+    /// The light its bud grew in (`light.rs`): 1 where nothing shades.
+    pub(crate) light: f64,
 }
 
 #[derive(Debug, Clone, PartialEq)]

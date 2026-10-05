@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-05T03:36:27.517445Z",
+  "depends_on": [
+    "fn-197-tree-space-e-light-and-the-carbon.4"
+  ],
+  "id": "fn-197-tree-space-e-light-and-the-carbon.5",
+  "priority": null,
+  "spec": "fn-197-tree-space-e-light-and-the-carbon",
+  "spec_path": ".flow/tasks/fn-197-tree-space-e-light-and-the-carbon.5.md",
+  "status": "todo",
+  "title": "Girth from leaves and retained pipes",
+  "updated_at": "2026-10-05T03:36:27.517445Z"
+}
