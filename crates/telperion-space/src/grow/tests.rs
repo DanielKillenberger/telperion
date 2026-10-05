@@ -87,7 +87,7 @@ fn a_tree_grows_the_same_without_what_it_is_certain_to_shed() {
                 _ => 2.0 / 3.0,
             };
             assert!(
-                f64::from(skipped.grown) < share * f64::from(all.grown),
+                (skipped.grown as f64) < share * all.grown as f64,
                 "{name} seed {seed}: {} of {} grown",
                 skipped.grown,
                 all.grown
@@ -126,6 +126,45 @@ fn light_no_bud_reads_is_not_worked() {
                 lean.structure == full.structure,
                 "{name} seed {seed}: the tree changed"
             );
+        }
+    }
+}
+
+/// A cycle grown in shares on many cores is the tree grown in turn on
+/// one: the beech, the spruce, whose sleeping buds wake, the oak in light
+/// and the palm.
+#[test]
+fn many_cores_grow_the_tree_one_does() {
+    let cores = |threads| Options {
+        threads: Some(threads),
+        share: 7,
+        ..Options::default()
+    };
+    // The spruce with its lifespans between whole cycles: an age that ends
+    // within a cycle carries on in it, and its sleeping buds are put to
+    // sleep on an axis that cycle made.
+    let mut halves = spruce();
+    for state in &mut halves.states {
+        if state.lifespan > 0.0 {
+            state.lifespan += 0.5;
+        }
+    }
+    let trees = [
+        ("spruce with half cycles", halves, (25, Light::NEUTRAL)),
+        ("beech", beech(), (30, LIT)),
+        ("spruce", spruce(), (30, Light::NEUTRAL)),
+        ("oak", oak(), (20, LIT)),
+        ("palm", palm(), (30, Light::NEUTRAL)),
+    ];
+    for (name, species, (age, light)) in trees {
+        for seed in [1, 7] {
+            let one = grown_in(&species, (age, seed, light), cores(1));
+            let many = grown_in(&species, (age, seed, light), cores(8));
+            assert!(
+                one.structure == many.structure,
+                "{name} seed {seed}: the tree changed"
+            );
+            assert_eq!(one.grown, many.grown, "{name} seed {seed}");
         }
     }
 }

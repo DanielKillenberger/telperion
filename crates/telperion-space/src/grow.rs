@@ -6,10 +6,15 @@
 //! bound is recorded; once the tree has grown, `presence.rs` sizes every
 //! element from those leads, so a setting that crosses a draw grows the
 //! element in from nothing.
+mod advance;
 mod balance;
+mod parallel;
 mod relay;
+mod shoot;
 mod sketch;
 mod stop;
+#[cfg(test)]
+mod tests;
 mod unit;
 mod wake;
 
@@ -18,15 +23,14 @@ use crate::error::{refuse, Error, Result};
 use crate::geometry::{place, scale};
 use crate::girth::{attachments, disused, thicken, Girth};
 use crate::light::Light;
-use crate::lineage::{above, below, Key, ABORTION, END, ENDED, VIABILITY};
+use crate::lineage::Key;
 use crate::presence::{assign, Draws, Windows};
 use crate::sag;
-use crate::schedule::Carried;
 use crate::shed::{lasting, shed};
-use crate::species::{PaState, Species, MAX_BUDS};
+use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
+use shoot::Rules;
 use sketch::Sketch;
-use stop::Stop;
 
 /// What to grow: cycles, the seed, the phytomer budget and the site's light.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -83,6 +87,10 @@ pub fn grow_staged(
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Options {
     pub certain: Certain,
+    /// The cores a cycle grows on; none, all the machine has (fn-210,
+    /// lever 2); and the living apexes in each share of it.
+    pub threads: Option<usize>,
+    pub share: usize,
     /// Whether the light work no bud reads is done as well: the rough
     /// layout where light shades but no bud reads it, and the last
     /// cycle's layout, full lay and sweep (fn-210, lever 3).
@@ -93,6 +101,8 @@ impl Default for Options {
     fn default() -> Self {
         Self {
             certain: Certain::Skip,
+            threads: None,
+            share: parallel::SHARE,
             unread_light: false,
         }
     }
@@ -116,7 +126,7 @@ pub(crate) enum Certain {
 #[cfg_attr(not(test), allow(dead_code))]
 pub(crate) struct Grown {
     pub structure: Structure,
-    pub grown: u32,
+    pub grown: u64,
     pub marked: Vec<u64>,
 }
 
@@ -166,15 +176,26 @@ pub(crate) fn run(
     } else {
         vec![None; species.states.len()]
     };
+    let threads = options.threads.unwrap_or_else(|| {
+        std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get)
+    });
     let mut grower = Grower {
+        rules: Rules {
+            species,
+            laterals,
+            lasting,
+            certain: options.certain,
+            windows: Windows::new(species, request.age),
+            age: request.age,
+            budget: request.budget,
+            grown: 0,
+        },
         species,
-        laterals,
-        lasting,
+        threads,
+        share: options.share,
         horizon: vec![f64::NEG_INFINITY],
-        certain: options.certain,
         marked: Vec::new(),
         axes: vec![bud(root.onto(seed), seed, 0, Origin::Seed)],
-        windows: Windows::new(species, request.age),
         draws: vec![Draws {
             birth: [reach, 1.0],
             ..Draws::default()
@@ -188,13 +209,6 @@ pub(crate) fn run(
         roots: vec![root.0],
         asleep: vec![Vec::new(); request.age as usize + 2],
         woken: Vec::new(),
-        age: request.age,
-        next: Vec::new(),
-        leads: Vec::new(),
-        node_buds: Vec::new(),
-        sleeping: Vec::new(),
-        grown: 0,
-        budget: request.budget,
         sketch,
         leaves: Vec::new(),
     };
@@ -247,7 +261,7 @@ pub(crate) fn run(
     // ground.
     thicken(&mut structure, species, &girth);
     stage(Stage::Settled);
-    let (count, marked) = (grower.grown, grower.marked);
+    let (count, marked) = (grower.rules.grown, grower.marked);
     let done = move |structure| Grown {
         structure,
         grown: count,
@@ -315,24 +329,21 @@ fn bud(key: Key, pa: usize, birth: u32, origin: Origin) -> Axis {
 }
 
 struct Grower<'a> {
+    /// What every growth unit reads (`shoot.rs`).
+    rules: Rules<'a>,
     species: &'a Species,
-    /// Each PA's zones' lateral probabilities as drawn (`PaState::laterals`).
-    laterals: Vec<Vec<Vec<f64>>>,
-    /// Each PA's bound on its subtree's life (`shed::lasting`); none
-    /// throughout where shedding is not decided before growth.
-    lasting: Vec<Option<f64>>,
+    /// The cores a cycle grows on, and the living apexes in each share.
+    threads: usize,
+    share: usize,
     /// Each axis's horizon: the most, past its subtree's last growth, that
     /// it or a lateral or relay it stands on keeps it before it is shed
     /// (a delay and the cycle its fade runs over).
     horizon: Vec<f64>,
-    certain: Certain,
     marked: Vec<u64>,
     axes: Vec<Axis>,
-    windows: Windows,
     /// Each axis's draws' presences, by index.
     draws: Vec<Draws>,
     live: Vec<Apex>,
-    next: Vec<Apex>,
     /// Each axis's time spent in its PA when its apex stopped, or at its
     /// birth while it lives: what a relay of it carries on.
     units: Vec<f64>,
@@ -345,159 +356,21 @@ struct Grower<'a> {
     /// The sleeping buds that wake in each cycle, and those that woke.
     asleep: Vec<Vec<Sleeper>>,
     woken: Vec<Woken>,
-    age: u32,
-    /// One zone's node leads and its nodes (order draw, draw index, lead,
-    /// buds), reused.
-    leads: Vec<f64>,
-    node_buds: Vec<(f64, u64, f64, [Placed; MAX_BUDS as usize])>,
-    /// One zone's sleeping buds' expected wood per PA, reused.
-    sleeping: Vec<f64>,
-    grown: u32,
-    budget: u32,
     /// The rough layout, where light shades, and the leaves of the cycle.
     sketch: Option<Sketch>,
     leaves: Vec<(Vec3, f64)>,
 }
 
 impl Grower<'_> {
+    /// One cycle: each living lateral subtree's balance and each apex's
+    /// share of the tree's vigour, then every living apex's growth unit,
+    /// on every core (`parallel.rs`), then the sleeping buds that wake.
     fn step(&mut self, cycle: u32) -> Result<()> {
         self.balance(cycle);
         self.allot();
         let live = std::mem::take(&mut self.live);
-        for apex in live.iter().copied() {
-            self.advance(apex, cycle)?;
-        }
-        self.wake(cycle)?;
-        self.live = std::mem::replace(&mut self.next, live);
-        self.next.clear();
-        Ok(())
-    }
-
-    /// One living apex's growth unit in `cycle`: its survival, the unit,
-    /// then its abortion or its move to its next PA. A unit that ends its
-    /// age within the cycle hands the rest of it on (`schedule.rs`).
-    fn advance(&mut self, mut apex: Apex, cycle: u32) -> Result<()> {
-        let pa = self.axes[apex.axis].pa;
-        let state = &self.species.states[pa];
-        // A unit's draws are keyed by the cycle it grows in, so a unit that
-        // a lifespan's fraction makes or unmakes renumbers none after it
-        // (host decision 7).
-        let unit = Key(self.axes[apex.axis].lineage).child(u64::from(cycle));
-        // Its stop decisions are drawn apart for each relay of an age that
-        // ended, the first of which may grow in the cycle its axis stopped
-        // in: apart from that axis's, and the same whether the age ended
-        // within the cycle or at its start (Codex rounds 3 and 4 on fn-206).
-        let decide = match self.draws[apex.axis].ended_relays {
-            0 => unit,
-            n => unit.child(ENDED).child(u64::from(n)),
-        };
-        // The share of the cycle gone before the first unit: asleep, or to
-        // the age before; its risks run over the unit's own share.
-        let draws = &self.draws[apex.axis];
-        let first = draws.units.is_empty();
-        // The relay of an age that ended or a unit that failed grows a
-        // whole first unit.
-        let relay = draws.ended;
-        let carried = Carried {
-            spent: apex.spent,
-            aged: 0.0,
-            gone: if first { draws.sleep } else { 0.0 },
-            relay: first && relay,
-        };
-        let step = carried.unit(state.lifespan, 1);
-        let share = step.share;
-        // Shade raises the apex's death hazard, ln survival = ln
-        // viability x light^-phi (host, 2026-10-05): near-certain survival
-        // moves gently as light does, and certain survival not at all.
-        let light = self.light(apex.axis);
-        let viability = if state.shade_hazard > 0.0 && light < 1.0 {
-            state.viability.powf(light.powf(-state.shade_hazard))
-        } else {
-            state.viability
-        };
-        let viability = shared(viability, share);
-        let u = decide.child(VIABILITY).unit();
-        if u >= viability {
-            self.axes[apex.axis].apex_end = Some(cycle - 1);
-            self.draws[apex.axis].failed = true;
-            // The unit that failed is spent: a relay's first unit draws
-            // anew.
-            let spent = apex.spent + share;
-            self.stop(
-                apex,
-                (cycle, 1.0),
-                above(u, viability),
-                decide,
-                spent,
-                Stop::Failed,
-            )?;
-            return Ok(());
-        }
-        let survive = below(u, viability);
-        let wood = self.windows.wood(pa, cycle);
-        let survive = self
-            .windows
-            .decided(survive, wood, stop_stake(state.relay_failed));
-        // And its subtrees' survival of shedding on their balance.
-        let survive = survive * self.kept(apex.axis);
-        self.draws[apex.axis].units.push([survive, 1.0]);
-        self.draws[apex.axis].shares.push(share);
-        if self.sketch.is_some() {
-            let size = self.size(apex.axis);
-            self.draws[apex.axis].sizes.push(size);
-            if self.species.states.iter().any(|s| s.leaf_girth > 0.0) {
-                self.draws[apex.axis].lights.push(light);
-            }
-        }
-        self.grow_unit(apex, pa, unit, cycle)?;
-        apex.spent += share;
-        // An apex that has spent its PA's lifespan moves on; it does not
-        // also abort. Its hazard counts the time its axis has grown, and
-        // runs over the share this unit and the next leave it exposed
-        // (`schedule.rs`).
-        let draws = &self.draws[apex.axis];
-        let grown = draws.aged + draws.shares.iter().sum::<f64>();
-        let exposure = carried.exposure(state.lifespan, 1);
-        let abortion = 1.0 - shared(1.0 - state.abortion_at(grown), exposure);
-        if abortion > 0.0 && !step.ends {
-            let u = decide.child(ABORTION).unit();
-            if u < abortion {
-                self.axes[apex.axis].apex_end = Some(cycle);
-                self.stop(
-                    apex,
-                    (cycle, 1.0),
-                    below(u, abortion),
-                    decide,
-                    apex.spent,
-                    Stop::Aborted,
-                )?;
-                return Ok(());
-            }
-            // An apex that all but aborted carries on as itself and as the
-            // relay it would have had, which at the bound is laid as its
-            // continuation and draws what it would: the two sum, so no
-            // stop near its bound fades the stem (host decision 11).
-            let wood = self.windows.wood(pa, cycle + 1);
-            let faded = self
-                .windows
-                .decided(above(u, abortion), wood, stop_stake(state.relay));
-            let relayed = self.relayed(state.relay, decide, wood);
-            let units = &mut self.draws[apex.axis].units;
-            units.last_mut().unwrap()[1] = relayed + (1.0 - relayed) * faded;
-        }
-        if !step.ends {
-            self.next.push(apex);
-            return Ok(());
-        }
-        self.axes[apex.axis].apex_end = Some(cycle);
-        let used = if step.same_cycle() { step.used } else { 1.0 };
-        // Its end is drawn once for its age, whatever cycle it falls in,
-        // so a lifespan crossing a whole cycle moves no draw (Codex round
-        // 7 on fn-206); apart for each relay of an age that ended.
-        let ends = Key(self.axes[apex.axis].lineage)
-            .child(END)
-            .child(u64::from(self.draws[apex.axis].ended_relays));
-        self.move_on(apex, ends, cycle, used)
+        self.grow_live(live, cycle)?;
+        self.wake(cycle)
     }
 
     /// How much an apex living at the tree's age lives on: whole while a
@@ -511,78 +384,4 @@ impl Grower<'_> {
         let go = self.species.successor(pa).map_or(0.0, |(_, go)| go);
         left + (1.0 - left) * (go + (1.0 - go) * state.relay_ended)
     }
-
-    /// The bud last sprouted grows from the next cycle, or, where the
-    /// cycle's `used` share is not whole, in this one at the rest of it.
-    fn carry_on(&mut self, cycle: u32, used: f64) -> Result<()> {
-        if used >= 1.0 {
-            return Ok(());
-        }
-        let apex = self.next.pop().expect("sprouted");
-        self.axes[apex.axis].birth = cycle - 1;
-        self.draws[apex.axis].sleep = used;
-        self.advance(apex, cycle)
-    }
-
-    /// The horizon of a new axis of `pa` growing from `origin`.
-    fn horizon_of(&self, pa: usize, origin: Origin) -> f64 {
-        let Some(parent) = origin.parent() else {
-            return f64::NEG_INFINITY;
-        };
-        let delay = self.species.states[pa].shedding;
-        match origin {
-            Origin::Lateral { .. } | Origin::Relay { .. } if delay.is_finite() => {
-                self.horizon[parent].max(delay + 1.0)
-            }
-            _ => self.horizon[parent],
-        }
-    }
-
-    /// Whether a lateral of `pa` made in `cycle` on axis `parent` is
-    /// certain to be shed by the tree's age: its subtree's last growth
-    /// ends by its bound, and from there its own delay and those of every
-    /// lateral or relay it stands on have run out by the tree's age, so
-    /// its fade there is 0 and no kept axis's fade reads it (`shed.rs`).
-    fn shed_certain(&self, pa: usize, cycle: u32, parent: usize) -> bool {
-        let (Some(last), delay) = (self.lasting[pa], self.species.states[pa].shedding) else {
-            return false;
-        };
-        let horizon = self.horizon[parent].max(delay + 1.0);
-        delay.is_finite() && horizon <= f64::from(self.age) - (f64::from(cycle) + last)
-    }
-
-    /// A new bud that grows from the next cycle, made by draws with these
-    /// presences. A seed or lateral `key` is the bud's own, and its axis is
-    /// keyed by its age's place on the reference axis from it, as every
-    /// continuation of it is (`Key::onto`), so an age it passes through or
-    /// grows in moves no key; a continuation's or relay's `key` is its
-    /// axis's own. A relay carries on its axis's time spent in its PA.
-    fn sprout(&mut self, key: Key, pa: usize, cycle: u32, origin: Origin, made: [f64; 2]) {
-        let spent = match origin {
-            Origin::Relay { parent, .. } => self.units[parent],
-            _ => 0.0,
-        };
-        self.units.push(spent);
-        self.successor.push(Vec::new());
-        self.horizon.push(self.horizon_of(pa, origin));
-        let (root, lineage) = match origin {
-            Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
-                (self.roots[parent], key)
-            }
-            Origin::Seed | Origin::Lateral { .. } => (key.0, key.onto(pa)),
-        };
-        self.roots.push(root);
-        self.next.push(Apex {
-            axis: self.axes.len(),
-            spent,
-        });
-        self.axes.push(bud(lineage, pa, cycle, origin));
-        self.draws.push(Draws {
-            birth: made,
-            ..Draws::default()
-        });
-    }
 }
-
-#[cfg(test)]
-mod tests;
