@@ -17,7 +17,7 @@ use crate::{
         self,
         compact::{CompactSurface, CompactWithContacts},
         prepared::{PreparedSurface, PreparedWithContacts},
-        SurfaceMesh,
+        Curve, SurfaceMesh,
     },
     presets::Family,
     tree::Tree,
@@ -170,6 +170,13 @@ impl Expansion {
     pub fn prepared_wood(&self) -> Result<Option<PreparedSurface>> {
         let s = &self.inputs.surface;
         surface::prepared::prepare(&self.tree, s.height, &s.params)
+    }
+    /// The wood as curves (fn-208): every run's ring points and frames, the
+    /// run table and the clusters a view culls by, which the wood is surfaced
+    /// from.
+    pub fn curve(&self) -> Result<Curve> {
+        let s = &self.inputs.surface;
+        surface::curve(&self.tree, s.height, &s.params)
     }
     /// The wood the CPU builder sweeps.
     pub fn wood(&self) -> Result<SurfaceMesh> {

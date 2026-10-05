@@ -39,6 +39,7 @@ Expansion
   compact_stations(&shared), stations        the leaf stations, on shared rings or their own
   prepared_with_contacts, shared_stations    the canonical float32 wood, and stations on it
   prepared_wood, wood                        the canonical wood; the CPU wood
+  curve                                      the wood as curves, which it is surfaced from (fn-208)
   mesh                                       the CPU reference for the whole tree
 ```
 
@@ -47,6 +48,27 @@ Each step is synchronous CPU work. The GPU executor keeps its own schedule: it c
 `expand` takes a tree the caller already holds, for the renderer's tests of the GPU kernels on hand-built trees. It builds no tree: growing one stays inside the pipeline, so `expand` opens no second chain. Expansion opens by hanging the shed leaf bases on the stems (fn-204), so a handed-in tree is clothed exactly as a grown one; a tree that already carries its bases is clothed again.
 
 The growth path, the second sanctioned exception, was removed on 2026-10-02 (fn-181, `docs/growth-path.md`); the scaffold's grower, `branching::Specimen`, is private to the crate.
+
+## The wood's curve (fn-208)
+
+The wood is handed over as curves, not triangles (`telperion_core::surface::Curve`, `Expansion::curve`). The surface is drawn from them, by the GPU at the screen's error (fn-208) or by the CPU at a stated view and error. Every tree produces the curve from its solved skeleton by the sweep's own steps (paths, samples, frames), so whatever grew the tree, its wood has one path to the screen.
+
+| Table | Per | Holds |
+|---|---|---|
+| `points` | ring the sweep stands | centre, radius (girth with the fork's easing and the flare, or a shaped run's extent), distance along the wood from the root, and the parallel-transported frame (`normal × binormal` is the tangent) |
+| `runs` | run of the sweep, widest first | first point, count, whether it stands on the root, the cell a shaped run is drawn as (an index into `sections`), its largest radius |
+| `clusters` | up to `CLUSTER` (32) points of one run, neighbours sharing an end | a sphere round every ring (lobes included), largest and smallest radius, and for each of `LEVELS` ring levels (level `k` keeps every `2^k`-th point) the most a left-out ring stands off its kept neighbours, monotone |
+| `sections` | shaped run | the cell (`tree::Section`), as the tree keeps it: the palm's leaf bases |
+
+Its tree-wide rows are the section's `lobes`, `lobeDepth` and `twistRate`, and the tree's height. A ring point `p` at angle `θ` stands at `centre + (normal cos θ + binormal sin θ) · radius · (1 + lobeDepth cos(lobes (θ + phase)))`, where `phase = 2π · twistRate · along / height`. A shaped run's ring is the cell's own (`Section::vertex`). The bark's coordinates are `(along, θ)`.
+
+On the GPU a point is 28 bytes (`CurvePoint::pack`, `POINT_WORDS`):
+- float32 centre, radius and distance along;
+- the frame's two vectors, octahedral at 16 bits a component.
+
+A ring drawn from a packed point stands within 1e-4 of its run's radius and two float32 units of its position from the exact one. A test measures this for every preset (`curve/tests.rs`).
+
+The sweep's rings drawn from the curve alone are the sweep's own, to the bit, for every values preset, the palm's shaped cells included: that is what shows the curve carries the whole wood.
 
 ## Why not a resolver
 

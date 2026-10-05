@@ -14,6 +14,8 @@ mod build;
 #[doc(hidden)]
 pub mod compact;
 #[cfg(feature = "geometry")]
+mod curve;
+#[cfg(feature = "geometry")]
 mod frames;
 #[cfg(feature = "geometry")]
 mod normals;
@@ -39,6 +41,12 @@ pub use build::extent;
 use build::*;
 #[cfg(feature = "geometry")]
 pub(crate) use build::{faces, Faces};
+#[cfg(feature = "geometry")]
+pub(crate) use curve::curve;
+#[cfg(feature = "geometry")]
+pub use curve::{
+    Curve, CurveCluster, CurvePoint, CurveRun, PackedPoint, CLUSTER, LEVELS, POINT_WORDS,
+};
 #[cfg(feature = "geometry")]
 pub(crate) use rings::{rings, Rings, Sweep};
 #[cfg(feature = "geometry")]

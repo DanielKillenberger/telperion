@@ -212,16 +212,29 @@ pub(super) fn record_edges(
     }
 }
 
+/// What every ring of a sweep is drawn with: the section's rows, the
+/// tree's height (the twist runs over it) and the points round a ring.
+#[derive(Clone, Copy)]
+pub(super) struct Ring<'a> {
+    pub(super) params: &'a SurfaceParams,
+    pub(super) height: f64,
+    pub(super) angular: &'a [angular::Angular],
+}
+
 /// A run's vertices, ring by ring, then its two caps where `caps` asks.
 pub(super) fn emit_run(
     samples: &[Sample],
     frame: &[(Vec3, Vec3)],
-    at: Swept,
+    ring: Ring,
     shape: Option<&crate::tree::Section>,
     caps: bool,
     mut emit: impl FnMut([f32; 3], [f32; 2]),
 ) -> Result<()> {
-    let (params, height) = (at.params, at.height);
+    let Ring {
+        params,
+        height,
+        angular,
+    } = ring;
     let mut vertex = |p: Vec3, coord: [f32; 2]| {
         let xyz = [p.x as f32, p.y as f32, p.z as f32];
         if !xyz.iter().all(|v| v.is_finite()) {
@@ -233,7 +246,7 @@ pub(super) fn emit_run(
     for (i, s) in samples.iter().enumerate() {
         if let Some(shape) = shape {
             let ring = shape.ring(i, samples.len());
-            for sample in at.angular {
+            for sample in angular {
                 let p = shape.vertex(ring, sample.cos, sample.sin);
                 vertex(p, [s.d as f32, sample.angle as f32])?;
             }
@@ -241,7 +254,7 @@ pub(super) fn emit_run(
         }
         let (normal, binormal) = frame[i];
         let phase = std::f64::consts::TAU * params.twist_rate * (s.d / height);
-        for sample in at.angular {
+        for sample in angular {
             let width = s.r * sample.profile(params, phase);
             vertex(
                 s.p + (normal * sample.cos + binormal * sample.sin) * width,
