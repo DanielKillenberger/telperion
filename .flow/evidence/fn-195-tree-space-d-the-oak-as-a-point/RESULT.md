@@ -544,3 +544,75 @@ Young trees and close-ups were not re-rendered this round; the host's sheet hold
 - the leaf form in close-ups.
 
 **Phase F's note on seed 4's leaf marking (fn-197 decision 26) was this stem-fork measure.** It is fixed here in the conversion, not in the pipeline's marking.
+
+## Gate, round 6b (host and Astra, 2026-10-05)
+
+**Host:** the most oak-like yet.
+
+**Astra: FAIL in all three samples, with no NO** (`ASTRA-VERDICT-R6b-1.md` to `-3.md`):
+
+| Seed | Verdicts |
+|--:|---|
+| 2 | YES in all three |
+| 7 | YES in one |
+| The rest | BORDERLINE |
+
+All three name the outer crown: "too many straight, pointed branch sprays replace the sustained, heavy, tortuous boughs and finely ramified rounded crown." The foliage reads as separate pointed lobes with gaps between them.
+
+**Host decisions for round 7** (values only):
+
+1. Boughs and branch systems keep winding to the edge.
+2. Finer ramification at the periphery.
+3. ψ 1.5 to 2, to fill the gaps.
+4. No per-seed fix for seed 3.
+
+## Round 7: the outer crown (values only), 2026-10-05
+
+**Kept values** (`oak.rs`; probe A on seeds 1 and 7, `raw/round7/probeA.png`):
+
+| Value | Round 6b | Round 7 |
+|---|---|---|
+| Bough tropism | 0.6 | 0.35 |
+| Bough elevation | 0.6 | 0.45 |
+| Bough abortion (each relayed) | 0.3 | 0.4 |
+| Bough wander | 1.0 | 1.3 |
+| Branch-system abortion | 0 | 0.2, each relayed (epitony 0.2) |
+| Branch-system tropism | 0.4 | 0.25 |
+| Branch-system wander | 0.8 | 1.1 |
+| Branch-system internode | 0.02 m | 0.017 m |
+| Branch-system twig laterals below the top | 0.15 | 0.18 |
+| Twig internode | 0.015 m | 0.012 m |
+| ψ | 1 | 1.5 |
+
+**The extra twig order was tried and dropped:** twigs bearing twigs at 0.15 in their top cluster refused the 20M-phytomer budget at seed 1. It runs only without it, so finer ramification comes from shorter internodes and more twig laterals on the branch systems.
+
+**Sheet:** `raw/round7/sheet.png`, the host's layout: references, round 6b in leaf, round 7 in leaf, round 7 bare. I viewed every still.
+
+| Seed | Height | Width | Leaves | Fine wood | Leaves a metre |
+|--:|--:|--:|--:|--:|--:|
+| 1 | 21.3 m | 24.8 × 34.6 m | 1.87M | 13.8 km | 135 |
+| 7 | 20.9 m | 27.8 × 27.8 m | 1.95M | 14.3 km | 136 |
+| 2 | 19.5 m | 27.7 × 29.1 m | 2.58M | 19.1 km | 135 |
+| 3 | 23.8 m | 29.1 × 22.5 m | 2.06M | 15.2 km | 136 |
+| 4 | 21.0 m | 23.7 × 23.5 m | 1.26M | 9.3 km | 136 |
+
+### Reading
+
+- **Bare: the boughs wind all the way to the crown's edge.**
+  - The straight, pointed sprays of 6b are gone. The outline is a tangle of kinked boughs ending in short twigs, over the same low-dividing heavy limbs.
+  - The crowns are wider: seed 3 is 29 m across, against 24 m in 6b, and no longer reads upright.
+  - **Possibly overdone:** the boughs now writhe more than S1's and S3's, a busy, contorted web rather than S1's even, fine one.
+- **In leaf:**
+  - The crowns are rounded and fuller at the edge than 6b. Seed 7 is a broad dome, and seed 2 a broad, low one.
+  - The winding boughs show through the foliage at every seed, so the crown still reads partly as foliage clumps on visible wood, not one closed mass.
+  - The gaps between lobes are smaller than in 6b, but not gone.
+- **Size stays bounded:** 19.5 to 23.8 m tall. The wider crowns carry 20 to 25% more leaves and fine wood than 6b.
+- **Finer ramification at the very edge is limited by the budget** (see above).
+
+**Known gaps:**
+
+- the crown edge's fine web, which the budget limits;
+- the collar ring;
+- bark plates;
+- the 10-year sapling's spire;
+- the leaf form in close-ups.
