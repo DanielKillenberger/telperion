@@ -1,0 +1,4 @@
+oak age 80 seed 1 extinction 0.5 sky 0.5: total 7.85 s; growth 2.93, rough layout 1.05, full re-lays 1.73, light 0.33, settle 1.06, final lay 0.51; peak memory so far 1759164 kB
+oak age 80 seed 1 extinction 0 sky 0.5: total 5.27 s; growth 2.90, rough layout 0.00, full re-lays 0.00, light 0.00, settle 1.36, final lay 0.80; peak memory so far 2131992 kB
+beech age 80 seed 1 extinction 0 sky 0.5: total 1.36 s; growth 0.75, rough layout 0.00, full re-lays 0.00, light 0.00, settle 0.27, final lay 0.28; peak memory so far 548480 kB
+spruce age 80 seed 1 extinction 0 sky 0.5: total 7.54 s; growth 2.74, rough layout 0.00, full re-lays 0.00, light 0.00, settle 0.90, final lay 3.59; peak memory so far 2183372 kB
