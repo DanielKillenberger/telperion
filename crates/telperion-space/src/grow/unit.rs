@@ -1,9 +1,10 @@
-//! One growth unit of an apex: its zones' nodes, each with its internode,
-//! its lateral buds and its sleeping buds.
+//! One growth unit of an apex: its zones' nodes, in the order their roles
+//! stand along the unit, and the buds of each node, laterals that sprout
+//! and sleeping buds put to sleep.
 use super::{Apex, Grower};
 use crate::error::{Error, Result};
 use crate::lineage::{self, Key, ZONE};
-use crate::species::{MAX_BUDS, MAX_NODES_PER_ZONE};
+use crate::species::{ALONG, MAX_BUDS, MAX_NODES_PER_ZONE};
 use crate::structure::{Origin, Phytomer, Vec3};
 
 impl Grower<'_> {
@@ -11,7 +12,8 @@ impl Grower<'_> {
         let state = &self.species.states[pa];
         let mut nodes = std::mem::take(&mut self.node_buds);
         let mut leads = std::mem::take(&mut self.leads);
-        for (z, zone) in state.zones.iter().enumerate() {
+        let along = ALONG.iter().filter(|&&z| z < state.zones.len());
+        for (z, zone) in along.map(|&z| (z, &state.zones[z])) {
             let zone_key = unit.child(ZONE + z as u64);
             lineage::nodes(zone.nodes, zone_key.unit(), MAX_NODES_PER_ZONE, &mut leads);
             let lateral = &self.laterals[pa][z];
@@ -26,17 +28,20 @@ impl Grower<'_> {
             // And the sleeping buds it is expected to bear.
             let mut sleeping = std::mem::take(&mut self.sleeping);
             let expected = expected + self.windows.sleeping(zone, cycle, &mut sleeping);
-            let node_wood = self.windows.share(state.internode) + f64::from(zone.buds) * expected;
+            let node_wood = self.windows.share(state.internode) + zone.buds * expected;
             nodes.clear();
             for (i, &node_lead) in leads.iter().enumerate() {
                 let node_key = zone_key.child(i as u64);
                 let mut buds = [None; MAX_BUDS as usize];
-                let mut order = 1.0f64;
-                for (slot, bud) in buds[..zone.buds as usize].iter_mut().enumerate() {
-                    let u = node_key.child(slot as u64).unit();
-                    order = order.min(u);
-                    *bud = lineage::bud(lateral, u);
+                for (slot, bud) in buds[..zone.places()].iter_mut().enumerate() {
+                    let place_key = node_key.child(slot as u64);
+                    let placed = zone.share(slot);
+                    *bud = lineage::bud(lateral, place_key.unit())
+                        .map(|(pa, lead)| (pa, lead, placed));
                 }
+                // Ordered by the first place's draw, which every node has, so
+                // a place a fraction grows moves no node.
+                let order = node_key.child(0).unit();
                 nodes.push((order, i as u64, node_lead, buds));
             }
             // Acrotony: the nodes stand in order of their draws, so the
@@ -64,8 +69,13 @@ impl Grower<'_> {
                 });
                 let node_presence = self.windows.presence(node_lead, node_wood);
                 self.draws[apex.axis].nodes.push(node_presence);
-                for (slot, bud) in buds[..zone.buds as usize].iter().enumerate() {
-                    let Some((lateral_pa, lead)) = *bud else {
+                for (slot, bud) in buds[..zone.places()].iter().enumerate() {
+                    let Some((lateral_pa, lead, placed)) = *bud else {
+                        continue;
+                    };
+                    // A bud of an age it passes through grows in the next
+                    // it lives in, as far as it reaches it, or not at all.
+                    let Some((lateral_pa, reach)) = self.species.lived(lateral_pa) else {
                         continue;
                     };
                     let origin = Origin::Lateral {
@@ -77,7 +87,7 @@ impl Grower<'_> {
                     };
                     let key = zone_key.child(drawn).child(slot as u64);
                     let wood = self.windows.wood(lateral_pa, cycle + 1);
-                    let made = [self.windows.presence(lead, wood), 1.0];
+                    let made = [self.windows.presence(lead, wood) * placed, reach];
                     self.sprout(key, lateral_pa, cycle, origin, made);
                 }
                 if sleeping.iter().any(|&wood| wood > 0.0) {

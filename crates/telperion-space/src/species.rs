@@ -5,7 +5,22 @@
 //! along the reference axis towards older PAs (AmapSim's oriented automaton;
 //! GreenLab's dual-scale automaton, de Reffye et al. 2021).
 use crate::error::{refuse, Result};
-use std::f64::consts::{FRAC_PI_2, PI, TAU};
+
+pub(crate) mod scale;
+mod validate;
+
+/// The roles a growth unit's zones play, by index, so two species' zones
+/// of one role are walked into each other (host, 2026-10-05): its bare
+/// base, its medial nodes, the whorl at its top, and a spare. A unit may
+/// leave its last roles out; they have no nodes.
+pub const BARE: usize = 0;
+pub const MEDIAL: usize = 1;
+pub const TOP: usize = 2;
+pub const SPARE: usize = 3;
+pub const ZONES: usize = 4;
+/// The order the roles' nodes stand in along the unit, base to top: the
+/// spare between the medial nodes and the top whorl.
+pub(crate) const ALONG: [usize; ZONES] = [BARE, MEDIAL, SPARE, TOP];
 
 /// The most buds one node carries: a whorl of six.
 pub const MAX_BUDS: u8 = 6;
@@ -26,16 +41,18 @@ const MAX_EXPONENT: f64 = 4.0;
 /// The most an axis bends per unit of its moment over its section's
 /// stiffness.
 const MAX_SAG: f64 = 1_000.0;
-/// The longest a wander's bend is remembered, in metres.
-const MAX_BEND_LENGTH: f64 = 1_000.0;
 /// The steepest rise of the abortion hazard.
 const MAX_RISE: f64 = 8.0;
+/// The longest lifespan of an age, in cycles.
+const MAX_LIFESPAN: f64 = 1_000_000.0;
+/// The longest a bud sleeps before it can wake, in years.
+const MAX_DELAY: f64 = 1_000.0;
+/// The longest a wander's bend is remembered, in metres.
+const MAX_BEND_LENGTH: f64 = 1_000.0;
 /// The largest leaf area one node bears, in square metres.
 const MAX_LEAF_AREA: f64 = 1.0;
 /// The steepest response of a hazard or a size to shade.
 const MAX_SHADE: f64 = 10.0;
-/// The longest a bud sleeps before it can wake, in years.
-const MAX_DELAY: f64 = 1_000.0;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Species {
@@ -46,17 +63,29 @@ pub struct Species {
 /// One physiological age: how an apex in it grows, lives and branches.
 #[derive(Debug, Clone, PartialEq)]
 pub struct PaState {
-    /// Growth units (one per cycle) an apex spends in this PA before it moves on.
-    pub lifespan: u32,
-    /// The PA the apex turns into after `lifespan` growth units; none, it stops.
-    pub next: Option<usize>,
+    /// The cycles an apex spends in this PA before it moves on, one growth
+    /// unit a cycle. A lifespan between whole cycles grows its last unit at
+    /// the share left of it, and the next age's first unit grows in the
+    /// same cycle at the rest, as a woken bud's does (host decision 7); at
+    /// 0 the age is passed through, its apex moving on to the next age, by
+    /// its `continuation`, without growing in it.
+    pub lifespan: f64,
+    /// The probability that an apex which has spent its lifespan moves on
+    /// to the next age on the reference axis rather than stops (its relay
+    /// then may take over): 1 where an age moves on, 0 where it ends.
+    /// Drawn, grown in by its lead. Dormant at the axis's last age, which
+    /// has no next.
+    pub continuation: f64,
     /// The probability that the apex survives each cycle, tested before it grows.
     pub viability: f64,
-    /// The growth unit, base to top: its zones of nodes and their lateral buds.
+    /// The growth unit's zones of nodes and their lateral buds, by role
+    /// (`BARE`, `MEDIAL`, `TOP`, `SPARE`); they stand along the unit in
+    /// the order `ALONG` gives.
     pub zones: Vec<Zone>,
-    /// Cycles a lateral axis of this PA keeps with no living apex before it is shed;
-    /// none, it is kept.
-    pub shedding: Option<u32>,
+    /// Cycles a lateral axis of this PA keeps with no living apex before it
+    /// is shed, fading out over the cycle past it (`shed.rs`), so a delay
+    /// between whole cycles keeps it at that share; infinite, it is kept.
+    pub shedding: f64,
     /// The internode length in metres.
     pub internode: f64,
     /// The angle in radians between an axis of this PA and its parent at insertion.
@@ -71,10 +100,17 @@ pub struct PaState {
     /// modules a regular length. Neutral 0, a flat rate; dormant without
     /// abortion.
     pub abortion_rise: f64,
-    /// The probability that a stopped apex is replaced by a relay bud of its
-    /// own PA at its last node, as Troll's relays are. Neutral 0; dormant
-    /// where no apex stops.
+    /// The probability that an apex that aborted is replaced by a relay bud
+    /// of its own PA at its last node, as Troll's relays are. Neutral 0;
+    /// dormant where no apex aborts. With `abortion` it is one outcome of
+    /// three, carrying on, relaying or dying, which a walk between species
+    /// mixes as shares (host decision 12).
     pub relay: f64,
+    /// The same for an apex whose age ends and does not move on (with
+    /// `continuation`).
+    pub relay_ended: f64,
+    /// The same for an apex whose growth unit failed (with `viability`).
+    pub relay_failed: f64,
     /// Where along its stopped axis a relay bud stands, as a share of the
     /// nodes of the axis's last growth unit from their base: Troll's relay
     /// "in the curvature zone" of the module it takes over from. Neutral 1, the last node; dormant
@@ -232,8 +268,12 @@ impl Default for Form {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Zone {
     pub nodes: NodeLaw,
-    /// Lateral buds per node, each drawn independently (1 alternate, 2 opposite).
-    pub buds: u8,
+    /// Lateral buds per node, each drawn independently (1 alternate, 2
+    /// opposite): a place for each whole bud, and one more at the share of
+    /// the fraction, what it bears grown at that share, as a lifespan's
+    /// last unit is; the whorl's places turn by a full turn over `buds`,
+    /// so a fraction spaces them by degree (fn-206).
+    pub buds: f64,
     /// The probability that a bud carries each PA; the remainder is bare.
     pub lateral: Vec<f64>,
     /// The probability that each bud's place also holds a sleeping bud of
@@ -250,10 +290,14 @@ pub struct Zone {
 /// The law of a zone's node count per growth unit.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum NodeLaw {
-    /// Uniform on `min..=max`; `min == max` is deterministic.
+    /// Uniform on `min..=max` for whole bounds, `min == max` being
+    /// deterministic; node j stands as the draw passes its share of the
+    /// span, (j - min + 1) / (max - min + 1), grown in by its lead, so a
+    /// bound between whole numbers grows its last node in by degree
+    /// (fn-206).
     Uniform {
-        min: u32,
-        max: u32,
+        min: f64,
+        max: f64,
     },
     Poisson {
         mean: f64,
@@ -263,13 +307,80 @@ pub enum NodeLaw {
 impl NodeLaw {
     pub fn mean(self) -> f64 {
         match self {
-            NodeLaw::Uniform { min, max } => (min as f64 + max as f64) / 2.0,
+            // Each node stands with chance (max - j) / (max - min + 1),
+            // within 0 and 1: (min + max) / 2 for whole bounds.
+            NodeLaw::Uniform { min, max } => {
+                let span = max - min + 1.0;
+                (0..max.ceil() as u32)
+                    .map(|j| ((max - f64::from(j)) / span).clamp(0.0, 1.0))
+                    .sum()
+            }
             NodeLaw::Poisson { mean } => mean,
         }
     }
 }
 
 impl Species {
+    /// The species in canonical form (host decision 8): every age it does
+    /// not use (no lifespan) carries the settings of its nearest age it
+    /// does use, the earlier on a tie, with no lifespan, moving on, and no
+    /// laterals or sleeping buds, so it is passed through and grows nothing,
+    /// and a walk to a species that uses it mixes like with like. Ages a
+    /// species uses are left as they are; a species that uses none is
+    /// returned as it is.
+    pub fn canonical(mut self) -> Species {
+        let used: Vec<usize> = (0..self.states.len())
+            .filter(|&k| self.states[k].lifespan > 0.0)
+            .collect();
+        for k in 0..self.states.len() {
+            if self.states[k].lifespan > 0.0 {
+                continue;
+            }
+            let Some(&near) = used.iter().min_by_key(|&&u| (u.abs_diff(k), u > k)) else {
+                return self;
+            };
+            let mut state = self.states[near].clone();
+            state.lifespan = 0.0;
+            state.continuation = 1.0;
+            for zone in &mut state.zones {
+                zone.lateral.iter_mut().for_each(|p| *p = 0.0);
+                zone.dormant.iter_mut().for_each(|p| *p = 0.0);
+            }
+            self.states[k] = state;
+        }
+        self
+    }
+
+    /// The age a bud of PA `pa` grows in, `pa` itself or the first after
+    /// it with a lifespan, each age of none passed through by its
+    /// continuation, and the product of those continuations: the share of
+    /// the bud that reaches it. None where nothing does.
+    pub fn lived(&self, mut pa: usize) -> Option<(usize, f64)> {
+        let mut reach = 1.0;
+        loop {
+            let state = self.states.get(pa)?;
+            if state.lifespan > 0.0 {
+                return Some((pa, reach));
+            }
+            reach *= state.continuation;
+            pa += 1;
+            if reach <= 0.0 {
+                return None;
+            }
+        }
+    }
+
+    /// The age an apex of `pa` that has spent its lifespan moves on to,
+    /// and the probability that it does: its own continuation times those
+    /// of the ages it passes through. None where it never moves on.
+    pub fn successor(&self, pa: usize) -> Option<(usize, f64)> {
+        let go = self.states[pa].continuation;
+        if go <= 0.0 {
+            return None;
+        }
+        self.lived(pa + 1).map(|(next, reach)| (next, go * reach))
+    }
+
     /// Refuses, by name, every input the engine cannot draw.
     pub fn validate(&self) -> Result<()> {
         let count = self.states.len();
@@ -287,138 +398,14 @@ impl Species {
 }
 
 impl PaState {
-    fn validate(&self, at: &str, pa: usize, count: usize) -> Result<()> {
-        if self.lifespan == 0 {
-            return refuse(
-                format!("{at}.lifespan"),
-                "an apex grows at least one growth unit",
-            );
-        }
-        if let Some(next) = self.next {
-            if next < pa || next >= count {
-                return refuse(
-                    format!("{at}.next"),
-                    "an apex ages along the reference axis",
-                );
-            }
-        }
-        if !(0.0..=1.0).contains(&self.viability) {
-            return refuse(format!("{at}.viability"), "a probability lies in 0 to 1");
-        }
-        if self.zones.is_empty() {
-            return refuse(
-                format!("{at}.zones"),
-                "a growth unit holds at least one zone",
-            );
-        }
-        for (z, zone) in self.zones.iter().enumerate() {
-            zone.validate(&format!("{at}.zones[{z}]"), pa, count)?;
-        }
-        if !(self.internode > 0.0 && self.internode <= MAX_INTERNODE) {
-            return refuse(
-                format!("{at}.internode"),
-                "an internode is longer than 0 and at most 100 m",
-            );
-        }
-        if !(0.0..=PI).contains(&self.insertion) {
-            return refuse(
-                format!("{at}.insertion"),
-                "an insertion angle lies in 0 to pi",
-            );
-        }
-        let rates = [
-            ("abortion_rise", self.abortion_rise, MAX_RISE),
-            ("erection", self.erection, MAX_RATE),
-            ("leaf_area", self.leaf_area, MAX_LEAF_AREA),
-            ("shade_hazard", self.shade_hazard, MAX_SHADE),
-            ("shade_size", self.shade_size, MAX_SHADE),
-            ("upkeep", self.upkeep, MAX_SHADE),
-            ("balance_hazard", self.balance_hazard, MAX_SHADE),
-            ("leaf_girth", self.leaf_girth, MAX_SHADE),
-        ];
-        for (name, value, most) in rates {
-            if !(0.0..=most).contains(&value) {
-                return refuse(format!("{at}.{name}"), "a rate lies in its bounded range");
-            }
-        }
-        let shares = [
-            ("abortion", self.abortion),
-            ("relay", self.relay),
-            ("relay_at", self.relay_at),
-            ("epitony", self.epitony),
-            ("readiness", self.readiness),
-            ("rhythm", self.rhythm),
-            ("straightening", self.straightening),
-            ("apical_control", self.apical_control),
-            ("retained", self.retained),
-        ];
-        for (name, value) in shares {
-            if !(0.0..=1.0).contains(&value) {
-                return refuse(format!("{at}.{name}"), "a share lies in 0 to 1");
-            }
-        }
-        if !(-1.0..=1.0).contains(&self.tolerance) {
-            return refuse(format!("{at}.tolerance"), "a balance lies in -1 to 1");
-        }
-        if !(-TAU..=TAU).contains(&self.divergence) {
-            return refuse(
-                format!("{at}.divergence"),
-                "a divergence angle lies in -2 pi to 2 pi",
-            );
-        }
-        self.form.validate(&format!("{at}.form"))
-    }
-}
-
-impl Form {
-    fn validate(&self, at: &str) -> Result<()> {
-        let rates = [
-            ("tropism", self.tropism, MAX_RATE),
-            ("wander", self.wander, MAX_RATE),
-            ("pipe", self.pipe, MAX_PIPE),
-            ("ripening", self.ripening, MAX_RIPENING),
-            ("sag", self.sag, MAX_SAG),
-            ("bend_length", self.bend_length, MAX_BEND_LENGTH),
-        ];
-        for (name, value, most) in rates {
-            if !(0.0..=most).contains(&value) {
-                return refuse(format!("{at}.{name}"), "a rate lies in its bounded range");
-            }
-        }
-        if !(-FRAC_PI_2..=FRAC_PI_2).contains(&self.elevation) {
-            return refuse(
-                format!("{at}.elevation"),
-                "an elevation lies in -pi / 2 to pi / 2",
-            );
-        }
-        if !(MIN_EXPONENT..=MAX_EXPONENT).contains(&self.exponent) {
-            return refuse(format!("{at}.exponent"), "a pipe exponent lies in 1.5 to 4");
-        }
-        for (name, value) in [("dominance", self.dominance), ("secondary", self.secondary)] {
-            if !(0.0..=1.0).contains(&value) {
-                return refuse(format!("{at}.{name}"), "a share lies in 0 to 1");
-            }
-        }
-        if !(0.0..=PI).contains(&self.roll) {
-            return refuse(format!("{at}.roll"), "a roll lies in 0 to pi");
-        }
-        if !(-TAU..=TAU).contains(&self.plane) {
-            return refuse(
-                format!("{at}.plane"),
-                "a plane's turn lies in -2 pi to 2 pi",
-            );
-        }
-        Ok(())
-    }
-}
-
-impl PaState {
-    /// The probability the apex aborts after an axis's `k`th growth unit.
-    pub fn abortion_at(&self, k: usize) -> f64 {
+    /// The probability the apex aborts after a growth unit that ends `t`
+    /// cycles of its axis's growth: whole cycles for whole units, the real
+    /// time where a unit is partial (host decision 7).
+    pub fn abortion_at(&self, t: f64) -> f64 {
         if self.abortion_rise == 0.0 || self.abortion <= 0.0 {
             return self.abortion;
         }
-        1.0 - (1.0 - self.abortion).powf((k as f64).powf(self.abortion_rise))
+        1.0 - (1.0 - self.abortion).powf(t.powf(self.abortion_rise))
     }
 
     /// Each zone's lateral probabilities as the axis draws them: spread
@@ -462,58 +449,15 @@ impl PaState {
 }
 
 impl Zone {
-    fn validate(&self, at: &str, pa: usize, count: usize) -> Result<()> {
-        match self.nodes {
-            NodeLaw::Uniform { min, max } if min > max => {
-                return refuse(
-                    format!("{at}.nodes.min"),
-                    "the least node count exceeds the most",
-                );
-            }
-            NodeLaw::Uniform { max, .. } if max > MAX_NODES_PER_ZONE => {
-                return refuse(format!("{at}.nodes.max"), "a zone holds at most 1000 nodes");
-            }
-            NodeLaw::Poisson { mean } if !(0.0..=MAX_MEAN_NODES).contains(&mean) => {
-                return refuse(
-                    format!("{at}.nodes.mean"),
-                    "a mean node count lies in 0 to 500",
-                );
-            }
-            _ => {}
-        }
-        if self.buds == 0 || self.buds > MAX_BUDS {
-            return refuse(format!("{at}.buds"), "a node carries 1 to 6 buds");
-        }
-        table(&format!("{at}.lateral"), &self.lateral, pa, count)?;
-        table(&format!("{at}.dormant"), &self.dormant, pa, count)?;
-        if !(0.0..=MAX_DELAY).contains(&self.delay) {
-            return refuse(format!("{at}.delay"), "a delay lies in 0 to 1000 years");
-        }
-        if !(0.0..=MAX_RATE).contains(&self.rate) {
-            return refuse(format!("{at}.rate"), "a rate lies in its bounded range");
-        }
-        Ok(())
+    /// The bud places a node has, the last of them at a share
+    /// (`share`); none of them past `MAX_BUDS`.
+    pub(crate) fn places(&self) -> usize {
+        self.buds.ceil() as usize
     }
-}
 
-/// Refuses a table of bud probabilities, one per PA, that is not one.
-fn table(at: &str, table: &[f64], pa: usize, count: usize) -> Result<()> {
-    if table.len() != count {
-        return refuse(at, "one probability per physiological age");
+    /// The share of bud place `slot`: 1 for a whole one, the fraction of
+    /// `buds` for the last.
+    pub(crate) fn share(&self, slot: usize) -> f64 {
+        (self.buds - slot as f64).min(1.0)
     }
-    for (j, &p) in table.iter().enumerate() {
-        if !(0.0..=1.0).contains(&p) {
-            return refuse(format!("{at}[{j}]"), "a probability lies in 0 to 1");
-        }
-        if j < pa && p > 0.0 {
-            return refuse(
-                format!("{at}[{j}]"),
-                "a lateral bud is never younger than its parent",
-            );
-        }
-    }
-    if table.iter().sum::<f64>() > 1.0 + 1e-12 {
-        return refuse(at, "the bud probabilities sum above one");
-    }
-    Ok(())
 }

@@ -1,9 +1,9 @@
 //! Sleeping buds in the grower (`dormant.rs`): each node's sleeping buds
 //! put to sleep, and woken in their cycle.
 use super::{bud, Apex, Grower};
-use crate::dormant::{self, Woken};
+use crate::dormant::{self, Sleeper, Woken};
 use crate::error::Result;
-use crate::lineage::{Key, CONTINUATION};
+use crate::lineage::Key;
 use crate::presence::Draws;
 use crate::species::Zone;
 use crate::structure::Origin;
@@ -19,62 +19,94 @@ impl Grower<'_> {
             return Ok(());
         };
         for sleeper in std::mem::take(asleep) {
-            let Some((pa, spent)) = dormant::aged(self.species, sleeper.pa, sleeper.slept) else {
+            // It ages through the whole of the time it slept, the share of
+            // its waking cycle included, so it never wakes in a stage it
+            // has outlived.
+            let slept = f64::from(sleeper.slept) + sleeper.sleep;
+            let Some((pa, spent, reach)) = dormant::aged(self.species, sleeper.pa, slept) else {
                 continue;
             };
-            let Some((carried, bearer)) =
-                dormant::carried(&self.axes, &self.draws, &self.successor, &sleeper)
-            else {
-                continue;
-            };
-            let mut origin = Origin::Lateral {
-                parent: sleeper.parent,
-                node: sleeper.node,
-                slot: sleeper.slot,
-                whorl: sleeper.whorl,
-                woken: true,
-            };
-            let mut key = Key(sleeper.key);
-            let mut made = [self.windows.presence(sleeper.lead, sleeper.wood), carried];
-            self.woken.push(Woken {
-                axis: self.axes.len(),
-                bearer,
-                next: self.draws[bearer].units.len(),
-                cycle,
-                share: 1.0 - sleeper.sleep,
-            });
-            let mut stage = sleeper.pa;
-            while stage != pa {
-                let at = self.axes.len();
-                self.slept(key, stage, cycle - 1, origin, made);
-                stage = self.species.states[stage].next.expect("aged along next");
-                (origin, key, made) = (
-                    Origin::Continuation { parent: at },
-                    key.child(CONTINUATION),
-                    [1.0; 2],
-                );
-                self.successor[at] = Some(at + 1);
+            // It wakes on every axis that carries its bearer on, each at
+            // the presence that carries it there.
+            for (carried, bearer) in
+                dormant::carried(&self.axes, &self.draws, &self.successor, &sleeper, cycle)
+            {
+                self.woke(&sleeper, (pa, spent, reach), carried, bearer, cycle)?;
             }
-            self.sprout(key, pa, cycle - 1, origin, made);
-            let draws = self.draws.last_mut().unwrap();
-            (draws.sleep, draws.aged) = (sleeper.sleep, spent);
-            *self.units.last_mut().unwrap() = spent;
-            let apex = self.next.pop().expect("sprouted");
-            self.advance(
-                Apex {
-                    units: spent,
-                    ..apex
-                },
-                cycle,
-            )?;
         }
         Ok(())
     }
 
+    /// The sleeping bud `sleeper` wakes on `bearer`, aged to `pa` with
+    /// `spent` of it and `reach` of it reached, carried there by `carried`.
+    fn woke(
+        &mut self,
+        sleeper: &Sleeper,
+        (pa, spent, reach): (usize, f64, f64),
+        carried: f64,
+        bearer: usize,
+        cycle: u32,
+    ) -> Result<()> {
+        let mut origin = Origin::Lateral {
+            parent: sleeper.parent,
+            node: sleeper.node,
+            slot: sleeper.slot,
+            whorl: sleeper.whorl,
+            woken: true,
+        };
+        let mut key = Key(sleeper.key);
+        let lead = self.windows.presence(sleeper.lead, sleeper.wood) * sleeper.placed;
+        let mut made = [lead, carried * reach];
+        self.woken.push(Woken {
+            axis: self.axes.len(),
+            bearer,
+            next: self.draws[bearer].units.len(),
+            cycle,
+            share: 1.0 - sleeper.sleep,
+        });
+        // The stages it slept through, past any it passes through,
+        // each keyed by its place on the reference axis.
+        let root = Key(sleeper.key);
+        let (mut stage, _) = self.species.lived(sleeper.pa).expect("aged");
+        while stage != pa {
+            let at = self.axes.len();
+            // The bud's own first stage, keyed as `sprout` keys a bud.
+            let lineage = match origin {
+                Origin::Lateral { .. } => root.onto(stage),
+                _ => key,
+            };
+            self.slept(lineage, root, stage, (cycle - 1, origin), made);
+            (stage, _) = self.species.successor(stage).expect("aged along the axis");
+            (origin, key, made) = (
+                Origin::Continuation { parent: at },
+                root.onto(stage),
+                [1.0; 2],
+            );
+            self.successor[at].push(at + 1);
+        }
+        self.sprout(key, pa, cycle - 1, origin, made);
+        // Its time in its stage holds the share of the cycle it slept,
+        // which its first unit lacks (`schedule.rs`).
+        let draws = self.draws.last_mut().unwrap();
+        (draws.sleep, draws.aged) = (sleeper.sleep, spent);
+        *self.units.last_mut().unwrap() = spent;
+        let apex = self.next.pop().expect("sprouted");
+        self.advance(Apex { spent, ..apex }, cycle)?;
+        Ok(())
+    }
+
     /// A stage a sleeping bud slept through: an axis of no length.
-    fn slept(&mut self, key: Key, pa: usize, cycle: u32, origin: Origin, made: [f64; 2]) {
+    fn slept(
+        &mut self,
+        key: Key,
+        root: Key,
+        pa: usize,
+        (cycle, origin): (u32, Origin),
+        made: [f64; 2],
+    ) {
         self.units.push(self.species.states[pa].lifespan);
-        self.successor.push(None);
+        self.successor.push(Vec::new());
+        self.roots.push(root.0);
         let mut axis = bud(key, pa, cycle, origin);
         axis.apex_end = Some(cycle);
         self.axes.push(axis);
@@ -94,9 +126,11 @@ impl Grower<'_> {
         at: (usize, usize, usize),
         cycle: u32,
     ) {
-        for slot in 0..zone.buds {
-            let place = node_key.child(u64::from(slot));
-            let drawn = dormant::draw(zone, place, (at, slot), woods, (cycle, self.age));
+        for slot in 0..zone.places() {
+            let place = node_key.child(slot as u64);
+            let placed = zone.share(slot);
+            let drawn = dormant::draw(zone, place, (at, slot as u8), woods, (cycle, self.age));
+            let drawn = drawn.map(|(wakes, sleeper)| (wakes, Sleeper { placed, ..sleeper }));
             if let Some((wakes, sleeper)) = drawn {
                 self.asleep[wakes].push(sleeper);
             }

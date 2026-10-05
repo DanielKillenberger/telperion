@@ -23,7 +23,7 @@ pub(super) struct Sketch {
 }
 
 /// Where an axis's rough layout stands.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub(super) struct Pencil {
     pub(super) layer: Layer,
     /// Its scale at its base, and its draws' presence over the growth
@@ -167,8 +167,22 @@ impl Grower<'_> {
     /// A new axis's pencil, at its frame, sized as `geometry::scale` sizes
     /// it from what its draws have made of it so far.
     fn pencil(&mut self, sketch: &Sketch, i: usize) -> Pencil {
-        let framed = frame(&self.axes, self.species, i);
+        let ends = |p: usize| sketch.pencils[p].layer.ends();
+        let framed = frame(&self.axes, self.species, i, &ends);
         let axis = &self.axes[i];
+        // A relay carries on the pulls of the axis it replaces, as the final
+        // lay has it, at that axis's age and reach so far (fn-206).
+        let handed = match axis.origin {
+            Origin::Relay { parent, .. } => {
+                let p = &self.axes[parent];
+                let state = &self.species.states[p.pa];
+                let years =
+                    f64::from(axis.birth.saturating_sub(p.birth)) - self.draws[parent].sleep;
+                let layer = &sketch.pencils[parent].layer;
+                layer.handed((bend(p, state, years), layer.run()), axis.blend)
+            }
+            _ => Vec::new(),
+        };
         let made = self.draws[i].birth[0] * self.draws[i].birth[1];
         let curve = match axis.origin {
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
@@ -195,7 +209,7 @@ impl Grower<'_> {
         let axis = &mut self.axes[i];
         (axis.base, axis.heading, axis.side) = framed;
         Pencil {
-            layer: Layer::bent(framed, curve),
+            layer: Layer::bent(framed, curve).inheriting(handed),
             base_scale: inherited * vigour * share,
             running: 1.0,
             rank: 0.0,
@@ -219,7 +233,7 @@ impl Grower<'_> {
         cycle: u32,
         leaves: &mut Vec<(Vec3, f64)>,
     ) -> Result<()> {
-        let mut pencil = sketch.pencils[i];
+        let mut pencil = sketch.pencils[i].clone();
         let draws = &self.draws[i];
         let axis = &mut self.axes[i];
         let state = &self.species.states[axis.pa];
@@ -228,7 +242,8 @@ impl Grower<'_> {
         while pencil.units < draws.units.len() {
             let k = pencil.units;
             let [survive, persist] = draws.units[k];
-            let grown = if k == 0 { 1.0 - draws.sleep } else { 1.0 };
+            // The share of its cycle the unit grew (`schedule.rs`).
+            let grown = draws.shares[k];
             let present = pencil.running * survive;
             let size = draws.sizes.get(k).copied().unwrap_or(1.0);
             let unit = |p: &crate::structure::Phytomer| (p.cycle - axis.birth - 1) as usize == k;

@@ -7,24 +7,26 @@ use crate::structure::{Axis, Vec3};
 
 fn state(leaf_girth: f64) -> PaState {
     PaState {
-        lifespan: 4,
-        next: None,
+        lifespan: 4.0,
+        continuation: 0.0,
         viability: 1.0,
         zones: vec![Zone {
-            nodes: NodeLaw::Uniform { min: 1, max: 1 },
-            buds: 1,
+            nodes: NodeLaw::Uniform { min: 1.0, max: 1.0 },
+            buds: 1.0,
             lateral: vec![0.0],
             dormant: vec![0.0],
             delay: 0.0,
             rate: 0.0,
         }],
-        shedding: None,
+        shedding: f64::INFINITY,
         internode: 0.1,
         insertion: 0.5,
         divergence: 2.4,
         abortion: 0.0,
         abortion_rise: 0.0,
         relay: 0.0,
+        relay_ended: 0.0,
+        relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
         erection: 0.0,
@@ -85,7 +87,7 @@ fn tree() -> Structure {
         parent: 0,
         node,
         slot: 0,
-        whorl: 1,
+        whorl: 1.0,
         woken: false,
     };
     Structure {

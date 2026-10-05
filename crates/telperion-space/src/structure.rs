@@ -67,7 +67,7 @@ pub enum Origin {
         parent: usize,
         node: usize,
         slot: u8,
-        whorl: u8,
+        whorl: f64,
         woken: bool,
     },
     /// The parent's apex, changed to this axis's PA.
@@ -115,7 +115,8 @@ pub struct Axis {
     pub side: Vec3,
     /// Base to tip.
     pub phytomers: Vec<Phytomer>,
-    /// The presence of each growth unit its apex grew, base to tip.
+    /// The presence of each growth unit its apex grew, base to tip, times
+    /// the share of its cycle it grew: the time it lived, by presence.
     pub(crate) units: Vec<f64>,
     /// Its apex's presence at the tree's age: every survival it passed,
     /// barely or not; 0 for a stopped apex.

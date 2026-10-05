@@ -13,24 +13,26 @@ fn state(
     shedding: Option<u32>,
 ) -> PaState {
     PaState {
-        lifespan,
-        next: None,
+        lifespan: f64::from(lifespan),
+        continuation: 0.0,
         viability,
         zones: vec![Zone {
             nodes,
-            buds: 1,
+            buds: 1.0,
             dormant: vec![0.0; lateral.len()],
             delay: 0.0,
             rate: 0.0,
             lateral: lateral.to_vec(),
         }],
-        shedding,
+        shedding: shedding.map_or(f64::INFINITY, f64::from),
         internode: 1.0,
         insertion: PI / 4.0,
         divergence: PI,
         abortion: 0.0,
         abortion_rise: 0.0,
         relay: 0.0,
+        relay_ended: 0.0,
+        relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
         erection: 0.0,
@@ -50,7 +52,7 @@ fn state(
     }
 }
 
-const FIXED_ONE: NodeLaw = NodeLaw::Uniform { min: 1, max: 1 };
+const FIXED_ONE: NodeLaw = NodeLaw::Uniform { min: 1.0, max: 1.0 };
 
 /// Mortal apices: the engine's mean over many seeds is the closed form's
 /// expectation, whose survival factor is the viability per cycle.
@@ -61,14 +63,14 @@ fn mortal_apices_grow_the_expected_counts() {
             state(
                 10,
                 1.0,
-                NodeLaw::Uniform { min: 1, max: 2 },
+                NodeLaw::Uniform { min: 1.0, max: 2.0 },
                 &[0.0, 0.8, 0.0],
                 None,
             ),
             state(
                 4,
                 0.7,
-                NodeLaw::Uniform { min: 2, max: 2 },
+                NodeLaw::Uniform { min: 2.0, max: 2.0 },
                 &[0.0, 0.0, 0.5],
                 None,
             ),
@@ -142,7 +144,7 @@ fn a_seed_grows_the_same_tree_every_time() {
             state(
                 3,
                 0.8,
-                NodeLaw::Uniform { min: 1, max: 3 },
+                NodeLaw::Uniform { min: 1.0, max: 3.0 },
                 &[0.0, 0.0],
                 Some(2),
             ),

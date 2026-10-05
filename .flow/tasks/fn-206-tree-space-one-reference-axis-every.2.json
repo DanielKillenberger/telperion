@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-05T04:40:44.267764Z",
+  "depends_on": [
+    "fn-206-tree-space-one-reference-axis-every.1"
+  ],
+  "id": "fn-206-tree-space-one-reference-axis-every.2",
+  "priority": null,
+  "spec": "fn-206-tree-space-one-reference-axis-every",
+  "spec_path": ".flow/tasks/fn-206-tree-space-one-reference-axis-every.2.md",
+  "status": "todo",
+  "title": "Species walk strips: beech to spruce to oak to palm",
+  "updated_at": "2026-10-05T04:40:44.267764Z"
+}

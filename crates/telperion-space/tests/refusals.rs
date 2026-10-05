@@ -5,25 +5,27 @@ use std::f64::consts::PI;
 use telperion_space::{grow, Error, Form, NodeLaw, PaState, Request, Species, Zone};
 
 fn species() -> Species {
-    let state = |lifespan, next, lateral: &[f64]| PaState {
+    let state = |lifespan, continuation, lateral: &[f64]| PaState {
         lifespan,
-        next,
+        continuation,
         viability: 1.0,
         zones: vec![Zone {
-            nodes: NodeLaw::Uniform { min: 1, max: 2 },
-            buds: 1,
+            nodes: NodeLaw::Uniform { min: 1.0, max: 2.0 },
+            buds: 1.0,
             dormant: vec![0.0; lateral.len()],
             delay: 0.0,
             rate: 0.0,
             lateral: lateral.to_vec(),
         }],
-        shedding: None,
+        shedding: f64::INFINITY,
         internode: 1.0,
         insertion: PI / 4.0,
         divergence: PI,
         abortion: 0.0,
         abortion_rise: 0.0,
         relay: 0.0,
+        relay_ended: 0.0,
+        relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
         erection: 0.0,
@@ -42,7 +44,7 @@ fn species() -> Species {
         form: Form::default(),
     };
     Species {
-        states: vec![state(6, None, &[0.0, 0.5]), state(2, Some(1), &[0.0, 0.0])],
+        states: vec![state(6.0, 0.0, &[0.0, 0.5]), state(2.0, 1.0, &[0.0, 0.0])],
     }
 }
 
@@ -56,26 +58,46 @@ const REQUEST: Request = Request {
 #[test]
 fn every_input_the_engine_cannot_draw_is_refused_by_name() {
     type Edit = fn(&mut Species);
-    let cases: [(Edit, &str); 39] = [
+    let cases: [(Edit, &str); 42] = [
         (|s| s.states.clear(), "states"),
-        (|s| s.states[0].lifespan = 0, "states[0].lifespan"),
-        (|s| s.states[1].next = Some(0), "states[1].next"),
-        (|s| s.states[1].next = Some(2), "states[1].next"),
+        (|s| s.states[0].continuation = 1.5, "states[0].continuation"),
+        (
+            |s| s.states[1].continuation = f64::NAN,
+            "states[1].continuation",
+        ),
         (|s| s.states[0].viability = f64::NAN, "states[0].viability"),
+        (|s| s.states[0].shedding = -1.0, "states[0].shedding"),
+        (|s| s.states[1].lifespan = -0.5, "states[1].lifespan"),
         (|s| s.states[0].zones.clear(), "states[0].zones"),
         (
-            |s| s.states[0].zones[0].nodes = NodeLaw::Uniform { min: 3, max: 2 },
+            |s| s.states[0].zones = vec![s.states[0].zones[0].clone(); 5],
+            "states[0].zones",
+        ),
+        (
+            |s| s.states[0].zones[0].nodes = NodeLaw::Uniform { min: 3.0, max: 2.0 },
             "states[0].zones[0].nodes.min",
         ),
         (
-            |s| s.states[0].zones[0].nodes = NodeLaw::Uniform { min: 0, max: 1001 },
+            |s| {
+                s.states[0].zones[0].nodes = NodeLaw::Uniform {
+                    min: 0.0,
+                    max: 1001.0,
+                }
+            },
             "states[0].zones[0].nodes.max",
         ),
         (
             |s| s.states[0].zones[0].nodes = NodeLaw::Poisson { mean: -1.0 },
             "states[0].zones[0].nodes.mean",
         ),
-        (|s| s.states[0].zones[0].buds = 7, "states[0].zones[0].buds"),
+        (
+            |s| s.states[0].zones[0].buds = 6.5,
+            "states[0].zones[0].buds",
+        ),
+        (
+            |s| s.states[0].zones[0].buds = 0.5,
+            "states[0].zones[0].buds",
+        ),
         (
             |s| s.states[0].zones[0].lateral.push(0.0),
             "states[0].zones[0].lateral",
@@ -209,8 +231,11 @@ fn a_tree_of_no_size_is_a_collapsed_tree() {
     s.states.truncate(1);
     s.states[0].zones[0].lateral = vec![0.0];
     s.states[0].zones[0].dormant = vec![0.0];
+    // The greatest mean at which the seed's one node stands at its draw
+    // under the keys of fn-206 (axes keyed by their age), found by
+    // bisection: a hair more and it grows in.
     s.states[0].zones[0].nodes = NodeLaw::Poisson {
-        mean: 0.8128122270262701,
+        mean: 0.27738411705607313,
     };
     assert_eq!(
         grow(&s, Request { age: 1, ..REQUEST }),

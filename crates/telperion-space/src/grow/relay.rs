@@ -44,7 +44,8 @@ impl Grower<'_> {
         // The apexes living now, as the grown tree marks its own at the end.
         for apex in &self.live {
             if index[apex.axis] != usize::MAX {
-                draws[index[apex.axis]].alive = true;
+                let draws = &mut draws[index[apex.axis]];
+                (draws.alive, draws.living) = (true, 1.0);
             }
         }
         assign(&mut axes, &draws);
