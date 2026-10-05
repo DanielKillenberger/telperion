@@ -388,6 +388,43 @@ pub fn settings() -> Vec<Setting> {
         },
     ));
     all.extend(sleeping_settings());
+    all.extend(bend_settings());
+    all
+}
+
+/// fn-207 R3: the wander's bend length walked on a wandering tree, and the
+/// wander walked on a bending one.
+fn bend_settings() -> Vec<Setting> {
+    let mut all = Vec::new();
+    for pa in 0..3 {
+        // About the metres an axis of each PA grows, and a wander that
+        // keeps the trunk's crown off the ground.
+        let (metres, wander) = [(54.0, 0.05), (5.0, 0.5), (1.0, 0.5)][pa];
+        let mut bend = setting(
+            format!("states[{pa}].form.bend_length, wandering"),
+            0.0,
+            3.0,
+            false,
+            move |s, v| {
+                s.states[pa].form.wander = wander;
+                s.states[pa].form.bend_length = v;
+            },
+        );
+        bend.stretch = 1.0;
+        all.push(bend);
+        let mut walked = setting(
+            format!("states[{pa}].form.wander, bending"),
+            0.0,
+            wander,
+            false,
+            move |s, v| {
+                s.states[pa].form.bend_length = 2.0;
+                s.states[pa].form.wander = v;
+            },
+        );
+        walked.stretch = metres;
+        all.push(walked);
+    }
     all
 }
 

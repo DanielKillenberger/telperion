@@ -65,13 +65,20 @@ pub(crate) fn place(
     species: &Species,
     levers: Option<&[Vec<Lever>]>,
 ) -> Result<Vec<Layer>> {
-    let mut layers = Vec::with_capacity(structure.axes.len());
+    let mut layers: Vec<Layer> = Vec::with_capacity(structure.axes.len());
     let age = structure.age;
     // The trunk: the seed axis and what carries it on.
     let mut trunk = vec![false; structure.axes.len()];
     let reaches = reaches(&structure.axes);
     for (i, &reach) in reaches.iter().enumerate() {
         let (base, heading, side) = frame(&structure.axes, species, i);
+        // A continuation or relay carries its bearer's wander on.
+        let curve = match structure.axes[i].origin {
+            Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
+                layers[parent].curve()
+            }
+            _ => Vec3::default(),
+        };
         let axis = &mut structure.axes[i];
         let state = &species.states[axis.pa];
         let years = f64::from(age.saturating_sub(axis.birth)) - axis.sleep;
@@ -95,7 +102,7 @@ pub(crate) fn place(
         }
         let layer = lay(
             axis,
-            (base, heading, side),
+            ((base, heading, side), curve),
             state,
             (bend, reach),
             load,

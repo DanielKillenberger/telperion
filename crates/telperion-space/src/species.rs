@@ -26,6 +26,8 @@ const MAX_EXPONENT: f64 = 4.0;
 /// The most an axis bends per unit of its moment over its section's
 /// stiffness.
 const MAX_SAG: f64 = 1_000.0;
+/// The longest a wander's bend is remembered, in metres.
+const MAX_BEND_LENGTH: f64 = 1_000.0;
 /// The steepest rise of the abortion hazard.
 const MAX_RISE: f64 = 8.0;
 /// The largest leaf area one node bears, in square metres.
@@ -195,6 +197,13 @@ pub struct Form {
     /// at 0 the axis keeps its established width for life, as a palm's
     /// stem does.
     pub secondary: f64,
+    /// How far, in metres, the axis's wander remembers its bend: the
+    /// correlation length of a curvature that relaxes towards none and is
+    /// kicked by each node's keyed draw (fn-207). 0 draws an independent
+    /// turn at every node, as wander always has; a few metres turn a limb
+    /// in a few slow arcs of the same spread per metre. Neutral 0;
+    /// dormant without wander.
+    pub bend_length: f64,
 }
 
 impl Default for Form {
@@ -212,6 +221,7 @@ impl Default for Form {
             roll: 0.0,
             sag: 0.0,
             secondary: 1.0,
+            bend_length: 0.0,
         }
     }
 }
@@ -368,6 +378,7 @@ impl Form {
             ("pipe", self.pipe, MAX_PIPE),
             ("ripening", self.ripening, MAX_RIPENING),
             ("sag", self.sag, MAX_SAG),
+            ("bend_length", self.bend_length, MAX_BEND_LENGTH),
         ];
         for (name, value, most) in rates {
             if !(0.0..=most).contains(&value) {
