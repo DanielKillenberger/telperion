@@ -97,8 +97,7 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
         // The preset's own build at each seed, framed and lit as the
         // engine's trees are: the bar they are judged beside.
         for &seed in &seeds {
-            let mut seeded = family.clone();
-            seeded.skeleton.seed = u32::try_from(seed).map_err(|e| e.to_string())?;
+            let seeded = seeded(&family, seed)?;
             let mesh = telperion_core::mesh::build(&seeded).map_err(|e| e.to_string())?;
             stills(
                 &mut renderer,
@@ -176,6 +175,9 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
                 let pipeline_tree = tree::convert(&structure);
                 let nodes = pipeline_tree.nodes.len();
                 let (fine, wood) = wood_km(&pipeline_tree);
+                // The dressing's own draws (leaf and frond placement) are
+                // keyed to the engine's seed, so seeds vary in both.
+                let family = seeded(&family, seed)?;
                 let dressed = Instant::now();
                 let mesh = executor::expand(pipeline_tree, &family)
                     .and_then(|x| x.mesh())
@@ -193,6 +195,13 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
         }
     }
     Ok(())
+}
+
+/// The family with its seed set to the engine's (host, 2026-10-05).
+fn seeded(family: &Family, seed: u64) -> Result<Family, String> {
+    let mut seeded = family.clone();
+    seeded.skeleton.seed = u32::try_from(seed).map_err(|e| e.to_string())?;
+    Ok(seeded)
 }
 
 /// Every shot of one dressed tree, framed on the mesh, its leaves and

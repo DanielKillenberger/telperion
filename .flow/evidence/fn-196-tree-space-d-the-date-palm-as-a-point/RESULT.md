@@ -68,3 +68,29 @@ The camera is now fitted to the mesh bounds, fronds and leaves included, so the 
 2. **Seed variety.** The space examples keep the preset's seed, so the frond crowns vary across engine seeds only through the stem. Should the example key the family's seed to the engine seed? That would change the beech and spruce sheets' leaves as well.
 3. **Lean.** The engine has no lean for an orthotropic stem; `tropism` pulls it back to the vertical. P-WHOLE's 15° lean is absent here as it is today. Is this round's bar today's palm (met) or the reference (a gap)?
 4. **fn-204's open P2 (Codex).** A tree that already carries its bases, handed back to `expand`, is clothed again. The spec kept the step's behaviour unchanged, so it was left as it is.
+
+## Host decisions on round 1 (2026-10-05)
+
+1. **Fronds and leaf bases by age:** the palm is judged at maturity for D3. Young palms wearing the adult crown, and the 256 bases packed onto a short stem, are a known gap. The fix belongs in fn-198's station contract (phase F): organs placed from the engine's phytomers, so that frond size and count and leaf-base count follow the stem the engine grew. The young stills stay on the sheet (`raw/round1/ages-all.png`).
+2. **Seed:** the space examples now set the preset's seed from the engine seed for every species (`still.rs`, `seeded`).
+3. **Lean:** judged against today's palm, which meets it. The reference's 15° lean is a known gap; a site-driven lean of an orthotropic stem is a later setting, not this spec.
+4. **fn-204's P2:** fixed. A tree that already ends in exactly the bases its table hangs is not clothed again. The test was red first (1,064 nodes against 552), all eight preset digests are unchanged, and Codex re-reviewed it: SHIP.
+
+## The seed keyed to the engine's: beech and spruce
+
+Beech and spruce at 80 years, seed 7, were rendered before (the preset's seed) and after (the engine's): `raw/seeded/{beech,spruce}-seeded.png`, whole above spray, before on the left. The structure is the same, so the silhouette, the limbs and the crown's mass do not move.
+
+- **Beech:** the leaves sit in other places and their hue jitter falls on other leaves, so the light olive patches move. The leaf count is the same (2,833,880). Nothing changes beyond leaf placement.
+- **Spruce:** the needle sprays are indistinguishable at both framings. The after run placed 16,483,690 needles; the before run's count was not logged. Nothing visible changes beyond placement.
+
+## Round 1b: the mature sheet with the seed keyed
+
+`raw/round1b/SHEET-round1b.png` has the three references at the left. To their right, today's palm (top row) above the new palm at 50 years (bottom row), at seeds 1, 7, 2, 3 and 4, each as a whole shot cropped to the tree (480 x 720 of the 960 x 720 still) beside its crown close-up. `view-a.png` (seeds 1, 7, 2) and `view-b.png` (seeds 3, 4) are the same panels at full size. Every still was viewed.
+
+- **The crowns now vary across seeds as today's do.** Each seed draws its own fronds: the spacing and droop of the lower fronds and the number standing above the apex differ seed to seed.
+- **At every seed** the new palm reads as today's: the same narrow rosette of arching grey-green fronds over a single latticed trunk, the crown base near half height.
+- **The one visible difference is still the stem:** a straight column against today's slightly wandering one.
+- **Close-ups:** the new crown shows its upper fronds a little more upright and open at seeds 1, 3 and 4, as its apex axis is near-vertical while today's tilts with the stem's last kink. The difference is slight, and is a reading, not a measure.
+- **Heights:** the new palm is 25.3 to 25.7 m to the frond tips, against today's 25.9 to 27.2 m.
+
+No visible regression against today's palm at maturity.
