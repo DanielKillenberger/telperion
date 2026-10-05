@@ -179,7 +179,7 @@ pub fn oak() -> Species {
         // estimated, an arborists' account, no measured persistence
         // found). An E-side value, reconciled with the oak's branch.
         shedding: Some(5),
-        insertion: 0.65,
+        insertion: 0.8,
         internode: 0.045,
         straightening: 0.15,
         abortion: 0.3,
@@ -187,7 +187,7 @@ pub fn oak() -> Species {
         epitony: 0.2,
         form: Form {
             tropism: 0.5,
-            elevation: 0.75,
+            elevation: 0.6,
             wander: 1.25,
             plane: 0.0,
             pipe: 0.009,
@@ -229,8 +229,8 @@ pub fn oak() -> Species {
         relay: 1.0,
         epitony: 0.2,
         form: Form {
-            tropism: 0.48,
-            elevation: 0.45,
+            tropism: 0.25,
+            elevation: 0.1,
             wander: 1.15,
             pipe: 0.004,
             exponent: 2.6,
@@ -292,8 +292,8 @@ pub fn oak() -> Species {
         relay: 1.0,
         epitony: 0.2,
         form: Form {
-            tropism: 0.33,
-            elevation: 0.2,
+            tropism: 0.15,
+            elevation: 0.0,
             wander: 0.95,
             plane: 0.0,
             pipe: 0.0009,
