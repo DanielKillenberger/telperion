@@ -72,10 +72,14 @@
 /material/barkGrainScale = 0.0025
 /material/barkGrainStrength = 0.2
 
-# Neutral: no young wood until the oak's own table states it.
-/material/shootRed = 0.225
-/material/shootGreen = 0.218
-/material/shootBlue = 0.198
+# Young wood a dark grey-brown, so the bare crown's fine twigs read
+# dark against the sky as S1's do, not as a tan haze in the bark's
+# colour (host, fn-195 round 2, 2026-10-05; estimated, judged on the
+# stills). Wood under 12 mm takes it and gives it up to the bark by 24 mm.
+/material/shootRed = 0.07
+/material/shootGreen = 0.06
+/material/shootBlue = 0.045
+/material/shootRadius = 0.012
 /material/leafFrontRed = 0.021
 /material/leafFrontGreen = 0.048
 /material/leafFrontBlue = 0.021
