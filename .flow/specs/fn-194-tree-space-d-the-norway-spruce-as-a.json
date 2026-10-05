@@ -8,7 +8,8 @@
   "default_sync": null,
   "depends_on_epics": [
     "fn-193-tree-space-c-the-beech-as-the-first",
-    "fn-200-tree-space-branches-sag-under-their"
+    "fn-200-tree-space-branches-sag-under-their",
+    "fn-202-tree-space-dormant-buds-wake-along-old"
   ],
   "id": "fn-194-tree-space-d-the-norway-spruce-as-a",
   "impl_review_rounds": {},
@@ -31,5 +32,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T15:29:47.796766Z"
+  "updated_at": "2026-10-04T19:43:39.417971Z"
 }

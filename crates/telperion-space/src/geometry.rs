@@ -88,7 +88,7 @@ pub(crate) fn place(
         };
         // Secondary erection over the axis's years; never a continuation,
         // whose base is its parent's tip, and a relay as far as it is one.
-        let years = f64::from(age.saturating_sub(axis.birth));
+        let years = f64::from(age.saturating_sub(axis.birth)) - axis.sleep;
         let erected = match axis.origin {
             Origin::Continuation { .. } => 0.0,
             Origin::Relay { .. } => axis.blend * (1.0 - (-state.erection * years).exp()),
@@ -369,6 +369,7 @@ fn frame(structure: &Structure, species: &Species, i: usize) -> (Vec3, Vec3, Vec
             node,
             slot,
             whorl,
+            woken,
         } => {
             let p = &structure.axes[parent];
             let at = &p.phytomers[node];
@@ -385,7 +386,15 @@ fn frame(structure: &Structure, species: &Species, i: usize) -> (Vec3, Vec3, Vec
                 parent_state.form.plane,
                 0.0,
             );
-            (at.tip, heading, side)
+            // A bud that slept stands on its slot's side half an internode
+            // below the node, apart from the bud that grew at once.
+            let base = if woken {
+                let below = node.checked_sub(1).map_or(p.base, |n| p.phytomers[n].tip);
+                (below + at.tip) * 0.5
+            } else {
+                at.tip
+            };
+            (base, heading, side)
         }
         Origin::Relay { parent, .. } => {
             // Between the continuation it replaces, at the tip on the

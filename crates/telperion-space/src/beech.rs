@@ -29,6 +29,9 @@ fn zone(min: u32, max: u32, laterals: &[(usize, f64)]) -> Zone {
     Zone {
         nodes: NodeLaw::Uniform { min, max },
         buds: 1,
+        dormant: vec![0.0; lateral.len()],
+        delay: 0.0,
+        rate: 0.0,
         lateral,
     }
 }

@@ -12,6 +12,9 @@ fn species() -> Species {
         zones: vec![Zone {
             nodes: NodeLaw::Uniform { min: 1, max: 2 },
             buds: 1,
+            dormant: vec![0.0; lateral.len()],
+            delay: 0.0,
+            rate: 0.0,
             lateral: lateral.to_vec(),
         }],
         shedding: None,
@@ -172,6 +175,7 @@ fn a_tree_of_no_size_is_a_collapsed_tree() {
     let mut s = species();
     s.states.truncate(1);
     s.states[0].zones[0].lateral = vec![0.0];
+    s.states[0].zones[0].dormant = vec![0.0];
     s.states[0].zones[0].nodes = NodeLaw::Poisson {
         mean: 0.8128122270262701,
     };

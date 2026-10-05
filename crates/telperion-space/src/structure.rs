@@ -60,12 +60,15 @@ impl Mul<f64> for Vec3 {
 pub enum Origin {
     /// The seed bud, at the ground.
     Seed,
-    /// A lateral bud: `slot` of the `whorl` buds at phytomer `node` of axis `parent`.
+    /// A lateral bud: `slot` of the `whorl` buds at phytomer `node` of axis
+    /// `parent`. A bud that slept and woke (`woken`) stands on its slot's
+    /// side half an internode below the node.
     Lateral {
         parent: usize,
         node: usize,
         slot: u8,
         whorl: u8,
+        woken: bool,
     },
     /// The parent's apex, changed to this axis's PA.
     Continuation { parent: usize },
@@ -119,6 +122,9 @@ pub struct Axis {
     pub(crate) alive: f64,
     /// Its nodes counted by their presence: the phyllotactic rank of the next.
     pub(crate) rank: f64,
+    /// The share of its first cycle a bud that woke still slept: its age
+    /// is that much less than its birth gives.
+    pub(crate) sleep: f64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

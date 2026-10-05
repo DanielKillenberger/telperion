@@ -3,7 +3,7 @@
 //! all is walked over its range in `STEPS` steps at three seeds, on its own
 //! scale: log-odds for a probability, its unit otherwise.
 mod walk;
-use walk::{crossing, made, refine, settings, Setting, Step, STEPS};
+use walk::{crossing, made, refine, release_settings, settings, Setting, Step, STEPS};
 
 /// The stated multiple: no step moves the total length, height, spread,
 /// any branch's base or tip, or the wood made or unmade, by more than this
@@ -34,9 +34,23 @@ fn walks(all: &[Setting]) -> Vec<Vec<(u64, Vec<Step>)>> {
 
 #[test]
 fn every_setting_changes_the_tree_by_degree() {
-    let all = settings();
+    let failed = by_degree(&settings());
+    assert!(failed.is_empty(), "{failed:#?}");
+}
+
+/// fn-202 R3: a sleeping bud's release law walked moves its waking, and
+/// with it the tree, by degree.
+#[test]
+fn the_release_law_changes_the_tree_by_degree() {
+    let failed = by_degree(&release_settings());
+    assert!(failed.is_empty(), "{failed:#?}");
+}
+
+/// Each walk's steepest step against the bound, and its three steepest
+/// split finer: what fails.
+fn by_degree(all: &[Setting]) -> Vec<String> {
     let mut failed = Vec::new();
-    for (setting, seeds) in all.iter().zip(walks(&all)) {
+    for (setting, seeds) in all.iter().zip(walks(all)) {
         let (seed, worst) = seeds
             .iter()
             .flat_map(|(seed, steps)| steps.iter().map(move |s| (*seed, s)))
@@ -69,7 +83,7 @@ fn every_setting_changes_the_tree_by_degree() {
             }
         }
     }
-    assert!(failed.is_empty(), "{failed:#?}");
+    failed
 }
 
 /// R2: a branch a setting makes enters at vanishing size, and one it

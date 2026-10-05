@@ -36,6 +36,9 @@ fn zone(nodes: u32, buds: u8, lateral: &[f64]) -> Zone {
             max: nodes,
         },
         buds,
+        dormant: vec![0.0; lateral.len()],
+        delay: 0.0,
+        rate: 0.0,
         lateral: lateral.to_vec(),
     }
 }

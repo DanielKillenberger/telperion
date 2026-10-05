@@ -116,7 +116,7 @@
     "impl:fn-201-foliage-selection-dispatches-past-65535.1": 0
   },
   "spec_path": ".flow/specs/fn-201-foliage-selection-dispatches-past-65535.md",
-  "status": "open",
+  "status": "done",
   "title": "Foliage selection dispatches past 65,535 workgroups",
   "tracker": {
     "baseHashFlow": null,
@@ -129,5 +129,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T18:04:42.483037Z"
+  "updated_at": "2026-10-05T07:58:36.019137Z"
 }
