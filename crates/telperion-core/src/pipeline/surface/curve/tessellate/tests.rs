@@ -115,6 +115,12 @@ fn ribbon_worst(t: &Tessellation, viewer: &Viewer, off: &impl Fn(Vec3) -> Option
             t.positions[3 * i + 1].into(),
             t.positions[3 * i + 2].into(),
         );
+        // A ribbon's middle vertex stands on the axis: only its edges trace
+        // the silhouette.
+        let axis = Vec3::new(p.x, p.y, 0.0).length() - 0.2;
+        if axis.hypot(p.z) < 0.5 * f64::from(t.radii[i]) {
+            continue;
+        }
         if let Some(d) = off(p) {
             worst = worst.max(d * viewer.pixels_at(p));
         }

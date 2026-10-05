@@ -7,9 +7,10 @@ use crate::{
     math::{Transcendental, Vec3},
     Error, Result,
 };
-use plan::{tangent, Mode};
+use plan::tangent;
 
 mod plan;
+pub use plan::RIBBON;
 
 /// Where the wood is seen from: the eye, the unit direction it looks along,
 /// the pixels a metre spans at one metre's depth (half the viewport's height
@@ -84,6 +85,8 @@ struct Ring {
     slope: f64,
     sides: u32,
     shape: Option<(u32, usize, usize)>,
+    /// Whether it stands at least `RIBBON` pixels in radius.
+    tube: bool,
 }
 
 /// The error scales a budget may draw at, finest first.
@@ -108,115 +111,114 @@ impl Curve {
             let plans: Vec<_> = (0..self.clusters.len())
                 .filter_map(|c| self.plan(c, viewer, error * scale))
                 .collect();
+            let mut out = Tessellation {
+                scale,
+                ..Tessellation::default()
+            };
+            for plan in &plans {
+                self.emit(plan, viewer, &mut out);
+            }
             let fits = budget.is_none_or(|b| {
-                let count = |f: fn(&plan::Plan) -> [usize; 3]| {
-                    plans
-                        .iter()
-                        .map(f)
-                        .fold([0; 3], |a, n| [a[0] + n[0], a[1] + n[1], a[2] + n[2]])
-                };
-                let [v, t, r] = count(counts);
-                v <= b.vertices && t <= b.tube_indices && r <= b.ribbon_indices
+                out.radii.len() <= b.vertices
+                    && out.indices.len() <= b.tube_indices
+                    && out.ribbons.len() <= b.ribbon_indices
             });
             if fits {
-                let mut out = Tessellation {
-                    scale,
-                    ..Tessellation::default()
-                };
-                for plan in &plans {
-                    self.emit(plan, viewer, &mut out);
-                }
                 return Ok(out);
             }
         }
         Err(Error::ResourceLimit("wood tessellation budget"))
     }
 
-    /// One cluster's vertices and triangles.
+    /// One cluster's vertices and triangles, ring by ring. A stretch between
+    /// two tube rings is a tube's strip; any other a ribbon's quad. A ring
+    /// keeps the forms its stretches need: its polygon where a tube stretch
+    /// meets it, closed by a cap where its tube ends, and its two ribbon
+    /// vertices where a ribbon stretch meets it.
     fn emit(&self, plan: &plan::Plan, viewer: &Viewer, out: &mut Tessellation) {
-        out.rings += plan.rings.len();
-        match plan.mode {
-            Mode::Ribbon => self.ribbon(&plan.rings, viewer, out),
-            Mode::Tube => self.tube(plan, out),
+        let rings = &plan.rings;
+        out.rings += rings.len();
+        let stretch = |i: usize| rings[i].tube && rings[i + 1].tube;
+        let mut previous = (0u32, 0u32);
+        for (i, ring) in rings.iter().enumerate() {
+            let before = i > 0 && stretch(i - 1);
+            let after = i + 1 < rings.len() && stretch(i);
+            let ribbon = (i > 0 && !before) || (i + 1 < rings.len() && !after);
+            let mut tube_start = 0;
+            if before || after {
+                tube_start = vertices(out);
+                self.polygon(ring, out);
+                if before {
+                    zipper(out, previous.0, rings[i - 1].sides, tube_start, ring.sides);
+                }
+            }
+            let mut ribbon_start = 0;
+            if ribbon {
+                ribbon_start = vertices(out);
+                self.across(&ring.point, viewer, out);
+                if i > 0 && !before {
+                    let (a, b) = (previous.1, ribbon_start);
+                    out.ribbons.extend([a, a + 1, b, b, a + 1, b + 1]);
+                    out.ribbons
+                        .extend([a + 1, a + 2, b + 1, b + 1, a + 2, b + 2]);
+                }
+            }
+            if before || after {
+                for (open, away) in [(!before, -1.0), (!after, 1.0)] {
+                    if open {
+                        cap(out, &ring.point, tube_start, ring.sides, away);
+                    }
+                }
+            }
+            previous = (tube_start, ribbon_start);
         }
     }
 
-    /// A tube: its rings, the strips between them and a cap at an open end.
-    fn tube(&self, plan: &plan::Plan, out: &mut Tessellation) {
-        let rings = &plan.rings;
-        let mut starts = Vec::with_capacity(rings.len());
-        for ring in rings {
-            starts.push(vertices(out));
-            for k in 0..ring.sides {
-                let angle = std::f64::consts::TAU * f64::from(k) / f64::from(ring.sides);
-                let (position, normal) = match ring.shape {
-                    Some(shape) => self.cell_vertex(shape, angle),
-                    None => self.vertex(&ring.point, angle, ring.slope),
-                };
-                let coord = [ring.point.along, angle];
-                push(out, position, normal, coord, ring.point.radius, 1.0);
-            }
-        }
-        for i in 1..rings.len() {
-            zipper(
-                out,
-                starts[i - 1],
-                rings[i - 1].sides,
-                starts[i],
-                rings[i].sides,
-            );
-        }
-        for (end, away) in [(0, -1.0), (rings.len() - 1, 1.0)] {
-            if !plan.caps[usize::from(away > 0.0)] {
-                continue;
-            }
-            let p = &rings[end].point;
-            let centre = vertices(out);
+    /// A tube ring's vertices.
+    fn polygon(&self, ring: &Ring, out: &mut Tessellation) {
+        for k in 0..ring.sides {
+            let angle = std::f64::consts::TAU * f64::from(k) / f64::from(ring.sides);
+            let (position, normal) = match ring.shape {
+                Some(shape) => self.cell_vertex(shape, angle),
+                None => self.vertex(&ring.point, angle, ring.slope),
+            };
             push(
                 out,
-                p.centre,
-                tangent(p) * away,
-                [p.along, 0.0],
-                p.radius,
+                position,
+                normal,
+                [ring.point.along, angle],
+                ring.point.radius,
                 1.0,
             );
-            let (start, sides) = (starts[end], rings[end].sides);
-            for k in 0..sides {
-                out.indices
-                    .extend([centre, start + k, start + (k + 1) % sides]);
-            }
         }
     }
 
-    /// A ribbon facing the eye: two vertices a ring, as wide as the wood or,
+    /// A ribbon ring's three vertices, across the wood as the eye sees it:
+    /// its two silhouette edges and its middle, each with the normal the
+    /// tube has there and the bark's angle round it, so a ribbon shades as
+    /// the half of the tube facing the eye does. As wide as the wood or,
     /// under a pixel, a pixel wide with the wood's true share as coverage.
-    fn ribbon(&self, rings: &[Ring], viewer: &Viewer, out: &mut Tessellation) {
-        let start = vertices(out);
-        for ring in rings {
-            let p = &ring.point;
-            let view = viewer.towards(p.centre);
-            let across = tangent(p).cross(view);
-            let side = if across.length_squared() > 1e-12 {
-                across.normalized()
-            } else {
-                p.binormal
-            };
-            let half = p.radius.max(0.5 / viewer.pixels_at(p.centre));
-            let coverage = p.radius / half;
-            for sign in [-1.0, 1.0] {
-                push(
-                    out,
-                    p.centre + side * (half * sign),
-                    -view,
-                    [p.along, 0.0],
-                    p.radius,
-                    coverage,
-                );
-            }
-        }
-        for i in 1..rings.len() as u32 {
-            let (a, b) = (start + 2 * (i - 1), start + 2 * i);
-            out.ribbons.extend([a, a + 1, b, b, a + 1, b + 1]);
+    fn across(&self, p: &CurvePoint, viewer: &Viewer, out: &mut Tessellation) {
+        let view = viewer.towards(p.centre);
+        let t = tangent(p);
+        let across = t.cross(view);
+        let side = if across.length_squared() > 1e-12 {
+            across.normalized()
+        } else {
+            p.binormal
+        };
+        let facing = -view - t * (-view).dot(t);
+        let facing = if facing.length_squared() > 1e-12 {
+            facing.normalized()
+        } else {
+            p.normal
+        };
+        let half = p.radius.max(0.5 / viewer.pixels_at(p.centre));
+        let coverage = p.radius / half;
+        for (offset, normal) in [(-1.0, -side), (0.0, facing), (1.0, side)] {
+            let angle = normal.dot(p.binormal).atan2_fixed(normal.dot(p.normal));
+            let at = p.centre + side * (half * offset);
+            push(out, at, normal, [p.along, angle], p.radius, coverage);
         }
     }
 
@@ -258,25 +260,20 @@ impl Curve {
     }
 }
 
-/// What one cluster writes: vertices, tube indices and ribbon indices.
-fn counts(plan: &plan::Plan) -> [usize; 3] {
-    let rings = &plan.rings;
-    match plan.mode {
-        Mode::Ribbon => [2 * rings.len(), 0, 6 * (rings.len() - 1)],
-        Mode::Tube => {
-            let sides: usize = rings.iter().map(|r| r.sides as usize).sum();
-            let strips: usize = rings
-                .windows(2)
-                .map(|w| (w[0].sides + w[1].sides) as usize)
-                .sum();
-            let ends = [rings[0].sides, rings[rings.len() - 1].sides];
-            let caps: usize = (0..2)
-                .filter(|&e| plan.caps[e])
-                .map(|e| ends[e] as usize)
-                .sum();
-            let capped = plan.caps.iter().filter(|&&c| c).count();
-            [sides + capped, 3 * (strips + caps), 0]
-        }
+/// A tube's end closed by a fan about its centre, facing `away` along it.
+fn cap(out: &mut Tessellation, p: &CurvePoint, start: u32, sides: u32, away: f64) {
+    let centre = vertices(out);
+    push(
+        out,
+        p.centre,
+        tangent(p) * away,
+        [p.along, 0.0],
+        p.radius,
+        1.0,
+    );
+    for k in 0..sides {
+        out.indices
+            .extend([centre, start + k, start + (k + 1) % sides]);
     }
 }
 

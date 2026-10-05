@@ -6,7 +6,7 @@
 use crate::{device::Gpu, Camera};
 use telperion_core::{
     math::Vec3,
-    surface::{Curve, Viewer, CLUSTER_WORDS, POINT_WORDS, SECTION_FLOATS},
+    surface::{Curve, Viewer, CLUSTER_WORDS, POINT_WORDS, RIBBON, SECTION_FLOATS},
 };
 
 mod draw;
@@ -119,13 +119,13 @@ impl CurveGpu {
             .create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some("curve"),
                 source: wgpu::ShaderSource::Wgsl(
-                format!(
-                    "{}\n{}",
-                    include_str!("shaders/curve.wgsl"),
-                    include_str!("shaders/curve_walk.wgsl")
-                )
-                .into(),
-            ),
+                    format!(
+                        "{}\n{}",
+                        include_str!("shaders/curve.wgsl"),
+                        include_str!("shaders/curve_walk.wgsl")
+                    )
+                    .into(),
+                ),
             });
         let pipelines: Vec<_> = PASSES
             .iter()
@@ -237,7 +237,7 @@ impl CurveGpu {
         ]);
         let b = t.budget;
         c[40..44].copy_from_slice(&[b.vertices, b.tube_indices, b.ribbon_indices, row]);
-        c[44..48].copy_from_slice(&[u32::from(ribbons), blocks, 0, 0]);
+        c[44..48].copy_from_slice(&[u32::from(ribbons), blocks, f(RIBBON), 0]);
         c
     }
 }

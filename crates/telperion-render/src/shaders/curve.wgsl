@@ -23,7 +23,7 @@ struct Config {
     row: u32,              // per-cluster workgroups a dispatch row
     ribbons: u32,          // 0 draws no ribbon (the sun's map)
     blocks: u32,           // scan blocks of 256 clusters
-    pad0: u32,
+    ribbon: f32,           // below this radius in pixels a ring is a ribbon's
     pad1: u32,
 };
 
@@ -41,7 +41,6 @@ struct Config {
 
 const TAU: f32 = 6.28318530718;
 const PI: f32 = 3.14159265359;
-const RIBBON: f32 = 1.0;
 const MOST_SIDES: u32 = 384u;
 const MOST_PIECES: u32 = 256u;
 const LEVELS: u32 = 6u;
@@ -69,10 +68,9 @@ fn scale(s: u32) -> f32 {
 fn measure(@builtin(workgroup_id) group: vec3<u32>, @builtin(local_invocation_index) local: u32) {
     let i = index_of(group, local);
     if (i >= cfg.clusters) { return; }
-    let m = mode(i);
-    if (m == 0u) { return; }
+    if (!visible(i)) { return; }
     for (var s = 0u; s < 4u; s++) {
-        let n = walk(i, m, cfg.error * scale(s), false, vec3(0u));
+        let n = walk(i, cfg.error * scale(s), false, vec3(0u));
         atomicAdd(&totals[s * 4u], n.x);
         atomicAdd(&totals[s * 4u + 1u], n.y);
         atomicAdd(&totals[s * 4u + 2u], n.z);
@@ -98,10 +96,9 @@ fn choose() {
 fn count(@builtin(workgroup_id) group: vec3<u32>, @builtin(local_invocation_index) local: u32) {
     let i = index_of(group, local);
     if (i >= cfg.clusters) { return; }
-    let m = mode(i);
     var n = vec3(0u);
-    if (m != 0u) {
-        n = walk(i, m, cfg.error * scale(atomicLoad(&totals[CHOSEN])), false, vec3(0u));
+    if (visible(i)) {
+        n = walk(i, cfg.error * scale(atomicLoad(&totals[CHOSEN])), false, vec3(0u));
     }
     counts[i] = vec4(n, 0u);
 }
@@ -162,8 +159,7 @@ fn scan_add(@builtin(workgroup_id) group: vec3<u32>, @builtin(local_invocation_i
 fn emit(@builtin(workgroup_id) group: vec3<u32>, @builtin(local_invocation_index) local: u32) {
     let i = index_of(group, local);
     if (i >= cfg.clusters) { return; }
-    let m = mode(i);
-    if (m == 0u) { return; }
+    if (!visible(i)) { return; }
     let o = offsets[i].xyz;
     let n = counts[i].xyz;
     let end = o + n;
@@ -171,7 +167,7 @@ fn emit(@builtin(workgroup_id) group: vec3<u32>, @builtin(local_invocation_index
         atomicOr(&totals[OVERRUN], 2u);
         return;
     }
-    _ = walk(i, m, cfg.error * scale(atomicLoad(&totals[CHOSEN])), true,
+    _ = walk(i, cfg.error * scale(atomicLoad(&totals[CHOSEN])), true,
         vec3(o.x, o.y, cfg.tube_budget + o.z));
     atomicMax(&totals[ENDS], end.x);
     atomicMax(&totals[ENDS + 1u], end.y);

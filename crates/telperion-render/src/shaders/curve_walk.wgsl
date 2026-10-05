@@ -92,18 +92,15 @@ fn lobe() -> f32 {
     return select(1.0, 1.0 + abs(cfg.lobe_depth), cfg.lobes > 0u);
 }
 
-// 0 outside the frustum, 1 a tube, 2 a ribbon.
-fn mode(i: u32) -> u32 {
+// Whether any of cluster `i` stands inside the frustum.
+fn visible(i: u32) -> bool {
+    if (cfg.culling == 0u) { return true; }
     let c = cluster(i);
-    if (cfg.culling != 0u) {
-        for (var k = 0u; k < 6u; k++) {
-            let p = cfg.planes[k];
-            if (dot(p.xyz, c.centre) + p.w < -c.reach) { return 0u; }
-        }
+    for (var k = 0u; k < 6u; k++) {
+        let p = cfg.planes[k];
+        if (dot(p.xyz, c.centre) + p.w < -c.reach) { return false; }
     }
-    let shaped = (c.flags & 4u) != 0u;
-    if (shaped || c.largest * lobe() * nearest(c) >= RIBBON) { return 1u; }
-    return select(0u, 2u, cfg.ribbons != 0u);
+    return true;
 }
 
 fn sides(rho: f32, error: f32) -> u32 {
@@ -219,26 +216,29 @@ fn put(at: u32, position: vec3<f32>, normal: vec3<f32>, along: f32, angle: f32,
     vertices[b + 9u] = coverage;
 }
 
-// One ring of a cluster: its point, the radius's slope, and for a shaped run
-// its cell ring (section, index, count; section ~0u for none).
+// One ring of a cluster: its point, the radius's slope, its sides, whether
+// it stands wide enough for a tube, and for a shaped run its cell ring
+// (section, index, count; section ~0u for none).
 struct Ring {
     p: Point,
     slope: f32,
+    sides: u32,
+    tube: bool,
     section: u32,
     index: u32,
     samples: u32,
 };
 
-// What a walk has written so far, and what it remembers of its rings.
+// What a walk has written so far, and the ring it holds back until it knows
+// whether the stretch after it is a tube's.
 struct Walk {
     counts: vec3<u32>,   // vertices, tube indices, ribbon indices
     rings: u32,
-    first_start: u32,
-    first_sides: u32,
-    first_point: Point,
-    last_start: u32,
-    last_sides: u32,
-    last_point: Point,
+    pending: Ring,
+    before: bool,        // the stretch before the pending ring is a tube's
+    tube_start: u32,     // the previous ring's polygon and ribbon vertices
+    ribbon_start: u32,
+    sides: u32,
 };
 
 fn zipper(w: ptr<function, Walk>, write: bool, base: vec3<u32>, a: u32, na: u32, b: u32, nb: u32) {
@@ -266,69 +266,6 @@ fn zipper(w: ptr<function, Walk>, write: bool, base: vec3<u32>, a: u32, na: u32,
     }
 }
 
-fn add_ring(w: ptr<function, Walk>, ring: Ring, tube: bool, error: f32, write: bool,
-    base: vec3<u32>) {
-    let p = ring.p;
-    let start = (*w).counts.x;
-    if (!tube) {
-        var view = cfg.forward.xyz;
-        if (cfg.orthographic == 0u && dot(p.centre - cfg.eye.xyz, p.centre - cfg.eye.xyz) > 0.0) {
-            view = normalize(p.centre - cfg.eye.xyz);
-        }
-        let across = cross(tangent(p), view);
-        var side = p.binormal;
-        if (dot(across, across) > 1e-12) { side = normalize(across); }
-        let half = max(p.radius, 0.5 / pixels_at(p.centre));
-        let coverage = p.radius / half;
-        if (write) {
-            put(base.x + start, p.centre - side * half, -view, p.along, 0.0, p.radius, coverage);
-            put(base.x + start + 1u, p.centre + side * half, -view, p.along, 0.0, p.radius, coverage);
-        }
-        if ((*w).rings > 0u) {
-            if (write) {
-                let a = base.x + start - 2u;
-                let b = base.x + start;
-                let at = base.z + (*w).counts.z;
-                indices[at] = a;
-                indices[at + 1u] = a + 1u;
-                indices[at + 2u] = b;
-                indices[at + 3u] = b;
-                indices[at + 4u] = a + 1u;
-                indices[at + 5u] = b + 1u;
-            }
-            (*w).counts.z += 6u;
-        }
-        (*w).counts.x += 2u;
-        (*w).rings += 1u;
-        return;
-    }
-    let n = sides(p.radius * lobe() * pixels_at(p.centre), 0.5 * error);
-    if (write) {
-        for (var k = 0u; k < n; k++) {
-            let angle = TAU * f32(k) / f32(n);
-            var v: array<vec3<f32>, 2>;
-            if (ring.section != 0xFFFFFFFFu) {
-                v = cell_vertex(ring.section, ring.index, ring.samples, angle);
-            } else {
-                v = tube_vertex(p, angle, ring.slope);
-            }
-            put(base.x + start + k, v[0], v[1], p.along, angle, p.radius, 1.0);
-        }
-    }
-    (*w).counts.x += n;
-    if ((*w).rings > 0u) {
-        zipper(w, write, base, (*w).last_start, (*w).last_sides, start, n);
-    } else {
-        (*w).first_start = start;
-        (*w).first_sides = n;
-        (*w).first_point = p;
-    }
-    (*w).last_start = start;
-    (*w).last_sides = n;
-    (*w).last_point = p;
-    (*w).rings += 1u;
-}
-
 fn cap(w: ptr<function, Walk>, write: bool, base: vec3<u32>, p: Point, start: u32, n: u32,
     away: f32) {
     let centre = (*w).counts.x;
@@ -345,23 +282,116 @@ fn cap(w: ptr<function, Walk>, write: bool, base: vec3<u32>, p: Point, start: u3
     (*w).counts.y += 3u * n;
 }
 
-// Cluster `i` at `error`, its tube or ribbon, counted, or written at `base`
-// (first vertex, first tube index, first ribbon index) where `write`.
-fn walk(i: u32, m: u32, error: f32, write: bool, base: vec3<u32>) -> vec3<u32> {
+// The pending ring, now that whether a tube stretch follows it is known: its
+// polygon where a tube stretch meets it (stitched to the previous one, capped
+// where its tube ends), its two ribbon vertices where a ribbon stretch meets
+// it (joined to the previous ring's). As the CPU reference's `emit`.
+fn settle(w: ptr<function, Walk>, after: bool, has_next: bool, write: bool, base: vec3<u32>) {
+    let ring = (*w).pending;
+    let p = ring.p;
+    let first = (*w).rings == 0u;
+    let before = (*w).before;
+    let ribbon = cfg.ribbons != 0u && ((!first && !before) || (has_next && !after));
+    var tube_start = 0u;
+    if (before || after) {
+        tube_start = (*w).counts.x;
+        if (write) {
+            for (var k = 0u; k < ring.sides; k++) {
+                let angle = TAU * f32(k) / f32(ring.sides);
+                var v: array<vec3<f32>, 2>;
+                if (ring.section != 0xFFFFFFFFu) {
+                    v = cell_vertex(ring.section, ring.index, ring.samples, angle);
+                } else {
+                    v = tube_vertex(p, angle, ring.slope);
+                }
+                put(base.x + tube_start + k, v[0], v[1], p.along, angle, p.radius, 1.0);
+            }
+        }
+        (*w).counts.x += ring.sides;
+        if (before) { zipper(w, write, base, (*w).tube_start, (*w).sides, tube_start, ring.sides); }
+    }
+    var ribbon_start = 0u;
+    if (ribbon) {
+        ribbon_start = (*w).counts.x;
+        var view = cfg.forward.xyz;
+        if (cfg.orthographic == 0u && dot(p.centre - cfg.eye.xyz, p.centre - cfg.eye.xyz) > 0.0) {
+            view = normalize(p.centre - cfg.eye.xyz);
+        }
+        let t = tangent(p);
+        let across = cross(t, view);
+        var side = p.binormal;
+        if (dot(across, across) > 1e-12) { side = normalize(across); }
+        var facing = -view - t * dot(-view, t);
+        if (dot(facing, facing) > 1e-12) { facing = normalize(facing); } else { facing = p.normal; }
+        let half = max(p.radius, 0.5 / pixels_at(p.centre));
+        let coverage = p.radius / half;
+        if (write) {
+            let normals = array<vec3<f32>, 3>(-side, facing, side);
+            for (var k = 0u; k < 3u; k++) {
+                let n = normals[k];
+                let angle = atan2(dot(n, p.binormal), dot(n, p.normal));
+                let at = p.centre + side * (half * (f32(k) - 1.0));
+                put(base.x + ribbon_start + k, at, n, p.along, angle, p.radius, coverage);
+            }
+        }
+        (*w).counts.x += 3u;
+        if (!first && !before) {
+            if (write) {
+                let a = base.x + (*w).ribbon_start;
+                let b = base.x + ribbon_start;
+                let at = base.z + (*w).counts.z;
+                let order = array<u32, 12>(a, a + 1u, b, b, a + 1u, b + 1u,
+                    a + 1u, a + 2u, b + 1u, b + 1u, a + 2u, b + 2u);
+                for (var k = 0u; k < 12u; k++) { indices[at + k] = order[k]; }
+            }
+            (*w).counts.z += 12u;
+        }
+    }
+    if (before || after) {
+        if (!before) { cap(w, write, base, p, tube_start, ring.sides, -1.0); }
+        if (!after) { cap(w, write, base, p, tube_start, ring.sides, 1.0); }
+    }
+    (*w).tube_start = tube_start;
+    (*w).ribbon_start = ribbon_start;
+    (*w).sides = ring.sides;
+    (*w).before = after;
+    (*w).rings += 1u;
+}
+
+// A new ring: the pending one settles against it, and it waits in its place.
+fn push(w: ptr<function, Walk>, ring: Ring, held: bool, write: bool, base: vec3<u32>) {
+    if (held) {
+        settle(w, (*w).pending.tube && ring.tube, true, write, base);
+    }
+    (*w).pending = ring;
+}
+
+fn ring_at(p: Point, slope: f32, error: f32, shaped: bool) -> Ring {
+    var r: Ring;
+    r.p = p;
+    r.slope = slope;
+    let rho = p.radius * lobe() * pixels_at(p.centre);
+    r.sides = sides(rho, 0.5 * error);
+    r.tube = shaped || rho >= cfg.ribbon;
+    r.section = 0xFFFFFFFFu;
+    return r;
+}
+
+// Cluster `i` at `error`, counted, or written at `base` (first vertex, first
+// tube index, first ribbon index) where `write`.
+fn walk(i: u32, error: f32, write: bool, base: vec3<u32>) -> vec3<u32> {
     var w: Walk;
     let c = cluster(i);
-    let tube = m == 1u;
     let half = 0.5 * error;
-    var ring: Ring;
-    ring.section = 0xFFFFFFFFu;
+    var held = false;
     if ((c.flags & 4u) != 0u) {
         for (var k = 0u; k < c.count; k++) {
-            ring.p = point(c.first + k);
-            ring.slope = slope(c.first + k, c.run_first, c.run_count);
-            ring.section = c.flags >> 8u;
-            ring.index = k;
-            ring.samples = c.count;
-            add_ring(&w, ring, tube, error, write, base);
+            var r = ring_at(point(c.first + k), slope(c.first + k, c.run_first, c.run_count), error, true);
+            r.section = c.flags >> 8u;
+            r.index = k;
+            r.samples = c.count;
+            push(&w, r, held, write, base);
+            held = true;
         }
     } else {
         let pixels = nearest(c);
@@ -382,22 +412,15 @@ fn walk(i: u32, m: u32, error: f32, write: bool, base: vec3<u32>) -> vec3<u32> {
             let n = pieces(a, b, half);
             for (var j = 0u; j < n; j++) {
                 let t = f32(j) / f32(n);
-                ring.p = hermite(a, b, t);
-                ring.slope = sa + (sb - sa) * t;
-                add_ring(&w, ring, tube, error, write, base);
+                push(&w, ring_at(hermite(a, b, t), sa + (sb - sa) * t, error, false), held, write, base);
+                held = true;
             }
             ka = kb;
         }
-        ring.p = point(c.first + last);
-        ring.slope = slope(c.first + last, c.run_first, c.run_count);
-        add_ring(&w, ring, tube, error, write, base);
+        let end = c.first + last;
+        push(&w, ring_at(point(end), slope(end, c.run_first, c.run_count), error, false), held, write, base);
+        held = true;
     }
-    if (tube) {
-        let opens = vec2((c.flags & 1u) != 0u || mode(i - 1u) != 1u,
-            (c.flags & 2u) != 0u || mode(i + 1u) != 1u);
-        if (opens.x) { cap(&w, write, base, w.first_point, w.first_start, w.first_sides, -1.0); }
-        if (opens.y) { cap(&w, write, base, w.last_point, w.last_start, w.last_sides, 1.0); }
-    }
+    if (held) { settle(&w, false, false, write, base); }
     return w.counts;
 }
-
