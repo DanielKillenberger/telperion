@@ -27,10 +27,16 @@ fn tree(id: &str) -> (telperion_core::mesh::TreeMesh, Curve) {
 /// How far the device's wood stands from the reference's: the counts, the
 /// largest position gap in metres and the smallest normals' cosine, at the
 /// error scale the device's budget chose.
-fn compare(renderer: &Renderer, curve: &Curve, camera: &Camera, scale: f64) -> String {
+fn compare(
+    renderer: &Renderer,
+    curve: &Curve,
+    camera: &Camera,
+    size: (u32, u32),
+    scale: f64,
+) -> String {
     let (vertices, tubes, ribbons) = renderer.curve_mesh().unwrap();
     let cpu = curve
-        .tessellate(&curve_viewer(camera, SIZE), 0.5 * scale, None)
+        .tessellate(&curve_viewer(camera, size), 0.5 * scale, None)
         .unwrap();
     let counts =
         |v: usize, t: usize, r: usize| format!("{v} vertices, {} + {} triangles", t / 3, r / 3);
@@ -79,11 +85,40 @@ fn the_device_surfaces_the_wood_the_cpu_reference_does() {
             render(&mut renderer, &camera, SIZE.0, SIZE.1).unwrap();
             let report = renderer.curve_report().unwrap();
             assert_eq!(report.overrun, 0, "{id} {name}: over budget");
-            let found = compare(&renderer, &curve, &camera, report.scale);
+            let found = compare(&renderer, &curve, &camera, SIZE, report.scale);
             println!(
                 "{id} {name}: scale {}, demand {:?}: {found}",
                 report.scale, report.demand
             );
         }
     }
+}
+
+/// A view small enough that its screen-sized budget is crossed halfway, so
+/// every record, vertex and index past the first slice is written through
+/// the second binding (host decision 21), and still the reference's.
+#[test]
+fn the_second_slices_hold_what_the_first_could_not() {
+    let Some(gpu) = gpu() else { return };
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    let (mesh, curve) = tree("ordinary");
+    renderer.submit(&mesh).unwrap();
+    let size = (40, 30);
+    let aspect = f64::from(size.0) / f64::from(size.1);
+    let hero = hero_pose(mesh.bounds, aspect, GROUND_REACH);
+    let close = Camera {
+        position: hero.target + (hero.position - hero.target) * 0.15,
+        ..hero
+    };
+    render(&mut renderer, &close, size.0, size.1).unwrap();
+    let report = renderer.curve_report().unwrap();
+    assert_eq!(report.overrun, 0, "over budget: {report:?}");
+    let half = |k: usize| report.budget[k] / 2;
+    // At the finest scale the demand is the drawn view's own.
+    assert_eq!(report.scale, 1.0);
+    assert!(
+        report.demand[0] > half(0) && report.vertices > half(1),
+        "the view did not reach the second slices: {report:?}"
+    );
+    println!("{}", compare(&renderer, &curve, &close, size, report.scale));
 }

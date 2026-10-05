@@ -20,7 +20,7 @@ pub use target::{Budget, CurveReport};
 /// angle) and the radius.
 pub const VERTEX_FLOATS: u64 = 9;
 /// Words of one ring's record.
-const RECORD_WORDS: u64 = 24;
+const RECORD_WORDS: u64 = 22;
 /// The error the wood is surfaced at, in pixels (the spec's half pixel).
 pub const ERROR: f64 = 0.5;
 /// The most one storage binding holds: WebGPU's default
@@ -30,13 +30,13 @@ pub const BINDING: u64 = 128 << 20;
 
 /// The passes, in order, and the bindings each reads.
 const PASSES: [(&str, &[u32]); 9] = [
-    ("measure", &[0, 1, 2, 3, 8, 9]),
+    ("measure", &[0, 1, 2, 3, 8, 9, 12]),
     ("choose", &[0, 8]),
-    ("count", &[0, 1, 2, 3, 5, 8, 9]),
+    ("count", &[0, 1, 2, 3, 5, 8, 9, 12]),
     ("scan_local", &[0, 5, 6, 7]),
     ("scan_blocks", &[0, 7, 8, 15]),
     ("scan_add", &[0, 6, 7]),
-    ("rings", &[0, 1, 2, 3, 5, 6, 8, 9]),
+    ("rings", &[0, 1, 2, 3, 5, 6, 8, 9, 12]),
     ("emit", &[0, 4, 8, 9, 10, 11, 12, 13, 14]),
     ("draws", &[0, 8, 15]),
 ];
@@ -146,9 +146,10 @@ impl CurveGpu {
         timestamps: Option<wgpu::ComputePassTimestampWrites<'_>>,
     ) {
         let pixels = u64::from(viewport.0.max(1)) * u64::from(viewport.1.max(1));
-        // The tree fills a fraction of the sun's fitted map: a quarter of its
-        // texels is the view the sun's budget is sized for.
-        let texels = u64::from(crate::shadow::RESOLUTION).pow(2) / 4;
+        // The sun's map is fitted to the tree, so the tree covers most of its
+        // texels: the spruce asks 2.23 rings, 6.71 vertices and 18.94 ribbon
+        // indices a texel of the whole map (STEP5.md).
+        let texels = u64::from(crate::shadow::RESOLUTION).pow(2);
         let budget = |p| Budget::for_pixels(p, &gpu.device.limits());
         if self
             .camera
@@ -217,7 +218,11 @@ impl CurveGpu {
         let groups = self.count.div_ceil(256).max(1);
         let row = groups.min(65535);
         c[44..48].copy_from_slice(&[row, groups, f(RIBBON), self.point_slice as u32]);
-        c[48..50].copy_from_slice(&[t.vertex_slice as u32, t.index_slice as u32]);
+        c[48..51].copy_from_slice(&[
+            t.vertex_slice as u32,
+            t.index_slice as u32,
+            t.record_slice as u32,
+        ]);
         c
     }
 }

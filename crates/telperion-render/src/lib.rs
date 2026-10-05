@@ -209,6 +209,13 @@ impl Renderer {
         })
     }
 
+    /// What the last frame's passes wrote for the sun's map, read back.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn curve_sun_report(&self) -> Option<CurveReport> {
+        let sun = self.wood.curve().and_then(|c| c.sun.as_ref());
+        sun.map(|t| t.report(&self.gpu))
+    }
+
     /// What the last frame's passes wrote for the camera, read back.
     #[cfg(not(target_arch = "wasm32"))]
     pub fn curve_report(&self) -> Option<CurveReport> {

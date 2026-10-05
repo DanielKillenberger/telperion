@@ -4,11 +4,13 @@
 use super::{CurveGpu, BINDING, PASSES, RECORD_WORDS, VERTEX_FLOATS};
 use crate::device::Gpu;
 
-/// What a view may write per pixel it covers, set from the most the four
-/// passed species asked for at their hero view, limb and 5 cm twig at the
-/// stills' 960 x 720 (STEP5.md): rings, vertices, tube indices and ribbon
-/// indices.
-const PER_PIXEL: [f64; 4] = [2.0, 8.0, 12.0, 24.0];
+/// What a view may write per pixel it covers: rings, vertices, tube indices
+/// and ribbon indices (host decision 19). The most the four engine species
+/// asked for at the finest scale, at their hero view, limb, twig and the shot
+/// along a twig at 960 x 720, was 3.13, 9.40, 8.17 and 25.75 (the spruce's
+/// hero and the oak's twig, STEP5.md); each bound stands about a quarter
+/// above it.
+const PER_PIXEL: [f64; 4] = [4.0, 12.0, 10.0, 32.0];
 
 /// The most one view writes: rings, vertices, tube indices, ribbon indices.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -21,14 +23,16 @@ pub struct Budget {
 
 impl Budget {
     /// The budget of a view of `pixels`, within what the device's bindings
-    /// and buffers hold: the records in one binding, the vertices in three
-    /// and the indices in two, and every buffer under `max_buffer_size`.
+    /// and buffers hold: the records, the vertices and the indices each in
+    /// two bindings, a slice's alignment spare, and every buffer under
+    /// `max_buffer_size`. A view past them is drawn coarser, and says so.
     pub fn for_pixels(pixels: u64, limits: &wgpu::Limits) -> Self {
         let largest = limits.max_buffer_size;
         let wanted = |k: usize| (pixels as f64 * PER_PIXEL[k]).ceil() as u64;
-        let records = (BINDING / (RECORD_WORDS * 4)).min(largest / (RECORD_WORDS * 4));
-        let vertices = (3 * BINDING / (VERTEX_FLOATS * 4)).min(largest / (VERTEX_FLOATS * 4));
-        let indices = (2 * BINDING / 4).min(largest / 4);
+        let held = |bytes: u64| (2 * (BINDING - 4096)).min(largest) / bytes;
+        let records = held(RECORD_WORDS * 4);
+        let vertices = held(VERTEX_FLOATS * 4);
+        let indices = held(4);
         let tube = wanted(2).min(indices / 3);
         let clamp = |v: u64| v.min(u64::from(u32::MAX)) as u32;
         Self {
@@ -66,6 +70,7 @@ pub(crate) struct Target {
     pub(crate) args: wgpu::Buffer,
     pub(super) vertex_slice: u64,
     pub(super) index_slice: u64,
+    pub(super) record_slice: u64,
     pub(super) groups: Vec<wgpu::BindGroup>,
     held: Vec<wgpu::Buffer>,
 }
@@ -109,7 +114,9 @@ impl Target {
         let blocks = u64::from(curve.count.div_ceil(256).max(1)) * 16;
         // Floats a vertex slice holds and indices an index slice holds, so
         // the slices tile the buffer without overlapping.
-        let vertex_slice = slice(u64::from(budget.vertices) * VERTEX_FLOATS, 3);
+        let vertex_slice = slice(u64::from(budget.vertices) * VERTEX_FLOATS, 2);
+        // Whole records a slice, on a 256-byte boundary: 32 of 88 bytes.
+        let record_slice = u64::from(budget.rings).div_ceil(2).div_ceil(32).max(1) * 32;
         let indices = u64::from(budget.tube_indices) + u64::from(budget.ribbon_indices);
         let index_slice = slice(indices, 2);
         let made = [
@@ -118,16 +125,11 @@ impl Target {
             buffer(gpu, label, per, U::STORAGE),
             buffer(gpu, label, blocks, U::STORAGE),
             buffer(gpu, label, 192, U::STORAGE | U::COPY_SRC),
+            buffer(gpu, label, 2 * record_slice * RECORD_WORDS * 4, U::STORAGE),
             buffer(
                 gpu,
                 label,
-                u64::from(budget.rings) * RECORD_WORDS * 4,
-                U::STORAGE,
-            ),
-            buffer(
-                gpu,
-                label,
-                3 * vertex_slice * 4,
+                2 * vertex_slice * 4,
                 U::STORAGE | U::VERTEX | U::COPY_SRC,
             ),
             buffer(
@@ -155,8 +157,11 @@ impl Target {
                 6 => whole(&offsets),
                 7 => whole(&block),
                 8 => whole(&totals),
-                9 => whole(&records),
-                10..=12 => part(
+                9 | 12 => {
+                    let bytes = record_slice * RECORD_WORDS * 4;
+                    part(&records, u64::from(binding == 12) * bytes, bytes)
+                }
+                10 | 11 => part(
                     &vertices,
                     u64::from(binding - 10) * vertex_slice * 4,
                     vertex_slice * 4,
@@ -196,6 +201,7 @@ impl Target {
             args,
             vertex_slice,
             index_slice,
+            record_slice,
             groups,
             held: vec![counts, offsets, block, records],
         }

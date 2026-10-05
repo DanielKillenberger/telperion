@@ -193,21 +193,20 @@ const RIBBON: u32 = 16u;
 const QUAD: u32 = 32u;
 
 fn put_record(at: u32, ring: Ring, flags: u32, starts: vec3<u32>, previous: vec3<u32>) {
-    let b = at * RECORD_WORDS;
     let p = ring.p;
     let f = array<f32, 12>(p.centre.x, p.centre.y, p.centre.z, p.radius, p.along,
         p.normal.x, p.normal.y, p.normal.z, p.binormal.x, p.binormal.y, p.binormal.z, ring.slope);
-    for (var k = 0u; k < 12u; k++) { records[b + k] = bitcast<u32>(f[k]); }
-    records[b + 12u] = ring.sides;
-    records[b + 13u] = flags;
-    records[b + 14u] = ring.section;
-    records[b + 15u] = ring.index | (ring.samples << 16u);
-    records[b + 16u] = starts.x;
-    records[b + 17u] = starts.y;
-    records[b + 18u] = starts.z;
-    records[b + 19u] = previous.x;
-    records[b + 20u] = previous.y;
-    records[b + 21u] = previous.z;
+    for (var k = 0u; k < 12u; k++) { set_record(at, k, bitcast<u32>(f[k])); }
+    set_record(at, 12u, ring.sides);
+    set_record(at, 13u, flags);
+    set_record(at, 14u, ring.section);
+    set_record(at, 15u, ring.index | (ring.samples << 16u));
+    set_record(at, 16u, starts.x);
+    set_record(at, 17u, starts.y);
+    set_record(at, 18u, starts.z);
+    set_record(at, 19u, previous.x);
+    set_record(at, 20u, previous.y);
+    set_record(at, 21u, previous.z);
 }
 
 // The pending ring, now that whether a tube stretch follows it is known: its

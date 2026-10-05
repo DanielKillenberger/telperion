@@ -7,7 +7,8 @@
 // and one writes the indirect draws.
 //
 // Every buffer larger than a storage binding may hold is bound in slices:
-// the points in two, the vertices in three, the indices in two.
+// the points, the ring records, the vertices and the indices in two each,
+// which keeps the emitting pass within WebGPU's eight storage buffers.
 
 struct Config {
     eye: vec4<f32>,        // xyz; w the near plane
@@ -29,9 +30,9 @@ struct Config {
     blocks: u32,           // scan blocks of 256 clusters
     ribbon: f32,           // below this radius in pixels a ring is a ribbon's
     point_slice: u32,      // words of points in the first binding
-    vertex_slice: u32,     // floats of vertices in each binding
-    index_slice: u32,      // indices in each binding
-    pad0: u32,
+    vertex_slice: u32,     // floats of vertices in the first binding
+    index_slice: u32,      // indices in the first binding
+    record_slice: u32,     // ring records in the first binding
     pad1: u32,
 };
 
@@ -44,10 +45,10 @@ struct Config {
 @group(0) @binding(6) var<storage, read_write> offsets: array<vec4<u32>>;
 @group(0) @binding(7) var<storage, read_write> blocks: array<vec4<u32>>;
 @group(0) @binding(8) var<storage, read_write> totals: array<atomic<u32>, 48>;
-@group(0) @binding(9) var<storage, read_write> records: array<u32>;
+@group(0) @binding(9) var<storage, read_write> records0: array<u32>;
+@group(0) @binding(12) var<storage, read_write> records1: array<u32>;
 @group(0) @binding(10) var<storage, read_write> vertices0: array<f32>;
 @group(0) @binding(11) var<storage, read_write> vertices1: array<f32>;
-@group(0) @binding(12) var<storage, read_write> vertices2: array<f32>;
 @group(0) @binding(13) var<storage, read_write> indices0: array<u32>;
 @group(0) @binding(14) var<storage, read_write> indices1: array<u32>;
 @group(0) @binding(15) var<storage, read_write> args: array<u32, 16>;
@@ -61,7 +62,7 @@ const POINT_WORDS: u32 = 8u;
 const CLUSTER_WORDS: u32 = 16u;
 const SECTION_FLOATS: u32 = 28u;
 const VERTEX_FLOATS: u32 = 9u;
-const RECORD_WORDS: u32 = 24u;
+const RECORD_WORDS: u32 = 22u;
 // totals: [scale * 4 + k] the four counts (rings, vertices, tube indices,
 // ribbon indices) at each of the four scales; 16 the scale chosen; 17
 // overrun bits (1 no scale fits, 2 a cluster was left out); 20..23 the
@@ -71,6 +72,20 @@ const CHOSEN: u32 = 16u;
 const OVERRUN: u32 = 17u;
 const CHOSEN_COUNTS: u32 = 20u;
 const ENDS: u32 = 24u;
+
+// Word `k` of ring `r`'s record, in whichever slice holds the ring.
+fn record(r: u32, k: u32) -> u32 {
+    if (r < cfg.record_slice) { return records0[r * RECORD_WORDS + k]; }
+    return records1[(r - cfg.record_slice) * RECORD_WORDS + k];
+}
+
+fn set_record(r: u32, k: u32, value: u32) {
+    if (r < cfg.record_slice) {
+        records0[r * RECORD_WORDS + k] = value;
+    } else {
+        records1[(r - cfg.record_slice) * RECORD_WORDS + k] = value;
+    }
+}
 
 fn index_of(group: vec3<u32>, local: u32) -> u32 {
     return (group.x + group.y * cfg.row) * 256u + local;
@@ -188,8 +203,7 @@ fn rings(@builtin(workgroup_id) group: vec3<u32>, @builtin(local_invocation_inde
     if (!fits(o + n)) {
         atomicOr(&totals[OVERRUN], 2u);
         for (var k = 0u; k < n.x; k++) {
-            let at = (o.x + k) * RECORD_WORDS;
-            if (o.x + k < cfg.ring_budget) { records[at + 13u] = 0u; }
+            if (o.x + k < cfg.ring_budget) { set_record(o.x + k, 13u, 0u); }
         }
         return;
     }

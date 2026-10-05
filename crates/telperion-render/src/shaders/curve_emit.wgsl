@@ -5,10 +5,8 @@
 fn put_float(at: u32, value: f32) {
     if (at < cfg.vertex_slice) {
         vertices0[at] = value;
-    } else if (at < 2u * cfg.vertex_slice) {
-        vertices1[at - cfg.vertex_slice] = value;
     } else {
-        vertices2[at - 2u * cfg.vertex_slice] = value;
+        vertices1[at - cfg.vertex_slice] = value;
     }
 }
 
@@ -112,11 +110,10 @@ fn cap(at: u32, centre: u32, p: Point, start: u32, n: u32, away: f32) {
 }
 
 fn emit_ring(r: u32) {
-    let b = r * RECORD_WORDS;
-    let flags = records[b + 13u];
+    let flags = record(r, 13u);
     if (flags == 0u) { return; }
     var f: array<f32, 12>;
-    for (var k = 0u; k < 12u; k++) { f[k] = bitcast<f32>(records[b + k]); }
+    for (var k = 0u; k < 12u; k++) { f[k] = bitcast<f32>(record(r, k)); }
     var p: Point;
     p.centre = vec3(f[0], f[1], f[2]);
     p.radius = f[3];
@@ -124,14 +121,14 @@ fn emit_ring(r: u32) {
     p.normal = vec3(f[5], f[6], f[7]);
     p.binormal = vec3(f[8], f[9], f[10]);
     let slope = f[11];
-    let sides = records[b + 12u];
-    let section = records[b + 14u];
-    let index = records[b + 15u] & 0xFFFFu;
-    let samples = records[b + 15u] >> 16u;
-    var v = records[b + 16u];
-    var t = records[b + 17u];
-    let q = records[b + 18u];
-    let previous = vec3(records[b + 19u], records[b + 20u], records[b + 21u]);
+    let sides = record(r, 12u);
+    let section = record(r, 14u);
+    let index = record(r, 15u) & 0xFFFFu;
+    let samples = record(r, 15u) >> 16u;
+    var v = record(r, 16u);
+    var t = record(r, 17u);
+    let q = record(r, 18u);
+    let previous = vec3(record(r, 19u), record(r, 20u), record(r, 21u));
     let polygon = v;
     if ((flags & POLYGON) != 0u) {
         for (var k = 0u; k < sides; k++) {
