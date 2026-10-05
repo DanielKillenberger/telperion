@@ -477,3 +477,25 @@ The fault all three name: "predominantly ascending main limbs: they need more ou
 - the leaf form in close-ups.
 
 Young trees and close-ups were not re-rendered this round; the host's sheet holds the 80-year trees only.
+
+### Round 6: what causes the leaf collapse (checked 2026-10-05; the host's hypothesis not confirmed)
+
+**The hypothesis tested:** `canopy.shootRadius` is read relative to a stem radius, and retained girth thickened the trunk. A scratch probe (kept at `scratchpad/zz_leafprobe.rs`, not committed) converted seed 1 at 80 years and measured what `Tree::stem_radius` (`telperion-core/src/tree.rs:151`) returns. It also measured how much wood falls under the slender threshold of 0.06 × that radius (`foliage/plan.rs:275`, `placement.rs:85`).
+
+| Seed 1, 80 years | Root radius | Fork found | Stem measure | Slender (leaf-bearing) length | Fine wood |
+|---|--:|---|--:|--:|--:|
+| Round 5 values | 0.778 m | none | 0.778 m | 11.37 km | 11.16 km |
+| Round 6 values | 0.790 m | node 37,916 | **0.027 m** | **2.37 km** | 11.20 km |
+| Round 6, χ 0 | 0.706 m | node 37,453 | 0.030 m | 2.23 km | 10.94 km |
+| Round 6, retained 0 | 0.513 m | node 38,086 | 0.027 m | 2.34 km | 10.87 km |
+| Round 6, both 0 | 0.432 m | node 37,742 | 0.028 m | 2.12 km | 10.46 km |
+
+- **Retained girth is not the cause.** With retained and χ at 0, the root thins to 0.43 m and the leaves stay collapsed.
+- **The cause: `stem_radius` finds a fork deep in the crown.**
+  - It finds a node where two children both carry the `stem` flag, high in the crown at about 2.7 cm. It measures the canopy against that, not against the trunk.
+  - The slender threshold falls about 29-fold, and leaf-bearing length from 11.4 km to 2.4 km.
+- **Why round 6 has such a node:**
+  - The leader now turns limb at 14 years, not 20, so the trunk's own lineage aborts and relays as limbs do (abortion 0.3, relay 1.0).
+  - The conversion (`examples/space/tree.rs`) hands the `stem` flag on to a continuation or relay from its parent's end (`tree.rs:124-126`).
+  - **Not checked:** two of them can therefore start at one node, likely a relay whose parent drew no phytomers and so ends where its own parent ended.
+- **Status:** the stills have not been changed. The host said to stop if the hypothesis was not confirmed. An absolute radius (decision 30) would also remove this coupling, but it was decided on the other cause.
