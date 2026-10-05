@@ -788,3 +788,43 @@ The sheet and this table were rendered again on the final engine, after Codex re
   - Seed 2 is a rounded dome; seeds 7 and 1 broad, flat-topped domes; seeds 3 and 4 open spreads with their limbs visible.
   - The foliage reads as less chaotic but still lobed.
 - **The flatter tops are likely the calmer limbs not rising after leaving low** (round 8's elevation 0.75 now acts on straighter limbs). Not checked: a value for the oak's next round.
+
+## Round 10: limbs rise again and the crown grows taller (host, 2026-10-05)
+
+Built on the fn-207 trial's bends and calm fine wood. The values against the trial:
+
+| Value | fn-207 trial | Round 10 | Note |
+|---|---|---|---|
+| Trunk lifespan | 10 | 12 | The first fork sits higher |
+| Leader lifespan | 14 | 19 | Round 5 had 20 |
+| Limb insertion | 0.65 | 0.5 | Round 5 had 0.45 |
+| Limb elevation | 0.75 | 1.05 | Round 5 had 0.95 |
+| Bough elevation | 0.45 | 0.5 | |
+
+The limb and leader bends stay at 3 m and the bough bends at 1.5 m.
+
+**Probes on seeds 1 and 7:**
+- **Probe 1** (`raw/round10/probe.png`): trunk 11 and limb elevation 0.95. The trees were taller (23.4 and 21.4 m) but still too wide, at 1.6 and 1.4 times the height.
+- **Probe 2** (`raw/round10/probe2.png`): trunk 12 and limb elevation 1.05. These are the values kept.
+
+**Sheet:** `raw/round10/sheet.png`, with the references, the fn-207 trial in leaf, round 10 in leaf and round 10 bare. I viewed every still.
+
+| Seed | Height | Width | Width / height |
+|--:|--:|--:|--:|
+| 1 | 24.8 m | 25.3 × 33.6 m | 1.0–1.35 |
+| 7 | 22.3 m | 26.0 × 24.7 m | 1.1–1.15 |
+| 2 | 23.4 m | 26.7 × 27.8 m | 1.15–1.2 |
+| 3 | 23.9 m | 27.6 × 27.6 m | 1.15 |
+| 4 | 22.5 m | 25.1 × 25.6 m | 1.1–1.15 |
+
+### Reading
+
+**Against the targets:** all five seeds are 22 to 25 m tall, with widths of about 1.1 to 1.2 times the height. The clear trunk is about a quarter of the height. Limbs leave at roughly 40 to 60 degrees and rise in long, smooth arcs.
+
+**Against S1, the limbs rise but do not arch over at the top:**
+- The crowns read as a vase or wineglass, broadest high up.
+- Seed 1 is a V with two limbs reaching out above the crown.
+- Seed 2 comes closest to a dome.
+- Seeds 3 and 4 have a tuft or bough sticking above the outline.
+
+**Still lobed:** the foliage is clumped into lobes, though calmer than round 8.
