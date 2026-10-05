@@ -943,3 +943,14 @@ The oak is accepted at round 10 (`54b9dff8`, restored in `f3384827`), on fn-197'
   - fn-207's R1 proves it again: beech and spruce 80-year hashes at seeds 1 and 7 identical to `97dc2233`'s.
   - The oak's own commits change only `oak.rs` and the render example's stem flag for trunk-level PAs, which the beech and spruce pass as their own trunk lists.
 - **The palm:** cannot be verified on this branch, because the palm is not in it. It falls to the branch that carries both.
+
+## Close (2026-10-05)
+
+- **Workspace gate** on the working branch's head (`155a596a`, fn-197 + fn-207 + the oak at round 10): 1,063 passed, 0 failed, 444 s.
+- **Split into three stacked branches from origin/master:** E (`fn-197-…-pr`), fn-207 (`fn-207-…-pr`) and the oak (`fn-195-…-pr`). On each:
+  - the space crate's tests pass;
+  - `cargo check -p telperion-render --examples` is clean.
+- **On this branch also:**
+  - `space_stems`, `catalogue_identity` and `material_detail` pass;
+  - the palm example takes its trunk list (`PALM_TRUNK`, its one stem) for the trunk-level stem flag.
+- **Codex review** of the oak's own diff (base: fn-207's branch): SHIP in round 1, no findings. Codex reads R4 as met by the recorded pixel-identical beech and spruce renders across the conversion change.
