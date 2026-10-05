@@ -8,20 +8,24 @@
 //! near-equal limbs, which fork again. The rules and their sources are in
 //! `.flow/evidence/fn-195-tree-space-d-the-oak-as-a-point/SOURCES.md`; a
 //! value no source gives is marked there as estimated.
+use crate::chain::{self, on_chain};
 use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use std::f64::consts::FRAC_PI_2;
 
-/// The reference axis, youngest first.
-const FORK: usize = 1;
-const LEADER: usize = 2;
-const LIMB: usize = 3;
-const BOUGH: usize = 4;
-const SPRIG: usize = 5;
-const BRANCH: usize = 6;
-const TWIG: usize = 7;
-const SHOOT: usize = 8;
-const SHORT: usize = 9;
-const PAS: usize = 10;
+/// The oak's ages on the shared reference axis (`chain.rs`), youngest
+/// first: its fork stands at the low fork, and its shoot, which its
+/// branch moves on to, before its twig, which it bears.
+const TRUNK: usize = chain::TRUNK;
+const FORK: usize = chain::LOW_FORK;
+const LEADER: usize = chain::LEADER;
+const LIMB: usize = chain::LIMB;
+const BOUGH: usize = chain::BOUGH;
+const SPRIG: usize = chain::SPRIG;
+const BRANCH: usize = chain::BRANCH;
+const TWIG: usize = chain::TWIG;
+const SHOOT: usize = chain::SHOOT;
+const SHORT: usize = chain::SHORT;
+const PAS: usize = chain::AGES;
 
 /// The 2/5 spiral of the oak's leaves and buds.
 const SPIRAL: f64 = 2.513;
@@ -34,8 +38,11 @@ fn zone(min: u32, max: u32, buds: u8, laterals: &[(usize, f64)]) -> Zone {
         lateral[pa] = p;
     }
     Zone {
-        nodes: NodeLaw::Uniform { min, max },
-        buds,
+        nodes: NodeLaw::Uniform {
+            min: f64::from(min),
+            max: f64::from(max),
+        },
+        buds: f64::from(buds),
         dormant: vec![0.0; lateral.len()],
         delay: 0.0,
         rate: 0.0,
@@ -53,19 +60,21 @@ fn sleeping(mut zone: Zone, p: f64) -> Zone {
 }
 
 /// The neutral state every row below starts from.
-fn state(lifespan: u32, next: Option<usize>, zones: Vec<Zone>) -> PaState {
+fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
     PaState {
-        lifespan,
-        next,
+        lifespan: f64::from(lifespan),
+        continuation,
         viability: 1.0,
         zones,
-        shedding: None,
+        shedding: f64::INFINITY,
         internode: 0.04,
         insertion: 0.0,
         divergence: SPIRAL,
         abortion: 0.0,
         abortion_rise: 0.0,
         relay: 0.0,
+        relay_ended: 0.0,
+        relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
         erection: 0.0,
@@ -126,11 +135,7 @@ pub fn oak() -> Species {
     let trunk = PaState {
         internode: 0.045,
         form: stem,
-        ..state(
-            12,
-            Some(FORK),
-            unit((4, 5), &[(SPRIG, 0.4)], (3, &[(SPRIG, 0.6)])),
-        )
+        ..state(12, 1.0, unit((4, 5), &[(SPRIG, 0.4)], (3, &[(SPRIG, 0.6)])))
     };
     // The fork: for two years the top cluster of each yearly shoot grows
     // out as limbs, so three or four limbs leave at two heights (K19's
@@ -138,11 +143,7 @@ pub fn oak() -> Species {
     let fork = PaState {
         internode: 0.045,
         form: stem,
-        ..state(
-            2,
-            Some(LEADER),
-            unit((3, 4), &[(SPRIG, 0.3)], (3, &[(LIMB, 0.55)])),
-        )
+        ..state(2, 1.0, unit((3, 4), &[(SPRIG, 0.3)], (3, &[(LIMB, 0.55)])))
     };
     // The stem carries on above the fork as a weaker leader for two
     // decades, bearing limbs now and then and boughs from its top
@@ -160,7 +161,7 @@ pub fn oak() -> Species {
         },
         ..state(
             19,
-            Some(LIMB),
+            1.0,
             unit(
                 (3, 4),
                 &[(SHORT, 0.25), (BRANCH, 0.4)],
@@ -179,12 +180,14 @@ pub fn oak() -> Species {
         // branches for years before they fall (fn-197 host decision 18;
         // estimated, an arborists' account, no measured persistence
         // found). An E-side value, reconciled with the oak's branch.
-        shedding: Some(5),
+        shedding: 5.0,
         insertion: 0.5,
         internode: 0.045,
         straightening: 0.15,
         abortion: 0.15,
         relay: 1.0,
+        relay_ended: 1.0,
+        relay_failed: 1.0,
         epitony: 0.2,
         form: Form {
             tropism: 0.5,
@@ -200,9 +203,10 @@ pub fn oak() -> Species {
             secondary: 1.0,
             bend_length: 3.0,
         },
+        // A limb grows for as long as an oak lives (500 years), then stops.
         ..state(
-            1_000,
-            None,
+            500,
+            0.0,
             unit(
                 (2, 3),
                 &[(SHORT, 0.25), (BRANCH, 0.45)],
@@ -225,9 +229,11 @@ pub fn oak() -> Species {
         insertion: 0.6,
         internode: 0.03,
         viability: 0.999,
-        shedding: Some(4),
+        shedding: 4.0,
         abortion: 0.1,
         relay: 1.0,
+        relay_ended: 1.0,
+        relay_failed: 1.0,
         epitony: 0.2,
         form: Form {
             tropism: 0.48,
@@ -242,7 +248,7 @@ pub fn oak() -> Species {
         },
         ..state(
             60,
-            None,
+            0.0,
             unit(
                 (2, 3),
                 &[(SHORT, 0.3), (BRANCH, 0.3)],
@@ -257,7 +263,7 @@ pub fn oak() -> Species {
         insertion: 0.7,
         internode: 0.07,
         viability: 0.95,
-        shedding: Some(3),
+        shedding: 3.0,
         form: Form {
             tropism: 0.5,
             elevation: 0.7,
@@ -274,7 +280,7 @@ pub fn oak() -> Species {
         },
         ..state(
             10,
-            Some(BRANCH),
+            1.0,
             unit(
                 (1, 2),
                 &[(SHORT, 0.3), (TWIG, 0.3)],
@@ -288,9 +294,11 @@ pub fn oak() -> Species {
         insertion: 0.8,
         internode: 0.017,
         viability: 0.98,
-        shedding: Some(3),
+        shedding: 3.0,
         abortion: 0.0,
         relay: 1.0,
+        relay_ended: 1.0,
+        relay_failed: 1.0,
         epitony: 0.2,
         form: Form {
             tropism: 0.33,
@@ -308,7 +316,7 @@ pub fn oak() -> Species {
         },
         ..state(
             12,
-            Some(SHOOT),
+            1.0,
             unit(
                 (1, 2),
                 &[(SHORT, 0.3), (TWIG, 0.18)],
@@ -323,7 +331,7 @@ pub fn oak() -> Species {
         insertion: 0.8,
         internode: 0.012,
         viability: 0.95,
-        shedding: Some(2),
+        shedding: 2.0,
         form: Form {
             tropism: 0.4,
             elevation: 0.2,
@@ -334,7 +342,7 @@ pub fn oak() -> Species {
         },
         ..state(
             3,
-            None,
+            0.0,
             unit((1, 1), &[(SHORT, 0.4)], (3, &[(TWIG, 0.0), (SHORT, 0.3)])),
         )
     };
@@ -343,7 +351,7 @@ pub fn oak() -> Species {
         insertion: 0.8,
         internode: 0.015,
         viability: 0.93,
-        shedding: Some(2),
+        shedding: 2.0,
         form: Form {
             tropism: 0.8,
             elevation: 0.2,
@@ -352,27 +360,30 @@ pub fn oak() -> Species {
             roll: 1.2,
             ..Form::default()
         },
-        ..state(
-            4,
-            None,
-            unit((1, 1), &[(SHORT, 0.3)], (2, &[(SHORT, 0.35)])),
-        )
+        ..state(4, 0.0, unit((1, 1), &[(SHORT, 0.3)], (2, &[(SHORT, 0.35)])))
     };
     // Short shoots: a few crowded leaves and a bud cluster, unbranched.
     let short = PaState {
         insertion: 0.9,
         internode: 0.006,
         viability: 0.9,
-        shedding: Some(2),
+        shedding: 2.0,
         form: Form {
             pipe: 0.00095,
             ..Form::default()
         },
-        ..state(3, None, vec![zone(3, 5, 1, &[])])
+        ..state(3, 0.0, vec![zone(3, 5, 1, &[])])
     };
-    Species {
-        states: vec![
-            trunk, fork, leader, limb, bough, sprig, branch, twig, shoot, short,
-        ],
-    }
+    on_chain(vec![
+        (TRUNK, trunk),
+        (FORK, fork),
+        (LEADER, leader),
+        (LIMB, limb),
+        (BOUGH, bough),
+        (SPRIG, sprig),
+        (BRANCH, branch),
+        (TWIG, twig),
+        (SHOOT, shoot),
+        (SHORT, short),
+    ])
 }

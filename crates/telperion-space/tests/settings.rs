@@ -67,7 +67,7 @@ fn the_settings_grow_the_expected_counts() {
     species.states[1].abortion_rise = 1.5;
     species.states[2].abortion = 0.2;
     species.states[2].relay = 0.5;
-    species.states[2].shedding = None;
+    species.states[2].shedding = f64::INFINITY;
     // Shallow insertions keep chains of relays above the ground.
     for state in &mut species.states {
         state.insertion = state.insertion.min(0.15);

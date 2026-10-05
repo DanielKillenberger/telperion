@@ -8,12 +8,665 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-206-tree-space-one-reference-axis-every",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-206-tree-space-one-reference-axis-every.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "ac3eafede2f586530d351c1cd0675f8e36e9ab2996ff2d925d8f0378326d4582",
+      "backend": "codex",
+      "base_sha": "29d416adc995fe4891cb62cf8d47887de71fc2ef",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-086747b810b66d41d69f29286dfd03bd",
+            "classification": "introduced",
+            "findingId": "finding-086747b810b66d41d69f29286dfd03bd",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6aefc88f96f389231a51d1aa0090c985",
+            "classification": "introduced",
+            "findingId": "finding-6aefc88f96f389231a51d1aa0090c985",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1070b2d6ebb7c6a04bcec2deb11da15d",
+            "classification": "introduced",
+            "findingId": "finding-1070b2d6ebb7c6a04bcec2deb11da15d",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "21aeb74d2804f3362d334a2b276d7ffd9d79127b",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 528783,
+      "output_sha256": "e69c649d0d1b00793929a2fc41bd673a142aed19071694387586876035070ded",
+      "reservation_id": "dbc51c49a10d406e9c02b18be1fe51e4",
+      "round_consumed": true,
+      "scope": "impl:fn-206-tree-space-one-reference-axis-every.1",
+      "superseded_by": null,
+      "task": "fn-206-tree-space-one-reference-axis-every.1",
+      "timestamp": "2026-10-05T11:23:27.963044Z",
+      "tool_calls": 27,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "eb5a5ab30fa92f051807444f62d3b16bc4073b6915097223ab01a4011c6cc237",
+      "backend": "codex",
+      "base_sha": "29d416adc995fe4891cb62cf8d47887de71fc2ef",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-fccd4f1dfec23bb47f926cf908e78fe8",
+            "classification": "introduced",
+            "findingId": "finding-fccd4f1dfec23bb47f926cf908e78fe8",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2c9a8958db81d6964eda39a8e93a3c35",
+            "classification": "introduced",
+            "findingId": "finding-2c9a8958db81d6964eda39a8e93a3c35",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ddf131540ba0d82ad750f1c34b5e628ddaf8dab6",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 471926,
+      "output_sha256": "fefab48dc7956d1d8647d174aa4bf29ee66e369360024eeb0e61d25a33cb6ab8",
+      "reservation_id": "9edc60ccf3df422686d23fc208c85442",
+      "round_consumed": true,
+      "scope": "impl:fn-206-tree-space-one-reference-axis-every.1",
+      "superseded_by": null,
+      "task": "fn-206-tree-space-one-reference-axis-every.1",
+      "timestamp": "2026-10-05T11:42:15.339160Z",
+      "tool_calls": 31,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "22b98b7ce0e5f6356aaacc750bd904154c65e5e40bd37a4b8c2812b47ac3dc73",
+      "backend": "codex",
+      "base_sha": "29d416adc995fe4891cb62cf8d47887de71fc2ef",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a834e33fa70e123ca89878e24aed9635",
+            "classification": "introduced",
+            "findingId": "finding-a834e33fa70e123ca89878e24aed9635",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-28b8b460dccdcc804c05ee512351824e",
+            "classification": "introduced",
+            "findingId": "finding-28b8b460dccdcc804c05ee512351824e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "170f5ecc776e41fa3ffb9d4e024b761ef82ea629",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 600363,
+      "output_sha256": "1c3fe5355397787a531d94f45b3458d1a76afa537a2a4e52c854118440379b96",
+      "reservation_id": "57147d81984c458fb24bb81fdc5cd9ff",
+      "round_consumed": true,
+      "scope": "impl:fn-206-tree-space-one-reference-axis-every.1",
+      "superseded_by": null,
+      "task": "fn-206-tree-space-one-reference-axis-every.1",
+      "timestamp": "2026-10-05T12:51:08.941114Z",
+      "tool_calls": 40,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "568ea15c8ab96afa863db8e363770768b43d60ccfe8881dfb22ca2f5f8467924",
+      "backend": "codex",
+      "base_sha": "29d416adc995fe4891cb62cf8d47887de71fc2ef",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-234b12d7c0172224f23102d6fa7ee754",
+            "classification": "introduced",
+            "findingId": "finding-234b12d7c0172224f23102d6fa7ee754",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7abbeb9666a54029a209249b8e5510a3",
+            "classification": "introduced",
+            "findingId": "finding-7abbeb9666a54029a209249b8e5510a3",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "45d816cff1d901fde7d61db2232fde4f4b23a6bb",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 612960,
+      "output_sha256": "6270bc46428343de9bff107989f6a05b53ce2c6178986e8287ee92f0b780c82e",
+      "reservation_id": "8701d6f66efe4f3eb5ceb13ca81ee57e",
+      "round_consumed": true,
+      "scope": "impl:fn-206-tree-space-one-reference-axis-every.1",
+      "superseded_by": null,
+      "task": "fn-206-tree-space-one-reference-axis-every.1",
+      "timestamp": "2026-10-05T13:10:08.511643Z",
+      "tool_calls": 54,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2a6e795808ca0bb4611380b885ccda00267e2573bab4c74e51466b1af0e79aa8",
+      "backend": "codex",
+      "base_sha": "29d416adc995fe4891cb62cf8d47887de71fc2ef",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-bf6073ac9c51b49a65e3ddada8de9efd",
+            "classification": "introduced",
+            "findingId": "finding-bf6073ac9c51b49a65e3ddada8de9efd",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1df785a4148b589e020ecd89ee805adc",
+            "classification": "introduced",
+            "findingId": "finding-1df785a4148b589e020ecd89ee805adc",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "a8f08fde6786b0c49584020a0b2a4d9951df9e98",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 645792,
+      "output_sha256": "8f856148e040e345c7876123559866ffa40355c475a072f927a40fa721a8b711",
+      "reservation_id": "9ac17bd4391d4092a4c06a59d9cf315a",
+      "round_consumed": true,
+      "scope": "impl:fn-206-tree-space-one-reference-axis-every.1",
+      "superseded_by": null,
+      "task": "fn-206-tree-space-one-reference-axis-every.1",
+      "timestamp": "2026-10-05T13:32:01.048783Z",
+      "tool_calls": 41,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "99346919f3bb2978b74d06bafa7a1af04d9629140e3b8985bbc6a8c477c6cc81",
+      "backend": "codex",
+      "base_sha": "29d416adc995fe4891cb62cf8d47887de71fc2ef",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-77c2eef58a910ea6caf5e3770cad8b8e",
+            "classification": "introduced",
+            "findingId": "finding-77c2eef58a910ea6caf5e3770cad8b8e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "70dcb869d9444ff7f09143813c68d64a6099a9d9",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 508423,
+      "output_sha256": "81df396bb6be2a692a7c50b7cdd8d17cd2d33152f6454b5deab2682f906bdfe9",
+      "reservation_id": "b0d915e44cc64c1897fd2890c2542f6b",
+      "round_consumed": true,
+      "scope": "impl:fn-206-tree-space-one-reference-axis-every.1",
+      "superseded_by": null,
+      "task": "fn-206-tree-space-one-reference-axis-every.1",
+      "timestamp": "2026-10-05T14:02:05.229356Z",
+      "tool_calls": 30,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "dd6c14c2709cfec281d05c4029b1a868fb5232f2c893c0754a2a35e5a3fd47d0",
+      "backend": "codex",
+      "base_sha": "29d416adc995fe4891cb62cf8d47887de71fc2ef",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6b538570513ee4b6138e27573eee8951",
+            "classification": "introduced",
+            "findingId": "finding-6b538570513ee4b6138e27573eee8951",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-90dc8687ac2b06b4d37bdd3f056c1c1c",
+            "classification": "introduced",
+            "findingId": "finding-90dc8687ac2b06b4d37bdd3f056c1c1c",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 3,
+      "head_sha": "d719474669e78ebc318adaa69d768854bb9a8a0f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 498666,
+      "output_sha256": "2d823ddc7f4480c06ac17c23e4defe2061aeebe9f062ab80fc2bbd04e087102a",
+      "reservation_id": "1d92d10a4bd14404b7379d68c86b3e55",
+      "round_consumed": true,
+      "scope": "impl:fn-206-tree-space-one-reference-axis-every.1",
+      "superseded_by": null,
+      "task": "fn-206-tree-space-one-reference-axis-every.1",
+      "timestamp": "2026-10-05T14:21:16.845012Z",
+      "tool_calls": 37,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "f5f6d869fba02fd462c8c86cd684152683fe0c064bc91d9f9eef69ade6fb5fc2",
+      "backend": "codex",
+      "base_sha": "29d416adc995fe4891cb62cf8d47887de71fc2ef",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-484fbeae3992e675830f6d25aa4fc85a",
+            "classification": "introduced",
+            "findingId": "finding-484fbeae3992e675830f6d25aa4fc85a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 3,
+      "head_sha": "c7548eb94efff84348bb3cec866e957f71d30c18",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 484945,
+      "output_sha256": "aaa22b47d6f3f6fe47ee227b784bf8909b07f70722254ea936c1365139e9d02c",
+      "reservation_id": "9fb9bf7225ec4abea1258acd7b68eb14",
+      "round_consumed": true,
+      "scope": "impl:fn-206-tree-space-one-reference-axis-every.1",
+      "superseded_by": null,
+      "task": "fn-206-tree-space-one-reference-axis-every.1",
+      "timestamp": "2026-10-05T14:45:23.082006Z",
+      "tool_calls": 27,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "94e118a049bb529e968f48bd00df61e87891e3a2ad2ed34e25c4c3ea1230193f",
+      "backend": "codex",
+      "base_sha": "29d416adc995fe4891cb62cf8d47887de71fc2ef",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-230b8c2c24dbb067ea041336b823fdd1",
+            "classification": "introduced",
+            "findingId": "finding-230b8c2c24dbb067ea041336b823fdd1",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5bf41d4417dabfef8ab8ff32461b1172",
+            "classification": "introduced",
+            "findingId": "finding-5bf41d4417dabfef8ab8ff32461b1172",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 4,
+      "head_sha": "a699646939cf955e7af6a4f1844446fe3386ed26",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 621821,
+      "output_sha256": "1cb0c7a5d7419e5aea053575f81bbf6d47ddac37d0276b3d806cae1de4b32322",
+      "reservation_id": "36d22e81f7d7421cbf8840903ece66b3",
+      "round_consumed": true,
+      "scope": "impl:fn-206-tree-space-one-reference-axis-every.1",
+      "superseded_by": null,
+      "task": "fn-206-tree-space-one-reference-axis-every.1",
+      "timestamp": "2026-10-05T15:09:36.342991Z",
+      "tool_calls": 39,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "c0a77ebc00874cdcab2f0fa652103c2e583ab8eb5855901c9d6f27903f796b53",
+      "backend": "codex",
+      "base_sha": "29d416adc995fe4891cb62cf8d47887de71fc2ef",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 4,
+      "head_sha": "fd7d9ffe0519ef6473dc67c373477c4f9d684e5c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 744006,
+      "output_sha256": "ec4ccbab2092a84e9e765d594eeb2636aea9fe6a93fd45aec10e78649b087734",
+      "reservation_id": "d2da8d7de2b64140901fc1eacb35111b",
+      "round_consumed": true,
+      "scope": "impl:fn-206-tree-space-one-reference-axis-every.1",
+      "superseded_by": null,
+      "task": "fn-206-tree-space-one-reference-axis-every.1",
+      "timestamp": "2026-10-05T15:16:42.364848Z",
+      "tool_calls": 41,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d8abf570dca516a578a49a11aa75c79e716df9015e44f365fbf764e3340585fb",
+      "backend": "codex",
+      "base_sha": "986a16a101f6f88881cfb7cd74152647ea4c0ab0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-677653464d748bf5d9aedec3dea9a30c",
+            "classification": "introduced",
+            "findingId": "finding-677653464d748bf5d9aedec3dea9a30c",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-db778ad28dd75449c0281662dfdccc5c",
+            "classification": "introduced",
+            "findingId": "finding-db778ad28dd75449c0281662dfdccc5c",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 5,
+      "head_sha": "019a98b1be3cc8161886ae3a758c0b88627bbef3",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 592057,
+      "output_sha256": "998968f30b226d3c3fb5ac1ce729add81b376027b2218f49ccd182989e5a48f1",
+      "reservation_id": "9c9730614f63406fb91680fde17c6fea",
+      "round_consumed": true,
+      "scope": "impl:fn-206-tree-space-one-reference-axis-every.1",
+      "superseded_by": null,
+      "task": "fn-206-tree-space-one-reference-axis-every.1",
+      "timestamp": "2026-10-05T16:46:11.410735Z",
+      "tool_calls": 35,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d412016d62a89c77053affecfe957e45ac967cf33435ec97b4585478ce662daf",
+      "backend": "codex",
+      "base_sha": "986a16a101f6f88881cfb7cd74152647ea4c0ab0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e6f6c81bc5231970d169e7a00a61fe10",
+            "classification": "introduced",
+            "findingId": "finding-e6f6c81bc5231970d169e7a00a61fe10",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 5,
+      "head_sha": "1701baf6fb9512fd13e5b1acd12df5a9b0cb4484",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 552881,
+      "output_sha256": "e0b3a08e5409414bde2e4f8b5540fdd4cb11a6dc031bc82125ff37383f49a1f2",
+      "reservation_id": "f8767c49abf0472082c68e1561f9b4f7",
+      "round_consumed": true,
+      "scope": "impl:fn-206-tree-space-one-reference-axis-every.1",
+      "superseded_by": null,
+      "task": "fn-206-tree-space-one-reference-axis-every.1",
+      "timestamp": "2026-10-05T17:20:28.551269Z",
+      "tool_calls": 38,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "7f12820846bb651bb39a9aecd73b8dad826bbc734ef11d747afe37c6337975d2",
+      "backend": "codex",
+      "base_sha": "986a16a101f6f88881cfb7cd74152647ea4c0ab0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 6,
+      "head_sha": "bc832d126cef62195dac47e19220f37768bb3eac",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 629997,
+      "output_sha256": "eed8d1fe8eb8474839a6629eecca44a0f0e369ca494c9d17544528df77d82945",
+      "reservation_id": "f90664a3ec6b4a7598d95727f8306282",
+      "round_consumed": true,
+      "scope": "impl:fn-206-tree-space-one-reference-axis-every.1",
+      "superseded_by": null,
+      "task": "fn-206-tree-space-one-reference-axis-every.1",
+      "timestamp": "2026-10-05T17:44:26.512596Z",
+      "tool_calls": 41,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-206-tree-space-one-reference-axis-every.1": 7,
+    "plan": 6,
+    "plan#completion": 6
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-206-tree-space-one-reference-axis-every.1": 0
+  },
   "spec_path": ".flow/specs/fn-206-tree-space-one-reference-axis-every.md",
   "status": "open",
   "title": "Tree space: one reference axis, every setting by degree",
@@ -28,5 +681,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T04:24:21.480888Z"
+  "updated_at": "2026-10-05T17:44:26.528179Z"
 }

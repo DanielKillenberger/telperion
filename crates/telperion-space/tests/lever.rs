@@ -5,8 +5,8 @@ use telperion_space::{grow, Form, NodeLaw, PaState, Request, Species, Structure,
 
 fn zone(lateral: Vec<f64>, buds: u8) -> Zone {
     Zone {
-        nodes: NodeLaw::Uniform { min: 1, max: 1 },
-        buds,
+        nodes: NodeLaw::Uniform { min: 1.0, max: 1.0 },
+        buds: f64::from(buds),
         dormant: vec![0.0; lateral.len()],
         delay: 0.0,
         rate: 0.0,
@@ -26,18 +26,27 @@ struct Bough {
 /// A pole `height` m tall bearing one long branch that leaves it near
 /// level, with twigs on both sides, under `sag`.
 fn tree(height: f64, sag: f64, seed: u64, bough: Bough) -> Structure {
+    grown(height, sag, seed, bough, (0.8, 0.8))
+}
+
+/// The same tree with each bud place bearing a twig by chance `twigs.0`,
+/// each twig rolled by up to `twigs.1`: certain and unrolled, it is the
+/// same tree under every key.
+fn grown(height: f64, sag: f64, seed: u64, bough: Bough, twigs: (f64, f64)) -> Structure {
     let pole = PaState {
-        lifespan: 1,
-        next: None,
+        lifespan: 1.0,
+        continuation: 0.0,
         viability: 1.0,
         zones: vec![zone(vec![0.0, 1.0, 0.0], 1)],
-        shedding: None,
+        shedding: f64::INFINITY,
         internode: height,
         insertion: 0.0,
         divergence: 0.0,
         abortion: 0.0,
         abortion_rise: 0.0,
         relay: 0.0,
+        relay_ended: 0.0,
+        relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
         erection: 0.0,
@@ -59,8 +68,8 @@ fn tree(height: f64, sag: f64, seed: u64, bough: Bough) -> Structure {
         },
     };
     let branch = PaState {
-        lifespan: 1_000,
-        zones: vec![zone(vec![0.0, 0.0, 0.8], 2)],
+        lifespan: 100.0,
+        zones: vec![zone(vec![0.0, 0.0, twigs.0], 2)],
         internode: 0.05,
         insertion: 1.5,
         divergence: std::f64::consts::PI,
@@ -71,14 +80,14 @@ fn tree(height: f64, sag: f64, seed: u64, bough: Bough) -> Structure {
             pipe: 0.0008,
             exponent: 2.2,
             ripening: 10.0,
-            roll: 0.8,
+            roll: twigs.1,
             sag,
             ..Form::default()
         },
         ..pole.clone()
     };
     let twig = PaState {
-        lifespan: 6,
+        lifespan: 6.0,
         zones: vec![zone(vec![0.0, 0.0, 0.0], 1)],
         internode: 0.05,
         insertion: 0.9,
@@ -199,9 +208,11 @@ fn a_light_branch_bends_as_the_small_deflection_beam_does() {
         elevation: 0.0,
         wander: 0.0,
     };
-    let plain = directions(&tree(10.0, 0.0, 1, still));
+    // Every place bears a twig, unrolled: a tree no key moves.
+    let certain = |sag: f64| grown(10.0, sag, 1, still, (1.0, 0.0));
+    let plain = directions(&certain(0.0));
     let bends = |sag: f64| -> Vec<f64> {
-        let bent = directions(&tree(10.0, sag, 1, still));
+        let bent = directions(&certain(sag));
         plain
             .iter()
             .zip(&bent)
@@ -210,10 +221,10 @@ fn a_light_branch_bends_as_the_small_deflection_beam_does() {
     };
     let (one, two) = (bends(1e-6), bends(2e-6));
     // Every tenth internode's bend under fn-200's small-deflection sag
-    // (commit 0706c79c), the reference: the corrected bend stays within
-    // one percent of it.
+    // (commit 0706c79c, run on this certain tree for fn-206), the
+    // reference: the corrected bend stays within one percent of it.
     let reference = [
-        0.000924, 0.009364, 0.016523, 0.022312, 0.027202, 0.030718, 0.033358,
+        0.000807, 0.008268, 0.014627, 0.019900, 0.024110, 0.027292, 0.029568,
     ];
     for (k, (&ours, small)) in one.iter().step_by(10).zip(reference).enumerate() {
         assert!(

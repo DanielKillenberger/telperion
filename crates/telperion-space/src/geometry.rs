@@ -20,6 +20,10 @@ use lay::{lay, rotated, UP};
 pub(crate) use lay::{support, Layer, GROUND_TOLERANCE};
 use std::f64::consts::TAU;
 
+/// The sine of the lean below which a parent has too little of an upper
+/// side for epitony to turn its buds by all of it: about 11.5 degrees.
+const UPRIGHT: f64 = 0.2;
+
 /// Sizes every phytomer by its axis's vigour, its parent's scale and its
 /// unit's own size, and sets each relay's node.
 pub(crate) fn scale(structure: &mut Structure, species: &Species) {
@@ -70,8 +74,10 @@ pub(crate) fn place(
     // The trunk: the seed axis and what carries it on.
     let mut trunk = vec![false; structure.axes.len()];
     let reaches = reaches(&structure.axes);
+    let mut bends = Vec::with_capacity(structure.axes.len());
     for (i, &reach) in reaches.iter().enumerate() {
-        let (base, heading, side) = frame(&structure.axes, species, i);
+        let ends = |p: usize| layers[p].ends();
+        let (base, heading, side) = frame(&structure.axes, species, i, &ends);
         // A continuation or relay carries its bearer's wander on.
         let curve = match structure.axes[i].origin {
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
@@ -83,6 +89,16 @@ pub(crate) fn place(
         let state = &species.states[axis.pa];
         let years = f64::from(age.saturating_sub(axis.birth)) - axis.sleep;
         let bend = bend(axis, state, years);
+        bends.push(bend);
+        // A relay carries on the pulls of the axis it replaces, as far as it
+        // is still that axis's continuation, so one that has barely left
+        // the axis's line is laid as the axis would have gone on (fn-206).
+        let inherited = match axis.origin {
+            Origin::Relay { parent, .. } => {
+                layers[parent].handed((bends[parent], reaches[parent]), axis.blend)
+            }
+            _ => Vec::new(),
+        };
         trunk[i] = match axis.origin {
             Origin::Seed => true,
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => trunk[parent],
@@ -102,7 +118,7 @@ pub(crate) fn place(
         }
         let layer = lay(
             axis,
-            ((base, heading, side), curve),
+            ((base, heading, side), curve, inherited),
             state,
             (bend, reach),
             load,
@@ -170,14 +186,24 @@ fn end(p: &Axis) -> (Vec3, Vec3, Vec3) {
         })
 }
 
-/// The base, heading and side of axis `i`, from its already placed parent.
-pub(crate) fn frame(axes: &[Axis], species: &Species, i: usize) -> (Vec3, Vec3, Vec3) {
+/// The base, heading and side of axis `i`, from its already placed parent
+/// and the running direction and side its parent's walk ended on (`ends`).
+pub(crate) fn frame(
+    axes: &[Axis],
+    species: &Species,
+    i: usize,
+    ends: &dyn Fn(usize) -> (Vec3, Vec3),
+) -> (Vec3, Vec3, Vec3) {
     let axis = &axes[i];
     match axis.origin {
         Origin::Seed => (Vec3::default(), UP, Vec3::new(1.0, 0.0, 0.0)),
         Origin::Continuation { parent } => {
             let p = &axes[parent];
-            let (base, heading, side) = end(p);
+            // On from the parent's tip in the running direction and side it
+            // ends on, where its pull towards the vertical has faded to
+            // none, so a last unit all but gone turns nothing (fn-206).
+            let (base, _, _) = end(p);
+            let (heading, side) = ends(parent);
             // The phyllotaxis runs on across the change of PA.
             let turn = species.states[p.pa].divergence * p.rank;
             let side = side * turn.cos() + heading.cross(side) * turn.sin();
@@ -196,8 +222,7 @@ pub(crate) fn frame(axes: &[Axis], species: &Species, i: usize) -> (Vec3, Vec3, 
             // Turned about its parent by its PA's roll, as its lineage keys.
             let roll = species.states[axis.pa].form.roll
                 * (2.0 * Key(axis.lineage).child(ROLL).unit() - 1.0);
-            let azimuth =
-                parent_state.divergence * at.rank + TAU * f64::from(slot) / f64::from(whorl) + roll;
+            let azimuth = parent_state.divergence * at.rank + TAU * f64::from(slot) / whorl + roll;
             let (heading, side) = turned(
                 (at.heading, at.side),
                 azimuth,
@@ -230,7 +255,10 @@ pub(crate) fn frame(axes: &[Axis], species: &Species, i: usize) -> (Vec3, Vec3, 
                 state.form.plane,
                 state.epitony,
             );
-            let (tip, along, across) = end(p);
+            // The axis's running direction and side at its tip, before its
+            // pull towards the vertical, which the relay carries on.
+            let (tip, _, _) = end(p);
+            let (along, across) = ends(parent);
             let turn = state.divergence * p.rank;
             let carried = across * turn.cos() + along.cross(across) * turn.sin();
             let b = axis.blend;
@@ -254,8 +282,8 @@ struct Point {
     rank: f64,
 }
 
-/// The point `share` of the way along the nodes of axis `p`'s last growth
-/// unit. The frame turns from one phytomer's direction to the next's along
+/// The point `share` of the way along axis `p`'s last growth unit, by its
+/// phytomers' scaled lengths. The frame turns from one phytomer's direction to the next's along
 /// each span, so the point's frame moves by degree as `share` does; at 1
 /// it is the last node and the frame of its phytomer, at 0 the base of the
 /// unit's first internode.
@@ -278,9 +306,26 @@ fn relay_point(p: &Axis, share: f64) -> Point {
         .iter()
         .position(|q| q.cycle == last)
         .unwrap_or(0);
-    let f = first as f64 + share * (n - first) as f64;
-    let k = (f.ceil() as usize).clamp(first + 1, n) - 1;
-    let t = (f - k as f64).clamp(0.0, 1.0);
+    // `share` of the unit's length, its phytomers by their scale, so a node
+    // growing in from nothing moves the point by nothing (fn-206).
+    let total: f64 = p.phytomers[first..].iter().map(|q| q.scale).sum();
+    let (k, t) = if total > 0.0 {
+        let target = share * total;
+        let mut before = 0.0;
+        let mut found = (n - 1, 1.0);
+        for (j, q) in p.phytomers.iter().enumerate().skip(first) {
+            if q.scale > 0.0 && before + q.scale >= target {
+                found = (j, ((target - before) / q.scale).clamp(0.0, 1.0));
+                break;
+            }
+            before += q.scale;
+        }
+        found
+    } else {
+        let f = first as f64 + share * (n - first) as f64;
+        let k = (f.ceil() as usize).clamp(first + 1, n) - 1;
+        (k, (f - k as f64).clamp(0.0, 1.0))
+    };
     let at = &p.phytomers[k];
     let start = if k == 0 {
         p.base
@@ -311,11 +356,15 @@ fn turned(
     let mut toward = side * azimuth.cos() + along.cross(side) * azimuth.sin();
     // Turned towards the upper side through the smaller angle; the turn
     // fades as the bud faces straight down, where no side is nearer, so
-    // no bud flips from one side to the other.
-    if let Some(upper) = (UP - along * UP.dot(along)).unit() {
+    // no bud flips from one side to the other, and as the parent stands
+    // upright, where its upper side is no side at all and its direction
+    // would swing with the least lean (fn-206).
+    let level = UP - along * UP.dot(along);
+    if let Some(upper) = level.unit() {
         let facing = toward.dot(upper);
         let turn = along.dot(toward.cross(upper)).atan2(facing);
-        toward = rotated(toward, along, epitony * turn * (1.0 + facing) / 2.0);
+        let sided = (level.length() / UPRIGHT).min(1.0);
+        toward = rotated(toward, along, epitony * sided * turn * (1.0 + facing) / 2.0);
     }
     let heading = along * angle.cos() + toward * angle.sin();
     let side = toward * angle.cos() - along * angle.sin();

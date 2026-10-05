@@ -73,7 +73,7 @@ fn without_what_later_years_add_the_rough_layout_is_the_final_one() {
         state.form.sag = 0.0;
         state.erection = 0.0;
         state.straightening = 0.0;
-        state.shedding = None;
+        state.shedding = f64::INFINITY;
     }
     let lit = request(25, 3, SHADING[1]);
     let laid = grow(&species, lit).unwrap();

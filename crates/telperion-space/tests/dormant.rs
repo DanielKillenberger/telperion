@@ -117,7 +117,7 @@ fn sleeping_buds_grow_the_expected_counts() {
     // A woken twig's rising hazard counts the years it slept.
     species.states[2].abortion_rise = 1.0;
     species.states[2].relay = 0.5;
-    species.states[2].shedding = None;
+    species.states[2].shedding = f64::INFINITY;
     // Woken twigs along the twigs too, so a bearer that relays carries them.
     let twig = &mut species.states[2].zones[0];
     twig.dormant[2] = 0.4;
@@ -137,6 +137,98 @@ fn sleeping_buds_grow_the_expected_counts() {
         .filter(|a| matches!(a.origin, Origin::Lateral { woken: true, .. }))
         .count();
     assert!(woken > 0, "buds wake");
+    for pa in 0..3 {
+        for cycle in 1..=age as usize {
+            let values: Vec<f64> = tables.iter().map(|t| t.get(pa, cycle)).collect();
+            let ours = Moments::of(&values);
+            let delta = (ours.mean - formula.get(pa, cycle)).abs();
+            assert!(
+                delta <= 4.5 * ours.errors().0 + 1e-12,
+                "PA {} cycle {cycle}: {delta} off ({} vs {})",
+                pa + 1,
+                ours.mean,
+                formula.get(pa, cycle)
+            );
+        }
+    }
+}
+
+/// A sleeping bud ages through the whole of the time it slept, the share
+/// of its waking cycle included, so it never wakes in a stage it has
+/// outlived (fn-206): with fractional lifespans, no phytomer grows at a
+/// negative share, and the engine's mean is the closed form's.
+#[test]
+fn a_bud_never_wakes_in_a_stage_it_outlived() {
+    let mut species = walk::species();
+    walk::sleeping(&mut species);
+    species.states[1].lifespan = 2.25;
+    species.states[2].lifespan = 1.5;
+    species.states[2].shedding = f64::INFINITY;
+    let limb = &mut species.states[1].zones[0];
+    (limb.delay, limb.rate) = (0.5, 8.0);
+    for state in &mut species.states {
+        state.insertion = state.insertion.min(0.15);
+    }
+    let age = 8;
+    let formula = expected_counts(&species, age).unwrap();
+    let trees: Vec<_> = (0..2000)
+        .map(|seed| common::tree(&species, age, seed))
+        .collect();
+    for tree in &trees {
+        let least = tree
+            .axes
+            .iter()
+            .flat_map(|a| &a.phytomers)
+            .map(|p| p.scale)
+            .fold(f64::INFINITY, f64::min);
+        assert!(least >= 0.0, "a phytomer at scale {least}");
+    }
+    let tables: Vec<_> = trees.iter().map(|t| t.counts()).collect();
+    for pa in 0..3 {
+        for cycle in 1..=age as usize {
+            let values: Vec<f64> = tables.iter().map(|t| t.get(pa, cycle)).collect();
+            let ours = Moments::of(&values);
+            let delta = (ours.mean - formula.get(pa, cycle)).abs();
+            assert!(
+                delta <= 4.5 * ours.errors().0 + 1e-12,
+                "PA {} cycle {cycle}: {delta} off ({} vs {})",
+                pa + 1,
+                ours.mean,
+                formula.get(pa, cycle)
+            );
+        }
+    }
+}
+
+/// A bud that wakes in a stage it enters within its waking year grows
+/// that stage from the waking, as far as the stage's lifespan reaches past
+/// the year (fn-206): the closed form keeps the stage's start within the
+/// year, and the engine's mean is its expectation.
+#[test]
+fn a_bud_waking_past_a_stage_boundary_grows_its_expected_counts() {
+    let mut species = walk::species();
+    for state in &mut species.states {
+        state.viability = 1.0;
+        state.abortion = 0.0;
+        state.relay = 0.0;
+        state.insertion = state.insertion.min(0.15);
+        for zone in &mut state.zones {
+            zone.lateral.iter_mut().for_each(|p| *p = 0.0);
+        }
+    }
+    species.states[0].zones[1].lateral[1] = 0.0;
+    let trunk = &mut species.states[0].zones[1];
+    trunk.dormant[1] = 1.0;
+    (trunk.delay, trunk.rate) = (0.8, 1.0);
+    let limb = &mut species.states[1];
+    (limb.lifespan, limb.continuation) = (0.25, 1.0);
+    let twig = &mut species.states[2];
+    (twig.lifespan, twig.continuation, twig.shedding) = (0.9, 0.0, f64::INFINITY);
+    let age = 5;
+    let formula = expected_counts(&species, age).unwrap();
+    let tables: Vec<_> = (0..4000)
+        .map(|seed| common::tree(&species, age, seed).counts())
+        .collect();
     for pa in 0..3 {
         for cycle in 1..=age as usize {
             let values: Vec<f64> = tables.iter().map(|t| t.get(pa, cycle)).collect();

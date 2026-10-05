@@ -1,9 +1,10 @@
 //! The shape measures a walk compares: total length, height, spread, and
 //! each branch's base, tip and own length by lineage, a relay counted with
-//! the axis it continues.
+//! the axis it continues, and a lineage two outcomes grew where both its
+//! chains stand, by their lengths.
 use super::Setting;
 use std::collections::HashMap;
-use telperion_space::{Structure, Vec3};
+use telperion_space::{Origin, Structure, Vec3};
 
 pub struct Shape {
     pub length: f64,
@@ -20,6 +21,10 @@ impl Shape {
             spread: 0.0,
             branches: HashMap::with_capacity(tree.axes.len()),
         };
+        // Each axis's chain: a relay carries its axis's lineage on, so the
+        // branch runs from the axis's base to the relay's tip.
+        let mut chain: Vec<usize> = Vec::with_capacity(tree.axes.len());
+        let mut chains: Vec<(u64, Vec3, Vec3, f64, f64)> = Vec::new();
         for axis in &tree.axes {
             let mut from = axis.base;
             let mut own = 0.0;
@@ -30,16 +35,59 @@ impl Shape {
                 from = p.tip;
             }
             shape.length += own;
-            // A relay carries its axis's lineage on: the branch runs from
-            // the axis's base to the relay's tip.
-            shape
-                .branches
-                .entry(axis.lineage)
-                .and_modify(|(_, tip, length)| {
-                    *tip = from;
-                    *length += own;
-                })
-                .or_insert((axis.base, from, own));
+            let relayed = match axis.origin {
+                Origin::Relay { parent, .. } if tree.axes[parent].lineage == axis.lineage => {
+                    Some(chain[parent])
+                }
+                _ => None,
+            };
+            match relayed {
+                Some(c) => {
+                    chain.push(c);
+                    chains[c].2 = from;
+                    chains[c].3 += own;
+                }
+                None => {
+                    // How present it is where it stands: its node's size.
+                    let presence = match axis.origin {
+                        Origin::Lateral { parent, node, .. } => tree.axes[parent]
+                            .phytomers
+                            .get(node)
+                            .map_or(1.0, |p| p.scale),
+                        _ => axis.vigour,
+                    };
+                    chain.push(chains.len());
+                    chains.push((axis.lineage, axis.base, from, own, presence));
+                }
+            }
+        }
+        // A lineage grown by both outcomes of a stop all but made (host
+        // decision 11) stands where its chains do, by their lengths, or
+        // where none has length yet, by how present each stands; so one
+        // growing in from nothing moves it by nothing.
+        type Sum = (Vec3, Vec3, f64, Vec3, Vec3, f64);
+        let mut sums: HashMap<u64, (Sum, Sum)> = HashMap::new();
+        for &(lineage, base, tip, own, presence) in &chains {
+            let zero = (Vec3::default(), Vec3::default(), 0.0, base, tip, 0.0);
+            let (by_length, by_presence) = sums.entry(lineage).or_insert((zero, zero));
+            for (sum, w) in [(by_length, own), (by_presence, presence)] {
+                sum.0 = sum.0 + base * w;
+                sum.1 = sum.1 + tip * w;
+                sum.2 += w;
+                sum.5 += own;
+            }
+        }
+        for (lineage, (by_length, by_presence)) in sums {
+            let own = by_length.5;
+            let at = |s: Sum| (s.0 * (1.0 / s.2), s.1 * (1.0 / s.2), own);
+            let at = if by_length.2 > 0.0 {
+                at(by_length)
+            } else if by_presence.2 > 0.0 {
+                at(by_presence)
+            } else {
+                (by_length.3, by_length.4, own)
+            };
+            shape.branches.insert(lineage, at);
         }
         shape
     }

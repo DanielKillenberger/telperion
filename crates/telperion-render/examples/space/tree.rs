@@ -82,20 +82,21 @@ fn joint(
         .unwrap_or(node)
 }
 
-/// Each species' trunk-level physiological ages, the trunk of its chain:
+/// Each species' trunk-level physiological ages on the shared reference
+/// axis (`telperion_space::chain`, fn-206), the trunk of its chain:
 /// only an axis of one of these, carried on from the trunk, is stem
 /// (fn-195 round 6, host decision 31). The oak's young stem, fork and
 /// leader (`oak.rs`); the beech's seedling stem, leader and fork
 /// (`beech.rs`); the spruce's seedling, sapling, trunk and crown leader
 /// (`spruce.rs`); the palm's one stem (`palm.rs`).
 #[allow(dead_code)] // each still example reads its own species's
-pub const OAK_TRUNK: [usize; 3] = [0, 1, 2];
+pub const OAK_TRUNK: [usize; 3] = [2, 3, 4];
 #[allow(dead_code)] // each still example reads its own species's
-pub const BEECH_TRUNK: [usize; 3] = [0, 1, 2];
+pub const BEECH_TRUNK: [usize; 3] = [2, 4, 5];
 #[allow(dead_code)] // each still example reads its own species's
-pub const SPRUCE_TRUNK: [usize; 4] = [0, 1, 2, 3];
+pub const SPRUCE_TRUNK: [usize; 4] = [0, 1, 2, 4];
 #[allow(dead_code)] // each still example reads its own species's
-pub const PALM_TRUNK: [usize; 1] = [0];
+pub const PALM_TRUNK: [usize; 1] = [2];
 
 /// The pipeline tree of `structure`. An axis is stem where it carries the
 /// trunk on at one of the species' `trunk` ages: a leader that turns into

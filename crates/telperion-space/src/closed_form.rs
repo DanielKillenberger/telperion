@@ -11,8 +11,10 @@
 //! a lateral that grows from the cycle it wakes in, weighted by the chance
 //! it wakes then and that its bearer is still carried on (`Living`).
 //! Shedding is outside the formula.
-use crate::dormant::{aged, wakes_in, First, Living};
+use crate::dormant::{stages, First, Living, Piece};
 use crate::error::{refuse, Result};
+use crate::presence::Windows;
+use crate::schedule::Carried;
 use crate::species::{Species, Zone};
 use crate::structure::CountTable;
 use std::collections::HashMap;
@@ -24,131 +26,178 @@ pub fn expected_counts(species: &Species, age: u32) -> Result<CountTable> {
         return refuse("age", "a tree grows at least one cycle");
     }
     let laterals: Vec<Vec<Vec<f64>>> = species.states.iter().map(|s| s.laterals()).collect();
+    // The tree's windows: an apex that all but stopped moving on grows its
+    // continuation and its relay, which count whole (host decision 13).
+    let windows = Windows::new(species, age);
     let mut memo = HashMap::new();
     let mut walk = Walk {
         species,
         laterals: &laterals,
         memo: &mut memo,
-        living: Living::new(species),
+        living: Living::new(species, Some(&windows)),
     };
-    Ok(walk.counts(0, age as usize, 0, None))
-}
-
-/// A bud's growth units in its PA before it transitions, having spent
-/// `spent` already: every bud grows at least one.
-pub(crate) fn units_left(lifespan: u32, spent: u32) -> usize {
-    lifespan.saturating_sub(spent).max(1) as usize
-}
-
-/// A carried count of spent units past the last that changes anything.
-pub(crate) fn spent_key(lifespan: u32, spent: u32) -> u32 {
-    spent.min(lifespan.saturating_sub(1))
+    Ok(walk.counts(0, age as usize, Carried::default(), None))
 }
 
 /// One step of a bud's development, as the recursion meets it.
 enum Event {
-    /// Phytomers of the bud's own PA grown in cycle `at`.
-    Nodes { at: usize, count: f64 },
-    /// A bud of `pa` born in cycle `at` with `spent` units, `weight` of them;
-    /// a woken one with the law of its partial first unit.
+    /// Phytomers of the bud's own PA grown in cycle `at`, each grown at
+    /// `size` of a whole unit's length (`schedule.rs`).
+    Nodes { at: usize, count: f64, size: f64 },
+    /// A bud of `pa` whose first unit grows in cycle `at + 1`, carrying
+    /// `carried`, `weight` of them, born at `size` (a lateral of a partial
+    /// unit's node); a woken one with the law of its partial first unit.
     Bud {
         at: usize,
         pa: usize,
-        spent: u32,
+        carried: Carried,
         weight: f64,
+        size: f64,
         first: Option<First>,
     },
 }
 
-/// Every event of a bud of PA `k` with `spent` units, `m` cycles after it
+/// Every event of a bud of PA `k` carrying `carried`, `m` cycles after it
 /// was made: its growth units, laterals, relays and continuation, each
-/// weighted by its expectation. A relay carries on the units spent.
+/// weighted by its expectation. A relay carries on the time spent; a unit
+/// that ends its age mid-cycle hands the rest of its cycle on (`schedule`).
 fn events(
     species: &Species,
     laterals: &[Vec<f64>],
     living: &mut Living,
-    (k, m, spent): (usize, usize, u32),
+    (k, m, carried): (usize, usize, Carried),
     first: Option<First>,
 ) -> Vec<Event> {
     let state = &species.states[k];
-    let n = units_left(state.lifespan, spent);
-    // A woken bud's abortion hazard counts the units it slept.
-    let aged = if first.is_some() { spent } else { 0 };
     let mut out = Vec::new();
-    let relay = |out: &mut Vec<Event>, at: usize, weight: f64, carried: usize| {
-        if weight * state.relay > 0.0 {
-            out.push(Event::Bud {
-                at,
-                pa: k,
-                spent: spent + carried as u32,
-                weight: weight * state.relay,
-                first: None,
-            });
-        }
-    };
+    // A relay carries on the time its axis has grown, which its abortion
+    // hazard counts (host decision 11).
+    // The relay of an age that `ended` grows a whole first unit.
+    let relay =
+        |out: &mut Vec<Event>, (at, spent, gone, ended): (usize, f64, f64, bool), weight: f64| {
+            if weight > 0.0 {
+                out.push(Event::Bud {
+                    at,
+                    pa: k,
+                    carried: Carried {
+                        spent,
+                        aged: carried.aged + spent - carried.spent,
+                        gone,
+                        relay: ended,
+                    },
+                    weight,
+                    size: 1.0,
+                    first: None,
+                });
+            }
+        };
     let mut survival = 1.0;
-    for i in 1..=m.min(n) {
+    for i in 1..=m {
+        let unit = carried.unit(state.lifespan, i);
+        let spent = unit.before + unit.share;
         // A woken bud's partial first unit runs its share of the year's
-        // risks (`First`).
+        // risks (`First`); a unit that shares its cycle, its share.
         let partial = first.filter(|_| i == 1);
         let before = survival;
-        let survive = partial.map_or(state.viability, |f| f.survive);
+        let survive = partial.map_or(shared(state.viability, unit.share), |f| f.survive);
         // A unit that failed is spent.
-        relay(&mut out, i, survival * (1.0 - survive), i);
+        relay(
+            &mut out,
+            (i, spent, 0.0, true),
+            survival * (1.0 - survive) * state.relay_failed,
+        );
         survival *= survive;
-        // The chance it then aborts.
+        // The chance it then aborts, its hazard counting the time grown.
+        let grown = carried.aged + spent - carried.spent;
         let abortion = match partial {
-            Some(f) if i < n && f.survive > 0.0 => 1.0 - f.persist / f.survive,
+            Some(f) if !unit.ends && f.survive > 0.0 => 1.0 - f.persist / f.survive,
             Some(_) => 0.0,
-            None if i < n => state.abortion_at(i + aged as usize),
+            None if !unit.ends => {
+                // Over the share of the age's next unit.
+                let exposure = carried.exposure(state.lifespan, i);
+                1.0 - shared(1.0 - state.abortion_at(grown), exposure)
+            }
             None => 0.0,
         };
         for (zone, lateral) in state.zones.iter().zip(laterals) {
             let nodes = survival * zone.nodes.mean();
+            // A partial unit counts its phytomers whole, at its share of
+            // their length; a woken bud's first unit as before, whole.
+            let size = if partial.is_some() { 1.0 } else { unit.share };
             out.push(Event::Nodes {
                 at: i,
                 count: nodes,
+                size,
             });
+            // Every bud place grows, the last a fraction's at its share of
+            // the size: counted whole, sized by the mean share.
+            let (places, shared) = zone_places(zone);
             for (j, &p) in lateral.iter().enumerate() {
-                let buds = nodes * f64::from(zone.buds) * p;
+                let buds = nodes * places * p;
                 if buds > 0.0 {
                     out.push(Event::Bud {
                         at: i,
                         pa: j,
-                        spent: 0,
+                        carried: Carried::default(),
                         weight: buds,
+                        size: size * shared,
                         first: None,
                     });
                 }
             }
-            let bearer = ((k, spent, aged), i, abortion);
-            sleeping(species, living, zone, nodes, bearer, m, &mut out);
+            let bearer = ((k, carried, m), i, abortion);
+            sleeping(species, living, zone, (nodes, size), bearer, m, &mut out);
         }
-        if i < n {
+        if !unit.ends {
             match partial {
                 None => {
-                    relay(&mut out, i, survival * abortion, i);
+                    relay(
+                        &mut out,
+                        (i, spent, 0.0, false),
+                        survival * abortion * state.relay,
+                    );
                     survival *= 1.0 - abortion;
                 }
                 Some(f) => {
-                    relay(&mut out, i, before * (f.survive - f.persist), i);
+                    let stopped = before * (f.survive - f.persist);
+                    relay(&mut out, (i, spent, 0.0, false), stopped * state.relay);
                     survival = before * f.persist;
                 }
             }
+            continue;
         }
-    }
-    match state.next {
-        Some(next) if m > n => out.push(Event::Bud {
-            at: n,
-            pa: next,
-            spent: 0,
-            weight: survival,
-            first: None,
-        }),
-        None if m >= n => relay(&mut out, n, survival, n),
-        _ => {}
+        // It moves on by its continuation, or stops and may relay, in this
+        // cycle where the age ended within it.
+        let (next, go) = species.successor(k).unwrap_or((k, 0.0));
+        let (onward, at) = unit.onward(i);
+        if m > at && go > 0.0 {
+            out.push(Event::Bud {
+                at,
+                pa: next,
+                carried: onward,
+                weight: survival * go,
+                size: 1.0,
+                first: None,
+            });
+        }
+        if m > at {
+            // And where it all but stopped, it grows its relay as well.
+            let both = living.borderline(k, m.saturating_sub(i), unit.used);
+            let ended = survival * ((1.0 - go) * state.relay_ended + both);
+            relay(&mut out, (at, spent, onward.gone, true), ended);
+        }
+        break;
     }
     out
+}
+
+/// A survival over a share of a cycle: to the share, itself whole.
+fn shared(p: f64, share: f64) -> f64 {
+    if share < 1.0 {
+        p.powf(share)
+    } else {
+        p
+    }
 }
 
 /// The sleeping buds of one zone's `nodes` on a growth unit of the bearer
@@ -159,43 +208,76 @@ fn sleeping(
     species: &Species,
     living: &mut Living,
     zone: &Zone,
-    nodes: f64,
-    (bearer, i, abortion): ((usize, u32, u32), usize, f64),
+    (nodes, size): (f64, f64),
+    (bearer, i, abortion): ((usize, Carried, usize), usize, f64),
     m: usize,
     out: &mut Vec<Event>,
 ) {
+    let (places, shared) = zone_places(zone);
     for (j, &p) in zone.dormant.iter().enumerate() {
-        let buds = nodes * f64::from(zone.buds) * p;
+        let buds = nodes * places * p;
         if buds <= 0.0 {
             continue;
         }
         for s in 0..(m - i) as u32 {
-            let wakes = wakes_in(zone, s);
-            let Some((pa, slept)) = aged(species, j, s).filter(|_| wakes > 0.0) else {
+            let pieces = stages(species, zone, j, s);
+            if pieces.is_empty() {
                 continue;
-            };
+            }
             // Its bearer carried on through the cycle it wakes in.
             let carried = living.after(bearer, i, i + 2 + s as usize, abortion);
-            out.push(Event::Bud {
-                at: i + s as usize,
+            // Each stage it may wake in over the year, by the part of the
+            // year that wakes it there. It ages its slept years in the
+            // stage, and its abortion hazard counts them; its first unit's
+            // time is a whole cycle's.
+            for Piece {
+                within,
+                wakes,
                 pa,
-                spent: slept,
-                weight: buds * wakes * carried,
-                first: Some(First::of(species, zone, s, (pa, slept))),
-            });
+                slept,
+                reach,
+            } in pieces
+            {
+                let woken = Carried {
+                    spent: slept,
+                    aged: slept,
+                    ..Carried::default()
+                };
+                out.push(Event::Bud {
+                    at: i + s as usize,
+                    pa,
+                    carried: woken,
+                    // It reaches its stage at a share of its size, as the
+                    // grower grows it; it is counted whole.
+                    weight: buds * wakes * carried,
+                    size: size * shared * reach,
+                    first: Some(First::of(species, zone, (s, within), (pa, slept))),
+                });
+            }
         }
     }
 }
 
-/// A substructure: its PA, cycles, units carried, and the law of a woken
-/// bud's first unit.
-type Sub = (usize, usize, u32, Option<(u64, u64)>);
+/// A zone's bud places per node, every one grown, and their mean share
+/// of a whole place's size.
+fn zone_places(zone: &Zone) -> (f64, f64) {
+    let places = zone.places() as f64;
+    if places > 0.0 {
+        (places, zone.buds / places)
+    } else {
+        (0.0, 0.0)
+    }
+}
 
-fn sub(k: usize, m: usize, spent: u32, first: Option<First>) -> Sub {
+/// A substructure: its PA, cycles, what it carries, and the law of a woken
+/// bud's first unit.
+type Sub = (usize, usize, (u64, u64, u64, bool), Option<(u64, u64)>);
+
+fn sub(species: &Species, k: usize, m: usize, carried: Carried, first: Option<First>) -> Sub {
     (
         m,
         k,
-        spent,
+        carried.key(species.states[k].lifespan),
         first.map(|f| (f.survive.to_bits(), f.persist.to_bits())),
     )
 }
@@ -208,9 +290,24 @@ struct Walk<'a, T> {
 }
 
 impl Walk<'_, CountTable> {
-    fn counts(&mut self, k: usize, m: usize, spent: u32, first: Option<First>) -> CountTable {
-        let spent = spent_key(self.species.states[k].lifespan, spent);
-        let key = sub(k, m, spent, first);
+    fn counts(&mut self, k: usize, m: usize, carried: Carried, first: Option<First>) -> CountTable {
+        // A bud of an age passed through grows in the next it lives in, at
+        // the share of its size that reaches it, as the grower grows it:
+        // counted whole (Codex round 5 on fn-206).
+        let Some((k, _)) = self.species.lived(k) else {
+            return CountTable::new(self.species.states.len(), m);
+        };
+        self.lived_counts(k, m, carried, first)
+    }
+
+    fn lived_counts(
+        &mut self,
+        k: usize,
+        m: usize,
+        carried: Carried,
+        first: Option<First>,
+    ) -> CountTable {
+        let key = sub(self.species, k, m, carried, first);
         if let Some(table) = self.memo.get(&key) {
             return table.clone();
         }
@@ -219,19 +316,20 @@ impl Walk<'_, CountTable> {
             self.species,
             &self.laterals[k],
             &mut self.living,
-            (k, m, spent),
+            (k, m, carried),
             first,
         ) {
             match event {
-                Event::Nodes { at, count } => table.add(k, at, count),
+                Event::Nodes { at, count, .. } => table.add(k, at, count),
                 Event::Bud {
                     at,
                     pa,
-                    spent,
+                    carried,
                     weight,
                     first,
+                    ..
                 } => {
-                    let sub = self.counts(pa, m - at, spent, first);
+                    let sub = self.counts(pa, m - at, carried, first);
                     add_shifted(&mut table, &sub, at, weight);
                 }
             }
@@ -244,12 +342,24 @@ impl Walk<'_, CountTable> {
 impl Walk<'_, f64> {
     /// The log of the expected metres a bud grows: each phytomer its
     /// internode.
-    fn log_length(&mut self, k: usize, m: usize, spent: u32, first: Option<First>) -> f64 {
-        let spent = spent_key(self.species.states[k].lifespan, spent);
+    fn log_length(&mut self, k: usize, m: usize, carried: Carried, first: Option<First>) -> f64 {
+        let Some((k, reach)) = self.species.lived(k) else {
+            return f64::NEG_INFINITY;
+        };
+        reach.ln() + self.lived_log_length(k, m, carried, first)
+    }
+
+    fn lived_log_length(
+        &mut self,
+        k: usize,
+        m: usize,
+        carried: Carried,
+        first: Option<First>,
+    ) -> f64 {
         if m == 0 {
             return f64::NEG_INFINITY;
         }
-        let key = sub(k, m, spent, first);
+        let key = sub(self.species, k, m, carried, first);
         if let Some(&log) = self.memo.get(&key) {
             return log;
         }
@@ -259,20 +369,21 @@ impl Walk<'_, f64> {
             self.species,
             &self.laterals[k],
             &mut self.living,
-            (k, m, spent),
+            (k, m, carried),
             first,
         ) {
             match event {
-                Event::Nodes { count, .. } => length.add(count * internode, 0.0),
+                Event::Nodes { count, size, .. } => length.add(count * size * internode, 0.0),
                 Event::Bud {
                     at,
                     pa,
-                    spent,
+                    carried,
                     weight,
+                    size,
                     first,
                 } => {
-                    let sub = self.log_length(pa, m - at, spent, first);
-                    length.add(weight, sub);
+                    let sub = self.log_length(pa, m - at, carried, first);
+                    length.add(weight * size, sub);
                 }
             }
         }
@@ -293,12 +404,12 @@ pub(crate) fn expected_log_lengths(species: &Species, age: u32) -> Vec<Vec<f64>>
         species,
         laterals: &laterals,
         memo: &mut memo,
-        living: Living::new(species),
+        living: Living::new(species, None),
     };
     (0..=age as usize)
         .map(|m| {
             (0..species.states.len())
-                .map(|k| walk.log_length(k, m, 0, None))
+                .map(|k| walk.log_length(k, m, Carried::default(), None))
                 .collect()
         })
         .collect()
@@ -339,72 +450,4 @@ fn add_shifted(table: &mut CountTable, sub: &CountTable, born: usize, weight: f6
 }
 
 #[cfg(test)]
-mod tests {
-    use super::{expected_counts, expected_log_lengths};
-    use crate::species::{Form, NodeLaw, PaState, Species, Zone};
-
-    /// The expected length is the expected counts weighted by internode,
-    /// with every setting away from neutral.
-    #[test]
-    fn the_expected_length_weighs_the_expected_counts() {
-        let state = |next, internode, lateral: [f64; 2]| PaState {
-            lifespan: 3,
-            next,
-            viability: 0.9,
-            zones: vec![
-                Zone {
-                    nodes: NodeLaw::Poisson { mean: 1.5 },
-                    buds: 2,
-                    dormant: vec![0.0; lateral.len()],
-                    delay: 0.0,
-                    rate: 0.0,
-                    lateral: lateral.to_vec(),
-                },
-                Zone {
-                    nodes: NodeLaw::Uniform { min: 1, max: 2 },
-                    buds: 1,
-                    dormant: vec![0.0; 2],
-                    delay: 0.0,
-                    rate: 0.0,
-                    lateral: vec![0.0, 0.2],
-                },
-            ],
-            shedding: None,
-            internode,
-            insertion: 0.5,
-            divergence: 2.4,
-            abortion: 0.2,
-            abortion_rise: 0.0,
-            relay: 0.4,
-            relay_at: 1.0,
-            epitony: 0.0,
-            erection: 0.0,
-            readiness: 0.8,
-            rhythm: 0.6,
-            leaf_area: 0.0,
-            shade_hazard: 0.0,
-            shade_size: 0.0,
-            apical_control: 0.5,
-            upkeep: 0.0,
-            balance_hazard: 0.0,
-            tolerance: 0.0,
-            retained: 0.0,
-            leaf_girth: 0.0,
-            straightening: 0.0,
-            form: Form::default(),
-        };
-        let species = Species {
-            states: vec![
-                state(Some(1), 0.7, [0.1, 0.5]),
-                state(None, 0.3, [0.0, 0.3]),
-            ],
-        };
-        let counts = expected_counts(&species, 7).unwrap();
-        let weighed = counts.total(0) * 0.7 + counts.total(1) * 0.3;
-        let length = expected_log_lengths(&species, 7)[7][0].exp();
-        assert!(
-            (length - weighed).abs() < 1e-9 * weighed,
-            "{length} vs {weighed}"
-        );
-    }
-}
+mod tests;

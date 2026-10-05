@@ -5,19 +5,22 @@
 //! `.flow/evidence/fn-193-tree-space-c-the-beech-as-the-first/SOURCES.md`;
 //! a value no source gives for a mature open-grown beech is marked there
 //! as estimated.
+use crate::chain::{self, on_chain};
 use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use std::f64::consts::{FRAC_PI_2, PI};
 
-/// The reference axis, youngest first.
-const LEADER: usize = 1;
-const FORK: usize = 2;
-const LIMB: usize = 3;
-const BOUGH: usize = 4;
-const SPUR: usize = 5;
-const BRANCH: usize = 6;
-const SHOOT: usize = 7;
-const SHORT: usize = 8;
-const PAS: usize = 9;
+/// The beech's ages on the shared reference axis (`chain.rs`), youngest
+/// first: its spur stands at the chain's sprig, its fork at the top fork.
+const TRUNK: usize = chain::TRUNK;
+const LEADER: usize = chain::LEADER;
+const FORK: usize = chain::TOP_FORK;
+const LIMB: usize = chain::LIMB;
+const BOUGH: usize = chain::BOUGH;
+const SPUR: usize = chain::SPRIG;
+const BRANCH: usize = chain::BRANCH;
+const SHOOT: usize = chain::SHOOT;
+const SHORT: usize = chain::SHORT;
+const PAS: usize = chain::AGES;
 
 /// One zone: nodes from `min` to `max`, one bud each, bearing `pa` with
 /// probability `p` (bare where `p` is 0).
@@ -27,8 +30,11 @@ fn zone(min: u32, max: u32, laterals: &[(usize, f64)]) -> Zone {
         lateral[pa] = p;
     }
     Zone {
-        nodes: NodeLaw::Uniform { min, max },
-        buds: 1,
+        nodes: NodeLaw::Uniform {
+            min: f64::from(min),
+            max: f64::from(max),
+        },
+        buds: 1.0,
         dormant: vec![0.0; lateral.len()],
         delay: 0.0,
         rate: 0.0,
@@ -37,19 +43,21 @@ fn zone(min: u32, max: u32, laterals: &[(usize, f64)]) -> Zone {
 }
 
 /// The neutral state every row below starts from.
-fn state(lifespan: u32, next: Option<usize>, zones: Vec<Zone>) -> PaState {
+fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
     PaState {
-        lifespan,
-        next,
+        lifespan: f64::from(lifespan),
+        continuation,
         viability: 1.0,
         zones,
-        shedding: None,
+        shedding: f64::INFINITY,
         internode: 0.04,
         insertion: 0.0,
         divergence: PI,
         abortion: 0.0,
         abortion_rise: 0.0,
         relay: 0.0,
+        relay_ended: 0.0,
+        relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
         erection: 0.0,
@@ -90,6 +98,8 @@ pub fn beech() -> Species {
         abortion: 0.5,
         abortion_rise: 0.0,
         relay: 1.0,
+        relay_ended: 1.0,
+        relay_failed: 1.0,
         relay_at: 0.15,
         epitony: 0.6,
         erection: 0.1,
@@ -110,7 +120,7 @@ pub fn beech() -> Species {
         },
         ..state(
             9,
-            Some(LEADER),
+            1.0,
             vec![
                 zone(3, 4, &[]),
                 zone(2, 3, &[(BRANCH, 0.35)]),
@@ -129,7 +139,7 @@ pub fn beech() -> Species {
         },
         ..state(
             2,
-            None,
+            0.0,
             vec![
                 zone(2, 3, &[]),
                 zone(2, 2, &[(LIMB, 0.3), (BOUGH, 0.5)]),
@@ -159,7 +169,7 @@ pub fn beech() -> Species {
         },
         ..state(
             lifespan,
-            None,
+            0.0,
             vec![
                 zone(2, 3, &[]),
                 zone(2, 3, &[(SHORT, 0.3), (BRANCH, 0.27)]),
@@ -175,6 +185,8 @@ pub fn beech() -> Species {
     let module = |reiterate: PaState, (abortion, elevation)| PaState {
         abortion,
         relay: 1.0,
+        relay_ended: 1.0,
+        relay_failed: 1.0,
         relay_at: 0.15,
         epitony: 0.6,
         straightening: 0.6,
@@ -191,7 +203,7 @@ pub fn beech() -> Species {
     let leader = PaState {
         viability: 1.0,
         straightening: 1.0,
-        next: Some(FORK),
+        continuation: 1.0,
         ..module(
             reiterate(40, &[(LIMB, 0.3), (BOUGH, 0.2)], (0.0, 0.0)),
             (0.3, 1.35),
@@ -206,7 +218,7 @@ pub fn beech() -> Species {
     let branch = PaState {
         insertion: 1.0,
         viability: 0.95,
-        shedding: Some(1),
+        shedding: 1.0,
         internode: 0.03,
         form: Form {
             tropism: 0.8,
@@ -224,12 +236,13 @@ pub fn beech() -> Species {
         },
         ..state(
             10,
-            Some(SHOOT),
+            1.0,
             vec![
                 zone(1, 2, &[]),
                 zone(2, 3, &[(SHORT, 0.7)]),
-                zone(1, 2, &[(SHOOT, 0.65)]),
+                // The top, then the spare, which stands below it.
                 zone(1, 1, &[(BRANCH, 0.08)]),
+                zone(1, 2, &[(SHOOT, 0.65)]),
             ],
         )
     };
@@ -237,7 +250,7 @@ pub fn beech() -> Species {
     let shoot = PaState {
         insertion: 1.0,
         viability: 0.95,
-        shedding: Some(1),
+        shedding: 1.0,
         internode: 0.025,
         form: Form {
             tropism: 1.0,
@@ -253,14 +266,14 @@ pub fn beech() -> Species {
             secondary: 1.0,
             bend_length: 0.0,
         },
-        ..state(5, None, vec![zone(1, 1, &[]), zone(2, 3, &[(SHORT, 0.6)])])
+        ..state(5, 0.0, vec![zone(1, 1, &[]), zone(2, 3, &[(SHORT, 0.6)])])
     };
     // GreenLab's PA 4: a short shoot of three to five metamers that never
     // branches.
     let short = PaState {
         insertion: 0.9,
         viability: 0.9,
-        shedding: Some(1),
+        shedding: 1.0,
         internode: 0.006,
         form: Form {
             tropism: 0.0,
@@ -276,9 +289,17 @@ pub fn beech() -> Species {
             secondary: 1.0,
             bend_length: 0.0,
         },
-        ..state(3, None, vec![zone(3, 5, &[])])
+        ..state(3, 0.0, vec![zone(3, 5, &[])])
     };
-    Species {
-        states: vec![trunk, leader, fork, limb, bough, spur, branch, shoot, short],
-    }
+    on_chain(vec![
+        (TRUNK, trunk),
+        (LEADER, leader),
+        (FORK, fork),
+        (LIMB, limb),
+        (BOUGH, bough),
+        (SPUR, spur),
+        (BRANCH, branch),
+        (SHOOT, shoot),
+        (SHORT, short),
+    ])
 }
