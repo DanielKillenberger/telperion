@@ -313,3 +313,22 @@ The host accepts the recommendation: an L2 Beer–Lambert grid, read through P1,
    - The balance's shed hazard likewise rises continuously as the remembered average falls.
    - Both are walk-tested, with a red-first test: the multiplicative form viability · I^φ against the walk bound, if it fails as section 6 predicts.
 6. **Per-stage timings go into the engine's measures example** (growth, rough layout, light sweep, final lay) as part of step 2. This closes the 2026-10-05 friction entry, and cost is tracked from then on.
+
+## 9. Host decisions after step 3 (host, 2026-10-05)
+
+Step 3 found that light only subtracts, and that the rough layout without sag misjudges the shade (STEP3.md).
+
+7. **Relative allocation fills the outline** (Borchert–Honda, as Pałubicki 2009 uses it). It replaces ψ's absolute form.
+   - A shoot's size scales by its light relative to its siblings on the same bearer: (I / Ī)^ψ, where Ī is the bearer's presence-weighted mean over its growing buds that cycle.
+   - The bearer's total is conserved by construction, so lit buds facing a gap outgrow shaded ones and grow into it.
+   - ψ = 0 is neutral. Ī is a smooth mean, and no bud is excluded by a threshold.
+   - Oracle: Pałubicki's allocation on two sibling buds, one shaded. The lit one's share rises with ψ, and the sum is unchanged.
+   - φ stays the hazard on deeply shaded shoots: the dome is expected from ψ, with φ cleaning the interior. No phototropism, which made columns in fn-190.
+8. **The re-lay with sag is built now:** a periodic full lay with sag every K cycles.
+   - Light reads the latest full lay, plus the rough layout for growth since then.
+   - K is chosen by cost and measured: the gap shrink and the time.
+   - K is a fixed engine constant, so no walk crosses it. A walk of any setting stays within the bound with the re-lay on.
+9. **The sky flag is accepted as continuous but steep.**
+   - The walk test's refine depth becomes 6 for every walk: a jump does not shrink under refinement, a steep crossing does.
+   - Neither the window nor the bound is widened.
+10. **Sag's foliage term and light's `leaf_area` stay separate:** neutrality wins. They are two estimates of one thing, to be unified when E re-judges each species (R3).

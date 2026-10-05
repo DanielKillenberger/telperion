@@ -24,15 +24,15 @@ The options and the reasons are in `.flow/evidence/fn-197-tree-space-e-light-and
   - Deposits and reads use trilinear weights.
   - The field is swept once per cycle along a few sky directions, and every bud reads the previous cycle's field.
   - Oracles: the leaf slab exp(−k·LAI), a uniform-density sphere (exp(−k·ρ·chord)), and GreenLab's production formula Q = Sp·(1 − e^(−k·S/Sp)) where it applies. [host]
-- **Reading:** a rough layout built as the tree grows (P1), with no sag at first.
-  - Step 2 measures its gap from the final layout (crown extent, light per bud) on the oak and the beech.
-  - A periodic re-lay with sag every K cycles is added only if the gap misplaces the oak's dome at step 3. [host]
+- **Reading:** a rough layout built as the tree grows (P1), and a full lay with sag every K cycles (K an engine constant chosen by measured cost). Light reads the latest full lay plus the rough layout of growth since then. [host, decision 8]
 - **Sky:** one continuous site setting, `sky`, from overhead-only (0) to a uniform overcast sky (1), with the standard overcast sky as the reference. Every species is judged under one value, chosen at step 3 on the oak and recorded with its reason. [host]
 - **Stop:** ln(survival) = ln(viability) · I^(−φ), neutral φ = 0. The shed hazard rises continuously as the remembered balance falls.
   - Both are walk-tested.
   - A red-first test pits the multiplicative form viability · I^φ against the walk bound. [host]
-- **Slow:** shoot size × I^ψ only; the balance acts only through shedding. [host]
+- **Slow and fill:** shoot size × (I / Ī)^ψ, Ī the presence-weighted power mean of light over the buds growing on the same bearer that cycle. The bearer's total is conserved, as Borchert–Honda allocation (Pałubicki 2009) does, so lit buds outgrow shaded ones into gaps. ψ = 0 is neutral, with no phototropism. The balance acts only through shedding. [host, decisions 7 and 4]
 - **Girth:** `retained`, the share of a shed branch's pipe kept in its bearer (Shinozaki's disused pipes), neutral 0, built in step 5 beside thickening from leaves. [host]
+- **Walks:** refine depth 6 for every walk; a jump does not shrink under refinement, a steep crossing does. [host, decision 9]
+- **Foliage:** sag's foliage term and light's `leaf_area` are two estimates of one thing, kept apart for neutrality and unified per species at R3. [host, decision 10]
 - **Neutral:** every new setting at neutral leaves the beech, the spruce and the oak byte-identical. [host]
 - **Timing:** the measures example reports growth, rough layout, light sweep and final lay per stage. [host]
 - **Steps:**
