@@ -1,50 +1,62 @@
 //! A bud's own axis at one cycle t (`kept.rs`): unit by unit, the chance
 //! that every subtree it bears has stopped living by t and the quantities
-//! on that event, then each way the axis may end weighed in.
+//! on that event, then each way the axis may end weighed in (`ends.rs`).
 //!
 //! A zone's subtrees enter as a factor f a node, so its node count N
 //! enters as E[f^N]; its own wood, whose place and size grow with N, as
 //! that tilted by f^N; and a borne subtree's quantity, in one node, as
-//! E[N f^(N-1)] with the node's rank. Units and zones are independent, so
-//! the tilts multiply, and the places of later wood are the tilted
-//! lengths of the wood before it.
-use super::{Kept, Placing, LEAVES, LEAVES_ALONG, MOMENT, PARALLEL, PATH, SECTIONS, WOOD};
+//! E[N f^(N-1)] with the node's rank (and, for the section's square, two
+//! of them in two nodes, E[N (N-1) f^(N-2)]). Units and zones are
+//! independent, so the tilts multiply, and the places of later wood are
+//! the tilted lengths of the wood before it.
+use super::ends::{Ended, NONE};
+use super::mass::Units;
+use super::section::{handed, zoned};
+use super::{Kept, Placing, LEAVES, LEAVES_ALONG, PARALLEL, SECTION, SECTION2, WIDTH, WOOD};
 use crate::closed_form::along::{dominance_power, Along, Count};
 use crate::closed_form::events::Event;
-use crate::closed_form::steps::{Relay, Step};
+use crate::closed_form::steps::Step;
 use crate::girth::ripe;
 use crate::schedule::Carried;
-use crate::species::{Species, ALONG};
+use crate::species::{Species, Zone, ALONG};
 
 /// What a bud's own PA lays down, the same at every cycle: each zone's
-/// node-count law, in the order the zones stand along a unit.
+/// node-count law.
 pub(super) struct Axis {
     pmfs: Vec<Vec<f64>>,
 }
 
 impl Axis {
     pub fn of(species: &Species, k: usize) -> Self {
-        let pmfs = species.states[k]
-            .zones
-            .iter()
-            .map(|z| Count::pmf(z.nodes))
-            .collect();
-        Self { pmfs }
+        let pmfs = species.states[k].zones.iter().map(|z| Count::pmf(z.nodes));
+        Self {
+            pmfs: pmfs.collect(),
+        }
     }
 }
 
-/// The running product over the units grown: E[Π f] and E[Π f · Y].
-struct Running {
-    a: f64,
-    b: Vec<f64>,
+/// The running product over the parts grown: E[Π f] and E[Π f · Y].
+pub(super) struct Running {
+    pub a: f64,
+    pub b: [f64; WIDTH],
 }
 
 impl Running {
-    /// Another independent factor `g` with its quantities `h` (E[g · Y]).
-    fn times(&mut self, g: f64, h: &[f64]) {
+    fn new() -> Self {
+        Self {
+            a: 1.0,
+            b: [0.0; WIDTH],
+        }
+    }
+
+    /// Another independent factor `g` with its quantities `h` (E[g · Y]);
+    /// the section's square gains the cross term of the two.
+    fn times(&mut self, g: f64, h: &[f64; WIDTH]) {
+        let section = self.b[SECTION];
         for (b, &h) in self.b.iter_mut().zip(h) {
             *b = *b * g + self.a * h;
         }
+        self.b[SECTION2] += 2.0 * section * h[SECTION];
         self.a *= g;
     }
 }
@@ -56,57 +68,52 @@ impl Kept<'_> {
         axis: &Axis,
         steps: &[Step],
         t: i64,
-    ) -> (f64, Vec<f64>) {
-        let width = self.width();
-        let state = &self.species.states[k];
-        let mut run = Running {
-            a: 1.0,
-            b: vec![0.0; width],
-        };
-        let (mut a, mut b) = (0.0, vec![0.0; width]);
-        // Weighs in one way the axis ends: chance `p`, its last unit `last`,
-        // and its end's factor and quantities.
-        let mut end = |p: f64, last: usize, run: &Running, (ea, eb): (f64, Vec<f64>)| {
+    ) -> (f64, [f64; WIDTH]) {
+        let relay_at = self.species.states[k].relay_at;
+        let mut run = Running::new();
+        let mut units = Units::new(self.species, k);
+        let (mut a, mut b) = (0.0, [0.0; WIDTH]);
+        // Weighs in one way the axis ends: chance `p`, its last unit
+        // `last`, and the end's factor and quantities.
+        let mut end = |p: f64, last: usize, run: &Running, units: &Units, (ea, eb, er): Ended| {
             if p <= 0.0 || last as i64 > t {
                 return;
             }
             a += p * run.a * ea;
-            for q in 0..width {
-                b[q] += p * (run.b[q] * ea + run.a * eb[q]);
-            }
+            let mut add: [f64; WIDTH] = std::array::from_fn(|q| run.b[q] * ea + run.a * eb[q]);
+            add[SECTION2] += 2.0 * run.b[SECTION] * eb[SECTION];
+            units.mass(last, (ea, &eb, er), run.a, &mut add);
+            b.iter_mut().zip(add).for_each(|(b, v)| *b += p * v);
         };
-        // The start of the next unit, and each unit's start and length,
-        // as tilted by what the units bear.
+        // The start of the next unit, as tilted by what the units bear.
         let mut path = Along::default();
-        let mut units: Vec<(Along, Along)> = Vec::new();
         for step in steps {
-            let on = |u: usize, units: &[(Along, Along)]| {
+            let on = |u: usize, units: &Units| {
                 u.checked_sub(1).map_or(Along::default(), |u| {
-                    units[u].0.into(units[u].1, state.relay_at)
+                    let (start, length) = units.place(u);
+                    start.into(length, relay_at)
                 })
             };
             let failed = step.before - step.grown;
-            let at = on(step.i - 1, &units);
-            let e = self.relay_end(k, m, step.failed, failed, at, t);
-            end(failed, step.i - 1, &run, e);
-            let (g, h, length) = self.unit((k, m), axis, step, path, t);
+            let e = self.relay_end((k, m, t), step.failed, failed, on(step.i - 1, &units));
+            end(failed, step.i - 1, &run, &units, e);
+            let (g, h, length) = self.unit((k, m, t), axis, step, (path, &mut units));
             run.times(g, &h);
-            units.push((path, length));
+            units.close(path, length);
             path = path.then(length);
             match &step.end {
                 None => {
                     let aborted = step.grown - step.after;
-                    let at = on(step.i, &units);
-                    let e = self.relay_end(k, m, step.aborted, aborted, at, t);
-                    end(aborted, step.i, &run, e);
+                    let e = self.relay_end((k, m, t), step.aborted, aborted, on(step.i, &units));
+                    end(aborted, step.i, &run, &units, e);
                     if step.i == m {
-                        end(step.after, m, &run, (1.0, vec![0.0; width]));
+                        end(step.after, m, &run, &units, NONE);
                     }
                 }
                 Some(stop) => {
                     let at = on(step.i, &units);
-                    let e = self.age_end(k, m, stop, step.grown, (path, at), t);
-                    end(step.grown, step.i, &run, e);
+                    let e = self.age_end((k, m, t), stop, step.grown, (path, at));
+                    end(step.grown, step.i, &run, &units, e);
                 }
             }
         }
@@ -116,173 +123,47 @@ impl Kept<'_> {
         (a, b)
     }
 
-    /// The factor and quantities of a relay `relay` an end of chance `p`
-    /// may leave, standing at `at`.
-    fn relay_end(
-        &mut self,
-        k: usize,
-        m: usize,
-        relay: Option<Relay>,
-        p: f64,
-        at: Along,
-        t: i64,
-    ) -> (f64, Vec<f64>) {
-        let width = self.width();
-        let Some(r) = relay.filter(|_| p > 0.0) else {
-            return (1.0, vec![0.0; width]);
-        };
-        let q = (r.weight / p).min(1.0);
-        let (ra, rb) = self.relay_child(k, m, (r.at, r.carried), at, t);
-        (1.0 - q + q * ra, rb.iter().map(|v| q * v).collect())
-    }
-
-    /// A relay's factor and quantities, placed at `at`.
-    fn relay_child(
-        &mut self,
-        k: usize,
-        m: usize,
-        (born, carried): (usize, Carried),
-        at: Along,
-        t: i64,
-    ) -> (f64, Vec<f64>) {
-        let state = &self.species.states[k];
-        let table = self.shed((k, m - born, carried, None), state.shedding);
-        let (ra, rb) = table.at(t - born as i64);
-        let mut out = vec![0.0; self.width()];
-        if !rb.is_empty() {
-            self.whole(at, state.insertion.cos()).place(rb, &mut out, 0);
-        }
-        (ra, out)
-    }
-
-    /// The factor and quantities of an age's end of chance `p`: its
-    /// continuation at the tip `tip`, its relay at `at`.
-    fn age_end(
-        &mut self,
-        k: usize,
-        m: usize,
-        stop: &crate::closed_form::steps::End,
-        p: f64,
-        (tip, at): (Along, Along),
-        t: i64,
-    ) -> (f64, Vec<f64>) {
-        let width = self.width();
-        if p <= 0.0 {
-            return (1.0, vec![0.0; width]);
-        }
-        let (mut ra, mut rb) = (1.0, vec![0.0; width]);
-        let relay = stop.relay.map(|r| r.weight / p).unwrap_or(0.0);
-        if let Some(r) = stop.relay {
-            (ra, rb) = self.relay_child(k, m, (r.at, r.carried), at, t);
-        }
-        let Some((born, pa, onward, weight)) = stop.continuation else {
-            let q = relay.min(1.0);
-            return (1.0 - q + q * ra, rb.iter().map(|v| q * v).collect());
-        };
-        let go = (weight / p).min(1.0);
-        let table = self.of(pa, m - born, onward, None);
-        let (ca, cb) = table.at(t - born as i64);
-        let mut c = vec![0.0; width];
-        if !cb.is_empty() {
-            self.whole(tip, 1.0).place(cb, &mut c, 0);
-        }
-        // Given it moves on, its relay comes as the borderline's share;
-        // given it stops, as the rest.
-        let with = if go > 0.0 {
-            (stop.both / go).min(1.0)
-        } else {
-            0.0
-        };
-        let without = if go < 1.0 {
-            ((relay - stop.both).max(0.0) / (1.0 - go)).min(1.0)
-        } else {
-            0.0
-        };
-        let r1 = 1.0 - with + with * ra;
-        let r0 = 1.0 - without + without * ra;
-        let ea = go * ca * r1 + (1.0 - go) * r0;
-        let eb = (0..width)
-            .map(|q| go * (c[q] * r1 + ca * with * rb[q]) + (1.0 - go) * without * rb[q])
-            .collect();
-        (ea, eb)
-    }
-
-    /// One whole bud of its bearer's base scale at `at`, at angle cosine `turn`.
-    fn whole(&self, at: Along, turn: f64) -> Placing {
-        let mut p = Placing {
-            e: vec![0.0; self.exponents.len()],
-            turn,
-            ..Placing::default()
-        };
-        p.add(1.0, &vec![1.0; 4 + self.exponents.len()], at);
-        p
-    }
-
     /// Unit `step` from `start`: its factor, its quantities on it, and its
-    /// length as tilted.
+    /// length as tilted; its zones handed to `units` for sag.
     fn unit(
         &mut self,
-        (k, m): (usize, usize),
+        (k, m, t): (usize, usize, i64),
         axis: &Axis,
         step: &Step,
-        start: Along,
-        t: i64,
-    ) -> (f64, Vec<f64>, Along) {
-        let width = self.width();
+        (start, units): (Along, &mut Units),
+    ) -> (f64, [f64; WIDTH], Along) {
         let species = self.species;
         let state = &species.states[k];
-        let (i, size) = (step.i, step.size);
+        let (i, size, e) = (step.i, step.size, state.form.exponent);
         let l = state.internode * size;
-        let years = (m - i + 1) as f64;
-        let own = state.form.pipe * size * ripe(years, state.form.ripening);
-        let mut run = Running {
-            a: 1.0,
-            b: vec![0.0; width],
-        };
+        let form = &state.form;
+        let own = form.pipe * size * ripe((m - i + 1) as f64, form.ripening);
+        let mut run = Running::new();
+        let established = form.pipe * size * ripe(1.0, form.ripening);
         let mut at = start;
         let mut length = Along::default();
         for &z in ALONG.iter().filter(|&&z| z < state.zones.len()) {
             let zone = &state.zones[z];
             let lateral = self.laterals[k][z].clone();
             // Each place's factor: bare, or a lateral whose subtree has
-            // stopped living by t.
+            // stopped living by t; and each lateral's table.
             let mut tables = Vec::new();
             let mut phi = 1.0;
             for (j, &p) in lateral.iter().enumerate().filter(|(_, &p)| p > 0.0) {
-                let delay = species
-                    .lived(j)
-                    .map_or(f64::INFINITY, |(q, _)| species.states[q].shedding);
+                let lived = species.lived(j).map(|(q, _)| &species.states[q]);
+                let delay = lived.map_or(f64::INFINITY, |s| s.shedding);
                 let table = self.shed((j, m - i, Carried::default(), None), delay);
-                let (ca, _) = table.at(t - i as i64);
-                phi += p * (ca - 1.0);
+                phi += p * (table.at(t - i as i64).0 - 1.0);
                 tables.push((j, p, table));
             }
             let places = zone.places() as i32;
             let f = phi.powi(places);
-            let (mut g, mut mu, mut nu) = (0.0, [0.0; 3], [0.0; 3]);
-            for (n, &pn) in axis.pmfs[z].iter().enumerate() {
-                let nf = n as f64;
-                let tilt = pn * f.powi(n as i32);
-                g += tilt;
-                if n > 0 {
-                    let one = pn * f.powi(n as i32 - 1);
-                    for p in 0..3 {
-                        mu[p] += tilt * nf.powi(p as i32 + 1);
-                        nu[p] += one * nf.powi(p as i32 + 1);
-                    }
-                }
-            }
-            let tilted = if g > 0.0 {
-                Count::from_moments(mu[0] / g, mu[1] / g, mu[2] / g)
-            } else {
-                Count::of(zone.nodes)
-            };
-            let mut h = self.own(&tilted, at, l, own);
-            h.iter_mut().for_each(|v| *v *= g);
+            let (g, tilted, replaced) = tilts(&axis.pmfs[z], f, zone);
+            let mut h = self.own(&tilted, at, l, own).map(|v| v * g);
             // One node's place holds the subtree; its other places, and
             // every other node, their factors.
-            let replaced = Count::from_moments(nu[0], nu[1], nu[2]);
             let others = phi.powi(places - 1);
+            let mut slots = vec![(0.0, 0.0); zone.places()];
             let mut low = 0.0;
             for (j, &p) in lateral.iter().enumerate() {
                 let band = (low, low + p);
@@ -290,52 +171,59 @@ impl Kept<'_> {
                 let Some((_, _, table)) = tables.iter().find(|x| x.0 == j) else {
                     continue;
                 };
-                let (_, cb) = table.at(t - i as i64);
-                if cb.is_empty() {
+                let row = table.at(t - i as i64);
+                let Some(cb) = row.2 else {
                     continue;
-                }
+                };
                 let placing = self.laterals_at(j, (zone, &replaced), (at, l, size), (p, band));
-                let mut y = vec![0.0; width];
-                placing.place(cb, &mut y, 0);
-                for q in 0..width {
+                let mut y = [0.0; WIDTH];
+                placing.place(cb, &mut y);
+                for q in 0..WIDTH {
                     h[q] += others * y[q];
                 }
+                // Its section, handed over in its place's share.
+                let (x1, x2) = handed(row, table.e, e);
+                let lived = species.lived(j).unwrap_or((j, 0.0));
+                let d = species.states[lived.0].form.dominance;
+                for (slot, s) in slots.iter_mut().enumerate() {
+                    let base = size * zone.share(slot) * lived.1;
+                    s.0 += p * base.powf(e) * dominance_power(d, e) * x1;
+                    s.1 += p * base.powf(2.0 * e) * dominance_power(d, 2.0 * e) * x2;
+                }
             }
+            let (s1, s2) = zoned(
+                &axis.pmfs[z],
+                (f, phi, places),
+                (own.powf(e), own.powf(2.0 * e)),
+                &slots,
+            );
+            (h[SECTION], h[SECTION2]) = (s1, s2);
             run.times(g, &h);
-            let zl = Along {
-                mean: tilted.length(l).mean,
-                square: tilted.length(l).square,
-            };
-            at = at.then(zl);
-            length = length.then(zl);
+            units.zone((l, at), &tilted, (g, s1, s2), established);
+            let zone_length = tilted.length(l);
+            at = at.then(zone_length);
+            length = length.then(zone_length);
             for event in &step.sleeping[z] {
-                let (fa, fb) = self.woken(m, step.grown, event, t);
+                let (fa, fb, _) = self.woken((m, t), step.grown, event, e);
                 run.times(fa, &fb);
+                units.woken(fa, &fb);
             }
         }
         (run.a, run.b, length)
     }
 
     /// The quantities of a zone's own phytomers, its node count `n` (as
-    /// tilted), from `x`, each `l` long and its pipe `o`.
-    fn own(&self, n: &Count, x: Along, l: f64, o: f64) -> Vec<f64> {
-        let mut y = vec![0.0; self.width()];
+    /// tilted), from `x`, each `l` long and its pipe `o`; their section
+    /// is the zone's (`section::zone`).
+    fn own(&self, n: &Count, x: Along, l: f64, o: f64) -> [f64; WIDTH] {
+        let mut y = [0.0; WIDTH];
         let [w, a, q] = n.wood(x, l);
-        let (n1, n2, n3) = n.moments();
-        let o2 = o * o;
         y[WOOD] = w;
         y[super::ALONG] = a;
         y[super::SQUARE] = q;
         y[PARALLEL] = q;
-        // Each node's tip stands at x + n l along the path.
-        y[PATH] = o2 * (n1 * x.mean + l * (n2 + n1) / 2.0);
-        y[MOMENT] = o2 / 2.0
-            * (n1 * x.square + x.mean * l * (n2 + n1) + l * l * (2.0 * n3 + 3.0 * n2 + n1) / 6.0);
-        y[LEAVES] = n1 * l * o2;
-        y[LEAVES_ALONG] = o2 * a;
-        for (s, e) in self.exponents.iter().enumerate() {
-            y[SECTIONS + s] = n1 * o.powf(*e);
-        }
+        y[LEAVES] = w * o * o;
+        y[LEAVES_ALONG] = a * o * o;
         y
     }
 
@@ -345,7 +233,7 @@ impl Kept<'_> {
     fn laterals_at(
         &self,
         j: usize,
-        (zone, replaced): (&crate::species::Zone, &Count),
+        (zone, replaced): (&Zone, &Count),
         (x, l, size): (Along, f64, f64),
         (p, band): (f64, (f64, f64)),
     ) -> Placing {
@@ -353,22 +241,10 @@ impl Kept<'_> {
         let (lived, reach) = species.lived(j).unwrap_or((j, 0.0));
         let lived = &species.states[lived];
         let d = lived.form.dominance;
-        let mut placing = Placing {
-            e: vec![0.0; self.exponents.len()],
-            turn: lived.insertion.cos(),
-            ..Placing::default()
-        };
-        let powers = |share: f64| -> Vec<f64> {
+        let mut placing = Placing::turned(lived.insertion.cos());
+        let powers = |share: f64| -> [f64; 4] {
             let base = size * share * reach;
-            let mut v: Vec<f64> = (1..=4)
-                .map(|p| base.powi(p) * dominance_power(d, f64::from(p)))
-                .collect();
-            v.extend(
-                self.exponents
-                    .iter()
-                    .map(|&e| base.powf(e) * dominance_power(d, e)),
-            );
-            v
+            std::array::from_fn(|p| base.powi(p as i32 + 1) * dominance_power(d, p as f64 + 1.0))
         };
         // Place 0's draw also orders the nodes (`grow/unit.rs`).
         let (n, at) = replaced.ranked(x, l, band);
@@ -381,9 +257,9 @@ impl Kept<'_> {
     }
 
     /// A woken bud's factor and quantities: as many as its expectation
-    /// over the unit's chance (`grown`), each independent of the axis.
-    fn woken(&mut self, m: usize, grown: f64, event: &Event, t: i64) -> (f64, Vec<f64>) {
-        let width = self.width();
+    /// over the unit's chance (`grown`), each independent of the axis,
+    /// handed to it at its exponent `e`.
+    fn woken(&mut self, (m, t): (usize, i64), grown: f64, event: &Event, e: f64) -> Ended {
         let Event::Bud {
             at,
             pa,
@@ -395,31 +271,25 @@ impl Kept<'_> {
             ..
         } = event
         else {
-            return (1.0, vec![0.0; width]);
+            return NONE;
         };
         if grown <= 0.0 {
-            return (1.0, vec![0.0; width]);
+            return NONE;
         }
         let species = self.species;
-        let delay = species
-            .lived(*pa)
-            .map_or(f64::INFINITY, |(q, _)| species.states[q].shedding);
+        let lived = species.lived(*pa).map(|(q, _)| &species.states[q]);
+        let delay = lived.map_or(f64::INFINITY, |s| s.shedding);
         let table = self.shed((*pa, m - at, *carried, *first), delay);
-        let (ca, cb) = table.at(t - *at as i64);
+        let row = table.at(t - *at as i64);
         let lambda = weight / grown;
-        let factor = (lambda * (ca - 1.0)).exp();
-        let mut y = vec![0.0; width];
-        if !cb.is_empty() {
-            let mut placing = Placing {
-                e: vec![0.0; self.exponents.len()],
-                turn: stand.angle.cos(),
-                ..Placing::default()
-            };
+        let factor = (lambda * (row.0 - 1.0)).exp();
+        let mut y = [0.0; WIDTH];
+        if let Some(cb) = row.2 {
             let share = stand.shares[0] * unit;
-            let mut powers: Vec<f64> = (1..=4).map(|p| share.powi(p)).collect();
-            powers.extend(self.exponents.iter().map(|&e| share.powf(e)));
+            let mut placing = Placing::turned(stand.angle.cos());
             let x = stand.along[0] / stand.shares[0].max(f64::MIN_POSITIVE);
             let x2 = stand.square / stand.shares[0].max(f64::MIN_POSITIVE);
+            let powers = std::array::from_fn(|p| share.powi(p as i32 + 1));
             placing.add(
                 1.0,
                 &powers,
@@ -428,8 +298,37 @@ impl Kept<'_> {
                     square: x2,
                 },
             );
-            placing.place(cb, &mut y, 0);
+            placing.place(cb, &mut y);
         }
-        (factor, y.iter().map(|v| lambda * factor * v).collect())
+        let (x1, x2) = handed(row, table.e, e);
+        let share = (stand.shares[0] * unit).powf(e);
+        // A Poisson count of them: E[Σ X²] gains the pairs, λ² E[X]².
+        y[SECTION] = share * x1;
+        y[SECTION2] = share * share * (x2 + lambda * x1 * x1);
+        (factor, y.map(|v| lambda * factor * v), [0.0; 2])
     }
+}
+
+/// A zone's node count under its subtrees' factor `f` a node: E[f^N], the
+/// count's moments tilted by f^N (normalized), and its moments with one
+/// node replaced, E[N^p f^(N-1)].
+fn tilts(pmf: &[f64], f: f64, zone: &Zone) -> (f64, Count, Count) {
+    let (mut g, mut mu, mut nu) = (0.0, [0.0; 3], [0.0; 3]);
+    for (n, &pn) in pmf.iter().enumerate() {
+        let tilt = pn * f.powi(n as i32);
+        g += tilt;
+        if n > 0 {
+            let (nf, one) = (n as f64, pn * f.powi(n as i32 - 1));
+            for p in 0..3 {
+                mu[p] += tilt * nf.powi(p as i32 + 1);
+                nu[p] += one * nf.powi(p as i32 + 1);
+            }
+        }
+    }
+    let tilted = if g > 0.0 {
+        Count::from_moments(mu[0] / g, mu[1] / g, mu[2] / g)
+    } else {
+        Count::of(zone.nodes)
+    };
+    (g, tilted, Count::from_moments(nu[0], nu[1], nu[2]))
 }

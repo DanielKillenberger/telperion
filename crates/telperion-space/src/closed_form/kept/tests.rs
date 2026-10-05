@@ -3,7 +3,7 @@
 //! stochastic one the mean over every lateral made, the shed counting
 //! nothing, with each subtree's last living cycle read off a twin that
 //! never sheds and so keeps every axis it grew.
-use super::{Kept, LEAVES, LEAVES_ALONG, MOMENT, PATH, WOOD};
+use super::{Kept, LEAVES, LEAVES_ALONG, MASS, MASS_ALONG, SECTION, WOOD};
 use crate::grow::{grow, Request};
 use crate::light::Light;
 use crate::presence::Windows;
@@ -113,15 +113,14 @@ fn raw(tree: &Structure, species: &Species) -> Vec<Raw> {
 }
 
 /// Axis `i`'s subtree about its base along its heading: wood, along,
-/// square, parallel square (from the twin-free tree: Σ l (x·h)² is read
-/// directly), mass, mass moment, base section.
-fn about(tree: &Structure, sums: &[Raw], i: usize) -> [f64; 6] {
+/// square, mass, mass moment, and its base section in exponent `e`.
+fn about(tree: &Structure, sums: &[Raw], i: usize, e: f64) -> [f64; 6] {
     let s = sums[i];
     let (o, h) = (tree.axes[i].base, tree.axes[i].heading);
     let section = tree.axes[i]
         .phytomers
         .first()
-        .map_or(0.0, |p| p.radius * p.radius);
+        .map_or(0.0, |p| p.radius.powf(e));
     [
         s.wood,
         (s.first - o * s.wood).dot(h),
@@ -132,72 +131,64 @@ fn about(tree: &Structure, sums: &[Raw], i: usize) -> [f64; 6] {
     ]
 }
 
-/// The formula's [wood, along, square, mass, mass moment, section 2].
-fn formula(b: &[f64], two: usize) -> [f64; 6] {
+/// The formula's [wood, along, square, mass, mass moment, section].
+fn formula(b: &[f64]) -> [f64; 6] {
     [
         b[WOOD],
         b[super::ALONG],
         b[super::SQUARE],
-        b[PATH] + b[LEAVES],
-        b[MOMENT] + b[LEAVES_ALONG],
-        b[two],
+        b[MASS] + b[LEAVES],
+        b[MASS_ALONG] + b[LEAVES_ALONG],
+        b[SECTION],
     ]
 }
 
 const NAMES: [&str; 6] = ["wood", "along", "square", "mass", "moment", "section"];
 
-/// A deterministic tree whose twigs die young and are shed: what it keeps
-/// is the formula's, to rounding, at every age.
+/// A deterministic species whose twigs die young and are shed; its trunk
+/// relayed half way along every unit where `relayed`, or carried on whole.
+fn deterministic(relayed: bool) -> Species {
+    let fixed = |n: f64| NodeLaw::Uniform { min: n, max: n };
+    let mut trunk = state(9.0, vec![zone(fixed(2.0), 2.0, &[0.0, 1.0, 0.0])]);
+    trunk.insertion = 0.0;
+    if relayed {
+        (trunk.abortion, trunk.relay, trunk.relay_at) = (1.0, 1.0, 0.5);
+    }
+    let mut branch = state(4.0, vec![zone(fixed(1.0), 2.0, &[0.0, 0.0, 1.0])]);
+    branch.internode = 0.5;
+    let mut twig = state(2.0, vec![zone(fixed(3.0), 2.0, &[0.0; 3])]);
+    (twig.insertion, twig.internode, twig.shedding) = (0.9, 0.1, 1.0);
+    Species {
+        states: vec![trunk, branch, twig],
+    }
+}
+
+/// A deterministic tree that sheds keeps what the formula keeps, to
+/// rounding, at every age, its trunk carried on whole or relayed half way
+/// along every unit: mass and its moment included, since at exponent 2
+/// with whole secondary growth the radius's square is linear in the
+/// section and the delta method exact.
 #[test]
 fn a_deterministic_tree_keeps_what_the_formula_keeps() {
-    let mut trunk = state(
-        4.0,
-        vec![zone(
-            NodeLaw::Uniform { min: 2.0, max: 2.0 },
-            2.0,
-            &[0.0, 1.0, 0.0],
-        )],
-    );
-    (trunk.continuation, trunk.insertion) = (0.0, 0.0);
-    (trunk.abortion, trunk.relay, trunk.relay_at) = (1.0, 1.0, 0.5);
-    trunk.lifespan = 9.0;
-    let mut branch = state(
-        4.0,
-        vec![zone(
-            NodeLaw::Uniform { min: 1.0, max: 1.0 },
-            2.0,
-            &[0.0, 0.0, 1.0],
-        )],
-    );
-    branch.internode = 0.5;
-    let mut twig = state(
-        2.0,
-        vec![zone(
-            NodeLaw::Uniform { min: 3.0, max: 3.0 },
-            2.0,
-            &[0.0; 3],
-        )],
-    );
-    (twig.insertion, twig.internode, twig.shedding) = (0.9, 0.1, 1.0);
-    let species = Species {
-        states: vec![trunk, branch, twig],
-    };
-    for age in [1, 3, 5, 7, 9] {
-        let grown = tree(&species, age, 1).expect("grows");
-        let sums = raw(&grown, &species);
-        let ours = about(&grown, &sums, 0);
-        let windows = Windows::new(&species, age);
-        let mut kept = Kept::new(&species, &windows);
-        let table = kept.of(0, age as usize, Carried::default(), None);
-        let theirs = formula(&table.b[age as usize], kept.section(2.0));
-        assert!((table.a[age as usize] - 1.0).abs() < 1e-12);
-        for q in 0..6 {
-            let (a, b) = (ours[q], theirs[q]);
-            assert!(
-                (a - b).abs() <= 1e-9 * b.abs().max(1e-6),
-                "age {age} {}: {a} vs {b}",
-                NAMES[q]
-            );
+    for relayed in [false, true] {
+        let species = deterministic(relayed);
+        for age in [1, 3, 5, 7, 9] {
+            let grown = tree(&species, age, 1).expect("grows");
+            let sums = raw(&grown, &species);
+            let ours = about(&grown, &sums, 0, 2.0);
+            let windows = Windows::new(&species, age);
+            let mut kept = Kept::new(&species, &windows);
+            let table = kept.of(0, age as usize, Carried::default(), None);
+            let theirs = formula(&table.b[age as usize]);
+            assert!((table.a[age as usize] - 1.0).abs() < 1e-12);
+            for q in 0..6 {
+                let (a, b) = (ours[q], theirs[q]);
+                assert!(
+                    (a - b).abs() <= 1e-9 * b.abs().max(1e-6),
+                    "relayed {relayed}, age {age} {}: {a} vs {b}",
+                    NAMES[q]
+                );
+            }
         }
     }
 }
@@ -241,7 +232,24 @@ fn shedding_species() -> Species {
 /// extinction curve says.
 #[test]
 fn branches_keep_on_average_what_the_formula_keeps() {
-    let species = shedding_species();
+    branches_agree(&shedding_species());
+}
+
+/// As above, the branches' pipe exponent above their twigs' (host
+/// decision 15: the section handed over by the delta method).
+#[test]
+fn branches_of_another_exponent_keep_what_the_formula_keeps() {
+    let mut species = shedding_species();
+    species.states[1].form.exponent = 2.4;
+    branches_agree(&species);
+    species.states[1].form.exponent = 2.0;
+    species.states[2].form.exponent = 2.6;
+    branches_agree(&species);
+}
+
+fn branches_agree(species: &Species) {
+    let species = species.clone();
+    let e = species.states[1].form.exponent;
     let mut twin = species.clone();
     twin.states
         .iter_mut()
@@ -249,7 +257,6 @@ fn branches_keep_on_average_what_the_formula_keeps() {
     let age = 12u32;
     let windows = Windows::new(&species, age);
     let mut kept = Kept::new(&species, &windows);
-    let two = kept.section(2.0);
     // By birth: each branch's kept quantities per unit base scale, and its
     // subtree's last living cycle, from its birth.
     let mut groups: HashMap<u32, Vec<([f64; 6], u32)>> = HashMap::new();
@@ -278,9 +285,9 @@ fn branches_keep_on_average_what_the_formula_keeps() {
             }
             let ours = match by_lineage.get(&axis.lineage) {
                 Some(&k) => {
-                    let e = about(&grown, &sums, k);
-                    let p = [1, 2, 3, 3, 4, 2];
-                    std::array::from_fn(|q| e[q] / base.powi(p[q]))
+                    let v = about(&grown, &sums, k, e);
+                    let p = [1.0, 2.0, 3.0, 3.0, 4.0, e];
+                    std::array::from_fn(|q| v[q] / base.powf(p[q]))
                 }
                 None => [0.0; 6],
             };
@@ -300,13 +307,13 @@ fn branches_keep_on_average_what_the_formula_keeps() {
         }
         let m = (age - birth) as usize;
         let table = kept.of(1, m, Carried::default(), None);
-        let theirs = formula(&table.b[m], two);
+        let theirs = formula(&table.b[m]);
         let n = subjects.len() as f64;
         for q in 0..6 {
             let values: Vec<f64> = subjects.iter().map(|s| s.0[q]).collect();
             let (mean, error) = moments(&values);
             println!(
-                "born {birth} ({n}): {} {mean:.5} ± {error:.5} vs {:.5}",
+                "e {e}, born {birth} ({n}): {} {mean:.5} ± {error:.5} vs {:.5}",
                 NAMES[q], theirs[q]
             );
             assert!(
@@ -353,145 +360,5 @@ fn moments(values: &[f64]) -> (f64, f64) {
     (mean, (var / n).sqrt())
 }
 
-/// A measurement, not a test (fn-209 STEP1-B.md): the pooled shortfall
-/// of what branches keep against the formula, at equal and mixed pipe
-/// exponents.
-#[test]
-#[ignore]
-fn measure_bias_and_exponents() {
-    for (label, branch_e, twig_e) in [
-        ("equal", 2.0, 2.0),
-        ("mixed", 2.4, 2.0),
-        ("mixed2", 2.0, 2.6),
-    ] {
-        let mut species = shedding_species();
-        species.states[1].form.exponent = branch_e;
-        species.states[2].form.exponent = twig_e;
-        let mut twin = species.clone();
-        twin.states
-            .iter_mut()
-            .for_each(|s| s.shedding = f64::INFINITY);
-        let age = 12u32;
-        let windows = Windows::new(&species, age);
-        let mut kept = Kept::new(&species, &windows);
-        let col = kept.section(branch_e);
-        let (mut real, mut form, mut wood_r, mut wood_f, mut mass_r, mut mass_f) =
-            (0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-        for seed in 0..60 {
-            let (Ok(grown), Ok(whole)) = (tree(&species, age, seed), tree(&twin, age, seed)) else {
-                continue;
-            };
-            let sums = raw(&grown, &species);
-            let mut by: HashMap<u64, usize> = HashMap::new();
-            for (i, a) in grown.axes.iter().enumerate() {
-                by.entry(a.lineage).or_insert(i);
-            }
-            for axis in &whole.axes {
-                let Origin::Lateral { parent, node, .. } = axis.origin else {
-                    continue;
-                };
-                if axis.pa != 1 {
-                    continue;
-                }
-                let base = whole.axes[parent].phytomers[node].scale * axis.vigour;
-                if base <= 0.0 {
-                    continue;
-                }
-                let m = (age - axis.birth) as usize;
-                let t = kept.of(1, m, Carried::default(), None);
-                form += t.b[m][col] * base.powf(branch_e);
-                wood_f += t.b[m][WOOD] * base;
-                mass_f += (t.b[m][PATH] + t.b[m][LEAVES]) * base.powi(3);
-                if let Some(&k) = by.get(&axis.lineage) {
-                    let r = grown.axes[k].phytomers.first().map_or(0.0, |p| p.radius);
-                    real += r.powf(branch_e);
-                    let e = about(&grown, &sums, k);
-                    wood_r += e[0];
-                    mass_r += e[3];
-                }
-            }
-        }
-        println!(
-            "{label}: pooled realized / formula: section {:.3}, wood {:.3}, mass {:.3}",
-            real / form,
-            wood_r / wood_f,
-            mass_r / mass_f
-        );
-    }
-}
-
-/// A measurement, not a test (fn-209 STEP1-B.md): the beech's and the
-/// spruce's kept wood and base sections against the formula, by PA and
-/// age band, every lateral made counted.
-#[test]
-#[ignore]
-fn measure_production() {
-    for (name, make) in [
-        ("beech", crate::beech as fn() -> Species),
-        ("spruce", crate::spruce),
-    ] {
-        let species = make();
-        let mut twin = species.clone();
-        twin.states
-            .iter_mut()
-            .for_each(|s| s.shedding = f64::INFINITY);
-        let age = 25u32;
-        let windows = Windows::new(&species, age);
-        let started = std::time::Instant::now();
-        let mut kept = Kept::new(&species, &windows);
-        // by (pa, age band of 5 cycles): realized and formula wood, and made count
-        let mut acc: std::collections::BTreeMap<(usize, u32), [f64; 5]> = Default::default();
-        let mut prep = 0.0;
-        for seed in 0..4 {
-            let (Ok(grown), Ok(whole)) = (tree(&species, age, seed), tree(&twin, age, seed)) else {
-                continue;
-            };
-            let sums = raw(&grown, &species);
-            let mut by: HashMap<u64, usize> = HashMap::new();
-            for (i, a) in grown.axes.iter().enumerate() {
-                by.entry(a.lineage).or_insert(i);
-            }
-            for axis in &whole.axes {
-                let Origin::Lateral {
-                    parent,
-                    node,
-                    woken: false,
-                    ..
-                } = axis.origin
-                else {
-                    continue;
-                };
-                let base = whole.axes[parent].phytomers[node].scale * axis.vigour;
-                if base <= 0.0 {
-                    continue;
-                }
-                let m = (age - axis.birth) as usize;
-                let t0 = std::time::Instant::now();
-                let delay = species.states[axis.pa].shedding;
-                let t = kept.shed((axis.pa, m, Carried::default(), None), delay);
-                prep += t0.elapsed().as_secs_f64();
-                let e = species.states[axis.pa].form.exponent;
-                let col = kept.section(e);
-                let a = acc.entry((axis.pa, m as u32 / 5)).or_default();
-                a[0] += 1.0;
-                a[2] += t.b[m][WOOD] * base;
-                a[4] += t.b[m][col] * base.powf(e);
-                if let Some(&k) = by.get(&axis.lineage) {
-                    a[1] += about(&grown, &sums, k)[0];
-                    a[3] += grown.axes[k]
-                        .phytomers
-                        .first()
-                        .map_or(0.0, |p| p.radius.powf(e));
-                }
-            }
-        }
-        println!(
-            "{name}: tables {:.2} s (first use, all included {:.2} s)",
-            prep,
-            started.elapsed().as_secs_f64()
-        );
-        for ((pa, band), a) in acc.iter().filter(|(_, a)| a[0] >= 100.0) {
-            println!("  {name} PA {pa} age {}-{} ({:.0} made): kept wood realized/formula {:.3}, section {:.3}", band * 5, band * 5 + 4, a[0], a[1] / a[2], a[3] / a[4]);
-        }
-    }
-}
+mod bound;
+mod measure;
