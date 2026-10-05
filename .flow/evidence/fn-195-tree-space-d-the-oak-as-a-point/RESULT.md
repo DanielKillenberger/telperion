@@ -246,3 +246,78 @@ S1-november and S1-old-open-winter are domes. The limbs divide again and again i
   - (c) bring forward a crown-envelope or space-competition rule, which is engine work and its own spec.
 - **Round 2 against round 3:** round 2's seeds 7 and 3 had the rounder in-leaf domes, and round 3 the better bare web. Whether to keep round 3's web and go back towards round 2's limb set is the host's call.
 - **Known gaps, unchanged:** the collar ring (not the beech's relay mechanism), bark plates, close-up staging inside broad crowns, and the phase F leaf-bearing marking.
+
+## Host decisions after round 3 (2026-10-05)
+
+1. **Smooth outline:** (b), values-only evening, now. If the outline is still ragged after round 4, "smooth crown envelope" is recorded as an E-dependent trait, and the oak's final judgement comes on phase E's engine (fn-197: light, shadow propagation, carbon-bounded growth). Host decision 5; not a stop.
+2. **Base:** round 2's limb set (fork heights, leader length, limb spread) with round 3's twig web, sapling laterals and dark young wood.
+3. **Seed 3's V:** settle it by the round 2 limb set, else by `dominance` among the fork limbs.
+4. **Pale mid wood:** darken it a little toward the bark colour (preset; re-pin).
+
+## Round 4 (worker)
+
+**Values** (`oak.rs`, `e1b6e1ea`; SOURCES.md is updated):
+
+| Change | Aimed at |
+|---|---|
+| Limb insertion back to 0.45 and the leader back to 20 years (round 2) | The base the host chose |
+| Boughs: viability 0.999 (was 0.995), wander 0.8 (was 1.5), rising at 0.6 towards 0.75 rad (between round 2's 0.8 and 0.9 and round 3's 0.4 and 0.6) | Evener bough lengths; round 3's flat boughs made tiers |
+| Branch systems: viability 0.98 (was 0.97), wander 0.8 (was 1.5), 12 years (was 14, to stay inside the growth budget); twigs: wander 1.2 (was 2.0) | Evener fine wood |
+| Limb sag 3e-4 (was 2.5e-4) | Seed 1's narrow column |
+| Young wood under 30 mm, blending to the bark by 60 mm, 0.08 / 0.066 / 0.05 (preset; identity re-pinned) | The pale 20 to 40 mm wood |
+
+`dominance` was not needed: on round 2's limb set, seed 3 has a central stem and no V.
+
+**Probes** (`raw/s1`, `raw/s2`):
+- With round 3's flat boughs on round 2's limb set, seed 3 reads as tiers along a central stem.
+- Branch viability 0.985 at 14 years exceeded the growth budget at seed 3.
+
+**Sheets** (`raw/round4/`, on disk; I viewed every still): `bare-vs-refs.png`, `five-seeds.png` (the reference row ends with round 3's seed 7), `young.png` and `close-ups.png`.
+
+**Measures at 80 years** (`run.log`, `err.log`):
+
+| Seed | Height | Width (x × z) | Leaves | Leaves a metre of fine wood | Wood triangles | Grown in |
+|--:|--:|--:|--:|--:|--:|--:|
+| 1 | 21.9 m | 23.5 × 18.6 m | 2.16M | 135 | 80M | 4.0 s |
+| 7 | 20.1 m | 19.9 × 21.5 m | 2.22M | 136 | 87M | 6.1 s |
+| 2 | 20.7 m | 19.7 × 25.2 m | 3.51M | 134 | 127M | 6.9 s |
+| 3 | 20.8 m | 22.0 × 22.1 m | 3.09M | 137 | 134M | 7.6 s |
+| 4 | 19.0 m | 24.8 × 21.8 m | 0.87M | 83 | 58M | 3.3 s |
+
+Expected grown phytomers are 14.3M against the 20M budget.
+
+| Age | Height | Width |
+|--:|--:|--:|
+| 40 | 13.0 to 13.3 m | 8 to 9 m |
+| 20 | 7.0 m | 6.0 to 6.6 m |
+| 10 | 3.6 m | 2.4 to 4.1 m |
+
+### Reading against the bare references (`bare-vs-refs.png`)
+
+| Seed | Bare, beside S1 | In leaf |
+|---|---|---|
+| 1 | Still a narrow, leaning column; the extra sag did not widen it | A dense ovoid, taller than wide |
+| 7 | Broad-shouldered, with a central stem to a peaked top; a dense web along every bough | Broad below, peaked at the top |
+| 2 | The broadest: low boughs spread wide, a dense web, but a ragged fan of bough tips at the outline | Broad and irregular, with lumps along the outline |
+| 3 | **No V:** a central stem, boughs rising both sides, and a web filling between them; a vase-shaped outline with a peaked top | Broad, peaked |
+| 4 | Open and lopsided, a long low limb on the left | Sparse again: 83 leaves a metre of fine wood against about 135 at the others (the phase F item) |
+
+**Overall:**
+- **Fine web:** the twig web of round 3 is kept, and the fine wood is darker. The limb close-ups now read grey-brown rather than pink-tan, and the bare crowns read as a dark web against the sky more than round 3's.
+- **Outline: still ragged.** Evener bough lives and less wander made the boughs straighter and steadier, but their tips still end at different distances. The crowns are vase-shaped with peaked tops, not S1's even dome. A further step would stiffen the tree (straight, regular boughs), so I stopped here as directed.
+- **Shape:**
+  - Seed 3's V is gone.
+  - Seeds 7 and 3 read broad but peaked. Round 2's in-leaf domes at those seeds were rounder, while round 4 has the better web.
+  - Seed 1 stays narrow.
+- **Young trees:** as round 3. Bushy ascending saplings at 10 and 20 years, and a bushy ovoid at 40 with a slight spire.
+- **Close-ups:** the trunk bases are unchanged (the collar band remains). In leaf, the close-up camera still stands inside the crown.
+
+### E-dependent trait (host decision 5)
+
+**Smooth crown envelope.** In S1 and S2 the outline is even because every tip stops where its neighbours shade it. After round 4 the values-only evening does not produce that. It is recorded as an E-dependent trait: phase E's light pass and carbon-bounded growth (fn-197) is where the oak's outline is expected to come from, and the oak's final judgement comes on E's engine.
+
+**Known gaps, unchanged:**
+- the collar ring (not the beech's relay mechanism);
+- bark plates;
+- close-up staging inside broad crowns;
+- the phase F leaf-bearing marking, which seed 4's sparse foliage shows again.
