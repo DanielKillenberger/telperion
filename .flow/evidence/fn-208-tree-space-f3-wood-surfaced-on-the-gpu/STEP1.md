@@ -46,3 +46,11 @@ The `surface` tests (43) are green after the `emit_run` change.
 - **On the GPU,** a section is about 26 float32 (104 B) per shaped run, 256 on today's palm. The tessellator evaluates `Section::vertex` for those runs with its side count chosen by the same error rule. There is no Hermite subdivision, since a cell has three rings.
 
 **For the host:** this is a per-run profile beside the 28-byte point, not inside it. Under decision 6 I am reporting it before step 3. Step 3 proceeds on this basis unless the host decides otherwise.
+
+## Gate
+
+`cargo test --profile ci --workspace --no-fail-fast` after steps 1 and 2 had two failures (`raw/gate.log`):
+- **`generation_limit_guard`:** the curve's nine limit sites were unclassified. They are now declared in `docs/generation-limits-inventory.json`, and the test is green.
+- **`fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens`:** a peak resident of 5.91 GB against its 5.76 GB ceiling under the parallel gate. It is green rerun alone (FRICTION.md). The test is unchanged by this work.
+
+Everything else passed.

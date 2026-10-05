@@ -1306,5 +1306,59 @@
     "site": ". max ( 1 . )",
     "classification": "algorithm",
     "reason": "The living crown's frond spacing divides its depth by the oldest frond's place on the spiral; a crown of one frond has no spacing of its own, so the skirt below it steps one full depth a frond. It does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": ". clamp ( 0 . 0 , 1 . 0 )",
+    "classification": "algorithm",
+    "reason": "A left-out ring is measured at its share of the distance between the rings its level keeps, which lies within that interval."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": ". max ( 1e - 12 )",
+    "classification": "numeric",
+    "reason": "Floating-point degeneracy tolerance: two kept rings at one distance along divide by no length. It does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": ". max ( 1e - 6 )",
+    "classification": "numeric",
+    "reason": "The surface step's own floor on the tree height the twist runs over, kept by the curve so its rings are the sweep's to the bit. It does not limit generated populations."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": ". max ( errors [ k - 1 ] )",
+    "classification": "algorithm",
+    "reason": "A cluster's ring-level errors are made monotone: a coarser level never claims less error than a finer one. It limits no tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": ". min ( points . len ( ) - 1 )",
+    "classification": "algorithm",
+    "reason": "A cluster ends at its run's last point; the run's points are all kept."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": "const LEVELS : usize = 6 ;",
+    "classification": "algorithm",
+    "reason": "Ring levels a cluster keeps an error for: level 5 keeps only a 32-point cluster's ends, so six levels span a whole cluster. A drawing resolution of the curve, never a limit on the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": "for k in 1 . . LEVELS {",
+    "classification": "algorithm",
+    "reason": "Fills each ring level's error; bounded by the ladder's length, not by the tree."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve.rs",
+    "site": "if end + 1 > = points . len ( ) {",
+    "classification": "algorithm",
+    "reason": "Clusters tile a run to its last point and stop there; every point is in a cluster."
+  },
+  {
+    "path": "crates/telperion-core/src/pipeline/surface/curve/pack.rs",
+    "site": ". clamp ( - 1 . 0 , 1 . 0 )",
+    "classification": "numeric",
+    "reason": "An octahedral component of a unit vector lies in [-1, 1]; the clamp only guards rounding before it is quantised to 16 bits. It does not limit generated populations."
   }
 ]
