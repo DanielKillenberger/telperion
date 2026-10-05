@@ -911,3 +911,35 @@ Values and sheets are in "Round 11" above and in `raw/round11/`.
 The remaining gap to S1 is the **density of the fine twig web**. It is bounded by the growth and geometry budget: the same wall as the spruce's curtains.
 
 Round 11's probes showed that more division within that budget narrows the crown or loses leaves. The owner is asked whether to accept round 10 structurally, with the fine-web density as its main gap for phase F.
+
+## Owner's verdict (2026-10-05): round 10 passes
+
+> "yea i agree the oak needs more fine twigs. If that's a performance thing to be fixed in [phase F] then let's accept it for now."
+
+The oak is accepted at round 10 (`54b9dff8`, restored in `f3384827`), on fn-197's light and carbon engine and fn-207's bends.
+
+### Known gaps
+
+1. **The density of the fine twig web.** S1's limbs keep dividing into an ever-finer web out to the outline; ours carries heavy wood to the edge, ending in tufts.
+   - The bound is the growth and geometry budget. Round 11 showed that more division within it narrows the crown or loses leaves.
+   - Phase F's levers: shedding before growth, so the budget is spent on living wood, and drawing fine twigs cheaply.
+2. **The trunk-base flare and collar band.** The surface stage's basal flare (`flareRadius` 2.1, `flareFalloff` 0.022) gives a bell, and a band shows at the collar (round 9 note).
+3. **Bark plates** (host). The bands on the bole are probably the bark's plate texture (round 9 note).
+4. **The 10-year sapling's spire** (host).
+5. **Leaf form** (host).
+
+## Requirements
+
+| R | Status |
+|---|---|
+| **R1** (the oak's values, five-seed sheets) | Met: round 10, `raw/round10/sheet.png`. |
+| **R2** (the gate) | The workspace gate on the branch head and Codex review of the oak's diff: see Close below. |
+| **R3** (the spruce-to-oak walk) | Split into task `.2`, blocked by fn-206 (one reference axis): the spruce and the oak are written on different physiological-age chains, so they have no per-setting midpoint. As fn-194 and fn-196 did. |
+| **R4** (passed species unchanged in look) | See below. |
+
+**R4 evidence:**
+- **Beech and spruce:** unchanged.
+  - fn-197's neutral hashes prove it: every new light and carbon setting is neutral at 0, with 80-year hashes identical before and after (fn-197 CLOSE.md, `tests/light.rs`).
+  - fn-207's R1 proves it again: beech and spruce 80-year hashes at seeds 1 and 7 identical to `97dc2233`'s.
+  - The oak's own commits change only `oak.rs` and the render example's stem flag for trunk-level PAs, which the beech and spruce pass as their own trunk lists.
+- **The palm:** cannot be verified on this branch, because the palm is not in it. It falls to the branch that carries both.
