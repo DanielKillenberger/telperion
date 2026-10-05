@@ -137,7 +137,16 @@ fn fades(axes: &[Axis], species: &Species, age: u32) -> Vec<f64> {
             // A relay made the cycle its parent died starts a cycle after
             // the parent's last growth unit.
             let gap = f64::from(link.birth - p.birth) - units as f64;
-            lived = p.sleep + grown[parent][units] + weight * (gap + lived);
+            // The parent's own time to the child's birth: from its share of
+            // its first cycle gone, through its units before the child; none
+            // where the child carries it on in the cycle it began, whose own
+            // share gone already holds the parent's (Codex on fn-206's port).
+            let before = if units == 0 {
+                0.0
+            } else {
+                p.sleep + grown[parent][units]
+            };
+            lived = before + weight * (gap + lived);
             apex *= weight;
             at = parent;
         }

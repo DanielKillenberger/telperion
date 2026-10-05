@@ -449,3 +449,29 @@ fn a_straightened_lateral_changes_age_alike_either_side_of_a_whole_cycle() {
         top(&above)
     );
 }
+
+/// A branch whose ages end within one cycle, each the next's continuation
+/// in the same cycle, has lived to that cycle's end and no further: with
+/// no shedding delay it is gone a cycle later (Codex on fn-206's port).
+#[test]
+fn a_branch_of_ages_within_one_cycle_is_shed_on_time() {
+    // The seed bears the branch, whose ages 1 to 3 last a quarter, a
+    // quarter and a half cycle; the branch is shed at no delay.
+    let mut ages = vec![state(1, 0.0, vec![zone(1, 1, &[0.0, 1.0, 0.0, 0.0])])];
+    for (lifespan, continuation) in [(0.25, 1.0), (0.25, 1.0), (0.5, 0.0)] {
+        let mut age = state(1, continuation, vec![zone(1, 1, &[0.0, 0.0, 0.0, 0.0])]);
+        age.lifespan = lifespan;
+        ages.push(age);
+    }
+    ages[1].shedding = 0.0;
+    let species = Species { states: ages };
+    let tree = tree(&species, 3, 1);
+    let branch: f64 = tree
+        .axes
+        .iter()
+        .filter(|a| a.pa >= 1)
+        .flat_map(|a| &a.phytomers)
+        .map(|p| p.scale)
+        .sum();
+    assert_eq!(branch, 0.0, "the branch stands at {branch}");
+}

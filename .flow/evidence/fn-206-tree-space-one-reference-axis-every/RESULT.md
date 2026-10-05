@@ -560,3 +560,15 @@ Viewed; no pops in any of the three.
 - **Beech to spruce, age 40:** identical in height to walk6 (10.1 to 12.7 to 11.8 m), the leader kept.
 - **Spruce to oak, age 60:** 16.9, 16.9, 17.3, 17.9, 18.5, 18.6, 19.0, 17.8, 15.8 m. The spruce's cone opens by degree into the round-10 oak's leaning, forked crown.
 - **Oak to palm, age 60:** 15.8, 17.5, 20.0, 21.0, 22.2, 22.6, 22.6, 22.6, 22.4 m. The oak's crown goes early and steeply (decision 15), the stem runs on as a leader, and it thickens into the palm's column (decision 18).
+
+### Workspace gate and Codex on the port
+
+- **Workspace gate** at `019a98b1`: 1093 passed, 0 failed (`raw/gate4.txt`).
+- **Codex round 1 on the port, NEEDS_WORK, both fixed in `1701baf6`:**
+  - The full lay grown with the tree chose its standing axes by whole cycles, so it dropped dead wood a fractional shedding delay still keeps, and the sag it laid jumped. Red first: a twig's shedding delay walked in leaf on sagging limbs jumped at 1.005.
+  - A relay chain's pull history grew with its length. A relay that has left the axis's line now carries no pull, and a spent pull is dropped.
+  - Unlit, the species are unchanged. The lit oak moves within a thousandth of its axes.
+- **Codex round 2 on the port, NEEDS_WORK, fixed in the next commit:** shedding counted a parent's share of its first cycle twice where its continuation began in the same cycle, keeping a branch of quarter-cycle ages at 25 % a cycle after it should go. This was fn-206's own code, found now.
+  - Red first: `a_branch_of_ages_within_one_cycle_is_shed_on_time`.
+  - The four species are unchanged.
+  - The round cap (2) is reached.
