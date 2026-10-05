@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-202-tree-space-dormant-buds-wake-along-old",
   "spec_path": ".flow/tasks/fn-202-tree-space-dormant-buds-wake-along-old.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Dormant buds wake along old branches: engine, closed form, walks, spruce strip",
   "updated_at": "2026-10-04T19:49:45.280271Z"
 }

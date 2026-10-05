@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-205-tree-space-girth-from-secondary-growth",
   "spec_path": ".flow/tasks/fn-205-tree-space-girth-from-secondary-growth.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "form.secondary: girth from secondary growth by share",
   "updated_at": "2026-10-05T03:33:23.032880Z"
 }

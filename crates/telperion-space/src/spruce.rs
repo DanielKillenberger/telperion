@@ -98,6 +98,7 @@ pub fn spruce() -> Species {
         dominance: 0.0,
         roll: 0.0,
         sag: 0.0,
+        secondary: 1.0,
     };
     // The seedling (M4): two short, unbranched years.
     let seedling = PaState {
@@ -153,6 +154,7 @@ pub fn spruce() -> Species {
             dominance: 0.35,
             roll: 0.8,
             sag: 9e-4,
+            secondary: 1.0,
         },
         ..state(
             1_000,
@@ -177,6 +179,7 @@ pub fn spruce() -> Species {
             tropism: 0.4,
             elevation: 0.35,
             sag: 1e-4,
+            secondary: 1.0,
             ..branch.form
         },
         ..branch.clone()
@@ -202,6 +205,7 @@ pub fn spruce() -> Species {
             dominance: 0.0,
             roll: 0.2,
             sag: 5e-4,
+            secondary: 1.0,
         },
         ..state(
             10,

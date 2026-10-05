@@ -139,6 +139,13 @@ pub struct Form {
     /// of its length (`sag.rs`). Its tip carries nothing and keeps its
     /// tropism. Neutral 0.
     pub sag: f64,
+    /// Secondary growth: how far the girth follows the load the wood
+    /// carries. The radius is `secondary` times the pipe model's radius
+    /// plus the rest times the radius the phytomer was established with,
+    /// its own pipe as its apex laid it down. Neutral 1, the pipe model;
+    /// at 0 the axis keeps its established width for life, as a palm's
+    /// stem does.
+    pub secondary: f64,
 }
 
 impl Default for Form {
@@ -155,6 +162,7 @@ impl Default for Form {
             dominance: 0.0,
             roll: 0.0,
             sag: 0.0,
+            secondary: 1.0,
         }
     }
 }

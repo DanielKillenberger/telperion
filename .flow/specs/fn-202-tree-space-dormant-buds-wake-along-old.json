@@ -132,7 +132,7 @@
     "impl:fn-202-tree-space-dormant-buds-wake-along-old.1": 0
   },
   "spec_path": ".flow/specs/fn-202-tree-space-dormant-buds-wake-along-old.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space: dormant buds wake along old branches",
   "tracker": {
     "baseHashFlow": null,
@@ -145,5 +145,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T21:06:51.043883Z"
+  "updated_at": "2026-10-05T08:05:48.959901Z"
 }
