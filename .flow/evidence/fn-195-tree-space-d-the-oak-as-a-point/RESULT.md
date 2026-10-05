@@ -725,3 +725,14 @@ Round 8's colours, fine twigs and ψ 1.5 are kept.
   - These are the long shoots' and twigs' own pull (their tropism toward 0.2), which this round did not change.
 - **Bare:** the scaffold is lower and more spreading, the web as fine as round 8's, the colour unchanged.
 - **For the owner's look, round 8 is the stronger sheet:** its crowns are rounder and fuller. Round 9's are broader and flatter, with lower-hanging boughs.
+
+### Round 9, host reading (2026-10-05): round 8 kept
+
+**Host:** flatter and shrubbier, with drooping lower boughs. Round 8 stays the candidate, and `oak.rs` is restored to its values.
+
+**The next lever** for the spikes still ascending out of the crown at seeds 3 and 4: the long shoots' and twigs' own upward pull (tropism 0.8 and 0.4 toward elevation 0.2). Rounds 8 and 9 left those values unchanged.
+
+**The trunk-base bell and collar** (a known rendering gap, not fixed):
+
+- **The bell:** most likely the pipeline surface stage's basal flare (`flareRadius` 2.1 × radius over `flareFalloff` 0.022 of the height, defaults in `telperion-core/src/pipeline/surface.rs:145-212`; the oak's preset sets no flare row). It is applied to a trunk that the retained pipes have already thickened.
+- **The collar bands:** probably the bark's plate texture (`plateScale` 0.055) seen across the flare. Not checked.
