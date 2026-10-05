@@ -55,15 +55,13 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
                     .map(|v| v.parse().map_err(|e| format!("{v}: {e}")))
                     .collect()
             };
-            let pas = list(pas)?.into_iter().map(|p| p as usize).collect();
+            let index = |t: &str| {
+                t.parse::<usize>()
+                    .map_err(|e| format!("--dormant pa {t}: {e}"))
+            };
+            let pas = pas.split(',').map(index).collect::<Result<_, _>>()?;
             let num = |t: &str| t.parse::<f64>().map_err(|e| format!("{t}: {e}"));
-            dormant = Some((
-                pas,
-                num(j)? as usize,
-                num(delay)?,
-                num(rate)?,
-                list(values)?,
-            ));
+            dormant = Some((pas, index(j)?, num(delay)?, num(rate)?, list(values)?));
         } else if word == "--sag" {
             let walk = words.next().ok_or("--sag needs <pa>:<values>")?;
             let (pa, values) = walk.split_once(':').ok_or("--sag needs <pa>:<values>")?;
@@ -88,6 +86,25 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let base = species();
+    // A walk names PAs by index: refused by name past the species' table.
+    let known = |pa: usize, flag: &str| {
+        if pa < base.states.len() {
+            Ok(())
+        } else {
+            Err(format!(
+                "{flag}: no PA {pa} in a species of {}",
+                base.states.len()
+            ))
+        }
+    };
+    if let Some((pas, j, ..)) = &dormant {
+        for &pa in pas.iter().chain([j]) {
+            known(pa, "--dormant")?;
+        }
+    }
+    if let Some((pa, _)) = &sag {
+        known(*pa, "--sag")?;
+    }
     let variants: Vec<(String, Species)> = match (sag, dormant) {
         (None, Some((pas, j, delay, rate, values))) => values
             .into_iter()
