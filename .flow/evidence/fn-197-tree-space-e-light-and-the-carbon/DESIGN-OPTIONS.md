@@ -380,3 +380,9 @@ Step 3d is the breakthrough: in leaf, seeds 7, 3 and 1 are rounded oak domes on 
     - By fine wood, light narrows the seed-to-seed spread (2.1× against round 4's 2.5×), so R2 holds.
     - Seed 4's 39 leaves a metre of fine wood (83 in round 4, 136 to 138 at every other seed) is recorded for phase F.
     - Step 4c's per-PA normalisation is the design for E going forward.
+
+## 15. Host decisions after step 5 (host, 2026-10-05)
+
+27. **R3 for E: "none looks worse" is proven at neutral.** The passed species are byte-identical with light off. As information only, not a gate, the beech is rendered at 80 years under oak-like light settings, beside its passed sheet, to see whether light helps its known gap ("fewer, heavier limbs").
+28. **E closes** with the workspace gate run once (a flaky beech memory-ceiling test is recorded if it fails under load), a Codex review of fn-197's diff until SHIP (base `a3768d18`), and `flowctl done` on the remaining tasks. Decision 10's sag and leaf-area unification stays open.
+29. **The oak resumes on this branch** (fn-195, round 5), with light as its own species values: sky 0.5 at the site, φ 1, ψ 1, λ 0.45, upkeep 0.35, persistence 5, retained 0.3 to 0.5, toward S3's massive limbs while keeping the domes. Its leaf area is sourced, and its failing `material_detail` test is fixed.
