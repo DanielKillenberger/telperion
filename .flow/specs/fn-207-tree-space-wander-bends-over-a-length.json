@@ -1,0 +1,149 @@
+{
+  "branch_name": "fn-207-tree-space-wander-bends-over-a-length",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-05T08:55:58.778502Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-207-tree-space-wander-bends-over-a-length",
+  "impl_review_rounds": {
+    "fn-207-tree-space-wander-bends-over-a-length.1": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "6152ebac2586375c84d9fe269fc50fd3e4c8926d440684a1de4ac062c4342e3f",
+      "backend": "codex",
+      "base_sha": "97dc2233d8766917ff7393bb7cf1fcaf61278c70",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-bbf04bfa522b0e451cfb501b8cdc6cd1",
+            "classification": "introduced",
+            "findingId": "finding-bbf04bfa522b0e451cfb501b8cdc6cd1",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-94c568705d83aa56669a629512f00320",
+            "classification": "introduced",
+            "findingId": "finding-94c568705d83aa56669a629512f00320",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "cccc881cd743fd3a64179abeed5105eedeea342d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 187294,
+      "output_sha256": "ef7492feaedbb70e8aab642f9b4b2cf131175a94be7f51734a6b48a88330403c",
+      "reservation_id": "b6dee66b17b14c468a62c37e2e5f2e33",
+      "round_consumed": true,
+      "scope": "impl:fn-207-tree-space-wander-bends-over-a-length.1",
+      "superseded_by": null,
+      "task": "fn-207-tree-space-wander-bends-over-a-length.1",
+      "timestamp": "2026-10-05T09:22:03.175272Z",
+      "tool_calls": 26,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "0c71773f64d3d208274157a9991fc8bbd6dfac181a0413abf2d5194541212121",
+      "backend": "codex",
+      "base_sha": "97dc2233d8766917ff7393bb7cf1fcaf61278c70",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-bbf04bfa522b0e451cfb501b8cdc6cd1",
+            "classification": "introduced",
+            "findingId": "finding-bbf04bfa522b0e451cfb501b8cdc6cd1",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-94c568705d83aa56669a629512f00320",
+            "classification": "introduced",
+            "findingId": "finding-94c568705d83aa56669a629512f00320",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e9d4129fc8fd86113d0cede39aea4943f7523760",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 930,
+      "output_sha256": "638c195581da0cdf7c452ff57f0771703cede3c8cc116b1254750e25ef173592",
+      "reservation_id": "ee461386c83547a0a5cadf79ecd3ba82",
+      "round_consumed": true,
+      "scope": "impl:fn-207-tree-space-wander-bends-over-a-length.1",
+      "superseded_by": null,
+      "task": "fn-207-tree-space-wander-bends-over-a-length.1",
+      "timestamp": "2026-10-05T09:30:17.232916Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-207-tree-space-wander-bends-over-a-length.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-207-tree-space-wander-bends-over-a-length.1": 0
+  },
+  "spec_path": ".flow/specs/fn-207-tree-space-wander-bends-over-a-length.md",
+  "status": "open",
+  "title": "Tree space: wander bends over a length",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-05T09:30:17.235028Z"
+}

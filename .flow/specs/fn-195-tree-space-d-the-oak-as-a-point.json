@@ -8,7 +8,8 @@
   "default_sync": null,
   "depends_on_epics": [
     "fn-194-tree-space-d-the-norway-spruce-as-a",
-    "fn-206-tree-space-one-reference-axis-every"
+    "fn-206-tree-space-one-reference-axis-every",
+    "fn-207-tree-space-wander-bends-over-a-length"
   ],
   "id": "fn-195-tree-space-d-the-oak-as-a-point",
   "impl_review_rounds": {},
@@ -31,5 +32,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T04:24:22.467686Z"
+  "updated_at": "2026-10-05T08:55:59.942348Z"
 }

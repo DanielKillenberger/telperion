@@ -388,6 +388,74 @@ pub fn settings() -> Vec<Setting> {
         },
     ));
     all.extend(sleeping_settings());
+    all.extend(bend_settings());
+    all
+}
+
+/// fn-207 R3: the wander's bend length walked on a wandering tree, and the
+/// wander walked on a bending one.
+fn bend_settings() -> Vec<Setting> {
+    let mut all = Vec::new();
+    for pa in 0..3 {
+        // About the metres an axis of each PA grows, and a wander that
+        // keeps the trunk's crown off the ground.
+        let (metres, wander) = [(54.0, 0.05), (5.0, 0.5), (1.0, 0.5)][pa];
+        let mut bend = setting(
+            format!("states[{pa}].form.bend_length, wandering"),
+            0.0,
+            3.0,
+            false,
+            move |s, v| {
+                s.states[pa].form.wander = wander;
+                s.states[pa].form.bend_length = v;
+            },
+        );
+        bend.stretch = 1.0;
+        all.push(bend);
+        let mut walked = setting(
+            format!("states[{pa}].form.wander, bending"),
+            0.0,
+            wander,
+            false,
+            move |s, v| {
+                s.states[pa].form.bend_length = 2.0;
+                s.states[pa].form.wander = v;
+            },
+        );
+        walked.stretch = metres;
+        all.push(walked);
+    }
+    // Across a continuation (PA 1 carries on as PA 2): the bearer's bend
+    // length through 0 under a bending successor, and the successor's
+    // wander through 0 under a bending bearer (Codex, fn-207 review 1).
+    let mut bearer = setting(
+        "states[1].form.bend_length, continued bending".into(),
+        0.0,
+        3.0,
+        false,
+        |s, v| {
+            s.states[1].form.wander = 0.5;
+            s.states[1].form.bend_length = v;
+            s.states[2].form.wander = 0.5;
+            s.states[2].form.bend_length = 2.0;
+        },
+    );
+    bearer.stretch = 1.0;
+    all.push(bearer);
+    let mut successor = setting(
+        "states[2].form.wander, bearer bending".into(),
+        0.0,
+        0.5,
+        false,
+        |s, v| {
+            s.states[1].form.wander = 0.5;
+            s.states[1].form.bend_length = 2.0;
+            s.states[2].form.bend_length = 2.0;
+            s.states[2].form.wander = v;
+        },
+    );
+    successor.stretch = 1.0;
+    all.push(successor);
     all
 }
 

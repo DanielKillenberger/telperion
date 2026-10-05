@@ -24,8 +24,9 @@ pub(super) const UP: Vec3 = Vec3::new(0.0, 0.0, 1.0);
 const DOWN: Vec3 = Vec3::new(0.0, 0.0, -1.0);
 
 /// Where a walk along an axis stands: its running direction and side,
-/// its tip, the scaled length it has run, and how far its heading lets a
-/// bend pull it up.
+/// its tip, the scaled length it has run, how far its heading lets a bend
+/// pull it up, and its wander's curvature (fn-207): a vector square to the
+/// running direction, in radians per metre, the pivot its turns go about.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Layer {
     running: Vec3,
@@ -33,18 +34,28 @@ pub(crate) struct Layer {
     tip: Vec3,
     run: f64,
     pull: f64,
+    curve: Vec3,
 }
 
 impl Layer {
-    /// At the base of an axis framed `(base, heading, side)`.
-    pub fn new((base, heading, side): (Vec3, Vec3, Vec3)) -> Self {
+    /// At the base of an axis framed `(base, heading, side)` carrying on
+    /// `curve`, its bearer's curvature, made square to its heading: a
+    /// continuation or relay keeps bending as its bearer did, and a
+    /// lateral starts afresh from none.
+    pub fn bent((base, heading, side): (Vec3, Vec3, Vec3), curve: Vec3) -> Self {
         Self {
             running: heading,
             across: side,
             tip: base,
             run: 0.0,
             pull: (1.0 + heading.z) / 2.0,
+            curve: curve - heading * curve.dot(heading),
         }
+    }
+
+    /// The wander's curvature where the walk stands.
+    pub fn curve(&self) -> Vec3 {
+        self.curve
     }
 
     /// The scaled length laid so far.
@@ -74,19 +85,48 @@ impl Layer {
             mut tip,
             mut run,
             pull,
+            mut curve,
         } = *self;
         let length = state.internode * phytomer.scale;
         let share = 1.0 - (-form.tropism * length).exp();
         let bent = toward_elevation(running, across, form.elevation, share);
         across = carried(across, running, bent);
+        curve = carried(curve, running, bent);
         running = bent;
-        if form.wander > 0.0 {
+        // The node's wander: a turn of keyed angle about a keyed pivot,
+        // none without wander.
+        let kick = (form.wander > 0.0).then(|| {
             let key = Key(phytomer.key).child(WANDER);
-            let angle = form.wander * length * (2.0 * key.child(0).unit() - 1.0);
+            let draw = form.wander * (2.0 * key.child(0).unit() - 1.0);
             let azimuth = TAU * key.child(1).unit();
             let pivot = across * azimuth.cos() + running.cross(across) * azimuth.sin();
+            (key, draw, pivot)
+        });
+        if form.bend_length > 0.0 {
+            // The curvature relaxes over the bend length and is kicked by
+            // the node's draw, its stationary spread the draw's; the turn
+            // is the curvature over the internode (fn-207). An inherited
+            // curvature relaxes on without wander.
+            let keep = (-length / form.bend_length).exp();
+            curve = curve * keep;
+            if let Some((_, draw, pivot)) = kick {
+                curve = curve + pivot * (draw * (1.0 - keep * keep).sqrt());
+            }
+            curve = curve - running * curve.dot(running);
+            let angle = curve.length() * length;
+            if let Some(axis) = curve.unit() {
+                running = rotated(running, axis, angle);
+                across = rotated(across, axis, angle);
+            }
+        } else if let Some((key, draw, pivot)) = kick {
+            // No memory: the node's own turn, as wander always drew it,
+            // and the curvature it leaves a continuation is that turn's.
+            let angle = form.wander * length * (2.0 * key.child(0).unit() - 1.0);
             running = rotated(running, pivot, angle);
             across = rotated(across, pivot, angle);
+            curve = pivot * draw;
+        } else {
+            curve = Vec3::default();
         }
         // Sag: the beam's curvature, its moment over its stiffness, turns
         // the axis down about the torque's axis.
@@ -142,6 +182,7 @@ impl Layer {
                 };
                 running = rotated(running, pivot, angle);
                 across = rotated(across, pivot, angle);
+                curve = rotated(curve, pivot, angle);
             }
         }
         let along = if total > 0.0 {
@@ -193,6 +234,7 @@ impl Layer {
             tip,
             run,
             pull,
+            curve,
         };
         Ok(())
     }
@@ -203,13 +245,13 @@ impl Layer {
 /// where the walk ends.
 pub(crate) fn lay(
     axis: &mut Axis,
-    frame: (Vec3, Vec3, Vec3),
+    (frame, curve): ((Vec3, Vec3, Vec3), Vec3),
     state: &PaState,
     bend: (f64, f64),
     load: Option<&[Lever]>,
     trunk: bool,
 ) -> std::result::Result<Layer, f64> {
-    let mut layer = Layer::new(frame);
+    let mut layer = Layer::bent(frame, curve);
     for (k, phytomer) in axis.phytomers.iter_mut().enumerate() {
         layer.step(phytomer, state, bend, load.map(|l| &l[k]), trunk)?;
     }
