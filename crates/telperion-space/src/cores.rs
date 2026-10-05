@@ -5,7 +5,8 @@
 //! has spare, so trees grown at once do not each take every core.
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-/// The helper threads at work in this process, across every tree.
+/// The threads at work in this process's spread work, across every tree:
+/// each caller and its helpers.
 static HELPERS: AtomicUsize = AtomicUsize::new(0);
 
 /// The cores the machine has; one where it cannot say (wasm).
@@ -24,25 +25,25 @@ pub(crate) fn spread(count: usize, threads: usize, work: &(dyn Fn(usize) + Sync)
         }
         work(k);
     };
-    let helpers = Helpers::reserve(threads.min(count).saturating_sub(1), threads);
+    let held = Held::reserve(threads.min(count).saturating_sub(1), threads);
     std::thread::scope(|scope| {
-        for _ in 0..helpers.0 {
+        for _ in 0..held.0 - 1 {
             scope.spawn(run);
         }
         run();
     });
 }
 
-/// Helper threads held, given back when dropped.
-struct Helpers(usize);
+/// Threads held, the caller first, given back when dropped.
+struct Held(usize);
 
-impl Helpers {
-    /// Up to `wanted` helpers, as far as the process holds fewer than
-    /// `cores` in all.
+impl Held {
+    /// The caller, which always works, and up to `wanted` helpers, as far
+    /// as the process then holds no more than `cores` in all.
     fn reserve(wanted: usize, cores: usize) -> Self {
         let mut held = HELPERS.load(Ordering::Relaxed);
         loop {
-            let take = wanted.min(cores.saturating_sub(held));
+            let take = 1 + wanted.min(cores.saturating_sub(held + 1));
             let swapped = HELPERS.compare_exchange_weak(
                 held,
                 held + take,
@@ -57,7 +58,7 @@ impl Helpers {
     }
 }
 
-impl Drop for Helpers {
+impl Drop for Held {
     fn drop(&mut self) {
         HELPERS.fetch_sub(self.0, Ordering::Relaxed);
     }

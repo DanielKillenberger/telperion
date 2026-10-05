@@ -98,4 +98,4 @@ Before / after in each cell. Growth includes the closed form's windows (`Windows
 ## 5. R3
 
 - Workspace gate (`cargo test --profile ci --workspace --no-fail-fast`, once, at `f0793ed8`): 1,100 passed, 0 failed, 22 ignored, 12 min 10 s.
-- Codex: see below.
+- Codex round 1 (`codex impl-review`, base `b5161f48`): **SHIP**, one P2: the process-wide thread budget counted helpers but not the callers, so 32 trees grown at once could run 64 workers. Fixed in the next commit: each caller counts in the budget.
