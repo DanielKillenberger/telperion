@@ -277,10 +277,13 @@ fn dominance_leaves_a_few_laterals_whole() {
 fn the_beech_grows_at_every_age_of_its_sheet() {
     for age in [10, 20, 40, 80] {
         for seed in [1, 7] {
+            // The stills' budget (`examples/space/still.rs`): the beech at
+            // 80, seed 7, grows 10 to 20 million phytomers, the shed ones
+            // included, on the chain's keys (fn-206).
             let request = Request {
                 age,
                 seed,
-                budget: 10_000_000,
+                budget: 20_000_000,
                 light: telperion_space::Light::NEUTRAL,
             };
             let tree = grow(&beech(), request).unwrap_or_else(|e| panic!("{age}, {seed}: {e:?}"));
@@ -296,8 +299,8 @@ fn the_beech_grows_at_every_age_of_its_sheet() {
 fn a_relay_carries_on_its_axis_growth_units() {
     let mut species = walk::species();
     let trunk = &mut species.states[0];
-    trunk.lifespan = 4;
-    trunk.next = Some(1);
+    trunk.lifespan = 4.0;
+    trunk.continuation = 1.0;
     trunk.abortion = 1.0 - 1e-12;
     trunk.relay = 1.0;
     let tree = grown(&species, 1);
@@ -316,14 +319,14 @@ fn a_relay_carries_on_its_axis_growth_units() {
 /// growth unit, and epitony turns it to the parent's upper side.
 #[test]
 fn a_relay_stands_in_the_curvature_zone_on_the_upper_side() {
-    let relays = |at: f64, epitony: f64| {
+    let relays = |at: f64, epitony: f64, seed: u64| {
         let mut species = walk::species();
         let limb = &mut species.states[1];
         limb.relay = 1.0;
         limb.relay_at = at;
         limb.epitony = epitony;
         limb.insertion = 0.6;
-        let tree = grown(&species, 1);
+        let tree = grown(&species, seed);
         tree.axes
             .iter()
             .filter_map(|a| match a.origin {
@@ -331,23 +334,42 @@ fn a_relay_stands_in_the_curvature_zone_on_the_upper_side() {
                     let p = &tree.axes[parent].phytomers;
                     let last = p[p.len() - 1].cycle;
                     let first = p.iter().position(|q| q.cycle == last).unwrap();
-                    Some((first, p.len(), node, a.heading.z))
+                    // The middle of the unit by its phytomers' scaled
+                    // lengths (fn-206).
+                    let total: f64 = p[first..].iter().map(|q| q.scale).sum();
+                    let mut before = 0.0;
+                    let mut middle = p.len() - 1;
+                    for (j, q) in p.iter().enumerate().skip(first) {
+                        if q.scale > 0.0 && before + q.scale >= 0.5 * total {
+                            middle = j;
+                            break;
+                        }
+                        before += q.scale;
+                    }
+                    Some((middle, p.len(), node, a.heading.z))
                 }
                 _ => None,
             })
             .collect::<Vec<_>>()
     };
-    let half = relays(0.5, 0.0);
+    // Over three seeds, so the rise is the law's and not one tree's.
+    let pooled = |epitony: f64| {
+        (1..=3)
+            .flat_map(|seed| relays(0.5, epitony, seed))
+            .collect::<Vec<_>>()
+    };
+    let half = pooled(0.0);
     assert!(!half.is_empty());
-    for &(first, n, node, _) in &half {
-        let middle = first + (n - first).div_ceil(2) - 1;
-        assert_eq!(node, middle, "the middle of nodes {first} to {n}");
+    for &(middle, n, node, _) in &half {
+        assert_eq!(node, middle, "the middle of {n} nodes");
     }
     let rise =
         |v: &[(usize, usize, usize, f64)]| v.iter().map(|r| r.3).sum::<f64>() / v.len() as f64;
     assert!(
-        rise(&relays(0.5, 1.0)) > rise(&half) + 0.05,
-        "epitony turns relays up"
+        rise(&pooled(1.0)) > rise(&half) + 0.05,
+        "epitony turns relays up: {} against {}",
+        rise(&pooled(1.0)),
+        rise(&half)
     );
 }
 
@@ -379,10 +401,10 @@ fn the_abortion_hazard_rises_with_an_axis_units() {
     let mut state = walk::species().states[1].clone();
     state.abortion = 0.2;
     state.abortion_rise = 1.0;
-    assert!((state.abortion_at(1) - 0.2).abs() < 1e-12);
-    assert!(state.abortion_at(3) > state.abortion_at(2));
+    assert!((state.abortion_at(1.0) - 0.2).abs() < 1e-12);
+    assert!(state.abortion_at(3.0) > state.abortion_at(2.0));
     state.abortion_rise = 0.0;
-    assert_eq!(state.abortion_at(5), 0.2);
+    assert_eq!(state.abortion_at(5.0), 0.2);
 }
 
 /// fn-205 R2: an unbranched stem with no secondary growth keeps the width

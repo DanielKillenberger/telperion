@@ -13,7 +13,7 @@ const WANDER: f64 = 0.1;
 fn stem(bend_length: f64) -> Species {
     let mut s = walk::species();
     let trunk = &mut s.states[0];
-    trunk.lifespan = 1_000;
+    trunk.lifespan = 1_000.0;
     trunk.readiness = 0.0;
     trunk.internode = INTERNODE;
     trunk.form.tropism = 0.0;

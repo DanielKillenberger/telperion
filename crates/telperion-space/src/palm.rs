@@ -6,6 +6,7 @@
 //! nothing to act on. The values and their sources are in
 //! `.flow/evidence/fn-196-tree-space-d-the-date-palm-as-a-point/SOURCES.md`;
 //! a value no source gives is marked there as estimated.
+use crate::chain::{self, on_chain};
 use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use std::f64::consts::FRAC_PI_2;
 
@@ -17,12 +18,12 @@ const GOLDEN: f64 = 2.399_963;
 fn unit(fronds: u32) -> Vec<Zone> {
     vec![Zone {
         nodes: NodeLaw::Uniform {
-            min: fronds,
-            max: fronds,
+            min: f64::from(fronds),
+            max: f64::from(fronds),
         },
-        buds: 1,
-        lateral: vec![0.0],
-        dormant: vec![0.0],
+        buds: 1.0,
+        lateral: vec![0.0; chain::AGES],
+        dormant: vec![0.0; chain::AGES],
         delay: 0.0,
         rate: 0.0,
     }]
@@ -37,17 +38,21 @@ pub fn palm() -> Species {
     // down at, today's palm's trunk radius, 0.297 m; a mature trunk is
     // 0.52 to 1.08 m across its retained bases (P7, Table 1).
     let stem = PaState {
-        lifespan: 1_000,
-        next: None,
+        // For as long as a date palm lives, over a century (P4), then
+        // it stops.
+        lifespan: 150.0,
+        continuation: 0.0,
         viability: 1.0,
         zones: unit(12),
-        shedding: None,
+        shedding: f64::INFINITY,
         internode: 0.031,
         insertion: 0.0,
         divergence: GOLDEN,
         abortion: 0.0,
         abortion_rise: 0.0,
         relay: 0.0,
+        relay_ended: 0.0,
+        relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
         erection: 0.0,
@@ -73,7 +78,8 @@ pub fn palm() -> Species {
             ..Form::default()
         },
     };
-    Species { states: vec![stem] }
+    // The stem stands at the chain's trunk.
+    on_chain(vec![(chain::TRUNK, stem)])
 }
 
 #[cfg(test)]

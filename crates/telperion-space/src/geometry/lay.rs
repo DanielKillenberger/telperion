@@ -27,7 +27,7 @@ const DOWN: Vec3 = Vec3::new(0.0, 0.0, -1.0);
 /// its tip, the scaled length it has run, how far its heading lets a bend
 /// pull it up, and its wander's curvature (fn-207): a vector square to the
 /// running direction, in radians per metre, the pivot its turns go about.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub(crate) struct Layer {
     running: Vec3,
     across: Vec3,
@@ -35,6 +35,20 @@ pub(crate) struct Layer {
     run: f64,
     pull: f64,
     curve: Vec3,
+    /// The pulls a relay carries on from the axis it replaces, as far as
+    /// it is still that axis's continuation (fn-206).
+    inherited: Vec<Lift>,
+}
+
+/// A pull of an axis's internodes towards the vertical: `bend` at `offset`
+/// along the scaled length it fades over, to none at `total`, weakened by
+/// `pull` as the heading it was taken from turns down.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Lift {
+    bend: f64,
+    pull: f64,
+    total: f64,
+    offset: f64,
 }
 
 impl Layer {
@@ -50,7 +64,43 @@ impl Layer {
             run: 0.0,
             pull: (1.0 + heading.z) / 2.0,
             curve: curve - heading * curve.dot(heading),
+            inherited: Vec::new(),
         }
+    }
+
+    /// The same, carrying on the pulls `inherited` from the axis it
+    /// relays (`handed`).
+    pub fn inheriting(mut self, inherited: Vec<Lift>) -> Self {
+        self.inherited = inherited;
+        self
+    }
+
+    /// The running direction and side the walk stands on, before its pull
+    /// towards the vertical: what a continuation or relay carries on.
+    pub fn ends(&self) -> (Vec3, Vec3) {
+        (self.running, self.across)
+    }
+
+    /// The pulls a relay of this axis carries on, `blend` of the way from
+    /// its continuation to its own bud: the axis's own at `bend` over its
+    /// reach `total`, and those it carries, each as far as the relay is
+    /// still the continuation and on from the axis's scaled length.
+    pub fn handed(&self, (bend, total): (f64, f64), blend: f64) -> Vec<Lift> {
+        let w = 1.0 - blend;
+        let own = Lift {
+            bend,
+            pull: self.pull,
+            total,
+            offset: 0.0,
+        };
+        std::iter::once(own)
+            .chain(self.inherited.iter().copied())
+            .map(|lift| Lift {
+                bend: lift.bend * w,
+                offset: lift.offset + self.run,
+                ..lift
+            })
+            .collect()
     }
 
     /// The wander's curvature where the walk stands.
@@ -79,14 +129,14 @@ impl Layer {
         trunk: bool,
     ) -> std::result::Result<(), f64> {
         let form = state.form;
-        let Self {
-            mut running,
-            mut across,
-            mut tip,
-            mut run,
-            pull,
-            mut curve,
-        } = *self;
+        let (mut running, mut across, mut tip, mut run, pull, mut curve) = (
+            self.running,
+            self.across,
+            self.tip,
+            self.run,
+            self.pull,
+            self.curve,
+        );
         let length = state.internode * phytomer.scale;
         let share = 1.0 - (-form.tropism * length).exp();
         let bent = toward_elevation(running, across, form.elevation, share);
@@ -185,16 +235,29 @@ impl Layer {
                 curve = rotated(curve, pivot, angle);
             }
         }
-        let along = if total > 0.0 {
-            (run + phytomer.scale / 2.0) / total
-        } else {
-            1.0
+        // Its own pull, and those it carries on from the axis it relays,
+        // each fading over its reach (fn-206).
+        let own = Lift {
+            bend,
+            pull,
+            total,
+            offset: 0.0,
         };
+        let (mut lift, mut up) = (0.0, 0.0);
+        for l in std::iter::once(&own).chain(&self.inherited) {
+            let along = if l.total > 0.0 {
+                (l.offset + run + phytomer.scale / 2.0) / l.total
+            } else {
+                1.0
+            };
+            let here = l.bend * (1.0 - along).max(0.0);
+            lift += here;
+            up += here * l.pull;
+        }
         run += phytomer.scale;
-        let lift = bend * (1.0 - along);
-        let blend = running * (1.0 - lift) + UP * (lift * pull);
+        let blend = running * (1.0 - lift) + UP * up;
         let mut direction = match blend.unit() {
-            Some(unit) if bend > 0.0 => unit,
+            Some(unit) if lift > 0.0 => unit,
             _ => running,
         };
         // Landing: within a few radii of the ground, and `LANDING`
@@ -228,14 +291,8 @@ impl Layer {
         phytomer.side = (across - direction * across.dot(direction))
             .unit()
             .unwrap_or(across);
-        *self = Self {
-            running,
-            across,
-            tip,
-            run,
-            pull,
-            curve,
-        };
+        (self.running, self.across, self.tip, self.run, self.curve) =
+            (running, across, tip, run, curve);
         Ok(())
     }
 }
@@ -245,13 +302,13 @@ impl Layer {
 /// where the walk ends.
 pub(crate) fn lay(
     axis: &mut Axis,
-    (frame, curve): ((Vec3, Vec3, Vec3), Vec3),
+    (frame, curve, inherited): ((Vec3, Vec3, Vec3), Vec3, Vec<Lift>),
     state: &PaState,
     bend: (f64, f64),
     load: Option<&[Lever]>,
     trunk: bool,
 ) -> std::result::Result<Layer, f64> {
-    let mut layer = Layer::bent(frame, curve);
+    let mut layer = Layer::bent(frame, curve).inheriting(inherited);
     for (k, phytomer) in axis.phytomers.iter_mut().enumerate() {
         layer.step(phytomer, state, bend, load.map(|l| &l[k]), trunk)?;
     }

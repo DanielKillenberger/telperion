@@ -6,19 +6,22 @@
 //! in one plane. The rules (M1 to M14) and their sources are in
 //! `.flow/evidence/fn-194-tree-space-d-the-norway-spruce-as-a/SOURCES.md`;
 //! a value no source gives is marked there as estimated.
+use crate::chain::{self, on_chain};
 use crate::species::{Form, NodeLaw, PaState, Species, Zone};
 use std::f64::consts::{FRAC_PI_2, PI};
 
-/// The reference axis, youngest first.
-const SAPLING: usize = 1;
-const TRUNK: usize = 2;
-const CROWN: usize = 3;
-const SPRIG: usize = 4;
-const BRANCH: usize = 5;
-const BRANCHLET: usize = 6;
-const SPUR: usize = 7;
-const SHOOT: usize = 8;
-const PAS: usize = 9;
+/// The spruce's ages on the shared reference axis (`chain.rs`), youngest
+/// first: its crown's leader stands at the chain's leader.
+const SEEDLING: usize = chain::SEEDLING;
+const SAPLING: usize = chain::SAPLING;
+const TRUNK: usize = chain::TRUNK;
+const CROWN: usize = chain::LEADER;
+const SPRIG: usize = chain::SPRIG;
+const BRANCH: usize = chain::BRANCH;
+const BRANCHLET: usize = chain::BRANCHLET;
+const SPUR: usize = chain::SPUR;
+const SHOOT: usize = chain::SHOOT;
+const PAS: usize = chain::AGES;
 
 /// One zone: nodes from `min` to `max`, `buds` each, bearing `pa` with
 /// probability `p` (bare where `p` is 0).
@@ -28,8 +31,11 @@ fn zone(min: u32, max: u32, buds: u8, laterals: &[(usize, f64)]) -> Zone {
         lateral[pa] = p;
     }
     Zone {
-        nodes: NodeLaw::Uniform { min, max },
-        buds,
+        nodes: NodeLaw::Uniform {
+            min: f64::from(min),
+            max: f64::from(max),
+        },
+        buds: f64::from(buds),
         dormant: vec![0.0; lateral.len()],
         delay: 0.0,
         rate: 0.0,
@@ -49,19 +55,21 @@ fn sleeping(mut zone: Zone) -> Zone {
 }
 
 /// The neutral state every row below starts from.
-fn state(lifespan: u32, next: Option<usize>, zones: Vec<Zone>) -> PaState {
+fn state(lifespan: u32, continuation: f64, zones: Vec<Zone>) -> PaState {
     PaState {
-        lifespan,
-        next,
+        lifespan: f64::from(lifespan),
+        continuation,
         viability: 1.0,
         zones,
-        shedding: None,
+        shedding: f64::INFINITY,
         internode: 0.04,
         insertion: 0.0,
         divergence: PI,
         abortion: 0.0,
         abortion_rise: 0.0,
         relay: 0.0,
+        relay_ended: 0.0,
+        relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
         erection: 0.0,
@@ -116,7 +124,7 @@ pub fn spruce() -> Species {
         internode: 0.02,
         rhythm: 0.3,
         form: stem,
-        ..state(2, Some(SAPLING), trunk_unit((2, 3), 0.0, 0.0))
+        ..state(2, 1.0, trunk_unit((2, 3), 0.0, 0.0))
     };
     // The sapling: whorls from its third year, on yearly shoots of about
     // 0.2 m, its rhythm still establishing (M4).
@@ -125,19 +133,20 @@ pub fn spruce() -> Species {
         internode: 0.028,
         rhythm: 0.7,
         form: stem,
-        ..state(8, Some(TRUNK), trunk_unit((4, 5), 0.25, 0.85))
+        ..state(8, 1.0, trunk_unit((4, 5), 0.25, 0.85))
     };
     // The trunk in its vigorous years: a yearly shoot of about 0.35 m.
     let trunk = PaState {
         divergence: 2.4,
         internode: 0.042,
         form: stem,
-        ..state(35, Some(CROWN), trunk_unit((5, 6), 0.3, 0.85))
+        ..state(35, 1.0, trunk_unit((5, 6), 0.3, 0.85))
     };
-    // The leader in the mature crown: shorter yearly shoots.
+    // The leader in the mature crown: shorter yearly shoots, for as long
+    // as a Norway spruce lives (300 years), then it stops.
     let crown = PaState {
-        lifespan: 1_000,
-        next: None,
+        lifespan: 300.0,
+        continuation: 0.0,
         internode: 0.03,
         ..trunk.clone()
     };
@@ -152,7 +161,7 @@ pub fn spruce() -> Species {
         insertion: 1.5,
         internode: 0.034,
         viability: 0.998,
-        shedding: Some(3),
+        shedding: 3.0,
         form: Form {
             tropism: 1.4,
             elevation: 1.0,
@@ -167,9 +176,10 @@ pub fn spruce() -> Species {
             secondary: 1.0,
             bend_length: 0.0,
         },
+        // For as long as the tree lives, then they stop.
         ..state(
-            1_000,
-            None,
+            300,
+            0.0,
             vec![
                 sleeping(zone(1, 1, 1, &[])),
                 sleeping(zone(2, 2, 2, &[(BRANCHLET, 0.7)])),
@@ -182,10 +192,10 @@ pub fn spruce() -> Species {
     // They rise a little more than the older wood beyond them, so the
     // upper crown, all young branches, stays level to ascending.
     let sprig = PaState {
-        lifespan: 6,
-        next: Some(BRANCH),
+        lifespan: 6.0,
+        continuation: 1.0,
         internode: 0.05,
-        shedding: None,
+        shedding: f64::INFINITY,
         form: Form {
             tropism: 0.4,
             elevation: 0.35,
@@ -204,8 +214,8 @@ pub fn spruce() -> Species {
         insertion: 0.9,
         internode: 0.016,
         viability: 0.99,
-        next: Some(SPUR),
-        shedding: Some(1),
+        continuation: 1.0,
+        shedding: 1.0,
         form: Form {
             tropism: 2.0,
             elevation: -1.0,
@@ -222,22 +232,29 @@ pub fn spruce() -> Species {
         },
         ..state(
             10,
-            None,
+            0.0,
             vec![
+                // No bare base: medial pairs, then the top cluster.
+                zone(0, 0, 1, &[]),
                 zone(2, 2, 2, &[(SHOOT, 0.55)]),
                 zone(1, 1, 3, &[(SHOOT, 0.8)]),
             ],
         )
     };
     let spur = PaState {
-        lifespan: 40,
+        lifespan: 40.0,
         viability: 0.99,
-        next: None,
+        continuation: 0.0,
         internode: 0.006,
         // Each year a pair of shoots, the pairs turning by the golden angle,
         // so an old branchlet hangs as a needled mass all round, not a
         // flat shelf; the young branchlet keeps its flat spray.
-        zones: vec![zone(1, 1, 2, &[(SHOOT, 0.6)])],
+        // A unit of one node, its pair of shoots the top whorl.
+        zones: vec![
+            zone(0, 0, 1, &[]),
+            zone(0, 0, 1, &[]),
+            zone(1, 1, 2, &[(SHOOT, 0.6)]),
+        ],
         divergence: 2.4,
         form: Form {
             tropism: 3.0,
@@ -254,7 +271,7 @@ pub fn spruce() -> Species {
         insertion: 1.1,
         internode: 0.02,
         viability: 0.9,
-        shedding: Some(3),
+        shedding: 3.0,
         form: Form {
             tropism: 1.0,
             elevation: -0.5,
@@ -263,11 +280,17 @@ pub fn spruce() -> Species {
             roll: 1.2,
             ..Form::default()
         },
-        ..state(2, None, vec![zone(2, 2, 1, &[])])
+        ..state(2, 0.0, vec![zone(2, 2, 1, &[])])
     };
-    Species {
-        states: vec![
-            seedling, sapling, trunk, crown, sprig, branch, branchlet, spur, shoot,
-        ],
-    }
+    on_chain(vec![
+        (SEEDLING, seedling),
+        (SAPLING, sapling),
+        (TRUNK, trunk),
+        (CROWN, crown),
+        (SPRIG, sprig),
+        (BRANCH, branch),
+        (BRANCHLET, branchlet),
+        (SPUR, spur),
+        (SHOOT, shoot),
+    ])
 }

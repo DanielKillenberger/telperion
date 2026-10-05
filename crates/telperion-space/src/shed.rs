@@ -1,14 +1,16 @@
 //! Shedding. A lateral axis whose subtree has held no living apex for more
-//! than its PA's delay is dropped, with all it bears. Which axes go is
-//! decided on whole cycles, as GreenLab does; how big a kept one is fades
-//! with its subtree's living time weighted by presence, so a branch whose
-//! last growth a setting is unmaking shrinks away before it is shed.
+//! than its PA's delay is dropped, with all it bears. How big a kept one is
+//! fades with its subtree's living time, each growth unit's time weighted
+//! by its presence, so a branch whose last growth a setting is unmaking
+//! shrinks away before it is shed; it is dropped once its fade reaches
+//! nothing, which for whole presences and delays is the cycle GreenLab
+//! drops it in (fn-206).
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
 
-/// Which axes the shedding rule keeps at `age`: a lateral or relay whose
-/// subtree has held no living apex for more than its PA's delay goes,
-/// with all it bears.
+/// Which axes stand at `age` while the tree grows, before its presences
+/// are known (`grow/relay.rs`): a lateral or relay whose subtree has held
+/// no living apex for more than its PA's delay goes, with all it bears.
 pub(crate) fn standing(axes: &[Axis], species: &Species, age: u32) -> Vec<bool> {
     let mut live_until: Vec<u32> = axes
         .iter()
@@ -27,8 +29,8 @@ pub(crate) fn standing(axes: &[Axis], species: &Species, age: u32) -> Vec<bool> 
             Origin::Continuation { parent } => kept[parent],
             Origin::Lateral { parent, .. } | Origin::Relay { parent, .. } => {
                 let delay = species.states[axis.pa].shedding;
-                let idle = age.saturating_sub(live_until[i]);
-                kept[parent] && !delay.is_some_and(|d| idle > d)
+                let idle = f64::from(age.saturating_sub(live_until[i]));
+                kept[parent] && !(delay.is_finite() && idle > delay)
             }
         };
     }
@@ -45,11 +47,20 @@ pub(crate) struct Shed {
 
 pub(crate) fn shed(mut axes: Vec<Axis>, species: &Species, age: u32) -> Shed {
     let fade = fades(&axes, species, age);
-    let standing = standing(&axes, species, age);
     let mut index = vec![usize::MAX; axes.len()];
     let mut kept = Vec::with_capacity(axes.len());
     for (i, mut axis) in axes.drain(..).enumerate() {
-        if !standing[i] {
+        // Gone with its parent, or once its fade has reached nothing: its
+        // subtree idle past its delay by a whole cycle, in the time its
+        // growth units lived (fn-206).
+        let lost = match axis.origin {
+            Origin::Seed => false,
+            Origin::Continuation { parent } => index[parent] == usize::MAX,
+            Origin::Lateral { parent, .. } | Origin::Relay { parent, .. } => {
+                index[parent] == usize::MAX || fade[i] <= 0.0
+            }
+        };
+        if lost {
             continue;
         }
         axis.vigour *= fade[i];
@@ -75,7 +86,9 @@ pub(crate) fn shed(mut axes: Vec<Axis>, species: &Species, age: u32) -> Shed {
 /// presence is whole it is 1 for every kept axis.
 fn fades(axes: &[Axis], species: &Species, age: u32) -> Vec<f64> {
     let delay = |a: &Axis| match a.origin {
-        Origin::Lateral { .. } | Origin::Relay { .. } => species.states[a.pa].shedding,
+        Origin::Lateral { .. } | Origin::Relay { .. } => {
+            Some(species.states[a.pa].shedding).filter(|d| d.is_finite())
+        }
         _ => None,
     };
     if !axes.iter().any(|a| delay(a).is_some()) {
@@ -101,7 +114,8 @@ fn fades(axes: &[Axis], species: &Species, age: u32) -> Vec<f64> {
     let mut living = vec![f64::NEG_INFINITY; axes.len()];
     let mut alive = vec![0.0f64; axes.len()];
     for (i, axis) in axes.iter().enumerate() {
-        let mut lived = grown[i][axis.units.len()];
+        // From the share of its first cycle gone before it grew.
+        let mut lived = axis.sleep + grown[i][axis.units.len()];
         let mut apex = axis.alive;
         let mut at = i;
         loop {
@@ -120,7 +134,7 @@ fn fades(axes: &[Axis], species: &Species, age: u32) -> Vec<f64> {
             // A relay made the cycle its parent died starts a cycle after
             // the parent's last growth unit.
             let gap = f64::from(link.birth - p.birth) - units as f64;
-            lived = grown[parent][units] + weight * (gap + lived);
+            lived = p.sleep + grown[parent][units] + weight * (gap + lived);
             apex *= weight;
             at = parent;
         }
@@ -130,7 +144,7 @@ fn fades(axes: &[Axis], species: &Species, age: u32) -> Vec<f64> {
     axes.iter()
         .zip(living.iter().zip(&alive))
         .map(|(axis, (&until, &apex))| match delay(axis) {
-            Some(d) => (f64::from(d) + 1.0 - (f64::from(age) - until)).clamp(apex.min(1.0), 1.0),
+            Some(d) => (d + 1.0 - (f64::from(age) - until)).clamp(apex.min(1.0), 1.0),
             None => 1.0,
         })
         .collect()

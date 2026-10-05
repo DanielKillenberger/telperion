@@ -4,8 +4,8 @@
 //! scale: log-odds for a probability, its unit otherwise.
 mod walk;
 use walk::{
-    crossing, in_leaf, light_settings, made, refine, release_settings, settings, Setting, Step,
-    STEPS,
+    crossing, in_leaf, light_settings, made, refine, release_settings, setting, settings, Setting,
+    Step, STEPS,
 };
 
 /// The stated multiple: no step moves the total length, height, spread,
@@ -40,6 +40,37 @@ fn walks(all: &[Setting]) -> Vec<Vec<(u64, Vec<Step>)>> {
 #[test]
 fn every_setting_changes_the_tree_by_degree() {
     let failed = by_degree(&settings());
+    assert!(failed.is_empty(), "{failed:#?}");
+}
+
+/// fn-206 R3: a walk from one species to the next, every setting between
+/// theirs on the shared reference axis, changes the tree by degree: no
+/// jump. The share of the way is not a setting, so the bound per unit of a
+/// setting does not hold it: the whole tree turns from one species into
+/// the next over it, its laterals spun round the stem as the divergence
+/// walks (steepest about 300 per unit, in a branch's place). The strips
+/// judge the look.
+#[test]
+fn a_walk_between_species_changes_the_tree_by_degree() {
+    use telperion_space::{beech, blend, oak, palm, spruce};
+    type Point = fn() -> telperion_space::Species;
+    let pairs: [(&str, Point, Point); 3] = [
+        ("beech to spruce", beech, spruce),
+        ("spruce to oak", spruce, oak),
+        ("oak to palm", oak, palm),
+    ];
+    let all: Vec<Setting> = pairs
+        .into_iter()
+        .map(|(name, a, b)| {
+            setting(name.into(), 0.0, 1.0, false, move |s, t| {
+                *s = blend(&a(), &b(), t).unwrap()
+            })
+        })
+        .collect();
+    let failed: Vec<String> = by_degree(&all)
+        .into_iter()
+        .filter(|f| f.contains("a jump"))
+        .collect();
     assert!(failed.is_empty(), "{failed:#?}");
 }
 
@@ -122,6 +153,9 @@ fn by_degree(all: &[Setting]) -> Vec<String> {
             .flat_map(|(seed, steps)| steps.iter().map(move |s| (*seed, s)))
             .collect();
         steps.sort_by(|a, b| b.1.slope.total_cmp(&a.1.slope));
+        // Split to a 4096th of a step: a draw near 0 or 1 grows its element
+        // in over as little as a 2000th of one, where its log-odds lead
+        // runs fastest (fn-206, bisected): a slope there, not a jump.
         for (seed, step) in steps.iter().take(3).filter(|(_, s)| s.slope > 0.0) {
             let changes = refine(setting, *seed, step.from, step.to, REFINE, 8);
             let (first, last) = (changes[0], changes[REFINE as usize]);
@@ -174,8 +208,115 @@ fn branches_are_made_and_unmade_at_vanishing_size() {
 #[test]
 fn the_jump_check_sees_a_switch() {
     let switch = walk::setting("states[1].lifespan".into(), 0.0, 1.0, false, |s, v| {
-        s.states[1].lifespan = if v < 0.5 { 5 } else { 6 }
+        s.states[1].lifespan = if v < 0.5 { 5.0 } else { 6.0 }
     });
     let changes = refine(&switch, 1, 0.5 - 1.0 / f64::from(STEPS), 0.5, 3, 8);
     assert!(changes[3] > changes[0] / 2.0, "{changes:?}");
+}
+
+/// A stem that all but stopped grows on as itself and as the relay it
+/// would have had (host decision 11), so raising its abortion only ever
+/// takes the stem's wood away, never dips it and gives it back: a stop
+/// near its bound fades nothing its relay carries on.
+#[test]
+fn a_stop_near_its_bound_fades_nothing_its_relay_carries() {
+    for seed in 1..=4 {
+        let lengths: Vec<f64> = (0..=200)
+            .map(|k| {
+                let mut species = walk::species();
+                let stem = &mut species.states[0];
+                stem.abortion = 0.1 + 0.3 * f64::from(k) / 200.0;
+                stem.relay = 0.5;
+                let tree = walk::tree(&species, seed).unwrap();
+                tree.axes
+                    .iter()
+                    .filter(|a| a.pa == 0)
+                    .flat_map(|a| &a.phytomers)
+                    .map(|p| p.scale)
+                    .sum()
+            })
+            .collect();
+        for i in 1..lengths.len() - 1 {
+            let rim = |side: &[f64]| side.iter().copied().fold(0.0, f64::max);
+            let rim = rim(&lengths[..i]).min(rim(&lengths[i + 1..]));
+            assert!(
+                lengths[i] >= rim * (1.0 - 1e-9),
+                "seed {seed}: the stem dips to {} between {rim}s",
+                lengths[i]
+            );
+        }
+    }
+}
+
+/// fn-199 R2: a relay stands at its share of its parent's last growth
+/// unit by the unit's scaled length, so a node growing in from nothing
+/// beneath it moves it by nothing (fn-206, b172c2d4).
+#[test]
+fn a_node_growing_in_moves_no_relay() {
+    let nodes = walk::setting(
+        "states[0].zones[1].nodes.max, relay 1".into(),
+        2.0,
+        4.0,
+        false,
+        |s, v| {
+            let trunk = &mut s.states[0];
+            trunk.relay = 1.0;
+            trunk.relay_at = 0.5;
+            trunk.abortion = 0.3;
+            trunk.zones[1].nodes = telperion_space::NodeLaw::Uniform { min: 2.0, max: v };
+        },
+    );
+    let failed = by_degree(&[nodes]);
+    assert!(failed.is_empty(), "{failed:#?}");
+}
+
+/// Host decision 12: a stop's outcome is one distribution, carrying on,
+/// relaying or dying, mixed as shares. Neither the beech's leader (it
+/// aborts and always relays) nor the spruce's (it never aborts) dies, so
+/// the tree halfway between keeps its leader to age 60: an apex still
+/// growing at whole size at the top of the tree.
+#[test]
+fn a_midpoint_between_two_undying_leaders_keeps_its_leader() {
+    use telperion_space::{beech, blend, grow, spruce, Origin, Request};
+    let species = blend(&beech(), &spruce(), 0.5).unwrap();
+    let request = Request {
+        age: 60,
+        seed: 1,
+        budget: 60_000_000,
+        light: telperion_space::Light::NEUTRAL,
+    };
+    let tree = grow(&species, request).unwrap();
+    // The leader: from the seed, on through the most vigorous of each
+    // axis's continuations and relays.
+    let mut at = 0;
+    loop {
+        let next = tree
+            .axes
+            .iter()
+            .enumerate()
+            .filter(|(_, a)| match a.origin {
+                Origin::Continuation { parent } | Origin::Relay { parent, .. } => parent == at,
+                _ => false,
+            })
+            .max_by(|a, b| a.1.vigour.total_cmp(&b.1.vigour));
+        match next {
+            Some((j, _)) => at = j,
+            None => break,
+        }
+    }
+    let leader = &tree.axes[at];
+    let tip = leader.phytomers.last().expect("the leader grew");
+    let top = tree
+        .axes
+        .iter()
+        .flat_map(|a| &a.phytomers)
+        .map(|p| p.tip.z)
+        .fold(0.0, f64::max);
+    assert_eq!(leader.apex_end, None, "the leader stopped");
+    assert!(tip.scale > 0.99, "the leader faded to {}", tip.scale);
+    assert!(
+        tip.tip.z > 0.95 * top,
+        "the leader at {} of {top}",
+        tip.tip.z
+    );
 }

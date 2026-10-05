@@ -21,7 +21,7 @@ fn deterministic_runs_grow_the_simulators_trees_exactly() {
     assert_eq!(fixed.len(), 3);
     for set in &fixed {
         let grown = tree(&species(set), age(set), 1);
-        let counts = grown.counts();
+        let counts = common::fold(set, &grown.counts());
         for (pa, row) in set["counts"].as_array().unwrap().iter().enumerate() {
             for (c, oracle) in row.as_array().unwrap().iter().enumerate() {
                 let ours = counts.get(pa, c + 1);
@@ -35,7 +35,7 @@ fn deterministic_runs_grow_the_simulators_trees_exactly() {
                 );
             }
         }
-        let signature = common::signature(&grown);
+        let signature = common::signature(&grown, &common::ages(set));
         assert_eq!(
             signature.len() as u64,
             set["signature_length"].as_u64().unwrap(),
@@ -81,9 +81,9 @@ fn stochastic_structures_match_the_simulators_in_distribution() {
         let count = set["seeds"]["count"].as_u64().unwrap();
         let species = species(set);
         let tables: Vec<_> = (0..count)
-            .map(|seed| tree(&species, age(set), seed).counts())
+            .map(|seed| common::fold(set, &tree(&species, age(set), seed).counts()))
             .collect();
-        let pas = species.states.len();
+        let pas = set["pa"].as_array().unwrap().len();
         for pa in 0..pas {
             let totals: Vec<f64> = tables.iter().map(|t| t.total(pa)).collect();
             let mut cells = vec![(
@@ -130,7 +130,7 @@ fn stochastic_structures_match_the_simulators_in_distribution() {
 #[test]
 fn the_closed_form_expectation_is_the_simulators_mean() {
     for set in sets().iter().filter(|s| !deterministic(s)) {
-        let expected = expected_counts(&species(set), age(set)).unwrap();
+        let expected = common::fold(set, &expected_counts(&species(set), age(set)).unwrap());
         let count = set["seeds"]["count"].as_f64().unwrap();
         for pa in 0..expected.pas {
             for cycle in 1..=expected.cycles {

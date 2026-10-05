@@ -8,10 +8,13 @@ use crate::species::NodeLaw;
 /// The draws of one growth unit, under its unit key.
 pub(crate) const VIABILITY: u64 = 0;
 pub(crate) const ABORTION: u64 = 1;
+/// An apex that has spent its lifespan moving on, under its last unit.
+pub(crate) const MOVE: u64 = 2;
 /// Zone `z` of a growth unit is keyed `ZONE + z`.
 pub(crate) const ZONE: u64 = 16;
-/// The draws of one axis, under its lineage, and its relay draw, under
-/// the growth unit it stopped in.
+/// An axis's continuation into an age, under the lineage that began its
+/// chain of ages (`Key::onto`), and its relay draw, under the growth unit
+/// it stopped in.
 pub(crate) const RELAY: u64 = u64::MAX - 2;
 /// A lateral's yearly shedding on its carbon balance, under its lineage
 /// and then the cycle.
@@ -23,6 +26,10 @@ pub(crate) const DOMINANCE: u64 = u64::MAX - 5;
 /// A bud place's sleeping bud, under the place's key, and its waking
 /// time, under the sleeping bud's.
 pub(crate) const DORMANT: u64 = u64::MAX - 6;
+/// The stop decisions of a relay of an age that ended, by its count.
+pub(crate) const ENDED: u64 = u64::MAX - 7;
+/// An age's end: whether it moves on, and its relay if it does not.
+pub(crate) const END: u64 = u64::MAX - 8;
 pub(crate) const CONTINUATION: u64 = u64::MAX;
 
 /// A hashed path from the root.
@@ -45,6 +52,14 @@ impl Key {
     pub fn child(self, part: u64) -> Self {
         let step = mix(part.wrapping_add(0x6a09_e667_f3bc_c909));
         Self(mix(self.0.rotate_left(23) ^ step))
+    }
+
+    /// The axis that carries a chain of ages on into `age`, keyed by that
+    /// age's place on the reference axis from the lineage that began the
+    /// chain, so an age passed through or grown in moves no other's key
+    /// (host, 2026-10-05).
+    pub fn onto(self, age: usize) -> Self {
+        self.child(CONTINUATION).child(age as u64)
     }
 
     /// The draw this key decides, uniform on [0, 1).
@@ -75,6 +90,16 @@ pub(crate) fn above(u: f64, bound: f64) -> f64 {
     logit(u) - logit(bound)
 }
 
+/// How far a count's draw `u` lies above the `bound` it must reach: the
+/// log of their ratio, unbounded as the bound nears 0, where the node
+/// becomes a sure one, and gentle as it nears 1.
+fn past(u: f64, bound: f64) -> f64 {
+    if bound <= 0.0 {
+        return f64::INFINITY;
+    }
+    u.ln() - bound.ln()
+}
+
 /// A bud's PA under `lateral` for the draw `u`, with its lead past the
 /// nearer bound of the PA's run of draws; none for a bare bud.
 pub(crate) fn bud(lateral: &[f64], u: f64) -> Option<(usize, f64)> {
@@ -96,8 +121,15 @@ pub(crate) fn nodes(law: NodeLaw, u: f64, cap: u32, leads: &mut Vec<f64>) {
     leads.clear();
     match law {
         NodeLaw::Uniform { min, max } => {
-            let count = min + (u * f64::from(max - min + 1)) as u32;
-            leads.resize(count.min(max) as usize, f64::INFINITY);
+            // Node j stands while u lies above its share of the span.
+            let span = max - min + 1.0;
+            for j in 0..(max.ceil() as u32).min(cap) {
+                let bound = (f64::from(j) - min + 1.0) / span;
+                if u < bound {
+                    break;
+                }
+                leads.push(past(u, bound));
+            }
         }
         NodeLaw::Poisson { mean } => {
             // Node k stands while u lies above P(count <= k).

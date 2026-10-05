@@ -49,6 +49,41 @@ impl Windows {
         (log - self.whole).exp()
     }
 
+    /// The wood a bud of `pa` is expected to grow from `used` of the way
+    /// through `cycle`: between the cycle's and the next's by its log, so
+    /// an age ending just before a whole cycle decides as one ending just
+    /// after it (Codex round 7 on fn-206).
+    pub fn wood_at(&self, pa: usize, cycle: u32, used: f64) -> f64 {
+        let (a, b) = (self.wood(pa, cycle), self.wood(pa, cycle + 1));
+        if a <= 0.0 || b <= 0.0 {
+            return a + (b - a) * used;
+        }
+        (a.ln() + (b.ln() - a.ln()) * used).exp()
+    }
+
+    /// The wood a bud of `pa` is expected to grow over the `left` cycles
+    /// left of the tree's age, as a share of the whole tree's: `wood` at
+    /// the cycle `left` cycles before the tree's age.
+    pub fn wood_left(&self, pa: usize, left: usize) -> f64 {
+        let log = self.expected[left.min(self.age as usize)][pa];
+        if log == f64::NEG_INFINITY {
+            return 0.0;
+        }
+        (log - self.whole).exp()
+    }
+
+    /// The chance that a draw made with probability `p` is made within its
+    /// window, at a presence below 1, deciding `decided` of `wood`: where
+    /// a stop all but made grows both outcomes (host decision 11).
+    pub fn borderline(&self, p: f64, wood: f64, decided: f64) -> f64 {
+        let window = (RATE * wood * decided).clamp(FLOOR * decided, SPAN);
+        if p <= 0.0 || p >= 1.0 || window <= 0.0 {
+            return 0.0;
+        }
+        let logit = (p / (1.0 - p)).ln();
+        p - 1.0 / (1.0 + (window - logit).exp())
+    }
+
     /// The wood a sleeping bud of `pa` on a node grown in `cycle` is
     /// expected to grow, over the years it may wake in.
     fn dormant(&self, zone: &Zone, pa: usize, cycle: u32) -> f64 {
@@ -108,22 +143,35 @@ pub(crate) struct Draws {
     /// Per growth unit: its survival, then the apex's persistence past it
     /// (not aborting).
     pub units: Vec<[f64; 2]>,
+    /// Per growth unit: the share of its cycle it grew (`schedule.rs`).
+    pub shares: Vec<f64>,
+    /// Per phytomer: its node's draw.
+    pub nodes: Vec<f64>,
+    /// The apex still lives at the tree's age.
+    pub alive: bool,
+    /// How much a living apex lives on (`Grower::living`).
+    pub living: f64,
     /// Per growth unit, where light shades: its phytomers' size from its
     /// bud's vigour (`allocation.rs`); empty where nothing shades.
     pub sizes: Vec<f64>,
     /// Per growth unit, where light shades: the light its bud grew in.
     pub lights: Vec<f64>,
-    /// Per phytomer: its node's draw.
-    pub nodes: Vec<f64>,
-    /// The apex still lives at the tree's age.
-    pub alive: bool,
     /// The apex stopped by failing to survive a growth unit.
     pub failed: bool,
-    /// The units a woken bud slept in its stage, which its abortion hazard
+    /// A relay of an age that ended or of a unit that failed
+    /// (`schedule.rs`).
+    pub ended: bool,
+    /// The share of the cycle its age ended at, where it ended there and
+    /// stopped: a sleeping bud waking in that cycle wakes on it.
+    pub outlived: Option<f64>,
+    /// How many relays of an age that ended carry this axis on, each
+    /// drawing its stop decisions apart.
+    pub ended_relays: u32,
+    /// The time a woken bud slept in its stage, which its abortion hazard
     /// counts.
-    pub aged: u32,
-    /// The share of its first cycle a bud that woke still slept, which
-    /// its first growth unit lacks.
+    pub aged: f64,
+    /// The share of its first cycle gone before it grew, asleep or to the
+    /// age before it, which its first growth unit lacks.
     pub sleep: f64,
 }
 
@@ -140,8 +188,8 @@ pub(crate) fn assign(axes: &mut [Axis], draws: &[Draws]) {
         let mut rank = 0.0;
         for (k, &[survive, persist]) in draws[i].units.iter().enumerate() {
             running *= survive;
-            presences.push(running);
-            let grown = if k == 0 { 1.0 - draws[i].sleep } else { 1.0 };
+            let grown = draws[i].shares[k];
+            presences.push(running * grown);
             while j < axis.phytomers.len() && (axis.phytomers[j].cycle - birth - 1) as usize == k {
                 axis.phytomers[j].scale = running * draws[i].nodes[j] * grown;
                 axis.phytomers[j].size = draws[i].sizes.get(k).copied().unwrap_or(1.0);
@@ -156,7 +204,11 @@ pub(crate) fn assign(axes: &mut [Axis], draws: &[Draws]) {
         axis.units = presences;
         axis.sleep = draws[i].sleep;
         axis.rank = rank;
-        axis.alive = if draws[i].alive { running } else { 0.0 };
+        axis.alive = if draws[i].alive {
+            running * draws[i].living
+        } else {
+            0.0
+        };
         let made = draws[i].birth[0] * draws[i].birth[1];
         axis.vigour = match axis.origin {
             Origin::Seed | Origin::Lateral { .. } => made,

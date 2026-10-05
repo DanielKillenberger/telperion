@@ -14,6 +14,8 @@
 //! fixed seed changes the tree by degree.
 mod allocation;
 mod beech;
+mod blend;
+mod chain;
 mod closed_form;
 mod dormant;
 mod error;
@@ -26,12 +28,14 @@ mod oak;
 mod palm;
 mod presence;
 mod sag;
+mod schedule;
 mod shed;
 mod species;
 mod spruce;
 mod structure;
 
 pub use beech::beech;
+pub use blend::blend;
 pub use closed_form::expected_counts;
 pub use error::{Error, Result};
 pub use grow::{grow, grow_staged, sketch, Request, Stage};
@@ -39,6 +43,8 @@ pub use light::{bud_light, Light};
 pub use oak::oak;
 pub use palm::palm;
 pub use presence::{FLOOR, RATE, SPAN};
-pub use species::{Form, NodeLaw, PaState, Species, Zone, MAX_BUDS};
+pub use species::{
+    Form, NodeLaw, PaState, Species, Zone, BARE, MAX_BUDS, MEDIAL, SPARE, TOP, ZONES,
+};
 pub use spruce::spruce;
 pub use structure::{Axis, CountTable, Origin, Phytomer, Structure, Vec3};

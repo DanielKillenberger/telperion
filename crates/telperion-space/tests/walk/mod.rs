@@ -14,7 +14,7 @@ pub const AGE: u32 = 12;
 fn zone(nodes: NodeLaw, buds: u8, lateral: [f64; 3]) -> Zone {
     Zone {
         nodes,
-        buds,
+        buds: f64::from(buds),
         dormant: vec![0.0; lateral.len()],
         delay: 0.0,
         rate: 0.0,
@@ -27,20 +27,22 @@ fn zone(nodes: NodeLaw, buds: u8, lateral: [f64; 3]) -> Zone {
 pub fn species() -> Species {
     let trunk = PaState {
         // The trunk's apex never stops within the tree's age.
-        lifespan: 2 * AGE,
-        next: None,
+        lifespan: f64::from(2 * AGE),
+        continuation: 0.0,
         viability: 1.0,
         zones: vec![
             zone(NodeLaw::Poisson { mean: 2.0 }, 1, [0.0, 0.15, 0.3]),
-            zone(NodeLaw::Uniform { min: 2, max: 3 }, 2, [0.0, 0.6, 0.1]),
+            zone(NodeLaw::Uniform { min: 2.0, max: 3.0 }, 2, [0.0, 0.6, 0.1]),
         ],
-        shedding: None,
+        shedding: f64::INFINITY,
         internode: 1.0,
         insertion: 0.0,
         divergence: 2.4,
         abortion: 0.0,
         abortion_rise: 0.0,
         relay: 0.0,
+        relay_ended: 0.0,
+        relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
         erection: 0.0,
@@ -59,17 +61,19 @@ pub fn species() -> Species {
         form: Form::default(),
     };
     let limb = PaState {
-        lifespan: 6,
-        next: Some(2),
+        lifespan: 6.0,
+        continuation: 1.0,
         viability: 0.92,
         zones: vec![zone(NodeLaw::Poisson { mean: 2.0 }, 1, [0.0, 0.1, 0.5])],
-        shedding: None,
+        shedding: f64::INFINITY,
         internode: 0.4,
         insertion: 0.7,
         divergence: 2.4,
         abortion: 0.1,
         abortion_rise: 0.0,
         relay: 0.3,
+        relay_ended: 0.3,
+        relay_failed: 0.3,
         relay_at: 1.0,
         epitony: 0.0,
         erection: 0.0,
@@ -88,21 +92,23 @@ pub fn species() -> Species {
         form: Form::default(),
     };
     let twig = PaState {
-        lifespan: 3,
-        next: None,
+        lifespan: 3.0,
+        continuation: 0.0,
         viability: 0.85,
         zones: vec![zone(
-            NodeLaw::Uniform { min: 1, max: 2 },
+            NodeLaw::Uniform { min: 1.0, max: 2.0 },
             1,
             [0.0, 0.0, 0.3],
         )],
-        shedding: Some(1),
+        shedding: 1.0,
         internode: 0.25,
         insertion: 0.6,
         divergence: 2.4,
         abortion: 0.0,
         abortion_rise: 0.0,
         relay: 0.0,
+        relay_ended: 0.0,
+        relay_failed: 0.0,
         relay_at: 1.0,
         epitony: 0.0,
         erection: 0.0,
@@ -223,7 +229,7 @@ pub fn settings() -> Vec<Setting> {
         let low_viability = [0.9, 0.6, 0.6][pa];
         // Long twigs on the lowest limbs reach the ground.
         let (low_internode, high_internode) = [(0.5, 1.2), (0.1, 1.2), (0.1, 0.4)][pa];
-        let table: [(&str, f64, f64, bool, Set); 9] = [
+        let table: [(&str, f64, f64, bool, Set); 12] = [
             ("viability", low_viability, 1.0 - EDGE, true, |s, pa, v| {
                 s.states[pa].viability = v
             }),
@@ -232,6 +238,17 @@ pub fn settings() -> Vec<Setting> {
             }),
             ("relay", EDGE, 1.0 - EDGE, true, |s, pa, v| {
                 s.states[pa].relay = v
+            }),
+            // Host decision 12: each stop's relay share is its own setting.
+            ("relay_ended", EDGE, 1.0 - EDGE, true, |s, pa, v| {
+                s.states[pa].relay_ended = v
+            }),
+            ("relay_failed", EDGE, 1.0 - EDGE, true, |s, pa, v| {
+                s.states[pa].relay_failed = v
+            }),
+            // fn-206: an apex that has spent its lifespan moves on or stops.
+            ("continuation", EDGE, 1.0 - EDGE, true, |s, pa, v| {
+                s.states[pa].continuation = v
             }),
             ("readiness", EDGE, 1.0 - EDGE, true, |s, pa, v| {
                 s.states[pa].readiness = v
@@ -328,6 +345,28 @@ pub fn settings() -> Vec<Setting> {
         }
         for (z, zone) in state.zones.iter().enumerate() {
             let zat = |field: &str| format!("states[{pa}].zones[{z}].{field}");
+            // fn-206: a fractional bud place, from one bud to three.
+            all.push(setting(zat("buds"), 1.0, 3.0, false, move |s, v| {
+                s.states[pa].zones[z].buds = v
+            }));
+            // fn-206: real bounds of a uniform node count, each bound
+            // walked across two whole nodes.
+            if let NodeLaw::Uniform { min, max } = zone.nodes {
+                all.push(setting(
+                    zat("nodes.max"),
+                    max,
+                    max + 2.0,
+                    false,
+                    move |s, v| s.states[pa].zones[z].nodes = NodeLaw::Uniform { min, max: v },
+                ));
+                all.push(setting(
+                    zat("nodes.min"),
+                    (min - 1.0).max(0.0),
+                    max,
+                    false,
+                    move |s, v| s.states[pa].zones[z].nodes = NodeLaw::Uniform { min: v, max },
+                ));
+            }
             if let NodeLaw::Poisson { .. } = zone.nodes {
                 all.push(setting(
                     zat("nodes.mean"),
@@ -376,16 +415,37 @@ pub fn settings() -> Vec<Setting> {
     ));
     // Girth moves the shape only where wood bends under its load: secondary
     // growth walked on sagging limbs, from wood that keeps its established
-    // width to the pipe model's (fn-205 R3).
+    // width to the pipe model's (fn-205 R3). The sag is light enough that
+    // no limb comes down onto the ground across the walk, where landing
+    // turns a limb steeply but continuously (fn-206).
     all.push(setting(
-        "states[1].form.secondary, sag 1e-4".into(),
+        "states[1].form.secondary, sag 3e-5".into(),
         0.0,
         1.0,
         false,
         |s, v| {
-            s.states[1].form.sag = 1e-4;
+            s.states[1].form.sag = 3e-5;
             s.states[1].form.secondary = v;
         },
+    ));
+    // fn-206: each age's lifespan between whole cycles, its last unit
+    // grown at the share left and the next age starting in that cycle.
+    for (pa, low, high) in [(0, 8.0, 16.0), (1, 3.0, 7.0), (2, 1.0, 4.0)] {
+        all.push(setting(
+            format!("states[{pa}].lifespan"),
+            low,
+            high,
+            false,
+            move |s, v| s.states[pa].lifespan = v,
+        ));
+    }
+    // fn-206: the twigs' shedding delay between whole cycles.
+    all.push(setting(
+        "states[2].shedding".into(),
+        0.0,
+        3.0,
+        false,
+        |s, v| s.states[2].shedding = v,
     ));
     all.extend(sleeping_settings());
     all.extend(bend_settings());

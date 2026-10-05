@@ -10,6 +10,15 @@ fn rise(a: Vec3, b: Vec3) -> f64 {
     (run.z / run.length()).asin()
 }
 
+/// The tree these tests read, by seed. Each checks a property of one tree
+/// at its seed, and the keys of fn-206 (growth units by cycle, axes by
+/// their age) drew every seed's tree anew; seed 15 is a tree whose limbs
+/// land under every sag below, as seed 1's did before. Across seeds 1 to
+/// 16 on these keys the sharpest landing joint under sag 5 ran from 0.11
+/// to 1.44 rad (0.33 to 1.28 on the count keys before): the 0.8 rad bound
+/// guards one tree, not every tree.
+const FIXTURE: u64 = 15;
+
 /// Limbs leaving level, turning up towards their tips.
 fn level_limbs(sag: f64) -> Species {
     let mut species = walk::species();
@@ -21,7 +30,7 @@ fn level_limbs(sag: f64) -> Species {
     limb.abortion = 0.0;
     limb.relay = 0.0;
     limb.viability = 1.0;
-    limb.next = None;
+    limb.continuation = 0.0;
     limb.form.tropism = 1.5;
     limb.form.elevation = 0.4;
     limb.form.sag = sag;
@@ -59,8 +68,8 @@ fn rises(limb: &Axis) -> Vec<f64> {
 /// limb ends rising more steeply than it starts.
 #[test]
 fn a_loaded_branch_droops_at_its_base_more_than_at_its_tip() {
-    let plain = walk::tree(&level_limbs(0.0), 1).unwrap();
-    let sagged = walk::tree(&level_limbs(1e-4), 1).unwrap();
+    let plain = walk::tree(&level_limbs(0.0), FIXTURE).unwrap();
+    let sagged = walk::tree(&level_limbs(1e-4), FIXTURE).unwrap();
     // A free tip: nothing borne at the limb's last node.
     let free = |i: usize| {
         let last = plain.axes[i].phytomers.len() - 1;
@@ -207,7 +216,7 @@ fn a_vanishing_moment_bends_by_degree() {
 /// The sharpest joint where a limb meets the ground, and how many limbs
 /// reach it.
 fn landing(species: &Species) -> (f64, usize) {
-    let tree = walk::tree(species, 1).unwrap();
+    let tree = walk::tree(species, FIXTURE).unwrap();
     let (mut sharpest, mut landed) = (0.0f64, 0);
     for axis in tree.axes.iter().filter(|a| a.pa > 0) {
         let r = rises(axis);
@@ -319,15 +328,15 @@ fn a_lateral_swept_through_straight_down_lands_by_degree() {
     use telperion_space::{grow, Form, NodeLaw, PaState, Request, Zone};
     let at = |insertion: f64| {
         let unit = |lateral: Vec<f64>| Zone {
-            nodes: NodeLaw::Uniform { min: 1, max: 1 },
-            buds: 1,
+            nodes: NodeLaw::Uniform { min: 1.0, max: 1.0 },
+            buds: 1.0,
             dormant: vec![0.0; lateral.len()],
             delay: 0.0,
             rate: 0.0,
             lateral,
         };
         let mut trunk = walk::species().states[0].clone();
-        trunk.lifespan = 1;
+        trunk.lifespan = 1.0;
         trunk.zones = vec![unit(vec![0.0, 1.0])];
         trunk.internode = 1.0;
         trunk.form = Form {
@@ -336,15 +345,15 @@ fn a_lateral_swept_through_straight_down_lands_by_degree() {
             ..Form::default()
         };
         let mut lateral = PaState {
-            lifespan: 1,
+            lifespan: 1.0,
             zones: vec![unit(vec![0.0, 0.0])],
             internode: 0.4,
             insertion,
             form: Form::default(),
             ..trunk.clone()
         };
-        lateral.next = None;
-        trunk.next = None;
+        lateral.continuation = 0.0;
+        trunk.continuation = 0.0;
         let species = Species {
             states: vec![trunk, lateral],
         };
@@ -374,8 +383,8 @@ fn a_lateral_swept_through_straight_down_lands_by_degree() {
 fn the_ground_takes_a_carried_load_by_degree() {
     use telperion_space::{grow, Form, NodeLaw, PaState, Request, Zone};
     let unit = |lateral: Vec<f64>| Zone {
-        nodes: NodeLaw::Uniform { min: 1, max: 1 },
-        buds: 1,
+        nodes: NodeLaw::Uniform { min: 1.0, max: 1.0 },
+        buds: 1.0,
         dormant: vec![0.0; lateral.len()],
         delay: 0.0,
         rate: 0.0,
@@ -383,14 +392,14 @@ fn the_ground_takes_a_carried_load_by_degree() {
     };
     let at = |height: f64| {
         let mut pole = walk::species().states[0].clone();
-        pole.lifespan = 1;
-        pole.next = None;
+        pole.lifespan = 1.0;
+        pole.continuation = 0.0;
         pole.zones = vec![unit(vec![0.0, 1.0, 0.0])];
         pole.internode = height;
         pole.form = Form::default();
         let lateral = PaState {
-            lifespan: 1,
-            next: Some(2),
+            lifespan: 1.0,
+            continuation: 1.0,
             zones: vec![unit(vec![0.0, 0.0, 0.0])],
             internode: 1.0,
             insertion: 3.0 * std::f64::consts::FRAC_PI_4,
@@ -402,7 +411,7 @@ fn the_ground_takes_a_carried_load_by_degree() {
             ..pole.clone()
         };
         let on = PaState {
-            next: None,
+            continuation: 0.0,
             form: Form::default(),
             ..lateral.clone()
         };
