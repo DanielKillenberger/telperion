@@ -16,6 +16,32 @@ This spec is one phase of the tree-space programme (`docs/tree-space.md`, STRATE
 - **Unattended:** this spec runs under `/loop /flow-next:flow --auto` overnight. Its gate is evidence, never the owner's sign-off; the owner's verdict comes at the PR in the morning. Nothing merges to master. A wrong-path condition stops with `NEEDS_HUMAN` and a report of what was tried. [user]
 - **Agents:** design judgments go to the host (AGENTS.md, "Dispatch and escalation"); friction is written to this spec's FRICTION.md as it happens. [AGENTS.md]
 
+## Design (host, 2026-10-05)
+
+The options and the reasons are in `.flow/evidence/fn-197-tree-space-e-light-and-the-carbon/DESIGN-OPTIONS.md`, with these decisions in its section 8. [host]
+
+- **Light:** Beer–Lambert through a coarse leaf-area lattice anchored at the world origin.
+  - Deposits and reads use trilinear weights.
+  - The field is swept once per cycle along a few sky directions, and every bud reads the previous cycle's field.
+  - Oracles: the leaf slab exp(−k·LAI), a uniform-density sphere (exp(−k·ρ·chord)), and GreenLab's production formula Q = Sp·(1 − e^(−k·S/Sp)) where it applies. [host]
+- **Reading:** a rough layout built as the tree grows (P1), with no sag at first.
+  - Step 2 measures its gap from the final layout (crown extent, light per bud) on the oak and the beech.
+  - A periodic re-lay with sag every K cycles is added only if the gap misplaces the oak's dome at step 3. [host]
+- **Sky:** one continuous site setting, `sky`, from overhead-only (0) to a uniform overcast sky (1), with the standard overcast sky as the reference. Every species is judged under one value, chosen at step 3 on the oak and recorded with its reason. [host]
+- **Stop:** ln(survival) = ln(viability) · I^(−φ), neutral φ = 0. The shed hazard rises continuously as the remembered balance falls.
+  - Both are walk-tested.
+  - A red-first test pits the multiplicative form viability · I^φ against the walk bound. [host]
+- **Slow:** shoot size × I^ψ only; the balance acts only through shedding. [host]
+- **Girth:** `retained`, the share of a shed branch's pipe kept in its bearer (Shinozaki's disused pipes), neutral 0, built in step 5 beside thickening from leaves. [host]
+- **Neutral:** every new setting at neutral leaves the beech, the spruce and the oak byte-identical. [host]
+- **Timing:** the measures example reports growth, rough layout, light sweep and final lay per stage. [host]
+- **Steps:**
+  1. The grid and its oracle tests.
+  2. The rough layout at neutral, measured and timed.
+  3. φ on the oak, and the walks on `sky`, k and φ.
+  4. The balance and the shed draw.
+  5. Girth from leaves, and `retained`. [host]
+
 ## Acceptance Criteria
 
 - **R1:** A light pass (Beer-Lambert from above, or Pałubicki 2009's shadow propagation, chosen with reasons) reproduced against its published description, then added as a setting whose neutral value leaves every passed species unchanged. [user]

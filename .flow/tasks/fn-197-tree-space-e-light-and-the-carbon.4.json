@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-05T03:36:27.517404Z",
+  "depends_on": [
+    "fn-197-tree-space-e-light-and-the-carbon.3"
+  ],
+  "id": "fn-197-tree-space-e-light-and-the-carbon.4",
+  "priority": null,
+  "spec": "fn-197-tree-space-e-light-and-the-carbon",
+  "spec_path": ".flow/tasks/fn-197-tree-space-e-light-and-the-carbon.4.md",
+  "status": "todo",
+  "title": "The carbon balance and shedding on it",
+  "updated_at": "2026-10-05T03:36:27.517404Z"
+}

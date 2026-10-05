@@ -291,3 +291,25 @@ The mechanisms below keep every existing draw and add no switch:
 - **The sky weighting's range.** It sets the trade between bole and spread.
 - **Whether shed wood keeps its pipes.**
 - **Whether "slow" acts by scale alone or also by the balance factor.**
+
+## 8. Host decisions (host, 2026-10-05)
+
+The host accepts the recommendation: an L2 Beer–Lambert grid, read through P1, the rough layout built as the tree grows, in the five steps of section 7. The decisions below settle section 7's open questions and change section 4's survival form.
+
+1. **No sag in the rough layout at first.**
+   - Step 2 measures the gap between the rough and final layouts on the oak and the beech: crown extent and light per bud.
+   - If the gap misplaces the dome (judged at step 3 on the oak's stills), a periodic full re-lay with sag every K cycles is added. K is an engine constant chosen for cost, and its cost is measured. It is not built now.
+2. **Sky is one continuous `sky` setting.**
+   - It runs from overhead-only (0) to a uniform overcast sky (1), with the standard overcast sky as the reference point.
+   - It is a site setting, not a species one: it lives on the light model, and every species is judged under one value.
+   - Step 3 walks it on the oak to find where the bole and the spread balance; the value chosen and the reason are recorded.
+3. **Shed wood keeps its thickness, by share.**
+   - `retained` (neutral 0, today) is the share of a shed branch's pipe that stays in its bearer's girth: Shinozaki's disused pipes.
+   - Above 0 it changes every tree, so it is walked and judged per species.
+   - It is built in step 5, beside the thickening from leaves.
+4. **"Grows slower" acts through shoot size (ψ) only.** The balance acts only through shedding: one lever each.
+5. **Light acts in hazard space, not by multiplying survival.**
+   - ln(survival) = ln(viability) · I^(−φ), so survival near 0.999 moves gently as light changes, and φ = 0 is exactly neutral.
+   - The balance's shed hazard likewise rises continuously as the remembered average falls.
+   - Both are walk-tested, with a red-first test: the multiplicative form viability · I^φ against the walk bound, if it fails as section 6 predicts.
+6. **Per-stage timings go into the engine's measures example** (growth, rough layout, light sweep, final lay) as part of step 2. This closes the 2026-10-05 friction entry, and cost is tracked from then on.
