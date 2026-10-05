@@ -1,29 +1,45 @@
 //! The beech's measures at each age and seed, and a side view per tree for
 //! a quick look (x across, z up, each internode as wide as its girth).
 //!
-//!   cargo run --release -p telperion-space --example beech -- <out dir> [ages...]
+//! Another tree-space species is measured by naming it (`oak`, `spruce`).
+//!
+//!   cargo run --release -p telperion-space --example beech -- <out dir> [species] [ages...] [--seeds 1,7]
 use std::fmt::Write;
 use std::time::Instant;
-use telperion_space::{beech, expected_counts, grow, Origin, Request, Structure};
+use telperion_space::{beech, expected_counts, grow, oak, spruce, Origin, Request, Structure};
 
 const BUDGET: u32 = 20_000_000;
 
 fn main() {
-    let args: Vec<String> = std::env::args().skip(1).collect();
+    let mut args: Vec<String> = std::env::args().skip(1).collect();
+    let mut seeds = vec![1u64, 7];
+    if let Some(at) = args.iter().position(|a| a == "--seeds") {
+        let list = args.get(at + 1).expect("--seeds needs a list");
+        seeds = list.split(',').map(|s| s.parse().unwrap()).collect();
+        args.drain(at..at + 2);
+    }
     let out = args.first().expect("usage: beech <out dir> [ages...]");
-    let ages: Vec<u32> = match args[1..].iter().map(|a| a.parse()).collect() {
-        Ok(ages) if !args[1..].is_empty() => ages,
+    let (name, rest) = match args.get(1).map(String::as_str) {
+        Some(name @ ("beech" | "oak" | "spruce")) => (name, &args[2..]),
+        _ => ("beech", &args[1..]),
+    };
+    let ages: Vec<u32> = match rest.iter().map(|a| a.parse()).collect() {
+        Ok(ages) if !rest.is_empty() => ages,
         _ => vec![10, 20, 40, 80],
     };
     std::fs::create_dir_all(out).unwrap();
-    let species = beech();
+    let species = match name {
+        "oak" => oak(),
+        "spruce" => spruce(),
+        _ => beech(),
+    };
     for &age in &ages {
         let expected = expected_counts(&species, age).unwrap();
         let per_pa: Vec<f64> = (0..expected.pas).map(|pa| expected.total(pa)).collect();
         let total: f64 = per_pa.iter().sum();
         let shares: Vec<String> = per_pa.iter().map(|t| format!("{t:.0}")).collect();
         println!("age {age}: expected grown per PA {}", shares.join(" "));
-        for seed in [1, 7] {
+        for &seed in &seeds {
             let started = Instant::now();
             let tree = match grow(
                 &species,
@@ -46,7 +62,7 @@ fn main() {
                 measures(&tree)
             );
             let svg = side(&tree);
-            std::fs::write(format!("{out}/beech-{age}-{seed}.svg"), svg).unwrap();
+            std::fs::write(format!("{out}/{name}-{age}-{seed}.svg"), svg).unwrap();
         }
     }
 }
