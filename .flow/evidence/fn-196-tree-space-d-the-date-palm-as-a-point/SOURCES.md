@@ -17,4 +17,6 @@ The point is `crates/telperion-space/src/palm.rs`. Rules C1 to C9 are MODEL-PALM
 | Fronds a year | 12 | none in the source set | estimated |
 | `internode` | 0.031 m | A1's growth over 12 fronds | derived |
 | Mature age | 50 years, 18.6 m | today's palm stands 19.5 to 20 m (MODEL-PALM §7); A1's rate | derived |
-| `form.pipe`, `exponent` | 0.02 m, 4 | none | placeholder: see RESULT.md, question D2 |
+| `form.secondary` | 0 | C8: no secondary thickening (fn-205, host 2026-10-05) | sourced (monocots); C10 unsourced |
+| `form.pipe` | 0.297 m, the stem's radius from foot to crown | today's palm's trunk radius (`radii/trunkRadius` 0.013 of the 22.86 m envelope); P7 Table 1: trunk diameters of 51.6 to 108.3 cm across fourteen cultivars, measured over the retained bases | matched to the bar; within the sourced range once the 0.255 m bases are added |
+| `form.exponent` | 2 (neutral) | none; dormant on one unbranched axis at `secondary` 0 | — |

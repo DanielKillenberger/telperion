@@ -1,47 +1,70 @@
-# fn-196 round 1: stopped at two design questions
+# fn-196 round 1: the date palm on the engine
 
-A dispatched worker wrote this. Nothing here decides a design; D1 and D2 go to the host. No sheet was rendered: the palm cannot reach today's dressing until D1 is answered, and its trunk cannot be today's column until D2 is answered, so a sheet would show only the two known gaps.
+A dispatched worker wrote this. It reads the stills; it decides no design. The questions at the end go to the host.
 
-## What was built
+## History
 
-`crates/telperion-space/src/palm.rs`: Corner's model as values on the engine (SOURCES.md). One PA that never moves on, branching readiness 0, no laterals, no abortion or relay, erect, 12 phytomers a year at 0.031 m. The test `palm::tests::one_unbranched_stem` grows it at 50 years, seeds 1 and 7:
+The first pass stopped at two design questions: the leaf bases could not reach the pipeline from an engine tree (D1), and the pipe model could not give a columnar stem (D2). The host answered both on 2026-10-05, and they were built first as their own specs. fn-204 moves leaf-base clothing to the start of expansion, with every preset byte-identical. fn-205 adds `form.secondary`, which is byte-identical at 1. Both are done, the workspace gate is green and Codex passed each (SHIP).
 
-```
-seed 1: 600 phytomers, 18.6 m, radius base 0.099 m, at 90% 0.056 m, apex 0.020 m
-seed 7: 600 phytomers, 18.6 m, radius base 0.099 m, at 90% 0.056 m, apex 0.020 m
-```
+## What round 1 draws
 
-One axis, as C1 requires. The engine expresses the stem's topology.
+- **Values** (SOURCES.md): `crates/telperion-space/src/palm.rs`. One physiological age, readiness 0, 12 phytomers a year at 0.031 m, `secondary` 0, `pipe` 0.297 m (today's trunk radius). At 50 years the stem is 600 phytomers and 18.6 m to the apex, and one width from foot to crown (`palm::tests::one_unbranched_stem_of_one_width`).
+- **Dressing:** the date-palm preset's rows, unchanged and with no overlay (`examples/space_palm.rs`). The fronds, skirt, 256 retained leaf bases in the lattice, acanthophylls, the foot's flare and the material all come through the conversion and `executor::expand`. No inflorescence is drawn today (fn-111), so none is owed.
+- **Today's palm** is the preset's own `mesh::build` at the same seeds (`--today`), framed and lit the same way.
 
-## D1. The retained leaf bases cannot reach the pipeline from an engine tree
+## Sheet
 
-Checked in the code:
+`.flow/evidence/fn-196-tree-space-d-the-date-palm-as-a-point/raw/round1/` (gitignored):
 
-- The bases are hung in the pipeline's skeleton stage, after the radius solve: `pipeline::skeleton` (`crates/telperion-core/src/pipeline.rs:166-174`) calls `branching::clothe_leaf_bases(&mut tree, input.canopy)`.
-- The space examples hand the converted tree to `executor::expand` (`examples/space/still.rs`), which goes straight to the expansion (`executor.rs:43-46`) and never runs the skeleton stage.
-- `branching` is a private module of `pipeline` (`pipeline.rs:201`), and `clothe_leaf_bases` is not re-exported, so an example cannot call it. The design rule (AGENTS.md, `docs/pipeline.md`) keeps stages private so a second chain does not compile.
+- `SHEET-round1.png`: the three references (P-WHOLE, P-TRUNK, P-BASE, from `.flow/references/date-palm/`), then today's palm (top row) above the new palm at 50 years (bottom row), at seeds 1, 7, 2, 3 and 4, whole.
+- `seed-<s>-all.png` for each seed: today (top) above new (bottom) in six shots, whole, bare, crown close-up, base, limb and spray.
+- `ages-all.png`: the new palm at ages 5, 10 and 20 for seed 1 (rows 1 to 3) and seed 7 (rows 4 to 6), in the same six shots.
+- `zoom-1.png`: whole, seed 1, today beside new at full resolution, and bare, seed 7, today beside new.
+- Every single still, `today-<seed>-<shot>.png` and `palm-<age>-<seed>-<shot>.png`, 96 in all.
 
-The fronds and the skirt are not affected: they are placed in the expansion by `foliage::rosette` from `Tree::stem_apices`, and the conversion sets `stem` on the seed axis and leaves one childless apex (MODEL-PALM S1, S8). This is read from the code, not rendered. No inflorescence is drawn today (capability `infructescence` Absent, fn-111), so none is owed.
+Every still was viewed, through these composites.
 
-Options, for the host:
+## Reading against today's palm
 
-1. **The expansion clothes the bases.** Move `clothe_leaf_bases` from `pipeline::skeleton` into the expansion, so every tree, grown by either engine, is clothed once on the way out. Today's palm's bytes may move if the order of appended nodes changes.
-2. **A public entry for a grown tree.** `executor` gains a call that runs the skeleton stage's post-solve steps (today only `clothe_leaf_bases`) on a tree it is handed, then expands. Two entries into one pipeline.
-3. **The engine grows the bases as organs.** A short, kept, unbranched lateral PA at every stem node. The pipeline's lattice packing (`leaf_bases.rs`, `lattice.rs`, the diamond cells laid on the stem's mean girth) would not apply to them, so this is likely a visible regression against today's lattice.
-4. **Re-export `clothe_leaf_bases`** and call it in `tree::convert`. A stage called outside the pipeline, which the principles forbid.
+| Seed | Whole | Bare and base | Crown close-up |
+|---|---|---|---|
+| 1 | The same silhouette: a narrow rosette of arching grey-green fronds over a single latticed trunk, crown base near half height. The new trunk is straight from foot to crown; today's carries a slight kink and wave below the crown. | The new stem is a straight column, latticed from just above the flare to the crown, the flare as today. Today's tapers slightly and wanders near the top. The base close-ups are near identical. | The same frond count, arch and droop. |
+| 7 | As seed 1. The new crown sits a little rounder. | Today's stem shows its kink at about 85 % of the height; the new stem has none. | Equivalent. |
+| 2 | As seed 1. | As seed 1. | Equivalent. |
+| 3 | As seed 1. | As seed 1. | Equivalent. |
+| 4 | As seed 1. Today's trunk wanders a little more. | As seed 1. | Equivalent. |
 
-## D2. The pipe model cannot give a palm's columnar stem
+**No visible regression at the mature age.** The one visible change is the stem: a straight column against today's slightly tapered, kinked one. Both are near-vertical. Mesh heights are 25.2 to 25.4 m new against 25.9 to 27.2 m today, frond tips included.
 
-`girth.rs` sets every phytomer's radius by the pipe model: on a single axis of N phytomers, the radius k phytomers below the apex is `pipe * k^(1/exponent)`. With the exponent at its bound of 4, base over apex is N^(1/4): 4.95 for the 600 phytomers above, measured (0.099 against 0.020 m). Every value of `pipe` scales the whole stem; none changes its shape. `ripening` only thins the young top further. A palm's stem is a near-constant column (MODEL-PALM C8, C10; today's rows `lengthTaper 0.25`, `trunkRadius 0.013` of height; the catalogue's "near-constant trunk diameter" in `manifest.json`), and the leaf-base lattice is laid on the stem's mean girth (MODEL-PALM S5), so a stem five times thicker at the foot than under the crown would read as a spike, not a palm. MODEL-PALM's Q2 raised this before the build; C10 itself is unsourced.
+**Across seeds the new crowns vary less than today's.** The frond draws are keyed by the family's seed and the apex's identity, and the space examples keep the preset's seed for every engine seed. So the five new crowns are one crown, turned a little by each stem's last segment. Today's crowns differ seed to seed. The same holds for the beech and the spruce sheets.
 
-Options, for the host:
+**The limb and spray shots** frame empty sky or loose frond tips. A palm has no limb, so these two shots carry nothing for it.
 
-1. **A "girth follows load" share on `Form`,** 1 the pipe model as today, 0 a girth set at establishment that the wood above does not add to; the palm at 0, every other species at 1. A new engine setting, changing the tree by degree.
-2. **A wider exponent bound.** At 12, 600^(1/12) is 1.7; closer, never columnar, and the bound is there because a fork below 1.5 outgrows its bearer.
-3. **The conversion keeps today's radius rows for the stem** (`pipeline::radius::solve` is private too, so this is D1's question again), and the engine's girth is not used for the palm.
+## Against the references (shared by today's palm and the new one)
 
-## Smaller findings
+- **Present:** one trunk and no laterals; the diamond lattice of flat-faced bases; a compact rosette of arching pinnate fronds; the flared foot (P-WHOLE).
+- **Absent in both:**
+  - The lean of about 15° and the curve near the top in P-WHOLE.
+  - The lower fronds drooping well below the crown base into a dark skirt; the drawn skirt barely reads at this framing.
+  - The hanging date clusters (fn-111).
+  - The bases weathering smooth toward the foot (P-TRUNK).
+  - The trunk's dark fibrous brown: it renders pale tan under this sun.
 
-- **No date-palm references folder.** `.flow/references/` has none; the local copies are in `.worktrees/fn-80-the-gap-loops-first-live-run/.refs/fn80/date-palm/` (whole.jpg, trunk.jpg, base.jpg). FRICTION.md.
-- **Framing.** `still.rs` fits the camera to the node bounds. For a palm those are the stem's, so the frond crown above the apex would be cut off, as MODEL-PALM §7 found for today's bar. The sheet needs the camera fitted to the mesh bounds or to the stem plus `rachisLength`. A tooling change; not made.
-- **Mature age.** 50 years gives 18.6 m at A1's 0.37 m a year, against today's 19.5 to 20 m.
+## Young palms (ages 5, 10, 20)
+
+- The stem is a short column at full width, 1.9, 3.7 and 7.4 m tall, carrying the **full-size adult crown**. At 5 and 10 years the whole tree reads as a 19 m wide ground rosette with a stump. The frond rows (`rachisLength` 7 m, 42 fronds and the skirt) do not follow the stem's age.
+- **All 256 leaf bases are packed onto the short stems.** At 5 and 10 years they are a fine scale pattern, many to the trunk's width, unlike the mature lattice. The base count and size are rows too, not a function of the stem's length.
+
+## Framing (still.rs)
+
+The camera is now fitted to the mesh bounds, fronds and leaves included, so the palm's crown is in shot. There is also a `crown` close-up for every tree, and `--today` for the preset's own build. Beech and spruce at 80 years, seed 1, were rendered by the old and new binaries (`raw/framing/*-compare.png`):
+
+- **Whole and bare:** no visible change. The tree's size and place in frame are the same; the mesh bounds are about 1 % taller than the node bounds (beech 18.6 against 18.8 m, spruce 21.9 against 22.0 m). The pixel RMSE between old and new is 0.058.
+- **Limb close-up:** moves visibly. It aims a third of the bounds' width off the stem, and the mesh's width differs. The beech's limb shot shifts about a metre sideways and frames a different part of the same limb (RMSE 0.17); the spruce's shifts less (RMSE 0.10).
+
+## Questions for the host
+
+1. **Young palms.** The frond crown and the 256 leaf bases are preset rows, the same at every age, so a 5 or 10 year palm wears an adult crown on a stump. Should the dressing's organ sizes and counts follow the engine tree's age or stem, or is the palm judged at maturity only?
+2. **Seed variety.** The space examples keep the preset's seed, so the frond crowns vary across engine seeds only through the stem. Should the example key the family's seed to the engine seed? That would change the beech and spruce sheets' leaves as well.
+3. **Lean.** The engine has no lean for an orthotropic stem; `tropism` pulls it back to the vertical. P-WHOLE's 15° lean is absent here as it is today. Is this round's bar today's palm (met) or the reference (a gap)?
+4. **fn-204's open P2 (Codex).** A tree that already carries its bases, handed back to `expand`, is clothed again. The spec kept the step's behaviour unchanged, so it was left as it is.
