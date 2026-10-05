@@ -11,7 +11,7 @@ use crate::tree::Section;
 
 mod pack;
 mod tessellate;
-pub use pack::{PackedPoint, POINT_WORDS};
+pub use pack::{PackedPoint, CLUSTER_WORDS, POINT_WORDS, SECTION_FLOATS};
 pub use tessellate::{Budget, Tessellation, Viewer, SCALES};
 
 /// The most points a cluster spans, its two ends included; neighbouring

@@ -170,6 +170,35 @@ pub fn pipeline(
     depth: Depth,
     label: &'static str,
 ) -> wgpu::RenderPipeline {
+    lit_pipeline(gpu, bind_group_layouts, shader, surface, buffers, depth, Stage::LIT, label)
+}
+
+/// The entry points a pipeline draws through, and whether its fragment's
+/// alpha is the share of each pixel's samples it covers (fn-208's ribbons).
+#[derive(Debug, Clone, Copy)]
+pub struct Stage {
+    pub vertex: &'static str,
+    pub fragment: &'static str,
+    pub coverage: bool,
+}
+
+impl Stage {
+    pub const LIT: Self = Self { vertex: "vertex", fragment: "fragment", coverage: false };
+    pub const DEPTH: Self = Self { vertex: "vertex", fragment: "depth_only", coverage: false };
+}
+
+/// The lit pipeline shape through the given entry points.
+#[allow(clippy::too_many_arguments)]
+pub fn lit_pipeline(
+    gpu: &Gpu,
+    bind_group_layouts: &[Option<&wgpu::BindGroupLayout>],
+    shader: &wgpu::ShaderModule,
+    surface: Surface,
+    buffers: &[Option<wgpu::VertexBufferLayout<'_>>],
+    depth: Depth,
+    stage: Stage,
+    label: &'static str,
+) -> wgpu::RenderPipeline {
     let layout = gpu
         .device
         .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -183,13 +212,13 @@ pub fn pipeline(
             layout: Some(&layout),
             vertex: wgpu::VertexState {
                 module: shader,
-                entry_point: Some("vertex"),
+                entry_point: Some(stage.vertex),
                 compilation_options: Default::default(),
                 buffers,
             },
             fragment: Some(wgpu::FragmentState {
                 module: shader,
-                entry_point: Some("fragment"),
+                entry_point: Some(stage.fragment),
                 compilation_options: Default::default(),
                 targets: &[Some(surface.format.into())],
             }),
@@ -210,6 +239,7 @@ pub fn pipeline(
             }),
             multisample: wgpu::MultisampleState {
                 count: surface.samples,
+                alpha_to_coverage_enabled: stage.coverage && surface.samples > 1,
                 ..Default::default()
             },
             multiview_mask: None,
@@ -226,6 +256,7 @@ pub fn prepass_pipeline(
     shader: &wgpu::ShaderModule,
     surface: Surface,
     buffers: &[Option<wgpu::VertexBufferLayout<'_>>],
+    stage: Stage,
     label: &'static str,
 ) -> wgpu::RenderPipeline {
     let layout = gpu
@@ -241,13 +272,13 @@ pub fn prepass_pipeline(
             layout: Some(&layout),
             vertex: wgpu::VertexState {
                 module: shader,
-                entry_point: Some("vertex"),
+                entry_point: Some(stage.vertex),
                 compilation_options: Default::default(),
                 buffers,
             },
             fragment: Some(wgpu::FragmentState {
                 module: shader,
-                entry_point: Some("depth_only"),
+                entry_point: Some(stage.fragment),
                 compilation_options: Default::default(),
                 targets: &[Some(wgpu::ColorTargetState {
                     format: surface.format,
@@ -268,6 +299,7 @@ pub fn prepass_pipeline(
             }),
             multisample: wgpu::MultisampleState {
                 count: surface.samples,
+                alpha_to_coverage_enabled: stage.coverage && surface.samples > 1,
                 ..Default::default()
             },
             multiview_mask: None,

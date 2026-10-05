@@ -65,6 +65,80 @@ impl Curve {
     }
 }
 
+/// Words in one packed cluster, as the GPU passes read it: its first point
+/// and count, its run's first point and count, its flags (1 the run's first
+/// cluster, 2 its last, 4 a shaped run, the section's index from bit 8), its
+/// sphere's centre and reach, its largest radius and its six ring-level
+/// errors (fn-208).
+pub const CLUSTER_WORDS: usize = 16;
+/// Floats in one packed section: origin, axis, radial, across, the two
+/// corners, the flatness and three rings of reach, rise and scale, padded.
+pub const SECTION_FLOATS: usize = 28;
+
+impl Curve {
+    /// Every cluster packed for the GPU, in order.
+    pub fn packed_clusters(&self) -> Vec<[u32; CLUSTER_WORDS]> {
+        let mut out = Vec::with_capacity(self.clusters.len());
+        for (i, c) in self.clusters.iter().enumerate() {
+            let run = &self.runs[c.run as usize];
+            let first = i == 0 || self.clusters[i - 1].run != c.run;
+            let last = self.clusters.get(i + 1).is_none_or(|n| n.run != c.run);
+            let flags =
+                u32::from(first) | (u32::from(last) << 1) | run.section.map_or(0, |s| 4 | (s << 8));
+            let f = |v: f64| (v as f32).to_bits();
+            let mut words = [
+                c.first,
+                c.count,
+                run.first,
+                run.count,
+                flags,
+                f(c.centre.x),
+                f(c.centre.y),
+                f(c.centre.z),
+                f(c.reach),
+                f(c.largest_radius),
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ];
+            for (k, e) in c.errors.iter().enumerate() {
+                words[10 + k] = e.to_bits();
+            }
+            out.push(words);
+        }
+        out
+    }
+
+    /// Every section packed for the GPU, in order.
+    pub fn packed_sections(&self) -> Vec<[f32; SECTION_FLOATS]> {
+        self.sections
+            .iter()
+            .map(|s| {
+                let mut out = [0.0f32; SECTION_FLOATS];
+                let v = [s.origin, s.axis, s.radial, s.across];
+                for (k, v) in v.iter().enumerate() {
+                    out[3 * k..3 * k + 3].copy_from_slice(&[v.x as f32, v.y as f32, v.z as f32]);
+                }
+                let c = s.corners;
+                out[12..16]
+                    .copy_from_slice(&[c[0][0], c[0][1], c[1][0], c[1][1]].map(|v| v as f32));
+                out[16] = s.flatness as f32;
+                for (k, r) in s.rings.iter().enumerate() {
+                    out[17 + 3 * k..20 + 3 * k].copy_from_slice(&[
+                        r.reach as f32,
+                        r.rise as f32,
+                        r.scale as f32,
+                    ]);
+                }
+                out
+            })
+            .collect()
+    }
+}
+
 /// Bits in one octahedral component.
 const BITS: u32 = 24;
 const MASK: u64 = (1 << BITS) - 1;

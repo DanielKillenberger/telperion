@@ -6,6 +6,7 @@
 //! where the parameters came from.
 mod buffer;
 mod camera;
+mod curve;
 mod device;
 mod foliage;
 pub mod generation;
@@ -27,6 +28,7 @@ mod web;
 mod wood;
 
 pub use buffer::Region;
+pub use curve::{viewer as curve_viewer, CurveReport};
 pub use camera::{
     hero_pose, orbit_pose, shot_pose, walk_pose, Camera, FIELD_OF_VIEW, FRAME_MARGIN,
 };
@@ -207,6 +209,33 @@ impl Renderer {
     }
 
     /// Selects what the next frame draws of the submitted tree.
+    /// Draws the wood from its curve from now on, surfaced on the device each
+    /// frame at the screen's error (fn-208), in place of the submitted mesh's
+    /// wood. The mesh still brings the leaves and the bounds.
+    pub fn submit_curve(&mut self, curve: &telperion_core::surface::Curve) {
+        self.wood.submit_curve(&self.gpu, curve);
+    }
+
+    /// What the last frame's passes wrote for the camera, read back.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn curve_report(&self) -> Option<CurveReport> {
+        self.wood.curve().map(|c| c.camera.report(&self.gpu))
+    }
+
+    /// The last frame's surfaced wood for the camera: ten floats a vertex
+    /// (position, normal, along, angle, radius, coverage), tube and ribbon
+    /// indices. What a test holds against the CPU reference.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn curve_mesh(&self) -> Option<(Vec<f32>, Vec<u32>, Vec<u32>)> {
+        self.wood.curve().map(|c| c.camera.mesh(&self.gpu))
+    }
+
+    /// Bytes the curve's wood holds on the device: its points, clusters and
+    /// both views' budgets.
+    pub fn curve_bytes(&self) -> Option<u64> {
+        self.wood.curve().map(|c| c.bytes())
+    }
+
     pub fn set_view(&mut self, view: View) {
         self.view = view;
     }
@@ -372,6 +401,8 @@ impl Renderer {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("frame"),
             });
+        self.wood
+            .tessellate(&self.gpu, &mut encoder, camera, viewport, &light);
         self.foliage.dispatch(
             &self.gpu,
             &mut encoder,

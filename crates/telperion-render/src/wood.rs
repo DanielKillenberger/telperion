@@ -45,6 +45,10 @@ pub struct Wood {
     smooth_prepass: wgpu::RenderPipeline,
     smooth_on: bool,
     shadow: wgpu::RenderPipeline,
+    /// The wood surfaced from its curve each frame, where a curve was
+    /// submitted (fn-208), and the pipelines it is drawn through.
+    curve: Option<crate::curve::CurveGpu>,
+    curve_draw: crate::curve::CurveDraw,
     positions: Option<Held>,
     normals: Option<Held>,
     coords: Option<Held>,
@@ -128,9 +132,21 @@ impl Wood {
             )
         };
         let prepass = |module, label| {
-            crate::pass::prepass_pipeline(gpu, &groups, module, surface, &buffers, label)
+            crate::pass::prepass_pipeline(
+                gpu,
+                &groups,
+                module,
+                surface,
+                &buffers,
+                crate::pass::Stage::DEPTH,
+                label,
+            )
         };
+        let curve_draw =
+            crate::curve::CurveDraw::new(gpu, layout, shadow, surface, [&shader, &smooth]);
         Self {
+            curve: None,
+            curve_draw,
             pipeline: lit(&shader, "wood"),
             smooth: lit(&smooth, "smooth wood"),
             prepass: prepass(&shader, "wood depth"),
@@ -268,8 +284,36 @@ impl Wood {
         self.smooth_on = smooth_bark(material);
     }
 
+    /// Surfaces this wood from `curve` from now on (fn-208): every frame's
+    /// passes write it for the camera and the sun.
+    pub fn submit_curve(&mut self, gpu: &Gpu, curve: &telperion_core::surface::Curve) {
+        self.curve = Some(crate::curve::CurveGpu::new(gpu, curve));
+    }
+
+    /// Records the frame's passes over the curve, where there is one.
+    pub fn tessellate(
+        &self,
+        gpu: &Gpu,
+        encoder: &mut wgpu::CommandEncoder,
+        camera: &crate::Camera,
+        viewport: (u32, u32),
+        light: &crate::shadow::Light,
+    ) {
+        if let Some(curve) = &self.curve {
+            curve.record(gpu, encoder, camera, viewport, light);
+        }
+    }
+
+    /// The curve's views, where there is a curve.
+    pub(crate) fn curve(&self) -> Option<&crate::curve::CurveGpu> {
+        self.curve.as_ref()
+    }
+
     /// Draws the surface, or nothing when no tree has been submitted.
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> FrameStats {
+        if let Some(curve) = &self.curve {
+            return self.curve_draw.draw(pass, curve, self.smooth_on);
+        }
         let (Some(positions), Some(normals), Some(coords), Some(indices)) =
             (&self.positions, &self.normals, &self.coords, &self.indices)
         else {
@@ -311,6 +355,9 @@ impl Wood {
 
     /// Writes the radius-selected prefix using the frame's own index buffer.
     pub fn draw_shadow(&self, pass: &mut wgpu::RenderPass<'_>) {
+        if let Some(curve) = &self.curve {
+            return self.curve_draw.draw_shadow(pass, curve);
+        }
         let (Some(positions), Some(indices)) = (&self.positions, &self.indices) else {
             return;
         };
