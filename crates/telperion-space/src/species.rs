@@ -381,6 +381,18 @@ impl Species {
         self.lived(pa + 1).map(|(next, reach)| (next, go * reach))
     }
 
+    /// Whether any bud reads the light: its survival, its unit's size,
+    /// its subtree's carbon balance or its pipe. Without one the light
+    /// changes nothing and the tree grows no rough layout.
+    pub(crate) fn reads_light(&self) -> bool {
+        self.states.iter().any(|s| {
+            s.shade_hazard != 0.0
+                || s.shade_size != 0.0
+                || s.balance_hazard != 0.0
+                || s.leaf_girth != 0.0
+        })
+    }
+
     /// Refuses, by name, every input the engine cannot draw.
     pub fn validate(&self) -> Result<()> {
         let count = self.states.len();

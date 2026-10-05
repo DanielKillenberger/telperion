@@ -40,6 +40,51 @@ pub(crate) fn standing(axes: &[Axis], species: &Species, age: u32) -> Vec<bool> 
     kept
 }
 
+/// Per PA, the cycles past a fresh bud's birth by which every apex its
+/// subtree can grow has stopped, from the settings alone; none where no
+/// bound holds under every draw (fn-210, lever 1). An apex grows its age's
+/// units in its lifespan's whole cycles and hands on at once; its
+/// laterals are made by then. Viability, abortion and the balance only
+/// shorten life, and an abortion's relay carries the age's time on. Life
+/// is unbounded where a lateral bears its own age, where sleeping buds
+/// wake, where an age that ends relays (each relay grows a whole unit
+/// past it, and may relay again), and where a failed unit relays.
+pub(crate) fn lasting(species: &Species, laterals: &[Vec<Vec<f64>>]) -> Vec<Option<f64>> {
+    let n = species.states.len();
+    let mut last: Vec<Option<f64>> = vec![None; n];
+    // A lateral is never younger than its bearer and an age moves on only
+    // to older ones, so the oldest are bounded first.
+    for pa in (0..n).rev() {
+        let state = &species.states[pa];
+        let wakes = state
+            .zones
+            .iter()
+            .any(|z| z.rate > 0.0 && z.dormant.iter().any(|&p| p > 0.0));
+        let relays = state.relay_ended > 0.0 || (state.relay_failed > 0.0 && state.viability < 1.0);
+        if state.lifespan <= 0.0 || wakes || relays {
+            continue;
+        }
+        let mut after = Some(0.0f64);
+        let mut bears = |q: Option<usize>| {
+            after = match (after, q) {
+                (Some(a), Some(q)) if q > pa => last[q].map(|b| a.max(b)),
+                (_, Some(_)) => None,
+                (a, None) => a,
+            };
+        };
+        if let Some((next, _)) = species.successor(pa) {
+            bears(Some(next));
+        }
+        for zone in &laterals[pa] {
+            for (j, _) in zone.iter().enumerate().filter(|&(_, &p)| p > 0.0) {
+                bears(species.lived(j).map(|(q, _)| q));
+            }
+        }
+        last[pa] = after.map(|a| state.lifespan.ceil() + a);
+    }
+    last
+}
+
 /// What shedding leaves: the kept axes, each grown axis's index among
 /// them (`usize::MAX` where it was shed) and each grown axis's fade.
 pub(crate) struct Shed {

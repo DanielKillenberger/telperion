@@ -22,7 +22,7 @@ use crate::lineage::{above, below, Key, ABORTION, END, ENDED, VIABILITY};
 use crate::presence::{assign, Draws, Windows};
 use crate::sag;
 use crate::schedule::Carried;
-use crate::shed::shed;
+use crate::shed::{lasting, shed};
 use crate::species::{PaState, Species, MAX_BUDS};
 use crate::structure::{Axis, Origin, Structure, Vec3};
 use sketch::Sketch;
@@ -75,7 +75,49 @@ pub fn grow_staged(
     request: Request,
     stage: &mut dyn FnMut(Stage),
 ) -> Result<Structure> {
-    run(species, request, stage, true)
+    run(species, request, stage, true, Options::default()).map(|g| g.structure)
+}
+
+/// How the engine grows a tree, never what it grows: every choice here
+/// leaves the tree the same to the bit, which the tests hold.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Options {
+    pub certain: Certain,
+    /// Whether the light work no bud reads is done as well: the rough
+    /// layout where light shades but no bud reads it, and the last
+    /// cycle's layout, full lay and sweep (fn-210, lever 3).
+    pub unread_light: bool,
+}
+
+impl Default for Options {
+    fn default() -> Self {
+        Self {
+            certain: Certain::Skip,
+            unread_light: false,
+        }
+    }
+}
+
+/// What becomes of a lateral certain to be shed by the tree's age where
+/// nothing reads it while it lives (fn-210, lever 1).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(not(test), allow(dead_code))]
+pub(crate) enum Certain {
+    /// It is grown.
+    Grow,
+    /// It is grown, and its lineage marked.
+    Mark,
+    /// It is not grown.
+    Skip,
+}
+
+/// The tree, the phytomers grown for it, the shed ones included, and the
+/// lineages of the laterals marked certain to be shed.
+#[cfg_attr(not(test), allow(dead_code))]
+pub(crate) struct Grown {
+    pub structure: Structure,
+    pub grown: u32,
+    pub marked: Vec<u64>,
 }
 
 /// The tree as `grow` grows it, with every phytomer where the rough
@@ -88,15 +130,16 @@ pub fn sketch(species: &Species, request: Request) -> Result<Structure> {
             "a rough layout is grown only where light shades",
         );
     }
-    run(species, request, &mut |_| {}, false)
+    run(species, request, &mut |_| {}, false, Options::default()).map(|g| g.structure)
 }
 
-fn run(
+pub(crate) fn run(
     species: &Species,
     request: Request,
     stage: &mut dyn FnMut(Stage),
     lay: bool,
-) -> Result<Structure> {
+    options: Options,
+) -> Result<Grown> {
     species.validate()?;
     request.light.validate()?;
     if request.age == 0 {
@@ -106,9 +149,30 @@ fn run(
     // The seed grows in the first age it does not pass through, as far as
     // it reaches it.
     let (seed, reach) = species.lived(0).ok_or(Error::Collapsed)?;
+    let laterals: Vec<_> = species.states.iter().map(PaState::laterals).collect();
+    // The rough layout is grown only where light shades and a bud
+    // reads it, or where `sketch` asks for it: without a reader the
+    // tree is the same to the bit (fn-197's `tests/light.rs`).
+    let read = species.reads_light() || !lay || options.unread_light;
+    let sketch = (request.light.shades() && read).then(|| Sketch::new(request.light));
+    // What shedding will drop is grown only where something reads it
+    // while it lives: the light, or the girth of what bore it.
+    let keeps = species
+        .states
+        .iter()
+        .any(|s| s.retained > 0.0 || s.leaf_girth > 0.0);
+    let lasting = if options.certain != Certain::Grow && sketch.is_none() && !keeps {
+        lasting(species, &laterals)
+    } else {
+        vec![None; species.states.len()]
+    };
     let mut grower = Grower {
         species,
-        laterals: species.states.iter().map(PaState::laterals).collect(),
+        laterals,
+        lasting,
+        horizon: vec![f64::NEG_INFINITY],
+        certain: options.certain,
+        marked: Vec::new(),
         axes: vec![bud(root.onto(seed), seed, 0, Origin::Seed)],
         windows: Windows::new(species, request.age),
         draws: vec![Draws {
@@ -131,7 +195,7 @@ fn run(
         sleeping: Vec::new(),
         grown: 0,
         budget: request.budget,
-        sketch: request.light.shades().then(|| Sketch::new(request.light)),
+        sketch,
         leaves: Vec::new(),
     };
     let mut advanced = Vec::new();
@@ -140,7 +204,10 @@ fn run(
         advanced.extend(grower.live.iter().map(|a| a.axis));
         grower.step(cycle)?;
         stage(Stage::Grown);
-        if grower.sketch.is_some() {
+        // The last cycle's layout, full lay and light are read by no bud,
+        // and the final lay rewrites every place (fn-198, lever c1); only
+        // `sketch` keeps them.
+        if grower.sketch.is_some() && (cycle < request.age || !lay || options.unread_light) {
             grower.sketch(cycle, &advanced)?;
             stage(Stage::Sketched);
             if cycle % relay::RELAY_EVERY == 0 {
@@ -164,11 +231,7 @@ fn run(
     // The tree as grown, where any PA keeps shed pipes or thickens by its
     // leaves: what each shed branch had laid down, and the one population
     // the leaf term's mean is taken over at any retained share.
-    let grown = species
-        .states
-        .iter()
-        .any(|s| s.retained > 0.0 || s.leaf_girth > 0.0)
-        .then(|| attachments(&grower.axes, species, request.age));
+    let grown = keeps.then(|| attachments(&grower.axes, species, request.age));
     let shed = shed(grower.axes, species, request.age);
     let girth = grown.map_or_else(Girth::default, |g| disused(&g, &shed, species));
     let mut structure = Structure {
@@ -184,8 +247,14 @@ fn run(
     // ground.
     thicken(&mut structure, species, &girth);
     stage(Stage::Settled);
+    let (count, marked) = (grower.grown, grower.marked);
+    let done = move |structure| Grown {
+        structure,
+        grown: count,
+        marked,
+    };
     if !lay {
-        return Ok(structure);
+        return Ok(done(structure));
     }
     place(&mut structure, species, None)?;
     // Sag bends the tree as it stands under the load it carries, and
@@ -204,7 +273,7 @@ fn run(
         return Err(Error::Collapsed);
     }
     stage(Stage::Laid);
-    Ok(structure)
+    Ok(done(structure))
 }
 
 /// The share of an apex's expected wood a stop decides: a stop with no
@@ -249,6 +318,15 @@ struct Grower<'a> {
     species: &'a Species,
     /// Each PA's zones' lateral probabilities as drawn (`PaState::laterals`).
     laterals: Vec<Vec<Vec<f64>>>,
+    /// Each PA's bound on its subtree's life (`shed::lasting`); none
+    /// throughout where shedding is not decided before growth.
+    lasting: Vec<Option<f64>>,
+    /// Each axis's horizon: the most, past its subtree's last growth, that
+    /// it or a lateral or relay it stands on keeps it before it is shed
+    /// (a delay and the cycle its fade runs over).
+    horizon: Vec<f64>,
+    certain: Certain,
+    marked: Vec<u64>,
     axes: Vec<Axis>,
     windows: Windows,
     /// Each axis's draws' presences, by index.
@@ -446,6 +524,33 @@ impl Grower<'_> {
         self.advance(apex, cycle)
     }
 
+    /// The horizon of a new axis of `pa` growing from `origin`.
+    fn horizon_of(&self, pa: usize, origin: Origin) -> f64 {
+        let Some(parent) = origin.parent() else {
+            return f64::NEG_INFINITY;
+        };
+        let delay = self.species.states[pa].shedding;
+        match origin {
+            Origin::Lateral { .. } | Origin::Relay { .. } if delay.is_finite() => {
+                self.horizon[parent].max(delay + 1.0)
+            }
+            _ => self.horizon[parent],
+        }
+    }
+
+    /// Whether a lateral of `pa` made in `cycle` on axis `parent` is
+    /// certain to be shed by the tree's age: its subtree's last growth
+    /// ends by its bound, and from there its own delay and those of every
+    /// lateral or relay it stands on have run out by the tree's age, so
+    /// its fade there is 0 and no kept axis's fade reads it (`shed.rs`).
+    fn shed_certain(&self, pa: usize, cycle: u32, parent: usize) -> bool {
+        let (Some(last), delay) = (self.lasting[pa], self.species.states[pa].shedding) else {
+            return false;
+        };
+        let horizon = self.horizon[parent].max(delay + 1.0);
+        delay.is_finite() && horizon <= f64::from(self.age) - (f64::from(cycle) + last)
+    }
+
     /// A new bud that grows from the next cycle, made by draws with these
     /// presences. A seed or lateral `key` is the bud's own, and its axis is
     /// keyed by its age's place on the reference axis from it, as every
@@ -459,6 +564,7 @@ impl Grower<'_> {
         };
         self.units.push(spent);
         self.successor.push(Vec::new());
+        self.horizon.push(self.horizon_of(pa, origin));
         let (root, lineage) = match origin {
             Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
                 (self.roots[parent], key)
@@ -477,3 +583,6 @@ impl Grower<'_> {
         });
     }
 }
+
+#[cfg(test)]
+mod tests;

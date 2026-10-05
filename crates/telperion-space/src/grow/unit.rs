@@ -1,7 +1,7 @@
 //! One growth unit of an apex: its zones' nodes, in the order their roles
 //! stand along the unit, and the buds of each node, laterals that sprout
 //! and sleeping buds put to sleep.
-use super::{Apex, Grower};
+use super::{Apex, Certain, Grower};
 use crate::error::{Error, Result};
 use crate::lineage::{self, Key, ZONE};
 use crate::species::{ALONG, MAX_BUDS, MAX_NODES_PER_ZONE};
@@ -78,6 +78,15 @@ impl Grower<'_> {
                     let Some((lateral_pa, reach)) = self.species.lived(lateral_pa) else {
                         continue;
                     };
+                    // Nor where it is certain to be shed by the tree's age
+                    // and nothing reads it while it lives (fn-210).
+                    if self.shed_certain(lateral_pa, cycle, apex.axis) {
+                        if self.certain == Certain::Skip {
+                            continue;
+                        }
+                        let key = zone_key.child(drawn).child(slot as u64);
+                        self.marked.push(key.onto(lateral_pa).0);
+                    }
                     let origin = Origin::Lateral {
                         parent: apex.axis,
                         node,

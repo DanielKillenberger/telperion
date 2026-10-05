@@ -106,6 +106,7 @@ impl Grower<'_> {
     ) {
         self.units.push(self.species.states[pa].lifespan);
         self.successor.push(Vec::new());
+        self.horizon.push(self.horizon_of(pa, origin));
         self.roots.push(root.0);
         let mut axis = bud(key, pa, cycle, origin);
         axis.apex_end = Some(cycle);
