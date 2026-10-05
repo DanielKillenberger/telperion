@@ -12,7 +12,7 @@ use crate::tree::Section;
 mod pack;
 mod tessellate;
 pub use pack::{PackedPoint, POINT_WORDS};
-pub use tessellate::{Tessellation, Viewer};
+pub use tessellate::{Budget, Tessellation, Viewer, SCALES};
 
 /// The most points a cluster spans, its two ends included; neighbouring
 /// clusters of a run share their end point.

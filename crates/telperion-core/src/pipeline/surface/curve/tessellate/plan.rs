@@ -1,98 +1,186 @@
-//! Which rings a run is drawn through for one view (host decision 2). Each
-//! cluster keeps the coarsest ring level whose error stands under half the
-//! budget in pixels at its nearest depth; between the rings kept, a curved
-//! stretch is subdivided along its Hermite curve until its chords stand
-//! within the same half; and each ring takes the fewest sides, three times a
-//! power of two, whose polygon stands within the other half of its circle.
+//! Which rings a cluster is drawn through for one view (host decisions 2, 4
+//! and 14), cluster by cluster as the GPU passes run it.
+//! - A cluster outside the frustum is not drawn.
+//! - A cluster whose widest ring stands under `RIBBON` pixels in radius at
+//!   its nearest depth is drawn as a ribbon facing the eye; any other as a
+//!   tube. A shaped run is always a tube.
+//! - It keeps the coarsest nested ring level whose error stands within half
+//!   the error at its nearest depth; between the rings kept a curved stretch
+//!   is cut along its Hermite curve until its chords sag within that half.
+//! - Each tube ring takes the fewest sides, three times a power of two,
+//!   whose polygon stands within the other half (host decision 14).
+//! - A cluster draws its own first and last points, so neighbours share
+//!   identical rings and meet without a crack.
 use super::{Ring, Viewer};
 use crate::{
     math::{Transcendental, Vec3},
-    pipeline::surface::curve::{Curve, CurvePoint, LEVELS},
+    pipeline::surface::curve::{Curve, CurveCluster, CurvePoint, LEVELS},
 };
 
 /// The most sides a ring is cut into: 3 · 2^7.
-const MOST_SIDES: u32 = 384;
-/// The most rings one stretch between two kept points is subdivided into.
+pub(super) const MOST_SIDES: u32 = 384;
+/// The most pieces one stretch between two kept points is cut into.
 const MOST_PIECES: usize = 256;
+/// Below this radius in pixels a cluster is a ribbon (host decision 4).
+pub(super) const RIBBON: f64 = 1.0;
+
+/// How a cluster is drawn for one view.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(super) enum Mode {
+    Tube,
+    Ribbon,
+}
+
+/// A cluster's rings for one view, its mode and whether it closes either end.
+#[derive(Debug, Clone)]
+pub(super) struct Plan {
+    pub(super) mode: Mode,
+    pub(super) rings: Vec<Ring>,
+    pub(super) caps: [bool; 2],
+}
 
 impl Curve {
-    /// The rings run `run` is drawn through for `viewer` within `error` px.
-    pub(super) fn plan(&self, run: usize, viewer: &Viewer, error: f64) -> Vec<Ring> {
-        let r = &self.runs[run];
-        let points = self.run_points(r);
-        let lobe = if self.lobes > 0 {
-            1.0 + self.lobe_depth.abs()
-        } else {
-            1.0
+    /// How cluster `index` is drawn for `viewer` within `error` pixels, or
+    /// nothing outside the frustum.
+    pub(super) fn plan(&self, index: usize, viewer: &Viewer, error: f64) -> Option<Plan> {
+        let c = &self.clusters[index];
+        let mode = self.mode(c, viewer)?;
+        let tube = |i: usize| {
+            self.clusters
+                .get(i)
+                .filter(|n| n.run == c.run)
+                .is_some_and(|n| self.mode(n, viewer) == Some(Mode::Tube))
         };
-        // The error is split: half for the polygon round a ring, half for the
-        // chords along the curve, so the two together stand within it.
-        let sides =
-            |p: &CurvePoint| sides(p.radius * lobe * viewer.pixels_at(p.centre), 0.5 * error);
-        if let Some(section) = r.section {
-            return points
-                .iter()
-                .enumerate()
-                .map(|(i, p)| Ring {
-                    point: *p,
-                    sides: sides(p),
-                    shape: Some((section, i, points.len())),
+        let caps = [!tube(index.wrapping_sub(1)), !tube(index + 1)];
+        let run = &self.runs[c.run as usize];
+        let lobe = self.lobe();
+        let sides = |p: &CurvePoint| match mode {
+            Mode::Tube => sides(p.radius * lobe * viewer.pixels_at(p.centre), 0.5 * error),
+            Mode::Ribbon => 2,
+        };
+        let first = c.first as usize;
+        if let Some(section) = run.section {
+            let rings = (0..c.count as usize)
+                .map(|i| {
+                    let point = self.points[first + i];
+                    let slope = self.slope(first + i, run.first, run.count);
+                    Ring {
+                        point,
+                        slope,
+                        sides: sides(&point),
+                        shape: Some((section, i, c.count as usize)),
+                    }
                 })
                 .collect();
+            return Some(Plan { mode, rings, caps });
         }
-        let kept = self.kept(run, viewer, 0.5 * error);
+        let kept = kept(c, viewer, 0.5 * error);
         let mut rings = Vec::with_capacity(kept.len());
         for pair in kept.windows(2) {
-            let (a, b) = (&self.points[pair[0]], &self.points[pair[1]]);
+            let (ga, gb) = (first + pair[0], first + pair[1]);
+            let (a, b) = (&self.points[ga], &self.points[gb]);
+            let (sa, sb) = (
+                self.slope(ga, run.first, run.count),
+                self.slope(gb, run.first, run.count),
+            );
             let pieces = pieces(a, b, viewer, 0.5 * error);
             for j in 0..pieces {
-                let point = hermite(a, b, j as f64 / pieces as f64);
+                let t = j as f64 / pieces as f64;
+                let point = hermite(a, b, t);
+                let slope = sa + (sb - sa) * t;
                 rings.push(Ring {
                     point,
+                    slope,
                     sides: sides(&point),
                     shape: None,
                 });
             }
         }
-        let last = self.points[*kept.last().expect("a run has a point")];
+        let g = first + kept[kept.len() - 1];
+        let point = self.points[g];
+        let slope = self.slope(g, run.first, run.count);
         rings.push(Ring {
-            point: last,
-            sides: sides(&last),
+            point,
+            slope,
+            sides: sides(&point),
             shape: None,
         });
-        rings
+        Some(Plan { mode, rings, caps })
     }
 
-    /// The points run `run` keeps: in each cluster, every `2^k`-th and its
-    /// last, at the coarsest level `k` whose error stands within `error`
-    /// pixels at the cluster's nearest depth.
-    fn kept(&self, run: usize, viewer: &Viewer, error: f64) -> Vec<usize> {
-        let mut kept: Vec<usize> = Vec::new();
-        for c in self.clusters.iter().filter(|c| c.run as usize == run) {
-            let depth = (c.centre - viewer.eye).dot(viewer.forward) - c.reach;
-            let pixels = viewer.pixels_per_metre / depth.max(viewer.near);
-            let level = (0..LEVELS)
-                .rev()
-                .find(|&k| f64::from(c.errors[k]) * pixels <= error)
-                .unwrap_or(0);
-            let (first, last) = (c.first as usize, (c.first + c.count - 1) as usize);
-            for i in (first..last).step_by(1 << level).chain([last]) {
-                if kept.last() != Some(&i) {
-                    kept.push(i);
-                }
+    /// How cluster `c` is drawn, or nothing outside the frustum.
+    fn mode(&self, c: &CurveCluster, viewer: &Viewer) -> Option<Mode> {
+        if let Some(planes) = &viewer.planes {
+            let outside = planes.iter().any(|p| {
+                p[0] * c.centre.x + p[1] * c.centre.y + p[2] * c.centre.z + p[3] < -c.reach
+            });
+            if outside {
+                return None;
             }
         }
-        if kept.is_empty() {
-            kept.push(self.runs[run].first as usize);
-        }
-        kept
+        let shaped = self.runs[c.run as usize].section.is_some();
+        let wide = c.largest_radius * self.lobe() * nearest(c, viewer);
+        Some(if shaped || wide >= RIBBON {
+            Mode::Tube
+        } else {
+            Mode::Ribbon
+        })
     }
+
+    fn lobe(&self) -> f64 {
+        if self.lobes > 0 {
+            1.0 + self.lobe_depth.abs()
+        } else {
+            1.0
+        }
+    }
+
+    /// How fast the radius changes along the curve at point `g` of a run of
+    /// `count` points from `first`: from its neighbours on the run, so every
+    /// cluster that draws the point reads the same slope.
+    fn slope(&self, g: usize, first: u32, count: u32) -> f64 {
+        let (lo, hi) = (first as usize, (first + count - 1) as usize);
+        let (a, b) = (
+            &self.points[g.saturating_sub(1).max(lo)],
+            &self.points[(g + 1).min(hi)],
+        );
+        let run = b.along - a.along;
+        if run.abs() < 1e-12 {
+            0.0
+        } else {
+            (b.radius - a.radius) / run
+        }
+    }
+}
+
+/// Pixels a metre spans at the cluster's nearest depth.
+fn nearest(c: &CurveCluster, viewer: &Viewer) -> f64 {
+    if viewer.orthographic {
+        return viewer.pixels_per_metre;
+    }
+    let depth = (c.centre - viewer.eye).dot(viewer.forward) - c.reach;
+    viewer.pixels_per_metre / depth.max(viewer.near)
+}
+
+/// The cluster's points kept, as indices from its first: every `2^k`-th and
+/// its last, at the coarsest level `k` whose error stands within `error`
+/// pixels at its nearest depth.
+fn kept(c: &CurveCluster, viewer: &Viewer, error: f64) -> Vec<usize> {
+    let pixels = nearest(c, viewer);
+    let level = (0..LEVELS)
+        .rev()
+        .find(|&k| f64::from(c.errors[k]) * pixels <= error)
+        .unwrap_or(0);
+    let last = c.count as usize - 1;
+    let mut kept: Vec<usize> = (0..last).step_by(1 << level).collect();
+    kept.push(last);
+    kept
 }
 
 /// The fewest sides, three times a power of two, whose polygon stands within
 /// `error` pixels of a circle `rho` pixels in radius:
-/// `ceil(π / acos(1 − error / ρ))`, rounded up (host decision 2).
-fn sides(rho: f64, error: f64) -> u32 {
+/// `ceil(π / acos(1 − error / ρ))`, rounded up (host decisions 2 and 14).
+pub(super) fn sides(rho: f64, error: f64) -> u32 {
     let exact = if rho <= error {
         3.0
     } else {
@@ -117,7 +205,7 @@ fn pieces(a: &CurvePoint, b: &CurvePoint, viewer: &Viewer, error: f64) -> usize 
     (m as usize).clamp(1, MOST_PIECES)
 }
 
-fn tangent(p: &CurvePoint) -> Vec3 {
+pub(super) fn tangent(p: &CurvePoint) -> Vec3 {
     p.normal.cross(p.binormal)
 }
 

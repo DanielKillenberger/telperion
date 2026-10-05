@@ -66,6 +66,8 @@ fn viewer(distance: f64) -> Viewer {
         forward: Vec3::new(0.0, 0.0, -1.0),
         pixels_per_metre: PIXELS,
         near: 0.005,
+        orthographic: false,
+        planes: None,
     }
 }
 
@@ -98,6 +100,28 @@ fn worst(t: &Tessellation, viewer: &Viewer, off: &impl Fn(Vec3) -> Option<f64>) 
     worst
 }
 
+/// The most, in pixels, a ribbon's edge stands off the exact tube's
+/// silhouette: its half-width against the radius, where it is not a
+/// coverage ribbon a pixel wide.
+fn ribbon_worst(t: &Tessellation, viewer: &Viewer, off: &impl Fn(Vec3) -> Option<f64>) -> f64 {
+    let mut worst = 0.0f64;
+    for i in 0..t.coverage.len() {
+        let in_ribbon = t.ribbons.contains(&(i as u32));
+        if !in_ribbon || t.coverage[i] < 1.0 {
+            continue;
+        }
+        let p = Vec3::new(
+            t.positions[3 * i].into(),
+            t.positions[3 * i + 1].into(),
+            t.positions[3 * i + 2].into(),
+        );
+        if let Some(d) = off(p) {
+            worst = worst.max(d * viewer.pixels_at(p));
+        }
+    }
+    worst
+}
+
 /// R2: the twig's surface stands within half a pixel of the exact tube at
 /// 5 cm, 50 cm, 5 m and 50 m, and its rings and sides grow as the eye nears.
 #[test]
@@ -107,7 +131,7 @@ fn a_twig_stands_within_half_a_pixel_and_gains_detail_as_the_eye_nears() {
     for distance in [50.0, 5.0, 0.5, 0.05] {
         let viewer = viewer(distance);
         let t = curve.tessellate(&viewer, 0.5, None).unwrap();
-        let error = worst(&t, &viewer, &off);
+        let error = worst(&t, &viewer, &off).max(ribbon_worst(&t, &viewer, &off));
         assert!(
             error <= 0.5,
             "at {distance} m the surface is {error:.2} px off"
@@ -129,10 +153,17 @@ fn a_budget_coarsens_the_error_and_names_it_or_refuses() {
     let near = viewer(0.05);
     let full = curve.tessellate(&near, 0.5, None).unwrap();
     assert_eq!(full.scale, 1.0);
-    let tight = curve.tessellate(&near, 0.5, Some(full.indices.len() / 3 - 1));
-    assert!(tight.as_ref().is_ok_and(|t| t.scale > 1.0) || tight.is_err());
+    let budget = |tube| Budget {
+        vertices: usize::MAX,
+        tube_indices: tube,
+        ribbon_indices: usize::MAX,
+    };
+    let tight = curve
+        .tessellate(&near, 0.5, Some(budget(full.indices.len() - 1)))
+        .unwrap();
+    assert!(tight.scale > 1.0 && tight.indices.len() < full.indices.len());
     assert!(matches!(
-        curve.tessellate(&near, 0.5, Some(1)),
+        curve.tessellate(&near, 0.5, Some(budget(1))),
         Err(Error::ResourceLimit(_))
     ));
 }
@@ -159,6 +190,8 @@ fn every_presets_wood_surfaces_at_a_hero_view() {
             forward: Vec3::new(-0.906, 0.0, 0.423),
             pixels_per_metre: PIXELS,
             near: 0.1,
+            orthographic: false,
+            planes: None,
         };
         let t = curve.tessellate(&viewer, 0.5, None).unwrap();
         let vertices = (t.positions.len() / 3) as u32;
@@ -171,8 +204,9 @@ fn every_presets_wood_surfaces_at_a_hero_view() {
             "{id}"
         );
         eprintln!(
-            "{id}: {} triangles, {} rings at the hero distance",
+            "{id}: {} tube and {} ribbon triangles, {} rings at the hero distance",
             t.indices.len() / 3,
+            t.ribbons.len() / 3,
             t.rings
         );
     }
