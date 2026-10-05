@@ -1,0 +1,32 @@
+{
+  "branch_name": "fn-208-tree-space-f3-wood-surfaced-on-the-gpu",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-05T13:00:24.866689Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-208-tree-space-f3-wood-surfaced-on-the-gpu",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-208-tree-space-f3-wood-surfaced-on-the-gpu.md",
+  "status": "open",
+  "title": "Tree space F3: wood surfaced on the GPU at the screen's error",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-05T13:00:25.410555Z"
+}
