@@ -93,29 +93,40 @@ impl Layer {
         across = carried(across, running, bent);
         curve = carried(curve, running, bent);
         running = bent;
-        if form.wander > 0.0 {
+        // The node's wander: a turn of keyed angle about a keyed pivot,
+        // none without wander.
+        let kick = (form.wander > 0.0).then(|| {
             let key = Key(phytomer.key).child(WANDER);
             let draw = form.wander * (2.0 * key.child(0).unit() - 1.0);
             let azimuth = TAU * key.child(1).unit();
             let pivot = across * azimuth.cos() + running.cross(across) * azimuth.sin();
-            if form.bend_length > 0.0 {
-                // The curvature relaxes over the bend length and is kicked
-                // by the node's draw, its stationary spread the draw's; the
-                // turn is the curvature over the internode (fn-207).
-                let keep = (-length / form.bend_length).exp();
-                curve = curve * keep + pivot * (draw * (1.0 - keep * keep).sqrt());
-                curve = curve - running * curve.dot(running);
-                let angle = curve.length() * length;
-                if let Some(axis) = curve.unit() {
-                    running = rotated(running, axis, angle);
-                    across = rotated(across, axis, angle);
-                }
-            } else {
-                // No memory: the node's own turn, as wander always drew it.
-                let angle = form.wander * length * (2.0 * key.child(0).unit() - 1.0);
-                running = rotated(running, pivot, angle);
-                across = rotated(across, pivot, angle);
+            (key, draw, pivot)
+        });
+        if form.bend_length > 0.0 {
+            // The curvature relaxes over the bend length and is kicked by
+            // the node's draw, its stationary spread the draw's; the turn
+            // is the curvature over the internode (fn-207). An inherited
+            // curvature relaxes on without wander.
+            let keep = (-length / form.bend_length).exp();
+            curve = curve * keep;
+            if let Some((_, draw, pivot)) = kick {
+                curve = curve + pivot * (draw * (1.0 - keep * keep).sqrt());
             }
+            curve = curve - running * curve.dot(running);
+            let angle = curve.length() * length;
+            if let Some(axis) = curve.unit() {
+                running = rotated(running, axis, angle);
+                across = rotated(across, axis, angle);
+            }
+        } else if let Some((key, draw, pivot)) = kick {
+            // No memory: the node's own turn, as wander always drew it,
+            // and the curvature it leaves a continuation is that turn's.
+            let angle = form.wander * length * (2.0 * key.child(0).unit() - 1.0);
+            running = rotated(running, pivot, angle);
+            across = rotated(across, pivot, angle);
+            curve = pivot * draw;
+        } else {
+            curve = Vec3::default();
         }
         // Sag: the beam's curvature, its moment over its stiffness, turns
         // the axis down about the torque's axis.
