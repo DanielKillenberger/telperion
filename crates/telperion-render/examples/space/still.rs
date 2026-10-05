@@ -4,7 +4,10 @@
 //! `telperion-space`; the wood, leaves and material from a preset's rows.
 use crate::tree;
 use std::time::Instant;
-use telperion_core::{math::Vec3, params, pipeline::executor, presets::Preset, surface::Bounds};
+use telperion_core::{
+    math::Vec3, mesh::TreeMesh, params, pipeline::executor, presets::Preset, surface::Bounds,
+    Family,
+};
 use telperion_render::{
     hero_pose, render, write_png, Camera, Gpu, Level, Renderer, SceneRow, View, GROUND_REACH,
     STILL_FORMAT,
@@ -27,6 +30,8 @@ const SUN: (f64, f64) = (115.0, 60.0);
 /// With `--dormant <pas>:<pa>:<delay>:<rate>:<values>`, a walk of the
 /// probability that every zone of those PAs holds a sleeping bud of `pa`,
 /// under that release law (fn-202): `<name>-<age>-<seed>-dormant<value>`.
+/// With `--today`, the preset's own build at each seed instead, the bar the
+/// engine's tree is judged beside: `today-<seed>-<shot>.png`, ages unread.
 pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let (out, rest) = args.split_first().ok_or(format!(
@@ -35,6 +40,7 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
     let (mut ages, mut seeds) = (Vec::new(), vec![1u64, 7]);
     let mut sag: Option<(usize, Vec<f64>)> = None;
     let mut dormant: Option<(Vec<usize>, usize, f64, f64, Vec<f64>)> = None;
+    let mut today = false;
     let mut words = rest.iter();
     while let Some(word) = words.next() {
         if word == "--seeds" {
@@ -43,6 +49,8 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
                 .split(',')
                 .map(|s| s.parse().map_err(|e| format!("{e}")))
                 .collect::<Result<_, _>>()?;
+        } else if word == "--today" {
+            today = true;
         } else if word == "--dormant" {
             // <pa>,<pa>:<sleeping pa>:<delay>:<rate>:<values>
             let walk = words.next().ok_or("--dormant needs a walk")?;
@@ -85,6 +93,26 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
     let family = params::overlay(&preset, &rows).map_err(|e| format!("{e:?}"))?;
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|e| e.to_string())?;
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    if today {
+        // The preset's own build at each seed, framed and lit as the
+        // engine's trees are: the bar they are judged beside.
+        for &seed in &seeds {
+            let seeded = seeded(&family, seed)?;
+            let mesh = telperion_core::mesh::build(&seeded).map_err(|e| e.to_string())?;
+            stills(
+                &mut renderer,
+                &mesh,
+                &seeded,
+                &format!("{out}/today-{seed}"),
+            )?;
+            let b = mesh.bounds.max - mesh.bounds.min;
+            println!(
+                "today seed {seed}: {:.1} m tall, {:.1} x {:.1} m",
+                b.y, b.x, b.z
+            );
+        }
+        return Ok(());
+    }
     let base = species();
     // A walk names PAs by index: refused by name past the species' table.
     let known = |pa: usize, flag: &str| {
@@ -147,47 +175,17 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
                 let pipeline_tree = tree::convert(&structure);
                 let nodes = pipeline_tree.nodes.len();
                 let (fine, wood) = wood_km(&pipeline_tree);
-                let bounds = bounds(&pipeline_tree);
+                // The dressing's own draws (leaf and frond placement) are
+                // keyed to the engine's seed, so seeds vary in both.
+                let family = seeded(&family, seed)?;
                 let dressed = Instant::now();
                 let mesh = executor::expand(pipeline_tree, &family)
                     .and_then(|x| x.mesh())
                     .map_err(|e| e.to_string())?;
                 let dress = dressed.elapsed().as_secs_f64() * 1e3;
-                // Before the GPU sees it, so a refused allocation still
-                // says what it was asked to hold.
-                eprintln!(
-                    "age {age} seed {seed}{variant}: mesh {} wood vertices, {} wood triangles, {} needles",
-                    mesh.wood_vertices(),
-                    mesh.wood_triangles(),
-                    mesh.foliage_instances()
-                );
-                let aspect = f64::from(SIZE.0) / f64::from(SIZE.1);
-                let camera = hero_pose(bounds, aspect, GROUND_REACH);
-                let (base, limb) = close_ups(&bounds, &camera);
-                let shots = [
-                    (View::Bare, "bare", &camera),
-                    (View::Whole, "whole", &camera),
-                    (View::Bare, "base", &base),
-                    (View::Bare, "limb", &limb),
-                    // The limb close-up in leaf: how the needles dress a spray.
-                    (View::Whole, "spray", &limb),
-                ];
-                for (view, shot, camera) in shots {
-                    renderer
-                        .submit_at(&mesh, Level::Chosen)
-                        .map_err(|e| e.to_string())?;
-                    renderer.set_material(family.material);
-                    renderer.set_view(view);
-                    renderer.set_scene(SceneRow {
-                        sun_azimuth: SUN.0,
-                        sun_elevation: SUN.1,
-                        ..SceneRow::default()
-                    });
-                    let still =
-                        render(&mut renderer, camera, SIZE.0, SIZE.1).map_err(|e| e.to_string())?;
-                    let path = format!("{out}/{name}-{age}-{seed}{variant}-{shot}.png");
-                    write_png(std::path::Path::new(&path), &still).map_err(|e| e.to_string())?;
-                }
+                let path = format!("{out}/{name}-{age}-{seed}{variant}");
+                stills(&mut renderer, &mesh, &family, &path)?;
+                let bounds = mesh.bounds;
                 let (b, l) = (bounds.max - bounds.min, mesh.foliage.instances.len());
                 println!(
                 "age {age} seed {seed}{variant}: grown in {grown:.1} ms, dressed in {dress:.0} ms; {nodes} nodes, {l} leaves; {:.1} m tall, {:.1} x {:.1} m; wood {wood:.2} km, fine {fine:.2} km",
@@ -199,17 +197,60 @@ pub fn run(name: &str, species: fn() -> Species, preset: &str, rows: &str) -> Re
     Ok(())
 }
 
-fn bounds(tree: &telperion_core::tree::Tree) -> Bounds {
-    let mut b = Bounds {
-        min: tree.nodes[0].position,
-        max: tree.nodes[0].position,
-    };
-    for n in &tree.nodes {
-        let p = n.position;
-        b.min = Vec3::new(b.min.x.min(p.x), b.min.y.min(p.y), b.min.z.min(p.z));
-        b.max = Vec3::new(b.max.x.max(p.x), b.max.y.max(p.y), b.max.z.max(p.z));
+/// The family with its seed set to the engine's (host, 2026-10-05): the
+/// engine's seed itself where it fits the family's 32 bits, its two halves
+/// folded together where it does not.
+fn seeded(family: &Family, seed: u64) -> Result<Family, String> {
+    let mut seeded = family.clone();
+    seeded.skeleton.seed = (seed ^ (seed >> 32)) as u32;
+    Ok(seeded)
+}
+
+/// Every shot of one dressed tree, framed on the mesh, its leaves and
+/// fronds included, so a crown that stands above the wood is in frame:
+/// `<path>-<shot>.png`.
+fn stills(
+    renderer: &mut Renderer,
+    mesh: &TreeMesh,
+    family: &Family,
+    path: &str,
+) -> Result<(), String> {
+    // Before the GPU sees it, so a refused allocation still says what it
+    // was asked to hold.
+    eprintln!(
+        "{path}: mesh {} wood vertices, {} wood triangles, {} leaves",
+        mesh.wood_vertices(),
+        mesh.wood_triangles(),
+        mesh.foliage_instances()
+    );
+    let aspect = f64::from(SIZE.0) / f64::from(SIZE.1);
+    let camera = hero_pose(mesh.bounds, aspect, GROUND_REACH);
+    let (base, limb, crown) = close_ups(&mesh.bounds, &camera);
+    let shots = [
+        (View::Bare, "bare", &camera),
+        (View::Whole, "whole", &camera),
+        (View::Bare, "base", &base),
+        (View::Bare, "limb", &limb),
+        // The limb close-up in leaf: how the needles dress a spray.
+        (View::Whole, "spray", &limb),
+        (View::Whole, "crown", &crown),
+    ];
+    for (view, shot, camera) in shots {
+        renderer
+            .submit_at(mesh, Level::Chosen)
+            .map_err(|e| e.to_string())?;
+        renderer.set_material(family.material);
+        renderer.set_view(view);
+        renderer.set_scene(SceneRow {
+            sun_azimuth: SUN.0,
+            sun_elevation: SUN.1,
+            ..SceneRow::default()
+        });
+        let still = render(renderer, camera, SIZE.0, SIZE.1).map_err(|e| e.to_string())?;
+        let file = format!("{path}-{shot}.png");
+        write_png(std::path::Path::new(&file), &still).map_err(|e| e.to_string())?;
     }
-    b
+    Ok(())
 }
 
 /// Wood length in km: on nodes finer than `STRUCTURAL` of the root's
@@ -227,9 +268,11 @@ fn wood_km(tree: &telperion_core::tree::Tree) -> (f64, f64) {
     (fine / 1e3, all / 1e3)
 }
 
-/// Close-ups from the hero camera's side: the trunk base from 6 m, and the
-/// crown a third of its width off the stem at half its height from 9 m.
-fn close_ups(bounds: &Bounds, hero: &Camera) -> (Camera, Camera) {
+/// Close-ups from the hero camera's side: the trunk base from 6 m, the
+/// crown a third of its width off the stem at half its height from 9 m,
+/// and the top of the crown, a quarter of the height below the top, from
+/// three quarters of the height away.
+fn close_ups(bounds: &Bounds, hero: &Camera) -> (Camera, Camera, Camera) {
     let toward = Vec3::new(hero.position.x, 0.0, hero.position.z);
     let toward = toward * (1.0 / toward.length().max(1e-9));
     let shot = |target: Vec3, distance: f64| Camera {
@@ -243,5 +286,10 @@ fn close_ups(bounds: &Bounds, hero: &Camera) -> (Camera, Camera) {
     let width = bounds.max.x - bounds.min.x;
     let side = Vec3::new(toward.z, 0.0, -toward.x);
     let limb = Vec3::new(0.0, 0.5 * height, 0.0) + side * (width / 3.0);
-    (shot(Vec3::new(0.0, 1.2, 0.0), 6.0), shot(limb, 9.0))
+    let top = Vec3::new(0.0, bounds.max.y - 0.25 * height, 0.0);
+    (
+        shot(Vec3::new(0.0, 1.2, 0.0), 6.0),
+        shot(limb, 9.0),
+        shot(top, 0.75 * height),
+    )
 }
