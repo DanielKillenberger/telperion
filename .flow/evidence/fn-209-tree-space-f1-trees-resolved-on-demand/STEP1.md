@@ -23,6 +23,8 @@ A dispatched worker wrote this report. Step 1 is partly built; it stops at the d
   - Passes within 4.5 standard errors per group of 300 or more subtrees.
   - **There is a consistent shortfall of 2 to 6 %**: the realized subtree is smaller (question C).
 
+**Tolerance (host decision 10):** the closed form counts every drawn element whole, while the grower grows an element inside its presence window at a share. The shortfall is 2 to 6 % on the oracle species and within about 1 % on real twigs. This is accepted and documented: the stochastic oracle's tolerance stays statistical, and the far state is judged on stills.
+
 **Not built:** the expected section, the mass, and the extinction curve. All three wait on questions A and B.
 
 ## 2. The envelope against the production species (measured, not a test)

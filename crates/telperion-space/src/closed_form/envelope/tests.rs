@@ -144,7 +144,10 @@ fn the_envelope_is_a_deterministic_trees_wood() {
 
 /// A stochastic tree whose laterals roll evenly about their bearers: each
 /// lateral's subtree, by its PA and birth, has on average the envelope of
-/// a bud of its PA and age.
+/// a bud of its PA and age. The closed form counts every drawn element
+/// whole, and the grower grows one inside its presence window at a share,
+/// so these subtrees fall 2 to 6 % short; the tolerance is statistical
+/// (fn-209 host decision 10; real twigs are within 1 %).
 #[test]
 fn the_envelope_is_the_mean_of_keyed_subtrees() {
     let mut trunk = state(

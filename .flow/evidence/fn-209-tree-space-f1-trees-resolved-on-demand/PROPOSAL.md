@@ -342,3 +342,27 @@ The proposal is accepted: the chain as the unit of resolution, the read rule, th
 5. R2 (the fly-in and the first view) and R3 (stills of the four species).
 
 The worker stops after step 2 with a report, and at any design question.
+
+## Host decisions 8 to 11 (2026-10-05, after STEP1.md)
+
+8. **A: option (1), gated by the error budget at the level of the tree.** A tree has two states.
+   - **Far:** all closed form. The tree is drawn as stand-ins (envelope, expected section and mass, the extinction curve for its foliage); no topology is grown.
+   - **Near:** exact topology, grown up front once by today's grower with F2's levers (shed-skip, cores). Girth, retained pipe, shedding and sag stay exact; only the final lay and the surfacing are lazy, per chain, by the half-pixel rule. Beech, spruce and palm are bit-identical in the near state.
+   - **The switch:** far to near when the stand-in's worst deviation (girth or extent at its junctions) could exceed half a pixel at the tree's distance. That is the same error rule, applied to topology at the tree's level, so the deviation is invisible at the switch by construction.
+   - **The oak** goes near the same way, its topology grown with exact light as today, and its near-state cost is recorded. If it misses the first-view bar (decision 2b), a measured follow-up applies option (2) below its coupling tree; not now.
+9. **B: shedding is built into the closed form.** The far state's stand-ins must be the right size: spruce branchlets keep 22 to 86 % of the wood they grew. It is built with its own oracle: the engine's realized kept wood over many seeds, per age and age band. Its size is reported when done; work stops if it grows far past the 300 to 500 line estimate.
+10. **C: accepted and documented.** The closed form counts drawn elements whole. The 2 to 6 % shortfall is on oracle species; real twigs are within 1 %. The far state is judged on stills anyway (decision 1). Recorded beside the envelope's oracle tolerance.
+11. **Consequences:**
+    - The streamed-equals-one-pass test (step 4) becomes this: a near tree's lazily laid chains equal the one-pass lay, bit for bit.
+    - Decision 3's smooth coupling weight and the coupling tree are needed only for option (2), which is deferred. They stay recorded as the design option (2) would use.
+    - Decision 5's light input is needed only for far stand-ins of the oak: the survival term now, the size term with B.
+    - Memory per near tree is a new measurement in R2: the topology is resident.
+
+**Build order (replaces the one under decisions 1 to 7):**
+1. The closed-form additions (section, mass, extinction curve) and B, with oracles.
+2. The far state: a whole tree drawn as stand-ins, on stills beside the near tree at the switch distance, judged by the host.
+3. The near state, with a lazy lay per chain, bit-identical to one-pass.
+4. The switch rule.
+5. R2 (fly-in, first view, memory) and R3.
+
+The worker stops after step 2 with stills.
