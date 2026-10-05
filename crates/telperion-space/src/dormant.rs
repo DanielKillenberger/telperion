@@ -403,6 +403,10 @@ impl<'a> Living<'a> {
         }
     }
 
+    pub fn species(&self) -> &'a Species {
+        self.species
+    }
+
     /// The stages a sleeping bud of PA `j` in zone `z` of PA `k` may wake
     /// in over its `s`th year, each with the law of its first unit.
     pub fn woken(&mut self, (k, z): (usize, usize), j: usize, s: u32) -> Wakes {
