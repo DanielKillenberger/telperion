@@ -355,3 +355,14 @@ Step 3b found that sibling-level allocation compounds down lineages (STEP3B.md).
     - Light only moves growth toward lit parts; bounding size is the carbon balance's (step 4): one lever each. ψ = 0 is neutral.
 15. **α stays deleted.** Under the ratio it cancels from every size, and a setting that changes nothing is deleted rather than kept (docs/principles.md, "Question, delete, then optimise").
 16. **Calibration:** with mean normalisation only relative light matters. Leaf area and k stay; the oak's leaf area is sourced when the oak resumes on its own branch, and on this branch it need only be plausible.
+
+## 12. Host decisions after steps 3d and 4 (host, 2026-10-05)
+
+Step 3d is the breakthrough: in leaf, seeds 7, 3 and 1 are rounded oak domes on limbs that divide low, with a dense web bare.
+
+17. **Every PA's λ is walked within Pałubicki's published range, 0.45 to 0.55,** with the reason in the test. The bound stays 30; a trunk slope above it inside that range is reported, and nothing is widened.
+18. **A limb that dies on its balance is shed after its PA's shedding delay** (the persistence of dead branches); the engine rule is unchanged. The oak's limb- and bough-level PAs get a sourced dead-branch persistence as an E-side value on this branch, which the host reconciles with the oak's branch.
+19. **R2 is amended:** light must not widen the seed-to-seed spread, in leaf count, compared with the same species at neutral light. The old 1.5× was inferred, not anyone's requirement: round 4 itself spreads about 4× in leaves.
+20. **`MEMORY` = 0.5 stays an engine constant,** marked estimated. A source search goes on the friction list and does not block.
+21. **Height:** a higher λ, around 0.55 to 0.6, on the trunk and leader PAs (a per-PA species value), so the leader keeps its share. Aim back toward 19 to 22 m at 80 years while keeping step 3d's domes.
+22. **Upkeep 0.35** for now.

@@ -553,15 +553,18 @@ pub fn light_settings() -> Vec<Setting> {
         shaded("states[2].shade_size", 0.0, 2.0, |s, v| {
             s.states[2].shade_size = v
         }),
-        // Apical control over Pałubicki's range of forms, 0.46 to 0.54
-        // (2009, Fig. 7), with a margin: far from 0.5 its bias compounds
-        // along an axis's branching points, and sizes against the tree's
-        // mean grow steep (fn-197 STEP3D.md).
-        shaded("states[0].apical_control", 0.4, 0.6, |s, v| {
+        // Apical control within Pałubicki's published range of forms, 0.45
+        // to 0.55 (2009, Fig. 7; host decision 17): far from 0.5 its bias
+        // compounds along an axis's branching points, and sizes against the
+        // tree's mean grow steep (fn-197 STEP3D.md).
+        shaded("states[0].apical_control", 0.45, 0.55, |s, v| {
             s.states[0].apical_control = v
         }),
-        shaded("states[1].apical_control", 0.4, 0.6, |s, v| {
+        shaded("states[1].apical_control", 0.45, 0.55, |s, v| {
             s.states[1].apical_control = v
+        }),
+        shaded("states[2].apical_control", 0.45, 0.55, |s, v| {
+            s.states[2].apical_control = v
         }),
         shaded("states[1].upkeep", 0.0, 0.6, |s, v| s.states[1].upkeep = v),
         shaded("states[2].upkeep", 0.0, 0.6, |s, v| s.states[2].upkeep = v),

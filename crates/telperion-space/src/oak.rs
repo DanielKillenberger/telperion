@@ -165,6 +165,11 @@ pub fn oak() -> Species {
     // each relay: the oak's tortuous course. A large pipe exponent keeps
     // the few limbs heavy.
     let limb = PaState {
+        // A limb that dies is dropped five years on: oaks hold dead
+        // branches for years before they fall (fn-197 host decision 18;
+        // estimated, an arborists' account, no measured persistence
+        // found). An E-side value, reconciled with the oak's branch.
+        shedding: Some(5),
         insertion: 0.45,
         internode: 0.045,
         straightening: 0.2,

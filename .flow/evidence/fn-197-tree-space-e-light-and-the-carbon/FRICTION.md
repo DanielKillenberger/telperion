@@ -48,3 +48,21 @@
 - **Update, same day:** run alone, the light walks took 88 s, every setting's walks 91 s and the release law 2 s, all green at depth 6. The in-leaf walk of every setting hit its 3,000 s timeout without finishing.
   - Leafy walk trees with relative allocation can outgrow a shoot's whole size along a lineage, so some settings grow far larger trees (see STEP3B.md).
   - The test is committed as `#[ignore]`, and decision 8's "a walk of any setting stays within the bound" is unchecked: `NEEDS_HUMAN` on its scope.
+
+## 2026-10-05, step 4: the balance's memory has no source (host decision 20)
+
+- **Doing:** building the carbon balance's remembered average.
+- **Slowed by:** no source in reach gives how many years a branch's carbon balance is "remembered" before it is shed. `MEMORY` = 0.5 (a half-life of a year) is an estimate.
+- **Cost:** none yet. It is a value that no source backs.
+- **Would remove it:** a literature search (Takenaka 1994's shedding criterion; Sprugel 1991 and Sprugel et al. 1991 on branch autonomy), as its own small task.
+
+## 2026-10-05, step 4b: no measured dead-branch persistence for oaks
+
+- **Doing:** sourcing how long oaks hold dead branches (host decision 18).
+- **Slowed by:**
+  - Web search found only an arborists' page ("oaks often retain dead branches for years").
+  - The paper index's self-pruning preprint had no full text.
+  - The *Q. serrata* crop-tree paper gives dead-branch zones, not years.
+  - Kint et al. 2010 (self-pruning of young *Q. robur*) is abstract-only.
+- **Cost:** about 10 minutes and five searches. The 5 years stays estimated.
+- **Would remove it:** access to Kint et al. 2010's full text, or the oak branch's own literature stage.

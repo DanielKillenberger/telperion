@@ -33,6 +33,8 @@ The options and the reasons are in `.flow/evidence/fn-197-tree-space-e-light-and
   - Each cycle a basipetal pass sums the light each subtree collects. An acropetal pass splits the base's vigour at every branching point by per-PA apical control λ (Pałubicki 2009; 0.5 is the unbiased split that gives each bud its own light).
   - A bud's unit is sized by its vigour per presence against the tree's presence-weighted mean, to ψ, normalised exactly so the mean unit is whole. The size is the unit's own (internodes and girth) and never passes to what it bears.
   - ψ = 0 is neutral. α cancels and is deleted. The balance bounds size and acts only through shedding; there is no phototropism. [host, decisions 4, 11, 14, 15]
+- **Shedding on the balance:** a lateral subtree's balance, (light − upkeep) / (light + upkeep), is remembered with an engine constant `MEMORY` = 0.5 (estimated, unsourced). A yearly shed hazard rises continuously below the PA's tolerance. A limb that dies on it is dropped after its PA's shedding delay, the persistence of dead branches. [host, decisions 5, 18, 20]
+- **Apical control** is walked within Pałubicki's published 0.45 to 0.55; the trunk and leader PAs may sit higher (about 0.55 to 0.6) so the leader keeps its share. [host, decisions 17, 21]
 - **Walk scope:** the gate walks the light settings and a sample of structural ones in leaf with the full lay; every setting in leaf is a slow suite outside the gate. [host, decision 12]
 - **Calibration:** leaf area and k stay plausible on this branch; the oak's leaf area is sourced on its own branch. [host, decision 16]
 - **Girth:** `retained`, the share of a shed branch's pipe kept in its bearer (Shinozaki's disused pipes), neutral 0, built in step 5 beside thickening from leaves. [host]
@@ -50,7 +52,7 @@ The options and the reasons are in `.flow/evidence/fn-197-tree-space-e-light-and
 ## Acceptance Criteria
 
 - **R1:** A light pass (Beer-Lambert from above, or Pałubicki 2009's shadow propagation, chosen with reasons) reproduced against its published description, then added as a setting whose neutral value leaves every passed species unchanged. [user]
-- **R2:** Shedding on each branch's remembered balance and growth bounded by it; seeds within 1.5x of each other in node count. [inferred]
+- **R2:** Shedding on each branch's remembered balance, and growth bounded by it. Light must not widen the seed-to-seed spread, in leaf count, compared with the same species at neutral light. [host, decision 19, 2026-10-05: the earlier "seeds within 1.5x in node count" was inferred, and round 4 itself spreads about 4x in leaves]
 - **R3:** The gate: every passed species re-rendered and judged as in phase C, none looks worse; walks stay continuous. [user]
 - **Wrong-path stop:** a passed species regresses and cannot be restored. [user]
 
