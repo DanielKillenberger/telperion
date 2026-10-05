@@ -86,7 +86,10 @@ export interface GpuSubmitted extends Submitted {
 
 export interface FrameStats {
   drawCalls: number;
+  /** The room's and the leaves' triangles: the wood's are the device's own
+   *  count, which `woodCounted: false` marks as left out (fn-208). */
   triangles: number;
+  woodCounted: boolean;
   instances: number;
 }
 

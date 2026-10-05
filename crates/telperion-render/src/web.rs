@@ -298,12 +298,15 @@ impl WebRenderer {
         self.borrow()?.draw(None).map_err(js_error)
     }
 
-    /// What the last frame cost, as JSON.
+    /// What the last frame cost, as JSON. `triangles` leaves out the wood,
+    /// which the device writes and `wood()` reads back (fn-208):
+    /// `woodCounted` says so.
     pub fn stats(&self) -> std::result::Result<String, JsError> {
         let stats = self.borrow()?.stats;
         Ok(json!({
             "drawCalls": stats.draw_calls,
             "triangles": stats.triangles,
+            "woodCounted": false,
             "instances": stats.instances,
         })
         .to_string())
