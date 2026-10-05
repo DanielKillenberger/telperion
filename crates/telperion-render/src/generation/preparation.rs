@@ -17,7 +17,6 @@ impl Generator {
         let x = grown.expansion()?;
         let mut uploaded_wood = None;
         let mut shared_stations = None;
-        let mut wood_attempted = false;
         let mut early_wood_ms = 0.0;
         let mut station_unsupported = false;
         if delivery == Delivery::Resident && x.supports_stations() && x.round_section() {
@@ -114,7 +113,6 @@ impl Generator {
                 if let Some(wood) = &uploaded_wood {
                     shared_stations = candidate_stations;
                     metrics.shared_metadata_cpu_bytes = wood.metadata_bytes();
-                    wood_attempted = true;
                 }
             }
             early_wood_ms = begin.elapsed_ms() - station_ms;
@@ -154,14 +152,12 @@ impl Generator {
                             + metrics.wood_metadata_cpu_bytes
                             + station_cpu_bytes,
                     );
-                    wood_attempted = true;
                     if let Some(wood) = &uploaded_wood {
                         metrics.shared_metadata_cpu_bytes = wood.metadata_bytes();
                         shared_stations = Some(station_data);
                     }
                 }
             } else {
-                wood_attempted = true;
                 metrics.wood_fallback = Some("CPU triangle admission");
             }
         }
@@ -184,7 +180,6 @@ impl Generator {
                 identity: self.identity.clone(),
                 mesh,
                 resident: None,
-                wood: None,
                 backend: Backend::CpuFallback,
                 metrics,
             });
@@ -259,71 +254,41 @@ impl Generator {
             instances.validate()?;
             metrics.readback_ms = start.elapsed_ms();
         }
+        // The ring positions served the stations; the wood itself is drawn
+        // from its curve (fn-208, host decision 20), and a CPU delivery keeps
+        // the reference mesh's wood beside it for consumers without a GPU.
+        drop(uploaded_wood);
         let started = Clock::now();
-        let mut resident_wood = None;
-        if let Some(uploaded) = uploaded_wood {
-            let scopes = io::scope(&self.gpu);
-            let result = self.expand_uploaded_wood(uploaded, &mut metrics).await;
-            let errors = io::errors(&self.gpu, scopes).await;
-            resident_wood = result?;
-            errors?;
-        } else if delivery == Delivery::Resident && !wood_attempted {
-            let compact = x.prepared_wood()?;
-            metrics.wood_prepare_ms = started.elapsed_ms();
-            if let Some(compact) = compact {
-                let scopes = io::scope(&self.gpu);
-                let result = self.expand_wood(compact, &mut metrics).await;
-                let errors = io::errors(&self.gpu, scopes).await;
-                resident_wood = result?;
-                errors?;
-            } else {
-                metrics.wood_fallback = Some("CPU triangle admission");
-            }
-        }
+        let curve = x.curve()?;
+        let wood = if delivery == Delivery::Cpu {
+            x.wood()?
+        } else {
+            surface::SurfaceMesh::default()
+        };
         metrics.wood_backend = Some(if delivery == Delivery::Cpu {
             Backend::Cpu
-        } else if resident_wood.is_some() {
+        } else {
             Backend::Gpu
-        } else {
-            Backend::CpuFallback
         });
-        let wood = if resident_wood.is_some() {
-            surface::SurfaceMesh::default()
-        } else {
-            x.wood()?
-        };
         metrics.wood_ms = started.elapsed_ms() + early_wood_ms;
         metrics.wood_cpu_bytes = wood::cpu_bytes(&wood);
-        if let Some(w) = &resident_wood {
-            metrics.retained_gpu_bytes += w.bytes();
-        }
-        let bounds = union(
-            resident_wood.as_ref().map_or(wood.bounds, |w| w.bounds),
-            full,
-        )
-        .ok_or(telperion_core::Error::InvalidInput("mesh has no geometry"))?;
+        let bounds = union(curve.bounds(), full)
+            .ok_or(telperion_core::Error::InvalidInput("mesh has no geometry"))?;
         let mesh = TreeMesh {
             wood,
+            curve,
             foliage: mesh::Foliage {
                 element: x.into_element(),
                 instances,
             },
             bounds,
         };
-        crate::submit::fits_wood_counts(
-            &self.gpu.device.limits(),
-            &mesh,
-            metrics.instances as usize,
-            resident_wood
-                .as_ref()
-                .map(|w| (w.vertices, w.index_count, w.runs.as_slice())),
-        )?;
+        crate::submit::fits_count(&self.gpu.device.limits(), &mesh, metrics.instances as usize)?;
         metrics.total_ms = total.elapsed_ms();
         Ok(Prepared {
             identity: self.identity.clone(),
             mesh,
             resident,
-            wood: resident_wood,
             backend: Backend::Gpu,
             metrics,
         })

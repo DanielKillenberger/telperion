@@ -6,6 +6,7 @@
 //! where the parameters came from.
 mod buffer;
 mod camera;
+mod curve;
 mod device;
 mod foliage;
 pub mod generation;
@@ -30,6 +31,7 @@ pub use buffer::Region;
 pub use camera::{
     hero_pose, orbit_pose, shot_pose, walk_pose, Camera, FIELD_OF_VIEW, FRAME_MARGIN,
 };
+pub use curve::{viewer as curve_viewer, CurveReport};
 pub use device::{Gpu, RenderError, Result};
 pub use scene::{SceneRow, DEPTH_FORMAT, GROUND_REACH};
 pub use select::{Level, MAX_LEVELS};
@@ -60,6 +62,8 @@ use telperion_core::{material::MaterialParams, mesh::TreeMesh, surface::Bounds};
 /// What one frame cost, in the terms a reader of a timing record needs.
 /// `instances` counts the foliage placements drawn, which is the number the
 /// view changes.
+/// The wood's triangles are written by the device, so a frame's own count
+/// leaves them out and a still (`render`) adds them from the readback.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct FrameStats {
     pub draw_calls: u32,
@@ -80,14 +84,16 @@ impl std::ops::Add for FrameStats {
     }
 }
 
-/// The three timestamp pairs a timed frame writes: the vegetation render pass,
-/// the selection compute pass that decides what it draws, and the sun's own
-/// depth pass. Every pair is written on every timed frame, whatever the view is
+/// The four timestamp pairs a timed frame writes: the vegetation render pass,
+/// the selection compute pass that decides what it draws, the sun's own
+/// depth pass, and the compute pass that surfaces the wood for the camera and
+/// the sun (fn-208). Every pair is written on every timed frame, whatever the view is
 /// showing, so a session never resolves a query no pass wrote.
 pub struct Timed<'a> {
     pub vegetation: wgpu::RenderPassTimestampWrites<'a>,
     pub selection: wgpu::ComputePassTimestampWrites<'a>,
     pub shadow: wgpu::RenderPassTimestampWrites<'a>,
+    pub surfacing: wgpu::ComputePassTimestampWrites<'a>,
 }
 
 /// A device with the room built on it, holding at most one tree.
@@ -116,14 +122,22 @@ impl Renderer {
     /// Builds the room on an existing device. The colour format is the target's:
     /// an offscreen texture natively, the configured surface in a browser.
     pub fn new(gpu: Gpu, colour_format: wgpu::TextureFormat) -> Self {
+        Self::with_samples(gpu, colour_format, MULTISAMPLE)
+    }
+
+    /// The same renderer drawing at another multisample count, which is how a
+    /// measurement compares counts (fn-208); one where the device does not
+    /// offer it.
+    pub fn with_samples(gpu: Gpu, colour_format: wgpu::TextureFormat, samples: u32) -> Self {
         // Asked of the device once, here, because every pipeline below has to
         // be built at the count the frame will be drawn at, and the frame's
         // targets made at the same one.
         let surface = Surface {
             format: colour_format,
             samples: pass::samples(
-                gpu.supports_samples(colour_format, MULTISAMPLE),
-                gpu.supports_samples(DEPTH_FORMAT, MULTISAMPLE),
+                gpu.supports_samples(colour_format, samples),
+                gpu.supports_samples(DEPTH_FORMAT, samples),
+                samples,
             ),
         };
         let shadow = shadow::Shadow::new(&gpu);
@@ -173,7 +187,7 @@ impl Renderer {
     /// rather than sitting on the renderer, so no later frame inherits it.
     pub fn submit_at(&mut self, mesh: &TreeMesh, level: Level) -> Result<Submitted> {
         fits(&self.gpu.device.limits(), mesh)?;
-        self.wood.submit(&self.gpu, &mesh.wood);
+        self.wood.submit(&self.gpu, &mesh.curve);
         self.foliage.submit(&self.gpu, &mesh.foliage, level);
         self.scene
             .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
@@ -182,7 +196,6 @@ impl Renderer {
             .set_leaf_reference(mesh.foliage.instances.reference);
         self.scene.section_roundness = mesh.foliage.element.section_roundness;
         self.bounds = Some(mesh.bounds);
-        self.set_casters();
         self.level_deviations = mesh
             .foliage
             .element
@@ -198,7 +211,47 @@ impl Renderer {
         })
     }
 
-    /// Selects what the next frame draws of the submitted tree.
+    /// Surfaces the wood as if every frame were `viewport` in size, so
+    /// frames of different sizes draw the same triangles; `None` ends it. A
+    /// measurement's override (fn-208, host decision 22), not a production
+    /// path: a test of shading under a box reduction holds the geometry.
+    pub fn pin_curve_viewport(&mut self, viewport: Option<(u32, u32)>) {
+        self.wood.pin_viewport(viewport);
+    }
+
+    /// What the last frame's passes wrote for the sun's map, read back.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn curve_sun_report(&self) -> Option<CurveReport> {
+        let sun = self.wood.curve().and_then(|c| c.sun.as_ref());
+        sun.map(|t| t.report(&self.gpu))
+    }
+
+    /// What the last frame's passes wrote for the camera, read back.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn curve_report(&self) -> Option<CurveReport> {
+        self.wood
+            .curve()
+            .and_then(|c| c.camera.as_ref())
+            .map(|t| t.report(&self.gpu))
+    }
+
+    /// The last frame's surfaced wood for the camera: nine floats a vertex
+    /// (position, normal, along, angle, radius), tube and ribbon
+    /// indices. What a test holds against the CPU reference.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn curve_mesh(&self) -> Option<(Vec<f32>, Vec<u32>, Vec<u32>)> {
+        self.wood
+            .curve()
+            .and_then(|c| c.camera.as_ref())
+            .map(|t| t.mesh(&self.gpu))
+    }
+
+    /// Bytes the curve's wood holds on the device: its points, clusters and
+    /// both views' budgets.
+    pub fn curve_bytes(&self) -> Option<u64> {
+        self.wood.curve().map(|c| c.bytes())
+    }
+
     pub fn set_view(&mut self, view: View) {
         self.view = view;
     }
@@ -226,20 +279,46 @@ impl Renderer {
     /// and no blend between two families touches it.
     pub fn set_scene(&mut self, row: SceneRow) {
         self.scene.set_row(row);
-        self.set_casters();
     }
 
-    fn set_casters(&mut self) {
-        let light = shadow::light(self.scene.row(), self.bounds);
-        self.wood
-            .set_casters(self.scene.row().caster_texels * light.texel_size);
-    }
-
-    /// Wood triangles submitted to the sun's pass, outside the frame statistics.
+    /// Wood triangles the last frame drew into the sun's map, outside the
+    /// frame statistics: the curve's sun view, read back from the device, so
+    /// a record reads it and a frame never does.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn caster_triangles(&self) -> u32 {
-        match self.view {
-            View::Leaf => 0,
-            _ => self.wood.caster_index_count / 3,
+        let sun = self.wood.curve().and_then(|c| c.sun.as_ref());
+        match (self.view, sun) {
+            (View::Leaf, _) | (_, None) => 0,
+            (_, Some(t)) => {
+                let r = t.report(&self.gpu);
+                r.tube_triangles + r.ribbon_triangles
+            }
+        }
+    }
+
+    /// What the last frame's passes wrote for the camera and for the sun's
+    /// map, awaited rather than polled: the browser's readback, which holds
+    /// no borrow of the renderer across the wait. `None` where no wood is up.
+    #[cfg(target_arch = "wasm32")]
+    pub fn curve_reports_async(
+        &self,
+    ) -> impl std::future::Future<Output = [Option<CurveReport>; 2]> + 'static {
+        let curve = self.wood.curve();
+        let pending = [
+            curve.and_then(|c| c.camera.as_ref()).map(|t| t.report_async(&self.gpu)),
+            curve.and_then(|c| c.sun.as_ref()).map(|t| t.report_async(&self.gpu)),
+        ];
+        async move {
+            let [camera, sun] = pending;
+            let camera = match camera {
+                Some(p) => p.await,
+                None => None,
+            };
+            let sun = match sun {
+                Some(p) => p.await,
+                None => None,
+            };
+            [camera, sun]
         }
     }
 
@@ -265,11 +344,6 @@ impl Renderer {
             View::Leaf => self.foliage.bounds(),
             _ => self.bounds,
         }
-    }
-
-    /// The live wood ranges: what is used of what was allocated.
-    pub fn wood_regions(&self) -> Option<(Region, Region, Region)> {
-        self.wood.regions()
     }
 
     /// The live foliage instance range.
@@ -350,13 +424,14 @@ impl Renderer {
             self.foliage.caster_shape,
             self.scene.leaf_reference(),
         );
-        let (vegetation_writes, selection_writes, shadow_writes) = match timed {
+        let (vegetation_writes, selection_writes, shadow_writes, surfacing_writes) = match timed {
             Some(timed) => (
                 Some(timed.vegetation),
                 Some(timed.selection),
                 Some(timed.shadow),
+                Some(timed.surfacing),
             ),
-            None => (None, None, None),
+            None => (None, None, None, None),
         };
         let mut encoder = self
             .gpu
@@ -364,6 +439,8 @@ impl Renderer {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("frame"),
             });
+        self.wood
+            .tessellate(&self.gpu, &mut encoder, camera, viewport, &light, surfacing_writes);
         self.foliage.dispatch(
             &self.gpu,
             &mut encoder,

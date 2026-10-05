@@ -57,7 +57,14 @@ fn replay_recorded_bark_views() {
         };
         let view = View::from_id(&pose["view"].as_str().unwrap().to_lowercase()).unwrap();
         renderer.set_view(view);
-        renderer.set_scene(SceneRow::parse(&pose["scene"].to_string()).unwrap());
+        // A recorded row may name `casterTexels`, which fn-208 retired with
+        // the mesh wood's caster prefix: the replay drops it, the parser
+        // still refuses it.
+        let mut scene = pose["scene"].clone();
+        if let Some(row) = scene.as_object_mut() {
+            row.remove("casterTexels");
+        }
+        renderer.set_scene(SceneRow::parse(&scene.to_string()).unwrap());
         let frame = render(&mut renderer, &camera, 1600, 1000).unwrap();
         assert!(frame.has_subject());
         let name = pose["name"].as_str().unwrap();

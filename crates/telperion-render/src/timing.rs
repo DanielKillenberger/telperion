@@ -34,11 +34,12 @@ pub const CONTENTION_RATIO: f64 = 2.0;
 
 /// Bytes of one timestamp pair.
 const PAIR: u64 = 2 * wgpu::QUERY_SIZE as u64;
-/// How many pairs a timed frame writes: vegetation, selection, shadow. The
-/// vegetation pass stays first and the shadow pass is added after the two that
-/// were already there, so a reader of the first sixteen bytes reads what
-/// fn-22's records already meant by them.
-const PASSES: u32 = 3;
+/// How many pairs a timed frame writes: vegetation, selection, shadow and the
+/// wood's surfacing (fn-208, host decision 18). The vegetation pass stays
+/// first and each later pass is added after the ones that were already there,
+/// so a reader of the first sixteen bytes reads what fn-22's records already
+/// meant by them.
+const PASSES: u32 = 4;
 const PAIRS: u64 = PASSES as u64 * PAIR;
 
 /// Whether a session's numbers may be read as a measurement. Every variant but
@@ -135,7 +136,7 @@ impl Session {
             return Err("the adapter does not offer timestamp queries".into());
         }
         let queries = gpu.device.create_query_set(&wgpu::QuerySetDescriptor {
-            label: Some("vegetation, selection and shadow passes"),
+            label: Some("vegetation, selection, shadow and surfacing passes"),
             ty: wgpu::QueryType::Timestamp,
             count: 2 * PASSES,
         });
@@ -181,6 +182,11 @@ impl Session {
                 beginning_of_pass_write_index: Some(4),
                 end_of_pass_write_index: Some(5),
             },
+            surfacing: wgpu::ComputePassTimestampWrites {
+                query_set: &self.queries,
+                beginning_of_pass_write_index: Some(6),
+                end_of_pass_write_index: Some(7),
+            },
         }
     }
 
@@ -204,14 +210,11 @@ impl Session {
         (ticks[1] as f64 - ticks[0] as f64) * f64::from(self.period) / 1e6
     }
 
-    /// One frame's resolved pairs as the three durations they stand for, in
-    /// the order the query set writes them.
-    fn durations(&self, ticks: [u64; 2 * PASSES as usize]) -> (f64, f64, f64) {
-        (
-            self.duration_ms([ticks[0], ticks[1]]),
-            self.duration_ms([ticks[2], ticks[3]]),
-            self.duration_ms([ticks[4], ticks[5]]),
-        )
+    /// One frame's resolved pairs as the durations they stand for, in the
+    /// order the query set writes them: vegetation, selection, shadow and
+    /// surfacing.
+    fn durations(&self, ticks: [u64; 2 * PASSES as usize]) -> [f64; 4] {
+        std::array::from_fn(|k| self.duration_ms([ticks[2 * k], ticks[2 * k + 1]]))
     }
 }
 
@@ -223,7 +226,7 @@ impl Session {
     /// What the last resolved frame's three passes cost, vegetation first,
     /// then selection, then the shadow, in milliseconds - the same three the
     /// blocking half returns, awaited instead of polled.
-    pub async fn sample_ms(&self) -> Result<(f64, f64, f64)> {
+    pub async fn sample_ms(&self) -> Result<[f64; 4]> {
         let lost = |reason: String| RenderError::DeviceLost { reason };
         let (sender, receiver) = futures_channel::oneshot::channel();
         self.readback
@@ -262,7 +265,7 @@ impl Session {
         camera: &Camera,
         viewport: (u32, u32),
         target: Target<'_>,
-    ) -> Result<(f64, f64, f64)> {
+    ) -> Result<[f64; 4]> {
         renderer.draw_timed(camera, viewport, target, self.timed());
         self.resolve(renderer.gpu());
         let ticks = self.read(renderer.gpu())?;

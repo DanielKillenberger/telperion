@@ -39,6 +39,7 @@ Expansion
   compact_stations(&shared), stations        the leaf stations, on shared rings or their own
   prepared_with_contacts, shared_stations    the canonical float32 wood, and stations on it
   prepared_wood, wood                        the canonical wood; the CPU wood
+  curve                                      the wood as curves, which it is surfaced from (fn-208)
   mesh                                       the CPU reference for the whole tree
 ```
 
@@ -47,6 +48,49 @@ Each step is synchronous CPU work. The GPU executor keeps its own schedule: it c
 `expand` takes a tree the caller already holds, for the renderer's tests of the GPU kernels on hand-built trees. It builds no tree: growing one stays inside the pipeline, so `expand` opens no second chain. Expansion opens by hanging the shed leaf bases on the stems (fn-204), so a handed-in tree is clothed exactly as a grown one; a tree that already carries its bases is clothed again.
 
 The growth path, the second sanctioned exception, was removed on 2026-10-02 (fn-181, `docs/growth-path.md`); the scaffold's grower, `branching::Specimen`, is private to the crate.
+
+## The wood's curve (fn-208)
+
+The wood is handed over as curves, not triangles (`telperion_core::surface::Curve`, `Expansion::curve`). The surface is drawn from them, by the GPU at the screen's error (fn-208) or by the CPU at a stated view and error. Every tree produces the curve from its solved skeleton by the sweep's own steps (paths, samples, frames), so whatever grew the tree, its wood has one path to the screen.
+
+| Table | Per | Holds |
+|---|---|---|
+| `points` | ring the sweep stands | centre, radius (girth with the fork's easing and the flare, or a shaped run's extent), distance along the wood from the root, and the parallel-transported frame (`normal × binormal` is the tangent) |
+| `runs` | run of the sweep, widest first | first point, count, whether it stands on the root, the cell a shaped run is drawn as (an index into `sections`), its largest radius |
+| `clusters` | up to `CLUSTER` (32) points of one run, neighbours sharing an end | a sphere round every ring (lobes included), largest and smallest radius, and for each of `LEVELS` ring levels (level `k` keeps every `2^k`-th point) the most a left-out ring stands off its kept neighbours, monotone |
+| `sections` | shaped run | the cell (`tree::Section`), as the tree keeps it: the palm's leaf bases |
+
+Its tree-wide rows are the section's `lobes`, `lobeDepth` and `twistRate`, and the tree's height. A ring point `p` at angle `θ` stands at `centre + (normal cos θ + binormal sin θ) · radius · (1 + lobeDepth cos(lobes (θ + phase)))`, where `phase = 2π · twistRate · along / height`. A shaped run's ring is the cell's own (`Section::vertex`). The bark's coordinates are `(along, θ)`.
+
+On the GPU a point is 32 bytes (`CurvePoint::pack`, `POINT_WORDS`; host decision 8):
+- float32 centre, radius and distance along;
+- the frame's two vectors, octahedral at 24 bits a component.
+
+A ring drawn from a packed point stands within 1e-6 of its run's radius and two float32 units of its position from the exact one. A test measures this for every preset (`curve/tests.rs`).
+
+`Curve::tessellate(&Viewer, error, budget)` is the CPU reference of the surface at the screen's error (fn-208, host decisions 2, 3 and 5). It surfaces the curve for one view within `error` pixels:
+- **Ring level:** each cluster keeps the coarsest ring level whose error stands under half the budget at its nearest depth.
+- **Pieces:** a curved stretch between kept rings is cut along its Hermite curve until its chords sag under that half (`Lθ/(8m²)`).
+- **Sides:** each ring takes the fewest sides, `3·2^k`, whose polygon stands within the other half (`ceil(π / acos(1 − e/ρ))`).
+- **Normals:** analytic, from the tube's radial direction, the lobes' turn and the radius's slope along the curve.
+- **Bark coordinates:** `(along, angle)`, as the sweep's.
+- **Budget:** a budget of triangles coarsens the error by 2, 4 or 8 and reports the scale; past that it refuses by name.
+
+It is camera-dependent by definition, and reads only the curve.
+
+The sweep's rings drawn from the curve alone are the sweep's own, to the bit, for every values preset, the palm's shaped cells included: that is what shows the curve carries the whole wood.
+
+### The renderer's one wood path
+
+The curve is the renderer's only wood (host decision 20). `TreeMesh` carries it beside the reference build's `SurfaceMesh`, `Renderer::submit` uploads it, and nothing else of the wood reaches the device; the CPU mesh stays for tests and for consumers without a GPU. Each frame the renderer surfaces it twice, for the camera and for the sun's map, in one compute pass that the timer's fourth pair stands around (`surfacing_p50_ms`):
+
+1. `measure` counts each cluster at the four error scales, and `choose` takes the finest that fits the view's budget.
+2. `count` and a three-pass scan give every cluster its offsets.
+3. `rings` walks each cluster into ring records: a ring's point, sides and form, and where its vertices and indices go.
+4. `emit` writes every ring's vertices and indices, one thread a ring, by an indirect dispatch.
+5. `draws` writes the two indirect draws, tubes and ribbons.
+
+A view's budget is its pixels times a bound a pixel on rings, vertices, tube indices and ribbon indices (host decision 19, `curve/target.rs`). A view past its budget is drawn at a coarser scale and reports it. Points, records, vertices and indices are each bound in two slices of at most WebGPU's default 128 MB, so the same passes bind in a browser (host decision 21).
 
 ## Why not a resolver
 

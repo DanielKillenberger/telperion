@@ -10,9 +10,10 @@ Bare still strips walking the beech to the spruce at a fixed seed, one tree per 
 Still strips beech to spruce at a fixed seed, every still viewed, no visible pop. Built on fn-206's shared chain.
 
 ## Done summary
-Blocked:
-Blocked by fn-206-tree-space-one-reference-axis-every (host, 2026-10-05): the beech and the spruce have no per-setting midpoint until both species are written on one shared reference axis. See RESULT.md, R3.
+R3: the beech-to-spruce walk at age 40, seed 1, bare strips (fn-206 walk7-40, rendered on the port onto master), viewed by the host: by degree from the forked beech through open single-stemmed and tiered midpoints to the spruce spire, leader kept throughout, no pop.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
-- PRs:
+- Commits: 8e7cb7b1
+- Tests: cargo test --profile ci --workspace --no-fail-fast
+- PRs: #154

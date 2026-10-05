@@ -1,14 +1,11 @@
 //! Admission completes before any foliage consumes candidate geometry.
 use super::{
     io,
-    wood::{self, UploadedWood, WoodMetadata},
+    wood::{self, UploadedWood},
     Clock, Generator, Metrics,
 };
 use crate::Result;
-use telperion_core::{
-    math::Vec3,
-    surface::{compact::CompactSurface, Bounds},
-};
+use telperion_core::surface::compact::CompactSurface;
 
 pub(super) fn cpu_bytes(p: &CompactSurface) -> u64 {
     (p.rings.capacity() * 64
@@ -23,8 +20,6 @@ pub(super) struct PendingPositions {
     metadata: wgpu::Buffer,
     _scratch: [wgpu::Buffer; 5],
     read: io::PendingRead,
-    config: [u32; 8],
-    sizes: [u64; 6],
 }
 
 impl Generator {
@@ -175,17 +170,6 @@ impl Generator {
             metadata: meta,
             _scratch: [uniform, descriptors, angular, partial, status],
             read,
-            config: [
-                config[1],
-                config[2],
-                config[3],
-                ring_offset,
-                angle_offset,
-                0,
-                0,
-                0,
-            ],
-            sizes,
         }))
     }
 
@@ -200,8 +184,6 @@ impl Generator {
             metadata: meta,
             _scratch,
             read,
-            config,
-            sizes,
         } = pending;
         let wait = Clock::now();
         let bytes = read.complete(&self.gpu).await?;
@@ -214,28 +196,12 @@ impl Generator {
             metrics.position_fallback = Some("geometry or normal admission");
             return Ok(None);
         }
-        let xyz = |at| {
-            Vec3::new(
-                f32::from_bits(status[at]) as f64,
-                f32::from_bits(status[at + 1]) as f64,
-                f32::from_bits(status[at + 2]) as f64,
-            )
-        };
-        let bounds = (p.vertices != 0).then(|| Bounds {
-            min: xyz(0),
-            max: xyz(4),
-        });
         metrics.gpu_positions = true;
         metrics.position_retained_metadata_bytes = meta.size();
         Ok(Some(UploadedWood {
             positions,
-            metadata: WoodMetadata::Gpu(meta),
-            config,
-            sizes,
-            vertices: p.vertices as usize,
-            index_count: p.indices,
+            metadata: Some(meta),
             runs: p.run_table,
-            bounds,
         }))
     }
 }

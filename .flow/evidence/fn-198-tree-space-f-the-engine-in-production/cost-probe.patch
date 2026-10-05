@@ -1,0 +1,74 @@
+diff --git i/crates/telperion-space/src/grow.rs w/crates/telperion-space/src/grow.rs
+index 918cd31c..c5917575 100644
+--- i/crates/telperion-space/src/grow.rs
++++ w/crates/telperion-space/src/grow.rs
+@@ -129,7 +129,7 @@ fn run(
+         advanced.extend(grower.live.iter().map(|a| a.axis));
+         grower.step(cycle)?;
+         stage(Stage::Grown);
+-        if grower.sketch.is_some() {
++        if grower.sketch.is_some() && !(cycle == request.age && std::env::var_os("F_SKIPLAST").is_some()) {
+             grower.sketch(cycle, &advanced)?;
+             stage(Stage::Sketched);
+             if cycle % relay::RELAY_EVERY == 0 {
+@@ -147,6 +147,7 @@ fn run(
+         let kept = woken.kept(&grower.axes, &grower.draws, &grower.successor, request.age);
+         grower.draws[woken.axis].birth[1] *= kept;
+     }
++    if std::env::var_os("F_GROWN").is_some() { eprintln!("F_GROWN {} axes {}", grower.grown, grower.axes.len()); f_probe(&grower.axes, species, request.age); }
+     assign(&mut grower.axes, &grower.draws);
+     // The tree as grown, where any PA keeps shed pipes or thickens by its
+     // leaves: what each shed branch had laid down, and the one population
+@@ -423,3 +424,52 @@ impl Grower<'_> {
+         }
+     }
+ }
++
++// fn-198 scratch probe, not committed.
++fn f_probe(axes: &[Axis], species: &Species, age: u32) {
++    const INF: u32 = u32::MAX / 4;
++    let n = species.states.len();
++    let mut m = vec![None::<u32>; n];
++    fn life(p: usize, s: &Species, m: &mut Vec<Option<u32>>) -> u32 {
++        const INF: u32 = u32::MAX / 4;
++        if let Some(v) = m[p] { return v; }
++        m[p] = Some(INF); // guard
++        let st = &s.states[p];
++        let mut tail = 0u32;
++        let mut inf = false;
++        for z in &st.zones {
++            for (q, &pr) in z.lateral.iter().enumerate() { if pr > 0.0 { if q == p { inf = true } else { tail = tail.max(life(q, s, m)) } } }
++            if z.dormant.iter().any(|&d| d > 0.0) { inf = true }
++        }
++        if let Some(nx) = st.next { tail = tail.max(life(nx, s, m)) }
++        let v = if inf || tail >= INF { INF } else { st.lifespan + tail };
++        m[p] = Some(v);
++        v
++    }
++    for p in 0..n { life(p, species, &mut m); }
++    let standing = crate::shed::standing(axes, species, age);
++    let mut provable = vec![false; axes.len()];
++    let (mut shed_ph, mut prov_ph, mut kept_ph) = (0usize, 0usize, 0usize);
++    let mut by_pa = vec![(0usize, 0usize, 0usize); n];
++    for (i, a) in axes.iter().enumerate() {
++        let parent = a.origin.parent();
++        let inherited = parent.is_some_and(|q| provable[q]);
++        let own = match a.origin { Origin::Lateral { .. } => {
++            let ml = m[a.pa].unwrap();
++            species.states[a.pa].shedding.is_some_and(|d| ml < INF && age.saturating_sub(a.birth + ml) > d)
++        } _ => false };
++        provable[i] = inherited || own;
++        let ph = a.phytomers.len();
++        if standing[i] { kept_ph += ph; by_pa[a.pa].0 += ph } else { shed_ph += ph; by_pa[a.pa].1 += ph }
++        if provable[i] { prov_ph += ph; by_pa[a.pa].2 += ph; assert!(!standing[i], "provable but kept"); }
++    }
++    eprintln!("F_PROBE kept {kept_ph} shed {shed_ph} provably-shed-at-birth {prov_ph}");
++    for p in 0..n {
++        let st = &species.states[p];
++        let lat: Vec<usize> = (0..n).filter(|&q| st.zones.iter().any(|z| z.lateral.get(q).is_some_and(|&x| x > 0.0))).collect();
++        let dor = st.zones.iter().any(|z| z.dormant.iter().any(|&d| d > 0.0));
++        let ml = m[p].unwrap();
++        eprintln!("F_PA {p}: life {} next {:?} shed {:?} viab {} relay {} laterals {:?} dormant {dor} maxlife {} | kept {} shed {} provable {}",
++            st.lifespan, st.next, st.shedding, st.viability, st.relay, lat, if ml >= INF { "inf".to_string() } else { ml.to_string() }, by_pa[p].0, by_pa[p].1, by_pa[p].2);
++    }
++}

@@ -92,10 +92,15 @@ pub(super) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     let wood = wood
         .zip(rings)
         .map(|((faces, _), (rings, _))| rings.into_mesh(faces));
+    let curve = request
+        .curve
+        .then(|| crate::pipeline::surface::curve(tree, surface.height, &surface.params))
+        .transpose()?;
     Ok(Outputs {
         element: prepared.element,
         plan: prepared.leaf_plan,
         wood,
+        curve,
         leaves: leaves.map(|(l, _)| l),
         field: field.map(|(f, _)| f),
         structure,

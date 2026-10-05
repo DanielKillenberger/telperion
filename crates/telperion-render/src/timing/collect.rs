@@ -21,7 +21,6 @@ pub(super) fn collect(
             .with_multisample(samples)
             .with_casters(renderer.caster_triangles(), renderer.caster_instances())
     };
-    let triangles = renderer.caster_triangles();
     let instances = renderer.caster_instances();
     let session = match Session::new(renderer.gpu()) {
         Ok(session) => session,
@@ -31,6 +30,9 @@ pub(super) fn collect(
     for _ in 0..CONDITIONING {
         renderer.draw(&start, viewport, target);
     }
+    // The wood the sun was given is surfaced by a frame, so it is counted
+    // after one.
+    let triangles = renderer.caster_triangles();
     for _ in 0..WARMUP {
         session.sample(renderer, &start, viewport, target)?;
     }
@@ -42,6 +44,7 @@ pub(super) fn collect(
     let mut vegetation = Vec::with_capacity(MEASURED);
     let mut selection = Vec::with_capacity(MEASURED);
     let mut shadow = Vec::with_capacity(MEASURED);
+    let mut surfacing = Vec::with_capacity(MEASURED);
     let mut counted: Vec<Vec<u32>> = Vec::with_capacity(MEASURED);
     let mut wall = Vec::with_capacity(MEASURED);
     let mut previous: Option<std::time::Instant> = None;
@@ -51,19 +54,26 @@ pub(super) fn collect(
             wall.push((now - last).as_secs_f64() * 1e3);
         }
         let camera = pose(frame as f64 / MEASURED as f64);
-        let (pass, select, sun) = session.sample(renderer, &camera, viewport, target)?;
+        let [pass, select, sun, surfaced] = session.sample(renderer, &camera, viewport, target)?;
         vegetation.push(pass);
         selection.push(select);
         shadow.push(sun);
+        surfacing.push(surfaced);
         if let Some(counts) = crown.then(|| renderer.level_counts()).flatten() {
             counted.push(counts);
         }
     }
 
+    let read = |r: Option<crate::CurveReport>| r.map(|r| (r.scale, r.overrun));
+    let wood = (
+        read(renderer.curve_report()),
+        read(renderer.curve_sun_report()),
+    );
     let report = Report::measured(hardware, &vegetation)
+        .with_wood(wood.0, wood.1)
         .with_multisample(samples)
         .with_casters(triangles, instances)
-        .with_passes(&vegetation, &selection, &shadow)
+        .with_passes(&vegetation, &selection, &shadow, &surfacing)
         .with_levels(&deviations, &counted);
     Ok(if walls {
         report.with_wall(&wall)

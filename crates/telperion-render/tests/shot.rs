@@ -31,6 +31,10 @@ fn a_shot_poses_the_frame_and_the_figure_leaves_when_asked() {
         height,
     )
     .unwrap();
+    let hero_wood = {
+        let c = renderer.curve_report().unwrap();
+        c.tube_triangles + c.ribbon_triangles
+    };
     let shot = Shot {
         azimuth: 200.0,
         elevation: -5.0,
@@ -49,8 +53,16 @@ fn a_shot_poses_the_frame_and_the_figure_leaves_when_asked() {
         hero.rgba, posed.rgba,
         "a different shot is a different picture"
     );
+    // The wood is surfaced for each view at its own error (fn-208), so its
+    // triangles move with the pose; the room's and the leaves' do not.
+    let wood = |r: &Renderer| {
+        let c = r.curve_report().unwrap();
+        c.tube_triangles + c.ribbon_triangles
+    };
+    let posed_wood = wood(&renderer);
     assert_eq!(
-        hero.stats.triangles, posed.stats.triangles,
+        hero.stats.triangles - hero_wood,
+        posed.stats.triangles - posed_wood,
         "the pose changes no geometry"
     );
 

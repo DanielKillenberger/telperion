@@ -1,6 +1,6 @@
 //! The proof the whole path holds on real hardware: a tree from the core, up
-//! through the wood buffers, out as pixels. Skips with a reason where there is
-//! no GPU to ask; it never fails for lack of one.
+//! through its curve, surfaced on the device and out as pixels. Skips with a
+//! reason where there is no GPU to ask; it never fails for lack of one.
 use telperion_core::{mesh, presets::Preset};
 use telperion_render::{hero_pose, render, Renderer, GROUND_REACH, STILL_FORMAT};
 
@@ -16,16 +16,10 @@ fn a_tree_reaches_the_pixels() {
 
     assert_eq!(submitted.wood_vertices, tree.wood_vertices());
     assert_eq!(submitted.wood_triangles, tree.wood_triangles());
-    let (positions, normals, indices) = renderer.wood_regions().expect("the wood was uploaded");
-    for region in [positions, normals, indices] {
-        assert!(
-            region.capacity() > region.used(),
-            "no headroom above {} bytes",
-            region.used()
-        );
-    }
-    assert_eq!(positions.used(), (tree.wood.positions.len() * 4) as u64);
-    assert_eq!(indices.used(), (tree.wood.indices.len() * 4) as u64);
+    assert!(
+        renderer.curve_bytes().is_some_and(|b| b > 0),
+        "the curve was not uploaded"
+    );
 
     let camera = hero_pose(tree.bounds, 1.0, GROUND_REACH);
     let still = render(&mut renderer, &camera, 256, 256).expect("the frame was drawn");
@@ -34,41 +28,7 @@ fn a_tree_reaches_the_pixels() {
         still.has_subject(),
         "the still is one flat colour: nothing was drawn"
     );
-    // The room's own triangles ride along with the tree's.
-    assert!(still.stats.triangles > tree.wood_triangles() as u32);
-}
-
-#[test]
-fn a_second_smaller_tree_reuses_the_wood_buffers() {
-    let Some(gpu) = gpu() else { return };
-    let large = mesh::build(&Preset::Ordinary.parameters()).expect("the core built");
-    let mut small = Preset::Ordinary.parameters();
-    small.skeleton.envelope.height *= 0.5;
-    let small = mesh::build(&small).expect("the core built the smaller tree");
-    assert!(
-        small.wood_vertices() < large.wood_vertices(),
-        "the second tree was not smaller"
-    );
-
-    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    renderer.submit(&large).expect("the large tree fits");
-    let (before, ..) = renderer.wood_regions().expect("the wood was uploaded");
-    renderer.submit(&small).expect("the small tree fits");
-    let (after, ..) = renderer
-        .wood_regions()
-        .expect("the second tree was uploaded");
-
-    assert_eq!(
-        after.capacity(),
-        before.capacity(),
-        "a smaller tree forced a re-layout"
-    );
-    assert!(
-        after.used() < before.used(),
-        "the live range did not shrink"
-    );
-
-    let camera = hero_pose(small.bounds, 1.0, GROUND_REACH);
-    let still = render(&mut renderer, &camera, 256, 256).expect("the second frame was drawn");
-    assert!(still.has_subject(), "the reused buffers drew nothing");
+    let report = renderer.curve_report().expect("the wood was surfaced");
+    assert!(report.tube_triangles > 0, "no wood was surfaced");
+    assert_eq!(report.overrun, 0);
 }

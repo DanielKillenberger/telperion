@@ -10,7 +10,7 @@
 //! state: the switch is below a pixel by construction, so there is nothing to
 //! smooth, and a camera cut or a fresh tree needs nothing forgotten.
 mod bind;
-mod frame;
+pub(crate) mod frame;
 
 use std::ops::Range;
 

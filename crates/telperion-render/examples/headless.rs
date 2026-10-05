@@ -299,6 +299,9 @@ fn detail(report: &telperion_render::Report) -> String {
     if let (Some(select), Some(total)) = (report.selection_p50_ms(), report.total_p50_ms()) {
         line += &format!("; selection p50 {select:.3} ms, together p50 {total:.3} ms");
     }
+    if let Some(surfaced) = report.surfacing_p50_ms() {
+        line += &format!("; wood surfacing p50 {surfaced:.3} ms");
+    }
     if let (Some(wall), Some(worst)) = (report.wall_p50_ms(), report.wall_max_ms()) {
         line += &format!("; wall p50 {wall:.2} ms, worst {worst:.2} ms");
     }

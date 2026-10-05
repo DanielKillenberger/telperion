@@ -8,7 +8,7 @@ use telperion_core::{
     math::Vec3,
     mesh::{self, Foliage, TreeMesh},
     presets::Preset,
-    surface::{Bounds, SurfaceMesh, SurfaceRun},
+    surface::{Bounds, Curve, CurvePoint, CurveRun, SurfaceMesh},
 };
 use telperion_render::{render, Camera, Renderer, Still, View, STILL_FORMAT};
 
@@ -22,52 +22,31 @@ const THICK: f64 = 0.28;
 const AXIS: f64 = 2.0;
 const SHOOT: f64 = 0.1;
 
+/// A straight run along x thickening from `THIN` to `THICK`, as its curve.
 fn ramp() -> TreeMesh {
-    let (rings, segments) = (151_usize, 24_usize);
-    let mut wood = SurfaceMesh {
-        positions: Vec::new(),
-        normals: Vec::new(),
-        coords: Vec::new(),
-        indices: Vec::new(),
-        bounds: None,
-        runs: 1,
-        run_table: Vec::new(),
-        dropped: 0,
-    };
-    for ring in 0..rings {
-        let along = LENGTH * ring as f64 / (rings - 1) as f64;
-        let radius = THIN + (THICK - THIN) * along / LENGTH;
-        for k in 0..segments {
-            let angle = std::f64::consts::TAU * k as f64 / segments as f64;
-            let (y, z) = (angle.cos(), angle.sin());
-            let x = along - LENGTH / 2.0;
-            wood.positions
-                .extend([x, AXIS + radius * y, radius * z].map(|v| v as f32));
-            wood.normals.extend([0.0, y as f32, z as f32]);
-            wood.coords.extend([along as f32, angle as f32]);
-        }
-    }
-    for ring in 0..rings - 1 {
-        let (lower, upper) = ((ring * segments) as u32, ((ring + 1) * segments) as u32);
-        for k in 0..segments as u32 {
-            let next = (k + 1) % segments as u32;
-            wood.indices.extend([
-                lower + k,
-                upper + k,
-                lower + next,
-                lower + next,
-                upper + k,
-                upper + next,
-            ]);
-        }
-    }
-    wood.run_table.push(SurfaceRun {
-        first_index: 0,
-        index_count: wood.indices.len() as u32,
+    let rings = 151_u32;
+    let points = (0..rings)
+        .map(|ring| {
+            let along = LENGTH * f64::from(ring) / f64::from(rings - 1);
+            CurvePoint {
+                centre: Vec3::new(along - LENGTH / 2.0, AXIS, 0.0),
+                radius: THIN + (THICK - THIN) * along / LENGTH,
+                along,
+                normal: Vec3::new(0.0, 1.0, 0.0),
+                binormal: Vec3::new(0.0, 0.0, 1.0),
+            }
+        })
+        .collect();
+    let run = CurveRun {
+        first: 0,
+        count: rings,
+        trunk: false,
+        section: None,
         largest_radius: THICK,
-    });
+    };
     TreeMesh {
-        wood,
+        wood: SurfaceMesh::default(),
+        curve: Curve::of_runs(points, vec![run]),
         foliage: Foliage {
             element: Element::default(),
             instances: Instances::default(),

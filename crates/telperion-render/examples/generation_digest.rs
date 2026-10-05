@@ -114,7 +114,7 @@ fn prepared(g: &Generator, p: &Prepared) -> Result<Value, Box<dyn std::error::Er
         "mesh": p.cpu_mesh().map(digest),
         "instances": digest(&g.read_instances(p)?),
         "count": p.count(),
-        "wood": [p.wood_vertices(), p.wood_triangles()],
+        "curve": [p.curve().points.len(), p.curve().clusters.len()],
         "bounds": digest(&p.bounds()),
         "metrics": metrics(&p.metrics),
     }))

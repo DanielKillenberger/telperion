@@ -298,15 +298,43 @@ impl WebRenderer {
         self.borrow()?.draw(None).map_err(js_error)
     }
 
-    /// What the last frame cost, as JSON.
+    /// What the last frame cost, as JSON. `triangles` leaves out the wood,
+    /// which the device writes and `wood()` reads back (fn-208):
+    /// `woodCounted` says so.
     pub fn stats(&self) -> std::result::Result<String, JsError> {
         let stats = self.borrow()?.stats;
         Ok(json!({
             "drawCalls": stats.draw_calls,
             "triangles": stats.triangles,
+            "woodCounted": false,
             "instances": stats.instances,
         })
         .to_string())
+    }
+
+    /// What the last frame's wood was, for the camera and the sun's map,
+    /// read back from the device and resolved as JSON: the scale its budget
+    /// let it be drawn at, its overrun bits and its triangles. The frame's
+    /// own `stats` count none of it, since the device writes it (fn-208).
+    pub fn wood(&self) -> js_sys::Promise {
+        let live = Rc::clone(&self.live);
+        future_to_promise(async move {
+            let reports = borrow(&live)?.renderer.curve_reports_async();
+            let view = |r: Option<crate::CurveReport>| {
+                r.map(|r| {
+                    json!({
+                        "scale": r.scale,
+                        "overrun": r.overrun,
+                        "tubeTriangles": r.tube_triangles,
+                        "ribbonTriangles": r.ribbon_triangles,
+                    })
+                })
+            };
+            let [camera, sun] = reports.await;
+            Ok(JsValue::from(
+                json!({ "camera": view(camera), "sun": view(sun) }).to_string(),
+            ))
+        })
     }
 
     /// Runs the whole timing protocol on what is up and resolves with the

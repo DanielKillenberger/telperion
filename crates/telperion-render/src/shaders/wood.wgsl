@@ -3,10 +3,10 @@
 // is the one flat value it has always been, so form can still be judged with no
 // material over it.
 
-@group(1) @binding(0) var<storage, read> radii: array<f32>;
-
 struct Varying {
-    @builtin(position) clip: vec4<f32>,
+    // Invariant: the depth prepass and the lit pass compute the same position
+    // in two pipelines, and the lit pass tests against the prepass's depth.
+    @builtin(position) @invariant clip: vec4<f32>,
     @location(0) normal: vec3<f32>,
     @location(1) world: vec3<f32>,
     // A circle survives the shared wrap triangle; a scalar angle does not.
@@ -14,21 +14,28 @@ struct Varying {
     @location(3) radius: f32,
 };
 
+// The wood the curve's passes surfaced (fn-208): every attribute a vertex.
 @vertex
 fn vertex(
-    @builtin(vertex_index) index: u32,
     @location(0) position: vec3<f32>,
     @location(1) normal: vec3<f32>,
     @location(2) coord: vec2<f32>,
+    @location(3) radius: f32,
 ) -> Varying {
     var out: Varying;
     out.clip = u.view_projection * vec4<f32>(position, 1.0);
     out.normal = normal;
     out.world = position;
-    out.radius = radii[index];
+    out.radius = radius;
     out.surface = vec3<f32>(coord.x, cos(coord.y), sin(coord.y));
     return out;
 }
+
+// The depth prepass: the wood's depth alone, so the bark below runs once a
+// pixel rather than once for every surface the pixel's ray crosses.
+@fragment
+fn depth_only() {}
+
 
 // Filter the physical footprint, not atan2's discontinuous derivative. Both
 // grain directions resolve at the same surface scale on a trunk and a limb.
