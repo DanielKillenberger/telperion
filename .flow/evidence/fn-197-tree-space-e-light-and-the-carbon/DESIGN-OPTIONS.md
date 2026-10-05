@@ -366,3 +366,9 @@ Step 3d is the breakthrough: in leaf, seeds 7, 3 and 1 are rounded oak domes on 
 20. **`MEMORY` = 0.5 stays an engine constant,** marked estimated. A source search goes on the friction list and does not block.
 21. **Height:** a higher λ, around 0.55 to 0.6, on the trunk and leader PAs (a per-PA species value), so the leader keeps its share. Aim back toward 19 to 22 m at 80 years while keeping step 3d's domes.
 22. **Upkeep 0.35** for now.
+
+## 13. Host decisions after step 4b (host, 2026-10-05)
+
+23. **Sizes are normalised per physiological age:** (v / v̄_pa)^ψ, v̄_pa the presence-weighted mean vigour per presence among that cycle's growing buds of the same PA. No order gains on another; light redistributes within each. This is not a cap. A PA with one growing bud is whole. Every λ goes back to 0.45.
+24. **The limbs' λ walk is re-run under decision 23,** with the shape of the jump reported if it still fails.
+25. **The leaf spread is re-measured under decision 23,** with seed 4's structure described if it is still the outlier.

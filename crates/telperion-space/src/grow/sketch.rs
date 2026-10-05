@@ -109,8 +109,8 @@ impl Grower<'_> {
     }
 
     /// Gives each living apex its unit's size this cycle from the vigour
-    /// the tree's light allots it per presence, against the tree's mean
-    /// (`allocation.rs`): before any apex grows.
+    /// the tree's light allots it per presence, against the mean of the
+    /// growing buds of its PA (`allocation.rs`): before any apex grows.
     pub(super) fn allot(&mut self) {
         let species = self.species;
         let Some(sketch) = self.sketch.as_mut() else {
@@ -149,7 +149,8 @@ impl Grower<'_> {
             psi[apex.axis] = species.states[self.axes[apex.axis].pa].shade_size;
         }
         let got = vigours(&links, &lit, &lambda);
-        let sized = sizes(&got, &presence, &psi);
+        let order: Vec<usize> = self.axes[..n].iter().map(|a| a.pa).collect();
+        let sized = sizes(&got, &presence, &psi, &order);
         for apex in self.live.iter().filter(|a| a.axis < n) {
             sketch.pencils[apex.axis].size = sized[apex.axis];
         }

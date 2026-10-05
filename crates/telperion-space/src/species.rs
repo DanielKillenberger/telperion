@@ -103,9 +103,10 @@ pub struct PaState {
     pub shade_hazard: f64,
     /// How a bud's growth unit follows the vigour the tree's light gives
     /// it (`allocation.rs`; host decisions 11 and 14): its own internodes
-    /// and girth scale by its vigour per presence against the tree's mean,
-    /// to ψ, normalised so the mean unit stays whole; what it bears does
-    /// not inherit that. Neutral 0; dormant where no
+    /// and girth scale by its vigour per presence against the mean of the
+    /// growing buds of its PA, to ψ, normalised so each PA's mean unit
+    /// stays whole (host decision 23); what it bears does not inherit
+    /// that. Neutral 0; dormant where no
     /// leaf shades it.
     pub shade_size: f64,
     /// Apical control λ at this PA's branching points: the share of its

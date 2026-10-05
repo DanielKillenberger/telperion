@@ -125,27 +125,40 @@ fn vigour_moves_by_degree_as_light_does() {
     }
 }
 
-/// Host decision 14: the presence-weighted mean size is exactly 1 at every
-/// ψ, every bud is whole at ψ 0, and a lit bud outgrows a shaded one.
+/// Host decisions 14 and 23: each group's presence-weighted mean size is
+/// 1 at every ψ, every bud is whole to the bit at ψ 0, a group of one bud
+/// is whole to the bit, and a lit bud outgrows a shaded one of its group.
 #[test]
-fn sizes_keep_the_mean_whole_and_favour_light() {
+fn sizes_keep_each_orders_mean_whole_and_favour_light() {
     let (links, own) = tree();
     let presence = [0.0, 0.5, 0.9, 0.0, 1.2, 0.4, 0.3, 1.0, 0.6];
+    let group = [0, 1, 1, 0, 2, 1, 1, 3, 1];
     let lit: Vec<f64> = own.iter().zip(&presence).map(|(q, w)| q * w).collect();
     let v = vigours(&links, &lit, &vec![0.45; links.len()]);
     for psi in [0.0, 0.5, 1.0, 2.0, 4.0] {
-        let s = sizes(&v, &presence, &vec![psi; links.len()]);
-        let mean =
-            s.iter().zip(&presence).map(|(a, w)| a * w).sum::<f64>() / presence.iter().sum::<f64>();
-        assert!((mean - 1.0).abs() < 1e-12, "ψ {psi}: mean {mean}");
+        let s = sizes(&v, &presence, &vec![psi; links.len()], &group);
+        for g in 0..4 {
+            let members: Vec<usize> = (0..9)
+                .filter(|&i| group[i] == g && presence[i] > 0.0)
+                .collect();
+            if members.is_empty() {
+                continue;
+            }
+            let total: f64 = members.iter().map(|&i| presence[i]).sum();
+            let mean = members.iter().map(|&i| s[i] * presence[i]).sum::<f64>() / total;
+            assert!((mean - 1.0).abs() < 1e-12, "ψ {psi} group {g}: mean {mean}");
+        }
+        // Groups 2 and 3 hold one bud each: whole to the bit.
+        assert_eq!((s[4], s[7]), (1.0, 1.0), "ψ {psi}");
         if psi == 0.0 {
             assert!(s.iter().all(|&x| x == 1.0));
         }
     }
-    // Buds 4 (light 1.1) and 6 (0.2) at λ 0.5: the lit one outgrows.
+    // Buds 5 (light 0.3) and 8 (0.5) share group 1 at λ 0.5: the lit one
+    // outgrows.
     let even = vigours(&links, &lit, &vec![0.5; links.len()]);
-    let s = sizes(&even, &presence, &vec![1.0; links.len()]);
-    assert!(s[4] > 1.0 && s[6] < 1.0 && s[4] > s[6], "{s:?}");
+    let s = sizes(&even, &presence, &vec![1.0; links.len()], &group);
+    assert!(s[8] > s[5], "{s:?}");
 }
 
 /// The sizes move by degree as one bud's presence falls to nothing.
@@ -153,14 +166,12 @@ fn sizes_keep_the_mean_whole_and_favour_light() {
 fn sizes_move_by_degree_as_a_bud_vanishes() {
     let (links, own) = tree();
     let mut presence = vec![0.0, 0.5, 0.9, 0.0, 1.2, 0.4, 0.3, 1.0, 0.6];
+    let group = [0, 1, 1, 0, 2, 1, 1, 3, 1];
     let psi = vec![1.0; links.len()];
     let at = |presence: &[f64]| {
         let lit: Vec<f64> = own.iter().zip(presence).map(|(q, w)| q * w).collect();
-        sizes(
-            &vigours(&links, &lit, &vec![0.45; links.len()]),
-            presence,
-            &psi,
-        )
+        let v = vigours(&links, &lit, &vec![0.45; links.len()]);
+        sizes(&v, presence, &psi, &group)
     };
     let mut last = at(&presence);
     for step in 1..=1000 {

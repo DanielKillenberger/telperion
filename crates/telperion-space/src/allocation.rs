@@ -87,14 +87,17 @@ pub(crate) fn vigours(links: &[Link], own: &[f64], lambda: &[f64]) -> Vec<f64> {
     bud
 }
 
-/// Each bud's size from its vigour per presence against the tree's
-/// (host decision 14): (r / r̄)^ψ, r = vigour / presence, normalised
-/// exactly so the presence-weighted mean size is 1 at every ψ. Light
-/// moves growth towards the lit buds and never adds or takes away
-/// growth: bounding the tree is the carbon balance's. Buds of no
-/// presence are whole and weigh nothing in the mean, so the mean is a
-/// smooth function of every bud's presence, light and ψ.
-pub(crate) fn sizes(vigour: &[f64], presence: &[f64], psi: &[f64]) -> Vec<f64> {
+/// Each bud's size from its vigour per presence against the mean of the
+/// buds of its own order (host decisions 14 and 23): (r / r̄_g)^ψ, r =
+/// vigour / presence, r̄_g the presence-weighted mean over the buds of its
+/// group `group` (its PA). Normalised exactly, so each group's
+/// presence-weighted mean size is 1 at every ψ, and a group of one bud is
+/// whole to the bit: light moves growth within an order, never from one
+/// order to another, and never adds or takes away growth. Buds of no
+/// presence are whole and weigh nothing, so every mean is a smooth
+/// function of its buds' presence, light and ψ.
+pub(crate) fn sizes(vigour: &[f64], presence: &[f64], psi: &[f64], group: &[usize]) -> Vec<f64> {
+    let groups = group.iter().copied().max().map_or(0, |g| g + 1);
     let drawn: Vec<f64> = (0..vigour.len())
         .map(|i| {
             if presence[i] > 0.0 {
@@ -104,12 +107,20 @@ pub(crate) fn sizes(vigour: &[f64], presence: &[f64], psi: &[f64]) -> Vec<f64> {
             }
         })
         .collect();
-    let total: f64 = presence.iter().sum();
-    let mean = drawn.iter().zip(presence).map(|(d, w)| d * w).sum::<f64>() / total;
-    drawn
-        .iter()
-        .zip(presence)
-        .map(|(&d, &w)| if w > 0.0 && mean > 0.0 { d / mean } else { 1.0 })
+    let (mut total, mut weighted) = (vec![0.0; groups], vec![0.0; groups]);
+    for i in 0..vigour.len() {
+        total[group[i]] += presence[i];
+        weighted[group[i]] += drawn[i] * presence[i];
+    }
+    (0..vigour.len())
+        .map(|i| {
+            let (w, d, g) = (presence[i], drawn[i], group[i]);
+            if w > 0.0 && weighted[g] > 0.0 {
+                d * total[g] / weighted[g]
+            } else {
+                1.0
+            }
+        })
         .collect()
 }
 
