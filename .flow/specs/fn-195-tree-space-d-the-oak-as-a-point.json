@@ -67,7 +67,7 @@
     "impl:fn-195-tree-space-d-the-oak-as-a-point.1": 0
   },
   "spec_path": ".flow/specs/fn-195-tree-space-d-the-oak-as-a-point.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space D: the oak as a point",
   "tracker": {
     "baseHashFlow": null,
@@ -80,5 +80,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T10:48:54.362661Z"
+  "updated_at": "2026-10-05T18:17:26.290581Z"
 }
