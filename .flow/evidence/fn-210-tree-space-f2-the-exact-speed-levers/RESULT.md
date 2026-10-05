@@ -99,3 +99,4 @@ Before / after in each cell. Growth includes the closed form's windows (`Windows
 
 - Workspace gate (`cargo test --profile ci --workspace --no-fail-fast`, once, at `f0793ed8`): 1,100 passed, 0 failed, 22 ignored, 12 min 10 s.
 - Codex round 1 (`codex impl-review`, base `b5161f48`): **SHIP**, one P2: the process-wide thread budget counted helpers but not the callers, so 32 trees grown at once could run 64 workers. Fixed in the next commit: each caller counts in the budget.
+- Codex round 2: **SHIP**, the same P2 restated: a caller always works its own spread, even with the budget spent, so 32 trees grown at once on 32 cores still run up to 63 threads. Not changed: the callers are the threads the caller already runs; the engine creates no thread past the budget. Bounding the callers too means making a caller wait, which is the caller's concurrency to choose (F4's forest). Recorded for F4.
