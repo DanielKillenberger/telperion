@@ -11,9 +11,15 @@
 //! a lateral that grows from the cycle it wakes in, weighted by the chance
 //! it wakes then and that its bearer is still carried on (`Living`).
 //! Shedding is outside the formula.
+// The stand-in tables are read from fn-209's step 2 on.
+#[cfg_attr(not(test), allow(dead_code))]
 mod along;
+#[cfg_attr(not(test), allow(dead_code))]
 mod envelope;
 mod events;
+#[cfg_attr(not(test), allow(dead_code))]
+mod kept;
+mod steps;
 
 use crate::dormant::{First, Living};
 use crate::error::{refuse, Result};
@@ -21,8 +27,6 @@ use crate::presence::Windows;
 use crate::schedule::Carried;
 use crate::species::Species;
 use crate::structure::CountTable;
-#[cfg_attr(not(test), allow(unused_imports))]
-pub(crate) use envelope::{Envelope, StandIns};
 use events::{events, Event};
 use std::collections::HashMap;
 

@@ -4,9 +4,10 @@
 //! bud's axis (`along.rs`), which the envelope reads (fn-209) and the
 //! counts and lengths do not.
 use super::along::{dominance, Along, Count};
+use super::steps::{scaled, steps, zones, Relay};
 use crate::dormant::{First, Living, Piece};
 use crate::schedule::Carried;
-use crate::species::{Species, Zone, ALONG};
+use crate::species::{Species, Zone};
 
 /// Where buds of one event stand and what share of a whole place's size
 /// each grows at (σ), averaged over them: E[σ^p] for p = 1 to 3, E[σ x]
@@ -67,6 +68,7 @@ impl Sum {
 }
 
 /// One step of a bud's development, as the recursion meets it.
+#[derive(Clone)]
 pub(super) enum Event {
     /// Phytomers of the bud's own PA grown in cycle `at`, each grown at
     /// `size` of a whole unit's length (`schedule.rs`); and their wood's
@@ -94,9 +96,9 @@ pub(super) enum Event {
 }
 
 /// Every event of a bud of PA `k` carrying `carried`, `m` cycles after it
-/// was made: its growth units, laterals, relays and continuation, each
-/// weighted by its expectation. A relay carries on the time spent; a unit
-/// that ends its age mid-cycle hands the rest of its cycle on (`schedule`).
+/// was made, from its steps (`steps.rs`): each unit's failed relay, its
+/// zones' nodes, laterals and woken buds, and its abortion's relay or its
+/// age's continuation and relay, in that order.
 pub(super) fn events(
     species: &Species,
     laterals: &[Vec<f64>],
@@ -105,98 +107,38 @@ pub(super) fn events(
     first: Option<First>,
 ) -> Vec<Event> {
     let state = &species.states[k];
-    let mut out = Vec::new();
-    let insertion = |pa: usize| {
-        species
-            .lived(pa)
-            .map_or(0.0, |(q, _)| species.states[q].insertion)
-    };
-    let spread = |pa: usize| {
-        let d = species
-            .lived(pa)
-            .map_or(0.0, |(q, _)| species.states[q].form.dominance);
-        dominance(d)
-    };
-    // Each zone's node count, and where it starts along a unit one
-    // internode a node long, after the zones before it (`ALONG`).
     let counts: Vec<Count> = state.zones.iter().map(|z| Count::of(z.nodes)).collect();
-    let mut starts = vec![Along::default(); state.zones.len()];
-    let mut whole = Along::default();
-    for &z in ALONG.iter().filter(|&&z| z < state.zones.len()) {
-        starts[z] = whole;
-        whole = whole.then(counts[z].length(1.0));
-    }
-    let scaled = |a: Along, l: f64| Along {
-        mean: a.mean * l,
-        square: a.square * l * l,
+    let (starts, _) = zones(&counts);
+    let mut out = Vec::new();
+    let steps = steps(species, living, (k, m, carried), first);
+    // Where a relay stands: its PA's share of the way along the unit it
+    // stands on (`geometry::relay_point`), or the axis's base.
+    let on = |unit: usize| {
+        unit.checked_sub(1).map_or(Along::default(), |u| {
+            steps[u].start.into(steps[u].length, state.relay_at)
+        })
     };
-    // A relay carries on the time its axis has grown, which its abortion
-    // hazard counts (host decision 11).
-    // The relay of an age that `ended` grows a whole first unit.
-    let relay = |out: &mut Vec<Event>,
-                 (at, spent, gone, ended): (usize, f64, f64, bool),
-                 weight: f64,
-                 on: Along| {
-        if weight > 0.0 {
+    let relay = |out: &mut Vec<Event>, r: Option<Relay>| {
+        if let Some(r) = r {
             out.push(Event::Bud {
-                at,
+                at: r.at,
                 pa: k,
-                carried: Carried {
-                    spent,
-                    aged: carried.aged + spent - carried.spent,
-                    gone,
-                    relay: ended,
-                },
-                weight,
+                carried: r.carried,
+                weight: r.weight,
                 size: 1.0,
                 first: None,
                 unit: 1.0,
-                stand: Stand::whole(on, state.insertion),
+                stand: Stand::whole(on(r.on), state.insertion),
             });
         }
     };
-    // Where a relay stands on a unit from `start`, `length` long: its PA's
-    // share of the way along it (`geometry::relay_point`).
-    let relay_at = |(start, length): (Along, Along)| start.into(length, state.relay_at);
-    // The start of the next unit along the axis, and the last unit grown.
-    let mut path = Along::default();
-    let mut last = (Along::default(), Along::default());
-    let mut survival = 1.0;
-    for i in 1..=m {
-        let unit = carried.unit(state.lifespan, i);
-        let spent = unit.before + unit.share;
-        // A woken bud's partial first unit runs its share of the year's
-        // risks (`First`); a unit that shares its cycle, its share.
-        let partial = first.filter(|_| i == 1);
-        let before = survival;
-        let survive = partial.map_or(shared(state.viability, unit.share), |f| f.survive);
-        // A unit that failed is spent; its relay stands on the unit before.
-        relay(
-            &mut out,
-            (i, spent, 0.0, true),
-            survival * (1.0 - survive) * state.relay_failed,
-            relay_at(last),
-        );
-        survival *= survive;
-        // The chance it then aborts, its hazard counting the time grown.
-        let grown = carried.aged + spent - carried.spent;
-        let abortion = match partial {
-            Some(f) if !unit.ends && f.survive > 0.0 => 1.0 - f.persist / f.survive,
-            Some(_) => 0.0,
-            None if !unit.ends => {
-                // Over the share of the age's next unit.
-                let exposure = carried.exposure(state.lifespan, i);
-                1.0 - shared(1.0 - state.abortion_at(grown), exposure)
-            }
-            None => 0.0,
-        };
-        // A partial unit counts its phytomers whole, at its share of
-        // their length; a woken bud's first unit as before, whole.
-        let size = if partial.is_some() { 1.0 } else { unit.share };
+    for step in &steps {
+        relay(&mut out, step.failed);
+        let (survival, size, i) = (step.grown, step.size, step.i);
         let internode = state.internode * size;
         for (z, (zone, lateral)) in state.zones.iter().zip(laterals).enumerate() {
             let nodes = survival * zone.nodes.mean();
-            let start = path.then(scaled(starts[z], internode));
+            let start = step.start.then(scaled(starts[z], internode));
             let wood = counts[z].wood(start, internode).map(|w| survival * w);
             out.push(Event::Nodes {
                 at: i,
@@ -213,14 +155,8 @@ pub(super) fn events(
                 low += p;
                 let buds = nodes * places * p;
                 if buds > 0.0 {
-                    let mut sum = Sum::default();
-                    // Place 0's draw also orders the nodes (`grow/unit.rs`).
-                    let (n, at) = counts[z].ranked(start, internode, band);
-                    sum.add(n, zone.share(0), at);
-                    for slot in 1..zone.places() {
-                        let (n, at) = counts[z].spread(start, internode, false);
-                        sum.add(n * p, zone.share(slot), at);
-                    }
+                    let placed = (start, internode);
+                    let stand = lateral_stand(species, (zone, counts[z]), placed, (j, p, band));
                     out.push(Event::Bud {
                         at: i,
                         pa: j,
@@ -229,87 +165,51 @@ pub(super) fn events(
                         size: size * shared,
                         first: None,
                         unit: size,
-                        stand: sum.stand(insertion(j), spread(j)),
+                        stand,
                     });
                 }
             }
-            let bearer = ((k, carried, m), i, abortion);
-            let placed = (counts[z], start, internode);
-            sleeping(
-                living,
-                (zone, z),
-                (nodes, size),
-                bearer,
-                (m, placed),
-                &mut out,
-            );
+            out.extend(step.sleeping[z].iter().cloned());
         }
-        let length = scaled(whole, internode);
-        last = (path, length);
-        path = path.then(length);
-        if !unit.ends {
-            match partial {
-                None => {
-                    relay(
-                        &mut out,
-                        (i, spent, 0.0, false),
-                        survival * abortion * state.relay,
-                        relay_at(last),
-                    );
-                    survival *= 1.0 - abortion;
-                }
-                Some(f) => {
-                    let stopped = before * (f.survive - f.persist);
-                    relay(
-                        &mut out,
-                        (i, spent, 0.0, false),
-                        stopped * state.relay,
-                        relay_at(last),
-                    );
-                    survival = before * f.persist;
-                }
+        relay(&mut out, step.aborted);
+        if let Some(end) = step.end {
+            if let Some((at, pa, onward, weight)) = end.continuation {
+                out.push(Event::Bud {
+                    at,
+                    pa,
+                    carried: onward,
+                    weight,
+                    size: 1.0,
+                    first: None,
+                    unit: 1.0,
+                    stand: Stand::whole(step.start.then(step.length), 0.0),
+                });
             }
-            continue;
+            relay(&mut out, end.relay);
         }
-        // It moves on by its continuation, or stops and may relay, in this
-        // cycle where the age ended within it.
-        let (next, go) = species.successor(k).unwrap_or((k, 0.0));
-        let (onward, at) = unit.onward(i);
-        if m > at && go > 0.0 {
-            out.push(Event::Bud {
-                at,
-                pa: next,
-                carried: onward,
-                weight: survival * go,
-                size: 1.0,
-                first: None,
-                unit: 1.0,
-                stand: Stand::whole(path, 0.0),
-            });
-        }
-        if m > at {
-            // And where it all but stopped, it grows its relay as well.
-            let both = living.borderline(k, m.saturating_sub(i), unit.used);
-            let ended = survival * ((1.0 - go) * state.relay_ended + both);
-            relay(
-                &mut out,
-                (at, spent, onward.gone, true),
-                ended,
-                relay_at(last),
-            );
-        }
-        break;
     }
     out
 }
 
-/// A survival over a share of a cycle: to the share, itself whole.
-fn shared(p: f64, share: f64) -> f64 {
-    if share < 1.0 {
-        p.powf(share)
-    } else {
-        p
+/// Where the laterals of PA `j`, drawn at `p` within `band` of place 0's
+/// draw, stand on a zone's nodes from `start`, and at what share.
+pub(super) fn lateral_stand(
+    species: &Species,
+    (zone, count): (&Zone, Count),
+    (start, internode): (Along, f64),
+    (j, p, band): (usize, f64, (f64, f64)),
+) -> Stand {
+    let mut sum = Sum::default();
+    // Place 0's draw also orders the nodes (`grow/unit.rs`).
+    let (n, at) = count.ranked(start, internode, band);
+    sum.add(n, zone.share(0), at);
+    for slot in 1..zone.places() {
+        let (n, at) = count.spread(start, internode, false);
+        sum.add(n * p, zone.share(slot), at);
     }
+    let lived = species.lived(j).map(|(q, _)| &species.states[q]);
+    let (angle, d) = lived.map_or((0.0, 0.0), |s| (s.insertion, s.form.dominance));
+    sum.stand(angle, dominance(d))
 }
 
 /// The sleeping buds of one zone's `nodes` on a growth unit of the bearer
@@ -318,7 +218,7 @@ fn shared(p: f64, share: f64) -> f64 {
 /// stage it has aged into, while its bearer is still carried on. Each
 /// stands half an internode below its node (`placed`: the zone's count,
 /// start and internode).
-fn sleeping(
+pub(super) fn sleeping(
     living: &mut Living,
     (zone, z): (&Zone, usize),
     (nodes, size): (f64, f64),

@@ -56,6 +56,11 @@ impl Count {
         }
     }
 
+    /// E[N], E[N²] and E[N³].
+    pub fn moments(&self) -> (f64, f64, f64) {
+        (self.0[1], self.0[2], self.0[3])
+    }
+
     /// The zone's length in internodes.
     pub fn length(&self, internode: f64) -> Along {
         Along {
@@ -141,4 +146,59 @@ pub(crate) fn dominance(d: f64) -> [f64; 3] {
         c * c + 2.0 * c * d * e(1) + d * d * e(2),
         c.powi(3) + 3.0 * c * c * d * e(1) + 3.0 * c * d * d * e(2) + d.powi(3) * e(3),
     ]
+}
+
+/// E[d^p] of a lateral's dominance share d = 1 - D (1 - u⁴), u uniform, for
+/// any power p: by Simpson's rule over u, the share's moments being smooth.
+pub(crate) fn dominance_power(d: f64, p: f64) -> f64 {
+    if d <= 0.0 {
+        return 1.0;
+    }
+    const STEPS: usize = 256;
+    let f = |u: f64| (1.0 - d * (1.0 - u.powi(4))).powf(p);
+    let h = 1.0 / STEPS as f64;
+    let mut sum = f(0.0) + f(1.0);
+    for i in 1..STEPS {
+        let w = if i % 2 == 1 { 4.0 } else { 2.0 };
+        sum += w * f(i as f64 * h);
+    }
+    sum * h / 3.0
+}
+
+impl Count {
+    /// A count's moments from the sums E[N^p], p = 1 to 3.
+    pub fn from_moments(n1: f64, n2: f64, n3: f64) -> Self {
+        Self([1.0, n1, n2, n3])
+    }
+
+    /// The probabilities of each node count under `law`, as
+    /// `lineage::nodes` draws it, until what is left is negligible.
+    pub fn pmf(law: NodeLaw) -> Vec<f64> {
+        match law {
+            NodeLaw::Uniform { min, max } => {
+                let span = max - min + 1.0;
+                let more = |j: u32| ((max - f64::from(j)) / span).clamp(0.0, 1.0);
+                let top = (max.ceil() as u32).min(MAX_NODES_PER_ZONE);
+                (0..=top)
+                    .map(|n| {
+                        let at_least = if n == 0 { 1.0 } else { more(n - 1) };
+                        let above = if n < top { more(n) } else { 0.0 };
+                        at_least - above
+                    })
+                    .collect()
+            }
+            NodeLaw::Poisson { mean } => {
+                let mut out = vec![(-mean).exp()];
+                let mut total = out[0];
+                let mut n = 0u32;
+                while total < 1.0 - 1e-15 && n < MAX_NODES_PER_ZONE {
+                    n += 1;
+                    let next = out[n as usize - 1] * mean / f64::from(n);
+                    out.push(next);
+                    total += next;
+                }
+                out
+            }
+        }
+    }
 }

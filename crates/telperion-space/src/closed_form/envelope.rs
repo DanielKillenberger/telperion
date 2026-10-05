@@ -10,9 +10,7 @@
 //! lateral's subtree leans off its own heading averages out about its
 //! bearer. A tree that bends (tropism, wander, sag, straightening) or
 //! turns its relays by its phyllotaxis departs from it; how far is
-//! measured, not assumed (`tests.rs`). Nothing reads it yet (fn-209
-//! step 2).
-#![cfg_attr(not(test), allow(dead_code))]
+//! measured, not assumed (`tests.rs`).
 use super::events::{events, Event};
 use super::{sub, Sub};
 use crate::dormant::{First, Living};
@@ -42,6 +40,7 @@ impl Envelope {
     }
 
     /// How far along the heading its wood's centre stands.
+    #[allow(dead_code)]
     pub fn centre(&self) -> f64 {
         if self.wood > 0.0 {
             self.along / self.wood
@@ -50,7 +49,9 @@ impl Envelope {
         }
     }
 
-    /// The root mean square distance of its wood from its base.
+    /// The root mean square distance of its wood from its base: a mean,
+    /// not a bound on how far any of it reaches.
+    #[allow(dead_code)]
     pub fn reach(&self) -> f64 {
         if self.wood > 0.0 {
             (self.square / self.wood).sqrt()
