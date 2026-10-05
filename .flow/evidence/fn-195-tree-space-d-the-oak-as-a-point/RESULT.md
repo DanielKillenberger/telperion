@@ -616,3 +616,52 @@ All three name the outer crown: "too many straight, pointed branch sprays replac
 - bark plates;
 - the 10-year sapling's spire;
 - the leaf form in close-ups.
+
+## Round 8: the midpoint, with darker limbs (values and colour only), 2026-10-05
+
+**Host on round 7:** overdone. Bare, the boughs writhe into a contorted mass, and in leaf pale winding limbs show through every crown. Round 7 was not sent to Astra.
+
+**Round 8 values** (`oak.rs`):
+
+| Value | Round 6b | Round 7 | Round 8 |
+|---|---|---|---|
+| Bough tropism | 0.6 | 0.35 | 0.48 |
+| Bough wander | 1.0 | 1.3 | 1.15 |
+| Bough abortion (each relayed) | 0.3 | 0.4 | 0.35 |
+| Branch-system tropism | 0.4 | 0.25 | 0.33 |
+| Branch-system wander | 0.8 | 1.1 | 0.95 |
+| Branch-system abortion (each relayed) | 0 | 0.2 | 0.1 |
+
+- **Kept from round 7:** the shorter internodes and extra twig laterals, ψ 1.5, and bough elevation 0.45.
+
+**Colour** (`presets/oregon-white-oak.values`; host decision, colour only; catalogue identity re-pinned in `crates/telperion-core/tests/catalogue_identity.rs`):
+
+| Row | Round 4 | Round 8 |
+|---|---|---|
+| Bark | 0.215 / 0.154 / 0.112 | 0.17 / 0.138 / 0.105 (greyer and darker) |
+| Young wood | 0.08 / 0.066 / 0.05 | 0.075 / 0.066 / 0.055 |
+| Young wood reaches up to, then blends to the bark by | 30 mm, 60 mm | 50 mm, 100 mm |
+
+The aim is limbs in sun toward S3's grey-brown, not pale pink-tan.
+
+**Sheet:** `raw/round8/sheet.png` (references, round 6b in leaf, round 8 in leaf, round 8 bare); probe on seeds 1 and 7 beside 6b and 7 in `probe.png`. I viewed every still.
+
+| Seed | Height | Width | Leaves | Fine wood |
+|--:|--:|--:|--:|--:|
+| 1 | 21.2 m | 26.1 × 35.4 m | 1.88M | 13.9 km |
+| 7 | 21.1 m | 27.3 × 27.9 m | 1.97M | 14.5 km |
+| 2 | 19.3 m | 30.2 × 29.2 m | 2.59M | 19.1 km |
+| 3 | 23.5 m | 30.2 × 22.5 m | 2.10M | 15.5 km |
+| 4 | 21.1 m | 23.9 × 24.0 m | 1.28M | 9.4 km |
+
+### Reading
+
+- **Bare:**
+  - The limbs and boughs now read grey-brown, much nearer S3 than 6b's pale tan. The fine web is dark against the sky.
+  - The boughs bend several times and end in short twigs: calmer than round 7's coils, but still busier than 6b.
+  - The crown edge is a denser, finer web than 6b's sprays.
+- **In leaf:**
+  - Rounded crowns: seed 7 and seed 2 broad domes, seed 3 a rounded crown, seeds 1 and 4 broad and spreading.
+  - The limbs that show through the foliage are dark now, so they read as shadowed wood rather than pale streaks.
+  - Some gaps between foliage lobes remain at seeds 1 and 4.
+- **The trunk base keeps the flared cone with its collar band,** the known rendering gap, left as directed.
