@@ -99,7 +99,9 @@ fn limit(bytes: u64) -> wgpu::Limits {
 
 #[test]
 fn a_tree_is_judged_on_the_allocation_it_needs_not_the_bytes_it_holds() {
-    let mesh = small();
+    // No wood, so the placements are the first buffer the limit meets.
+    let mut mesh = small();
+    mesh.curve = Curve::default();
     fits(&limit(4_096), &mesh).expect("a mesh of a few hundred bytes fits four kilobytes");
 
     // The placements are taken with headroom, and the headroom is what the

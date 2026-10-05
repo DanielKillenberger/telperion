@@ -64,7 +64,13 @@ pub(super) fn collect(
         }
     }
 
+    let read = |r: Option<crate::CurveReport>| r.map(|r| (r.scale, r.overrun));
+    let wood = (
+        read(renderer.curve_report()),
+        read(renderer.curve_sun_report()),
+    );
     let report = Report::measured(hardware, &vegetation)
+        .with_wood(wood.0, wood.1)
         .with_multisample(samples)
         .with_casters(triangles, instances)
         .with_passes(&vegetation, &selection, &shadow, &surfacing)

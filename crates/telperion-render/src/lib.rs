@@ -62,6 +62,8 @@ use telperion_core::{material::MaterialParams, mesh::TreeMesh, surface::Bounds};
 /// What one frame cost, in the terms a reader of a timing record needs.
 /// `instances` counts the foliage placements drawn, which is the number the
 /// view changes.
+/// The wood's triangles are written by the device, so a frame's own count
+/// leaves them out and a still (`render`) adds them from the readback.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct FrameStats {
     pub draw_calls: u32,
@@ -286,20 +288,29 @@ impl Renderer {
         }
     }
 
-    /// The browser's count of the wood the last frame drew into the sun's
-    /// map, awaited rather than polled.
+    /// What the last frame's passes wrote for the camera and for the sun's
+    /// map, awaited rather than polled: the browser's readback, which holds
+    /// no borrow of the renderer across the wait. `None` where no wood is up.
     #[cfg(target_arch = "wasm32")]
-    pub fn caster_triangles_async(&self) -> impl std::future::Future<Output = u32> + 'static {
-        let sun = self.wood.curve().and_then(|c| c.sun.as_ref());
-        let pending = match (self.view, sun) {
-            (View::Leaf, _) | (_, None) => None,
-            (_, Some(t)) => Some(t.report_async(&self.gpu)),
-        };
+    pub fn curve_reports_async(
+        &self,
+    ) -> impl std::future::Future<Output = [Option<CurveReport>; 2]> + 'static {
+        let curve = self.wood.curve();
+        let pending = [
+            curve.and_then(|c| c.camera.as_ref()).map(|t| t.report_async(&self.gpu)),
+            curve.and_then(|c| c.sun.as_ref()).map(|t| t.report_async(&self.gpu)),
+        ];
         async move {
-            match pending {
-                Some(p) => p.await.map_or(0, |r| r.tube_triangles + r.ribbon_triangles),
-                None => 0,
-            }
+            let [camera, sun] = pending;
+            let camera = match camera {
+                Some(p) => p.await,
+                None => None,
+            };
+            let sun = match sun {
+                Some(p) => p.await,
+                None => None,
+            };
+            [camera, sun]
         }
     }
 

@@ -110,9 +110,26 @@ fn visible(i: u32) -> bool {
     return true;
 }
 
+// How much more a lobed outline bends than its circle (the CPU's `bend`).
+fn bend() -> f32 {
+    if (cfg.lobes == 0u || cfg.lobe_depth == 0.0) { return 1.0; }
+    let n = f32(cfg.lobes) + 1.0;
+    let d = abs(cfg.lobe_depth);
+    return (1.0 + d * n * n) / (1.0 + d);
+}
+
+// Twisting lobes' turn in lobe radians a metre along, and their depth.
+fn twisting() -> vec2<f32> {
+    if (cfg.lobes == 0u || cfg.lobe_depth == 0.0 || cfg.twist_rate == 0.0) { return vec2(0.0); }
+    let rate = TAU * cfg.twist_rate / cfg.height;
+    return vec2(f32(cfg.lobes) * abs(rate), abs(cfg.lobe_depth));
+}
+
 fn sides(rho: f32, error: f32) -> u32 {
     var exact = 3.0;
     if (rho > error) { exact = PI / acos(1.0 - error / rho); }
+    let b = bend();
+    if (b > 1.0) { exact = max(exact, TAU * sqrt(rho * b / (8.0 * error))); }
     var n = 3u;
     loop {
         if (f32(n) >= exact || n >= MOST_SIDES) { break; }
@@ -121,11 +138,21 @@ fn sides(rho: f32, error: f32) -> u32 {
     return n;
 }
 
+// The CPU's `pieces`: the turn's sag, the cubic's control bound and the
+// twisting lobes', the most of them.
 fn pieces(a: Point, b: Point, error: f32) -> u32 {
-    let turn = acos(clamp(dot(tangent(a), tangent(b)), -1.0, 1.0));
-    let length = distance(a.centre, b.centre);
+    let ta = tangent(a);
+    let tb = tangent(b);
+    let turn = acos(clamp(dot(ta, tb), -1.0, 1.0));
+    let span = distance(a.centre, b.centre);
     let pixels = max(pixels_at(a.centre), pixels_at(b.centre));
-    let m = ceil(sqrt(length * turn * pixels / (8.0 * error)));
+    let chord = b.centre - a.centre;
+    let bent = max(length(chord - (ta * 2.0 + tb) * (span / 3.0)),
+        length(chord - (ta + tb * 2.0) * (span / 3.0)));
+    let twist = twisting();
+    let phase = twist.x * abs(b.along - a.along) * sqrt(twist.y);
+    let sag = max(span * turn, 6.0 * bent) + max(a.radius, b.radius) * phase * phase;
+    let m = ceil(sqrt(sag * pixels / (8.0 * error)));
     return clamp(u32(m), 1u, MOST_PIECES);
 }
 

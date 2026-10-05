@@ -53,6 +53,10 @@ pub struct Report {
     multisample: u32,
     /// Wood triangles and foliage instances submitted to the sun.
     casters: [u32; 2],
+    /// The camera's and the sun's wood: the error scale its budget let it
+    /// be drawn at, and its overrun bits, so a coarsened or cut view is never
+    /// silent (fn-208).
+    wood: [Option<(f64, u32)>; 2],
     verdict: Verdict,
     p50_ms: Option<f64>,
     p95_ms: Option<f64>,
@@ -138,6 +142,12 @@ impl Report {
         self
     }
 
+    /// The scale and overrun the camera's and the sun's wood were drawn at.
+    pub fn with_wood(mut self, camera: Option<(f64, u32)>, sun: Option<(f64, u32)>) -> Self {
+        self.wood = [camera, sun];
+        self
+    }
+
     /// Geometry submitted to the sun, even when no clock was available.
     pub fn with_casters(mut self, triangles: u32, instances: u32) -> Self {
         self.casters = [triangles, instances];
@@ -197,6 +207,7 @@ impl Report {
             samples: 0,
             multisample: 1,
             casters: [0; 2],
+            wood: [None; 2],
             verdict: Verdict::Valid,
             p50_ms: None,
             p95_ms: None,
@@ -325,6 +336,12 @@ impl Report {
         }
         fields.push(format!("\"caster_triangles\": {}", self.casters[0]));
         fields.push(format!("\"caster_instances\": {}", self.casters[1]));
+        for (name, wood) in ["wood", "sun_wood"].into_iter().zip(self.wood) {
+            if let Some((scale, overrun)) = wood {
+                fields.push(format!("\"{name}_scale\": {scale}"));
+                fields.push(format!("\"{name}_overrun\": {overrun}"));
+            }
+        }
         format!("{{\n  {}\n}}\n", fields.join(",\n  "))
     }
 

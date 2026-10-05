@@ -112,6 +112,8 @@ impl CurveDraw {
             pass.draw_indexed_indirect(&t.args, 0);
             pass.draw_indexed_indirect(&t.args, 20);
         }
+        // The triangles are the device's count, which a frame does not wait
+        // for: a still adds them from the readback (`headless::render`).
         FrameStats {
             draw_calls: 4,
             triangles: 0,

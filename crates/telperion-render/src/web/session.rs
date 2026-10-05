@@ -59,8 +59,9 @@ async fn collect(
     }
     // The wood the sun was given is surfaced by a frame, so it is counted
     // after one.
-    let counted = borrow(live)?.renderer.caster_triangles_async();
-    let triangles = counted.await;
+    let reports = borrow(live)?.renderer.curve_reports_async();
+    let [_, sun] = reports.await;
+    let triangles = sun.map_or(0, |r| r.tube_triangles + r.ribbon_triangles);
 
     let report = match session {
         Ok(session) => sampled(live, &pose, hardware, &session).await?,
@@ -70,6 +71,12 @@ async fn collect(
     }
     .with_multisample(multisample)
     .with_casters(triangles, instances);
+    // What the measured frames' wood was drawn at, so a coarsened or cut
+    // view reaches the record (fn-208).
+    let reports = borrow(live)?.renderer.curve_reports_async();
+    let [camera, sun] = reports.await;
+    let read = |r: Option<crate::CurveReport>| r.map(|r| (r.scale, r.overrun));
+    let report = report.with_wood(read(camera), read(sun));
     if !turning {
         return Ok(report.to_json());
     }

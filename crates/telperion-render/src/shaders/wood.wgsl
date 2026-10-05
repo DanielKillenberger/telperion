@@ -220,11 +220,6 @@ fn bark_light(n: vec3<f32>, height: f32, spread: f32, world: vec3<f32>, shadow: 
 
 @fragment
 fn fragment(in: Varying) -> @location(0) vec4<f32> {
-    return shade(in);
-}
-
-
-fn shade(in: Varying) -> vec4<f32> {
     let base_normal = normalize(in.normal);
     if (is_clay()) {
         return vec4<f32>(u.clay.rgb * clay_light(base_normal), 1.0);

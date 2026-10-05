@@ -59,17 +59,19 @@ fn relief_moves_the_light_while_every_wood_mesh_byte_holds() {
 }
 
 #[test]
-fn radius_storage_is_refused_before_upload_when_only_its_binding_limit_is_exceeded() {
+fn curve_points_are_refused_before_upload_when_only_their_binding_limit_is_exceeded() {
     let mut family = Preset::Ordinary.parameters();
     family.skeleton.growth.max_nodes = Some(20);
     let mut tree = mesh::build(&family).unwrap();
     tree.foliage.instances.leaves.clear();
-    let limit = (tree.wood.positions.len() / 3 * size_of::<f32>() - 4) as u64;
+    // The points are bound in two slices: a binding under half their bytes
+    // cannot hold them, though every buffer fits the device.
+    let points = (tree.curve.points.len() * 32) as u64;
     let limits = wgpu::Limits {
-        max_storage_buffer_binding_size: limit,
+        max_storage_buffer_binding_size: points / 2 - 4,
         ..Default::default()
     };
-    let error = telperion_render::fits(&limits, &tree)
-        .expect_err("radius storage passed the binding limit");
-    assert!(error.to_string().contains("wood radii"), "{error}");
+    let error =
+        telperion_render::fits(&limits, &tree).expect_err("the points passed the binding limit");
+    assert!(error.to_string().contains("wood points"), "{error}");
 }

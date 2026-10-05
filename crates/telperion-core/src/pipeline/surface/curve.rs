@@ -182,7 +182,7 @@ fn clusters(curve: &Curve, index: u32, run: &CurveRun, out: &mut Vec<CurveCluste
             reach,
             largest_radius: largest,
             smallest_radius: smallest,
-            errors: ladder(span),
+            errors: ladder(span, curve.twisting()),
         });
         if end + 1 >= points.len() {
             break;
@@ -191,11 +191,23 @@ fn clusters(curve: &Curve, index: u32, run: &CurveRun, out: &mut Vec<CurveCluste
     }
 }
 
+impl Curve {
+    /// How fast twisting lobes turn, in lobe radians a metre along, and
+    /// their depth: (0, 0) where the outline is round or does not twist.
+    pub(super) fn twisting(&self) -> (f64, f64) {
+        if self.lobes == 0 || self.lobe_depth == 0.0 || self.twist_rate == 0.0 {
+            return (0.0, 0.0);
+        }
+        let rate = std::f64::consts::TAU * self.twist_rate / self.height;
+        (f64::from(self.lobes) * rate.abs(), self.lobe_depth.abs())
+    }
+}
+
 /// The error of each ring level of a cluster: level `k` keeps every
 /// `2^k`-th point and the last, and a point it leaves out is measured from
 /// the line between its kept neighbours at its share of the distance along,
 /// in centre and radius together.
-fn ladder(span: &[CurvePoint]) -> [f32; LEVELS] {
+fn ladder(span: &[CurvePoint], (twist, depth): (f64, f64)) -> [f32; LEVELS] {
     let mut errors = [0.0f32; LEVELS];
     let last = span.len() - 1;
     for k in 1..LEVELS {
@@ -210,7 +222,11 @@ fn ladder(span: &[CurvePoint]) -> [f32; LEVELS] {
                 let t = ((p.along - pa.along) / length).clamp(0.0, 1.0);
                 let line = pa.centre + (pb.centre - pa.centre) * t;
                 let radius = pa.radius + (pb.radius - pa.radius) * t;
-                worst = worst.max(p.centre.distance(line) + (p.radius - radius).abs());
+                // Twisting lobes: the outline interpolated between the kept
+                // rings' phases stands `R·|d|·min(2, (nΔφ)²/8)` off it.
+                let phase = twist * (pb.along - pa.along);
+                let lobes = p.radius * depth * (phase * phase / 8.0).min(2.0);
+                worst = worst.max(p.centre.distance(line) + (p.radius - radius).abs() + lobes);
             }
             a = b;
         }

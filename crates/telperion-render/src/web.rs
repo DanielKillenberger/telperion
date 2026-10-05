@@ -309,6 +309,31 @@ impl WebRenderer {
         .to_string())
     }
 
+    /// What the last frame's wood was, for the camera and the sun's map,
+    /// read back from the device and resolved as JSON: the scale its budget
+    /// let it be drawn at, its overrun bits and its triangles. The frame's
+    /// own `stats` count none of it, since the device writes it (fn-208).
+    pub fn wood(&self) -> js_sys::Promise {
+        let live = Rc::clone(&self.live);
+        future_to_promise(async move {
+            let reports = borrow(&live)?.renderer.curve_reports_async();
+            let view = |r: Option<crate::CurveReport>| {
+                r.map(|r| {
+                    json!({
+                        "scale": r.scale,
+                        "overrun": r.overrun,
+                        "tubeTriangles": r.tube_triangles,
+                        "ribbonTriangles": r.ribbon_triangles,
+                    })
+                })
+            };
+            let [camera, sun] = reports.await;
+            Ok(JsValue::from(
+                json!({ "camera": view(camera), "sun": view(sun) }).to_string(),
+            ))
+        })
+    }
+
     /// Runs the whole timing protocol on what is up and resolves with the
     /// record, verdict included. An adapter that cannot be timed resolves with
     /// an unavailable record rather than rejecting: a missing measurement is a
