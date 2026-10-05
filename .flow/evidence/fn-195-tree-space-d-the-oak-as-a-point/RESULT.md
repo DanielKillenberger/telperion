@@ -153,3 +153,96 @@ At 40 years the trees are 13.0 to 13.3 m tall and 7 to 8 m wide, against Jüttne
 - **Collar ring:** a faint horizontal band about 0.3 m up the trunk at seeds 1, 7, 2 and 3. It is **not** the beech's mechanism. That came from relays at module joints (`aside` in `space/tree.rs`), and the oak's trunk never aborts, so it has no relays and `aside` never runs on it. Not fixed, as directed; a known gap with the bark plates.
 - **Leaf density varies by seed** with the fixed `shootRadius` row (seed 4: 73 leaves a metre against about 130), the phase F item above.
 - **Spray close-ups:** for a broad crown the close-up camera stands inside the foliage (seeds 7 and 2). The staging is shared with the beech and spruce, so it is left unchanged and noted.
+
+## Host decisions after round 2 (2026-10-05)
+
+The staging explanation is accepted. The main gap is the bare tree: S1 and S2 are domes made of a dense web of fine twigs of many orders whose ends form one smooth outline, where round 2 has a few spiky upright boughs with sparse twigs. Round 3, values:
+- a fine twig web (another order, more laterals, shorter twig internodes, within the 210M-triangle limit);
+- a smooth envelope (less upturn at bough tips, more equal bough lengths);
+- seed 1 wider by values that apply to every seed; seed 4's leaves checked against its fine wood;
+- bushy saplings at 10 and 20 years.
+
+## Round 3 (worker)
+
+**Values** (`oak.rs`, `e8bc056e`; SOURCES.md is updated):
+
+| Change | Aimed at |
+|---|---|
+| A twig order (`TWIG`): 3 years of short growth at 15 mm internodes, bearing short shoots, borne along and at the top of every branch system | The fine web |
+| Branch systems live 14 years at viability 0.97 (were 12 at 0.95), at 20 mm internodes (was 25); boughs bear fewer of them (p 0.3, was 0.45 and 0.35) | Fine wood kept inside the crown instead of shed, within the grown budget |
+| Boughs: tropism 0.4 towards 0.6 rad (was 0.8 towards 0.9) | Less upturn at the outline |
+| Limbs leave at 0.6 rad from their bearer (was 0.45) | A wider spread at every seed |
+| Leader 15 years (was 20) | Seed 1's columnar top |
+| Sapling laterals (`SPRIG`): 0.35 m a year for 10 years, ascending at 0.7 rad, bearing twigs and branch systems; borne at p 0.4 and 0.6 (were 0.35 and 0.5) | Bushy saplings |
+| Young wood dark under 20 mm (was 12; preset, identity re-pinned) | The tan haze |
+
+**Tried and dropped** (`raw/r1` to `raw/r3`):
+- A twig order bearing long shoots, with long shoots bearing long shoots, was supercritical: 1.6M phytomers at 20 years and the 20M budget refused at 80. The fine-wood chain is now subcritical.
+- 18-year branch systems with 4-year twigs refused the budget at three seeds.
+
+**Sheets** (`raw/round3/`, on disk; I viewed every still):
+
+| Sheet | What it holds |
+|---|---|
+| `five-seeds.png` | The references, round 2's seed 7 in leaf and bare, then the 80-year trees in leaf, bare, limb and spray |
+| `bare-vs-refs.png` | S1-november, S1-old-open-winter and S4 beside the five bare 80-year trees |
+| `young.png` | 10, 20 and 40 years |
+| `close-ups.png` | Trunk bases and close references |
+
+**Measures at 80 years** (`run.log`, `err.log`):
+
+| Seed | Height | Width (x × z) | Leaves | Leaves a metre of fine wood | Wood triangles | Grown in |
+|--:|--:|--:|--:|--:|--:|--:|
+| 1 | 21.5 m | 21.8 × 21.2 m | 2.04M | 136 | 75M | 3.6 s |
+| 7 | 20.3 m | 18.4 × 19.8 m | 2.34M | 137 | 92M | 5.4 s |
+| 2 | 19.6 m | 19.8 × 25.1 m | 2.48M | 106 | 117M | 6.1 s |
+| 3 | 20.6 m | 17.3 × 20.1 m | 2.18M | 112 | 126M | 7.2 s |
+| 4 | 19.4 m | 23.7 × 21.5 m | 1.40M | 139 | 56M | 3.2 s |
+
+Expected grown phytomers: 14.0M at 80 years, under the 20M budget.
+
+| Age | Height | Width |
+|--:|--:|--:|
+| 40 | 12.0 to 12.7 m | 8.4 to 10.7 m |
+| 20 | 6.8 to 7.1 m | 5.7 to 6.6 m |
+| 10 | 3.5 to 3.6 m | 3.3 to 4.5 m |
+
+**Seed 4's leaves now follow its fine wood:** 139 a metre, against 73 in round 2. Seeds 2 and 3 sit a little lower (106 to 112).
+
+### Reading against the bare references (`bare-vs-refs.png`)
+
+S1-november and S1-old-open-winter are domes. The limbs divide again and again into ever finer, near-equal branches, and their tips end together on one smooth outline. The web is dark against the sky.
+
+| Seed | Bare, beside S1 | In leaf |
+|---|---|---|
+| 1 | Wider than round 2, but still taller than wide and leaning, a ragged column. The twig web is denser, as tufts along the boughs | A dense ovoid, lumpy at the top |
+| 7 | Broad-shouldered, with a central stem and boughs rising to spiky tips. The web fills between the boughs better than round 2 | Broad, but with a low limb hanging out on the left; less round than round 2's seed 7 |
+| 2 | The broadest, with low boughs spread nearly level. The web is dense, but the outline is a ragged fan, not a dome | Broad and bushy, with clumps along the outline |
+| 3 | A V of two upright boughs with a gap between | Two lobes; less round than round 2's seed 3 |
+| 4 | A tall left bough and a spreading right side; lopsided | Open and lopsided, but no longer sparse |
+
+**Overall, against the bare references:**
+- **Better:**
+  - more fine wood stays inside the crown, so the bare trees read as a web rather than bare rods with tufts at the ends;
+  - the fine wood is darker;
+  - seed 4's foliage follows its wood.
+- **Not yet S1:**
+  - **Outline:** still ragged and spiky. The bough tips end at different distances, and the web is a set of tufts along a few boughs, not one shell.
+  - **Colour:** wood of 20 to 40 mm still reads pale tan in full sun.
+  - **Shape at seeds 3 and 7:** less round than round 2. The sheet traded round 2's in-leaf dome at those two seeds for a denser web at all five.
+- **Young trees:**
+  - 10 and 20 years: bushy, ascending saplings, no longer conifer poles. A thin leader still spires above.
+  - 40 years: a bushy ovoid with sapling twigs still low on the bole.
+- **Close-ups:**
+  - The limb close-ups show many orders of crossing fine wood.
+  - In leaf, the close-up camera still stands inside the crown.
+  - At 10 years the oak blade, edge-on, reads as rows of leaflets.
+
+### For the host
+
+- **A smooth outline (design question).** In the references the outline is even because the tips stop where their neighbours stop. That is crown packing under light and space, which this engine does not model; phase E's light and carbon balance is where it would come from. The values tried here give each bough an independent random length, so the outline stays ragged. Options:
+  - (a) accept a ragged outline until phase E;
+  - (b) raise viability and lower wander on boughs and branch systems, so the lengths spread less (values only, likely stiffer and more regular);
+  - (c) bring forward a crown-envelope or space-competition rule, which is engine work and its own spec.
+- **Round 2 against round 3:** round 2's seeds 7 and 3 had the rounder in-leaf domes, and round 3 the better bare web. Whether to keep round 3's web and go back towards round 2's limb set is the host's call.
+- **Known gaps, unchanged:** the collar ring (not the beech's relay mechanism), bark plates, close-up staging inside broad crowns, and the phase F leaf-bearing marking.
