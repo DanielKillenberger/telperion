@@ -15,7 +15,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-208-tree-space-f3-wood-surfaced-on-the-gpu.md",
-  "status": "open",
+  "status": "done",
   "title": "Tree space F3: wood surfaced on the GPU at the screen's error",
   "tracker": {
     "baseHashFlow": null,
@@ -28,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T16:36:09.969593Z"
+  "updated_at": "2026-10-05T18:14:12.182462Z"
 }
