@@ -33,3 +33,6 @@ The beech and spruce 80-year hashes are still identical to `97dc2233`'s; the oak
 ## CLOSE
 
 - **Workspace gate** (before review 1's fix): 1,063 passed, 0 failed, 509 s.
+- **Codex review 2:** SHIP. Both findings fixed, no new ones.
+- **Workspace gate after the fix:** 1,063 passed, 0 failed, 482 s.
+- **The palm:** there is no palm in this branch's telperion-space, so R1's palm check cannot run here. It falls to the branch that carries the palm.
