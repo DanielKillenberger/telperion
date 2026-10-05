@@ -16,6 +16,15 @@
 - **Cost:** about 1 minute, rewritten as one appended log.
 - **Would remove it:** nothing in the repository; it is a local hook setting (fn-198 FRICTION.md records the same hook).
 
+## 2026-10-05, step (i): the session's temp directory is full
+
+- **Doing:** reading the wood shader and pipeline code for the shading level of detail.
+- **Slowed by:** every Bash call returns no output: "disk quota is full" on `/tmp/claude-1000/.../tasks`.
+  - The session's scratchpad holds 6.2 GB, mostly earlier rounds' directories: `ref4` 3.7 GB, `base` 0.9 GB, `b` 0.3 GB, `fn188` 0.2 GB. None of it is mine.
+  - I may not remove files outside the worktree, so I work by redirecting every command into new files under this spec's ignored `raw/` and reading them back.
+- **Cost:** about 5 minutes so far, and one extra tool call per command from here on.
+- **Would remove it:** clearing the old scratchpad directories, or a session temp directory on a larger filesystem (`CLAUDE_CODE_TMPDIR`). A local setup problem, for the owner, not a spec.
+
 ## 2026-10-05, step 1: the gate's beech memory ceiling and the limit inventory
 
 - **Doing:** running the workspace gate once after steps 1 and 2.

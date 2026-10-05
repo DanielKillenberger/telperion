@@ -24,14 +24,31 @@ The owner wants realtime generation with full fidelity near the camera and a fas
 5. **The CPU reference:** the same tessellation function, evaluated at a given view and error. It is camera-dependent by definition, and camera-independent only in the curve data it reads. Tests compare the GPU and CPU at the same view.
 6. **The palm's leaf-base cells:** checked in step 1. If the curve data cannot carry their cross-section, it is reported before step 3.
 
-Order (host): steps 1 to 3 first, stopping at step 2 if shading dominates up close.
+Order (host): steps 1 to 3 first, stopping at step 2 if shading dominates up close. Step 2 stopped there: bark shading is 72 to 97% of the wood pass at the 5 cm twig (STEP2.md).
+
+### Host decisions 7 to 9 (2026-10-05)
+
+7. **Shading follows the same screen error.** Options (b) and (c) of STEP2.md, together.
+   - Bark plates, relief and every procedural term fade where their features are sub-pixel. The fade is an analytic band limit, or a mip-like level from the feature's projected size, never a fixed distance.
+   - A depth prepass against overdraw.
+   - A measured choice of multisample count.
+   - This comes first, before the tessellator: it is the larger cost, it helps today's trees too, and it does not wait on the curve's GPU path.
+   - **Bar:** the bark shader's time per shaded pixel at the hero view and at the 5 cm twig, against today's. Stills show no visible change at the standard views. Bark detail's fade is judged on stills, and close-up bark keeps its full detail.
+8. **The packed point is 32 bytes.** The frame gets more bits, so Laurelin's metres-wide trunk is exact at 5 cm. Correctness up close beats 14% of curve memory.
+9. **The palm's cells beside their run** (about 104 B per shaped run): accepted.
+
+Order (host, 2026-10-05):
+- (i) the shading level of detail, the depth prepass and the multisample measurement;
+- (ii) the 32-byte point;
+- (iii) step 3, the CPU reference tessellator with the silhouette test red first;
+- (iv) the GPU passes.
 
 ## Requirements
 
 - **R1:** The curve data the generator hands over, defined and documented in `docs/pipeline.md`; today's trees produce it too (the renderer has one wood path).
-- **R2:** GPU surfacing at the half-pixel error, with cluster culling; a test that the silhouette of a reference segment stays within half a pixel of a dense reference mesh at several distances, and that sides and rings grow as the camera approaches.
+- **R2:** Bark shading at the half-pixel error (host decision 7): every procedural term fades where its features are sub-pixel, by its projected size; a depth prepass; a measured multisample count. GPU surfacing at the half-pixel error, with cluster culling; a test that the silhouette of a reference segment stays within half a pixel of a dense reference mesh at several distances, and that sides and rings grow as the camera approaches.
 - **R3:** Stills of every passed species (beech, spruce, oak, palm) at the standard views, viewed by the host against today's wood: no visible regression; a 5 cm close-up of a twig in high detail.
-- **R4:** Measured on the owner's GPU: wood triangles and frame time for the 80-year spruce and oak at the standard views and at a close-up; GPU memory for wood. Report against today.
+- **R4:** Measured on the owner's GPU: wood triangles and frame time for the 80-year spruce and oak at the standard views and at a close-up; GPU memory for wood; the bark shader's time per shaded pixel at the hero view and the 5 cm twig (host decision 7). Report against today.
 - **R5:** Workspace gate, `npm test`, Codex review; every shipped artifact within its CI size budget.
 
 ## Boundaries

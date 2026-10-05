@@ -51,6 +51,24 @@ The design is approved, in the order of section 6.
 
 Build steps 1 to 3 now. At step 2, stop and report if shading dominates up close.
 
+## Host decisions 7 to 9 (2026-10-05, after STEP2.md)
+
+7. **Shading follows the same screen error.** Options (b) and (c) of STEP2.md, together.
+   - Bark plates, relief and every procedural term fade where their features are sub-pixel, by an analytic band limit or a mip-like level from the feature's projected size, never a fixed distance.
+   - A depth prepass against overdraw.
+   - A measured choice of multisample count.
+   - This comes first, before the tessellator: it is the larger cost, it helps today's trees too, and it does not wait on the curve's GPU path.
+   - **Bar:** the bark shader's time per shaded pixel at the hero view and at the 5 cm twig, against today's. Stills show no visible change at the standard views. Bark detail's fade is judged on stills, and close-up bark keeps its full detail.
+   - In the spec, R2 gains the shading level of detail and R4 the per-pixel cost.
+8. **The packed point is 32 bytes.** The frame gets more bits, so Laurelin's metres-wide trunk is exact at 5 cm.
+9. **The palm's cells beside their run** (about 104 B per shaped run): accepted.
+
+Order (host):
+- (i) the shading level of detail, the depth prepass and the multisample measurement;
+- (ii) the 32-byte point;
+- (iii) step 3, the CPU reference tessellator with the silhouette test red first;
+- (iv) the GPU passes.
+
 ## 1. R1: the curve data
 
 ### What the generator hands over
