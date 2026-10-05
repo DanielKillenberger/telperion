@@ -65,7 +65,9 @@ pub(crate) fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
 /// stage, for the crate's own tests.
 #[cfg(test)]
 pub(crate) fn grow(family: &Family) -> Result<crate::tree::Tree> {
-    Ok(pipeline::skeleton(pipeline::GrowInput::of(family))?.tree)
+    let mut tree = pipeline::skeleton(pipeline::GrowInput::of(family))?.tree;
+    pipeline::clothe(&mut tree, &pipeline::Inputs::of(family))?;
+    Ok(tree)
 }
 
 /// Grows the skeleton, plaits the wood surface and places the culled foliage.

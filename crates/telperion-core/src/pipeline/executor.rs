@@ -51,10 +51,12 @@ pub fn element(params: ElementParams) -> Result<Element> {
 }
 
 impl Grown {
-    /// Stage 3's descriptors, in the order their errors answer: the element
-    /// and its own check, the twig placement, the shell depth and the box
-    /// leaves are quantised against.
+    /// Stage 3's descriptors, in the order their errors answer: the leaf
+    /// bases hung on the stems, the element and its own check, the twig
+    /// placement, the shell depth and the box leaves are quantised against.
     pub fn expansion(self) -> Result<Expansion> {
+        let mut tree = self.tree;
+        super::clothe(&mut tree, &self.inputs)?;
         let plan = &self.inputs.plan;
         let element = foliage::build_element(plan.element)?;
         element.validate()?;
@@ -63,9 +65,9 @@ impl Grown {
         if !shell.is_finite() || !(0.0..=1.0).contains(&shell) {
             return Err(Error::InvalidInput("shell depth"));
         }
-        let reference = Reference::grown(&self.tree, plan.reach.clone()?);
+        let reference = Reference::grown(&tree, plan.reach.clone()?);
         Ok(Expansion {
-            tree: self.tree,
+            tree,
             inputs: self.inputs,
             element,
             twig,

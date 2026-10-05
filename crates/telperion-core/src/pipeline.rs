@@ -3,11 +3,12 @@
 //! dependency order:
 //!
 //! 1. Family: the parameter table the caller hands in.
-//! 2. Skeleton: the solved tree, apical twigs cleared under a frond crown
-//!    and shed leaf bases hung on the stems.
-//! 3. Plan: what is prepared before any triangle or leaf exists - the leaf
-//!    element, the leaf plan a field reads, the quantisation box and the
-//!    wood's rings, swept once for the wood and for leaves seated on it.
+//! 2. Skeleton: the solved tree, apical twigs cleared under a frond crown.
+//! 3. Plan: the shed leaf bases hung on the stems of the solved tree, grown
+//!    or handed in; then what is prepared before any triangle or leaf
+//!    exists - the leaf element, the leaf plan a field reads, the
+//!    quantisation box and the wood's rings, swept once for the wood and
+//!    for leaves seated on it.
 //! 4. Outputs: the wood surface, the leaves, the field and the structure.
 //! 5. Tree mesh: wood and leaves with their union bounds (`mesh::build`).
 //!
@@ -159,27 +160,32 @@ pub struct Built {
 /// Stage 2: grows the family's skeleton, ready to draw. An apex that bears a
 /// rosette bears no twig: where the canopy stands a frond crown, no twig
 /// layer grows above any stem apex, so the fronds stand on bare wood.
-/// Where the canopy keeps the bases of its shed fronds, they are hung on
-/// every stem as wood of their own, after the radius solve so no base
-/// thickens the trunk.
 pub(crate) fn skeleton(input: GrowInput) -> Result<Skeleton> {
     let crowned = input.canopy.rosette_fronds > 0;
     let report = branching::crowned(input.skeleton, input.radii, crowned)?;
-    let mut tree = report.tree;
-    branching::clothe_leaf_bases(&mut tree, input.canopy)?;
     Ok(Skeleton {
-        tree,
+        tree: report.tree,
         shed: report.shed,
     })
+}
+
+/// The first step of expansion, which every solved tree passes, grown here
+/// or handed in: where the canopy keeps the bases of its shed fronds, they
+/// are hung on every stem as wood of their own, after the radius solve so
+/// no base thickens the trunk.
+pub(crate) fn clothe(tree: &mut Tree, inputs: &Inputs) -> Result<()> {
+    branching::clothe_leaf_bases(tree, &inputs.plan.canopy)
 }
 
 /// Runs every stage the request needs, from the family on. The family is
 /// read once, into each stage's own input.
 pub fn build(family: &Family, request: Request) -> Result<Built> {
     let started = (request.clock)();
-    let skeleton = skeleton(GrowInput::of(family))?;
-    let grown = (request.clock)();
+    let mut skeleton = skeleton(GrowInput::of(family))?;
     let inputs = Inputs::of(family);
+    clothe(&mut skeleton.tree, &inputs)?;
+    // The skeleton's time keeps the clothing it always held.
+    let grown = (request.clock)();
     let mut outputs = outputs(&skeleton.tree, &inputs, request)?;
     outputs.stages.skeleton_ms = grown - started;
     outputs.stages.total_ms = (request.clock)() - started;

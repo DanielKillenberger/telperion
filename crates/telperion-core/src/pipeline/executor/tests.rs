@@ -96,3 +96,28 @@ fn a_request_subset_builds_what_the_whole_request_builds() {
         assert_eq!(records(&structure), records(&all), "{name}: structure");
     }
 }
+
+/// A solved tree handed to the expansion without its leaf bases comes out
+/// clothed in them, as the build clothes its own (fn-204 R2): the date
+/// palm's skeleton with its bases stripped, handed in, is the build's tree.
+#[test]
+fn a_handed_tree_is_clothed_in_its_leaf_bases() {
+    let f = Preset::from_id("date-palm").unwrap().parameters();
+    assert!(f.canopy.leaf_bases > 0 && f.canopy.leaf_base_length > 0.0);
+    let built = build(&f, Request::mesh()).unwrap();
+    let clothed = &built.skeleton.tree;
+    assert_eq!(clothed.stem_apices().len(), 1, "one stem");
+    // The bases are appended last, two nodes each, and every lattice cell
+    // the tree draws is a base's.
+    let mut bare = clothed.clone();
+    let bases = f.canopy.leaf_bases as usize;
+    assert_eq!(clothed.sections.len(), bases, "a cell a base");
+    bare.nodes.truncate(clothed.nodes.len() - 2 * bases);
+    bare.sections.clear();
+    let x = expand(bare, &f).unwrap();
+    let nodes = x.tree().nodes.len();
+    assert_eq!(nodes, clothed.nodes.len(), "the handed tree is clothed");
+    assert!(x.tree() == clothed, "clothed as the build clothes it");
+    let leaves = built.outputs.leaves.unwrap().instances;
+    assert_eq!(x.mesh().unwrap().foliage.instances, leaves, "leaves");
+}
