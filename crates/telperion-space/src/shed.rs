@@ -8,9 +8,12 @@
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
 
-/// Which axes stand at `age` while the tree grows, before its presences
-/// are known (`grow/relay.rs`): a lateral or relay whose subtree has held
-/// no living apex for more than its PA's delay goes, with all it bears.
+/// Which axes may stand at `age` while the tree grows, before its
+/// presences are known (`grow/relay.rs`): a lateral or relay whose subtree
+/// has held no living apex for more than a cycle past its PA's delay goes,
+/// with all it bears. Its fade has then reached nothing whatever its
+/// presences, so `shed` drops no axis this keeps less than it would; the
+/// rest `shed` decides by the fade (Codex on fn-206's port).
 pub(crate) fn standing(axes: &[Axis], species: &Species, age: u32) -> Vec<bool> {
     let mut live_until: Vec<u32> = axes
         .iter()
@@ -30,7 +33,7 @@ pub(crate) fn standing(axes: &[Axis], species: &Species, age: u32) -> Vec<bool> 
             Origin::Lateral { parent, .. } | Origin::Relay { parent, .. } => {
                 let delay = species.states[axis.pa].shedding;
                 let idle = f64::from(age.saturating_sub(live_until[i]));
-                kept[parent] && !(delay.is_finite() && idle > delay)
+                kept[parent] && !(delay.is_finite() && idle > delay + 1.0)
             }
         };
     }

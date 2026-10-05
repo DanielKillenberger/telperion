@@ -87,6 +87,10 @@ impl Layer {
     /// still the continuation and on from the axis's scaled length.
     pub fn handed(&self, (bend, total): (f64, f64), blend: f64) -> Vec<Lift> {
         let w = 1.0 - blend;
+        // A relay that has left the axis's line carries on none of it.
+        if w <= 0.0 {
+            return Vec::new();
+        }
         let own = Lift {
             bend,
             pull: self.pull,
@@ -100,6 +104,9 @@ impl Layer {
                 offset: lift.offset + self.run,
                 ..lift
             })
+            // A pull of none, or one already faded past its reach, pulls
+            // nothing on.
+            .filter(|lift| lift.bend > 0.0 && lift.offset < lift.total)
             .collect()
     }
 

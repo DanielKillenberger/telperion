@@ -320,3 +320,18 @@ fn a_midpoint_between_two_undying_leaders_keeps_its_leader() {
         tip.tip.z
     );
 }
+
+/// A twig's shedding delay between whole cycles, walked in leaf on
+/// sagging limbs, the full lay grown with the tree included: the full lay
+/// keeps a dead branch's load as far as its fade does, so a delay
+/// crossing a whole cycle moves the tree by degree (Codex on fn-206's
+/// port).
+#[test]
+fn the_shedding_delay_changes_the_tree_by_degree_in_leaf() {
+    let shedding = setting("states[2].shedding".into(), 0.0, 3.0, false, |s, v| {
+        s.states[1].form.sag = 3e-5;
+        s.states[2].shedding = v
+    });
+    let failed = by_degree(&in_leaf(vec![shedding]));
+    assert!(failed.is_empty(), "{failed:#?}");
+}
