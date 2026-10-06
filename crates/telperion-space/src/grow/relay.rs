@@ -65,7 +65,7 @@ impl Grower<'_> {
         let mut layers = place(&mut tree, self.species, None, self.threads)?;
         report(Stage::Pass(Pass::RelayPlace));
         if sag::any(self.species) {
-            let levers = sag::levers(&tree, self.species);
+            let levers = sag::levers(&tree, self.species, self.threads);
             report(Stage::Pass(Pass::RelayLevers));
             layers = place(&mut tree, self.species, Some(&levers), self.threads)?;
             report(Stage::Pass(Pass::RelaySag));

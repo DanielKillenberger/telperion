@@ -82,7 +82,7 @@ impl Grower<'_> {
         // Sag bends the tree as it stands under the load it carries, and
         // leaves its girth as it was.
         if sag::any(species) {
-            let levers = sag::levers(&structure, species);
+            let levers = sag::levers(&structure, species, threads);
             stage(Stage::Pass(Pass::Levers));
             place(&mut structure, species, Some(&levers), threads)?;
             stage(Stage::Pass(Pass::SagPlace));
