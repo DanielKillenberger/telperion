@@ -31,3 +31,17 @@
 - **Cost:** about 15 minutes: a scratch `cdylib` (`wasm-probe/`) and a Node runner, one tree per process. The load was 14 to 15 throughout, so its times are indicative only.
 - **Would remove it:** a wasm32 memory probe kept beside the stills runner (species, age, peak memory per step), so step 3's ceiling per species and age is one command.
 - **Also:** the dcg hook blocked a `cp`/redirect into `.flow/evidence/` through shell variables; literal paths passed (about 1 minute, local hook, as recorded on 2026-10-05).
+
+## 2026-10-07, task 2: the test fallout of a new stage 2
+
+- **Doing:** running the workspace's tests after the engine became stage 2.
+- **Slowed by:** about 130 tests build a family through the pipeline or the scaffold's grower on a preset's rows. Each failed for one of three reasons (a species-less family refused, an engine preset's rows changed under a scaffold test, a pin on the scaffold's tree), and nothing groups them: the triage is test by test, reading each panic.
+- **Cost:** about 60 minutes of triage across core, render, field, jev and wasm; one full core run is 4 minutes at a load of 10 to 50.
+- **Would remove it:** R0 deleting the scaffold's grower with its tests in one change, so no test of a removed stage is triaged; and test fixtures that name the tree they need (an engine preset, a young age) rather than `Family::default()`.
+
+## 2026-10-07, task 2: the shared GPU lock
+
+- **Doing:** rendering two before/after stills for the canonical axis order.
+- **Slowed by:** the GPU lock was held by other workers; the two stills took about 10 minutes of waiting for under 10 seconds of rendering.
+- **Cost:** about 10 minutes wall, no tokens.
+- **Would remove it:** a lock that reports its holder and queue, so a worker can do other work and come back.
