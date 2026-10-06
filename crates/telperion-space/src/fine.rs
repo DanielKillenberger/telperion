@@ -19,6 +19,7 @@ mod canonical;
 mod executor;
 mod record;
 mod survey;
+mod tables;
 #[cfg(test)]
 mod tests;
 
@@ -36,6 +37,7 @@ use executor::{expand, Context, Expanded, BEARER};
 pub use record::FineRoot;
 use record::{Attachment, Committed, Frame};
 pub use survey::{survey_lit, Surveyed};
+pub use tables::{UnitZone, Units};
 
 /// Where the work runs: the cut in expected kept phytomers (a bud at or
 /// below it is a fine root), the order the items are taken in, the items

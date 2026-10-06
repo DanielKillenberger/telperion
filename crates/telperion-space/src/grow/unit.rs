@@ -1,7 +1,7 @@
 //! One growth unit of an apex: its zones' nodes, in the order their roles
 //! stand along the unit, and the buds of each node, laterals that sprout
 //! and sleeping buds put to sleep.
-use super::shoot::Shoot;
+use super::shoot::{Rules, Shoot};
 use super::{Apex, Certain};
 use crate::error::{Error, Result};
 use crate::fixed;
@@ -21,18 +21,8 @@ impl Shoot<'_, '_> {
             let zone_key = unit.child(ZONE + z as u64);
             lineage::nodes(zone.nodes, zone_key.draw(), MAX_NODES_PER_ZONE, &mut leads);
             let lateral = &rules.laterals[pa][z];
-            // A node decides its internode and the buds it is expected to bear;
-            // a PA its buds cannot carry takes no part.
-            let expected: f64 = lateral
-                .iter()
-                .enumerate()
-                .filter(|&(_, &p)| p > 0.0)
-                .map(|(j, p)| p * windows.wood(j, cycle + 1))
-                .sum();
-            // And the sleeping buds it is expected to bear.
             let mut sleeping = std::mem::take(&mut self.sleeping);
-            let expected = expected + windows.sleeping(zone, cycle, &mut sleeping);
-            let node_wood = windows.share(state.internode) + zone.buds * expected;
+            let node_wood = node_wood(rules, (pa, z), cycle, &mut sleeping);
             nodes.clear();
             for (i, &node_lead) in leads.iter().enumerate() {
                 let node_key = zone_key.child(i as u64);
@@ -120,4 +110,26 @@ impl Shoot<'_, '_> {
         self.leads = leads;
         Ok(())
     }
+}
+
+/// The wood a node of zone `z` of a unit of `pa` grown in `cycle` decides,
+/// as a share of the tree's: its internode and the buds it is expected to
+/// bear, a PA its buds cannot carry taking no part, and the sleeping buds
+/// it is expected to bear, each PA's into `sleeping`.
+pub(crate) fn node_wood(
+    rules: &Rules,
+    (pa, z): (usize, usize),
+    cycle: u32,
+    sleeping: &mut Vec<f64>,
+) -> f64 {
+    let (windows, state) = (&rules.windows, &rules.species.states[pa]);
+    let zone = &state.zones[z];
+    let expected: f64 = rules.laterals[pa][z]
+        .iter()
+        .enumerate()
+        .filter(|&(_, &p)| p > 0.0)
+        .map(|(j, p)| p * windows.wood(j, cycle + 1))
+        .sum();
+    let expected = expected + windows.sleeping(zone, cycle, sleeping);
+    windows.share(state.internode) + zone.buds * expected
 }

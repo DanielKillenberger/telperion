@@ -31,6 +31,7 @@ use crate::shed::{lasting, shed};
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
 pub(crate) use shoot::Rules;
+pub(crate) use unit::node_wood;
 use sketch::Sketch;
 
 /// What to grow: cycles, the seed, the phytomer budget and the site's light.
