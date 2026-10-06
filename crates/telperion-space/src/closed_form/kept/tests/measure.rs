@@ -77,9 +77,10 @@ fn measure_production() {
                 let e = species.states[axis.pa].form.exponent;
                 let a = acc.entry((axis.pa, m as u32 / 5)).or_default();
                 a[0] += 1.0;
-                a[2] += t.b[m][WOOD] * base;
-                a[4] += t.b[m][SECTION] * base.powf(e);
-                a[6] += (t.b[m][MASS] + t.b[m][LEAVES]) * base.powi(3);
+                let b = t.at(m as i64).2.expect("born");
+                a[2] += b[WOOD] * base;
+                a[4] += b[SECTION] * base.powf(e);
+                a[6] += (b[MASS] + b[LEAVES]) * base.powi(3);
                 if let Some(&k) = by.get(&axis.lineage) {
                     let v = about(&grown, &sums, k, e);
                     a[1] += v[0];

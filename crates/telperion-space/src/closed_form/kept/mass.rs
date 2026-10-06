@@ -112,8 +112,12 @@ impl Units {
             return;
         }
         let (e, s) = (self.exponent, self.secondary);
+        // Whole secondary growth leaves the established pipe no share.
         let square = |mean: f64, spread: f64, est: f64| {
             let power = |r: f64| delta(1.0, mean, spread + mean * mean, r);
+            if s == 1.0 {
+                return power(2.0 / e);
+            }
             s * s * power(2.0 / e)
                 + 2.0 * s * (1.0 - s) * est * power(1.0 / e)
                 + (1.0 - s) * (1.0 - s) * est * est
@@ -157,12 +161,15 @@ impl Units {
                     (after, spread),
                     (after - relay, (spread - relay_spread).max(0.0)),
                 );
+                // A share of no nodes weighs nothing.
                 for ((mean, sp), w, p) in [
                     (on, before * wood, placed_before),
                     (off, (1.0 - before) * wood, placed - placed_before),
                 ] {
-                    add[MASS] += a * ea * w * square(mean + carried / n1, sp + within, est);
-                    if placed > 0.0 {
+                    if w != 0.0 {
+                        add[MASS] += a * ea * w * square(mean + carried / n1, sp + within, est);
+                    }
+                    if placed > 0.0 && p != 0.0 {
                         add[MASS_ALONG] +=
                             a * ea * p * square(mean + by_place / placed, sp + within, est);
                     }

@@ -27,3 +27,17 @@
 - **Slowed:** each kept table of a bud m cycles old works every threshold t ≤ m, and each m is its own memo entry, so the beech's limb rows alone took 3.3 s at 40 years on one core (the seed's table 0.03 s).
 - **Cost:** the test bed's trees could not each read their own rows; they now share one read per species and age, spread over the cores.
 - **Would remove it:** a kept table that carries every m at once (one recursion yielding the row at each age), or rows kept between runs on disk.
+
+## 2026-10-06, no sampling profiler on the desk (probe P1, tables)
+
+- **Doing:** profiling where the closed form's table reads spend their time, as the probe brief asks first.
+- **Slowed:** `perf` is not installed and `samply` refuses to record because `kernel.perf_event_paranoid` is above 1; the profile had to be taken by hand with timers and call counters patched into the code and taken out again.
+- **Cost:** about 10 minutes and two extra builds.
+- **Would remove it:** `perf_event_paranoid` at 1 on the desk (a local setup matter, reported not specced), so `samply record` runs without sudo.
+
+## 2026-10-06, timing the base beside a change needs a second copy (probe P1, tables)
+
+- **Doing:** timing the closed form's tables on the base commit beside the changed code, with the same timing example.
+- **Slowed:** the example is new, so it does not exist on the base; the shell guard refuses `git checkout <ref> -- <path>` and redirects to a computed path, so the base ran from a `git archive` copy of the crate in the scratchpad with its own target directory and a hand-written `[workspace]` and `ci` profile. The base read itself took 4 minutes (oak 140 s at 80).
+- **Cost:** about 10 minutes.
+- **Would remove it:** a timing example that lands with the code it times, so a later change has a base to run it on.

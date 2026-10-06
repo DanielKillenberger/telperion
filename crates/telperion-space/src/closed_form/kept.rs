@@ -62,11 +62,12 @@ fn powers(e: f64) -> [f64; WIDTH] {
     [1.0, 2.0, 3.0, 3.0, 3.0, 4.0, 3.0, 4.0, e, 2.0 * e]
 }
 
-/// A bud's kept quantities by cycle: `a[t]` the chance its subtree's last
-/// living cycle is at most t, `k[t]` the chance of that and its being
-/// kept, `b[t]` each quantity's expectation on it.
+/// A bud's kept quantities by cycle t from `lo` on: `a` the chance its
+/// subtree's last living cycle is at most t, `k` the chance of that and
+/// its being kept, `b` each quantity's expectation on it.
 #[derive(Debug)]
 pub(crate) struct Table {
+    pub lo: usize,
     pub a: Vec<f64>,
     pub k: Vec<f64>,
     pub b: Vec<[f64; WIDTH]>,
@@ -82,8 +83,9 @@ impl Table {
         if t < 0 {
             return (0.0, 0.0, None);
         }
-        let t = (t as usize).min(self.a.len() - 1);
-        (self.a[t], self.k[t], Some(&self.b[t]))
+        let t = (t as usize).min(self.lo + self.a.len() - 1);
+        let i = t.checked_sub(self.lo).expect("a cycle the window holds");
+        (self.a[i], self.k[i], Some(&self.b[i]))
     }
 }
 
@@ -156,6 +158,18 @@ pub(crate) struct Kept<'a> {
     memo: HashMap<Sub, Rc<Table>>,
     faded: HashMap<(Sub, u64), Rc<Table>>,
     bounds: HashMap<Sub, f64>,
+    /// The cycles before a bud's last that its table holds (`window`).
+    lags: usize,
+}
+
+/// The cycles before its last that every table needs: a row reads a bud
+/// at its last cycle, a bearer reads what it bears as many cycles before
+/// their last as it is before its own, and a fade of delay d reads the
+/// cycles while it is under way and the one before them.
+fn window(species: &Species) -> usize {
+    let delays = species.states.iter().map(|s| s.shedding);
+    let finite = delays.filter(|d| d.is_finite());
+    finite.map(|d| (d + 1.0).ceil() as usize).max().unwrap_or(0)
 }
 
 impl<'a> Kept<'a> {
@@ -167,6 +181,16 @@ impl<'a> Kept<'a> {
             memo: HashMap::new(),
             faded: HashMap::new(),
             bounds: HashMap::new(),
+            lags: window(species),
+        }
+    }
+
+    /// Tables over every cycle, for the tests that read a whole curve.
+    #[cfg(test)]
+    pub fn every_cycle(species: &'a Species, windows: &'a Windows) -> Self {
+        Self {
+            lags: usize::MAX,
+            ..Self::new(species, windows)
         }
     }
 
@@ -177,6 +201,7 @@ impl<'a> Kept<'a> {
     pub fn of(&mut self, k: usize, m: usize, carried: Carried, first: Option<First>) -> Rc<Table> {
         let Some((k, reach)) = self.species.lived(k) else {
             return Rc::new(Table {
+                lo: 0,
                 a: vec![1.0; m + 1],
                 k: vec![1.0; m + 1],
                 b: vec![[0.0; WIDTH]; m + 1],
@@ -193,6 +218,7 @@ impl<'a> Kept<'a> {
             .iter()
             .map(|b| std::array::from_fn(|q| b[q] * reach.powf(p[q])));
         Rc::new(Table {
+            lo: table.lo,
             a: table.a.clone(),
             k: table.k.clone(),
             b: b.collect(),
@@ -219,24 +245,25 @@ impl<'a> Kept<'a> {
         let p = powers(table.e);
         let (mut b, mut kept) = (Vec::with_capacity(m + 1), Vec::with_capacity(m + 1));
         let (mut sum, mut k_sum) = ([0.0; WIDTH], 0.0);
-        for s in 0..table.a.len() {
-            // Its last unit s cycles in, m - s before the tree's age.
+        for (i, s) in (table.lo..=m).enumerate() {
+            // Its last unit s cycles in, m - s before the tree's age; a
+            // cycle it has faded by adds nothing.
             let fade = (delay + 1.0 - (m - s) as f64).clamp(0.0, 1.0);
-            let (a0, b0) = if s > 0 {
-                (table.a[s - 1], table.b[s - 1])
-            } else {
-                (0.0, [0.0; WIDTH])
-            };
-            for q in 0..WIDTH {
-                sum[q] += fade.powf(p[q]) * (table.b[s][q] - b0[q]);
-            }
             if fade > 0.0 {
-                k_sum += table.a[s] - a0;
+                let (a0, b0) = match s {
+                    0 => (0.0, [0.0; WIDTH]),
+                    _ => (table.a[i - 1], table.b[i - 1]),
+                };
+                for q in 0..WIDTH {
+                    sum[q] += fade.powf(p[q]) * (table.b[i][q] - b0[q]);
+                }
+                k_sum += table.a[i] - a0;
             }
             b.push(sum);
             kept.push(k_sum);
         }
         let t = Rc::new(Table {
+            lo: table.lo,
             a: table.a.clone(),
             k: kept,
             b,
@@ -253,14 +280,19 @@ impl<'a> Kept<'a> {
         }
         let steps = steps(self.species, &mut self.living, (k, m, carried), first);
         let axis = path::Axis::of(self.species, k);
-        let (mut a, mut b) = (Vec::with_capacity(m + 1), Vec::with_capacity(m + 1));
-        for t in 0..=m {
+        let lo = m.saturating_sub(self.lags);
+        let (mut a, mut b) = (
+            Vec::with_capacity(m + 1 - lo),
+            Vec::with_capacity(m + 1 - lo),
+        );
+        for t in lo..=m {
             let (at, bt) = self.threshold((k, m), &axis, &steps, t as i64);
             a.push(at);
             b.push(bt);
         }
         let e = self.species.states[k].form.exponent;
         let table = Rc::new(Table {
+            lo,
             k: a.clone(),
             a,
             b,
