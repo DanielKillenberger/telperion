@@ -10,9 +10,10 @@ Overnight scope step 1 (spec, 'Overnight scope'). First a survey, written as INT
 - INTEGRATION.md with every claim checked against code, file:line. - A proposal with options for the value format, the stage 2 door and conversion's home. - No product code changed.
 
 ## Done summary
-TBD
+Survey and proposal in INTEGRATION.md (7b87437b); host decisions 1-9 appended (b7b2acbd).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
+- Commits: 7b87437b, b7b2acbd
 - Tests:
 - PRs:
