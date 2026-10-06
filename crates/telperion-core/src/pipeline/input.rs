@@ -8,12 +8,11 @@
 use crate::pipeline::foliage::Reach;
 use crate::{
     envelope::Envelope,
-    pipeline::branching::SkeletonParams,
     pipeline::foliage::{CanopyParams, ElementParams, TwigPlacement},
-    pipeline::radius::RadiusParams,
     pipeline::surface::SurfaceParams,
     pipeline::twigs::TwigParams,
-    presets::Family,
+    presets::{space::Space, Family},
+    tree::Tree,
     Result,
 };
 
@@ -27,22 +26,49 @@ pub(crate) struct Inputs {
     pub(crate) leaves: LeafInput,
 }
 
-/// The skeleton: the solve, and the canopy's frond crown.
-/// It lends the family's groups for the one stage that reads them.
+/// The skeleton: the engine's species, the age it grows to and the seed.
+/// It lends the family's species for the one stage that reads it.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GrowInput<'f> {
-    pub(crate) skeleton: &'f SkeletonParams,
-    pub(crate) radii: RadiusParams,
-    pub(crate) canopy: &'f CanopyParams,
+    pub(crate) space: &'f Space,
+    pub(crate) age: f64,
+    pub(crate) seed: u32,
 }
 
 impl<'f> GrowInput<'f> {
     pub(crate) fn of(family: &'f Family) -> Self {
         Self {
-            skeleton: &family.skeleton,
-            radii: family.radii,
-            canopy: &family.canopy,
+            space: &family.space,
+            age: family.age,
+            seed: family.skeleton.seed,
         }
+    }
+}
+
+/// The envelope of a grown tree (fn-198 host decision 7): its height, its
+/// widest reach off the root as a share of it, where its crown starts (the
+/// lowest node off the stem) and where the crown is widest between that and
+/// the top. The outline's shape rows (`shape`'s shoulder, irregularity and
+/// lobe scale) are the family's. A tree with no wood off the stem has its
+/// crown at its top.
+pub(crate) fn grown_envelope(tree: &Tree, shape: Envelope) -> Envelope {
+    let nodes = &tree.nodes;
+    let height = nodes.iter().map(|n| n.position.y).fold(0.0, f64::max);
+    let reach = |n: &crate::tree::Node| n.position.x.hypot(n.position.z);
+    let base = nodes
+        .iter()
+        .filter(|n| !n.stem && n.parent.is_some())
+        .map(|n| n.position.y)
+        .fold(height, f64::min);
+    let widest = nodes.iter().max_by(|a, b| reach(a).total_cmp(&reach(b)));
+    let (radius, at) = widest.map_or((0.0, height), |n| (reach(n), n.position.y));
+    let share = |v: f64, of: f64| if of > 0.0 { (v / of).clamp(0.0, 1.0) } else { 0.0 };
+    Envelope {
+        height,
+        crown_base: share(base, height),
+        spread: if height > 0.0 { radius / height } else { 0.0 },
+        fullness: share(at - base, height - base),
+        ..shape
     }
 }
 
@@ -79,9 +105,11 @@ pub struct LeafInput {
 }
 
 impl Inputs {
-    pub(crate) fn of(family: &Family) -> Self {
+    /// The inputs of every stage past the skeleton, under `envelope`: the
+    /// grown tree's (`grown_envelope`), or for the suite's scaffold trees the
+    /// family's own.
+    pub(crate) fn of(family: &Family, envelope: Envelope) -> Self {
         let skeleton = &family.skeleton;
-        let envelope = skeleton.envelope;
         let twigs = skeleton.twigs.resolved();
         Self {
             plan: PlanInput {

@@ -1,5 +1,5 @@
 use super::*;
-use crate::pipeline::{clothe, skeleton, GrowInput, Inputs};
+use crate::pipeline::{clothe, scaffold, Inputs};
 use crate::presets::{Preset, CATALOGUE, IN_WORK};
 
 /// Every values preset's clothed skeleton, its surface rows and its name.
@@ -9,8 +9,8 @@ fn trees() -> Vec<(&'static str, Tree, f64, SurfaceParams)> {
         .chain(IN_WORK)
         .map(|&(_, id, _, _)| {
             let family = Preset::from_id(id).unwrap().parameters();
-            let mut tree = skeleton(GrowInput::of(&family)).unwrap().tree;
-            let inputs = Inputs::of(&family);
+            let mut tree = scaffold(&family).unwrap();
+            let inputs = Inputs::of(&family, family.skeleton.envelope);
             clothe(&mut tree, &inputs).unwrap();
             (id, tree, inputs.surface.height, inputs.surface.params)
         })

@@ -67,7 +67,7 @@ fn specimen(preset: &str, seed: u32, family: &Value) -> Result<Value, String> {
         &kept,
     )?;
     Ok(
-        json!({"metrics":metrics,"timing_ms":{"growth":growth_ms,"surface":surface_ms,"foliage":foliage_ms,"measurement":start.elapsed().as_secs_f64()*1000.,"total":total.elapsed().as_secs_f64()*1000.},"counts":{"wood_vertices":wood.positions.len()/3,"wood_triangles":wood.indices.len()/3,"wood_dropped":wood.dropped,"prototype_vertices":element.positions.len(),"prototype_triangles":element.indices.len()/3,"shed_nodes":report.shed},"output_bytes":{"wood_positions":wood.positions.len()*4,"wood_indices":wood.indices.len()*4,"retained_matrices":kept.len()*std::mem::size_of::<foliage::Leaf>()}}),
+        json!({"metrics":metrics,"timing_ms":{"growth":growth_ms,"surface":surface_ms,"foliage":foliage_ms,"measurement":start.elapsed().as_secs_f64()*1000.,"total":total.elapsed().as_secs_f64()*1000.},"counts":{"wood_vertices":wood.positions.len()/3,"wood_triangles":wood.indices.len()/3,"wood_dropped":wood.dropped,"prototype_vertices":element.positions.len(),"prototype_triangles":element.indices.len()/3,},"output_bytes":{"wood_positions":wood.positions.len()*4,"wood_indices":wood.indices.len()*4,"retained_matrices":kept.len()*std::mem::size_of::<foliage::Leaf>()}}),
     )
 }
 fn run() -> Result<bool, String> {

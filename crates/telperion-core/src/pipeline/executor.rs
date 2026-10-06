@@ -4,7 +4,7 @@
 //! synchronous, so the executor keeps its own schedule and overlap around
 //! them. `docs/pipeline.md` has the rationale.
 pub use super::input::LeafInput;
-use super::{GrowInput, Inputs, Request};
+use super::{grown_envelope, GrowInput, Inputs, Request};
 use crate::{
     envelope::Envelope,
     mesh::{self, TreeMesh},
@@ -33,15 +33,17 @@ pub struct Grown {
 /// Stage 2: the family read once into its stage inputs, and its skeleton.
 pub fn grow(family: &Family) -> Result<Grown> {
     let tree = super::skeleton(GrowInput::of(family))?.tree;
-    let inputs = Inputs::of(family);
+    let inputs = Inputs::of(family, grown_envelope(&tree, family.skeleton.envelope));
     Ok(Grown { tree, inputs })
 }
 
-/// A solved tree the caller already holds, read with this family's inputs:
-/// the same expansion `grow` leads to, for a tree the executor was handed
-/// (its tests' hand-built trees). Building a tree stays inside the pipeline.
+/// A solved tree the caller already holds, read with this family's inputs
+/// and the envelope it grew to: the same expansion `grow` leads to, for a
+/// tree the executor was handed (its tests' hand-built trees). Growing a
+/// tree stays inside the pipeline: nothing outside it converts the engine's
+/// structure (fn-198).
 pub fn expand(tree: Tree, family: &Family) -> Result<Expansion> {
-    let inputs = Inputs::of(family);
+    let inputs = Inputs::of(family, grown_envelope(&tree, family.skeleton.envelope));
     Grown { tree, inputs }.expansion()
 }
 

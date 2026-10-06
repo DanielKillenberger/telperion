@@ -20,3 +20,26 @@ palm 40 7 nodes 993 grown fc6c0f17deb01f35 clothed e7f7c3b375270962 ms 3
 palm 80 1 nodes 1473 grown 2ceb1bc193488db4 clothed 398ec484fa22ce8b ms 4
 palm 80 7 nodes 1473 grown 2002fb292fb839c0 clothed 8401a8d5b6fcbd40 ms 5
 ```
+
+## Through the pipeline, after the handed-in path closed
+
+The same example, rewritten to the pipeline alone: each engine preset at the age and seed, `executor::grow(&family)` then `expansion()`, the expansion's tree hashed. Every `clothed` hash equals the handed-in path's above (16 of 16; compared by script). For the beech, spruce and oak the handed-in path's `grown` and `clothed` hashes are equal, so their converted trees equal before clothing too; the palm's clothing hangs its leaf bases from the preset's unchanged canopy rows. Load 17 to 18.
+
+```
+beech 40 1 nodes 102256 clothed bb772650e550d010 ms 115
+beech 40 7 nodes 176628 clothed 604f6958c75d8d43 ms 162
+beech 80 1 nodes 1525191 clothed 0bd447b27abf9b94 ms 1333
+beech 80 7 nodes 2532841 clothed fac452f044b6525c ms 2203
+spruce 40 1 nodes 1147615 clothed 4c3eabec018c280d ms 1370
+spruce 40 7 nodes 1107566 clothed b9bc15960a8ef98c ms 1336
+spruce 80 1 nodes 4637482 clothed 8a1b693f1fbf25b6 ms 7636
+spruce 80 7 nodes 4610322 clothed ae19e1efae7a4b0c ms 4427
+oak 40 1 nodes 157595 clothed 48d2be5036279f17 ms 403
+oak 40 7 nodes 281160 clothed 41c7b8949ebbd487 ms 567
+oak 80 1 nodes 868966 clothed f62f128ffdb32c47 ms 4035
+oak 80 7 nodes 2203466 clothed c209da3a3e149284 ms 9096
+palm 40 1 nodes 993 clothed d7e5916bfdd8537a ms 2
+palm 40 7 nodes 993 clothed e7f7c3b375270962 ms 2
+palm 80 1 nodes 1473 clothed 398ec484fa22ce8b ms 3
+palm 80 7 nodes 1473 clothed 8401a8d5b6fcbd40 ms 3
+```

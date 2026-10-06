@@ -155,7 +155,7 @@ fn build(family: &Family) -> Vec<(&'static str, u64)> {
     vec![
         (
             "skeleton",
-            digest(&(&built.skeleton.tree, built.skeleton.shed)),
+            digest(&built.skeleton.tree),
         ),
         ("wood", digest(&out.wood)),
         ("element", digest(&out.element)),

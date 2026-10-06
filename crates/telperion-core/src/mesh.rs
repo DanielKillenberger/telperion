@@ -66,12 +66,13 @@ pub(crate) fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
     }
 }
 
-/// Grows this family's skeleton, ready to draw: the pipeline's skeleton
-/// stage, for the crate's own tests.
+/// Grows this family's skeleton with the scaffold's grower, clothed as the
+/// pipeline clothes a tree: for the crate's own tests of today's stages
+/// until it is removed (fn-198 R0), under the family's own envelope.
 #[cfg(test)]
 pub(crate) fn grow(family: &Family) -> Result<crate::tree::Tree> {
-    let mut tree = pipeline::skeleton(pipeline::GrowInput::of(family))?.tree;
-    pipeline::clothe(&mut tree, &pipeline::Inputs::of(family))?;
+    let mut tree = pipeline::scaffold(family)?;
+    pipeline::clothe(&mut tree, &pipeline::Inputs::of(family, family.skeleton.envelope))?;
     Ok(tree)
 }
 
@@ -84,7 +85,7 @@ pub fn build(family: &Family) -> Result<TreeMesh> {
 /// skeleton, for the crate's own tests.
 #[cfg(test)]
 pub(crate) fn assemble(tree: &crate::tree::Tree, family: &Family) -> Result<TreeMesh> {
-    let inputs = pipeline::Inputs::of(family);
+    let inputs = pipeline::Inputs::of(family, family.skeleton.envelope);
     assembled(pipeline::outputs(tree, &inputs, pipeline::Request::mesh())?)
 }
 

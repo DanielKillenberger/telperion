@@ -25,7 +25,7 @@
 use crate::{presets::Family, tree::Tree, Result};
 use field::Field;
 use foliage::{plan, Element, Instances};
-pub(crate) use input::{GrowInput, Inputs, PlanInput};
+pub(crate) use input::{grown_envelope, GrowInput, Inputs, PlanInput};
 use surface::SurfaceMesh;
 
 /// How stages independent of each other are run. `Concurrent` falls back to
@@ -95,11 +95,10 @@ pub fn clock() -> f64 {
     }
 }
 
-/// Stage 2's artifact: the solved tree and how many nodes the shell shed.
+/// Stage 2's artifact: the grown tree.
 #[derive(Debug)]
 pub struct Skeleton {
     pub tree: Tree,
-    pub shed: usize,
 }
 
 /// The placed leaves after the cull. A field that read them for a request
@@ -163,16 +162,22 @@ pub struct Built {
     pub outputs: Outputs,
 }
 
-/// Stage 2: grows the family's skeleton, ready to draw. An apex that bears a
-/// rosette bears no twig: where the canopy stands a frond crown, no twig
-/// layer grows above any stem apex, so the fronds stand on bare wood.
+/// Stage 2: the tree-space engine grows the family's species, ready to draw
+/// (`space.rs`). A family with no engine species is refused by name.
 pub(crate) fn skeleton(input: GrowInput) -> Result<Skeleton> {
-    let crowned = input.canopy.rosette_fronds > 0;
-    let report = branching::crowned(input.skeleton, input.radii, crowned)?;
     Ok(Skeleton {
-        tree: report.tree,
-        shed: report.shed,
+        tree: space::grow(input)?,
     })
+}
+
+/// The scaffold's grower, today's stage 2 before the engine, which no
+/// production path reaches: the suite's tests of its stages grow their
+/// trees with it until it is removed (fn-198 R0). An apex that bears a
+/// rosette bears no twig under a frond crown.
+#[cfg(test)]
+pub(crate) fn scaffold(family: &Family) -> Result<Tree> {
+    let crowned = family.canopy.rosette_fronds > 0;
+    Ok(branching::crowned(&family.skeleton, family.radii, crowned)?.tree)
 }
 
 /// The first step of expansion, which every solved tree passes, grown here
@@ -188,7 +193,7 @@ pub(crate) fn clothe(tree: &mut Tree, inputs: &Inputs) -> Result<()> {
 pub fn build(family: &Family, request: Request) -> Result<Built> {
     let started = (request.clock)();
     let mut skeleton = skeleton(GrowInput::of(family))?;
-    let inputs = Inputs::of(family);
+    let inputs = Inputs::of(family, grown_envelope(&skeleton.tree, family.skeleton.envelope));
     clothe(&mut skeleton.tree, &inputs)?;
     // The skeleton's time keeps the clothing it always held.
     let grown = (request.clock)();
@@ -209,8 +214,14 @@ pub(crate) fn outputs(tree: &Tree, inputs: &Inputs, request: Request) -> Result<
     planned::outputs(tree, inputs, request)
 }
 
+// Today's grower (the scaffold, its twig layer and radius solve): no
+// production path reaches it since the engine is stage 2 (fn-198); the
+// suite grows its tests' trees with it until R0 removes it.
+#[cfg_attr(not(test), allow(dead_code))]
 mod bias;
+#[cfg_attr(not(test), allow(dead_code))]
 mod branching;
+#[cfg_attr(not(test), allow(dead_code))]
 mod colonization;
 pub mod contract;
 mod field;
@@ -218,8 +229,11 @@ mod foliage;
 // Reached only by the suite, which holds a prediction to the specimen.
 #[cfg(all(test, feature = "geometry"))]
 mod footprint;
+#[cfg_attr(not(test), allow(dead_code))]
 mod radius;
+mod space;
 mod surface;
+#[cfg_attr(not(test), allow(dead_code))]
 mod twigs;
 /// What the rest of the crate reads of the stages: the family's own checks.
 pub(crate) use {

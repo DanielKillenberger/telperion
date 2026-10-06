@@ -1,22 +1,63 @@
-//! The tree space's structure as a pipeline tree (`telperion_core::tree`),
-//! so the pipeline's own expansion dresses it in wood and leaves: one node
-//! per phytomer at its tip, z up turned to the pipeline's y up. A lateral
-//! starts a branch run; a continuation or relay carries its parent's on.
-//! Wood under `STRUCTURAL` of the root's radius is fine wood: a twig where
-//! nothing grows from it, a branch otherwise. Wood thinner than `FINEST`
-//! (a phytomer growing in from its draw, and all it bears) is not drawn,
-//! and an internode shorter than `SHORTEST` is merged into its node, so
-//! the sweep never meets a ring it cannot resolve in float32.
-use telperion_core::math::Vec3;
-use telperion_core::tree::{BudFate, Node, NodeKind, ShootState, Tree};
-use telperion_space::{Origin, Structure};
+//! Stage 2: the tree-space engine grows the family's species to its age
+//! (fn-198 host decision 2), and its structure becomes the pipeline's tree
+//! here, privately (host decision 3), so the pipeline's own expansion dresses
+//! it in wood and leaves: one node per phytomer at its tip, z up turned to
+//! the pipeline's y up. A lateral starts a branch run; a continuation or
+//! relay carries its parent's on. Wood under `STRUCTURAL` of the root's
+//! radius is fine wood: a twig where nothing grows from it, a branch
+//! otherwise. Wood thinner than `FINEST` (a phytomer growing in from its
+//! draw, and all it bears) is not drawn, and an internode shorter than
+//! `SHORTEST` is merged into its node, so the sweep never meets a ring it
+//! cannot resolve in float32.
+use super::GrowInput;
+use crate::math::Vec3;
+use crate::tree::{BudFate, Node, NodeKind, ShootState, Tree};
+use crate::{Error, Result};
+use telperion_space::{Origin, Request, Structure};
 
-pub const STRUCTURAL: f64 = 0.05;
+/// The most phytomers a tree may grow, the shed ones included: a safety
+/// bound no shipped species reaches at the harness's ages (the tree-space
+/// examples' still runner, fn-193; the spruce at 80 grows 4.8M).
+const BUDGET: u32 = 20_000_000;
+/// Where fine wood begins, as a share of the root's radius: the fine-wood
+/// measure of the pinned baseline (fn-190, BASELINE.md).
+const STRUCTURAL: f64 = 0.05;
+/// The thinnest wood drawn, in metres, and the shortest internode kept: a
+/// float32 ring stays resolved above them (host, fn-193 C, the beech).
 const FINEST: f64 = 2e-4;
 const SHORTEST: f64 = 1e-3;
+/// A lateral of `FORK_FROM` to `FORK_AT` of its parent's radius grows in as
+/// a codominant fork, so a fork has no collar (host, fn-193 RESULT.md).
 const FORK_FROM: f64 = 0.4;
 const FORK_AT: f64 = 0.7;
 
+/// The family's species grown to its age, as the pipeline's tree. A family
+/// with no engine species is refused by name, never grown another way
+/// (host decision 9).
+pub(super) fn grow(input: GrowInput) -> Result<Tree> {
+    let species = (input.space.species.as_ref()).ok_or(Error::InvalidInput("no engine species"))?;
+    let age = input.age;
+    if age.fract() != 0.0 || !(0.0..=f64::from(u32::MAX)).contains(&age) {
+        let value = format!("{age}");
+        return Err(Error::InvalidValue { field: "age", value });
+    }
+    let request = Request {
+        age: age as u32,
+        seed: u64::from(input.seed),
+        budget: BUDGET,
+        light: input.space.light,
+    };
+    let structure = telperion_space::grow(species, request).map_err(|e| match e {
+        telperion_space::Error::Budget { .. } => Error::ResourceLimit("engine phytomer budget"),
+        e => Error::InvalidValue {
+            field: "engine",
+            value: e.to_string(),
+        },
+    })?;
+    Ok(convert(&structure, &input.space.trunk))
+}
+
+/// The engine's z up as the pipeline's y up.
 fn up(v: telperion_space::Vec3) -> Vec3 {
     Vec3::new(v.x, v.z, -v.y)
 }
@@ -82,29 +123,13 @@ fn joint(
         .unwrap_or(node)
 }
 
-/// Each species' trunk-level physiological ages on the shared reference
-/// axis (`telperion_space::chain`, fn-206), the trunk of its chain:
-/// only an axis of one of these, carried on from the trunk, is stem
-/// (fn-195 round 6, host decision 31). The oak's young stem, fork and
-/// leader (`oak.rs`); the beech's seedling stem, leader and fork
-/// (`beech.rs`); the spruce's seedling, sapling, trunk and crown leader
-/// (`spruce.rs`); the palm's one stem (`palm.rs`).
-#[allow(dead_code)] // each still example reads its own species's
-pub const OAK_TRUNK: [usize; 3] = [2, 3, 4];
-#[allow(dead_code)] // each still example reads its own species's
-pub const BEECH_TRUNK: [usize; 3] = [2, 4, 5];
-#[allow(dead_code)] // each still example reads its own species's
-pub const SPRUCE_TRUNK: [usize; 4] = [0, 1, 2, 4];
-#[allow(dead_code)] // each still example reads its own species's
-pub const PALM_TRUNK: [usize; 1] = [2];
-
 /// The pipeline tree of `structure`. An axis is stem where it carries the
 /// trunk on at one of the species' `trunk` ages: a leader that turns into
 /// a limb stops being stem there, and a limb's relays never are, so the
 /// canopy measures its slender wood against the trunk, not a fork of
 /// limbs deep in the crown. Two trunk-level axes leaving one node, a
 /// codominant fork of the trunk, are both stem.
-pub fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
+fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
     let mut nodes = vec![Node::root()];
     // The node each axis ends on, for what continues it.
     let mut ends: Vec<Option<u32>> = vec![None; structure.axes.len()];
