@@ -7,13 +7,14 @@
 //! light reads sagged boughs where they hang. Wood shedding has dropped
 //! is left where the rough layout put it.
 use super::{Grower, Pass, Stage};
+use crate::cores::{map, picked, PIECE};
 use crate::error::Result;
 use crate::geometry::{place, scale};
 use crate::girth::{thicken, Girth};
-use crate::presence::assign;
+use crate::presence::{assign, Draws};
 use crate::sag;
 use crate::shed::{shed, standing};
-use crate::structure::{Origin, Structure};
+use crate::structure::{Axis, Origin, Structure};
 
 /// The cycles between full lays: an engine constant, never a setting, so
 /// no walk crosses one (fn-197 step 3b measures its cost and its gap).
@@ -27,19 +28,41 @@ impl Grower<'_> {
         // a branch that dies changes the lay by degree.
         let standing = standing(&self.axes, self.species, cycle);
         let mut index = vec![usize::MAX; self.axes.len()];
-        let (mut axes, mut draws, mut from) = (Vec::new(), Vec::new(), Vec::new());
-        for i in (0..self.axes.len()).filter(|&i| standing[i]) {
-            let mut axis = self.axes[i].clone();
-            match &mut axis.origin {
-                Origin::Seed => {}
-                Origin::Continuation { parent }
-                | Origin::Lateral { parent, .. }
-                | Origin::Relay { parent, .. } => *parent = index[*parent],
-            }
-            index[i] = axes.len();
-            axes.push(axis);
-            draws.push(self.draws[i].clone());
-            from.push(i);
+        let from: Vec<usize> = (0..self.axes.len()).filter(|&i| standing[i]).collect();
+        for (j, &i) in from.iter().enumerate() {
+            index[i] = j;
+        }
+        // Copied on every core, each renamed to the standing tree's indices.
+        let (grown, made) = (&self.axes, &self.draws);
+        let copied = map(
+            from.chunks(PIECE).collect(),
+            1,
+            self.threads,
+            &|_, piece| {
+                let axes: Vec<Axis> = piece
+                    .iter()
+                    .map(|&i| {
+                        let mut axis = grown[i].clone();
+                        match &mut axis.origin {
+                            Origin::Seed => {}
+                            Origin::Continuation { parent }
+                            | Origin::Lateral { parent, .. }
+                            | Origin::Relay { parent, .. } => *parent = index[*parent],
+                        }
+                        axis
+                    })
+                    .collect();
+                let draws: Vec<Draws> = piece.iter().map(|&i| made[i].clone()).collect();
+                (axes, draws)
+            },
+        );
+        let (mut axes, mut draws) = (
+            Vec::with_capacity(from.len()),
+            Vec::with_capacity(from.len()),
+        );
+        for (a, d) in copied {
+            axes.extend(a);
+            draws.extend(d);
         }
         // The apexes living now, as the grown tree marks its own at the end.
         for apex in &self.live {
@@ -71,23 +94,44 @@ impl Grower<'_> {
             report(Stage::Pass(Pass::RelaySag));
         }
         let sketch = self.sketch.as_mut().expect("sketching");
-        for ((laid, layer), &i) in tree.axes.iter().zip(layers).zip(&from) {
-            let axis = &mut self.axes[i];
+        // Written back on every core, each axis its own.
+        let jobs: Vec<_> = tree
+            .axes
+            .iter()
+            .zip(layers)
+            .zip(picked(&mut self.axes, from.iter().copied()))
+            .zip(picked(&mut sketch.pencils, from.iter().copied()))
+            .collect();
+        map(jobs, PIECE, self.threads, &|_,
+                                         (
+            ((laid, layer), axis),
+            pencil,
+        )| {
             (axis.base, axis.heading, axis.side) = (laid.base, laid.heading, laid.side);
             for (p, q) in axis.phytomers.iter_mut().zip(&laid.phytomers) {
                 (p.tip, p.heading, p.side) = (q.tip, q.heading, q.side);
             }
-            sketch.pencils[i].layer = layer;
-        }
-        // The cycle's leaves, where the full lay put them.
-        self.leaves.clear();
-        for axis in &self.axes {
-            let area = self.species.states[axis.pa].leaf_area;
-            for p in axis.phytomers.iter().rev().take_while(|p| p.cycle == cycle) {
-                self.leaves.push((p.tip, p.scale * p.size * area));
-            }
-        }
+            pencil.layer = layer;
+        });
         drop(tree);
+        // The cycle's leaves, where the full lay put them, gathered on
+        // every core in the tree's order.
+        let (axes, species) = (&self.axes, self.species);
+        let pieces: Vec<&[Axis]> = axes.chunks(PIECE).collect();
+        let leaves = map(pieces, 1, self.threads, &|_, piece| {
+            let mut out = Vec::new();
+            for axis in piece {
+                let area = species.states[axis.pa].leaf_area;
+                for p in axis.phytomers.iter().rev().take_while(|p| p.cycle == cycle) {
+                    out.push((p.tip, p.scale * p.size * area));
+                }
+            }
+            out
+        });
+        self.leaves.clear();
+        for piece in leaves {
+            self.leaves.extend(piece);
+        }
         report(Stage::Pass(Pass::RelayWrite));
         Ok(())
     }
