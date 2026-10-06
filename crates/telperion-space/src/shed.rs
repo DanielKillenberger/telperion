@@ -5,7 +5,7 @@
 //! shrinks away before it is shed; it is dropped once its fade reaches
 //! nothing, which for whole presences and delays is the cycle GreenLab
 //! drops it in (fn-206).
-use crate::fixed::presence::{q, real, times, ONE};
+use crate::fixed::presence::{carry, fade, q, real, times};
 use crate::species::Species;
 use crate::structure::{Axis, Origin};
 
@@ -235,7 +235,7 @@ fn fades(
         } else {
             q(p.sleep) + grown[at[parent] + units]
         };
-        let carried = before + times(weight, (gap << 32) + lived[i]);
+        let carried = carry(before, weight, gap, lived[i]);
         lived[parent] = lived[parent].max(carried);
         alive[parent] = alive[parent].max(times(alive[i], weight));
     }
@@ -246,19 +246,13 @@ fn fades(
     // A living subtree is never drawn smaller than its living apex; an apex
     // that light grew past whole (`allocation.rs`) keeps it whole. Shed
     // where the fade is none (D17): an integer test.
-    let age = i128::from(age) << 32;
-    let fade = axes
+    let faded = axes
         .iter()
         .zip(lived.iter().zip(&alive))
         .map(|(axis, (&lived, &apex))| match delay(axis) {
-            Some(d) => {
-                let until = (i128::from(axis.birth) << 32) + i128::from(lived);
-                let t = i128::from(q(d + 1.0)) - (age - until);
-                let low = i128::from(apex.min(ONE));
-                real(t.clamp(low, i128::from(ONE)) as u64)
-            }
+            Some(d) => real(fade(q(d + 1.0), axis.birth, (lived, apex), age)),
             None => 1.0,
         })
         .collect();
-    (fade, reported)
+    (faded, reported)
 }

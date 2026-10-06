@@ -79,3 +79,21 @@ pub fn wood_at(woods: (i64, i64), used: u64) -> i64 {
 pub fn of(lead: i64, window: i64) -> u64 {
     presence(lead, window)
 }
+
+/// What a child carries up into its bearer's living time (D17): the
+/// bearer's own time `before` to the child's birth (Q32.32), plus the
+/// child's `weight` (Q32) times the `gap` whole cycles from there and the
+/// child's own living time `lived` (Q32.32).
+pub fn carry(before: u64, weight: u64, gap: u64, lived: u64) -> u64 {
+    before + times(weight, (gap << 32) + lived)
+}
+
+/// D17: an axis's fade, Q32, its delay plus a cycle `delay` (Q32), born
+/// in `birth`, its subtree living `lived` (Q32.32) past its birth and its
+/// most present living apex `alive` (Q32), at the tree's `age`: the delay
+/// left, clamped to that apex and to one. Shed where it is none.
+pub fn fade(delay: u64, birth: u32, (lived, alive): (u64, u64), age: u32) -> u64 {
+    let until = (i64::from(birth) << 32) + lived as i64;
+    let t = delay as i64 - ((i64::from(age) << 32) - until);
+    t.clamp(alive.min(ONE) as i64, ONE as i64) as u64
+}
