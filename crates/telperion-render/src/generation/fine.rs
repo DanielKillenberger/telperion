@@ -24,6 +24,7 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
         ("fine unit", units::source()),
         ("fine chain grower", chains::source()),
         ("fine pack", chains::pack_source()),
+        ("fine geometry", laid::source()),
     ]
 }
 
@@ -31,6 +32,10 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
 mod chain_tests;
 #[cfg(test)]
 mod chains;
+#[cfg(test)]
+mod laid;
+#[cfg(test)]
+mod laid_tests;
 #[cfg(test)]
 mod roots;
 #[cfg(test)]

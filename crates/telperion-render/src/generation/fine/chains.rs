@@ -6,15 +6,16 @@ use super::super::io;
 use super::units::pack;
 use crate::Gpu;
 use std::time::Instant;
-use telperion_space::{ChainAxis, ChainBud, ChainTables, Woke};
+use telperion_space::{ChainAxis, ChainBud, ChainTables, GeometryTables, Woke};
 
 const CHAIN: &str = include_str!("chain.wgsl");
 const APEX: &str = include_str!("apex.wgsl");
 const SLEEP: &str = include_str!("sleep.wgsl");
 const SHED: &str = include_str!("shed.wgsl");
 const PACK: &str = include_str!("pack.wgsl");
-const AXW: usize = 32;
-const PW: usize = 6;
+const PRESENCE: &str = include_str!("presence.wgsl");
+pub(super) const AXW: usize = 40;
+pub(super) const PW: usize = 9;
 const NONE: u32 = u32::MAX;
 
 /// A region's bounds per chain: axes, phytomers, living apexes, sleeping
@@ -26,6 +27,7 @@ pub(super) struct Caps {
     pub live: u32,
     pub sleepers: u32,
     pub woken: u32,
+    pub units: u32,
 }
 
 impl Caps {
@@ -36,17 +38,19 @@ impl Caps {
             live: self.live * k,
             sleepers: self.sleepers * k,
             woken: self.woken * k,
+            units: self.units * k,
         }
     }
 }
 
 /// A sleeping bud's and a woken bud's words (`chain.wgsl`).
-const SW: u32 = 10;
-const QW: u32 = 12;
+const SW: u32 = 13;
+const QW: u32 = 17;
+const UW: u32 = 4;
 
 /// The unit tables, then each PA's row (flags, lived, successor, words at)
 /// and its words (`chain.wgsl`); the rows' offset in the table.
-pub(super) fn packed(t: &ChainTables) -> Packed {
+pub(super) fn packed(t: &ChainTables, g: &GeometryTables) -> Packed {
     let (mut table, mut words) = pack(&t.units);
     let rows = table.len() as u32;
     let mut woods = Vec::new();
@@ -97,13 +101,16 @@ pub(super) fn packed(t: &ChainTables) -> Packed {
     for &(at, len) in &t.curves {
         table.extend([dead + at, len]);
     }
-    (table, words, [rows, curves])
+    let geo = words.len() as u32;
+    words.extend(super::laid::presences(g));
+    (table, words, [rows, curves, geo])
 }
 
-/// The tables as words, and where the PA rows and the curves start.
-pub(super) type Packed = (Vec<u32>, Vec<u64>, [u32; 2]);
+/// The tables as words, and where the PA rows, the curves and the
+/// presences' values start.
+pub(super) type Packed = (Vec<u32>, Vec<u64>, [u32; 3]);
 
-fn bud_words(b: &ChainBud) -> [u64; 11] {
+fn bud_words(b: &ChainBud, made: [f32; 2]) -> [u64; 12] {
     let pair = |lo: u32, hi: u32| u64::from(lo) | u64::from(hi) << 32;
     let w = b.woke.unwrap_or(Woke {
         key: 0,
@@ -128,12 +135,16 @@ fn bud_words(b: &ChainBud) -> [u64; 11] {
         w.spent,
         pair(w.sleep as u32, w.cycle),
         b.context.unwrap_or(0) as u64,
+        pair(made[0].to_bits(), made[1].to_bits()),
     ]
 }
 
 /// The chain grower's WGSL.
 pub(super) fn source() -> String {
-    format!("{}\n{CHAIN}\n{APEX}\n{SLEEP}\n{SHED}", super::zones())
+    format!(
+        "{}\n{CHAIN}\n{PRESENCE}\n{APEX}\n{SLEEP}\n{SHED}",
+        super::zones()
+    )
 }
 
 /// The packing pass's WGSL.
@@ -178,18 +189,32 @@ impl Grower {
     pub(super) fn run(
         &self,
         gpu: &Gpu,
-        buds: &[ChainBud],
+        buds: (&[ChainBud], &[[f32; 2]]),
+        t: &Packed,
+        at: (i64, u32),
+        caps: Caps,
+    ) -> (Grown, f64, f64) {
+        let run = self.run_kept(gpu, buds, t, at, caps);
+        (run.grown, run.grow_ms, run.read_ms)
+    }
+
+    /// `run`, the packed regions kept on the device with each chain's
+    /// place in them, for its geometry (`laid.rs`).
+    pub(super) fn run_kept(
+        &self,
+        gpu: &Gpu,
+        (buds, made): (&[ChainBud], &[[f32; 2]]),
         t: &Packed,
         (span, age): (i64, u32),
         caps: Caps,
-    ) -> (Grown, f64, f64) {
+    ) -> Run {
         let start = Instant::now();
         let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
         let n = buds.len() as u32;
         let groups = n.div_ceil(64);
         let row = groups.min(gpu.device.limits().max_compute_workgroups_per_dimension) * 64;
         let (lo, hi) = (span as u32, (span >> 32) as u32);
-        let cfg: [u32; 12] = [
+        let cfg: [u32; 16] = [
             n,
             row,
             caps.axes,
@@ -202,8 +227,16 @@ impl Grower {
             caps.sleepers,
             caps.woken,
             t.2[1],
+            t.2[2],
+            caps.units,
+            0,
+            0,
         ];
-        let input: Vec<u64> = buds.iter().flat_map(bud_words).collect();
+        let input: Vec<u64> = buds
+            .iter()
+            .zip(made)
+            .flat_map(|(b, &m)| bud_words(b, m))
+            .collect();
         let b =
             |label, bytes: u64, data: &[u8]| io::buffer(gpu, label, bytes, storage, data).unwrap();
         let uniform = |label, data: &[u32]| {
@@ -235,7 +268,7 @@ impl Grower {
         );
         let live = b("chain apexes", u64::from(n * caps.live) * 32, &[]);
         let status = b("chain status", u64::from(n) * 16, &[]);
-        let sleep = u64::from(n * (caps.sleepers * SW + caps.woken * QW)) * 4;
+        let sleep = u64::from(n * (caps.sleepers * SW + caps.woken * QW + caps.units * UW)) * 4;
         let sleepers = b("chain sleeping buds", sleep, &[]);
         let all = [
             &config, &input, &table, &words, &axes, &phyts, &live, &status, &sleepers,
@@ -307,8 +340,28 @@ impl Grower {
                 })
             })
             .collect();
-        (grown, grown_ms, start.elapsed().as_secs_f64() * 1e3)
+        Run {
+            grown,
+            status: status_words,
+            offsets,
+            axes: packed_axes,
+            phyts: packed_phyts,
+            grow_ms: grown_ms,
+            read_ms: start.elapsed().as_secs_f64() * 1e3,
+        }
     }
+}
+
+/// One dispatch of chains as grown, its packed regions on the device:
+/// each chain's counts (axes, phytomers, overflow) and place there.
+pub(super) struct Run {
+    pub grown: Grown,
+    pub status: Vec<[u32; 4]>,
+    pub offsets: Vec<[u32; 2]>,
+    pub axes: wgpu::Buffer,
+    pub phyts: wgpu::Buffer,
+    pub grow_ms: f64,
+    pub read_ms: f64,
 }
 
 /// A chain's axes from its region, as `telperion_space::chain_cases` gives

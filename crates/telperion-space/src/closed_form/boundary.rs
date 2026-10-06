@@ -100,6 +100,12 @@ impl Rows {
         row
     }
 
+    /// The row of a lateral of `pa` `m` cycles from the tree's age, none
+    /// where no bud of the PA is borne.
+    pub fn row_at(&self, pa: usize, m: usize) -> Option<&Row> {
+        self.rows.get(pa * (self.age + 1) + m).filter(|r| r.e > 0.0)
+    }
+
     /// The extinction curves, by `pa * (age + 1) + m` for a lateral `m`
     /// cycles from the tree's age, and that age.
     pub fn curves(&self) -> (&[Vec<f64>], usize) {

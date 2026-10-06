@@ -22,6 +22,10 @@ struct Cfg {
     sleep_cap: u32,
     pend_cap: u32,
     curves: u32,
+    geo: u32,
+    unit_cap: u32,
+    pad0: u32,
+    pad1: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -34,14 +38,14 @@ struct Cfg {
 @group(0) @binding(7) var<storage, read_write> status: array<vec4<u32>>;
 @group(0) @binding(8) var<storage, read_write> sleepers: array<u32>;
 
-const AXW: u32 = 32u;
-const PW: u32 = 6u;
+const AXW: u32 = 40u;
+const PW: u32 = 9u;
 const ROW: u32 = 18u;
 const TICKS: u32 = 0x100000u;
 const STACK: u32 = 16u;
-const SW: u32 = 10u;
-const QW: u32 = 12u;
-const BW: u32 = 11u;
+const SW: u32 = 13u;
+const QW: u32 = 17u;
+const BW: u32 = 12u;
 const DORMANT = vec2<u32>(0xfffffff9u, 0xffffffffu);
 
 // The draws' parts (`lineage.rs`).
@@ -84,6 +88,24 @@ const ENDED_RELAYS: u32 = 20u;
 const OUTLIVED: u32 = 21u;
 const SUCC: u32 = 22u;
 const NPHYT: u32 = 24u;
+// Its presences (f32, `presence.wgsl`): its draws' as made, its running
+// survival, its nodes counted by presence, its relay's blend, a borne
+// bud's vigour as made and its node's buds a whorl, and how much its apex
+// lives on at the age (below none: it has stopped).
+const MADE: u32 = 32u;
+const RUN: u32 = 33u;
+// Its rank, Q52 in two words (34, 39): a node's presence (Q32) times its
+// unit's share (ticks), summed exactly, so its phyllotaxis turns as the
+// CPU's does however many nodes it holds.
+const RANKF: u32 = 34u;
+const RANK_HI: u32 = 39u;
+const BLEND: u32 = 35u;
+const VIG: u32 = 36u;
+const WHORL: u32 = 37u;
+const LIVING: u32 = 38u;
+// A phytomer's scale by presence (f32), and its rank (Q52, two words).
+const PSCALE: u32 = 6u;
+const PRANK: u32 = 7u;
 
 // The KIND word's flags.
 const IS_ENDED: u32 = 0x10000u;
@@ -103,6 +125,8 @@ var<private> sleep_base: u32;
 var<private> pend_base: u32;
 var<private> n_sleepers: u32;
 var<private> n_pends: u32;
+var<private> unit_base: u32;
+var<private> n_units: u32;
 
 struct Apex {
     axis: u32,
@@ -203,6 +227,7 @@ fn push_axis(lineage: vec2<u32>, pa: u32, birth: u32, kind: u32, parent: u32, no
     wr64(i, UNITS, units);
     wr(i, SUCC, NONE);
     wr(i, SUCC + 1u, NONE);
+    made_axis(i, 1.0, 1.0);
     return i;
 }
 
@@ -288,12 +313,14 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
     axis_base = c * cfg.axes_cap * AXW;
     phyt_base = c * cfg.phyt_cap * PW;
     live_base = c * cfg.live_cap * 2u;
-    sleep_base = c * (cfg.sleep_cap * SW + cfg.pend_cap * QW);
+    sleep_base = c * (cfg.sleep_cap * SW + cfg.pend_cap * QW + cfg.unit_cap * UW);
     pend_base = sleep_base + cfg.sleep_cap * SW;
+    unit_base = pend_base + cfg.pend_cap * QW;
     n_axes = 0u;
     n_phyts = 0u;
     n_sleepers = 0u;
     n_pends = 0u;
+    n_units = 0u;
     overflow = 0u;
     depth = 0u;
     next_half = 0u;
@@ -309,6 +336,8 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
     let slot = buds[b + 5u].y;
     let root = buds[b + 3u];
     let horizon = buds[b + 4u];
+    let vigour = bitcast<f32>(buds[b + 11u].x);
+    let whorl = bitcast<f32>(buds[b + 11u].y);
     var start = 1u;
     if seed {
         push_axis(lineage, pa, 0u, SEED, NONE, 0u, root, horizon, vec2<u32>(0u));
@@ -316,10 +345,12 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
     } else if woken {
         // The bearer's stub stands at the bud's horizon.
         push_axis(vec2<u32>(0u), pa, 0u, STUB, NONE, 0u, vec2<u32>(0u), horizon, vec2<u32>(0u));
-        start = woke(b);
+        start = woke(b, vigour, whorl);
     } else {
         push_axis(vec2<u32>(0u), pa, 0u, STUB, NONE, 0u, vec2<u32>(0u), neg64(inf()), vec2<u32>(0u));
         push_axis(lineage, pa, birth, LATERAL | (slot << 8u), 0u, node, root, horizon, vec2<u32>(0u));
+        wrf(1u, MADE, vigour);
+        wrf(1u, WHORL, whorl);
         push_next(1u, vec2<u32>(0u));
         start = birth + 1u;
     }
@@ -346,6 +377,11 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
             relay_node(i);
         }
     }
+    // How much each apex still living at the age lives on (`living`).
+    for (var k = 0u; k < n_next; k++) {
+        let e = live[live_base + next_half * cfg.live_cap + k];
+        living(e.x, e.yz);
+    }
     // The buds that woke on it, after its axes, as it bears them.
     for (var k = 0u; k < n_pends; k++) {
         let p = pend_base + k * QW;
@@ -364,6 +400,14 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
         wr64(at, UNITS, vec2<u32>(sleepers[p + 10u], sleepers[p + 11u]));
         wr(at, 31u, sleepers[p + 2u]);
         wr64(at, HORIZON, rd64(sleepers[p + 3u], HORIZON));
+        // Its vigour as made: its draw's presence, what carried its
+        // bearer to its waking, the share of it reaching its stage, and
+        // the share its bearer kept (`Woken::kept`).
+        let kept = woken_kept(p);
+        let vig = bitcast<f32>(sleepers[p + 15u]) * bitcast<f32>(sleepers[p + 12u])
+            * bitcast<f32>(sleepers[p + 13u]) * kept;
+        wrf(at, VIG, vig);
+        wr(at, WHORL, sleepers[p + 16u]);
     }
     if overflow == 0u {
         shed(select(1u, 0u, seed), conditioned, buds[b + 10u]);

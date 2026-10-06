@@ -17,6 +17,7 @@
 //! is the tree P2's chain grower grows whole (`tests.rs`).
 mod canonical;
 mod executor;
+mod geometry;
 mod record;
 mod surface;
 mod survey;
@@ -34,6 +35,9 @@ use crate::species::Species;
 use crate::structure::{Axis, Origin, Structure};
 pub use canonical::{canonical, digest, identities};
 pub use executor::Work;
+pub use geometry::{
+    roots_geometry, BearerFrame, GeometryTables, PaGeometry, RootGeometry, ZoneGeometry,
+};
 use executor::{expand, Context, Expanded, BEARER};
 pub use record::FineRoot;
 use record::{Attachment, Committed, Frame};
@@ -82,6 +86,8 @@ pub struct Fine {
     pub above: usize,
     pub roots: Vec<(FineRoot, usize, Work)>,
     pub starts: Vec<usize>,
+    /// The seconds the expansion took, every item on the plan's cores.
+    pub expand_seconds: f64,
 }
 
 /// Grows `species` above `plan`'s cut on the CPU, then expands every fine
@@ -137,7 +143,9 @@ pub fn grow_fine(
         seed: request.seed,
         age: request.age,
     };
+    let started = std::time::Instant::now();
     let expanded = execute(&cx, &roots, plan, threads)?;
+    let expand_seconds = started.elapsed().as_secs_f64();
     let mut structure = bounded.into_structure();
     let above = structure.axes.len();
     let mut out = Vec::with_capacity(roots.len());
@@ -161,6 +169,7 @@ pub fn grow_fine(
         above,
         roots: out,
         starts,
+        expand_seconds,
     })
 }
 
