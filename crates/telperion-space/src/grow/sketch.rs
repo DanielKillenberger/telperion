@@ -89,7 +89,21 @@ impl Grower<'_> {
             self.leaves.extend(leaves);
             tips.push(*at);
         }
-        let field = Field::on(&sketch.light, &self.leaves, &tips, self.threads);
+        let field = match self
+            .oracle
+            .as_mut()
+            .and_then(|o| o.grouping.filter(|g| g.leaves))
+        {
+            Some(g) => {
+                let oracle = self.oracle.as_mut().expect("an oracle");
+                let axes = std::mem::take(&mut oracle.leaf_axes);
+                let owner: Vec<Option<usize>> =
+                    axes.iter().map(|&i| oracle.root(&self.axes, i)).collect();
+                let leaves = super::partition::regroup(&self.leaves, &owner, &g);
+                Field::on(&sketch.light, &leaves, &tips, self.threads)
+            }
+            None => Field::on(&sketch.light, &self.leaves, &tips, self.threads),
+        };
         report(Stage::Pass(Pass::ShadeField));
         let mut read = vec![0.0; tips.len()];
         crate::cores::fill(&mut read, 1 << 10, self.threads, &|k| field.at(tips[k]));
@@ -113,6 +127,7 @@ impl Grower<'_> {
             }
         }
         self.leaves.truncate(own);
+        self.mark(cycle, 3);
         report(Stage::Pass(Pass::ShadeRead));
     }
 
@@ -193,7 +208,18 @@ impl Grower<'_> {
             presence[i] = 0.0;
         }
         let sized = match (&self.couple, &self.fine) {
-            (None, None) => sizes(&got, &presence, &psi, &rows.pa),
+            (None, None) => match self
+                .oracle
+                .as_ref()
+                .and_then(|o| o.grouping.filter(|g| g.sizes))
+            {
+                Some(g) => {
+                    let sums = self.grouped_sums(&got, (&presence, &psi, &rows.pa), &g);
+                    let factor = |p: usize| (sums[p][1] > 0.0).then_some(sums[p]);
+                    read_sizes(&got, (&presence, &psi, &rows.pa), &factor)
+                }
+                None => sizes(&got, &presence, &psi, &rows.pa),
+            },
             (_, Some(reads)) => {
                 let means = reads.means.get(cycle as usize);
                 let mean = |g: usize| means.map_or(1.0, |m| m[g]);

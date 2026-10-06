@@ -13,6 +13,7 @@ pub(crate) mod couple;
 mod draw;
 pub(crate) mod oracle;
 mod parallel;
+pub(crate) mod partition;
 mod relay;
 mod settle;
 mod shoot;
@@ -375,14 +376,17 @@ impl Grower<'_> {
     fn step(&mut self, cycle: u32, report: &mut dyn FnMut(Stage)) -> Result<()> {
         let rows = self.rows();
         self.balance(cycle, rows.as_ref());
+        self.mark(cycle, 0);
         report(Stage::Pass(Pass::Balance));
         self.allot(rows.as_ref(), cycle);
         drop(rows);
         self.advance_fine(cycle);
+        self.mark(cycle, 1);
         report(Stage::Pass(Pass::Allot));
         let live = std::mem::take(&mut self.live);
         self.grow_live(live, cycle, report)?;
         self.wake(cycle)?;
+        self.mark(cycle, 2);
         report(Stage::Pass(Pass::Wake));
         Ok(())
     }

@@ -149,12 +149,25 @@ impl Grower<'_> {
             .iter()
             .enumerate()
             .map(|(k, p)| (first_new + k, 0, p.as_ref().expect("drawn").laid));
+        let mut owners = self
+            .oracle
+            .as_mut()
+            .map(|o| std::mem::take(&mut o.leaf_axes));
+        if let Some(o) = owners.as_mut() {
+            o.clear();
+        }
         for (i, from, to) in laid.chain(made) {
             let axis = &self.axes[i];
             let area = species.states[axis.pa].leaf_area;
             for p in &axis.phytomers[from..to] {
                 leaves.push((p.tip, p.scale * p.size * area));
             }
+            if let Some(o) = owners.as_mut() {
+                o.extend(std::iter::repeat_n(i, to - from));
+            }
+        }
+        if let (Some(oracle), Some(o)) = (self.oracle.as_mut(), owners) {
+            oracle.leaf_axes = o;
         }
         sketch
             .pencils

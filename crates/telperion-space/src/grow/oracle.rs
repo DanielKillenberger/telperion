@@ -13,7 +13,8 @@
 //!   their tips' positions, fitted that cycle (option B's best).
 //!
 //! An experiment behind its own entry point: `grow` never builds one.
-use super::{run_beside, Apex, Beside, Options};
+use super::partition::Grouping;
+use super::{run_beside, Apex, Beside, Grower, Options};
 use crate::bounded::Expected;
 use crate::closed_form::boundary::Rows;
 use crate::error::Result;
@@ -39,6 +40,12 @@ pub(crate) struct Oracle {
     read: Read,
     root_of: Vec<Option<usize>>,
     growth: Vec<Vec<[f64; 2]>>,
+    /// Probe (a): how the whole-tree reductions are grouped (none: as
+    /// today), the axis each of the cycle's leaves stands on, and each
+    /// cycle's state hashed after each phase.
+    pub grouping: Option<Grouping>,
+    pub leaf_axes: Vec<usize>,
+    phases: Vec<[u64; 4]>,
 }
 
 /// A tree grown under the oracle, and its growth per cycle and PA.
@@ -55,13 +62,7 @@ pub fn grow_oracle(
     cut: f64,
     read: Read,
 ) -> Result<Oracled> {
-    let oracle = Oracle {
-        rows: expected.rows(),
-        cut,
-        read,
-        root_of: Vec::new(),
-        growth: Vec::new(),
-    };
+    let oracle = Oracle::new(expected, cut, read, None);
     let beside = Beside {
         oracle: Some(oracle),
         ..Beside::default()
@@ -74,7 +75,65 @@ pub fn grow_oracle(
     })
 }
 
+/// A tree grown as probe (a) partitions it, and its state hashed after
+/// each phase of each cycle.
+pub struct Partitioned {
+    pub structure: Structure,
+    pub phases: Vec<[u64; 4]>,
+}
+
+/// Grows `species` as `grow` does, every whole-tree reduction grouped as
+/// a partition at `cut` takes it (`grouping`; none, today's), hashing
+/// each phase.
+pub fn grow_partitioned(
+    species: &Species,
+    request: Request,
+    expected: &Expected,
+    cut: f64,
+    grouping: Option<Grouping>,
+) -> Result<Partitioned> {
+    let oracle = Oracle::new(expected, cut, Read::Exact, grouping);
+    let beside = Beside {
+        oracle: Some(oracle),
+        ..Beside::default()
+    };
+    let quiet = &mut |_| {};
+    let (grown, besides) = run_beside(species, request, (quiet, true), Options::default(), beside)?;
+    Ok(Partitioned {
+        structure: grown.structure,
+        phases: besides.oracle.map_or_else(Vec::new, |o| o.phases),
+    })
+}
+
 impl Oracle {
+    fn new(expected: &Expected, cut: f64, read: Read, grouping: Option<Grouping>) -> Self {
+        Self {
+            rows: expected.rows(),
+            cut,
+            read,
+            root_of: Vec::new(),
+            growth: Vec::new(),
+            grouping,
+            leaf_axes: Vec::new(),
+            phases: Vec::new(),
+        }
+    }
+
+    /// The fine root axis `i` stands in, the axes classed first.
+    pub(super) fn root(&mut self, axes: &[Axis], i: usize) -> Option<usize> {
+        self.classify(axes);
+        self.root_of[i]
+    }
+
+    /// Records phase `k`'s hash in `cycle`.
+    pub(super) fn mark(&mut self, cycle: u32, k: usize, h: u64) {
+        let c = cycle as usize;
+        if self.phases.len() <= c {
+            self.phases.resize(c + 1, [0; 4]);
+        }
+        self.phases[c][k] = h;
+    }
+
     /// Classes the axes made since the last call (parents first).
     fn classify(&mut self, axes: &[Axis]) {
         for axis in &axes[self.root_of.len()..] {
@@ -182,6 +241,83 @@ fn solve(mut a: [[f64; 3]; 3], mut y: [f64; 3]) -> [f64; 3] {
     w
 }
 
+impl Grower<'_> {
+    /// Each PA's Σp and Σp(v/p)^ψ, grouped as a partition at the oracle's
+    /// cut takes them (probe (a)).
+    pub(super) fn grouped_sums(
+        &mut self,
+        got: &[f64],
+        (presence, psi, pa): (&[f64], &[f64], &[usize]),
+        g: &Grouping,
+    ) -> Vec<[f64; 2]> {
+        let pas = self.species.states.len();
+        let oracle = self.oracle.as_mut().expect("an oracle");
+        let items: Vec<(Option<usize>, Vec<f64>)> = (0..got.len())
+            .filter(|&i| presence[i] > 0.0)
+            .map(|i| {
+                let mut v = vec![0.0; 2 * pas];
+                v[2 * pa[i]] = presence[i];
+                v[2 * pa[i] + 1] = (got[i] / presence[i]).powf(psi[i]) * presence[i];
+                (oracle.root(&self.axes, i), v)
+            })
+            .collect();
+        let sums = super::partition::grouped(&items, 2 * pas, g);
+        (0..pas).map(|p| [sums[2 * p], sums[2 * p + 1]]).collect()
+    }
+
+    /// The leaf-light girth's tree-wide mean for re-laid `tree` (its axes
+    /// from the grower's `from`), grouped as a partition takes it; none
+    /// where nothing groups it, and `thicken` takes it whole.
+    pub(super) fn grouped_leaf_mean(&mut self, tree: &Structure, from: &[usize]) -> Option<f64> {
+        let species = self.species;
+        if species.states.iter().all(|s| s.leaf_girth == 0.0) {
+            return None;
+        }
+        let oracle = self.oracle.as_mut()?;
+        let g = oracle.grouping.filter(|g| g.girth)?;
+        let mut items = Vec::new();
+        for (axis, &i) in tree.axes.iter().zip(from) {
+            let state = &species.states[axis.pa];
+            let root = oracle.root(&self.axes, i);
+            for p in &axis.phytomers {
+                let pipe = crate::girth::own(&state.form, p, tree.age, p.scale, 1.0);
+                items.push((root, vec![pipe, pipe * p.light.powf(state.leaf_girth)]));
+            }
+        }
+        let sums = super::partition::grouped(&items, 2, &g);
+        (sums[1] > 0.0).then(|| sums[0] / sums[1])
+    }
+
+    /// Under an oracle, hashes phase `k` of `cycle`: the living apexes'
+    /// balance (kept, memory), sizes, the tree grown (axes, phytomers,
+    /// living), or their light and tips.
+    pub(super) fn mark(&mut self, cycle: u32, k: usize) {
+        let (Some(oracle), Some(sketch)) = (self.oracle.as_mut(), self.sketch.as_ref()) else {
+            return;
+        };
+        let live = self.live.iter().filter(|a| a.axis < sketch.pencils.len());
+        let p = |a: &Apex| &sketch.pencils[a.axis];
+        let h = match k {
+            0 => super::partition::hash(live.flat_map(|a| [p(a).kept, p(a).memory])),
+            1 => super::partition::hash(live.map(|a| p(a).size)),
+            2 => {
+                let phytomers: usize = self.axes.iter().map(|a| a.phytomers.len()).sum();
+                let n = [self.axes.len(), phytomers, self.live.len()];
+                super::partition::hash(n.into_iter().map(|x| x as f64))
+            }
+            _ => {
+                let tip = |a: &Apex| {
+                    let axis = &self.axes[a.axis];
+                    axis.phytomers.last().map_or(axis.base, |q| q.tip)
+                };
+                let v = live.flat_map(|a| [p(a).light, tip(a).x, tip(a).y, tip(a).z]);
+                super::partition::hash(v)
+            }
+        };
+        oracle.mark(cycle, k, h);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -196,6 +332,43 @@ mod tests {
             .collect();
         for (got, s) in fitted(&seen).iter().zip(&seen) {
             assert!((got - s.0).abs() < 1e-4, "{got} against {}", s.0);
+        }
+    }
+
+    /// Probe (a): ungrouped, the partitioned run is today's tree; grouped,
+    /// it keeps every phytomer and moves nothing visible.
+    #[test]
+    fn a_partition_regroups_only_the_tree_wide_sums() {
+        use crate::grow::partition::{Grouping, Order};
+        let species = crate::oak();
+        let request = crate::grow::Request {
+            age: 24,
+            seed: 7,
+            budget: 20_000_000,
+            light: crate::light::Light {
+                extinction: 0.5,
+                sky: 0.5,
+            },
+        };
+        let expected = Expected::new(&species, request.age, 0);
+        let today = crate::grow::grow(&species, request).unwrap();
+        let whole = grow_partitioned(&species, request, &expected, 1024.0, None).unwrap();
+        assert_eq!(crate::fine::digest(&whole.structure), crate::fine::digest(&today));
+        let g = Grouping {
+            order: Order::Reverse,
+            chunk: 7,
+            sizes: true,
+            leaves: true,
+            girth: true,
+        };
+        let part = grow_partitioned(&species, request, &expected, 1024.0, Some(g)).unwrap();
+        let (a, b) = (&whole.structure, &part.structure);
+        assert_eq!(a.axes.len(), b.axes.len());
+        for (x, y) in a.axes.iter().zip(&b.axes) {
+            assert_eq!((x.lineage, x.phytomers.len()), (y.lineage, y.phytomers.len()));
+            for (p, q) in x.phytomers.iter().zip(&y.phytomers) {
+                assert!((p.tip - q.tip).length() < 1e-9);
+            }
         }
     }
 }

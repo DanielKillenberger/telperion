@@ -96,7 +96,7 @@ impl Grower<'_> {
         // Each fine root's expected section and load on its bearer.
         let girth = Girth {
             disused: self.fine_stands(cycle, &tree, &laid).1,
-            leaf_mean: None,
+            leaf_mean: self.grouped_leaf_mean(&tree, &from),
         };
         thicken(&mut tree, self.species, &girth, self.threads);
         report(Stage::Pass(Pass::RelaySettle));
@@ -150,6 +150,18 @@ impl Grower<'_> {
         self.leaves.clear();
         for piece in leaves {
             self.leaves.extend(piece);
+        }
+        if let Some(oracle) = self.oracle.as_mut() {
+            oracle.leaf_axes.clear();
+            for (i, axis) in self.axes.iter().enumerate() {
+                let n = axis
+                    .phytomers
+                    .iter()
+                    .rev()
+                    .take_while(|p| p.cycle == cycle)
+                    .count();
+                oracle.leaf_axes.extend(std::iter::repeat_n(i, n));
+            }
         }
         report(Stage::Pass(Pass::RelayWrite));
         Ok(())
