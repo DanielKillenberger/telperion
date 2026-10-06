@@ -42,7 +42,7 @@ impl Caps {
 
 /// A sleeping bud's and a woken bud's words (`chain.wgsl`).
 const SW: u32 = 10;
-const QW: u32 = 8;
+const QW: u32 = 12;
 
 /// The unit tables, then each PA's row (flags, lived, successor, words at)
 /// and its words (`chain.wgsl`); the rows' offset in the table.
@@ -138,7 +138,15 @@ pub(super) struct Grower {
 
 /// One dispatch's chains as grown: each chain's axes, or none where it
 /// outgrew its region.
-pub(super) type Grown = Vec<Option<Vec<ChainAxis>>>;
+pub(super) type Grown = Vec<Option<Grew>>;
+
+/// A chain as grown: its topology, and its axes' words, which its buds'
+/// own chains are read from.
+#[derive(Debug, Clone, PartialEq)]
+pub(super) struct Grew {
+    pub axes: Vec<ChainAxis>,
+    pub words: Vec<u32>,
+}
 
 impl Grower {
     pub(super) fn new(gpu: &Gpu) -> Self {
@@ -284,7 +292,10 @@ impl Grower {
                 let [a, p] = offsets[c].map(|o| o as usize);
                 (overflow == 0).then(|| {
                     let a = &axes[a * AXW..(a + count as usize) * AXW];
-                    topology(bud, a, &phyts[p * PW..(p + grown as usize) * PW])
+                    Grew {
+                        axes: topology(bud, a, &phyts[p * PW..(p + grown as usize) * PW]),
+                        words: a.to_vec(),
+                    }
                 })
             })
             .collect();

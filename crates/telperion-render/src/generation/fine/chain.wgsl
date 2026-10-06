@@ -40,7 +40,7 @@ const ROW: u32 = 18u;
 const TICKS: u32 = 0x100000u;
 const STACK: u32 = 16u;
 const SW: u32 = 10u;
-const QW: u32 = 8u;
+const QW: u32 = 12u;
 const BW: u32 = 11u;
 const DORMANT = vec2<u32>(0xfffffff9u, 0xffffffffu);
 
@@ -356,6 +356,14 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
         if at == NONE {
             break;
         }
+        // Its waking, for its own chain: the share of its waking cycle it
+        // slept, the stage it wakes in and its time there, its sleeping
+        // bud's PA, and its bearer's horizon.
+        wr(at, SLEEP, sleepers[p + 8u]);
+        wr(at, ENDED_RELAYS, sleepers[p + 9u]);
+        wr64(at, UNITS, vec2<u32>(sleepers[p + 10u], sleepers[p + 11u]));
+        wr(at, 31u, sleepers[p + 2u]);
+        wr64(at, HORIZON, rd64(sleepers[p + 3u], HORIZON));
     }
     if overflow == 0u {
         shed(select(1u, 0u, seed), conditioned, buds[b + 10u]);

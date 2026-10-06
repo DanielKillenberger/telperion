@@ -92,6 +92,11 @@ fn wakes(cycle: u32) {
                     sleepers[p + 5u] = sleepers[q + 3u];
                     sleepers[p + 6u] = cycle;
                     sleepers[p + 7u] = a;
+                    // What its own chain's waking reads.
+                    sleepers[p + 8u] = sleepers[q + 7u];
+                    sleepers[p + 9u] = stage.x;
+                    sleepers[p + 10u] = stage.y;
+                    sleepers[p + 11u] = stage.z;
                     n_pends += 1u;
                 }
                 continue;

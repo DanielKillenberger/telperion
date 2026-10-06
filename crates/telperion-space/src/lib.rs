@@ -47,7 +47,7 @@ pub use bounded::{grow_bounded, Bounded, Expected};
 pub use closed_form::expected_counts;
 pub use error::{Error, Result};
 pub use fine::{
-    canonical, chain_cases, digest, grow_fine, identities, survey_lit, ChainAxis, ChainBud,
+    canonical, chain_cases, digest, fine_cases, grow_fine, identities, survey_lit, ChainAxis, ChainBud,
     ChainTables, Fine, FineRoot, Order, PaRow, Plan, Surveyed, UnitZone, Units, Woke, Work,
 };
 pub use grow::{grow, grow_staged, sketch, Request, Stage};

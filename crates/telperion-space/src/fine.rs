@@ -18,8 +18,8 @@
 mod canonical;
 mod executor;
 mod record;
-mod survey;
 mod surface;
+mod survey;
 mod tables;
 #[cfg(test)]
 mod tests;
@@ -37,8 +37,8 @@ pub use executor::Work;
 use executor::{expand, Context, Expanded, BEARER};
 pub use record::FineRoot;
 use record::{Attachment, Committed, Frame};
+pub use surface::{chain_cases, fine_cases, ChainAxis, ChainBud, ChainTables, PaRow, Woke};
 pub use survey::{survey_lit, Surveyed};
-pub use surface::{chain_cases, ChainAxis, ChainBud, ChainTables, PaRow, Woke};
 pub use tables::{UnitZone, Units};
 
 /// Where the work runs: the cut in expected kept phytomers (a bud at or
@@ -75,12 +75,13 @@ impl Default for Plan {
 
 /// A tree grown above the cut and expanded below it: the tree (the
 /// structure above the cut first, then each fine root's axes in the
-/// order the roots were recorded), its axes above the cut, and each
-/// root's record, kept phytomers and work.
+/// order the roots were recorded), its axes above the cut, each root's
+/// record, kept phytomers and work, and where each root's axes start.
 pub struct Fine {
     pub structure: Structure,
     pub above: usize,
     pub roots: Vec<(FineRoot, usize, Work)>,
+    pub starts: Vec<usize>,
 }
 
 /// Grows `species` above `plan`'s cut on the CPU, then expands every fine
@@ -106,7 +107,14 @@ pub fn grow_fine(
         records,
         handed,
         ..
-    } = chains(&rules, &rows, request.seed, start, (&fine, &mut |_| {}), true)?;
+    } = chains(
+        &rules,
+        &rows,
+        request.seed,
+        start,
+        (&fine, &mut |_| {}),
+        true,
+    )?;
     let mut above = Structure {
         age: request.age,
         pas: species.states.len(),
@@ -133,8 +141,10 @@ pub fn grow_fine(
     let mut structure = bounded.into_structure();
     let above = structure.axes.len();
     let mut out = Vec::with_capacity(roots.len());
+    let mut starts = Vec::with_capacity(roots.len() + 1);
     for (root, done) in roots.into_iter().zip(expanded) {
         let offset = structure.axes.len();
+        starts.push(offset);
         let kept = done.axes.iter().map(|a| a.phytomers.len()).sum();
         let bearer = root.attachment.bearer;
         structure
@@ -145,10 +155,12 @@ pub fn grow_fine(
     if structure.phytomer_count() == 0 {
         return Err(Error::Collapsed);
     }
+    starts.push(structure.axes.len());
     Ok(Fine {
         structure,
         above,
         roots: out,
+        starts,
     })
 }
 

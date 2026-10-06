@@ -22,6 +22,8 @@ mod chain_tests;
 #[cfg(test)]
 mod chains;
 #[cfg(test)]
+mod roots;
+#[cfg(test)]
 mod tests;
 #[cfg(test)]
 mod units;

@@ -63,7 +63,8 @@ fn grow_all(
         (caps, size) = (caps.times(8), 64);
         assert!(caps.axes < 1 << 16, "a chain no region holds");
     }
-    (grown.into_iter().map(Option::unwrap).collect(), cost)
+    let axes = grown.into_iter().map(|g| g.expect("grown").axes).collect();
+    (axes, cost)
 }
 
 /// The tree's chains as the CPU grows them, and the counts compared.

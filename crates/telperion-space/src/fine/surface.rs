@@ -7,6 +7,7 @@ use super::tables::Units;
 use crate::alone::{chains, seed_item, Seen};
 use crate::bounded::Expected;
 use crate::error::Result;
+use crate::fine::{grow_fine, Fine, Plan};
 use crate::fixed::{neg_log2, q32, q62, ticks, INF};
 use crate::grow::alone::{rules, Bud, Chain};
 use crate::grow::Request;
@@ -220,6 +221,65 @@ pub fn chain_cases(species: &Species, request: Request) -> Result<Vec<(ChainBud,
         true,
     )?;
     Ok(out)
+}
+
+/// A tree grown above `plan`'s cut and expanded below it on the CPU
+/// reference executor: each fine root's bud as the GPU executor takes it,
+/// and the root's kept axes as the CPU expanded them (its first axis's
+/// parent none, the rest numbered among the root's).
+pub fn fine_cases(
+    species: &Species,
+    request: Request,
+    plan: Plan,
+) -> Result<(Fine, Vec<(ChainBud, Vec<ChainAxis>)>)> {
+    let expected = Expected::new(species, request.age, 0);
+    let fine = grow_fine(species, request, &expected, plan)?;
+    let cases = fine
+        .roots
+        .iter()
+        .enumerate()
+        .map(|(k, (root, ..))| {
+            let bud = ChainBud {
+                context: root.context,
+                ..input(species, request.seed, Some(&root.bud))
+            };
+            let (from, to) = (fine.starts[k], fine.starts[k + 1]);
+            let axes = fine.structure.axes[from..to]
+                .iter()
+                .map(|a| {
+                    let local = |p: usize| (p >= from).then(|| p - from);
+                    let (kind, node, slot, woken, parent) = match a.origin {
+                        Origin::Lateral {
+                            parent,
+                            node,
+                            slot,
+                            woken,
+                            ..
+                        } => (1, node, slot, woken, local(parent)),
+                        Origin::Continuation { parent } => (2, 0, 0, false, local(parent)),
+                        Origin::Relay { parent, node } => (3, node, 0, false, local(parent)),
+                        Origin::Seed => unreachable!("a fine root is a lateral bud"),
+                    };
+                    ChainAxis {
+                        parent,
+                        kind,
+                        node,
+                        slot,
+                        lineage: a.lineage,
+                        pa: a.pa,
+                        birth: a.birth,
+                        apex_end: a.apex_end,
+                        phytomers: a.phytomers.iter().map(|p| (p.cycle, p.key())).collect(),
+                        woken,
+                        kept: true,
+                        context: None,
+                    }
+                })
+                .collect();
+            (bud, axes)
+        })
+        .collect();
+    Ok((fine, cases))
 }
 
 fn input(species: &Species, seed: u64, bud: Option<&Bud>) -> ChainBud {
