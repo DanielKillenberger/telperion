@@ -180,7 +180,7 @@ fn the_leaf_mean_is_the_grown_trees_at_every_retained_share() {
     };
     let radius = |retained: f64, species: &mut Species| {
         species.states[0].retained = retained;
-        let g = attachments(&grown.axes, species, grown.age);
+        let g = attachments(&grown.axes, species, grown.age, 1);
         let girth = disused(&g, &shed, species);
         let mut kept = Structure {
             age: grown.age,

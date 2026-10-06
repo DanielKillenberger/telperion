@@ -37,6 +37,7 @@ mod shed;
 mod species;
 mod spruce;
 mod structure;
+mod upward;
 
 pub use alone::{field_probe, grow_alone, grow_alone_with, Alone, ChainCost, FieldProbe};
 pub use beech::beech;

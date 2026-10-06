@@ -41,7 +41,7 @@ impl Grower<'_> {
         // its leaves: what each shed branch had laid down, and the one
         // population the leaf term's mean is taken over at any retained
         // share.
-        let grown = keeps.then(|| attachments(&self.axes, species, request.age));
+        let grown = keeps.then(|| attachments(&self.axes, species, request.age, threads));
         stage(Stage::Pass(Pass::Attachments));
         let shed = shed(self.axes, species, request.age);
         stage(Stage::Pass(Pass::Shed));
