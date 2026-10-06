@@ -13,7 +13,7 @@ use super::GrowInput;
 use crate::math::Vec3;
 use crate::tree::{BudFate, Node, NodeKind, ShootState, Tree};
 use crate::{Error, Result};
-use telperion_space::{Origin, Request, Structure};
+use telperion_space::{Axis, Origin, Request, Structure};
 
 /// The most phytomers a tree may grow, the shed ones included: a safety
 /// bound no shipped species reaches at the harness's ages (the tree-space
@@ -54,7 +54,48 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
             value: e.to_string(),
         },
     })?;
-    Ok(convert(&structure, &input.space.trunk))
+    Ok(convert(&canonical(structure)?, &input.space.trunk))
+}
+
+/// The grown structure in one canonical axis order, parents first and
+/// siblings by lineage (`telperion_space::identities`; one sort), so the
+/// conversion's node numbering and a relay's girth never depend on how the
+/// tree was assembled: the whole-tree grower, fn-211's stepped executor and
+/// fn-209's GPU assembly convert to one tree (host, 2026-10-07). The axes
+/// are moved, not copied. Two axes of one identity are refused by name.
+fn canonical(mut structure: Structure) -> Result<Structure> {
+    let ids = telperion_space::identities(&structure);
+    let mut depth = vec![0usize; ids.len()];
+    for (i, axis) in structure.axes.iter().enumerate() {
+        depth[i] = axis.origin.parent().map_or(0, |p| depth[p] + 1);
+    }
+    let mut order: Vec<usize> = (0..ids.len()).collect();
+    order.sort_unstable_by_key(|&i| (depth[i], ids[i]));
+    if order.windows(2).any(|w| ids[w[0]] == ids[w[1]]) {
+        return Err(Error::InvalidInput("engine: two axes share a lineage"));
+    }
+    let mut at = vec![0usize; order.len()];
+    for (k, &i) in order.iter().enumerate() {
+        at[i] = k;
+    }
+    let mut axes: Vec<Option<Axis>> = std::mem::take(&mut structure.axes)
+        .into_iter()
+        .map(Some)
+        .collect();
+    structure.axes = order
+        .iter()
+        .map(|&i| {
+            let mut axis = axes[i].take().expect("an axis is moved once");
+            match &mut axis.origin {
+                Origin::Seed => {}
+                Origin::Lateral { parent, .. }
+                | Origin::Continuation { parent }
+                | Origin::Relay { parent, .. } => *parent = at[*parent],
+            }
+            axis
+        })
+        .collect();
+    Ok(structure)
 }
 
 /// The engine's z up as the pipeline's y up.
@@ -263,3 +304,6 @@ fn convert(structure: &Structure, trunk: &[usize]) -> Tree {
         ..Tree::default()
     }
 }
+
+#[cfg(test)]
+mod tests;

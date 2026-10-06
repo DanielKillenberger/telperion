@@ -43,3 +43,28 @@ palm 40 7 nodes 993 clothed e7f7c3b375270962 ms 2
 palm 80 1 nodes 1473 clothed 398ec484fa22ce8b ms 3
 palm 80 7 nodes 1473 clothed 8401a8d5b6fcbd40 ms 3
 ```
+
+## After the canonical axis order (host, 2026-10-07)
+
+The pipeline now puts every grown structure into one canonical axis order before conversion (parents first, siblings by lineage, `pipeline/space.rs::canonical`, the engine's own order: `the_order_is_the_engines_canonical_order`), so the conversion never depends on how the tree was assembled (`a_tree_assembled_in_another_order_converts_to_the_same_tree`, which also shows the unsorted order reaches the tree). The proof above was taken before the sort. Node counts are unchanged; the trees' hashes move once, the palm's (one axis) not at all:
+
+```
+beech 40 1 nodes 102256 clothed 945218a946ce4064 ms 86
+beech 40 7 nodes 176628 clothed eb0feb34ee35e272 ms 126
+beech 80 1 nodes 1525191 clothed 1fce76e4df125173 ms 1102
+beech 80 7 nodes 2532841 clothed 56da1c879b1bfde7 ms 1738
+spruce 40 1 nodes 1147615 clothed 3deadd87ba252e29 ms 1092
+spruce 40 7 nodes 1107566 clothed af0c3b84aaae7efc ms 1019
+spruce 80 1 nodes 4637482 clothed 8ae9105fe2bfe7ae ms 4381
+spruce 80 7 nodes 4610322 clothed 945721486c0682b7 ms 4297
+oak 40 1 nodes 157595 clothed 8cb290d46d27e1fd ms 374
+oak 40 7 nodes 281160 clothed 48ad8b55d0773760 ms 564
+oak 80 1 nodes 868966 clothed 973b2a55cc12a29e ms 3729
+oak 80 7 nodes 2203466 clothed 762ecf06c6cc21bc ms 8233
+palm 40 1 nodes 993 clothed d7e5916bfdd8537a ms 2
+palm 40 7 nodes 993 clothed e7f7c3b375270962 ms 2
+palm 80 1 nodes 1473 clothed 398ec484fa22ce8b ms 3
+palm 80 7 nodes 1473 clothed 8401a8d5b6fcbd40 ms 3
+```
+
+**Before/after stills**, age 40 seed 1, whole view, 960x720 (`raw/sort/{before,after}/`, gitignored; the before built with the sort bypassed): the oak differs on 5,611 pixels (0.81 %), the beech on 5,820 (0.84 %) (`magick compare -metric AE`), within fn-211's 0.5 to 1.3 %. Viewed (the oak pair): the same tree, crown, limbs and shadow; the difference is scattered leaf placement inside the crown.
