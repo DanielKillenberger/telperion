@@ -9,6 +9,7 @@
 mod advance;
 pub(crate) mod alone;
 mod balance;
+mod draw;
 mod parallel;
 mod relay;
 mod settle;
