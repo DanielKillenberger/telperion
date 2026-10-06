@@ -79,3 +79,16 @@ The stepped executor itself (fn-209's CPU executor resumable cycle by cycle) is 
   - Finished: the oak at 40, seeds 1 and 7, and at 80 seed 1 up to cut 1,024, each at cuts 256, 1,024 and 4,096, in forward, reverse and shuffled order, in chunks of 1, 7 and 64.
   - Still running (the desk at load 14 to 33): the oak at 80 seed 7, the beech and the spruce. The beech and spruce were identical before the change and have none of the three sums.
 - **The oak's stills** at 80, seeds 1 and 7, bare and in leaf, against today's: 0 pixels differ out of 691,200 (`raw/task4/stills/sums-oak-80-{1,7}.png`, viewed).
+
+## Host decision 2: the stepped executor, its build plan (not built yet)
+
+The executor is the engine's own `Grower` scoped to one fine root. Each root is an item: its own axes, draws, pencils, live apexes and sleepers. Item axis 0 is a stub standing for the bearer; axis 1 is the root. A coarse `Grower` holds the structure above the cut and keeps a placeholder at each root's index, so its bearers' children stay in their order. One cycle runs the four phases through hooks the grower already has a place for:
+
+1. **(i) Balance.** Each item sums its subtree's light, upkeep and living status (`balance.rs`, the sums only). The coarse grower injects these at the placeholder and decides the root's own shedding with the placeholder's memory. The root's shed flag and kept share go down, and the item decides its internal laterals with that as its root's.
+2. **(ii) Demand.** Each item reports its subtree's `sub`. The coarse grower's `vigours_from` takes it as the placeholder's light and returns the root's incoming vigour. The item splits it with its root as the split's root (`links[1].parent = None`, so the base reaches it unrounded).
+3. **(iii) Normalisers.** Every grower's per-PA `Sum` partials merge, the coarse grower's and the items' in any order, and every grower sizes its buds by the same `[Σp, Σp(v/p)^ψ]` (`read_sizes`).
+4. **(iv) Growth, waking and layout.** Each grower grows its own apexes (`grow_live`) and wakes its own sleepers. The coarse grower's sketch classes new laterals at the cut and hands each one, with its framed pencil, its draws and its sleepers, to a new item. Each item lays its own axes (`draw`, `pencil`), the root from the handed pencil.
+5. **(iv) The re-lay, every 10 cycles, and the settle.** The tree is assembled for today's `relay` and `settle`: the coarse axes in order, each placeholder replaced by its root, each item's other axes after. Then positions and walks are scattered back. Every reduction they take is either bearer to child, with each parent's children in their order, or order-free (`fixed::sum`), so the assembly order does not change them.
+6. **(iv) Light.** Every grower's leaves are deposited into one lattice (`Sum`, order-free). It is swept once, and every grower reads its own buds.
+
+The order argument that makes it bit-identical rests on one assumption, not yet checked by a run. Each grower's live list must keep the whole tree's live order restricted to that grower: apexes appended as they are made, and removed ones dropped in order. Then each parent's children are numbered in the same relative order in its grower as in the whole tree. The phase digests are now order-free (keyed by lineage), so the stepped run compares with `grow_partitioned(None)` cycle by cycle, phase by phase.

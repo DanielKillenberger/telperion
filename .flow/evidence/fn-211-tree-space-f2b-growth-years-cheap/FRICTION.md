@@ -63,3 +63,10 @@
 - **What slowed it:** another session's work took the load from 5 to 87 for several minutes. Today's oak at 80 s1 took 12.9 s, against 3.3 s at load 6, so those timings are unusable and the cost table had to be rerun.
 - **Cost:** about 5 minutes and one rerun.
 - **What would remove it:** a lock or a quiet window for timing runs on the shared desk, as `gpu.lock` gives the GPU; a local setup matter, reported.
+
+## 2026-10-06, task 4 worker: probe (a)'s matrix takes over an hour on the shared desk
+
+- **Doing:** re-running probe (a) after the order-free sums: 12 trees × 36 partitionings, each a whole tree grown.
+- **What slowed it:** each run grows the tree again from nothing, and the desk's load ran from 14 to 33. The oak at 80 takes 4 to 10 s a run, so the matrix ran for more than an hour and was still running at the commit.
+- **Cost:** the commit had to state a partial result; about an hour of wall time.
+- **What would remove it:** run the 36 partitionings in one grower pass, each partition's sums and lattices taken side by side from the same terms (they share every term and differ only in grouping), or a smaller matrix at 80 (one order, one chunk).
