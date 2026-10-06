@@ -248,7 +248,8 @@ fn ms(c: &Cost, wall: f64) -> String {
 
 /// The beech and spruce at 40 and 80, seeds 1 and 7: geometry held
 /// against the CPU, and the whole fine stage timed on both executors, the
-/// worst item (the root slowest on one CPU core) alone included: `cargo
+/// worst item (the root the GPU grows that is slowest on one CPU core)
+/// alone included: `cargo
 /// test --profile ci -p telperion-render fine_geometry_at_40_and_80 --
 /// --ignored --nocapture`, with `FINE_GPU_LOCK` naming the GPU lock.
 #[test]
@@ -286,6 +287,7 @@ fn fine_geometry_at_40_and_80() {
                     .roots
                     .iter()
                     .enumerate()
+                    .filter(|(i, _)| !r.attached[*i].grounded)
                     .map(|(i, x)| (i, x.2.micros / 1e3))
                     .max_by(|a, b| a.1.total_cmp(&b.1))
                     .expect("a root");
@@ -343,4 +345,3 @@ fn fine_geometry_at_40_and_80() {
         }
     }
 }
-
