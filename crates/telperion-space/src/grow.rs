@@ -7,6 +7,7 @@
 //! element from those leads, so a setting that crosses a draw grows the
 //! element in from nothing.
 mod advance;
+pub(crate) mod alone;
 mod balance;
 mod parallel;
 mod relay;
@@ -29,7 +30,7 @@ use crate::sag;
 use crate::shed::{lasting, shed};
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
-use shoot::Rules;
+pub(crate) use shoot::Rules;
 use sketch::Sketch;
 
 /// What to grow: cycles, the seed, the phytomer budget and the site's light.
@@ -209,6 +210,7 @@ pub(crate) fn run(
             age: request.age,
             budget: request.budget,
             grown: 0,
+            alone: false,
         },
         species,
         threads,
@@ -231,6 +233,7 @@ pub(crate) fn run(
         woken: Vec::new(),
         sketch,
         leaves: Vec::new(),
+        wakes: Vec::new(),
     };
     let mut advanced = Vec::new();
     for cycle in 1..=request.age {
@@ -421,6 +424,8 @@ struct Grower<'a> {
     /// The rough layout, where light shades, and the leaves of the cycle.
     sketch: Option<Sketch>,
     leaves: Vec<(Vec3, f64)>,
+    /// Where a chain grows alone, the sleeping buds that woke on it.
+    wakes: Vec<alone::Pending>,
 }
 
 impl Grower<'_> {

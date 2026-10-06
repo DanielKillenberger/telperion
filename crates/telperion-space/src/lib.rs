@@ -13,6 +13,7 @@
 //! from nothing as a setting passes the draw, so a walk of any setting at a
 //! fixed seed changes the tree by degree.
 mod allocation;
+mod alone;
 mod beech;
 mod blend;
 mod bounded;
@@ -36,6 +37,7 @@ mod species;
 mod spruce;
 mod structure;
 
+pub use alone::{grow_alone, Alone, ChainCost};
 pub use beech::beech;
 pub use blend::blend;
 pub use bounded::{grow_bounded, Bounded, Expected};

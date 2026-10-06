@@ -15,7 +15,8 @@ use crate::structure::{Axis, Origin};
 /// What every growth unit reads and none writes: the species, its
 /// laterals as drawn, the bound on each PA's life, the windows, and the
 /// phytomers grown before the cycle, against the budget.
-pub(super) struct Rules<'a> {
+#[derive(Clone)]
+pub(crate) struct Rules<'a> {
     pub species: &'a Species,
     /// Each PA's zones' lateral probabilities as drawn (`PaState::laterals`).
     pub laterals: Vec<Vec<Vec<f64>>>,
@@ -27,6 +28,10 @@ pub(super) struct Rules<'a> {
     pub age: u32,
     pub budget: u32,
     pub grown: u64,
+    /// Whether a chain grows alone (fn-209 probe P2): the laterals it
+    /// makes and the sleeping buds that wake on it are buds it bears,
+    /// made but not grown.
+    pub alone: bool,
 }
 
 /// What the rough layout gives a growing apex (`sketch.rs`): its light,
@@ -291,10 +296,13 @@ impl<'g, 'a> Shoot<'g, 'a> {
             }
             Origin::Seed | Origin::Lateral { .. } => (key.0, key.onto(pa)),
         };
-        self.next.push(Apex {
-            axis: self.len(),
-            spent,
-        });
+        let borne = self.rules.alone && matches!(origin, Origin::Lateral { woken: false, .. });
+        if !borne {
+            self.next.push(Apex {
+                axis: self.len(),
+                spent,
+            });
+        }
         let draws = Draws {
             birth: made,
             ..Draws::default()

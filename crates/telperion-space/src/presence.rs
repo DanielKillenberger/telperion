@@ -20,6 +20,7 @@ pub const SPAN: f64 = 2.0;
 pub const FLOOR: f64 = 0.05;
 
 /// The expected wood each draw decides, as a share of the whole tree's.
+#[derive(Clone)]
 pub(crate) struct Windows {
     /// expected[m][k]: the log of the metres a bud of PA k grows in m cycles.
     expected: Vec<Vec<f64>>,

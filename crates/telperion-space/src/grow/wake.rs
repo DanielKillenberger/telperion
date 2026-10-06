@@ -23,6 +23,9 @@ impl Grower<'_> {
         if asleep.is_empty() {
             return Ok(());
         }
+        if self.rules.alone {
+            return self.borne_wakes(asleep, cycle);
+        }
         // The buds that wake make axes of their own and touch none the
         // tree has: one share, numbered from the tree's count.
         let mut shoot = Shoot::new(&self.rules, self.reads(), (&self.roots, &self.horizon));
@@ -54,7 +57,7 @@ impl Shoot<'_, '_> {
     /// The sleeping bud `sleeper` wakes on `bearer`, aged to `pa` with
     /// `spent` of it and `reach` of it reached, carried there by `carried`;
     /// `next` is the bearer's next growth unit.
-    fn woke(
+    pub(super) fn woke(
         &mut self,
         sleeper: &Sleeper,
         (pa, spent, reach): (usize, f64, f64),

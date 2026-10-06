@@ -63,6 +63,10 @@ impl Expected {
         }
     }
 
+    pub(crate) fn rows(&self) -> Arc<Rows> {
+        self.rows.clone()
+    }
+
     /// The seconds reading them took, and the rows held.
     pub fn cost(&self) -> (f64, usize) {
         (self.seconds, self.rows.len())
@@ -127,7 +131,7 @@ impl<'s> Bounded<'s> {
         Ok(tree)
     }
 
-    fn settled(
+    pub(crate) fn settled(
         species: &'s Species,
         structure: Structure,
         records: Vec<Record>,
