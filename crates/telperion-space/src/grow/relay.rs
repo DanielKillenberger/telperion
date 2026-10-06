@@ -11,7 +11,7 @@ use crate::cores::{map, picked, PIECE};
 use crate::error::Result;
 use crate::geometry::{place, scale};
 use crate::girth::{thicken, Girth};
-use crate::presence::{assign, Draws};
+use crate::presence::{assign_living, Draws};
 use crate::sag;
 use crate::shed::{shed, standing};
 use crate::structure::{Axis, Origin, Structure};
@@ -33,7 +33,7 @@ impl Grower<'_> {
             index[i] = j;
         }
         // Copied on every core, each renamed to the standing tree's indices.
-        let (grown, made) = (&self.axes, &self.draws);
+        let grown = &self.axes;
         let copied = map(
             from.chunks(PIECE).collect(),
             1,
@@ -52,26 +52,25 @@ impl Grower<'_> {
                         axis
                     })
                     .collect();
-                let draws: Vec<Draws> = piece.iter().map(|&i| made[i].clone()).collect();
-                (axes, draws)
+                axes
             },
         );
-        let (mut axes, mut draws) = (
-            Vec::with_capacity(from.len()),
-            Vec::with_capacity(from.len()),
-        );
-        for (a, d) in copied {
+        let mut axes = Vec::with_capacity(from.len());
+        for a in copied {
             axes.extend(a);
-            draws.extend(d);
         }
-        // The apexes living now, as the grown tree marks its own at the end.
+        // Each standing axis's draws, read where they stand; the apexes
+        // living now live on whole, as the grown tree marks its own at the
+        // end.
+        let draws: Vec<&Draws> = from.iter().map(|&i| &self.draws[i]).collect();
+        let mut living = vec![false; from.len()];
         for apex in &self.live {
             if index[apex.axis] != usize::MAX {
-                let draws = &mut draws[index[apex.axis]];
-                (draws.alive, draws.living) = (true, 1.0);
+                living[index[apex.axis]] = true;
             }
         }
-        assign(&mut axes, &draws, self.threads);
+        let living = |j: usize, _: &Draws| living[j].then_some(1.0);
+        assign_living(&mut axes, &draws, &living, self.threads);
         let shed = shed(axes, self.species, cycle);
         let from: Vec<usize> = (0..from.len())
             .filter(|&j| shed.index[j] != usize::MAX)

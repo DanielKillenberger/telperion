@@ -211,11 +211,11 @@ fn draw(
     let bent = bend(axis, state, years);
     while pencil.units < draws.units.len() {
         let k = pencil.units;
-        let [survive, persist] = draws.units[k];
+        let drawn = draws.units[k];
         // The share of its cycle the unit grew (`schedule.rs`).
-        let grown = draws.shares[k];
-        let present = pencil.running * survive;
-        let size = draws.sizes.get(k).copied().unwrap_or(1.0);
+        let grown = drawn.share;
+        let present = pencil.running * drawn.survive;
+        let [size, _] = draws.shade(k);
         let birth = axis.birth;
         let unit = |p: &crate::structure::Phytomer| (p.cycle - birth - 1) as usize == k;
         let end = pencil.laid
@@ -255,7 +255,7 @@ fn draw(
             p.scale = bare;
         }
         pencil.laid = end;
-        pencil.running = present * persist;
+        pencil.running = present * drawn.persist;
         pencil.units += 1;
     }
     axis.rank = pencil.rank;

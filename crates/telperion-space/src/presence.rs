@@ -141,11 +141,9 @@ pub(crate) struct Draws {
     /// The draws that made the axis: a lateral's PA, or a relay's stop and
     /// relay draws.
     pub birth: [f64; 2],
-    /// Per growth unit: its survival, then the apex's persistence past it
-    /// (not aborting).
-    pub units: Vec<[f64; 2]>,
-    /// Per growth unit: the share of its cycle it grew (`schedule.rs`).
-    pub shares: Vec<f64>,
+    /// Per growth unit, in one record (fn-211 task 3: one vector where
+    /// there were two, made, copied and freed per axis).
+    pub units: Vec<Unit>,
     /// Per phytomer: its node's draw.
     pub nodes: Vec<f64>,
     /// The apex still lives at the tree's age.
@@ -153,10 +151,9 @@ pub(crate) struct Draws {
     /// How much a living apex lives on (`Grower::living`).
     pub living: f64,
     /// Per growth unit, where light shades: its phytomers' size from its
-    /// bud's vigour (`allocation.rs`); empty where nothing shades.
-    pub sizes: Vec<f64>,
-    /// Per growth unit, where light shades: the light its bud grew in.
-    pub lights: Vec<f64>,
+    /// bud's vigour (`allocation.rs`) and the light its bud grew in, whole
+    /// where nothing reads it; empty where nothing shades.
+    pub shade: Vec<[f64; 2]>,
     /// The apex stopped by failing to survive a growth unit.
     pub failed: bool,
     /// A relay of an age that ended or of a unit that failed
@@ -176,9 +173,48 @@ pub(crate) struct Draws {
     pub sleep: f64,
 }
 
+/// One growth unit's draws.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Unit {
+    /// Its survival, then the apex's persistence past it (not aborting).
+    pub survive: f64,
+    pub persist: f64,
+    /// The share of its cycle it grew (`schedule.rs`).
+    pub share: f64,
+}
+
+impl Draws {
+    /// The share of their cycles its units grew, summed in turn.
+    pub fn grown(&self) -> f64 {
+        self.units.iter().map(|u| u.share).sum::<f64>()
+    }
+
+    /// Growth unit `k`'s size and light, whole where nothing shades.
+    pub fn shade(&self, k: usize) -> [f64; 2] {
+        self.shade.get(k).copied().unwrap_or([1.0; 2])
+    }
+}
+
 /// Sets every axis's vigour, growth-unit presences, phytomer scales (each
-/// relative to its axis's base), phyllotactic ranks and living presence.
-pub(crate) fn assign(axes: &mut [Axis], draws: &[Draws], threads: usize) {
+/// relative to its axis's base), phyllotactic ranks and living presence,
+/// from each axis's draws, read where they stand.
+pub(crate) fn assign<D: std::borrow::Borrow<Draws> + Sync>(
+    axes: &mut [Axis],
+    draws: &[D],
+    threads: usize,
+) {
+    assign_living(axes, draws, &|_, d| d.alive.then_some(d.living), threads);
+}
+
+/// `assign`, where `living(k, draws)` is how much axis `k`'s apex lives
+/// on, none where it has stopped.
+pub(crate) fn assign_living<D: std::borrow::Borrow<Draws> + Sync>(
+    axes: &mut [Axis],
+    draws: &[D],
+    living: &(dyn Fn(usize, &Draws) -> Option<f64> + Sync),
+    threads: usize,
+) {
+    let at = |k: usize| draws[k].borrow();
     // Each axis's presence at its end, which what carries it on is made
     // at: its own alone, so every axis is assigned on its own, on up to
     // `threads` cores, and its vigour then from its parent's end.
@@ -191,11 +227,15 @@ pub(crate) fn assign(axes: &mut [Axis], draws: &[Draws], threads: usize) {
         piece
             .iter_mut()
             .enumerate()
-            .map(|(j, axis)| assign_one(axis, &draws[from + j]))
+            .map(|(j, axis)| {
+                let k = from + j;
+                assign_one(axis, at(k), living(k, at(k)))
+            })
             .collect::<Vec<f64>>()
     });
     let end: Vec<f64> = ends.into_iter().flatten().collect();
     for (axis, draws) in axes.iter_mut().zip(draws) {
+        let draws: &Draws = draws.borrow();
         let made = draws.birth[0] * draws.birth[1];
         axis.vigour = match axis.origin {
             Origin::Seed | Origin::Lateral { .. } => made,
@@ -205,33 +245,30 @@ pub(crate) fn assign(axes: &mut [Axis], draws: &[Draws], threads: usize) {
 }
 
 /// Assigns one axis's presences from its draws: its end's presence.
-fn assign_one(axis: &mut Axis, draws: &Draws) -> f64 {
+fn assign_one(axis: &mut Axis, draws: &Draws, living: Option<f64>) -> f64 {
     let birth = axis.birth;
     let mut running = 1.0;
     let mut presences = Vec::with_capacity(draws.units.len());
     let mut j = 0;
     let mut rank = 0.0;
-    for (k, &[survive, persist]) in draws.units.iter().enumerate() {
-        running *= survive;
-        let grown = draws.shares[k];
+    for (k, unit) in draws.units.iter().enumerate() {
+        running *= unit.survive;
+        let grown = unit.share;
         presences.push(running * grown);
+        let [size, light] = draws.shade(k);
         while j < axis.phytomers.len() && (axis.phytomers[j].cycle - birth - 1) as usize == k {
             axis.phytomers[j].scale = running * draws.nodes[j] * grown;
-            axis.phytomers[j].size = draws.sizes.get(k).copied().unwrap_or(1.0);
-            axis.phytomers[j].light = draws.lights.get(k).copied().unwrap_or(1.0);
+            axis.phytomers[j].size = size;
+            axis.phytomers[j].light = light;
             axis.phytomers[j].rank = rank;
             rank += draws.nodes[j] * grown;
             j += 1;
         }
-        running *= persist;
+        running *= unit.persist;
     }
     axis.units = presences;
     axis.sleep = draws.sleep;
     axis.rank = rank;
-    axis.alive = if draws.alive {
-        running * draws.living
-    } else {
-        0.0
-    };
+    axis.alive = living.map_or(0.0, |l| running * l);
     running
 }

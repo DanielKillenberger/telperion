@@ -93,7 +93,7 @@ impl Shoot<'_, '_> {
     ) -> Result<()> {
         let (pa, key) = (self.axis(apex.axis).pa, Key(self.axis(apex.axis).lineage));
         let draws = self.draws(apex.axis);
-        let grown = draws.aged + draws.shares.iter().sum::<f64>() + spent - apex.spent;
+        let grown = draws.aged + draws.grown() + spent - apex.spent;
         let ended_relays = draws.ended_relays + u32::from(why == Stop::Ended);
         // The relay of an age that ended, or of a unit that failed, grows
         // a whole first unit: neither is the apex carried on.
