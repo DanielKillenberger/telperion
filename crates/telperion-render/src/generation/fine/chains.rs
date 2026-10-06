@@ -1,17 +1,17 @@
-//! The chain grower against the CPU reference executor (fn-209 F1, task
-//! 2, R1): every chain of a tree, grown alone on the GPU from its bud and
-//! the species point's tables, has the CPU's chain's axes (lineage, PA,
-//! birth, how and where each stands, where its apex stopped) and
-//! phytomers (cycle and key), in the same order.
+//! The chain grower's host side for its tests (fn-209 F1, task 2): the
+//! species point's tables and the chains' buds as `chain.wgsl` reads them,
+//! a dispatch of chains in regions, and their axes packed and read back
+//! (`pack.wgsl`) as `telperion_space::chain_cases` gives the CPU's.
 use super::super::io;
 use super::units::pack;
 use crate::Gpu;
 use std::time::Instant;
-use telperion_space::{
-    chain_cases, ChainAxis, ChainBud, ChainTables, Light, Request, Species, Woke,
-};
+use telperion_space::{ChainAxis, ChainBud, ChainTables, Woke};
 
 const CHAIN: &str = include_str!("chain.wgsl");
+const APEX: &str = include_str!("apex.wgsl");
+const SLEEP: &str = include_str!("sleep.wgsl");
+const PACK: &str = include_str!("pack.wgsl");
 const AXW: usize = 28;
 const PW: usize = 6;
 const NONE: u32 = u32::MAX;
@@ -19,16 +19,16 @@ const NONE: u32 = u32::MAX;
 /// A region's bounds per chain: axes, phytomers, living apexes, sleeping
 /// buds and the buds that woke.
 #[derive(Debug, Clone, Copy)]
-struct Caps {
-    axes: u32,
-    phyts: u32,
-    live: u32,
-    sleepers: u32,
-    woken: u32,
+pub(super) struct Caps {
+    pub axes: u32,
+    pub phyts: u32,
+    pub live: u32,
+    pub sleepers: u32,
+    pub woken: u32,
 }
 
 impl Caps {
-    fn times(self, k: u32) -> Self {
+    pub(super) fn times(self, k: u32) -> Self {
         Self {
             axes: self.axes * k,
             phyts: self.phyts * k,
@@ -45,7 +45,7 @@ const QW: u32 = 8;
 
 /// The unit tables, then each PA's row (flags, lived, successor, words at)
 /// and its words (`chain.wgsl`); the rows' offset in the table.
-fn packed(t: &ChainTables) -> (Vec<u32>, Vec<u64>, u32) {
+pub(super) fn packed(t: &ChainTables) -> (Vec<u32>, Vec<u64>, u32) {
     let (mut table, mut words) = pack(&t.units);
     let rows = table.len() as u32;
     let mut woods = Vec::new();
@@ -114,35 +114,48 @@ fn bud_words(b: &ChainBud) -> [u64; 10] {
     ]
 }
 
-struct Grower {
+pub(super) struct Grower {
     pass: io::Pass,
+    pack: io::Pass,
 }
 
 /// One dispatch's chains as grown: each chain's axes, or none where it
 /// outgrew its region.
-type Grown = Vec<Option<Vec<ChainAxis>>>;
+pub(super) type Grown = Vec<Option<Vec<ChainAxis>>>;
 
 impl Grower {
-    fn new(gpu: &Gpu) -> Self {
-        let shader = format!("{}\n{CHAIN}", super::zones());
+    pub(super) fn new(gpu: &Gpu) -> Self {
+        let shader = format!("{}\n{CHAIN}\n{APEX}\n{SLEEP}", super::zones());
         let read = [true, true, true, false, false, false, false, false];
+        let pack = PACK.to_string();
         Self {
             pass: io::Pass::new(gpu, shader, &read, &["grow"]),
+            pack: io::Pass::new(
+                gpu,
+                pack,
+                &[true, true, true, true, false, false],
+                &["pack"],
+            ),
         }
     }
 
-    fn run(
+    /// Grows `buds` in regions of `caps`: each chain's axes, or none where
+    /// it outgrew its region; the milliseconds from upload to the device's
+    /// finishing the growth, and those packing and reading it back.
+    pub(super) fn run(
         &self,
         gpu: &Gpu,
         buds: &[ChainBud],
         t: &(Vec<u32>, Vec<u64>, u32),
         (span, age): (i64, u32),
         caps: Caps,
-    ) -> Grown {
+    ) -> (Grown, f64, f64) {
+        let start = Instant::now();
         let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
         let n = buds.len() as u32;
         let groups = n.div_ceil(64);
         let row = groups.min(gpu.device.limits().max_compute_workgroups_per_dimension) * 64;
+        let (lo, hi) = (span as u32, (span >> 32) as u32);
         let cfg: [u32; 12] = [
             n,
             row,
@@ -151,8 +164,8 @@ impl Grower {
             caps.live,
             t.2,
             age,
-            span as u32,
-            (span >> 32) as u32,
+            lo,
+            hi,
             caps.sleepers,
             caps.woken,
             0,
@@ -160,14 +173,12 @@ impl Grower {
         let input: Vec<u64> = buds.iter().flat_map(bud_words).collect();
         let b =
             |label, bytes: u64, data: &[u8]| io::buffer(gpu, label, bytes, storage, data).unwrap();
-        let uniform = io::buffer(
-            gpu,
-            "chain cfg",
-            48,
-            wgpu::BufferUsages::UNIFORM,
-            bytemuck::cast_slice(&cfg),
-        )
-        .unwrap();
+        let uniform = |label, data: &[u32]| {
+            let bytes = std::mem::size_of_val(data) as u64;
+            let usage = wgpu::BufferUsages::UNIFORM;
+            io::buffer(gpu, label, bytes, usage, bytemuck::cast_slice(data)).unwrap()
+        };
+        let config = uniform("chain cfg", &cfg);
         let input = b(
             "chain buds",
             input.len() as u64 * 8,
@@ -183,43 +194,84 @@ impl Grower {
             t.1.len() as u64 * 8,
             bytemuck::cast_slice(&t.1),
         );
-        let axes_bytes = u64::from(n * caps.axes) * AXW as u64 * 4;
-        let phyt_bytes = u64::from(n * caps.phyts) * PW as u64 * 4;
-        let axes = b("chain axes", axes_bytes, &[]);
-        let phyts = b("chain phytomers", phyt_bytes, &[]);
+        let axes = b("chain axes", u64::from(n * caps.axes) * AXW as u64 * 4, &[]);
+        let phyts = b(
+            "chain phytomers",
+            u64::from(n * caps.phyts) * PW as u64 * 4,
+            &[],
+        );
         let live = b("chain apexes", u64::from(n * caps.live) * 32, &[]);
         let status = b("chain status", u64::from(n) * 16, &[]);
         let sleep = u64::from(n * (caps.sleepers * SW + caps.woken * QW)) * 4;
         let sleepers = b("chain sleeping buds", sleep, &[]);
-        let bind = self.pass.bind(
-            gpu,
-            &[
-                &uniform, &input, &table, &words, &axes, &phyts, &live, &status, &sleepers,
-            ],
-        );
+        let all = [
+            &config, &input, &table, &words, &axes, &phyts, &live, &status, &sleepers,
+        ];
+        let bind = self.pass.bind(gpu, &all);
         let mut encoder = gpu.device.create_command_encoder(&Default::default());
         self.pass.run(&mut encoder, &bind, 0, groups);
         gpu.queue.submit([encoder.finish()]);
-        let status: Vec<[u32; 4]> =
-            bytemuck::cast_slice::<u8, u32>(&io::read(gpu, &status, u64::from(n) * 16).unwrap())
-                .as_chunks::<4>()
-                .0
-                .to_vec();
-        let axes = io::read(gpu, &axes, axes_bytes).unwrap();
+        gpu.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .unwrap();
+        let grown_ms = start.elapsed().as_secs_f64() * 1e3;
+        let start = Instant::now();
+        let read = io::read(gpu, &status, u64::from(n) * 16).unwrap();
+        let status_words: Vec<[u32; 4]> = bytemuck::cast_slice::<u8, u32>(&read)
+            .as_chunks::<4>()
+            .0
+            .to_vec();
+        // Each chain's place in the packed axes and phytomers.
+        let mut offsets = Vec::with_capacity(buds.len());
+        let (mut at_axes, mut at_phyts) = (0u32, 0u32);
+        for &[count, grown, overflow, _] in &status_words {
+            offsets.push([at_axes, at_phyts]);
+            if overflow == 0 {
+                (at_axes, at_phyts) = (at_axes + count, at_phyts + grown);
+            }
+        }
+        let pack_cfg = uniform("pack cfg", &[n, row, caps.axes, caps.phyts]);
+        let offsets_buf = b(
+            "pack offsets",
+            offsets.len() as u64 * 8,
+            bytemuck::cast_slice(&offsets),
+        );
+        let axes_bytes = u64::from(at_axes.max(1)) * AXW as u64 * 4;
+        let phyt_bytes = u64::from(at_phyts.max(1)) * PW as u64 * 4;
+        let packed_axes = b("packed axes", axes_bytes, &[]);
+        let packed_phyts = b("packed phytomers", phyt_bytes, &[]);
+        let bind = self.pack.bind(
+            gpu,
+            &[
+                &pack_cfg,
+                &status,
+                &offsets_buf,
+                &axes,
+                &phyts,
+                &packed_axes,
+                &packed_phyts,
+            ],
+        );
+        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        self.pack.run(&mut encoder, &bind, 0, groups);
+        gpu.queue.submit([encoder.finish()]);
+        let axes = io::read(gpu, &packed_axes, axes_bytes).unwrap();
         let axes: &[u32] = bytemuck::cast_slice(&axes);
-        let phyts = io::read(gpu, &phyts, phyt_bytes).unwrap();
+        let phyts = io::read(gpu, &packed_phyts, phyt_bytes).unwrap();
         let phyts: &[u32] = bytemuck::cast_slice(&phyts);
-        buds.iter()
+        let grown = buds
+            .iter()
             .enumerate()
             .map(|(c, bud)| {
-                let [count, grown, overflow, _] = status[c];
+                let [count, grown, overflow, _] = status_words[c];
+                let [a, p] = offsets[c].map(|o| o as usize);
                 (overflow == 0).then(|| {
-                    let a = &axes[c * caps.axes as usize * AXW..];
-                    let p = &phyts[c * caps.phyts as usize * PW..];
-                    topology(bud, &a[..count as usize * AXW], &p[..grown as usize * PW])
+                    let a = &axes[a * AXW..(a + count as usize) * AXW];
+                    topology(bud, a, &phyts[p * PW..(p + grown as usize) * PW])
                 })
             })
-            .collect()
+            .collect();
+        (grown, grown_ms, start.elapsed().as_secs_f64() * 1e3)
     }
 }
 
@@ -265,114 +317,4 @@ fn topology(bud: &ChainBud, axes: &[u32], phyts: &[u32]) -> Vec<ChainAxis> {
         }
     }
     out
-}
-
-/// Grows every chain of `species` at `age` and `seed` on the GPU, in
-/// batches, each outgrown chain again in a region eight times larger, and
-/// holds each against the CPU's. The chains, axes and phytomers compared,
-/// and the GPU's milliseconds from upload to readback.
-fn check(
-    gpu: &Gpu,
-    grower: &Grower,
-    species: &Species,
-    (age, seed): (u32, u64),
-) -> (usize, usize, usize, f64) {
-    let request = Request {
-        age,
-        seed,
-        budget: 20_000_000,
-        light: Light::NEUTRAL,
-    };
-    let cases = chain_cases(species, request).expect("chains");
-    let tables = ChainTables::new(species, age).expect("tables");
-    let packed = packed(&tables);
-    let buds: Vec<ChainBud> = cases.iter().map(|c| c.0).collect();
-    let start = Instant::now();
-    let mut grown: Grown = Vec::with_capacity(buds.len());
-    let caps = Caps {
-        axes: 256,
-        phyts: 1024,
-        live: 32,
-        sleepers: 128,
-        woken: 64,
-    };
-    for batch in buds.chunks(4096) {
-        grown.extend(grower.run(gpu, batch, &packed, (tables.span, age), caps));
-    }
-    let mut caps = caps;
-    while grown.iter().any(Option::is_none) {
-        caps = caps.times(8);
-        let over: Vec<usize> = (0..grown.len()).filter(|&c| grown[c].is_none()).collect();
-        for batch in over.chunks(64) {
-            let these: Vec<ChainBud> = batch.iter().map(|&c| buds[c]).collect();
-            for (&c, g) in
-                batch
-                    .iter()
-                    .zip(grower.run(gpu, &these, &packed, (tables.span, age), caps))
-            {
-                grown[c] = g;
-            }
-        }
-        assert!(caps.axes < 1 << 16, "a chain no region holds");
-    }
-    let ms = start.elapsed().as_secs_f64() * 1e3;
-    let (mut axes, mut phytomers) = (0, 0);
-    for (c, ((bud, want), got)) in cases.iter().zip(&grown).enumerate() {
-        let got = got.as_ref().expect("grown");
-        assert_eq!(got.len(), want.len(), "chain {c} ({bud:?}): axes");
-        for (k, (g, w)) in got.iter().zip(want).enumerate() {
-            assert_eq!(g, w, "chain {c} axis {k}");
-        }
-        axes += want.len();
-        phytomers += want.iter().map(|a| a.phytomers.len()).sum::<usize>();
-    }
-    (cases.len(), axes, phytomers, ms)
-}
-
-/// The species with every setting a chain reads while no bud reads light
-/// (FINE-CONTRACT.md's adversarial cases): the beech; a beech whose
-/// lifespans run to fractions, which grows ages within a cycle
-/// (`carry_on`) and partial units; the spruce, whose sleeping buds wake;
-/// and the oak with its light switched off, whose sleeping buds wake into
-/// later stages and whose lifespans run to fractions too.
-fn adversarial() -> Vec<(&'static str, Species)> {
-    let fractional = |mut s: Species| {
-        for state in s.states.iter_mut().filter(|s| s.lifespan > 0.0) {
-            state.lifespan = state.lifespan * 1.37 + 0.29;
-        }
-        s
-    };
-    let mut oak = telperion_space::oak();
-    for state in &mut oak.states {
-        state.shade_hazard = 0.0;
-        state.shade_size = 0.0;
-        state.balance_hazard = 0.0;
-        state.leaf_girth = 0.0;
-    }
-    vec![
-        ("beech", telperion_space::beech()),
-        (
-            "beech, fractional lifespans",
-            fractional(telperion_space::beech()),
-        ),
-        ("spruce", telperion_space::spruce()),
-        ("oak, light off", oak.clone()),
-        ("oak, light off, fractional lifespans", fractional(oak)),
-    ]
-}
-
-#[test]
-fn every_chain_grows_on_the_gpu_as_on_the_cpu() {
-    let Some(gpu) = crate::generation::test_gpu() else {
-        return;
-    };
-    let grower = Grower::new(&gpu);
-    for (name, species) in adversarial() {
-        for seed in [1, 7] {
-            let (chains, axes, phytomers, ms) = check(&gpu, &grower, &species, (30, seed));
-            println!(
-                "{name} 30 {seed}: {chains} chains, {axes} axes, {phytomers} phytomers, {ms:.1} ms"
-            );
-        }
-    }
 }

@@ -18,6 +18,8 @@ pub(super) fn zones() -> String {
 }
 
 #[cfg(test)]
+mod chain_tests;
+#[cfg(test)]
 mod chains;
 #[cfg(test)]
 mod tests;
