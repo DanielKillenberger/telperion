@@ -21,7 +21,7 @@ struct Cfg {
     span_hi: u32,
     sleep_cap: u32,
     pend_cap: u32,
-    pad: u32,
+    curves: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -34,14 +34,14 @@ struct Cfg {
 @group(0) @binding(7) var<storage, read_write> status: array<vec4<u32>>;
 @group(0) @binding(8) var<storage, read_write> sleepers: array<u32>;
 
-const AXW: u32 = 28u;
+const AXW: u32 = 32u;
 const PW: u32 = 6u;
-const ROW: u32 = 17u;
+const ROW: u32 = 18u;
 const TICKS: u32 = 0x100000u;
 const STACK: u32 = 16u;
 const SW: u32 = 10u;
 const QW: u32 = 8u;
-const BW: u32 = 10u;
+const BW: u32 = 11u;
 const DORMANT = vec2<u32>(0xfffffff9u, 0xffffffffu);
 
 // The draws' parts (`lineage.rs`).
@@ -304,7 +304,8 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
     let birth = buds[b + 1u].y;
     let seed = buds[b + 2u].x == 1u;
     let node = buds[b + 2u].y;
-    let woken = buds[b + 5u].x == 1u;
+    let woken = (buds[b + 5u].x & 1u) != 0u;
+    let conditioned = (buds[b + 5u].x & 2u) != 0u;
     let slot = buds[b + 5u].y;
     let root = buds[b + 3u];
     let horizon = buds[b + 4u];
@@ -355,6 +356,9 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
         if at == NONE {
             break;
         }
+    }
+    if overflow == 0u {
+        shed(select(1u, 0u, seed), conditioned, buds[b + 10u]);
     }
     status[c] = vec4<u32>(n_axes, n_phyts, overflow, n_axes - n_pends);
 }

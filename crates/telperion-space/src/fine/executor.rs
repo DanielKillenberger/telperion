@@ -75,7 +75,7 @@ pub(crate) fn expand(cx: &Context, root: &FineRoot) -> Result<Expanded> {
         cx.rows,
         cx.seed,
         start,
-        (&|_| false, &mut |_, _| {}),
+        (&|_| false, &mut |_| {}),
         true,
     )?;
     let mut work = Work {

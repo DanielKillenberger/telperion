@@ -100,6 +100,12 @@ impl Rows {
         row
     }
 
+    /// The extinction curves, by `pa * (age + 1) + m` for a lateral `m`
+    /// cycles from the tree's age, and that age.
+    pub fn curves(&self) -> (&[Vec<f64>], usize) {
+        (&self.curves, self.age)
+    }
+
     /// The chance that a lateral of `pa` made in cycle `birth` has no
     /// living apex past cycle `t`: its extinction curve, 0 before its
     /// birth.

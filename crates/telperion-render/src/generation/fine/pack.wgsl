@@ -17,7 +17,7 @@ struct Cfg {
 @group(0) @binding(5) var<storage, read_write> packed_axes: array<u32>;
 @group(0) @binding(6) var<storage, read_write> packed_phyts: array<u32>;
 
-const AXW: u32 = 28u;
+const AXW: u32 = 32u;
 const PW: u32 = 6u;
 
 @compute @workgroup_size(64)

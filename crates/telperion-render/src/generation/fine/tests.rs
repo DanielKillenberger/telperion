@@ -11,7 +11,7 @@ const CASES: usize = 1 << 18;
 const PROBE: &str = include_str!("probe.wgsl");
 
 /// The functions the probe selects, by its `cfg.y`.
-const NAMES: [&str; 11] = [
+const NAMES: [&str; 12] = [
     "child, draw",
     "log2, exp2_neg",
     "exp2, neg_log2",
@@ -23,6 +23,7 @@ const NAMES: [&str; 11] = [
     "past_q, above_q",
     "wake_q, kept",
     "relay_node_q",
+    "and",
 ];
 
 /// SplitMix64, for cases.
@@ -130,6 +131,7 @@ fn cases(s: u32, rng: &mut Cases, presences: &mut Vec<u64>) -> Vec<[u64; 8]> {
                     a[5] = rng.log(70 * Q) as u64;
                     a[6] = rng.draw();
                 }
+                11 => a[..2].copy_from_slice(&[rng.log(fx::INF) as u64, rng.log(fx::INF) as u64]),
                 _ => {
                     let len = 1 + rng.next() % 12;
                     a[0] = presences.len() as u64;
@@ -178,6 +180,7 @@ fn expected(s: u32, a: &[u64; 8], presences: &[u64]) -> [u64; 2] {
             decide::wake_q(a[0], i(1), a[2]).unwrap_or(u64::MAX),
             u64::from(decide::kept(i(3), (a[4] != 0).then(|| i(5)), a[6])),
         ],
+        11 => [decide::and(i(0), i(1)) as u64, 0],
         _ => {
             let unit = &presences[a[0] as usize..(a[0] + a[1]) as usize];
             [decide::relay_node_q(unit, 0, unit.len(), a[2]) as u64, 0]

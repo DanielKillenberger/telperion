@@ -4,7 +4,7 @@
 //! and its topology as the CPU reference executor grows it, which the
 //! executor's tests hold the GPU's against.
 use super::tables::Units;
-use crate::alone::{chains, seed_item};
+use crate::alone::{chains, seed_item, Seen};
 use crate::bounded::Expected;
 use crate::error::Result;
 use crate::fixed::{neg_log2, q32, q62, ticks, INF};
@@ -41,6 +41,8 @@ pub struct PaRow {
     pub lasting: Option<i64>,
     /// D18: where along its last unit a relay of it stands (Q32).
     pub relay_at: u64,
+    /// D15: the last cycle its delay leaves dead, where it is shed.
+    pub shed_at: Option<i64>,
 }
 
 /// A species point's tables for a chain's growth.
@@ -54,13 +56,30 @@ pub struct ChainTables {
     /// The widest window (Q32).
     pub span: i64,
     pub age: u32,
+    /// D15: each borne bud's extinction curve as `-log2`, Q32, by
+    /// `pa * (age + 1) + m` for a bud `m` cycles from the tree's age: its
+    /// start in `dead` and its length.
+    pub curves: Vec<(u32, u32)>,
+    pub dead: Vec<i64>,
 }
 
 impl ChainTables {
     /// The tables of `species` grown to `age`, for a tree no bud of which
     /// reads light.
-    pub fn new(species: &Species, age: u32) -> Result<Self> {
+    pub fn new(species: &Species, age: u32, expected: &Expected) -> Result<Self> {
         let rules = rules(species, age, 0)?;
+        let rows = expected.rows();
+        let (all, rows_age) = rows.curves();
+        debug_assert_eq!(rows_age, age as usize);
+        let mut dead = Vec::new();
+        let curves = all
+            .iter()
+            .map(|c| {
+                let at = dead.len() as u32;
+                dead.extend(c.iter().map(|&p| neg_log2(q62(p))));
+                (at, c.len() as u32)
+            })
+            .collect();
         let pas = (0..species.states.len())
             .map(|pa| {
                 let s = &species.states[pa];
@@ -87,6 +106,10 @@ impl ChainTables {
                     delay: s.shedding.is_finite().then(|| q32(s.shedding + 1.0)),
                     lasting: rules.lasting[pa].map(q32),
                     relay_at: q32(s.relay_at.clamp(0.0, 1.0)) as u64,
+                    shed_at: s
+                        .shedding
+                        .is_finite()
+                        .then(|| (f64::from(age) - s.shedding - 1.0).floor() as i64),
                 }
             })
             .collect();
@@ -107,6 +130,8 @@ impl ChainTables {
             log_woods,
             span: q32(SPAN),
             age,
+            curves,
+            dead,
         })
     }
 }
@@ -128,6 +153,9 @@ pub struct ChainBud {
     pub horizon: i64,
     /// Where it slept and woke, for a bud that woke.
     pub woke: Option<Woke>,
+    /// Its bearer's shedding context (D15), where its keeping is
+    /// conditioned on it.
+    pub context: Option<i64>,
 }
 
 /// A woken bud's waking (`ChainBud::woke`): the sleeping bud's key and
@@ -162,6 +190,10 @@ pub struct ChainAxis {
     /// A sleeping bud that woke on the chain: a bud it bears, after its
     /// axes, one for every axis that carried its bearer on.
     pub woken: bool,
+    /// D15: whether the chain keeps it (its own axes), and, for a bud it
+    /// bears, the context its own chain's keeping is conditioned on.
+    pub kept: bool,
+    pub context: Option<i64>,
 }
 
 /// Every chain of `species`'s tree grown alone as the CPU reference grows
@@ -171,8 +203,12 @@ pub fn chain_cases(species: &Species, request: Request) -> Result<Vec<(ChainBud,
     let expected = Expected::new(species, request.age, 0);
     let rows = expected.rows();
     let mut out = Vec::new();
-    let mut observe = |bud: Option<&Bud>, chain: &Chain| {
-        out.push((input(species, request.seed, bud), topology(chain)));
+    let mut observe = |seen: Seen| {
+        let bud = ChainBud {
+            context: seen.context,
+            ..input(species, request.seed, seen.bud)
+        };
+        out.push((bud, topology(seen.chain, seen.kept, seen.contexts)));
     };
     let start = (Vec::new(), Vec::new(), seed_item());
     chains(
@@ -202,6 +238,7 @@ fn input(species: &Species, seed: u64, bud: Option<&Bud>) -> ChainBud {
                 root: key.0,
                 horizon: -INF,
                 woke: None,
+                context: None,
             }
         }
         Some(b) => {
@@ -225,18 +262,33 @@ fn input(species: &Species, seed: u64, bud: Option<&Bud>) -> ChainBud {
                     spent: ticks(spent),
                     cycle,
                 }),
+                context: None,
             }
         }
     }
 }
 
-fn topology(chain: &Chain) -> Vec<ChainAxis> {
+fn topology(chain: &Chain, kept: &[bool], contexts: &[Option<i64>]) -> Vec<ChainAxis> {
     let root = chain.root;
     let woken = chain.buds.iter().filter(|b| b.woken()).map(|b| &b.axis);
+    // Each bud's context by its axis: the laterals in the chain's order,
+    // then the woken buds after them, as `chain.buds` holds them.
+    let laterals = chain.buds.iter().filter(|b| !b.woken()).count();
+    let mut context = vec![None; chain.axes.len() - root + chain.buds.len() - laterals];
+    let mut lateral = (root + 1..chain.axes.len())
+        .filter(|&i| matches!(chain.axes[i].origin, Origin::Lateral { .. }));
+    for (k, b) in chain.buds.iter().enumerate() {
+        let at = match b.woken() {
+            false => lateral.next().expect("a lateral axis per bud") - root,
+            true => chain.axes.len() - root + (k - laterals),
+        };
+        context[at] = contexts[k];
+    }
     chain.axes[root..]
         .iter()
         .chain(woken)
-        .map(|a| {
+        .enumerate()
+        .map(|(k, a)| {
             let parent = a.origin.parent().filter(|&p| p >= root).map(|p| p - root);
             let (kind, node, slot, woken) = match a.origin {
                 Origin::Seed => (0, 0, 0, false),
@@ -257,6 +309,8 @@ fn topology(chain: &Chain) -> Vec<ChainAxis> {
                 apex_end: a.apex_end,
                 phytomers: a.phytomers.iter().map(|p| (p.cycle, p.key())).collect(),
                 woken,
+                kept: kept.get(root + k).copied().unwrap_or(false),
+                context: context[k],
             }
         })
         .collect()

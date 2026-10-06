@@ -11,8 +11,9 @@ use telperion_space::{ChainAxis, ChainBud, ChainTables, Woke};
 const CHAIN: &str = include_str!("chain.wgsl");
 const APEX: &str = include_str!("apex.wgsl");
 const SLEEP: &str = include_str!("sleep.wgsl");
+const SHED: &str = include_str!("shed.wgsl");
 const PACK: &str = include_str!("pack.wgsl");
-const AXW: usize = 28;
+const AXW: usize = 32;
 const PW: usize = 6;
 const NONE: u32 = u32::MAX;
 
@@ -45,7 +46,7 @@ const QW: u32 = 8;
 
 /// The unit tables, then each PA's row (flags, lived, successor, words at)
 /// and its words (`chain.wgsl`); the rows' offset in the table.
-pub(super) fn packed(t: &ChainTables) -> (Vec<u32>, Vec<u64>, u32) {
+pub(super) fn packed(t: &ChainTables) -> Packed {
     let (mut table, mut words) = pack(&t.units);
     let rows = table.len() as u32;
     let mut woods = Vec::new();
@@ -56,7 +57,8 @@ pub(super) fn packed(t: &ChainTables) -> (Vec<u32>, Vec<u64>, u32) {
             | u32::from(r.abortion.is_some_and(|a| a.2.is_some())) << 2
             | u32::from(r.successor.is_some()) << 3
             | u32::from(r.delay.is_some()) << 4
-            | u32::from(r.lasting.is_some()) << 5;
+            | u32::from(r.lasting.is_some()) << 5
+            | u32::from(r.shed_at.is_some()) << 6;
         let (a_thr, a_log, rise) = r.abortion.unwrap_or((0, 0, None));
         let (next, go, go62) = r
             .successor
@@ -80,6 +82,7 @@ pub(super) fn packed(t: &ChainTables) -> (Vec<u32>, Vec<u64>, u32) {
             r.lasting.unwrap_or(0) as u64,
             0, // the log woods' offset, set below
             r.relay_at,
+            r.shed_at.unwrap_or(0) as u64,
         ]);
         woods.push((at as usize + 15, pa));
     }
@@ -87,10 +90,20 @@ pub(super) fn packed(t: &ChainTables) -> (Vec<u32>, Vec<u64>, u32) {
         words[slot] = words.len() as u64;
         words.extend(t.log_woods[pa].iter().map(|&l| l as u64));
     }
-    (table, words, rows)
+    // The extinction curves: each one's start in the words and length.
+    let curves = table.len() as u32;
+    let dead = words.len() as u32;
+    words.extend(t.dead.iter().map(|&d| d as u64));
+    for &(at, len) in &t.curves {
+        table.extend([dead + at, len]);
+    }
+    (table, words, [rows, curves])
 }
 
-fn bud_words(b: &ChainBud) -> [u64; 10] {
+/// The tables as words, and where the PA rows and the curves start.
+pub(super) type Packed = (Vec<u32>, Vec<u64>, [u32; 2]);
+
+fn bud_words(b: &ChainBud) -> [u64; 11] {
     let pair = |lo: u32, hi: u32| u64::from(lo) | u64::from(hi) << 32;
     let w = b.woke.unwrap_or(Woke {
         key: 0,
@@ -106,11 +119,15 @@ fn bud_words(b: &ChainBud) -> [u64; 10] {
         pair(u32::from(b.seed), b.node as u32),
         b.root,
         b.horizon as u64,
-        pair(u32::from(b.woke.is_some()), u32::from(b.slot)),
+        pair(
+            u32::from(b.woke.is_some()) | u32::from(b.context.is_some()) << 1,
+            u32::from(b.slot),
+        ),
         w.key,
         pair(w.pa as u32, w.stage as u32),
         w.spent,
         pair(w.sleep as u32, w.cycle),
+        b.context.unwrap_or(0) as u64,
     ]
 }
 
@@ -125,7 +142,7 @@ pub(super) type Grown = Vec<Option<Vec<ChainAxis>>>;
 
 impl Grower {
     pub(super) fn new(gpu: &Gpu) -> Self {
-        let shader = format!("{}\n{CHAIN}\n{APEX}\n{SLEEP}", super::zones());
+        let shader = format!("{}\n{CHAIN}\n{APEX}\n{SLEEP}\n{SHED}", super::zones());
         let read = [true, true, true, false, false, false, false, false];
         let pack = PACK.to_string();
         Self {
@@ -146,7 +163,7 @@ impl Grower {
         &self,
         gpu: &Gpu,
         buds: &[ChainBud],
-        t: &(Vec<u32>, Vec<u64>, u32),
+        t: &Packed,
         (span, age): (i64, u32),
         caps: Caps,
     ) -> (Grown, f64, f64) {
@@ -162,13 +179,13 @@ impl Grower {
             caps.axes,
             caps.phyts,
             caps.live,
-            t.2,
+            t.2[0],
             age,
             lo,
             hi,
             caps.sleepers,
             caps.woken,
-            0,
+            t.2[1],
         ];
         let input: Vec<u64> = buds.iter().flat_map(bud_words).collect();
         let b =
@@ -306,6 +323,8 @@ fn topology(bud: &ChainBud, axes: &[u32], phyts: &[u32]) -> Vec<ChainAxis> {
                 birth: word(i, 3),
                 apex_end: word(i, 7).checked_sub(1),
                 phytomers: Vec::new(),
+                kept: word(i, 28) & 1 != 0,
+                context: (word(i, 28) & 2 != 0).then(|| wide(i, 29) as i64),
             }
         })
         .collect();

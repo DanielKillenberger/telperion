@@ -102,7 +102,7 @@ pub fn grow_alone_with<'s>(
         &rows,
         request.seed,
         start,
-        (&|_| false, &mut |_, _| {}),
+        (&|_| false, &mut |_| {}),
         correct,
     )?;
     let mut structure = Structure {
@@ -133,8 +133,19 @@ pub(crate) fn seed_item() -> Item {
     }
 }
 
-/// What sees each chain grown, with the bud it grew from.
-pub(crate) type Observe<'o> = &'o mut dyn FnMut(Option<&Bud>, &Chain);
+/// What sees each chain grown: the bud it grew from and its bearer's
+/// shedding context, the chain, and its shedding (each axis kept, each
+/// borne bud's context).
+pub(crate) type Observe<'o> = &'o mut dyn FnMut(Seen);
+
+/// One chain as `Observe` sees it.
+pub(crate) struct Seen<'a> {
+    pub bud: Option<&'a Bud>,
+    pub context: Option<i64>,
+    pub chain: &'a Chain,
+    pub kept: &'a [bool],
+    pub contexts: &'a [Option<i64>],
+}
 
 /// Grows chains breadth first from `start` (the axes and records held
 /// already, and the first chain), each from its bud alone, and sheds
@@ -154,8 +165,15 @@ pub(crate) fn chains(
     while let Some(item) = queue.pop_front() {
         let started = Instant::now();
         let chain = alone::grow(rules, seed, item.bud.as_ref())?;
-        observe(item.bud.as_ref(), &chain);
-        let (kept, contexts) = shed(&chain, rows, rules, item.context.filter(|_| correct));
+        let context = item.context.filter(|_| correct);
+        let (kept, contexts) = shed(&chain, rows, rules, context);
+        observe(Seen {
+            bud: item.bud.as_ref(),
+            context,
+            chain: &chain,
+            kept: &kept,
+            contexts: &contexts,
+        });
         costs.push(ChainCost {
             micros: started.elapsed().as_secs_f64() * 1e6,
             grown: chain.grown,

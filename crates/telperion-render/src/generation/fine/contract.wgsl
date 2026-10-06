@@ -253,6 +253,15 @@ fn wake_q(delay: vec2<u32>, per: vec2<u32>, d: vec2<u32>) -> vec2<u32> {
     return add64(delay, shr64(wait, 12u));
 }
 
+// The sum of two `-log2` chances, saturated at `INF` (`decide::and`): two
+// below `INF` sum below 2^63, so only an unbounded one needs its own test.
+fn and_q(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
+    if is_inf(a) || is_inf(b) {
+        return inf();
+    }
+    return smin64(add64(a, b), inf());
+}
+
 // D15.
 fn kept_q(dead: vec2<u32>, conditioned: bool, context: vec2<u32>, d: vec2<u32>) -> bool {
     let gone = prob(dead);

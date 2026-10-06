@@ -127,7 +127,8 @@ fn every_chain_grows_on_the_gpu_as_on_the_cpu() {
     for (name, species) in adversarial() {
         for seed in [1, 7] {
             let cases = chain_cases(&species, request(25, seed)).expect("chains");
-            let tables = ChainTables::new(&species, 25).expect("tables");
+            let expected = Expected::new(&species, 25, 0);
+            let tables = ChainTables::new(&species, 25, &expected).expect("tables");
             let buds: Vec<ChainBud> = cases.iter().map(|c| c.0).collect();
             let forward: Vec<usize> = (0..buds.len()).collect();
             let (grown, _) = grow_all(&gpu, &grower, (&buds, &forward, 4096), &tables);
@@ -182,7 +183,7 @@ fn chains_at_40_and_80() {
                 grow_fine(&species, request(age, seed), &expected, plan).expect("grows");
                 let fine = t.elapsed().as_secs_f64() * 1e3;
                 let t = Instant::now();
-                let tables = ChainTables::new(&species, age).expect("tables");
+                let tables = ChainTables::new(&species, age, &expected).expect("tables");
                 let tables_ms = t.elapsed().as_secs_f64() * 1e3;
                 let buds: Vec<ChainBud> = cases.iter().map(|c| c.0).collect();
                 let forward: Vec<usize> = (0..buds.len()).collect();

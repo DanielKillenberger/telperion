@@ -106,7 +106,7 @@ pub fn grow_fine(
         records,
         handed,
         ..
-    } = chains(&rules, &rows, request.seed, start, (&fine, &mut |_, _| {}), true)?;
+    } = chains(&rules, &rows, request.seed, start, (&fine, &mut |_| {}), true)?;
     let mut above = Structure {
         age: request.age,
         pas: species.states.len(),

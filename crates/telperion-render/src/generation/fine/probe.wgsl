@@ -91,8 +91,11 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
             r0 = wake_q(a[0], a[1], a[2]);
             r1 = flag(kept_q(a[3], a[4].x != 0u, a[5], a[6]));
         }
-        default: {
+        case 10u: {
             r0 = w(relay(a[0].x, a[1].x, a[2]), 0u);
+        }
+        default: {
+            r0 = and_q(a[0], a[1]);
         }
     }
     results[i * 2u] = r0;
