@@ -409,3 +409,11 @@ It would use the same grammar with paths of the engine's own `settings` names (f
 7. **The envelope:** the pipeline derives it from the grown structure for every tree; the presets' hand-set envelope rows are removed.
 8. **The browser clock:** `Instant::now()` leaves every code path the Wasm build runs (timing stays in examples and probes).
 9. **Presets without an engine species** (silver birch, laurelin, telperion, ordinary) are refused by name at stage 2; tests that build them become expected-refusal tests on this branch, listed for the owner.
+
+## Host decisions after task 2 (2026-10-07)
+
+10. **Native against Wasm parity:** rounding-level for engine trees tonight (topology to the bit, positions within 1e-12 m, as `harness/parity.test.ts` holds). Moving the engine's transcendental call sites to the pinned library (fn-11's reason) is right and is done after fn-209 and fn-211 merge into this branch, to avoid three-way conflicts; trees change once then.
+11. **Envelope shape rows** (shoulder, irregularity, lobe scale) are measured from the grown tree like height, crown base, spread and fullness, in that same follow-up; no family default stands in for a measured value.
+12. **Trunk ages** become a 0-1 weight per age, not a boolean, so blending presets changes the tree by degree (docs/principles.md); same follow-up.
+13. **The 25 ignored old-grower tests** stand until R0 removes the grower; no frozen fixture copies.
+14. `executor::expand` stays for the renderer's GPU tests on hand-built trees; no engine structure can reach it.
