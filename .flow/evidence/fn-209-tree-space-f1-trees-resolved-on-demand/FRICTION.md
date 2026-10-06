@@ -111,3 +111,10 @@
 - **Slowed:** fn-211's workspace gate took the GPU lock at about 23:07 for its whole run, CPU tests included, with an oak stills run queued behind it; the desk's load reached 48. My 2-second check waited behind both.
 - **Cost:** about 10 minutes so far, spent on the evidence write-up.
 - **Would remove it:** as the earlier entries say, a gate that takes the lock only around the GPU tests.
+
+## 2026-10-06, a memory-ceiling test fails the gate under a loaded desk (task 5)
+
+- **Doing:** the workspace gate at the end of task 5, under the GPU lock, at a one-minute load of 21 to 36 from other sessions.
+- **Slowed:** `telperion-core`'s `fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens` peaked at 6,506 MB resident against its 6,483 MB ceiling (0.4 % over) and failed. This branch does not touch `telperion-core` (no diff from the merge base), and the test passed alone in 13 s right after. The gate had to run a second time.
+- **Cost:** about 14 minutes of gate, the GPU lock held for all of it.
+- **Would remove it:** a resident-memory ceiling that does not depend on what else the desk is running, or the gate's memory tests run with the desk's other sessions accounted for.
