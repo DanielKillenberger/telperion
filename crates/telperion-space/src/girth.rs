@@ -86,53 +86,58 @@ pub(crate) fn thicken(structure: &mut Structure, species: &Species, girth: &Girt
     // relay, the last child first, as a backward pass meets them. Each
     // child hands on its base radius; its parent raises it to the
     // parent's own exponent.
-    tree.upward(axes, threads, &|i, axis, radii: &[f64]| {
-        let state = &species.states[axis.pa];
-        let form = state.form;
-        let (e, s) = (form.exponent, form.secondary);
-        let mut at_node = vec![0.0; axis.phytomers.len()];
-        let mut at_tip = 0.0;
-        for d in &kept[i] {
-            let section = d.share * d.radius.powf(e);
-            match d.node.and_then(|n| at_node.get_mut(n)) {
-                Some(at) => *at += section,
-                None => at_tip += section,
-            }
-        }
-        for &c in tree.children(i) {
-            let section = radii[c].powf(e);
-            match links[c].0 {
-                Origin::Seed => {}
-                Origin::Lateral { node, .. } => match at_node.get_mut(node) {
+    tree.upward(
+        axes,
+        threads,
+        &|i, axis, radii: &[f64], at_node: &mut Vec<f64>| {
+            let state = &species.states[axis.pa];
+            let form = state.form;
+            let (e, s) = (form.exponent, form.secondary);
+            at_node.clear();
+            at_node.resize(axis.phytomers.len(), 0.0);
+            let mut at_tip = 0.0;
+            for d in &kept[i] {
+                let section = d.share * d.radius.powf(e);
+                match d.node.and_then(|n| at_node.get_mut(n)) {
                     Some(at) => *at += section,
                     None => at_tip += section,
-                },
-                // A relay's section enters at its node as far as it stands
-                // there, at the tip as far as it is still the continuation.
-                Origin::Relay { node, .. } => {
-                    let b = links[c].1;
-                    match at_node.get_mut(node) {
-                        Some(at) => {
-                            *at += section * b;
-                            at_tip += section * (1.0 - b);
-                        }
-                        None => at_tip += section,
-                    }
                 }
-                Origin::Continuation { .. } => at_tip += section,
             }
-        }
-        let mut section = at_tip;
-        for (k, phytomer) in axis.phytomers.iter_mut().enumerate().rev() {
-            let leaf = mean.map_or(1.0, |m| phytomer.light.powf(state.leaf_girth) * m);
-            let own = own(&state.form, phytomer, age, phytomer.scale, leaf);
-            section += own.powf(e) + at_node[k];
-            // Laid down at the apex, the phytomer carried nothing but itself.
-            let established = form.pipe * phytomer.scale * ripe(1.0, form.ripening);
-            phytomer.radius = s * section.powf(1.0 / e) + (1.0 - s) * established;
-        }
-        section.powf(1.0 / e)
-    });
+            for &c in tree.children(i) {
+                let section = radii[c].powf(e);
+                match links[c].0 {
+                    Origin::Seed => {}
+                    Origin::Lateral { node, .. } => match at_node.get_mut(node) {
+                        Some(at) => *at += section,
+                        None => at_tip += section,
+                    },
+                    // A relay's section enters at its node as far as it stands
+                    // there, at the tip as far as it is still the continuation.
+                    Origin::Relay { node, .. } => {
+                        let b = links[c].1;
+                        match at_node.get_mut(node) {
+                            Some(at) => {
+                                *at += section * b;
+                                at_tip += section * (1.0 - b);
+                            }
+                            None => at_tip += section,
+                        }
+                    }
+                    Origin::Continuation { .. } => at_tip += section,
+                }
+            }
+            let mut section = at_tip;
+            for (k, phytomer) in axis.phytomers.iter_mut().enumerate().rev() {
+                let leaf = mean.map_or(1.0, |m| phytomer.light.powf(state.leaf_girth) * m);
+                let own = own(&state.form, phytomer, age, phytomer.scale, leaf);
+                section += own.powf(e) + at_node[k];
+                // Laid down at the apex, the phytomer carried nothing but itself.
+                let established = form.pipe * phytomer.scale * ripe(1.0, form.ripening);
+                phytomer.radius = s * section.powf(1.0 / e) + (1.0 - s) * established;
+            }
+            section.powf(1.0 / e)
+        },
+    );
 }
 
 /// How far a phytomer `years` old has laid down its own wood, ripening

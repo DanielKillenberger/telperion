@@ -148,11 +148,12 @@ pub(crate) fn gather(
     tree.upward(
         &mut levers,
         threads,
-        &|j, levers: &mut Vec<Lever>, loads: &[Load]| {
+        &|j, levers: &mut Vec<Lever>, loads: &[Load], at_node: &mut Vec<Load>| {
             let i = members[j];
             let axis = &axes[i];
             let state = &species.states[axis.pa];
-            let mut at_node = vec![Load::default(); axis.phytomers.len()];
+            at_node.clear();
+            at_node.resize(axis.phytomers.len(), Load::default());
             let mut at_tip = Load::default();
             for &(node, load) in &held[j] {
                 if let Some(at) = at_node.get_mut(node) {

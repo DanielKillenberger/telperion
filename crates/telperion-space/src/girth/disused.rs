@@ -87,26 +87,33 @@ pub(crate) fn attachments(axes: &[Axis], species: &Species, age: u32, threads: u
     let mut none = vec![(); axes.len()];
     // Each axis's base radius: its own pipes and those its children carry
     // into its nodes and tip, the last child first.
-    let radii = tree.upward(&mut none, threads, &|i, (), radii: &[f64]| {
-        let axis = &axes[i];
-        let state = &species.states[axis.pa];
-        let e = state.form.exponent;
-        let mut at_node = vec![0.0; axis.phytomers.len()];
-        let mut at_tip = 0.0;
-        for &c in tree.children(i) {
-            let section = radii[c].powf(e);
-            match axes[c].origin {
-                Origin::Lateral { node, .. } if node < at_node.len() => at_node[node] += section,
-                _ => at_tip += section,
+    let radii = tree.upward(
+        &mut none,
+        threads,
+        &|i, (), radii: &[f64], at_node: &mut Vec<f64>| {
+            let axis = &axes[i];
+            let state = &species.states[axis.pa];
+            let e = state.form.exponent;
+            at_node.clear();
+            at_node.resize(axis.phytomers.len(), 0.0);
+            let mut at_tip = 0.0;
+            for &c in tree.children(i) {
+                let section = radii[c].powf(e);
+                match axes[c].origin {
+                    Origin::Lateral { node, .. } if node < at_node.len() => {
+                        at_node[node] += section
+                    }
+                    _ => at_tip += section,
+                }
             }
-        }
-        let mut section = at_tip;
-        for (k, p) in axis.phytomers.iter().enumerate().rev() {
-            let leaf = leaf_mean.map_or(1.0, |m| p.light.powf(state.leaf_girth) * m);
-            section += own(&state.form, p, age, scale(i, p), leaf).powf(e) + at_node[k];
-        }
-        section.powf(1.0 / e)
-    });
+            let mut section = at_tip;
+            for (k, p) in axis.phytomers.iter().enumerate().rev() {
+                let leaf = leaf_mean.map_or(1.0, |m| p.light.powf(state.leaf_girth) * m);
+                section += own(&state.form, p, age, scale(i, p), leaf).powf(e) + at_node[k];
+            }
+            section.powf(1.0 / e)
+        },
+    );
     let links = axes
         .iter()
         .zip(radii)

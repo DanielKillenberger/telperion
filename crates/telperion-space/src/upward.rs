@@ -53,24 +53,32 @@ impl Tree {
         &self.kids[self.start[i]..self.start[i + 1]]
     }
 
-    /// `work(i, &mut items[i], done)` for every axis, the deepest first,
-    /// each depth's on up to `threads` cores: what each gives, by index,
-    /// where `done` holds what every deeper axis gave.
-    pub fn upward<T: Send, O: Default + Clone + Send + Sync>(
+    /// `work(i, &mut items[i], done, scratch)` for every axis, the deepest
+    /// first, each depth's in pieces on up to `threads` cores: what each
+    /// gives, by index, where `done` holds what every deeper axis gave.
+    /// Each piece hands its axes one `scratch` in turn, so per-axis sums
+    /// reuse one buffer rather than each making its own.
+    pub fn upward<T: Send, O: Default + Clone + Send + Sync, S: Default>(
         &self,
         items: &mut [T],
         threads: usize,
-        work: &(dyn Fn(usize, &mut T, &[O]) -> O + Sync),
+        work: &(dyn Fn(usize, &mut T, &[O], &mut S) -> O + Sync),
     ) -> Vec<O> {
         let mut done = vec![O::default(); items.len()];
         for depth in self.depths.iter().rev() {
-            let jobs: Vec<(usize, &mut T)> = depth
-                .iter()
-                .copied()
-                .zip(picked(items, depth.iter().copied()))
+            let mut picked = picked(items, depth.iter().copied()).into_iter();
+            let pieces: Vec<Vec<&mut T>> = depth
+                .chunks(PIECE)
+                .map(|c| picked.by_ref().take(c.len()).collect())
                 .collect();
-            let given = map(jobs, PIECE, threads, &|_, (i, item)| work(i, item, &done));
-            for (&i, out) in depth.iter().zip(given) {
+            let given = map(pieces, 1, threads, &|k, piece| {
+                let mut scratch = S::default();
+                let at = &depth[k * PIECE..];
+                let each = at.iter().zip(piece);
+                each.map(|(&i, item)| work(i, item, &done, &mut scratch))
+                    .collect::<Vec<O>>()
+            });
+            for (&i, out) in depth.iter().zip(given.into_iter().flatten()) {
                 done[i] = out;
             }
         }

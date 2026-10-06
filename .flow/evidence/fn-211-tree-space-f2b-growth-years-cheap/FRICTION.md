@@ -28,3 +28,17 @@
 - **What slowed it:** `cores::spread` spawns its helpers through `std::thread::scope` on every call: 60 us at 4 threads, 0.48 ms at 32 (200 spreads of 64 empty pieces, this desk). A growth year at 70 to 80 runs a dozen spreads whose work is 1 to 5 ms each, so the spawning eats most of what they gain: the light's lattice built on every core (bounds and deposit by layer, built, hash-identical) measured no faster (176 to 181 ms over 80 years) and was dropped.
 - **Cost:** about 15 minutes.
 - **What would remove it:** a pool of helpers kept for the process, handed scoped work. Without a dependency (rayon) that takes `unsafe` lifetime erasure in `cores.rs`: a host decision.
+
+## 2026-10-06, task 3 worker: no profiler reaches the growth passes
+
+- **Doing:** finding why the by-depth passes cost more on one core than the index-order loops did (host decision 2 assumed per-axis allocations).
+- **What slowed it:** `samply` is installed but `perf_event_paranoid` is 2, so it refuses to record; perf is not on the desk. Each question took a hand probe (static timers in the pass, printed by `measures`, reverted) and a rebuild.
+- **Cost:** about 15 minutes for two probes; the answer for `thicken` (allocation is not the cost, the depth order is) came from an A/B, not a profile.
+- **What would remove it:** `kernel.perf_event_paranoid=1` on the desk (a local setup matter, reported, not specced).
+
+## 2026-10-06, task 3 worker: the crate's own tests take seven minutes a commit
+
+- **Doing:** running `cargo test --profile ci -p telperion-space` at every commit, as the task asks.
+- **What slowed it:** 131 tests, about 100 CPU-minutes, 7 minutes of wall time on the shared desk (load 6 to 34 from the other worker); four levers take half an hour of test runs.
+- **Cost:** about 30 minutes of waiting over the task.
+- **What would remove it:** a fast subset the per-commit check names (the unit tests that build small trees), with the heavy integration tests left to the workspace gate.
