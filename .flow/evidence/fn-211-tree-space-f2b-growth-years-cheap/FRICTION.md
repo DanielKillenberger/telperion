@@ -71,3 +71,17 @@
 - **Cost:** the commit had to state a partial result; about an hour of wall time.
 - **What would remove it:** run the 36 partitionings in one grower pass, each partition's sums and lattices taken side by side from the same terms (they share every term and differ only in grouping), or a smaller matrix at 80 (one order, one chunk).
 - **Removed (2026-10-06, task 4 worker):** `grow_partitioned` now takes every run (cut and grouping) beside one growth: the tree grows on its own sums and each run's grouping of the same terms is compared where it is taken. The 12 trees × 36 runs took 6 min 40 s wall at load 24 to 45 (oak 80: 55 s and 269 s a tree, the second during a load spike), against more than an hour before.
+
+## 2026-10-06, task 4 worker: the first stills of the stepped oak waited six minutes on the GPU lock
+
+- **Doing:** rendering the stepped oak at 80, seeds 1 and 7, bare and in leaf (four stills) under `gpu.lock`.
+- **What slowed it:** another worker held the lock; the run took 7 min 20 s of wall time for under 1 min of work (the next, eight stills, took 1 min 3 s with the lock free). The desk's load ran 18 to 88 meanwhile.
+- **Cost:** about 6 minutes of waiting.
+- **What would remove it:** nothing in the repository; a queue position or an estimate printed by the lock would have let the work go on meanwhile (a local setup matter, reported).
+
+## 2026-10-06, task 4 worker: `rustfmt` on `grow.rs` and `lib.rs` again rewrote two files nobody touched
+
+- **Doing:** formatting the executor's files before committing.
+- **What slowed it:** `rustfmt` follows `mod` declarations, so naming `grow.rs` and `lib.rs` reformatted `fine/surface.rs` and `light/tests.rs` (task 2's entry); reverted with a reverse patch.
+- **Cost:** about 2 minutes.
+- **What would remove it:** task 2's fix (one formatting commit for the crate).
