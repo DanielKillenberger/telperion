@@ -42,3 +42,17 @@
 - **What slowed it:** 131 tests, about 100 CPU-minutes, 7 minutes of wall time on the shared desk (load 6 to 34 from the other worker); four levers take half an hour of test runs.
 - **Cost:** about 30 minutes of waiting over the task.
 - **What would remove it:** a fast subset the per-commit check names (the unit tests that build small trees), with the heavy integration tests left to the workspace gate.
+
+## 2026-10-06, task 4 worker: P4's coupling pass lives only on an unmerged probe branch
+
+- **Doing:** building the light-field comparison the task asks for first, on P4's coupling pass.
+- **What slowed it:** the pass (`couple.rs`, `grow/couple.rs`, `grow/fine.rs`) is on `fn-209-probe-light` alone, not on this branch, and that worktree is another session's. The tool had to be built as a patch in a scratch worktree at P4's commit (`p4-light-probe.patch`), and the measures P4's metric needed (per-cycle population, realized leaf area) taken there by hand-added `eprintln`s behind env switches.
+- **Cost:** about 10 minutes and eight rebuilds (each 3 s; the runs 20 s each, load 2 to 7).
+- **What would remove it:** a probe that leaves its measures as a kept example on a branch the next task merges, or a statement in the task of which branch the code it builds on lives on.
+
+## 2026-10-06, task 4 worker: the desk's command guard refuses `git diff > file` to a path held in a variable
+
+- **Doing:** saving the probe's patch into the evidence folder.
+- **What slowed it:** dcg blocks a truncating redirect to a shell-expanded path; `git diff --output=<literal path>` works.
+- **Cost:** about 1 minute.
+- **What would remove it:** nothing in the repository; a local setup note (reported, not specced).

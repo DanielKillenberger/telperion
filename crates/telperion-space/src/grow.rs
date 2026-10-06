@@ -87,6 +87,9 @@ pub(crate) struct Options {
     /// keeping every lateral bud made as a record (`bounded.rs`, fn-209
     /// option 4): what a bounded build resolves chain by chain.
     pub settle: bool,
+    /// Whether a laid tree keeps its lateral buds' records as a settled
+    /// one does (fn-211.4: a laid tree surveyed at a cut).
+    pub records: bool,
 }
 
 impl Default for Options {
@@ -97,6 +100,7 @@ impl Default for Options {
             share: parallel::SHARE,
             unread_light: false,
             settle: false,
+            records: false,
         }
     }
 }

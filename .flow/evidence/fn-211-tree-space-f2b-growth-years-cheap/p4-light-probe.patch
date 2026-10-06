@@ -1,0 +1,534 @@
+diff --git c/crates/telperion-space/examples/probe.rs w/crates/telperion-space/examples/probe.rs
+new file mode 100644
+index 00000000..15bde4b4
+--- /dev/null
++++ w/crates/telperion-space/examples/probe.rs
+@@ -0,0 +1,179 @@
++//! fn-211.4 light probe: the pass's last field (before the last cycle)
++//! against the laid tree's field of the same cycle's leaves, at the same
++//! points, split into position and field, and the field into its
++//! coupling leaves and its fine stand-ins.
++//!
++//!   cargo run --profile ci -p telperion-space --example probe -- [age] [seed] [cells]
++#[path = "junctions/stats.rs"]
++mod stats;
++
++use stats::quantiles;
++use std::collections::HashMap;
++use telperion_space::{field_reads, grow, oak, Bounded, Expected, Light, Probe, Request, Structure, Vec3, PROBE};
++
++const LIT: Light = Light {
++    extinction: 0.5,
++    sky: 0.5,
++};
++
++fn main() {
++    let args: Vec<String> = std::env::args().skip(1).collect();
++    let age: u32 = args.first().map_or(80, |a| a.parse().unwrap());
++    let seed: u64 = args.get(1).map_or(1, |a| a.parse().unwrap());
++    let cells: Vec<f64> = args
++        .get(2)
++        .map_or("0.5".into(), |a: &String| a.clone())
++        .split(',')
++        .map(|c| c.parse().unwrap())
++        .collect();
++    let mut species = oak();
++    if std::env::var("PROBE_NO_BALANCE").is_ok() {
++        for s in &mut species.states {
++            s.balance_hazard = 0.0;
++        }
++    }
++    if std::env::var("PROBE_NO_SAG").is_ok() {
++        for s in &mut species.states {
++            s.form.sag = 0.0;
++        }
++    }
++    let request = Request {
++        age,
++        seed,
++        budget: 20_000_000,
++        light: LIT,
++    };
++    *PROBE.lock().unwrap() = None;
++    let today = grow(&species, request).expect("grows");
++    let probe = PROBE.lock().unwrap().take().expect("probed");
++    analyze(&format!("today's oak {age} s{seed}"), &today, &probe, None, &species);
++    let expected = Expected::new(&species, age, 0);
++    for cell in cells {
++        *PROBE.lock().unwrap() = None;
++        let (ours, m) = Bounded::coupled_laid(&species, request, &expected, cell, 0).expect("couples");
++        let probe = PROBE.lock().unwrap().take().expect("probed");
++        analyze(&format!("coupled oak {age} s{seed} cell {cell}"), &ours, &probe, Some(&m.tag), &species);
++    }
++}
++
++fn q(v: &[f64]) -> String {
++    let (_, p50, p95) = quantiles(v);
++    let mean = v.iter().sum::<f64>() / v.len().max(1) as f64;
++    format!("p50 {p50:.4} p95 {p95:.4} mean {mean:+.4}")
++}
++
++fn analyze(label: &str, s: &Structure, probe: &Probe, tag: Option<&[usize]>, species: &telperion_space::Species) {
++    let last = s.age - 1;
++    let is_fine = |i: usize| tag.is_some_and(|t| t[i] != usize::MAX);
++    // The laid tree's leaves of the pass's last cycle.
++    let mut laid: Vec<(Vec3, f64, bool)> = Vec::new();
++    for (i, a) in s.axes.iter().enumerate() {
++        let area = species.states[a.pa].leaf_area;
++        for p in a.phytomers.iter().filter(|p| p.cycle == last) {
++            laid.push((p.tip, p.scale * area, is_fine(i)));
++        }
++    }
++    let sum = |v: &[(Vec3, f64, bool)], fine: bool| v.iter().filter(|l| l.2 == fine).map(|l| l.1).sum::<f64>();
++    println!(
++        "{label}: leaf area of cycle {last}: pass coupling {:.1} fine {:.1}; laid coupling {:.1} fine {:.1} (cell {})",
++        sum(&probe.leaves, false),
++        sum(&probe.leaves, true),
++        sum(&laid, false),
++        sum(&laid, true),
++        probe.cell
++    );
++    // Read points: each coupling apex's tip at the end of cycle `last`
++    // in the laid tree; each fine root's buds that grew in `last`.
++    let tip_at = |i: usize| {
++        let a = &s.axes[i];
++        a.phytomers.iter().rev().find(|p| p.cycle <= last).map_or(a.base, |p| p.tip)
++    };
++    let mut buds_of: HashMap<usize, Vec<Vec3>> = HashMap::new();
++    if let Some(t) = tag {
++        for (i, a) in s.axes.iter().enumerate() {
++            if t[i] == usize::MAX {
++                continue;
++            }
++            if let Some(p) = a.phytomers.iter().rev().find(|p| p.cycle == last) {
++                buds_of.entry(t[i]).or_default().push(p.tip);
++            }
++        }
++    }
++    // Points: pass points, then laid points (one per coupling read, a
++    // fine root's buds each).
++    let mut pass_pts = Vec::new();
++    let mut laid_pts = Vec::new();
++    let mut groups: Vec<(bool, f64, usize, usize, Vec3)> = Vec::new(); // fine, pass light, start, end in laid_pts, pass pt
++    for &(j, xp, lp, fine) in &probe.reads {
++        if j == usize::MAX || j >= s.axes.len() {
++            continue;
++        }
++        let start = laid_pts.len();
++        if fine {
++            let Some(b) = buds_of.get(&tag.unwrap()[j]) else { continue };
++            laid_pts.extend(b.iter().copied());
++        } else {
++            if is_fine(j) {
++                continue;
++            }
++            laid_pts.push(tip_at(j));
++        }
++        pass_pts.push(xp);
++        groups.push((fine, lp, start, laid_pts.len(), xp));
++    }
++    let strip = |v: &[(Vec3, f64, bool)], f: &dyn Fn(bool) -> bool| -> Vec<(Vec3, f64)> {
++        v.iter().filter(|l| f(l.2)).map(|l| (l.0, l.1)).collect()
++    };
++    let p_leaves = strip(&probe.leaves, &|_| true);
++    let l_leaves = strip(&laid, &|_| true);
++    let mut m1 = strip(&laid, &|f| !f);
++    m1.extend(strip(&probe.leaves, &|f| f));
++    let mut m2 = strip(&probe.leaves, &|f| !f);
++    m2.extend(strip(&laid, &|f| f));
++    let all: Vec<Vec3> = pass_pts.iter().chain(&laid_pts).copied().collect();
++    let np = pass_pts.len();
++    let f = |leaves: &[(Vec3, f64)]| field_reads(&LIT, leaves, &all, probe.cell);
++    let (pf, lf, m1f, m2f) = (f(&p_leaves), f(&l_leaves), f(&m1), f(&m2));
++    let mean = |v: &[f64], a: usize, b: usize| v[np + a..np + b].iter().sum::<f64>() / (b - a) as f64;
++    for kind in [false, true] {
++        let (mut total, mut pos, mut field, mut fine_part, mut coup_part, mut recorded, mut dist) =
++            (vec![], vec![], vec![], vec![], vec![], vec![], vec![]);
++        let mut lit = 0.0;
++        for (g, &(fine, lp, a, b, xp)) in groups.iter().enumerate() {
++            if fine != kind {
++                continue;
++            }
++            let l = mean(&lf, a, b);
++            lit += l;
++            recorded.push(lp - pf[g]);
++            total.push(pf[g] - l);
++            pos.push(pf[g] - mean(&pf, a, b));
++            field.push(mean(&pf, a, b) - l);
++            fine_part.push(mean(&m1f, a, b) - l);
++            coup_part.push(mean(&m2f, a, b) - l);
++            let c = laid_pts[a..b].iter().fold(Vec3::default(), |s, &p| s + p) * (1.0 / (b - a) as f64);
++            dist.push((c - xp).length());
++        }
++        if total.is_empty() {
++            continue;
++        }
++        let abs = |v: &[f64]| v.iter().map(|x| x.abs()).collect::<Vec<_>>();
++        println!(
++            "  {} reads (n {}, laid light mean {:.3}):",
++            if kind { "fine-root" } else { "coupling" },
++            total.len(),
++            lit / total.len() as f64
++        );
++        println!("    total  pass(x_pass) - laid(x_laid): |.| {}  signed mean {:+.4}", q(&abs(&total)), mean_of(&total));
++        println!("    position pass(x_pass) - pass(x_laid): |.| {}  signed {:+.4}", q(&abs(&pos)), mean_of(&pos));
++        println!("    field  pass(x_laid) - laid(x_laid): |.| {}  signed {:+.4}", q(&abs(&field)), mean_of(&field));
++        println!("      of which fine leaves (laid coupling + stand-ins): |.| {}  signed {:+.4}", q(&abs(&fine_part)), mean_of(&fine_part));
++        println!("      of which coupling leaves (pass coupling + laid fine): |.| {}  signed {:+.4}", q(&abs(&coup_part)), mean_of(&coup_part));
++        println!("    recheck recorded - pass(x_pass): |.| {}", q(&abs(&recorded)));
++        println!("    distance pass point to laid buds' centroid m: {}", q(&dist));
++    }
++}
++
++fn mean_of(v: &[f64]) -> f64 {
++    v.iter().sum::<f64>() / v.len().max(1) as f64
++}
+diff --git c/crates/telperion-space/src/couple.rs w/crates/telperion-space/src/couple.rs
+index 0ea8e035..e0de2692 100644
+--- c/crates/telperion-space/src/couple.rs
++++ w/crates/telperion-space/src/couple.rs
+@@ -51,6 +51,8 @@ pub(crate) struct Aggregate {
+     pub leaves: f64,
+     /// The phytomers it is expected to have grown.
+     pub grown: f64,
++    /// Light probe: its last unit's expected phytomers, and those times size.
++    pub last: (f64, f64),
+ }
+ 
+ /// What a fine root reads in one cycle.
+@@ -103,6 +105,7 @@ impl Aggregate {
+             }
+         };
+         self.leaves = 0.0;
++        self.last = (0.0, 0.0);
+         for c in std::mem::take(&mut self.cohorts) {
+             let pa = c.pa as usize;
+             let state = &species.states[pa];
+@@ -119,6 +122,8 @@ impl Aggregate {
+             for (z, zone) in state.zones.iter().enumerate() {
+                 let nodes = grows * zone.nodes.mean();
+                 self.grown += nodes;
++                self.last.0 += nodes;
++                self.last.1 += nodes * size;
+                 self.leaves += nodes * state.leaf_area * size;
+                 self.wood += nodes * state.internode * size;
+                 for (j, &p) in laterals[pa][z].iter().enumerate() {
+diff --git c/crates/telperion-space/src/grow.rs w/crates/telperion-space/src/grow.rs
+index c43e8241..d5759902 100644
+--- c/crates/telperion-space/src/grow.rs
++++ w/crates/telperion-space/src/grow.rs
+@@ -134,6 +134,18 @@ pub(crate) enum Certain {
+ /// The tree, the phytomers grown for it, the shed ones included, and the
+ /// lineages of the laterals marked certain to be shed.
+ #[cfg_attr(not(test), allow(dead_code))]
++/// Light probe (fn-211.4): the pass's last field before the tree's last
++/// cycle: its leaves (fine stand-in or not) and its reads (axis, point,
++/// light, fine root or not); axes remapped to the shed tree.
++#[derive(Debug, Clone, Default)]
++pub struct Probe {
++    pub leaves: Vec<(Vec3, f64, bool)>,
++    pub reads: Vec<(usize, Vec3, f64, bool)>,
++    pub cell: f64,
++}
++pub static PER_CYCLE: std::sync::Mutex<Vec<[f64; 2]>> = std::sync::Mutex::new(Vec::new());
++pub static PROBE: std::sync::Mutex<Option<Probe>> = std::sync::Mutex::new(None);
++
+ pub(crate) struct Grown {
+     pub structure: Structure,
+     pub grown: u64,
+@@ -371,6 +383,11 @@ pub(crate) fn run_coupled(
+         }
+         m.tag = tag;
+     }
++    if let Some(p) = PROBE.lock().unwrap().as_mut() {
++        for r in &mut p.reads {
++            r.0 = shed.index.get(r.0).copied().unwrap_or(usize::MAX);
++        }
++    }
+     let records = kept_records(made, &shed.index);
+     let girth = grown.map_or_else(Girth::default, |g| disused(&g, &shed, species));
+     let mut structure = Structure {
+diff --git c/crates/telperion-space/src/grow/couple.rs w/crates/telperion-space/src/grow/couple.rs
+index 5567410b..62be44df 100644
+--- c/crates/telperion-space/src/grow/couple.rs
++++ w/crates/telperion-space/src/grow/couple.rs
+@@ -209,6 +209,52 @@ impl Grower<'_> {
+         out
+     }
+ 
++    /// Light probe: each fine root's expected base section on the
++    /// coupling tree, as a disused pipe at its node, grown in by its age.
++    pub(super) fn fine_sections(
++        &self,
++        tree: &crate::structure::Structure,
++        from: &[usize],
++        cycle: u32,
++    ) -> Vec<crate::girth::Disused> {
++        let Some(pass) = self.couple.as_ref() else {
++            return Vec::new();
++        };
++        let mut fine_of = std::collections::HashMap::with_capacity(pass.fine.len());
++        for (k, f) in pass.fine.iter().enumerate() {
++            fine_of.insert(f.axis, k);
++        }
++        let age = self.rules.age;
++        let mut out = Vec::new();
++        for (j, axis) in tree.axes.iter().enumerate() {
++            let Some(&k) = fine_of.get(&from[j]) else {
++                continue;
++            };
++            let f = &pass.fine[k];
++            if f.dead {
++                continue;
++            }
++            let Origin::Lateral { parent, node, .. } = axis.origin else {
++                continue;
++            };
++            let row = pass.classifier.rows.lateral(f.pa, f.birth);
++            if row.kept <= 0.0 {
++                continue;
++            }
++            let ramp = (f64::from(cycle.saturating_sub(f.birth))
++                / f64::from(age.saturating_sub(f.birth).max(1)))
++            .min(1.0);
++            let radius = (row.s1 / row.kept * ramp).powf(1.0 / row.e) * f.scale;
++            out.push(crate::girth::Disused {
++                axis: parent,
++                node: Some(node),
++                radius,
++                share: row.kept,
++            });
++        }
++        out
++    }
++
+     /// Drops the fine roots just made from the living apexes.
+     pub(super) fn unlive(&mut self, fine: &[usize]) {
+         if fine.is_empty() {
+@@ -381,6 +427,14 @@ impl Grower<'_> {
+             });
+         }
+         pass.advance_s += started.elapsed().as_secs_f64();
++        {
++            let n: f64 = pass.fine.iter().filter(|f| !f.dead).map(|f| f.agg.last.0).sum();
++            let mut pc = super::PER_CYCLE.lock().unwrap();
++            if pc.len() <= cycle as usize {
++                pc.resize(cycle as usize + 1, [0.0; 2]);
++            }
++            pc[cycle as usize][0] = n;
++        }
+     }
+ 
+     /// Each living fine root's expected leaves this cycle at its expected
+@@ -399,7 +453,8 @@ impl Grower<'_> {
+                 let ramp = f64::from(cycle.saturating_sub(f.birth))
+                     / f64::from(age.saturating_sub(f.birth).max(1));
+                 let at = axis.base + axis.heading * (f.along * f.scale * ramp.min(1.0));
+-                (f.axis, at, f.scale * f.agg.leaves)
++                let k: f64 = std::env::var("COUPLE_LEAF_SCALE").ok().map_or(1.0, |v| v.parse().unwrap());
++                (f.axis, at, k * f.scale * f.agg.leaves)
+             })
+             .collect()
+     }
+diff --git c/crates/telperion-space/src/grow/fine.rs w/crates/telperion-space/src/grow/fine.rs
+index a2a8d647..89e27376 100644
+--- c/crates/telperion-space/src/grow/fine.rs
++++ w/crates/telperion-space/src/grow/fine.rs
+@@ -278,8 +278,37 @@ impl Grower<'_> {
+         let mut tag = vec![usize::MAX; self.axes.len()];
+         let mut fine_grown = 0;
+         let mut growth = pass.growth.clone();
++        let mut leaf_pre = 0.0f64;
++        let mut rel = [(0.0f64, 0.0f64); 2];
++        let mut sized = (0.0f64, 0.0f64);
+         for (k, (f, slot)) in fine.iter().zip(slots).enumerate() {
+             let mut g = slot.into_inner().unwrap().expect("grown")?;
++            if std::env::var("PROBE_DEBUG").is_ok() {
++                let mut pc = super::PER_CYCLE.lock().unwrap();
++                for a in g.axes.iter().skip(1) {
++                    for p in &a.phytomers {
++                        if (p.cycle as usize) < pc.len() && p.cycle >= f.records.first {
++                            pc[p.cycle as usize][1] += 1.0;
++                        }
++                    }
++                }
++            }
++            if std::env::var("PROBE_DEBUG").is_ok() {
++                let age = self.rules.age;
++                for a in g.axes.iter().skip(1) {
++                    let area = self.species.states[a.pa].leaf_area;
++                    for p in a.phytomers.iter().filter(|p| p.cycle == age - 1) {
++                        leaf_pre += p.scale * p.size * area;
++                        let k = usize::from(!matches!(a.origin, Origin::Lateral { parent: 0, .. }) && !matches!(a.origin, Origin::Lateral{..}) );
++                        let lateral = usize::from(matches!(a.origin, Origin::Lateral { .. }));
++                        let _ = k;
++                        rel[lateral].0 += p.scale / f.scale;
++                        sized.0 += p.size;
++                        sized.1 += p.scale;
++                        rel[lateral].1 += 1.0;
++                    }
++                }
++            }
+             fine_grown += g.grown;
+             for (c, row) in std::mem::take(&mut g.growth).into_iter().enumerate() {
+                 for (pa, [p, ps]) in row.into_iter().enumerate() {
+@@ -300,6 +329,14 @@ impl Grower<'_> {
+             self.join(f.axis, g, k, &mut tag);
+         }
+         self.rules.grown += fine_grown;
++        if std::env::var("PROBE_DEBUG").is_ok() {
++            eprintln!("cycle-{} phytomers' scale over their root's base scale: on continuations and relays mean {:.3} (n {}), on laterals mean {:.3} (n {})", self.rules.age - 1, rel[0].0 / rel[0].1, rel[0].1, rel[1].0 / rel[1].1, rel[1].1);
++            for (c, v) in super::PER_CYCLE.lock().unwrap().iter().enumerate().filter(|(c, _)| c % 5 == 4) {
++                eprintln!("cycle {c}: aggregates {:.0} realized {:.0} ratio {:.2}", v[0], v[1], v[0] / v[1].max(1.0));
++            }
++            eprintln!("realized: mean size {:.3}, scale sum {:.1}", sized.0 / (rel[0].1 + rel[1].1), sized.1);
++            eprintln!("fine subtrees' leaf area of cycle {} as grown, before shedding: {leaf_pre:.1}", self.rules.age - 1);
++        }
+         Ok(Measured {
+             pass_s,
+             fine_s: started.elapsed().as_secs_f64() - pass_s,
+diff --git c/crates/telperion-space/src/grow/relay.rs w/crates/telperion-space/src/grow/relay.rs
+index 8438e659..77150d13 100644
+--- c/crates/telperion-space/src/grow/relay.rs
++++ w/crates/telperion-space/src/grow/relay.rs
+@@ -48,6 +48,27 @@ impl Grower<'_> {
+                 (draws.alive, draws.living) = (true, 1.0);
+             }
+         }
++        if std::env::var("PROBE_DEBUG").is_ok() {
++            if let Some(pass) = self.couple.as_ref() {
++                let n = pass.fine.len();
++                let dead = pass.fine.iter().filter(|f| f.dead).count();
++                let gone = pass.fine.iter().filter(|f| !f.agg.alive()).count();
++                let out = pass.fine.iter().filter(|f| index[f.axis] == usize::MAX).count();
++                let live_out = pass.fine.iter().filter(|f| !f.dead && f.agg.alive() && index[f.axis] == usize::MAX).count();
++                let ends = pass.fine.iter().filter(|f| self.axes[f.axis].apex_end.is_some()).count();
++                eprintln!("relay {cycle}: fine {n}, shed by balance {dead}, aggregate extinct {gone}, not standing {out} (living {live_out}), apex_end set {ends}");
++            }
++        }
++        if std::env::var("COUPLE_STAND").is_ok() {
++            if let Some(pass) = self.couple.as_ref() {
++                for f in pass.fine.iter().filter(|f| !f.dead && f.agg.alive()) {
++                    if index[f.axis] != usize::MAX {
++                        let d = &mut draws[index[f.axis]];
++                        (d.alive, d.living) = (true, 1.0);
++                    }
++                }
++            }
++        }
+         assign(&mut axes, &draws);
+         let shed = shed(axes, self.species, cycle);
+         let from: Vec<usize> = (0..from.len())
+@@ -60,9 +81,26 @@ impl Grower<'_> {
+             axes: shed.axes,
+         };
+         scale(&mut tree, self.species);
+-        thicken(&mut tree, self.species, &Girth::default());
++        let girth = Girth {
++            disused: if std::env::var("COUPLE_FINE_GIRTH").is_ok() {
++                self.fine_sections(&tree, &from, cycle)
++            } else {
++                Vec::new()
++            },
++            leaf_mean: None,
++        };
++        thicken(&mut tree, self.species, &girth);
++        if std::env::var("PROBE_DEBUG").is_ok() && self.couple.is_some() || std::env::var("PROBE_DEBUG_ALL").is_ok() {
++            let n = girth.disused.len();
++            let r: f64 = girth.disused.iter().map(|d| d.radius).sum::<f64>() / n.max(1) as f64;
++            let base = tree.axes[0].phytomers[0].radius;
++            let mut lim: Vec<f64> = tree.axes.iter().filter(|a| matches!(a.origin, Origin::Lateral{parent:0,..})).filter_map(|a| a.phytomers.first().map(|p| p.radius)).collect();
++            lim.sort_by(f64::total_cmp);
++            let med = lim.get(lim.len()/2).copied().unwrap_or(0.0);
++            eprintln!("relay {cycle}: disused {n} mean r {r:.4}; trunk base r {base:.4}; order-1 base r median {med:.4} (n {})", lim.len());
++        }
+         let mut layers = place(&mut tree, self.species, None, self.threads)?;
+-        if sag::any(self.species) {
++        if sag::any(self.species) && std::env::var("COUPLE_NO_SAG").is_err() {
+             // Probe P4: each fine root's committed load on the coupling
+             // tree, grown in by its age (`fine_loads`).
+             let borne = self.fine_loads(&tree, &from, cycle);
+diff --git c/crates/telperion-space/src/grow/sketch.rs w/crates/telperion-space/src/grow/sketch.rs
+index 2c28c4ed..fb1e60ac 100644
+--- c/crates/telperion-space/src/grow/sketch.rs
++++ w/crates/telperion-space/src/grow/sketch.rs
+@@ -146,8 +146,6 @@ impl Grower<'_> {
+         }
+         tips.extend(fine.iter().map(|f| f.1));
+         let field = Field::sized_on(&sketch.light, &leaves, &tips, sketch.cell, sketch.threads);
+-        leaves.truncate(own);
+-        self.leaves = leaves;
+         for (apex, &tip) in self.live.iter().zip(&tips) {
+             sketch.pencils[apex.axis].light = field.at(tip);
+         }
+@@ -159,6 +157,38 @@ impl Grower<'_> {
+         for &(i, l) in &read {
+             sketch.pencils[i].light = l;
+         }
++        if cycle + 1 == self.rules.age && std::env::var("PROBE_DEBUG").is_ok() {
++            if let Some(pass) = self.couple.as_ref() {
++                let live: Vec<_> = pass.fine.iter().filter(|f| !f.dead).collect();
++                let n: f64 = live.iter().map(|f| f.agg.last.0).sum();
++                let ns: f64 = live.iter().map(|f| f.agg.last.1).sum();
++                let sn: f64 = live.iter().map(|f| f.agg.last.0 * f.scale).sum();
++                let dead_n: f64 = pass.fine.iter().filter(|f| f.dead).map(|f| f.agg.last.0).sum();
++                eprintln!("aggregates' cycle-{cycle} phytomers: {n:.0} (mean size {:.3}, scale-weighted {sn:.1}); in roots shed by balance {dead_n:.0}", ns / n);
++            }
++        }
++        if cycle + 1 == self.rules.age {
++            let mut stash = leaves.iter().enumerate().map(|(k, &(at, a))| (at, a, k >= own)).collect::<Vec<_>>();
++            let _ = &mut stash;
++            let mut reads: Vec<(usize, Vec3, f64, bool)> = self
++                .live
++                .iter()
++                .zip(&tips)
++                .map(|(a, &t)| (a.axis, t, field.at(t), false))
++                .collect();
++            let at_base = std::env::var("COUPLE_READ_BASE").is_ok();
++            for f in &fine {
++                let at = if at_base { self.axes[f.0].base } else { f.1 };
++                reads.push((f.0, at, field.at(at), true));
++            }
++            *super::PROBE.lock().unwrap() = Some(super::Probe {
++                leaves: stash,
++                reads,
++                cell: sketch.cell,
++            });
++        }
++        leaves.truncate(own);
++        self.leaves = leaves;
+         self.sketch = Some(sketch);
+         self.fine_lit(cycle, &read);
+     }
+diff --git c/crates/telperion-space/src/lib.rs w/crates/telperion-space/src/lib.rs
+index fc8f8f8c..9c4f4719 100644
+--- c/crates/telperion-space/src/lib.rs
++++ w/crates/telperion-space/src/lib.rs
+@@ -47,7 +47,8 @@ pub use closed_form::expected_counts;
+ pub use error::{Error, Result};
+ pub use grow::fine::{FineReport, Measured};
+ pub use grow::{aggregate_oracle, grow, grow_staged, sketch, OracleRow, Request, Stage};
+-pub use light::{bud_light, Light};
++pub use light::{bud_light, field_reads, Light};
++pub use grow::{Probe, PROBE};
+ pub use oak::oak;
+ pub use palm::palm;
+ pub use presence::{FLOOR, RATE, SPAN};
+diff --git c/crates/telperion-space/src/light.rs w/crates/telperion-space/src/light.rs
+index 0c98c843..de5c1549 100644
+--- c/crates/telperion-space/src/light.rs
++++ w/crates/telperion-space/src/light.rs
+@@ -98,6 +98,13 @@ impl Light {
+ /// index, from the leaves its last cycle grew, each node's PA's leaf area
+ /// sized by its phytomer's scale: what a bud there would read before the
+ /// next cycle. The measure of a rough layout against the final one.
++/// Light probe (fn-211.4): the field of `leaves` at cell `cell`, read at
++/// `reads`.
++pub fn field_reads(light: &Light, leaves: &[(Vec3, f64)], reads: &[Vec3], cell: f64) -> Vec<f64> {
++    let field = Field::sized(light, leaves, reads, cell);
++    reads.iter().map(|&r| field.at(r)).collect()
++}
++
+ pub fn bud_light(structure: &Structure, species: &Species, light: &Light) -> Vec<(usize, f64)> {
+     let leaves: Vec<(Vec3, f64)> = structure
+         .axes

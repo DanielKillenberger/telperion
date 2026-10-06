@@ -31,7 +31,7 @@ impl Grower<'_> {
         stage(Stage::Pass(Pass::Mark));
         assign(&mut self.axes, &self.draws, species, threads);
         stage(Stage::Pass(Pass::Assign));
-        let made = if options.settle {
+        let made = if options.settle || options.records {
             made(&self.axes)
         } else {
             Vec::new()
