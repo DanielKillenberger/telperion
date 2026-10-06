@@ -143,7 +143,7 @@ pub fn grow_alone_with<'s>(
         return Err(Error::Collapsed);
     }
     scale(&mut structure, species);
-    thicken(&mut structure, species, &Girth::default());
+    thicken(&mut structure, species, &Girth::default(), 1);
     let bounded = Bounded::settled(species, structure, records, (rows, None));
     Ok(Alone { bounded, costs })
 }

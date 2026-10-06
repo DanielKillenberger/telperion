@@ -60,7 +60,7 @@ impl Grower<'_> {
         stage(Stage::Pass(Pass::Scale));
         // Girth needs no geometry; placing reads it where wood meets the
         // ground.
-        thicken(&mut structure, species, &girth);
+        thicken(&mut structure, species, &girth, threads);
         stage(Stage::Pass(Pass::Thicken));
         let leaf_mean = girth
             .leaf_mean
