@@ -85,7 +85,7 @@ fn every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers() {
 
 #[test]
 fn a_family_the_generator_rejects_surfaces_its_own_message() {
-    let mut family = Preset::from_id("ordinary")
+    let mut family = Preset::from_id("date-palm")
         .expect("preset identity")
         .parameters();
     family.shell_depth = 2.0;

@@ -128,16 +128,19 @@ fn oak_identity_resolves_to_frozen_profile_and_native_anatomy() {
     }
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn fixed_oaks_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
     fixed_species("suite::species::fixed_oaks_pass_geometry_and_profile_gates_with_repeatable_varied_specimens", Preset::OregonWhiteOak);
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn fixed_spruces_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
     fixed_species("suite::species::fixed_spruces_pass_geometry_and_profile_gates_with_repeatable_varied_specimens", Preset::NorwaySpruce);
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn beech_identity_resolves_to_frozen_profile_and_native_anatomy() {
     let preset = Preset::from_id("european-beech").unwrap();
@@ -200,6 +203,7 @@ fn birch_identity_resolves_to_frozen_profile_and_native_anatomy() {
     assert!(Preset::from_id("Betula pendula").is_none());
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
     fixed_species("suite::species::fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens", Preset::EuropeanBeech);

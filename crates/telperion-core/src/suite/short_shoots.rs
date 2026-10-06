@@ -68,6 +68,7 @@ fn none(p: CanopyParams) -> CanopyParams {
     }
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn the_beech_carries_most_of_its_leaves_on_short_shoots() {
     let mut f = Preset::EuropeanBeech.parameters();

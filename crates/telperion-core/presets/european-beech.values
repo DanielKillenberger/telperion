@@ -95,7 +95,6 @@
 # every shoot with a comb of level leaves, and the crown's edge read as
 # fern fronds against the sky (host, round 17). They stand where the
 # slender wood's own row of leaves stood, so that row is off.
-/canopy/shortShootSpacing = 0.0
 /canopy/shortShootRadius = 0.7
 /canopy/shortShootLength = 0.2
 /canopy/shortShootLeaves = 8
@@ -106,7 +105,6 @@
 # systems to their centres, so the crown breaks into rounded clumps
 # with gaps between them, as B-WHOLE's does; the spurs stand a
 # centimetre closer than round 18's to give back what the gaps take.
-/canopy/limbClumping = 0.0
 
 # A beech leaf is held flat and turned every way about its shoot;
 # leaning along it (0.45) laid the leaves down the twig like needles.

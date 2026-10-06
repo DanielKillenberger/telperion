@@ -69,9 +69,12 @@ fn walked(f: &Family, row: &str) -> Vec<(Value, Family)> {
         .collect()
 }
 
+/// Every catalogue row; an engine species' `/space` rows are judged by the
+/// engine (`Species::validate`, telperion-space's refusal tests).
 fn every_row(f: &Family) -> Vec<String> {
     let mut out = Vec::new();
     rows(&params::metadata(f), String::new(), &mut out);
+    out.retain(|row| !row.starts_with("/space/"));
     out
 }
 
@@ -158,6 +161,7 @@ const RENAMED: &[(&str, &str)] = &[("/skeleton/growth/maxNodes", "0")];
 
 /// Every ladder value on every row of every family, made small: the build and
 /// `validate` agree on it, error for error, save the values named above.
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn the_build_and_validate_refuse_the_same_values_by_the_same_name() {
     let mut build_only = Vec::new();

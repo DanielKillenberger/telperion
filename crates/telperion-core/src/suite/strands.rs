@@ -177,6 +177,10 @@ fn every_shipped_preset_at_neutral_variation_is_the_tree_the_row_never_reached()
     for (id, pin) in IDS.iter().zip(NEUTRAL) {
         let mut f = preset(id);
         f.skeleton.twigs.pendulous_variation = 0.0;
+        // An engine preset's rows reach the scaffold's grower no more (fn-198).
+        if f.space.species.is_some() {
+            continue;
+        }
         assert_eq!(
             skeleton(&tree(&f)),
             pin,

@@ -1,6 +1,7 @@
 //! The executor interface and request subsets against the one build, over a
-//! small table of families: leaves free of the wood and seated on it, and an
-//! optional growth override stated and left unset.
+//! small table of families: a young engine beech with leaves free of the
+//! wood and seated on it, and an optional growth override (a scaffold row
+//! the engine never reads) stated and left unset.
 use super::*;
 use crate::{
     pipeline::{build, Outputs, Request},
@@ -8,7 +9,8 @@ use crate::{
 };
 
 fn cases() -> Vec<(&'static str, Family)> {
-    let base = Preset::Ordinary.parameters();
+    let mut base = Preset::EuropeanBeech.parameters();
+    base.age = 15.0;
     let mut free = base.clone();
     free.canopy.surface_contact = 0.0;
     let mut seated = base.clone();

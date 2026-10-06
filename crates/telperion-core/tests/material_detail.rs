@@ -246,7 +246,7 @@ fn every_shipped_young_wood_row_crosses_the_wire_the_page_sends_unchanged() {
         })
         .map(|entry| entry.1)
         .collect();
-    assert_eq!(young, ["oregon-white-oak", "silver-birch", "european-beech"]);
+    assert_eq!(young, ["oregon-white-oak", "european-beech", "silver-birch"]);
 }
 
 /// The canopy rows cross the page's wire as the native still reads them, so
@@ -273,5 +273,5 @@ fn every_shipped_canopy_row_crosses_the_wire_the_page_sends_unchanged() {
         }
     }
     // Only the two species whose tables state a canopy light one.
-    assert_eq!(lit, ["silver-birch", "european-beech"]);
+    assert_eq!(lit, ["european-beech", "silver-birch"]);
 }

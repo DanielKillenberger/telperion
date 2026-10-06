@@ -3,7 +3,7 @@
 //! does not move with age, and that no station the generator places falls
 //! outside it.
 use telperion_core::{
-    foliage::{Leaf, Reach, Reference},
+    foliage::Leaf,
     mesh, params, presets,
 };
 
@@ -12,8 +12,13 @@ use telperion_core::{
 /// species pipeline's own catalogue carries two more - the European beech,
 /// still in work, and the European ash, authored as a manifest - and
 /// `species:qa` judges those over their manifests.
+/// The shipped presets the pipeline grows: those with an engine species; the
+/// rest are refused at the skeleton (fn-198).
 fn shipped() -> impl Iterator<Item = &'static str> {
-    params::CATALOGUE.iter().map(|entry| entry.1)
+    params::CATALOGUE
+        .iter()
+        .map(|entry| entry.1)
+        .filter(|id| family(id).space.species.is_some())
 }
 
 fn family(id: &str) -> presets::Family {
@@ -24,9 +29,9 @@ fn family(id: &str) -> presets::Family {
 #[test]
 fn a_crown_is_twelve_bytes_a_leaf() {
     assert_eq!(size_of::<Leaf>(), 12);
-    let m = mesh::build(&family("silver-birch")).unwrap();
+    let m = mesh::build(&family("european-beech")).unwrap();
     let leaves = m.foliage.instances.leaves.as_slice();
-    assert!(!leaves.is_empty(), "the birch placed no leaves");
+    assert!(!leaves.is_empty(), "the beech placed no leaves");
     assert_eq!(size_of_val(leaves), leaves.len() * 12);
     assert_eq!(m.foliage_instances(), leaves.len());
 }
@@ -40,8 +45,9 @@ fn a_crown_is_twelve_bytes_a_leaf() {
 fn no_station_of_any_shipped_species_falls_outside_its_box() {
     for id in shipped() {
         let f = family(id);
-        let reference = Reference::grown(&mesh::grow(&f).unwrap(), Reach::of(&f).unwrap());
-        let m = mesh::build(&f).unwrap();
+        let x = crate::pipeline::executor::grow(&f).unwrap().expansion().unwrap();
+        let reference = x.reference();
+        let m = x.mesh().unwrap();
         let instances = &m.foliage.instances;
         assert_eq!(instances.reference, reference, "{id}: box differs");
         assert!(!instances.is_empty(), "{id}: no leaves to judge");

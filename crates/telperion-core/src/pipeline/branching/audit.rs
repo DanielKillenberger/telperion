@@ -134,6 +134,10 @@ fn shipped_scaffolds_are_reproducible() {
         (Preset::Ordinary, 9848876633805652422),
     ] {
         let family = preset.parameters();
+        // An engine preset's rows reach the scaffold's grower no more (fn-198).
+        if family.space.species.is_some() {
+            continue;
+        }
         let hash = hashed(&family);
         assert_eq!(hash, hashed(&family), "{preset:?}: not reproducible");
         assert_eq!(hash, expected, "{preset:?} scaffold changed");

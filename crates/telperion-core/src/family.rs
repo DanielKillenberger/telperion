@@ -13,19 +13,20 @@ use crate::{
 crate::catalogue::rows! {
     #[derive(Debug, Clone)]
     pub struct Family in "" {
-        /// The specimen's age in years: the age the species' literature
-        /// dimensions refer to. No build reads it: the direct build is the
-        /// mature tree whatever the row says.
-        pub age: f64 = "age" "years" Bounds::closed(0.0, 1_000_000.0) => [] {
+        /// The specimen's age in years: the engine grows the family's species
+        /// for this many years, so the tree is the one it is at that age
+        /// (fn-198). A whole number of years.
+        pub age: f64 = "age" "years" Bounds::closed(0.0, 1_000_000.0) => [Grow] {
             wire: 0,
             check: value(Site::Age, 0, "age"),
-            growth: Growth::Only,
-            note: "Refused off its range in `params::parse` and `Family::validate`; the species \
-                runner pins it beside the height as the growth reference. The growth path that \
-                read it was removed (fn-181).",
-            blend: Blend::Weighted,
-            dial: Dial::Excluded("Identity of a specimen, not a look: no build reads it, and the \
-                direct build the tuner measures is the mature tree whatever it says."),
+            growth: Growth::Same,
+            note: "Refused off its range in `params::parse` and `Family::validate`, and refused \
+                by name at the skeleton where it is not a whole number of years: the engine \
+                grows a year a cycle. The harness opens an engine preset at 40 (fn-198 host \
+                decision 5).",
+            blend: Blend::Count,
+            dial: Dial::Excluded("The age the tree is drawn at, which the viewer sets; the \
+                tuner judges a species at its ages, never by stepping one."),
         },
         pub skeleton: SkeletonParams,
         pub radii: RadiusParams,
@@ -81,6 +82,13 @@ impl Family {
         use crate::pipeline::{build_element, canopy_rows, height, validate_skeleton};
         self.material.validate()?;
         crate::catalogue::check(Self::CHECKS, self, Site::Age)?;
+        // The engine species, as the engine judges it before it grows.
+        if let Some(species) = &self.space.species {
+            species.validate().map_err(|e| Error::InvalidValue {
+                field: "engine",
+                value: e.to_string(),
+            })?;
+        }
         validate_skeleton(&self.skeleton, self.radii)?;
         // A zero ceiling grows nothing; the build has nothing to sweep, so a
         // family refuses it here.

@@ -198,7 +198,9 @@ fn a_shell_with_an_amplitude_is_not_the_smooth_shell() {
 
 #[test]
 fn a_blend_walks_the_amplitude_and_the_wavelength() {
-    let mut a = Preset::EuropeanBeech.parameters();
+    // Two presets the engine does not grow: a walk from one with an engine
+    // species to one without is refused (fn-198).
+    let mut a = Preset::Ordinary.parameters();
     let mut b = Preset::SilverBirch.parameters();
     a.skeleton.envelope.irregularity = 0.1;
     a.skeleton.envelope.lobe_scale = 0.2;

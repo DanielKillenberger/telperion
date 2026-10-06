@@ -273,6 +273,10 @@ fn shipped_species_meshes_are_the_tree_recorded_before_the_levels() {
     for pin in &PINS {
         let id = pin.id;
         let mut family = Preset::from_id(id).expect("preset identity").parameters();
+        // An engine preset's rows reach the scaffold's grower no more (fn-198).
+        if family.space.species.is_some() {
+            continue;
+        }
         family.skeleton.seed = SEED;
         let tree = branching::generate(&family.skeleton, family.radii)
             .unwrap_or_else(|e| panic!("{id}: {e}"))

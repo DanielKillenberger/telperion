@@ -67,8 +67,15 @@ const SWEEP_NODES: usize = 8_000;
 // leaves them at their neutral, so they are held here.
 // fn-120's three skirt rows and its dead colour are the palm's too, held for
 // the same reason, and so are fn-144's two lattice rows.
-const HELD: [&str; 69] = [
+// fn-198 walks no pair of one preset with an engine species and one without
+// (the walk is refused), and the engine beech and oak no longer seat short
+// shoots or clump their limbs: the short shoots' spacing, the limb clumping
+// and the shell depth moved only between such pairs, so they are held.
+const HELD: [&str; 72] = [
     "/canopy/clumpSystemOrder",
+    "/canopy/limbClumping",
+    "/canopy/shortShootSpacing",
+    "/shellDepth",
     "/canopy/rosetteFronds",
     "/canopy/rosetteDivergence",
     "/canopy/rosettePitch",
@@ -145,10 +152,14 @@ fn family(id: &str) -> Family {
     f
 }
 
+/// Every pair a walk joins: two presets with an engine species, or two
+/// without; a walk from one to the other is refused by name (fn-198).
 fn pairs() -> impl Iterator<Item = (&'static str, &'static str)> {
+    let engine = |id: &str| family(id).space.species.is_some();
     IDS.iter()
         .enumerate()
         .flat_map(|(i, a)| IDS[i + 1..].iter().map(move |b| (*a, *b)))
+        .filter(move |(a, b)| engine(a) == engine(b))
 }
 
 /// The step's parameter, 0 at the first and 1 at the last.
@@ -169,7 +180,9 @@ fn fnv(bytes: impl IntoIterator<Item = u8>) -> u64 {
     hash
 }
 
-/// Every leaf of the wire object by its pointer path.
+/// Every leaf of the wire object by its pointer path, but the engine
+/// species' `/space` rows: the engine's own walk holds those (fn-206,
+/// `telperion-space`'s blend tests), and pads a walked age to four zones.
 fn flat(value: &Value) -> BTreeMap<String, Value> {
     fn walk(value: &Value, at: &str, out: &mut BTreeMap<String, Value>) {
         match value {
@@ -185,6 +198,7 @@ fn flat(value: &Value) -> BTreeMap<String, Value> {
     }
     let mut out = BTreeMap::new();
     walk(value, "", &mut out);
+    out.retain(|path, _| !path.starts_with("/space/"));
     out
 }
 
@@ -229,6 +243,9 @@ fn every_wire_parameter_a_preset_moves_is_walked() {
     let (mut moved, mut still) = (BTreeSet::new(), BTreeSet::new());
     for (index, (a, from)) in rows.iter().enumerate() {
         for (b, to) in &rows[index + 1..] {
+            if !pairs().any(|pair| pair == (*a, *b)) {
+                continue;
+            }
             let steps: Vec<_> = [0.25, 0.5, 0.75]
                 .iter()
                 .map(|t| {
@@ -238,11 +255,13 @@ fn every_wire_parameter_a_preset_moves_is_walked() {
                 })
                 .collect();
             for (path, value) in from {
-                if to[path] == *value {
+                // A space row an engine species leaves at an age passed
+                // through is not on the other's wire.
+                if to.get(path) == Some(value) {
                     continue;
                 }
                 moved.insert(path.clone());
-                if steps.iter().all(|step| step[path] == *value) {
+                if steps.iter().all(|step| step.get(path) == Some(value)) {
                     still.insert(format!("{path} ({a}->{b})"));
                 }
             }
@@ -267,8 +286,16 @@ fn every_pair_of_presets_grows_a_tree_at_every_step() {
     for (a, b) in pairs() {
         for step in 0..STEPS {
             let mut family = walk(a, b, step);
+            // Small: the scaffold's node cap, and a young engine tree.
             family.skeleton.growth.max_nodes = Some(SWEEP_NODES);
+            family.age = family.age.min(12.0);
             let at = at(step);
+            if family.space.species.is_none() {
+                let refused = mesh::build(&family).err();
+                let none = telperion_core::Error::InvalidInput("no engine species");
+                assert_eq!(refused, Some(none), "{a}->{b} at {at}");
+                continue;
+            }
             let mesh = mesh::build(&family).unwrap_or_else(|e| panic!("{a}->{b} at {at}: {e}"));
             assert!(
                 mesh.wood.positions.iter().all(|v| v.is_finite())
@@ -289,6 +316,11 @@ fn every_pair_of_presets_grows_a_tree_at_every_step() {
 #[test]
 fn every_shipped_preset_carries_foliage() {
     for id in IDS {
+        // The scaffold's specimens: an engine preset grows no scaffold
+        // tree now (fn-198).
+        if family(id).space.species.is_some() {
+            continue;
+        }
         let mesh = specimens::mesh(&family(id));
         assert!(
             !mesh.foliage.instances.is_empty(),
@@ -297,6 +329,7 @@ fn every_shipped_preset_carries_foliage() {
     }
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn the_oak_to_birch_walk_ramps_the_curtain_up_from_nothing() {
     // The oak never hangs and the birch does, so this is the walk that crosses

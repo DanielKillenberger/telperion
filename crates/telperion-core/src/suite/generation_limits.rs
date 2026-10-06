@@ -144,6 +144,7 @@ fn sampling_budget_is_explicit_and_exhaustion_is_named() {
 }
 
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn caller_budget_above_old_ceiling_grows_the_complete_beech() {
     let mut f = Preset::EuropeanBeech.parameters();

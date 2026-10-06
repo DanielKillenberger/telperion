@@ -142,9 +142,7 @@
 # The rows the tree-space example restated for a tree that grows its own
 # shoots (fn-193 to fn-196): leaves along the grown shoots, no clusters
 # seated along slender wood.
-/canopy/shortShootSpacing = 0.0
 /canopy/shootRadius = 0.06
-/canopy/limbClumping = 0.0
 /skeleton/twigs/twig/internodeLength = 0.008
 
 # The age the harness opens the tree at (fn-198 host decision 5); the

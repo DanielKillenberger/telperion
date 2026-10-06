@@ -4,7 +4,7 @@
 
 /** A family: every wire row, under the meaning the catalogue gives it. */
 export interface Family {
-  /** The specimen's age in years: the age the species' literature dimensions refer to. No build reads it: the direct build is the mature tree whatever the row says. */
+  /** The specimen's age in years: the engine grows the family's species for this many years, so the tree is the one it is at that age (fn-198). A whole number of years. */
   age: number;
   /** How deep into the crown leaves are kept, as a share of the crown's widest radius; a leaf further in than that is dropped. Raising it keeps more of the crown's interior foliage, and one keeps it all. */
   shellDepth: number;
@@ -555,7 +555,7 @@ export interface Parameter {
 }
 
 export const PARAMETERS: readonly Parameter[] = [
-  { path: "/age", kind: "real", optional: false, meaning: "The specimen's age in years: the age the species' literature dimensions refer to. No build reads it: the direct build is the mature tree whatever the row says.", unit: "years", low: 0, high: 1000000, lowOpen: false, zero: false, applies: "", reach: "growth" },
+  { path: "/age", kind: "real", optional: false, meaning: "The specimen's age in years: the engine grows the family's species for this many years, so the tree is the one it is at that age (fn-198). A whole number of years.", unit: "years", low: 0, high: 1000000, lowOpen: false, zero: false, applies: "", reach: "mature" },
   { path: "/shellDepth", kind: "real", optional: false, meaning: "How deep into the crown leaves are kept, as a share of the crown's widest radius; a leaf further in than that is dropped. Raising it keeps more of the crown's interior foliage, and one keeps it all.", unit: "share of the crown's widest radius", low: 0, high: 1, lowOpen: false, zero: false, applies: "", reach: "mature", dial: { window: [0, 1], step: 0.15 } },
   { path: "/skeleton/seed", kind: "count", optional: false, meaning: "The specimen: every stage keys its random stream by it, so another seed draws another tree of the same family.", unit: "-", low: 0, high: 4294967295, lowOpen: false, zero: false, applies: "", reach: "mature" },
   { path: "/skeleton/attractors", kind: "count", optional: false, meaning: "How many pull points are scattered through the crown for the branches to grow toward. Raising it fills the crown with more and finer branching; at an `attractor_weight` of zero none are scattered and the row does nothing.", unit: "points", low: 0, high: 1000000, lowOpen: false, zero: false, applies: "`attractorWeight` zero", reach: "mature", dial: { window: [1, 1000000], step: 100 } },

@@ -256,9 +256,12 @@ fn a_hold_adds_or_loses_no_leaf() {
         f.canopy.short_shoot_spacing = 0.5;
         f.radii.girth_hold = girth_hold;
         f.radii.girth_fall = 4.0;
-        let built = crate::pipeline::build(&f, crate::pipeline::Request::mesh()).unwrap();
-        let leaves = built.outputs.leaves.unwrap();
-        (built.skeleton.tree.nodes.len(), leaves.placed)
+        // The scaffold's own tree: its radius solve is what holds (fn-198).
+        let tree = crate::mesh::grow(&f).unwrap();
+        let inputs = crate::pipeline::Inputs::of(&f, f.skeleton.envelope);
+        let request = crate::pipeline::Request::mesh();
+        let leaves = crate::pipeline::outputs(&tree, &inputs, request).unwrap().leaves.unwrap();
+        (tree.nodes.len(), leaves.placed)
     };
     assert_eq!(placed(0.75), placed(0.0));
 }

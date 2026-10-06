@@ -340,6 +340,7 @@ fn floors(mesh: &surface::SurfaceMesh) -> Vec<f64> {
         .collect()
 }
 
+#[ignore = "fn-198: the scaffold's grower on an engine preset's rows, which no build grows now; R0 removes both"]
 #[test]
 fn a_stem_born_on_a_stem_leaves_from_a_socket_not_the_ground() {
     // At the ground both stems are trunk runs buried by the flare's depth. At

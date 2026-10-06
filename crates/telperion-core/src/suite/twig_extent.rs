@@ -15,9 +15,13 @@ fn the_twig_layer_asks_the_crown_nothing_and_builds_one_tree() {
     for entry in params::CATALOGUE {
         let id = entry.1;
         let family = params::by_identity(id).unwrap();
+        // The twig layer is the scaffold's, which an engine preset's tree
+        // never meets (fn-198).
+        if family.space.species.is_some() {
+            continue;
+        }
         let _ = queries::take();
-        let first = pipeline::build(&family, pipeline::Request::default())
-            .unwrap_or_else(|e| panic!("{id}: {e}"));
+        let first = telperion_core::mesh::grow(&family).unwrap_or_else(|e| panic!("{id}: {e}"));
         let counts = queries::take().expect("the crate's tests count queries");
         for purpose in TWIG_LAYER {
             assert_eq!(
@@ -27,9 +31,9 @@ fn the_twig_layer_asks_the_crown_nothing_and_builds_one_tree() {
                 purpose.name()
             );
         }
-        let again = pipeline::build(&family, pipeline::Request::default()).unwrap();
+        let again = telperion_core::mesh::grow(&family).unwrap();
         assert!(
-            first.skeleton.tree == again.skeleton.tree,
+            first == again,
             "{id}: two builds at one revision grew two trees"
         );
         println!("{id}: {} axes planned", counts.planned_axes);

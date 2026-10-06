@@ -17,13 +17,13 @@ no production stage and is kept on the wire for compatibility.
 
 ### `/age`
 
-The specimen's age in years: the age the species' literature dimensions refer to. No build reads it: the direct build is the mature tree whatever the row says.
+The specimen's age in years: the engine grows the family's species for this many years, so the tree is the one it is at that age (fn-198). A whole number of years.
 
 - real, years, [0, 1000000], default 100
-- read by no stage of the direct build; removed growth path: only the growth path read it
+- read by grow; removed growth path: as the direct build
 - checked: Age site, rank 0, as invalid value `age`
-- note: Refused off its range in `params::parse` and `Family::validate`; the species runner pins it beside the height as the growth reference. The growth path that read it was removed (fn-181).
-- blend: linear, clamped to its ends; dial: none: Identity of a specimen, not a look: no build reads it, and the direct build the tuner measures is the mature tree whatever it says.
+- note: Refused off its range in `params::parse` and `Family::validate`, and refused by name at the skeleton where it is not a whole number of years: the engine grows a year a cycle. The harness opens an engine preset at 40 (fn-198 host decision 5).
+- blend: rounded to the nearest; dial: none: The age the tree is drawn at, which the viewer sets; the tuner judges a species at its ages, never by stepping one.
 
 ### `/shellDepth`
 

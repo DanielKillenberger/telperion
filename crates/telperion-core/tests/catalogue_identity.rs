@@ -29,7 +29,9 @@
 //! at (40), the dressing rows the tree-space examples restated, and no
 //! envelope rows, which the pipeline derives from the grown tree; a walk
 //! between a preset with a species and one without is refused by name. The
-//! refusal digest, over the catalogue's rows alone, did not move.
+//! European beech ships, so its identity serves it, and the age walks as the
+//! whole years the engine grows. The refusal digest, over the catalogue's
+//! rows alone, did not move.
 use telperion_core::{blend, params, presets::Preset, Family};
 
 const PRESETS: [Preset; 8] = [
@@ -65,7 +67,7 @@ fn every_preset_is_the_family_it_was() {
     }
     assert_eq!(
         digest(&text),
-        6_130_194_522_114_778_952,
+        17_880_590_084_460_784_836,
         "{}",
         digest(&text)
     );
@@ -97,7 +99,7 @@ fn every_walk_is_the_walk_it_was() {
     }
     assert_eq!(
         digest(&text),
-        3_598_780_732_817_124_087,
+        1_767_313_639_397_470_619,
         "{}",
         digest(&text)
     );

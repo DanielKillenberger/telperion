@@ -131,12 +131,6 @@
 # Neutral: a card lit alone, until this table states its canopy.
 # Plated bark: no lichen, lenticel or peel term of fn-40's.
 
-# The rows the tree-space example restated for a tree that grows its own
-# shoots (fn-193 to fn-196): leaves along the grown shoots, no clusters
-# seated along slender wood.
-/canopy/shortShootSpacing = 0.0
-/canopy/limbClumping = 0.0
-
 # The age the harness opens the tree at (fn-198 host decision 5); the
 # engine grows the tree to it.
 /age = 40.0

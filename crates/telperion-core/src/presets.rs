@@ -31,6 +31,7 @@ pub const CATALOGUE: &[(u32, &str, &str, &str)] = &[
         "Quercus garryana",
     ),
     (4, "norway-spruce", "Norway spruce", "Picea abies"),
+    (5, "european-beech", "European beech", "Fagus sylvatica"),
     (6, "silver-birch", "Silver birch", "Betula pendula"),
     (7, "date-palm", "Date palm", "Phoenix dactylifera"),
     (1, "telperion", "Telperion", "The silver tree"),
@@ -38,10 +39,10 @@ pub const CATALOGUE: &[(u32, &str, &str, &str)] = &[
 ];
 /// Tables still being judged. Their ABI ids are reserved, and they are not
 /// listed, served by id or built by name: the core's tests and the species
-/// runner reach them through `Preset`. The European beech ships when fn-62
-/// accepts it. The date palm shipped when the owner accepted it (fn-82).
-pub const IN_WORK: &[(u32, &str, &str, &str)] =
-    &[(5, "european-beech", "European beech", "Fagus sylvatica")];
+/// runner reach them through `Preset`. The date palm shipped when the owner
+/// accepted it (fn-82); the European beech ships as the engine's species
+/// (fn-198 host decision 4).
+pub const IN_WORK: &[(u32, &str, &str, &str)] = &[];
 /// The family a shipped identity serves: the catalogue's tables, with the
 /// growth default an unset turn limit falls back to. Every binding resolves
 /// a species id through here.
