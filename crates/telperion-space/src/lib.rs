@@ -17,6 +17,7 @@ mod beech;
 mod blend;
 mod chain;
 mod closed_form;
+mod cores;
 mod dormant;
 mod error;
 mod geometry;

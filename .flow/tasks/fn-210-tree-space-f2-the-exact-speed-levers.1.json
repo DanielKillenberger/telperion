@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-05T18:19:36.906020Z",
+  "depends_on": [],
+  "id": "fn-210-tree-space-f2-the-exact-speed-levers.1",
+  "priority": null,
+  "spec": "fn-210-tree-space-f2-the-exact-speed-levers",
+  "spec_path": ".flow/tasks/fn-210-tree-space-f2-the-exact-speed-levers.1.md",
+  "status": "todo",
+  "title": "The exact speed levers: shedding decided before growth, parallel growth, light's wasted work, a compact phytomer",
+  "updated_at": "2026-10-05T18:19:36.906020Z"
+}

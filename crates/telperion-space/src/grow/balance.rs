@@ -81,8 +81,9 @@ impl Grower<'_> {
             if u < p {
                 shed[i] = true;
             } else {
-                let wood = self.windows.wood(self.axes[i].pa, cycle);
-                kept[i] = keep * self.windows.decided(above(u, p), wood, 1.0);
+                let windows = &self.rules.windows;
+                let wood = windows.wood(self.axes[i].pa, cycle);
+                kept[i] = keep * windows.decided(above(u, p), wood, 1.0);
             }
         }
         let live = std::mem::take(&mut self.live);
@@ -96,14 +97,5 @@ impl Grower<'_> {
             }
             self.live.push(apex);
         }
-    }
-
-    /// What the subtrees' survival of their shedding this cycle makes of
-    /// axis `i`'s unit: whole where nothing sheds.
-    pub(super) fn kept(&self, i: usize) -> f64 {
-        self.sketch
-            .as_ref()
-            .and_then(|s| s.pencils.get(i))
-            .map_or(1.0, |p| p.kept)
     }
 }

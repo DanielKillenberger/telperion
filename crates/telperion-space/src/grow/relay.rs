@@ -61,10 +61,10 @@ impl Grower<'_> {
         };
         scale(&mut tree, self.species);
         thicken(&mut tree, self.species, &Girth::default());
-        let mut layers = place(&mut tree, self.species, None)?;
+        let mut layers = place(&mut tree, self.species, None, self.threads)?;
         if sag::any(self.species) {
             let levers = sag::levers(&tree, self.species);
-            layers = place(&mut tree, self.species, Some(&levers))?;
+            layers = place(&mut tree, self.species, Some(&levers), self.threads)?;
         }
         let sketch = self.sketch.as_mut().expect("sketching");
         for ((laid, layer), &i) in tree.axes.iter().zip(layers).zip(&from) {
