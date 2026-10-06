@@ -11,8 +11,8 @@ use super::chains::{packed, Caps, Grew, Grower};
 use crate::Gpu;
 use std::time::Instant;
 use telperion_space::{
-    fine_cases, grow_fine, ChainAxis, ChainBud, ChainTables, Expected, Light, Plan, Request,
-    Species, Woke,
+    chain_cases, fine_cases, grow_fine, ChainAxis, ChainBud, ChainTables, Expected, Light, Plan,
+    Request, Species, Woke,
 };
 
 const AXW: usize = 32;
@@ -235,8 +235,8 @@ fn fine_roots_at_40_and_80() {
         return;
     };
     let grower = Grower::new(&gpu);
-    println!("| Tree | Roots | Chains | Waves | Kept axes | Phytomers | Tables ms | GPU grow cold / warm ms | Read ms | Again | µs a root (warm) | CPU executor 1 core / all cores ms |");
-    println!("|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|");
+    println!("| Tree | Roots | Chains | Waves | Kept axes | Phytomers | Tables ms | GPU grow and shed, cold / warm ms | Read ms | Again | µs a root (warm) | CPU grow and shed, every chain, 1 core ms | CPU items Σ, 1 core ms | CPU tree, all cores ms |");
+    println!("|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|");
     let species: [(&str, Species); 2] = [
         ("beech", telperion_space::beech()),
         ("spruce", telperion_space::spruce()),
@@ -256,6 +256,9 @@ fn fine_roots_at_40_and_80() {
                     let micros: f64 = fine.roots.iter().map(|r| r.2.micros).sum();
                     (micros / 1e3, fine)
                 };
+                let t = Instant::now();
+                chain_cases(species, request).expect("chains");
+                let chains_ms = t.elapsed().as_secs_f64() * 1e3;
                 let (one, _) = cpu(1);
                 let t = Instant::now();
                 cpu(0);
@@ -276,7 +279,7 @@ fn fine_roots_at_40_and_80() {
                 let axes: usize = roots.iter().map(Vec::len).sum();
                 let phyts: usize = roots.iter().flatten().map(|a| a.phytomers.len()).sum();
                 println!(
-                    "| {name} {age} {seed} | {} | {} | {} | {axes} | {phyts} | {tables_ms:.0} | {:.0} / {:.0} | {:.0} | {} | {:.2} | {one:.0} / {all:.0} |",
+                    "| {name} {age} {seed} | {} | {} | {} | {axes} | {phyts} | {tables_ms:.0} | {:.0} / {:.0} | {:.0} | {} | {:.2} | {chains_ms:.0} | {one:.0} | {all:.0} |",
                     buds.len(),
                     warm.chains,
                     warm.waves,
