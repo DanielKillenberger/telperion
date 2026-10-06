@@ -51,19 +51,14 @@ pub(crate) struct Lever {
 
 /// Each phytomer's lever about its far end on the unbent tree.
 pub(crate) fn levers(structure: &Structure, species: &Species) -> Vec<Vec<Lever>> {
-    let age = structure.age;
     let axes = &structure.axes;
-    let mut at_node: Vec<Vec<Load>> = axes
-        .iter()
-        .map(|a| vec![Load::default(); a.phytomers.len()])
-        .collect();
-    let mut at_tip = vec![Load::default(); axes.len()];
-    let mut levers: Vec<Vec<Lever>> = axes
-        .iter()
-        .map(|a| vec![Lever::default(); a.phytomers.len()])
-        .collect();
-    // The trunk: the seed axis and what carries it on, which the ground
-    // never carries.
+    let all: Vec<usize> = (0..axes.len()).collect();
+    gather(axes, species, structure.age, (&all, &trunks(axes)), &[])
+}
+
+/// Whether each axis is the trunk: the seed axis and what carries it on,
+/// which the ground never carries.
+pub(crate) fn trunks(axes: &[crate::structure::Axis]) -> Vec<bool> {
     let mut trunk = vec![false; axes.len()];
     for (i, axis) in axes.iter().enumerate() {
         trunk[i] = match axis.origin {
@@ -72,24 +67,79 @@ pub(crate) fn levers(structure: &Structure, species: &Species) -> Vec<Vec<Lever>
             Origin::Lateral { .. } => false,
         };
     }
+    trunk
+}
+
+/// A load from outside the axes gathered, standing at a node of one of
+/// them (fn-209, option 4: a borne bud's committed mass and moment).
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Borne {
+    pub axis: usize,
+    pub node: usize,
+    pub mass: f64,
+    pub moment: Vec3,
+}
+
+/// The levers of `members` (ascending; each axis's whole tree, or one
+/// chain), from their own wood, what members bear, and `borne`: each
+/// member's levers, in the members' order. An axis outside the members
+/// loads nothing.
+pub(crate) fn gather(
+    axes: &[crate::structure::Axis],
+    species: &Species,
+    age: u32,
+    (members, trunk): (&[usize], &[bool]),
+    borne: &[Borne],
+) -> Vec<Vec<Lever>> {
+    let whole = members.len() == axes.len();
+    let local = |i: usize| {
+        if whole {
+            Some(i)
+        } else {
+            members.binary_search(&i).ok()
+        }
+    };
+    let mut at_node: Vec<Vec<Load>> = members
+        .iter()
+        .map(|&i| vec![Load::default(); axes[i].phytomers.len()])
+        .collect();
+    let mut at_tip = vec![Load::default(); members.len()];
+    let mut levers: Vec<Vec<Lever>> = members
+        .iter()
+        .map(|&i| vec![Lever::default(); axes[i].phytomers.len()])
+        .collect();
+    for b in borne {
+        if let Some(at) = local(b.axis).and_then(|j| at_node[j].get_mut(b.node)) {
+            at.add(
+                Load {
+                    mass: b.mass,
+                    moment: b.moment,
+                },
+                1.0,
+            );
+        }
+    }
     // Each axis's far tip: its own, or that of the axis that carries it
     // on. Continuations follow their parents, so a backward pass meets
     // each before its parent.
-    let mut far: Vec<Vec3> = axes
+    let mut far: Vec<Vec3> = members
         .iter()
-        .map(|a| a.phytomers.last().map_or(a.base, |p| p.tip))
+        .map(|&i| axes[i].phytomers.last().map_or(axes[i].base, |p| p.tip))
         .collect();
-    for i in (0..axes.len()).rev() {
-        if let Origin::Continuation { parent } = axes[i].origin {
-            far[parent] = far[i];
+    for j in (0..members.len()).rev() {
+        if let Origin::Continuation { parent } = axes[members[j]].origin {
+            if let Some(q) = local(parent) {
+                far[q] = far[j];
+            }
         }
     }
     // Children follow their parents, so a backward pass meets every load
     // before the wood that carries it.
-    for i in (0..axes.len()).rev() {
+    for j in (0..members.len()).rev() {
+        let i = members[j];
         let axis = &axes[i];
         let state = &species.states[axis.pa];
-        let mut load = at_tip[i];
+        let mut load = at_tip[j];
         for k in (0..axis.phytomers.len()).rev() {
             let p = &axis.phytomers[k];
             let base = if k == 0 {
@@ -105,11 +155,11 @@ pub(crate) fn levers(structure: &Structure, species: &Species) -> Vec<Vec<Lever>
             // The moment at the phytomer's far end: what its node bears
             // and all beyond it, about that end. An unloaded tip bends
             // by nothing and keeps its tropism.
-            load.add(at_node[i][k], 1.0);
+            load.add(at_node[j][k], 1.0);
             // S - W e: the lever of the load about the end.
-            levers[i][k] = Lever {
+            levers[j][k] = Lever {
                 moment: load.moment - p.tip * load.mass,
-                chord: far[i] - base,
+                chord: far[j] - base,
             };
             load.add(
                 Load {
@@ -128,25 +178,28 @@ pub(crate) fn levers(structure: &Structure, species: &Species) -> Vec<Vec<Lever>
                 };
             }
         }
+        let Some(q) = axis.origin.parent().and_then(local) else {
+            continue;
+        };
         match axis.origin {
             Origin::Seed => {}
-            Origin::Lateral { parent, node, .. } => match at_node[parent].get_mut(node) {
+            Origin::Lateral { node, .. } => match at_node[q].get_mut(node) {
                 Some(at) => at.add(load, 1.0),
-                None => at_tip[parent].add(load, 1.0),
+                None => at_tip[q].add(load, 1.0),
             },
             // A relay's load enters at its node as far as it stands there,
             // at the tip as far as it is still the continuation.
-            Origin::Relay { parent, node } => {
+            Origin::Relay { node, .. } => {
                 let b = axis.blend;
-                match at_node[parent].get_mut(node) {
+                match at_node[q].get_mut(node) {
                     Some(at) => {
                         at.add(load, b);
-                        at_tip[parent].add(load, 1.0 - b);
+                        at_tip[q].add(load, 1.0 - b);
                     }
-                    None => at_tip[parent].add(load, 1.0),
+                    None => at_tip[q].add(load, 1.0),
                 }
             }
-            Origin::Continuation { parent } => at_tip[parent].add(load, 1.0),
+            Origin::Continuation { .. } => at_tip[q].add(load, 1.0),
         }
     }
     levers

@@ -13,3 +13,17 @@
 - **Slowed:** every other binary of the crate finishes in under 9 s; one (11 tests, 1 ignored) took 404 s, most of the suite's wall time. The quick red/green loop for the envelope ran on `--lib envelope` instead.
 - **Cost:** about 7 minutes of waiting, once.
 - **Would remove it:** naming the slow binary's tests and moving the long walks behind the gate's own run, or splitting them, so a crate-level check stays under a minute.
+
+## 2026-10-06, the competition's contenders share one desk (contender 4, option 4)
+
+- **Doing:** timing chain resolution and the closed form's rows for the competition's performance numbers.
+- **Slowed:** the 1-minute load reached 150 on 32 cores while other contenders and a walk test ran; the same beech 40 run went from 0.07 s to 0.39 s one-pass and its rows from 3.3 s to 16 s. Timings taken then are not comparable between contenders.
+- **Cost:** one perf run thrown away, about 5 minutes of waiting for a quieter window.
+- **Would remove it:** the host running every contender's `perf` itself, one after another, on a quiet machine (or a shared lock like the GPU lock for timing runs).
+
+## 2026-10-06, the closed form's rows cost O(m³) per species and age (contender 4, option 4)
+
+- **Doing:** reading every committed boundary a bud can need (each borne PA at every age 0 to the tree's) up front.
+- **Slowed:** each kept table of a bud m cycles old works every threshold t ≤ m, and each m is its own memo entry, so the beech's limb rows alone took 3.3 s at 40 years on one core (the seed's table 0.03 s).
+- **Cost:** the test bed's trees could not each read their own rows; they now share one read per species and age, spread over the cores.
+- **Would remove it:** a kept table that carries every m at once (one recursion yielding the row at each age), or rows kept between runs on disk.

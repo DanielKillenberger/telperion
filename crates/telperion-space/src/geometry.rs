@@ -11,6 +11,7 @@
 //! or an axis whose base is below it, is an error.
 mod lay;
 mod place;
+mod single;
 
 use crate::lineage::{Key, DOMINANCE, ROLL};
 use crate::species::{PaState, Species};
@@ -18,6 +19,7 @@ use crate::structure::{Axis, Origin, Structure, Vec3};
 use lay::{rotated, UP};
 pub(crate) use lay::{support, Layer};
 pub(crate) use place::place;
+pub(crate) use single::{bud_frame, lay_one};
 use std::f64::consts::TAU;
 
 /// The sine of the lean below which a parent has too little of an upper
@@ -82,7 +84,7 @@ pub(crate) fn bend(axis: &Axis, state: &PaState, years: f64) -> f64 {
 /// The scaled length each axis's straightening fades over: its own, and
 /// its relays' as far as each is still the continuation it replaces, so a
 /// relay that has barely left the axis's line leaves the axis as it was.
-fn reaches(axes: &[Axis]) -> Vec<f64> {
+pub(crate) fn reaches(axes: &[Axis]) -> Vec<f64> {
     let mut reach: Vec<f64> = axes
         .iter()
         .map(|a| a.phytomers.iter().map(|p| p.scale).sum())

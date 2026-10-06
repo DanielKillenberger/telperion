@@ -95,6 +95,10 @@ pub(crate) struct Options {
     /// layout where light shades but no bud reads it, and the last
     /// cycle's layout, full lay and sweep (fn-210, lever 3).
     pub unread_light: bool,
+    /// Whether the tree stops once settled, before its girth and lay,
+    /// keeping every lateral bud made as a record (`bounded.rs`, fn-209
+    /// option 4): what a bounded build resolves chain by chain.
+    pub settle: bool,
 }
 
 impl Default for Options {
@@ -104,6 +108,7 @@ impl Default for Options {
             threads: None,
             share: parallel::SHARE,
             unread_light: false,
+            settle: false,
         }
     }
 }
@@ -128,6 +133,23 @@ pub(crate) struct Grown {
     pub structure: Structure,
     pub grown: u64,
     pub marked: Vec<u64>,
+    /// With `Options::settle`, every lateral bud made whose bearer is
+    /// kept, by the kept tree's indices.
+    pub records: Vec<Record>,
+    /// The leaf term's mean over the tree as grown, where any PA sets it.
+    pub leaf_mean: Option<f64>,
+}
+
+/// A lateral bud as its bearer made it, before shedding: where it stands,
+/// its PA, birth, lineage and vigour as made, and its kept axis, if any.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Record {
+    pub origin: Origin,
+    pub pa: usize,
+    pub birth: u32,
+    pub lineage: u64,
+    pub vigour: f64,
+    pub axis: Option<usize>,
 }
 
 /// The tree as `grow` grows it, with every phytomer where the rough
@@ -240,11 +262,31 @@ pub(crate) fn run(
         grower.draws[woken.axis].birth[1] *= kept;
     }
     assign(&mut grower.axes, &grower.draws);
+    let made: Vec<Record> = if options.settle {
+        grower
+            .axes
+            .iter()
+            .enumerate()
+            .filter_map(|(i, a)| {
+                matches!(a.origin, Origin::Lateral { .. }).then_some(Record {
+                    origin: a.origin,
+                    pa: a.pa,
+                    birth: a.birth,
+                    lineage: a.lineage,
+                    vigour: a.vigour,
+                    axis: Some(i),
+                })
+            })
+            .collect()
+    } else {
+        Vec::new()
+    };
     // The tree as grown, where any PA keeps shed pipes or thickens by its
     // leaves: what each shed branch had laid down, and the one population
     // the leaf term's mean is taken over at any retained share.
     let grown = keeps.then(|| attachments(&grower.axes, species, request.age));
     let shed = shed(grower.axes, species, request.age);
+    let records = kept_records(made, &shed.index);
     let girth = grown.map_or_else(Girth::default, |g| disused(&g, &shed, species));
     let mut structure = Structure {
         age: request.age,
@@ -260,12 +302,17 @@ pub(crate) fn run(
     thicken(&mut structure, species, &girth);
     stage(Stage::Settled);
     let (count, marked) = (grower.rules.grown, grower.marked);
+    let leaf_mean = girth
+        .leaf_mean
+        .or_else(|| crate::girth::leaf_mean(&structure, species));
     let done = move |structure| Grown {
         structure,
         grown: count,
         marked,
+        records,
+        leaf_mean,
     };
-    if !lay {
+    if !lay || options.settle {
         return Ok(done(structure));
     }
     place(&mut structure, species, None, threads)?;
@@ -286,6 +333,23 @@ pub(crate) fn run(
     }
     stage(Stage::Laid);
     Ok(done(structure))
+}
+
+/// The records whose bearer is kept, renamed to the kept tree's indices.
+fn kept_records(made: Vec<Record>, index: &[usize]) -> Vec<Record> {
+    made.into_iter()
+        .filter_map(|mut r| {
+            let Origin::Lateral { parent, .. } = &mut r.origin else {
+                return None;
+            };
+            *parent = index[*parent];
+            if *parent == usize::MAX {
+                return None;
+            }
+            r.axis = r.axis.map(|i| index[i]).filter(|&i| i != usize::MAX);
+            Some(r)
+        })
+        .collect()
 }
 
 /// The share of an apex's expected wood a stop decides: a stop with no

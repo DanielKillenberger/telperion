@@ -15,6 +15,7 @@
 mod allocation;
 mod beech;
 mod blend;
+mod bounded;
 mod chain;
 mod closed_form;
 mod cores;
@@ -37,6 +38,7 @@ mod structure;
 
 pub use beech::beech;
 pub use blend::blend;
+pub use bounded::{grow_bounded, Bounded, Expected};
 pub use closed_form::expected_counts;
 pub use error::{Error, Result};
 pub use grow::{grow, grow_staged, sketch, Request, Stage};

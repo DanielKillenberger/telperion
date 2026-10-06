@@ -29,7 +29,7 @@ pub(crate) struct Disused {
 }
 
 /// A phytomer's own pipe: its PA's, by its scale, ripened, by `leaf`.
-pub(super) fn own(form: &Form, phytomer: &Phytomer, age: u32, scale: f64, leaf: f64) -> f64 {
+pub(crate) fn own(form: &Form, phytomer: &Phytomer, age: u32, scale: f64, leaf: f64) -> f64 {
     let years = f64::from(age.saturating_sub(phytomer.cycle)) + 1.0;
     form.pipe * scale * ripe(years, form.ripening) * leaf
 }
@@ -51,6 +51,11 @@ pub(super) fn leaf_terms(structure: &Structure, species: &Species) -> Option<f64
         }
     }
     (weighted > 0.0).then(|| total / weighted)
+}
+
+/// The leaf term's mean as `thicken` takes it from the tree alone.
+pub(crate) fn leaf_mean(structure: &Structure, species: &Species) -> Option<f64> {
+    leaf_terms(structure, species)
 }
 
 /// What thickening takes beyond the tree: the shed branches' pipes it

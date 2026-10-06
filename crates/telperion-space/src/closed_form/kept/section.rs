@@ -11,7 +11,7 @@ use super::{Row, SECTION, SECTION2};
 /// moments `s1` = E[S; kept] and `s2` = E[S²; kept] on an event of chance
 /// `kept`. Kept on the side of μ^r that Jensen's inequality puts it, so a
 /// wide spread never turns it over.
-pub(super) fn delta(kept: f64, s1: f64, s2: f64, r: f64) -> f64 {
+pub(crate) fn delta(kept: f64, s1: f64, s2: f64, r: f64) -> f64 {
     if kept <= 0.0 || s1 <= 0.0 {
         return 0.0;
     }

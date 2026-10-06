@@ -14,11 +14,12 @@
 // The stand-in tables are read from fn-209's step 2 on.
 #[cfg_attr(not(test), allow(dead_code))]
 mod along;
+pub(crate) mod boundary;
 #[cfg_attr(not(test), allow(dead_code))]
 mod envelope;
 mod events;
 #[cfg_attr(not(test), allow(dead_code))]
-mod kept;
+pub(crate) mod kept;
 mod steps;
 
 use crate::dormant::{First, Living};

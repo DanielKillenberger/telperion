@@ -36,7 +36,7 @@ mod bound;
 mod ends;
 mod mass;
 mod path;
-mod section;
+pub(crate) mod section;
 #[cfg(test)]
 mod tests;
 

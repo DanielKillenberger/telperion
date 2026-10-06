@@ -16,7 +16,7 @@ use telperion_render::{
     hero_pose, render, write_png, Camera, Gpu, Level, Renderer, SceneRow, View, GROUND_REACH,
     STILL_FORMAT,
 };
-use telperion_space::{grow, Request, Species};
+use telperion_space::{grow, grow_bounded, Request, Species};
 
 const BUDGET: u32 = 20_000_000;
 const SIZE: (u32, u32) = (960, 720);
@@ -55,6 +55,7 @@ pub fn run(
     let mut sag: Option<(usize, Vec<f64>)> = None;
     let mut dormant: Option<(Vec<usize>, usize, f64, f64, Vec<f64>)> = None;
     let mut today = false;
+    let mut bounded = false;
     let mut tuning = Tuning::default();
     let mut words = rest.iter();
     while let Some(word) = words.next() {
@@ -68,6 +69,10 @@ pub fn run(
                 .collect::<Result<_, _>>()?;
         } else if word == "--today" {
             today = true;
+        } else if word == "--bounded" {
+            // fn-209 option 4: chains resolved against committed
+            // boundaries.
+            bounded = true;
         } else if word == "--dormant" {
             // <pa>,<pa>:<sleeping pa>:<delay>:<rate>:<values>
             let walk = words.next().ok_or("--dormant needs a walk")?;
@@ -181,15 +186,17 @@ pub fn run(
         for &age in &ages {
             for &seed in &seeds {
                 let started = Instant::now();
-                let structure = grow(
-                    species,
-                    Request {
-                        age,
-                        seed,
-                        budget: BUDGET,
-                        light: tuning.light(),
-                    },
-                )
+                let request = Request {
+                    age,
+                    seed,
+                    budget: BUDGET,
+                    light: tuning.light(),
+                };
+                let structure = if bounded {
+                    grow_bounded(species, request, None)
+                } else {
+                    grow(species, request)
+                }
                 .map_err(|e| format!("age {age} seed {seed}: {e:?}"))?;
                 let grown = started.elapsed().as_secs_f64() * 1e3;
                 let pipeline_tree = tree::convert(&structure, trunk);
