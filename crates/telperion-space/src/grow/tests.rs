@@ -168,3 +168,31 @@ fn many_cores_grow_the_tree_one_does() {
         }
     }
 }
+
+/// Every pass reports as it ends, before its stage (fn-211): the oak in
+/// light through a full lay, whose every pass runs.
+#[test]
+fn every_pass_is_reported() {
+    use super::{Pass, Stage};
+    let request = Request {
+        age: 11,
+        seed: 1,
+        budget: 20_000_000,
+        light: LIT,
+    };
+    let mut reported = Vec::new();
+    run(&oak(), request, &mut |s| reported.push(s), true, Options::default()).unwrap();
+    let passes: HashSet<Pass> = reported
+        .iter()
+        .filter_map(|s| match s {
+            Stage::Pass(p) => Some(*p),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(passes.len(), Pass::SagPlace as usize + 1, "{passes:?}");
+    let at = |s: Stage| reported.iter().position(|&r| r == s).unwrap();
+    assert!(at(Stage::Pass(Pass::Wake)) < at(Stage::Grown));
+    assert!(at(Stage::Pass(Pass::RelayWrite)) < at(Stage::Relaid));
+    assert!(at(Stage::Pass(Pass::LeafMean)) < at(Stage::Settled));
+    assert!(at(Stage::Pass(Pass::SagPlace)) < at(Stage::Laid));
+}

@@ -44,7 +44,7 @@ pub use blend::blend;
 pub use bounded::{grow_bounded, Bounded, Expected};
 pub use closed_form::expected_counts;
 pub use error::{Error, Result};
-pub use grow::{grow, grow_staged, sketch, Request, Stage};
+pub use grow::{grow, grow_staged, sketch, Pass, Request, Stage};
 pub use light::{bud_light, Light};
 pub use oak::oak;
 pub use palm::palm;

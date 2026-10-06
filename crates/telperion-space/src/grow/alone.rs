@@ -115,8 +115,16 @@ pub(crate) fn grow(rules: &Rules, seed: u64, bud: Option<&Bud>) -> Result<Chain>
                 birth: [reach, 1.0],
                 ..Draws::default()
             };
-            g.adopt(bud_axis(key.onto(pa), pa, 0, Origin::Seed), draws, key.0, f64::NEG_INFINITY);
-            g.live.push(Apex { axis: 0, spent: 0.0 });
+            g.adopt(
+                bud_axis(key.onto(pa), pa, 0, Origin::Seed),
+                draws,
+                key.0,
+                f64::NEG_INFINITY,
+            );
+            g.live.push(Apex {
+                axis: 0,
+                spent: 0.0,
+            });
             (1, 0)
         }
         Some(b) => {
@@ -132,11 +140,17 @@ pub(crate) fn grow(rules: &Rules, seed: u64, bud: Option<&Bud>) -> Result<Chain>
                     let mut axis = b.axis.clone();
                     set_parent(&mut axis.origin, 0);
                     g.adopt(axis, b.draws.clone(), b.root, b.horizon);
-                    g.live.push(Apex { axis: 1, spent: 0.0 });
+                    g.live.push(Apex {
+                        axis: 1,
+                        spent: 0.0,
+                    });
                     (b.axis.birth + 1, 1)
                 }
                 Some((p, kept)) => {
-                    let sleeper = Sleeper { parent: 0, ..p.sleeper };
+                    let sleeper = Sleeper {
+                        parent: 0,
+                        ..p.sleeper
+                    };
                     let mut shoot = Shoot::new(&g.rules, g.reads(), (&g.roots, &g.horizon));
                     shoot.woke(&sleeper, p.aged, p.carried, (0, 0), p.cycle)?;
                     let share = shoot.finish(Vec::new());
@@ -152,7 +166,7 @@ pub(crate) fn grow(rules: &Rules, seed: u64, bud: Option<&Bud>) -> Result<Chain>
         if g.live.is_empty() && g.asleep[cycle as usize..].iter().all(Vec::is_empty) {
             break;
         }
-        g.step(cycle)?;
+        g.step(cycle, &mut |_| {})?;
     }
     for apex in &g.live {
         let living = g.living(*apex);

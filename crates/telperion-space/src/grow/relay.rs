@@ -6,7 +6,7 @@
 //! axis's rough walk carries on from where the full lay ended it, so
 //! light reads sagged boughs where they hang. Wood shedding has dropped
 //! is left where the rough layout put it.
-use super::Grower;
+use super::{Grower, Pass, Stage};
 use crate::error::Result;
 use crate::geometry::{place, scale};
 use crate::girth::{thicken, Girth};
@@ -21,7 +21,7 @@ pub(crate) const RELAY_EVERY: u32 = 10;
 
 impl Grower<'_> {
     /// Lays the living tree in full at `cycle`.
-    pub(super) fn relay(&mut self, cycle: u32) -> Result<()> {
+    pub(super) fn relay(&mut self, cycle: u32, report: &mut dyn FnMut(Stage)) -> Result<()> {
         // The tree as shedding would leave it at `cycle`: living wood and
         // dead wood still within its PA's delay, each sized by its fade, so
         // a branch that dies changes the lay by degree.
@@ -61,10 +61,14 @@ impl Grower<'_> {
         };
         scale(&mut tree, self.species);
         thicken(&mut tree, self.species, &Girth::default());
+        report(Stage::Pass(Pass::RelaySettle));
         let mut layers = place(&mut tree, self.species, None, self.threads)?;
+        report(Stage::Pass(Pass::RelayPlace));
         if sag::any(self.species) {
             let levers = sag::levers(&tree, self.species);
+            report(Stage::Pass(Pass::RelayLevers));
             layers = place(&mut tree, self.species, Some(&levers), self.threads)?;
+            report(Stage::Pass(Pass::RelaySag));
         }
         let sketch = self.sketch.as_mut().expect("sketching");
         for ((laid, layer), &i) in tree.axes.iter().zip(layers).zip(&from) {
@@ -83,6 +87,8 @@ impl Grower<'_> {
                 self.leaves.push((p.tip, p.scale * p.size * area));
             }
         }
+        drop(tree);
+        report(Stage::Pass(Pass::RelayWrite));
         Ok(())
     }
 }

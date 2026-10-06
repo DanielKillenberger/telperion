@@ -9,7 +9,7 @@
 //! The leaves grown in the cycle then shade the sky for the buds that grow
 //! in the next. What it writes into the phytomers and axes (their tip,
 //! frame, scale and rank) is all written again once the tree has grown.
-use super::Grower;
+use super::{Grower, Pass, Stage};
 use crate::allocation::{sizes, vigours, Link, TIP};
 use crate::error::{Error, Result};
 use crate::geometry::{bend, dominance, frame, Layer};
@@ -80,14 +80,16 @@ impl Grower<'_> {
 
     /// Sweeps the cycle's leaves from the sky and reads the light at every
     /// living apex's tip.
-    pub(super) fn shade(&mut self) {
+    pub(super) fn shade(&mut self, report: &mut dyn FnMut(Stage)) {
         let mut sketch = self.sketch.take().expect("sketching");
         let tips: Vec<Vec3> = self.live.iter().map(|a| self.tip(a.axis)).collect();
         let field = Field::new(&sketch.light, &self.leaves, &tips);
+        report(Stage::Pass(Pass::ShadeField));
         for (apex, &tip) in self.live.iter().zip(&tips) {
             sketch.pencils[apex.axis].light = field.at(tip);
         }
         self.sketch = Some(sketch);
+        report(Stage::Pass(Pass::ShadeRead));
     }
 
     /// Gives each living apex its unit's size this cycle from the vigour
