@@ -27,6 +27,10 @@
 //!   reads what the root realizes.
 //! - **The predictor**: its expected kept phytomers, which put it below
 //!   the cut.
+//! - **Its placement** (host decision 3): whether its conservative extent
+//!   bound from its attachment can reach the ground's landing zone, which
+//!   keeps it on the CPU reference executor. Work placement only: the
+//!   botany is the same on either executor.
 //!
 //! Light is named and not carried: a species any bud of which reads light
 //! needs DESIGN-LIGHT.md's history-dependent aggregate state, which is
@@ -79,6 +83,9 @@ pub struct FineRoot {
     pub committed: Committed,
     /// Its expected kept phytomers.
     pub predicted: f64,
+    /// Whether its wood can come near the ground (host decision 3): then
+    /// it is grown on the CPU reference executor, never on the GPU.
+    pub grounded: bool,
 }
 
 impl FineRoot {

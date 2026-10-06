@@ -323,12 +323,18 @@ pub(crate) fn lay(
     Ok(layer)
 }
 
+/// The height below which wood `radius` thick and `length` long feels
+/// the ground: its landing zone.
+pub(crate) fn ground_zone(radius: f64, length: f64) -> f64 {
+    CONTACT * radius + LANDING * length
+}
+
 /// How far wood at height `z`, `radius` thick and `length` long, stands
 /// free of the ground: 1 above its landing zone (a few radii and
 /// `LANDING` internodes), easing with the square root of its height to
 /// none on the ground.
 pub(crate) fn support(z: f64, radius: f64, length: f64) -> f64 {
-    let zone = CONTACT * radius + LANDING * length;
+    let zone = ground_zone(radius, length);
     if z >= zone {
         1.0
     } else {

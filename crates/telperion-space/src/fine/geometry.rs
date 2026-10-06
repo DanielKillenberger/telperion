@@ -203,6 +203,8 @@ pub struct BearerFrame {
 /// bearer's frame before bending and as laid.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct RootGeometry {
+    /// Grown on the CPU reference executor (host decision 3).
+    pub grounded: bool,
     pub vigour: f64,
     pub whorl: f64,
     pub bearer_pa: usize,
@@ -230,6 +232,7 @@ pub fn roots_geometry(fine: &Fine) -> Vec<RootGeometry> {
                 size: f.at.size,
             };
             RootGeometry {
+                grounded: root.grounded,
                 vigour: root.record.vigour,
                 whorl,
                 bearer_pa: a.pa,

@@ -12,6 +12,7 @@ use crate::{beech, spruce};
 
 mod adversarial;
 mod draws;
+mod ground;
 mod ticks;
 
 pub(super) fn request(age: u32, seed: u64) -> Request {

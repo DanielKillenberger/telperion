@@ -35,10 +35,10 @@ use crate::species::Species;
 use crate::structure::{Axis, Origin, Structure};
 pub use canonical::{canonical, digest, identities};
 pub use executor::Work;
+use executor::{expand, Context, Expanded, BEARER};
 pub use geometry::{
     roots_geometry, BearerFrame, GeometryTables, PaGeometry, RootGeometry, ZoneGeometry,
 };
-use executor::{expand, Context, Expanded, BEARER};
 pub use record::FineRoot;
 use record::{Attachment, Committed, Frame};
 pub use surface::{chain_cases, fine_cases, ChainAxis, ChainBud, ChainTables, PaRow, Woke};
@@ -206,6 +206,7 @@ fn record(bounded: &Bounded, species: &Species, item: Item) -> FineRoot {
         moment: row.moment * s.powi(4),
         radius: bounded.base_radius(row, s, record.pa),
     };
+    let grounded = grounded(species, &attachment, (row.reach * s, s, committed.radius));
     FineRoot {
         bud: item.bud.expect("a handed bud"),
         context: item.context,
@@ -213,7 +214,28 @@ fn record(bounded: &Bounded, species: &Species, item: Item) -> FineRoot {
         attachment,
         committed,
         predicted: row.count,
+        grounded,
     }
+}
+
+/// Host decision 3: whether a root standing at `attachment` can reach the
+/// ground's landing zone. Its wood lies within `reach` (the closed form's
+/// extent bound times its base scale `s`) of its node, or of the point
+/// below it where a woken bud stands; no phytomer of it is longer than the
+/// longest internode at scale `s`, and its radii are taken at twice its
+/// committed base radius.
+fn grounded(species: &Species, a: &Attachment, (reach, s, radius): (f64, f64, f64)) -> bool {
+    let internode = species
+        .states
+        .iter()
+        .map(|p| p.internode)
+        .fold(0.0, f64::max);
+    let zone = crate::geometry::ground_zone(2.0 * radius, internode * s);
+    let low = [a.unbent, a.bent]
+        .iter()
+        .flat_map(|f| [f.below.z, f.at.tip.z])
+        .fold(f64::INFINITY, f64::min);
+    low - reach <= zone
 }
 
 /// Every root expanded, by its place among `roots`, taken in the plan's

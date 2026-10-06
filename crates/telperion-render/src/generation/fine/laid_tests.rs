@@ -78,6 +78,10 @@ impl Apart {
 /// lineage, and how far its geometry lies.
 fn held(gpu: &Gpu, r: &Reference, got: &Expanded) -> Apart {
     for (k, ((_, want), have)) in r.cases.iter().zip(&got.roots).enumerate() {
+        if r.attached[k].grounded {
+            assert!(have.is_empty(), "root {k} can reach the ground: the CPU's");
+            continue;
+        }
         assert_eq!(have.len(), want.len(), "root {k}: kept axes");
         for (j, (g, w)) in have.iter().zip(want).enumerate() {
             assert_eq!(g, w, "root {k} axis {j}");
@@ -91,6 +95,9 @@ fn held(gpu: &Gpu, r: &Reference, got: &Expanded) -> Apart {
                 .to_vec();
         apart.statuses |= at.iter().fold(0, |s, &a| s | words[a as usize]);
     }
+    // No chain the GPU grew came below the ground (D19, bit 2) or carried
+    // more pulls than it holds (bit 1).
+    assert_eq!(apart.statuses, 0, "a chain's status");
     for (k, laid) in got.laid.iter().enumerate() {
         let origin = r.attached[k].bent.tip;
         let start = r.fine.starts[k];

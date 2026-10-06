@@ -180,8 +180,11 @@ pub(super) fn expand(
     let n = buds.len() as u32;
     let mut waves = vec![Wave::new(device, (n, n), &stubs)];
     let mut statuses = Vec::new();
+    // A root that can reach the ground is the CPU reference executor's
+    // (host decision 3).
     let mut wave: Vec<Item> = order
         .iter()
+        .filter(|&&k| !attached[k].grounded)
         .map(|&k| Item {
             root: k,
             bud: buds[k],

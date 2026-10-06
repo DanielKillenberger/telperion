@@ -18,7 +18,7 @@ use crate::lineage::{Key, DOMINANCE, ROLL};
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
 use lay::{rotated, UP};
-pub(crate) use lay::{support, Layer};
+pub(crate) use lay::{ground_zone, support, Layer};
 pub(crate) use place::place;
 pub(crate) use single::{bud_frame, lay_one};
 use std::f64::consts::TAU;

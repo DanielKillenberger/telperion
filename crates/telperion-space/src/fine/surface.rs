@@ -231,11 +231,7 @@ pub fn chain_cases(species: &Species, request: Request) -> Result<Vec<Case>> {
 /// reference executor: each fine root's bud as the GPU executor takes it,
 /// and the root's kept axes as the CPU expanded them (its first axis's
 /// parent none, the rest numbered among the root's).
-pub fn fine_cases(
-    species: &Species,
-    request: Request,
-    plan: Plan,
-) -> Result<(Fine, Vec<Case>)> {
+pub fn fine_cases(species: &Species, request: Request, plan: Plan) -> Result<(Fine, Vec<Case>)> {
     let expected = Expected::new(species, request.age, 0);
     let fine = grow_fine(species, request, &expected, plan)?;
     let cases = fine
