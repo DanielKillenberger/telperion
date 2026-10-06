@@ -206,7 +206,12 @@ impl<'a> Grower<'a> {
     }
 
     /// Adds an axis with its draws, units, root lineage and horizon.
-    pub(super) fn push_axis(&mut self, axis: Axis, draws: Draws, (units, root, horizon): (f64, u64, f64)) {
+    pub(super) fn push_axis(
+        &mut self,
+        axis: Axis,
+        draws: Draws,
+        (units, root, horizon): (f64, u64, f64),
+    ) {
         self.axes.push(axis);
         self.draws.push(draws);
         self.units.push(units);

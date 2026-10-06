@@ -93,7 +93,11 @@ pub fn grow_partitioned(
     Ok(Partitioned {
         structure: grown.structure,
         phases: oracle.phases,
-        first: oracle.first.iter().map(|f| f.map(|(c, k)| (c, PHASES[k]))).collect(),
+        first: oracle
+            .first
+            .iter()
+            .map(|f| f.map(|(c, k)| (c, PHASES[k])))
+            .collect(),
     })
 }
 

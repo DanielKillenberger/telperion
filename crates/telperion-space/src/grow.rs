@@ -19,6 +19,7 @@ mod settle;
 mod shoot;
 mod sketch;
 mod stage;
+pub(crate) mod stepped;
 mod stop;
 pub(crate) mod subtree;
 #[cfg(test)]
