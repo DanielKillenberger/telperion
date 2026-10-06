@@ -19,8 +19,18 @@ fn engine() -> [(Preset, Species, Vec<usize>, Light); 4] {
         sky: 0.5,
     };
     [
-        (Preset::EuropeanBeech, beech(), vec![2, 4, 5], Light::NEUTRAL),
-        (Preset::NorwaySpruce, spruce(), vec![0, 1, 2, 4], Light::NEUTRAL),
+        (
+            Preset::EuropeanBeech,
+            beech(),
+            vec![2, 4, 5],
+            Light::NEUTRAL,
+        ),
+        (
+            Preset::NorwaySpruce,
+            spruce(),
+            vec![0, 1, 2, 4],
+            Light::NEUTRAL,
+        ),
         (Preset::OregonWhiteOak, oak(), vec![2, 3, 4], oak_light),
         (Preset::DatePalm, palm(), vec![2], Light::NEUTRAL),
     ]
@@ -55,7 +65,11 @@ fn a_species_reads_back_from_its_rows_the_value_file_and_the_wire() {
         let read = space::read(rows.iter().map(|(p, c)| (p.as_str(), *c))).unwrap();
         assert_eq!(read, family.space, "{preset:?} rows");
         let text = values::write(&family, "", "").unwrap();
-        assert_eq!(values::read(&text).unwrap().space, family.space, "{preset:?} file");
+        assert_eq!(
+            values::read(&text).unwrap().space,
+            family.space,
+            "{preset:?} file"
+        );
         let wire = params::parse(&params::metadata(&family)).unwrap();
         assert_eq!(wire.space, family.space, "{preset:?} wire");
     }

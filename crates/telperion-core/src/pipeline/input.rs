@@ -62,7 +62,13 @@ pub(crate) fn grown_envelope(tree: &Tree, shape: Envelope) -> Envelope {
         .fold(height, f64::min);
     let widest = nodes.iter().max_by(|a, b| reach(a).total_cmp(&reach(b)));
     let (radius, at) = widest.map_or((0.0, height), |n| (reach(n), n.position.y));
-    let share = |v: f64, of: f64| if of > 0.0 { (v / of).clamp(0.0, 1.0) } else { 0.0 };
+    let share = |v: f64, of: f64| {
+        if of > 0.0 {
+            (v / of).clamp(0.0, 1.0)
+        } else {
+            0.0
+        }
+    };
     Envelope {
         height,
         crown_base: share(base, height),

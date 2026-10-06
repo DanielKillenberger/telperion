@@ -180,12 +180,21 @@ pub fn rows(space: &Space) -> Result<Vec<(String, Cell)>, String> {
             let mut state = state.clone();
             for ((name, v), d) in settings(&mut state).into_iter().zip(&defaults) {
                 if v.to_bits() != d.to_bits() {
-                    let cell = if v.is_infinite() { Cell::Never } else { Cell::Number(*v) };
+                    let cell = if v.is_infinite() {
+                        Cell::Never
+                    } else {
+                        Cell::Number(*v)
+                    };
                     out.push((format!("{PREFIX}ages/{k}/{}", camel(name)), cell));
                 }
             }
             for (z, zone) in state.zones.iter().enumerate() {
-                zone_rows(&mut out, &format!("{PREFIX}ages/{k}/zones/{z}"), zone, &bare)?;
+                zone_rows(
+                    &mut out,
+                    &format!("{PREFIX}ages/{k}/zones/{z}"),
+                    zone,
+                    &bare,
+                )?;
             }
         }
     }
@@ -203,12 +212,19 @@ pub fn rows(space: &Space) -> Result<Vec<(String, Cell)>, String> {
     Ok(out)
 }
 
-fn zone_rows(out: &mut Vec<(String, Cell)>, at: &str, zone: &Zone, bare: &Zone) -> Result<(), String> {
+fn zone_rows(
+    out: &mut Vec<(String, Cell)>,
+    at: &str,
+    zone: &Zone,
+    bare: &Zone,
+) -> Result<(), String> {
     let NodeLaw::Uniform { min, max } = zone.nodes else {
         return Err(format!("{at}: a zone's node law is uniform"));
     };
     if zone.lateral.len() != AGES || zone.dormant.len() != AGES {
-        return Err(format!("{at}: a zone's tables hold the {AGES} ages of the chain"));
+        return Err(format!(
+            "{at}: a zone's tables hold the {AGES} ages of the chain"
+        ));
     }
     let NodeLaw::Uniform { min: m0, max: x0 } = bare.nodes else {
         unreachable!("a passed age's zone is uniform");

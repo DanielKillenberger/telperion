@@ -39,7 +39,10 @@ pub(super) fn grow(input: GrowInput) -> Result<Tree> {
     let age = input.age;
     if age.fract() != 0.0 || !(0.0..=f64::from(u32::MAX)).contains(&age) {
         let value = format!("{age}");
-        return Err(Error::InvalidValue { field: "age", value });
+        return Err(Error::InvalidValue {
+            field: "age",
+            value,
+        });
     }
     let request = Request {
         age: age as u32,
