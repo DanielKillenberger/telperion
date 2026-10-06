@@ -34,7 +34,7 @@ impl Grower<'_> {
         let n = sketch.pencils.len();
         let (mut light, mut cost, mut living) = (vec![0.0; n], vec![0.0; n], vec![false; n]);
         let pencils = &sketch.pencils;
-        crate::cores::fill(&mut cost, 1 << 12, self.threads, &|i| {
+        crate::cores::fill(&mut cost, 1 << 15, self.threads, &|i| {
             species.states[pa[i]].upkeep * pencils[i].wood
         });
         for apex in self.live.iter().filter(|a| a.axis < n) {

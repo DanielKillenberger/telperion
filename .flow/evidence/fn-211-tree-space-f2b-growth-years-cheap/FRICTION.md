@@ -21,3 +21,10 @@
 - **What slowed it:** freeing beside the work on a helper thread (a bin that drops what it is given, built and measured, not committed) made the passes it overlapped slower than the freeing it hid: the spruce's settle and lay lost about 300 ms, the oak's attachments 90 ms, and across the growth years the oak's balance, allot and sketch each lost 25 to 30 %. Reverted.
 - **Cost:** about 20 minutes.
 - **What would remove it:** fewer allocations per axis (each `Draws` holds five vectors; each `Axis` two), a layout question for the host, not an exact parallel lever.
+
+## 2026-10-06, task 2 worker: a spread spawns its threads each call, about 15 us a thread
+
+- **Doing:** spreading the growth year's smaller passes (the light's lattice, the rows balance and allotment read, the sketch's generations) over the cores.
+- **What slowed it:** `cores::spread` spawns its helpers through `std::thread::scope` on every call: 60 us at 4 threads, 0.48 ms at 32 (200 spreads of 64 empty pieces, this desk). A growth year at 70 to 80 runs a dozen spreads whose work is 1 to 5 ms each, so the spawning eats most of what they gain: the light's lattice built on every core (bounds and deposit by layer, built, hash-identical) measured no faster (176 to 181 ms over 80 years) and was dropped.
+- **Cost:** about 15 minutes.
+- **What would remove it:** a pool of helpers kept for the process, handed scoped work. Without a dependency (rayon) that takes `unsafe` lifetime erasure in `cores.rs`: a host decision.

@@ -17,7 +17,7 @@ use crate::light::{Field, Light};
 use crate::structure::{Origin, Vec3};
 
 /// The axes in a piece of the gathering of rows.
-const ROWS: usize = 1 << 12;
+const ROWS: usize = 1 << 15;
 
 /// Each laid axis's link to its bearer and its PA, by index.
 pub(super) struct Rows {
