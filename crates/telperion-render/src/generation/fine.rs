@@ -17,6 +17,16 @@ pub(super) fn zones() -> String {
     format!("{}\n{ZONES}", contract())
 }
 
+/// Every fine-root shader's source by name.
+pub(super) fn sources() -> Vec<(&'static str, String)> {
+    vec![
+        ("fine contract probe", tests::source()),
+        ("fine unit", units::source()),
+        ("fine chain grower", chains::source()),
+        ("fine pack", chains::pack_source()),
+    ]
+}
+
 #[cfg(test)]
 mod chain_tests;
 #[cfg(test)]

@@ -16,6 +16,11 @@ const ZW: u32 = 12;
 /// A tree to check: species, age and seed.
 type Case = (&'static str, fn() -> Species, u32, u64);
 
+/// The unit kernel's WGSL.
+pub(super) fn source() -> String {
+    format!("{}\n{UNIT}", super::zones())
+}
+
 /// The tables as the kernel reads them (`unit.wgsl`).
 pub(super) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
     let mut table = Vec::new();
@@ -109,10 +114,9 @@ struct Run {
 
 impl Kernel {
     fn new(gpu: &Gpu) -> Self {
-        let shader = format!("{}\n{UNIT}", super::zones());
         let pass = io::Pass::new(
             gpu,
-            shader,
+            source(),
             &[true, true, true, false, false],
             &["count", "emit"],
         );

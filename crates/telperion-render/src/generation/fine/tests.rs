@@ -188,15 +188,19 @@ fn expected(s: u32, a: &[u64; 8], presences: &[u64]) -> [u64; 2] {
     }
 }
 
+/// The contract probe's WGSL.
+pub(super) fn source() -> String {
+    format!("{}\n{PROBE}", super::contract())
+}
+
 struct Probe {
     pass: io::Pass,
 }
 
 impl Probe {
     fn new(gpu: &Gpu) -> Self {
-        let shader = format!("{}\n{PROBE}", super::contract());
         Self {
-            pass: io::Pass::new(gpu, shader, &[true, true, false], &["main"]),
+            pass: io::Pass::new(gpu, source(), &[true, true, false], &["main"]),
         }
     }
 

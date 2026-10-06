@@ -131,6 +131,16 @@ fn bud_words(b: &ChainBud) -> [u64; 11] {
     ]
 }
 
+/// The chain grower's WGSL.
+pub(super) fn source() -> String {
+    format!("{}\n{CHAIN}\n{APEX}\n{SLEEP}\n{SHED}", super::zones())
+}
+
+/// The packing pass's WGSL.
+pub(super) fn pack_source() -> String {
+    PACK.to_string()
+}
+
 pub(super) struct Grower {
     pass: io::Pass,
     pack: io::Pass,
@@ -150,14 +160,12 @@ pub(super) struct Grew {
 
 impl Grower {
     pub(super) fn new(gpu: &Gpu) -> Self {
-        let shader = format!("{}\n{CHAIN}\n{APEX}\n{SLEEP}\n{SHED}", super::zones());
         let read = [true, true, true, false, false, false, false, false];
-        let pack = PACK.to_string();
         Self {
-            pass: io::Pass::new(gpu, shader, &read, &["grow"]),
+            pass: io::Pass::new(gpu, source(), &read, &["grow"]),
             pack: io::Pass::new(
                 gpu,
-                pack,
+                pack_source(),
                 &[true, true, true, true, false, false],
                 &["pack"],
             ),
