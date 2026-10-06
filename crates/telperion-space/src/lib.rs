@@ -54,8 +54,10 @@ pub use fine::{
     Units, Woke, Work,
 };
 pub use grow::couple::{grow_coupled, Split};
-pub use grow::oracle::{grow_oracle, grow_partitioned, Oracled, Partitioned, Read};
-pub use grow::partition::{Grouping, Order as PartitionOrder, PHASES};
+pub use grow::oracle::{grow_oracle, Oracled, Read};
+pub use grow::partition::{
+    grow_partitioned, Grouping, Order as PartitionOrder, Partitioned, Run as PartitionRun, PHASES,
+};
 pub use grow::subtree::Measured;
 pub use grow::{grow, grow_staged, sketch, Pass, Request, Stage};
 pub use light::{bud_light, field_reads, Light};

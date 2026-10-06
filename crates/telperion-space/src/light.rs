@@ -205,6 +205,15 @@ impl Field {
         field
     }
 
+    /// The lattice `leaves` deposit in the box spanning them and `reads`,
+    /// before any sweep (probe (a): any grouping of the leaves gives it).
+    pub(crate) fn deposited(leaves: &[(Vec3, f64)], reads: &[Vec3]) -> Vec<f64> {
+        let points = leaves.iter().map(|l| l.0).chain(reads.iter().copied());
+        let mut field = Self::spanning(points, CELL);
+        field.deposit_all(leaves);
+        field.density
+    }
+
     /// The nodes it holds.
     pub fn nodes(&self) -> usize {
         self.density.len()

@@ -179,7 +179,7 @@ fn grow_one(
 
 impl<'a> Grower<'a> {
     /// A grower with no tree yet, on `threads` cores.
-    fn bare(rules: Rules<'a>, threads: usize) -> Self {
+    pub(super) fn bare(rules: Rules<'a>, threads: usize) -> Self {
         let species = rules.species;
         Self {
             rules,
@@ -206,7 +206,7 @@ impl<'a> Grower<'a> {
     }
 
     /// Adds an axis with its draws, units, root lineage and horizon.
-    fn push_axis(&mut self, axis: Axis, draws: Draws, (units, root, horizon): (f64, u64, f64)) {
+    pub(super) fn push_axis(&mut self, axis: Axis, draws: Draws, (units, root, horizon): (f64, u64, f64)) {
         self.axes.push(axis);
         self.draws.push(draws);
         self.units.push(units);

@@ -70,3 +70,4 @@
 - **What slowed it:** each run grows the tree again from nothing, and the desk's load ran from 14 to 33. The oak at 80 takes 4 to 10 s a run, so the matrix ran for more than an hour and was still running at the commit.
 - **Cost:** the commit had to state a partial result; about an hour of wall time.
 - **What would remove it:** run the 36 partitionings in one grower pass, each partition's sums and lattices taken side by side from the same terms (they share every term and differ only in grouping), or a smaller matrix at 80 (one order, one chunk).
+- **Removed (2026-10-06, task 4 worker):** `grow_partitioned` now takes every run (cut and grouping) beside one growth: the tree grows on its own sums and each run's grouping of the same terms is compared where it is taken. The 12 trees × 36 runs took 6 min 40 s wall at load 24 to 45 (oak 80: 55 s and 269 s a tree, the second during a load spike), against more than an hour before.

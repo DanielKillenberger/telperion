@@ -27,9 +27,19 @@ pub(super) struct Rows {
     pub(super) pa: Vec<usize>,
 }
 
+/// What the allotment reads of each laid axis: its apical control λ, its
+/// own bud's lit presence, its presence and its ψ (0 where it has no
+/// living apex).
+pub(super) struct Inputs {
+    pub lambda: Vec<f64>,
+    pub lit: Vec<f64>,
+    pub presence: Vec<f64>,
+    pub psi: Vec<f64>,
+}
+
 /// The rough layout and the light it casts.
 pub(super) struct Sketch {
-    light: Light,
+    pub(super) light: Light,
     pub(super) pencils: Vec<Pencil>,
 }
 
@@ -89,21 +99,8 @@ impl Grower<'_> {
             self.leaves.extend(leaves);
             tips.push(*at);
         }
-        let field = match self
-            .oracle
-            .as_mut()
-            .and_then(|o| o.grouping.filter(|g| g.leaves))
-        {
-            Some(g) => {
-                let oracle = self.oracle.as_mut().expect("an oracle");
-                let axes = std::mem::take(&mut oracle.leaf_axes);
-                let owner: Vec<Option<usize>> =
-                    axes.iter().map(|&i| oracle.root(&self.axes, i)).collect();
-                let leaves = super::partition::regroup(&self.leaves, &owner, &g);
-                Field::on(&sketch.light, &leaves, &tips, self.threads)
-            }
-            None => Field::on(&sketch.light, &self.leaves, &tips, self.threads),
-        };
+        self.check_leaves(cycle, &tips);
+        let field = Field::on(&sketch.light, &self.leaves, &tips, self.threads);
         report(Stage::Pass(Pass::ShadeField));
         let mut read = vec![0.0; tips.len()];
         crate::cores::fill(&mut read, 1 << 10, self.threads, &|k| field.at(tips[k]));
@@ -169,28 +166,17 @@ impl Grower<'_> {
     /// would; in a fine subtree the root's recorded vigour is split and
     /// each size read against the pass's recorded means.
     pub(super) fn allot(&mut self, rows: Option<&Rows>, cycle: u32) {
-        let species = self.species;
-        let (Some(sketch), Some(rows)) = (self.sketch.as_ref(), rows) else {
+        let (Some(rows), true) = (rows, self.allots()) else {
             return;
         };
-        if species.states.iter().all(|s| s.shade_size == 0.0) {
-            return;
-        }
+        let Inputs {
+            lambda,
+            mut lit,
+            mut presence,
+            psi,
+        } = self.inputs(rows);
+        let sketch = self.sketch.as_ref().expect("sketching");
         let n = sketch.pencils.len();
-        let mut lambda = vec![0.0; n];
-        fill(&mut lambda, ROWS, self.threads, &|i| {
-            species.states[rows.pa[i]].apical_control
-        });
-        let (mut lit, mut presence, mut psi) = (vec![0.0; n], vec![0.0; n], vec![0.0; n]);
-        for apex in self.live.iter().filter(|a| a.axis < n) {
-            let p = &sketch.pencils[apex.axis];
-            // Its presence this cycle includes its subtrees' survival of
-            // shedding (`balance.rs`), so a bud about to be shed weighs
-            // nothing as it goes.
-            presence[apex.axis] = p.base_scale * p.running * p.kept;
-            lit[apex.axis] = presence[apex.axis] * p.light;
-            psi[apex.axis] = species.states[rows.pa[apex.axis]].shade_size;
-        }
         let fine = self.fine_presence(sketch);
         for &(i, p, l) in &fine {
             (presence[i], lit[i]) = (p, l);
@@ -208,18 +194,10 @@ impl Grower<'_> {
             presence[i] = 0.0;
         }
         let sized = match (&self.couple, &self.fine) {
-            (None, None) => match self
-                .oracle
-                .as_ref()
-                .and_then(|o| o.grouping.filter(|g| g.sizes))
-            {
-                Some(g) => {
-                    let sums = self.grouped_sums(&got, (&presence, &psi, &rows.pa), &g);
-                    let factor = |p: usize| (sums[p][1] > 0.0).then_some(sums[p]);
-                    read_sizes(&got, (&presence, &psi, &rows.pa), &factor)
-                }
-                None => sizes(&got, &presence, &psi, &rows.pa),
-            },
+            (None, None) => {
+                self.check_sizes(cycle, &got, (&presence, &psi, &rows.pa));
+                sizes(&got, &presence, &psi, &rows.pa)
+            }
             (_, Some(reads)) => {
                 let means = reads.means.get(cycle as usize);
                 let mean = |g: usize| means.map_or(1.0, |m| m[g]);
@@ -254,7 +232,49 @@ impl Grower<'_> {
         }
     }
 
-    fn tip(&self, i: usize) -> Vec3 {
+    /// Whether the allotment runs this cycle: where any PA's size reads
+    /// shade and a rough layout is grown.
+    pub(super) fn allots(&self) -> bool {
+        self.sketch.is_some() && self.species.states.iter().any(|s| s.shade_size != 0.0)
+    }
+
+    /// What the allotment reads of each laid axis (PHASES.md, phase (ii)).
+    pub(super) fn inputs(&self, rows: &Rows) -> Inputs {
+        let species = self.species;
+        let sketch = self.sketch.as_ref().expect("sketching");
+        let n = sketch.pencils.len();
+        let mut lambda = vec![0.0; n];
+        fill(&mut lambda, ROWS, self.threads, &|i| {
+            species.states[rows.pa[i]].apical_control
+        });
+        let (mut lit, mut presence, mut psi) = (vec![0.0; n], vec![0.0; n], vec![0.0; n]);
+        for apex in self.live.iter().filter(|a| a.axis < n) {
+            let p = &sketch.pencils[apex.axis];
+            // Its presence this cycle includes its subtrees' survival of
+            // shedding (`balance.rs`), so a bud about to be shed weighs
+            // nothing as it goes.
+            presence[apex.axis] = p.base_scale * p.running * p.kept;
+            lit[apex.axis] = presence[apex.axis] * p.light;
+            psi[apex.axis] = species.states[rows.pa[apex.axis]].shade_size;
+        }
+        Inputs {
+            lambda,
+            lit,
+            presence,
+            psi,
+        }
+    }
+
+    /// Gives each living apex its unit's size this cycle.
+    pub(super) fn set_sizes(&mut self, sized: &[f64]) {
+        let sketch = self.sketch.as_mut().expect("sketching");
+        let n = sketch.pencils.len();
+        for apex in self.live.iter().filter(|a| a.axis < n) {
+            sketch.pencils[apex.axis].size = sized[apex.axis];
+        }
+    }
+
+    pub(super) fn tip(&self, i: usize) -> Vec3 {
         let axis = &self.axes[i];
         axis.phytomers.last().map_or(axis.base, |p| p.tip)
     }

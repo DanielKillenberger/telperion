@@ -41,13 +41,20 @@ pub(crate) fn vigours_from(
     lambda: &[f64],
     base: Option<f64>,
 ) -> Vec<f64> {
+    split(links, own, lambda, base).1
+}
+
+/// Each axis's incoming vigour, and its own bud's: what `vigours_from`
+/// gives, with the vigour each subtree receives at its base (fn-211.4:
+/// what a fine root's bearer hands it).
+pub(crate) fn split(
+    links: &[Link],
+    own: &[f64],
+    lambda: &[f64],
+    base: Option<f64>,
+) -> (Vec<f64>, Vec<f64>) {
     let n = links.len();
-    let mut sub = own.to_vec();
-    for i in (0..n).rev() {
-        if let Some(p) = links[i].parent {
-            sub[p] += sub[i];
-        }
-    }
+    let sub = subtotals(links, own);
     // Each axis's children with light, in the order they stand on it.
     let mut kids: Vec<(usize, usize, usize)> = (0..n)
         .filter(|&i| sub[i] > 0.0)
@@ -98,7 +105,19 @@ pub(crate) fn vigours_from(
             }
         }
     }
-    bud
+    (incoming, bud)
+}
+
+/// Each axis's subtree's light, child to parent in reverse index order:
+/// what a fine root reports its bearer (PHASES.md, phase (ii)).
+pub(crate) fn subtotals(links: &[Link], own: &[f64]) -> Vec<f64> {
+    let mut sub = own.to_vec();
+    for i in (0..links.len()).rev() {
+        if let Some(p) = links[i].parent {
+            sub[p] += sub[i];
+        }
+    }
+    sub
 }
 
 /// Each bud's size from its vigour per presence against the mean of the
@@ -112,28 +131,52 @@ pub(crate) fn vigours_from(
 /// function of its buds' presence, light and ψ.
 pub(crate) fn sizes(vigour: &[f64], presence: &[f64], psi: &[f64], group: &[usize]) -> Vec<f64> {
     let groups = group.iter().copied().max().map_or(0, |g| g + 1);
-    let drawn: Vec<f64> = (0..vigour.len())
-        .map(|i| {
-            if presence[i] > 0.0 {
-                (vigour[i] / presence[i]).powf(psi[i])
-            } else {
-                1.0
-            }
-        })
-        .collect();
-    // Order-free (`fixed::sum`), so a partition sums them as the tree does.
-    let (mut total, mut weighted) = (vec![Sum::default(); groups], vec![Sum::default(); groups]);
-    for i in 0..vigour.len() {
-        total[group[i]].add(presence[i]);
-        weighted[group[i]].add(drawn[i] * presence[i]);
+    let sums = size_sums(vigour, presence, psi, group, groups);
+    let sums: Vec<[f64; 2]> = sums.iter().map(|s| s.map(Sum::value)).collect();
+    sized(vigour, presence, psi, group, &sums)
+}
+
+/// A bud's (v/p)^ψ; whole where it has no presence.
+fn drawn(vigour: f64, presence: f64, psi: f64) -> f64 {
+    if presence > 0.0 {
+        (vigour / presence).powf(psi)
+    } else {
+        1.0
     }
-    let total: Vec<f64> = total.into_iter().map(Sum::value).collect();
-    let weighted: Vec<f64> = weighted.into_iter().map(Sum::value).collect();
+}
+
+/// Each of `groups` groups' Σp and Σp(v/p)^ψ, order-free (`fixed::sum`),
+/// so a partition's partials merge to the tree's sums (fn-211.4).
+pub(crate) fn size_sums(
+    vigour: &[f64],
+    presence: &[f64],
+    psi: &[f64],
+    group: &[usize],
+    groups: usize,
+) -> Vec<[Sum; 2]> {
+    let mut sums = vec![[Sum::default(); 2]; groups];
+    for i in 0..vigour.len() {
+        let [total, weighted] = &mut sums[group[i]];
+        total.add(presence[i]);
+        weighted.add(drawn(vigour[i], presence[i], psi[i]) * presence[i]);
+    }
+    sums
+}
+
+/// Each bud's size against its group's `[Σp, Σp(v/p)^ψ]`.
+pub(crate) fn sized(
+    vigour: &[f64],
+    presence: &[f64],
+    psi: &[f64],
+    group: &[usize],
+    sums: &[[f64; 2]],
+) -> Vec<f64> {
     (0..vigour.len())
         .map(|i| {
-            let (w, d, g) = (presence[i], drawn[i], group[i]);
-            if w > 0.0 && weighted[g] > 0.0 {
-                d * total[g] / weighted[g]
+            let (w, g) = (presence[i], group[i]);
+            let [total, weighted] = sums[g];
+            if w > 0.0 && weighted > 0.0 {
+                drawn(vigour[i], w, psi[i]) * total / weighted
             } else {
                 1.0
             }

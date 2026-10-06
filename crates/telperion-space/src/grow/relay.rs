@@ -94,9 +94,10 @@ impl Grower<'_> {
         }
         let laid = |i: usize| Some(at[i]).filter(|&j| j != usize::MAX);
         // Each fine root's expected section and load on its bearer.
+        self.check_girth(cycle, &tree, &from);
         let girth = Girth {
             disused: self.fine_stands(cycle, &tree, &laid).1,
-            leaf_mean: self.grouped_leaf_mean(&tree, &from),
+            leaf_mean: None,
         };
         thicken(&mut tree, self.species, &girth, self.threads);
         report(Stage::Pass(Pass::RelaySettle));

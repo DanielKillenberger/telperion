@@ -19,22 +19,47 @@ use crate::lineage::{above, Key, SHED};
 /// half-life of a year. An estimate, unsourced.
 pub(crate) const MEMORY: f64 = 0.5;
 
+/// Each laid axis's subtree's collected light, its wood's upkeep and
+/// whether anything in it lives, summed child to parent in reverse index
+/// order: what a fine root reports its bearer (PHASES.md, phase (i)).
+pub(super) struct Totals {
+    pub light: Vec<f64>,
+    pub cost: Vec<f64>,
+    pub living: Vec<bool>,
+}
+
 impl Grower<'_> {
+    /// Whether the balance runs this cycle: where any PA's hazard is set
+    /// and a rough layout is grown.
+    pub(super) fn balances(&self) -> bool {
+        self.sketch.is_some() && self.species.states.iter().any(|s| s.balance_hazard != 0.0)
+    }
+
     /// Updates every living lateral subtree's balance, sheds by it, and
     /// gives each living apex what its subtrees' survival makes of its
     /// unit this cycle.
     pub(super) fn balance(&mut self, cycle: u32, rows: Option<&Rows>) {
-        let species = self.species;
-        if species.states.iter().all(|s| s.balance_hazard == 0.0) {
-            return;
-        }
-        let Some(Rows { links, pa }) = rows else {
+        let Some(rows) = rows.filter(|_| self.balances()) else {
             return;
         };
-        let Some(mut held) = self.sketch.take() else {
-            return;
-        };
-        let sketch = &mut held;
+        let sketch = self.sketch.as_ref().expect("sketching");
+        // A fine root's subtree as its aggregate holds it (fn-211.4).
+        let fine = self.fine_balance(sketch);
+        let totals = self.totals(rows, &fine);
+        // A fine subtree's root: its own shedding is the pass's record.
+        let root = self
+            .fine
+            .as_ref()
+            .map(|r| (r.records.shed == Some(cycle), r.records.kept(cycle)));
+        let (shed, kept) = self.shed_by(cycle, rows, &totals, root);
+        self.fine_kept(cycle, &shed, &kept);
+    }
+
+    /// Each subtree's totals, `given` (axis, light, upkeep, living) taking
+    /// the place of what axis holds before they are summed.
+    pub(super) fn totals(&self, rows: &Rows, given: &[(usize, f64, f64, bool)]) -> Totals {
+        let (species, pa) = (self.species, &rows.pa);
+        let sketch = self.sketch.as_ref().expect("sketching");
         let n = sketch.pencils.len();
         let (mut light, mut cost, mut living) = (vec![0.0; n], vec![0.0; n], vec![false; n]);
         let pencils = &sketch.pencils;
@@ -46,24 +71,42 @@ impl Grower<'_> {
             light[apex.axis] = p.base_scale * p.running * p.light;
             living[apex.axis] = true;
         }
-        // A fine root's subtree as its aggregate holds it (fn-211.4).
-        for (i, q, c, alive) in self.fine_balance(sketch) {
+        for &(i, q, c, alive) in given {
             (light[i], cost[i], living[i]) = (q, c, alive);
         }
-        // A fine subtree's root: its own shedding is the pass's record.
-        let root = self
-            .fine
-            .as_ref()
-            .map(|r| (r.records.shed == Some(cycle), r.records.kept(cycle)));
         for i in (1..n).rev() {
-            if let Some(parent) = links[i].parent {
+            if let Some(parent) = rows.links[i].parent {
                 light[parent] += light[i];
                 cost[parent] += cost[i];
                 living[parent] |= living[i];
             }
         }
-        // Parents first: what each subtree's shedding makes of every axis
-        // in it this cycle.
+        Totals {
+            light,
+            cost,
+            living,
+        }
+    }
+
+    /// Parents first, what each subtree's shedding makes of every axis in
+    /// it this cycle (axis 1's given as `root`, where it is a subtree's
+    /// root whose bearer decides it); every apex shed leaves the living.
+    /// Each axis's shedding and kept share.
+    pub(super) fn shed_by(
+        &mut self,
+        cycle: u32,
+        Rows { links, pa }: &Rows,
+        Totals {
+            light,
+            cost,
+            living,
+        }: &Totals,
+        root: Option<(bool, f64)>,
+    ) -> (Vec<bool>, Vec<f64>) {
+        let species = self.species;
+        let mut held = self.sketch.take().expect("sketching");
+        let sketch = &mut held;
+        let n = sketch.pencils.len();
         let (mut shed, mut kept) = (vec![false; n], vec![1.0; n]);
         for i in 0..n {
             let (dead, keep) = match links[i].parent {
@@ -106,9 +149,6 @@ impl Grower<'_> {
                 kept[i] = keep * windows.decided(above(u, p), wood, 1.0);
             }
         }
-        self.sketch = Some(held);
-        self.fine_kept(cycle, &shed, &kept);
-        let sketch = self.sketch.as_mut().expect("sketching");
         let live = std::mem::take(&mut self.live);
         for apex in live {
             if apex.axis < n && shed[apex.axis] {
@@ -120,5 +160,7 @@ impl Grower<'_> {
             }
             self.live.push(apex);
         }
+        self.sketch = Some(held);
+        (shed, kept)
     }
 }

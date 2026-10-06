@@ -194,6 +194,35 @@ fn run_beside(
     beside: Beside,
 ) -> Result<(Grown, Besides)> {
     let started = std::time::Instant::now();
+    let (mut grower, keeps) = start(species, request, lay, options)?;
+    grower.oracle = beside.oracle.map(Box::new);
+    grower.couple = beside.couple.map(Box::new);
+    stage(Stage::Pass(Pass::Windows));
+    let mut advanced = Vec::new();
+    for cycle in 1..=request.age {
+        // The last cycle's layout, full lay and light are read by no bud,
+        // and the final lay rewrites every place (fn-198, lever c1); only
+        // `sketch` keeps them.
+        let sketching = cycle < request.age || !lay || options.unread_light;
+        grower.year(cycle, sketching, &mut advanced, stage)?;
+    }
+    let measured = match grower.couple.is_some() {
+        true => Some(grower.grow_fine_all(started)?),
+        false => None,
+    };
+    let oracle = grower.oracle.take();
+    let grown = grower.settle((request, options), (lay, keeps), stage)?;
+    Ok((grown, Besides { oracle, measured }))
+}
+
+/// The grower of `request` before its first cycle, and whether any PA
+/// reads the tree as grown (its shed pipes or its leaves' girth).
+fn start<'a>(
+    species: &'a Species,
+    request: Request,
+    lay: bool,
+    options: Options,
+) -> Result<(Grower<'a>, bool)> {
     species.validate()?;
     request.light.validate()?;
     if request.age == 0 {
@@ -221,7 +250,7 @@ fn run_beside(
         vec![None; species.states.len()]
     };
     let threads = options.threads.unwrap_or_else(crate::cores::available);
-    let mut grower = Grower {
+    let grower = Grower {
         rules: Rules {
             species,
             laterals,
@@ -255,39 +284,11 @@ fn run_beside(
         sketch,
         leaves: Vec::new(),
         wakes: Vec::new(),
-        oracle: beside.oracle.map(Box::new),
-        couple: beside.couple.map(Box::new),
+        oracle: None,
+        couple: None,
         fine: None,
     };
-    stage(Stage::Pass(Pass::Windows));
-    let mut advanced = Vec::new();
-    for cycle in 1..=request.age {
-        advanced.clear();
-        advanced.extend(grower.live.iter().map(|a| a.axis));
-        grower.step(cycle, stage)?;
-        stage(Stage::Grown);
-        // The last cycle's layout, full lay and light are read by no bud,
-        // and the final lay rewrites every place (fn-198, lever c1); only
-        // `sketch` keeps them.
-        if grower.sketch.is_some() && (cycle < request.age || !lay || options.unread_light) {
-            grower.sketch(cycle, &advanced)?;
-            stage(Stage::Pass(Pass::Sketch));
-            stage(Stage::Sketched);
-            if cycle % relay::RELAY_EVERY == 0 {
-                grower.relay(cycle, stage)?;
-                stage(Stage::Relaid);
-            }
-            grower.shade(cycle, stage);
-            stage(Stage::Lit);
-        }
-    }
-    let measured = match grower.couple.is_some() {
-        true => Some(grower.grow_fine_all(started)?),
-        false => None,
-    };
-    let oracle = grower.oracle.take();
-    let grown = grower.settle((request, options), (lay, keeps), stage)?;
-    Ok((grown, Besides { oracle, measured }))
+    Ok((grower, keeps))
 }
 
 /// The share of an apex's expected wood a stop decides: a stop with no
@@ -388,6 +389,34 @@ impl Grower<'_> {
         self.wake(cycle)?;
         self.mark(cycle, 2);
         report(Stage::Pass(Pass::Wake));
+        Ok(())
+    }
+
+    /// One cycle: its growth, then, `sketching` where a rough layout is
+    /// grown, its layout, any re-lay and its light.
+    fn year(
+        &mut self,
+        cycle: u32,
+        sketching: bool,
+        advanced: &mut Vec<usize>,
+        stage: &mut dyn FnMut(Stage),
+    ) -> Result<()> {
+        advanced.clear();
+        advanced.extend(self.live.iter().map(|a| a.axis));
+        self.step(cycle, stage)?;
+        stage(Stage::Grown);
+        if self.sketch.is_none() || !sketching {
+            return Ok(());
+        }
+        self.sketch(cycle, advanced)?;
+        stage(Stage::Pass(Pass::Sketch));
+        stage(Stage::Sketched);
+        if cycle % relay::RELAY_EVERY == 0 {
+            self.relay(cycle, stage)?;
+            stage(Stage::Relaid);
+        }
+        self.shade(cycle, stage);
+        stage(Stage::Lit);
         Ok(())
     }
 
