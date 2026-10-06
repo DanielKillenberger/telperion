@@ -100,13 +100,13 @@ pub(crate) fn carried(
     cycle: u32,
 ) -> Vec<(f64, usize)> {
     let axis = sleeper.parent;
-    let presence = draws[axis].units[sleeper.unit][1];
+    let presence = draws[axis].units[sleeper.unit].persist;
     let mut open = vec![(presence, axis, sleeper.unit + 1)];
     let mut out = Vec::new();
     while let Some((mut presence, axis, from)) = open.pop() {
         presence *= draws[axis].units[from..]
             .iter()
-            .map(|[survive, persist]| survive * persist)
+            .map(|u| u.survive * u.persist)
             .product::<f64>();
         if successor[axis].is_empty() {
             // A bearer whose age ended within the waking cycle bears it,
@@ -335,10 +335,10 @@ impl Woken {
             // It died before its next unit: as far as a relay took over.
             None => on(&successor[self.bearer]),
             // It grew it, and stopped after it, or carried on.
-            Some([survive, persist]) => {
+            Some(unit) => {
                 let stopped = axes[self.bearer].apex_end == Some(self.cycle + 1) && !bearer.failed;
-                survive
-                    * persist
+                unit.survive
+                    * unit.persist
                     * if stopped {
                         on(&successor[self.bearer])
                     } else {

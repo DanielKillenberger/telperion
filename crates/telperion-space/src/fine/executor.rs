@@ -101,7 +101,7 @@ pub(crate) fn expand(cx: &Context, root: &FineRoot) -> Result<Expanded> {
         pas: cx.species.states.len(),
         axes,
     };
-    scale(&mut tree, cx.species);
+    scale(&mut tree, cx.species, 1);
     tree.axes[0] = unbent;
     let mut bounded =
         Bounded::settled(cx.species, tree, grown.records, (cx.rows.clone(), None)).on_stub(bent);

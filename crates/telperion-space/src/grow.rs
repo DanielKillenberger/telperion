@@ -9,10 +9,13 @@
 mod advance;
 pub(crate) mod alone;
 mod balance;
+mod draw;
 mod parallel;
 mod relay;
+mod settle;
 mod shoot;
 mod sketch;
+mod stage;
 mod stop;
 #[cfg(test)]
 mod tests;
@@ -21,18 +24,16 @@ mod wake;
 
 use crate::dormant::{Sleeper, Woken};
 use crate::error::{refuse, Error, Result};
-use crate::geometry::{place, scale};
-use crate::girth::{attachments, disused, thicken, Girth};
 use crate::light::Light;
 use crate::lineage::Key;
-use crate::presence::{assign, Draws, Windows};
-use crate::sag;
-use crate::shed::{lasting, shed};
+use crate::presence::{Draws, Windows};
+use crate::shed::lasting;
 use crate::species::{PaState, Species};
 use crate::structure::{Axis, Origin, Structure, Vec3};
 pub(crate) use shoot::Rules;
-pub(crate) use unit::node_wood;
 use sketch::Sketch;
+pub use stage::{Pass, Stage};
+pub(crate) use unit::node_wood;
 
 /// What to grow: cycles, the seed, the phytomer budget and the site's light.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -53,21 +54,6 @@ type Placed = Option<(usize, f64, f64)>;
 struct Apex {
     axis: usize,
     spent: f64,
-}
-
-/// The stages a tree passes through, reported as each ends: per cycle its
-/// growth, its rough layout, its full lay every few cycles and the sweep
-/// of its light (where light shades), then once its sizes, shedding and
-/// girth, and its final lay.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Stage {
-    Grown,
-    Sketched,
-    /// The full lay of the living tree, every `RELAY_EVERY` cycles.
-    Relaid,
-    Lit,
-    Settled,
-    Laid,
 }
 
 /// Grows, sheds and places the tree.
@@ -236,124 +222,29 @@ pub(crate) fn run(
         leaves: Vec::new(),
         wakes: Vec::new(),
     };
+    stage(Stage::Pass(Pass::Windows));
     let mut advanced = Vec::new();
     for cycle in 1..=request.age {
         advanced.clear();
         advanced.extend(grower.live.iter().map(|a| a.axis));
-        grower.step(cycle)?;
+        grower.step(cycle, stage)?;
         stage(Stage::Grown);
         // The last cycle's layout, full lay and light are read by no bud,
         // and the final lay rewrites every place (fn-198, lever c1); only
         // `sketch` keeps them.
         if grower.sketch.is_some() && (cycle < request.age || !lay || options.unread_light) {
             grower.sketch(cycle, &advanced)?;
+            stage(Stage::Pass(Pass::Sketch));
             stage(Stage::Sketched);
             if cycle % relay::RELAY_EVERY == 0 {
-                grower.relay(cycle)?;
+                grower.relay(cycle, stage)?;
                 stage(Stage::Relaid);
             }
-            grower.shade();
+            grower.shade(stage);
             stage(Stage::Lit);
         }
     }
-    for apex in &grower.live {
-        let living = grower.living(*apex);
-        let draws = &mut grower.draws[apex.axis];
-        (draws.alive, draws.living) = (true, living);
-    }
-    for woken in &grower.woken {
-        let kept = woken.kept(&grower.axes, &grower.draws, &grower.successor, request.age);
-        grower.draws[woken.axis].birth[1] *= kept;
-    }
-    assign(&mut grower.axes, &grower.draws, species);
-    let made: Vec<Record> = if options.settle {
-        grower
-            .axes
-            .iter()
-            .enumerate()
-            .filter_map(|(i, a)| {
-                matches!(a.origin, Origin::Lateral { .. }).then_some(Record {
-                    origin: a.origin,
-                    pa: a.pa,
-                    birth: a.birth,
-                    lineage: a.lineage,
-                    vigour: a.vigour,
-                    axis: Some(i),
-                })
-            })
-            .collect()
-    } else {
-        Vec::new()
-    };
-    // The tree as grown, where any PA keeps shed pipes or thickens by its
-    // leaves: what each shed branch had laid down, and the one population
-    // the leaf term's mean is taken over at any retained share.
-    let grown = keeps.then(|| attachments(&grower.axes, species, request.age));
-    let shed = shed(grower.axes, species, request.age);
-    let records = kept_records(made, &shed.index);
-    let girth = grown.map_or_else(Girth::default, |g| disused(&g, &shed, species));
-    let mut structure = Structure {
-        age: request.age,
-        pas: species.states.len(),
-        axes: shed.axes,
-    };
-    if structure.phytomer_count() == 0 {
-        return Err(Error::Collapsed);
-    }
-    scale(&mut structure, species);
-    // Girth needs no geometry; placing reads it where wood meets the
-    // ground.
-    thicken(&mut structure, species, &girth);
-    stage(Stage::Settled);
-    let (count, marked) = (grower.rules.grown, grower.marked);
-    let leaf_mean = girth
-        .leaf_mean
-        .or_else(|| crate::girth::leaf_mean(&structure, species));
-    let done = move |structure| Grown {
-        structure,
-        grown: count,
-        marked,
-        records,
-        leaf_mean,
-    };
-    if !lay || options.settle {
-        return Ok(done(structure));
-    }
-    place(&mut structure, species, None, threads)?;
-    // Sag bends the tree as it stands under the load it carries, and
-    // leaves its girth as it was.
-    if sag::any(species) {
-        let levers = sag::levers(&structure, species);
-        place(&mut structure, species, Some(&levers), threads)?;
-    }
-    // Wood that stands exactly at its draw has no size.
-    if structure
-        .axes
-        .iter()
-        .flat_map(|a| &a.phytomers)
-        .all(|p| p.scale == 0.0)
-    {
-        return Err(Error::Collapsed);
-    }
-    stage(Stage::Laid);
-    Ok(done(structure))
-}
-
-/// The records whose bearer is kept, renamed to the kept tree's indices.
-fn kept_records(made: Vec<Record>, index: &[usize]) -> Vec<Record> {
-    made.into_iter()
-        .filter_map(|mut r| {
-            let Origin::Lateral { parent, .. } = &mut r.origin else {
-                return None;
-            };
-            *parent = index[*parent];
-            if *parent == usize::MAX {
-                return None;
-            }
-            r.axis = r.axis.map(|i| index[i]).filter(|&i| i != usize::MAX);
-            Some(r)
-        })
-        .collect()
+    grower.settle((request, options), (lay, keeps), stage)
 }
 
 /// The share of an apex's expected wood a stop decides: a stop with no
@@ -433,12 +324,18 @@ impl Grower<'_> {
     /// One cycle: each living lateral subtree's balance and each apex's
     /// share of the tree's vigour, then every living apex's growth unit,
     /// on every core (`parallel.rs`), then the sleeping buds that wake.
-    fn step(&mut self, cycle: u32) -> Result<()> {
-        self.balance(cycle);
-        self.allot();
+    fn step(&mut self, cycle: u32, report: &mut dyn FnMut(Stage)) -> Result<()> {
+        let rows = self.rows();
+        self.balance(cycle, rows.as_ref());
+        report(Stage::Pass(Pass::Balance));
+        self.allot(rows.as_ref());
+        drop(rows);
+        report(Stage::Pass(Pass::Allot));
         let live = std::mem::take(&mut self.live);
-        self.grow_live(live, cycle)?;
-        self.wake(cycle)
+        self.grow_live(live, cycle, report)?;
+        self.wake(cycle)?;
+        report(Stage::Pass(Pass::Wake));
+        Ok(())
     }
 
     /// How much an apex living at the tree's age lives on: whole while a

@@ -59,7 +59,8 @@ impl Bud {
     /// A woken bud's waking: the sleeping bud, the stage it wakes in and
     /// its time there, and the cycle it woke in.
     pub fn woke(&self) -> Option<(Sleeper, (usize, f64), u32)> {
-        self.wake.map(|(p, _)| (p.sleeper, (p.aged.0, p.aged.1), p.cycle))
+        self.wake
+            .map(|(p, _)| (p.sleeper, (p.aged.0, p.aged.1), p.cycle))
     }
 
     /// The axis of its bearer's chain it stands on.
@@ -191,7 +192,7 @@ pub(crate) fn grow(rules: &Rules, seed: u64, bud: Option<&Bud>) -> Result<Chain>
         if g.live.is_empty() && g.asleep[cycle as usize..].iter().all(Vec::is_empty) {
             break;
         }
-        g.step(cycle)?;
+        g.step(cycle, &mut |_| {})?;
         cycles += 1;
     }
     for apex in &g.live {
@@ -213,7 +214,7 @@ pub(crate) fn grow(rules: &Rules, seed: u64, bud: Option<&Bud>) -> Result<Chain>
             w.kept(&g.axes, &g.draws, &g.successor, age)
         })
         .collect();
-    assign(&mut g.axes, &g.draws, g.species);
+    assign(&mut g.axes, &g.draws, g.species, 1);
     let mut buds = Vec::new();
     for (i, axis) in g.axes.iter().enumerate() {
         if i > root && matches!(axis.origin, Origin::Lateral { .. }) {

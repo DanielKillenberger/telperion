@@ -90,3 +90,10 @@
 - **Slowed:** the GPU lock is taken around the whole `cargo test`, so the CPU reference's growth (up to about 40 s of the 72 s measurement at 80) holds the lock that other workers wait on.
 - **Cost:** about a minute of lock time per measurement run on the desk, and for the 25-year equality test in the gate about 30 s.
 - **Would remove it:** CPU references written once to disk by an unlocked step and read by the GPU test, or the lock taken inside the test only around the dispatches.
+
+## 2026-10-06, the workspace gate under a shared desk (merge of fn-211 into fn-209)
+
+- **Doing:** the workspace gate once after merging F2b into F1, under the GPU lock.
+- **Slowed:** the gate ran from 21:17 to about 21:45 at a one-minute load of 40 to 58 (another session's work on the desk); one test binary alone took 671 s and another 464 s. The merge itself, the 28-tree dump comparison and both hash runs took about 15 minutes together.
+- **Cost:** about 28 minutes of the timebox waiting on the gate, with the GPU lock held for all of it, CPU tests included.
+- **Would remove it:** the GPU lock taken only around the GPU tests (as the entry above proposes), and a way to see the desk's load owner before starting a gate, so a gate is not started into a contended desk.

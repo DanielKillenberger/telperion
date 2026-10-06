@@ -123,7 +123,7 @@ pub fn grow_fine(
     if above.phytomer_count() == 0 && handed.is_empty() {
         return Err(Error::Collapsed);
     }
-    scale(&mut above, species);
+    scale(&mut above, species, 1);
     let mut bounded = Bounded::settled(species, above, records, (rows.clone(), None));
     bounded.resolve_all(threads)?;
     let roots: Vec<FineRoot> = handed

@@ -142,60 +142,66 @@ fn fades(axes: &[Axis], species: &Species, age: u32) -> Vec<f64> {
     if !axes.iter().any(|a| delay(a).is_some()) {
         return vec![1.0; axes.len()];
     }
-    // grown[a][k]: the presence of axis a's first k growth units.
-    let grown: Vec<Vec<f64>> = axes
-        .iter()
-        .map(|a| {
-            std::iter::once(0.0)
-                .chain(a.units.iter().scan(0.0, |sum, p| {
-                    *sum += p;
-                    Some(*sum)
-                }))
-                .collect()
-        })
-        .collect();
+    // grown[at[a] + k]: the presence of axis a's first k growth units.
+    let mut at = Vec::with_capacity(axes.len());
+    let mut grown = Vec::new();
+    for a in axes {
+        at.push(grown.len());
+        grown.push(0.0);
+        let mut sum = 0.0;
+        for p in &a.units {
+            sum += p;
+            grown.push(sum);
+        }
+    }
     // living[s]: the last cycle anything in s's subtree lived, each growth
     // unit weighted by its presence relative to s. An axis lives from the
     // time its parent had reached when it was made, plus the cycles from
     // there to its birth: whole, its birth cycle. alive[s]: the presence,
     // relative to s, of the most present apex still living in its subtree.
-    let mut living = vec![f64::NEG_INFINITY; axes.len()];
-    let mut alive = vec![0.0f64; axes.len()];
-    for (i, axis) in axes.iter().enumerate() {
-        // From the share of its first cycle gone before it grew.
-        let mut lived = axis.sleep + grown[i][axis.units.len()];
-        let mut apex = axis.alive;
-        let mut at = i;
-        loop {
-            let link = &axes[at];
-            living[at] = living[at].max(f64::from(link.birth) + lived);
-            alive[at] = alive[at].max(apex);
-            let Some(parent) = link.origin.parent() else {
-                break;
-            };
-            let mut weight = link.vigour;
-            if let Origin::Lateral { node, .. } = link.origin {
-                weight *= axes[parent].phytomers[node].scale;
-            }
-            let p = &axes[parent];
-            let units = (link.birth.saturating_sub(p.birth) as usize).min(p.units.len());
-            // A relay made the cycle its parent died starts a cycle after
-            // the parent's last growth unit.
-            let gap = f64::from(link.birth - p.birth) - units as f64;
-            // The parent's own time to the child's birth: from its share of
-            // its first cycle gone, through its units before the child; none
-            // where the child carries it on in the cycle it began, whose own
-            // share gone already holds the parent's (Codex on fn-206's port).
-            let before = if units == 0 {
-                0.0
-            } else {
-                p.sleep + grown[parent][units]
-            };
-            lived = before + weight * (gap + lived);
-            apex *= weight;
-            at = parent;
+    //
+    // Each subtree's is its own, or the most of what its children's carry
+    // up: their parent's own time to their birth plus their weight times
+    // theirs. That carry never lowers a larger time below a smaller, its
+    // weights being no less than nothing, so the most carried up is the
+    // carry of the most, to the bit, and children follow their parents:
+    // one backward pass (fn-211).
+    let mut lived: Vec<f64> = axes
+        .iter()
+        .enumerate()
+        .map(|(i, a)| a.sleep + grown[at[i] + a.units.len()])
+        .collect();
+    let mut alive: Vec<f64> = axes.iter().map(|a| 0.0f64.max(a.alive)).collect();
+    for (i, link) in axes.iter().enumerate().rev() {
+        let Some(parent) = link.origin.parent() else {
+            continue;
+        };
+        let mut weight = link.vigour;
+        if let Origin::Lateral { node, .. } = link.origin {
+            weight *= axes[parent].phytomers[node].scale;
         }
+        let p = &axes[parent];
+        let units = (link.birth.saturating_sub(p.birth) as usize).min(p.units.len());
+        // A relay made the cycle its parent died starts a cycle after
+        // the parent's last growth unit.
+        let gap = f64::from(link.birth - p.birth) - units as f64;
+        // The parent's own time to the child's birth: from its share of
+        // its first cycle gone, through its units before the child; none
+        // where the child carries it on in the cycle it began, whose own
+        // share gone already holds the parent's (Codex on fn-206's port).
+        let before = if units == 0 {
+            0.0
+        } else {
+            p.sleep + grown[at[parent] + units]
+        };
+        lived[parent] = lived[parent].max(before + weight * (gap + lived[i]));
+        alive[parent] = alive[parent].max(alive[i] * weight);
     }
+    let living: Vec<f64> = axes
+        .iter()
+        .zip(&lived)
+        .map(|(a, &l)| f64::from(a.birth) + l)
+        .collect();
     // A living subtree is never drawn smaller than its living apex; an apex
     // that light grew past whole (`allocation.rs`) keeps it whole.
     axes.iter()

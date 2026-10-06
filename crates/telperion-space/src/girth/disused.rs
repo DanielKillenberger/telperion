@@ -4,10 +4,12 @@
 //! in by what its fade has taken, so its bearer meets the same section on
 //! both sides of the branch's removal.
 use super::{own, Disused, Girth};
+use crate::cores::{map, PIECE};
 use crate::geometry::dominance;
 use crate::shed::Shed;
 use crate::species::Species;
 use crate::structure::{Axis, Origin, Phytomer};
+use crate::upward::Tree;
 
 /// One grown axis as shedding meets it: its bearer, the node it stood at
 /// (none: the bearer's tip), its PA, whether the rule can shed it (a
@@ -49,20 +51,30 @@ fn bases(axes: &[Axis], species: &Species) -> Vec<f64> {
 }
 
 /// The tree as grown, sized as `geometry::scale` and `girth::thicken`
-/// will size it, with the leaf term's mean taken over all of it.
-pub(crate) fn attachments(axes: &[Axis], species: &Species, age: u32) -> Grown {
-    let n = axes.len();
+/// will size it, with the leaf term's mean taken over all of it, on up to
+/// `threads` cores.
+pub(crate) fn attachments(axes: &[Axis], species: &Species, age: u32, threads: usize) -> Grown {
     let base = bases(axes, species);
     let scale = |i: usize, p: &Phytomer| p.scale * base[i] * p.size;
     let leaf_mean = species.states.iter().any(|s| s.leaf_girth > 0.0).then(|| {
-        let (mut total, mut weighted) = (0.0, 0.0);
-        for (i, a) in axes.iter().enumerate() {
-            let state = &species.states[a.pa];
-            for p in &a.phytomers {
-                let pipe = own(&state.form, p, age, scale(i, p), 1.0);
-                total += pipe;
-                weighted += pipe * p.light.powf(state.leaf_girth);
+        // Each phytomer's pipe and its light term on every core, summed
+        // in the tree's order.
+        let pieces: Vec<usize> = (0..axes.len().div_ceil(PIECE)).collect();
+        let terms = map(pieces, 1, threads, &|_, k| {
+            let mut out = Vec::new();
+            for i in k * PIECE..((k + 1) * PIECE).min(axes.len()) {
+                let state = &species.states[axes[i].pa];
+                for p in &axes[i].phytomers {
+                    let pipe = own(&state.form, p, age, scale(i, p), 1.0);
+                    out.push((pipe, pipe * p.light.powf(state.leaf_girth)));
+                }
             }
+            out
+        });
+        let (mut total, mut weighted) = (0.0, 0.0);
+        for (pipe, term) in terms.into_iter().flatten() {
+            total += pipe;
+            weighted += term;
         }
         if weighted > 0.0 {
             total / weighted
@@ -70,28 +82,38 @@ pub(crate) fn attachments(axes: &[Axis], species: &Species, age: u32) -> Grown {
             1.0
         }
     });
-    let mut at_tip = vec![0.0; n];
-    let mut radii = vec![0.0; n];
-    let mut at_node: Vec<Vec<f64>> = axes.iter().map(|a| vec![0.0; a.phytomers.len()]).collect();
-    for i in (0..n).rev() {
-        let state = &species.states[axes[i].pa];
-        let e = state.form.exponent;
-        let mut section = at_tip[i];
-        for (k, p) in axes[i].phytomers.iter().enumerate().rev() {
-            let leaf = leaf_mean.map_or(1.0, |m| p.light.powf(state.leaf_girth) * m);
-            section += own(&state.form, p, age, scale(i, p), leaf).powf(e) + at_node[i][k];
-        }
-        radii[i] = section.powf(1.0 / e);
-        if let Some(parent) = axes[i].origin.parent() {
-            let section = radii[i].powf(species.states[axes[parent].pa].form.exponent);
-            match axes[i].origin {
-                Origin::Lateral { node, .. } if node < at_node[parent].len() => {
-                    at_node[parent][node] += section
+    let parents: Vec<Option<usize>> = axes.iter().map(|a| a.origin.parent()).collect();
+    let tree = Tree::new(&parents);
+    let mut none = vec![(); axes.len()];
+    // Each axis's base radius: its own pipes and those its children carry
+    // into its nodes and tip, the last child first.
+    let radii = tree.upward(
+        &mut none,
+        threads,
+        &|i, (), radii: &[f64], at_node: &mut Vec<f64>| {
+            let axis = &axes[i];
+            let state = &species.states[axis.pa];
+            let e = state.form.exponent;
+            at_node.clear();
+            at_node.resize(axis.phytomers.len(), 0.0);
+            let mut at_tip = 0.0;
+            for &c in tree.children(i) {
+                let section = radii[c].powf(e);
+                match axes[c].origin {
+                    Origin::Lateral { node, .. } if node < at_node.len() => {
+                        at_node[node] += section
+                    }
+                    _ => at_tip += section,
                 }
-                _ => at_tip[parent] += section,
             }
-        }
-    }
+            let mut section = at_tip;
+            for (k, p) in axis.phytomers.iter().enumerate().rev() {
+                let leaf = leaf_mean.map_or(1.0, |m| p.light.powf(state.leaf_girth) * m);
+                section += own(&state.form, p, age, scale(i, p), leaf).powf(e) + at_node[k];
+            }
+            section.powf(1.0 / e)
+        },
+    );
     let links = axes
         .iter()
         .zip(radii)
