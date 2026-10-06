@@ -11,9 +11,19 @@
 //! frame, scale and rank) is all written again once the tree has grown.
 use super::{Grower, Pass, Stage};
 use crate::allocation::{sizes, vigours, Link, TIP};
+use crate::cores::fill;
 use crate::geometry::Layer;
 use crate::light::{Field, Light};
 use crate::structure::{Origin, Vec3};
+
+/// The axes in a piece of the gathering of rows.
+const ROWS: usize = 1 << 12;
+
+/// Each laid axis's link to its bearer and its PA, by index.
+pub(super) struct Rows {
+    pub(super) links: Vec<Link>,
+    pub(super) pa: Vec<usize>,
+}
 
 /// The rough layout and the light it casts.
 pub(super) struct Sketch {
@@ -72,39 +82,53 @@ impl Grower<'_> {
         report(Stage::Pass(Pass::ShadeRead));
     }
 
+    /// Each laid axis's link and PA, gathered on every core, so the
+    /// passes over the whole tree each cycle read them packed.
+    pub(super) fn rows(&self) -> Option<Rows> {
+        let n = self.sketch.as_ref()?.pencils.len();
+        let axes = &self.axes[..n];
+        let mut links = vec![
+            Link {
+                parent: None,
+                node: 0
+            };
+            n
+        ];
+        fill(&mut links, ROWS, self.threads, &|i| match axes[i].origin {
+            Origin::Seed => Link {
+                parent: None,
+                node: 0,
+            },
+            Origin::Lateral { parent, node, .. } => Link {
+                parent: Some(parent),
+                node,
+            },
+            Origin::Continuation { parent } | Origin::Relay { parent, .. } => Link {
+                parent: Some(parent),
+                node: TIP,
+            },
+        });
+        let mut pa = vec![0; n];
+        fill(&mut pa, ROWS, self.threads, &|i| axes[i].pa);
+        Some(Rows { links, pa })
+    }
+
     /// Gives each living apex its unit's size this cycle from the vigour
     /// the tree's light allots it per presence, against the mean of the
     /// growing buds of its PA (`allocation.rs`): before any apex grows.
-    pub(super) fn allot(&mut self) {
+    pub(super) fn allot(&mut self, rows: Option<&Rows>) {
         let species = self.species;
-        let Some(sketch) = self.sketch.as_mut() else {
+        let (Some(sketch), Some(rows)) = (self.sketch.as_mut(), rows) else {
             return;
         };
         if species.states.iter().all(|s| s.shade_size == 0.0) {
             return;
         }
         let n = sketch.pencils.len();
-        let links: Vec<Link> = self.axes[..n]
-            .iter()
-            .map(|a| match a.origin {
-                Origin::Seed => Link {
-                    parent: None,
-                    node: 0,
-                },
-                Origin::Lateral { parent, node, .. } => Link {
-                    parent: Some(parent),
-                    node,
-                },
-                Origin::Continuation { parent } | Origin::Relay { parent, .. } => Link {
-                    parent: Some(parent),
-                    node: TIP,
-                },
-            })
-            .collect();
-        let lambda: Vec<f64> = self.axes[..n]
-            .iter()
-            .map(|a| species.states[a.pa].apical_control)
-            .collect();
+        let mut lambda = vec![0.0; n];
+        fill(&mut lambda, ROWS, self.threads, &|i| {
+            species.states[rows.pa[i]].apical_control
+        });
         let (mut lit, mut presence, mut psi) = (vec![0.0; n], vec![0.0; n], vec![0.0; n]);
         for apex in self.live.iter().filter(|a| a.axis < n) {
             let p = &sketch.pencils[apex.axis];
@@ -113,11 +137,10 @@ impl Grower<'_> {
             // nothing as it goes.
             presence[apex.axis] = p.base_scale * p.running * p.kept;
             lit[apex.axis] = presence[apex.axis] * p.light;
-            psi[apex.axis] = species.states[self.axes[apex.axis].pa].shade_size;
+            psi[apex.axis] = species.states[rows.pa[apex.axis]].shade_size;
         }
-        let got = vigours(&links, &lit, &lambda);
-        let order: Vec<usize> = self.axes[..n].iter().map(|a| a.pa).collect();
-        let sized = sizes(&got, &presence, &psi, &order);
+        let got = vigours(&rows.links, &lit, &lambda);
+        let sized = sizes(&got, &presence, &psi, &rows.pa);
         for apex in self.live.iter().filter(|a| a.axis < n) {
             sketch.pencils[apex.axis].size = sized[apex.axis];
         }

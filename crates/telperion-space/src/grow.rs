@@ -324,9 +324,11 @@ impl Grower<'_> {
     /// share of the tree's vigour, then every living apex's growth unit,
     /// on every core (`parallel.rs`), then the sleeping buds that wake.
     fn step(&mut self, cycle: u32, report: &mut dyn FnMut(Stage)) -> Result<()> {
-        self.balance(cycle);
+        let rows = self.rows();
+        self.balance(cycle, rows.as_ref());
         report(Stage::Pass(Pass::Balance));
-        self.allot();
+        self.allot(rows.as_ref());
+        drop(rows);
         report(Stage::Pass(Pass::Allot));
         let live = std::mem::take(&mut self.live);
         self.grow_live(live, cycle, report)?;
