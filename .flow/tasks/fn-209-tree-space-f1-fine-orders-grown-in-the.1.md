@@ -14,9 +14,23 @@ Astra changes 1 and 2 (spec Design; ASTRA-REVIEW-FINE.md sections 2-4). (a) Audi
 - Workspace gate green.
 
 ## Done summary
-TBD
+Fine roots grow from their records alone on the CPU reference executor (`crates/telperion-space/src/fine/`, `grow_fine`).
 
+- **The partition.** The CPU grows the structure above a cut, chosen before growth by a light-neutral predictor: the closed form's expected kept phytomers, a new `count` column of the kept tables, held against grown trees in `kept/tests.rs`. Each bud at or below the cut becomes a `FineRoot` record. The executor grows, sheds, scales, girths and lays each root from its record alone, using P2's shared chain loop and option 4.
+- **The partition is exact.** A tree is the same to the bit at N in {0, 256, 1,024, 4,096, ∞}, in every item order and chunking, and on 1 or 4 cores. It equals the tree P2 grows whole.
+- **Adversarial tests**, each the same at every cut: fractional lifespans, threshold-adjacent draws (including a fine root's viability set exactly at its draw and one bit above), relay and dormant buds, ancestors' shedding, retained pipes, and a loaded junction where every root stands exactly on its bearer's laid node. A species that reads light is refused (F2b).
+- **Integer draws.** Every draw decides as a 53-bit integer against `ceil(p · 2^53)`, which is exact. No tree moved: 28 trees dumped against the base matched.
+- **FINE-CONTRACT.md** lists 24 decisions with file:line, representation and whether each moves trees. The record and the predictor tables are in it too.
+- **Open for the host:** the arithmetic of per-bud thresholds.
+  - A (pinned `libm`, IEEE f64): measured topology unchanged, tips within 1e-12 m. Recommended.
+  - B (2^-20 ticks with fixed point): measured topology unchanged, tips within 2.5e-5 m.
+  - The converter's merges (D22).
+  - The ground refusal inside a root (D19).
+  - The executor's home before F4.
+- `docs/pipeline.md` gains a "Fine growth" section.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ffeaec59, 43f0dbce
+- Tests: cargo test --profile ci --workspace --no-fail-fast (exit 0, 12m21s, under the GPU lock), cargo test --profile ci -p telperion-space --lib fine:: (12 passed)
 - PRs:
