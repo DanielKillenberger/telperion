@@ -6,7 +6,10 @@ fn standalone_rejects_resident_before_generation_and_delivers_owned_cpu_mesh() {
         return;
     };
     let generator = Generator::for_cpu_output(gpu).unwrap();
+    // A young engine beech in the default dressing (fn-198).
     let mut family = Family::default();
+    let beech = telperion_core::presets::Preset::EuropeanBeech.parameters();
+    (family.space, family.age) = (beech.space, 20.0);
     family.canopy.size = f64::NAN;
     let error = generator
         .prepare(&family, Delivery::Resident)

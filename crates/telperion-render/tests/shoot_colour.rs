@@ -7,7 +7,6 @@ use telperion_core::{
     material::MaterialParams,
     math::Vec3,
     mesh::{self, Foliage, TreeMesh},
-    presets::Preset,
     surface::{Bounds, Curve, CurvePoint, CurveRun, SurfaceMesh},
 };
 use telperion_render::{render, Camera, Renderer, Still, View, STILL_FORMAT};
@@ -109,7 +108,7 @@ fn pixel(still: &Still, column: usize) -> [i32; 3] {
 #[test]
 fn a_row_with_no_shoot_radius_draws_the_bark_whatever_shoot_colour_it_states() {
     let Some(gpu) = common::gpu() else { return };
-    let mut family = Preset::Ordinary.parameters();
+    let mut family = common::ordinary();
     family.skeleton.growth.max_nodes = Some(400);
     let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);

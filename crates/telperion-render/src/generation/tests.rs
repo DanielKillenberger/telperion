@@ -16,15 +16,12 @@ fn expansion(tree: &Tree, f: &Family, twig: TwigPlacement) -> Expansion {
     executor::expand(tree.clone(), &f).unwrap()
 }
 
-/// The rows the GPU packs, read off a test family.
-fn leaves(f: &Family) -> LeafInput {
-    LeafInput {
-        envelope: f.skeleton.envelope,
-        canopy: f.canopy,
-        seed: f.skeleton.seed,
-        shell_depth: f.shell_depth,
-    }
+/// The rows the GPU packs: the expansion's own for this tree and family,
+/// under the envelope the tree grew to (fn-198 host decision 7).
+fn leaves(tree: &Tree, f: &Family) -> LeafInput {
+    executor::expand(tree.clone(), f).unwrap().leaves()
 }
+
 fn fixture(angle: f64) -> Tree {
     let mut root = Node::root();
     root.radius = 0.03;
@@ -83,7 +80,7 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
         let first = generator
             .compute(
                 prepare(),
-                &leaves(&f),
+                &leaves(&tree, &f),
                 twig,
                 &element,
                 reference,
@@ -93,7 +90,7 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
         let second = generator
             .compute(
                 prepare(),
-                &leaves(&f),
+                &leaves(&tree, &f),
                 twig,
                 &element,
                 reference,
@@ -129,7 +126,7 @@ fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
         };
         let shared_leaves = pollster::block_on(generator.compute_buffer_async(
             p,
-            &leaves(&f),
+            &leaves(&tree, &f),
             twig,
             &element,
             reference,
@@ -330,7 +327,7 @@ fn huge_phases_fall_back_but_supported_large_ordinals_keep_orientation() {
     let output = generator
         .compute(
             p,
-            &leaves(&f),
+            &leaves(&tree, &f),
             twig,
             &element,
             reference,
@@ -460,7 +457,7 @@ fn compact_positions_seat_contacts_on_the_rendered_surface() {
     };
     let leaves = pollster::block_on(g.compute_buffer_async(
         p,
-        &leaves(&f),
+        &leaves(&tree, &f),
         twig,
         &element,
         reference,
@@ -586,7 +583,10 @@ fn late_station_capability_and_error_join_positions_before_reusing_generator() {
     };
     let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let g = Generator::new(&renderer).unwrap();
+    // A young engine beech in the default dressing (fn-198).
     let mut f = Family::default();
+    let beech = telperion_core::presets::Preset::EuropeanBeech.parameters();
+    (f.space, f.age) = (beech.space, 20.0);
     f.skeleton.attractors = 16;
     f.surface.lobes = 0;
     f.canopy.surface_contact = 0.0;

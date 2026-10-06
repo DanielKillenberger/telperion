@@ -94,7 +94,7 @@ fn bark_grain_shows_near_and_is_its_mean_far() {
 #[test]
 fn blade_grain_shows_near_and_is_its_mean_far() {
     let Some(gpu) = common::gpu() else { return };
-    let mut family = Preset::Ordinary.parameters();
+    let mut family = common::ordinary();
     family.skeleton.growth.max_nodes = Some(20);
     let tree = mesh::build(&family).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);

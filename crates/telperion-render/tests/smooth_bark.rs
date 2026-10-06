@@ -42,15 +42,26 @@ fn changed(a: &Still, b: &Still) -> f64 {
         / a.rgba.len() as f64
 }
 
-/// A tree of the preset at seed 7 on stage, and the close-up's pose.
+/// The preset's tree at 80, seed 1, whose trunk carries a close-up as the
+/// mature scaffold tree's did; the birch, which has no engine species,
+/// dressed on the engine beech's structure (fn-198).
+fn family(preset: Preset) -> telperion_core::Family {
+    let mut family = preset.parameters();
+    if family.space.species.is_none() {
+        family.space = Preset::EuropeanBeech.parameters().space;
+    }
+    (family.age, family.skeleton.seed) = (80.0, 1);
+    family
+}
+
+/// A tree of the preset on stage (`family`), and the close-up's pose.
 fn staged(
     renderer: &mut Renderer,
     preset: Preset,
     shot: &str,
     size: (u32, u32),
 ) -> (TreeMesh, Camera) {
-    let mut family = preset.parameters();
-    family.skeleton.seed = 7;
+    let family = family(preset);
     let tree = mesh::build(&family).unwrap();
     renderer.submit(&tree).unwrap();
     renderer.set_material(family.material);
@@ -100,8 +111,7 @@ fn each_smooth_layer_changes_the_close_up_and_moves_no_wood() {
             },
         ),
     ] {
-        let mut family = Preset::SilverBirch.parameters();
-        family.skeleton.seed = 7;
+        let mut family = family(Preset::SilverBirch);
         family.material = row;
         assert_eq!(
             hash(&tree.wood),

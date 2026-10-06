@@ -327,7 +327,7 @@ fn a_submitted_tree_is_the_tree_the_core_counted() {
 #[test]
 fn each_view_draws_what_its_name_promises() {
     let Some(gpu) = gpu() else { return };
-    let family = params::by_identity("ordinary").expect("a shipped family");
+    let family = common::ordinary();
     let tree = mesh::build(&family).expect("the core built the tree");
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let submitted = renderer.submit(&tree).expect("the tree fits the device");

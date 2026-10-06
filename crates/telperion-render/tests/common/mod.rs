@@ -14,3 +14,15 @@ pub fn gpu() -> Option<Gpu> {
         Err(error) => panic!("the device was there and still refused: {error}"),
     }
 }
+
+/// The ordinary tree's dressing on a young engine beech: the tree a test
+/// that drew the ordinary preset draws since the engine grows stage 2 and
+/// a preset with no engine species is refused (fn-198).
+#[allow(dead_code)]
+pub fn ordinary() -> telperion_core::Family {
+    use telperion_core::presets::Preset;
+    let mut family = Preset::Ordinary.parameters();
+    family.space = Preset::EuropeanBeech.parameters().space;
+    family.age = 40.0;
+    family
+}

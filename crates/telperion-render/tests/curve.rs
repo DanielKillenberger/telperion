@@ -11,9 +11,13 @@ use common::gpu;
 
 const SIZE: (u32, u32) = (480, 360);
 
-/// A preset's mesh, which carries its wood's curve.
+/// A preset's mesh, which carries its wood's curve; `ordinary` is the
+/// ordinary dressing on a young engine beech (fn-198, `common::ordinary`).
 fn tree(id: &str) -> (telperion_core::mesh::TreeMesh, Curve) {
-    let family = Preset::from_id(id).unwrap().parameters();
+    let family = match id {
+        "ordinary" => common::ordinary(),
+        id => Preset::from_id(id).unwrap().parameters(),
+    };
     let mesh = executor::grow(&family)
         .unwrap()
         .expansion()
