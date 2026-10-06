@@ -247,3 +247,10 @@ Option (a) of task 5's question: the GPU executor's wave loop runs on the device
   - laying;
   - the next wave's buds with their roots and their bearers' laid indices (`emit`), in the CPU reference's order.
 - The round trips per tree are the runs plus the waves. `roots::Cost::trips` counts them where they are read, and the tests hold that count (`laid_tests.rs`, `trips`).
+
+## Host decisions 7 and 8 (2026-10-07, after task 6's CPU executor; REALIZED.md)
+
+7. **`grow` routes through the partition.** `telperion_space::grow` builds every species that reads no light through the realized CPU executor at one cut, N = 1,024. Note, not a per-species value tonight: the measured optimum is the spruce at ∞ (no closed-form table) and the beech at 1,024 to 4,096 (REALIZED.md, "Timing"). Light-reading species and those with `retained` or `leaf_girth` stay on today's path in this branch until fn-211's stepped executor is merged (the same partition stepped by cycle). Proof: `measures hash 80`, seeds 1 and 7, neutral and lit, every tree unchanged; `grow` timed before and after on 1 and all cores, ages 40 and 80.
+8. **D17: option A.** Every presence that feeds the shedding sums becomes a Q32 integer on both executors, extending decision 1, specified in the fixed module the GPU mirrors. What it moves on today's trees is measured (the 28-tree dump; stills of the four species at 80 if anything moves, viewed). Then the GPU mirror: the three bottom-up passes across waves and the conservative ground bound, topology identical by lineage to the CPU executor, geometry within the screen.
+
+**Open on decision 7 (worker, 2026-10-07): the axes' order.** The partition assembles the same tree by lineage, but not in today's index order: each root's first axis takes its stand-in's index, and its other axes follow the structure above the cut. `measures hash` folds the axes in index order, with each origin's parent index included, so it differs although every axis, phytomer and float is the same (`digest`, which folds in canonical order, is equal). See the task's report for the options.
