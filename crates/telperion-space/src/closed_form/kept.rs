@@ -80,6 +80,8 @@ pub(crate) struct Table {
     pub b: Vec<[f64; WIDTH]>,
     /// The exponent its section is carried in.
     pub e: f64,
+    /// How far its wood can reach (`bound.rs`).
+    pub reach: f64,
 }
 
 /// A table's row at a cycle: (a, k, b), none before its birth.
@@ -165,9 +167,20 @@ pub(crate) struct Kept<'a> {
     axes: Rc<[path::Axis]>,
     memo: Memo<Sub, Rc<Table>>,
     faded: Memo<(Sub, u64), Rc<Table>>,
-    bounds: Memo<Sub, f64>,
     /// The cycles before a bud's last that its table holds (`window`).
     lags: usize,
+    tape: Tape,
+}
+
+/// The tables one cycle of a bud's window reads, in order. Every cycle
+/// reads the same ones, so the first records them and the rest replay
+/// them, one lookup a table for the whole window (fn-209, P1).
+#[derive(Default)]
+enum Tape {
+    #[default]
+    Off,
+    Record(Vec<Rc<Table>>),
+    Replay(Vec<Rc<Table>>, usize),
 }
 
 /// The cycles before its last that every table needs: a row reads a bud
@@ -191,8 +204,8 @@ impl<'a> Kept<'a> {
                 .collect(),
             memo: Memo::default(),
             faded: Memo::default(),
-            bounds: Memo::default(),
             lags: window(species),
+            tape: Tape::Off,
         }
     }
 
@@ -217,6 +230,7 @@ impl<'a> Kept<'a> {
                 k: vec![1.0; m + 1],
                 b: vec![[0.0; WIDTH]; m + 1],
                 e: 2.0,
+                reach: 0.0,
             });
         };
         let table = self.lived(k, m, carried, first);
@@ -234,7 +248,25 @@ impl<'a> Kept<'a> {
             k: table.k.clone(),
             b: b.collect(),
             e: table.e,
+            reach: reach * table.reach,
         })
+    }
+
+    /// `shed`, read once for a bud's whole window (`Tape`).
+    pub(super) fn child(
+        &mut self,
+        bud: (usize, usize, Carried, Option<First>),
+        delay: f64,
+    ) -> Rc<Table> {
+        if let Tape::Replay(read, i) = &mut self.tape {
+            *i += 1;
+            return read[*i - 1].clone();
+        }
+        let table = self.shed(bud, delay);
+        if let Tape::Record(read) = &mut self.tape {
+            read.push(table.clone());
+        }
+        table
     }
 
     /// `of`, then faded as shedding fades a lateral or relay of a PA with
@@ -279,6 +311,7 @@ impl<'a> Kept<'a> {
             k: kept,
             b,
             e: table.e,
+            reach: table.reach,
         });
         self.faded.insert(key, t.clone());
         t
@@ -300,6 +333,7 @@ impl<'a> Kept<'a> {
             }
             _ => None,
         };
+        let reach = self.bound((k, m), step.as_ref(), rest.as_deref());
         let steps: Vec<_> = step.into_iter().collect();
         let axes = self.axes.clone();
         let axis = &axes[k];
@@ -308,11 +342,17 @@ impl<'a> Kept<'a> {
             Vec::with_capacity(m + 1 - lo),
             Vec::with_capacity(m + 1 - lo),
         );
+        let outer = std::mem::take(&mut self.tape);
         for t in lo..=m {
+            self.tape = match std::mem::take(&mut self.tape) {
+                Tape::Record(read) | Tape::Replay(read, _) => Tape::Replay(read, 0),
+                Tape::Off => Tape::Record(Vec::new()),
+            };
             let (at, bt) = self.threshold((k, m), axis, (&steps, rest.as_deref()), t as i64);
             a.push(at);
             b.push(bt);
         }
+        self.tape = outer;
         let e = self.species.states[k].form.exponent;
         let table = Rc::new(Table {
             lo,
@@ -320,6 +360,7 @@ impl<'a> Kept<'a> {
             a,
             b,
             e,
+            reach,
         });
         self.memo.insert(key, table.clone());
         table

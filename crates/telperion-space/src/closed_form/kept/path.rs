@@ -160,7 +160,7 @@ impl Kept<'_> {
             for (j, &p) in lateral.iter().enumerate().filter(|(_, &p)| p > 0.0) {
                 let lived = species.lived(j).map(|(q, _)| &species.states[q]);
                 let delay = lived.map_or(f64::INFINITY, |s| s.shedding);
-                let table = self.shed((j, m - i, Carried::default(), None), delay);
+                let table = self.child((j, m - i, Carried::default(), None), delay);
                 phi += p * (table.at(t - i as i64).0 - 1.0);
                 tables.push((j, p, table));
             }
@@ -287,7 +287,7 @@ impl Kept<'_> {
         let species = self.species;
         let lived = species.lived(*pa).map(|(q, _)| &species.states[q]);
         let delay = lived.map_or(f64::INFINITY, |s| s.shedding);
-        let table = self.shed((*pa, m - at, *carried, *first), delay);
+        let table = self.child((*pa, m - at, *carried, *first), delay);
         let row = table.at(t - *at as i64);
         let lambda = weight / grown;
         let factor = (lambda * (row.0 - 1.0)).exp();

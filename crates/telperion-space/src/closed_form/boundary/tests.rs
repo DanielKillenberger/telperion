@@ -107,9 +107,10 @@ fn the_rows_hold_their_values() {
     assert!(changed.is_empty(), "rows changed: {changed:#?}");
 }
 
-/// The rows of 9f063433 at 40 and 80, each borne PA's at each age: species,
-/// age, row, and the bits of kept, E[S; kept], E[S²; kept], mass, moment
-/// and reach.
+/// The rows of 9f063433 at 40 and 80, each borne PA's at every eighth age,
+/// its oldest and the seed (a sample that held the largest mass and moment
+/// differences of every row for beech and spruce): species, age, row, and
+/// the bits of kept, E[S; kept], E[S²; kept], mass, moment and reach.
 const OLD: &str = include_str!("rows-9f063433.txt");
 
 /// Each field's largest relative difference from the old rows that this
