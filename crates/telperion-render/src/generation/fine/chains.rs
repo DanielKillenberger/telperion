@@ -7,20 +7,41 @@ use super::super::io;
 use super::units::pack;
 use crate::Gpu;
 use std::time::Instant;
-use telperion_space::{chain_cases, ChainAxis, ChainBud, ChainTables, Light, Request, Species};
+use telperion_space::{
+    chain_cases, ChainAxis, ChainBud, ChainTables, Light, Request, Species, Woke,
+};
 
 const CHAIN: &str = include_str!("chain.wgsl");
 const AXW: usize = 28;
 const PW: usize = 6;
 const NONE: u32 = u32::MAX;
 
-/// A region's bounds per chain: axes, phytomers, living apexes.
+/// A region's bounds per chain: axes, phytomers, living apexes, sleeping
+/// buds and the buds that woke.
 #[derive(Debug, Clone, Copy)]
 struct Caps {
     axes: u32,
     phyts: u32,
     live: u32,
+    sleepers: u32,
+    woken: u32,
 }
+
+impl Caps {
+    fn times(self, k: u32) -> Self {
+        Self {
+            axes: self.axes * k,
+            phyts: self.phyts * k,
+            live: self.live * k,
+            sleepers: self.sleepers * k,
+            woken: self.woken * k,
+        }
+    }
+}
+
+/// A sleeping bud's and a woken bud's words (`chain.wgsl`).
+const SW: u32 = 10;
+const QW: u32 = 8;
 
 /// The unit tables, then each PA's row (flags, lived, successor, words at)
 /// and its words (`chain.wgsl`); the rows' offset in the table.
@@ -69,17 +90,27 @@ fn packed(t: &ChainTables) -> (Vec<u32>, Vec<u64>, u32) {
     (table, words, rows)
 }
 
-fn bud_words(b: &ChainBud) -> [u64; 8] {
+fn bud_words(b: &ChainBud) -> [u64; 10] {
     let pair = |lo: u32, hi: u32| u64::from(lo) | u64::from(hi) << 32;
+    let w = b.woke.unwrap_or(Woke {
+        key: 0,
+        pa: 0,
+        sleep: 0,
+        stage: 0,
+        spent: 0,
+        cycle: 0,
+    });
     [
         b.lineage,
         pair(b.pa as u32, b.birth),
         pair(u32::from(b.seed), b.node as u32),
         b.root,
         b.horizon as u64,
-        pair(0, u32::from(b.slot)),
-        0,
-        0,
+        pair(u32::from(b.woke.is_some()), u32::from(b.slot)),
+        w.key,
+        pair(w.pa as u32, w.stage as u32),
+        w.spent,
+        pair(w.sleep as u32, w.cycle),
     ]
 }
 
@@ -94,7 +125,7 @@ type Grown = Vec<Option<Vec<ChainAxis>>>;
 impl Grower {
     fn new(gpu: &Gpu) -> Self {
         let shader = format!("{}\n{CHAIN}", super::zones());
-        let read = [true, true, true, false, false, false, false];
+        let read = [true, true, true, false, false, false, false, false];
         Self {
             pass: io::Pass::new(gpu, shader, &read, &["grow"]),
         }
@@ -122,8 +153,8 @@ impl Grower {
             age,
             span as u32,
             (span >> 32) as u32,
-            0,
-            0,
+            caps.sleepers,
+            caps.woken,
             0,
         ];
         let input: Vec<u64> = buds.iter().flat_map(bud_words).collect();
@@ -158,10 +189,12 @@ impl Grower {
         let phyts = b("chain phytomers", phyt_bytes, &[]);
         let live = b("chain apexes", u64::from(n * caps.live) * 32, &[]);
         let status = b("chain status", u64::from(n) * 16, &[]);
+        let sleep = u64::from(n * (caps.sleepers * SW + caps.woken * QW)) * 4;
+        let sleepers = b("chain sleeping buds", sleep, &[]);
         let bind = self.pass.bind(
             gpu,
             &[
-                &uniform, &input, &table, &words, &axes, &phyts, &live, &status,
+                &uniform, &input, &table, &words, &axes, &phyts, &live, &status, &sleepers,
             ],
         );
         let mut encoder = gpu.device.create_command_encoder(&Default::default());
@@ -203,6 +236,7 @@ fn topology(bud: &ChainBud, axes: &[u32], phyts: &[u32]) -> Vec<ChainAxis> {
             let parent = word(i, 5);
             let lateral = kind == 1;
             ChainAxis {
+                woken: word(i, 4) & 0x80000 != 0,
                 parent: (parent != NONE && parent as usize >= root).then(|| parent as usize - root),
                 kind: kind as u8,
                 node: if lateral || kind == 3 {
@@ -259,17 +293,15 @@ fn check(
         axes: 256,
         phyts: 1024,
         live: 32,
+        sleepers: 128,
+        woken: 64,
     };
     for batch in buds.chunks(4096) {
         grown.extend(grower.run(gpu, batch, &packed, (tables.span, age), caps));
     }
     let mut caps = caps;
     while grown.iter().any(Option::is_none) {
-        caps = Caps {
-            axes: caps.axes * 8,
-            phyts: caps.phyts * 8,
-            live: caps.live * 8,
-        };
+        caps = caps.times(8);
         let over: Vec<usize> = (0..grown.len()).filter(|&c| grown[c].is_none()).collect();
         for batch in over.chunks(64) {
             let these: Vec<ChainBud> = batch.iter().map(|&c| buds[c]).collect();
@@ -297,25 +329,47 @@ fn check(
     (cases.len(), axes, phytomers, ms)
 }
 
-/// The beech at 30, and a beech whose lifespans run to fractions, which
-/// grows ages within a cycle (`carry_on`) and partial units.
+/// The species with every setting a chain reads while no bud reads light
+/// (FINE-CONTRACT.md's adversarial cases): the beech; a beech whose
+/// lifespans run to fractions, which grows ages within a cycle
+/// (`carry_on`) and partial units; the spruce, whose sleeping buds wake;
+/// and the oak with its light switched off, whose sleeping buds wake into
+/// later stages and whose lifespans run to fractions too.
+fn adversarial() -> Vec<(&'static str, Species)> {
+    let fractional = |mut s: Species| {
+        for state in s.states.iter_mut().filter(|s| s.lifespan > 0.0) {
+            state.lifespan = state.lifespan * 1.37 + 0.29;
+        }
+        s
+    };
+    let mut oak = telperion_space::oak();
+    for state in &mut oak.states {
+        state.shade_hazard = 0.0;
+        state.shade_size = 0.0;
+        state.balance_hazard = 0.0;
+        state.leaf_girth = 0.0;
+    }
+    vec![
+        ("beech", telperion_space::beech()),
+        (
+            "beech, fractional lifespans",
+            fractional(telperion_space::beech()),
+        ),
+        ("spruce", telperion_space::spruce()),
+        ("oak, light off", oak.clone()),
+        ("oak, light off, fractional lifespans", fractional(oak)),
+    ]
+}
+
 #[test]
 fn every_chain_grows_on_the_gpu_as_on_the_cpu() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
     };
     let grower = Grower::new(&gpu);
-    let beech = telperion_space::beech();
-    let mut fractional = beech.clone();
-    for state in fractional.states.iter_mut().filter(|s| s.lifespan > 0.0) {
-        state.lifespan = state.lifespan * 1.37 + 0.29;
-    }
-    for (name, species) in [
-        ("beech", &beech),
-        ("beech, fractional lifespans", &fractional),
-    ] {
+    for (name, species) in adversarial() {
         for seed in [1, 7] {
-            let (chains, axes, phytomers, ms) = check(&gpu, &grower, species, (30, seed));
+            let (chains, axes, phytomers, ms) = check(&gpu, &grower, &species, (30, seed));
             println!(
                 "{name} 30 {seed}: {chains} chains, {axes} axes, {phytomers} phytomers, {ms:.1} ms"
             );

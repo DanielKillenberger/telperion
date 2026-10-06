@@ -56,6 +56,12 @@ impl Bud {
         self.horizon
     }
 
+    /// A woken bud's waking: the sleeping bud, the stage it wakes in and
+    /// its time there, and the cycle it woke in.
+    pub fn woke(&self) -> Option<(Sleeper, (usize, f64), u32)> {
+        self.wake.map(|(p, _)| (p.sleeper, (p.aged.0, p.aged.1), p.cycle))
+    }
+
     /// The axis of its bearer's chain it stands on.
     pub fn bearer(&self) -> usize {
         self.axis.origin.parent().expect("a bud is borne")

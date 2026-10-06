@@ -6,7 +6,7 @@
 use super::tables::Units;
 use crate::alone::{chains, seed_item};
 use crate::bounded::Expected;
-use crate::error::{refuse, Result};
+use crate::error::Result;
 use crate::fixed::{neg_log2, q32, q62, ticks, INF};
 use crate::grow::alone::{rules, Bud, Chain};
 use crate::grow::Request;
@@ -58,17 +58,9 @@ pub struct ChainTables {
 
 impl ChainTables {
     /// The tables of `species` grown to `age`, for a tree no bud of which
-    /// reads light, and none of which sleeps (dormancy is not yet on the
-    /// GPU executor, and is refused by name).
+    /// reads light.
     pub fn new(species: &Species, age: u32) -> Result<Self> {
         let rules = rules(species, age, 0)?;
-        if species
-            .states
-            .iter()
-            .any(|s| s.zones.iter().any(|z| z.dormant.iter().any(|&p| p > 0.0)))
-        {
-            return refuse("dormant", "the GPU executor grows no sleeping buds yet");
-        }
         let pas = (0..species.states.len())
             .map(|pa| {
                 let s = &species.states[pa];
@@ -134,6 +126,21 @@ pub struct ChainBud {
     pub root: u64,
     /// Its horizon (Q32; `-INF` for none).
     pub horizon: i64,
+    /// Where it slept and woke, for a bud that woke.
+    pub woke: Option<Woke>,
+}
+
+/// A woken bud's waking (`ChainBud::woke`): the sleeping bud's key and
+/// PA, the share of its waking cycle it slept (ticks), the stage it wakes
+/// in and its time there (ticks), and the cycle it woke in.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Woke {
+    pub key: u64,
+    pub pa: usize,
+    pub sleep: u64,
+    pub stage: usize,
+    pub spent: u64,
+    pub cycle: u32,
 }
 
 /// A chain's axis as grown: its parent among the chain's axes (none: the
@@ -152,6 +159,9 @@ pub struct ChainAxis {
     pub birth: u32,
     pub apex_end: Option<u32>,
     pub phytomers: Vec<(u32, u64)>,
+    /// A sleeping bud that woke on the chain: a bud it bears, after its
+    /// axes, one for every axis that carried its bearer on.
+    pub woken: bool,
 }
 
 /// Every chain of `species`'s tree grown alone as the CPU reference grows
@@ -191,6 +201,7 @@ fn input(species: &Species, seed: u64, bud: Option<&Bud>) -> ChainBud {
                 slot: 0,
                 root: key.0,
                 horizon: -INF,
+                woke: None,
             }
         }
         Some(b) => {
@@ -206,6 +217,14 @@ fn input(species: &Species, seed: u64, bud: Option<&Bud>) -> ChainBud {
                 slot,
                 root: b.root(),
                 horizon: horizon(b.horizon()),
+                woke: b.woke().map(|(s, (stage, spent), cycle)| Woke {
+                    key: s.key,
+                    pa: s.pa,
+                    sleep: ticks(s.sleep),
+                    stage,
+                    spent: ticks(spent),
+                    cycle,
+                }),
             }
         }
     }
@@ -213,15 +232,19 @@ fn input(species: &Species, seed: u64, bud: Option<&Bud>) -> ChainBud {
 
 fn topology(chain: &Chain) -> Vec<ChainAxis> {
     let root = chain.root;
+    let woken = chain.buds.iter().filter(|b| b.woken()).map(|b| &b.axis);
     chain.axes[root..]
         .iter()
+        .chain(woken)
         .map(|a| {
             let parent = a.origin.parent().filter(|&p| p >= root).map(|p| p - root);
-            let (kind, node, slot) = match a.origin {
-                Origin::Seed => (0, 0, 0),
-                Origin::Lateral { node, slot, .. } => (1, node, slot),
-                Origin::Continuation { .. } => (2, 0, 0),
-                Origin::Relay { node, .. } => (3, node, 0),
+            let (kind, node, slot, woken) = match a.origin {
+                Origin::Seed => (0, 0, 0, false),
+                Origin::Lateral {
+                    node, slot, woken, ..
+                } => (1, node, slot, woken),
+                Origin::Continuation { .. } => (2, 0, 0, false),
+                Origin::Relay { node, .. } => (3, node, 0, false),
             };
             ChainAxis {
                 parent,
@@ -233,6 +256,7 @@ fn topology(chain: &Chain) -> Vec<ChainAxis> {
                 birth: a.birth,
                 apex_end: a.apex_end,
                 phytomers: a.phytomers.iter().map(|p| (p.cycle, p.key())).collect(),
+                woken,
             }
         })
         .collect()

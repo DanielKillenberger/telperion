@@ -5,8 +5,9 @@
 // laterals it bears, made but not grown) and phytomers into the chain's
 // region; a chain that outgrows its region stops and is reported, to be
 // grown again in a larger one (the overflow rule: a chain is grown from
-// its own bud alone, so a larger region grows the same chain). Sleeping
-// buds are not grown here yet; their species are refused on the CPU.
+// its own bud alone, so a larger region grows the same chain). Its
+// sleeping buds wake as buds it bears, and a woken bud's chain begins
+// with the stages it slept through (`dormant.rs`, `wake.rs`).
 
 struct Cfg {
     n: u32,
@@ -18,9 +19,9 @@ struct Cfg {
     age: u32,
     span_lo: u32,
     span_hi: u32,
-    pad0: u32,
-    pad1: u32,
-    pad2: u32,
+    sleep_cap: u32,
+    pend_cap: u32,
+    pad: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
@@ -31,12 +32,17 @@ struct Cfg {
 @group(0) @binding(5) var<storage, read_write> phyts: array<u32>;
 @group(0) @binding(6) var<storage, read_write> live: array<vec4<u32>>;
 @group(0) @binding(7) var<storage, read_write> status: array<vec4<u32>>;
+@group(0) @binding(8) var<storage, read_write> sleepers: array<u32>;
 
 const AXW: u32 = 28u;
 const PW: u32 = 6u;
 const ROW: u32 = 17u;
 const TICKS: u32 = 0x100000u;
 const STACK: u32 = 16u;
+const SW: u32 = 10u;
+const QW: u32 = 8u;
+const BW: u32 = 10u;
+const DORMANT = vec2<u32>(0xfffffff9u, 0xffffffffu);
 
 // The draws' parts (`lineage.rs`).
 const VIABILITY: u32 = 0u;
@@ -83,6 +89,7 @@ const NPHYT: u32 = 24u;
 const IS_ENDED: u32 = 0x10000u;
 const IS_FAILED: u32 = 0x20000u;
 const HAS_OUTLIVED: u32 = 0x40000u;
+const IS_WOKEN: u32 = 0x80000u;
 
 var<private> axis_base: u32;
 var<private> phyt_base: u32;
@@ -92,6 +99,10 @@ var<private> n_phyts: u32;
 var<private> n_next: u32;
 var<private> next_half: u32;
 var<private> overflow: u32;
+var<private> sleep_base: u32;
+var<private> pend_base: u32;
+var<private> n_sleepers: u32;
+var<private> n_pends: u32;
 
 struct Apex {
     axis: u32,
@@ -273,7 +284,7 @@ fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32) {
     let first = table[2u * pa];
     let zones = table[2u * pa + 1u];
     for (var k = 0u; k < zones; k++) {
-        let zat = first + 8u * k;
+        let zat = first + ZW * k;
         let zk = zone_key(unit, zat);
         let d = draw(zk);
         let n = zone_count(zat, d);
@@ -315,6 +326,116 @@ fn grow_unit(axis: u32, pa: u32, unit: vec2<u32>, cycle: u32) {
                 let h = horizon_of(lpa, LATERAL, axis);
                 push_axis(onto(place, lpa), lpa, cycle, LATERAL | (s << 8u), axis, node, place, h, vec2<u32>(0u));
             }
+            if words[table[zat + 11u] + cycle].x != 0u {
+                sleep(zat, node_key, axis, node, cycle);
+            }
+        }
+    }
+}
+
+// The sleeping buds of a node's places that wake within the tree's age
+// (`dormant::draw`, D3 and D11), by the cycle they wake in.
+fn sleep(zat: u32, node_key: vec2<u32>, axis: u32, node: u32, cycle: u32) {
+    let waking = table[zat + 10u];
+    if waking == NONE {
+        return;
+    }
+    for (var s = 0u; s < table[zat + 4u]; s++) {
+        let key = child(child(node_key, w(s, 0u)), DORMANT);
+        let pa = drawn_pa(table[zat + 8u], table[zat + 9u], key);
+        if pa == 0xffu {
+            continue;
+        }
+        let years = wake_q(words[waking], words[waking + 1u], draw(child(key, DORMANT)));
+        if !lt64(years, shl64(w(cfg.age - cycle, 0u), 20u)) {
+            continue;
+        }
+        if n_sleepers >= cfg.sleep_cap {
+            overflow |= 32u;
+            return;
+        }
+        let q = sleep_base + n_sleepers * SW;
+        let whole = shr64(years, 20u).x;
+        sleepers[q] = cycle + 1u + whole;
+        sleepers[q + 1u] = axis;
+        sleepers[q + 2u] = node;
+        sleepers[q + 3u] = s;
+        sleepers[q + 4u] = pa;
+        sleepers[q + 5u] = key.x;
+        sleepers[q + 6u] = key.y;
+        sleepers[q + 7u] = years.x & (TICKS - 1u);
+        sleepers[q + 8u] = whole;
+        n_sleepers += 1u;
+    }
+}
+
+// The stage a bud of `pa` that slept `slept` ticks wakes in, and its time
+// there; none where it slept past its last (`dormant::aged`).
+fn aged(pa_in: u32, slept_in: vec2<u32>) -> vec4<u32> {
+    var pa = lived(pa_in);
+    var slept = slept_in;
+    // An age moves on only to an older one, so the stages run out.
+    while pa != NONE {
+        let life = row(pa, 0u);
+        if lt64(slept, life) {
+            return vec4<u32>(pa, slept.x, slept.y, 0u);
+        }
+        slept = sub64(slept, life);
+        pa = successor(pa);
+    }
+    return vec4<u32>(NONE);
+}
+
+// The sleeping buds that wake in `cycle`: a bud on every axis that
+// carries their bearer on (`borne_wakes`, `dormant::carried`).
+fn wakes(cycle: u32) {
+    for (var k = 0u; k < n_sleepers; k++) {
+        let q = sleep_base + k * SW;
+        if sleepers[q] != cycle {
+            continue;
+        }
+        let slept = add64(shl64(w(sleepers[q + 8u], 0u), 20u), w(sleepers[q + 7u], 0u));
+        let stage = aged(sleepers[q + 4u], slept);
+        if stage.x == NONE {
+            continue;
+        }
+        var open: array<u32, 32>;
+        var top = 1u;
+        open[0] = sleepers[q + 1u];
+        while top > 0u {
+            top -= 1u;
+            let a = open[top];
+            if rd(a, SUCC) == NONE {
+                let end = rd(a, APEX_END);
+                let ended_here = end == cycle + 1u && (rd(a, KIND) & HAS_OUTLIVED) != 0u;
+                if end == 0u || ended_here {
+                    if n_pends >= cfg.pend_cap {
+                        overflow |= 64u;
+                        return;
+                    }
+                    let p = pend_base + n_pends * QW;
+                    sleepers[p] = sleepers[q + 5u];
+                    sleepers[p + 1u] = sleepers[q + 6u];
+                    sleepers[p + 2u] = sleepers[q + 4u];
+                    sleepers[p + 3u] = sleepers[q + 1u];
+                    sleepers[p + 4u] = sleepers[q + 2u];
+                    sleepers[p + 5u] = sleepers[q + 3u];
+                    sleepers[p + 6u] = cycle;
+                    sleepers[p + 7u] = a;
+                    n_pends += 1u;
+                }
+                continue;
+            }
+            if top + 2u > 32u {
+                overflow |= 128u;
+                return;
+            }
+            if rd(a, SUCC + 1u) != NONE {
+                open[top] = rd(a, SUCC + 1u);
+                top += 1u;
+            }
+            open[top] = rd(a, SUCC);
+            top += 1u;
         }
     }
 }
@@ -542,6 +663,83 @@ fn relay_node(r: u32) {
     wr(r, NODE, count - 1u);
 }
 
+// Runs the advances of the living apex `apex` in `cycle`, and every
+// same-cycle growth they carry on, in order.
+fn run(apex: Apex, cycle: u32) {
+    var cur = Next(true, apex);
+    loop {
+        if overflow != 0u {
+            break;
+        }
+        if cur.go {
+            cur = advance(cur.apex, cycle);
+            continue;
+        }
+        if depth == 0u {
+            break;
+        }
+        depth -= 1u;
+        cur = relay_after(stack[depth], cycle);
+    }
+}
+
+// A woken bud's chain begins (`Shoot::woke`): the stages it slept
+// through, axes of no length, then its own first unit in its waking
+// cycle, which its sleep shortens.
+fn woke(b: u32) -> u32 {
+    let key = buds[b + 6u];
+    let spa = buds[b + 7u].x;
+    let pa = buds[b + 7u].y;
+    let spent = buds[b + 8u];
+    let sleep = buds[b + 9u].x;
+    let cycle = buds[b + 9u].y;
+    let node = buds[b + 2u].y;
+    let slot = buds[b + 5u].y;
+    var kind = LATERAL | IS_WOKEN | (slot << 8u);
+    var parent = 0u;
+    var lineage = key;
+    var stage = lived(spa);
+    while stage != pa && stage != NONE {
+        if kind != CONTINUED {
+            lineage = onto(key, stage);
+        }
+        let h = horizon_of(stage, kind & 0xffu, parent);
+        let at = push_axis(lineage, stage, cycle - 1u, kind, parent, select(0u, node, kind != CONTINUED), key, h, row(stage, 0u));
+        if at == NONE {
+            return cycle + 1u;
+        }
+        wr(at, APEX_END, cycle);
+        stage = successor(stage);
+        lineage = onto(key, stage);
+        kind = CONTINUED;
+        parent = at;
+        add_successor(at, at + 1u);
+    }
+    if kind != CONTINUED {
+        lineage = onto(key, pa);
+    }
+    let h = horizon_of(pa, kind & 0xffu, parent);
+    let a = push_axis(lineage, pa, cycle - 1u, kind, parent, select(0u, node, kind != CONTINUED), key, h, vec2<u32>(0u));
+    if a == NONE {
+        return cycle + 1u;
+    }
+    wr(a, SLEEP, sleep);
+    wr64(a, AGED, spent);
+    wr64(a, UNITS, spent);
+    run(Apex(a, spent), cycle);
+    return cycle + 1u;
+}
+
+// Whether a sleeping bud still wakes in `cycle` or after.
+fn asleep_from(cycle: u32) -> bool {
+    for (var k = 0u; k < n_sleepers; k++) {
+        if sleepers[sleep_base + k * SW] >= cycle {
+            return true;
+        }
+    }
+    return false;
+}
+
 @compute @workgroup_size(64)
 fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
     let c = id.x + id.y * cfg.row;
@@ -551,25 +749,34 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
     axis_base = c * cfg.axes_cap * AXW;
     phyt_base = c * cfg.phyt_cap * PW;
     live_base = c * cfg.live_cap * 2u;
+    sleep_base = c * (cfg.sleep_cap * SW + cfg.pend_cap * QW);
+    pend_base = sleep_base + cfg.sleep_cap * SW;
     n_axes = 0u;
     n_phyts = 0u;
+    n_sleepers = 0u;
+    n_pends = 0u;
     overflow = 0u;
     depth = 0u;
-    let b = c * 8u;
+    next_half = 0u;
+    n_next = 0u;
+    let b = c * BW;
     let lineage = buds[b];
     let pa = buds[b + 1u].x;
     let birth = buds[b + 1u].y;
     let seed = buds[b + 2u].x == 1u;
     let node = buds[b + 2u].y;
+    let woken = buds[b + 5u].x == 1u;
     let slot = buds[b + 5u].y;
     let root = buds[b + 3u];
     let horizon = buds[b + 4u];
     var start = 1u;
-    next_half = 0u;
-    n_next = 0u;
     if seed {
         push_axis(lineage, pa, 0u, SEED, NONE, 0u, root, horizon, vec2<u32>(0u));
         push_next(0u, vec2<u32>(0u));
+    } else if woken {
+        // The bearer's stub stands at the bud's horizon.
+        push_axis(vec2<u32>(0u), pa, 0u, STUB, NONE, 0u, vec2<u32>(0u), horizon, vec2<u32>(0u));
+        start = woke(b);
     } else {
         push_axis(vec2<u32>(0u), pa, 0u, STUB, NONE, 0u, vec2<u32>(0u), neg64(inf()), vec2<u32>(0u));
         push_axis(lineage, pa, birth, LATERAL | (slot << 8u), 0u, node, root, horizon, vec2<u32>(0u));
@@ -578,7 +785,7 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     var cycles = 0u;
     for (var cycle = start; cycle <= cfg.age; cycle++) {
-        if n_next == 0u || overflow != 0u {
+        if overflow != 0u || (n_next == 0u && !asleep_from(cycle)) {
             break;
         }
         // This cycle's living apexes, in order; the next cycle's are made
@@ -589,22 +796,9 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
         n_next = 0u;
         for (var k = 0u; k < count; k++) {
             let e = live[live_base + half * cfg.live_cap + k];
-            var cur = Next(true, Apex(e.x, e.yz));
-            loop {
-                if overflow != 0u {
-                    break;
-                }
-                if cur.go {
-                    cur = advance(cur.apex, cycle);
-                    continue;
-                }
-                if depth == 0u {
-                    break;
-                }
-                depth -= 1u;
-                cur = relay_after(stack[depth], cycle);
-            }
+            run(Apex(e.x, e.yz), cycle);
         }
+        wakes(cycle);
         cycles += 1u;
     }
     for (var i = 0u; i < n_axes; i++) {
@@ -612,5 +806,16 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
             relay_node(i);
         }
     }
-    status[c] = vec4<u32>(n_axes, n_phyts, overflow, cycles);
+    // The buds that woke on it, after its axes, as it bears them.
+    for (var k = 0u; k < n_pends; k++) {
+        let p = pend_base + k * QW;
+        let key = vec2<u32>(sleepers[p], sleepers[p + 1u]);
+        let first = lived(sleepers[p + 2u]);
+        let kind = LATERAL | IS_WOKEN | (sleepers[p + 5u] << 8u);
+        let at = push_axis(onto(key, first), first, sleepers[p + 6u] - 1u, kind, sleepers[p + 3u], sleepers[p + 4u], key, vec2<u32>(0u), vec2<u32>(0u));
+        if at == NONE {
+            break;
+        }
+    }
+    status[c] = vec4<u32>(n_axes, n_phyts, overflow, n_axes - n_pends);
 }

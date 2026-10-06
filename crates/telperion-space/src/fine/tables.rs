@@ -4,7 +4,7 @@
 //! D3 and D18's node presences), so the kernel draws a unit's nodes, their
 //! order and their buds as `grow_unit` does.
 use crate::error::Result;
-use crate::fixed::{q32, q62};
+use crate::fixed::{grid, q32, q62, ticks};
 use crate::grow::alone::rules;
 use crate::grow::node_wood;
 use crate::lineage::{threshold, ONE};
@@ -37,6 +37,15 @@ pub struct UnitZone {
     pub laterals: Vec<Option<u64>>,
     /// Per cycle, from 0 to the tree's age, a node's window, Q32.
     pub windows: Vec<i64>,
+    /// Per PA, the threshold of the running sum of the zone's sleeping-bud
+    /// probabilities, or none (D3, `dormant::draw`).
+    pub dormant: Vec<Option<u64>>,
+    /// A sleeping bud's delay in ticks and its years a nat (Q32), where
+    /// it wakes at all (D11).
+    pub wake: Option<(u64, i64)>,
+    /// Per cycle, whether a node grown then may hold a sleeping bud that
+    /// is expected to grow: `grow_unit`'s gate on `sleep`.
+    pub sleeps: Vec<bool>,
 }
 
 impl Units {
@@ -62,12 +71,25 @@ impl Units {
                                 (p > 0.0).then(|| threshold(high))
                             })
                             .collect();
-                        let windows = (0..=age)
+                        let (windows, sleeps) = (0..=age)
                             .map(|cycle| {
                                 let wood = node_wood(&rules, (pa, z), cycle, &mut sleeping);
-                                q32((RATE * wood).clamp(FLOOR, SPAN))
+                                let sleeps = sleeping.iter().any(|&wood| wood > 0.0);
+                                (q32((RATE * wood).clamp(FLOOR, SPAN)), sleeps)
+                            })
+                            .unzip();
+                        let mut low = 0.0;
+                        let dormant = zone
+                            .dormant
+                            .iter()
+                            .map(|&p| {
+                                let high = low + p;
+                                low = high;
+                                (p > 0.0).then(|| threshold(high))
                             })
                             .collect();
+                        let wake = (zone.rate > 0.0)
+                            .then(|| (ticks(grid(zone.delay)), q32(1.0 / zone.rate)));
                         UnitZone {
                             zone: z,
                             poisson,
@@ -76,6 +98,9 @@ impl Units {
                             places: zone.places(),
                             laterals,
                             windows,
+                            dormant,
+                            wake,
+                            sleeps,
                         }
                     })
                     .collect()

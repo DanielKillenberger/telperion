@@ -10,6 +10,8 @@ use telperion_space::{grow, Light, Origin, Request, Species, Structure, Units};
 
 const UNIT: &str = include_str!("unit.wgsl");
 const NONE: u32 = u32::MAX;
+/// A zone's words in the table (`zones.wgsl`).
+const ZW: u32 = 12;
 
 /// A tree to check: species, age and seed.
 type Case = (&'static str, fn() -> Species, u32, u64);
@@ -22,9 +24,9 @@ pub(super) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
     let mut at = 2 * units.zones.len() as u32;
     for zones in &units.zones {
         table.extend([at, zones.len() as u32]);
-        at += 8 * zones.len() as u32;
+        at += ZW * zones.len() as u32;
     }
-    assert_eq!(at as usize, table.len() + 8 * zones);
+    assert_eq!(at as usize, table.len() + ZW as usize * zones);
     for zone in units.zones.iter().flatten() {
         let law = words.len() as u32;
         for (t, b) in zone.thresholds.iter().zip(&zone.bounds) {
@@ -34,6 +36,14 @@ pub(super) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
         words.extend(zone.laterals.iter().map(|t| t.unwrap_or(u64::MAX)));
         let windows = words.len() as u32;
         words.extend(zone.windows.iter().map(|&w| w as u64));
+        let dormant = words.len() as u32;
+        words.extend(zone.dormant.iter().map(|t| t.unwrap_or(u64::MAX)));
+        let wake = zone.wake.map_or(NONE, |(delay, per)| {
+            words.extend([delay, per as u64]);
+            words.len() as u32 - 2
+        });
+        let sleeps = words.len() as u32;
+        words.extend(zone.sleeps.iter().map(|&s| u64::from(s)));
         table.extend([
             zone.zone as u32,
             u32::from(zone.poisson),
@@ -43,6 +53,10 @@ pub(super) fn pack(units: &Units) -> (Vec<u32>, Vec<u64>) {
             laterals,
             zone.laterals.len() as u32,
             windows,
+            dormant,
+            zone.dormant.len() as u32,
+            wake,
+            sleeps,
         ]);
     }
     (table, words)

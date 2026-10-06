@@ -37,7 +37,7 @@ fn count(@builtin(global_invocation_id) id: vec3<u32>) {
     var total = 0u;
     var most = 0u;
     for (var k = 0u; k < zones; k++) {
-        let at = first + 8u * k;
+        let at = first + ZW * k;
         let n = zone_count(at, draw(zone_key(key, at)));
         total += n;
         most = max(most, n);
@@ -58,7 +58,7 @@ fn emit(@builtin(global_invocation_id) id: vec3<u32>) {
     let zones = table[2u * u.z + 1u];
     var out = counts[i];
     for (var k = 0u; k < zones; k++) {
-        let at = first + 8u * k;
+        let at = first + ZW * k;
         let zk = zone_key(key, at);
         let d = draw(zk);
         let n = zone_count(at, d);

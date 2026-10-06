@@ -38,7 +38,7 @@ use executor::{expand, Context, Expanded, BEARER};
 pub use record::FineRoot;
 use record::{Attachment, Committed, Frame};
 pub use survey::{survey_lit, Surveyed};
-pub use surface::{chain_cases, ChainAxis, ChainBud, ChainTables, PaRow};
+pub use surface::{chain_cases, ChainAxis, ChainBud, ChainTables, PaRow, Woke};
 pub use tables::{UnitZone, Units};
 
 /// Where the work runs: the cut in expected kept phytomers (a bud at or
