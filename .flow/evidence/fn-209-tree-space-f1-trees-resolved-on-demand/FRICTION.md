@@ -104,3 +104,10 @@
 - **Slowed:** 33 to 38 s of each locked run is the CPU reference's growth (`fine_cases` for six trees); the GPU part is about 2 s. Six runs held the lock about 3.5 minutes without the GPU. The naga parse (now an ordinary test) caught every WGSL error before a locked run, so no lock was spent on a shader that could not build.
 - **Cost:** about 3 minutes of lock time the desk could have used.
 - **Would remove it:** the lock taken inside the test only around the dispatches (the measurement test now does this through `FINE_GPU_LOCK`), or CPU references written once to disk by an unlocked step.
+
+## 2026-10-06, the GPU lock held by another session's workspace gate and stills (task 5)
+
+- **Doing:** re-running one 1.9 s GPU debug test after a one-line WGSL fix (the overflow list's offset).
+- **Slowed:** fn-211's workspace gate took the GPU lock at about 23:07 for its whole run, CPU tests included, with an oak stills run queued behind it; the desk's load reached 48. My 2-second check waited behind both.
+- **Cost:** about 10 minutes so far, spent on the evidence write-up.
+- **Would remove it:** as the earlier entries say, a gate that takes the lock only around the GPU tests.

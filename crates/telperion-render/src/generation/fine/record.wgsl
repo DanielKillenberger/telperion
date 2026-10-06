@@ -61,7 +61,7 @@ fn record(@builtin(global_invocation_id) id: vec3<u32>) {
     }
     var wi = cfg.first + c;
     if cfg.level != 0u {
-        wi = list[c];
+        wi = list[cfg.first + c];
     }
     let st = status[c];
     let r = c * RW;

@@ -162,6 +162,13 @@ fn hold(gpu: &Gpu, k: &Kernels, species: &Species, at: (u32, u64)) -> (usize, Ap
         a.digest, b.digest,
         "the same geometry in any order and batch"
     );
+    // Batches of 64 split every level's queue across runs.
+    let (three, _) = run(gpu, k, &r, &tables, (&forward, 64));
+    let c = held(gpu, &r, &three);
+    assert_eq!(
+        a.digest, c.digest,
+        "the same geometry in any order and batch"
+    );
     (r.cases.len(), a)
 }
 
@@ -336,3 +343,4 @@ fn fine_geometry_at_40_and_80() {
         }
     }
 }
+
