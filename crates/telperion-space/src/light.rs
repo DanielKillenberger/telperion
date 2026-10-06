@@ -174,12 +174,28 @@ impl Field {
     /// `new` at nodes `cell` metres apart (fn-209 probe P2: the light
     /// field's resolution is a parameter of the request).
     pub fn sized(light: &Light, leaves: &[(Vec3, f64)], reads: &[Vec3], cell: f64) -> Self {
-        let mut field =
-            Self::spanning(leaves.iter().map(|l| l.0).chain(reads.iter().copied()), cell);
+        Self::built(light, leaves, reads, (cell, 1))
+    }
+
+    /// `new`, its directions swept on up to `threads` cores.
+    pub fn on(light: &Light, leaves: &[(Vec3, f64)], reads: &[Vec3], threads: usize) -> Self {
+        Self::built(light, leaves, reads, (CELL, threads))
+    }
+
+    fn built(
+        light: &Light,
+        leaves: &[(Vec3, f64)],
+        reads: &[Vec3],
+        (cell, threads): (f64, usize),
+    ) -> Self {
+        let mut field = Self::spanning(
+            leaves.iter().map(|l| l.0).chain(reads.iter().copied()),
+            cell,
+        );
         for &(at, area) in leaves {
             field.deposit(at, area);
         }
-        field.sweep(light.extinction, &light.directions());
+        field.sweep(light.extinction, &light.directions(), threads);
         field
     }
 
@@ -245,47 +261,58 @@ impl Field {
         }
     }
 
-    /// Each direction's optical depth carried down a layer at a time: a
-    /// node's is the depth at the point its ray meets the layer above, read
-    /// bilinearly, plus the trapezoid of the density between them along a
-    /// layer's length of ray.
-    fn sweep(&mut self, extinction: f64, directions: &[(Vec3, f64)]) {
+    /// Each direction's optical depth carried down a layer at a time, the
+    /// directions on up to `threads` cores; a node's light is the sum of
+    /// theirs in the directions' order.
+    fn sweep(&mut self, extinction: f64, directions: &[(Vec3, f64)], threads: usize) {
         if extinction <= 0.0 {
             return;
         }
+        let lit: Vec<(Vec3, f64)> = directions.iter().copied().filter(|d| d.1 > 0.0).collect();
+        let each = crate::cores::map(lit, 1, threads, &|_, (toward, share)| {
+            self.swept(extinction, toward, share)
+        });
+        crate::cores::fill(&mut self.light, 1 << 14, threads, &|k| {
+            each.iter().fold(0.0, |sum, light| sum + light[k])
+        });
+    }
+
+    /// One direction's share of the light at every node: its optical
+    /// depth at a node is the depth at the point its ray meets the layer
+    /// above, read bilinearly, plus the trapezoid of the density between
+    /// them along a layer's length of ray.
+    fn swept(&self, extinction: f64, toward: Vec3, share: f64) -> Vec<f64> {
         let [nx, ny, nz] = self.size;
         let layer = nx * ny;
-        self.light.iter_mut().for_each(|l| *l = 0.0);
+        let mut light = vec![0.0; self.density.len()];
         let mut above_depth = vec![0.0; layer];
         let mut depth = vec![0.0; layer];
-        for &(toward, share) in directions.iter().filter(|d| d.1 > 0.0) {
-            let (ox, oy) = (toward.x / toward.z, toward.y / toward.z);
-            let path = self.cell / toward.z;
-            above_depth.iter_mut().for_each(|d| *d = 0.0);
-            for k in (0..nz).rev() {
-                let here = &self.density[k * layer..(k + 1) * layer];
-                let above = (k + 1 < nz).then(|| &self.density[(k + 1) * layer..(k + 2) * layer]);
-                for j in 0..ny {
-                    for i in 0..nx {
-                        let (x, y) = (i as f64 + ox, j as f64 + oy);
-                        let (d0, rho0) = match above {
-                            Some(a) => (
-                                bilinear(&above_depth, nx, ny, x, y),
-                                bilinear(a, nx, ny, x, y),
-                            ),
-                            None => (0.0, 0.0),
-                        };
-                        let rho = here[j * nx + i];
-                        depth[j * nx + i] = d0 + extinction * path * (rho + rho0) / 2.0;
-                    }
+        let (ox, oy) = (toward.x / toward.z, toward.y / toward.z);
+        let path = self.cell / toward.z;
+        for k in (0..nz).rev() {
+            let here = &self.density[k * layer..(k + 1) * layer];
+            let above = (k + 1 < nz).then(|| &self.density[(k + 1) * layer..(k + 2) * layer]);
+            for j in 0..ny {
+                for i in 0..nx {
+                    let (x, y) = (i as f64 + ox, j as f64 + oy);
+                    let (d0, rho0) = match above {
+                        Some(a) => (
+                            bilinear(&above_depth, nx, ny, x, y),
+                            bilinear(a, nx, ny, x, y),
+                        ),
+                        None => (0.0, 0.0),
+                    };
+                    let rho = here[j * nx + i];
+                    depth[j * nx + i] = d0 + extinction * path * (rho + rho0) / 2.0;
                 }
-                let lit = &mut self.light[k * layer..(k + 1) * layer];
-                for (l, &d) in lit.iter_mut().zip(&depth) {
-                    *l += share * (-d).exp();
-                }
-                std::mem::swap(&mut above_depth, &mut depth);
             }
+            let lit = &mut light[k * layer..(k + 1) * layer];
+            for (l, &d) in lit.iter_mut().zip(&depth) {
+                *l = share * (-d).exp();
+            }
+            std::mem::swap(&mut above_depth, &mut depth);
         }
+        light
     }
 }
 

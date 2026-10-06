@@ -4,6 +4,7 @@
 //! many cores took part. Helper threads are drawn from what the process
 //! has spare, so trees grown at once do not each take every core.
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Mutex;
 
 /// The threads at work in this process's spread work, across every tree:
 /// each caller and its helpers.
@@ -31,6 +32,65 @@ pub(crate) fn spread(count: usize, threads: usize, work: &(dyn Fn(usize) + Sync)
             scope.spawn(run);
         }
         run();
+    });
+}
+
+/// The items handed to one piece of work by `map`: enough to pay for
+/// the hand-out.
+pub(crate) const PIECE: usize = 64;
+
+/// `work(k, item)` for every `item` at its place `k`, in pieces of
+/// `piece` on up to `threads` cores: the results in the items' order.
+pub(crate) fn map<I: Send, R: Send>(
+    items: Vec<I>,
+    piece: usize,
+    threads: usize,
+    work: &(dyn Fn(usize, I) -> R + Sync),
+) -> Vec<R> {
+    if threads <= 1 || items.len() <= piece {
+        return items
+            .into_iter()
+            .enumerate()
+            .map(|(k, i)| work(k, i))
+            .collect();
+    }
+    let mut items = items.into_iter();
+    let pieces: Vec<Mutex<Vec<I>>> = (0..items.len().div_ceil(piece))
+        .map(|_| Mutex::new(items.by_ref().take(piece).collect()))
+        .collect();
+    let done: Vec<Mutex<Vec<R>>> = (0..pieces.len()).map(|_| Mutex::new(Vec::new())).collect();
+    spread(pieces.len(), threads, &|k| {
+        let piece_items = std::mem::take(&mut *pieces[k].lock().unwrap());
+        *done[k].lock().unwrap() = piece_items
+            .into_iter()
+            .enumerate()
+            .map(|(j, item)| work(k * piece + j, item))
+            .collect();
+    });
+    done.into_iter()
+        .flat_map(|d| d.into_inner().unwrap())
+        .collect()
+}
+
+/// `out[k] = work(k)` for every place in `out`, in pieces of `piece` on
+/// up to `threads` cores.
+pub(crate) fn fill<T: Send>(
+    out: &mut [T],
+    piece: usize,
+    threads: usize,
+    work: &(dyn Fn(usize) -> T + Sync),
+) {
+    if threads <= 1 || out.len() <= piece {
+        out.iter_mut().enumerate().for_each(|(k, o)| *o = work(k));
+        return;
+    }
+    let pieces: Vec<Mutex<Option<&mut [T]>>> =
+        out.chunks_mut(piece).map(|c| Mutex::new(Some(c))).collect();
+    spread(pieces.len(), threads, &|k| {
+        let chunk = pieces[k].lock().unwrap().take().expect("a piece once");
+        for (j, o) in chunk.iter_mut().enumerate() {
+            *o = work(k * piece + j);
+        }
     });
 }
 

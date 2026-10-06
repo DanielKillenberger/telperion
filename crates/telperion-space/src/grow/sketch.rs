@@ -83,10 +83,12 @@ impl Grower<'_> {
     pub(super) fn shade(&mut self, report: &mut dyn FnMut(Stage)) {
         let mut sketch = self.sketch.take().expect("sketching");
         let tips: Vec<Vec3> = self.live.iter().map(|a| self.tip(a.axis)).collect();
-        let field = Field::new(&sketch.light, &self.leaves, &tips);
+        let field = Field::on(&sketch.light, &self.leaves, &tips, self.threads);
         report(Stage::Pass(Pass::ShadeField));
-        for (apex, &tip) in self.live.iter().zip(&tips) {
-            sketch.pencils[apex.axis].light = field.at(tip);
+        let mut read = vec![0.0; tips.len()];
+        crate::cores::fill(&mut read, 1 << 10, self.threads, &|k| field.at(tips[k]));
+        for (apex, light) in self.live.iter().zip(read) {
+            sketch.pencils[apex.axis].light = light;
         }
         self.sketch = Some(sketch);
         report(Stage::Pass(Pass::ShadeRead));
