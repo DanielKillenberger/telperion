@@ -24,3 +24,9 @@ Design questions beyond these (a coarser time step for the light, the oak's shed
 ## Boundaries
 
 Depends on fn-206 and fn-210. The fine orders are F1 (fn-209); integration is F4 (fn-198); dressing on the GPU is fn-125, fn-126 and fn-171.
+
+## Host decision on layer 2 (2026-10-06, after PROFILE.md)
+
+Layer 2 as designed is dropped (docs/principles.md, "Question, delete, then optimise"). PROFILE.md shows the only year passes whose cost follows the whole tree are the oak's: the full re-lay (1.0 s at 80, seed 1) and balance and allot (0.8 s). Under fn-209's cut (N = 1,024 kept phytomers) the oak's CPU structure is about 36k nodes, 4 % of the tree, and every one of those passes runs over that structure; and an incremental re-lay cannot be exact (a sagging limb changes its descendants' angle to gravity, and so their sag).
+
+In its place: **the oak under fn-209's cut.** The CPU grows the structure above the cut year by year with today's passes; each fine root carries DESIGN-LIGHT.md's history-dependent aggregate state (Astra change 1) for light, allocation moments, balance and upkeep, and its light history is recorded for fn-209's executor. Measured against today's whole oak: cost per year and per build, kept phytomers per order, per-PA drift under 2 %, bud light per fine root, stills. P4's light error (p50 16-38 %, cause unnamed) was at a cut of 77k-375k fine roots; at 4.4k it is measured again, its cause found first.
