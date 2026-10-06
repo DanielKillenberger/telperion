@@ -13,6 +13,9 @@ use telperion_space::{
     GeometryTables, Light, Plan, Request, RootGeometry, Species,
 };
 
+/// FNV-1a's prime, for the geometry's digest.
+const FNV: u64 = 0x0000_0100_0000_01b3;
+
 /// fn-125's screen, in metres.
 const MOST: f64 = 50e-6;
 const RMS: f64 = 10e-6;
@@ -61,6 +64,8 @@ struct Apart {
     worst: (usize, usize, usize, f64, f64, f64),
     far: (usize, usize, usize, usize, f64, usize, f64),
     statuses: u32,
+    /// Every kept phytomer's laid floats, hashed in root and axis order.
+    digest: u64,
 }
 
 impl Apart {
@@ -96,6 +101,9 @@ fn held(gpu: &Gpu, r: &Reference, got: &Expanded) -> Apart {
             let axis = &r.fine.structure.axes[start + j];
             for (n, p) in axis.phytomers.iter().enumerate() {
                 let g = &wave[phyts + (first + n) * PL..][..PL];
+                for v in g {
+                    apart.digest = (apart.digest ^ u64::from(v.to_bits())).wrapping_mul(FNV);
+                }
                 let want = p.tip - origin;
                 let d = [
                     f64::from(g[0]) - want.x,
@@ -152,9 +160,8 @@ fn hold(gpu: &Gpu, k: &Kernels, species: &Species, at: (u32, u64)) -> (usize, Ap
     let (two, _) = run(gpu, k, &r, &tables, (&reverse, 777));
     let a = held(gpu, &r, &one);
     let b = held(gpu, &r, &two);
-    assert_eq!(a.most, b.most, "the same geometry in any order and batch");
     assert_eq!(
-        a.squares, b.squares,
+        a.digest, b.digest,
         "the same geometry in any order and batch"
     );
     (r.cases.len(), a)
@@ -201,18 +208,45 @@ fn every_fine_root_expands_and_lays_on_the_gpu_as_on_the_cpu() {
     }
 }
 
+/// The GPU lock named by `FINE_GPU_LOCK`, held while the guard lives: a
+/// measurement takes it only around the device's work, so the CPU
+/// reference grows unlocked (FRICTION.md).
+fn locked() -> Option<std::fs::File> {
+    let path = std::env::var("FINE_GPU_LOCK").ok()?;
+    let file = std::fs::OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .write(true)
+        .open(path)
+        .expect("the lock file");
+    file.lock().expect("the GPU lock");
+    Some(file)
+}
+
+/// A cost as the table gives it: the whole, then growth, readback and
+/// laying.
+fn ms(c: &Cost, wall: f64) -> String {
+    format!("{wall:.0} ({:.0} / {:.0} / {:.0})", c.grow, c.read, c.lay)
+}
+
 /// The beech and spruce at 40 and 80, seeds 1 and 7: geometry held
-/// against the CPU, and the whole fine stage timed on both executors:
-/// `cargo test --profile ci -p telperion-render fine_geometry_at_40_and_80
-/// -- --ignored --nocapture`.
+/// against the CPU, and the whole fine stage timed on both executors, the
+/// worst item (the root slowest on one CPU core) alone included: `cargo
+/// test --profile ci -p telperion-render fine_geometry_at_40_and_80 --
+/// --ignored --nocapture`, with `FINE_GPU_LOCK` naming the GPU lock.
 #[test]
 #[ignore = "a measurement over the old trees"]
 fn fine_geometry_at_40_and_80() {
     let Some(gpu) = crate::generation::test_gpu() else {
         return;
     };
-    let k = kernels(&gpu);
-    println!("| Tree | Roots | Chains | Phytomers | Tips most / RMS µm | Radii most rel | GPU cold ms (grow / read / lay) | GPU warm ms (grow / read / lay) | Worst item: root, phytomers, GPU warm ms | CPU items 1 core ms | CPU expansion all cores ms |");
+    let t = Instant::now();
+    let k = {
+        let _lock = locked();
+        kernels(&gpu)
+    };
+    println!("pipelines {:.0} ms", t.elapsed().as_secs_f64() * 1e3);
+    println!("| Tree | Roots | Chains | Phytomers | Tips most / RMS µm | Radii most rel | GPU cold ms (grow / read / lay) | GPU warm ms (grow / read / lay) | Worst item: root, phytomers, CPU 1 core ms, GPU warm ms | CPU items Σ 1 core ms | CPU expansion all cores ms |");
     println!("|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|");
     for (name, species) in [
         ("beech", telperion_space::beech()),
@@ -229,54 +263,59 @@ fn fine_geometry_at_40_and_80() {
                     };
                     grow_fine(&species, request(age, seed), &expected, plan).expect("grows")
                 };
-                let one: f64 = cpu(1).roots.iter().map(|x| x.2.micros).sum::<f64>() / 1e3;
-                let all = cpu(0).expand_seconds * 1e3;
-                let t = Instant::now();
-                let chain = ChainTables::new(&species, age, &expected).expect("tables");
-                let geo = GeometryTables::new(&species, age, &expected).expect("tables");
-                let tables = Tables::new(&gpu, &chain, &geo);
-                let tables_ms = t.elapsed().as_secs_f64() * 1e3;
-                let forward: Vec<usize> = (0..r.cases.len()).collect();
-                let (cold_got, cold) = run(&gpu, &k, &r, &tables, (&forward, 1 << 16));
-                let (warm_got, warm) = run(&gpu, &k, &r, &tables, (&forward, 1 << 16));
-                let a = held(&gpu, &r, &warm_got);
-                drop(cold_got);
-                // The worst item: the root that grew the most kept
-                // phytomers, expanded alone.
-                let (worst, size) = r
-                    .fine
+                let single = cpu(1);
+                let one: f64 = single.roots.iter().map(|x| x.2.micros).sum::<f64>() / 1e3;
+                let (worst, worst_cpu) = single
                     .roots
                     .iter()
                     .enumerate()
-                    .map(|(i, x)| (i, x.1))
-                    .max_by_key(|x| x.1)
+                    .map(|(i, x)| (i, x.2.micros / 1e3))
+                    .max_by(|a, b| a.1.total_cmp(&b.1))
                     .expect("a root");
+                let worst_size = r.fine.roots[worst].1;
+                drop(single);
+                let all = cpu(0).expand_seconds * 1e3;
+                let chain = ChainTables::new(&species, age, &expected).expect("tables");
+                let geo = GeometryTables::new(&species, age, &expected).expect("tables");
+                let forward: Vec<usize> = (0..r.cases.len()).collect();
+                let lock = locked();
+                let t = Instant::now();
+                let tables = Tables::new(&gpu, &chain, &geo);
+                let (cold_got, cold) = run(&gpu, &k, &r, &tables, (&forward, 1 << 16));
+                let cold_wall = t.elapsed().as_secs_f64() * 1e3;
+                drop(cold_got);
+                let t = Instant::now();
+                let (warm_got, warm) = run(&gpu, &k, &r, &tables, (&forward, 1 << 16));
+                let warm_wall = t.elapsed().as_secs_f64() * 1e3;
+                let a = held(&gpu, &r, &warm_got);
+                drop(warm_got);
+                let reverse: Vec<usize> = forward.iter().rev().copied().collect();
+                let (again, _) = run(&gpu, &k, &r, &tables, (&reverse, 4096));
+                let b = held(&gpu, &r, &again);
+                drop(again);
+                assert_eq!(
+                    a.digest, b.digest,
+                    "the same geometry in any order and batch"
+                );
                 run(&gpu, &k, &r, &tables, (&[worst], 1 << 16));
-                let (_, alone) = run(&gpu, &k, &r, &tables, (&[worst], 1 << 16));
-                let ms = |c: &Cost| {
-                    format!(
-                        "{:.0} ({:.0} / {:.0} / {:.0})",
-                        c.grow + c.read + c.lay,
-                        c.grow,
-                        c.read,
-                        c.lay
-                    )
-                };
+                let t = Instant::now();
+                run(&gpu, &k, &r, &tables, (&[worst], 1 << 16));
+                let alone = t.elapsed().as_secs_f64() * 1e3;
+                drop(lock);
                 println!(
-                    "| {name} {age} {seed} | {} | {} | {} | {:.1} / {:.2} | {:.1e} | {} | {} | {worst}, {size}, {:.1} | {one:.0} | {all:.0} |",
+                    "| {name} {age} {seed} | {} | {} | {} | {:.1} / {:.2} | {:.1e} | {} | {} | {worst}, {worst_size}, {worst_cpu:.1}, {alone:.1} | {one:.0} | {all:.0} |",
                     r.cases.len(),
                     warm.chains,
                     a.phytomers,
                     a.most * 1e6,
                     a.rms() * 1e6,
                     a.radius,
-                    ms(&cold),
-                    ms(&warm),
-                    alone.grow + alone.read + alone.lay,
+                    ms(&cold, cold_wall),
+                    ms(&warm, warm_wall),
                 );
                 println!(
-                    "  tables {tables_ms:.0} ms, status {}, again {}",
-                    a.statuses, warm.again
+                    "  status {}, again {}, waves {}",
+                    a.statuses, warm.again, warm.waves
                 );
                 assert!(
                     a.most <= MOST && a.rms() <= RMS,

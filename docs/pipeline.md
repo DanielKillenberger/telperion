@@ -64,7 +64,9 @@ The CPU reference executor of this step is `telperion_space::grow_fine` (`crates
 
 - a draw is 53 bits, compared as an integer with a probability's threshold `ceil(p · 2^53)`;
 - tables computed once per species point are supplied to both executors;
-- the arithmetic of a per-bud threshold is the host's open choice.
+- a per-bud threshold is computed in one specified fixed point, time in ticks of 2^-20 cycle (host decision 1, `telperion_space::fixed`).
+
+The GPU executor (`crates/telperion-render/src/generation/fine/`, built for its tests until F4 reads it) grows and sheds each wave of chains on the contract to the bit (task 2), and scales, girths and lays them in f32 (task 4): each element's presence is taken as the chain grower decides it, and a geometry kernel resolves each wave's chains from their bearers in the wave before. It ends at the botanical tree and its laid geometry in device buffers, positions each root's own from its bearer's node (host decision 5); F4 with fn-171 defines the readers. Its geometry is held to fn-125's screen against the CPU reference (`laid_tests.rs`), never to the bit, since geometry decides no topology.
 
 A species any bud of which reads light is refused until F2b (fn-211) carries its light aggregates in the record.
 

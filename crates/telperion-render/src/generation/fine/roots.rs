@@ -1,12 +1,10 @@
-//! Fine roots expanded on the GPU, wave by wave (fn-209 F1, task 2, R1):
-//! each root's chains grown on the device from its record, the buds a
-//! wave's kept axes bear grown in the next, until none is left; the
-//! roots' kept axes, compared by lineage with the CPU reference
-//! executor's expansion of the same records before any geometry (host
-//! decision 2), in any order of the roots and any batch size. The overflow
-//! rule is the chain: an item is split along its chains, each grown from
-//! its own bud's record, and a chain that outgrows its region is grown
-//! again in a larger one.
+//! Fine roots expanded on the GPU, wave by wave (fn-209 F1, tasks 2 and
+//! 4): each root's chains grown on the device from its record, the buds a
+//! wave's kept axes bear grown in the next, until none is left, and each
+//! wave's chains scaled, girthed and laid on the device from their bearers
+//! in the wave before (`laid.rs`). The overflow rule is the chain: an item
+//! is split along its chains, each grown from its own bud's record, and a
+//! chain that outgrows its region is grown again in a larger one.
 use super::chains::{packed, Caps, Grew, Grower, Run, AXW};
 use super::laid::{self, Chain, Resolver, Wave};
 use crate::Gpu;

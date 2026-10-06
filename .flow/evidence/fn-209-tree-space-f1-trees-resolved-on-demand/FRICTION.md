@@ -97,3 +97,10 @@
 - **Slowed:** the gate ran from 21:17 to about 21:45 at a one-minute load of 40 to 58 (another session's work on the desk); one test binary alone took 671 s and another 464 s. The merge itself, the 28-tree dump comparison and both hash runs took about 15 minutes together.
 - **Cost:** about 28 minutes of the timebox waiting on the gate, with the GPU lock held for all of it, CPU tests included.
 - **Would remove it:** the GPU lock taken only around the GPU tests (as the entry above proposes), and a way to see the desk's load owner before starting a gate, so a gate is not started into a contended desk.
+
+## 2026-10-06, the age-25 equality test holds the GPU lock through its CPU reference (task 4, GPU geometry)
+
+- **Doing:** running `every_fine_root_expands_and_lays_on_the_gpu_as_on_the_cpu` after each shader change, under the GPU lock.
+- **Slowed:** 33 to 38 s of each locked run is the CPU reference's growth (`fine_cases` for six trees); the GPU part is about 2 s. Six runs held the lock about 3.5 minutes without the GPU. The naga parse (now an ordinary test) caught every WGSL error before a locked run, so no lock was spent on a shader that could not build.
+- **Cost:** about 3 minutes of lock time the desk could have used.
+- **Would remove it:** the lock taken inside the test only around the dispatches (the measurement test now does this through `FINE_GPU_LOCK`), or CPU references written once to disk by an unlocked step.
