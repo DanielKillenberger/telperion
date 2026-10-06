@@ -15,7 +15,7 @@ use stats::{quantiles, tail};
 use std::collections::HashMap;
 use std::time::Instant;
 use telperion_space::{
-    beech, grow, grow_alone, palm, spruce, Expected, Light, Origin, Request, Species, Structure,
+    beech, grow, grow_alone_with, palm, spruce, Expected, Light, Origin, Request, Species, Structure,
 };
 
 const BUDGET: u32 = 20_000_000;
@@ -73,7 +73,8 @@ fn run(label: &str, species: &Species, request: Request, expected: &Expected) {
     let reference = grow(species, request).expect("the reference grows");
     let reference_s = t.elapsed().as_secs_f64();
     let t = Instant::now();
-    let mut tree = grow_alone(species, request, expected).expect("grows alone");
+    let correct = std::env::var("UNCORRECTED").is_err();
+    let mut tree = grow_alone_with(species, request, expected, correct).expect("grows alone");
     let alone_s = t.elapsed().as_secs_f64();
     // Geometry chain by chain, top-down, one core.
     let mut geometry = Vec::with_capacity(tree.bounded.chains());
@@ -165,6 +166,15 @@ fn run(label: &str, species: &Species, request: Request, expected: &Expected) {
             q.2
         );
     }
+    let pooled: Vec<f64> = shared.values().flat_map(|s| s.3.iter().copied()).collect();
+    let q = quantiles(&pooled);
+    println!(
+        "  every shared lateral: base / reference p5 {:.3} p50 {:.3} p95 {:.3} (n {})",
+        q.0,
+        q.1,
+        q.2,
+        pooled.len()
+    );
     let mut grow_us: Vec<f64> = tree.costs.iter().map(|c| c.micros).collect();
     let grown: u64 = tree.costs.iter().map(|c| c.grown).sum();
     let shed_chains = tree.costs.iter().filter(|c| !c.kept).count();

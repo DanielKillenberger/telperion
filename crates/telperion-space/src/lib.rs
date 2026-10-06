@@ -37,7 +37,7 @@ mod species;
 mod spruce;
 mod structure;
 
-pub use alone::{grow_alone, Alone, ChainCost};
+pub use alone::{field_probe, grow_alone, grow_alone_with, Alone, ChainCost, FieldProbe};
 pub use beech::beech;
 pub use blend::blend;
 pub use bounded::{grow_bounded, Bounded, Expected};

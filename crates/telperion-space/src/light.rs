@@ -156,6 +156,8 @@ pub(crate) struct Field {
     /// The node index of the box's least corner, and its extent in nodes.
     low: [i64; 3],
     size: [usize; 3],
+    /// The spacing of its nodes in metres.
+    cell: f64,
     /// Leaf area density at each node, then the light there.
     density: Vec<f64>,
     light: Vec<f64>,
@@ -166,7 +168,14 @@ impl Field {
     /// metres) under `light`, over a box that holds every leaf and every
     /// point in `reads`.
     pub fn new(light: &Light, leaves: &[(Vec3, f64)], reads: &[Vec3]) -> Self {
-        let mut field = Self::spanning(leaves.iter().map(|l| l.0).chain(reads.iter().copied()));
+        Self::sized(light, leaves, reads, CELL)
+    }
+
+    /// `new` at nodes `cell` metres apart (fn-209 probe P2: the light
+    /// field's resolution is a parameter of the request).
+    pub fn sized(light: &Light, leaves: &[(Vec3, f64)], reads: &[Vec3], cell: f64) -> Self {
+        let mut field =
+            Self::spanning(leaves.iter().map(|l| l.0).chain(reads.iter().copied()), cell);
         for &(at, area) in leaves {
             field.deposit(at, area);
         }
@@ -174,12 +183,17 @@ impl Field {
         field
     }
 
+    /// The nodes it holds.
+    pub fn nodes(&self) -> usize {
+        self.density.len()
+    }
+
     /// The light at `at`, trilinear between the nodes about it; 1 beyond
     /// the box, where nothing stands between it and the sky.
     pub fn at(&self, at: Vec3) -> f64 {
         let mut sum = 0.0;
         let mut weight = 0.0;
-        for (node, w) in corners(at) {
+        for (node, w) in corners(at, self.cell) {
             if let Some(i) = self.index(node) {
                 sum += w * self.light[i];
                 weight += w;
@@ -188,11 +202,11 @@ impl Field {
         sum + (1.0 - weight)
     }
 
-    fn spanning(points: impl Iterator<Item = Vec3>) -> Self {
+    fn spanning(points: impl Iterator<Item = Vec3>, cell: f64) -> Self {
         let (mut low, mut high) = ([i64::MAX; 3], [i64::MIN; 3]);
         for p in points {
             for (axis, c) in [p.x, p.y, p.z].into_iter().enumerate() {
-                let n = (c / CELL).floor() as i64;
+                let n = (c / cell).floor() as i64;
                 low[axis] = low[axis].min(n);
                 high[axis] = high[axis].max(n + 1);
             }
@@ -205,6 +219,7 @@ impl Field {
         Self {
             low,
             size,
+            cell,
             density: vec![0.0; cells],
             light: vec![1.0; cells],
         }
@@ -223,8 +238,8 @@ impl Field {
     }
 
     fn deposit(&mut self, at: Vec3, area: f64) {
-        let density = area / CELL.powi(3);
-        for (node, w) in corners(at) {
+        let density = area / self.cell.powi(3);
+        for (node, w) in corners(at, self.cell) {
             let i = self.index(node).expect("the box holds every leaf");
             self.density[i] += w * density;
         }
@@ -245,7 +260,7 @@ impl Field {
         let mut depth = vec![0.0; layer];
         for &(toward, share) in directions.iter().filter(|d| d.1 > 0.0) {
             let (ox, oy) = (toward.x / toward.z, toward.y / toward.z);
-            let path = CELL / toward.z;
+            let path = self.cell / toward.z;
             above_depth.iter_mut().for_each(|d| *d = 0.0);
             for k in (0..nz).rev() {
                 let here = &self.density[k * layer..(k + 1) * layer];
@@ -291,8 +306,8 @@ fn bilinear(layer: &[f64], nx: usize, ny: usize, x: f64, y: f64) -> f64 {
 }
 
 /// The eight nodes about `at` and their trilinear weights.
-fn corners(at: Vec3) -> impl Iterator<Item = ([i64; 3], f64)> {
-    let f = [at.x / CELL, at.y / CELL, at.z / CELL];
+fn corners(at: Vec3, cell: f64) -> impl Iterator<Item = ([i64; 3], f64)> {
+    let f = [at.x / cell, at.y / cell, at.z / cell];
     let n = f.map(|c| c.floor());
     let t = [f[0] - n[0], f[1] - n[1], f[2] - n[2]];
     (0..8).map(move |c: usize| {
