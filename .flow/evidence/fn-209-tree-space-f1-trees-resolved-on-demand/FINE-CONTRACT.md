@@ -180,3 +180,12 @@ What the table says. These are the worker's readings, not decisions.
   - The base was dumped in a temporary worktree at `f9ac2d6d`, since removed.
   - Candidates A and B were applied there as patches: `raw/contract/libm.patch` and `raw/contract/ticks.patch`.
   - Tables: `raw/contract/libm-vs-base.md` and `raw/contract/ticks-vs-base.md`. The integer draws (D1 to D4) against the base: every tree identical.
+
+## Host decisions on the four open questions (2026-10-06)
+
+1. **Threshold arithmetic: B, integer fixed point.** Time in integer ticks of 2^-20 cycle; every threshold (survival, abortion, time, the borderline relay, waking time, P2's shedding product, the relay node) computed by one specified fixed-point procedure, identical on both executors, compared against the 53-bit integer draw. Not A: A needs the pinned libm's f64 pow, exp and log reproduced bit for bit in software on the GPU, a large port whose one wrong bit flips topology (fn-12's failure mode). B's measured cost (topology identical in 28 trees; tips under 25 µm; radii up to 1.6 % on woken buds) is accepted under AGENTS.md "Generator evolution", shown on stills of the four species.
+2. **The converter's merges and culls** never decide identities from laid geometry: identities are botanical (one per kept phytomer); merging or omitting thin wood becomes a draw-time level-of-detail choice (F4 with fn-176). Task 2 compares executors on the botanical tree before conversion.
+3. **The below-ground refusal** stays above the cut. A fine root whose conservative extent bound from its attachment can reach the ground is grown on the CPU reference executor: a work-placement rule, botany unchanged, so exact.
+4. **The executor** stays in `telperion-space` until F4 moves it under `pipeline::executor`; integration is not brought forward.
+
+**Overflow (task 2):** an item that grows past its bound is split along its chains, each from its own bud's record, preserving the result.
