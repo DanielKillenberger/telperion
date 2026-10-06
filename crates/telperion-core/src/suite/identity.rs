@@ -371,10 +371,16 @@ fn print_pins() {
 }
 
 /// The catalogue is the species record, so its pins file carries the same
-/// numbers this file pins. A disagreement names the species and the pin.
+/// numbers this file pins. A disagreement names the species and the pin. An
+/// engine preset's record is its engine tree's (fn-198), which these
+/// scaffold pins do not describe.
 #[test]
 fn every_pin_matches_its_catalogue_record() {
     for pin in &PINS {
+        let preset = Preset::from_id(pin.id).expect("preset identity");
+        if preset.parameters().space.species.is_some() {
+            continue;
+        }
         let record = catalogue::pins(pin.id);
         let recorded = &record["pins"];
         assert_eq!(

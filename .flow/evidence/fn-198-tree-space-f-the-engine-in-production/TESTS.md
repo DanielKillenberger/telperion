@@ -23,7 +23,7 @@ The four engine presets lost their envelope rows (host decision 7), took the exa
 
 ## Kept on the scaffold, engine presets skipped
 
-Pins and walks of the scaffold over the presets keep the species-less ones: `audit::shipped_scaffolds_are_reproducible`, `drop`, `sag`, `strands` neutral pins, `identity::shipped_species_meshes_are_the_tree_recorded_before_the_levels`, `twig_extent::the_twig_layer_asks_the_crown_nothing_and_builds_one_tree`, `sweep::every_shipped_preset_carries_foliage`; the specimen cache holds the scaffold's species-less tables only; `field_plan`'s species are the birch and the ordinary tree; `outline`'s blend walks two species-less presets; `radius::hold_tests::a_hold_adds_or_loses_no_leaf` and `pipeline::tests::one_sweep_and_one_element_serve_a_request` grow with the scaffold.
+Pins and walks of the scaffold over the presets keep the species-less ones: `audit::shipped_scaffolds_are_reproducible`, `drop`, `sag`, `strands` neutral pins, `identity::{shipped_species_meshes_are_the_tree_recorded_before_the_levels, every_pin_matches_its_catalogue_record}`, `twig_extent::the_twig_layer_asks_the_crown_nothing_and_builds_one_tree`, `sweep::every_shipped_preset_carries_foliage`; the specimen cache holds the scaffold's species-less tables only; `field_plan`'s species are the birch and the ordinary tree; `outline`'s blend walks two species-less presets; `radius::hold_tests::a_hold_adds_or_loses_no_leaf` and `pipeline::tests::one_sweep_and_one_element_serve_a_request` grow with the scaffold.
 
 ## Re-fixtured on engine trees
 
