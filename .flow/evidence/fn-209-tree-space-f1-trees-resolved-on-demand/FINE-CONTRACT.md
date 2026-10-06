@@ -222,3 +222,7 @@ What the table says. These are the worker's readings, not decisions.
 **Tests:** `fixed/tests.rs` (7: accuracy, monotonicity, the threshold's semantics, presences, the grid) and `fine/tests/ticks.rs` (3: a lifespan read on the grid, waking on it, a lifespan under half a tick refused). Every existing `telperion-space` test passes unchanged, the cut, order, chunking and adversarial tests included.
 
 **Not covered:** the lit oak's shade-scaled viability (`viability^(light^-φ)`) is computed in f64 before the fixed-point share, since light is F2b's and refused on the fine path.
+
+## Host decision 5 (2026-10-06, after task 2): where fine geometry lives on the device
+
+(b): the F1 executor ends at the botanical tree plus its laid geometry (scale, girth, lay), held in device buffers. F4 (fn-198) with fn-171 defines the device-side readers (rings, stations, curves). Not (a), which would pull integration into F1 against decision 4; not (c), which reads fine geometry back and breaks Astra change 3 (about 3.9 s on the spruce at 80).
