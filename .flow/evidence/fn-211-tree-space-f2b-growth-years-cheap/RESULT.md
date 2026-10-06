@@ -321,3 +321,57 @@ Each line names the pass, what remains on one thread, and why.
 - **Broken test build:** from `fb5974ea` to `6b34fd6d`, the crate's unit tests did not compile, because the light's tests called the sweep without its cores. The release example and the hash were unaffected. Commits in between were checked with the example build alone. This was found and fixed at `6b34fd6d`. The workspace gate runs at the end.
 - **Workspace gate:** `cargo test --profile ci --workspace --no-fail-fast`, run once at `53445e1d`: 1,113 passed, 0 failed, 20 ignored.
 - **Not done:** Codex review (spec R5).
+
+# fn-211 task 3: a kept pool, scratch reuse and fewer draw vectors (worker, 2026-10-06)
+
+A dispatched worker wrote this, on the host's decisions of 2026-10-06. Every tree is identical to the bit at every commit.
+
+## 1. What is built
+
+| Commit | What |
+|---|---|
+| `a353489f` | **A kept pool.** `cores::spread` hands its helpers to rayon's global pool (`rayon::in_place_scope`) instead of spawning scoped threads each call. The pool holds one thread a core and is the process-wide budget the old helper count kept; at most `min(threads, pieces, pool size)` threads take tickets, the caller among them. One core, or one piece, runs on the calling thread without touching the pool. |
+| `e8c7996b` | **Scratch reuse.** `upward::Tree::upward` hands each piece of a depth one scratch buffer in turn; `thicken`, sag's `gather` and the tree-as-grown radii (`attachments`) reuse it for their node sums instead of allocating one per axis. |
+| `f55c91b1` | **Fewer draw vectors.** `Draws` held five vectors; survival, persistence and share are one `Unit` record, size and light one pair kept only where light shades (three vectors where there were five, two where nothing shades). The full lay every ten cycles no longer clones every standing axis's draws: `assign_living` reads them by reference and is told which apexes live. |
+
+## 2. The hash proof
+
+`measures hash 80 1,7 all both`, against task 2's base table (`raw/task2-hash-base.txt`): identical, 16 trees, at `a353489f`, `e8c7996b` and `f55c91b1` on all cores, and at `a353489f` and `f55c91b1` on one core (`taskset -c 0`). The crate's tests (`cargo test --profile ci -p telperion-space`, 131 passed, 3 ignored) were compiled and run at each of the three commits.
+
+## 3. Timings and memory
+
+Tables: `TASK3-PASSES.md` (totals before task 2 against now; every pass at the end of task 2 against now, ages 40 and 80, four species, 1 and all cores). Raw lines: `raw/task3-passes-{pre,t2,l1,l3}.txt`. The desk was shared with fn-209.2; each configuration started under load 4, each cell's load is in the tables.
+
+**All cores, end of task 2 to now:** oak 80 -14% (s1 3.76 to 3.23 s) and -9% (s7 7.76 to 7.05 s); spruce 80 -4 to -7%; beech 80 -12 to -13%; oak 40 -17 to -24%; spruce 40 -8 to -12%; beech 40 -18 to -27%. Against before task 2: oak 80 -37 to -41%, spruce 80 -31 to -37%, beech 80 -35 to -39%.
+
+**One core, against before task 2** (the acceptance's bar): beech -2 to -16%, spruce 40 -6 to -17%, spruce 80 -3% and +1%, oak 40 -6 to -8%, oak 80 s7 -6%. Oak 80 s1 read +5% in the table (6,574 to 6,907 ms, single cells); repeated three times alternating (`taskset -c 0`, loads 4.4 to 7.2, above 4 because fn-209.2 held the desk): before 7,363 / 6,889 / 7,802 ms, now 7,621 / 6,854 / 6,632 ms, means 7,351 and 7,036. No slower.
+
+**Peak memory** (VmHWM, one tree a process, all cores, 80 years):
+
+| Tree | Before task 2 | End of task 2 | Now |
+|---|--:|--:|--:|
+| oak s1 lit | 1.89 GB | 1.93 GB | 1.85 GB |
+| oak s7 lit | 3.84 GB | 3.95 GB | 3.72 GB |
+| beech s1 | 559 MB | 550 MB | 537 MB |
+| beech s7 | 948 MB | 926 MB | 904 MB |
+| spruce s1 | 2.27 GB | 2.06 GB | 1.99 GB |
+| spruce s7 | 2.25 GB | 2.05 GB | 1.97 GB |
+
+**Per lever.** The pool: 0 to -13% on all cores at 80 (`raw/task3-passes-l1.txt`), nothing on one core, peak unchanged. Scratch: sag's levers about -8% on one core, thicken unchanged (alternating A/B on spruce 80). Draw records: oak 80 s1 full re-lays 0.86 to 0.75 s and peak -60 MB; spruce 80 `tail` 295 to 245 ms and peak -65 MB; the oak's `tail` 200 to 156 ms (s1) and 626 to 430 (s7).
+
+## 4. Findings
+
+- **The by-depth passes' one-core cost is their order, not their allocations.** Host decision 2 expected scratch reuse to bring them back to the index-order loops' cost. It removed the allocations, and thicken on one core did not move (spruce 80 316 to 315 ms; before task 2 it was 280). What remains is visiting axes by depth rather than in the order they sit in memory. On one core the oak's `Sketch` (about +200 ms over before task 2) and `Attachments` (about +80) still carry it; the re-lays and the freeing now pay it back.
+- **The sketch's extra 200 ms on one core** is mostly the leaves gathered after laying (145 ms on oak 80 s1, probed and reverted): laying in turn gathered them as it went. Gathering them in the jobs and copying in serial order is exact, but task 2 measured that shape no faster on all cores, so it was not built.
+- **Wasm.** `telperion-space` is in no shipped Wasm module (`cargo tree` for `telperion-wasm` and the renderer's wasm target lists neither it nor rayon); it is a dev-dependency of the renderer's examples. It still compiles for `wasm32-unknown-unknown`, and `telperion-wasm` builds. In a browser `available_parallelism` fails, so `threads` is 1 and every spread runs on the calling thread without touching rayon; were the pool reached, rayon-core 1.13 falls back to the current thread where threads are unsupported.
+
+## 5. For the host
+
+1. **A cross-axis arena for the draws and per-axis vectors.** Decision 3 named flat arrays (struct of arrays or one arena). What was built is fewer vectors per axis, not one arena: each axis's units are appended one a cycle while it lives, by the parallel shares, and an arena that keeps an axis's records contiguous needs a relocation scheme (or a recycled pool of growing buffers, compacted into the arena when the apex stops) that the shares can append to without a lock. That is a layout design, so it was left. What it could still take: the oak's `tail` is 156 to 430 ms, the spruce's about 230; `Axis::units` and `Draws::nodes` are the vectors left per axis, and `Axis::phytomers` is public.
+2. **One core.** If wasm's one core must match the index-order loops exactly, the remaining gap (oak 80 s1: sketch and attachments, about 280 ms of 7 s) is visiting order. Closing it without a second path would mean laying the tree out in memory by depth, which is the same layout question as 1.
+
+## 6. Notes
+
+- The crate's tests take about 7 minutes a commit on this desk (FRICTION.md).
+- No profiler could be used (`perf_event_paranoid` 2); the two probes were timers patched in and reverted (FRICTION.md).
+- Workspace gate: `cargo test --profile ci --workspace --no-fail-fast` at `f55c91b1`: 1,113 passed, 0 failed, 20 ignored.
