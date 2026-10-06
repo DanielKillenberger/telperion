@@ -221,6 +221,11 @@ fn resolve(@builtin(global_invocation_id) id: vec3<u32>) {
     let it = c * IW;
     ax0 = items[it];
     let na = items[it + 1u];
+    // A chain the grower queued for a larger region, or whose root was
+    // shed, lays nothing.
+    if na == 0u {
+        return;
+    }
     ph0 = items[it + 2u];
     let np = items[it + 3u];
     let bearer_ax = items[it + 4u];

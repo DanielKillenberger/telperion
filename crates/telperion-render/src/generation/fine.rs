@@ -26,6 +26,9 @@ pub(super) fn sources() -> Vec<(&'static str, String)> {
         ("fine pack", chains::pack_source()),
         ("fine geometry", laid::source()),
     ]
+    .into_iter()
+    .chain(steps::sources())
+    .collect()
 }
 
 #[cfg(test)]
@@ -33,11 +36,17 @@ mod chain_tests;
 #[cfg(test)]
 mod chains;
 #[cfg(test)]
+mod hostrun;
+#[cfg(test)]
 mod laid;
 #[cfg(test)]
 mod laid_tests;
 #[cfg(test)]
+mod readback;
+#[cfg(test)]
 mod roots;
+#[cfg(test)]
+mod steps;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]

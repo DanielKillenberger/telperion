@@ -5,7 +5,9 @@
 //! roots and any batch size; and the whole fine stage's cost.
 use super::chains::Grower;
 use super::laid::{Resolver, AL, PL};
-use super::roots::{expand, Cost, Expanded, Tables};
+use super::readback;
+use super::roots::{expand, Cost, Expanded, Kernels, Tables};
+use super::steps::Steps;
 use crate::Gpu;
 use std::time::Instant;
 use telperion_space::{
@@ -27,12 +29,6 @@ fn request(age: u32, seed: u64) -> Request {
         budget: 20_000_000,
         light: Light::NEUTRAL,
     }
-}
-
-/// The executors' kernels.
-struct Kernels {
-    grower: Grower,
-    resolver: Resolver,
 }
 
 /// A tree as the CPU reference executor expands it: the tree, each root's
@@ -76,7 +72,8 @@ impl Apart {
 
 /// The GPU's expansion held against the reference: topology identical by
 /// lineage, and how far its geometry lies.
-fn held(gpu: &Gpu, r: &Reference, got: &Expanded) -> Apart {
+fn held(gpu: &Gpu, r: &Reference, ex: &Expanded) -> Apart {
+    let got = readback::read(gpu, ex, r.cases.len());
     for (k, ((_, want), have)) in r.cases.iter().zip(&got.roots).enumerate() {
         if r.attached[k].grounded {
             assert!(have.is_empty(), "root {k} can reach the ground: the CPU's");
@@ -87,14 +84,11 @@ fn held(gpu: &Gpu, r: &Reference, got: &Expanded) -> Apart {
             assert_eq!(g, w, "root {k} axis {j}");
         }
     }
-    let waves: Vec<Vec<f32>> = got.waves.iter().map(|w| w.read(gpu)).collect();
-    let mut apart = Apart::default();
-    for (buffer, at) in &got.statuses {
-        let words: Vec<u32> =
-            bytemuck::cast_slice(&super::super::io::read(gpu, buffer, buffer.size()).unwrap())
-                .to_vec();
-        apart.statuses |= at.iter().fold(0, |s, &a| s | words[a as usize]);
-    }
+    let waves: Vec<Vec<f32>> = ex.waves.iter().map(|w| w.read(gpu)).collect();
+    let mut apart = Apart {
+        statuses: got.statuses,
+        ..Apart::default()
+    };
     // No chain the GPU grew came below the ground (D19, bit 2) or carried
     // more pulls than it holds (bit 1).
     assert_eq!(apart.statuses, 0, "a chain's status");
@@ -103,7 +97,7 @@ fn held(gpu: &Gpu, r: &Reference, got: &Expanded) -> Apart {
         let start = r.fine.starts[k];
         for (j, &(w, i)) in laid.iter().enumerate() {
             let wave = &waves[w];
-            let phyts = got.waves[w].axes as usize * AL;
+            let phyts = ex.waves[w].axes as usize * AL;
             let first = wave[i as usize * AL + 7].to_bits() as usize;
             let axis = &r.fine.structure.axes[start + j];
             for (n, p) in axis.phytomers.iter().enumerate() {
@@ -146,11 +140,7 @@ fn run(
     (order, batch): (&[usize], usize),
 ) -> (Expanded, Cost) {
     let buds: Vec<ChainBud> = r.cases.iter().map(|c| c.0).collect();
-    expand(
-        (gpu, &k.grower, &k.resolver),
-        (&buds, &r.attached, order, batch),
-        tables,
-    )
+    expand((gpu, k), (&buds, &r.attached, order, batch), tables)
 }
 
 /// One tree held in two orders and batch sizes: the roots, kept axes and
@@ -162,7 +152,8 @@ fn hold(gpu: &Gpu, k: &Kernels, species: &Species, at: (u32, u64)) -> (usize, Ap
     let geo = GeometryTables::new(species, at.0, &expected).expect("tables");
     let tables = Tables::new(gpu, &chain, &geo);
     let forward: Vec<usize> = (0..r.cases.len()).collect();
-    let (one, _) = run(gpu, k, &r, &tables, (&forward, 4096));
+    let (one, cost) = run(gpu, k, &r, &tables, (&forward, 4096));
+    trips(&cost);
     let reverse: Vec<usize> = forward.iter().rev().copied().collect();
     let (two, _) = run(gpu, k, &r, &tables, (&reverse, 777));
     let a = held(gpu, &r, &one);
@@ -174,9 +165,18 @@ fn hold(gpu: &Gpu, k: &Kernels, species: &Species, at: (u32, u64)) -> (usize, Ap
     (r.cases.len(), a)
 }
 
+/// Host decision 6: the device's expansion reads back only totals, one
+/// round trip a run (its packed counts, scratch and queued chains) and one
+/// a wave (its laid buffer's and next wave's sizes), never a chain or a
+/// node; the counter is the readbacks `roots::expand` makes.
+fn trips(cost: &Cost) {
+    assert_eq!(cost.trips, cost.runs + cost.waves, "{cost:?}");
+}
+
 fn kernels(gpu: &Gpu) -> Kernels {
     Kernels {
         grower: Grower::new(gpu),
+        steps: Steps::new(gpu),
         resolver: Resolver::new(gpu),
     }
 }
@@ -230,10 +230,13 @@ fn locked() -> Option<std::fs::File> {
     Some(file)
 }
 
-/// A cost as the table gives it: the whole, then growth, readback and
-/// laying.
+/// A cost as the table gives it: the whole, then growth (with its
+/// totals' round trips) and laying, and the round trips.
 fn ms(c: &Cost, wall: f64) -> String {
-    format!("{wall:.0} ({:.0} / {:.0} / {:.0})", c.grow, c.read, c.lay)
+    format!(
+        "{wall:.0} ({:.0} / {:.0}; {} trips)",
+        c.grow, c.lay, c.trips
+    )
 }
 
 /// The beech and spruce at 40 and 80, seeds 1 and 7: geometry held
@@ -253,7 +256,7 @@ fn fine_geometry_at_40_and_80() {
         kernels(&gpu)
     };
     println!("pipelines {:.0} ms", t.elapsed().as_secs_f64() * 1e3);
-    println!("| Tree | Roots | Chains | Phytomers | Tips most / RMS µm | Radii most rel | GPU cold ms (grow / read / lay) | GPU warm ms (grow / read / lay) | Worst item: root, phytomers, CPU 1 core ms, GPU warm ms | CPU items Σ 1 core ms | CPU expansion all cores ms |");
+    println!("| Tree | Roots | Chains | Phytomers | Tips most / RMS µm | Radii most rel | GPU cold ms (grow / lay; round trips) | GPU warm ms (grow / lay; round trips) | Worst item: root, phytomers, CPU 1 core ms, GPU warm ms | CPU items Σ 1 core ms | CPU expansion all cores ms |");
     println!("|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|");
     for (name, species) in [
         ("beech", telperion_space::beech()),
@@ -293,6 +296,7 @@ fn fine_geometry_at_40_and_80() {
                 drop(cold_got);
                 let t = Instant::now();
                 let (warm_got, warm) = run(&gpu, &k, &r, &tables, (&forward, 1 << 16));
+                trips(&warm);
                 let warm_wall = t.elapsed().as_secs_f64() * 1e3;
                 let a = held(&gpu, &r, &warm_got);
                 drop(warm_got);
@@ -321,8 +325,8 @@ fn fine_geometry_at_40_and_80() {
                     ms(&warm, warm_wall),
                 );
                 println!(
-                    "  status {}, again {}, waves {}",
-                    a.statuses, warm.again, warm.waves
+                    "  status {}, again {}, waves {}, runs {}",
+                    a.statuses, warm.again, warm.waves, warm.runs
                 );
                 assert!(
                     a.most <= MOST && a.rms() <= RMS,

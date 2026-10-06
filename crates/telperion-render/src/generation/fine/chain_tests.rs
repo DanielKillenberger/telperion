@@ -4,7 +4,8 @@
 //! birth, how and where each stands, where its apex stopped), phytomers
 //! (cycle and key) and woken buds, in the same order; in any order of the
 //! chains and any size of batch.
-use super::chains::{packed, Caps, Grower, Grown};
+use super::chains::{packed, Caps, Grower};
+use super::hostrun::Grown;
 use crate::Gpu;
 use std::time::Instant;
 use telperion_space::{

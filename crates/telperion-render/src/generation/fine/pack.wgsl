@@ -7,11 +7,15 @@ struct Cfg {
     row: u32,
     axes_cap: u32,
     phyt_cap: u32,
+    stride: u32,
+    pad0: u32,
+    pad1: u32,
+    pad2: u32,
 }
 
 @group(0) @binding(0) var<uniform> cfg: Cfg;
 @group(0) @binding(1) var<storage, read> status: array<vec4<u32>>;
-@group(0) @binding(2) var<storage, read> offsets: array<vec2<u32>>;
+@group(0) @binding(2) var<storage, read> offsets: array<u32>;
 @group(0) @binding(3) var<storage, read> axes: array<u32>;
 @group(0) @binding(4) var<storage, read> phyts: array<u32>;
 @group(0) @binding(5) var<storage, read_write> packed_axes: array<u32>;
@@ -26,7 +30,7 @@ fn pack(@builtin(global_invocation_id) id: vec3<u32>) {
     if c >= cfg.n || status[c].z != 0u {
         return;
     }
-    let to = offsets[c];
+    let to = vec2<u32>(offsets[c * cfg.stride], offsets[c * cfg.stride + 1u]);
     let axes_from = c * cfg.axes_cap * AXW;
     for (var k = 0u; k < status[c].x * AXW; k++) {
         packed_axes[to.x * AXW + k] = axes[axes_from + k];

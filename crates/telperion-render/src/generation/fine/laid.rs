@@ -6,9 +6,7 @@
 //! own, metres from its bearer's node as laid before bending and as laid;
 //! `origins` holds those nodes' heights, which the ground is read from.
 use super::super::io;
-use super::chains::Run;
 use crate::Gpu;
-use std::time::Instant;
 use telperion_space::{BearerFrame, GeometryTables, RootGeometry, Vec3};
 
 const CONTRACT_LAY: &str = include_str!("lay.wgsl");
@@ -18,11 +16,9 @@ const WALK: &str = include_str!("walk.wgsl");
 /// A laid axis's and phytomer's floats (`geometry.wgsl`).
 pub(super) const AL: usize = 8;
 pub(super) const PL: usize = 22;
-/// A chain's scratch: per region axis, per region phytomer, and a status.
-const SA: u32 = 66;
-const SP: u32 = 12;
-/// An item's words.
-const IW: usize = 10;
+/// A chain's scratch: per region axis, per region phytomer, then a status.
+pub(super) const SA: u32 = 66;
+pub(super) const SP: u32 = 12;
 const GG: usize = 24;
 
 /// The geometry kernel's WGSL.
@@ -203,20 +199,6 @@ impl Wave {
     }
 }
 
-/// One chain to resolve: where its region lies in its run, its bearer's
-/// index in the wave before, where its kept axes and phytomers go in its
-/// wave, whether its bearer is a root's attachment, and its root.
-#[derive(Debug, Clone, Copy)]
-pub(super) struct Chain {
-    pub run: usize,
-    pub chain: usize,
-    pub bearer: u32,
-    pub out_axes: u32,
-    pub out_phyts: u32,
-    pub stub: bool,
-    pub root: u32,
-}
-
 pub(super) struct Resolver {
     pass: io::Pass,
 }
@@ -229,94 +211,49 @@ impl Resolver {
         }
     }
 
-    /// Resolves `chains` of one wave, their regions in `runs`, from `prev`
-    /// into `out`; the milliseconds to the device's finishing, and each
-    /// chain's status buffer and word, for the tests.
-    #[allow(clippy::too_many_arguments)]
-    pub(super) fn resolve(
+    /// Resolves a run's `n` chains, described by `items`, their regions
+    /// packed in `packed` and their scratch in `scratch`, from `prev`
+    /// into `out`, recorded into `encoder`.
+    pub(super) fn dispatch(
         &self,
         gpu: &Gpu,
-        (runs, chains): (&[Run], &[Chain]),
+        encoder: &mut wgpu::CommandEncoder,
+        (items, n, packed, scratch): (
+            &wgpu::Buffer,
+            u32,
+            (&wgpu::Buffer, &wgpu::Buffer),
+            &wgpu::Buffer,
+        ),
         (table, origins): (&wgpu::Buffer, &wgpu::Buffer),
         (prev, out): (&Wave, &Wave),
         (age, sags): (u32, bool),
-    ) -> (f64, Vec<(wgpu::Buffer, Vec<u32>)>) {
-        let start = Instant::now();
-        let storage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
-        let mut statuses = Vec::new();
-        let mut encoder = gpu.device.create_command_encoder(&Default::default());
-        for (r, run) in runs.iter().enumerate() {
-            let mine: Vec<&Chain> = chains.iter().filter(|c| c.run == r).collect();
-            if mine.is_empty() {
-                continue;
-            }
-            let mut items = Vec::with_capacity(mine.len() * IW);
-            let mut scratch = 0u32;
-            let mut at = Vec::with_capacity(mine.len());
-            for c in &mine {
-                let [na, np, ..] = run.status[c.chain];
-                let [ax, ph] = run.offsets[c.chain];
-                items.extend([
-                    ax,
-                    na,
-                    ph,
-                    np,
-                    c.bearer,
-                    c.out_axes,
-                    c.out_phyts,
-                    scratch,
-                    u32::from(c.stub),
-                    c.root,
-                ]);
-                scratch += na * SA + np * SP;
-                at.push(scratch);
-                scratch += 1;
-            }
-            let n = mine.len() as u32;
-            let groups = n.div_ceil(64);
-            let row = groups.min(gpu.device.limits().max_compute_workgroups_per_dimension) * 64;
-            let cfg = [
-                n,
-                row,
-                out.phyts_at(),
-                prev.phyts_at(),
-                age,
-                u32::from(sags),
-                0,
-                0,
-            ];
-            let uniform = wgpu::BufferUsages::UNIFORM;
-            let cfg = io::buffer(gpu, "laid cfg", 32, uniform, bytemuck::cast_slice(&cfg)).unwrap();
-            let items_bytes = items.len() as u64 * 4;
-            let items = io::buffer(
-                gpu,
-                "laid items",
-                items_bytes,
-                storage,
-                bytemuck::cast_slice(&items),
-            )
-            .unwrap();
-            let scratch =
-                io::buffer(gpu, "laid scratch", u64::from(scratch) * 4, storage, &[]).unwrap();
-            let all = [
-                &cfg,
-                &items,
-                table,
-                &run.axes,
-                &run.phyts,
-                &prev.buffer,
-                &out.buffer,
-                &scratch,
-                origins,
-            ];
-            let bind = self.pass.bind(gpu, &all);
-            self.pass.run(&mut encoder, &bind, 0, groups);
-            statuses.push((scratch, at));
-        }
-        gpu.queue.submit([encoder.finish()]);
-        gpu.device
-            .poll(wgpu::PollType::wait_indefinitely())
-            .unwrap();
-        (start.elapsed().as_secs_f64() * 1e3, statuses)
+    ) {
+        let groups = n.div_ceil(64);
+        let row = groups.min(gpu.device.limits().max_compute_workgroups_per_dimension) * 64;
+        let cfg = [
+            n,
+            row,
+            out.phyts_at(),
+            prev.phyts_at(),
+            age,
+            u32::from(sags),
+            0,
+            0,
+        ];
+        let uniform = wgpu::BufferUsages::UNIFORM;
+        let cfg = io::buffer(gpu, "laid cfg", 32, uniform, bytemuck::cast_slice(&cfg)).unwrap();
+        let all = [
+            &cfg,
+            items,
+            table,
+            packed.0,
+            packed.1,
+            &prev.buffer,
+            &out.buffer,
+            scratch,
+            origins,
+        ];
+        let bind = self.pass.bind(gpu, &all);
+        self.pass.run(encoder, &bind, 0, groups);
     }
 }

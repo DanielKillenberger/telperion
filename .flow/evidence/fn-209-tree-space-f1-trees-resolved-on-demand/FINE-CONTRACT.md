@@ -226,3 +226,24 @@ What the table says. These are the worker's readings, not decisions.
 ## Host decision 5 (2026-10-06, after task 2): where fine geometry lives on the device
 
 (b): the F1 executor ends at the botanical tree plus its laid geometry (scale, girth, lay), held in device buffers. F4 (fn-198) with fn-171 defines the device-side readers (rings, stations, curves). Not (a), which would pull integration into F1 against decision 4; not (c), which reads fine geometry back and breaks Astra change 3 (about 3.9 s on the spruce at 80).
+
+## Host decision 6 (2026-10-06, task 5): the wave loop on the device, totals read back
+
+Option (a) of task 5's question: the GPU executor's wave loop runs on the device, and only a few totals per run and per wave cross to the host, to size the buffers the next steps fill. Astra change 3 forbids per-node data crossing, not small totals. Nothing per chain or per node is read back except by the tests (`fine/readback.rs`).
+
+- **Per run** (one batch of chains at one region size), one round trip of four counters, the totals of the run's scan (`record.wgsl`, `scan.wgsl`):
+  1. the packed axes;
+  2. the packed phytomers;
+  3. the geometry scratch words;
+  4. the chains queued for a region eight times larger (the overflow rule; `gather.wgsl` gathers them on the device).
+- **Per wave**, one round trip of three counters, the totals of the wave's scan:
+  1. the kept axes, which size the wave's laid buffer;
+  2. their phytomers, which size the same buffer;
+  3. the buds they bear, which size the next wave's buds.
+- Everything else stays on the device:
+  - a run's records and places;
+  - packing;
+  - the geometry items (`emit.wgsl`, `describe`);
+  - laying;
+  - the next wave's buds with their roots and their bearers' laid indices (`emit`), in the CPU reference's order.
+- The round trips per tree are the runs plus the waves. `roots::Cost::trips` counts them where they are read, and the tests hold that count (`laid_tests.rs`, `trips`).

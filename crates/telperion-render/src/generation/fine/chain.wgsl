@@ -24,7 +24,7 @@ struct Cfg {
     curves: u32,
     geo: u32,
     unit_cap: u32,
-    pad0: u32,
+    first: u32,
     pad1: u32,
 }
 
@@ -325,7 +325,7 @@ fn grow(@builtin(global_invocation_id) id: vec3<u32>) {
     depth = 0u;
     next_half = 0u;
     n_next = 0u;
-    let b = c * BW;
+    let b = (cfg.first + c) * BW;
     let lineage = buds[b];
     let pa = buds[b + 1u].x;
     let birth = buds[b + 1u].y;
