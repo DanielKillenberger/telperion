@@ -13,18 +13,23 @@
 //! from nothing as a setting passes the draw, so a walk of any setting at a
 //! fixed seed changes the tree by degree.
 mod allocation;
+mod alone;
 mod beech;
 mod blend;
+mod bounded;
 mod chain;
 mod closed_form;
 mod cores;
 mod dormant;
 mod error;
+mod fine;
+pub mod fixed;
 mod geometry;
 mod girth;
 mod grow;
 mod light;
 mod lineage;
+mod memo;
 mod oak;
 mod palm;
 mod presence;
@@ -34,12 +39,21 @@ mod shed;
 mod species;
 mod spruce;
 mod structure;
+mod upward;
 
+pub use alone::{field_probe, grow_alone, grow_alone_with, Alone, ChainCost, FieldProbe};
 pub use beech::beech;
 pub use blend::blend;
+pub use bounded::{grow_bounded, Bounded, Expected};
 pub use closed_form::expected_counts;
 pub use error::{Error, Result};
-pub use grow::{grow, grow_staged, sketch, Request, Stage};
+pub use fine::{
+    canonical, chain_cases, digest, fine_cases, grow_fine, identities, roots_geometry,
+    survey_lit, BearerFrame, ChainAxis, ChainBud, ChainTables, Fine, FineRoot, GeometryTables,
+    Order, PaGeometry, PaRow, Plan, RootGeometry, Surveyed, UnitZone, Units, Woke, Work,
+    ZoneGeometry,
+};
+pub use grow::{grow, grow_staged, sketch, Pass, Request, Stage};
 pub use light::{bud_light, Light};
 pub use oak::oak;
 pub use palm::palm;

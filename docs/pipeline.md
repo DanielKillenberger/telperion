@@ -49,6 +49,27 @@ Each step is synchronous CPU work. The GPU executor keeps its own schedule: it c
 
 The growth path, the second sanctioned exception, was removed on 2026-10-02 (fn-181, `docs/growth-path.md`); the scaffold's grower, `branching::Specimen`, is private to the crate.
 
+## Fine growth (fn-209 F1)
+
+The tree-space engine's finest orders are grown in the expansion, not on the CPU before it (`.flow/specs/fn-209-*.md`; DESIGN-FINE.md and ASTRA-REVIEW-FINE.md in its evidence). The CPU grows the structure above a cut. A bud whose expected kept phytomers (the closed form's `count`, light-neutral, read before growth) are at most the cut is a fine root. It is recorded once (`telperion_space::FineRoot`):
+
+- its bud as made, with its dormant and relay history;
+- its ancestors' survival;
+- its bearer's laid frame at its node, before bending and as laid;
+- its committed section, mass, first moment and base radius.
+
+The expansion grows each fine root from that record alone, by the engine's own chain rules: grown, shed, scaled, girthed and laid by option 4. The cut decides where the work runs, never what is computed. A tree is the same to the bit at every cut, in every item order and chunking, and equals the tree grown whole (`crates/telperion-space/src/fine/tests.rs`).
+
+The CPU reference executor of this step is `telperion_space::grow_fine` (`crates/telperion-space/src/fine/executor.rs`). It lives in the engine's crate until F4 (fn-198) brings the engine into this pipeline; then it moves under `pipeline::executor` beside the expansion's other steps, and the GPU executor (fn-209 task 2) runs the same steps in WGSL. Every decision a fine root takes is listed in FINE-CONTRACT.md with its representation, so the two executors cannot disagree on topology:
+
+- a draw is 53 bits, compared as an integer with a probability's threshold `ceil(p · 2^53)`;
+- tables computed once per species point are supplied to both executors;
+- a per-bud threshold is computed in one specified fixed point, time in ticks of 2^-20 cycle (host decision 1, `telperion_space::fixed`).
+
+The GPU executor (`crates/telperion-render/src/generation/fine/`, built for its tests until F4 reads it) grows and sheds each wave of chains on the contract to the bit (task 2), and scales, girths and lays them in f32 (task 4): each element's presence is taken as the chain grower decides it, and a geometry kernel resolves each wave's chains from their bearers in the wave before. It ends at the botanical tree and its laid geometry in device buffers, positions each root's own from its bearer's node (host decision 5); F4 with fn-171 defines the readers. Its geometry is held to fn-125's screen against the CPU reference (`laid_tests.rs`), never to the bit, since geometry decides no topology.
+
+A species any bud of which reads light is refused until F2b (fn-211) carries its light aggregates in the record.
+
 ## The wood's curve (fn-208)
 
 The wood is handed over as curves, not triangles (`telperion_core::surface::Curve`, `Expansion::curve`). The surface is drawn from them, by the GPU at the screen's error (fn-208) or by the CPU at a stated view and error. Every tree produces the curve from its solved skeleton by the sweep's own steps (paths, samples, frames), so whatever grew the tree, its wood has one path to the screen.

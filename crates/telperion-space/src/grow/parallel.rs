@@ -6,7 +6,7 @@
 //! tree is the one grown in turn, however many cores grew it.
 use super::shoot::{Home, Line, Reads, Shoot};
 use super::sketch::Sketch;
-use super::{Apex, Grower};
+use super::{Apex, Grower, Pass, Stage};
 use crate::cores::{picked, spread};
 use crate::dormant::{Sleeper, Woken};
 use crate::error::{Error, Result};
@@ -67,22 +67,30 @@ impl Grower<'_> {
 
     /// Grows the `live` apexes' units in `cycle`, in shares in order, and
     /// merges them into the tree.
-    pub(super) fn grow_live(&mut self, live: Vec<Apex>, cycle: u32) -> Result<()> {
+    pub(super) fn grow_live(
+        &mut self,
+        live: Vec<Apex>,
+        cycle: u32,
+        report: &mut dyn FnMut(Stage),
+    ) -> Result<()> {
         let reads = reads(self.sketch.as_ref(), self.species);
         let homes = homes(
             (&mut self.axes, &mut self.draws),
             (&mut self.units, &mut self.successor),
             &live,
         );
+        report(Stage::Pass(Pass::Homes));
         let (rules, tree) = (&self.rules, (&self.roots[..], &self.horizon[..]));
         let shoot = |homes| Shoot {
             homes,
             ..Shoot::new(rules, reads, tree)
         };
         let shares = grow_shares(live, homes, (self.threads, self.share), &shoot, cycle)?;
+        report(Stage::Pass(Pass::Units));
         for share in shares {
             self.absorb(share);
         }
+        report(Stage::Pass(Pass::Merge));
         if self.rules.grown > u64::from(self.rules.budget) {
             return Err(Error::Budget {
                 limit: self.rules.budget,

@@ -5,6 +5,7 @@
 use super::shoot::Shoot;
 use super::{stop_stake, Apex};
 use crate::error::Result;
+use crate::fixed;
 use crate::lineage::{above, below, Key, MOVE, RELAY};
 use crate::presence::SPAN;
 use crate::species::PaState;
@@ -52,25 +53,30 @@ impl Shoot<'_, '_> {
                 Stop::Ended,
             );
         };
-        let u = unit.child(MOVE).unit();
-        if u >= go {
+        let d = unit.child(MOVE).draw();
+        let u = d.unit();
+        if !d.under(go) {
             let stopped = above(u, go);
             return self.stop(apex, (cycle, used), stopped, unit, apex.spent, Stop::Ended);
         }
-        let wood = windows.wood_at(next, cycle, used);
-        let made = windows.decided(below(u, go), wood, stop_stake(state.relay_ended));
+        // Its presence decides whether it also grows its relay, so it is
+        // the contract's (FINE-CONTRACT.md D10).
+        let stake = stop_stake(state.relay_ended);
+        let made = fixed::decide::moved(windows, (next, cycle, used), go, d, stake);
         let key = Key(self.root(apex.axis)).onto(next);
         let origin = Origin::Continuation { parent: apex.axis };
         let at = self.len();
         self.successor_mut(apex.axis).push(at);
-        self.sprout(key, next, cycle, origin, [made, 1.0]);
+        self.sprout(key, next, cycle, origin, [fixed::real(made), 1.0]);
         self.carry_on(cycle, used)?;
         // An apex that all but stopped also grows the relay it would have
-        // had, at the share its continuation lacks (host decision 11).
-        let relayed = self.relayed(state.relay_ended, unit, windows.wood_at(pa, cycle, used));
-        if made < 1.0 && relayed > 0.0 {
+        // had, at the share its continuation lacks (host decision 11),
+        // where its relay draw makes one (D9's integer test).
+        let relay = state.relay_ended;
+        if made < fixed::ONE32 as u64 && relay > 0.0 && unit.child(RELAY).draw().under(relay) {
+            let relayed = self.relayed(relay, unit, windows.wood_at(pa, cycle, used));
             *self.units_mut(apex.axis) = apex.spent;
-            let made = [1.0 - made, relayed];
+            let made = [1.0 - fixed::real(made), relayed];
             self.relay_bud(apex, (cycle, used), apex.spent, made, (0.0, Stop::Ended))?;
         }
         Ok(())
@@ -93,7 +99,7 @@ impl Shoot<'_, '_> {
     ) -> Result<()> {
         let (pa, key) = (self.axis(apex.axis).pa, Key(self.axis(apex.axis).lineage));
         let draws = self.draws(apex.axis);
-        let grown = draws.aged + draws.shares.iter().sum::<f64>() + spent - apex.spent;
+        let grown = draws.aged + draws.grown() + spent - apex.spent;
         let ended_relays = draws.ended_relays + u32::from(why == Stop::Ended);
         // The relay of an age that ended, or of a unit that failed, grows
         // a whole first unit: neither is the apex carried on.
@@ -118,9 +124,9 @@ impl Shoot<'_, '_> {
         if relay <= 0.0 {
             return 0.0;
         }
-        let u = unit.child(RELAY).unit();
-        if u < relay {
-            self.windows().presence(below(u, relay), wood)
+        let d = unit.child(RELAY).draw();
+        if d.under(relay) {
+            self.windows().presence(below(d.unit(), relay), wood)
         } else {
             0.0
         }
@@ -153,8 +159,9 @@ impl Shoot<'_, '_> {
         if relay <= 0.0 {
             return Ok(());
         }
-        let u = unit.child(RELAY).unit();
-        if u < relay {
+        let d = unit.child(RELAY).draw();
+        if d.under(relay) {
+            let u = d.unit();
             let wood = windows.wood_at(axis.pa, cycle, used);
             // A stop by abortion or a move is whole: the apex that all
             // but stopped grew its relay as well (host decision 11). A

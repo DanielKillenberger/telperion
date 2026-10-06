@@ -40,3 +40,6 @@ telperion-core = { path = "../telperion-core", features = ["json"] }
 wgpu = "30"
 # The pipeline boundary's compile-fail test (tests/boundary.rs).
 trybuild = "1"
+# Every generation shader parsed and validated without a GPU
+# (src/generation/shader_tests.rs).
+naga = { version = "30", features = ["wgsl-in"] }

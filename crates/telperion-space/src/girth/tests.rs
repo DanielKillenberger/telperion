@@ -123,8 +123,8 @@ fn the_leaf_term_keeps_the_trees_pipe_and_thickens_the_lit_limb() {
         states: vec![state(1.0)],
     };
     let (mut a, mut b) = (tree(), tree());
-    thicken(&mut a, &neutral, &Girth::default());
-    thicken(&mut b, &leafy, &Girth::default());
+    thicken(&mut a, &neutral, &Girth::default(), 1);
+    thicken(&mut b, &leafy, &Girth::default(), 1);
     let (ta, tb) = (own_total(&a, &neutral), own_total(&b, &leafy));
     assert!((ta - tb).abs() < 1e-12 * ta, "own pipe {ta} against {tb}");
     assert_eq!(a.axes[1].phytomers[0].radius, a.axes[2].phytomers[0].radius);
@@ -149,7 +149,7 @@ fn a_retained_pipe_thickens_its_bearer_by_degree() {
             disused: disused.to_vec(),
             leaf_mean: None,
         };
-        thicken(&mut t, &species, &girth);
+        thicken(&mut t, &species, &girth, 1);
         t.axes[0].phytomers[0].radius
     };
     let mut last = base(0.0);
@@ -180,14 +180,14 @@ fn the_leaf_mean_is_the_grown_trees_at_every_retained_share() {
     };
     let radius = |retained: f64, species: &mut Species| {
         species.states[0].retained = retained;
-        let g = attachments(&grown.axes, species, grown.age);
+        let g = attachments(&grown.axes, species, grown.age, 1);
         let girth = disused(&g, &shed, species);
         let mut kept = Structure {
             age: grown.age,
             pas: 1,
             axes: shed.axes.clone(),
         };
-        thicken(&mut kept, species, &girth);
+        thicken(&mut kept, species, &girth, 1);
         kept.axes[1].phytomers[0].radius
     };
     let (at_zero, near_zero) = (radius(0.0, &mut species), radius(1e-9, &mut species));

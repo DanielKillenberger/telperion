@@ -5,19 +5,25 @@
 //! in turn would give.
 use super::lay::{lay, Layer, Lift, GROUND_TOLERANCE};
 use super::{bend, frame, reaches};
-use crate::cores::{picked, spread};
+use crate::cores::{map, picked, spread, PIECE};
 use crate::error::{Error, Result};
 use crate::sag::Lever;
 use crate::species::Species;
-use crate::structure::{Origin, Structure, Vec3};
+use crate::structure::{Axis, Origin, Structure, Vec3};
 use std::sync::Mutex;
-
-/// The axes laid in one piece of work.
-const PIECE: usize = 64;
 
 /// What an axis is laid from: its frame, its bearer's wander, the pulls
 /// it carries on, its bend and reach, and whether it is the trunk.
 type Start = ((Vec3, Vec3, Vec3), Vec3, Vec<Lift>, (f64, f64), bool);
+
+/// What each laid axis left: where its walk ended, its bend and whether
+/// it is the trunk, and each axis's reach.
+struct Laid {
+    layers: Vec<Option<Layer>>,
+    bends: Vec<f64>,
+    trunk: Vec<bool>,
+    reaches: Vec<f64>,
+}
 
 /// Lays every axis from its parent's frame; with `levers` (`sag.rs`),
 /// each phytomer also turns down under the load it carries; on up to
@@ -29,71 +35,88 @@ pub(crate) fn place(
     threads: usize,
 ) -> Result<Vec<Layer>> {
     let n = structure.axes.len();
-    let age = structure.age;
-    let reaches = reaches(&structure.axes);
-    let (mut layers, mut bends, mut trunk) = (vec![None; n], vec![0.0; n], vec![false; n]);
+    let mut laid = Laid {
+        layers: vec![None; n],
+        bends: vec![0.0; n],
+        trunk: vec![false; n],
+        reaches: reaches(&structure.axes),
+    };
     // The first axis that cannot be laid, and why.
     let mut failed: Option<(usize, Error)> = None;
     for depth in depths(structure) {
-        let mut starts: Vec<(usize, Start)> = Vec::with_capacity(depth.len());
-        for i in depth {
-            if failed.as_ref().is_some_and(|(f, _)| *f < i) {
-                break;
-            }
-            let ends = |p: usize| layers[p].as_ref().map(Layer::ends).expect("laid");
-            let framed = frame(&structure.axes, species, i, &ends);
-            let axis = &structure.axes[i];
-            // A continuation or relay carries its bearer's wander on.
-            let curve = match axis.origin {
-                Origin::Continuation { parent } | Origin::Relay { parent, .. } => {
-                    layers[parent].as_ref().map(Layer::curve).expect("laid")
+        let todo: Vec<usize> = depth
+            .into_iter()
+            .take_while(|&i| !failed.as_ref().is_some_and(|(f, _)| *f < i))
+            .collect();
+        let mut pieces: Vec<Vec<usize>> = todo.chunks(PIECE).map(<[usize]>::to_vec).collect();
+        // Each axis's start from its parent's frame alone, on every core,
+        // in pieces kept apart so no start is moved twice.
+        let mut framed = map(pieces.clone(), 1, threads, &|_, piece| {
+            piece
+                .iter()
+                .map(|&i| start(structure, species, &laid, i))
+                .collect::<Vec<Start>>()
+        });
+        // An axis whose base is below the ground ends the lay at it.
+        'scan: for (k, (piece, starts)) in pieces.iter().zip(&framed).enumerate() {
+            for (j, (&i, start)) in piece.iter().zip(starts).enumerate() {
+                (laid.bends[i], laid.trunk[i]) = ((start.3).0, start.4);
+                let base = (start.0).0.z;
+                if base < -GROUND_TOLERANCE {
+                    failed = Some((i, below(structure, i, base, -base)));
+                    pieces.truncate(k + 1);
+                    pieces[k].truncate(j);
+                    framed.truncate(k + 1);
+                    framed[k].truncate(j);
+                    break 'scan;
                 }
-                _ => Vec3::default(),
-            };
-            let state = &species.states[axis.pa];
-            let years = f64::from(age.saturating_sub(axis.birth)) - axis.sleep;
-            bends[i] = bend(axis, state, years);
-            // A relay carries on the pulls of the axis it replaces, as far
-            // as it is still that axis's continuation, so one that has
-            // barely left the axis's line is laid as the axis would have
-            // gone on (fn-206).
-            let inherited = match axis.origin {
-                Origin::Relay { parent, .. } => layers[parent]
-                    .as_ref()
-                    .expect("laid")
-                    .handed((bends[parent], reaches[parent]), axis.blend),
-                _ => Vec::new(),
-            };
-            trunk[i] = match axis.origin {
-                Origin::Seed => true,
-                Origin::Continuation { parent } | Origin::Relay { parent, .. } => trunk[parent],
-                Origin::Lateral { .. } => false,
-            };
-            if framed.0.z < -GROUND_TOLERANCE {
-                failed = Some((i, below(structure, i, framed.0.z, -framed.0.z)));
-                break;
             }
-            let start = (framed, curve, inherited, (bends[i], reaches[i]), trunk[i]);
-            starts.push((i, start));
         }
-        let laid = lay_all(structure, species, levers, starts, threads);
-        for (i, result) in laid {
-            if failed.as_ref().is_some_and(|(f, _)| *f < i) {
-                break;
-            }
-            match result {
-                Ok(layer) => layers[i] = Some(layer),
-                Err((base, height)) => {
-                    failed = Some((i, below(structure, i, base, height)));
-                    break;
-                }
-            }
+        let first = lay_all(
+            structure,
+            (species, levers),
+            &mut laid.layers,
+            (pieces, framed),
+            threads,
+        );
+        if let Some((i, (base, height))) = first {
+            failed = Some((i, below(structure, i, base, height)));
         }
     }
     if let Some((_, error)) = failed {
         return Err(error);
     }
-    Ok(layers.into_iter().map(|l| l.expect("laid")).collect())
+    Ok(laid.layers.into_iter().map(|l| l.expect("laid")).collect())
+}
+
+/// Axis `i`'s start, from its parent's frame and walk.
+fn start(structure: &Structure, species: &Species, laid: &Laid, i: usize) -> Start {
+    let layer = |p: usize| laid.layers[p].as_ref().expect("laid");
+    let framed = frame(&structure.axes, species, i, &|p| layer(p).ends());
+    let axis = &structure.axes[i];
+    // A continuation or relay carries its bearer's wander on.
+    let curve = match axis.origin {
+        Origin::Continuation { parent } | Origin::Relay { parent, .. } => layer(parent).curve(),
+        _ => Vec3::default(),
+    };
+    let state = &species.states[axis.pa];
+    let years = f64::from(structure.age.saturating_sub(axis.birth)) - axis.sleep;
+    let bent = bend(axis, state, years);
+    // A relay carries on the pulls of the axis it replaces, as far as it
+    // is still that axis's continuation, so one that has barely left the
+    // axis's line is laid as the axis would have gone on (fn-206).
+    let inherited = match axis.origin {
+        Origin::Relay { parent, .. } => {
+            layer(parent).handed((laid.bends[parent], laid.reaches[parent]), axis.blend)
+        }
+        _ => Vec::new(),
+    };
+    let trunk = match axis.origin {
+        Origin::Seed => true,
+        Origin::Continuation { parent } | Origin::Relay { parent, .. } => laid.trunk[parent],
+        Origin::Lateral { .. } => false,
+    };
+    (framed, curve, inherited, (bent, laid.reaches[i]), trunk)
 }
 
 /// The axes by depth from the seed, each depth in index order.
@@ -121,38 +144,60 @@ fn below(structure: &Structure, i: usize, base: f64, height: f64) -> Error {
     }
 }
 
-/// Lays the axes of one depth from their starts, in pieces on up to
-/// `threads` cores: each axis's walk, or its base's height and how far
-/// below the ground it went, in index order.
-#[allow(clippy::type_complexity)]
+/// One piece of a depth's lay: its axes' indices and starts, the axes,
+/// and where each walk's end goes.
+type Piece<'s> = (
+    Vec<usize>,
+    Vec<Start>,
+    Vec<&'s mut Axis>,
+    Vec<&'s mut Option<Layer>>,
+);
+
+/// Lays the axes of one depth from their starts, piece by piece on up to
+/// `threads` cores, each walk's end into `layers`: the first axis in
+/// index order that cannot be laid, its base's height and how far below
+/// the ground it went.
 fn lay_all(
     structure: &mut Structure,
-    species: &Species,
-    levers: Option<&[Vec<Lever>]>,
-    starts: Vec<(usize, Start)>,
+    (species, levers): (&Species, Option<&[Vec<Lever>]>),
+    layers: &mut [Option<Layer>],
+    (pieces, framed): (Vec<Vec<usize>>, Vec<Vec<Start>>),
     threads: usize,
-) -> Vec<(usize, std::result::Result<Layer, (f64, f64)>)> {
-    let at: Vec<usize> = starts.iter().map(|(i, _)| *i).collect();
-    let axes = picked(&mut structure.axes, at.iter().copied());
-    let mut jobs = axes.into_iter().zip(starts);
-    let pieces: Vec<Mutex<Vec<_>>> = (0..at.len().div_ceil(PIECE))
-        .map(|_| Mutex::new(jobs.by_ref().take(PIECE).collect()))
+) -> Option<(usize, (f64, f64))> {
+    let at = || pieces.iter().flatten().copied();
+    let (mut axes, mut ends) = (
+        picked(&mut structure.axes, at()).into_iter(),
+        picked(layers, at()).into_iter(),
+    );
+    let work: Vec<Mutex<Option<Piece>>> = pieces
+        .iter()
+        .zip(framed)
+        .map(|(piece, starts)| {
+            let n = piece.len();
+            let mine = (
+                axes.by_ref().take(n).collect(),
+                ends.by_ref().take(n).collect(),
+            );
+            Mutex::new(Some((piece.clone(), starts, mine.0, mine.1)))
+        })
         .collect();
-    let done: Vec<Mutex<Vec<_>>> = (0..pieces.len()).map(|_| Mutex::new(Vec::new())).collect();
-    spread(pieces.len(), threads, &|k| {
-        let piece = std::mem::take(&mut *pieces[k].lock().unwrap());
-        *done[k].lock().unwrap() = piece
-            .into_iter()
-            .map(|(axis, (i, (framed, curve, inherited, bend, trunk)))| {
-                let state = &species.states[axis.pa];
-                let load = levers.map(|t| t[i].as_slice());
-                let base = framed.0.z;
-                let layer = lay(axis, (framed, curve, inherited), state, bend, load, trunk);
-                (i, layer.map_err(|height| (base, height)))
-            })
-            .collect();
+    let done: Vec<Mutex<Option<(usize, (f64, f64))>>> =
+        (0..work.len()).map(|_| Mutex::new(None)).collect();
+    spread(work.len(), threads, &|k| {
+        let (at, starts, axes, ends) = work[k].lock().unwrap().take().expect("a piece once");
+        let jobs = at.into_iter().zip(starts).zip(axes.into_iter().zip(ends));
+        for ((i, (framed, curve, inherited, bend, trunk)), (axis, end)) in jobs {
+            let state = &species.states[axis.pa];
+            let load = levers.map(|t| t[i].as_slice());
+            let base = framed.0.z;
+            match lay(axis, (framed, curve, inherited), state, bend, load, trunk) {
+                Ok(layer) => *end = Some(layer),
+                Err(height) => {
+                    *done[k].lock().unwrap() = Some((i, (base, height)));
+                    break;
+                }
+            }
+        }
     });
-    done.into_iter()
-        .flat_map(|d| d.into_inner().unwrap())
-        .collect()
+    done.into_iter().find_map(|d| d.into_inner().unwrap())
 }

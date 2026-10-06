@@ -4,7 +4,9 @@ use super::shoot::Shoot;
 use super::stop::Stop;
 use super::{shared, stop_stake, Apex};
 use crate::error::Result;
+use crate::fixed;
 use crate::lineage::{above, below, Key, ABORTION, END, ENDED, VIABILITY};
+use crate::presence::Unit;
 use crate::schedule::Carried;
 
 impl Shoot<'_, '_> {
@@ -39,7 +41,7 @@ impl Shoot<'_, '_> {
             gone: if first { draws.sleep } else { 0.0 },
             relay: first && relay,
         };
-        let step = carried.unit(state.lifespan, 1);
+        let step = carried.unit(state.life(), 1);
         let share = step.share;
         // Shade raises the apex's death hazard, ln survival = ln
         // viability x light^-phi (host, 2026-10-05): near-certain survival
@@ -50,9 +52,13 @@ impl Shoot<'_, '_> {
         } else {
             state.viability
         };
+        // Decided on the contract's threshold (FINE-CONTRACT.md D5); the
+        // real survival sizes the unit's presence.
+        let survives = fixed::decide::survival(viability, share);
         let viability = shared(viability, share);
-        let u = decide.child(VIABILITY).unit();
-        if u >= viability {
+        let d = decide.child(VIABILITY).draw();
+        let u = d.unit();
+        if d.0 >= survives {
             self.axis_mut(apex.axis).apex_end = Some(cycle - 1);
             self.draws_mut(apex.axis).failed = true;
             // The unit that failed is spent: a relay's first unit draws
@@ -77,13 +83,15 @@ impl Shoot<'_, '_> {
         let survive = survive * self.kept(apex.axis);
         let (size, reads) = (self.size(apex.axis), self.reads);
         let draws = self.draws_mut(apex.axis);
-        draws.units.push([survive, 1.0]);
-        draws.shares.push(share);
+        draws.units.push(Unit {
+            survive,
+            persist: 1.0,
+            share,
+        });
         if reads.sketching {
-            draws.sizes.push(size);
-            if reads.lights {
-                draws.lights.push(light);
-            }
+            draws
+                .shade
+                .push([size, if reads.lights { light } else { 1.0 }]);
         }
         self.grow_unit(apex, pa, unit, cycle)?;
         apex.spent += share;
@@ -92,12 +100,14 @@ impl Shoot<'_, '_> {
         // runs over the share this unit and the next leave it exposed
         // (`schedule.rs`).
         let draws = self.draws(apex.axis);
-        let grown = draws.aged + draws.shares.iter().sum::<f64>();
-        let exposure = carried.exposure(state.lifespan, 1);
+        let grown = draws.aged + draws.grown();
+        let exposure = carried.exposure(state.life(), 1);
         let abortion = 1.0 - shared(1.0 - state.abortion_at(grown), exposure);
-        if abortion > 0.0 && !step.ends {
-            let u = decide.child(ABORTION).unit();
-            if u < abortion {
+        let aborts = fixed::decide::abortion(state, grown, exposure);
+        if aborts > 0 && !step.ends {
+            let d = decide.child(ABORTION).draw();
+            let u = d.unit();
+            if d.0 < aborts {
                 self.axis_mut(apex.axis).apex_end = Some(cycle);
                 self.stop(
                     apex,
@@ -119,7 +129,7 @@ impl Shoot<'_, '_> {
                 .decided(above(u, abortion), wood, stop_stake(state.relay));
             let relayed = self.relayed(state.relay, decide, wood);
             let units = &mut self.draws_mut(apex.axis).units;
-            units.last_mut().unwrap()[1] = relayed + (1.0 - relayed) * faded;
+            units.last_mut().unwrap().persist = relayed + (1.0 - relayed) * faded;
         }
         if !step.ends {
             self.next.push(apex);

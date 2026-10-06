@@ -7,7 +7,7 @@
 use super::sketch::Pencil;
 use super::{bud, Apex, Certain, Placed};
 use crate::dormant::{Sleeper, Woken};
-use crate::lineage::Key;
+use crate::lineage::{Draw, Key};
 use crate::presence::{Draws, Windows};
 use crate::species::{Species, MAX_BUDS};
 use crate::structure::{Axis, Origin};
@@ -15,7 +15,8 @@ use crate::structure::{Axis, Origin};
 /// What every growth unit reads and none writes: the species, its
 /// laterals as drawn, the bound on each PA's life, the windows, and the
 /// phytomers grown before the cycle, against the budget.
-pub(super) struct Rules<'a> {
+#[derive(Clone)]
+pub(crate) struct Rules<'a> {
     pub species: &'a Species,
     /// Each PA's zones' lateral probabilities as drawn (`PaState::laterals`).
     pub laterals: Vec<Vec<Vec<f64>>>,
@@ -27,6 +28,10 @@ pub(super) struct Rules<'a> {
     pub age: u32,
     pub budget: u32,
     pub grown: u64,
+    /// Whether a chain grows alone (fn-209 probe P2): the laterals it
+    /// makes and the sleeping buds that wake on it are buds it bears,
+    /// made but not grown.
+    pub alone: bool,
 }
 
 /// What the rough layout gives a growing apex (`sketch.rs`): its light,
@@ -91,8 +96,8 @@ pub(super) struct Shoot<'g, 'a> {
     pub grown: u64,
     /// One zone's node leads and its nodes (order draw, draw index, lead,
     /// buds), reused.
-    pub leads: Vec<f64>,
-    pub node_buds: Vec<(f64, u64, f64, [Placed; MAX_BUDS as usize])>,
+    pub leads: Vec<i64>,
+    pub node_buds: Vec<(Draw, u64, i64, [Placed; MAX_BUDS as usize])>,
     /// One zone's sleeping buds' expected wood per PA, reused.
     pub sleeping: Vec<f64>,
 }
@@ -291,10 +296,13 @@ impl<'g, 'a> Shoot<'g, 'a> {
             }
             Origin::Seed | Origin::Lateral { .. } => (key.0, key.onto(pa)),
         };
-        self.next.push(Apex {
-            axis: self.len(),
-            spent,
-        });
+        let borne = self.rules.alone && matches!(origin, Origin::Lateral { woken: false, .. });
+        if !borne {
+            self.next.push(Apex {
+                axis: self.len(),
+                spent,
+            });
+        }
         let draws = Draws {
             birth: made,
             ..Draws::default()

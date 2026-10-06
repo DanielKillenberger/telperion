@@ -8,14 +8,21 @@
 //! - `stages`: each tree's time per stage (`telperion_space::Stage`), without
 //!   light and under `LIT`, or only one of them where `light` is `neutral`
 //!   or `lit`.
+//! - `passes`: each tree's time per pass (`telperion_space::Pass`), summed
+//!   over the cycles, in milliseconds, on one line per tree with the 1-minute
+//!   load and the cores the process may use: the time between a pass's
+//!   report and the report before it. `gaps` is the time before a stage's
+//!   report since the last pass's, and `tail` what follows the last report
+//!   until the tree is returned.
 //! - `gap`: under `LIT`, the oak's and the beech's rough layout grown with
 //!   the tree against their final lay: crown extent, how far each phytomer
 //!   stands from its final place, and the light at each living bud.
+use std::collections::BTreeMap;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::Instant;
 use telperion_space::{
-    beech, bud_light, grow, grow_staged, oak, palm, sketch, spruce, Light, Request, Species, Stage,
-    Structure, Vec3,
+    beech, bud_light, grow, grow_staged, oak, palm, sketch, spruce, Light, Pass, Request, Species,
+    Stage, Structure, Vec3,
 };
 
 const BUDGET: u32 = 20_000_000;
@@ -83,6 +90,11 @@ fn main() {
                         stages(name, &species, request(seed, light));
                     }
                 }
+                "passes" => {
+                    for &light in &lights {
+                        passes(name, &species, request(seed, light));
+                    }
+                }
                 "gap" if name == "oak" || name == "beech" => {
                     // And with every sag at 0: the share of the gap that
                     // is sag's.
@@ -100,7 +112,7 @@ fn main() {
                     }
                 }
                 "gap" => {}
-                _ => panic!("measures hash | stages | gap [age] [seeds]"),
+                _ => panic!("measures hash | stages | passes | gap [age] [seeds]"),
             }
         }
     }
@@ -120,8 +132,10 @@ fn stages(name: &str, species: &Species, request: Request) {
     let mut last = Instant::now();
     let started = last;
     grow_staged(species, request, &mut |stage| {
+        let Some(i) = order.iter().position(|&s| s == stage) else {
+            return;
+        };
         let now = Instant::now();
-        let i = order.iter().position(|&s| s == stage).unwrap();
         spent[i] += (now - last).as_secs_f64();
         last = now;
     })
@@ -131,6 +145,43 @@ fn stages(name: &str, species: &Species, request: Request) {
         "{name} age {} seed {} extinction {} sky {}: total {total:.2} s; growth {:.2}, rough layout {:.2}, full re-lays {:.2}, light {:.2}, settle {:.2}, final lay {:.2}; peak memory so far {}",
         request.age, request.seed, request.light.extinction, request.light.sky,
         spent[0], spent[1], spent[2], spent[3], spent[4], spent[5], peak()
+    );
+}
+
+/// The time each pass took, summed over the cycles, in milliseconds.
+fn passes(name: &str, species: &Species, request: Request) {
+    let mut spent: BTreeMap<Pass, f64> = BTreeMap::new();
+    let mut gaps = 0.0;
+    let started = Instant::now();
+    let mut last = started;
+    grow_staged(species, request, &mut |stage| {
+        let now = Instant::now();
+        let ms = (now - last).as_secs_f64() * 1e3;
+        match stage {
+            Stage::Pass(pass) => *spent.entry(pass).or_default() += ms,
+            _ => gaps += ms,
+        }
+        last = now;
+    })
+    .expect("grows");
+    let ended = Instant::now();
+    let tail = (ended - last).as_secs_f64() * 1e3;
+    let total = (ended - started).as_secs_f64() * 1e3;
+    let load = std::fs::read_to_string("/proc/loadavg")
+        .ok()
+        .and_then(|l| l.split_whitespace().next().map(str::to_string))
+        .unwrap_or_default();
+    let cores = std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get);
+    let each: Vec<String> = spent
+        .iter()
+        .map(|(p, ms)| format!("{p:?}={ms:.2}"))
+        .collect();
+    println!(
+        "passes {name} age={} seed={} extinction={} cores={cores} load={load} total={total:.2} {} gaps={gaps:.2} tail={tail:.2}",
+        request.age,
+        request.seed,
+        request.light.extinction,
+        each.join(" ")
     );
 }
 

@@ -10,9 +10,10 @@
 //! so a lateral a setting is about to shed fades before it is shed. The
 //! main line is never tested: the seed and what carries it on are no
 //! laterals.
+use super::sketch::Rows;
 use super::Grower;
+use crate::allocation::TIP;
 use crate::lineage::{above, Key, SHED};
-use crate::structure::Origin;
 
 /// The share of last year's remembered balance kept each year: a
 /// half-life of a year. An estimate, unsourced.
@@ -22,27 +23,27 @@ impl Grower<'_> {
     /// Updates every living lateral subtree's balance, sheds by it, and
     /// gives each living apex what its subtrees' survival makes of its
     /// unit this cycle.
-    pub(super) fn balance(&mut self, cycle: u32) {
+    pub(super) fn balance(&mut self, cycle: u32, rows: Option<&Rows>) {
         let species = self.species;
         if species.states.iter().all(|s| s.balance_hazard == 0.0) {
             return;
         }
-        let Some(sketch) = self.sketch.as_mut() else {
+        let (Some(sketch), Some(Rows { links, pa })) = (self.sketch.as_mut(), rows) else {
             return;
         };
         let n = sketch.pencils.len();
         let (mut light, mut cost, mut living) = (vec![0.0; n], vec![0.0; n], vec![false; n]);
-        for i in 0..n {
-            let p = &sketch.pencils[i];
-            cost[i] = species.states[self.axes[i].pa].upkeep * p.wood;
-        }
+        let pencils = &sketch.pencils;
+        crate::cores::fill(&mut cost, 1 << 15, self.threads, &|i| {
+            species.states[pa[i]].upkeep * pencils[i].wood
+        });
         for apex in self.live.iter().filter(|a| a.axis < n) {
             let p = &sketch.pencils[apex.axis];
             light[apex.axis] = p.base_scale * p.running * p.light;
             living[apex.axis] = true;
         }
         for i in (1..n).rev() {
-            if let Some(parent) = self.axes[i].origin.parent() {
+            if let Some(parent) = links[i].parent {
                 light[parent] += light[i];
                 cost[parent] += cost[i];
                 living[parent] |= living[i];
@@ -52,15 +53,16 @@ impl Grower<'_> {
         // in it this cycle.
         let (mut shed, mut kept) = (vec![false; n], vec![1.0; n]);
         for i in 0..n {
-            let (dead, keep) = match self.axes[i].origin.parent() {
+            let (dead, keep) = match links[i].parent {
                 Some(parent) => (shed[parent], kept[parent]),
                 None => (false, 1.0),
             };
             (shed[i], kept[i]) = (dead, keep);
-            if dead || !living[i] || !matches!(self.axes[i].origin, Origin::Lateral { .. }) {
+            let lateral = links[i].parent.is_some() && links[i].node != TIP;
+            if dead || !living[i] || !lateral {
                 continue;
             }
-            let state = &species.states[self.axes[i].pa];
+            let state = &species.states[pa[i]];
             let total = light[i] + cost[i];
             let now = if total > 0.0 {
                 (light[i] - cost[i]) / total
@@ -74,15 +76,16 @@ impl Grower<'_> {
                 continue;
             }
             let p = -(-hazard).exp_m1();
-            let u = Key(self.axes[i].lineage)
+            let d = Key(self.axes[i].lineage)
                 .child(SHED)
                 .child(u64::from(cycle))
-                .unit();
-            if u < p {
+                .draw();
+            let u = d.unit();
+            if d.under(p) {
                 shed[i] = true;
             } else {
                 let windows = &self.rules.windows;
-                let wood = windows.wood(self.axes[i].pa, cycle);
+                let wood = windows.wood(pa[i], cycle);
                 kept[i] = keep * windows.decided(above(u, p), wood, 1.0);
             }
         }

@@ -6,6 +6,9 @@ license = "MIT"
 description = "The tree space's growth engine core: buds with a physiological age, growth units of phytomers, death and shedding, continuous in every setting. Outside the pipeline until phase F (docs/tree-space.md)."
 
 [dependencies]
+# The helpers spread work runs on, a pool kept for the process (fn-211
+# task 3); a pool of our own would need `unsafe` to hand it scoped work.
+rayon = "1"
 
 [dev-dependencies]
 # The oracle fixtures are JSON the browser run wrote (scripts/greenlab-oracle.mjs).

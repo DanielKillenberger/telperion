@@ -156,6 +156,13 @@ pub struct Phytomer {
     pub(crate) light: f64,
 }
 
+impl Phytomer {
+    /// The key of its node's draw (D1): the same node under any settings.
+    pub fn key(&self) -> u64 {
+        self.key
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Structure {
     /// Cycles grown.

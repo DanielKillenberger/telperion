@@ -410,6 +410,17 @@ impl Species {
 }
 
 impl PaState {
+    /// Whether an apex's abortion hazard changes with the time it grew.
+    pub(crate) fn rises(&self) -> bool {
+        self.abortion_rise != 0.0 && self.abortion > 0.0
+    }
+
+    /// Its lifespan as the grower and the closed form read it: on the
+    /// tick grid (`fixed.rs`, FINE-CONTRACT.md D7).
+    pub(crate) fn life(&self) -> f64 {
+        crate::fixed::grid(self.lifespan)
+    }
+
     /// The probability the apex aborts after a growth unit that ends `t`
     /// cycles of its axis's growth: whole cycles for whole units, the real
     /// time where a unit is partial (host decision 7).

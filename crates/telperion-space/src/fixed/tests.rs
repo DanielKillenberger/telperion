@@ -1,0 +1,108 @@
+//! The contract's fixed point against the reals it stands for: close to
+//! them, monotone, and exact where it must be.
+use super::*;
+
+fn real32(x: i64) -> f64 {
+    x as f64 / ONE32 as f64
+}
+
+#[test]
+fn log2_is_within_a_few_units_of_its_last_place() {
+    let mut n = 1u64;
+    while n < u64::MAX / 5 {
+        for m in [n, n + 1, n.saturating_mul(3) / 2] {
+            let err = (real32(log2(m)) - (m as f64).log2()).abs();
+            assert!(err < 4.0 / ONE32 as f64, "log2 {m}: {err}");
+        }
+        n += n / 2 + 1;
+    }
+    assert_eq!(log2(1), 0);
+    assert_eq!(log2(1 << 40), 40 << 32);
+    assert_eq!(log2(0), -INF);
+}
+
+#[test]
+fn exp2_neg_is_close_and_monotone() {
+    for k in 0..20_000i64 {
+        let x = (k * 0x9e37_79b1) % (70 * ONE32);
+        let got = exp2_neg(x) as f64 / P_ONE as f64;
+        let want = (-real32(x)).exp2();
+        assert!(
+            (got - want).abs() <= want * 1e-15 + 1e-18,
+            "2^-{x}: {got} {want}"
+        );
+    }
+    let mut last = P_ONE;
+    for x in (0..ONE32 * 3).step_by(9_973_331) {
+        let v = exp2_neg(x);
+        assert!(v <= last, "2^-x falls");
+        last = v;
+    }
+    assert_eq!(exp2_neg(0), P_ONE);
+    assert_eq!(exp2_neg(ONE32), P_ONE / 2);
+    assert_eq!(exp2_neg(63 * ONE32), 0);
+}
+
+#[test]
+fn exp2_and_exp_hold_on_both_sides_of_one() {
+    for y in [-5.5, -1.0, -0.25, 0.0, 0.3, 1.0, 2.75, 10.0, 20.5] {
+        let got = real32(exp2(q32(y)));
+        assert!(
+            (got - y.exp2()).abs() <= y.exp2() * 1e-8 + 1e-9,
+            "2^{y}: {got}"
+        );
+        let got = real32(exp(q32(y)));
+        assert!(
+            (got - y.exp()).abs() <= y.exp() * 1e-8 + 1e-9,
+            "e^{y}: {got}"
+        );
+    }
+    assert_eq!(exp2(60 * ONE32), INF);
+    assert_eq!(exp(-INF), 0);
+}
+
+#[test]
+fn a_threshold_is_the_real_decision_on_q62() {
+    // d / 2^53 < n / 2^62  <=>  d < ceil(n / 2^9).
+    for n in [0u64, 1, 511, 512, 513, 1 << 40, P_ONE - 1, P_ONE] {
+        let t = threshold(n);
+        if t > 0 {
+            assert!(u128::from(t - 1) << 9 < u128::from(n), "{n}");
+        }
+        assert!(u128::from(t) << 9 >= u128::from(n), "{n}");
+    }
+    assert_eq!(threshold(P_ONE), 1 << 53);
+}
+
+#[test]
+fn a_share_of_a_survival_is_the_real_power() {
+    for (p, share) in [(0.9, 0.5), (0.5, 0.25), (0.999, 0.01), (0.2, 0.75)] {
+        let ticks = (share * CYCLE) as u64;
+        let got = prob(scaled(neg_log2(q62(p)), ticks)) as f64 / P_ONE as f64;
+        let want: f64 = p.powf(share);
+        assert!((got - want).abs() < 1e-9, "{p}^{share}: {got}");
+    }
+    assert_eq!(prob(scaled(neg_log2(0), 5)), 0);
+}
+
+#[test]
+fn ratios_logits_and_presences() {
+    let got = real32(ln_ratio(3, 7));
+    assert!((got - (3.0f64 / 7.0).ln()).abs() < 1e-8);
+    let d = 1u64 << 51;
+    assert!((real32(logit_draw(d)) - (0.25f64 / 0.75).ln()).abs() < 1e-8);
+    assert!((real32(logit(q62(0.8))) - 4f64.ln()).abs() < 1e-8);
+    assert_eq!(presence(INF, 5), ONE32 as u64);
+    assert_eq!(presence(5, 0), ONE32 as u64);
+    assert_eq!(presence(-1, 5), 0);
+    assert_eq!(presence(ONE32, 2 * ONE32), (ONE32 / 2) as u64);
+    assert_eq!(presence(3 * ONE32, 2 * ONE32), ONE32 as u64);
+}
+
+#[test]
+fn time_on_the_grid() {
+    assert_eq!(grid(1.37), (1.37 * CYCLE).round() / CYCLE);
+    assert_eq!(ticks(grid(2.5)), 5 << 19);
+    assert_eq!(grid(0.999_999_9), 1.0);
+    assert_eq!(grid(f64::INFINITY), f64::INFINITY);
+}

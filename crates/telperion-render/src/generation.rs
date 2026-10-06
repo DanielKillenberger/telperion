@@ -4,9 +4,14 @@ mod clock;
 mod compute;
 use clock::Clock;
 mod data;
+// fn-209 F1: the fine-root executor's GPU side, its decision contract so
+// far; built for its tests until the executor's shaders read it.
+#[cfg(test)]
+mod fine;
 mod io;
 mod positions;
 mod preparation;
+mod sources;
 #[cfg(any(target_arch = "wasm32", test))]
 pub(crate) mod request;
 mod submit;
@@ -165,39 +170,28 @@ impl Generator {
     }
     async fn create(gpu: Gpu, identity: Arc<()>, resident_allowed: bool) -> Result<Self> {
         let scopes = io::scope(&gpu);
-        let leaf = include_str!("shaders/leaf.wgsl");
         let place = io::Pass::new(
             &gpu,
-            format!(
-                "{leaf}\n{}\n{}\n{}\n{}",
-                include_str!("generation/order.wgsl"),
-                include_str!("generation/place.wgsl"),
-                include_str!("generation/contact.wgsl"),
-                include_str!("generation/pack.wgsl")
-            ),
+            sources::place(),
             &[true, true, true, false, false, false],
             &["place", "prefix"],
         );
         let compact = io::Pass::new(
             &gpu,
-            include_str!("generation/scatter.wgsl").into(),
+            sources::scatter(),
             &[true, true, true, false],
             &["scatter"],
         );
         let mass = io::Pass::new(
             &gpu,
-            format!("{leaf}\n{}", include_str!("generation/mass.wgsl")),
+            sources::mass(),
             &[true, false, false],
             &["occupancy", "depth"],
         );
         let positions = resident_allowed.then(|| {
             io::Pass::new(
                 &gpu,
-                format!(
-                    "{}\n{}",
-                    include_str!("generation/positions.wgsl"),
-                    include_str!("generation/wood_geometry.wgsl")
-                ),
+                sources::positions(),
                 &[true, true, false, false, false, false],
                 &["emit", "admit", "radii", "finish"],
             )
@@ -271,6 +265,8 @@ fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
         (a, b) => a.or(b),
     }
 }
+#[cfg(test)]
+mod shader_tests;
 #[cfg(test)]
 mod standalone_tests;
 #[cfg(test)]
