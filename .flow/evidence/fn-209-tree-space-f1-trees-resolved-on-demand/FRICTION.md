@@ -132,3 +132,10 @@
 - **Slowed:** the local `dcg` hook refuses heredocs fed to an interpreter and every form of `git checkout -- <path>` or `git show HEAD:<path> > <path>`; the edits went through the editor tool one block at a time, and the restore through `git diff > patch; git apply -R patch`.
 - **Cost:** about 10 minutes and a few thousand tokens, and one botched splice of `place.rs` (lines cut by a `sed -n` range) that cost two rebuilds.
 - **Would remove it:** a local setup matter, reported, not specced: formatting only the files a task touches (`rustfmt <files>` rather than `cargo fmt -p`), which would have avoided the restore entirely.
+
+## 2026-10-07, a stack overflow the gate found after decision 7 (task 6)
+
+- **Doing:** the workspace gate after host decisions 7 and 8.
+- **Slowed:** `tests/geometry.rs`'s `an_overflowing_expectation_draws_finite_wood` (age 1,500) aborted the test binary with a stack overflow. `grow` now builds the closed form's table for its cut, and `Kept::of` and `Kept::lived` recurse once per cycle of age. The crate's own test run after decision 7 had passed, because which thread reads the deepest rows depends on scheduling: a pool thread or the 2 MB test thread.
+- **Cost:** one gate (11.5 minutes, the GPU lock held) and about 10 minutes to backtrace and fix. The fix runs the table's shares on threads with a 256 MB reserved stack (`cores::deep`).
+- **Would remove it:** a test that builds the closed form at the deepest age any test grows, run on a 2 MB thread, beside the closed form's own tests. The recursion made iterative would remove the limit altogether.

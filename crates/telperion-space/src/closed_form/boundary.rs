@@ -51,8 +51,9 @@ impl Rows {
     /// every age 0 to the tree's, on up to `threads` cores. Each core
     /// reads its own share of the rows, interleaved so the costly old
     /// ones are spread, with tables of its own: a row is a value of its
-    /// PA and age alone, whatever core read it. The first core reads the
-    /// seed's too, from the tables its rows left.
+    /// PA and age alone, whatever core read it. Each share runs on a
+    /// thread with a stack as deep as the age needs (`cores::deep`). The
+    /// first core reads the seed's too, from the tables its rows left.
     pub fn new(species: &Species, age: u32, threads: usize) -> Self {
         let m_max = age as usize;
         let borne = borne(species);
@@ -64,7 +65,7 @@ impl Rows {
         let shares = threads.clamp(1, jobs.len().max(1));
         let done: Vec<Mutex<Read>> = (0..shares).map(|_| Mutex::new(Vec::new())).collect();
         let seed = Mutex::new(Row::default());
-        crate::cores::spread(shares, threads, &|k| {
+        crate::cores::deep(shares, &|k| {
             let windows = Windows::new(species, age);
             let mut kept = Kept::new(species, &windows);
             let mine = jobs.iter().skip(k).step_by(shares);
